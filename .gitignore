@@ -1,0 +1,6 @@
+*.pyc
+*_pb2.py
+.idea
+.DS_Store
+__pycache__
+PySC2.egg-info
