@@ -19,8 +19,9 @@ from __future__ import print_function
 
 from setuptools import setup
 
-description = """PySC2 - StarCraft II Learning Environment
+description = """SenseStar - StarCraft II Learning Environment
 
+Part1 PySC2:
 PySC2 is DeepMind's Python component of the StarCraft II Learning Environment
 (SC2LE). It exposes Blizzard Entertainment's StarCraft II Machine Learning API
 as a Python RL Environment. This is a collaboration between DeepMind and
@@ -34,18 +35,19 @@ which outlines our motivation for using StarCraft II for DeepRL research, and
 some initial research results using the environment.
 
 Read the README at https://github.com/deepmind/pysc2 for more information.
+
+Part2 TStarBot1:
+Macro-action-based StarCraft-II learning environment.
 """
 
 setup(
-    name='PySC2',
-    version='2.0.1',
+    name='sensestar',
+    version='0.0.1',
     description='Starcraft II environment and library for training agents.',
     long_description=description,
-    author='DeepMind',
-    author_email='pysc2@deepmind.com',
+    author='X-lab',
     license='Apache License, Version 2.0',
     keywords='StarCraft AI',
-    url='https://github.com/deepmind/pysc2',
     packages=[
         'pysc2',
         'pysc2.agents',
@@ -55,6 +57,11 @@ setup(
         'pysc2.maps',
         'pysc2.run_configs',
         'pysc2.tests',
+        'sc2learner',
+        'sc2learner.agents',
+        'sc2learner.envs',
+        'sc2learner.utils',
+        'sc2learner.bin',
     ],
     install_requires=[
         'absl-py>=0.1.0',
@@ -73,6 +80,11 @@ setup(
         'sk-video',
         'websocket-client',
         'whichcraft',
+        'gym==0.10.5',
+        'torch==1.1.0',
+        'tensorflow>=1.4.1',
+        'joblib',
+        'pyzmq'
     ],
     entry_points={
         'console_scripts': [
