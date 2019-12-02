@@ -5,7 +5,7 @@ import random
 
 class RLBaseDataset(object):
     def __init__(self, maxlen, transform):
-        self.queue = deque(maxlen)
+        self.queue = deque(maxlen=maxlen)
         self.transform = transform
 
     def push(self):
