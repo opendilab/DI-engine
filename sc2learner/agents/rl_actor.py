@@ -76,6 +76,7 @@ class PpoActor(BaseActor):
             output_items.append('mask')
         outputs = {k: [] for k in output_items}
         episode_infos = []
+        outputs['state'] = self.state  # rollout begin state
         for _ in range(self.unroll_length):
             inputs = self._pack_model_input()
             self._save_model_input(inputs, outputs)
@@ -94,7 +95,6 @@ class PpoActor(BaseActor):
             last_values = self.model(inputs, mode='value').squeeze(0)
         outputs['return'] = self._get_return(outputs, last_values)
 
-        outputs['state'] = self.state
         outputs['episode_infos'] = episode_infos
         return outputs
 
