@@ -62,7 +62,7 @@ class MlpPolicy(PpoPolicyBase):
         vf = self.act(self.vf_h1(x))
         vf = self.act(self.vf_h2(vf))
         vf = self.act(self.vf_h3(vf))
-        vf = self.vf(vf)[:, 0]
+        vf = self.vf(vf)
 
         pi = self.act(self.pi_h1(x))
         pi = self.act(self.pi_h2(pi))
@@ -85,7 +85,7 @@ class MlpPolicy(PpoPolicyBase):
         vf = self.act(self.vf_h1(x))
         vf = self.act(self.vf_h2(vf))
         vf = self.act(self.vf_h3(vf))
-        vf = self.vf(vf)[:, 0]
+        vf = self.vf(vf)
         return vf
 
 
@@ -154,6 +154,7 @@ class LstmPolicy(PpoPolicyBase):
         self.lstm = LSTMFC(fc_dim, lstm_dim)
         self.pi_logit = nn.Linear(fc_dim, ac_space.n)
         self.pd = CategoricalPd()
+        self.initial_state = torch.zeros(lstm_dim*2)
 
         self._init()
 
