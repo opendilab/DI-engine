@@ -8,8 +8,8 @@ class RLBaseDataset(object):
         self.queue = deque(maxlen=maxlen)
         self.transform = transform
 
-    def push(self):
-        pass
+    def push(self, data):
+        self.queue.append(data)
 
     def __len__(self):
         return len(self.queue)
