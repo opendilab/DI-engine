@@ -33,9 +33,9 @@ class CategoricalPd(Pd):
         return self.cross_entropy(self.logits, x)
 
     def entropy(self):
-        a = self.logits - self.logits.max(dim=-1, keepdims=True)[0]
+        a = self.logits - self.logits.max(dim=-1, keepdim=True)[0]
         ea = torch.exp(a)
-        z = ea.sum(dim=-1, keepdims=True)
+        z = ea.sum(dim=-1, keepdim=True)
         p = ea / z
         return (p * torch.log(z) - a).sum(dim=-1)
 
