@@ -100,7 +100,7 @@ class PpoActor(BaseActor):
 
     def _get_return(self, outputs, last_values):
         last_gae_lam = 0  # TODO clarify name
-        returns = outputs['value'].copy()
+        returns = [t.clone() for t in outputs['value']]  # IMPORTANT
         for i in reversed(range(self.unroll_length)):
             if i == self.unroll_length - 1:
                 next_nontermial = 1.0 - self.done
