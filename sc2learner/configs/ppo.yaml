@@ -1,0 +1,4 @@
+common:
+    save_path: /mnt/lustre/niuyazhe/code/gitlab/SenseStar/sc2learner/experiments
+logger:
+    print_freq: 10
