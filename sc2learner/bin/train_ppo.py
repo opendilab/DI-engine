@@ -3,6 +3,8 @@ from __future__ import division
 from __future__ import print_function
 
 import sys
+import yaml
+from easydict import EasyDict
 from threading import Thread
 import os
 import multiprocessing
@@ -132,6 +134,10 @@ def start_learner():
                 ob_space=env.observation_space,
                 ac_space=env.action_space,
             )
+    config_path = 'configs/ppo.yaml'
+    with open(config_path) as f:
+        cfg = yaml.load(f)
+    cfg = EasyDict(cfg)
     learner = PpoLearner(env=env,
                          model=model,
                          unroll_length=FLAGS.unroll_length,
@@ -147,7 +153,8 @@ def start_learner():
                          #learn_act_speed_ratio=FLAGS.learn_act_speed_ratio,
                          # save_dir=FLAGS.save_dir,
                          # init_model_path=FLAGS.init_model_path,
-                         port=port)
+                         port=port,
+                         cfg=cfg,)
     learner.run()
     env.close()
 

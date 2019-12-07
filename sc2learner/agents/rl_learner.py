@@ -4,6 +4,7 @@ import zmq
 import time
 import torch
 from sc2learner.agents.rl_dataloader import RLBaseDataset, RLBaseDataLoader
+from sc2learner.utils import build_logger
 
 
 def build_optimizer(model):
@@ -14,10 +15,6 @@ def build_optimizer(model):
 def build_lr_scheduler(optimizer):
     lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100000], gamma=0.1)
     return lr_scheduler
-
-
-def build_logger():
-    pass
 
 
 def build_clip_range_scheduler():
@@ -36,7 +33,9 @@ class BaseLearner(object):
     def __init__(self, env, model, unroll_length,
                  queue_size,
                  port=None,
-                 batch_size=4):
+                 batch_size=4,
+                 cfg=None):
+        assert(cfg is not None)
         self.env = env
         self.model = model  # TODO(nyz) whether create model inside
         self.unroll_length = unroll_length
@@ -47,19 +46,20 @@ class BaseLearner(object):
         self.dataloader = RLBaseDataLoader(self.dataset, batch_size=batch_size)
         self.pull_thread = Thread(target=self._pull_data,
                                   args=(self.zmq_context, port['actor']))
-        self.pull_thread.start()
         self.reply_model_thread = Thread(target=self._reply_model,
                                          args=(self.zmq_context, port['learner']))
-        self.reply_model_thread.start()
 
         self.optimizer = build_optimizer(model)
         self.lr_scheduler = build_lr_scheduler(self.optimizer)
-        self.logger = build_logger()
+        self.logger, self.tb_logger, self.scalar_record = build_logger(cfg)
+        self.scalar_record.register_var('total_loss')
         self._init()
 
     def run(self):
+        self.pull_thread.start()
+        self.reply_model_thread.start()
         while len(self.episode_infos) < self.episode_infos.maxlen // 2:
-            print('current episode_infos len:'.format(len(self.episode_infos)))
+            print('current episode_infos len:{}'.format(len(self.episode_infos)))
             time.sleep(10)
             #if len(self.dataset) > self.dataloader.batch_size:
             #    print('out of loop')
@@ -72,8 +72,9 @@ class BaseLearner(object):
             batch_data = next(self.dataloader)
             loss_items = self._get_loss(batch_data)
             self._optimize_step(loss_items['total_loss'])
+            self.scalar_record.update_var({'total_loss': loss_items['total_loss'].item()})
             if iterations % 10 == 0:
-                print('iterations:{}\tloss:{}'.format(iterations, loss_items['total_loss'].item()))
+                self.logger.info('iterations:{}\t{}'.format(iterations, self.scalar_record.get_var('total_loss')))
                 # TODO (finer log)
 
     def _get_loss(self, data):
