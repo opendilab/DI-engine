@@ -36,6 +36,7 @@ class BaseLearner(object):
                  batch_size=4,
                  cfg=None):
         assert(cfg is not None)
+        self.cfg = cfg
         self.env = env
         self.model = model  # TODO(nyz) whether create model inside
         self.unroll_length = unroll_length
@@ -52,7 +53,6 @@ class BaseLearner(object):
         self.optimizer = build_optimizer(model)
         self.lr_scheduler = build_lr_scheduler(self.optimizer)
         self.logger, self.tb_logger, self.scalar_record = build_logger(cfg)
-        self.scalar_record.register_var('total_loss')
         self._init()
 
     def run(self):
@@ -72,12 +72,17 @@ class BaseLearner(object):
             batch_data = next(self.dataloader)
             loss_items = self._get_loss(batch_data)
             self._optimize_step(loss_items['total_loss'])
-            self.scalar_record.update_var({'total_loss': loss_items['total_loss'].item()})
-            if iterations % 10 == 0:
-                self.logger.info('iterations:{}\t{}'.format(iterations, self.scalar_record.get_var('total_loss')))
-                # TODO (finer log)
+            self._update_monitor_var(loss_items)
+            self._print_log(iterations)
+
+    def _print_log(self, iterations):
+        if iterations % self.cfg.logger.print_freq == 0:
+            self.logger.info('iterations:{}\t{}'.format(iterations, self.scalar_record.get_var_all()))
 
     def _get_loss(self, data):
+        raise NotImplementedError
+
+    def _update_monitor_var(self, items):
         raise NotImplementedError
 
     def _optimize_step(self, loss):
@@ -143,7 +148,10 @@ class PpoLearner(BaseLearner):
 
     # overwrite
     def _init(self):
-        pass
+        self.scalar_record.register_var('total_loss')
+        self.scalar_record.register_var('pg_loss')
+        self.scalar_record.register_var('value_loss')
+        self.scalar_record.register_var('entropy_reg')
 
     # overwrite
     def _parse_pull_data(self, data):
@@ -210,7 +218,24 @@ class PpoLearner(BaseLearner):
         loss_items['total_loss'] = loss
         loss_items['approximate_kl'] = approximate_kl
         loss_items['clipfrac'] = clipfrac
+        loss_items['pg_loss'] = pg_loss
+        loss_items['entropy_reg'] = entropy * self.entropy_coeff
+        loss_items['value_loss'] = value_loss * self.value_coeff
         return loss_items
+
+    # overwrite
+    def _update_monitor_var(self, items):
+        keys = self.scalar_record.get_var_names()
+        new_dict = {}
+        for k in keys:
+            if k in items.keys():
+                v = items[k]
+                if isinstance(v, torch.Tensor):
+                    v = v.item()
+                else:
+                    v = v
+                new_dict[k] = v
+        self.scalar_record.update_var(new_dict)
 
     # overwrite
     def _data_transform(self, data):

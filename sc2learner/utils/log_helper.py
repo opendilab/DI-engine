@@ -74,7 +74,7 @@ class ScalarRecord(object):
     def get_var_all(self):
         s = ''
         for k in self.get_var_names():
-            s += self.get_var[k] + '\t'
+            s += self.get_var(k) + '\t'
         return s
 
 
