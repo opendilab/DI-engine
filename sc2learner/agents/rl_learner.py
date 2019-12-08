@@ -4,6 +4,8 @@ import zmq
 import time
 import torch
 from sc2learner.agents.rl_dataloader import RLBaseDataset, RLBaseDataLoader
+from sc2learner.utils import build_logger
+from sc2learner.nn_utils import build_grad_clip
 
 
 def build_optimizer(model):
@@ -14,10 +16,6 @@ def build_optimizer(model):
 def build_lr_scheduler(optimizer):
     lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100000], gamma=0.1)
     return lr_scheduler
-
-
-def build_logger():
-    pass
 
 
 def build_clip_range_scheduler():
@@ -36,7 +34,10 @@ class BaseLearner(object):
     def __init__(self, env, model, unroll_length,
                  queue_size,
                  port=None,
-                 batch_size=4):
+                 batch_size=4,
+                 cfg=None):
+        assert(cfg is not None)
+        self.cfg = cfg
         self.env = env
         self.model = model  # TODO(nyz) whether create model inside
         self.unroll_length = unroll_length
@@ -47,23 +48,21 @@ class BaseLearner(object):
         self.dataloader = RLBaseDataLoader(self.dataset, batch_size=batch_size)
         self.pull_thread = Thread(target=self._pull_data,
                                   args=(self.zmq_context, port['actor']))
-        self.pull_thread.start()
         self.reply_model_thread = Thread(target=self._reply_model,
                                          args=(self.zmq_context, port['learner']))
-        self.reply_model_thread.start()
 
         self.optimizer = build_optimizer(model)
         self.lr_scheduler = build_lr_scheduler(self.optimizer)
-        self.logger = build_logger()
+        self.logger, self.tb_logger, self.scalar_record = build_logger(cfg)
+        self.grad_clipper = build_grad_clip(cfg)
         self._init()
 
     def run(self):
+        self.pull_thread.start()
+        self.reply_model_thread.start()
         while len(self.episode_infos) < self.episode_infos.maxlen // 2:
-            print('current episode_infos len:'.format(len(self.episode_infos)))
+            print('current episode_infos len:{}'.format(len(self.episode_infos)))
             time.sleep(10)
-            #if len(self.dataset) > self.dataloader.batch_size:
-            #    print('out of loop')
-            #    break
 
         iterations = 0
         while True:
@@ -72,18 +71,24 @@ class BaseLearner(object):
             batch_data = next(self.dataloader)
             loss_items = self._get_loss(batch_data)
             self._optimize_step(loss_items['total_loss'])
-            if iterations % 10 == 0:
-                print('iterations:{}\tloss:{}'.format(iterations, loss_items['total_loss'].item()))
-                # TODO (finer log)
+            self._update_monitor_var(loss_items)
+            self._print_log(iterations)
+
+    def _print_log(self, iterations):
+        if iterations % self.cfg.logger.print_freq == 0:
+            self.logger.info('iterations:{}\t{}'.format(iterations, self.scalar_record.get_var_all()))
 
     def _get_loss(self, data):
+        raise NotImplementedError
+
+    def _update_monitor_var(self, items):
         raise NotImplementedError
 
     def _optimize_step(self, loss):
         self.optimizer.zero_grad()
         loss.backward()
+        self.grad_clipper.apply(self.model.parameters())
         # TODO support reduce gradient
-        # TODO support grad clip
         self.optimizer.step()
 
     def _pull_data(self, zmq_context, port):
@@ -142,7 +147,10 @@ class PpoLearner(BaseLearner):
 
     # overwrite
     def _init(self):
-        pass
+        self.scalar_record.register_var('total_loss')
+        self.scalar_record.register_var('pg_loss')
+        self.scalar_record.register_var('value_loss')
+        self.scalar_record.register_var('entropy_reg')
 
     # overwrite
     def _parse_pull_data(self, data):
@@ -164,7 +172,6 @@ class PpoLearner(BaseLearner):
                 self.dataset.push(item)
         else:
             self.dataset.push(data)
-        print('len', len(self.dataset))
         self.episode_infos.extend(data['episode_infos'])
         self.unroll_num += 1
 
@@ -183,7 +190,7 @@ class PpoLearner(BaseLearner):
         if self.model.use_mask:
             inputs['mask'] = data['mask']
         new_values = self.model(inputs, mode='step')[1]
-        new_neglogp = self.model.pd.neglogp(actions)
+        new_neglogp = self.model.pd.neglogp(actions, reduction='none')
         entropy = self.model.pd.entropy().mean()
 
         new_values_clipped = values + torch.clamp(new_values - values, -clip_range, clip_range)
@@ -196,7 +203,7 @@ class PpoLearner(BaseLearner):
 
         adv = returns - values
         adv = (adv - adv.mean()) / (adv.std() + 1e-8)
-        ratio = torch.pow(neglogps - new_neglogp, 2)
+        ratio = torch.exp(neglogps - new_neglogp)
         pg_loss1 = -adv * ratio
         pg_loss2 = -adv * torch.clamp(ratio, 1.0 - clip_range, 1.0 + clip_range)
         pg_loss = torch.max(pg_loss1, pg_loss2).mean()
@@ -209,7 +216,24 @@ class PpoLearner(BaseLearner):
         loss_items['total_loss'] = loss
         loss_items['approximate_kl'] = approximate_kl
         loss_items['clipfrac'] = clipfrac
+        loss_items['pg_loss'] = pg_loss
+        loss_items['entropy_reg'] = entropy * self.entropy_coeff
+        loss_items['value_loss'] = value_loss * self.value_coeff
         return loss_items
+
+    # overwrite
+    def _update_monitor_var(self, items):
+        keys = self.scalar_record.get_var_names()
+        new_dict = {}
+        for k in keys:
+            if k in items.keys():
+                v = items[k]
+                if isinstance(v, torch.Tensor):
+                    v = v.item()
+                else:
+                    v = v
+                new_dict[k] = v
+        self.scalar_record.update_var(new_dict)
 
     # overwrite
     def _data_transform(self, data):

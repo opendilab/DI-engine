@@ -1,0 +1,7 @@
+common:
+    save_path: /mnt/lustre/niuyazhe/code/gitlab/SenseStar/sc2learner/experiments
+train:
+    grad_clip_type: max_norm
+    grad_clip_value: 0.5
+logger:
+    print_freq: 1
