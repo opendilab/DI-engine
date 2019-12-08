@@ -5,6 +5,7 @@ import time
 import torch
 from sc2learner.agents.rl_dataloader import RLBaseDataset, RLBaseDataLoader
 from sc2learner.utils import build_logger
+from sc2learner.nn_utils import build_grad_clip
 
 
 def build_optimizer(model):
@@ -53,6 +54,7 @@ class BaseLearner(object):
         self.optimizer = build_optimizer(model)
         self.lr_scheduler = build_lr_scheduler(self.optimizer)
         self.logger, self.tb_logger, self.scalar_record = build_logger(cfg)
+        self.grad_clipper = build_grad_clip(cfg)
         self._init()
 
     def run(self):
@@ -85,6 +87,7 @@ class BaseLearner(object):
     def _optimize_step(self, loss):
         self.optimizer.zero_grad()
         loss.backward()
+        self.grad_clipper.apply(self.model.parameters())
         # TODO support reduce gradient
         self.optimizer.step()
 
