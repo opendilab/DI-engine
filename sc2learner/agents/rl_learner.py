@@ -4,7 +4,7 @@ import zmq
 import time
 import torch
 from sc2learner.agents.rl_dataloader import RLBaseDataset, RLBaseDataLoader
-from sc2learner.utils import build_logger
+from sc2learner.utils import build_logger, build_checkpoint_helper
 from sc2learner.nn_utils import build_grad_clip
 
 
@@ -52,6 +52,11 @@ class BaseLearner(object):
         self.lr_scheduler = build_lr_scheduler(self.optimizer)
         self.logger, self.tb_logger, self.scalar_record = build_logger(cfg)
         self.grad_clipper = build_grad_clip(cfg)
+        self.checkpoint_helper = build_checkpoint_helper(cfg)
+        if cfg.common.load_path != '':
+            self.checkpoint_helper.load(cfg.common.load_path, self.model,
+                                        optimizer=self.optimizer,
+                                        logger_prefix='(learner)')
         self._init()
 
     def run(self):
@@ -63,17 +68,19 @@ class BaseLearner(object):
 
         iterations = 0
         while True:
-            iterations += 1
             self.lr_scheduler.step()
             batch_data = next(self.dataloader)
             loss_items = self._get_loss(batch_data)
             self._optimize_step(loss_items['total_loss'])
             self._update_monitor_var(loss_items)
-            self._print_log(iterations)
+            self._record_info(iterations)
+            iterations += 1
 
-    def _print_log(self, iterations):
+    def _record_info(self, iterations):
         if iterations % self.cfg.logger.print_freq == 0:
             self.logger.info('iterations:{}\t{}'.format(iterations, self.scalar_record.get_var_all()))
+        if iterations % self.cfg.logger.save_freq == 0:
+            self.checkpoint_helper.save_iterations(iterations, self.model, optimizer=self.optimizer)
 
     def _get_loss(self, data):
         raise NotImplementedError
