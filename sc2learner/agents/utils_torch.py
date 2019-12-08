@@ -24,20 +24,20 @@ class CategoricalPd(Pd):
 
     def __init__(self, logits=None):
         self.update_logits(logits)
-        self.cross_entropy = nn.CrossEntropyLoss()
 
     def update_logits(self, logits):
         self.logits = logits
 
-    def neglogp(self, x):
-        return self.cross_entropy(self.logits, x)
+    def neglogp(self, x, reduction='mean'):
+        return F.cross_entropy(self.logits, x, reduction=reduction)
 
     def entropy(self):
         a = self.logits - self.logits.max(dim=-1, keepdim=True)[0]
         ea = torch.exp(a)
         z = ea.sum(dim=-1, keepdim=True)
         p = ea / z
-        return (p * torch.log(z) - a).sum(dim=-1)
+        ret = (p * (torch.log(z) - a)).sum(dim=-1)
+        return ret
 
     def sample(self):
         u = torch.randn_like(self.logits)
