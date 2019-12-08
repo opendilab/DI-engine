@@ -2,6 +2,7 @@ from queue import Queue
 from threading import Thread
 import zmq
 import torch
+from sc2learner.utils import build_checkpoint_helper
 
 
 class BaseActor(object):
@@ -22,12 +23,15 @@ class BaseActor(object):
             self.data_queue = Queue(cfg.train.actor_data_queue_size)
             self.push_thread = Thread(target=self._push_data, args=(self.zmq_context,
                                       learner_ip, port['actor'], self.data_queue))
-            self.push_thread.start()
         self.enable_push = enable_push
+        self.checkpoint_helper = build_checkpoint_helper(cfg)
+        if cfg.common.load_path != '':
+            self.checkpoint_helper.load(cfg.common.load_path, self.model, logger_prefix='(actor)')
 
         self._init()
 
     def run(self):
+        self.push_thread.start()
         while True:
             self._update_model()
             unroll = self._nstep_rollout()

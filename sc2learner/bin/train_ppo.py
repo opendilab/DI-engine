@@ -89,7 +89,7 @@ def main(argv):
         cfg = yaml.load(f)
     cfg = EasyDict(cfg)
     cfg.common.save_path = os.path.dirname(FLAGS.config_path)
-    cfg.model.load_path = FLAGS.load_path
+    cfg.common.load_path = FLAGS.load_path
     if FLAGS.job_name == 'actor':
         start_actor(cfg)
     elif FLAGS.job_name == 'learner':
