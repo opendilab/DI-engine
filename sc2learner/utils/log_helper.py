@@ -69,7 +69,7 @@ class ScalarRecord(object):
 
     def get_var(self, name):
         handle_var = self.var_dict[name]
-        return '{}.val:{}|{}.avg:{}'.format(name, handle_var.val, name, handle_var.avg)
+        return '{}.val:{:.6f}|{}.avg:{:.6f}'.format(name, handle_var.val, name, handle_var.avg)
 
     def get_var_all(self):
         s = ''
