@@ -146,7 +146,7 @@ class PpoActor(BaseActor):
         action = action.squeeze(0)
         outputs['action'].append(action)
         outputs['value'].append(value.squeeze(0))
-        outputs['neglogp'].append(neglogp.view(1))
+        outputs['neglogp'].append(neglogp)
 
         return action.numpy()
 

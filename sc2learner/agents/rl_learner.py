@@ -61,9 +61,6 @@ class BaseLearner(object):
         while len(self.episode_infos) < self.episode_infos.maxlen // 2:
             print('current episode_infos len:{}'.format(len(self.episode_infos)))
             time.sleep(10)
-            #if len(self.dataset) > self.dataloader.batch_size:
-            #    print('out of loop')
-            #    break
 
         iterations = 0
         while True:
@@ -89,7 +86,6 @@ class BaseLearner(object):
         self.optimizer.zero_grad()
         loss.backward()
         # TODO support reduce gradient
-        # TODO support grad clip
         self.optimizer.step()
 
     def _pull_data(self, zmq_context, port):
@@ -173,7 +169,6 @@ class PpoLearner(BaseLearner):
                 self.dataset.push(item)
         else:
             self.dataset.push(data)
-        print('len', len(self.dataset))
         self.episode_infos.extend(data['episode_infos'])
         self.unroll_num += 1
 
@@ -192,7 +187,7 @@ class PpoLearner(BaseLearner):
         if self.model.use_mask:
             inputs['mask'] = data['mask']
         new_values = self.model(inputs, mode='step')[1]
-        new_neglogp = self.model.pd.neglogp(actions)
+        new_neglogp = self.model.pd.neglogp(actions, reduction='none')
         entropy = self.model.pd.entropy().mean()
 
         new_values_clipped = values + torch.clamp(new_values - values, -clip_range, clip_range)
@@ -205,7 +200,7 @@ class PpoLearner(BaseLearner):
 
         adv = returns - values
         adv = (adv - adv.mean()) / (adv.std() + 1e-8)
-        ratio = torch.pow(neglogps - new_neglogp, 2)
+        ratio = torch.exp(neglogps - new_neglogp)
         pg_loss1 = -adv * ratio
         pg_loss2 = -adv * torch.clamp(ratio, 1.0 - clip_range, 1.0 + clip_range)
         pg_loss = torch.max(pg_loss1, pg_loss2).mean()
