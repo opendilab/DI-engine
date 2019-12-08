@@ -8,8 +8,8 @@ from sc2learner.utils import build_logger
 from sc2learner.nn_utils import build_grad_clip
 
 
-def build_optimizer(model):
-    optimizer = torch.optim.Adam(model.parameters(), 1e-5)
+def build_optimizer(model, cfg):
+    optimizer = torch.optim.Adam(model.parameters(), float(cfg.train.learning_rate))
     return optimizer
 
 
@@ -18,7 +18,7 @@ def build_lr_scheduler(optimizer):
     return lr_scheduler
 
 
-def build_clip_range_scheduler():
+def build_clip_range_scheduler(cfg):
     class NaiveClip(object):
         def __init__(self, init_val=0.1):
             self.init_val = init_val
@@ -26,32 +26,29 @@ def build_clip_range_scheduler():
         def step(self):
             return self.init_val
 
-    return NaiveClip()
+    return NaiveClip(init_val=cfg.train.ppo_clip_range)
 
 
 class BaseLearner(object):
 
-    def __init__(self, env, model, unroll_length,
-                 queue_size,
-                 port=None,
-                 batch_size=4,
-                 cfg=None):
+    def __init__(self, env, model, cfg=None):
         assert(cfg is not None)
         self.cfg = cfg
         self.env = env
-        self.model = model  # TODO(nyz) whether create model inside
-        self.unroll_length = unroll_length
-        self.episode_infos = deque(maxlen=5000)  # TODO(nyz) expose maxlen args
+        self.model = model
+        self.unroll_length = cfg.train.unroll_length
+        self.episode_infos = deque(maxlen=cfg.train.learner_episode_queue_size)
 
         self.zmq_context = zmq.Context()
-        self.dataset = RLBaseDataset(maxlen=queue_size, transform=self._data_transform)
-        self.dataloader = RLBaseDataLoader(self.dataset, batch_size=batch_size)
+        self.dataset = RLBaseDataset(maxlen=cfg.train.learner_data_queue_size, transform=self._data_transform)
+        self.dataloader = RLBaseDataLoader(self.dataset, batch_size=cfg.train.batch_size)
+        port = cfg.communication.port
         self.pull_thread = Thread(target=self._pull_data,
                                   args=(self.zmq_context, port['actor']))
         self.reply_model_thread = Thread(target=self._reply_model,
                                          args=(self.zmq_context, port['learner']))
 
-        self.optimizer = build_optimizer(model)
+        self.optimizer = build_optimizer(model, cfg)
         self.lr_scheduler = build_lr_scheduler(self.optimizer)
         self.logger, self.tb_logger, self.scalar_record = build_logger(cfg)
         self.grad_clipper = build_grad_clip(cfg)
@@ -134,16 +131,13 @@ class BaseLearner(object):
 
 
 class PpoLearner(BaseLearner):
-    def __init__(self, *args, use_value_clip=False, unroll_split,
-                 entropy_coeff=0.01, value_coeff=0.5,
-                 **kwargs):
+    def __init__(self, *args, **kwargs):
         super(PpoLearner, self).__init__(*args, **kwargs)
-        self.use_value_clip = use_value_clip
-        self.unroll_split = unroll_split if self.model.initial_state is None else 1
-        self.entropy_coeff = entropy_coeff
-        self.value_coeff = value_coeff
-        self.clip_range_scheduler = build_clip_range_scheduler()
-        self.unroll_num = 0
+        self.use_value_clip = self.cfg.train.use_value_clip
+        self.unroll_split = self.cfg.train.unroll_split if self.model.initial_state is None else 1
+        self.entropy_coeff = self.cfg.train.entropy_coeff
+        self.value_coeff = self.cfg.train.value_coeff
+        self.clip_range_scheduler = build_clip_range_scheduler(self.cfg)
 
     # overwrite
     def _init(self):
@@ -173,7 +167,6 @@ class PpoLearner(BaseLearner):
         else:
             self.dataset.push(data)
         self.episode_infos.extend(data['episode_infos'])
-        self.unroll_num += 1
 
     # overwrite
     def _get_loss(self, data):

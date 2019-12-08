@@ -1,9 +1,6 @@
 # SC2Learner (TStarBot1) - Macro-Action-Based StarCraft-II Reinforcement Learning Environment
 
 
-<p align="center">
-<img src="docs/images/overview.png" width=750>
-</p>
 
 *[SC2Learner](https://github.com/Tencent/TStarBot1)* is a *macro-action*-based [StarCraft-II](https://en.wikipedia.org/wiki/StarCraft_II:_Wings_of_Liberty) reinforcement learning research platform.
 It exposes the re-designed StarCraft-II action space, which has more than one hundred discrete macro actions, based on the raw APIs exposed by DeepMind and Blizzard's [PySC2](https://github.com/deepmind/pysc2).
@@ -55,14 +52,12 @@ They can run either locally or across separate machines (e.g. actors usually run
 With the designated ports and learner's IP, rollout trajectories and model parameters are communicated between actors and learner. 
 - Start 48 actor workers (run the same script in all actor machines) 
 ```bash
-for i in $(seq 0 47); do
-  CUDA_VISIBLE_DEVICES= python3 -m sc2learner.bin.train_ppo --job_name=actor --learner_ip localhost &
-done;
+./experiments/ppo_baseline/actor.sh <partition_name> <num_actor>
 ```
 
 - Start a learner worker
 ```bash
-CUDA_VISIBLE_DEVICES=0 python3 -m sc2learner.bin.train_ppo --job_name learner
+./experiments/ppo_baseline/learn.sh <partition_name>
 ```
 
 Similarly, DQN algorithm can be tried with `sc2learner.bin.train_dqn`.

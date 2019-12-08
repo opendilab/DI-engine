@@ -1,5 +1,9 @@
 *.pyc
 *_pb2.py
+*.pth
+*.pth.tar
+*default_logger.txt
+*default_tb_logger
 .idea
 .DS_Store
 __pycache__

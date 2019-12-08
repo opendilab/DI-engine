@@ -2,24 +2,24 @@ from queue import Queue
 from threading import Thread
 import zmq
 import torch
-from sc2learner.agents.ppo_policies_pytorch import MlpPolicy, LstmPolicy
 
 
 class BaseActor(object):
 
-    def __init__(self, env, model, unroll_length,
-                 enable_push, queue_size,
-                 learner_ip="localhost", port=None):
-        assert(isinstance(learner_ip, str))  # TODO(nyz) support multi learner ip
+    def __init__(self, env, model, cfg=None, enable_push=True):
+        assert(cfg is not None)
+        self.cfg = cfg
         self.env = env
-        self.model = model  # TODO(nyz) whether create model inside
-        self.unroll_length = unroll_length
+        self.model = model
+        self.unroll_length = cfg.train.unroll_length
 
         self.zmq_context = zmq.Context()
         self.model_requestor = self.zmq_context.socket(zmq.REQ)
+        learner_ip = cfg.communication.learner_ip
+        port = cfg.communication.port
         self.model_requestor.connect("tcp://%s:%s" % (learner_ip, port['learner']))
         if enable_push:
-            self.data_queue = Queue(queue_size)
+            self.data_queue = Queue(cfg.train.actor_data_queue_size)
             self.push_thread = Thread(target=self._push_data, args=(self.zmq_context,
                                       learner_ip, port['actor'], self.data_queue))
             self.push_thread.start()
@@ -58,16 +58,11 @@ class BaseActor(object):
 
 
 class PpoActor(BaseActor):
-    def __init__(self, *args, gamma=None, lam=None, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(PpoActor, self).__init__(*args, **kwargs)
-        self.gamma = gamma
-        self.lam = lam
-        if isinstance(self.model, MlpPolicy):
-            self.model_type = 'mlp'
-        elif isinstance(self.model, LstmPolicy):
-            self.model_type = 'lstm'
-        else:
-            raise ValueError
+        self.gamma = self.cfg.train.discount_gamma
+        self.lam = self.cfg.train.lambda_return
+        self.model_type = self.cfg.model.policy
 
     # overwrite
     def _nstep_rollout(self):
