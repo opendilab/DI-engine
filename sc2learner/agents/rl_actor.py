@@ -119,7 +119,7 @@ class PpoActor(BaseActor):
         inputs = {}
         if self.model.use_mask:
             obs, mask = self.obs
-            inputs['mask'] = torch.FloatTensor(mask)
+            inputs['mask'] = torch.FloatTensor(mask).unsqueeze(0)
         else:
             obs = self.obs
         obs = torch.FloatTensor(obs)
@@ -136,7 +136,7 @@ class PpoActor(BaseActor):
         outputs['obs'].append(obs.squeeze(0))
         outputs['done'].append(done.squeeze(0))
         if self.model.use_mask:
-            mask = inputs['mask']
+            mask = inputs['mask'].squeeze(0)
             outputs['mask'].append(mask)
 
     def _process_model_output(self, output, outputs):

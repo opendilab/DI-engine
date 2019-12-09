@@ -4,14 +4,14 @@ import os
 from tensorboardX import SummaryWriter
 
 
-def build_logger(cfg, rank=0):
+def build_logger(cfg, name=None, rank=0):
     '''
         Note: Only support rank0 logger
     '''
     if rank == 0:
         path = cfg.common.save_path
-        logger = TextLogger(path)
-        tb_logger = TensorBoardLogger(path)
+        logger = TextLogger(path, name=name)
+        tb_logger = TensorBoardLogger(path, name=name)
         scalar_record = ScalarRecord(cfg.logger.print_freq)
         return logger, tb_logger, scalar_record
     else:
