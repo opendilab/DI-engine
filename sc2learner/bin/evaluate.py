@@ -107,6 +107,8 @@ def evaluate(cfg):
                 action_counts[action] += 1
                 cum_return += reward
                 step_id += 1
+            if cfg.env.save_replay:
+                env.env.env.save_replay(cfg.common.agent)
             for id, name in enumerate(env.action_names):
                 logger.info("Action ID: %d    Count: %d   Name: %s" %
                             (id, action_counts[id], name))

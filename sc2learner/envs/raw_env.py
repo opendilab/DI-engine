@@ -116,3 +116,6 @@ class SC2RawEnv(gym.Env):
       try: return self._create_env()
       except: pass
     return self._create_env()
+
+  def save_replay(self, replay_dir, prefix=None):
+    return self._sc2_env.save_replay(replay_dir, prefix)

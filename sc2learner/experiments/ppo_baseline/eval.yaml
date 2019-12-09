@@ -13,6 +13,7 @@ env:
     use_region_features: False
     use_action_mask: True
     use_reward_shaping: False
+    save_replay: True
 model:
     policy: mlp  # [mlp, lstm]
 logger:
