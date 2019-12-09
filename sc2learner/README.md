@@ -57,7 +57,7 @@ With the designated ports and learner's IP, rollout trajectories and model param
 
 - Start a learner worker
 ```bash
-./experiments/ppo_baseline/learn.sh <partition_name>
+./experiments/ppo_baseline/learner.sh <partition_name>
 ```
 
 Similarly, DQN algorithm can be tried with `sc2learner.bin.train_dqn`.
