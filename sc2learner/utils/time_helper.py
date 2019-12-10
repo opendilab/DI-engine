@@ -63,3 +63,34 @@ class TimeWrapperCuda(TimeWrapper):
         cls.end = cls.end_record.record()
         torch.cuda.synchronize()
         return cls.start_record.elapsed_time(cls.end_record) / 1000
+
+
+def test_time_wrapper():
+    class NaiveObject(object):
+        pass
+
+    cfg = NaiveObject()
+    setattr(cfg, 'common', NaiveObject())
+    setattr(cfg.common, 'time_wrapper_type', 'time')
+    time_handle = build_time_helper(cfg)
+
+    @time_handle.wrapper
+    def func1(x):
+        return x + 1
+
+    def func2(x):
+        return x + 1
+
+    # usage 1
+    ret, t = func1(3)
+    print('runtime1', t)
+
+    # usage 2
+    time_handle.start_time()
+    ret = func2(3)
+    t = time_handle.end_time()
+    print('runtime2', t)
+
+
+if __name__ == "__main__":
+    test_time_wrapper()
