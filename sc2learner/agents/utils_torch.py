@@ -40,6 +40,6 @@ class CategoricalPd(Pd):
         return ret
 
     def sample(self):
-        u = torch.randn_like(self.logits)
+        u = torch.rand_like(self.logits)
         u = self.logits - torch.log(-torch.log(u))
         return u.argmax(dim=-1)
