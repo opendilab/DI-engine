@@ -154,6 +154,8 @@ class PpoLearner(BaseLearner):
         self.scalar_record.register_var('pg_loss')
         self.scalar_record.register_var('value_loss')
         self.scalar_record.register_var('entropy_reg')
+        self.scalar_record.register_var('approximate_kl')
+        self.scalar_record.register_var('clipfrac')
 
     # overwrite
     def _parse_pull_data(self, data):

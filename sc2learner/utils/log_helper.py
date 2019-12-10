@@ -26,14 +26,15 @@ class TextLogger(object):
 
     def _create_logger(self, name, path, level=logging.INFO):
         logger = logging.getLogger(name)
-        formatter = logging.Formatter('[%(asctime)s][%(filename)15s][line:%(lineno)4d][%(levelname)8s] %(message)s')
-        fh = logging.FileHandler(path)
-        fh.setFormatter(formatter)
-        sh = logging.StreamHandler()
-        sh.setFormatter(formatter)
-        logger.setLevel(level)
-        logger.addHandler(fh)
-        logger.addHandler(sh)
+        if not logger.handlers:
+            formatter = logging.Formatter('[%(asctime)s][%(filename)15s][line:%(lineno)4d][%(levelname)8s] %(message)s')
+            fh = logging.FileHandler(path)
+            fh.setFormatter(formatter)
+            sh = logging.StreamHandler()
+            sh.setFormatter(formatter)
+            logger.setLevel(level)
+            logger.addHandler(fh)
+            logger.addHandler(sh)
         return logger
 
     def info(self, s):
@@ -69,7 +70,7 @@ class ScalarRecord(object):
 
     def get_var(self, name):
         handle_var = self.var_dict[name]
-        return '{}.val:{:.6f}|{}.avg:{:.6f}'.format(name, handle_var.val, name, handle_var.avg)
+        return '{}: val({:.6f})|avg({:.6f})'.format(name, handle_var.val, handle_var.avg)
 
     def get_var_all(self):
         s = ''
