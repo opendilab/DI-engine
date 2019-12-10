@@ -1,5 +1,6 @@
 common:
     config_name: ppo_train
+    time_wrapper_type: cuda
 env:
     game_version: '4.10'
     disable_fog: False

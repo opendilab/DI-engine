@@ -4,7 +4,7 @@ import zmq
 import time
 import torch
 from sc2learner.agents.rl_dataloader import RLBaseDataset, RLBaseDataLoader, unroll_split_collate_fn
-from sc2learner.utils import build_logger, build_checkpoint_helper
+from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper
 from sc2learner.nn_utils import build_grad_clip
 
 
@@ -58,6 +58,8 @@ class BaseLearner(object):
                                         optimizer=self.optimizer,
                                         logger_prefix='(learner)')
         self._init()
+        self.time_helper = build_time_helper(cfg)
+        self._optimize_step = self.time_helper.wrapper(self._optimize_step)
 
     def run(self):
         self.pull_thread.start()
@@ -69,10 +71,13 @@ class BaseLearner(object):
         iterations = 0
         while True:
             self.lr_scheduler.step()
+            self.time_helper.start_time()
             batch_data = next(self.dataloader)
-            loss_items = self._get_loss(batch_data)
-            self._optimize_step(loss_items['total_loss'])
-            self._update_monitor_var(loss_items)
+            data_time = self.time_helper.end_time()
+            loss_items, model_time = self._get_loss(batch_data)
+            _, update_time = self._optimize_step(loss_items['total_loss'])
+            time_items = {'data_time': data_time, 'model_time': model_time, 'update_time': update_time}
+            self._update_monitor_var(loss_items, time_items)
             self._record_info(iterations)
             iterations += 1
 
@@ -82,12 +87,14 @@ class BaseLearner(object):
         if iterations % self.cfg.logger.save_freq == 0:
             self.checkpoint_helper.save_iterations(iterations, self.model, optimizer=self.optimizer)
 
+    #@time_helper.wrapper
     def _get_loss(self, data):
         raise NotImplementedError
 
-    def _update_monitor_var(self, items):
+    def _update_monitor_var(self, loss_items, time_items):
         raise NotImplementedError
 
+    #@time_helper.wrapper
     def _optimize_step(self, loss):
         self.optimizer.zero_grad()
         loss.backward()
@@ -147,6 +154,7 @@ class PpoLearner(BaseLearner):
         self.clip_range_scheduler = build_clip_range_scheduler(self.cfg)
         self.dataloader = RLBaseDataLoader(self.dataset, self.cfg.train.batch_size * self.unroll_split,
                                            collate_fn=unroll_split_collate_fn)
+        self._get_loss = self.time_helper.wrapper(self._get_loss)
 
     # overwrite
     def _init(self):
@@ -156,6 +164,9 @@ class PpoLearner(BaseLearner):
         self.scalar_record.register_var('entropy_reg')
         self.scalar_record.register_var('approximate_kl')
         self.scalar_record.register_var('clipfrac')
+        self.scalar_record.register_var('data_time')
+        self.scalar_record.register_var('model_time')
+        self.scalar_record.register_var('update_time')
 
     # overwrite
     def _parse_pull_data(self, data):
@@ -229,7 +240,7 @@ class PpoLearner(BaseLearner):
         return loss_items
 
     # overwrite
-    def _update_monitor_var(self, items):
+    def _update_monitor_var(self, items, time_items):
         keys = self.scalar_record.get_var_names()
         new_dict = {}
         for k in keys:
@@ -241,6 +252,7 @@ class PpoLearner(BaseLearner):
                     v = v
                 new_dict[k] = v
         self.scalar_record.update_var(new_dict)
+        self.scalar_record.update_var(time_items)
 
     # overwrite
     def _data_transform(self, data):
