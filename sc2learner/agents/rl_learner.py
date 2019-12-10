@@ -3,13 +3,13 @@ from collections import deque
 import zmq
 import time
 import torch
-from sc2learner.agents.rl_dataloader import RLBaseDataset, RLBaseDataLoader
-from sc2learner.utils import build_logger
+from sc2learner.agents.rl_dataloader import RLBaseDataset, RLBaseDataLoader, unroll_split_collate_fn
+from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper
 from sc2learner.nn_utils import build_grad_clip
 
 
-def build_optimizer(model):
-    optimizer = torch.optim.Adam(model.parameters(), 1e-5)
+def build_optimizer(model, cfg):
+    optimizer = torch.optim.Adam(model.parameters(), float(cfg.train.learning_rate))
     return optimizer
 
 
@@ -18,7 +18,7 @@ def build_lr_scheduler(optimizer):
     return lr_scheduler
 
 
-def build_clip_range_scheduler():
+def build_clip_range_scheduler(cfg):
     class NaiveClip(object):
         def __init__(self, init_val=0.1):
             self.init_val = init_val
@@ -26,36 +26,40 @@ def build_clip_range_scheduler():
         def step(self):
             return self.init_val
 
-    return NaiveClip()
+    return NaiveClip(init_val=cfg.train.ppo_clip_range)
 
 
 class BaseLearner(object):
 
-    def __init__(self, env, model, unroll_length,
-                 queue_size,
-                 port=None,
-                 batch_size=4,
-                 cfg=None):
+    def __init__(self, env, model, cfg=None):
         assert(cfg is not None)
         self.cfg = cfg
         self.env = env
-        self.model = model  # TODO(nyz) whether create model inside
-        self.unroll_length = unroll_length
-        self.episode_infos = deque(maxlen=5000)  # TODO(nyz) expose maxlen args
+        self.model = model
+        self.unroll_length = cfg.train.unroll_length
+        self.episode_infos = deque(maxlen=cfg.train.learner_episode_queue_size)
 
         self.zmq_context = zmq.Context()
-        self.dataset = RLBaseDataset(maxlen=queue_size, transform=self._data_transform)
-        self.dataloader = RLBaseDataLoader(self.dataset, batch_size=batch_size)
+        self.dataset = RLBaseDataset(maxlen=cfg.train.learner_data_queue_size, transform=self._data_transform)
+        self.dataloader = RLBaseDataLoader(self.dataset, batch_size=cfg.train.batch_size)
+        port = cfg.communication.port
         self.pull_thread = Thread(target=self._pull_data,
                                   args=(self.zmq_context, port['actor']))
         self.reply_model_thread = Thread(target=self._reply_model,
                                          args=(self.zmq_context, port['learner']))
 
-        self.optimizer = build_optimizer(model)
+        self.optimizer = build_optimizer(model, cfg)
         self.lr_scheduler = build_lr_scheduler(self.optimizer)
         self.logger, self.tb_logger, self.scalar_record = build_logger(cfg)
         self.grad_clipper = build_grad_clip(cfg)
+        self.checkpoint_helper = build_checkpoint_helper(cfg)
+        if cfg.common.load_path != '':
+            self.checkpoint_helper.load(cfg.common.load_path, self.model,
+                                        optimizer=self.optimizer,
+                                        logger_prefix='(learner)')
         self._init()
+        self.time_helper = build_time_helper(cfg)
+        self._optimize_step = self.time_helper.wrapper(self._optimize_step)
 
     def run(self):
         self.pull_thread.start()
@@ -66,24 +70,31 @@ class BaseLearner(object):
 
         iterations = 0
         while True:
-            iterations += 1
             self.lr_scheduler.step()
+            self.time_helper.start_time()
             batch_data = next(self.dataloader)
-            loss_items = self._get_loss(batch_data)
-            self._optimize_step(loss_items['total_loss'])
-            self._update_monitor_var(loss_items)
-            self._print_log(iterations)
+            data_time = self.time_helper.end_time()
+            loss_items, model_time = self._get_loss(batch_data)
+            _, update_time = self._optimize_step(loss_items['total_loss'])
+            time_items = {'data_time': data_time, 'model_time': model_time, 'update_time': update_time}
+            self._update_monitor_var(loss_items, time_items)
+            self._record_info(iterations)
+            iterations += 1
 
-    def _print_log(self, iterations):
+    def _record_info(self, iterations):
         if iterations % self.cfg.logger.print_freq == 0:
             self.logger.info('iterations:{}\t{}'.format(iterations, self.scalar_record.get_var_all()))
+        if iterations % self.cfg.logger.save_freq == 0:
+            self.checkpoint_helper.save_iterations(iterations, self.model, optimizer=self.optimizer)
 
+    #@time_helper.wrapper
     def _get_loss(self, data):
         raise NotImplementedError
 
-    def _update_monitor_var(self, items):
+    def _update_monitor_var(self, loss_items, time_items):
         raise NotImplementedError
 
+    #@time_helper.wrapper
     def _optimize_step(self, loss):
         self.optimizer.zero_grad()
         loss.backward()
@@ -134,16 +145,16 @@ class BaseLearner(object):
 
 
 class PpoLearner(BaseLearner):
-    def __init__(self, *args, use_value_clip=False, unroll_split,
-                 entropy_coeff=0.01, value_coeff=0.5,
-                 **kwargs):
+    def __init__(self, *args, **kwargs):
         super(PpoLearner, self).__init__(*args, **kwargs)
-        self.use_value_clip = use_value_clip
-        self.unroll_split = unroll_split if self.model.initial_state is None else 1
-        self.entropy_coeff = entropy_coeff
-        self.value_coeff = value_coeff
-        self.clip_range_scheduler = build_clip_range_scheduler()
-        self.unroll_num = 0
+        self.use_value_clip = self.cfg.train.use_value_clip
+        self.unroll_split = self.cfg.train.unroll_split if self.model.initial_state is None else 1
+        self.entropy_coeff = self.cfg.train.entropy_coeff
+        self.value_coeff = self.cfg.train.value_coeff
+        self.clip_range_scheduler = build_clip_range_scheduler(self.cfg)
+        self.dataloader = RLBaseDataLoader(self.dataset, self.cfg.train.batch_size * self.unroll_split,
+                                           collate_fn=unroll_split_collate_fn)
+        self._get_loss = self.time_helper.wrapper(self._get_loss)
 
     # overwrite
     def _init(self):
@@ -151,6 +162,11 @@ class PpoLearner(BaseLearner):
         self.scalar_record.register_var('pg_loss')
         self.scalar_record.register_var('value_loss')
         self.scalar_record.register_var('entropy_reg')
+        self.scalar_record.register_var('approximate_kl')
+        self.scalar_record.register_var('clipfrac')
+        self.scalar_record.register_var('data_time')
+        self.scalar_record.register_var('model_time')
+        self.scalar_record.register_var('update_time')
 
     # overwrite
     def _parse_pull_data(self, data):
@@ -162,9 +178,12 @@ class PpoLearner(BaseLearner):
             for k, v in data.items():
                 if k in keys:
                     if k == 'state':
-                        temp_dict[k] = [v for _ in range(self.unroll_split)]
+                        if v is None:
+                            temp_dict[k] = [None for _ in range(self.unroll_split)]
+                        else:
+                            raise NotImplementedError
                     else:
-                        stack_item = torch.stack(data[k], dim=0)
+                        stack_item = torch.stack(v, dim=0)
                         split_item = torch.chunk(stack_item, self.unroll_split)
                         temp_dict[k] = split_item
             for i in range(self.unroll_split):
@@ -173,7 +192,6 @@ class PpoLearner(BaseLearner):
         else:
             self.dataset.push(data)
         self.episode_infos.extend(data['episode_infos'])
-        self.unroll_num += 1
 
     # overwrite
     def _get_loss(self, data):
@@ -222,7 +240,7 @@ class PpoLearner(BaseLearner):
         return loss_items
 
     # overwrite
-    def _update_monitor_var(self, items):
+    def _update_monitor_var(self, items, time_items):
         keys = self.scalar_record.get_var_names()
         new_dict = {}
         for k in keys:
@@ -234,6 +252,7 @@ class PpoLearner(BaseLearner):
                     v = v
                 new_dict[k] = v
         self.scalar_record.update_var(new_dict)
+        self.scalar_record.update_var(time_items)
 
     # overwrite
     def _data_transform(self, data):
@@ -243,9 +262,8 @@ class PpoLearner(BaseLearner):
         transformed_data = {}
         for k, v in data.items():
             if k in keys:
-                if k == 'state':
-                    if v is None:
-                        transformed_data[k] = 0
+                if k == 'state' and v is None:
+                    transformed_data[k] = 'none'
                 else:
-                    transformed_data[k] = v.squeeze(0)  # TODO
+                    transformed_data[k] = v
         return transformed_data

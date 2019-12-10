@@ -1,0 +1,39 @@
+common:
+    config_name: ppo_train
+    time_wrapper_type: cuda
+env:
+    game_version: '4.10'
+    disable_fog: False
+    step_mul: 32
+    bot_difficulties: '1,2,4,6,9,A'
+    use_all_combat_actions: False
+    game_steps_per_episode: 43200
+    use_region_features: False
+    use_action_mask: True
+    use_reward_shaping: False
+model:
+    policy: mlp  # [mlp, lstm]
+train:
+    batch_size: 32
+    learner_data_queue_size: 1024
+    learner_episode_queue_size: 5000
+    actor_data_queue_size: 1
+    unroll_length: 128
+    unroll_split: 8
+    learning_rate: 1e-5
+    discount_gamma: 0.998
+    lambda_return: 0.95
+    entropy_coeff: 0.01
+    value_coeff: 0.5
+    ppo_clip_range: 0.1
+    use_value_clip: False
+    grad_clip_type: max_norm  # [max_norm, clip_value]
+    grad_clip_value: 0.5
+communication:
+    learner_ip: localhost
+    port:
+        learner: 5700
+        actor: 5701
+logger:
+    print_freq: 100
+    save_freq: 10000

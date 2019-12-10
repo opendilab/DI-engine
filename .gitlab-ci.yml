@@ -1,0 +1,16 @@
+image: "registry.sensetime.com/spring/dka:pytorch0.4.1"
+stages:
+  - deploy
+pages:
+  stage: deploy
+  script:
+  - pip install sphinx sphinx_rtd_theme
+  - cd sc2learner/docs
+  - PYTHONPATH=../patches:$PYTHONPATH make html
+  - mv build/html ../../public
+  - rm -r build
+  artifacts:
+    paths:
+    - public
+  only:
+    - doc-dev
