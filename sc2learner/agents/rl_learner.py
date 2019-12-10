@@ -3,7 +3,7 @@ from collections import deque
 import zmq
 import time
 import torch
-from sc2learner.agents.rl_dataloader import RLBaseDataset, RLBaseDataLoader
+from sc2learner.agents.rl_dataloader import RLBaseDataset, RLBaseDataLoader, unroll_split_collate_fn
 from sc2learner.utils import build_logger, build_checkpoint_helper
 from sc2learner.nn_utils import build_grad_clip
 
@@ -145,6 +145,8 @@ class PpoLearner(BaseLearner):
         self.entropy_coeff = self.cfg.train.entropy_coeff
         self.value_coeff = self.cfg.train.value_coeff
         self.clip_range_scheduler = build_clip_range_scheduler(self.cfg)
+        self.dataloader = RLBaseDataLoader(self.dataset, self.cfg.train.batch_size * self.unroll_split,
+                                           collate_fn=unroll_split_collate_fn)
 
     # overwrite
     def _init(self):
@@ -163,9 +165,12 @@ class PpoLearner(BaseLearner):
             for k, v in data.items():
                 if k in keys:
                     if k == 'state':
-                        temp_dict[k] = [v for _ in range(self.unroll_split)]
+                        if v is None:
+                            temp_dict[k] = [None for _ in range(self.unroll_split)]
+                        else:
+                            raise NotImplementedError
                     else:
-                        stack_item = torch.stack(data[k], dim=0)
+                        stack_item = torch.stack(v, dim=0)
                         split_item = torch.chunk(stack_item, self.unroll_split)
                         temp_dict[k] = split_item
             for i in range(self.unroll_split):
@@ -243,9 +248,8 @@ class PpoLearner(BaseLearner):
         transformed_data = {}
         for k, v in data.items():
             if k in keys:
-                if k == 'state':
-                    if v is None:
-                        transformed_data[k] = 0
+                if k == 'state' and v is None:
+                    transformed_data[k] = 'none'
                 else:
-                    transformed_data[k] = v.squeeze(0)  # TODO
+                    transformed_data[k] = v
         return transformed_data
