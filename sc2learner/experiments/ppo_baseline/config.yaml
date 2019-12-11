@@ -15,6 +15,7 @@ model:
     policy: mlp  # [mlp, lstm]
 train:
     batch_size: 32
+    learner_use_cuda: True
     learner_data_queue_size: 1024
     learner_episode_queue_size: 5000
     actor_data_queue_size: 1
