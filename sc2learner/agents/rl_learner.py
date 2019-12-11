@@ -75,17 +75,19 @@ class BaseLearner(object):
         iterations = 0
         while True:
             self.lr_scheduler.step()
+            cur_lr = self.lr_scheduler.get_lr()[0]
             self.time_helper.start_time()
             batch_data = next(self.dataloader)
             if self.use_cuda:
                 batch_data = self.to_device(batch_data, 'cuda')
             data_time = self.time_helper.end_time()
-            loss_items, forward_time = self._get_loss(batch_data)
-            _, backward_update_time = self._optimize_step(loss_items['total_loss'])
+            var_items, forward_time = self._get_loss(batch_data)
+            _, backward_update_time = self._optimize_step(var_items['total_loss'])
             time_items = {'data_time': data_time, 'forward_time': forward_time,
                           'backward_update_time': backward_update_time}
+            var_items['cur_lr'] = cur_lr
 
-            self._update_monitor_var(loss_items, time_items)
+            self._update_monitor_var(var_items, time_items)
             self._record_info(iterations)
             iterations += 1
 
@@ -141,15 +143,6 @@ class BaseLearner(object):
             state_dict = {k: v.to('cpu') for k, v in self.model.state_dict().items()}
             receiver.send_pyobj(state_dict)
 
-    def _save_checkpoint(self, path, model, optimizer=None, last_iter=None):
-        checkpoint = {}
-        checkpoint['state_dict'] = model.state_dict()
-        if optimizer is not None:
-            assert(last_iter is not None)
-            checkpoint['last_iter'] = last_iter
-            checkpoint['optimizer'] = optimizer.state_dict()
-        torch.save(checkpoint, path)
-
     def _get_output_msg(self):
         raise NotImplementedError
 
@@ -157,7 +150,13 @@ class BaseLearner(object):
         raise NotImplementedError
 
     def _init(self):
-        raise NotImplementedError
+        self.scalar_record.register_var('cur_lr')
+        self.scalar_record.register_var('data_time')
+        self.scalar_record.register_var('forward_time')
+        self.scalar_record.register_var('backward_update_time')
+        self.scalar_record.register_var('backward_time')
+        self.scalar_record.register_var('grad_clipper_time')
+        self.scalar_record.register_var('update_step_time')
 
     def to_device(self, item, device):
         if isinstance(item, torch.nn.Module):
@@ -188,18 +187,13 @@ class PpoLearner(BaseLearner):
 
     # overwrite
     def _init(self):
+        super()._init()
         self.scalar_record.register_var('total_loss')
         self.scalar_record.register_var('pg_loss')
         self.scalar_record.register_var('value_loss')
         self.scalar_record.register_var('entropy_reg')
         self.scalar_record.register_var('approximate_kl')
         self.scalar_record.register_var('clipfrac')
-        self.scalar_record.register_var('data_time')
-        self.scalar_record.register_var('model_time')
-        self.scalar_record.register_var('update_time')
-        self.scalar_record.register_var('backward_time')
-        self.scalar_record.register_var('grad_clipper_time')
-        self.scalar_record.register_var('update_step_time')
 
     # overwrite
     def _parse_pull_data(self, data):
@@ -245,7 +239,7 @@ class PpoLearner(BaseLearner):
         entropy = self.model.pd.entropy().mean()
 
         new_values_clipped = values + torch.clamp(new_values - values, -clip_range, clip_range)
-        value_loss1 = (new_values - returns) ** 2
+        value_loss1 = torch.pow(new_values - returns, 2)
         if self.use_value_clip:
             value_loss2 = torch.pow(new_values_clipped - returns, 2)
             value_loss = 0.5 * torch.max(value_loss1, value_loss2).mean()
