@@ -14,10 +14,10 @@ env:
 model:
     policy: mlp  # [mlp, lstm]
 train:
-    batch_size: 2
+    batch_size: 32
     learner_use_cuda: True
     learner_data_queue_size: 1024
-    learner_episode_queue_size: 20
+    learner_episode_queue_size: 5000
     actor_data_queue_size: 1
     enable_save_data: False
     unroll_length: 128
@@ -34,8 +34,8 @@ train:
 communication:
     learner_ip: localhost
     port:
-        learner: 5702
-        actor: 5703
+        learner: 5700
+        actor: 5701
 logger:
     print_freq: 100
     save_freq: 10000
