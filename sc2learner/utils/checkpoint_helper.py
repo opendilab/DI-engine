@@ -1,6 +1,7 @@
 import os
 import torch
 import logging
+from .data_helper import to_device
 
 
 logger = logging.getLogger('default_logger')
@@ -16,8 +17,11 @@ def build_checkpoint_helper(cfg, rank=0):
 class CheckpointHelper(object):
     def __init__(self, save_dir):
         self.save_path = os.path.join(save_dir, 'checkpoints')
+        self.data_save_path = os.path.join(save_dir, 'data')
         if not os.path.exists(self.save_path):
             os.mkdir(self.save_path)
+        if not os.path.exists(self.data_save_path):
+            os.mkdir(self.data_save_path)
 
     def _remove_prefix(self, state_dict, prefix='module.'):
         new_state_dict = {}
@@ -57,6 +61,12 @@ class CheckpointHelper(object):
         path = os.path.join(self.save_path, name+'.pth.tar')
         torch.save(checkpoint, path)
         logger.info('save checkpoint in {}'.format(path))
+
+    def save_data(self, name, data, device='cpu'):
+        assert(isinstance(data, torch.Tensor) or isinstance(data, dict))
+        data = to_device(data, device)
+        path = os.path.join(self.data_save_path, name+'_data.pt')
+        torch.save(data, path)
 
     def _print_mismatch_keys(self, model_state_dict, ckpt_state_dict):
         model_keys = set(model_state_dict.keys())

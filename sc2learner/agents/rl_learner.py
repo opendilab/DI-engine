@@ -4,7 +4,7 @@ import zmq
 import time
 import torch
 from sc2learner.agents.rl_dataloader import RLBaseDataset, RLBaseDataLoader, unroll_split_collate_fn
-from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper
+from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper, to_device
 from sc2learner.nn_utils import build_grad_clip
 
 
@@ -39,7 +39,7 @@ class BaseLearner(object):
         self.model.train()
         self.use_cuda = cfg.train.learner_use_cuda
         if self.use_cuda:
-            self.model = self.to_device(self.model, 'cuda')
+            self.model = to_device(self.model, 'cuda')
         self.unroll_length = cfg.train.unroll_length
         self.episode_infos = deque(maxlen=cfg.train.learner_episode_queue_size)
 
@@ -79,7 +79,7 @@ class BaseLearner(object):
             self.time_helper.start_time()
             batch_data = next(self.dataloader)
             if self.use_cuda:
-                batch_data = self.to_device(batch_data, 'cuda')
+                batch_data = to_device(batch_data, 'cuda')
             data_time = self.time_helper.end_time()
             var_items, forward_time = self._get_loss(batch_data)
             _, backward_update_time = self._optimize_step(var_items['total_loss'])
@@ -158,20 +158,6 @@ class BaseLearner(object):
         self.scalar_record.register_var('grad_clipper_time')
         self.scalar_record.register_var('update_step_time')
 
-    def to_device(self, item, device):
-        if isinstance(item, torch.nn.Module):
-            return item.to(device)
-        elif isinstance(item, torch.Tensor):
-            return item.to(device)
-        elif isinstance(item, list) or isinstance(item, tuple):
-            return [self.to_device(t, device) for t in item]
-        elif isinstance(item, dict):
-            return {k: self.to_device(item[k], device) for k in item.keys()}
-        elif item is None:
-            return item
-        else:
-            raise TypeError("not support item type: {}".format(type(item)))
-
 
 class PpoLearner(BaseLearner):
     def __init__(self, *args, **kwargs):
@@ -184,6 +170,8 @@ class PpoLearner(BaseLearner):
         self.dataloader = RLBaseDataLoader(self.dataset, self.cfg.train.batch_size * self.unroll_split,
                                            collate_fn=unroll_split_collate_fn)
         self._get_loss = self.time_helper.wrapper(self._get_loss)
+        self.enable_save_data = self.cfg.train.enable_save_data
+        self.data_count = 0  # TODO add mutex to synchronize count behaviour(multi thread pull data)
 
     # overwrite
     def _init(self):
@@ -198,7 +186,7 @@ class PpoLearner(BaseLearner):
     # overwrite
     def _parse_pull_data(self, data):
         if self.unroll_split > 1:  # TODO (speed and memory copy optimization)
-            keys = ['obs', 'return', 'done', 'action', 'value', 'neglogp', 'state']
+            keys = ['obs', 'return', 'done', 'action', 'value', 'neglogp', 'state', 'episode_infos']
             if self.model.use_mask:
                 keys.append('mask')
             temp_dict = {}
@@ -209,6 +197,8 @@ class PpoLearner(BaseLearner):
                             temp_dict[k] = [None for _ in range(self.unroll_split)]
                         else:
                             raise NotImplementedError
+                    elif k == 'episode_infos':
+                        temp_dict[k] = [v for _ in range(self.unroll_split)]
                     else:
                         stack_item = torch.stack(v, dim=0)
                         split_item = torch.chunk(stack_item, self.unroll_split)
@@ -216,6 +206,9 @@ class PpoLearner(BaseLearner):
             for i in range(self.unroll_split):
                 item = {k: v[i] for k, v in temp_dict.items()}
                 self.dataset.push(item)
+                if self.enable_save_data:
+                    self.checkpoint_helper.save_data('split_item_{}'.format(self.data_count), item, device='cpu')
+                    self.data_count += 1
         else:
             self.dataset.push(data)
         self.episode_infos.extend(data['episode_infos'])
