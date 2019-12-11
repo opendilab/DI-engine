@@ -1,12 +1,19 @@
 from collections import deque
 from torch.utils.data import _utils
 import random
+import os
+import torch
+import logging
+
+
+logger = logging.getLogger('default_logger')
 
 
 class RLBaseDataset(object):
     def __init__(self, maxlen, transform):
         self.queue = deque(maxlen=maxlen)
         self.transform = transform
+        self.maxlen = maxlen
 
     def push(self, data):
         self.queue.append(data)
@@ -16,6 +23,17 @@ class RLBaseDataset(object):
 
     def __getitem__(self, idx):
         return self.transform(self.queue[idx])
+
+    def load_data(self, data_dir):
+        origin_data_list = list(os.listdir(data_dir))
+        if len(origin_data_list) <= self.maxlen:
+            data_list = origin_data_list
+        else:
+            data_list = random.sample(origin_data_list, self.maxlen)
+        for item in data_list:
+            data = torch.load(os.path.join(data_dir, item))
+            self.push(data)
+        logger.info("load data in {}".format(data_dir))
 
 
 class RLBaseDataLoader(object):
@@ -60,7 +78,6 @@ def unroll_split_collate_fn(*args, collate_fn=_utils.collate.default_collate, **
 
 
 if __name__ == "__main__":
-    import torch
     dataset = RLBaseDataset(maxlen=10, transform=lambda x: x)
     dataloader = RLBaseDataLoader(dataset, batch_size=4, collate_fn=unroll_split_collate_fn)
     print(len(dataloader.dataset))

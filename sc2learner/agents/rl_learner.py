@@ -56,19 +56,23 @@ class BaseLearner(object):
         self.lr_scheduler = build_lr_scheduler(self.optimizer)
         self.logger, self.tb_logger, self.scalar_record = build_logger(cfg)
         self.grad_clipper = build_grad_clip(cfg)
+        self.time_helper = build_time_helper(cfg)
         self.checkpoint_helper = build_checkpoint_helper(cfg)
         if cfg.common.load_path != '':
             self.checkpoint_helper.load(cfg.common.load_path, self.model,
                                         optimizer=self.optimizer,
                                         logger_prefix='(learner)')
+        self.pre_load_data = False
+        if cfg.common.data_load_path != '':
+            self.dataset.load_data(cfg.common.data_load_path)  # 560 data 20 second
+            self.pre_load_data = True
         self._init()
-        self.time_helper = build_time_helper(cfg)
         self._optimize_step = self.time_helper.wrapper(self._optimize_step)
 
     def run(self):
         self.pull_thread.start()
         self.reply_model_thread.start()
-        while len(self.episode_infos) < self.episode_infos.maxlen // 2:
+        while not self.pre_load_data and len(self.episode_infos) < self.episode_infos.maxlen // 2:
             print('current episode_infos len:{}'.format(len(self.episode_infos)))
             time.sleep(10)
 
