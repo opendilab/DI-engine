@@ -36,6 +36,10 @@ class BaseLearner(object):
         self.cfg = cfg
         self.env = env
         self.model = model
+        self.model.train()
+        self.use_cuda = cfg.train.learner_use_cuda
+        if self.use_cuda:
+            self.model = self.to_device(self.model, 'cuda')
         self.unroll_length = cfg.train.unroll_length
         self.episode_infos = deque(maxlen=cfg.train.learner_episode_queue_size)
 
@@ -73,10 +77,14 @@ class BaseLearner(object):
             self.lr_scheduler.step()
             self.time_helper.start_time()
             batch_data = next(self.dataloader)
+            if self.use_cuda:
+                batch_data = self.to_device(batch_data, 'cuda')
             data_time = self.time_helper.end_time()
-            loss_items, model_time = self._get_loss(batch_data)
-            _, update_time = self._optimize_step(loss_items['total_loss'])
-            time_items = {'data_time': data_time, 'model_time': model_time, 'update_time': update_time}
+            loss_items, forward_time = self._get_loss(batch_data)
+            _, backward_update_time = self._optimize_step(loss_items['total_loss'])
+            time_items = {'data_time': data_time, 'forward_time': forward_time,
+                          'backward_update_time': backward_update_time}
+
             self._update_monitor_var(loss_items, time_items)
             self._record_info(iterations)
             iterations += 1
@@ -87,20 +95,27 @@ class BaseLearner(object):
         if iterations % self.cfg.logger.save_freq == 0:
             self.checkpoint_helper.save_iterations(iterations, self.model, optimizer=self.optimizer)
 
-    #@time_helper.wrapper
     def _get_loss(self, data):
         raise NotImplementedError
 
     def _update_monitor_var(self, loss_items, time_items):
         raise NotImplementedError
 
-    #@time_helper.wrapper
     def _optimize_step(self, loss):
         self.optimizer.zero_grad()
+        self.time_helper.start_time()
         loss.backward()
+        backward_time = self.time_helper.end_time()
+        self.time_helper.start_time()
         self.grad_clipper.apply(self.model.parameters())
+        grad_clipper_time = self.time_helper.end_time()
+        self.time_helper.start_time()
         # TODO support reduce gradient
         self.optimizer.step()
+        update_step_time = self.time_helper.end_time()
+        self.scalar_record.update_var({'backward_time': backward_time,
+                                       'grad_clipper_time': grad_clipper_time,
+                                       'update_step_time': update_step_time})
 
     def _pull_data(self, zmq_context, port):
         receiver = zmq_context.socket(zmq.PULL)
@@ -123,7 +138,8 @@ class BaseLearner(object):
         while True:
             msg = receiver.recv_string()
             assert(msg == 'request model')
-            receiver.send_pyobj(self.model.state_dict())
+            state_dict = {k: v.to('cpu') for k, v in self.model.state_dict().items()}
+            receiver.send_pyobj(state_dict)
 
     def _save_checkpoint(self, path, model, optimizer=None, last_iter=None):
         checkpoint = {}
@@ -142,6 +158,20 @@ class BaseLearner(object):
 
     def _init(self):
         raise NotImplementedError
+
+    def to_device(self, item, device):
+        if isinstance(item, torch.nn.Module):
+            return item.to(device)
+        elif isinstance(item, torch.Tensor):
+            return item.to(device)
+        elif isinstance(item, list) or isinstance(item, tuple):
+            return [self.to_device(t, device) for t in item]
+        elif isinstance(item, dict):
+            return {k: self.to_device(item[k], device) for k in item.keys()}
+        elif item is None:
+            return item
+        else:
+            raise TypeError("not support item type: {}".format(type(item)))
 
 
 class PpoLearner(BaseLearner):
@@ -167,6 +197,9 @@ class PpoLearner(BaseLearner):
         self.scalar_record.register_var('data_time')
         self.scalar_record.register_var('model_time')
         self.scalar_record.register_var('update_time')
+        self.scalar_record.register_var('backward_time')
+        self.scalar_record.register_var('grad_clipper_time')
+        self.scalar_record.register_var('update_step_time')
 
     # overwrite
     def _parse_pull_data(self, data):
