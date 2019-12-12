@@ -91,7 +91,7 @@ class PpoActor(BaseActor):
 
         inputs = self._pack_model_input()
         with torch.no_grad():
-            last_values = self.model(inputs, mode='value').squeeze(0)
+            last_values = self.model(inputs, mode='value')['value'].squeeze(0)
         outputs['return'] = self._get_return(outputs, last_values)
 
         outputs['episode_infos'] = episode_infos
@@ -121,7 +121,7 @@ class PpoActor(BaseActor):
             obs, mask = self.obs
             inputs['mask'] = torch.FloatTensor(mask).unsqueeze(0)
         else:
-            obs = self.obs
+            obs = self.obs[0]
         obs = torch.FloatTensor(obs)
 
         inputs['obs'] = obs.unsqueeze(0)
@@ -140,7 +140,8 @@ class PpoActor(BaseActor):
             outputs['mask'].append(mask)
 
     def _process_model_output(self, output, outputs):
-        action, value, state, neglogp = output
+        action, value, state, neglogp = (
+                output['action'], output['value'], output['state'], output['neglogp'])
         self.state = state
         action = action.squeeze(0)
         outputs['action'].append(action)

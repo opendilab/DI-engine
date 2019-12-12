@@ -34,8 +34,8 @@ train:
 communication:
     learner_ip: localhost
     port:
-        learner: 5700
-        actor: 5701
+        learner: 5710
+        actor: 5711
 logger:
     print_freq: 100
     save_freq: 10000
