@@ -7,6 +7,7 @@ import os
 import yaml
 from easydict import EasyDict
 import random
+import torch
 
 from absl import app
 from absl import flags
@@ -93,6 +94,9 @@ def evaluate(cfg):
     else:
         raise NotImplementedError
 
+    value_save_path = os.path.join(cfg.common.save_path, 'values')
+    if not os.path.exists(value_save_path):
+        os.mkdir(value_save_path)
     try:
         cum_return = 0.0
         action_counts = [0] * env.action_space.n
@@ -100,8 +104,11 @@ def evaluate(cfg):
             observation = env.reset()
             agent.reset()
             done, step_id = False, 0
+            value_trace = []
             while not done:
                 action = agent.act(observation)
+                value = agent.value(observation)
+                value_trace.append(value)
                 logger.info("Step ID: %d	Take Action: %d" % (step_id, action))
                 observation, reward, done, _ = env.step(action)
                 action_counts[action] += 1
@@ -109,6 +116,8 @@ def evaluate(cfg):
                 step_id += 1
             if cfg.env.save_replay:
                 env.env.env.save_replay(cfg.common.agent)
+            path = os.path.join(value_save_path, 'value{}.pt'.format(i))
+            torch.save(torch.tensor(value_trace), path)
             for id, name in enumerate(env.action_names):
                 logger.info("Action ID: %d    Count: %d   Name: %s" %
                             (id, action_counts[id], name))

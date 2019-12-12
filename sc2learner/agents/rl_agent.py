@@ -33,6 +33,11 @@ class PpoAgent(BaseAgent):
         action = self.model(inputs, mode='step')[0]
         return action.squeeze(0).numpy()
 
+    def value(self, obs):
+        inputs = self._pack_model_input(obs)
+        value = self.model(inputs, mode='value')
+        return value.item()
+
     def _pack_model_input(self, obs):
         inputs = {}
         if self.model.use_mask:
