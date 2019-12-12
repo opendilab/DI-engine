@@ -3,6 +3,7 @@ from collections import deque
 import zmq
 import time
 import torch
+import torch.nn.functional as F
 from sc2learner.agents.rl_dataloader import RLBaseDataset, RLBaseDataLoader, unroll_split_collate_fn
 from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper, to_device
 from sc2learner.nn_utils import build_grad_clip
@@ -229,11 +230,13 @@ class PpoLearner(BaseLearner):
         inputs['obs'] = obs
         inputs['done'] = dones
         inputs['state'] = states
+        inputs['action'] = actions
         if self.model.use_mask:
             inputs['mask'] = data['mask']
-        new_values = self.model(inputs, mode='step')[1]
-        new_neglogp = self.model.pd.neglogp(actions, reduction='none')
-        entropy = self.model.pd.entropy().mean()
+        outputs = self.model(inputs, mode='evaluate')
+        new_values, new_neglogp, entropy = (
+            outputs['value'], outputs['neglogp'], outputs['entropy']
+        )
 
         new_values_clipped = values + torch.clamp(new_values - values, -clip_range, clip_range)
         value_loss1 = torch.pow(new_values - returns, 2)
@@ -244,6 +247,7 @@ class PpoLearner(BaseLearner):
             value_loss = 0.5 * value_loss1.mean()
 
         adv = returns - values
+        adv = adv.squeeze(1)  # bug point
         adv = (adv - adv.mean()) / (adv.std() + 1e-8)
         ratio = torch.exp(neglogps - new_neglogp)
         pg_loss1 = -adv * ratio
@@ -254,6 +258,7 @@ class PpoLearner(BaseLearner):
         clipfrac = torch.abs(ratio - 1.0).gt(clip_range).float().mean()
 
         loss = pg_loss - entropy * self.entropy_coeff + value_loss * self.value_coeff
+
         loss_items = {}
         loss_items['total_loss'] = loss
         loss_items['approximate_kl'] = approximate_kl
