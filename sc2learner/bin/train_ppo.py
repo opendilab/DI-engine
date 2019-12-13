@@ -5,9 +5,9 @@ from easydict import EasyDict
 import random
 import time
 
-from sc2learner.agents.actor_critic import PPOLSTM, PPOMLP
-from sc2learner.agents.rl_actor import PpoActor
-from sc2learner.agents.rl_learner import PpoLearner
+from sc2learner.agents.model import PPOLSTM, PPOMLP
+from sc2learner.agents.solver import PpoActor
+from sc2learner.agents.solver import PpoLearner
 from sc2learner.envs.raw_env import SC2RawEnv
 from sc2learner.envs.rewards.reward_wrappers import KillingRewardWrapper
 from sc2learner.envs.actions.zerg_action_wrappers import ZergActionWrapper
