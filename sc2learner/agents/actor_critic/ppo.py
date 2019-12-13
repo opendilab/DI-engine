@@ -44,7 +44,7 @@ class PPOMLP(ActorCriticBase):
         torch.nn.init.constant_(self.pi_logit.bias, 0.0)
 
     # overwrite
-    def _actor_forward(self, inputs):
+    def _critic_forward(self, inputs):
         x = inputs['obs']
         B = x.shape[0]
         x = x.view(B, -1)
@@ -56,7 +56,7 @@ class PPOMLP(ActorCriticBase):
         return vf
 
     # overwrite
-    def _critic_forward(self, inputs):
+    def _actor_forward(self, inputs):
         x = inputs['obs']
         B = x.shape[0]
         x = x.view(B, -1)
@@ -74,8 +74,8 @@ class PPOMLP(ActorCriticBase):
 
     # overwrite
     def step(self, inputs):
-        vf = self._actor_forward(inputs)
-        pi_logit = self._critic_forward(inputs)
+        vf = self._critic_forward(inputs)
+        pi_logit = self._actor_forward(inputs)
         handle = self.pd(pi_logit)
         action = handle.sample()
         neglogp = handle.neglogp(action, reduction='mean')
@@ -89,8 +89,8 @@ class PPOMLP(ActorCriticBase):
 
     # overwrite
     def evaluate(self, inputs):
-        vf = self._actor_forward(inputs)
-        pi_logit = self._critic_forward(inputs)
+        vf = self._critic_forward(inputs)
+        pi_logit = self._actor_forward(inputs)
         handle = self.pd(pi_logit)
         neglogp = handle.neglogp(inputs['action'], reduction='none')
         entropy = handle.entropy(reduction='mean')
