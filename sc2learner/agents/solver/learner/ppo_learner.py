@@ -1,7 +1,5 @@
 from threading import Thread
 from collections import deque
-import zmq
-import time
 import torch
 import torch.nn.functional as F
 from sc2learner.dataset import OnlineDataset, OnlineDataLoader, unroll_split_collate_fn
@@ -46,6 +44,14 @@ class PpoLearner(BaseLearner):
         self.scalar_record.register_var('entropy_reg')
         self.scalar_record.register_var('approximate_kl')
         self.scalar_record.register_var('clipfrac')
+
+        self.tb_logger.register_var('total_loss')
+        self.tb_logger.register_var('pg_loss')
+        self.tb_logger.register_var('value_loss')
+        self.tb_logger.register_var('entropy_reg')
+        self.tb_logger.register_var('approximate_kl')
+        self.tb_logger.register_var('clipfrac')
+
 
     # overwrite
     def _parse_pull_data(self, data):

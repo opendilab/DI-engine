@@ -1,10 +1,8 @@
 from threading import Thread
-from collections import deque
 import zmq
 import time
 import torch
-import torch.nn.functional as F
-from sc2learner.dataset import OnlineDataset, OnlineDataLoader, unroll_split_collate_fn
+from sc2learner.dataset import OnlineDataset, OnlineDataLoader
 from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper, to_device
 from sc2learner.nn_utils import build_grad_clip
 
@@ -15,7 +13,7 @@ def build_optimizer(model, cfg):
 
 
 def build_lr_scheduler(optimizer):
-    lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100000], gamma=0.1)
+    lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100000], gamma=1)
     return lr_scheduler
 
 
@@ -85,6 +83,8 @@ class BaseLearner(object):
     def _record_info(self, iterations):
         if iterations % self.cfg.logger.print_freq == 0:
             self.logger.info('iterations:{}\t{}'.format(iterations, self.scalar_record.get_var_all()))
+            tb_keys = self.tb_logger.scalar_var_names
+            self.tb_logger.add_scalar_list(self.scalar_record.get_var_tb_format(tb_keys, iterations))
         if iterations % self.cfg.logger.save_freq == 0:
             self.checkpoint_helper.save_iterations(iterations, self.model, optimizer=self.optimizer)
 
