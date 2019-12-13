@@ -17,10 +17,8 @@ from sc2learner.envs.raw_env import SC2RawEnv
 from sc2learner.envs.actions.zerg_action_wrappers import ZergActionWrapper
 from sc2learner.envs.observations.zerg_observation_wrappers \
     import ZergObservationWrapper
-from sc2learner.agents.random_agent import RandomAgent
-from sc2learner.agents.keyboard_agent import KeyboardAgent
 from sc2learner.agents.model import PPOLSTM, PPOMLP
-from sc2learner.agents.solver import PpoAgent
+from sc2learner.agents.solver import PpoAgent, RandomAgent, KeyboardAgent
 from sc2learner.utils import build_logger
 
 
