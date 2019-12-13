@@ -5,7 +5,7 @@ from easydict import EasyDict
 import random
 import time
 
-from sc2learner.agents.ppo_policies_pytorch import LstmPolicy, MlpPolicy
+from sc2learner.agents.actor_critic import PPOLSTM, PPOMLP
 from sc2learner.agents.rl_actor import PpoActor
 from sc2learner.agents.rl_learner import PpoLearner
 from sc2learner.envs.raw_env import SC2RawEnv
@@ -58,8 +58,8 @@ def start_actor(cfg):
     game_seed = random.randint(0, 2**32 - 1)
     print("Game Seed: %d Difficulty: %s" % (game_seed, difficulty))
     env = create_env(cfg, difficulty, game_seed)
-    policy_func = {'mlp': MlpPolicy,
-                   'lstm': LstmPolicy}
+    policy_func = {'mlp': PPOMLP,
+                   'lstm': PPOLSTM}
     model = policy_func[cfg.model.policy](
                 ob_space=env.observation_space,
                 ac_space=env.action_space,
@@ -71,8 +71,8 @@ def start_actor(cfg):
 
 def start_learner(cfg):
     env = create_env(cfg, '1', 0)
-    policy_func = {'mlp': MlpPolicy,
-                   'lstm': LstmPolicy}
+    policy_func = {'mlp': PPOMLP,
+                   'lstm': PPOLSTM}
     model = policy_func[cfg.model.policy](
                 ob_space=env.observation_space,
                 ac_space=env.action_space,

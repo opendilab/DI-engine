@@ -19,7 +19,7 @@ from sc2learner.envs.observations.zerg_observation_wrappers \
     import ZergObservationWrapper
 from sc2learner.agents.random_agent import RandomAgent
 from sc2learner.agents.keyboard_agent import KeyboardAgent
-from sc2learner.agents.ppo_policies_pytorch import LstmPolicy, MlpPolicy
+from sc2learner.agents.actor_critic import PPOLSTM, PPOMLP
 from sc2learner.agents.rl_agent import PpoAgent
 from sc2learner.utils import build_logger
 
@@ -66,8 +66,8 @@ def create_dqn_agent(cfg, env):
 
 def create_ppo_agent(cfg, env):
 
-    policy_func = {'mlp': MlpPolicy,
-                   'lstm': LstmPolicy}
+    policy_func = {'mlp': PPOMLP,
+                   'lstm': PPOLSTM}
     model = policy_func[cfg.model.policy](
                 ob_space=env.observation_space,
                 ac_space=env.action_space,

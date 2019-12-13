@@ -10,33 +10,12 @@ from functools import reduce
 
 from sc2learner.envs.spaces.mask_discrete import MaskDiscrete
 from sc2learner.rl_utils import CategoricalPd, CategoricalPdPytorch
+from .actor_critic import ActorCriticBase
 
 
-class ActorCriticBase(nn.Module):
-    def forward(self, inputs, mode=None):
-        assert(mode in ['step', 'value', 'evaluate'])
-        f = getattr(self, mode)
-        return f(inputs)
-
-    def step(self, inputs):
-        raise NotImplementedError
-
-    def value(self, inputs):
-        raise NotImplementedError
-
-    def evaluate(self, inputs):
-        raise NotImplementedError
-
-    def _actor_forward(self, inputs):
-        raise NotImplementedError
-
-    def _critic_forward(self, inputs):
-        raise NotImplementedError
-
-
-class MlpPolicy(ActorCriticBase):
+class PPOMLP(ActorCriticBase):
     def __init__(self, ob_space, ac_space, fc_dim=512):
-        super(MlpPolicy, self).__init__()
+        super(PPOMLP, self).__init__()
         if isinstance(ac_space, MaskDiscrete):
             ob_space, mask_space = ob_space.spaces
         self.use_mask = isinstance(ac_space, MaskDiscrete)
@@ -64,14 +43,23 @@ class MlpPolicy(ActorCriticBase):
         torch.nn.init.orthogonal_(self.pi_logit.weight, 0.01)
         torch.nn.init.constant_(self.pi_logit.bias, 0.0)
 
-    def step(self, inputs):
+    # overwrite
+    def _actor_forward(self, inputs):
         x = inputs['obs']
         B = x.shape[0]
         x = x.view(B, -1)
+
         vf = self.act(self.vf_h1(x))
         vf = self.act(self.vf_h2(vf))
         vf = self.act(self.vf_h3(vf))
         vf = self.vf(vf)
+        return vf
+
+    # overwrite
+    def _critic_forward(self, inputs):
+        x = inputs['obs']
+        B = x.shape[0]
+        x = x.view(B, -1)
 
         pi = self.act(self.pi_h1(x))
         pi = self.act(self.pi_h2(pi))
@@ -82,6 +70,12 @@ class MlpPolicy(ActorCriticBase):
             mask = inputs['mask']
             assert(mask is not None)
             pi_logit -= (1-mask) * 1e30
+        return pi_logit
+
+    # overwrite
+    def step(self, inputs):
+        vf = self._actor_forward(inputs)
+        pi_logit = self._critic_forward(inputs)
         handle = self.pd(pi_logit)
         action = handle.sample()
         neglogp = handle.neglogp(action, reduction='mean')
@@ -93,24 +87,10 @@ class MlpPolicy(ActorCriticBase):
             'pi_logit': pi_logit
         }
 
+    # overwrite
     def evaluate(self, inputs):
-        x = inputs['obs']
-        B = x.shape[0]
-        x = x.view(B, -1)
-        vf = self.act(self.vf_h1(x))
-        vf = self.act(self.vf_h2(vf))
-        vf = self.act(self.vf_h3(vf))
-        vf = self.vf(vf)
-
-        pi = self.act(self.pi_h1(x))
-        pi = self.act(self.pi_h2(pi))
-        pi = self.act(self.pi_h3(pi))
-        pi_logit = self.pi_logit(pi)
-
-        if self.use_mask:
-            mask = inputs['mask']
-            assert(mask is not None)
-            pi_logit -= (1-mask) * 1e30
+        vf = self._actor_forward(inputs)
+        pi_logit = self._critic_forward(inputs)
         handle = self.pd(pi_logit)
         neglogp = handle.neglogp(inputs['action'], reduction='none')
         entropy = handle.entropy(reduction='mean')
@@ -122,15 +102,9 @@ class MlpPolicy(ActorCriticBase):
             'pi_logit': pi_logit
         }
 
+    # overwrite
     def value(self, inputs):
-        x = inputs['obs']
-        B = x.shape[0]
-        x = x.view(B, -1)
-        vf = self.act(self.vf_h1(x))
-        vf = self.act(self.vf_h2(vf))
-        vf = self.act(self.vf_h3(vf))
-        vf = self.vf(vf)
-        return {'value': vf}
+        return {'value': self._critic_forward(inputs)}
 
 
 class LSTMFC(nn.Module):
@@ -179,13 +153,13 @@ class LSTMFC(nn.Module):
 
     def __repr__(self):
         return 'input_dim: {}\thidden_dim: {}'.format(
-                self.input_dim, self.hidden_dim)
+            self.input_dim, self.hidden_dim)
 
 
-class LstmPolicy(ActorCriticBase):
+class PPOLSTM(ActorCriticBase):
     def __init__(self, ob_space, ac_space, unroll_length,
                  fc_dim=512, lstm_dim=512):
-        super(LstmPolicy, self).__init__()
+        super(PPOLSTM, self).__init__()
         if isinstance(ac_space, MaskDiscrete):
             ob_space, mask_space = ob_space.spaces
         self.use_mask = isinstance(ac_space, MaskDiscrete)
@@ -255,7 +229,7 @@ def test_mlp_policy():
     ob_space = torch.empty(3, 32, 32)
     ac_space = T()
     setattr(ac_space, 'n', 10)
-    model = MlpPolicy(ob_space, ac_space)
+    model = PPOMLP(ob_space, ac_space)
     print(model)
     output_v = model(inputs, mode='value')
     print(output_v.shape)
@@ -269,8 +243,10 @@ def test_mlp_policy():
 
 def test_mlp_policy_speed():
     from sc2learner.utils.time_helper import TimeWrapperCuda
+
     class T():
         pass
+
     def to_device(item, device):
         if isinstance(item, torch.nn.Module):
             return item.cuda()
@@ -287,7 +263,7 @@ def test_mlp_policy_speed():
     ob_space = torch.empty(857)
     ac_space = T()
     setattr(ac_space, 'n', 62)
-    model = MlpPolicy(ob_space, ac_space)
+    model = PPOMLP(ob_space, ac_space)
     model = to_device(model, 'cuda')
     model.use_mask = True
     print(model)
@@ -295,9 +271,9 @@ def test_mlp_policy_speed():
     T = 100
     for _ in range(10):
         model(inputs, mode='value')
-    time_dict = {'forward':[],
-                 'backward':[],
-                 'update':[]}
+    time_dict = {'forward': [],
+                 'backward': [],
+                 'update': []}
     adv = torch.randn(2, 1).cuda()
     for t in range(T):
         TimeWrapperCuda.start_time()
@@ -341,7 +317,7 @@ def test_lstm_policy():
     ob_space = torch.empty(3, 32, 32)
     ac_space = T()
     setattr(ac_space, 'n', 10)
-    model = LstmPolicy(ob_space, ac_space, unroll_length=5)
+    model = PPOLSTM(ob_space, ac_space, unroll_length=5)
     print(model)
     output_v = model(inputs, mode='value')
     print('output_v', output_v.shape)
@@ -354,6 +330,6 @@ def test_lstm_policy():
 
 
 if __name__ == "__main__":
-    #test_mlp_policy()
-    #test_lstm_policy()
+    # test_mlp_policy()
+    # test_lstm_policy()
     test_mlp_policy_speed()
