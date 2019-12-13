@@ -9,7 +9,7 @@ import torch.nn.functional as F
 from functools import reduce
 
 from sc2learner.envs.spaces.mask_discrete import MaskDiscrete
-from sc2learner.agents.utils_torch import CategoricalPd, CategoricalPdNew
+from sc2learner.rl_utils import CategoricalPd, CategoricalPdPytorch
 
 
 class ActorCriticBase(nn.Module):

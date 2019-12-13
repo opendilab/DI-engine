@@ -2,7 +2,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -49,13 +48,13 @@ class CategoricalPd(Pd):
         return u.argmax(dim=-1)
 
 
-class CategoricalPdNew(torch.distributions.Categorical):
+class CategoricalPdPytorch(torch.distributions.Categorical):
     def __init__(self, logits=None):
         if logits is not None:
             self.update_logits(logits)
 
     def update_logits(self, logits):
-        super(CategoricalPdNew, self).__init__(logits=logits)
+        super(CategoricalPdPytorch, self).__init__(logits=logits)
 
     def sample(self):
         return super().sample()
