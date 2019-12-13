@@ -4,7 +4,7 @@ import zmq
 import time
 import torch
 import torch.nn.functional as F
-from sc2learner.agents.rl_dataloader import RLBaseDataset, RLBaseDataLoader, unroll_split_collate_fn
+from sc2learner.dataset import OnlineDataset, OnlineDataLoader, unroll_split_collate_fn
 from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper, to_device
 from sc2learner.nn_utils import build_grad_clip
 
@@ -42,11 +42,12 @@ class BaseLearner(object):
         if self.use_cuda:
             self.model = to_device(self.model, 'cuda')
         self.unroll_length = cfg.train.unroll_length
-        self.episode_infos = deque(maxlen=cfg.train.learner_episode_queue_size)
 
         self.zmq_context = zmq.Context()
-        self.dataset = RLBaseDataset(maxlen=cfg.train.learner_data_queue_size, transform=self._data_transform)
-        self.dataloader = RLBaseDataLoader(self.dataset, batch_size=cfg.train.batch_size)
+        self.dataset = OnlineDataset(data_maxlen=cfg.train.learner_data_queue_size,
+                                     episode_maxlen=cfg.train.learner_episode_queue_size,
+                                     transform=self._data_transform)
+        self.dataloader = OnlineDataLoader(self.dataset, batch_size=cfg.train.batch_size)
         port = cfg.communication.port
         self.pull_thread = Thread(target=self._pull_data,
                                   args=(self.zmq_context, port['actor']))
@@ -63,18 +64,14 @@ class BaseLearner(object):
             self.checkpoint_helper.load(cfg.common.load_path, self.model,
                                         optimizer=self.optimizer,
                                         logger_prefix='(learner)')
-        self.pre_load_data = False
-        if cfg.common.data_load_path != '':
-            self.dataset.load_data(cfg.common.data_load_path)  # 560 data 20 second
-            self.pre_load_data = True
         self._init()
         self._optimize_step = self.time_helper.wrapper(self._optimize_step)
 
     def run(self):
         self.pull_thread.start()
         self.reply_model_thread.start()
-        while not self.pre_load_data and len(self.episode_infos) < self.episode_infos.maxlen // 2:
-            print('current episode_infos len:{}'.format(len(self.episode_infos)))
+        while not self.dataset.is_episode_full():
+            print('Waiting...' + self.dataset.episode_len())
             time.sleep(10)
 
         iterations = 0
@@ -172,11 +169,13 @@ class PpoLearner(BaseLearner):
         self.entropy_coeff = self.cfg.train.entropy_coeff
         self.value_coeff = self.cfg.train.value_coeff
         self.clip_range_scheduler = build_clip_range_scheduler(self.cfg)
-        self.dataloader = RLBaseDataLoader(self.dataset, self.cfg.train.batch_size * self.unroll_split,
+        self.dataloader = OnlineDataLoader(self.dataset, self.cfg.train.batch_size,
                                            collate_fn=unroll_split_collate_fn)
-        self._get_loss = self.time_helper.wrapper(self._get_loss)
         self.enable_save_data = self.cfg.train.enable_save_data
         self.data_count = 0  # TODO add mutex to synchronize count behaviour(multi thread pull data)
+        if self.cfg.common.data_load_path != '':
+            self.dataset.load_data(self.cfg.common.data_load_path, ratio=self.unroll_split)  # 560 data 20 second
+        self._get_loss = self.time_helper.wrapper(self._get_loss)
 
     # overwrite
     def _init(self):
@@ -210,13 +209,13 @@ class PpoLearner(BaseLearner):
                         temp_dict[k] = split_item
             for i in range(self.unroll_split):
                 item = {k: v[i] for k, v in temp_dict.items()}
-                self.dataset.push(item)
+                self.dataset.push_data(item)
                 if self.enable_save_data:
                     self.checkpoint_helper.save_data('split_item_{}'.format(self.data_count), item, device='cpu')
                     self.data_count += 1
         else:
-            self.dataset.push(data)
-        self.episode_infos.extend(data['episode_infos'])
+            self.dataset.push_data(data)
+        self.dataset.push_episode_info(data['episode_infos'])
 
     # overwrite
     def _get_loss(self, data):

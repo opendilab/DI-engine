@@ -14,10 +14,10 @@ env:
 model:
     policy: mlp  # [mlp, lstm]
 train:
-    batch_size: 32
+    batch_size: 256  # 32 * unroll_split
     learner_use_cuda: True
-    learner_data_queue_size: 1024
-    learner_episode_queue_size: 5000
+    learner_data_queue_size: 8192  # 1024 * unroll_split
+    learner_episode_queue_size: 1024  # episode = data_queue / unroll_split 
     actor_data_queue_size: 1
     enable_save_data: False
     unroll_length: 128
