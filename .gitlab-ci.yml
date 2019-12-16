@@ -13,4 +13,4 @@ pages:
     paths:
     - public
   only:
-    - doc-dev
+    - nyz-dev
