@@ -52,7 +52,6 @@ class PpoLearner(BaseLearner):
         self.tb_logger.register_var('approximate_kl')
         self.tb_logger.register_var('clipfrac')
 
-
     # overwrite
     def _parse_pull_data(self, data):
         # TODO (speed and memory copy optimization)

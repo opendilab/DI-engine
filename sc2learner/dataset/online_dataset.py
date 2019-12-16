@@ -1,8 +1,8 @@
 from collections import deque
-import random
 import os
 import torch
 import logging
+from multiprocessing import Lock
 
 
 logger = logging.getLogger('default_logger')
@@ -11,16 +11,45 @@ logger = logging.getLogger('default_logger')
 class OnlineDataset(object):
     def __init__(self, data_maxlen, episode_maxlen, transform):
         self.data_queue = deque(maxlen=data_maxlen)
+        self.data_usage_count_queue = deque(maxlen=data_maxlen)
         self.transform = transform
         self.data_maxlen = data_maxlen
         self.episode_maxlen = episode_maxlen
         self.episode_queue = deque(maxlen=episode_maxlen)
 
+        self.lock = Lock()  # TODO review lock usage
+
+    def _acquire_lock(self):
+        self.lock.acquire()
+
+    def _release_lock(self):
+        self.lock.release()
+
     def push_data(self, data):
+        self._acquire_lock()
         self.data_queue.append(data)
+        self.data_usage_count_queue.append(0)
+        self._release_lock()
+
+    def _add_usage_count(self, usage_list):
+        for idx in usage_list:
+            self.data_usage_count_queue[idx] += 1
+
+    def get_indice_data(self, indice):
+        self._acquire_lock()
+        data = [self[i] for i in indice]
+        usage = [self.data_usage_count_queue[i] for i in indice]
+        print(usage)
+        avg_usage = sum(usage) / len(usage)
+        self._add_usage_count(indice)
+        self._release_lock()
+        return data, avg_usage
 
     def extend_data(self, data_list):
-        self.data_list.extend(data_list)
+        self._acquire_lock()
+        self.data_queue.extend(data_list)
+        self.data_usage_count_queue.extend([0 for _ in range(len(data_list))])
+        self._release_lock()
 
     def push_episode_info(self, episode_info):
         self.episode_queue.append(episode_info)
