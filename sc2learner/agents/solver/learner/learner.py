@@ -3,7 +3,7 @@ import zmq
 import time
 import torch
 from sc2learner.dataset import OnlineDataset, OnlineDataLoader
-from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper, to_device
+from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper, to_device, CountVar
 from sc2learner.nn_utils import build_grad_clip
 
 
@@ -47,9 +47,11 @@ class BaseLearner(object):
         self.grad_clipper = build_grad_clip(cfg)
         self.time_helper = build_time_helper(cfg)
         self.checkpoint_helper = build_checkpoint_helper(cfg)
+        self.last_iter = CountVar(init_val=0)
         if cfg.common.load_path != '':
             self.checkpoint_helper.load(cfg.common.load_path, self.model,
                                         optimizer=self.optimizer,
+                                        last_iter=self.last_iter,  # TODO last_iter for lr_scheduler
                                         logger_prefix='(learner)')
         self._init()
         self._optimize_step = self.time_helper.wrapper(self._optimize_step)
@@ -61,7 +63,6 @@ class BaseLearner(object):
             print('Waiting...' + self.dataset.episode_len())
             time.sleep(10)
 
-        iterations = 0
         while True:
             self.lr_scheduler.step()
             cur_lr = self.lr_scheduler.get_lr()[0]
@@ -77,8 +78,8 @@ class BaseLearner(object):
             var_items['cur_lr'] = cur_lr
 
             self._update_monitor_var(var_items, time_items)
-            self._record_info(iterations)
-            iterations += 1
+            self._record_info(self.last_iter.val)
+            self.last_iter.add(1)
 
     def _record_info(self, iterations):
         if iterations % self.cfg.logger.print_freq == 0:
