@@ -55,32 +55,30 @@ class PpoLearner(BaseLearner):
 
     # overwrite
     def _parse_pull_data(self, data):
-        if self.unroll_split > 1:  # TODO (speed and memory copy optimization)
-            keys = ['obs', 'return', 'done', 'action', 'value', 'neglogp', 'state', 'episode_infos']
-            if self.model.use_mask:
-                keys.append('mask')
-            temp_dict = {}
-            for k, v in data.items():
-                if k in keys:
-                    if k == 'state':
-                        if v is None:
-                            temp_dict[k] = [None for _ in range(self.unroll_split)]
-                        else:
-                            raise NotImplementedError
-                    elif k == 'episode_infos':
-                        temp_dict[k] = [v for _ in range(self.unroll_split)]
+        # TODO (speed and memory copy optimization)
+        keys = ['obs', 'return', 'done', 'action', 'value', 'neglogp', 'state', 'episode_infos']
+        if self.model.use_mask:
+            keys.append('mask')
+        temp_dict = {}
+        for k, v in data.items():
+            if k in keys:
+                if k == 'state':
+                    if v is None:
+                        temp_dict[k] = [None for _ in range(self.unroll_split)]
                     else:
-                        stack_item = torch.stack(v, dim=0)
-                        split_item = torch.chunk(stack_item, self.unroll_split)
-                        temp_dict[k] = split_item
-            for i in range(self.unroll_split):
-                item = {k: v[i] for k, v in temp_dict.items()}
-                self.dataset.push_data(item)
-                if self.enable_save_data:
-                    self.checkpoint_helper.save_data('split_item_{}'.format(self.data_count), item, device='cpu')
-                    self.data_count += 1
-        else:
-            self.dataset.push_data(data)
+                        raise NotImplementedError
+                elif k == 'episode_infos':
+                    temp_dict[k] = [v for _ in range(self.unroll_split)]
+                else:
+                    stack_item = torch.stack(v, dim=0)
+                    split_item = torch.chunk(stack_item, self.unroll_split)
+                    temp_dict[k] = split_item
+        for i in range(self.unroll_split):
+            item = {k: v[i] for k, v in temp_dict.items()}
+            self.dataset.push_data(item)
+            if self.enable_save_data:
+                self.checkpoint_helper.save_data('split_item_{}'.format(self.data_count), item, device='cpu')
+                self.data_count += 1
         self.dataset.push_episode_info(data['episode_infos'])
 
     # overwrite
