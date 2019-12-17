@@ -73,9 +73,10 @@ def create_ppo_agent(cfg, env):
     policy_func = {'mlp': PPOMLP,
                    'lstm': PPOLSTM}
     model = policy_func[cfg.model.policy](
-        ob_space=env.observation_space,
-        ac_space=env.action_space,
-    )
+                ob_space=env.observation_space,
+                ac_space=env.action_space,
+                action_type=cfg.model.action_type,
+            )
     agent = PpoAgent(env=env, model=model, cfg=cfg)
     return agent
 
