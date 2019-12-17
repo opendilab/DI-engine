@@ -17,7 +17,6 @@ train:
     batch_size: 256  # 32 * unroll_split
     learner_use_cuda: True
     learner_data_queue_size: 8192  # 1024 * unroll_split
-    learner_episode_queue_size: 1024  # episode = data_queue / unroll_split 
     actor_data_queue_size: 1
     enable_save_data: False
     unroll_length: 128
@@ -32,10 +31,10 @@ train:
     grad_clip_type: max_norm  # [max_norm, clip_value]
     grad_clip_value: 0.5
 communication:
-    learner_ip: localhost
+    learner_ip: '10.198.6.62'
     port:
         learner: 5710
         actor: 5711
 logger:
-    print_freq: 100
-    save_freq: 10000
+    print_freq: 500
+    save_freq: 1000

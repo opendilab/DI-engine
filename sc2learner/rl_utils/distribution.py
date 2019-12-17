@@ -16,6 +16,11 @@ class Pd(object):
         raise NotImplementedError
 
     def sample(self):
+        # for randomness
+        raise NotImplementedError
+
+    def mode(self):
+        # for deterministic
         raise NotImplementedError
 
 
@@ -46,6 +51,9 @@ class CategoricalPd(Pd):
         u = torch.rand_like(self.logits)
         u = self.logits - torch.log(-torch.log(u))
         return u.argmax(dim=-1)
+
+    def mode(self):
+        return self.logits.argmax(dim=-1)
 
 
 class CategoricalPdPytorch(torch.distributions.Categorical):
