@@ -149,8 +149,8 @@ def main(argv):
     print(reward_list)
     pool.close()
 
-    print("Evaluated %d Episodes Avg Return %f Avg Winning Rate %f" % (
-        cfg.common.num_episodes, sum(reward_list) / len(reward_list),
+    print("Evaluated %d Episodes Against Bot Level %s Avg Return %f Avg Winning Rate %f" % (
+        cfg.common.num_episodes, FLAGS.difficulty, sum(reward_list) / len(reward_list),
         ((sum(reward_list) / len(reward_list)) + 1) / 2.0))
 
 
