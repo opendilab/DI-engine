@@ -4,10 +4,14 @@ from __future__ import print_function
 
 import sys
 import os
+import time
 import yaml
 from easydict import EasyDict
 import random
 import torch
+from multiprocessing import Pool
+from functools import partial
+import math
 
 from absl import app
 from absl import flags
@@ -69,18 +73,19 @@ def create_ppo_agent(cfg, env):
     policy_func = {'mlp': PPOMLP,
                    'lstm': PPOLSTM}
     model = policy_func[cfg.model.policy](
-                ob_space=env.observation_space,
-                ac_space=env.action_space,
-            )
+        ob_space=env.observation_space,
+        ac_space=env.action_space,
+    )
     agent = PpoAgent(env=env, model=model, cfg=cfg)
     return agent
 
 
-def evaluate(cfg):
-    game_seed = random.randint(0, 2**32 - 1)
-    logger, _, _ = build_logger(cfg, name='evaluate')
+def evaluate(var_dict, cfg):
+
+    game_seed, rank = var_dict['game_seed'], var_dict['rank']
+    logger, _, _ = build_logger(cfg, name='evaluate_{}_{}'.format(time.time(), rank))
     logger.info('cfg: {}'.format(cfg))
-    logger.info("Game Seed: %d" % game_seed)
+    logger.info("Rank %d Game Seed: %d" % (rank, game_seed))
     env = create_env(cfg, game_seed)
 
     if cfg.common.agent == 'ppo':
@@ -97,38 +102,31 @@ def evaluate(cfg):
     value_save_path = os.path.join(cfg.common.save_path, 'values')
     if not os.path.exists(value_save_path):
         os.mkdir(value_save_path)
-    try:
-        cum_return = 0.0
-        action_counts = [0] * env.action_space.n
-        for i in range(cfg.common.num_episodes):
-            observation = env.reset()
-            agent.reset()
-            done, step_id = False, 0
-            value_trace = []
-            while not done:
-                action = agent.act(observation)
-                value = agent.value(observation)
-                value_trace.append(value)
-                logger.info("Step ID: %d	Take Action: %d" % (step_id, action))
-                observation, reward, done, _ = env.step(action)
-                action_counts[action] += 1
-                cum_return += reward
-                step_id += 1
-            if cfg.env.save_replay:
-                env.env.env.save_replay(cfg.common.agent + FLAGS.replay_path)
-            path = os.path.join(value_save_path, 'value{}.pt'.format(i))
-            torch.save(torch.tensor(value_trace), path)
-            for id, name in enumerate(env.action_names):
-                logger.info("Action ID: %d    Count: %d   Name: %s" %
-                            (id, action_counts[id], name))
-            logger.info("Evaluated %d/%d Episodes Avg Return %f Avg Winning Rate %f" % (
-                i + 1, cfg.common.num_episodes, cum_return / (i + 1),
-                ((cum_return / (i + 1)) + 1) / 2.0))
-    except KeyboardInterrupt:
-        pass
-    finally:
-        env.close()
+    cum_return = 0.0
+    action_counts = [0] * env.action_space.n
 
+    observation = env.reset()
+    agent.reset()
+    done, step_id = False, 0
+    value_trace = []
+    while not done:
+        action = agent.act(observation)
+        value = agent.value(observation)
+        value_trace.append(value)
+        logger.info("Rank %d Step ID: %d Take Action: %d" % (rank, step_id, action))
+        observation, reward, done, _ = env.step(action)
+        action_counts[action] += 1
+        cum_return += reward
+        step_id += 1
+    if cfg.env.save_replay:
+        env.env.env.save_replay(cfg.common.agent + FLAGS.replay_path)
+    path = os.path.join(value_save_path, 'value{}.pt'.format(rank))
+    torch.save(torch.tensor(value_trace), path)
+    for id, name in enumerate(env.action_names):
+        logger.info("Rank %d\tAction ID: %d\tCount: %d\tName: %s" %
+                    (rank, id, action_counts[id], name))
+    env.close()
+    return cum_return
 
 def main(argv):
     logging.set_verbosity(logging.ERROR)
@@ -137,7 +135,22 @@ def main(argv):
     cfg = EasyDict(cfg)
     cfg.common.save_path = os.path.dirname(FLAGS.config_path)
     cfg.common.load_path = FLAGS.load_path
-    evaluate(cfg)
+    if not os.path.exists(cfg.common.agent + FLAGS.replay_path):
+        os.mkdir(cfg.common.agent + FLAGS.replay_path)
+    eval_func = partial(evaluate, cfg=cfg)
+    pool = Pool(min(cfg.common.num_episodes, 20))
+    var_list = []
+    for i in range(cfg.common.num_episodes):
+        seed = random.randint(0, math.pow(2, 32)-1)
+        var_list.append({'rank': i, 'game_seed': seed})
+
+    reward_list = pool.map(eval_func, var_list)
+    print(reward_list)
+    pool.close()
+
+    print("Evaluated %d Episodes Avg Return %f Avg Winning Rate %f" % (
+        cfg.common.num_episodes, sum(reward_list) / len(reward_list),
+        ((sum(reward_list) / len(reward_list)) + 1) / 2.0))
 
 
 if __name__ == '__main__':
