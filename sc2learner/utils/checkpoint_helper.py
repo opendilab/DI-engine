@@ -87,7 +87,8 @@ class CheckpointHelper(object):
              prefix_op=None, prefix=None, strict=False, logger_prefix=''):
         # Note: don't use assign operation('=') to updare input argument value
         assert(os.path.exists(load_path))
-        checkpoint = torch.load(load_path)
+        # Note: for reduce first GPU memory cost and compatible for cpu env
+        checkpoint = torch.load(load_path, map_location='cpu')
         state_dict = checkpoint['state_dict']
         if prefix_op is not None:
             prefix_func = {'remove': self._remove_prefix,
