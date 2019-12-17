@@ -1,10 +1,7 @@
-from threading import Thread
-from collections import deque
 import torch
 import torch.nn.functional as F
 from sc2learner.dataset import OnlineDataset, OnlineDataLoader, unroll_split_collate_fn
 from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper, to_device
-from sc2learner.nn_utils import build_grad_clip
 from .learner import BaseLearner
 
 
@@ -78,7 +75,6 @@ class PpoLearner(BaseLearner):
             if self.enable_save_data:
                 self.checkpoint_helper.save_data('split_item_{}'.format(self.data_count), item, device='cpu')
                 self.data_count += 1
-        self.dataset.push_episode_info(data['episode_infos'])
 
     # overwrite
     def _get_loss(self, data):

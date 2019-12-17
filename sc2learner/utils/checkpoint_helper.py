@@ -42,6 +42,7 @@ class CheckpointHelper(object):
 
     def save(self, name, model,
              optimizer=None, last_iter=None,
+             dataset=None,
              prefix_op=None, prefix=None):
         checkpoint = {}
         state_dict = model.state_dict()
@@ -58,6 +59,9 @@ class CheckpointHelper(object):
             assert(last_iter is not None)
             checkpoint['last_iter'] = last_iter
             checkpoint['optimizer'] = optimizer.state_dict()
+
+        if dataset is not None:
+            checkpoint['dataset'] = dataset.create_checkpoint()
         path = os.path.join(self.save_path, name+'.pth.tar')
         torch.save(checkpoint, path)
         logger.info('save checkpoint in {}'.format(path))
@@ -79,11 +83,12 @@ class CheckpointHelper(object):
             logger.info('redundant_keys: {}'.format(k))
 
     def load(self, load_path, model,
-             optimizer=None, last_iter=None, lr_schduler=None,
+             optimizer=None, last_iter=None, lr_schduler=None, dataset=None,
              prefix_op=None, prefix=None, strict=False, logger_prefix=''):
         # Note: don't use assign operation('=') to updare input argument value
         assert(os.path.exists(load_path))
-        checkpoint = torch.load(load_path)
+        # Note: for reduce first GPU memory cost and compatible for cpu env
+        checkpoint = torch.load(load_path, map_location='cpu')
         state_dict = checkpoint['state_dict']
         if prefix_op is not None:
             prefix_func = {'remove': self._remove_prefix,
@@ -95,6 +100,10 @@ class CheckpointHelper(object):
         model.load_state_dict(state_dict, strict=strict)
         logger.info(logger_prefix+'load model state_dict in {}'.format(load_path))
         self._print_mismatch_keys(model.state_dict(), state_dict)
+
+        if dataset is not None:
+            dataset.load_data_from_checkpoint(checkpoint['dataset'])
+            logger.info(logger_prefix+'load online data in {}'.format(load_path))
 
         if optimizer is not None:
             optimizer.load_state_dict(checkpoint['optimizer'])

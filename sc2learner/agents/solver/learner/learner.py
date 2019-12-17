@@ -32,7 +32,6 @@ class BaseLearner(object):
 
         self.zmq_context = zmq.Context()
         self.dataset = OnlineDataset(data_maxlen=cfg.train.learner_data_queue_size,
-                                     episode_maxlen=cfg.train.learner_episode_queue_size,
                                      transform=self._data_transform)
         self.dataloader = OnlineDataLoader(self.dataset, batch_size=cfg.train.batch_size)
         port = cfg.communication.port
@@ -52,6 +51,7 @@ class BaseLearner(object):
             self.checkpoint_helper.load(cfg.common.load_path, self.model,
                                         optimizer=self.optimizer,
                                         last_iter=self.last_iter,  # TODO last_iter for lr_scheduler
+                                        dataset=self.dataset,
                                         logger_prefix='(learner)')
         self._init()
         self._optimize_step = self.time_helper.wrapper(self._optimize_step)
@@ -59,8 +59,8 @@ class BaseLearner(object):
     def run(self):
         self.pull_thread.start()
         self.reply_model_thread.start()
-        while not self.dataset.is_episode_full():
-            print('Waiting...' + self.dataset.episode_len())
+        while not self.dataset.is_full():
+            print('Waiting...' + self.dataset.format_len())
             time.sleep(10)
 
         while True:
@@ -88,7 +88,8 @@ class BaseLearner(object):
             tb_keys = self.tb_logger.scalar_var_names
             self.tb_logger.add_scalar_list(self.scalar_record.get_var_tb_format(tb_keys, iterations))
         if iterations % self.cfg.logger.save_freq == 0:
-            self.checkpoint_helper.save_iterations(iterations, self.model, optimizer=self.optimizer)
+            self.checkpoint_helper.save_iterations(iterations, self.model, optimizer=self.optimizer,
+                                                   dataset=self.dataset)
 
     def _get_loss(self, data):
         raise NotImplementedError
