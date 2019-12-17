@@ -26,6 +26,8 @@ FLAGS = flags.FLAGS
 flags.DEFINE_string("job_name", "", "actor or learner")
 flags.DEFINE_string("config_path", "config.yaml", "path to config file")
 flags.DEFINE_string("load_path", "", "path to model checkpoint")
+flags.DEFINE_string("replay_path", "", "folder name in /StarCraftII/Replays to save the evaluate replays")
+flags.DEFINE_string("difficulty", "1", "difficulty of bot to play with")
 flags.FLAGS(sys.argv)
 
 
@@ -34,7 +36,7 @@ def create_env(cfg, random_seed=None):
                     step_mul=cfg.env.step_mul,
                     agent_race='zerg',
                     bot_race='zerg',
-                    difficulty=cfg.env.bot_difficulties,
+                    difficulty=FLAGS.difficulty,
                     disable_fog=cfg.env.disable_fog,
                     random_seed=random_seed)
     env = ZergActionWrapper(env,
@@ -113,7 +115,7 @@ def evaluate(cfg):
                 cum_return += reward
                 step_id += 1
             if cfg.env.save_replay:
-                env.env.env.save_replay(cfg.common.agent)
+                env.env.env.save_replay(cfg.common.agent + FLAGS.replay_path)
             path = os.path.join(value_save_path, 'value{}.pt'.format(i))
             torch.save(torch.tensor(value_trace), path)
             for id, name in enumerate(env.action_names):

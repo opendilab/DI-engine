@@ -13,12 +13,12 @@ class PpoAgent(BaseAgent):
 
     def act(self, obs):
         inputs = self._pack_model_input(obs)
-        action = self.model(inputs, mode='step')[0]
-        return action.squeeze(0).numpy()
+        action = self.model(inputs, mode="step")['action']
+        return action.item()
 
     def value(self, obs):
         inputs = self._pack_model_input(obs)
-        value = self.model(inputs, mode='value')
+        value = self.model(inputs, mode='value')['value']
         return value.item()
 
     def _pack_model_input(self, obs):
