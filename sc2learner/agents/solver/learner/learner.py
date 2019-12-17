@@ -3,7 +3,7 @@ import zmq
 import time
 import torch
 from sc2learner.dataset import OnlineDataset, OnlineDataLoader
-from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper, to_device
+from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper, to_device, CountVar
 from sc2learner.nn_utils import build_grad_clip
 
 
@@ -47,9 +47,11 @@ class BaseLearner(object):
         self.grad_clipper = build_grad_clip(cfg)
         self.time_helper = build_time_helper(cfg)
         self.checkpoint_helper = build_checkpoint_helper(cfg)
+        self.last_iter = CountVar(init_val=0)
         if cfg.common.load_path != '':
             self.checkpoint_helper.load(cfg.common.load_path, self.model,
                                         optimizer=self.optimizer,
+                                        last_iter=self.last_iter,  # TODO last_iter for lr_scheduler
                                         logger_prefix='(learner)')
         self._init()
         self._optimize_step = self.time_helper.wrapper(self._optimize_step)
@@ -61,12 +63,11 @@ class BaseLearner(object):
             print('Waiting...' + self.dataset.episode_len())
             time.sleep(10)
 
-        iterations = 0
         while True:
             self.lr_scheduler.step()
             cur_lr = self.lr_scheduler.get_lr()[0]
             self.time_helper.start_time()
-            batch_data = next(self.dataloader)
+            batch_data, avg_usage = next(self.dataloader)
             if self.use_cuda:
                 batch_data = to_device(batch_data, 'cuda')
             data_time = self.time_helper.end_time()
@@ -75,10 +76,11 @@ class BaseLearner(object):
             time_items = {'data_time': data_time, 'forward_time': forward_time,
                           'backward_update_time': backward_update_time}
             var_items['cur_lr'] = cur_lr
+            var_items['avg_usage'] = avg_usage
 
             self._update_monitor_var(var_items, time_items)
-            self._record_info(iterations)
-            iterations += 1
+            self._record_info(self.last_iter.val)
+            self.last_iter.add(1)
 
     def _record_info(self, iterations):
         if iterations % self.cfg.logger.print_freq == 0:
@@ -136,9 +138,13 @@ class BaseLearner(object):
 
     def _init(self):
         self.scalar_record.register_var('cur_lr')
+        self.scalar_record.register_var('avg_usage')
         self.scalar_record.register_var('data_time')
         self.scalar_record.register_var('forward_time')
         self.scalar_record.register_var('backward_update_time')
         self.scalar_record.register_var('backward_time')
         self.scalar_record.register_var('grad_clipper_time')
         self.scalar_record.register_var('update_step_time')
+
+        self.tb_logger.register_var('cur_lr')
+        self.tb_logger.register_var('avg_usage')

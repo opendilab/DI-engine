@@ -79,8 +79,9 @@ class CheckpointHelper(object):
             logger.info('redundant_keys: {}'.format(k))
 
     def load(self, load_path, model,
-             optimizer=None, lr_schduler=None,
+             optimizer=None, last_iter=None, lr_schduler=None,
              prefix_op=None, prefix=None, strict=False, logger_prefix=''):
+        # Note: don't use assign operation('=') to updare input argument value
         assert(os.path.exists(load_path))
         checkpoint = torch.load(load_path)
         state_dict = checkpoint['state_dict']
@@ -99,5 +100,25 @@ class CheckpointHelper(object):
             optimizer.load_state_dict(checkpoint['optimizer'])
             logger.info(logger_prefix+'load optimizer in {}'.format(load_path))
 
+        if last_iter is not None:
+            last_iter.update(checkpoint['last_iter'])
+            logger.info(logger_prefix+'load last_iter in {}, current last_iter is {}'.format(load_path, last_iter.val))
+
         if lr_schduler is not None:
+            assert(last_iter is not None)
             raise NotImplementedError
+
+
+class CountVar(object):
+    def __init__(self, init_val):
+        self._val = init_val
+
+    @property
+    def val(self):
+        return self._val
+
+    def update(self, val):
+        self._val = val
+
+    def add(self, add_num):
+        self._val += add_num
