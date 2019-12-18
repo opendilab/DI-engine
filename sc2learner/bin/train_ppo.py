@@ -4,11 +4,10 @@ import yaml
 from easydict import EasyDict
 import random
 import time
-import argparse
 
-from sc2learner.agents.ppo_policies_pytorch import LstmPolicy, MlpPolicy
-from sc2learner.agents.rl_actor import PpoActor
-from sc2learner.agents.rl_learner import PpoLearner
+from sc2learner.agents.model import PPOLSTM, PPOMLP
+from sc2learner.agents.solver import PpoActor
+from sc2learner.agents.solver import PpoLearner
 from sc2learner.envs.raw_env import SC2RawEnv
 from sc2learner.envs.rewards.reward_wrappers import KillingRewardWrapper
 from sc2learner.envs.actions.zerg_action_wrappers import ZergActionWrapper
@@ -24,6 +23,7 @@ FLAGS = flags.FLAGS
 flags.DEFINE_string("job_name", "", "actor or learner")
 flags.DEFINE_string("config_path", "config.yaml", "path to config file")
 flags.DEFINE_string("load_path", "", "path to model checkpoint")
+flags.DEFINE_string("data_load_path", "", "path to load offline data")
 flags.FLAGS(sys.argv)
 
 
@@ -58,8 +58,8 @@ def start_actor(cfg):
     game_seed = random.randint(0, 2**32 - 1)
     print("Game Seed: %d Difficulty: %s" % (game_seed, difficulty))
     env = create_env(cfg, difficulty, game_seed)
-    policy_func = {'mlp': MlpPolicy,
-                   'lstm': LstmPolicy}
+    policy_func = {'mlp': PPOMLP,
+                   'lstm': PPOLSTM}
     model = policy_func[cfg.model.policy](
                 ob_space=env.observation_space,
                 ac_space=env.action_space,
@@ -71,8 +71,8 @@ def start_actor(cfg):
 
 def start_learner(cfg):
     env = create_env(cfg, '1', 0)
-    policy_func = {'mlp': MlpPolicy,
-                   'lstm': LstmPolicy}
+    policy_func = {'mlp': PPOMLP,
+                   'lstm': PPOLSTM}
     model = policy_func[cfg.model.policy](
                 ob_space=env.observation_space,
                 ac_space=env.action_space,
@@ -90,6 +90,7 @@ def main(argv):
     cfg = EasyDict(cfg)
     cfg.common.save_path = os.path.dirname(FLAGS.config_path)
     cfg.common.load_path = FLAGS.load_path
+    cfg.common.data_load_path = FLAGS.data_load_path
     if FLAGS.job_name == 'actor':
         start_actor(cfg)
     elif FLAGS.job_name == 'learner':

@@ -3,22 +3,7 @@ from torch.utils.data import _utils
 import random
 
 
-class RLBaseDataset(object):
-    def __init__(self, maxlen, transform):
-        self.queue = deque(maxlen=maxlen)
-        self.transform = transform
-
-    def push(self, data):
-        self.queue.append(data)
-
-    def __len__(self):
-        return len(self.queue)
-
-    def __getitem__(self, idx):
-        return self.transform(self.queue[idx])
-
-
-class RLBaseDataLoader(object):
+class OnlineDataLoader(object):
     def __init__(self, dataset, batch_size, collate_fn=None):
         self.dataset = dataset
         if collate_fn is None:
@@ -33,8 +18,9 @@ class RLBaseDataLoader(object):
 
     def __next__(self):
         indices = self._get_indices()
-        batch = self.collate_fn([self.dataset[i] for i in indices])
-        return batch
+        batch, avg_usage = self.dataset.get_indice_data(indices)
+        batch = self.collate_fn(batch)
+        return batch, avg_usage
 
 
 def unroll_split_collate_fn(*args, collate_fn=_utils.collate.default_collate, **kwargs):
@@ -57,16 +43,3 @@ def unroll_split_collate_fn(*args, collate_fn=_utils.collate.default_collate, **
     else:
         raise TypeError("invalid dataset item type: {}".format(type(result)))
     return new_result
-
-
-if __name__ == "__main__":
-    import torch
-    dataset = RLBaseDataset(maxlen=10, transform=lambda x: x)
-    dataloader = RLBaseDataLoader(dataset, batch_size=4, collate_fn=unroll_split_collate_fn)
-    print(len(dataloader.dataset))
-    for _ in range(10):
-        dataset.push([torch.randn(3, 10)])
-
-    print(len(dataloader.dataset))
-    output = next(dataloader)
-    print(output[0].shape)

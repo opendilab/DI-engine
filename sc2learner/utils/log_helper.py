@@ -27,7 +27,8 @@ class TextLogger(object):
     def _create_logger(self, name, path, level=logging.INFO):
         logger = logging.getLogger(name)
         if not logger.handlers:
-            formatter = logging.Formatter('[%(asctime)s][%(filename)15s][line:%(lineno)4d][%(levelname)8s] %(message)s')
+            formatter = logging.Formatter(
+                    '[%(asctime)s][%(filename)15s][line:%(lineno)4d][%(levelname)8s] %(message)s')
             fh = logging.FileHandler(path)
             fh.setFormatter(formatter)
             sh = logging.StreamHandler()
@@ -46,9 +47,22 @@ class TensorBoardLogger(object):
         if name is None:
             name = 'default_tb_logger'
         self.logger = SummaryWriter(os.path.join(path, name))
+        self._scalar_var_names = []
 
     def add_scalar(self, name, val, step):
         self.logger.add_scalar(name, val, step)
+
+    def add_scalar_list(self, scalar_list):
+        for n, v, s in scalar_list:
+            self.add_scalar(n, v, s)
+
+    def register_var(self, name):
+        assert(name not in self._scalar_var_names)
+        self._scalar_var_names.append(name)
+
+    @property
+    def scalar_var_names(self):
+        return self._scalar_var_names
 
 
 class ScalarRecord(object):
@@ -57,8 +71,8 @@ class ScalarRecord(object):
         self.length = length
 
     def register_var(self, name, length=None):
-        l = self.length if length is None else length
-        self.var_dict[name] = ScalarAverageMeter(l)
+        lens = self.length if length is None else length
+        self.var_dict[name] = ScalarAverageMeter(lens)
 
     def update_var(self, info):
         assert(isinstance(info, dict))
@@ -71,6 +85,14 @@ class ScalarRecord(object):
     def get_var(self, name):
         handle_var = self.var_dict[name]
         return '{}: val({:.6f})|avg({:.6f})'.format(name, handle_var.val, handle_var.avg)
+
+    def get_var_tb_format(self, keys, cur_step):
+        ret = []
+        for k in keys:
+            if k in self.var_dict.keys():
+                v = self.var_dict[k]
+                ret.append([k, v.avg, cur_step])
+        return ret
 
     def get_var_all(self):
         s = ''

@@ -1,6 +1,7 @@
 import os
 import torch
 import logging
+from .data_helper import to_device
 
 
 logger = logging.getLogger('default_logger')
@@ -16,8 +17,11 @@ def build_checkpoint_helper(cfg, rank=0):
 class CheckpointHelper(object):
     def __init__(self, save_dir):
         self.save_path = os.path.join(save_dir, 'checkpoints')
+        self.data_save_path = os.path.join(save_dir, 'data')
         if not os.path.exists(self.save_path):
             os.mkdir(self.save_path)
+        if not os.path.exists(self.data_save_path):
+            os.mkdir(self.data_save_path)
 
     def _remove_prefix(self, state_dict, prefix='module.'):
         new_state_dict = {}
@@ -38,6 +42,7 @@ class CheckpointHelper(object):
 
     def save(self, name, model,
              optimizer=None, last_iter=None,
+             dataset=None,
              prefix_op=None, prefix=None):
         checkpoint = {}
         state_dict = model.state_dict()
@@ -54,9 +59,18 @@ class CheckpointHelper(object):
             assert(last_iter is not None)
             checkpoint['last_iter'] = last_iter
             checkpoint['optimizer'] = optimizer.state_dict()
+
+        if dataset is not None:
+            checkpoint['dataset'] = dataset.create_checkpoint()
         path = os.path.join(self.save_path, name+'.pth.tar')
         torch.save(checkpoint, path)
         logger.info('save checkpoint in {}'.format(path))
+
+    def save_data(self, name, data, device='cpu'):
+        assert(isinstance(data, torch.Tensor) or isinstance(data, dict))
+        data = to_device(data, device)
+        path = os.path.join(self.data_save_path, name+'_data.pt')
+        torch.save(data, path)
 
     def _print_mismatch_keys(self, model_state_dict, ckpt_state_dict):
         model_keys = set(model_state_dict.keys())
@@ -69,10 +83,12 @@ class CheckpointHelper(object):
             logger.info('redundant_keys: {}'.format(k))
 
     def load(self, load_path, model,
-             optimizer=None, lr_schduler=None,
+             optimizer=None, last_iter=None, lr_schduler=None, dataset=None,
              prefix_op=None, prefix=None, strict=False, logger_prefix=''):
+        # Note: don't use assign operation('=') to updare input argument value
         assert(os.path.exists(load_path))
-        checkpoint = torch.load(load_path)
+        # Note: for reduce first GPU memory cost and compatible for cpu env
+        checkpoint = torch.load(load_path, map_location='cpu')
         state_dict = checkpoint['state_dict']
         if prefix_op is not None:
             prefix_func = {'remove': self._remove_prefix,
@@ -85,9 +101,33 @@ class CheckpointHelper(object):
         logger.info(logger_prefix+'load model state_dict in {}'.format(load_path))
         self._print_mismatch_keys(model.state_dict(), state_dict)
 
+        if dataset is not None:
+            dataset.load_data_from_checkpoint(checkpoint['dataset'])
+            logger.info(logger_prefix+'load online data in {}'.format(load_path))
+
         if optimizer is not None:
             optimizer.load_state_dict(checkpoint['optimizer'])
             logger.info(logger_prefix+'load optimizer in {}'.format(load_path))
 
+        if last_iter is not None:
+            last_iter.update(checkpoint['last_iter'])
+            logger.info(logger_prefix+'load last_iter in {}, current last_iter is {}'.format(load_path, last_iter.val))
+
         if lr_schduler is not None:
+            assert(last_iter is not None)
             raise NotImplementedError
+
+
+class CountVar(object):
+    def __init__(self, init_val):
+        self._val = init_val
+
+    @property
+    def val(self):
+        return self._val
+
+    def update(self, val):
+        self._val = val
+
+    def add(self, add_num):
+        self._val += add_num

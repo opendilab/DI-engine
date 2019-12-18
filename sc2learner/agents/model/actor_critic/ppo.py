@@ -9,25 +9,15 @@ import torch.nn.functional as F
 from functools import reduce
 
 from sc2learner.envs.spaces.mask_discrete import MaskDiscrete
-from sc2learner.agents.utils_torch import CategoricalPd
+from sc2learner.rl_utils import CategoricalPd, CategoricalPdPytorch
+from .actor_critic import ActorCriticBase
 
 
-class PpoPolicyBase(nn.Module):
-    def forward(self, inputs, mode=None):
-        assert(mode in ['step', 'value'])
-        f = getattr(self, mode)
-        return f(inputs)
-
-    def step(self, inputs):
-        raise NotImplementedError
-
-    def value(self, inputs):
-        raise NotImplementedError
-
-
-class MlpPolicy(PpoPolicyBase):
-    def __init__(self, ob_space, ac_space, fc_dim=512):
-        super(MlpPolicy, self).__init__()
+class PPOMLP(ActorCriticBase):
+    def __init__(self, ob_space, ac_space, fc_dim=512, action_type='random'):
+        super(PPOMLP, self).__init__()
+        assert(action_type in ['random', 'deterministic'])
+        self.action_type = action_type
         if isinstance(ac_space, MaskDiscrete):
             ob_space, mask_space = ob_space.spaces
         self.use_mask = isinstance(ac_space, MaskDiscrete)
@@ -43,7 +33,7 @@ class MlpPolicy(PpoPolicyBase):
         self.vf = nn.Linear(fc_dim, 1)
         self.pi_logit = nn.Linear(fc_dim, ac_space.n)
 
-        self.pd = CategoricalPd()
+        self.pd = CategoricalPd
         self.initial_state = None
         self._init()
 
@@ -55,14 +45,23 @@ class MlpPolicy(PpoPolicyBase):
         torch.nn.init.orthogonal_(self.pi_logit.weight, 0.01)
         torch.nn.init.constant_(self.pi_logit.bias, 0.0)
 
-    def step(self, inputs):
+    # overwrite
+    def _critic_forward(self, inputs):
         x = inputs['obs']
         B = x.shape[0]
         x = x.view(B, -1)
+
         vf = self.act(self.vf_h1(x))
         vf = self.act(self.vf_h2(vf))
         vf = self.act(self.vf_h3(vf))
         vf = self.vf(vf)
+        return vf
+
+    # overwrite
+    def _actor_forward(self, inputs):
+        x = inputs['obs']
+        B = x.shape[0]
+        x = x.view(B, -1)
 
         pi = self.act(self.pi_h1(x))
         pi = self.act(self.pi_h2(pi))
@@ -73,20 +72,44 @@ class MlpPolicy(PpoPolicyBase):
             mask = inputs['mask']
             assert(mask is not None)
             pi_logit -= (1-mask) * 1e30
-        self.pd.update_logits(pi_logit)
-        action = self.pd.sample()
-        neglogp = self.pd.neglogp(action)
-        return action, vf, self.initial_state, neglogp
+        return pi_logit
 
+    # overwrite
+    def step(self, inputs):
+        vf = self._critic_forward(inputs)
+        pi_logit = self._actor_forward(inputs)
+        handle = self.pd(pi_logit)
+        if self.action_type == 'random':
+            action = handle.sample()
+        elif self.action_type == 'deterministic':
+            action = handle.mode()
+        neglogp = handle.neglogp(action, reduction='mean')
+        return {
+            'action': action,
+            'value': vf,
+            'neglogp': neglogp,
+            'state': self.initial_state,
+            'pi_logit': pi_logit
+        }
+
+    # overwrite
+    def evaluate(self, inputs):
+        vf = self._critic_forward(inputs)
+        pi_logit = self._actor_forward(inputs)
+        handle = self.pd(pi_logit)
+        neglogp = handle.neglogp(inputs['action'], reduction='none')
+        entropy = handle.entropy(reduction='mean')
+        return {
+            'value': vf,
+            'neglogp': neglogp,
+            'entropy': entropy,
+            'state': self.initial_state,
+            'pi_logit': pi_logit
+        }
+
+    # overwrite
     def value(self, inputs):
-        x = inputs['obs']
-        B = x.shape[0]
-        x = x.view(B, -1)
-        vf = self.act(self.vf_h1(x))
-        vf = self.act(self.vf_h2(vf))
-        vf = self.act(self.vf_h3(vf))
-        vf = self.vf(vf)
-        return vf
+        return {'value': self._critic_forward(inputs)}
 
 
 class LSTMFC(nn.Module):
@@ -135,13 +158,13 @@ class LSTMFC(nn.Module):
 
     def __repr__(self):
         return 'input_dim: {}\thidden_dim: {}'.format(
-                self.input_dim, self.hidden_dim)
+            self.input_dim, self.hidden_dim)
 
 
-class LstmPolicy(PpoPolicyBase):
+class PPOLSTM(ActorCriticBase):
     def __init__(self, ob_space, ac_space, unroll_length,
                  fc_dim=512, lstm_dim=512):
-        super(LstmPolicy, self).__init__()
+        super(PPOLSTM, self).__init__()
         if isinstance(ac_space, MaskDiscrete):
             ob_space, mask_space = ob_space.spaces
         self.use_mask = isinstance(ac_space, MaskDiscrete)
@@ -211,7 +234,7 @@ def test_mlp_policy():
     ob_space = torch.empty(3, 32, 32)
     ac_space = T()
     setattr(ac_space, 'n', 10)
-    model = MlpPolicy(ob_space, ac_space)
+    model = PPOMLP(ob_space, ac_space)
     print(model)
     output_v = model(inputs, mode='value')
     print(output_v.shape)
@@ -221,6 +244,72 @@ def test_mlp_policy():
             print(item.shape)
         else:
             print('none')
+
+
+def test_mlp_policy_speed():
+    from sc2learner.utils.time_helper import TimeWrapperCuda
+
+    class T():
+        pass
+
+    def to_device(item, device):
+        if isinstance(item, torch.nn.Module):
+            return item.cuda()
+        elif isinstance(item, torch.Tensor):
+            return item.cuda()
+        elif isinstance(item, dict):
+            item = {k: to_device(item[k], device) for k in item.keys()}
+            return item
+    inputs = {}
+    inputs['obs'] = torch.randn(2, 857)
+    inputs['mask'] = torch.randn(2, 62)
+    inputs['action'] = torch.ones(2).long()
+    inputs = to_device(inputs, 'cuda')
+    ob_space = torch.empty(857)
+    ac_space = T()
+    setattr(ac_space, 'n', 62)
+    model = PPOMLP(ob_space, ac_space)
+    model = to_device(model, 'cuda')
+    model.use_mask = True
+    print(model)
+    optimizer = torch.optim.Adam(model.parameters(), 1e-3)
+    T = 100
+    for _ in range(10):
+        model(inputs, mode='value')
+    time_dict = {'forward': [],
+                 'backward': [],
+                 'update': []}
+    adv = torch.randn(2, 1).cuda()
+    for t in range(T):
+        TimeWrapperCuda.start_time()
+        outputs = model(inputs, mode='evaluate')
+        v, n, entropy = outputs['value'], outputs['neglogp'], outputs['entropy']
+        new_v = v + torch.randn_like(v)
+        new_n = n + torch.randn_like(n)
+        new_v = v + torch.clamp(new_v - v, -0.1, 0.1)
+        v_loss = (new_v - v) ** 2
+        if t > 95:
+            print(new_n.shape)
+        ratio = torch.exp(n - new_n)
+        pg_loss = -adv * ratio
+        loss = pg_loss.mean() + v_loss.mean() - 0.01 * entropy
+        approximate_kl = 0.5 * torch.pow(new_n - n, 2).mean()
+        clipfrac = torch.abs(ratio - 1.0).gt(0.1).float().mean()
+        time_dict['forward'].append(TimeWrapperCuda.end_time())
+
+        TimeWrapperCuda.start_time()
+        optimizer.zero_grad()
+        loss.backward()
+        time_dict['backward'].append(TimeWrapperCuda.end_time())
+
+        TimeWrapperCuda.start_time()
+        optimizer.step()
+        time_dict['update'].append(TimeWrapperCuda.end_time())
+        if t % 10 == 0:
+            print(t)
+
+    for k, v in time_dict.items():
+        print(k, sum(v) / len(v))
 
 
 def test_lstm_policy():
@@ -233,7 +322,7 @@ def test_lstm_policy():
     ob_space = torch.empty(3, 32, 32)
     ac_space = T()
     setattr(ac_space, 'n', 10)
-    model = LstmPolicy(ob_space, ac_space, unroll_length=5)
+    model = PPOLSTM(ob_space, ac_space, unroll_length=5)
     print(model)
     output_v = model(inputs, mode='value')
     print('output_v', output_v.shape)
@@ -246,5 +335,6 @@ def test_lstm_policy():
 
 
 if __name__ == "__main__":
-    test_mlp_policy()
-    test_lstm_policy()
+    # test_mlp_policy()
+    # test_lstm_policy()
+    test_mlp_policy_speed()
