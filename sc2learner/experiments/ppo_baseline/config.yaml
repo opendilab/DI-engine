@@ -31,7 +31,7 @@ train:
     grad_clip_type: max_norm  # [max_norm, clip_value]
     grad_clip_value: 0.5
 communication:
-    learner_ip: '10.198.6.62'
+    learner_ip: '10.5.38.241'
     port:
         learner: 5710
         actor: 5711

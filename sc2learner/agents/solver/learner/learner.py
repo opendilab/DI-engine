@@ -67,7 +67,7 @@ class BaseLearner(object):
             self.lr_scheduler.step()
             cur_lr = self.lr_scheduler.get_lr()[0]
             self.time_helper.start_time()
-            batch_data, avg_usage = next(self.dataloader)
+            batch_data, avg_usage, push_count = next(self.dataloader)
             if self.use_cuda:
                 batch_data = to_device(batch_data, 'cuda')
             data_time = self.time_helper.end_time()
@@ -77,6 +77,7 @@ class BaseLearner(object):
                           'backward_update_time': backward_update_time}
             var_items['cur_lr'] = cur_lr
             var_items['avg_usage'] = avg_usage
+            var_items['push_count'] = push_count
 
             self._update_monitor_var(var_items, time_items)
             self._record_info(self.last_iter.val)
@@ -115,8 +116,8 @@ class BaseLearner(object):
 
     def _pull_data(self, zmq_context, port):
         receiver = zmq_context.socket(zmq.PULL)
-        receiver.setsockopt(zmq.RCVHWM, 1)
-        receiver.setsockopt(zmq.SNDHWM, 1)
+        receiver.setsockopt(zmq.RCVHWM, 100)
+        receiver.setsockopt(zmq.SNDHWM, 100)
         receiver.bind("tcp://*:%s" % (port))
         while True:
             data = receiver.recv_pyobj()
@@ -140,6 +141,7 @@ class BaseLearner(object):
     def _init(self):
         self.scalar_record.register_var('cur_lr')
         self.scalar_record.register_var('avg_usage')
+        self.scalar_record.register_var('push_count')
         self.scalar_record.register_var('data_time')
         self.scalar_record.register_var('forward_time')
         self.scalar_record.register_var('backward_update_time')
@@ -149,3 +151,4 @@ class BaseLearner(object):
 
         self.tb_logger.register_var('cur_lr')
         self.tb_logger.register_var('avg_usage')
+        self.tb_logger.register_var('push_count')
