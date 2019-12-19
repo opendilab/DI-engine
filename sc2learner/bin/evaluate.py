@@ -136,8 +136,11 @@ def main(argv):
     cfg = EasyDict(cfg)
     cfg.common.save_path = os.path.dirname(FLAGS.config_path)
     cfg.common.load_path = FLAGS.load_path
-    if not os.path.exists(cfg.common.agent + FLAGS.replay_path):
-        os.mkdir(cfg.common.agent + FLAGS.replay_path)
+
+    base_dir = os.environ.get("SC2PATH", "~/StarCraftII")
+    base_dir = os.path.expanduser(base_dir)
+    if not os.path.exists(base_dir + "/Replays/" + cfg.common.agent + FLAGS.replay_path):
+        os.mkdir(base_dir + "/Replays/" + cfg.common.agent + FLAGS.replay_path)
     eval_func = partial(evaluate, cfg=cfg)
     pool = Pool(min(cfg.common.num_episodes, 20))
     var_list = []
