@@ -30,6 +30,10 @@ train:
     use_value_clip: False
     grad_clip_type: max_norm  # [max_norm, clip_value]
     grad_clip_value: 0.5
+    block_data:
+        status: True
+        threshold: 1.2
+        sleep_time: 3
 communication:
     ip:
         learner: '10.198.8.66'

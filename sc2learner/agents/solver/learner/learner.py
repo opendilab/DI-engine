@@ -32,7 +32,7 @@ class BaseLearner(object):
 
         self.zmq_context = zmq.Context()
         self.dataset = OnlineDataset(data_maxlen=cfg.train.learner_data_queue_size,
-                                     transform=self._data_transform)
+                                     transform=self._data_transform, block_data=cfg.train.block_data)
         self.dataloader = OnlineDataLoader(self.dataset, batch_size=cfg.train.batch_size)
 
         ip = cfg.communication.ip

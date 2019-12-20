@@ -1,5 +1,6 @@
 from collections import deque
 import os
+import time
 import torch
 import logging
 from multiprocessing import Lock
@@ -9,7 +10,7 @@ logger = logging.getLogger('default_logger')
 
 
 class OnlineDataset(object):
-    def __init__(self, data_maxlen, transform):
+    def __init__(self, data_maxlen, transform, block_data):
         self.data_queue = deque(maxlen=data_maxlen)
         self.data_usage_count_queue = deque(maxlen=data_maxlen)
         self.transform = transform
@@ -17,12 +18,7 @@ class OnlineDataset(object):
 
         self.lock = Lock()  # TODO review lock usage
         self.push_count = 0
-
-    def _acquire_lock(self):
-        self.lock.acquire()
-
-    def _release_lock(self):
-        self.lock.release()
+        self.block_data = block_data
 
     def _acquire_lock(self):
         self.lock.acquire()
@@ -42,31 +38,31 @@ class OnlineDataset(object):
             self.data_usage_count_queue[idx] += 1
 
     def get_indice_data(self, indice):
-        self._acquire_lock()
-        data = [self[i] for i in indice]
-        usage = [self.data_usage_count_queue[i] for i in indice]
-        print(usage)
-        avg_usage = sum(usage) / len(usage)
-        self._add_usage_count(indice)
-        self._release_lock()
-        return data, avg_usage
-
-    def extend_data(self, data_list):
-        self._acquire_lock()
-        self.data_queue.extend(data_list)
-        self.data_usage_count_queue.extend([0 for _ in range(len(data_list))])
-        self._release_lock()
-
-    def get_indice_data(self, indice):
-        self._acquire_lock()
-        data = [self[i] for i in indice]
-        usage = [self.data_usage_count_queue[i] for i in indice]
-        avg_usage = sum(usage) / len(usage)
-        push_count = self.push_count
-        self.push_count = 0
-        self._add_usage_count(indice)
-        self._release_lock()
-        return data, avg_usage, push_count
+        use_block_data = self.block_data.status
+        while True:
+            self._acquire_lock()
+            data = [self[i] for i in indice]
+            usage = [self.data_usage_count_queue[i] for i in indice]
+            avg_usage = sum(usage) / len(usage)
+            if use_block_data:
+                threshold = self.block_data.threshold
+                sleep_time = self.block_data.sleep_time
+                if avg_usage < threshold:
+                    self._add_usage_count(indice)
+                    push_count = self.push_count
+                    self.push_count = 0
+                    self._release_lock()
+                    return data, avg_usage, push_count
+                else:
+                    self._release_lock()
+                    print("Blocking...Current AVG usage: {}".format(avg_usage))
+                    time.sleep(sleep_time)
+            else:
+                push_count = self.push_count
+                self.push_count = 0
+                self._add_usage_count(indice)
+                self._release_lock()
+                return data, avg_usage, push_count
 
     def extend_data(self, data_list):
         self._acquire_lock()
