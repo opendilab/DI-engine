@@ -2,8 +2,12 @@ import time
 import torch
 
 
-def build_time_helper(cfg):
-    time_wrapper_type = cfg.common.time_wrapper_type
+def build_time_helper(cfg=None, wrapper_type=None):
+    # Note: wrapper_type has higher priority
+    if cfg is not None:
+        time_wrapper_type = cfg.common.time_wrapper_type
+    if wrapper_type is not None:
+        time_wrapper_type = wrapper_type
     if time_wrapper_type == 'time':
         return TimeWrapperTime
     elif time_wrapper_type == 'cuda':

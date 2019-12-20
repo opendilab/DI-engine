@@ -95,9 +95,13 @@ class ScalarRecord(object):
         return ret
 
     def get_var_all(self):
-        s = ''
+        s = '\n'
+        count = 0
         for k in self.get_var_names():
             s += self.get_var(k) + '\t'
+            count += 1
+            if count % 3 == 0:
+                s += '\n'
         return s
 
 

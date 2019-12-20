@@ -2,7 +2,7 @@ from queue import Queue
 from threading import Thread
 import zmq
 import time
-from sc2learner.utils import build_checkpoint_helper
+from sc2learner.utils import build_checkpoint_helper, build_time_helper
 
 
 class BaseActor(object):
@@ -27,7 +27,7 @@ class BaseActor(object):
             req_ip = ip['actor_manager']
             req_port = port['actor_model']
         self.HWM = cfg.communication.HWM['actor']
-        self.old_time = time.time()
+        self.time_helper = build_time_helper(wrapper_type='time')
 
         self.zmq_context = zmq.Context()
         self.model_requestor = self.zmq_context.socket(zmq.REQ)
@@ -48,8 +48,13 @@ class BaseActor(object):
     def run(self):
         self.push_thread.start()
         while True:
+            self.time_helper.start_time()
             self._update_model()
+            model_time = self.time_helper.end_time()
+            self.time_helper.start_time()
             unroll = self._nstep_rollout()
+            data_time = self.time_helper.end_time()
+            print('update model time({})\tdata rollout time({})'.format(model_time, data_time))
             if self.enable_push:
                 if self.data_queue.full():
                     print('full')  # TODO warning(queue is full)
@@ -66,9 +71,6 @@ class BaseActor(object):
 
     def _update_model(self):
         self.model_requestor.send_string("request model")
-        new_time = time.time()
-        print('send string', new_time - self.old_time)
-        self.old_time = new_time
         state_dict = self.model_requestor.recv_pyobj()
         self.model.load_state_dict(state_dict)
 
