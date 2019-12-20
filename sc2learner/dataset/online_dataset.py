@@ -16,6 +16,13 @@ class OnlineDataset(object):
         self.data_maxlen = data_maxlen
 
         self.lock = Lock()  # TODO review lock usage
+        self.push_count = 0
+
+    def _acquire_lock(self):
+        self.lock.acquire()
+
+    def _release_lock(self):
+        self.lock.release()
 
     def _acquire_lock(self):
         self.lock.acquire()
@@ -27,6 +34,7 @@ class OnlineDataset(object):
         self._acquire_lock()
         self.data_queue.append(data)
         self.data_usage_count_queue.append(0)
+        self.push_count += 1
         self._release_lock()
 
     def _add_usage_count(self, usage_list):
@@ -37,10 +45,28 @@ class OnlineDataset(object):
         self._acquire_lock()
         data = [self[i] for i in indice]
         usage = [self.data_usage_count_queue[i] for i in indice]
+        print(usage)
         avg_usage = sum(usage) / len(usage)
         self._add_usage_count(indice)
         self._release_lock()
         return data, avg_usage
+
+    def extend_data(self, data_list):
+        self._acquire_lock()
+        self.data_queue.extend(data_list)
+        self.data_usage_count_queue.extend([0 for _ in range(len(data_list))])
+        self._release_lock()
+
+    def get_indice_data(self, indice):
+        self._acquire_lock()
+        data = [self[i] for i in indice]
+        usage = [self.data_usage_count_queue[i] for i in indice]
+        avg_usage = sum(usage) / len(usage)
+        push_count = self.push_count
+        self.push_count = 0
+        self._add_usage_count(indice)
+        self._release_lock()
+        return data, avg_usage, push_count
 
     def extend_data(self, data_list):
         self._acquire_lock()

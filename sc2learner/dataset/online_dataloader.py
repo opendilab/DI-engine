@@ -18,9 +18,9 @@ class OnlineDataLoader(object):
 
     def __next__(self):
         indices = self._get_indices()
-        batch, avg_usage = self.dataset.get_indice_data(indices)
+        batch, avg_usage, push_count = self.dataset.get_indice_data(indices)
         batch = self.collate_fn(batch)
-        return batch, avg_usage
+        return batch, avg_usage, push_count
 
 
 def unroll_split_collate_fn(*args, collate_fn=_utils.collate.default_collate, **kwargs):
