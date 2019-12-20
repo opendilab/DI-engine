@@ -52,7 +52,7 @@ communication:
     queue_size:
         learner_manager: 20
         actor_manager: 50
-    model_time_inteval: 10  # 10 second 128 step rollout
+    model_time_interval: 10  # 10 second 128 step rollout
 logger:
     print_freq: 500
     save_freq: 5000

@@ -98,9 +98,9 @@ def start_actor_manager(cfg):
         'request': port.actor_manager_model,
         'reply': port.actor_model,
     }
-    time_inteval = cfg.communication.model_time_inteval
+    time_interval = cfg.communication.model_time_interval
     manager = ManagerZmq(apply_ip, apply_port, name='actor_manager', queue_size=queue_size, HWM=HWM,
-                         time_inteval=time_inteval)
+                         time_interval=time_interval)
     manager.run({'sender': True, 'receiver': True,
                  'forward_request': True, 'forward_reply': True})
 
@@ -119,9 +119,9 @@ def start_learner_manager(cfg):
         'request': port.learner_manager_model,
         'reply': port.actor_manager_model,
     }
-    time_inteval = cfg.communication.model_time_inteval
+    time_interval = cfg.communication.model_time_interval
     manager = ManagerZmq(apply_ip, apply_port, name='actor_manager', queue_size=queue_size, HWM=HWM,
-                         time_inteval=time_inteval)
+                         time_interval=time_interval)
     manager.run({'sender': True, 'receiver': True,
                  'forward_request': True, 'forward_reply': True})
 
