@@ -32,7 +32,8 @@ class ManagerZmq(ManagerBase):
         self.request_context = zmq.Context()
         self.reply_context = zmq.Context()
 
-        self.lock = Lock()
+        self.data_lock = Lock()
+        self.model_lock = Lock()
         self.HWM = HWM
         self.sender_thread = Thread(target=self.send_data,
                                     args=(self.sender_context, self.ip['send'], self.port['send']))
@@ -44,7 +45,6 @@ class ManagerZmq(ManagerBase):
                                    args=(self.reply_context, self.port['reply']))
         self.send_data_count = 0
         self.receive_data_count = 0
-        self.lock = Lock()
         self.time_interval = time_interval
         self.state_dict = None
 
@@ -77,18 +77,18 @@ class ManagerZmq(ManagerBase):
                 data = receiver.recv_pyobj()
                 t2 = time.time()
                 print('count {} receiver time {}'.format(count, t2-t1))
-                self._acquire_lock(self.lock)
+                self._acquire_lock(self.data_lock)
                 self.queue.append(data)
-                self._release_lock(self.lock)
+                self._release_lock(self.data_lock)
                 t3 = time.time()
                 print('count {} append time {}'.format(count, t3-t2))
                 count += 1
         else:
             while True:
                 data = receiver.recv_pyobj()
-                self._acquire_lock(self.lock)
+                self._acquire_lock(self.data_lock)
                 self.queue.append(data)
-                self._release_lock(self.lock)
+                self._release_lock(self.data_lock)
                 self.receive_data_count += 1
                 print('({})receive pyobj {}'.format(self.name, self.receive_data_count))
 
@@ -100,9 +100,9 @@ class ManagerZmq(ManagerBase):
         while True:
             while len(self.queue) == 0:  # Note: single thread to send data
                 pass
-            self._acquire_lock(self.lock)
+            self._acquire_lock(self.data_lock)
             data = self.queue.popleft()
-            self._release_lock(self.lock)
+            self._release_lock(self.data_lock)
             sender.send_pyobj(data)
             self.send_data_count += 1
             print('({})send pyobj {}'.format(self.name, self.send_data_count))
@@ -117,10 +117,10 @@ class ManagerZmq(ManagerBase):
             print('({})request send'.format(self.name))
             data = request.recv_pyobj()
             print('({})request recv'.format(self.name))
-            self._acquire_lock(self.lock)
+            self._acquire_lock(self.model_lock)
             assert(isinstance(data, data_type))
             self.state_dict = data
-            self._release_lock(self.lock)
+            self._release_lock(self.model_lock)
 
     def reply_data(self, context, port, req_content="request model"):
         reply = context.socket(zmq.REP)
@@ -132,7 +132,7 @@ class ManagerZmq(ManagerBase):
             msg = reply.recv_string()
             print('({})reply recv'.format(self.name))
             assert(msg == req_content)
-            self._acquire_lock(self.lock)
+            self._acquire_lock(self.model_lock)
             reply.send_pyobj(self.state_dict)
-            self._release_lock(self.lock)
+            self._release_lock(self.model_lock)
             print('({})reply send'.format(self.name))
