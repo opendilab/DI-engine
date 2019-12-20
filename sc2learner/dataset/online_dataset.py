@@ -41,18 +41,21 @@ class OnlineDataset(object):
         use_block_data = self.block_data.status
         while True:
             self._acquire_lock()
-            data = [self[i] for i in indice]
+            data = [self.data_queue[i] for i in indice]
+            model_index = [d['model_index'] for d in data]
+            data = [self.transform(d) for d in data]
+            avg_model_index = sum(model_index) / len(model_index)
             usage = [self.data_usage_count_queue[i] for i in indice]
             avg_usage = sum(usage) / len(usage)
             if use_block_data:
                 threshold = self.block_data.threshold
                 sleep_time = self.block_data.sleep_time
-                if avg_usage < threshold:
+                if avg_usage <= threshold:
                     self._add_usage_count(indice)
                     push_count = self.push_count
                     self.push_count = 0
                     self._release_lock()
-                    return data, avg_usage, push_count
+                    return data, avg_usage, push_count, avg_model_index
                 else:
                     self._release_lock()
                     print("Blocking...Current AVG usage: {}".format(avg_usage))
@@ -62,7 +65,7 @@ class OnlineDataset(object):
                 self.push_count = 0
                 self._add_usage_count(indice)
                 self._release_lock()
-                return data, avg_usage, push_count
+                return data, avg_usage, push_count, avg_model_index
 
     def extend_data(self, data_list):
         self._acquire_lock()

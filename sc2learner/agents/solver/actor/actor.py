@@ -71,7 +71,8 @@ class BaseActor(object):
     def _update_model(self):
         self.model_requestor.send_string("request model")
         state_dict = self.model_requestor.recv_pyobj()
-        self.model.load_state_dict(state_dict)
+        self.model.load_state_dict(state_dict['state_dict'])
+        self.model_index = state_dict['model_index']
 
     def _init(self):
         raise NotImplementedError
