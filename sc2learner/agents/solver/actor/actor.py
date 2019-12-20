@@ -1,7 +1,7 @@
 from queue import Queue
 from threading import Thread
 import zmq
-import torch
+import time
 from sc2learner.utils import build_checkpoint_helper
 
 
@@ -14,15 +14,30 @@ class BaseActor(object):
         self.model = model
         self.unroll_length = cfg.train.unroll_length
 
+        port = cfg.communication.port
+        ip = cfg.communication.ip
+        if ip['actor_manager'] == ip['learner_manager']:
+            push_ip = ip['learner']
+            push_port = port['learner']
+            req_ip = ip['learner']
+            req_port = port['actor']
+        else:
+            push_ip = ip['actor_manager']
+            push_port = port['actor_manager']
+            req_ip = ip['actor_manager']
+            req_port = port['actor_model']
+        self.HWM = cfg.communication.HWM['actor']
+        self.old_time = time.time()
+
         self.zmq_context = zmq.Context()
         self.model_requestor = self.zmq_context.socket(zmq.REQ)
-        learner_ip = cfg.communication.learner_ip
-        port = cfg.communication.port
-        self.model_requestor.connect("tcp://%s:%s" % (learner_ip, port['learner']))
+        self.model_requestor.connect("tcp://%s:%s" % (req_ip, req_port))
+        print("tcp://%s:%s" % (req_ip, req_port))
+
         if enable_push:
             self.data_queue = Queue(cfg.train.actor_data_queue_size)
             self.push_thread = Thread(target=self._push_data, args=(self.zmq_context,
-                                      learner_ip, port['actor'], self.data_queue))
+                                      push_ip, push_port, self.data_queue))
         self.enable_push = enable_push
         self.checkpoint_helper = build_checkpoint_helper(cfg)
         if cfg.common.load_path != '':
@@ -42,8 +57,8 @@ class BaseActor(object):
 
     def _push_data(self, zmq_context, ip, port, queue):
         sender = zmq_context.socket(zmq.PUSH)
-        sender.setsockopt(zmq.SNDHWM, 1)
-        sender.setsockopt(zmq.RCVHWM, 1)
+        sender.setsockopt(zmq.SNDHWM, self.HWM)
+        sender.setsockopt(zmq.RCVHWM, self.HWM)
         sender.connect("tcp://%s:%s" % (ip, port))
         while True:
             data = queue.get()
@@ -51,6 +66,9 @@ class BaseActor(object):
 
     def _update_model(self):
         self.model_requestor.send_string("request model")
+        new_time = time.time()
+        print('send string', new_time - self.old_time)
+        self.old_time = new_time
         state_dict = self.model_requestor.recv_pyobj()
         self.model.load_state_dict(state_dict)
 

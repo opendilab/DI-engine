@@ -34,11 +34,20 @@ class BaseLearner(object):
         self.dataset = OnlineDataset(data_maxlen=cfg.train.learner_data_queue_size,
                                      transform=self._data_transform)
         self.dataloader = OnlineDataLoader(self.dataset, batch_size=cfg.train.batch_size)
+
+        ip = cfg.communication.ip
         port = cfg.communication.port
+        if ip['learner_manager'] == ip['actor_manager']:
+            pull_port = port['learner']
+            rep_port = port['actor']
+        else:
+            pull_port = port['learner']
+            rep_port = port['learner_manager_model']
+        self.HWM = cfg.communication.HWM['learner']
         self.pull_thread = Thread(target=self._pull_data,
-                                  args=(self.zmq_context, port['actor']))
+                                  args=(self.zmq_context, pull_port))
         self.reply_model_thread = Thread(target=self._reply_model,
-                                         args=(self.zmq_context, port['learner']))
+                                         args=(self.zmq_context, rep_port))
 
         self.optimizer = build_optimizer(model, cfg)
         self.lr_scheduler = build_lr_scheduler(self.optimizer)
@@ -115,8 +124,8 @@ class BaseLearner(object):
 
     def _pull_data(self, zmq_context, port):
         receiver = zmq_context.socket(zmq.PULL)
-        receiver.setsockopt(zmq.RCVHWM, 1)
-        receiver.setsockopt(zmq.SNDHWM, 1)
+        receiver.setsockopt(zmq.RCVHWM, self.HWM)
+        receiver.setsockopt(zmq.SNDHWM, self.HWM)
         receiver.bind("tcp://*:%s" % (port))
         while True:
             data = receiver.recv_pyobj()

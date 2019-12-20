@@ -5,6 +5,7 @@ from easydict import EasyDict
 import random
 import time
 
+from sc2learner.utils import ManagerZmq
 from sc2learner.agents.model import PPOLSTM, PPOMLP
 from sc2learner.agents.solver import PpoActor
 from sc2learner.agents.solver import PpoLearner
@@ -83,6 +84,48 @@ def start_learner(cfg):
     env.close()
 
 
+def start_actor_manager(cfg):
+    ip = cfg.communication.ip
+    port = cfg.communication.port
+    HWM = cfg.communication.HWM.actor_manager
+    queue_size = cfg.communication.queue_size.actor_manager
+    apply_ip = {
+        'send': ip.learner_manager,
+    }
+    apply_port = {
+        'send': port.learner_manager,
+        'receive': port.actor_manager,
+        'request': port.actor_manager_model,
+        'reply': port.actor_model,
+    }
+    time_inteval = cfg.communication.model_time_inteval
+    manager = ManagerZmq(apply_ip, apply_port, name='actor_manager', queue_size=queue_size, HWM=HWM,
+                         time_inteval=time_inteval)
+    manager.run({'sender': True, 'receiver': True,
+                 'forward_request': True, 'forward_reply': True})
+
+
+def start_learner_manager(cfg):
+    ip = cfg.communication.ip
+    port = cfg.communication.port
+    HWM = cfg.communication.HWM.learner_manager
+    queue_size = cfg.communication.queue_size.learner_manager
+    apply_ip = {
+        'send': ip.learner,
+    }
+    apply_port = {
+        'send': port.learner,
+        'receive': port.learner_manager,
+        'request': port.learner_manager_model,
+        'reply': port.actor_manager_model,
+    }
+    time_inteval = cfg.communication.model_time_inteval
+    manager = ManagerZmq(apply_ip, apply_port, name='actor_manager', queue_size=queue_size, HWM=HWM,
+                         time_inteval=time_inteval)
+    manager.run({'sender': True, 'receiver': True,
+                 'forward_request': True, 'forward_reply': True})
+
+
 def main(argv):
     logging.set_verbosity(logging.ERROR)
     with open(FLAGS.config_path) as f:
@@ -95,6 +138,10 @@ def main(argv):
         start_actor(cfg)
     elif FLAGS.job_name == 'learner':
         start_learner(cfg)
+    elif FLAGS.job_name == 'learner_manager':
+        start_learner_manager(cfg)
+    elif FLAGS.job_name == 'actor_manager':
+        start_actor_manager(cfg)
     else:
         raise ValueError
 

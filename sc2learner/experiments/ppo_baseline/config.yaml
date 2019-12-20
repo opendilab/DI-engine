@@ -31,10 +31,28 @@ train:
     grad_clip_type: max_norm  # [max_norm, clip_value]
     grad_clip_value: 0.5
 communication:
-    learner_ip: '10.198.6.62'
+    ip:
+        learner: '10.198.8.66'
+        learner_manager: '10.198.8.31'
+        actor_manager: '10.198.6.31'  # if single lustre, set learner_manager == actor_manager
     port:
         learner: 5710
-        actor: 5711
+        learner_manager: 5711
+        actor_manager: 5712
+        actor: 5713
+
+        learner_manager_model: 5716
+        actor_manager_model: 5717
+        actor_model: 5718
+    HWM:
+        learner: 1
+        learner_manager: 10
+        actor_manager: 10
+        actor: 1
+    queue_size:
+        learner_manager: 20
+        actor_manager: 50
+    model_time_inteval: 10  # 10 second 128 step rollout
 logger:
     print_freq: 500
-    save_freq: 1000
+    save_freq: 5000
