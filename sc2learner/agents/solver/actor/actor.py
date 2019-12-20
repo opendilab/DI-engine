@@ -1,8 +1,7 @@
 from queue import Queue
 from threading import Thread
 import zmq
-import time
-from sc2learner.utils import build_checkpoint_helper, build_time_helper
+from sc2learner.utils import build_checkpoint_helper, build_time_helper, send_array, dict2nparray
 
 
 class BaseActor(object):

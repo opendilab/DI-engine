@@ -88,7 +88,8 @@ def start_actor_manager(cfg):
     ip = cfg.communication.ip
     port = cfg.communication.port
     HWM = cfg.communication.HWM.actor_manager
-    queue_size = cfg.communication.queue_size.actor_manager
+    send_queue_size = cfg.communication.queue_size.actor_manager_send
+    receive_queue_size = cfg.communication.queue_size.actor_manager_receive
     apply_ip = {
         'send': ip.learner_manager,
     }
@@ -99,7 +100,8 @@ def start_actor_manager(cfg):
         'reply': port.actor_model,
     }
     time_interval = cfg.communication.model_time_interval
-    manager = ManagerZmq(apply_ip, apply_port, name='actor_manager', queue_size=queue_size, HWM=HWM,
+    manager = ManagerZmq(apply_ip, apply_port, name='actor_manager', HWM=HWM,
+                         send_queue_size=send_queue_size, receive_queue_size=receive_queue_size,
                          time_interval=time_interval)
     manager.run({'sender': True, 'receiver': True,
                  'forward_request': True, 'forward_reply': True})
@@ -109,7 +111,8 @@ def start_learner_manager(cfg):
     ip = cfg.communication.ip
     port = cfg.communication.port
     HWM = cfg.communication.HWM.learner_manager
-    queue_size = cfg.communication.queue_size.learner_manager
+    send_queue_size = cfg.communication.queue_size.learner_manager_send
+    receive_queue_size = cfg.communication.queue_size.learner_manager_receive
     apply_ip = {
         'send': ip.learner,
     }
@@ -120,7 +123,8 @@ def start_learner_manager(cfg):
         'reply': port.actor_manager_model,
     }
     time_interval = cfg.communication.model_time_interval
-    manager = ManagerZmq(apply_ip, apply_port, name='actor_manager', queue_size=queue_size, HWM=HWM,
+    manager = ManagerZmq(apply_ip, apply_port, name='learner_manager', HWM=HWM,
+                         send_queue_size=send_queue_size, receive_queue_size=receive_queue_size,
                          time_interval=time_interval)
     manager.run({'sender': True, 'receiver': True,
                  'forward_request': True, 'forward_reply': True})

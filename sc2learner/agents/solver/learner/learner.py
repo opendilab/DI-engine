@@ -130,7 +130,13 @@ class BaseLearner(object):
         receiver.bind("tcp://*:%s" % (port))
         while True:
             data = receiver.recv_pyobj()
-            self._parse_pull_data(data)
+            if isinstance(data, dict):
+                self._parse_pull_data(data)
+            elif isinstance(data, list):
+                for d in data:
+                    self._parse_pull_data(d)
+            else:
+                raise TypeError(type(data))
 
     def _parse_pull_data(self):
         raise NotImplementedError
