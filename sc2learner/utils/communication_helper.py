@@ -35,8 +35,8 @@ def dict2nparray(data):
                 json['state'] = None
             else:
                 raise NotImplementedError
-        elif k == 'episode_infos':
-            json['episode_infos'] = v
+        elif k == 'episode_infos' or k == 'model_index':
+            json[k] = v
         else:
             L = len(v.shape)
             if L == 1:
@@ -60,7 +60,7 @@ def nparray2dict(array, json):
     for k, v in json.items():
         if k == 'state':
             data[k] = v
-        elif k == 'episode_infos':
+        elif k == 'episode_infos' or k == 'model_index':
             data[k] = v
         else:
             dims.append(v['shape'])

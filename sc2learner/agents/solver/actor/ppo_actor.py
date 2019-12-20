@@ -1,6 +1,3 @@
-from queue import Queue
-from threading import Thread
-import zmq
 import torch
 from sc2learner.utils import build_checkpoint_helper
 from .actor import BaseActor
@@ -40,6 +37,7 @@ class PpoActor(BaseActor):
         outputs['return'] = self._get_return(outputs, last_values)
 
         outputs['episode_infos'] = episode_infos
+        outputs['model_index'] = self.model_index
         return outputs
 
     def _get_return(self, outputs, last_values):

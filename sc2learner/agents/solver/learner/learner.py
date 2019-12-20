@@ -76,7 +76,7 @@ class BaseLearner(object):
             self.lr_scheduler.step()
             cur_lr = self.lr_scheduler.get_lr()[0]
             self.time_helper.start_time()
-            batch_data, avg_usage, push_count = next(self.dataloader)
+            batch_data, avg_usage, push_count, avg_model_index = next(self.dataloader)
             if self.use_cuda:
                 batch_data = to_device(batch_data, 'cuda')
             data_time = self.time_helper.end_time()
@@ -87,6 +87,7 @@ class BaseLearner(object):
             var_items['cur_lr'] = cur_lr
             var_items['avg_usage'] = avg_usage
             var_items['push_count'] = push_count
+            var_items['data_staleness'] = self.last_iter.val - avg_model_index
 
             self._update_monitor_var(var_items, time_items)
             self._record_info(self.last_iter.val)
@@ -151,12 +152,14 @@ class BaseLearner(object):
             msg = receiver.recv_string()
             assert(msg == 'request model')
             state_dict = {k: v.to('cpu') for k, v in self.model.state_dict().items()}
+            state_dict = {'state_dict': state_dict, 'model_index': self.last_iter.val}
             receiver.send_pyobj(state_dict)
 
     def _init(self):
         self.scalar_record.register_var('cur_lr')
         self.scalar_record.register_var('avg_usage')
         self.scalar_record.register_var('push_count')
+        self.scalar_record.register_var('data_staleness')
         self.scalar_record.register_var('data_time')
         self.scalar_record.register_var('forward_time')
         self.scalar_record.register_var('backward_update_time')
@@ -167,3 +170,4 @@ class BaseLearner(object):
         self.tb_logger.register_var('cur_lr')
         self.tb_logger.register_var('avg_usage')
         self.tb_logger.register_var('push_count')
+        self.tb_logger.register_var('data_staleness')

@@ -52,7 +52,7 @@ class PpoLearner(BaseLearner):
     # overwrite
     def _parse_pull_data(self, data):
         # TODO (speed and memory copy optimization)
-        keys = ['obs', 'return', 'done', 'action', 'value', 'neglogp', 'state', 'episode_infos']
+        keys = ['obs', 'return', 'done', 'action', 'value', 'neglogp', 'state', 'episode_infos', 'model_index']
         if self.model.use_mask:
             keys.append('mask')
         temp_dict = {}
@@ -63,7 +63,7 @@ class PpoLearner(BaseLearner):
                         temp_dict[k] = [None for _ in range(self.unroll_split)]
                     else:
                         raise NotImplementedError
-                elif k == 'episode_infos':
+                elif k == 'episode_infos' and k == 'model_index':
                     temp_dict[k] = [v for _ in range(self.unroll_split)]
                 else:
                     stack_item = torch.stack(v, dim=0)
