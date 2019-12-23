@@ -32,13 +32,22 @@ class BaseLearner(object):
 
         self.zmq_context = zmq.Context()
         self.dataset = OnlineDataset(data_maxlen=cfg.train.learner_data_queue_size,
-                                     transform=self._data_transform)
+                                     transform=self._data_transform, block_data=cfg.train.block_data)
         self.dataloader = OnlineDataLoader(self.dataset, batch_size=cfg.train.batch_size)
+
+        ip = cfg.communication.ip
         port = cfg.communication.port
+        if ip['learner_manager'] == ip['actor_manager']:
+            pull_port = port['learner']
+            rep_port = port['actor']
+        else:
+            pull_port = port['learner']
+            rep_port = port['learner_manager_model']
+        self.HWM = cfg.communication.HWM['learner']
         self.pull_thread = Thread(target=self._pull_data,
-                                  args=(self.zmq_context, port['actor']))
+                                  args=(self.zmq_context, pull_port))
         self.reply_model_thread = Thread(target=self._reply_model,
-                                         args=(self.zmq_context, port['learner']))
+                                         args=(self.zmq_context, rep_port))
 
         self.optimizer = build_optimizer(model, cfg)
         self.lr_scheduler = build_lr_scheduler(self.optimizer)
@@ -67,7 +76,7 @@ class BaseLearner(object):
             self.lr_scheduler.step()
             cur_lr = self.lr_scheduler.get_lr()[0]
             self.time_helper.start_time()
-            batch_data, avg_usage = next(self.dataloader)
+            batch_data, avg_usage, push_count, avg_model_index = next(self.dataloader)
             if self.use_cuda:
                 batch_data = to_device(batch_data, 'cuda')
             data_time = self.time_helper.end_time()
@@ -77,6 +86,8 @@ class BaseLearner(object):
                           'backward_update_time': backward_update_time}
             var_items['cur_lr'] = cur_lr
             var_items['avg_usage'] = avg_usage
+            var_items['push_count'] = push_count
+            var_items['data_staleness'] = self.last_iter.val - avg_model_index
 
             self._update_monitor_var(var_items, time_items)
             self._record_info(self.last_iter.val)
@@ -115,12 +126,18 @@ class BaseLearner(object):
 
     def _pull_data(self, zmq_context, port):
         receiver = zmq_context.socket(zmq.PULL)
-        receiver.setsockopt(zmq.RCVHWM, 1)
-        receiver.setsockopt(zmq.SNDHWM, 1)
+        receiver.setsockopt(zmq.RCVHWM, self.HWM)
+        receiver.setsockopt(zmq.SNDHWM, self.HWM)
         receiver.bind("tcp://*:%s" % (port))
         while True:
             data = receiver.recv_pyobj()
-            self._parse_pull_data(data)
+            if isinstance(data, dict):
+                self._parse_pull_data(data)
+            elif isinstance(data, list):
+                for d in data:
+                    self._parse_pull_data(d)
+            else:
+                raise TypeError(type(data))
 
     def _parse_pull_data(self):
         raise NotImplementedError
@@ -135,11 +152,14 @@ class BaseLearner(object):
             msg = receiver.recv_string()
             assert(msg == 'request model')
             state_dict = {k: v.to('cpu') for k, v in self.model.state_dict().items()}
+            state_dict = {'state_dict': state_dict, 'model_index': self.last_iter.val}
             receiver.send_pyobj(state_dict)
 
     def _init(self):
         self.scalar_record.register_var('cur_lr')
         self.scalar_record.register_var('avg_usage')
+        self.scalar_record.register_var('push_count')
+        self.scalar_record.register_var('data_staleness')
         self.scalar_record.register_var('data_time')
         self.scalar_record.register_var('forward_time')
         self.scalar_record.register_var('backward_update_time')
@@ -149,3 +169,5 @@ class BaseLearner(object):
 
         self.tb_logger.register_var('cur_lr')
         self.tb_logger.register_var('avg_usage')
+        self.tb_logger.register_var('push_count')
+        self.tb_logger.register_var('data_staleness')

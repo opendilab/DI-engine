@@ -1,4 +1,3 @@
-from collections import deque
 from torch.utils.data import _utils
 import random
 
@@ -13,14 +12,14 @@ class OnlineDataLoader(object):
         self.batch_size = batch_size
 
     def _get_indices(self):
-        indices = random.sample([i for i in range(len(self.dataset))], self.batch_size)
+        indices = random.sample([i for i in range(self.dataset.maxlen)], self.batch_size)
         return indices
 
     def __next__(self):
         indices = self._get_indices()
-        batch, avg_usage = self.dataset.get_indice_data(indices)
+        batch, avg_usage, push_count, avg_model_index = self.dataset.get_indice_data(indices)
         batch = self.collate_fn(batch)
-        return batch, avg_usage
+        return batch, avg_usage, push_count, avg_model_index
 
 
 def unroll_split_collate_fn(*args, collate_fn=_utils.collate.default_collate, **kwargs):
