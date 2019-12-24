@@ -24,10 +24,10 @@ import os
 from absl.testing import absltest
 from future.builtins import range  # pylint: disable=redefined-builtin
 
-import portpicker
 from pysc2 import maps
 from pysc2 import run_configs
 from pysc2.lib import point
+from pysc2.lib import portspicker
 from pysc2.lib import run_parallel
 from pysc2.tests import utils
 
@@ -54,20 +54,21 @@ class TestMultiplayer(utils.TestCase):
     minimap_size_px.assign_to(interface.feature_layer.minimap_resolution)
 
     # Reserve a whole bunch of ports for the weird multiplayer implementation.
-    ports = [portpicker.pick_unused_port() for _ in range(players * 2)]
+    ports = portspicker.pick_unused_ports(players * 2)
     logging.info("Valid Ports: %s", ports)
 
     # Actually launch the game processes.
     print_stage("start")
-    sc2_procs = [run_config.start(extra_ports=ports) for _ in range(players)]
+    sc2_procs = [run_config.start(extra_ports=ports, want_rgb=False)
+                 for _ in range(players)]
     controllers = [p.controller for p in sc2_procs]
 
     try:
       # Save the maps so they can access it.
       map_path = os.path.basename(map_inst.path)
       print_stage("save_map")
-      parallel.run((c.save_map, map_path, map_inst.data(run_config))
-                   for c in controllers)
+      for c in controllers:  # Skip parallel due to a race condition on Windows.
+        c.save_map(map_path, map_inst.data(run_config))
 
       # Create the create request.
       create = sc_pb.RequestCreateGame(
@@ -78,10 +79,9 @@ class TestMultiplayer(utils.TestCase):
       # Create the join request.
       join = sc_pb.RequestJoinGame(race=sc_common.Random, options=interface)
       join.shared_port = 0  # unused
-      join.server_ports.game_port = ports.pop(0)
-      join.server_ports.base_port = ports.pop(0)
-      for _ in range(players - 1):
-        join.client_ports.add(game_port=ports.pop(0), base_port=ports.pop(0))
+      join.server_ports.game_port = ports[0]
+      join.server_ports.base_port = ports[1]
+      join.client_ports.add(game_port=ports[2], base_port=ports[3])
 
       # Play a few short games.
       for _ in range(2):  # 2 episodes
@@ -119,6 +119,7 @@ class TestMultiplayer(utils.TestCase):
         c.quit()
       for p in sc2_procs:
         p.close()
+      portspicker.return_ports(ports)
 
 
 if __name__ == "__main__":
