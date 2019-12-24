@@ -63,7 +63,7 @@ class PpoLearner(BaseLearner):
                         temp_dict[k] = [None for _ in range(self.unroll_split)]
                     else:
                         raise NotImplementedError
-                elif k == 'episode_infos' and k == 'model_index':
+                elif k == 'episode_infos' or k == 'model_index':
                     temp_dict[k] = [v for _ in range(self.unroll_split)]
                 else:
                     stack_item = torch.stack(v, dim=0)
@@ -149,8 +149,7 @@ class PpoLearner(BaseLearner):
         transformed_data = {}
         for k, v in data.items():
             if k in keys:
-                if k == 'state' and v is None:
-                    transformed_data[k] = 'none'
-                else:
-                    transformed_data[k] = v
+                if v is None:
+                    v = 'none'
+                transformed_data[k] = v
         return transformed_data

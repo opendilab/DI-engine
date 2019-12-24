@@ -12,7 +12,7 @@ class OnlineDataLoader(object):
         self.batch_size = batch_size
 
     def _get_indices(self):
-        indices = random.sample([i for i in range(len(self.dataset))], self.batch_size)
+        indices = random.sample([i for i in range(self.dataset.maxlen)], self.batch_size)
         return indices
 
     def __next__(self):
