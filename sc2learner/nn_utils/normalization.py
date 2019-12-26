@@ -35,7 +35,10 @@ def build_normalization(norm_type, dim=None):
     if dim is None:
         key = norm_type
     else:
-        key = norm_type + str(dim)
+        if norm_type in ['BN', 'IN']:
+            key = norm_type + str(dim)
+        else:
+            key = norm_type
     norm_func = {
         'BN1': nn.BatchNorm1d,
         'BN2': nn.BatchNorm2d,

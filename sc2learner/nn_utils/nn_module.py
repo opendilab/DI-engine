@@ -172,3 +172,15 @@ class ChannelShuffle(nn.Module):
         assert(c % g == 0)
         x = x.view(b, g, c//g, h, w).permute(0, 2, 1, 3, 4).contiguous().view(b, c, h, w)
         return x
+
+
+def one_hot(val, num):
+    '''
+        val: Tensor[batch_size]
+        num: int
+    '''
+    assert(isinstance(val, torch.Tensor))
+    assert(len(val.shape) == 1)
+    ret = torch.zeros(val.shape[0], num, device=val.device)
+    ret.scatter_(1, val.unsqueeze(1), 1)
+    return ret
