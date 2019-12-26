@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
-from .nn_module import fc_block, LayerNorm
+from .nn_module import fc_block, build_normalization
 
 
 class Attention(nn.Module):
@@ -47,14 +47,14 @@ class TransformerLayer(nn.Module):
     def __init__(self, input_dim, head_dim, hidden_dim, output_dim, head_num, mlp_num, dropout_ratio, activation):
         super(TransformerLayer, self).__init__()
         self.attention = Attention(input_dim, head_dim, output_dim, head_num, dropout_ratio)
-        self.layernorm1 = LayerNorm(output_dim)
+        self.layernorm1 = build_normalization('LN')(output_dim)
         layers = []
         dims = [output_dim] + [hidden_dim]*(mlp_num-1) + [output_dim]
         for i in range(mlp_num):
             layers.append(fc_block(dims[i], dims[i+1], activation=activation))
         layers.append(nn.Dropout(dropout_ratio))
         self.mlp = nn.Sequential(*layers)
-        self.layernorm2 = LayerNorm(output_dim)
+        self.layernorm2 = build_normalization('LN')(output_dim)
 
     def forward(self, x):
         a = self.attention(x)
