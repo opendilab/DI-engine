@@ -3,29 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class LayerNorm(nn.Module):
-    def __init__(self, num_features, eps=1e-5, affine=True):
-        super(LayerNorm, self).__init__()
-        self.num_features = num_features
-        self.affine = affine
-        self.eps = eps
-
-        if self.affine:
-            self.gamma = nn.Parameter(torch.Tensor(num_features).uniform_())
-            self.beta = nn.Parameter(torch.zeros(num_features))
-
-    def forward(self, x):
-        mean = x.mean(dim=-1, keepdim=True)
-        std = (x - mean).pow(2).mean(dim=-1, keepdim=True)
-
-        x = (x - mean) / (std + self.eps)
-
-        if self.affine:
-            shape = [1] * (x.dim() - 1) + [-1]
-            x = x * self.gamma.view(*shape) + self.beta.view(*shape)
-        return x
-
-
 class AdaptiveInstanceNorm2d(nn.Module):
     def __init__(self, num_features, eps=1e-5, momentum=0.1):
         super(AdaptiveInstanceNorm2d, self).__init__()
@@ -62,7 +39,7 @@ def build_normalization(norm_type, dim=None):
     norm_func = {
         'BN1': nn.BatchNorm1d,
         'BN2': nn.BatchNorm2d,
-        'LN': LayerNorm,
+        'LN': nn.LayerNorm,
         'IN2': nn.InstanceNorm2d,
         'AdaptiveIN': AdaptiveInstanceNorm2d,
     }
