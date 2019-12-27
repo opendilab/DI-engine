@@ -29,8 +29,9 @@ class BaseActor(object):
         self.time_helper = build_time_helper(wrapper_type='time')
 
         self.zmq_context = zmq.Context()
-        self.model_requestor = self.zmq_context.socket(zmq.REQ)
+        self.model_requestor = self.zmq_context.socket(zmq.DEALER)
         self.model_requestor.connect("tcp://%s:%s" % (req_ip, req_port))
+        self.model_requestor.setsockopt(zmq.RCVTIMEO, 1000*10)
         print("tcp://%s:%s" % (req_ip, req_port))
 
         if enable_push:
@@ -69,8 +70,14 @@ class BaseActor(object):
             sender.send_pyobj(data)
 
     def _update_model(self):
-        self.model_requestor.send_string("request model")
-        state_dict = self.model_requestor.recv_pyobj()
+        while True:
+            self.model_requestor.send_string("request model")
+            try:
+                state_dict = self.model_requestor.recv_pyobj()
+            except zmq.error.Again:
+                continue
+            else:
+                break
         self.model.load_state_dict(state_dict['state_dict'])
         self.model_index = state_dict['model_index']
 

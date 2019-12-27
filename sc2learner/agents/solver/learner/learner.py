@@ -146,7 +146,7 @@ class BaseLearner(object):
         raise NotImplementedError
 
     def _reply_model(self, zmq_context, port):
-        receiver = zmq_context.socket(zmq.REP)
+        receiver = zmq_context.socket(zmq.DEALER)
         receiver.bind("tcp://*:%s" % (port))
         while True:
             msg = receiver.recv_string()
