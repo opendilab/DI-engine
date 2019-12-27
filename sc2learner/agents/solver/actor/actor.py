@@ -1,7 +1,7 @@
 from queue import Queue
 from threading import Thread
 import zmq
-from sc2learner.utils import build_checkpoint_helper, build_time_helper, send_array, dict2nparray
+from sc2learner.utils import build_checkpoint_helper, build_time_helper, send_array, dict2nparray, get_ip, get_pid
 
 
 class BaseActor(object):
@@ -42,6 +42,7 @@ class BaseActor(object):
         self.checkpoint_helper = build_checkpoint_helper(cfg)
         if cfg.common.load_path != '':
             self.checkpoint_helper.load(cfg.common.load_path, self.model, logger_prefix='(actor)')
+        self.actor_id = '{}+{}'.format(get_ip(), get_pid())
 
         self._init()
 
@@ -53,6 +54,7 @@ class BaseActor(object):
             model_time = self.time_helper.end_time()
             self.time_helper.start_time()
             unroll = self._nstep_rollout()
+            unroll['actor_id'] = self.actor_id
             data_time = self.time_helper.end_time()
             print('update model time({})\tdata rollout time({})'.format(model_time, data_time))
             if self.enable_push:
