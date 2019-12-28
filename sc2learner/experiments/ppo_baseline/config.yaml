@@ -62,3 +62,7 @@ communication:
 logger:
     print_freq: 500
     save_freq: 5000
+    actor_monitor:
+        fast: 100
+        normal: 200
+        slow: 2000

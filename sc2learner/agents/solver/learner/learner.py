@@ -17,6 +17,70 @@ def build_lr_scheduler(optimizer):
     return lr_scheduler
 
 
+class HistoryActorInfo(object):
+    def __init__(self, actor_monitor_arg):
+        self._data = {}
+        self.actor_monitor_arg = actor_monitor_arg
+
+    def update_actor_info(self, data):
+        actor_id = data['actor_id']
+        if actor_id in self._data.keys():
+            self._data[actor_id]['count'] += 1
+            self._data[actor_id]['update_time'] = time.time()
+        else:
+            self._data[actor_id] = {'count': 1, 'update_time': time.time()}
+
+    def __str__(self):
+        cur_time = time.time()
+        s = ""
+        for k, v in self._data.items():
+            s += "actor_id({})".format(k)
+            for k1, v1 in v.items():
+                if k1 == 'update_time':
+                    s += '\t{}({:.3f})'.format(k1, cur_time - v1)
+                else:
+                    s += '\t{}({})'.format(k1, v1)
+            s += "\n"
+        return s
+
+    def get_cls_by_time(self):
+        def monotonic_check(item, judge_type='increase_strict'):
+            judge_func = {
+                'increase_strict': lambda x, y: x >= y,
+            }
+            if judge_type in judge_func.keys():
+                judge = judge_func[judge_type]
+            else:
+                raise NotImplementedError("invalid judge type: {}".format(judge_type))
+
+            for i in range(len(item) - 1):
+                if judge(item[i], item[i+1]):
+                    return False
+            return True
+
+        keys = list(self.actor_monitor_arg.keys())
+        values = list(self.actor_monitor_arg.values())
+        assert(monotonic_check(values))
+
+        def look_up(t):
+            for idx, (k, v) in enumerate(zip(keys, values)):
+                if t <= v:
+                    return k
+            return 'dead'
+
+        cur_time = time.time()
+        keys.extend(['dead', 'total'])
+        result = {k: 0 for k in keys}
+        for k, v in self._data.items():
+            for k1, v1 in v.items():
+                if k1 == 'update_time':
+                    last_update_time = cur_time - v1
+                    cls = look_up(last_update_time)
+                    result[cls] += 1
+                    result['total'] += 1
+        return result
+
+
 class BaseLearner(object):
 
     def __init__(self, env, model, cfg=None):
@@ -64,6 +128,7 @@ class BaseLearner(object):
                                         logger_prefix='(learner)')
         self._init()
         self._optimize_step = self.time_helper.wrapper(self._optimize_step)
+        self.history_actor_info = HistoryActorInfo(cfg.logger.actor_monitor)
 
     def run(self):
         self.pull_thread.start()
@@ -98,6 +163,8 @@ class BaseLearner(object):
             self.logger.info('iterations:{}\t{}'.format(iterations, self.scalar_record.get_var_all()))
             tb_keys = self.tb_logger.scalar_var_names
             self.tb_logger.add_scalar_list(self.scalar_record.get_var_tb_format(tb_keys, iterations))
+            self.tb_logger.add_text('history_actor_info', str(self.history_actor_info), iterations)
+            self.tb_logger.add_scalars('actor_monitor', self.history_actor_info.get_cls_by_time(), iterations)
         if iterations % self.cfg.logger.save_freq == 0:
             self.checkpoint_helper.save_iterations(iterations, self.model, optimizer=self.optimizer,
                                                    dataset=self.dataset)
@@ -132,9 +199,11 @@ class BaseLearner(object):
         while True:
             data = receiver.recv_pyobj()
             if isinstance(data, dict):
+                self.history_actor_info.update_actor_info(data)
                 self._parse_pull_data(data)
             elif isinstance(data, list):
                 for d in data:
+                    self.history_actor_info.update_actor_info(data)
                     self._parse_pull_data(d)
             else:
                 raise TypeError(type(data))
@@ -146,7 +215,7 @@ class BaseLearner(object):
         raise NotImplementedError
 
     def _reply_model(self, zmq_context, port):
-        receiver = zmq_context.socket(zmq.REP)
+        receiver = zmq_context.socket(zmq.DEALER)
         receiver.bind("tcp://*:%s" % (port))
         while True:
             msg = receiver.recv_string()
@@ -171,3 +240,5 @@ class BaseLearner(object):
         self.tb_logger.register_var('avg_usage')
         self.tb_logger.register_var('push_count')
         self.tb_logger.register_var('data_staleness')
+        self.tb_logger.register_var('history_actor_info', var_type='text')
+        self.tb_logger.register_var('actor_monitor', var_type='scalars')

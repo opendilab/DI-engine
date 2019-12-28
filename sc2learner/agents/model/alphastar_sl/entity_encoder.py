@@ -19,18 +19,21 @@ class EntityEncoder(nn.Module):
             dropout_ratio=cfg.dropout_ratio,
             activation=self.act,
         )
-        self.fc = fc_block(cfg.output_dim, cfg.output_dim, activation=self.act)
+        self.entity_fc = fc_block(cfg.output_dim, cfg.output_dim, activation=self.act)
+        self.embed_fc = fc_block(cfg.output_dim, cfg.output_dim, activation=self.act)
 
     def forward(self, x):
         '''
         Input:
             x: [batch_size, entity_num, input_dim]
         Output:
-            x: [batch_size, entity_num, output_dim]
+            entity_embeddings: [batch_size, entity_num, output_dim]
+            embedded_entity: [batch_size, output_dim]
         '''
         x = self.act(self.transformer(x))
-        x = self.fc(x)
-        return x
+        entity_embeddings = self.entity_fc(x)
+        embedded_entity = self.embed_fc(x.mean(dim=1))  # TODO masked
+        return entity_embeddings, embedded_entity
 
 
 def transform_entity_data(entity_list, pad_value=-1e9):
@@ -95,9 +98,10 @@ def test_entity_encoder():
 
     model = EntityEncoder(CFG()).cuda()
     input = torch.randn(2, 14, 256).cuda()
-    output = model(input)
+    entity_embeddings, embedded_entity = model(input)
     print(model)
-    print(output.shape)
+    print(entity_embeddings.shape)
+    print(embedded_entity.shape)
 
 
 if __name__ == "__main__":
