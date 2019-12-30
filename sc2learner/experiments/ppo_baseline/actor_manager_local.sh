@@ -2,16 +2,16 @@ work_path=$(dirname $0)
 job_name=actor_manager
 key_word=sc2learner.bin.train_ppo
 function launch_func() {
-    python3 -u -m sc2learner.bin.train_ppo --job_name $job_name --config_path $work_path/config.yaml
+    srun -p $1 -w $2 python3 -u -m sc2learner.bin.train_ppo --job_name $job_name --config_path $work_path/config.yaml
 }
 while (true)
 do
-    content=`ps -u | grep $key_word`
+    content=`squeue -u $3`
     result=$(echo $content | grep $job_name)
     if (["$result" == ""])
     then
         echo launch a new $job_name
-        launch_func
+        launch_func $1 $2
     fi
     sleep 10s
 done
