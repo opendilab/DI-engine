@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from sc2learner.nn_utils import fc_block, build_activation, one_hot, LSTM
+from sc2learner.nn_utils import fc_block, conv2d_block, deconv2d_block, build_activation, one_hot, LSTM, \
+        ResBlock, NearestUpsample, BilinearUpsample
 from sc2learner.rl_utils import CategoricalPdPytorch
 
 
@@ -145,7 +146,7 @@ class SelectedUnitsHead(nn.Module):
                 key, end_flag_index = self._get_key(item)
                 m = torch.cat([m, torch.ones_like(m[:, 0:1])], dim=1)
                 logits_t, units_t, embedding_selected_t = self._query(
-                        key, end_flag_index, x.unsqueeze(0), state, m, temperature)
+                    key, end_flag_index, x.unsqueeze(0), state, m, temperature)
                 logits.extend(logits_t)
                 units.append(units_t)
                 embedding_selected.append(embedding_selected_t)
@@ -200,7 +201,7 @@ class TargetUnitsHead(nn.Module):
             query_result = x.permute(1, 0, 2) * key
             query_result = query_result.mean(dim=2)
             query_result.div_(temperature)
-            query_result.sub_((1 - mask) * 1e12)
+            query_result.sub_((1 - mask) * 1e9)
             handle = self.pd(query_result)
             entity_num = handle.sample()
 
@@ -247,6 +248,81 @@ class TargetUnitsHead(nn.Module):
             logits, units = self._query(key, end_flag_index, input, state, mask, temperature)
 
         return logits, units
+
+
+class LocationHead(nn.Module):
+    def __init__(self, cfg):
+        super(LocationHead, self).__init__()
+        self.act = build_activation(cfg.activation)
+        self.reshape_size = cfg.reshape_size
+        self.reshape_channel = cfg.reshape_channel
+
+        self.conv1 = conv2d_block(cfg.map_skip_dim+cfg.reshape_channel, cfg.res_dim, 1, 1, 0,
+                                  activation=self.act, norm_type=None)
+        self.res = nn.ModuleList()
+        self.res_act = nn.ModuleList()
+        self.res_dim = cfg.res_dim
+        for i in range(cfg.res_num):
+            self.res_act.append(build_activation('glu')(self.res_dim, self.res_dim,
+                                                        cfg.map_skip_dim+cfg.reshape_channel, 'conv2d'))
+            self.res.append(ResBlock(self.res_dim, self.res_dim, 3, 1, 1, activation=self.act, norm_type=None))
+
+        self.upsample = nn.ModuleList()
+        dims = [self.res_dim] + cfg.upsample_dims
+        assert(cfg.upsample_type in ['deconv', 'nearest', 'bilinear'])
+        for i in range(len(cfg.upsample_dims)):
+            if cfg.upsample_type == 'deconv':
+                self.upsample.append(deconv2d_block(dims[i], dims[i+1], 4, 2, 1, activation=self.act, norm_type=None))
+            elif cfg.upsample_type == 'nearest':
+                self.upsample.append(
+                    nn.Sequential(NearestUpsample(2),
+                                  conv2d_block(dims[i], dims[i+1], 3, 1, 1, activation=self.act, norm_type=None)))
+            elif cfg.upsample_type == 'bilinear':
+                self.upsample.append(
+                    nn.Sequential(BilinearUpsample(2),
+                                  conv2d_block(dims[i], dims[i+1], 3, 1, 1, activation=self.act, norm_type=None)))
+
+        self.pd = CategoricalPdPytorch
+
+    def forward(self, embedding, map_skip, available_location_mask, temperature=1.0):
+        reshape_embedding = embedding.reshape(-1, self.reshape_channel, *self.reshape_size)
+        cat_feature = [torch.cat([reshape_embedding, map_skip[i]], dim=1) for i in range(len(map_skip))]
+        x = self.act(cat_feature[-1])
+        x = self.conv1(x)
+        for layer, act, skip in zip(self.res, self.res_act, reversed(cat_feature)):
+            x = layer(x)
+            x = act(x, skip)
+        for layer in self.upsample:
+            x = layer(x)
+        x.div_(temperature)
+        x.sub_((1 - available_location_mask)*1e9)
+        logits = x.view(x.shape[0], -1)
+        handle = self.pd(logits)
+        location = handle.sample()
+
+        return logits, location
+
+
+def test_location_head():
+    class CFG:
+        def __init__(self):
+            self.activation = 'relu'
+            self.upsample_type = 'deconv'
+            self.upsample_dims = [128, 64, 16, 1]
+            self.res_dim = 128
+            self.reshape_size = (16, 16)
+            self.reshape_channel = 4
+            self.map_skip_dim = 128
+            self.res_num = 4
+
+    model = LocationHead(CFG()).cuda()
+    embedding = torch.randn(4, 1024).cuda()
+    available_location_mask = torch.ones(4, 1, 256, 256).cuda()
+    map_skip = [torch.randn(4, 128, 16, 16).cuda() for _ in range(4)]
+    logits, location = model(embedding, map_skip, available_location_mask)
+    print(model)
+    print(logits.shape)
+    print(location)
 
 
 def test_delay_head():
@@ -300,6 +376,7 @@ def test_selected_unit_head():
             self.num_layers = 1
             self.max_entity_num = 64
     model = SelectedUnitsHead(CFG()).cuda()
+    print(model)
     input = torch.randn(2, 1024).cuda()
     available_unit_type_mask = torch.ones(2, 47).cuda()
     available_units_mask = torch.ones(2, 89).cuda()
@@ -332,5 +409,6 @@ def test_selected_unit_head():
 
 if __name__ == "__main__":
     test_selected_unit_head()
-    #test_delay_head()
-    #test_queued_head()
+    test_location_head()
+    test_delay_head()
+    test_queued_head()
