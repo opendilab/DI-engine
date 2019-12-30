@@ -113,20 +113,12 @@ def deconv2d_block(in_channels,
                    norm_type=None):
     # transpose conv2d + norm + activation
     block = []
-    if pad_type == 'zero':
-        block.append(nn.ZeroPad2d(padding))
-    elif pad_type == 'reflect':
-        block.append(nn.ReflectionPad2d(padding))
-    elif pad_type == 'replicate':
-        block.append(nn.ReplicatePad2d(padding))
-    else:
-        raise ValueError
     block.append(nn.ConvTranspose2d(
         in_channels=in_channels,
         out_channels=out_channels,
         kernel_size=kernel_size,
         stride=stride,
-        padding=0,
+        padding=padding,
         output_padding=output_padding,
         groups=groups
     ))
@@ -184,3 +176,21 @@ def one_hot(val, num):
     ret = torch.zeros(val.shape[0], num, device=val.device)
     ret.scatter_(1, val.unsqueeze(1), 1)
     return ret
+
+
+class NearestUpsample(nn.Module):
+    def __init__(self, scale_factor):
+        super(NearestUpsample, self).__init__()
+        self.scale_factor = scale_factor
+
+    def forward(self, x):
+        return F.interpolate(x, self.scale_factor, mode='nearest')
+
+
+class BilinearUpsample(nn.Module):
+    def __init__(self, scale_factor):
+        super(BilinearUpsample, self).__init__()
+        self.scale_factor = scale_factor
+
+    def forward(self, x):
+        return F.interpolate(x, self.scale_factor, mode='bilinear', align_corner=False)
