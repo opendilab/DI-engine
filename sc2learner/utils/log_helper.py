@@ -50,6 +50,7 @@ class TensorBoardLogger(object):
         self._scalar_var_names = []
         self._text_var_names = []
         self._scalars_var_names = []
+        self._histogram_var_names = []
 
     def add_scalar(self, name, val, step):
         assert(name in self._scalar_var_names)
@@ -63,20 +64,27 @@ class TensorBoardLogger(object):
         assert(name in self._scalars_var_names)
         self.logger.add_scalars(name, val, step)
 
+    def add_histogram(self, name, *args, **kwargs):
+        assert(name in self._histogram_var_names)
+        self.logger.add_histogram(name, *args, **kwargs)
+
     def add_scalar_list(self, scalar_list):
         for n, v, s in scalar_list:
             self.add_scalar(n, v, s)
 
     def register_var(self, name, var_type='scalar'):
-        assert(var_type in ['scalar', 'text', 'scalars'])
+        assert(var_type in ['scalar', 'text', 'scalars', 'histogram'])
         assert(name not in self._scalar_var_names)
         assert(name not in self._text_var_names)
+        assert(name not in self._histogram_var_names)
         if var_type == 'scalar':
             self._scalar_var_names.append(name)
         elif var_type == 'text':
             self._text_var_names.append(name)
         elif var_type == 'scalars':
             self._scalars_var_names.append(name)
+        elif var_type == 'histogram':
+            self._histogram_var_names.append(name)
 
     @property
     def scalar_var_names(self):

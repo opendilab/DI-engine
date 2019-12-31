@@ -1,6 +1,7 @@
 from threading import Thread
 import zmq
 import time
+import numpy as np
 import torch
 from sc2learner.dataset import OnlineDataset, OnlineDataLoader
 from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper, to_device, CountVar
@@ -21,6 +22,7 @@ class HistoryActorInfo(object):
     def __init__(self, actor_monitor_arg):
         self._data = {}
         self.actor_monitor_arg = actor_monitor_arg
+        self.copy_keys = ['update_model_time', 'data_rollout_time']
 
     def update_actor_info(self, data):
         actor_id = data['actor_id']
@@ -29,6 +31,8 @@ class HistoryActorInfo(object):
             self._data[actor_id]['update_time'] = time.time()
         else:
             self._data[actor_id] = {'count': 1, 'update_time': time.time()}
+        for k in self.copy_keys:
+            self._data[actor_id][k] = data[k]
 
     def __str__(self):
         cur_time = time.time()
@@ -79,6 +83,14 @@ class HistoryActorInfo(object):
                     result[cls] += 1
                     result['total'] += 1
         return result
+
+    def get_distribution(self, key):
+        data = []
+        for k, v in self._data.items():
+            data.append(v[key])
+        sorted(data)
+        data = np.array(data)
+        return data
 
 
 class BaseLearner(object):
@@ -165,6 +177,10 @@ class BaseLearner(object):
             self.tb_logger.add_scalar_list(self.scalar_record.get_var_tb_format(tb_keys, iterations))
             self.tb_logger.add_text('history_actor_info', str(self.history_actor_info), iterations)
             self.tb_logger.add_scalars('actor_monitor', self.history_actor_info.get_cls_by_time(), iterations)
+            self.tb_logger.add_histogram('data_rollout_time',
+                                         self.history_actor_info.get_distribution('data_rollout_time'), iterations)
+            self.tb_logger.add_histogram('update_model_time',
+                                         self.history_actor_info.get_distribution('update_model_time'), iterations)
         if iterations % self.cfg.logger.save_freq == 0:
             self.checkpoint_helper.save_iterations(iterations, self.model, optimizer=self.optimizer,
                                                    dataset=self.dataset)
@@ -242,3 +258,5 @@ class BaseLearner(object):
         self.tb_logger.register_var('data_staleness')
         self.tb_logger.register_var('history_actor_info', var_type='text')
         self.tb_logger.register_var('actor_monitor', var_type='scalars')
+        self.tb_logger.register_var('data_rollout_time', var_type='histogram')
+        self.tb_logger.register_var('update_model_time', var_type='histogram')

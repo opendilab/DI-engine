@@ -55,8 +55,12 @@ class BaseActor(object):
             self.time_helper.start_time()
             unroll = self._nstep_rollout()
             unroll['actor_id'] = self.actor_id
+            unroll['model_index'] = self.model_index
+            unroll['update_model_time'] = model_time
             data_time = self.time_helper.end_time()
-            print('update model time({})\tdata rollout time({})'.format(model_time, data_time))
+            unroll['data_rollout_time'] = data_time
+            print('update model time({})\tdata rollout time({})\tmodel_index({})'.format(
+                model_time, data_time, self.model_index))
             if self.enable_push:
                 if self.data_queue.full():
                     print('full')  # TODO warning(queue is full)
