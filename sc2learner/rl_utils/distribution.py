@@ -47,10 +47,18 @@ class CategoricalPd(Pd):
         elif reduction == 'mean':
             return entropy.mean()
 
-    def sample(self):
+    def sample(self, viz=False):
         u = torch.rand_like(self.logits)
-        u = self.logits - torch.log(-torch.log(u))
-        return u.argmax(dim=-1)
+        u = - torch.log(-torch.log(u))
+        noise_logits = self.logits + u
+        if viz:
+            viz_feature = {}
+            viz_feature['noise'] = u.data.cpu().numpy()
+            viz_feature['logits'] = self.logits.data.cpu().numpy()
+            viz_feature['noise_logits'] = noise_logits.data.cpu().numpy()
+            return noise_logits.argmax(dim=-1), viz_feature
+        else:
+            return noise_logits.argmax(dim=-1)
 
     def mode(self):
         return self.logits.argmax(dim=-1)
