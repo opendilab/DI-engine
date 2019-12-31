@@ -14,9 +14,10 @@ from .actor_critic import ActorCriticBase
 
 
 class PPOMLP(ActorCriticBase):
-    def __init__(self, ob_space, ac_space, fc_dim=512, action_type='random'):
+    def __init__(self, ob_space, ac_space, fc_dim=512, action_type='random', viz=False):
         super(PPOMLP, self).__init__()
         assert(action_type in ['random', 'deterministic'])
+        assert(viz and action_type == 'random')
         self.action_type = action_type
         if isinstance(ac_space, MaskDiscrete):
             ob_space, mask_space = ob_space.spaces
@@ -35,6 +36,7 @@ class PPOMLP(ActorCriticBase):
 
         self.pd = CategoricalPd
         self.initial_state = None
+        self.viz = viz
         self._init()
 
     def _init(self):
@@ -80,17 +82,23 @@ class PPOMLP(ActorCriticBase):
         pi_logit = self._actor_forward(inputs)
         handle = self.pd(pi_logit)
         if self.action_type == 'random':
-            action = handle.sample()
+            if self.viz:
+                action, logits_feature = handle.sample(viz=True)
+            else:
+                action = handle.sample(viz=False)
         elif self.action_type == 'deterministic':
             action = handle.mode()
         neglogp = handle.neglogp(action, reduction='mean')
-        return {
+        ret = {
             'action': action,
             'value': vf,
             'neglogp': neglogp,
             'state': self.initial_state,
-            'pi_logit': pi_logit
+            'pi_logit': pi_logit,
         }
+        if self.viz:
+            ret['viz_feature'] = logits_feature
+        return ret
 
     # overwrite
     def evaluate(self, inputs):

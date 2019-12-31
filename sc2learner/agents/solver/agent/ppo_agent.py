@@ -1,11 +1,15 @@
 import torch
 from .agent import BaseAgent
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 class PpoAgent(BaseAgent):
 
     def __init__(self, *args, **kwargs):
         super(PpoAgent, self).__init__(*args, **kwargs)
+        self.plt_count = 0
+        self.tb_logger.register_var('logits', var_type='figure')
 
     def reset(self):
         self.state = self.model.initial_state
@@ -13,7 +17,22 @@ class PpoAgent(BaseAgent):
 
     def act(self, obs):
         inputs = self._pack_model_input(obs)
-        action = self.model(inputs, mode="step")['action']
+        ret = self.model(inputs, mode="step")
+        action = ret['action']
+        if self.viz:
+            viz_feature = ret['viz_feature']
+            keys = viz_feature.keys()
+            B, N = viz_feature['logits'].shape
+            x = np.linspace(0, N, N)
+            figure = plt.figure()
+            for b in range(B):
+                for k in keys:
+                    v = viz_feature[k][b]
+                    plt.scatter(x, v, alpha=0.6, s=50, label=k)
+                    plt.ylim((-5, 5))
+                plt.legend(loc='upper right')
+                self.tb_logger.add_figure('logits', figure, self.plt_count, close=True)
+                self.plt_count += 1
         return action.item()
 
     def value(self, obs):
