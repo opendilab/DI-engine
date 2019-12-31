@@ -209,7 +209,7 @@ class ManagerZmq(ManagerBase):
             t2 = time.time()
             print('({})send {} time {}'.format(self.name, self.send_data_count, t2-t1))
 
-    def request_data(self, context, ip, port, data_type=dict):
+    def request_data(self, context, ip, port):
         request = context.socket(zmq.DEALER)
         request.setsockopt(zmq.RCVTIMEO, 1000*10)
         request.connect("tcp://{}:{}".format(ip, port))
@@ -219,14 +219,13 @@ class ManagerZmq(ManagerBase):
             while True:
                 request.send_string("request model")
                 try:
-                    data = request.recv_pyobj()
+                    data = request.recv()
                 except zmq.error.Again:
                     continue
                 else:
                     print('({})update state_dict'.format(self.name))
                     break
             self._acquire_lock(self.model_lock)
-            assert(isinstance(data, data_type))
             self.state_dict = data
             self._release_lock(self.model_lock)
 
@@ -240,6 +239,6 @@ class ManagerZmq(ManagerBase):
             msg = reply.recv_string()
             assert(msg == req_content)
             self._acquire_lock(self.model_lock)
-            reply.send_pyobj(self.state_dict)
+            reply.send(self.state_dict)
             self._release_lock(self.model_lock)
             print('({})reply model'.format(self.name))
