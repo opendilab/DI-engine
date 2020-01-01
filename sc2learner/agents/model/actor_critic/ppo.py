@@ -17,7 +17,8 @@ class PPOMLP(ActorCriticBase):
     def __init__(self, ob_space, ac_space, fc_dim=512, action_type='random', viz=False):
         super(PPOMLP, self).__init__()
         assert(action_type in ['random', 'deterministic'])
-        assert(viz and action_type == 'random')
+        if action_type == 'deterministic':
+            assert(not viz)
         self.action_type = action_type
         if isinstance(ac_space, MaskDiscrete):
             ob_space, mask_space = ob_space.spaces
