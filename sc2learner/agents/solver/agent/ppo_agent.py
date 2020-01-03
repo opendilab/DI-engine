@@ -28,9 +28,10 @@ class PpoAgent(BaseAgent):
             for b in range(B):
                 for k in keys:
                     v = viz_feature[k][b]
-                    plt.plot(x, v)
+                    plt.scatter(x, v, alpha=0.6, s=50, label=k)
                     plt.ylim((-5, 5))
-                self.tb_logger.add_figure('logits', figure, self.plt_count)
+                plt.legend(loc='upper right')
+                self.tb_logger.add_figure('logits', figure, self.plt_count, close=True)
                 self.plt_count += 1
         return action.item()
 
