@@ -29,7 +29,9 @@ class PpoAgent(BaseAgent):
                 for k in keys:
                     v = viz_feature[k][b]
                     plt.scatter(x, v, alpha=0.6, s=50, label=k)
-                    plt.ylim((-5, 5))
+                    valid_v = torch.where(v > -100, v, torch.full_like(v, v.max().item()))
+                    max_v, min_v = valid_v.max().item(), valid_v.min().item()
+                    plt.ylim((min_v-1, max_v+1))
                 plt.legend(loc='upper right')
                 self.tb_logger.add_figure('logits', figure, self.plt_count, close=True)
                 self.plt_count += 1
