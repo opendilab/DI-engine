@@ -14,10 +14,10 @@ from .actor_critic import ActorCriticBase
 
 
 class PPOMLP(ActorCriticBase):
-    def __init__(self, ob_space, ac_space, fc_dim=512, action_type='random', viz=False):
+    def __init__(self, ob_space, ac_space, fc_dim=512, action_type='rand', viz=False):
         super(PPOMLP, self).__init__()
-        assert(action_type in ['random', 'deterministic'])
-        if action_type == 'deterministic':
+        assert(action_type in ['rand', 'fixed'])
+        if action_type == 'fixed':
             assert(not viz)
         self.action_type = action_type
         if isinstance(ac_space, MaskDiscrete):
@@ -82,12 +82,12 @@ class PPOMLP(ActorCriticBase):
         vf = self._critic_forward(inputs)
         pi_logit = self._actor_forward(inputs)
         handle = self.pd(pi_logit)
-        if self.action_type == 'random':
+        if self.action_type == 'rand':
             if self.viz:
                 action, logits_feature = handle.sample(viz=True)
             else:
                 action = handle.sample(viz=False)
-        elif self.action_type == 'deterministic':
+        elif self.action_type == 'fixed':
             action = handle.mode()
         neglogp = handle.neglogp(action, reduction='mean')
         ret = {
