@@ -15,12 +15,16 @@ class Pd(object):
     def entropy(self):
         raise NotImplementedError
 
-    def sample(self):
+    def noise_mode(self):
         # for randomness
         raise NotImplementedError
 
     def mode(self):
         # for deterministic
+        raise NotImplementedError
+
+    def sample(self):
+        # for multinomial
         raise NotImplementedError
 
 
@@ -47,7 +51,7 @@ class CategoricalPd(Pd):
         elif reduction == 'mean':
             return entropy.mean()
 
-    def sample(self, viz=False):
+    def noise_mode(self, viz=False):
         u = torch.rand_like(self.logits)
         u = - torch.log(-torch.log(u))
         noise_logits = self.logits + u
@@ -62,6 +66,10 @@ class CategoricalPd(Pd):
 
     def mode(self):
         return self.logits.argmax(dim=-1)
+
+    def sample(self):
+        p = torch.softmax(self.logits, dim=1)
+        return torch.multinomial(p, 1).squeeze(1)
 
 
 class CategoricalPdPytorch(torch.distributions.Categorical):
