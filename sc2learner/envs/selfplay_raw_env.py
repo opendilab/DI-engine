@@ -91,11 +91,12 @@ class SC2SelfplayRawEnv(gym.Env):
     self._sc2_env.close()
 
   def _create_env(self):
-    self._random_seed = (self._random_seed + 1) & 0xFFFFFFFF
+    self._random_seed = (self._random_seed + 11) & 0xFFFFFFFF
     players=[sc2_env.Agent(sc2_env.Race[self._agent_race]),
              sc2_env.Agent(sc2_env.Race[self._opponent_race])]
     agent_interface_format=sc2_env.parse_agent_interface_format(
         feature_screen=self._resolution, feature_minimap=self._resolution)
+    tprint("Creating game with seed %d." % self._random_seed)
     return sc2_env.SC2Env(
         map_name=self._map_name,
         step_mul=self._step_mul,
@@ -112,3 +113,6 @@ class SC2SelfplayRawEnv(gym.Env):
       try: return self._create_env()
       except: pass
     return self._create_env()
+
+  def save_replay(self, replay_dir, prefix=None):
+    return self._sc2_env.save_replay(replay_dir, prefix)
