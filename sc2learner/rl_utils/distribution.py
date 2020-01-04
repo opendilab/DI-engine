@@ -55,21 +55,34 @@ class CategoricalPd(Pd):
         u = torch.rand_like(self.logits)
         u = - torch.log(-torch.log(u))
         noise_logits = self.logits + u
+        result = noise_logits.argmax(dim=-1)
         if viz:
             viz_feature = {}
-            viz_feature['noise'] = u.data.cpu().numpy()
             viz_feature['logits'] = self.logits.data.cpu().numpy()
+            viz_feature['noise'] = u.data.cpu().numpy()
             viz_feature['noise_logits'] = noise_logits.data.cpu().numpy()
-            return noise_logits.argmax(dim=-1), viz_feature
+            return result, viz_feature
         else:
-            return noise_logits.argmax(dim=-1)
+            return result
 
-    def mode(self):
-        return self.logits.argmax(dim=-1)
+    def mode(self, viz=False):
+        result = self.logits.argmax(dim=-1)
+        if viz:
+            viz_feature = {}
+            viz_feature['logits'] = self.logits.data.cpu().numpy()
+            return result, viz_feature
+        else:
+            return result
 
-    def sample(self):
+    def sample(self, viz=False):
         p = torch.softmax(self.logits, dim=1)
-        return torch.multinomial(p, 1).squeeze(1)
+        result = torch.multinomial(p, 1).squeeze(1)
+        if viz:
+            viz_feature = {}
+            viz_feature['logits'] = self.logits.data.cpu().numpy()
+            return result, viz_feature
+        else:
+            return result
 
 
 class CategoricalPdPytorch(torch.distributions.Categorical):
