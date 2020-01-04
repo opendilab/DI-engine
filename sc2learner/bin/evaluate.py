@@ -38,9 +38,9 @@ flags.FLAGS(sys.argv)
 def create_env(cfg, random_seed=None):
     env = SC2RawEnv(map_name=cfg.env.map_name,
                     step_mul=cfg.env.step_mul,
+                    difficulty=cfg.env.difficulty,
                     agent_race=cfg.env.agent_race,
                     bot_race=cfg.env.bot_race,
-                    difficulty=FLAGS.difficulty,
                     disable_fog=cfg.env.disable_fog,
                     random_seed=random_seed)
     env = ZergActionWrapper(env,
@@ -85,7 +85,11 @@ def create_ppo_agent(cfg, env, tb_logger):
 def evaluate(var_dict, cfg):
 
     game_seed, rank = var_dict['game_seed'], var_dict['rank']
-    logger, tb_logger, _ = build_logger(cfg, name='evaluate_{}_{}'.format(time.time(), rank))
+    log_time = time.strftime("%d/%m/%H:%M:%S")
+    name_list = cfg.common.load_path.split('/')
+    path_info = name_list[-2] + '/' + name_list[-1].split('.')[0]
+    name = 'eval_{}_{}_{}_{}_{}'.format(path_info, cfg.env.difficulty, cfg.model.action_type, log_time, rank+1)
+    logger, tb_logger, _ = build_logger(cfg, name=name)
     logger.info('cfg: {}'.format(cfg))
     logger.info("Rank %d Game Seed: %d" % (rank, game_seed))
     env = create_env(cfg, game_seed)
@@ -138,6 +142,7 @@ def main(argv):
     cfg = EasyDict(cfg)
     cfg.common.save_path = os.path.dirname(FLAGS.config_path)
     cfg.common.load_path = FLAGS.load_path
+    cfg.env.difficulty = FLAGS.difficulty
 
     base_dir = os.environ.get("SC2PATH", "~/StarCraftII")
     base_dir = os.path.expanduser(base_dir)
@@ -155,7 +160,7 @@ def main(argv):
     pool.close()
 
     print("Evaluated %d Episodes Against Bot Level %s Avg Return %f Avg Winning Rate %f" % (
-        cfg.common.num_episodes, FLAGS.difficulty, sum(reward_list) / len(reward_list),
+        cfg.common.num_episodes, cfg.env.difficulty, sum(reward_list) / len(reward_list),
         ((sum(reward_list) / len(reward_list)) + 1) / 2.0))
 
 

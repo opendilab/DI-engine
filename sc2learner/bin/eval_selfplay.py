@@ -107,7 +107,14 @@ def cfg_process(cfg, idx):
 
 def evaluate(var_dict, cfg):
     game_seed, rank = var_dict['game_seed'], var_dict['rank']
-    logger, _, _ = build_logger(cfg, name='eval_selfplay_{}_{}'.format(time.time(), rank))
+    log_time = time.strftime("%d/%m/%H:%M:%S")
+    name_list1 = cfg.common.load_path[0].split('/')
+    path_info1 = name_list[-2] + '/' + name_list[-1].split('.')[0]
+    name_list2 = cfg.common.load_path[1].split('/')
+    path_info2 = name_list[-2] + '/' + name_list[-1].split('.')[0]
+    name = 'eval_selfplay_{}_{}_{}_{}_{}_{}'.format(path_info1, path_info2, cfg.model.action_type[0],
+            cfg.model.action_type[1], log_time, rank+1)
+    logger, tb_logger, _ = build_logger(cfg, name=name)
     logger.info('cfg: {}'.format(cfg))
     logger.info("Rank %d Game Seed: %d" % (rank, game_seed))
     env = create_selfplay_env(cfg, game_seed)
