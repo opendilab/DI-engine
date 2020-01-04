@@ -14,9 +14,9 @@ from .actor_critic import ActorCriticBase
 
 
 class PPOMLP(ActorCriticBase):
-    def __init__(self, ob_space, ac_space, fc_dim=512, action_type='random'):
+    def __init__(self, ob_space, ac_space, fc_dim=512, action_type='rand', viz=False):
         super(PPOMLP, self).__init__()
-        assert(action_type in ['rand', 'fixed'])
+        assert(action_type in ['rand', 'fixed', 'sample'])
         self.action_type = action_type
         if isinstance(ac_space, MaskDiscrete):
             ob_space, mask_space = ob_space.spaces
@@ -35,6 +35,7 @@ class PPOMLP(ActorCriticBase):
 
         self.pd = CategoricalPd
         self.initial_state = None
+        self.viz = viz
         self._init()
 
     def _init(self):
@@ -79,18 +80,26 @@ class PPOMLP(ActorCriticBase):
         vf = self._critic_forward(inputs)
         pi_logit = self._actor_forward(inputs)
         handle = self.pd(pi_logit)
-        if self.action_type == 'rand':
-            action = handle.sample()
-        elif self.action_type == 'fixed':
-            action = handle.mode()
+        action_select_func = {
+            'rand': handle.noise_mode,
+            'fixed': handle.mode,
+            'sample': handle.sample,
+        }
+        if self.viz:
+            action, logits_feature = action_select_func[self.action_type](viz=True)
+        else:
+            action = action_select_func[self.action_type](viz=False)
         neglogp = handle.neglogp(action, reduction='mean')
-        return {
+        ret = {
             'action': action,
             'value': vf,
             'neglogp': neglogp,
             'state': self.initial_state,
-            'pi_logit': pi_logit
+            'pi_logit': pi_logit,
         }
+        if self.viz:
+            ret['viz_feature'] = logits_feature
+        return ret
 
     # overwrite
     def evaluate(self, inputs):

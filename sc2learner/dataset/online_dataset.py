@@ -91,7 +91,7 @@ class OnlineDataset(object):
     def extend_data(self, data_list):
         self._acquire_lock()
         for item in data_list:
-            data_list['use_count'] = 0
+            item['use_count'] = 0
         self.data_queue.extend(data_list)
         self._release_lock()
 
@@ -130,7 +130,9 @@ class OnlineDataset(object):
 
     def load_data_from_checkpoint(self, checkpoint):
         assert(isinstance(checkpoint, list))
-        self.extend_data(checkpoint)
+        self._acquire_lock()
+        self.data_queue.extend(checkpoint)
+        self._release_lock()
 
     def create_checkpoint(self):
         return list(self.data_queue)

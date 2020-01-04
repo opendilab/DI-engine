@@ -1,0 +1,71 @@
+common:
+    config_name: ppo_train_selfplay
+    time_wrapper_type: cuda
+env:
+    map_name: AbyssalReef
+    resolution: 16
+    game_version: '4.10'
+    disable_fog: False
+    step_mul: 32
+    agent_race: zerg
+    opponent_race: zerg
+    bot_race: zerg  # used for testing against build-in bot
+    difficulty: 1  # used for testing against build-in bot
+    tie_to_lose: False
+    use_all_combat_actions: False
+    game_steps_per_episode: 43200
+    use_region_features: False
+    use_action_mask: True
+    use_spatial_features: False
+    use_reward_shaping: False
+model:
+    policy: mlp  # [mlp, lstm]
+train:
+    batch_size: 256  # 32 * unroll_split
+    learner_use_cuda: True
+    learner_data_queue_size: 8192  # 1024 * unroll_split
+    actor_data_queue_size: 1
+    enable_save_data: False
+    unroll_length: 128
+    unroll_split: 8
+    learning_rate: 1e-5
+    discount_gamma: 0.998
+    lambda_return: 0.95
+    entropy_coeff: 0.01
+    value_coeff: 0.5
+    ppo_clip_range: 0.1
+    use_value_clip: False
+    grad_clip_type: max_norm  # [max_norm, clip_value]
+    grad_clip_value: 0.5
+    block_data:
+        status: False
+        threshold: 1.2
+        sleep_time: 3
+communication:
+    ip:
+        learner: '10.198.8.66'
+        learner_manager: '10.198.8.31'
+        actor_manager: '10.198.6.31'  # if single lustre, set learner_manager == actor_manager
+    port:
+        learner: 5710
+        learner_manager: 5711
+        actor_manager: 5712
+        actor: 5713
+
+        learner_manager_model: 5716
+        actor_manager_model: 5717
+        actor_model: 5718
+    HWM:
+        learner: 1
+        learner_manager: 1
+        actor_manager: 1
+        actor: 1
+    queue_size:
+        learner_manager_send: 256
+        learner_manager_receive: 32
+        actor_manager_send: 128
+        actor_manager_receive: 16
+    model_time_interval: 30  # 130 second 128 steps rollout 20 tasks per node
+logger:
+    print_freq: 500
+    save_freq: 5000

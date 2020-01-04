@@ -115,3 +115,4 @@ for parent, bnet, players in ladder_maps:
   map_file = re.sub(r"[ ']", "", bnet)
   globals()[name] = type(name, (parent,), dict(
       filename=map_file, players=players, battle_net=bnet))
+

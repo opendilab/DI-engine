@@ -1,5 +1,6 @@
 import logging
 import numpy as np
+import cv2
 import os
 from tensorboardX import SummaryWriter
 
@@ -47,22 +48,57 @@ class TensorBoardLogger(object):
         if name is None:
             name = 'default_tb_logger'
         self.logger = SummaryWriter(os.path.join(path, name))
-        self._scalar_var_names = []
+        self._var_names = {
+            'scalar': [],
+            'text': [],
+            'scalars': [],
+            'histogram': [],
+            'figure': [],
+            'image': [],
+        }
 
-    def add_scalar(self, name, val, step):
-        self.logger.add_scalar(name, val, step)
+    def add_scalar(self, name, *args, **kwargs):
+        assert(name in self._var_names['scalar'])
+        self.logger.add_scalar(name, *args, **kwargs)
+
+    def add_text(self, name, *args, **kwargs):
+        assert(name in self._var_names['text'])
+        self.logger.add_text(name, *args, **kwargs)
+
+    def add_scalars(self, name, *args, **kwargs):
+        assert(name in self._var_names['scalars'])
+        self.logger.add_scalars(name, *args, **kwargs)
+
+    def add_histogram(self, name, *args, **kwargs):
+        assert(name in self._var_names['histogram'])
+        self.logger.add_histogram(name, *args, **kwargs)
+
+    def add_figure(self, name, *args, **kwargs):
+        assert(name in self._var_names['figure'])
+        self.logger.add_figure(name, *args, **kwargs)
+
+    def add_image(self, name, *args, **kwargs):
+        assert(name in self._var_names['image'])
+        self.logger.add_image(name, *args, **kwargs)
 
     def add_scalar_list(self, scalar_list):
         for n, v, s in scalar_list:
             self.add_scalar(n, v, s)
 
-    def register_var(self, name):
-        assert(name not in self._scalar_var_names)
-        self._scalar_var_names.append(name)
+    def _no_contain_name(self, name):
+        for k, v in self._var_names.items():
+            if name in v:
+                return False
+        return True
+
+    def register_var(self, name, var_type='scalar'):
+        assert(var_type in self._var_names.keys())
+        assert(self._no_contain_name(name))
+        self._var_names[var_type].append(name)
 
     @property
     def scalar_var_names(self):
-        return self._scalar_var_names
+        return self._var_names['scalar']
 
 
 class ScalarRecord(object):
@@ -135,3 +171,33 @@ class ScalarAverageMeter(object):
             self.sums += val*num
             self.count += num
             self.avg = self.sums / self.count
+
+
+class DistributionTimeImage(object):
+    def __init__(self, maxlen=600, val_range=None):
+        self.maxlen = maxlen
+        self.val_range = val_range
+        self.img = np.ones((maxlen, maxlen))
+        self.time_step = 0
+        self.one_img = np.ones((maxlen, maxlen))
+
+    def add_one_time_step(self, data):
+        assert(isinstance(data, np.ndarray))
+        data = np.expand_dims(data, 1)
+        data = cv2.resize(data, (1, self.maxlen), interpolation=cv2.INTER_LINEAR)
+        if self.time_step >= self.maxlen:
+            self.img = np.concatenate([self.img[:, 1:], data])
+        else:
+            self.img[:, self.time_step:self.time_step+1] = data
+            self.time_step += 1
+
+    def get_image(self):
+        norm_img = np.copy(self.img)
+        valid = norm_img[:, :self.time_step]
+        if self.val_range is None:
+            valid = (valid - valid.min()) / (valid.max() - valid.min())
+        else:
+            valid = np.clip(valid, self.val_range['min'], self.val_range['max'])
+            valid = (valid - self.val_range['min']) / (self.val_range['max'] - self.val_range['min'])
+        norm_img[:, :self.time_step] = valid
+        return np.stack([self.one_img, norm_img, norm_img], axis=0)

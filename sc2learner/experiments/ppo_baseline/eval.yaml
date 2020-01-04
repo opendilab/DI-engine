@@ -18,6 +18,7 @@ env:
     save_replay: True
 model:
     policy: mlp  # [mlp, lstm]
-    action_type: fixed  # [rand, fixed]
+    action_type: rand  # [rand, fixed, sample]
 logger:
     print_freq: 10
+    viz: True

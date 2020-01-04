@@ -68,7 +68,7 @@ def create_dqn_agent(cfg, env):
     return agent
 
 
-def create_ppo_agent(cfg, env):
+def create_ppo_agent(cfg, env, tb_logger):
 
     policy_func = {'mlp': PPOMLP,
                    'lstm': PPOLSTM}
@@ -76,21 +76,22 @@ def create_ppo_agent(cfg, env):
                 ob_space=env.observation_space,
                 ac_space=env.action_space,
                 action_type=cfg.model.action_type,
+                viz=cfg.logger.viz,
             )
-    agent = PpoAgent(env=env, model=model, cfg=cfg)
+    agent = PpoAgent(env=env, model=model, tb_logger=tb_logger, cfg=cfg)
     return agent
 
 
 def evaluate(var_dict, cfg):
 
     game_seed, rank = var_dict['game_seed'], var_dict['rank']
-    logger, _, _ = build_logger(cfg, name='evaluate_{}_{}'.format(time.time(), rank))
+    logger, tb_logger, _ = build_logger(cfg, name='evaluate_{}_{}'.format(time.time(), rank))
     logger.info('cfg: {}'.format(cfg))
     logger.info("Rank %d Game Seed: %d" % (rank, game_seed))
     env = create_env(cfg, game_seed)
 
     if cfg.common.agent == 'ppo':
-        agent = create_ppo_agent(cfg, env)
+        agent = create_ppo_agent(cfg, env, tb_logger)
     elif cfg.common.agent == 'dqn':
         agent = create_dqn_agent(cfg, env)
     elif cfg.common.agent == 'random':
@@ -128,6 +129,7 @@ def evaluate(var_dict, cfg):
                     (rank, id, action_counts[id], name))
     env.close()
     return cum_return
+
 
 def main(argv):
     logging.set_verbosity(logging.ERROR)
