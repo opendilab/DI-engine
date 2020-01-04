@@ -37,7 +37,6 @@ class PpoActor(BaseActor):
         outputs['return'] = self._get_return(outputs, last_values)
 
         outputs['episode_infos'] = episode_infos
-        outputs['model_index'] = self.model_index
         return outputs
 
     def _get_return(self, outputs, last_values):

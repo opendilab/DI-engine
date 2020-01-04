@@ -1,7 +1,7 @@
 from queue import Queue
 from threading import Thread
 import zmq
-from sc2learner.utils import build_checkpoint_helper, build_time_helper, send_array, dict2nparray
+from sc2learner.utils import build_checkpoint_helper, build_time_helper, send_array, dict2nparray, get_ip, get_pid
 
 
 class BaseActor(object):
@@ -29,8 +29,9 @@ class BaseActor(object):
         self.time_helper = build_time_helper(wrapper_type='time')
 
         self.zmq_context = zmq.Context()
-        self.model_requestor = self.zmq_context.socket(zmq.REQ)
+        self.model_requestor = self.zmq_context.socket(zmq.DEALER)
         self.model_requestor.connect("tcp://%s:%s" % (req_ip, req_port))
+        self.model_requestor.setsockopt(zmq.RCVTIMEO, 1000*10)
         print("tcp://%s:%s" % (req_ip, req_port))
 
         if enable_push:
@@ -41,6 +42,7 @@ class BaseActor(object):
         self.checkpoint_helper = build_checkpoint_helper(cfg)
         if cfg.common.load_path != '':
             self.checkpoint_helper.load(cfg.common.load_path, self.model, logger_prefix='(actor)')
+        self.actor_id = '{}+{}'.format(get_ip(), get_pid())
 
         self._init()
 
@@ -52,8 +54,13 @@ class BaseActor(object):
             model_time = self.time_helper.end_time()
             self.time_helper.start_time()
             unroll = self._nstep_rollout()
+            unroll['actor_id'] = self.actor_id
+            unroll['model_index'] = self.model_index
+            unroll['update_model_time'] = model_time
             data_time = self.time_helper.end_time()
-            print('update model time({})\tdata rollout time({})'.format(model_time, data_time))
+            unroll['data_rollout_time'] = data_time
+            print('update model time({})\tdata rollout time({})\tmodel_index({})'.format(
+                model_time, data_time, self.model_index))
             if self.enable_push:
                 if self.data_queue.full():
                     print('full')  # TODO warning(queue is full)
@@ -69,8 +76,14 @@ class BaseActor(object):
             sender.send_pyobj(data)
 
     def _update_model(self):
-        self.model_requestor.send_string("request model")
-        state_dict = self.model_requestor.recv_pyobj()
+        while True:
+            self.model_requestor.send_string("request model")
+            try:
+                state_dict = self.model_requestor.recv_pyobj()
+            except zmq.error.Again:
+                continue
+            else:
+                break
         self.model.load_state_dict(state_dict['state_dict'])
         self.model_index = state_dict['model_index']
 

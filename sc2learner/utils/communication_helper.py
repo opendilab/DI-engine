@@ -209,32 +209,36 @@ class ManagerZmq(ManagerBase):
             t2 = time.time()
             print('({})send {} time {}'.format(self.name, self.send_data_count, t2-t1))
 
-    def request_data(self, context, ip, port, data_type=dict):
-        request = context.socket(zmq.REQ)
+    def request_data(self, context, ip, port):
+        request = context.socket(zmq.DEALER)
+        request.setsockopt(zmq.RCVTIMEO, 1000*10)
         request.connect("tcp://{}:{}".format(ip, port))
         print(self.name, "tcp://{}:{}".format(ip, port))
         while True:
             time.sleep(self.time_interval)
-            request.send_string("request model")
-            print('({})request send'.format(self.name))
-            data = request.recv_pyobj()
-            print('({})request recv'.format(self.name))
+            while True:
+                request.send_string("request model")
+                try:
+                    data = request.recv()
+                except zmq.error.Again:
+                    continue
+                else:
+                    print('({})update state_dict'.format(self.name))
+                    break
             self._acquire_lock(self.model_lock)
-            assert(isinstance(data, data_type))
             self.state_dict = data
             self._release_lock(self.model_lock)
 
     def reply_data(self, context, port, req_content="request model"):
-        reply = context.socket(zmq.REP)
+        reply = context.socket(zmq.DEALER)  # TODO why REP can't receive the message from DEALER
         reply.bind("tcp://*:{}".format(port))
         print(self.name, "tcp://*:{}".format(port))
         while self.state_dict is None:
             pass
         while True:
             msg = reply.recv_string()
-            print('({})reply recv'.format(self.name))
             assert(msg == req_content)
             self._acquire_lock(self.model_lock)
-            reply.send_pyobj(self.state_dict)
+            reply.send(self.state_dict)
             self._release_lock(self.model_lock)
-            print('({})reply send'.format(self.name))
+            print('({})reply model'.format(self.name))
