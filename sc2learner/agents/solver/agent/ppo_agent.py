@@ -25,11 +25,17 @@ class PpoAgent(BaseAgent):
             B, N = viz_feature['logits'].shape
             x = np.linspace(0, N, N)
             figure = plt.figure()
+            valid_mask = []
+            for b in range(B):
+                v = viz_feature['logits'][b]
+                valid_mask.append(v.gt(-1000))  # mask out unavailable action
             for b in range(B):
                 for k in keys:
                     v = viz_feature[k][b]
+                    v = torch.masked_select(v, valid_mask[b])
                     plt.scatter(x, v, alpha=0.6, s=50, label=k)
-                    plt.ylim((-5, 5))
+                    max_v, min_v = v.max().item(), v.min().item()
+                    plt.ylim((min_v-1, max_v+1))
                 plt.legend(loc='upper right')
                 self.tb_logger.add_figure('logits', figure, self.plt_count, close=True)
                 self.plt_count += 1

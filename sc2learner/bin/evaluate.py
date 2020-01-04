@@ -38,8 +38,8 @@ flags.FLAGS(sys.argv)
 def create_env(cfg, random_seed=None):
     env = SC2RawEnv(map_name=cfg.env.map_name,
                     step_mul=cfg.env.step_mul,
-                    agent_race='zerg',
-                    bot_race='zerg',
+                    agent_race=cfg.env.agent_race,
+                    bot_race=cfg.env.bot_race,
                     difficulty=FLAGS.difficulty,
                     disable_fog=cfg.env.disable_fog,
                     random_seed=random_seed)
