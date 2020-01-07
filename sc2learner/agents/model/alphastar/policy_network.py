@@ -57,9 +57,9 @@ class Policy(nn.Module):
 
     def forward(self, inputs, temperature):
         '''
-            input(keys): scalars, entity_info, spatial_info, prev_state, entity_location
+            input(keys): scalar_info, entity_info, spatial_info, prev_state, entity_location
         '''
-        embedded_scalar, scalar_context = self.encoder['scalar_encoder'](inputs['scalars'])
+        embedded_scalar, scalar_context = self.encoder['scalar_encoder'](inputs['scalar_info'])
         entity_embeddings, embedded_entity = self.encoder['entity_encoder'](inputs['entity_info'])
         embedded_spatial, map_skip = self.encoder['spatial_encoder'](
             self._scatter_connection(inputs['spatial_info'], entity_embeddings, inputs['entity_location']))

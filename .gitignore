@@ -11,4 +11,4 @@
 __pycache__
 PySC2.egg-info
 sensestar.egg-info
-sc2learner/experiments/ppo_baseline/evaluate*
+sc2learner/experiments/
