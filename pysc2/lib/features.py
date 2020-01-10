@@ -478,7 +478,7 @@ class AgentInterfaceFormat(object):
             raw_resolution=None,
             action_space=None,
             camera_width_world_units=None,
-            use_feature_units=False,
+            use_feature_units=True,
             use_raw_units=True,  # for raw.units
             use_raw_actions=False,
             max_raw_actions=512,
@@ -1364,6 +1364,7 @@ class Features(object):
                                  for u in raw.units if u.is_on_screen]
                 out["feature_units"] = named_array.NamedNumpyArray(
                     feature_units, [None, FeatureUnit], dtype=np.int64)
+                out["feature_units_count"] = [out["feature_units"].shape[0]]
 
                 feature_effects = []
                 feature_screen_size = aif.feature_dimensions.screen

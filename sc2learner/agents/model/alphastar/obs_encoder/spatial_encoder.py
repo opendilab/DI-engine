@@ -49,20 +49,6 @@ class SpatialEncoder(nn.Module):
         return x, map_skip
 
 
-def transform_spatial_data():
-    template = {
-        {'key': 'camera', 'other': 'one-hot 2 value'},
-        {'key': 'scattered_entities', 'other': '32 channel float'},
-        {'key': 'height_map', 'other': 'float height_map/255'},
-        {'key': 'visibility', 'other': 'one-hot 4 value'},
-        {'key': 'creep', 'other': 'one-hot 2 value'},
-        {'key': 'entity_owners', 'other': 'one-hot 5 value'},
-        {'key': 'alerts', 'other': 'one-hot 2 value'},
-        {'key': 'pathable', 'other': 'one-hot 2 value'},
-        {'key': 'buildable', 'other': 'one-hot 2 value'},
-    }
-
-
 def test_spatial_encoder():
     class CFG:
         def __init__(self):

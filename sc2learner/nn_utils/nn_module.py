@@ -166,16 +166,21 @@ class ChannelShuffle(nn.Module):
         return x
 
 
-def one_hot(val, num):
+def one_hot(val, num, num_first=False):
     '''
-        val: Tensor[batch_size]
+        val: Tensor[batch_size, *]
         num: int
     '''
     assert(isinstance(val, torch.Tensor))
-    assert(len(val.shape) == 1)
-    ret = torch.zeros(val.shape[0], num, device=val.device)
-    ret.scatter_(1, val.unsqueeze(1), 1)
-    return ret
+    assert(len(val.shape) >= 1)
+    old_shape = val.shape
+    val_reshape = val.reshape(-1, 1)
+    ret = torch.zeros(val_reshape.shape[0], num, device=val.device)
+    ret.scatter_(1, val_reshape, 1)
+    if num_first:
+        return ret.reshape(num, *old_shape)
+    else:
+        return ret.reshape(*old_shape, num)
 
 
 class NearestUpsample(nn.Module):
