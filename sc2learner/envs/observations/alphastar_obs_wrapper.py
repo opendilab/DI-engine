@@ -85,6 +85,8 @@ class EntityObsWrapper(object):
 
     def parse(self, obs):
         feature_unit = obs[self.key]
+        if len(feature_unit.shape) == 1:  # when feature_unit is None
+            return None, None
         num_unit, num_attr = feature_unit.shape
         entity_location = []
         for idx in range(num_unit):
@@ -113,7 +115,6 @@ class ScalarObsWrapper(object):
         self.cfg = cfg
 
     def parse(self, obs):
-        print(obs['available_actions'])  # ??
         np.save('raw', obs['raw_data'])
         ret = {}
         for idx, item in enumerate(self.cfg):
@@ -143,11 +144,11 @@ class AlphastarObsWrapper(gym.Wrapper):
             'entity_info': entity_info,
             'entity_location': entity_location,
         }
-        print(ret['spatial_info'].shape)
-        print(ret['entity_info'].shape)
-        print(len(ret['entity_location']))
-        for k, v in ret['scalar_info'].items():
-            print(k, v.shape)
+        #print(ret['spatial_info'].shape)
+        #print(ret['entity_info'].shape)
+        #print(len(ret['entity_location']))
+        #for k, v in ret['scalar_info'].items():
+        #    print(k, v.shape)
         return ret
 
     def step(self, action):
@@ -159,6 +160,25 @@ class AlphastarObsWrapper(gym.Wrapper):
         obs = self.env.reset()
         obs = self._get_obs(obs)
         return obs
+
+
+class AlphastarParser(object):
+
+    def __init__(self):
+        self.spatial_wrapper = SpatialObsWrapper(transform_spatial_data())
+        self.entity_wrapper = EntityObsWrapper(transform_entity_data())
+        template_obs, template_replay = transform_scalar_data()
+        self.scalar_wrapper = ScalarObsWrapper(template_obs)
+
+    def parse(self, obs):
+        entity_info, entity_location = self.entity_wrapper.parse(obs)
+        ret = {
+            'scalar_info': self.scalar_wrapper.parse(obs),
+            'spatial_info': self.spatial_wrapper.parse(obs),
+            'entity_info': entity_info,
+            'entity_location': entity_location,
+        }
+        return ret
 
 
 num_first_one_hot = partial(one_hot, num_first=True)
@@ -182,8 +202,12 @@ def reorder_one_hot(v, dictionary, num):
     assert(len(v.shape) == 1)
     assert(isinstance(v, torch.Tensor))
     new_v = torch.zeros_like(v)
-    for idx in range(v.shape[0]):
-        new_v[idx] = dictionary[v[idx].item()]
+    try:
+        for idx in range(v.shape[0]):
+            new_v[idx] = dictionary[v[idx].item()]
+    except KeyError as e:
+        print(e, num)
+        #raise KeyError
     return one_hot(new_v, num)
 
 
@@ -207,19 +231,34 @@ def binary_encode(v, bit_num):
 
 def batch_binary_encode(v, bit_num):
     assert(len(v.shape) == 1)
+    v = v.clamp(0)
     B = v.shape[0]
     ret = []
     for b in range(B):
-        ret.append(binary_encode(v[b], bit_num))
+        try:
+            ret.append(binary_encode(v[b], bit_num))
+        except ValueError:
+            print('ValueError', v)
+            raise ValueError
     return torch.stack(ret, dim=0)
 
 
 def reorder_boolean_vector(v, dictionary, num):
     ret = torch.zeros(num)
     for item in v:
-        idx = dictionary[item]
+        try:
+            idx = dictionary[item.item()]
+        except KeyError as e:
+            print(e, item, num)
+            print(dictionary)
+            raise KeyError
         ret[idx] = 1
     return ret
+
+
+def clip_one_hot(v, num):
+    v = v.clamp(0, num-1)
+    return one_hot(v, num)
 
 
 def transform_entity_data(resolutin=128, pad_value=-1e9):
@@ -232,8 +271,8 @@ def transform_entity_data(resolutin=128, pad_value=-1e9):
         {'key': 'health', 'dim': 39, 'op': partial(sqrt_one_hot, max_val=1500), 'other': 'one-hot, sqrt(1500), floor'},
         {'key': 'shield', 'dim': 32, 'op': partial(sqrt_one_hot, max_val=1000), 'other': 'one-hot, sqrt(1000), floor'},
         {'key': 'energy', 'dim': 15, 'op': partial(sqrt_one_hot, max_val=200), 'other': 'one-hot, sqrt(200), floor'},
-        {'key': 'cargo_space_taken', 'dim': 9, 'op': partial(one_hot, num=9), 'other': 'one-hot'},
-        {'key': 'cargo_space_max', 'dim': 9, 'op': partial(one_hot, num=9), 'other': 'one-hot'},
+        {'key': 'cargo_space_taken', 'dim': 9, 'op': partial(clip_one_hot, num=9), 'other': 'one-hot'},
+        {'key': 'cargo_space_max', 'dim': 9, 'op': partial(clip_one_hot, num=9), 'other': 'one-hot'},  # 1020 ???
         {'key': 'build_progress', 'dim': 1, 'op': partial(div_func, other=256.), 'other': 'float [0, 1]'},
         {'key': 'health_ratio', 'dim': 1, 'op': partial(div_func, other=256.), 'other': 'float [0, 1]'},
         {'key': 'shield_ratio', 'dim': 1, 'op': partial(div_func, other=256.), 'other': 'float [0, 1]'},
@@ -255,9 +294,9 @@ def transform_entity_data(resolutin=128, pad_value=-1e9):
             sqrt_one_hot, max_val=1800), 'ori': 'player', 'other': 'one-hot, sqrt(1800), floor'},
         {'key': 'vespene', 'dim': 51, 'op': partial(sqrt_one_hot, max_val=2500),
          'ori': 'player', 'other': 'one-hot, sqrt(2500), floor'},
-        {'key': 'assigned_harvesters', 'dim': 24, 'op': partial(one_hot, num=24), 'other': 'one-hot'},
-        {'key': 'ideal_harvesters', 'dim': 17, 'op': partial(one_hot, num=17), 'other': 'one-hot'},
-        {'key': 'weapon_cooldown', 'dim': 32, 'op': partial(one_hot, num=32), 'other': 'one-hot, game steps'},
+        {'key': 'assigned_harvesters', 'dim': 34, 'op': partial(one_hot, num=34), 'other': 'one-hot'},
+        {'key': 'ideal_harvesters', 'dim': 18, 'op': partial(one_hot, num=18), 'other': 'one-hot'},
+        {'key': 'weapon_cooldown', 'dim': 32, 'op': partial(clip_one_hot, num=32), 'other': 'one-hot, game steps'},  # 35??
         {'key': 'order_length', 'dim': 9, 'op': partial(one_hot, num=9), 'other': 'one-hot'},
         {'key': 'order_id_0', 'dim': NUM_ABILITIES, 'op': partial(
             reorder_one_hot, dictionary=ABILITIES_REORDER, num=NUM_ABILITIES), 'other': 'one-hot'},
@@ -310,7 +349,7 @@ def transform_scalar_data():
             'op': partial(num_first_one_hot, num=5), 'scalar_context': True, 'other': 'one-hot 5 value'},  # TODO 10% hidden
         {'key': 'upgrades', 'arch': 'fc', 'input_dim': NUM_UPGRADES, 'output_dim': 128, 'ori': 'upgrades',
             'op': partial(reorder_boolean_vector, dictionary=UPGRADES_REORDER, num=NUM_UPGRADES), 'other': 'boolean'},
-        #{'key': 'enemy_upgrades', 'arch': 'fc', 'input_dim': NUM_UPGRADES, 'output_dim': 128, 'ori': 'upgrades',
+        #{'key': 'enemy_upgrades', 'arch': 'fc', 'input_dim': NUM_UPGRADES, 'output_dim': 128, 'ori': 'enemy_upgrades',
         #    'op': partial(reorder_boolean_vector, dictionary=UPGRADES_REORDER, num=NUM_UPGRADES), 'other': 'boolean'},
         {'key': 'time', 'arch': 'transformer', 'input_dim': 32, 'output_dim': 64, 'ori': 'game_loop',
             'op': partial(batch_binary_encode, bit_num=32), 'other': 'transformer'},
