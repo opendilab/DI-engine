@@ -173,12 +173,14 @@ class ReplayProcessor(multiprocessing.Process):
                 #    act_raw = action.action_raw
                 #    self.act_parser.parse(act_raw)
                 act_raw = actions[0].action_raw
-                agent_act = self.act_parser.parse(act_raw)
-                torch.save(
-                    {'obs0': agent_obs0, 'obs1': agent_obs1, 'act': agent_act},
-                    os.path.join(self.output_dir, '{}.pt'.format(count))
-                )
-                print('save in {}'.format(os.path.join(self.output_dir, '{}.pt'.format(count))))
+                agent_acts = self.act_parser.parse(act_raw)
+                for idx, (_, v) in enumerate(agent_acts.items()):
+                    print(v)
+                    torch.save(
+                        {'obs0': agent_obs0, 'obs1': agent_obs1, 'act': v},
+                        os.path.join(self.output_dir, '{}_{}.pt'.format(count, idx))
+                    )
+                    print('save in {}'.format(os.path.join(self.output_dir, '{}_{}.pt'.format(count, idx))))
 
             if obs0.player_result:
                 return

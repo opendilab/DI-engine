@@ -7,16 +7,18 @@ class AlphastarActParser(object):
                                'unit_command': self._parse_raw_unit_command}
         self.output_template = ['action_type', 'delay', 'queued', 'selected_units', 'target_units', 'target_location']
 
+    def _get_output_template(self):
+        return {k: None for k in self.output_template}
+
     def parse(self, action):
-        ret = {k: None for k in self.output_template}
-        update_count = {}
+        ret = {}
         for k, f in self.input_template.items():
             act_val = getattr(action, k)
             v = f(act_val)
             if v is not None:
-                ret.update(v)
-                update_count[k] = 1
-        assert(sum(update_count.values()) == 1)  # only one item has value
+                item = self._get_output_template()
+                item.update(v)
+                ret[k] = self.dict2tensor(item)
         return ret
 
     # refer to https://github.com/Blizzard/s2client-proto/blob/master/s2clientprotocol/raw.proto
@@ -30,24 +32,24 @@ class AlphastarActParser(object):
     # refer to https://github.com/Blizzard/s2client-proto/blob/master/s2clientprotocol/raw.proto
     def _parse_raw_unit_command(self, t):
         if t.HasField('ability_id'):
-            ret = {'action_type': [t.ability_id], 'selected_units': [t.unit_tags]}
+            ret = {'action_type': [t.ability_id], 'selected_units':, t.unit_tags}
             if t.HasField('queue_command'):
                 ret['queued'] = [t.queue_command]
-            assert((t.HasField('target_world_space_pos')) + (t.HasField('target_unit_tag')) == 1)
+            assert((t.HasField('target_world_space_pos')) + (t.HasField('target_unit_tag')) <= 1)
             if t.HasField('target_world_space_pos'):
                 ret['target_location'] = [t.target_world_space_pos.x, t.target_world_space_pos.y]
             if t.HasField('target_unit_tag'):
-                ret['target_unit_tag'] = [t.target_unit_tag]
+                ret['target_units'] = [t.target_unit_tag]
             return ret
         else:
             return None
 
-    def dict2tensor(self, data, dtype=torch.long):
+    def dict2tensor(self, data):
         new_data = {}
         for k, v in data.items():
             if v is None:
                 v = 'none'  # for convenience in dataloader
             else:
-                v = torch.FloatTensor(v)
+                v = torch.LongTensor(v)
             new_data[k] = v
         return new_data
