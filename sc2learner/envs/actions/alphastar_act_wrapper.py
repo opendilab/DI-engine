@@ -32,7 +32,7 @@ class AlphastarActParser(object):
     # refer to https://github.com/Blizzard/s2client-proto/blob/master/s2clientprotocol/raw.proto
     def _parse_raw_unit_command(self, t):
         if t.HasField('ability_id'):
-            ret = {'action_type': [t.ability_id], 'selected_units':, t.unit_tags}
+            ret = {'action_type': [t.ability_id], 'selected_units': t.unit_tags}
             if t.HasField('queue_command'):
                 ret['queued'] = [t.queue_command]
             assert((t.HasField('target_world_space_pos')) + (t.HasField('target_unit_tag')) <= 1)
