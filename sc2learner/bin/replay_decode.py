@@ -18,19 +18,15 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import collections
 import multiprocessing
 import os
 import signal
 import sys
-import threading
-import time
 
 from absl import app
 from absl import flags
 from future.builtins import range  # pylint: disable=redefined-builtin
-import queue
-import six
+import torch
 
 from pysc2 import run_configs
 from pysc2.lib import features
@@ -38,16 +34,15 @@ from pysc2.lib import point
 from pysc2.lib import protocol
 from pysc2.lib import remote_controller
 from pysc2.lib import replay
-from pysc2.lib import static_data
 
 from pysc2.lib import gfile
-from s2clientprotocol import common_pb2 as sc_common
 from s2clientprotocol import sc2api_pb2 as sc_pb
-from sc2learner.envs.observations.alphastar_obs_wrapper import AlphastarParser
+from sc2learner.envs.observations.alphastar_obs_wrapper import AlphastarObsParser
+from sc2learner.envs.actions.alphastar_act_wrapper import AlphastarActParser
 
 FLAGS = flags.FLAGS
 flags.DEFINE_integer("parallel", 1, "How many instances to run in parallel.")
-flags.DEFINE_integer("step_mul", 8, "How many game steps per observation.")
+flags.DEFINE_integer("step_mul", 1, "How many game steps per observation.")
 flags.DEFINE_string("replays", None, "Path to a directory of replays.")
 flags.mark_flag_as_required("replays")
 
@@ -89,7 +84,9 @@ class ReplayProcessor(multiprocessing.Process):
         super(ReplayProcessor, self).__init__()
         self.run_config = run_config
         self.output_dir = output_dir
-        self.obs_parser = AlphastarParser()
+        self.output_dir = '/mnt/lustre/niuyazhe/code/gitlab/SenseStar/sc2learner/bin/test_data'
+        self.obs_parser = AlphastarObsParser()
+        self.act_parser = AlphastarActParser()
         self.handles = []
         self.controllers = []
         self.player_ids = [i+1 for i in range(2)]
@@ -158,74 +155,38 @@ class ReplayProcessor(multiprocessing.Process):
             controller.step()
         count = 0
         while True:
-            for idx, (controller, feat) in enumerate(zip(controllers, feats)):
-                obs = controller.observe()
-                agent_obs = feat.transform_obs(obs)
-                self.obs_parser.parse(agent_obs)
-                print('controller {} count {}'.format(idx, count))
+            # 1v1 version
+            obs0 = controllers[0].observe()
+            obs1 = controllers[1].observe()
+            agent_obs0 = feats[0].transform_obs(obs0)
+            agent_obs0 = self.obs_parser.parse(agent_obs0)
+            agent_obs1 = feats[1].transform_obs(obs1)
+            agent_obs1 = self.obs_parser.parse(agent_obs1)
 
-                if obs.player_result:
-                    return
+            agent_obs0['scalar_info']['enemy_upgrades'] = agent_obs1['scalar_info']['upgrades']
+            agent_obs1['scalar_info']['enemy_upgrades'] = agent_obs0['scalar_info']['upgrades']
 
-                controller.step(FLAGS.step_mul)
+            actions = obs0.actions
+            if len(actions) > 0:
+                assert(len(actions)) == 1
+                #for action in actions:
+                #    act_raw = action.action_raw
+                #    self.act_parser.parse(act_raw)
+                act_raw = actions[0].action_raw
+                agent_act = self.act_parser.parse(act_raw)
+                torch.save(
+                    {'obs0': agent_obs0, 'obs1': agent_obs1, 'act': agent_act},
+                    os.path.join(self.output_dir, '{}.pt'.format(count))
+                )
+                print('save in {}'.format(os.path.join(self.output_dir, '{}.pt'.format(count))))
+
+            if obs0.player_result:
+                return
+
+            controllers[0].step(FLAGS.step_mul)
+            controllers[1].step(FLAGS.step_mul)
+            print('count', count)
             count += 1
-
-    def process_replay(self, controller, replay_data, map_data, player_id):
-        """Process a single replay, updating the stats."""
-        controller.start_replay(sc_pb.RequestStartReplay(
-            replay_data=replay_data,
-            map_data=map_data,
-            options=interface,
-            observed_player_id=player_id))
-
-        feat = features.features_from_game_info(controller.game_info())
-
-        controller.step()
-        while True:
-            obs = controller.observe()
-            print('obs over')
-
-            for action in obs.actions:
-                act_fl = action.action_feature_layer
-                if act_fl.HasField("unit_command"):
-                    self.stats.replay_stats.made_abilities[
-                        act_fl.unit_command.ability_id] += 1
-                if act_fl.HasField("camera_move"):
-                    self.stats.replay_stats.camera_move += 1
-                if act_fl.HasField("unit_selection_point"):
-                    self.stats.replay_stats.select_pt += 1
-                if act_fl.HasField("unit_selection_rect"):
-                    self.stats.replay_stats.select_rect += 1
-                if action.action_ui.HasField("control_group"):
-                    self.stats.replay_stats.control_group += 1
-
-                try:
-                    func = feat.reverse_action(action).function
-                except ValueError:
-                    func = -1
-                self.stats.replay_stats.made_actions[func] += 1
-
-            for valid in obs.observation.abilities:
-                self.stats.replay_stats.valid_abilities[valid.ability_id] += 1
-
-            for u in obs.observation.raw_data.units:
-                self.stats.replay_stats.unit_ids[u.unit_type] += 1
-                for b in u.buff_ids:
-                    self.stats.replay_stats.buffs[b] += 1
-
-            for u in obs.observation.raw_data.player.upgrade_ids:
-                self.stats.replay_stats.upgrades[u] += 1
-
-            for e in obs.observation.raw_data.effects:
-                self.stats.replay_stats.effects[e.effect_id] += 1
-
-            for ability_id in feat.available_actions(obs.observation):
-                self.stats.replay_stats.valid_actions[ability_id] += 1
-
-            if obs.player_result:
-                break
-
-            controller.step(FLAGS.step_mul)
 
 
 def replay_queue_filler(replay_queue, replay_list):

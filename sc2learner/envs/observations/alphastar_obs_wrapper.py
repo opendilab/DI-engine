@@ -162,7 +162,7 @@ class AlphastarObsWrapper(gym.Wrapper):
         return obs
 
 
-class AlphastarParser(object):
+class AlphastarObsParser(object):
 
     def __init__(self):
         self.spatial_wrapper = SpatialObsWrapper(transform_spatial_data())
