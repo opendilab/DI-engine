@@ -90,6 +90,8 @@ class HistoryActorInfo(object):
         data = []
         for k, v in self._data.items():
             data.append(v[key])
+        if len(data) == 0:
+            data = [0]  # default when self._data is empty
         data = np.array(data)
         data = np.sort(data)
         return data
