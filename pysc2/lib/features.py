@@ -1334,7 +1334,8 @@ class Features(object):
                 len(u.orders),
                 raw_order(0),
                 raw_order(1),
-                u.tag if is_raw else 0,
+                # u.tag if is_raw else 0,
+                u.tag,  # expose unique id for each case
                 u.is_hallucination,
                 u.buff_ids[0] if len(u.buff_ids) >= 1 else 0,
                 u.buff_ids[1] if len(u.buff_ids) >= 2 else 0,

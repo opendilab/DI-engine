@@ -86,11 +86,13 @@ class EntityObsWrapper(object):
     def parse(self, obs):
         feature_unit = obs[self.key]
         if len(feature_unit.shape) == 1:  # when feature_unit is None
-            return None, None
+            return None, None, None
         num_unit, num_attr = feature_unit.shape
         entity_location = []
+        entity_id = []
         for idx in range(num_unit):
             entity_location.append((feature_unit[idx].x, feature_unit[idx].y))
+            entity_id.append(feature_unit[idx].tag)
 
         ret = []
         for idx, item in enumerate(self.cfg):
@@ -107,7 +109,7 @@ class EntityObsWrapper(object):
             ret.append(item_data)
         ret = list(zip(*ret))
         ret = [torch.cat(item, dim=0) for item in ret]
-        return torch.stack(ret, dim=0), entity_location
+        return torch.stack(ret, dim=0), entity_location, entity_id
 
 
 class ScalarObsWrapper(object):
@@ -115,7 +117,6 @@ class ScalarObsWrapper(object):
         self.cfg = cfg
 
     def parse(self, obs):
-        np.save('raw', obs['raw_data'])
         ret = {}
         for idx, item in enumerate(self.cfg):
             key = item['key']
@@ -144,10 +145,10 @@ class AlphastarObsWrapper(gym.Wrapper):
             'entity_info': entity_info,
             'entity_location': entity_location,
         }
-        #print(ret['spatial_info'].shape)
-        #print(ret['entity_info'].shape)
-        #print(len(ret['entity_location']))
-        #for k, v in ret['scalar_info'].items():
+        # print(ret['spatial_info'].shape)
+        # print(ret['entity_info'].shape)
+        # print(len(ret['entity_location']))
+        # for k, v in ret['scalar_info'].items():
         #    print(k, v.shape)
         return ret
 
@@ -167,18 +168,44 @@ class AlphastarObsParser(object):
     def __init__(self):
         self.spatial_wrapper = SpatialObsWrapper(transform_spatial_data())
         self.entity_wrapper = EntityObsWrapper(transform_entity_data())
-        template_obs, template_replay = transform_scalar_data()
+        template_obs, template_replay, template_act = transform_scalar_data()
         self.scalar_wrapper = ScalarObsWrapper(template_obs)
+        self.template_act = template_act
 
     def parse(self, obs):
-        entity_info, entity_location = self.entity_wrapper.parse(obs)
+        entity_info, entity_location, entity_id = self.entity_wrapper.parse(obs)
         ret = {
             'scalar_info': self.scalar_wrapper.parse(obs),
             'spatial_info': self.spatial_wrapper.parse(obs),
             'entity_info': entity_info,
             'entity_location': entity_location,
+            'entity_id': entity_id,
         }
         return ret
+
+    def merge_action(self, obs, last_action_info):
+        if obs['entity_info'] is None:
+            return obs
+        last_delay, last_queued, last_action_type, selected_units, target_units = last_action_info
+        obs['scalar_info']['last_delay'] = self.template_act[0]['op'](torch.LongTensor(last_delay))
+        obs['scalar_info']['last_queued'] = self.template_act[1]['op'](torch.LongTensor(last_queued))
+        N = obs['entity_info'].shape[0]
+        obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 2)], dim=1)
+        selected_units = [] if isinstance(selected_units, str) else selected_units
+        for idx, v in enumerate(obs['entity_id']):
+            if v in selected_units:
+                obs['entity_info'][idx, -1] = 1
+            else:
+                obs['entity_info'][idx, -2] = 1
+
+        obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 2)], dim=1)
+        target_units = [] if isinstance(target_units, str) else target_units
+        for idx, v in enumerate(obs['entity_id']):
+            if v in target_units:
+                obs['entity_info'][idx, -1] = 1
+            else:
+                obs['entity_info'][idx, -2] = 1
+        return obs
 
 
 num_first_one_hot = partial(one_hot, num_first=True)
@@ -296,7 +323,8 @@ def transform_entity_data(resolutin=128, pad_value=-1e9):
          'ori': 'player', 'other': 'one-hot, sqrt(2500), floor'},
         {'key': 'assigned_harvesters', 'dim': 34, 'op': partial(one_hot, num=34), 'other': 'one-hot'},
         {'key': 'ideal_harvesters', 'dim': 18, 'op': partial(one_hot, num=18), 'other': 'one-hot'},
-        {'key': 'weapon_cooldown', 'dim': 32, 'op': partial(clip_one_hot, num=32), 'other': 'one-hot, game steps'},  # 35??
+        {'key': 'weapon_cooldown', 'dim': 32, 'op': partial(
+            clip_one_hot, num=32), 'other': 'one-hot, game steps'},  # 35??
         {'key': 'order_length', 'dim': 9, 'op': partial(one_hot, num=9), 'other': 'one-hot'},
         {'key': 'order_id_0', 'dim': NUM_ABILITIES, 'op': partial(
             reorder_one_hot, dictionary=ABILITIES_REORDER, num=NUM_ABILITIES), 'other': 'one-hot'},
@@ -318,15 +346,15 @@ def transform_entity_data(resolutin=128, pad_value=-1e9):
         {'key': 'attack_upgrade_level', 'dim': 4, 'op': partial(one_hot, num=4), 'other': 'one-hot'},
         {'key': 'armor_upgrade_level', 'dim': 4, 'op': partial(one_hot, num=4), 'other': 'one-hot'},
         {'key': 'shield_upgrade_level', 'dim': 4, 'op': partial(one_hot, num=4), 'other': 'one-hot'},
-        #{'key': 'was_selected', 'dim': 2, 'other': 'one-hot, last action'},
-        #{'key': 'was_targeted', 'dim': 2, 'other': 'one-hot, last action'},
+        # {'key': 'was_selected', 'dim': 2, 'other': 'one-hot, last action'},
+        # {'key': 'was_targeted', 'dim': 2, 'other': 'one-hot, last action'},
     ]
     return template
 
 
 def transform_spatial_data():
     template = [
-        #{'key': 'scattered_entities', 'other': '32 channel float'},
+        # {'key': 'scattered_entities', 'other': '32 channel float'},
         {'key': 'camera', 'dim': 2, 'op': partial(num_first_one_hot, num=2), 'other': 'one-hot 2 value'},
         {'key': 'height_map', 'dim': 1, 'op': partial(
             div_func, other=256., unsqueeze_dim=0), 'other': 'float height_map/255'},
@@ -349,20 +377,26 @@ def transform_scalar_data():
             'op': partial(num_first_one_hot, num=5), 'scalar_context': True, 'other': 'one-hot 5 value'},  # TODO 10% hidden
         {'key': 'upgrades', 'arch': 'fc', 'input_dim': NUM_UPGRADES, 'output_dim': 128, 'ori': 'upgrades',
             'op': partial(reorder_boolean_vector, dictionary=UPGRADES_REORDER, num=NUM_UPGRADES), 'other': 'boolean'},
-        #{'key': 'enemy_upgrades', 'arch': 'fc', 'input_dim': NUM_UPGRADES, 'output_dim': 128, 'ori': 'enemy_upgrades',
+        # {'key': 'enemy_upgrades', 'arch': 'fc', 'input_dim': NUM_UPGRADES, 'output_dim': 128, 'ori': 'enemy_upgrades',
         #    'op': partial(reorder_boolean_vector, dictionary=UPGRADES_REORDER, num=NUM_UPGRADES), 'other': 'boolean'},
         {'key': 'time', 'arch': 'transformer', 'input_dim': 32, 'output_dim': 64, 'ori': 'game_loop',
             'op': partial(batch_binary_encode, bit_num=32), 'other': 'transformer'},
 
-        # {'key': 'available_actions', 'input_dim': 1, 'output_dim': 64, 'scalar_context': True, 'other': 'boolean vector'},  # TODO
-        {'key': 'unit_counts_bow', 'arch': 'fc', 'input_dim': 23, 'output_dim': 64, 'ori': 'feature_units_count', 'op': partial(sqrt_one_hot, max_val=512), 'other': 'square root'},
-        #{'key': 'last_delay', 'input_dim': 128, 'output_dim': 64, 'other':  'one-hot 128 value'},
-        # {'key': 'last_action_type', 'input_dims': [], 'output_dims': 128, 'other':  'one-hot xxx value(possible actions number)'},  # TODO
-        # {'key': 'last_repeat_queued', 'input_dims': [], 'output_dims': 256, 'other':  'one-hot xxx value(possible arguments value numbers)'},  # TODO
+        # {'key': 'available_actions', 'arch': fc, 'input_dim': NUM_ACTIONS, 'output_dim': 64, ’ori‘: 'available_actions', ’op‘: partial(reorder_boolean_vector, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS), 'scalar_context': True, 'other': 'boolean vector'},
+        {'key': 'unit_counts_bow', 'arch': 'fc', 'input_dim': 23, 'output_dim': 64,
+            'ori': 'feature_units_count', 'op': partial(sqrt_one_hot, max_val=512), 'other': 'square root'},
     ]
     template_replay = [
         {'key': 'mmr', 'input_dim': 6, 'output_dim': 64, 'other': 'min(mmr / 1000, 6)'},
-        {'key': 'cumulative_statistics', 'input_dims': [], 'output_dims': [32, 32, 32], 'scalar_context': True, 'other': 'boolean vector, split and concat'},
+        {'key': 'cumulative_statistics', 'input_dims': [], 'output_dims': [32, 32, 32],
+            'scalar_context': True, 'other': 'boolean vector, split and concat'},
         {'key': 'beginning_build_order', 'scalar_context': True, 'other': 'transformer'},  # TODO
     ]
-    return template_obs, template_replay
+    template_action = [
+        {'key': 'last_delay', 'arch': 'fc', 'input_dims': 128, 'output_dims': 64,
+            'ori': 'action', 'op': partial(clip_one_hot, num=128), 'other': 'one-hot 128'},
+        {'key': 'last_repeat_queued', 'arch': 'fc', 'input_dims': 2, 'output_dims': 256,
+            'ori': 'action', 'op': partial(num_first_one_hot, num=2), 'other': 'one-hot 2'},
+        #{'key': 'last_action_type', 'arch': 'fc', 'input_dims': NUM_ACTIONS, 'output_dims': 128, 'ori': 'action', 'op': partial(num_first_one_hot, num=NUM_ACTIONS), 'other': 'one-hot NUM_ACTIONS'},
+    ]
+    return template_obs, template_replay, template_action

@@ -153,45 +153,59 @@ class ReplayProcessor(multiprocessing.Process):
             feats.append(feat)
 
             controller.step()
+        N = len(player_ids)
         step = 0
-        delay = 0
+        delay = [0 for _ in range(N)]
         action_count = 0
+        # delay, queued, action_type, selected_units, target_units
+        last_info = [([0], [0], [0], [0], [0]) for _ in range(N)]
         while True:
             # 1v1 version
-            obs0 = controllers[0].observe()
-            obs1 = controllers[1].observe()
-            agent_obs0 = feats[0].transform_obs(obs0)
-            agent_obs0 = self.obs_parser.parse(agent_obs0)
-            agent_obs1 = feats[1].transform_obs(obs1)
-            agent_obs1 = self.obs_parser.parse(agent_obs1)
+            obs = [controller.observe() for controller in controllers]
+            agent_obs = [feat.transform_obs(o) for feat, o in zip(feats, obs)]
+            agent_obs = [self.obs_parser.parse(o) for o in agent_obs]
 
-            agent_obs0['scalar_info']['enemy_upgrades'] = agent_obs1['scalar_info']['upgrades']
-            agent_obs1['scalar_info']['enemy_upgrades'] = agent_obs0['scalar_info']['upgrades']
+            agent_obs[0]['scalar_info']['enemy_upgrades'] = agent_obs[1]['scalar_info']['upgrades']
+            agent_obs[1]['scalar_info']['enemy_upgrades'] = agent_obs[0]['scalar_info']['upgrades']
 
-            actions = obs0.actions
-            if len(actions) > 0:
-                for action in actions:
+            actions = [o.actions for o in obs]
+            if len(actions[1]) > 0:
+                for action in actions[1]:
                     act_raw = action.action_raw
                     agent_acts = self.act_parser.parse(act_raw)
                     for idx, (_, v) in enumerate(agent_acts.items()):
-                        v['delay'] = delay
-                        delay = 0
+                        v['delay'] = torch.LongTensor([delay[1]])
+                        delay[1] = 0
+                        last_info[1] = (v['delay'], v['queued'], v['action_type'],
+                                        v['selected_units'], v['target_units'])
+            if len(actions[0]) > 0:
+                for action in actions[0]:
+                    act_raw = action.action_raw
+                    agent_acts = self.act_parser.parse(act_raw)
+                    for idx, (_, v) in enumerate(agent_acts.items()):
+                        v['delay'] = torch.LongTensor([delay[0]])
+                        delay[0] = 0
+                        last_info[0] = (v['delay'], v['queued'], v['action_type'],
+                                        v['selected_units'], v['target_units'])
+                        agent_obs[0] = self.obs_parser.merge_action(agent_obs[0], last_info[0])
+                        agent_obs[1] = self.obs_parser.merge_action(agent_obs[1], last_info[1])
                         print(v)
                         torch.save(
-                            {'obs0': agent_obs0, 'obs1': agent_obs1, 'act': v},
+                            {'obs0': agent_obs[0], 'obs1': agent_obs[1], 'act': v},
                             os.path.join(self.output_dir, '{}.pt'.format(action_count))
                         )
                         print('save in {}'.format(os.path.join(self.output_dir, '{}.pt'.format(action_count))))
                         action_count += 1
 
-            if obs0.player_result:
+            if obs[0].player_result:
                 return
 
             controllers[0].step(FLAGS.step_mul)
             controllers[1].step(FLAGS.step_mul)
             print('step', step)
             step += FLAGS.step_mul
-            delay += FLAGS.step_mul
+            delay[0] += FLAGS.step_mul
+            delay[1] += FLAGS.step_mul
 
 
 def replay_queue_filler(replay_queue, replay_list):
