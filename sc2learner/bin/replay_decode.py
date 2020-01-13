@@ -153,7 +153,9 @@ class ReplayProcessor(multiprocessing.Process):
             feats.append(feat)
 
             controller.step()
-        count = 0
+        step = 0
+        delay = 0
+        action_count = 0
         while True:
             # 1v1 version
             obs0 = controllers[0].observe()
@@ -168,27 +170,28 @@ class ReplayProcessor(multiprocessing.Process):
 
             actions = obs0.actions
             if len(actions) > 0:
-                assert(len(actions)) == 1
-                #for action in actions:
-                #    act_raw = action.action_raw
-                #    self.act_parser.parse(act_raw)
-                act_raw = actions[0].action_raw
-                agent_acts = self.act_parser.parse(act_raw)
-                for idx, (_, v) in enumerate(agent_acts.items()):
-                    print(v)
-                    torch.save(
-                        {'obs0': agent_obs0, 'obs1': agent_obs1, 'act': v},
-                        os.path.join(self.output_dir, '{}_{}.pt'.format(count, idx))
-                    )
-                    print('save in {}'.format(os.path.join(self.output_dir, '{}_{}.pt'.format(count, idx))))
+                for action in actions:
+                    act_raw = action.action_raw
+                    agent_acts = self.act_parser.parse(act_raw)
+                    for idx, (_, v) in enumerate(agent_acts.items()):
+                        v['delay'] = delay
+                        delay = 0
+                        print(v)
+                        torch.save(
+                            {'obs0': agent_obs0, 'obs1': agent_obs1, 'act': v},
+                            os.path.join(self.output_dir, '{}.pt'.format(action_count))
+                        )
+                        print('save in {}'.format(os.path.join(self.output_dir, '{}.pt'.format(action_count))))
+                        action_count += 1
 
             if obs0.player_result:
                 return
 
             controllers[0].step(FLAGS.step_mul)
             controllers[1].step(FLAGS.step_mul)
-            print('count', count)
-            count += 1
+            print('step', step)
+            step += FLAGS.step_mul
+            delay += FLAGS.step_mul
 
 
 def replay_queue_filler(replay_queue, replay_list):
