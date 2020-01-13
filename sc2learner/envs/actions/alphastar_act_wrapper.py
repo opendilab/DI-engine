@@ -8,7 +8,9 @@ class AlphastarActParser(object):
         self.output_template = ['action_type', 'delay', 'queued', 'selected_units', 'target_units', 'target_location']
 
     def _get_output_template(self):
-        return {k: None for k in self.output_template}
+        template = {k: None for k in self.output_template}
+        template['queued'] = [False]
+        return template
 
     def parse(self, action):
         ret = {}
