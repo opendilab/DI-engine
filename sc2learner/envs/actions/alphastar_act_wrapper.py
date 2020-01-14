@@ -4,7 +4,8 @@ import torch
 class AlphastarActParser(object):
     def __init__(self):
         self.input_template = {'camera_move': self._parse_raw_camera_move,
-                               'unit_command': self._parse_raw_unit_command}
+                               'unit_command': self._parse_raw_unit_command,
+                               'toggle_autocast': self._parse_raw_toggle_autocast, }
         self.output_template = ['action_type', 'delay', 'queued', 'selected_units', 'target_units', 'target_location']
 
     def _get_output_template(self):
@@ -42,6 +43,18 @@ class AlphastarActParser(object):
                 ret['target_location'] = [t.target_world_space_pos.x, t.target_world_space_pos.y]
             if t.HasField('target_unit_tag'):
                 ret['target_units'] = [t.target_unit_tag]
+            return ret
+        else:
+            return None
+
+    # refer to https://github.com/Blizzard/s2client-proto/blob/master/s2clientprotocol/raw.proto
+    def _parse_raw_toggle_autocast(self, t):
+        if t.HasField('ability_id'):
+            ret = {'action_type': [t.ability_id]}
+            if t.HasField('unit_tags'):
+                ret['selected_units'] = t.unit_tags
+            else:
+                ret['action_type'] = [0]
             return ret
         else:
             return None

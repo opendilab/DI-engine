@@ -8,7 +8,8 @@ import torch
 import gym
 from pysc2.lib.features import FeatureUnit
 from pysc2.lib.static_data import NUM_BUFFS, NUM_ABILITIES, NUM_UNIT_TYPES, UNIT_TYPES_REORDER,\
-    BUFFS_REORDER, ABILITIES_REORDER, NUM_UPGRADES, UPGRADES_REORDER
+    BUFFS_REORDER, ABILITIES_REORDER, NUM_UPGRADES, UPGRADES_REORDER, NUM_ACTIONS, ACTIONS_REORDER,\
+    NUM_ADDON, ADDON_REORDER
 from sc2learner.nn_utils import one_hot
 from functools import partial
 
@@ -105,7 +106,10 @@ class EntityObsWrapper(object):
                 key_index = FeatureUnit[key]
                 item_data = feature_unit[:, key_index]
             item_data = torch.LongTensor(item_data)
-            item_data = item['op'](item_data)
+            try:
+                item_data = item['op'](item_data)
+            except RuntimeError as e:
+                print(key, e)
             ret.append(item_data)
         ret = list(zip(*ret))
         ret = [torch.cat(item, dim=0) for item in ret]
@@ -189,6 +193,7 @@ class AlphastarObsParser(object):
         last_delay, last_queued, last_action_type, selected_units, target_units = last_action_info
         obs['scalar_info']['last_delay'] = self.template_act[0]['op'](torch.LongTensor(last_delay))
         obs['scalar_info']['last_queued'] = self.template_act[1]['op'](torch.LongTensor(last_queued))
+        obs['scalar_info']['last_action_type'] = self.template_act[2]['op'](torch.LongTensor(last_action_type))
         N = obs['entity_info'].shape[0]
         obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 2)], dim=1)
         selected_units = [] if isinstance(selected_units, str) else selected_units
@@ -276,9 +281,8 @@ def reorder_boolean_vector(v, dictionary, num):
         try:
             idx = dictionary[item.item()]
         except KeyError as e:
-            print(e, item, num)
-            print(dictionary)
-            raise KeyError
+            #print(dictionary)
+            raise KeyError('{}_{}_'.format(num, e))
         ret[idx] = 1
     return ret
 
@@ -327,18 +331,19 @@ def transform_entity_data(resolutin=128, pad_value=-1e9):
             clip_one_hot, num=32), 'other': 'one-hot, game steps'},  # 35??
         {'key': 'order_length', 'dim': 9, 'op': partial(one_hot, num=9), 'other': 'one-hot'},
         {'key': 'order_id_0', 'dim': NUM_ABILITIES, 'op': partial(
-            reorder_one_hot, dictionary=ABILITIES_REORDER, num=NUM_ABILITIES), 'other': 'one-hot'},
-        {'key': 'order_id_1', 'dim': NUM_ABILITIES, 'op': partial(
-            reorder_one_hot, dictionary=ABILITIES_REORDER, num=NUM_ABILITIES), 'other': 'one-hot'},  # TODO only building order
-        {'key': 'order_id_2', 'dim': NUM_ABILITIES, 'op': partial(
-            reorder_one_hot, dictionary=ABILITIES_REORDER, num=NUM_ABILITIES), 'other': 'one-hot'},  # TODO only building order
-        {'key': 'order_id_3', 'dim': NUM_ABILITIES, 'op': partial(
-            reorder_one_hot, dictionary=ABILITIES_REORDER, num=NUM_ABILITIES), 'other': 'one-hot'},  # TODO only building order
+            reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS), 'other': 'one-hot'},
+        {'key': 'order_id_1', 'dim': NUM_ACTIONS, 'op': partial(
+            reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS), 'other': 'one-hot'},  # TODO only building order
+        {'key': 'order_id_2', 'dim': NUM_ACTIONS, 'op': partial(
+            reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS), 'other': 'one-hot'},  # TODO only building order
+        {'key': 'order_id_3', 'dim': NUM_ACTIONS, 'op': partial(
+            reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS), 'other': 'one-hot'},  # TODO only building order
         {'key': 'buff_id_0', 'dim': NUM_BUFFS, 'op': partial(
             reorder_one_hot, dictionary=BUFFS_REORDER, num=NUM_BUFFS), 'other': 'one-hot'},
         {'key': 'buff_id_1', 'dim': NUM_BUFFS, 'op': partial(
             reorder_one_hot, dictionary=BUFFS_REORDER, num=NUM_BUFFS), 'other': 'one-hot'},
-        {'key': 'addon_unit_type', 'dim': 2, 'op': partial(one_hot, num=2), 'other': 'one-hot'},
+        {'key': 'addon_unit_type', 'dim': NUM_ADDON, 'op': partial(
+            reorder_one_hot, dictionary=ADDON_REORDER, num=NUM_ADDON), 'other': 'one-hot'},
         {'key': 'order_progress_0', 'dim': 10, 'op': partial(
             div_one_hot, max_val=1, ratio=0.1), 'other': 'one-hot(1/0.1)'},
         {'key': 'order_progress_1', 'dim': 10, 'op': partial(
@@ -382,7 +387,9 @@ def transform_scalar_data():
         {'key': 'time', 'arch': 'transformer', 'input_dim': 32, 'output_dim': 64, 'ori': 'game_loop',
             'op': partial(batch_binary_encode, bit_num=32), 'other': 'transformer'},
 
-        # {'key': 'available_actions', 'arch': fc, 'input_dim': NUM_ACTIONS, 'output_dim': 64, ’ori‘: 'available_actions', ’op‘: partial(reorder_boolean_vector, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS), 'scalar_context': True, 'other': 'boolean vector'},
+        {'key': 'available_actions', 'arch': 'fc', 'input_dim': NUM_ACTIONS, 'output_dim': 64,
+            'ori': 'available_actions', 'scalar_context': True, 'other': 'boolean vector',
+            'op': partial(reorder_boolean_vector, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS)},
         {'key': 'unit_counts_bow', 'arch': 'fc', 'input_dim': 23, 'output_dim': 64,
             'ori': 'feature_units_count', 'op': partial(sqrt_one_hot, max_val=512), 'other': 'square root'},
     ]
@@ -397,6 +404,7 @@ def transform_scalar_data():
             'ori': 'action', 'op': partial(clip_one_hot, num=128), 'other': 'one-hot 128'},
         {'key': 'last_repeat_queued', 'arch': 'fc', 'input_dims': 2, 'output_dims': 256,
             'ori': 'action', 'op': partial(num_first_one_hot, num=2), 'other': 'one-hot 2'},
-        #{'key': 'last_action_type', 'arch': 'fc', 'input_dims': NUM_ACTIONS, 'output_dims': 128, 'ori': 'action', 'op': partial(num_first_one_hot, num=NUM_ACTIONS), 'other': 'one-hot NUM_ACTIONS'},
+        {'key': 'last_action_type', 'arch': 'fc', 'input_dims': NUM_ACTIONS, 'output_dims': 128, 'ori': 'action',
+            'op': partial(num_first_one_hot, num=NUM_ACTIONS), 'other': 'one-hot NUM_ACTIONS'},
     ]
     return template_obs, template_replay, template_action

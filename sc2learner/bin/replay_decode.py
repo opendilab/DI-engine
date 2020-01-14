@@ -19,6 +19,7 @@ from __future__ import division
 from __future__ import print_function
 
 import multiprocessing
+import time
 import os
 import signal
 import sys
@@ -44,6 +45,7 @@ FLAGS = flags.FLAGS
 flags.DEFINE_integer("parallel", 1, "How many instances to run in parallel.")
 flags.DEFINE_integer("step_mul", 1, "How many game steps per observation.")
 flags.DEFINE_string("replays", None, "Path to a directory of replays.")
+flags.DEFINE_string("output_dir", "/mnt/lustre/niuyazhe/data/sl_data", "Path to save data")
 flags.mark_flag_as_required("replays")
 
 
@@ -69,8 +71,7 @@ def valid_replay(info, ping):
         # Probably corrupt, or just not interesting.
         return False
     for p in info.player_info:
-        # if p.player_apm < 10 or p.player_mmr < 1000:
-        if p.player_apm < 10:
+        if p.player_apm < 10 or p.player_mmr < 1000:
             # Low APM = player just standing around.
             # Low MMR = corrupt replay or player who is weak.
             return False
@@ -82,9 +83,9 @@ class ReplayProcessor(multiprocessing.Process):
 
     def __init__(self, run_config, output_dir=None):
         super(ReplayProcessor, self).__init__()
+        assert(output_dir is not None)
         self.run_config = run_config
         self.output_dir = output_dir
-        self.output_dir = '/mnt/lustre/niuyazhe/code/gitlab/SenseStar/sc2learner/bin/test_data'
         self.obs_parser = AlphastarObsParser()
         self.act_parser = AlphastarActParser()
         self.handles = []
@@ -111,10 +112,28 @@ class ReplayProcessor(multiprocessing.Process):
             map_data = None
             if info.local_map_path:
                 map_data = self.run_config.map_data(info.local_map_path)
-            return replay_data, map_data
+            return replay_data, map_data, info
         else:
             self._print("Replay is invalid.")
             return None
+
+    def _parse_info(self, info, replay_path, home=0):
+        away = 1 if home == 0 else 0
+        race_dict = {1: 'Terran', 2: 'Zerg', 3: 'Protoss'}
+        ret = {}
+        ret['game_duration_loops'] = info.game_duration_loops
+        ret['game_version'] = info.game_version
+        ret['map_name'] = info.map_name
+        ret['home_race'] = race_dict[info.player_info[home].player_info.race_actual]
+        ret['home_mmr'] = info.player_info[home].player_mmr
+        ret['home_apm'] = info.player_info[home].player_apm
+        ret['home_result'] = info.player_info[home].player_result.result
+        ret['away_race'] = race_dict[info.player_info[away].player_info.race_actual]
+        ret['away_mmr'] = info.player_info[away].player_mmr
+        ret['away_apm'] = info.player_info[away].player_apm
+        ret['away_result'] = info.player_info[away].player_result.result
+        ret['replay_path'] = replay_path
+        return ret
 
     def run(self, replay_path):
         signal.signal(signal.SIGTERM, lambda a, b: sys.exit())  # Exit quietly.
@@ -122,8 +141,25 @@ class ReplayProcessor(multiprocessing.Process):
         try:
             ret = self._replay_prepare(self.controllers[0], replay_path)
             if ret is not None:
-                replay_data, map_data = ret
-                self.process_replay_multi(self.controllers, replay_data, map_data, self.player_ids)
+                replay_data, map_data, info = ret
+                meta_data_0 = self._parse_info(info, replay_path, home=0)
+                meta_data_1 = self._parse_info(info, replay_path, home=1)
+                mmr0 = (meta_data_0['home_mmr'], meta_data_0['away_mmr'])
+                mmr1 = (meta_data_1['home_mmr'], meta_data_1['away_mmr'])
+                step_data_0 = self.process_replay_multi(
+                    self.controllers, replay_data, map_data, self.player_ids)
+                step_data_1 = self.process_replay_multi(
+                    self.controllers, replay_data, map_data, list(reversed(self.player_ids)))
+                meta_data_0['step_num'] = len(step_data_0)
+                meta_data_1['step_num'] = len(step_data_1)
+                name0 = '{}_{}_{}_{}'.format(
+                    meta_data_0['home_race'], meta_data_0['away_race'], meta_data_0['home_mmr'], os.path.basename(replay_path).split('.')[0])
+                name1 = '{}_{}_{}_{}'.format(
+                    meta_data_1['home_race'], meta_data_1['away_race'], meta_data_1['home_mmr'], os.path.basename(replay_path).split('.')[0])
+                torch.save(meta_data_0, os.path.join(self.output_dir, name0+'.meta'))
+                torch.save(step_data_0, os.path.join(self.output_dir, name0+'.step'))
+                torch.save(meta_data_1, os.path.join(self.output_dir, name1+'.meta'))
+                torch.save(step_data_1, os.path.join(self.output_dir, name1+'.step'))
             else:
                 return
         except (protocol.ConnectionError, protocol.ProtocolError,
@@ -159,11 +195,24 @@ class ReplayProcessor(multiprocessing.Process):
         action_count = 0
         # delay, queued, action_type, selected_units, target_units
         last_info = [([0], [0], [0], [0], [0]) for _ in range(N)]
+
+        step_data = []
+        error_set = set()
         while True:
             # 1v1 version
             obs = [controller.observe() for controller in controllers]
             agent_obs = [feat.transform_obs(o) for feat, o in zip(feats, obs)]
-            agent_obs = [self.obs_parser.parse(o) for o in agent_obs]
+            try:
+                agent_obs = [self.obs_parser.parse(o) for o in agent_obs]
+            except KeyError as e:
+                error_set.add(repr(e).split('_')[-2])
+                if obs[0].player_result:
+                    return step_data
+                controllers[0].step(FLAGS.step_mul)
+                controllers[1].step(FLAGS.step_mul)
+                print('step', step, error_set)
+                step += FLAGS.step_mul
+                continue
 
             agent_obs[0]['scalar_info']['enemy_upgrades'] = agent_obs[1]['scalar_info']['upgrades']
             agent_obs[1]['scalar_info']['enemy_upgrades'] = agent_obs[0]['scalar_info']['upgrades']
@@ -190,15 +239,15 @@ class ReplayProcessor(multiprocessing.Process):
                         agent_obs[0] = self.obs_parser.merge_action(agent_obs[0], last_info[0])
                         agent_obs[1] = self.obs_parser.merge_action(agent_obs[1], last_info[1])
                         print(v)
-                        torch.save(
-                            {'obs0': agent_obs[0], 'obs1': agent_obs[1], 'act': v},
-                            os.path.join(self.output_dir, '{}.pt'.format(action_count))
-                        )
-                        print('save in {}'.format(os.path.join(self.output_dir, '{}.pt'.format(action_count))))
+                        # torch.save(
+                        #     {'obs0': agent_obs[0], 'obs1': agent_obs[1], 'act': v},
+                        #     os.path.join(self.output_dir, '{}.pt'.format(action_count))
+                        # )
+                        step_data.append({'obs0': agent_obs[0], 'obs1': agent_obs[1], 'act': v})
                         action_count += 1
 
             if obs[0].player_result:
-                return
+                return step_data
 
             controllers[0].step(FLAGS.step_mul)
             controllers[1].step(FLAGS.step_mul)
@@ -206,12 +255,6 @@ class ReplayProcessor(multiprocessing.Process):
             step += FLAGS.step_mul
             delay[0] += FLAGS.step_mul
             delay[1] += FLAGS.step_mul
-
-
-def replay_queue_filler(replay_queue, replay_list):
-    """A thread that fills the replay_queue with replay filenames."""
-    for replay_path in replay_list:
-        replay_queue.put(replay_path)
 
 
 def main(unused_argv):
@@ -225,10 +268,36 @@ def main(unused_argv):
         sys.exit("{} doesn't exist.".format(FLAGS.replays))
 
     try:
-        p = ReplayProcessor(run_config)
+        p = ReplayProcessor(run_config, output_dir=FLAGS.output_dir)
         p.run(FLAGS.replays)
     except KeyboardInterrupt:
         print("Caught KeyboardInterrupt, exiting.")
+
+
+def main_multi(unused_argv):
+    from multiprocessing import Pool
+    """Dump stats about all the actions that are in use in a set of replays."""
+    run_config = run_configs.get()
+    replay_list = sorted(run_config.replay_paths(FLAGS.replays))
+    version = replay.get_replay_version(run_config.replay_data(replay_list[0]))
+    run_config = run_configs.get(version=version)
+
+    def func(paths):
+        p = ReplayProcessor(run_config, output_dir=FLAGS.output_dir)
+        for idx, path in enumerate(paths):
+            try:
+                p.run(path)
+            except KeyboardInterrupt:
+                print("Caught KeyboardInterrupt, exiting.")
+
+    if not gfile.Exists(FLAGS.replays):
+        sys.exit("{} doesn't exist.".format(FLAGS.replays))
+
+    N = 1
+    pool = Pool(N)
+    pool.map(func, replay_list)
+    pool.close()
+    pool.join()
 
 
 if __name__ == "__main__":

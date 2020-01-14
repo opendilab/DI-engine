@@ -1174,11 +1174,11 @@ class Features(object):
                 out["rgb_minimap"] = Feature.unpack_rgb_image(
                     obs.observation.render_data.minimap).astype(np.int32)
 
-        if not self._raw:
-            with sw("last_actions"):
-                out["last_actions"] = np.array(
-                    [self.reverse_action(a).function for a in obs.actions],
-                    dtype=np.int32)
+        # if not self._raw:
+        #     with sw("last_actions"):
+        #         out["last_actions"] = np.array(
+        #             [self.reverse_action(a).function for a in obs.actions],
+        #             dtype=np.int32)
 
         out["action_result"] = np.array([o.result for o in obs.action_errors],
                                         dtype=np.int32)
