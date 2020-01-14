@@ -120,16 +120,24 @@ class ScalarObsWrapper(object):
     def __init__(self, cfg):
         self.cfg = cfg
 
+    def _parse_agent_statistics(self, obs):
+        player = obs['player'][1:]
+        data = torch.FloatTensor(player)
+        return torch.log(data + 1)
+
     def parse(self, obs):
         ret = {}
         for idx, item in enumerate(self.cfg):
             key = item['key']
-            ori = item['ori']
-            item_data = obs[ori]
-            item_data = torch.LongTensor(item_data)
-            item_data = item['op'](item_data)
-            item_data = item_data.squeeze()
-            ret[key] = item_data
+            if key == 'agent_statistics':
+                ret[key] = self._parse_agent_statistics(obs)
+            else:
+                ori = item['ori']
+                item_data = obs[ori]
+                item_data = torch.LongTensor(item_data)
+                item_data = item['op'](item_data)
+                item_data = item_data.squeeze()
+                ret[key] = item_data
         return ret
 
 
@@ -292,7 +300,7 @@ def clip_one_hot(v, num):
     return one_hot(v, num)
 
 
-def transform_entity_data(resolutin=128, pad_value=-1e9):
+def transform_entity_data(resolution=128, pad_value=-1e9):
 
     template = [
         {'key': 'unit_type', 'dim': NUM_UNIT_TYPES, 'op': partial(
@@ -375,7 +383,7 @@ def transform_spatial_data():
 
 def transform_scalar_data():
     template_obs = [
-        #{'key': 'agent_statistics', 'input_dim': 1, 'output_dim': 64, 'other': 'float'},
+        {'key': 'agent_statistics', 'arch': 'fc', 'input_dim': 10, 'ori': 'player', 'output_dim': 64, 'other': 'log(1+x)'},
         {'key': 'race', 'arch': 'fc', 'input_dim': 5, 'output_dim': 32, 'ori': 'home_race_requested',
             'op': partial(num_first_one_hot, num=5), 'scalar_context': True, 'other': 'one-hot 5 value'},
         {'key': 'enemy_race', 'arch': 'fc', 'input_dim': 5, 'output_dim': 32, 'ori': 'away_race_requested',
@@ -405,6 +413,6 @@ def transform_scalar_data():
         {'key': 'last_repeat_queued', 'arch': 'fc', 'input_dims': 2, 'output_dims': 256,
             'ori': 'action', 'op': partial(num_first_one_hot, num=2), 'other': 'one-hot 2'},
         {'key': 'last_action_type', 'arch': 'fc', 'input_dims': NUM_ACTIONS, 'output_dims': 128, 'ori': 'action',
-            'op': partial(num_first_one_hot, num=NUM_ACTIONS), 'other': 'one-hot NUM_ACTIONS'},
+            'op': partial(reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS), 'other': 'one-hot NUM_ACTIONS'},
     ]
     return template_obs, template_replay, template_action
