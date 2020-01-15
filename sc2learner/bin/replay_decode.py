@@ -49,7 +49,8 @@ flags.DEFINE_string("output_dir", "/mnt/lustre/niuyazhe/data/sl_data", "Path to 
 flags.mark_flag_as_required("replays")
 
 
-size = point.Point(16, 16)
+RESOLUTION = 128
+size = point.Point(RESOLUTION, RESOLUTION)
 interface = sc_pb.InterfaceOptions(
     raw=True, score=False,
     feature_layer=sc_pb.SpatialCameraSetup(width=24))
@@ -87,7 +88,6 @@ class ReplayProcessor(multiprocessing.Process):
         self.run_config = run_config
         self.output_dir = output_dir
         self.obs_parser = AlphastarObsParser()
-        self.act_parser = AlphastarActParser()
         self.handles = []
         self.controllers = []
         self.player_ids = [i+1 for i in range(2)]
@@ -133,6 +133,7 @@ class ReplayProcessor(multiprocessing.Process):
         ret['away_apm'] = info.player_info[away].player_apm
         ret['away_result'] = info.player_info[away].player_result.result
         ret['replay_path'] = replay_path
+        ret['feature_layer_resolution'] = RESOLUTION
         return ret
 
     def run(self, replay_path):
@@ -144,22 +145,24 @@ class ReplayProcessor(multiprocessing.Process):
                 replay_data, map_data, info = ret
                 meta_data_0 = self._parse_info(info, replay_path, home=0)
                 meta_data_1 = self._parse_info(info, replay_path, home=1)
-                mmr0 = (meta_data_0['home_mmr'], meta_data_0['away_mmr'])
-                mmr1 = (meta_data_1['home_mmr'], meta_data_1['away_mmr'])
-                step_data_0 = self.process_replay_multi(
+                step_data_0, stat0 = self.process_replay_multi(
                     self.controllers, replay_data, map_data, self.player_ids)
-                step_data_1 = self.process_replay_multi(
+                step_data_1, stat1 = self.process_replay_multi(
                     self.controllers, replay_data, map_data, list(reversed(self.player_ids)))
                 meta_data_0['step_num'] = len(step_data_0)
                 meta_data_1['step_num'] = len(step_data_1)
-                name0 = '{}_{}_{}_{}'.format(
-                    meta_data_0['home_race'], meta_data_0['away_race'], meta_data_0['home_mmr'], os.path.basename(replay_path).split('.')[0])
-                name1 = '{}_{}_{}_{}'.format(
-                    meta_data_1['home_race'], meta_data_1['away_race'], meta_data_1['home_mmr'], os.path.basename(replay_path).split('.')[0])
+                meta_data_0['map_size'] = self.controllers[0].game_info().start_raw.map_size
+                meta_data_1['map_size'] = self.controllers[1].game_info().start_raw.map_size
+                name0 = '{}_{}_{}_{}'.format(meta_data_0['home_race'], meta_data_0['away_race'],
+                                             meta_data_0['home_mmr'], os.path.basename(replay_path).split('.')[0])
+                name1 = '{}_{}_{}_{}'.format(meta_data_1['home_race'], meta_data_1['away_race'],
+                                             meta_data_1['home_mmr'], os.path.basename(replay_path).split('.')[0])
                 torch.save(meta_data_0, os.path.join(self.output_dir, name0+'.meta'))
                 torch.save(step_data_0, os.path.join(self.output_dir, name0+'.step'))
+                torch.save(stat0, os.path.join(self.output_dir, name0+'.stat'))
                 torch.save(meta_data_1, os.path.join(self.output_dir, name1+'.meta'))
                 torch.save(step_data_1, os.path.join(self.output_dir, name1+'.step'))
+                torch.save(stat1, os.path.join(self.output_dir, name1+'.stat'))
             else:
                 return
         except (protocol.ConnectionError, protocol.ProtocolError,
@@ -189,6 +192,8 @@ class ReplayProcessor(multiprocessing.Process):
             feats.append(feat)
 
             controller.step()
+        act_parser = AlphastarActParser(feature_layer_resolution=RESOLUTION,
+                                        map_size=controllers[0].game_info().start_raw.map_size)
         N = len(player_ids)
         step = 0
         delay = [0 for _ in range(N)]
@@ -196,8 +201,42 @@ class ReplayProcessor(multiprocessing.Process):
         # delay, queued, action_type, selected_units, target_units
         last_info = [([0], [0], [0], [0], [0]) for _ in range(N)]
 
+        def update_action_stat(action_statistics, act, obs):
+            def get_unit_type(tag, obs):
+                if obs['entity_raw'] is None:
+                    return None
+                for item in obs['entity_raw']:
+                    if tag == item['id']:
+                        return item['type']
+                return None
+
+            action_type = act['action_type'].item()
+            if action_type not in action_statistics.keys():
+                action_statistics[action_type] = {
+                    'count': 0,
+                    'selected_type': set(),
+                    'target_type': set(),
+                }
+            action_statistics[action_type]['count'] += 1
+            if isinstance(act['selected_units'], torch.Tensor):
+                for unit_tag in act['selected_units']:
+                    unit_type = get_unit_type(unit_tag.item(), obs)
+                    if unit_type is None:
+                        print("not found selected unit in screen(id: {})".format(unit_tag.item()))
+                        continue
+                    action_statistics[action_type]['selected_type'].add(unit_type)
+            if isinstance(act['target_units'], torch.Tensor):
+                for unit_tag in act['target_units']:
+                    unit_type = get_unit_type(unit_tag.item(), obs)
+                    if unit_type is None:
+                        print("not found target unit in screen(id: {})".format(unit_tag.item()))
+                        continue
+                    action_statistics[action_type]['target_type'].add(unit_type)
+
         step_data = []
         error_set = set()
+        action_statistics = {}
+
         while True:
             # 1v1 version
             obs = [controller.observe() for controller in controllers]
@@ -207,7 +246,7 @@ class ReplayProcessor(multiprocessing.Process):
             except KeyError as e:
                 error_set.add(repr(e).split('_')[-2])
                 if obs[0].player_result:
-                    return step_data
+                    return step_data, {'action_statistics': action_statistics}
                 controllers[0].step(FLAGS.step_mul)
                 controllers[1].step(FLAGS.step_mul)
                 print('step', step, error_set)
@@ -221,7 +260,7 @@ class ReplayProcessor(multiprocessing.Process):
             if len(actions[1]) > 0:
                 for action in actions[1]:
                     act_raw = action.action_raw
-                    agent_acts = self.act_parser.parse(act_raw)
+                    agent_acts = act_parser.parse(act_raw)
                     for idx, (_, v) in enumerate(agent_acts.items()):
                         v['delay'] = torch.LongTensor([delay[1]])
                         delay[1] = 0
@@ -230,15 +269,15 @@ class ReplayProcessor(multiprocessing.Process):
             if len(actions[0]) > 0:
                 for action in actions[0]:
                     act_raw = action.action_raw
-                    agent_acts = self.act_parser.parse(act_raw)
+                    agent_acts = act_parser.parse(act_raw)
                     for idx, (_, v) in enumerate(agent_acts.items()):
                         v['delay'] = torch.LongTensor([delay[0]])
+                        update_action_stat(action_statistics, v, agent_obs[0])
                         delay[0] = 0
-                        last_info[0] = (v['delay'], v['queued'], v['action_type'],
-                                        v['selected_units'], v['target_units'])
                         agent_obs[0] = self.obs_parser.merge_action(agent_obs[0], last_info[0])
                         agent_obs[1] = self.obs_parser.merge_action(agent_obs[1], last_info[1])
-                        print(v)
+                        last_info[0] = (v['delay'], v['queued'], v['action_type'],
+                                        v['selected_units'], v['target_units'])
                         # torch.save(
                         #     {'obs0': agent_obs[0], 'obs1': agent_obs[1], 'act': v},
                         #     os.path.join(self.output_dir, '{}.pt'.format(action_count))
@@ -247,7 +286,7 @@ class ReplayProcessor(multiprocessing.Process):
                         action_count += 1
 
             if obs[0].player_result:
-                return step_data
+                return step_data, {'action_statistics': action_statistics}
 
             controllers[0].step(FLAGS.step_mul)
             controllers[1].step(FLAGS.step_mul)

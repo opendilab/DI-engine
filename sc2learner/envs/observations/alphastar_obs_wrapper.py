@@ -21,6 +21,7 @@ class SpatialObsWrapper(object):
             'visibility': 1,
             'creep': 2,
             'entity_owners': 5,
+            'effects': 16,
             'pathable': 24,
             'buildable': 25,
         }
@@ -87,13 +88,16 @@ class EntityObsWrapper(object):
     def parse(self, obs):
         feature_unit = obs[self.key]
         if len(feature_unit.shape) == 1:  # when feature_unit is None
-            return None, None, None
+            return None, None
         num_unit, num_attr = feature_unit.shape
-        entity_location = []
-        entity_id = []
+        entity_raw = []
         for idx in range(num_unit):
-            entity_location.append((feature_unit[idx].x, feature_unit[idx].y))
-            entity_id.append(feature_unit[idx].tag)
+            raw = {
+                'location': (feature_unit[idx].x, feature_unit[idx].y),
+                'id': feature_unit[idx].tag,
+                'type': feature_unit[idx].unit_type,
+            }
+            entity_raw.append(raw)
 
         ret = []
         for idx, item in enumerate(self.cfg):
@@ -113,23 +117,33 @@ class EntityObsWrapper(object):
             ret.append(item_data)
         ret = list(zip(*ret))
         ret = [torch.cat(item, dim=0) for item in ret]
-        return torch.stack(ret, dim=0), entity_location, entity_id
+        return torch.stack(ret, dim=0), entity_raw
 
 
 class ScalarObsWrapper(object):
     def __init__(self, cfg):
         self.cfg = cfg
 
+    def _parse_agent_statistics(self, obs):
+        player = obs['player'][1:]
+        data = torch.FloatTensor(player)
+        return torch.log(data + 1)
+
     def parse(self, obs):
         ret = {}
         for idx, item in enumerate(self.cfg):
             key = item['key']
-            ori = item['ori']
-            item_data = obs[ori]
-            item_data = torch.LongTensor(item_data)
-            item_data = item['op'](item_data)
-            item_data = item_data.squeeze()
-            ret[key] = item_data
+            if key == 'agent_statistics':
+                ret[key] = self._parse_agent_statistics(obs)
+            elif key == 'enemy_upgrades':
+                continue  # parse by enemy obs
+            else:
+                ori = item['ori']
+                item_data = obs[ori]
+                item_data = torch.LongTensor(item_data)
+                item_data = item['op'](item_data)
+                item_data = item_data.squeeze()
+                ret[key] = item_data
         return ret
 
 
@@ -142,12 +156,12 @@ class AlphastarObsWrapper(gym.Wrapper):
         self.scalar_wrapper = ScalarObsWrapper(scalar_obs_cfg)
 
     def _get_obs(self, obs):
-        entity_info, entity_location = self.entity_wrapper.parse(obs)
+        entity_info, entity_raw = self.entity_wrapper.parse(obs)
         ret = {
             'scalar_info': self.scalar_wrapper.parse(obs),
             'spatial_info': self.spatial_wrapper.parse(obs),
             'entity_info': entity_info,
-            'entity_location': entity_location,
+            'entity_raw': entity_raw,
         }
         # print(ret['spatial_info'].shape)
         # print(ret['entity_info'].shape)
@@ -177,13 +191,12 @@ class AlphastarObsParser(object):
         self.template_act = template_act
 
     def parse(self, obs):
-        entity_info, entity_location, entity_id = self.entity_wrapper.parse(obs)
+        entity_info, entity_raw = self.entity_wrapper.parse(obs)
         ret = {
             'scalar_info': self.scalar_wrapper.parse(obs),
             'spatial_info': self.spatial_wrapper.parse(obs),
             'entity_info': entity_info,
-            'entity_location': entity_location,
-            'entity_id': entity_id,
+            'entity_raw': entity_raw,
         }
         return ret
 
@@ -197,16 +210,16 @@ class AlphastarObsParser(object):
         N = obs['entity_info'].shape[0]
         obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 2)], dim=1)
         selected_units = [] if isinstance(selected_units, str) else selected_units
-        for idx, v in enumerate(obs['entity_id']):
-            if v in selected_units:
+        for idx, v in enumerate(obs['entity_raw']):
+            if v['id'] in selected_units:
                 obs['entity_info'][idx, -1] = 1
             else:
                 obs['entity_info'][idx, -2] = 1
 
         obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 2)], dim=1)
         target_units = [] if isinstance(target_units, str) else target_units
-        for idx, v in enumerate(obs['entity_id']):
-            if v in target_units:
+        for idx, v in enumerate(obs['entity_raw']):
+            if v['id'] in target_units:
                 obs['entity_info'][idx, -1] = 1
             else:
                 obs['entity_info'][idx, -2] = 1
@@ -292,7 +305,7 @@ def clip_one_hot(v, num):
     return one_hot(v, num)
 
 
-def transform_entity_data(resolutin=128, pad_value=-1e9):
+def transform_entity_data(resolution=128, pad_value=-1e9):
 
     template = [
         {'key': 'unit_type', 'dim': NUM_UNIT_TYPES, 'op': partial(
@@ -362,28 +375,29 @@ def transform_spatial_data():
         # {'key': 'scattered_entities', 'other': '32 channel float'},
         {'key': 'camera', 'dim': 2, 'op': partial(num_first_one_hot, num=2), 'other': 'one-hot 2 value'},
         {'key': 'height_map', 'dim': 1, 'op': partial(
-            div_func, other=256., unsqueeze_dim=0), 'other': 'float height_map/255'},
+            div_func, other=256., unsqueeze_dim=0), 'other': 'float height_map/256'},
         {'key': 'visibility', 'dim': 4, 'op': partial(num_first_one_hot, num=4), 'other': 'one-hot 4 value'},
         {'key': 'creep', 'dim': 2, 'op': partial(num_first_one_hot, num=2), 'other': 'one-hot 2 value'},
         {'key': 'entity_owners', 'dim': 5, 'op': partial(num_first_one_hot, num=5), 'other': 'one-hot 5 value'},
         {'key': 'alerts', 'dim': 2, 'op': partial(num_first_one_hot, num=2), 'other': 'one-hot 2 value'},
         {'key': 'pathable', 'dim': 2, 'op': partial(num_first_one_hot, num=2), 'other': 'one-hot 2 value'},
         {'key': 'buildable', 'dim': 2, 'op': partial(num_first_one_hot, num=2), 'other': 'one-hot 2 value'},
+        {'key': 'effects', 'dim': 13, 'op': partial(num_first_one_hot, num=13), 'other': 'one-hot 13 value'},
     ]
     return template
 
 
 def transform_scalar_data():
     template_obs = [
-        #{'key': 'agent_statistics', 'input_dim': 1, 'output_dim': 64, 'other': 'float'},
+        {'key': 'agent_statistics', 'arch': 'fc', 'input_dim': 10, 'ori': 'player', 'output_dim': 64, 'other': 'log(1+x)'},
         {'key': 'race', 'arch': 'fc', 'input_dim': 5, 'output_dim': 32, 'ori': 'home_race_requested',
             'op': partial(num_first_one_hot, num=5), 'scalar_context': True, 'other': 'one-hot 5 value'},
         {'key': 'enemy_race', 'arch': 'fc', 'input_dim': 5, 'output_dim': 32, 'ori': 'away_race_requested',
             'op': partial(num_first_one_hot, num=5), 'scalar_context': True, 'other': 'one-hot 5 value'},  # TODO 10% hidden
         {'key': 'upgrades', 'arch': 'fc', 'input_dim': NUM_UPGRADES, 'output_dim': 128, 'ori': 'upgrades',
             'op': partial(reorder_boolean_vector, dictionary=UPGRADES_REORDER, num=NUM_UPGRADES), 'other': 'boolean'},
-        # {'key': 'enemy_upgrades', 'arch': 'fc', 'input_dim': NUM_UPGRADES, 'output_dim': 128, 'ori': 'enemy_upgrades',
-        #    'op': partial(reorder_boolean_vector, dictionary=UPGRADES_REORDER, num=NUM_UPGRADES), 'other': 'boolean'},
+        {'key': 'enemy_upgrades', 'arch': 'fc', 'input_dim': NUM_UPGRADES, 'output_dim': 128, 'ori': 'enemy_upgrades',
+            'op': partial(reorder_boolean_vector, dictionary=UPGRADES_REORDER, num=NUM_UPGRADES), 'other': 'boolean'},
         {'key': 'time', 'arch': 'transformer', 'input_dim': 32, 'output_dim': 64, 'ori': 'game_loop',
             'op': partial(batch_binary_encode, bit_num=32), 'other': 'transformer'},
 
@@ -405,6 +419,6 @@ def transform_scalar_data():
         {'key': 'last_repeat_queued', 'arch': 'fc', 'input_dims': 2, 'output_dims': 256,
             'ori': 'action', 'op': partial(num_first_one_hot, num=2), 'other': 'one-hot 2'},
         {'key': 'last_action_type', 'arch': 'fc', 'input_dims': NUM_ACTIONS, 'output_dims': 128, 'ori': 'action',
-            'op': partial(num_first_one_hot, num=NUM_ACTIONS), 'other': 'one-hot NUM_ACTIONS'},
+            'op': partial(reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS), 'other': 'one-hot NUM_ACTIONS'},
     ]
     return template_obs, template_replay, template_action
