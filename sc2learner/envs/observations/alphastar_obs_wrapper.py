@@ -21,6 +21,7 @@ class SpatialObsWrapper(object):
             'visibility': 1,
             'creep': 2,
             'entity_owners': 5,
+            'effects': 16,
             'pathable': 24,
             'buildable': 25,
         }
@@ -131,6 +132,8 @@ class ScalarObsWrapper(object):
             key = item['key']
             if key == 'agent_statistics':
                 ret[key] = self._parse_agent_statistics(obs)
+            elif key == 'enemy_upgrades':
+                continue  # parse by enemy obs
             else:
                 ori = item['ori']
                 item_data = obs[ori]
@@ -370,13 +373,14 @@ def transform_spatial_data():
         # {'key': 'scattered_entities', 'other': '32 channel float'},
         {'key': 'camera', 'dim': 2, 'op': partial(num_first_one_hot, num=2), 'other': 'one-hot 2 value'},
         {'key': 'height_map', 'dim': 1, 'op': partial(
-            div_func, other=256., unsqueeze_dim=0), 'other': 'float height_map/255'},
+            div_func, other=256., unsqueeze_dim=0), 'other': 'float height_map/256'},
         {'key': 'visibility', 'dim': 4, 'op': partial(num_first_one_hot, num=4), 'other': 'one-hot 4 value'},
         {'key': 'creep', 'dim': 2, 'op': partial(num_first_one_hot, num=2), 'other': 'one-hot 2 value'},
         {'key': 'entity_owners', 'dim': 5, 'op': partial(num_first_one_hot, num=5), 'other': 'one-hot 5 value'},
         {'key': 'alerts', 'dim': 2, 'op': partial(num_first_one_hot, num=2), 'other': 'one-hot 2 value'},
         {'key': 'pathable', 'dim': 2, 'op': partial(num_first_one_hot, num=2), 'other': 'one-hot 2 value'},
         {'key': 'buildable', 'dim': 2, 'op': partial(num_first_one_hot, num=2), 'other': 'one-hot 2 value'},
+        {'key': 'effects', 'dim': 13, 'op': partial(num_first_one_hot, num=13), 'other': 'one-hot 13 value'},
     ]
     return template
 
@@ -390,8 +394,8 @@ def transform_scalar_data():
             'op': partial(num_first_one_hot, num=5), 'scalar_context': True, 'other': 'one-hot 5 value'},  # TODO 10% hidden
         {'key': 'upgrades', 'arch': 'fc', 'input_dim': NUM_UPGRADES, 'output_dim': 128, 'ori': 'upgrades',
             'op': partial(reorder_boolean_vector, dictionary=UPGRADES_REORDER, num=NUM_UPGRADES), 'other': 'boolean'},
-        # {'key': 'enemy_upgrades', 'arch': 'fc', 'input_dim': NUM_UPGRADES, 'output_dim': 128, 'ori': 'enemy_upgrades',
-        #    'op': partial(reorder_boolean_vector, dictionary=UPGRADES_REORDER, num=NUM_UPGRADES), 'other': 'boolean'},
+        {'key': 'enemy_upgrades', 'arch': 'fc', 'input_dim': NUM_UPGRADES, 'output_dim': 128, 'ori': 'enemy_upgrades',
+            'op': partial(reorder_boolean_vector, dictionary=UPGRADES_REORDER, num=NUM_UPGRADES), 'other': 'boolean'},
         {'key': 'time', 'arch': 'transformer', 'input_dim': 32, 'output_dim': 64, 'ori': 'game_loop',
             'op': partial(batch_binary_encode, bit_num=32), 'other': 'transformer'},
 
