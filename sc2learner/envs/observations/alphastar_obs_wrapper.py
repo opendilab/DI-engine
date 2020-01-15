@@ -88,13 +88,16 @@ class EntityObsWrapper(object):
     def parse(self, obs):
         feature_unit = obs[self.key]
         if len(feature_unit.shape) == 1:  # when feature_unit is None
-            return None, None, None
+            return None, None
         num_unit, num_attr = feature_unit.shape
-        entity_location = []
-        entity_id = []
+        entity_raw = []
         for idx in range(num_unit):
-            entity_location.append((feature_unit[idx].x, feature_unit[idx].y))
-            entity_id.append(feature_unit[idx].tag)
+            raw = {
+                'location': (feature_unit[idx].x, feature_unit[idx].y),
+                'id': feature_unit[idx].tag,
+                'type': feature_unit[idx].unit_type,
+            }
+            entity_raw.append(raw)
 
         ret = []
         for idx, item in enumerate(self.cfg):
@@ -114,7 +117,7 @@ class EntityObsWrapper(object):
             ret.append(item_data)
         ret = list(zip(*ret))
         ret = [torch.cat(item, dim=0) for item in ret]
-        return torch.stack(ret, dim=0), entity_location, entity_id
+        return torch.stack(ret, dim=0), entity_raw
 
 
 class ScalarObsWrapper(object):
@@ -153,12 +156,12 @@ class AlphastarObsWrapper(gym.Wrapper):
         self.scalar_wrapper = ScalarObsWrapper(scalar_obs_cfg)
 
     def _get_obs(self, obs):
-        entity_info, entity_location = self.entity_wrapper.parse(obs)
+        entity_info, entity_raw = self.entity_wrapper.parse(obs)
         ret = {
             'scalar_info': self.scalar_wrapper.parse(obs),
             'spatial_info': self.spatial_wrapper.parse(obs),
             'entity_info': entity_info,
-            'entity_location': entity_location,
+            'entity_raw': entity_raw,
         }
         # print(ret['spatial_info'].shape)
         # print(ret['entity_info'].shape)
@@ -188,13 +191,12 @@ class AlphastarObsParser(object):
         self.template_act = template_act
 
     def parse(self, obs):
-        entity_info, entity_location, entity_id = self.entity_wrapper.parse(obs)
+        entity_info, entity_raw = self.entity_wrapper.parse(obs)
         ret = {
             'scalar_info': self.scalar_wrapper.parse(obs),
             'spatial_info': self.spatial_wrapper.parse(obs),
             'entity_info': entity_info,
-            'entity_location': entity_location,
-            'entity_id': entity_id,
+            'entity_raw': entity_raw,
         }
         return ret
 
@@ -208,16 +210,16 @@ class AlphastarObsParser(object):
         N = obs['entity_info'].shape[0]
         obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 2)], dim=1)
         selected_units = [] if isinstance(selected_units, str) else selected_units
-        for idx, v in enumerate(obs['entity_id']):
-            if v in selected_units:
+        for idx, v in enumerate(obs['entity_raw']):
+            if v['id'] in selected_units:
                 obs['entity_info'][idx, -1] = 1
             else:
                 obs['entity_info'][idx, -2] = 1
 
         obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 2)], dim=1)
         target_units = [] if isinstance(target_units, str) else target_units
-        for idx, v in enumerate(obs['entity_id']):
-            if v in target_units:
+        for idx, v in enumerate(obs['entity_raw']):
+            if v['id'] in target_units:
                 obs['entity_info'][idx, -1] = 1
             else:
                 obs['entity_info'][idx, -2] = 1
