@@ -49,7 +49,8 @@ flags.DEFINE_string("output_dir", "/mnt/lustre/niuyazhe/data/sl_data", "Path to 
 flags.mark_flag_as_required("replays")
 
 
-size = point.Point(128, 128)
+RESOLUTION = 128
+size = point.Point(RESOLUTION, RESOLUTION)
 interface = sc_pb.InterfaceOptions(
     raw=True, score=False,
     feature_layer=sc_pb.SpatialCameraSetup(width=24))
@@ -87,7 +88,6 @@ class ReplayProcessor(multiprocessing.Process):
         self.run_config = run_config
         self.output_dir = output_dir
         self.obs_parser = AlphastarObsParser()
-        self.act_parser = AlphastarActParser()
         self.handles = []
         self.controllers = []
         self.player_ids = [i+1 for i in range(2)]
@@ -133,6 +133,7 @@ class ReplayProcessor(multiprocessing.Process):
         ret['away_apm'] = info.player_info[away].player_apm
         ret['away_result'] = info.player_info[away].player_result.result
         ret['replay_path'] = replay_path
+        ret['feature_layer_resolution'] = RESOLUTION
         return ret
 
     def run(self, replay_path):
@@ -150,6 +151,8 @@ class ReplayProcessor(multiprocessing.Process):
                     self.controllers, replay_data, map_data, list(reversed(self.player_ids)))
                 meta_data_0['step_num'] = len(step_data_0)
                 meta_data_1['step_num'] = len(step_data_1)
+                meta_data_0['map_size'] = self.controllers[0].game_info().start_raw.map_size
+                meta_data_1['map_size'] = self.controllers[1].game_info().start_raw.map_size
                 name0 = '{}_{}_{}_{}'.format(meta_data_0['home_race'], meta_data_0['away_race'],
                                              meta_data_0['home_mmr'], os.path.basename(replay_path).split('.')[0])
                 name1 = '{}_{}_{}_{}'.format(meta_data_1['home_race'], meta_data_1['away_race'],
@@ -189,6 +192,8 @@ class ReplayProcessor(multiprocessing.Process):
             feats.append(feat)
 
             controller.step()
+        act_parser = AlphastarActParser(feature_layer_resolution=RESOLUTION,
+                                        map_size=controllers[0].game_info().start_raw.map_size)
         N = len(player_ids)
         step = 0
         delay = [0 for _ in range(N)]
@@ -255,7 +260,7 @@ class ReplayProcessor(multiprocessing.Process):
             if len(actions[1]) > 0:
                 for action in actions[1]:
                     act_raw = action.action_raw
-                    agent_acts = self.act_parser.parse(act_raw)
+                    agent_acts = act_parser.parse(act_raw)
                     for idx, (_, v) in enumerate(agent_acts.items()):
                         v['delay'] = torch.LongTensor([delay[1]])
                         delay[1] = 0
@@ -264,15 +269,15 @@ class ReplayProcessor(multiprocessing.Process):
             if len(actions[0]) > 0:
                 for action in actions[0]:
                     act_raw = action.action_raw
-                    agent_acts = self.act_parser.parse(act_raw)
+                    agent_acts = act_parser.parse(act_raw)
                     for idx, (_, v) in enumerate(agent_acts.items()):
                         v['delay'] = torch.LongTensor([delay[0]])
                         update_action_stat(action_statistics, v, agent_obs[0])
                         delay[0] = 0
-                        last_info[0] = (v['delay'], v['queued'], v['action_type'],
-                                        v['selected_units'], v['target_units'])
                         agent_obs[0] = self.obs_parser.merge_action(agent_obs[0], last_info[0])
                         agent_obs[1] = self.obs_parser.merge_action(agent_obs[1], last_info[1])
+                        last_info[0] = (v['delay'], v['queued'], v['action_type'],
+                                        v['selected_units'], v['target_units'])
                         # torch.save(
                         #     {'obs0': agent_obs[0], 'obs1': agent_obs[1], 'act': v},
                         #     os.path.join(self.output_dir, '{}.pt'.format(action_count))
