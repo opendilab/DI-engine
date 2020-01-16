@@ -50,8 +50,7 @@ class QueuedHead(nn.Module):
         x = self.fc1(embedding)
         x = self.fc2(x)
         x = self.fc3(x)
-        x.div_(temperature)
-        handle = self.pd(x)
+        handle = self.pd(x.div(temperature))
         queued = handle.sample()
 
         queued_one_hot = one_hot(queued, self.queued_dim)
@@ -105,9 +104,8 @@ class SelectedUnitsHead(nn.Module):
             x, state = self.lstm(x, state)
             query_result = x.permute(1, 0, 2) * key
             query_result = query_result.mean(dim=2)
-            query_result.div_(temperature)
             query_result.sub_((1 - mask) * 1e12)
-            handle = self.pd(query_result)
+            handle = self.pd(query_result.div(temperature))
             entity_num = handle.sample()
 
             for b in range(B):
@@ -217,9 +215,8 @@ class TargetUnitsHead(nn.Module):
             x, state = self.lstm(x, state)
             query_result = x.permute(1, 0, 2) * key
             query_result = query_result.mean(dim=2)
-            query_result.div_(temperature)
             query_result.sub_((1 - mask) * 1e9)
-            handle = self.pd(query_result)
+            handle = self.pd(query_result.div(temperature))
             entity_num = handle.sample()
 
             for b in range(B):
@@ -322,10 +319,9 @@ class LocationHead(nn.Module):
             x = act(x, skip)
         for layer in self.upsample:
             x = layer(x)
-        x.div_(temperature)
         x.sub_((1 - available_location_mask)*1e9)
         logits = x.view(x.shape[0], -1)
-        handle = self.pd(logits)
+        handle = self.pd(logits.div(temperature))
         location = handle.sample()
 
         return logits, location
