@@ -1,2 +1,5 @@
+from .policy_network import Policy
+
+
 def build_model(cfg):
-    pass
+    return Policy(cfg.model.policy)
