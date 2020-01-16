@@ -37,6 +37,7 @@ from pysc2.lib import remote_controller
 from pysc2.lib import replay
 
 from pysc2.lib import gfile
+from pysc2.lib.action_dict import ACTION_INFO_MASK
 from s2clientprotocol import sc2api_pb2 as sc_pb
 from sc2learner.envs.observations.alphastar_obs_wrapper import AlphastarObsParser
 from sc2learner.envs.actions.alphastar_act_wrapper import AlphastarActParser
@@ -45,7 +46,7 @@ FLAGS = flags.FLAGS
 flags.DEFINE_integer("parallel", 1, "How many instances to run in parallel.")
 flags.DEFINE_integer("step_mul", 1, "How many game steps per observation.")
 flags.DEFINE_string("replays", None, "Path to a directory of replays.")
-flags.DEFINE_string("output_dir", "/mnt/lustre/niuyazhe/data/sl_data", "Path to save data")
+flags.DEFINE_string("output_dir", "/mnt/lustre/niuyazhe/data/sl_data_new", "Path to save data")
 flags.mark_flag_as_required("replays")
 
 
@@ -232,9 +233,34 @@ class ReplayProcessor(multiprocessing.Process):
                         continue
                     action_statistics[action_type]['target_type'].add(unit_type)
 
+        def update_cum_stat(cumulative_statistics, act):
+            action_type = act['action_type'].item()
+            goal = ACTION_INFO_MASK[action_type]['goal']
+            if goal != 'other':
+                if action_type not in cumulative_statistics.keys():
+                    cumulative_statistics[action_type] = {'count': 1, 'goal': goal}
+                else:
+                    cumulative_statistics[action_type]['count'] += 1
+
+        def update_begin_stat(begin_statistics, act):
+            target_list = ['unit', 'build', 'research', 'effect']
+            action_type = act['action_type'].item()
+            goal = ACTION_INFO_MASK[action_type]['goal']
+            if goal in target_list:
+                if goal == 'build':
+                    location = act['target_location']
+                    if isinstance(location, torch.Tensor):  # for build ves, no target_location
+                        location = location.tolist()
+                else:
+                    location = 'none'
+                begin_statistics.append({'action_type': action_type, 'location': location})
+
         step_data = []
         error_set = set()
         action_statistics = {}
+        cumulative_statistics = {}
+        begin_statistics = []
+        begin_num = 100
 
         while True:
             # 1v1 version
@@ -245,7 +271,8 @@ class ReplayProcessor(multiprocessing.Process):
             except KeyError as e:
                 error_set.add(repr(e).split('_')[-2])
                 if obs[0].player_result:
-                    return step_data, {'action_statistics': action_statistics}, map_size
+                    return step_data, {'action_statistics': action_statistics, 'cumulative_statistics':
+                                       cumulative_statistics, 'begin_statistics': begin_statistics}, map_size
                 controllers[0].step(FLAGS.step_mul)
                 controllers[1].step(FLAGS.step_mul)
                 print('step', step, error_set)
@@ -272,12 +299,15 @@ class ReplayProcessor(multiprocessing.Process):
                     for idx, (_, v) in enumerate(agent_acts.items()):
                         v['delay'] = torch.LongTensor([delay[0]])
                         update_action_stat(action_statistics, v, base_obs[0])
+                        update_cum_stat(cumulative_statistics, v)
+                        if len(begin_statistics) < begin_num:
+                            update_begin_stat(begin_statistics, v)
+                            print(begin_statistics)
                         delay[0] = 0
                         agent_obs[0] = self.obs_parser.merge_action(agent_obs[0], last_info[0])
                         agent_obs[1] = self.obs_parser.merge_action(agent_obs[1], last_info[1])
                         last_info[0] = (v['delay'], v['queued'], v['action_type'],
                                         v['selected_units'], v['target_units'])
-                        print(action_statistics)
                         # torch.save(
                         #     {'obs0': agent_obs[0], 'obs1': agent_obs[1], 'act': v},
                         #     os.path.join(self.output_dir, '{}.pt'.format(action_count))
@@ -286,7 +316,8 @@ class ReplayProcessor(multiprocessing.Process):
                         action_count += 1
 
             if obs[0].player_result:
-                return step_data, {'action_statistics': action_statistics}, map_size
+                return step_data, {'action_statistics': action_statistics, 'cumulative_statistics':
+                                   cumulative_statistics, 'begin_statistics': begin_statistics}, map_size
 
             controllers[0].step(FLAGS.step_mul)
             controllers[1].step(FLAGS.step_mul)
