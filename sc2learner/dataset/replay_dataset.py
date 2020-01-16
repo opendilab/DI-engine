@@ -65,19 +65,20 @@ def select_replay(replay_dir, min_mmr=0, home_race=None, away_race=None):
     selected_replay = []
     for item in os.listdir(replay_dir):
         name, suffix = item.split('.')
-        if suffix == META_SUFFIX:
-            mmr, home, away = name.split('_')[:3]
-            if mmr < min_mmr:
+        if suffix == META_SUFFIX[1:]:
+            home, away, mmr = name.split('_')[:3]
+            if int(mmr) < min_mmr:
                 continue
             if home_race and home != home_race:
                 continue
             if away_race and away != away_race:
                 continue
-            selected_replay.append(name)
+            selected_replay.append(os.path.join(replay_dir, name))
     return selected_replay
 
 
 def get_replay_list(replay_dir, output_path, **kwargs):
     selected_replay = select_replay(replay_dir, **kwargs)
+    selected_replay = '\n'.join(selected_replay)
     with open(output_path, 'w') as f:
         f.writelines(selected_replay)
