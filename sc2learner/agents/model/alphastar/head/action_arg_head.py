@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from sc2learner.nn_utils import fc_block, conv2d_block, deconv2d_block, build_activation, one_hot, LSTM, \
-        ResBlock, NearestUpsample, BilinearUpsample
+    ResBlock, NearestUpsample, BilinearUpsample
 from sc2learner.rl_utils import CategoricalPdPytorch
 
 
@@ -92,13 +92,16 @@ class SelectedUnitsHead(nn.Module):
         state = None
         return x, state
 
-    def _query(self, key, end_flag_index, x, state, mask, temperature):
+    def _query(self, key, end_flag_index, x, state, mask, temperature, query_num):
+        query_num = min(query_num, self.max_entity_num)
         B, N = key.shape[:2]
         units = torch.zeros(B, N, device=key.device, dtype=torch.int)
         logits = [[] for _ in range(B)]
         end_flag_trigger = [False for _ in range(B)]
         x = x.unsqueeze(0)
         for i in range(self.max_entity_num):
+            if sum(end_flag_trigger) == B:
+                break
             x, state = self.lstm(x, state)
             query_result = x.permute(1, 0, 2) * key
             query_result = query_result.mean(dim=2)
@@ -108,15 +111,23 @@ class SelectedUnitsHead(nn.Module):
             entity_num = handle.sample()
 
             for b in range(B):
-                if end_flag_trigger[b]:
-                    continue
-                else:
-                    if entity_num[b] == end_flag_index:
-                        end_flag_trigger[b] = True
+                if query_num is None:
+                    if end_flag_trigger[b]:
                         continue
-                    units[b][entity_num[b]] = 1
-                    logits[b].append(query_result)
-                    mask[b][entity_num[b]] = 0
+                    else:
+                        logits[b].append(query_result)
+                        if entity_num[b] == end_flag_index:
+                            end_flag_trigger[b] = True
+                            continue
+                        units[b][entity_num[b]] = 1
+                        mask[b][entity_num[b]] = 0
+                else:
+                    if i < query_num[b]:
+                        logits[b].append(query_result)
+                        units[b][entity_num[b]] = 1
+                        mask[b][entity_num[b]] = 0
+                    elif i == query_num[b]:
+                        logits[b].append(query_result)
         embedding_selected = units.unsqueeze(2).to(key.dtype)
         embedding_selected = embedding_selected * key
         embedding_selected = embedding_selected.mean(dim=1)
@@ -124,7 +135,7 @@ class SelectedUnitsHead(nn.Module):
         return logits, units, embedding_selected
 
     def forward(self, embedding, available_unit_type_mask, available_units_mask, entity_embedding,
-                temperature=1.0):
+                temperature=1.0, query_num=None):
         '''
         Input:
             embedding: [batch_size, input_dim(1024)]
@@ -141,12 +152,14 @@ class SelectedUnitsHead(nn.Module):
         input, state = self._get_init_query(embedding, available_unit_type_mask)
         mask = available_units_mask
         if isinstance(entity_embedding, list):
+            if query_num is None:
+                query_num = [None for _ in range(len(entity_embedding))]
             logits, units, embedding_selected = [], [], []
             for idx, (item, m, x) in enumerate(zip(entity_embedding, mask, input)):
                 key, end_flag_index = self._get_key(item)
                 m = torch.cat([m, torch.ones_like(m[:, 0:1])], dim=1)
                 logits_t, units_t, embedding_selected_t = self._query(
-                    key, end_flag_index, x.unsqueeze(0), state, m, temperature)
+                    key, end_flag_index, x.unsqueeze(0), state, m, temperature, query_num[idx:idx+1])
                 logits.extend(logits_t)
                 units.append(units_t)
                 embedding_selected.append(embedding_selected_t)
@@ -155,7 +168,8 @@ class SelectedUnitsHead(nn.Module):
         elif isinstance(entity_embedding, torch.Tensor):
             key, end_flag_index = self._get_key(entity_embedding)
             mask = torch.cat([mask, torch.ones_like(mask[:, 0:1])], dim=1)
-            logits, units, embedding_selected = self._query(key, end_flag_index, input, state, mask, temperature)
+            logits, units, embedding_selected = self._query(
+                key, end_flag_index, input, state, mask, temperature, query_num)
 
         return logits, units, embedding + embedding_selected
 
@@ -190,13 +204,16 @@ class TargetUnitsHead(nn.Module):
         state = None
         return x, state
 
-    def _query(self, key, end_flag_index, x, state, mask, temperature):
+    def _query(self, key, end_flag_index, x, state, mask, temperature, query_num):
+        query_num = min(query_num, self.max_entity_num)
         B, N = key.shape[:2]
         units = torch.zeros(B, N, device=key.device, dtype=torch.int)
         logits = [[] for _ in range(B)]
         end_flag_trigger = [False for _ in range(B)]
         x = x.unsqueeze(0)
         for i in range(self.max_entity_num):
+            if sum(end_flag_trigger) == B:
+                break
             x, state = self.lstm(x, state)
             query_result = x.permute(1, 0, 2) * key
             query_result = query_result.mean(dim=2)
@@ -206,19 +223,27 @@ class TargetUnitsHead(nn.Module):
             entity_num = handle.sample()
 
             for b in range(B):
-                if end_flag_trigger[b]:
-                    continue
-                else:
-                    if entity_num[b] == end_flag_index:
-                        end_flag_trigger[b] = True
+                if query_num is None:
+                    if end_flag_trigger[b]:
                         continue
-                    units[b][entity_num[b]] = 1
-                    logits[b].append(query_result)
-                    mask[b][entity_num[b]] = 0
+                    else:
+                        logits[b].append(query_result)
+                        if entity_num[b] == end_flag_index:
+                            end_flag_trigger[b] = True
+                            continue
+                        units[b][entity_num[b]] = 1
+                        mask[b][entity_num[b]] = 0
+                else:
+                    if i < query_num[b]:
+                        logits[b].append(query_result)
+                        units[b][entity_num[b]] = 1
+                        mask[b][entity_num[b]] = 0
+                    elif i == query_num[b]:
+                        logits[b].append(query_result)
         return logits, units
 
     def forward(self, embedding, available_unit_type_mask, available_units_mask, entity_embedding,
-                temperature=1.0):
+                temperature=1.0, query_num=None):
         '''
         Input:
             embedding: [batch_size, input_dim(1024)]
@@ -234,18 +259,21 @@ class TargetUnitsHead(nn.Module):
         input, state = self._get_init_query(embedding, available_unit_type_mask)
         mask = available_units_mask
         if isinstance(entity_embedding, list):
+            if query_num is None:
+                query_num = [None for _ in range(len(entity_embedding))]
             logits, units = [], []
             for idx, (item, m, x) in enumerate(zip(entity_embedding, mask, input)):
                 key, end_flag_index = self._get_key(item)
                 m = torch.cat([m, torch.ones_like(m[:, 0:1])], dim=1)
-                logits_t, units_t = self._query(key, end_flag_index, x.unsqueeze(0), state, m, temperature)
+                logits_t, units_t = self._query(key, end_flag_index, x.unsqueeze(0),
+                                                state, m, temperature, query_num[idx:idx+1])
                 logits.extend(logits_t)
                 units.append(units_t)
 
         elif isinstance(entity_embedding, torch.Tensor):
             key, end_flag_index = self._get_key(entity_embedding)
             mask = torch.cat([mask, torch.ones_like(mask[:, 0:1])], dim=1)
-            logits, units = self._query(key, end_flag_index, input, state, mask, temperature)
+            logits, units = self._query(key, end_flag_index, input, state, mask, temperature, query_num)
 
         return logits, units
 
