@@ -114,6 +114,8 @@ class EntityObsWrapper(object):
                 item_data = item['op'](item_data)
             except RuntimeError as e:
                 print(key, e)
+            except KeyError as e:
+                print(key, e)
             ret.append(item_data)
         ret = list(zip(*ret))
         ret = [torch.cat(item, dim=0) for item in ret]
@@ -204,6 +206,7 @@ class AlphastarObsParser(object):
         if obs['entity_info'] is None:
             return obs
         last_delay, last_queued, last_action_type, selected_units, target_units = last_action_info
+        last_queued = last_queued if isinstance(last_queued, torch.Tensor) else [2]  # 2 as 'none'
         obs['scalar_info']['last_delay'] = self.template_act[0]['op'](torch.LongTensor(last_delay))
         obs['scalar_info']['last_queued'] = self.template_act[1]['op'](torch.LongTensor(last_queued))
         obs['scalar_info']['last_action_type'] = self.template_act[2]['op'](torch.LongTensor(last_action_type))
@@ -247,12 +250,8 @@ def reorder_one_hot(v, dictionary, num):
     assert(len(v.shape) == 1)
     assert(isinstance(v, torch.Tensor))
     new_v = torch.zeros_like(v)
-    try:
-        for idx in range(v.shape[0]):
-            new_v[idx] = dictionary[v[idx].item()]
-    except KeyError as e:
-        print(e, num)
-        #raise KeyError
+    for idx in range(v.shape[0]):
+        new_v[idx] = dictionary[v[idx].item()]
     return one_hot(new_v, num)
 
 
@@ -416,8 +415,8 @@ def transform_scalar_data():
     template_action = [
         {'key': 'last_delay', 'arch': 'fc', 'input_dims': 128, 'output_dims': 64,
             'ori': 'action', 'op': partial(clip_one_hot, num=128), 'other': 'one-hot 128'},
-        {'key': 'last_repeat_queued', 'arch': 'fc', 'input_dims': 2, 'output_dims': 256,
-            'ori': 'action', 'op': partial(num_first_one_hot, num=2), 'other': 'one-hot 2'},
+        {'key': 'last_repeat_queued', 'arch': 'fc', 'input_dims': 3, 'output_dims': 256,
+            'ori': 'action', 'op': partial(num_first_one_hot, num=3), 'other': 'one-hot 3'},  # 0 False 1 True 2 None
         {'key': 'last_action_type', 'arch': 'fc', 'input_dims': NUM_ACTIONS, 'output_dims': 128, 'ori': 'action',
             'op': partial(reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS), 'other': 'one-hot NUM_ACTIONS'},
     ]

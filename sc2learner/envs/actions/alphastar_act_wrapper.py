@@ -16,7 +16,6 @@ class AlphastarActParser(object):
 
     def _get_output_template(self):
         template = {k: None for k in self.output_template}
-        template['queued'] = [False]
         return template
 
     def parse(self, action):

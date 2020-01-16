@@ -200,7 +200,7 @@ class ReplayProcessor(multiprocessing.Process):
         delay = [0 for _ in range(N)]
         action_count = 0
         # delay, queued, action_type, selected_units, target_units
-        last_info = [([0], [0], [0], [0], [0]) for _ in range(N)]
+        last_info = [([0], [0], [0], 'none', 'none') for _ in range(N)]
 
         def update_action_stat(action_statistics, act, obs):
             def get_unit_type(tag, obs):
