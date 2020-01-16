@@ -6,10 +6,13 @@ from sc2learner.envs.observations.alphastar_obs_wrapper import transform_scalar_
 
 
 class ScalarEncoder(nn.Module):
-    def __init__(self, cfg, template):
+    def __init__(self, cfg, template=None):
         super(ScalarEncoder, self).__init__()
         self.act = build_activation(cfg.activation)
         self.scalar_context_keys = []
+        if template is None:
+            template_obs, template_replay, template_act = transform_scalar_data()
+            template = template_obs + template_replay + template_act
         for item in template:
             if item['arch'] == 'fc':
                 encoder = fc_block(item['input_dim'], item['output_dim'], activation=self.act)
@@ -48,7 +51,7 @@ def test_scalar_encoder():
         def __init__(self):
             self.activation = 'relu'
 
-    template_obs, template_replay = transform_scalar_data()
+    template_obs = transform_scalar_data()[0]
     model = ScalarEncoder(CFG(), template_obs).cuda()
     inputs = {}
     B = 4

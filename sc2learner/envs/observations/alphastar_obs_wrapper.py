@@ -407,17 +407,18 @@ def transform_scalar_data():
             'ori': 'feature_units_count', 'op': partial(sqrt_one_hot, max_val=512), 'other': 'square root'},
     ]
     template_replay = [
-        {'key': 'mmr', 'input_dim': 6, 'output_dim': 64, 'other': 'min(mmr / 1000, 6)'},
-        {'key': 'cumulative_statistics', 'input_dims': [], 'output_dims': [32, 32, 32],
-            'scalar_context': True, 'other': 'boolean vector, split and concat'},
-        {'key': 'beginning_build_order', 'scalar_context': True, 'other': 'transformer'},  # TODO
+        {'key': 'mmr', 'arch': 'fc', 'input_dim': 6, 'output_dim': 64, 'op': partial(
+            div_one_hot, max_val=6000, ratio=1000), 'other': 'min(mmr / 1000, 6)'},
+        #{'key': 'cumulative_statistics', 'input_dims': [], 'output_dims': [32, 32, 32],
+        #    'scalar_context': True, 'other': 'boolean vector, split and concat'},
+        #{'key': 'beginning_build_order', 'scalar_context': True, 'other': 'transformer'},  # TODO
     ]
     template_action = [
-        {'key': 'last_delay', 'arch': 'fc', 'input_dims': 128, 'output_dims': 64,
+        {'key': 'last_delay', 'arch': 'fc', 'input_dim': 128, 'output_dim': 64,
             'ori': 'action', 'op': partial(clip_one_hot, num=128), 'other': 'one-hot 128'},
-        {'key': 'last_repeat_queued', 'arch': 'fc', 'input_dims': 3, 'output_dims': 256,
+        {'key': 'last_repeat_queued', 'arch': 'fc', 'input_dim': 3, 'output_dim': 256,
             'ori': 'action', 'op': partial(num_first_one_hot, num=3), 'other': 'one-hot 3'},  # 0 False 1 True 2 None
-        {'key': 'last_action_type', 'arch': 'fc', 'input_dims': NUM_ACTIONS, 'output_dims': 128, 'ori': 'action',
+        {'key': 'last_action_type', 'arch': 'fc', 'input_dim': NUM_ACTIONS, 'output_dim': 128, 'ori': 'action',
             'op': partial(reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS), 'other': 'one-hot NUM_ACTIONS'},
     ]
     return template_obs, template_replay, template_action
