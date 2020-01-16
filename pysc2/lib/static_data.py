@@ -18,48 +18,49 @@ from __future__ import division
 from __future__ import print_function
 
 import six
+from pysc2.lib.action_dict import ACTION_INFO_MASK
 
 
 class StaticData(object):
-  """Expose static data in a more useful form than the raw protos."""
+    """Expose static data in a more useful form than the raw protos."""
 
-  def __init__(self, data):
-    """Takes data from RequestData."""
-    self._units = {u.unit_id: u.name for u in data.units}
-    self._unit_stats = {u.unit_id: u for u in data.units}
-    self._upgrades = {a.upgrade_id: a for a in data.upgrades}
-    self._abilities = {a.ability_id: a for a in data.abilities}
-    self._general_abilities = {a.remaps_to_ability_id
-                               for a in data.abilities
-                               if a.remaps_to_ability_id}
+    def __init__(self, data):
+        """Takes data from RequestData."""
+        self._units = {u.unit_id: u.name for u in data.units}
+        self._unit_stats = {u.unit_id: u for u in data.units}
+        self._upgrades = {a.upgrade_id: a for a in data.upgrades}
+        self._abilities = {a.ability_id: a for a in data.abilities}
+        self._general_abilities = {a.remaps_to_ability_id
+                                   for a in data.abilities
+                                   if a.remaps_to_ability_id}
 
-    for a in six.itervalues(self._abilities):
-      a.hotkey = a.hotkey.lower()
+        for a in six.itervalues(self._abilities):
+            a.hotkey = a.hotkey.lower()
 
-  @property
-  def abilities(self):
-    return self._abilities
+    @property
+    def abilities(self):
+        return self._abilities
 
-  @property
-  def upgrades(self):
-    return self._upgrades
+    @property
+    def upgrades(self):
+        return self._upgrades
 
-  @property
-  def units(self):
-    return self._units
+    @property
+    def units(self):
+        return self._units
 
-  @property
-  def unit_stats(self):
-    return self._unit_stats
+    @property
+    def unit_stats(self):
+        return self._unit_stats
 
-  @property
-  def general_abilities(self):
-    return self._general_abilities
+    @property
+    def general_abilities(self):
+        return self._general_abilities
 
 
 # List of used/available abilities found by parsing replays.
 ABILITIES = [
-    0,  # TODO
+    0,  # invalid
     1, 4, 6, 7, 16, 17, 18, 19, 23, 26, 28, 30, 32, 36, 38, 42, 44, 46, 74, 76,
     78, 80, 110, 140, 142, 144, 146, 148, 150, 152, 154, 156, 158, 160, 162,
     164, 166, 167, 169, 171, 173, 174, 181, 195, 199, 203, 207, 211, 212, 216,
@@ -95,11 +96,12 @@ ABILITIES = [
     2542, 2544, 2550, 2552, 2558, 2560, 2588, 2594, 2596, 2700, 2704, 2708,
     2709, 2714, 2720, 3707, 3709, 3739, 3741, 3743, 3745, 3747, 3749, 3751,
     3753, 3755, 3757, 3765, 3771, 3776, 3777, 3778, 3783,
-    356, 503, 547, 360, 515, 193, 10, 197, 528, 495, 516, 184, 491, 190, 483,  # TODO
-    498, 192, 215, 189, 437, 519, 514, 219, 198, 507, 204, 400, 349, 492, 431,
-    543, 201, 387, 442, 479, 551, 489, 425, 218, 447, 238, 220, 501, 391, 445,
-    438, 526, 350, 256, 494, 493,
 ]
+
+#    356, 503, 547, 360, 515, 193, 10, 197, 528, 495, 516, 184, 491, 190, 483,  # TODO
+#    498, 192, 215, 189, 437, 519, 514, 219, 198, 507, 204, 400, 349, 492, 431,
+#    543, 201, 387, 442, 479, 551, 489, 425, 218, 447, 238, 220, 501, 391, 445,
+#    438, 526, 350, 256, 494, 493,
 
 NUM_ABILITIES = len(ABILITIES)
 
@@ -161,6 +163,24 @@ NUM_UPGRADES = len(UPGRADES)
 
 UPGRADES_REORDER = {
     item: idx for idx, item in enumerate(UPGRADES)
+}
+
+ADDON = [
+    0, 5, 6, 37, 38, 39, 40, 41, 42
+]
+
+NUM_ADDON = len(ADDON)
+
+ADDON_REORDER = {
+    item: idx for idx, item in enumerate(ADDON)
+}
+
+ACTIONS = list(ACTION_INFO_MASK.keys())
+
+NUM_ACTIONS = len(ACTIONS)
+
+ACTIONS_REORDER = {
+    item: idx for idx, item in enumerate(ACTIONS)
 }
 
 

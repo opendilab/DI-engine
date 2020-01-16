@@ -13,7 +13,7 @@ def to_device(item, device):
         return {k: to_device(item[k], device) for k in item.keys()}
     elif isinstance(item, numbers.Integral) or isinstance(item, numbers.Real):
         return item
-    elif item is None:
+    elif item is None or isinstance(item, str):
         return item
     else:
         raise TypeError("not support item type: {}".format(type(item)))

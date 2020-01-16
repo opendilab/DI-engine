@@ -20,13 +20,13 @@ class ActionTypeHead(nn.Module):
         self.glu2 = build_activation('glu')(cfg.input_dim, cfg.gate_dim, cfg.context_dim)
         self.action_num = cfg.action_num
 
-    def forward(self, lstm_output, scalar_context, temperature=1.0):
+    def forward(self, lstm_output, scalar_context, temperature=1.0, action=None):
         x = self.project(lstm_output)
         x = self.res(x)
         x = self.action_fc(x)
-        x.div_(temperature)
-        handle = self.pd(x)
-        action = handle.sample()
+        if action is None:
+            handle = self.pd(x.div(temperature))
+            action = handle.sample()
 
         action_one_hot = one_hot(action, self.action_num)
         embedding1 = self.action_map_fc(action_one_hot)
