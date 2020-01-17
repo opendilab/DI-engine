@@ -3,6 +3,7 @@ import zmq
 import time
 import numpy as np
 import torch
+from collections import deque
 from sc2learner.dataset import OnlineDataset, OnlineDataLoader
 from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper, to_device, CountVar,\
         DistributionTimeImage
@@ -25,6 +26,8 @@ class HistoryActorInfo(object):
         self.actor_monitor_arg = actor_monitor_arg
         self.copy_keys = ['update_model_time', 'data_rollout_time']
         self.dist_time_img = {k: DistributionTimeImage() for k in self.copy_keys}
+        self.game_results = {k: deque(maxlen=actor_monitor_arg.difficulty_queue_len)
+                             for k in actor_monitor_arg.difficulties}
 
     def update_actor_info(self, data):
         actor_id = data['actor_id']
@@ -35,6 +38,8 @@ class HistoryActorInfo(object):
             self._data[actor_id] = {'count': 1, 'update_time': time.time()}
         for k in self.copy_keys:
             self._data[actor_id][k] = data[k]
+        game_result, difficulty = data['episode_info']['game_result'], data['episode_info']['difficulty']
+        self.game_results[difficulty].append(game_result)
 
     def __str__(self):
         cur_time = time.time()
@@ -99,6 +104,12 @@ class HistoryActorInfo(object):
     def get_distribution_img(self, key):
         self.dist_time_img[key].add_one_time_step(self.get_distribution(key))
         return self.dist_time_img[key].get_image()
+
+    def get_win_rate(self):
+        def win_rate(v):
+            return (sum(v) + len(v)) / 2
+
+        return {k: win_rate(v) for k, v in self.game_results.items()}
 
 
 class BaseLearner(object):
@@ -168,7 +179,8 @@ class BaseLearner(object):
             var_items, forward_time = self._get_loss(batch_data)
             _, backward_update_time = self._optimize_step(var_items['total_loss'])
             time_items = {'data_time': data_time, 'forward_time': forward_time,
-                          'backward_update_time': backward_update_time}
+                          'backward_update_time': backward_update_time,
+                          'total_batch_time': data_time+forward_time+backward_update_time}
             var_items['cur_lr'] = cur_lr
             var_items['avg_usage'] = avg_usage
             var_items['push_count'] = push_count
@@ -185,6 +197,7 @@ class BaseLearner(object):
             self.tb_logger.add_scalar_list(self.scalar_record.get_var_tb_format(tb_keys, iterations))
             self.tb_logger.add_text('history_actor_info', str(self.history_actor_info), iterations)
             self.tb_logger.add_scalars('actor_monitor', self.history_actor_info.get_cls_by_time(), iterations)
+            self.tb_logger.add_scalars('win_rate', self.history_actor_info.get_win_rate(), iterations)
             self.tb_logger.add_histogram('data_rollout_time',
                                          self.history_actor_info.get_distribution('data_rollout_time'), iterations)
             self.tb_logger.add_histogram('update_model_time',
@@ -257,6 +270,7 @@ class BaseLearner(object):
         self.scalar_record.register_var('avg_usage')
         self.scalar_record.register_var('push_count')
         self.scalar_record.register_var('data_staleness')
+        self.scalar_record.register_var('total_batch_time')
         self.scalar_record.register_var('data_time')
         self.scalar_record.register_var('forward_time')
         self.scalar_record.register_var('backward_update_time')
@@ -268,9 +282,11 @@ class BaseLearner(object):
         self.tb_logger.register_var('avg_usage')
         self.tb_logger.register_var('push_count')
         self.tb_logger.register_var('data_staleness')
+        self.tb_logger.register_var('total_batch_time')
         self.tb_logger.register_var('history_actor_info', var_type='text')
         self.tb_logger.register_var('actor_monitor', var_type='scalars')
         self.tb_logger.register_var('data_rollout_time', var_type='histogram')
         self.tb_logger.register_var('update_model_time', var_type='histogram')
         self.tb_logger.register_var('data_rollout_time_img', var_type='image')
         self.tb_logger.register_var('update_model_time_img', var_type='image')
+        self.tb_logger.register_var('win_rate', var_type='scalars')
