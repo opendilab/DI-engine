@@ -28,7 +28,7 @@ class PpoActor(BaseActor):
             outputs['reward'].append(reward)
             self.cumulative_reward += reward
             if self.done:
-                episode_infos.append(self.cumulative_reward)
+                episode_infos.append({'game_result': self.cumulative_reward, 'difficulty': self.env.difficulty})
                 self._init()
 
         inputs = self._pack_model_input()
