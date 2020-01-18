@@ -38,7 +38,7 @@ class HistoryActorInfo(object):
             self._data[actor_id] = {'count': 1, 'update_time': time.time()}
         for k in self.copy_keys:
             self._data[actor_id][k] = data[k]
-        game_result, difficulty = data['episode_info']['game_result'], data['episode_info']['difficulty']
+        game_result, difficulty = data['episode_infos']['game_result'], data['episode_infos']['difficulty']
         self.game_results[difficulty].append(game_result)
 
     def __str__(self):
@@ -111,6 +111,13 @@ class HistoryActorInfo(object):
 
         return {k: win_rate(v) for k, v in self.game_results.items()}
 
+    def state_dict(self):
+        return {'actor_data': self._data, 'game_results': self.game_results}
+
+    def load_state_dict(self, state_dict):
+        self._data = state_dict['actor_data']
+        self.game_results = state_dict['game_results']
+
 
 class BaseLearner(object):
 
@@ -151,15 +158,16 @@ class BaseLearner(object):
         self.time_helper = build_time_helper(cfg)
         self.checkpoint_helper = build_checkpoint_helper(cfg)
         self.last_iter = CountVar(init_val=0)
+        self.history_actor_info = HistoryActorInfo(cfg.logger.actor_monitor)
         if cfg.common.load_path != '':
             self.checkpoint_helper.load(cfg.common.load_path, self.model,
                                         optimizer=self.optimizer,
                                         last_iter=self.last_iter,  # TODO last_iter for lr_scheduler
                                         dataset=self.dataset,
+                                        actor_info=self.history_actor_info,
                                         logger_prefix='(learner)')
         self._init()
         self._optimize_step = self.time_helper.wrapper(self._optimize_step)
-        self.history_actor_info = HistoryActorInfo(cfg.logger.actor_monitor)
 
     def run(self):
         self.pull_thread.start()
@@ -208,7 +216,7 @@ class BaseLearner(object):
             self.tb_logger.add_image('update_model_time_img', update_model_img, iterations)
         if iterations % self.cfg.logger.save_freq == 0:
             self.checkpoint_helper.save_iterations(iterations, self.model, optimizer=self.optimizer,
-                                                   dataset=self.dataset)
+                                                   dataset=self.dataset, actor_info=self.history_actor_info)
 
     def _get_loss(self, data):
         raise NotImplementedError
