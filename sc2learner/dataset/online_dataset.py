@@ -63,30 +63,19 @@ class OnlineDataset(object):
             avg_model_index = sum(model_index) / len(model_index)
             usage = [self.data_queue[i]['use_count'] for i in indice]
             avg_usage = sum(usage) / len(usage)
+            push_count = self.push_count
+            self.push_count = 0
+            self._add_usage_count(indice)
             if use_block_data:
-                if avg_usage <= threshold:
-                    self._add_usage_count(indice)
-                    push_count = self.push_count
-                    self.push_count = 0
-                    self._release_lock()
-                    return data, avg_usage, push_count, avg_model_index
-                else:
-                    # remove excessive used data
-                    for u, idx in zip(usage, indice):
-                        if u > int(threshold):
-                            self.data_queue[idx] = None
-                    new_data_queue = deque(maxlen=self.data_maxlen)
-                    new_data_queue.extend([item for item in self.data_queue if item is not None])
-                    self.data_queue = new_data_queue
-                    self._release_lock()
-                    print("Blocking...Current AVG usage: {}".format(avg_usage))
-                    time.sleep(sleep_time)
-            else:
-                push_count = self.push_count
-                self.push_count = 0
-                self._add_usage_count(indice)
-                self._release_lock()
-                return data, avg_usage, push_count, avg_model_index
+                # remove excessive used data
+                for u, idx in zip(usage, indice):
+                    if u+1 >= int(threshold):
+                        self.data_queue[idx] = None
+                new_data_queue = deque(maxlen=self.data_maxlen)
+                new_data_queue.extend([item for item in self.data_queue if item is not None])
+                self.data_queue = new_data_queue
+            self._release_lock()
+            return data, avg_usage, push_count, avg_model_index
 
     def extend_data(self, data_list):
         self._acquire_lock()
