@@ -6,10 +6,22 @@ from .sl_learner import SLLearner
 from sc2learner.dataset import policy_collate_fn
 
 
+def build_temperature_scheduler(cfg):
+    class NaiveT(object):
+        def __init__(self, init_val=0.1):
+            self.init_val = init_val
+
+        def step(self):
+            return self.init_val
+
+    return NaiveT(init_val=cfg.train.temperature)
+
+
 class AlphastarSLLearner(SLLearner):
     def __init__(self, *args, **kwargs):
         super(AlphastarSLLearner, self).__init__(*args, **kwargs)
         setattr(self.dataloader, 'collate_fn', policy_collate_fn)
+        self.temperature_scheduler = build_temperature_scheduler(self.cfg)
         self._get_loss = self.time_helper.wrapper(self._get_loss)
         self.use_value_network = 'value' in self.cfg.model.keys()
         self.criterion = nn.CrossEntropyLoss()
@@ -35,10 +47,11 @@ class AlphastarSLLearner(SLLearner):
         self.tb_logger.register_var('target_location_loss')
 
     # overwrite
-    def _get_loss(self, data, train_param):
+    def _get_loss(self, data):
         if self.use_value_network:
             raise NotImplementedError
 
+        temperature = self.temperature_scheduler.step()
         prev_state = None
         loss_func = {
             'action_type': self.criterion,
@@ -59,7 +72,7 @@ class AlphastarSLLearner(SLLearner):
         for i, step_data in enumerate(data):
             actions = data['actions']
             step_data['prev_state'] = prev_state
-            policy_logits, prev_state = self.model(step_data, mode='mimic', temperature=train_param['temperature'])
+            policy_logits, prev_state = self.model(step_data, mode='mimic', temperature=temperature)
 
             for k in loss_items.keys():
                 kp = k[:-5]

@@ -50,6 +50,7 @@ def create_env(cfg, difficulty, random_seed=None):
                                  use_game_progress=(not cfg.model.policy == 'lstm'),
                                  action_seq_len=1 if cfg.model.policy == 'lstm' else 8,
                                  use_regions=cfg.env.use_region_features)
+    env.difficulty = difficulty
     return env
 
 

@@ -24,9 +24,8 @@ class ActionTypeHead(nn.Module):
         x = self.project(lstm_output)
         x = self.res(x)
         x = self.action_fc(x)
-        x.div_(temperature)
         if action is None:
-            handle = self.pd(x)
+            handle = self.pd(x.div(temperature))
             action = handle.sample()
 
         action_one_hot = one_hot(action, self.action_num)

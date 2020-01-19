@@ -66,3 +66,5 @@ logger:
         fast: 100
         normal: 200
         slow: 2000
+        difficulties: ['1', '2', '4', '6', '9', 'A']
+        difficulty_queue_len: 100

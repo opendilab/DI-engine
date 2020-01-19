@@ -42,7 +42,7 @@ class CheckpointHelper(object):
 
     def save(self, name, model,
              optimizer=None, last_iter=None,
-             dataset=None,
+             dataset=None, actor_info=None,
              prefix_op=None, prefix=None):
         checkpoint = {}
         state_dict = model.state_dict()
@@ -62,6 +62,8 @@ class CheckpointHelper(object):
 
         if dataset is not None:
             checkpoint['dataset'] = dataset.create_checkpoint()
+        if actor_info is not None:
+            checkpoint['actor_info'] = actor_info.state_dict()
         path = os.path.join(self.save_path, name+'.pth.tar')
         torch.save(checkpoint, path)
         logger.info('save checkpoint in {}'.format(path))
@@ -83,7 +85,7 @@ class CheckpointHelper(object):
             logger.info('redundant_keys: {}'.format(k))
 
     def load(self, load_path, model,
-             optimizer=None, last_iter=None, lr_schduler=None, dataset=None,
+             optimizer=None, last_iter=None, lr_schduler=None, dataset=None, actor_info=None,
              prefix_op=None, prefix=None, strict=False, logger_prefix=''):
         # Note: don't use assign operation('=') to updare input argument value
         assert(os.path.exists(load_path))
@@ -112,6 +114,10 @@ class CheckpointHelper(object):
         if last_iter is not None:
             last_iter.update(checkpoint['last_iter'])
             logger.info(logger_prefix+'load last_iter in {}, current last_iter is {}'.format(load_path, last_iter.val))
+
+        if actor_info is not None:
+            actor_info.load_state_dict(checkpoint['actor_info'])
+            logger.info(logger_prefix+'load actor info in {}'.format(load_path))
 
         if lr_schduler is not None:
             assert(last_iter is not None)
