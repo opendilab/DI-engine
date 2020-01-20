@@ -1415,6 +1415,8 @@ class Features(object):
                     raw_effects, [None, EffectPos], dtype=np.int32)
 
         out["upgrades"] = np.array(raw.player.upgrade_ids, dtype=np.int32)
+        if out["upgrades"].shape[0] == 0:  # for empty upgrades case
+            out["upgrades"] = np.array([0])
 
         def cargo_units(u, pos_transform, is_raw=False):
             """Compute unit features."""
