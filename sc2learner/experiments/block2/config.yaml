@@ -36,9 +36,9 @@ train:
         sleep_time: 3
 communication:
     ip:
-        learner: '10.198.6.66'
+        learner: '10.198.6.60'
         learner_manager: '10.198.6.31'
-        actor_manager: '10.198.6.62'  # if single lustre, set learner_manager == actor_manager
+        actor_manager: '10.198.6.61'  # if single lustre, set learner_manager == actor_manager
     port:
         learner: 5710
         learner_manager: 5711
@@ -63,9 +63,6 @@ logger:
     print_freq: 500
     save_freq: 5000
     actor_monitor:
-        speed:
-            fast: 100
-            normal: 200
-            slow: 2000
-        difficulties: ['1', '2', '4', '6', '9', 'A']
-        difficulty_queue_len: 100
+        fast: 100
+        normal: 200
+        slow: 2000

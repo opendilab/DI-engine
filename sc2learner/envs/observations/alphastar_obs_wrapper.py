@@ -88,7 +88,7 @@ class EntityObsWrapper(object):
     def parse(self, obs):
         feature_unit = obs[self.key]
         if len(feature_unit.shape) == 1:  # when feature_unit is None
-            return None, None
+            return None, None, None
         num_unit, num_attr = feature_unit.shape
         entity_raw = {'location': [], 'id': [], 'type': []}
         for idx in range(num_unit):
