@@ -38,8 +38,9 @@ class HistoryActorInfo(object):
             self._data[actor_id] = {'count': 1, 'update_time': time.time()}
         for k in self.copy_keys:
             self._data[actor_id][k] = data[k]
-        game_result, difficulty = data['episode_infos']['game_result'], data['episode_infos']['difficulty']
-        self.game_results[difficulty].append(game_result)
+        if len(data['episode_infos']) > 0:
+            game_result, difficulty = data['episode_infos'][0]['game_result'], data['episode_infos'][0]['difficulty']
+            self.game_results[difficulty].append(game_result)
 
     def __str__(self):
         cur_time = time.time()
@@ -69,8 +70,8 @@ class HistoryActorInfo(object):
                     return False
             return True
 
-        keys = list(self.actor_monitor_arg.keys())
-        values = list(self.actor_monitor_arg.values())
+        keys = list(self.actor_monitor_arg.speed.keys())
+        values = list(self.actor_monitor_arg.speed.values())
         assert(monotonic_check(values))
 
         def look_up(t):

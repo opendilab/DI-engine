@@ -30,8 +30,10 @@ class AlphastarActParser(object):
         return ret
 
     def world_coord_to_minimap(self, coord):
-        new_x = round(coord[0] * self.resolution[0] / self.map_size[0])
-        new_y = round(coord[1] * self.resolution[1] / self.map_size[1])
+        coord[0] = min(self.map_size[0], coord[0])
+        coord[1] = min(self.map_size[1], coord[1])
+        new_x = int(coord[0] * self.resolution[0] / (self.map_size[0] + 1e-3))
+        new_y = int(coord[1] * self.resolution[1] / (self.map_size[1] + 1e-3))
         return (new_x, new_y)
 
     # refer to https://github.com/Blizzard/s2client-proto/blob/master/s2clientprotocol/raw.proto

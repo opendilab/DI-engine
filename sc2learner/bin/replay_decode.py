@@ -39,7 +39,7 @@ from pysc2.lib import replay
 from pysc2.lib import gfile
 from pysc2.lib.action_dict import ACTION_INFO_MASK
 from s2clientprotocol import sc2api_pb2 as sc_pb
-from sc2learner.envs.observations.alphastar_obs_wrapper import AlphastarObsParser
+from sc2learner.envs.observations.alphastar_obs_wrapper import AlphastarObsParser, compress_obs, decompress_obs
 from sc2learner.envs.actions.alphastar_act_wrapper import AlphastarActParser
 from functools import partial
 
@@ -47,7 +47,7 @@ FLAGS = flags.FLAGS
 flags.DEFINE_integer("parallel", 1, "How many instances to run in parallel.")
 flags.DEFINE_integer("step_mul", 1, "How many game steps per observation.")
 flags.DEFINE_string("replays", None, "Path to a directory of replays.")
-flags.DEFINE_string("output_dir", "/mnt/lustre/niuyazhe/data/sl_data_new", "Path to save data")
+flags.DEFINE_string("output_dir", "/mnt/lustre/niuyazhe/data/sl_data_new_compress", "Path to save data")
 flags.mark_flag_as_required("replays")
 
 
@@ -203,7 +203,7 @@ class ReplayProcessor(multiprocessing.Process):
         delay = [0 for _ in range(N)]
         action_count = 0
         # delay, queued, action_type, selected_units, target_units
-        last_info = [([0], [0], [0], 'none', 'none') for _ in range(N)]
+        last_info = [(torch.LongTensor([0]), 'none', torch.LongTensor([0]), 'none', 'none') for _ in range(N)]
 
         def update_action_stat(action_statistics, act, obs):
             def get_unit_type(tag, obs):
@@ -304,17 +304,18 @@ class ReplayProcessor(multiprocessing.Process):
                         update_cum_stat(cumulative_statistics, v)
                         if len(begin_statistics) < begin_num:
                             update_begin_stat(begin_statistics, v)
-                            print(begin_statistics)
                         delay[0] = 0
                         agent_obs[0] = self.obs_parser.merge_action(agent_obs[0], last_info[0])
                         agent_obs[1] = self.obs_parser.merge_action(agent_obs[1], last_info[1])
                         last_info[0] = (v['delay'], v['queued'], v['action_type'],
                                         v['selected_units'], v['target_units'])
+                        compressed_obs = (compress_obs(agent_obs[0]), compress_obs(agent_obs[1]))
                         # torch.save(
-                        #     {'obs0': agent_obs[0], 'obs1': agent_obs[1], 'act': v},
-                        #     os.path.join(self.output_dir, '{}.pt'.format(action_count))
+                        #     {'obs0': compressed_obs[0], 'obs1': compressed_obs[1], 'act': v},
+                        #     #{'obs0': agent_obs[0], 'obs1': agent_obs[1], 'act': v},
+                        #     os.path.join(self.output_dir, '0{}.pt'.format(action_count))
                         # )
-                        step_data.append({'obs0': agent_obs[0], 'obs1': agent_obs[1], 'act': v})
+                        step_data.append({'obs0': compressed_obs[0], 'obs1': compressed_obs[1], 'act': v})
                         action_count += 1
 
             if obs[0].player_result:
@@ -364,6 +365,7 @@ def replay_decode(paths, version):
         except KeyboardInterrupt:
             print("Caught KeyboardInterrupt, exiting.")
         except Exception as e:
+            print(e)
             error_msg.append(repr(e))
     return success_msg, error_msg
 
@@ -393,7 +395,7 @@ def main_multi(unused_argv):
         new_error_msg = [log_func(s, idx) for idx, s in enumerate(new_error_msg)]
         return new_success_msg, new_error_msg
 
-    N = 40
+    N = 20
     pool = Pool(N)
     group_num = int(len(replay_list) // N)
     print('total len: {}, group: {}, each group: {}'.format(len(replay_list), N, group_num))
