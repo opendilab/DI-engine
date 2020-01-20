@@ -90,14 +90,11 @@ class EntityObsWrapper(object):
         if len(feature_unit.shape) == 1:  # when feature_unit is None
             return None, None
         num_unit, num_attr = feature_unit.shape
-        entity_raw = []
+        entity_raw = {'location': [], 'id': [], 'type': []}
         for idx in range(num_unit):
-            raw = {
-                'location': (feature_unit[idx].x, feature_unit[idx].y),
-                'id': feature_unit[idx].tag,
-                'type': feature_unit[idx].unit_type,
-            }
-            entity_raw.append(raw)
+            entity_raw['location'].append((feature_unit[idx].x, feature_unit[idx].y))
+            entity_raw['id'].append(feature_unit[idx].tag)
+            entity_raw['type'].append(feature_unit[idx].unit_type)
 
         ret = []
         for idx, item in enumerate(self.cfg):
@@ -206,23 +203,23 @@ class AlphastarObsParser(object):
         if obs['entity_info'] is None:
             return obs
         last_delay, last_queued, last_action_type, selected_units, target_units = last_action_info
-        last_queued = last_queued if isinstance(last_queued, torch.Tensor) else [2]  # 2 as 'none'
-        obs['scalar_info']['last_delay'] = self.template_act[0]['op'](torch.LongTensor(last_delay))
-        obs['scalar_info']['last_queued'] = self.template_act[1]['op'](torch.LongTensor(last_queued))
-        obs['scalar_info']['last_action_type'] = self.template_act[2]['op'](torch.LongTensor(last_action_type))
+        last_queued = last_queued if isinstance(last_queued, torch.Tensor) else torch.LongTensor([2])  # 2 as 'none'
+        obs['scalar_info']['last_delay'] = self.template_act[0]['op'](torch.LongTensor(last_delay)).squeeze()
+        obs['scalar_info']['last_queued'] = self.template_act[1]['op'](torch.LongTensor(last_queued)).squeeze()
+        obs['scalar_info']['last_action_type'] = self.template_act[2]['op'](torch.LongTensor(last_action_type)).squeeze()
         N = obs['entity_info'].shape[0]
         obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 2)], dim=1)
         selected_units = [] if isinstance(selected_units, str) else selected_units
-        for idx, v in enumerate(obs['entity_raw']):
-            if v['id'] in selected_units:
+        for idx, v in enumerate(obs['entity_raw']['id']):
+            if v in selected_units:
                 obs['entity_info'][idx, -1] = 1
             else:
                 obs['entity_info'][idx, -2] = 1
 
         obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 2)], dim=1)
         target_units = [] if isinstance(target_units, str) else target_units
-        for idx, v in enumerate(obs['entity_raw']):
-            if v['id'] in target_units:
+        for idx, v in enumerate(obs['entity_raw']['id']):
+            if v in target_units:
                 obs['entity_info'][idx, -1] = 1
             else:
                 obs['entity_info'][idx, -2] = 1
@@ -307,6 +304,10 @@ def clip_one_hot(v, num):
 def transform_entity_data(resolution=128, pad_value=-1e9):
 
     template = [
+        {'key': 'build_progress', 'dim': 1, 'op': partial(div_func, other=256.), 'other': 'float [0, 1]'},
+        {'key': 'health_ratio', 'dim': 1, 'op': partial(div_func, other=256.), 'other': 'float [0, 1]'},
+        {'key': 'shield_ratio', 'dim': 1, 'op': partial(div_func, other=256.), 'other': 'float [0, 1]'},
+        {'key': 'energy_ratio', 'dim': 1, 'op': partial(div_func, other=256.), 'other': 'float [0, 1]'},
         {'key': 'unit_type', 'dim': NUM_UNIT_TYPES, 'op': partial(
             reorder_one_hot, dictionary=UNIT_TYPES_REORDER, num=NUM_UNIT_TYPES), 'other': 'one-hot'},
         #{'key': 'unit_attr', 'dim': 13, 'other': 'each one boolean'},
@@ -316,10 +317,6 @@ def transform_entity_data(resolution=128, pad_value=-1e9):
         {'key': 'energy', 'dim': 15, 'op': partial(sqrt_one_hot, max_val=200), 'other': 'one-hot, sqrt(200), floor'},
         {'key': 'cargo_space_taken', 'dim': 9, 'op': partial(clip_one_hot, num=9), 'other': 'one-hot'},
         {'key': 'cargo_space_max', 'dim': 9, 'op': partial(clip_one_hot, num=9), 'other': 'one-hot'},  # 1020 ???
-        {'key': 'build_progress', 'dim': 1, 'op': partial(div_func, other=256.), 'other': 'float [0, 1]'},
-        {'key': 'health_ratio', 'dim': 1, 'op': partial(div_func, other=256.), 'other': 'float [0, 1]'},
-        {'key': 'shield_ratio', 'dim': 1, 'op': partial(div_func, other=256.), 'other': 'float [0, 1]'},
-        {'key': 'energy_ratio', 'dim': 1, 'op': partial(div_func, other=256.), 'other': 'float [0, 1]'},
         {'key': 'display_type', 'dim': 5, 'op': partial(one_hot, num=5), 'other': 'one-hot'},
         {'key': 'x', 'dim': 8, 'op': partial(batch_binary_encode, bit_num=8), 'other': 'binary encoding'},
         {'key': 'y', 'dim': 8, 'op': partial(batch_binary_encode, bit_num=8), 'other': 'binary encoding'},
@@ -372,9 +369,9 @@ def transform_entity_data(resolution=128, pad_value=-1e9):
 def transform_spatial_data():
     template = [
         # {'key': 'scattered_entities', 'other': '32 channel float'},
-        {'key': 'camera', 'dim': 2, 'op': partial(num_first_one_hot, num=2), 'other': 'one-hot 2 value'},
         {'key': 'height_map', 'dim': 1, 'op': partial(
             div_func, other=256., unsqueeze_dim=0), 'other': 'float height_map/256'},
+        {'key': 'camera', 'dim': 2, 'op': partial(num_first_one_hot, num=2), 'other': 'one-hot 2 value'},
         {'key': 'visibility', 'dim': 4, 'op': partial(num_first_one_hot, num=4), 'other': 'one-hot 4 value'},
         {'key': 'creep', 'dim': 2, 'op': partial(num_first_one_hot, num=2), 'other': 'one-hot 2 value'},
         {'key': 'entity_owners', 'dim': 5, 'op': partial(num_first_one_hot, num=5), 'other': 'one-hot 5 value'},
@@ -416,9 +413,54 @@ def transform_scalar_data():
     template_action = [
         {'key': 'last_delay', 'arch': 'fc', 'input_dim': 128, 'output_dim': 64,
             'ori': 'action', 'op': partial(clip_one_hot, num=128), 'other': 'one-hot 128'},
-        {'key': 'last_repeat_queued', 'arch': 'fc', 'input_dim': 3, 'output_dim': 256,
+        {'key': 'last_queued', 'arch': 'fc', 'input_dim': 3, 'output_dim': 256,
             'ori': 'action', 'op': partial(num_first_one_hot, num=3), 'other': 'one-hot 3'},  # 0 False 1 True 2 None
         {'key': 'last_action_type', 'arch': 'fc', 'input_dim': NUM_ACTIONS, 'output_dim': 128, 'ori': 'action',
             'op': partial(reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS), 'other': 'one-hot NUM_ACTIONS'},
     ]
     return template_obs, template_replay, template_action
+
+
+def compress_obs(obs):
+    new_obs = {}
+    new_obs['entity_raw'] = obs['entity_raw']
+    new_obs['scalar_info'] = obs['scalar_info']
+
+    new_obs['entity_info'] = {}
+    entity_no_bool = 4
+    new_obs['entity_info'] = {}
+    new_obs['entity_info']['no_bool'] = obs['entity_info'][:, :entity_no_bool].numpy()
+    entity_bool = obs['entity_info'][:, entity_no_bool:].to(torch.uint8).numpy()
+    new_obs['entity_info']['bool_ori_shape'] = entity_bool.shape
+    B, N = entity_bool.shape
+    N_strided = N if N % 8 == 0 else (N // 8 + 1) * 8
+    new_obs['entity_info']['bool_strided_shape'] = (B, N_strided)
+    if N != N_strided:
+        entity_bool = np.concatenate([entity_bool, np.zeros((B, N_strided-N), dtype=np.uint8)], axis=1)
+    new_obs['entity_info']['bool'] = np.packbits(entity_bool)
+
+    spatial_no_bool = 1
+    new_obs['spatial_info'] = {}
+    spatial_bool = obs['spatial_info'][spatial_no_bool:].to(torch.uint8).numpy()
+    spatial_uint8 = obs['spatial_info'][:spatial_no_bool].mul_(256).to(torch.uint8).numpy()
+    new_obs['spatial_info']['no_bool'] = spatial_uint8
+    new_obs['spatial_info']['bool_ori_shape'] = spatial_bool.shape
+    new_obs['spatial_info']['bool'] = np.packbits(spatial_bool)
+    return new_obs
+
+
+def decompress_obs(obs):
+    new_obs = {}
+    new_obs['entity_raw'] = obs['entity_raw']
+    new_obs['scalar_info'] = obs['scalar_info']
+
+    new_obs['entity_info'] = {}
+    entity_bool = np.unpackbits(obs['entity_info']['bool']).reshape(*obs['entity_info']['bool_strided_shape'])
+    if obs['entity_info']['bool_strided_shape'][1] != obs['entity_info']['bool_ori_shape'][1]:
+        entity_bool = entity_bool[:, :obs['entity_info']['bool_ori_shape'][1]]
+    entity_no_bool = obs['entity_info']['no_bool']
+    spatial_bool = np.unpackbits(obs['spatial_info']['bool']).reshape(*obs['spatial_info']['bool_ori_shape'])
+    spatial_uint8 = obs['spatial_info']['no_bool'].astype(np.float32)/256.
+    new_obs['entity_info'] = torch.cat([torch.FloatTensor(entity_no_bool), torch.FloatTensor(entity_bool)], dim=1)
+    new_obs['spatial_info'] = torch.cat([torch.FloatTensor(spatial_uint8), torch.FloatTensor(spatial_bool)], dim=0)
+    return new_obs
