@@ -23,7 +23,7 @@ class GLU(nn.Module):
 
 def build_activation(activation):
     act_func = {
-        'relu': nn.ReLU(inplace=True),
+        'relu': nn.ReLU(inplace=False),
         'glu': GLU
     }
     if activation in act_func.keys():

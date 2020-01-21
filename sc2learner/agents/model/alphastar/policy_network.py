@@ -1,3 +1,4 @@
+import collections
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -5,6 +6,7 @@ from .head import DelayHead, QueuedHead, SelectedUnitsHead, TargetUnitsHead, Loc
 from .core import CoreLstm
 from .obs_encoder import ScalarEncoder, SpatialEncoder, EntityEncoder
 from sc2learner.nn_utils import fc_block
+from pysc2.lib.action_dict import ACTION_INFO_MASK
 from ..actor_critic.actor_critic import ActorCriticBase
 
 
@@ -41,20 +43,53 @@ class Policy(ActorCriticBase):
             self.head[item] = build_head(item)(cfg.head[item])
 
         self.scatter_project = fc_block(cfg.scatter.input_dim, cfg.scatter.output_dim)
+        self.scatter_dim = cfg.scatter.output_dim
 
-    def _scatter_connection(self, spatial_info, entity_embeddings, entity_location):
-        project_embeddings = self.scatter_project(entity_embeddings)
-        _, N, C = project_embeddings.shape
+    def _scatter_connection(self, spatial_info, entity_embeddings, entity_raw):
+        if isinstance(entity_embeddings, collections.Sequence):
+            x = [t.squeeze(0) for t in entity_embeddings]
+            num_list = [t.shape[0] for t in x]
+            x = torch.cat(x, dim=0)
+            project_embeddings = self.scatter_project(x)
+            project_embeddings = torch.split(project_embeddings, num_list, dim=0)
+        else:
+            project_embeddings = self.scatter_project(entity_embeddings)
         B, _, H, W = spatial_info.shape
-        scatter_map = torch.zeros(B, C, H, W, device=spatial_info.device)
+        scatter_map = torch.zeros(B, self.scatter_dim, H, W, device=spatial_info.device)
         for b in range(B):
+            N = entity_embeddings[b].shape[0]
             for n in range(N):
-                h, w = entity_location[b, n]
-                scatter_map[b, :, h, w] = project_embeddings[b, n]
+                h, w = entity_raw[b]['location'][n]
+                h = min(max(0, h), H-1)
+                w = min(max(0, w), W-1)
+                scatter_map[b, :, h, w] = project_embeddings[b][n]
         return torch.cat([spatial_info, scatter_map], dim=1)
 
-    def _look_up_action_attr(self, action_type, inputs):
-        raise NotImplementedError
+    def _look_up_action_attr(self, action_type, units_num, location_dims=(256, 256), actions_dim=259):
+        action_mask = {'select_unit_type_mask': [], 'select_unit_mask': [], 'target_unit_type_mask': [],
+                       'target_unit_mask': [], 'location_mask': []}
+        device = action_type.device
+        for idx, action in enumerate(action_type):
+            action_mask['select_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
+            action_mask['select_unit_type_mask'].append(torch.ones(1, actions_dim, device=device))
+            action_mask['target_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
+            action_mask['target_unit_type_mask'].append(torch.ones(1, actions_dim, device=device))
+            action_mask['location_mask'].append(torch.ones(1, *location_dims, device=device))
+        action_attr = {'queued': 'none', 'selected_units': 'none', 'target_units': 'none', 'target_location': 'none'}
+        '''
+        for idx, action in enumerate(action_type):
+            value = ACTION_INFO_MASK[action.item()]
+            action_attr['queued'] = value['queued']
+            action_attr['selected_units'] = value['selected_units']
+            if action_attr['selected_units']:
+                action_mask['select_unit_type_mask'] =
+            else:
+                action_mask['select_unit_type_mask'] = None
+                action_mask['select_unit_mask'] = None
+            action_attr['target_units'] = value['target_units']
+            action_attr['target_location'] = value['target_location']
+        '''
+        return action_attr, action_mask
 
     def mimic(self, inputs, temperature):
         '''
@@ -64,37 +99,44 @@ class Policy(ActorCriticBase):
         embedded_scalar, scalar_context = self.encoder['scalar_encoder'](inputs['scalar_info'])
         entity_embeddings, embedded_entity = self.encoder['entity_encoder'](inputs['entity_info'])
         embedded_spatial, map_skip = self.encoder['spatial_encoder'](
-            self._scatter_connection(inputs['spatial_info'], entity_embeddings, inputs['entity_raw']['location']))
+            self._scatter_connection(inputs['spatial_info'], entity_embeddings, inputs['entity_raw']))
 
+        embedded_entity, embedded_spatial, embedded_scalar = (embedded_entity.unsqueeze(0),
+                                                              embedded_spatial.unsqueeze(0),
+                                                              embedded_scalar.unsqueeze(0))
         lstm_output, next_state = self.core_lstm(
             embedded_entity, embedded_spatial, embedded_scalar, inputs['prev_state'])
+        lstm_output = lstm_output.squeeze(0)
 
-        logits = {}
+        logits = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
+        action_type = torch.LongTensor(actions['action_type']).to(lstm_output.device)
+        units_num = [t.shape[0] for t in inputs['entity_info']]
         logits['action_type'], action_type, embeddings = self.head['action_type_head'](
-            lstm_output, scalar_context, temperature, actions['action_type'])
-        _, mask = self._look_up_action_attr(action_type, inputs)
+            lstm_output, scalar_context, temperature, action_type)
+        _, mask = self._look_up_action_attr(action_type, units_num)
 
         logits['delay'], delay, embedding = self.head['delay_head'](embeddings)
-        for idx, item in enumerate(actions):
+        for idx in range(action_type.shape[0]):
             embedding = embeddings[idx:idx+1]
-            if item['queued'] != 'none':
+            if isinstance(actions['queued'][idx], torch.Tensor):
                 logits_queued, queued, embedding = self.head['queued_head'](embedding, temperature)
                 logits['queued'].append(logits_queued)
-            if item['selected_units'] != 'none':
-                selected_units_num = len(item['selected_units'])
+            if isinstance(actions['selected_units'][idx], torch.Tensor):
+                selected_units_num = torch.LongTensor([actions['selected_units'][idx].shape[0]])
                 logits_selected_units, selected_units, embedding = self.head['selected_units_head'](
                     embedding, mask['select_unit_type_mask'][idx], mask['select_unit_mask'][idx],
                     entity_embeddings[idx], temperature, selected_units_num)
-                logits['selected_units'].append(logits_selected_units)
-            if item['target_units'] != 'none':
-                target_units_num = len(item['target_units'])
-                logits_target_units, target_units = self.head['target_unit_head'](
+                logits['selected_units'].append(logits_selected_units[0])
+            if isinstance(actions['target_units'][idx], torch.Tensor):
+                target_units_num = torch.LongTensor([actions['target_units'][idx].shape[0]])
+                logits_target_units, target_units = self.head['target_units_head'](
                     embedding, mask['target_unit_type_mask'][idx], mask['target_unit_mask'][idx],
                     entity_embeddings[idx], temperature, target_units_num)
-                logits['target_units'].append(logits_target_units)
-            if item['target_location'] != 'none':
+                logits['target_units'].append(logits_target_units[0])
+            if isinstance(actions['target_location'][idx], torch.Tensor):
+                map_skip_single = [t[idx:idx+1] for t in map_skip]
                 logits_location, location = self.head['location_head'](
-                    embedding, map_skip[idx:idx+1], mask['location_mask'][idx], temperature)
+                    embedding, map_skip_single, mask['location_mask'][idx], temperature)
                 logits['target_location'].append(logits_location)
 
         return logits, next_state
