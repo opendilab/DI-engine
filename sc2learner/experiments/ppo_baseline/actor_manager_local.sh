@@ -2,7 +2,7 @@ work_path=$(dirname $0)
 job_name=actor_manager
 key_word=sc2learner.bin.train_ppo
 function launch_func() {
-    srun -p $1 -w $2 python3 -u -m sc2learner.bin.train_ppo --job_name $job_name --config_path $work_path/config.yaml
+    srun -p $1 -w $2 --gres=gpu:8 --job-name=$job_name python3 -u -m sc2learner.bin.train_ppo --job_name $job_name --config_path $work_path/config.yaml
 }
 while (true)
 do
