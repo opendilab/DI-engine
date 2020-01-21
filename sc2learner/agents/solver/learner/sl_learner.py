@@ -61,6 +61,7 @@ class SLLearner(object):
                 _, backward_update_time = self._optimize_step(var_items['total_loss'])
                 time_items = {'data_time': data_time, 'forward_time': forward_time,
                               'backward_update_time': backward_update_time}
+                print(time_items)
                 var_items['cur_lr'] = cur_lr
                 var_items['epoch'] = epoch
 
@@ -103,5 +104,10 @@ class SLLearner(object):
     def _init(self):
         self.scalar_record.register_var('cur_lr')
         self.scalar_record.register_var('epoch')
+        self.scalar_record.register_var('data_time')
+        self.scalar_record.register_var('forward_time')
+        self.scalar_record.register_var('backward_update_time')
+        self.scalar_record.register_var('total_batch_time')
         self.tb_logger.register_var('cur_lr')
         self.tb_logger.register_var('epoch')
+        self.tb_logger.register_var('total_batch_time')
