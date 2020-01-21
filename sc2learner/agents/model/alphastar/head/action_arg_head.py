@@ -138,36 +138,21 @@ class SelectedUnitsHead(nn.Module):
         Input:
             embedding: [batch_size, input_dim(1024)]
             available_unit_type_mask: [batch_size, num_unit_type]
-            available_units_mask: [batch_size, num_units], num_units can be vary from batch_size
-            entity_embedding: [batch_size, num_units, entity_embedding_dim(256)], num_units can be vary from batch_size
+            available_units_mask: [batch_size, num_units]
+            entity_embedding: [batch_size, num_units, entity_embedding_dim(256)]
         Output:
             logits: List(batch_size) - List(num_selected_units) - num_units
             units: [batch_size, num_units] 0-1 vector
             new_embedding: [batch_size, input_dim(1024)]
         '''
-        assert(isinstance(entity_embedding, list) or isinstance(entity_embedding, torch.Tensor))
+        assert(isinstance(entity_embedding, torch.Tensor))
 
         input, state = self._get_init_query(embedding, available_unit_type_mask)
         mask = available_units_mask
-        if isinstance(entity_embedding, list):
-            if query_num is None:
-                query_num = [None for _ in range(len(entity_embedding))]
-            logits, units, embedding_selected = [], [], []
-            for idx, (item, m, x) in enumerate(zip(entity_embedding, mask, input)):
-                key, end_flag_index = self._get_key(item)
-                m = torch.cat([m, torch.ones_like(m[:, 0:1])], dim=1)
-                logits_t, units_t, embedding_selected_t = self._query(
-                    key, end_flag_index, x.unsqueeze(0), state, m, temperature, query_num[idx:idx+1])
-                logits.extend(logits_t)
-                units.append(units_t)
-                embedding_selected.append(embedding_selected_t)
-            embedding_selected = torch.cat(embedding_selected, dim=0)
-
-        elif isinstance(entity_embedding, torch.Tensor):
-            key, end_flag_index = self._get_key(entity_embedding)
-            mask = torch.cat([mask, torch.ones_like(mask[:, 0:1])], dim=1)
-            logits, units, embedding_selected = self._query(
-                key, end_flag_index, input, state, mask, temperature, query_num)
+        key, end_flag_index = self._get_key(entity_embedding)
+        mask = torch.cat([mask, torch.ones_like(mask[:, 0:1])], dim=1)
+        logits, units, embedding_selected = self._query(
+            key, end_flag_index, input, state, mask, temperature, query_num)
 
         return logits, units, embedding + embedding_selected
 
@@ -245,8 +230,8 @@ class TargetUnitsHead(nn.Module):
         Input:
             embedding: [batch_size, input_dim(1024)]
             available_unit_type_mask: [batch_size, num_unit_type]
-            available_units_mask: [batch_size, num_units], num_units can be vary from batch_size
-            entity_embedding: [batch_size, num_units, entity_embedding_dim(256)], num_units can be vary from batch_size
+            available_units_mask: [batch_size, num_units]
+            entity_embedding: [batch_size, num_units, entity_embedding_dim(256)]
         Output:
             logits: List(batch_size) - List(num_selected_units) - num_units
             units: [batch_size, num_units] 0-1 vector
@@ -255,22 +240,9 @@ class TargetUnitsHead(nn.Module):
 
         input, state = self._get_init_query(embedding, available_unit_type_mask)
         mask = available_units_mask
-        if isinstance(entity_embedding, list):
-            if query_num is None:
-                query_num = [None for _ in range(len(entity_embedding))]
-            logits, units = [], []
-            for idx, (item, m, x) in enumerate(zip(entity_embedding, mask, input)):
-                key, end_flag_index = self._get_key(item)
-                m = torch.cat([m, torch.ones_like(m[:, 0:1])], dim=1)
-                logits_t, units_t = self._query(key, end_flag_index, x.unsqueeze(0),
-                                                state, m, temperature, query_num[idx:idx+1])
-                logits.extend(logits_t)
-                units.append(units_t)
-
-        elif isinstance(entity_embedding, torch.Tensor):
-            key, end_flag_index = self._get_key(entity_embedding)
-            mask = torch.cat([mask, torch.ones_like(mask[:, 0:1])], dim=1)
-            logits, units = self._query(key, end_flag_index, input, state, mask, temperature, query_num)
+        key, end_flag_index = self._get_key(entity_embedding)
+        mask = torch.cat([mask, torch.ones_like(mask[:, 0:1])], dim=1)
+        logits, units = self._query(key, end_flag_index, input, state, mask, temperature, query_num)
 
         return logits, units
 
@@ -410,24 +382,6 @@ def test_selected_unit_head():
         print(b, len(logits[b]))
     print(logits[0][0].shape)
     print(units[0].shape, torch.nonzero(units[0]).shape)
-    print(embedding.shape, input.mean(), embedding.mean())
-
-    available_units_mask = [
-        torch.ones(1, 81).cuda(),
-        torch.ones(1, 72).cuda(),
-    ]
-    entity_embedding = [
-        torch.ones(1, 81, 256).cuda(),
-        torch.ones(1, 72, 256).cuda(),
-    ]
-
-    logits, units, embedding = model(input, available_unit_type_mask, available_units_mask, entity_embedding)
-    print(len(logits))
-    for b in range(2):
-        print(b, len(logits[b]))
-    print(logits[0][0].shape)
-    print(units[0].shape, torch.nonzero(units[0]).shape)
-    print(units[1].shape, torch.nonzero(units[1]).shape)
     print(embedding.shape, input.mean(), embedding.mean())
 
 
