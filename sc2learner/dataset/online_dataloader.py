@@ -17,11 +17,15 @@ class OnlineDataLoader(object):
 
     def __next__(self):
         indices = self._get_indices()
-        batch, avg_usage, push_count, avg_model_index = self.dataset.get_indice_data(indices, self._cur_model_index)
+        batch, avg_usage, push_count, avg_model_index = self.dataset.get_indice_data(indices, self.cur_model_index)
         batch = self.collate_fn(batch)
         return batch, avg_usage, push_count, avg_model_index
 
     @property
+    def cur_model_index(self):
+        return self._cur_model_index
+
+    @cur_model_index.setter
     def cur_model_index(self, cur_model_index):
         self._cur_model_index = cur_model_index
 
