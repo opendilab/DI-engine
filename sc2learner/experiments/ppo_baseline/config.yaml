@@ -32,7 +32,8 @@ train:
     grad_clip_value: 0.5
     block_data:
         status: True
-        threshold: 2
+        reuse_threshold: 2
+        staleness_threshold: 1000
         sleep_time: 3
 communication:
     ip:

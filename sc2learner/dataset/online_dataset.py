@@ -45,35 +45,38 @@ class OnlineDataset(object):
         for idx in usage_list:
             self.data_queue[idx]['use_count'] += 1
 
-    def get_indice_data(self, indice):
+    def get_indice_data(self, indice, cur_model_index):
         use_block_data = self.block_data.status
-        threshold = self.block_data.threshold
+        reuse_threshold = self.block_data.reuse_threshold
+        staleness_threshold = self.block_data.staleness_threshold
         sleep_time = self.block_data.sleep_time
         while True:
             self._acquire_lock()
+            data = [self.data_queue[i] for i in indice]
+            model_index = [d['model_index'] for d in data]
+            usage = [self.data_queue[i]['use_count'] for i in indice]
+            if use_block_data:
+                # remove excessive used and staleness data
+                for u, m, idx in zip(usage, model_index, indice):
+                    if u >= int(reuse_threshold):
+                        self.data_queue[idx] = None
+                    if cur_model_index - m >= int(staleness_threshold):
+                        self.data_queue[idx] = None
+                new_data_queue = deque(maxlen=self.data_maxlen)
+                new_data_queue.extend([item for item in self.data_queue if item is not None])
+                self.data_queue = new_data_queue
             if not self.is_full():
                 print("Blocking...wait for enough data: current({})/target({})".format(
                       len(self.data_queue), self.data_maxlen))
                 self._release_lock()
                 time.sleep(sleep_time)
                 continue
-            data = [self.data_queue[i] for i in indice]
-            model_index = [d['model_index'] for d in data]
             data = [self.transform(d) for d in data]
             avg_model_index = sum(model_index) / len(model_index)
-            usage = [self.data_queue[i]['use_count'] for i in indice]
             avg_usage = sum(usage) / len(usage)
             push_count = self.push_count
             self.push_count = 0
             self._add_usage_count(indice)
-            if use_block_data:
-                # remove excessive used data
-                for u, idx in zip(usage, indice):
-                    if u+1 >= int(threshold):
-                        self.data_queue[idx] = None
-                new_data_queue = deque(maxlen=self.data_maxlen)
-                new_data_queue.extend([item for item in self.data_queue if item is not None])
-                self.data_queue = new_data_queue
             self._release_lock()
             return data, avg_usage, push_count, avg_model_index
 
