@@ -25,15 +25,27 @@ class EntityEncoder(nn.Module):
     def forward(self, x):
         '''
         Input:
-            x: [batch_size, entity_num, input_dim]
+            x: [batch_size, entity_num, input_dim] or [entity_num, input_dim] of len batch_size
         Output:
             entity_embeddings: [batch_size, entity_num, output_dim]
             embedded_entity: [batch_size, output_dim]
         '''
-        x = self.act(self.transformer(x))
-        entity_embeddings = self.entity_fc(x)
-        embedded_entity = self.embed_fc(x.mean(dim=1))  # TODO masked
-        return entity_embeddings, embedded_entity
+        if isinstance(x, list):
+            num_list = [t.shape[0] for t in x]
+            x = torch.cat(x, dim=0)
+            x = self.act(self.transformer(x))
+            entity_embeddings = self.entity_fc(x)
+            x = torch.split(x, num_list, dim=0)
+            entity_embeddings = torch.split(entity_embeddings, num_list, dim=0)
+            entity_embeddings = [t.unsqueeze(0) for t in entity_embeddings]
+            embedded_entity = [t.mean(dim=0) for t in x]
+            embedded_entity = torch.stack(embedded_entity)
+            return entity_embeddings, embedded_entity
+        else:
+            x = self.act(self.transformer(x))
+            entity_embeddings = self.entity_fc(x)
+            embedded_entity = self.embed_fc(x.mean(dim=1))  # TODO masked
+            return entity_embeddings, embedded_entity
 
 
 def test_entity_encoder():
