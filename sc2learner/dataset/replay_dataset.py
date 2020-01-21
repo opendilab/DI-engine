@@ -3,6 +3,7 @@ import torch
 import random
 from torch.utils.data import Dataset
 from torch.utils.data._utils.collate import default_collate
+from sc2learner.envs.observations.alphastar_obs_wrapper import decompress_obs
 
 
 META_SUFFIX = '.meta'
@@ -29,6 +30,9 @@ class ReplayDataset(Dataset):
 
     def state_dict(self):
         return self.path_dict
+
+    def load_state_dict(self, state_dict):
+        self.path_dict = state_dict
 
     def _get_item_step_num(self, handle, idx):
         if 'step_num' in handle.keys():
@@ -92,6 +96,7 @@ class ReplayDataset(Dataset):
         if self.data_type == 'only_policy':
             for i in range(len(sample_data)):
                 temp = sample_data[i]['obs0']
+                temp = decompress_obs(temp)
                 temp['actions'] = sample_data[i]['act']
                 sample_data[i] = temp
 

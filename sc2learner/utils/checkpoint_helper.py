@@ -61,7 +61,7 @@ class CheckpointHelper(object):
             checkpoint['optimizer'] = optimizer.state_dict()
 
         if dataset is not None:
-            checkpoint['dataset'] = dataset.create_checkpoint()
+            checkpoint['dataset'] = dataset.state_dict()
         if actor_info is not None:
             checkpoint['actor_info'] = actor_info.state_dict()
         path = os.path.join(self.save_path, name+'.pth.tar')
@@ -104,7 +104,7 @@ class CheckpointHelper(object):
         self._print_mismatch_keys(model.state_dict(), state_dict)
 
         if dataset is not None:
-            dataset.load_data_from_checkpoint(checkpoint['dataset'])
+            dataset.load_state_dict(checkpoint['dataset'])
             logger.info(logger_prefix+'load online data in {}'.format(load_path))
 
         if optimizer is not None:

@@ -120,11 +120,11 @@ class OnlineDataset(object):
                 temp_list = []
         logger.info("load data in {}".format(data_dir))
 
-    def load_data_from_checkpoint(self, checkpoint):
+    def load_state_dict(self, checkpoint):
         assert(isinstance(checkpoint, list))
         self._acquire_lock()
         self.data_queue.extend(checkpoint)
         self._release_lock()
 
-    def create_checkpoint(self):
+    def state_dict(self):
         return list(self.data_queue)
