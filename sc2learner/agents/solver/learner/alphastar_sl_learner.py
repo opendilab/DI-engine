@@ -1,4 +1,5 @@
 import math
+import collections
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -54,8 +55,8 @@ class AlphastarSLLearner(SLLearner):
         temperature = self.temperature_scheduler.step()
         prev_state = None
         loss_func = {
-            'action_type': self.criterion,
-            'delay': self.criterion,
+            'action_type': self._criterion_apply,
+            'delay': self._criterion_apply,
             'queued': self._queued_loss,
             'selected_units': self._selected_units_loss,
             'target_units': self._target_units_loss,
@@ -70,7 +71,7 @@ class AlphastarSLLearner(SLLearner):
             'target_location_loss': []
         }
         for i, step_data in enumerate(data):
-            actions = data['actions']
+            actions = step_data['actions']
             step_data['prev_state'] = prev_state
             policy_logits, prev_state = self.model(step_data, mode='mimic', temperature=temperature)
 
@@ -83,8 +84,13 @@ class AlphastarSLLearner(SLLearner):
         loss_items['total_loss'] = sum(loss_items.values())
         return loss_items
 
+    def _criterion_apply(self, logits, label):
+        if isinstance(label, collections.Sequence):
+            label = torch.cat(label, dim=0)
+        return self.criterion(logits, label)
+
     def _queued_loss(self, logits, label):
-        label = [x for x in label if x != 'none']
+        label = [x for x in label if isinstance(x, torch.Tensor)]
         if len(label) == 0:
             return 0
         logits = torch.cat(logits, dim=0)
@@ -92,7 +98,7 @@ class AlphastarSLLearner(SLLearner):
         return self.criterion(logits, label)
 
     def _selected_units_loss(self, logits, label):
-        label = [x for x in label if x != 'none']
+        label = [x for x in label if isinstance(x, torch.Tensor)]
         if len(label) == 0:
             return 0
         loss = []
@@ -100,7 +106,10 @@ class AlphastarSLLearner(SLLearner):
             lo, la = logits[b], label[b]
             # TODO min CE match
             lo = torch.cat(lo, dim=0)
-            la = torch.cat(la, dim=0)
+            if lo.shape[0] != la.shape[0]:
+                assert(lo.shape[0] == 1 + la.shape[0])
+                end_flag_label = torch.LongTensor([lo.shape[1]-1]).to(la.device)
+                la = torch.cat([la, end_flag_label], dim=0)
             loss.append(self.criterion(lo, la))
         return sum(loss) / len(loss)
 
@@ -108,14 +117,18 @@ class AlphastarSLLearner(SLLearner):
         return self._selected_units_loss(logits, label)
 
     def _target_location_loss(self, logits, label):
-        label = [x for x in label if x != 'none']
+        label = [x for x in label if isinstance(x, torch.Tensor)]
         if len(label) == 0:
             return 0
         logits = torch.cat(logits, dim=0)
         label = [x*self.resolution[1]+y for (x, y) in label]
-        label = torch.cat(label, dim=0)
-        ratio = math.sqrt(self.resolution[0]*self.resolution[1] / logits.shape[1])
-        assert(math.fbs(int(ratio) - ratio) < 1e-4)
+        label = torch.LongTensor(label).to(device=logits.device)
+        ratio = math.sqrt(logits.shape[1] / (self.resolution[0]*self.resolution[1]))
+        assert(math.fabs(int(ratio) - ratio) < 1e-4)
         ratio = int(ratio)
+        B = logits.shape[0]
+        N = int(math.sqrt(logits.shape[1]))
+        logits = logits.reshape(B, N, N).unsqueeze(1)
         logits = F.avg_pool2d(logits, kernel_size=ratio, stride=ratio)
+        logits = logits.squeeze(1).reshape(B, -1)
         return self.criterion(logits, label)

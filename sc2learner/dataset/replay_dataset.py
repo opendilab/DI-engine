@@ -40,6 +40,34 @@ class ReplayDataset(Dataset):
             handle['step_num'] = step_num
             return step_num
 
+    def action_unit_id_transform(self, data):
+        new_data = []
+        for idx, item in enumerate(data):
+            id_list = item['obs0']['entity_raw']['id']
+            action = item['act']
+            if isinstance(action['selected_units'], torch.Tensor):
+                unit_ids = []
+                for unit in action['selected_units']:
+                    val = unit.item()
+                    if val in id_list:
+                        unit_ids.append(id_list.index(val))
+                    else:
+                        print("not found id({}) in current observation".format(val))
+                        continue
+                item['act']['selected_units'] = torch.LongTensor(unit_ids)
+            if isinstance(action['target_units'], torch.Tensor):
+                unit_ids = []
+                for unit in action['target_units']:
+                    val = unit.item()
+                    if val in id_list:
+                        unit_ids.append(id_list.index(val))
+                    else:
+                        print("not found id({}) in current observation".format(val))
+                        continue
+                item['act']['target_units'] = torch.LongTensor(unit_ids)
+            new_data.append(item)
+        return new_data
+
     def __getitem__(self, idx):
         handle = self.path_dict[idx]
         data = torch.load(handle['name'] + DATA_SUFFIX)
@@ -60,11 +88,13 @@ class ReplayDataset(Dataset):
         end = start + self.trajectory_len
         handle['count'] += 1
         sample_data = data[start:end]
+        sample_data = self.action_unit_id_transform(sample_data)
         if self.data_type == 'only_policy':
             for i in range(len(sample_data)):
                 temp = sample_data[i]['obs0']
                 temp['actions'] = sample_data[i]['act']
                 sample_data[i] = temp
+
         return sample_data
 
 
@@ -103,14 +133,23 @@ def policy_collate_fn(batch):
         'actions': False
     }
 
-    def merge_func(data):
-        new_data = {k: [] for k in data_item}
+    def list_dict2dict_list(data):
+        if len(data) == 0:
+            raise ValueError("empty data")
+        keys = data[0].keys()
+        new_data = {k: [] for k in keys}
         for b in range(len(data)):
-            for k in data_item.keys():
+            for k in keys:
                 new_data[k].append(data[b][k])
+        return new_data
+
+    def merge_func(data):
+        new_data = list_dict2dict_list(data)
         for k, merge in data_item.items():
             if merge:
                 new_data[k] = default_collate(new_data[k])
+            if k == 'actions':
+                new_data[k] = list_dict2dict_list(new_data[k])
         return new_data
 
     # sequence, batch

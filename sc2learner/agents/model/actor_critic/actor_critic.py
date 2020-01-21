@@ -4,8 +4,8 @@ import torch.nn as nn
 class ActorCriticBase(nn.Module):
     def forward(self, inputs, mode=None, **kwargs):
         assert(mode in ['step', 'value', 'evaluate', 'mimic'])
-        f = getattr(self, mode, **kwargs)
-        return f(inputs)
+        f = getattr(self, mode)
+        return f(inputs, **kwargs)
 
     def step(self, inputs):
         raise NotImplementedError

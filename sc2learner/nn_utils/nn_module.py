@@ -176,7 +176,11 @@ def one_hot(val, num, num_first=False):
     old_shape = val.shape
     val_reshape = val.reshape(-1, 1)
     ret = torch.zeros(val_reshape.shape[0], num, device=val.device)
-    ret.scatter_(1, val_reshape, 1)
+    try:
+        ret.scatter_(1, val_reshape, 1)
+    except RuntimeError:
+        print(val_reshape, num, val_reshape.shape)
+        raise RuntimeError
     if num_first:
         return ret.reshape(num, *old_shape)
     else:
