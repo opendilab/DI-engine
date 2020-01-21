@@ -2,6 +2,8 @@
 *_pb2.py
 *.pth
 *.pth.tar
+*.pt
+*.npy
 *default_logger.txt
 *default_tb_logger
 *evaluate.txt
