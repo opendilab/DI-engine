@@ -108,7 +108,7 @@ class HistoryActorInfo(object):
 
     def get_win_rate(self):
         def win_rate(v):
-            return (sum(v) + len(v)) / 2
+            return (sum(v) / len(v) + 1) / 2
 
         return {k: win_rate(v) for k, v in self.game_results.items()}
 
@@ -181,7 +181,7 @@ class BaseLearner(object):
             self.lr_scheduler.step()
             cur_lr = self.lr_scheduler.get_lr()[0]
             self.time_helper.start_time()
-            batch_data, avg_usage, push_count, avg_model_index = next(self.dataloader)
+            batch_data, avg_usage, push_count, avg_model_index = next(self.dataloader, self.last_iter.val)
             if self.use_cuda:
                 batch_data = to_device(batch_data, 'cuda')
             data_time = self.time_helper.end_time()

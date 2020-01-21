@@ -15,9 +15,9 @@ class OnlineDataLoader(object):
         indices = random.sample([i for i in range(self.dataset.maxlen)], self.batch_size)
         return indices
 
-    def __next__(self):
+    def __next__(self, cur_model_index):
         indices = self._get_indices()
-        batch, avg_usage, push_count, avg_model_index = self.dataset.get_indice_data(indices)
+        batch, avg_usage, push_count, avg_model_index = self.dataset.get_indice_data(indices, cur_model_index)
         batch = self.collate_fn(batch)
         return batch, avg_usage, push_count, avg_model_index
 
