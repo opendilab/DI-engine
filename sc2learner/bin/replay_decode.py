@@ -217,15 +217,16 @@ class ReplayProcessor(multiprocessing.Process):
                     unit_type = get_unit_type(unit_tag.item(), obs)
                     if unit_type is None:
                         print("not found selected unit(id: {})".format(unit_tag.item()))
-                        continue
+                        return False
                     action_statistics[action_type]['selected_type'].add(unit_type)
             if isinstance(act['target_units'], torch.Tensor):
                 for unit_tag in act['target_units']:
                     unit_type = get_unit_type(unit_tag.item(), obs)
                     if unit_type is None:
                         print("not found target unit(id: {})".format(unit_tag.item()))
-                        continue
+                        return False
                     action_statistics[action_type]['target_type'].add(unit_type)
+            return True
 
         def update_cum_stat(cumulative_statistics, act):
             action_type = act['action_type'].item()
@@ -287,6 +288,8 @@ class ReplayProcessor(multiprocessing.Process):
                     controllers[1].step(FLAGS.step_mul)
                     print('step', step, error_set)
                     step += FLAGS.step_mul
+                    delay[0] += FLAGS.step_mul
+                    delay[1] += FLAGS.step_mul
                     continue
 
                 # add obs from the enemy obs
@@ -309,14 +312,15 @@ class ReplayProcessor(multiprocessing.Process):
                     agent_acts = act_parser.parse(act_raw)
                     for i, (_, v) in enumerate(agent_acts.items()):
                         v['delay'] = torch.LongTensor([delay[idx]])
-                        update_action_stat(action_statistics[idx], v, base_obs[idx])
-                        update_cum_stat(cumulative_statistics[idx], v)
-                        if len(begin_statistics[idx]) < begin_num:
-                            update_begin_stat(begin_statistics[idx], v)
-                        compressed_obs.update({'actions': v})
-                        # torch.save(compressed_obs, os.path.join(self.output_dir, '{}.pt'.format(action_count)))
-                        step_data[idx].append(compressed_obs)
-                        action_count[idx] += 1
+                        valid = update_action_stat(action_statistics[idx], v, base_obs[idx])
+                        if valid:
+                            update_cum_stat(cumulative_statistics[idx], v)
+                            if len(begin_statistics[idx]) < begin_num:
+                                update_begin_stat(begin_statistics[idx], v)
+                            compressed_obs.update({'actions': v})
+                            # torch.save(compressed_obs, os.path.join(self.output_dir, '{}.pt'.format(action_count)))
+                            step_data[idx].append(compressed_obs)
+                            action_count[idx] += 1
                         last_actions[idx] = v
                 delay[idx] = 0
 
