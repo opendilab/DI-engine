@@ -80,7 +80,7 @@ class SpatialObsWrapper(object):
 
 
 class EntityObsWrapper(object):
-    def __init__(self, cfg, use_raw_units=False):
+    def __init__(self, cfg, use_raw_units=True):
         self.use_raw_units = use_raw_units
         self.key = 'feature_units' if not self.use_raw_units else 'raw_units'
         self.cfg = cfg
@@ -88,7 +88,7 @@ class EntityObsWrapper(object):
     def parse(self, obs):
         feature_unit = obs[self.key]
         if len(feature_unit.shape) == 1:  # when feature_unit is None
-            return None, None, None
+            return None, None
         num_unit, num_attr = feature_unit.shape
         entity_raw = {'location': [], 'id': [], 'type': []}
         for idx in range(num_unit):
@@ -429,8 +429,10 @@ def transform_scalar_data():
 
 def compress_obs(obs):
     new_obs = {}
-    new_obs['entity_raw'] = obs['entity_raw']
-    new_obs['scalar_info'] = obs['scalar_info']
+    special_list = ['entity_info', 'spatial_info']
+    for k in obs.keys():
+        if k not in special_list:
+            new_obs[k] = obs[k]
 
     new_obs['entity_info'] = {}
     entity_no_bool = 4
@@ -457,8 +459,10 @@ def compress_obs(obs):
 
 def decompress_obs(obs):
     new_obs = {}
-    new_obs['entity_raw'] = obs['entity_raw']
-    new_obs['scalar_info'] = obs['scalar_info']
+    special_list = ['entity_info', 'spatial_info']
+    for k in obs.keys():
+        if k not in special_list:
+            new_obs[k] = obs[k]
 
     new_obs['entity_info'] = {}
     entity_bool = np.unpackbits(obs['entity_info']['bool']).reshape(*obs['entity_info']['bool_strided_shape'])

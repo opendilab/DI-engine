@@ -11,11 +11,9 @@ DATA_SUFFIX = '.step'
 
 
 class ReplayDataset(Dataset):
-    def __init__(self, replay_list, trajectory_len=64, trajectory_type='random', slide_window_step=1,
-                 data_type='only_policy'):
+    def __init__(self, replay_list, trajectory_len=64, trajectory_type='random', slide_window_step=1):
         super(ReplayDataset, self).__init__()
         assert(trajectory_type in ['random', 'slide_window'])
-        assert(data_type in ['only_policy', 'total'])
         with open(replay_list, 'r') as f:
             path_list = f.readlines()
         # need to be added into checkpoint
@@ -23,7 +21,6 @@ class ReplayDataset(Dataset):
         self.trajectory_len = trajectory_len
         self.trajectory_type = trajectory_type
         self.slide_window_step = slide_window_step
-        self.data_type = data_type
 
     def __len__(self):
         return len(self.path_dict.keys())
@@ -47,8 +44,9 @@ class ReplayDataset(Dataset):
     def action_unit_id_transform(self, data):
         new_data = []
         for idx, item in enumerate(data):
-            id_list = item['obs0']['entity_raw']['id']
-            action = item['act']
+            vaild = True
+            id_list = item['entity_raw']['id']
+            action = item['actions']
             if isinstance(action['selected_units'], torch.Tensor):
                 unit_ids = []
                 for unit in action['selected_units']:
@@ -56,9 +54,10 @@ class ReplayDataset(Dataset):
                     if val in id_list:
                         unit_ids.append(id_list.index(val))
                     else:
-                        print("not found id({}) in current observation".format(val))
-                        continue
-                item['act']['selected_units'] = torch.LongTensor(unit_ids)
+                        print("not found selected_units id({}) in nearest observation".format(val))
+                        vaild = False
+                        break
+                item['actions']['selected_units'] = torch.LongTensor(unit_ids)
             if isinstance(action['target_units'], torch.Tensor):
                 unit_ids = []
                 for unit in action['target_units']:
@@ -66,10 +65,12 @@ class ReplayDataset(Dataset):
                     if val in id_list:
                         unit_ids.append(id_list.index(val))
                     else:
-                        print("not found id({}) in current observation".format(val))
-                        continue
-                item['act']['target_units'] = torch.LongTensor(unit_ids)
-            new_data.append(item)
+                        print("not found target_units id({}) in nearest observation".format(val))
+                        vaild = False
+                        break
+                item['actions']['target_units'] = torch.LongTensor(unit_ids)
+            if vaild:
+                new_data.append(item)
         return new_data
 
     def __getitem__(self, idx):
@@ -93,12 +94,9 @@ class ReplayDataset(Dataset):
         handle['count'] += 1
         sample_data = data[start:end]
         sample_data = self.action_unit_id_transform(sample_data)
-        if self.data_type == 'only_policy':
-            for i in range(len(sample_data)):
-                temp = sample_data[i]['obs0']
-                temp = decompress_obs(temp)
-                temp['actions'] = sample_data[i]['act']
-                sample_data[i] = temp
+        # if unit id transform deletes some data frames,
+        # collate_fn will use the minimum number of data frame to compose a batch
+        sample_data = [decompress_obs(d) for d in sample_data]
 
         return sample_data
 
