@@ -200,6 +200,7 @@ class AlphastarObsParser(object):
         return ret
 
     def merge_action(self, obs, last_action):
+        N = obs['entity_info'].shape[0]
         if obs['entity_info'] is None:
             obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 4)], dim=1)
             return obs
@@ -213,7 +214,6 @@ class AlphastarObsParser(object):
 
         selected_units = last_action['selected_units']
         target_units = last_action['target_units']
-        N = obs['entity_info'].shape[0]
         obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 2)], dim=1)
         selected_units = selected_units if isinstance(selected_units, torch.Tensor) else []
         for idx, v in enumerate(obs['entity_raw']['id']):
