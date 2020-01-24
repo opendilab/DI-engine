@@ -52,6 +52,12 @@ class OnlineDataset(object):
         sleep_time = self.block_data.sleep_time
         while True:
             self._acquire_lock()
+            if not self.is_full():
+                print("Blocking...wait for enough data: current({})/target({})".format(
+                      len(self.data_queue), self.data_maxlen))
+                self._release_lock()
+                time.sleep(sleep_time)
+                continue
             data = [self.data_queue[i] for i in indice]
             model_index = [d['model_index'] for d in data]
             usage = [self.data_queue[i]['use_count'] for i in indice]
@@ -65,12 +71,6 @@ class OnlineDataset(object):
                 new_data_queue = deque(maxlen=self.data_maxlen)
                 new_data_queue.extend([item for item in self.data_queue if item is not None])
                 self.data_queue = new_data_queue
-            if not self.is_full():
-                print("Blocking...wait for enough data: current({})/target({})".format(
-                      len(self.data_queue), self.data_maxlen))
-                self._release_lock()
-                time.sleep(sleep_time)
-                continue
             data = [self.transform(d) for d in data]
             avg_model_index = sum(model_index) / len(model_index)
             avg_usage = sum(usage) / len(usage)
