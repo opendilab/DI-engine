@@ -139,12 +139,12 @@ class Policy(ActorCriticBase):
             embedding = embeddings[idx:idx+1]
             if isinstance(actions['queued'][idx], torch.Tensor):
                 if not action_attr['queued'][idx]:
-                    print('queued', action_type[idx])
+                    print('queued', actions['action_type'][idx], actions['queued'][idx], idx)
                 logits_queued, queued, embedding = self.head['queued_head'](embedding, temperature)
                 logits['queued'].append(logits_queued)
             if isinstance(actions['selected_units'][idx], torch.Tensor):
                 if not action_attr['selected_units'][idx]:
-                    print('selected_units', action_type[idx])
+                    print('selected_units', actions['action_type'][idx], actions['selected_units'][idx], idx)
                 selected_units_num = torch.LongTensor([actions['selected_units'][idx].shape[0]])
                 logits_selected_units, selected_units, embedding = self.head['selected_units_head'](
                     embedding, mask['select_unit_type_mask'][idx], mask['select_unit_mask'][idx],
@@ -152,7 +152,7 @@ class Policy(ActorCriticBase):
                 logits['selected_units'].append(logits_selected_units[0])
             if isinstance(actions['target_units'][idx], torch.Tensor):
                 if not action_attr['target_units'][idx]:
-                    print('target_units', action_type[idx])
+                    print('target_units', actions['action_type'][idx], actions['target_units'][idx], idx)
                 target_units_num = torch.LongTensor([actions['target_units'][idx].shape[0]])
                 logits_target_units, target_units = self.head['target_units_head'](
                     embedding, mask['target_unit_type_mask'][idx], mask['target_unit_mask'][idx],
@@ -160,7 +160,7 @@ class Policy(ActorCriticBase):
                 logits['target_units'].append(logits_target_units[0])
             if isinstance(actions['target_location'][idx], torch.Tensor):
                 if not action_attr['target_location'][idx]:
-                    print('target_location', action_type[idx])
+                    print('target_location', actions['action_type'][idx], actions['target_location'][idx], idx)
                 map_skip_single = [t[idx:idx+1] for t in map_skip]
                 logits_location, location = self.head['location_head'](
                     embedding, map_skip_single, mask['location_mask'][idx], temperature)

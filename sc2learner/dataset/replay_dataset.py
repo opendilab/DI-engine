@@ -1,5 +1,7 @@
 import os
 import torch
+import numpy as np
+import numbers
 import random
 from torch.utils.data import Dataset
 from torch.utils.data._utils.collate import default_collate
@@ -41,10 +43,30 @@ class ReplayDataset(Dataset):
             handle['step_num'] = step_num
             return step_num
 
+    def copy(self, data):
+        if isinstance(data, dict):
+            new_data = {}
+            for k, v in data.items():
+                new_data[k] = self.copy(v)
+        elif isinstance(data, list) or isinstance(data, tuple):
+            new_data = []
+            for item in data:
+                new_data.append(self.copy(item))
+        elif isinstance(data, torch.Tensor):
+            new_data = data.clone()
+        elif isinstance(data, np.ndarray):
+            new_data = np.copy(data)
+        elif isinstance(data, str) or isinstance(data, numbers.Integral):
+            new_data = data
+        else:
+            raise TypeError("invalid data type:{}".format(type(data)))
+        return new_data
+
     def action_unit_id_transform(self, data):
         new_data = []
         for idx, item in enumerate(data):
-            vaild = True
+            valid = True
+            item = self.copy(data[idx])
             id_list = item['entity_raw']['id']
             action = item['actions']
             if isinstance(action['selected_units'], torch.Tensor):
@@ -55,7 +77,7 @@ class ReplayDataset(Dataset):
                         unit_ids.append(id_list.index(val))
                     else:
                         print("not found selected_units id({}) in nearest observation".format(val))
-                        vaild = False
+                        valid = False
                         break
                 item['actions']['selected_units'] = torch.LongTensor(unit_ids)
             if isinstance(action['target_units'], torch.Tensor):
@@ -66,10 +88,10 @@ class ReplayDataset(Dataset):
                         unit_ids.append(id_list.index(val))
                     else:
                         print("not found target_units id({}) in nearest observation".format(val))
-                        vaild = False
+                        valid = False
                         break
                 item['actions']['target_units'] = torch.LongTensor(unit_ids)
-            if vaild:
+            if valid:
                 new_data.append(item)
         return new_data
 

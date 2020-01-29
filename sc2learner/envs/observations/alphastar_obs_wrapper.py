@@ -92,9 +92,9 @@ class EntityObsWrapper(object):
         num_unit, num_attr = feature_unit.shape
         entity_raw = {'location': [], 'id': [], 'type': []}
         for idx in range(num_unit):
-            entity_raw['location'].append((feature_unit[idx].x, feature_unit[idx].y))
-            entity_raw['id'].append(feature_unit[idx].tag)
-            entity_raw['type'].append(feature_unit[idx].unit_type)
+            entity_raw['location'].append((int(feature_unit[idx].x), int(feature_unit[idx].y)))
+            entity_raw['id'].append(int(feature_unit[idx].tag))
+            entity_raw['type'].append(int(feature_unit[idx].unit_type))
 
         ret = []
         for idx, item in enumerate(self.cfg):
