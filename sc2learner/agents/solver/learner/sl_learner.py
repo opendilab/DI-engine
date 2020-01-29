@@ -50,6 +50,8 @@ class SLLearner(object):
     def run(self):
 
         for epoch in range(self.max_epochs):
+            if hasattr(self.dataloader.dataset, 'step'):
+                self.dataloader.dataset.step()
             self.lr_scheduler.step()
             cur_lr = self.lr_scheduler.get_lr()[0]
             for idx, data in enumerate(self.dataloader):

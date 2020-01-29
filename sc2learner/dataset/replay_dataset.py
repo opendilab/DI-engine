@@ -18,30 +18,19 @@ class ReplayDataset(Dataset):
         assert(trajectory_type in ['random', 'slide_window'])
         with open(replay_list, 'r') as f:
             path_list = f.readlines()
-        # need to be added into checkpoint
-        self.path_dict = {idx: {'name': p[:-1], 'count': 0} for idx, p in enumerate(path_list)}
+        self.path_list = [{'name': p[:-1], 'count': 0} for idx, p in enumerate(path_list)]
         self.trajectory_len = trajectory_len
         self.trajectory_type = trajectory_type
         self.slide_window_step = slide_window_step
 
     def __len__(self):
-        return len(self.path_dict.keys())
+        return len(self.path_list)
 
     def state_dict(self):
-        return self.path_dict
+        return self.path_list
 
     def load_state_dict(self, state_dict):
-        self.path_dict = state_dict
-
-    def _get_item_step_num(self, handle, idx):
-        if 'step_num' in handle.keys():
-            print('enter in _get_item_step_num')  # TODO validate
-            return handle['step_num']
-        else:
-            meta = torch.load(handle['name'] + META_SUFFIX)
-            step_num = meta['step_num']
-            handle['step_num'] = step_num
-            return step_num
+        self.path_list = state_dict
 
     def copy(self, data):
         if isinstance(data, dict):
@@ -95,25 +84,32 @@ class ReplayDataset(Dataset):
                 new_data.append(item)
         return new_data
 
-    def __getitem__(self, idx):
-        handle = self.path_dict[idx]
-        data = torch.load(handle['name'] + DATA_SUFFIX)
-        step_num = self._get_item_step_num(handle, idx)
-        if self.trajectory_type == 'random':
-            start = random.randint(0, step_num - self.trajectory_len)
-        elif self.trajectory_type == 'slide_window':
-            if 'cur_step' in handle.keys():
-                start = handle['cur_step']
+    def step(self):
+        for i in range(len(self.path_list)):
+            handle = self.path_list[i]
+            if 'step_num' not in handle.keys():
+                meta = torch.load(handle['name'] + META_SUFFIX)
+                step_num = meta['step_num']
+                handle['step_num'] = step_num
             else:
-                start = random.randint(0, step_num - self.trajectory_len)
-                handle['cur_step'] = start
-            next_step = handle['cur_step'] + self.slide_window_step
-            if next_step >= step_num - self.trajectory_len:
+                step_num = handle['step_num']
+            if self.trajectory_type == 'random':
                 handle['cur_step'] = random.randint(0, step_num - self.trajectory_len)
-            else:
-                handle['cur_step'] = next_step
+            elif self.trajectory_type == 'slide_window':
+                if 'cur_step' not in handle.keys():
+                    handle['cur_step'] = random.randint(0, step_num - self.trajectory_len)
+                else:
+                    next_step = handle['cur_step'] + self.slide_window_step
+                    if next_step >= step_num - self.trajectory_len:
+                        handle['cur_step'] = random.randint(0, step_num - self.trajectory_len)
+                    else:
+                        handle['cur_step'] = next_step
+
+    def __getitem__(self, idx):
+        handle = self.path_list[idx]
+        data = torch.load(handle['name'] + DATA_SUFFIX)
+        start = handle['cur_step']
         end = start + self.trajectory_len
-        handle['count'] += 1
         sample_data = data[start:end]
         sample_data = self.action_unit_id_transform(sample_data)
         # if unit id transform deletes some data frames,
