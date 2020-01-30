@@ -1,3 +1,4 @@
+import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -35,7 +36,7 @@ class MultiLogitsLoss(nn.Module):
         def has_augmented_path(t):
             visx[t] = True
             for i in range(M):
-                if not visy[i] and lx[t] + ly[i] == mat[t, i]:
+                if not visy[i] and math.fabs(lx[t] + ly[i] - mat[t, i]) < 1e-4:
                     visy[i] = True
                     if index[i] == -1 or has_augmented_path(index[i]):
                         index[i] = t
@@ -43,6 +44,7 @@ class MultiLogitsLoss(nn.Module):
             return False
 
         for i in range(M):
+            count = 5
             while True:
                 visx = np.zeros(M, dtype=np.bool)
                 visy = np.zeros(M, dtype=np.bool)
@@ -61,6 +63,9 @@ class MultiLogitsLoss(nn.Module):
                         lx[j] -= d
                     if visy[j]:
                         ly[j] += d
+                count += 1
+                if count > 10:
+                    break
         return index
 
     def forward(self, logits, labels):
@@ -80,6 +85,31 @@ def test_multi_logits_loss():
     print(loss(logits, label))
 
 
+def _selected_units_loss():
+    logits = torch.load('logits.pt')
+    label = torch.load('label.pt')
+    criterion = MultiLogitsLoss(criterion='cross_entropy')
+    self_criterion = nn.CrossEntropyLoss()
+    label = [x for x in label if isinstance(x, torch.Tensor)]
+    if len(label) == 0:
+        return 0
+    loss = []
+    for b in range(len(label)):
+        lo, la = logits[b], label[b]
+        lo = torch.cat(lo, dim=0)
+        print(b, lo.shape, la.shape)
+        if lo.shape[0] != la.shape[0]:
+            assert(lo.shape[0] == 1 + la.shape[0])
+            end_flag_label = torch.LongTensor([lo.shape[1]-1]).to(la.device)
+            end_flag_loss = self_criterion(lo[-1:], end_flag_label)
+            logits_loss = criterion(lo[:-1], la)
+            loss.append((end_flag_loss + logits_loss) / 2)
+        else:
+            loss.append(criterion(lo, la))
+    print(sum(loss) / len(loss), len(label))
+
+
 if __name__ == "__main__":
-    for _ in range(4):
-        test_multi_logits_loss()
+    #for _ in range(4):
+    #    test_multi_logits_loss()
+    _selected_units_loss()
