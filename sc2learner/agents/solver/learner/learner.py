@@ -181,7 +181,8 @@ class BaseLearner(object):
             self.lr_scheduler.step()
             cur_lr = self.lr_scheduler.get_lr()[0]
             self.time_helper.start_time()
-            batch_data, avg_usage, push_count, avg_model_index = next(self.dataloader, self.last_iter.val)
+            self.dataloader.cur_model_index = self.last_iter.val
+            batch_data, avg_usage, push_count, avg_model_index = next(self.dataloader)
             if self.use_cuda:
                 batch_data = to_device(batch_data, 'cuda')
             data_time = self.time_helper.end_time()

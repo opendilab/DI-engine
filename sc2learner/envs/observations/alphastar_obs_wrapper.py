@@ -80,7 +80,7 @@ class SpatialObsWrapper(object):
 
 
 class EntityObsWrapper(object):
-    def __init__(self, cfg, use_raw_units=False):
+    def __init__(self, cfg, use_raw_units=True):
         self.use_raw_units = use_raw_units
         self.key = 'feature_units' if not self.use_raw_units else 'raw_units'
         self.cfg = cfg
@@ -88,13 +88,13 @@ class EntityObsWrapper(object):
     def parse(self, obs):
         feature_unit = obs[self.key]
         if len(feature_unit.shape) == 1:  # when feature_unit is None
-            return None, None, None
+            return None, None
         num_unit, num_attr = feature_unit.shape
         entity_raw = {'location': [], 'id': [], 'type': []}
         for idx in range(num_unit):
-            entity_raw['location'].append((feature_unit[idx].x, feature_unit[idx].y))
-            entity_raw['id'].append(feature_unit[idx].tag)
-            entity_raw['type'].append(feature_unit[idx].unit_type)
+            entity_raw['location'].append((int(feature_unit[idx].x), int(feature_unit[idx].y)))
+            entity_raw['id'].append(int(feature_unit[idx].tag))
+            entity_raw['type'].append(int(feature_unit[idx].unit_type))
 
         ret = []
         for idx, item in enumerate(self.cfg):
@@ -199,17 +199,23 @@ class AlphastarObsParser(object):
         }
         return ret
 
-    def merge_action(self, obs, last_action_info):
+    def merge_action(self, obs, last_action):
+        N = obs['entity_info'].shape[0]
         if obs['entity_info'] is None:
+            obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 4)], dim=1)
             return obs
-        last_delay, last_queued, last_action_type, selected_units, target_units = last_action_info
+        last_action_type = last_action['action_type']
+        last_delay = last_action['delay']
+        last_queued = last_action['queued']
         last_queued = last_queued if isinstance(last_queued, torch.Tensor) else torch.LongTensor([2])  # 2 as 'none'
         obs['scalar_info']['last_delay'] = self.template_act[0]['op'](torch.LongTensor(last_delay)).squeeze()
         obs['scalar_info']['last_queued'] = self.template_act[1]['op'](torch.LongTensor(last_queued)).squeeze()
         obs['scalar_info']['last_action_type'] = self.template_act[2]['op'](torch.LongTensor(last_action_type)).squeeze()
-        N = obs['entity_info'].shape[0]
+
+        selected_units = last_action['selected_units']
+        target_units = last_action['target_units']
         obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 2)], dim=1)
-        selected_units = [] if isinstance(selected_units, str) else selected_units
+        selected_units = selected_units if isinstance(selected_units, torch.Tensor) else []
         for idx, v in enumerate(obs['entity_raw']['id']):
             if v in selected_units:
                 obs['entity_info'][idx, -1] = 1
@@ -217,7 +223,7 @@ class AlphastarObsParser(object):
                 obs['entity_info'][idx, -2] = 1
 
         obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 2)], dim=1)
-        target_units = [] if isinstance(target_units, str) else target_units
+        target_units = target_units if isinstance(target_units, torch.Tensor) else []
         for idx, v in enumerate(obs['entity_raw']['id']):
             if v in target_units:
                 obs['entity_info'][idx, -1] = 1
@@ -423,8 +429,10 @@ def transform_scalar_data():
 
 def compress_obs(obs):
     new_obs = {}
-    new_obs['entity_raw'] = obs['entity_raw']
-    new_obs['scalar_info'] = obs['scalar_info']
+    special_list = ['entity_info', 'spatial_info']
+    for k in obs.keys():
+        if k not in special_list:
+            new_obs[k] = obs[k]
 
     new_obs['entity_info'] = {}
     entity_no_bool = 4
@@ -451,8 +459,10 @@ def compress_obs(obs):
 
 def decompress_obs(obs):
     new_obs = {}
-    new_obs['entity_raw'] = obs['entity_raw']
-    new_obs['scalar_info'] = obs['scalar_info']
+    special_list = ['entity_info', 'spatial_info']
+    for k in obs.keys():
+        if k not in special_list:
+            new_obs[k] = obs[k]
 
     new_obs['entity_info'] = {}
     entity_bool = np.unpackbits(obs['entity_info']['bool']).reshape(*obs['entity_info']['bool_strided_shape'])

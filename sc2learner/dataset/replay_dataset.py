@@ -1,8 +1,11 @@
 import os
 import torch
+import numpy as np
+import numbers
 import random
 from torch.utils.data import Dataset
 from torch.utils.data._utils.collate import default_collate
+from sc2learner.envs.observations.alphastar_obs_wrapper import decompress_obs
 
 
 META_SUFFIX = '.meta'
@@ -10,41 +13,51 @@ DATA_SUFFIX = '.step'
 
 
 class ReplayDataset(Dataset):
-    def __init__(self, replay_list, trajectory_len=64, trajectory_type='random', slide_window_step=1,
-                 data_type='only_policy'):
+    def __init__(self, replay_list, trajectory_len=64, trajectory_type='random', slide_window_step=1):
         super(ReplayDataset, self).__init__()
         assert(trajectory_type in ['random', 'slide_window'])
-        assert(data_type in ['only_policy', 'total'])
         with open(replay_list, 'r') as f:
             path_list = f.readlines()
-        # need to be added into checkpoint
-        self.path_dict = {idx: {'name': p[:-1], 'count': 0} for idx, p in enumerate(path_list)}
+        self.path_list = [{'name': p[:-1], 'count': 0} for idx, p in enumerate(path_list)]
         self.trajectory_len = trajectory_len
         self.trajectory_type = trajectory_type
         self.slide_window_step = slide_window_step
-        self.data_type = data_type
 
     def __len__(self):
-        return len(self.path_dict.keys())
+        return len(self.path_list)
 
     def state_dict(self):
-        return self.path_dict
+        return self.path_list
 
-    def _get_item_step_num(self, handle, idx):
-        if 'step_num' in handle.keys():
-            print('enter in _get_item_step_num')  # TODO validate
-            return handle['step_num']
+    def load_state_dict(self, state_dict):
+        self.path_list = state_dict
+
+    def copy(self, data):
+        if isinstance(data, dict):
+            new_data = {}
+            for k, v in data.items():
+                new_data[k] = self.copy(v)
+        elif isinstance(data, list) or isinstance(data, tuple):
+            new_data = []
+            for item in data:
+                new_data.append(self.copy(item))
+        elif isinstance(data, torch.Tensor):
+            new_data = data.clone()
+        elif isinstance(data, np.ndarray):
+            new_data = np.copy(data)
+        elif isinstance(data, str) or isinstance(data, numbers.Integral):
+            new_data = data
         else:
-            meta = torch.load(handle['name'] + META_SUFFIX)
-            step_num = meta['step_num']
-            handle['step_num'] = step_num
-            return step_num
+            raise TypeError("invalid data type:{}".format(type(data)))
+        return new_data
 
     def action_unit_id_transform(self, data):
         new_data = []
         for idx, item in enumerate(data):
-            id_list = item['obs0']['entity_raw']['id']
-            action = item['act']
+            valid = True
+            item = self.copy(data[idx])
+            id_list = item['entity_raw']['id']
+            action = item['actions']
             if isinstance(action['selected_units'], torch.Tensor):
                 unit_ids = []
                 for unit in action['selected_units']:
@@ -52,9 +65,10 @@ class ReplayDataset(Dataset):
                     if val in id_list:
                         unit_ids.append(id_list.index(val))
                     else:
-                        print("not found id({}) in current observation".format(val))
-                        continue
-                item['act']['selected_units'] = torch.LongTensor(unit_ids)
+                        print("not found selected_units id({}) in nearest observation".format(val))
+                        valid = False
+                        break
+                item['actions']['selected_units'] = torch.LongTensor(unit_ids)
             if isinstance(action['target_units'], torch.Tensor):
                 unit_ids = []
                 for unit in action['target_units']:
@@ -62,38 +76,45 @@ class ReplayDataset(Dataset):
                     if val in id_list:
                         unit_ids.append(id_list.index(val))
                     else:
-                        print("not found id({}) in current observation".format(val))
-                        continue
-                item['act']['target_units'] = torch.LongTensor(unit_ids)
-            new_data.append(item)
+                        print("not found target_units id({}) in nearest observation".format(val))
+                        valid = False
+                        break
+                item['actions']['target_units'] = torch.LongTensor(unit_ids)
+            if valid:
+                new_data.append(item)
         return new_data
 
-    def __getitem__(self, idx):
-        handle = self.path_dict[idx]
-        data = torch.load(handle['name'] + DATA_SUFFIX)
-        step_num = self._get_item_step_num(handle, idx)
-        if self.trajectory_type == 'random':
-            start = random.randint(0, step_num - self.trajectory_len)
-        elif self.trajectory_type == 'slide_window':
-            if 'cur_step' in handle.keys():
-                start = handle['cur_step']
+    def step(self):
+        for i in range(len(self.path_list)):
+            handle = self.path_list[i]
+            if 'step_num' not in handle.keys():
+                meta = torch.load(handle['name'] + META_SUFFIX)
+                step_num = meta['step_num']
+                handle['step_num'] = step_num
             else:
-                start = random.randint(0, step_num - self.trajectory_len)
-                handle['cur_step'] = start
-            next_step = handle['cur_step'] + self.slide_window_step
-            if next_step >= step_num - self.trajectory_len:
+                step_num = handle['step_num']
+            if self.trajectory_type == 'random':
                 handle['cur_step'] = random.randint(0, step_num - self.trajectory_len)
-            else:
-                handle['cur_step'] = next_step
+            elif self.trajectory_type == 'slide_window':
+                if 'cur_step' not in handle.keys():
+                    handle['cur_step'] = random.randint(0, step_num - self.trajectory_len)
+                else:
+                    next_step = handle['cur_step'] + self.slide_window_step
+                    if next_step >= step_num - self.trajectory_len:
+                        handle['cur_step'] = random.randint(0, step_num - self.trajectory_len)
+                    else:
+                        handle['cur_step'] = next_step
+
+    def __getitem__(self, idx):
+        handle = self.path_list[idx]
+        data = torch.load(handle['name'] + DATA_SUFFIX)
+        start = handle['cur_step']
         end = start + self.trajectory_len
-        handle['count'] += 1
         sample_data = data[start:end]
         sample_data = self.action_unit_id_transform(sample_data)
-        if self.data_type == 'only_policy':
-            for i in range(len(sample_data)):
-                temp = sample_data[i]['obs0']
-                temp['actions'] = sample_data[i]['act']
-                sample_data[i] = temp
+        # if unit id transform deletes some data frames,
+        # collate_fn will use the minimum number of data frame to compose a batch
+        sample_data = [decompress_obs(d) for d in sample_data]
 
         return sample_data
 

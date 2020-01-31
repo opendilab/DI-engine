@@ -15,11 +15,19 @@ class OnlineDataLoader(object):
         indices = random.sample([i for i in range(self.dataset.maxlen)], self.batch_size)
         return indices
 
-    def __next__(self, cur_model_index):
+    def __next__(self):
         indices = self._get_indices()
-        batch, avg_usage, push_count, avg_model_index = self.dataset.get_indice_data(indices, cur_model_index)
+        batch, avg_usage, push_count, avg_model_index = self.dataset.get_indice_data(indices, self.cur_model_index)
         batch = self.collate_fn(batch)
         return batch, avg_usage, push_count, avg_model_index
+
+    @property
+    def cur_model_index(self):
+        return self._cur_model_index
+
+    @cur_model_index.setter
+    def cur_model_index(self, cur_model_index):
+        self._cur_model_index = cur_model_index
 
 
 def unroll_split_collate_fn(*args, collate_fn=_utils.collate.default_collate, **kwargs):

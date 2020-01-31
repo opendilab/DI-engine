@@ -5,6 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from .sl_learner import SLLearner
 from sc2learner.dataset import policy_collate_fn
+from sc2learner.nn_utils import MultiLogitsLoss
 
 
 def build_temperature_scheduler(cfg):
@@ -98,19 +99,22 @@ class AlphastarSLLearner(SLLearner):
         return self.criterion(logits, label)
 
     def _selected_units_loss(self, logits, label):
+        criterion = MultiLogitsLoss(criterion='cross_entropy')
         label = [x for x in label if isinstance(x, torch.Tensor)]
         if len(label) == 0:
             return 0
         loss = []
         for b in range(len(label)):
             lo, la = logits[b], label[b]
-            # TODO min CE match
             lo = torch.cat(lo, dim=0)
             if lo.shape[0] != la.shape[0]:
                 assert(lo.shape[0] == 1 + la.shape[0])
                 end_flag_label = torch.LongTensor([lo.shape[1]-1]).to(la.device)
-                la = torch.cat([la, end_flag_label], dim=0)
-            loss.append(self.criterion(lo, la))
+                end_flag_loss = self.criterion(lo[-1:], end_flag_label)
+                logits_loss = criterion(lo[:-1], la)
+                loss.append((end_flag_loss + logits_loss) / 2)
+            else:
+                loss.append(criterion(lo, la))
         return sum(loss) / len(loss)
 
     def _target_units_loss(self, logits, label):

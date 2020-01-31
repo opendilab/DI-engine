@@ -5,3 +5,4 @@ from .activation import build_activation
 from .block import ResBlock, ResFCBlock
 from .normalization import build_normalization
 from .rnn import LSTM
+from .multi_logits_loss import MultiLogitsLoss

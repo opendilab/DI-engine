@@ -47,7 +47,7 @@ FLAGS = flags.FLAGS
 flags.DEFINE_integer("parallel", 1, "How many instances to run in parallel.")
 flags.DEFINE_integer("step_mul", 1, "How many game steps per observation.")
 flags.DEFINE_string("replays", None, "Path to a directory of replays.")
-flags.DEFINE_string("output_dir", "/mnt/lustre/niuyazhe/data/sl_data_new_compress", "Path to save data")
+flags.DEFINE_string("output_dir", "/mnt/lustre/niuyazhe/data/sl_data_test", "Path to save data")
 flags.mark_flag_as_required("replays")
 
 
@@ -148,12 +148,10 @@ class ReplayProcessor(multiprocessing.Process):
                 replay_data, map_data, info = ret
                 meta_data_0 = self._parse_info(info, replay_path, home=0)
                 meta_data_1 = self._parse_info(info, replay_path, home=1)
-                step_data_0, stat0, map_size = self.process_replay_multi(
+                step_data, map_size, stat = self.process_replay_multi(
                     self.controllers, replay_data, map_data, self.player_ids)
-                step_data_1, stat1, map_size = self.process_replay_multi(
-                    self.controllers, replay_data, map_data, list(reversed(self.player_ids)))
-                meta_data_0['step_num'] = len(step_data_0)
-                meta_data_1['step_num'] = len(step_data_1)
+                meta_data_0['step_num'] = len(step_data[0])
+                meta_data_1['step_num'] = len(step_data[1])
                 meta_data_0['map_size'] = map_size
                 meta_data_1['map_size'] = map_size
                 name0 = '{}_{}_{}_{}'.format(meta_data_0['home_race'], meta_data_0['away_race'],
@@ -161,11 +159,11 @@ class ReplayProcessor(multiprocessing.Process):
                 name1 = '{}_{}_{}_{}'.format(meta_data_1['home_race'], meta_data_1['away_race'],
                                              meta_data_1['home_mmr'], os.path.basename(replay_path).split('.')[0])
                 torch.save(meta_data_0, os.path.join(self.output_dir, name0+'.meta'))
-                torch.save(step_data_0, os.path.join(self.output_dir, name0+'.step'))
-                torch.save(stat0, os.path.join(self.output_dir, name0+'.stat'))
+                torch.save(step_data[0], os.path.join(self.output_dir, name0+'.step'))
+                torch.save(stat[0], os.path.join(self.output_dir, name0+'.stat'))
                 torch.save(meta_data_1, os.path.join(self.output_dir, name1+'.meta'))
-                torch.save(step_data_1, os.path.join(self.output_dir, name1+'.step'))
-                torch.save(stat1, os.path.join(self.output_dir, name1+'.stat'))
+                torch.save(step_data[1], os.path.join(self.output_dir, name1+'.step'))
+                torch.save(stat[1], os.path.join(self.output_dir, name1+'.stat'))
                 return "success parse replay " + replay_path
             else:
                 return "invalid replay " + replay_path
@@ -198,12 +196,6 @@ class ReplayProcessor(multiprocessing.Process):
             controller.step()
         map_size = controllers[0].game_info().start_raw.map_size
         act_parser = AlphastarActParser(feature_layer_resolution=RESOLUTION, map_size=map_size)
-        N = len(player_ids)
-        step = 0
-        delay = [0 for _ in range(N)]
-        action_count = 0
-        # delay, queued, action_type, selected_units, target_units
-        last_info = [(torch.LongTensor([0]), 'none', torch.LongTensor([0]), 'none', 'none') for _ in range(N)]
 
         def update_action_stat(action_statistics, act, obs):
             def get_unit_type(tag, obs):
@@ -225,15 +217,16 @@ class ReplayProcessor(multiprocessing.Process):
                     unit_type = get_unit_type(unit_tag.item(), obs)
                     if unit_type is None:
                         print("not found selected unit(id: {})".format(unit_tag.item()))
-                        continue
+                        return False
                     action_statistics[action_type]['selected_type'].add(unit_type)
             if isinstance(act['target_units'], torch.Tensor):
                 for unit_tag in act['target_units']:
                     unit_type = get_unit_type(unit_tag.item(), obs)
                     if unit_type is None:
                         print("not found target unit(id: {})".format(unit_tag.item()))
-                        continue
+                        return False
                     action_statistics[action_type]['target_type'].add(unit_type)
+            return True
 
         def update_cum_stat(cumulative_statistics, act):
             action_type = act['action_type'].item()
@@ -257,71 +250,86 @@ class ReplayProcessor(multiprocessing.Process):
                     location = 'none'
                 begin_statistics.append({'action_type': action_type, 'location': location})
 
-        step_data = []
+        N = len(player_ids)
+        step = 0
+        delay = [0 for _ in range(N)]
+        action_count = [0 for _ in range(N)]
+        last_actions = [{'action_type': torch.LongTensor([0]), 'delay': torch.LongTensor([0]),
+                         'queued': 'none', 'selected_units': 'none', 'target_units': 'none',
+                         'target_location': 'none'} for _ in range(N)]
+        step_data = [[] for _ in range(N)]
         error_set = set()
-        action_statistics = {}
-        cumulative_statistics = {}
-        begin_statistics = []
+        action_statistics = [{} for _ in range(N)]
+        cumulative_statistics = [{} for _ in range(N)]
+        begin_statistics = [[] for _ in range(N)]
         begin_num = 100
 
+        prev_obs = [controller.observe() for controller in controllers]
+        controllers[0].step(FLAGS.step_mul)
+        controllers[1].step(FLAGS.step_mul)
         while True:
             # 1v1 version
             obs = [controller.observe() for controller in controllers]
-            base_obs = [feat.transform_obs(o) for feat, o in zip(feats, obs)]
-            try:
-                agent_obs = [self.obs_parser.parse(o) for o in base_obs]
-            except KeyError as e:
-                error_set.add(repr(e).split('_')[-2])
-                if obs[0].player_result:
-                    return step_data, {'action_statistics': action_statistics, 'cumulative_statistics':
-                                       cumulative_statistics, 'begin_statistics': begin_statistics}, map_size
-                controllers[0].step(FLAGS.step_mul)
-                controllers[1].step(FLAGS.step_mul)
-                print('step', step, error_set)
-                step += FLAGS.step_mul
-                continue
-
-            agent_obs[0]['scalar_info']['enemy_upgrades'] = agent_obs[1]['scalar_info']['upgrades']
-            agent_obs[1]['scalar_info']['enemy_upgrades'] = agent_obs[0]['scalar_info']['upgrades']
-
             actions = [o.actions for o in obs]
-            if len(actions[1]) > 0:
-                for action in actions[1]:
+            if len(actions[0]) > 0 or len(actions[1]) > 0:
+                # parse observation
+                base_obs = [feat.transform_obs(o) for feat, o in zip(feats, prev_obs)]
+                try:
+                    agent_obs = [self.obs_parser.parse(o) for o in base_obs]
+                except KeyError as e:
+                    error_set.add(repr(e).split('_')[-2])
+                    if obs[0].player_result:
+                        return (step_data, map_size,
+                                [{'action_statistics': action_statistics[idx], 'cumulative_statistics':
+                                  cumulative_statistics[idx], 'begin_statistics': begin_statistics[idx]}
+                                    for idx in range(2)])
+                    prev_obs = obs
+                    controllers[0].step(FLAGS.step_mul)
+                    controllers[1].step(FLAGS.step_mul)
+                    print('step', step, error_set)
+                    step += FLAGS.step_mul
+                    delay[0] += FLAGS.step_mul
+                    delay[1] += FLAGS.step_mul
+                    continue
+
+                # add obs from the enemy obs
+                agent_obs[0]['scalar_info']['enemy_upgrades'] = agent_obs[1]['scalar_info']['upgrades']
+                agent_obs[1]['scalar_info']['enemy_upgrades'] = agent_obs[0]['scalar_info']['upgrades']
+
+            for idx in range(N):
+                # non-empty action validate
+                if len(actions[idx]) == 0:
+                    continue
+                # merge action info into obs
+                result_obs = self.obs_parser.merge_action(agent_obs[idx], last_actions[idx])
+
+                # compress obs
+                compressed_obs = compress_obs(result_obs)
+
+                # save statistics and frame(all the action in actions use the same obs)
+                for action in actions[idx]:
                     act_raw = action.action_raw
                     agent_acts = act_parser.parse(act_raw)
-                    for idx, (_, v) in enumerate(agent_acts.items()):
-                        v['delay'] = torch.LongTensor([delay[1]])
-                        delay[1] = 0
-                        last_info[1] = (v['delay'], v['queued'], v['action_type'],
-                                        v['selected_units'], v['target_units'])
-            if len(actions[0]) > 0:
-                for action in actions[0]:
-                    act_raw = action.action_raw
-                    agent_acts = act_parser.parse(act_raw)
-                    for idx, (_, v) in enumerate(agent_acts.items()):
-                        v['delay'] = torch.LongTensor([delay[0]])
-                        update_action_stat(action_statistics, v, base_obs[0])
-                        update_cum_stat(cumulative_statistics, v)
-                        if len(begin_statistics) < begin_num:
-                            update_begin_stat(begin_statistics, v)
-                        delay[0] = 0
-                        agent_obs[0] = self.obs_parser.merge_action(agent_obs[0], last_info[0])
-                        agent_obs[1] = self.obs_parser.merge_action(agent_obs[1], last_info[1])
-                        last_info[0] = (v['delay'], v['queued'], v['action_type'],
-                                        v['selected_units'], v['target_units'])
-                        compressed_obs = (compress_obs(agent_obs[0]), compress_obs(agent_obs[1]))
-                        # torch.save(
-                        #     {'obs0': compressed_obs[0], 'obs1': compressed_obs[1], 'act': v},
-                        #     #{'obs0': agent_obs[0], 'obs1': agent_obs[1], 'act': v},
-                        #     os.path.join(self.output_dir, '0{}.pt'.format(action_count))
-                        # )
-                        step_data.append({'obs0': compressed_obs[0], 'obs1': compressed_obs[1], 'act': v})
-                        action_count += 1
+                    for i, (_, v) in enumerate(agent_acts.items()):
+                        v['delay'] = torch.LongTensor([delay[idx]])
+                        valid = update_action_stat(action_statistics[idx], v, base_obs[idx])
+                        if valid:
+                            update_cum_stat(cumulative_statistics[idx], v)
+                            if len(begin_statistics[idx]) < begin_num:
+                                update_begin_stat(begin_statistics[idx], v)
+                            compressed_obs.update({'actions': v})
+                            # torch.save(compressed_obs, os.path.join(self.output_dir, '{}.pt'.format(action_count)))
+                            step_data[idx].append(compressed_obs)
+                            action_count[idx] += 1
+                        last_actions[idx] = v
+                delay[idx] = 0
 
             if obs[0].player_result:
-                return step_data, {'action_statistics': action_statistics, 'cumulative_statistics':
-                                   cumulative_statistics, 'begin_statistics': begin_statistics}, map_size
+                return (step_data, map_size,
+                        [{'action_statistics': action_statistics[idx], 'cumulative_statistics':
+                          cumulative_statistics[idx], 'begin_statistics': begin_statistics[idx]} for idx in range(2)])
 
+            prev_obs = obs
             controllers[0].step(FLAGS.step_mul)
             controllers[1].step(FLAGS.step_mul)
             if step % 1000 == 0:
@@ -412,4 +420,4 @@ def main_multi(unused_argv):
 
 
 if __name__ == "__main__":
-    app.run(main_multi)
+    app.run(main)

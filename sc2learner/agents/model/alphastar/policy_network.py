@@ -7,6 +7,7 @@ from .core import CoreLstm
 from .obs_encoder import ScalarEncoder, SpatialEncoder, EntityEncoder
 from sc2learner.nn_utils import fc_block
 from pysc2.lib.action_dict import ACTION_INFO_MASK
+from pysc2.lib.static_data import NUM_UNIT_TYPES, UNIT_TYPES_REORDER
 from ..actor_critic.actor_critic import ActorCriticBase
 
 
@@ -65,30 +66,48 @@ class Policy(ActorCriticBase):
                 scatter_map[b, :, h, w] = project_embeddings[b][n]
         return torch.cat([spatial_info, scatter_map], dim=1)
 
-    def _look_up_action_attr(self, action_type, units_num, location_dims=(256, 256), actions_dim=259):
+    def _look_up_action_attr(self, action_type, entity_raw, units_num, location_dims=(256, 256)):
         action_mask = {'select_unit_type_mask': [], 'select_unit_mask': [], 'target_unit_type_mask': [],
                        'target_unit_mask': [], 'location_mask': []}
         device = action_type.device
+        '''
         for idx, action in enumerate(action_type):
             action_mask['select_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
-            action_mask['select_unit_type_mask'].append(torch.ones(1, actions_dim, device=device))
+            action_mask['select_unit_type_mask'].append(torch.ones(1, NUM_UNIT_TYPES, device=device))
             action_mask['target_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
-            action_mask['target_unit_type_mask'].append(torch.ones(1, actions_dim, device=device))
+            action_mask['target_unit_type_mask'].append(torch.ones(1, NUM_UNIT_TYPES, device=device))
             action_mask['location_mask'].append(torch.ones(1, *location_dims, device=device))
         action_attr = {'queued': 'none', 'selected_units': 'none', 'target_units': 'none', 'target_location': 'none'}
         '''
+        action_attr = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
         for idx, action in enumerate(action_type):
             value = ACTION_INFO_MASK[action.item()]
-            action_attr['queued'] = value['queued']
-            action_attr['selected_units'] = value['selected_units']
-            if action_attr['selected_units']:
-                action_mask['select_unit_type_mask'] =
+            if value['selected_units']:
+                type_list = value['avail_unit_type_id']
+                reorder_type_list = [UNIT_TYPES_REORDER[t] for t in type_list]
+                select_unit_type_mask = torch.zeros(1, NUM_UNIT_TYPES)
+                select_unit_type_mask[:, reorder_type_list] = 1
+                action_mask['select_unit_type_mask'].append(select_unit_type_mask.to(device))
+                select_unit_mask = torch.zeros(1, units_num[idx])
+                for i, t in enumerate(entity_raw[idx]['type']):
+                    if t in type_list:
+                        select_unit_mask[0, i] = 1
+                action_mask['select_unit_mask'].append(select_unit_mask.to(device))
             else:
-                action_mask['select_unit_type_mask'] = None
-                action_mask['select_unit_mask'] = None
-            action_attr['target_units'] = value['target_units']
-            action_attr['target_location'] = value['target_location']
-        '''
+                action_mask['select_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
+                action_mask['select_unit_type_mask'].append(torch.ones(1, NUM_UNIT_TYPES, device=device))
+            if value['target_units']:
+                action_mask['target_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
+                action_mask['target_unit_type_mask'].append(torch.ones(1, NUM_UNIT_TYPES, device=device))
+            else:
+                action_mask['target_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
+                action_mask['target_unit_type_mask'].append(torch.ones(1, NUM_UNIT_TYPES, device=device))
+            if value['target_location']:
+                action_mask['location_mask'].append(torch.ones(1, *location_dims, device=device))
+            else:
+                action_mask['location_mask'].append(torch.ones(1, *location_dims, device=device))
+            for k in action_attr.keys():
+                action_attr[k].append(value[k])
         return action_attr, action_mask
 
     def mimic(self, inputs, temperature):
@@ -113,27 +132,35 @@ class Policy(ActorCriticBase):
         units_num = [t.shape[0] for t in inputs['entity_info']]
         logits['action_type'], action_type, embeddings = self.head['action_type_head'](
             lstm_output, scalar_context, temperature, action_type)
-        _, mask = self._look_up_action_attr(action_type, units_num)
+        action_attr, mask = self._look_up_action_attr(action_type, inputs['entity_raw'], units_num)
 
         logits['delay'], delay, embedding = self.head['delay_head'](embeddings)
         for idx in range(action_type.shape[0]):
             embedding = embeddings[idx:idx+1]
             if isinstance(actions['queued'][idx], torch.Tensor):
+                if not action_attr['queued'][idx]:
+                    print('queued', actions['action_type'][idx], actions['queued'][idx], idx)
                 logits_queued, queued, embedding = self.head['queued_head'](embedding, temperature)
                 logits['queued'].append(logits_queued)
             if isinstance(actions['selected_units'][idx], torch.Tensor):
+                if not action_attr['selected_units'][idx]:
+                    print('selected_units', actions['action_type'][idx], actions['selected_units'][idx], idx)
                 selected_units_num = torch.LongTensor([actions['selected_units'][idx].shape[0]])
                 logits_selected_units, selected_units, embedding = self.head['selected_units_head'](
                     embedding, mask['select_unit_type_mask'][idx], mask['select_unit_mask'][idx],
                     entity_embeddings[idx], temperature, selected_units_num)
                 logits['selected_units'].append(logits_selected_units[0])
             if isinstance(actions['target_units'][idx], torch.Tensor):
+                if not action_attr['target_units'][idx]:
+                    print('target_units', actions['action_type'][idx], actions['target_units'][idx], idx)
                 target_units_num = torch.LongTensor([actions['target_units'][idx].shape[0]])
                 logits_target_units, target_units = self.head['target_units_head'](
                     embedding, mask['target_unit_type_mask'][idx], mask['target_unit_mask'][idx],
                     entity_embeddings[idx], temperature, target_units_num)
                 logits['target_units'].append(logits_target_units[0])
             if isinstance(actions['target_location'][idx], torch.Tensor):
+                if not action_attr['target_location'][idx]:
+                    print('target_location', actions['action_type'][idx], actions['target_location'][idx], idx)
                 map_skip_single = [t[idx:idx+1] for t in map_skip]
                 logits_location, location = self.head['location_head'](
                     embedding, map_skip_single, mask['location_mask'][idx], temperature)

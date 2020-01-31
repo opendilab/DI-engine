@@ -34,6 +34,8 @@ class AlphastarActParser(object):
         coord[1] = min(self.map_size[1], coord[1])
         new_x = int(coord[0] * self.resolution[0] / (self.map_size[0] + 1e-3))
         new_y = int(coord[1] * self.resolution[1] / (self.map_size[1] + 1e-3))
+        max_limit = self.resolution[0] * self.resolution[1]
+        assert(new_x < max_limit and new_y < max_limit)
         return (new_x, new_y)
 
     # refer to https://github.com/Blizzard/s2client-proto/blob/master/s2clientprotocol/raw.proto
@@ -56,11 +58,15 @@ class AlphastarActParser(object):
                 ret['target_location'] = self.world_coord_to_minimap([t.target_world_space_pos.x,
                                                                       t.target_world_space_pos.y])
                 ret['action_type'] = [self.ability_to_raw_func(t.ability_id, actions.raw_cmd_pt)]
-            if t.HasField('target_unit_tag'):
-                ret['target_units'] = [t.target_unit_tag]
-                ret['action_type'] = [self.ability_to_raw_func(t.ability_id, actions.raw_cmd_unit)]
             else:
-                ret['action_type'] = [self.ability_to_raw_func(t.ability_id, actions.raw_cmd)]
+                if t.HasField('target_unit_tag'):
+                    ret['target_units'] = [t.target_unit_tag]
+                    ret['action_type'] = [self.ability_to_raw_func(t.ability_id, actions.raw_cmd_unit)]
+                else:
+                    ret['action_type'] = [self.ability_to_raw_func(t.ability_id, actions.raw_cmd)]
+            if ret['action_type'] == [0]:
+                ret = self._get_output_template()
+                ret['action_type'] = [0]
             return ret
         else:
             return None
@@ -94,4 +100,5 @@ class AlphastarActParser(object):
         for func in actions.RAW_ABILITY_IDS[ability_id]:
             if func.function_type is cmd_type:
                 return func.id
+        print("not found corresponding cmd type, id: {}\tcmd type: {}".format(ability_id, cmd_type))
         return 0  # error case, regard as no op
