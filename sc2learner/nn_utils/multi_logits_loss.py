@@ -44,7 +44,6 @@ class MultiLogitsLoss(nn.Module):
             return False
 
         for i in range(M):
-            count = 5
             while True:
                 visx = np.zeros(M, dtype=np.bool)
                 visy = np.zeros(M, dtype=np.bool)
@@ -63,9 +62,6 @@ class MultiLogitsLoss(nn.Module):
                         lx[j] -= d
                     if visy[j]:
                         ly[j] += d
-                count += 1
-                if count > 10:
-                    break
         return index
 
     def forward(self, logits, labels):
@@ -86,11 +82,18 @@ def test_multi_logits_loss():
 
 
 def _selected_units_loss():
+    def smooth_label(label, num, eps=0.1):
+        val = eps / (num - 1)
+        ret = torch.full((1, num), val)
+        ret[0, label] = 1 - eps
+        return ret
     logits = torch.load('logits.pt')
-    label = torch.load('label.pt')
+    label = torch.load('labels.pt')
     criterion = MultiLogitsLoss(criterion='cross_entropy')
     self_criterion = nn.CrossEntropyLoss()
     label = [x for x in label if isinstance(x, torch.Tensor)]
+    print(len(label))
+    print(label)
     if len(label) == 0:
         return 0
     loss = []
@@ -101,8 +104,11 @@ def _selected_units_loss():
         if lo.shape[0] != la.shape[0]:
             assert(lo.shape[0] == 1 + la.shape[0])
             end_flag_label = torch.LongTensor([lo.shape[1]-1]).to(la.device)
+            #end_flag_label = smooth_label(lo.shape[1]-1, lo.shape[1]).to(la.device)
+            #end_flag_loss = F.binary_cross_entropy_with_logits(lo[-1:], end_flag_label)
             end_flag_loss = self_criterion(lo[-1:], end_flag_label)
             logits_loss = criterion(lo[:-1], la)
+            print(end_flag_loss, logits_loss)
             loss.append((end_flag_loss + logits_loss) / 2)
         else:
             loss.append(criterion(lo, la))

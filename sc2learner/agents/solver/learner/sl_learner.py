@@ -63,7 +63,6 @@ class SLLearner(object):
                 _, backward_update_time = self._optimize_step(var_items['total_loss'])
                 time_items = {'data_time': data_time, 'forward_time': forward_time,
                               'backward_update_time': backward_update_time}
-                print(time_items)
                 var_items['cur_lr'] = cur_lr
                 var_items['epoch'] = epoch
 

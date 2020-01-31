@@ -123,7 +123,8 @@ class SelectedUnitsHead(nn.Module):
                     if i < query_num[b]:
                         logits[b].append(query_result)
                         units[b][entity_num[b]] = 1
-                        mask[b][entity_num[b]] = 0
+                        if entity_num[b] != end_flag_index:
+                            mask[b][entity_num[b]] = 0
                     elif i == query_num[b]:
                         logits[b].append(query_result)
         embedding_selected = units.unsqueeze(2).to(key.dtype)
@@ -219,7 +220,8 @@ class TargetUnitsHead(nn.Module):
                     if i < query_num[b]:
                         logits[b].append(query_result)
                         units[b][entity_num[b]] = 1
-                        mask[b][entity_num[b]] = 0
+                        if entity_num[b] != end_flag_index:
+                            mask[b][entity_num[b]] = 0
                     elif i == query_num[b]:
                         logits[b].append(query_result)
         return logits, units
