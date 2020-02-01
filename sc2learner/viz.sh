@@ -1,1 +1,1 @@
-tensorboard --logdir=experiments/block2_rerun --port=$1 --samples_per_plugin "images=100"
+tensorboard --logdir=experiments/ppo_test --port=$1 --samples_per_plugin "images=100"
