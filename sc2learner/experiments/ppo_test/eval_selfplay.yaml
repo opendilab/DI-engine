@@ -1,0 +1,24 @@
+common:
+    config_name: eval_selfplay
+    num_episodes: 10
+    agent: [ppo, ppo]  # [ppo, dqn, random, keyboard]
+env:
+    game_version: '4.10'
+    resolution: 16
+    map_name: AbyssalReef
+    disable_fog: False
+    step_mul: 32
+    agent_race: [zerg, zerg]
+    tie_to_lose: False
+    use_all_combat_actions: False
+    game_steps_per_episode: 43200
+    use_region_features: False
+    use_spatial_features: False
+    use_action_mask: True
+    use_reward_shaping: False
+    save_replay: True
+model:
+    policy: mlp  # [mlp, lstm]
+    action_type: [fixed, fixed]  # [rand, fixed]
+logger:
+    print_freq: 10
