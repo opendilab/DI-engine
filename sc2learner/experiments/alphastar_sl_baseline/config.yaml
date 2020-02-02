@@ -100,5 +100,5 @@ model:
                 activation: 'relu'
 logger:
     print_freq: 10
-    save_freq: 5000
+    save_freq: 200
 
