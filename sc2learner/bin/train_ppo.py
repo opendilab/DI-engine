@@ -91,6 +91,9 @@ def start_actor_manager(cfg):
     HWM = cfg.communication.HWM.actor_manager
     send_queue_size = cfg.communication.queue_size.actor_manager_send
     receive_queue_size = cfg.communication.queue_size.actor_manager_receive
+    if ip.learner_manager == 'auto':
+        learner_manager_ip_prefix = '.'.join(ip.learner.split('.')[0:3])
+        ip.learner_manager = ip.manager_node[learner_manager_ip_prefix]
     apply_ip = {
         'send': ip.learner_manager,
     }

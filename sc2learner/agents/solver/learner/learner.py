@@ -140,12 +140,8 @@ class BaseLearner(object):
 
         ip = cfg.communication.ip
         port = cfg.communication.port
-        if ip['learner_manager'] == ip['actor_manager']:
-            pull_port = port['learner']
-            rep_port = port['actor']
-        else:
-            pull_port = port['learner']
-            rep_port = port['learner_manager_model']
+        pull_port = port['learner']
+        rep_port = port['learner_manager_model']
         self.HWM = cfg.communication.HWM['learner']
         self.pull_thread = Thread(target=self._pull_data,
                                   args=(self.zmq_context, pull_port))

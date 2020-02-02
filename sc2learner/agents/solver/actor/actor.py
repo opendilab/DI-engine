@@ -1,6 +1,7 @@
 from queue import Queue
 from threading import Thread
 import zmq
+import socket
 from sc2learner.utils import build_checkpoint_helper, build_time_helper, send_array, dict2nparray, get_ip, get_pid
 
 
@@ -15,16 +16,14 @@ class BaseActor(object):
 
         port = cfg.communication.port
         ip = cfg.communication.ip
-        if ip['actor_manager'] == ip['learner_manager']:
-            push_ip = ip['learner']
-            push_port = port['learner']
-            req_ip = ip['learner']
-            req_port = port['actor']
-        else:
-            push_ip = ip['actor_manager']
-            push_port = port['actor_manager']
-            req_ip = ip['actor_manager']
-            req_port = port['actor_model']
+        if ip['actor_manager'] == 'auto':
+            current_ip_addr = socket.gethostbyname(socket.gethostname())
+            ip_prefix = '.'.join(current_ip_addr.split('.')[0:3])
+            ip['actor_manager'] = ip['manager_node'][ip_prefix]
+        push_ip = ip['actor_manager']
+        push_port = port['actor_manager']
+        req_ip = ip['actor_manager']
+        req_port = port['actor_model']
         self.HWM = cfg.communication.HWM['actor']
         self.time_helper = build_time_helper(wrapper_type='time')
 
