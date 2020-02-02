@@ -145,7 +145,7 @@ class Policy(ActorCriticBase):
             if isinstance(actions['selected_units'][idx], torch.Tensor):
                 if not action_attr['selected_units'][idx]:
                     print('selected_units', actions['action_type'][idx], actions['selected_units'][idx], idx)
-                selected_units_num = torch.LongTensor([actions['selected_units'][idx].shape[0]])
+                selected_units_num = [actions['selected_units'][idx].shape[0]]
                 logits_selected_units, selected_units, embedding = self.head['selected_units_head'](
                     embedding, mask['select_unit_type_mask'][idx], mask['select_unit_mask'][idx],
                     entity_embeddings[idx], temperature, selected_units_num)
@@ -153,7 +153,7 @@ class Policy(ActorCriticBase):
             if isinstance(actions['target_units'][idx], torch.Tensor):
                 if not action_attr['target_units'][idx]:
                     print('target_units', actions['action_type'][idx], actions['target_units'][idx], idx)
-                target_units_num = torch.LongTensor([actions['target_units'][idx].shape[0]])
+                target_units_num = [actions['target_units'][idx].shape[0]]
                 logits_target_units, target_units = self.head['target_units_head'](
                     embedding, mask['target_unit_type_mask'][idx], mask['target_unit_mask'][idx],
                     entity_embeddings[idx], temperature, target_units_num)
