@@ -8,7 +8,7 @@ data:
 train:
     use_cuda: True
     max_epochs: 1000
-    batch_size: 8
+    batch_size: 7
     learning_rate: 1e-3
     weight_decay: 1e-5
     temperature: 1.0

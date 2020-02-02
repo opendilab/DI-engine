@@ -108,7 +108,7 @@ class HistoryActorInfo(object):
 
     def get_win_rate(self):
         def win_rate(v):
-            return (sum(v) / len(v) + 1) / 2
+            return (sum(v) / (len(v) + 1e-6) + 1) / 2
 
         return {k: win_rate(v) for k, v in self.game_results.items()}
 
