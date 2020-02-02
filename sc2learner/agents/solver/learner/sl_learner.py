@@ -1,7 +1,10 @@
+import os
+import numbers
 import torch
 from torch.utils.data import DataLoader
-from sc2learner.dataset import ReplayDataset
-from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper, to_device, CountVar
+from sc2learner.dataset import ReplayDataset, DistributedSampler
+from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper, to_device, CountVar,\
+    DistModule, dist_init, dist_finalize, allreduce
 from sc2learner.agents.model import build_model
 
 
@@ -20,20 +23,32 @@ class SLLearner(object):
 
     def __init__(self, cfg=None):
         assert(cfg is not None)
+        # os.environ['CUDA_LAUNCH_BLOCKING'] = "1"  # for debug async CUDA
         self.cfg = cfg
+        self.use_distributed = cfg.train.use_distributed
+        if self.use_distributed:
+            self.rank, self.world_size = dist_init()
+        else:
+            self.rank, self.world_size = 0, 1
         self.model = build_model(cfg)
         print(self.model)
         self.model.train()
         self.use_cuda = cfg.train.use_cuda
         if self.use_cuda:
             self.model = to_device(self.model, 'cuda')
+        if self.use_distributed:
+            self.model = DistModule(self.model)
         self.dataset = ReplayDataset(cfg.data.replay_list, cfg.data.trajectory_len, cfg.data.trajectory_type)
+        sampler = DistributedSampler(self.dataset, round_up=False) if self.use_distributed else None
+        shuffle = False if self.use_distributed else True
         self.dataloader = DataLoader(self.dataset, batch_size=cfg.train.batch_size, pin_memory=False, num_workers=3,
-                                     shuffle=True, drop_last=True)
+                                     sampler=sampler, shuffle=shuffle, drop_last=True)
 
         self.optimizer = build_optimizer(self.model, cfg)
         self.lr_scheduler = build_lr_scheduler(self.optimizer)
-        self.logger, self.tb_logger, self.scalar_record = build_logger(cfg)
+        if self.rank == 0:
+            self.logger, self.tb_logger, self.scalar_record = build_logger(cfg)
+            self._init()
         self.time_helper = build_time_helper(cfg)
         self.checkpoint_helper = build_checkpoint_helper(cfg)
         self.last_iter = CountVar(init_val=0)
@@ -43,7 +58,6 @@ class SLLearner(object):
                                         last_iter=self.last_iter,  # TODO last_iter for lr_scheduler
                                         dataset=self.dataset,
                                         logger_prefix='(sl_learner)')
-        self._init()
         self._optimize_step = self.time_helper.wrapper(self._optimize_step)
         self.max_epochs = cfg.train.max_epochs
 
@@ -62,13 +76,38 @@ class SLLearner(object):
                 var_items, forward_time = self._get_loss(batch_data)
                 _, backward_update_time = self._optimize_step(var_items['total_loss'])
                 time_items = {'data_time': data_time, 'forward_time': forward_time,
-                              'backward_update_time': backward_update_time}
+                              'backward_update_time': backward_update_time,
+                              'total_batch_time': data_time+forward_time+backward_update_time}
                 var_items['cur_lr'] = cur_lr
                 var_items['epoch'] = epoch
 
-                self._update_monitor_var(var_items, time_items)
-                self._record_info(self.last_iter.val)
+                if self.use_distributed:
+                    var_items, time_items = [self._reduce_info(x) for x in [var_items, time_items]]
+                if self.rank == 0:
+                    self._update_monitor_var(var_items, time_items)
+                    self._record_info(self.last_iter.val)
                 self.last_iter.add(1)
+
+    def finalize(self):
+        if self.use_distributed:
+            dist_finalize()
+
+    def _reduce_info(self, data):
+        if isinstance(data, dict):
+            new_data = {}
+            for k, v in data.items():
+                new_data[k] = self._reduce_info(v)
+        elif isinstance(data, torch.Tensor):
+            new_data = data.clone()
+            allreduce(new_data)
+            new_data.div_(self.world_size)
+        elif isinstance(data, numbers.Integral) or isinstance(data, numbers.Real):
+            new_data = torch.Tensor([data])
+            allreduce(new_data)
+            new_data = new_data.item() / self.world_size
+        else:
+            raise TypeError("invalid info type: {}".format(type(data)))
+        return new_data
 
     def _record_info(self, iterations):
         if iterations % self.cfg.logger.print_freq == 0:
@@ -99,7 +138,8 @@ class SLLearner(object):
     def _optimize_step(self, loss):
         self.optimizer.zero_grad()
         loss.backward()
-        # TODO support reduce gradient
+        if self.use_distributed:
+            self.model.sync_gradients()
         self.optimizer.step()
 
     def _init(self):

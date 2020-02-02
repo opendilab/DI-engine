@@ -59,6 +59,7 @@ class OnlineDataset(object):
                 time.sleep(sleep_time)
                 continue
             data = [self.data_queue[i] for i in indice]
+            self._add_usage_count(indice)
             model_index = [d['model_index'] for d in data]
             usage = [self.data_queue[i]['use_count'] for i in indice]
             if use_block_data:
@@ -76,7 +77,6 @@ class OnlineDataset(object):
             avg_usage = sum(usage) / len(usage)
             push_count = self.push_count
             self.push_count = 0
-            self._add_usage_count(indice)
             self._release_lock()
             return data, avg_usage, push_count, avg_model_index
 
