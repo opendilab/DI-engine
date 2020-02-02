@@ -46,7 +46,9 @@ class SLLearner(object):
 
         self.optimizer = build_optimizer(self.model, cfg)
         self.lr_scheduler = build_lr_scheduler(self.optimizer)
-        self.logger, self.tb_logger, self.scalar_record = build_logger(cfg)
+        if self.rank == 0:
+            self.logger, self.tb_logger, self.scalar_record = build_logger(cfg)
+            self._init()
         self.time_helper = build_time_helper(cfg)
         self.checkpoint_helper = build_checkpoint_helper(cfg)
         self.last_iter = CountVar(init_val=0)
@@ -56,7 +58,6 @@ class SLLearner(object):
                                         last_iter=self.last_iter,  # TODO last_iter for lr_scheduler
                                         dataset=self.dataset,
                                         logger_prefix='(sl_learner)')
-        self._init()
         self._optimize_step = self.time_helper.wrapper(self._optimize_step)
         self.max_epochs = cfg.train.max_epochs
 
@@ -75,14 +76,16 @@ class SLLearner(object):
                 var_items, forward_time = self._get_loss(batch_data)
                 _, backward_update_time = self._optimize_step(var_items['total_loss'])
                 time_items = {'data_time': data_time, 'forward_time': forward_time,
-                              'backward_update_time': backward_update_time}
+                              'backward_update_time': backward_update_time,
+                              'total_batch_time': data_time+forward_time+backward_update_time}
                 var_items['cur_lr'] = cur_lr
                 var_items['epoch'] = epoch
 
                 if self.use_distributed:
                     var_items, time_items = [self._reduce_info(x) for x in [var_items, time_items]]
-                self._update_monitor_var(var_items, time_items)
-                self._record_info(self.last_iter.val)
+                if self.rank == 0:
+                    self._update_monitor_var(var_items, time_items)
+                    self._record_info(self.last_iter.val)
                 self.last_iter.add(1)
 
     def finalize(self):
