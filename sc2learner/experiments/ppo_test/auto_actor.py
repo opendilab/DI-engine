@@ -103,6 +103,7 @@ def pd_partition(partition, p_class, limit, learner_node_address, actor_manager_
         if len(line) != 4:
             continue
         node_address, num, _, state = line
+        #skipping learner node or actor_manager_node
         if learner_node_address != node_address and actor_manager_node_address != node_address:
             if state == 'mix':
                 mix_list.append(node_address)
@@ -151,8 +152,8 @@ def pd_partition(partition, p_class, limit, learner_node_address, actor_manager_
 
 
 def run_manager(ip, cfg):
-    if ip == cfg.communication.ip.learner_manager:
-        print('run manager local')
+    if cfg.communication.ip.actor_manager != 'auto':
+        print('run actor manager on specified node (not on manager node)')
         node_name = node_prefix_dict[ip] + '-'.join(cfg.communication.ip.actor_manager.split('.'))
         manager_partition = None
         info = subprocess.getoutput('sinfo -Nh').split('\n')
@@ -163,11 +164,11 @@ def run_manager(ip, cfg):
             node_address, num, partition_name, state = line
             if node_address == node_name:
                 manager_partition = partition_name
-        assert manager_partition != None, 'cannot find actor_manager_local node'
-        subprocess.run(['sh', 'actor_manager_local.sh', manager_partition, node_name, mefull, '&'])
+        assert manager_partition != None, 'cannot find the partition of the actor_manager node'
+        subprocess.run(['sh', 'actor_manager_queue.sh', manager_partition, node_name, mefull, '&'])
         time.sleep(30)
     else:
-        print('run manager')
+        print('run manager on manager node')
         subprocess.run(['sh', 'actor_manager.sh', '&'])
         time.sleep(30)
 
