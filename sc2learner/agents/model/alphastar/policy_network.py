@@ -2,7 +2,8 @@ import collections
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from .head import DelayHead, QueuedHead, SelectedUnitsHead, TargetUnitsHead, LocationHead, ActionTypeHead
+from .head import DelayHead, QueuedHead, SelectedUnitsHead, TargetUnitsHead, LocationHead, ActionTypeHead,\
+    TargetUnitHead
 from .core import CoreLstm
 from .obs_encoder import ScalarEncoder, SpatialEncoder, EntityEncoder
 from sc2learner.nn_utils import fc_block
@@ -27,6 +28,7 @@ def build_head(name):
         'queued_head': QueuedHead,
         'selected_units_head': SelectedUnitsHead,
         'target_units_head': TargetUnitsHead,
+        'target_unit_head': TargetUnitHead,
         'location_head': LocationHead,
     }
     return head_dict[name]
@@ -153,11 +155,10 @@ class Policy(ActorCriticBase):
             if isinstance(actions['target_units'][idx], torch.Tensor):
                 if not action_attr['target_units'][idx]:
                     print('target_units', actions['action_type'][idx], actions['target_units'][idx], idx)
-                target_units_num = [actions['target_units'][idx].shape[0]]
-                logits_target_units, target_units = self.head['target_units_head'](
+                logits_target_units, target_units = self.head['target_unit_head'](
                     embedding, mask['target_unit_type_mask'][idx], mask['target_unit_mask'][idx],
-                    entity_embeddings[idx], temperature, target_units_num)
-                logits['target_units'].append(logits_target_units[0])
+                    entity_embeddings[idx], temperature)
+                logits['target_units'].append(logits_target_units)
             if isinstance(actions['target_location'][idx], torch.Tensor):
                 if not action_attr['target_location'][idx]:
                     print('target_location', actions['action_type'][idx], actions['target_location'][idx], idx)

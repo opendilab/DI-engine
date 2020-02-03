@@ -93,6 +93,7 @@ class ReplayDataset(Dataset):
                 handle['step_num'] = step_num
             else:
                 step_num = handle['step_num']
+            assert(handle['step_num'] >= self.trajectory_len)
             if self.trajectory_type == 'random':
                 handle['cur_step'] = random.randint(0, step_num - self.trajectory_len)
             elif self.trajectory_type == 'slide_window':
@@ -119,7 +120,7 @@ class ReplayDataset(Dataset):
         return sample_data
 
 
-def select_replay(replay_dir, min_mmr=0, home_race=None, away_race=None):
+def select_replay(replay_dir, min_mmr=0, home_race=None, away_race=None, trajectory_len=64):
     race_list = ['Protoss', 'Terran', 'Zerg']
     assert(home_race is None or home_race in race_list)
     assert(away_race is None or away_race in race_list)
@@ -133,6 +134,9 @@ def select_replay(replay_dir, min_mmr=0, home_race=None, away_race=None):
             if home_race and home != home_race:
                 continue
             if away_race and away != away_race:
+                continue
+            meta = torch.load(os.path.join(replay_dir, name)+META_SUFFIX)
+            if meta['step_num'] < trajectory_len:
                 continue
             selected_replay.append(os.path.join(replay_dir, name))
     return selected_replay
@@ -171,6 +175,7 @@ def policy_collate_fn(batch):
                 new_data[k] = default_collate(new_data[k])
             if k == 'actions':
                 new_data[k] = list_dict2dict_list(new_data[k])
+                new_data[k]['delay'] = [torch.clamp(x, 0, 127) for x in new_data[k]['delay']]  # clip
         return new_data
 
     # sequence, batch
