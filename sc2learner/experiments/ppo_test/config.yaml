@@ -41,7 +41,9 @@ communication:
             10.198.8: '10.198.8.31'
             10.198.6: '10.198.6.31'
             10.5.38: '10.5.38.31'
+            10.5.39: '10.5.38.31'
             10.5.36: '10.5.36.31'
+            10.5.37: '10.5.36.31'
             10.10.30: '10.10.30.91'
         learner: '10.198.8.68'
         learner_manager: 'auto' # regarded as the manager node of the lustre with learner if set to auto
