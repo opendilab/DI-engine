@@ -94,6 +94,7 @@ def start_actor_manager(cfg):
     if ip.learner_manager == 'auto':
         learner_manager_ip_prefix = '.'.join(ip.learner.split('.')[0:3])
         ip.learner_manager = ip.manager_node[learner_manager_ip_prefix]
+    print('auto set learner_manager ip to ' + ip.learner_manager)
     apply_ip = {
         'send': ip.learner_manager,
     }
@@ -143,6 +144,10 @@ def main(argv):
     cfg.common.load_path = FLAGS.load_path
     cfg.common.data_load_path = FLAGS.data_load_path
     if FLAGS.job_name == 'actor':
+        if cfg.communication.ip.actor_manager == 'auto':
+        # extract the ip address prefix (like 10.198.8)
+            prefix = FLAGS.node_name.split('-')[-4:-1]
+            cfg.communication.ip.actor_manager = cfg.communication.ip.manager_node[prefix]
         start_actor(cfg)
     elif FLAGS.job_name == 'learner':
         start_learner(cfg)
