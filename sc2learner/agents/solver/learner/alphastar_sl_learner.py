@@ -82,6 +82,10 @@ class AlphastarSLLearner(SLLearner):
 
         for k, v in loss_items.items():
             loss_items[k] = sum(v) / len(v)
+            if not isinstance(loss_items[k], torch.Tensor):
+                dtype = policy_logits['action_type'].dtype
+                device = policy_logits['action_type'].device
+                loss_items[k] = torch.tensor([loss_items[k]], dtype=dtype, device=device)
         loss_items['total_loss'] = sum(loss_items.values())
         return loss_items
 

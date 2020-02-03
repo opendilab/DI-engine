@@ -137,6 +137,7 @@ class SLLearner(object):
 
     def _optimize_step(self, loss):
         self.optimizer.zero_grad()
+        loss /= self.world_size
         loss.backward()
         if self.use_distributed:
             self.model.sync_gradients()
