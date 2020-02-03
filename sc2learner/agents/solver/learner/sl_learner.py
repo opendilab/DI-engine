@@ -31,7 +31,6 @@ class SLLearner(object):
         else:
             self.rank, self.world_size = 0, 1
         self.model = build_model(cfg)
-        print(self.model)
         self.model.train()
         self.use_cuda = cfg.train.use_cuda
         if self.use_cuda:
@@ -48,6 +47,8 @@ class SLLearner(object):
         self.lr_scheduler = build_lr_scheduler(self.optimizer)
         if self.rank == 0:
             self.logger, self.tb_logger, self.scalar_record = build_logger(cfg)
+            self.logger.info('cfg:\n{}'.format(self.cfg))
+            self.logger.info('model:\n{}'.format(self.model))
             self._init()
         self.time_helper = build_time_helper(cfg)
         self.checkpoint_helper = build_checkpoint_helper(cfg)
