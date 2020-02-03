@@ -25,6 +25,7 @@ flags.DEFINE_string("job_name", "", "actor or learner")
 flags.DEFINE_string("config_path", "config.yaml", "path to config file")
 flags.DEFINE_string("load_path", "", "path to model checkpoint")
 flags.DEFINE_string("data_load_path", "", "path to load offline data")
+flags.DEFINE_string("node_name", "", "name of the running node")
 flags.FLAGS(sys.argv)
 
 
@@ -136,7 +137,7 @@ def start_learner_manager(cfg):
 
 
 def main(argv):
-    logging.set_verbosity(logging.ERROR)
+    logging.set_verbosity(logging.INFO)
     with open(FLAGS.config_path) as f:
         cfg = yaml.load(f)
     cfg = EasyDict(cfg)
@@ -146,7 +147,7 @@ def main(argv):
     if FLAGS.job_name == 'actor':
         if cfg.communication.ip.actor_manager == 'auto':
         # extract the ip address prefix (like 10.198.8)
-            prefix = FLAGS.node_name.split('-')[-4:-1]
+            prefix = '.'.join(FLAGS.node_name.split('-')[-4:-1])
             cfg.communication.ip.actor_manager = cfg.communication.ip.manager_node[prefix]
         start_actor(cfg)
     elif FLAGS.job_name == 'learner':
