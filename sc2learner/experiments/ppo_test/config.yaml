@@ -43,7 +43,7 @@ communication:
             10.5.38: '10.5.38.31'
             10.5.36: '10.5.36.31'
             10.10.30: '10.10.30.91'
-        learner: '10.198.8.77'
+        learner: '10.198.8.68'
         learner_manager: 'auto' # regarded as the manager node of the lustre with learner if set to auto
         actor_manager: 'auto' # regarded as the manager node of the lustre where the actors are running if set to auto
     port:

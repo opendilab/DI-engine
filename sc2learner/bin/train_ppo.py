@@ -137,7 +137,7 @@ def start_learner_manager(cfg):
 
 
 def main(argv):
-    logging.set_verbosity(logging.INFO)
+    logging.set_verbosity(logging.WARNING)
     with open(FLAGS.config_path) as f:
         cfg = yaml.load(f)
     cfg = EasyDict(cfg)
