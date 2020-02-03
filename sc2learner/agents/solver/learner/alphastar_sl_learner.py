@@ -118,7 +118,14 @@ class AlphastarSLLearner(SLLearner):
         return sum(loss) / len(loss)
 
     def _target_units_loss(self, logits, label):
-        return self._selected_units_loss(logits, label)
+        label = [x for x in label if isinstance(x, torch.Tensor)]
+        if len(label) == 0:
+            return 0
+        loss = []
+        for b in range(len(label)):
+            lo, la = logits[b], label[b]
+            loss.append(self.criterion(lo, la))
+        return sum(loss) / len(loss)
 
     def _target_location_loss(self, logits, label):
         label = [x for x in label if isinstance(x, torch.Tensor)]
