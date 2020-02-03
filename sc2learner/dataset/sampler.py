@@ -17,7 +17,7 @@ class DistributedSampler(Sampler):
         self.round_up = round_up
         self.epoch = 0
 
-        self.num_samples = int(math.ceil(len(self.dataset) * 1.0 / self.world_size))
+        self.num_samples = int(math.floor(len(self.dataset) * 1.0 / self.world_size))
         if self.round_up:
             self.total_size = self.num_samples * self.world_size
             self.length = self.num_samples
