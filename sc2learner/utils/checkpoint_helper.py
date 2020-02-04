@@ -41,7 +41,7 @@ class CheckpointHelper(object):
         return self.save('iterations_{}'.format(iterations), model, **kwargs)
 
     def save(self, name, model,
-             optimizer=None, last_iter=None,
+             optimizer=None, last_iter=None, last_epoch=None,
              dataset=None, actor_info=None,
              prefix_op=None, prefix=None):
         checkpoint = {}
@@ -56,8 +56,9 @@ class CheckpointHelper(object):
         checkpoint['state_dict'] = state_dict
 
         if optimizer is not None:
-            assert(last_iter is not None)
+            assert(last_iter is not None or last_epoch is not None)
             checkpoint['last_iter'] = last_iter
+            checkpoint['last_epoch'] = last_epoch
             checkpoint['optimizer'] = optimizer.state_dict()
 
         if dataset is not None:
@@ -85,7 +86,7 @@ class CheckpointHelper(object):
             logger.info('redundant_keys: {}'.format(k))
 
     def load(self, load_path, model,
-             optimizer=None, last_iter=None, lr_schduler=None, dataset=None, actor_info=None,
+             optimizer=None, last_iter=None, last_epoch=None, lr_schduler=None, dataset=None, actor_info=None,
              prefix_op=None, prefix=None, strict=False, logger_prefix=''):
         # Note: don't use assign operation('=') to updare input argument value
         assert(os.path.exists(load_path))
@@ -114,6 +115,10 @@ class CheckpointHelper(object):
         if last_iter is not None:
             last_iter.update(checkpoint['last_iter'])
             logger.info(logger_prefix+'load last_iter in {}, current last_iter is {}'.format(load_path, last_iter.val))
+
+        if last_epoch is not None:
+            last_epoch.update(checkpoint['last_epoch'])
+            logger.info(logger_prefix+'load last_epoch in {}, current last_epoch is {}'.format(load_path, last_epoch.val))
 
         if actor_info is not None:
             actor_info.load_state_dict(checkpoint['actor_info'])
