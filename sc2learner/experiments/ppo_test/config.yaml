@@ -83,7 +83,7 @@ auto_actor_start:
     # partitions available to user
     partitions_dict:
         10.10.30.91:
-            cpu: ['cpu']
+            cpu: ['CPU']
             ours: ['VI_SP_Y_V100']
             others: ['VI_IPS_V', 'VI_ID_1080', 'VI_ID_V100', 'VI_IPS_1080', 'VI_SP_X_TITANX']
         10.5.36.31:
