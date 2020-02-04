@@ -45,7 +45,7 @@ communication:
             10.5.36: '10.5.36.31'
             10.5.37: '10.5.36.31'
             10.10.30: '10.10.30.91'
-        learner: '10.198.8.68'
+        learner: '10.198.6.62'
         learner_manager: 'auto' # regarded as the manager node of the lustre with learner if set to auto
         actor_manager: 'auto' # regarded as the manager node of the lustre where the actors are running if set to auto
     port:
@@ -78,3 +78,33 @@ logger:
             slow: 2000
         difficulties: ['1', '2', '4', '6', '9', 'A']
         difficulty_queue_len: 100
+# for auto_actor.py
+auto_actor_start:
+    # partitions available to user
+    partitions_dict:
+        10.10.30.91:
+            cpu: ['cpu']
+            ours: ['VI_SP_Y_V100']
+            others: ['VI_IPS_V', 'VI_ID_1080', 'VI_ID_V100', 'VI_IPS_1080', 'VI_SP_X_TITANX']
+        10.5.36.31:
+            cpu: []
+            ours: ['VI_SP_Y_V100_A']
+            others: ['VI_SP_Y_V100_B', 'VI_Face_1080TI', 'VI_Face_V100', 'VI_ID_1080TI', 'VI_SP_VA_1080TI', 'VI_SP_VA_V100']
+        10.5.38.31:
+            cpu: []
+            ours: ['VI_SP_Y_1080TI']
+            others: ['VI_ID_1080TI', 'VI_IPS_1080TI', 'VI_SP_X_1080TI', 'VI_SP_Z_1080TI', 'VI_UC_1080TI']
+        10.198.6.31:
+            cpu: ['cpu']
+            ours: ['x_cerebra']
+            others: ['sensetime', 'scg_industry_v100', 'ips_share', 'ucg', 'vi_face_v100_32g', 'vi_id_v100']
+        10.198.8.31:
+            cpu: []
+            ours: ['x_cerebra']
+            others: []
+    node_prefix_dict:
+        10.10.30.91: BJ-IDC1-
+        10.5.36.31: SH-IDC1-
+        10.5.38.31: SH-IDC1-
+        10.198.6.31: SH-IDC1-
+        10.198.8.31: SH-IDC1-

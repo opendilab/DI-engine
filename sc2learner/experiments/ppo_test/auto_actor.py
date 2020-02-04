@@ -21,43 +21,7 @@ CPU_MIX = 20
 OUR_MIX = 10
 OTHER_MIX = 5
 
-partitions_dict = {
-    '10.10.30.91': {
-        'cpu'    : [],
-        'ours'   : ['VI_SP_Y_V100'],
-        'others' : ['VI_IPS_V', 'VI_ID_1080', 'VI_ID_V100', 'VI_IPS_1080', 'VI_SP_X_TITANX']
-    },
-    '10.5.36.31': {
-        'cpu'    : [],
-        'ours'   : ['VI_SP_Y_V100_A'],
-        'others' : ['VI_SP_Y_V100_B', 'VI_Face_1080TI', 'VI_Face_V100', 'VI_ID_1080TI', 'VI_SP_VA_1080TI', 'VI_SP_VA_V100']
-    },
-    '10.5.38.31': {
-        'cpu'    : [],
-        'ours'   : ['VI_SP_Y_1080TI'],
-        'others' : ['VI_ID_1080TI', 'VI_IPS_1080TI', 'VI_SP_X_1080TI', 'VI_SP_Z_1080TI', 'VI_UC_1080TI']
-    },
-    '10.198.6.31': {
-        'cpu'    : ['cpu'],
-        'ours'   : ['x_cerebra'],
-        'others' : ['sensetime', 'scg_industry_v100', 'ips_share', 'ucg', 'vi_face_v100_32g', 'vi_id_v100']
-    },
-    '10.198.8.31': {
-        'cpu'    : [],
-        'ours'   : ['x_cerebra'],
-        'others' : []
-    }
-}
-
-node_prefix_dict = {
-    '10.10.30.91': 'BJ-IDC1-',
-    '10.5.36.31': 'SH-IDC1-',
-    '10.5.38.31': 'SH-IDC1-',
-    '10.198.6.31': 'SH-IDC1-',
-    '10.198.8.31': 'SH-IDC1-',
-}
-
-def node_liqiao(node_address):
+def num_actors_running(node_address):
     actor_num = 0
     is_learner = False
     info = subprocess.getoutput('squeue -h -w {}'.format(node_address)).split('\n')
@@ -152,6 +116,7 @@ def pd_partition(partition, p_class, limit, learner_node_address, actor_manager_
 
 
 def run_manager(ip, cfg):
+    node_prefix_dict = cfg.auto_actor_start.node_prefix_dict
     if cfg.communication.ip.actor_manager != 'auto':
         print('run actor manager on specified node (not on manager node)')
         node_name = node_prefix_dict[ip] + '-'.join(cfg.communication.ip.actor_manager.split('.'))
@@ -213,6 +178,7 @@ def main(actor_limit, manager_flag=0):
     learner_node_address = get_learner()
     actor_manager_node_address = get_actor_manager_local()
 
+    partitions_dict = cfg.auto_actor_start.partitions_dict
     assert ip in partitions_dict.keys(), 'ip must be one of [{}]'.format(', '.join(partitions_dict.keys()))
     cpu_partitions = partitions_dict[ip]['cpu']
     our_partitions = partitions_dict[ip]['ours']
