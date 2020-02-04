@@ -47,14 +47,14 @@ communication:
         learner_manager: 'auto' # regarded as the manager node of the lustre with learner if set to auto
         actor_manager: 'auto' # regarded as the manager node of the lustre where the actors are running if set to auto
     port:
-        learner: 5710
-        learner_manager: 5711
-        actor_manager: 5712
-        actor: 5713
+        learner: 29500
+        learner_manager: 29501
+        actor_manager: 29502
+        actor: 29503
 
-        learner_manager_model: 5716
-        actor_manager_model: 5717
-        actor_model: 5718
+        learner_manager_model: 29504
+        actor_manager_model: 29505
+        actor_model: 29506
     HWM:
         learner: 1
         learner_manager: 1
@@ -67,7 +67,7 @@ communication:
         actor_manager_receive: 16
     model_time_interval: 0.5  # 130 second 128 steps rollout 20 tasks per node
 logger:
-    print_freq: 500
+    print_freq: 50
     save_freq: 5000
     actor_monitor:
         speed:
