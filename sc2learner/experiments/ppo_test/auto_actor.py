@@ -44,7 +44,7 @@ def launch(partition, node_address, num=1):
     subprocess.run(['sh', 'actor.sh', partition, node_address, str(num)])
 
 
-def pd_partition(partition, p_class, limit, learner_node_address, actor_manager_node_address):
+def pd_partition(partition, p_class, limit, learner_node_address, actor_manager_node_address, forbidden_nodes_addr):
     actor_num = 0
 
     if p_class == 'cpu':
@@ -68,7 +68,9 @@ def pd_partition(partition, p_class, limit, learner_node_address, actor_manager_
             continue
         node_address, num, _, state = line
         #skipping learner node or actor_manager_node
-        if learner_node_address != node_address and actor_manager_node_address != node_address:
+        if learner_node_address != node_address and \
+           actor_manager_node_address != node_address and \
+           node_address not in forbidden_nodes_addr:
             if state == 'mix':
                 mix_list.append(node_address)
             elif state == 'idle':
@@ -191,10 +193,13 @@ def main(actor_limit, manager_flag=0):
     actor_num_our = 0
     actor_num_other = 0
 
+    forbidden_nodes_addr = cfg.auto_actor_start.forbidden_nodes_addr
+
     for partition in cpu_partitions:
         if actor_num_touse <= 0:
             break
-        actor_num = pd_partition(partition, 'cpu', actor_num_touse, learner_node_address, actor_manager_node_address)
+        actor_num = pd_partition(partition, 'cpu', actor_num_touse, \
+                    learner_node_address, actor_manager_node_address, forbidden_nodes_addr)
         actor_num_cpu += actor_num
         actor_num_touse -= actor_num
     actor_num_all += actor_num_cpu
@@ -202,7 +207,8 @@ def main(actor_limit, manager_flag=0):
     for partition in our_partitions:
         if actor_num_touse <= 0:
             break
-        actor_num = pd_partition(partition, 'our', actor_num_touse, learner_node_address, actor_manager_node_address)
+        actor_num = pd_partition(partition, 'our', actor_num_touse, \
+                    learner_node_address, actor_manager_node_address, forbidden_nodes_addr)
         actor_num_our += actor_num
         actor_num_touse -= actor_num
     actor_num_all += actor_num_our
@@ -210,7 +216,8 @@ def main(actor_limit, manager_flag=0):
     for partition in other_partitions:
         if actor_num_touse <= 0:
             break
-        actor_num += pd_partition(partition, 'other', actor_num_touse, learner_node_address, actor_manager_node_address)
+        actor_num += pd_partition(partition, 'other', actor_num_touse, \
+                     learner_node_address, actor_manager_node_address, forbidden_nodes_addr)
         actor_num_other += actor_num
         actor_num_touse -= actor_num
     actor_num_all += actor_num_other

@@ -108,3 +108,5 @@ auto_actor_start:
         10.5.38.31: SH-IDC1-
         10.198.6.31: SH-IDC1-
         10.198.8.31: SH-IDC1-
+    # forbidden to start actors on following nodes (node name NOT IP addr)
+    forbidden_nodes_addr: ['SH-IDC1-10-198-6-159','SH-IDC1-10-198-6-160'] # reserved for others
