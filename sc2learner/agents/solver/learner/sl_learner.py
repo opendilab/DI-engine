@@ -37,7 +37,7 @@ class SLLearner(object):
             self.model = to_device(self.model, 'cuda')
         if self.use_distributed:
             self.model = DistModule(self.model)
-        self.dataset = ReplayDataset(cfg.data.replay_list, cfg.data.trajectory_len, cfg.data.trajectory_type)
+        self.dataset = ReplayDataset(cfg)
         sampler = DistributedSampler(self.dataset, round_up=False) if self.use_distributed else None
         shuffle = False if self.use_distributed else True
         self.dataloader = DataLoader(self.dataset, batch_size=cfg.train.batch_size, pin_memory=False, num_workers=3,
