@@ -86,7 +86,7 @@ class PpoSelfplayActor(BaseActor):
 
     def _process_model_output(self, output, outputs):
         action, value, state, neglogp = (
-                output['action'], output['value'], output['state'], output['neglogp'])
+            output['action'], output['value'], output['state'], output['neglogp'])
         self.state = state
         action = action.squeeze(0)
         outputs['action'].append(action)

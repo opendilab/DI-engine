@@ -35,6 +35,7 @@ flags.DEFINE_string("agent2_load_path", "", "path to agent2 model checkpoint")
 flags.DEFINE_string("replay_path", "", "folder name in /StarCraftII/Replays to save the evaluate replays")
 flags.FLAGS(sys.argv)
 
+
 def create_selfplay_env(cfg, random_seed=None):
     env = SC2SelfplayRawEnv(map_name=cfg.env.map_name,
                             step_mul=cfg.env.step_mul,
@@ -75,6 +76,7 @@ def create_selfplay_env(cfg, random_seed=None):
     print(env.observation_space, env.action_space)
     return env
 
+
 def create_dqn_agent(cfg, env):
     from sc2learner.agents.dqn_agent import DQNAgent
     from sc2learner.agents.dqn_networks import NonspatialDuelingQNet
@@ -86,34 +88,40 @@ def create_dqn_agent(cfg, env):
     agent = DQNAgent(network, env.action_space, cfg.common.model_path)
     return agent
 
+
 def create_ppo_agent(cfg, env):
     policy_func = {'mlp': PPOMLP,
                    'lstm': PPOLSTM}
     model = policy_func[cfg.model.policy](
-                ob_space=env.observation_space,
-                ac_space=env.action_space,
-                action_type=cfg.model.action_type,
-            )
+        ob_space=env.observation_space,
+        ac_space=env.action_space,
+        action_type=cfg.model.action_type,
+    )
     agent = PpoAgent(env=env, model=model, cfg=cfg)
     return agent
+
 
 def cfg_process(cfg, idx):
     result = {}
     for k, v in cfg.items():
-        if isinstance(v, dict): result[k] = cfg_process(v, idx)
-        elif isinstance(v, list): result[k] = v[idx]
-        else: result[k] = v
+        if isinstance(v, dict):
+            result[k] = cfg_process(v, idx)
+        elif isinstance(v, list):
+            result[k] = v[idx]
+        else:
+            result[k] = v
     return EasyDict(result)
+
 
 def evaluate(var_dict, cfg):
     game_seed, rank = var_dict['game_seed'], var_dict['rank']
     log_time = time.strftime("%d/%m/%H:%M:%S")
     name_list1 = cfg.common.load_path[0].split('/')
-    path_info1 = name_list[-2] + '/' + name_list[-1].split('.')[0]
+    path_info1 = name_list1[-2] + '/' + name_list1[-1].split('.')[0]
     name_list2 = cfg.common.load_path[1].split('/')
-    path_info2 = name_list[-2] + '/' + name_list[-1].split('.')[0]
+    path_info2 = name_list2[-2] + '/' + name_list2[-1].split('.')[0]
     name = 'eval_selfplay_{}_{}_{}_{}_{}_{}'.format(path_info1, path_info2, cfg.model.action_type[0],
-            cfg.model.action_type[1], log_time, rank+1)
+                                                    cfg.model.action_type[1], log_time, rank+1)
     logger, tb_logger, _ = build_logger(cfg, name=name)
     logger.info('cfg: {}'.format(cfg))
     logger.info("Rank %d Game Seed: %d" % (rank, game_seed))
@@ -153,16 +161,16 @@ def evaluate(var_dict, cfg):
         oppo_action = agents[1].act(oppo_obs)
         oppo_value = agents[1].value(oppo_obs)
         oppo_value_trace.append(oppo_value)
-        logger.info("Rank %d Step ID: %d Take Action: %d Take Oppo_action: %d" % \
-                (rank, step_id, action, oppo_action))
+        logger.info("Rank %d Step ID: %d Take Action: %d Take Oppo_action: %d" %
+                    (rank, step_id, action, oppo_action))
         (obs, oppo_obs), reward, done, _ = env.step([action, oppo_action])
         action_counts[action] += 1
         oppo_action_counts[oppo_action] += 1
         cum_return += reward
         step_id += 1
     if cfg.env.save_replay:
-        env.env.env.env.env.save_replay("_".join(cfg.common.agent) + "_" + \
-                "_".join(cfg.model.action_type) + "_" + FLAGS.replay_path)
+        env.env.env.env.env.save_replay("_".join(cfg.common.agent) + "_" +
+                                        "_".join(cfg.model.action_type) + "_" + FLAGS.replay_path)
     path = os.path.join(value_save_path, 'value{}.pt'.format(rank))
     oppo_path = os.path.join(value_save_path, 'oppo_value{}.pt'.format(rank))
     torch.save(torch.tensor(value_trace), path)
@@ -173,6 +181,7 @@ def evaluate(var_dict, cfg):
                     (rank, id, name, action_counts[id], oppo_action_counts[id]))
     env.close()
     return cum_return
+
 
 def main(argv):
     logging.set_verbosity(logging.ERROR)
@@ -205,6 +214,7 @@ def main(argv):
     print("Evaluated %d Episodes Agent1 Avg Return %f Avg Winning Rate %f" % (
         cfg.common.num_episodes, sum(reward_list) / len(reward_list),
         ((sum(reward_list) / len(reward_list)) + 1) / 2.0))
+
 
 if __name__ == '__main__':
     app.run(main)

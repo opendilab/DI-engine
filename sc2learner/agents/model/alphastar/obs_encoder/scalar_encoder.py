@@ -59,10 +59,10 @@ class ScalarEncoder(nn.Module):
                 key = item['key']
                 if key == 'time':
                     time_transformer = Transformer(
-                            input_dim=item['input_dim'],
-                            head_dim=item['output_dim'] // 2,
-                            hidden_dim=item['output_dim'],
-                            output_dim=item['output_dim'])
+                        input_dim=item['input_dim'],
+                        head_dim=item['output_dim'] // 2,
+                        hidden_dim=item['output_dim'],
+                        output_dim=item['output_dim'])
                     setattr(self, key, time_transformer)
                 elif key == 'cumulative_stat':
                     module = CumulativeStatEncoder(

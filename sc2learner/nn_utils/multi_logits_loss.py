@@ -104,8 +104,8 @@ def _selected_units_loss():
         if lo.shape[0] != la.shape[0]:
             assert(lo.shape[0] == 1 + la.shape[0])
             end_flag_label = torch.LongTensor([lo.shape[1]-1]).to(la.device)
-            #end_flag_label = smooth_label(lo.shape[1]-1, lo.shape[1]).to(la.device)
-            #end_flag_loss = F.binary_cross_entropy_with_logits(lo[-1:], end_flag_label)
+            # end_flag_label = smooth_label(lo.shape[1]-1, lo.shape[1]).to(la.device)
+            # end_flag_loss = F.binary_cross_entropy_with_logits(lo[-1:], end_flag_label)
             end_flag_loss = self_criterion(lo[-1:], end_flag_label)
             logits_loss = criterion(lo[:-1], la)
             print(end_flag_loss, logits_loss)
@@ -116,6 +116,6 @@ def _selected_units_loss():
 
 
 if __name__ == "__main__":
-    #for _ in range(4):
+    # for _ in range(4):
     #    test_multi_logits_loss()
     _selected_units_loss()
