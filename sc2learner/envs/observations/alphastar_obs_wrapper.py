@@ -9,7 +9,8 @@ import gym
 from pysc2.lib.features import FeatureUnit
 from pysc2.lib.static_data import NUM_BUFFS, NUM_ABILITIES, NUM_UNIT_TYPES, UNIT_TYPES_REORDER,\
     BUFFS_REORDER, ABILITIES_REORDER, NUM_UPGRADES, UPGRADES_REORDER, NUM_ACTIONS, ACTIONS_REORDER,\
-    NUM_ADDON, ADDON_REORDER
+    NUM_ADDON, ADDON_REORDER, NUM_BEGIN_ACTIONS, NUM_UNIT_BUILD_ACTIONS, NUM_EFFECT_ACTIONS, \
+    NUM_RESEARCH_ACTIONS
 from sc2learner.nn_utils import one_hot
 from functools import partial
 
@@ -107,12 +108,7 @@ class EntityObsWrapper(object):
                 key_index = FeatureUnit[key]
                 item_data = feature_unit[:, key_index]
             item_data = torch.LongTensor(item_data)
-            try:
-                item_data = item['op'](item_data)
-            except RuntimeError as e:
-                print(key, e)
-            except KeyError as e:
-                print(key, e)
+            item_data = item['op'](item_data)
             ret.append(item_data)
         ret = list(zip(*ret))
         ret = [torch.cat(item, dim=0) for item in ret]
@@ -210,7 +206,8 @@ class AlphastarObsParser(object):
         last_queued = last_queued if isinstance(last_queued, torch.Tensor) else torch.LongTensor([2])  # 2 as 'none'
         obs['scalar_info']['last_delay'] = self.template_act[0]['op'](torch.LongTensor(last_delay)).squeeze()
         obs['scalar_info']['last_queued'] = self.template_act[1]['op'](torch.LongTensor(last_queued)).squeeze()
-        obs['scalar_info']['last_action_type'] = self.template_act[2]['op'](torch.LongTensor(last_action_type)).squeeze()
+        obs['scalar_info']['last_action_type'] = self.template_act[2]['op'](
+            torch.LongTensor(last_action_type)).squeeze()
 
         selected_units = last_action['selected_units']
         target_units = last_action['target_units']
@@ -286,7 +283,7 @@ def batch_binary_encode(v, bit_num):
             ret.append(binary_encode(v[b], bit_num))
         except ValueError:
             print('ValueError', v)
-            raise ValueError
+            raise ValueError(v)
     return torch.stack(ret, dim=0)
 
 
@@ -296,7 +293,7 @@ def reorder_boolean_vector(v, dictionary, num):
         try:
             idx = dictionary[item.item()]
         except KeyError as e:
-            #print(dictionary)
+            # print(dictionary)
             raise KeyError('{}_{}_'.format(num, e))
         ret[idx] = 1
     return ret
@@ -391,7 +388,8 @@ def transform_spatial_data():
 
 def transform_scalar_data():
     template_obs = [
-        {'key': 'agent_statistics', 'arch': 'fc', 'input_dim': 10, 'ori': 'player', 'output_dim': 64, 'other': 'log(1+x)'},
+        {'key': 'agent_statistics', 'arch': 'fc', 'input_dim': 10,
+            'ori': 'player', 'output_dim': 64, 'other': 'log(1+x)'},
         {'key': 'race', 'arch': 'fc', 'input_dim': 5, 'output_dim': 32, 'ori': 'home_race_requested',
             'op': partial(num_first_one_hot, num=5), 'scalar_context': True, 'other': 'one-hot 5 value'},
         {'key': 'enemy_race', 'arch': 'fc', 'input_dim': 5, 'output_dim': 32, 'ori': 'away_race_requested',
@@ -410,11 +408,13 @@ def transform_scalar_data():
             'ori': 'feature_units_count', 'op': partial(sqrt_one_hot, max_val=512), 'other': 'square root'},
     ]
     template_replay = [
-        {'key': 'mmr', 'arch': 'fc', 'input_dim': 6, 'output_dim': 64, 'op': partial(
+        {'key': 'mmr', 'arch': 'fc', 'input_dim': 7, 'output_dim': 64, 'op': partial(
             div_one_hot, max_val=6000, ratio=1000), 'other': 'min(mmr / 1000, 6)'},
-        #{'key': 'cumulative_statistics', 'input_dims': [], 'output_dims': [32, 32, 32],
-        #    'scalar_context': True, 'other': 'boolean vector, split and concat'},
-        #{'key': 'beginning_build_order', 'scalar_context': True, 'other': 'transformer'},  # TODO
+        {'key': 'cumulative_stat', 'arch': 'multi_fc', 'input_dims': {'unit_build': NUM_UNIT_BUILD_ACTIONS,
+            'effect': NUM_EFFECT_ACTIONS, 'research': NUM_RESEARCH_ACTIONS}, 'output_dim': 32,
+            'scalar_context': True, 'other': 'boolean vector, split and concat'},
+        {'key': 'beginning_build_order', 'arch': 'transformer', 'input_dim': NUM_BEGIN_ACTIONS+8*2, 'output_dim': 32,
+            'scalar_context': True, 'other': 'transformer'},
     ]
     template_action = [
         {'key': 'last_delay', 'arch': 'fc', 'input_dim': 128, 'output_dim': 64,

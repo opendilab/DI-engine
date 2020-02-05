@@ -142,6 +142,7 @@ BUFFS = [
     5, 6, 7, 8, 11, 12, 13, 16, 17, 18, 22, 24, 25, 27, 28, 29, 30, 33, 36, 38,
     49, 59, 83, 89, 99, 102, 116, 121, 122, 129, 132, 133, 134, 136, 137, 145,
     271, 272, 273, 274, 275, 277, 279, 280, 281, 288, 289,
+    20,
 ]
 
 NUM_BUFFS = len(BUFFS)
@@ -182,6 +183,39 @@ NUM_ACTIONS = len(ACTIONS)
 
 ACTIONS_REORDER = {
     item: idx for idx, item in enumerate(ACTIONS)
+}
+
+target_list = ['unit', 'build', 'research', 'effect']
+BEGIN_ACTIONS = [k for k, v in ACTION_INFO_MASK.items() if v['goal'] in target_list]
+
+NUM_BEGIN_ACTIONS = len(BEGIN_ACTIONS)
+
+BEGIN_ACTIONS_REORDER = {
+    item: idx for idx, item in enumerate(BEGIN_ACTIONS)
+}
+
+UNIT_BUILD_ACTIONS = [k for k, v in ACTION_INFO_MASK.items() if v['goal'] in ['unit', 'build']]
+
+NUM_UNIT_BUILD_ACTIONS = len(UNIT_BUILD_ACTIONS)
+
+UNIT_BUILD_ACTIONS_REORDER = {
+    item: idx for idx, item in enumerate(UNIT_BUILD_ACTIONS)
+}
+
+EFFECT_ACTIONS = [k for k, v in ACTION_INFO_MASK.items() if v['goal'] in ['effect']]
+
+NUM_EFFECT_ACTIONS = len(EFFECT_ACTIONS)
+
+EFFECT_ACTIONS_REORDER = {
+    item: idx for idx, item in enumerate(EFFECT_ACTIONS)
+}
+
+RESEARCH_ACTIONS = [k for k, v in ACTION_INFO_MASK.items() if v['goal'] in ['research']]
+
+NUM_RESEARCH_ACTIONS = len(RESEARCH_ACTIONS)
+
+RESEARCH_ACTIONS_REORDER = {
+    item: idx for idx, item in enumerate(RESEARCH_ACTIONS)
 }
 
 

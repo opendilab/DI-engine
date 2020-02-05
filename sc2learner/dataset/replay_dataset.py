@@ -10,18 +10,23 @@ from sc2learner.envs.observations.alphastar_obs_wrapper import decompress_obs
 
 META_SUFFIX = '.meta'
 DATA_SUFFIX = '.step'
+STAT_SUFFIX = '.stat_processed'
 
 
 class ReplayDataset(Dataset):
-    def __init__(self, replay_list, trajectory_len=64, trajectory_type='random', slide_window_step=1):
+    def __init__(self, cfg):
         super(ReplayDataset, self).__init__()
-        assert(trajectory_type in ['random', 'slide_window'])
-        with open(replay_list, 'r') as f:
+        assert(cfg.data.trajectory_type in ['random', 'slide_window'])
+        with open(cfg.data.replay_list, 'r') as f:
             path_list = f.readlines()
         self.path_list = [{'name': p[:-1], 'count': 0} for idx, p in enumerate(path_list)]
-        self.trajectory_len = trajectory_len
-        self.trajectory_type = trajectory_type
-        self.slide_window_step = slide_window_step
+        self.trajectory_len = cfg.data.trajectory_len
+        self.trajectory_type = cfg.data.trajectory_type
+        self.slide_window_step = cfg.data.slide_window_step
+        self.use_stat = cfg.data.use_stat
+        self.beginning_build_order_num = cfg.data.beginning_build_order_num
+        self.beginning_build_order_prob = cfg.data.beginning_build_order_prob
+        self.cumulative_stat_prob = cfg.data.cumulative_stat_prob
 
     def __len__(self):
         return len(self.path_list)
@@ -106,6 +111,22 @@ class ReplayDataset(Dataset):
                     else:
                         handle['cur_step'] = next_step
 
+    def _load_stat(self, handle):
+        stat = torch.load(handle['name'] + STAT_SUFFIX)
+        mmr = stat['mmr']
+        beginning_build_order = stat['beginning_build_order']
+        beginning_build_order = beginning_build_order[:self.beginning_build_order_num]  # first self.beginning_build_order_num item
+        if beginning_build_order.shape[0] < self.beginning_build_order_num:
+            B, N = beginning_build_order.shape
+            B0 = self.beginning_build_order_num - B
+            beginning_build_order = torch.cat([beginning_build_order, torch.zeros(B0, N)])
+        cumulative_stat = stat['cumulative_stat']
+        bool_bo = float(np.random.rand() < self.beginning_build_order_prob)
+        bool_cum = float(np.random.rand() < self.cumulative_stat_prob)
+        beginning_build_order = bool_bo * beginning_build_order
+        cumulative_stat = {k: bool_cum * v for k, v in cumulative_stat.items()}
+        return beginning_build_order, cumulative_stat, mmr
+
     def __getitem__(self, idx):
         handle = self.path_list[idx]
         data = torch.load(handle['name'] + DATA_SUFFIX)
@@ -116,6 +137,12 @@ class ReplayDataset(Dataset):
         # if unit id transform deletes some data frames,
         # collate_fn will use the minimum number of data frame to compose a batch
         sample_data = [decompress_obs(d) for d in sample_data]
+        if self.use_stat:
+            beginning_build_order, cumulative_stat, mmr = self._load_stat(handle)
+            for i in range(len(sample_data)):
+                sample_data[i]['scalar_info']['beginning_build_order'] = beginning_build_order
+                sample_data[i]['scalar_info']['cumulative_stat'] = cumulative_stat
+                sample_data[i]['scalar_info']['mmr'] = mmr
 
         return sample_data
 
