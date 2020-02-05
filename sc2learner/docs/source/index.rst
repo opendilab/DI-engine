@@ -4,14 +4,18 @@
    contain the root `toctree` directive.
 
 Welcome to SenseStar's documentation!
-===============================
+=====================================
 
 
-SenseStar 
+Overview
+--------
+Sensetime AI of StarCraft II developed by X-Lab AGI team
 
-overview:
 
-main function:
+Main Function
+-------------
+Online Reinforcement learning train and evaluate for SC2, and supervised learning from SC2 replay
+
 
 .. toctree::
    :maxdepth: 2
