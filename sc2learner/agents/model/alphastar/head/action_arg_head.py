@@ -124,7 +124,7 @@ class SelectedUnitsHead(nn.Module):
                 x, state = self.lstm(x, state)
                 query_result = x.permute(1, 0, 2) * key
                 query_result = query_result.mean(dim=2)
-                #query_result.sub_((1 - mask) * 1e9)
+                # query_result.sub_((1 - mask) * 1e9)
                 handle = self.pd(query_result.div(temperature))
                 entity_num = handle.sample()
                 for b in range(B):

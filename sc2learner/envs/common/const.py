@@ -11,25 +11,25 @@ from pysc2.lib.typeenums import UNIT_TYPEID as UNIT_TYPE
 
 @unique
 class ALLY_TYPE(Enum):
-  SELF = 1
-  ALLY = 2
-  NEUTRAL = 3
-  ENEMY = 4
+    SELF = 1
+    ALLY = 2
+    NEUTRAL = 3
+    ENEMY = 4
 
 
 @unique
 class PLAYER_FEATURE(Enum):
-  PLAYER_ID = 0
-  MINERALS = 1
-  VESPENE = 2
-  FOOD_USED = 3
-  FOOD_CAP = 4
-  FOOD_ARMY = 5
-  FOOD_WORKER = 6
-  IDLE_WORKER_COUNT = 7
-  ARMY_COUNT = 8
-  WARP_GATE_COUNT = 9
-  LARVA_COUNT = 10
+    PLAYER_ID = 0
+    MINERALS = 1
+    VESPENE = 2
+    FOOD_USED = 3
+    FOOD_CAP = 4
+    FOOD_ARMY = 5
+    FOOD_WORKER = 6
+    IDLE_WORKER_COUNT = 7
+    ARMY_COUNT = 8
+    WARP_GATE_COUNT = 9
+    LARVA_COUNT = 10
 
 
 NEUTRAL_DESTRUCTABLEROCKEX14X4 = 638
@@ -153,15 +153,15 @@ COMBAT_TYPES = {
     UNIT_TYPE.ZERG_CORRUPTOR.value,
     UNIT_TYPE.ZERG_BROODLORD.value,
     UNIT_TYPE.ZERG_ULTRALISK.value
-    #UNIT_TYPE.ZERG_LOCUSTMP.value,
-    #UNIT_TYPE.ZERG_BROODLING.value
+    # UNIT_TYPE.ZERG_LOCUSTMP.value,
+    # UNIT_TYPE.ZERG_BROODLING.value
 }
 
 
 class MAP(object):
-  WIDTH = 200.0
-  HEIGHT = 176.0
-  LEFT = 24.0
-  RIGHT = 24.0
-  TOP = 37.0
-  BOTTOM = 4.0
+    WIDTH = 200.0
+    HEIGHT = 176.0
+    LEFT = 24.0
+    RIGHT = 24.0
+    TOP = 37.0
+    BOTTOM = 4.0

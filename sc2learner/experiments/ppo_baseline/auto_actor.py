@@ -23,29 +23,30 @@ OTHER_MIX = 5
 
 partitions_dict = {
     '10.10.30.91': {
-        'cpu'    : [],
-        'ours'   : ['VI_SP_Y_V100'],
-        'others' : ['VI_IPS_V', 'VI_ID_1080', 'VI_ID_V100', 'VI_IPS_1080', 'VI_SP_X_TITANX']
+        'cpu': [],
+        'ours': ['VI_SP_Y_V100'],
+        'others': ['VI_IPS_V', 'VI_ID_1080', 'VI_ID_V100', 'VI_IPS_1080', 'VI_SP_X_TITANX']
     },
     '10.5.36.31': {
-        'cpu'    : [],
-        'ours'   : ['VI_SP_Y_V100_A'],
-        'others' : ['VI_SP_Y_V100_B', 'VI_Face_1080TI', 'VI_Face_V100', 'VI_ID_1080TI', 'VI_SP_VA_1080TI', 'VI_SP_VA_V100']
+        'cpu': [],
+        'ours': ['VI_SP_Y_V100_A'],
+        'others': ['VI_SP_Y_V100_B', 'VI_Face_1080TI', 'VI_Face_V100', 'VI_ID_1080TI', 'VI_SP_VA_1080TI',
+                   'VI_SP_VA_V100']
     },
     '10.5.38.31': {
-        'cpu'    : [],
-        'ours'   : ['VI_SP_Y_1080TI'],
-        'others' : ['VI_ID_1080TI', 'VI_IPS_1080TI', 'VI_SP_X_1080TI', 'VI_SP_Z_1080TI', 'VI_UC_1080TI']
+        'cpu': [],
+        'ours': ['VI_SP_Y_1080TI'],
+        'others': ['VI_ID_1080TI', 'VI_IPS_1080TI', 'VI_SP_X_1080TI', 'VI_SP_Z_1080TI', 'VI_UC_1080TI']
     },
     '10.198.6.31': {
-        'cpu'    : ['cpu'],
-        'ours'   : ['x_cerebra'],
-        'others' : ['sensetime', 'scg_industry_v100', 'ips_share', 'ucg', 'vi_face_v100_32g', 'vi_id_v100']
+        'cpu': ['cpu'],
+        'ours': ['x_cerebra'],
+        'others': ['sensetime', 'scg_industry_v100', 'ips_share', 'ucg', 'vi_face_v100_32g', 'vi_id_v100']
     },
     '10.198.8.31': {
-        'cpu'    : [],
-        'ours'   : ['x_cerebra'],
-        'others' : []
+        'cpu': [],
+        'ours': ['x_cerebra'],
+        'others': []
     }
 }
 
@@ -56,6 +57,7 @@ node_prefix_dict = {
     '10.198.6.31': 'SH-IDC1-',
     '10.198.8.31': 'SH-IDC1-',
 }
+
 
 def node_liqiao(node_address):
     actor_num = 0
@@ -163,7 +165,7 @@ def run_manager(ip, cfg):
             node_address, num, partition_name, state = line
             if node_address == node_name:
                 manager_partition = partition_name
-        assert manager_partition != None, 'cannot find actor_manager_local node'
+        assert manager_partition is not None, 'cannot find actor_manager_local node'
         subprocess.run(['sh', 'actor_manager_local.sh', manager_partition, node_name, mefull, '&'])
         time.sleep(30)
     else:
@@ -183,6 +185,7 @@ def get_learner():
             return node_list
     return None
 
+
 def get_actor_manager_local():
     info = subprocess.getoutput('squeue -h').split('\n')
     for line in info:
@@ -194,13 +197,14 @@ def get_actor_manager_local():
             return node_list
     return None
 
+
 def main(actor_limit, manager_flag=0):
     # get lustre ip
     hostname = socket.gethostname()
     ip = socket.gethostbyname(hostname)
 
     with open('config.yaml') as f:
-        cfg =yaml.load(f)
+        cfg = yaml.load(f)
     cfg = EasyDict(cfg)
 
     # run manager
@@ -250,8 +254,9 @@ def main(actor_limit, manager_flag=0):
 
     if actor_num_all < actor_limit:
         print('Warning: cannot start required number of actors!')
-    print(' cpu: {} \n our: {} \n other: {} \n total: {} \n limit: {} \n'.format(actor_num_cpu, actor_num_our, actor_num_other, actor_num_all, actor_limit))
+    print(' cpu: {} \n our: {} \n other: {} \n total: {} \n limit: {} \n'.format(
+        actor_num_cpu, actor_num_our, actor_num_other, actor_num_all, actor_limit))
+
 
 if __name__ == '__main__':
     main(int(sys.argv[1]), int(sys.argv[2]))
-

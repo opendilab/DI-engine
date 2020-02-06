@@ -63,9 +63,9 @@ def start_actor(cfg):
     policy_func = {'mlp': PPOMLP,
                    'lstm': PPOLSTM}
     model = policy_func[cfg.model.policy](
-                ob_space=env.observation_space,
-                ac_space=env.action_space,
-            )
+        ob_space=env.observation_space,
+        ac_space=env.action_space,
+    )
     actor = PpoActor(env, model, cfg)
     actor.run()
     env.close()
@@ -76,9 +76,9 @@ def start_learner(cfg):
     policy_func = {'mlp': PPOMLP,
                    'lstm': PPOLSTM}
     model = policy_func[cfg.model.policy](
-                ob_space=env.observation_space,
-                ac_space=env.action_space,
-            )
+        ob_space=env.observation_space,
+        ac_space=env.action_space,
+    )
     learner = PpoLearner(env, model, cfg)
     learner.logger.info('cfg:{}'.format(cfg))
     learner.run()

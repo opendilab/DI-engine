@@ -345,11 +345,11 @@ def transform_entity_data(resolution=128, pad_value=-1e9):
         {'key': 'order_id_0', 'dim': NUM_ABILITIES, 'op': partial(
             reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS), 'other': 'one-hot'},
         {'key': 'order_id_1', 'dim': NUM_ACTIONS, 'op': partial(
-            reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS), 'other': 'one-hot'},  # TODO only building order
+            reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS), 'other': 'one-hot'},  # TODO only building order  # noqa
         {'key': 'order_id_2', 'dim': NUM_ACTIONS, 'op': partial(
-            reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS), 'other': 'one-hot'},  # TODO only building order
+            reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS), 'other': 'one-hot'},  # TODO only building order  # noqa
         {'key': 'order_id_3', 'dim': NUM_ACTIONS, 'op': partial(
-            reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS), 'other': 'one-hot'},  # TODO only building order
+            reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS), 'other': 'one-hot'},  # TODO only building order  # noqa
         {'key': 'buff_id_0', 'dim': NUM_BUFFS, 'op': partial(
             reorder_one_hot, dictionary=BUFFS_REORDER, num=NUM_BUFFS), 'other': 'one-hot'},
         {'key': 'buff_id_1', 'dim': NUM_BUFFS, 'op': partial(
@@ -393,7 +393,7 @@ def transform_scalar_data():
         {'key': 'race', 'arch': 'fc', 'input_dim': 5, 'output_dim': 32, 'ori': 'home_race_requested',
             'op': partial(num_first_one_hot, num=5), 'scalar_context': True, 'other': 'one-hot 5 value'},
         {'key': 'enemy_race', 'arch': 'fc', 'input_dim': 5, 'output_dim': 32, 'ori': 'away_race_requested',
-            'op': partial(num_first_one_hot, num=5), 'scalar_context': True, 'other': 'one-hot 5 value'},  # TODO 10% hidden
+            'op': partial(num_first_one_hot, num=5), 'scalar_context': True, 'other': 'one-hot 5 value'},  # TODO 10% hidden  # noqa
         {'key': 'upgrades', 'arch': 'fc', 'input_dim': NUM_UPGRADES, 'output_dim': 128, 'ori': 'upgrades',
             'op': partial(reorder_boolean_vector, dictionary=UPGRADES_REORDER, num=NUM_UPGRADES), 'other': 'boolean'},
         {'key': 'enemy_upgrades', 'arch': 'fc', 'input_dim': NUM_UPGRADES, 'output_dim': 128, 'ori': 'enemy_upgrades',
@@ -410,8 +410,9 @@ def transform_scalar_data():
     template_replay = [
         {'key': 'mmr', 'arch': 'fc', 'input_dim': 7, 'output_dim': 64, 'op': partial(
             div_one_hot, max_val=6000, ratio=1000), 'other': 'min(mmr / 1000, 6)'},
-        {'key': 'cumulative_stat', 'arch': 'multi_fc', 'input_dims': {'unit_build': NUM_UNIT_BUILD_ACTIONS,
-            'effect': NUM_EFFECT_ACTIONS, 'research': NUM_RESEARCH_ACTIONS}, 'output_dim': 32,
+        {'key': 'cumulative_stat', 'arch': 'multi_fc',
+            'input_dims': {'unit_build': NUM_UNIT_BUILD_ACTIONS, 'effect': NUM_EFFECT_ACTIONS,
+                           'research': NUM_RESEARCH_ACTIONS}, 'output_dim': 32,
             'scalar_context': True, 'other': 'boolean vector, split and concat'},
         {'key': 'beginning_build_order', 'arch': 'transformer', 'input_dim': NUM_BEGIN_ACTIONS+8*2, 'output_dim': 32,
             'scalar_context': True, 'other': 'transformer'},
@@ -422,7 +423,7 @@ def transform_scalar_data():
         {'key': 'last_queued', 'arch': 'fc', 'input_dim': 3, 'output_dim': 256,
             'ori': 'action', 'op': partial(num_first_one_hot, num=3), 'other': 'one-hot 3'},  # 0 False 1 True 2 None
         {'key': 'last_action_type', 'arch': 'fc', 'input_dim': NUM_ACTIONS, 'output_dim': 128, 'ori': 'action',
-            'op': partial(reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS), 'other': 'one-hot NUM_ACTIONS'},
+            'op': partial(reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS), 'other': 'one-hot NUM_ACTIONS'},  # noqa
     ]
     return template_obs, template_replay, template_action
 

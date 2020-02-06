@@ -67,7 +67,7 @@ class LSTM(nn.Module):
                 u = torch.tanh(u)
                 c = f * c + i * u
                 h = o * torch.tanh(c)
-                #new_x.append(self.dropout(h))
+                # new_x.append(self.dropout(h))
                 new_x.append(h)
             next_state.append((h, c))
             x = torch.stack(new_x, dim=0)

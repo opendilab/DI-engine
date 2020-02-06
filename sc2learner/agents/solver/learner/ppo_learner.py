@@ -80,9 +80,9 @@ class PpoLearner(BaseLearner):
     def _get_loss(self, data):
         clip_range = self.clip_range_scheduler.step()
         obs, actions, returns, neglogps, values, dones, states = (
-                data['obs'], data['action'], data['return'], data['neglogp'],
-                data['value'], data['done'], data['state']
-            )
+            data['obs'], data['action'], data['return'], data['neglogp'],
+            data['value'], data['done'], data['state']
+        )
 
         inputs = {}
         inputs['obs'] = obs

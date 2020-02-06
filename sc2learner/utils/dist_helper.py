@@ -11,6 +11,7 @@ def get_rank():
 def get_world_size():
     return link.get_world_size()
 
+
 def allreduce(data):
     link.allreduce(data)
 

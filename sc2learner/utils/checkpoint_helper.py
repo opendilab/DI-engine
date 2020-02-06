@@ -87,7 +87,7 @@ class CheckpointHelper(object):
 
     def load(self, load_path, model,
              optimizer=None, last_iter=None, last_epoch=None, lr_schduler=None, dataset=None, actor_info=None,
-             prefix_op=None, prefix=None, strict=False, logger_prefix=''):
+             prefix_op=None, prefix=None, strict=True, logger_prefix=''):
         # Note: don't use assign operation('=') to updare input argument value
         assert(os.path.exists(load_path))
         # Note: for reduce first GPU memory cost and compatible for cpu env
@@ -118,7 +118,7 @@ class CheckpointHelper(object):
 
         if last_epoch is not None:
             last_epoch.update(checkpoint['last_epoch'])
-            logger.info(logger_prefix+'load last_epoch in {}, current last_epoch is {}'.format(load_path, last_epoch.val))
+            logger.info(logger_prefix+'load last_epoch in {}, current last_epoch is {}'.format(load_path, last_epoch.val))  # noqa
 
         if actor_info is not None:
             actor_info.load_state_dict(checkpoint['actor_info'])

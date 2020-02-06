@@ -10,79 +10,74 @@ Training
 
 1. Make sure that you have built SenseStar
 
-2. Copy experiment dir(must be in dir 'sc2learner')
+2. Copy experiment dir(must be in dir `sc2learner`)
 
 .. code-block:: bash
 
     cp -r experiment/ppo_baseline experiment/ppo_xxx
 
 3. Modify config file into your experiment setting
+
   - config.yaml (training config, for learner and actor, especially specify your own learner_ip)
-  - learner.sh (learner train)
-
-    - load_path: checkpoint or pretrained model load path
-    - data_load_path: offline generated data load path
-
-  - actor.sh (actor train)
+  - learner.sh (launch learner)
+    - load_path(optional): checkpoint or pretrained model load path
+    - data_load_path(optional): offline generated data load path
+  - actor.sh (launch actor)
 
 4. Start training your agent (single learner and multi actor)
 
 .. code-block:: bash
 
-    ./experiments/ppo_baseline/actor.sh <partition_name> <actor_num>
+    ./experiments/ppo_xxx/actor.sh <partition_name> <actor_num>
 
-    ./experiments/ppo_baseline/learner.sh <partition_name>
+    ./experiments/ppo_xxx/learner.sh <partition_name>
 
 5. log and viz
 
-  - viz.sh(in dir 'sc2learner') can open tensorboard
-    - usage:
-      - run './viz.sh <port_id>'
-      - enter '<lustre_ip>:<port_id>' in your browser
   - experiment/ppo_xxx/default_logger.txt (train logger)
   - experiment/ppo_xxx/checkpoints (checkpoints dir)
   - experiment/ppo_xxx/data (actor generated data dir, if 'save_data=True')
+  - viz.sh(in dir 'sc2learner') can open tensorboard
 
+.. code-block:: bash
+
+    # usage
+    ./viz.sh <port_id>
+    # enter '<lustre_ip>:<port_id>' in your browser
 
 You can use **sinfo** to inspect avaliable partitions.
 
-Testing
----------
+Evaluate by elite bot
+---------------------
+TBD
 
-1. Configure checkpoint 
+
+Test environments and interfaces
+--------------------------------
+
+1. Prepare config file
+
+    modify `experiments/random_agent/eval.yaml`
 
 .. code-block:: yaml
 
-    saver: # Required.
-        save_dir: checkpoints
-        resume_model: checkpoints/ckpt_e13.pth # checkpoint to test
+    common:
+        config_name: eval
+        num_episodes: 10  # the number of games per evaluate task launches
+        agent: random  # [ppo, dqn, random, keyboard], default use random as test agent
+        use_multiprocessing: False  # whether use multiprocessing in single task
+    env:
+        game_version: '4.10'
+        map_name: AbyssalReef  # default map
+    # the other part is omitted, if necessary, you can find them in eval.yaml
 
-2. Set **ROOT** path and **cfg** path in **test.sh**. By default, it should look like below
 
-.. note:: 
-    make sure you set `-e` option
-
-.. code-block:: bash
-
-    #!/bin/bash
-    
-    T=`date +%m%d%H%M`
-    ROOT=../../
-    cfg=faster-rcnn-R50-FPN-1x.yaml
-    
-    export PYTHONPATH=$ROOT:$PYTHONPATH
-    
-    g=$(($2<8?$2:8))
-    srun --mpi=pmi2 -p $1 -n$2 --gres=gpu:$g --ntasks-per-node=$g \
-        --job-name=R50-FPN \
-    python $ROOT/tools/train_val.py \
-      -e \
-      --config=$cfg \
-      2>&1 | tee test.log.$T
-    
-3. Start testing
+2. Start testing (random agent VS elite bot)
 
 .. code-block:: bash
- 
-    # ./test.sh <PARTITION> <num_gpu> <cfg_path>
-    ./test.sh Test 8 faster-rcnn-R50-FPN-1x.yaml
+
+    ./experiments/random_agent/eval.sh <partition_name>
+
+.. note::
+
+    the min number of CPUs per game task need is 1, and the more CPUs it utilizes, the faster the game simulates.
