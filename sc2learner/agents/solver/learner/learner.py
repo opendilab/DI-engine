@@ -208,6 +208,8 @@ class BaseLearner(object):
                                          self.history_actor_info.get_distribution('data_rollout_time'), iterations)
             self.tb_logger.add_histogram('update_model_time',
                                          self.history_actor_info.get_distribution('update_model_time'), iterations)
+            self.tb_logger.add_histogram('dataset_staleness',
+                                         np.array([d['model_index'] - iterations for d in self.dataset.data_queue]),iterations)
             rollout_img = self.history_actor_info.get_distribution_img('data_rollout_time')
             self.tb_logger.add_image('data_rollout_time_img', rollout_img, iterations)
             update_model_img = self.history_actor_info.get_distribution_img('update_model_time')
@@ -293,6 +295,7 @@ class BaseLearner(object):
         self.tb_logger.register_var('actor_monitor', var_type='scalars')
         self.tb_logger.register_var('data_rollout_time', var_type='histogram')
         self.tb_logger.register_var('update_model_time', var_type='histogram')
+        self.tb_logger.register_var('dataset_staleness', var_type='histogram')
         self.tb_logger.register_var('data_rollout_time_img', var_type='image')
         self.tb_logger.register_var('update_model_time_img', var_type='image')
         self.tb_logger.register_var('win_rate', var_type='scalars')
