@@ -54,27 +54,27 @@ class OnlineDataset(object):
         while True:
             self._acquire_lock()
             if use_block_data:
-               new_data_queue = deque(maxlen=self.data_maxlen)
-               for item in self.data_queue:
-                   if cur_model_index - item['model_index'] >= int(staleness_threshold):
-                       item = None
-                   if item != None and item['use_count'] >= int(reuse_threhold):
-                       item = None
-                   if item != None:
-                       new_data_queue.append(item)
-               self.data_queue = new_data_queue   
+                new_data_queue = deque(maxlen=self.data_maxlen)
+                for item in self.data_queue:
+                    if cur_model_index - item['model_index'] >= int(staleness_threshold):
+                        item = None
+                    if item is not None and item['use_count'] >= int(reuse_threshold):
+                        item = None
+                    if item is not None:
+                        new_data_queue.append(item)
+                self.data_queue = new_data_queue
             if not self.is_full():
                 print("Blocking...wait for enough data: current({})/target({})".format(
                       len(self.data_queue), self.data_maxlen))
                 self._release_lock()
                 time.sleep(sleep_time)
                 continue
-            indice = random.sample(list(range(self.data_maxlen)),batch_size)
+            indice = random.sample(list(range(self.data_maxlen)), batch_size)
             data = [self.data_queue[i] for i in indice]
             self._add_usage_count(indice)
             # all statistics is for drawn samples
-            model_index = [d['model_index'] for d in data] 
-            usage = [d['use_count'] for d in data] 
+            model_index = [d['model_index'] for d in data]
+            usage = [d['use_count'] for d in data]
             data = [self.transform(d) for d in data]
             avg_model_index = sum(model_index) / len(model_index)
             avg_usage = sum(usage) / len(usage)

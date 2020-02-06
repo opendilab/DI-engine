@@ -1,5 +1,6 @@
 from torch.utils.data import _utils
 
+
 class OnlineDataLoader(object):
     def __init__(self, dataset, batch_size, collate_fn=None):
         self.dataset = dataset
@@ -10,7 +11,8 @@ class OnlineDataLoader(object):
         self.batch_size = batch_size
 
     def __next__(self):
-        batch, avg_usage, push_count, avg_model_index = self.dataset.get_sample_batch(self.batch_size, self.cur_model_index)
+        batch, avg_usage, push_count, avg_model_index = \
+               self.dataset.get_sample_batch(self.batch_size, self.cur_model_index)
         batch = self.collate_fn(batch)
         return batch, avg_usage, push_count, avg_model_index
 

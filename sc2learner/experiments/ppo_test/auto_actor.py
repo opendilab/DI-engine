@@ -21,6 +21,7 @@ CPU_MIX = 20
 OUR_MIX = 10
 OTHER_MIX = 5
 
+
 def num_actors_running(node_address):
     actor_num = 0
     is_learner = False
@@ -131,7 +132,7 @@ def run_manager(ip, cfg):
             node_address, num, partition_name, state = line
             if node_address == node_name:
                 manager_partition = partition_name
-        assert manager_partition != None, 'cannot find the partition of the actor_manager node'
+        assert manager_partition is not None, 'cannot find the partition of the actor_manager node'
         subprocess.run(['sh', 'actor_manager_queue.sh', manager_partition, node_name, mefull, '&'])
         time.sleep(30)
     else:
@@ -151,6 +152,7 @@ def get_learner():
             return node_list
     return None
 
+
 def get_actor_manager_local():
     info = subprocess.getoutput('squeue -h').split('\n')
     for line in info:
@@ -162,13 +164,14 @@ def get_actor_manager_local():
             return node_list
     return None
 
+
 def main(actor_limit, manager_flag=0):
     # get lustre ip
     hostname = socket.gethostname()
     ip = socket.gethostbyname(hostname)
 
     with open('config.yaml') as f:
-        cfg =yaml.load(f)
+        cfg = yaml.load(f)
     cfg = EasyDict(cfg)
 
     # run manager
@@ -198,8 +201,8 @@ def main(actor_limit, manager_flag=0):
     for partition in cpu_partitions:
         if actor_num_touse <= 0:
             break
-        actor_num = pd_partition(partition, 'cpu', actor_num_touse, \
-                    learner_node_address, actor_manager_node_address, forbidden_nodes_addr)
+        actor_num = pd_partition(partition, 'cpu', actor_num_touse,
+                                 learner_node_address, actor_manager_node_address, forbidden_nodes_addr)
         actor_num_cpu += actor_num
         actor_num_touse -= actor_num
     actor_num_all += actor_num_cpu
@@ -207,8 +210,8 @@ def main(actor_limit, manager_flag=0):
     for partition in our_partitions:
         if actor_num_touse <= 0:
             break
-        actor_num = pd_partition(partition, 'our', actor_num_touse, \
-                    learner_node_address, actor_manager_node_address, forbidden_nodes_addr)
+        actor_num = pd_partition(partition, 'our', actor_num_touse,
+                                 learner_node_address, actor_manager_node_address, forbidden_nodes_addr)
         actor_num_our += actor_num
         actor_num_touse -= actor_num
     actor_num_all += actor_num_our
@@ -216,16 +219,17 @@ def main(actor_limit, manager_flag=0):
     for partition in other_partitions:
         if actor_num_touse <= 0:
             break
-        actor_num += pd_partition(partition, 'other', actor_num_touse, \
-                     learner_node_address, actor_manager_node_address, forbidden_nodes_addr)
+        actor_num += pd_partition(partition, 'other', actor_num_touse,
+                                  learner_node_address, actor_manager_node_address, forbidden_nodes_addr)
         actor_num_other += actor_num
         actor_num_touse -= actor_num
     actor_num_all += actor_num_other
 
     if actor_num_all < actor_limit:
         print('Warning: cannot start required number of actors!')
-    print(' cpu: {} \n our: {} \n other: {} \n total: {} \n limit: {} \n'.format(actor_num_cpu, actor_num_our, actor_num_other, actor_num_all, actor_limit))
+    print(' cpu: {} \n our: {} \n other: {} \n total: {} \n limit: {} \n'
+          .format(actor_num_cpu, actor_num_our, actor_num_other, actor_num_all, actor_limit))
+
 
 if __name__ == '__main__':
     main(int(sys.argv[1]), int(sys.argv[2]))
-

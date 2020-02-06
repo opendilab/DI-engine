@@ -113,7 +113,8 @@ class HistoryActorInfo(object):
         return {k: win_rate(v) for k, v in self.game_results.items()}
 
     def state_dict(self):
-        return {'actor_data': self._data, 'game_results': self.game_results}
+        return {'actor_data': self._data,
+                'game_results': self.game_results}
 
     def load_state_dict(self, state_dict):
         self._data = state_dict['actor_data']
@@ -209,7 +210,8 @@ class BaseLearner(object):
             self.tb_logger.add_histogram('update_model_time',
                                          self.history_actor_info.get_distribution('update_model_time'), iterations)
             self.tb_logger.add_histogram('dataset_staleness',
-                                         np.array([d['model_index'] - iterations for d in self.dataset.data_queue]),iterations)
+                                         np.array([d['model_index'] - iterations
+                                                   for d in self.dataset.data_queue]), iterations)
             rollout_img = self.history_actor_info.get_distribution_img('data_rollout_time')
             self.tb_logger.add_image('data_rollout_time_img', rollout_img, iterations)
             update_model_img = self.history_actor_info.get_distribution_img('update_model_time')

@@ -146,7 +146,7 @@ def main(argv):
     cfg.common.data_load_path = FLAGS.data_load_path
     if FLAGS.job_name == 'actor':
         if cfg.communication.ip.actor_manager == 'auto':
-        # extract the ip address prefix (like 10.198.8)
+            # extract the ip address prefix (like 10.198.8)
             prefix = '.'.join(FLAGS.node_name.split('-')[-4:-1])
             cfg.communication.ip.actor_manager = cfg.communication.ip.manager_node[prefix]
         start_actor(cfg)
