@@ -101,6 +101,7 @@ class ManagerZmq(ManagerBase):
     def __init__(self, *args, send_queue_size=None, receive_queue_size=None, HWM=10, time_interval=10, **kwargs):
         super(ManagerZmq, self).__init__(*args, **kwargs)
         self.receive_queue_size = receive_queue_size
+        self.send_queue_size = send_queue_size
         # received data is packed into a list of receive_queue_size before sent
         self.receive_queue = deque(maxlen=receive_queue_size)
         self.send_queue = deque(maxlen=send_queue_size)  # no impact to staleness
@@ -151,17 +152,15 @@ class ManagerZmq(ManagerBase):
         if test_speed:
             while True:
                 t1 = time.time()
-                data = receiver.recv()
+                data = receiver.recv_pyobj()
                 t2 = time.time()
                 print('({})receive pyobj {} receiver time {}'.format(self.name, self.receive_data_count, t2-t1))
                 if isinstance(data, list):
                     self.receive_queue.extend(data)
                     self.receive_data_count += len(data)
-                elif isinstance(data, bytes):
+                else:
                     self.receive_queue.append(data)
                     self.receive_data_count += 1
-                else:
-                    raise TypeError(type(data))
                 if len(self.receive_queue) == self.receive_queue_size:
                     self._acquire_lock(self.send_lock)
                     self.send_queue.append(list(self.receive_queue))
@@ -174,15 +173,13 @@ class ManagerZmq(ManagerBase):
 
         else:
             while True:
-                data = receiver.recv()
+                data = receiver.recv_pyobj()
                 if isinstance(data, list):
                     self.receive_queue.extend(data)
                     self.receive_data_count += len(data)
-                elif isinstance(data, bytes):
+                else:
                     self.receive_queue.append(data)
                     self.receive_data_count += 1
-                else:
-                    raise TypeError(type(data))
                 if len(self.receive_queue) == self.receive_queue_size:
                     self._acquire_lock(self.send_lock)
                     self.send_queue.append(list(self.receive_queue))
@@ -201,14 +198,9 @@ class ManagerZmq(ManagerBase):
             self._acquire_lock(self.send_lock)
             data = self.send_queue.popleft()
             self._release_lock(self.send_lock)
-            if isinstance(data, list):
-                self.send_data_count += len(data)
-            elif isinstance(data, bytes):
-                self.send_data_count += 1
-            else:
-                raise TypeError(type(data))
+            self.send_data_count += 1
             t1 = time.time()
-            sender.send(data)
+            sender.send_pyobj(data)
             t2 = time.time()
             print('({})send {} time {}'.format(self.name, self.send_data_count, t2-t1))
 

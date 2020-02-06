@@ -254,7 +254,7 @@ class BaseLearner(object):
                 self._parse_pull_data(data)
             elif isinstance(data, list):
                 for d in data:
-                    self.history_actor_info.update_actor_info(data)
+                    self.history_actor_info.update_actor_info(d)
                     self._parse_pull_data(d)
             else:
                 raise TypeError(type(data))
