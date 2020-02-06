@@ -21,7 +21,7 @@ Data Parse
 
 Dataset
 ~~~~~~~
-  - **sc2learner.dataset.replay_dataset****  (dataset design for supervised learning from replay)
+  - **sc2learner.dataset.replay_dataset**  (dataset design for supervised learning from replay)
 
 Learner
 ~~~~~~~
