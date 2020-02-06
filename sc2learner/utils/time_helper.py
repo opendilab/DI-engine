@@ -36,7 +36,6 @@ class TimeWrapper(object):
         raise NotImplementedError
 
 
-
 class TimeWrapperTime(TimeWrapper):
 
     # overwrite

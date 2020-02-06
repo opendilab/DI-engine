@@ -124,7 +124,7 @@ class SelectedUnitsHead(nn.Module):
                 x, state = self.lstm(x, state)
                 query_result = x.permute(1, 0, 2) * key
                 query_result = query_result.mean(dim=2)
-                query_result.sub_((1 - mask) * 1e9)
+                # query_result.sub_((1 - mask) * 1e9)
                 handle = self.pd(query_result.div(temperature))
                 entity_num = handle.sample()
                 for b in range(B):
@@ -269,6 +269,53 @@ class TargetUnitsHead(nn.Module):
         return logits, units
 
 
+class TargetUnitHead(nn.Module):
+    def __init__(self, cfg):
+        super(TargetUnitHead, self).__init__()
+        self.act = build_activation(cfg.activation)
+        self.key_fc = fc_block(cfg.entity_embedding_dim, cfg.key_dim, activation=None, norm_type=None)
+        self.func_fc = fc_block(cfg.unit_type_dim, cfg.func_dim, activation=self.act, norm_type=None)
+        self.fc1 = fc_block(cfg.input_dim, cfg.func_dim, activation=self.act, norm_type=None)
+        self.fc2 = fc_block(cfg.func_dim, cfg.key_dim, activation=self.act, norm_type=None)
+
+        self.pd = CategoricalPdPytorch
+
+    def _get_query(self, embedding, available_unit_type_mask):
+        func_embed = self.func_fc(available_unit_type_mask)
+        x = self.fc1(embedding)
+        x = self.fc2(x + func_embed)
+        return x
+
+    def forward(self, embedding, available_unit_type_mask, available_units_mask, entity_embedding,
+                temperature=1.0):
+        '''
+        Input:
+            embedding: [batch_size, input_dim(1024)]
+            available_unit_type_mask: [batch_size, num_unit_type]
+            available_units_mask: [batch_size, num_units]
+            entity_embedding: [batch_size, num_units, entity_embedding_dim(256)]
+        Output:
+            logits: List(batch_size) - List(num_selected_units) - num_units
+            units: [batch_size, num_units] 0-1 vector
+        '''
+        assert(isinstance(entity_embedding, list) or isinstance(entity_embedding, torch.Tensor))
+
+        mask = available_units_mask
+        key = self.key_fc(entity_embedding)
+        query = self._get_query(embedding, available_unit_type_mask)
+        logits = query.unsqueeze(1) * key
+        logits = logits.mean(dim=2)
+        logits.sub_((1-mask) * 1e9)
+
+        B, N = key.shape[:2]
+        units = torch.zeros(B, N, device=key.device, dtype=torch.int)
+        handle = self.pd(logits.div(temperature))
+        sample_num = handle.sample()
+        units.scatter_(1, sample_num.unsqueeze(1), 1)
+
+        return logits, units
+
+
 class LocationHead(nn.Module):
     def __init__(self, cfg):
         super(LocationHead, self).__init__()
@@ -381,7 +428,7 @@ def test_queued_head():
     print(input.mean(), embedding.mean())
 
 
-def test_selected_unit_head():
+def test_selected_units_head():
     class CFG:
         def __init__(self):
             self.input_dim = 1024
@@ -407,8 +454,28 @@ def test_selected_unit_head():
     print(embedding.shape, input.mean(), embedding.mean())
 
 
+def test_target_unit_head():
+    class CFG:
+        def __init__(self):
+            self.input_dim = 1024
+            self.activation = 'relu'
+            self.entity_embedding_dim = 256
+            self.key_dim = 32
+            self.unit_type_dim = 259
+            self.func_dim = 256
+    model = TargetUnitHead(CFG()).cuda()
+    input = torch.randn(2, 1024).cuda()
+    available_unit_type_mask = torch.ones(2, 259).cuda()
+    available_units_mask = torch.ones(2, 12).cuda()
+    entity_embedding = torch.randn(2, 12, 256).cuda()
+    logits, units = model(input, available_unit_type_mask, available_units_mask, entity_embedding)
+    print(logits.shape)
+    print(units)
+
+
 if __name__ == "__main__":
-    test_selected_unit_head()
+    test_target_unit_head()
+    test_selected_units_head()
     test_location_head()
     test_delay_head()
     test_queued_head()

@@ -31,7 +31,7 @@ class BaseActor(object):
         if enable_push:
             self.data_queue = Queue(cfg.train.actor_data_queue_size)
             self.push_thread = Thread(target=self._push_data, args=(self.zmq_context,
-                                      push_ip, push_port, self.data_queue))
+                                                                    push_ip, push_port, self.data_queue))
         self.enable_push = enable_push
         self.checkpoint_helper = build_checkpoint_helper(cfg)
         if cfg.common.load_path != '':

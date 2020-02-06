@@ -73,11 +73,11 @@ def create_ppo_agent(cfg, env, tb_logger):
     policy_func = {'mlp': PPOMLP,
                    'lstm': PPOLSTM}
     model = policy_func[cfg.model.policy](
-                ob_space=env.observation_space,
-                ac_space=env.action_space,
-                action_type=cfg.model.action_type,
-                viz=cfg.logger.viz,
-            )
+        ob_space=env.observation_space,
+        ac_space=env.action_space,
+        action_type=cfg.model.action_type,
+        viz=cfg.logger.viz,
+    )
     agent = PpoAgent(env=env, model=model, tb_logger=tb_logger, cfg=cfg)
     return agent
 
@@ -85,9 +85,12 @@ def create_ppo_agent(cfg, env, tb_logger):
 def evaluate(var_dict, cfg):
 
     game_seed, rank = var_dict['game_seed'], var_dict['rank']
-    log_time = time.strftime("%d/%m/%H:%M:%S")
-    name_list = cfg.common.load_path.split('/')
-    path_info = name_list[-2] + '/' + name_list[-1].split('.')[0]
+    log_time = time.strftime("%d:%m:%H:%M:%S")
+    if cfg.common.load_path != "":
+        name_list = cfg.common.load_path.split('/')
+        path_info = name_list[-2] + '/' + name_list[-1].split('.')[0]
+    else:
+        path_info = 'no_model'
     name = 'eval_{}_{}_{}_{}_{}'.format(path_info, cfg.env.difficulty, cfg.model.action_type, log_time, rank+1)
     logger, tb_logger, _ = build_logger(cfg, name=name)
     logger.info('cfg: {}'.format(cfg))
@@ -148,16 +151,25 @@ def main(argv):
     base_dir = os.path.expanduser(base_dir)
     if not os.path.exists(base_dir + "/Replays/" + cfg.common.agent + FLAGS.replay_path):
         os.mkdir(base_dir + "/Replays/" + cfg.common.agent + FLAGS.replay_path)
-    eval_func = partial(evaluate, cfg=cfg)
-    pool = Pool(min(cfg.common.num_episodes, 20))
-    var_list = []
-    for i in range(cfg.common.num_episodes):
-        seed = random.randint(0, math.pow(2, 32)-1)
-        var_list.append({'rank': i, 'game_seed': seed})
+    use_multiprocessing = cfg.common.get("use_multiprocessing", True)
+    assert(not use_multiprocessing)
+    if use_multiprocessing:
+        eval_func = partial(evaluate, cfg=cfg)
+        pool = Pool(min(cfg.common.num_episodes, 20))
+        var_list = []
+        for i in range(cfg.common.num_episodes):
+            seed = random.randint(0, math.pow(2, 32)-1)
+            var_list.append({'rank': i, 'game_seed': seed})
 
-    reward_list = pool.map(eval_func, var_list)
-    print(reward_list)
-    pool.close()
+        reward_list = pool.map(eval_func, var_list)
+        print(reward_list)
+        pool.close()
+    else:
+        reward_list = []
+        for i in range(cfg.common.num_episodes):
+            seed = random.randint(0, math.pow(2, 32)-1)
+            reward = evaluate({'rank': 0, 'game_seed': seed}, cfg)
+            reward_list.append(reward)
 
     print("Evaluated %d Episodes Against Bot Level %s Avg Return %f Avg Winning Rate %f" % (
         cfg.common.num_episodes, cfg.env.difficulty, sum(reward_list) / len(reward_list),

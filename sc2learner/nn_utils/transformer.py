@@ -73,6 +73,7 @@ class Transformer(nn.Module):
         Note:
           Input has passed through embedding
     '''
+
     def __init__(self, input_dim, head_dim=128, hidden_dim=1024, output_dim=256,
                  head_num=2, mlp_num=2, layer_num=3, dropout_ratio=0.1, activation=nn.ReLU()):
         super(Transformer, self).__init__()
@@ -82,7 +83,7 @@ class Transformer(nn.Module):
         dims = [output_dim] + [output_dim] * layer_num
         for i in range(layer_num):
             layers.append(TransformerLayer(dims[i], head_dim, hidden_dim, dims[i+1],
-                          head_num, mlp_num, dropout_ratio, self.act))
+                                           head_num, mlp_num, dropout_ratio, self.act))
         self.main = nn.Sequential(*layers)
 
     def forward(self, x):

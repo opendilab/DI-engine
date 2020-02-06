@@ -103,24 +103,24 @@ def create_selfplay_env(cfg, random_seed=None):
 
 def start_actor(cfg):
     random.seed(time.time())
-    game_seed =  random.randint(0, 2**32 - 1)
+    game_seed = random.randint(0, 2**32 - 1)
     print("Game Seed: %d" % game_seed)
     env = create_selfplay_env(cfg, game_seed)
     policy_func = {'mlp': PPOMLP,
                    'lstm': PPOLSTM}
     model = policy_func[cfg.model.policy](
-                ob_space=env.observation_space,
-                ac_space=env.action_space,
-            )
+        ob_space=env.observation_space,
+        ac_space=env.action_space,
+    )
     actor = PpoSelfplayActor(env, model, cfg)
-        #model_cache_size=cfg.train.model_cache_size,
-        #model_cache_prob=cfg.train.model_cache_prob,
-        #prob_latest_opponent=0.0,
-        #init_opponent_pool_filelist=FLAGS.init_oppo_pool_filelist,
-        #freeze_opponent_pool=False,
-        #learner_ip=FLAGS.learner_ip,
-        #port_A=FLAGS.port_A,
-        #port_B=FLAGS.port_B)
+    # model_cache_size=cfg.train.model_cache_size,
+    # model_cache_prob=cfg.train.model_cache_prob,
+    # prob_latest_opponent=0.0,
+    # init_opponent_pool_filelist=FLAGS.init_oppo_pool_filelist,
+    # freeze_opponent_pool=False,
+    # learner_ip=FLAGS.learner_ip,
+    # port_A=FLAGS.port_A,
+    # port_B=FLAGS.port_B)
     actor.run()
     env.close()
 
@@ -130,19 +130,20 @@ def start_learner(cfg):
     policy_func = {'mlp': PPOMLP,
                    'lstm': PPOLSTM}
     model = policy_func[cfg.model.policy](
-                ob_space=env.observation_space,
-                ac_space=env.action_space,
-            )
+        ob_space=env.observation_space,
+        ac_space=env.action_space,
+    )
     learner = PpoLearner(env, model, cfg)
     learner.logger.info('cfg:{}'.format(cfg))
-                        #max_grad_norm=0.5,
-                        #learn_act_speed_ratio=FLAGS.learn_act_speed_ratio,
-                        #save_dir=FLAGS.save_dir,
-                        #init_model_path=FLAGS.init_model_path,
-                        #port_A=FLAGS.port_A,
-                        #port_B=FLAGS.port_B)
+    # max_grad_norm=0.5,
+    # learn_act_speed_ratio=FLAGS.learn_act_speed_ratio,
+    # save_dir=FLAGS.save_dir,
+    # init_model_path=FLAGS.init_model_path,
+    # port_A=FLAGS.port_A,
+    # port_B=FLAGS.port_B)
     learner.run()
     env.close()
+
 
 def start_actor_manager(cfg):
     ip = cfg.communication.ip
@@ -198,9 +199,9 @@ def start_evaluator_against_builtin(cfg):
     policy_func = {'mlp': PPOMLP,
                    'lstm': PPOLSTM}
     model = policy_func[cfg.model.policy](
-                ob_space=env.observation_space,
-                ac_space=env.action_space,
-            )
+        ob_space=env.observation_space,
+        ac_space=env.action_space,
+    )
     actor = PpoActor(env, model, cfg)
     actor.run()
     env.close()
@@ -214,9 +215,9 @@ def start_evaluator_against_model(cfg):
     policy_func = {'mlp': PPOMLP,
                    'lstm': PPOLSTM}
     model = policy_func[cfg.model.policy](
-                ob_space=env.observation_space,
-                ac_space=env.action_space,
-            )
+        ob_space=env.observation_space,
+        ac_space=env.action_space,
+    )
     actor = PpoSelfplayActor(env, model, cfg)
     actor.run()
     env.close()

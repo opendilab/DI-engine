@@ -82,6 +82,10 @@ class AlphastarSLLearner(SLLearner):
 
         for k, v in loss_items.items():
             loss_items[k] = sum(v) / len(v)
+            if not isinstance(loss_items[k], torch.Tensor):
+                dtype = policy_logits['action_type'].dtype
+                device = policy_logits['action_type'].device
+                loss_items[k] = torch.tensor([loss_items[k]], dtype=dtype, device=device)
         loss_items['total_loss'] = sum(loss_items.values())
         return loss_items
 
@@ -118,7 +122,14 @@ class AlphastarSLLearner(SLLearner):
         return sum(loss) / len(loss)
 
     def _target_units_loss(self, logits, label):
-        return self._selected_units_loss(logits, label)
+        label = [x for x in label if isinstance(x, torch.Tensor)]
+        if len(label) == 0:
+            return 0
+        loss = []
+        for b in range(len(label)):
+            lo, la = logits[b], label[b]
+            loss.append(self.criterion(lo, la))
+        return sum(loss) / len(loss)
 
     def _target_location_loss(self, logits, label):
         label = [x for x in label if isinstance(x, torch.Tensor)]

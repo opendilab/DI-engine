@@ -38,76 +38,79 @@ flags.DEFINE_enum("policy", 'mlp', ['mlp', 'lstm'], "Job type.")
 
 
 def print_actions(env):
-  print("----------------------------- Actions -----------------------------")
-  for action_id, action_name in enumerate(env.action_names):
-    print("Action ID: %d	Action Name: %s" % (action_id, action_name))
-  print("-------------------------------------------------------------------")
+    print("----------------------------- Actions -----------------------------")
+    for action_id, action_name in enumerate(env.action_names):
+        print("Action ID: %d	Action Name: %s" % (action_id, action_name))
+    print("-------------------------------------------------------------------")
 
 
 def print_action_distribution(env, action_counts):
-  print("----------------------- Action Distribution -----------------------")
-  for action_id, action_name in enumerate(env.action_names):
-    print("Action ID: %d	Count: %d	Name: %s" %
-        (action_id, action_counts[action_id], action_name))
-  print("-------------------------------------------------------------------")
+    print("----------------------- Action Distribution -----------------------")
+    for action_id, action_name in enumerate(env.action_names):
+        print("Action ID: %d	Count: %d	Name: %s" %
+              (action_id, action_counts[action_id], action_name))
+    print("-------------------------------------------------------------------")
 
 
 def tf_config(ncpu=None):
-  if ncpu is None:
-    ncpu = multiprocessing.cpu_count()
-    if sys.platform == 'darwin': ncpu //= 2
-  config = tf.ConfigProto(allow_soft_placement=True,
-                          intra_op_parallelism_threads=ncpu,
-                          inter_op_parallelism_threads=ncpu)
-  config.gpu_options.allow_growth = True
-  tf.Session(config=config).__enter__()
+    if ncpu is None:
+        ncpu = multiprocessing.cpu_count()
+        if sys.platform == 'darwin':
+            ncpu //= 2
+    config = tf.ConfigProto(allow_soft_placement=True,
+                            intra_op_parallelism_threads=ncpu,
+                            inter_op_parallelism_threads=ncpu)
+    config.gpu_options.allow_growth = True
+    tf.Session(config=config).__enter__()
 
 
 def start_lan_agent():
-  """Run the agent, connecting to a host started independently."""
-  tf_config()
-  env = LanSC2RawEnv(host=FLAGS.host,
-                     config_port=FLAGS.config_port,
-                     agent_race='zerg',
-                     step_mul=FLAGS.step_mul,
-                     visualize_feature_map=False)
-  env = ZergActionWrapper(env,
-                          game_version=FLAGS.game_version,
-                          mask=FLAGS.use_action_mask,
-                          use_all_combat_actions=FLAGS.use_all_combat_actions)
-  env = ZergObservationWrapper(
-      env,
-      use_spatial_features=False,
-      use_game_progress=(not FLAGS.policy == 'lstm'),
-      action_seq_len=1 if FLAGS.policy == 'lstm' else 8,
-      use_regions=FLAGS.use_region_features)
-  print_actions(env)
-  policy = {'lstm': LstmPolicy,
-            'mlp': MlpPolicy}[FLAGS.policy]
-  agent = PPOAgent(env=env,
-                   policy=policy,
-                   model_path=FLAGS.model_path)
-  try:
-    action_counts = [0] * env.action_space.n
-    observation = env.reset()
-    done, step_id = False, 0
-    while not done:
-      action = agent.act(observation)
-      print("Step ID: %d	Take Action: %d" % (step_id, action))
-      observation, reward, done, _ = env.step(action)
-      action_counts[action] += 1
-      step_id += 1
-    print_action_distribution(env, action_counts)
-  except KeyboardInterrupt: pass
-  except: traceback.print_exc()
-  env.close()
+    """Run the agent, connecting to a host started independently."""
+    tf_config()
+    env = LanSC2RawEnv(host=FLAGS.host,
+                       config_port=FLAGS.config_port,
+                       agent_race='zerg',
+                       step_mul=FLAGS.step_mul,
+                       visualize_feature_map=False)
+    env = ZergActionWrapper(env,
+                            game_version=FLAGS.game_version,
+                            mask=FLAGS.use_action_mask,
+                            use_all_combat_actions=FLAGS.use_all_combat_actions)
+    env = ZergObservationWrapper(
+        env,
+        use_spatial_features=False,
+        use_game_progress=(not FLAGS.policy == 'lstm'),
+        action_seq_len=1 if FLAGS.policy == 'lstm' else 8,
+        use_regions=FLAGS.use_region_features)
+    print_actions(env)
+    policy = {'lstm': LstmPolicy,
+              'mlp': MlpPolicy}[FLAGS.policy]
+    agent = PPOAgent(env=env,
+                     policy=policy,
+                     model_path=FLAGS.model_path)
+    try:
+        action_counts = [0] * env.action_space.n
+        observation = env.reset()
+        done, step_id = False, 0
+        while not done:
+            action = agent.act(observation)
+            print("Step ID: %d	Take Action: %d" % (step_id, action))
+            observation, reward, done, _ = env.step(action)
+            action_counts[action] += 1
+            step_id += 1
+        print_action_distribution(env, action_counts)
+    except KeyboardInterrupt:
+        pass
+    except Exception:
+        traceback.print_exc()
+    env.close()
 
 
 def main(unused_argv):
-  logging.set_verbosity(logging.ERROR)
-  print_arguments(FLAGS)
-  start_lan_agent()
+    logging.set_verbosity(logging.ERROR)
+    print_arguments(FLAGS)
+    start_lan_agent()
 
 
 if __name__ == "__main__":
-  app.run(main)
+    app.run(main)

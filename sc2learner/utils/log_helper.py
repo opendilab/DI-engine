@@ -29,7 +29,7 @@ class TextLogger(object):
         logger = logging.getLogger(name)
         if not logger.handlers:
             formatter = logging.Formatter(
-                    '[%(asctime)s][%(filename)15s][line:%(lineno)4d][%(levelname)8s] %(message)s')
+                '[%(asctime)s][%(filename)15s][line:%(lineno)4d][%(levelname)8s] %(message)s')
             fh = logging.FileHandler(path)
             fh.setFormatter(formatter)
             sh = logging.StreamHandler()
@@ -143,6 +143,7 @@ class ScalarRecord(object):
 
 class ScalarAverageMeter(object):
     """Computes and stores the average and current value"""
+
     def __init__(self, length=0):
         self.length = length
         self.reset()

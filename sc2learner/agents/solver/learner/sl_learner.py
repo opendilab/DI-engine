@@ -31,14 +31,13 @@ class SLLearner(object):
         else:
             self.rank, self.world_size = 0, 1
         self.model = build_model(cfg)
-        print(self.model)
         self.model.train()
         self.use_cuda = cfg.train.use_cuda
         if self.use_cuda:
             self.model = to_device(self.model, 'cuda')
         if self.use_distributed:
             self.model = DistModule(self.model)
-        self.dataset = ReplayDataset(cfg.data.replay_list, cfg.data.trajectory_len, cfg.data.trajectory_type)
+        self.dataset = ReplayDataset(cfg)
         sampler = DistributedSampler(self.dataset, round_up=False) if self.use_distributed else None
         shuffle = False if self.use_distributed else True
         self.dataloader = DataLoader(self.dataset, batch_size=cfg.train.batch_size, pin_memory=False, num_workers=3,
@@ -48,22 +47,28 @@ class SLLearner(object):
         self.lr_scheduler = build_lr_scheduler(self.optimizer)
         if self.rank == 0:
             self.logger, self.tb_logger, self.scalar_record = build_logger(cfg)
+            self.logger.info('cfg:\n{}'.format(self.cfg))
+            self.logger.info('model:\n{}'.format(self.model))
             self._init()
         self.time_helper = build_time_helper(cfg)
         self.checkpoint_helper = build_checkpoint_helper(cfg)
         self.last_iter = CountVar(init_val=0)
+        self.last_epoch = CountVar(init_val=0)
         if cfg.common.load_path != '':
             self.checkpoint_helper.load(cfg.common.load_path, self.model,
                                         optimizer=self.optimizer,
-                                        last_iter=self.last_iter,  # TODO last_iter for lr_scheduler
+                                        last_iter=self.last_iter,
+                                        last_epoch=self.last_epoch,  # TODO last_epoch for lr_scheduler
                                         dataset=self.dataset,
                                         logger_prefix='(sl_learner)')
+            self.last_epoch.add(1)  # skip interrupted epoch
+            self.last_iter.add(1)  # skip interrupted iter
         self._optimize_step = self.time_helper.wrapper(self._optimize_step)
         self.max_epochs = cfg.train.max_epochs
 
     def run(self):
 
-        for epoch in range(self.max_epochs):
+        while self.last_epoch.val < self.max_epochs:
             if hasattr(self.dataloader.dataset, 'step'):
                 self.dataloader.dataset.step()
             self.lr_scheduler.step()
@@ -79,7 +84,7 @@ class SLLearner(object):
                               'backward_update_time': backward_update_time,
                               'total_batch_time': data_time+forward_time+backward_update_time}
                 var_items['cur_lr'] = cur_lr
-                var_items['epoch'] = epoch
+                var_items['epoch'] = self.last_epoch.val
 
                 if self.use_distributed:
                     var_items, time_items = [self._reduce_info(x) for x in [var_items, time_items]]
@@ -87,6 +92,7 @@ class SLLearner(object):
                     self._update_monitor_var(var_items, time_items)
                     self._record_info(self.last_iter.val)
                 self.last_iter.add(1)
+            self.last_epoch.add(1)
 
     def finalize(self):
         if self.use_distributed:
@@ -116,7 +122,7 @@ class SLLearner(object):
             self.tb_logger.add_scalar_list(self.scalar_record.get_var_tb_format(tb_keys, iterations))
         if iterations % self.cfg.logger.save_freq == 0:
             self.checkpoint_helper.save_iterations(iterations, self.model, optimizer=self.optimizer,
-                                                   dataset=self.dataset)
+                                                   dataset=self.dataset, last_epoch=self.last_epoch.val)
 
     def _get_loss(self, data):
         raise NotImplementedError
@@ -137,7 +143,8 @@ class SLLearner(object):
 
     def _optimize_step(self, loss):
         self.optimizer.zero_grad()
-        loss.backward()
+        avg_loss = loss / self.world_size
+        avg_loss.backward()
         if self.use_distributed:
             self.model.sync_gradients()
         self.optimizer.step()

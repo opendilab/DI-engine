@@ -11,6 +11,7 @@ def get_rank():
 def get_world_size():
     return link.get_world_size()
 
+
 def allreduce(data):
     link.allreduce(data)
 
@@ -57,7 +58,7 @@ def simple_group_split(world_size, rank, num_groups):
 
 
 class DistModule(torch.nn.Module):
-    def __init__(self, module, sync=False):
+    def __init__(self, module, sync=True):
         super(DistModule, self).__init__()
         self.module = module
         self.broadcast_params()
@@ -66,6 +67,7 @@ class DistModule(torch.nn.Module):
         if not sync:
             self._grad_accs = []
             self._register_hooks()
+        self._create_grad()
 
     def forward(self, *inputs, **kwargs):
         return self.module(*inputs, **kwargs)
@@ -96,3 +98,7 @@ class DistModule(torch.nn.Module):
         """ broadcast model parameters """
         for name, param in self.module.state_dict().items():
             link.broadcast(param, 0)
+
+    def _create_grad(self):
+        for name, param in self.module.named_parameters():
+            setattr(param, 'grad', torch.zeros_like(param))
