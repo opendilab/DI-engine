@@ -1,8 +1,9 @@
 import torch
 import os
 from sc2learner.nn_utils import one_hot
-from pysc2.lib.static_data import NUM_BEGIN_ACTIONS, BEGIN_ACTIONS_REORDER, NUM_UNIT_BUILD_ACTIONS, UNIT_BUILD_ACTIONS_REORDER, \
-    NUM_EFFECT_ACTIONS, EFFECT_ACTIONS_REORDER, NUM_RESEARCH_ACTIONS, RESEARCH_ACTIONS_REORDER
+from pysc2.lib.static_data import NUM_BEGIN_ACTIONS, BEGIN_ACTIONS_REORDER, NUM_UNIT_BUILD_ACTIONS,\
+    UNIT_BUILD_ACTIONS_REORDER, NUM_EFFECT_ACTIONS, EFFECT_ACTIONS_REORDER, NUM_RESEARCH_ACTIONS,\
+    RESEARCH_ACTIONS_REORDER
 
 
 def div_one_hot(v, max_val, ratio):
@@ -81,7 +82,7 @@ def main():
             mmr = meta['home_mmr']
             mmr = torch.LongTensor([mmr])
             mmr = div_one_hot(mmr, 6000, 1000).squeeze(0)
-            torch.save({'mmr': mmr, 'beginning_build_order': beginning_build_order_tensor, 'cumulative_stat': cumulative_stat_tensor},
+            torch.save({'mmr': mmr, 'beginning_build_order': beginning_build_order_tensor, 'cumulative_stat': cumulative_stat_tensor},  # noqa
                        os.path.join(data_dir, name+'.stat_processed'))
             print(name)
 

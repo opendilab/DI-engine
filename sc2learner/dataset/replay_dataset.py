@@ -115,7 +115,8 @@ class ReplayDataset(Dataset):
         stat = torch.load(handle['name'] + STAT_SUFFIX)
         mmr = stat['mmr']
         beginning_build_order = stat['beginning_build_order']
-        beginning_build_order = beginning_build_order[:self.beginning_build_order_num]  # first self.beginning_build_order_num item
+        # first self.beginning_build_order_num item
+        beginning_build_order = beginning_build_order[:self.beginning_build_order_num]
         if beginning_build_order.shape[0] < self.beginning_build_order_num:
             B, N = beginning_build_order.shape
             B0 = self.beginning_build_order_num - B

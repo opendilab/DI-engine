@@ -178,10 +178,10 @@ class Policy(ActorCriticBase):
 #                item['queued_logits'], item['queued'], embedding = self.head['queued_head'](embedding, temperature)
 #            if action_attr['enable_select_units']:
 #                item['units_logits'], item['units'], embedding = self.head['selected_units_head'](
-#                    embedding, action_attr['unit_type_mask'], action_attr['units_mask'], entity_embeddings, temperature)
+#                    embedding, action_attr['unit_type_mask'], action_attr['units_mask'], entity_embeddings, temperature)  # noqa
 #            if action_attr['enable_target_unit']:
 #                item['target_unit_logits'], item['target_unit'] = self.head['target_units_head'](
-#                    embedding, action_attr['unit_type_mask'], action_attr['units_mask'], entity_embeddings, temperature)
+#                    embedding, action_attr['unit_type_mask'], action_attr['units_mask'], entity_embeddings, temperature)  # noqa
 #            if action_attr['entity_location']:
 #                item['location_logits'], item['location'] = self.head['location_head'](
 #                    embedding, map_skip, action_attr['location_mask'], temperature)

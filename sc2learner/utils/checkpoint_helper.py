@@ -118,7 +118,7 @@ class CheckpointHelper(object):
 
         if last_epoch is not None:
             last_epoch.update(checkpoint['last_epoch'])
-            logger.info(logger_prefix+'load last_epoch in {}, current last_epoch is {}'.format(load_path, last_epoch.val))
+            logger.info(logger_prefix+'load last_epoch in {}, current last_epoch is {}'.format(load_path, last_epoch.val))  # noqa
 
         if actor_info is not None:
             actor_info.load_state_dict(checkpoint['actor_info'])

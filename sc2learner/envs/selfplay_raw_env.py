@@ -85,7 +85,7 @@ class SC2SelfplayRawEnv(gym.Env):
         for _ in range(max_retry - 1):
             try:
                 return self._reset()
-            except:
+            except Exception:
                 pass
         return self._reset()
 
@@ -114,7 +114,7 @@ class SC2SelfplayRawEnv(gym.Env):
         for _ in range(max_retry - 1):
             try:
                 return self._create_env()
-            except:
+            except Exception:
                 pass
         return self._create_env()
 
