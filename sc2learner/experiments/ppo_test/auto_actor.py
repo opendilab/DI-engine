@@ -15,10 +15,10 @@ mefull = subprocess.getoutput('whoami')
 
 # parameters determining the policy of starting actors
 CPU_IDLE = 20
-OUR_IDLE = 20
-OTHER_IDLE = 15
+OUR_IDLE = 12
+OTHER_IDLE = 12
 CPU_MIX = 20
-OUR_MIX = 10
+OUR_MIX = 8
 OTHER_MIX = 5
 
 
