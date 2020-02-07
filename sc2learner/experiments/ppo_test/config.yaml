@@ -37,7 +37,7 @@ train:
         sleep_time: 3
 communication:
     ip:
-        learner: '10.198.6.62'
+        learner: '10.198.6.65'
         learner_manager: 'auto' # regarded as the manager node of the lustre with learner if set to auto
         actor_manager: 'auto' # regarded as the manager node of the lustre where the actors are running if set to auto
         manager_node:
@@ -65,9 +65,9 @@ communication:
     queue_size:
         # send queue size will not affect the staleness
         learner_manager_send: 256
-        learner_manager_receive: 5
+        learner_manager_receive: 1
         actor_manager_send: 128
-        actor_manager_receive: 5
+        actor_manager_receive: 1
     model_time_interval: 0.5  # 130 second 128 steps rollout 20 tasks per node
 logger:
     print_freq: 50

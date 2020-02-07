@@ -152,7 +152,7 @@ class ManagerZmq(ManagerBase):
         if test_speed:
             while True:
                 t1 = time.time()
-                data = receiver.recv_pyobj()
+                data = receiver.recv()
                 t2 = time.time()
                 print('({})receive pyobj {} receiver time {}'.format(self.name, self.receive_data_count, t2-t1))
                 if isinstance(data, list):
@@ -173,7 +173,7 @@ class ManagerZmq(ManagerBase):
 
         else:
             while True:
-                data = receiver.recv_pyobj()
+                data = receiver.recv()
                 if isinstance(data, list):
                     self.receive_queue.extend(data)
                     self.receive_data_count += len(data)
@@ -200,7 +200,7 @@ class ManagerZmq(ManagerBase):
             self._release_lock(self.send_lock)
             self.send_data_count += 1
             t1 = time.time()
-            sender.send_pyobj(data)
+            sender.send(data)
             t2 = time.time()
             print('({})send {} time {}'.format(self.name, self.send_data_count, t2-t1))
 
