@@ -163,7 +163,7 @@ class ManagerZmq(ManagerBase):
                     self.receive_data_count += 1
                 if len(self.receive_queue) == self.receive_queue_size:
                     self._acquire_lock(self.send_lock)
-                    self.send_queue.append(list(self.receive_queue))
+                    self.send_queue.extend(list(self.receive_queue))
                     self._release_lock(self.send_lock)
                     if len(self.send_queue) == self.send_queue_size:
                         print('Warning: Send queue full')
@@ -182,7 +182,7 @@ class ManagerZmq(ManagerBase):
                     self.receive_data_count += 1
                 if len(self.receive_queue) == self.receive_queue_size:
                     self._acquire_lock(self.send_lock)
-                    self.send_queue.append(list(self.receive_queue))
+                    self.send_queue.extend(list(self.receive_queue))
                     self._release_lock(self.send_lock)
                     self.receive_queue.clear()
                 print('({})receive pyobj {}'.format(self.name, self.receive_data_count))
