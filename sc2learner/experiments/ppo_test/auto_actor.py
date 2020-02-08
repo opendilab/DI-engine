@@ -13,14 +13,6 @@ from collections import defaultdict
 me = subprocess.getoutput('whoami')[:8]
 mefull = subprocess.getoutput('whoami')
 
-# parameters determining the policy of starting actors
-CPU_IDLE = 20
-OUR_IDLE = 12
-OTHER_IDLE = 12
-CPU_MIX = 20
-OUR_MIX = 8
-OTHER_MIX = 5
-
 
 def num_actors_running(node_address):
     actor_num = 0
@@ -45,20 +37,20 @@ def launch(partition, node_address, num=1):
     subprocess.run(['sh', 'actor.sh', partition, node_address, str(num)])
 
 
-def pd_partition(partition, p_class, limit, learner_node_address, actor_manager_node_address, forbidden_nodes_addr):
+def pd_partition(partition, p_class, limit, policy, learner_node_address, actor_manager_node_address, forbidden_nodes_addr):
     actor_num = 0
 
     if p_class == 'cpu':
-        mix_actor_num = CPU_MIX
-        idle_actor_num = CPU_IDLE
+        mix_actor_num = policy.cpu.mix
+        idle_actor_num = policy.cpu.idle
     elif p_class == 'our':
-        mix_actor_num = OUR_MIX
-        idle_actor_num = OUR_IDLE
+        mix_actor_num = policy.our.mix
+        idle_actor_num = policy.our.idle
     elif p_class == 'other':
-        mix_actor_num = OTHER_MIX
-        idle_actor_num = OTHER_IDLE
+        mix_actor_num = policy.other.mix
+        idle_actor_num = policy.other.idle
     else:
-        raise Exception
+        raise Exception('Unknown partition type')
 
     info = subprocess.getoutput('sinfo -Nhp {} | sort -k4'.format(partition)).split('\n')
     idle_list = []
@@ -197,11 +189,12 @@ def main(actor_limit, manager_flag=0):
     actor_num_other = 0
 
     forbidden_nodes_addr = cfg.auto_actor_start.forbidden_nodes_addr
+    policy = cfg.auto_actor_start.policy
 
     for partition in cpu_partitions:
         if actor_num_touse <= 0:
             break
-        actor_num = pd_partition(partition, 'cpu', actor_num_touse,
+        actor_num = pd_partition(partition, 'cpu', actor_num_touse, policy,
                                  learner_node_address, actor_manager_node_address, forbidden_nodes_addr)
         actor_num_cpu += actor_num
         actor_num_touse -= actor_num
@@ -210,7 +203,7 @@ def main(actor_limit, manager_flag=0):
     for partition in our_partitions:
         if actor_num_touse <= 0:
             break
-        actor_num = pd_partition(partition, 'our', actor_num_touse,
+        actor_num = pd_partition(partition, 'our', actor_num_touse, policy,
                                  learner_node_address, actor_manager_node_address, forbidden_nodes_addr)
         actor_num_our += actor_num
         actor_num_touse -= actor_num
@@ -219,7 +212,7 @@ def main(actor_limit, manager_flag=0):
     for partition in other_partitions:
         if actor_num_touse <= 0:
             break
-        actor_num += pd_partition(partition, 'other', actor_num_touse,
+        actor_num += pd_partition(partition, 'other', actor_num_touse, policy,
                                   learner_node_address, actor_manager_node_address, forbidden_nodes_addr)
         actor_num_other += actor_num
         actor_num_touse -= actor_num

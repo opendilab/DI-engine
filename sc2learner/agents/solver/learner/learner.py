@@ -192,6 +192,7 @@ class BaseLearner(object):
             var_items['avg_usage'] = avg_usage
             var_items['push_count'] = push_count
             var_items['data_staleness'] = self.last_iter.val - avg_model_index
+            var_items['push_rate'] = push_count / (data_time + forward_time + backward_update_time)
 
             self._update_monitor_var(var_items, time_items)
             self._record_info(self.last_iter.val)
@@ -210,7 +211,7 @@ class BaseLearner(object):
             self.tb_logger.add_histogram('update_model_time',
                                          self.history_actor_info.get_distribution('update_model_time'), iterations)
             self.tb_logger.add_histogram('dataset_staleness',
-                                         np.array([d['model_index'] - iterations
+                                         np.array([iterations - d['model_index']
                                                    for d in self.dataset.data_queue]), iterations)
             rollout_img = self.history_actor_info.get_distribution_img('data_rollout_time')
             self.tb_logger.add_image('data_rollout_time_img', rollout_img, iterations)
@@ -277,6 +278,7 @@ class BaseLearner(object):
 
     def _init(self):
         self.scalar_record.register_var('cur_lr')
+        self.scalar_record.register_var('push_rate')
         self.scalar_record.register_var('avg_usage')
         self.scalar_record.register_var('push_count')
         self.scalar_record.register_var('data_staleness')
@@ -289,6 +291,7 @@ class BaseLearner(object):
         self.scalar_record.register_var('update_step_time')
 
         self.tb_logger.register_var('cur_lr')
+        self.tb_logger.register_var('push_rate')
         self.tb_logger.register_var('avg_usage')
         self.tb_logger.register_var('push_count')
         self.tb_logger.register_var('data_staleness')

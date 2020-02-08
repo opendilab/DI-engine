@@ -103,11 +103,22 @@ auto_actor_start:
             cpu: []
             ours: ['x_cerebra']
             others: []
+    # forbidden to start actors on following nodes (node name NOT IP addr)
+    forbidden_nodes_addr: ['SH-IDC1-10-198-6-159','SH-IDC1-10-198-6-160'] # reserved for others
     node_prefix_dict:
         10.10.30.91: BJ-IDC1-
         10.5.36.31: SH-IDC1-
         10.5.38.31: SH-IDC1-
         10.198.6.31: SH-IDC1-
         10.198.8.31: SH-IDC1-
-    # forbidden to start actors on following nodes (node name NOT IP addr)
-    forbidden_nodes_addr: ['SH-IDC1-10-198-6-159','SH-IDC1-10-198-6-160'] # reserved for others
+    # number of actors to start on partition
+    policy:
+        cpu:
+            idle: 4
+            mix: 4
+        our:
+            idle: 4
+            mix: 3
+        other:
+            idle: 4
+            mix: 3
