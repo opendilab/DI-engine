@@ -30,6 +30,7 @@ train:
     use_value_clip: False
     grad_clip_type: max_norm  # [max_norm, clip_value]
     grad_clip_value: 0.5
+    min_update_count: 64
     block_data:
         status: True
         reuse_threshold: 2

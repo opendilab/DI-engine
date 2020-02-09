@@ -11,7 +11,7 @@ logger = logging.getLogger('default_logger')
 
 
 class OnlineDataset(object):
-    def __init__(self, data_maxlen, transform, block_data):
+    def __init__(self, data_maxlen, transform, block_data, min_update_count=0):
         # TODO container optimization
         '''
             deque
@@ -27,6 +27,7 @@ class OnlineDataset(object):
         self.lock = Lock()  # TODO review lock usage
         self.push_count = 0
         self.block_data = block_data
+        self.min_update_count = min_update_count
 
     def _acquire_lock(self):
         self.lock.acquire()
@@ -53,6 +54,9 @@ class OnlineDataset(object):
         sleep_time = self.block_data.sleep_time
         while True:
             self._acquire_lock()
+            for _ in range(self.min_update_count):
+                if len(self.data_queue) > 0:
+                    self.data_queue.popleft()
             if use_block_data:
                 new_data_queue = deque(maxlen=self.data_maxlen)
                 for item in self.data_queue:
@@ -63,9 +67,9 @@ class OnlineDataset(object):
                     if item is not None:
                         new_data_queue.append(item)
                 self.data_queue = new_data_queue
-            if not self.is_full():
-                print("Blocking...wait for enough data: current({})/target({})".format(
-                      len(self.data_queue), self.data_maxlen))
+            while not self.is_full():
+                print("Blocking...wait for enough data: current({})/target({}\tpush_count({}))".format(
+                      len(self.data_queue), self.data_maxlen, self.push_count))
                 self._release_lock()
                 time.sleep(sleep_time)
                 continue
