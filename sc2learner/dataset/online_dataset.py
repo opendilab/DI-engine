@@ -29,6 +29,8 @@ class OnlineDataset(object):
         self.block_data = block_data
         self.min_update_count = min_update_count
 
+        self.last_push_model_index = 0
+
     def _acquire_lock(self):
         self.lock.acquire()
 
@@ -41,6 +43,7 @@ class OnlineDataset(object):
         data['use_count'] = 0
         self.data_queue.append(data)
         self.push_count += 1
+        self.last_push_model_index = data['model_index']
         self._release_lock()
 
     def _add_usage_count(self, usage_list):
@@ -67,12 +70,12 @@ class OnlineDataset(object):
                     if item is not None:
                         new_data_queue.append(item)
                 self.data_queue = new_data_queue
+            self._release_lock()
             while not self.is_full():
-                print("Blocking...wait for enough data: current({})/target({}\tpush_count({}))".format(
+                print("Blocking...wait for enough data: current({})/target({})/push_count({})".format(
                       len(self.data_queue), self.data_maxlen, self.push_count))
-                self._release_lock()
                 time.sleep(sleep_time)
-                continue
+            self._acquire_lock()
             indice = random.sample(list(range(self.data_maxlen)), batch_size)
             data = [self.data_queue[i] for i in indice]
             self._add_usage_count(indice)

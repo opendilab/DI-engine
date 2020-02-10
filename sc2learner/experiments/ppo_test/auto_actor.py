@@ -17,7 +17,8 @@ mefull = subprocess.getoutput('whoami')
 def num_actors_running(node_address):
     actor_num = 0
     is_learner = False
-    info = subprocess.getoutput('squeue -h -w {}'.format(node_address)).split('\n')
+    info = subprocess.getoutput(
+        'squeue -h -w {}'.format(node_address)).split('\n')
     if len(info) > 0:
         for line in info:
             # print(line)
@@ -37,7 +38,8 @@ def launch(partition, node_address, num=1):
     subprocess.run(['sh', 'actor.sh', partition, node_address, str(num)])
 
 
-def pd_partition(partition, p_class, limit, policy, learner_node_address, actor_manager_node_address, forbidden_nodes_addr):
+def pd_partition(partition, p_class, limit, policy,
+                 learner_node_address, actor_manager_node_address, forbidden_nodes_addr):
     actor_num = 0
 
     if p_class == 'cpu':
@@ -52,7 +54,8 @@ def pd_partition(partition, p_class, limit, policy, learner_node_address, actor_
     else:
         raise Exception('Unknown partition type')
 
-    info = subprocess.getoutput('sinfo -Nhp {} | sort -k4'.format(partition)).split('\n')
+    info = subprocess.getoutput(
+        'sinfo -Nhp {} | sort -k4'.format(partition)).split('\n')
     idle_list = []
     mix_list = []
     for line in info:
@@ -60,7 +63,7 @@ def pd_partition(partition, p_class, limit, policy, learner_node_address, actor_
         if len(line) != 4:
             continue
         node_address, num, _, state = line
-        #skipping learner node or actor_manager_node
+        # skipping learner node or actor_manager_node
         if learner_node_address != node_address and \
            actor_manager_node_address != node_address and \
            node_address not in forbidden_nodes_addr:
@@ -114,7 +117,8 @@ def run_manager(ip, cfg):
     node_prefix_dict = cfg.auto_actor_start.node_prefix_dict
     if cfg.communication.ip.actor_manager != 'auto':
         print('run actor manager on specified node (not on manager node)')
-        node_name = node_prefix_dict[ip] + '-'.join(cfg.communication.ip.actor_manager.split('.'))
+        node_name = node_prefix_dict[ip] + \
+            '-'.join(cfg.communication.ip.actor_manager.split('.'))
         manager_partition = None
         info = subprocess.getoutput('sinfo -Nh').split('\n')
         for line in info:
@@ -125,7 +129,8 @@ def run_manager(ip, cfg):
             if node_address == node_name:
                 manager_partition = partition_name
         assert manager_partition is not None, 'cannot find the partition of the actor_manager node'
-        subprocess.run(['sh', 'actor_manager_queue.sh', manager_partition, node_name, mefull, '&'])
+        subprocess.run(['sh', 'actor_manager_queue.sh',
+                        manager_partition, node_name, mefull, '&'])
         time.sleep(30)
     else:
         print('run manager on manager node')
@@ -176,7 +181,8 @@ def main(actor_limit, manager_flag=0):
     actor_manager_node_address = get_actor_manager_local()
 
     partitions_dict = cfg.auto_actor_start.partitions_dict
-    assert ip in partitions_dict.keys(), 'ip must be one of [{}]'.format(', '.join(partitions_dict.keys()))
+    assert ip in partitions_dict.keys(), 'ip must be one of [{}]'.format(
+        ', '.join(partitions_dict.keys()))
     cpu_partitions = partitions_dict[ip]['cpu']
     our_partitions = partitions_dict[ip]['ours']
     other_partitions = partitions_dict[ip]['others']

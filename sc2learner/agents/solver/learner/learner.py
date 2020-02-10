@@ -194,7 +194,7 @@ class BaseLearner(object):
             var_items['push_count'] = push_count
             var_items['data_staleness'] = self.last_iter.val - avg_model_index
             var_items['push_rate'] = push_count / (data_time + forward_time + backward_update_time)
-
+            print('Last Push Staleness:{}'.format(self.last_iter.val - self.dataset.last_push_model_index))
             self._update_monitor_var(var_items, time_items)
             self._record_info(self.last_iter.val)
             self.last_iter.add(1)
