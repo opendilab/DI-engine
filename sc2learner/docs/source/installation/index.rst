@@ -39,3 +39,10 @@ Installation
     # for example you can run the following shell command,
     # or you can add it into your .bashrc or .zshrc
     export SC2PATH=/mnt/lustre/niuyazhe/StarCraftII
+
+    - prepare replay dir
+
+.. code-block:: bash
+
+    # in your StarCraftII path(such as: /mnt/lustre/niuyazhe/StarCraftII)
+    mkdir Replays
