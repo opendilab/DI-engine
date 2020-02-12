@@ -22,7 +22,7 @@ from sc2learner.envs.actions.zerg_action_wrappers import ZergActionWrapper
 from sc2learner.envs.observations.zerg_observation_wrappers \
     import ZergObservationWrapper
 from sc2learner.agents.model import PPOLSTM, PPOMLP
-from sc2learner.agents.solver import PpoAgent, RandomAgent, KeyboardAgent
+from sc2learner.agents.solver import PpoAgent, RandomAgent, KeyboardAgent, AlphastarAgent
 from sc2learner.utils import build_logger
 
 
@@ -36,24 +36,27 @@ flags.FLAGS(sys.argv)
 
 
 def create_env(cfg, random_seed=None):
-    env = SC2RawEnv(map_name=cfg.env.map_name,
-                    step_mul=cfg.env.step_mul,
-                    difficulty=cfg.env.difficulty,
-                    agent_race=cfg.env.agent_race,
-                    bot_race=cfg.env.bot_race,
-                    disable_fog=cfg.env.disable_fog,
-                    random_seed=random_seed)
-    env = ZergActionWrapper(env,
-                            game_version=cfg.env.game_version,
-                            mask=cfg.env.use_action_mask,
-                            use_all_combat_actions=cfg.env.use_all_combat_actions)
-    env = ZergObservationWrapper(
-        env,
-        use_spatial_features=False,
-        use_game_progress=(not cfg.model.policy == 'lstm'),
-        action_seq_len=1 if cfg.model.policy == 'lstm' else 8,
-        use_regions=cfg.env.use_region_features)
-    return env
+    if cfg.common.agent == 'alphastar':
+        pass
+    else:
+        env = SC2RawEnv(map_name=cfg.env.map_name,
+                        step_mul=cfg.env.step_mul,
+                        difficulty=cfg.env.difficulty,
+                        agent_race=cfg.env.agent_race,
+                        bot_race=cfg.env.bot_race,
+                        disable_fog=cfg.env.disable_fog,
+                        random_seed=random_seed)
+        env = ZergActionWrapper(env,
+                                game_version=cfg.env.game_version,
+                                mask=cfg.env.use_action_mask,
+                                use_all_combat_actions=cfg.env.use_all_combat_actions)
+        env = ZergObservationWrapper(
+            env,
+            use_spatial_features=False,
+            use_game_progress=(not cfg.model.policy == 'lstm'),
+            action_seq_len=1 if cfg.model.policy == 'lstm' else 8,
+            use_regions=cfg.env.use_region_features)
+        return env
 
 
 def create_dqn_agent(cfg, env):
@@ -105,6 +108,8 @@ def evaluate(var_dict, cfg):
         agent = RandomAgent(action_space=env.action_space)
     elif cfg.common.agent == 'keyboard':
         agent = KeyboardAgent(action_space=env.action_space)
+    elif cfg.common.agent == 'alphastar':
+        agent = AlphastarAgent(cfg)
     else:
         raise NotImplementedError
 
@@ -152,7 +157,6 @@ def main(argv):
     if not os.path.exists(base_dir + "/Replays/" + cfg.common.agent + FLAGS.replay_path):
         os.mkdir(base_dir + "/Replays/" + cfg.common.agent + FLAGS.replay_path)
     use_multiprocessing = cfg.common.get("use_multiprocessing", True)
-    assert(not use_multiprocessing)
     if use_multiprocessing:
         eval_func = partial(evaluate, cfg=cfg)
         pool = Pool(min(cfg.common.num_episodes, 20))
