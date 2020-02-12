@@ -84,7 +84,9 @@ setup(
         'torch==1.1.0',
         'tensorflow>=1.4.1',
         'joblib',
-        'pyzmq'
+        'pyzmq',
+        'sphinx',
+        'sphinx_rtd_theme',
     ],
     entry_points={
         'console_scripts': [
