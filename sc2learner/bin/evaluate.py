@@ -21,6 +21,7 @@ from sc2learner.envs.raw_env import SC2RawEnv
 from sc2learner.envs.actions.zerg_action_wrappers import ZergActionWrapper
 from sc2learner.envs.observations.zerg_observation_wrappers \
     import ZergObservationWrapper
+from sc2learner.envs.alphastar_env import AlphastarEnv
 from sc2learner.agents.model import PPOLSTM, PPOMLP
 from sc2learner.agents.solver import PpoAgent, RandomAgent, KeyboardAgent, AlphastarAgent
 from sc2learner.utils import build_logger
@@ -37,7 +38,8 @@ flags.FLAGS(sys.argv)
 
 def create_env(cfg, random_seed=None):
     if cfg.common.agent == 'alphastar':
-        pass
+        cfg.env.random_seed = random_seed
+        env = AlphastarEnv(cfg)
     else:
         env = SC2RawEnv(map_name=cfg.env.map_name,
                         step_mul=cfg.env.step_mul,
@@ -56,7 +58,7 @@ def create_env(cfg, random_seed=None):
             use_game_progress=(not cfg.model.policy == 'lstm'),
             action_seq_len=1 if cfg.model.policy == 'lstm' else 8,
             use_regions=cfg.env.use_region_features)
-        return env
+    return env
 
 
 def create_dqn_agent(cfg, env):

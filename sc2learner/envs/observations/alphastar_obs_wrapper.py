@@ -142,40 +142,6 @@ class ScalarObsWrapper(object):
         return ret
 
 
-class AlphastarObsWrapper(gym.Wrapper):
-
-    def __init__(self, env, spatial_obs_cfg, entity_obs_cfg, scalar_obs_cfg):
-        super(AlphastarObsWrapper, self).__init__(env)
-        self.spatial_wrapper = SpatialObsWrapper(spatial_obs_cfg)
-        self.entity_wrapper = EntityObsWrapper(entity_obs_cfg)
-        self.scalar_wrapper = ScalarObsWrapper(scalar_obs_cfg)
-
-    def _get_obs(self, obs):
-        entity_info, entity_raw = self.entity_wrapper.parse(obs)
-        ret = {
-            'scalar_info': self.scalar_wrapper.parse(obs),
-            'spatial_info': self.spatial_wrapper.parse(obs),
-            'entity_info': entity_info,
-            'entity_raw': entity_raw,
-        }
-        # print(ret['spatial_info'].shape)
-        # print(ret['entity_info'].shape)
-        # print(len(ret['entity_location']))
-        # for k, v in ret['scalar_info'].items():
-        #    print(k, v.shape)
-        return ret
-
-    def step(self, action):
-        obs, reward, done, info = self.env.step(action)
-        obs = self._get_obs(obs)
-        return obs, reward, done, info
-
-    def reset(self):
-        obs = self.env.reset()
-        obs = self._get_obs(obs)
-        return obs
-
-
 class AlphastarObsParser(object):
 
     def __init__(self):
