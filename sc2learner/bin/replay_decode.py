@@ -452,6 +452,7 @@ def main_multi(unused_argv):
     pool = Pool(N)
     group_num = int(len(replay_list) // N)
     print('total len: {}, group: {}, each group: {}'.format(len(replay_list), N, group_num))
+    # ISSUE(zh) splited group number doesn't match pool
     replay_split_list = [replay_list[i*group_num:(i+1)*group_num] for i in range(group_num)]
     func = partial(replay_decode, version=version)
     ret = pool.map(func, replay_split_list)
