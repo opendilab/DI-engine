@@ -30,11 +30,12 @@ train:
     use_value_clip: False
     grad_clip_type: max_norm  # [max_norm, clip_value]
     grad_clip_value: 0.5
-    min_update_count: 64
+    min_update_count: 32
     block_data:
         status: True
         reuse_threshold: 2
-        staleness_threshold: 1000
+        staleness_threshold: 200
+        max_acceptable_push_staleness: 180
         sleep_time: 3
 communication:
     ip:
@@ -72,11 +73,12 @@ communication:
     model_time_interval: 0.5  # 130 second 128 steps rollout 20 tasks per node
 logger:
     print_freq: 50
-    save_freq: 5000
+    save_freq: 1000
     actor_monitor:
+        print_slow_actors: True
         speed:
-            fast: 100
-            normal: 200
+            fast: 15
+            normal: 100
             slow: 2000
         difficulties: ['1', '2', '4', '6', '9', 'A']
         difficulty_queue_len: 100
@@ -86,12 +88,12 @@ auto_actor_start:
     partitions_dict:
         10.10.30.91:
             cpu: ['CPU']
-            ours: ['VI_SP_Y_V100']
-            others: ['VI_IPS_V', 'VI_ID_1080', 'VI_ID_V100', 'VI_IPS_1080', 'VI_SP_X_TITANX']
+            ours: []
+            others: ['VI_IPS_V', 'VI_ID_1080', 'VI_IPS_1080']
         10.5.36.31:
             cpu: []
-            ours: ['VI_SP_Y_V100_A']
-            others: ['VI_SP_Y_V100_B', 'VI_Face_1080TI', 'VI_Face_V100', 'VI_ID_1080TI', 'VI_SP_VA_1080TI', 'VI_SP_VA_V100']
+            ours: []
+            others: ['VI_SP_Y_V100_B', 'VI_Face_1080TI', 'VI_ID_1080TI', 'VI_SP_VA_1080TI']
         10.5.38.31:
             cpu: []
             ours: ['VI_SP_Y_1080TI']
@@ -99,13 +101,13 @@ auto_actor_start:
         10.198.6.31:
             cpu: ['cpu']
             ours: ['x_cerebra']
-            others: ['sensetime', 'scg_industry_v100', 'ips_share', 'ucg', 'vi_face_v100_32g', 'vi_id_v100']
+            others: ['sensetime', 'ips_share', 'ucg']
         10.198.8.31:
             cpu: []
             ours: ['x_cerebra']
             others: []
     # forbidden to start actors on following nodes (node name NOT IP addr)
-    forbidden_nodes_addr: ['SH-IDC1-10-198-6-159','SH-IDC1-10-198-6-160'] # reserved for others
+    forbidden_nodes_addr: ['SH-IDC1-10-198-6-159'] # reserved for others
     node_prefix_dict:
         10.10.30.91: BJ-IDC1-
         10.5.36.31: SH-IDC1-
@@ -118,8 +120,8 @@ auto_actor_start:
             idle: 4
             mix: 4
         our:
-            idle: 4
-            mix: 3
+            idle: 2
+            mix: 0
         other:
-            idle: 4
-            mix: 3
+            idle: 2
+            mix: 0

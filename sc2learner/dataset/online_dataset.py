@@ -21,6 +21,7 @@ class OnlineDataset(object):
             remove elements by indexes
         '''
         self.data_queue = deque(maxlen=data_maxlen)
+        self.cur_model_index = 0
         self.transform = transform
         self.data_maxlen = data_maxlen
 
@@ -40,10 +41,15 @@ class OnlineDataset(object):
     def push_data(self, data):
         assert(isinstance(data, dict))
         self._acquire_lock()
-        data['use_count'] = 0
-        self.data_queue.append(data)
-        self.push_count += 1
-        self.last_push_model_index = data['model_index']
+        staleness = self.cur_model_index - data['model_index']
+        if not self.block_data.status or staleness <= self.block_data.max_acceptable_push_staleness:
+            data['use_count'] = 0
+            self.data_queue.append(data)
+            self.push_count += 1
+            self.last_push_model_index = data['model_index']
+        else:
+            print('Push to Pool From {} Rejected for High Staleness {}'.format(
+                data['actor_id'], staleness))
         self._release_lock()
 
     def _add_usage_count(self, usage_list):
@@ -51,6 +57,7 @@ class OnlineDataset(object):
             self.data_queue[idx]['use_count'] += 1
 
     def get_sample_batch(self, batch_size, cur_model_index):
+        self.cur_model_index = cur_model_index
         use_block_data = self.block_data.status
         reuse_threshold = self.block_data.reuse_threshold
         staleness_threshold = self.block_data.staleness_threshold
@@ -102,8 +109,8 @@ class OnlineDataset(object):
 
     def format_len(self):
         return 'current episode_infos len:{}/ready episode_infos len:{}'.format(
-                    len(self.data_queue), self.data_maxlen
-                )
+            len(self.data_queue), self.data_maxlen
+        )
 
     def __len__(self):
         return len(self.data_queue)

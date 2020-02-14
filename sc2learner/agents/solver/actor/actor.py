@@ -1,6 +1,7 @@
 from queue import Queue
 from threading import Thread
 import zmq
+import os
 from sc2learner.utils import build_checkpoint_helper, build_time_helper, send_array, dict2nparray, get_ip, get_pid
 
 
@@ -15,6 +16,10 @@ class BaseActor(object):
 
         port = cfg.communication.port
         ip = cfg.communication.ip
+        if ip['actor_manager'] == 'auto':
+            # IP of actor is added in train_ppo.py
+            prefix = '.'.join(ip.actor.split('.')[:3])
+            ip['actor_manager'] = ip.manager_node[prefix]
         push_ip = ip['actor_manager']
         push_port = port['actor_manager']
         req_ip = ip['actor_manager']
@@ -35,8 +40,10 @@ class BaseActor(object):
         self.enable_push = enable_push
         self.checkpoint_helper = build_checkpoint_helper(cfg)
         if cfg.common.load_path != '':
-            self.checkpoint_helper.load(cfg.common.load_path, self.model, logger_prefix='(actor)')
-        self.actor_id = '{}+{}'.format(get_ip(), get_pid())
+            self.checkpoint_helper.load(
+                cfg.common.load_path, self.model, logger_prefix='(actor)')
+        self.actor_id = '{}+{}'.format(ip.actor,
+                                       os.getenv('SLURM_JOB_ID', 'PID'+get_pid()))
 
         self._init()
 

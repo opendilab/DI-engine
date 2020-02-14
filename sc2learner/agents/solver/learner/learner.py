@@ -90,6 +90,8 @@ class HistoryActorInfo(object):
                     cls = look_up(last_update_time)
                     result[cls] += 1
                     result['total'] += 1
+            if self.actor_monitor_arg.print_slow_actors and cls == 'slow':
+                print('SLOW ACTOR:{}'.format(k))
         return result
 
     def get_distribution(self, key):
@@ -191,9 +193,11 @@ class BaseLearner(object):
                           'total_batch_time': data_time+forward_time+backward_update_time}
             var_items['cur_lr'] = cur_lr
             var_items['avg_usage'] = avg_usage
-            var_items['push_count'] = push_count
+            if self.last_iter.val != 0:
+                var_items['push_count'] = push_count
             var_items['data_staleness'] = self.last_iter.val - avg_model_index
-            var_items['push_rate'] = push_count / (data_time + forward_time + backward_update_time)
+            if self.last_iter.val != 0:
+                var_items['push_rate'] = push_count / (data_time + forward_time + backward_update_time)
             print('Last Push Staleness:{}'.format(self.last_iter.val - self.dataset.last_push_model_index))
             self._update_monitor_var(var_items, time_items)
             self._record_info(self.last_iter.val)
