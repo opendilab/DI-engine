@@ -82,10 +82,10 @@ class ReplayProcessor(multiprocessing.Process):
 
     def __init__(self, run_config, output_dir=None):
         '''
-            Overview: initialization method, parse run_config and prepare related arguments
+            Overview: initialization method, parse run_config and prepare related attributes
             Arguments:
-                - run_config (:obj'RunConfig'): starcraft2 run config
-                - output_dir (:obj'string'): path to save data
+                - run_config (:obj：'RunConfig'): starcraft2 run config
+                - output_dir (:obj：'string'): path to save data
         '''
         super(ReplayProcessor, self).__init__()
         assert(output_dir is not None)
@@ -95,6 +95,7 @@ class ReplayProcessor(multiprocessing.Process):
         self.handles = []
         self.controllers = []
         self.player_ids = [i+1 for i in range(2)]
+        # initial two game controlloers for both players, controller hanldes communication with game
         for i in self.player_ids:
             handle = self.run_config.start(want_rgb=interface.HasField("render"))
             controller = handle.controller
@@ -104,7 +105,7 @@ class ReplayProcessor(multiprocessing.Process):
 
     def _replay_prepare(self, controller, replay_path, print_info=True):
         '''
-            Overview: get basic information from a replay
+            Overview: get basic information from a replay and validate it 
             Arguments:
                 - controller (:obj:'RemoteController'): game controller 
                 - replay_path (:obj:'string'): path to the replay
@@ -305,6 +306,7 @@ class ReplayProcessor(multiprocessing.Process):
         prev_obs = [controller.observe() for controller in controllers]
         controllers[0].step(FLAGS.step_mul)
         controllers[1].step(FLAGS.step_mul)
+        # TODO(zh) combine action in this step with observation several steps earlier due to human reaction time
         while True:
             # 1v1 version
             obs = [controller.observe() for controller in controllers]
@@ -395,7 +397,7 @@ def main(unused_argv):
 
 def replay_decode(paths, version):
     '''
-        Overview: process replays and gather process result
+        Overview: process replays and gather process results
         Argumens: 
             - paths (:obj:'string'): replays directory
             - version (:obj:'Version'): game version 

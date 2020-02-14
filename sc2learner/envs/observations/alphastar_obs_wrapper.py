@@ -2,7 +2,7 @@
 Copyright 2020 Sensetime X-lab. All Rights Reserved
 
 Main Function:
-    1. warp observation into tensors that pytorch can use 
+    1. parse observation into tensors that pytorch can use 
 '''
 from __future__ import absolute_import
 from __future__ import division
@@ -23,7 +23,7 @@ from functools import partial
 
 class SpatialObsWrapper(object):
     '''
-        Overview: wrap spatial observation up into tensors
+        Overview: A class handle spatial observation parsing, includes implementation and offer funtion interface
         Interface: __init__, parse
     '''
     def __init__(self, cfg, use_feature_screen=True):
@@ -78,7 +78,7 @@ class SpatialObsWrapper(object):
 
     def parse(self, obs):
         '''
-            Overview: parse the features and concatenate them
+            Overview: gather parse results from different feature, concatenate them
             Arguments:
                 - obs (:obj:'ndarray'): observation 
             Returns:
@@ -209,12 +209,12 @@ class AlphastarObsWrapper(gym.Wrapper):
 
 class AlphastarObsParser(object):
     '''
-        Overview: observation parser
+        Overview: A class handles observation parsing, includes implementation and offer function interface
         Interface: __init__, parse, merge_action
     '''
     def __init__(self):
         '''
-            Overview: initial warppers and related attributes
+            Overview: initial sub-parsers and related attributes
         '''
         self.spatial_wrapper = SpatialObsWrapper(transform_spatial_data())
         self.entity_wrapper = EntityObsWrapper(transform_entity_data())
@@ -224,11 +224,11 @@ class AlphastarObsParser(object):
 
     def parse(self, obs):
         '''
-            Overview: parse the observation
+            Overview: gather results from sub-parsers, make them a dict
             Arguments: 
                 - obs (:obj:'ndarray'): observation
             Returns:
-                - ret (:obj'dict'): a dict includes scalar_info, spatial_info, entity_info and entity_raw in tensor
+                - ret (:obj'dict'): a dict includes parse results
         '''
         entity_info, entity_raw = self.entity_wrapper.parse(obs)
         ret = {
@@ -241,7 +241,7 @@ class AlphastarObsParser(object):
 
     def merge_action(self, obs, last_action):
         '''
-            Overview: merge last action into observation
+            Overview: merge last action into observation, make observation compelete
             Arguments:
                 - obs (:obj:'dict'): observation
                 - last_action (:obj:'dict'): a dict includes last action information
