@@ -145,7 +145,7 @@ def main(argv):
     cfg.common.load_path = FLAGS.load_path
     cfg.common.data_load_path = FLAGS.data_load_path
     if FLAGS.job_name == 'actor':
-        cfg.communication.ip.actor = '.'.join(FLAGS.node_name.split('-'))[-4:]
+        cfg.communication.ip.actor = '.'.join(FLAGS.node_name.split('-')[-4:])
         start_actor(cfg)
     elif FLAGS.job_name == 'learner':
         start_learner(cfg)

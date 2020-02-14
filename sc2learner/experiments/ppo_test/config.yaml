@@ -93,7 +93,7 @@ auto_actor_start:
         10.5.36.31:
             cpu: []
             ours: []
-            others: ['VI_SP_Y_V100_B', 'VI_Face_1080TI', 'VI_ID_1080TI', 'VI_SP_VA_1080TI']
+            others: ['VI_Face_1080TI', 'VI_ID_1080TI', 'VI_SP_VA_1080TI']
         10.5.38.31:
             cpu: []
             ours: ['VI_SP_Y_1080TI']
@@ -121,7 +121,7 @@ auto_actor_start:
             mix: 4
         our:
             idle: 2
-            mix: 0
+            mix: 1
         other:
             idle: 2
             mix: 0

@@ -43,7 +43,7 @@ class BaseActor(object):
             self.checkpoint_helper.load(
                 cfg.common.load_path, self.model, logger_prefix='(actor)')
         self.actor_id = '{}+{}'.format(ip.actor,
-                                       os.getenv('SLURM_JOB_ID', 'PID'+get_pid()))
+                                       os.getenv('SLURM_JOB_ID', 'PID'+str(get_pid())))
 
         self._init()
 
