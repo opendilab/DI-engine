@@ -1,3 +1,9 @@
+'''
+Copyright 2020 Sensetime X-lab. All Rights Reserved
+
+Main Function:
+    1. warp observation into tensors that pytorch can use 
+'''
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -16,7 +22,17 @@ from functools import partial
 
 
 class SpatialObsWrapper(object):
+    '''
+        Overview: wrap spatial observation up into tensors
+        Interface: __init__, parse
+    '''
     def __init__(self, cfg, use_feature_screen=True):
+        '''
+            Overview: initial related attributes
+            Arguments:
+                - cfg (:obj:'list'): wrapper config
+                - use_feature (:obj:'bool'): whether to use screen feature
+        '''        
         self.feature_screen_id = {
             'height_map': 0,
             'visibility': 1,
@@ -41,6 +57,14 @@ class SpatialObsWrapper(object):
         self._dim = self._get_dim()
 
     def _parse(self, feature, idx_dict):
+        '''
+            Overview: find corresponding setting in cfg, parse the feature
+            Arguments:
+                - feature (:obj:'ndarray'): the feature to parse
+                - idx_dict (:obj:'dict'): feature index
+            Returns:
+                - ret (:obj'LongTensor'): parse result tensor
+        '''    
         ret = []
         for item in self.cfg:
             key = item['key']
@@ -53,6 +77,13 @@ class SpatialObsWrapper(object):
         return ret
 
     def parse(self, obs):
+        '''
+            Overview: parse the features and concatenate them
+            Arguments:
+                - obs (:obj:'ndarray'): observation 
+            Returns:
+                - (:obj'LongTensor'): feature tensor
+        '''
         ret = []
         feature_minimap = obs['feature_minimap']
         ret.extend(self._parse(feature_minimap, self.feature_minimap_id))
@@ -177,8 +208,14 @@ class AlphastarObsWrapper(gym.Wrapper):
 
 
 class AlphastarObsParser(object):
-
+    '''
+        Overview: observation parser
+        Interface: __init__, parse, merge_action
+    '''
     def __init__(self):
+        '''
+            Overview: initial warppers and related attributes
+        '''
         self.spatial_wrapper = SpatialObsWrapper(transform_spatial_data())
         self.entity_wrapper = EntityObsWrapper(transform_entity_data())
         template_obs, template_replay, template_act = transform_scalar_data()
@@ -186,6 +223,13 @@ class AlphastarObsParser(object):
         self.template_act = template_act
 
     def parse(self, obs):
+        '''
+            Overview: parse the observation
+            Arguments: 
+                - obs (:obj:'ndarray'): observation
+            Returns:
+                - ret (:obj'dict'): a dict includes scalar_info, spatial_info, entity_info and entity_raw in tensor
+        '''
         entity_info, entity_raw = self.entity_wrapper.parse(obs)
         ret = {
             'scalar_info': self.scalar_wrapper.parse(obs),
@@ -196,6 +240,14 @@ class AlphastarObsParser(object):
         return ret
 
     def merge_action(self, obs, last_action):
+        '''
+            Overview: merge last action into observation
+            Arguments:
+                - obs (:obj:'dict'): observation
+                - last_action (:obj:'dict'): a dict includes last action information
+            Returns:
+                - obs (:obj'dict'): merged observation
+        '''
         N = obs['entity_info'].shape[0]
         if obs['entity_info'] is None:
             obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 4)], dim=1)

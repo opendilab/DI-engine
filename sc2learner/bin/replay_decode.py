@@ -1,19 +1,9 @@
-#!/usr/bin/python
-# Copyright 2017 Google Inc. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS-IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-"""Dump out stats about all the actions that are in use in a set of replays."""
+'''
+Copyright 2020 Sensetime X-lab. All Rights Reserved
 
+Main Function:
+    1. Generate data for supervised learning from replays
+'''
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -67,7 +57,9 @@ def sorted_dict_str(d):
 
 
 def valid_replay(info, ping):
-    """Make sure the replay isn't corrupt, and is worth looking at."""
+    '''
+        Overview: Make sure the replay isn't corrupt, and is worth looking at
+    '''
     if (info.HasField("error") or
         info.base_build != ping.base_build or  # different game version
         info.game_duration_loops < 1000 or
@@ -83,9 +75,18 @@ def valid_replay(info, ping):
 
 
 class ReplayProcessor(multiprocessing.Process):
-    """A Process that pulls replays and processes them."""
+    '''
+        Overview: A Process that pulls replays and processes them
+        Interface: __init__, run
+    '''
 
     def __init__(self, run_config, output_dir=None):
+        '''
+            Overview: initialization method, parse run_config and prepare related arguments
+            Arguments:
+                - run_config (:obj'RunConfig'): starcraft2 run config
+                - output_dir (:obj'string'): path to save data
+        '''
         super(ReplayProcessor, self).__init__()
         assert(output_dir is not None)
         self.run_config = run_config
@@ -102,6 +103,17 @@ class ReplayProcessor(multiprocessing.Process):
         self._print("SC2 Started successfully.")
 
     def _replay_prepare(self, controller, replay_path, print_info=True):
+        '''
+            Overview: get basic information from a replay
+            Arguments:
+                - controller (:obj:'RemoteController'): game controller 
+                - replay_path (:obj:'string'): path to the replay
+                - print_info (:obj:'bool'): a bool decides whether to print replay info
+            Returns:
+                - replay_data (:obj'bytes'): replay file
+                - map_data (:obj'bytes'): map file
+                - info (:obj'ResponseReplayInfo'): replay information from sc2 api
+        '''
         ping = controller.ping()
         replay_name = os.path.basename(replay_path)[:10]
         replay_data = self.run_config.replay_data(replay_path)
@@ -121,6 +133,15 @@ class ReplayProcessor(multiprocessing.Process):
             return None
 
     def _parse_info(self, info, replay_path, home=0):
+        '''
+            Overview: parse replay information into a dict
+            Arguments:
+                - info (:obj:'ResponseReplayInfo'): reaplay information from sc2 api
+                - replay_path (:obj:'string'): path to the replay
+                - home (:obj:'int'): player id to identify player
+            Returns:
+                - ret (:obj'dict'): replay information dict 
+        '''
         away = 1 if home == 0 else 0
         race_dict = {1: 'Terran', 2: 'Zerg', 3: 'Protoss'}
         ret = {}
@@ -140,6 +161,11 @@ class ReplayProcessor(multiprocessing.Process):
         return ret
 
     def run(self, replay_path):
+        '''
+            Overview: run an ReplayProcessor and save data
+            Returns:
+                - (:obj'string'): A string indicates replay parse result plus replay path
+        '''
         signal.signal(signal.SIGTERM, lambda a, b: sys.exit())  # Exit quietly.
         self._print("Starting up a new SC2 instance.")
         try:
@@ -182,6 +208,18 @@ class ReplayProcessor(multiprocessing.Process):
             print("[%s] %s" % (0, line))
 
     def process_replay_multi(self, controllers, replay_data, map_data, player_ids):
+        '''
+            Overview: process a replay step by step to get data
+            Arguments: 
+                - controllers (:obj:'RemoteController'): game controllers
+                - replay_data (:obj:'bytes'): replay file
+                - map_data (:obj:'bytes'): map file
+                - player_ids (:obj:'int'): player id to identify player
+            Returns:
+                - step_data (:obj'list'): step data for both players 
+                - map_size (:obj'obj'): map_size metadata from sc2 api
+                - stat (:obj'list'): statistics in the replay for both players
+        '''
         feats = []
         for controller, player_id in zip(controllers, player_ids):
             controller.start_replay(sc_pb.RequestStartReplay(
@@ -340,7 +378,6 @@ class ReplayProcessor(multiprocessing.Process):
 
 
 def main(unused_argv):
-    """Dump stats about all the actions that are in use in a set of replays."""
     run_config = run_configs.get()
     replay_list = sorted(run_config.replay_paths(FLAGS.replays))
     version = replay.get_replay_version(run_config.replay_data(replay_list[0]))
@@ -357,6 +394,15 @@ def main(unused_argv):
 
 
 def replay_decode(paths, version):
+    '''
+        Overview: process replays and gather process result
+        Argumens: 
+            - paths (:obj:'string'): replays directory
+            - version (:obj:'Version'): game version 
+        Returns:
+            - success_msg (:obj'list'): a list of process success message
+            - error_msg (:obj'list'): a list of process error message
+    '''        
     run_config = run_configs.get(version=version)
     p = ReplayProcessor(run_config, output_dir=FLAGS.output_dir)
     success_msg = []
@@ -380,7 +426,6 @@ def replay_decode(paths, version):
 
 def main_multi(unused_argv):
     from multiprocessing import Pool
-    """Dump stats about all the actions that are in use in a set of replays."""
     run_config = run_configs.get()
     replay_list = sorted(run_config.replay_paths(FLAGS.replays))
     version = replay.get_replay_version(run_config.replay_data(replay_list[0]))

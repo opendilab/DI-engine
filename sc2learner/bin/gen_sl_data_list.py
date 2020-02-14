@@ -1,3 +1,10 @@
+'''
+Copyright 2020 Sensetime X-lab. All Rights Reserved
+
+Main Function:
+    1. filter replays with specific restraint and generate 
+    the filterd replay list
+'''
 from sc2learner.dataset import get_replay_list
 
 home_race = None
