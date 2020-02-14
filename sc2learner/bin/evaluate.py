@@ -21,6 +21,7 @@ from sc2learner.envs.raw_env import SC2RawEnv
 from sc2learner.envs.actions.zerg_action_wrappers import ZergActionWrapper
 from sc2learner.envs.observations.zerg_observation_wrappers \
     import ZergObservationWrapper
+from sc2learner.envs.alphastar_env import AlphastarEnv
 from sc2learner.agents.model import PPOLSTM, PPOMLP
 from sc2learner.agents.solver import PpoAgent, RandomAgent, KeyboardAgent, AlphastarAgent
 from sc2learner.utils import build_logger
@@ -31,13 +32,14 @@ flags.DEFINE_string("job_name", "", "actor or learner")
 flags.DEFINE_string("config_path", "config.yaml", "path to config file")
 flags.DEFINE_string("load_path", "", "path to model checkpoint")
 flags.DEFINE_string("replay_path", "", "folder name in /StarCraftII/Replays to save the evaluate replays")
-flags.DEFINE_string("difficulty", "1", "difficulty of bot to play with")
+flags.DEFINE_integer("difficulty", 1, "difficulty of bot to play with")
 flags.FLAGS(sys.argv)
 
 
 def create_env(cfg, random_seed=None):
     if cfg.common.agent == 'alphastar':
-        pass
+        cfg.env.random_seed = random_seed
+        env = AlphastarEnv(cfg)
     else:
         env = SC2RawEnv(map_name=cfg.env.map_name,
                         step_mul=cfg.env.step_mul,
@@ -56,7 +58,7 @@ def create_env(cfg, random_seed=None):
             use_game_progress=(not cfg.model.policy == 'lstm'),
             action_seq_len=1 if cfg.model.policy == 'lstm' else 8,
             use_regions=cfg.env.use_region_features)
-        return env
+    return env
 
 
 def create_dqn_agent(cfg, env):
@@ -95,6 +97,9 @@ def evaluate(var_dict, cfg):
     else:
         path_info = 'no_model'
     name = 'eval_{}_{}_{}_{}_{}'.format(path_info, cfg.env.difficulty, cfg.model.action_type, log_time, rank+1)
+    dirname = os.path.dirname(name)
+    if not os.path.exists(dirname):
+        os.mkdir(dirname)
     logger, tb_logger, _ = build_logger(cfg, name=name)
     logger.info('cfg: {}'.format(cfg))
     logger.info("Rank %d Game Seed: %d" % (rank, game_seed))
@@ -117,7 +122,7 @@ def evaluate(var_dict, cfg):
     if not os.path.exists(value_save_path):
         os.mkdir(value_save_path)
     cum_return = 0.0
-    action_counts = [0] * env.action_space.n
+    action_counts = [0] * env.action_num
 
     observation = env.reset()
     agent.reset()
@@ -127,13 +132,18 @@ def evaluate(var_dict, cfg):
         action = agent.act(observation)
         value = agent.value(observation)
         value_trace.append(value)
-        logger.info("Rank %d Step ID: %d Take Action: %d" % (rank, step_id, action))
+        action_type = action['action_type'] if isinstance(action, dict) else action
+        logger.info("Rank %d Step ID: %d Take Action: %s" % (rank, step_id,
+                                                             action if isinstance(action, dict) else action_type))
         observation, reward, done, _ = env.step(action)
-        action_counts[action] += 1
+        action_counts[action_type] += 1
         cum_return += reward
         step_id += 1
     if cfg.env.save_replay:
-        env.env.env.save_replay(cfg.common.agent + FLAGS.replay_path)
+        if hasattr(env, 'save_replay'):
+            env.save_replay(cfg.common.agent + FLAGS.replay_path)
+        else:
+            env.env.env.save_replay(cfg.common.agent + FLAGS.replay_path)
     path = os.path.join(value_save_path, 'value{}.pt'.format(rank))
     torch.save(torch.tensor(value_trace), path)
     for id, name in enumerate(env.action_names):

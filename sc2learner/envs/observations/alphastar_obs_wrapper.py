@@ -130,9 +130,10 @@ class ScalarObsWrapper(object):
             key = item['key']
             if key == 'agent_statistics':
                 ret[key] = self._parse_agent_statistics(obs)
-            elif key == 'enemy_upgrades':
-                continue  # parse by enemy obs
             else:
+                if key == 'enemy_upgrades':
+                    if 'enemy_upgrades' not in obs.keys():
+                        continue  # parse by enemy obs
                 ori = item['ori']
                 item_data = obs[ori]
                 item_data = torch.LongTensor(item_data)
@@ -140,40 +141,6 @@ class ScalarObsWrapper(object):
                 item_data = item_data.squeeze()
                 ret[key] = item_data
         return ret
-
-
-class AlphastarObsWrapper(gym.Wrapper):
-
-    def __init__(self, env, spatial_obs_cfg, entity_obs_cfg, scalar_obs_cfg):
-        super(AlphastarObsWrapper, self).__init__(env)
-        self.spatial_wrapper = SpatialObsWrapper(spatial_obs_cfg)
-        self.entity_wrapper = EntityObsWrapper(entity_obs_cfg)
-        self.scalar_wrapper = ScalarObsWrapper(scalar_obs_cfg)
-
-    def _get_obs(self, obs):
-        entity_info, entity_raw = self.entity_wrapper.parse(obs)
-        ret = {
-            'scalar_info': self.scalar_wrapper.parse(obs),
-            'spatial_info': self.spatial_wrapper.parse(obs),
-            'entity_info': entity_info,
-            'entity_raw': entity_raw,
-        }
-        # print(ret['spatial_info'].shape)
-        # print(ret['entity_info'].shape)
-        # print(len(ret['entity_location']))
-        # for k, v in ret['scalar_info'].items():
-        #    print(k, v.shape)
-        return ret
-
-    def step(self, action):
-        obs, reward, done, info = self.env.step(action)
-        obs = self._get_obs(obs)
-        return obs, reward, done, info
-
-    def reset(self):
-        obs = self.env.reset()
-        obs = self._get_obs(obs)
-        return obs
 
 
 class AlphastarObsParser(object):
@@ -341,7 +308,7 @@ def transform_entity_data(resolution=128, pad_value=-1e9):
         {'key': 'ideal_harvesters', 'dim': 18, 'op': partial(one_hot, num=18), 'other': 'one-hot'},
         {'key': 'weapon_cooldown', 'dim': 32, 'op': partial(
             clip_one_hot, num=32), 'other': 'one-hot, game steps'},  # 35??
-        {'key': 'order_length', 'dim': 9, 'op': partial(one_hot, num=9), 'other': 'one-hot'},
+        {'key': 'order_length', 'dim': 9, 'op': partial(clip_one_hot, num=9), 'other': 'one-hot'},
         {'key': 'order_id_0', 'dim': NUM_ABILITIES, 'op': partial(
             reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS), 'other': 'one-hot'},
         {'key': 'order_id_1', 'dim': NUM_ACTIONS, 'op': partial(

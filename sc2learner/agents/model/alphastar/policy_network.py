@@ -71,7 +71,7 @@ class Policy(ActorCriticBase):
     def _look_up_action_attr(self, action_type, entity_raw, units_num, location_dims=(256, 256)):
         action_mask = {'select_unit_type_mask': [], 'select_unit_mask': [], 'target_unit_type_mask': [],
                        'target_unit_mask': [], 'location_mask': []}
-        device = action_type.device
+        device = action_type[0].device
         '''
         for idx, action in enumerate(action_type):
             action_mask['select_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
@@ -112,7 +112,8 @@ class Policy(ActorCriticBase):
                 action_attr[k].append(value[k])
         return action_attr, action_mask
 
-    def mimic(self, inputs, temperature):
+    # overwrite
+    def mimic(self, inputs, temperature=1.0):
         '''
             input(keys): scalar_info, entity_info, spatial_info, prev_state, entity_raw, actions
         '''
@@ -168,22 +169,81 @@ class Policy(ActorCriticBase):
                 logits['target_location'].append(logits_location)
 
         return logits, next_state
-#        action_type_logits, action_type, embedding = self.head['action_type_head'](
-#            lstm_output, scalar_context, temperature)
-#        actions = [{'type': a, 'type_logits': logits} for a, logits in zip(action_type, action_type_logits)]
-#        for item in actions:
-#            action_attr = self._look_up_action_attr(item['type'], inputs)
-#            item['delay_logits'], item['delay'], embedding = self.head['delay_head'](embedding)
-#            if action_attr['enable_queued']:
-#                item['queued_logits'], item['queued'], embedding = self.head['queued_head'](embedding, temperature)
-#            if action_attr['enable_select_units']:
-#                item['units_logits'], item['units'], embedding = self.head['selected_units_head'](
-#                    embedding, action_attr['unit_type_mask'], action_attr['units_mask'], entity_embeddings, temperature)  # noqa
-#            if action_attr['enable_target_unit']:
-#                item['target_unit_logits'], item['target_unit'] = self.head['target_units_head'](
-#                    embedding, action_attr['unit_type_mask'], action_attr['units_mask'], entity_embeddings, temperature)  # noqa
-#            if action_attr['entity_location']:
-#                item['location_logits'], item['location'] = self.head['location_head'](
-#                    embedding, map_skip, action_attr['location_mask'], temperature)
-#
-#        return actions, next_state
+
+    # overwrite
+    def _actor_forward(self, inputs, temperature=1.0):
+        B = inputs['spatial_info'].shape[0]
+        embedded_scalar, scalar_context = self.encoder['scalar_encoder'](inputs['scalar_info'])
+        entity_embeddings, embedded_entity = self.encoder['entity_encoder'](inputs['entity_info'])
+        embedded_spatial, map_skip = self.encoder['spatial_encoder'](
+            self._scatter_connection(inputs['spatial_info'], entity_embeddings, inputs['entity_raw']))
+
+        embedded_entity, embedded_spatial, embedded_scalar = (embedded_entity.unsqueeze(0),
+                                                              embedded_spatial.unsqueeze(0),
+                                                              embedded_scalar.unsqueeze(0))
+        lstm_output, next_state = self.core_lstm(
+            embedded_entity, embedded_spatial, embedded_scalar, inputs['prev_state'])
+        lstm_output = lstm_output.squeeze(0)
+
+        actions = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
+        logits = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
+        units_num = [t.shape[0] for t in inputs['entity_info']]
+
+        # action type
+        logits['action_type'], action_type, embeddings = self.head['action_type_head'](
+            lstm_output, scalar_context, temperature)
+        actions['action_type'] = torch.chunk(action_type, B, dim=0)
+        action_attr, mask = self._look_up_action_attr(actions['action_type'], inputs['entity_raw'], units_num)
+
+        # action arg delay
+        logits['delay'], delay, embedding = self.head['delay_head'](embeddings)
+        actions['delay'] = torch.chunk(delay, B, dim=0)
+
+        for idx in range(B):
+            embedding = embeddings[idx:idx+1]
+            # action arg queued
+            if action_attr['queued'][idx]:
+                logits_queued, queued, embedding = self.head['queued_head'](embedding, temperature)
+            else:
+                logits_queued, queued = None, None
+            logits['queued'].append(logits_queued)
+            actions['queued'].append(queued)
+            # action arg selected_units
+            if action_attr['selected_units'][idx]:
+                logits_selected_units, selected_units, embedding = self.head['selected_units_head'](
+                    embedding, mask['select_unit_type_mask'][idx], mask['select_unit_mask'][idx],
+                    entity_embeddings[idx], temperature)
+                selected_units = selected_units[0]
+            else:
+                logits_selected_units, selected_units = None, None
+            logits['selected_units'].append(logits_selected_units)
+            actions['selected_units'].append(selected_units)
+            # action arg target_units
+            if action_attr['target_units'][idx]:
+                logits_target_units, target_units = self.head['target_unit_head'](
+                    embedding, mask['target_unit_type_mask'][idx], mask['target_unit_mask'][idx],
+                    entity_embeddings[idx], temperature)
+                target_units = target_units[0]
+            else:
+                logits_target_units, target_units = None, None
+            logits['target_units'].append(logits_target_units)
+            actions['target_units'].append(target_units)
+            # action arg target_location
+            if action_attr['target_location'][idx]:
+                map_skip_single = [t[idx:idx+1] for t in map_skip]
+                logits_location, location = self.head['location_head'](
+                    embedding, map_skip_single, mask['location_mask'][idx], temperature)
+            else:
+                logits_location, location = None, None
+            logits['target_location'].append(logits_location)
+            actions['target_location'].append(location)
+
+        return actions, logits, next_state
+
+    # overwrite
+    def evaluate(self, inputs, **kwargs):
+        actions, _, next_state = self._actor_forward(inputs, **kwargs)
+        return {
+            'actions': actions,
+            'next_state': next_state
+        }

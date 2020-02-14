@@ -480,9 +480,9 @@ class AgentInterfaceFormat(object):
             camera_width_world_units=None,
             use_feature_units=True,
             use_raw_units=True,  # for raw.units
-            use_raw_actions=False,
+            use_raw_actions=False,  # alphastar
             max_raw_actions=512,
-            max_selected_units=30,
+            max_selected_units=64,  # alphastar
             use_unit_counts=False,
             use_camera_position=False,
             show_cloaked=False,
@@ -1611,8 +1611,9 @@ class Features(object):
             return func_call
 
         func_id = func_call.function
+        raw = True  # TODO(nyz) self._raw
         try:
-            if self._raw:
+            if raw:
                 func = actions.RAW_FUNCTIONS[func_id]
             else:
                 func = actions.FUNCTIONS[func_id]
@@ -1671,23 +1672,23 @@ class Features(object):
         if func.ability_id:
             kwargs["ability_id"] = func.ability_id
 
-        if self._raw:
-            if "world" in kwargs:
-                kwargs["world"] = self._world_to_minimap_px.back_pt(kwargs["world"])
-
-            def find_original_tag(position):
-                if position >= len(self._raw_tags):  # Assume it's a real unit tag.
-                    return position
-                original_tag = self._raw_tags[position]
-                if original_tag == 0:
-                    logging.warning("Tag not found: %s", original_tag)
-                return original_tag
-            if "target_unit_tag" in kwargs:
-                kwargs["target_unit_tag"] = find_original_tag(
-                    kwargs["target_unit_tag"][0])
-            if "unit_tags" in kwargs:
-                kwargs["unit_tags"] = [find_original_tag(t)
-                                       for t in kwargs["unit_tags"]]
+        if raw:  # TODO(nyz)
+#            if "world" in kwargs:
+#                kwargs["world"] = self._world_to_minimap_px.back_pt(kwargs["world"])
+#
+#            def find_original_tag(position):
+#                if position >= len(self._raw_tags):  # Assume it's a real unit tag.
+#                    return position
+#                original_tag = self._raw_tags[position]
+#                if original_tag == 0:
+#                    logging.warning("Tag not found: %s", original_tag)
+#                return original_tag
+#            if "target_unit_tag" in kwargs:
+#                kwargs["target_unit_tag"] = find_original_tag(
+#                    kwargs["target_unit_tag"][0])
+#            if "unit_tags" in kwargs:
+#                kwargs["unit_tags"] = [find_original_tag(t)
+#                                       for t in kwargs["unit_tags"]]
             actions.RAW_FUNCTIONS[func_id].function_type(**kwargs)
         else:
             kwargs["action_space"] = aif.action_space
