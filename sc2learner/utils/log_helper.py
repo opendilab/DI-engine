@@ -1,3 +1,10 @@
+'''
+Copyright 2020 Sensetime X-lab. All Rights Reserved
+
+Main Function:
+    1. log helper, used to help to save logger on terminal, tensorboard or save file.
+    2. CountVar, to help counting number.
+'''
 import logging
 import numpy as np
 import cv2
@@ -7,8 +14,16 @@ from tensorboardX import SummaryWriter
 
 def build_logger(cfg, name=None, rank=0):
     '''
-        Note: Only support rank0 logger
+        Overview: use config to build checkpoint helper. Only rank == 0 can build.
+        Arguments:
+            - name (:obj:`str`): logger file name
+            - rank (:obj:`int`): only rank == 0 can build
+        Returns:
+            - (:obj`TextLogger`): save terminal output
+            - (:obj`TensorBoardLogger`): save output to tensorboard
+            - (:obj`ScalarRecord`): save output as scalar
     '''
+    # Note: Only support rank0 logger
     if rank == 0:
         path = cfg.common.save_path
         logger = TextLogger(path, name=name)
@@ -20,12 +35,30 @@ def build_logger(cfg, name=None, rank=0):
 
 
 class TextLogger(object):
+    '''
+        Overview: save terminal output to file
+        Interface: __init__, info
+    '''
     def __init__(self, path, name=None):
+        '''
+            Overview: initialization method, create logger.
+            Arguments:
+                - path (:obj:`str`): logger's save dir
+                - name (:obj:`str`): logger's name
+        '''
         if name is None:
             name = 'default_logger'
         self.logger = self._create_logger(name, os.path.join(path, name+'.txt'))
 
     def _create_logger(self, name, path, level=logging.INFO):
+        '''
+            Overview: create logger using logging
+            Arguments:
+                - name (:obj:`str`): logger's name
+                - path (:obj:`str`): logger's save dir
+            Returns:
+                - (:obj`logger`): new logger
+        '''
         logger = logging.getLogger(name)
         if not logger.handlers:
             formatter = logging.Formatter(
@@ -40,14 +73,30 @@ class TextLogger(object):
         return logger
 
     def info(self, s):
+        '''
+            Overview: add message to logger
+            Arguments:
+                - s (:obj:`str`): message to add to logger
+        '''
         self.logger.info(s)
 
 
 class TensorBoardLogger(object):
+    '''
+        Overview: save message to tensorboard
+        Interface: __init__, add_scalar, add_text, add_scalars, add_histogram, add_figure,
+                   add_image, add_scalar_list, register_var, scalar_var_names
+    '''
     def __init__(self, path, name=None):
+        '''
+            Overview: initialization method, create logger and set var names.
+            Arguments:
+                - path (:obj:`str`): logger save dir
+                - name (:obj:`str`): logger name
+        '''
         if name is None:
             name = 'default_tb_logger'
-        self.logger = SummaryWriter(os.path.join(path, name))
+        self.logger = SummaryWriter(os.path.join(path, name)) # get summary writer
         self._var_names = {
             'scalar': [],
             'text': [],
@@ -58,30 +107,65 @@ class TensorBoardLogger(object):
         }
 
     def add_scalar(self, name, *args, **kwargs):
+        '''
+            Overview: add message to scalar
+            Arguments:
+                - name (:obj:`str`): name to add which in self._var_names['scalar']
+        '''
         assert(name in self._var_names['scalar'])
         self.logger.add_scalar(name, *args, **kwargs)
 
     def add_text(self, name, *args, **kwargs):
+        '''
+            Overview: add message to text
+            Arguments:
+                - name (:obj:`str`): name to add which in self._var_names['text']
+        '''
         assert(name in self._var_names['text'])
         self.logger.add_text(name, *args, **kwargs)
 
     def add_scalars(self, name, *args, **kwargs):
+        '''
+            Overview: add message to scalars
+            Arguments:
+                - name (:obj:`str`): name to add which in self._var_names['scalars']
+        '''
         assert(name in self._var_names['scalars'])
         self.logger.add_scalars(name, *args, **kwargs)
 
     def add_histogram(self, name, *args, **kwargs):
+        '''
+            Overview: add message to histogram
+            Arguments:
+                - name (:obj:`str`): name to add which in self._var_names['histogram']
+        '''
         assert(name in self._var_names['histogram'])
         self.logger.add_histogram(name, *args, **kwargs)
 
     def add_figure(self, name, *args, **kwargs):
+        '''
+            Overview: add message to figure
+            Arguments:
+                - name (:obj:`str`): name to add which in self._var_names['figure']
+        '''
         assert(name in self._var_names['figure'])
         self.logger.add_figure(name, *args, **kwargs)
 
     def add_image(self, name, *args, **kwargs):
+        '''
+            Overview: add message to image
+            Arguments:
+                - name (:obj:`str`): name to add which in self._var_names['image']
+        '''
         assert(name in self._var_names['image'])
         self.logger.add_image(name, *args, **kwargs)
 
     def add_scalar_list(self, scalar_list):
+        '''
+            Overview: add message to scalar_list
+            Arguments:
+                - scalar_list (:obj:`list`): include name to be added
+        '''
         for n, v, s in scalar_list:
             self.add_scalar(n, v, s)
 
