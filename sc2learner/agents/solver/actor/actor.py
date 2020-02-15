@@ -2,7 +2,7 @@ from queue import Queue
 from threading import Thread
 import zmq
 import os
-from sc2learner.utils import build_checkpoint_helper, build_time_helper, send_array, dict2nparray, get_ip, get_pid
+from sc2learner.utils import build_checkpoint_helper, build_time_helper, send_array, dict2nparray, get_pid
 
 
 class BaseActor(object):
@@ -31,6 +31,10 @@ class BaseActor(object):
         self.model_requestor = self.zmq_context.socket(zmq.DEALER)
         self.model_requestor.connect("tcp://%s:%s" % (req_ip, req_port))
         self.model_requestor.setsockopt(zmq.RCVTIMEO, 1000*10)
+        # force ZMQ keep only the most recent model received
+        # avoid high staleness after network unstablity
+        # require zmq 4.x
+        self.model_requestor.setsockopt(zmq.CONFLATE, 1)
         print("tcp://%s:%s" % (req_ip, req_port))
 
         if enable_push:
@@ -64,7 +68,7 @@ class BaseActor(object):
                 model_time, data_time, self.model_index))
             if self.enable_push:
                 if self.data_queue.full():
-                    print('full')  # TODO warning(queue is full)
+                    print('WARNING: Actor send queue full')
                 self.data_queue.put(unroll)
 
     def _push_data(self, zmq_context, ip, port, queue):
@@ -82,6 +86,7 @@ class BaseActor(object):
             try:
                 state_dict = self.model_requestor.recv_pyobj()
             except zmq.error.Again:
+                print('WARNING: Model Request Timeout')
                 continue
             else:
                 break

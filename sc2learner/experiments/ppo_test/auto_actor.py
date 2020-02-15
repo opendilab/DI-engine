@@ -219,7 +219,7 @@ def main(actor_limit, manager_flag=0):
         if actor_num_touse <= 0:
             break
         actor_num = pd_partition(partition, 'other', actor_num_touse, policy,
-                                  learner_node_address, actor_manager_node_address, forbidden_nodes_addr)
+                                 learner_node_address, actor_manager_node_address, forbidden_nodes_addr)
         actor_num_other += actor_num
         actor_num_touse -= actor_num
     actor_num_all += actor_num_other
