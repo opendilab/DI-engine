@@ -10,7 +10,7 @@ from pysc2.lib import actions
 
 class AlphastarActParser(object):
     '''
-        Overview: action parser
+        Overview: A class handles action parsing, includes implementation and interface
         Interface: __init__, parse
     '''
     def __init__(self, feature_layer_resolution, map_size):
@@ -18,7 +18,7 @@ class AlphastarActParser(object):
             Overview: initial related attributes
             Arguments:
                 - feature_layer_resolution (:obj:'int'): feature layer resolution
-                - map_size (:obj:'obj'): map size metadata from sc2 api
+                - map_size (:obj:'obj'): map size metadata in proto format
         '''
         self.input_template = {'camera_move': self._parse_raw_camera_move,
                                'unit_command': self._parse_raw_unit_command,
@@ -38,7 +38,7 @@ class AlphastarActParser(object):
         '''
             Overview: parse an action
             Arguments:
-                - action (:obj:'ActionRaw'): raw action from sc2 api
+                - action (:obj:'ActionRaw'): raw action in proto format
             Returns:
                 - ret (:obj:'dict'): a dict includes tensors parsed from the action
         '''

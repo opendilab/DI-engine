@@ -23,7 +23,7 @@ from functools import partial
 
 class SpatialObsWrapper(object):
     '''
-        Overview: A class handle spatial observation parsing, includes implementation and offer funtion interface
+        Overview: A class handles spatial observation parsing, includes implementation and interface
         Interface: __init__, parse
     '''
     def __init__(self, cfg, use_feature_screen=True):
@@ -209,7 +209,7 @@ class AlphastarObsWrapper(gym.Wrapper):
 
 class AlphastarObsParser(object):
     '''
-        Overview: A class handles observation parsing, includes implementation and offer function interface
+        Overview: A class handles observation parsing, includes implementation and interface
         Interface: __init__, parse, merge_action
     '''
     def __init__(self):

@@ -2,7 +2,9 @@
 Copyright 2020 Sensetime X-lab. All Rights Reserved
 
 Main Function:
-    1. Generate data for supervised learning from replays
+    1. Generate data for supervised learning from replays 
+
+All data in proto format refers to https://github.com/Blizzard/s2client-proto/blob/master/s2clientprotocol/sc2api.proto
 '''
 from __future__ import absolute_import
 from __future__ import division
@@ -59,6 +61,11 @@ def sorted_dict_str(d):
 def valid_replay(info, ping):
     '''
         Overview: Make sure the replay isn't corrupt, and is worth looking at
+        Arguments:
+            - info (:obj:'ResponseReplayInfo'): replay information in proto format
+            - ping (:obj:'ResponsePing'): debug information for version check in proto format
+        Returns:
+            - (:obj'bool'): the replay is valid or not
     '''
     if (info.HasField("error") or
         info.base_build != ping.base_build or  # different game version
@@ -76,7 +83,7 @@ def valid_replay(info, ping):
 
 class ReplayProcessor(multiprocessing.Process):
     '''
-        Overview: A Process that pulls replays and processes them
+        Overview: A Class that pulls replays and processes them, includes implementation and interface
         Interface: __init__, run
     '''
 
@@ -95,7 +102,7 @@ class ReplayProcessor(multiprocessing.Process):
         self.handles = []
         self.controllers = []
         self.player_ids = [i+1 for i in range(2)]
-        # initial two game controlloers for both players, controller hanldes communication with game
+        # start game and initial two game controlloers for both players, controller hanldes communication with game
         for i in self.player_ids:
             handle = self.run_config.start(want_rgb=interface.HasField("render"))
             controller = handle.controller
@@ -107,13 +114,13 @@ class ReplayProcessor(multiprocessing.Process):
         '''
             Overview: get basic information from a replay and validate it 
             Arguments:
-                - controller (:obj:'RemoteController'): game controller 
+                - controller (:obj:'RemoteController'): game controller whick takes actions and generates observations in proto format
                 - replay_path (:obj:'string'): path to the replay
                 - print_info (:obj:'bool'): a bool decides whether to print replay info
             Returns:
                 - replay_data (:obj'bytes'): replay file
                 - map_data (:obj'bytes'): map file
-                - info (:obj'ResponseReplayInfo'): replay information from sc2 api
+                - info (:obj'ResponseReplayInfo'): replay information in proto format
         '''
         ping = controller.ping()
         replay_name = os.path.basename(replay_path)[:10]
@@ -135,9 +142,9 @@ class ReplayProcessor(multiprocessing.Process):
 
     def _parse_info(self, info, replay_path, home=0):
         '''
-            Overview: parse replay information into a dict
+            Overview: parse replay basic information into a dict
             Arguments:
-                - info (:obj:'ResponseReplayInfo'): reaplay information from sc2 api
+                - info (:obj:'ResponseReplayInfo'): reaplay information in proto format
                 - replay_path (:obj:'string'): path to the replay
                 - home (:obj:'int'): player id to identify player
             Returns:
@@ -163,7 +170,7 @@ class ReplayProcessor(multiprocessing.Process):
 
     def run(self, replay_path):
         '''
-            Overview: run an ReplayProcessor and save data
+            Overview: run a ReplayProcessor and save data
             Returns:
                 - (:obj'string'): A string indicates replay parse result plus replay path
         '''
@@ -210,25 +217,26 @@ class ReplayProcessor(multiprocessing.Process):
 
     def process_replay_multi(self, controllers, replay_data, map_data, player_ids):
         '''
-            Overview: process a replay step by step to get data
+            Overview: process a replay step by step to generate data
             Arguments: 
-                - controllers (:obj:'RemoteController'): game controllers
+                - controllers (:obj:'RemoteController'): game controller whick takes actions and generates observations in proto format
                 - replay_data (:obj:'bytes'): replay file
                 - map_data (:obj:'bytes'): map file
                 - player_ids (:obj:'int'): player id to identify player
             Returns:
                 - step_data (:obj'list'): step data for both players 
-                - map_size (:obj'obj'): map_size metadata from sc2 api
+                - map_size (:obj'Size2DI'): map size in proto format
                 - stat (:obj'list'): statistics in the replay for both players
         '''
         feats = []
+        # start replay with specific settings in both controllers
         for controller, player_id in zip(controllers, player_ids):
             controller.start_replay(sc_pb.RequestStartReplay(
                 replay_data=replay_data,
                 map_data=map_data,
                 options=interface,
                 observed_player_id=player_id))
-
+            
             feat = features.features_from_game_info(controller.game_info())
             feats.append(feat)
 
@@ -310,6 +318,7 @@ class ReplayProcessor(multiprocessing.Process):
         while True:
             # 1v1 version
             obs = [controller.observe() for controller in controllers]
+            # ISSUE(zh) should we abandon invalid actions
             actions = [o.actions for o in obs]
             if len(actions[0]) > 0 or len(actions[1]) > 0:
                 # parse observation
