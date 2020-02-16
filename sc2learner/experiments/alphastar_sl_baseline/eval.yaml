@@ -3,7 +3,7 @@ common:
     time_wrapper_type: cuda
     num_episodes: 10
     agent: alphastar
-    use_multiprocessing: False
+    use_multiprocessing: True
 env:
     game_version: '4.10'
     map_name: AbyssalReef
