@@ -28,7 +28,8 @@ class AlphastarAgent(BaseAgent):
         if self.use_cuda:
             obs = to_device(obs, 'cuda')
         obs = self._unsqueeze_batch_dim(obs)
-        ret = self.model(obs, mode='evaluate')
+        with torch.no_grad():
+            ret = self.model(obs, mode='evaluate')
         actions, self.next_state = ret['actions'], ret['next_state']
         if self.use_cuda:
             actions = to_device(actions, 'cpu')
