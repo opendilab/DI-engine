@@ -3,6 +3,7 @@ from threading import Thread
 import zmq
 import os
 from sc2learner.utils import build_checkpoint_helper, build_time_helper, send_array, dict2nparray, get_pid
+import time
 
 
 class BaseActor(object):
@@ -30,7 +31,7 @@ class BaseActor(object):
         self.zmq_context = zmq.Context()
         self.model_requestor = self.zmq_context.socket(zmq.DEALER)
         self.model_requestor.connect("tcp://%s:%s" % (req_ip, req_port))
-        self.model_requestor.setsockopt(zmq.RCVTIMEO, 1000*10)
+        self.model_requestor.setsockopt(zmq.RCVTIMEO, 1000*15)
         # force ZMQ keep only the most recent model received
         # avoid high staleness after network unstablity
         # require zmq 4.x
@@ -81,17 +82,31 @@ class BaseActor(object):
             sender.send_pyobj(data)
 
     def _update_model(self):
+        self.model_requestor.setsockopt(zmq.RCVTIMEO, 1000*15)
         while True:
             self.model_requestor.send_string("request model")
             try:
                 state_dict = self.model_requestor.recv_pyobj()
             except zmq.error.Again:
                 print('WARNING: Model Request Timeout')
+                time.sleep(1)
                 continue
             else:
                 break
         self.model.load_state_dict(state_dict['state_dict'])
         self.model_index = state_dict['model_index']
+        self.model_age = time.time() - state_dict['timestamp']
+        print('Model Wallclock Age:{}'.format(self.model_age))
+        if(self.model_age > 250):
+            print('WARNING: Old Model Received, start clearing receive queue.')
+            self.model_requestor.setsockopt(zmq.RCVTIMEO, 1000*3)
+            while True:
+                try:
+                    state_dict = self.model_requestor.recv_pyobj()
+                    print('Ate queued model')
+                except zmq.error.Again:
+                    print('Timeout')
+                    break
 
     def _init(self):
         raise NotImplementedError

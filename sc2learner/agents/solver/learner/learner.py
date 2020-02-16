@@ -278,7 +278,7 @@ class BaseLearner(object):
             msg = receiver.recv_string()
             assert(msg == 'request model')
             state_dict = {k: v.to('cpu') for k, v in self.model.state_dict().items()}
-            state_dict = {'state_dict': state_dict, 'model_index': self.last_iter.val}
+            state_dict = {'state_dict': state_dict, 'model_index': self.last_iter.val, 'timestamp': time.time()}
             receiver.send_pyobj(state_dict)
 
     def _init(self):
