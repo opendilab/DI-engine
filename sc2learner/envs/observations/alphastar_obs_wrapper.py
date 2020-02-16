@@ -2,7 +2,7 @@
 Copyright 2020 Sensetime X-lab. All Rights Reserved
 
 Main Function:
-    1. parse observations into tensors that pytorch can use 
+    1. parse numpy arrays observations into tensors that pytorch can use 
 '''
 from __future__ import absolute_import
 from __future__ import division
