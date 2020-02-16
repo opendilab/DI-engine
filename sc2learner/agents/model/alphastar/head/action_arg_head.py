@@ -108,12 +108,17 @@ class SelectedUnitsHead(nn.Module):
             for i in range(self.max_entity_num):
                 if sum(end_flag_trigger) == B:
                     break
+                if i == 0:
+                    mask[:, -1] = 0  # at least 1 unit(not select end_flag in the first selection)
                 x, state = self.lstm(x, state)
                 query_result = x.permute(1, 0, 2) * key
                 query_result = query_result.mean(dim=2)
                 query_result.sub_((1 - mask) * 1e9)
                 handle = self.pd(query_result.div(temperature))
-                entity_num = handle.sample()
+                if self.train:
+                    entity_num = handle.sample()
+                else:
+                    entity_num = handle.mode()
 
                 for b in range(B):
                     if end_flag_trigger[b]:
@@ -125,6 +130,8 @@ class SelectedUnitsHead(nn.Module):
                             continue
                         units[b][entity_num[b]] = 1
                         mask[b][entity_num[b]] = 0
+                if i == 0:
+                    mask[:, -1] = 1  # recover end_flag mask
         else:
             for i in range(max(output_entity_num)+1):
                 x, state = self.lstm(x, state)
