@@ -2,7 +2,7 @@
 Copyright 2020 Sensetime X-lab. All Rights Reserved
 
 Main Function:
-    1. Generate data for supervised learning from replays 
+    1. Generate torch-style data for supervised learning from replays 
 
 All data in proto format refers to https://github.com/Blizzard/s2client-proto/blob/master/s2clientprotocol/sc2api.proto
 '''
@@ -83,13 +83,13 @@ def valid_replay(info, ping):
 
 class ReplayProcessor(multiprocessing.Process):
     '''
-        Overview: A Class that pulls replays and processes them, includes implementation and interface
+        Overview: a process decodes a single replay
         Interface: __init__, run
     '''
 
     def __init__(self, run_config, output_dir=None):
         '''
-            Overview: initialization method, parse run_config and prepare related attributes
+            Overview: parse run_config and prepare related attributes
             Arguments:
                 - run_config (:obj：'RunConfig'): starcraft2 run config
                 - output_dir (:obj：'string'): path to save data
@@ -172,7 +172,7 @@ class ReplayProcessor(multiprocessing.Process):
         '''
             Overview: run a ReplayProcessor and save data
             Returns:
-                - (:obj'string'): A string indicates replay parse result plus replay path
+                - (:obj'string'): replay parse result plus replay path
         '''
         signal.signal(signal.SIGTERM, lambda a, b: sys.exit())  # Exit quietly.
         self._print("Starting up a new SC2 instance.")
@@ -217,14 +217,14 @@ class ReplayProcessor(multiprocessing.Process):
 
     def process_replay_multi(self, controllers, replay_data, map_data, player_ids):
         '''
-            Overview: process a replay step by step to generate data
+            Overview: decode a replay step by step to generate data
             Arguments: 
                 - controllers (:obj:'RemoteController'): game controller whick takes actions and generates observations in proto format
                 - replay_data (:obj:'bytes'): replay file
                 - map_data (:obj:'bytes'): map file
                 - player_ids (:obj:'int'): player id to identify player
             Returns:
-                - step_data (:obj'list'): step data for both players 
+                - step_data (:obj'list'): step data for both players, includes observations and actions
                 - map_size (:obj'Size2DI'): map size in proto format
                 - stat (:obj'list'): statistics in the replay for both players
         '''
@@ -242,6 +242,7 @@ class ReplayProcessor(multiprocessing.Process):
 
             controller.step()
         map_size = controllers[0].game_info().start_raw.map_size
+        # initial an act_parser to parse actions
         act_parser = AlphastarActParser(feature_layer_resolution=RESOLUTION, map_size=map_size)
 
         def update_action_stat(action_statistics, act, obs):
@@ -406,7 +407,7 @@ def main(unused_argv):
 
 def replay_decode(paths, version):
     '''
-        Overview: process replays and gather process results
+        Overview: decode replays and gather results
         Argumens: 
             - paths (:obj:'string'): replays directory
             - version (:obj:'Version'): game version 

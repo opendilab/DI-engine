@@ -2,7 +2,7 @@
 Copyright 2020 Sensetime X-lab. All Rights Reserved
 
 Main Function:
-    1. parse observation into tensors that pytorch can use 
+    1. parse observations into tensors that pytorch can use 
 '''
 from __future__ import absolute_import
 from __future__ import division
@@ -23,7 +23,7 @@ from functools import partial
 
 class SpatialObsWrapper(object):
     '''
-        Overview: A class handles spatial observation parsing, includes implementation and interface
+        Overview: parse spatial observation into tensors
         Interface: __init__, parse
     '''
     def __init__(self, cfg, use_feature_screen=True):
@@ -209,7 +209,7 @@ class AlphastarObsWrapper(gym.Wrapper):
 
 class AlphastarObsParser(object):
     '''
-        Overview: A class handles observation parsing, includes implementation and interface
+        Overview: parse observation into tensors
         Interface: __init__, parse, merge_action
     '''
     def __init__(self):

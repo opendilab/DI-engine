@@ -2,7 +2,7 @@
 Copyright 2020 Sensetime X-lab. All Rights Reserved
 
 Main Function:
-    1. parse action into tensor for pytorch 
+    1. parse actions into tensors for pytorch 
 '''
 import torch
 from pysc2.lib import actions
@@ -10,7 +10,7 @@ from pysc2.lib import actions
 
 class AlphastarActParser(object):
     '''
-        Overview: A class handles action parsing, includes implementation and interface
+        Overview: parse action into tensors
         Interface: __init__, parse
     '''
     def __init__(self, feature_layer_resolution, map_size):
