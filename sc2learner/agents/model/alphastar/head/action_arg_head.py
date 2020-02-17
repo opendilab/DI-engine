@@ -60,7 +60,10 @@ class DelayHead(nn.Module):
         x = self.fc2(x)
         x = self.fc3(x)  # delay_loogits
         handle = self.pd(x)
-        delay = handle.sample()  # sample delay
+        if self.train:
+            delay = handle.sample()
+        else:
+            delay = handle.mode()
 
         delay_one_hot = one_hot(delay, self.delay_dim)  
         embedding_delay = self.embed_fc1(delay_one_hot)
@@ -114,7 +117,10 @@ class QueuedHead(nn.Module):
         x = self.fc2(x)
         x = self.fc3(x)
         handle = self.pd(x.div(temperature))
-        queued = handle.sample()  # sample queued from logits
+        if self.train:
+            queued = handle.sample()
+        else:
+            queued = handle.mode()
 
         queued_one_hot = one_hot(queued, self.queued_dim)
         embedding_queued = self.embed_fc1(queued_one_hot)
@@ -196,12 +202,17 @@ class SelectedUnitsHead(nn.Module):
             for i in range(self.max_entity_num):
                 if sum(end_flag_trigger) == B:
                     break
+                if i == 0:
+                    mask[:, -1] = 0  # at least 1 unit(not select end_flag in the first selection)
                 x, state = self.lstm(x, state)
                 query_result = x.permute(1, 0, 2) * key
                 query_result = query_result.mean(dim=2)
                 query_result.sub_((1 - mask) * 1e9)
                 handle = self.pd(query_result.div(temperature))
-                entity_num = handle.sample()
+                if self.train:
+                    entity_num = handle.sample()
+                else:
+                    entity_num = handle.mode()
 
                 for b in range(B):
                     if end_flag_trigger[b]:
@@ -213,6 +224,8 @@ class SelectedUnitsHead(nn.Module):
                             continue
                         units[b][entity_num[b]] = 1
                         mask[b][entity_num[b]] = 0
+                if i == 0:
+                    mask[:, -1] = 1  # recover end_flag mask
         else:
             for i in range(max(output_entity_num)+1):
                 x, state = self.lstm(x, state)
@@ -220,7 +233,10 @@ class SelectedUnitsHead(nn.Module):
                 query_result = query_result.mean(dim=2)
                 # query_result.sub_((1 - mask) * 1e9)
                 handle = self.pd(query_result.div(temperature))
-                entity_num = handle.sample()
+                if self.train:
+                    entity_num = handle.sample()
+                else:
+                    entity_num = handle.mode()
                 for b in range(B):
                     if i > output_entity_num[b]:
                         continue
@@ -311,7 +327,10 @@ class TargetUnitsHead(nn.Module):
                 query_result = query_result.mean(dim=2)
                 query_result.sub_((1 - mask) * 1e9)
                 handle = self.pd(query_result.div(temperature))
-                entity_num = handle.sample()
+                if self.train:
+                    entity_num = handle.sample()
+                else:
+                    entity_num = handle.mode()
 
                 for b in range(B):
                     if end_flag_trigger[b]:
@@ -425,7 +444,10 @@ class TargetUnitHead(nn.Module):
         B, N = key.shape[:2]
         units = torch.zeros(B, N, device=key.device, dtype=torch.int)
         handle = self.pd(logits.div(temperature))
-        sample_num = handle.sample()
+        if self.train:
+            sample_num = handle.sample()
+        else:
+            sample_num = handle.mode()
         units.scatter_(1, sample_num.unsqueeze(1), 1)
 
         return logits, units
@@ -511,7 +533,10 @@ class LocationHead(nn.Module):
         x.sub_((1 - available_location_mask)*1e9)
         logits = x.view(x.shape[0], -1)
         handle = self.pd(logits.div(temperature))
-        location = handle.sample()  # finally sample location
+        if self.train:
+            location = handle.sample()
+        else:
+            location = handle.mode()
 
         return logits, location
 
