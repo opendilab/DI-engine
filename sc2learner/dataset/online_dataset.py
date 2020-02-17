@@ -137,7 +137,7 @@ class OnlineDataset(object):
         logger.info("load data in {}".format(data_dir))
 
     def load_state_dict(self, checkpoint):
-        if isinstance(checkpoint, list): # for older checkpoints
+        if isinstance(checkpoint, list):  # for older checkpoints
             self._acquire_lock()
             self.data_queue.extend(checkpoint)
             self._release_lock()
@@ -150,5 +150,5 @@ class OnlineDataset(object):
             raise ValueError
 
     def state_dict(self):
-        return {'queue':list(self.data_queue),
-                'rng_state':random.getstate()}
+        return {'queue': list(self.data_queue),
+                'rng_state': random.getstate()}

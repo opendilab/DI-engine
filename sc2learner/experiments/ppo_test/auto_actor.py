@@ -35,7 +35,8 @@ def scancel(job_id):
 
 
 def launch(partition, node_address, num=1, seed=0):
-    subprocess.run(['bash', 'actor.sh', partition, node_address, str(num), str(seed)])
+    subprocess.run(['bash', 'actor.sh', partition,
+                    node_address, str(num), str(seed)])
 
 
 def pd_partition(partition, p_class, limit, policy, seed,
@@ -205,7 +206,7 @@ def main(actor_limit, manager_flag=0, seed_offset=0):
         actor_num_cpu += actor_num
         actor_num_touse -= actor_num
     actor_num_all += actor_num_cpu
-    
+
     for partition in our_partitions:
         if actor_num_touse <= 0:
             break
