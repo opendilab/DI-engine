@@ -137,7 +137,7 @@ class Policy(ActorCriticBase):
             lstm_output, scalar_context, temperature, action_type)
         action_attr, mask = self._look_up_action_attr(action_type, inputs['entity_raw'], units_num)
 
-        logits['delay'], delay, embedding = self.head['delay_head'](embeddings)
+        logits['delay'], delay, embeddings = self.head['delay_head'](embeddings)
         for idx in range(action_type.shape[0]):
             embedding = embeddings[idx:idx+1]
             if isinstance(actions['queued'][idx], torch.Tensor):
@@ -196,7 +196,7 @@ class Policy(ActorCriticBase):
         action_attr, mask = self._look_up_action_attr(actions['action_type'], inputs['entity_raw'], units_num)
 
         # action arg delay
-        logits['delay'], delay, embedding = self.head['delay_head'](embeddings)
+        logits['delay'], delay, embeddings = self.head['delay_head'](embeddings)
         actions['delay'] = torch.chunk(delay, B, dim=0)
 
         for idx in range(B):
