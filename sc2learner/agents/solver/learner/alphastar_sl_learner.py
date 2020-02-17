@@ -46,9 +46,17 @@ class AlphastarSLLearner(SLLearner):
         setattr(self.dataloader, 'collate_fn', policy_collate_fn)  # use dataloader.collate_fn to call this function
         self.temperature_scheduler = build_temperature_scheduler(self.cfg)  # get naive temperature scheduler
         self._get_loss = self.time_helper.wrapper(self._get_loss)  # use time helper to calculate forward time
-        self.use_value_network = 'value' in self.cfg.model.keys()  # if value in self.cfg.model.keys(), use_value_network=True
+        self.use_value_network = 'value' in self.cfg.model.keys()  # if value in self.cfg.model.keys(), use_value_network=True  # noqa
         self.criterion = nn.CrossEntropyLoss()  # define loss function
         self.resolution = self.cfg.data.resolution
+        self.loss_func = {  # multi loss to be calculate
+            'action_type': self._criterion_apply,
+            'delay': self._criterion_apply,
+            'queued': self._queued_loss,
+            'selected_units': self._selected_units_loss,
+            'target_units': self._target_units_loss,
+            'target_location': self._target_location_loss,
+        }
 
     # overwrite
     def _init(self):
@@ -56,22 +64,11 @@ class AlphastarSLLearner(SLLearner):
             Overview: initialize logger
         '''
         super()._init()
-        # ISSUE(zm) loss type could be defined once, because _get_loss() also use these loss type
         self.scalar_record.register_var('total_loss')
-        self.scalar_record.register_var('action_type_loss')
-        self.scalar_record.register_var('delay_loss')
-        self.scalar_record.register_var('queued_loss')
-        self.scalar_record.register_var('selected_units_loss')
-        self.scalar_record.register_var('target_units_loss')
-        self.scalar_record.register_var('target_location_loss')
-
         self.tb_logger.register_var('total_loss')
-        self.tb_logger.register_var('action_type_loss')
-        self.tb_logger.register_var('delay_loss')
-        self.tb_logger.register_var('queued_loss')
-        self.tb_logger.register_var('selected_units_loss')
-        self.tb_logger.register_var('target_units_loss')
-        self.tb_logger.register_var('target_location_loss')
+        for k in self.loss_func.keys():
+            self.scalar_record.register_var(k + '_loss')
+            self.tb_logger.register_var(k + '_loss')
 
     # overwrite
     def _get_loss(self, data):
@@ -85,22 +82,7 @@ class AlphastarSLLearner(SLLearner):
 
         temperature = self.temperature_scheduler.step()
         prev_state = None  # previous LSTM state from model
-        loss_func = {  # multi loss to be calculate 
-            'action_type': self._criterion_apply,
-            'delay': self._criterion_apply,
-            'queued': self._queued_loss,
-            'selected_units': self._selected_units_loss,
-            'target_units': self._target_units_loss,
-            'target_location': self._target_location_loss,
-        }
-        loss_items = {  # loss name + '_loss'
-            'action_type_loss': [],
-            'delay_loss': [],
-            'queued_loss': [],
-            'selected_units_loss': [],
-            'target_units_loss': [],
-            'target_location_loss': []
-        }
+        loss_items = {k + '_loss': [] for k in self.loss_func.keys()}  # loss name + '_loss'
         for i, step_data in enumerate(data):
             actions = step_data['actions']
             step_data['prev_state'] = prev_state
@@ -108,7 +90,7 @@ class AlphastarSLLearner(SLLearner):
 
             for k in loss_items.keys():
                 kp = k[:-5]
-                loss_items[k].append(loss_func[kp](policy_logits[kp], actions[kp])) # calculate loss
+                loss_items[k].append(self.loss_func[kp](policy_logits[kp], actions[kp]))  # calculate loss
 
         for k, v in loss_items.items():
             loss_items[k] = sum(v) / len(v)
@@ -123,7 +105,7 @@ class AlphastarSLLearner(SLLearner):
         '''
             Overview: calculate CrossEntropyLoss of taking each action or each delay
             Arguments:
-                - logits (:obj:`tensor`): The logits corresponding to the probabilities of 
+                - logits (:obj:`tensor`): The logits corresponding to the probabilities of
                                           taking each action or each delay
                 - label (:obj:`tensor`): label from batch_data
             Returns:
@@ -137,7 +119,7 @@ class AlphastarSLLearner(SLLearner):
         '''
             Overview: calculate CrossEntropyLoss of queueing
             Arguments:
-                - logits (:obj:`tensor`): The logits corresponding to the probabilities of 
+                - logits (:obj:`tensor`): The logits corresponding to the probabilities of
                                           queueing and not queueing
                 - label (:obj:`tensor`): label from batch_data
             Returns:
@@ -154,13 +136,13 @@ class AlphastarSLLearner(SLLearner):
         '''
             Overview: use CrossEntropyLoss between logits and label
             Arguments:
-                - logits (:obj:`tensor`): The logits corresponding to the probabilities of selecting 
+                - logits (:obj:`tensor`): The logits corresponding to the probabilities of selecting
                                           each unit, repeated for each of the possible 64 unit selections
                 - label (:obj:`tensor`): label from batch_data
             Returns:
                 - (:obj`tensor`): criterion result
         '''
-        criterion = MultiLogitsLoss(criterion='cross_entropy')  # 
+        criterion = MultiLogitsLoss(criterion='cross_entropy')  #
         label = [x for x in label if isinstance(x, torch.Tensor)]
         if len(label) == 0:
             return 0
