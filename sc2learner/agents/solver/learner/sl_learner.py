@@ -16,7 +16,7 @@ from sc2learner.agents.model import build_model
 
 def build_optimizer(model, cfg):
     '''
-        Overview: use config to initialize optimizer. Use Adam by default. 
+        Overview: use config to initialize optimizer. Use Adam by default.
         Arguments:
             - model (:obj:`torch.nn.Module`): model with param
             - cfg (:obj:`dict`): optimizer config
@@ -30,7 +30,7 @@ def build_optimizer(model, cfg):
 
 def build_lr_scheduler(optimizer):
     '''
-        Overview: use optimizer to build lr scheduler. Use MultiStepLR by default. 
+        Overview: use optimizer to build lr scheduler. Use MultiStepLR by default.
         Arguments:
             - optimizer (:obj:`Optimizer`): Optimizer need by scheduler
         Returns:
@@ -45,6 +45,7 @@ class SLLearner(object):
         Overview: base class for supervised learning on linklink, including basic processes.
         Interface: __init__, run, finalize
     '''
+
     def __init__(self, cfg=None):
         '''
             Overview: initialization method, using setting to build model, dataset, optimizer, lr_scheduler
@@ -66,9 +67,9 @@ class SLLearner(object):
         if self.use_cuda:
             self.model = to_device(self.model, 'cuda')
         if self.use_distributed:
-            self.model = DistModule(self.model)  # distributed training 
+            self.model = DistModule(self.model)  # distributed training
         self.dataset = ReplayDataset(cfg)  # use replay as dataset
-        sampler = DistributedSampler(self.dataset, round_up=False) if self.use_distributed else None 
+        sampler = DistributedSampler(self.dataset, round_up=False) if self.use_distributed else None
         shuffle = False if self.use_distributed else True
         self.dataloader = DataLoader(self.dataset, batch_size=cfg.train.batch_size, pin_memory=False, num_workers=3,
                                      sampler=sampler, shuffle=shuffle, drop_last=True)
@@ -105,11 +106,11 @@ class SLLearner(object):
                 self.dataloader.dataset.step()
             self.lr_scheduler.step()  # update lr
             cur_lr = self.lr_scheduler.get_lr()[0]
-            for idx, data in enumerate(self.dataloader): # one epoch 
+            for idx, data in enumerate(self.dataloader):  # one epoch
                 self.time_helper.start_time()
                 if self.use_cuda:
                     batch_data = to_device(data, 'cuda')
-                data_time = self.time_helper.end_time() # cal data load time
+                data_time = self.time_helper.end_time()  # cal data load time
                 var_items, forward_time = self._get_loss(batch_data)  # train process
                 _, backward_update_time = self._optimize_step(var_items['total_loss'])  # process loss
                 time_items = {'data_time': data_time, 'forward_time': forward_time,
@@ -121,7 +122,7 @@ class SLLearner(object):
                 if self.use_distributed:
                     var_items, time_items = [self._reduce_info(x) for x in [var_items, time_items]]
                 if self.rank == 0:
-                    self._update_monitor_var(var_items, time_items) # update monitor variables
+                    self._update_monitor_var(var_items, time_items)  # update monitor variables
                     self._record_info(self.last_iter.val)  # save logger info
                 self.last_iter.add(1)
             self.last_epoch.add(1)
@@ -130,14 +131,14 @@ class SLLearner(object):
         '''
             Overview: finalize, called after training
         '''
-        if self.use_distributed: 
+        if self.use_distributed:
             dist_finalize()
 
     def _reduce_info(self, data):
         '''
             Overview: merge all info from other rank
             Arguments:
-                - data (:obj:`dict`): data needs to be reduced. Could be dict, torch.Tensor, 
+                - data (:obj:`dict`): data needs to be reduced. Could be dict, torch.Tensor,
                                       numbers.Integral or numbers.Real
             Returns:
                 - (:obj`dict`): data after reduce
@@ -148,8 +149,8 @@ class SLLearner(object):
                 new_data[k] = self._reduce_info(v)
         elif isinstance(data, torch.Tensor):
             new_data = data.clone()
-            allreduce(new_data) # get data from other processes
-            new_data.div_(self.world_size) # get average on all ranks
+            allreduce(new_data)  # get data from other processes
+            new_data.div_(self.world_size)  # get average on all ranks
         elif isinstance(data, numbers.Integral) or isinstance(data, numbers.Real):
             new_data = torch.Tensor([data])
             allreduce(new_data)
@@ -172,7 +173,7 @@ class SLLearner(object):
             self.checkpoint_helper.save_iterations(iterations, self.model, optimizer=self.optimizer,
                                                    dataset=self.dataset, last_epoch=self.last_epoch.val)
 
-    def _get_loss(self, data): 
+    def _get_loss(self, data):
         '''
             Overview: main process of training
             Arguments:
@@ -192,7 +193,7 @@ class SLLearner(object):
         for k in keys:
             if k in loss_items.keys():
                 v = loss_items[k]
-                if isinstance(v, torch.Tensor): # get item
+                if isinstance(v, torch.Tensor):  # get item
                     v = v.item()
                 else:
                     v = v

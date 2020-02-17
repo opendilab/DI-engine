@@ -22,6 +22,7 @@ class DelayHead(nn.Module):
         Overview: The delay head uses autoregressive_embedding to get delay_logits and delay.
         Interface: __init__, forward
     '''
+
     def __init__(self, cfg):
         '''
             Overview: initialize architect.
@@ -42,11 +43,11 @@ class DelayHead(nn.Module):
     def forward(self, embedding):
         '''
             Overview: This head uses autoregressive_embedding to get delay_logits. Autoregressive_embedding
-                      is decoded using a 2-layer (each with size 256) linear network with ReLUs, before being 
-                      embedded into delay_logits that has size 128 (one for each possible requested delay in 
-                      game steps). Then delay is sampled from delay_logits using a multinomial, though unlike 
-                      all other arguments, no temperature is applied to delay_logits before sampling. 
-                      Delay is projected to a 1D tensor of size 1024 through a 2-layer (each with size 256) 
+                      is decoded using a 2-layer (each with size 256) linear network with ReLUs, before being
+                      embedded into delay_logits that has size 128 (one for each possible requested delay in
+                      game steps). Then delay is sampled from delay_logits using a multinomial, though unlike
+                      all other arguments, no temperature is applied to delay_logits before sampling.
+                      Delay is projected to a 1D tensor of size 1024 through a 2-layer (each with size 256)
                       linear network with ReLUs, and added to autoregressive_embedding.
             Arguments:
                 - embedding (:obj:`tensor`): autoregressive_embedding
@@ -65,19 +66,20 @@ class DelayHead(nn.Module):
         else:
             delay = handle.mode()
 
-        delay_one_hot = one_hot(delay, self.delay_dim)  
+        delay_one_hot = one_hot(delay, self.delay_dim)
         embedding_delay = self.embed_fc1(delay_one_hot)
-        embedding_delay = self.embed_fc2(embedding_delay) # get autoregressive_embedding
+        embedding_delay = self.embed_fc2(embedding_delay)  # get autoregressive_embedding
 
         return x, delay, embedding + embedding_delay
 
 
 class QueuedHead(nn.Module):
     '''
-        Overview: The queue head uses autoregressive_embedding, action_type and entity_embeddings to get 
+        Overview: The queue head uses autoregressive_embedding, action_type and entity_embeddings to get
                   queued_logits and sampled queued.
         Interface: __init__, forward
     '''
+
     def __init__(self, cfg):
         '''
             Overview: initialize architect.
@@ -101,12 +103,12 @@ class QueuedHead(nn.Module):
     def forward(self, embedding, temperature=1.0):
         '''
             Overview: This head uses autoregressive_embedding to get queued_logits. Queued Head is similar to
-                      the delay head except a temperature of 0.8 is applied to the logits before sampling, the 
-                      size of queued_logits is 2 (for queueing and not queueing), and the projected queued is 
+                      the delay head except a temperature of 0.8 is applied to the logits before sampling, the
+                      size of queued_logits is 2 (for queueing and not queueing), and the projected queued is
                       not added to autoregressive_embedding if queuing is not possible for the chosen action_type.
             Arguments:
                 - embedding (:obj:`tensor`): autoregressive_embedding
-                - temperature (:obj:`float`): 
+                - temperature (:obj:`float`):
             Returns:
                 - (:obj`tensor`): queued_logits corresponding to the probabilities of queueing and not queueing
                 - (:obj`tensor`): queued that whether or no to queue this action
@@ -131,10 +133,11 @@ class QueuedHead(nn.Module):
 
 class SelectedUnitsHead(nn.Module):
     '''
-        Overview: The selected units head uses autoregressive_embedding, action_type and entity_embeddings to get 
+        Overview: The selected units head uses autoregressive_embedding, action_type and entity_embeddings to get
                   units_logits and sampled units.
         Interface: __init__, forward
     '''
+
     def __init__(self, cfg):
         '''
             Overview: initialize architect.
@@ -146,7 +149,6 @@ class SelectedUnitsHead(nn.Module):
         self.key_fc = fc_block(cfg.entity_embedding_dim, cfg.key_dim, activation=None, norm_type=None)
         # determines which entity types can accept action_type
         self.func_fc = fc_block(cfg.unit_type_dim, cfg.func_dim, activation=self.act, norm_type=None)
-        # ISSUE(zm) should not have activation
         self.fc1 = fc_block(cfg.input_dim, cfg.func_dim, activation=self.act, norm_type=None)
         self.fc2 = fc_block(cfg.func_dim, cfg.key_dim, activation=self.act, norm_type=None)
         self.embed_fc = fc_block(cfg.key_dim, cfg.input_dim, activation=None, norm_type=None)
@@ -158,7 +160,7 @@ class SelectedUnitsHead(nn.Module):
 
     def _get_key(self, entity_embedding):
         '''
-            Overview: computes a key corresponding to each entity by feeding entity_embeddings through 
+            Overview: computes a key corresponding to each entity by feeding entity_embeddings through
                       a 1D convolution with 32 channels and kernel size 1.
             Arguments:
                 - entity_embedding (:obj:`tensor`): entity embeddings
@@ -175,7 +177,7 @@ class SelectedUnitsHead(nn.Module):
 
     def _get_init_query(self, embedding, available_unit_type_mask):
         '''
-            Overview: passes autoregressive_embedding through a linear of size 256, adds func_embed, and 
+            Overview: passes autoregressive_embedding through a linear of size 256, adds func_embed, and
                       passes the combination through a ReLU and a linear of size 32.
             Arguments:
                 - embedding (:obj:`tensor`): autoregressive_embedding
@@ -185,7 +187,7 @@ class SelectedUnitsHead(nn.Module):
                 - (:obj`tensor`): state use None as default
         '''
         func_embed = self.func_fc(available_unit_type_mask)
-        x = self.fc1(embedding)  
+        x = self.fc1(embedding)
         x = self.fc2(x + func_embed)
 
         state = None
@@ -258,8 +260,8 @@ class SelectedUnitsHead(nn.Module):
         '''
         Input:
             embedding: [batch_size, input_dim(1024)]
-            available_unit_type_mask: A mask of which entity types can accept action_type, and this is a 
-                                      one-hot of this entity type with maximum equal to the number of unit 
+            available_unit_type_mask: A mask of which entity types can accept action_type, and this is a
+                                      one-hot of this entity type with maximum equal to the number of unit
                                       types. [batch_size, num_unit_type]
             available_units_mask: A mask of which units can be selected, initialised to allow selecting all
                                   entities that exist (including enemy units). [batch_size, num_units]
@@ -390,6 +392,7 @@ class TargetUnitHead(nn.Module):
         Overview: The target unit head uses autoregressive_embedding to get target_unit_logits and target_unit.
         Interface: __init__, forward
     '''
+
     def __init__(self, cfg):
         '''
             Overview: initialize architect.
@@ -414,20 +417,20 @@ class TargetUnitHead(nn.Module):
     def forward(self, embedding, available_unit_type_mask, available_units_mask, entity_embedding,
                 temperature=1.0):
         '''
-            Overview: First func_embed is computed the same as in the Selected Units head, and used in the 
+            Overview: First func_embed is computed the same as in the Selected Units head, and used in the
                       same way for the query (added to the output of the autoregressive_embedding passed
                       through a linear of size 256). The query is then passed through a ReLU and a linear
                       of size 32, and the query is applied to the keys which are created the same way as
-                      in the Selected Units head to get target_unit_logits. target_unit is sampled from 
+                      in the Selected Units head to get target_unit_logits. target_unit is sampled from
                       target_unit_logits using a multinomial with temperature 0.8. Note that since this is
-                      one of the two terminal arguments (along with Location Head, since no action has 
+                      one of the two terminal arguments (along with Location Head, since no action has
                       both a target unit and a target location), it does not return autoregressive_embedding.
             Arguments:
                 - embedding (:obj`tensor`): autoregressive_embeddingm, [batch_size, input_dim(1024)]
                 - available_unit_type_mask (:obj`tensor`): [batch_size, num_unit_type]
                 - available_units_mask (:obj`tensor`): [batch_size, num_units]
                 - entity_embedding (:obj`tensor`): [batch_size, num_units, entity_embedding_dim(256)]
-                - temperature (:obj:`float`): 
+                - temperature (:obj:`float`):
             Returns:
                 - (:obj`tensor`): logits, List(batch_size) - List(num_selected_units) - num_units
                 - (:obj`tensor`): units, [batch_size, num_units] 0-1 vector
@@ -459,6 +462,7 @@ class LocationHead(nn.Module):
                   and target_location.
         Interface: __init__, forward
     '''
+
     def __init__(self, cfg):
         '''
             Overview: initialize architect.
@@ -500,17 +504,17 @@ class LocationHead(nn.Module):
     def forward(self, embedding, map_skip, available_location_mask, temperature=1.0):
         '''
             Overview: First autoregressive_embedding is reshaped to have the same height/width as the final skip
-                      in map_skip (which was just before map information was reshaped to a 1D embedding) with 4 
-                      channels, and the two are concatenated together along the channel dimension, passed through 
-                      a ReLU, passed through a 2D convolution with 128 channels and kernel size 1, then passed 
-                      through another ReLU. The 3D tensor (height, width, and channels) is then passed through a 
-                      series of Gated ResBlocks with 128 channels, kernel size 3, and FiLM, gated on 
-                      autoregressive_embedding and using the elements of map_skip in order of last ResBlock skip 
-                      to first. Afterwards, it is upsampled 2x by each of a series of transposed 2D convolutions 
-                      with kernel size 4 and channel sizes 128, 64, 16, and 1 respectively (upsampled beyond the 
-                      128x128 input to 256x256 target location selection). Those final logits are flattened and 
-                      sampled (masking out invalid locations using `action_type`, such as those outside the camera 
-                      for build actions) with temperature 0.8 to get the actual target position. 
+                      in map_skip (which was just before map information was reshaped to a 1D embedding) with 4
+                      channels, and the two are concatenated together along the channel dimension, passed through
+                      a ReLU, passed through a 2D convolution with 128 channels and kernel size 1, then passed
+                      through another ReLU. The 3D tensor (height, width, and channels) is then passed through a
+                      series of Gated ResBlocks with 128 channels, kernel size 3, and FiLM, gated on
+                      autoregressive_embedding and using the elements of map_skip in order of last ResBlock skip
+                      to first. Afterwards, it is upsampled 2x by each of a series of transposed 2D convolutions
+                      with kernel size 4 and channel sizes 128, 64, 16, and 1 respectively (upsampled beyond the
+                      128x128 input to 256x256 target location selection). Those final logits are flattened and
+                      sampled (masking out invalid locations using `action_type`, such as those outside the camera
+                      for build actions) with temperature 0.8 to get the actual target position.
             Arguments:
                 - embedding (:obj`tensor`): autoregressive_embeddingm, [batch_size, input_dim(1024)]
                 - map_skip (:obj`tensor`): tensors of the outputs of intermediate computations
@@ -525,7 +529,7 @@ class LocationHead(nn.Module):
         x = self.act(cat_feature[-1])
         x = self.conv1(x)
         # reverse cat_feature instead of reversing resblock
-        for layer, act, skip in zip(self.res, self.res_act, reversed(cat_feature)):  
+        for layer, act, skip in zip(self.res, self.res_act, reversed(cat_feature)):
             x = layer(x)
             x = act(x, skip)
         for layer in self.upsample:

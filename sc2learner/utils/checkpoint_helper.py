@@ -95,10 +95,10 @@ class CheckpointHelper(object):
             Arguments:
                 - name (:obj:`str`): checkpoint's name
                 - model (:obj:`torch.nn.Module`): model to be saved
-                - optimizer (:obj:`Optimizer`): optimizer obj
+                - optimizer (:obj:`torch.optim.Optimizer`): optimizer obj
                 - last_iter (:obj:`CountVar`): iter num, default zero
                 - last_epoch (:obj:`CountVar`): epoch num, default zero
-                - dataset (:obj:`Dataset`): dataset, should be replaydataset
+                - dataset (:obj:`torch.utils.data.Dataset`): dataset, should be replaydataset
                 - actor_info (:obj:`torch.nn.Module`): attr of checkpoint, save actor info
                 - prefix_op (:obj:`str`): should be ['remove', 'add'], process on state_dict
                 - prefix (:obj:`str`): prefix to be processed on state_dict
@@ -143,10 +143,10 @@ class CheckpointHelper(object):
 
     def _print_mismatch_keys(self, model_state_dict, ckpt_state_dict):
         '''
-            Overview: show mismatch keys between model's state_dict and checkpoint's state_dict 
+            Overview: show mismatch keys between model's state_dict and checkpoint's state_dict
             Arguments:
                 - model_state_dict (:obj:`dict`): model's state_dict
-                - ckpt_state_dict (:obj:`dict`): checkpoint's state_dict 
+                - ckpt_state_dict (:obj:`dict`): checkpoint's state_dict
         '''
         model_keys = set(model_state_dict.keys())
         ckpt_keys = set(ckpt_state_dict.keys())

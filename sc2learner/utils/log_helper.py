@@ -96,7 +96,7 @@ class TensorBoardLogger(object):
         '''
         if name is None:
             name = 'default_tb_logger'
-        self.logger = SummaryWriter(os.path.join(path, name)) # get summary writer
+        self.logger = SummaryWriter(os.path.join(path, name))  # get summary writer
         self._var_names = {
             'scalar': [],
             'text': [],
