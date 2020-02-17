@@ -42,13 +42,6 @@ class AlphastarSLLearner(SLLearner):
             Overview: initialization method, using setting to build model, dataset, optimizer, lr_scheduler
                       and other helper. It can alse load checkpoint.
         '''
-        super(AlphastarSLLearner, self).__init__(*args, **kwargs)
-        setattr(self.dataloader, 'collate_fn', policy_collate_fn)  # use dataloader.collate_fn to call this function
-        self.temperature_scheduler = build_temperature_scheduler(self.cfg)  # get naive temperature scheduler
-        self._get_loss = self.time_helper.wrapper(self._get_loss)  # use time helper to calculate forward time
-        self.use_value_network = 'value' in self.cfg.model.keys()  # if value in self.cfg.model.keys(), use_value_network=True  # noqa
-        self.criterion = nn.CrossEntropyLoss()  # define loss function
-        self.resolution = self.cfg.data.resolution
         self.loss_func = {  # multi loss to be calculate
             'action_type': self._criterion_apply,
             'delay': self._criterion_apply,
@@ -56,7 +49,14 @@ class AlphastarSLLearner(SLLearner):
             'selected_units': self._selected_units_loss,
             'target_units': self._target_units_loss,
             'target_location': self._target_location_loss,
-        }
+        }  # must execute before super __init__
+        super(AlphastarSLLearner, self).__init__(*args, **kwargs)
+        setattr(self.dataloader, 'collate_fn', policy_collate_fn)  # use dataloader.collate_fn to call this function
+        self.temperature_scheduler = build_temperature_scheduler(self.cfg)  # get naive temperature scheduler
+        self._get_loss = self.time_helper.wrapper(self._get_loss)  # use time helper to calculate forward time
+        self.use_value_network = 'value' in self.cfg.model.keys()  # if value in self.cfg.model.keys(), use_value_network=True  # noqa
+        self.criterion = nn.CrossEntropyLoss()  # define loss function
+        self.resolution = self.cfg.data.resolution
 
     # overwrite
     def _init(self):
