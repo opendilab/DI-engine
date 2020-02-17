@@ -8,6 +8,9 @@ Main Function:
 import os
 import torch
 import logging
+import traceback
+import signal
+import sys
 from .data_helper import to_device
 
 
@@ -34,17 +37,18 @@ class CheckpointHelper(object):
         Overview: Concrete implementation of CheckpointHelper, to help to save or load checkpoint
         Interface: __init__, save_iterations, save, save_data, load
     '''
-    def __init__(self, save_dir):
+    def __init__(self, save_dir, rank=0):
         '''
             Overview: initialization method, check if save_dir exists.
             Arguments:
                 - save_dir (:obj:`str`): checkpoint save dir
+                - rank (:obs:`int`): creator process rank
         '''
         self.save_path = os.path.join(save_dir, 'checkpoints')
         self.data_save_path = os.path.join(save_dir, 'data')
-        if not os.path.exists(self.save_path):
+        if rank == 0 and not os.path.exists(self.save_path):
             os.mkdir(self.save_path)
-        if not os.path.exists(self.data_save_path):
+        if rank == 0 and not os.path.exists(self.data_save_path):
             os.mkdir(self.data_save_path)
 
     def _remove_prefix(self, state_dict, prefix='module.'):
@@ -230,3 +234,38 @@ class CountVar(object):
 
     def add(self, add_num):
         self._val += add_num
+
+
+def auto_checkpoint(func):
+    dead_signals = ['SIGILL', 'SIGINT', 'SIGKILL', 'SIGQUIT', 'SIGSEGV', 'SIGSTOP', 'SIGTERM', 'SIGBUS']
+    all_signals = dead_signals + ['SIGUSR1']
+
+    def register_signal_handler(handler):
+        valid_sig = []
+        invalid_sig = []
+        for sig in all_signals:
+            sig = getattr(signal, sig)
+            try:
+                signal.signal(sig, handler)
+                valid_sig.append(sig)
+            except Exception:
+                invalid_sig.append(sig)
+        print('valid sig: ({})\tinvalid sig: ({})'.format(valid_sig, invalid_sig))
+
+    def wrapper(*args, **kwargs):
+        handle = args[0]
+        assert(hasattr(handle, 'save_checkpoint'))
+
+        def signal_handler(signal_num, frame):
+            sig = signal.Signals(signal_num)
+            print("SIGNAL: {}({})".format(sig.name, sig.value))
+            handle.save_checkpoint()
+            sys.exit(1)
+
+        register_signal_handler(signal_handler)
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            handle.save_checkpoint()
+            traceback.print_exc()
+    return wrapper

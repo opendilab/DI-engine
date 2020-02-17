@@ -10,7 +10,7 @@ import torch
 from torch.utils.data import DataLoader
 from sc2learner.dataset import ReplayDataset, DistributedSampler
 from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper, to_device, CountVar,\
-    DistModule, dist_init, dist_finalize, allreduce
+    DistModule, dist_init, dist_finalize, allreduce, auto_checkpoint
 from sc2learner.agents.model import build_model
 
 
@@ -43,7 +43,7 @@ def build_lr_scheduler(optimizer):
 class SLLearner(object):
     '''
         Overview: base class for supervised learning on linklink, including basic processes.
-        Interface: __init__, run, finalize
+        Interface: __init__, run, finalize, save_checkpoint
     '''
 
     def __init__(self, cfg=None):
@@ -82,7 +82,7 @@ class SLLearner(object):
             self.logger.info('model:\n{}'.format(self.model))
             self._init()
         self.time_helper = build_time_helper(cfg)  # build time_helper for timing
-        self.checkpoint_helper = build_checkpoint_helper(cfg)  # build checkpoint_helper to load or save
+        self.checkpoint_helper = build_checkpoint_helper(cfg, self.rank)  # build checkpoint_helper to load or save
         self.last_iter = CountVar(init_val=0)  # count for iterations
         self.last_epoch = CountVar(init_val=0)  # count for epochs
         if cfg.common.load_path != '':
@@ -97,6 +97,7 @@ class SLLearner(object):
         self._optimize_step = self.time_helper.wrapper(self._optimize_step)
         self.max_epochs = cfg.train.max_epochs
 
+    @auto_checkpoint
     def run(self):
         '''
             Overview: train model with dataset in numbers of epoch
@@ -126,6 +127,8 @@ class SLLearner(object):
                     self._record_info(self.last_iter.val)  # save logger info
                 self.last_iter.add(1)
             self.last_epoch.add(1)
+        # save the final checkpoint
+        self.save_checkpoint()
 
     def finalize(self):
         '''
@@ -133,6 +136,11 @@ class SLLearner(object):
         '''
         if self.use_distributed:
             dist_finalize()
+
+    def save_checkpoint(self):
+        if self.rank == 0:
+            self.checkpoint_helper.save_iterations(self.last_epoch.val, self.model, optimizer=self.optimizer,
+                                                   dataset=self.dataset, last_epoch=self.last_epoch.val)
 
     def _reduce_info(self, data):
         '''
