@@ -36,7 +36,7 @@ model:
                 activation: 'relu'
                 norm_type: 'BN'
             entity_encoder:
-                input_dim: 3037
+                input_dim: 3039
                 head_dim: 128
                 hidden_dim: 1024
                 output_dim: 256
