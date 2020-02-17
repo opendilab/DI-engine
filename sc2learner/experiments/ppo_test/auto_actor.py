@@ -34,11 +34,11 @@ def scancel(job_id):
     info = subprocess.run(['scancel', str(job_id)])
 
 
-def launch(partition, node_address, num=1):
-    subprocess.run(['sh', 'actor.sh', partition, node_address, str(num)])
+def launch(partition, node_address, num=1, seed=0):
+    subprocess.run(['bash', 'actor.sh', partition, node_address, str(num), str(seed)])
 
 
-def pd_partition(partition, p_class, limit, policy,
+def pd_partition(partition, p_class, limit, policy, seed,
                  learner_node_address, actor_manager_node_address, forbidden_nodes_addr):
     actor_num = 0
 
@@ -71,10 +71,9 @@ def pd_partition(partition, p_class, limit, policy,
                 mix_list.append(node_address)
             elif state == 'idle':
                 idle_list.append(node_address)
-
     # idle
     for node_address in idle_list:
-        launch(partition, node_address, num=idle_actor_num)
+        launch(partition, node_address, num=idle_actor_num, seed=seed)
         actor_num += idle_actor_num
         if limit < actor_num:
             break
@@ -90,10 +89,10 @@ def pd_partition(partition, p_class, limit, policy,
             actor_num -= 1
     if limit < actor_num:
         return actor_num
-
+    seed += actor_num
     # mix
     for node_address in mix_list:
-        launch(partition, node_address, num=mix_actor_num)
+        launch(partition, node_address, num=mix_actor_num, seed=seed)
         actor_num += mix_actor_num
         if limit < actor_num:
             break
@@ -129,12 +128,12 @@ def run_manager(ip, cfg):
             if node_address == node_name:
                 manager_partition = partition_name
         assert manager_partition is not None, 'cannot find the partition of the actor_manager node'
-        subprocess.run(['sh', 'actor_manager_queue.sh',
+        subprocess.run(['bash', 'actor_manager_queue.sh',
                         manager_partition, node_name, mefull, '&'])
         time.sleep(30)
     else:
         print('run manager on manager node')
-        subprocess.run(['sh', 'actor_manager.sh', '&'])
+        subprocess.run(['bash', 'actor_manager.sh', '&'])
         time.sleep(30)
 
 
@@ -162,7 +161,7 @@ def get_actor_manager_local():
     return None
 
 
-def main(actor_limit, manager_flag=0):
+def main(actor_limit, manager_flag=0, seed_offset=0):
     # get lustre ip
     hostname = socket.gethostname()
     ip = socket.gethostbyname(hostname)
@@ -196,21 +195,23 @@ def main(actor_limit, manager_flag=0):
 
     forbidden_nodes_addr = cfg.auto_actor_start.forbidden_nodes_addr
     policy = cfg.auto_actor_start.policy
-
+    seed = cfg.auto_actor_start.actor_seed + seed_offset
     for partition in cpu_partitions:
         if actor_num_touse <= 0:
             break
-        actor_num = pd_partition(partition, 'cpu', actor_num_touse, policy,
+        actor_num = pd_partition(partition, 'cpu', actor_num_touse, policy, seed,
                                  learner_node_address, actor_manager_node_address, forbidden_nodes_addr)
+        seed += actor_num
         actor_num_cpu += actor_num
         actor_num_touse -= actor_num
     actor_num_all += actor_num_cpu
-
+    
     for partition in our_partitions:
         if actor_num_touse <= 0:
             break
-        actor_num = pd_partition(partition, 'our', actor_num_touse, policy,
+        actor_num = pd_partition(partition, 'our', actor_num_touse, policy, seed,
                                  learner_node_address, actor_manager_node_address, forbidden_nodes_addr)
+        seed += actor_num
         actor_num_our += actor_num
         actor_num_touse -= actor_num
     actor_num_all += actor_num_our
@@ -218,7 +219,7 @@ def main(actor_limit, manager_flag=0):
     for partition in other_partitions:
         if actor_num_touse <= 0:
             break
-        actor_num = pd_partition(partition, 'other', actor_num_touse, policy,
+        actor_num = pd_partition(partition, 'other', actor_num_touse, policy, seed,
                                  learner_node_address, actor_manager_node_address, forbidden_nodes_addr)
         actor_num_other += actor_num
         actor_num_touse -= actor_num
@@ -231,4 +232,7 @@ def main(actor_limit, manager_flag=0):
 
 
 if __name__ == '__main__':
-    main(int(sys.argv[1]), int(sys.argv[2]))
+    if len(sys.argv) > 3:
+        main(int(sys.argv[1]), int(sys.argv[2]), seed_offset=int(sys.argv[3]))
+    else:
+        main(int(sys.argv[1]), int(sys.argv[2]))

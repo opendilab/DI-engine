@@ -4,6 +4,7 @@ import yaml
 from easydict import EasyDict
 import random
 import time
+import pickle
 
 from sc2learner.utils import ManagerZmq
 from sc2learner.agents.model import PPOLSTM, PPOMLP
@@ -26,6 +27,7 @@ flags.DEFINE_string("config_path", "config.yaml", "path to config file")
 flags.DEFINE_string("load_path", "", "path to model checkpoint")
 flags.DEFINE_string("data_load_path", "", "path to load offline data")
 flags.DEFINE_string("node_name", "", "name of the running node")
+flags.DEFINE_string("seed", "", "game and network init seed for this worker")
 flags.FLAGS(sys.argv)
 
 
@@ -56,16 +58,20 @@ def create_env(cfg, difficulty, random_seed=None):
 
 
 def start_actor(cfg):
-    random.seed(time.time())
     difficulty = random.choice(cfg.env.bot_difficulties.split(','))
-    game_seed = random.randint(0, 2**32 - 1)
-    print("Game Seed: %d Difficulty: %s" % (game_seed, difficulty))
-    env = create_env(cfg, difficulty, game_seed)
+    if 'seed' in cfg:
+        seed = cfg.seed
+    else:
+        random.seed(time.time())
+        seed = random.randint(0, 2**32 - 1)
+    print("Game Seed: %d Difficulty: %s" % (seed, difficulty))
+    env = create_env(cfg, difficulty, seed)
     policy_func = {'mlp': PPOMLP,
                    'lstm': PPOLSTM}
     model = policy_func[cfg.model.policy](
         ob_space=env.observation_space,
         ac_space=env.action_space,
+        seed=cfg.seed
     )
     actor = PpoActor(env, model, cfg)
     actor.run()
@@ -73,12 +79,33 @@ def start_actor(cfg):
 
 
 def start_learner(cfg):
-    env = create_env(cfg, '1', 0)
+    if 'seed' in cfg:
+        seed = cfg.seed
+    else:
+        seed = 0
+    ob_path = cfg.common.save_path + '/obs.pickle'
+    ac_path = cfg.common.save_path + '/acs.pickle'
+    try:
+        with open(ob_path, 'rb') as ob:
+            observation_space = pickle.load(ob)
+        with open(ac_path, 'rb') as ac:
+            action_space = pickle.load(ac)
+        env = None
+    except FileNotFoundError:
+        print('Loading saved observation and action space failed, getting from env')
+        env = create_env(cfg, '1', seed)
+        observation_space = env.observation_space
+        action_space = env.action_space
+        with open(ob_path, 'wb') as ob:
+            pickle.dump(observation_space, ob)
+        with open(ac_path, 'wb') as ac:
+            pickle.dump(action_space, ac)
     policy_func = {'mlp': PPOMLP,
                    'lstm': PPOLSTM}
     model = policy_func[cfg.model.policy](
-        ob_space=env.observation_space,
-        ac_space=env.action_space,
+        ob_space=observation_space,
+        ac_space=action_space,
+        seed=cfg.seed
     )
     learner = PpoLearner(env, model, cfg)
     learner.logger.info('cfg:{}'.format(cfg))
@@ -145,9 +172,14 @@ def main(argv):
     cfg.common.load_path = FLAGS.load_path
     cfg.common.data_load_path = FLAGS.data_load_path
     if FLAGS.job_name == 'actor':
+        # preprocess the seed passed in
+        if FLAGS.seed:
+            random.seed(FLAGS.seed)
+            cfg.seed = random.randint(0, 2**32 - 1)
         cfg.communication.ip.actor = '.'.join(FLAGS.node_name.split('-')[-4:])
         start_actor(cfg)
     elif FLAGS.job_name == 'learner':
+        cfg.seed = cfg.train.learner_seed
         start_learner(cfg)
     elif FLAGS.job_name == 'learner_manager':
         start_learner_manager(cfg)

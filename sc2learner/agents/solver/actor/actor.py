@@ -97,7 +97,7 @@ class BaseActor(object):
         self.model_index = state_dict['model_index']
         self.model_age = time.time() - state_dict['timestamp']
         print('Model Wallclock Age:{}'.format(self.model_age))
-        if(self.model_age > 250):
+        if(self.model_age > 250): # TODO: add a entry in config file
             print('WARNING: Old Model Received, start clearing receive queue.')
             self.model_requestor.setsockopt(zmq.RCVTIMEO, 1000*3)
             while True:

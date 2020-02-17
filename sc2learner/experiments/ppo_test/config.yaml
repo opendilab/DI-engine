@@ -31,6 +31,7 @@ train:
     grad_clip_type: max_norm  # [max_norm, clip_value]
     grad_clip_value: 0.5
     min_update_count: 32
+    learner_seed: 10
     block_data:
         status: True
         reuse_threshold: 2
@@ -84,6 +85,7 @@ logger:
         difficulty_queue_len: 100
 # for auto_actor.py
 auto_actor_start:
+    actor_seed: 10
     # partitions available to user
     partitions_dict:
         10.10.30.91:

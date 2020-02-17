@@ -11,7 +11,7 @@ logger = logging.getLogger('default_logger')
 
 
 class OnlineDataset(object):
-    def __init__(self, data_maxlen, transform, block_data, min_update_count=0):
+    def __init__(self, data_maxlen, transform, block_data, min_update_count=0, seed=0):
         # TODO container optimization
         '''
             deque
@@ -24,13 +24,12 @@ class OnlineDataset(object):
         self.cur_model_index = 0
         self.transform = transform
         self.data_maxlen = data_maxlen
-
         self.lock = Lock()  # TODO review lock usage
         self.push_count = 0
         self.block_data = block_data
         self.min_update_count = min_update_count
-
         self.last_push_model_index = 0
+        random.seed(seed)
 
     def _acquire_lock(self):
         self.lock.acquire()
@@ -138,10 +137,18 @@ class OnlineDataset(object):
         logger.info("load data in {}".format(data_dir))
 
     def load_state_dict(self, checkpoint):
-        assert(isinstance(checkpoint, list))
-        self._acquire_lock()
-        self.data_queue.extend(checkpoint)
-        self._release_lock()
+        if isinstance(checkpoint, list): # for older checkpoints
+            self._acquire_lock()
+            self.data_queue.extend(checkpoint)
+            self._release_lock()
+        elif isinstance(checkpoint, dict):
+            self._acquire_lock()
+            self.data_queue.extend(checkpoint['queue'])
+            random.setstate(checkpoint['rng_state'])
+            self._release_lock()
+        else:
+            raise ValueError
 
     def state_dict(self):
-        return list(self.data_queue)
+        return {'queue':list(self.data_queue),
+                'rng_state':random.getstate()}
