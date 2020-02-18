@@ -76,6 +76,7 @@ def pd_partition(partition, p_class, limit, policy, seed,
     for node_address in idle_list:
         launch(partition, node_address, num=idle_actor_num, seed=seed)
         actor_num += idle_actor_num
+        seed += idle_actor_num
         if limit < actor_num:
             break
 
@@ -88,13 +89,14 @@ def pd_partition(partition, p_class, limit, policy, seed,
         if user == me and state == 'PD' and job_name == 'actor':
             scancel(job_id)
             actor_num -= 1
+            seed -= 1  # TODO: the cancelled job is not necessily having the highest seed
     if limit < actor_num:
-        return actor_num
-    seed += actor_num
+        return actor_num, seed
     # mix
     for node_address in mix_list:
         launch(partition, node_address, num=mix_actor_num, seed=seed)
         actor_num += mix_actor_num
+        seed += mix_actor_num
         if limit < actor_num:
             break
 
@@ -107,10 +109,8 @@ def pd_partition(partition, p_class, limit, policy, seed,
         if user == me and state == 'PD' and job_name == 'actor':
             scancel(job_id)
             actor_num -= 1
-    if limit < actor_num:
-        return actor_num
-
-    return actor_num
+            seed -= 1
+    return actor_num, seed
 
 
 def run_manager(ip, cfg):
@@ -197,12 +197,12 @@ def main(actor_limit, manager_flag=0, seed_offset=0):
     forbidden_nodes_addr = cfg.auto_actor_start.forbidden_nodes_addr
     policy = cfg.auto_actor_start.policy
     seed = cfg.auto_actor_start.actor_seed + seed_offset
+    # integer seed is sequentially assigned to each actor
     for partition in cpu_partitions:
         if actor_num_touse <= 0:
             break
-        actor_num = pd_partition(partition, 'cpu', actor_num_touse, policy, seed,
-                                 learner_node_address, actor_manager_node_address, forbidden_nodes_addr)
-        seed += actor_num
+        actor_num, seed = pd_partition(partition, 'cpu', actor_num_touse, policy, seed,
+                                       learner_node_address, actor_manager_node_address, forbidden_nodes_addr)
         actor_num_cpu += actor_num
         actor_num_touse -= actor_num
     actor_num_all += actor_num_cpu
@@ -210,9 +210,8 @@ def main(actor_limit, manager_flag=0, seed_offset=0):
     for partition in our_partitions:
         if actor_num_touse <= 0:
             break
-        actor_num = pd_partition(partition, 'our', actor_num_touse, policy, seed,
-                                 learner_node_address, actor_manager_node_address, forbidden_nodes_addr)
-        seed += actor_num
+        actor_num, seed = pd_partition(partition, 'our', actor_num_touse, policy, seed,
+                                       learner_node_address, actor_manager_node_address, forbidden_nodes_addr)
         actor_num_our += actor_num
         actor_num_touse -= actor_num
     actor_num_all += actor_num_our
@@ -220,16 +219,16 @@ def main(actor_limit, manager_flag=0, seed_offset=0):
     for partition in other_partitions:
         if actor_num_touse <= 0:
             break
-        actor_num = pd_partition(partition, 'other', actor_num_touse, policy, seed,
-                                 learner_node_address, actor_manager_node_address, forbidden_nodes_addr)
+        actor_num, seed = pd_partition(partition, 'other', actor_num_touse, policy, seed,
+                                       learner_node_address, actor_manager_node_address, forbidden_nodes_addr)
         actor_num_other += actor_num
         actor_num_touse -= actor_num
     actor_num_all += actor_num_other
 
     if actor_num_all < actor_limit:
         print('Warning: cannot start required number of actors!')
-    print(' cpu: {} \n our: {} \n other: {} \n total: {} \n limit: {} \n'
-          .format(actor_num_cpu, actor_num_our, actor_num_other, actor_num_all, actor_limit))
+    print(' cpu: {} \n our: {} \n other: {} \n total: {} \n limit: {} \n final_seed: {}\n'
+          .format(actor_num_cpu, actor_num_our, actor_num_other, actor_num_all, actor_limit, seed))
 
 
 if __name__ == '__main__':

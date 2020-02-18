@@ -58,12 +58,13 @@ def create_env(cfg, difficulty, random_seed=None):
 
 
 def start_actor(cfg):
-    difficulty = random.choice(cfg.env.bot_difficulties.split(','))
     if 'seed' in cfg:
         seed = cfg.seed
+        random.seed(seed)
     else:
         random.seed(time.time())
         seed = random.randint(0, 2**32 - 1)
+    difficulty = random.choice(cfg.env.bot_difficulties.split(','))
     print("Game Seed: %d Difficulty: %s" % (seed, difficulty))
     env = create_env(cfg, difficulty, seed)
     policy_func = {'mlp': PPOMLP,

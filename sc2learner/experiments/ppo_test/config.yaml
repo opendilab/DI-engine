@@ -40,7 +40,7 @@ train:
         sleep_time: 3
 communication:
     ip:
-        learner: '10.198.6.65'
+        learner: '10.198.6.59'
         learner_manager: 'auto' # regarded as the manager node of the lustre with learner if set to auto
         actor_manager: 'auto' # regarded as the manager node of the lustre where the actors are running if set to auto
         manager_node:
