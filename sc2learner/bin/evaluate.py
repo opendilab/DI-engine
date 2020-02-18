@@ -21,8 +21,9 @@ from sc2learner.envs.raw_env import SC2RawEnv
 from sc2learner.envs.actions.zerg_action_wrappers import ZergActionWrapper
 from sc2learner.envs.observations.zerg_observation_wrappers \
     import ZergObservationWrapper
+from sc2learner.envs.alphastar_env import AlphastarEnv
 from sc2learner.agents.model import PPOLSTM, PPOMLP
-from sc2learner.agents.solver import PpoAgent, RandomAgent, KeyboardAgent
+from sc2learner.agents.solver import PpoAgent, RandomAgent, KeyboardAgent, AlphastarAgent
 from sc2learner.utils import build_logger
 
 
@@ -31,28 +32,32 @@ flags.DEFINE_string("job_name", "", "actor or learner")
 flags.DEFINE_string("config_path", "config.yaml", "path to config file")
 flags.DEFINE_string("load_path", "", "path to model checkpoint")
 flags.DEFINE_string("replay_path", "", "folder name in /StarCraftII/Replays to save the evaluate replays")
-flags.DEFINE_string("difficulty", "1", "difficulty of bot to play with")
+flags.DEFINE_integer("difficulty", 1, "difficulty of bot to play with")
 flags.FLAGS(sys.argv)
 
 
 def create_env(cfg, random_seed=None):
-    env = SC2RawEnv(map_name=cfg.env.map_name,
-                    step_mul=cfg.env.step_mul,
-                    difficulty=cfg.env.difficulty,
-                    agent_race=cfg.env.agent_race,
-                    bot_race=cfg.env.bot_race,
-                    disable_fog=cfg.env.disable_fog,
-                    random_seed=random_seed)
-    env = ZergActionWrapper(env,
-                            game_version=cfg.env.game_version,
-                            mask=cfg.env.use_action_mask,
-                            use_all_combat_actions=cfg.env.use_all_combat_actions)
-    env = ZergObservationWrapper(
-        env,
-        use_spatial_features=False,
-        use_game_progress=(not cfg.model.policy == 'lstm'),
-        action_seq_len=1 if cfg.model.policy == 'lstm' else 8,
-        use_regions=cfg.env.use_region_features)
+    if cfg.common.agent == 'alphastar':
+        cfg.env.random_seed = random_seed
+        env = AlphastarEnv(cfg)
+    else:
+        env = SC2RawEnv(map_name=cfg.env.map_name,
+                        step_mul=cfg.env.step_mul,
+                        difficulty=cfg.env.difficulty,
+                        agent_race=cfg.env.agent_race,
+                        bot_race=cfg.env.bot_race,
+                        disable_fog=cfg.env.disable_fog,
+                        random_seed=random_seed)
+        env = ZergActionWrapper(env,
+                                game_version=cfg.env.game_version,
+                                mask=cfg.env.use_action_mask,
+                                use_all_combat_actions=cfg.env.use_all_combat_actions)
+        env = ZergObservationWrapper(
+            env,
+            use_spatial_features=False,
+            use_game_progress=(not cfg.model.policy == 'lstm'),
+            action_seq_len=1 if cfg.model.policy == 'lstm' else 8,
+            use_regions=cfg.env.use_region_features)
     return env
 
 
@@ -92,6 +97,9 @@ def evaluate(var_dict, cfg):
     else:
         path_info = 'no_model'
     name = 'eval_{}_{}_{}_{}_{}'.format(path_info, cfg.env.difficulty, cfg.model.action_type, log_time, rank+1)
+    dirname = os.path.dirname(name)
+    if not os.path.exists(dirname):
+        os.mkdir(dirname)
     logger, tb_logger, _ = build_logger(cfg, name=name)
     logger.info('cfg: {}'.format(cfg))
     logger.info("Rank %d Game Seed: %d" % (rank, game_seed))
@@ -105,6 +113,8 @@ def evaluate(var_dict, cfg):
         agent = RandomAgent(action_space=env.action_space)
     elif cfg.common.agent == 'keyboard':
         agent = KeyboardAgent(action_space=env.action_space)
+    elif cfg.common.agent == 'alphastar':
+        agent = AlphastarAgent(cfg)
     else:
         raise NotImplementedError
 
@@ -112,7 +122,7 @@ def evaluate(var_dict, cfg):
     if not os.path.exists(value_save_path):
         os.mkdir(value_save_path)
     cum_return = 0.0
-    action_counts = [0] * env.action_space.n
+    action_counts = [0] * env.action_num
 
     observation = env.reset()
     agent.reset()
@@ -122,13 +132,18 @@ def evaluate(var_dict, cfg):
         action = agent.act(observation)
         value = agent.value(observation)
         value_trace.append(value)
-        logger.info("Rank %d Step ID: %d Take Action: %d" % (rank, step_id, action))
+        action_type = action['action_type'] if isinstance(action, dict) else action
+        logger.info("Rank %d Step ID: %d Take Action: %s" % (rank, step_id,
+                                                             action if isinstance(action, dict) else action_type))
         observation, reward, done, _ = env.step(action)
-        action_counts[action] += 1
+        action_counts[action_type] += 1
         cum_return += reward
         step_id += 1
     if cfg.env.save_replay:
-        env.env.env.save_replay(cfg.common.agent + FLAGS.replay_path)
+        if hasattr(env, 'save_replay'):
+            env.save_replay(cfg.common.agent + FLAGS.replay_path)
+        else:
+            env.env.env.save_replay(cfg.common.agent + FLAGS.replay_path)
     path = os.path.join(value_save_path, 'value{}.pt'.format(rank))
     torch.save(torch.tensor(value_trace), path)
     for id, name in enumerate(env.action_names):
@@ -152,7 +167,6 @@ def main(argv):
     if not os.path.exists(base_dir + "/Replays/" + cfg.common.agent + FLAGS.replay_path):
         os.mkdir(base_dir + "/Replays/" + cfg.common.agent + FLAGS.replay_path)
     use_multiprocessing = cfg.common.get("use_multiprocessing", True)
-    assert(not use_multiprocessing)
     if use_multiprocessing:
         eval_func = partial(evaluate, cfg=cfg)
         pool = Pool(min(cfg.common.num_episodes, 20))

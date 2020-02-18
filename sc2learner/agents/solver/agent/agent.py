@@ -19,3 +19,6 @@ class BaseAgent(object):
 
     def act(self, obs):
         raise NotImplementedError
+
+    def value(self):
+        raise NotImplementedError

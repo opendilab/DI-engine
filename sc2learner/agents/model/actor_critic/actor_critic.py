@@ -13,14 +13,14 @@ class ActorCriticBase(nn.Module):
     def value(self, inputs):
         raise NotImplementedError
 
-    def evaluate(self, inputs):
+    def evaluate(self, inputs, **kwargs):
         raise NotImplementedError
 
     def mimic(self, inputs, **kwargs):
         raise NotImplementedError
 
-    def _actor_forward(self, inputs):
+    def _actor_forward(self, inputs, **kwargs):
         raise NotImplementedError
 
-    def _critic_forward(self, inputs):
+    def _critic_forward(self, inputs, **kwargs):
         raise NotImplementedError

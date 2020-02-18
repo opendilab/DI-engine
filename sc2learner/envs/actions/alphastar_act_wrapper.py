@@ -1,3 +1,4 @@
+import collections
 import torch
 from pysc2.lib import actions
 
@@ -9,7 +10,7 @@ class AlphastarActParser(object):
                                'toggle_autocast': self._parse_raw_toggle_autocast, }
         self.output_template = ['action_type', 'delay', 'queued', 'selected_units', 'target_units', 'target_location']
         self.map_size = (map_size.x, map_size.y)
-        if isinstance(feature_layer_resolution, tuple):
+        if isinstance(feature_layer_resolution, collections.Sequence):
             self.resolution = feature_layer_resolution
         else:
             self.resolution = (feature_layer_resolution, feature_layer_resolution)
@@ -36,6 +37,13 @@ class AlphastarActParser(object):
         new_y = int(coord[1] * self.resolution[1] / (self.map_size[1] + 1e-3))
         max_limit = self.resolution[0] * self.resolution[1]
         assert(new_x < max_limit and new_y < max_limit)
+        return (new_x, new_y)
+
+    def minimap_to_world_coord(self, location):
+        assert(location[0] < self.resolution[0])
+        assert(location[1] < self.resolution[1])
+        new_x = location[0] * self.map_size[0] / self.resolution[0]
+        new_y = location[1] * self.map_size[1] / self.resolution[1]
         return (new_x, new_y)
 
     # refer to https://github.com/Blizzard/s2client-proto/blob/master/s2clientprotocol/raw.proto

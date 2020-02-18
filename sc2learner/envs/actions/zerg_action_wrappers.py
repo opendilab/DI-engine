@@ -130,6 +130,7 @@ class ZergActionWrapper(gym.Wrapper):
             self.action_space = MaskDiscrete(len(self._actions))
         else:
             self.action_space = Discrete(len(self._actions))
+        self.action_num = self.action_space.n
 
     def step(self, action):
         actions = self._actions[action].function(self._dc)
