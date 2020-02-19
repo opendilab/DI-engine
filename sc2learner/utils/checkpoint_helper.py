@@ -19,17 +19,14 @@ logger = logging.getLogger('default_logger')
 
 def build_checkpoint_helper(cfg, rank=0):
     '''
-        Overview: use config to build checkpoint helper. Only rank == 0 can build.
+        Overview: use config to build checkpoint helper.
         Arguments:
             - cfg (:obj:`dict`): checkpoint_helper config
-            - rank (:obj:`int`): only rank == 0 can build
+            - rank (:obj:`int`): creator process rank
         Returns:
             - (:obj`CheckpointHelper`): checkpoint_helper created by this function
     '''
-    if rank == 0:
-        return CheckpointHelper(cfg.common.save_path)
-    else:
-        return None
+    return CheckpointHelper(cfg.common.save_path, rank)
 
 
 class CheckpointHelper(object):
