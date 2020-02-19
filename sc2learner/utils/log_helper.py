@@ -6,6 +6,7 @@ Main Function:
     2. CountVar, to help counting number.
 '''
 import logging
+import numbers
 import numpy as np
 import cv2
 import os
@@ -21,15 +22,21 @@ def build_logger(cfg, name=None, rank=0):
         Returns:
             - (:obj`TextLogger`): save terminal output
             - (:obj`TensorBoardLogger`): save output to tensorboard
-            - (:obj`ScalarRecord`): save output as scalar
+            - (:obj`VariableRecord`): record variable for further process
     '''
     # Note: Only support rank0 logger
     if rank == 0:
         path = cfg.common.save_path
         logger = TextLogger(path, name=name)
         tb_logger = TensorBoardLogger(path, name=name)
-        scalar_record = ScalarRecord(cfg.logger.print_freq)
-        return logger, tb_logger, scalar_record
+        var_record_type = cfg.logger.get("var_record_type", None)
+        if var_record_type is None:
+            variable_record = VariableRecord(cfg.logger.print_freq)
+        elif var_record_type == 'alphastar':
+            variable_record = AlphastarVarRecord(cfg.logger.print_freq)
+        else:
+            raise NotImplementedError("not support var_record_type: {}".format(var_record_type))
+        return logger, tb_logger, variable_record
     else:
         return None, None, None
 
@@ -160,14 +167,21 @@ class TensorBoardLogger(object):
         assert(name in self._var_names['image'])
         self.logger.add_image(name, *args, **kwargs)
 
-    def add_scalar_list(self, scalar_list):
+    def add_val_list(self, val_list, viz_type):
         '''
-            Overview: add message to scalar_list
+            Overview: add val_list info to tb
             Arguments:
-                - scalar_list (:obj:`list`): include name to be added
+                - val_list (:obj:`list`): include element(name, value, step) to be added
+                - viz_type (:obs:`str`): must be in ['scalar', 'scalars', 'histogram']
         '''
-        for n, v, s in scalar_list:
-            self.add_scalar(n, v, s)
+        assert(viz_type in ['scalar', 'scalars', 'histogram'])
+        func_dict = {
+            'scalar': self.add_scalar,
+            'scalars': self.add_scalars,
+            'histogram': self.add_histogram,
+        }
+        for n, v, s in val_list:
+            func_dict[viz_type](n, v, s)
 
     def _no_contain_name(self, name):
         for k, v in self._var_names.items():
@@ -185,77 +199,145 @@ class TensorBoardLogger(object):
         return self._var_names['scalar']
 
 
-class ScalarRecord(object):
+class VariableRecord(object):
     def __init__(self, length):
-        self.var_dict = {}
+        self.var_dict = {'scalar': {}, '1darray': {}}
         self.length = length
 
-    def register_var(self, name, length=None):
+    def register_var(self, name, length=None, var_type='scalar'):
+        assert(var_type in ['scalar', '1darray'])
         lens = self.length if length is None else length
-        self.var_dict[name] = ScalarAverageMeter(lens)
+        self.var_dict[var_type][name] = AverageMeter(lens)
 
     def update_var(self, info):
         assert(isinstance(info, dict))
         for k, v in info.items():
-            self.var_dict[k].update(v)
+            var_type = self._get_var_type(k)
+            self.var_dict[var_type][k].update(v)
 
-    def get_var_names(self):
-        return self.var_dict.keys()
+    def _get_var_type(self, k):
+        for var_type, var_type_dict in self.var_dict.items():
+            if k in var_type_dict.keys():
+                return var_type
+        raise KeyError("invalid key({}) in variable record".format(k))
 
-    def get_var(self, name):
-        handle_var = self.var_dict[name]
-        return '{}: val({:.6f})|avg({:.6f})'.format(name, handle_var.val, handle_var.avg)
+    def get_var_names(self, var_type='scalar'):
+        return self.var_dict[var_type].keys()
 
-    def get_var_tb_format(self, keys, cur_step):
-        ret = []
-        for k in keys:
-            if k in self.var_dict.keys():
-                v = self.var_dict[k]
-                ret.append([k, v.avg, cur_step])
-        return ret
+    def get_var_text(self, name, var_type='scalar'):
+        assert(var_type in ['scalar', '1darray'])
+        if var_type == 'scalar':
+            handle_var = self.var_dict[var_type][name]
+            return '{}: val({:.6f})|avg({:.6f})'.format(name, handle_var.val, handle_var.avg)
+        elif var_type == '1darray':
+            return self._get_var_text_1darray(name)
 
-    def get_var_all(self):
+    def get_vars_tb_format(self, keys, cur_step, var_type='scalar', **kwargs):
+        assert(var_type in ['scalar', '1darray'])
+        if var_type == 'scalar':
+            ret = []
+            var_keys = self.get_var_names(var_type)
+            for k in keys:
+                if k in var_keys:
+                    v = self.var_dict[var_type][k]
+                    ret.append([k, v.avg, cur_step])
+            return ret
+        elif var_type == '1darray':
+            return self._get_vars_tb_format_1darray(keys, cur_step, **kwargs)
+
+    def get_vars_text(self, var_type='scalar'):
         s = '\n'
         count = 0
-        for k in self.get_var_names():
-            s += self.get_var(k) + '\t'
+        for k in self.get_var_names(var_type):
+            s += self.get_var_text(k, var_type) + '\t'
             count += 1
             if count % 3 == 0:
                 s += '\n'
+        s += self._get_vars_text_1darray()
         return s
 
+    def _get_vars_text_1darray(self):
+        return ""
 
-class ScalarAverageMeter(object):
-    """Computes and stores the average and current value"""
+    def _get_vars_tb_format_1darray(self, keys, cur_step, **kwargs):
+        raise NotImplementedError
+
+
+class AlphastarVarRecord(VariableRecord):
+
+    # overwrite
+    def register_var(self, name, length=None, var_type='scalar', var_item_keys=None):
+        assert(var_type in ['scalar', '1darray'])
+        lens = self.length if length is None else length
+        self.var_dict[var_type][name] = AverageMeter(lens)
+        if not hasattr(self, 'var_item_keys'):
+            self.var_item_keys = {}
+        self.var_item_keys[name] = var_item_keys
+
+    # overwrite
+    def _get_vars_text_1darray(self):
+        s = "\n"
+        for k in self.get_var_names('1darray'):
+            val = self.var_dict['1darray'][k].avg
+            if k == 'action_type':
+                s += '{}:\t'.format(k)
+                items = [[n, v] for n, v in zip(self.var_item_keys[k], val) if v > 0]
+                items = sorted(items, key=lambda x: float(x[1]), reverse=True)
+                for n, v in items:
+                    s += '{}({:.2f})  '.format(n, v)
+                s += '\n'
+            else:
+                s += '{}:\t'.format(k)
+                for n, v in zip(self.var_item_keys[k], val):
+                    s += '{}({:.2f})  '.format(n, v)
+                s += '\n'
+        return s
+
+    # overwrite
+    def _get_vars_tb_format_1darray(self, keys, cur_step, viz_type=None):
+        assert(viz_type in ['scalars', 'histogram'])
+        if viz_type == 'scalars':
+            ret = []
+            var_keys = self.get_var_names('1darray')
+            for k in keys:
+                if k in var_keys:
+                    v = self.var_dict['1darray'][k]
+                    scalars = {k: v for k, v in zip(self.var_item_keys[k], v.avg)}
+                    ret.append([k, scalars, cur_step])
+            return ret
+        elif viz_type == 'histogram':
+            ret = []
+            var_keys = self.get_var_names('1darray')
+            for k in keys:
+                if k in var_keys:
+                    v = self.var_dict['1darray'][k]
+                    ret.append([k, v.avg, cur_step])
+            return ret
+
+
+class AverageMeter(object):
+    """
+        Overview: Computes and stores the average and current value, scalar and 1D-array
+    """
 
     def __init__(self, length=0):
+        assert(length > 0)
         self.length = length
         self.reset()
 
     def reset(self):
-        if self.length > 0:
-            self.history = []
-        else:
-            self.count = 0
-            self.sums = 0.0
+        self.history = []
         self.val = 0.0
         self.avg = 0.0
 
-    def update(self, val, num=1):
-        if self.length > 0:
-            # currently assert num==1 to avoid bad usage, refine when there are some explict requirements
-            assert num == 1
-            self.history.append(val)
-            if len(self.history) > self.length:
-                del self.history[0]
+    def update(self, val):
+        assert(isinstance(val, list) or isinstance(val, numbers.Integral) or isinstance(val, numbers.Real))
+        self.history.append(val)
+        if len(self.history) > self.length:
+            del self.history[0]
 
-            self.val = self.history[-1]
-            self.avg = np.mean(self.history)
-        else:
-            self.val = val
-            self.sums += val*num
-            self.count += num
-            self.avg = self.sums / self.count
+        self.val = self.history[-1]
+        self.avg = np.mean(self.history, axis=0)
 
 
 class DistributionTimeImage(object):
