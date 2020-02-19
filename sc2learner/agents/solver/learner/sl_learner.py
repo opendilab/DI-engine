@@ -139,7 +139,7 @@ class SLLearner(object):
 
     def save_checkpoint(self):
         if self.rank == 0:
-            self.checkpoint_helper.save_iterations(self.last_epoch.val, self.model, optimizer=self.optimizer,
+            self.checkpoint_helper.save_iterations(self.last_iter.val, self.model, optimizer=self.optimizer,
                                                    dataset=self.dataset, last_epoch=self.last_epoch.val)
 
     def _reduce_info(self, data):
