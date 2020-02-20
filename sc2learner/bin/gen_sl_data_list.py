@@ -2,7 +2,7 @@
 Copyright 2020 Sensetime X-lab. All Rights Reserved
 
 Main Function:
-    1. filter replays with specific constraints and generate 
+    1. filter replays with specific constraints and generate
     the filterd replay list
 '''
 from sc2learner.dataset import get_replay_list

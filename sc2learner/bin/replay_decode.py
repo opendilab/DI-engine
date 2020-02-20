@@ -2,7 +2,7 @@
 Copyright 2020 Sensetime X-lab. All Rights Reserved
 
 Main Function:
-    1. Generate torch-style data for supervised learning from replays 
+    1. Generate torch-style data for supervised learning from replays
 
 All data in proto format refers to https://github.com/Blizzard/s2client-proto/blob/master/s2clientprotocol/sc2api.proto
 '''
@@ -112,9 +112,10 @@ class ReplayProcessor(multiprocessing.Process):
 
     def _replay_prepare(self, controller, replay_path, print_info=True):
         '''
-            Overview: get basic information from a replay and validate it 
+            Overview: get basic information from a replay and validate it
             Arguments:
-                - controller (:obj:'RemoteController'): game controller whick takes actions and generates observations in proto format
+                - controller (:obj:'RemoteController'): game controller whick takes actions
+                and generates observations in proto format
                 - replay_path (:obj:'string'): path to the replay
                 - print_info (:obj:'bool'): a bool decides whether to print replay info
             Returns:
@@ -148,7 +149,7 @@ class ReplayProcessor(multiprocessing.Process):
                 - replay_path (:obj:'string'): path to the replay
                 - home (:obj:'int'): player id to identify player
             Returns:
-                - ret (:obj'dict'): replay information dict 
+                - ret (:obj'dict'): replay information dict
         '''
         away = 1 if home == 0 else 0
         race_dict = {1: 'Terran', 2: 'Zerg', 3: 'Protoss'}
@@ -218,8 +219,9 @@ class ReplayProcessor(multiprocessing.Process):
     def process_replay_multi(self, controllers, replay_data, map_data, player_ids):
         '''
             Overview: decode a replay step by step to generate data
-            Arguments: 
-                - controllers (:obj:'RemoteController'): game controller whick takes actions and generates observations in proto format
+            Arguments:
+                - controllers (:obj:'RemoteController'): game controller whick takes actions
+                and generates observations in proto format
                 - replay_data (:obj:'bytes'): replay file
                 - map_data (:obj:'bytes'): map file
                 - player_ids (:obj:'int'): player id to identify player
@@ -408,13 +410,13 @@ def main(unused_argv):
 def replay_decode(paths, version):
     '''
         Overview: decode replays and gather results
-        Argumens: 
+        Argumens:
             - paths (:obj:'string'): replays directory
-            - version (:obj:'Version'): game version 
+            - version (:obj:'Version'): game version
         Returns:
             - success_msg (:obj'list'): a list of process success message
             - error_msg (:obj'list'): a list of process error message
-    '''        
+    '''
     run_config = run_configs.get(version=version)
     p = ReplayProcessor(run_config, output_dir=FLAGS.output_dir)
     success_msg = []

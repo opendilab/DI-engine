@@ -2,7 +2,7 @@
 Copyright 2020 Sensetime X-lab. All Rights Reserved
 
 Main Function:
-    1. process stat data, get mmr, cumulative statistics and build order 
+    1. process stat data, get mmr, cumulative statistics and build order
 '''
 import torch
 import os

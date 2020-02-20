@@ -2,7 +2,7 @@
 Copyright 2020 Sensetime X-lab. All Rights Reserved
 
 Main Function:
-    1. parse numpy arrays actions into tensors for pytorch 
+    1. parse numpy arrays actions into tensors for pytorch
 '''
 
 import collections

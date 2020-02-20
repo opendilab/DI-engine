@@ -2,7 +2,7 @@
 Copyright 2020 Sensetime X-lab. All Rights Reserved
 
 Main Function:
-    1. parse numpy arrays observations into tensors that pytorch can use 
+    1. parse numpy arrays observations into tensors that pytorch can use
 '''
 from __future__ import absolute_import
 from __future__ import division
@@ -32,7 +32,7 @@ class SpatialObsWrapper(object):
             Arguments:
                 - cfg (:obj:'list'): wrapper config
                 - use_feature (:obj:'bool'): whether to use screen feature
-        '''        
+        '''
         self.feature_screen_id = {
             'height_map': 0,
             'visibility': 1,
@@ -64,7 +64,7 @@ class SpatialObsWrapper(object):
                 - idx_dict (:obj:'dict'): feature index
             Returns:
                 - ret (:obj'LongTensor'): parse result tensor
-        '''    
+        '''
         ret = []
         for item in self.cfg:
             key = item['key']
@@ -80,7 +80,7 @@ class SpatialObsWrapper(object):
         '''
             Overview: gather parse results from different feature, concatenate them
             Arguments:
-                - obs (:obj:'ndarray'): observation 
+                - obs (:obj:'ndarray'): observation
             Returns:
                 - (:obj'LongTensor'): feature tensor
         '''
@@ -192,7 +192,7 @@ class AlphastarObsParser(object):
     def parse(self, obs):
         '''
             Overview: gather results from sub-parsers, make them a dict
-            Arguments: 
+            Arguments:
                 - obs (:obj:'ndarray'): observation
             Returns:
                 - ret (:obj'dict'): a dict includes parse results
