@@ -35,12 +35,12 @@ class PpoLearner(BaseLearner):
     # overwrite
     def _init(self):
         super()._init()
-        self.scalar_record.register_var('total_loss')
-        self.scalar_record.register_var('pg_loss')
-        self.scalar_record.register_var('value_loss')
-        self.scalar_record.register_var('entropy_reg')
-        self.scalar_record.register_var('approximate_kl')
-        self.scalar_record.register_var('clipfrac')
+        self.variable_record.register_var('total_loss')
+        self.variable_record.register_var('pg_loss')
+        self.variable_record.register_var('value_loss')
+        self.variable_record.register_var('entropy_reg')
+        self.variable_record.register_var('approximate_kl')
+        self.variable_record.register_var('clipfrac')
 
         self.tb_logger.register_var('total_loss')
         self.tb_logger.register_var('pg_loss')
@@ -128,7 +128,7 @@ class PpoLearner(BaseLearner):
 
     # overwrite
     def _update_monitor_var(self, items, time_items):
-        keys = self.scalar_record.get_var_names()
+        keys = self.variable_record.get_var_names()
         new_dict = {}
         for k in keys:
             if k in items.keys():
@@ -138,8 +138,8 @@ class PpoLearner(BaseLearner):
                 else:
                     v = v
                 new_dict[k] = v
-        self.scalar_record.update_var(new_dict)
-        self.scalar_record.update_var(time_items)
+        self.variable_record.update_var(new_dict)
+        self.variable_record.update_var(time_items)
 
     # overwrite
     def _data_transform(self, data):

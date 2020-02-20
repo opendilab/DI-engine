@@ -1,3 +1,9 @@
+'''
+Copyright 2020 Sensetime X-lab. All Rights Reserved
+
+Main Function:
+    1. implementation of MultiLogitsLoss and its test
+'''
 import math
 import torch
 import torch.nn as nn
@@ -7,7 +13,16 @@ from sc2learner.nn_utils import one_hot
 
 
 class MultiLogitsLoss(nn.Module):
+    '''
+        Overview: base class for supervised learning on linklink, including basic processes.
+        Interface: __init__, forward
+    '''
     def __init__(self, criterion):
+        '''
+            Overview: initialization method, use cross_entropy as default criterion
+            Arguments:
+                - criterion (:obj:`str`): criterion type
+        '''
         super(MultiLogitsLoss, self).__init__()
         assert(criterion in ['cross_entropy'])
         self.criterion = criterion

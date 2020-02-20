@@ -422,7 +422,8 @@ RAW_TYPES = RawArguments.types(
     world=ArgumentType.point(),
     queued=ArgumentType.enum(QUEUED_OPTIONS, Queued),
     unit_tags=ArgumentType.unit_tags(512, 512),
-    target_unit_tag=ArgumentType.unit_tags(1, 512),
+    # target_unit_tag=ArgumentType.unit_tags(1, 512),  # GG error
+    target_unit_tag=ArgumentType.scalar(512),  # GG error
 )
 
 
