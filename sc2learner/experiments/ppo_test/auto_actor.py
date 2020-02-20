@@ -227,7 +227,7 @@ def main(actor_limit, manager_flag=0, seed_offset=0):
 
     if actor_num_all < actor_limit:
         print('Warning: cannot start required number of actors!')
-    print(' cpu: {} \n our: {} \n other: {} \n total: {} \n limit: {} \n final_seed: {}\n'
+    print(' cpu: {} \n our: {} \n other: {} \n total: {} \n limit: {} \n next_seed: {}\n'
           .format(actor_num_cpu, actor_num_our, actor_num_other, actor_num_all, actor_limit, seed))
 
 

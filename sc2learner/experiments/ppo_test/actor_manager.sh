@@ -1,5 +1,13 @@
 work_path=$(dirname $0)
-job_name=actor_manager
+
+if [ "$#" -ne 1 ]; then
+    job_name=actor_manager
+elif [ "$1" = "data" ]; then
+    job_name=actor_data_manager
+elif [ "$1" = "model" ]; then
+    job_name=actor_model_manager
+fi 
+
 key_word=sc2learner.bin.train_ppo
 function launch_func() {
     python3 -u -m sc2learner.bin.train_ppo --job_name $job_name --config_path $work_path/config.yaml

@@ -50,7 +50,8 @@ def create_env(cfg, difficulty, random_seed=None):
                             use_all_combat_actions=cfg.env.use_all_combat_actions)
     env = ZergObservationWrapper(env,
                                  use_spatial_features=False,
-                                 use_game_progress=(not cfg.model.policy == 'lstm'),
+                                 use_game_progress=(
+                                     not cfg.model.policy == 'lstm'),
                                  action_seq_len=1 if cfg.model.policy == 'lstm' else 8,
                                  use_regions=cfg.env.use_region_features)
     env.difficulty = difficulty
@@ -80,10 +81,6 @@ def start_actor(cfg):
 
 
 def start_learner(cfg):
-    if 'seed' in cfg:
-        seed = cfg.seed
-    else:
-        seed = 0
     ob_path = cfg.common.save_path + '/obs.pickle'
     ac_path = cfg.common.save_path + '/acs.pickle'
     try:
@@ -94,7 +91,7 @@ def start_learner(cfg):
         env = None
     except FileNotFoundError:
         print('Loading saved observation and action space failed, getting from env')
-        env = create_env(cfg, '1', seed)
+        env = create_env(cfg, '1', cfg.train.learner_seed)
         observation_space = env.observation_space
         action_space = env.action_space
         with open(ob_path, 'wb') as ob:
@@ -106,7 +103,7 @@ def start_learner(cfg):
     model = policy_func[cfg.model.policy](
         ob_space=observation_space,
         ac_space=action_space,
-        seed=cfg.seed
+        seed=cfg.train.learner_seed
     )
     learner = PpoLearner(env, model, cfg)
     learner.logger.info('cfg:{}'.format(cfg))
@@ -115,6 +112,10 @@ def start_learner(cfg):
 
 
 def start_actor_manager(cfg):
+    '''
+    Fully functional actor manager for relaying both model(from learner to actor)
+    and trajectory(from actor to learner)
+    '''
     ip = cfg.communication.ip
     port = cfg.communication.port
     HWM = cfg.communication.HWM.actor_manager
@@ -139,6 +140,55 @@ def start_actor_manager(cfg):
                          time_interval=time_interval)
     manager.run({'sender': True, 'receiver': True,
                  'forward_request': True, 'forward_reply': True})
+
+
+def start_actor_model_manager(cfg):
+    ip = cfg.communication.ip
+    port = cfg.communication.port
+    HWM = cfg.communication.HWM.actor_manager
+    send_queue_size = cfg.communication.queue_size.actor_manager_send
+    receive_queue_size = cfg.communication.queue_size.actor_manager_receive
+    if ip.learner_manager == 'auto':
+        learner_manager_ip_prefix = '.'.join(ip.learner.split('.')[0:3])
+        ip.learner_manager = ip.manager_node[learner_manager_ip_prefix]
+    print('auto set learner_manager ip to ' + ip.learner_manager)
+    apply_ip = {
+    }
+    apply_port = {
+        'request': port.actor_manager_model,
+        'reply': port.actor_model,
+    }
+    time_interval = cfg.communication.model_time_interval
+    manager = ManagerZmq(apply_ip, apply_port, name='actor_model_manager', HWM=HWM,
+                         send_queue_size=send_queue_size, receive_queue_size=receive_queue_size,
+                         time_interval=time_interval)
+    manager.run({'sender': False, 'receiver': False,
+                 'forward_request': True, 'forward_reply': True})
+
+
+def start_actor_data_manager(cfg):
+    ip = cfg.communication.ip
+    port = cfg.communication.port
+    HWM = cfg.communication.HWM.actor_manager
+    send_queue_size = cfg.communication.queue_size.actor_manager_send
+    receive_queue_size = cfg.communication.queue_size.actor_manager_receive
+    if ip.learner_manager == 'auto':
+        learner_manager_ip_prefix = '.'.join(ip.learner.split('.')[0:3])
+        ip.learner_manager = ip.manager_node[learner_manager_ip_prefix]
+    print('auto set learner_manager ip to ' + ip.learner_manager)
+    apply_ip = {
+        'send': ip.learner_manager,
+    }
+    apply_port = {
+        'send': port.learner_manager,
+        'receive': port.actor_manager,
+    }
+    time_interval = cfg.communication.model_time_interval
+    manager = ManagerZmq(apply_ip, apply_port, name='actor_data_manager', HWM=HWM,
+                         send_queue_size=send_queue_size, receive_queue_size=receive_queue_size,
+                         time_interval=time_interval)
+    manager.run({'sender': True, 'receiver': True,
+                 'forward_request': False, 'forward_reply': False})
 
 
 def start_learner_manager(cfg):
@@ -180,12 +230,15 @@ def main(argv):
         cfg.communication.ip.actor = '.'.join(FLAGS.node_name.split('-')[-4:])
         start_actor(cfg)
     elif FLAGS.job_name == 'learner':
-        cfg.seed = cfg.train.learner_seed
         start_learner(cfg)
     elif FLAGS.job_name == 'learner_manager':
         start_learner_manager(cfg)
     elif FLAGS.job_name == 'actor_manager':
         start_actor_manager(cfg)
+    elif FLAGS.job_name == 'actor_data_manager':
+        start_actor_data_manager(cfg)
+    elif FLAGS.job_name == 'actor_model_manager':
+        start_actor_model_manager(cfg)
     else:
         raise ValueError
 
