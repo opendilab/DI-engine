@@ -109,11 +109,9 @@ class AlphastarSLLearner(SLLearner):
                 loss_items[k].append(self.loss_func[kp](policy_logits[kp], actions[kp]))  # calculate loss
 
         for k, v in loss_items.items():
-            loss_items[k] = sum(v) / len(v)
+            loss_items[k] = sum(v) / (1e-9 + len(v))
             if not isinstance(loss_items[k], torch.Tensor):
-                dtype = policy_logits['action_type'].dtype
-                device = policy_logits['action_type'].device
-                loss_items[k] = torch.tensor([loss_items[k]], dtype=dtype, device=device)
+                loss_items[k] = torch.tensor([loss_items[k]], dtype=self.dtype, device=self.device)
         loss_items['total_loss'] = sum(loss_items.values())
         return loss_items
 
@@ -202,6 +200,8 @@ class AlphastarSLLearner(SLLearner):
         '''
         if isinstance(label, collections.Sequence):
             label = torch.cat(label, dim=0)
+        self.device = logits.device
+        self.dtype = logits.dtype
         return self.criterion(logits, label)
 
     def _queued_loss(self, logits, label):
