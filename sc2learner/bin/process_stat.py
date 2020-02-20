@@ -48,11 +48,13 @@ def batch_binary_encode(v, bit_num):
 
 
 def main():
-    data_dir = '/mnt/lustre/niuyazhe/data/sl_data_test_multi_sp'
+    data_dir = '/mnt/lustre/niuyazhe/data/sl_data_R3'
     location_num = 8
     for item in os.listdir(data_dir):
         name, suffix = item.split('.')
         if suffix == 'stat':
+            if os.path.exists(os.path.join(data_dir, name+'.stat_processed')):
+                continue
             stat = torch.load(os.path.join(data_dir, item))
             beginning_build_order = stat['begin_statistics']
             beginning_build_order_tensor = []

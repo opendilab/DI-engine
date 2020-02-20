@@ -129,6 +129,9 @@ def remove_repeat_data(min_delay=16, max_move=3):
                         selected_list = []
                         new_data.append(step)
             torch.save(new_data, os.path.join(data_dir, name+'.step_processed'))
+            meta = torch.load(os.path.join(data, name+'.meta'))
+            meta['step_num'] = len(new_data)
+            torch.save(meta, os.path.join(data, name+'.meta_processed'))
             print('replay: {}\ndata len: {}\tnew_data len: {}'.format(name, len(data), len(new_data)))
             count += 1
             if count % 10 == 0:
