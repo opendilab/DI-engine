@@ -236,7 +236,7 @@ class ReplayProcessor(multiprocessing.Process):
                 map_data=map_data,
                 options=interface,
                 observed_player_id=player_id))
-            
+            # initial features from game info
             feat = features.features_from_game_info(controller.game_info())
             feats.append(feat)
 
