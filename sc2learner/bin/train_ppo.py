@@ -6,16 +6,6 @@ import random
 import time
 import pickle
 
-from sc2learner.utils import ManagerZmq
-from sc2learner.agents.model import PPOLSTM, PPOMLP
-from sc2learner.agents.solver import PpoActor
-from sc2learner.agents.solver import PpoLearner
-from sc2learner.envs.raw_env import SC2RawEnv
-from sc2learner.envs.rewards.reward_wrappers import KillingRewardWrapper
-from sc2learner.envs.actions.zerg_action_wrappers import ZergActionWrapper
-from sc2learner.envs.observations.zerg_observation_wrappers \
-    import ZergObservationWrapper
-
 from absl import flags
 from absl import logging
 from absl import app
@@ -32,6 +22,13 @@ flags.FLAGS(sys.argv)
 
 
 def create_env(cfg, difficulty, random_seed=None):
+    # as the env is a very heavy dependency
+    # the import line moved here
+    from sc2learner.envs.raw_env import SC2RawEnv
+    from sc2learner.envs.rewards.reward_wrappers import KillingRewardWrapper
+    from sc2learner.envs.actions.zerg_action_wrappers import ZergActionWrapper
+    from sc2learner.envs.observations.zerg_observation_wrappers \
+        import ZergObservationWrapper
     env = SC2RawEnv(map_name='AbyssalReef',
                     step_mul=cfg.env.step_mul,
                     resolution=16,
@@ -59,6 +56,9 @@ def create_env(cfg, difficulty, random_seed=None):
 
 
 def start_actor(cfg):
+    from sc2learner.agents.model import PPOLSTM, PPOMLP
+    from sc2learner.agents.solver import PpoActor
+    difficulty = random.choice(cfg.env.bot_difficulties.split(','))
     if 'seed' in cfg:
         seed = cfg.seed
         random.seed(seed)
@@ -81,6 +81,8 @@ def start_actor(cfg):
 
 
 def start_learner(cfg):
+    from sc2learner.agents.model import PPOLSTM, PPOMLP
+    from sc2learner.agents.solver import PpoLearner
     ob_path = cfg.common.save_path + '/obs.pickle'
     ac_path = cfg.common.save_path + '/acs.pickle'
     try:
@@ -116,6 +118,8 @@ def start_actor_manager(cfg):
     Fully functional actor manager for relaying both model(from learner to actor)
     and trajectory(from actor to learner)
     '''
+
+    from sc2learner.utils import ManagerZmq
     ip = cfg.communication.ip
     port = cfg.communication.port
     HWM = cfg.communication.HWM.actor_manager
@@ -143,6 +147,7 @@ def start_actor_manager(cfg):
 
 
 def start_actor_model_manager(cfg):
+    from sc2learner.utils import ManagerZmq
     ip = cfg.communication.ip
     port = cfg.communication.port
     HWM = cfg.communication.HWM.actor_manager
@@ -167,6 +172,7 @@ def start_actor_model_manager(cfg):
 
 
 def start_actor_data_manager(cfg):
+    from sc2learner.utils import ManagerZmq
     ip = cfg.communication.ip
     port = cfg.communication.port
     HWM = cfg.communication.HWM.actor_manager
@@ -192,6 +198,8 @@ def start_actor_data_manager(cfg):
 
 
 def start_learner_manager(cfg):
+    from sc2learner.utils import ManagerZmq
+
     ip = cfg.communication.ip
     port = cfg.communication.port
     HWM = cfg.communication.HWM.learner_manager

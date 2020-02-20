@@ -19,6 +19,8 @@ class PPOMLP(ActorCriticBase):
         assert(action_type in ['rand', 'fixed', 'sample'])
         self.action_type = action_type
         torch.manual_seed(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
         if isinstance(ac_space, MaskDiscrete):
             ob_space, mask_space = ob_space.spaces
         self.use_mask = isinstance(ac_space, MaskDiscrete)
@@ -176,6 +178,8 @@ class PPOLSTM(ActorCriticBase):
                  fc_dim=512, lstm_dim=512, seed=0):
         super(PPOLSTM, self).__init__()
         torch.manual_seed(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
         if isinstance(ac_space, MaskDiscrete):
             ob_space, mask_space = ob_space.spaces
         self.use_mask = isinstance(ac_space, MaskDiscrete)
