@@ -105,4 +105,4 @@ model:
 logger:
     print_freq: 10
     save_freq: 200
-
+    var_record_type: 'alphastar'

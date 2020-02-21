@@ -17,25 +17,47 @@ class MultiLogitsLoss(nn.Module):
         Overview: base class for supervised learning on linklink, including basic processes.
         Interface: __init__, forward
     '''
-    def __init__(self, criterion):
+    def __init__(self, cfg=None, criterion=None, smooth_ratio=0.1):
         '''
             Overview: initialization method, use cross_entropy as default criterion
             Arguments:
+                - cfg (:obj:`dict`): config(type and kwargs), if cfg is not None, first use cfg
                 - criterion (:obj:`str`): criterion type
+                - smooth_ratio (:obs:`float`): smooth_ratio for label smooth
         '''
         super(MultiLogitsLoss, self).__init__()
-        assert(criterion in ['cross_entropy'])
+        if cfg is not None:
+            criterion = cfg.type
+            assert(criterion in ['cross_entropy', 'label_smooth_ce'])
+            if criterion == 'label_smooth_ce':
+                smooth_ratio = cfg.kwargs['smooth_ratio']
         self.criterion = criterion
+        if self.criterion == 'label_smooth_ce':
+            self.ratio = smooth_ratio
+
+    def _label_process(self, labels, logits):
+        N = logits.shape[1]
+        if self.criterion == 'cross_entropy':
+            return one_hot(labels, num=N)
+        elif self.criterion == 'label_smooth_ce':
+            val = float(self.ratio) / (N - 1)
+            ret = torch.full_like(logits, val)
+            ret.scatter_(1, labels.unsqueeze(1), 1-val)
+            return ret
+
+    def _nll_loss(self, nlls, labels):
+        ret = (-nlls * (labels.detach()))
+        return ret.sum(dim=1)
 
     def _get_metric_matrix(self, logits, labels):
         M, N = logits.shape
-        labels = one_hot(labels, num=N)
+        labels = self._label_process(labels, logits)
         logits = F.log_softmax(logits, dim=1)
         metric = []
         for i in range(M):
             logit = logits[i]
             logit = logit.repeat(M).reshape(M, N)
-            metric.append(F.binary_cross_entropy_with_logits(logit, labels, reduction='none').sum(dim=1))
+            metric.append(self._nll_loss(logit, labels))
         return torch.stack(metric, dim=0)
 
     def _match(self, matrix):
@@ -131,6 +153,6 @@ def _selected_units_loss():
 
 
 if __name__ == "__main__":
-    # for _ in range(4):
-    #    test_multi_logits_loss()
-    _selected_units_loss()
+    for _ in range(4):
+        test_multi_logits_loss()
+    # _selected_units_loss()

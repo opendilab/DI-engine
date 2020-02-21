@@ -77,7 +77,7 @@ class SLLearner(object):
         self.optimizer = build_optimizer(self.model, cfg)  # build optimizer using cfg
         self.lr_scheduler = build_lr_scheduler(self.optimizer)  # build lr_scheduler
         if self.rank == 0:  # only one thread need to build logger
-            self.logger, self.tb_logger, self.scalar_record = build_logger(cfg)
+            self.logger, self.tb_logger, self.variable_record = build_logger(cfg)
             self.logger.info('cfg:\n{}'.format(self.cfg))
             self.logger.info('model:\n{}'.format(self.model))
             self._init()
@@ -109,6 +109,7 @@ class SLLearner(object):
             cur_lr = self.lr_scheduler.get_lr()[0]
             for idx, data in enumerate(self.dataloader):  # one epoch
                 self.time_helper.start_time()
+                data_stat = self._get_data_stat(data)
                 if self.use_cuda:
                     batch_data = to_device(data, 'cuda')
                 data_time = self.time_helper.end_time()  # cal data load time
@@ -119,6 +120,7 @@ class SLLearner(object):
                               'total_batch_time': data_time+forward_time+backward_update_time}
                 var_items['cur_lr'] = cur_lr
                 var_items['epoch'] = self.last_epoch.val
+                var_items.update(data_stat)
 
                 if self.use_distributed:
                     var_items, time_items = [self._reduce_info(x) for x in [var_items, time_items]]
@@ -138,9 +140,22 @@ class SLLearner(object):
             dist_finalize()
 
     def save_checkpoint(self):
+        '''
+            Overview: save checkpoint named by current iteration(only rank 0)
+        '''
         if self.rank == 0:
-            self.checkpoint_helper.save_iterations(self.last_epoch.val, self.model, optimizer=self.optimizer,
+            self.checkpoint_helper.save_iterations(self.last_iter.val, self.model, optimizer=self.optimizer,
                                                    dataset=self.dataset, last_epoch=self.last_epoch.val)
+
+    def _get_data_stat(self, data):
+        '''
+            Overview: empty interface for data statistics
+            Arguments:
+                - data (:obj:`dict`): data dict for one step iteration
+            Returns:
+                - (:obj`dict`): data statistics(default empty dict)
+        '''
+        return {}
 
     def _reduce_info(self, data):
         '''
@@ -155,6 +170,10 @@ class SLLearner(object):
             new_data = {}
             for k, v in data.items():
                 new_data[k] = self._reduce_info(v)
+        elif isinstance(data, list):
+            new_data = []
+            for t in data:
+                new_data.append(self._reduce_info(t))
         elif isinstance(data, torch.Tensor):
             new_data = data.clone()
             allreduce(new_data)  # get data from other processes
@@ -174,9 +193,11 @@ class SLLearner(object):
                 - iterations (:obj:`int`): iteration number
         '''
         if iterations % self.cfg.logger.print_freq == 0:
-            self.logger.info('iterations:{}\t{}'.format(iterations, self.scalar_record.get_var_all()))
+            self.logger.info('iterations:{}\t{}'.format(iterations, self.variable_record.get_vars_text()))
             tb_keys = self.tb_logger.scalar_var_names
-            self.tb_logger.add_scalar_list(self.scalar_record.get_var_tb_format(tb_keys, iterations))
+            self.tb_logger.add_val_list(self.variable_record.get_vars_tb_format(
+                tb_keys, iterations, var_type='scalar'), viz_type='scalar')
+            self._record_additional_info(iterations)
         if iterations % self.cfg.logger.save_freq == 0:
             self.checkpoint_helper.save_iterations(iterations, self.model, optimizer=self.optimizer,
                                                    dataset=self.dataset, last_epoch=self.last_epoch.val)
@@ -189,25 +210,36 @@ class SLLearner(object):
         '''
         raise NotImplementedError
 
-    def _update_monitor_var(self, loss_items, time_items):
+    def _record_additional_info(self, iterations):
+        '''
+            Overview: empty interface to record additional info on logger
+            Arguments:
+                - iterations (:obj:`int`): iteration number
+        '''
+        pass
+
+    def _update_monitor_var(self, var_items, time_items):
         '''
             Overview: update monitor variables by given keys
             Arguments:
-                - loss_items (:obj:`dict`): use loss keys to update certain variables
+                - var_items (:obj:`dict`): use loss keys to update certain variables
                 - time_items (:obj:`dict`): time items need to be updated
         '''
-        keys = self.scalar_record.get_var_names()
+        keys = list(self.variable_record.get_var_names('scalar')) + list(self.variable_record.get_var_names('1darray'))
         new_dict = {}
         for k in keys:
-            if k in loss_items.keys():
-                v = loss_items[k]
-                if isinstance(v, torch.Tensor):  # get item
-                    v = v.item()
+            if k in var_items.keys():
+                v = var_items[k]
+                if isinstance(v, torch.Tensor):
+                    if v.shape == (1,):
+                        v = v.item()  # get item
+                    else:
+                        v = v.tolist()
                 else:
                     v = v
                 new_dict[k] = v
-        self.scalar_record.update_var(new_dict)
-        self.scalar_record.update_var(time_items)
+        self.variable_record.update_var(new_dict)
+        self.variable_record.update_var(time_items)
 
     def _optimize_step(self, loss):
         '''
@@ -226,12 +258,12 @@ class SLLearner(object):
         '''
             Overview: initialize logger
         '''
-        self.scalar_record.register_var('cur_lr')
-        self.scalar_record.register_var('epoch')
-        self.scalar_record.register_var('data_time')
-        self.scalar_record.register_var('forward_time')
-        self.scalar_record.register_var('backward_update_time')
-        self.scalar_record.register_var('total_batch_time')
+        self.variable_record.register_var('cur_lr')
+        self.variable_record.register_var('epoch')
+        self.variable_record.register_var('data_time')
+        self.variable_record.register_var('forward_time')
+        self.variable_record.register_var('backward_update_time')
+        self.variable_record.register_var('total_batch_time')
         self.tb_logger.register_var('cur_lr')
         self.tb_logger.register_var('epoch')
         self.tb_logger.register_var('total_batch_time')

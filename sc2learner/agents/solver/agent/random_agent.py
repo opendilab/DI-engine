@@ -25,3 +25,6 @@ class RandomAgent(BaseAgent):
 
     def reset(self):
         pass
+
+    def value(self, obs):
+        return 0

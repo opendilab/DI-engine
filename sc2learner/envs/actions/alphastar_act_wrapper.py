@@ -1,10 +1,27 @@
+'''
+Copyright 2020 Sensetime X-lab. All Rights Reserved
+
+Main Function:
+    1. parse numpy arrays actions into tensors for pytorch
+'''
+
 import collections
 import torch
 from pysc2.lib import actions
 
 
 class AlphastarActParser(object):
+    '''
+        Overview: parse action into tensors
+        Interface: __init__, parse
+    '''
     def __init__(self, feature_layer_resolution, map_size):
+        '''
+            Overview: initial related attributes
+            Arguments:
+                - feature_layer_resolution (:obj:'int'): feature layer resolution
+                - map_size (:obj:'obj'): map size metadata in proto format
+        '''
         self.input_template = {'camera_move': self._parse_raw_camera_move,
                                'unit_command': self._parse_raw_unit_command,
                                'toggle_autocast': self._parse_raw_toggle_autocast, }
@@ -20,6 +37,13 @@ class AlphastarActParser(object):
         return template
 
     def parse(self, action):
+        '''
+            Overview: parse an action
+            Arguments:
+                - action (:obj:'ActionRaw'): raw action in proto format
+            Returns:
+                - ret (:obj:'dict'): a dict includes tensors parsed from the action
+        '''
         ret = {}
         for k, f in self.input_template.items():
             act_val = getattr(action, k)

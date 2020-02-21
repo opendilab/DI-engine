@@ -10,8 +10,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from .sl_learner import SLLearner
+from pysc2.lib.static_data import ACTIONS
 from sc2learner.dataset import policy_collate_fn
-from sc2learner.nn_utils import MultiLogitsLoss
+from sc2learner.nn_utils import MultiLogitsLoss, build_criterion
 
 
 def build_temperature_scheduler(cfg):
@@ -37,6 +38,7 @@ class AlphastarSLLearner(SLLearner):
         Overview: Alphastar implementation inherits from SLLearner, including basic processes.
         Interface: __init__
     '''
+
     def __init__(self, *args, **kwargs):
         '''
             Overview: initialization method, using setting to build model, dataset, optimizer, lr_scheduler
@@ -50,12 +52,20 @@ class AlphastarSLLearner(SLLearner):
             'target_units': self._target_units_loss,
             'target_location': self._target_location_loss,
         }  # must execute before super __init__
+        self.data_stat = {
+            'action_type': [k for k in ACTIONS],
+            'delay': ['0-16', '17-32', '33-64', '65-128'],
+            'queued': ['no_attr', 'no_queued', 'queued'],
+            'selected_units': ['no_attr', '1', '2-8', '9-32', '33-64', '64+'],
+            'target_units': ['no_attr', 'target_units'],
+            'target_location': ['no_attr', 'target_location'],
+        }  # must execute before super __init__
         super(AlphastarSLLearner, self).__init__(*args, **kwargs)
         setattr(self.dataloader, 'collate_fn', policy_collate_fn)  # use dataloader.collate_fn to call this function
         self.temperature_scheduler = build_temperature_scheduler(self.cfg)  # get naive temperature scheduler
         self._get_loss = self.time_helper.wrapper(self._get_loss)  # use time helper to calculate forward time
         self.use_value_network = 'value' in self.cfg.model.keys()  # if value in self.cfg.model.keys(), use_value_network=True  # noqa
-        self.criterion = nn.CrossEntropyLoss()  # define loss function
+        self.criterion = build_criterion(self.cfg.train.criterion)  # define loss function
         self.resolution = self.cfg.data.resolution
 
     # overwrite
@@ -64,11 +74,17 @@ class AlphastarSLLearner(SLLearner):
             Overview: initialize logger
         '''
         super()._init()
-        self.scalar_record.register_var('total_loss')
+        self.variable_record.register_var('total_loss')
         self.tb_logger.register_var('total_loss')
         for k in self.loss_func.keys():
-            self.scalar_record.register_var(k + '_loss')
+            self.variable_record.register_var(k + '_loss')
             self.tb_logger.register_var(k + '_loss')
+
+        self.variable_record.register_var('action_type', var_type='1darray', var_item_keys=self.data_stat['action_type'])  # noqa
+        self.tb_logger.register_var('action_type', var_type='histogram')
+        for k in (set(self.data_stat.keys()) - {'action_type'}):
+            self.variable_record.register_var(k, var_type='1darray', var_item_keys=self.data_stat[k])
+            self.tb_logger.register_var(k, var_type='scalars')
 
     # overwrite
     def _get_loss(self, data):
@@ -93,13 +109,84 @@ class AlphastarSLLearner(SLLearner):
                 loss_items[k].append(self.loss_func[kp](policy_logits[kp], actions[kp]))  # calculate loss
 
         for k, v in loss_items.items():
-            loss_items[k] = sum(v) / len(v)
+            loss_items[k] = sum(v) / (1e-9 + len(v))
             if not isinstance(loss_items[k], torch.Tensor):
-                dtype = policy_logits['action_type'].dtype
-                device = policy_logits['action_type'].device
-                loss_items[k] = torch.tensor([loss_items[k]], dtype=dtype, device=device)
+                loss_items[k] = torch.tensor([loss_items[k]], dtype=self.dtype, device=self.device)
         loss_items['total_loss'] = sum(loss_items.values())
         return loss_items
+
+    # overwrite
+    def _get_data_stat(self, data):
+        data_stat = {k: {t: 0 for t in v} for k, v in self.data_stat.items()}
+        for step_data in data:
+            action = step_data['actions']
+            for k, v in action.items():
+                if k == 'action_type':
+                    for t in v:
+                        data_stat[k][t.item()] += 1
+                elif k == 'delay':
+                    for t in v:
+                        if t <= 16:
+                            data_stat[k]['0-16'] += 1
+                        elif t <= 32:
+                            data_stat[k]['17-32'] += 1
+                        elif t <= 64:
+                            data_stat[k]['33-64'] += 1
+                        elif t <= 128:
+                            data_stat[k]['65-128'] += 1
+                        else:
+                            raise ValueError("invalid delay value: {}".format(t))
+                elif k == 'queued':
+                    for t in v:
+                        if not isinstance(t, torch.Tensor):
+                            data_stat[k]['no_attr'] += 1
+                        elif t == 0:
+                            data_stat[k]['no_queued'] += 1
+                        elif t == 1:
+                            data_stat[k]['queued'] += 1
+                        else:
+                            raise ValueError("invalid queued value: {}".format(t))
+                elif k == 'selected_units':
+                    for t in v:
+                        if not isinstance(t, torch.Tensor):
+                            data_stat[k]['no_attr'] += 1
+                        else:
+                            num = t.shape[0]
+                            if num <= 0:
+                                raise ValueError("invalid queued value: {}".format(t))
+                            elif num <= 1:
+                                data_stat[k]['1'] += 1
+                            elif num <= 8:
+                                data_stat[k]['2-8'] += 1
+                            elif num <= 32:
+                                data_stat[k]['9-32'] += 1
+                            elif num <= 64:
+                                data_stat[k]['33-64'] += 1
+                            else:
+                                data_stat[k]['64+'] += 1
+                elif k == 'target_units':
+                    for t in v:
+                        if not isinstance(t, torch.Tensor):
+                            data_stat[k]['no_attr'] += 1
+                        else:
+                            data_stat[k]['target_units'] += 1
+                elif k == 'target_location':
+                    for t in v:
+                        if not isinstance(t, torch.Tensor):
+                            data_stat[k]['no_attr'] += 1
+                        else:
+                            data_stat[k]['target_location'] += 1
+        data_stat = {k: list(v.values()) for k, v in data_stat.items()}
+        return data_stat
+
+    # overwrite
+    def _record_additional_info(self, iterations):
+        histogram_keys = ['action_type']
+        scalars_keys = self.data_stat.keys() - histogram_keys
+        self.tb_logger.add_val_list(self.variable_record.get_vars_tb_format(
+            scalars_keys, iterations, var_type='1darray', viz_type='scalars'), viz_type='scalars')
+        self.tb_logger.add_val_list(self.variable_record.get_vars_tb_format(
+            histogram_keys, iterations, var_type='1darray', viz_type='histogram'), viz_type='histogram')
 
     def _criterion_apply(self, logits, label):
         '''
@@ -113,6 +200,8 @@ class AlphastarSLLearner(SLLearner):
         '''
         if isinstance(label, collections.Sequence):
             label = torch.cat(label, dim=0)
+        self.device = logits.device
+        self.dtype = logits.dtype
         return self.criterion(logits, label)
 
     def _queued_loss(self, logits, label):
@@ -142,7 +231,7 @@ class AlphastarSLLearner(SLLearner):
             Returns:
                 - (:obj`tensor`): criterion result
         '''
-        criterion = MultiLogitsLoss(criterion='cross_entropy')  #
+        criterion = MultiLogitsLoss(self.cfg.train.criterion)
         label = [x for x in label if isinstance(x, torch.Tensor)]
         if len(label) == 0:
             return 0

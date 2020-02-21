@@ -156,7 +156,7 @@ class BaseLearner(object):
 
         self.optimizer = build_optimizer(model, cfg)
         self.lr_scheduler = build_lr_scheduler(self.optimizer)
-        self.logger, self.tb_logger, self.scalar_record = build_logger(cfg)
+        self.logger, self.tb_logger, self.variable_record = build_logger(cfg)
         self.grad_clipper = build_grad_clip(cfg)
         self.time_helper = build_time_helper(cfg)
         self.checkpoint_helper = build_checkpoint_helper(cfg)
@@ -207,9 +207,9 @@ class BaseLearner(object):
 
     def _record_info(self, iterations):
         if iterations % self.cfg.logger.print_freq == 0:
-            self.logger.info('iterations:{}\t{}'.format(iterations, self.scalar_record.get_var_all()))
+            self.logger.info('iterations:{}\t{}'.format(iterations, self.variable_record.get_vars_text()))
             tb_keys = self.tb_logger.scalar_var_names
-            self.tb_logger.add_scalar_list(self.scalar_record.get_var_tb_format(tb_keys, iterations))
+            self.tb_logger.add_val_list(self.variable_record.get_vars_tb_format(tb_keys, iterations), viz_type='scalar')
             self.tb_logger.add_text('history_actor_info', str(self.history_actor_info), iterations)
             self.tb_logger.add_scalars('actor_monitor', self.history_actor_info.get_cls_by_time(), iterations)
             self.tb_logger.add_scalars('win_rate', self.history_actor_info.get_win_rate(), iterations)
@@ -246,9 +246,9 @@ class BaseLearner(object):
         # TODO support reduce gradient
         self.optimizer.step()
         update_step_time = self.time_helper.end_time()
-        self.scalar_record.update_var({'backward_time': backward_time,
-                                       'grad_clipper_time': grad_clipper_time,
-                                       'update_step_time': update_step_time})
+        self.variable_record.update_var({'backward_time': backward_time,
+                                         'grad_clipper_time': grad_clipper_time,
+                                         'update_step_time': update_step_time})
 
     def _pull_data(self, zmq_context, port):
         receiver = zmq_context.socket(zmq.PULL)
@@ -284,18 +284,18 @@ class BaseLearner(object):
             receiver.send_pyobj(state_dict)
 
     def _init(self):
-        self.scalar_record.register_var('cur_lr')
-        self.scalar_record.register_var('push_rate')
-        self.scalar_record.register_var('avg_usage')
-        self.scalar_record.register_var('push_count')
-        self.scalar_record.register_var('data_staleness')
-        self.scalar_record.register_var('total_batch_time')
-        self.scalar_record.register_var('data_time')
-        self.scalar_record.register_var('forward_time')
-        self.scalar_record.register_var('backward_update_time')
-        self.scalar_record.register_var('backward_time')
-        self.scalar_record.register_var('grad_clipper_time')
-        self.scalar_record.register_var('update_step_time')
+        self.variable_record.register_var('cur_lr')
+        self.variable_record.register_var('push_rate')
+        self.variable_record.register_var('avg_usage')
+        self.variable_record.register_var('push_count')
+        self.variable_record.register_var('data_staleness')
+        self.variable_record.register_var('total_batch_time')
+        self.variable_record.register_var('data_time')
+        self.variable_record.register_var('forward_time')
+        self.variable_record.register_var('backward_update_time')
+        self.variable_record.register_var('backward_time')
+        self.variable_record.register_var('grad_clipper_time')
+        self.variable_record.register_var('update_step_time')
 
         self.tb_logger.register_var('cur_lr')
         self.tb_logger.register_var('push_rate')
