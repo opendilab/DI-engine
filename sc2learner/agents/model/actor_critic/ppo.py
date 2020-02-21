@@ -14,10 +14,13 @@ from .actor_critic import ActorCriticBase
 
 
 class PPOMLP(ActorCriticBase):
-    def __init__(self, ob_space, ac_space, fc_dim=512, action_type='rand', viz=False):
+    def __init__(self, ob_space, ac_space, seed=0, fc_dim=512, action_type='rand', viz=False):
         super(PPOMLP, self).__init__()
         assert(action_type in ['rand', 'fixed', 'sample'])
         self.action_type = action_type
+        torch.manual_seed(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
         if isinstance(ac_space, MaskDiscrete):
             ob_space, mask_space = ob_space.spaces
         self.use_mask = isinstance(ac_space, MaskDiscrete)
@@ -172,8 +175,11 @@ class LSTMFC(nn.Module):
 
 class PPOLSTM(ActorCriticBase):
     def __init__(self, ob_space, ac_space, unroll_length,
-                 fc_dim=512, lstm_dim=512):
+                 fc_dim=512, lstm_dim=512, seed=0):
         super(PPOLSTM, self).__init__()
+        torch.manual_seed(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
         if isinstance(ac_space, MaskDiscrete):
             ob_space, mask_space = ob_space.spaces
         self.use_mask = isinstance(ac_space, MaskDiscrete)

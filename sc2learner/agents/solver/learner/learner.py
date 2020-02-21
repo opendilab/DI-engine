@@ -90,6 +90,8 @@ class HistoryActorInfo(object):
                     cls = look_up(last_update_time)
                     result[cls] += 1
                     result['total'] += 1
+            if self.actor_monitor_arg.print_slow_actors and cls == 'slow':
+                print('SLOW ACTOR:{}'.format(k))
         return result
 
     def get_distribution(self, key):
@@ -113,7 +115,8 @@ class HistoryActorInfo(object):
         return {k: win_rate(v) for k, v in self.game_results.items()}
 
     def state_dict(self):
-        return {'actor_data': self._data, 'game_results': self.game_results}
+        return {'actor_data': self._data,
+                'game_results': self.game_results}
 
     def load_state_dict(self, state_dict):
         self._data = state_dict['actor_data']
@@ -135,17 +138,16 @@ class BaseLearner(object):
 
         self.zmq_context = zmq.Context()
         self.dataset = OnlineDataset(data_maxlen=cfg.train.learner_data_queue_size,
-                                     transform=self._data_transform, block_data=cfg.train.block_data)
+                                     transform=self._data_transform,
+                                     block_data=cfg.train.block_data,
+                                     min_update_count=cfg.train.min_update_count,
+                                     seed=cfg.train.learner_seed)
         self.dataloader = OnlineDataLoader(self.dataset, batch_size=cfg.train.batch_size)
 
         ip = cfg.communication.ip
         port = cfg.communication.port
-        if ip['learner_manager'] == ip['actor_manager']:
-            pull_port = port['learner']
-            rep_port = port['actor']
-        else:
-            pull_port = port['learner']
-            rep_port = port['learner_manager_model']
+        pull_port = port['learner']
+        rep_port = port['learner_manager_model']
         self.HWM = cfg.communication.HWM['learner']
         self.pull_thread = Thread(target=self._pull_data,
                                   args=(self.zmq_context, pull_port))
@@ -193,9 +195,12 @@ class BaseLearner(object):
                           'total_batch_time': data_time+forward_time+backward_update_time}
             var_items['cur_lr'] = cur_lr
             var_items['avg_usage'] = avg_usage
-            var_items['push_count'] = push_count
+            if self.last_iter.val != 0:
+                var_items['push_count'] = push_count
             var_items['data_staleness'] = self.last_iter.val - avg_model_index
-
+            if self.last_iter.val != 0:
+                var_items['push_rate'] = push_count / (data_time + forward_time + backward_update_time)
+            print('Last Push Staleness:{}'.format(self.last_iter.val - self.dataset.last_push_model_index))
             self._update_monitor_var(var_items, time_items)
             self._record_info(self.last_iter.val)
             self.last_iter.add(1)
@@ -212,6 +217,9 @@ class BaseLearner(object):
                                          self.history_actor_info.get_distribution('data_rollout_time'), iterations)
             self.tb_logger.add_histogram('update_model_time',
                                          self.history_actor_info.get_distribution('update_model_time'), iterations)
+            self.tb_logger.add_histogram('dataset_staleness',
+                                         np.array([iterations - d['model_index']
+                                                   for d in self.dataset.data_queue]), iterations)
             rollout_img = self.history_actor_info.get_distribution_img('data_rollout_time')
             self.tb_logger.add_image('data_rollout_time_img', rollout_img, iterations)
             update_model_img = self.history_actor_info.get_distribution_img('update_model_time')
@@ -254,7 +262,7 @@ class BaseLearner(object):
                 self._parse_pull_data(data)
             elif isinstance(data, list):
                 for d in data:
-                    self.history_actor_info.update_actor_info(data)
+                    self.history_actor_info.update_actor_info(d)
                     self._parse_pull_data(d)
             else:
                 raise TypeError(type(data))
@@ -272,11 +280,12 @@ class BaseLearner(object):
             msg = receiver.recv_string()
             assert(msg == 'request model')
             state_dict = {k: v.to('cpu') for k, v in self.model.state_dict().items()}
-            state_dict = {'state_dict': state_dict, 'model_index': self.last_iter.val}
+            state_dict = {'state_dict': state_dict, 'model_index': self.last_iter.val, 'timestamp': time.time()}
             receiver.send_pyobj(state_dict)
 
     def _init(self):
         self.variable_record.register_var('cur_lr')
+        self.variable_record.register_var('push_rate')
         self.variable_record.register_var('avg_usage')
         self.variable_record.register_var('push_count')
         self.variable_record.register_var('data_staleness')
@@ -289,6 +298,7 @@ class BaseLearner(object):
         self.variable_record.register_var('update_step_time')
 
         self.tb_logger.register_var('cur_lr')
+        self.tb_logger.register_var('push_rate')
         self.tb_logger.register_var('avg_usage')
         self.tb_logger.register_var('push_count')
         self.tb_logger.register_var('data_staleness')
@@ -297,6 +307,7 @@ class BaseLearner(object):
         self.tb_logger.register_var('actor_monitor', var_type='scalars')
         self.tb_logger.register_var('data_rollout_time', var_type='histogram')
         self.tb_logger.register_var('update_model_time', var_type='histogram')
+        self.tb_logger.register_var('dataset_staleness', var_type='histogram')
         self.tb_logger.register_var('data_rollout_time_img', var_type='image')
         self.tb_logger.register_var('update_model_time_img', var_type='image')
         self.tb_logger.register_var('win_rate', var_type='scalars')

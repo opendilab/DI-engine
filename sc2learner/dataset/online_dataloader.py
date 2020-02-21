@@ -1,5 +1,4 @@
 from torch.utils.data import _utils
-import random
 
 
 class OnlineDataLoader(object):
@@ -11,13 +10,9 @@ class OnlineDataLoader(object):
             self.collate_fn = collate_fn
         self.batch_size = batch_size
 
-    def _get_indices(self):
-        indices = random.sample([i for i in range(self.dataset.maxlen)], self.batch_size)
-        return indices
-
     def __next__(self):
-        indices = self._get_indices()
-        batch, avg_usage, push_count, avg_model_index = self.dataset.get_indice_data(indices, self.cur_model_index)
+        batch, avg_usage, push_count, avg_model_index = \
+               self.dataset.get_sample_batch(self.batch_size, self.cur_model_index)
         batch = self.collate_fn(batch)
         return batch, avg_usage, push_count, avg_model_index
 

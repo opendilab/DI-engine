@@ -30,43 +30,100 @@ train:
     use_value_clip: False
     grad_clip_type: max_norm  # [max_norm, clip_value]
     grad_clip_value: 0.5
+    min_update_count: 32
+    learner_seed: 10
     block_data:
         status: True
         reuse_threshold: 2
-        staleness_threshold: 1000
+        staleness_threshold: 200
+        max_acceptable_push_staleness: 180
         sleep_time: 3
 communication:
     ip:
-        learner: '10.198.6.66'
-        learner_manager: '10.198.6.31'
-        actor_manager: '10.198.6.62'  # if single lustre, set learner_manager == actor_manager
+        learner: '10.198.6.59'
+        learner_manager: 'auto' # regarded as the manager node of the lustre with learner if set to auto
+        actor_manager: 'auto' # regarded as the manager node of the lustre where the actors are running if set to auto
+        manager_node:
+            10.198.8: '10.198.8.31'
+            10.198.6: '10.198.6.31'
+            10.5.38: '10.5.38.31'
+            10.5.39: '10.5.38.31'
+            10.5.36: '10.5.36.31'
+            10.5.37: '10.5.36.31'
+            10.10.30: '10.10.30.91'
     port:
-        learner: 5710
-        learner_manager: 5711
-        actor_manager: 5712
-        actor: 5713
+        learner: 29500
+        learner_manager: 29501
+        actor_manager: 29502
+        actor: 29503
 
-        learner_manager_model: 5716
-        actor_manager_model: 5717
-        actor_model: 5718
+        learner_manager_model: 29504
+        actor_manager_model: 29505
+        actor_model: 29506
     HWM:
         learner: 1
         learner_manager: 1
         actor_manager: 1
         actor: 1
     queue_size:
+        # send queue size will not affect the staleness
         learner_manager_send: 256
-        learner_manager_receive: 32
+        learner_manager_receive: 1
         actor_manager_send: 128
-        actor_manager_receive: 16
+        actor_manager_receive: 1
     model_time_interval: 0.5  # 130 second 128 steps rollout 20 tasks per node
 logger:
-    print_freq: 500
-    save_freq: 5000
+    print_freq: 50
+    save_freq: 1000
     actor_monitor:
+        print_slow_actors: True
         speed:
-            fast: 100
-            normal: 200
+            fast: 15
+            normal: 100
             slow: 2000
         difficulties: ['1', '2', '4', '6', '9', 'A']
         difficulty_queue_len: 100
+# for auto_actor.py
+auto_actor_start:
+    actor_seed: 10
+    # partitions available to user
+    partitions_dict:
+        10.10.30.91:
+            cpu: ['CPU']
+            ours: []
+            others: ['VI_IPS_V', 'VI_ID_1080', 'VI_IPS_1080']
+        10.5.36.31:
+            cpu: []
+            ours: []
+            others: ['VI_Face_1080TI', 'VI_ID_1080TI', 'VI_SP_VA_1080TI']
+        10.5.38.31:
+            cpu: []
+            ours: ['VI_SP_Y_1080TI']
+            others: ['VI_ID_1080TI', 'VI_IPS_1080TI', 'VI_SP_X_1080TI', 'VI_SP_Z_1080TI', 'VI_UC_1080TI']
+        10.198.6.31:
+            cpu: ['cpu']
+            ours: ['x_cerebra']
+            others: ['sensetime', 'ips_share', 'ucg']
+        10.198.8.31:
+            cpu: []
+            ours: ['x_cerebra']
+            others: []
+    # forbidden to start actors on following nodes (node name NOT IP addr)
+    forbidden_nodes_addr: ['SH-IDC1-10-198-6-159'] # reserved for others
+    node_prefix_dict:
+        10.10.30.91: BJ-IDC1-
+        10.5.36.31: SH-IDC1-
+        10.5.38.31: SH-IDC1-
+        10.198.6.31: SH-IDC1-
+        10.198.8.31: SH-IDC1-
+    # number of actors to start on partition
+    policy:
+        cpu:
+            idle: 4
+            mix: 4
+        our:
+            idle: 2
+            mix: 1
+        other:
+            idle: 2
+            mix: 0

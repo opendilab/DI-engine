@@ -1,7 +1,9 @@
 from queue import Queue
 from threading import Thread
 import zmq
-from sc2learner.utils import build_checkpoint_helper, build_time_helper, send_array, dict2nparray, get_ip, get_pid
+import os
+from sc2learner.utils import build_checkpoint_helper, build_time_helper, send_array, dict2nparray, get_pid
+import time
 
 
 class BaseActor(object):
@@ -15,23 +17,25 @@ class BaseActor(object):
 
         port = cfg.communication.port
         ip = cfg.communication.ip
-        if ip['actor_manager'] == ip['learner_manager']:
-            push_ip = ip['learner']
-            push_port = port['learner']
-            req_ip = ip['learner']
-            req_port = port['actor']
-        else:
-            push_ip = ip['actor_manager']
-            push_port = port['actor_manager']
-            req_ip = ip['actor_manager']
-            req_port = port['actor_model']
+        if ip['actor_manager'] == 'auto':
+            # IP of actor is added in train_ppo.py
+            prefix = '.'.join(ip.actor.split('.')[:3])
+            ip['actor_manager'] = ip.manager_node[prefix]
+        push_ip = ip['actor_manager']
+        push_port = port['actor_manager']
+        req_ip = ip['actor_manager']
+        req_port = port['actor_model']
         self.HWM = cfg.communication.HWM['actor']
         self.time_helper = build_time_helper(wrapper_type='time')
 
         self.zmq_context = zmq.Context()
         self.model_requestor = self.zmq_context.socket(zmq.DEALER)
         self.model_requestor.connect("tcp://%s:%s" % (req_ip, req_port))
-        self.model_requestor.setsockopt(zmq.RCVTIMEO, 1000*10)
+        self.model_requestor.setsockopt(zmq.RCVTIMEO, 1000*15)
+        # force ZMQ keep only the most recent model received
+        # avoid high staleness after network unstablity
+        # require zmq 4.x
+        self.model_requestor.setsockopt(zmq.CONFLATE, 1)
         print("tcp://%s:%s" % (req_ip, req_port))
 
         if enable_push:
@@ -41,8 +45,10 @@ class BaseActor(object):
         self.enable_push = enable_push
         self.checkpoint_helper = build_checkpoint_helper(cfg)
         if cfg.common.load_path != '':
-            self.checkpoint_helper.load(cfg.common.load_path, self.model, logger_prefix='(actor)')
-        self.actor_id = '{}+{}'.format(get_ip(), get_pid())
+            self.checkpoint_helper.load(
+                cfg.common.load_path, self.model, logger_prefix='(actor)')
+        self.actor_id = '{}+{}'.format(ip.actor,
+                                       os.getenv('SLURM_JOB_ID', 'PID'+str(get_pid())))
 
         self._init()
 
@@ -63,7 +69,7 @@ class BaseActor(object):
                 model_time, data_time, self.model_index))
             if self.enable_push:
                 if self.data_queue.full():
-                    print('full')  # TODO warning(queue is full)
+                    print('WARNING: Actor send queue full')
                 self.data_queue.put(unroll)
 
     def _push_data(self, zmq_context, ip, port, queue):
@@ -76,16 +82,31 @@ class BaseActor(object):
             sender.send_pyobj(data)
 
     def _update_model(self):
+        self.model_requestor.setsockopt(zmq.RCVTIMEO, 1000*15)
         while True:
             self.model_requestor.send_string("request model")
             try:
                 state_dict = self.model_requestor.recv_pyobj()
             except zmq.error.Again:
+                print('WARNING: Model Request Timeout')
+                time.sleep(1)
                 continue
             else:
                 break
         self.model.load_state_dict(state_dict['state_dict'])
         self.model_index = state_dict['model_index']
+        self.model_age = time.time() - state_dict['timestamp']
+        print('Model Wallclock Age:{}'.format(self.model_age))
+        if(self.model_age > 250):  # TODO: add a entry in config file
+            print('WARNING: Old Model Received, start clearing receive queue.')
+            self.model_requestor.setsockopt(zmq.RCVTIMEO, 1000*3)
+            while True:
+                try:
+                    state_dict = self.model_requestor.recv_pyobj()
+                    print('Ate queued model')
+                except zmq.error.Again:
+                    print('Timeout')
+                    break
 
     def _init(self):
         raise NotImplementedError

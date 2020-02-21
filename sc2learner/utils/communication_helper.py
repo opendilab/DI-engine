@@ -101,8 +101,10 @@ class ManagerZmq(ManagerBase):
     def __init__(self, *args, send_queue_size=None, receive_queue_size=None, HWM=10, time_interval=10, **kwargs):
         super(ManagerZmq, self).__init__(*args, **kwargs)
         self.receive_queue_size = receive_queue_size
-        self.receive_queue = deque(maxlen=send_queue_size)
-        self.send_queue = deque(maxlen=receive_queue_size)
+        self.send_queue_size = send_queue_size
+        # received data is packed into a list of receive_queue_size before sent
+        self.receive_queue = deque(maxlen=receive_queue_size)
+        self.send_queue = deque(maxlen=send_queue_size)  # no impact to staleness
 
         self.sender_context = zmq.Context()
         self.receiver_context = zmq.Context()
@@ -156,15 +158,15 @@ class ManagerZmq(ManagerBase):
                 if isinstance(data, list):
                     self.receive_queue.extend(data)
                     self.receive_data_count += len(data)
-                elif isinstance(data, bytes):
+                else:
                     self.receive_queue.append(data)
                     self.receive_data_count += 1
-                else:
-                    raise TypeError(type(data))
                 if len(self.receive_queue) == self.receive_queue_size:
                     self._acquire_lock(self.send_lock)
                     self.send_queue.extend(list(self.receive_queue))
                     self._release_lock(self.send_lock)
+                    if len(self.send_queue) == self.send_queue_size:
+                        print('Warning: Send queue full')
                     self.receive_queue.clear()
                 t3 = time.time()
                 print('({})receive pyobj {} append time {}'.format(self.name, self.receive_data_count, t3-t2))
@@ -175,11 +177,9 @@ class ManagerZmq(ManagerBase):
                 if isinstance(data, list):
                     self.receive_queue.extend(data)
                     self.receive_data_count += len(data)
-                elif isinstance(data, bytes):
+                else:
                     self.receive_queue.append(data)
                     self.receive_data_count += 1
-                else:
-                    raise TypeError(type(data))
                 if len(self.receive_queue) == self.receive_queue_size:
                     self._acquire_lock(self.send_lock)
                     self.send_queue.extend(list(self.receive_queue))
@@ -198,12 +198,7 @@ class ManagerZmq(ManagerBase):
             self._acquire_lock(self.send_lock)
             data = self.send_queue.popleft()
             self._release_lock(self.send_lock)
-            if isinstance(data, list):
-                self.send_data_count += len(data)
-            elif isinstance(data, bytes):
-                self.send_data_count += 1
-            else:
-                raise TypeError(type(data))
+            self.send_data_count += 1
             t1 = time.time()
             sender.send(data)
             t2 = time.time()

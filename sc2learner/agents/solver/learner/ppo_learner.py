@@ -27,9 +27,12 @@ class PpoLearner(BaseLearner):
         self.dataloader = OnlineDataLoader(self.dataset, self.cfg.train.batch_size,
                                            collate_fn=unroll_split_collate_fn)
         self.enable_save_data = self.cfg.train.enable_save_data
-        self.data_count = 0  # TODO add mutex to synchronize count behaviour(multi thread pull data)
+        # TODO add mutex to synchronize count behaviour(multi thread pull data)
+        self.data_count = 0
         if self.cfg.common.data_load_path != '':
-            self.dataset.load_data(self.cfg.common.data_load_path, ratio=self.unroll_split)  # 560 data 20 second
+            # 560 data 20 second
+            self.dataset.load_data(
+                self.cfg.common.data_load_path, ratio=self.unroll_split)
         self._get_loss = self.time_helper.wrapper(self._get_loss)
 
     # overwrite
@@ -52,7 +55,8 @@ class PpoLearner(BaseLearner):
     # overwrite
     def _parse_pull_data(self, data):
         # TODO (speed and memory copy optimization)
-        keys = ['obs', 'return', 'done', 'action', 'value', 'neglogp', 'state', 'episode_infos', 'model_index']
+        keys = ['obs', 'return', 'done', 'action', 'value', 'neglogp',
+                'state', 'episode_infos', 'model_index', 'actor_id']
         if self.model.use_mask:
             keys.append('mask')
         temp_dict = {}
@@ -63,7 +67,7 @@ class PpoLearner(BaseLearner):
                         temp_dict[k] = [None for _ in range(self.unroll_split)]
                     else:
                         raise NotImplementedError
-                elif k == 'episode_infos' or k == 'model_index':
+                elif k == 'episode_infos' or k == 'model_index' or k == 'actor_id':
                     temp_dict[k] = [v for _ in range(self.unroll_split)]
                 else:
                     stack_item = torch.stack(v, dim=0)
@@ -73,7 +77,8 @@ class PpoLearner(BaseLearner):
             item = {k: v[i] for k, v in temp_dict.items()}
             self.dataset.push_data(item)
             if self.enable_save_data:
-                self.checkpoint_helper.save_data('split_item_{}'.format(self.data_count), item, device='cpu')
+                self.checkpoint_helper.save_data(
+                    'split_item_{}'.format(self.data_count), item, device='cpu')
                 self.data_count += 1
 
     # overwrite
@@ -96,7 +101,8 @@ class PpoLearner(BaseLearner):
             outputs['value'], outputs['neglogp'], outputs['entropy']
         )
 
-        new_values_clipped = values + torch.clamp(new_values - values, -clip_range, clip_range)
+        new_values_clipped = values + \
+            torch.clamp(new_values - values, -clip_range, clip_range)
         value_loss1 = torch.pow(new_values - returns, 2)
         if self.use_value_clip:
             value_loss2 = torch.pow(new_values_clipped - returns, 2)
@@ -109,7 +115,8 @@ class PpoLearner(BaseLearner):
         adv = (adv - adv.mean()) / (adv.std() + 1e-8)
         ratio = torch.exp(neglogps - new_neglogp)
         pg_loss1 = -adv * ratio
-        pg_loss2 = -adv * torch.clamp(ratio, 1.0 - clip_range, 1.0 + clip_range)
+        pg_loss2 = -adv * \
+            torch.clamp(ratio, 1.0 - clip_range, 1.0 + clip_range)
         pg_loss = torch.max(pg_loss1, pg_loss2).mean()
 
         approximate_kl = 0.5 * torch.pow(new_neglogp - neglogps, 2).mean()
