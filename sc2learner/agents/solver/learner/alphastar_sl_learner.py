@@ -12,7 +12,7 @@ import torch.nn.functional as F
 from .sl_learner import SLLearner
 from pysc2.lib.static_data import ACTIONS
 from sc2learner.dataset import policy_collate_fn
-from sc2learner.nn_utils import MultiLogitsLoss
+from sc2learner.nn_utils import MultiLogitsLoss, build_criterion
 
 
 def build_temperature_scheduler(cfg):
@@ -65,7 +65,7 @@ class AlphastarSLLearner(SLLearner):
         self.temperature_scheduler = build_temperature_scheduler(self.cfg)  # get naive temperature scheduler
         self._get_loss = self.time_helper.wrapper(self._get_loss)  # use time helper to calculate forward time
         self.use_value_network = 'value' in self.cfg.model.keys()  # if value in self.cfg.model.keys(), use_value_network=True  # noqa
-        self.criterion = nn.CrossEntropyLoss()  # define loss function
+        self.criterion = build_criterion(self.cfg.train.criterion)  # define loss function
         self.resolution = self.cfg.data.resolution
 
     # overwrite
@@ -231,7 +231,7 @@ class AlphastarSLLearner(SLLearner):
             Returns:
                 - (:obj`tensor`): criterion result
         '''
-        criterion = MultiLogitsLoss(criterion='cross_entropy')  #
+        criterion = MultiLogitsLoss(self.cfg.train.criterion)
         label = [x for x in label if isinstance(x, torch.Tensor)]
         if len(label) == 0:
             return 0
