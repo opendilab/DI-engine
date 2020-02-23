@@ -8,7 +8,7 @@ Main Function:
 import collections
 import torch
 from pysc2.lib import actions
-from pysc2.lib.action_dict import ACTION_INFO_MASK
+from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK, ACT_TO_GENERAL_ACT
 
 
 class AlphastarActParser(object):
@@ -99,7 +99,10 @@ class AlphastarActParser(object):
             if ret['action_type'] == [0]:
                 ret = self._get_output_template()
                 ret['action_type'] = [0]
-            has_queue_attr = ACTION_INFO_MASK[ret['action_type'][0]]['queued']
+            # transfrom into general_id action
+            ret['action_type'] = [ACT_TO_GENERAL_ACT[ret['action_type'][0]]]
+            # queued attr
+            has_queue_attr = GENERAL_ACTION_INFO_MASK[ret['action_type'][0]]['queued']
             if has_queue_attr:
                 if t.HasField('queue_command'):
                     assert(t.queue_command)
@@ -118,6 +121,8 @@ class AlphastarActParser(object):
                 ret['selected_units'] = t.unit_tags
             else:
                 ret['action_type'] = [0]
+            # transfrom into general_id action
+            ret['action_type'] = [ACT_TO_GENERAL_ACT[ret['action_type'][0]]]
             return ret
         else:
             return None
