@@ -167,10 +167,10 @@ class AlphastarActParser(object):
             action_type = same_id_actions[0]['action_type'][0]
             if action_type == 0:  # no op
                 return [same_id_actions[0]]
-            if same_id_actions[0]['target_units'][0] is not None:
+            if same_id_actions[0]['target_units'] is not None:
                 # target_units
                 return merge_by_key('target_units')
-            elif same_id_actions[0]['target_location'][0] is not None:
+            elif same_id_actions[0]['target_location'] is not None:
                 # target_location
                 return merge_by_key('target_location')
             else:
@@ -195,17 +195,17 @@ class AlphastarActParser(object):
 def test_merge_same_id_action():
     # fake data, the same format
     actions = [
-        {'action_type': [0], 'selected_units': [None], 'target_units': [None], 'target_location': [None]},
-        {'action_type': [0], 'selected_units': [None], 'target_units': [None], 'target_location': [None]},
-        {'action_type': [2], 'selected_units': [112, 131], 'target_units': [939], 'target_location': [None]},
-        {'action_type': [2], 'selected_units': [132], 'target_units': [939], 'target_location': [None]},
-        {'action_type': [2], 'selected_units': [133], 'target_units': [938], 'target_location': [None]},
-        {'action_type': [3], 'selected_units': [132], 'target_units': [939], 'target_location': [None]},
-        {'action_type': [4], 'selected_units': [1321], 'target_units': [None], 'target_location': [None]},
-        {'action_type': [4], 'selected_units': [1321, 1328], 'target_units': [None], 'target_location': [None]},
-        {'action_type': [5], 'selected_units': [1321, 1328], 'target_units': [None], 'target_location': [21, 43]},
-        {'action_type': [5], 'selected_units': [1322, 1327], 'target_units': [None], 'target_location': [21, 43]},
-        {'action_type': [5], 'selected_units': [1323, 1326], 'target_units': [None], 'target_location': [21, 42]},
+        {'action_type': [0], 'selected_units': None, 'target_units': None, 'target_location': None},
+        {'action_type': [0], 'selected_units': None, 'target_units': None, 'target_location': None},
+        {'action_type': [2], 'selected_units': [112, 131], 'target_units': [939], 'target_location': None},
+        {'action_type': [2], 'selected_units': [132], 'target_units': [939], 'target_location': None},
+        {'action_type': [2], 'selected_units': [133], 'target_units': [938], 'target_location': None},
+        {'action_type': [3], 'selected_units': [132], 'target_units': [939], 'target_location': None},
+        {'action_type': [4], 'selected_units': [1321], 'target_units': None, 'target_location': None},
+        {'action_type': [4], 'selected_units': [1321, 1328], 'target_units': None, 'target_location': None},
+        {'action_type': [5], 'selected_units': [1321, 1328], 'target_units': None, 'target_location': [21, 43]},
+        {'action_type': [5], 'selected_units': [1322, 1327], 'target_units': None, 'target_location': [21, 43]},
+        {'action_type': [5], 'selected_units': [1323, 1326], 'target_units': None, 'target_location': [21, 42]},
     ]
 
     class Map:

@@ -21,10 +21,8 @@ def to_device(item, device):
 
 def to_tensor(item, dtype):
     def transform(d):
-        if d is None:
-            return 'none'  # for convenience in dataloader
-        else:
-            return torch.tensor(d, dtype=dtype)
+        return torch.tensor(d, dtype=dtype)
+
     if isinstance(item, dict):
         new_data = {}
         for k, v in item.items():
@@ -36,10 +34,9 @@ def to_tensor(item, dtype):
         else:
             new_data = []
             for t in item:
-                if t is None:
-                    new_data.append(transform(t))
-                else:
-                    new_data.append(to_tensor(t, dtype))
+                new_data.append(to_tensor(t, dtype))
             return new_data
+    elif item is None:
+        return 'none'  # for convenience in dataloader
     else:
         raise TypeError("not support item type: {}".format(type(item)))
