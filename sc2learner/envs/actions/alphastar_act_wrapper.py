@@ -9,6 +9,7 @@ import collections
 import torch
 from pysc2.lib import actions
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK, ACT_TO_GENERAL_ACT
+from sc2learner.utils import to_tensor
 
 
 class AlphastarActParser(object):
@@ -16,6 +17,7 @@ class AlphastarActParser(object):
         Overview: parse action into tensors
         Interface: __init__, parse
     '''
+
     def __init__(self, feature_layer_resolution, map_size):
         '''
             Overview: initial related attributes
@@ -43,7 +45,7 @@ class AlphastarActParser(object):
             Arguments:
                 - action (:obj:'ActionRaw'): raw action in proto format
             Returns:
-                - ret (:obj:'dict'): a dict includes tensors parsed from the action
+                - ret (:obj:'list'): a list includes actions parsed from the raw action
         '''
         ret = {}
         for k, f in self.input_template.items():
@@ -52,8 +54,8 @@ class AlphastarActParser(object):
             if v is not None:
                 item = self._get_output_template()
                 item.update(v)
-                ret[k] = self.dict2tensor(item)
-        return ret
+                ret[k] = item
+        return list(ret.values())
 
     def world_coord_to_minimap(self, coord):
         coord[0] = min(self.map_size[0], coord[0])
@@ -127,16 +129,6 @@ class AlphastarActParser(object):
         else:
             return None
 
-    def dict2tensor(self, data):
-        new_data = {}
-        for k, v in data.items():
-            if v is None:
-                v = 'none'  # for convenience in dataloader
-            else:
-                v = torch.LongTensor(v)
-            new_data[k] = v
-        return new_data
-
     def ability_to_raw_func(self, ability_id, cmd_type):
         if ability_id not in actions.RAW_ABILITY_IDS:
             print("unknown ability id: {}".format(ability_id))
@@ -146,3 +138,85 @@ class AlphastarActParser(object):
                 return func.id
         print("not found corresponding cmd type, id: {}\tcmd type: {}".format(ability_id, cmd_type))
         return 0  # error case, regard as no op
+
+    def merge_same_id_action(self, actions):
+        def merge(same_id_actions):
+            def apply_merge(action_list):
+                selected_units = []
+                for a in action_list:
+                    selected_units.extend(a['selected_units'])
+                selected_units = list(set(selected_units))  # remove repeat element
+                action_list[0]['selected_units'] = selected_units
+                return [action_list[0]]
+
+            def merge_by_key(key):
+                sames = {}
+                for a in same_id_actions:
+                    k = a[key]
+                    if isinstance(k, list):
+                        k = '-'.join([str(t) for t in k])
+                    if k not in sames.keys():
+                        sames[k] = [a]
+                    else:
+                        sames[k].append(a)
+                ret = []
+                for k, v in sames.items():
+                    a = apply_merge(v) if len(v) > 1 else v
+                    ret.extend(a)
+                return ret
+
+            action_type = same_id_actions[0]['action_type'][0]
+            if action_type == 0:  # no op
+                return [same_id_actions[0]]
+            if same_id_actions[0]['target_units'][0] is not None:
+                # target_units
+                return merge_by_key('target_units')
+            elif same_id_actions[0]['target_location'][0] is not None:
+                # target_location
+                return merge_by_key('target_location')
+            else:
+                return apply_merge(same_id_actions)
+
+        same_action_dict = {}
+        for a in actions:
+            k = a['action_type'][0]
+            if k not in same_action_dict.keys():
+                same_action_dict[k] = [a]
+            else:
+                same_action_dict[k].append(a)
+        ret = []
+        for k, v in same_action_dict.items():
+            if len(v) > 1:
+                ret.extend(merge(v))
+            else:
+                ret.append(v[0])
+        return to_tensor(ret, torch.long)
+
+
+def test_merge_same_id_action():
+    # fake data, the same format
+    actions = [
+        {'action_type': [0], 'selected_units': [None], 'target_units': [None], 'target_location': [None]},
+        {'action_type': [0], 'selected_units': [None], 'target_units': [None], 'target_location': [None]},
+        {'action_type': [2], 'selected_units': [112, 131], 'target_units': [939], 'target_location': [None]},
+        {'action_type': [2], 'selected_units': [132], 'target_units': [939], 'target_location': [None]},
+        {'action_type': [2], 'selected_units': [133], 'target_units': [938], 'target_location': [None]},
+        {'action_type': [3], 'selected_units': [132], 'target_units': [939], 'target_location': [None]},
+        {'action_type': [4], 'selected_units': [1321], 'target_units': [None], 'target_location': [None]},
+        {'action_type': [4], 'selected_units': [1321, 1328], 'target_units': [None], 'target_location': [None]},
+        {'action_type': [5], 'selected_units': [1321, 1328], 'target_units': [None], 'target_location': [21, 43]},
+        {'action_type': [5], 'selected_units': [1322, 1327], 'target_units': [None], 'target_location': [21, 43]},
+        {'action_type': [5], 'selected_units': [1323, 1326], 'target_units': [None], 'target_location': [21, 42]},
+    ]
+
+    class Map:
+        x = 128
+        y = 128
+    act_parser = AlphastarActParser(128, Map())
+    merged_actions = act_parser.merge_same_id_action(actions)
+    for k in merged_actions:
+        print(k)
+
+
+if __name__ == "__main__":
+    test_merge_same_id_action()
