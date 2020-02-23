@@ -1315,8 +1315,8 @@ class Features(object):
                 int(u.energy / u.energy_max * 255) if u.energy_max > 0 else 0,
                 u.display_type,  # Visible = 1, Snapshot = 2, Hidden = 3
                 u.owner,  # 1-15, 16 = neutral
-                screen_pos.x,
-                screen_pos.y,
+                u.pos.x,  # origin world coordinate
+                self.map_size.y - u.pos.y,  # origin world coordinate, after the zero point transfrom(bottom-left->top left)  # noqa
                 u.facing,
                 screen_radius,
                 u.cloak,  # Cloaked = 1, CloakedDetected = 2, NotCloaked = 3
@@ -1437,8 +1437,8 @@ class Features(object):
                     int(v.energy / v.energy_max * 255) if v.energy_max > 0 else 0,
                     0,  # display_type
                     u.owner,  # 1-15, 16 = neutral
-                    screen_pos.x,
-                    screen_pos.y,
+                    u.pos.x,  # origin world coordinate
+                    self.map_size.y - u.pos.y,  # origin world coordinate, after the zero point transfrom(bottom-left->top left)  # noqa
                     0,  # facing
                     0,  # screen_radius
                     0,  # cloak
@@ -1454,7 +1454,7 @@ class Features(object):
                     0,  # order_length
                     0,  # order_id_0
                     0,  # order_id_1
-                    v.tag if is_raw else 0,
+                    v.tag,
                     0,  # is hallucination
                     0,  # buff_id_1
                     0,  # buff_id_2

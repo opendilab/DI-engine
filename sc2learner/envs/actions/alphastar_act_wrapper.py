@@ -76,8 +76,7 @@ class AlphastarActParser(object):
     # refer to https://github.com/Blizzard/s2client-proto/blob/master/s2clientprotocol/raw.proto
     def _parse_raw_camera_move(self, t):
         if t.HasField('center_world_space'):
-            location = [t.center_world_space.x, t.center_world_space.y]
-            location = self.world_coord_to_minimap(location)
+            location = [t.center_world_space.y, t.center_world_space.x]  # y major
             return {'action_type': [168], 'target_location': location}  # raw_camera_move 168
         else:
             return None
@@ -90,7 +89,7 @@ class AlphastarActParser(object):
             assert((t.HasField('target_world_space_pos')) + (t.HasField('target_unit_tag')) <= 1)
             if t.HasField('target_world_space_pos'):
                 # origin world position
-                ret['target_location'] = [t.target_world_space_pos.x, t.target_world_space_pos.y]
+                ret['target_location'] = [t.target_world_space_pos.y, t.target_world_space_pos.x]  # y major
                 ret['action_type'] = [self.ability_to_raw_func(t.ability_id, actions.raw_cmd_pt)]
             else:
                 if t.HasField('target_unit_tag'):
