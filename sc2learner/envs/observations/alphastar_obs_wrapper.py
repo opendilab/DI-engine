@@ -26,7 +26,7 @@ class SpatialObsWrapper(object):
         Overview: parse spatial observation into tensors
         Interface: __init__, parse
     '''
-    def __init__(self, cfg, use_feature_screen=True):
+    def __init__(self, cfg, use_feature_screen=False):
         '''
             Overview: initial related attributes
             Arguments:
@@ -294,7 +294,7 @@ def binary_encode(v, bit_num):
 
 def batch_binary_encode(v, bit_num):
     assert(len(v.shape) == 1)
-    v = v.clamp(0)
+    v = v.clamp(0, int(math.pow(2, bit_num))-1)
     B = v.shape[0]
     ret = []
     for b in range(B):
@@ -400,7 +400,7 @@ def transform_spatial_data():
         {'key': 'alerts', 'dim': 2, 'op': partial(num_first_one_hot, num=2), 'other': 'one-hot 2 value'},
         {'key': 'pathable', 'dim': 2, 'op': partial(num_first_one_hot, num=2), 'other': 'one-hot 2 value'},
         {'key': 'buildable', 'dim': 2, 'op': partial(num_first_one_hot, num=2), 'other': 'one-hot 2 value'},
-        {'key': 'effects', 'dim': 13, 'op': partial(num_first_one_hot, num=13), 'other': 'one-hot 13 value'},
+        # {'key': 'effects', 'dim': 13, 'op': partial(num_first_one_hot, num=13), 'other': 'one-hot 13 value'},
     ]
     return template
 
@@ -437,8 +437,8 @@ def transform_scalar_data():
             'scalar_context': True, 'other': 'transformer'},
     ]
     template_action = [
-        {'key': 'last_delay', 'arch': 'fc', 'input_dim': 128, 'output_dim': 64,
-            'ori': 'action', 'op': partial(clip_one_hot, num=128), 'other': 'one-hot 128'},
+        {'key': 'last_delay', 'arch': 'fc', 'input_dim': 10, 'output_dim': 64,
+            'ori': 'action', 'op': partial(batch_binary_encode, bit_num=10), 'other': 'int'},
         {'key': 'last_queued', 'arch': 'fc', 'input_dim': 3, 'output_dim': 256,
             'ori': 'action', 'op': partial(num_first_one_hot, num=3), 'other': 'one-hot 3'},  # 0 False 1 True 2 None
         {'key': 'last_action_type', 'arch': 'fc', 'input_dim': NUM_ACTIONS, 'output_dim': 128, 'ori': 'action',
