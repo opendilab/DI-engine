@@ -8,6 +8,7 @@ Main Function:
 import collections
 import torch
 from pysc2.lib import actions
+from pysc2.lib.action_dict import ACTION_INFO_MASK
 
 
 class AlphastarActParser(object):
@@ -83,12 +84,11 @@ class AlphastarActParser(object):
     def _parse_raw_unit_command(self, t):
         if t.HasField('ability_id'):
             ret = {'selected_units': t.unit_tags}
-            if t.HasField('queue_command'):
-                ret['queued'] = [t.queue_command]
+            # target_units and target_location can't exist at the same time
             assert((t.HasField('target_world_space_pos')) + (t.HasField('target_unit_tag')) <= 1)
             if t.HasField('target_world_space_pos'):
-                ret['target_location'] = self.world_coord_to_minimap([t.target_world_space_pos.x,
-                                                                      t.target_world_space_pos.y])
+                # origin world position
+                ret['target_location'] = [t.target_world_space_pos.x, t.target_world_space_pos.y]
                 ret['action_type'] = [self.ability_to_raw_func(t.ability_id, actions.raw_cmd_pt)]
             else:
                 if t.HasField('target_unit_tag'):
@@ -99,6 +99,13 @@ class AlphastarActParser(object):
             if ret['action_type'] == [0]:
                 ret = self._get_output_template()
                 ret['action_type'] = [0]
+            has_queue_attr = ACTION_INFO_MASK[ret['action_type'][0]]['queued']
+            if has_queue_attr:
+                if t.HasField('queue_command'):
+                    assert(t.queue_command)
+                    ret['queued'] = [t.queue_command]
+                else:
+                    ret['queued'] = [False]
             return ret
         else:
             return None
