@@ -16,7 +16,8 @@ from pysc2.lib.features import FeatureUnit
 from pysc2.lib.static_data import NUM_BUFFS, NUM_ABILITIES, NUM_UNIT_TYPES, UNIT_TYPES_REORDER,\
     BUFFS_REORDER, ABILITIES_REORDER, NUM_UPGRADES, UPGRADES_REORDER, NUM_ACTIONS, ACTIONS_REORDER,\
     NUM_ADDON, ADDON_REORDER, NUM_BEGIN_ACTIONS, NUM_UNIT_BUILD_ACTIONS, NUM_EFFECT_ACTIONS, \
-    NUM_RESEARCH_ACTIONS
+    NUM_RESEARCH_ACTIONS, UNIT_BUILD_ACTIONS_REORDER, EFFECT_ACTIONS_REORDER, RESEARCH_ACTIONS_REORDER, \
+    BEGIN_ACTIONS_REORDER
 from sc2learner.nn_utils import one_hot
 from functools import partial
 
@@ -494,3 +495,40 @@ def decompress_obs(obs):
     new_obs['entity_info'] = torch.cat([torch.FloatTensor(entity_no_bool), torch.FloatTensor(entity_bool)], dim=1)
     new_obs['spatial_info'] = torch.cat([torch.FloatTensor(spatial_uint8), torch.FloatTensor(spatial_bool)], dim=0)
     return new_obs
+
+
+def transform_cum_stat(cumulative_stat):
+    cumulative_stat_tensor = {
+        'unit_build': torch.zeros(NUM_UNIT_BUILD_ACTIONS),
+        'effect': torch.zeros(NUM_EFFECT_ACTIONS),
+        'research': torch.zeros(NUM_RESEARCH_ACTIONS)
+    }
+    for k, v in cumulative_stat.items():
+        if v['goal'] in ['unit', 'build']:
+            cumulative_stat_tensor['unit_build'][UNIT_BUILD_ACTIONS_REORDER[k]] = 1
+        elif v['goal'] in ['effect']:
+            cumulative_stat_tensor['effect'][EFFECT_ACTIONS_REORDER[k]] = 1
+        elif v['goal'] in ['research']:
+            cumulative_stat_tensor['research'][RESEARCH_ACTIONS_REORDER[k]] = 1
+    return cumulative_stat_tensor
+
+
+def transform_stat(stat, meta, location_num=10):
+    beginning_build_order = stat['begin_statistics']
+    beginning_build_order_tensor = []
+    for item in beginning_build_order:
+        action_type, location = item['action_type'], item['location']
+        action_type = torch.LongTensor([action_type])
+        action_type = reorder_one_hot(action_type, BEGIN_ACTIONS_REORDER, num=NUM_BEGIN_ACTIONS)
+        if location == 'none':
+            location = torch.zeros(location_num*2)
+        else:
+            x = binary_encode(torch.LongTensor([location[0]]), bit_num=location_num)
+            y = binary_encode(torch.LongTensor([location[1]]), bit_num=location_num)
+            location = torch.cat([x, y], dim=0)
+        beginning_build_order_tensor.append(torch.cat([action_type.squeeze(0), location], dim=0))
+    cumulative_stat_tensor = transform_cum_stat(stat['cumulative_statistics'])
+    mmr = meta['home_mmr']
+    mmr = torch.LongTensor([mmr])
+    mmr = div_one_hot(mmr, 6000, 1000).squeeze(0)
+    return {'mmr': mmr, 'beginning_build_order': beginning_build_order_tensor, 'cumulative_stat': cumulative_stat_tensor},  # noqa

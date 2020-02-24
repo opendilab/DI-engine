@@ -29,7 +29,9 @@ def to_tensor(item, dtype):
             new_data[k] = to_tensor(v, dtype)
         return new_data
     elif isinstance(item, list) or isinstance(item, tuple):
-        if isinstance(item[0], numbers.Integral) or isinstance(item[0], numbers.Real):
+        if len(item) == 0:
+            return 'none'  # for convenience in dataloader
+        elif isinstance(item[0], numbers.Integral) or isinstance(item[0], numbers.Real):
             return transform(item)
         else:
             new_data = []
