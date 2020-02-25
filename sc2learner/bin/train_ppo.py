@@ -21,68 +21,15 @@ flags.DEFINE_string("seed", "", "game and network init seed for this worker")
 flags.FLAGS(sys.argv)
 
 
-def create_env(cfg, difficulty, random_seed=None):
-    # as the env is a very heavy dependency
-    # the import line moved here
-    from sc2learner.envs.raw_env import SC2RawEnv
-    from sc2learner.envs.rewards.reward_wrappers import KillingRewardWrapper
-    from sc2learner.envs.actions.zerg_action_wrappers import ZergActionWrapper
-    from sc2learner.envs.observations.zerg_observation_wrappers \
-        import ZergObservationWrapper
-    env = SC2RawEnv(map_name='AbyssalReef',
-                    step_mul=cfg.env.step_mul,
-                    resolution=16,
-                    agent_race='zerg',
-                    bot_race='zerg',
-                    difficulty=difficulty,
-                    disable_fog=cfg.env.disable_fog,
-                    tie_to_lose=False,
-                    game_steps_per_episode=cfg.env.game_steps_per_episode,
-                    random_seed=random_seed)
-    if cfg.env.use_reward_shaping:
-        env = KillingRewardWrapper(env)
-    env = ZergActionWrapper(env,
-                            game_version=cfg.env.game_version,
-                            mask=cfg.env.use_action_mask,
-                            use_all_combat_actions=cfg.env.use_all_combat_actions)
-    env = ZergObservationWrapper(env,
-                                 use_spatial_features=False,
-                                 use_game_progress=(
-                                     not cfg.model.policy == 'lstm'),
-                                 action_seq_len=1 if cfg.model.policy == 'lstm' else 8,
-                                 use_regions=cfg.env.use_region_features)
-    env.difficulty = difficulty
-    return env
-
-
 def start_actor(cfg):
-    from sc2learner.agents.model import PPOLSTM, PPOMLP
     from sc2learner.agents.solver import PpoActor
-    difficulty = random.choice(cfg.env.bot_difficulties.split(','))
-    if 'seed' in cfg:
-        seed = cfg.seed
-        random.seed(seed)
-    else:
-        random.seed(time.time())
-        seed = random.randint(0, 2**32 - 1)
-    difficulty = random.choice(cfg.env.bot_difficulties.split(','))
-    print("Game Seed: %d Difficulty: %s" % (seed, difficulty))
-    env = create_env(cfg, difficulty, seed)
-    policy_func = {'mlp': PPOMLP,
-                   'lstm': PPOLSTM}
-    model = policy_func[cfg.model.policy](
-        ob_space=env.observation_space,
-        ac_space=env.action_space,
-        seed=cfg.seed
-    )
-    actor = PpoActor(env, model, cfg)
+    actor = PpoActor(cfg)
     actor.run()
-    env.close()
 
 
 def start_learner(cfg):
     from sc2learner.agents.model import PPOLSTM, PPOMLP
-    from sc2learner.agents.solver import PpoLearner
+    from sc2learner.agents.solver import PpoLearner, create_env
     ob_path = cfg.common.save_path + '/obs.pickle'
     ac_path = cfg.common.save_path + '/acs.pickle'
     try:
@@ -129,21 +76,33 @@ def start_actor_manager(cfg):
         learner_manager_ip_prefix = '.'.join(ip.learner.split('.')[0:3])
         ip.learner_manager = ip.manager_node[learner_manager_ip_prefix]
     print('auto set learner_manager ip to ' + ip.learner_manager)
+    if ip.coordinator == 'learner_manager':
+        ip.coordinator = ip.learner_manager
+    print('IP address of coordinator is set to the learner_manager')
     apply_ip = {
         'send': ip.learner_manager,
+        'relay': ip.coordinator
     }
     apply_port = {
         'send': port.learner_manager,
         'receive': port.actor_manager,
         'request': port.actor_manager_model,
         'reply': port.actor_model,
+        'relay_in': port.coordinator_relayed,
+        'relay_out': port.coordinator
     }
     time_interval = cfg.communication.model_time_interval
     manager = ManagerZmq(apply_ip, apply_port, name='actor_manager', HWM=HWM,
                          send_queue_size=send_queue_size, receive_queue_size=receive_queue_size,
                          time_interval=time_interval)
     manager.run({'sender': True, 'receiver': True,
-                 'forward_request': True, 'forward_reply': True})
+                 'forward_request': True, 'forward_reply': True, 'relay': True})
+
+
+def start_coordinator(cfg):
+    from sc2learner.utils import Coordinator
+    coordinator = Coordinator(cfg, cfg.communication.port.coordinator)
+    coordinator.run()
 
 
 def start_actor_model_manager(cfg):
@@ -168,7 +127,7 @@ def start_actor_model_manager(cfg):
                          send_queue_size=send_queue_size, receive_queue_size=receive_queue_size,
                          time_interval=time_interval)
     manager.run({'sender': False, 'receiver': False,
-                 'forward_request': True, 'forward_reply': True})
+                 'forward_request': True, 'forward_reply': True, 'relay': False})
 
 
 def start_actor_data_manager(cfg):
@@ -182,19 +141,25 @@ def start_actor_data_manager(cfg):
         learner_manager_ip_prefix = '.'.join(ip.learner.split('.')[0:3])
         ip.learner_manager = ip.manager_node[learner_manager_ip_prefix]
     print('auto set learner_manager ip to ' + ip.learner_manager)
+    if ip.coordinator == 'learner_manager':
+        ip.coordinator = ip.learner_manager
+    print('IP address of coordinator is set to the learner_manager')
     apply_ip = {
         'send': ip.learner_manager,
+        'relay': ip.coordinator
     }
     apply_port = {
         'send': port.learner_manager,
         'receive': port.actor_manager,
+        'relay_in': port.coordinator_relayed,
+        'relay_out': port.coordinator
     }
     time_interval = cfg.communication.model_time_interval
     manager = ManagerZmq(apply_ip, apply_port, name='actor_data_manager', HWM=HWM,
                          send_queue_size=send_queue_size, receive_queue_size=receive_queue_size,
                          time_interval=time_interval)
     manager.run({'sender': True, 'receiver': True,
-                 'forward_request': False, 'forward_reply': False})
+                 'forward_request': False, 'forward_reply': False, 'relay': True})
 
 
 def start_learner_manager(cfg):
@@ -218,7 +183,7 @@ def start_learner_manager(cfg):
     manager = ManagerZmq(apply_ip, apply_port, name='learner_manager', HWM=HWM,
                          send_queue_size=send_queue_size, receive_queue_size=receive_queue_size,
                          time_interval=time_interval)
-    manager.run({'sender': True, 'receiver': True,
+    manager.run({'sender': True, 'receiver': True, 'relay': False,
                  'forward_request': True, 'forward_reply': True})
 
 
@@ -247,6 +212,8 @@ def main(argv):
         start_actor_data_manager(cfg)
     elif FLAGS.job_name == 'actor_model_manager':
         start_actor_model_manager(cfg)
+    elif FLAGS.job_name == 'coordinator':
+        start_coordinator(cfg)
     else:
         raise ValueError
 

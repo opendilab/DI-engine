@@ -11,12 +11,14 @@ from sc2learner.nn_utils import build_grad_clip
 
 
 def build_optimizer(model, cfg):
-    optimizer = torch.optim.Adam(model.parameters(), float(cfg.train.learning_rate))
+    optimizer = torch.optim.Adam(
+        model.parameters(), float(cfg.train.learning_rate))
     return optimizer
 
 
 def build_lr_scheduler(optimizer):
-    lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100000], gamma=1)
+    lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
+        optimizer, milestones=[100000], gamma=1)
     return lr_scheduler
 
 
@@ -24,9 +26,12 @@ class HistoryActorInfo(object):
     def __init__(self, actor_monitor_arg):
         self._data = {}
         self.actor_monitor_arg = actor_monitor_arg
-        self.copy_keys = ['update_model_time', 'data_rollout_time']
-        self.dist_time_img = {k: DistributionTimeImage() for k in self.copy_keys}
+        self.copy_keys = ['update_model_time', 'data_rollout_time', 'step']
+        self.dist_time_img = {k: DistributionTimeImage()
+                              for k in self.copy_keys}
         self.game_results = {k: deque(maxlen=actor_monitor_arg.difficulty_queue_len)
+                             for k in actor_monitor_arg.difficulties}
+        self.game_lengths = {k: deque(maxlen=50)  # TODO
                              for k in actor_monitor_arg.difficulties}
 
     def update_actor_info(self, data):
@@ -41,6 +46,8 @@ class HistoryActorInfo(object):
         if len(data['episode_infos']) > 0:
             game_result, difficulty = data['episode_infos'][0]['game_result'], data['episode_infos'][0]['difficulty']
             self.game_results[difficulty].append(game_result)
+            game_length, difficulty = data['episode_infos'][0]['game_length'], data['episode_infos'][0]['difficulty']
+            self.game_lengths[difficulty].append(game_length)
 
     def __str__(self):
         cur_time = time.time()
@@ -63,7 +70,8 @@ class HistoryActorInfo(object):
             if judge_type in judge_func.keys():
                 judge = judge_func[judge_type]
             else:
-                raise NotImplementedError("invalid judge type: {}".format(judge_type))
+                raise NotImplementedError(
+                    "invalid judge type: {}".format(judge_type))
 
             for i in range(len(item) - 1):
                 if judge(item[i], item[i+1]):
@@ -114,6 +122,15 @@ class HistoryActorInfo(object):
 
         return {k: win_rate(v) for k, v in self.game_results.items()}
 
+    def get_length_distribution(self):
+        length = []
+        for k, v in self.game_lengths.items():
+            # if k in ['4', '6']:
+            length.extend(list(v))
+        if len(length) == 0:
+            length = [0]
+        return length
+
     def state_dict(self):
         return {'actor_data': self._data,
                 'game_results': self.game_results}
@@ -142,7 +159,8 @@ class BaseLearner(object):
                                      block_data=cfg.train.block_data,
                                      min_update_count=cfg.train.min_update_count,
                                      seed=cfg.train.learner_seed)
-        self.dataloader = OnlineDataLoader(self.dataset, batch_size=cfg.train.batch_size)
+        self.dataloader = OnlineDataLoader(
+            self.dataset, batch_size=cfg.train.batch_size)
 
         ip = cfg.communication.ip
         port = cfg.communication.port
@@ -184,12 +202,14 @@ class BaseLearner(object):
             cur_lr = self.lr_scheduler.get_lr()[0]
             self.time_helper.start_time()
             self.dataloader.cur_model_index = self.last_iter.val
-            batch_data, avg_usage, push_count, avg_model_index = next(self.dataloader)
+            batch_data, avg_usage, push_count, avg_model_index = next(
+                self.dataloader)
             if self.use_cuda:
                 batch_data = to_device(batch_data, 'cuda')
             data_time = self.time_helper.end_time()
             var_items, forward_time = self._get_loss(batch_data)
-            _, backward_update_time = self._optimize_step(var_items['total_loss'])
+            _, backward_update_time = self._optimize_step(
+                var_items['total_loss'])
             time_items = {'data_time': data_time, 'forward_time': forward_time,
                           'backward_update_time': backward_update_time,
                           'total_batch_time': data_time+forward_time+backward_update_time}
@@ -199,31 +219,46 @@ class BaseLearner(object):
                 var_items['push_count'] = push_count
             var_items['data_staleness'] = self.last_iter.val - avg_model_index
             if self.last_iter.val != 0:
-                var_items['push_rate'] = push_count / (data_time + forward_time + backward_update_time)
-            print('Last Push Staleness:{}'.format(self.last_iter.val - self.dataset.last_push_model_index))
+                var_items['push_rate'] = push_count / \
+                    (data_time + forward_time + backward_update_time)
+            print('Last Push Staleness:{}'.format(
+                self.last_iter.val - self.dataset.last_push_model_index))
             self._update_monitor_var(var_items, time_items)
             self._record_info(self.last_iter.val)
             self.last_iter.add(1)
 
     def _record_info(self, iterations):
         if iterations % self.cfg.logger.print_freq == 0:
-            self.logger.info('iterations:{}\t{}'.format(iterations, self.variable_record.get_vars_text()))
+            self.logger.info('iterations:{}\t{}'.format(
+                iterations, self.variable_record.get_vars_text()))
             tb_keys = self.tb_logger.scalar_var_names
-            self.tb_logger.add_val_list(self.variable_record.get_vars_tb_format(tb_keys, iterations), viz_type='scalar')
-            self.tb_logger.add_text('history_actor_info', str(self.history_actor_info), iterations)
-            self.tb_logger.add_scalars('actor_monitor', self.history_actor_info.get_cls_by_time(), iterations)
-            self.tb_logger.add_scalars('win_rate', self.history_actor_info.get_win_rate(), iterations)
+            self.tb_logger.add_val_list(self.variable_record.get_vars_tb_format(
+                tb_keys, iterations), viz_type='scalar')
+            self.tb_logger.add_text('history_actor_info', str(
+                self.history_actor_info), iterations)
+            self.tb_logger.add_scalars(
+                'actor_monitor', self.history_actor_info.get_cls_by_time(), iterations)
+            self.tb_logger.add_scalars(
+                'win_rate', self.history_actor_info.get_win_rate(), iterations)
             self.tb_logger.add_histogram('data_rollout_time',
                                          self.history_actor_info.get_distribution('data_rollout_time'), iterations)
             self.tb_logger.add_histogram('update_model_time',
                                          self.history_actor_info.get_distribution('update_model_time'), iterations)
+            self.tb_logger.add_histogram('game_step',
+                                         self.history_actor_info.get_distribution('step'), iterations)
+            self.tb_logger.add_histogram('game_length',
+                                         self.history_actor_info.get_length_distribution(), iterations)
             self.tb_logger.add_histogram('dataset_staleness',
                                          np.array([iterations - d['model_index']
                                                    for d in self.dataset.data_queue]), iterations)
-            rollout_img = self.history_actor_info.get_distribution_img('data_rollout_time')
-            self.tb_logger.add_image('data_rollout_time_img', rollout_img, iterations)
-            update_model_img = self.history_actor_info.get_distribution_img('update_model_time')
-            self.tb_logger.add_image('update_model_time_img', update_model_img, iterations)
+            rollout_img = self.history_actor_info.get_distribution_img(
+                'data_rollout_time')
+            self.tb_logger.add_image(
+                'data_rollout_time_img', rollout_img, iterations)
+            update_model_img = self.history_actor_info.get_distribution_img(
+                'update_model_time')
+            self.tb_logger.add_image(
+                'update_model_time_img', update_model_img, iterations)
         if iterations % self.cfg.logger.save_freq == 0:
             self.checkpoint_helper.save_iterations(iterations, self.model, optimizer=self.optimizer,
                                                    dataset=self.dataset, actor_info=self.history_actor_info)
@@ -279,8 +314,10 @@ class BaseLearner(object):
         while True:
             msg = receiver.recv_string()
             assert(msg == 'request model')
-            state_dict = {k: v.to('cpu') for k, v in self.model.state_dict().items()}
-            state_dict = {'state_dict': state_dict, 'model_index': self.last_iter.val, 'timestamp': time.time()}
+            state_dict = {k: v.to('cpu')
+                          for k, v in self.model.state_dict().items()}
+            state_dict = {'state_dict': state_dict,
+                          'model_index': self.last_iter.val, 'timestamp': time.time()}
             receiver.send_pyobj(state_dict)
 
     def _init(self):
@@ -308,6 +345,8 @@ class BaseLearner(object):
         self.tb_logger.register_var('data_rollout_time', var_type='histogram')
         self.tb_logger.register_var('update_model_time', var_type='histogram')
         self.tb_logger.register_var('dataset_staleness', var_type='histogram')
+        self.tb_logger.register_var('game_step', var_type='histogram')
+        self.tb_logger.register_var('game_length', var_type='histogram')
         self.tb_logger.register_var('data_rollout_time_img', var_type='image')
         self.tb_logger.register_var('update_model_time_img', var_type='image')
         self.tb_logger.register_var('win_rate', var_type='scalars')

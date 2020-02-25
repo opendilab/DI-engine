@@ -4,7 +4,7 @@ from collections import deque
 from multiprocessing import Lock
 import time
 import numpy as np
-import torch
+import pickle
 
 
 def send_array(socket, array, flags=0, copy=True, track=False):
@@ -54,6 +54,7 @@ def dict2nparray(data):
 
 
 def nparray2dict(array, json):
+    import torch  # We don't need torch if we only need a ManagerZMQ
     data = {}
     dims = []
     names = []
@@ -104,24 +105,19 @@ class ManagerZmq(ManagerBase):
         self.send_queue_size = send_queue_size
         # received data is packed into a list of receive_queue_size before sent
         self.receive_queue = deque(maxlen=receive_queue_size)
-        self.send_queue = deque(maxlen=send_queue_size)  # no impact to staleness
+        # no impact to staleness
+        self.send_queue = deque(maxlen=send_queue_size)
 
         self.sender_context = zmq.Context()
         self.receiver_context = zmq.Context()
         self.request_context = zmq.Context()
         self.reply_context = zmq.Context()
+        self.cord_actor_context = zmq.Context()
+        self.cord_cord_context = zmq.Context()
 
         self.send_lock = Lock()
         self.model_lock = Lock()
         self.HWM = HWM
-        self.sender_thread = Thread(target=self.send_data,
-                                    args=(self.sender_context, self.ip['send'], self.port['send']))
-        self.receiver_thread = Thread(target=self.receive_data,
-                                      args=(self.receiver_context, self.port['receive']))
-        self.request_thread = Thread(target=self.request_data,
-                                     args=(self.request_context, self.ip['send'], self.port['request']))
-        self.reply_thread = Thread(target=self.reply_data,
-                                   args=(self.reply_context, self.port['reply']))
         self.send_data_count = 0
         self.receive_data_count = 0
         self.time_interval = time_interval
@@ -136,13 +132,27 @@ class ManagerZmq(ManagerBase):
     def run(self, state):
         assert(isinstance(state, dict))
         if state['sender']:
+            self.sender_thread = Thread(target=self.send_data,
+                                        args=(self.sender_context, self.ip['send'], self.port['send']))
             self.sender_thread.start()
         if state['receiver']:
+            self.receiver_thread = Thread(target=self.receive_data,
+                                          args=(self.receiver_context, self.port['receive']))
             self.receiver_thread.start()
         if state['forward_request']:
+            self.request_thread = Thread(target=self.request_data,
+                                         args=(self.request_context, self.ip['send'], self.port['request']))
             self.request_thread.start()
         if state['forward_reply']:
+            self.reply_thread = Thread(target=self.reply_data,
+                                       args=(self.reply_context, self.port['reply']))
             self.reply_thread.start()
+        if state['relay']:
+            self.relay_thread = Thread(target=self.relay,
+                                       args=(self.cord_actor_context, self.cord_cord_context, self.port['relay_in'],
+                                             self.ip['relay'], self.port['relay_out']))
+
+            self.relay_thread.start()
 
     def receive_data(self, context, port, test_speed=True):
         receiver = context.socket(zmq.PULL)
@@ -154,7 +164,8 @@ class ManagerZmq(ManagerBase):
                 t1 = time.time()
                 data = receiver.recv()
                 t2 = time.time()
-                print('({})receive pyobj {} receiver time {}'.format(self.name, self.receive_data_count, t2-t1))
+                print('({})receive pyobj {} receiver time {}'.format(
+                    self.name, self.receive_data_count, t2-t1))
                 if isinstance(data, list):
                     self.receive_queue.extend(data)
                     self.receive_data_count += len(data)
@@ -169,7 +180,8 @@ class ManagerZmq(ManagerBase):
                         print('Warning: Send queue full')
                     self.receive_queue.clear()
                 t3 = time.time()
-                print('({})receive pyobj {} append time {}'.format(self.name, self.receive_data_count, t3-t2))
+                print('({})receive pyobj {} append time {}'.format(
+                    self.name, self.receive_data_count, t3-t2))
 
         else:
             while True:
@@ -185,7 +197,8 @@ class ManagerZmq(ManagerBase):
                     self.send_queue.extend(list(self.receive_queue))
                     self._release_lock(self.send_lock)
                     self.receive_queue.clear()
-                print('({})receive pyobj {}'.format(self.name, self.receive_data_count))
+                print('({})receive pyobj {}'.format(
+                    self.name, self.receive_data_count))
 
     def send_data(self, context, ip, port):
         sender = context.socket(zmq.PUSH)
@@ -202,7 +215,8 @@ class ManagerZmq(ManagerBase):
             t1 = time.time()
             sender.send(data)
             t2 = time.time()
-            print('({})send {} time {}'.format(self.name, self.send_data_count, t2-t1))
+            print('({})send {} time {}'.format(
+                self.name, self.send_data_count, t2-t1))
 
     def request_data(self, context, ip, port):
         request = context.socket(zmq.DEALER)
@@ -214,8 +228,11 @@ class ManagerZmq(ManagerBase):
             while True:
                 request.send_string("request model")
                 try:
+                    # note the state dict pulled from sender is not unpickled
+                    # but just saved as is to avoid unnecessary overhead
                     data = request.recv()
                 except zmq.error.Again:
+                    print('WARNING: model update failed')
                     continue
                 else:
                     print('({})update state_dict'.format(self.name))
@@ -225,15 +242,43 @@ class ManagerZmq(ManagerBase):
             self._release_lock(self.model_lock)
 
     def reply_data(self, context, port, req_content="request model"):
-        reply = context.socket(zmq.DEALER)  # TODO why REP can't receive the message from DEALER
+        # TODO why REP can't receive the message from DEALER
+        reply = context.socket(zmq.ROUTER)
         reply.bind("tcp://*:{}".format(port))
         print(self.name, "tcp://*:{}".format(port))
         while self.state_dict is None:
             pass
         while True:
-            msg = reply.recv_string()
+            [ident, msg] = reply.recv_multipart()
+            msg = msg.decode()
             assert(msg == req_content)
             self._acquire_lock(self.model_lock)
-            reply.send(self.state_dict)
+            # returning the model only to the requestor
+            reply.send_multipart([ident, self.state_dict])
             self._release_lock(self.model_lock)
             print('({})reply model'.format(self.name))
+
+    def relay(self, context_actor, context_cord, listen_port, forward_ip, forward_port):
+        """Relaying job requests & check ins from actors to coordinator"""
+        to_coordinator = context_cord.socket(zmq.DEALER)
+        to_coordinator.setsockopt(zmq.RCVTIMEO, 1000*7)
+        to_actors = context_actor.socket(zmq.ROUTER)
+        to_coordinator.connect("tcp://{}:{}".format(forward_ip, forward_port))
+        to_actors.bind("tcp://*:{}".format(listen_port))
+        while True:
+            [ident, req] = to_actors.recv_multipart()
+            to_coordinator.send(req)
+            print('({})job req forwarded'.format(self.name))
+            try:
+                data = to_coordinator.recv()
+            except zmq.error.Again:
+                # the relay is not designed to retry when request timeout, just go on
+                # retry is implemented in actor, this may reverse order (don't care)
+                print('WARNING: job request timeout')
+                continue
+            try:
+                to_actors.send_multipart([ident, data])
+            except zmq.error.Again:
+                print('WARNING: returning job assignment timeout')
+                continue
+            print('({})job req replied'.format(self.name))

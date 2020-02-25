@@ -1,5 +1,6 @@
 import torch
 import torch.nn.functional as F
+import numpy as np
 from sc2learner.dataset import OnlineDataset, OnlineDataLoader, unroll_split_collate_fn
 from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper, to_device
 from .learner import BaseLearner
@@ -71,7 +72,8 @@ class PpoLearner(BaseLearner):
                     temp_dict[k] = [v for _ in range(self.unroll_split)]
                 else:
                     stack_item = torch.stack(v, dim=0)
-                    split_item = torch.chunk(stack_item, self.unroll_split)
+                    # should not use torch.chunk, https://github.com/pytorch/pytorch/issues/9382
+                    split_item = np.array_split(stack_item, self.unroll_split)
                     temp_dict[k] = split_item
         for i in range(self.unroll_split):
             item = {k: v[i] for k, v in temp_dict.items()}

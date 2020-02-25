@@ -11,6 +11,10 @@ env:
     use_region_features: False
     use_action_mask: True
     use_reward_shaping: False
+job_manager:
+    seed: 10
+    check_in_timeout: 1000
+    discard_timeout_jobs: False
 model:
     policy: mlp  # [mlp, lstm]
 train:
@@ -40,9 +44,10 @@ train:
         sleep_time: 3
 communication:
     ip:
-        learner: '10.198.6.59'
+        learner: '10.198.6.63'
         learner_manager: 'auto' # regarded as the manager node of the lustre with learner if set to auto
         actor_manager: 'auto' # regarded as the manager node of the lustre where the actors are running if set to auto
+        coordinator: 'learner_manager' # if set to 'learner_manager', will be set to where the learner_manager is running
         manager_node:
             10.198.8: '10.198.8.31'
             10.198.6: '10.198.6.31'
@@ -60,6 +65,9 @@ communication:
         learner_manager_model: 29504
         actor_manager_model: 29505
         actor_model: 29506
+
+        coordinator_relayed: 29507
+        coordinator: 29508
     HWM:
         learner: 1
         learner_manager: 1
@@ -71,7 +79,7 @@ communication:
         learner_manager_receive: 1
         actor_manager_send: 128
         actor_manager_receive: 1
-    model_time_interval: 0.5  # 130 second 128 steps rollout 20 tasks per node
+    model_time_interval: 1
 logger:
     print_freq: 50
     save_freq: 1000
@@ -85,7 +93,6 @@ logger:
         difficulty_queue_len: 100
 # for auto_actor.py
 auto_actor_start:
-    actor_seed: 10
     # partitions available to user
     partitions_dict:
         10.10.30.91:
