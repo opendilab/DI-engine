@@ -27,6 +27,7 @@ class ReplayDataset(Dataset):
         self.beginning_build_order_num = cfg.data.beginning_build_order_num
         self.beginning_build_order_prob = cfg.data.beginning_build_order_prob
         self.cumulative_stat_prob = cfg.data.cumulative_stat_prob
+        self.use_global_cumulative_stat = cfg.data.use_global_cumulative_stat
 
     def __len__(self):
         return len(self.path_list)
@@ -142,8 +143,9 @@ class ReplayDataset(Dataset):
             beginning_build_order, cumulative_stat, mmr = self._load_stat(handle)
             for i in range(len(sample_data)):
                 sample_data[i]['scalar_info']['beginning_build_order'] = beginning_build_order
-                sample_data[i]['scalar_info']['cumulative_stat'] = cumulative_stat
                 sample_data[i]['scalar_info']['mmr'] = mmr
+                if self.use_global_cumulative_stat:
+                    sample_data[i]['scalar_info']['cumulative_stat'] = cumulative_stat
 
         return sample_data
 
