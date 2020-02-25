@@ -16,6 +16,7 @@ import time
 import os
 import signal
 import sys
+from copy import deepcopy
 
 from absl import app
 from absl import flags
@@ -383,6 +384,7 @@ class ReplayProcessor(multiprocessing.Process):
                                                                           agent_acts, idx, step)
 
                 # save statistics and frame(all the action in actions use the same obs except last action info)
+                create_entity_dim = True
                 for i, v in enumerate(agent_acts):
                     # add last step action delay
                     if last_step_data[idx] is not None:  # not init step
@@ -397,13 +399,14 @@ class ReplayProcessor(multiprocessing.Process):
                     # merge cumulative_statistics
                     agent_obs['scalar_info']['cumulative_stat'] = transform_cum_stat(cumulative_statistics[idx])
                     # merge action info into obs
-                    result_obs = self.obs_parser.merge_action(agent_obs, last_actions[idx])
+                    result_obs = self.obs_parser.merge_action(agent_obs, last_actions[idx], create_entity_dim)
                     result_obs.update({'actions': v})
                     last_step_data[idx] = compress_obs(result_obs)
                     # update info
                     action_count[idx] += 1
                     last_actions[idx] = v
                     delay[idx] = 0
+                    create_entity_dim = False
 
             if obs[0].player_result or obs[1].player_result:
                 # add the last action
@@ -496,7 +499,7 @@ class ReplayProcessor(multiprocessing.Process):
         idx = max(select_obs.keys())
         if idx != -1:
             print('use the non-nearest obs', act_idx, step, idx)
-        selected_obs = select_obs[idx]  # the closest obs
+        selected_obs = deepcopy(select_obs[idx])  # the closest obs
         return selected_obs, legal_act, idx
 
 

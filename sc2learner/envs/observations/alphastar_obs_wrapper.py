@@ -214,19 +214,17 @@ class AlphastarObsParser(object):
         }
         return ret
 
-    def merge_action(self, obs, last_action):
+    def merge_action(self, obs, last_action, create_entity_dim=True):
         '''
             Overview: merge last action into observation, make observation compelete
             Arguments:
                 - obs (:obj:'dict'): observation
                 - last_action (:obj:'dict'): a dict includes last action information
+                - create_entity_dim (:obj:'bool'): whether create eneity dim
             Returns:
                 - obs (:obj'dict'): merged observation
         '''
         N = obs['entity_info'].shape[0]
-        if obs['entity_info'] is None:
-            obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 4)], dim=1)
-            return obs
         last_action_type = last_action['action_type']
         last_delay = last_action['delay']
         last_queued = last_action['queued']
@@ -236,9 +234,13 @@ class AlphastarObsParser(object):
         obs['scalar_info']['last_action_type'] = self.template_act[2]['op'](
             torch.LongTensor(last_action_type)).squeeze()
 
+        if obs['entity_info'] is None:
+            return obs
+
         selected_units = last_action['selected_units']
         target_units = last_action['target_units']
-        obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 2)], dim=1)
+        if create_entity_dim:
+            obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 2)], dim=1)
         selected_units = selected_units if isinstance(selected_units, torch.Tensor) else []
         for idx, v in enumerate(obs['entity_raw']['id']):
             if v in selected_units:
@@ -246,7 +248,8 @@ class AlphastarObsParser(object):
             else:
                 obs['entity_info'][idx, -2] = 1
 
-        obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 2)], dim=1)
+        if create_entity_dim:
+            obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 2)], dim=1)
         target_units = target_units if isinstance(target_units, torch.Tensor) else []
         for idx, v in enumerate(obs['entity_raw']['id']):
             if v in target_units:
