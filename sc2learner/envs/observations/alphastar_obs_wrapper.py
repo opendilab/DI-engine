@@ -13,6 +13,7 @@ import math
 import torch
 import gym
 from pysc2.lib.features import FeatureUnit
+from pysc2.lib.action_dict import ACT_TO_GENERAL_ACT
 from pysc2.lib.static_data import NUM_BUFFS, NUM_ABILITIES, NUM_UNIT_TYPES, UNIT_TYPES_REORDER,\
     BUFFS_REORDER, ABILITIES_REORDER, NUM_UPGRADES, UPGRADES_REORDER, NUM_ACTIONS, ACTIONS_REORDER,\
     NUM_ADDON, ADDON_REORDER, NUM_BEGIN_ACTIONS, NUM_UNIT_BUILD_ACTIONS, NUM_EFFECT_ACTIONS, \
@@ -22,11 +23,16 @@ from sc2learner.nn_utils import one_hot
 from functools import partial
 
 
+LOCATION_BIT_NUM = 10
+DELAY_BIT_NUM = 6
+
+
 class SpatialObsWrapper(object):
     '''
         Overview: parse spatial observation into tensors
         Interface: __init__, parse
     '''
+
     def __init__(self, cfg, use_feature_screen=False):
         '''
             Overview: initial related attributes
@@ -180,6 +186,7 @@ class AlphastarObsParser(object):
         Overview: parse observation into tensors
         Interface: __init__, parse, merge_action
     '''
+
     def __init__(self):
         '''
             Overview: initial sub-parsers and related attributes
@@ -266,12 +273,16 @@ def div_one_hot(v, max_val, ratio):
     return one_hot(v, num)
 
 
-def reorder_one_hot(v, dictionary, num):
+def reorder_one_hot(v, dictionary, num, transform=None):
     assert(len(v.shape) == 1)
     assert(isinstance(v, torch.Tensor))
     new_v = torch.zeros_like(v)
     for idx in range(v.shape[0]):
-        new_v[idx] = dictionary[v[idx].item()]
+        if transform is None:
+            val = v[idx].item()
+        else:
+            val = transform[v[idx].item()]
+        new_v[idx] = dictionary[val]
     return one_hot(new_v, num)
 
 
@@ -307,11 +318,15 @@ def batch_binary_encode(v, bit_num):
     return torch.stack(ret, dim=0)
 
 
-def reorder_boolean_vector(v, dictionary, num):
+def reorder_boolean_vector(v, dictionary, num, transform=None):
     ret = torch.zeros(num)
     for item in v:
         try:
-            idx = dictionary[item.item()]
+            if transform is None:
+                val = item.item()
+            else:
+                val = transform[item.item()]
+            idx = dictionary[val]
         except KeyError as e:
             # print(dictionary)
             raise KeyError('{}_{}_'.format(num, e))
@@ -339,10 +354,12 @@ def transform_entity_data(resolution=128, pad_value=-1e9):
         {'key': 'shield', 'dim': 32, 'op': partial(sqrt_one_hot, max_val=1000), 'other': 'one-hot, sqrt(1000), floor'},
         {'key': 'energy', 'dim': 15, 'op': partial(sqrt_one_hot, max_val=200), 'other': 'one-hot, sqrt(200), floor'},
         {'key': 'cargo_space_taken', 'dim': 9, 'op': partial(clip_one_hot, num=9), 'other': 'one-hot'},
-        {'key': 'cargo_space_max', 'dim': 9, 'op': partial(clip_one_hot, num=9), 'other': 'one-hot'},  # 1020 ???
+        {'key': 'cargo_space_max', 'dim': 9, 'op': partial(clip_one_hot, num=9), 'other': 'one-hot'},  # 1020 wormhole
         {'key': 'display_type', 'dim': 5, 'op': partial(one_hot, num=5), 'other': 'one-hot'},
-        {'key': 'x', 'dim': 8, 'op': partial(batch_binary_encode, bit_num=8), 'other': 'binary encoding'},
-        {'key': 'y', 'dim': 8, 'op': partial(batch_binary_encode, bit_num=8), 'other': 'binary encoding'},
+        {'key': 'x', 'dim': LOCATION_BIT_NUM, 'op': partial(
+            batch_binary_encode, bit_num=LOCATION_BIT_NUM), 'other': 'binary encoding'},
+        {'key': 'y', 'dim': LOCATION_BIT_NUM, 'op': partial(
+            batch_binary_encode, bit_num=LOCATION_BIT_NUM), 'other': 'binary encoding'},
         {'key': 'cloak', 'dim': 5, 'op': partial(one_hot, num=5), 'other': 'one-hot'},
         {'key': 'is_powered', 'dim': 2, 'op': partial(one_hot, num=2), 'other': 'one-hot'},
         {'key': 'hallucination', 'dim': 2, 'op': partial(one_hot, num=2), 'other': 'one-hot'},
@@ -363,13 +380,13 @@ def transform_entity_data(resolution=128, pad_value=-1e9):
             clip_one_hot, num=32), 'other': 'one-hot, game steps'},  # 35??
         {'key': 'order_length', 'dim': 9, 'op': partial(clip_one_hot, num=9), 'other': 'one-hot'},
         {'key': 'order_id_0', 'dim': NUM_ABILITIES, 'op': partial(
-            reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS), 'other': 'one-hot'},
+            reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT), 'other': 'one-hot'},  # noqa
         {'key': 'order_id_1', 'dim': NUM_ACTIONS, 'op': partial(
-            reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS), 'other': 'one-hot'},  # TODO only building order  # noqa
+            reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT), 'other': 'one-hot'},  # TODO only building order  # noqa
         {'key': 'order_id_2', 'dim': NUM_ACTIONS, 'op': partial(
-            reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS), 'other': 'one-hot'},  # TODO only building order  # noqa
+            reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT), 'other': 'one-hot'},  # TODO only building order  # noqa
         {'key': 'order_id_3', 'dim': NUM_ACTIONS, 'op': partial(
-            reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS), 'other': 'one-hot'},  # TODO only building order  # noqa
+            reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT), 'other': 'one-hot'},  # TODO only building order  # noqa
         {'key': 'buff_id_0', 'dim': NUM_BUFFS, 'op': partial(
             reorder_one_hot, dictionary=BUFFS_REORDER, num=NUM_BUFFS), 'other': 'one-hot'},
         {'key': 'buff_id_1', 'dim': NUM_BUFFS, 'op': partial(
@@ -423,7 +440,7 @@ def transform_scalar_data():
 
         {'key': 'available_actions', 'arch': 'fc', 'input_dim': NUM_ACTIONS, 'output_dim': 64,
             'ori': 'available_actions', 'scalar_context': True, 'other': 'boolean vector',
-            'op': partial(reorder_boolean_vector, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS)},
+            'op': partial(reorder_boolean_vector, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT)},  # noqa
         {'key': 'unit_counts_bow', 'arch': 'fc', 'input_dim': 23, 'output_dim': 64,
             'ori': 'feature_units_count', 'op': partial(sqrt_one_hot, max_val=512), 'other': 'square root'},
     ]
@@ -434,12 +451,12 @@ def transform_scalar_data():
             'input_dims': {'unit_build': NUM_UNIT_BUILD_ACTIONS, 'effect': NUM_EFFECT_ACTIONS,
                            'research': NUM_RESEARCH_ACTIONS}, 'output_dim': 32,
             'scalar_context': True, 'other': 'boolean vector, split and concat'},
-        {'key': 'beginning_build_order', 'arch': 'transformer', 'input_dim': NUM_BEGIN_ACTIONS+8*2, 'output_dim': 32,
-            'scalar_context': True, 'other': 'transformer'},
+        {'key': 'beginning_build_order', 'arch': 'transformer', 'input_dim': NUM_BEGIN_ACTIONS+LOCATION_BIT_NUM*2,
+            'output_dim': 32, 'scalar_context': True, 'other': 'transformer'},
     ]
     template_action = [
-        {'key': 'last_delay', 'arch': 'fc', 'input_dim': 10, 'output_dim': 64,
-            'ori': 'action', 'op': partial(batch_binary_encode, bit_num=10), 'other': 'int'},
+        {'key': 'last_delay', 'arch': 'fc', 'input_dim': DELAY_BIT_NUM, 'output_dim': 64,
+            'ori': 'action', 'op': partial(batch_binary_encode, bit_num=DELAY_BIT_NUM), 'other': 'int'},
         {'key': 'last_queued', 'arch': 'fc', 'input_dim': 3, 'output_dim': 256,
             'ori': 'action', 'op': partial(num_first_one_hot, num=3), 'other': 'one-hot 3'},  # 0 False 1 True 2 None
         {'key': 'last_action_type', 'arch': 'fc', 'input_dim': NUM_ACTIONS, 'output_dim': 128, 'ori': 'action',
@@ -513,7 +530,7 @@ def transform_cum_stat(cumulative_stat):
     return cumulative_stat_tensor
 
 
-def transform_stat(stat, meta, location_num=10):
+def transform_stat(stat, meta, location_num=LOCATION_BIT_NUM):
     beginning_build_order = stat['begin_statistics']
     beginning_build_order_tensor = []
     for item in beginning_build_order:
@@ -527,8 +544,9 @@ def transform_stat(stat, meta, location_num=10):
             y = binary_encode(torch.LongTensor([location[1]]), bit_num=location_num)
             location = torch.cat([x, y], dim=0)
         beginning_build_order_tensor.append(torch.cat([action_type.squeeze(0), location], dim=0))
+    beginning_build_order_tensor = torch.stack(beginning_build_order_tensor, dim=0)
     cumulative_stat_tensor = transform_cum_stat(stat['cumulative_statistics'])
     mmr = meta['home_mmr']
     mmr = torch.LongTensor([mmr])
     mmr = div_one_hot(mmr, 6000, 1000).squeeze(0)
-    return {'mmr': mmr, 'beginning_build_order': beginning_build_order_tensor, 'cumulative_stat': cumulative_stat_tensor},  # noqa
+    return {'mmr': mmr, 'beginning_build_order': beginning_build_order_tensor, 'cumulative_stat': cumulative_stat_tensor}  # noqa

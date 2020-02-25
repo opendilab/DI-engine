@@ -18,7 +18,7 @@ from __future__ import division
 from __future__ import print_function
 
 import six
-from pysc2.lib.action_dict import ACTION_INFO_MASK
+from pysc2.lib.action_dict import ACTION_INFO_MASK, GENERAL_ACTION_INFO_MASK
 
 
 class StaticData(object):
@@ -177,7 +177,7 @@ ADDON_REORDER = {
     item: idx for idx, item in enumerate(ADDON)
 }
 
-ACTIONS = list(ACTION_INFO_MASK.keys())
+ACTIONS = list(GENERAL_ACTION_INFO_MASK.keys())
 
 NUM_ACTIONS = len(ACTIONS)
 
@@ -186,7 +186,7 @@ ACTIONS_REORDER = {
 }
 
 target_list = ['unit', 'build', 'research', 'effect']
-BEGIN_ACTIONS = [k for k, v in ACTION_INFO_MASK.items() if v['goal'] in target_list]
+BEGIN_ACTIONS = [k for k, v in GENERAL_ACTION_INFO_MASK.items() if v['goal'] in target_list]
 
 NUM_BEGIN_ACTIONS = len(BEGIN_ACTIONS)
 
@@ -194,7 +194,7 @@ BEGIN_ACTIONS_REORDER = {
     item: idx for idx, item in enumerate(BEGIN_ACTIONS)
 }
 
-UNIT_BUILD_ACTIONS = [k for k, v in ACTION_INFO_MASK.items() if v['goal'] in ['unit', 'build']]
+UNIT_BUILD_ACTIONS = [k for k, v in GENERAL_ACTION_INFO_MASK.items() if v['goal'] in ['unit', 'build']]
 
 NUM_UNIT_BUILD_ACTIONS = len(UNIT_BUILD_ACTIONS)
 
@@ -202,7 +202,7 @@ UNIT_BUILD_ACTIONS_REORDER = {
     item: idx for idx, item in enumerate(UNIT_BUILD_ACTIONS)
 }
 
-EFFECT_ACTIONS = [k for k, v in ACTION_INFO_MASK.items() if v['goal'] in ['effect']]
+EFFECT_ACTIONS = [k for k, v in GENERAL_ACTION_INFO_MASK.items() if v['goal'] in ['effect']]
 
 NUM_EFFECT_ACTIONS = len(EFFECT_ACTIONS)
 
@@ -210,7 +210,7 @@ EFFECT_ACTIONS_REORDER = {
     item: idx for idx, item in enumerate(EFFECT_ACTIONS)
 }
 
-RESEARCH_ACTIONS = [k for k, v in ACTION_INFO_MASK.items() if v['goal'] in ['research']]
+RESEARCH_ACTIONS = [k for k, v in GENERAL_ACTION_INFO_MASK.items() if v['goal'] in ['research']]
 
 NUM_RESEARCH_ACTIONS = len(RESEARCH_ACTIONS)
 

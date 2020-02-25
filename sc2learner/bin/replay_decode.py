@@ -31,7 +31,7 @@ from pysc2.lib import remote_controller
 from pysc2.lib import replay
 
 from pysc2.lib import gfile
-from pysc2.lib.action_dict import ACTION_INFO_MASK
+from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
 from s2clientprotocol import sc2api_pb2 as sc_pb
 from sc2learner.envs.observations.alphastar_obs_wrapper import AlphastarObsParser, compress_obs, decompress_obs, \
     transform_cum_stat, transform_stat
@@ -299,7 +299,7 @@ class ReplayProcessor(multiprocessing.Process):
 
         def update_cum_stat(cumulative_statistics, act):
             action_type = act['action_type'].item()
-            goal = ACTION_INFO_MASK[action_type]['goal']
+            goal = GENERAL_ACTION_INFO_MASK[action_type]['goal']
             if goal != 'other':
                 if action_type not in cumulative_statistics.keys():
                     cumulative_statistics[action_type] = {'count': 1, 'goal': goal}
@@ -309,7 +309,7 @@ class ReplayProcessor(multiprocessing.Process):
         def update_begin_stat(begin_statistics, act):
             target_list = ['unit', 'build', 'research', 'effect']
             action_type = act['action_type'].item()
-            goal = ACTION_INFO_MASK[action_type]['goal']
+            goal = GENERAL_ACTION_INFO_MASK[action_type]['goal']
             if goal in target_list:
                 if goal == 'build':
                     location = act['target_location']
@@ -331,9 +331,18 @@ class ReplayProcessor(multiprocessing.Process):
         action_statistics = [{} for _ in range(N)]
         cumulative_statistics = [{} for _ in range(N)]
         begin_statistics = [[] for _ in range(N)]
+        last_step_data = [None for _ in range(N)]
         begin_num = 200
-        prev_obs_queue = deque(maxlen=6)  # (len, 2)
+        prev_obs_queue = deque(maxlen=8)  # (len, 2)
 
+        def unit_record(obs, s):
+            for idx, ob in enumerate(obs):
+                raw_set = ob['entity_raw']['id']
+                units = [4352376833]  # for debug
+                for u in units:
+                    if u in raw_set:
+                        i = raw_set.index(u)
+                        print(u, idx, ob['entity_raw']['type'][i], s)
         while True:
             # 1v1 version
             obs = [controller.observe() for controller in controllers]
@@ -370,12 +379,16 @@ class ReplayProcessor(multiprocessing.Process):
                 agent_acts = act_parser.merge_same_id_action(agent_acts)
 
                 # select obs
-                agent_obs, agent_acts, obs_idx = self.match_obs_by_action([t[idx] for t in prev_obs_queue], agent_acts)
+                agent_obs, agent_acts, obs_idx = self.match_obs_by_action([t[idx] for t in prev_obs_queue],
+                                                                          agent_acts, idx, step)
 
                 # save statistics and frame(all the action in actions use the same obs except last action info)
                 for i, v in enumerate(agent_acts):
-                    # add action delay
-                    v['delay'] = torch.LongTensor([delay[idx]])
+                    # add last step action delay
+                    if last_step_data[idx] is not None:  # not init step
+                        last_step = last_step_data[idx]
+                        last_step['actions']['delay'] = torch.LongTensor([delay[idx]])
+                        step_data[idx].append(last_step)
                     # update stat
                     update_action_stat(action_statistics[idx], v, agent_obs)
                     update_cum_stat(cumulative_statistics[idx], v)
@@ -386,14 +399,18 @@ class ReplayProcessor(multiprocessing.Process):
                     # merge action info into obs
                     result_obs = self.obs_parser.merge_action(agent_obs, last_actions[idx])
                     result_obs.update({'actions': v})
-                    # torch.save(compressed_obs, os.path.join(self.output_dir, '{}.pt'.format(action_count)))
-                    step_data[idx].append(compress_obs(result_obs))
+                    last_step_data[idx] = compress_obs(result_obs)
                     # update info
                     action_count[idx] += 1
                     last_actions[idx] = v
                     delay[idx] = 0
 
-            if obs[0].player_result:
+            if obs[0].player_result or obs[1].player_result:
+                # add the last action
+                for idx in range(N):
+                    last_step = last_step_data[idx]
+                    last_step['actions']['delay'] = torch.LongTensor([delay[idx]])
+                    step_data[idx].append(last_step)
                 return (step_data,
                         [{'action_statistics': action_statistics[idx], 'cumulative_statistics':
                           cumulative_statistics[idx], 'begin_statistics': begin_statistics[idx]} for idx in range(2)])
@@ -407,32 +424,68 @@ class ReplayProcessor(multiprocessing.Process):
             delay[0] += FLAGS.step_mul
             delay[1] += FLAGS.step_mul
 
-    def match_obs_by_action(self, prev_obs_queue, actions):
+    def match_obs_by_action(self, prev_obs_queue, actions, act_idx, step):
         # units judge
         def units_judge(act, obs):
             def judge(units):
                 units_set = set(units)
                 obs_units_set = set(obs['entity_raw']['id'])
                 return units_set.issubset(obs_units_set)
+
+            def get_mismatch_info(units):
+                units_set = set(units)
+                obs_units_set = set(obs['entity_raw']['id'])
+                return units_set, obs_units_set
             selected_units = act['selected_units']
             target_units = act['target_units']
             if isinstance(selected_units, torch.Tensor):
                 units = selected_units.tolist()
                 if not judge(units):
-                    return False
+                    a, o = get_mismatch_info(units)
+                    diff = a-o
+                    print('mismatch info({}): {}, {}, {}, {}'.format('selected_units', a, diff, act_idx, step))
+                    return False, list(diff)
             if isinstance(target_units, torch.Tensor):
-                units = target_units
+                units = target_units.tolist()
                 if not judge(units):
-                    return False
-            return True
+                    a, o = get_mismatch_info(units)
+                    diff = a-o
+                    print('mismatch info({}): {}, {}, {}, {}'.format('target_units', a, a-o, act_idx, step))
+                    return False, None  # diff only in selected_units
+            return True, None
 
         select_obs = {idx - len(prev_obs_queue): t for idx, t in enumerate(prev_obs_queue)}  # negative number key
         legal_act = []
         for act in actions:
+            s_units = act['selected_units']
             flag = [False for _ in range(len(select_obs))]
+            diff = []
             for idx, (k, obs) in enumerate(select_obs.items()):
-                if units_judge(act, obs):
-                    flag[idx] = True
+                cur_flag, cur_diff = units_judge(act, obs)
+                flag[idx] = cur_flag
+                diff.append(cur_diff)
+            if sum(flag) == 0 and len(s_units) > 1:
+                # another selected_units chance(len of selected_units greater than 1)
+                miss_units = {}
+                one_miss_flag = []
+                for d in diff:
+                    if d is None or len(d) > 1:
+                        one_miss_flag.append(False)
+                    else:  # only one element miss
+                        one_miss_flag.append(True)
+                        for t in d:
+                            if t in miss_units.keys():
+                                miss_units[t] += 1
+                            else:
+                                miss_units[t] = 1
+                miss_units = [(k, v) for k, v in miss_units.items()]
+                max_miss_units = max(miss_units, key=lambda x: x[1])[0]
+                flag = [f and diff[idx][0] == max_miss_units for idx, f in enumerate(one_miss_flag)]
+                if sum(flag) != 0:  # remove the cooresponding selected_units
+                    new_s_unit = s_units.tolist()
+                    new_s_unit.remove(max_miss_units)
+                    act['selected_units'] = torch.tensor(new_s_unit, dtype=s_units.dtype)
+                    print('remove selected_units: {}/{}'.format(max_miss_units, act))
             if sum(flag) != 0:
                 legal_act.append(act)
                 select_obs = {k: t for idx, (k, t) in enumerate(select_obs.items()) if flag[idx]}
@@ -441,6 +494,8 @@ class ReplayProcessor(multiprocessing.Process):
                 print('abandon action', act)
                 pass  # placeholder
         idx = max(select_obs.keys())
+        if idx != -1:
+            print('use the non-nearest obs', act_idx, step, idx)
         selected_obs = select_obs[idx]  # the closest obs
         return selected_obs, legal_act, idx
 
