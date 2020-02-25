@@ -593,10 +593,10 @@ GENERAL_ACTION_INFO_MASK = {}
 ACT_TO_GENERAL_ACT = {}
 for k, v in ACTION_INFO_MASK.items():
     general_id = v['general_id']
-    if k != 0 and general_id != 0:  # ignore no op
+    if general_id is None or general_id == 0:
+        GENERAL_ACTION_INFO_MASK[k] = v
+        ACT_TO_GENERAL_ACT[k] = k
+    else:
         target_general_action = get_general(general_id)
         action_id = merge_judge(target_general_action, v)
         ACT_TO_GENERAL_ACT[k] = action_id
-    else:
-        GENERAL_ACTION_INFO_MASK[k] = v
-        ACT_TO_GENERAL_ACT[k] = k
