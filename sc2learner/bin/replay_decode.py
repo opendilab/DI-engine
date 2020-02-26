@@ -482,8 +482,9 @@ class ReplayProcessor(multiprocessing.Process):
                             else:
                                 miss_units[t] = 1
                 miss_units = [(k, v) for k, v in miss_units.items()]
-                max_miss_units = max(miss_units, key=lambda x: x[1])[0]
-                flag = [f and diff[idx][0] == max_miss_units for idx, f in enumerate(one_miss_flag)]
+                if len(miss_units) > 0:  # if has only one element miss case
+                    max_miss_units = max(miss_units, key=lambda x: x[1])[0]
+                    flag = [f and diff[idx][0] == max_miss_units for idx, f in enumerate(one_miss_flag)]
                 if sum(flag) != 0:  # remove the cooresponding selected_units
                     new_s_unit = s_units.tolist()
                     new_s_unit.remove(max_miss_units)
