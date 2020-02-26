@@ -1,3 +1,4 @@
+import torch
 from torch.utils.data import _utils
 
 
@@ -26,22 +27,36 @@ class OnlineDataLoader(object):
 
 
 def unroll_split_collate_fn(*args, collate_fn=_utils.collate.default_collate, **kwargs):
-    result = collate_fn(*args, **kwargs)
-    if isinstance(result, list) or isinstance(result, list):
-        B0, B1 = result[0].shape[:2]  # first element result must be torch.Tensor
-        new_result = []
-        for item in result:
-            other_shape = item.shape[2:]
-            new_result.append(item.reshape(B0*B1, *other_shape))
-    elif isinstance(result, dict):
-        new_result = {}
-        for k, v in result.items():
+    # TODO: replace this hacky workaround for non unique sized data chunks
+    # result = collate_fn(*args, **kwargs)
+    # Expecting a list of dict as input
+    # there are multiple samples in each key of dict (as a list or Tensor)
+    # Returning a single dict with all samples in each key (as Tensor if possible)
+    result = args[0]
+    new_result = {}
+    assert isinstance(result, list)
+    for item in result:
+        assert isinstance(item, dict)
+        for k,v in item.items():
             if isinstance(v, list) and v[0] == 'none':
                 new_result[k] = None
+            elif isinstance(v, str) and v == 'none':
+                new_result[k] = None
+            elif isinstance(v, torch.Tensor):
+                if k in new_result:
+                    new_result[k] = torch.cat((new_result[k], v))
+                else:
+                    new_result[k] = v
+            elif isinstance(v, list) and isinstance(v[0], torch.Tensor):
+                if k in new_result:
+                    new_result[k] = torch.cat((new_result[k], torch.cat(v)))
+                else:
+                    new_result[k] = torch.cat(v)
+            elif isinstance(v, list):
+                if k in new_result:
+                    new_result[k].extend(v)
+                else:
+                    new_result[k] = v
             else:
-                B0, B1 = v.shape[:2]
-                other_shape = v.shape[2:]
-                new_result[k] = v.reshape(B0*B1, *other_shape)
-    else:
-        raise TypeError("invalid dataset item type: {}".format(type(result)))
+                print('WARNING: item {} of type {} in data discarded'.format(k, str(type(v))))
     return new_result
