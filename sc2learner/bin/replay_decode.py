@@ -320,6 +320,16 @@ class ReplayProcessor(multiprocessing.Process):
                     location = 'none'
                 begin_statistics.append({'action_type': action_type, 'location': location})
 
+        def unit_id_mapping(obs):
+            raw_units = obs['raw_units']
+            key_index = FeatureUnit['unit_type']
+            for i in range(raw_units.shape[0]):
+                if raw_units[i, key_index] == 1879:
+                    raw_units[i, key_index] = 1904
+                elif raw_units[i, key_index] == 1883:
+                    raw_units[i, key_index] = 1908
+            return obs
+
         N = len(player_ids)
         step = 0
         delay = [0 for _ in range(N)]
@@ -361,6 +371,7 @@ class ReplayProcessor(multiprocessing.Process):
                     if not isinstance(prev_obs_queue[i][0], dict):  # whether is processed
                         # parse observation
                         base_obs = [feat.transform_obs(o) for feat, o in zip(feats, prev_obs_queue[i])]
+                        base_obs = [unit_id_mapping(o) for o in base_obs]
                         agent_obs = [self.obs_parser.parse(o) for o in base_obs]
 
                         # add obs from the enemy obs
