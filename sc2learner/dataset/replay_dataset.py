@@ -182,7 +182,7 @@ def get_replay_list(replay_dir, output_path, **kwargs):
         f.writelines(selected_replay)
 
 
-def policy_collate_fn(batch):
+def policy_collate_fn(batch, max_delay=63):
     data_item = {
         'spatial_info': True,
         'scalar_info': True,
@@ -208,7 +208,7 @@ def policy_collate_fn(batch):
                 new_data[k] = default_collate(new_data[k])
             if k == 'actions':
                 new_data[k] = list_dict2dict_list(new_data[k])
-                new_data[k]['delay'] = [torch.clamp(x, 0, 127) for x in new_data[k]['delay']]  # clip
+                new_data[k]['delay'] = [torch.clamp(x, 0, max_delay) for x in new_data[k]['delay']]  # clip
         return new_data
 
     # sequence, batch

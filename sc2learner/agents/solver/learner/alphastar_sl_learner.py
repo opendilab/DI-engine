@@ -54,7 +54,7 @@ class AlphastarSLLearner(SLLearner):
         }  # must execute before super __init__
         self.data_stat = {
             'action_type': [k for k in ACTIONS],
-            'delay': ['0-16', '17-32', '33-64', '65-128'],
+            'delay': ['0-5', '6-22', '23-44', '44-64'],
             'queued': ['no_attr', 'no_queued', 'queued'],
             'selected_units': ['no_attr', '1', '2-8', '9-32', '33-64', '64+'],
             'target_units': ['no_attr', 'target_units'],
@@ -126,14 +126,14 @@ class AlphastarSLLearner(SLLearner):
                         data_stat[k][t.item()] += 1
                 elif k == 'delay':
                     for t in v:
-                        if t <= 16:
-                            data_stat[k]['0-16'] += 1
-                        elif t <= 32:
-                            data_stat[k]['17-32'] += 1
+                        if t <= 5:
+                            data_stat[k]['0-5'] += 1
+                        elif t <= 22:
+                            data_stat[k]['6-22'] += 1
+                        elif t <= 44:
+                            data_stat[k]['23-44'] += 1
                         elif t <= 64:
-                            data_stat[k]['33-64'] += 1
-                        elif t <= 128:
-                            data_stat[k]['65-128'] += 1
+                            data_stat[k]['44-64'] += 1
                         else:
                             raise ValueError("invalid delay value: {}".format(t))
                 elif k == 'queued':
@@ -206,18 +206,22 @@ class AlphastarSLLearner(SLLearner):
 
     def _delay_loss(self, preds, labels):
         '''
-            Overview: calculate MSE/L1 loss of taking each action or each delay
+            Overview: calculate L1 loss of taking each action or each delay
             Arguments:
                 - preds (:obj:`tensor`): the predict delay
                 - labels (:obj:`list`): label from batch_data, list[Tensor](len=batch size)
             Returns:
                 - (:obj`tensor`): delay loss result
         '''
+        def delay_l1(p, l):
+            base = -1.73e-5*l**3 + 1.89e-3*l**2 - 5.8e-2*l + 0.61
+            loss = torch.abs(p - l) - base*l
+            return loss.clamp(0).mean()
         if isinstance(labels, collections.Sequence):
             labels = torch.cat(labels, dim=0)
         labels = labels.to(preds.dtype)
         assert(preds.shape == labels.shape)
-        return F.mse_loss(preds, labels)
+        return delay_l1(preds, labels)
 
     def _queued_loss(self, logits, labels):
         '''
