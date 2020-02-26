@@ -12,6 +12,7 @@ class BaseActor(object):
         assert(cfg is not None)
         self.cfg = cfg
         self.unroll_length = cfg.train.unroll_length
+        self.env = None
         self.model = None  # will be created in self._init
 
         port = cfg.communication.port

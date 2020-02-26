@@ -246,8 +246,9 @@ class BaseLearner(object):
                                          self.history_actor_info.get_distribution('update_model_time'), iterations)
             self.tb_logger.add_histogram('game_step',
                                          self.history_actor_info.get_distribution('step'), iterations)
-            self.tb_logger.add_histogram('game_length',
-                                         self.history_actor_info.get_length_distribution(), iterations)
+            print(self.history_actor_info.get_length_distribution())
+            # self.tb_logger.add_histogram('game_length',
+            #                             self.history_actor_info.get_length_distribution(), iterations)
             self.tb_logger.add_histogram('dataset_staleness',
                                          np.array([iterations - d['model_index']
                                                    for d in self.dataset.data_queue]), iterations)

@@ -142,6 +142,8 @@ class PpoActor(BaseActor):
 
     # overwrite
     def _create_env(self):
+        if self.env is not None:
+            self.env.close()
         job = self._request_job()
         self.job_id = job['job_id']
         self.start_rollout_at = job['start_rollout_at']

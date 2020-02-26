@@ -122,7 +122,7 @@ class JobManager():
     def get_checkpoint_data(self):
         """
         Pushing every recorded job in running pool to the queue.
-        When loading, the jobs will be restored in the queue and
+        When loading, the jobs will be restored to the queue and
         have higher priority than generating new jobs
         """
         for job_id, job in self.running_job_pool:
