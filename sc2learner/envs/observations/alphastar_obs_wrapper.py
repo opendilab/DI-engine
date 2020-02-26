@@ -378,7 +378,7 @@ def transform_entity_data(resolution=128, pad_value=-1e9):
         {'key': 'vespene', 'dim': 51, 'op': partial(sqrt_one_hot, max_val=2500),
          'ori': 'player', 'other': 'one-hot, sqrt(2500), floor'},
         {'key': 'assigned_harvesters', 'dim': 35, 'op': partial(clip_one_hot, num=35), 'other': 'one-hot'},  # 34
-        {'key': 'ideal_harvesters', 'dim': 18, 'op': partial(one_hot, num=18), 'other': 'one-hot'},
+        {'key': 'ideal_harvesters', 'dim': 18, 'op': partial(clip_one_hot, num=18), 'other': 'one-hot'},  # 20
         {'key': 'weapon_cooldown', 'dim': 32, 'op': partial(
             clip_one_hot, num=32), 'other': 'one-hot, game steps'},  # 35??
         {'key': 'order_length', 'dim': 9, 'op': partial(clip_one_hot, num=9), 'other': 'one-hot'},
