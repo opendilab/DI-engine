@@ -521,6 +521,7 @@ class LocationHead(nn.Module):
                 - (:obj`tensor`): location
         '''
         reshape_embedding = embedding.reshape(-1, self.reshape_channel, *self.reshape_size)
+        reshape_embedding = F.interpolate(reshape_embedding, size=map_skip[0].shape[2:], mode='bilinear')
         cat_feature = [torch.cat([reshape_embedding, map_skip[i]], dim=1) for i in range(len(map_skip))]
         x = self.act(cat_feature[-1])
         x = self.conv1(x)
@@ -530,15 +531,15 @@ class LocationHead(nn.Module):
             x = act(x, skip)
         for layer in self.upsample:
             x = layer(x)
-        x.sub_((1 - available_location_mask)*1e9)
-        logits = x.view(x.shape[0], -1)
-        handle = self.pd(logits.div(temperature))
+        #x = x - ((1 - available_location_mask)*1e9)
+        logits_flatten = x.view(x.shape[0], -1)
+        handle = self.pd(logits_flatten.div(temperature))
         if self.train:
             location = handle.sample()
         else:
             location = handle.mode()
 
-        return logits, location
+        return x, location
 
 
 def test_location_head():

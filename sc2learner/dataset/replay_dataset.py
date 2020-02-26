@@ -97,6 +97,7 @@ class ReplayDataset(Dataset):
                 meta = torch.load(handle['name'] + META_SUFFIX)
                 step_num = meta['step_num']
                 handle['step_num'] = step_num
+                handle['map_size'] = meta['map_size']
             else:
                 step_num = handle['step_num']
             assert(handle['step_num'] >= self.trajectory_len)
@@ -139,6 +140,8 @@ class ReplayDataset(Dataset):
         # if unit id transform deletes some data frames,
         # collate_fn will use the minimum number of data frame to compose a batch
         sample_data = [decompress_obs(d) for d in sample_data]
+        # check raw coordinate (x, y) <-> (y, x)
+        assert(handle['map_size'] == list(reversed(sample_data[0]['spatial_info'].shape[1:])))
         if self.use_stat:
             beginning_build_order, cumulative_stat, mmr = self._load_stat(handle)
             for i in range(len(sample_data)):

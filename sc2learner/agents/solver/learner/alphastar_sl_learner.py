@@ -66,7 +66,7 @@ class AlphastarSLLearner(SLLearner):
         self._get_loss = self.time_helper.wrapper(self._get_loss)  # use time helper to calculate forward time
         self.use_value_network = 'value' in self.cfg.model.keys()  # if value in self.cfg.model.keys(), use_value_network=True  # noqa
         self.criterion = build_criterion(self.cfg.train.criterion)  # define loss function
-        self.resolution = self.cfg.data.resolution
+        self.location_expand_ratio = self.cfg.model.location_expand_ratio
 
     # overwrite
     def _init(self):
@@ -188,71 +188,71 @@ class AlphastarSLLearner(SLLearner):
         self.tb_logger.add_val_list(self.variable_record.get_vars_tb_format(
             histogram_keys, iterations, var_type='1darray', viz_type='histogram'), viz_type='histogram')
 
-    def _criterion_apply(self, logits, label):
+    def _criterion_apply(self, logits, labels):
         '''
             Overview: calculate CrossEntropyLoss of taking each action or each delay
             Arguments:
                 - logits (:obj:`tensor`): The logits corresponding to the probabilities of
                                           taking each action or each delay
-                - label (:obj:`tensor`): label from batch_data
+                - labels (:obj:`list`): label from batch_data, list[Tensor](len=batch size)
             Returns:
                 - (:obj`tensor`): criterion result
         '''
-        if isinstance(label, collections.Sequence):
-            label = torch.cat(label, dim=0)
+        if isinstance(labels, collections.Sequence):
+            labels = torch.cat(labels, dim=0)
         self.device = logits.device
         self.dtype = logits.dtype
-        return self.criterion(logits, label)
+        return self.criterion(logits, labels)
 
-    def _delay_loss(self, pred, label):
+    def _delay_loss(self, preds, labels):
         '''
             Overview: calculate MSE/L1 loss of taking each action or each delay
             Arguments:
-                - pred (:obj:`tensor`): the predict delay
-                - label (:obj:`tensor`): label from batch_data
+                - preds (:obj:`tensor`): the predict delay
+                - labels (:obj:`list`): label from batch_data, list[Tensor](len=batch size)
             Returns:
                 - (:obj`tensor`): delay loss result
         '''
-        if isinstance(label, collections.Sequence):
-            label = torch.cat(label, dim=0)
-        label = label.to(pred.dtype)
-        assert(pred.shape == label.shape)
-        return F.mse_loss(pred, label)
+        if isinstance(labels, collections.Sequence):
+            labels = torch.cat(labels, dim=0)
+        labels = labels.to(preds.dtype)
+        assert(preds.shape == labels.shape)
+        return F.mse_loss(preds, labels)
 
-    def _queued_loss(self, logits, label):
+    def _queued_loss(self, logits, labels):
         '''
             Overview: calculate CrossEntropyLoss of queueing
             Arguments:
                 - logits (:obj:`tensor`): The logits corresponding to the probabilities of
-                                          queueing and not queueing
-                - label (:obj:`tensor`): label from batch_data
+                                          queued and not queued
+                - labels (:obj:`list`): label from batch_data, list[Tensor](len=batch size)
             Returns:
                 - (:obj`tensor`): criterion result
         '''
-        label = [x for x in label if isinstance(x, torch.Tensor)]
-        if len(label) == 0:
+        labels = [x for x in labels if isinstance(x, torch.Tensor)]
+        if len(labels) == 0:
             return 0
         logits = torch.cat(logits, dim=0)
-        label = torch.cat(label, dim=0)
-        return self.criterion(logits, label)
+        labels = torch.cat(labels, dim=0)
+        return self.criterion(logits, labels)
 
-    def _selected_units_loss(self, logits, label):
+    def _selected_units_loss(self, logits, labels):
         '''
-            Overview: use CrossEntropyLoss between logits and label
+            Overview: use CrossEntropyLoss between logits and labels
             Arguments:
                 - logits (:obj:`tensor`): The logits corresponding to the probabilities of selecting
                                           each unit, repeated for each of the possible 64 unit selections
-                - label (:obj:`tensor`): label from batch_data
+                - labels (:obj:`list`): label from batch_data, list[Tensor](len=batch size)
             Returns:
                 - (:obj`tensor`): criterion result
         '''
         criterion = MultiLogitsLoss(self.cfg.train.criterion)
-        label = [x for x in label if isinstance(x, torch.Tensor)]
-        if len(label) == 0:
+        labels = [x for x in labels if isinstance(x, torch.Tensor)]
+        if len(labels) == 0:
             return 0
         loss = []
-        for b in range(len(label)):
-            lo, la = logits[b], label[b]
+        for b in range(len(labels)):
+            lo, la = logits[b], labels[b]
             lo = torch.cat(lo, dim=0)
             if lo.shape[0] != la.shape[0]:
                 assert(lo.shape[0] == 1 + la.shape[0])  # ISSUE(zm) why?
@@ -264,45 +264,43 @@ class AlphastarSLLearner(SLLearner):
                 loss.append(criterion(lo, la))
         return sum(loss) / len(loss)
 
-    def _target_units_loss(self, logits, label):
+    def _target_units_loss(self, logits, labels):
         '''
             Overview: calculate CrossEntropyLoss of targeting a unit
             Arguments:
                 - logits (:obj:`tensor`): The logits corresponding to the probabilities of targeting a unit
-                - label (:obj:`tensor`): label from batch_data
+                - labels (:obj:`list`): label from batch_data, list[Tensor](len=batch size)
             Returns:
                 - (:obj`tensor`): criterion result
         '''
-        label = [x for x in label if isinstance(x, torch.Tensor)]
-        if len(label) == 0:
+        labels = [x for x in labels if isinstance(x, torch.Tensor)]
+        if len(labels) == 0:
             return 0
         loss = []
-        for b in range(len(label)):
-            lo, la = logits[b], label[b]
+        for b in range(len(labels)):
+            lo, la = logits[b], labels[b]
             loss.append(self.criterion(lo, la))
         return sum(loss) / len(loss)
 
-    def _target_location_loss(self, logits, label):
+    def _target_location_loss(self, logits, labels):
         '''
             Overview: get logits based on resolution and calculate CrossEntropyLoss between logits and label.
             Arguments:
                 - logits (:obj:`tensor`): The logits corresponding to the probabilities of targeting each location
-                - label (:obj:`tensor`): label from batch_data
+                - labels (:obj:`list`): label from batch_data, list[Tensor](len=batch size)
             Returns:
                 - (:obj`tensor`): criterion result
         '''
-        label = [x for x in label if isinstance(x, torch.Tensor)]
-        if len(label) == 0:
+        labels = [x for x in labels if isinstance(x, torch.Tensor)]
+        if len(labels) == 0:
             return 0
-        logits = torch.cat(logits, dim=0)  # probabilities of targeting each location
-        label = [x*self.resolution[1]+y for (x, y) in label]  # location of targeting
-        label = torch.LongTensor(label).to(device=logits.device)
-        ratio = math.sqrt(logits.shape[1] / (self.resolution[0]*self.resolution[1]))  # must be integer
-        assert(math.fabs(int(ratio) - ratio) < 1e-4)
-        ratio = int(ratio)
-        B = logits.shape[0]
-        N = int(math.sqrt(logits.shape[1]))
-        logits = logits.reshape(B, N, N).unsqueeze(1)
-        logits = F.avg_pool2d(logits, kernel_size=ratio, stride=ratio)  # achieve same resolution with label
-        logits = logits.squeeze(1).reshape(B, -1)
-        return self.criterion(logits, label)
+        ratio = self.location_expand_ratio
+        loss = []
+        for logit, label in zip(logits, labels):
+            logit = F.avg_pool2d(logit, kernel_size=ratio, stride=ratio)  # achieve same resolution with label
+            logit.mul_(ratio*ratio)
+            H, W = logit.shape[2:]
+            label = torch.LongTensor([label[0]*W+label[1]]).to(device=logit.device)  # (y, x)
+            logit = logit.view(1, -1)
+            loss.append(self.criterion(logit, label))
+        return sum(loss) / len(loss)
