@@ -40,10 +40,10 @@ class BaseActor(object):
 
         self.job_requestor = self.zmq_context.socket(zmq.DEALER)
         self.job_requestor.connect("tcp://{}:{}"
-                                   .format(ip['actor_manager'], port['coordinator']))
+                                   .format(ip['actor_manager'], port['coordinator_relayed']))
         self.job_requestor.setsockopt(zmq.RCVTIMEO, 1000*10)
         print(
-            "job_requestor: tcp://{}:{}".format(ip['actor_manager'], port['coordinator']))
+            "job_requestor: tcp://{}:{}".format(ip['actor_manager'], port['coordinator_relayed']))
         self.job_request_id = 0
 
         if enable_push:
@@ -77,6 +77,7 @@ class BaseActor(object):
             unroll['update_model_time'] = model_time
             data_time = self.time_helper.end_time()
             unroll['data_rollout_time'] = data_time
+            # this should be incremented in _nstep_rollout
             unroll['step'] = self.step
             print('update model time({})\tdata rollout time({})\tmodel_index({})'.format(
                 model_time, data_time, self.model_index))

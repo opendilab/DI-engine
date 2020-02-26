@@ -1,6 +1,6 @@
 from threading import Thread
 from multiprocessing import Lock
-import queue
+from collections import deque
 import random
 import time
 import zmq
@@ -33,7 +33,7 @@ class JobManager():
         self.check_job_check_in_to_thread.start()
         self.running_job_pool = {}
         self.job_pool_lock = Lock()
-        self.available_job_queue = queue.Queue()
+        self.available_job_queue = deque()
         self.last_request_req_id = {}
         self.cached_response = {}
 
@@ -42,16 +42,18 @@ class JobManager():
             if self.last_request_req_id[actor_id] == req_id\
                     and actor_id in self.cached_response:
                 # noticed this is a repeated request, send cached job
-                print('WARNING: received repeated request')
+                print('WARNING: received repeated request from {}'.format(actor_id))
                 job = self.cached_response[actor_id]
                 job['start_time'] = time.time()
                 job['last_checkin'] = job['start_time']
                 return job
+            elif self.last_request_req_id[actor_id] > req_id:
+                print('WARNING: received older request from {}, actor restarted?'.format(actor_id))
         self.last_request_req_id[actor_id] = req_id
 
-        try:
-            job = self.available_job_queue.get(block=False)
-        except queue.Empty:
+        if self.available_job_queue:
+            job = self.available_job_queue.get()
+        else:
             job = self.job_generator.gen()
         job['actor_id'] = actor_id
         job['start_time'] = time.time()
@@ -125,16 +127,19 @@ class JobManager():
         When loading, the jobs will be restored to the queue and
         have higher priority than generating new jobs
         """
+        checkpoint_joblist = []
+        for job in self.available_job_queue:
+            checkpoint_joblist.append(job)
         for job_id, job in self.running_job_pool:
             job['actor_id'] = None
             job['start_time'] = None
             job['last_checkin'] = None
             job['start_rollout_at'] = job['step']
-            self.available_job_queue.put(job)
-        return self.available_job_queue
+            checkpoint_joblist.append(job)
+        return checkpoint_joblist
 
     def load_checkpoint_data(self, data):
-        self.available_job_queue = data
+        self.available_job_queue = deque(data)
 
 
 class JobGenerator():

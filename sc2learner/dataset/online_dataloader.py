@@ -13,7 +13,8 @@ class OnlineDataLoader(object):
 
     def __next__(self):
         batch, avg_usage, push_count, avg_model_index = \
-               self.dataset.get_sample_batch(self.batch_size, self.cur_model_index)
+            self.dataset.get_sample_batch(
+                self.batch_size, self.cur_model_index)
         batch = self.collate_fn(batch)
         return batch, avg_usage, push_count, avg_model_index
 
@@ -37,7 +38,7 @@ def unroll_split_collate_fn(*args, collate_fn=_utils.collate.default_collate, **
     assert isinstance(result, list)
     for item in result:
         assert isinstance(item, dict)
-        for k,v in item.items():
+        for k, v in item.items():
             if isinstance(v, list) and v[0] == 'none':
                 new_result[k] = None
             elif isinstance(v, str) and v == 'none':
@@ -58,5 +59,6 @@ def unroll_split_collate_fn(*args, collate_fn=_utils.collate.default_collate, **
                 else:
                     new_result[k] = v
             else:
-                print('WARNING: item {} of type {} in data discarded'.format(k, str(type(v))))
+                print('WARNING: item {} of type {} in data discarded'.format(
+                    k, str(type(v))))
     return new_result

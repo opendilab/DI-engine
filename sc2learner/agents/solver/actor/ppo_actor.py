@@ -59,7 +59,7 @@ class PpoActor(BaseActor):
             action = self._process_model_output(model_output, outputs)
             self.obs, reward, self.done, info = self.env.step(action)
             outputs['reward'].append(reward)
-            self.step += 1
+            self.step += 1  # notice this is only the steps of action, not actural game step
             self.cumulative_reward += reward
             if self.done:
                 episode_infos.append({'game_result': self.cumulative_reward,
