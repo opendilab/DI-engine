@@ -162,12 +162,25 @@ class ScalarObsWrapper(object):
         data = torch.FloatTensor(player)
         return torch.log(data + 1)
 
+    def _parse_unit_counts(self, obs, max_val=225):
+        data = obs['unit_counts']
+        ret = torch.zeros(NUM_UNIT_TYPES)
+        key = data.keys()
+        val = list(data.values())
+        val = np.sqrt(np.clip(np.array(val), 0, max_val))
+        for k, v in zip(key, val):
+            idx = UNIT_TYPES_REORDER[k]
+            ret[idx] = v
+        return ret
+
     def parse(self, obs):
         ret = {}
         for idx, item in enumerate(self.cfg):
             key = item['key']
             if key == 'agent_statistics':
                 ret[key] = self._parse_agent_statistics(obs)
+            elif key == 'unit_counts_bow':
+                ret[key] = self._parse_unit_counts(obs)
             else:
                 if key == 'enemy_upgrades':
                     if 'enemy_upgrades' not in obs.keys():
@@ -444,8 +457,8 @@ def transform_scalar_data():
         {'key': 'available_actions', 'arch': 'fc', 'input_dim': NUM_ACTIONS, 'output_dim': 64,
             'ori': 'available_actions', 'scalar_context': True, 'other': 'boolean vector',
             'op': partial(reorder_boolean_vector, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT)},  # noqa
-        {'key': 'unit_counts_bow', 'arch': 'fc', 'input_dim': 23, 'output_dim': 64,
-            'ori': 'feature_units_count', 'op': partial(sqrt_one_hot, max_val=512), 'other': 'square root'},
+        {'key': 'unit_counts_bow', 'arch': 'fc', 'input_dim': NUM_UNIT_TYPES, 'output_dim': 128,
+            'ori': 'unit_counts', 'other': 'square root'},
     ]
     template_replay = [
         {'key': 'mmr', 'arch': 'fc', 'input_dim': 7, 'output_dim': 64, 'op': partial(

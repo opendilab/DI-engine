@@ -478,12 +478,12 @@ class AgentInterfaceFormat(object):
             raw_resolution=None,
             action_space=None,
             camera_width_world_units=None,
-            use_feature_units=True,
+            use_feature_units=False,
             use_raw_units=True,  # for raw.units
-            use_raw_actions=False,  # alphastar
+            use_raw_actions=False,
             max_raw_actions=512,
             max_selected_units=64,  # alphastar
-            use_unit_counts=False,
+            use_unit_counts=True,  # alphastar
             use_camera_position=False,
             show_cloaked=False,
             show_burrowed_shadows=False,
@@ -494,7 +494,7 @@ class AgentInterfaceFormat(object):
             crop_to_playable_area=False,
             raw_crop_to_playable_area=False,
             allow_cheating_layers=False,
-            add_cargo_to_units=False):
+            add_cargo_to_units=True):  # alphastar
         """Initializer.
 
         Args:
@@ -1507,15 +1507,15 @@ class Features(object):
                                 out["raw_units"] = named_array.NamedNumpyArray(
                                     all_raw_units, [None, FeatureUnit], dtype=np.int64)
                                 self._raw_tags = out["raw_units"][:, FeatureUnit.tag]
-
         if aif.use_unit_counts:
             with sw("unit_counts"):
                 unit_counts = collections.defaultdict(int)
                 for u in raw.units:
                     if u.alliance == sc_raw.Self:
                         unit_counts[u.unit_type] += 1
-                out["unit_counts"] = named_array.NamedNumpyArray(
-                    sorted(unit_counts.items()), [None, UnitCounts], dtype=np.int32)
+                # out["unit_counts"] = named_array.NamedNumpyArray(
+                #     sorted(unit_counts.items()), [None, UnitCounts], dtype=np.int32)
+                out["unit_counts"] = unit_counts
 
         if aif.use_camera_position:
             camera_position = self._world_to_minimap_px.fwd_pt(
@@ -1550,6 +1550,262 @@ class Features(object):
 
         out["units"] = self.transform_unit_control(raw)
         out["raw_data"] = raw
+        return out
+
+    @sw.decorate
+    def transform_obs_fast(self, obs):
+        """Render some SC2 observations into something an agent can handle."""
+        empty_unit = np.array([], dtype=np.int32).reshape((0, len(UnitLayer)))
+        out = named_array.NamedDict({  # Fill out some that are sometimes empty.
+            "home_race_requested": np.array([0], dtype=np.int32),
+            "away_race_requested": np.array([0], dtype=np.int32),
+            "map_name": self._map_name,
+        })
+
+        def or_zeros(layer, size):
+            if layer is not None:
+                return layer.astype(np.int32, copy=False)
+            else:
+                return np.zeros((size.y, size.x), dtype=np.int32)
+
+        aif = self._agent_interface_format
+
+        if aif.feature_dimensions:
+            with sw("feature_minimap"):
+                out["feature_minimap"] = named_array.NamedNumpyArray(
+                    np.stack([or_zeros(f.unpack(obs.observation),
+                                       aif.feature_dimensions.minimap)
+                              for f in MINIMAP_FEATURES]),
+                    names=[MinimapFeatures, None, None])
+
+        out["action_result"] = np.array([o.result for o in obs.action_errors],
+                                        dtype=np.int32)
+
+        out["alerts"] = np.array(obs.observation.alerts, dtype=np.int32)
+
+        out["game_loop"] = np.array([obs.observation.game_loop], dtype=np.int32)
+
+        player = obs.observation.player_common
+        out["player"] = named_array.NamedNumpyArray([
+            player.player_id,
+            player.minerals,
+            player.vespene,
+            player.food_used,
+            player.food_cap,
+            player.food_army,
+            player.food_workers,
+            player.idle_worker_count,
+            player.army_count,
+            player.warp_gate_count,
+            player.larva_count,
+        ], names=Player, dtype=np.int32)
+
+        def unit_vec(u):
+            return np.array((
+                u.unit_type,
+                u.player_relative,
+                u.health,
+                u.shields,
+                u.energy,
+                u.transport_slots_taken,
+                int(u.build_progress * 100),  # discretize
+            ), dtype=np.int32)
+
+        tag_types = {}  # Only populate the cache if it's needed.
+
+        def get_addon_type(tag):
+            if not tag_types:
+                for u in raw.units:
+                    tag_types[u.tag] = u.unit_type
+            return tag_types.get(tag, 0)
+
+        def full_unit_vec(u, pos_transform, is_raw=False):
+            """Compute unit features."""
+            screen_pos = pos_transform.fwd_pt(
+                point.Point.build(u.pos))
+            screen_radius = pos_transform.fwd_dist(u.radius)
+
+            def raw_order(i):
+                if len(u.orders) > i:
+                    # TODO(tewalds): Return a generalized func id.
+                    return actions.RAW_ABILITY_ID_TO_FUNC_ID.get(
+                        u.orders[i].ability_id, 0)
+                return 0
+            features = [
+                # Match unit_vec order
+                u.unit_type,
+                u.alliance,  # Self = 1, Ally = 2, Neutral = 3, Enemy = 4
+                u.health,
+                u.shield,
+                u.energy,
+                u.cargo_space_taken,
+                int(u.build_progress * 100),  # discretize
+
+                # Resume API order
+                int(u.health / u.health_max * 255) if u.health_max > 0 else 0,
+                int(u.shield / u.shield_max * 255) if u.shield_max > 0 else 0,
+                int(u.energy / u.energy_max * 255) if u.energy_max > 0 else 0,
+                u.display_type,  # Visible = 1, Snapshot = 2, Hidden = 3
+                u.owner,  # 1-15, 16 = neutral
+                u.pos.x,  # origin world coordinate
+                self.map_size.y - u.pos.y,  # origin world coordinate, after the zero point transfrom(bottom-left->top left)  # noqa
+                u.facing,
+                screen_radius,
+                u.cloak,  # Cloaked = 1, CloakedDetected = 2, NotCloaked = 3
+                u.is_selected,
+                u.is_blip,
+                u.is_powered,
+                u.mineral_contents,
+                u.vespene_contents,
+
+                # Not populated for enemies or neutral
+                u.cargo_space_max,
+                u.assigned_harvesters,
+                u.ideal_harvesters,
+                u.weapon_cooldown,
+                len(u.orders),
+                raw_order(0),
+                raw_order(1),
+                # u.tag if is_raw else 0,
+                u.tag,  # expose unique id for each case
+                u.is_hallucination,
+                u.buff_ids[0] if len(u.buff_ids) >= 1 else 0,
+                u.buff_ids[1] if len(u.buff_ids) >= 2 else 0,
+                get_addon_type(u.add_on_tag) if u.add_on_tag else 0,
+                u.is_active,
+                u.is_on_screen,
+                int(u.orders[0].progress * 100) if len(u.orders) >= 1 else 0,
+                int(u.orders[1].progress * 100) if len(u.orders) >= 2 else 0,
+                raw_order(2),
+                raw_order(3),
+                0,
+                u.buff_duration_remain,
+                u.buff_duration_max,
+                u.attack_upgrade_level,
+                u.armor_upgrade_level,
+                u.shield_upgrade_level,
+            ]
+            return features
+
+        raw = obs.observation.raw_data
+
+        if aif.use_raw_units:
+            with sw("raw_units"):
+                with sw("to_list"):
+                    raw_units = [full_unit_vec(u, self._world_to_minimap_px, is_raw=True)
+                                 for u in raw.units]
+                with sw("to_numpy"):
+                    out["raw_units"] = named_array.NamedNumpyArray(
+                        raw_units, [None, FeatureUnit], dtype=np.int64)
+                if raw_units:
+                    self._raw_tags = out["raw_units"][:, FeatureUnit.tag]
+                else:
+                    self._raw_tags = np.array([])
+                feature_units_count = 0
+                for u in raw.units:
+                    if u.is_on_screen:
+                        feature_units_count += 1
+                out["feature_units_count"] = [feature_units_count]
+
+        out["upgrades"] = np.array(raw.player.upgrade_ids, dtype=np.int32)
+        if out["upgrades"].shape[0] == 0:  # for empty upgrades case
+            out["upgrades"] = np.array([0])
+
+        def cargo_units(u, pos_transform, is_raw=False):
+            """Compute unit features."""
+            screen_pos = pos_transform.fwd_pt(
+                point.Point.build(u.pos))
+            features = []
+            for v in u.passengers:
+                features.append([
+                    v.unit_type,
+                    u.alliance,  # Self = 1, Ally = 2, Neutral = 3, Enemy = 4
+                    v.health,
+                    v.shield,
+                    v.energy,
+                    0,  # cargo_space_taken
+                    0,  # build_progress
+                    int(v.health / v.health_max * 255) if v.health_max > 0 else 0,
+                    int(v.shield / v.shield_max * 255) if v.shield_max > 0 else 0,
+                    int(v.energy / v.energy_max * 255) if v.energy_max > 0 else 0,
+                    0,  # display_type
+                    u.owner,  # 1-15, 16 = neutral
+                    u.pos.x,  # origin world coordinate
+                    self.map_size.y - u.pos.y,  # origin world coordinate, after the zero point transfrom(bottom-left->top left)  # noqa
+                    0,  # facing
+                    0,  # screen_radius
+                    0,  # cloak
+                    0,  # is_selected
+                    0,  # is_blip
+                    0,  # is powered
+                    0,  # mineral_contents
+                    0,  # vespene_contents
+                    0,  # cargo_space_max
+                    0,  # assigned_harvesters
+                    0,  # ideal_harvesters
+                    0,  # weapon_cooldown
+                    0,  # order_length
+                    0,  # order_id_0
+                    0,  # order_id_1
+                    v.tag,
+                    0,  # is hallucination
+                    0,  # buff_id_1
+                    0,  # buff_id_2
+                    0,  # addon_unit_type
+                    0,  # active
+                    0,  # is_on_screen
+                    0,  # order_progress_1
+                    0,  # order_progress_2
+                    0,  # order_id_2
+                    0,  # order_id_3
+                    1,  # is_in_cargo
+                    0,  # buff_duration_remain
+                    0,  # buff_duration_max
+                    0,  # attack_upgrade_level
+                    0,  # armor_upgrade_level
+                    0,  # shield_upgrade_level
+                ])
+            return features
+
+        if aif.add_cargo_to_units:
+            with sw("add_cargo_to_units"):
+                if aif.use_raw_units:
+                    with sw("raw_units"):
+                        with sw("to_list"):
+                            raw_cargo_units = []
+                            for u in raw.units:
+                                raw_cargo_units += cargo_units(
+                                    u, self._world_to_minimap_px, is_raw=True)
+                        with sw("to_numpy"):
+                            if raw_cargo_units:
+                                raw_cargo_units = np.array(raw_cargo_units, dtype=np.int64)
+                                all_raw_units = np.concatenate(
+                                    [out["raw_units"], raw_cargo_units], axis=0)
+                                out["raw_units"] = named_array.NamedNumpyArray(
+                                    all_raw_units, [None, FeatureUnit], dtype=np.int64)
+                                self._raw_tags = out["raw_units"][:, FeatureUnit.tag]
+
+        if aif.use_unit_counts:
+            with sw("unit_counts"):
+                unit_counts = collections.defaultdict(int)
+                for u in raw.units:
+                    if u.alliance == sc_raw.Self:
+                        unit_counts[u.unit_type] += 1
+                # out["unit_counts"] = named_array.NamedNumpyArray(
+                #     sorted(unit_counts.items()), [None, UnitCounts], dtype=np.int32)
+                out["unit_counts"] = unit_counts
+
+        if not self._raw:
+            out["available_actions"] = np.array(
+                self.available_actions(obs.observation), dtype=np.int32)
+
+        if self._requested_races is not None:
+            out["home_race_requested"] = np.array(
+                (self._requested_races[player.player_id],), dtype=np.int32)
+            for player_id, race in self._requested_races.items():
+                if player_id != player.player_id:
+                    out["away_race_requested"] = np.array((race,), dtype=np.int32)
+
         return out
 
     @sw.decorate

@@ -370,7 +370,7 @@ class ReplayProcessor(multiprocessing.Process):
                 for i in range(len(prev_obs_queue)):
                     if not isinstance(prev_obs_queue[i][0], dict):  # whether is processed
                         # parse observation
-                        base_obs = [feat.transform_obs(o) for feat, o in zip(feats, prev_obs_queue[i])]
+                        base_obs = [feat.transform_obs_fast(o) for feat, o in zip(feats, prev_obs_queue[i])]
                         base_obs = [unit_id_mapping(o) for o in base_obs]
                         agent_obs = [self.obs_parser.parse(o) for o in base_obs]
 
