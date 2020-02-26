@@ -145,7 +145,6 @@ class EntityObsWrapper(object):
             else:
                 key_index = FeatureUnit[key]
                 item_data = feature_unit[:, key_index]
-            print('key', key)
             item_data = torch.LongTensor(item_data)
             item_data = item['op'](item_data)
             ret.append(item_data)
@@ -378,7 +377,7 @@ def transform_entity_data(resolution=128, pad_value=-1e9):
             sqrt_one_hot, max_val=1800), 'ori': 'player', 'other': 'one-hot, sqrt(1800), floor'},
         {'key': 'vespene', 'dim': 51, 'op': partial(sqrt_one_hot, max_val=2500),
          'ori': 'player', 'other': 'one-hot, sqrt(2500), floor'},
-        {'key': 'assigned_harvesters', 'dim': 34, 'op': partial(clip_one_hot, num=34), 'other': 'one-hot'},  # 34
+        {'key': 'assigned_harvesters', 'dim': 35, 'op': partial(clip_one_hot, num=35), 'other': 'one-hot'},  # 34
         {'key': 'ideal_harvesters', 'dim': 18, 'op': partial(one_hot, num=18), 'other': 'one-hot'},
         {'key': 'weapon_cooldown', 'dim': 32, 'op': partial(
             clip_one_hot, num=32), 'other': 'one-hot, game steps'},  # 35??
