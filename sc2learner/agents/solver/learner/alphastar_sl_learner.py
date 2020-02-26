@@ -46,7 +46,7 @@ class AlphastarSLLearner(SLLearner):
         '''
         self.loss_func = {  # multi loss to be calculate
             'action_type': self._criterion_apply,
-            'delay': self._criterion_apply,
+            'delay': self._delay_loss,
             'queued': self._queued_loss,
             'selected_units': self._selected_units_loss,
             'target_units': self._target_units_loss,
@@ -203,6 +203,21 @@ class AlphastarSLLearner(SLLearner):
         self.device = logits.device
         self.dtype = logits.dtype
         return self.criterion(logits, label)
+
+    def _delay_loss(self, pred, label):
+        '''
+            Overview: calculate MSE/L1 loss of taking each action or each delay
+            Arguments:
+                - pred (:obj:`tensor`): the predict delay
+                - label (:obj:`tensor`): label from batch_data
+            Returns:
+                - (:obj`tensor`): delay loss result
+        '''
+        if isinstance(label, collections.Sequence):
+            label = torch.cat(label, dim=0)
+        label = label.to(pred.dtype)
+        assert(pred.shape == label.shape)
+        return F.mse_loss(pred, label)
 
     def _queued_loss(self, logits, label):
         '''

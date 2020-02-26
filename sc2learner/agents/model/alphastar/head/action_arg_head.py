@@ -9,11 +9,12 @@ Main Function:
     5. Implementation for target_unit_head, including basic processes.
     6. Implementation for location_head, including basic processes.
 '''
+import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from sc2learner.nn_utils import fc_block, conv2d_block, deconv2d_block, build_activation, one_hot, LSTM, \
-    ResBlock, NearestUpsample, BilinearUpsample
+    ResBlock, NearestUpsample, BilinearUpsample, binary_encode
 from sc2learner.rl_utils import CategoricalPdPytorch
 
 
@@ -33,12 +34,11 @@ class DelayHead(nn.Module):
         self.act = build_activation(cfg.activation)
         self.fc1 = fc_block(cfg.input_dim, cfg.decode_dim, activation=self.act, norm_type=None)
         self.fc2 = fc_block(cfg.decode_dim, cfg.decode_dim, activation=self.act, norm_type=None)
-        self.fc3 = fc_block(cfg.decode_dim, cfg.delay_dim, activation=None, norm_type=None)
-        self.embed_fc1 = fc_block(cfg.delay_dim, cfg.delay_map_dim, activation=self.act, norm_type=None)
+        self.fc3 = fc_block(cfg.decode_dim, 1, activation=nn.Sigmoid(), norm_type=None)  # regression
+        self.embed_fc1 = fc_block(cfg.delay_encode_dim, cfg.delay_map_dim, activation=self.act, norm_type=None)
         self.embed_fc2 = fc_block(cfg.delay_map_dim, cfg.input_dim, activation=self.act, norm_type=None)
-        self.pd = CategoricalPdPytorch
 
-        self.delay_dim = cfg.delay_dim
+        self.delay_max_range = math.pow(2, cfg.delay_encode_dim) - 1
 
     def forward(self, embedding):
         '''
@@ -52,25 +52,21 @@ class DelayHead(nn.Module):
             Arguments:
                 - embedding (:obj:`tensor`): autoregressive_embedding
             Returns:
-                - (:obj`tensor`): delay_logits corresponding to the probabilities of each delay
-                - (:obj`tensor`): delay sampled from the delay_logits
+                - (:obj`tensor`): delay for calculation loss
+                - (:obj`tensor`): delay action
                 - (:obj`tensor`): autoregressive_embedding that combines information from lstm_output
                                   and all previous sampled arguments.
         '''
         x = self.fc1(embedding)
         x = self.fc2(x)
-        x = self.fc3(x)  # delay_loogits
-        handle = self.pd(x)
-        if self.train:
-            delay = handle.sample()
-        else:
-            delay = handle.mode()
+        x = self.fc3(x)
+        delay = torch.round(x * self.delay_max_range).squeeze(1)
 
-        delay_one_hot = one_hot(delay, self.delay_dim)
-        embedding_delay = self.embed_fc1(delay_one_hot)
+        delay_encode = binary_encode(delay, self.delay_max_range)
+        embedding_delay = self.embed_fc1(delay_encode)
         embedding_delay = self.embed_fc2(embedding_delay)  # get autoregressive_embedding
 
-        return x, delay, embedding + embedding_delay
+        return delay, delay, embedding + embedding_delay
 
 
 class QueuedHead(nn.Module):

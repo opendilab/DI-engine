@@ -208,7 +208,7 @@ class BilinearUpsample(nn.Module):
 
 def binary_encode(y, max_val):
     assert(max_val > 0)
-    x = y.clamp(0, max_val).long()
+    x = y.clamp(0, max_val)
     B = x.shape[0]
     L = int(math.log(max_val, 2)) + 1
     binary = []
