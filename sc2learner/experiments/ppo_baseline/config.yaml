@@ -13,7 +13,7 @@ env:
     use_reward_shaping: False
 job_manager:
     seed: 10
-    check_in_timeout: 1000
+    check_in_timeout: 500
     discard_timeout_jobs: False
 model:
     policy: mlp  # [mlp, lstm]
@@ -44,7 +44,7 @@ train:
         sleep_time: 3
 communication:
     ip:
-        learner: '10.198.6.60'
+        learner: '10.198.6.58'
         learner_manager: 'auto' # regarded as the manager node of the lustre with learner if set to auto
         actor_manager: 'auto' # regarded as the manager node of the lustre where the actors are running if set to auto
         coordinator: 'learner_manager' # if set to 'learner_manager', will be set to where the learner_manager is running
@@ -82,7 +82,7 @@ communication:
     model_time_interval: 1
 logger:
     print_freq: 50
-    save_freq: 200
+    save_freq: 500
     actor_monitor:
         print_slow_actors: True
         speed:

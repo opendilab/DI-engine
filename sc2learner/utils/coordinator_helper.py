@@ -292,4 +292,8 @@ class Coordinator():
         self.job_generator.load_checkpoint_data(data['job_generator'])
         self.job_manager.load_checkpoint_data(data['job_manager'])
         print('Setting Readiness to False')
+        # after recovered from a checkpoint, we need to wait actors to
+        # run to its original game steps without sending rollouts
+        # to avoid introducing an overhelming amount of samples of the begining
+        # of games and more inprecise bootstrapping value, so set the ready to False
         self.job_manager.ready = False
