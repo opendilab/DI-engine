@@ -36,6 +36,7 @@ class JobManager():
         self.available_job_queue = deque()
         self.last_request_req_id = {}
         self.cached_response = {}
+        self.ready = True
 
     def get_job(self, actor_id, req_id):
         if actor_id in self.last_request_req_id:
@@ -55,7 +56,7 @@ class JobManager():
         self.last_request_req_id[actor_id] = req_id
 
         if self.available_job_queue:
-            job = self.available_job_queue.pop_left()
+            job = self.available_job_queue.popleft()
         else:
             job = self.job_generator.gen()
         job['actor_id'] = actor_id
@@ -91,7 +92,13 @@ class JobManager():
             if job_id in self.running_job_pool:
                 self.running_job_pool[job_id]['last_checkin'] = time.time()
                 self.running_job_pool[job_id]['step'] = check_in_message['step']
-                ret = {'type': 'ack', 'actor_id': actor_id}
+                if not self.ready:
+                    self.check_readiness()
+                job = self.running_job_pool[job_id]
+                if not self.ready and job['step'] >= job['start_rollout_at']:
+                    ret = {'type': 'wait', 'actor_id': actor_id}
+                else:
+                    ret = {'type': 'ack', 'actor_id': actor_id}
             else:
                 print('WARNING: received check in for non-existing job {} from {}'
                       .format(job_id, actor_id))
@@ -99,6 +106,17 @@ class JobManager():
                        'job_id': job_id, 'actor_id': actor_id}
         self.job_pool_lock.release()
         return ret
+
+    def check_readiness(self):
+        not_ready_jobs = 0
+        for job_id, job in self.running_job_pool.items():
+            if job['step'] < job['start_rollout_at']:
+                not_ready_jobs += 1
+        if not_ready_jobs > 0:
+            print('Waiting for actor init, still {} left'.format(not_ready_jobs))
+        else:
+            print('Good to go')
+            self.ready = True
 
     def check_job_check_in_timeout(self):
         # waiting for starting actors and other managers
@@ -120,9 +138,10 @@ class JobManager():
                     job['start_time'] = None
                     job['last_checkin'] = None
                     job['start_rollout_at'] = job['step']
+                    job['step'] = 0
                     self.available_job_queue.append(job)
             self.job_pool_lock.release()
-            time.sleep(10)  # check timeout per 10sec
+            time.sleep(random.uniform(5, 15))  # random waiting time to avoid congression
 
     def get_checkpoint_data(self):
         """
@@ -139,10 +158,13 @@ class JobManager():
             new_job['start_time'] = None
             new_job['last_checkin'] = None
             new_job['start_rollout_at'] = job['step']
+            new_job['step'] = 0
             checkpoint_joblist.append(new_job)
         return checkpoint_joblist
 
     def load_checkpoint_data(self, data):
+        for job in data:
+            job['step'] = 0
         self.available_job_queue = deque(data)
 
 
@@ -187,6 +209,7 @@ class Coordinator():
         self.job_manager = JobManager(cfg, self.job_generator)
         self.coordinator_thread = Thread(target=self.coordinator,
                                          args=(port,))
+        self.job_manager.ready = True
         self.save_path = os.path.join(cfg.common.save_path, 'checkpoints')
         if not os.path.exists(self.save_path):
             os.makedirs(self.save_path)
@@ -203,7 +226,7 @@ class Coordinator():
 
     def coordinator(self, port):
         """
-        Fields in datagram dict sent by actors
+        Fields in dict sent by actors
         common:
             type: "check in" or "job req"
             actor_id
@@ -216,7 +239,7 @@ class Coordinator():
             req_id: an serial number to recognize repeated requests
 
         Fields in returned data
-        type: job, ack, job_cancel
+        type: job, ack, job_cancel, wait
         actor_id
         for job:
             job: job dict
@@ -268,3 +291,5 @@ class Coordinator():
         assert(isinstance(data, dict))
         self.job_generator.load_checkpoint_data(data['job_generator'])
         self.job_manager.load_checkpoint_data(data['job_manager'])
+        print('Setting Readiness to False')
+        self.job_manager.ready = False

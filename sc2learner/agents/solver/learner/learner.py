@@ -136,11 +136,14 @@ class HistoryActorInfo(object):
 
     def state_dict(self):
         return {'actor_data': self._data,
-                'game_results': self.game_results}
+                'game_results': self.game_results,
+                'game_lengths': self.game_lengths}
 
     def load_state_dict(self, state_dict):
         self._data = state_dict['actor_data']
         self.game_results = state_dict['game_results']
+        if 'game_lengths' in state_dict:
+            self.game_lengths = state_dict['game_lengths']
 
 
 class BaseLearner(object):
@@ -184,6 +187,7 @@ class BaseLearner(object):
         self.last_iter = CountVar(init_val=0)
         self.history_actor_info = HistoryActorInfo(cfg.logger.actor_monitor)
         if cfg.common.load_path != '':
+            print('Loading from checkpoint {}'.format(cfg.common.load_path))
             self.checkpoint_helper.load(cfg.common.load_path, self.model,
                                         optimizer=self.optimizer,
                                         last_iter=self.last_iter,  # TODO last_iter for lr_scheduler

@@ -81,16 +81,16 @@ class BaseActor(object):
             unroll['step'] = self.step
             print('update model time({})\tdata rollout time({})\tmodel_index({})'.format(
                 model_time, data_time, self.model_index))
-            if self.enable_push and self.step >= self.start_rollout_at:
-                if self.data_queue.full():
-                    print('WARNING: Actor send queue full')
-                self.data_queue.put(unroll)
-            # checking in
             self._do_check_in()
             if self.done or self.job_cancelled:
                 self.job_cancelled = False
                 self.done = False
                 self._init()
+                continue
+            if self.enable_push and self.step >= self.start_rollout_at:
+                if self.data_queue.full():
+                    print('WARNING: Actor send queue full')
+                self.data_queue.put(unroll)
 
     def _push_data(self, zmq_context, ip, port, queue):
         sender = zmq_context.socket(zmq.PUSH)
@@ -129,26 +129,33 @@ class BaseActor(object):
                     break
 
     def _do_check_in(self):
-        check_in_message = {'type': 'check in',
-                            'job_id': self.job_id,
-                            'done': self.done,
-                            'step': self.step,
-                            'actor_id': self.actor_id,
-                            'model_index': self.model_index}
-        try:
-            self.job_requestor.send_pyobj(check_in_message)
-            reply = self.job_requestor.recv_pyobj()
-            assert(isinstance(reply, dict))
-            if reply['type'] == 'ack':
-                pass
-            elif reply['type'] == 'job_cancel'\
-                    and reply['actor_id'] == self.actor_id\
-                    and reply['job_id'] == self.job_id:
-                print('WARNING: Job Cancel Request Received')
-                self.job_cancelled = True
-
-        except zmq.error.Again:
-            print('WARNING: Checkin Timeout')
+        while True:
+            check_in_message = {'type': 'check in',
+                                'job_id': self.job_id,
+                                'done': self.done,
+                                'step': self.step,
+                                'actor_id': self.actor_id,
+                                'model_index': self.model_index}
+            try:
+                self.job_requestor.send_pyobj(check_in_message)
+                reply = self.job_requestor.recv_pyobj()
+                assert(isinstance(reply, dict))
+                if reply['type'] == 'ack':
+                    break
+                elif reply['type'] == 'wait':
+                    print('waiting')
+                    time.sleep(10)
+                    continue
+                elif reply['type'] == 'job_cancel'\
+                        and reply['actor_id'] == self.actor_id\
+                        and reply['job_id'] == self.job_id:
+                    print('WARNING: Job Cancel Request Received')
+                    self.job_cancelled = True
+                    break
+            except zmq.error.Again:
+                # do nothing
+                print('WARNING: Checkin Timeout')
+                break
 
     def _request_job(self):
         while True:
