@@ -1,3 +1,4 @@
+import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -12,7 +13,8 @@ class SpatialEncoder(nn.Module):
         self.project = conv2d_block(cfg.input_dim, cfg.project_dim, 1, 1, 0, activation=self.act, norm_type=self.norm)
         down_layers = []
         dims = [cfg.project_dim] + cfg.down_channels
-        for i in range(len(cfg.down_channels)):
+        self.down_channels = cfg.down_channels
+        for i in range(len(self.down_channels)):
             if cfg.downsample_type == 'conv2d':
                 down_layers.append(conv2d_block(dims[i], dims[i+1], 4, 2, 1, activation=self.act, norm_type=self.norm))
             elif cfg.downsample_type == 'avgpool':
@@ -29,21 +31,52 @@ class SpatialEncoder(nn.Module):
         self.gap = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = fc_block(dim, cfg.fc_dim, activation=self.act)
 
-    def forward(self, x):
+    def forward(self, x, map_size):
         '''
-        Input:
-            x: [batch_size, input_dim, 128, 128]
-        Output:
-            x: [batch_size, fc_dim]
-            map_skip: list[Tensor(batch_size, 128, 16, 16) x 4]
+        Arguments:
+            x: [batch_size, input_dim, H, W]
+            map_size: list[list]  (y, x)
+        Returns:
+            output: [batch_size, fc_dim]
+            map_skip: list[Tensor(batch_size, 128, H//8, W//8) x 4]
         '''
+        if isinstance(x, torch.Tensor):
+            return self._forward(x, map_size)
+        elif isinstance(x, list):
+            output = []
+            map_skip = []
+            for item in x:
+                o, m = self._forward(item.unsqueeze(0), map_size)
+                output.append(o)
+                map_skip.append(m)
+            output = torch.stack(output, dim=0)
+            map_skip = list(zip(*map_skip))
+            return output, map_skip
+        else:
+            raise TypeError("invalid input type: {}".format(type(x)))
+
+    def _top_left_crop(self, data, map_size):
+        ratio = int(math.pow(2, len(self.down_channels)))
+        new_data = []
+        for d, m in zip(data, map_size):
+            h, w = m
+            h, w = h//ratio, w//ratio
+            new_data.append(d[..., :h, :w].unsqueeze(0))
+        return new_data
+
+    def _forward(self, x, map_size):
         x = self.project(x)
         x = self.downsample(x)
         map_skip = []
         for block in self.res:
             x = block(x)
-            map_skip.append(x)
-        x = self.gap(x)
+            map_skip.append(self._top_left_crop(x, map_size))
+        x = self._top_left_crop(x, map_size)
+        output = []
+        for idx, t in enumerate(x):
+            output.append(self.gap(t))
+        x = torch.cat(output, dim=0)
+        del output
         x = x.view(x.shape[:2])
         x = self.fc(x)
         return x, map_skip

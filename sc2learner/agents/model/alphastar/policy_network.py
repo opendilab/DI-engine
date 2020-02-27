@@ -120,8 +120,8 @@ class Policy(ActorCriticBase):
         actions = inputs['actions']
         embedded_scalar, scalar_context = self.encoder['scalar_encoder'](inputs['scalar_info'])
         entity_embeddings, embedded_entity = self.encoder['entity_encoder'](inputs['entity_info'])
-        embedded_spatial, map_skip = self.encoder['spatial_encoder'](
-            self._scatter_connection(inputs['spatial_info'], entity_embeddings, inputs['entity_raw']))
+        spatial_input = self._scatter_connection(inputs['spatial_info'], entity_embeddings, inputs['entity_raw'])
+        embedded_spatial, map_skip = self.encoder['spatial_encoder'](spatial_input, inputs['map_size'])
 
         embedded_entity, embedded_spatial, embedded_scalar = (embedded_entity.unsqueeze(0),
                                                               embedded_spatial.unsqueeze(0),
@@ -163,7 +163,12 @@ class Policy(ActorCriticBase):
             if isinstance(actions['target_location'][idx], torch.Tensor):
                 if not action_attr['target_location'][idx]:
                     print('target_location', actions['action_type'][idx], actions['target_location'][idx], idx)
-                map_skip_single = [t[idx:idx+1] for t in map_skip]
+                if isinstance(map_skip[0], torch.Tensor):
+                    map_skip_single = [t[idx:idx+1] for t in map_skip]
+                elif isinstance(map_skip[0], list):
+                    map_skip_single = [t[idx] for t in map_skip]
+                else:
+                    raise TypeError("invalid map_skip element type: {}".format(type(map_skip[0])))
                 logits_location, location = self.head['location_head'](
                     embedding, map_skip_single, mask['location_mask'][idx], temperature)
                 logits['target_location'].append(logits_location)

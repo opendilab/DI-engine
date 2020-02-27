@@ -1,5 +1,6 @@
 import os
 import torch
+import torch.nn.functional as F
 import numpy as np
 import numbers
 import random
@@ -142,6 +143,8 @@ class ReplayDataset(Dataset):
         sample_data = [decompress_obs(d) for d in sample_data]
         # check raw coordinate (x, y) <-> (y, x)
         assert(handle['map_size'] == list(reversed(sample_data[0]['spatial_info'].shape[1:])))
+        for i in range(len(sample_data)):
+            sample_data[i]['map_size'] = list(reversed(handle['map_size']))  # (y, x)
         if self.use_stat:
             beginning_build_order, cumulative_stat, mmr = self._load_stat(handle)
             for i in range(len(sample_data)):
@@ -184,11 +187,12 @@ def get_replay_list(replay_dir, output_path, **kwargs):
 
 def policy_collate_fn(batch, max_delay=63):
     data_item = {
-        'spatial_info': True,
+        'spatial_info': False,  # special op
         'scalar_info': True,
         'entity_info': False,
         'entity_raw': False,
-        'actions': False
+        'actions': False,
+        'map_size': False,
     }
 
     def list_dict2dict_list(data):
@@ -206,6 +210,18 @@ def policy_collate_fn(batch, max_delay=63):
         for k, merge in data_item.items():
             if merge:
                 new_data[k] = default_collate(new_data[k])
+            if k == 'spatial_info':
+                shape = [t.shape for t in new_data[k]]
+                if len(set(shape)) != 1:
+                    tmp_shape = list(zip(*shape))
+                    H, W = max(tmp_shape[1]), max(tmp_shape[2])
+                    new_spatial_info = []
+                    for item in new_data[k]:
+                        h, w = item.shape[-2:]
+                        new_spatial_info.append(F.pad(item, [0, W-w, 0, H-h], "constant", 0))
+                    new_data[k] = default_collate(new_spatial_info)
+                else:
+                    new_data[k] = default_collate(new_data[k])
             if k == 'actions':
                 new_data[k] = list_dict2dict_list(new_data[k])
                 new_data[k]['delay'] = [torch.clamp(x, 0, max_delay) for x in new_data[k]['delay']]  # clip
