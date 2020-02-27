@@ -1707,8 +1707,9 @@ class Features(object):
 
         def cargo_units(u, pos_transform, is_raw=False):
             """Compute unit features."""
-            screen_pos = pos_transform.fwd_pt(
-                point.Point.build(u.pos))
+            if pos_transform is not None:
+                screen_pos = pos_transform.fwd_pt(
+                    point.Point.build(u.pos))
             features = []
             for v in u.passengers:
                 features.append([
