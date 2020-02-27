@@ -13,7 +13,7 @@ data:
 train:
     use_cuda: True
     max_epochs: 1000
-    batch_size: 6
+    batch_size: 5
     learning_rate: 1e-3
     weight_decay: 1e-5
     temperature: 1.0
@@ -29,7 +29,7 @@ model:
                 use_stat: True  # whether use statistics z
                 activation: 'relu'
                 begin_num: 20  # beginning_build_order_num
-                output_dim: 1216  # use_stat(True: 1216, False: 1024)
+                output_dim: 1280  # use_stat(True: 1280, False: 1088)
             spatial_encoder:
                 input_dim: 52
                 resblock_num: 4
@@ -53,7 +53,7 @@ model:
             input_dim: 256  # entity_encoder.output_dim
             output_dim: 32
         core:
-            input_size: 1728  # spatial_encoder.fc_dim + entity_encoder.output_dim + scalar_encoder.output_dim
+            input_size: 1792  # spatial_encoder.fc_dim + entity_encoder.output_dim + scalar_encoder.output_dim
             hidden_size: 384
             num_layers: 3
         head:
