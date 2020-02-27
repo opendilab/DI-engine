@@ -26,7 +26,7 @@ import time
 import enum
 import numpy as np
 import six
-import threading
+from concurrent.futures import ThreadPoolExecutor
 from pysc2.lib import actions
 from pysc2.lib import colors
 from pysc2.lib import named_array
@@ -960,6 +960,7 @@ class Features(object):
             aif.raw_resolution = point.Point.build(map_size)
         self._map_size = map_size
         self._map_name = map_name
+        # self.raw_unit_executor = ThreadPoolExecutor(20)
 
         if (aif.use_feature_units
             or aif.use_camera_position
@@ -1695,8 +1696,11 @@ class Features(object):
         if aif.use_raw_units:
             with sw("raw_units"):
                 with sw("to_list"):
-                    raw_units = [full_unit_vec(u, self._world_to_minimap_px, is_raw=True)
+                    raw_units = [full_unit_vec(u, None, is_raw=True)
                                  for u in raw.units]
+                    # def raw_unit_func(u):
+                    #    return full_unit_vec(u, None, is_raw=True)
+                    # raw_units = list(self.raw_unit_executor.map(raw_unit_func, raw.units))
                 with sw("to_numpy"):
                     out["raw_units"] = named_array.NamedNumpyArray(
                         raw_units, [None, FeatureUnit], dtype=np.int64)
