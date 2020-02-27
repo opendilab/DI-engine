@@ -102,7 +102,7 @@ class JobManager():
 
     def check_job_check_in_timeout(self):
         # waiting for starting actors and other managers
-        time.sleep(1.5 * self.check_in_timeout)
+        time.sleep(1.1 * self.check_in_timeout)
         while True:
             expired_jobs = []
             self.job_pool_lock.acquire()
@@ -133,12 +133,13 @@ class JobManager():
         checkpoint_joblist = []
         for job in self.available_job_queue:
             checkpoint_joblist.append(job)
-        for job_id, job in self.running_job_pool:
-            job['actor_id'] = None
-            job['start_time'] = None
-            job['last_checkin'] = None
-            job['start_rollout_at'] = job['step']
-            checkpoint_joblist.append(job)
+        for job_id, job in self.running_job_pool.items():
+            new_job = job.copy()
+            new_job['actor_id'] = None
+            new_job['start_time'] = None
+            new_job['last_checkin'] = None
+            new_job['start_rollout_at'] = job['step']
+            checkpoint_joblist.append(new_job)
         return checkpoint_joblist
 
     def load_checkpoint_data(self, data):
@@ -187,9 +188,12 @@ class Coordinator():
         self.coordinator_thread = Thread(target=self.coordinator,
                                          args=(port,))
         self.save_path = os.path.join(cfg.common.save_path, 'checkpoints')
+        if not os.path.exists(self.save_path):
+            os.makedirs(self.save_path)
         self.max_model_index = 0
-        self.last_check_point = 0
+        self.last_checkpoint = 0
         if self.cfg.common.load_path != '':
+            print('Loading Checkpoint from {}'.format(self.cfg.common.load_path))
             with open(self.cfg.common.load_path, 'rb') as lf:
                 dat = pickle.load(lf)
             self.load_checkpoint_data(dat)
@@ -230,7 +234,7 @@ class Coordinator():
             if 'model_index' in data:
                 if data['model_index'] > self.max_model_index:
                     self.max_model_index = data['model_index']
-            if self.max_model_index > self.last_check_point\
+            if self.max_model_index > self.last_checkpoint\
                     and self.max_model_index % self.cfg.logger.save_freq == 0:
                 self.last_checkpoint = self.max_model_index
                 self.save_checkpoint()
@@ -251,7 +255,7 @@ class Coordinator():
         print('Saving checkpoint {}'.format(self.max_model_index))
         cd = self.get_checkpoint_data()
         path = os.path.join(
-            self.savepath, 'coordinator_iter{}.pickle'.format(self.max_model_index))
+            self.save_path, 'coordinator_iter{}.pickle'.format(self.max_model_index))
         with open(path, 'wb') as of:
             pickle.dump(cd, of)
 
