@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from .sl_learner import SLLearner
-from pysc2.lib.static_data import ACTIONS
+from pysc2.lib.static_data import ACTIONS_REORDER_INV, ACTIONS
 from sc2learner.dataset import policy_collate_fn
 from sc2learner.nn_utils import MultiLogitsLoss, build_criterion
 
@@ -123,7 +123,7 @@ class AlphastarSLLearner(SLLearner):
             for k, v in action.items():
                 if k == 'action_type':
                     for t in v:
-                        data_stat[k][t.item()] += 1
+                        data_stat[k][ACTIONS_REORDER_INV[t.item()]] += 1
                 elif k == 'delay':
                     for t in v:
                         if t <= 5:

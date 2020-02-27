@@ -7,8 +7,8 @@ from .head import DelayHead, QueuedHead, SelectedUnitsHead, TargetUnitsHead, Loc
 from .core import CoreLstm
 from .obs_encoder import ScalarEncoder, SpatialEncoder, EntityEncoder
 from sc2learner.nn_utils import fc_block
-from pysc2.lib.action_dict import ACTION_INFO_MASK
-from pysc2.lib.static_data import NUM_UNIT_TYPES, UNIT_TYPES_REORDER
+from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
+from pysc2.lib.static_data import NUM_UNIT_TYPES, UNIT_TYPES_REORDER, ACTIONS_REORDER_INV
 from ..actor_critic.actor_critic import ActorCriticBase
 
 
@@ -83,7 +83,7 @@ class Policy(ActorCriticBase):
         '''
         action_attr = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
         for idx, action in enumerate(action_type):
-            value = ACTION_INFO_MASK[action.item()]
+            value = GENERAL_ACTION_INFO_MASK[ACTIONS_REORDER_INV[action.item()]]
             if value['selected_units']:
                 type_list = value['avail_unit_type_id']
                 reorder_type_list = [UNIT_TYPES_REORDER[t] for t in type_list]

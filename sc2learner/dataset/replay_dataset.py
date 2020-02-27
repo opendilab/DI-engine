@@ -7,6 +7,7 @@ import random
 from torch.utils.data import Dataset
 from torch.utils.data._utils.collate import default_collate
 from sc2learner.envs.observations.alphastar_obs_wrapper import decompress_obs
+from pysc2.lib.static_data import ACTIONS_REORDER
 
 
 META_SUFFIX = '.meta'
@@ -185,7 +186,7 @@ def get_replay_list(replay_dir, output_path, **kwargs):
         f.writelines(selected_replay)
 
 
-def policy_collate_fn(batch, max_delay=63):
+def policy_collate_fn(batch, max_delay=63, action_type_transform=True):
     data_item = {
         'spatial_info': False,  # special op
         'scalar_info': True,
@@ -225,6 +226,13 @@ def policy_collate_fn(batch, max_delay=63):
             if k == 'actions':
                 new_data[k] = list_dict2dict_list(new_data[k])
                 new_data[k]['delay'] = [torch.clamp(x, 0, max_delay) for x in new_data[k]['delay']]  # clip
+                if action_type_transform:
+                    action_type = [t.item() for t in new_data[k]['action_type']]
+                    L = len(action_type)
+                    for i in range(L):
+                        action_type[i] = ACTIONS_REORDER[action_type[i]]
+                    action_type = torch.LongTensor(action_type)
+                    new_data[k]['action_type'] = list(torch.chunk(action_type, L, dim=0))
         return new_data
 
     # sequence, batch

@@ -185,6 +185,10 @@ ACTIONS_REORDER = {
     item: idx for idx, item in enumerate(ACTIONS)
 }
 
+ACTIONS_REORDER_INV = {
+    v: k for k, v in ACTIONS_REORDER.items()
+}
+
 target_list = ['unit', 'build', 'research', 'effect']
 BEGIN_ACTIONS = [k for k, v in GENERAL_ACTION_INFO_MASK.items() if v['goal'] in target_list]
 
