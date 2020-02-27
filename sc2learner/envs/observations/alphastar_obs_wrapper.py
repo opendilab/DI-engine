@@ -146,7 +146,12 @@ class EntityObsWrapper(object):
                 key_index = FeatureUnit[key]
                 item_data = feature_unit[:, key_index]
             item_data = torch.LongTensor(item_data)
-            item_data = item['op'](item_data)
+            try:
+                item_data = item['op'](item_data)
+            except KeyError as e:
+                print('key', key)
+                print(e)
+                raise KeyError
             ret.append(item_data)
         ret = list(zip(*ret))
         ret = [torch.cat(item, dim=0) for item in ret]
