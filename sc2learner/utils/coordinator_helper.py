@@ -46,13 +46,16 @@ class JobManager():
                 job = self.cached_response[actor_id]
                 job['start_time'] = time.time()
                 job['last_checkin'] = job['start_time']
+                self.job_pool_lock.acquire()
+                self.running_job_pool[job['job_id']] = job
+                self.job_pool_lock.release()
                 return job
             elif self.last_request_req_id[actor_id] > req_id:
                 print('WARNING: received older request from {}, actor restarted?'.format(actor_id))
         self.last_request_req_id[actor_id] = req_id
 
         if self.available_job_queue:
-            job = self.available_job_queue.get()
+            job = self.available_job_queue.pop_left()
         else:
             job = self.job_generator.gen()
         job['actor_id'] = actor_id
@@ -117,7 +120,7 @@ class JobManager():
                     job['start_time'] = None
                     job['last_checkin'] = None
                     job['start_rollout_at'] = job['step']
-                    self.available_job_queue.put(job)
+                    self.available_job_queue.append(job)
             self.job_pool_lock.release()
             time.sleep(10)  # check timeout per 10sec
 
@@ -154,7 +157,7 @@ class JobGenerator():
         seed = random.randint(0, 2**32 - 1)
         job['game_vs_bot'] = {'seed': seed,
                               'difficulty': difficulty}
-        print("New Job {}: Game Seed: {} Difficulty: {}".format(
+        print("New Job {}: Game&Pytorch Seed: {} Difficulty: {}".format(
             self.next_job_id, seed, difficulty))
         job['job_id'] = self.next_job_id
         job['start_rollout_at'] = 0
@@ -185,6 +188,7 @@ class Coordinator():
                                          args=(port,))
         self.save_path = os.path.join(cfg.common.save_path, 'checkpoints')
         self.max_model_index = 0
+        self.last_check_point = 0
         if self.cfg.common.load_path != '':
             with open(self.cfg.common.load_path, 'rb') as lf:
                 dat = pickle.load(lf)
@@ -223,6 +227,13 @@ class Coordinator():
             ident, data = self.connector.recv_multipart()
             data = pickle.loads(data)
             assert(isinstance(data, dict))
+            if 'model_index' in data:
+                if data['model_index'] > self.max_model_index:
+                    self.max_model_index = data['model_index']
+            if self.max_model_index > self.last_check_point\
+                    and self.max_model_index % self.cfg.logger.save_freq == 0:
+                self.last_checkpoint = self.max_model_index
+                self.save_checkpoint()
             if data['type'] == 'check in':
                 ret = self.job_manager.job_check_in_callback(data)
                 self.connector.send_multipart([ident, pickle.dumps(ret)])
@@ -235,12 +246,6 @@ class Coordinator():
                 continue
             else:
                 print('ERROR: Unknown request type {}'.format(data['type']))
-            if 'model_index' in data:
-                if data['model_index'] > self.max_model_index:
-                    self.max_model_index = data['model_index']
-            if self.max_model_index > 0\
-                    and self.max_model_index % self.cfg.logger.save_freq == 0:
-                self.save_checkpoint()
 
     def save_checkpoint(self):
         print('Saving checkpoint {}'.format(self.max_model_index))

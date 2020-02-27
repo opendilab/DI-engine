@@ -133,6 +133,7 @@ class PpoActor(BaseActor):
         self._create_env()
         if self.model is None:
             self._create_model()
+        self.model.set_seed(self.seed)
         self.obs = self.env.reset()
         self.done = False
         self.job_cancelled = False

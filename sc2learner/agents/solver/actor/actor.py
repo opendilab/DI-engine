@@ -144,11 +144,11 @@ class BaseActor(object):
             elif reply['type'] == 'job_cancel'\
                     and reply['actor_id'] == self.actor_id\
                     and reply['job_id'] == self.job_id:
-                print('Job Cancel Request Received')
+                print('WARNING: Job Cancel Request Received')
                 self.job_cancelled = True
 
         except zmq.error.Again:
-            print('Checkin Timeout')
+            print('WARNING: Checkin Timeout')
 
     def _request_job(self):
         while True:
@@ -161,14 +161,15 @@ class BaseActor(object):
                 reply = self.job_requestor.recv_pyobj()
                 assert(isinstance(reply, dict))
                 if(reply['type'] != 'job'):
-                    print('WARNING: received unknown response for job req')
+                    print('WARNING: received unknown response for job req, type:{}'
+                          .format(reply['type']))
                     continue
                 if(reply['actor_id'] != self.actor_id):
                     print('WARNING: received job is assigned to another actor')
                 self.job_request_id += 1
                 return reply['job']
             except zmq.error.Again:
-                print('Job Request Timeout')
+                print('WARNING: Job Request Timeout')
                 continue
 
     def _init(self):

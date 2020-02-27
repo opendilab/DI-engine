@@ -3,6 +3,7 @@ import zmq
 import time
 import numpy as np
 import torch
+import pickle
 from collections import deque
 from sc2learner.dataset import OnlineDataset, OnlineDataLoader
 from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper, to_device, CountVar,\
@@ -31,7 +32,7 @@ class HistoryActorInfo(object):
                               for k in self.copy_keys}
         self.game_results = {k: deque(maxlen=actor_monitor_arg.difficulty_queue_len)
                              for k in actor_monitor_arg.difficulties}
-        self.game_lengths = {k: deque(maxlen=50)  # TODO
+        self.game_lengths = {k: deque(maxlen=actor_monitor_arg.difficulty_queue_len)
                              for k in actor_monitor_arg.difficulties}
 
     def update_actor_info(self, data):
@@ -311,16 +312,17 @@ class BaseLearner(object):
         raise NotImplementedError
 
     def _reply_model(self, zmq_context, port):
-        receiver = zmq_context.socket(zmq.DEALER)
+        receiver = zmq_context.socket(zmq.ROUTER)
         receiver.bind("tcp://*:%s" % (port))
         while True:
-            msg = receiver.recv_string()
+            ident, msg = receiver.recv_multipart()
+            msg = msg.decode()
             assert(msg == 'request model')
             state_dict = {k: v.to('cpu')
                           for k, v in self.model.state_dict().items()}
             state_dict = {'state_dict': state_dict,
                           'model_index': self.last_iter.val, 'timestamp': time.time()}
-            receiver.send_pyobj(state_dict)
+            receiver.send_multipart([ident, pickle.dumps(state_dict)])
 
     def _init(self):
         self.variable_record.register_var('cur_lr')

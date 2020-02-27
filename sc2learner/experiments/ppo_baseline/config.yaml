@@ -82,7 +82,7 @@ communication:
     model_time_interval: 1
 logger:
     print_freq: 50
-    save_freq: 1000
+    save_freq: 200
     actor_monitor:
         print_slow_actors: True
         speed:
@@ -90,7 +90,7 @@ logger:
             normal: 100
             slow: 2000
         difficulties: ['1', '2', '4', '6', '9', 'A']
-        difficulty_queue_len: 100
+        difficulty_queue_len: 100 # how many rounds should win rate stat include
 # for auto_actor.py
 auto_actor_start:
     # partitions available to user
