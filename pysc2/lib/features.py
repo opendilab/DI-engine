@@ -22,9 +22,11 @@ import collections
 from absl import logging
 import random
 
+import time
 import enum
 import numpy as np
 import six
+import threading
 from pysc2.lib import actions
 from pysc2.lib import colors
 from pysc2.lib import named_array
@@ -1621,9 +1623,10 @@ class Features(object):
 
         def full_unit_vec(u, pos_transform, is_raw=False):
             """Compute unit features."""
-            screen_pos = pos_transform.fwd_pt(
-                point.Point.build(u.pos))
-            screen_radius = pos_transform.fwd_dist(u.radius)
+            if pos_transform is not None:
+                screen_pos = pos_transform.fwd_pt(
+                    point.Point.build(u.pos))
+                screen_radius = pos_transform.fwd_dist(u.radius)
 
             def raw_order(i):
                 if len(u.orders) > i:
@@ -1650,7 +1653,7 @@ class Features(object):
                 u.pos.x,  # origin world coordinate
                 self.map_size.y - u.pos.y,  # origin world coordinate, after the zero point transfrom(bottom-left->top left)  # noqa
                 u.facing,
-                screen_radius,
+                u.radius,  # screen_radius,
                 u.cloak,  # Cloaked = 1, CloakedDetected = 2, NotCloaked = 3
                 u.is_selected,
                 u.is_blip,
@@ -1697,15 +1700,6 @@ class Features(object):
                 with sw("to_numpy"):
                     out["raw_units"] = named_array.NamedNumpyArray(
                         raw_units, [None, FeatureUnit], dtype=np.int64)
-                if raw_units:
-                    self._raw_tags = out["raw_units"][:, FeatureUnit.tag]
-                else:
-                    self._raw_tags = np.array([])
-                feature_units_count = 0
-                for u in raw.units:
-                    if u.is_on_screen:
-                        feature_units_count += 1
-                out["feature_units_count"] = [feature_units_count]
 
         out["upgrades"] = np.array(raw.player.upgrade_ids, dtype=np.int32)
         if out["upgrades"].shape[0] == 0:  # for empty upgrades case
@@ -1775,7 +1769,7 @@ class Features(object):
                             raw_cargo_units = []
                             for u in raw.units:
                                 raw_cargo_units += cargo_units(
-                                    u, self._world_to_minimap_px, is_raw=True)
+                                    u, None, is_raw=True)
                         with sw("to_numpy"):
                             if raw_cargo_units:
                                 raw_cargo_units = np.array(raw_cargo_units, dtype=np.int64)
