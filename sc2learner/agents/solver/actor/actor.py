@@ -24,12 +24,16 @@ class BaseActor(object):
         else:
             port = cfg.communication.port
             ip = cfg.communication.ip
+            if ip['actor_manager'] == 'auto':
+                # IP of actor is added in train_ppo.py
+                prefix = '.'.join(ip.actor.split('.')[:3])
+                ip['actor_manager'] = ip.manager_node[prefix]
             push_ip = ip['actor_manager']
             push_port = port['actor_manager']
             req_ip = ip['actor_manager']
             req_port = port['actor_model']
             coord_ip = ip['actor_manager']
-            coord_port = ip['coordinator_relayed']
+            coord_port = port['coordinator_relayed']
         self.HWM = cfg.communication.HWM['actor']
         self.time_helper = build_time_helper(wrapper_type='time')
 
