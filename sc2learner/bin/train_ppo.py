@@ -101,7 +101,11 @@ def start_actor_manager(cfg):
 
 def start_coordinator(cfg):
     from sc2learner.utils import Coordinator
-    coordinator = Coordinator(cfg, cfg.communication.port.coordinator)
+    if 'IN_K8S' in os.environ:
+        port = os.getenv('SENSESTAR_COORDINATOR_SERVICE_SERVICE_PORT_JOB')
+    else:
+        port = cfg.communication.port.coordinator
+    coordinator = Coordinator(cfg, port)
     coordinator.run()
 
 
@@ -192,15 +196,21 @@ def main(argv):
     with open(FLAGS.config_path) as f:
         cfg = yaml.load(f)
     cfg = EasyDict(cfg)
-    cfg.common.save_path = os.path.dirname(FLAGS.config_path)
-    cfg.common.load_path = FLAGS.load_path
-    cfg.common.data_load_path = FLAGS.data_load_path
+    if 'IN_K8S' in os.environ:
+        cfg.common.save_path = os.getenv('SAVE_PATH', '')
+        cfg.common.load_path = os.getenv('LOAD_PATH', '')
+        cfg.common.data_load_path = os.getenv('DATA_LOAD_PATH', '')
+    else:
+        cfg.common.save_path = os.path.dirname(FLAGS.config_path)
+        cfg.common.load_path = FLAGS.load_path
+        cfg.common.data_load_path = FLAGS.data_load_path
     if FLAGS.job_name == 'actor':
         # preprocess the seed passed in
         if FLAGS.seed:
             random.seed(FLAGS.seed)
             cfg.seed = random.randint(0, 2**32 - 1)
-        cfg.communication.ip.actor = '.'.join(FLAGS.node_name.split('-')[-4:])
+        if 'IN_K8S' not in os.environ:
+            cfg.communication.ip.actor = '.'.join(FLAGS.node_name.split('-')[-4:])
         start_actor(cfg)
     elif FLAGS.job_name == 'learner':
         start_learner(cfg)

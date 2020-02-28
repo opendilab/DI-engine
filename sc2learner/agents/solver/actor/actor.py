@@ -14,17 +14,22 @@ class BaseActor(object):
         self.unroll_length = cfg.train.unroll_length
         self.env = None
         self.model = None  # will be created in self._init
-
-        port = cfg.communication.port
-        ip = cfg.communication.ip
-        if ip['actor_manager'] == 'auto':
-            # IP of actor is added in train_ppo.py
-            prefix = '.'.join(ip.actor.split('.')[:3])
-            ip['actor_manager'] = ip.manager_node[prefix]
-        push_ip = ip['actor_manager']
-        push_port = port['actor_manager']
-        req_ip = ip['actor_manager']
-        req_port = port['actor_model']
+        if 'IN_K8S' in os.environ:
+            push_ip = os.getenv('SENSESTAR_LEARNER_SERVICE_SERVICE_HOST')
+            push_port = os.getenv('SENSESTAR_LEARNER_SERVICE_SERVICE_PORT_LEARNER')
+            req_ip = os.getenv('SENSESTAR_LEARNER_SERVICE_SERVICE_HOST')
+            req_port = os.getenv('SENSESTAR_LEARNER_SERVICE_SERVICE_PORT_LEARNER_MODEL')
+            coord_ip = os.getenv('SENSESTAR_COORDINATOR_SERVICE_SERVICE_HOST')
+            coord_port = os.getenv('SENSESTAR_COORDINATOR_SERVICE_SERVICE_PORT_JOB')
+        else:
+            port = cfg.communication.port
+            ip = cfg.communication.ip
+            push_ip = ip['actor_manager']
+            push_port = port['actor_manager']
+            req_ip = ip['actor_manager']
+            req_port = port['actor_model']
+            coord_ip = ip['actor_manager']
+            coord_port = ip['coordinator_relayed']
         self.HWM = cfg.communication.HWM['actor']
         self.time_helper = build_time_helper(wrapper_type='time')
 
@@ -39,11 +44,9 @@ class BaseActor(object):
         print("model_requestor: tcp://%s:%s" % (req_ip, req_port))
 
         self.job_requestor = self.zmq_context.socket(zmq.DEALER)
-        self.job_requestor.connect("tcp://{}:{}"
-                                   .format(ip['actor_manager'], port['coordinator_relayed']))
+        self.job_requestor.connect("tcp://{}:{}".format(coord_ip, coord_port))
         self.job_requestor.setsockopt(zmq.RCVTIMEO, 1000*10)
-        print(
-            "job_requestor: tcp://{}:{}".format(ip['actor_manager'], port['coordinator_relayed']))
+        print("job_requestor: tcp://{}:{}".format(coord_ip, coord_port))
         self.job_request_id = 0
 
         if enable_push:
@@ -56,8 +59,11 @@ class BaseActor(object):
         #     self.checkpoint_helper.load(
         #         cfg.common.load_path, self.model, logger_prefix='(actor)')
         # if SLURM_JOB_ID is not available, failback to 'PID'+pid
-        self.actor_id = '{}+{}'.format(ip.actor,
-                                       os.getenv('SLURM_JOB_ID', 'PID'+str(get_pid())))
+        if 'IN_K8S' in os.environ:
+            self.actor_id = os.getenv('ACTOR_ID', 'Unknown,PID='+str(get_pid()))
+        else:
+            self.actor_id = '{}+{}'.format(ip.actor,
+                                           os.getenv('SLURM_JOB_ID', 'PID'+str(get_pid())))
         self.job_id = None
         self.job_cancelled = False
         self.start_rollout_at = 0
