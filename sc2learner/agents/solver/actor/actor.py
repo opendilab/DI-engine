@@ -77,7 +77,7 @@ class BaseActor(object):
             unroll['update_model_time'] = model_time
             data_time = self.time_helper.end_time()
             unroll['data_rollout_time'] = data_time
-            # this should be incremented in _nstep_rollout
+            # self.step should be incremented in _nstep_rollout
             unroll['step'] = self.step
             print('update model time({})\tdata rollout time({})\tmodel_index({})'.format(
                 model_time, data_time, self.model_index))
@@ -86,7 +86,6 @@ class BaseActor(object):
                 self.job_cancelled = False
                 self.done = False
                 self._init()
-                continue
             if self.enable_push and self.step >= self.start_rollout_at:
                 if self.data_queue.full():
                     print('WARNING: Actor send queue full')
