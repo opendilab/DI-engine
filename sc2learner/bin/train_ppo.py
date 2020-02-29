@@ -22,14 +22,14 @@ flags.FLAGS(sys.argv)
 
 
 def start_actor(cfg):
+    import torch # working around a problem making sc2 crash when creating env
+    from sc2learner.envs.raw_env import SC2RawEnv
     from sc2learner.agents.solver import PpoActor
     actor = PpoActor(cfg)
     actor.run()
 
 
 def start_learner(cfg):
-    from sc2learner.agents.model import PPOLSTM, PPOMLP
-    from sc2learner.agents.solver import PpoLearner, create_env
     ob_path = cfg.common.save_path + '/obs.pickle'
     ac_path = cfg.common.save_path + '/acs.pickle'
     try:
@@ -40,6 +40,9 @@ def start_learner(cfg):
         env = None
     except FileNotFoundError:
         print('Loading saved observation and action space failed, getting from env')
+        import torch
+        from sc2learner.envs.raw_env import SC2RawEnv
+        from sc2learner.agents.solver import PpoLearner, create_env
         env = create_env(cfg, '1', cfg.train.learner_seed)
         observation_space = env.observation_space
         action_space = env.action_space
@@ -47,6 +50,7 @@ def start_learner(cfg):
             pickle.dump(observation_space, ob)
         with open(ac_path, 'wb') as ac:
             pickle.dump(action_space, ac)
+    from sc2learner.agents.model import PPOLSTM, PPOMLP
     policy_func = {'mlp': PPOMLP,
                    'lstm': PPOLSTM}
     model = policy_func[cfg.model.policy](
