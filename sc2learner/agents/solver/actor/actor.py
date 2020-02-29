@@ -53,10 +53,15 @@ class BaseActor(object):
         print("job_requestor: tcp://{}:{}".format(coord_ip, coord_port))
         self.job_request_id = 0
 
+        self.rollout_pusher = self.zmq_context.socket(zmq.PUSH)
+        self.rollout_pusher.setsockopt(zmq.SNDHWM, self.HWM)
+        self.rollout_pusher.setsockopt(zmq.RCVHWM, self.HWM)
+        self.rollout_pusher.connect("tcp://%s:%s" % (push_ip, push_port))
+        print("rollout_pusher: tcp://%s:%s" % (push_ip, push_port))
+
         if enable_push:
             self.data_queue = Queue(cfg.train.actor_data_queue_size)
-            self.push_thread = Thread(target=self._push_data, args=(self.zmq_context,
-                                                                    push_ip, push_port, self.data_queue))
+            self.push_thread = Thread(target=self._push_data, args=(self.data_queue,))
         self.enable_push = enable_push
         # self.checkpoint_helper = build_checkpoint_helper(cfg)
         # if cfg.common.load_path != '':
@@ -101,14 +106,10 @@ class BaseActor(object):
                     print('WARNING: Actor send queue full')
                 self.data_queue.put(unroll)
 
-    def _push_data(self, zmq_context, ip, port, queue):
-        sender = zmq_context.socket(zmq.PUSH)
-        sender.setsockopt(zmq.SNDHWM, self.HWM)
-        sender.setsockopt(zmq.RCVHWM, self.HWM)
-        sender.connect("tcp://%s:%s" % (ip, port))
+    def _push_data(self, queue):
         while True:
             data = queue.get()
-            sender.send_pyobj(data)
+            self.rollout_pusher.send_pyobj(data)
 
     def _update_model(self):
         self.model_requestor.setsockopt(zmq.RCVTIMEO, 1000*15)

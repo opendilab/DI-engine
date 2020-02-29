@@ -4,6 +4,7 @@ import time
 import numpy as np
 import torch
 import pickle
+import os
 from collections import deque
 from sc2learner.dataset import OnlineDataset, OnlineDataLoader
 from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper, to_device, CountVar,\
@@ -170,8 +171,14 @@ class BaseLearner(object):
 
         ip = cfg.communication.ip
         port = cfg.communication.port
-        pull_port = port['learner']
-        rep_port = port['learner_manager_model']
+        if 'IN_K8S' in os.environ:
+            pull_port = os.getenv('SENSESTAR_LEARNER_SERVICE_SERVICE_PORT_LEARNER'
+                                  , port['learner'])
+            rep_port = os.getenv('SENSESTAR_LEARNER_SERVICE_SERVICE_PORT_LEARNER_MODEL'
+                                 , port['learner_manager_model'])
+        else:
+            pull_port = port['learner']
+            rep_port = port['learner_manager_model']
         self.HWM = cfg.communication.HWM['learner']
         self.pull_thread = Thread(target=self._pull_data,
                                   args=(self.zmq_context, pull_port))
@@ -318,6 +325,7 @@ class BaseLearner(object):
     def _reply_model(self, zmq_context, port):
         receiver = zmq_context.socket(zmq.ROUTER)
         receiver.bind("tcp://*:%s" % (port))
+        print('Model Reply Bind: tcp://*:%s' % (port))
         while True:
             ident, msg = receiver.recv_multipart()
             msg = msg.decode()
