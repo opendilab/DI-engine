@@ -22,7 +22,7 @@ flags.FLAGS(sys.argv)
 
 
 def start_actor(cfg):
-    import torch # working around a problem making sc2 crash when creating env
+    import torch  # working around a problem making sc2 crash when creating env
     from sc2learner.envs.raw_env import SC2RawEnv
     from sc2learner.agents.solver import PpoActor
     actor = PpoActor(cfg)
@@ -42,7 +42,7 @@ def start_learner(cfg):
         print('Loading saved observation and action space failed, getting from env')
         import torch
         from sc2learner.envs.raw_env import SC2RawEnv
-        from sc2learner.agents.solver import PpoLearner, create_env
+        from sc2learner.agents.solver import create_env
         env = create_env(cfg, '1', cfg.train.learner_seed)
         observation_space = env.observation_space
         action_space = env.action_space
@@ -51,6 +51,7 @@ def start_learner(cfg):
         with open(ac_path, 'wb') as ac:
             pickle.dump(action_space, ac)
     from sc2learner.agents.model import PPOLSTM, PPOMLP
+    from sc2learner.agents.solver import PpoLearner
     policy_func = {'mlp': PPOMLP,
                    'lstm': PPOLSTM}
     model = policy_func[cfg.model.policy](
@@ -214,7 +215,8 @@ def main(argv):
             random.seed(FLAGS.seed)
             cfg.seed = random.randint(0, 2**32 - 1)
         if 'IN_K8S' not in os.environ:
-            cfg.communication.ip.actor = '.'.join(FLAGS.node_name.split('-')[-4:])
+            cfg.communication.ip.actor = '.'.join(
+                FLAGS.node_name.split('-')[-4:])
         start_actor(cfg)
     elif FLAGS.job_name == 'learner':
         start_learner(cfg)
