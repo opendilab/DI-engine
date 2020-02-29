@@ -60,7 +60,7 @@ class DelayHead(nn.Module):
         x = self.fc1(embedding)
         x = self.fc2(x)
         x = self.fc3(x)
-        delay = torch.round(x * self.delay_max_range).squeeze(1)
+        delay = (x * self.delay_max_range).squeeze(1)
 
         delay_encode = binary_encode(delay, self.delay_max_range)
         embedding_delay = self.embed_fc1(delay_encode)
