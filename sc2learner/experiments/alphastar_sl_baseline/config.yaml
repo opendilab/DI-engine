@@ -2,7 +2,7 @@ common:
     name: ZergStat
     time_wrapper_type: cuda
 data:
-    trajectory_len: 64
+    trajectory_len: 48
     trajectory_type: slide_window
     slide_window_step: 1
     use_stat: True
@@ -13,7 +13,7 @@ data:
 train:
     use_cuda: True
     max_epochs: 1000
-    batch_size: 5
+    batch_size: 6
     learning_rate: 1e-3
     weight_decay: 1e-5
     temperature: 1.0
@@ -23,6 +23,7 @@ train:
             smooth_ratio: 0.1
 model:
     policy:
+        location_expand_ratio: 2
         obs_encoder:
             encoder_names: [scalar_encoder, spatial_encoder, entity_encoder]
             scalar_encoder:
@@ -107,8 +108,8 @@ model:
                 reshape_channel: 4  # entity_encoder.gate_dim / reshape_size
                 map_skip_dim: 128  # spatial_encoder.down_channels[-1]
                 activation: 'relu'
-    location_expand_ratio: 2
 logger:
     print_freq: 10
     save_freq: 200
+    eval_freq: 200
     var_record_type: 'alphastar'
