@@ -78,11 +78,8 @@ class TextLogger(object):
                 '[%(asctime)s][%(filename)15s][line:%(lineno)4d][%(levelname)8s] %(message)s')
             fh = logging.FileHandler(path, 'a')
             fh.setFormatter(formatter)
-            sh = logging.StreamHandler()
-            sh.setFormatter(formatter)
             logger.setLevel(level)
             logger.addHandler(fh)
-            logger.addHandler(sh)
         return logger
 
     def info(self, s):
