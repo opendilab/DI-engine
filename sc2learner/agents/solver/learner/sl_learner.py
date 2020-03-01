@@ -8,9 +8,9 @@ import os
 import numbers
 import torch
 from torch.utils.data import DataLoader
-from sc2learner.dataset import ReplayDataset, DistributedSampler
+from sc2learner.dataset import ReplayDataset, DistributedSampler, ReplayEvalDataset
 from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper, to_device, CountVar,\
-    DistModule, dist_init, dist_finalize, allreduce, auto_checkpoint
+    DistModule, dist_init, dist_finalize, allreduce, auto_checkpoint, get_default_logger
 from sc2learner.agents.model import build_model
 
 
@@ -43,7 +43,7 @@ def build_lr_scheduler(optimizer):
 class SLLearner(object):
     '''
         Overview: base class for supervised learning on linklink, including basic processes.
-        Interface: __init__, run, finalize, save_checkpoint
+        Interface: __init__, run, finalize, save_checkpoint, eval
     '''
 
     def __init__(self, cfg=None):
@@ -73,6 +73,10 @@ class SLLearner(object):
         shuffle = False if self.use_distributed else True
         self.dataloader = DataLoader(self.dataset, batch_size=cfg.train.batch_size, pin_memory=False, num_workers=3,
                                      sampler=sampler, shuffle=shuffle, drop_last=True)
+        self.eval_dataset = ReplayEvalDataset(cfg)
+        # eval_sampler = DistributedSampler(self.eval_dataset, round_up=False) if self.use_distributed else None
+        self.eval_dataloader = DataLoader(self.eval_dataset, batch_size=1, pin_memory=False, num_workers=0,
+                                          sampler=None, shuffle=False, drop_last=True)
 
         self.optimizer = build_optimizer(self.model, cfg)  # build optimizer using cfg
         self.lr_scheduler = build_lr_scheduler(self.optimizer)  # build lr_scheduler
@@ -81,6 +85,10 @@ class SLLearner(object):
             self.logger.info('cfg:\n{}'.format(self.cfg))
             self.logger.info('model:\n{}'.format(self.model))
             self._init()
+        else:
+            #TODO (logger for rank != 0)
+            self.logger = get_default_logger()
+
         self.time_helper = build_time_helper(cfg)  # build time_helper for timing
         self.checkpoint_helper = build_checkpoint_helper(cfg, self.rank)  # build checkpoint_helper to load or save
         self.last_iter = CountVar(init_val=0)  # count for iterations
@@ -100,8 +108,12 @@ class SLLearner(object):
     @auto_checkpoint
     def run(self):
         '''
-            Overview: train model with dataset in numbers of epoch
+            Overview: train/evaluate model with dataset in numbers of epoch
         '''
+        if self.cfg.common.only_evaluate:
+            self.eval()
+            return
+
         while self.last_epoch.val < self.max_epochs:
             if hasattr(self.dataloader.dataset, 'step'):  # call dataset.step()
                 self.dataloader.dataset.step()
@@ -128,9 +140,14 @@ class SLLearner(object):
                     self._update_monitor_var(var_items, time_items)  # update monitor variables
                     self._record_info(self.last_iter.val)  # save logger info
                 self.last_iter.add(1)
+                if self.last_iter.val % self.cfg.logger.eval_freq == 0:
+                    self.eval()
             self.last_epoch.add(1)
         # save the final checkpoint
         self.save_checkpoint()
+
+    def eval(self):
+        raise NotImplementedError
 
     def finalize(self):
         '''

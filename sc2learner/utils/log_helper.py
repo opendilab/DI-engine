@@ -41,6 +41,12 @@ def build_logger(cfg, name=None, rank=0):
         return None, None, None
 
 
+def get_default_logger(name=None):
+    if name is None:
+        name = 'default_logger'
+    return logging.getLogger(name)
+
+
 class TextLogger(object):
     '''
         Overview: save terminal output to file
@@ -70,13 +76,10 @@ class TextLogger(object):
         if not logger.handlers:
             formatter = logging.Formatter(
                 '[%(asctime)s][%(filename)15s][line:%(lineno)4d][%(levelname)8s] %(message)s')
-            fh = logging.FileHandler(path)
+            fh = logging.FileHandler(path, 'a')
             fh.setFormatter(formatter)
-            sh = logging.StreamHandler()
-            sh.setFormatter(formatter)
             logger.setLevel(level)
             logger.addHandler(fh)
-            logger.addHandler(sh)
         return logger
 
     def info(self, s):

@@ -1,11 +1,13 @@
 import os
 import torch
+import torch.nn.functional as F
 import numpy as np
 import numbers
 import random
 from torch.utils.data import Dataset
 from torch.utils.data._utils.collate import default_collate
 from sc2learner.envs.observations.alphastar_obs_wrapper import decompress_obs
+from pysc2.lib.static_data import ACTIONS_REORDER
 
 
 META_SUFFIX = '.meta'
@@ -27,6 +29,7 @@ class ReplayDataset(Dataset):
         self.beginning_build_order_num = cfg.data.beginning_build_order_num
         self.beginning_build_order_prob = cfg.data.beginning_build_order_prob
         self.cumulative_stat_prob = cfg.data.cumulative_stat_prob
+        self.use_global_cumulative_stat = cfg.data.use_global_cumulative_stat
 
     def __len__(self):
         return len(self.path_list)
@@ -96,6 +99,7 @@ class ReplayDataset(Dataset):
                 meta = torch.load(handle['name'] + META_SUFFIX)
                 step_num = meta['step_num']
                 handle['step_num'] = step_num
+                handle['map_size'] = meta['map_size']
             else:
                 step_num = handle['step_num']
             assert(handle['step_num'] >= self.trajectory_len)
@@ -138,14 +142,64 @@ class ReplayDataset(Dataset):
         # if unit id transform deletes some data frames,
         # collate_fn will use the minimum number of data frame to compose a batch
         sample_data = [decompress_obs(d) for d in sample_data]
+        # check raw coordinate (x, y) <-> (y, x)
+        assert(handle['map_size'] == list(reversed(sample_data[0]['spatial_info'].shape[1:])))
+        map_size = list(reversed(handle['map_size']))
         if self.use_stat:
             beginning_build_order, cumulative_stat, mmr = self._load_stat(handle)
-            for i in range(len(sample_data)):
+        for i in range(len(sample_data)):
+            sample_data[i]['map_size'] = map_size
+            if self.use_stat:
                 sample_data[i]['scalar_info']['beginning_build_order'] = beginning_build_order
-                sample_data[i]['scalar_info']['cumulative_stat'] = cumulative_stat
                 sample_data[i]['scalar_info']['mmr'] = mmr
+                if self.use_global_cumulative_stat:
+                    sample_data[i]['scalar_info']['cumulative_stat'] = cumulative_stat
 
         return sample_data
+
+
+class ReplayEvalDataset(ReplayDataset):
+    def __init__(self, cfg):
+        with open(cfg.data.eval_replay_list, 'r') as f:
+            path_list = f.readlines()
+        self.path_list = [{'name': p[:-1], 'count': 0} for idx, p in enumerate(path_list)]
+        self.use_stat = cfg.data.use_stat
+        self.beginning_build_order_num = cfg.data.beginning_build_order_num
+        self.use_global_cumulative_stat = cfg.data.use_global_cumulative_stat
+
+    # overwrite
+    def _load_stat(self, handle):
+        stat = torch.load(handle['name'] + STAT_SUFFIX)
+        mmr = stat['mmr']
+        beginning_build_order = stat['beginning_build_order']
+        # first self.beginning_build_order_num item
+        beginning_build_order = beginning_build_order[:self.beginning_build_order_num]
+        if beginning_build_order.shape[0] < self.beginning_build_order_num:
+            B, N = beginning_build_order.shape
+            B0 = self.beginning_build_order_num - B
+            beginning_build_order = torch.cat([beginning_build_order, torch.zeros(B0, N)])
+        cumulative_stat = stat['cumulative_stat']
+        return beginning_build_order, cumulative_stat, mmr
+
+    # overwrite
+    def __getitem__(self, idx):
+        handle = self.path_list[idx]
+        data = torch.load(handle['name'] + DATA_SUFFIX)
+        data = self.action_unit_id_transform(data)
+        data = [decompress_obs(d) for d in data]
+        meta = torch.load(handle['name'] + META_SUFFIX)
+        map_size = list(reversed(meta['map_size']))
+        if self.use_stat:
+            beginning_build_order, cumulative_stat, mmr = self._load_stat(handle)
+        for i in range(len(data)):
+            data[i]['map_size'] = map_size
+            if self.use_stat:
+                data[i]['scalar_info']['beginning_build_order'] = beginning_build_order
+                data[i]['scalar_info']['mmr'] = mmr
+                if self.use_global_cumulative_stat:
+                    data[i]['scalar_info']['cumulative_stat'] = cumulative_stat
+
+        return data
 
 
 def select_replay(replay_dir, min_mmr=0, home_race=None, away_race=None, trajectory_len=64):
@@ -177,13 +231,14 @@ def get_replay_list(replay_dir, output_path, **kwargs):
         f.writelines(selected_replay)
 
 
-def policy_collate_fn(batch):
+def policy_collate_fn(batch, max_delay=63, action_type_transform=True):
     data_item = {
-        'spatial_info': True,
+        'spatial_info': False,  # special op
         'scalar_info': True,
         'entity_info': False,
         'entity_raw': False,
-        'actions': False
+        'actions': False,
+        'map_size': False,
     }
 
     def list_dict2dict_list(data):
@@ -201,9 +256,28 @@ def policy_collate_fn(batch):
         for k, merge in data_item.items():
             if merge:
                 new_data[k] = default_collate(new_data[k])
+            if k == 'spatial_info':
+                shape = [t.shape for t in new_data[k]]
+                if len(set(shape)) != 1:
+                    tmp_shape = list(zip(*shape))
+                    H, W = max(tmp_shape[1]), max(tmp_shape[2])
+                    new_spatial_info = []
+                    for item in new_data[k]:
+                        h, w = item.shape[-2:]
+                        new_spatial_info.append(F.pad(item, [0, W-w, 0, H-h], "constant", 0))
+                    new_data[k] = default_collate(new_spatial_info)
+                else:
+                    new_data[k] = default_collate(new_data[k])
             if k == 'actions':
                 new_data[k] = list_dict2dict_list(new_data[k])
-                new_data[k]['delay'] = [torch.clamp(x, 0, 127) for x in new_data[k]['delay']]  # clip
+                new_data[k]['delay'] = [torch.clamp(x, 0, max_delay) for x in new_data[k]['delay']]  # clip
+                if action_type_transform:
+                    action_type = [t.item() for t in new_data[k]['action_type']]
+                    L = len(action_type)
+                    for i in range(L):
+                        action_type[i] = ACTIONS_REORDER[action_type[i]]
+                    action_type = torch.LongTensor(action_type)
+                    new_data[k]['action_type'] = list(torch.chunk(action_type, L, dim=0))
         return new_data
 
     # sequence, batch

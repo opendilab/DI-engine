@@ -7,8 +7,8 @@ from .head import DelayHead, QueuedHead, SelectedUnitsHead, TargetUnitsHead, Loc
 from .core import CoreLstm
 from .obs_encoder import ScalarEncoder, SpatialEncoder, EntityEncoder
 from sc2learner.nn_utils import fc_block
-from pysc2.lib.action_dict import ACTION_INFO_MASK
-from pysc2.lib.static_data import NUM_UNIT_TYPES, UNIT_TYPES_REORDER
+from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
+from pysc2.lib.static_data import NUM_UNIT_TYPES, UNIT_TYPES_REORDER, ACTIONS_REORDER_INV
 from ..actor_critic.actor_critic import ActorCriticBase
 
 
@@ -37,6 +37,7 @@ def build_head(name):
 class Policy(ActorCriticBase):
     def __init__(self, cfg):
         super(Policy, self).__init__()
+        self.cfg = cfg
         self.encoder = nn.ModuleDict()
         for item in cfg.obs_encoder.encoder_names:
             self.encoder[item] = build_obs_encoder(item)(cfg.obs_encoder[item])
@@ -83,7 +84,7 @@ class Policy(ActorCriticBase):
         '''
         action_attr = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
         for idx, action in enumerate(action_type):
-            value = ACTION_INFO_MASK[action.item()]
+            value = GENERAL_ACTION_INFO_MASK[ACTIONS_REORDER_INV[action.item()]]
             if value['selected_units']:
                 type_list = value['avail_unit_type_id']
                 reorder_type_list = [UNIT_TYPES_REORDER[t] for t in type_list]
@@ -120,8 +121,8 @@ class Policy(ActorCriticBase):
         actions = inputs['actions']
         embedded_scalar, scalar_context = self.encoder['scalar_encoder'](inputs['scalar_info'])
         entity_embeddings, embedded_entity = self.encoder['entity_encoder'](inputs['entity_info'])
-        embedded_spatial, map_skip = self.encoder['spatial_encoder'](
-            self._scatter_connection(inputs['spatial_info'], entity_embeddings, inputs['entity_raw']))
+        spatial_input = self._scatter_connection(inputs['spatial_info'], entity_embeddings, inputs['entity_raw'])
+        embedded_spatial, map_skip = self.encoder['spatial_encoder'](spatial_input, inputs['map_size'])
 
         embedded_entity, embedded_spatial, embedded_scalar = (embedded_entity.unsqueeze(0),
                                                               embedded_spatial.unsqueeze(0),
@@ -163,7 +164,12 @@ class Policy(ActorCriticBase):
             if isinstance(actions['target_location'][idx], torch.Tensor):
                 if not action_attr['target_location'][idx]:
                     print('target_location', actions['action_type'][idx], actions['target_location'][idx], idx)
-                map_skip_single = [t[idx:idx+1] for t in map_skip]
+                if isinstance(map_skip[0], torch.Tensor):
+                    map_skip_single = [t[idx:idx+1] for t in map_skip]
+                elif isinstance(map_skip[0], list):
+                    map_skip_single = [t[idx] for t in map_skip]
+                else:
+                    raise TypeError("invalid map_skip element type: {}".format(type(map_skip[0])))
                 logits_location, location = self.head['location_head'](
                     embedding, map_skip_single, mask['location_mask'][idx], temperature)
                 logits['target_location'].append(logits_location)
@@ -175,8 +181,8 @@ class Policy(ActorCriticBase):
         B = inputs['spatial_info'].shape[0]
         embedded_scalar, scalar_context = self.encoder['scalar_encoder'](inputs['scalar_info'])
         entity_embeddings, embedded_entity = self.encoder['entity_encoder'](inputs['entity_info'])
-        embedded_spatial, map_skip = self.encoder['spatial_encoder'](
-            self._scatter_connection(inputs['spatial_info'], entity_embeddings, inputs['entity_raw']))
+        spatial_input = self._scatter_connection(inputs['spatial_info'], entity_embeddings, inputs['entity_raw'])
+        embedded_spatial, map_skip = self.encoder['spatial_encoder'](spatial_input, inputs['map_size'])
 
         embedded_entity, embedded_spatial, embedded_scalar = (embedded_entity.unsqueeze(0),
                                                               embedded_spatial.unsqueeze(0),
@@ -242,7 +248,24 @@ class Policy(ActorCriticBase):
 
     # overwrite
     def evaluate(self, inputs, **kwargs):
+        '''
+            batch size = 1
+        '''
+        ratio = self.cfg.location_expand_ratio
+        Y, X = inputs['map_size'][0]
+
         actions, _, next_state = self._actor_forward(inputs, **kwargs)
+
+        if isinstance(actions['target_location'][0], torch.Tensor):
+            location = actions['target_location'][0]
+            transformed_location = torch.cat([location // (ratio*X), location % (ratio*X)], 0)
+            transformed_location = transformed_location.float().div(ratio)
+            actions['target_location'] = [transformed_location]
+
+        # error action(no necessary selected units)
+        if isinstance(actions['selected_units'][0], list) and len(actions['selected_units'][0]) == 0:
+            device = actions['action_type'][0].device
+            actions = {'action_type': [torch.LongTensor([0]).to(device)], 'delay': [torch.LongTensor([0]).to(device)]}
         return {
             'actions': actions,
             'next_state': next_state
