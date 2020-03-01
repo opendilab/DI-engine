@@ -1,6 +1,35 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import linklink as link
+from sc2learner.utils import get_group
+
+
+class GroupSyncBatchNorm(link.nn.SyncBatchNorm2d):
+    def __init__(self, num_features,
+                 bn_group_size=None,
+                 momentum=0.1,
+                 sync_stats=True,
+                 var_mode=link.syncbnVarMode_t.L2):
+
+        self.group_size = bn_group_size
+        super(GroupSyncBatchNorm, self).__init__(
+            num_features,
+            momentum=momentum,
+            group=get_group(bn_group_size),
+            sync_stats=sync_stats,
+            var_mode=var_mode,
+        )
+
+    def __repr__(self):
+        return ('{name}({num_features},'
+                ' eps={eps},'
+                ' momentum={momentum},'
+                ' affine={affine},'
+                ' group={group},'
+                ' group_size={group_size},'
+                ' sync_stats={sync_stats},'
+                ' var_mode={var_mode})'.format(name=self.__class__.__name__, **self.__dict__))
 
 
 class AdaptiveInstanceNorm2d(nn.Module):
@@ -35,7 +64,7 @@ def build_normalization(norm_type, dim=None):
     if dim is None:
         key = norm_type
     else:
-        if norm_type in ['BN', 'IN']:
+        if norm_type in ['BN', 'IN', 'SyncBN']:
             key = norm_type + str(dim)
         else:
             key = norm_type
@@ -45,6 +74,7 @@ def build_normalization(norm_type, dim=None):
         'LN': nn.LayerNorm,
         'IN2': nn.InstanceNorm2d,
         'AdaptiveIN': AdaptiveInstanceNorm2d,
+        'SyncBN2': GroupSyncBatchNorm,
     }
     if key in norm_func.keys():
         return norm_func[key]

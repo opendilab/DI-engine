@@ -39,7 +39,7 @@ model:
                 downsample_type: 'conv2d'
                 down_channels: [64, 128, 128]
                 activation: 'relu'
-                norm_type: 'BN'
+                norm_type: 'SyncBN'
             entity_encoder:
                 input_dim: 2102
                 head_dim: 128

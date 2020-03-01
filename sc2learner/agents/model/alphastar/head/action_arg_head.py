@@ -249,7 +249,7 @@ class SelectedUnitsHead(nn.Module):
         units_index = []
         for unit in units:
             index = torch.nonzero(unit)
-            if index.shape[0] == 0: # no unit
+            if index.shape[0] == 0:  # no unit
                 units_index.append([])
             else:
                 units_index.append(torch.nonzero(unit)[0])
