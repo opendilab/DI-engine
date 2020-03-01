@@ -191,7 +191,7 @@ class SelectedUnitsHead(nn.Module):
 
     def _query(self, key, end_flag_index, x, state, mask, temperature, output_entity_num):
         B, N = key.shape[:2]
-        units = torch.zeros(B, N, device=key.device, dtype=torch.int)
+        units = torch.zeros(B, N, device=key.device, dtype=torch.long)
         logits = [[] for _ in range(B)]
         x = x.unsqueeze(0)
         if output_entity_num is None:
@@ -226,10 +226,12 @@ class SelectedUnitsHead(nn.Module):
                     mask[:, -1] = 1  # recover end_flag mask
         else:
             for i in range(max(output_entity_num)+1):
+                if i == 0:
+                    mask[:, -1] = 0  # at least 1 unit(not select end_flag in the first selection)
                 x, state = self.lstm(x, state)
                 query_result = x.permute(1, 0, 2) * key
                 query_result = query_result.mean(dim=2)
-                # query_result.sub_((1 - mask) * 1e9)
+                query_result.sub_((1 - mask) * 1e9)
                 handle = self.pd(query_result.div(temperature))
                 if self.train:
                     entity_num = handle.sample()
@@ -245,11 +247,17 @@ class SelectedUnitsHead(nn.Module):
                             mask[b][entity_num[b]] = 0
                     else:
                         logits[b].append(query_result)
+                if i == 0:
+                    mask[:, -1] = 1  # recover end_flag mask
         embedding_selected = units.unsqueeze(2).to(key.dtype)
         embedding_selected = embedding_selected * key
         embedding_selected = embedding_selected.mean(dim=1)
         embedding_selected = self.embed_fc(embedding_selected)
-        return logits, units, embedding_selected
+
+        units_index = []
+        for unit in units:
+            units_index.append(torch.nonzero(unit)[0])
+        return logits, units_index, embedding_selected
 
     def forward(self, embedding, available_unit_type_mask, available_units_mask, entity_embedding,
                 temperature=1.0, output_entity_num=None):
@@ -311,7 +319,7 @@ class TargetUnitsHead(nn.Module):
 
     def _query(self, key, end_flag_index, x, state, mask, temperature, output_entity_num):
         B, N = key.shape[:2]
-        units = torch.zeros(B, N, device=key.device, dtype=torch.int)
+        units = torch.zeros(B, N, device=key.device, dtype=torch.long)
         logits = [[] for _ in range(B)]
         x = x.unsqueeze(0)
         if output_entity_num is None:
@@ -379,8 +387,11 @@ class TargetUnitsHead(nn.Module):
         key, end_flag_index = self._get_key(entity_embedding)
         mask = torch.cat([mask, torch.ones_like(mask[:, 0:1])], dim=1)
         logits, units = self._query(key, end_flag_index, input, state, mask, temperature, output_entity_num)
+        units_index = []
+        for unit in units:
+            units_index.append(torch.nonzero(unit)[0])
 
-        return logits, units
+        return logits, units_index
 
 
 class TargetUnitHead(nn.Module):
@@ -441,15 +452,18 @@ class TargetUnitHead(nn.Module):
         logits.sub_((1-mask) * 1e9)
 
         B, N = key.shape[:2]
-        units = torch.zeros(B, N, device=key.device, dtype=torch.int)
+        units = torch.zeros(B, N, device=key.device, dtype=torch.long)
         handle = self.pd(logits.div(temperature))
         if self.train:
             sample_num = handle.sample()
         else:
             sample_num = handle.mode()
         units.scatter_(1, sample_num.unsqueeze(1), 1)
+        units_index = []
+        for unit in units:
+            units_index.append(torch.nonzero(unit)[0])
 
-        return logits, units
+        return logits, units_index
 
 
 class LocationHead(nn.Module):

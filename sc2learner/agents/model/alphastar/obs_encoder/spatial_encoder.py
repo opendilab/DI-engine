@@ -62,6 +62,8 @@ class SpatialEncoder(nn.Module):
             h, w = m
             h, w = h//ratio, w//ratio
             new_data.append(d[..., :h, :w].unsqueeze(0))
+        if len(new_data) == 1:
+            new_data = new_data[0]
         return new_data
 
     def _forward(self, x, map_size):
@@ -72,11 +74,14 @@ class SpatialEncoder(nn.Module):
             x = block(x)
             map_skip.append(self._top_left_crop(x, map_size))
         x = self._top_left_crop(x, map_size)
-        output = []
-        for idx, t in enumerate(x):
-            output.append(self.gap(t))
-        x = torch.cat(output, dim=0)
-        del output
+        if isinstance(x, torch.Tensor):
+            x = self.gap(x)
+        elif isinstance(x, list):
+            output = []
+            for idx, t in enumerate(x):
+                output.append(self.gap(t))
+            x = torch.cat(output, dim=0)
+            del output
         x = x.view(x.shape[:2])
         x = self.fc(x)
         return x, map_skip

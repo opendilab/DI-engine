@@ -6,6 +6,7 @@ Main Function:
 '''
 import math
 import collections
+from collections import defaultdict
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -13,6 +14,7 @@ from .sl_learner import SLLearner
 from pysc2.lib.static_data import ACTIONS_REORDER_INV, ACTIONS
 from sc2learner.dataset import policy_collate_fn
 from sc2learner.nn_utils import MultiLogitsLoss, build_criterion
+from sc2learner.utils import to_device
 
 
 def build_temperature_scheduler(cfg):
@@ -31,6 +33,118 @@ def build_temperature_scheduler(cfg):
             return self.init_val
 
     return NaiveT(init_val=cfg.train.temperature)
+
+
+class AlphastarSLCriterion(object):
+    '''
+        Overview: Alphastar supervised learning evaluate criterion
+        Interface: __init__, update, get_stat, to_string
+    '''
+
+    def __init__(self):
+        self.total_count = 0
+        self.correct_action_type = 0
+        self.error_action_type = defaultdict(int)
+        self.action_arg = ['delay', 'queued', 'selected_units', 'target_units', 'target_location']
+        for k in self.action_arg:
+            setattr(self, k, [])
+
+        def delay_l1(p, l):
+            l = l.float()  # noqa
+            base = -1.73e-5*l**3 + 1.89e-3*l**2 - 5.8e-2*l + 0.61
+            loss = torch.abs(p - l) - base*l
+            return loss.clamp(0).mean().item()
+
+        def accuracy(p, l):
+            return p.eq(l).sum().item()
+
+        def IOU(p, l):
+            p_set = set(p.tolist())
+            l_set = set(l.tolist())
+            union = p_set.union(l_set)
+            intersect = p_set.intersection(l_set)
+            return len(intersect)*1.0/len(union)
+
+        def L2(p, l):
+            return F.mse_loss(p.float(), l.float()).item()
+
+        self.action_arg_criterion = {k: v for k, v in zip(self.action_arg, [delay_l1, accuracy, IOU, accuracy, L2])}
+
+    def update(self, pred, target):
+        '''
+            Overview: update eval criterion one step
+            Arguments:
+                - pred (:obj:`dict`): predict action
+                - target (:obj:`target`) ground truth action
+            Others:
+                - action type: accuracy
+                - delay: delay L1 distance (only for matched action type)
+                - queued: accuracy (only for matched action type and the action with this arribute)
+                - selected units: IOU (only for matched action type and the action with this arribute)
+                - target units: accuracy (only for matched action type and the action with this arribute)
+                - target location: L2 distance (only for matched action type and the action with this arribute)
+        '''
+        with torch.no_grad():
+            self.total_count += 1
+            pred_action_type = pred['action_type'][0]
+            target_action_type = target['action_type'][0]
+            if pred_action_type == target_action_type:
+                self.correct_action_type += 1
+                for k in self.action_arg:
+                    if isinstance(pred[k][0], torch.Tensor):
+                        criterion = self.action_arg_criterion[k](pred[k][0], target[k][0])
+                        handle = getattr(self, k)
+                        handle.append([criterion, target_action_type.item()])
+            else:
+                self.error_action_type[target_action_type.item()] += 1
+
+    def get_stat(self):
+        avg = {}
+        hard_case = {}
+        threshold = {k: v for k, v in zip(self.action_arg, [0, 0, 0.3, 0, 2.9])}
+        for k in self.action_arg:
+            attr = getattr(self, k)
+            tmp = 0
+            tmp_dict = defaultdict(int)
+            th = threshold[k]
+            for t in attr:
+                tmp += t[0]
+                if t[0] > th:
+                    action_type = t[1]
+                    tmp_dict[action_type] += 1
+
+            avg[k] = tmp * 1.0 / (len(attr) + 1e-8)
+            hard_case[k] = sorted([[k, v] for k, v in tmp_dict.items()], key=lambda x: x[1], reverse=True)
+
+        hard_case_action_type = sorted([[k, v] for k, v in self.error_action_type.items()],
+                                       key=lambda x: x[1], reverse=True)
+        return {
+            'action_type acc': self.correct_action_type * 1.0 / self.total_count,
+            'delay l1': avg['delay'],
+            'queued acc': avg['queued'],
+            'selected_units IOU': avg['selected_units'],
+            'target_units acc': avg['target_units'],
+            'target_location L2': avg['target_location'],
+
+            'action_type hard case': hard_case_action_type,
+            'delay hard case': hard_case['delay'],
+            'queued hard case': hard_case['queued'],
+            'selected_units hard case': hard_case['selected_units'],
+            'target_units hard case': hard_case['target_units'],
+            'target_location hard case': hard_case['target_location']
+        }
+
+    def to_string(self, data=None):
+        if data is None:
+            data = self.get_stat()
+        s = "\n"
+        for k, v in data.items():
+            if 'hard case' in k:
+                v_str = ['{}({})'.format(ACTIONS_REORDER_INV[name], count) for name, count in v]
+                s += '{}: {}\n'.format(k, '\t'.join(v_str))
+            else:
+                s += '{}: {:.3f}\n'.format(k, v)
+        return s
 
 
 class AlphastarSLLearner(SLLearner):
@@ -62,11 +176,13 @@ class AlphastarSLLearner(SLLearner):
         }  # must execute before super __init__
         super(AlphastarSLLearner, self).__init__(*args, **kwargs)
         setattr(self.dataloader, 'collate_fn', policy_collate_fn)  # use dataloader.collate_fn to call this function
+        setattr(self.eval_dataloader, 'collate_fn', policy_collate_fn)  # use dataloader.collate_fn to call this function  # noqa
         self.temperature_scheduler = build_temperature_scheduler(self.cfg)  # get naive temperature scheduler
         self._get_loss = self.time_helper.wrapper(self._get_loss)  # use time helper to calculate forward time
         self.use_value_network = 'value' in self.cfg.model.keys()  # if value in self.cfg.model.keys(), use_value_network=True  # noqa
         self.criterion = build_criterion(self.cfg.train.criterion)  # define loss function
-        self.location_expand_ratio = self.cfg.model.location_expand_ratio
+        self.location_expand_ratio = self.cfg.model.policy.location_expand_ratio
+        self.eval_criterion = AlphastarSLCriterion()
 
     # overwrite
     def _init(self):
@@ -308,3 +424,23 @@ class AlphastarSLLearner(SLLearner):
             logit = logit.view(1, -1)
             loss.append(self.criterion(logit, label))
         return sum(loss) / len(loss)
+
+    # overwrite
+    def eval(self):
+        self.model.eval()
+        for idx, data in enumerate(self.eval_dataloader):
+            next_state = None
+            for s_idx, step_data in enumerate(data):
+                if self.use_cuda:
+                    step_data = to_device(step_data, 'cuda')
+                step_data['prev_state'] = next_state
+                with torch.no_grad():
+                    ret = self.model(step_data, mode='evaluate')
+                actions, next_state = ret['actions'], ret['next_state']
+                self.eval_criterion.update(actions, step_data['actions'])
+                if s_idx % 100 == 0:
+                    args = [self.rank, idx+1, len(self.eval_dataloader), s_idx, len(data)]
+                    self.logger.info('EVAL[rank: {}](sample: {}/{})(step: {}/{})'.format(*args))
+        eval_result = self.eval_criterion.get_stat()
+        self.logger.info(self.eval_criterion.to_string(eval_result))
+        self.model.train()

@@ -37,6 +37,7 @@ def build_head(name):
 class Policy(ActorCriticBase):
     def __init__(self, cfg):
         super(Policy, self).__init__()
+        self.cfg = cfg
         self.encoder = nn.ModuleDict()
         for item in cfg.obs_encoder.encoder_names:
             self.encoder[item] = build_obs_encoder(item)(cfg.obs_encoder[item])
@@ -180,8 +181,8 @@ class Policy(ActorCriticBase):
         B = inputs['spatial_info'].shape[0]
         embedded_scalar, scalar_context = self.encoder['scalar_encoder'](inputs['scalar_info'])
         entity_embeddings, embedded_entity = self.encoder['entity_encoder'](inputs['entity_info'])
-        embedded_spatial, map_skip = self.encoder['spatial_encoder'](
-            self._scatter_connection(inputs['spatial_info'], entity_embeddings, inputs['entity_raw']))
+        spatial_input = self._scatter_connection(inputs['spatial_info'], entity_embeddings, inputs['entity_raw'])
+        embedded_spatial, map_skip = self.encoder['spatial_encoder'](spatial_input, inputs['map_size'])
 
         embedded_entity, embedded_spatial, embedded_scalar = (embedded_entity.unsqueeze(0),
                                                               embedded_spatial.unsqueeze(0),
@@ -247,7 +248,20 @@ class Policy(ActorCriticBase):
 
     # overwrite
     def evaluate(self, inputs, **kwargs):
+        '''
+            batch size = 1
+        '''
+        ratio = self.cfg.location_expand_ratio
+        Y, X = inputs['map_size'][0]
+
         actions, _, next_state = self._actor_forward(inputs, **kwargs)
+
+        if isinstance(actions['target_location'][0], torch.Tensor):
+            location = actions['target_location'][0]
+            transformed_location = torch.cat([location // (ratio*X), location % (ratio*X)], 0)
+            transformed_location = transformed_location.float().div(ratio)
+            actions['target_location'] = [transformed_location]
+
         return {
             'actions': actions,
             'next_state': next_state

@@ -144,17 +144,62 @@ class ReplayDataset(Dataset):
         sample_data = [decompress_obs(d) for d in sample_data]
         # check raw coordinate (x, y) <-> (y, x)
         assert(handle['map_size'] == list(reversed(sample_data[0]['spatial_info'].shape[1:])))
-        for i in range(len(sample_data)):
-            sample_data[i]['map_size'] = list(reversed(handle['map_size']))  # (y, x)
+        map_size = list(reversed(handle['map_size']))
         if self.use_stat:
             beginning_build_order, cumulative_stat, mmr = self._load_stat(handle)
-            for i in range(len(sample_data)):
+        for i in range(len(sample_data)):
+            sample_data[i]['map_size'] = map_size
+            if self.use_stat:
                 sample_data[i]['scalar_info']['beginning_build_order'] = beginning_build_order
                 sample_data[i]['scalar_info']['mmr'] = mmr
                 if self.use_global_cumulative_stat:
                     sample_data[i]['scalar_info']['cumulative_stat'] = cumulative_stat
 
         return sample_data
+
+
+class ReplayEvalDataset(ReplayDataset):
+    def __init__(self, cfg):
+        with open(cfg.data.eval_replay_list, 'r') as f:
+            path_list = f.readlines()
+        self.path_list = [{'name': p[:-1], 'count': 0} for idx, p in enumerate(path_list)]
+        self.use_stat = cfg.data.use_stat
+        self.beginning_build_order_num = cfg.data.beginning_build_order_num
+        self.use_global_cumulative_stat = cfg.data.use_global_cumulative_stat
+
+    # overwrite
+    def _load_stat(self, handle):
+        stat = torch.load(handle['name'] + STAT_SUFFIX)
+        mmr = stat['mmr']
+        beginning_build_order = stat['beginning_build_order']
+        # first self.beginning_build_order_num item
+        beginning_build_order = beginning_build_order[:self.beginning_build_order_num]
+        if beginning_build_order.shape[0] < self.beginning_build_order_num:
+            B, N = beginning_build_order.shape
+            B0 = self.beginning_build_order_num - B
+            beginning_build_order = torch.cat([beginning_build_order, torch.zeros(B0, N)])
+        cumulative_stat = stat['cumulative_stat']
+        return beginning_build_order, cumulative_stat, mmr
+
+    # overwrite
+    def __getitem__(self, idx):
+        handle = self.path_list[idx]
+        data = torch.load(handle['name'] + DATA_SUFFIX)
+        data = self.action_unit_id_transform(data)
+        data = [decompress_obs(d) for d in data]
+        meta = torch.load(handle['name'] + META_SUFFIX)
+        map_size = list(reversed(meta['map_size']))
+        if self.use_stat:
+            beginning_build_order, cumulative_stat, mmr = self._load_stat(handle)
+        for i in range(len(data)):
+            data[i]['map_size'] = map_size
+            if self.use_stat:
+                data[i]['scalar_info']['beginning_build_order'] = beginning_build_order
+                data[i]['scalar_info']['mmr'] = mmr
+                if self.use_global_cumulative_stat:
+                    data[i]['scalar_info']['cumulative_stat'] = cumulative_stat
+
+        return data
 
 
 def select_replay(replay_dir, min_mmr=0, home_race=None, away_race=None, trajectory_len=64):

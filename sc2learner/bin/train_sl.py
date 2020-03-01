@@ -22,7 +22,9 @@ FLAGS = flags.FLAGS
 flags.DEFINE_string("config_path", "config.yaml", "path to config file")
 flags.DEFINE_string("load_path", "", "path to model checkpoint")
 flags.DEFINE_string("replay_list", None, "path to replay data")
-flags.DEFINE_string("use_distributed", "False", "use distributed training")
+flags.DEFINE_string("eval_replay_list", None, "path to evaluate replay data")
+flags.DEFINE_bool("use_distributed", False, "use distributed training")
+flags.DEFINE_bool("only_evaluate", False, "only sl evaluate")
 flags.FLAGS(sys.argv)
 
 
@@ -33,8 +35,10 @@ def main(argv):
     cfg = EasyDict(cfg)
     cfg.common.save_path = os.path.dirname(FLAGS.config_path)
     cfg.common.load_path = FLAGS.load_path
+    cfg.common.only_evaluate = FLAGS.only_evaluate
     cfg.data.replay_list = FLAGS.replay_list
-    cfg.train.use_distributed = True if FLAGS.use_distributed == 'True' else False
+    cfg.data.eval_replay_list = FLAGS.eval_replay_list
+    cfg.train.use_distributed = FLAGS.use_distributed
     learner = AlphastarSLLearner(cfg)
     learner.run()
     learner.finalize()

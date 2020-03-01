@@ -1,4 +1,4 @@
-from .log_helper import build_logger, DistributionTimeImage
+from .log_helper import build_logger, DistributionTimeImage, get_default_logger
 from .checkpoint_helper import build_checkpoint_helper, CountVar, auto_checkpoint
 from .time_helper import build_time_helper
 from .data_helper import to_device, to_tensor
