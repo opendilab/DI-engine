@@ -200,8 +200,6 @@ class SelectedUnitsHead(nn.Module):
             for i in range(self.max_entity_num):
                 if sum(end_flag_trigger) == B:
                     break
-                if i == 0:
-                    mask[:, -1] = 0  # at least 1 unit(not select end_flag in the first selection)
                 x, state = self.lstm(x, state)
                 query_result = x.permute(1, 0, 2) * key
                 query_result = query_result.mean(dim=2)
@@ -222,12 +220,8 @@ class SelectedUnitsHead(nn.Module):
                             continue
                         units[b][entity_num[b]] = 1
                         mask[b][entity_num[b]] = 0
-                if i == 0:
-                    mask[:, -1] = 1  # recover end_flag mask
         else:
             for i in range(max(output_entity_num)+1):
-                if i == 0:
-                    mask[:, -1] = 0  # at least 1 unit(not select end_flag in the first selection)
                 x, state = self.lstm(x, state)
                 query_result = x.permute(1, 0, 2) * key
                 query_result = query_result.mean(dim=2)
@@ -247,8 +241,6 @@ class SelectedUnitsHead(nn.Module):
                             mask[b][entity_num[b]] = 0
                     else:
                         logits[b].append(query_result)
-                if i == 0:
-                    mask[:, -1] = 1  # recover end_flag mask
         embedding_selected = units.unsqueeze(2).to(key.dtype)
         embedding_selected = embedding_selected * key
         embedding_selected = embedding_selected.mean(dim=1)
@@ -256,7 +248,11 @@ class SelectedUnitsHead(nn.Module):
 
         units_index = []
         for unit in units:
-            units_index.append(torch.nonzero(unit)[0])
+            index = torch.nonzero(unit)
+            if index.shape[0] == 0: # no unit
+                units_index.append([])
+            else:
+                units_index.append(torch.nonzero(unit)[0])
         return logits, units_index, embedding_selected
 
     def forward(self, embedding, available_unit_type_mask, available_units_mask, entity_embedding,
