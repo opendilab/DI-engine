@@ -172,10 +172,10 @@ class BaseLearner(object):
         ip = cfg.communication.ip
         port = cfg.communication.port
         if 'IN_K8S' in os.environ:
-            pull_port = os.getenv('SENSESTAR_LEARNER_SERVICE_SERVICE_PORT_LEARNER'
-                                  , port['learner'])
-            rep_port = os.getenv('SENSESTAR_LEARNER_SERVICE_SERVICE_PORT_LEARNER_MODEL'
-                                 , port['learner_manager_model'])
+            pull_port = os.getenv(
+                'SENSESTAR_LEARNER_SERVICE_SERVICE_PORT_LEARNER', port['learner'])
+            rep_port = os.getenv(
+                'SENSESTAR_LEARNER_SERVICE_SERVICE_PORT_LEARNER_MODEL', port['learner_manager_model'])
         else:
             pull_port = port['learner']
             rep_port = port['learner_manager_model']
