@@ -42,9 +42,6 @@ class AlphastarSLCriterion(object):
     '''
 
     def __init__(self):
-        self.total_count = 0
-        self.correct_action_type = 0
-        self.error_action_type = defaultdict(int)
         self.action_arg = ['delay', 'queued', 'selected_units', 'target_units', 'target_location']
         for k in self.action_arg:
             setattr(self, k, [])
@@ -69,6 +66,8 @@ class AlphastarSLCriterion(object):
             return F.mse_loss(p.float(), l.float()).item()
 
         self.action_arg_criterion = {k: v for k, v in zip(self.action_arg, [delay_l1, accuracy, IOU, accuracy, L2])}
+        self.action_type = defaultdict(list)
+        self.action_type_hard_case = defaultdict(int)
 
     def update(self, pred, target):
         '''
@@ -85,41 +84,50 @@ class AlphastarSLCriterion(object):
                 - target location: L2 distance (only for matched action type and the action with this arribute)
         '''
         with torch.no_grad():
-            self.total_count += 1
             pred_action_type = pred['action_type'][0]
             target_action_type = target['action_type'][0]
+            action_type = target_action_type.item()
             if pred_action_type == target_action_type:
-                self.correct_action_type += 1
                 for k in self.action_arg:
                     if isinstance(pred[k][0], torch.Tensor):
                         criterion = self.action_arg_criterion[k](pred[k][0], target[k][0])
                         handle = getattr(self, k)
                         handle.append([criterion, target_action_type.item()])
+                self.action_type[action_type].append(1)
             else:
-                self.error_action_type[target_action_type.item()] += 1
+                self.action_type[action_type].append(0)
+                self.action_type_hard_case[action_type] += 1
 
     def get_stat(self):
         avg = {}
         hard_case = {}
-        threshold = {k: v for k, v in zip(self.action_arg, [0, 0, 0.3, 0, 2.9])}
-        for k in self.action_arg:
-            attr = getattr(self, k)
-            tmp = 0
-            tmp_dict = defaultdict(int)
-            th = threshold[k]
+        threshold = {k: v for k, v in zip(self.action_arg, [0.8, 0.95, 0.33, 0.8, 2.9])}
+        for arg in self.action_arg:
+            attr = getattr(self, arg)
+            criterion_dict = defaultdict(list)
+            hard_case_dict = defaultdict(int)
+            th = threshold[arg]
             for t in attr:
-                tmp += t[0]
-                if t[0] > th:
-                    action_type = t[1]
-                    tmp_dict[action_type] += 1
+                criterion_dict[t[1]].append(t[0])
+                if arg == 'target_location':
+                    if t[0] > th:
+                        hard_case_dict[t[1]] += 1
+                else:
+                    if t[0] < th:
+                        hard_case_dict[t[1]] += 1
 
-            avg[k] = tmp * 1.0 / (len(attr) + 1e-8)
-            hard_case[k] = sorted([[k, v] for k, v in tmp_dict.items()], key=lambda x: x[1], reverse=True)
+            avg[arg] = sorted([[k, sum(v) / (len(v) + 1e-8)] for k, v in criterion_dict.items()], key=lambda x: x[1])
+            val = list(zip(*avg[arg]))[1]
+            avg[arg].insert(0, ['total', sum(val) / (len(val) + 1e-8)])
+            hard_case[arg] = sorted([[k, v] for k, v in hard_case_dict.items()], key=lambda x: x[1], reverse=True)
 
-        hard_case_action_type = sorted([[k, v] for k, v in self.error_action_type.items()],
+        action_type = sorted([[k, sum(v) / (len(v) + 1e-8)] for k, v in self.action_type.items()], key=lambda x: x[1])
+        val = list(zip(*action_type))[1]
+        action_type.insert(0, ['total', sum(val) / (len(val) + 1e-8)])
+        hard_case_action_type = sorted([[k, v] for k, v in self.action_type_hard_case.items()],
                                        key=lambda x: x[1], reverse=True)
         return {
-            'action_type acc': self.correct_action_type * 1.0 / self.total_count,
+            'action_type acc': action_type,
             'delay l1': avg['delay'],
             'queued acc': avg['queued'],
             'selected_units IOU': avg['selected_units'],
@@ -143,7 +151,8 @@ class AlphastarSLCriterion(object):
                 v_str = ['{}({})'.format(ACTIONS_REORDER_INV[name], count) for name, count in v]
                 s += '{}: {}\n'.format(k, '\t'.join(v_str))
             else:
-                s += '{}: {:.3f}\n'.format(k, v)
+                v_str = ['{}({:.4f})'.format(name, val) for name, val in v]
+                s += '{}: {}\n'.format(k, '\t'.join(v_str))
         return s
 
 
