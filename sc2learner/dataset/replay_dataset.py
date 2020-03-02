@@ -7,6 +7,7 @@ import random
 from torch.utils.data import Dataset
 from torch.utils.data._utils.collate import default_collate
 from sc2learner.envs.observations.alphastar_obs_wrapper import decompress_obs
+from sc2learner.utils import read_file_ceph
 from pysc2.lib.static_data import ACTIONS_REORDER
 
 
@@ -30,6 +31,7 @@ class ReplayDataset(Dataset):
         self.beginning_build_order_prob = cfg.data.beginning_build_order_prob
         self.cumulative_stat_prob = cfg.data.cumulative_stat_prob
         self.use_global_cumulative_stat = cfg.data.use_global_cumulative_stat
+        self.use_ceph = cfg.data.train_use_ceph
 
     def __len__(self):
         return len(self.path_list)
@@ -96,7 +98,7 @@ class ReplayDataset(Dataset):
         for i in range(len(self.path_list)):
             handle = self.path_list[i]
             if 'step_num' not in handle.keys():
-                meta = torch.load(handle['name'] + META_SUFFIX)
+                meta = torch.load(self._read_file(handle['name'] + META_SUFFIX))
                 step_num = meta['step_num']
                 handle['step_num'] = step_num
                 handle['map_size'] = meta['map_size']
@@ -115,8 +117,14 @@ class ReplayDataset(Dataset):
                     else:
                         handle['cur_step'] = next_step
 
+    def _read_file(self, path):
+        if self.use_ceph:
+            return read_file_ceph(path)
+        else:
+            return path
+
     def _load_stat(self, handle):
-        stat = torch.load(handle['name'] + STAT_SUFFIX)
+        stat = torch.load(self._read_file(handle['name'] + STAT_SUFFIX))
         mmr = stat['mmr']
         beginning_build_order = stat['beginning_build_order']
         # first self.beginning_build_order_num item
@@ -134,7 +142,7 @@ class ReplayDataset(Dataset):
 
     def __getitem__(self, idx):
         handle = self.path_list[idx]
-        data = torch.load(handle['name'] + DATA_SUFFIX)
+        data = torch.load(self._read_file(handle['name'] + DATA_SUFFIX))
         start = handle['cur_step']
         end = start + self.trajectory_len
         sample_data = data[start:end]
@@ -166,10 +174,11 @@ class ReplayEvalDataset(ReplayDataset):
         self.use_stat = cfg.data.use_stat
         self.beginning_build_order_num = cfg.data.beginning_build_order_num
         self.use_global_cumulative_stat = cfg.data.use_global_cumulative_stat
+        self.use_ceph = cfg.data.eval_use_ceph
 
     # overwrite
     def _load_stat(self, handle):
-        stat = torch.load(handle['name'] + STAT_SUFFIX)
+        stat = torch.load(self._read_file(handle['name'] + STAT_SUFFIX))
         mmr = stat['mmr']
         beginning_build_order = stat['beginning_build_order']
         # first self.beginning_build_order_num item
@@ -184,10 +193,10 @@ class ReplayEvalDataset(ReplayDataset):
     # overwrite
     def __getitem__(self, idx):
         handle = self.path_list[idx]
-        data = torch.load(handle['name'] + DATA_SUFFIX)
+        data = torch.load(self._read_file(handle['name'] + DATA_SUFFIX))
         data = self.action_unit_id_transform(data)
         data = [decompress_obs(d) for d in data]
-        meta = torch.load(handle['name'] + META_SUFFIX)
+        meta = torch.load(self._read_file(handle['name'] + META_SUFFIX))
         map_size = list(reversed(meta['map_size']))
         if self.use_stat:
             beginning_build_order, cumulative_stat, mmr = self._load_stat(handle)
