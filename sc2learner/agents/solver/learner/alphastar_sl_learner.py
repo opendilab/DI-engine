@@ -117,8 +117,9 @@ class AlphastarSLCriterion(object):
                         hard_case_dict[t[1]] += 1
 
             avg[arg] = sorted([[k, sum(v) / (len(v) + 1e-8)] for k, v in criterion_dict.items()], key=lambda x: x[1])
-            val = list(zip(*avg[arg]))[1]
-            avg[arg].insert(0, ['total', sum(val) / (len(val) + 1e-8)])
+            if len(avg[arg]) > 0:
+                val = list(zip(*avg[arg]))[1]
+                avg[arg].insert(0, ['total', sum(val) / (len(val) + 1e-8)])
             hard_case[arg] = sorted([[k, v] for k, v in hard_case_dict.items()], key=lambda x: x[1], reverse=True)
 
         action_type = sorted([[k, sum(v) / (len(v) + 1e-8)] for k, v in self.action_type.items()], key=lambda x: x[1])
