@@ -71,7 +71,8 @@ class SLLearner(object):
         self.dataset = ReplayDataset(cfg)  # use replay as dataset
         sampler = DistributedSampler(self.dataset, round_up=False) if self.use_distributed else None
         shuffle = False if self.use_distributed else True
-        self.dataloader = DataLoader(self.dataset, batch_size=cfg.train.batch_size, pin_memory=False, num_workers=3,
+        # set num_workers=0 for preventing ceph reading file bug
+        self.dataloader = DataLoader(self.dataset, batch_size=cfg.train.batch_size, pin_memory=False, num_workers=0,
                                      sampler=sampler, shuffle=shuffle, drop_last=True)
         self.eval_dataset = ReplayEvalDataset(cfg)
         eval_sampler = DistributedSampler(self.eval_dataset, round_up=False) if self.use_distributed else None
