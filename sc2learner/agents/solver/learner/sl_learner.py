@@ -7,8 +7,7 @@ Main Function:
 import os
 import numbers
 import torch
-from torch.utils.data import DataLoader
-from sc2learner.dataset import ReplayDataset, DistributedSampler, ReplayEvalDataset
+from sc2learner.dataset import ReplayDataset, ReplayEvalDataset, build_dataloader
 from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper, to_device, CountVar,\
     DistModule, dist_init, dist_finalize, allreduce, auto_checkpoint
 from sc2learner.agents.model import build_model
@@ -68,16 +67,12 @@ class SLLearner(object):
             self.model = to_device(self.model, 'cuda')
         if self.use_distributed:
             self.model = DistModule(self.model)  # distributed training
-        self.dataset = ReplayDataset(cfg)  # use replay as dataset
-        sampler = DistributedSampler(self.dataset, round_up=False) if self.use_distributed else None
-        shuffle = False if self.use_distributed else True
-        # set num_workers=0 for preventing ceph reading file bug
-        self.dataloader = DataLoader(self.dataset, batch_size=cfg.train.batch_size, pin_memory=False, num_workers=0,
-                                     sampler=sampler, shuffle=shuffle, drop_last=True)
-        self.eval_dataset = ReplayEvalDataset(cfg)
-        eval_sampler = DistributedSampler(self.eval_dataset, round_up=False) if self.use_distributed else None
-        self.eval_dataloader = DataLoader(self.eval_dataset, batch_size=1, pin_memory=False, num_workers=0,
-                                          sampler=eval_sampler, shuffle=False, drop_last=True)
+
+        self.dataset = ReplayDataset(cfg.data.train)  # use replay as dataset
+        self.eval_dataset = ReplayEvalDataset(cfg.data.eval)
+        self.dataloader = build_dataloader(cfg.data.train, self.dataset)
+        self.eval_dataloader = build_dataloader(cfg.data.eval, self.eval_dataset)
+        self.train_dataloader_type = cfg.data.train.dataloader_type
 
         self.optimizer = build_optimizer(self.model, cfg)  # build optimizer using cfg
         self.lr_scheduler = build_lr_scheduler(self.optimizer)  # build lr_scheduler
@@ -114,11 +109,7 @@ class SLLearner(object):
             self.eval()
             return
 
-        while self.last_epoch.val < self.max_epochs:
-            if hasattr(self.dataloader.dataset, 'step'):  # call dataset.step()
-                self.dataloader.dataset.step()
-            self.lr_scheduler.step()  # update lr
-            cur_lr = self.lr_scheduler.get_lr()[0]
+        def train_epoch():
             for idx, data in enumerate(self.dataloader):  # one epoch
                 self.time_helper.start_time()
                 data_stat = self._get_data_stat(data)
@@ -130,7 +121,7 @@ class SLLearner(object):
                 time_items = {'data_time': data_time, 'forward_time': forward_time,
                               'backward_update_time': backward_update_time,
                               'total_batch_time': data_time+forward_time+backward_update_time}
-                var_items['cur_lr'] = cur_lr
+                var_items['cur_lr'] = self.lr_scheduler.get_lr()[0]
                 var_items['epoch'] = self.last_epoch.val
                 var_items.update(data_stat)
 
@@ -142,7 +133,16 @@ class SLLearner(object):
                 self.last_iter.add(1)
                 if self.last_iter.val % self.cfg.logger.eval_freq == 0:
                     self.eval()
-            self.last_epoch.add(1)
+
+        if self.train_dataloader_type == 'epoch':
+            while self.last_epoch.val < self.max_epochs:
+                if hasattr(self.dataloader.dataset, 'step'):  # call dataset.step()
+                    self.dataloader.dataset.step()
+                self.lr_scheduler.step()  # update lr
+                train_epoch()
+                self.last_epoch.add(1)
+        elif self.train_dataloader_type == 'iter':
+            train_epoch()
         # save the final checkpoint
         self.save_checkpoint()
 

@@ -36,9 +36,11 @@ def main(argv):
     cfg.common.save_path = os.path.dirname(FLAGS.config_path)
     cfg.common.load_path = FLAGS.load_path
     cfg.common.only_evaluate = FLAGS.only_evaluate
-    cfg.data.replay_list = FLAGS.replay_list
-    cfg.data.eval_replay_list = FLAGS.eval_replay_list
+    cfg.data.train.replay_list = FLAGS.replay_list
+    cfg.data.eval.replay_list = FLAGS.eval_replay_list
     cfg.train.use_distributed = FLAGS.use_distributed
+    cfg.data.train.use_distributed = FLAGS.use_distributed
+    cfg.data.eval.use_distributed = FLAGS.use_distributed
     learner = AlphastarSLLearner(cfg)
     learner.run()
     learner.finalize()

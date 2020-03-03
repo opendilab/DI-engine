@@ -19,20 +19,20 @@ STAT_SUFFIX = '.stat_processed'
 class ReplayDataset(Dataset):
     def __init__(self, cfg):
         super(ReplayDataset, self).__init__()
-        assert(cfg.data.trajectory_type in ['random', 'slide_window'])
-        with open(cfg.data.replay_list, 'r') as f:
+        assert(cfg.trajectory_type in ['random', 'slide_window', 'sequential'])
+        with open(cfg.replay_list, 'r') as f:
             path_list = f.readlines()
         self.path_list = [{'name': p[:-1], 'count': 0} for idx, p in enumerate(path_list)]
-        self.trajectory_len = cfg.data.trajectory_len
-        self.trajectory_type = cfg.data.trajectory_type
-        self.slide_window_step = cfg.data.slide_window_step
-        self.use_stat = cfg.data.use_stat
-        self.beginning_build_order_num = cfg.data.beginning_build_order_num
-        self.beginning_build_order_prob = cfg.data.beginning_build_order_prob
-        self.cumulative_stat_prob = cfg.data.cumulative_stat_prob
-        self.use_global_cumulative_stat = cfg.data.use_global_cumulative_stat
-        self.use_ceph = cfg.data.train_use_ceph
-        self.use_available_action_transform = cfg.data.train_use_available_action_transform
+        self.trajectory_len = cfg.trajectory_len
+        self.trajectory_type = cfg.trajectory_type
+        self.slide_window_step = cfg.slide_window_step
+        self.use_stat = cfg.use_stat
+        self.beginning_build_order_num = cfg.beginning_build_order_num
+        self.beginning_build_order_prob = cfg.beginning_build_order_prob
+        self.cumulative_stat_prob = cfg.cumulative_stat_prob
+        self.use_global_cumulative_stat = cfg.use_global_cumulative_stat
+        self.use_ceph = cfg.use_ceph
+        self.use_available_action_transform = cfg.use_available_action_transform
 
     def __len__(self):
         return len(self.path_list)
@@ -95,8 +95,11 @@ class ReplayDataset(Dataset):
                 new_data.append(item)
         return new_data
 
-    def step(self):
-        for i in range(len(self.path_list)):
+    def step(self, index=None):
+        if index is None:
+            index = range(len(self.path_list))
+        end_list = []  # a list containes replay index which access the end of the replay
+        for i in index:
             handle = self.path_list[i]
             if 'step_num' not in handle.keys():
                 meta = torch.load(self._read_file(handle['name'] + META_SUFFIX))
@@ -117,6 +120,21 @@ class ReplayDataset(Dataset):
                         handle['cur_step'] = random.randint(0, step_num - self.trajectory_len)
                     else:
                         handle['cur_step'] = next_step
+            elif self.trajectory_type == 'sequential':
+                if 'cur_step' not in handle.keys():
+                    handle['cur_step'] = 0
+                else:
+                    next_step = handle['cur_step'] + self.slide_window_step
+                    if next_step >= step_num - self.trajectory_len:
+                        end_list.append(i)
+                    handle['cur_step'] = next_step
+        return end_list
+
+    def reset_step(self, index=None):
+        if index is None:
+            index = range(len(self.path_list))
+        for i in index:
+            self.path_list[i].pop('cur_step')
 
     def _read_file(self, path):
         if self.use_ceph:
@@ -165,20 +183,24 @@ class ReplayDataset(Dataset):
                 sample_data[i]['scalar_info']['mmr'] = mmr
                 if self.use_global_cumulative_stat:
                     sample_data[i]['scalar_info']['cumulative_stat'] = cumulative_stat
+        if start == 0:
+            sample_data[0]['start_step'] = True
+        else:
+            sample_data[0]['start_step'] = False
 
         return sample_data
 
 
 class ReplayEvalDataset(ReplayDataset):
     def __init__(self, cfg):
-        with open(cfg.data.eval_replay_list, 'r') as f:
+        with open(cfg.replay_list, 'r') as f:
             path_list = f.readlines()
         self.path_list = [{'name': p[:-1], 'count': 0} for idx, p in enumerate(path_list)]
-        self.use_stat = cfg.data.use_stat
-        self.beginning_build_order_num = cfg.data.beginning_build_order_num
-        self.use_global_cumulative_stat = cfg.data.use_global_cumulative_stat
-        self.use_ceph = cfg.data.eval_use_ceph
-        self.use_available_action_transform = cfg.data.eval_use_available_action_transform
+        self.use_stat = cfg.use_stat
+        self.beginning_build_order_num = cfg.beginning_build_order_num
+        self.use_global_cumulative_stat = cfg.use_global_cumulative_stat
+        self.use_ceph = cfg.use_ceph
+        self.use_available_action_transform = cfg.use_available_action_transform
 
     # overwrite
     def _load_stat(self, handle):
@@ -254,6 +276,7 @@ def policy_collate_fn(batch, max_delay=63, action_type_transform=True):
         'entity_raw': False,
         'actions': False,
         'map_size': False,
+        'start_step': False
     }
 
     def list_dict2dict_list(data):
@@ -267,7 +290,8 @@ def policy_collate_fn(batch, max_delay=63, action_type_transform=True):
         return new_data
 
     def merge_func(data):
-        new_data = list_dict2dict_list(data)
+        valid_data = [t for t in data if t is not None]
+        new_data = list_dict2dict_list(valid_data)
         for k, merge in data_item.items():
             if merge:
                 new_data[k] = default_collate(new_data[k])
@@ -293,9 +317,26 @@ def policy_collate_fn(batch, max_delay=63, action_type_transform=True):
                         action_type[i] = ACTIONS_REORDER[action_type[i]]
                     action_type = torch.LongTensor(action_type)
                     new_data[k]['action_type'] = list(torch.chunk(action_type, L, dim=0))
+        new_data['end_index'] = [idx for idx, t in enumerate(data) if t is None]
         return new_data
 
     # sequence, batch
+    b_len = [len(b) for b in batch]
+    max_len = max(b_len)
+    min_len = min(b_len)
+    if max_len == min_len:
+        seq = list(zip(*batch))
+    else:
+        seq = []
+        for i in range(max_len):
+            tmp = []
+            for j in range(len(batch)):
+                if i >= b_len[j]:
+                    tmp.append(None)
+                else:
+                    tmp.append(batch[j][i])
+            seq.append(tmp)
+
     seq = list(zip(*batch))
     for s in range(len(seq)):
         seq[s] = merge_func(seq[s])

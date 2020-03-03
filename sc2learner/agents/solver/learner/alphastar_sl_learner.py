@@ -12,7 +12,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from .sl_learner import SLLearner
 from pysc2.lib.static_data import ACTIONS_REORDER_INV, ACTIONS
-from sc2learner.dataset import policy_collate_fn
 from sc2learner.nn_utils import MultiLogitsLoss, build_criterion
 from sc2learner.utils import to_device
 
@@ -185,8 +184,6 @@ class AlphastarSLLearner(SLLearner):
             'target_location': ['no_attr', 'target_location'],
         }  # must execute before super __init__
         super(AlphastarSLLearner, self).__init__(*args, **kwargs)
-        setattr(self.dataloader, 'collate_fn', policy_collate_fn)  # use dataloader.collate_fn to call this function
-        setattr(self.eval_dataloader, 'collate_fn', policy_collate_fn)  # use dataloader.collate_fn to call this function  # noqa
         self.temperature_scheduler = build_temperature_scheduler(self.cfg)  # get naive temperature scheduler
         self._get_loss = self.time_helper.wrapper(self._get_loss)  # use time helper to calculate forward time
         self.use_value_network = 'value' in self.cfg.model.keys()  # if value in self.cfg.model.keys(), use_value_network=True  # noqa
@@ -223,9 +220,26 @@ class AlphastarSLLearner(SLLearner):
             raise NotImplementedError
 
         temperature = self.temperature_scheduler.step()
-        prev_state = None  # previous LSTM state from model
+        # reset prev_state
+        prev_state = []
+        B = len(data[0]['start_step'])
+        if not hasattr(self, 'prev_state'):  # init self.prev_state
+            self.prev_state = [None for _ in range(B)]
+        for prev, is_start in zip(self.prev_state, data[0]['start_step']):
+            if is_start:
+                prev_state.append(None)
+            else:
+                prev_state.append(prev)
+        prev_state_id = [i for i in range(B)]
+        # forward
+        # Note: the 1st dim of prev_state is batch size
         loss_items = {k + '_loss': [] for k in self.loss_func.keys()}  # loss name + '_loss'
         for i, step_data in enumerate(data):
+            end_index = sorted(step_data['end_index'], reverse=True)
+            for i in end_index:
+                real_i = prev_state_id.index(i)
+                prev_state.pop(real_i)
+            prev_state_id = [t for t in prev_state_id if t not in end_index]
             actions = step_data['actions']
             step_data['prev_state'] = prev_state
             policy_logits, prev_state = self.model(step_data, mode='mimic', temperature=temperature)
@@ -233,6 +247,8 @@ class AlphastarSLLearner(SLLearner):
             for k in loss_items.keys():
                 kp = k[:-5]
                 loss_items[k].append(self.loss_func[kp](policy_logits[kp], actions[kp]))  # calculate loss
+        # record prev_state
+        self._update_prev_state(prev_state, end_index)
 
         for k, v in loss_items.items():
             loss_items[k] = sum(v) / (1e-9 + len(v))
@@ -240,6 +256,18 @@ class AlphastarSLLearner(SLLearner):
                 loss_items[k] = torch.tensor([loss_items[k]], dtype=self.dtype, device=self.device)
         loss_items['total_loss'] = sum(loss_items.values())
         return loss_items
+
+    def _update_prev_state(self, prev_state, end_index):
+        end_index = sorted(end_index)
+        for idx in end_index:
+            prev_state.insert(idx, None)
+        next_state = []
+        for prev in prev_state:
+            if prev is None:
+                next_state.append(None)
+            else:
+                next_state.append([prev[0].detach(), prev[1].detach()])
+        self.prev_state = next_state
 
     # overwrite
     def _get_data_stat(self, data):
