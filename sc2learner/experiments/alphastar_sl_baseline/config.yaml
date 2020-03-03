@@ -10,6 +10,10 @@ data:
     beginning_build_order_prob: 0.8
     cumulative_stat_prob: 0.5
     use_global_cumulative_stat: False
+    train_use_ceph: False
+    eval_use_ceph: False
+    train_use_available_action_transform: True
+    eval_use_available_action_transform: True
 train:
     use_cuda: True
     max_epochs: 1000
@@ -39,7 +43,7 @@ model:
                 downsample_type: 'conv2d'
                 down_channels: [64, 128, 128]
                 activation: 'relu'
-                norm_type: 'SyncBN'
+                norm_type: 'BN'
             entity_encoder:
                 input_dim: 2102
                 head_dim: 128

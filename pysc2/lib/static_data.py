@@ -167,6 +167,10 @@ UPGRADES_REORDER = {
     item: idx for idx, item in enumerate(UPGRADES)
 }
 
+UPGRADES_REORDER_INV = {
+    v: k for k, v in UPGRADES_REORDER.items()
+}
+
 ADDON = [
     0, 5, 6, 37, 38, 39, 40, 41, 42
 ]

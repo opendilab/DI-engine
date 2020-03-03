@@ -6,7 +6,7 @@ import numbers
 import random
 from torch.utils.data import Dataset
 from torch.utils.data._utils.collate import default_collate
-from sc2learner.envs.observations.alphastar_obs_wrapper import decompress_obs
+from sc2learner.envs import get_available_actions_processed_data, decompress_obs
 from sc2learner.utils import read_file_ceph
 from pysc2.lib.static_data import ACTIONS_REORDER
 
@@ -32,6 +32,7 @@ class ReplayDataset(Dataset):
         self.cumulative_stat_prob = cfg.data.cumulative_stat_prob
         self.use_global_cumulative_stat = cfg.data.use_global_cumulative_stat
         self.use_ceph = cfg.data.train_use_ceph
+        self.use_available_action_transform = cfg.data.train_use_available_action_transform
 
     def __len__(self):
         return len(self.path_list)
@@ -150,6 +151,8 @@ class ReplayDataset(Dataset):
         # if unit id transform deletes some data frames,
         # collate_fn will use the minimum number of data frame to compose a batch
         sample_data = [decompress_obs(d) for d in sample_data]
+        if self.use_available_action_transform:
+            sample_data = [get_available_actions_processed_data(d) for d in sample_data]
         # check raw coordinate (x, y) <-> (y, x)
         assert(handle['map_size'] == list(reversed(sample_data[0]['spatial_info'].shape[1:])))
         map_size = list(reversed(handle['map_size']))
@@ -175,6 +178,7 @@ class ReplayEvalDataset(ReplayDataset):
         self.beginning_build_order_num = cfg.data.beginning_build_order_num
         self.use_global_cumulative_stat = cfg.data.use_global_cumulative_stat
         self.use_ceph = cfg.data.eval_use_ceph
+        self.use_available_action_transform = cfg.data.eval_use_available_action_transform
 
     # overwrite
     def _load_stat(self, handle):
@@ -196,6 +200,8 @@ class ReplayEvalDataset(ReplayDataset):
         data = torch.load(self._read_file(handle['name'] + DATA_SUFFIX))
         data = self.action_unit_id_transform(data)
         data = [decompress_obs(d) for d in data]
+        if self.use_available_action_transform:
+            data = [get_available_actions_processed_data(d) for d in data]
         meta = torch.load(self._read_file(handle['name'] + META_SUFFIX))
         map_size = list(reversed(meta['map_size']))
         if self.use_stat:
