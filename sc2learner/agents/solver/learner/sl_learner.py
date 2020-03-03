@@ -10,7 +10,7 @@ import torch
 from torch.utils.data import DataLoader
 from sc2learner.dataset import ReplayDataset, DistributedSampler, ReplayEvalDataset
 from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper, to_device, CountVar,\
-    DistModule, dist_init, dist_finalize, allreduce, auto_checkpoint, get_default_logger
+    DistModule, dist_init, dist_finalize, allreduce, auto_checkpoint
 from sc2learner.agents.model import build_model
 
 
@@ -74,20 +74,19 @@ class SLLearner(object):
         self.dataloader = DataLoader(self.dataset, batch_size=cfg.train.batch_size, pin_memory=False, num_workers=3,
                                      sampler=sampler, shuffle=shuffle, drop_last=True)
         self.eval_dataset = ReplayEvalDataset(cfg)
-        # eval_sampler = DistributedSampler(self.eval_dataset, round_up=False) if self.use_distributed else None
+        eval_sampler = DistributedSampler(self.eval_dataset, round_up=False) if self.use_distributed else None
         self.eval_dataloader = DataLoader(self.eval_dataset, batch_size=1, pin_memory=False, num_workers=0,
-                                          sampler=None, shuffle=False, drop_last=True)
+                                          sampler=eval_sampler, shuffle=False, drop_last=True)
 
         self.optimizer = build_optimizer(self.model, cfg)  # build optimizer using cfg
         self.lr_scheduler = build_lr_scheduler(self.optimizer)  # build lr_scheduler
         if self.rank == 0:  # only one thread need to build logger
-            self.logger, self.tb_logger, self.variable_record = build_logger(cfg)
+            self.logger, self.tb_logger, self.variable_record = build_logger(cfg, rank=self.rank)
             self.logger.info('cfg:\n{}'.format(self.cfg))
             self.logger.info('model:\n{}'.format(self.model))
             self._init()
         else:
-            #TODO (logger for rank != 0)
-            self.logger = get_default_logger()
+            self.logger, _, _ = build_logger(cfg, rank=self.rank)
 
         self.time_helper = build_time_helper(cfg)  # build time_helper for timing
         self.checkpoint_helper = build_checkpoint_helper(cfg, self.rank)  # build checkpoint_helper to load or save
