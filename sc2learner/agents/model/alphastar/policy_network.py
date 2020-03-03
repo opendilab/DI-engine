@@ -263,7 +263,7 @@ class Policy(ActorCriticBase):
             actions['target_location'] = [transformed_location]
 
         # error action(no necessary selected units)
-        if isinstance(actions['selected_units'][0], list) and len(actions['selected_units'][0]) == 0:
+        if isinstance(actions['selected_units'][0], torch.Tensor) and actions['selected_units'][0].shape[0] == 0:
             device = actions['action_type'][0].device
             actions = {'action_type': [torch.LongTensor([0]).to(device)], 'delay': [torch.LongTensor([0]).to(device)]}
         return {

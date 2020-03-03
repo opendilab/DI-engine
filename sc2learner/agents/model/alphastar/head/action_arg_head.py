@@ -248,11 +248,8 @@ class SelectedUnitsHead(nn.Module):
 
         units_index = []
         for unit in units:
-            index = torch.nonzero(unit)
-            if index.shape[0] == 0:  # no unit
-                units_index.append([])
-            else:
-                units_index.append(torch.nonzero(unit)[0])
+            index = torch.nonzero(unit).squeeze(1)
+            units_index.append(index)
         return logits, units_index, embedding_selected
 
     def forward(self, embedding, available_unit_type_mask, available_units_mask, entity_embedding,
@@ -385,7 +382,8 @@ class TargetUnitsHead(nn.Module):
         logits, units = self._query(key, end_flag_index, input, state, mask, temperature, output_entity_num)
         units_index = []
         for unit in units:
-            units_index.append(torch.nonzero(unit)[0])
+            index = torch.nonzero(unit).squeeze(1)
+            units_index.append(index)
 
         return logits, units_index
 
@@ -457,7 +455,7 @@ class TargetUnitHead(nn.Module):
         units.scatter_(1, sample_num.unsqueeze(1), 1)
         units_index = []
         for unit in units:
-            units_index.append(torch.nonzero(unit)[0])
+            units_index.append(torch.nonzero(unit).squeeze(1))
 
         return logits, units_index
 
