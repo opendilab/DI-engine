@@ -6,3 +6,4 @@ from .communication_helper import ManagerZmq, nparray2dict, dict2nparray, send_a
 from .system_helper import get_ip, get_pid
 from .dist_helper import get_rank, get_world_size, distributed_mode, DistModule, dist_init, dist_finalize, allreduce, \
     get_group
+from .file_helper import read_file_ceph
