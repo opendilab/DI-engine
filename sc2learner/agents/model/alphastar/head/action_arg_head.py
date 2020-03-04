@@ -66,7 +66,7 @@ class DelayHead(nn.Module):
         embedding_delay = self.embed_fc1(delay_encode)
         embedding_delay = self.embed_fc2(embedding_delay)  # get autoregressive_embedding
 
-        return delay, delay, embedding + embedding_delay
+        return delay, torch.round(delay).long(), embedding + embedding_delay
 
 
 class QueuedHead(nn.Module):

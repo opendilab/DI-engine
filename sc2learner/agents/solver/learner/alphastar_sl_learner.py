@@ -47,6 +47,7 @@ class AlphastarSLCriterion(object):
 
         def delay_l1(p, l):
             l = l.float()  # noqa
+            p = p.float()
             base = -1.73e-5*l**3 + 1.89e-3*l**2 - 5.8e-2*l + 0.61
             loss = torch.abs(p - l) - base*l
             return loss.clamp(0).mean().item()
