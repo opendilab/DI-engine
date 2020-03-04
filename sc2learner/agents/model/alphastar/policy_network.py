@@ -265,7 +265,8 @@ class Policy(ActorCriticBase):
         # error action(no necessary selected units)
         if isinstance(actions['selected_units'][0], torch.Tensor) and actions['selected_units'][0].shape[0] == 0:
             device = actions['action_type'][0].device
-            actions = {'action_type': [torch.LongTensor([0]).to(device)], 'delay': [torch.LongTensor([0]).to(device)]}
+            actions = {'action_type': [torch.LongTensor([0]).to(device)], 'delay': [torch.LongTensor([0]).to(device)],
+                       'queued': [None], 'selected_units': [None], 'target_units': [None], 'target_location': [None]}
         return {
             'actions': actions,
             'next_state': next_state
