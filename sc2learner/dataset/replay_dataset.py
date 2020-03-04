@@ -172,7 +172,11 @@ class ReplayDataset(Dataset):
         if self.use_available_action_transform:
             sample_data = [get_available_actions_processed_data(d) for d in sample_data]
         # check raw coordinate (x, y) <-> (y, x)
-        assert(handle['map_size'] == list(reversed(sample_data[0]['spatial_info'].shape[1:])))
+        try:
+            assert(handle['map_size'] == list(reversed(sample_data[0]['spatial_info'].shape[1:])))
+        except AssertionError as e:
+            print('[Error] data name: {}'.format(handle['name']))
+            raise e
         map_size = list(reversed(handle['map_size']))
         if self.use_stat:
             beginning_build_order, cumulative_stat, mmr = self._load_stat(handle)
