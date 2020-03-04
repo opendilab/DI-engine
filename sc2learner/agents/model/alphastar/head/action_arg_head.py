@@ -14,7 +14,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from sc2learner.nn_utils import fc_block, conv2d_block, deconv2d_block, build_activation, one_hot, LSTM, \
-    ResBlock, NearestUpsample, BilinearUpsample, binary_encode
+    ResBlock, NearestUpsample, BilinearUpsample, binary_encode, SoftArgmax
 from sc2learner.rl_utils import CategoricalPdPytorch
 
 
@@ -503,7 +503,12 @@ class LocationHead(nn.Module):
                     nn.Sequential(BilinearUpsample(2),
                                   conv2d_block(dims[i], dims[i+1], 3, 1, 1, activation=self.act, norm_type=None)))
 
-        self.pd = CategoricalPdPytorch
+        self.output_type = cfg.output_type
+        assert(self.output_type in ['cls', 'soft_argmax'])
+        if self.output_type == 'cls':
+            self.pd = CategoricalPdPytorch
+        else:
+            self.soft_argmax = SoftArgmax()
 
     def forward(self, embedding, map_skip, available_location_mask, temperature=1.0):
         '''
@@ -540,14 +545,18 @@ class LocationHead(nn.Module):
         for layer in self.upsample:
             x = layer(x)
         #x = x - ((1 - available_location_mask)*1e9)
-        logits_flatten = x.view(x.shape[0], -1)
-        handle = self.pd(logits_flatten.div(temperature))
-        if self.train:
-            location = handle.sample()
-        else:
-            location = handle.mode()
+        if self.output_type == 'cls':
+            logits_flatten = x.view(x.shape[0], -1)
+            handle = self.pd(logits_flatten.div(temperature))
+            if self.train:
+                location = handle.sample()
+            else:
+                location = handle.mode()
 
-        return x, location
+            return x, location
+        elif self.output_type == 'soft_argmax':
+            x = self.soft_argmax(x)
+            return x, x.detach()
 
 
 def test_location_head():
@@ -561,6 +570,7 @@ def test_location_head():
             self.reshape_channel = 4
             self.map_skip_dim = 128
             self.res_num = 4
+            self.output_type = 'cls'
 
     model = LocationHead(CFG()).cuda()
     embedding = torch.randn(4, 1024).cuda()

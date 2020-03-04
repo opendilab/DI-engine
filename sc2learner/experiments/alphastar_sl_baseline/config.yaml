@@ -120,6 +120,7 @@ model:
                 reshape_channel: 4  # entity_encoder.gate_dim / reshape_size
                 map_skip_dim: 128  # spatial_encoder.down_channels[-1]
                 activation: 'relu'
+                output_type: 'cls'  # ['cls', 'soft_argmax']
 logger:
     print_freq: 10
     save_freq: 200

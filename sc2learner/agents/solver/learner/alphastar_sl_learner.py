@@ -191,6 +191,8 @@ class AlphastarSLLearner(SLLearner):
         self.criterion = build_criterion(self.cfg.train.criterion)  # define loss function
         self.location_expand_ratio = self.cfg.model.policy.location_expand_ratio
         self.eval_criterion = AlphastarSLCriterion()
+        # location head
+        self.location_output_type = self.cfg.model.policy.head.location_head.output_type
 
     # overwrite
     def _init(self):
@@ -456,12 +458,17 @@ class AlphastarSLLearner(SLLearner):
         ratio = self.location_expand_ratio
         loss = []
         for logit, label in zip(logits, labels):
-            logit = F.avg_pool2d(logit, kernel_size=ratio, stride=ratio)  # achieve same resolution with label
-            logit.mul_(ratio*ratio)
-            H, W = logit.shape[2:]
-            label = torch.LongTensor([label[0]*W+label[1]]).to(device=logit.device)  # (y, x)
-            logit = logit.view(1, -1)
-            loss.append(self.criterion(logit, label))
+            if self.location_output_type == 'cls':
+                logit = F.avg_pool2d(logit, kernel_size=ratio, stride=ratio)  # achieve same resolution with label
+                logit.mul_(ratio*ratio)
+                H, W = logit.shape[2:]
+                label = torch.LongTensor([label[0]*W+label[1]]).to(device=logit.device)  # (y, x)
+                logit = logit.view(1, -1)
+                loss.append(self.criterion(logit, label))
+            elif self.location_output_type == 'soft_argmax':
+                logit /= ratio
+                label = label.to(logit.dtype)
+                loss.append(F.mse_loss(logit, label))
         return sum(loss) / len(loss)
 
     # overwrite

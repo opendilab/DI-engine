@@ -5,4 +5,5 @@ from .activation import build_activation
 from .block import ResBlock, ResFCBlock
 from .normalization import build_normalization
 from .rnn import LSTM
+from .soft_argmax import SoftArgmax
 from .loss import build_criterion, MultiLogitsLoss
