@@ -73,6 +73,7 @@ class SLLearner(object):
         self.dataloader = build_dataloader(cfg.data.train, self.dataset)
         self.eval_dataloader = build_dataloader(cfg.data.eval, self.eval_dataset)
         self.train_dataloader_type = cfg.data.train.dataloader_type
+        assert(self.train_dataloader_type in ['epoch', 'iter'])
 
         self.optimizer = build_optimizer(self.model, cfg)  # build optimizer using cfg
         self.lr_scheduler = build_lr_scheduler(self.optimizer)  # build lr_scheduler
@@ -88,12 +89,18 @@ class SLLearner(object):
         self.checkpoint_helper = build_checkpoint_helper(cfg, self.rank)  # build checkpoint_helper to load or save
         self.last_iter = CountVar(init_val=0)  # count for iterations
         self.last_epoch = CountVar(init_val=0)  # count for epochs
+
+        if self.train_dataloader_type == 'epoch':
+            ckpt_dataset = self.dataset
+        elif self.train_dataloader_type == 'iter':
+            # iter type doesn't save some context
+            ckpt_dataset = None
         if cfg.common.load_path != '':
             self.checkpoint_helper.load(cfg.common.load_path, self.model,
                                         optimizer=self.optimizer,
                                         last_iter=self.last_iter,
                                         last_epoch=self.last_epoch,  # TODO last_epoch for lr_scheduler
-                                        dataset=self.dataset,
+                                        dataset=ckpt_dataset,
                                         logger_prefix='(sl_learner)')
             self.last_epoch.add(1)  # skip interrupted epoch
             self.last_iter.add(1)  # skip interrupted iter
