@@ -292,11 +292,11 @@ class ReplayProcessor(multiprocessing.Process):
             if isinstance(act['selected_units'], torch.Tensor):
                 units = act['selected_units'].tolist()
                 unit_types = get_unit_types(units, entity_type_dict)
-                action_statistics[action_type]['selected_type'].union(unit_types)
+                action_statistics[action_type]['selected_type'] = action_statistics[action_type]['selected_type'].union(unit_types)  # noqa
             if isinstance(act['target_units'], torch.Tensor):
                 units = act['target_units'].tolist()
                 unit_types = get_unit_types(units, entity_type_dict)
-                action_statistics[action_type]['selected_type'].union(unit_types)
+                action_statistics[action_type]['target_type'] = action_statistics[action_type]['target_type'].union(unit_types)  # noqa
 
         def update_cum_stat(cumulative_statistics, act):
             action_type = act['action_type'].item()
