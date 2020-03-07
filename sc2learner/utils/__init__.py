@@ -9,5 +9,5 @@ from .file_helper import read_file_ceph
 import os
 if 'IN_K8S' not in os.environ:
     # currently we have no support for AS in K8s
-    from .dist_helper import get_rank, get_world_size, distributed_mode, DistModule, dist_init, dist_finalize, allreduce, \
-        get_group
+    from .dist_helper import get_rank, get_world_size, distributed_mode, DistModule, dist_init, dist_finalize,\
+        allreduce, get_group
