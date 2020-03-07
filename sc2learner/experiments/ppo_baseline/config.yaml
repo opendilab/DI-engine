@@ -12,7 +12,7 @@ env:
     use_action_mask: True
     use_reward_shaping: False
 job_manager:
-    seed: 10
+    seed: 20
     check_in_timeout: 500
     discard_timeout_jobs: False
 model:
@@ -35,7 +35,7 @@ train:
     grad_clip_type: max_norm  # [max_norm, clip_value]
     grad_clip_value: 0.5
     min_update_count: 32
-    learner_seed: 10
+    learner_seed: 20
     block_data:
         status: True
         reuse_threshold: 2
