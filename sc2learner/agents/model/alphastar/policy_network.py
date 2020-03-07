@@ -114,7 +114,7 @@ class Policy(ActorCriticBase):
         return action_attr, action_mask
 
     def _obs_encode(self, inputs):
-        embedded_scalar, scalar_context = self.encoder['scalar_encoder'](inputs['scalar_info'])
+        embedded_scalar, scalar_context, baseline_feature = self.encoder['scalar_encoder'](inputs['scalar_info'])
         entity_embeddings, embedded_entity = self.encoder['entity_encoder'](inputs['entity_info'])
         spatial_input = self._scatter_connection(inputs['spatial_info'], entity_embeddings, inputs['entity_raw'])
         embedded_spatial, map_skip = self.encoder['spatial_encoder'](spatial_input, inputs['map_size'])
@@ -125,14 +125,14 @@ class Policy(ActorCriticBase):
         lstm_output, next_state = self.core_lstm(
             embedded_entity, embedded_spatial, embedded_scalar, inputs['prev_state'])
         lstm_output = lstm_output.squeeze(0)
-        return lstm_output, next_state, entity_embeddings, scalar_context, map_skip
+        return lstm_output, next_state, entity_embeddings, map_skip, scalar_context, baseline_feature
 
     # overwrite
     def mimic(self, inputs, temperature=1.0):
         '''
             input(keys): scalar_info, entity_info, spatial_info, prev_state, entity_raw, actions
         '''
-        lstm_output, next_state, entity_embeddings, scalar_context, map_skip = self._obs_encode(inputs)
+        lstm_output, next_state, entity_embeddings, map_skip, scalar_context, _ = self._obs_encode(inputs)
 
         actions = inputs['actions']
         logits = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
@@ -183,7 +183,7 @@ class Policy(ActorCriticBase):
 
     # overwrite
     def _actor_forward(self, inputs, temperature=1.0):
-        lstm_output, next_state, entity_embeddings, scalar_context, map_skip = self._obs_encode(inputs)
+        lstm_output, next_state, entity_embeddings, map_skip, scalar_context, _ = self._obs_encode(inputs)
 
         B = inputs['spatial_info'].shape[0]
         actions = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
@@ -266,3 +266,7 @@ class Policy(ActorCriticBase):
             'actions': actions,
             'next_state': next_state
         }
+
+    def cumulative_stat_encode(self, cumulative_stat):
+        assert(isinstance(cumulative_stat, dict))
+        return self.scalar_encoder.cumulative_stat(cumulative_stat)

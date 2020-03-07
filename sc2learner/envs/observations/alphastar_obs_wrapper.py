@@ -447,13 +447,13 @@ def transform_spatial_data():
 def transform_scalar_data():
     template_obs = [
         {'key': 'agent_statistics', 'arch': 'fc', 'input_dim': 10,
-            'ori': 'player', 'output_dim': 64, 'other': 'log(1+x)'},
+            'ori': 'player', 'output_dim': 64, 'baseline_feature': True, 'other': 'log(1+x)'},
         {'key': 'race', 'arch': 'fc', 'input_dim': 5, 'output_dim': 32, 'ori': 'home_race_requested',
             'op': partial(num_first_one_hot, num=5), 'scalar_context': True, 'other': 'one-hot 5 value'},
         {'key': 'enemy_race', 'arch': 'fc', 'input_dim': 5, 'output_dim': 32, 'ori': 'away_race_requested',
             'op': partial(num_first_one_hot, num=5), 'scalar_context': True, 'other': 'one-hot 5 value'},  # TODO 10% hidden  # noqa
         {'key': 'upgrades', 'arch': 'fc', 'input_dim': NUM_UPGRADES, 'output_dim': 128, 'ori': 'upgrades',
-            'op': partial(reorder_boolean_vector, dictionary=UPGRADES_REORDER, num=NUM_UPGRADES), 'other': 'boolean'},
+            'op': partial(reorder_boolean_vector, dictionary=UPGRADES_REORDER, num=NUM_UPGRADES), 'baseline_feature': True, 'other': 'boolean'},  # noqa
         {'key': 'enemy_upgrades', 'arch': 'fc', 'input_dim': NUM_UPGRADES, 'output_dim': 128, 'ori': 'enemy_upgrades',
             'op': partial(reorder_boolean_vector, dictionary=UPGRADES_REORDER, num=NUM_UPGRADES), 'other': 'boolean'},
         {'key': 'time', 'arch': 'transformer', 'input_dim': 32, 'output_dim': 64, 'ori': 'game_loop',
@@ -463,7 +463,7 @@ def transform_scalar_data():
             'ori': 'available_actions', 'scalar_context': True, 'other': 'boolean vector',
             'op': partial(reorder_boolean_vector, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT)},  # noqa
         {'key': 'unit_counts_bow', 'arch': 'fc', 'input_dim': NUM_UNIT_TYPES, 'output_dim': 128,
-            'ori': 'unit_counts', 'other': 'square root'},
+            'ori': 'unit_counts', 'baseline_feature': True, 'other': 'square root'},
     ]
     template_replay = [
         {'key': 'mmr', 'arch': 'fc', 'input_dim': 7, 'output_dim': 64, 'op': partial(
@@ -473,7 +473,7 @@ def transform_scalar_data():
                            'research': NUM_RESEARCH_ACTIONS}, 'output_dim': 32,
             'scalar_context': True, 'other': 'boolean vector, split and concat'},
         {'key': 'beginning_build_order', 'arch': 'transformer', 'input_dim': NUM_BEGIN_ACTIONS+LOCATION_BIT_NUM*2,
-            'output_dim': 32, 'scalar_context': True, 'other': 'transformer'},
+            'output_dim': 32, 'scalar_context': True, 'baseline_feature': True, 'other': 'transformer'},
     ]
     template_action = [
         {'key': 'last_delay', 'arch': 'fc', 'input_dim': DELAY_BIT_NUM, 'output_dim': 64,

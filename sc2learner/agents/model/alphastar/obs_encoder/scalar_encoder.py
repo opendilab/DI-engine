@@ -46,6 +46,7 @@ class ScalarEncoder(nn.Module):
         self.act = build_activation(cfg.activation)
         self.use_stat = cfg.use_stat
         self.scalar_context_keys = []
+        self.baseline_feature_keys = []
         if template is None:
             template_obs, template_replay, template_act = transform_scalar_data()
             template = template_obs + template_act
@@ -78,20 +79,26 @@ class ScalarEncoder(nn.Module):
                     raise NotImplementedError("key: {}".format(key))
             if 'scalar_context' in item.keys() and item['scalar_context']:
                 self.scalar_context_keys.append(item['key'])
+            if 'baseline_feature' in item.keys() and item['baseline_feature']:
+                self.baseline_feature_keys.append(item['key'])
 
     def forward(self, x):
         assert(isinstance(x, dict))
         embedded_scalar = []
         scalar_context = []
+        baseline_feature = []
         for k, v in x.items():
             if hasattr(self, k):
                 new_v = getattr(self, k)(v)
                 embedded_scalar.append(new_v)
                 if k in self.scalar_context_keys:
                     scalar_context.append(new_v)
+                if k in self.baseline_feature_keys:
+                    baseline_feature.append(new_v)
         embedded_scalar = torch.cat(embedded_scalar, dim=1)
         scalar_context = torch.cat(scalar_context, dim=1)
-        return embedded_scalar, scalar_context
+        baseline_feature = torch.cat(baseline_feature, dim=1)
+        return embedded_scalar, scalar_context, baseline_feature
 
 
 def test_scalar_encoder():
@@ -107,9 +114,10 @@ def test_scalar_encoder():
         if 'input_dim' in item.keys() and 'output_dim' in item.keys():
             inputs[item['key']] = torch.randn(B, item['input_dim']).cuda()
     print(model)
-    embedded_scalar, scalar_context = model(inputs)
+    embedded_scalar, scalar_context, baseline_feature = model(inputs)
     print(embedded_scalar.shape)
     print(scalar_context.shape)
+    print(baseline_feature.shape)
 
 
 if __name__ == "__main__":
