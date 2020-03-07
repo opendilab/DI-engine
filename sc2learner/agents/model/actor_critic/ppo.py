@@ -50,6 +50,10 @@ class PPOMLP(ActorCriticBase):
         torch.nn.init.constant_(self.pi_logit.bias, 0.0)
 
     # overwrite
+    def set_seed(self, seed):
+        torch.manual_seed(seed)
+
+    # overwrite
     def _critic_forward(self, inputs):
         x = inputs['obs']
         B = x.shape[0]
@@ -209,6 +213,10 @@ class PPOLSTM(ActorCriticBase):
         h = self.relu(self.fc_h1(x))
         h = self.relu(self.fc_h2(h))
         return h
+
+    # overwrite
+    def set_seed(self, seed):
+        torch.manual_seed(seed)
 
     def step(self, inputs):
         x, state, done = inputs['obs'], inputs['state'], inputs['done']
