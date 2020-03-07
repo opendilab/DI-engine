@@ -4,21 +4,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from .head import DelayHead, QueuedHead, SelectedUnitsHead, TargetUnitsHead, LocationHead, ActionTypeHead,\
     TargetUnitHead
-from .core import CoreLstm
-from .obs_encoder import ScalarEncoder, SpatialEncoder, EntityEncoder
-from sc2learner.nn_utils import fc_block
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
 from pysc2.lib.static_data import NUM_UNIT_TYPES, UNIT_TYPES_REORDER, ACTIONS_REORDER_INV
-from ..actor_critic.actor_critic import ActorCriticBase
-
-
-def build_obs_encoder(name):
-    obs_encoder_dict = {
-        'scalar_encoder': ScalarEncoder,
-        'spatial_encoder': SpatialEncoder,
-        'entity_encoder': EntityEncoder,
-    }
-    return obs_encoder_dict[name]
 
 
 def build_head(name):
@@ -34,40 +21,13 @@ def build_head(name):
     return head_dict[name]
 
 
-class Policy(ActorCriticBase):
+class Policy(nn.Module):
     def __init__(self, cfg):
         super(Policy, self).__init__()
         self.cfg = cfg
-        self.encoder = nn.ModuleDict()
-        for item in cfg.obs_encoder.encoder_names:
-            self.encoder[item] = build_obs_encoder(item)(cfg.obs_encoder[item])
-        self.core_lstm = CoreLstm(cfg.core)
         self.head = nn.ModuleDict()
         for item in cfg.head.head_names:
             self.head[item] = build_head(item)(cfg.head[item])
-
-        self.scatter_project = fc_block(cfg.scatter.input_dim, cfg.scatter.output_dim)
-        self.scatter_dim = cfg.scatter.output_dim
-
-    def _scatter_connection(self, spatial_info, entity_embeddings, entity_raw):
-        if isinstance(entity_embeddings, collections.Sequence):
-            x = [t.squeeze(0) for t in entity_embeddings]
-            num_list = [t.shape[0] for t in x]
-            x = torch.cat(x, dim=0)
-            project_embeddings = self.scatter_project(x)
-            project_embeddings = torch.split(project_embeddings, num_list, dim=0)
-        else:
-            project_embeddings = self.scatter_project(entity_embeddings)
-        B, _, H, W = spatial_info.shape
-        scatter_map = torch.zeros(B, self.scatter_dim, H, W, device=spatial_info.device)
-        for b in range(B):
-            N = entity_embeddings[b].shape[0]
-            for n in range(N):
-                h, w = entity_raw[b]['location'][n]
-                h = min(max(0, h), H-1)
-                w = min(max(0, w), W-1)
-                scatter_map[b, :, h, w] = project_embeddings[b][n]
-        return torch.cat([spatial_info, scatter_map], dim=1)
 
     def _look_up_action_attr(self, action_type, entity_raw, units_num, location_dims=(256, 256)):
         action_mask = {'select_unit_type_mask': [], 'select_unit_mask': [], 'target_unit_type_mask': [],
@@ -113,31 +73,16 @@ class Policy(ActorCriticBase):
                 action_attr[k].append(value[k])
         return action_attr, action_mask
 
-    def _obs_encode(self, inputs):
-        embedded_scalar, scalar_context, baseline_feature = self.encoder['scalar_encoder'](inputs['scalar_info'])
-        entity_embeddings, embedded_entity = self.encoder['entity_encoder'](inputs['entity_info'])
-        spatial_input = self._scatter_connection(inputs['spatial_info'], entity_embeddings, inputs['entity_raw'])
-        embedded_spatial, map_skip = self.encoder['spatial_encoder'](spatial_input, inputs['map_size'])
-
-        embedded_entity, embedded_spatial, embedded_scalar = (embedded_entity.unsqueeze(0),
-                                                              embedded_spatial.unsqueeze(0),
-                                                              embedded_scalar.unsqueeze(0))
-        lstm_output, next_state = self.core_lstm(
-            embedded_entity, embedded_spatial, embedded_scalar, inputs['prev_state'])
-        lstm_output = lstm_output.squeeze(0)
-        return lstm_output, next_state, entity_embeddings, map_skip, scalar_context, baseline_feature
-
-    # overwrite
     def mimic(self, inputs, temperature=1.0):
         '''
-            input(keys): scalar_info, entity_info, spatial_info, prev_state, entity_raw, actions
+            input(keys): entity_raw, actions, lstm_output, entity_embeddings, map_skip, scalar_context
         '''
-        lstm_output, next_state, entity_embeddings, map_skip, scalar_context, _ = self._obs_encode(inputs)
+        lstm_output, entity_embeddings, map_skip, scalar_context = inputs['lstm_output'], inputs['entity_embeddings'], inputs['map_skip'], inputs['scalar_context']  # noqa
 
         actions = inputs['actions']
         logits = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
         action_type = torch.LongTensor(actions['action_type']).to(lstm_output.device)
-        units_num = [t.shape[0] for t in inputs['entity_info']]
+        units_num = [len(t['id']) for t in inputs['entity_raw']]
 
         logits['action_type'], action_type, embeddings = self.head['action_type_head'](
             lstm_output, scalar_context, temperature, action_type)
@@ -179,16 +124,18 @@ class Policy(ActorCriticBase):
                     embedding, map_skip_single, mask['location_mask'][idx], temperature)
                 logits['target_location'].append(logits_location)
 
-        return logits, next_state
+        return logits
 
-    # overwrite
-    def _actor_forward(self, inputs, temperature=1.0):
-        lstm_output, next_state, entity_embeddings, map_skip, scalar_context, _ = self._obs_encode(inputs)
+    def evaluate(self, inputs, temperature=1.0):
+        '''
+            input(keys): entity_raw, actions, lstm_output, entity_embeddings, map_skip, scalar_context
+        '''
+        lstm_output, entity_embeddings, map_skip, scalar_context = inputs['lstm_output'], inputs['entity_embeddings'], inputs['map_skip'], inputs['scalar_context']  # noqa
 
         B = inputs['spatial_info'].shape[0]
         actions = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
         logits = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
-        units_num = [t.shape[0] for t in inputs['entity_info']]
+        units_num = [len(t['id']) for t in inputs['entity_raw']]
 
         # action type
         logits['action_type'], action_type, embeddings = self.head['action_type_head'](
@@ -239,34 +186,8 @@ class Policy(ActorCriticBase):
             logits['target_location'].append(logits_location)
             actions['target_location'].append(location)
 
-        return actions, logits, next_state
+        return actions
 
-    # overwrite
-    def evaluate(self, inputs, **kwargs):
-        '''
-            batch size = 1
-        '''
-        ratio = self.cfg.location_expand_ratio
-        Y, X = inputs['map_size'][0]
-
-        actions, _, next_state = self._actor_forward(inputs, **kwargs)
-
-        if isinstance(actions['target_location'][0], torch.Tensor):
-            location = actions['target_location'][0]
-            transformed_location = torch.cat([location // (ratio*X), location % (ratio*X)], 0)
-            transformed_location = transformed_location.float().div(ratio)
-            actions['target_location'] = [transformed_location]
-
-        # error action(no necessary selected units)
-        if isinstance(actions['selected_units'][0], torch.Tensor) and actions['selected_units'][0].shape[0] == 0:
-            device = actions['action_type'][0].device
-            actions = {'action_type': [torch.LongTensor([0]).to(device)], 'delay': [torch.LongTensor([0]).to(device)],
-                       'queued': [None], 'selected_units': [None], 'target_units': [None], 'target_location': [None]}
-        return {
-            'actions': actions,
-            'next_state': next_state
-        }
-
-    def cumulative_stat_encode(self, cumulative_stat):
-        assert(isinstance(cumulative_stat, dict))
-        return self.scalar_encoder.cumulative_stat(cumulative_stat)
+    def forward(self, inputs, mode=None, **kwargs):
+        assert(mode in ['mimic', 'evaluate'])
+        return getattr(self, mode)(inputs, **kwargs)

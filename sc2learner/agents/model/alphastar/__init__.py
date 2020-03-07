@@ -1,5 +1,5 @@
-from .policy_network import Policy
+from .actor_critic import AlphaStarActorCritic
 
 
 def build_model(cfg):
-    return Policy(cfg.model.policy)
+    return AlphaStarActorCritic(cfg.model)
