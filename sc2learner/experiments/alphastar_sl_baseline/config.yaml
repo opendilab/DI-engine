@@ -34,8 +34,8 @@ train:
         kwargs:  # {label_smooth_ce: [smooth_ratio]}
             smooth_ratio: 0.1
 model:
-    policy:
-        location_expand_ratio: 2
+    use_value_network: False
+    encoder:
         obs_encoder:
             encoder_names: [scalar_encoder, spatial_encoder, entity_encoder]
             scalar_encoder:
@@ -69,6 +69,8 @@ model:
             input_size: 1792  # spatial_encoder.fc_dim + entity_encoder.output_dim + scalar_encoder.output_dim
             hidden_size: 384
             num_layers: 3
+    policy:
+        location_expand_ratio: 2
         head:
             head_names: [action_type_head, delay_head, queued_head, selected_units_head, target_unit_head, location_head]
             action_type_head:

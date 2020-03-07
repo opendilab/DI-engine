@@ -8,8 +8,8 @@ class AlphaStarActorCritic(ActorCriticBase):
     def __init__(self, cfg):
         super(AlphaStarActorCritic, self).__init__()
         self.cfg = cfg
-        self.encoder = Encoder(cfg)
-        self.policy = Policy(cfg)
+        self.encoder = Encoder(cfg.encoder)
+        self.policy = Policy(cfg.policy)
         if cfg.use_value_network:
             raise NotImplementedError
 
