@@ -16,6 +16,15 @@ def allreduce(data):
     link.allreduce(data)
 
 
+def get_group(group_size):
+    rank = get_rank()
+    world_size = get_world_size()
+    if group_size is None:
+        group_size = world_size
+    assert(world_size % group_size == 0)
+    return simple_group_split(world_size, rank, world_size // group_size)
+
+
 def distributed_mode(func):
 
     def wrapper(*args, **kwargs):

@@ -58,6 +58,7 @@ class Buffs(enum.IntEnum):
   ParasiticBombUnitKU = 133
   PowerUserWarpable = 8
   PsiStorm = 28
+  Purify = 97
   QueenSpawnLarvaTimer = 11
   RavenScramblerMissile = 277
   RavenShredderMissileArmorReduction = 280

@@ -20,7 +20,7 @@ class CoreLstm(nn.Module):
             prev_state: [num_layers, batch_size, hidden_size] * 2 or None
         '''
         embedded = torch.cat([embedded_entity, embedded_spatial, embedded_scalar], dim=2)
-        output, next_state = self.lstm(embedded, prev_state)
+        output, next_state = self.lstm(embedded, prev_state, list_next_state=True)
         return output, next_state
 
 

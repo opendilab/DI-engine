@@ -2,32 +2,49 @@ common:
     name: ZergStat
     time_wrapper_type: cuda
 data:
-    trajectory_len: 64
-    trajectory_type: slide_window
-    slide_window_step: 1
-    resolution: [128, 128]
-    use_stat: True
-    beginning_build_order_num: 20
-    beginning_build_order_prob: 0.8
-    cumulative_stat_prob: 0.5
+    train:
+        dataloader_type: epoch  # [epoch, iter]
+        batch_size: 6
+        trajectory_len: 48
+        trajectory_type: slide_window  # [epoch: [slide_window], iter: [sequential]]
+        slide_window_step: 1
+        beginning_build_order_prob: 0.8
+        use_stat: True
+        beginning_build_order_num: 20
+        use_global_cumulative_stat: False
+        cumulative_stat_prob: 0.5
+        use_ceph: True
+        use_available_action_transform: True
+    eval:
+        dataloader_type: epoch
+        batch_size: 1
+        use_stat: True
+        beginning_build_order_num: 20
+        use_global_cumulative_stat: False
+        use_ceph: True
+        use_available_action_transform: True
 train:
     use_cuda: True
     max_epochs: 1000
-    batch_size: 7
     learning_rate: 1e-3
     weight_decay: 1e-5
     temperature: 1.0
+    criterion:
+        type: cross_entropy  # [cross_entropy, label_smooth_ce]
+        kwargs:  # {label_smooth_ce: [smooth_ratio]}
+            smooth_ratio: 0.1
 model:
     policy:
+        location_expand_ratio: 2
         obs_encoder:
             encoder_names: [scalar_encoder, spatial_encoder, entity_encoder]
             scalar_encoder:
                 use_stat: True  # whether use statistics z
                 activation: 'relu'
                 begin_num: 20  # beginning_build_order_num
-                output_dim: 1216  # use_stat(True: 1216, False: 1024)
+                output_dim: 1280  # use_stat(True: 1280, False: 1088)
             spatial_encoder:
-                input_dim: 81
+                input_dim: 52
                 resblock_num: 4
                 fc_dim: 256
                 project_dim: 32
@@ -36,7 +53,7 @@ model:
                 activation: 'relu'
                 norm_type: 'BN'
             entity_encoder:
-                input_dim: 3039
+                input_dim: 2102
                 head_dim: 128
                 hidden_dim: 1024
                 output_dim: 256
@@ -49,7 +66,7 @@ model:
             input_dim: 256  # entity_encoder.output_dim
             output_dim: 32
         core:
-            input_size: 1728  # spatial_encoder.fc_dim + entity_encoder.output_dim + scalar_encoder.output_dim
+            input_size: 1792  # spatial_encoder.fc_dim + entity_encoder.output_dim + scalar_encoder.output_dim
             hidden_size: 384
             num_layers: 3
         head:
@@ -58,7 +75,7 @@ model:
                 input_dim: 384  # core.hidden_size
                 res_dim: 256
                 res_num: 16
-                action_num: 563
+                action_num: 327
                 action_map_dim: 256
                 gate_dim: 1024
                 context_dim: 256  # use_stat(True: 256, False: 128)
@@ -68,6 +85,7 @@ model:
                 input_dim: 1024  # action_type_head.gate_dim
                 decode_dim: 256
                 delay_dim: 128
+                delay_encode_dim: 6
                 delay_map_dim: 256
                 activation: 'relu'
             queued_head:
@@ -102,7 +120,9 @@ model:
                 reshape_channel: 4  # entity_encoder.gate_dim / reshape_size
                 map_skip_dim: 128  # spatial_encoder.down_channels[-1]
                 activation: 'relu'
+                output_type: 'cls'  # ['cls', 'soft_argmax']
 logger:
     print_freq: 10
     save_freq: 200
+    eval_freq: 200
     var_record_type: 'alphastar'

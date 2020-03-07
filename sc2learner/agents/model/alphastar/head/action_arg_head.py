@@ -9,11 +9,12 @@ Main Function:
     5. Implementation for target_unit_head, including basic processes.
     6. Implementation for location_head, including basic processes.
 '''
+import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from sc2learner.nn_utils import fc_block, conv2d_block, deconv2d_block, build_activation, one_hot, LSTM, \
-    ResBlock, NearestUpsample, BilinearUpsample
+    ResBlock, NearestUpsample, BilinearUpsample, binary_encode, SoftArgmax
 from sc2learner.rl_utils import CategoricalPdPytorch
 
 
@@ -33,12 +34,11 @@ class DelayHead(nn.Module):
         self.act = build_activation(cfg.activation)
         self.fc1 = fc_block(cfg.input_dim, cfg.decode_dim, activation=self.act, norm_type=None)
         self.fc2 = fc_block(cfg.decode_dim, cfg.decode_dim, activation=self.act, norm_type=None)
-        self.fc3 = fc_block(cfg.decode_dim, cfg.delay_dim, activation=None, norm_type=None)
-        self.embed_fc1 = fc_block(cfg.delay_dim, cfg.delay_map_dim, activation=self.act, norm_type=None)
+        self.fc3 = fc_block(cfg.decode_dim, 1, activation=nn.Sigmoid(), norm_type=None)  # regression
+        self.embed_fc1 = fc_block(cfg.delay_encode_dim, cfg.delay_map_dim, activation=self.act, norm_type=None)
         self.embed_fc2 = fc_block(cfg.delay_map_dim, cfg.input_dim, activation=self.act, norm_type=None)
-        self.pd = CategoricalPdPytorch
 
-        self.delay_dim = cfg.delay_dim
+        self.delay_max_range = math.pow(2, cfg.delay_encode_dim) - 1
 
     def forward(self, embedding):
         '''
@@ -52,25 +52,21 @@ class DelayHead(nn.Module):
             Arguments:
                 - embedding (:obj:`tensor`): autoregressive_embedding
             Returns:
-                - (:obj`tensor`): delay_logits corresponding to the probabilities of each delay
-                - (:obj`tensor`): delay sampled from the delay_logits
+                - (:obj`tensor`): delay for calculation loss
+                - (:obj`tensor`): delay action
                 - (:obj`tensor`): autoregressive_embedding that combines information from lstm_output
                                   and all previous sampled arguments.
         '''
         x = self.fc1(embedding)
         x = self.fc2(x)
-        x = self.fc3(x)  # delay_loogits
-        handle = self.pd(x)
-        if self.train:
-            delay = handle.sample()
-        else:
-            delay = handle.mode()
+        x = self.fc3(x)
+        delay = (x * self.delay_max_range).squeeze(1)
 
-        delay_one_hot = one_hot(delay, self.delay_dim)
-        embedding_delay = self.embed_fc1(delay_one_hot)
+        delay_encode = binary_encode(delay, self.delay_max_range)
+        embedding_delay = self.embed_fc1(delay_encode)
         embedding_delay = self.embed_fc2(embedding_delay)  # get autoregressive_embedding
 
-        return x, delay, embedding + embedding_delay
+        return delay, torch.round(delay).long(), embedding + embedding_delay
 
 
 class QueuedHead(nn.Module):
@@ -195,7 +191,7 @@ class SelectedUnitsHead(nn.Module):
 
     def _query(self, key, end_flag_index, x, state, mask, temperature, output_entity_num):
         B, N = key.shape[:2]
-        units = torch.zeros(B, N, device=key.device, dtype=torch.int)
+        units = torch.zeros(B, N, device=key.device, dtype=torch.long)
         logits = [[] for _ in range(B)]
         x = x.unsqueeze(0)
         if output_entity_num is None:
@@ -204,8 +200,6 @@ class SelectedUnitsHead(nn.Module):
             for i in range(self.max_entity_num):
                 if sum(end_flag_trigger) == B:
                     break
-                if i == 0:
-                    mask[:, -1] = 0  # at least 1 unit(not select end_flag in the first selection)
                 x, state = self.lstm(x, state)
                 query_result = x.permute(1, 0, 2) * key
                 query_result = query_result.mean(dim=2)
@@ -226,8 +220,6 @@ class SelectedUnitsHead(nn.Module):
                             continue
                         units[b][entity_num[b]] = 1
                         mask[b][entity_num[b]] = 0
-                if i == 0:
-                    mask[:, -1] = 1  # recover end_flag mask
         else:
             for i in range(max(output_entity_num)+1):
                 x, state = self.lstm(x, state)
@@ -253,7 +245,12 @@ class SelectedUnitsHead(nn.Module):
         embedding_selected = embedding_selected * key
         embedding_selected = embedding_selected.mean(dim=1)
         embedding_selected = self.embed_fc(embedding_selected)
-        return logits, units, embedding_selected
+
+        units_index = []
+        for unit in units:
+            index = torch.nonzero(unit).squeeze(1)
+            units_index.append(index)
+        return logits, units_index, embedding_selected
 
     def forward(self, embedding, available_unit_type_mask, available_units_mask, entity_embedding,
                 temperature=1.0, output_entity_num=None):
@@ -315,7 +312,7 @@ class TargetUnitsHead(nn.Module):
 
     def _query(self, key, end_flag_index, x, state, mask, temperature, output_entity_num):
         B, N = key.shape[:2]
-        units = torch.zeros(B, N, device=key.device, dtype=torch.int)
+        units = torch.zeros(B, N, device=key.device, dtype=torch.long)
         logits = [[] for _ in range(B)]
         x = x.unsqueeze(0)
         if output_entity_num is None:
@@ -383,8 +380,12 @@ class TargetUnitsHead(nn.Module):
         key, end_flag_index = self._get_key(entity_embedding)
         mask = torch.cat([mask, torch.ones_like(mask[:, 0:1])], dim=1)
         logits, units = self._query(key, end_flag_index, input, state, mask, temperature, output_entity_num)
+        units_index = []
+        for unit in units:
+            index = torch.nonzero(unit).squeeze(1)
+            units_index.append(index)
 
-        return logits, units
+        return logits, units_index
 
 
 class TargetUnitHead(nn.Module):
@@ -445,15 +446,18 @@ class TargetUnitHead(nn.Module):
         logits.sub_((1-mask) * 1e9)
 
         B, N = key.shape[:2]
-        units = torch.zeros(B, N, device=key.device, dtype=torch.int)
+        units = torch.zeros(B, N, device=key.device, dtype=torch.long)
         handle = self.pd(logits.div(temperature))
         if self.train:
             sample_num = handle.sample()
         else:
             sample_num = handle.mode()
         units.scatter_(1, sample_num.unsqueeze(1), 1)
+        units_index = []
+        for unit in units:
+            units_index.append(torch.nonzero(unit).squeeze(1))
 
-        return logits, units
+        return logits, units_index
 
 
 class LocationHead(nn.Module):
@@ -499,7 +503,12 @@ class LocationHead(nn.Module):
                     nn.Sequential(BilinearUpsample(2),
                                   conv2d_block(dims[i], dims[i+1], 3, 1, 1, activation=self.act, norm_type=None)))
 
-        self.pd = CategoricalPdPytorch
+        self.output_type = cfg.output_type
+        assert(self.output_type in ['cls', 'soft_argmax'])
+        if self.output_type == 'cls':
+            self.pd = CategoricalPdPytorch
+        else:
+            self.soft_argmax = SoftArgmax()
 
     def forward(self, embedding, map_skip, available_location_mask, temperature=1.0):
         '''
@@ -525,6 +534,7 @@ class LocationHead(nn.Module):
                 - (:obj`tensor`): location
         '''
         reshape_embedding = embedding.reshape(-1, self.reshape_channel, *self.reshape_size)
+        reshape_embedding = F.interpolate(reshape_embedding, size=map_skip[0].shape[2:], mode='bilinear')
         cat_feature = [torch.cat([reshape_embedding, map_skip[i]], dim=1) for i in range(len(map_skip))]
         x = self.act(cat_feature[-1])
         x = self.conv1(x)
@@ -534,15 +544,19 @@ class LocationHead(nn.Module):
             x = act(x, skip)
         for layer in self.upsample:
             x = layer(x)
-        x.sub_((1 - available_location_mask)*1e9)
-        logits = x.view(x.shape[0], -1)
-        handle = self.pd(logits.div(temperature))
-        if self.train:
-            location = handle.sample()
-        else:
-            location = handle.mode()
+        #x = x - ((1 - available_location_mask)*1e9)
+        if self.output_type == 'cls':
+            logits_flatten = x.view(x.shape[0], -1)
+            handle = self.pd(logits_flatten.div(temperature))
+            if self.train:
+                location = handle.sample()
+            else:
+                location = handle.mode()
 
-        return logits, location
+            return x, location
+        elif self.output_type == 'soft_argmax':
+            x = self.soft_argmax(x)
+            return x, x.detach()
 
 
 def test_location_head():
@@ -556,6 +570,7 @@ def test_location_head():
             self.reshape_channel = 4
             self.map_skip_dim = 128
             self.res_num = 4
+            self.output_type = 'cls'
 
     model = LocationHead(CFG()).cuda()
     embedding = torch.randn(4, 1024).cuda()

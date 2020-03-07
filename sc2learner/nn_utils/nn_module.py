@@ -1,3 +1,4 @@
+import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -203,3 +204,19 @@ class BilinearUpsample(nn.Module):
 
     def forward(self, x):
         return F.interpolate(x, self.scale_factor, mode='bilinear', align_corner=False)
+
+
+def binary_encode(y, max_val):
+    assert(max_val > 0)
+    x = y.clamp(0, max_val)
+    B = x.shape[0]
+    L = int(math.log(max_val, 2)) + 1
+    binary = []
+    one = torch.ones_like(x)
+    zero = torch.zeros_like(x)
+    for i in range(L):
+        num = math.pow(2, L-i-1)
+        bit = torch.where(x >= num, one, zero)
+        x -= bit * num
+        binary.append(bit)
+    return torch.stack(binary, dim=1)

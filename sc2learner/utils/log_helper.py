@@ -24,9 +24,9 @@ def build_logger(cfg, name=None, rank=0):
             - (:obj`TensorBoardLogger`): save output to tensorboard
             - (:obj`VariableRecord`): record variable for further process
     '''
-    # Note: Only support rank0 logger
+    path = cfg.common.save_path
+    # Note: Only support rank0 tb_logger, variable_record
     if rank == 0:
-        path = cfg.common.save_path
         logger = TextLogger(path, name=name)
         tb_logger = TensorBoardLogger(path, name=name)
         var_record_type = cfg.logger.get("var_record_type", None)
@@ -38,7 +38,14 @@ def build_logger(cfg, name=None, rank=0):
             raise NotImplementedError("not support var_record_type: {}".format(var_record_type))
         return logger, tb_logger, variable_record
     else:
-        return None, None, None
+        logger = TextLogger(path, name=name)
+        return logger, None, None
+
+
+def get_default_logger(name=None):
+    if name is None:
+        name = 'default_logger'
+    return logging.getLogger(name)
 
 
 class TextLogger(object):
@@ -70,13 +77,10 @@ class TextLogger(object):
         if not logger.handlers:
             formatter = logging.Formatter(
                 '[%(asctime)s][%(filename)15s][line:%(lineno)4d][%(levelname)8s] %(message)s')
-            fh = logging.FileHandler(path)
+            fh = logging.FileHandler(path, 'a')
             fh.setFormatter(formatter)
-            sh = logging.StreamHandler()
-            sh.setFormatter(formatter)
             logger.setLevel(level)
             logger.addHandler(fh)
-            logger.addHandler(sh)
         return logger
 
     def info(self, s):

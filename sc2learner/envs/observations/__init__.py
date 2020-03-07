@@ -1,0 +1,1 @@
+from .alphastar_obs_wrapper import decompress_obs

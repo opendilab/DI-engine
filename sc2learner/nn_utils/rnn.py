@@ -34,7 +34,7 @@ class LSTM(nn.Module):
             if self.bias is not None:
                 torch.nn.init.uniform_(self.bias[l], -gain, gain)
 
-    def forward(self, inputs, prev_state):
+    def forward(self, inputs, prev_state, list_next_state=False):
         '''
         Input:
             inputs: [seq_len, batch_size, input_size]
@@ -46,6 +46,18 @@ class LSTM(nn.Module):
             zeros = torch.zeros(num_directions*self.num_layers, batch_size, self.hidden_size,
                                 dtype=inputs.dtype, device=inputs.device)
             prev_state = (zeros, zeros)
+        elif isinstance(prev_state, list) and len(prev_state) == batch_size:
+            num_directions = 1
+            zeros = torch.zeros(num_directions*self.num_layers, 1, self.hidden_size,
+                                dtype=inputs.dtype, device=inputs.device)
+            state = []
+            for prev in prev_state:
+                if prev is None:
+                    state.append([zeros, zeros])
+                else:
+                    state.append(prev)
+            state = list(zip(*state))
+            prev_state = [torch.cat(t, dim=1) for t in state]
 
         H, C = prev_state
         x = inputs
@@ -71,5 +83,10 @@ class LSTM(nn.Module):
                 new_x.append(h)
             next_state.append((h, c))
             x = torch.stack(new_x, dim=0)
-        next_state = [torch.stack(t, dim=0) for t in zip(*next_state)]
+        if list_next_state:
+            h, c = [torch.stack(t, dim=0) for t in zip(*next_state)]
+            next_state = [torch.chunk(h, batch_size, dim=1), torch.chunk(c, batch_size, dim=1)]
+            next_state = list(zip(*next_state))
+        else:
+            next_state = [torch.stack(t, dim=0) for t in zip(*next_state)]
         return x, next_state

@@ -7,8 +7,7 @@ Main Function:
 import os
 import numbers
 import torch
-from torch.utils.data import DataLoader
-from sc2learner.dataset import ReplayDataset, DistributedSampler
+from sc2learner.dataset import ReplayDataset, ReplayEvalDataset, build_dataloader
 from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper, to_device, CountVar,\
     DistModule, dist_init, dist_finalize, allreduce, auto_checkpoint
 from sc2learner.agents.model import build_model
@@ -43,7 +42,7 @@ def build_lr_scheduler(optimizer):
 class SLLearner(object):
     '''
         Overview: base class for supervised learning on linklink, including basic processes.
-        Interface: __init__, run, finalize, save_checkpoint
+        Interface: __init__, run, finalize, save_checkpoint, eval
     '''
 
     def __init__(self, cfg=None):
@@ -68,29 +67,40 @@ class SLLearner(object):
             self.model = to_device(self.model, 'cuda')
         if self.use_distributed:
             self.model = DistModule(self.model)  # distributed training
-        self.dataset = ReplayDataset(cfg)  # use replay as dataset
-        sampler = DistributedSampler(self.dataset, round_up=False) if self.use_distributed else None
-        shuffle = False if self.use_distributed else True
-        self.dataloader = DataLoader(self.dataset, batch_size=cfg.train.batch_size, pin_memory=False, num_workers=3,
-                                     sampler=sampler, shuffle=shuffle, drop_last=True)
+
+        self.dataset = ReplayDataset(cfg.data.train)  # use replay as dataset
+        self.eval_dataset = ReplayEvalDataset(cfg.data.eval)
+        self.dataloader = build_dataloader(cfg.data.train, self.dataset)
+        self.eval_dataloader = build_dataloader(cfg.data.eval, self.eval_dataset)
+        self.train_dataloader_type = cfg.data.train.dataloader_type
+        assert(self.train_dataloader_type in ['epoch', 'iter'])
 
         self.optimizer = build_optimizer(self.model, cfg)  # build optimizer using cfg
         self.lr_scheduler = build_lr_scheduler(self.optimizer)  # build lr_scheduler
         if self.rank == 0:  # only one thread need to build logger
-            self.logger, self.tb_logger, self.variable_record = build_logger(cfg)
+            self.logger, self.tb_logger, self.variable_record = build_logger(cfg, rank=self.rank)
             self.logger.info('cfg:\n{}'.format(self.cfg))
             self.logger.info('model:\n{}'.format(self.model))
             self._init()
+        else:
+            self.logger, _, _ = build_logger(cfg, rank=self.rank)
+
         self.time_helper = build_time_helper(cfg)  # build time_helper for timing
         self.checkpoint_helper = build_checkpoint_helper(cfg, self.rank)  # build checkpoint_helper to load or save
         self.last_iter = CountVar(init_val=0)  # count for iterations
         self.last_epoch = CountVar(init_val=0)  # count for epochs
+
+        if self.train_dataloader_type == 'epoch':
+            ckpt_dataset = self.dataset
+        elif self.train_dataloader_type == 'iter':
+            # iter type doesn't save some context
+            ckpt_dataset = None
         if cfg.common.load_path != '':
             self.checkpoint_helper.load(cfg.common.load_path, self.model,
                                         optimizer=self.optimizer,
                                         last_iter=self.last_iter,
                                         last_epoch=self.last_epoch,  # TODO last_epoch for lr_scheduler
-                                        dataset=self.dataset,
+                                        dataset=ckpt_dataset,
                                         logger_prefix='(sl_learner)')
             self.last_epoch.add(1)  # skip interrupted epoch
             self.last_iter.add(1)  # skip interrupted iter
@@ -100,13 +110,13 @@ class SLLearner(object):
     @auto_checkpoint
     def run(self):
         '''
-            Overview: train model with dataset in numbers of epoch
+            Overview: train/evaluate model with dataset in numbers of epoch
         '''
-        while self.last_epoch.val < self.max_epochs:
-            if hasattr(self.dataloader.dataset, 'step'):  # call dataset.step()
-                self.dataloader.dataset.step()
-            self.lr_scheduler.step()  # update lr
-            cur_lr = self.lr_scheduler.get_lr()[0]
+        if self.cfg.common.only_evaluate:
+            self.eval()
+            return
+
+        def train_epoch():
             for idx, data in enumerate(self.dataloader):  # one epoch
                 self.time_helper.start_time()
                 data_stat = self._get_data_stat(data)
@@ -118,7 +128,7 @@ class SLLearner(object):
                 time_items = {'data_time': data_time, 'forward_time': forward_time,
                               'backward_update_time': backward_update_time,
                               'total_batch_time': data_time+forward_time+backward_update_time}
-                var_items['cur_lr'] = cur_lr
+                var_items['cur_lr'] = self.lr_scheduler.get_lr()[0]
                 var_items['epoch'] = self.last_epoch.val
                 var_items.update(data_stat)
 
@@ -128,9 +138,23 @@ class SLLearner(object):
                     self._update_monitor_var(var_items, time_items)  # update monitor variables
                     self._record_info(self.last_iter.val)  # save logger info
                 self.last_iter.add(1)
-            self.last_epoch.add(1)
+                if self.last_iter.val % self.cfg.logger.eval_freq == 0:
+                    self.eval()
+
+        if self.train_dataloader_type == 'epoch':
+            while self.last_epoch.val < self.max_epochs:
+                if hasattr(self.dataloader.dataset, 'step'):  # call dataset.step()
+                    self.dataloader.dataset.step()
+                self.lr_scheduler.step()  # update lr
+                train_epoch()
+                self.last_epoch.add(1)
+        elif self.train_dataloader_type == 'iter':
+            train_epoch()
         # save the final checkpoint
         self.save_checkpoint()
+
+    def eval(self):
+        raise NotImplementedError
 
     def finalize(self):
         '''
