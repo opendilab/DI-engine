@@ -1635,6 +1635,7 @@ class Features(object):
                     return actions.RAW_ABILITY_ID_TO_FUNC_ID.get(
                         u.orders[i].ability_id, 0)
                 return 0
+
             features = [
                 # Match unit_vec order
                 u.unit_type,
@@ -1708,6 +1709,7 @@ class Features(object):
         out["upgrades"] = np.array(raw.player.upgrade_ids, dtype=np.int32)
         if out["upgrades"].shape[0] == 0:  # for empty upgrades case
             out["upgrades"] = np.array([0])
+
 
         def cargo_units(u, pos_transform, is_raw=False):
             """Compute unit features."""

@@ -3,7 +3,7 @@ import torch
 import pysc2.env.sc2_env as sc2_env
 from pysc2.env.sc2_env import SC2Env
 from pysc2.lib.actions import FunctionCall, FUNCTIONS, RAW_FUNCTIONS
-from pysc2.lib.static_data import NUM_ACTIONS
+from pysc2.lib.static_data import NUM_ACTIONS, ACTIONS_REORDER_INV
 from sc2learner.envs.observations.alphastar_obs_wrapper import SpatialObsWrapper, ScalarObsWrapper, EntityObsWrapper,\
     transform_spatial_data, transform_scalar_data, transform_entity_data
 from sc2learner.envs.actions.alphastar_act_wrapper import AlphastarActParser
@@ -41,8 +41,9 @@ class AlphastarEnv(SC2Env):
             self.stat = self._init_stat(cfg.env.stat_path, cfg.env.beginning_build_order_num)
         self._reset_flag = False
 
-    def _init_stat(path, begin_num):
+    def _init_stat(self, path, begin_num):
         stat = torch.load(path)
+        stat['beginning_build_order'] = stat['beginning_build_order'][:begin_num]
         if stat['beginning_build_order'].shape[0] < begin_num:
             B, N = stat['beginning_build_order'].shape
             B0 = begin_num - B
@@ -50,12 +51,16 @@ class AlphastarEnv(SC2Env):
         return stat
 
     def _merge_stat(self, obs):
-        obs['mmr'] = self.stat['mmr']
-        obs['beginning_build_order'] = self.stat['beginning_build_order']
-        obs['cumulative_stat'] = self.stat['cumulative_stat']
+        obs['scalar_info']['mmr'] = self.stat['mmr']
+        obs['scalar_info']['beginning_build_order'] = self.stat['beginning_build_order']
+        obs['scalar_info']['cumulative_stat'] = self.stat['cumulative_stat']
         return obs
 
     def _merge_action(self, obs, last_action):
+        if isinstance(last_action['action_type'], torch.Tensor):
+            for index, item in enumerate(last_action['action_type']):
+                last_action['action_type'][index] = ACTIONS_REORDER_INV[item.item()]
+
         last_action_type = last_action['action_type']
         last_delay = last_action['delay']
         last_queued = last_action['queued']
@@ -99,6 +104,7 @@ class AlphastarEnv(SC2Env):
             'entity_raw': entity_raw,
             'map_size': self.map_size,
         }
+
         new_obs = self._merge_action(new_obs, last_actions)
         if self.use_stat:
             new_obs = self._merge_stat(new_obs)
@@ -114,7 +120,7 @@ class AlphastarEnv(SC2Env):
                     new_actions[k] = v.tolist()  # list
             else:
                 new_actions[k] = None
-        action_type = new_actions['action_type']
+        action_type = ACTIONS_REORDER_INV[new_actions['action_type']]
         delay = new_actions['delay']
 
         arg_keys = ['queued', 'selected_units', 'target_units', 'target_location']
