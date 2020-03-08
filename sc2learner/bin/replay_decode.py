@@ -346,11 +346,10 @@ class ReplayProcessor(multiprocessing.Process):
         begin_num = 200
         prev_obs_queue = deque(maxlen=8)  # (len, 2)
 
-        import time
         time_cost_total = 0
-        time_start = time.time() # /s
+        time_start = time.time()  # /s
 
-        time_item = [0,0,0,0,0,0]
+        time_item = [0, 0, 0, 0, 0, 0]
 
         def unit_record(obs, s):
             for idx, ob in enumerate(obs):
@@ -432,7 +431,7 @@ class ReplayProcessor(multiprocessing.Process):
                     create_entity_dim = False
 
             time_item[2] += time.time() - t1
-                    
+
             if obs[0].player_result or obs[1].player_result:
                 # add the last action
                 for idx in range(N):
@@ -458,10 +457,9 @@ class ReplayProcessor(multiprocessing.Process):
                 time_start = time.time()
                 time_cost_total += time_cost
                 print('cost time at {} : {} / {} / {}, {} / {} / {}'
-                    .format(step, time_cost, time_cost/50.0, float(time_cost_total)/step, 
-                        time_item[0], time_item[1], time_item[2]))
-                time_item = [0,0,0,0,0]
-
+                      .format(step, time_cost, time_cost/50.0, float(time_cost_total)/step,
+                              time_item[0], time_item[1], time_item[2]))
+                time_item = [0, 0, 0, 0, 0]
 
     def match_obs_by_action(self, prev_obs_queue, actions, act_idx, step):
         # units judge
@@ -672,4 +670,3 @@ def main_multi_list(unused_argv):
 if __name__ == "__main__":
     app.run(main)
     # app.run(main)
-

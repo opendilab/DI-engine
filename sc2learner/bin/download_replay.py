@@ -151,8 +151,7 @@ def download(key, secret, version, replays_dir, download_dir, extract=False,
     if mpyq is not None and filter_version != 'keep':
         print('Filtering replays.')
         found_versions = collections.defaultdict(int)
-        found_str = lambda: ', '.join('{}: {}'.format(v, c)
-                                      for v, c in sorted(found_versions.items()))
+        found_str = lambda: ', '.join('{}: {}'.format(v, c) for v, c in sorted(found_versions.items()))  # noqa
         all_replays = [f for f in os.listdir(replays_dir) if f.endswith('.SC2Replay')]
         for i, file_name in enumerate(all_replays):
             if i % 100 == 0:
@@ -165,7 +164,7 @@ def download(key, secret, version, replays_dir, download_dir, extract=False,
                     metadata = json.loads(
                         archive[b'replay.gamemetadata.json'].decode('utf-8'))
                 except KeyboardInterrupt:
-                  raise
+                    raise
                 except:  # pylint: disable=bare-except
                     found_versions['corrupt'] += 1
                     os.remove(file_path)
@@ -212,4 +211,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

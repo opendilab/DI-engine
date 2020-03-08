@@ -20,13 +20,12 @@ name2 = prefix2 + p
 # print('--------------------------------------')
 
 
-s3client = ceph.S3Client() 
- 
-s3client = ceph.S3Client(access_key = "GWXHDG7SGDAW34Q71R2F", secret_key = "v8fdUvycLIvW64ok30MBcXCtJ49vFmbgIIVNaMU2")
- 
+s3client = ceph.S3Client()
+
+s3client = ceph.S3Client(access_key="GWXHDG7SGDAW34Q71R2F", secret_key="v8fdUvycLIvW64ok30MBcXCtJ49vFmbgIIVNaMU2")
+
 data2 = s3client.Get(name2)
 
 data2 = torch.load(BytesIO(data2))
 
 print(data2)
-

@@ -10,7 +10,7 @@ me = subprocess.getoutput('whoami')[:8]
 
 def launch(partition, workstation, replay_name, output_dir, log_dir):
     log_path = os.path.join(log_dir, 'log.' + replay_name.split('/')[-1])
-    subprocess.run(['bash', 'decode.sh', partition, workstation, replay_name, output_dir, log_path]) 
+    subprocess.run(['bash', 'decode.sh', partition, workstation, replay_name, output_dir, log_path])
 
 
 # get all info of cluster
@@ -31,6 +31,8 @@ def get_cls_info():
     return ret_dict
 
 # get my task number by node
+
+
 def get_workstation_info(partition, workstation):
     info = subprocess.getoutput('squeue -h -p {} -w {}'.format(partition, workstation)).split('\n')
     count = 0
@@ -55,12 +57,13 @@ def main():
     workers_num_std = 2
     log_dir = '/mnt/lustre/zhangming/data/logs_valid'
     output_dir = '/mnt/lustre/zhangming/data/Replays_decode_valid'
-    partitions = ['VI_SP_Y_V100_B', 'VI_SP_Y_V100_A', 'VI_SP_VA_V100', 'VI_SP_VA_1080TI', 'VI_Face_1080TI', 'VI_ID_1080TI']
+    partitions = ['VI_SP_Y_V100_B', 'VI_SP_Y_V100_A', 'VI_SP_VA_V100',
+                  'VI_SP_VA_1080TI', 'VI_Face_1080TI', 'VI_ID_1080TI']
     #partitions = ['VI_SP_Y_V100_A']
     info = get_cls_info()
     replays = open('/mnt/lustre/zhangming/data/listtemp/replays.valid.list.06', 'r').readlines()
     replays = [x.strip() for x in replays]
-    replays_index =0
+    replays_index = 0
     while True:
         for partition in partitions:
             workstations = []
@@ -83,13 +86,13 @@ def main():
                                 return
                             replay_name = replays[replays_index]
                             replay_name_prefix = replay_name.split(".")[0]
-                        
+
                         launch(partition, workstation, replay_name, output_dir, log_dir)
                         print('{} {}'.format(replays_index, replay_name))
                         replays_index += 1
                         if replays_index >= len(replays):
                             return
-        time.sleep(600)      
+        time.sleep(600)
 
 
 if __name__ == '__main__':
