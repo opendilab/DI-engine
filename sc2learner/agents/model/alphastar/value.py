@@ -27,11 +27,12 @@ class ValueBaseline(nn.Module):
 
 def test_value_baseline():
     class CFG:
-        self.activation = 'relu'
-        self.norm_type = 'LN'
-        self.input_dim = 1024
-        self.res_dim = 256
-        self.res_num = 16
+        def __init__(self):
+            self.activation = 'relu'
+            self.norm_type = 'LN'
+            self.input_dim = 1024
+            self.res_dim = 256
+            self.res_num = 16
 
     model = ValueBaseline(CFG())
     inputs = torch.randn(4, 1024)
