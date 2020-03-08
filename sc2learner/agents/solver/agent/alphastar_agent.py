@@ -43,7 +43,11 @@ class AlphastarAgent(BaseAgent):
         def unsqueeze(x):
             if isinstance(x, dict):
                 for k in x.keys():
-                    x[k] = x[k].unsqueeze(0)
+                    if isinstance(x[k], dict):
+                        for kk in x[k].keys():
+                            x[k][kk] = x[k][kk].unsqueeze(0)
+                    else:
+                        x[k] = x[k].unsqueeze(0)
             elif isinstance(x, torch.Tensor):
                 x = x.unsqueeze(0)
             else:
@@ -72,7 +76,7 @@ class AlphastarAgent(BaseAgent):
                     actions[k] = torch.LongTensor(units)
             elif k == 'target_location':
                 if isinstance(v, torch.Tensor):
-                    v = v.item()
+                    v = v[0].item()
                     location = [v // self.out_res[1], v % self.out_res[1]]
                     location[0] = location[0]*1.0 / self.out_res[0] * map_size[0]
                     location[1] = location[1]*1.0 / self.out_res[1] * map_size[1]

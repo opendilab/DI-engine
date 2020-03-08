@@ -346,6 +346,12 @@ class ReplayProcessor(multiprocessing.Process):
         begin_num = 200
         prev_obs_queue = deque(maxlen=8)  # (len, 2)
 
+        import time
+        time_cost_total = 0
+        time_start = time.time() # /s
+
+        time_item = [0,0,0,0,0,0]
+
         def unit_record(obs, s):
             for idx, ob in enumerate(obs):
                 raw_set = ob['entity_raw']['id']
@@ -356,7 +362,9 @@ class ReplayProcessor(multiprocessing.Process):
                         print(u, idx, ob['entity_raw']['type'][i], s)
         while True:
             # 1v1 version
+            t1 = time.time()
             obs = [controller.observe() for controller in controllers]
+            time_item[0] += time.time() - t1
             obs_actions = [o.actions for o in obs]
             # get raw action
             actions = []
@@ -366,6 +374,7 @@ class ReplayProcessor(multiprocessing.Process):
                 else:
                     actions.append([])
             # when one of the player has action, transfrom all the previous observation
+            t1 = time.time()
             if len(actions[0]) > 0 or len(actions[1]) > 0:
                 for i in range(len(prev_obs_queue)):
                     if not isinstance(prev_obs_queue[i][0], dict):  # whether is processed
@@ -378,7 +387,9 @@ class ReplayProcessor(multiprocessing.Process):
                         agent_obs[0]['scalar_info']['enemy_upgrades'] = agent_obs[1]['scalar_info']['upgrades']
                         agent_obs[1]['scalar_info']['enemy_upgrades'] = agent_obs[0]['scalar_info']['upgrades']
                         prev_obs_queue[i] = agent_obs
+            time_item[1] += time.time() - t1
 
+            t1 = time.time()
             for idx in range(N):
                 # parse action
                 agent_acts = []
@@ -412,6 +423,7 @@ class ReplayProcessor(multiprocessing.Process):
                     # merge action info into obs
                     result_obs = self.obs_parser.merge_action(agent_obs, last_actions[idx], create_entity_dim)
                     result_obs.update({'actions': v})
+
                     last_step_data[idx] = compress_obs(result_obs)
                     # update info
                     action_count[idx] += 1
@@ -419,6 +431,8 @@ class ReplayProcessor(multiprocessing.Process):
                     delay[idx] = 0
                     create_entity_dim = False
 
+            time_item[2] += time.time() - t1
+                    
             if obs[0].player_result or obs[1].player_result:
                 # add the last action
                 for idx in range(N):
@@ -437,6 +451,17 @@ class ReplayProcessor(multiprocessing.Process):
             step += FLAGS.step_mul
             delay[0] += FLAGS.step_mul
             delay[1] += FLAGS.step_mul
+
+            if step % 50 == 0:
+                time_end = time.time()
+                time_cost = time_end - time_start
+                time_start = time.time()
+                time_cost_total += time_cost
+                print('cost time at {} : {} / {} / {}, {} / {} / {}'
+                    .format(step, time_cost, time_cost/50.0, float(time_cost_total)/step, 
+                        time_item[0], time_item[1], time_item[2]))
+                time_item = [0,0,0,0,0]
+
 
     def match_obs_by_action(self, prev_obs_queue, actions, act_idx, step):
         # units judge
@@ -506,7 +531,7 @@ class ReplayProcessor(multiprocessing.Process):
                 select_obs = {k: t for idx, (k, t) in enumerate(select_obs.items()) if flag[idx]}
             # no matched obs, abandon the action and keep select_obs
             else:
-                print('abandon action', act)
+                # print('abandon action', act)
                 pass  # placeholder
         idx = max(select_obs.keys())
         if idx != -1:
@@ -586,7 +611,48 @@ def main_multi(unused_argv):
         new_error_msg = [log_func(s, idx) for idx, s in enumerate(new_error_msg)]
         return new_success_msg, new_error_msg
 
-    N = 20
+    N = 5
+    pool = Pool(N)
+    group_num = int(len(replay_list) // N)
+    print('total len: {}, group: {}, each group: {}'.format(len(replay_list), N, group_num))
+    # ISSUE(zh) splited group number doesn't match pool
+    replay_split_list = [replay_list[i*group_num:(i+1)*group_num] for i in range(group_num)]
+    func = partial(replay_decode, version=version)
+    ret = pool.map(func, replay_split_list)
+    success_msg, error_msg = combine_msg(ret)
+    with open(os.path.join(FLAGS.output_dir, 'success.txt'), 'w') as f:
+        f.writelines(success_msg)
+    with open(os.path.join(FLAGS.output_dir, 'error.txt'), 'w') as f:
+        f.writelines(error_msg)
+    pool.close()
+    pool.join()
+
+
+def main_multi_list(unused_argv):
+    from multiprocessing import Pool
+    run_config = run_configs.get()
+    replay_list = [x.strip() for x in open(FLAGS.replays, 'r').readlines()]
+    version = replay.get_replay_version(run_config.replay_data(replay_list[0]))
+
+    # if not gfile.Exists(FLAGS.replays):
+    #     sys.exit("{} doesn't exist.".format(FLAGS.replays))
+
+    def log_func(s, idx):
+        return s + '\n{}\t'.format(idx) + '-'*60 + '\n'
+
+    def combine_msg(msg):
+        msg = list(zip(*msg))
+        success_msg, error_msg = msg
+        new_success_msg, new_error_msg = [], []
+        for item in success_msg:
+            new_success_msg += item
+        for item in error_msg:
+            new_error_msg += item
+        new_success_msg = [log_func(s, idx) for idx, s in enumerate(new_success_msg)]
+        new_error_msg = [log_func(s, idx) for idx, s in enumerate(new_error_msg)]
+        return new_success_msg, new_error_msg
+
+    N = 5
     pool = Pool(N)
     group_num = int(len(replay_list) // N)
     print('total len: {}, group: {}, each group: {}'.format(len(replay_list), N, group_num))
@@ -605,3 +671,5 @@ def main_multi(unused_argv):
 
 if __name__ == "__main__":
     app.run(main)
+    # app.run(main)
+

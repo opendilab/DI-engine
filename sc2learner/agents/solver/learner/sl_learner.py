@@ -77,6 +77,7 @@ class SLLearner(object):
 
         self.optimizer = build_optimizer(self.model, cfg)  # build optimizer using cfg
         self.lr_scheduler = build_lr_scheduler(self.optimizer)  # build lr_scheduler
+
         if self.rank == 0:  # only one thread need to build logger
             self.logger, self.tb_logger, self.variable_record = build_logger(cfg, rank=self.rank)
             self.logger.info('cfg:\n{}'.format(self.cfg))

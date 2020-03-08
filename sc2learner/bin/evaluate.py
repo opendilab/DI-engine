@@ -25,6 +25,7 @@ from sc2learner.envs.alphastar_env import AlphastarEnv
 from sc2learner.agents.model import PPOLSTM, PPOMLP
 from sc2learner.agents.solver import PpoAgent, RandomAgent, KeyboardAgent, AlphastarAgent
 from sc2learner.utils import build_logger
+from pysc2.lib.action_dict import ACTION_INFO_MASK
 
 
 FLAGS = flags.FLAGS
@@ -99,7 +100,10 @@ def evaluate(var_dict, cfg):
     name = 'eval_{}_{}_{}_{}_{}'.format(path_info, cfg.env.difficulty, cfg.model.action_type, log_time, rank+1)
     dirname = os.path.dirname(name)
     if not os.path.exists(dirname):
-        os.mkdir(dirname)
+        try:
+            os.mkdir(dirname)
+        except:
+            pass
     logger, tb_logger, _ = build_logger(cfg, name=name)
     logger.info('cfg: {}'.format(cfg))
     logger.info("Rank %d Game Seed: %d" % (rank, game_seed))
@@ -122,7 +126,7 @@ def evaluate(var_dict, cfg):
     if not os.path.exists(value_save_path):
         os.mkdir(value_save_path)
     cum_return = 0.0
-    action_counts = [0] * env.action_num
+    action_counts = [0] * (max(ACTION_INFO_MASK.keys()) + 1)
 
     observation = env.reset()
     agent.reset()
@@ -135,6 +139,12 @@ def evaluate(var_dict, cfg):
         action_type = action['action_type'] if isinstance(action, dict) else action
         logger.info("Rank %d Step ID: %d Take Action: %s" % (rank, step_id,
                                                              action if isinstance(action, dict) else action_type))
+        # delete_list = []
+        # for k, v in action.items():
+        #     if v is None:
+        #         delete_list.append(k)
+        # for k in delete_list:
+        #     del action[k]
         observation, reward, done, _ = env.step(action)
         action_counts[action_type] += 1
         cum_return += reward
@@ -146,9 +156,9 @@ def evaluate(var_dict, cfg):
             env.env.env.save_replay(cfg.common.agent + FLAGS.replay_path)
     path = os.path.join(value_save_path, 'value{}.pt'.format(rank))
     torch.save(torch.tensor(value_trace), path)
-    for id, name in enumerate(env.action_names):
+    for action_id in ACTION_INFO_MASK.keys():
         logger.info("Rank %d\tAction ID: %d\tCount: %d\tName: %s" %
-                    (rank, id, action_counts[id], name))
+                    (rank, action_id, action_counts[action_id], ACTION_INFO_MASK[action_id]['name']))
     env.close()
     return cum_return
 
