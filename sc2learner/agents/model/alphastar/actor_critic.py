@@ -1,5 +1,6 @@
 from collections import namedtuple
 import torch
+import torch.nn as nn
 from .policy import Policy
 from .encoder import Encoder
 from .value import ValueBaseline
@@ -7,13 +8,13 @@ from ..actor_critic.actor_critic import ActorCriticBase
 
 
 class AlphaStarActorCritic(ActorCriticBase):
-    EvalOutput = namedtuple('EvalOutput', 'actions', 'next_state')
-    MimicOutput = namedtuple('MimicOutput', 'logits', 'next_state')
-    StepOutput = namedtuple('StepOutput', 'actions', 'baselines', 'next_state_home', 'next_state_away')
+    EvalOutput = namedtuple('EvalOutput', ['actions', 'next_state'])
+    MimicOutput = namedtuple('MimicOutput', ['logits', 'next_state'])
+    StepOutput = namedtuple('StepOutput', ['actions', 'baselines', 'next_state_home', 'next_state_away'])
 
-    CriticInput = namedtuple('CriticInput', 'lstm_output_home', 'lstm_output_away', 'baseline_feature_home',
-                             'baseline_feature_away', 'cum_stat_home', 'cum_stat_away')
-    CriticOutput = namedtuple('CriticOutput', 'winloss', 'build_orders', 'built_units', 'effects', 'upgrades')
+    CriticInput = namedtuple('CriticInput', ['lstm_output_home', 'lstm_output_away', 'baseline_feature_home',
+                             'baseline_feature_away', 'cum_stat_home', 'cum_stat_away'])
+    CriticOutput = namedtuple('CriticOutput', ['winloss', 'build_orders', 'built_units', 'effects', 'upgrades'])
 
     def __init__(self, cfg):
         super(AlphaStarActorCritic, self).__init__()
@@ -21,11 +22,11 @@ class AlphaStarActorCritic(ActorCriticBase):
         self.encoder = Encoder(cfg.encoder)
         self.policy = Policy(cfg.policy)
         if cfg.use_value_network:
-            self.value = torch.nn.ModuleDict()
+            self.value_networks = nn.ModuleDict()
             self.value_cum_stat_keys = {}
-            for module in cfg.value:
-                self.value[module.name] = ValueBaseline(module.param)
-                self.value_cum_stat_keys[module.name] = module.cum_stat_keys
+            for k, v in cfg.value.items():
+                self.value_networks[v.name] = ValueBaseline(v.param)
+                self.value_cum_stat_keys[v.name] = v.cum_stat_keys
 
     # overwrite
     def mimic(self, inputs, **kwargs):
@@ -94,7 +95,7 @@ class AlphaStarActorCritic(ActorCriticBase):
         cum_stat_home, cum_stat_away = inputs[4:]
         same_part = torch.cat(inputs[:4], dim=1)
         ret = []
-        for (name, m), (_, key) in zip(self.value.items(), self.value_cum_stat_keys.items()):
+        for (name, m), (_, key) in zip(self.value_networks.items(), self.value_cum_stat_keys.items()):
             cum_stat_home_subset = select_item(cum_stat_home, key)
             cum_stat_away_subset = select_item(cum_stat_away, key)
             inputs = torch.cat(same_part + cum_stat_home_subset + cum_stat_away_subset, dim=1)

@@ -23,7 +23,7 @@ def build_head(name):
 
 
 class Policy(nn.Module):
-    Input = namedtuple('Input', 'actions', 'entity_raw', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context')  # noqa
+    Input = namedtuple('Input', ['actions', 'entity_raw', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context'])  # noqa
 
     def __init__(self, cfg):
         super(Policy, self).__init__()
