@@ -1,4 +1,5 @@
 import collections
+from collections import namedtuple
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -22,6 +23,8 @@ def build_head(name):
 
 
 class Policy(nn.Module):
+    Input = namedtuple('Input', 'actions', 'entity_raw', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context')  # noqa
+
     def __init__(self, cfg):
         super(Policy, self).__init__()
         self.cfg = cfg
@@ -75,18 +78,22 @@ class Policy(nn.Module):
 
     def mimic(self, inputs, temperature=1.0):
         '''
-            input(keys): entity_raw, actions, lstm_output, entity_embeddings, map_skip, scalar_context
+            Overview: supervised learning policy forward graph
+            Arguments:
+                - inputs (:obj:`Policy.Input`) namedtuple
+                - temperature (:obj:`float`) logits sample temperature
+            Returns:
+                - logits (:obj:`dict`) logits(or other format) for calculating supervised learning loss
         '''
-        lstm_output, entity_embeddings, map_skip, scalar_context = inputs['lstm_output'], inputs['entity_embeddings'], inputs['map_skip'], inputs['scalar_context']  # noqa
+        actions, entity_raw, lstm_output, entity_embeddings, map_skip, scalar_context = inputs
 
-        actions = inputs['actions']
         logits = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
         action_type = torch.LongTensor(actions['action_type']).to(lstm_output.device)
-        units_num = [len(t['id']) for t in inputs['entity_raw']]
+        units_num = [len(t['id']) for t in entity_raw]
 
         logits['action_type'], action_type, embeddings = self.head['action_type_head'](
             lstm_output, scalar_context, temperature, action_type)
-        action_attr, mask = self._look_up_action_attr(action_type, inputs['entity_raw'], units_num)
+        action_attr, mask = self._look_up_action_attr(action_type, entity_raw, units_num)
 
         logits['delay'], delay, embeddings = self.head['delay_head'](embeddings)
         for idx in range(action_type.shape[0]):
@@ -128,20 +135,25 @@ class Policy(nn.Module):
 
     def evaluate(self, inputs, temperature=1.0):
         '''
-            input(keys): entity_raw, actions, lstm_output, entity_embeddings, map_skip, scalar_context
+            Overview: agent(policy) evaluate forward graph, or in reinforcement learning
+            Arguments:
+                - inputs (:obj:`Policy.Input`) namedtuple
+                - temperature (:obj:`float`) logits sample temperature
+            Returns:
+                - actions (:obj:`dict`) actions predicted by agent(policy)
         '''
-        lstm_output, entity_embeddings, map_skip, scalar_context = inputs['lstm_output'], inputs['entity_embeddings'], inputs['map_skip'], inputs['scalar_context']  # noqa
+        actions, entity_raw, lstm_output, entity_embeddings, map_skip, scalar_context = inputs
 
-        B = inputs['spatial_info'].shape[0]
+        B = len(entity_raw)
         actions = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
         logits = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
-        units_num = [len(t['id']) for t in inputs['entity_raw']]
+        units_num = [len(t['id']) for t in entity_raw]
 
         # action type
         logits['action_type'], action_type, embeddings = self.head['action_type_head'](
             lstm_output, scalar_context, temperature)
         actions['action_type'] = torch.chunk(action_type, B, dim=0)
-        action_attr, mask = self._look_up_action_attr(actions['action_type'], inputs['entity_raw'], units_num)
+        action_attr, mask = self._look_up_action_attr(actions['action_type'], entity_raw, units_num)
 
         # action arg delay
         logits['delay'], delay, embeddings = self.head['delay_head'](embeddings)

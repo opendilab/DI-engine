@@ -13,10 +13,11 @@ class CumulativeStatEncoder(nn.Module):
             setattr(self, k, module)
 
     def forward(self, x):
-        ret = []
+        ret = {}
         for k, v in x.items():
-            ret.append(getattr(self, k)(v))
-        return torch.cat(ret, dim=1)
+            ret[k] = getattr(self, k)(v)
+        self.data = ret
+        return torch.cat(list(ret.values()), dim=1)
 
 
 class BeginningBuildOrderEncoder(nn.Module):
@@ -98,7 +99,7 @@ class ScalarEncoder(nn.Module):
         embedded_scalar = torch.cat(embedded_scalar, dim=1)
         scalar_context = torch.cat(scalar_context, dim=1)
         baseline_feature = torch.cat(baseline_feature, dim=1)
-        return embedded_scalar, scalar_context, baseline_feature
+        return embedded_scalar, scalar_context, baseline_feature, self.cumulative_stat.data
 
 
 def test_scalar_encoder():
@@ -114,7 +115,7 @@ def test_scalar_encoder():
         if 'input_dim' in item.keys() and 'output_dim' in item.keys():
             inputs[item['key']] = torch.randn(B, item['input_dim']).cuda()
     print(model)
-    embedded_scalar, scalar_context, baseline_feature = model(inputs)
+    embedded_scalar, scalar_context, baseline_feature, cumulative_stat = model(inputs)
     print(embedded_scalar.shape)
     print(scalar_context.shape)
     print(baseline_feature.shape)

@@ -49,7 +49,7 @@ class Encoder(nn.Module):
         return torch.cat([spatial_info, scatter_map], dim=1)
 
     def forward(self, inputs):
-        embedded_scalar, scalar_context, baseline_feature = self.encoder['scalar_encoder'](inputs['scalar_info'])
+        embedded_scalar, scalar_context, baseline_feature, cum_stat = self.encoder['scalar_encoder'](inputs['scalar_info'])
         entity_embeddings, embedded_entity = self.encoder['entity_encoder'](inputs['entity_info'])
         spatial_input = self._scatter_connection(inputs['spatial_info'], entity_embeddings, inputs['entity_raw'])
         embedded_spatial, map_skip = self.encoder['spatial_encoder'](spatial_input, inputs['map_size'])
@@ -60,4 +60,4 @@ class Encoder(nn.Module):
         lstm_output, next_state = self.core_lstm(
             embedded_entity, embedded_spatial, embedded_scalar, inputs['prev_state'])
         lstm_output = lstm_output.squeeze(0)
-        return lstm_output, next_state, entity_embeddings, map_skip, scalar_context, baseline_feature
+        return lstm_output, next_state, entity_embeddings, map_skip, scalar_context, baseline_feature, cum_stat
