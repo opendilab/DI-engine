@@ -2,6 +2,7 @@ import torch
 from .agent import BaseAgent
 from sc2learner.agents.model import build_model
 from sc2learner.utils import to_device, build_checkpoint_helper
+from pysc2.lib.static_data import ACTIONS_REORDER_INV
 
 
 class AlphastarAgent(BaseAgent):
@@ -55,7 +56,7 @@ class AlphastarAgent(BaseAgent):
             return x
 
         unsqueeze_keys = ['scalar_info', 'spatial_info']
-        list_keys = ['entity_info', 'entity_raw']
+        list_keys = ['entity_info', 'entity_raw', 'map_size']
         for k, v in obs.items():
             if k in unsqueeze_keys:
                 obs[k] = unsqueeze(v)
@@ -65,20 +66,18 @@ class AlphastarAgent(BaseAgent):
 
     def _decode_action(self, actions, entity_raw, map_size):
         for k, v in actions.items():
-            actions[k] = v[0]  # remove batch size dim(batch size=1)
-        for k, v in actions.items():
-            if k == 'selected_units' or k == 'target_units':
-                if isinstance(v, torch.Tensor):
-                    index = torch.nonzero(v)[0].tolist()
-                    units = []
-                    for i in index:
-                        units.append(entity_raw['id'][i])
-                    actions[k] = torch.LongTensor(units)
-            elif k == 'target_location':
-                if isinstance(v, torch.Tensor):
-                    v = v[0].item()
-                    location = [v // self.out_res[1], v % self.out_res[1]]
-                    location[0] = location[0]*1.0 / self.out_res[0] * map_size[0]
-                    location[1] = location[1]*1.0 / self.out_res[1] * map_size[1]
-                    actions[k] = torch.LongTensor(location)
+            val = v[0]  # remove batch size dim(batch size=1)
+            if isinstance(val, torch.Tensor):
+                if k == 'selected_units' or k == 'target_units':
+                    actions[k] = [entity_raw['id'][i] for i in val]
+                elif k == 'action_type':
+                    actions[k] = ACTIONS_REORDER_INV[val.item()]
+                elif k == 'delay' or k == 'queued':
+                    actions[k] = val.item()
+                elif k == 'target_location':
+                    actions[k] = val.tolist()
+                else:
+                    raise KeyError("invalid key:{}".format(k))
+            else:
+                actions[k] = val
         return actions

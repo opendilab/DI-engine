@@ -65,10 +65,10 @@ class AlphastarEnv(SC2Env):
         last_delay = last_action['delay']
         last_queued = last_action['queued']
         last_queued = last_queued if isinstance(last_queued, torch.Tensor) else torch.LongTensor([2])  # 2 as 'none'
-        obs['scalar_info']['last_delay'] = self.template_act[0]['op'](torch.LongTensor(last_delay)).squeeze()
-        obs['scalar_info']['last_queued'] = self.template_act[1]['op'](torch.LongTensor(last_queued)).squeeze()
+        obs['scalar_info']['last_delay'] = self.template_act[0]['op'](torch.LongTensor([last_delay])).squeeze()
+        obs['scalar_info']['last_queued'] = self.template_act[1]['op'](torch.LongTensor([last_queued])).squeeze()
         obs['scalar_info']['last_action_type'] = self.template_act[2]['op'](
-            torch.LongTensor(last_action_type)).squeeze()
+            torch.LongTensor([last_action_type])).squeeze()
 
         N = obs['entity_info'].shape[0]
         if obs['entity_info'] is None:
@@ -111,20 +111,11 @@ class AlphastarEnv(SC2Env):
         return new_obs
 
     def _get_action(self, actions):
-        new_actions = {}
-        for k, v in actions.items():
-            if isinstance(v, torch.Tensor):
-                if v.shape == (1,):
-                    new_actions[k] = v.item()  # scalar
-                else:
-                    new_actions[k] = v.tolist()  # list
-            else:
-                new_actions[k] = None
-        action_type = ACTIONS_REORDER_INV[new_actions['action_type']]
-        delay = new_actions['delay']
+        action_type = actions['action_type']
+        delay = actions['delay']
 
         arg_keys = ['queued', 'selected_units', 'target_units', 'target_location']
-        args = [v for k, v in new_actions.items() if k in arg_keys and v is not None]
+        args = [v for k, v in actions.items() if k in arg_keys and v is not None]
         return FunctionCall.init_with_validation(action_type, args, raw=True), delay
 
     def step(self, actions):
@@ -144,7 +135,7 @@ class AlphastarEnv(SC2Env):
         self.map_size = info.start_raw.map_size
         self.map_size = (self.map_size.x, self.map_size.y)
         self._reset_flag = True
-        last_actions = {'action_type': [0], 'delay': [0], 'queued': 'none',
-                        'selected_units': 'none', 'target_units': 'none', 'target_location': 'none'}
+        last_actions = {'action_type': 0, 'delay': 0, 'queued': None,
+                        'selected_units': None, 'target_units': None, 'target_location': None}
         obs = self._get_obs(obs, last_actions)
         return obs

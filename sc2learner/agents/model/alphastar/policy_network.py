@@ -252,7 +252,6 @@ class Policy(ActorCriticBase):
             batch size = 1
         '''
         ratio = self.cfg.location_expand_ratio
-        inputs['map_size'] = [inputs['map_size']]
         Y, X = inputs['map_size'][0]
 
         actions, _, next_state = self._actor_forward(inputs, **kwargs)
