@@ -29,7 +29,7 @@ class ResBlock(nn.Module):
 
 
 class ResFCBlock(nn.Module):
-    '''
+    r'''
     Residual Block with 2 fully connected block
     x -> fc1 -> norm -> act -> fc2 -> norm -> act -> out
       \____________________________________/+

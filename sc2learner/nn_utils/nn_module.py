@@ -34,7 +34,7 @@ def sequential_pack(layers):
     '''
     Overview: Packing the layers in the input list to a nn.Sequential module
               if there is a convolutional layer in module, an extra attribute
-              `out_channels` will be added to the module 
+              `out_channels` will be added to the module
               and set to the out_channel of the conv layer
     '''
     assert isinstance(layers, list)
@@ -175,7 +175,8 @@ class ChannelShuffle(nn.Module):
         b, c, h, w = x.shape
         g = self.group_num
         assert(c % g == 0)
-        x = x.view(b, g, c//g, h, w).permute(0, 2, 1, 3, 4).contiguous().view(b, c, h, w)
+        x = x.view(b, g, c//g, h, w).permute(0, 2, 1,
+                                             3, 4).contiguous().view(b, c, h, w)
         return x
 
 
@@ -242,7 +243,7 @@ def binary_encode(y, max_val):
     r"""
     Overview: Convert elements in a tensor to its binary representation
 
-    Example: 
+    Example:
     >>> binary_encode(torch.tensor([3,2]),torch.tensor(8))
     tensor([[0, 0, 1, 1],[0, 0, 1, 0]])
     """
