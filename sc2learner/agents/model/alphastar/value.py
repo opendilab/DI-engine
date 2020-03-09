@@ -6,6 +6,12 @@ from sc2learner.nn_utils import fc_block, build_activation, ResFCBlock
 
 
 class ValueBaseline(nn.Module):
+    '''
+    Network to be applied on each baseline input, parameters for the current baseline are defined in the cfg
+
+    input_dim            res_dim            res_dim                    1
+    x -> fc (norm & act) -> ResFCBlock*res_num -> fc (no norm no act) -> atan act -> value
+    '''
     def __init__(self, cfg):
         super(ValueBaseline, self).__init__()
         self.act = build_activation(cfg.activation)

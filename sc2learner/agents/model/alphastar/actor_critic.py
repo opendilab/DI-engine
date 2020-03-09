@@ -25,7 +25,9 @@ class AlphaStarActorCritic(ActorCriticBase):
             self.value_networks = nn.ModuleDict()
             self.value_cum_stat_keys = {}
             for k, v in cfg.value.items():
+                # creating a ValueBaseline network for each baseline, to be used in _critic_forward
                 self.value_networks[v.name] = ValueBaseline(v.param)
+                # name of needed cumulative stat items
                 self.value_cum_stat_keys[v.name] = v.cum_stat_keys
 
     # overwrite
@@ -86,18 +88,26 @@ class AlphaStarActorCritic(ActorCriticBase):
 
     # overwrite
     def _critic_forward(self, inputs):
+        '''
+        Overview: Evaluate value network on each baseline
+        '''
         def select_item(data, key):
+            # Input: data:dict key:list Returns: ret:list
+            # filter data and return a list of values with keys in key
             ret = []
             for k, v in data.items():
                 if k in key:
                     ret.append(v)
             return ret
-        cum_stat_home, cum_stat_away = inputs[4:]
+        cum_stat_home, cum_stat_away = inputs['cum_stat_home'], inputs['cum_stat_away']
+        # 'lstm_output_home', 'lstm_output_away', 'baseline_feature_home', 'baseline_feature_away'
+        # are torch.Tensors and are shared across all baselines
         same_part = torch.cat(inputs[:4], dim=1)
         ret = []
         for (name, m), (_, key) in zip(self.value_networks.items(), self.value_cum_stat_keys.items()):
             cum_stat_home_subset = select_item(cum_stat_home, key)
             cum_stat_away_subset = select_item(cum_stat_away, key)
-            inputs = torch.cat(same_part + cum_stat_home_subset + cum_stat_away_subset, dim=1)
+            inputs = torch.cat([same_part] + cum_stat_home_subset + cum_stat_away_subset, dim=1)
+            # apply the value network to inputs
             ret.append(m(inputs))
         return self.CriticOutput(*ret)

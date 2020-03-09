@@ -31,6 +31,12 @@ def weight_init_(weight, init_type="xavier", activation=None):
 
 
 def sequential_pack(layers):
+    '''
+    Overview: Packing the layers in the input list to a nn.Sequential module
+              if there is a convolutional layer in module, an extra attribute
+              `out_channels` will be added to the module 
+              and set to the out_channel of the conv layer
+    '''
     assert isinstance(layers, list)
     seq = nn.Sequential(*layers)
     for item in layers:
@@ -140,6 +146,12 @@ def fc_block(in_channels,
              norm_type=None,
              use_dropout=False,
              dropout_probability=0.5):
+    '''
+    Overview: create a fully-connected block
+        optional normalization can be done to the dim 1 (across the channels)
+        x -> fc -> norm -> act -> dropout -> out
+    Returns: a sequential list containing the torch layers
+    '''
     block = []
     block.append(nn.Linear(in_channels, out_channels))
     weight_init_(block[-1].weight, init_type, activation)
@@ -168,10 +180,30 @@ class ChannelShuffle(nn.Module):
 
 
 def one_hot(val, num, num_first=False):
-    '''
-        val: Tensor[batch_size, *]
-        num: int
-    '''
+    r"""
+    Overview: convert a Long tensor to one hot encoding
+        if num_first is False, the one hot code dimension is added as the last
+        if num_first is True, the code is made as the first dimension
+    Arguments:
+        - val (:obj:`torch.Tensor`): each element contains the state to be encoded
+        - num: number of states of the one hot encoding
+        - num_first
+    Returns:
+        - one_hot (:obj:`torch.Tensor`)
+    Example:
+        >>> one_hot(2*torch.ones([2,2]).long(),3)
+        tensor([[[0., 0., 1.],
+         [0., 0., 1.]],
+        [[0., 0., 1.],
+         [0., 0., 1.]]])
+        >>> one_hot(2*torch.ones([2,2]).long(),3,num_first=True)
+        tensor([[[0., 0.],
+         [1., 0.]],
+        [[0., 1.],
+         [0., 0.]],
+        [[1., 0.],
+         [0., 1.]]])
+    """
     assert(isinstance(val, torch.Tensor))
     assert(len(val.shape) >= 1)
     old_shape = val.shape
@@ -207,6 +239,13 @@ class BilinearUpsample(nn.Module):
 
 
 def binary_encode(y, max_val):
+    r"""
+    Overview: Convert elements in a tensor to its binary representation
+
+    Example: 
+    >>> binary_encode(torch.tensor([3,2]),torch.tensor(8))
+    tensor([[0, 0, 1, 1],[0, 0, 1, 0]])
+    """
     assert(max_val > 0)
     x = y.clamp(0, max_val)
     B = x.shape[0]
@@ -215,7 +254,7 @@ def binary_encode(y, max_val):
     one = torch.ones_like(x)
     zero = torch.zeros_like(x)
     for i in range(L):
-        num = math.pow(2, L-i-1)
+        num = 1 << (L-i-1)  # 2**(L-i-1)
         bit = torch.where(x >= num, one, zero)
         x -= bit * num
         binary.append(bit)

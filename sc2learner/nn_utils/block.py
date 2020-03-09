@@ -5,6 +5,9 @@ from .nn_module import conv2d_block, fc_block
 
 
 class ResBlock(nn.Module):
+    '''
+    Residual Block with conv2d_block
+    '''
     def __init__(self, in_channels, out_channels, kernel_size, stride, padding,
                  activation=nn.ReLU(), norm_type='BN'):
         super(ResBlock, self).__init__()
@@ -26,6 +29,11 @@ class ResBlock(nn.Module):
 
 
 class ResFCBlock(nn.Module):
+    '''
+    Residual Block with 2 fully connected block
+    x -> fc1 -> norm -> act -> fc2 -> norm -> act -> out
+      \____________________________________/+
+    '''
     def __init__(self, in_channels, out_channels, activation=nn.ReLU(), norm_type='BN'):
         super(ResFCBlock, self).__init__()
         assert(in_channels == out_channels)
