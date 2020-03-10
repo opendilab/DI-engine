@@ -17,7 +17,11 @@ class CoreLstm(nn.Module):
             embedded_entity: [seq_len, batch_size, embed_dim_entity]
             embedded_spatial: [seq_len, batch_size, embed_dim_spatial]
             embedded_scalar: [seq_len, batch_size, embed_dim_scalar]
-            prev_state: [num_layers, batch_size, hidden_size] * 2 or None
+            prev_state: None or list [H,C]
+                H and C are history sized of [num_layers, batch_size, hidden_size]
+        Output:
+            output: [seq_len, batch_size, hidden_size]
+            next_state: list [H,C], H and C are of size [num_layers, batch_size, hidden_size]
         '''
         embedded = torch.cat([embedded_entity, embedded_spatial, embedded_scalar], dim=2)
         output, next_state = self.lstm(embedded, prev_state, list_next_state=True)

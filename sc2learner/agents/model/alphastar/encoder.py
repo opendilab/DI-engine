@@ -49,6 +49,26 @@ class Encoder(nn.Module):
         return torch.cat([spatial_info, scatter_map], dim=1)
 
     def forward(self, inputs):
+        '''
+        Arguments:
+            - inputs: 
+            dict with field:
+                - scalar_info
+                - spatial_info
+                - entity_raw
+                - entity_info
+                - map_size
+                - prev_state
+        Outputs:
+            - lstm_output: The LSTM state for the next step. Tensor of size [seq_len, batch_size, hidden_size]
+            - next_state: The LSTM state for the next step.
+              As list [H,C], H and C are of size [num_layers, batch_size, hidden_size]
+            - entity_embeddings: The embedding of each entity. Tensor of size [batch_size, entity_num, output_dim]
+            - map_skip
+            - scalar_context
+            - baseline_feature
+            - cum_stat: OrderedDict of various cumulative_statistics
+        '''
         embedded_scalar, scalar_context, baseline_feature, cum_stat = self.encoder['scalar_encoder'](inputs['scalar_info'])  # noqa
         entity_embeddings, embedded_entity = self.encoder['entity_encoder'](inputs['entity_info'])
         spatial_input = self._scatter_connection(inputs['spatial_info'], entity_embeddings, inputs['entity_raw'])

@@ -21,6 +21,7 @@ from pysc2.lib.static_data import NUM_BUFFS, NUM_ABILITIES, NUM_UNIT_TYPES, UNIT
     BEGIN_ACTIONS_REORDER
 from sc2learner.nn_utils import one_hot
 from functools import partial
+from collections import OrderedDict
 
 
 LOCATION_BIT_NUM = 10
@@ -469,8 +470,8 @@ def transform_scalar_data():
         {'key': 'mmr', 'arch': 'fc', 'input_dim': 7, 'output_dim': 64, 'op': partial(
             div_one_hot, max_val=6000, ratio=1000), 'other': 'min(mmr / 1000, 6)'},
         {'key': 'cumulative_stat', 'arch': 'multi_fc',
-            'input_dims': {'unit_build': NUM_UNIT_BUILD_ACTIONS, 'effect': NUM_EFFECT_ACTIONS,
-                           'research': NUM_RESEARCH_ACTIONS}, 'output_dim': 32,
+            'input_dims': OrderedDict([('unit_build', NUM_UNIT_BUILD_ACTIONS), ('effect', NUM_EFFECT_ACTIONS),
+                           ('research', NUM_RESEARCH_ACTIONS)]), 'output_dim': 32,
             'scalar_context': True, 'other': 'boolean vector, split and concat'},
         {'key': 'beginning_build_order', 'arch': 'transformer', 'input_dim': NUM_BEGIN_ACTIONS+LOCATION_BIT_NUM*2,
             'output_dim': 32, 'scalar_context': True, 'baseline_feature': True, 'other': 'transformer'},

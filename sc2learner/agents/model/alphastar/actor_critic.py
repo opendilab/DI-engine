@@ -1,4 +1,4 @@
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 import torch
 import torch.nn as nn
 from .policy import Policy
@@ -23,7 +23,7 @@ class AlphaStarActorCritic(ActorCriticBase):
         self.policy = Policy(cfg.policy)
         if cfg.use_value_network:
             self.value_networks = nn.ModuleDict()
-            self.value_cum_stat_keys = {}
+            self.value_cum_stat_keys = OrderedDict()
             for k, v in cfg.value.items():
                 # creating a ValueBaseline network for each baseline, to be used in _critic_forward
                 self.value_networks[v.name] = ValueBaseline(v.param)

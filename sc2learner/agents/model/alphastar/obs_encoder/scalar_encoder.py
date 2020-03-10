@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -7,20 +8,29 @@ from sc2learner.envs.observations.alphastar_obs_wrapper import transform_scalar_
 
 class CumulativeStatEncoder(nn.Module):
     def __init__(self, input_dims, output_dim, activation):
+        # The order of the concatenation of outputs is the order of input_dims
         super(CumulativeStatEncoder, self).__init__()
+        self.keys = []
         for k, v in input_dims.items():
             module = fc_block(v, output_dim, activation=activation)
             setattr(self, k, module)
+            self.keys.append(k)
 
     def forward(self, x):
-        ret = {}
-        for k, v in x.items():
-            ret[k] = getattr(self, k)(v)
+        ret = OrderedDict()
+        for k in self.keys:
+            if k in x.items():
+                ret[k] = getattr(self, k)(x[k])
         self.data = ret
         return torch.cat(list(ret.values()), dim=1)
 
 
 class BeginningBuildOrderEncoder(nn.Module):
+    '''
+    Overview:
+    
+    x -> fc -> fc -> transformer -> out
+    '''
     def __init__(self, input_dim, begin_num, output_dim, activation):
         super(BeginningBuildOrderEncoder, self).__init__()
         self.act = activation
@@ -43,9 +53,24 @@ class BeginningBuildOrderEncoder(nn.Module):
 
 class ScalarEncoder(nn.Module):
     def __init__(self, cfg, template=None):
+        '''
+        Overview: Build a ScalarEncoder according to the given template or return of  transform_scalar_data
+        template is a list of dicts describing each module of the encoder
+        The order of the concatenation of forward outputs from modules is the order of modules in template
+        Created modules will be set as attributes of the ScalarEncoder
+        the keys used in the dicts:
+            - key: the name of the encoder module and the attribute created for the module
+            - arch: if set to 'fc', a fc block will be created
+            - input_dim
+            - output_dim
+            - input_dims: cumulative_stat only, a OrderedDict describing the statistics to be computed and their input_dim
+            - scalar_context: set this key to True to label the module should be included in scalar_context
+            - baseline_feature: set this key to True to label the module should be included in baseline_feature
+        '''
         super(ScalarEncoder, self).__init__()
         self.act = build_activation(cfg.activation)
         self.use_stat = cfg.use_stat
+        self.keys = []
         self.scalar_context_keys = []
         self.baseline_feature_keys = []
         if template is None:
@@ -78,24 +103,37 @@ class ScalarEncoder(nn.Module):
                     setattr(self, key, module)
                 else:
                     raise NotImplementedError("key: {}".format(key))
+            self.keys.append(item['key'])
             if 'scalar_context' in item.keys() and item['scalar_context']:
                 self.scalar_context_keys.append(item['key'])
             if 'baseline_feature' in item.keys() and item['baseline_feature']:
                 self.baseline_feature_keys.append(item['key'])
 
     def forward(self, x):
+        '''
+        Input: x: a OrderedDict, each key correspond to the input of each encoder module created
+                  most modules expect a tensor input of size [batch_size, input_dim]
+                  except 'cumulative_stat', which expects a OrderedDict like {'stat1_name': input_tensor1,...}
+        Output:
+            All output tensors are shaped like [batch_size, feature1_out_dim + feature2_out_dim + ...]
+            The order of the concatenation of forward outputs from modules is the order of modules in template
+            - embedded_scalar: A tensor of all embedded scalar features, see detailed-architecture.txt L91 for more info
+            - scalar_context: A tensor of certain scalar features we want to use as context for gating later
+            - baseline_feature: A tensor of certain scalar features for baselines
+            - cumulative_stat_data: A OrderedDict of computed stats
+        '''
         assert(isinstance(x, dict))
         embedded_scalar = []
         scalar_context = []
         baseline_feature = []
-        for k, v in x.items():
-            if hasattr(self, k):
-                new_v = getattr(self, k)(v)
-                embedded_scalar.append(new_v)
-                if k in self.scalar_context_keys:
-                    scalar_context.append(new_v)
-                if k in self.baseline_feature_keys:
-                    baseline_feature.append(new_v)
+        for key in self.keys:
+            if key in x.items():
+                embedding = getattr(self, key)(x[key])
+                embedded_scalar.append(embedding)
+                if key in self.scalar_context_keys:
+                    scalar_context.append(embedding)
+                if key in self.baseline_feature_keys:
+                    baseline_feature.append(embedding)
         embedded_scalar = torch.cat(embedded_scalar, dim=1)
         scalar_context = torch.cat(scalar_context, dim=1)
         baseline_feature = torch.cat(baseline_feature, dim=1)
