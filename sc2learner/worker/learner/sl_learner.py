@@ -7,10 +7,10 @@ Main Function:
 import os
 import numbers
 import torch
-from sc2learner.dataset import ReplayDataset, ReplayEvalDataset, build_dataloader
-from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper, to_device, CountVar,\
-    DistModule, dist_init, dist_finalize, allreduce, auto_checkpoint
-from sc2learner.agents.model import build_model
+from sc2learner.data import build_dataloader, build_dataset
+from sc2learner.utils import build_logger, build_time_helper, DistModule, dist_init, dist_finalize, allreduce
+from sc2learner.torch_utils import build_checkpoint_helper, auto_checkpoint, CountVar, to_device
+from sc2learner.agent.model import build_model
 
 
 def build_optimizer(model, cfg):
@@ -68,8 +68,8 @@ class SLLearner(object):
         if self.use_distributed:
             self.model = DistModule(self.model)  # distributed training
 
-        self.dataset = ReplayDataset(cfg.data.train)  # use replay as dataset
-        self.eval_dataset = ReplayEvalDataset(cfg.data.eval)
+        self.dataset = build_dataset(cfg.data.train)
+        self.eval_dataset = build_dataset(cfg.data.eval)
         self.dataloader = build_dataloader(cfg.data.train, self.dataset)
         self.eval_dataloader = build_dataloader(cfg.data.eval, self.eval_dataset)
         self.train_dataloader_type = cfg.data.train.dataloader_type

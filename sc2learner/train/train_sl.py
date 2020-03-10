@@ -12,7 +12,7 @@ import random
 import time
 
 
-from sc2learner.agents.solver import AlphastarSLLearner
+from sc2learner.worker import AlphastarSLLearner
 from absl import flags
 from absl import logging
 from absl import app

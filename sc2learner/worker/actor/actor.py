@@ -2,7 +2,8 @@ from queue import Queue
 from threading import Thread
 import zmq
 import os
-from sc2learner.utils import build_checkpoint_helper, build_time_helper, send_array, dict2nparray, get_pid
+from sc2learner.utils import build_time_helper, send_array, dict2nparray, get_pid
+from sc2learner.torch_utils import build_checkpoint_helper
 import time
 
 
