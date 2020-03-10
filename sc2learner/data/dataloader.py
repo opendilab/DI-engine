@@ -1,8 +1,7 @@
 from torch.utils.data import DataLoader
-from .online_dataloader import OnlineDataLoader, unroll_split_collate_fn
-from .replay_dataset import policy_collate_fn
 from .sampler import DistributedSampler
-from .replay_dataloader import ReplayIterationDataLoader
+from .online import OnlineDataLoader, unroll_split_collate_fn
+from .offline import ReplayIterationDataLoader, policy_collate_fn
 
 
 def build_dataloader(cfg, dataset):
