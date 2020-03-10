@@ -19,7 +19,7 @@ class CumulativeStatEncoder(nn.Module):
     def forward(self, x):
         ret = OrderedDict()
         for k in self.keys:
-            if k in x.items():
+            if k in x.keys():
                 ret[k] = getattr(self, k)(x[k])
         self.data = ret
         return torch.cat(list(ret.values()), dim=1)
@@ -126,7 +126,7 @@ class ScalarEncoder(nn.Module):
         scalar_context = []
         baseline_feature = []
         for key in self.keys:
-            if key in x.items():
+            if key in x.keys():
                 embedding = getattr(self, key)(x[key])
                 embedded_scalar.append(embedding)
                 if key in self.scalar_context_keys:

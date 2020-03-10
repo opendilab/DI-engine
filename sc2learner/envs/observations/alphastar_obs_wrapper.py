@@ -471,7 +471,7 @@ def transform_scalar_data():
             div_one_hot, max_val=6000, ratio=1000), 'other': 'min(mmr / 1000, 6)'},
         {'key': 'cumulative_stat', 'arch': 'multi_fc',
             'input_dims': OrderedDict([('unit_build', NUM_UNIT_BUILD_ACTIONS), ('effect', NUM_EFFECT_ACTIONS),
-                           ('research', NUM_RESEARCH_ACTIONS)]), 'output_dim': 32,
+                                       ('research', NUM_RESEARCH_ACTIONS)]), 'output_dim': 32,
             'scalar_context': True, 'other': 'boolean vector, split and concat'},
         {'key': 'beginning_build_order', 'arch': 'transformer', 'input_dim': NUM_BEGIN_ACTIONS+LOCATION_BIT_NUM*2,
             'output_dim': 32, 'scalar_context': True, 'baseline_feature': True, 'other': 'transformer'},
