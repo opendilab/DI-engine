@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from sc2learner.nn_utils import build_activation, ResFCBlock, fc_block, one_hot
-from sc2learner.rl_utils import CategoricalPdPytorch
+from sc2learner.torch_utils import CategoricalPdPytorch
 
 
 class ActionTypeHead(nn.Module):

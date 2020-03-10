@@ -1,5 +1,5 @@
 import torch
-from sc2learner.utils import build_checkpoint_helper
+from sc2learner.torch_utils import build_checkpoint_helper
 
 
 class BaseAgent(object):

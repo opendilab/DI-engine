@@ -15,7 +15,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from sc2learner.nn_utils import fc_block, conv2d_block, deconv2d_block, build_activation, one_hot, LSTM, \
     ResBlock, NearestUpsample, BilinearUpsample, binary_encode, SoftArgmax
-from sc2learner.rl_utils import CategoricalPdPytorch
+from sc2learner.torch_utils import CategoricalPdPytorch
 
 
 class DelayHead(nn.Module):

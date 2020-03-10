@@ -3,6 +3,7 @@ common:
     time_wrapper_type: cuda
 data:
     train:
+        dataset_type: replay
         dataloader_type: epoch  # [epoch, iter]
         batch_size: 6
         trajectory_len: 48
@@ -16,6 +17,7 @@ data:
         use_ceph: True
         use_available_action_transform: True
     eval:
+        dataset_type: replay_eval
         dataloader_type: epoch
         batch_size: 1
         use_stat: True

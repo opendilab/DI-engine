@@ -2,7 +2,7 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from sc2learner.nn_utils import build_normalization
+from .normalization import build_normalization
 
 
 class LSTM(nn.Module):

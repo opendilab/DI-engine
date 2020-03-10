@@ -1,7 +1,7 @@
 import torch
 from .agent import BaseAgent
-from sc2learner.agents.model import build_model
-from sc2learner.utils import to_device, build_checkpoint_helper
+from sc2learner.agent.model import build_model
+from sc2learner.torch_utils import to_device, build_checkpoint_helper
 from pysc2.lib.static_data import ACTIONS_REORDER_INV
 
 

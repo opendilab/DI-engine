@@ -1,7 +1,7 @@
 import torch
-from sc2learner.utils import build_checkpoint_helper
+from sc2learner.torch_utils import build_checkpoint_helper
 from .actor import BaseActor
-from sc2learner.agents.model import PPOLSTM, PPOMLP
+from sc2learner.agent.model import PPOLSTM, PPOMLP
 from sc2learner.envs.raw_env import SC2RawEnv
 from sc2learner.envs.rewards.reward_wrappers import KillingRewardWrapper
 from sc2learner.envs.actions.zerg_action_wrappers import ZergActionWrapper

@@ -13,7 +13,7 @@ import torch.nn.functional as F
 from .sl_learner import SLLearner
 from pysc2.lib.static_data import ACTIONS_REORDER_INV, ACTIONS
 from sc2learner.nn_utils import MultiLogitsLoss, build_criterion
-from sc2learner.utils import to_device
+from sc2learner.torch_utils import to_device
 
 
 def build_temperature_scheduler(cfg):
@@ -187,7 +187,7 @@ class AlphastarSLLearner(SLLearner):
         super(AlphastarSLLearner, self).__init__(*args, **kwargs)
         self.temperature_scheduler = build_temperature_scheduler(self.cfg)  # get naive temperature scheduler
         self._get_loss = self.time_helper.wrapper(self._get_loss)  # use time helper to calculate forward time
-        self.use_value_network = 'value' in self.cfg.model.keys()  # if value in self.cfg.model.keys(), use_value_network=True  # noqa
+        self.use_value_network = self.cfg.model.use_value_network
         self.criterion = build_criterion(self.cfg.train.criterion)  # define loss function
         self.location_expand_ratio = self.cfg.model.policy.location_expand_ratio
         self.eval_criterion = AlphastarSLCriterion()
