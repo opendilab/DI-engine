@@ -6,11 +6,11 @@ from sc2learner.nn_utils import Transformer, fc_block, build_activation
 
 class EntityEncoder(nn.Module):
     r'''
-    B=batch size EN=any number of entities ID=input_dim OS=output_size=256 
+    B=batch size EN=any number of entities ID=input_dim OS=output_size=256
      (B*EN*ID)  (EN'*OS)          (EN'*OS)          (EN'*OS)           (B*EN*OS)
     x -> combine -> Transformer ->  act ->  entity_fc  -> split ->   entity_embeddings
           batch                         |      (B*EN*OS)   (B*OS)        (B*OS)
-                                        \->  split ->  mean -> embed_fc -> embedded_entity  
+                                        \->  split ->  mean -> embed_fc -> embedded_entity
     '''
     def __init__(self, cfg):
         super(EntityEncoder, self).__init__()

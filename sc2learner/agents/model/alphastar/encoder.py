@@ -51,7 +51,7 @@ class Encoder(nn.Module):
     def forward(self, inputs):
         '''
         Arguments:
-            - inputs: 
+            - inputs:
             dict with field:
                 - scalar_info
                 - spatial_info

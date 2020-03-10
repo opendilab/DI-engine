@@ -28,7 +28,6 @@ class CumulativeStatEncoder(nn.Module):
 class BeginningBuildOrderEncoder(nn.Module):
     '''
     Overview:
-    
     x -> fc -> fc -> transformer -> out
     '''
     def __init__(self, input_dim, begin_num, output_dim, activation):
@@ -63,7 +62,7 @@ class ScalarEncoder(nn.Module):
             - arch: if set to 'fc', a fc block will be created
             - input_dim
             - output_dim
-            - input_dims: cumulative_stat only, a OrderedDict describing the statistics to be computed and their input_dim
+            - input_dims: cumulative_stat only, OrderedDict describing the stats to be computed and their input_dim
             - scalar_context: set this key to True to label the module should be included in scalar_context
             - baseline_feature: set this key to True to label the module should be included in baseline_feature
         '''
