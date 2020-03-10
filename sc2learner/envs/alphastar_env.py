@@ -7,13 +7,14 @@ from pysc2.lib.static_data import NUM_ACTIONS, ACTIONS_REORDER_INV
 from sc2learner.envs.observations.alphastar_obs_wrapper import SpatialObsWrapper, ScalarObsWrapper, EntityObsWrapper,\
     transform_spatial_data, transform_scalar_data, transform_entity_data
 from sc2learner.envs.actions.alphastar_act_wrapper import AlphastarActParser
+from sc2learner.envs import get_available_actions_processed_data
 
 
 class AlphastarEnv(SC2Env):
 
     def __init__(self, cfg):
         agent_interface_format = sc2_env.parse_agent_interface_format(
-                feature_screen=cfg.env.resolution, feature_minimap=cfg.env.resolution)
+                feature_screen=cfg.env.screen_resolution, feature_minimap=cfg.env.map_size)
         players = [
             sc2_env.Agent(sc2_env.Race[cfg.env.home_race]),
             sc2_env.Bot(sc2_env.Race[cfg.env.away_race], cfg.env.difficulty),
@@ -34,7 +35,8 @@ class AlphastarEnv(SC2Env):
         self.scalar_wrapper = ScalarObsWrapper(template_obs)
         self.template_act = template_act
         self.action_num = NUM_ACTIONS
-        self.out_res = cfg.env.output_resolution
+        self.use_global_cumulative_stat = cfg.env.use_global_cumulative_stat
+        self.use_available_action_transform = cfg.env.use_available_action_transform
 
         self.use_stat = cfg.env.use_stat
         if self.use_stat:
@@ -53,7 +55,8 @@ class AlphastarEnv(SC2Env):
     def _merge_stat(self, obs):
         obs['scalar_info']['mmr'] = self.stat['mmr']
         obs['scalar_info']['beginning_build_order'] = self.stat['beginning_build_order']
-        obs['scalar_info']['cumulative_stat'] = self.stat['cumulative_stat']
+        if self.use_global_cumulative_stat:
+            obs['scalar_info']['cumulative_stat'] = self.stat['cumulative_stat']
         return obs
 
     def _merge_action(self, obs, last_action):
@@ -102,17 +105,26 @@ class AlphastarEnv(SC2Env):
             'spatial_info': self.spatial_wrapper.parse(obs),
             'entity_info': entity_info,
             'entity_raw': entity_raw,
-            'map_size': self.map_size,
+            'map_size': [self.map_size[1], self.map_size[0]],  # x,y -> y,x
         }
 
         new_obs = self._merge_action(new_obs, last_actions)
         if self.use_stat:
             new_obs = self._merge_stat(new_obs)
+        if self.use_available_action_transform:
+            new_obs = get_available_actions_processed_data(new_obs)
         return new_obs
 
     def _get_action(self, actions):
         action_type = actions['action_type']
         delay = actions['delay']
+        # action target location transform
+        target_location = actions['target_location']
+        if target_location is not None:
+            x = target_location[1]
+            y = target_location[0]
+            y = self.map_size[0] - y
+            actions['target_location'] = [x, y]
 
         arg_keys = ['queued', 'selected_units', 'target_units', 'target_location']
         args = [v for k, v in actions.items() if k in arg_keys and v is not None]

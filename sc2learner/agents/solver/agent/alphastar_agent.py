@@ -9,7 +9,6 @@ class AlphastarAgent(BaseAgent):
 
     def __init__(self, cfg):
         self.cfg = cfg
-        self.out_res = cfg.model.output_resolution
         self.model = build_model(cfg)
         self.model.eval()
         self.use_cuda = cfg.train.use_cuda
