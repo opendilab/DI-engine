@@ -196,7 +196,7 @@ def main(actor_limit, manager_flag=0, seed_offset=0):
 
     forbidden_nodes_addr = cfg.auto_actor_start.forbidden_nodes_addr
     policy = cfg.auto_actor_start.policy
-    seed = cfg.auto_actor_start.actor_seed + seed_offset
+    seed = 0  # TODO: remove the unused seeds cfg.auto_actor_start.actor_seed + seed_offset
     # integer seed is sequentially assigned to each actor
     for partition in cpu_partitions:
         if actor_num_touse <= 0:

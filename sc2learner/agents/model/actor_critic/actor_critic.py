@@ -7,6 +7,9 @@ class ActorCriticBase(nn.Module):
         f = getattr(self, mode)
         return f(inputs, **kwargs)
 
+    def set_seed(self, seed):
+        raise NotImplementedError
+
     def step(self, inputs):
         raise NotImplementedError
 

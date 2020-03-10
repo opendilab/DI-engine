@@ -3,17 +3,18 @@ import torch
 import pysc2.env.sc2_env as sc2_env
 from pysc2.env.sc2_env import SC2Env
 from pysc2.lib.actions import FunctionCall, FUNCTIONS, RAW_FUNCTIONS
-from pysc2.lib.static_data import NUM_ACTIONS
+from pysc2.lib.static_data import NUM_ACTIONS, ACTIONS_REORDER_INV
 from sc2learner.envs.observations.alphastar_obs_wrapper import SpatialObsWrapper, ScalarObsWrapper, EntityObsWrapper,\
     transform_spatial_data, transform_scalar_data, transform_entity_data
 from sc2learner.envs.actions.alphastar_act_wrapper import AlphastarActParser
+from sc2learner.envs import get_available_actions_processed_data
 
 
 class AlphastarEnv(SC2Env):
 
     def __init__(self, cfg):
         agent_interface_format = sc2_env.parse_agent_interface_format(
-                feature_screen=cfg.env.resolution, feature_minimap=cfg.env.resolution)
+                feature_screen=cfg.env.screen_resolution, feature_minimap=cfg.env.map_size)
         players = [
             sc2_env.Agent(sc2_env.Race[cfg.env.home_race]),
             sc2_env.Bot(sc2_env.Race[cfg.env.away_race], cfg.env.difficulty),
@@ -34,15 +35,17 @@ class AlphastarEnv(SC2Env):
         self.scalar_wrapper = ScalarObsWrapper(template_obs)
         self.template_act = template_act
         self.action_num = NUM_ACTIONS
-        self.out_res = cfg.env.output_resolution
+        self.use_global_cumulative_stat = cfg.env.use_global_cumulative_stat
+        self.use_available_action_transform = cfg.env.use_available_action_transform
 
         self.use_stat = cfg.env.use_stat
         if self.use_stat:
             self.stat = self._init_stat(cfg.env.stat_path, cfg.env.beginning_build_order_num)
         self._reset_flag = False
 
-    def _init_stat(path, begin_num):
+    def _init_stat(self, path, begin_num):
         stat = torch.load(path)
+        stat['beginning_build_order'] = stat['beginning_build_order'][:begin_num]
         if stat['beginning_build_order'].shape[0] < begin_num:
             B, N = stat['beginning_build_order'].shape
             B0 = begin_num - B
@@ -50,20 +53,25 @@ class AlphastarEnv(SC2Env):
         return stat
 
     def _merge_stat(self, obs):
-        obs['mmr'] = self.stat['mmr']
-        obs['beginning_build_order'] = self.stat['beginning_build_order']
-        obs['cumulative_stat'] = self.stat['cumulative_stat']
+        obs['scalar_info']['mmr'] = self.stat['mmr']
+        obs['scalar_info']['beginning_build_order'] = self.stat['beginning_build_order']
+        if self.use_global_cumulative_stat:
+            obs['scalar_info']['cumulative_stat'] = self.stat['cumulative_stat']
         return obs
 
     def _merge_action(self, obs, last_action):
+        if isinstance(last_action['action_type'], torch.Tensor):
+            for index, item in enumerate(last_action['action_type']):
+                last_action['action_type'][index] = ACTIONS_REORDER_INV[item.item()]
+
         last_action_type = last_action['action_type']
         last_delay = last_action['delay']
         last_queued = last_action['queued']
         last_queued = last_queued if isinstance(last_queued, torch.Tensor) else torch.LongTensor([2])  # 2 as 'none'
-        obs['scalar_info']['last_delay'] = self.template_act[0]['op'](torch.LongTensor(last_delay)).squeeze()
-        obs['scalar_info']['last_queued'] = self.template_act[1]['op'](torch.LongTensor(last_queued)).squeeze()
+        obs['scalar_info']['last_delay'] = self.template_act[0]['op'](torch.LongTensor([last_delay])).squeeze()
+        obs['scalar_info']['last_queued'] = self.template_act[1]['op'](torch.LongTensor([last_queued])).squeeze()
         obs['scalar_info']['last_action_type'] = self.template_act[2]['op'](
-            torch.LongTensor(last_action_type)).squeeze()
+            torch.LongTensor([last_action_type])).squeeze()
 
         N = obs['entity_info'].shape[0]
         if obs['entity_info'] is None:
@@ -97,28 +105,29 @@ class AlphastarEnv(SC2Env):
             'spatial_info': self.spatial_wrapper.parse(obs),
             'entity_info': entity_info,
             'entity_raw': entity_raw,
-            'map_size': self.map_size,
+            'map_size': [self.map_size[1], self.map_size[0]],  # x,y -> y,x
         }
+
         new_obs = self._merge_action(new_obs, last_actions)
         if self.use_stat:
             new_obs = self._merge_stat(new_obs)
+        if self.use_available_action_transform:
+            new_obs = get_available_actions_processed_data(new_obs)
         return new_obs
 
     def _get_action(self, actions):
-        new_actions = {}
-        for k, v in actions.items():
-            if isinstance(v, torch.Tensor):
-                if v.shape == (1,):
-                    new_actions[k] = v.item()  # scalar
-                else:
-                    new_actions[k] = v.tolist()  # list
-            else:
-                new_actions[k] = None
-        action_type = new_actions['action_type']
-        delay = new_actions['delay']
+        action_type = actions['action_type']
+        delay = actions['delay']
+        # action target location transform
+        target_location = actions['target_location']
+        if target_location is not None:
+            x = target_location[1]
+            y = target_location[0]
+            y = self.map_size[0] - y
+            actions['target_location'] = [x, y]
 
         arg_keys = ['queued', 'selected_units', 'target_units', 'target_location']
-        args = [v for k, v in new_actions.items() if k in arg_keys and v is not None]
+        args = [v for k, v in actions.items() if k in arg_keys and v is not None]
         return FunctionCall.init_with_validation(action_type, args, raw=True), delay
 
     def step(self, actions):
@@ -138,7 +147,7 @@ class AlphastarEnv(SC2Env):
         self.map_size = info.start_raw.map_size
         self.map_size = (self.map_size.x, self.map_size.y)
         self._reset_flag = True
-        last_actions = {'action_type': [0], 'delay': [0], 'queued': 'none',
-                        'selected_units': 'none', 'target_units': 'none', 'target_location': 'none'}
+        last_actions = {'action_type': 0, 'delay': 0, 'queued': None,
+                        'selected_units': None, 'target_units': None, 'target_location': None}
         obs = self._get_obs(obs, last_actions)
         return obs

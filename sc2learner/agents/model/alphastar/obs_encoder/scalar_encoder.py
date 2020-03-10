@@ -77,6 +77,7 @@ class ScalarEncoder(nn.Module):
             template = template_obs + template_act
             if self.use_stat:
                 template += template_replay
+
         for item in template:
             if item['arch'] == 'fc':
                 encoder = fc_block(item['input_dim'], item['output_dim'], activation=self.act)

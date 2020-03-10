@@ -115,11 +115,10 @@ class QueuedHead(nn.Module):
         x = self.fc2(x)
         x = self.fc3(x)
         handle = self.pd(x.div(temperature))
-        if self.train:
+        if self.training:
             queued = handle.sample()
         else:
             queued = handle.mode()
-
         queued_one_hot = one_hot(queued, self.queued_dim)
         embedding_queued = self.embed_fc1(queued_one_hot)
         embedding_queued = self.embed_fc2(embedding_queued)  # get autoregressive_embedding
@@ -205,7 +204,7 @@ class SelectedUnitsHead(nn.Module):
                 query_result = query_result.mean(dim=2)
                 query_result.sub_((1 - mask) * 1e9)
                 handle = self.pd(query_result.div(temperature))
-                if self.train:
+                if self.training:
                     entity_num = handle.sample()
                 else:
                     entity_num = handle.mode()
@@ -227,7 +226,7 @@ class SelectedUnitsHead(nn.Module):
                 query_result = query_result.mean(dim=2)
                 # query_result.sub_((1 - mask) * 1e9)
                 handle = self.pd(query_result.div(temperature))
-                if self.train:
+                if self.training:
                     entity_num = handle.sample()
                 else:
                     entity_num = handle.mode()
@@ -326,7 +325,7 @@ class TargetUnitsHead(nn.Module):
                 query_result = query_result.mean(dim=2)
                 query_result.sub_((1 - mask) * 1e9)
                 handle = self.pd(query_result.div(temperature))
-                if self.train:
+                if self.training:
                     entity_num = handle.sample()
                 else:
                     entity_num = handle.mode()
@@ -448,7 +447,7 @@ class TargetUnitHead(nn.Module):
         B, N = key.shape[:2]
         units = torch.zeros(B, N, device=key.device, dtype=torch.long)
         handle = self.pd(logits.div(temperature))
-        if self.train:
+        if self.training:
             sample_num = handle.sample()
         else:
             sample_num = handle.mode()
@@ -548,7 +547,7 @@ class LocationHead(nn.Module):
         if self.output_type == 'cls':
             logits_flatten = x.view(x.shape[0], -1)
             handle = self.pd(logits_flatten.div(temperature))
-            if self.train:
+            if self.training:
                 location = handle.sample()
             else:
                 location = handle.mode()

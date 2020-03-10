@@ -24,7 +24,7 @@ class AlphastarActParser(object):
             Overview: initial related attributes
             Arguments:
                 - feature_layer_resolution (:obj:'int'): feature layer resolution
-                - map_size (:obj:'obj'): map size metadata in proto format
+                - map_size (:obj:'list'): map size (x, y format)
         '''
         self.input_template = {'camera_move': self._parse_raw_camera_move,
                                'unit_command': self._parse_raw_unit_command,
@@ -77,7 +77,7 @@ class AlphastarActParser(object):
     # refer to https://github.com/Blizzard/s2client-proto/blob/master/s2clientprotocol/raw.proto
     def _parse_raw_camera_move(self, t):
         if t.HasField('center_world_space'):
-            location = [t.center_world_space.y, t.center_world_space.x]  # y major
+            location = [self.map_size[1] - t.center_world_space.y, t.center_world_space.x]  # y major
             return {'action_type': [168], 'target_location': location}  # raw_camera_move 168
         else:
             return None
@@ -90,7 +90,7 @@ class AlphastarActParser(object):
             assert((t.HasField('target_world_space_pos')) + (t.HasField('target_unit_tag')) <= 1)
             if t.HasField('target_world_space_pos'):
                 # origin world position
-                ret['target_location'] = [t.target_world_space_pos.y, t.target_world_space_pos.x]  # y major
+                ret['target_location'] = [self.map_size[1] - t.target_world_space_pos.y, t.target_world_space_pos.x]  # y major  # noqa
                 ret['action_type'] = [self.ability_to_raw_func(t.ability_id, actions.raw_cmd_pt)]
             else:
                 if t.HasField('target_unit_tag'):

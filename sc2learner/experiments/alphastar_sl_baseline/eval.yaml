@@ -3,9 +3,9 @@ common:
     time_wrapper_type: cuda
     num_episodes: 10
     agent: alphastar
-    use_multiprocessing: True
+    use_multiprocessing: False
 env:
-    game_version: '4.10'
+    game_version: '3.16'
     map_name: AbyssalReef
     disable_fog: False
     default_step_mul: 8
@@ -13,8 +13,8 @@ env:
     home_race: zerg
     away_race: zerg
     resolution: [128, 128]
-    use_stat: False
-    stat_path: /mnt/lustre/niuyazhe/data/sl_data_test_multi_sp/Zerg_Zerg_5776_23d9c50d61638b4883514645c99eb16c6a7e32d6c0435ef24d91240392d0197e.stat_processed
+    use_stat: True
+    stat_path: /mnt/lustre/zhangming/data/Replays_decode_valid/Zerg_Zerg_3502_f8903d39f5dd3a67b809ec94af5a1e3de5ee54bc7e174ec59b0e14898b262dc6.stat_processed
     beginning_build_order_num: 20
     game_steps_per_episode: 43200
     output_resolution: [256, 256]
@@ -25,15 +25,16 @@ model:
     action_type: fixed
     output_resolution: [256, 256]
     policy:
+        location_expand_ratio: 2
         obs_encoder:
             encoder_names: [scalar_encoder, spatial_encoder, entity_encoder]
             scalar_encoder:
-                use_stat: False  # whether use statistics z
+                use_stat: True  # whether use statistics z
                 activation: 'relu'
                 begin_num: 20  # beginning_build_order_num
-                output_dim: 1024  # use_stat(True: 1216, False: 1024)
+                output_dim: 1280  # use_stat(True: 1280, False: 1088)
             spatial_encoder:
-                input_dim: 81
+                input_dim: 52
                 resblock_num: 4
                 fc_dim: 256
                 project_dim: 32
@@ -42,7 +43,7 @@ model:
                 activation: 'relu'
                 norm_type: 'BN'
             entity_encoder:
-                input_dim: 3039
+                input_dim: 2102
                 head_dim: 128
                 hidden_dim: 1024
                 output_dim: 256
@@ -55,7 +56,7 @@ model:
             input_dim: 256  # entity_encoder.output_dim
             output_dim: 32
         core:
-            input_size: 1536  # spatial_encoder.fc_dim + entity_encoder.output_dim + scalar_encoder.output_dim
+            input_size: 1792  # spatial_encoder.fc_dim + entity_encoder.output_dim + scalar_encoder.output_dim
             hidden_size: 384
             num_layers: 3
         head:
@@ -64,16 +65,17 @@ model:
                 input_dim: 384  # core.hidden_size
                 res_dim: 256
                 res_num: 16
-                action_num: 563
+                action_num: 327
                 action_map_dim: 256
                 gate_dim: 1024
-                context_dim: 128  # use_stat(True: 256, False: 128)
+                context_dim: 256  # use_stat(True: 256, False: 128)
                 activation: 'relu'
                 norm_type: 'LN'
             delay_head:
                 input_dim: 1024  # action_type_head.gate_dim
                 decode_dim: 256
                 delay_dim: 128
+                delay_encode_dim: 6
                 delay_map_dim: 256
                 activation: 'relu'
             queued_head:

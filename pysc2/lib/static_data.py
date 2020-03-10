@@ -185,6 +185,8 @@ ACTIONS = list(GENERAL_ACTION_INFO_MASK.keys())
 
 NUM_ACTIONS = len(ACTIONS)
 
+NUM_ACTIONS_RAW = len(list(ACTION_INFO_MASK.keys()))
+
 ACTIONS_REORDER = {
     item: idx for idx, item in enumerate(ACTIONS)
 }

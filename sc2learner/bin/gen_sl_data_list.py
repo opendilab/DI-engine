@@ -11,7 +11,8 @@ home_race = 'Zerg'
 away_race = None
 # ISSUE(zh) replays whose mmr below 1000 have already been ditched in replay_decode.py, min_mmr should be above 1000
 min_mmr = 1000
-replay_dir = '/mnt/lustre/zhangming/data/Replays_decode_valid/'
-output_path = 'zerg_500.txt'
+# replay_dir = '/mnt/lustre/niuyazhe/data/sl_data'
+replay_dir = '/mnt/lustre/zhangming/data/Replays_decode'
+output_path = '/mnt/lustre/zhangming/data/test_sl.txt'
 get_replay_list(replay_dir, output_path, min_mmr=min_mmr,
                 home_race=home_race, away_race=away_race)
