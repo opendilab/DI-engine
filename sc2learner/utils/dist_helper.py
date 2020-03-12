@@ -1,7 +1,11 @@
-import numpy as np
 import os
+
+import numpy as np
 import torch
-import linklink as link
+
+from sc2learner.utils import try_import_link
+
+link = try_import_link()
 
 
 def get_rank():
@@ -21,12 +25,11 @@ def get_group(group_size):
     world_size = get_world_size()
     if group_size is None:
         group_size = world_size
-    assert(world_size % group_size == 0)
+    assert (world_size % group_size == 0)
     return simple_group_split(world_size, rank, world_size // group_size)
 
 
 def distributed_mode(func):
-
     def wrapper(*args, **kwargs):
         dist_init()
         func(*args, **kwargs)
@@ -63,7 +66,7 @@ def simple_group_split(world_size, rank, num_groups):
     for i in range(num_groups):
         groups.append(link.new_group(rank_list[i]))
     group_size = world_size // num_groups
-    return groups[rank//group_size]
+    return groups[rank // group_size]
 
 
 class DistModule(torch.nn.Module):
@@ -92,6 +95,7 @@ class DistModule(torch.nn.Module):
     def _make_hook(self, name, p, i):
         def hook(*ignore):
             link.allreduce_async(name, p.grad.data)
+
         return hook
 
     def sync_gradients(self):

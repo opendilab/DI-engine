@@ -1,4 +1,5 @@
 import time
+
 import torch
 
 
@@ -11,7 +12,8 @@ def build_time_helper(cfg=None, wrapper_type=None):
     if time_wrapper_type == 'time':
         return TimeWrapperTime
     elif time_wrapper_type == 'cuda':
-        return TimeWrapperCuda
+        # lazy initialize to make code runnable locally
+        return get_cuda_time_wrapper()
     else:
         raise KeyError('invalid time_wrapper_type: {}'.format(time_wrapper_type))
 
@@ -25,6 +27,7 @@ class TimeWrapper(object):
             ret = fn(*args, **kwargs)
             t = cls.end_time()
             return ret, t
+
         return time_func
 
     @classmethod
@@ -50,22 +53,25 @@ class TimeWrapperTime(TimeWrapper):
         return cls.end - cls.start
 
 
-class TimeWrapperCuda(TimeWrapper):
-    # cls variable is initialized on loading this class
-    start_record = torch.cuda.Event(enable_timing=True)
-    end_record = torch.cuda.Event(enable_timing=True)
+def get_cuda_time_wrapper():
+    class TimeWrapperCuda(TimeWrapper):
+        # cls variable is initialized on loading this class
+        start_record = torch.cuda.Event(enable_timing=True)
+        end_record = torch.cuda.Event(enable_timing=True)
 
-    # overwrite
-    @classmethod
-    def start_time(cls):
-        cls.start = cls.start_record.record()
+        # overwrite
+        @classmethod
+        def start_time(cls):
+            cls.start = cls.start_record.record()
 
-    # overwrite
-    @classmethod
-    def end_time(cls):
-        cls.end = cls.end_record.record()
-        torch.cuda.synchronize()
-        return cls.start_record.elapsed_time(cls.end_record) / 1000
+        # overwrite
+        @classmethod
+        def end_time(cls):
+            cls.end = cls.end_record.record()
+            torch.cuda.synchronize()
+            return cls.start_record.elapsed_time(cls.end_record) / 1000
+
+    return TimeWrapperCuda
 
 
 def test_time_wrapper():
