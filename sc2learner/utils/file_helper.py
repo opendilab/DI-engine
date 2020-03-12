@@ -1,6 +1,8 @@
-import ceph
-import numpy as np
 from io import BytesIO
+
+from .import_utils import try_import_ceph
+
+ceph = try_import_ceph()
 
 
 def read_file_ceph(path):

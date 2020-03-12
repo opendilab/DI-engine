@@ -4,7 +4,6 @@ from collections import deque
 from multiprocessing import Lock
 import time
 import numpy as np
-import pickle
 
 
 def send_array(socket, array, flags=0, copy=True, track=False):

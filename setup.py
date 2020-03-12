@@ -58,10 +58,15 @@ setup(
         'pysc2.run_configs',
         'pysc2.tests',
         'sc2learner',
-        'sc2learner.agents',
+        'sc2learner.agent',
         'sc2learner.envs',
         'sc2learner.utils',
-        'sc2learner.bin',
+        'sc2learner.train',
+        'sc2learner.nn_utils',
+        'sc2learner.tools',
+        'sc2learner.torch_utils',
+        'sc2learner.worker',
+        'sc2learner.rl_utils',
     ],
     install_requires=[
         'absl-py>=0.1.0',
@@ -87,6 +92,11 @@ setup(
         'pyzmq',
         'sphinx',
         'sphinx_rtd_theme',
+        'pyyaml',
+        'easydict',
+        'opencv-python',
+        'tensorboardX',
+        'matplotlib'
     ],
     entry_points={
         'console_scripts': [

@@ -1,8 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import linklink as link
-from sc2learner.utils import get_group
+
+from sc2learner.utils import get_group, try_import_link
+
+link = try_import_link()
 
 
 class GroupSyncBatchNorm(link.nn.SyncBatchNorm2d):
@@ -11,7 +13,6 @@ class GroupSyncBatchNorm(link.nn.SyncBatchNorm2d):
                  momentum=0.1,
                  sync_stats=True,
                  var_mode=link.syncbnVarMode_t.L2):
-
         self.group_size = bn_group_size
         super(GroupSyncBatchNorm, self).__init__(
             num_features,
@@ -51,7 +52,7 @@ class AdaptiveInstanceNorm2d(nn.Module):
         running_mean = self.running_mean.repeat(b)
         running_var = self.running_var.repeat(b)
 
-        x_reshape = x.contiguous().view(1, b*c, h, w)
+        x_reshape = x.contiguous().view(1, b * c, h, w)
         output = F.batch_norm(
             x_reshape, running_mean, running_var, self.weight, self.bias,
             True, self.momentum, self.eps
