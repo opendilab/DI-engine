@@ -63,6 +63,12 @@ class SLLearner(object):
         self.model = build_model(cfg)  # build model by policy from alphaStar
         self.model.train()  # set model to train
         self.use_cuda = cfg.train.use_cuda
+
+        if self.use_cuda and not torch.cuda.is_available():
+            import logging
+            logging.error("You do not have GPU! If you are not testing locally, something is going wrong.")
+            self.use_cuda = False
+
         if self.use_cuda:
             self.model = to_device(self.model, 'cuda')
         if self.use_distributed:
@@ -118,11 +124,11 @@ class SLLearner(object):
             return
 
         def train_epoch():
-            for idx, data in enumerate(self.dataloader):  # one epoch
+            for idx, batch_data in enumerate(self.dataloader):  # one epoch
                 self.time_helper.start_time()
-                data_stat = self._get_data_stat(data)
+                data_stat = self._get_data_stat(batch_data)
                 if self.use_cuda:
-                    batch_data = to_device(data, 'cuda')
+                    batch_data = to_device(batch_data, 'cuda')
                 data_time = self.time_helper.end_time()  # cal data load time
                 var_items, forward_time = self._get_loss(batch_data)  # train process
                 _, backward_update_time = self._optimize_step(var_items['total_loss'])  # process loss
