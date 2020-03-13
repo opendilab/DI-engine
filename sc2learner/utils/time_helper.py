@@ -9,7 +9,7 @@ def build_time_helper(cfg=None, wrapper_type=None):
         time_wrapper_type = cfg.common.time_wrapper_type
     if wrapper_type is not None:
         time_wrapper_type = wrapper_type
-    if time_wrapper_type == 'time':
+    if time_wrapper_type == 'time' or not torch.cuda.is_available():
         return TimeWrapperTime
     elif time_wrapper_type == 'cuda':
         # lazy initialize to make code runnable locally
