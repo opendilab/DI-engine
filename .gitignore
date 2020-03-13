@@ -7,7 +7,6 @@
 *default_logger.txt
 *default_tb_logger
 *evaluate.txt
-*evaluate
 .idea
 .DS_Store
 __pycache__

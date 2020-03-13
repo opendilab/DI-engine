@@ -3,7 +3,6 @@ from __future__ import division
 from __future__ import print_function
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 
 
@@ -45,7 +44,7 @@ class CategoricalPd(Pd):
         z = ea.sum(dim=-1, keepdim=True)
         p = ea / z
         entropy = (p * (torch.log(z) - a)).sum(dim=-1)
-        assert(reduction in ['none', 'mean'])
+        assert (reduction in ['none', 'mean'])
         if reduction == 'none':
             return entropy
         elif reduction == 'mean':
@@ -98,7 +97,7 @@ class CategoricalPdPytorch(torch.distributions.Categorical):
 
     def neglogp(self, actions, reduction='mean'):
         neglogp = super().log_prob(actions)
-        assert(reduction in ['none', 'mean'])
+        assert (reduction in ['none', 'mean'])
         if reduction == 'none':
             return neglogp
         elif reduction == 'mean':
@@ -109,11 +108,10 @@ class CategoricalPdPytorch(torch.distributions.Categorical):
 
     def entropy(self, reduction='none'):
         entropy = super().entropy()
-        assert(reduction in ['none', 'mean'])
+        assert (reduction in ['none', 'mean'])
         if reduction == 'none':
             return entropy
         elif reduction == 'mean':
             return entropy.mean()
-
 
 # TODO alphastar distribution sampler and entropy calculation

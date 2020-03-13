@@ -9,7 +9,7 @@ from collections import deque
 from sc2learner.dataset import OnlineDataset, OnlineDataLoader
 from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper, to_device, CountVar,\
     DistributionTimeImage
-from sc2learner.nn_utils import build_grad_clip
+from sc2learner.torch_utils import build_grad_clip
 
 
 def build_optimizer(model, cfg):

@@ -19,7 +19,7 @@ from pysc2.lib.static_data import NUM_BUFFS, NUM_ABILITIES, NUM_UNIT_TYPES, UNIT
     NUM_ADDON, ADDON_REORDER, NUM_BEGIN_ACTIONS, NUM_UNIT_BUILD_ACTIONS, NUM_EFFECT_ACTIONS, \
     NUM_RESEARCH_ACTIONS, UNIT_BUILD_ACTIONS_REORDER, EFFECT_ACTIONS_REORDER, RESEARCH_ACTIONS_REORDER, \
     BEGIN_ACTIONS_REORDER
-from sc2learner.nn_utils import one_hot
+from sc2learner.torch_utils import one_hot
 from functools import partial
 from collections import OrderedDict
 

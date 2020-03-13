@@ -4,16 +4,16 @@ Copyright 2020 Sensetime X-lab. All Rights Reserved
 Main Function:
     1. Alphastar implementation for supervised learning on linklink, including basic processes.
 '''
-import math
 import collections
 from collections import defaultdict
+
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-from .sl_learner import SLLearner
+
 from pysc2.lib.static_data import ACTIONS_REORDER_INV, ACTIONS
-from sc2learner.nn_utils import MultiLogitsLoss, build_criterion
+from sc2learner.torch_utils import MultiLogitsLoss, build_criterion
 from sc2learner.torch_utils import to_device
+from .sl_learner import SLLearner
 
 
 def build_temperature_scheduler(cfg):
@@ -24,6 +24,7 @@ def build_temperature_scheduler(cfg):
         Returns:
             - (:obj`Scheduler`): scheduler created by this function
     '''
+
     class NaiveT(object):
         def __init__(self, init_val=0.1):
             self.init_val = init_val
@@ -48,8 +49,8 @@ class AlphastarSLCriterion(object):
         def delay_l1(p, l):
             l = l.float()  # noqa
             p = p.float()
-            base = -1.73e-5*l**3 + 1.89e-3*l**2 - 5.8e-2*l + 0.61
-            loss = torch.abs(p - l) - base*l
+            base = -1.73e-5 * l ** 3 + 1.89e-3 * l ** 2 - 5.8e-2 * l + 0.61
+            loss = torch.abs(p - l) - base * l
             return loss.clamp(0).mean().item()
 
         def accuracy(p, l):
@@ -60,7 +61,7 @@ class AlphastarSLCriterion(object):
             l_set = set(l.tolist())
             union = p_set.union(l_set)
             intersect = p_set.intersection(l_set)
-            return len(intersect)*1.0/len(union)
+            return len(intersect) * 1.0 / len(union)
 
         def L2(p, l):
             return F.mse_loss(p.float(), l.float()).item()
@@ -206,7 +207,8 @@ class AlphastarSLLearner(SLLearner):
             self.variable_record.register_var(k + '_loss')
             self.tb_logger.register_var(k + '_loss')
 
-        self.variable_record.register_var('action_type', var_type='1darray', var_item_keys=self.data_stat['action_type'])  # noqa
+        self.variable_record.register_var('action_type', var_type='1darray',
+                                          var_item_keys=self.data_stat['action_type'])  # noqa
         self.tb_logger.register_var('action_type', var_type='histogram')
         for k in (set(self.data_stat.keys()) - {'action_type'}):
             self.variable_record.register_var(k, var_type='1darray', var_item_keys=self.data_stat[k])
@@ -370,14 +372,16 @@ class AlphastarSLLearner(SLLearner):
             Returns:
                 - (:obj`tensor`): delay loss result
         '''
+
         def delay_l1(p, l):
-            base = -1.73e-5*l**3 + 1.89e-3*l**2 - 5.8e-2*l + 0.61
-            loss = torch.abs(p - l) - base*l
+            base = -1.73e-5 * l ** 3 + 1.89e-3 * l ** 2 - 5.8e-2 * l + 0.61
+            loss = torch.abs(p - l) - base * l
             return loss.clamp(0).mean()
+
         if isinstance(labels, collections.Sequence):
             labels = torch.cat(labels, dim=0)
         labels = labels.to(preds.dtype)
-        assert(preds.shape == labels.shape)
+        assert (preds.shape == labels.shape)
         return delay_l1(preds, labels)
 
     def _queued_loss(self, logits, labels):
@@ -416,8 +420,8 @@ class AlphastarSLLearner(SLLearner):
             lo, la = logits[b], labels[b]
             lo = torch.cat(lo, dim=0)
             if lo.shape[0] != la.shape[0]:
-                assert(lo.shape[0] == 1 + la.shape[0])  # ISSUE(zm) why?
-                end_flag_label = torch.LongTensor([lo.shape[1]-1]).to(la.device)
+                assert (lo.shape[0] == 1 + la.shape[0])  # ISSUE(zm) why?
+                end_flag_label = torch.LongTensor([lo.shape[1] - 1]).to(la.device)
                 end_flag_loss = self.criterion(lo[-1:], end_flag_label)
                 logits_loss = criterion(lo[:-1], la)
                 loss.append((end_flag_loss + logits_loss) / 2)
@@ -460,9 +464,9 @@ class AlphastarSLLearner(SLLearner):
         for logit, label in zip(logits, labels):
             if self.location_output_type == 'cls':
                 logit = F.avg_pool2d(logit, kernel_size=ratio, stride=ratio)  # achieve same resolution with label
-                logit.mul_(ratio*ratio)
+                logit.mul_(ratio * ratio)
                 H, W = logit.shape[2:]
-                label = torch.LongTensor([label[0]*W+label[1]]).to(device=logit.device)  # (y, x)
+                label = torch.LongTensor([label[0] * W + label[1]]).to(device=logit.device)  # (y, x)
                 logit = logit.view(1, -1)
                 loss.append(self.criterion(logit, label))
             elif self.location_output_type == 'soft_argmax':
@@ -485,7 +489,7 @@ class AlphastarSLLearner(SLLearner):
                 actions, next_state = ret['actions'], ret['next_state']
                 self.eval_criterion.update(actions, step_data['actions'])
                 if s_idx % 100 == 0:
-                    args = [self.rank, idx+1, len(self.eval_dataloader), s_idx, len(data)]
+                    args = [self.rank, idx + 1, len(self.eval_dataloader), s_idx, len(data)]
                     self.logger.info('EVAL[rank: {}](sample: {}/{})(step: {}/{})'.format(*args))
         eval_result = self.eval_criterion.get_stat()
         self.logger.info(self.eval_criterion.to_string(eval_result))

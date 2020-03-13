@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from sc2learner.nn_utils import Transformer, fc_block, build_activation
+from sc2learner.torch_utils import Transformer, fc_block, build_activation
 
 
 class EntityEncoder(nn.Module):

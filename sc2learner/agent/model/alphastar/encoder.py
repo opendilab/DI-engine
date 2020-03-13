@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from .core import CoreLstm
 from .obs_encoder import ScalarEncoder, SpatialEncoder, EntityEncoder
-from sc2learner.nn_utils import fc_block
+from sc2learner.torch_utils import fc_block
 
 
 def build_obs_encoder(name):
