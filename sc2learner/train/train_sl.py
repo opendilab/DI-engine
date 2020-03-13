@@ -25,6 +25,7 @@ flags.DEFINE_string("replay_list", None, "path to replay data")
 flags.DEFINE_string("eval_replay_list", None, "path to evaluate replay data")
 flags.DEFINE_bool("use_distributed", False, "use distributed training")
 flags.DEFINE_bool("only_evaluate", False, "only sl evaluate")
+flags.DEFINE_bool("use_fake_dataset", False, "whether to use fake dataset")
 flags.FLAGS(sys.argv)
 
 
@@ -41,6 +42,9 @@ def main(argv):
     cfg.train.use_distributed = FLAGS.use_distributed
     cfg.data.train.use_distributed = FLAGS.use_distributed
     cfg.data.eval.use_distributed = FLAGS.use_distributed
+    if FLAGS.use_fake_dataset:
+        cfg.data.train.dataset_type = "fake"
+        cfg.data.eval.dataset_type = "fake"
     learner = AlphastarSLLearner(cfg)
     learner.run()
     learner.finalize()

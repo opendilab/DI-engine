@@ -2,8 +2,32 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from absl import flags
+import numbers
 from datetime import datetime
+
+import numpy as np
+import torch
+from absl import flags
+
+
+def deepcopy(data):
+    if isinstance(data, dict):
+        new_data = {}
+        for k, v in data.items():
+            new_data[k] = deepcopy(v)
+    elif isinstance(data, list) or isinstance(data, tuple):
+        new_data = []
+        for item in data:
+            new_data.append(deepcopy(item))
+    elif isinstance(data, torch.Tensor):
+        new_data = data.clone()
+    elif isinstance(data, np.ndarray):
+        new_data = np.copy(data)
+    elif isinstance(data, str) or isinstance(data, numbers.Integral):
+        new_data = data
+    else:
+        raise TypeError("invalid data type:{}".format(type(data)))
+    return new_data
 
 
 def print_arguments(flags_FLAGS):
