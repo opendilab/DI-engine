@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from sc2learner.nn_utils import LSTM
+from sc2learner.torch_utils import LSTM
 
 
 class CoreLstm(nn.Module):

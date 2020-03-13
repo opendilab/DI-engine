@@ -1,7 +1,7 @@
 import torch
 import enum
 import os
-from sc2learner.nn_utils import one_hot
+from sc2learner.torch_utils import one_hot
 from pysc2.lib.static_data import NUM_BEGIN_ACTIONS, BEGIN_ACTIONS_REORDER, NUM_UNIT_BUILD_ACTIONS,\
     UNIT_BUILD_ACTIONS_REORDER, NUM_EFFECT_ACTIONS, EFFECT_ACTIONS_REORDER, NUM_RESEARCH_ACTIONS,\
     RESEARCH_ACTIONS_REORDER

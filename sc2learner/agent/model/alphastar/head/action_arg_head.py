@@ -13,7 +13,7 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from sc2learner.nn_utils import fc_block, conv2d_block, deconv2d_block, build_activation, one_hot, LSTM, \
+from sc2learner.torch_utils import fc_block, conv2d_block, deconv2d_block, build_activation, one_hot, LSTM, \
     ResBlock, NearestUpsample, BilinearUpsample, binary_encode, SoftArgmax
 from sc2learner.torch_utils import CategoricalPdPytorch
 

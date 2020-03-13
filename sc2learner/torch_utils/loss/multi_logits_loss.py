@@ -5,11 +5,13 @@ Main Function:
     1. implementation of MultiLogitsLoss and its test
 '''
 import math
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-from sc2learner.nn_utils import one_hot
+
+from sc2learner.torch_utils.network import one_hot
 
 
 class MultiLogitsLoss(nn.Module):
@@ -17,6 +19,7 @@ class MultiLogitsLoss(nn.Module):
         Overview: base class for supervised learning on linklink, including basic processes.
         Interface: __init__, forward
     '''
+
     def __init__(self, cfg=None, criterion=None, smooth_ratio=0.1):
         '''
             Overview: initialization method, use cross_entropy as default criterion
@@ -28,7 +31,7 @@ class MultiLogitsLoss(nn.Module):
         super(MultiLogitsLoss, self).__init__()
         if cfg is not None:
             criterion = cfg.type
-            assert(criterion in ['cross_entropy', 'label_smooth_ce'])
+            assert (criterion in ['cross_entropy', 'label_smooth_ce'])
             if criterion == 'label_smooth_ce':
                 smooth_ratio = cfg.kwargs['smooth_ratio']
         self.criterion = criterion
@@ -42,7 +45,7 @@ class MultiLogitsLoss(nn.Module):
         elif self.criterion == 'label_smooth_ce':
             val = float(self.ratio) / (N - 1)
             ret = torch.full_like(logits, val)
-            ret.scatter_(1, labels.unsqueeze(1), 1-val)
+            ret.scatter_(1, labels.unsqueeze(1), 1 - val)
             return ret
 
     def _nll_loss(self, nlls, labels):
@@ -102,7 +105,7 @@ class MultiLogitsLoss(nn.Module):
         return index
 
     def forward(self, logits, labels):
-        assert(len(logits.shape) == 2)
+        assert (len(logits.shape) == 2)
         metric_matrix = self._get_metric_matrix(logits, labels)
         index = self._match(metric_matrix)
         loss = []
@@ -124,6 +127,7 @@ def _selected_units_loss():
         ret = torch.full((1, num), val)
         ret[0, label] = 1 - eps
         return ret
+
     logits = torch.load('logits.pt')
     label = torch.load('labels.pt')
     criterion = MultiLogitsLoss(criterion='cross_entropy')
@@ -139,8 +143,8 @@ def _selected_units_loss():
         lo = torch.cat(lo, dim=0)
         print(b, lo.shape, la.shape)
         if lo.shape[0] != la.shape[0]:
-            assert(lo.shape[0] == 1 + la.shape[0])
-            end_flag_label = torch.LongTensor([lo.shape[1]-1]).to(la.device)
+            assert (lo.shape[0] == 1 + la.shape[0])
+            end_flag_label = torch.LongTensor([lo.shape[1] - 1]).to(la.device)
             # end_flag_label = smooth_label(lo.shape[1]-1, lo.shape[1]).to(la.device)
             # end_flag_loss = F.binary_cross_entropy_with_logits(lo[-1:], end_flag_label)
             end_flag_loss = self_criterion(lo[-1:], end_flag_label)

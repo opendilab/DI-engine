@@ -2,7 +2,7 @@ from collections import OrderedDict
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from sc2learner.nn_utils import fc_block, build_activation, Transformer
+from sc2learner.torch_utils import fc_block, build_activation, Transformer
 from sc2learner.envs.observations.alphastar_obs_wrapper import transform_scalar_data
 
 

@@ -2,7 +2,7 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from sc2learner.nn_utils import conv2d_block, fc_block, build_activation, ResBlock
+from sc2learner.torch_utils import conv2d_block, fc_block, build_activation, ResBlock
 
 
 class SpatialEncoder(nn.Module):

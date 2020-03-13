@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-from sc2learner.nn_utils import fc_block, build_activation, ResFCBlock
+from sc2learner.torch_utils import fc_block, build_activation, ResFCBlock
 
 
 class ValueBaseline(nn.Module):
