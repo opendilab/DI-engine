@@ -10,7 +10,7 @@ import torch
 import enum
 from pysc2.lib import actions
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK, ACT_TO_GENERAL_ACT
-from sc2learner.utils import to_tensor
+from sc2learner.torch_utils import to_tensor
 
 
 class AlphastarActParser(object):

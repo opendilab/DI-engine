@@ -23,7 +23,8 @@ def build_head(name):
 
 
 class Policy(nn.Module):
-    Input = namedtuple('Input', ['actions', 'entity_raw', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context'])  # noqa
+    Input = namedtuple('Input', ['entity_raw', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context'])  # noqa
+    MimicInput = namedtuple('Input', ['actions', 'entity_raw', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context'])  # noqa
 
     def __init__(self, cfg):
         super(Policy, self).__init__()
@@ -142,7 +143,7 @@ class Policy(nn.Module):
             Returns:
                 - actions (:obj:`dict`) actions predicted by agent(policy)
         '''
-        actions, entity_raw, lstm_output, entity_embeddings, map_skip, scalar_context = inputs
+        entity_raw, lstm_output, entity_embeddings, map_skip, scalar_context = inputs
 
         B = len(entity_raw)
         actions = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}

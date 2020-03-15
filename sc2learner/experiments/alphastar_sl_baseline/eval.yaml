@@ -7,25 +7,25 @@ common:
 env:
     game_version: '3.16'
     map_name: AbyssalReef
+    map_size: [200, 176]
     disable_fog: False
     default_step_mul: 8
     save_replay: True
     home_race: zerg
     away_race: zerg
-    resolution: [128, 128]
+    screen_resolution: [128, 128]
     use_stat: True
-    stat_path: /mnt/lustre/zhangming/data/Replays_decode_valid/Zerg_Zerg_3502_f8903d39f5dd3a67b809ec94af5a1e3de5ee54bc7e174ec59b0e14898b262dc6.stat_processed
+    use_global_cumulative_stat: True
+    use_available_action_transform: True
+    stat_path: /mnt/lustre/share_data/niuyazhe/Zerg_Zerg_6264_35648da84aaef8ebe8d21851e380a3a164e2874d73be0fc72e9d8e9f27c93df7.stat_processed
     beginning_build_order_num: 20
     game_steps_per_episode: 43200
-    output_resolution: [256, 256]
 train:
     use_cuda: True
     temperature: 1.0
 model:
-    action_type: fixed
-    output_resolution: [256, 256]
-    policy:
-        location_expand_ratio: 2
+    use_value_network: False
+    encoder:
         obs_encoder:
             encoder_names: [scalar_encoder, spatial_encoder, entity_encoder]
             scalar_encoder:
@@ -59,6 +59,8 @@ model:
             input_size: 1792  # spatial_encoder.fc_dim + entity_encoder.output_dim + scalar_encoder.output_dim
             hidden_size: 384
             num_layers: 3
+    policy:
+        location_expand_ratio: 2
         head:
             head_names: [action_type_head, delay_head, queued_head, selected_units_head, target_unit_head, location_head]
             action_type_head:
@@ -110,6 +112,8 @@ model:
                 reshape_channel: 4  # entity_encoder.gate_dim / reshape_size
                 map_skip_dim: 128  # spatial_encoder.down_channels[-1]
                 activation: 'relu'
+                output_type: 'cls'  # ['cls', 'soft_argmax']
+    action_type: fixed
 logger:
     print_freq: 10
     save_freq: 200
