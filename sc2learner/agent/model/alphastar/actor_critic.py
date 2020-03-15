@@ -33,8 +33,8 @@ class AlphaStarActorCritic(ActorCriticBase):
     # overwrite
     def mimic(self, inputs, **kwargs):
         lstm_output, next_state, entity_embeddings, map_skip, scalar_context, _, _ = self.encoder(inputs)
-        policy_inputs = self.policy.Input(inputs['actions'], inputs['entity_raw'], lstm_output,
-                                          entity_embeddings, map_skip, scalar_context)
+        policy_inputs = self.policy.MimicInput(inputs['actions'], inputs['entity_raw'], lstm_output,
+                                               entity_embeddings, map_skip, scalar_context)
         logits = self.policy(policy_inputs, mode='mimic')
         return self.MimicOutput(logits, next_state)
 
@@ -45,11 +45,11 @@ class AlphaStarActorCritic(ActorCriticBase):
             Note:
                 batch size = 1
         '''
-        ratio = self.cfg.location_expand_ratio
+        ratio = self.cfg.policy.location_expand_ratio
         Y, X = inputs['map_size'][0]
 
         lstm_output, next_state, entity_embeddings, map_skip, scalar_context, _, _ = self.encoder(inputs)
-        policy_inputs = self.policy.Input(inputs['actions'], inputs['entity_raw'], lstm_output,
+        policy_inputs = self.policy.Input(inputs['entity_raw'], lstm_output,
                                           entity_embeddings, map_skip, scalar_context)
         actions = self.policy(policy_inputs, mode='evaluate', **kwargs)
 

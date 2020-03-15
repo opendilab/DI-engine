@@ -22,8 +22,8 @@ from sc2learner.envs.actions.zerg_action_wrappers import ZergActionWrapper
 from sc2learner.envs.observations.zerg_observation_wrappers \
     import ZergObservationWrapper
 from sc2learner.envs.alphastar_env import AlphastarEnv
-from sc2learner.agents.model import PPOLSTM, PPOMLP
-from sc2learner.agents.solver import PpoAgent, RandomAgent, KeyboardAgent, AlphastarAgent
+from sc2learner.agent.model import PPOLSTM, PPOMLP
+from sc2learner.worker import PpoAgent, RandomAgent, KeyboardAgent, AlphastarAgent
 from sc2learner.utils import build_logger
 from pysc2.lib.action_dict import ACTION_INFO_MASK
 

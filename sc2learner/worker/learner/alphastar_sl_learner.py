@@ -485,8 +485,7 @@ class AlphastarSLLearner(SLLearner):
                     step_data = to_device(step_data, 'cuda')
                 step_data['prev_state'] = next_state
                 with torch.no_grad():
-                    ret = self.model(step_data, mode='evaluate')
-                actions, next_state = ret['actions'], ret['next_state']
+                    actions, next_state = self.model(step_data, mode='evaluate')
                 self.eval_criterion.update(actions, step_data['actions'])
                 if s_idx % 100 == 0:
                     args = [self.rank, idx + 1, len(self.eval_dataloader), s_idx, len(data)]
