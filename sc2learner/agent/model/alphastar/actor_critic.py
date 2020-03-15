@@ -45,7 +45,7 @@ class AlphaStarActorCritic(ActorCriticBase):
             Note:
                 batch size = 1
         '''
-        ratio = self.cfg.location_expand_ratio
+        ratio = self.cfg.policy.location_expand_ratio
         Y, X = inputs['map_size'][0]
 
         lstm_output, next_state, entity_embeddings, map_skip, scalar_context, _, _ = self.encoder(inputs)
