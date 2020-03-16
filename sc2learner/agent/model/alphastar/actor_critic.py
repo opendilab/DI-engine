@@ -29,7 +29,6 @@ class AlphaStarActorCritic(ActorCriticBase):
                 self.value_networks[v.name] = ValueBaseline(v.param)
                 # name of needed cumulative stat items
                 self.value_cum_stat_keys[v.name] = v.cum_stat_keys
-        self.train_scheme = cfg.train_scheme
         self.freeze_module(cfg.freeze_targets)
 
     def freeze_module(self, freeze_targets=None):

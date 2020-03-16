@@ -23,7 +23,7 @@ class Encoder(nn.Module):
         self.encoder = nn.ModuleDict()
         for item in cfg.obs_encoder.encoder_names:
             self.encoder[item] = build_obs_encoder(item)(cfg.obs_encoder[item])
-        self.core_lstm = CoreLstm(cfg.core)
+        self.core_lstm = CoreLstm(cfg.core_lstm)
 
         self.scatter_project = fc_block(cfg.scatter.input_dim, cfg.scatter.output_dim)
         self.scatter_dim = cfg.scatter.output_dim

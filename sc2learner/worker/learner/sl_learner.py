@@ -89,6 +89,11 @@ class SLLearner(object):
             self.logger.info('cfg:\n{}'.format(self.cfg))
             self.logger.info('model:\n{}'.format(self.model))
             self._init()
+            self.logger.info('='*15 + 'module and param info' + '='*15)
+            for k, m in self.model.named_parameters():
+                self.logger.info('param name:{}\trequires_grad:{}'.format(k, m.requires_grad))
+            for k, m in self.model.named_modules():
+                self.logger.info('module name:{}\ttraining:{}'.format(k, m.training))
         else:
             self.logger, _, _ = build_logger(cfg, rank=self.rank)
 
