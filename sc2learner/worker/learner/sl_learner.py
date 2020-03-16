@@ -113,7 +113,8 @@ class SLLearner(object):
                                         last_iter=self.last_iter,
                                         last_epoch=self.last_epoch,  # TODO last_epoch for lr_scheduler
                                         dataset=ckpt_dataset,
-                                        logger_prefix='(sl_learner)')
+                                        logger_prefix='(sl_learner)',
+                                        state_dict_mask=cfg.model.state_dict_mask)
             self.last_epoch.add(1)  # skip interrupted epoch
             self.last_iter.add(1)  # skip interrupted iter
         self._optimize_step = self.time_helper.wrapper(self._optimize_step)

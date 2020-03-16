@@ -37,6 +37,7 @@ train:
             smooth_ratio: 0.1
 model:
     freeze_targets: []
+    state_dict_mask: []
     use_value_network: False
     encoder:
         obs_encoder:
