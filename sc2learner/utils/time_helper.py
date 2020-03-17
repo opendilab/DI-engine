@@ -5,17 +5,43 @@ import torch
 
 def build_time_helper(cfg=None, wrapper_type=None):
     # Note: wrapper_type has higher priority
-    if cfg is not None:
-        time_wrapper_type = cfg.common.time_wrapper_type
     if wrapper_type is not None:
         time_wrapper_type = wrapper_type
-    if time_wrapper_type == 'time' or not torch.cuda.is_available():
+    elif cfg is not None:
+        time_wrapper_type = cfg.common.time_wrapper_type
+    if time_wrapper_type == 'time' or (not torch.cuda.is_available()):
         return TimeWrapperTime
     elif time_wrapper_type == 'cuda':
         # lazy initialize to make code runnable locally
         return get_cuda_time_wrapper()
     else:
         raise KeyError('invalid time_wrapper_type: {}'.format(time_wrapper_type))
+
+
+class EasyTimer:
+    """A decent timer wrapper that can be used easily.
+
+    Example:
+        wait_timer = EasyTimer()
+        with wait_timer:
+            func(...)
+        time = wait_timer.value  # in second
+    """
+
+    def __init__(self, cuda=True):
+        if torch.cuda.is_available() and cuda:
+            time_wrapper_type = "cuda"
+        else:
+            time_wrapper_type = "time"
+        self._timer = build_time_helper(wrapper_type=time_wrapper_type)
+        self.value = 0.0
+
+    def __enter__(self):
+        self.value = 0.0
+        self._timer.start_time()
+
+    def __exit__(self, *args):
+        self.value = self._timer.end_time()
 
 
 class TimeWrapper(object):
@@ -62,6 +88,7 @@ def get_cuda_time_wrapper():
         # overwrite
         @classmethod
         def start_time(cls):
+            torch.cuda.synchronize()
             cls.start = cls.start_record.record()
 
         # overwrite

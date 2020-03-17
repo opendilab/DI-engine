@@ -1,15 +1,16 @@
-from threading import Thread
-import zmq
+import os
+import pickle
 import time
+from collections import deque
+from threading import Thread
+
 import numpy as np
 import torch
-import pickle
-import os
-from collections import deque
-from sc2learner.dataset import OnlineDataset, OnlineDataLoader
-from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper, to_device, CountVar,\
-    DistributionTimeImage
-from sc2learner.torch_utils import build_grad_clip
+import zmq
+
+from sc2learner.data.online import OnlineDataset, OnlineDataLoader
+from sc2learner.torch_utils import to_device, CountVar, build_checkpoint_helper, build_grad_clip
+from sc2learner.utils import build_logger, build_time_helper, DistributionTimeImage
 
 
 def build_optimizer(model, cfg):
@@ -76,13 +77,13 @@ class HistoryActorInfo(object):
                     "invalid judge type: {}".format(judge_type))
 
             for i in range(len(item) - 1):
-                if judge(item[i], item[i+1]):
+                if judge(item[i], item[i + 1]):
                     return False
             return True
 
         keys = list(self.actor_monitor_arg.speed.keys())
         values = list(self.actor_monitor_arg.speed.values())
-        assert(monotonic_check(values))
+        assert (monotonic_check(values))
 
         def look_up(t):
             for idx, (k, v) in enumerate(zip(keys, values)):
@@ -150,7 +151,7 @@ class HistoryActorInfo(object):
 class BaseLearner(object):
 
     def __init__(self, env, model, cfg=None):
-        assert(cfg is not None)
+        assert (cfg is not None)
         self.cfg = cfg
         self.env = env
         self.model = model
@@ -226,7 +227,7 @@ class BaseLearner(object):
                 var_items['total_loss'])
             time_items = {'data_time': data_time, 'forward_time': forward_time,
                           'backward_update_time': backward_update_time,
-                          'total_batch_time': data_time+forward_time+backward_update_time}
+                          'total_batch_time': data_time + forward_time + backward_update_time}
             var_items['cur_lr'] = cur_lr
             var_items['avg_usage'] = avg_usage
             if self.last_iter.val != 0:
@@ -234,7 +235,7 @@ class BaseLearner(object):
             var_items['data_staleness'] = self.last_iter.val - avg_model_index
             if self.last_iter.val != 0:
                 var_items['push_rate'] = push_count / \
-                    (data_time + forward_time + backward_update_time)
+                                         (data_time + forward_time + backward_update_time)
             print('Last Push Staleness:{}'.format(
                 self.last_iter.val - self.dataset.last_push_model_index))
             self._update_monitor_var(var_items, time_items)
@@ -329,11 +330,15 @@ class BaseLearner(object):
         while True:
             ident, msg = receiver.recv_multipart()
             msg = msg.decode()
-            assert(msg == 'request model')
+            assert (msg == 'request model')
             state_dict = {k: v.to('cpu')
                           for k, v in self.model.state_dict().items()}
+
+            # FIXME(pzh, nyz) should we add optimizer state here??
             state_dict = {'state_dict': state_dict,
-                          'model_index': self.last_iter.val, 'timestamp': time.time()}
+                          'model_index': self.last_iter.val,
+                          'timestamp': time.time()
+                          }
             receiver.send_multipart([ident, pickle.dumps(state_dict)])
 
     def _init(self):

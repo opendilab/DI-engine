@@ -1,12 +1,12 @@
 from torch.utils.data import DataLoader
-from .sampler import DistributedSampler
-from .online import OnlineDataLoader, unroll_split_collate_fn
+
 from .offline import ReplayIterationDataLoader, policy_collate_fn
+from .sampler import DistributedSampler
 
 
 def build_dataloader(cfg, dataset):
     dataloader_type = cfg.dataloader_type
-    assert(dataloader_type in ['epoch', 'iter'])
+    assert (dataloader_type in ['epoch', 'iter'])
     if dataloader_type == 'epoch':
         sampler = DistributedSampler(dataset, round_up=False) if cfg.use_distributed else None
         shuffle = False if cfg.use_distributed else True
@@ -14,6 +14,7 @@ def build_dataloader(cfg, dataset):
         dataloader = DataLoader(dataset, batch_size=cfg.batch_size, pin_memory=False, num_workers=0,
                                 sampler=sampler, shuffle=shuffle, drop_last=False, collate_fn=policy_collate_fn)
     elif dataloader_type == 'iter':
-        assert(cfg.use_distributed)
+        # FIXME ReplayIterationDataLoader is not tested locally at all!
+        # assert cfg.use_distributed
         dataloader = ReplayIterationDataLoader(dataset, cfg.batch_size)
     return dataloader

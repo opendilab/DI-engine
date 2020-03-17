@@ -91,6 +91,9 @@ class TextLogger(object):
         '''
         self.logger.info(s)
 
+    def bug(self, s):
+        self.logger.debug(s)
+
 
 class TensorBoardLogger(object):
     '''
@@ -208,7 +211,7 @@ class TensorBoardLogger(object):
 class VariableRecord(object):
     def __init__(self, length):
         self.var_dict = {'scalar': {}, '1darray': {}}
-        self.length = length
+        self.length = max(length, 10)  # at leat average across 10 iteration
 
     def register_var(self, name, length=None, var_type='scalar'):
         assert(var_type in ['scalar', '1darray'])
@@ -216,7 +219,7 @@ class VariableRecord(object):
         self.var_dict[var_type][name] = AverageMeter(lens)
 
     def update_var(self, info):
-        assert(isinstance(info, dict))
+        assert isinstance(info, dict)
         for k, v in info.items():
             var_type = self._get_var_type(k)
             self.var_dict[var_type][k].update(v)

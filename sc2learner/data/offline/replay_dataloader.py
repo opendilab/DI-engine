@@ -20,7 +20,10 @@ class ReplayIterationDataLoader(object):
         total_size = L // self.world_size * self.world_size  # discard the last data
         self.size = total_size // self.world_size
         indices = indices[:total_size]
+
+        # TODO(pzh) At risk!! Is this seeding really effective?
         random.seed(1e9 + 314)  # fix seed for all the process
+
         random.shuffle(indices)
         data_index = indices[self.rank*self.size: (self.rank+1)*self.size]
 

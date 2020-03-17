@@ -4,19 +4,14 @@ Copyright 2020 Sensetime X-lab. All Rights Reserved
 Main Function:
     1. supervised learning for Alphastar useing human replays
 '''
-import sys
 import os
+import sys
+
 import yaml
+from absl import app, flags, logging
 from easydict import EasyDict
-import random
-import time
 
-
-from sc2learner.worker import AlphastarSLLearner
-from absl import flags
-from absl import logging
-from absl import app
-
+from sc2learner.worker.learner.alphastar_sl_learner import AlphaStarSupervisedLearner
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string("config_path", "config.yaml", "path to config file")
@@ -31,8 +26,9 @@ flags.FLAGS(sys.argv)
 
 def main(argv):
     logging.set_verbosity(logging.ERROR)
+    assert os.path.exists(FLAGS.config_path)
     with open(FLAGS.config_path) as f:
-        cfg = yaml.load(f)
+        cfg = yaml.safe_load(f)
     cfg = EasyDict(cfg)
     cfg.common.save_path = os.path.dirname(FLAGS.config_path)
     cfg.common.load_path = FLAGS.load_path
@@ -45,7 +41,7 @@ def main(argv):
     if FLAGS.use_fake_dataset:
         cfg.data.train.dataset_type = "fake"
         cfg.data.eval.dataset_type = "fake"
-    learner = AlphastarSLLearner(cfg)
+    learner = AlphaStarSupervisedLearner(cfg)
     learner.run()
     learner.finalize()
 

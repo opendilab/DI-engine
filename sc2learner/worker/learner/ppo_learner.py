@@ -1,8 +1,7 @@
-import torch
-import torch.nn.functional as F
 import numpy as np
-from sc2learner.dataset import OnlineDataset, OnlineDataLoader, unroll_split_collate_fn
-from sc2learner.utils import build_logger, build_checkpoint_helper, build_time_helper, to_device
+import torch
+
+from sc2learner.data.online import OnlineDataLoader, unroll_split_collate_fn
 from .learner import BaseLearner
 
 
@@ -103,8 +102,7 @@ class PpoLearner(BaseLearner):
             outputs['value'], outputs['neglogp'], outputs['entropy']
         )
 
-        new_values_clipped = values + \
-            torch.clamp(new_values - values, -clip_range, clip_range)
+        new_values_clipped = values + torch.clamp(new_values - values, -clip_range, clip_range)
         value_loss1 = torch.pow(new_values - returns, 2)
         if self.use_value_clip:
             value_loss2 = torch.pow(new_values_clipped - returns, 2)
@@ -117,8 +115,7 @@ class PpoLearner(BaseLearner):
         adv = (adv - adv.mean()) / (adv.std() + 1e-8)
         ratio = torch.exp(neglogps - new_neglogp)
         pg_loss1 = -adv * ratio
-        pg_loss2 = -adv * \
-            torch.clamp(ratio, 1.0 - clip_range, 1.0 + clip_range)
+        pg_loss2 = -adv * torch.clamp(ratio, 1.0 - clip_range, 1.0 + clip_range)
         pg_loss = torch.max(pg_loss1, pg_loss2).mean()
 
         approximate_kl = 0.5 * torch.pow(new_neglogp - neglogps, 2).mean()
