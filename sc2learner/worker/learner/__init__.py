@@ -1,5 +1,6 @@
-#from .ppo_learner import PpoLearner
+# from .ppo_learner import PpoLearner
 import os
+
 if 'IN_K8S' not in os.environ:
     # currently we have no support for AS in K8s
-    from .alphastar_sl_learner import AlphastarSLLearner
+    from .alphastar_sl_learner import AlphaStarSupervisedLearner

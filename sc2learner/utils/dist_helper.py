@@ -3,21 +3,32 @@ import os
 import numpy as np
 import torch
 
+from sc2learner.tests.fake_linklink import FakeLink
 from sc2learner.utils import try_import_link
 
 link = try_import_link()
 
+is_fake_link = isinstance(link, FakeLink)
+
 
 def get_rank():
+    if is_fake_link:
+        return 0
     return link.get_rank()
 
 
 def get_world_size():
+    if is_fake_link:
+        return 1
     return link.get_world_size()
 
 
 def allreduce(data):
+    if is_fake_link:
+        return data
+    # TODO(pzh) add some test. looks really vulnerable.
     link.allreduce(data)
+    data.div_(get_world_size())
 
 
 def get_group(group_size):

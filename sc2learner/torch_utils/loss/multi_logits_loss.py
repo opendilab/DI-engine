@@ -74,6 +74,7 @@ class MultiLogitsLoss(nn.Module):
         visy = np.zeros(M, dtype=np.bool)
 
         def has_augmented_path(t):
+            # FIXME this function take extremely long time (7% of the total running time)
             visx[t] = True
             for i in range(M):
                 if not visy[i] and math.fabs(lx[t] + ly[i] - mat[t, i]) < 1e-4:

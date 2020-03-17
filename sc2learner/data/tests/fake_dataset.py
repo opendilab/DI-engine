@@ -1,3 +1,4 @@
+import random
 import tempfile
 from collections import OrderedDict
 
@@ -7,6 +8,9 @@ import torch
 from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UNIT_TYPES
 from sc2learner.data.offline.replay_dataset import ReplayDataset
 
+META_SUFFIX = '.meta'
+DATA_SUFFIX = '.step'
+STAT_SUFFIX = '.stat_processed'
 MAP_SIZE = [176, 200]
 DELAY_MAX = 63
 MAX_SELECTED_UNITS = 64
@@ -40,7 +44,8 @@ class FakeReplayDataset(ReplayDataset):
 
     def __init__(self, cfg=None):
         # Completely independent with the config
-        self.trajectory_len = 48
+        self.trajectory_len = cfg.get("trajectory_len", 11) if cfg else 11
+        self.slide_window_step = cfg.get("slide_window_step", 1) if cfg else 1
         length = np.random.randint(0, 30)  # random number of path
         self.path_list = [dict(name=tempfile.mkstemp(), count=0) for _ in range(length)]
 
@@ -50,10 +55,48 @@ class FakeReplayDataset(ReplayDataset):
         return sample_batch
 
     def step(self, index=None):
-        pass
+        if index is None:
+            index = range(len(self.path_list))
+        end_list = []  # a list containes replay index which access the end of the replay
+        for i in index:
+            handle = self.path_list[i]
+            if 'step_num' not in handle.keys():
+                meta = {
+                    "step_num": 100,  # FIXME Not sure what this value should be
+                    "map_size": [176, 200]
+                }
+                step_num = meta['step_num']
+                handle['step_num'] = step_num
+                handle['map_size'] = meta['map_size']
+            else:
+                step_num = handle['step_num']
+            assert (handle['step_num'] >= self.trajectory_len)
+            # if self.trajectory_type == 'random':
+            # handle['cur_step'] = random.randint(0, step_num - self.trajectory_len)
+            # elif self.trajectory_type == 'slide_window':
+            if 'cur_step' not in handle.keys():
+                handle['cur_step'] = random.randint(0, step_num - self.trajectory_len)
+            else:
+                next_step = handle['cur_step'] + self.slide_window_step
+                if next_step >= step_num - self.trajectory_len:
+                    handle['cur_step'] = random.randint(0, step_num - self.trajectory_len)
+                else:
+                    handle['cur_step'] = next_step
+            # elif self.trajectory_type == 'sequential':
+            # if 'cur_step' not in handle.keys():
+            #     handle['cur_step'] = 0
+            # else:
+            # next_step = handle['cur_step'] + self.slide_window_step
+            # if next_step >= step_num - self.trajectory_len:
+            #     end_list.append(i)
+            # handle['cur_step'] = next_step
+        return end_list
 
     def reset_step(self, index=None):
-        pass
+        if index is None:
+            index = range(len(self.path_list))
+        for i in index:
+            self.path_list[i].pop('cur_step')
 
     def _load_stat(self, handle=None):
         beginning_build_order = random_binary_tensor([20, 283])

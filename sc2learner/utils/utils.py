@@ -30,6 +30,23 @@ def deepcopy(data):
     return new_data
 
 
+def override(cls):
+    """Annotation for documenting method overrides.
+
+    Arguments:
+        cls (type): The superclass that provides the overriden method. If this
+            cls does not actually have the method, an error is raised.
+    """
+
+    def check_override(method):
+        if method.__name__ not in dir(cls):
+            raise NameError("{} does not override any method of {}".format(
+                method, cls))
+        return method
+
+    return check_override
+
+
 def print_arguments(flags_FLAGS):
     arg_name_list = dir(flags.FLAGS)
     black_set = set(['alsologtostderr',
