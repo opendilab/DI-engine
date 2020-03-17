@@ -63,9 +63,13 @@ def generate_sl_data_list(replay_list, output_dir,
     random.shuffle(selected_replay)
     num = int(len(selected_replay) * train_ratio)
     train = selected_replay[:num]
+    train = [t+'\n' for t in train]
     val = selected_replay[num:]
+    val = [t+'\n' for t in val]
 
-    prefix = '{}_{}_{}_{}'.format(home_race, away_race, target_map, min_mmr)
+    def remove_space(s):
+        return s.replace(" ", "") if s is not None else s
+    prefix = '{}_{}_{}_{}'.format(home_race, away_race, remove_space(target_map), min_mmr)
     output_name = prefix + '_train_{}.txt'.format(len(train))
 
     with open(output_name, 'w') as f:
@@ -82,7 +86,7 @@ Note:
     if you want to generate mini SL data list, set:
         - home_race = 'Zerg'
         - away_race = 'Zerg'
-        - target_map = 'Acropolis LE'
+        - target_map = 'Kairos Junction LE'
 '''
 home_race = 'Zerg'
 away_race = None
