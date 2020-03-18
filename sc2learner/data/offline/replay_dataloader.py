@@ -1,5 +1,5 @@
 import random
-from .replay_dataset import policy_collate_fn
+from .replay_dataset import policy_collate_fn, START_STEP
 from collections import deque
 from sc2learner.utils import get_rank, get_world_size
 
@@ -47,4 +47,5 @@ class ReplayIterationDataLoader(object):
                 tmp = self.cur_data_index[idx]
                 self.cur_data_index[idx] = self.data_index.popleft()
                 self.data_index.append(tmp)
+        assert START_STEP in batch[0]
         return batch

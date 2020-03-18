@@ -114,7 +114,7 @@ class DistModule(torch.nn.Module):
         if self.sync and link.get_world_size() > 1:
             for name, param in self.module.named_parameters():
                 if param.requires_grad:
-                    link.allreduce(param.grad.data)
+                    allreduce(param.grad.data)
         else:
             link.synchronize()
 

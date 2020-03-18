@@ -12,7 +12,7 @@ from sc2learner.utils import EasyTimer
 
 
 class BaseOptimizer:
-    def __init__(self, loss, cfg, agent, use_distributed, world_size):
+    def __init__(self, loss, cfg, agent, use_distributed):
         assert isinstance(loss, BaseLoss)
         self.loss = loss
 
@@ -25,7 +25,6 @@ class BaseOptimizer:
         )
 
         self.use_distributed = use_distributed
-        self.world_size = world_size
         self.forward_timer = EasyTimer()
         self.backward_timer = EasyTimer()
         self.sync_gradients_timer = EasyTimer(cuda=False)  # Don't let timer wait for GPU works

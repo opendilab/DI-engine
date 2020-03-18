@@ -6,7 +6,7 @@ import numpy as np
 import torch
 
 from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UNIT_TYPES
-from sc2learner.data.offline.replay_dataset import ReplayDataset
+from sc2learner.data.offline.replay_dataset import ReplayDataset, START_STEP
 
 META_SUFFIX = '.meta'
 DATA_SUFFIX = '.step'
@@ -51,7 +51,7 @@ class FakeReplayDataset(ReplayDataset):
 
     def __getitem__(self, item):
         sample_batch = [self.__get_single_step_data() for _ in range(self.trajectory_len)]
-        sample_batch[0]["start_step"] = np.random.random() > 0.5
+        sample_batch[0][START_STEP] = np.random.random() > 0.5
         return sample_batch
 
     def step(self, index=None):
