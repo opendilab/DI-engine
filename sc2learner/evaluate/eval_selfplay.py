@@ -37,42 +37,48 @@ flags.FLAGS(sys.argv)
 
 
 def create_selfplay_env(cfg, random_seed=None):
-    env = SC2SelfplayRawEnv(map_name=cfg.env.map_name,
-                            step_mul=cfg.env.step_mul,
-                            resolution=cfg.env.resolution,
-                            agent_race=cfg.env.agent_race[0],
-                            opponent_race=cfg.env.agent_race[1],
-                            tie_to_lose=cfg.env.tie_to_lose,
-                            disable_fog=cfg.env.disable_fog,
-                            game_steps_per_episode=cfg.env.game_steps_per_episode,
-                            random_seed=random_seed)
+    env = SC2SelfplayRawEnv(
+        map_name=cfg.env.map_name,
+        step_mul=cfg.env.step_mul,
+        resolution=cfg.env.resolution,
+        agent_race=cfg.env.agent_race[0],
+        opponent_race=cfg.env.agent_race[1],
+        tie_to_lose=cfg.env.tie_to_lose,
+        disable_fog=cfg.env.disable_fog,
+        game_steps_per_episode=cfg.env.game_steps_per_episode,
+        random_seed=random_seed
+    )
     env = ZergPlayerActionWrapper(
         player=0,
         env=env,
         game_version=cfg.env.game_version,
         mask=cfg.env.use_action_mask,
-        use_all_combat_actions=cfg.env.use_all_combat_actions)
+        use_all_combat_actions=cfg.env.use_all_combat_actions
+    )
     env = ZergPlayerObservationWrapper(
         player=0,
         env=env,
         use_spatial_features=cfg.env.use_spatial_features,
         use_game_progress=(not cfg.model.policy == 'lstm'),
         action_seq_len=1 if cfg.model.policy == 'lstm' else 8,
-        use_regions=cfg.env.use_region_features)
+        use_regions=cfg.env.use_region_features
+    )
 
     env = ZergPlayerActionWrapper(
         player=1,
         env=env,
         game_version=cfg.env.game_version,
         mask=cfg.env.use_action_mask,
-        use_all_combat_actions=cfg.env.use_all_combat_actions)
+        use_all_combat_actions=cfg.env.use_all_combat_actions
+    )
     env = ZergPlayerObservationWrapper(
         player=1,
         env=env,
         use_spatial_features=cfg.env.use_spatial_features,
         use_game_progress=(not cfg.model.policy == 'lstm'),
         action_seq_len=1 if cfg.model.policy == 'lstm' else 8,
-        use_regions=cfg.env.use_region_features)
+        use_regions=cfg.env.use_region_features
+    )
     print(env.observation_space, env.action_space)
     return env
 
@@ -83,15 +89,13 @@ def create_dqn_agent(cfg, env):
 
     assert cfg.model.policy == 'mlp'
     assert not cfg.env.use_action_mask
-    network = NonspatialDuelingQNet(n_dims=env.observation_space.shape[0],
-                                    n_out=env.action_space.n)
+    network = NonspatialDuelingQNet(n_dims=env.observation_space.shape[0], n_out=env.action_space.n)
     agent = DQNAgent(network, env.action_space, cfg.common.model_path)
     return agent
 
 
 def create_ppo_agent(cfg, env):
-    policy_func = {'mlp': PPOMLP,
-                   'lstm': PPOLSTM}
+    policy_func = {'mlp': PPOMLP, 'lstm': PPOLSTM}
     model = policy_func[cfg.model.policy](
         ob_space=env.observation_space,
         ac_space=env.action_space,
@@ -120,8 +124,9 @@ def evaluate(var_dict, cfg):
     path_info1 = name_list1[-2] + '/' + name_list1[-1].split('.')[0]
     name_list2 = cfg.common.load_path[1].split('/')
     path_info2 = name_list2[-2] + '/' + name_list2[-1].split('.')[0]
-    name = 'eval_selfplay_{}_{}_{}_{}_{}_{}'.format(path_info1, path_info2, cfg.model.action_type[0],
-                                                    cfg.model.action_type[1], log_time, rank+1)
+    name = 'eval_selfplay_{}_{}_{}_{}_{}_{}'.format(
+        path_info1, path_info2, cfg.model.action_type[0], cfg.model.action_type[1], log_time, rank + 1
+    )
     logger, tb_logger, _ = build_logger(cfg, name=name)
     logger.info('cfg: {}'.format(cfg))
     logger.info("Rank %d Game Seed: %d" % (rank, game_seed))
@@ -161,24 +166,26 @@ def evaluate(var_dict, cfg):
         oppo_action = agents[1].act(oppo_obs)
         oppo_value = agents[1].value(oppo_obs)
         oppo_value_trace.append(oppo_value)
-        logger.info("Rank %d Step ID: %d Take Action: %d Take Oppo_action: %d" %
-                    (rank, step_id, action, oppo_action))
+        logger.info("Rank %d Step ID: %d Take Action: %d Take Oppo_action: %d" % (rank, step_id, action, oppo_action))
         (obs, oppo_obs), reward, done, _ = env.step([action, oppo_action])
         action_counts[action] += 1
         oppo_action_counts[oppo_action] += 1
         cum_return += reward
         step_id += 1
     if cfg.env.save_replay:
-        env.env.env.env.env.save_replay("_".join(cfg.common.agent) + "_" +
-                                        "_".join(cfg.model.action_type) + "_" + FLAGS.replay_path)
+        env.env.env.env.env.save_replay(
+            "_".join(cfg.common.agent) + "_" + "_".join(cfg.model.action_type) + "_" + FLAGS.replay_path
+        )
     path = os.path.join(value_save_path, 'value{}.pt'.format(rank))
     oppo_path = os.path.join(value_save_path, 'oppo_value{}.pt'.format(rank))
     torch.save(torch.tensor(value_trace), path)
     torch.save(torch.tensor(oppo_value_trace), oppo_path)
 
     for id, name in enumerate(env.action_names):
-        logger.info("Rank %d\tAction ID: %d\tName: %s\tCount: %d\tOppocount: %d" %
-                    (rank, id, name, action_counts[id], oppo_action_counts[id]))
+        logger.info(
+            "Rank %d\tAction ID: %d\tName: %s\tCount: %d\tOppocount: %d" %
+            (rank, id, name, action_counts[id], oppo_action_counts[id])
+        )
     env.close()
     return cum_return
 
@@ -211,9 +218,12 @@ def main(argv):
     print(reward_list)
     pool.close()
 
-    print("Evaluated %d Episodes Agent1 Avg Return %f Avg Winning Rate %f" % (
-        cfg.common.num_episodes, sum(reward_list) / len(reward_list),
-        ((sum(reward_list) / len(reward_list)) + 1) / 2.0))
+    print(
+        "Evaluated %d Episodes Agent1 Avg Return %f Avg Winning Rate %f" % (
+            cfg.common.num_episodes, sum(reward_list) / len(reward_list),
+            ((sum(reward_list) / len(reward_list)) + 1) / 2.0
+        )
+    )
 
 
 if __name__ == '__main__':

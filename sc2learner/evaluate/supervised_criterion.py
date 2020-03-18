@@ -13,7 +13,7 @@ from pysc2.lib.static_data import ACTIONS_REORDER_INV
 def delay_l1(p, l):
     l = l.float()  # noqa
     p = p.float()
-    base = -1.73e-5 * l ** 3 + 1.89e-3 * l ** 2 - 5.8e-2 * l + 0.61
+    base = -1.73e-5 * l**3 + 1.89e-3 * l**2 - 5.8e-2 * l + 0.61
     loss = torch.abs(p - l) - base * l
     return loss.clamp(0).mean().item()
 
@@ -39,16 +39,11 @@ class SupervisedCriterion:
         Overview: AlphaStar supervised learning evaluate criterion
         Interface: __init__, update, get_stat, to_string
     """
-
     def __init__(self):
         self.action_heads = ['delay', 'queued', 'selected_units', 'target_units', 'target_location']
 
         self.action_head_criterion_mapping = dict(
-            delay=delay_l1,
-            queued=accuracy,
-            selected_units=IOU,
-            target_units=accuracy,
-            target_location=L2
+            delay=delay_l1, queued=accuracy, selected_units=IOU, target_units=accuracy, target_location=L2
         )
 
         self.buffer = {head_name: [] for head_name in self.action_heads}
@@ -102,8 +97,9 @@ class SupervisedCriterion:
                     if t[0] < th:
                         hard_case_dict[t[1]] += 1
 
-            avg[head_name] = sorted([[k, sum(v) / (len(v) + 1e-8)] for k, v in criterion_dict.items()],
-                                    key=lambda x: x[1])
+            avg[head_name] = sorted(
+                [[k, sum(v) / (len(v) + 1e-8)] for k, v in criterion_dict.items()], key=lambda x: x[1]
+            )
             if len(avg[head_name]) > 0:
                 val = list(zip(*avg[head_name]))[1]
                 avg[head_name].insert(0, ['total', sum(val) / (len(val) + 1e-8)])
@@ -112,8 +108,9 @@ class SupervisedCriterion:
         action_type = sorted([[k, sum(v) / (len(v) + 1e-8)] for k, v in self.action_type.items()], key=lambda x: x[1])
         val = list(zip(*action_type))[1]
         action_type.insert(0, ['total', sum(val) / (len(val) + 1e-8)])
-        hard_case_action_type = sorted([[k, v] for k, v in self.action_type_hard_case.items()],
-                                       key=lambda x: x[1], reverse=True)
+        hard_case_action_type = sorted(
+            [[k, v] for k, v in self.action_type_hard_case.items()], key=lambda x: x[1], reverse=True
+        )
         ret = {
             'action_type acc': action_type,
             'delay l1': avg['delay'],
@@ -121,7 +118,6 @@ class SupervisedCriterion:
             'selected_units IOU': avg['selected_units'],
             'target_units acc': avg['target_units'],
             'target_location L2': avg['target_location'],
-
             'action_type hard case': hard_case_action_type,
             'delay hard case': hard_case['delay'],
             'queued hard case': hard_case['queued'],

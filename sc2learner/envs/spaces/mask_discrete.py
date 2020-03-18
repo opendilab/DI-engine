@@ -7,7 +7,6 @@ from gym.spaces.discrete import Discrete
 
 
 class MaskDiscrete(Discrete):
-
     def sample(self, availables):
         x = np.random.choice(availables).item()
         assert self.contains(x, availables)

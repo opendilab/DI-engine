@@ -95,7 +95,8 @@ setup(
         'easydict',
         'opencv-python',
         'tensorboardX',
-        'matplotlib'
+        'matplotlib',
+        'yapf==0.29.0'
     ],
     entry_points={
         'console_scripts': [

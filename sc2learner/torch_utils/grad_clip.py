@@ -10,7 +10,7 @@ def build_grad_clip(cfg):
 
 class GradClip(object):
     def __init__(self, clip_value, clip_type, norm_type=2):
-        assert(clip_type in ['max_norm', 'clip_value'])
+        assert (clip_type in ['max_norm', 'clip_value'])
         self.norm_type = norm_type
         self.clip_value = clip_value
         self.clip_type = clip_type

@@ -27,7 +27,6 @@ class EasyTimer:
             func(...)
         time = wait_timer.value  # in second
     """
-
     def __init__(self, cuda=True):
         if torch.cuda.is_available() and cuda:
             time_wrapper_type = "cuda"
@@ -45,7 +44,6 @@ class EasyTimer:
 
 
 class TimeWrapper(object):
-
     @classmethod
     def wrapper(cls, fn):
         def time_func(*args, **kwargs):

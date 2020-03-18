@@ -16,7 +16,7 @@ from .actor_critic import ActorCriticBase
 class PPOMLP(ActorCriticBase):
     def __init__(self, ob_space, ac_space, seed=0, fc_dim=512, action_type='rand', viz=False):
         super(PPOMLP, self).__init__()
-        assert(action_type in ['rand', 'fixed', 'sample'])
+        assert (action_type in ['rand', 'fixed', 'sample'])
         self.action_type = action_type
         torch.manual_seed(seed)
         torch.backends.cudnn.deterministic = True
@@ -25,7 +25,7 @@ class PPOMLP(ActorCriticBase):
             ob_space, mask_space = ob_space.spaces
         self.use_mask = isinstance(ac_space, MaskDiscrete)
 
-        ob_space_flatten_dim = reduce(lambda x, y: x*y, ob_space.shape)
+        ob_space_flatten_dim = reduce(lambda x, y: x * y, ob_space.shape)
         self.act = nn.Tanh()
         self.pi_h1 = nn.Linear(ob_space_flatten_dim, fc_dim)
         self.pi_h2 = nn.Linear(fc_dim, fc_dim)
@@ -78,8 +78,8 @@ class PPOMLP(ActorCriticBase):
 
         if self.use_mask:
             mask = inputs['mask']
-            assert(mask is not None)
-            pi_logit -= (1-mask) * 1e30
+            assert (mask is not None)
+            pi_logit -= (1 - mask) * 1e30
         return pi_logit
 
     # overwrite
@@ -115,13 +115,7 @@ class PPOMLP(ActorCriticBase):
         handle = self.pd(pi_logit)
         neglogp = handle.neglogp(inputs['action'], reduction='none')
         entropy = handle.entropy(reduction='mean')
-        return {
-            'value': vf,
-            'neglogp': neglogp,
-            'entropy': entropy,
-            'state': self.initial_state,
-            'pi_logit': pi_logit
-        }
+        return {'value': vf, 'neglogp': neglogp, 'entropy': entropy, 'state': self.initial_state, 'pi_logit': pi_logit}
 
     # overwrite
     def value(self, inputs):
@@ -131,9 +125,9 @@ class PPOMLP(ActorCriticBase):
 class LSTMFC(nn.Module):
     def __init__(self, input_dim, hidden_dim=512):
         super(LSTMFC, self).__init__()
-        self.wx = nn.Parameter(torch.zeros(input_dim, hidden_dim*4))
-        self.wh = nn.Parameter(torch.zeros(hidden_dim, hidden_dim*4))
-        self.bias = nn.Parameter(torch.zeros(hidden_dim*4))
+        self.wx = nn.Parameter(torch.zeros(input_dim, hidden_dim * 4))
+        self.wh = nn.Parameter(torch.zeros(hidden_dim, hidden_dim * 4))
+        self.bias = nn.Parameter(torch.zeros(hidden_dim * 4))
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
 
@@ -173,13 +167,11 @@ class LSTMFC(nn.Module):
         return outputs, state
 
     def __repr__(self):
-        return 'input_dim: {}\thidden_dim: {}'.format(
-            self.input_dim, self.hidden_dim)
+        return 'input_dim: {}\thidden_dim: {}'.format(self.input_dim, self.hidden_dim)
 
 
 class PPOLSTM(ActorCriticBase):
-    def __init__(self, ob_space, ac_space, unroll_length,
-                 fc_dim=512, lstm_dim=512, seed=0):
+    def __init__(self, ob_space, ac_space, unroll_length, fc_dim=512, lstm_dim=512, seed=0):
         super(PPOLSTM, self).__init__()
         torch.manual_seed(seed)
         torch.backends.cudnn.deterministic = True
@@ -188,7 +180,7 @@ class PPOLSTM(ActorCriticBase):
             ob_space, mask_space = ob_space.spaces
         self.use_mask = isinstance(ac_space, MaskDiscrete)
 
-        ob_space_flatten_dim = reduce(lambda x, y: x*y, ob_space.shape)
+        ob_space_flatten_dim = reduce(lambda x, y: x * y, ob_space.shape)
         self.relu = nn.ReLU()
         self.fc_h1 = nn.Linear(ob_space_flatten_dim, fc_dim)
         self.fc_h2 = nn.Linear(fc_dim, fc_dim)
@@ -196,7 +188,7 @@ class PPOLSTM(ActorCriticBase):
         self.lstm = LSTMFC(fc_dim, lstm_dim)
         self.pi_logit = nn.Linear(fc_dim, ac_space.n)
         self.pd = CategoricalPd()
-        self.initial_state = torch.zeros(lstm_dim*2)
+        self.initial_state = torch.zeros(lstm_dim * 2)
 
         self._init()
 
@@ -221,18 +213,18 @@ class PPOLSTM(ActorCriticBase):
     def step(self, inputs):
         x, state, done = inputs['obs'], inputs['state'], inputs['done']
         B, S = x.shape[:2]
-        x = x.view(B*S, -1)
+        x = x.view(B * S, -1)
         h = self._get_h(x)
         h = h.view(B, S, -1)
         h, snew = self.lstm(h, done, state)
-        h = h.view(B*S, -1)
+        h = h.view(B * S, -1)
         pi_logit = self.pi_logit(h)
         vf = self.vf(h)[:, 0]
 
         if self.use_mask:
             mask = inputs['mask']
-            assert(mask is not None)
-            pi_logit -= (1-mask) * 1e30
+            assert (mask is not None)
+            pi_logit -= (1 - mask) * 1e30
         self.pd.update_logits(pi_logit)
         action = self.pd.sample()
         neglogp = self.pd.neglogp(action)
@@ -241,7 +233,7 @@ class PPOLSTM(ActorCriticBase):
     def value(self, inputs):
         x, state, done = inputs['obs'], inputs['state'], inputs['done']
         B, S = x.shape[:2]
-        x = x.view(B*S, -1)
+        x = x.view(B * S, -1)
         h = self._get_h(x)
         h = h.view(B, S, -1)
         h, snew = self.lstm(h, done, state)
@@ -252,6 +244,7 @@ class PPOLSTM(ActorCriticBase):
 def test_mlp_policy():
     class T():
         pass
+
     inputs = {}
     inputs['obs'] = torch.randn(4, 3, 32, 32)
     ob_space = torch.empty(3, 32, 32)
@@ -283,6 +276,7 @@ def test_mlp_policy_speed():
         elif isinstance(item, dict):
             item = {k: to_device(item[k], device) for k in item.keys()}
             return item
+
     inputs = {}
     inputs['obs'] = torch.randn(2, 857)
     inputs['mask'] = torch.randn(2, 62)
@@ -299,9 +293,7 @@ def test_mlp_policy_speed():
     T = 100
     for _ in range(10):
         model(inputs, mode='value')
-    time_dict = {'forward': [],
-                 'backward': [],
-                 'update': []}
+    time_dict = {'forward': [], 'backward': [], 'update': []}
     adv = torch.randn(2, 1).cuda()
     for t in range(T):
         TimeWrapperCuda.start_time()
@@ -310,7 +302,7 @@ def test_mlp_policy_speed():
         new_v = v + torch.randn_like(v)
         new_n = n + torch.randn_like(n)
         new_v = v + torch.clamp(new_v - v, -0.1, 0.1)
-        v_loss = (new_v - v) ** 2
+        v_loss = (new_v - v)**2
         if t > 95:
             print(new_n.shape)
         ratio = torch.exp(n - new_n)
@@ -338,10 +330,11 @@ def test_mlp_policy_speed():
 def test_lstm_policy():
     class T():
         pass
+
     inputs = {}
     inputs['obs'] = torch.randn(4, 5, 3, 32, 32)
     inputs['done'] = torch.ByteTensor(4, 5, 1).float()
-    inputs['state'] = torch.randn(4, 512*2)
+    inputs['state'] = torch.randn(4, 512 * 2)
     ob_space = torch.empty(3, 32, 32)
     ac_space = T()
     setattr(ac_space, 'n', 10)

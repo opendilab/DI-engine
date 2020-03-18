@@ -23,7 +23,6 @@ from sc2learner.torch_utils import one_hot
 from functools import partial
 from collections import OrderedDict
 
-
 LOCATION_BIT_NUM = 10
 DELAY_BIT_NUM = 6
 
@@ -33,7 +32,6 @@ class SpatialObsWrapper(object):
         Overview: parse spatial observation into tensors
         Interface: __init__, parse
     '''
-
     def __init__(self, cfg, use_feature_screen=False):
         '''
             Overview: initial related attributes
@@ -205,7 +203,6 @@ class AlphastarObsParser(object):
         Overview: parse observation into tensors
         Interface: __init__, parse, merge_action
     '''
-
     def __init__(self):
         '''
             Overview: initial sub-parsers and related attributes
@@ -250,8 +247,8 @@ class AlphastarObsParser(object):
         last_queued = last_queued if isinstance(last_queued, torch.Tensor) else torch.LongTensor([2])  # 2 as 'none'
         obs['scalar_info']['last_delay'] = self.template_act[0]['op'](torch.LongTensor(last_delay)).squeeze()
         obs['scalar_info']['last_queued'] = self.template_act[1]['op'](torch.LongTensor(last_queued)).squeeze()
-        obs['scalar_info']['last_action_type'] = self.template_act[2]['op'](
-            torch.LongTensor(last_action_type)).squeeze()
+        obs['scalar_info']['last_action_type'] = self.template_act[2]['op'](torch.LongTensor(last_action_type)
+                                                                            ).squeeze()
 
         if obs['entity_info'] is None:
             return obs
@@ -296,8 +293,8 @@ def div_one_hot(v, max_val, ratio):
 
 
 def reorder_one_hot(v, dictionary, num, transform=None):
-    assert(len(v.shape) == 1)
-    assert(isinstance(v, torch.Tensor))
+    assert (len(v.shape) == 1)
+    assert (isinstance(v, torch.Tensor))
     new_v = torch.zeros_like(v)
     for idx in range(v.shape[0]):
         if transform is None:
@@ -327,8 +324,8 @@ def binary_encode(v, bit_num):
 
 
 def batch_binary_encode(v, bit_num):
-    assert(len(v.shape) == 1)
-    v = v.clamp(0, int(math.pow(2, bit_num))-1)
+    assert (len(v.shape) == 1)
+    v = v.clamp(0, int(math.pow(2, bit_num)) - 1)
     B = v.shape[0]
     ret = []
     for b in range(B):
@@ -357,71 +354,256 @@ def reorder_boolean_vector(v, dictionary, num, transform=None):
 
 
 def clip_one_hot(v, num):
-    v = v.clamp(0, num-1)
+    v = v.clamp(0, num - 1)
     return one_hot(v, num)
 
 
 def transform_entity_data(resolution=128, pad_value=-1e9):
 
     template = [
-        {'key': 'build_progress', 'dim': 1, 'op': partial(div_func, other=256.), 'other': 'float [0, 1]'},
-        {'key': 'health_ratio', 'dim': 1, 'op': partial(div_func, other=256.), 'other': 'float [0, 1]'},
-        {'key': 'shield_ratio', 'dim': 1, 'op': partial(div_func, other=256.), 'other': 'float [0, 1]'},
-        {'key': 'energy_ratio', 'dim': 1, 'op': partial(div_func, other=256.), 'other': 'float [0, 1]'},
-        {'key': 'unit_type', 'dim': NUM_UNIT_TYPES, 'op': partial(
-            reorder_one_hot, dictionary=UNIT_TYPES_REORDER, num=NUM_UNIT_TYPES), 'other': 'one-hot'},
+        {
+            'key': 'build_progress',
+            'dim': 1,
+            'op': partial(div_func, other=256.),
+            'other': 'float [0, 1]'
+        },
+        {
+            'key': 'health_ratio',
+            'dim': 1,
+            'op': partial(div_func, other=256.),
+            'other': 'float [0, 1]'
+        },
+        {
+            'key': 'shield_ratio',
+            'dim': 1,
+            'op': partial(div_func, other=256.),
+            'other': 'float [0, 1]'
+        },
+        {
+            'key': 'energy_ratio',
+            'dim': 1,
+            'op': partial(div_func, other=256.),
+            'other': 'float [0, 1]'
+        },
+        {
+            'key': 'unit_type',
+            'dim': NUM_UNIT_TYPES,
+            'op': partial(reorder_one_hot, dictionary=UNIT_TYPES_REORDER, num=NUM_UNIT_TYPES),
+            'other': 'one-hot'
+        },
         #{'key': 'unit_attr', 'dim': 13, 'other': 'each one boolean'},
-        {'key': 'alliance', 'dim': 5, 'op': partial(one_hot, num=5), 'other': 'one-hot'},
-        {'key': 'health', 'dim': 39, 'op': partial(sqrt_one_hot, max_val=1500), 'other': 'one-hot, sqrt(1500), floor'},
-        {'key': 'shield', 'dim': 32, 'op': partial(sqrt_one_hot, max_val=1000), 'other': 'one-hot, sqrt(1000), floor'},
-        {'key': 'energy', 'dim': 15, 'op': partial(sqrt_one_hot, max_val=200), 'other': 'one-hot, sqrt(200), floor'},
-        {'key': 'cargo_space_taken', 'dim': 9, 'op': partial(clip_one_hot, num=9), 'other': 'one-hot'},
-        {'key': 'cargo_space_max', 'dim': 9, 'op': partial(clip_one_hot, num=9), 'other': 'one-hot'},  # 1020 wormhole
-        {'key': 'display_type', 'dim': 5, 'op': partial(one_hot, num=5), 'other': 'one-hot'},
-        {'key': 'x', 'dim': LOCATION_BIT_NUM, 'op': partial(
-            batch_binary_encode, bit_num=LOCATION_BIT_NUM), 'other': 'binary encoding'},
-        {'key': 'y', 'dim': LOCATION_BIT_NUM, 'op': partial(
-            batch_binary_encode, bit_num=LOCATION_BIT_NUM), 'other': 'binary encoding'},
-        {'key': 'cloak', 'dim': 5, 'op': partial(one_hot, num=5), 'other': 'one-hot'},
-        {'key': 'is_powered', 'dim': 2, 'op': partial(one_hot, num=2), 'other': 'one-hot'},
-        {'key': 'hallucination', 'dim': 2, 'op': partial(one_hot, num=2), 'other': 'one-hot'},
-        {'key': 'active', 'dim': 2, 'op': partial(one_hot, num=2), 'other': 'one-hot'},
-        {'key': 'is_on_screen', 'dim': 2, 'op': partial(one_hot, num=2), 'other': 'one-hot'},
-        {'key': 'is_in_cargo', 'dim': 2, 'op': partial(one_hot, num=2), 'other': 'one-hot'},
-        {'key': 'mineral_contents', 'dim': 20, 'op': partial(
-            div_one_hot, max_val=1900, ratio=100), 'other': 'one-hot, 1900/100'},
-        {'key': 'vespene_contents', 'dim': 27, 'op': partial(
-            div_one_hot, max_val=2600, ratio=100), 'other': 'one-hot, 2600/100'},
-        {'key': 'minerals', 'dim': 43, 'op': partial(
-            sqrt_one_hot, max_val=1800), 'ori': 'player', 'other': 'one-hot, sqrt(1800), floor'},
-        {'key': 'vespene', 'dim': 51, 'op': partial(sqrt_one_hot, max_val=2500),
-         'ori': 'player', 'other': 'one-hot, sqrt(2500), floor'},
-        {'key': 'assigned_harvesters', 'dim': 35, 'op': partial(clip_one_hot, num=35), 'other': 'one-hot'},  # 34
-        {'key': 'ideal_harvesters', 'dim': 18, 'op': partial(clip_one_hot, num=18), 'other': 'one-hot'},  # 20
-        {'key': 'weapon_cooldown', 'dim': 32, 'op': partial(
-            clip_one_hot, num=32), 'other': 'one-hot, game steps'},  # 35??
-        {'key': 'order_length', 'dim': 9, 'op': partial(clip_one_hot, num=9), 'other': 'one-hot'},
-        {'key': 'order_id_0', 'dim': NUM_ABILITIES, 'op': partial(
-            reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT), 'other': 'one-hot'},  # noqa
-        {'key': 'order_id_1', 'dim': NUM_ACTIONS, 'op': partial(
-            reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT), 'other': 'one-hot'},  # TODO only building order  # noqa
-        {'key': 'order_id_2', 'dim': NUM_ACTIONS, 'op': partial(
-            reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT), 'other': 'one-hot'},  # TODO only building order  # noqa
-        {'key': 'order_id_3', 'dim': NUM_ACTIONS, 'op': partial(
-            reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT), 'other': 'one-hot'},  # TODO only building order  # noqa
-        {'key': 'buff_id_0', 'dim': NUM_BUFFS, 'op': partial(
-            reorder_one_hot, dictionary=BUFFS_REORDER, num=NUM_BUFFS), 'other': 'one-hot'},
-        {'key': 'buff_id_1', 'dim': NUM_BUFFS, 'op': partial(
-            reorder_one_hot, dictionary=BUFFS_REORDER, num=NUM_BUFFS), 'other': 'one-hot'},
-        {'key': 'addon_unit_type', 'dim': NUM_ADDON, 'op': partial(
-            reorder_one_hot, dictionary=ADDON_REORDER, num=NUM_ADDON), 'other': 'one-hot'},
-        {'key': 'order_progress_0', 'dim': 10, 'op': partial(
-            div_one_hot, max_val=1, ratio=0.1), 'other': 'one-hot(1/0.1)'},
-        {'key': 'order_progress_1', 'dim': 10, 'op': partial(
-            div_one_hot, max_val=1, ratio=0.1), 'other': 'one-hot(1/0.1)'},
-        {'key': 'attack_upgrade_level', 'dim': 4, 'op': partial(one_hot, num=4), 'other': 'one-hot'},
-        {'key': 'armor_upgrade_level', 'dim': 4, 'op': partial(one_hot, num=4), 'other': 'one-hot'},
-        {'key': 'shield_upgrade_level', 'dim': 4, 'op': partial(one_hot, num=4), 'other': 'one-hot'},
+        {
+            'key': 'alliance',
+            'dim': 5,
+            'op': partial(one_hot, num=5),
+            'other': 'one-hot'
+        },
+        {
+            'key': 'health',
+            'dim': 39,
+            'op': partial(sqrt_one_hot, max_val=1500),
+            'other': 'one-hot, sqrt(1500), floor'
+        },
+        {
+            'key': 'shield',
+            'dim': 32,
+            'op': partial(sqrt_one_hot, max_val=1000),
+            'other': 'one-hot, sqrt(1000), floor'
+        },
+        {
+            'key': 'energy',
+            'dim': 15,
+            'op': partial(sqrt_one_hot, max_val=200),
+            'other': 'one-hot, sqrt(200), floor'
+        },
+        {
+            'key': 'cargo_space_taken',
+            'dim': 9,
+            'op': partial(clip_one_hot, num=9),
+            'other': 'one-hot'
+        },
+        {
+            'key': 'cargo_space_max',
+            'dim': 9,
+            'op': partial(clip_one_hot, num=9),
+            'other': 'one-hot'
+        },  # 1020 wormhole
+        {
+            'key': 'display_type',
+            'dim': 5,
+            'op': partial(one_hot, num=5),
+            'other': 'one-hot'
+        },
+        {
+            'key': 'x',
+            'dim': LOCATION_BIT_NUM,
+            'op': partial(batch_binary_encode, bit_num=LOCATION_BIT_NUM),
+            'other': 'binary encoding'
+        },
+        {
+            'key': 'y',
+            'dim': LOCATION_BIT_NUM,
+            'op': partial(batch_binary_encode, bit_num=LOCATION_BIT_NUM),
+            'other': 'binary encoding'
+        },
+        {
+            'key': 'cloak',
+            'dim': 5,
+            'op': partial(one_hot, num=5),
+            'other': 'one-hot'
+        },
+        {
+            'key': 'is_powered',
+            'dim': 2,
+            'op': partial(one_hot, num=2),
+            'other': 'one-hot'
+        },
+        {
+            'key': 'hallucination',
+            'dim': 2,
+            'op': partial(one_hot, num=2),
+            'other': 'one-hot'
+        },
+        {
+            'key': 'active',
+            'dim': 2,
+            'op': partial(one_hot, num=2),
+            'other': 'one-hot'
+        },
+        {
+            'key': 'is_on_screen',
+            'dim': 2,
+            'op': partial(one_hot, num=2),
+            'other': 'one-hot'
+        },
+        {
+            'key': 'is_in_cargo',
+            'dim': 2,
+            'op': partial(one_hot, num=2),
+            'other': 'one-hot'
+        },
+        {
+            'key': 'mineral_contents',
+            'dim': 20,
+            'op': partial(div_one_hot, max_val=1900, ratio=100),
+            'other': 'one-hot, 1900/100'
+        },
+        {
+            'key': 'vespene_contents',
+            'dim': 27,
+            'op': partial(div_one_hot, max_val=2600, ratio=100),
+            'other': 'one-hot, 2600/100'
+        },
+        {
+            'key': 'minerals',
+            'dim': 43,
+            'op': partial(sqrt_one_hot, max_val=1800),
+            'ori': 'player',
+            'other': 'one-hot, sqrt(1800), floor'
+        },
+        {
+            'key': 'vespene',
+            'dim': 51,
+            'op': partial(sqrt_one_hot, max_val=2500),
+            'ori': 'player',
+            'other': 'one-hot, sqrt(2500), floor'
+        },
+        {
+            'key': 'assigned_harvesters',
+            'dim': 35,
+            'op': partial(clip_one_hot, num=35),
+            'other': 'one-hot'
+        },  # 34
+        {
+            'key': 'ideal_harvesters',
+            'dim': 18,
+            'op': partial(clip_one_hot, num=18),
+            'other': 'one-hot'
+        },  # 20
+        {
+            'key': 'weapon_cooldown',
+            'dim': 32,
+            'op': partial(clip_one_hot, num=32),
+            'other': 'one-hot, game steps'
+        },  # 35??
+        {
+            'key': 'order_length',
+            'dim': 9,
+            'op': partial(clip_one_hot, num=9),
+            'other': 'one-hot'
+        },
+        {
+            'key': 'order_id_0',
+            'dim': NUM_ABILITIES,
+            'op': partial(reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT),
+            'other': 'one-hot'
+        },  # noqa
+        {
+            'key': 'order_id_1',
+            'dim': NUM_ACTIONS,
+            'op': partial(reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT),
+            'other': 'one-hot'
+        },  # TODO only building order  # noqa
+        {
+            'key': 'order_id_2',
+            'dim': NUM_ACTIONS,
+            'op': partial(reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT),
+            'other': 'one-hot'
+        },  # TODO only building order  # noqa
+        {
+            'key': 'order_id_3',
+            'dim': NUM_ACTIONS,
+            'op': partial(reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT),
+            'other': 'one-hot'
+        },  # TODO only building order  # noqa
+        {
+            'key': 'buff_id_0',
+            'dim': NUM_BUFFS,
+            'op': partial(reorder_one_hot, dictionary=BUFFS_REORDER, num=NUM_BUFFS),
+            'other': 'one-hot'
+        },
+        {
+            'key': 'buff_id_1',
+            'dim': NUM_BUFFS,
+            'op': partial(reorder_one_hot, dictionary=BUFFS_REORDER, num=NUM_BUFFS),
+            'other': 'one-hot'
+        },
+        {
+            'key': 'addon_unit_type',
+            'dim': NUM_ADDON,
+            'op': partial(reorder_one_hot, dictionary=ADDON_REORDER, num=NUM_ADDON),
+            'other': 'one-hot'
+        },
+        {
+            'key': 'order_progress_0',
+            'dim': 10,
+            'op': partial(div_one_hot, max_val=1, ratio=0.1),
+            'other': 'one-hot(1/0.1)'
+        },
+        {
+            'key': 'order_progress_1',
+            'dim': 10,
+            'op': partial(div_one_hot, max_val=1, ratio=0.1),
+            'other': 'one-hot(1/0.1)'
+        },
+        {
+            'key': 'attack_upgrade_level',
+            'dim': 4,
+            'op': partial(one_hot, num=4),
+            'other': 'one-hot'
+        },
+        {
+            'key': 'armor_upgrade_level',
+            'dim': 4,
+            'op': partial(one_hot, num=4),
+            'other': 'one-hot'
+        },
+        {
+            'key': 'shield_upgrade_level',
+            'dim': 4,
+            'op': partial(one_hot, num=4),
+            'other': 'one-hot'
+        },
         # {'key': 'was_selected', 'dim': 2, 'other': 'one-hot, last action'},
         # {'key': 'was_targeted', 'dim': 2, 'other': 'one-hot, last action'},
     ]
@@ -431,15 +613,54 @@ def transform_entity_data(resolution=128, pad_value=-1e9):
 def transform_spatial_data():
     template = [
         # {'key': 'scattered_entities', 'other': '32 channel float'},
-        {'key': 'height_map', 'dim': 1, 'op': partial(
-            div_func, other=256., unsqueeze_dim=0), 'other': 'float height_map/256'},
-        {'key': 'camera', 'dim': 2, 'op': partial(num_first_one_hot, num=2), 'other': 'one-hot 2 value'},
-        {'key': 'visibility', 'dim': 4, 'op': partial(num_first_one_hot, num=4), 'other': 'one-hot 4 value'},
-        {'key': 'creep', 'dim': 2, 'op': partial(num_first_one_hot, num=2), 'other': 'one-hot 2 value'},
-        {'key': 'entity_owners', 'dim': 5, 'op': partial(num_first_one_hot, num=5), 'other': 'one-hot 5 value'},
-        {'key': 'alerts', 'dim': 2, 'op': partial(num_first_one_hot, num=2), 'other': 'one-hot 2 value'},
-        {'key': 'pathable', 'dim': 2, 'op': partial(num_first_one_hot, num=2), 'other': 'one-hot 2 value'},
-        {'key': 'buildable', 'dim': 2, 'op': partial(num_first_one_hot, num=2), 'other': 'one-hot 2 value'},
+        {
+            'key': 'height_map',
+            'dim': 1,
+            'op': partial(div_func, other=256., unsqueeze_dim=0),
+            'other': 'float height_map/256'
+        },
+        {
+            'key': 'camera',
+            'dim': 2,
+            'op': partial(num_first_one_hot, num=2),
+            'other': 'one-hot 2 value'
+        },
+        {
+            'key': 'visibility',
+            'dim': 4,
+            'op': partial(num_first_one_hot, num=4),
+            'other': 'one-hot 4 value'
+        },
+        {
+            'key': 'creep',
+            'dim': 2,
+            'op': partial(num_first_one_hot, num=2),
+            'other': 'one-hot 2 value'
+        },
+        {
+            'key': 'entity_owners',
+            'dim': 5,
+            'op': partial(num_first_one_hot, num=5),
+            'other': 'one-hot 5 value'
+        },
+        {
+            'key': 'alerts',
+            'dim': 2,
+            'op': partial(num_first_one_hot, num=2),
+            'other': 'one-hot 2 value'
+        },
+        {
+            'key': 'pathable',
+            'dim': 2,
+            'op': partial(num_first_one_hot, num=2),
+            'other': 'one-hot 2 value'
+        },
+        {
+            'key': 'buildable',
+            'dim': 2,
+            'op': partial(num_first_one_hot, num=2),
+            'other': 'one-hot 2 value'
+        },
         # {'key': 'effects', 'dim': 13, 'op': partial(num_first_one_hot, num=13), 'other': 'one-hot 13 value'},
     ]
     return template
@@ -447,42 +668,145 @@ def transform_spatial_data():
 
 def transform_scalar_data():
     template_obs = [
-        {'key': 'agent_statistics', 'arch': 'fc', 'input_dim': 10,
-            'ori': 'player', 'output_dim': 64, 'baseline_feature': True, 'other': 'log(1+x)'},
-        {'key': 'race', 'arch': 'fc', 'input_dim': 5, 'output_dim': 32, 'ori': 'home_race_requested',
-            'op': partial(num_first_one_hot, num=5), 'scalar_context': True, 'other': 'one-hot 5 value'},
-        {'key': 'enemy_race', 'arch': 'fc', 'input_dim': 5, 'output_dim': 32, 'ori': 'away_race_requested',
-            'op': partial(num_first_one_hot, num=5), 'scalar_context': True, 'other': 'one-hot 5 value'},  # TODO 10% hidden  # noqa
-        {'key': 'upgrades', 'arch': 'fc', 'input_dim': NUM_UPGRADES, 'output_dim': 128, 'ori': 'upgrades',
-            'op': partial(reorder_boolean_vector, dictionary=UPGRADES_REORDER, num=NUM_UPGRADES), 'baseline_feature': True, 'other': 'boolean'},  # noqa
-        {'key': 'enemy_upgrades', 'arch': 'fc', 'input_dim': NUM_UPGRADES, 'output_dim': 128, 'ori': 'enemy_upgrades',
-            'op': partial(reorder_boolean_vector, dictionary=UPGRADES_REORDER, num=NUM_UPGRADES), 'other': 'boolean'},
-        {'key': 'time', 'arch': 'transformer', 'input_dim': 32, 'output_dim': 64, 'ori': 'game_loop',
-            'op': partial(batch_binary_encode, bit_num=32), 'other': 'transformer'},
-
-        {'key': 'available_actions', 'arch': 'fc', 'input_dim': NUM_ACTIONS, 'output_dim': 64,
-            'ori': 'available_actions', 'scalar_context': True, 'other': 'boolean vector',
-            'op': partial(reorder_boolean_vector, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT)},  # noqa
-        {'key': 'unit_counts_bow', 'arch': 'fc', 'input_dim': NUM_UNIT_TYPES, 'output_dim': 128,
-            'ori': 'unit_counts', 'baseline_feature': True, 'other': 'square root'},
+        {
+            'key': 'agent_statistics',
+            'arch': 'fc',
+            'input_dim': 10,
+            'ori': 'player',
+            'output_dim': 64,
+            'baseline_feature': True,
+            'other': 'log(1+x)'
+        },
+        {
+            'key': 'race',
+            'arch': 'fc',
+            'input_dim': 5,
+            'output_dim': 32,
+            'ori': 'home_race_requested',
+            'op': partial(num_first_one_hot, num=5),
+            'scalar_context': True,
+            'other': 'one-hot 5 value'
+        },
+        {
+            'key': 'enemy_race',
+            'arch': 'fc',
+            'input_dim': 5,
+            'output_dim': 32,
+            'ori': 'away_race_requested',
+            'op': partial(num_first_one_hot, num=5),
+            'scalar_context': True,
+            'other': 'one-hot 5 value'
+        },  # TODO 10% hidden  # noqa
+        {
+            'key': 'upgrades',
+            'arch': 'fc',
+            'input_dim': NUM_UPGRADES,
+            'output_dim': 128,
+            'ori': 'upgrades',
+            'op': partial(reorder_boolean_vector, dictionary=UPGRADES_REORDER, num=NUM_UPGRADES),
+            'baseline_feature': True,
+            'other': 'boolean'
+        },  # noqa
+        {
+            'key': 'enemy_upgrades',
+            'arch': 'fc',
+            'input_dim': NUM_UPGRADES,
+            'output_dim': 128,
+            'ori': 'enemy_upgrades',
+            'op': partial(reorder_boolean_vector, dictionary=UPGRADES_REORDER, num=NUM_UPGRADES),
+            'other': 'boolean'
+        },
+        {
+            'key': 'time',
+            'arch': 'transformer',
+            'input_dim': 32,
+            'output_dim': 64,
+            'ori': 'game_loop',
+            'op': partial(batch_binary_encode, bit_num=32),
+            'other': 'transformer'
+        },
+        {
+            'key': 'available_actions',
+            'arch': 'fc',
+            'input_dim': NUM_ACTIONS,
+            'output_dim': 64,
+            'ori': 'available_actions',
+            'scalar_context': True,
+            'other': 'boolean vector',
+            'op': partial(
+                reorder_boolean_vector, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT
+            )
+        },  # noqa
+        {
+            'key': 'unit_counts_bow',
+            'arch': 'fc',
+            'input_dim': NUM_UNIT_TYPES,
+            'output_dim': 128,
+            'ori': 'unit_counts',
+            'baseline_feature': True,
+            'other': 'square root'
+        },
     ]
     template_replay = [
-        {'key': 'mmr', 'arch': 'fc', 'input_dim': 7, 'output_dim': 64, 'op': partial(
-            div_one_hot, max_val=6000, ratio=1000), 'other': 'min(mmr / 1000, 6)'},
-        {'key': 'cumulative_stat', 'arch': 'multi_fc',
-            'input_dims': OrderedDict([('unit_build', NUM_UNIT_BUILD_ACTIONS), ('effect', NUM_EFFECT_ACTIONS),
-                                       ('research', NUM_RESEARCH_ACTIONS)]), 'output_dim': 32,
-            'scalar_context': True, 'other': 'boolean vector, split and concat'},
-        {'key': 'beginning_build_order', 'arch': 'transformer', 'input_dim': NUM_BEGIN_ACTIONS+LOCATION_BIT_NUM*2,
-            'output_dim': 32, 'scalar_context': True, 'baseline_feature': True, 'other': 'transformer'},
+        {
+            'key': 'mmr',
+            'arch': 'fc',
+            'input_dim': 7,
+            'output_dim': 64,
+            'op': partial(div_one_hot, max_val=6000, ratio=1000),
+            'other': 'min(mmr / 1000, 6)'
+        },
+        {
+            'key': 'cumulative_stat',
+            'arch': 'multi_fc',
+            'input_dims': OrderedDict(
+                [
+                    ('unit_build', NUM_UNIT_BUILD_ACTIONS), ('effect', NUM_EFFECT_ACTIONS),
+                    ('research', NUM_RESEARCH_ACTIONS)
+                ]
+            ),
+            'output_dim': 32,
+            'scalar_context': True,
+            'other': 'boolean vector, split and concat'
+        },
+        {
+            'key': 'beginning_build_order',
+            'arch': 'transformer',
+            'input_dim': NUM_BEGIN_ACTIONS + LOCATION_BIT_NUM * 2,
+            'output_dim': 32,
+            'scalar_context': True,
+            'baseline_feature': True,
+            'other': 'transformer'
+        },
     ]
     template_action = [
-        {'key': 'last_delay', 'arch': 'fc', 'input_dim': DELAY_BIT_NUM, 'output_dim': 64,
-            'ori': 'action', 'op': partial(batch_binary_encode, bit_num=DELAY_BIT_NUM), 'other': 'int'},
-        {'key': 'last_queued', 'arch': 'fc', 'input_dim': 3, 'output_dim': 256,
-            'ori': 'action', 'op': partial(num_first_one_hot, num=3), 'other': 'one-hot 3'},  # 0 False 1 True 2 None
-        {'key': 'last_action_type', 'arch': 'fc', 'input_dim': NUM_ACTIONS, 'output_dim': 128, 'ori': 'action',
-            'op': partial(reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS), 'other': 'one-hot NUM_ACTIONS'},  # noqa
+        {
+            'key': 'last_delay',
+            'arch': 'fc',
+            'input_dim': DELAY_BIT_NUM,
+            'output_dim': 64,
+            'ori': 'action',
+            'op': partial(batch_binary_encode, bit_num=DELAY_BIT_NUM),
+            'other': 'int'
+        },
+        {
+            'key': 'last_queued',
+            'arch': 'fc',
+            'input_dim': 3,
+            'output_dim': 256,
+            'ori': 'action',
+            'op': partial(num_first_one_hot, num=3),
+            'other': 'one-hot 3'
+        },  # 0 False 1 True 2 None
+        {
+            'key': 'last_action_type',
+            'arch': 'fc',
+            'input_dim': NUM_ACTIONS,
+            'output_dim': 128,
+            'ori': 'action',
+            'op': partial(reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS),
+            'other': 'one-hot NUM_ACTIONS'
+        },  # noqa
     ]
     return template_obs, template_replay, template_action
 
@@ -504,7 +828,7 @@ def compress_obs(obs):
     N_strided = N if N % 8 == 0 else (N // 8 + 1) * 8
     new_obs['entity_info']['bool_strided_shape'] = (B, N_strided)
     if N != N_strided:
-        entity_bool = np.concatenate([entity_bool, np.zeros((B, N_strided-N), dtype=np.uint8)], axis=1)
+        entity_bool = np.concatenate([entity_bool, np.zeros((B, N_strided - N), dtype=np.uint8)], axis=1)
     new_obs['entity_info']['bool'] = np.packbits(entity_bool)
 
     spatial_no_bool = 1
@@ -530,7 +854,7 @@ def decompress_obs(obs):
         entity_bool = entity_bool[:, :obs['entity_info']['bool_ori_shape'][1]]
     entity_no_bool = obs['entity_info']['no_bool']
     spatial_bool = np.unpackbits(obs['spatial_info']['bool']).reshape(*obs['spatial_info']['bool_ori_shape'])
-    spatial_uint8 = obs['spatial_info']['no_bool'].astype(np.float32)/256.
+    spatial_uint8 = obs['spatial_info']['no_bool'].astype(np.float32) / 256.
     new_obs['entity_info'] = torch.cat([torch.FloatTensor(entity_no_bool), torch.FloatTensor(entity_bool)], dim=1)
     new_obs['spatial_info'] = torch.cat([torch.FloatTensor(spatial_uint8), torch.FloatTensor(spatial_bool)], dim=0)
     return new_obs
@@ -560,7 +884,7 @@ def transform_stat(stat, meta, location_num=LOCATION_BIT_NUM):
         action_type = torch.LongTensor([action_type])
         action_type = reorder_one_hot(action_type, BEGIN_ACTIONS_REORDER, num=NUM_BEGIN_ACTIONS)
         if location == 'none':
-            location = torch.zeros(location_num*2)
+            location = torch.zeros(location_num * 2)
         else:
             x = binary_encode(torch.LongTensor([location[0]]), bit_num=location_num)
             y = binary_encode(torch.LongTensor([location[1]]), bit_num=location_num)
@@ -571,4 +895,8 @@ def transform_stat(stat, meta, location_num=LOCATION_BIT_NUM):
     mmr = meta['home_mmr']
     mmr = torch.LongTensor([mmr])
     mmr = div_one_hot(mmr, 6000, 1000).squeeze(0)
-    return {'mmr': mmr, 'beginning_build_order': beginning_build_order_tensor, 'cumulative_stat': cumulative_stat_tensor}  # noqa
+    return {
+        'mmr': mmr,
+        'beginning_build_order': beginning_build_order_tensor,
+        'cumulative_stat': cumulative_stat_tensor
+    }  # noqa

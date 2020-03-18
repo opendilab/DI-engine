@@ -10,7 +10,6 @@ class PySC2RawAction(gym.Space):
 
 
 class PySC2RawObservation(gym.Space):
-
     def __init__(self, observation_spec_fn):
         self._feature_layers = observation_spec_fn()
 

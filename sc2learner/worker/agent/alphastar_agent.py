@@ -6,7 +6,6 @@ from pysc2.lib.static_data import ACTIONS_REORDER_INV
 
 
 class AlphastarAgent(BaseAgent):
-
     def __init__(self, cfg):
         self.cfg = cfg
         self.model = build_model(cfg)

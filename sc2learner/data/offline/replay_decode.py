@@ -46,20 +46,16 @@ flags.DEFINE_string("replays", None, "Path to a directory of replays.")
 flags.DEFINE_string("output_dir", "/mnt/lustre/niuyazhe/data/sl_data_test", "Path to save data")
 flags.mark_flag_as_required("replays")
 
-
 RESOLUTION = 128
 FeatureUnit = features.FeatureUnit
 size = point.Point(RESOLUTION, RESOLUTION)
-interface = sc_pb.InterfaceOptions(
-    raw=True, score=False,
-    feature_layer=sc_pb.SpatialCameraSetup(width=24))
+interface = sc_pb.InterfaceOptions(raw=True, score=False, feature_layer=sc_pb.SpatialCameraSetup(width=24))
 size.assign_to(interface.feature_layer.resolution)
 size.assign_to(interface.feature_layer.minimap_resolution)
 
 
 def sorted_dict_str(d):
-    return "{%s}" % ", ".join("%s: %s" % (k, d[k])
-                              for k in sorted(d, key=d.get, reverse=True))
+    return "{%s}" % ", ".join("%s: %s" % (k, d[k]) for k in sorted(d, key=d.get, reverse=True))
 
 
 def valid_replay(info, ping):
@@ -71,10 +67,8 @@ def valid_replay(info, ping):
         Returns:
             - (:obj'bool'): the replay is valid or not
     '''
-    if (info.HasField("error") or
-        info.base_build != ping.base_build or  # different game version
-        info.game_duration_loops < 1000 or
-            len(info.player_info) != 2):
+    if (info.HasField("error") or info.base_build != ping.base_build or  # different game version
+            info.game_duration_loops < 1000 or len(info.player_info) != 2):
         # Probably corrupt, or just not interesting.
         return False
     for p in info.player_info:
@@ -82,8 +76,7 @@ def valid_replay(info, ping):
             # Low APM = player just standing around.
             # Low MMR = corrupt replay or player who is weak.
             return False
-    if (info.player_info[0].player_info.race_actual != 2 and
-            info.player_info[1].player_info.race_actual != 2):
+    if (info.player_info[0].player_info.race_actual != 2 and info.player_info[1].player_info.race_actual != 2):
         # not include Zerg race
         return False
     return True
@@ -94,7 +87,6 @@ class ReplayProcessor(multiprocessing.Process):
         Overview: a process decodes a single replay
         Interface: __init__, run
     '''
-
     def __init__(self, run_config, output_dir=None):
         '''
             Overview: parse run_config and prepare related attributes
@@ -103,13 +95,13 @@ class ReplayProcessor(multiprocessing.Process):
                 - output_dir (:obj:'string'): path to save data
         '''
         super(ReplayProcessor, self).__init__()
-        assert(output_dir is not None)
+        assert (output_dir is not None)
         self.run_config = run_config
         self.output_dir = output_dir
         self.obs_parser = AlphastarObsParser()
         self.handles = []
         self.controllers = []
-        self.player_ids = [i+1 for i in range(2)]
+        self.player_ids = [i + 1 for i in range(2)]
         # start game and initial two game controlloers for both players, controller hanldes communication with game
         for i in self.player_ids:
             handle = self.run_config.start(want_rgb=interface.HasField("render"))
@@ -189,10 +181,9 @@ class ReplayProcessor(multiprocessing.Process):
                 # get replay data
                 replay_data, info = ret
                 # get map_size
-                self.test_controller.start_replay(sc_pb.RequestStartReplay(
-                    replay_data=replay_data,
-                    options=interface,
-                    observed_player_id=0))
+                self.test_controller.start_replay(
+                    sc_pb.RequestStartReplay(replay_data=replay_data, options=interface, observed_player_id=0)
+                )
                 map_size = self.test_controller.game_info().start_raw.map_size
                 map_size = [map_size.x, map_size.y]
                 self.test_controller.quit()
@@ -200,8 +191,7 @@ class ReplayProcessor(multiprocessing.Process):
                 meta_data_0 = self._parse_info(info, replay_path, map_size, home=0)
                 meta_data_1 = self._parse_info(info, replay_path, map_size, home=1)
                 # start replay and record step data
-                step_data, stat = self.process_replay_multi(
-                    self.controllers, replay_data, map_size, self.player_ids)
+                step_data, stat = self.process_replay_multi(self.controllers, replay_data, map_size, self.player_ids)
                 # remove repeat data
                 step_data = [remove_repeat_data(d) for d in step_data]
                 meta_data_0['step_num'] = len(step_data[0])
@@ -210,23 +200,26 @@ class ReplayProcessor(multiprocessing.Process):
                 stat_processed_0 = transform_stat(stat[0], meta_data_0)
                 stat_processed_1 = transform_stat(stat[1], meta_data_1)
                 # save data
-                name0 = '{}_{}_{}_{}'.format(meta_data_0['home_race'], meta_data_0['away_race'],
-                                             meta_data_0['home_mmr'], os.path.basename(replay_path).split('.')[0])
-                name1 = '{}_{}_{}_{}'.format(meta_data_1['home_race'], meta_data_1['away_race'],
-                                             meta_data_1['home_mmr'], os.path.basename(replay_path).split('.')[0])
-                torch.save(meta_data_0, os.path.join(self.output_dir, name0+'.meta'))
-                torch.save(step_data[0], os.path.join(self.output_dir, name0+'.step'))
-                torch.save(stat[0], os.path.join(self.output_dir, name0+'.stat'))
-                torch.save(stat_processed_0, os.path.join(self.output_dir, name0+'.stat_processed'))
-                torch.save(meta_data_1, os.path.join(self.output_dir, name1+'.meta'))
-                torch.save(step_data[1], os.path.join(self.output_dir, name1+'.step'))
-                torch.save(stat[1], os.path.join(self.output_dir, name1+'.stat'))
-                torch.save(stat_processed_1, os.path.join(self.output_dir, name1+'.stat_processed'))
+                name0 = '{}_{}_{}_{}'.format(
+                    meta_data_0['home_race'], meta_data_0['away_race'], meta_data_0['home_mmr'],
+                    os.path.basename(replay_path).split('.')[0]
+                )
+                name1 = '{}_{}_{}_{}'.format(
+                    meta_data_1['home_race'], meta_data_1['away_race'], meta_data_1['home_mmr'],
+                    os.path.basename(replay_path).split('.')[0]
+                )
+                torch.save(meta_data_0, os.path.join(self.output_dir, name0 + '.meta'))
+                torch.save(step_data[0], os.path.join(self.output_dir, name0 + '.step'))
+                torch.save(stat[0], os.path.join(self.output_dir, name0 + '.stat'))
+                torch.save(stat_processed_0, os.path.join(self.output_dir, name0 + '.stat_processed'))
+                torch.save(meta_data_1, os.path.join(self.output_dir, name1 + '.meta'))
+                torch.save(step_data[1], os.path.join(self.output_dir, name1 + '.step'))
+                torch.save(stat[1], os.path.join(self.output_dir, name1 + '.stat'))
+                torch.save(stat_processed_1, os.path.join(self.output_dir, name1 + '.stat_processed'))
                 return "success parse replay " + replay_path
             else:
                 return "invalid replay " + replay_path
-        except (protocol.ConnectionError, protocol.ProtocolError,
-                remote_controller.RequestError):
+        except (protocol.ConnectionError, protocol.ProtocolError, remote_controller.RequestError):
             raise Exception
         except KeyboardInterrupt:
             return
@@ -257,10 +250,9 @@ class ReplayProcessor(multiprocessing.Process):
         map_size_point.assign_to(interface.feature_layer.minimap_resolution)
         # start replay with specific settings in both controllers
         for controller, player_id in zip(controllers, player_ids):
-            controller.start_replay(sc_pb.RequestStartReplay(
-                replay_data=replay_data,
-                options=interface,
-                observed_player_id=player_id))
+            controller.start_replay(
+                sc_pb.RequestStartReplay(replay_data=replay_data, options=interface, observed_player_id=player_id)
+            )
             # initial features from game info
             feat = features.features_from_game_info(controller.game_info())
             feats.append(feat)
@@ -292,11 +284,15 @@ class ReplayProcessor(multiprocessing.Process):
             if isinstance(act['selected_units'], torch.Tensor):
                 units = act['selected_units'].tolist()
                 unit_types = get_unit_types(units, entity_type_dict)
-                action_statistics[action_type]['selected_type'] = action_statistics[action_type]['selected_type'].union(unit_types)  # noqa
+                action_statistics[action_type]['selected_type'] = action_statistics[action_type]['selected_type'].union(
+                    unit_types
+                )  # noqa
             if isinstance(act['target_units'], torch.Tensor):
                 units = act['target_units'].tolist()
                 unit_types = get_unit_types(units, entity_type_dict)
-                action_statistics[action_type]['target_type'] = action_statistics[action_type]['target_type'].union(unit_types)  # noqa
+                action_statistics[action_type]['target_type'] = action_statistics[action_type]['target_type'].union(
+                    unit_types
+                )  # noqa
 
         def update_cum_stat(cumulative_statistics, act):
             action_type = act['action_type'].item()
@@ -334,9 +330,16 @@ class ReplayProcessor(multiprocessing.Process):
         step = 0
         delay = [0 for _ in range(N)]
         action_count = [0 for _ in range(N)]
-        last_actions = [{'action_type': torch.LongTensor([0]), 'delay': torch.LongTensor([0]),
-                         'queued': 'none', 'selected_units': 'none', 'target_units': 'none',
-                         'target_location': 'none'} for _ in range(N)]
+        last_actions = [
+            {
+                'action_type': torch.LongTensor([0]),
+                'delay': torch.LongTensor([0]),
+                'queued': 'none',
+                'selected_units': 'none',
+                'target_units': 'none',
+                'target_location': 'none'
+            } for _ in range(N)
+        ]
         step_data = [[] for _ in range(N)]
         error_set = set()
         action_statistics = [{} for _ in range(N)]
@@ -359,6 +362,7 @@ class ReplayProcessor(multiprocessing.Process):
                     if u in raw_set:
                         i = raw_set.index(u)
                         print(u, idx, ob['entity_raw']['type'][i], s)
+
         while True:
             # 1v1 version
             t1 = time.time()
@@ -401,8 +405,9 @@ class ReplayProcessor(multiprocessing.Process):
                 agent_acts = act_parser.merge_same_id_action(agent_acts)
 
                 # select obs
-                agent_obs, agent_acts, obs_idx = self.match_obs_by_action([t[idx] for t in prev_obs_queue],
-                                                                          agent_acts, idx, step)
+                agent_obs, agent_acts, obs_idx = self.match_obs_by_action(
+                    [t[idx] for t in prev_obs_queue], agent_acts, idx, step
+                )
 
                 # save statistics and frame(all the action in actions use the same obs except last action info)
                 create_entity_dim = True
@@ -438,9 +443,15 @@ class ReplayProcessor(multiprocessing.Process):
                     last_step = last_step_data[idx]
                     last_step['actions']['delay'] = torch.LongTensor([delay[idx]])
                     step_data[idx].append(last_step)
-                return (step_data,
-                        [{'action_statistics': action_statistics[idx], 'cumulative_statistics':
-                          cumulative_statistics[idx], 'begin_statistics': begin_statistics[idx]} for idx in range(2)])
+                return (
+                    step_data, [
+                        {
+                            'action_statistics': action_statistics[idx],
+                            'cumulative_statistics': cumulative_statistics[idx],
+                            'begin_statistics': begin_statistics[idx]
+                        } for idx in range(2)
+                    ]
+                )
 
             prev_obs_queue.append(obs)
             controllers[0].step(FLAGS.step_mul)
@@ -456,9 +467,12 @@ class ReplayProcessor(multiprocessing.Process):
                 time_cost = time_end - time_start
                 time_start = time.time()
                 time_cost_total += time_cost
-                print('cost time at {} : {} / {} / {}, {} / {} / {}'
-                      .format(step, time_cost, time_cost/50.0, float(time_cost_total)/step,
-                              time_item[0], time_item[1], time_item[2]))
+                print(
+                    'cost time at {} : {} / {} / {}, {} / {} / {}'.format(
+                        step, time_cost, time_cost / 50.0,
+                        float(time_cost_total) / step, time_item[0], time_item[1], time_item[2]
+                    )
+                )
                 time_item = [0, 0, 0, 0, 0]
 
     def match_obs_by_action(self, prev_obs_queue, actions, act_idx, step):
@@ -473,21 +487,22 @@ class ReplayProcessor(multiprocessing.Process):
                 units_set = set(units)
                 obs_units_set = set(obs['entity_raw']['id'])
                 return units_set, obs_units_set
+
             selected_units = act['selected_units']
             target_units = act['target_units']
             if isinstance(selected_units, torch.Tensor):
                 units = selected_units.tolist()
                 if not judge(units):
                     a, o = get_mismatch_info(units)
-                    diff = a-o
+                    diff = a - o
                     print('mismatch info({}): {}, {}, {}, {}'.format('selected_units', a, diff, act_idx, step))
                     return False, list(diff)
             if isinstance(target_units, torch.Tensor):
                 units = target_units.tolist()
                 if not judge(units):
                     a, o = get_mismatch_info(units)
-                    diff = a-o
-                    print('mismatch info({}): {}, {}, {}, {}'.format('target_units', a, a-o, act_idx, step))
+                    diff = a - o
+                    print('mismatch info({}): {}, {}, {}, {}'.format('target_units', a, a - o, act_idx, step))
                     return False, None  # diff only in selected_units
             return True, None
 
@@ -595,7 +610,7 @@ def main_multi(unused_argv):
         sys.exit("{} doesn't exist.".format(FLAGS.replays))
 
     def log_func(s, idx):
-        return s + '\n{}\t'.format(idx) + '-'*60 + '\n'
+        return s + '\n{}\t'.format(idx) + '-' * 60 + '\n'
 
     def combine_msg(msg):
         msg = list(zip(*msg))
@@ -614,7 +629,7 @@ def main_multi(unused_argv):
     group_num = int(len(replay_list) // N)
     print('total len: {}, group: {}, each group: {}'.format(len(replay_list), N, group_num))
     # ISSUE(zh) splited group number doesn't match pool
-    replay_split_list = [replay_list[i*group_num:(i+1)*group_num] for i in range(group_num)]
+    replay_split_list = [replay_list[i * group_num:(i + 1) * group_num] for i in range(group_num)]
     func = partial(replay_decode, version=version)
     ret = pool.map(func, replay_split_list)
     success_msg, error_msg = combine_msg(ret)
@@ -636,7 +651,7 @@ def main_multi_list(unused_argv):
     #     sys.exit("{} doesn't exist.".format(FLAGS.replays))
 
     def log_func(s, idx):
-        return s + '\n{}\t'.format(idx) + '-'*60 + '\n'
+        return s + '\n{}\t'.format(idx) + '-' * 60 + '\n'
 
     def combine_msg(msg):
         msg = list(zip(*msg))
@@ -655,7 +670,7 @@ def main_multi_list(unused_argv):
     group_num = int(len(replay_list) // N)
     print('total len: {}, group: {}, each group: {}'.format(len(replay_list), N, group_num))
     # ISSUE(zh) splited group number doesn't match pool
-    replay_split_list = [replay_list[i*group_num:(i+1)*group_num] for i in range(group_num)]
+    replay_split_list = [replay_list[i * group_num:(i + 1) * group_num] for i in range(group_num)]
     func = partial(replay_decode, version=version)
     ret = pool.map(func, replay_split_list)
     success_msg, error_msg = combine_msg(ret)

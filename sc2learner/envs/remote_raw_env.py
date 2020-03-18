@@ -11,17 +11,10 @@ from sc2learner.envs.spaces.pysc2_raw import PySC2RawObservation
 
 
 class RemoteSC2RawEnv(gym.Env):
-
-    def __init__(self,
-                 host,
-                 host_port,
-                 lan_port,
-                 agent_race,
-                 step_mul=8,
-                 resolution=32,
-                 visualize_feature_map=False):
+    def __init__(self, host, host_port, lan_port, agent_race, step_mul=8, resolution=32, visualize_feature_map=False):
         agent_interface_format = sc2_env.parse_agent_interface_format(
-            feature_screen=resolution, feature_minimap=resolution)
+            feature_screen=resolution, feature_minimap=resolution
+        )
         self._sc2_env = remote_sc2_env.RemoteSC2Env(
             host=host,
             host_port=host_port,
@@ -29,7 +22,8 @@ class RemoteSC2RawEnv(gym.Env):
             race=sc2_env.Race[agent_race],
             step_mul=step_mul,
             agent_interface_format=agent_interface_format,
-            visualize=visualize_feature_map)
+            visualize=visualize_feature_map
+        )
         self.observation_space = PySC2RawObservation(self._sc2_env.observation_spec)
         self.action_space = PySC2RawAction()
         self._reseted = False

@@ -8,15 +8,15 @@ class ResBlock(nn.Module):
     '''
     Residual Block with conv2d_block
     '''
-    def __init__(self, in_channels, out_channels, kernel_size, stride, padding,
-                 activation=nn.ReLU(), norm_type='BN'):
+    def __init__(self, in_channels, out_channels, kernel_size, stride, padding, activation=nn.ReLU(), norm_type='BN'):
         super(ResBlock, self).__init__()
-        assert(stride == 1)
-        assert(in_channels == out_channels)
+        assert (stride == 1)
+        assert (in_channels == out_channels)
         self.act = activation
         self.conv1 = conv2d_block(in_channels, out_channels, 1, 1, 0, activation=self.act, norm_type=norm_type)
-        self.conv2 = conv2d_block(out_channels, out_channels, kernel_size, stride,
-                                  padding, activation=self.act, norm_type=norm_type)
+        self.conv2 = conv2d_block(
+            out_channels, out_channels, kernel_size, stride, padding, activation=self.act, norm_type=norm_type
+        )
         self.conv3 = conv2d_block(out_channels, out_channels, 1, 1, 0, activation=None, norm_type=norm_type)
 
     def forward(self, x):
@@ -36,7 +36,7 @@ class ResFCBlock(nn.Module):
     '''
     def __init__(self, in_channels, out_channels, activation=nn.ReLU(), norm_type='BN'):
         super(ResFCBlock, self).__init__()
-        assert(in_channels == out_channels)
+        assert (in_channels == out_channels)
         self.act = activation
         self.fc1 = fc_block(in_channels, out_channels, activation=self.act, norm_type=norm_type)
         self.fc2 = fc_block(out_channels, out_channels, activation=None, norm_type=norm_type)

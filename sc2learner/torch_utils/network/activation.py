@@ -5,7 +5,7 @@ import torch.nn as nn
 class GLU(nn.Module):
     def __init__(self, input_dim, output_dim, context_dim, input_type='fc'):
         super(GLU, self).__init__()
-        assert(input_type in ['fc', 'conv2d'])
+        assert (input_type in ['fc', 'conv2d'])
         if input_type == 'fc':
             self.layer1 = nn.Linear(context_dim, input_dim)
             self.layer2 = nn.Linear(input_dim, output_dim)
@@ -22,10 +22,7 @@ class GLU(nn.Module):
 
 
 def build_activation(activation):
-    act_func = {
-        'relu': nn.ReLU(inplace=False),
-        'glu': GLU
-    }
+    act_func = {'relu': nn.ReLU(inplace=False), 'glu': GLU}
     if activation in act_func.keys():
         return act_func[activation]
     else:

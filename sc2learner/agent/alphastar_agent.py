@@ -33,7 +33,6 @@ class BaseAgent:
 
 
 class AlphaStarAgent(BaseAgent):
-
     def __init__(self, cfg, build_model, use_cuda, use_distributed):
         self.cfg = cfg
         self.num_concurrent_episodes = cfg.data.train.batch_size

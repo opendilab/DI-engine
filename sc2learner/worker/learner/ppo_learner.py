@@ -24,15 +24,13 @@ class PpoLearner(BaseLearner):
         self.entropy_coeff = self.cfg.train.entropy_coeff
         self.value_coeff = self.cfg.train.value_coeff
         self.clip_range_scheduler = build_clip_range_scheduler(self.cfg)
-        self.dataloader = OnlineDataLoader(self.dataset, self.cfg.train.batch_size,
-                                           collate_fn=unroll_split_collate_fn)
+        self.dataloader = OnlineDataLoader(self.dataset, self.cfg.train.batch_size, collate_fn=unroll_split_collate_fn)
         self.enable_save_data = self.cfg.train.enable_save_data
         # TODO add mutex to synchronize count behaviour(multi thread pull data)
         self.data_count = 0
         if self.cfg.common.data_load_path != '':
             # 560 data 20 second
-            self.dataset.load_data(
-                self.cfg.common.data_load_path, ratio=self.unroll_split)
+            self.dataset.load_data(self.cfg.common.data_load_path, ratio=self.unroll_split)
         self._get_loss = self.time_helper.wrapper(self._get_loss)
 
     # overwrite
@@ -55,8 +53,9 @@ class PpoLearner(BaseLearner):
     # overwrite
     def _parse_pull_data(self, data):
         # TODO (speed and memory copy optimization)
-        keys = ['obs', 'return', 'done', 'action', 'value', 'neglogp',
-                'state', 'episode_infos', 'model_index', 'actor_id']
+        keys = [
+            'obs', 'return', 'done', 'action', 'value', 'neglogp', 'state', 'episode_infos', 'model_index', 'actor_id'
+        ]
         if self.model.use_mask:
             keys.append('mask')
         temp_dict = {}
@@ -78,16 +77,14 @@ class PpoLearner(BaseLearner):
             item = {k: v[i] for k, v in temp_dict.items()}
             self.dataset.push_data(item)
             if self.enable_save_data:
-                self.checkpoint_helper.save_data(
-                    'split_item_{}'.format(self.data_count), item, device='cpu')
+                self.checkpoint_helper.save_data('split_item_{}'.format(self.data_count), item, device='cpu')
                 self.data_count += 1
 
     # overwrite
     def _get_loss(self, data):
         clip_range = self.clip_range_scheduler.step()
         obs, actions, returns, neglogps, values, dones, states = (
-            data['obs'], data['action'], data['return'], data['neglogp'],
-            data['value'], data['done'], data['state']
+            data['obs'], data['action'], data['return'], data['neglogp'], data['value'], data['done'], data['state']
         )
 
         inputs = {}
@@ -98,9 +95,7 @@ class PpoLearner(BaseLearner):
         if self.model.use_mask:
             inputs['mask'] = data['mask']
         outputs = self.model(inputs, mode='evaluate')
-        new_values, new_neglogp, entropy = (
-            outputs['value'], outputs['neglogp'], outputs['entropy']
-        )
+        new_values, new_neglogp, entropy = (outputs['value'], outputs['neglogp'], outputs['entropy'])
 
         new_values_clipped = values + torch.clamp(new_values - values, -clip_range, clip_range)
         value_loss1 = torch.pow(new_values - returns, 2)

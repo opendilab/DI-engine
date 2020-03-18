@@ -59,6 +59,5 @@ def unroll_split_collate_fn(*args, collate_fn=_utils.collate.default_collate, **
                 else:
                     new_result[k] = v
             else:
-                print('WARNING: item {} of type {} in data discarded'.format(
-                    k, str(type(v))))
+                print('WARNING: item {} of type {} in data discarded'.format(k, str(type(v))))
     return new_result

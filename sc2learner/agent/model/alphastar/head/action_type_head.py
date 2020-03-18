@@ -17,7 +17,6 @@ class ActionTypeHead(nn.Module):
                   action_type_logits, action_type and its autoregressive_embedding.
         Interface: __init__, forward
     '''
-
     def __init__(self, cfg):
         '''
             Overview: initialize architect.

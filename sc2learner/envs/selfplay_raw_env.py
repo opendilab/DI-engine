@@ -9,7 +9,6 @@ from sc2learner.envs.spaces.pysc2_raw import PySC2RawAction
 from sc2learner.envs.spaces.pysc2_raw import PySC2RawObservation
 from sc2learner.utils.utils import tprint
 
-
 DIFFICULTIES = {
     "1": sc2_env.Difficulty.very_easy,
     "2": sc2_env.Difficulty.easy,
@@ -25,18 +24,19 @@ DIFFICULTIES = {
 
 
 class SC2SelfplayRawEnv(gym.Env):
-
-    def __init__(self,
-                 map_name,
-                 step_mul=8,
-                 resolution=32,
-                 disable_fog=False,
-                 agent_race='random',
-                 opponent_race='random',
-                 game_steps_per_episode=None,
-                 tie_to_lose=False,
-                 score_index=None,
-                 random_seed=None):
+    def __init__(
+        self,
+        map_name,
+        step_mul=8,
+        resolution=32,
+        disable_fog=False,
+        agent_race='random',
+        opponent_race='random',
+        game_steps_per_episode=None,
+        tie_to_lose=False,
+        score_index=None,
+        random_seed=None
+    ):
         self._map_name = map_name
         self._step_mul = step_mul
         self._resolution = resolution
@@ -94,10 +94,10 @@ class SC2SelfplayRawEnv(gym.Env):
 
     def _create_env(self):
         self._random_seed = (self._random_seed + 11) & 0xFFFFFFFF
-        players = [sc2_env.Agent(sc2_env.Race[self._agent_race]),
-                   sc2_env.Agent(sc2_env.Race[self._opponent_race])]
+        players = [sc2_env.Agent(sc2_env.Race[self._agent_race]), sc2_env.Agent(sc2_env.Race[self._opponent_race])]
         agent_interface_format = sc2_env.parse_agent_interface_format(
-            feature_screen=self._resolution, feature_minimap=self._resolution)
+            feature_screen=self._resolution, feature_minimap=self._resolution
+        )
         tprint("Creating game with seed %d." % self._random_seed)
         return sc2_env.SC2Env(
             map_name=self._map_name,
@@ -108,7 +108,8 @@ class SC2SelfplayRawEnv(gym.Env):
             game_steps_per_episode=self._game_steps_per_episode,
             visualize=False,
             score_index=self._score_index,
-            random_seed=self._random_seed)
+            random_seed=self._random_seed
+        )
 
     def _safe_create_env(self, max_retry=10):
         for _ in range(max_retry - 1):

@@ -11,10 +11,10 @@ from sc2learner.envs import get_available_actions_processed_data
 
 
 class AlphastarEnv(SC2Env):
-
     def __init__(self, cfg):
         agent_interface_format = sc2_env.parse_agent_interface_format(
-                feature_screen=cfg.env.screen_resolution, feature_minimap=cfg.env.map_size)
+            feature_screen=cfg.env.screen_resolution, feature_minimap=cfg.env.map_size
+        )
         players = [
             sc2_env.Agent(sc2_env.Race[cfg.env.home_race]),
             sc2_env.Bot(sc2_env.Race[cfg.env.away_race], cfg.env.difficulty),
@@ -70,8 +70,8 @@ class AlphastarEnv(SC2Env):
         last_queued = last_queued if isinstance(last_queued, torch.Tensor) else torch.LongTensor([2])  # 2 as 'none'
         obs['scalar_info']['last_delay'] = self.template_act[0]['op'](torch.LongTensor([last_delay])).squeeze()
         obs['scalar_info']['last_queued'] = self.template_act[1]['op'](torch.LongTensor([last_queued])).squeeze()
-        obs['scalar_info']['last_action_type'] = self.template_act[2]['op'](
-            torch.LongTensor([last_action_type])).squeeze()
+        obs['scalar_info']['last_action_type'] = self.template_act[2]['op'](torch.LongTensor([last_action_type])
+                                                                            ).squeeze()
 
         N = obs['entity_info'].shape[0]
         if obs['entity_info'] is None:
@@ -131,7 +131,7 @@ class AlphastarEnv(SC2Env):
         return FunctionCall.init_with_validation(action_type, args, raw=True), delay
 
     def step(self, actions):
-        assert(self._reset_flag)
+        assert (self._reset_flag)
         last_actions = actions
         transformed_actions, delay = self._get_action(actions)
         timestep = super().step([transformed_actions], step_mul=delay)[0]
@@ -147,7 +147,13 @@ class AlphastarEnv(SC2Env):
         self.map_size = info.start_raw.map_size
         self.map_size = (self.map_size.x, self.map_size.y)
         self._reset_flag = True
-        last_actions = {'action_type': 0, 'delay': 0, 'queued': None,
-                        'selected_units': None, 'target_units': None, 'target_location': None}
+        last_actions = {
+            'action_type': 0,
+            'delay': 0,
+            'queued': None,
+            'selected_units': None,
+            'target_units': None,
+            'target_location': None
+        }
         obs = self._get_obs(obs, last_actions)
         return obs

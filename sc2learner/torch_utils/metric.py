@@ -12,10 +12,10 @@ def levenshtein_distance(pred, target):
         - (:obj:`torch.LongTensor`) distance(scalar), shape[1]
     Note: N1 >= 0, N2 >= 0
     '''
-    assert(isinstance(pred, torch.LongTensor) and isinstance(target, torch.LongTensor))
-    assert(pred.device == target.device)
+    assert (isinstance(pred, torch.LongTensor) and isinstance(target, torch.LongTensor))
+    assert (pred.device == target.device)
     N1, N2 = pred.shape[0], target.shape[0]
-    assert(N1 >= 0 and N2 >= 0)
+    assert (N1 >= 0 and N2 >= 0)
     if N1 == 0 or N2 == 0:
         distance = max(N1, N2)
     else:
@@ -25,10 +25,10 @@ def levenshtein_distance(pred, target):
         for i in range(1, N1):
             for j in range(1, N2):
                 if pred[i] == target[j]:
-                    dp_array[i, j] = dp_array[i-1, j-1]
+                    dp_array[i, j] = dp_array[i - 1, j - 1]
                 else:
-                    dp_array[i, j] = min(dp_array[i-1, j]+1, dp_array[i, j-1]+1, dp_array[i-1, j-1]+1)
-        distance = dp_array[N1-1, N2-1]
+                    dp_array[i, j] = min(dp_array[i - 1, j] + 1, dp_array[i, j - 1] + 1, dp_array[i - 1, j - 1] + 1)
+        distance = dp_array[N1 - 1, N2 - 1]
     return torch.LongTensor([distance]).to(pred.device)
 
 
@@ -42,9 +42,9 @@ def hamming_distance(pred, target):
         - (:obj:`torch.LongTensor`) distance(scalar), shape[1]
     Note: pred, target are also boolean vector(0 or 1)
     '''
-    assert(isinstance(pred, torch.LongTensor) and isinstance(target, torch.LongTensor))
-    assert(pred.device == target.device)
-    assert(pred.shape == target.shape)
+    assert (isinstance(pred, torch.LongTensor) and isinstance(target, torch.LongTensor))
+    assert (pred.device == target.device)
+    assert (pred.shape == target.shape)
     return pred.ne(target).sum()
 
 
@@ -52,15 +52,15 @@ def test_levenshtein_distance():
     pred = torch.LongTensor([1, 4, 6, 4, 1])
     target1 = torch.LongTensor([1, 6, 4, 4, 1])
     distance = levenshtein_distance(pred, target1)
-    assert(distance.item() == 2)
+    assert (distance.item() == 2)
 
     target2 = torch.LongTensor([])
     distance = levenshtein_distance(pred, target2)
-    assert(distance.item() == 5)
+    assert (distance.item() == 5)
 
     target3 = torch.LongTensor([6, 4, 1])
     distance = levenshtein_distance(pred, target3)
-    assert(distance.item() == 2)
+    assert (distance.item() == 2)
     print('test_levenshtein_distance pass')
 
 
@@ -76,7 +76,7 @@ def test_hamming_distance():
         target[target_idx] = 1
         distance = hamming_distance(pred, target)
         diff = len(set(pred_idx).union(set(target_idx)) - set(pred_idx).intersection(set(target_idx)))
-        assert(distance.item() == diff)
+        assert (distance.item() == diff)
     print('test_hamming_distance pass')
 
 

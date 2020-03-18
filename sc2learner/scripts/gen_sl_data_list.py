@@ -11,15 +11,24 @@ import torch
 from sc2learner.utils import read_file_ceph
 
 
-def generate_sl_data_list(replay_list, output_dir,
-                          min_mmr=0, home_race=None, away_race=None,
-                          trajectory_len=64, target_map=None, train_ratio=0.95):
+def generate_sl_data_list(
+    replay_list,
+    output_dir,
+    min_mmr=0,
+    home_race=None,
+    away_race=None,
+    trajectory_len=64,
+    target_map=None,
+    train_ratio=0.95
+):
     race_list = ['Protoss', 'Terran', 'Zerg']
-    map_list = ['Kairos Junction LE', 'New Repugnancy LE', 'Cyber Forest LE', "King's Cove LE", "Turbo Cruise '84 LE",
-                'Thunderbird LE', 'Acropolis LE']
-    assert(home_race is None or home_race in race_list)
-    assert(away_race is None or away_race in race_list)
-    assert(target_map is None or target_map in map_list)
+    map_list = [
+        'Kairos Junction LE', 'New Repugnancy LE', 'Cyber Forest LE', "King's Cove LE", "Turbo Cruise '84 LE",
+        'Thunderbird LE', 'Acropolis LE'
+    ]
+    assert (home_race is None or home_race in race_list)
+    assert (away_race is None or away_race in race_list)
+    assert (target_map is None or target_map in map_list)
     with open(replay_list, 'r') as f:
         data = f.readlines()
 
@@ -38,7 +47,7 @@ def generate_sl_data_list(replay_list, output_dir,
     selected_replay = []
     map_set = set()
     for idx, item in enumerate(valid_replay):
-        meta_item = item+'.meta'
+        meta_item = item + '.meta'
         try:
             meta_item = read_file_ceph(meta_item)
         except Exception as e:
@@ -63,12 +72,13 @@ def generate_sl_data_list(replay_list, output_dir,
     random.shuffle(selected_replay)
     num = int(len(selected_replay) * train_ratio)
     train = selected_replay[:num]
-    train = [t+'\n' for t in train]
+    train = [t + '\n' for t in train]
     val = selected_replay[num:]
-    val = [t+'\n' for t in val]
+    val = [t + '\n' for t in val]
 
     def remove_space(s):
         return s.replace(" ", "") if s is not None else s
+
     prefix = '{}_{}_{}_{}'.format(home_race, away_race, remove_space(target_map), min_mmr)
     output_name = prefix + '_train_{}.txt'.format(len(train))
 
@@ -96,7 +106,5 @@ min_mmr = 3500
 replay_list = '/mnt/lustre/zhangming/data/ceph.upload.410.clean.list'
 output_dir = '.'
 
-
 if __name__ == "__main__":
-    generate_sl_data_list(replay_list, output_dir, min_mmr, home_race,
-                          away_race, trajectory_len, target_map)
+    generate_sl_data_list(replay_list, output_dir, min_mmr, home_race, away_race, trajectory_len, target_map)

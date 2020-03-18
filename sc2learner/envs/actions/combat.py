@@ -15,12 +15,10 @@ from sc2learner.envs.common.const import ATTACK_FORCE
 from sc2learner.envs.common.const import ALLY_TYPE
 from sc2learner.envs.common.const import PRIORITIZED_ATTACK
 
-
 Region = namedtuple('Region', ('ranges', 'rally_point_a', 'rally_point_b'))
 
 
 class CombatActions(object):
-
     def __init__(self):
         self._regions = [
             Region([(0, 0, 200, 176)], (161.5, 21.5), (38.5, 122.5)),
@@ -45,8 +43,7 @@ class CombatActions(object):
         assert source_region_id < len(self._regions)
         assert target_region_id < len(self._regions)
         return Function(
-            name=("combats_in_region_%d_attack_region_%d" %
-                  (source_region_id, target_region_id)),
+            name=("combats_in_region_%d_attack_region_%d" % (source_region_id, target_region_id)),
             function=self._attack_region(source_region_id, target_region_id),
             is_valid=self._is_valid_attack_region(source_region_id, target_region_id)
         )
@@ -57,18 +54,19 @@ class CombatActions(object):
 
     @property
     def action_rally_new_combat_units(self):
-        return Function(name="rally_new_combat_units",
-                        function=self._rally_new_combat_units,
-                        is_valid=self._is_valid_rally_new_combat_units)
+        return Function(
+            name="rally_new_combat_units",
+            function=self._rally_new_combat_units,
+            is_valid=self._is_valid_rally_new_combat_units
+        )
 
     @property
     def action_framewise_rally_and_attack(self):
-        return Function(name="framewise_rally_and_attack",
-                        function=self._framewise_rally_and_attack,
-                        is_valid=lambda dc: True)
+        return Function(
+            name="framewise_rally_and_attack", function=self._framewise_rally_and_attack, is_valid=lambda dc: True
+        )
 
     def _attack_region(self, source_region_id, target_region_id):
-
         def act(dc):
             flip = True if self._player_position(dc) == 0 else False
             src_id = self._flip_region(source_region_id) if flip else source_region_id
@@ -80,7 +78,6 @@ class CombatActions(object):
         return act
 
     def _is_valid_attack_region(self, source_region_id, target_region_id):
-
         def is_valid(dc):
             flip = True if self._player_position(dc) == 0 else False
             src_id = self._flip_region(source_region_id) if flip else source_region_id
@@ -107,17 +104,15 @@ class CombatActions(object):
     def _framewise_rally_and_attack(self, dc):
         actions = []
         for region_id in range(len(self._regions)):
-            units_with_task = [u for u in dc.combat_units
-                               if (u.tag in self._attack_tasks and
-                                   self._attack_tasks[u.tag] == region_id)]
+            units_with_task = [
+                u for u in dc.combat_units if (u.tag in self._attack_tasks and self._attack_tasks[u.tag] == region_id)
+            ]
             if len(units_with_task) > 0:
                 target_enemies = [
-                    u for u in dc.units_of_alliance(ALLY_TYPE.ENEMY.value)
-                    if self._is_in_region(u, region_id)
+                    u for u in dc.units_of_alliance(ALLY_TYPE.ENEMY.value) if self._is_in_region(u, region_id)
                 ]
                 if len(target_enemies) > 0:
-                    actions.extend(
-                        self._micro_attack(units_with_task, target_enemies, dc))
+                    actions.extend(self._micro_attack(units_with_task, target_enemies, dc))
                 else:
                     if self._player_position(dc) == 0:
                         rally_point = self._regions[region_id].rally_point_a
@@ -127,17 +122,14 @@ class CombatActions(object):
         return actions
 
     def _micro_attack(self, combat_units, enemy_units, dc):
-
         def prioritized_attack(unit, target_units):
             assert len(target_units) > 0
-            prioritized_target_units = [u for u in target_units
-                                        if u.unit_type in PRIORITIZED_ATTACK]
+            prioritized_target_units = [u for u in target_units if u.unit_type in PRIORITIZED_ATTACK]
             if len(prioritized_target_units) > 0:
                 closest_target = utils.closest_unit(unit, prioritized_target_units)
             else:
                 closest_target = utils.closest_unit(unit, target_units)
-            target_pos = (closest_target.float_attr.pos_x,
-                          closest_target.float_attr.pos_y)
+            target_pos = (closest_target.float_attr.pos_x, closest_target.float_attr.pos_y)
             return self._unit_attack(unit, target_pos, dc)
 
         def flee_or_fight(unit, target_units):
@@ -145,34 +137,27 @@ class CombatActions(object):
             closest_target = utils.closest_unit(unit, target_units)
             closest_dist = utils.closest_distance(unit, enemy_units)
             strongest_health = utils.strongest_health(combat_units)
-            if (closest_dist < 5.0 and
-                unit.float_attr.health / unit.float_attr.health_max < 0.3 and
-                    strongest_health > 0.9):
-                x = unit.float_attr.pos_x + (unit.float_attr.pos_x -
-                                             closest_target.float_attr.pos_x) * 0.2
-                y = unit.float_attr.pos_y + (unit.float_attr.pos_y -
-                                             closest_target.float_attr.pos_y) * 0.2
+            if (closest_dist < 5.0 and unit.float_attr.health / unit.float_attr.health_max < 0.3
+                    and strongest_health > 0.9):
+                x = unit.float_attr.pos_x + (unit.float_attr.pos_x - closest_target.float_attr.pos_x) * 0.2
+                y = unit.float_attr.pos_y + (unit.float_attr.pos_y - closest_target.float_attr.pos_y) * 0.2
                 target_pos = (x, y)
                 return self._unit_move(unit, target_pos, dc)
             else:
-                target_pos = (closest_target.float_attr.pos_x,
-                              closest_target.float_attr.pos_y)
+                target_pos = (closest_target.float_attr.pos_x, closest_target.float_attr.pos_y)
                 return self._unit_attack(unit, target_pos, dc)
 
         air_combat_units = [
             u for u in combat_units
-            if (ATTACK_FORCE[u.unit_type].can_attack_air and
-                not ATTACK_FORCE[u.unit_type].can_attack_ground)
+            if (ATTACK_FORCE[u.unit_type].can_attack_air and not ATTACK_FORCE[u.unit_type].can_attack_ground)
         ]
         ground_combat_units = [
             u for u in combat_units
-            if (not ATTACK_FORCE[u.unit_type].can_attack_air and
-                ATTACK_FORCE[u.unit_type].can_attack_ground)
+            if (not ATTACK_FORCE[u.unit_type].can_attack_air and ATTACK_FORCE[u.unit_type].can_attack_ground)
         ]
         air_ground_combat_units = [
             u for u in combat_units
-            if (ATTACK_FORCE[u.unit_type].can_attack_air and
-                ATTACK_FORCE[u.unit_type].can_attack_ground)
+            if (ATTACK_FORCE[u.unit_type].can_attack_air and ATTACK_FORCE[u.unit_type].can_attack_ground)
         ]
         air_enemy_units = [u for u in enemy_units if u.bool_attr.is_flying]
         ground_enemy_units = [u for u in enemy_units if not u.bool_attr.is_flying]
@@ -199,10 +184,10 @@ class CombatActions(object):
         if unit.unit_type == UNIT_TYPE.ZERG_RAVAGER.value:
             return self._ravager_unit_attack(unit, target_pos, dc)
         # elif (unit.unit_type == UNIT_TYPE.ZERG_ROACH.value or
-            # unit.unit_type == UNIT_TYPE.ZERG_ROACHBURROWED.value):
-            # return self._roach_unit_attack(unit, target_pos, dc)
-        elif (unit.unit_type == UNIT_TYPE.ZERG_LURKERMP.value or
-              unit.unit_type == UNIT_TYPE.ZERG_LURKERMPBURROWED.value):
+        # unit.unit_type == UNIT_TYPE.ZERG_ROACHBURROWED.value):
+        # return self._roach_unit_attack(unit, target_pos, dc)
+        elif (unit.unit_type == UNIT_TYPE.ZERG_LURKERMP.value
+              or unit.unit_type == UNIT_TYPE.ZERG_LURKERMPBURROWED.value):
             return self._lurker_unit_attack(unit, target_pos, dc)
         else:
             return self._normal_unit_attack(unit, target_pos)
@@ -212,7 +197,7 @@ class CombatActions(object):
         if unit.unit_type == UNIT_TYPE.ZERG_LURKERMPBURROWED.value:
             return self._lurker_unit_move(unit, target_pos)
         # elif unit.unit_type == UNIT_TYPE.ZERG_ROACHBURROWED.value:
-            # return self._roach_unit_move(unit, target_pos, dc)
+        # return self._roach_unit_move(unit, target_pos, dc)
         else:
             return self._normal_unit_move(unit, target_pos)
 
@@ -234,8 +219,7 @@ class CombatActions(object):
 
     def _roach_unit_attack(self, unit, target_pos, dc):
         actions = []
-        ground_enemies = [u for u in dc.units_of_alliance(ALLY_TYPE.ENEMY.value)
-                          if not u.bool_attr.is_flying]
+        ground_enemies = [u for u in dc.units_of_alliance(ALLY_TYPE.ENEMY.value) if not u.bool_attr.is_flying]
         if len(utils.units_nearby(unit, ground_enemies, max_distance=4)) > 0:
             if unit.unit_type == UNIT_TYPE.ZERG_ROACHBURROWED.value:
                 action = sc_pb.Action()
@@ -249,9 +233,8 @@ class CombatActions(object):
 
     def _roach_unit_move(self, unit, target_pos, dc):
         actions = []
-        if (UPGRADE.TUNNELINGCLAWS.value in dc.upgraded_techs and
-            UPGRADE.BURROW.value in dc.upgraded_techs and
-                unit.unit_type == UNIT_TYPE.ZERG_ROACH.value):
+        if (UPGRADE.TUNNELINGCLAWS.value in dc.upgraded_techs and UPGRADE.BURROW.value in dc.upgraded_techs
+                and unit.unit_type == UNIT_TYPE.ZERG_ROACH.value):
             action = sc_pb.Action()
             action.action_raw.unit_command.unit_tags.append(unit.tag)
             action.action_raw.unit_command.ability_id = ABILITY.BURROWDOWN_ROACH.value
@@ -261,8 +244,7 @@ class CombatActions(object):
 
     def _lurker_unit_attack(self, unit, target_pos, dc):
         actions = []
-        ground_enemies = [u for u in dc.units_of_alliance(ALLY_TYPE.ENEMY.value)
-                          if not u.bool_attr.is_flying]
+        ground_enemies = [u for u in dc.units_of_alliance(ALLY_TYPE.ENEMY.value) if not u.bool_attr.is_flying]
         if len(utils.units_nearby(unit, ground_enemies, max_distance=8)) > 0:
             if unit.unit_type == UNIT_TYPE.ZERG_LURKERMP.value:
                 action = sc_pb.Action()
@@ -286,8 +268,7 @@ class CombatActions(object):
 
     def _ravager_unit_attack(self, unit, target_pos, dc):
         actions = []
-        ground_units = [u for u in dc.units_of_alliance(ALLY_TYPE.SELF.value)
-                        if not u.bool_attr.is_flying]
+        ground_units = [u for u in dc.units_of_alliance(ALLY_TYPE.SELF.value) if not u.bool_attr.is_flying]
         if len(utils.units_nearby(target_pos, ground_units, max_distance=2)) == 0:
             action = sc_pb.Action()
             action.action_raw.unit_command.unit_tags.append(unit.tag)
@@ -304,11 +285,14 @@ class CombatActions(object):
             self._attack_tasks[u.tag] = target_region_id
 
     def _is_in_region(self, unit, region_id):
-        return any([(unit.float_attr.pos_x >= r[0] and
-                     unit.float_attr.pos_x < r[2] and
-                     unit.float_attr.pos_y >= r[1] and
-                     unit.float_attr.pos_y < r[3])
-                    for r in self._regions[region_id].ranges])
+        return any(
+            [
+                (
+                    unit.float_attr.pos_x >= r[0] and unit.float_attr.pos_x < r[2] and unit.float_attr.pos_y >= r[1]
+                    and unit.float_attr.pos_y < r[3]
+                ) for r in self._regions[region_id].ranges
+            ]
+        )
 
     def _player_position(self, dc):
         if dc.init_base_pos[0] < 100:

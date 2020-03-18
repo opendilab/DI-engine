@@ -52,11 +52,8 @@ class PpoSelfplayActor(BaseActor):
             else:
                 next_nontermial = 1.0 - outputs['done'][i + 1]
                 next_values = outputs['value'][i + 1]
-            delta = (outputs['reward'][i] +
-                     self.gamma * next_values * next_nontermial -
-                     outputs['value'][i])
-            last_gae_lam = (delta +
-                            self.gamma * self.lam * next_nontermial * last_gae_lam)
+            delta = (outputs['reward'][i] + self.gamma * next_values * next_nontermial - outputs['value'][i])
+            last_gae_lam = (delta + self.gamma * self.lam * next_nontermial * last_gae_lam)
             returns[i] += last_gae_lam
         return returns
 
@@ -85,8 +82,7 @@ class PpoSelfplayActor(BaseActor):
             outputs['mask'].append(mask)
 
     def _process_model_output(self, output, outputs):
-        action, value, state, neglogp = (
-            output['action'], output['value'], output['state'], output['neglogp'])
+        action, value, state, neglogp = (output['action'], output['value'], output['state'], output['neglogp'])
         self.state = state
         action = action.squeeze(0)
         outputs['action'].append(action)

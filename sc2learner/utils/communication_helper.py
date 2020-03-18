@@ -7,7 +7,7 @@ import numpy as np
 
 
 def send_array(socket, array, flags=0, copy=True, track=False):
-    assert(isinstance(array, np.ndarray))
+    assert (isinstance(array, np.ndarray))
     md = dict(
         dtype=str(array.dtype),
         shape=array.shape,
@@ -41,7 +41,7 @@ def dict2nparray(data):
             if L == 1:
                 item = v.unsqueeze(1).numpy()
                 result.append(item)
-                json[k] = {'shape': item.shape, 'ori_shape': (B,)}
+                json[k] = {'shape': item.shape, 'ori_shape': (B, )}
             elif L == 2:
                 item = v.numpy()
                 result.append(item)
@@ -83,8 +83,8 @@ def nparray2dict(array, json):
 class ManagerBase(object):
     # Note: mainly support for multi receiver and single sender
     def __init__(self, ip, port, name):
-        assert(isinstance(ip, dict))
-        assert(isinstance(port, dict))
+        assert (isinstance(ip, dict))
+        assert (isinstance(port, dict))
         # TODO validate whether port is available
         self.ip = ip
         self.port = port
@@ -129,27 +129,31 @@ class ManagerZmq(ManagerBase):
         lock.release()
 
     def run(self, state):
-        assert(isinstance(state, dict))
+        assert (isinstance(state, dict))
         if state['sender']:
-            self.sender_thread = Thread(target=self.send_data,
-                                        args=(self.sender_context, self.ip['send'], self.port['send']))
+            self.sender_thread = Thread(
+                target=self.send_data, args=(self.sender_context, self.ip['send'], self.port['send'])
+            )
             self.sender_thread.start()
         if state['receiver']:
-            self.receiver_thread = Thread(target=self.receive_data,
-                                          args=(self.receiver_context, self.port['receive']))
+            self.receiver_thread = Thread(target=self.receive_data, args=(self.receiver_context, self.port['receive']))
             self.receiver_thread.start()
         if state['forward_request']:
-            self.request_thread = Thread(target=self.request_data,
-                                         args=(self.request_context, self.ip['send'], self.port['request']))
+            self.request_thread = Thread(
+                target=self.request_data, args=(self.request_context, self.ip['send'], self.port['request'])
+            )
             self.request_thread.start()
         if state['forward_reply']:
-            self.reply_thread = Thread(target=self.reply_data,
-                                       args=(self.reply_context, self.port['reply']))
+            self.reply_thread = Thread(target=self.reply_data, args=(self.reply_context, self.port['reply']))
             self.reply_thread.start()
         if state['relay']:
-            self.relay_thread = Thread(target=self.relay,
-                                       args=(self.cord_actor_context, self.cord_cord_context, self.port['relay_in'],
-                                             self.ip['relay'], self.port['relay_out']))
+            self.relay_thread = Thread(
+                target=self.relay,
+                args=(
+                    self.cord_actor_context, self.cord_cord_context, self.port['relay_in'], self.ip['relay'],
+                    self.port['relay_out']
+                )
+            )
 
             self.relay_thread.start()
 
@@ -163,8 +167,7 @@ class ManagerZmq(ManagerBase):
                 t1 = time.time()
                 data = receiver.recv()
                 t2 = time.time()
-                print('({})receive pyobj {} receiver time {}'.format(
-                    self.name, self.receive_data_count, t2-t1))
+                print('({})receive pyobj {} receiver time {}'.format(self.name, self.receive_data_count, t2 - t1))
                 if isinstance(data, list):
                     self.receive_queue.extend(data)
                     self.receive_data_count += len(data)
@@ -179,8 +182,7 @@ class ManagerZmq(ManagerBase):
                         print('Warning: Send queue full')
                     self.receive_queue.clear()
                 t3 = time.time()
-                print('({})receive pyobj {} append time {}'.format(
-                    self.name, self.receive_data_count, t3-t2))
+                print('({})receive pyobj {} append time {}'.format(self.name, self.receive_data_count, t3 - t2))
 
         else:
             while True:
@@ -196,8 +198,7 @@ class ManagerZmq(ManagerBase):
                     self.send_queue.extend(list(self.receive_queue))
                     self._release_lock(self.send_lock)
                     self.receive_queue.clear()
-                print('({})receive pyobj {}'.format(
-                    self.name, self.receive_data_count))
+                print('({})receive pyobj {}'.format(self.name, self.receive_data_count))
 
     def send_data(self, context, ip, port):
         sender = context.socket(zmq.PUSH)
@@ -214,12 +215,11 @@ class ManagerZmq(ManagerBase):
             t1 = time.time()
             sender.send(data)
             t2 = time.time()
-            print('({})send {} time {}'.format(
-                self.name, self.send_data_count, t2-t1))
+            print('({})send {} time {}'.format(self.name, self.send_data_count, t2 - t1))
 
     def request_data(self, context, ip, port):
         request = context.socket(zmq.DEALER)
-        request.setsockopt(zmq.RCVTIMEO, 1000*10)
+        request.setsockopt(zmq.RCVTIMEO, 1000 * 10)
         request.connect("tcp://{}:{}".format(ip, port))
         print(self.name, "tcp://{}:{}".format(ip, port))
         while True:
@@ -250,7 +250,7 @@ class ManagerZmq(ManagerBase):
         while True:
             [ident, msg] = reply.recv_multipart()
             msg = msg.decode()
-            assert(msg == req_content)
+            assert (msg == req_content)
             self._acquire_lock(self.model_lock)
             # returning the model only to the requestor
             reply.send_multipart([ident, self.state_dict])
@@ -260,7 +260,7 @@ class ManagerZmq(ManagerBase):
     def relay(self, context_actor, context_cord, listen_port, forward_ip, forward_port):
         """Relaying job requests & check ins from actors to coordinator"""
         to_coordinator = context_cord.socket(zmq.DEALER)
-        to_coordinator.setsockopt(zmq.RCVTIMEO, 1000*7)
+        to_coordinator.setsockopt(zmq.RCVTIMEO, 1000 * 7)
         to_actors = context_actor.socket(zmq.ROUTER)
         to_coordinator.connect("tcp://{}:{}".format(forward_ip, forward_port))
         to_actors.bind("tcp://*:{}".format(listen_port))

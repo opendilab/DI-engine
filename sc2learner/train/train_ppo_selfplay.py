@@ -27,7 +27,6 @@ from sc2learner.envs.observations.zerg_observation_wrappers \
 from sc2learner.envs.observations.zerg_observation_wrappers \
     import ZergPlayerObservationWrapper
 
-
 FLAGS = flags.FLAGS
 flags.DEFINE_string("job_name", "", "actor or learner")
 flags.DEFINE_string("config_path", "config.yaml", "path to config file")
@@ -37,66 +36,78 @@ flags.FLAGS(sys.argv)
 
 
 def create_env(cfg, random_seed=None):
-    env = SC2RawEnv(map_name=cfg.env.map_name,
-                    step_mul=cfg.env.step_mul,
-                    resolution=cfg.env.resolution,
-                    agent_race=cfg.env.agent_race,
-                    bot_race=cfg.env.bot_race,
-                    difficulty=cfg.env.difficulty,
-                    disable_fog=cfg.env.disable_fog,
-                    tie_to_lose=cfg.env.tie_to_lose,
-                    game_steps_per_episode=cfg.env.game_steps_per_episode,
-                    random_seed=random_seed)
-    env = ZergActionWrapper(env,
-                            game_version=cfg.env.game_version,
-                            mask=cfg.env.use_action_mask,
-                            use_all_combat_actions=cfg.env.use_all_combat_actions)
-    env = ZergObservationWrapper(env,
-                                 use_spatial_features=cfg.env.use_spatial_features,
-                                 use_game_progress=(not cfg.model.policy == 'lstm'),
-                                 action_seq_len=1 if cfg.model.policy == 'lstm' else 8,
-                                 use_regions=cfg.env.use_region_features)
+    env = SC2RawEnv(
+        map_name=cfg.env.map_name,
+        step_mul=cfg.env.step_mul,
+        resolution=cfg.env.resolution,
+        agent_race=cfg.env.agent_race,
+        bot_race=cfg.env.bot_race,
+        difficulty=cfg.env.difficulty,
+        disable_fog=cfg.env.disable_fog,
+        tie_to_lose=cfg.env.tie_to_lose,
+        game_steps_per_episode=cfg.env.game_steps_per_episode,
+        random_seed=random_seed
+    )
+    env = ZergActionWrapper(
+        env,
+        game_version=cfg.env.game_version,
+        mask=cfg.env.use_action_mask,
+        use_all_combat_actions=cfg.env.use_all_combat_actions
+    )
+    env = ZergObservationWrapper(
+        env,
+        use_spatial_features=cfg.env.use_spatial_features,
+        use_game_progress=(not cfg.model.policy == 'lstm'),
+        action_seq_len=1 if cfg.model.policy == 'lstm' else 8,
+        use_regions=cfg.env.use_region_features
+    )
     print(env.observation_space, env.action_space)
     return env
 
 
 def create_selfplay_env(cfg, random_seed=None):
-    env = SC2SelfplayRawEnv(map_name=cfg.env.map_name,
-                            step_mul=cfg.env.step_mul,
-                            resolution=cfg.env.resolution,
-                            agent_race=cfg.env.agent_race,
-                            opponent_race=cfg.env.opponent_race,
-                            tie_to_lose=cfg.env.tie_to_lose,
-                            disable_fog=cfg.disable_fog,
-                            game_steps_per_episode=cfg.env.game_steps_per_episode,
-                            random_seed=random_seed)
+    env = SC2SelfplayRawEnv(
+        map_name=cfg.env.map_name,
+        step_mul=cfg.env.step_mul,
+        resolution=cfg.env.resolution,
+        agent_race=cfg.env.agent_race,
+        opponent_race=cfg.env.opponent_race,
+        tie_to_lose=cfg.env.tie_to_lose,
+        disable_fog=cfg.disable_fog,
+        game_steps_per_episode=cfg.env.game_steps_per_episode,
+        random_seed=random_seed
+    )
     env = ZergPlayerActionWrapper(
         player=0,
         env=env,
         game_version=cfg.env.game_version,
         mask=cfg.env.use_action_mask,
-        use_all_combat_actions=cfg.env.use_all_combat_actions)
+        use_all_combat_actions=cfg.env.use_all_combat_actions
+    )
     env = ZergPlayerObservationWrapper(
         player=0,
         env=env,
         use_spatial_features=cfg.env.use_spatial_features,
         use_game_progress=(not cfg.model.policy == 'lstm'),
         action_seq_len=1 if cfg.model.policy == 'lstm' else 8,
-        use_regions=cfg.env.use_region_features)
+        use_regions=cfg.env.use_region_features
+    )
 
     env = ZergPlayerActionWrapper(
         player=1,
         env=env,
         game_version=cfg.env.game_version,
         mask=cfg.env.use_action_mask,
-        use_all_combat_actions=cfg.env.use_all_combat_actions)
+        use_all_combat_actions=cfg.env.use_all_combat_actions
+    )
     env = ZergPlayerObservationWrapper(
         player=1,
         env=env,
         use_spatial_features=cfg.env.use_spatial_features,
         use_game_progress=(not cfg.model.policy == 'lstm'),
         action_seq_len=1 if cfg.model.policy == 'lstm' else 8,
-        use_regions=cfg.env.use_region_features)
+        use_regions=cfg.env.use_region_features
+    )
     print(env.observation_space, env.action_space)
     return env
 
@@ -106,8 +117,7 @@ def start_actor(cfg):
     game_seed = random.randint(0, 2**32 - 1)
     print("Game Seed: %d" % game_seed)
     env = create_selfplay_env(cfg, game_seed)
-    policy_func = {'mlp': PPOMLP,
-                   'lstm': PPOLSTM}
+    policy_func = {'mlp': PPOMLP, 'lstm': PPOLSTM}
     model = policy_func[cfg.model.policy](
         ob_space=env.observation_space,
         ac_space=env.action_space,
@@ -127,8 +137,7 @@ def start_actor(cfg):
 
 def start_learner(cfg):
     env = create_env(cfg, '1', 0)
-    policy_func = {'mlp': PPOMLP,
-                   'lstm': PPOLSTM}
+    policy_func = {'mlp': PPOMLP, 'lstm': PPOLSTM}
     model = policy_func[cfg.model.policy](
         ob_space=env.observation_space,
         ac_space=env.action_space,
@@ -161,11 +170,16 @@ def start_actor_manager(cfg):
         'reply': port.actor_model,
     }
     time_interval = cfg.communication.model_time_interval
-    manager = ManagerZmq(apply_ip, apply_port, name='actor_manager', HWM=HWM,
-                         send_queue_size=send_queue_size, receive_queue_size=receive_queue_size,
-                         time_interval=time_interval)
-    manager.run({'sender': True, 'receiver': True,
-                 'forward_request': True, 'forward_reply': True})
+    manager = ManagerZmq(
+        apply_ip,
+        apply_port,
+        name='actor_manager',
+        HWM=HWM,
+        send_queue_size=send_queue_size,
+        receive_queue_size=receive_queue_size,
+        time_interval=time_interval
+    )
+    manager.run({'sender': True, 'receiver': True, 'forward_request': True, 'forward_reply': True})
 
 
 def start_learner_manager(cfg):
@@ -184,11 +198,16 @@ def start_learner_manager(cfg):
         'reply': port.actor_manager_model,
     }
     time_interval = cfg.communication.model_time_interval
-    manager = ManagerZmq(apply_ip, apply_port, name='learner_manager', HWM=HWM,
-                         send_queue_size=send_queue_size, receive_queue_size=receive_queue_size,
-                         time_interval=time_interval)
-    manager.run({'sender': True, 'receiver': True,
-                 'forward_request': True, 'forward_reply': True})
+    manager = ManagerZmq(
+        apply_ip,
+        apply_port,
+        name='learner_manager',
+        HWM=HWM,
+        send_queue_size=send_queue_size,
+        receive_queue_size=receive_queue_size,
+        time_interval=time_interval
+    )
+    manager.run({'sender': True, 'receiver': True, 'forward_request': True, 'forward_reply': True})
 
 
 def start_evaluator_against_builtin(cfg):
@@ -196,8 +215,7 @@ def start_evaluator_against_builtin(cfg):
     game_seed = random.randint(0, 2**32 - 1)
     print("Game Seed: %d" % game_seed)
     env = create_env(cfg, game_seed)
-    policy_func = {'mlp': PPOMLP,
-                   'lstm': PPOLSTM}
+    policy_func = {'mlp': PPOMLP, 'lstm': PPOLSTM}
     model = policy_func[cfg.model.policy](
         ob_space=env.observation_space,
         ac_space=env.action_space,
@@ -212,8 +230,7 @@ def start_evaluator_against_model(cfg):
     game_seed = random.randint(0, 2**32 - 1)
     print("Game Seed: %d" % game_seed)
     env = create_selfplay_env(game_seed)
-    policy_func = {'mlp': PPOMLP,
-                   'lstm': PPOLSTM}
+    policy_func = {'mlp': PPOMLP, 'lstm': PPOLSTM}
     model = policy_func[cfg.model.policy](
         ob_space=env.observation_space,
         ac_space=env.action_space,

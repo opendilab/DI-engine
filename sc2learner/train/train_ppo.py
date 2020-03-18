@@ -10,7 +10,6 @@ from absl import flags
 from absl import logging
 from absl import app
 
-
 FLAGS = flags.FLAGS
 flags.DEFINE_string("job_name", "", "actor or learner")
 flags.DEFINE_string("config_path", "config.yaml", "path to config file")
@@ -52,13 +51,9 @@ def start_learner(cfg):
             pickle.dump(action_space, ac)
     from sc2learner.agents.model import PPOLSTM, PPOMLP
     from sc2learner.agents.solver import PpoLearner
-    policy_func = {'mlp': PPOMLP,
-                   'lstm': PPOLSTM}
-    model = policy_func[cfg.model.policy](
-        ob_space=observation_space,
-        ac_space=action_space,
-        seed=cfg.train.learner_seed
-    )
+    policy_func = {'mlp': PPOMLP, 'lstm': PPOLSTM}
+    model = policy_func[cfg.model.policy
+                        ](ob_space=observation_space, ac_space=action_space, seed=cfg.train.learner_seed)
     learner = PpoLearner(env, model, cfg)
     learner.logger.info('cfg:{}'.format(cfg))
     learner.run()
@@ -84,10 +79,7 @@ def start_actor_manager(cfg):
     if ip.coordinator == 'learner_manager':
         ip.coordinator = ip.learner_manager
     print('IP address of coordinator is set to the learner_manager')
-    apply_ip = {
-        'send': ip.learner_manager,
-        'relay': ip.coordinator
-    }
+    apply_ip = {'send': ip.learner_manager, 'relay': ip.coordinator}
     apply_port = {
         'send': port.learner_manager,
         'receive': port.actor_manager,
@@ -97,11 +89,16 @@ def start_actor_manager(cfg):
         'relay_out': port.coordinator
     }
     time_interval = cfg.communication.model_time_interval
-    manager = ManagerZmq(apply_ip, apply_port, name='actor_manager', HWM=HWM,
-                         send_queue_size=send_queue_size, receive_queue_size=receive_queue_size,
-                         time_interval=time_interval)
-    manager.run({'sender': True, 'receiver': True,
-                 'forward_request': True, 'forward_reply': True, 'relay': True})
+    manager = ManagerZmq(
+        apply_ip,
+        apply_port,
+        name='actor_manager',
+        HWM=HWM,
+        send_queue_size=send_queue_size,
+        receive_queue_size=receive_queue_size,
+        time_interval=time_interval
+    )
+    manager.run({'sender': True, 'receiver': True, 'forward_request': True, 'forward_reply': True, 'relay': True})
 
 
 def start_coordinator(cfg):
@@ -125,18 +122,22 @@ def start_actor_model_manager(cfg):
         learner_manager_ip_prefix = '.'.join(ip.learner.split('.')[0:3])
         ip.learner_manager = ip.manager_node[learner_manager_ip_prefix]
     print('auto set learner_manager ip to ' + ip.learner_manager)
-    apply_ip = {
-    }
+    apply_ip = {}
     apply_port = {
         'request': port.actor_manager_model,
         'reply': port.actor_model,
     }
     time_interval = cfg.communication.model_time_interval
-    manager = ManagerZmq(apply_ip, apply_port, name='actor_model_manager', HWM=HWM,
-                         send_queue_size=send_queue_size, receive_queue_size=receive_queue_size,
-                         time_interval=time_interval)
-    manager.run({'sender': False, 'receiver': False,
-                 'forward_request': True, 'forward_reply': True, 'relay': False})
+    manager = ManagerZmq(
+        apply_ip,
+        apply_port,
+        name='actor_model_manager',
+        HWM=HWM,
+        send_queue_size=send_queue_size,
+        receive_queue_size=receive_queue_size,
+        time_interval=time_interval
+    )
+    manager.run({'sender': False, 'receiver': False, 'forward_request': True, 'forward_reply': True, 'relay': False})
 
 
 def start_actor_data_manager(cfg):
@@ -153,10 +154,7 @@ def start_actor_data_manager(cfg):
     if ip.coordinator == 'learner_manager':
         ip.coordinator = ip.learner_manager
     print('IP address of coordinator is set to the learner_manager')
-    apply_ip = {
-        'send': ip.learner_manager,
-        'relay': ip.coordinator
-    }
+    apply_ip = {'send': ip.learner_manager, 'relay': ip.coordinator}
     apply_port = {
         'send': port.learner_manager,
         'receive': port.actor_manager,
@@ -164,11 +162,16 @@ def start_actor_data_manager(cfg):
         'relay_out': port.coordinator
     }
     time_interval = cfg.communication.model_time_interval
-    manager = ManagerZmq(apply_ip, apply_port, name='actor_data_manager', HWM=HWM,
-                         send_queue_size=send_queue_size, receive_queue_size=receive_queue_size,
-                         time_interval=time_interval)
-    manager.run({'sender': True, 'receiver': True,
-                 'forward_request': False, 'forward_reply': False, 'relay': True})
+    manager = ManagerZmq(
+        apply_ip,
+        apply_port,
+        name='actor_data_manager',
+        HWM=HWM,
+        send_queue_size=send_queue_size,
+        receive_queue_size=receive_queue_size,
+        time_interval=time_interval
+    )
+    manager.run({'sender': True, 'receiver': True, 'forward_request': False, 'forward_reply': False, 'relay': True})
 
 
 def start_learner_manager(cfg):
@@ -189,11 +192,16 @@ def start_learner_manager(cfg):
         'reply': port.actor_manager_model,
     }
     time_interval = cfg.communication.model_time_interval
-    manager = ManagerZmq(apply_ip, apply_port, name='learner_manager', HWM=HWM,
-                         send_queue_size=send_queue_size, receive_queue_size=receive_queue_size,
-                         time_interval=time_interval)
-    manager.run({'sender': True, 'receiver': True, 'relay': False,
-                 'forward_request': True, 'forward_reply': True})
+    manager = ManagerZmq(
+        apply_ip,
+        apply_port,
+        name='learner_manager',
+        HWM=HWM,
+        send_queue_size=send_queue_size,
+        receive_queue_size=receive_queue_size,
+        time_interval=time_interval
+    )
+    manager.run({'sender': True, 'receiver': True, 'relay': False, 'forward_request': True, 'forward_reply': True})
 
 
 def main(argv):
@@ -215,8 +223,7 @@ def main(argv):
             random.seed(FLAGS.seed)
             cfg.seed = random.randint(0, 2**32 - 1)
         if 'IN_K8S' not in os.environ:
-            cfg.communication.ip.actor = '.'.join(
-                FLAGS.node_name.split('-')[-4:])
+            cfg.communication.ip.actor = '.'.join(FLAGS.node_name.split('-')[-4:])
         start_actor(cfg)
     elif FLAGS.job_name == 'learner':
         start_learner(cfg)

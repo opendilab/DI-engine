@@ -23,8 +23,12 @@ def build_head(name):
 
 
 class Policy(nn.Module):
-    Input = namedtuple('Input', ['entity_raw', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context'])  # noqa
-    MimicInput = namedtuple('Input', ['actions', 'entity_raw', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context'])  # noqa
+    Input = namedtuple(
+        'Input', ['entity_raw', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context']
+    )  # noqa
+    MimicInput = namedtuple(
+        'Input', ['actions', 'entity_raw', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context']
+    )  # noqa
 
     def __init__(self, cfg):
         super(Policy, self).__init__()
@@ -34,8 +38,13 @@ class Policy(nn.Module):
             self.head[item] = build_head(item)(cfg.head[item])
 
     def _look_up_action_attr(self, action_type, entity_raw, units_num, location_dims=(256, 256)):
-        action_mask = {'select_unit_type_mask': [], 'select_unit_mask': [], 'target_unit_type_mask': [],
-                       'target_unit_mask': [], 'location_mask': []}
+        action_mask = {
+            'select_unit_type_mask': [],
+            'select_unit_mask': [],
+            'target_unit_type_mask': [],
+            'target_unit_mask': [],
+            'location_mask': []
+        }
         device = action_type[0].device
         '''
         for idx, action in enumerate(action_type):
@@ -93,12 +102,13 @@ class Policy(nn.Module):
         units_num = [len(t['id']) for t in entity_raw]
 
         logits['action_type'], action_type, embeddings = self.head['action_type_head'](
-            lstm_output, scalar_context, temperature, action_type)
+            lstm_output, scalar_context, temperature, action_type
+        )
         action_attr, mask = self._look_up_action_attr(action_type, entity_raw, units_num)
 
         logits['delay'], delay, embeddings = self.head['delay_head'](embeddings)
         for idx in range(action_type.shape[0]):
-            embedding = embeddings[idx:idx+1]
+            embedding = embeddings[idx:idx + 1]
             if isinstance(actions['queued'][idx], torch.Tensor):
                 if not action_attr['queued'][idx]:
                     print('queued', actions['action_type'][idx], actions['queued'][idx], idx)
@@ -110,26 +120,29 @@ class Policy(nn.Module):
                 selected_units_num = [actions['selected_units'][idx].shape[0]]
                 logits_selected_units, selected_units, embedding = self.head['selected_units_head'](
                     embedding, mask['select_unit_type_mask'][idx], mask['select_unit_mask'][idx],
-                    entity_embeddings[idx], temperature, selected_units_num)
+                    entity_embeddings[idx], temperature, selected_units_num
+                )
                 logits['selected_units'].append(logits_selected_units[0])
             if isinstance(actions['target_units'][idx], torch.Tensor):
                 if not action_attr['target_units'][idx]:
                     print('target_units', actions['action_type'][idx], actions['target_units'][idx], idx)
                 logits_target_units, target_units = self.head['target_unit_head'](
                     embedding, mask['target_unit_type_mask'][idx], mask['target_unit_mask'][idx],
-                    entity_embeddings[idx], temperature)
+                    entity_embeddings[idx], temperature
+                )
                 logits['target_units'].append(logits_target_units)
             if isinstance(actions['target_location'][idx], torch.Tensor):
                 if not action_attr['target_location'][idx]:
                     print('target_location', actions['action_type'][idx], actions['target_location'][idx], idx)
                 if isinstance(map_skip[0], torch.Tensor):
-                    map_skip_single = [t[idx:idx+1] for t in map_skip]
+                    map_skip_single = [t[idx:idx + 1] for t in map_skip]
                 elif isinstance(map_skip[0], list):
                     map_skip_single = [t[idx] for t in map_skip]
                 else:
                     raise TypeError("invalid map_skip element type: {}".format(type(map_skip[0])))
                 logits_location, location = self.head['location_head'](
-                    embedding, map_skip_single, mask['location_mask'][idx], temperature)
+                    embedding, map_skip_single, mask['location_mask'][idx], temperature
+                )
                 logits['target_location'].append(logits_location)
 
         return logits
@@ -152,7 +165,8 @@ class Policy(nn.Module):
 
         # action type
         logits['action_type'], action_type, embeddings = self.head['action_type_head'](
-            lstm_output, scalar_context, temperature)
+            lstm_output, scalar_context, temperature
+        )
         actions['action_type'] = torch.chunk(action_type, B, dim=0)
         action_attr, mask = self._look_up_action_attr(actions['action_type'], entity_raw, units_num)
 
@@ -161,7 +175,7 @@ class Policy(nn.Module):
         actions['delay'] = torch.chunk(delay, B, dim=0)
 
         for idx in range(B):
-            embedding = embeddings[idx:idx+1]
+            embedding = embeddings[idx:idx + 1]
             # action arg queued
             if action_attr['queued'][idx]:
                 logits_queued, queued, embedding = self.head['queued_head'](embedding, temperature)
@@ -173,7 +187,8 @@ class Policy(nn.Module):
             if action_attr['selected_units'][idx]:
                 logits_selected_units, selected_units, embedding = self.head['selected_units_head'](
                     embedding, mask['select_unit_type_mask'][idx], mask['select_unit_mask'][idx],
-                    entity_embeddings[idx], temperature)
+                    entity_embeddings[idx], temperature
+                )
                 selected_units = selected_units[0]
             else:
                 logits_selected_units, selected_units = None, None
@@ -183,7 +198,8 @@ class Policy(nn.Module):
             if action_attr['target_units'][idx]:
                 logits_target_units, target_units = self.head['target_unit_head'](
                     embedding, mask['target_unit_type_mask'][idx], mask['target_unit_mask'][idx],
-                    entity_embeddings[idx], temperature)
+                    entity_embeddings[idx], temperature
+                )
                 target_units = target_units[0]
             else:
                 logits_target_units, target_units = None, None
@@ -191,9 +207,10 @@ class Policy(nn.Module):
             actions['target_units'].append(target_units)
             # action arg target_location
             if action_attr['target_location'][idx]:
-                map_skip_single = [t[idx:idx+1] for t in map_skip]
+                map_skip_single = [t[idx:idx + 1] for t in map_skip]
                 logits_location, location = self.head['location_head'](
-                    embedding, map_skip_single, mask['location_mask'][idx], temperature)
+                    embedding, map_skip_single, mask['location_mask'][idx], temperature
+                )
             else:
                 logits_location, location = None, None
             logits['target_location'].append(logits_location)
@@ -202,5 +219,5 @@ class Policy(nn.Module):
         return actions
 
     def forward(self, inputs, mode=None, **kwargs):
-        assert(mode in ['mimic', 'evaluate'])
+        assert (mode in ['mimic', 'evaluate'])
         return getattr(self, mode)(inputs, **kwargs)

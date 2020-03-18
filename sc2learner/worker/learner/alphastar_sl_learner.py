@@ -17,7 +17,6 @@ from sc2learner.torch_utils import to_device
 from sc2learner.utils import override
 from sc2learner.worker.learner.base_learner import SupervisedLearner
 
-
 # from sc2learner..learner.base_learner import SupervisedLearner
 
 
@@ -75,8 +74,9 @@ class AlphaStarSupervisedLearner(SupervisedLearner):
 
         self.optimizer.register_stats(variable_record=self.variable_record, tb_logger=self.tb_logger)
 
-        self.variable_record.register_var('action_type', var_type='1darray',
-                                          var_item_keys=self.data_stat['action_type'])  # noqa
+        self.variable_record.register_var(
+            'action_type', var_type='1darray', var_item_keys=self.data_stat['action_type']
+        )  # noqa
         self.tb_logger.register_var('action_type', var_type='histogram')
 
         for k in (set(self.data_stat.keys()) - {'action_type'}):
@@ -93,10 +93,16 @@ class AlphaStarSupervisedLearner(SupervisedLearner):
     def _record_additional_info(self, iterations):
         histogram_keys = ['action_type']
         scalars_keys = self.data_stat.keys() - histogram_keys
-        self.tb_logger.add_val_list(self.variable_record.get_vars_tb_format(
-            scalars_keys, iterations, var_type='1darray', viz_type='scalars'), viz_type='scalars')
-        self.tb_logger.add_val_list(self.variable_record.get_vars_tb_format(
-            histogram_keys, iterations, var_type='1darray', viz_type='histogram'), viz_type='histogram')
+        self.tb_logger.add_val_list(
+            self.variable_record.get_vars_tb_format(scalars_keys, iterations, var_type='1darray', viz_type='scalars'),
+            viz_type='scalars'
+        )
+        self.tb_logger.add_val_list(
+            self.variable_record.get_vars_tb_format(
+                histogram_keys, iterations, var_type='1darray', viz_type='histogram'
+            ),
+            viz_type='histogram'
+        )
 
     @override(SupervisedLearner)
     def evaluate(self):
