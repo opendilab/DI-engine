@@ -11,7 +11,9 @@ from absl import flags
 
 
 def deepcopy(data):
-    if isinstance(data, dict):
+    if data is None:
+        new_data = data
+    elif isinstance(data, dict):
         new_data = {}
         for k, v in data.items():
             new_data[k] = deepcopy(v)

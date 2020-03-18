@@ -194,7 +194,7 @@ class AlphastarActParser(object):
         return to_tensor(ret, torch.long)
 
 
-def action_unit_id_transform(self, data, inverse=False):
+def action_unit_id_transform(data, inverse=False):
     '''
     Overview: transfrom original game unit id in action to the current frame unit id
     '''

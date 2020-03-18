@@ -25,8 +25,8 @@ class AlphastarAgent(BaseAgent):
         self.next_state = None
 
     def act(self, obs):
-        entity_raw, map_size = obs['entity_raw'], obs['map_size']
         obs['prev_state'] = self.next_state
+        entity_raw = obs['entity_raw']
         if self.use_cuda:
             obs = to_device(obs, 'cuda')
         obs = self._unsqueeze_batch_dim(obs)
@@ -34,7 +34,7 @@ class AlphastarAgent(BaseAgent):
             actions, self.next_state = self.model(obs, mode='evaluate')
         if self.use_cuda:
             actions = to_device(actions, 'cpu')
-        actions = self._decode_action(actions, entity_raw, map_size)
+        actions = self._decode_action(actions, entity_raw)
         return actions
 
     def value(self, obs):
@@ -64,13 +64,14 @@ class AlphastarAgent(BaseAgent):
                 obs[k] = [obs[k]]
         return obs
 
-    def _decode_action(self, actions, entity_raw, map_size):
+    def _decode_action(self, actions, entity_raw):
         actions = dict_list2list_dict(actions)[0]
-        entity_raw = dict_list2list_dict(entity_raw)[0]
-        actions = action_unit_id_transform({'actions': actions, 'entity_raw': entity_raw}, inverse=True)
+        actions = action_unit_id_transform({'actions': actions, 'entity_raw': entity_raw}, inverse=True)['actions']
         for k, val in actions.items():
             if isinstance(val, torch.Tensor):
-                if k == 'action_type':
+                if k == 'selected_units' or k == 'target_units':
+                    actions[k] = val.tolist()
+                elif k == 'action_type':
                     actions[k] = ACTIONS_REORDER_INV[val.item()]
                 elif k == 'delay' or k == 'queued':
                     actions[k] = val.item()
