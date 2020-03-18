@@ -30,6 +30,28 @@ def deepcopy(data):
     return new_data
 
 
+def list_dict2dict_list(data):
+    assert(isinstance(data, list))
+    if len(data) == 0:
+        raise ValueError("empty data")
+    keys = data[0].keys()
+    new_data = {k: [] for k in keys}
+    for b in range(len(data)):
+        for k in keys:
+            new_data[k].append(data[b][k])
+    return new_data
+
+
+def dict_list2list_dict(data):
+    assert(isinstance(data, dict))
+    new_data = []
+    for v in data.values():
+        new_data.append(v)
+    new_data = list(zip(*new_data))
+    new_data = [{k: v for k, v in zip(data.keys(), t)} for t in new_data]
+    return new_data
+
+
 def override(cls):
     """Annotation for documenting method overrides.
 

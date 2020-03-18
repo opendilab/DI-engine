@@ -11,6 +11,7 @@ import enum
 from pysc2.lib import actions
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK, ACT_TO_GENERAL_ACT
 from sc2learner.torch_utils import to_tensor
+from sc2learner.utils import deepcopy
 
 
 class AlphastarActParser(object):
@@ -191,6 +192,40 @@ class AlphastarActParser(object):
             else:
                 ret.append(v[0])
         return to_tensor(ret, torch.long)
+
+
+def action_unit_id_transform(self, data, inverse=False):
+    '''
+    Overview: transfrom original game unit id in action to the current frame unit id
+    '''
+
+    def transform(frame):
+        frame = deepcopy(frame)
+        id_list = frame['entity_raw']['id']
+        action = frame['actions']
+        for k in ['selected_units', 'target_units']:
+            if isinstance(action[k], torch.Tensor):
+                unit_ids = []
+                for unit in action[k]:
+                    val = unit.item()
+                    if inverse:
+                        unit_ids.append(id_list[val])
+                    else:
+                        if val in id_list:
+                            unit_ids.append(id_list.index(val))
+                        else:
+                            raise Exception("not found {} id({}) in nearest observation".format(k, val))
+                frame['actions'][k] = torch.LongTensor(unit_ids)
+        return frame
+
+    if isinstance(data, list):
+        for idx, item in enumerate(data):
+            data[idx] = transform(item)
+        return data
+    elif isinstance(data, dict):
+        return transform(data)
+    else:
+        raise TypeError("invalid input type: {}".format(type(data)))
 
 
 class State(enum.IntEnum):

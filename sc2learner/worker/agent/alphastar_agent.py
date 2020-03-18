@@ -2,6 +2,8 @@ import torch
 from .agent import BaseAgent
 from sc2learner.agent.model import build_model
 from sc2learner.torch_utils import to_device, build_checkpoint_helper
+from sc2learner.utils import dict_list2list_dict
+from sc2learner.envs import action_unit_id_transform
 from pysc2.lib.static_data import ACTIONS_REORDER_INV
 
 
@@ -63,12 +65,12 @@ class AlphastarAgent(BaseAgent):
         return obs
 
     def _decode_action(self, actions, entity_raw, map_size):
-        for k, v in actions.items():
-            val = v[0]  # remove batch size dim(batch size=1)
+        actions = dict_list2list_dict(actions)[0]
+        entity_raw = dict_list2list_dict(entity_raw)[0]
+        actions = action_unit_id_transform({'actions': actions, 'entity_raw': entity_raw}, inverse=True)
+        for k, val in actions.items():
             if isinstance(val, torch.Tensor):
-                if k == 'selected_units' or k == 'target_units':
-                    actions[k] = [entity_raw['id'][i] for i in val]
-                elif k == 'action_type':
+                if k == 'action_type':
                     actions[k] = ACTIONS_REORDER_INV[val.item()]
                 elif k == 'delay' or k == 'queued':
                     actions[k] = val.item()

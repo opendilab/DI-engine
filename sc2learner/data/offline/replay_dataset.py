@@ -9,8 +9,8 @@ from torch.utils.data._utils.collate import default_collate
 
 from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UPGRADES
 from sc2learner.data.base_dataset import BaseDataset
-from sc2learner.envs import get_available_actions_processed_data, decompress_obs
-from sc2learner.utils import read_file_ceph
+from sc2learner.envs import get_available_actions_processed_data, decompress_obs, action_unit_id_transform
+from sc2learner.utils import read_file_ceph, list_dict2dict_list
 
 META_SUFFIX = '.meta'
 DATA_SUFFIX = '.step'
@@ -131,9 +131,7 @@ class ReplayDataset(BaseDataset):
             end = start + self.trajectory_len
             sample_data = data[start:end]
 
-        sample_data = self.action_unit_id_transform(sample_data)
-        # if unit id transform deletes some data frames,
-        # collate_fn will use the minimum number of data frame to compose a batch
+        sample_data = action_unit_id_transform(sample_data)
         sample_data = [decompress_obs(d) for d in sample_data]
         if self.use_available_action_transform:
             sample_data = [get_available_actions_processed_data(d) for d in sample_data]
@@ -180,16 +178,6 @@ def policy_collate_fn(batch, max_delay=63, action_type_transform=True):
         'map_size': False,
         START_STEP: False
     }
-
-    def list_dict2dict_list(data):
-        if len(data) == 0:
-            raise ValueError("empty data")
-        keys = data[0].keys()
-        new_data = {k: [] for k in keys}
-        for b in range(len(data)):
-            for k in keys:
-                new_data[k].append(data[b][k])
-        return new_data
 
     def merge_func(data):
         valid_data = [t for t in data if t is not None]
