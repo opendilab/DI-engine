@@ -7,7 +7,7 @@ import torch.nn.functional as F
 # from torch.utils.data import Dataset
 from torch.utils.data._utils.collate import default_collate
 
-from pysc2.lib.static_data import ACTIONS_REORDER
+from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UPGRADES
 from sc2learner.data.base_dataset import BaseDataset
 from sc2learner.envs import get_available_actions_processed_data, decompress_obs
 from sc2learner.utils import read_file_ceph
@@ -155,6 +155,7 @@ class ReplayDataset(BaseDataset):
 
         for i in range(len(sample_data)):
             sample_data[i]['map_size'] = map_size
+            sample_data[i]['scalar_info']['enemy_upgrades'] = torch.zeros(NUM_UPGRADES).float()  # fix 4.10 data bug
             if self.use_stat:
                 sample_data[i]['scalar_info']['beginning_build_order'] = beginning_build_order
                 sample_data[i]['scalar_info']['mmr'] = mmr
