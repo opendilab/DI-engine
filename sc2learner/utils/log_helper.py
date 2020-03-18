@@ -62,7 +62,7 @@ class TextLogger(object):
         '''
         if name is None:
             name = 'default_logger'
-        self.logger = self._create_logger(name, os.path.join(path, name+'.txt'))
+        self.logger = self._create_logger(name, os.path.join(path, name + '.txt'))
 
     def _create_logger(self, name, path, level=logging.INFO):
         '''
@@ -75,8 +75,7 @@ class TextLogger(object):
         '''
         logger = logging.getLogger(name)
         if not logger.handlers:
-            formatter = logging.Formatter(
-                '[%(asctime)s][%(filename)15s][line:%(lineno)4d][%(levelname)8s] %(message)s')
+            formatter = logging.Formatter('[%(asctime)s][%(filename)15s][line:%(lineno)4d][%(levelname)8s] %(message)s')
             fh = logging.FileHandler(path, 'a')
             fh.setFormatter(formatter)
             logger.setLevel(level)
@@ -126,7 +125,7 @@ class TensorBoardLogger(object):
             Arguments:
                 - name (:obj:`str`): name to add which in self._var_names['scalar']
         '''
-        assert(name in self._var_names['scalar'])
+        assert (name in self._var_names['scalar'])
         self.logger.add_scalar(name, *args, **kwargs)
 
     def add_text(self, name, *args, **kwargs):
@@ -135,7 +134,7 @@ class TensorBoardLogger(object):
             Arguments:
                 - name (:obj:`str`): name to add which in self._var_names['text']
         '''
-        assert(name in self._var_names['text'])
+        assert (name in self._var_names['text'])
         self.logger.add_text(name, *args, **kwargs)
 
     def add_scalars(self, name, *args, **kwargs):
@@ -144,7 +143,7 @@ class TensorBoardLogger(object):
             Arguments:
                 - name (:obj:`str`): name to add which in self._var_names['scalars']
         '''
-        assert(name in self._var_names['scalars'])
+        assert (name in self._var_names['scalars'])
         self.logger.add_scalars(name, *args, **kwargs)
 
     def add_histogram(self, name, *args, **kwargs):
@@ -153,7 +152,7 @@ class TensorBoardLogger(object):
             Arguments:
                 - name (:obj:`str`): name to add which in self._var_names['histogram']
         '''
-        assert(name in self._var_names['histogram'])
+        assert (name in self._var_names['histogram'])
         self.logger.add_histogram(name, *args, **kwargs)
 
     def add_figure(self, name, *args, **kwargs):
@@ -162,7 +161,7 @@ class TensorBoardLogger(object):
             Arguments:
                 - name (:obj:`str`): name to add which in self._var_names['figure']
         '''
-        assert(name in self._var_names['figure'])
+        assert (name in self._var_names['figure'])
         self.logger.add_figure(name, *args, **kwargs)
 
     def add_image(self, name, *args, **kwargs):
@@ -171,7 +170,7 @@ class TensorBoardLogger(object):
             Arguments:
                 - name (:obj:`str`): name to add which in self._var_names['image']
         '''
-        assert(name in self._var_names['image'])
+        assert (name in self._var_names['image'])
         # there is no PIL in K8S image at the moment
         if 'IN_K8S' not in os.environ:
             self.logger.add_image(name, *args, **kwargs)
@@ -183,7 +182,7 @@ class TensorBoardLogger(object):
                 - val_list (:obj:`list`): include element(name, value, step) to be added
                 - viz_type (:obs:`str`): must be in ['scalar', 'scalars', 'histogram']
         '''
-        assert(viz_type in ['scalar', 'scalars', 'histogram'])
+        assert (viz_type in ['scalar', 'scalars', 'histogram'])
         func_dict = {
             'scalar': self.add_scalar,
             'scalars': self.add_scalars,
@@ -199,8 +198,8 @@ class TensorBoardLogger(object):
         return True
 
     def register_var(self, name, var_type='scalar'):
-        assert(var_type in self._var_names.keys())
-        assert(self._no_contain_name(name))
+        assert (var_type in self._var_names.keys())
+        assert (self._no_contain_name(name))
         self._var_names[var_type].append(name)
 
     @property
@@ -214,7 +213,7 @@ class VariableRecord(object):
         self.length = max(length, 10)  # at leat average across 10 iteration
 
     def register_var(self, name, length=None, var_type='scalar'):
-        assert(var_type in ['scalar', '1darray'])
+        assert (var_type in ['scalar', '1darray'])
         lens = self.length if length is None else length
         self.var_dict[var_type][name] = AverageMeter(lens)
 
@@ -234,7 +233,7 @@ class VariableRecord(object):
         return self.var_dict[var_type].keys()
 
     def get_var_text(self, name, var_type='scalar'):
-        assert(var_type in ['scalar', '1darray'])
+        assert (var_type in ['scalar', '1darray'])
         if var_type == 'scalar':
             handle_var = self.var_dict[var_type][name]
             return '{}: val({:.6f})|avg({:.6f})'.format(name, handle_var.val, handle_var.avg)
@@ -242,7 +241,7 @@ class VariableRecord(object):
             return self._get_var_text_1darray(name)
 
     def get_vars_tb_format(self, keys, cur_step, var_type='scalar', **kwargs):
-        assert(var_type in ['scalar', '1darray'])
+        assert (var_type in ['scalar', '1darray'])
         if var_type == 'scalar':
             ret = []
             var_keys = self.get_var_names(var_type)
@@ -276,7 +275,7 @@ class AlphastarVarRecord(VariableRecord):
 
     # overwrite
     def register_var(self, name, length=None, var_type='scalar', var_item_keys=None):
-        assert(var_type in ['scalar', '1darray'])
+        assert (var_type in ['scalar', '1darray'])
         lens = self.length if length is None else length
         self.var_dict[var_type][name] = AverageMeter(lens)
         if not hasattr(self, 'var_item_keys'):
@@ -304,7 +303,7 @@ class AlphastarVarRecord(VariableRecord):
 
     # overwrite
     def _get_vars_tb_format_1darray(self, keys, cur_step, viz_type=None):
-        assert(viz_type in ['scalars', 'histogram'])
+        assert (viz_type in ['scalars', 'histogram'])
         if viz_type == 'scalars':
             ret = []
             var_keys = self.get_var_names('1darray')
@@ -328,9 +327,8 @@ class AverageMeter(object):
     """
         Overview: Computes and stores the average and current value, scalar and 1D-array
     """
-
     def __init__(self, length=0):
-        assert(length > 0)
+        assert (length > 0)
         self.length = length
         self.reset()
 
@@ -340,7 +338,7 @@ class AverageMeter(object):
         self.avg = 0.0
 
     def update(self, val):
-        assert(isinstance(val, list) or isinstance(val, numbers.Integral) or isinstance(val, numbers.Real))
+        assert (isinstance(val, list) or isinstance(val, numbers.Integral) or isinstance(val, numbers.Real))
         self.history.append(val)
         if len(self.history) > self.length:
             del self.history[0]
@@ -358,13 +356,13 @@ class DistributionTimeImage(object):
         self.one_img = np.ones((maxlen, maxlen))
 
     def add_one_time_step(self, data):
-        assert(isinstance(data, np.ndarray))
+        assert (isinstance(data, np.ndarray))
         data = np.expand_dims(data, 1)
         data = cv2.resize(data, (1, self.maxlen), interpolation=cv2.INTER_LINEAR)
         if self.time_step >= self.maxlen:
             self.img = np.concatenate([self.img[:, 1:], data])
         else:
-            self.img[:, self.time_step:self.time_step+1] = data
+            self.img[:, self.time_step:self.time_step + 1] = data
             self.time_step += 1
 
     def get_image(self):

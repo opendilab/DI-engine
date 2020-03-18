@@ -16,8 +16,7 @@ import sys
 try:
     import mpyq
 except ImportError:
-    logging.warning(
-        'Failed to import mpyq; version and corruption detection is disabled.')
+    logging.warning('Failed to import mpyq; version and corruption detection is disabled.')
     mpyq = None
 from six import print_ as print  # To get access to `flush` in python 2.
 
@@ -40,23 +39,23 @@ def print_part(*args):
 
 class BnetAPI(object):
     """Represents a handle to the battle.net api."""
-
     def __init__(self, key, secret):
         headers = {'Content-Type': 'application/json'}
         params = {'grant_type': 'client_credentials'}
-        response = requests.post('https://us.battle.net/oauth/token',
-                                 headers=headers, params=params,
-                                 auth=requests.auth.HTTPBasicAuth(key, secret))
+        response = requests.post(
+            'https://us.battle.net/oauth/token',
+            headers=headers,
+            params=params,
+            auth=requests.auth.HTTPBasicAuth(key, secret)
+        )
         if response.status_code != requests.codes.ok:
-            raise RequestError(
-                'Failed to get oauth access token. response={}'.format(response))
+            raise RequestError('Failed to get oauth access token. response={}'.format(response))
         response = json.loads(response.text)
         print(response)
         if 'access_token' in response:
             self._token = response['access_token']
         else:
-            raise RequestError(
-                'Failed to get oauth access token. response={}'.format(response))
+            raise RequestError('Failed to get oauth access token. response={}'.format(response))
 
     def get(self, url, params=None):
         """Make an autorized get request to the api by url."""
@@ -65,13 +64,10 @@ class BnetAPI(object):
         headers = {'Authorization': 'Bearer ' + self._token}
         response = requests.get(url, headers=headers, params=params)
         if response.status_code != requests.codes.ok:
-            raise RequestError(
-                'Request to "{}" failed. response={}'.format(url, response))
+            raise RequestError('Request to "{}" failed. response={}'.format(url, response))
         response_json = json.loads(response.text)
         if response_json.get('status') == 'nok':
-            raise RequestError(
-                'Request to "{}" failed. response={}'.format(
-                    url, response_json.get('reason')))
+            raise RequestError('Request to "{}" failed. response={}'.format(url, response_json.get('reason')))
         return response_json
 
     def url(self, path):
@@ -98,8 +94,7 @@ class BnetAPI(object):
         return meta_urls
 
 
-def download(key, secret, version, replays_dir, download_dir, extract=False,
-             remove=False, filter_version='keep'):
+def download(key, secret, version, replays_dir, download_dir, extract=False, remove=False, filter_version='keep'):
     """Download the replays for a specific vesion. Check help below."""
     # Get OAuth token from us region
     api = BnetAPI(key, secret)
@@ -119,8 +114,7 @@ def download(key, secret, version, replays_dir, download_dir, extract=False,
     for i, meta_file_url in enumerate(sorted(meta_file_urls), 1):
         # Construct full url to download replay packs
         meta_file_info = api.get(meta_file_url)
-        archive_url = requests.compat.urljoin(download_base_url,
-                                              meta_file_info['path'])
+        archive_url = requests.compat.urljoin(download_base_url, meta_file_info['path'])
 
         print_part('{}/{}: {} ... '.format(i, len(meta_file_urls), archive_url))
 
@@ -130,8 +124,7 @@ def download(key, secret, version, replays_dir, download_dir, extract=False,
         with requests.get(archive_url, stream=True) as response:
             content_length = int(response.headers['Content-Length'])
             print_part(content_length // 1024**2, 'Mb ... ')
-            if (not os.path.exists(file_path) or
-                    os.path.getsize(file_path) != content_length):
+            if (not os.path.exists(file_path) or os.path.getsize(file_path) != content_length):
                 with open(file_path, 'wb') as f:
                     shutil.copyfileobj(response.raw, f)
                 print_part('downloaded')
@@ -142,8 +135,7 @@ def download(key, secret, version, replays_dir, download_dir, extract=False,
             if os.path.getsize(file_path) <= 22:  # Size of an empty zip file.
                 print_part(' ... zip file is empty')
             else:
-                subprocess.call(['unzip', '-P', 'iagreetotheeula', '-u', '-o',
-                                 '-q', '-d', replays_dir, file_path])
+                subprocess.call(['unzip', '-P', 'iagreetotheeula', '-u', '-o', '-q', '-d', replays_dir, file_path])
             if remove:
                 os.remove(file_path)
         print()
@@ -155,14 +147,14 @@ def download(key, secret, version, replays_dir, download_dir, extract=False,
         all_replays = [f for f in os.listdir(replays_dir) if f.endswith('.SC2Replay')]
         for i, file_name in enumerate(all_replays):
             if i % 100 == 0:
-                print_part('\r{}/{}: {:.1f}%, found: {}'.format(
-                    i, len(all_replays), 100 * i / len(all_replays), found_str()))
+                print_part(
+                    '\r{}/{}: {:.1f}%, found: {}'.format(i, len(all_replays), 100 * i / len(all_replays), found_str())
+                )
             file_path = os.path.join(replays_dir, file_name)
             with open(file_path, 'rb') as fd:
                 try:
                     archive = mpyq.MPQArchive(fd).extract()
-                    metadata = json.loads(
-                        archive[b'replay.gamemetadata.json'].decode('utf-8'))
+                    metadata = json.loads(archive[b'replay.gamemetadata.json'].decode('utf-8'))
                 except KeyboardInterrupt:
                     raise
                 except:  # pylint: disable=bare-except
@@ -186,24 +178,26 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--key', default='228044a4ddcb43cb83db873f3cc7ff46', help='Battle.net API key.')
     parser.add_argument('--secret', default='JsXaLakGJ70ZSNG9fH4cqP7XhJ5q45g7', help='Battle.net API secret.')
-    parser.add_argument('--version', required=True,
-                        help=('Download all replays from this StarCraft 2 game'
-                              'version, eg: "4.8.3".'))
-    parser.add_argument('--replays_dir', default='./replays',
-                        help='Where to save the replays.')
-    parser.add_argument('--download_dir', default='./download',
-                        help='Where to save the zip files.')
-    parser.add_argument('--extract', action='store_true',
-                        help='Whether to extract the zip files.')
-    parser.add_argument('--remove', action='store_true',
-                        help='Whether to delete the zip files after extraction.')
-    parser.add_argument('--filter_version', default='keep',
-                        choices=['keep', 'delete', 'sort'],
-                        help=("What to do with replays that don't match the "
-                              "requested version. Keep is fast, but does no "
-                              "filtering. Delete deletes any that don't match. "
-                              "Sort puts them in sub-directories based on "
-                              "their version."))
+    parser.add_argument(
+        '--version', required=True, help=('Download all replays from this StarCraft 2 game'
+                                          'version, eg: "4.8.3".')
+    )
+    parser.add_argument('--replays_dir', default='./replays', help='Where to save the replays.')
+    parser.add_argument('--download_dir', default='./download', help='Where to save the zip files.')
+    parser.add_argument('--extract', action='store_true', help='Whether to extract the zip files.')
+    parser.add_argument('--remove', action='store_true', help='Whether to delete the zip files after extraction.')
+    parser.add_argument(
+        '--filter_version',
+        default='keep',
+        choices=['keep', 'delete', 'sort'],
+        help=(
+            "What to do with replays that don't match the "
+            "requested version. Keep is fast, but does no "
+            "filtering. Delete deletes any that don't match. "
+            "Sort puts them in sub-directories based on "
+            "their version."
+        )
+    )
     args = parser.parse_args()
     args_dict = dict(vars(args).items())
     download(**args_dict)

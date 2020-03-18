@@ -25,7 +25,7 @@ class ReplayIterationDataLoader(object):
         random.seed(1e9 + 314)  # fix seed for all the process
 
         random.shuffle(indices)
-        data_index = indices[self.rank*self.size: (self.rank+1)*self.size]
+        data_index = indices[self.rank * self.size:(self.rank + 1) * self.size]
 
         self.data_index = deque(data_index)
         self.cur_data_index = []

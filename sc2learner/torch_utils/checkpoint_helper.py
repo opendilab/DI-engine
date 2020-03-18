@@ -5,14 +5,15 @@ Main Function:
     1. checkpoint helper, used to help to save or load checkpoint by give args.
     2. CountVar, to help counting number.
 '''
-import os
-import torch
 import logging
-import traceback
+import os
 import signal
 import sys
-from .data_helper import to_device
+import traceback
 
+import torch
+
+from .data_helper import to_device
 
 logger = logging.getLogger('default_logger')
 
@@ -34,7 +35,6 @@ class CheckpointHelper(object):
         Overview: Concrete implementation of CheckpointHelper, to help to save or load checkpoint
         Interface: __init__, save_iterations, save, save_data, load
     '''
-
     def __init__(self, save_dir, rank=0):
         '''
             Overview: initialization method, check if save_dir exists.
@@ -76,7 +76,7 @@ class CheckpointHelper(object):
             Returns:
                 - (:obj`dict`): new state_dict after adding prefix
         '''
-        return {prefix+k: v for k, v in state_dict.items()}
+        return {prefix + k: v for k, v in state_dict.items()}
 
     def save_iterations(self, iterations, model, **kwargs):
         '''
@@ -88,10 +88,18 @@ class CheckpointHelper(object):
         kwargs['last_iter'] = iterations
         return self.save('iterations_{}'.format(iterations), model, **kwargs)
 
-    def save(self, name, model,
-             optimizer=None, last_iter=None, last_epoch=None,
-             dataset=None, actor_info=None,
-             prefix_op=None, prefix=None):
+    def save(
+        self,
+        name,
+        model,
+        optimizer=None,
+        last_iter=None,
+        last_epoch=None,
+        dataset=None,
+        actor_info=None,
+        prefix_op=None,
+        prefix=None
+    ):
         '''
             Overview: save checkpoint by given args
             Arguments:
@@ -108,8 +116,7 @@ class CheckpointHelper(object):
         checkpoint = {}
         state_dict = model.state_dict()
         if prefix_op is not None:  # remove or add prefix to state_dict.keys()
-            prefix_func = {'remove': self._remove_prefix,
-                           'add': self._add_prefix}
+            prefix_func = {'remove': self._remove_prefix, 'add': self._add_prefix}
             if prefix_op not in prefix_func.keys():
                 raise KeyError('invalid prefix_op:{}'.format(prefix_op))
             else:
@@ -117,7 +124,7 @@ class CheckpointHelper(object):
         checkpoint['state_dict'] = state_dict
 
         if optimizer is not None:  # save optimizer
-            assert(last_iter is not None or last_epoch is not None)
+            assert (last_iter is not None or last_epoch is not None)
             checkpoint['last_iter'] = last_iter
             checkpoint['last_epoch'] = last_epoch
             checkpoint['optimizer'] = optimizer.state_dict()
@@ -126,7 +133,7 @@ class CheckpointHelper(object):
             checkpoint['dataset'] = dataset.state_dict()
         if actor_info is not None:
             checkpoint['actor_info'] = actor_info.state_dict()
-        path = os.path.join(self.save_path, name+'.pth.tar')
+        path = os.path.join(self.save_path, name + '.pth.tar')
         torch.save(checkpoint, path)
         logger.info('save checkpoint in {}'.format(path))
 
@@ -138,9 +145,9 @@ class CheckpointHelper(object):
                 - data (:obj:`str`): data to be saved
                 - device (:obj:`str`): save from gpu or cpu
         '''
-        assert(isinstance(data, torch.Tensor) or isinstance(data, dict))
+        assert (isinstance(data, torch.Tensor) or isinstance(data, dict))
         data = to_device(data, device)
-        path = os.path.join(self.data_save_path, name+'_data.pt')
+        path = os.path.join(self.data_save_path, name + '_data.pt')
         torch.save(data, path)
 
     def _print_mismatch_keys(self, model_state_dict, ckpt_state_dict):
@@ -159,9 +166,22 @@ class CheckpointHelper(object):
         for k in redundant_keys:
             logger.info('redundant_keys: {}'.format(k))
 
-    def load(self, load_path, model,
-             optimizer=None, last_iter=None, last_epoch=None, lr_schduler=None, dataset=None, actor_info=None,
-             prefix_op=None, prefix=None, strict=True, logger_prefix='', state_dict_mask=[]):
+    def load(
+        self,
+        load_path,
+        model,
+        optimizer=None,
+        last_iter=None,
+        last_epoch=None,
+        lr_schduler=None,
+        dataset=None,
+        actor_info=None,
+        prefix_op=None,
+        prefix=None,
+        strict=True,
+        logger_prefix='',
+        state_dict_mask=[]
+    ):
         '''
             Overview: load checkpoint by given path
             Arguments:
@@ -181,20 +201,22 @@ class CheckpointHelper(object):
                     which shouldn't be loaded into model(after prefix op)
         '''
         # Note: don't use assign operation('=') to updare input argument value
-        assert(os.path.exists(load_path))
+        assert (os.path.exists(load_path))
         # Note: for reduce first GPU memory cost and compatible for cpu env
         checkpoint = torch.load(load_path, map_location='cpu')
         state_dict = checkpoint['state_dict']
         if prefix_op is not None:
-            prefix_func = {'remove': self._remove_prefix,
-                           'add': self._add_prefix}
+            prefix_func = {'remove': self._remove_prefix, 'add': self._add_prefix}
             if prefix_op not in prefix_func.keys():
                 raise KeyError('invalid prefix_op:{}'.format(prefix_op))
             else:
                 state_dict = prefix_func[prefix_op](state_dict, prefix)
         if len(state_dict_mask) > 0:
             if strict:
-                logger.info(logger_prefix+'[Warning] non-empty state_dict_mask expects strict=False, but finds strict=True in input argument')  # noqa
+                logger.info(
+                    logger_prefix +
+                    '[Warning] non-empty state_dict_mask expects strict=False, but finds strict=True in input argument'
+                )  # noqa
                 strict = False
             for m in state_dict_mask:
                 state_dict_keys = list(state_dict.keys())
@@ -202,31 +224,35 @@ class CheckpointHelper(object):
                     if k.startswith(m):
                         state_dict.pop(k)  # ignore return value
         model.load_state_dict(state_dict, strict=strict)
-        logger.info(logger_prefix+'load model state_dict in {}'.format(load_path))
+        logger.info(logger_prefix + 'load model state_dict in {}'.format(load_path))
         self._print_mismatch_keys(model.state_dict(), state_dict)
 
         if dataset is not None:
             dataset.load_state_dict(checkpoint['dataset'])
-            logger.info(logger_prefix+'load online data in {}'.format(load_path))
+            logger.info(logger_prefix + 'load online data in {}'.format(load_path))
 
         if optimizer is not None:
             optimizer.load_state_dict(checkpoint['optimizer'])
-            logger.info(logger_prefix+'load optimizer in {}'.format(load_path))
+            logger.info(logger_prefix + 'load optimizer in {}'.format(load_path))
 
         if last_iter is not None:
             last_iter.update(checkpoint['last_iter'])
-            logger.info(logger_prefix+'load last_iter in {}, current last_iter is {}'.format(load_path, last_iter.val))
+            logger.info(
+                logger_prefix + 'load last_iter in {}, current last_iter is {}'.format(load_path, last_iter.val)
+            )
 
         if last_epoch is not None:
             last_epoch.update(checkpoint['last_epoch'])
-            logger.info(logger_prefix+'load last_epoch in {}, current last_epoch is {}'.format(load_path, last_epoch.val))  # noqa
+            logger.info(
+                logger_prefix + 'load last_epoch in {}, current last_epoch is {}'.format(load_path, last_epoch.val)
+            )  # noqa
 
         if actor_info is not None:
             actor_info.load_state_dict(checkpoint['actor_info'])
-            logger.info(logger_prefix+'load actor info in {}'.format(load_path))
+            logger.info(logger_prefix + 'load actor info in {}'.format(load_path))
 
         if lr_schduler is not None:
-            assert(last_iter is not None)
+            assert (last_iter is not None)
             raise NotImplementedError
 
 
@@ -263,7 +289,7 @@ def auto_checkpoint(func):
 
     def wrapper(*args, **kwargs):
         handle = args[0]
-        assert(hasattr(handle, 'save_checkpoint'))
+        assert (hasattr(handle, 'save_checkpoint'))
 
         def signal_handler(signal_num, frame):
             sig = signal.Signals(signal_num)
@@ -277,4 +303,5 @@ def auto_checkpoint(func):
         except Exception as e:
             handle.save_checkpoint()
             traceback.print_exc()
+
     return wrapper

@@ -24,10 +24,10 @@ class DistributedSampler(Sampler):
         else:
             self.total_size = len(self.dataset)
 
-        if self.rank < self.world_size-1:
+        if self.rank < self.world_size - 1:
             self.length = self.num_samples
         else:
-            self.length = self.total_size - (self.world_size-1)*self.num_samples
+            self.length = self.total_size - (self.world_size - 1) * self.num_samples
 
     def __iter__(self):
         # deterministically shuffle based on epoch
@@ -43,7 +43,7 @@ class DistributedSampler(Sampler):
         # subsample
         offset = self.num_samples * self.rank
         indices = indices[offset:offset + self.num_samples]
-        if self.round_up or (not self.round_up and self.rank < self.world_size-1):
+        if self.round_up or (not self.round_up and self.rank < self.world_size - 1):
             assert len(indices) == self.num_samples
 
         return iter(indices)
@@ -69,7 +69,7 @@ class DistributedGivenIterationSampler(Sampler):
         self.rank = rank
         self.last_iter = last_iter
 
-        self.total_size = self.total_iter*self.batch_size
+        self.total_size = self.total_iter * self.batch_size
 
         self.indices = self.gen_new_list()
         self.call = 0
@@ -77,7 +77,7 @@ class DistributedGivenIterationSampler(Sampler):
     def __iter__(self):
         if self.call == 0:
             self.call = 1
-            return iter(self.indices[self.last_iter*self.batch_size:])
+            return iter(self.indices[self.last_iter * self.batch_size:])
         else:
             raise RuntimeError("this sampler is not designed to be called more than once!!")
 
@@ -89,13 +89,13 @@ class DistributedGivenIterationSampler(Sampler):
         all_size = self.total_size * self.world_size
         indices = np.arange(len(self.dataset))
         indices = indices[:all_size]
-        num_repeat = (all_size-1) // indices.shape[0] + 1
+        num_repeat = (all_size - 1) // indices.shape[0] + 1
         indices = np.tile(indices, num_repeat)
         indices = indices[:all_size]
 
         np.random.shuffle(indices)
         beg = self.total_size * self.rank
-        indices = indices[beg:beg+self.total_size]
+        indices = indices[beg:beg + self.total_size]
 
         assert len(indices) == self.total_size
 
@@ -130,7 +130,7 @@ class DistributedEpochSampler(Sampler):
     def __iter__(self):
         if self.call == 0:
             self.call = 1
-            return iter(self.indices[self.last_iter*self.batch_size:])
+            return iter(self.indices[self.last_iter * self.batch_size:])
         else:
             raise RuntimeError("this sampler is not designed to be called more than once!!")
 
@@ -142,7 +142,7 @@ class DistributedEpochSampler(Sampler):
         np.random.shuffle(indices)
         assert len(indices) % (self.world_size * self.batch_size) == 0
         num_single = len(indices) // self.world_size
-        return indices[self.rank*num_single:(self.rank+1)*num_single]
+        return indices[self.rank * num_single:(self.rank + 1) * num_single]
 
     def gen_new_list(self):
 

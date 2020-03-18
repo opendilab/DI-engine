@@ -7,7 +7,6 @@ import torch.nn.functional as F
 
 
 class Pd(object):
-
     def neglogp(self, x):
         raise NotImplementedError
 
@@ -28,7 +27,6 @@ class Pd(object):
 
 
 class CategoricalPd(Pd):
-
     def __init__(self, logits=None):
         self.update_logits(logits)
 
@@ -52,7 +50,7 @@ class CategoricalPd(Pd):
 
     def noise_mode(self, viz=False):
         u = torch.rand_like(self.logits)
-        u = - torch.log(-torch.log(u))
+        u = -torch.log(-torch.log(u))
         noise_logits = self.logits + u
         result = noise_logits.argmax(dim=-1)
         if viz:
@@ -113,5 +111,6 @@ class CategoricalPdPytorch(torch.distributions.Categorical):
             return entropy
         elif reduction == 'mean':
             return entropy.mean()
+
 
 # TODO alphastar distribution sampler and entropy calculation

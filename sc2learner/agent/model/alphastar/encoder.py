@@ -43,8 +43,8 @@ class Encoder(nn.Module):
             N = entity_embeddings[b].shape[0]
             for n in range(N):
                 h, w = entity_raw[b]['location'][n]
-                h = min(max(0, h), H-1)
-                w = min(max(0, w), W-1)
+                h = min(max(0, h), H - 1)
+                w = min(max(0, w), W - 1)
                 scatter_map[b, :, h, w] = project_embeddings[b][n]
         return torch.cat([spatial_info, scatter_map], dim=1)
 
@@ -69,15 +69,18 @@ class Encoder(nn.Module):
             - baseline_feature
             - cum_stat: OrderedDict of various cumulative_statistics
         '''
-        embedded_scalar, scalar_context, baseline_feature, cum_stat = self.encoder['scalar_encoder'](inputs['scalar_info'])  # noqa
+        embedded_scalar, scalar_context, baseline_feature, cum_stat = self.encoder['scalar_encoder'](
+            inputs['scalar_info']
+        )  # noqa
         entity_embeddings, embedded_entity = self.encoder['entity_encoder'](inputs['entity_info'])
         spatial_input = self._scatter_connection(inputs['spatial_info'], entity_embeddings, inputs['entity_raw'])
         embedded_spatial, map_skip = self.encoder['spatial_encoder'](spatial_input, inputs['map_size'])
 
-        embedded_entity, embedded_spatial, embedded_scalar = (embedded_entity.unsqueeze(0),
-                                                              embedded_spatial.unsqueeze(0),
-                                                              embedded_scalar.unsqueeze(0))
+        embedded_entity, embedded_spatial, embedded_scalar = (
+            embedded_entity.unsqueeze(0), embedded_spatial.unsqueeze(0), embedded_scalar.unsqueeze(0)
+        )
         lstm_output, next_state = self.core_lstm(
-            embedded_entity, embedded_spatial, embedded_scalar, inputs['prev_state'])
+            embedded_entity, embedded_spatial, embedded_scalar, inputs['prev_state']
+        )
         lstm_output = lstm_output.squeeze(0)
         return lstm_output, next_state, entity_embeddings, map_skip, scalar_context, baseline_feature, cum_stat

@@ -17,8 +17,7 @@ mefull = subprocess.getoutput('whoami')
 def num_actors_running(node_address):
     actor_num = 0
     is_learner = False
-    info = subprocess.getoutput(
-        'squeue -h -w {}'.format(node_address)).split('\n')
+    info = subprocess.getoutput('squeue -h -w {}'.format(node_address)).split('\n')
     if len(info) > 0:
         for line in info:
             # print(line)
@@ -35,12 +34,12 @@ def scancel(job_id):
 
 
 def launch(partition, node_address, num=1, seed=0):
-    subprocess.run(['bash', 'actor.sh', partition,
-                    node_address, str(num), str(seed)])
+    subprocess.run(['bash', 'actor.sh', partition, node_address, str(num), str(seed)])
 
 
-def pd_partition(partition, p_class, limit, policy, seed,
-                 learner_node_address, actor_manager_node_address, forbidden_nodes_addr):
+def pd_partition(
+    partition, p_class, limit, policy, seed, learner_node_address, actor_manager_node_address, forbidden_nodes_addr
+):
     actor_num = 0
 
     if p_class == 'cpu':
@@ -55,8 +54,7 @@ def pd_partition(partition, p_class, limit, policy, seed,
     else:
         raise Exception('Unknown partition type')
 
-    info = subprocess.getoutput(
-        'sinfo -Nhp {} | sort -k4'.format(partition)).split('\n')
+    info = subprocess.getoutput('sinfo -Nhp {} | sort -k4'.format(partition)).split('\n')
     idle_list = []
     mix_list = []
     for line in info:
@@ -129,8 +127,7 @@ def run_manager(ip, cfg):
             if node_address == node_name:
                 manager_partition = partition_name
         assert manager_partition is not None, 'cannot find the partition of the actor_manager node'
-        subprocess.run(['bash', 'actor_manager_queue.sh',
-                        manager_partition, node_name, mefull, '&'])
+        subprocess.run(['bash', 'actor_manager_queue.sh', manager_partition, node_name, mefull, '&'])
         time.sleep(30)
     else:
         print('run manager on manager node')
@@ -181,8 +178,7 @@ def main(actor_limit, manager_flag=0, seed_offset=0):
     actor_manager_node_address = get_actor_manager_local()
 
     partitions_dict = cfg.auto_actor_start.partitions_dict
-    assert ip in partitions_dict.keys(), 'ip must be one of [{}]'.format(
-        ', '.join(partitions_dict.keys()))
+    assert ip in partitions_dict.keys(), 'ip must be one of [{}]'.format(', '.join(partitions_dict.keys()))
     cpu_partitions = partitions_dict[ip]['cpu']
     our_partitions = partitions_dict[ip]['ours']
     other_partitions = partitions_dict[ip]['others']
@@ -201,8 +197,10 @@ def main(actor_limit, manager_flag=0, seed_offset=0):
     for partition in cpu_partitions:
         if actor_num_touse <= 0:
             break
-        actor_num, seed = pd_partition(partition, 'cpu', actor_num_touse, policy, seed,
-                                       learner_node_address, actor_manager_node_address, forbidden_nodes_addr)
+        actor_num, seed = pd_partition(
+            partition, 'cpu', actor_num_touse, policy, seed, learner_node_address, actor_manager_node_address,
+            forbidden_nodes_addr
+        )
         actor_num_cpu += actor_num
         actor_num_touse -= actor_num
     actor_num_all += actor_num_cpu
@@ -210,8 +208,10 @@ def main(actor_limit, manager_flag=0, seed_offset=0):
     for partition in our_partitions:
         if actor_num_touse <= 0:
             break
-        actor_num, seed = pd_partition(partition, 'our', actor_num_touse, policy, seed,
-                                       learner_node_address, actor_manager_node_address, forbidden_nodes_addr)
+        actor_num, seed = pd_partition(
+            partition, 'our', actor_num_touse, policy, seed, learner_node_address, actor_manager_node_address,
+            forbidden_nodes_addr
+        )
         actor_num_our += actor_num
         actor_num_touse -= actor_num
     actor_num_all += actor_num_our
@@ -219,16 +219,21 @@ def main(actor_limit, manager_flag=0, seed_offset=0):
     for partition in other_partitions:
         if actor_num_touse <= 0:
             break
-        actor_num, seed = pd_partition(partition, 'other', actor_num_touse, policy, seed,
-                                       learner_node_address, actor_manager_node_address, forbidden_nodes_addr)
+        actor_num, seed = pd_partition(
+            partition, 'other', actor_num_touse, policy, seed, learner_node_address, actor_manager_node_address,
+            forbidden_nodes_addr
+        )
         actor_num_other += actor_num
         actor_num_touse -= actor_num
     actor_num_all += actor_num_other
 
     if actor_num_all < actor_limit:
         print('Warning: cannot start required number of actors!')
-    print(' cpu: {} \n our: {} \n other: {} \n total: {} \n limit: {} \n next_seed: {}\n'
-          .format(actor_num_cpu, actor_num_our, actor_num_other, actor_num_all, actor_limit, seed))
+    print(
+        ' cpu: {} \n our: {} \n other: {} \n total: {} \n limit: {} \n next_seed: {}\n'.format(
+            actor_num_cpu, actor_num_our, actor_num_other, actor_num_all, actor_limit, seed
+        )
+    )
 
 
 if __name__ == '__main__':

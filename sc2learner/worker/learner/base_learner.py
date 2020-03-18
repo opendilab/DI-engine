@@ -20,7 +20,7 @@ def transform_dict(var_items, keys):
         if k in var_items.keys():
             v = var_items[k]
             if isinstance(v, torch.Tensor):
-                if v.shape == (1,):
+                if v.shape == (1, ):
                     v = v.item()  # get item
                 else:
                     v = v.tolist()
@@ -179,9 +179,13 @@ class Learner:
         ckpt_ok = self._check_checkpoint_path(checkpoint_path)
         if ckpt_ok:
             self.checkpoint_manager.load(
-                checkpoint_path, self.agent.get_model(), optimizer=self.optimizer, last_iter=self.last_iter,
+                checkpoint_path,
+                self.agent.get_model(),
+                optimizer=self.optimizer,
+                last_iter=self.last_iter,
                 last_epoch=self.last_epoch,  # TODO last_epoch for lr_scheduler
-                dataset=self.ckpt_dataset, logger_prefix='({})'.format(self._name)
+                dataset=self.ckpt_dataset,
+                logger_prefix='({})'.format(self._name)
             )
 
     def save_checkpoint(self):
@@ -190,7 +194,10 @@ class Learner:
         """
         if self.rank == 0:
             self.checkpoint_manager.save_iterations(
-                self.last_iter.val, self.agent.get_model(), optimizer=self.optimizer, dataset=self.dataset,
+                self.last_iter.val,
+                self.agent.get_model(),
+                optimizer=self.optimizer,
+                dataset=self.dataset,
                 last_epoch=self.last_epoch.val
             )
 
@@ -251,8 +258,7 @@ class Learner:
         if self.rank != 0:
             return
 
-        keys = list(self.variable_record.get_var_names('scalar')) + list(
-            self.variable_record.get_var_names('1darray'))
+        keys = list(self.variable_record.get_var_names('scalar')) + list(self.variable_record.get_var_names('1darray'))
         self.variable_record.update_var(transform_dict(var_items, keys))
         self.variable_record.update_var(time_items)
 
@@ -262,8 +268,9 @@ class Learner:
             self.logger.info("=== Training Iteration {} Result ===".format(self.last_iter.val))
             self.logger.info('iterations:{}\t{}'.format(iterations, self.variable_record.get_vars_text()))
             tb_keys = self.tb_logger.scalar_var_names
-            self.tb_logger.add_val_list(self.variable_record.get_vars_tb_format(
-                tb_keys, iterations, var_type='scalar'), viz_type='scalar')
+            self.tb_logger.add_val_list(
+                self.variable_record.get_vars_tb_format(tb_keys, iterations, var_type='scalar'), viz_type='scalar'
+            )
             self._record_additional_info(iterations)
 
         if iterations % self.cfg.logger.save_freq == 0:

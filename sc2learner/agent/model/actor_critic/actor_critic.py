@@ -4,7 +4,7 @@ import torch.nn as nn
 class ActorCriticBase(nn.Module):
     def forward(self, inputs, mode=None, **kwargs):
         # FIXME(pzh) That's a quiet strange implementation ...
-        assert(mode in ['step', 'value', 'evaluate', 'mimic'])
+        assert (mode in ['step', 'value', 'evaluate', 'mimic'])
         f = getattr(self, mode)
         return f(inputs, **kwargs)
 

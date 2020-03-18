@@ -24,9 +24,7 @@ from sc2learner.envs.actions.combat import CombatActions
 
 
 class ZergActionWrapper(gym.Wrapper):
-
-    def __init__(self, env, game_version='4.1.2', mask=False,
-                 use_all_combat_actions=False):
+    def __init__(self, env, game_version='4.1.2', mask=False, use_all_combat_actions=False):
         super(ZergActionWrapper, self).__init__(env)
         # TODO: multiple observation space
         #assert isinstance(env.observation_space, PySC2RawObservation)
@@ -105,25 +103,24 @@ class ZergActionWrapper(gym.Wrapper):
             self._resource_mgr.action_assign_workers_gather_gas,
             self._resource_mgr.action_assign_workers_gather_minerals,
             # ZERG_LOCUST, ZERG_CHANGELING not included
-        ] + ([
-            self._combat_mgr.action(0, 0),
-            self._combat_mgr.action(9, 4),
-            self._combat_mgr.action(4, 1)
-        ] if not use_all_combat_actions else [
-            self._combat_mgr.action(0, target_region_id)
-            for target_region_id in range(self._combat_mgr.num_regions)
-            #self._combat_mgr.action(source_region_id, target_region_id)
-            # for source_region_id in range(self._combat_mgr.num_regions)
-            # for target_region_id in range(self._combat_mgr.num_regions)
-        ])
+        ] + (
+            [self._combat_mgr.action(0, 0),
+             self._combat_mgr.action(9, 4),
+             self._combat_mgr.action(4, 1)]
+            if not use_all_combat_actions else [
+                self._combat_mgr.action(0, target_region_id)
+                for target_region_id in range(self._combat_mgr.num_regions)
+                #self._combat_mgr.action(source_region_id, target_region_id)
+                # for source_region_id in range(self._combat_mgr.num_regions)
+                # for target_region_id in range(self._combat_mgr.num_regions)
+            ]
+        )
 
         self._required_pre_actions = [
-            self._resource_mgr.action_idle_workers_gather_minerals,
-            self._resource_mgr.action_queens_inject_larva
+            self._resource_mgr.action_idle_workers_gather_minerals, self._resource_mgr.action_queens_inject_larva
         ]
         self._required_post_actions = [
-            self._combat_mgr.action_rally_new_combat_units,
-            self._combat_mgr.action_framewise_rally_and_attack
+            self._combat_mgr.action_rally_new_combat_units, self._combat_mgr.action_framewise_rally_and_attack
         ]
 
         if mask:
@@ -135,8 +132,7 @@ class ZergActionWrapper(gym.Wrapper):
     def step(self, action):
         actions = self._actions[action].function(self._dc)
         pre_actions, post_actions = self._required_actions()
-        observation, reward, done, info = self.env.step(
-            pre_actions + actions + post_actions)
+        observation, reward, done, info = self.env.step(pre_actions + actions + post_actions)
         self._dc.update(observation)
         if isinstance(self.action_space, MaskDiscrete):
             observation['action_mask'] = self._get_valid_action_mask()
@@ -175,20 +171,16 @@ class ZergActionWrapper(gym.Wrapper):
         return pre_actions, post_actions
 
     def _get_valid_action_mask(self):
-        ids = [i for i, action in enumerate(self._actions)
-               if action.is_valid(self._dc)]
+        ids = [i for i, action in enumerate(self._actions) if action.is_valid(self._dc)]
         mask = np.zeros(self.action_space.n)
         mask[ids] = 1
         return mask
 
     def _action_do_nothing(self):
-        return Function(name='do_nothing',
-                        function=lambda dc: [],
-                        is_valid=lambda dc: True)
+        return Function(name='do_nothing', function=lambda dc: [], is_valid=lambda dc: True)
 
 
 class ZergPlayerActionWrapper(ZergActionWrapper):
-
     def __init__(self, player, **kwargs):
         self._warn_double_wrap = lambda *args: None
         self._player = player

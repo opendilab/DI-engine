@@ -7,7 +7,6 @@ import numpy as np
 
 
 class Pd(object):
-
     def neglogp(self, x):
         raise NotImplementedError
 
@@ -23,14 +22,12 @@ class Pd(object):
 
 
 class CategoricalPd(Pd):
-
     def __init__(self, logits):
         self.logits = logits
 
     def neglogp(self, x):
         one_hot_actions = tf.one_hot(x, self.logits.get_shape().as_list()[-1])
-        return tf.nn.softmax_cross_entropy_with_logits(logits=self.logits,
-                                                       labels=one_hot_actions)
+        return tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=one_hot_actions)
 
     def entropy(self):
         a = self.logits - tf.reduce_max(self.logits, axis=-1, keep_dims=True)
@@ -48,8 +45,7 @@ def fc(x, scope, nh, init_scale=1.0, init_bias=0.0):
     with tf.variable_scope(scope):
         nin = x.get_shape()[1].value
         w = tf.get_variable("w", [nin, nh], initializer=ortho_init(init_scale))
-        b = tf.get_variable("b", [nh],
-                            initializer=tf.constant_initializer(init_bias))
+        b = tf.get_variable("b", [nh], initializer=tf.constant_initializer(init_bias))
         return tf.matmul(x, w) + b
 
 
@@ -57,9 +53,9 @@ def lstm(xs, ms, s, scope, nh, init_scale=1.0):
     nbatch, nin = [v.value for v in xs[0].get_shape()]
     nsteps = len(xs)
     with tf.variable_scope(scope):
-        wx = tf.get_variable("wx", [nin, nh*4], initializer=ortho_init(init_scale))
-        wh = tf.get_variable("wh", [nh, nh*4], initializer=ortho_init(init_scale))
-        b = tf.get_variable("b", [nh*4], initializer=tf.constant_initializer(0.0))
+        wx = tf.get_variable("wx", [nin, nh * 4], initializer=ortho_init(init_scale))
+        wh = tf.get_variable("wh", [nh, nh * 4], initializer=ortho_init(init_scale))
+        b = tf.get_variable("b", [nh * 4], initializer=tf.constant_initializer(0.0))
 
     c, h = tf.split(axis=1, num_or_size_splits=2, value=s)
     for idx, (x, m) in enumerate(zip(xs, ms)):
@@ -83,8 +79,7 @@ def batch_to_seq(h, nbatch, nsteps, flat=False):
         h = tf.reshape(h, [nbatch, nsteps])
     else:
         h = tf.reshape(h, [nbatch, nsteps, -1])
-    return [tf.squeeze(v, [1])
-            for v in tf.split(axis=1, num_or_size_splits=nsteps, value=h)]
+    return [tf.squeeze(v, [1]) for v in tf.split(axis=1, num_or_size_splits=nsteps, value=h)]
 
 
 def seq_to_batch(h, flat=False):
@@ -98,7 +93,6 @@ def seq_to_batch(h, flat=False):
 
 
 def ortho_init(scale=1.0):
-
     def _ortho_init(shape, dtype, partition_info=None):
         shape = tuple(shape)
         if len(shape) == 2:

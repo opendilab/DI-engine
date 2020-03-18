@@ -23,13 +23,11 @@ class JobManager():
             seed: the enviroment and action choice seed
             difficulty
     """
-
     def __init__(self, cfg, job_generator):
         self.job_generator = job_generator
         self.check_in_timeout = cfg.job_manager.check_in_timeout
         self.discard_timeout_jobs = cfg.job_manager.discard_timeout_jobs
-        self.check_job_check_in_to_thread = Thread(
-            target=self.check_job_check_in_timeout)
+        self.check_job_check_in_to_thread = Thread(target=self.check_job_check_in_timeout)
         self.check_job_check_in_to_thread.start()
         self.running_job_pool = {}
         self.job_pool_lock = Lock()
@@ -85,8 +83,7 @@ class JobManager():
             if job_id in self.running_job_pool:
                 del self.running_job_pool[job_id]
             else:
-                print('WARNING: received check in for non-existing job {} from {}'
-                      .format(job_id, actor_id))
+                print('WARNING: received check in for non-existing job {} from {}'.format(job_id, actor_id))
             ret = {'type': 'ack', 'actor_id': actor_id}
         else:
             if job_id in self.running_job_pool:
@@ -100,10 +97,8 @@ class JobManager():
                 else:
                     ret = {'type': 'ack', 'actor_id': actor_id}
             else:
-                print('WARNING: received check in for non-existing job {} from {}'
-                      .format(job_id, actor_id))
-                ret = {'type': 'job_cancel',
-                       'job_id': job_id, 'actor_id': actor_id}
+                print('WARNING: received check in for non-existing job {} from {}'.format(job_id, actor_id))
+                ret = {'type': 'job_cancel', 'job_id': job_id, 'actor_id': actor_id}
         self.job_pool_lock.release()
         return ret
 
@@ -128,8 +123,7 @@ class JobManager():
                 dt = time.time() - job['last_checkin']
                 if dt > self.check_in_timeout:
                     expired_jobs.append(job_id)
-                    print('Job {} assigned to {} expired, {} from last check in'
-                          .format(job_id, job['actor_id'], dt))
+                    print('Job {} assigned to {} expired, {} from last check in'.format(job_id, job['actor_id'], dt))
             for job_id in expired_jobs:
                 job = self.running_job_pool[job_id]
                 del self.running_job_pool[job_id]
@@ -178,10 +172,8 @@ class JobGenerator():
         job = {}
         difficulty = random.choice(self.cfg.env.bot_difficulties.split(','))
         seed = random.randint(0, 2**32 - 1)
-        job['game_vs_bot'] = {'seed': seed,
-                              'difficulty': difficulty}
-        print("New Job {}: Game&Pytorch Seed: {} Difficulty: {}".format(
-            self.next_job_id, seed, difficulty))
+        job['game_vs_bot'] = {'seed': seed, 'difficulty': difficulty}
+        print("New Job {}: Game&Pytorch Seed: {} Difficulty: {}".format(self.next_job_id, seed, difficulty))
         job['job_id'] = self.next_job_id
         job['start_rollout_at'] = 0
         self.next_job_id += 1
@@ -189,12 +181,10 @@ class JobGenerator():
 
     def job_done_callback(self, last_checkin_message):
         # dummy
-        print('Job {} done by {}'
-              .format(last_checkin_message['job_id'], last_checkin_message['actor_id']))
+        print('Job {} done by {}'.format(last_checkin_message['job_id'], last_checkin_message['actor_id']))
 
     def get_checkpoint_data(self):
-        return {'random_state': random.getstate(),
-                'next_job_id': self.next_job_id}
+        return {'random_state': random.getstate(), 'next_job_id': self.next_job_id}
 
     def load_checkpoint_data(self, data):
         random.setstate(data['random_state'])
@@ -207,8 +197,7 @@ class Coordinator():
         self.context = zmq.Context()
         self.job_generator = JobGenerator(cfg)
         self.job_manager = JobManager(cfg, self.job_generator)
-        self.coordinator_thread = Thread(target=self.coordinator,
-                                         args=(port,))
+        self.coordinator_thread = Thread(target=self.coordinator, args=(port, ))
         self.job_manager.ready = True
         self.save_path = os.path.join(cfg.common.save_path, 'checkpoints')
         if not os.path.exists(self.save_path):
@@ -253,7 +242,7 @@ class Coordinator():
         while True:
             ident, data = self.connector.recv_multipart()
             data = pickle.loads(data)
-            assert(isinstance(data, dict))
+            assert (isinstance(data, dict))
             if 'model_index' in data:
                 if data['model_index'] > self.max_model_index:
                     self.max_model_index = data['model_index']
@@ -266,8 +255,7 @@ class Coordinator():
                 self.connector.send_multipart([ident, pickle.dumps(ret)])
                 continue
             elif data['type'] == 'job req':
-                job = self.job_manager.get_job(
-                    data['actor_id'], data['req_id'])
+                job = self.job_manager.get_job(data['actor_id'], data['req_id'])
                 ret = {'type': 'job', 'job': job, 'actor_id': data['actor_id']}
                 self.connector.send_multipart([ident, pickle.dumps(ret)])
                 continue
@@ -277,8 +265,7 @@ class Coordinator():
     def save_checkpoint(self):
         print('Saving checkpoint {}'.format(self.max_model_index))
         cd = self.get_checkpoint_data()
-        path = os.path.join(
-            self.save_path, 'coordinator_iter{}.pickle'.format(self.max_model_index))
+        path = os.path.join(self.save_path, 'coordinator_iter{}.pickle'.format(self.max_model_index))
         with open(path, 'wb') as of:
             pickle.dump(cd, of)
 
@@ -288,7 +275,7 @@ class Coordinator():
         return {'job_manager': jm, 'job_generator': jg}
 
     def load_checkpoint_data(self, data):
-        assert(isinstance(data, dict))
+        assert (isinstance(data, dict))
         self.job_generator.load_checkpoint_data(data['job_generator'])
         self.job_manager.load_checkpoint_data(data['job_manager'])
         print('Setting Readiness to False')

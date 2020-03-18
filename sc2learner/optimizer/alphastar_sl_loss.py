@@ -21,7 +21,6 @@ def build_temperature_scheduler(temperature):
         Returns:
             - (:obj`Scheduler`): scheduler created by this function
     """
-
     class ConstantTemperatureSchedule:
         def __init__(self, init_val=0.1):
             self.init_val = init_val
@@ -50,7 +49,8 @@ class AlphaStarSupervisedLoss(BaseLoss):
         # self.model = model
         self.agent = agent
         self.temperature_scheduler = build_temperature_scheduler(
-            cfg.train.temperature)  # get naive temperature scheduler
+            cfg.train.temperature
+        )  # get naive temperature scheduler
         self.use_value_network = cfg.model.use_value_network
         self.criterion_config = cfg.train.criterion
         self.location_expand_ratio = cfg.model.policy.location_expand_ratio
@@ -126,9 +126,8 @@ class AlphaStarSupervisedLoss(BaseLoss):
             Returns:
                 - (:obj`tensor`): delay loss result
         """
-
         def delay_l1(p, l):
-            base = -1.73e-5 * l ** 3 + 1.89e-3 * l ** 2 - 5.8e-2 * l + 0.61
+            base = -1.73e-5 * l**3 + 1.89e-3 * l**2 - 5.8e-2 * l + 0.61
             loss = torch.abs(p - l) - base * l
             return loss.clamp(0).mean()
 
