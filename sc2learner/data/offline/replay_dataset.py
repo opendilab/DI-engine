@@ -1,36 +1,44 @@
 import os
+import random
+
+import numpy as np
 import torch
 import torch.nn.functional as F
-import numpy as np
-import numbers
-import random
 # from torch.utils.data import Dataset
 from torch.utils.data._utils.collate import default_collate
+
+from pysc2.lib.static_data import ACTIONS_REORDER
+from sc2learner.data.base_dataset import BaseDataset
 from sc2learner.envs import get_available_actions_processed_data, decompress_obs
 from sc2learner.utils import read_file_ceph
-from pysc2.lib.static_data import ACTIONS_REORDER
-from sc2learner.data.base_dataset import SenseStarBaseDataset
-
 
 META_SUFFIX = '.meta'
 DATA_SUFFIX = '.step'
 STAT_SUFFIX = '.stat_processed'
 
+START_STEP = "start_step"
 
-class ReplayDataset(SenseStarBaseDataset):
-    def __init__(self, cfg):
+
+class ReplayDataset(BaseDataset):
+    def __init__(self, cfg, train_mode=True):
         super(ReplayDataset, self).__init__(cfg)
-        assert(cfg.trajectory_type in ['random', 'slide_window', 'sequential'])
         with open(cfg.replay_list, 'r') as f:
             path_list = f.readlines()
         self.path_list = [{'name': p[:-1], 'count': 0} for idx, p in enumerate(path_list)]
-        self.trajectory_len = cfg.trajectory_len
-        self.trajectory_type = cfg.trajectory_type
-        self.slide_window_step = cfg.slide_window_step
+
+        # if train_mode is set to True, then we return a clipped version of data. Otherwise return the whole episode.
+        self.complete_episode = not train_mode
+
+        if not self.complete_episode:
+            assert cfg.trajectory_type in ['random', 'slide_window', 'sequential'], cfg
+            self.trajectory_len = cfg.trajectory_len
+            self.trajectory_type = cfg.trajectory_type
+            self.slide_window_step = cfg.slide_window_step
+            self.beginning_build_order_prob = cfg.beginning_build_order_prob
+            self.cumulative_stat_prob = cfg.cumulative_stat_prob
+
         self.use_stat = cfg.use_stat
         self.beginning_build_order_num = cfg.beginning_build_order_num
-        self.beginning_build_order_prob = cfg.beginning_build_order_prob
-        self.cumulative_stat_prob = cfg.cumulative_stat_prob
         self.use_global_cumulative_stat = cfg.use_global_cumulative_stat
         self.use_ceph = cfg.use_ceph
         self.use_available_action_transform = cfg.use_available_action_transform
@@ -45,6 +53,7 @@ class ReplayDataset(SenseStarBaseDataset):
         self.path_list = state_dict
 
     def step(self, index=None):
+        assert not self.complete_episode, "During evaluation, we don't need to step the dataset."
         if index is None:
             index = range(len(self.path_list))
         end_list = []  # a list containes replay index which access the end of the replay
@@ -57,7 +66,7 @@ class ReplayDataset(SenseStarBaseDataset):
                 handle['map_size'] = meta['map_size']
             else:
                 step_num = handle['step_num']
-            assert(handle['step_num'] >= self.trajectory_len)
+            assert (handle['step_num'] >= self.trajectory_len)
             if self.trajectory_type == 'random':
                 handle['cur_step'] = random.randint(0, step_num - self.trajectory_len)
             elif self.trajectory_type == 'slide_window':
@@ -102,33 +111,48 @@ class ReplayDataset(SenseStarBaseDataset):
             B0 = self.beginning_build_order_num - B
             beginning_build_order = torch.cat([beginning_build_order, torch.zeros(B0, N)])
         cumulative_stat = stat['cumulative_stat']
-        bool_bo = float(np.random.rand() < self.beginning_build_order_prob)
-        bool_cum = float(np.random.rand() < self.cumulative_stat_prob)
-        beginning_build_order = bool_bo * beginning_build_order
-        cumulative_stat = {k: bool_cum * v for k, v in cumulative_stat.items()}
+        if not self.complete_episode:
+            bool_bo = float(np.random.rand() < self.beginning_build_order_prob)
+            bool_cum = float(np.random.rand() < self.cumulative_stat_prob)
+            beginning_build_order = bool_bo * beginning_build_order
+            cumulative_stat = {k: bool_cum * v for k, v in cumulative_stat.items()}
         return beginning_build_order, cumulative_stat, mmr
 
     def __getitem__(self, idx):
         handle = self.path_list[idx]
         data = torch.load(self._read_file(handle['name'] + DATA_SUFFIX))
-        start = handle['cur_step']
-        end = start + self.trajectory_len
-        sample_data = data[start:end]
+
+        # clip the dataset
+        if self.complete_episode:
+            start = 0
+            sample_data = data
+        else:
+            start = handle['cur_step']
+            end = start + self.trajectory_len
+            sample_data = data[start:end]
+
         sample_data = self.action_unit_id_transform(sample_data)
         # if unit id transform deletes some data frames,
         # collate_fn will use the minimum number of data frame to compose a batch
         sample_data = [decompress_obs(d) for d in sample_data]
         if self.use_available_action_transform:
             sample_data = [get_available_actions_processed_data(d) for d in sample_data]
-        # check raw coordinate (x, y) <-> (y, x)
-        try:
-            assert(handle['map_size'] == list(reversed(sample_data[0]['spatial_info'].shape[1:])))
-        except AssertionError as e:
-            print('[Error] data name: {}'.format(handle['name']))
-            raise e
-        map_size = list(reversed(handle['map_size']))
+
+        if self.complete_episode:
+            meta = torch.load(self._read_file(handle['name'] + META_SUFFIX))
+            map_size = list(reversed(meta['map_size']))
+        else:
+            # check raw coordinate (x, y) <-> (y, x)
+            try:
+                assert handle['map_size'] == list(reversed(sample_data[0]['spatial_info'].shape[1:]))
+            except AssertionError as e:
+                print('[Error] data name: {}'.format(handle['name']))
+                raise e
+            map_size = list(reversed(handle['map_size']))
+
         if self.use_stat:
             beginning_build_order, cumulative_stat, mmr = self._load_stat(handle)
+
         for i in range(len(sample_data)):
             sample_data[i]['map_size'] = map_size
             if self.use_stat:
@@ -136,66 +160,19 @@ class ReplayDataset(SenseStarBaseDataset):
                 sample_data[i]['scalar_info']['mmr'] = mmr
                 if self.use_global_cumulative_stat:
                     sample_data[i]['scalar_info']['cumulative_stat'] = cumulative_stat
+
         if start == 0:
-            sample_data[0]['start_step'] = True
+            sample_data[0][START_STEP] = True
         else:
-            sample_data[0]['start_step'] = False
+            sample_data[0][START_STEP] = False
 
         return sample_data
 
 
-class ReplayEvalDataset(ReplayDataset):
-    def __init__(self, cfg):
-        with open(cfg.replay_list, 'r') as f:
-            path_list = f.readlines()
-        self.path_list = [{'name': p[:-1], 'count': 0} for idx, p in enumerate(path_list)]
-        self.use_stat = cfg.use_stat
-        self.beginning_build_order_num = cfg.beginning_build_order_num
-        self.use_global_cumulative_stat = cfg.use_global_cumulative_stat
-        self.use_ceph = cfg.use_ceph
-        self.use_available_action_transform = cfg.use_available_action_transform
-
-    # overwrite
-    def _load_stat(self, handle):
-        stat = torch.load(self._read_file(handle['name'] + STAT_SUFFIX))
-        mmr = stat['mmr']
-        beginning_build_order = stat['beginning_build_order']
-        # first self.beginning_build_order_num item
-        beginning_build_order = beginning_build_order[:self.beginning_build_order_num]
-        if beginning_build_order.shape[0] < self.beginning_build_order_num:
-            B, N = beginning_build_order.shape
-            B0 = self.beginning_build_order_num - B
-            beginning_build_order = torch.cat([beginning_build_order, torch.zeros(B0, N)])
-        cumulative_stat = stat['cumulative_stat']
-        return beginning_build_order, cumulative_stat, mmr
-
-    # overwrite
-    def __getitem__(self, idx):
-        handle = self.path_list[idx]
-        data = torch.load(self._read_file(handle['name'] + DATA_SUFFIX))
-        data = self.action_unit_id_transform(data)
-        data = [decompress_obs(d) for d in data]
-        if self.use_available_action_transform:
-            data = [get_available_actions_processed_data(d) for d in data]
-        meta = torch.load(self._read_file(handle['name'] + META_SUFFIX))
-        map_size = list(reversed(meta['map_size']))
-        if self.use_stat:
-            beginning_build_order, cumulative_stat, mmr = self._load_stat(handle)
-        for i in range(len(data)):
-            data[i]['map_size'] = map_size
-            if self.use_stat:
-                data[i]['scalar_info']['beginning_build_order'] = beginning_build_order
-                data[i]['scalar_info']['mmr'] = mmr
-                if self.use_global_cumulative_stat:
-                    data[i]['scalar_info']['cumulative_stat'] = cumulative_stat
-
-        return data
-
-
 def select_replay(replay_dir, min_mmr=0, home_race=None, away_race=None, trajectory_len=64):
     race_list = ['Protoss', 'Terran', 'Zerg']
-    assert(home_race is None or home_race in race_list)
-    assert(away_race is None or away_race in race_list)
+    assert (home_race is None or home_race in race_list)
+    assert (away_race is None or away_race in race_list)
     selected_replay = []
     for item in os.listdir(replay_dir):
         name, suffix = item.split('.')
@@ -207,7 +184,7 @@ def select_replay(replay_dir, min_mmr=0, home_race=None, away_race=None, traject
                 continue
             if away_race and away != away_race:
                 continue
-            meta = torch.load(os.path.join(replay_dir, name)+META_SUFFIX)
+            meta = torch.load(os.path.join(replay_dir, name) + META_SUFFIX)
             if meta['step_num'] < trajectory_len:
                 continue
             selected_replay.append(os.path.join(replay_dir, name))
@@ -216,7 +193,7 @@ def select_replay(replay_dir, min_mmr=0, home_race=None, away_race=None, traject
 
 def get_replay_list(replay_dir, output_path, **kwargs):
     selected_replay = select_replay(replay_dir, **kwargs)
-    selected_replay = [p+'\n' for p in selected_replay]
+    selected_replay = [p + '\n' for p in selected_replay]
     with open(output_path, 'w') as f:
         f.writelines(selected_replay)
 
@@ -229,7 +206,7 @@ def policy_collate_fn(batch, max_delay=63, action_type_transform=True):
         'entity_raw': False,
         'actions': False,
         'map_size': False,
-        'start_step': False
+        START_STEP: False
     }
 
     def list_dict2dict_list(data):
@@ -256,7 +233,7 @@ def policy_collate_fn(batch, max_delay=63, action_type_transform=True):
                     new_spatial_info = []
                     for item in new_data[k]:
                         h, w = item.shape[-2:]
-                        new_spatial_info.append(F.pad(item, [0, W-w, 0, H-h], "constant", 0))
+                        new_spatial_info.append(F.pad(item, [0, W - w, 0, H - h], "constant", 0))
                     new_data[k] = default_collate(new_spatial_info)
                 else:
                     new_data[k] = default_collate(new_data[k])

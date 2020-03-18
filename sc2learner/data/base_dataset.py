@@ -8,9 +8,9 @@ DATA_SUFFIX = '.step'
 STAT_SUFFIX = '.stat_processed'
 
 
-class SenseStarBaseDataset(Dataset):
+class BaseDataset(Dataset):
     def __init__(self, cfg):
-        super(SenseStarBaseDataset, self).__init__()
+        super(BaseDataset, self).__init__()
 
     def __len__(self):
         raise NotImplementedError()

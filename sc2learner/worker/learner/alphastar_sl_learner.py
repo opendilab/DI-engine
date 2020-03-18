@@ -10,12 +10,15 @@ import torch
 from pysc2.lib.static_data import ACTIONS_REORDER_INV, ACTIONS
 from sc2learner.agent.alphastar_agent import AlphaStarAgent
 from sc2learner.agent.model import build_model
-from sc2learner.data import build_dataloader, build_dataset
+from sc2learner.data import build_dataloader, build_dataset, START_STEP
 from sc2learner.evaluate.supervised_criterion import SupervisedCriterion
 from sc2learner.optimizer import AlphaStarSupervisedOptimizer
 from sc2learner.torch_utils import to_device
 from sc2learner.utils import override
 from sc2learner.worker.learner.base_learner import SupervisedLearner
+
+
+# from sc2learner..learner.base_learner import SupervisedLearner
 
 
 class AlphaStarSupervisedLearner(SupervisedLearner):
@@ -36,8 +39,8 @@ class AlphaStarSupervisedLearner(SupervisedLearner):
     @override(SupervisedLearner)
     def _setup_data_source(self):
         cfg = self.cfg
-        dataset = build_dataset(cfg.data.train)
-        eval_dataset = build_dataset(cfg.data.eval)
+        dataset = build_dataset(cfg.data.train, train_dataset=True)
+        eval_dataset = build_dataset(cfg.data.eval, train_dataset=False)
         dataloader = build_dataloader(cfg.data.train, dataset)
         eval_dataloader = build_dataloader(cfg.data.eval, eval_dataset)
         return dataset, dataloader, eval_dataloader
@@ -50,7 +53,7 @@ class AlphaStarSupervisedLearner(SupervisedLearner):
 
     @override(SupervisedLearner)
     def _setup_optimizer(self, model):
-        return AlphaStarSupervisedOptimizer(self.cfg, self.agent, self.use_distributed, self.world_size)
+        return AlphaStarSupervisedOptimizer(self.cfg, self.agent, self.use_distributed)
 
     @override(SupervisedLearner)
     def _preprocess_data(self, batch_data):
@@ -99,7 +102,8 @@ class AlphaStarSupervisedLearner(SupervisedLearner):
     def evaluate(self):
         self.agent.eval()
         for data_index, data in enumerate(self.eval_dataloader):
-            self.agent.reset_previous_state(data[0]["start_step"])
+            assert START_STEP in data[0], data[0]
+            self.agent.reset_previous_state(data[0][START_STEP])
             for step, step_data in enumerate(data):
                 if self.use_cuda:
                     step_data = to_device(step_data, "cuda")
