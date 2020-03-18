@@ -5,7 +5,7 @@ common:
     agent: alphastar
     use_multiprocessing: False
 env:
-    game_version: '3.16'
+    game_version: '4.10'
     map_name: AbyssalReef
     map_size: [200, 176]
     disable_fog: False
@@ -24,6 +24,7 @@ train:
     use_cuda: True
     temperature: 1.0
 model:
+    freeze_targets: []
     use_value_network: False
     encoder:
         obs_encoder:
@@ -55,7 +56,7 @@ model:
         scatter:
             input_dim: 256  # entity_encoder.output_dim
             output_dim: 32
-        core:
+        core_lstm:
             input_size: 1792  # spatial_encoder.fc_dim + entity_encoder.output_dim + scalar_encoder.output_dim
             hidden_size: 384
             num_layers: 3
