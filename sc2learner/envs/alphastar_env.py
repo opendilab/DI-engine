@@ -8,13 +8,14 @@ from sc2learner.envs.observations.alphastar_obs_wrapper import SpatialObsWrapper
     transform_spatial_data, transform_scalar_data, transform_entity_data
 from sc2learner.envs.actions.alphastar_act_wrapper import AlphastarActParser
 from sc2learner.envs import get_available_actions_processed_data
+from sc2learner.utils import deepcopy
 
 
 class AlphastarEnv(SC2Env):
 
     def __init__(self, cfg):
         agent_interface_format = sc2_env.parse_agent_interface_format(
-                feature_screen=cfg.env.screen_resolution, feature_minimap=cfg.env.map_size)
+                feature_screen=cfg.env.screen_resolution, feature_minimap=cfg.env.map_size)  # x, y
         players = [
             sc2_env.Agent(sc2_env.Race[cfg.env.home_race]),
             sc2_env.Bot(sc2_env.Race[cfg.env.away_race], cfg.env.difficulty),
@@ -53,10 +54,10 @@ class AlphastarEnv(SC2Env):
         return stat
 
     def _merge_stat(self, obs):
-        obs['scalar_info']['mmr'] = self.stat['mmr']
-        obs['scalar_info']['beginning_build_order'] = self.stat['beginning_build_order']
+        obs['scalar_info']['mmr'] = deepcopy(self.stat['mmr'])
+        obs['scalar_info']['beginning_build_order'] = deepcopy(self.stat['beginning_build_order'])
         if self.use_global_cumulative_stat:
-            obs['scalar_info']['cumulative_stat'] = self.stat['cumulative_stat']
+            obs['scalar_info']['cumulative_stat'] = deepcopy(self.stat['cumulative_stat'])
         return obs
 
     def _merge_action(self, obs, last_action):
@@ -116,16 +117,30 @@ class AlphastarEnv(SC2Env):
         return new_obs
 
     def _get_action(self, actions):
-        action_type = actions['action_type']
-        delay = actions['delay']
+        # tensor2value
+        for k, v in actions.items():
+            if isinstance(v, torch.Tensor):
+                if k == 'action_type':
+                    actions[k] = ACTIONS_REORDER_INV[v.item()]
+                elif k in ['selected_units', 'target_units', 'target_location']:
+                    actions[k] = v.tolist()
+                elif k in ['queued', 'delay']:
+                    actions[k] = v.item()
+                else:
+                    raise KeyError("invalid key:{}".format(k))
         # action target location transform
         target_location = actions['target_location']
         if target_location is not None:
             x = target_location[1]
             y = target_location[0]
-            y = self.map_size[0] - y
+            y = self.map_size[1] - y
             actions['target_location'] = [x, y]
 
+        self._cur_actions = self.action_to_string(actions)
+        self._cur_action_type = actions['action_type']
+
+        action_type = actions['action_type']
+        delay = actions['delay']
         arg_keys = ['queued', 'selected_units', 'target_units', 'target_location']
         args = [v for k, v in actions.items() if k in arg_keys and v is not None]
         return FunctionCall.init_with_validation(action_type, args, raw=True), delay
@@ -149,5 +164,21 @@ class AlphastarEnv(SC2Env):
         self._reset_flag = True
         last_actions = {'action_type': 0, 'delay': 0, 'queued': None,
                         'selected_units': None, 'target_units': None, 'target_location': None}
+        self._cur_actions = self.action_to_string(last_actions)
+        self._cur_action_type = last_actions['action_type']
         obs = self._get_obs(obs, last_actions)
         return obs
+
+    @property
+    def cur_actions(self):
+        return self._cur_actions
+
+    @property
+    def cur_action_type(self):
+        return self._cur_action_type
+
+    def action_to_string(self, actions):
+        return '[Action: type({}) delay({}) queued({}) selected_units({}) target_units({}) target_location({})]'.format(
+                    actions['action_type'], actions['delay'], actions['queued'],
+                    actions['selected_units'], actions['target_units'], actions['target_location']
+                )
