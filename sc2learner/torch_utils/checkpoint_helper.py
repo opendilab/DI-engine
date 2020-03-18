@@ -34,6 +34,7 @@ class CheckpointHelper(object):
         Overview: Concrete implementation of CheckpointHelper, to help to save or load checkpoint
         Interface: __init__, save_iterations, save, save_data, load
     '''
+
     def __init__(self, save_dir, rank=0):
         '''
             Overview: initialization method, check if save_dir exists.
@@ -160,7 +161,7 @@ class CheckpointHelper(object):
 
     def load(self, load_path, model,
              optimizer=None, last_iter=None, last_epoch=None, lr_schduler=None, dataset=None, actor_info=None,
-             prefix_op=None, prefix=None, strict=True, logger_prefix=''):
+             prefix_op=None, prefix=None, strict=True, logger_prefix='', state_dict_mask=[]):
         '''
             Overview: load checkpoint by given path
             Arguments:
@@ -176,6 +177,8 @@ class CheckpointHelper(object):
                 - prefix (:obj:`str`): prefix to be processed on state_dict
                 - strict (:obj:`bool`): args of model.load_state_dict
                 - logger_prefix (:obj:`str`): prefix of logger
+                - state_dict_mask (:obj:`list`) a list contains state_dict keys,
+                    which shouldn't be loaded into model(after prefix op)
         '''
         # Note: don't use assign operation('=') to updare input argument value
         assert(os.path.exists(load_path))
@@ -189,6 +192,15 @@ class CheckpointHelper(object):
                 raise KeyError('invalid prefix_op:{}'.format(prefix_op))
             else:
                 state_dict = prefix_func[prefix_op](state_dict, prefix)
+        if len(state_dict_mask) > 0:
+            if strict:
+                logger.info(logger_prefix+'[Warning] non-empty state_dict_mask expects strict=False, but finds strict=True in input argument')  # noqa
+                strict = False
+            for m in state_dict_mask:
+                state_dict_keys = list(state_dict.keys())
+                for k in state_dict_keys:
+                    if k.startswith(m):
+                        state_dict.pop(k)  # ignore return value
         model.load_state_dict(state_dict, strict=strict)
         logger.info(logger_prefix+'load model state_dict in {}'.format(load_path))
         self._print_mismatch_keys(model.state_dict(), state_dict)

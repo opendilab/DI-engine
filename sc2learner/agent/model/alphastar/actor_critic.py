@@ -29,6 +29,41 @@ class AlphaStarActorCritic(ActorCriticBase):
                 self.value_networks[v.name] = ValueBaseline(v.param)
                 # name of needed cumulative stat items
                 self.value_cum_stat_keys[v.name] = v.cum_stat_keys
+        self.freeze_module(cfg.freeze_targets)
+
+    def freeze_module(self, freeze_targets=None):
+        '''
+        Note:
+            must be called after the model initialization, before the model forward
+        '''
+        if freeze_targets is None:
+            # if freeze_targets is not provided, try to use self.freeze_targets
+            if self.freeze_targets is None:
+                raise Exception("not provided arguments(freeze_targets)")
+            else:
+                freeze_targets = self.freeze_targets
+        else:
+            # if freeze_targets is provided, update self.freeze_targets for next usage
+            self.freeze_targets = freeze_targets
+
+        def get_submodule(name):
+            part = name.split('.')
+            module = self
+            for p in part:
+                module = getattr(module, p)
+            return module
+
+        for name in freeze_targets:
+            module = get_submodule(name)
+            module.eval()
+            for m in module.parameters():
+                m.requires_grad_(False)
+
+    # overwrite
+    def train(self, mode=True):
+        super().train(mode)
+        if hasattr(self, 'freeze_targets'):
+            self.freeze_module()
 
     # overwrite
     def mimic(self, inputs, **kwargs):

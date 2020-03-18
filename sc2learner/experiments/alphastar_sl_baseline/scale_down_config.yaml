@@ -37,7 +37,7 @@ train:
             smooth_ratio: 0.1
 model:
     freeze_targets: []
-    state_dict_mask: []
+    state_dict_mask: ['policy', 'encoder.encoder']
     use_value_network: False
     encoder:
         obs_encoder:
@@ -49,8 +49,8 @@ model:
                 output_dim: 1280  # use_stat(True: 1280, False: 1088)
             spatial_encoder:
                 input_dim: 52
-                resblock_num: 4
-                fc_dim: 256
+                resblock_num: 3
+                fc_dim: 128
                 project_dim: 32
                 downsample_type: 'conv2d'
                 down_channels: [64, 128, 128]
@@ -59,28 +59,28 @@ model:
             entity_encoder:
                 input_dim: 2102
                 head_dim: 128
-                hidden_dim: 1024
-                output_dim: 256
+                hidden_dim: 512
+                output_dim: 128
                 head_num: 2
-                mlp_num: 2
-                layer_num: 3
+                mlp_num: 1
+                layer_num: 2
                 dropout_ratio: 0.1
                 activation: 'relu'
         scatter:
-            input_dim: 256  # entity_encoder.output_dim
+            input_dim: 128  # entity_encoder.output_dim
             output_dim: 32
         core_lstm:
-            input_size: 1792  # spatial_encoder.fc_dim + entity_encoder.output_dim + scalar_encoder.output_dim
-            hidden_size: 384
-            num_layers: 3
+            input_size: 1536  # spatial_encoder.fc_dim + entity_encoder.output_dim + scalar_encoder.output_dim
+            hidden_size: 256
+            num_layers: 2
     policy:
         location_expand_ratio: 2
         head:
             head_names: [action_type_head, delay_head, queued_head, selected_units_head, target_unit_head, location_head]
             action_type_head:
-                input_dim: 384  # core.hidden_size
+                input_dim: 256  # core.hidden_size
                 res_dim: 256
-                res_num: 16
+                res_num: 8
                 action_num: 327
                 action_map_dim: 256
                 gate_dim: 1024
@@ -102,7 +102,7 @@ model:
                 activation: 'relu'
             selected_units_head:
                 input_dim: 1024  # action_type_head.gate_dim
-                entity_embedding_dim: 256  # entity_encoder.output_dim
+                entity_embedding_dim: 128  # entity_encoder.output_dim
                 key_dim: 32
                 unit_type_dim: 259
                 func_dim: 256
@@ -112,7 +112,7 @@ model:
                 activation: 'relu'
             target_unit_head:
                 input_dim: 1024  # action_type_head.gate_dim
-                entity_embedding_dim: 256  # entity_encoder.output_dim
+                entity_embedding_dim: 128  # entity_encoder.output_dim
                 key_dim: 32
                 unit_type_dim: 259
                 func_dim: 256
@@ -121,14 +121,14 @@ model:
                 upsample_type: 'deconv'
                 upsample_dims: [128, 64, 16, 1]  # len(upsample_dims)-len(down_channels)+1 = ratio
                 res_dim: 128
-                res_num: 4
+                res_num: 3
                 reshape_size: [16, 16]  
                 reshape_channel: 4  # entity_encoder.gate_dim / reshape_size
                 map_skip_dim: 128  # spatial_encoder.down_channels[-1]
                 activation: 'relu'
                 output_type: 'cls'  # ['cls', 'soft_argmax']
 logger:
-    print_freq: 10
+    print_freq: 1
     save_freq: 200
     eval_freq: 200
     var_record_type: 'alphastar'

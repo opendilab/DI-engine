@@ -169,35 +169,6 @@ class ReplayDataset(BaseDataset):
         return sample_data
 
 
-def select_replay(replay_dir, min_mmr=0, home_race=None, away_race=None, trajectory_len=64):
-    race_list = ['Protoss', 'Terran', 'Zerg']
-    assert (home_race is None or home_race in race_list)
-    assert (away_race is None or away_race in race_list)
-    selected_replay = []
-    for item in os.listdir(replay_dir):
-        name, suffix = item.split('.')
-        if suffix == META_SUFFIX[1:]:
-            home, away, mmr = name.split('_')[:3]
-            if int(mmr) < min_mmr:
-                continue
-            if home_race and home != home_race:
-                continue
-            if away_race and away != away_race:
-                continue
-            meta = torch.load(os.path.join(replay_dir, name) + META_SUFFIX)
-            if meta['step_num'] < trajectory_len:
-                continue
-            selected_replay.append(os.path.join(replay_dir, name))
-    return selected_replay
-
-
-def get_replay_list(replay_dir, output_path, **kwargs):
-    selected_replay = select_replay(replay_dir, **kwargs)
-    selected_replay = [p + '\n' for p in selected_replay]
-    with open(output_path, 'w') as f:
-        f.writelines(selected_replay)
-
-
 def policy_collate_fn(batch, max_delay=63, action_type_transform=True):
     data_item = {
         'spatial_info': False,  # special op
