@@ -69,7 +69,10 @@ class ActionTypeHead(nn.Module):
             # action_type is sampled from these logits using a multinomial with temperature 0.8.
             # Note that during supervised learning, action_type will be the ground truth human action type,
             # and temperature is 1.0 (and similarly for all other arguments).
-            action = handle.sample()
+            if self.training:
+                action = handle.sample()
+            else:
+                action = handle.mode()
 
         # to get autoregressive_embedding
         action_one_hot = one_hot(action, self.action_num)  # one-hot version of action_type
