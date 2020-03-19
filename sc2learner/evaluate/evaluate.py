@@ -17,13 +17,8 @@ from absl import app
 from absl import flags
 from absl import logging
 
-from sc2learner.envs.raw_env import SC2RawEnv
-from sc2learner.envs.actions.zerg_action_wrappers import ZergActionWrapper
-from sc2learner.envs.observations.zerg_observation_wrappers \
-    import ZergObservationWrapper
 from sc2learner.envs.alphastar_env import AlphastarEnv
-from sc2learner.agent.model import PPOLSTM, PPOMLP
-from sc2learner.worker import PpoAgent, RandomAgent, KeyboardAgent, AlphaStarAgent
+from sc2learner.worker import RandomAgent, AlphaStarAgent
 from sc2learner.utils import build_logger
 from pysc2.lib.action_dict import ACTION_INFO_MASK
 
@@ -37,57 +32,9 @@ flags.FLAGS(sys.argv)
 
 
 def create_env(cfg, random_seed=None):
-    if cfg.common.agent == 'alphastar':
-        cfg.env.random_seed = random_seed
-        env = AlphastarEnv(cfg)
-    else:
-        env = SC2RawEnv(
-            map_name=cfg.env.map_name,
-            step_mul=cfg.env.step_mul,
-            difficulty=cfg.env.difficulty,
-            agent_race=cfg.env.agent_race,
-            bot_race=cfg.env.bot_race,
-            disable_fog=cfg.env.disable_fog,
-            random_seed=random_seed
-        )
-        env = ZergActionWrapper(
-            env,
-            game_version=cfg.env.game_version,
-            mask=cfg.env.use_action_mask,
-            use_all_combat_actions=cfg.env.use_all_combat_actions
-        )
-        env = ZergObservationWrapper(
-            env,
-            use_spatial_features=False,
-            use_game_progress=(not cfg.model.policy == 'lstm'),
-            action_seq_len=1 if cfg.model.policy == 'lstm' else 8,
-            use_regions=cfg.env.use_region_features
-        )
+    cfg.env.random_seed = random_seed
+    env = AlphastarEnv(cfg)
     return env
-
-
-def create_dqn_agent(cfg, env):
-    from sc2learner.agents.dqn_agent import DQNAgent
-    from sc2learner.agents.dqn_networks import NonspatialDuelingQNet
-
-    assert cfg.model.policy == 'mlp'
-    assert not cfg.env.use_action_mask
-    network = NonspatialDuelingQNet(n_dims=env.observation_space.shape[0], n_out=env.action_space.n)
-    agent = DQNAgent(network, env.action_space, cfg.common.model_path)
-    return agent
-
-
-def create_ppo_agent(cfg, env, tb_logger):
-
-    policy_func = {'mlp': PPOMLP, 'lstm': PPOLSTM}
-    model = policy_func[cfg.model.policy](
-        ob_space=env.observation_space,
-        ac_space=env.action_space,
-        action_type=cfg.model.action_type,
-        viz=cfg.logger.viz,
-    )
-    agent = PpoAgent(env=env, model=model, tb_logger=tb_logger, cfg=cfg)
-    return agent
 
 
 def evaluate(var_dict, cfg):
@@ -99,7 +46,7 @@ def evaluate(var_dict, cfg):
         path_info = name_list[-2] + '/' + name_list[-1].split('.')[0]
     else:
         path_info = 'no_model'
-    name = 'eval_{}_{}_{}_{}_{}'.format(path_info, cfg.env.difficulty, cfg.model.action_type, log_time, rank + 1)
+    name = 'eval_{}_{}_{}_{}'.format(path_info, cfg.env.difficulty, log_time, rank + 1)
     dirname = os.path.dirname(name)
     if not os.path.exists(dirname):
         try:
@@ -111,45 +58,28 @@ def evaluate(var_dict, cfg):
     logger.info("Rank %d Game Seed: %d" % (rank, game_seed))
     env = create_env(cfg, game_seed)
 
-    if cfg.common.agent == 'ppo':
-        agent = create_ppo_agent(cfg, env, tb_logger)
-    elif cfg.common.agent == 'dqn':
-        agent = create_dqn_agent(cfg, env)
-    elif cfg.common.agent == 'random':
+    if cfg.common.agent == 'random':
         agent = RandomAgent(action_space=env.action_space)
-    elif cfg.common.agent == 'keyboard':
-        agent = KeyboardAgent(action_space=env.action_space)
     elif cfg.common.agent == 'alphastar':
         agent = AlphaStarAgent(cfg)
     else:
         raise NotImplementedError
 
-    value_save_path = os.path.join(cfg.common.save_path, 'values')
-    if not os.path.exists(value_save_path):
-        os.mkdir(value_save_path)
     cum_return = 0.0
     action_counts = [0] * (max(ACTION_INFO_MASK.keys()) + 1)
 
     observation = env.reset()
     agent.reset()
     done, step_id = False, 0
-    value_trace = []
     while not done:
         action = agent.act(observation)
-        value = agent.value(observation)
-        value_trace.append(value)
         observation, reward, done, _ = env.step(action)
         logger.info("Rank %d Step ID: %d Take Action: %s" % (rank, step_id, env.cur_actions))
         action_counts[env.cur_action_type] += 1
         cum_return += reward
         step_id += 1
     if cfg.env.save_replay:
-        if hasattr(env, 'save_replay'):
-            env.save_replay(cfg.common.agent + FLAGS.replay_path)
-        else:
-            env.env.env.save_replay(cfg.common.agent + FLAGS.replay_path)
-    path = os.path.join(value_save_path, 'value{}.pt'.format(rank))
-    torch.save(torch.tensor(value_trace), path)
+        env.save_replay(cfg.common.agent + FLAGS.replay_path)
     for action_id in ACTION_INFO_MASK.keys():
         logger.info(
             "Rank %d\tAction ID: %d\tCount: %d\tName: %s" %
