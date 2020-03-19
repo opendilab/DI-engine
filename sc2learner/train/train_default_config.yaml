@@ -1,0 +1,21 @@
+# This file provide general config setting for whatever applications.
+# "common" and "logger", two top-level fields are filled.
+# The top-level fields contain: "common", "logger", "data", "train", "model"
+# Note that not all config fields should be filled at the same time.
+common:
+    name: ZergStat
+    time_wrapper_type: cuda
+    save_path: ''
+    load_path: ''
+    only_evaluate: False
+logger:
+    print_freq: 10
+    save_freq: 200
+    eval_freq: 200
+    var_record_type: 'alphastar'
+data:
+    train: {}
+    eval: {}
+train: {}
+model: {}
+env: {}

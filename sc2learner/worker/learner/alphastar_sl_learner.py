@@ -5,55 +5,70 @@ Main Function:
     1. Alphastar implementation for supervised learning on linklink, including basic processes.
 """
 
+import os.path as osp
+
 import torch
 
 from pysc2.lib.static_data import ACTIONS_REORDER_INV, ACTIONS
 from sc2learner.agent.alphastar_agent import AlphaStarAgent
-from sc2learner.agent.model import build_model
+from sc2learner.agent.model import alphastar_model_default_config
 from sc2learner.data import build_dataloader, build_dataset, START_STEP
 from sc2learner.evaluate.supervised_criterion import SupervisedCriterion
 from sc2learner.optimizer import AlphaStarSupervisedOptimizer
 from sc2learner.torch_utils import to_device
-from sc2learner.utils import override
+from sc2learner.utils import override, merge_dicts, pretty_print, read_config
 from sc2learner.worker.learner.base_learner import SupervisedLearner
 
+default_config = read_config(osp.join(osp.dirname(__file__), "alphastar_sl_learner_default_config.yaml"))
 
-# from sc2learner..learner.base_learner import SupervisedLearner
+
+def build_config(user_config):
+    """Aggregate a general config at the highest level class: Learner"""
+    default_config["model"] = alphastar_model_default_config
+    return merge_dicts(default_config, user_config)
 
 
 class AlphaStarSupervisedLearner(SupervisedLearner):
     _name = "AlphaStarSupervisedLearner"
+    data_stat = {
+        'action_type': [k for k in ACTIONS],
+        'delay': ['0-5', '6-22', '23-44', '44-64'],
+        'queued': ['no_attr', 'no_queued', 'queued'],
+        'selected_units': ['no_attr', '1', '2-8', '9-32', '33-64', '64+'],
+        'target_units': ['no_attr', 'target_units'],
+        'target_location': ['no_attr', 'target_location'],
+    }
 
     def __init__(self, cfg):
-        self.data_stat = {
-            'action_type': [k for k in ACTIONS],
-            'delay': ['0-5', '6-22', '23-44', '44-64'],
-            'queued': ['no_attr', 'no_queued', 'queued'],
-            'selected_units': ['no_attr', '1', '2-8', '9-32', '33-64', '64+'],
-            'target_units': ['no_attr', 'target_units'],
-            'target_location': ['no_attr', 'target_location'],
-        }
+        cfg = build_config(cfg)
         super(AlphaStarSupervisedLearner, self).__init__(cfg)
         self.eval_criterion = SupervisedCriterion()
 
+        # Print and save config as metadata
+        pretty_print({"config": self.cfg})
+        self.checkpoint_manager.save_config(self.cfg)
+
     @override(SupervisedLearner)
     def _setup_data_source(self):
-        cfg = self.cfg
-        dataset = build_dataset(cfg.data.train, train_dataset=True)
-        eval_dataset = build_dataset(cfg.data.eval, train_dataset=False)
-        dataloader = build_dataloader(cfg.data.train, dataset)
-        eval_dataloader = build_dataloader(cfg.data.eval, eval_dataset)
+        dataset = build_dataset(self.cfg.data.train, train_dataset=True)
+        eval_dataset = build_dataset(self.cfg.data.eval, train_dataset=False)
+        dataloader = build_dataloader(
+            dataset, self.cfg.data.train.dataloader_type, self.cfg.data.train.batch_size, self.use_distributed
+        )
+        eval_dataloader = build_dataloader(
+            eval_dataset, self.cfg.data.eval.dataloader_type, self.cfg.data.eval.batch_size, self.use_distributed
+        )
         return dataset, dataloader, eval_dataloader
 
     @override(SupervisedLearner)
     def _setup_agent(self):
-        agent = AlphaStarAgent(self.cfg, build_model, self.use_cuda, self.use_distributed)
+        agent = AlphaStarAgent(self.cfg.model, self.cfg.data.train.batch_size, self.use_cuda, self.use_distributed)
         agent.train()
         return agent
 
     @override(SupervisedLearner)
     def _setup_optimizer(self, model):
-        return AlphaStarSupervisedOptimizer(self.cfg, self.agent, self.use_distributed)
+        return AlphaStarSupervisedOptimizer(self.agent, self.cfg.train, self.cfg.model)
 
     @override(SupervisedLearner)
     def _preprocess_data(self, batch_data):
@@ -64,19 +79,20 @@ class AlphaStarSupervisedLearner(SupervisedLearner):
 
     @override(SupervisedLearner)
     def _setup_stats(self):
-
         self.variable_record.register_var('cur_lr')
         self.variable_record.register_var('epoch')
         self.variable_record.register_var('data_time')
         self.variable_record.register_var('total_batch_time')
+
         self.tb_logger.register_var('cur_lr')
         self.tb_logger.register_var('epoch')
         self.tb_logger.register_var('total_batch_time')
 
         self.optimizer.register_stats(variable_record=self.variable_record, tb_logger=self.tb_logger)
 
-        self.variable_record.register_var('action_type', var_type='1darray',
-                                          var_item_keys=self.data_stat['action_type'])  # noqa
+        self.variable_record.register_var(
+            'action_type', var_type='1darray', var_item_keys=self.data_stat['action_type']
+        )  # noqa
         self.tb_logger.register_var('action_type', var_type='histogram')
 
         for k in (set(self.data_stat.keys()) - {'action_type'}):
@@ -93,10 +109,16 @@ class AlphaStarSupervisedLearner(SupervisedLearner):
     def _record_additional_info(self, iterations):
         histogram_keys = ['action_type']
         scalars_keys = self.data_stat.keys() - histogram_keys
-        self.tb_logger.add_val_list(self.variable_record.get_vars_tb_format(
-            scalars_keys, iterations, var_type='1darray', viz_type='scalars'), viz_type='scalars')
-        self.tb_logger.add_val_list(self.variable_record.get_vars_tb_format(
-            histogram_keys, iterations, var_type='1darray', viz_type='histogram'), viz_type='histogram')
+        self.tb_logger.add_val_list(
+            self.variable_record.get_vars_tb_format(scalars_keys, iterations, var_type='1darray', viz_type='scalars'),
+            viz_type='scalars'
+        )
+        self.tb_logger.add_val_list(
+            self.variable_record.get_vars_tb_format(
+                histogram_keys, iterations, var_type='1darray', viz_type='histogram'
+            ),
+            viz_type='histogram'
+        )
 
     @override(SupervisedLearner)
     def evaluate(self):

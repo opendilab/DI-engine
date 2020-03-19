@@ -33,96 +33,22 @@ train:
         type: cross_entropy  # [cross_entropy, label_smooth_ce]
         kwargs:  # {label_smooth_ce: [smooth_ratio]}
             smooth_ratio: 0.1
+env:
+   screen_resolution: 128
+   default_step_mul: 8  # not used
+   game_steps_per_episode: 43200
+   disable_fog: False
+   realtime: False
+
+rl_train:
+   data_push_length: 64
+   use_global_cumulative_stat: True
+   use_available_action_transform: True
+   use_stat: False
+   beginning_build_order_num: 20
+
 model:
     use_value_network: True
-    encoder:
-        obs_encoder:
-            encoder_names: [scalar_encoder, spatial_encoder, entity_encoder]
-            scalar_encoder:
-                use_stat: True  # whether use statistics z
-                activation: 'relu'
-                begin_num: 20  # beginning_build_order_num
-                output_dim: 1280  # use_stat(True: 1280, False: 1088)
-            spatial_encoder:
-                input_dim: 52
-                resblock_num: 4
-                fc_dim: 256
-                project_dim: 32
-                downsample_type: 'conv2d'
-                down_channels: [64, 128, 128]
-                activation: 'relu'
-                norm_type: 'BN'
-            entity_encoder:
-                input_dim: 2102
-                head_dim: 128
-                hidden_dim: 1024
-                output_dim: 256
-                head_num: 2
-                mlp_num: 2
-                layer_num: 3
-                dropout_ratio: 0.1
-                activation: 'relu'
-        scatter:
-            input_dim: 256  # entity_encoder.output_dim
-            output_dim: 32
-        core:
-            input_size: 1792  # spatial_encoder.fc_dim + entity_encoder.output_dim + scalar_encoder.output_dim
-            hidden_size: 384
-            num_layers: 3
-    policy:
-        location_expand_ratio: 2
-        head:
-            head_names: [action_type_head, delay_head, queued_head, selected_units_head, target_unit_head, location_head]
-            action_type_head:
-                input_dim: 384  # core.hidden_size
-                res_dim: 256
-                res_num: 16
-                action_num: 327
-                action_map_dim: 256
-                gate_dim: 1024
-                context_dim: 256  # use_stat(True: 256, False: 128)
-                activation: 'relu'
-                norm_type: 'LN'
-            delay_head:
-                input_dim: 1024  # action_type_head.gate_dim
-                decode_dim: 256
-                delay_dim: 128
-                delay_encode_dim: 6
-                delay_map_dim: 256
-                activation: 'relu'
-            queued_head:
-                input_dim: 1024  # action_type_head.gate_dim
-                decode_dim: 256
-                queued_dim: 2
-                queued_map_dim: 256
-                activation: 'relu'
-            selected_units_head:
-                input_dim: 1024  # action_type_head.gate_dim
-                entity_embedding_dim: 256  # entity_encoder.output_dim
-                key_dim: 32
-                unit_type_dim: 259
-                func_dim: 256
-                hidden_dim: 32
-                num_layers: 1
-                max_entity_num: 64
-                activation: 'relu'
-            target_unit_head:
-                input_dim: 1024  # action_type_head.gate_dim
-                entity_embedding_dim: 256  # entity_encoder.output_dim
-                key_dim: 32
-                unit_type_dim: 259
-                func_dim: 256
-                activation: 'relu'
-            location_head:
-                upsample_type: 'deconv'
-                upsample_dims: [128, 64, 16, 1]  # len(upsample_dims)-len(down_channels)+1 = ratio
-                res_dim: 128
-                res_num: 4
-                reshape_size: [16, 16]  
-                reshape_channel: 4  # entity_encoder.gate_dim / reshape_size
-                map_skip_dim: 128  # spatial_encoder.down_channels[-1]
-                activation: 'relu'
-                output_type: 'cls'  # ['cls', 'soft_argmax']
     value:
         winloss:
             name: winloss

@@ -3,7 +3,6 @@ import torch
 from pysc2.lib import features
 from pysc2.lib.static_data import NUM_ACTIONS, ACTIONS_REORDER, UPGRADES_REORDER_INV
 
-
 Avail_fn = collections.namedtuple('Avail_fn', ['func_id', 'func_name', 'units', 'upgrade'])
 FUNCTION_LIST = [
     Avail_fn(0, "no_op", None, None),
@@ -372,10 +371,10 @@ def get_available_actions_raw_data(obs):
 
 
 def get_available_actions_processed_data(data):
-    alliance_start = 4+259
+    alliance_start = 4 + 259
     units_set = set()
     for unit_type, info in zip(data['entity_raw']['type'], data['entity_info']):
-        alliance = info[alliance_start:alliance_start+5]
+        alliance = info[alliance_start:alliance_start + 5]
         if alliance[1] == 1:
             units_set.add(unit_type)
     upgrades_set = set()

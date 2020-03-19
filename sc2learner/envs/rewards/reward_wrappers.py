@@ -11,13 +11,12 @@ from sc2learner.envs.common.const import ALLY_TYPE
 
 
 class RewardShapingWrapperV1(gym.Wrapper):
-
     def __init__(self, env):
         super(RewardShapingWrapperV1, self).__init__(env)
         assert isinstance(env.observation_space, PySC2RawObservation)
-        self._combat_unit_types = set([UNIT_TYPE.ZERG_ZERGLING.value,
-                                       UNIT_TYPE.ZERG_ROACH.value,
-                                       UNIT_TYPE.ZERG_HYDRALISK.value])
+        self._combat_unit_types = set(
+            [UNIT_TYPE.ZERG_ZERGLING.value, UNIT_TYPE.ZERG_ROACH.value, UNIT_TYPE.ZERG_HYDRALISK.value]
+        )
         self.reward_range = (-np.inf, np.inf)
 
     def step(self, action):
@@ -66,16 +65,15 @@ class RewardShapingWrapperV1(gym.Wrapper):
 
 
 class RewardShapingWrapperV2(gym.Wrapper):
-
     def __init__(self, env):
         super(RewardShapingWrapperV2, self).__init__(env)
         assert isinstance(env.observation_space, PySC2RawObservation)
-        self._combat_unit_types = set([UNIT_TYPE.ZERG_ZERGLING.value,
-                                       UNIT_TYPE.ZERG_ROACH.value,
-                                       UNIT_TYPE.ZERG_HYDRALISK.value,
-                                       UNIT_TYPE.ZERG_RAVAGER.value,
-                                       UNIT_TYPE.ZERG_BANELING.value,
-                                       UNIT_TYPE.ZERG_BROODLING.value])
+        self._combat_unit_types = set(
+            [
+                UNIT_TYPE.ZERG_ZERGLING.value, UNIT_TYPE.ZERG_ROACH.value, UNIT_TYPE.ZERG_HYDRALISK.value,
+                UNIT_TYPE.ZERG_RAVAGER.value, UNIT_TYPE.ZERG_BANELING.value, UNIT_TYPE.ZERG_BROODLING.value
+            ]
+        )
         self.reward_range = (-np.inf, np.inf)
 
     def step(self, action):
@@ -119,7 +117,6 @@ class RewardShapingWrapperV2(gym.Wrapper):
 
 
 class KillingRewardWrapper(gym.Wrapper):
-
     def __init__(self, env):
         super(KillingRewardWrapper, self).__init__(env)
         assert isinstance(env.observation_space, PySC2RawObservation)

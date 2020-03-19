@@ -10,6 +10,7 @@ class CumulativeStatEncoder(nn.Module):
     def __init__(self, input_dims, output_dim, activation):
         # The order of the concatenation of outputs is the order of input_dims
         super(CumulativeStatEncoder, self).__init__()
+        self.data = OrderedDict()  # placeholder, to be filled when forward
         self.keys = []
         for k, v in input_dims.items():
             module = fc_block(v, output_dim, activation=activation)
@@ -89,13 +90,12 @@ class ScalarEncoder(nn.Module):
                         input_dim=item['input_dim'],
                         head_dim=item['output_dim'] // 2,
                         hidden_dim=item['output_dim'],
-                        output_dim=item['output_dim'])
+                        output_dim=item['output_dim']
+                    )
                     setattr(self, key, time_transformer)
                 elif key == 'cumulative_stat':
                     module = CumulativeStatEncoder(
-                        input_dims=item['input_dims'],
-                        output_dim=item['output_dim'],
-                        activation=self.act
+                        input_dims=item['input_dims'], output_dim=item['output_dim'], activation=self.act
                     )
                     setattr(self, key, module)
                 elif key == 'beginning_build_order':
@@ -122,7 +122,7 @@ class ScalarEncoder(nn.Module):
             - baseline_feature: A tensor of certain scalar features for baselines
             - cumulative_stat_data: A OrderedDict of computed stats
         '''
-        assert(isinstance(x, dict))
+        assert (isinstance(x, dict))
         embedded_scalar = []
         scalar_context = []
         baseline_feature = []
@@ -139,7 +139,8 @@ class ScalarEncoder(nn.Module):
         embedded_scalar = torch.cat(embedded_scalar, dim=1)
         scalar_context = torch.cat(scalar_context, dim=1)
         baseline_feature = torch.cat(baseline_feature, dim=1)
-        return embedded_scalar, scalar_context, baseline_feature, self.cumulative_stat.data
+        cum_stat_data = self.cumulative_stat.data if 'cumulative_stat' in self.keys else None
+        return embedded_scalar, scalar_context, baseline_feature, cum_stat_data
 
 
 def test_scalar_encoder():

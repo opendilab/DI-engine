@@ -9,6 +9,6 @@ from sc2learner.optimizer.base_optimizer import BaseOptimizer
 
 
 class AlphaStarSupervisedOptimizer(BaseOptimizer):
-    def __init__(self, cfg, agent, use_distributed):
-        loss = AlphaStarSupervisedLoss(cfg=cfg, agent=agent)
-        super(AlphaStarSupervisedOptimizer, self).__init__(loss, cfg, agent, use_distributed)
+    def __init__(self, agent, train_config, model_config):
+        loss = AlphaStarSupervisedLoss(agent, train_config, model_config)
+        super(AlphaStarSupervisedOptimizer, self).__init__(agent, loss, train_config)

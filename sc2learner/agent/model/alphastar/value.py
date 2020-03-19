@@ -27,7 +27,7 @@ class ValueBaseline(nn.Module):
         x = self.value_fc(x)
 
         x = x.squeeze(1)
-        x = (2.0/self.PI) * torch.atan((self.PI/2.0) * x)
+        x = (2.0 / self.PI) * torch.atan((self.PI / 2.0) * x)
         return x
 
 
@@ -43,7 +43,7 @@ def test_value_baseline():
     model = ValueBaseline(CFG())
     inputs = torch.randn(4, 1024)
     output = model(inputs)
-    assert(output.shape == (4,))
+    assert (output.shape == (4, ))
 
 
 if __name__ == "__main__":

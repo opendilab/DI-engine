@@ -19,7 +19,6 @@ class AlphastarActParser(object):
         Overview: parse action into tensors
         Interface: __init__, parse
     '''
-
     def __init__(self, feature_layer_resolution, map_size):
         '''
             Overview: initial related attributes
@@ -27,9 +26,11 @@ class AlphastarActParser(object):
                 - feature_layer_resolution (:obj:'int'): feature layer resolution
                 - map_size (:obj:'list'): map size (x, y format)
         '''
-        self.input_template = {'camera_move': self._parse_raw_camera_move,
-                               'unit_command': self._parse_raw_unit_command,
-                               'toggle_autocast': self._parse_raw_toggle_autocast, }
+        self.input_template = {
+            'camera_move': self._parse_raw_camera_move,
+            'unit_command': self._parse_raw_unit_command,
+            'toggle_autocast': self._parse_raw_toggle_autocast,
+        }
         self.output_template = ['action_type', 'delay', 'queued', 'selected_units', 'target_units', 'target_location']
         self.map_size = map_size
         if isinstance(feature_layer_resolution, collections.Sequence):
@@ -65,12 +66,12 @@ class AlphastarActParser(object):
         new_x = int(coord[0] * self.resolution[0] / (self.map_size[0] + 1e-3))
         new_y = int(coord[1] * self.resolution[1] / (self.map_size[1] + 1e-3))
         max_limit = self.resolution[0] * self.resolution[1]
-        assert(new_x < max_limit and new_y < max_limit)
+        assert (new_x < max_limit and new_y < max_limit)
         return (new_x, new_y)
 
     def minimap_to_world_coord(self, location):
-        assert(location[0] < self.resolution[0])
-        assert(location[1] < self.resolution[1])
+        assert (location[0] < self.resolution[0])
+        assert (location[1] < self.resolution[1])
         new_x = location[0] * self.map_size[0] / self.resolution[0]
         new_y = location[1] * self.map_size[1] / self.resolution[1]
         return (new_x, new_y)
@@ -88,10 +89,12 @@ class AlphastarActParser(object):
         if t.HasField('ability_id'):
             ret = {'selected_units': list(t.unit_tags)}
             # target_units and target_location can't exist at the same time
-            assert((t.HasField('target_world_space_pos')) + (t.HasField('target_unit_tag')) <= 1)
+            assert ((t.HasField('target_world_space_pos')) + (t.HasField('target_unit_tag')) <= 1)
             if t.HasField('target_world_space_pos'):
                 # origin world position
-                ret['target_location'] = [self.map_size[1] - t.target_world_space_pos.y, t.target_world_space_pos.x]  # y major  # noqa
+                ret['target_location'] = [
+                    self.map_size[1] - t.target_world_space_pos.y, t.target_world_space_pos.x
+                ]  # y major  # noqa
                 ret['action_type'] = [self.ability_to_raw_func(t.ability_id, actions.raw_cmd_pt)]
             else:
                 if t.HasField('target_unit_tag'):
@@ -108,7 +111,7 @@ class AlphastarActParser(object):
             has_queue_attr = GENERAL_ACTION_INFO_MASK[ret['action_type'][0]]['queued']
             if has_queue_attr:
                 if t.HasField('queue_command'):
-                    assert(t.queue_command)
+                    assert (t.queue_command)
                     ret['queued'] = [t.queue_command]
                 else:
                     ret['queued'] = [False]
@@ -237,7 +240,6 @@ def remove_repeat_data(data, min_delay=16, max_move=3, target_action_type_list=[
     '''
         168(camera move), 12(smart unit), 3(attack unit),
     '''
-
     def merge(selected_list):
 
         if len(selected_list) == 1:
@@ -254,8 +256,8 @@ def remove_repeat_data(data, min_delay=16, max_move=3, target_action_type_list=[
                 result = []
                 cur = start
                 for i in high_delay_step:
-                    result.extend(single_action_merge(cur, start+i, False))
-                    cur = start+i
+                    result.extend(single_action_merge(cur, start + i, False))
+                    cur = start + i
                 if cur < end:
                     result.extend(single_action_merge(cur, end, False))
             else:
@@ -269,6 +271,7 @@ def remove_repeat_data(data, min_delay=16, max_move=3, target_action_type_list=[
                         return (a == b).all()
                     else:
                         return a == b
+
                 # target units
                 if isinstance(actions[0]['target_units'], torch.Tensor):
                     # same selected units and target_units
@@ -280,7 +283,7 @@ def remove_repeat_data(data, min_delay=16, max_move=3, target_action_type_list=[
                     result = [part[0]]
                     if len(not_same) > 0:
                         print('not same selected_units and target_units\n', actions)
-                        result.extend(single_action_merge(start+not_same[0], end, False))
+                        result.extend(single_action_merge(start + not_same[0], end, False))
                 # target location
                 else:
                     # same selected_units units
@@ -289,8 +292,8 @@ def remove_repeat_data(data, min_delay=16, max_move=3, target_action_type_list=[
                     if len(not_same) > 0:
                         print('not same selected_units\n', actions, not_same)
                         result = []
-                        result.extend(single_action_merge(start, start+not_same[0], False))
-                        result.extend(single_action_merge(start+not_same[0]+1, end, False))
+                        result.extend(single_action_merge(start, start + not_same[0], False))
+                        result.extend(single_action_merge(start + not_same[0] + 1, end, False))
                     else:
                         location = torch.stack([a['target_location'] for a in actions], dim=0).float()
                         x, y = torch.chunk(location, 2, dim=1)
@@ -299,7 +302,8 @@ def remove_repeat_data(data, min_delay=16, max_move=3, target_action_type_list=[
                         if x_flag or y_flag:
                             result = [part[0], part[-1]]
                         else:
-                            part[0]['actions']['target_location'] = torch.FloatTensor([x.mean(), y.mean()]).round().long()  # noqa
+                            part[0]['actions']['target_location'] = torch.FloatTensor([x.mean(),
+                                                                                       y.mean()]).round().long()  # noqa
                             result = [part[0]]
             return result
 
@@ -332,7 +336,7 @@ def remove_repeat_data(data, min_delay=16, max_move=3, target_action_type_list=[
         if state == State.init:
             if action_type in target_action_type_list:
                 state = State.add
-                assert(len(selected_list) == 0)
+                assert (len(selected_list) == 0)
                 selected_list.append(step)
             else:
                 new_data.append(step)
@@ -350,22 +354,78 @@ def remove_repeat_data(data, min_delay=16, max_move=3, target_action_type_list=[
 def test_merge_same_id_action():
     # fake data, the same format
     actions = [
-        {'action_type': [0], 'selected_units': None, 'target_units': None, 'target_location': None},
-        {'action_type': [0], 'selected_units': None, 'target_units': None, 'target_location': None},
-        {'action_type': [2], 'selected_units': [112, 131], 'target_units': [939], 'target_location': None},
-        {'action_type': [2], 'selected_units': [132], 'target_units': [939], 'target_location': None},
-        {'action_type': [2], 'selected_units': [133], 'target_units': [938], 'target_location': None},
-        {'action_type': [3], 'selected_units': [132], 'target_units': [939], 'target_location': None},
-        {'action_type': [4], 'selected_units': [1321], 'target_units': None, 'target_location': None},
-        {'action_type': [4], 'selected_units': [1321, 1328], 'target_units': None, 'target_location': None},
-        {'action_type': [5], 'selected_units': [1321, 1328], 'target_units': None, 'target_location': [21, 43]},
-        {'action_type': [5], 'selected_units': [1322, 1327], 'target_units': None, 'target_location': [21, 43]},
-        {'action_type': [5], 'selected_units': [1323, 1326], 'target_units': None, 'target_location': [21, 42]},
+        {
+            'action_type': [0],
+            'selected_units': None,
+            'target_units': None,
+            'target_location': None
+        },
+        {
+            'action_type': [0],
+            'selected_units': None,
+            'target_units': None,
+            'target_location': None
+        },
+        {
+            'action_type': [2],
+            'selected_units': [112, 131],
+            'target_units': [939],
+            'target_location': None
+        },
+        {
+            'action_type': [2],
+            'selected_units': [132],
+            'target_units': [939],
+            'target_location': None
+        },
+        {
+            'action_type': [2],
+            'selected_units': [133],
+            'target_units': [938],
+            'target_location': None
+        },
+        {
+            'action_type': [3],
+            'selected_units': [132],
+            'target_units': [939],
+            'target_location': None
+        },
+        {
+            'action_type': [4],
+            'selected_units': [1321],
+            'target_units': None,
+            'target_location': None
+        },
+        {
+            'action_type': [4],
+            'selected_units': [1321, 1328],
+            'target_units': None,
+            'target_location': None
+        },
+        {
+            'action_type': [5],
+            'selected_units': [1321, 1328],
+            'target_units': None,
+            'target_location': [21, 43]
+        },
+        {
+            'action_type': [5],
+            'selected_units': [1322, 1327],
+            'target_units': None,
+            'target_location': [21, 43]
+        },
+        {
+            'action_type': [5],
+            'selected_units': [1323, 1326],
+            'target_units': None,
+            'target_location': [21, 42]
+        },
     ]
 
     class Map:
         x = 128
         y = 128
+
     act_parser = AlphastarActParser(128, Map())
     merged_actions = act_parser.merge_same_id_action(actions)
     for k in merged_actions:

@@ -16,10 +16,14 @@ class SpatialEncoder(nn.Module):
         self.down_channels = cfg.down_channels
         for i in range(len(self.down_channels)):
             if cfg.downsample_type == 'conv2d':
-                down_layers.append(conv2d_block(dims[i], dims[i+1], 4, 2, 1, activation=self.act, norm_type=self.norm))
+                down_layers.append(
+                    conv2d_block(dims[i], dims[i + 1], 4, 2, 1, activation=self.act, norm_type=self.norm)
+                )
             elif cfg.downsample_type == 'avgpool':
                 down_layers.append(nn.AvgPool2d(2, 2))
-                down_layers.append(conv2d_block(dims[i], dims[i+1], 3, 1, 1, activation=self.act, norm_type=self.norm))
+                down_layers.append(
+                    conv2d_block(dims[i], dims[i + 1], 3, 1, 1, activation=self.act, norm_type=self.norm)
+                )
             else:
                 raise KeyError("invalid downsample module type :{}".format(type(cfg.downsample_type)))
         self.downsample = nn.Sequential(*down_layers)
@@ -60,7 +64,7 @@ class SpatialEncoder(nn.Module):
         new_data = []
         for d, m in zip(data, map_size):
             h, w = m
-            h, w = h//ratio, w//ratio
+            h, w = h // ratio, w // ratio
             new_data.append(d[..., :h, :w].unsqueeze(0))
         if len(new_data) == 1:
             new_data = new_data[0]

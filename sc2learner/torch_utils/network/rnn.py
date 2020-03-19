@@ -13,21 +13,21 @@ class LSTM(nn.Module):
         self.num_layers = num_layers
 
         norm_func = build_normalization(norm_type)
-        self.norm = nn.ModuleList([norm_func(hidden_size) for _ in range(4*num_layers)])
+        self.norm = nn.ModuleList([norm_func(hidden_size) for _ in range(4 * num_layers)])
         self.wx = nn.ParameterList()
         self.wh = nn.ParameterList()
         dims = [input_size] + [hidden_size] * 3
         for l in range(num_layers):
-            self.wx.append(nn.Parameter(torch.zeros(dims[l], dims[l+1]*4)))
-            self.wh.append(nn.Parameter(torch.zeros(hidden_size, hidden_size*4)))
+            self.wx.append(nn.Parameter(torch.zeros(dims[l], dims[l + 1] * 4)))
+            self.wh.append(nn.Parameter(torch.zeros(hidden_size, hidden_size * 4)))
         if bias:
-            self.bias = nn.Parameter(torch.zeros(num_layers, hidden_size*4))
+            self.bias = nn.Parameter(torch.zeros(num_layers, hidden_size * 4))
         else:
             self.bias = None
         self._init()
 
     def _init(self):
-        gain = math.sqrt(1./self.hidden_size)
+        gain = math.sqrt(1. / self.hidden_size)
         for l in range(self.num_layers):
             torch.nn.init.uniform_(self.wx[l], -gain, gain)
             torch.nn.init.uniform_(self.wh[l], -gain, gain)
@@ -37,19 +37,25 @@ class LSTM(nn.Module):
     def forward(self, inputs, prev_state, list_next_state=False):
         '''
         Input:
-            inputs: [seq_len, batch_size, input_size]
-            prev_state: [num_directions*num_layers, batch_size, hidden_size]
+            inputs: tensor of size [seq_len, batch_size, input_size]
+            prev_state: None or tensor of size [num_directions*num_layers, batch_size, hidden_size]
         '''
         seq_len, batch_size = inputs.shape[:2]
         if prev_state is None:
             num_directions = 1
-            zeros = torch.zeros(num_directions*self.num_layers, batch_size, self.hidden_size,
-                                dtype=inputs.dtype, device=inputs.device)
+            zeros = torch.zeros(
+                num_directions * self.num_layers,
+                batch_size,
+                self.hidden_size,
+                dtype=inputs.dtype,
+                device=inputs.device
+            )
             prev_state = (zeros, zeros)
         elif isinstance(prev_state, list) and len(prev_state) == batch_size:
             num_directions = 1
-            zeros = torch.zeros(num_directions*self.num_layers, 1, self.hidden_size,
-                                dtype=inputs.dtype, device=inputs.device)
+            zeros = torch.zeros(
+                num_directions * self.num_layers, 1, self.hidden_size, dtype=inputs.dtype, device=inputs.device
+            )
             state = []
             for prev in prev_state:
                 if prev is None:
@@ -71,7 +77,7 @@ class LSTM(nn.Module):
                     gate += self.bias[l]
                 gate = list(torch.chunk(gate, 4, dim=1))
                 for i in range(4):
-                    gate[i] = self.norm[l*4+i](gate[i])
+                    gate[i] = self.norm[l * 4 + i](gate[i])
                 i, f, o, u = gate
                 i = torch.sigmoid(i)
                 f = torch.sigmoid(f)

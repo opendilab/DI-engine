@@ -20,8 +20,8 @@ def div_one_hot(v, max_val, ratio):
 
 
 def reorder_one_hot(v, dictionary, num):
-    assert(len(v.shape) == 1)
-    assert(isinstance(v, torch.Tensor))
+    assert (len(v.shape) == 1)
+    assert (isinstance(v, torch.Tensor))
     new_v = torch.zeros_like(v)
     for idx in range(v.shape[0]):
         new_v[idx] = dictionary[v[idx].item()]
@@ -53,7 +53,7 @@ def main():
     for item in os.listdir(data_dir):
         name, suffix = item.split('.')
         if suffix == 'stat':
-            if os.path.exists(os.path.join(data_dir, name+'.stat_processed')):
+            if os.path.exists(os.path.join(data_dir, name + '.stat_processed')):
                 continue
             stat = torch.load(os.path.join(data_dir, item))
             beginning_build_order = stat['begin_statistics']
@@ -63,7 +63,7 @@ def main():
                 action_type = torch.LongTensor([action_type])
                 action_type = reorder_one_hot(action_type, BEGIN_ACTIONS_REORDER, num=NUM_BEGIN_ACTIONS)
                 if location == 'none':
-                    location = torch.zeros(location_num*2)
+                    location = torch.zeros(location_num * 2)
                 else:
                     x = binary_encode(torch.LongTensor([location[0]]), bit_num=location_num)
                     y = binary_encode(torch.LongTensor([location[1]]), bit_num=location_num)
@@ -86,12 +86,18 @@ def main():
                     cumulative_stat_tensor['research'][RESEARCH_ACTIONS_REORDER[k]] = 1
             for k, v in cumulative_stat_tensor.items():
                 print(k, v.shape, v.sum())
-            meta = torch.load(os.path.join(data_dir, name+'.meta'))
+            meta = torch.load(os.path.join(data_dir, name + '.meta'))
             mmr = meta['home_mmr']
             mmr = torch.LongTensor([mmr])
             mmr = div_one_hot(mmr, 6000, 1000).squeeze(0)
-            torch.save({'mmr': mmr, 'beginning_build_order': beginning_build_order_tensor, 'cumulative_stat': cumulative_stat_tensor},  # noqa
-                       os.path.join(data_dir, name+'.stat_processed'))
+            torch.save(
+                {
+                    'mmr': mmr,
+                    'beginning_build_order': beginning_build_order_tensor,
+                    'cumulative_stat': cumulative_stat_tensor
+                },  # noqa
+                os.path.join(data_dir, name + '.stat_processed')
+            )
             print(name)
 
 

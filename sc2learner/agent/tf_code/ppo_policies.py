@@ -11,16 +11,13 @@ from sc2learner.agents.utils_tf import fc, lstm, batch_to_seq, seq_to_batch
 
 
 class MlpPolicy(object):
-    def __init__(self, sess, scope_name, ob_space, ac_space, nbatch, nsteps,
-                 reuse=False):
+    def __init__(self, sess, scope_name, ob_space, ac_space, nbatch, nsteps, reuse=False):
         if isinstance(ac_space, MaskDiscrete):
             ob_space, mask_space = ob_space.spaces
 
-        X = tf.placeholder(
-            shape=(nbatch,) + ob_space.shape, dtype=tf.float32, name="x_screen")
+        X = tf.placeholder(shape=(nbatch, ) + ob_space.shape, dtype=tf.float32, name="x_screen")
         if isinstance(ac_space, MaskDiscrete):
-            MASK = tf.placeholder(
-                shape=(nbatch,) + mask_space.shape, dtype=tf.float32, name="mask")
+            MASK = tf.placeholder(shape=(nbatch, ) + mask_space.shape, dtype=tf.float32, name="mask")
 
         with tf.variable_scope(scope_name, reuse=reuse):
             x = tf.layers.flatten(X)
@@ -62,20 +59,16 @@ class MlpPolicy(object):
 
 
 class LstmPolicy(object):
-
-    def __init__(self, sess, scope_name, ob_space, ac_space, nbatch,
-                 unroll_length, nlstm=512, reuse=False):
+    def __init__(self, sess, scope_name, ob_space, ac_space, nbatch, unroll_length, nlstm=512, reuse=False):
         nenv = nbatch // unroll_length
         if isinstance(ac_space, MaskDiscrete):
             ob_space, mask_space = ob_space.spaces
 
         DONE = tf.placeholder(tf.float32, [nbatch])
         STATE = tf.placeholder(tf.float32, [nenv, nlstm * 2])
-        X = tf.placeholder(
-            shape=(nbatch,) + ob_space.shape, dtype=tf.float32, name="x_screen")
+        X = tf.placeholder(shape=(nbatch, ) + ob_space.shape, dtype=tf.float32, name="x_screen")
         if isinstance(ac_space, MaskDiscrete):
-            MASK = tf.placeholder(
-                shape=(nbatch,) + mask_space.shape, dtype=tf.float32, name="mask")
+            MASK = tf.placeholder(shape=(nbatch, ) + mask_space.shape, dtype=tf.float32, name="mask")
 
         with tf.variable_scope(scope_name, reuse=reuse):
             x = tf.layers.flatten(X)
@@ -93,15 +86,13 @@ class LstmPolicy(object):
 
         action = self.pd.sample()
         neglogp = self.pd.neglogp(action)
-        self.initial_state = np.zeros((nenv, nlstm*2), dtype=np.float32)
+        self.initial_state = np.zeros((nenv, nlstm * 2), dtype=np.float32)
 
         def step(ob, state, done):
             if isinstance(ac_space, MaskDiscrete):
-                return sess.run([action, vf, snew, neglogp],
-                                {X: ob[0], MASK: ob[-1], STATE: state, DONE: done})
+                return sess.run([action, vf, snew, neglogp], {X: ob[0], MASK: ob[-1], STATE: state, DONE: done})
             else:
-                return sess.run([action, vf, snew, neglogp],
-                                {X: ob, STATE: state, DONE: done})
+                return sess.run([action, vf, snew, neglogp], {X: ob, STATE: state, DONE: done})
 
         def value(ob, state, done):
             if isinstance(ac_space, MaskDiscrete):

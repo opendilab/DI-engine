@@ -63,6 +63,8 @@ setup(
         'sc2learner.optimizer',
         'sc2learner.utils',
         'sc2learner.train',
+        'sc2learner.nn_utils',
+        'sc2learner.tools',
         'sc2learner.torch_utils',
         'sc2learner.worker',
         'sc2learner.rl_utils',
@@ -95,7 +97,8 @@ setup(
         'easydict',
         'opencv-python',
         'tensorboardX',
-        'matplotlib'
+        'matplotlib',
+        'yapf==0.29.0'
     ],
     entry_points={
         'console_scripts': [

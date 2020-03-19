@@ -30,6 +30,7 @@ def get_cls_info():
 
     return ret_dict
 
+
 # get my task number by node
 
 
@@ -57,8 +58,9 @@ def main():
     workers_num_std = 2
     log_dir = '/mnt/lustre/zhangming/data/logs_valid'
     output_dir = '/mnt/lustre/zhangming/data/Replays_decode_valid'
-    partitions = ['VI_SP_Y_V100_B', 'VI_SP_Y_V100_A', 'VI_SP_VA_V100',
-                  'VI_SP_VA_1080TI', 'VI_Face_1080TI', 'VI_ID_1080TI']
+    partitions = [
+        'VI_SP_Y_V100_B', 'VI_SP_Y_V100_A', 'VI_SP_VA_V100', 'VI_SP_VA_1080TI', 'VI_Face_1080TI', 'VI_ID_1080TI'
+    ]
     #partitions = ['VI_SP_Y_V100_A']
     info = get_cls_info()
     replays = open('/mnt/lustre/zhangming/data/listtemp/replays.valid.list.06', 'r').readlines()

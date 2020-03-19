@@ -5,7 +5,6 @@ import numpy as np
 
 
 class PpoAgent(BaseAgent):
-
     def __init__(self, *args, **kwargs):
         super(PpoAgent, self).__init__(*args, **kwargs)
         self.plt_count = 0
@@ -35,7 +34,7 @@ class PpoAgent(BaseAgent):
                     v = torch.masked_select(v, valid_mask[b])
                     plt.scatter(x, v, alpha=0.6, s=50, label=k)
                     max_v, min_v = v.max().item(), v.min().item()
-                    plt.ylim((min_v-1, max_v+1))
+                    plt.ylim((min_v - 1, max_v + 1))
                 plt.legend(loc='upper right')
                 self.tb_logger.add_figure('logits', figure, self.plt_count, close=True)
                 self.plt_count += 1

@@ -15,19 +15,20 @@ class PPO(BaseRLAlgorithm):
     # overwrite
     def __call__(self, inputs):
         return_val = {}
-        return_val['value_loss'] = td_lambda_loss(inputs['rewards'],
-                                                  inputs['values'],
-                                                  gamma=self.value_gamma,
-                                                  lambda_=self.value_lambda)
-        return_val['pg_loss'] = pg_loss(inputs['action_logits'],
-                                        inputs['current_logits'],
-                                        inputs['action'],
-                                        inputs['rewards'],
-                                        inputs['values'],
-                                        upgo_weight=self.upgo_weight,
-                                        ent_weight=self.ent_weight,
-                                        vtrace_gamma=self.vtrace_gamma,
-                                        vtrace_lambda=self.vtrace_lambda)
+        return_val['value_loss'] = td_lambda_loss(
+            inputs['rewards'], inputs['values'], gamma=self.value_gamma, lambda_=self.value_lambda
+        )
+        return_val['pg_loss'] = pg_loss(
+            inputs['action_logits'],
+            inputs['current_logits'],
+            inputs['action'],
+            inputs['rewards'],
+            inputs['values'],
+            upgo_weight=self.upgo_weight,
+            ent_weight=self.ent_weight,
+            vtrace_gamma=self.vtrace_gamma,
+            vtrace_lambda=self.vtrace_lambda
+        )
         return return_val
 
     # overwrite

@@ -23,10 +23,9 @@ from sc2learner.envs.observations.zerg_observation_wrappers \
     import ZergObservationWrapper
 from sc2learner.envs.alphastar_env import AlphastarEnv
 from sc2learner.agent.model import PPOLSTM, PPOMLP
-from sc2learner.worker import PpoAgent, RandomAgent, KeyboardAgent, AlphastarAgent
+from sc2learner.worker import PpoAgent, RandomAgent, KeyboardAgent, AlphaStarAgent
 from sc2learner.utils import build_logger
 from pysc2.lib.action_dict import ACTION_INFO_MASK
-
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string("job_name", "", "actor or learner")
@@ -42,23 +41,28 @@ def create_env(cfg, random_seed=None):
         cfg.env.random_seed = random_seed
         env = AlphastarEnv(cfg)
     else:
-        env = SC2RawEnv(map_name=cfg.env.map_name,
-                        step_mul=cfg.env.step_mul,
-                        difficulty=cfg.env.difficulty,
-                        agent_race=cfg.env.agent_race,
-                        bot_race=cfg.env.bot_race,
-                        disable_fog=cfg.env.disable_fog,
-                        random_seed=random_seed)
-        env = ZergActionWrapper(env,
-                                game_version=cfg.env.game_version,
-                                mask=cfg.env.use_action_mask,
-                                use_all_combat_actions=cfg.env.use_all_combat_actions)
+        env = SC2RawEnv(
+            map_name=cfg.env.map_name,
+            step_mul=cfg.env.step_mul,
+            difficulty=cfg.env.difficulty,
+            agent_race=cfg.env.agent_race,
+            bot_race=cfg.env.bot_race,
+            disable_fog=cfg.env.disable_fog,
+            random_seed=random_seed
+        )
+        env = ZergActionWrapper(
+            env,
+            game_version=cfg.env.game_version,
+            mask=cfg.env.use_action_mask,
+            use_all_combat_actions=cfg.env.use_all_combat_actions
+        )
         env = ZergObservationWrapper(
             env,
             use_spatial_features=False,
             use_game_progress=(not cfg.model.policy == 'lstm'),
             action_seq_len=1 if cfg.model.policy == 'lstm' else 8,
-            use_regions=cfg.env.use_region_features)
+            use_regions=cfg.env.use_region_features
+        )
     return env
 
 
@@ -68,16 +72,14 @@ def create_dqn_agent(cfg, env):
 
     assert cfg.model.policy == 'mlp'
     assert not cfg.env.use_action_mask
-    network = NonspatialDuelingQNet(n_dims=env.observation_space.shape[0],
-                                    n_out=env.action_space.n)
+    network = NonspatialDuelingQNet(n_dims=env.observation_space.shape[0], n_out=env.action_space.n)
     agent = DQNAgent(network, env.action_space, cfg.common.model_path)
     return agent
 
 
 def create_ppo_agent(cfg, env, tb_logger):
 
-    policy_func = {'mlp': PPOMLP,
-                   'lstm': PPOLSTM}
+    policy_func = {'mlp': PPOMLP, 'lstm': PPOLSTM}
     model = policy_func[cfg.model.policy](
         ob_space=env.observation_space,
         ac_space=env.action_space,
@@ -97,7 +99,7 @@ def evaluate(var_dict, cfg):
         path_info = name_list[-2] + '/' + name_list[-1].split('.')[0]
     else:
         path_info = 'no_model'
-    name = 'eval_{}_{}_{}_{}_{}'.format(path_info, cfg.env.difficulty, cfg.model.action_type, log_time, rank+1)
+    name = 'eval_{}_{}_{}_{}_{}'.format(path_info, cfg.env.difficulty, cfg.model.action_type, log_time, rank + 1)
     dirname = os.path.dirname(name)
     if not os.path.exists(dirname):
         try:
@@ -118,7 +120,7 @@ def evaluate(var_dict, cfg):
     elif cfg.common.agent == 'keyboard':
         agent = KeyboardAgent(action_space=env.action_space)
     elif cfg.common.agent == 'alphastar':
-        agent = AlphastarAgent(cfg)
+        agent = AlphaStarAgent(cfg)
     else:
         raise NotImplementedError
 
@@ -149,8 +151,10 @@ def evaluate(var_dict, cfg):
     path = os.path.join(value_save_path, 'value{}.pt'.format(rank))
     torch.save(torch.tensor(value_trace), path)
     for action_id in ACTION_INFO_MASK.keys():
-        logger.info("Rank %d\tAction ID: %d\tCount: %d\tName: %s" %
-                    (rank, action_id, action_counts[action_id], ACTION_INFO_MASK[action_id]['name']))
+        logger.info(
+            "Rank %d\tAction ID: %d\tCount: %d\tName: %s" %
+            (rank, action_id, action_counts[action_id], ACTION_INFO_MASK[action_id]['name'])
+        )
     env.close()
     return cum_return
 
@@ -174,7 +178,7 @@ def main(argv):
         pool = Pool(min(cfg.common.num_episodes, 20))
         var_list = []
         for i in range(cfg.common.num_episodes):
-            seed = random.randint(0, math.pow(2, 32)-1)
+            seed = random.randint(0, math.pow(2, 32) - 1)
             var_list.append({'rank': i, 'game_seed': seed})
 
         reward_list = pool.map(eval_func, var_list)
@@ -183,13 +187,16 @@ def main(argv):
     else:
         reward_list = []
         for i in range(cfg.common.num_episodes):
-            seed = random.randint(0, math.pow(2, 32)-1)
+            seed = random.randint(0, math.pow(2, 32) - 1)
             reward = evaluate({'rank': 0, 'game_seed': seed}, cfg)
             reward_list.append(reward)
 
-    print("Evaluated %d Episodes Against Bot Level %s Avg Return %f Avg Winning Rate %f" % (
-        cfg.common.num_episodes, cfg.env.difficulty, sum(reward_list) / len(reward_list),
-        ((sum(reward_list) / len(reward_list)) + 1) / 2.0))
+    print(
+        "Evaluated %d Episodes Against Bot Level %s Avg Return %f Avg Winning Rate %f" % (
+            cfg.common.num_episodes, cfg.env.difficulty, sum(reward_list) / len(reward_list),
+            ((sum(reward_list) / len(reward_list)) + 1) / 2.0
+        )
+    )
 
 
 if __name__ == '__main__':

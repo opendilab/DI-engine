@@ -10,6 +10,7 @@ from collections import namedtuple
 
 import torch
 
+from sc2learner.agent.model.alphastar import AlphaStarActorCritic
 from sc2learner.torch_utils import to_device
 from sc2learner.utils import DistModule
 
@@ -33,15 +34,14 @@ class BaseAgent:
 
 
 class AlphaStarAgent(BaseAgent):
-
-    def __init__(self, cfg, build_model, use_cuda, use_distributed):
-        self.cfg = cfg
-        self.num_concurrent_episodes = cfg.data.train.batch_size
+    def __init__(self, model_config, num_concurrent_episodes, use_cuda, use_distributed):
+        self.num_concurrent_episodes = num_concurrent_episodes
 
         # Build model
-        self.model = build_model(cfg)
+        self.model = AlphaStarActorCritic(model_config)
         self.model.train()  # set model to train
         self.use_cuda = use_cuda
+        self.use_distributed = use_distributed
         if use_cuda:
             self.model = to_device(self.model, "cuda")
         if use_distributed:  # distributed training
@@ -149,6 +149,9 @@ class AlphaStarAgent(BaseAgent):
     def get_model(self):
         return self.model
 
+    def get_parameters(self):
+        return self.model.parameters()
+
     def eval(self):
         self.model.eval()
         assert not self.is_training
@@ -158,6 +161,10 @@ class AlphaStarAgent(BaseAgent):
         #  maybe future we introduce agent.train function (which is quiet good honestly)
         self.model.train()
         assert self.is_training
+
+    def process_gradient(self):
+        if self.use_distributed:
+            self.model.sync_gradients()
 
     def __repr__(self):
         return str(self.model)

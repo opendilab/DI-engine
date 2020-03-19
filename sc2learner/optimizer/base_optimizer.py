@@ -12,19 +12,18 @@ from sc2learner.utils import EasyTimer
 
 
 class BaseOptimizer:
-    def __init__(self, loss, cfg, agent, use_distributed):
+    def __init__(self, agent, loss, train_config):
         assert isinstance(loss, BaseLoss)
         self.loss = loss
 
-        self.model = agent.get_model()
+        self.agent = agent
 
         self.optimizer = torch.optim.Adam(
-            params=self.model.parameters(),
-            lr=float(cfg.train.learning_rate),
-            weight_decay=float(cfg.train.weight_decay)
+            params=self.agent.get_parameters(),
+            lr=float(train_config.learning_rate),
+            weight_decay=float(train_config.weight_decay)
         )
 
-        self.use_distributed = use_distributed
         self.forward_timer = EasyTimer()
         self.backward_timer = EasyTimer()
         self.sync_gradients_timer = EasyTimer(cuda=False)  # Don't let timer wait for GPU works
@@ -58,8 +57,7 @@ class BaseOptimizer:
             loss = self.process_loss(loss, data, var_items)
             loss.backward()
             with self.sync_gradients_timer:
-                if self.use_distributed:
-                    self.model.sync_gradients()
+                self.agent.process_gradient()
             self.optimizer.step()
 
         stats = dict(

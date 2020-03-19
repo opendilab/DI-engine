@@ -9,16 +9,13 @@ from sc2learner.envs.common.const import MAP
 
 
 class UnitTypeCountMapFeature(object):
-
     def __init__(self, type_map, resolution):
         self._type_map = type_map
         self._resolution = resolution
 
     def features(self, observation, need_flip=False):
-        self_units = [u for u in observation['units']
-                      if u.int_attr.alliance == ALLY_TYPE.SELF.value]
-        enemy_units = [u for u in observation['units']
-                       if u.int_attr.alliance == ALLY_TYPE.ENEMY.value]
+        self_units = [u for u in observation['units'] if u.int_attr.alliance == ALLY_TYPE.SELF.value]
+        enemy_units = [u for u in observation['units'] if u.int_attr.alliance == ALLY_TYPE.ENEMY.value]
         self_features = self._generate_features(self_units)
         enemy_features = self._generate_features(enemy_units)
         features = np.concatenate((self_features, enemy_features))
@@ -32,8 +29,7 @@ class UnitTypeCountMapFeature(object):
 
     def _generate_features(self, units):
         num_channels = max(self._type_map.values()) + 1
-        features = np.zeros((num_channels, self._resolution, self._resolution),
-                            dtype=np.float32)
+        features = np.zeros((num_channels, self._resolution, self._resolution), dtype=np.float32)
         grid_width = (MAP.WIDTH - MAP.LEFT - MAP.RIGHT) / self._resolution
         grid_height = (MAP.HEIGHT - MAP.TOP - MAP.BOTTOM) / self._resolution
         for u in units:
@@ -47,17 +43,13 @@ class UnitTypeCountMapFeature(object):
 
 
 class AllianceCountMapFeature(object):
-
     def __init__(self, resolution):
         self._resolution = resolution
 
     def features(self, observation, need_flip=False):
-        self_units = [u for u in observation['units']
-                      if u.int_attr.alliance == ALLY_TYPE.SELF.value]
-        enemy_units = [u for u in observation['units']
-                       if u.int_attr.alliance == ALLY_TYPE.ENEMY.value]
-        neutral_units = [u for u in observation['units']
-                         if u.int_attr.alliance == ALLY_TYPE.NEUTRAL.value]
+        self_units = [u for u in observation['units'] if u.int_attr.alliance == ALLY_TYPE.SELF.value]
+        enemy_units = [u for u in observation['units'] if u.int_attr.alliance == ALLY_TYPE.ENEMY.value]
+        neutral_units = [u for u in observation['units'] if u.int_attr.alliance == ALLY_TYPE.NEUTRAL.value]
         self_features = self._generate_features(self_units)
         enemy_features = self._generate_features(enemy_units)
         neutral_features = self._generate_features(neutral_units)
@@ -71,8 +63,7 @@ class AllianceCountMapFeature(object):
         return 3
 
     def _generate_features(self, units):
-        features = np.zeros((1, self._resolution, self._resolution),
-                            dtype=np.float32)
+        features = np.zeros((1, self._resolution, self._resolution), dtype=np.float32)
         grid_width = (MAP.WIDTH - MAP.LEFT - MAP.RIGHT) / self._resolution
         grid_height = (MAP.HEIGHT - MAP.TOP - MAP.BOTTOM) / self._resolution
         for u in units:

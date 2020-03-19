@@ -1,0 +1,7 @@
+[style]
+based_on_style=pep8
+dedent_closing_brackets=True
+split_before_first_argument=True
+allow_split_before_dict_value=False
+join_multiple_lines=False
+column_limit=120

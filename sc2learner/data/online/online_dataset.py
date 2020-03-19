@@ -6,7 +6,6 @@ import logging
 import random
 from multiprocessing import Lock
 
-
 logger = logging.getLogger('default_logger')
 
 
@@ -38,7 +37,7 @@ class OnlineDataset(object):
         self.lock.release()
 
     def push_data(self, data):
-        assert(isinstance(data, dict))
+        assert (isinstance(data, dict))
         self._acquire_lock()
         staleness = self.cur_model_index - data['model_index']
         if not self.block_data.status or staleness <= self.block_data.max_acceptable_push_staleness:
@@ -47,8 +46,7 @@ class OnlineDataset(object):
             self.push_count += 1
             self.last_push_model_index = data['model_index']
         else:
-            print('Push to Pool From {} Rejected for High Staleness {}'.format(
-                data['actor_id'], staleness))
+            print('Push to Pool From {} Rejected for High Staleness {}'.format(data['actor_id'], staleness))
         self._release_lock()
 
     def _add_usage_count(self, usage_list):
@@ -78,8 +76,11 @@ class OnlineDataset(object):
                 self.data_queue = new_data_queue
             self._release_lock()
             while not self.is_full():
-                print("Blocking...wait for enough data: current({})/target({})/push_count({})".format(
-                      len(self.data_queue), self.data_maxlen, self.push_count))
+                print(
+                    "Blocking...wait for enough data: current({})/target({})/push_count({})".format(
+                        len(self.data_queue), self.data_maxlen, self.push_count
+                    )
+                )
                 time.sleep(sleep_time)
             self._acquire_lock()
             indice = random.sample(list(range(self.data_maxlen)), batch_size)
@@ -107,9 +108,7 @@ class OnlineDataset(object):
         return len(self.data_queue) == self.data_maxlen
 
     def format_len(self):
-        return 'current episode_infos len:{}/ready episode_infos len:{}'.format(
-            len(self.data_queue), self.data_maxlen
-        )
+        return 'current episode_infos len:{}/ready episode_infos len:{}'.format(len(self.data_queue), self.data_maxlen)
 
     def __len__(self):
         return len(self.data_queue)
@@ -122,7 +121,7 @@ class OnlineDataset(object):
         return self.transform(self.data_queue[idx])
 
     def load_data(self, data_dir, ratio=1):
-        assert(ratio >= 1)
+        assert (ratio >= 1)
         origin_data_list = list(os.listdir(data_dir))
         if len(origin_data_list) <= self.data_maxlen:
             data_list = origin_data_list
@@ -150,5 +149,4 @@ class OnlineDataset(object):
             raise ValueError
 
     def state_dict(self):
-        return {'queue': list(self.data_queue),
-                'rng_state': random.getstate()}
+        return {'queue': list(self.data_queue), 'rng_state': random.getstate()}

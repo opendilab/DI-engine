@@ -1,27 +1,25 @@
 import torch
-from .agent import BaseAgent
+
+from pysc2.lib.static_data import ACTIONS_REORDER_INV
 from sc2learner.agent.model import build_model
 from sc2learner.torch_utils import to_device, build_checkpoint_helper
 from sc2learner.utils import dict_list2list_dict
 from sc2learner.envs import action_unit_id_transform
+from .agent import BaseAgent
 
 
 class AlphastarAgent(BaseAgent):
-
-    def __init__(self, cfg):
+    def __init__(self, cfg, need_checkpoint=True):
         self.cfg = cfg
         self.model = build_model(cfg)
         self.model.eval()
         self.use_cuda = cfg.train.use_cuda
         if self.use_cuda:
             self.model = to_device(self.model, 'cuda')
-
         self.next_state = None
-        self.checkpoint_helper = build_checkpoint_helper(cfg)
-        self.checkpoint_helper.load(cfg.common.load_path, self.model, prefix='module.', prefix_op='remove')
-
-    def reset(self):
-        self.next_state = None
+        if need_checkpoint:
+            self.checkpoint_helper = build_checkpoint_helper(cfg)
+            self.checkpoint_helper.load(cfg.common.load_path, self.model, prefix='module.', prefix_op='remove')
 
     def act(self, obs):
         entity_raw = obs['entity_raw']

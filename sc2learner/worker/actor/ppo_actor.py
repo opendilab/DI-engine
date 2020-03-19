@@ -10,28 +10,33 @@ from sc2learner.envs.observations.zerg_observation_wrappers \
 
 
 def create_env(cfg, difficulty, random_seed=None):
-    env = SC2RawEnv(map_name='AbyssalReef',
-                    step_mul=cfg.env.step_mul,
-                    resolution=16,
-                    agent_race='zerg',
-                    bot_race='zerg',
-                    difficulty=difficulty,
-                    disable_fog=cfg.env.disable_fog,
-                    tie_to_lose=False,
-                    game_steps_per_episode=cfg.env.game_steps_per_episode,
-                    random_seed=random_seed)
+    env = SC2RawEnv(
+        map_name='AbyssalReef',
+        step_mul=cfg.env.step_mul,
+        resolution=16,
+        agent_race='zerg',
+        bot_race='zerg',
+        difficulty=difficulty,
+        disable_fog=cfg.env.disable_fog,
+        tie_to_lose=False,
+        game_steps_per_episode=cfg.env.game_steps_per_episode,
+        random_seed=random_seed
+    )
     if cfg.env.use_reward_shaping:
         env = KillingRewardWrapper(env)
-    env = ZergActionWrapper(env,
-                            game_version=cfg.env.game_version,
-                            mask=cfg.env.use_action_mask,
-                            use_all_combat_actions=cfg.env.use_all_combat_actions)
-    env = ZergObservationWrapper(env,
-                                 use_spatial_features=False,
-                                 use_game_progress=(
-                                     not cfg.model.policy == 'lstm'),
-                                 action_seq_len=1 if cfg.model.policy == 'lstm' else 8,
-                                 use_regions=cfg.env.use_region_features)
+    env = ZergActionWrapper(
+        env,
+        game_version=cfg.env.game_version,
+        mask=cfg.env.use_action_mask,
+        use_all_combat_actions=cfg.env.use_all_combat_actions
+    )
+    env = ZergObservationWrapper(
+        env,
+        use_spatial_features=False,
+        use_game_progress=(not cfg.model.policy == 'lstm'),
+        action_seq_len=1 if cfg.model.policy == 'lstm' else 8,
+        use_regions=cfg.env.use_region_features
+    )
     env.difficulty = difficulty
     return env
 
@@ -62,9 +67,13 @@ class PpoActor(BaseActor):
             self.step += 1  # notice this is only the steps of action, not actual game step
             self.cumulative_reward += reward
             if self.done:
-                episode_infos.append({'game_result': self.cumulative_reward,
-                                      'difficulty': self.env.difficulty,
-                                      'game_length': self.step})
+                episode_infos.append(
+                    {
+                        'game_result': self.cumulative_reward,
+                        'difficulty': self.env.difficulty,
+                        'game_length': self.step
+                    }
+                )
                 break
         inputs = self._pack_model_input()
         with torch.no_grad():
@@ -84,11 +93,8 @@ class PpoActor(BaseActor):
             else:
                 next_nontermial = 1.0 - outputs['done'][i + 1]
                 next_values = outputs['value'][i + 1]
-            delta = (outputs['reward'][i] +
-                     self.gamma * next_values * next_nontermial -
-                     outputs['value'][i])
-            last_gae_lam = (delta +
-                            self.gamma * self.lam * next_nontermial * last_gae_lam)
+            delta = (outputs['reward'][i] + self.gamma * next_values * next_nontermial - outputs['value'][i])
+            last_gae_lam = (delta + self.gamma * self.lam * next_nontermial * last_gae_lam)
             returns[i] += last_gae_lam
         return returns
 
@@ -117,8 +123,7 @@ class PpoActor(BaseActor):
             outputs['mask'].append(mask)
 
     def _process_model_output(self, output, outputs):
-        action, value, state, neglogp = (
-            output['action'], output['value'], output['state'], output['neglogp'])
+        action, value, state, neglogp = (output['action'], output['value'], output['state'], output['neglogp'])
         self.state = state
         action = action.squeeze(0)
         outputs['action'].append(action)
@@ -149,16 +154,10 @@ class PpoActor(BaseActor):
         self.job_id = job['job_id']
         self.start_rollout_at = job['start_rollout_at']
         self.seed = job['game_vs_bot']['seed']
-        self.env = create_env(self.cfg,
-                              job['game_vs_bot']['difficulty'],
-                              self.seed)
+        self.env = create_env(self.cfg, job['game_vs_bot']['difficulty'], self.seed)
 
     # overwrite
     def _create_model(self):
-        policy_func = {'mlp': PPOMLP,
-                       'lstm': PPOLSTM}
-        self.model = policy_func[self.cfg.model.policy](
-            ob_space=self.env.observation_space,
-            ac_space=self.env.action_space,
-            seed=self.seed
-        )
+        policy_func = {'mlp': PPOMLP, 'lstm': PPOLSTM}
+        self.model = policy_func[self.cfg.model.policy
+                                 ](ob_space=self.env.observation_space, ac_space=self.env.action_space, seed=self.seed)

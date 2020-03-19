@@ -21,7 +21,6 @@ def build_temperature_scheduler(temperature):
         Returns:
             - (:obj`Scheduler`): scheduler created by this function
     """
-
     class ConstantTemperatureSchedule:
         def __init__(self, init_val=0.1):
             self.init_val = init_val
@@ -36,7 +35,7 @@ def build_temperature_scheduler(temperature):
 
 
 class AlphaStarSupervisedLoss(BaseLoss):
-    def __init__(self, cfg, agent):
+    def __init__(self, agent, train_config, model_config):
         # multiple loss to be calculate
         self.loss_func = {
             'action_type': self._criterion_apply,
@@ -47,16 +46,17 @@ class AlphaStarSupervisedLoss(BaseLoss):
             'target_location': self._target_location_loss,
         }
 
-        # self.model = model
         self.agent = agent
-        self.temperature_scheduler = build_temperature_scheduler(
-            cfg.train.temperature)  # get naive temperature scheduler
-        self.use_value_network = cfg.model.use_value_network
-        self.criterion_config = cfg.train.criterion
-        self.location_expand_ratio = cfg.model.policy.location_expand_ratio
-        self.location_output_type = cfg.model.policy.head.location_head.output_type
 
-        self.criterion = build_criterion(cfg.train.criterion)
+        self.use_value_network = model_config.use_value_network
+        self.location_expand_ratio = model_config.policy.location_expand_ratio
+        self.location_output_type = model_config.policy.head.location_head.output_type
+
+        self.criterion_config = train_config.criterion
+        self.criterion = build_criterion(train_config.criterion)
+        self.temperature_scheduler = build_temperature_scheduler(
+            train_config.temperature
+        )  # get naive temperature scheduler
 
     def register_log(self, variable_record, tb_logger):
         for k in self.loss_func.keys():
@@ -68,6 +68,9 @@ class AlphaStarSupervisedLoss(BaseLoss):
             Overview: Overwrite function, main process of training
             Arguments:
                 - data (:obj:`batch_data`): batch_data created by dataloader
+
+            FIXME(pzh): I don't think we need to compute loss inside the loss class. Instead, we should compute loss
+             in optimizer. The loss should only provide a function to operate on a set of existing logits.
         """
         if self.use_value_network:  # value network to be implemented
             raise NotImplementedError
@@ -126,9 +129,8 @@ class AlphaStarSupervisedLoss(BaseLoss):
             Returns:
                 - (:obj`tensor`): delay loss result
         """
-
         def delay_l1(p, l):
-            base = -1.73e-5 * l ** 3 + 1.89e-3 * l ** 2 - 5.8e-2 * l + 0.61
+            base = -1.73e-5 * l**3 + 1.89e-3 * l**2 - 5.8e-2 * l + 0.61
             loss = torch.abs(p - l) - base * l
             return loss.clamp(0).mean()
 

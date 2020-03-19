@@ -13,7 +13,6 @@ class State(enum.IntEnum):
 
 
 def remove_repeat_data(min_delay=16, max_move=3):
-
     def merge(selected_list):
 
         if len(selected_list) == 1:
@@ -30,8 +29,8 @@ def remove_repeat_data(min_delay=16, max_move=3):
                 result = []
                 cur = start
                 for i in high_delay_step:
-                    result.extend(single_action_merge(cur, start+i, False))
-                    cur = start+i
+                    result.extend(single_action_merge(cur, start + i, False))
+                    cur = start + i
                 if cur < end:
                     result.extend(single_action_merge(cur, end, False))
             else:
@@ -45,6 +44,7 @@ def remove_repeat_data(min_delay=16, max_move=3):
                         return (a == b).all()
                     else:
                         return a == b
+
                 # target units
                 if isinstance(actions[0]['target_units'], torch.Tensor):
                     # same selected units and target_units
@@ -56,7 +56,7 @@ def remove_repeat_data(min_delay=16, max_move=3):
                     result = [part[0]]
                     if len(not_same) > 0:
                         print('not same selected_units and target_units\n', actions)
-                        result.extend(single_action_merge(start+not_same[0], end, False))
+                        result.extend(single_action_merge(start + not_same[0], end, False))
                 # target location
                 else:
                     # same selected_units units
@@ -65,8 +65,8 @@ def remove_repeat_data(min_delay=16, max_move=3):
                     if len(not_same) > 0:
                         print('not same selected_units\n', actions, not_same)
                         result = []
-                        result.extend(single_action_merge(start, start+not_same[0], False))
-                        result.extend(single_action_merge(start+not_same[0]+1, end, False))
+                        result.extend(single_action_merge(start, start + not_same[0], False))
+                        result.extend(single_action_merge(start + not_same[0] + 1, end, False))
                     else:
                         location = torch.stack([a['target_location'] for a in actions], dim=0).float()
                         x, y = torch.chunk(location, 2, dim=1)
@@ -75,7 +75,8 @@ def remove_repeat_data(min_delay=16, max_move=3):
                         if x_flag or y_flag:
                             result = [part[0], part[-1]]
                         else:
-                            part[0]['actions']['target_location'] = torch.FloatTensor([x.mean(), y.mean()]).round().long()  # noqa
+                            part[0]['actions']['target_location'] = torch.FloatTensor([x.mean(),
+                                                                                       y.mean()]).round().long()  # noqa
                             result = [part[0]]
             return result
 
@@ -116,7 +117,7 @@ def remove_repeat_data(min_delay=16, max_move=3):
                 if state == State.init:
                     if action_type in target_action_type_list:
                         state = State.add
-                        assert(len(selected_list) == 0)
+                        assert (len(selected_list) == 0)
                         selected_list.append(step)
                     else:
                         new_data.append(step)
@@ -128,10 +129,10 @@ def remove_repeat_data(min_delay=16, max_move=3):
                         new_data.extend(merge(selected_list))
                         selected_list = []
                         new_data.append(step)
-            torch.save(new_data, os.path.join(data_dir, name+'.step_processed'))
-            meta = torch.load(os.path.join(data, name+'.meta'))
+            torch.save(new_data, os.path.join(data_dir, name + '.step_processed'))
+            meta = torch.load(os.path.join(data, name + '.meta'))
             meta['step_num'] = len(new_data)
-            torch.save(meta, os.path.join(data, name+'.meta_processed'))
+            torch.save(meta, os.path.join(data, name + '.meta_processed'))
             print('replay: {}\ndata len: {}\tnew_data len: {}'.format(name, len(data), len(new_data)))
             count += 1
             if count % 10 == 0:

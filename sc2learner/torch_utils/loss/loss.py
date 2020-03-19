@@ -12,7 +12,7 @@ class LabelSmoothCELoss(nn.Module):
         B, N = logits.shape
         val = float(self.ratio) / (N - 1)
         one_hot = torch.full_like(logits, val)
-        one_hot.scatter_(1, labels.unsqueeze(1), 1-val)
+        one_hot.scatter_(1, labels.unsqueeze(1), 1 - val)
         logits = F.log_softmax(logits, dim=1)
         return -torch.sum(logits * (one_hot.detach())) / B
 
@@ -33,7 +33,7 @@ def test_label_smooth_ce_loss():
     criterion2 = nn.CrossEntropyLoss()
     print(criterion1(logits, labels))
     print(criterion2(logits, labels))
-    assert(torch.abs(criterion1(logits, labels) - criterion2(logits, labels)) < 1e-6)
+    assert (torch.abs(criterion1(logits, labels) - criterion2(logits, labels)) < 1e-6)
     print("test end")
 
 

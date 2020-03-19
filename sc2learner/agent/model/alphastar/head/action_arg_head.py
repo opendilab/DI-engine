@@ -23,7 +23,6 @@ class DelayHead(nn.Module):
         Overview: The delay head uses autoregressive_embedding to get delay_logits and delay.
         Interface: __init__, forward
     '''
-
     def __init__(self, cfg):
         '''
             Overview: initialize architect.
@@ -75,7 +74,6 @@ class QueuedHead(nn.Module):
                   queued_logits and sampled queued.
         Interface: __init__, forward
     '''
-
     def __init__(self, cfg):
         '''
             Overview: initialize architect.
@@ -132,7 +130,6 @@ class SelectedUnitsHead(nn.Module):
                   units_logits and sampled units.
         Interface: __init__, forward
     '''
-
     def __init__(self, cfg):
         '''
             Overview: initialize architect.
@@ -220,7 +217,7 @@ class SelectedUnitsHead(nn.Module):
                         units[b][entity_num[b]] = 1
                         mask[b][entity_num[b]] = 0
         else:
-            for i in range(max(output_entity_num)+1):
+            for i in range(max(output_entity_num) + 1):
                 x, state = self.lstm(x, state)
                 query_result = x.permute(1, 0, 2) * key
                 query_result = query_result.mean(dim=2)
@@ -251,8 +248,15 @@ class SelectedUnitsHead(nn.Module):
             units_index.append(index)
         return logits, units_index, embedding_selected
 
-    def forward(self, embedding, available_unit_type_mask, available_units_mask, entity_embedding,
-                temperature=1.0, output_entity_num=None):
+    def forward(
+        self,
+        embedding,
+        available_unit_type_mask,
+        available_units_mask,
+        entity_embedding,
+        temperature=1.0,
+        output_entity_num=None
+    ):
         '''
         Input:
             embedding: [batch_size, input_dim(1024)]
@@ -267,14 +271,15 @@ class SelectedUnitsHead(nn.Module):
             units: [batch_size, num_units] 0-1 vector
             new_embedding: [batch_size, input_dim(1024)]
         '''
-        assert(isinstance(entity_embedding, torch.Tensor))
+        assert (isinstance(entity_embedding, torch.Tensor))
 
         input, state = self._get_init_query(embedding, available_unit_type_mask)
         mask = available_units_mask
         key, end_flag_index = self._get_key(entity_embedding)
         mask = torch.cat([mask, torch.ones_like(mask[:, 0:1])], dim=1)
         logits, units, embedding_selected = self._query(
-            key, end_flag_index, input, state, mask, temperature, output_entity_num)
+            key, end_flag_index, input, state, mask, temperature, output_entity_num
+        )
 
         return logits, units, embedding + embedding_selected
 
@@ -341,7 +346,7 @@ class TargetUnitsHead(nn.Module):
                         units[b][entity_num[b]] = 1
                         mask[b][entity_num[b]] = 0
         else:
-            for i in range(max(output_entity_num)+1):
+            for i in range(max(output_entity_num) + 1):
                 x, state = self.lstm(x, state)
                 query_result = x.permute(1, 0, 2) * key
                 query_result = query_result.mean(dim=2)
@@ -360,8 +365,15 @@ class TargetUnitsHead(nn.Module):
                         logits[b].append(query_result)
         return logits, units
 
-    def forward(self, embedding, available_unit_type_mask, available_units_mask, entity_embedding,
-                temperature=1.0, output_entity_num=None):
+    def forward(
+        self,
+        embedding,
+        available_unit_type_mask,
+        available_units_mask,
+        entity_embedding,
+        temperature=1.0,
+        output_entity_num=None
+    ):
         '''
         Input:
             embedding: [batch_size, input_dim(1024)]
@@ -372,7 +384,7 @@ class TargetUnitsHead(nn.Module):
             logits: List(batch_size) - List(num_selected_units) - num_units
             units: [batch_size, num_units] 0-1 vector
         '''
-        assert(isinstance(entity_embedding, list) or isinstance(entity_embedding, torch.Tensor))
+        assert (isinstance(entity_embedding, list) or isinstance(entity_embedding, torch.Tensor))
 
         input, state = self._get_init_query(embedding, available_unit_type_mask)
         mask = available_units_mask
@@ -392,7 +404,6 @@ class TargetUnitHead(nn.Module):
         Overview: The target unit head uses autoregressive_embedding to get target_unit_logits and target_unit.
         Interface: __init__, forward
     '''
-
     def __init__(self, cfg):
         '''
             Overview: initialize architect.
@@ -414,8 +425,7 @@ class TargetUnitHead(nn.Module):
         x = self.fc2(x + func_embed)
         return x
 
-    def forward(self, embedding, available_unit_type_mask, available_units_mask, entity_embedding,
-                temperature=1.0):
+    def forward(self, embedding, available_unit_type_mask, available_units_mask, entity_embedding, temperature=1.0):
         '''
             Overview: First func_embed is computed the same as in the Selected Units head, and used in the
                       same way for the query (added to the output of the autoregressive_embedding passed
@@ -435,14 +445,14 @@ class TargetUnitHead(nn.Module):
                 - (:obj`tensor`): logits, List(batch_size) - List(num_selected_units) - num_units
                 - (:obj`tensor`): units, [batch_size, num_units] 0-1 vector
         '''
-        assert(isinstance(entity_embedding, list) or isinstance(entity_embedding, torch.Tensor))
+        assert (isinstance(entity_embedding, list) or isinstance(entity_embedding, torch.Tensor))
 
         mask = available_units_mask
         key = self.key_fc(entity_embedding)
         query = self._get_query(embedding, available_unit_type_mask)
         logits = query.unsqueeze(1) * key
         logits = logits.mean(dim=2)
-        logits.sub_((1-mask) * 1e9)
+        logits.sub_((1 - mask) * 1e9)
 
         B, N = key.shape[:2]
         units = torch.zeros(B, N, device=key.device, dtype=torch.long)
@@ -465,7 +475,6 @@ class LocationHead(nn.Module):
                   and target_location.
         Interface: __init__, forward
     '''
-
     def __init__(self, cfg):
         '''
             Overview: initialize architect.
@@ -477,33 +486,41 @@ class LocationHead(nn.Module):
         self.reshape_size = cfg.reshape_size
         self.reshape_channel = cfg.reshape_channel
 
-        self.conv1 = conv2d_block(cfg.map_skip_dim+cfg.reshape_channel, cfg.res_dim, 1, 1, 0,
-                                  activation=self.act, norm_type=None)
+        self.conv1 = conv2d_block(
+            cfg.map_skip_dim + cfg.reshape_channel, cfg.res_dim, 1, 1, 0, activation=self.act, norm_type=None
+        )
         self.res = nn.ModuleList()
         self.res_act = nn.ModuleList()
         self.res_dim = cfg.res_dim
         for i in range(cfg.res_num):
-            self.res_act.append(build_activation('glu')(self.res_dim, self.res_dim,
-                                                        cfg.map_skip_dim+cfg.reshape_channel, 'conv2d'))
+            self.res_act.append(
+                build_activation('glu')(self.res_dim, self.res_dim, cfg.map_skip_dim + cfg.reshape_channel, 'conv2d')
+            )
             self.res.append(ResBlock(self.res_dim, self.res_dim, 3, 1, 1, activation=self.act, norm_type=None))
 
-        self.upsample = nn.ModuleList()   # upsample list
+        self.upsample = nn.ModuleList()  # upsample list
         dims = [self.res_dim] + cfg.upsample_dims
-        assert(cfg.upsample_type in ['deconv', 'nearest', 'bilinear'])
+        assert (cfg.upsample_type in ['deconv', 'nearest', 'bilinear'])
         for i in range(len(cfg.upsample_dims)):
             if cfg.upsample_type == 'deconv':
-                self.upsample.append(deconv2d_block(dims[i], dims[i+1], 4, 2, 1, activation=self.act, norm_type=None))
+                self.upsample.append(deconv2d_block(dims[i], dims[i + 1], 4, 2, 1, activation=self.act, norm_type=None))
             elif cfg.upsample_type == 'nearest':
                 self.upsample.append(
-                    nn.Sequential(NearestUpsample(2),
-                                  conv2d_block(dims[i], dims[i+1], 3, 1, 1, activation=self.act, norm_type=None)))
+                    nn.Sequential(
+                        NearestUpsample(2),
+                        conv2d_block(dims[i], dims[i + 1], 3, 1, 1, activation=self.act, norm_type=None)
+                    )
+                )
             elif cfg.upsample_type == 'bilinear':
                 self.upsample.append(
-                    nn.Sequential(BilinearUpsample(2),
-                                  conv2d_block(dims[i], dims[i+1], 3, 1, 1, activation=self.act, norm_type=None)))
+                    nn.Sequential(
+                        BilinearUpsample(2),
+                        conv2d_block(dims[i], dims[i + 1], 3, 1, 1, activation=self.act, norm_type=None)
+                    )
+                )
 
         self.output_type = cfg.output_type
-        assert(self.output_type in ['cls', 'soft_argmax'])
+        assert (self.output_type in ['cls', 'soft_argmax'])
         if self.output_type == 'cls':
             self.pd = CategoricalPdPytorch
         else:
@@ -631,6 +648,7 @@ def test_selected_units_head():
             self.hidden_dim = 32
             self.num_layers = 1
             self.max_entity_num = 64
+
     model = SelectedUnitsHead(CFG()).cuda()
     print(model)
     input = torch.randn(2, 1024).cuda()
@@ -654,6 +672,7 @@ def test_target_unit_head():
             self.key_dim = 32
             self.unit_type_dim = 259
             self.func_dim = 256
+
     model = TargetUnitHead(CFG()).cuda()
     input = torch.randn(2, 1024).cuda()
     available_unit_type_mask = torch.ones(2, 259).cuda()

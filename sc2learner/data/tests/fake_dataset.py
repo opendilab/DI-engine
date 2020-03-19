@@ -41,7 +41,6 @@ def random_one_hot(size, dtype=torch.float32):
 
 
 class FakeReplayDataset(ReplayDataset):
-
     def __init__(self, cfg=None):
         # Completely independent with the config
         self.trajectory_len = cfg.get("trajectory_len", 11) if cfg else 11
@@ -151,12 +150,11 @@ class FakeReplayDataset(ReplayDataset):
             action_type=random_action_type(),
             delay=torch.randint(0, DELAY_MAX, size=[1], dtype=torch.int64),
             queued=NOOP if np.random.random() > 0.8 else torch.randint(0, 1, size=[1], dtype=torch.int64),
-            selected_units=NOOP if np.random.random() > 0.8 else torch.randint(0, num_units, size=[selected_num_units],
-                                                                               dtype=torch.int64),
-            target_units=NOOP if np.random.random() > 0.8 else torch.randint(0, num_units, size=[1],
-                                                                             dtype=torch.int64),
-            target_location=NOOP if np.random.random() > 0.8 else torch.randint(0, min(MAP_SIZE), size=[2],
-                                                                                dtype=torch.int64)
+            selected_units=NOOP
+            if np.random.random() > 0.8 else torch.randint(0, num_units, size=[selected_num_units], dtype=torch.int64),
+            target_units=NOOP if np.random.random() > 0.8 else torch.randint(0, num_units, size=[1], dtype=torch.int64),
+            target_location=NOOP
+            if np.random.random() > 0.8 else torch.randint(0, min(MAP_SIZE), size=[2], dtype=torch.int64)
         )
         return OrderedDict(
             scalar_info=scalar_info,
