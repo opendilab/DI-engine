@@ -80,7 +80,7 @@ class AlphaStarActorCritic(ActorCriticBase):
     # overwrite
     def mimic(self, inputs, **kwargs):
         lstm_output, next_state, entity_embeddings, map_skip, scalar_context, _, _ = self.encoder(inputs)
-        policy_inputs = self.policy.MimicInput(
+        policy_inputs = self.policy.Input(
             inputs['actions'], inputs['entity_raw'], lstm_output, entity_embeddings, map_skip, scalar_context
         )
         logits = self.policy(policy_inputs, mode='mimic')
