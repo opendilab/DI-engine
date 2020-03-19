@@ -3,6 +3,8 @@ import torch
 from pysc2.lib.static_data import ACTIONS_REORDER_INV
 from sc2learner.agent.model import build_model
 from sc2learner.torch_utils import to_device, build_checkpoint_helper
+from sc2learner.utils import dict_list2list_dict
+from sc2learner.envs import action_unit_id_transform
 from .agent import BaseAgent
 
 
@@ -20,17 +22,20 @@ class AlphastarAgent(BaseAgent):
             self.checkpoint_helper.load(cfg.common.load_path, self.model, prefix='module.', prefix_op='remove')
 
     def act(self, obs):
-        entity_raw, map_size = obs['entity_raw'], obs['map_size']
+        entity_raw = obs['entity_raw']
+        # preprocessing: merge prev_state->batch->cuda
         obs['prev_state'] = self.next_state
+        obs = self._unsqueeze_batch_dim(obs)
         if self.use_cuda:
             obs = to_device(obs, 'cuda')
-        obs = self._unsqueeze_batch_dim(obs)
+        # forward
         with torch.no_grad():
-            ret = self.model(obs, mode='evaluate')
-        actions, self.next_state = ret
+            actions, self.next_state = self.model(obs, mode='evaluate')
+        # postprocessing: cpu->remove batch->action_unit_id_transform inv
         if self.use_cuda:
             actions = to_device(actions, 'cpu')
-        actions = self._decode_action(actions, entity_raw, map_size)
+        actions = dict_list2list_dict(actions)[0]
+        actions = action_unit_id_transform({'actions': actions, 'entity_raw': entity_raw}, inverse=True)['actions']
         return actions
 
     def value(self, obs):
@@ -59,21 +64,3 @@ class AlphastarAgent(BaseAgent):
             if k in list_keys:
                 obs[k] = [obs[k]]
         return obs
-
-    def _decode_action(self, actions, entity_raw, map_size):
-        for k, v in actions.items():
-            val = v[0]  # remove batch size dim(batch size=1)
-            if isinstance(val, torch.Tensor):
-                if k == 'selected_units' or k == 'target_units':
-                    actions[k] = [entity_raw['id'][i] for i in val]
-                elif k == 'action_type':
-                    actions[k] = ACTIONS_REORDER_INV[val.item()]
-                elif k == 'delay' or k == 'queued':
-                    actions[k] = val.item()
-                elif k == 'target_location':
-                    actions[k] = val.tolist()
-                else:
-                    raise KeyError("invalid key:{}".format(k))
-            else:
-                actions[k] = val
-        return actions

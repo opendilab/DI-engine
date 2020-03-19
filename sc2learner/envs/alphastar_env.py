@@ -19,9 +19,8 @@ class AlphastarEnv(SC2Env):
             - players:list of two sc2_env.Agent or sc2_env.Bot in the game
         """
         agent_interface_format = sc2_env.parse_agent_interface_format(
-            feature_screen=cfg.env.screen_resolution, feature_minimap=cfg.env.map_size
-        )
-        self.map_size = cfg.env.map_size
+            feature_screen=cfg.env.screen_resolution, feature_minimap=cfg.env.map_size  # x, y
+        ) 
         self.agent_num = sum([isinstance(p, sc2_env.Agent) for p in players])
         assert (self.agent_num <= 2)
         super(AlphastarEnv, self).__init__(
@@ -123,16 +122,30 @@ class AlphastarEnv(SC2Env):
         return new_obs
 
     def _get_action(self, actions):
-        action_type = actions['action_type']
-        delay = actions['delay']
+        # tensor2value
+        for k, v in actions.items():
+            if isinstance(v, torch.Tensor):
+                if k == 'action_type':
+                    actions[k] = ACTIONS_REORDER_INV[v.item()]
+                elif k in ['selected_units', 'target_units', 'target_location']:
+                    actions[k] = v.tolist()
+                elif k in ['queued', 'delay']:
+                    actions[k] = v.item()
+                else:
+                    raise KeyError("invalid key:{}".format(k))
         # action target location transform
         target_location = actions['target_location']
         if target_location is not None:
             x = target_location[1]
             y = target_location[0]
-            y = self.map_size[0] - y
+            y = self.map_size[1] - y
             actions['target_location'] = [x, y]
+        # TODO(nyz) cur_action support 2 agent
+        self._cur_actions = self.action_to_string(actions)
+        self._cur_action_type = actions['action_type']
 
+        action_type = actions['action_type']
+        delay = actions['delay']
         arg_keys = ['queued', 'selected_units', 'target_units', 'target_location']
         args = [v for k, v in actions.items() if k in arg_keys and v is not None]
         return FunctionCall.init_with_validation(action_type, args, raw=True), delay
@@ -206,7 +219,10 @@ class AlphastarEnv(SC2Env):
             'selected_units': None,
             'target_units': None,
             'target_location': None
-        }
+        } 
+        # TODO(nyz) cur_action support 2 agent
+        self._cur_actions = self.action_to_string(last_actions)
+        self._cur_action_type = last_actions['action_type']
         self.last_actions = [last_action] * self.agent_num
         obs = [self._get_obs(timestep.observation, last_action) for timestep in timesteps]
         infos = [timestep.game_info for timestep in timesteps]
@@ -218,3 +234,17 @@ class AlphastarEnv(SC2Env):
         self._buffered_actions = [[]] * self.agent_num
         self._last_output = [0, [True] * self.agent_num, obs, [0] * self.agent_num, False, infos]
         return copy.deepcopy(obs)
+
+    @property
+    def cur_actions(self):
+        return self._cur_actions
+
+    @property
+    def cur_action_type(self):
+        return self._cur_action_type
+
+    def action_to_string(self, actions):
+        return '[Action: type({}) delay({}) queued({}) selected_units({}) target_units({}) target_location({})]'.format(
+                    actions['action_type'], actions['delay'], actions['queued'],
+                    actions['selected_units'], actions['target_units'], actions['target_location']
+                )

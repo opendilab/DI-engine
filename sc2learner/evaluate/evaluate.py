@@ -138,19 +138,9 @@ def evaluate(var_dict, cfg):
         action = agent.act(observation)
         value = agent.value(observation)
         value_trace.append(value)
-        action_type = action['action_type'] if isinstance(action, dict) else action
-        logger.info(
-            "Rank %d Step ID: %d Take Action: %s" %
-            (rank, step_id, action if isinstance(action, dict) else action_type)
-        )
-        # delete_list = []
-        # for k, v in action.items():
-        #     if v is None:
-        #         delete_list.append(k)
-        # for k in delete_list:
-        #     del action[k]
         observation, reward, done, _ = env.step(action)
-        action_counts[action_type] += 1
+        logger.info("Rank %d Step ID: %d Take Action: %s" % (rank, step_id, env.cur_actions))
+        action_counts[env.cur_action_type] += 1
         cum_return += reward
         step_id += 1
     if cfg.env.save_replay:

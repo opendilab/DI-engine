@@ -5,7 +5,7 @@ common:
     agent: alphastar
     use_multiprocessing: False
 env:
-    game_version: '3.16'
+    game_version: '4.10'
     map_name: AbyssalReef
     map_size: [200, 176]
     disable_fog: False
