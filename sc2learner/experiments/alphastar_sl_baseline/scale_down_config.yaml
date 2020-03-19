@@ -1,6 +1,5 @@
 common:
     name: ZergStat
-    time_wrapper_type: cuda
 data:
     train:
         dataset_type: replay
@@ -127,8 +126,3 @@ model:
                 map_skip_dim: 128  # spatial_encoder.down_channels[-1]
                 activation: 'relu'
                 output_type: 'cls'  # ['cls', 'soft_argmax']
-logger:
-    print_freq: 1
-    save_freq: 200
-    eval_freq: 200
-    var_record_type: 'alphastar'

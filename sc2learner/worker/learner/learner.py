@@ -185,7 +185,7 @@ class BaseLearner(object):
         self.logger, self.tb_logger, self.variable_record = build_logger(cfg)
         self.grad_clipper = build_grad_clip(cfg)
         self.time_helper = build_time_helper(cfg)
-        self.checkpoint_helper = build_checkpoint_helper(cfg)
+        self.checkpoint_helper = build_checkpoint_helper(cfg.common.save_path)
         self.last_iter = CountVar(init_val=0)
         self.history_actor_info = HistoryActorInfo(cfg.logger.actor_monitor)
         if cfg.common.load_path != '':

@@ -9,7 +9,7 @@ class BaseAgent(object):
         self.cfg = cfg
         self.tb_logger = tb_logger
         self.viz = cfg.logger.viz
-        self.checkpoint_helper = build_checkpoint_helper(cfg)
+        self.checkpoint_helper = build_checkpoint_helper(self.cfg.common.save_path)
         assert (cfg.common.load_path != "")
         self.checkpoint_helper.load(cfg.common.load_path, self.model)
 

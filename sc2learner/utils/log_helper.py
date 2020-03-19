@@ -5,11 +5,14 @@ Main Function:
     1. log helper, used to help to save logger on terminal, tensorboard or save file.
     2. CountVar, to help counting number.
 '''
+import json
 import logging
 import numbers
-import numpy as np
-import cv2
 import os
+
+import cv2
+import numpy as np
+import yaml
 from tensorboardX import SummaryWriter
 
 
@@ -375,3 +378,16 @@ class DistributionTimeImage(object):
             valid = (valid - self.val_range['min']) / (self.val_range['max'] - self.val_range['min'])
         norm_img[:, :self.time_step] = valid
         return np.stack([self.one_img, norm_img, norm_img], axis=0)
+
+
+def pretty_print(result, direct_print=True):
+    result = result.copy()
+    out = {}
+    for k, v in result.items():
+        if v is not None:
+            out[k] = v
+    cleaned = json.dumps(out)
+    string = yaml.safe_dump(json.loads(cleaned), default_flow_style=False)
+    if direct_print:
+        print(string)
+    return string
