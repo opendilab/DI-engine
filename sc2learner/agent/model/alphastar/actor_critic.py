@@ -1,10 +1,15 @@
+import os.path as osp
 from collections import namedtuple, OrderedDict
 import torch
 import torch.nn as nn
-from .policy import Policy
+
+from sc2learner.utils import read_config, merge_dicts
 from .encoder import Encoder
+from .policy import Policy
 from .value import ValueBaseline
 from ..actor_critic.actor_critic import ActorCriticBase
+
+alphastar_model_default_config = read_config(osp.join(osp.dirname(__file__), "actor_critic_default_config.yaml"))
 
 
 class AlphaStarActorCritic(ActorCriticBase):
@@ -23,26 +28,26 @@ class AlphaStarActorCritic(ActorCriticBase):
     )
     CriticOutput = namedtuple('CriticOutput', ['winloss', 'build_orders', 'built_units', 'effects', 'upgrades'])
 
-    def __init__(self, cfg):
+    def __init__(self, model_config=None):
         super(AlphaStarActorCritic, self).__init__()
-        self.cfg = cfg
-        self.encoder = Encoder(cfg.encoder)
-        self.policy = Policy(cfg.policy)
-        if cfg.use_value_network:
+        self.cfg = merge_dicts(alphastar_model_default_config, model_config)
+        self.encoder = Encoder(self.cfg.encoder)
+        self.policy = Policy(self.cfg.policy)
+        if self.cfg.use_value_network:
             self.value_networks = nn.ModuleDict()
             self.value_cum_stat_keys = OrderedDict()
-            for k, v in cfg.value.items():
+            for k, v in self.cfg.value.items():
                 # creating a ValueBaseline network for each baseline, to be used in _critic_forward
                 self.value_networks[v.name] = ValueBaseline(v.param)
                 # name of needed cumulative stat items
                 self.value_cum_stat_keys[v.name] = v.cum_stat_keys
-        self.freeze_module(cfg.freeze_targets)
+        self.freeze_module(self.cfg.freeze_targets)
 
     def freeze_module(self, freeze_targets=None):
-        '''
+        """
         Note:
             must be called after the model initialization, before the model forward
-        '''
+        """
         if freeze_targets is None:
             # if freeze_targets is not provided, try to use self.freeze_targets
             if self.freeze_targets is None:
@@ -75,7 +80,7 @@ class AlphaStarActorCritic(ActorCriticBase):
     # overwrite
     def mimic(self, inputs, **kwargs):
         lstm_output, next_state, entity_embeddings, map_skip, scalar_context, _, _ = self.encoder(inputs)
-        policy_inputs = self.policy.Input(
+        policy_inputs = self.policy.MimicInput(
             inputs['actions'], inputs['entity_raw'], lstm_output, entity_embeddings, map_skip, scalar_context
         )
         logits = self.policy(policy_inputs, mode='mimic')
@@ -83,7 +88,10 @@ class AlphaStarActorCritic(ActorCriticBase):
 
     # overwrite
     def evaluate(self, inputs, **kwargs):
-        '''
+        """
+            Overview: agent evaluate(only actor)
+            Note:
+                batch size = 1
             Overview: forward for agent evaluate (only actor is evaluated). batch size must be 1
             Inputs:
                 - inputs: EvalInput namedtuple with following fields
@@ -95,7 +103,7 @@ class AlphaStarActorCritic(ActorCriticBase):
                     - prev_state
             Output:
                 - EvalOutput named dict
-        '''
+        """
         ratio = self.cfg.policy.location_expand_ratio
         Y, X = inputs['map_size'][0]
 
@@ -126,7 +134,7 @@ class AlphaStarActorCritic(ActorCriticBase):
 
     # overwrite
     def step(self, inputs, **kwargs):
-        '''
+        """
             Overview: forward for training (actor and critic)
             Inputs:
                 - inputs: StepInput namedtuple with observations
@@ -138,7 +146,7 @@ class AlphaStarActorCritic(ActorCriticBase):
                     - baselines: critic values
                     - next_state_home
                     - next_state_away
-        '''
+        """
         # encoder(home and away)
         lstm_output_home, \
         next_state_home, \
@@ -167,9 +175,9 @@ class AlphaStarActorCritic(ActorCriticBase):
 
     # overwrite
     def _critic_forward(self, inputs):
-        '''
+        """
         Overview: Evaluate value network on each baseline
-        '''
+        """
         def select_item(data, key):
             # Input: data:dict key:list Returns: ret:list
             # filter data and return a list of values with keys in key

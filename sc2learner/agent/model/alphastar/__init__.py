@@ -1,5 +1,1 @@
-from .actor_critic import AlphaStarActorCritic
-
-
-def build_model(cfg):
-    return AlphaStarActorCritic(cfg.model)
+from .actor_critic import AlphaStarActorCritic, alphastar_model_default_config

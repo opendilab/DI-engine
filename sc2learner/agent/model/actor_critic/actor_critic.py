@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 
 
@@ -9,7 +10,7 @@ class ActorCriticBase(nn.Module):
         return f(inputs, **kwargs)
 
     def set_seed(self, seed):
-        raise NotImplementedError
+        torch.manual_seed(seed)
 
     def step(self, inputs):
         raise NotImplementedError

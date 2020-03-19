@@ -20,9 +20,9 @@ START_STEP = "start_step"
 
 
 class ReplayDataset(BaseDataset):
-    def __init__(self, cfg, train_mode=True):
-        super(ReplayDataset, self).__init__(cfg)
-        with open(cfg.replay_list, 'r') as f:
+    def __init__(self, dataset_config, train_mode=True):
+        super(ReplayDataset, self).__init__(dataset_config)
+        with open(dataset_config.replay_list, 'r') as f:
             path_list = f.readlines()
         self.path_list = [{'name': p[:-1], 'count': 0} for idx, p in enumerate(path_list)]
 
@@ -30,18 +30,18 @@ class ReplayDataset(BaseDataset):
         self.complete_episode = not train_mode
 
         if not self.complete_episode:
-            assert cfg.trajectory_type in ['random', 'slide_window', 'sequential'], cfg
-            self.trajectory_len = cfg.trajectory_len
-            self.trajectory_type = cfg.trajectory_type
-            self.slide_window_step = cfg.slide_window_step
-            self.beginning_build_order_prob = cfg.beginning_build_order_prob
-            self.cumulative_stat_prob = cfg.cumulative_stat_prob
+            assert dataset_config.trajectory_type in ['random', 'slide_window', 'sequential'], dataset_config
+            self.trajectory_len = dataset_config.trajectory_len
+            self.trajectory_type = dataset_config.trajectory_type
+            self.slide_window_step = dataset_config.slide_window_step
+            self.beginning_build_order_prob = dataset_config.beginning_build_order_prob
+            self.cumulative_stat_prob = dataset_config.cumulative_stat_prob
 
-        self.use_stat = cfg.use_stat
-        self.beginning_build_order_num = cfg.beginning_build_order_num
-        self.use_global_cumulative_stat = cfg.use_global_cumulative_stat
-        self.use_ceph = cfg.use_ceph
-        self.use_available_action_transform = cfg.use_available_action_transform
+        self.use_stat = dataset_config.use_stat
+        self.beginning_build_order_num = dataset_config.beginning_build_order_num
+        self.use_global_cumulative_stat = dataset_config.use_global_cumulative_stat
+        self.use_ceph = dataset_config.use_ceph
+        self.use_available_action_transform = dataset_config.use_available_action_transform
 
     def __len__(self):
         return len(self.path_list)

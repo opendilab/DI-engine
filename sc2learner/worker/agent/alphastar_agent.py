@@ -1,8 +1,9 @@
 import torch
-from .agent import BaseAgent
+
+from pysc2.lib.static_data import ACTIONS_REORDER_INV
 from sc2learner.agent.model import build_model
 from sc2learner.torch_utils import to_device, build_checkpoint_helper
-from pysc2.lib.static_data import ACTIONS_REORDER_INV
+from .agent import BaseAgent
 
 
 class AlphastarAgent(BaseAgent):
@@ -17,9 +18,6 @@ class AlphastarAgent(BaseAgent):
         if need_checkpoint:
             self.checkpoint_helper = build_checkpoint_helper(cfg)
             self.checkpoint_helper.load(cfg.common.load_path, self.model, prefix='module.', prefix_op='remove')
-
-    def reset(self):
-        self.next_state = None
 
     def act(self, obs):
         entity_raw, map_size = obs['entity_raw'], obs['map_size']

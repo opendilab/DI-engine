@@ -1,10 +1,10 @@
-'''
+"""
 Copyright 2020 Sensetime X-lab. All Rights Reserved
 
 Main Function:
     1. checkpoint helper, used to help to save or load checkpoint by give args.
     2. CountVar, to help counting number.
-'''
+"""
 import logging
 import os
 import signal
@@ -13,51 +13,51 @@ import traceback
 
 import torch
 
+from sc2learner.utils.config_utils import save_config
 from .data_helper import to_device
 
 logger = logging.getLogger('default_logger')
 
 
-def build_checkpoint_helper(cfg, rank=0):
-    '''
+def build_checkpoint_helper(save_path, rank=0):
+    """
         Overview: use config to build checkpoint helper.
         Arguments:
             - cfg (:obj:`dict`): checkpoint_helper config
             - rank (:obj:`int`): creator process rank
         Returns:
             - (:obj`CheckpointHelper`): checkpoint_helper created by this function
-    '''
-    return CheckpointHelper(cfg.common.save_path, rank)
+    """
+    return CheckpointHelper(save_path, rank)
 
 
 class CheckpointHelper(object):
-    '''
+    """
         Overview: Concrete implementation of CheckpointHelper, to help to save or load checkpoint
         Interface: __init__, save_iterations, save, save_data, load
-    '''
+    """
     def __init__(self, save_dir, rank=0):
-        '''
+        """
             Overview: initialization method, check if save_dir exists.
             Arguments:
                 - save_dir (:obj:`str`): checkpoint save dir
                 - rank (:obs:`int`): creator process rank
-        '''
+        """
         self.save_path = os.path.join(save_dir, 'checkpoints')
         self.data_save_path = os.path.join(save_dir, 'data')
-        if rank == 0 and not os.path.exists(self.save_path):
-            os.mkdir(self.save_path)
-        if rank == 0 and not os.path.exists(self.data_save_path):
-            os.mkdir(self.data_save_path)
+        if rank == 0:
+            os.makedirs(self.save_path, exist_ok=True)
+            os.makedirs(self.data_save_path, exist_ok=True)
 
     def _remove_prefix(self, state_dict, prefix='module.'):
-        '''
+        """
             Overview: remove prefix in state_dict
             Arguments:
                 - state_dict (:obj:`dict`): model's state_dict
                 - prefix (:obj:`str`): this prefix will be removed in keys
             Returns:
                 - (:obj`dict`): new state_dict after removing prefix
-        '''
+        """
         new_state_dict = {}
         for k, v in state_dict.items():
             if k.startswith(prefix):
@@ -68,23 +68,23 @@ class CheckpointHelper(object):
         return new_state_dict
 
     def _add_prefix(self, state_dict, prefix='module.'):
-        '''
+        """
             Overview: add prefix in state_dict
             Arguments:
                 - state_dict (:obj:`dict`): model's state_dict
                 - prefix (:obj:`str`): this prefix will be added in keys
             Returns:
                 - (:obj`dict`): new state_dict after adding prefix
-        '''
+        """
         return {prefix + k: v for k, v in state_dict.items()}
 
     def save_iterations(self, iterations, model, **kwargs):
-        '''
+        """
             Overview: save with iterations num
             Arguments:
                 - iterations (:obj:`int`): iterations num
                 - model (:obj:`str`): model to be saved
-        '''
+        """
         kwargs['last_iter'] = iterations
         return self.save('iterations_{}'.format(iterations), model, **kwargs)
 
@@ -100,7 +100,7 @@ class CheckpointHelper(object):
         prefix_op=None,
         prefix=None
     ):
-        '''
+        """
             Overview: save checkpoint by given args
             Arguments:
                 - name (:obj:`str`): checkpoint's name
@@ -112,7 +112,7 @@ class CheckpointHelper(object):
                 - actor_info (:obj:`torch.nn.Module`): attr of checkpoint, save actor info
                 - prefix_op (:obj:`str`): should be ['remove', 'add'], process on state_dict
                 - prefix (:obj:`str`): prefix to be processed on state_dict
-        '''
+        """
         checkpoint = {}
         state_dict = model.state_dict()
         if prefix_op is not None:  # remove or add prefix to state_dict.keys()
@@ -138,25 +138,28 @@ class CheckpointHelper(object):
         logger.info('save checkpoint in {}'.format(path))
 
     def save_data(self, name, data, device='cpu'):
-        '''
+        """
             Overview: save given tensor or dict
             Arguments:
                 - name (:obj:`int`): file's name to be saved
                 - data (:obj:`str`): data to be saved
                 - device (:obj:`str`): save from gpu or cpu
-        '''
+        """
         assert (isinstance(data, torch.Tensor) or isinstance(data, dict))
         data = to_device(data, device)
         path = os.path.join(self.data_save_path, name + '_data.pt')
         torch.save(data, path)
 
+    def save_config(self, config):
+        save_config(config, os.path.join(self.data_save_path, "experiment_config.yaml"))
+
     def _print_mismatch_keys(self, model_state_dict, ckpt_state_dict):
-        '''
+        """
             Overview: show mismatch keys between model's state_dict and checkpoint's state_dict
             Arguments:
                 - model_state_dict (:obj:`dict`): model's state_dict
                 - ckpt_state_dict (:obj:`dict`): checkpoint's state_dict
-        '''
+        """
         model_keys = set(model_state_dict.keys())
         ckpt_keys = set(ckpt_state_dict.keys())
         miss_keys = model_keys - ckpt_keys
@@ -182,7 +185,7 @@ class CheckpointHelper(object):
         logger_prefix='',
         state_dict_mask=[]
     ):
-        '''
+        """
             Overview: load checkpoint by given path
             Arguments:
                 - load_path (:obj:`str`): checkpoint's path
@@ -199,7 +202,7 @@ class CheckpointHelper(object):
                 - logger_prefix (:obj:`str`): prefix of logger
                 - state_dict_mask (:obj:`list`) a list contains state_dict keys,
                     which shouldn't be loaded into model(after prefix op)
-        '''
+        """
         # Note: don't use assign operation('=') to updare input argument value
         assert (os.path.exists(load_path))
         # Note: for reduce first GPU memory cost and compatible for cpu env

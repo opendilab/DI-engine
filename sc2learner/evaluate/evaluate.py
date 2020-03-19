@@ -23,7 +23,7 @@ from sc2learner.envs.observations.zerg_observation_wrappers \
     import ZergObservationWrapper
 from sc2learner.envs.alphastar_env import AlphastarEnv
 from sc2learner.agent.model import PPOLSTM, PPOMLP
-from sc2learner.worker import PpoAgent, RandomAgent, KeyboardAgent, AlphastarAgent
+from sc2learner.worker import PpoAgent, RandomAgent, KeyboardAgent, AlphaStarAgent
 from sc2learner.utils import build_logger
 from pysc2.lib.action_dict import ACTION_INFO_MASK
 
@@ -120,7 +120,7 @@ def evaluate(var_dict, cfg):
     elif cfg.common.agent == 'keyboard':
         agent = KeyboardAgent(action_space=env.action_space)
     elif cfg.common.agent == 'alphastar':
-        agent = AlphastarAgent(cfg)
+        agent = AlphaStarAgent(cfg)
     else:
         raise NotImplementedError
 

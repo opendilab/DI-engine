@@ -1,9 +1,8 @@
-common:
-    name: ZergStat
-    time_wrapper_type: cuda
+# This file provide configs for "data" and "train" fields, both top-level fields.
 data:
     train:
-        dataset_type: fake
+        replay_list: ''
+        dataset_type: replay
         dataloader_type: iter  # [epoch, iter]
         batch_size: 6
         trajectory_len: 48
@@ -15,15 +14,18 @@ data:
         use_global_cumulative_stat: False
         cumulative_stat_prob: 0.5
         use_ceph: True
+        use_distributed: False
         use_available_action_transform: True
     eval:
-        dataset_type: fake
+        replay_list: ''
+        dataset_type: replay_eval
         dataloader_type: epoch
         batch_size: 1
         use_stat: True
         beginning_build_order_num: 20
         use_global_cumulative_stat: False
         use_ceph: True
+        use_distributed: False
         use_available_action_transform: True
 train:
     use_cuda: True
@@ -35,8 +37,3 @@ train:
         type: cross_entropy  # [cross_entropy, label_smooth_ce]
         kwargs:  # {label_smooth_ce: [smooth_ratio]}
             smooth_ratio: 0.1
-logger:
-    print_freq: 1
-    save_freq: 200
-    eval_freq: 200
-    var_record_type: 'alphastar'

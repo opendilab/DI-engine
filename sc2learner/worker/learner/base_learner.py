@@ -14,51 +14,6 @@ from sc2learner.torch_utils import build_checkpoint_helper, auto_checkpoint, Cou
 from sc2learner.utils import build_logger, dist_init, dist_finalize, allreduce, EasyTimer
 
 
-def transform_dict(var_items, keys):
-    new_dict = {}
-    for k in keys:
-        if k in var_items.keys():
-            v = var_items[k]
-            if isinstance(v, torch.Tensor):
-                if v.shape == (1, ):
-                    v = v.item()  # get item
-                else:
-                    v = v.tolist()
-            else:
-                v = v
-            new_dict[k] = v
-    return new_dict
-
-
-def aggregate(data):
-    """
-        Overview: merge all info from other rank
-        Arguments:
-            - data (:obj:`dict`): data needs to be reduced. Could be dict, torch.Tensor,
-                                  numbers.Integral or numbers.Real
-        Returns:
-            - (:obj`dict`): data after reduce
-    """
-    if isinstance(data, dict):
-        new_data = {}
-        for k, v in data.items():
-            new_data[k] = aggregate(v)
-    elif isinstance(data, list):
-        new_data = []
-        for t in data:
-            new_data.append(aggregate(t))
-    elif isinstance(data, torch.Tensor):
-        new_data = data.clone()
-        allreduce(new_data)  # get data from other processes
-    elif isinstance(data, numbers.Integral) or isinstance(data, numbers.Real):
-        new_data = torch.scalar_tensor(data).reshape([1])
-        allreduce(new_data)
-        new_data = new_data.item()
-    else:
-        raise TypeError("invalid info type: {}".format(type(data)))
-    return new_data
-
-
 class Learner:
     """
         Overview: base class for supervised learning on linklink, including basic processes.
@@ -157,7 +112,7 @@ class Learner:
         return build_logger(self.cfg, rank=rank)
 
     def _setup_checkpoint_manager(self):
-        self.checkpoint_manager = build_checkpoint_helper(self.cfg, self.rank)
+        self.checkpoint_manager = build_checkpoint_helper(self.cfg.common.save_path, self.rank)
         if self.train_dataloader_type == 'epoch':
             self.ckpt_dataset = self.dataset
         elif self.train_dataloader_type == 'iter':
@@ -285,3 +240,48 @@ class Learner:
 class SupervisedLearner(Learner):
     """An abstract supervised learning learner class"""
     _name = "BaseSuppervisedLearner"
+
+
+def transform_dict(var_items, keys):
+    new_dict = {}
+    for k in keys:
+        if k in var_items.keys():
+            v = var_items[k]
+            if isinstance(v, torch.Tensor):
+                if v.shape == (1, ):
+                    v = v.item()  # get item
+                else:
+                    v = v.tolist()
+            else:
+                v = v
+            new_dict[k] = v
+    return new_dict
+
+
+def aggregate(data):
+    """
+        Overview: merge all info from other rank
+        Arguments:
+            - data (:obj:`dict`): data needs to be reduced. Could be dict, torch.Tensor,
+                                  numbers.Integral or numbers.Real
+        Returns:
+            - (:obj`dict`): data after reduce
+    """
+    if isinstance(data, dict):
+        new_data = {}
+        for k, v in data.items():
+            new_data[k] = aggregate(v)
+    elif isinstance(data, list):
+        new_data = []
+        for t in data:
+            new_data.append(aggregate(t))
+    elif isinstance(data, torch.Tensor):
+        new_data = data.clone()
+        allreduce(new_data)  # get data from other processes
+    elif isinstance(data, numbers.Integral) or isinstance(data, numbers.Real):
+        new_data = torch.scalar_tensor(data).reshape([1])
+        allreduce(new_data)
+        new_data = new_data.item()
+    else:
+        raise TypeError("invalid info type: {}".format(type(data)))
+    return new_data
