@@ -52,8 +52,8 @@ class ActionTypeHead(nn.Module):
                 - lstm_output (:obj:`tensor`): The output of the LSTM
                 - scalar_context (:obj:`tensor`): A 1D tensor of certain scalar features, include available_actions,
                                                   cumulative_statistics, beginning_build_order
-                - temperature (:obj:`float`):
-                - action (:obj:`str`):
+                - temperature (:obj:`float`): sampling temperature for action in case action input is None
+                - action (:obj:`tensor`): Action type, of size [1]
             Returns:
                 - (:obj`tensor`): action_type_logits corresponding to the probabilities of taking each action
                 - (:obj`tensor`): action_type sampled from the action_type_logits

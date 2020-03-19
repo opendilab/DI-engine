@@ -33,6 +33,20 @@ train:
         type: cross_entropy  # [cross_entropy, label_smooth_ce]
         kwargs:  # {label_smooth_ce: [smooth_ratio]}
             smooth_ratio: 0.1
+env:
+   screen_resolution: 128
+   default_step_mul: 8  # not used
+   game_steps_per_episode: 43200
+   disable_fog: False
+   realtime: False
+
+rl_train:
+   data_push_length: 64
+   use_global_cumulative_stat: True
+   use_available_action_transform: True
+   use_stat: False
+   beginning_build_order_num: 20
+
 model:
     use_value_network: True
     encoder:

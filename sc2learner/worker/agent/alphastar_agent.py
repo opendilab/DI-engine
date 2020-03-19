@@ -6,17 +6,17 @@ from pysc2.lib.static_data import ACTIONS_REORDER_INV
 
 
 class AlphastarAgent(BaseAgent):
-    def __init__(self, cfg):
+    def __init__(self, cfg, need_checkpoint=True):
         self.cfg = cfg
         self.model = build_model(cfg)
         self.model.eval()
         self.use_cuda = cfg.train.use_cuda
         if self.use_cuda:
             self.model = to_device(self.model, 'cuda')
-
         self.next_state = None
-        self.checkpoint_helper = build_checkpoint_helper(cfg)
-        self.checkpoint_helper.load(cfg.common.load_path, self.model, prefix='module.', prefix_op='remove')
+        if need_checkpoint:
+            self.checkpoint_helper = build_checkpoint_helper(cfg)
+            self.checkpoint_helper.load(cfg.common.load_path, self.model, prefix='module.', prefix_op='remove')
 
     def reset(self):
         self.next_state = None
@@ -28,7 +28,8 @@ class AlphastarAgent(BaseAgent):
             obs = to_device(obs, 'cuda')
         obs = self._unsqueeze_batch_dim(obs)
         with torch.no_grad():
-            actions, self.next_state = self.model(obs, mode='evaluate')
+            ret = self.model(obs, mode='evaluate')
+        actions, self.next_state = ret
         if self.use_cuda:
             actions = to_device(actions, 'cpu')
         actions = self._decode_action(actions, entity_raw, map_size)

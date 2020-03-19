@@ -37,8 +37,8 @@ class LSTM(nn.Module):
     def forward(self, inputs, prev_state, list_next_state=False):
         '''
         Input:
-            inputs: [seq_len, batch_size, input_size]
-            prev_state: [num_directions*num_layers, batch_size, hidden_size]
+            inputs: tensor of size [seq_len, batch_size, input_size]
+            prev_state: None or tensor of size [num_directions*num_layers, batch_size, hidden_size]
         '''
         seq_len, batch_size = inputs.shape[:2]
         if prev_state is None:

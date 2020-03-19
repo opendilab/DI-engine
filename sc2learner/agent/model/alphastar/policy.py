@@ -24,10 +24,10 @@ def build_head(name):
 
 class Policy(nn.Module):
     Input = namedtuple(
-        'Input', ['entity_raw', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context']
+        'MimicInput', ['actions', 'entity_raw', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context']
     )  # noqa
-    MimicInput = namedtuple(
-        'Input', ['actions', 'entity_raw', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context']
+    Input = namedtuple(
+        'Input', ['entity_raw', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context']
     )  # noqa
 
     def __init__(self, cfg):

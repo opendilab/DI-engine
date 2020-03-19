@@ -9,7 +9,7 @@ style:
     - pip install yapf==0.29.0
     - bash format.sh --test
     - pip install flake8
-    - flake8 -v sc2learner/
+    - flake8 sc2learner/
 
 pages:
   stage: deploy
