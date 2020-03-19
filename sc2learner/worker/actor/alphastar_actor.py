@@ -2,7 +2,7 @@ import time
 
 import pysc2.env.sc2_env as sc2_env
 from sc2learner.envs.alphastar_env import AlphastarEnv
-from sc2learner.envs.map_info import MAPS
+from sc2learner.envs import MAPS
 from sc2learner.utils import get_actor_id
 from sc2learner.worker.agent import AlphastarAgent
 
