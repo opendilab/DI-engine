@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+import copy
 import pysc2.env.sc2_env as sc2_env
 from pysc2.env.sc2_env import SC2Env
 from pysc2.lib.actions import FunctionCall, FUNCTIONS, RAW_FUNCTIONS
@@ -11,14 +12,18 @@ from sc2learner.envs import get_available_actions_processed_data
 
 
 class AlphastarEnv(SC2Env):
-    def __init__(self, cfg):
+    def __init__(self, cfg, players):
+        """
+        Input:
+            - cfg
+            - players:list of two sc2_env.Agent or sc2_env.Bot in the game
+        """
         agent_interface_format = sc2_env.parse_agent_interface_format(
             feature_screen=cfg.env.screen_resolution, feature_minimap=cfg.env.map_size
         )
-        players = [
-            sc2_env.Agent(sc2_env.Race[cfg.env.home_race]),
-            sc2_env.Bot(sc2_env.Race[cfg.env.away_race], cfg.env.difficulty),
-        ]
+        self.map_size = cfg.env.map_size
+        self.agent_num = sum([isinstance(p, sc2_env.Agent) for p in players])
+        assert (self.agent_num <= 2)
         super(AlphastarEnv, self).__init__(
             map_name=cfg.env.map_name,
             random_seed=cfg.env.random_seed,
@@ -27,7 +32,9 @@ class AlphastarEnv(SC2Env):
             game_steps_per_episode=cfg.env.game_steps_per_episode,
             agent_interface_format=agent_interface_format,
             disable_fog=cfg.env.disable_fog,
+            score_index=-1,  # use win/loss reward rather than score
             ensure_available_actions=False,
+            realtime=cfg.env.realtime,
         )
         self.spatial_wrapper = SpatialObsWrapper(transform_spatial_data())
         self.entity_wrapper = EntityObsWrapper(transform_entity_data())
@@ -131,23 +138,68 @@ class AlphastarEnv(SC2Env):
         return FunctionCall.init_with_validation(action_type, args, raw=True), delay
 
     def step(self, actions):
+        """
+        Overview: Apply actions, step the world forward, and return observations.
+        Input:
+            - actions: list of actions for each agent, length should be the number of agents
+            if an agent don't want to act this time, the action should be set to None
+        Return:
+            - step: actually how many steps are forwarded during this call
+            - due: list of bool telling which agents should take the next action
+            - obs: list of ob dicts for two agents after taking action
+            - rewards: win/loss reward
+            - done: if the game terminated
+            - info
+        """
         assert (self._reset_flag)
-        last_actions = actions
-        transformed_actions, delay = self._get_action(actions)
-        timestep = super().step([transformed_actions], step_mul=delay)[0]
-        done = timestep.last()
-        _, reward, _, obs, info = timestep
-        obs = self._get_obs(obs, last_actions)
-        return obs, reward, done, info
+        transformed_actions = [None] * self.agent_num
+        for n in range(self.agent_num):
+            action = actions[n]
+            if action is not None:
+                t, d = self._get_action(action)
+                transformed_actions[n] = t
+                self._next_obs[n] = self._episode_steps + d
+                self.last_actions[n] = action
+            else:
+                transformed_actions[n] = []
+        step_mul = min(self._next_obs) - self._episode_steps
+        if step_mul == 0:
+            # repeat last observation and store last action
+            # at least one agent requested by returning zero delay
+            for n in range(self.agent_num):
+                if transformed_actions[n]:
+                    self._buffered_actions[n].append(transformed_actions[n])
+            _, _, obs, rewards, done, info = self._last_output
+            due = [s <= self._episode_steps for s in self._next_obs]
+        else:
+            for n in range(self.agent_num):
+                if transformed_actions[n]:
+                    transformed_actions[n] = self._buffered_actions[n] + [transformed_actions[n]]
+            assert (any(transformed_actions))
+            assert (step_mul >= 0), 'Some agent requested negative delay!'
+            timesteps = super().step(transformed_actions, step_mul=step_mul)
+            due = [s <= self._episode_steps for s in self._next_obs]
+            assert (any(due))
+            self._buffered_actions = [[]] * self.agent_num
+            done = False
+            obs = [None] * self.agent_num
+            rewards = [None] * self.agent_num
+            info = [None] * self.agent_num
+            for n in range(self.agent_num):
+                timestep = timesteps[n]
+                if timestep is not None:
+                    done = done or timestep.last()
+                    _, rewards[n], _, o, info[n] = timestep
+                    assert (self.last_actions[n])
+                    obs[n] = self._get_obs(o, self.last_actions[n])
+            self._last_output = [step_mul, due, obs, rewards, done, info]
+        # as obs may be changed somewhere in parsing
+        # we have to return a copy to keep the self._last_ouput intact
+        return step_mul, due, copy.deepcopy(obs), rewards, done, info
 
     def reset(self):
-        timestep = super().reset()[0]
-        obs = timestep.observation
-        info = timestep.game_info
-        self.map_size = info.start_raw.map_size
-        self.map_size = (self.map_size.x, self.map_size.y)
-        self._reset_flag = True
-        last_actions = {
+        timesteps = super().reset()
+        last_action = {
             'action_type': 0,
             'delay': 0,
             'queued': None,
@@ -155,5 +207,14 @@ class AlphastarEnv(SC2Env):
             'target_units': None,
             'target_location': None
         }
-        obs = self._get_obs(obs, last_actions)
-        return obs
+        self.last_actions = [last_action] * self.agent_num
+        obs = [self._get_obs(timestep.observation, last_action) for timestep in timesteps]
+        infos = [timestep.game_info for timestep in timesteps]
+        self.map_size = infos[0].start_raw.map_size
+        self.map_size = (self.map_size.x, self.map_size.y)
+        self._next_obs = [0] * self.agent_num
+        self._episode_steps = 0
+        self._reset_flag = True
+        self._buffered_actions = [[]] * self.agent_num
+        self._last_output = [0, [True] * self.agent_num, obs, [0] * self.agent_num, False, infos]
+        return copy.deepcopy(obs)

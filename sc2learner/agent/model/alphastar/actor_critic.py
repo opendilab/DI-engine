@@ -1,19 +1,20 @@
 from collections import namedtuple, OrderedDict
-
 import torch
 import torch.nn as nn
-
-from .encoder import Encoder
 from .policy import Policy
+from .encoder import Encoder
 from .value import ValueBaseline
 from ..actor_critic.actor_critic import ActorCriticBase
 
 
 class AlphaStarActorCritic(ActorCriticBase):
+    EvalInput = namedtuple(
+        'EvalInput', ['map_size', 'entity_raw', 'scalar_info', 'spatial_info', 'entity_info', 'prev_state']
+    )
     EvalOutput = namedtuple('EvalOutput', ['actions', 'next_state'])
     MimicOutput = namedtuple('MimicOutput', ['logits', 'next_state'])
+    StepInput = namedtuple('StepInput', ['home', 'away'])
     StepOutput = namedtuple('StepOutput', ['actions', 'baselines', 'next_state_home', 'next_state_away'])
-
     CriticInput = namedtuple(
         'CriticInput', [
             'lstm_output_home', 'lstm_output_away', 'baseline_feature_home', 'baseline_feature_away', 'cum_stat_home',
@@ -74,7 +75,7 @@ class AlphaStarActorCritic(ActorCriticBase):
     # overwrite
     def mimic(self, inputs, **kwargs):
         lstm_output, next_state, entity_embeddings, map_skip, scalar_context, _, _ = self.encoder(inputs)
-        policy_inputs = self.policy.MimicInput(
+        policy_inputs = self.policy.Input(
             inputs['actions'], inputs['entity_raw'], lstm_output, entity_embeddings, map_skip, scalar_context
         )
         logits = self.policy(policy_inputs, mode='mimic')
@@ -83,9 +84,17 @@ class AlphaStarActorCritic(ActorCriticBase):
     # overwrite
     def evaluate(self, inputs, **kwargs):
         '''
-            Overview: agent evaluate(only actor)
-            Note:
-                batch size = 1
+            Overview: forward for agent evaluate (only actor is evaluated). batch size must be 1
+            Inputs:
+                - inputs: EvalInput namedtuple with following fields
+                    - map_size
+                    - entity_raw
+                    - scalar_info
+                    - spatial_info
+                    - entity_info
+                    - prev_state
+            Output:
+                - EvalOutput named dict
         '''
         ratio = self.cfg.policy.location_expand_ratio
         Y, X = inputs['map_size'][0]
@@ -118,7 +127,17 @@ class AlphaStarActorCritic(ActorCriticBase):
     # overwrite
     def step(self, inputs, **kwargs):
         '''
-            Overview: agent train(actor and critic)
+            Overview: forward for training (actor and critic)
+            Inputs:
+                - inputs: StepInput namedtuple with observations
+                    - away: observation from the rival as EvalInput
+                    - home: observation from my self as EvalInput
+            Outputs:
+                - ret: StepOutput namedtuple containing
+                    - actions: output from the model
+                    - baselines: critic values
+                    - next_state_home
+                    - next_state_away
         '''
         # encoder(home and away)
         lstm_output_home, \
@@ -141,7 +160,7 @@ class AlphaStarActorCritic(ActorCriticBase):
 
         # policy
         policy_inputs = self.policy.Input(
-            inputs['actions'], inputs['entity_raw'], lstm_output_home, entity_embeddings, map_skip, scalar_context
+            inputs['home']['entity_raw'], lstm_output_home, entity_embeddings, map_skip, scalar_context
         )
         actions = self.policy(policy_inputs, mode='evaluate', **kwargs)
         return self.StepOutput(actions, baselines, next_state_home, next_state_away)
