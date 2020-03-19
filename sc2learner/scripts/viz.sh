@@ -1,2 +1,2 @@
 # Usage: viz.sh <port_no>
-tensorboard --logdir=experiments --port=$1 --samples_per_plugin "images=100"
+tensorboard --logdir=$1 --port=$2 --samples_per_plugin "images=100"

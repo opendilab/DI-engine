@@ -201,7 +201,6 @@ def action_unit_id_transform(data, inverse=False):
     '''
     Overview: transfrom original game unit id in action to the current frame unit id
     '''
-
     def transform(frame):
         frame = deepcopy(frame)
         id_list = frame['entity_raw']['id']

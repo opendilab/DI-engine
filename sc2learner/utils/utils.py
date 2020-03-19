@@ -33,7 +33,7 @@ def deepcopy(data):
 
 
 def list_dict2dict_list(data):
-    assert(isinstance(data, list))
+    assert (isinstance(data, list))
     if len(data) == 0:
         raise ValueError("empty data")
     keys = data[0].keys()
@@ -45,7 +45,7 @@ def list_dict2dict_list(data):
 
 
 def dict_list2list_dict(data):
-    assert(isinstance(data, dict))
+    assert (isinstance(data, dict))
     new_data = []
     for v in data.values():
         new_data.append(v)

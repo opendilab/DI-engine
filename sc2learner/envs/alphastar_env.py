@@ -19,8 +19,9 @@ class AlphastarEnv(SC2Env):
             - players:list of two sc2_env.Agent or sc2_env.Bot in the game
         """
         agent_interface_format = sc2_env.parse_agent_interface_format(
-            feature_screen=cfg.env.screen_resolution, feature_minimap=cfg.env.map_size  # x, y
-        ) 
+            feature_screen=cfg.env.screen_resolution,
+            feature_minimap=cfg.env.map_size  # x, y
+        )
         self.agent_num = sum([isinstance(p, sc2_env.Agent) for p in players])
         assert (self.agent_num <= 2)
         super(AlphastarEnv, self).__init__(
@@ -219,10 +220,10 @@ class AlphastarEnv(SC2Env):
             'selected_units': None,
             'target_units': None,
             'target_location': None
-        } 
+        }
         # TODO(nyz) cur_action support 2 agent
-        self._cur_actions = self.action_to_string(last_actions)
-        self._cur_action_type = last_actions['action_type']
+        self._cur_actions = self.action_to_string(last_action)
+        self._cur_action_type = last_action['action_type']
         self.last_actions = [last_action] * self.agent_num
         obs = [self._get_obs(timestep.observation, last_action) for timestep in timesteps]
         infos = [timestep.game_info for timestep in timesteps]
@@ -245,6 +246,6 @@ class AlphastarEnv(SC2Env):
 
     def action_to_string(self, actions):
         return '[Action: type({}) delay({}) queued({}) selected_units({}) target_units({}) target_location({})]'.format(
-                    actions['action_type'], actions['delay'], actions['queued'],
-                    actions['selected_units'], actions['target_units'], actions['target_location']
-                )
+            actions['action_type'], actions['delay'], actions['queued'], actions['selected_units'],
+            actions['target_units'], actions['target_location']
+        )
