@@ -26,9 +26,10 @@ class Policy(nn.Module):
     Input = namedtuple(
         'MimicInput', ['actions', 'entity_raw', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context']
     )  # noqa
-    Input = namedtuple(
-        'Input', ['entity_raw', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context']
-    )  # noqa
+
+    # Input = namedtuple(
+    #     'Input', ['entity_raw', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context']
+    # )  # noqa
 
     def __init__(self, cfg):
         super(Policy, self).__init__()
