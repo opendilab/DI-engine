@@ -4,7 +4,6 @@ Copyright 2020 Sensetime X-lab. All Rights Reserved
 Main Function:
     1. implementation of MultiLogitsLoss and its test
 '''
-import math
 
 import numpy as np
 import torch
@@ -12,6 +11,20 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from sc2learner.torch_utils.network import one_hot
+
+
+def get_distance_matrix(lx, ly, mat, M):
+    nlx = np.broadcast_to(lx, [M, M]).T
+    nly = np.broadcast_to(ly, [M, M])
+    nret = nlx + nly - mat
+
+    # ret = []
+    # for i in range(M):
+    #     ret.append(lx[i] + ly - mat[i])
+    # ret = np.stack(ret)
+    # assert ret.shape == (M, M)
+    # assert np.all(nret == ret)
+    return nret
 
 
 class MultiLogitsLoss(nn.Module):
@@ -65,43 +78,40 @@ class MultiLogitsLoss(nn.Module):
     def _match(self, matrix):
         mat = matrix.clone().detach().to('cpu').numpy()
         mat = -mat  # maximize
-        M, _ = mat.shape
+        M = mat.shape[0]
         index = np.full(M, -1, dtype=np.int32)  # -1 note not find link
         lx = mat.max(axis=1)
         ly = np.zeros(M, dtype=np.float32)
         visx = np.zeros(M, dtype=np.bool)
         visy = np.zeros(M, dtype=np.bool)
 
-        def has_augmented_path(t):
-            # FIXME this function take extremely long time (7% of the total running time)
+        def has_augmented_path(t, binary_distance_matrix):
+            # What is changed? visx, visy, distance_matrix, index
+            # What is changed within this function? visx, visy, index
             visx[t] = True
             for i in range(M):
-                if not visy[i] and math.fabs(lx[t] + ly[i] - mat[t, i]) < 1e-4:
+                if not visy[i] and binary_distance_matrix[t, i]:
                     visy[i] = True
-                    if index[i] == -1 or has_augmented_path(index[i]):
+                    if index[i] == -1 or has_augmented_path(index[i], binary_distance_matrix):
                         index[i] = t
                         return True
             return False
 
         for i in range(M):
             while True:
-                visx = np.zeros(M, dtype=np.bool)
-                visy = np.zeros(M, dtype=np.bool)
-                if has_augmented_path(i):
+                visx.fill(False)
+                visy.fill(False)
+                distance_matrix = get_distance_matrix(lx, ly, mat, M)
+                binary_distance_matrix = np.abs(distance_matrix) < 1e-4
+                if has_augmented_path(i, binary_distance_matrix):
                     break
-                d = np.inf
-                for j in range(M):
-                    if visx[j]:
-                        for k in range(M):
-                            if not visy[k]:
-                                d = min(d, lx[j] + ly[k] - mat[j, k])
-                if d == np.inf:
+                masked_distance_matrix = distance_matrix[:, ~visy][visx]
+                if 0 in masked_distance_matrix.shape:  # empty matrix
                     raise Exception("match error, matrix: {}".format(matrix))
-                for j in range(M):
-                    if visx[j]:
-                        lx[j] -= d
-                    if visy[j]:
-                        ly[j] += d
+                else:
+                    d = masked_distance_matrix.min()
+                lx[visx] -= d
+                ly[visy] += d
         return index
 
     def forward(self, logits, labels):

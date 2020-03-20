@@ -45,7 +45,7 @@ class FakeReplayDataset(ReplayDataset):
         # Completely independent with the config
         self.trajectory_len = cfg.get("trajectory_len", 11) if cfg else 11
         self.slide_window_step = cfg.get("slide_window_step", 1) if cfg else 1
-        length = np.random.randint(0, 30)  # random number of path
+        length = np.random.randint(10, 30)  # random number of path
         self.path_list = [dict(name=tempfile.mkstemp(), count=0) for _ in range(length)]
 
     def __getitem__(self, item):
