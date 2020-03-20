@@ -169,20 +169,22 @@ class AlphaStarSupervisedLoss(BaseLoss):
         """
         criterion = MultiLogitsLoss(self.criterion_config)
         labels = [x for x in labels if isinstance(x, torch.Tensor)]
-        if len(labels) == 0:
-            return 0
+        batch_size = len(labels)
+        if batch_size == 0:
+            return 0.0
+
         loss = []
-        for b in range(len(labels)):
-            lo, la = logits[b], labels[b]
-            lo = torch.cat(lo, dim=0)
-            if lo.shape[0] != la.shape[0]:
-                assert (lo.shape[0] == 1 + la.shape[0])  # ISSUE(zm) why?
-                end_flag_label = torch.LongTensor([lo.shape[1] - 1]).to(la.device)
-                end_flag_loss = self.criterion(lo[-1:], end_flag_label)
-                logits_loss = criterion(lo[:-1], la)
+        for batch_index in range(batch_size):
+            logit, label = logits[batch_index], labels[batch_index]
+            logit = torch.cat(logit, dim=0)  # logit becomes a [num_selected_units, num_units_type] tensor.
+            if logit.shape[0] != label.shape[0]:  # when agents selected different number of agents compared to expert
+                assert (logit.shape[0] == 1 + label.shape[0])  # ISSUE(zm) why?
+                end_flag_label = torch.LongTensor([logit.shape[1] - 1]).to(label.device)
+                end_flag_loss = self.criterion(logit[-1:], end_flag_label)
+                logits_loss = criterion(logit[:-1], label)
                 loss.append((end_flag_loss + logits_loss) / 2)
             else:
-                loss.append(criterion(lo, la))
+                loss.append(criterion(logit, label))
         return sum(loss) / len(loss)
 
     def _target_units_loss(self, logits, labels):
