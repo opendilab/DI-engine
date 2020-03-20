@@ -1,0 +1,137 @@
+"""
+Test script for actor
+Example Usage:
+
+    srun -p x_cerebra --gres=gpu:1 -w SH-IDC1-10-198-6-64 \
+    python3 -u -m sc2learner.worker.actor.test_alphastar_actor \
+    --config_path test.yaml --nofake_dataset
+
+If you want to test this script in your local computer, try to run:
+
+    python test_alphastar_actor.py --fake_dataset --config_path test.yaml
+
+"""
+import random
+import time
+
+import yaml
+from absl import app
+from absl import flags
+from easydict import EasyDict
+
+from pysc2.env.sc2_env import Difficulty
+from sc2learner.data.tests.fake_dataset import FakeReplayDataset
+from sc2learner.worker.actor.alphastar_actor import AlphaStarActor
+
+FLAGS = flags.FLAGS
+flags.DEFINE_string('config_path', '', 'Path to the config yaml file for test')
+flags.DEFINE_bool('fake_dataset', True, 'Whether to use fake dataset')
+flags.DEFINE_bool('single_agent', False, 'Test game_vs_bot mode')
+
+
+class FakeEnv:
+    def __init__(self, num_agents, *args, **kwargs):
+        self.dataset = FakeReplayDataset(dict(trajectory_len=1))
+        self.num_agents = num_agents
+
+    def _get_obs(self):
+        return [random.choice(self.dataset)[0] for _ in range(self.num_agents)]
+
+    def reset(self):
+        return self._get_obs()
+
+    def step(self, *args, **kwargs):
+        step = 16
+        due = [True] * self.num_agents
+        obs = self._get_obs()
+        reward = 0.0
+        done = False
+        info = {}
+        return step, due, obs, reward, done, info
+
+
+class TestActor(AlphaStarActor):
+    def _make_env(self, players):
+        if FLAGS.fake_dataset:
+            return FakeEnv(len(players))
+        else:
+            return super()._make_env(players)
+
+    def _module_init(self):
+        self.job_getter = DummyJobGetter(self.cfg)
+        self.model_requester = DummyModelRequester(self.cfg)
+        self.data_pusher = DummyDataPusher(self.cfg)
+        self.last_time = None
+
+    def action_modifier(self, act):
+        t = time.time()
+        if self.last_time is not None:
+            print('Time between action:{}'.format(t - self.last_time))
+        self.last_time = t
+        for n in range(len(act)):
+            if act[n] and act[n]['delay'] == 0:
+                act[n]['delay'] = random.randint(0, 10)
+            print('Act {}:{}'.format(n, str(act[n])))
+        return act
+
+
+class DummyJobGetter:
+    def __init__(self, cfg):
+        self.connection = None
+        self.job_request_id = 0
+        pass
+
+    def get_job(self, actor_id):
+        print('received job req from:{}'.format(actor_id))
+        if FLAGS.single_agent:
+            job = {
+                'game_type': 'game_vs_bot',
+                'model_id': 'test',
+                'map_name': 'AbyssalReef',
+                'random_seed': 10,
+                'home_race': 'zerg',
+                'away_race': 'zerg',
+                'difficulty': Difficulty.very_easy,
+                'build': None,
+                'data_push_length': 64,
+            }
+        else:
+            job = {
+                'game_type': 'self_play',
+                'model_id': 'test',
+                'map_name': 'AbyssalReef',
+                'random_seed': 10,
+                'home_race': 'zerg',
+                'away_race': 'zerg',
+                'data_push_length': 64,
+            }
+        return job
+
+
+class DummyModelRequester:
+    def __init__(self, cfg):
+        pass
+
+    def request_model(self, job, agent_no):
+        print('received request, job:{}, agent_no:{}'.format(str(job), agent_no))
+        return 'not a model'
+
+
+class DummyDataPusher:
+    def __init__(self, cfg):
+        pass
+
+    def push(self, job, agent_no, data_buffer):
+        print('pushed agent no:{} len:{}'.format(agent_no, len(data_buffer)))
+
+
+def main(unused_argv):
+    with open(FLAGS.config_path) as f:
+        cfg = yaml.load(f)
+    cfg = EasyDict(cfg)
+    ta = TestActor(cfg)
+    ta.run()
+
+
+if __name__ == '__main__':
+    app.run(main)
