@@ -1,30 +1,35 @@
+import copy
+
 import numpy as np
 import torch
-import copy
+
 import pysc2.env.sc2_env as sc2_env
 from pysc2.env.sc2_env import SC2Env
-from pysc2.lib.actions import FunctionCall, FUNCTIONS, RAW_FUNCTIONS
+from pysc2.lib.actions import FunctionCall
 from pysc2.lib.static_data import NUM_ACTIONS, ACTIONS_REORDER_INV
-from sc2learner.envs.observations.alphastar_obs_wrapper import SpatialObsWrapper, ScalarObsWrapper, EntityObsWrapper,\
+from sc2learner.envs import get_available_actions_processed_data, get_map_size
+from sc2learner.envs.observations.alphastar_obs_wrapper import SpatialObsWrapper, ScalarObsWrapper, EntityObsWrapper, \
     transform_spatial_data, transform_scalar_data, transform_entity_data
-from sc2learner.envs.actions.alphastar_act_wrapper import AlphastarActParser
-from sc2learner.envs import get_available_actions_processed_data
 
 
-class AlphastarEnv(SC2Env):
+class AlphaStarEnv(SC2Env):
     def __init__(self, cfg, players):
         """
         Input:
             - cfg
             - players:list of two sc2_env.Agent or sc2_env.Bot in the game
         """
+
+        self.map_size = get_map_size(cfg.env.map_name)
+
         agent_interface_format = sc2_env.parse_agent_interface_format(
             feature_screen=cfg.env.screen_resolution,
-            feature_minimap=cfg.env.map_size  # x, y
+            feature_minimap=self.map_size  # x, y
         )
+
         self.agent_num = sum([isinstance(p, sc2_env.Agent) for p in players])
         assert (self.agent_num <= 2)
-        super(AlphastarEnv, self).__init__(
+        super(AlphaStarEnv, self).__init__(
             map_name=cfg.env.map_name,
             random_seed=cfg.env.random_seed,
             step_mul=cfg.env.default_step_mul,
@@ -227,8 +232,13 @@ class AlphastarEnv(SC2Env):
         self.last_actions = [last_action] * self.agent_num
         obs = [self._get_obs(timestep.observation, last_action) for timestep in timesteps]
         infos = [timestep.game_info for timestep in timesteps]
-        self.map_size = infos[0].start_raw.map_size
-        self.map_size = (self.map_size.x, self.map_size.y)
+
+        # just trust the map size from cfg.env.map_size passed in during init
+        env_provided_map_size = infos[0].start_raw.map_size
+        assert tuple(env_provided_map_size) == tuple(self.map_size), \
+            "Environment uses a different map size {} compared to config " \
+            "{}.".format(env_provided_map_size, self.map_size)
+
         self._next_obs = [0] * self.agent_num
         self._episode_steps = 0
         self._reset_flag = True

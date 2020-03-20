@@ -10,6 +10,7 @@ from collections import namedtuple
 
 import torch
 
+from pysc2.lib.static_data import ACTIONS_REORDER_INV
 from sc2learner.agent.model.alphastar import AlphaStarActorCritic
 from sc2learner.torch_utils import to_device
 from sc2learner.utils import DistModule
@@ -59,7 +60,7 @@ class AlphaStarAgent(BaseAgent):
     def reset_previous_state(self, if_new_episodes):
         """ Call this function when a batch of data start
 
-        if_new_episodes is a boolean list eauql to batch[0][start_step]
+        if_new_episodes is a boolean list equal to batch[0][start_step]
         """
 
         if len(if_new_episodes) != self.num_concurrent_episodes:
@@ -111,35 +112,62 @@ class AlphaStarAgent(BaseAgent):
                 self.prev_state[ep_id] = None
         assert activate_episode_index == len(next_states), (activate_episode_index, len(next_states))
 
-    def compute_action(self, step_data, mode, prev_states=None, temperature=None):
+    def compute_single_action(self, step_data, mode, temperature=None, require_grad=None):
+        entity_raw = step_data["entity_raw"]
+        map_size = step_data["map_size"]
+
+        # unsqueeze operation modifies step_data in-place
+        step_data = self._unsqueeze_batch_dim(step_data)
+        actions, logits, next_states = self.compute_action(
+            step_data, mode, temperature=temperature, require_grad=require_grad
+        )
+        actions = self._decode_action(actions, entity_raw, map_size)
+        if self.use_cuda:
+            actions = to_device(actions, 'cpu')
+            logits = to_device(logits, 'cpu')
+            next_states = to_device(next_states, 'cpu')
+        return AgentOutput(actions=actions, logits=logits, next_state=next_states)
+
+    def compute_action(self, step_data, mode, prev_states=None, temperature=None, require_grad=None):
         """ Forward pass the agent's model to collect its response in the given timestep.
 
         This function process only single step data, while all data are consider in a batch form.
         For each new trajectory (a batch of steps data), remember to call
         self.reset_previous_state(data[0]['start_step']) before running into a loop of this function.
+
+        :param step_data:
+        :param mode: "evaluate" or "mimic" (training)
+        :param prev_states:
+        :param temperature:
+        :param require_grad: False for disabling, True for enabling, None for automatic choose based on mode.
+        :return:
         """
         # FIXME(pzh) remove all 'mode' in any part of the model. it's too counter-intuitive
         assert mode in ["mimic", "evaluate"]
         assert PREV_STATE not in step_data
         assert len(step_data["entity_info"]) <= self.num_concurrent_episodes
 
-        # if self.use_cuda:
-        #     step_data = to_device(step_data, 'cuda')
+        if self.use_cuda:
+            step_data = to_device(step_data, 'cuda')
 
         step_data[PREV_STATE] = prev_states or self._before_forward(step_data["end_index"])
 
         logits = actions = None
-        context = NullContext() if self.is_training else torch.no_grad()
+
+        if require_grad is True:
+            context = NullContext()
+        elif require_grad is False:
+            context = torch.no_grad()
+        else:
+            context = NullContext() if self.is_training else torch.no_grad()
+
         with context:
             if mode == "mimic":
                 assert temperature is not None
                 logits, next_states = self.model(step_data, mode=mode, temperature=temperature)
             else:
-                assert temperature is None
-                actions, next_states = self.model(step_data, mode="evaluate")
-
+                actions, logits, next_states = self.model(step_data, mode="evaluate", temperature=temperature)
         self._after_forward(next_states)
-
         return AgentOutput(actions=actions, logits=logits, next_state=next_states)
 
     def compute_value(self, step_data):
@@ -168,3 +196,53 @@ class AlphaStarAgent(BaseAgent):
 
     def __repr__(self):
         return str(self.model)
+
+    def _unsqueeze_batch_dim(self, obs):
+
+        unsqueeze_keys = ['scalar_info', 'spatial_info']
+        list_keys = ['entity_info', 'entity_raw', 'map_size']
+        for k, v in obs.items():
+            if k in unsqueeze_keys:
+                obs[k] = unsqueeze(v)
+            if k in list_keys:
+                obs[k] = [obs[k]]
+
+        # FIXME(pzh,nyz,qzr): Is this correct?
+        obs["end_index"] = []
+
+        # FIXME(pzh): What's this?
+        # obs["start_step"] = [obs["start_step"]]
+        return obs
+
+    def _decode_action(self, actions, entity_raw, map_size):
+        for k, v in actions.items():
+            val = v[0]  # remove batch size dim(batch size=1)
+            if isinstance(val, torch.Tensor):
+                if k == 'selected_units' or k == 'target_units':
+                    actions[k] = [entity_raw['id'][i] for i in val]
+                elif k == 'action_type':
+                    actions[k] = ACTIONS_REORDER_INV[val.item()]
+                elif k == 'delay' or k == 'queued':
+                    actions[k] = val.item()
+                elif k == 'target_location':
+                    actions[k] = val.tolist()
+                else:
+                    raise KeyError("invalid key:{}".format(k))
+            else:
+                actions[k] = val
+        return actions
+
+
+def unsqueeze(x):
+    if isinstance(x, dict):
+        for k in x.keys():
+            if isinstance(x[k], dict):
+                for kk in x[k].keys():
+                    x[k][kk] = x[k][kk].unsqueeze(0)
+            else:
+                x[k] = x[k].unsqueeze(0)
+    elif isinstance(x, torch.Tensor):
+        x = x.unsqueeze(0)
+    else:
+        raise TypeError("invalid type: {}".format(type(x)))
+    return x

@@ -1,12 +1,12 @@
-import collections
 from collections import namedtuple
+
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from .head import DelayHead, QueuedHead, SelectedUnitsHead, TargetUnitsHead, LocationHead, ActionTypeHead,\
-    TargetUnitHead
+
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
 from pysc2.lib.static_data import NUM_UNIT_TYPES, UNIT_TYPES_REORDER, ACTIONS_REORDER_INV
+from .head import DelayHead, QueuedHead, SelectedUnitsHead, TargetUnitsHead, LocationHead, ActionTypeHead, \
+    TargetUnitHead
 
 
 def build_head(name):
@@ -23,13 +23,13 @@ def build_head(name):
 
 
 class Policy(nn.Module):
-    Input = namedtuple(
+    MimicInput = namedtuple(
         'MimicInput', ['actions', 'entity_raw', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context']
     )  # noqa
 
-    # Input = namedtuple(
-    #     'Input', ['entity_raw', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context']
-    # )  # noqa
+    EvaluateInput = namedtuple(
+        'EvaluateInput', ['entity_raw', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context']
+    )  # noqa
 
     def __init__(self, cfg):
         super(Policy, self).__init__()
@@ -155,6 +155,7 @@ class Policy(nn.Module):
                 - inputs (:obj:`Policy.Input`) namedtuple
                 - temperature (:obj:`float`) logits sample temperature
             Returns:
+                - logits (:obj:`dict`) logits
                 - actions (:obj:`dict`) actions predicted by agent(policy)
         '''
         entity_raw, lstm_output, entity_embeddings, map_skip, scalar_context = inputs
@@ -217,7 +218,7 @@ class Policy(nn.Module):
             logits['target_location'].append(logits_location)
             actions['target_location'].append(location)
 
-        return actions
+        return actions, logits
 
     def forward(self, inputs, mode=None, **kwargs):
         assert (mode in ['mimic', 'evaluate'])

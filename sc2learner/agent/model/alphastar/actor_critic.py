@@ -16,7 +16,7 @@ class AlphaStarActorCritic(ActorCriticBase):
     EvalInput = namedtuple(
         'EvalInput', ['map_size', 'entity_raw', 'scalar_info', 'spatial_info', 'entity_info', 'prev_state']
     )
-    EvalOutput = namedtuple('EvalOutput', ['actions', 'next_state'])
+    EvalOutput = namedtuple('EvalOutput', ['actions', 'logits', 'next_state'])
     MimicOutput = namedtuple('MimicOutput', ['logits', 'next_state'])
     StepInput = namedtuple('StepInput', ['home', 'away'])
     StepOutput = namedtuple('StepOutput', ['actions', 'baselines', 'next_state_home', 'next_state_away'])
@@ -80,7 +80,7 @@ class AlphaStarActorCritic(ActorCriticBase):
     # overwrite
     def mimic(self, inputs, **kwargs):
         lstm_output, next_state, entity_embeddings, map_skip, scalar_context, _, _ = self.encoder(inputs)
-        policy_inputs = self.policy.Input(
+        policy_inputs = self.policy.MimicInput(
             inputs['actions'], inputs['entity_raw'], lstm_output, entity_embeddings, map_skip, scalar_context
         )
         logits = self.policy(policy_inputs, mode='mimic')
@@ -108,10 +108,10 @@ class AlphaStarActorCritic(ActorCriticBase):
         Y, X = inputs['map_size'][0]
 
         lstm_output, next_state, entity_embeddings, map_skip, scalar_context, _, _ = self.encoder(inputs)
-        policy_inputs = self.policy.Input(
+        policy_inputs = self.policy.EvaluateInput(
             inputs['entity_raw'], lstm_output, entity_embeddings, map_skip, scalar_context
         )
-        actions = self.policy(policy_inputs, mode='evaluate', **kwargs)
+        actions, logits = self.policy(policy_inputs, mode='evaluate', **kwargs)
 
         if isinstance(actions['target_location'][0], torch.Tensor):
             location = actions['target_location'][0]
@@ -130,7 +130,7 @@ class AlphaStarActorCritic(ActorCriticBase):
                 'target_units': [None],
                 'target_location': [None]
             }
-        return self.EvalOutput(actions, next_state)
+        return self.EvalOutput(actions, logits, next_state)
 
     # overwrite
     def step(self, inputs, **kwargs):
@@ -167,7 +167,7 @@ class AlphaStarActorCritic(ActorCriticBase):
         baselines = self._critic_forward(critic_inputs)
 
         # policy
-        policy_inputs = self.policy.Input(
+        policy_inputs = self.policy.EvaluateInput(
             inputs['home']['entity_raw'], lstm_output_home, entity_embeddings, map_skip, scalar_context
         )
         actions = self.policy(policy_inputs, mode='evaluate', **kwargs)

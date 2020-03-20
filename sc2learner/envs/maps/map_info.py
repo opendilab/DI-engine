@@ -60,3 +60,7 @@ MAPS = {
     'FindAndDefeatZerglings': (None, 'mini_games\\FindAndDefeatZerglings.SC2Map', [44, 32]),
     'MoveToBeacon': (None, 'mini_games\\MoveToBeacon.SC2Map', [22, 16]),
 }
+
+
+def get_map_size(map_name):
+    return MAPS[map_name][2]

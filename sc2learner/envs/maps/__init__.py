@@ -1,1 +1,1 @@
-from .map_info import MAPS
+from .map_info import get_map_size

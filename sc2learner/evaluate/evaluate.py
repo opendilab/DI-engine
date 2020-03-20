@@ -17,7 +17,7 @@ from absl import app
 from absl import flags
 from absl import logging
 
-from sc2learner.envs.alphastar_env import AlphastarEnv
+from sc2learner.envs.alphastar_env import AlphaStarEnv
 from sc2learner.worker import RandomAgent, AlphaStarAgent
 from sc2learner.utils import build_logger
 from pysc2.lib.action_dict import ACTION_INFO_MASK
@@ -33,7 +33,7 @@ flags.FLAGS(sys.argv)
 
 def create_env(cfg, random_seed=None):
     cfg.env.random_seed = random_seed
-    env = AlphastarEnv(cfg)
+    env = AlphaStarEnv(cfg)
     return env
 
 
