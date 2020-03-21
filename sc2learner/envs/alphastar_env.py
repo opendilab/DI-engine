@@ -24,7 +24,8 @@ class AlphaStarEnv(SC2Env):
 
         agent_interface_format = sc2_env.parse_agent_interface_format(
             feature_screen=cfg.env.screen_resolution,
-            feature_minimap=self.map_size  # x, y
+            feature_minimap=self.map_size,  # x, y
+            raw_crop_to_playable_area=True,  # use crop area
         )
 
         self.agent_num = sum([isinstance(p, sc2_env.Agent) for p in players])
@@ -235,6 +236,7 @@ class AlphaStarEnv(SC2Env):
 
         # just trust the map size from cfg.env.map_size passed in during init
         env_provided_map_size = infos[0].start_raw.map_size
+        env_provided_map_size = [env_provided_map_size.x, env_provided_map_size.y]
         assert tuple(env_provided_map_size) == tuple(self.map_size), \
             "Environment uses a different map size {} compared to config " \
             "{}.".format(env_provided_map_size, self.map_size)
