@@ -72,7 +72,7 @@ class AlphaStarEnv(SC2Env):
             obs['scalar_info']['cumulative_stat'] = self.stat['cumulative_stat']
         return obs
 
-    def _merge_action(self, obs, last_action):
+    def _merge_action(self, obs, last_action, add_dim=True):
         if isinstance(last_action['action_type'], torch.Tensor):
             for index, item in enumerate(last_action['action_type']):
                 last_action['action_type'][index] = ACTIONS_REORDER_INV[item.item()]
@@ -90,17 +90,20 @@ class AlphaStarEnv(SC2Env):
         if obs['entity_info'] is None:
             obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 4)], dim=1)
             return obs
+        if add_dim:
+            obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 4)], dim=1)
+        else:
+            obs['entity_info'][:, -4].zero_()
+
         selected_units = last_action['selected_units']
         target_units = last_action['target_units']
-        obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 2)], dim=1)
         selected_units = selected_units if isinstance(selected_units, torch.Tensor) else []
         for idx, v in enumerate(obs['entity_raw']['id']):
             if v in selected_units:
-                obs['entity_info'][idx, -1] = 1
+                obs['entity_info'][idx, -3] = 1
             else:
-                obs['entity_info'][idx, -2] = 1
+                obs['entity_info'][idx, -4] = 1
 
-        obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 2)], dim=1)
         target_units = target_units if isinstance(target_units, torch.Tensor) else []
         for idx, v in enumerate(obs['entity_raw']['id']):
             if v in target_units:
@@ -190,6 +193,8 @@ class AlphaStarEnv(SC2Env):
                 if transformed_actions[n]:
                     self._buffered_actions[n].append(transformed_actions[n])
             _, _, obs, rewards, done, info = self._last_output
+            for n in range(self.agent_num):
+                obs[n] = self._merge_action(obs[n], self.last_actions[n], add_dim=False)
             due = [s <= self._episode_steps for s in self._next_obs]
         else:
             for n in range(self.agent_num):
