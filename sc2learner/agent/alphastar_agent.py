@@ -13,7 +13,8 @@ import torch
 from pysc2.lib.static_data import ACTIONS_REORDER_INV
 from sc2learner.agent.model.alphastar import AlphaStarActorCritic
 from sc2learner.torch_utils import to_device
-from sc2learner.utils import DistModule
+from sc2learner.envs import action_unit_id_transform
+from sc2learner.utils import DistModule, dict_list2list_dict
 
 # TODO(pzh) I think actions should be `action` and logits should be `logit` to be consistent with `next_state` ...
 AgentOutput = namedtuple("AgentOutput", ["actions", "logits", "next_state"])
@@ -114,18 +115,21 @@ class AlphaStarAgent(BaseAgent):
 
     def compute_single_action(self, step_data, mode, temperature=None, require_grad=None):
         entity_raw = step_data["entity_raw"]
-        map_size = step_data["map_size"]
 
         # unsqueeze operation modifies step_data in-place
         step_data = self._unsqueeze_batch_dim(step_data)
+        if self.use_cuda:
+            step_data = to_device(step_data, 'cuda')
+
         actions, logits, next_states = self.compute_action(
             step_data, mode, temperature=temperature, require_grad=require_grad
         )
-        actions = self._decode_action(actions, entity_raw, map_size)
         if self.use_cuda:
             actions = to_device(actions, 'cpu')
             logits = to_device(logits, 'cpu')
             next_states = to_device(next_states, 'cpu')
+        actions = dict_list2list_dict(actions)[0]
+        actions = action_unit_id_transform({'actions': actions, 'entity_raw': entity_raw}, inverse=True)['actions']
         return AgentOutput(actions=actions, logits=logits, next_state=next_states)
 
     def compute_action(self, step_data, mode, prev_states=None, temperature=None, require_grad=None):
@@ -146,9 +150,6 @@ class AlphaStarAgent(BaseAgent):
         assert mode in ["mimic", "evaluate"]
         assert PREV_STATE not in step_data
         assert len(step_data["entity_info"]) <= self.num_concurrent_episodes
-
-        if self.use_cuda:
-            step_data = to_device(step_data, 'cuda')
 
         step_data[PREV_STATE] = prev_states or self._before_forward(step_data["end_index"])
 
@@ -213,24 +214,6 @@ class AlphaStarAgent(BaseAgent):
         # FIXME(pzh): What's this?
         # obs["start_step"] = [obs["start_step"]]
         return obs
-
-    def _decode_action(self, actions, entity_raw, map_size):
-        for k, v in actions.items():
-            val = v[0]  # remove batch size dim(batch size=1)
-            if isinstance(val, torch.Tensor):
-                if k == 'selected_units' or k == 'target_units':
-                    actions[k] = [entity_raw['id'][i] for i in val]
-                elif k == 'action_type':
-                    actions[k] = ACTIONS_REORDER_INV[val.item()]
-                elif k == 'delay' or k == 'queued':
-                    actions[k] = val.item()
-                elif k == 'target_location':
-                    actions[k] = val.tolist()
-                else:
-                    raise KeyError("invalid key:{}".format(k))
-            else:
-                actions[k] = val
-        return actions
 
 
 def unsqueeze(x):
