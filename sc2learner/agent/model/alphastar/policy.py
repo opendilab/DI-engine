@@ -160,7 +160,7 @@ class Policy(nn.Module):
                 - logits (:obj:`dict`) logits
                 - actions (:obj:`dict`) actions predicted by agent(policy)
         '''
-        entity_raw, lstm_output, action_type_mask, entity_embeddings, map_skip, scalar_context = inputs
+        entity_raw, action_type_mask, lstm_output, entity_embeddings, map_skip, scalar_context = inputs
 
         B = len(entity_raw)
         actions = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
