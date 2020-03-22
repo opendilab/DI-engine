@@ -112,7 +112,8 @@ class QueuedHead(nn.Module):
         x = self.fc1(embedding)
         x = self.fc2(x)
         x = self.fc3(x)
-        handle = self.pd(x.div(temperature))
+        x = F.softmax(x.div(temperature), dim=1)
+        handle = self.pd(x)
         if self.training:
             queued = handle.sample()
         else:
@@ -200,7 +201,8 @@ class SelectedUnitsHead(nn.Module):
                 query_result = x.permute(1, 0, 2) * key
                 query_result = query_result.mean(dim=2)
                 query_result.sub_((1 - mask) * 1e9)
-                handle = self.pd(query_result.div(temperature))
+                query_result = F.softmax(query_result.div(temperature), dim=1)
+                handle = self.pd(query_result)
                 if self.training:
                     entity_num = handle.sample()
                 else:
@@ -329,7 +331,8 @@ class TargetUnitsHead(nn.Module):
                 query_result = x.permute(1, 0, 2) * key
                 query_result = query_result.mean(dim=2)
                 query_result.sub_((1 - mask) * 1e9)
-                handle = self.pd(query_result.div(temperature))
+                query_result = F.softmax(query_result.div(temperature), dim=1)
+                handle = self.pd(query_result)
                 if self.training:
                     entity_num = handle.sample()
                 else:
@@ -456,7 +459,8 @@ class TargetUnitHead(nn.Module):
 
         B, N = key.shape[:2]
         units = torch.zeros(B, N, device=key.device, dtype=torch.long)
-        handle = self.pd(logits.div(temperature))
+        logits = F.softmax(logits.div(temperature), dim=1)
+        handle = self.pd(logits)
         if self.training:
             sample_num = handle.sample()
         else:
@@ -563,7 +567,8 @@ class LocationHead(nn.Module):
         #x = x - ((1 - available_location_mask)*1e9)
         if self.output_type == 'cls':
             logits_flatten = x.view(x.shape[0], -1)
-            handle = self.pd(logits_flatten.div(temperature))
+            logits_flatten = F.softmax(logits_flatten.div(temperature), dim=1)
+            handle = self.pd(logits_flatten)
             if self.training:
                 location = handle.sample()
             else:
