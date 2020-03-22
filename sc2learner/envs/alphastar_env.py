@@ -178,7 +178,7 @@ class AlphaStarEnv(SC2Env):
             - actions: list of actions for each agent, length should be the number of agents
             if an agent don't want to act this time, the action should be set to None
         Return:
-            - step: actually how many steps are forwarded during this call
+            - step: total game steps after this call
             - due: list of bool telling which agents should take the next action
             - obs: list of ob dicts for two agents after taking action
             - rewards: win/loss reward
@@ -228,10 +228,10 @@ class AlphaStarEnv(SC2Env):
                     _, rewards[n], _, o, info[n] = timestep
                     assert (self.last_actions[n])
                     obs[n] = self._get_obs(o, self.last_actions[n], n)
-            self._last_output = [step_mul, due, obs, rewards, done, info]
+            self._last_output = [self._episode_steps, due, obs, rewards, done, info]
         # as obs may be changed somewhere in parsing
         # we have to return a copy to keep the self._last_ouput intact
-        return step_mul, due, copy.deepcopy(obs), rewards, done, info
+        return self._episode_steps, due, copy.deepcopy(obs), rewards, done, info
 
     def reset(self):
         timesteps = super().reset()

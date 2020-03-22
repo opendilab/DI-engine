@@ -28,6 +28,7 @@ class AlphaStarActor:
         if 'rl_train' in self.cfg:
             for k, v in self.cfg.rl_train.items():
                 self.cfg.env[k] = v
+        # in case we want all default
         if 'model' not in self.cfg:
             self.cfg.model = None
         self.actor_id = get_actor_id()
@@ -132,6 +133,7 @@ class AlphaStarActor:
                     last_state_action[i]['lstm_state_after'] = next_state
             actions = self.action_modifier(actions)
             game_step, due, obs, rewards, done, info = self.env.step(actions)
+            # TODO: log self.env.cur_actions
             if game_step >= self.cfg.env.game_steps_per_episode:
                 # game time out, force the done flag to True
                 done = True

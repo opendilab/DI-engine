@@ -50,8 +50,8 @@ class EvalJobGetter:
         if self.cfg.evaluate.game_type == 'game_vs_bot':
             job = {
                 'game_type': 'game_vs_bot',
-                'model_id': 'agent0',
-                'stat_id': 'agent0',
+                'model_id': ['agent0'],
+                'stat_id': ['agent0'],
                 'map_name': self.cfg.evaluate.map_name,
                 'random_seed': random_seed,
                 'home_race': self.cfg.evaluate.home_race,
@@ -63,8 +63,8 @@ class EvalJobGetter:
         else:
             job = {
                 'game_type': 'self_play',
-                'model_id': 'agent{}'.format(actor_id),
-                'stat_id': 'agent{}'.format(actor_id),
+                'model_id': ['agent0', 'agent1'],
+                'stat_id': ['agent0', 'agent1'],
                 'map_name': self.cfg.evaluate.map_name,
                 'random_seed': random_seed,
                 'home_race': self.cfg.evaluate.home_race,
@@ -82,11 +82,10 @@ class LocalModelLoader:
     def load_model(self, job, agent_no, model):
         print('received request, job:{}, agent_no:{}'.format(str(job), agent_no))
         t = time.time()
-        model_path = self.cfg.evaluate.model_path[job['model_id']]
+        model_path = self.cfg.evaluate.model_path[job['model_id'][agent_no]]
         helper = build_checkpoint_helper('')
-        model = helper.load(model_path, model, prefix_op='remove', prefix='module.')
+        helper.load(model_path, model, prefix_op='remove', prefix='module.')
         print('loaded, time:{}'.format(time.time() - t))
-        return model
 
 
 class LocalStatLoader:
@@ -94,7 +93,7 @@ class LocalStatLoader:
         self.cfg = cfg
 
     def request_stat(self, job, agent_no):
-        stat = torch.load(self.cfg.evaluate.stat_path[job['stat_id']], map_location='cpu')
+        stat = torch.load(self.cfg.evaluate.stat_path[job['stat_id'][agent_no]], map_location='cpu')
         return stat
 
 
@@ -108,7 +107,7 @@ class EvalTrajProcessor:
         traj_return = sum(rewards_list)
         print('agent no:{} ret:{}'.format(agent_no, traj_return))
         if agent_no + 1 > len(self.return_sum):
-            self.return_sum.extend([0] * (len(self.return_sum) - agent_no + 1))
+            self.return_sum.extend([0] * (agent_no - len(self.return_sum) + 1))
         self.return_sum[agent_no] += traj_return
 
 

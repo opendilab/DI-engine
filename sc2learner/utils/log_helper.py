@@ -65,6 +65,11 @@ class TextLogger(object):
         '''
         if name is None:
             name = 'default_logger'
+        # ensure the path exists
+        try:
+            os.makedirs(path)
+        except FileExistsError:
+            pass
         self.logger = self._create_logger(name, os.path.join(path, name + '.txt'))
 
     def _create_logger(self, name, path, level=logging.INFO):
