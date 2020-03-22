@@ -24,12 +24,14 @@ def build_head(name):
 
 class Policy(nn.Module):
     MimicInput = namedtuple(
-        'MimicInput', ['actions', 'entity_raw', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context']
-    )  # noqa
+        'MimicInput',
+        ['actions', 'entity_raw', 'action_type_mask', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context']
+    )
 
     EvaluateInput = namedtuple(
-        'EvaluateInput', ['entity_raw', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context']
-    )  # noqa
+        'EvaluateInput',
+        ['entity_raw', 'action_type_mask', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context']
+    )
 
     def __init__(self, cfg):
         super(Policy, self).__init__()
@@ -39,7 +41,7 @@ class Policy(nn.Module):
             self.head[item] = build_head(item)(cfg.head[item])
 
     def _look_up_action_attr(self, action_type, entity_raw, units_num, location_dims=(256, 256)):
-        action_mask = {
+        action_arg_mask = {
             'select_unit_type_mask': [],
             'select_unit_mask': [],
             'target_unit_type_mask': [],
@@ -49,11 +51,11 @@ class Policy(nn.Module):
         device = action_type[0].device
         '''
         for idx, action in enumerate(action_type):
-            action_mask['select_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
-            action_mask['select_unit_type_mask'].append(torch.ones(1, NUM_UNIT_TYPES, device=device))
-            action_mask['target_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
-            action_mask['target_unit_type_mask'].append(torch.ones(1, NUM_UNIT_TYPES, device=device))
-            action_mask['location_mask'].append(torch.ones(1, *location_dims, device=device))
+            action_arg_mask['select_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
+            action_arg_mask['select_unit_type_mask'].append(torch.ones(1, NUM_UNIT_TYPES, device=device))
+            action_arg_mask['target_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
+            action_arg_mask['target_unit_type_mask'].append(torch.ones(1, NUM_UNIT_TYPES, device=device))
+            action_arg_mask['location_mask'].append(torch.ones(1, *location_dims, device=device))
         action_attr = {'queued': 'none', 'selected_units': 'none', 'target_units': 'none', 'target_location': 'none'}
         '''
         action_attr = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
@@ -64,28 +66,28 @@ class Policy(nn.Module):
                 reorder_type_list = [UNIT_TYPES_REORDER[t] for t in type_list]
                 select_unit_type_mask = torch.zeros(1, NUM_UNIT_TYPES)
                 select_unit_type_mask[:, reorder_type_list] = 1
-                action_mask['select_unit_type_mask'].append(select_unit_type_mask.to(device))
+                action_arg_mask['select_unit_type_mask'].append(select_unit_type_mask.to(device))
                 select_unit_mask = torch.zeros(1, units_num[idx])
                 for i, t in enumerate(entity_raw[idx]['type']):
                     if t in type_list:
                         select_unit_mask[0, i] = 1
-                action_mask['select_unit_mask'].append(select_unit_mask.to(device))
+                action_arg_mask['select_unit_mask'].append(select_unit_mask.to(device))
             else:
-                action_mask['select_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
-                action_mask['select_unit_type_mask'].append(torch.ones(1, NUM_UNIT_TYPES, device=device))
+                action_arg_mask['select_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
+                action_arg_mask['select_unit_type_mask'].append(torch.ones(1, NUM_UNIT_TYPES, device=device))
             if value['target_units']:
-                action_mask['target_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
-                action_mask['target_unit_type_mask'].append(torch.ones(1, NUM_UNIT_TYPES, device=device))
+                action_arg_mask['target_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
+                action_arg_mask['target_unit_type_mask'].append(torch.ones(1, NUM_UNIT_TYPES, device=device))
             else:
-                action_mask['target_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
-                action_mask['target_unit_type_mask'].append(torch.ones(1, NUM_UNIT_TYPES, device=device))
+                action_arg_mask['target_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
+                action_arg_mask['target_unit_type_mask'].append(torch.ones(1, NUM_UNIT_TYPES, device=device))
             if value['target_location']:
-                action_mask['location_mask'].append(torch.ones(1, *location_dims, device=device))
+                action_arg_mask['location_mask'].append(torch.ones(1, *location_dims, device=device))
             else:
-                action_mask['location_mask'].append(torch.ones(1, *location_dims, device=device))
+                action_arg_mask['location_mask'].append(torch.ones(1, *location_dims, device=device))
             for k in action_attr.keys():
                 action_attr[k].append(value[k])
-        return action_attr, action_mask
+        return action_attr, action_arg_mask
 
     def mimic(self, inputs, temperature=1.0):
         '''
@@ -96,14 +98,14 @@ class Policy(nn.Module):
             Returns:
                 - logits (:obj:`dict`) logits(or other format) for calculating supervised learning loss
         '''
-        actions, entity_raw, lstm_output, entity_embeddings, map_skip, scalar_context = inputs
+        actions, entity_raw, action_type_mask, lstm_output, entity_embeddings, map_skip, scalar_context = inputs
 
         logits = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
         action_type = torch.LongTensor(actions['action_type']).to(lstm_output.device)
         units_num = [len(t['id']) for t in entity_raw]
 
         logits['action_type'], action_type, embeddings = self.head['action_type_head'](
-            lstm_output, scalar_context, temperature, action_type
+            lstm_output, scalar_context, action_type_mask, temperature, action_type
         )
         action_attr, mask = self._look_up_action_attr(action_type, entity_raw, units_num)
 
@@ -158,7 +160,7 @@ class Policy(nn.Module):
                 - logits (:obj:`dict`) logits
                 - actions (:obj:`dict`) actions predicted by agent(policy)
         '''
-        entity_raw, lstm_output, entity_embeddings, map_skip, scalar_context = inputs
+        entity_raw, lstm_output, action_type_mask, entity_embeddings, map_skip, scalar_context = inputs
 
         B = len(entity_raw)
         actions = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
@@ -167,7 +169,7 @@ class Policy(nn.Module):
 
         # action type
         logits['action_type'], action_type, embeddings = self.head['action_type_head'](
-            lstm_output, scalar_context, temperature
+            lstm_output, scalar_context, action_type_mask, temperature
         )
         actions['action_type'] = torch.chunk(action_type, B, dim=0)
         action_attr, mask = self._look_up_action_attr(actions['action_type'], entity_raw, units_num)

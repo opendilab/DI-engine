@@ -36,7 +36,7 @@ class ActionTypeHead(nn.Module):
         self.glu2 = build_activation('glu')(cfg.input_dim, cfg.gate_dim, cfg.context_dim)
         self.action_num = cfg.action_num
 
-    def forward(self, lstm_output, scalar_context, temperature=1.0, action=None):
+    def forward(self, lstm_output, scalar_context, action_type_mask, temperature=1.0, action=None):
         '''
             Overview: This head embeds lstm_output into a 1D tensor of size 256, passes it through 16 ResBlocks
                       with layer normalization each of size 256, and applies a ReLU. The output is converted to
@@ -52,6 +52,7 @@ class ActionTypeHead(nn.Module):
                 - lstm_output (:obj:`tensor`): The output of the LSTM
                 - scalar_context (:obj:`tensor`): A 1D tensor of certain scalar features, include available_actions,
                                                   cumulative_statistics, beginning_build_order
+                - action_type_mask (:obj:`tensor`): 0-1 value tensor contains available action type
                 - temperature (:obj:`float`): sampling temperature for action in case action input is None
                 - action (:obj:`tensor`): Action type, of size [1]
             Returns:
@@ -63,6 +64,7 @@ class ActionTypeHead(nn.Module):
         x = self.project(lstm_output)  # embeds lstm_output into a 1D tensor of size of res_dim, use 256 as default
         x = self.res(x)  # passes x through 16 ResBlocks with layer normalization and ReLU
         x = self.action_fc(x)  # fc for action type without normalization
+        x -= (1 - action_type_mask) * 1e9
         if action is None:
             handle = self.pd(x.div(temperature))
             # action_type is sampled from these logits using a multinomial with temperature 0.8.
