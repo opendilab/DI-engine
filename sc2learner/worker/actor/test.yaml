@@ -18,6 +18,7 @@ rl_train:
     use_available_action_transform: True
     use_stat: True
     beginning_build_order_num: 20
+    temperature: 0.8
 
 model:
     freeze_targets: []

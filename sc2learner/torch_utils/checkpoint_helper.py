@@ -36,18 +36,19 @@ class CheckpointHelper(object):
         Overview: Concrete implementation of CheckpointHelper, to help to save or load checkpoint
         Interface: __init__, save_iterations, save, save_data, load
     """
-    def __init__(self, save_dir, rank=0):
+    def __init__(self, save_dir='', rank=0):
         """
             Overview: initialization method, check if save_dir exists.
             Arguments:
-                - save_dir (:obj:`str`): checkpoint save dir
+                - save_dir (:obj:`str`): checkpoint save dir. if empty, saving is disabled
                 - rank (:obs:`int`): creator process rank
         """
-        self.save_path = os.path.join(save_dir, 'checkpoints')
-        self.data_save_path = os.path.join(save_dir, 'data')
-        if rank == 0:
-            os.makedirs(self.save_path, exist_ok=True)
-            os.makedirs(self.data_save_path, exist_ok=True)
+        if save_dir:
+            self.save_path = os.path.join(save_dir, 'checkpoints')
+            self.data_save_path = os.path.join(save_dir, 'data')
+            if rank == 0:
+                os.makedirs(self.save_path, exist_ok=True)
+                os.makedirs(self.data_save_path, exist_ok=True)
 
     def _remove_prefix(self, state_dict, prefix='module.'):
         """

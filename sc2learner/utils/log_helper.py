@@ -28,6 +28,11 @@ def build_logger(cfg, name=None, rank=0):
             - (:obj`VariableRecord`): record variable for further process
     '''
     path = cfg.common.save_path
+    # ensure the path exists
+    try:
+        os.makedirs(path)
+    except FileExistsError:
+        pass
     # Note: Only support rank0 tb_logger, variable_record
     if rank == 0:
         logger = TextLogger(path, name=name)
@@ -65,6 +70,11 @@ class TextLogger(object):
         '''
         if name is None:
             name = 'default_logger'
+           # ensure the path exists
+        try:
+            os.makedirs(os.path.join(path, name))
+        except FileExistsError:
+            pass 
         self.logger = self._create_logger(name, os.path.join(path, name + '.txt'))
 
     def _create_logger(self, name, path, level=logging.INFO):
@@ -174,9 +184,7 @@ class TensorBoardLogger(object):
                 - name (:obj:`str`): name to add which in self._var_names['image']
         '''
         assert (name in self._var_names['image'])
-        # there is no PIL in K8S image at the moment
-        if 'IN_K8S' not in os.environ:
-            self.logger.add_image(name, *args, **kwargs)
+        self.logger.add_image(name, *args, **kwargs)
 
     def add_val_list(self, val_list, viz_type):
         '''

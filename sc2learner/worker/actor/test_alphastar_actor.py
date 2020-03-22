@@ -19,7 +19,6 @@ from absl import app
 from absl import flags
 from easydict import EasyDict
 
-from pysc2.env.sc2_env import Difficulty
 from sc2learner.data.tests.fake_dataset import FakeReplayDataset
 from sc2learner.worker.actor.alphastar_actor import AlphaStarActor
 
@@ -59,7 +58,7 @@ class TestActor(AlphaStarActor):
 
     def _module_init(self):
         self.job_getter = DummyJobGetter(self.cfg)
-        self.model_requester = DummyModelRequester(self.cfg)
+        self.model_loader = DummyModelLoader(self.cfg)
         self.data_pusher = DummyDataPusher(self.cfg)
         self.last_time = None
 
@@ -91,7 +90,7 @@ class DummyJobGetter:
                 'random_seed': 10,
                 'home_race': 'zerg',
                 'away_race': 'zerg',
-                'difficulty': Difficulty.very_easy,
+                'difficulty': 'very_easy',
                 'build': None,
                 'data_push_length': 64,
             }
@@ -108,13 +107,12 @@ class DummyJobGetter:
         return job
 
 
-class DummyModelRequester:
+class DummyModelLoader:
     def __init__(self, cfg):
         pass
 
-    def request_model(self, job, agent_no):
+    def load_model(self, job, agent_no, model):
         print('received request, job:{}, agent_no:{}'.format(str(job), agent_no))
-        return 'not a model'
 
 
 class DummyDataPusher:

@@ -1,0 +1,29 @@
+evaluate:
+    seed: None # None to use a sequential number
+    game_type: 'game_vs_bot'
+    map_name: 'KairosJunction'
+    home_race: 'zerg'
+    away_race: 'zerg'
+    bot_difficulty: 'easy'
+    bot_build: 'random'
+    replay_path: ''
+    stat_path:
+        agent0: '/mnt/lustre/share_data/niuyazhe/Zerg_Zerg_6280_d35c22b2d7e462f1481621cbf765709961e3f9a2a99f8f6c6fa814ccffc831d6.stat_processed'
+        agent1: '/mnt/lustre/share_data/niuyazhe/Zerg_Zerg_6280_d35c22b2d7e462f1481621cbf765709961e3f9a2a99f8f6c6fa814ccffc831d6.stat_processed'
+    model_path:
+        agent0: '/mnt/lustre/share_data/niuyazhe/iterations_2200.pth.tar'
+        agent1: '/mnt/lustre/share_data/niuyazhe/iterations_2200.pth.tar'
+train:
+    use_cuda: False
+env:
+    screen_resolution: 128
+    default_step_mul: 8  # not used
+    game_steps_per_episode: 4320
+    disable_fog: False
+    realtime: True
+    use_stat: True
+    beginning_build_order_num: 20
+    use_global_cumulative_stat: True
+    use_available_action_transform: True
+    temperature: 1
+    crop_map_to_playable_area: False

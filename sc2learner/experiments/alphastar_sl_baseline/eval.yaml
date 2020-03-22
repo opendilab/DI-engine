@@ -7,7 +7,6 @@ common:
 env:
     game_version: '4.10'
     map_name: KairosJunction
-    map_size: [152, 168]  # x, y
     disable_fog: False
     realtime: False
     default_step_mul: 8
@@ -21,6 +20,7 @@ env:
     stat_path: /mnt/lustre/share_data/niuyazhe/Zerg_Zerg_6280_d35c22b2d7e462f1481621cbf765709961e3f9a2a99f8f6c6fa814ccffc831d6.stat_processed
     beginning_build_order_num: 20
     game_steps_per_episode: 43200
+    crop_map_to_playable_area: False
 train:
     use_cuda: True
     use_distributed: False

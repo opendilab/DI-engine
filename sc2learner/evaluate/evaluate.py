@@ -40,6 +40,7 @@ def create_env(cfg, random_seed=None):
     ]
     cfg.env.random_seed = random_seed
     env = AlphaStarEnv(cfg, players)
+    env.load_stat(torch.load(cfg.env.stat_path), 0)
     return env
 
 
