@@ -22,6 +22,7 @@ class AlphaStarActor:
         - 'rewards'
         - 'info'
     """
+
     def __init__(self, cfg):
         self.cfg = cfg
         # copying everything in rl_train config entry to config.env, TODO: better handling
@@ -106,7 +107,8 @@ class AlphaStarActor:
                     self.env.load_stat(stat, i)
         obs = self.env.reset()
         data_buffer = [[]] * self.agent_num
-        due = [True] * self.agent_num  # if True, the corresponding agent need to take action at next step
+        # if True, the corresponding agent need to take action at next step
+        due = [True] * self.agent_num
         last_state_action = [None] * self.agent_num
         # main loop
         while True:
@@ -121,7 +123,7 @@ class AlphaStarActor:
 
                     # FIXME this is only a workaround. We should not use evaluate mode here
                     action, logits, next_state = self.agents[i].compute_single_action(
-                        obs[i], mode="evaluate", require_grad=False, 
+                        obs[i], mode="evaluate", require_grad=False,
                         temperature=self.cfg.env.temperature
                     )
 
@@ -159,8 +161,8 @@ class AlphaStarActor:
         return actions
 
     def save_replay(self, path):
-       if path:
-           self.env.save_replay(path) 
+        if path:
+            self.env.save_replay(path)
 
 
 # TODO: implementation
@@ -179,13 +181,15 @@ class JobGetter:
             - job: a dict with description of how the game should be
         """
         while True:
-            job_request = {'type': 'job req', 'req_id': self.job_request_id, 'actor_id': actor_id}
+            job_request = {'type': 'job req',
+                           'req_id': self.job_request_id, 'actor_id': actor_id}
             try:
                 self.connection.send_pyobj(job_request)
                 reply = self.job_requestor.recv_pyobj()
                 assert (isinstance(reply, dict))
                 if (reply['type'] != 'job'):
-                    print('WARNING: received unknown response for job req, type:{}'.format(reply['type']))
+                    print('WARNING: received unknown response for job req, type:{}'.format(
+                        reply['type']))
                     continue
                 if (reply['actor_id'] != actor_id):
                     print('WARNING: received job is assigned to another actor')

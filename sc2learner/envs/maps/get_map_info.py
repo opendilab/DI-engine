@@ -25,6 +25,7 @@ trailer = '}\n\
 def get_map_size(map_name, cropped=True):\n\
     return MAPS[map_name][2 if cropped else 3]'
 
+
 def main(unused_argv):
     with open('map_info.py', 'w') as of:
         run_config = run_configs.get()
@@ -69,8 +70,8 @@ def main(unused_argv):
                 else:
                     formated_name_list.append(fnm)
                 print('{}: ({}, {}, {}, {})\n'
-                         .format(repr(fnm), repr(mp_i.battle_net), repr(mp_i.path),
-                                 repr([map_size.x, map_size.y]), repr([map_size_nocrop.x, map_size_nocrop.y])))
+                      .format(repr(fnm), repr(mp_i.battle_net), repr(mp_i.path),
+                              repr([map_size.x, map_size.y]), repr([map_size_nocrop.x, map_size_nocrop.y])))
                 of.write('    {}: ({}, {}, {}, {}),\n'
                          .format(repr(fnm), repr(mp_i.battle_net), repr(mp_i.path),
                                  repr([map_size.x, map_size.y]), repr([map_size_nocrop.x, map_size_nocrop.y])))
