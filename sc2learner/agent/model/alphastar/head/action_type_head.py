@@ -66,7 +66,8 @@ class ActionTypeHead(nn.Module):
         x = self.action_fc(x)  # fc for action type without normalization
         x -= (1 - action_type_mask) * 1e9
         if action is None:
-            handle = self.pd(x.div(temperature))
+            x = F.softmax(x.div(temperature), dim=1)
+            handle = self.pd(x)
             # action_type is sampled from these logits using a multinomial with temperature 0.8.
             # Note that during supervised learning, action_type will be the ground truth human action type,
             # and temperature is 1.0 (and similarly for all other arguments).

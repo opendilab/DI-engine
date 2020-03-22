@@ -18,8 +18,10 @@ from absl import flags
 from absl import logging
 
 from sc2learner.envs.alphastar_env import AlphaStarEnv
-from sc2learner.worker import RandomAgent, AlphaStarAgent
+from sc2learner.agent import AlphaStarAgent
 from sc2learner.utils import build_logger
+from sc2learner.torch_utils import build_checkpoint_helper
+import pysc2.env.sc2_env as sc2_env
 from pysc2.lib.action_dict import ACTION_INFO_MASK
 
 FLAGS = flags.FLAGS
@@ -32,8 +34,13 @@ flags.FLAGS(sys.argv)
 
 
 def create_env(cfg, random_seed=None):
+    players = [
+        sc2_env.Agent(sc2_env.Race[cfg.env.home_race]),
+        sc2_env.Bot(sc2_env.Race[cfg.env.away_race], cfg.env.difficulty),
+    ]
     cfg.env.random_seed = random_seed
-    env = AlphaStarEnv(cfg)
+    env = AlphaStarEnv(cfg, players)
+    env.load_stat(torch.load(cfg.env.stat_path), 0)
     return env
 
 
@@ -58,25 +65,22 @@ def evaluate(var_dict, cfg):
     logger.info("Rank %d Game Seed: %d" % (rank, game_seed))
     env = create_env(cfg, game_seed)
 
-    if cfg.common.agent == 'random':
-        agent = RandomAgent(action_space=env.action_space)
-    elif cfg.common.agent == 'alphastar':
-        agent = AlphaStarAgent(cfg)
-    else:
-        raise NotImplementedError
+    agent = AlphaStarAgent(cfg.model, 1, cfg.train.use_cuda, cfg.train.use_distributed)
+    agent.eval()
+    checkpoint_manager = build_checkpoint_helper(cfg.common.save_path)
+    checkpoint_manager.load(cfg.common.load_path, agent.get_model(), prefix_op='remove', prefix='module.')
 
     cum_return = 0.0
     action_counts = [0] * (max(ACTION_INFO_MASK.keys()) + 1)
 
     observation = env.reset()
-    agent.reset()
     done, step_id = False, 0
     while not done:
-        action = agent.act(observation)
-        observation, reward, done, _ = env.step(action)
+        action = agent.compute_single_action(observation[0], mode='evaluate', temperature=1.0, require_grad=False)
+        observation, reward, done, _ = env.step(action)[2:]  # ignore the first two item in evaluate
         logger.info("Rank %d Step ID: %d Take Action: %s" % (rank, step_id, env.cur_actions))
         action_counts[env.cur_action_type] += 1
-        cum_return += reward
+        cum_return += reward[0]
         step_id += 1
     if cfg.env.save_replay:
         env.save_replay(cfg.common.agent + FLAGS.replay_path)

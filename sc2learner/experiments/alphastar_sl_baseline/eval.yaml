@@ -6,9 +6,9 @@ common:
     use_multiprocessing: False
 env:
     game_version: '4.10'
-    map_name: AbyssalReef
-    map_size: [200, 176]
+    map_name: KairosJunction
     disable_fog: False
+    realtime: False
     default_step_mul: 8
     save_replay: True
     home_race: zerg
@@ -17,11 +17,15 @@ env:
     use_stat: True
     use_global_cumulative_stat: True
     use_available_action_transform: True
-    stat_path: /mnt/lustre/share_data/niuyazhe/Zerg_Zerg_6264_35648da84aaef8ebe8d21851e380a3a164e2874d73be0fc72e9d8e9f27c93df7.stat_processed
+    stat_path: /mnt/lustre/share_data/niuyazhe/Zerg_Zerg_6280_d35c22b2d7e462f1481621cbf765709961e3f9a2a99f8f6c6fa814ccffc831d6.stat_processed
     beginning_build_order_num: 20
     game_steps_per_episode: 43200
+    crop_map_to_playable_area: False
 train:
     use_cuda: True
+    use_distributed: False
     temperature: 1.0
 model:
     action_type: fixed
+logger:
+    print_freq: 1
