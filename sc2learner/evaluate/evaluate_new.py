@@ -1,16 +1,3 @@
-"""
-Test script for actor
-Example Usage:
-
-    srun -p x_cerebra --gres=gpu:1 -w SH-IDC1-10-198-6-64 \
-    python3 -u -m sc2learner.worker.actor.test_alphastar_actor \
-    --config_path test.yaml --nofake_dataset
-
-If you want to test this script in your local computer, try to run:
-
-    python test_alphastar_actor.py --fake_dataset --config_path test.yaml
-
-"""
 import random
 import time
 import torch
@@ -44,8 +31,8 @@ class EvalActor(AlphaStarActor):
             print('Time between action:{}'.format(t - self.last_time))
         self.last_time = t
         for n in range(len(act)):
-            if act[n]['delay'] == 0:
-                act[n]['delay'] = 1
+            # if act[n]['delay'] == 0:
+            #     act[n]['delay'] = 1
             print('Act {}:{}'.format(n, str(act[n])))
         return act
 
@@ -98,7 +85,7 @@ class LocalModelLoader:
         model_path = self.cfg.evaluate.model_path[job['model_id']]
         helper = build_checkpoint_helper('')
         model = helper.load(model_path, model, prefix_op='remove', prefix='module.')
-        print('loaded, time:{}'.format(time.time()-t))
+        print('loaded, time:{}'.format(time.time() - t))
         return model
 
 
@@ -121,7 +108,7 @@ class EvalTrajProcessor:
         traj_return = sum(rewards_list)
         print('agent no:{} ret:{}'.format(agent_no, traj_return))
         if agent_no + 1 > len(self.return_sum):
-            self.return_sum.extend([0]*(len(self.return_sum)-agent_no+1))
+            self.return_sum.extend([0] * (len(self.return_sum) - agent_no + 1))
         self.return_sum[agent_no] += traj_return
 
 

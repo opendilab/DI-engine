@@ -29,12 +29,8 @@ def get_map_size(map_name, cropped=True):\n\
 def main(unused_argv):
     with open('map_info.py', 'w') as of:
         run_config = run_configs.get()
-        interface = sc_pb.InterfaceOptions(
-            raw=True, score=False,
-            raw_crop_to_playable_area=True)
-        interface_nocrop = sc_pb.InterfaceOptions(
-            raw=True, score=False,
-            raw_crop_to_playable_area=False)
+        interface = sc_pb.InterfaceOptions(raw=True, score=False, raw_crop_to_playable_area=True)
+        interface_nocrop = sc_pb.InterfaceOptions(raw=True, score=False, raw_crop_to_playable_area=False)
         of.write(header)
         formated_name_list = []
         with run_config.start(want_rgb=False) as controller:
@@ -49,15 +45,11 @@ def main(unused_argv):
                     create.player_setup.add(type=sc_pb.Computer)
                     print(mp_i.path)
                     create.local_map.map_path = mp_i.path
-                    join = sc_pb.RequestJoinGame(
-                        options=interface, race=2,
-                        player_name="SenseStar")
+                    join = sc_pb.RequestJoinGame(options=interface, race=2, player_name="SenseStar")
                     controller.create_game(create)
                     controller.join_game(join)
                     map_size = controller.game_info().start_raw.map_size
-                    join = sc_pb.RequestJoinGame(
-                        options=interface_nocrop, race=2,
-                        player_name="SenseStar")
+                    join = sc_pb.RequestJoinGame(options=interface_nocrop, race=2, player_name="SenseStar")
                     controller.create_game(create)
                     controller.join_game(join)
                     map_size_nocrop = controller.game_info().start_raw.map_size
@@ -69,12 +61,18 @@ def main(unused_argv):
                     continue
                 else:
                     formated_name_list.append(fnm)
-                print('{}: ({}, {}, {}, {})\n'
-                      .format(repr(fnm), repr(mp_i.battle_net), repr(mp_i.path),
-                              repr([map_size.x, map_size.y]), repr([map_size_nocrop.x, map_size_nocrop.y])))
-                of.write('    {}: ({}, {}, {}, {}),\n'
-                         .format(repr(fnm), repr(mp_i.battle_net), repr(mp_i.path),
-                                 repr([map_size.x, map_size.y]), repr([map_size_nocrop.x, map_size_nocrop.y])))
+                print(
+                    '{}: ({}, {}, {}, {})\n'.format(
+                        repr(fnm), repr(mp_i.battle_net), repr(mp_i.path), repr([map_size.x, map_size.y]),
+                        repr([map_size_nocrop.x, map_size_nocrop.y])
+                    )
+                )
+                of.write(
+                    '    {}: ({}, {}, {}, {}),\n'.format(
+                        repr(fnm), repr(mp_i.battle_net), repr(mp_i.path), repr([map_size.x, map_size.y]),
+                        repr([map_size_nocrop.x, map_size_nocrop.y])
+                    )
+                )
                 of.flush()
         of.write(trailer)
 

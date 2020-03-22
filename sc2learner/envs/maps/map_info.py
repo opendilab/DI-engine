@@ -5,15 +5,18 @@ key: map_name (formatted, without spaces and LE)
 value: (battle_net, map_path, map_size (cropped to game boundary)(x,y), uncropped_map_size)
 """
 
-
 MAPS = {
     'BelShirVestige': ("Bel'Shir Vestige LE", 'Ladder2017Season1\\BelShirVestigeLE.SC2Map', [128, 144], [144, 160]),
     'CactusValley': ('Cactus Valley LE', 'Ladder2017Season1\\CactusValleyLE.SC2Map', [156, 156], [192, 192]),
     'Honorgrounds': ('Honorgrounds LE', 'Ladder2017Season1\\HonorgroundsLE.SC2Map', [156, 156], [176, 176]),
     'NewkirkPrecinct': ('Newkirk Precinct TE', 'Ladder2017Season1\\NewkirkPrecinctTE.SC2Map', [172, 124], [224, 168]),
-    'PaladinoTerminal': ('Paladino Terminal LE', 'Ladder2017Season1\\PaladinoTerminalLE.SC2Map', [144, 112], [160, 184]),
+    'PaladinoTerminal': (
+        'Paladino Terminal LE', 'Ladder2017Season1\\PaladinoTerminalLE.SC2Map', [144, 112], [160, 184]
+    ),
     'BloodBoil': ('Blood Boil LE', 'Ladder2017Season2\\BloodBoilLE.SC2Map', [132, 180], [152, 208]),
-    'DefendersLanding': ("Defender's Landing LE", 'Ladder2017Season2\\DefendersLandingLE.SC2Map', [148, 128], [168, 152]),
+    'DefendersLanding': (
+        "Defender's Landing LE", 'Ladder2017Season2\\DefendersLandingLE.SC2Map', [148, 128], [168, 152]
+    ),
     'ProximaStation': ('Proxima Station LE', 'Ladder2017Season2\\ProximaStationLE.SC2Map', [172, 152], [200, 200]),
     'Sequencer': ('Sequencer LE', 'Ladder2017Season2\\SequencerLE.SC2Map', [132, 164], [184, 208]),
     'Acolyte': ('Acolyte LE', 'Ladder2017Season3\\AcolyteLE.SC2Map', [136, 168], [168, 200]),
@@ -22,15 +25,21 @@ MAPS = {
     'MechDepot': ('Mech Depot LE', 'Ladder2017Season3\\MechDepotLE.SC2Map', [152, 152], [184, 176]),
     'AbyssalReef': ('Abyssal Reef LE', 'Ladder2017Season4\\AbyssalReefLE.SC2Map', [152, 136], [200, 176]),
     'AscensiontoAiur': ('Ascension to Aiur LE', 'Ladder2017Season4\\AscensiontoAiurLE.SC2Map', [160, 132], [176, 152]),
-    'BattleontheBoardwalk': ('Battle on the Boardwalk LE', 'Ladder2017Season4\\BattleontheBoardwalkLE.SC2Map', [160, 108], [192, 128]),
+    'BattleontheBoardwalk': (
+        'Battle on the Boardwalk LE', 'Ladder2017Season4\\BattleontheBoardwalkLE.SC2Map', [160, 108], [192, 128]
+    ),
     'Odyssey': ('Odyssey LE', 'Ladder2017Season4\\OdysseyLE.SC2Map', [152, 156], [168, 184]),
     'Abiogenesis': ('Abiogenesis LE', 'Ladder2018Season1\\AbiogenesisLE.SC2Map', [124, 140], [168, 192]),
     'Backwater': ('Backwater LE', 'Ladder2018Season1\\BackwaterLE.SC2Map', [146, 136], [168, 160]),
     'Eastwatch': ('Eastwatch LE', 'Ladder2018Season1\\EastwatchLE.SC2Map', [148, 152], [176, 176]),
-    'NeonVioletSquare': ('Neon Violet Square LE', 'Ladder2018Season1\\NeonVioletSquareLE.SC2Map', [148, 148], [200, 192]),
+    'NeonVioletSquare': (
+        'Neon Violet Square LE', 'Ladder2018Season1\\NeonVioletSquareLE.SC2Map', [148, 148], [200, 192]
+    ),
     '16Bit': ('16-Bit LE', 'Ladder2018Season2\\16-BitLE.SC2Map', [140, 156], [160, 184]),
     'Catalyst': ('Catalyst LE', 'Ladder2018Season2\\CatalystLE.SC2Map', [136, 144], [184, 184]),
-    'DarknessSanctuary': ('Darkness Sanctuary LE', 'Ladder2018Season2\\DarknessSanctuaryLE.SC2Map', [164, 164], [176, 176]),
+    'DarknessSanctuary': (
+        'Darkness Sanctuary LE', 'Ladder2018Season2\\DarknessSanctuaryLE.SC2Map', [164, 164], [176, 176]
+    ),
     'Redshift': ('Redshift LE', 'Ladder2018Season2\\RedshiftLE.SC2Map', [124, 152], [152, 184]),
     'AcidPlant': ('Acid Plant LE', 'Ladder2018Season3\\AcidPlantLE.SC2Map', [148, 136], [168, 184]),
     'Dreamcatcher': ('Dreamcatcher LE', 'Ladder2018Season3\\DreamcatcherLE.SC2Map', [136, 136], [168, 176]),
