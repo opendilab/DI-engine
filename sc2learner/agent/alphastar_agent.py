@@ -113,7 +113,7 @@ class AlphaStarAgent(BaseAgent):
                 self.prev_state[ep_id] = None
         assert activate_episode_index == len(next_states), (activate_episode_index, len(next_states))
 
-    def compute_single_action(self, step_data, mode, temperature=None, require_grad=None):
+    def compute_single_action(self, step_data, mode, temperature=1.0, require_grad=None):
         entity_raw = step_data["entity_raw"]
 
         # unsqueeze operation modifies step_data in-place
@@ -132,7 +132,7 @@ class AlphaStarAgent(BaseAgent):
         actions = action_unit_id_transform({'actions': actions, 'entity_raw': entity_raw}, inverse=True)['actions']
         return AgentOutput(actions=actions, logits=logits, next_state=next_states)
 
-    def compute_action(self, step_data, mode, prev_states=None, temperature=None, require_grad=None):
+    def compute_action(self, step_data, mode, prev_states=None, temperature=1.0, require_grad=None):
         """ Forward pass the agent's model to collect its response in the given timestep.
 
         This function process only single step data, while all data are consider in a batch form.
@@ -142,7 +142,7 @@ class AlphaStarAgent(BaseAgent):
         :param step_data:
         :param mode: "evaluate" or "mimic" (training)
         :param prev_states:
-        :param temperature:
+        :param temperature: default 1.0
         :param require_grad: False for disabling, True for enabling, None for automatic choose based on mode.
         :return:
         """
