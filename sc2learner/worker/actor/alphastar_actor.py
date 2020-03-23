@@ -1,9 +1,37 @@
 import time
+import torch
 
 import pysc2.env.sc2_env as sc2_env
 from sc2learner.agent.alphastar_agent import AlphaStarAgent
 from sc2learner.envs.alphastar_env import AlphaStarEnv
-from sc2learner.utils import get_actor_id
+from sc2learner.utils import get_actor_id, dict_list2list_dict
+from sc2learner.torch_utils import to_device
+
+
+def unsqueeze_batch_dim(obs):
+    # helper function for the evaluation of a single observation
+    def unsqueeze(x):
+        if isinstance(x, dict):
+            for k in x.keys():
+                if isinstance(x[k], dict):
+                    for kk in x[k].keys():
+                        x[k][kk] = x[k][kk].unsqueeze(0)
+                else:
+                    x[k] = x[k].unsqueeze(0)
+        elif isinstance(x, torch.Tensor):
+            x = x.unsqueeze(0)
+        else:
+            raise TypeError("invalid type: {}".format(type(x)))
+        return x
+
+    unsqueeze_keys = ['scalar_info', 'spatial_info']
+    list_keys = ['entity_info', 'entity_raw', 'map_size']
+    for k, v in obs.items():
+        if k in unsqueeze_keys:
+            obs[k] = unsqueeze(v)
+        if k in list_keys:
+            obs[k] = [obs[k]]
+    return obs
 
 
 class AlphaStarActor:
@@ -24,9 +52,13 @@ class AlphaStarActor:
     """
     def __init__(self, cfg):
         self.cfg = cfg
-        # copying everything in rl_train config entry to config.env, TODO: better handling
+        # copying everything in rl_train and train config entry to config.env
+        # TODO: better handling for common variables used in different situations
         if 'rl_train' in self.cfg:
             for k, v in self.cfg.rl_train.items():
+                self.cfg.env[k] = v
+        if 'train' in self.cfg:
+            for k, v in self.cfg.train.items():
                 self.cfg.env[k] = v
         # in case we want all default
         if 'model' not in self.cfg:
@@ -112,6 +144,7 @@ class AlphaStarActor:
         # if True, the corresponding agent need to take action at next step
         due = [True] * self.agent_num
         last_state_action = [None] * self.agent_num
+        prev_states = [None] * self.agent_num
         # main loop
         while True:
             actions = [None] * self.agent_num
@@ -120,18 +153,31 @@ class AlphaStarActor:
                     last_state_action[i] = {
                         'agent_no': i,
                         'prev_obs': obs,
-                        'lstm_state_before': self.agents[i].prev_state[0],
+                        'lstm_state_before': prev_states[i],
                     }
+                    obs[i] = unsqueeze_batch_dim(obs[i])
+                    if self.cfg.env.use_cuda:
+                        obs[i] = to_device(obs[i], 'cuda')
 
-                    # FIXME this is only a workaround. We should not use evaluate mode here
-                    action, logits, next_state = self.agents[i].compute_single_action(
-                        obs[i], mode="evaluate", require_grad=False, temperature=self.cfg.env.temperature
+                    action, logits, next_state = self.agents[i].compute_action(
+                        obs[i],
+                        mode="evaluate",
+                        prev_states=prev_states[i],
+                        require_grad=False,
+                        temperature=self.cfg.env.temperature
                     )
+
+                    if self.cfg.env.use_cuda:
+                        action = to_device(action, 'cpu')
+                        logits = to_device(logits, 'cpu')
+                        next_state = to_device(next_state, 'cpu')
+                    action = dict_list2list_dict(action)[0]  # o for batch dim
 
                     actions[i] = action
                     last_state_action[i]['action'] = action
                     last_state_action[i]['logits'] = logits
                     last_state_action[i]['lstm_state_after'] = next_state
+                    prev_states[i] = next_state
             actions = self.action_modifier(actions)
             game_step, due, obs, rewards, done, info = self.env.step(actions)
             # TODO: log self.env.cur_actions
