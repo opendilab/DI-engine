@@ -11,6 +11,7 @@ import torch.nn.functional as F
 
 from sc2learner.optimizer.base_loss import BaseLoss
 from sc2learner.torch_utils import MultiLogitsLoss, build_criterion
+from pysc2.lib.static_data import BASE_ACTIONS, PART_ACTIONS_MAP
 
 
 def build_temperature_scheduler(temperature):
@@ -38,7 +39,7 @@ class AlphaStarSupervisedLoss(BaseLoss):
     def __init__(self, agent, train_config, model_config):
         # multiple loss to be calculate
         self.loss_func = {
-            'action_type': self._criterion_apply,
+            'action_type': self._action_type_loss,
             'delay': self._delay_loss,
             'queued': self._queued_loss,
             'selected_units': self._selected_units_loss,
@@ -74,6 +75,9 @@ class AlphaStarSupervisedLoss(BaseLoss):
         """
         if self.use_value_network:  # value network to be implemented
             raise NotImplementedError
+        self.device = data[0]['spatial_info'].device
+        self.dtype = data[0]['spatial_info'].dtype
+
         temperature = self.temperature_scheduler.step()
         self.agent.reset_previous_state(data[0]["start_step"])
 
@@ -100,25 +104,68 @@ class AlphaStarSupervisedLoss(BaseLoss):
         new_loss_dict['total_loss'] = sum(new_loss_dict.values())
         return new_loss_dict
 
-    def _criterion_apply(self, logits, labels):
-        """
-            Overview: calculate CrossEntropyLoss of taking each action or each delay
+    def _action_type_loss(self, logits, labels):
+        '''
+            Overview: calculate CrossEntropyLoss of taking each action_type
             Arguments:
                 - logits (:obj:`tensor`): The logits corresponding to the probabilities of
-                                          taking each action or each delay
+                                          taking each action_type
                 - labels (:obj:`list`): label from batch_data, list[Tensor](len=batch size)
             Returns:
                 - (:obj`tensor`): criterion result
-        """
+        '''
+        loss_type = self.criterion_config.action_type
+        assert (loss_type in ['normal', 'double_head'])
         if isinstance(labels, collections.Sequence):
             labels = torch.cat(labels, dim=0)
+        if loss_type == 'normal':
+            return self.criterion(logits, labels)
+        elif loss_type == 'double_head':
+            loss = 0.
+            zero_idx, base_idx, spec_idx = [], [], []
+            for idx, val in enumerate(labels):
+                val = val.item()
+                if val == 0:
+                    zero_idx.append(idx)
+                elif val in BASE_ACTIONS:
+                    base_idx.append(idx)
+                else:
+                    spec_idx.append(idx)
 
-        # TODO(pzh) not proper to set device by this
-        self.device = logits.device
+            def fn(x):
+                return torch.LongTensor(x).to(self.device)
 
-        # TODO(pzh) move this to init
-        self.dtype = logits.dtype
-        return self.criterion(logits, labels)
+            zero_idx, base_idx, spec_idx = fn(zero_idx), fn(base_idx), fn(spec_idx)
+            zero_labels = torch.index_select(labels, 0, zero_idx)
+            if zero_labels.shape[0] > 0:
+                base = torch.index_select(logits[0], 0, zero_idx)
+                spec = torch.index_select(logits[1], 0, zero_idx)
+                loss += self.criterion(base, zero_labels) + self.criterion(spec, zero_labels)
+
+            base_labels = torch.index_select(labels, 0, base_idx)
+            if base_labels.shape[0] > 0:
+                base = torch.index_select(logits[0], 0, base_idx)
+                spec = torch.index_select(logits[1], 0, base_idx)
+                transform_base_labels = torch.zeros_like(base_labels)
+                for idx, val in enumerate(base_labels):
+                    transform_base_labels[idx] = PART_ACTIONS_MAP['base'][val.item()]
+                loss += self.criterion(base, transform_base_labels) + self.criterion(
+                    spec,
+                    torch.zeros_like(transform_base_labels).long()
+                )  # noqa
+
+            spec_labels = torch.index_select(labels, 0, spec_idx)
+            if spec_labels.shape[0] > 0:
+                base = torch.index_select(logits[0], 0, spec_idx)
+                spec = torch.index_select(logits[1], 0, spec_idx)
+                transform_spec_labels = torch.zeros_like(spec_labels)
+                for idx, val in enumerate(spec_labels):
+                    transform_spec_labels[idx] = PART_ACTIONS_MAP['spec'][val.item()]
+                loss += self.criterion(spec, transform_spec_labels) + self.criterion(
+                    base,
+                    torch.zeros_like(transform_spec_labels).long()
+                )  # noqa
+            return loss
 
     def _delay_loss(self, preds, labels):
         """

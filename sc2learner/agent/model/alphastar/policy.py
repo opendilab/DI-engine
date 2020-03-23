@@ -4,7 +4,8 @@ import torch
 import torch.nn as nn
 
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
-from pysc2.lib.static_data import NUM_UNIT_TYPES, UNIT_TYPES_REORDER, ACTIONS_REORDER_INV
+from pysc2.lib.static_data import NUM_UNIT_TYPES, UNIT_TYPES_REORDER, ACTIONS_REORDER_INV, PART_ACTIONS_MAP,\
+    PART_ACTIONS_MAP_INV
 from .head import DelayHead, QueuedHead, SelectedUnitsHead, TargetUnitsHead, LocationHead, ActionTypeHead, \
     TargetUnitHead
 
@@ -12,6 +13,8 @@ from .head import DelayHead, QueuedHead, SelectedUnitsHead, TargetUnitsHead, Loc
 def build_head(name):
     head_dict = {
         'action_type_head': ActionTypeHead,
+        'base_action_type_head': ActionTypeHead,
+        'spec_action_type_head': ActionTypeHead,
         'delay_head': DelayHead,
         'queued_head': QueuedHead,
         'selected_units_head': SelectedUnitsHead,
@@ -87,6 +90,55 @@ class Policy(nn.Module):
                 action_attr[k].append(value[k])
         return action_attr, action_mask
 
+    def _action_type_forward(self, lstm_output, scalar_context, temperature, action_type=None):
+        kwargs = {
+            'lstm_output': lstm_output,
+            'scalar_context': scalar_context,
+            'temperature': temperature,
+            'action_type': action_type
+        }
+        if 'action_type_head' in self.head.keys():
+            return self.head['action_type_head'](**kwargs)
+        elif 'base_action_type_head' in self.head.keys() and 'spec_action_type_head' in self.head.keys():
+            if action_type is not None:
+                base_action_type = action_type.clone()
+                spec_action_type = action_type.clone()
+                # to part action type id
+                for idx, val in enumerate(action_type):
+                    val = val.item()
+                    if val == 0:
+                        continue
+                    elif val in PART_ACTIONS_MAP['base'].keys():
+                        spec_action_type[idx] = 0
+                        base_action_type[idx] = PART_ACTIONS_MAP['base'][val]
+                    else:
+                        spec_action_type[idx] = PART_ACTIONS_MAP['spec'][val]
+                        base_action_type[idx] = 0
+                # double head forward
+                kwargs['action_type'] = base_action_type
+                base_logits, base_action_type, base_embeddings = self.head['base_action_type_head'](**kwargs)
+                kwargs['action_type'] = spec_action_type
+                spec_logits, spec_action_type, spec_embeddings = self.head['spec_action_type_head'](**kwargs)
+            else:
+                base_logits, base_action_type, base_embeddings = self.head['base_action_type_head'](**kwargs)
+                spec_logits, spec_action_type, spec_embeddings = self.head['spec_action_type_head'](**kwargs)
+            # to total action type id
+            for idx, val in enumerate(base_action_type):
+                base_action_type[idx] = PART_ACTIONS_MAP_INV['base'][val.item()]
+            for idx, val in enumerate(spec_action_type):
+                spec_action_type[idx] = PART_ACTIONS_MAP_INV['spec'][val.item()]
+            mask = torch.where(
+                spec_action_type == 0, torch.ones_like(spec_action_type), torch.zeros_like(spec_action_type)
+            )  # noqa
+            action_type = mask * base_action_type + spec_action_type
+            mask = mask.view(-1, *[1 for _ in range(len(base_embeddings.shape) - 1)]).to(
+                base_embeddings.dtype
+            )  # batch is the first dim  # noqa
+            embeddings = mask * base_embeddings + (1 - mask) * spec_embeddings
+            return [base_logits, spec_logits], action_type, embeddings
+        else:
+            raise KeyError("no necessary action type head in heads()".format(self.head.keys()))
+
     def mimic(self, inputs, temperature=1.0):
         '''
             Overview: supervised learning policy forward graph
@@ -102,7 +154,7 @@ class Policy(nn.Module):
         action_type = torch.LongTensor(actions['action_type']).to(lstm_output.device)
         units_num = [len(t['id']) for t in entity_raw]
 
-        logits['action_type'], action_type, embeddings = self.head['action_type_head'](
+        logits['action_type'], action_type, embeddings = self._action_type_forward(
             lstm_output, scalar_context, temperature, action_type
         )
         action_attr, mask = self._look_up_action_attr(action_type, entity_raw, units_num)
@@ -166,7 +218,7 @@ class Policy(nn.Module):
         units_num = [len(t['id']) for t in entity_raw]
 
         # action type
-        logits['action_type'], action_type, embeddings = self.head['action_type_head'](
+        logits['action_type'], action_type, embeddings = self._action_type_forward(
             lstm_output, scalar_context, temperature
         )
         actions['action_type'] = torch.chunk(action_type, B, dim=0)
