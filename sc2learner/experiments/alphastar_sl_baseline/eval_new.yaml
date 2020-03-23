@@ -1,7 +1,7 @@
 evaluate:
     fix_seed: False
-    seed: 0  # comment out this to use a sequential number as seed
-    use_multiprocessing: True
+    seed: 0
+    use_multiprocessing: False  # multiprocessing may be incompatible with GPU inference
     num_episodes: 4
     num_instance_per_node: 2
     game_type: 'game_vs_bot'  # self_play or game_vs_bot
@@ -19,7 +19,7 @@ evaluate:
         agent0: '/mnt/lustre/share_data/niuyazhe/iterations_2200.pth.tar'
         agent1: '/mnt/lustre/share_data/niuyazhe/iterations_2200.pth.tar'
 train:
-    use_cuda: False
+    use_cuda: True
 env:
     screen_resolution: [128, 128]
     default_step_mul: 8  # not used

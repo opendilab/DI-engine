@@ -170,13 +170,13 @@ class AlphaStarActor:
                     if self.cfg.env.use_cuda:
                         action = to_device(action, 'cpu')
                         logits = to_device(logits, 'cpu')
-                        next_state = to_device(next_state, 'cpu')
+                        next_state_cpu = to_device(next_state, 'cpu')
                     action = dict_list2list_dict(action)[0]  # o for batch dim
 
                     actions[i] = action
                     last_state_action[i]['action'] = action
                     last_state_action[i]['logits'] = logits
-                    last_state_action[i]['lstm_state_after'] = next_state
+                    last_state_action[i]['lstm_state_after'] = next_state_cpu
                     prev_states[i] = next_state
             actions = self.action_modifier(actions)
             game_step, due, obs, rewards, done, info = self.env.step(actions)
