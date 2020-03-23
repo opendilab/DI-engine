@@ -32,13 +32,14 @@ class EvalActor(AlphaStarActor):
         print(self.cfg)
         self.last_time = None
 
-    def action_modifier(self, act):
+    def action_modifier(self, act, step):
         # Here we implement statistics and optional clipping on actions
         for n in range(len(act)):
-            if act[n]['delay'] == 0:
-                act[n]['delay'] = 1
-            print('Act {}:{}:{}'.format(self.cfg.evaluate.job_id, n, self.env.action_to_string(act[n])))
-            self.action_counts[n][self.env.get_action_type(act[n])] += 1
+            if act[n] is not None:
+                if act[n]['delay'] == 0:
+                    act[n]['delay'] = 1
+                self.action_counts[n][self.env.get_action_type(act[n])] += 1
+            print('Act {}:{}:{:5}:{}'.format(self.cfg.evaluate.job_id, n, step, self.env.action_to_string(act[n])))
         return act
 
 

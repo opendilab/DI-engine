@@ -62,7 +62,7 @@ class TestActor(AlphaStarActor):
         self.data_pusher = DummyDataPusher(self.cfg)
         self.last_time = None
 
-    def action_modifier(self, act):
+    def action_modifier(self, act, step):
         t = time.time()
         if self.last_time is not None:
             print('Time between action:{}'.format(t - self.last_time))

@@ -4,7 +4,7 @@ evaluate:
     use_multiprocessing: False  # multiprocessing may be incompatible with GPU inference
     num_episodes: 4
     num_instance_per_node: 2
-    game_type: 'game_vs_bot'  # self_play or game_vs_bot
+    game_type: 'self_play'  # self_play or game_vs_bot
     map_name: 'KairosJunction'
     home_race: 'zerg'
     away_race: 'zerg'
@@ -19,11 +19,11 @@ evaluate:
         agent0: '/mnt/lustre/share_data/niuyazhe/iterations_2200.pth.tar'
         agent1: '/mnt/lustre/share_data/niuyazhe/iterations_2200.pth.tar'
 train:
-    use_cuda: True
+    use_cuda: False
 env:
     screen_resolution: [128, 128]
     default_step_mul: 8  # not used
-    game_steps_per_episode: 400
+    game_steps_per_episode: 600
     disable_fog: False
     realtime: False
     use_stat: True

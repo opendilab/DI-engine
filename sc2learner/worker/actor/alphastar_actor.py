@@ -145,6 +145,7 @@ class AlphaStarActor:
         due = [True] * self.agent_num
         last_state_action = [None] * self.agent_num
         prev_states = [None] * self.agent_num
+        game_step = 0
         # main loop
         while True:
             actions = [None] * self.agent_num
@@ -171,6 +172,8 @@ class AlphaStarActor:
                         action = to_device(action, 'cpu')
                         logits = to_device(logits, 'cpu')
                         next_state_cpu = to_device(next_state, 'cpu')
+                    else:
+                        next_state_cpu = next_state
                     action = dict_list2list_dict(action)[0]  # o for batch dim
 
                     actions[i] = action
@@ -178,7 +181,7 @@ class AlphaStarActor:
                     last_state_action[i]['logits'] = logits
                     last_state_action[i]['lstm_state_after'] = next_state_cpu
                     prev_states[i] = next_state
-            actions = self.action_modifier(actions)
+            actions = self.action_modifier(actions, game_step)
             game_step, due, obs, rewards, done, info = self.env.step(actions)
             # TODO: log self.env.cur_actions
             if game_step >= self.cfg.env.game_steps_per_episode:
