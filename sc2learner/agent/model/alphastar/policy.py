@@ -49,15 +49,6 @@ class Policy(nn.Module):
             'location_mask': []
         }
         device = action_type[0].device
-        '''
-        for idx, action in enumerate(action_type):
-            action_arg_mask['select_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
-            action_arg_mask['select_unit_type_mask'].append(torch.ones(1, NUM_UNIT_TYPES, device=device))
-            action_arg_mask['target_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
-            action_arg_mask['target_unit_type_mask'].append(torch.ones(1, NUM_UNIT_TYPES, device=device))
-            action_arg_mask['location_mask'].append(torch.ones(1, *location_dims, device=device))
-        action_attr = {'queued': 'none', 'selected_units': 'none', 'target_units': 'none', 'target_location': 'none'}
-        '''
         action_attr = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
         for idx, action in enumerate(action_type):
             action_type_val = ACTIONS_REORDER_INV[action.item()]
@@ -78,8 +69,8 @@ class Policy(nn.Module):
                         select_unit_mask[0, i] = 1
                 action_arg_mask['select_unit_mask'].append(select_unit_mask.to(device))
             else:
-                action_arg_mask['select_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
-                action_arg_mask['select_unit_type_mask'].append(torch.ones(1, NUM_UNIT_TYPES, device=device))
+                action_arg_mask['select_unit_mask'].append(None)
+                action_arg_mask['select_unit_type_mask'].append(None)
             if action_info_hard_craft['target_units']:
                 type_set = set(action_info_stat['target_type'])
                 reorder_type_list = [UNIT_TYPES_REORDER[t] for t in type_set]
@@ -92,12 +83,13 @@ class Policy(nn.Module):
                         target_unit_mask[0, i] = 1
                 action_arg_mask['target_unit_mask'].append(target_unit_mask.to(device))
             else:
-                action_arg_mask['target_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
-                action_arg_mask['target_unit_type_mask'].append(torch.ones(1, NUM_UNIT_TYPES, device=device))
+                action_arg_mask['target_unit_mask'].append(None)
+                action_arg_mask['target_unit_type_mask'].append(None)
             if action_info_hard_craft['target_location']:
+                # TODO(nyz) location mask
                 action_arg_mask['location_mask'].append(torch.ones(1, *location_dims, device=device))
             else:
-                action_arg_mask['location_mask'].append(torch.ones(1, *location_dims, device=device))
+                action_arg_mask['location_mask'].append(None)
             # get action attibute(which args the action type owns)
             for k in action_attr.keys():
                 action_attr[k].append(action_info_hard_craft[k])
