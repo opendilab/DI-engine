@@ -58,6 +58,9 @@ class AlphaStarAgent(BaseAgent):
         # TODO(pzh): a workaround to deal with mimic mode and evaluate mode
         return self.model.training
 
+    def set_seed(self, seed):
+        self.model.set_seed(seed)
+
     def reset_previous_state(self, if_new_episodes):
         """ Call this function when a batch of data start
 

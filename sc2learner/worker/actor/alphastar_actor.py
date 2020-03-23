@@ -84,6 +84,7 @@ class AlphaStarActor:
 
         for agent in self.agents:
             agent.eval()
+            agent.set_seed(job['random_seed'])
 
         self.env = self._make_env(players)
 

@@ -1,7 +1,10 @@
 import random
 import time
-import torch
+from multiprocessing import Pool
+import copy
 
+import torch
+import numpy as np
 import yaml
 from absl import app
 from absl import flags
@@ -9,6 +12,8 @@ from easydict import EasyDict
 
 from sc2learner.worker.actor.alphastar_actor import AlphaStarActor
 from sc2learner.torch_utils import build_checkpoint_helper
+from sc2learner.utils import build_logger
+from pysc2.lib.action_dict import ACTION_INFO_MASK
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string('config_path', '', 'Path to the config yaml file')
@@ -16,6 +21,7 @@ flags.DEFINE_string('config_path', '', 'Path to the config yaml file')
 
 class EvalActor(AlphaStarActor):
     def _make_env(self, players):
+        self.action_counts = [[0] * (max(ACTION_INFO_MASK.keys()) + 1)] * self.agent_num
         return super()._make_env(players)
 
     def _module_init(self):
@@ -23,17 +29,16 @@ class EvalActor(AlphaStarActor):
         self.model_loader = LocalModelLoader(self.cfg)
         self.stat_requester = LocalStatLoader(self.cfg)
         self.data_pusher = EvalTrajProcessor(self.cfg)
+        print(self.cfg)
         self.last_time = None
 
     def action_modifier(self, act):
-        t = time.time()
-        if self.last_time is not None:
-            print('Time between action:{}'.format(t - self.last_time))
-        self.last_time = t
+        # Here we implement statistics and optional clipping on actions
         for n in range(len(act)):
-            # if act[n]['delay'] == 0:
-            #     act[n]['delay'] = 1
-            print('Act {}:{}'.format(n, self.env.action_to_string(act[n])))
+            if act[n]['delay'] == 0:
+                act[n]['delay'] = 1
+            print('Act {}:{}:{}'.format(self.cfg.evaluate.job_id, n, self.env.action_to_string(act[n])))
+            self.action_counts[n][self.env.get_action_type(act[n])] += 1
         return act
 
 
@@ -44,16 +49,13 @@ class EvalJobGetter:
 
     def get_job(self, actor_id):
         print('received job req from:{}'.format(actor_id))
-        if self.cfg.evaluate.seed:
-            random_seed = self.job_req_id
-        print('seed:{}'.format(random_seed))
         if self.cfg.evaluate.game_type == 'game_vs_bot':
             job = {
                 'game_type': 'game_vs_bot',
                 'model_id': ['agent0'],
                 'stat_id': ['agent0'],
                 'map_name': self.cfg.evaluate.map_name,
-                'random_seed': random_seed,
+                'random_seed': self.cfg.evaluate.seed,
                 'home_race': self.cfg.evaluate.home_race,
                 'away_race': self.cfg.evaluate.away_race,
                 'difficulty': self.cfg.evaluate.bot_difficulty,
@@ -66,7 +68,7 @@ class EvalJobGetter:
                 'model_id': ['agent0', 'agent1'],
                 'stat_id': ['agent0', 'agent1'],
                 'map_name': self.cfg.evaluate.map_name,
-                'random_seed': random_seed,
+                'random_seed': self.cfg.evaluate.seed,
                 'home_race': self.cfg.evaluate.home_race,
                 'away_race': self.cfg.evaluate.away_race,
                 'data_push_length': 64,
@@ -115,11 +117,44 @@ def main(unused_argv):
     with open(FLAGS.config_path) as f:
         cfg = yaml.load(f)
     cfg = EasyDict(cfg)
+    use_multiprocessing = cfg.evaluate.get("use_multiprocessing", False)
+    if use_multiprocessing:
+        pool = Pool(min(cfg.evaluate.num_episodes, cfg.evaluate.num_instance_per_node))
+        var_list = []
+        for n in range(cfg.evaluate.num_episodes):
+            new_cfg = copy.deepcopy(cfg)
+            if not cfg.evaluate.get('fix_seed', False):
+                new_cfg.evaluate.seed = seed_gen(n)
+            new_cfg.evaluate.job_id = n
+            var_list.append(new_cfg)
+        return_list = pool.map(run_episode, var_list)
+        pool.close()
+    else:
+        cfg.evaluate.job_id = 0
+        return_list = [run_episode(cfg)]
+    agent_nums, return_sums, action_counts = zip(*return_list)
+    agent_num = agent_nums[0]  # assumming all jobs have the same number of agents
+    return_sum = np.mean(return_sums, axis=0)
+    action_counts = np.mean(action_counts, axis=0)  # axis 0:games, 1:agents, 2:actions
+    print('Returns: {}'.format(str(return_sum)))
+    for n in range(agent_num):
+        print('Action Statistics of Agent {}'.format(n))
+        sorted_action_counts = sorted(enumerate(action_counts[n]), key=lambda x: x[1], reverse=True)
+        for action_count in sorted_action_counts:
+            if action_count[1]:
+                print('ID: {:3d}  Times: {:5}'.format(action_count[0], action_count[1]))
+
+
+def seed_gen(seq):
+    return seq
+
+
+def run_episode(cfg):
     ea = EvalActor(cfg)
     ea.run_episode()
-    print(ea.data_pusher.return_sum)
-    if cfg.evaluate.replay_path:
+    if cfg.evaluate.get('save_replay', True) and cfg.evaluate.replay_path:
         ea.save_replay(cfg.evaluate.replay_path)
+    return ea.agent_num, ea.data_pusher.return_sum, ea.action_counts
 
 
 if __name__ == '__main__':
