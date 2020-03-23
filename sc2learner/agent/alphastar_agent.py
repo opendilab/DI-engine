@@ -10,11 +10,9 @@ from collections import namedtuple
 
 import torch
 
-from pysc2.lib.static_data import ACTIONS_REORDER_INV
 from sc2learner.agent.model.alphastar import AlphaStarActorCritic
 from sc2learner.torch_utils import to_device
-from sc2learner.envs import action_unit_id_transform
-from sc2learner.utils import DistModule, dict_list2list_dict
+from sc2learner.utils import DistModule
 
 # TODO(pzh) I think actions should be `action` and logits should be `logit` to be consistent with `next_state` ...
 AgentOutput = namedtuple("AgentOutput", ["actions", "logits", "next_state"])
@@ -116,26 +114,7 @@ class AlphaStarAgent(BaseAgent):
                 self.prev_state[ep_id] = None
         assert activate_episode_index == len(next_states), (activate_episode_index, len(next_states))
 
-    def compute_single_action(self, step_data, mode, temperature=1.0, require_grad=None):
-        entity_raw = step_data["entity_raw"]
-
-        # unsqueeze operation modifies step_data in-place
-        step_data = self._unsqueeze_batch_dim(step_data)
-        if self.use_cuda:
-            step_data = to_device(step_data, 'cuda')
-
-        actions, logits, next_states = self.compute_action(
-            step_data, mode, temperature=temperature, require_grad=require_grad
-        )
-        if self.use_cuda:
-            actions = to_device(actions, 'cpu')
-            logits = to_device(logits, 'cpu')
-            next_states = to_device(next_states, 'cpu')
-        actions = dict_list2list_dict(actions)[0]
-        actions = action_unit_id_transform({'actions': actions, 'entity_raw': entity_raw}, inverse=True)['actions']
-        return AgentOutput(actions=actions, logits=logits, next_state=next_states)
-
-    def compute_action(self, step_data, mode, prev_states=None, temperature=1.0, require_grad=None):
+    def compute_action(self, step_data, mode, prev_states='no_outer_states', temperature=1.0, require_grad=None):
         """ Forward pass the agent's model to collect its response in the given timestep.
 
         This function process only single step data, while all data are consider in a batch form.
@@ -154,7 +133,12 @@ class AlphaStarAgent(BaseAgent):
         assert PREV_STATE not in step_data
         assert len(step_data["entity_info"]) <= self.num_concurrent_episodes
 
-        step_data[PREV_STATE] = prev_states or self._before_forward(step_data["end_index"])
+        # if the outer caller indicates the prev_states then use the value, otherwise agent will record
+        # the prev_states for each episode, which is supoorted by field `start_step` and `end_index` in step_data
+        if prev_states == 'no_outer_states':
+            step_data[PREV_STATE] = self._before_forward(step_data["end_index"])
+        else:
+            step_data[PREV_STATE] = prev_states
 
         logits = actions = None
 
@@ -171,7 +155,8 @@ class AlphaStarAgent(BaseAgent):
                 logits, next_states = self.model(step_data, mode=mode, temperature=temperature)
             else:
                 actions, logits, next_states = self.model(step_data, mode="evaluate", temperature=temperature)
-        self._after_forward(next_states)
+        if prev_states == 'no_outer_states':
+            self._after_forward(next_states)
         return AgentOutput(actions=actions, logits=logits, next_state=next_states)
 
     def compute_value(self, step_data):
@@ -200,35 +185,3 @@ class AlphaStarAgent(BaseAgent):
 
     def __repr__(self):
         return str(self.model)
-
-    def _unsqueeze_batch_dim(self, obs):
-
-        unsqueeze_keys = ['scalar_info', 'spatial_info']
-        list_keys = ['entity_info', 'entity_raw', 'map_size']
-        for k, v in obs.items():
-            if k in unsqueeze_keys:
-                obs[k] = unsqueeze(v)
-            if k in list_keys:
-                obs[k] = [obs[k]]
-
-        # FIXME(pzh,nyz,qzr): Is this correct?
-        obs["end_index"] = []
-
-        # FIXME(pzh): What's this?
-        # obs["start_step"] = [obs["start_step"]]
-        return obs
-
-
-def unsqueeze(x):
-    if isinstance(x, dict):
-        for k in x.keys():
-            if isinstance(x[k], dict):
-                for kk in x[k].keys():
-                    x[k][kk] = x[k][kk].unsqueeze(0)
-            else:
-                x[k] = x[k].unsqueeze(0)
-    elif isinstance(x, torch.Tensor):
-        x = x.unsqueeze(0)
-    else:
-        raise TypeError("invalid type: {}".format(type(x)))
-    return x

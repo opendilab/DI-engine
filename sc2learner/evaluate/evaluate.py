@@ -19,8 +19,8 @@ from absl import logging
 
 from sc2learner.envs.alphastar_env import AlphaStarEnv
 from sc2learner.agent import AlphaStarAgent
-from sc2learner.utils import build_logger
-from sc2learner.torch_utils import build_checkpoint_helper
+from sc2learner.utils import build_logger, dict_list2list_dict
+from sc2learner.torch_utils import build_checkpoint_helper, to_device
 import pysc2.env.sc2_env as sc2_env
 from pysc2.lib.action_dict import ACTION_INFO_MASK
 
@@ -70,16 +70,52 @@ def evaluate(var_dict, cfg):
     checkpoint_manager = build_checkpoint_helper(cfg.common.save_path)
     checkpoint_manager.load(cfg.common.load_path, agent.get_model(), prefix_op='remove', prefix='module.')
 
+    def unsqueeze_batch_dim(obs):
+        def unsqueeze(x):
+            if isinstance(x, dict):
+                for k in x.keys():
+                    if isinstance(x[k], dict):
+                        for kk in x[k].keys():
+                            x[k][kk] = x[k][kk].unsqueeze(0)
+                    else:
+                        x[k] = x[k].unsqueeze(0)
+            elif isinstance(x, torch.Tensor):
+                x = x.unsqueeze(0)
+            else:
+                raise TypeError("invalid type: {}".format(type(x)))
+            return x
+
+        unsqueeze_keys = ['scalar_info', 'spatial_info']
+        list_keys = ['entity_info', 'entity_raw', 'map_size']
+        for k, v in obs.items():
+            if k in unsqueeze_keys:
+                obs[k] = unsqueeze(v)
+            if k in list_keys:
+                obs[k] = [obs[k]]
+
+        return obs
+
     cum_return = 0.0
     action_counts = [0] * (max(ACTION_INFO_MASK.keys()) + 1)
 
     observation = env.reset()
     done, step_id = False, 0
+    prev_states = None
     while not done:
-        action = agent.compute_single_action(observation[0], mode='evaluate', temperature=1.0, require_grad=False)
-        observation, reward, done, _ = env.step(action)[2:]  # ignore the first two item in evaluate
-        logger.info("Rank %d Step ID: %d Take Action: %s" % (rank, step_id, env.action_to_string(action[0])))
-        action_counts[env.get_action_type(action[0])] += 1
+        obs = observation[0]
+        obs = unsqueeze_batch_dim(obs)
+        if cfg.train.use_cuda:
+            obs = to_device(obs, 'cuda')
+        actions, _, prev_states = agent.compute_action(
+            obs, mode='evaluate', prev_states=prev_states, temperature=1.0, require_grad=False
+        )
+        if cfg.train.use_cuda:
+            actions = to_device(actions, 'cpu')
+        actions = dict_list2list_dict(actions)[0]
+
+        observation, reward, done, _ = env.step([actions])[2:]  # ignore the first two item in evaluate
+        logger.info("Rank %d Step ID: %d Take Action: %s" % (rank, step_id, env.action_to_string(actions)))
+        action_counts[env.get_action_type(actions)] += 1
         cum_return += reward[0]
         step_id += 1
     if cfg.env.save_replay:
