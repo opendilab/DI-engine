@@ -84,10 +84,6 @@ class AlphaStarEnv(SC2Env):
         return obs
 
     def _merge_action(self, obs, last_action, add_dim=True):
-        if isinstance(last_action['action_type'], torch.Tensor):
-            for index, item in enumerate(last_action['action_type']):
-                last_action['action_type'][index] = ACTIONS_REORDER_INV[item.item()]
-
         last_action_type = last_action['action_type']
         last_delay = last_action['delay']
         last_queued = last_action['queued']
@@ -144,6 +140,7 @@ class AlphaStarEnv(SC2Env):
         return new_obs
 
     def _transform_action(self, actions):
+        actions = copy.deepcopy(actions)
         # tensor2value
         for k, v in actions.items():
             if isinstance(v, torch.Tensor):
@@ -153,8 +150,17 @@ class AlphaStarEnv(SC2Env):
                     actions[k] = v.tolist()
                 elif k in ['queued', 'delay']:
                     actions[k] = v.item()
+                elif k == 'action_entity_raw':
+                    pass
                 else:
                     raise KeyError("invalid key:{}".format(k))
+        # action unit id transform
+        for k in ['selected_units', 'target_units']:
+            if actions[k] is not None:
+                unit_ids = []
+                for unit in actions[k]:
+                    unit_ids.append(actions['action_entity_raw'][unit]['id'])
+                actions[k] = unit_ids
         # action target location transform
         target_location = actions['target_location']
         if target_location is not None:
@@ -166,7 +172,6 @@ class AlphaStarEnv(SC2Env):
 
     def _get_action(self, actions):
         # Covert network output to pysc2 FunctionCalls
-        actions = self._transform_action(actions)
         action_type = actions['action_type']
         delay = actions['delay']
         arg_keys = ['queued', 'selected_units', 'target_units', 'target_location']
@@ -188,35 +193,36 @@ class AlphaStarEnv(SC2Env):
             - info
         """
         assert (self._reset_flag)
-        transformed_actions = [None] * self.agent_num
+        sc2_actions = [None] * self.agent_num
         for n in range(self.agent_num):
             action = actions[n]
             if action is not None:
-                t, d = self._get_action(action)
-                transformed_actions[n] = t
+                transformed_action = self._transform_action(action)
+                t, d = self._get_action(transformed_action)
+                sc2_actions[n] = t
                 self._next_obs[n] = self._episode_steps + d
-                self.last_actions[n] = action
+                self.last_actions[n] = transformed_action
             else:
-                transformed_actions[n] = []
+                sc2_actions[n] = []
         step_mul = min(self._next_obs) - self._episode_steps
         if step_mul == 0:
             # repeat last observation and store last action
             # at least one agent requested by returning zero delay
             for n in range(self.agent_num):
-                if transformed_actions[n]:
-                    self._buffered_actions[n].append(transformed_actions[n])
+                if sc2_actions[n]:
+                    self._buffered_actions[n].append(sc2_actions[n])
             _, _, obs, rewards, done, info = self._last_output
             for n in range(self.agent_num):
                 obs[n] = self._merge_action(obs[n], self.last_actions[n], add_dim=False)
             due = [s <= self._episode_steps for s in self._next_obs]
         else:
             for n in range(self.agent_num):
-                if transformed_actions[n]:
+                if sc2_actions[n]:
                     # append buffered actions to current actions list
-                    transformed_actions[n] = self._buffered_actions[n] + [transformed_actions[n]]
-            assert (any(transformed_actions))
+                    sc2_actions[n] = self._buffered_actions[n] + [sc2_actions[n]]
+            assert (any(sc2_actions))
             assert (step_mul >= 0), 'Some agent requested negative delay!'
-            timesteps = super().step(transformed_actions, step_mul=step_mul)
+            timesteps = super().step(sc2_actions, step_mul=step_mul)
             due = [s <= self._episode_steps for s in self._next_obs]
             assert (any(due))
             self._buffered_actions = [[]] * self.agent_num
