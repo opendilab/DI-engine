@@ -124,6 +124,7 @@ class AlphaStarEnv(SC2Env):
         return obs
 
     def _get_obs(self, obs, last_actions, agent_no):
+        # post process observations returned from sc2env
         if 'enemy_upgrades' not in obs.keys():
             obs['enemy_upgrades'] = np.array([0])
         entity_info, entity_raw = self.entity_wrapper.parse(obs)
@@ -142,7 +143,7 @@ class AlphaStarEnv(SC2Env):
             new_obs = get_available_actions_processed_data(new_obs)
         return new_obs
 
-    def _get_action(self, actions):
+    def _transform_action(self, actions):
         # tensor2value
         for k, v in actions.items():
             if isinstance(v, torch.Tensor):
@@ -161,10 +162,11 @@ class AlphaStarEnv(SC2Env):
             y = target_location[0]
             y = self.map_size[1] - y
             actions['target_location'] = [x, y]
-        # TODO(nyz) cur_action support 2 agent
-        self._cur_actions = self.action_to_string(actions)
-        self._cur_action_type = actions['action_type']
+        return actions
 
+    def _get_action(self, actions):
+        # Covert network output to pysc2 FunctionCalls
+        actions = self._transform_action(actions)
         action_type = actions['action_type']
         delay = actions['delay']
         arg_keys = ['queued', 'selected_units', 'target_units', 'target_location']
@@ -210,6 +212,7 @@ class AlphaStarEnv(SC2Env):
         else:
             for n in range(self.agent_num):
                 if transformed_actions[n]:
+                    # append buffered actions to current actions list
                     transformed_actions[n] = self._buffered_actions[n] + [transformed_actions[n]]
             assert (any(transformed_actions))
             assert (step_mul >= 0), 'Some agent requested negative delay!'
@@ -243,9 +246,6 @@ class AlphaStarEnv(SC2Env):
             'target_units': None,
             'target_location': None
         }
-        # TODO(nyz) cur_action support 2 agent
-        self._cur_actions = self.action_to_string(last_action)
-        self._cur_action_type = last_action['action_type']
         self.last_actions = [last_action] * self.agent_num
         obs = []
         for n in range(self.agent_num):
@@ -266,16 +266,22 @@ class AlphaStarEnv(SC2Env):
         self._last_output = [0, [True] * self.agent_num, obs, [0] * self.agent_num, False, infos]
         return copy.deepcopy(obs)
 
-    @property
-    def cur_actions(self):
-        return self._cur_actions
-
-    @property
-    def cur_action_type(self):
-        return self._cur_action_type
-
-    def action_to_string(self, actions):
+    def transformed_action_to_string(self, action):
         return '[Action: type({}) delay({}) queued({}) selected_units({}) target_units({}) target_location({})]'.format(
-            actions['action_type'], actions['delay'], actions['queued'], actions['selected_units'],
-            actions['target_units'], actions['target_location']
+            action['action_type'], action['delay'], action['queued'], action['selected_units'], action['target_units'],
+            action['target_location']
         )
+
+    def action_to_string(self, action):
+        # producing human readable debug output from network output
+        if action is None:
+            return 'None'
+        action = self._transform_action(action)
+        return self.transformed_action_to_string(action)
+
+    def get_action_type(self, action):
+        # get transformed action type from network output
+        if action is None:
+            return None
+        action = self._transform_action(action)
+        return action['action_type']

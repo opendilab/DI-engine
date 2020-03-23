@@ -78,8 +78,8 @@ def evaluate(var_dict, cfg):
     while not done:
         action = agent.compute_single_action(observation[0], mode='evaluate', temperature=1.0, require_grad=False)
         observation, reward, done, _ = env.step(action)[2:]  # ignore the first two item in evaluate
-        logger.info("Rank %d Step ID: %d Take Action: %s" % (rank, step_id, env.cur_actions))
-        action_counts[env.cur_action_type] += 1
+        logger.info("Rank %d Step ID: %d Take Action: %s" % (rank, step_id, env.action_to_string(action[0])))
+        action_counts[env.get_action_type(action[0])] += 1
         cum_return += reward[0]
         step_id += 1
     if cfg.env.save_replay:

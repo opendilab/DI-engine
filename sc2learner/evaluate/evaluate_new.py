@@ -33,7 +33,7 @@ class EvalActor(AlphaStarActor):
         for n in range(len(act)):
             # if act[n]['delay'] == 0:
             #     act[n]['delay'] = 1
-            print('Act {}:{}'.format(n, str(act[n])))
+            print('Act {}:{}'.format(n, self.env.action_to_string(act[n])))
         return act
 
 
