@@ -223,8 +223,9 @@ class SelectedUnitsHead(nn.Module):
                 x, state = self.lstm(x, state)
                 query_result = x.permute(1, 0, 2) * key
                 query_result = query_result.mean(dim=2)
-                # query_result.sub_((1 - mask) * 1e9)
-                handle = self.pd(query_result.div(temperature))
+                query_result.sub_((1 - mask) * 1e9)
+                query_result = F.softmax(query_result.div(temperature), dim=1)
+                handle = self.pd(query_result)
                 if self.training:
                     entity_num = handle.sample()
                 else:
@@ -236,7 +237,8 @@ class SelectedUnitsHead(nn.Module):
                         logits[b].append(query_result)
                         units[b][entity_num[b]] = 1
                         if entity_num[b] != end_flag_index:
-                            mask[b][entity_num[b]] = 0
+                            # mask[b][entity_num[b]] = 0
+                            pass
                     else:
                         logits[b].append(query_result)
         embedding_selected = units.unsqueeze(2).to(key.dtype)

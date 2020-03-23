@@ -3,7 +3,7 @@ from collections import namedtuple
 import torch
 import torch.nn as nn
 
-from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
+from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK, ACTIONS_STAT
 from pysc2.lib.static_data import NUM_UNIT_TYPES, UNIT_TYPES_REORDER, ACTIONS_REORDER_INV
 from .head import DelayHead, QueuedHead, SelectedUnitsHead, TargetUnitsHead, LocationHead, ActionTypeHead, \
     TargetUnitHead
@@ -60,33 +60,47 @@ class Policy(nn.Module):
         '''
         action_attr = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
         for idx, action in enumerate(action_type):
-            value = GENERAL_ACTION_INFO_MASK[ACTIONS_REORDER_INV[action.item()]]
-            if value['selected_units']:
-                type_list = value['avail_unit_type_id']
-                reorder_type_list = [UNIT_TYPES_REORDER[t] for t in type_list]
+            action_type_val = ACTIONS_REORDER_INV[action.item()]
+            action_info_hard_craft = GENERAL_ACTION_INFO_MASK[action_type_val]
+            action_info_stat = ACTIONS_STAT[action_type_val]
+            # else case is the placeholder
+            if action_info_hard_craft['selected_units']:
+                type_hard_craft = set(action_info_hard_craft['avail_unit_type_id'])
+                type_stat = set(action_info_stat['selected_type'])
+                type_set = type_hard_craft.union(type_stat)
+                reorder_type_list = [UNIT_TYPES_REORDER[t] for t in type_set]
                 select_unit_type_mask = torch.zeros(1, NUM_UNIT_TYPES)
                 select_unit_type_mask[:, reorder_type_list] = 1
                 action_arg_mask['select_unit_type_mask'].append(select_unit_type_mask.to(device))
                 select_unit_mask = torch.zeros(1, units_num[idx])
                 for i, t in enumerate(entity_raw[idx]['type']):
-                    if t in type_list:
+                    if t in type_set:
                         select_unit_mask[0, i] = 1
                 action_arg_mask['select_unit_mask'].append(select_unit_mask.to(device))
             else:
                 action_arg_mask['select_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
                 action_arg_mask['select_unit_type_mask'].append(torch.ones(1, NUM_UNIT_TYPES, device=device))
-            if value['target_units']:
-                action_arg_mask['target_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
-                action_arg_mask['target_unit_type_mask'].append(torch.ones(1, NUM_UNIT_TYPES, device=device))
+            if action_info_hard_craft['target_units']:
+                type_set = set(action_info_stat['target_type'])
+                reorder_type_list = [UNIT_TYPES_REORDER[t] for t in type_set]
+                target_unit_type_mask = torch.zeros(1, NUM_UNIT_TYPES)
+                target_unit_type_mask[:, reorder_type_list] = 1
+                action_arg_mask['target_unit_type_mask'].append(target_unit_type_mask.to(device))
+                target_unit_mask = torch.zeros(1, units_num[idx])
+                for i, t in enumerate(entity_raw[idx]['type']):
+                    if t in type_set:
+                        target_unit_mask[0, i] = 1
+                action_arg_mask['target_unit_mask'].append(target_unit_mask.to(device))
             else:
                 action_arg_mask['target_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
                 action_arg_mask['target_unit_type_mask'].append(torch.ones(1, NUM_UNIT_TYPES, device=device))
-            if value['target_location']:
+            if action_info_hard_craft['target_location']:
                 action_arg_mask['location_mask'].append(torch.ones(1, *location_dims, device=device))
             else:
                 action_arg_mask['location_mask'].append(torch.ones(1, *location_dims, device=device))
+            # get action attibute(which args the action type owns)
             for k in action_attr.keys():
-                action_attr[k].append(value[k])
+                action_attr[k].append(action_info_hard_craft[k])
         return action_attr, action_arg_mask
 
     def mimic(self, inputs, temperature=1.0):
