@@ -39,6 +39,7 @@ env:
    game_steps_per_episode: 43200
    disable_fog: False
    realtime: False
+   crop_map_to_playable_area: False
 
 rl_train:
    data_push_length: 64
@@ -46,6 +47,7 @@ rl_train:
    use_available_action_transform: True
    use_stat: False
    beginning_build_order_num: 20
+   temperature: 0.8
 
 model:
     use_value_network: True

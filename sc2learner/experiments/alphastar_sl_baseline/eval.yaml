@@ -1,27 +1,36 @@
-common:
-    name: eval
-    time_wrapper_type: cuda
-    num_episodes: 10
-    agent: alphastar
-    use_multiprocessing: False
+evaluate:
+    fix_seed: False
+    seed: 0
+    use_multiprocessing: False  # multiprocessing may be incompatible with GPU inference
+    num_episodes: 4
+    num_instance_per_node: 2
+    game_type: 'self_play'  # self_play or game_vs_bot
+    map_name: 'KairosJunction'
+    home_race: 'zerg'
+    away_race: 'zerg'
+    bot_difficulty: 'very_easy'
+    bot_build: 'random'
+    save_replay: False
+    replay_path: 'test'
+    stat_path:
+        agent0: '/mnt/lustre/share_data/niuyazhe/Zerg_Zerg_6280_d35c22b2d7e462f1481621cbf765709961e3f9a2a99f8f6c6fa814ccffc831d6.stat_processed'
+        agent1: '/mnt/lustre/share_data/niuyazhe/Zerg_Zerg_6280_d35c22b2d7e462f1481621cbf765709961e3f9a2a99f8f6c6fa814ccffc831d6.stat_processed'
+    model_path:
+        agent0: '/mnt/lustre/share_data/niuyazhe/iterations_2200.pth.tar'
+        agent1: '/mnt/lustre/share_data/niuyazhe/iterations_2200.pth.tar'
+train:
+    use_cuda: False
 env:
-    game_version: '4.10'
-    map_name: AbyssalReef
-    map_size: [200, 176]
-    disable_fog: False
-    default_step_mul: 8
-    save_replay: True
-    home_race: zerg
-    away_race: zerg
     screen_resolution: [128, 128]
+    default_step_mul: 8  # not used
+    game_steps_per_episode: 600
+    disable_fog: False
+    realtime: False
     use_stat: True
+    beginning_build_order_num: 20
     use_global_cumulative_stat: True
     use_available_action_transform: True
-    stat_path: /mnt/lustre/share_data/niuyazhe/Zerg_Zerg_6264_35648da84aaef8ebe8d21851e380a3a164e2874d73be0fc72e9d8e9f27c93df7.stat_processed
-    beginning_build_order_num: 20
-    game_steps_per_episode: 43200
-train:
-    use_cuda: True
     temperature: 1.0
+    crop_map_to_playable_area: False
 model:
     action_type: fixed

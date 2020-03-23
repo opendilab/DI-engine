@@ -218,7 +218,30 @@ class Policy(nn.Module):
             logits['target_location'].append(logits_location)
             actions['target_location'].append(location)
 
+        actions = self._get_action_entity_raw(actions, entity_raw)
+
         return actions, logits
+
+    def _get_action_entity_raw(self, actions, entity_raw):
+        B = len(entity_raw)
+        action_entity_raw = []
+        for b in range(B):
+            selected_units = actions['selected_units'][b]
+            target_units = actions['target_units'][b]
+            selected_units = [] if selected_units is None else selected_units.tolist()
+            target_units = [] if target_units is None else target_units.tolist()
+            units = list(set(selected_units).union(set(target_units)))
+
+            entity_raw_per_frame = entity_raw[b]
+            keys = entity_raw_per_frame.keys()
+            action_entity_raw_per_frame = {}
+            for u in units:
+                entity_raw_u = {k: entity_raw_per_frame[k][u] for k in keys}
+                action_entity_raw_per_frame[u] = entity_raw_u
+            action_entity_raw.append(action_entity_raw_per_frame)
+
+        actions['action_entity_raw'] = action_entity_raw
+        return actions
 
     def forward(self, inputs, mode=None, **kwargs):
         assert (mode in ['mimic', 'evaluate'])

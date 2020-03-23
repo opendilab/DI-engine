@@ -19,12 +19,13 @@ class AlphaStarEnv(SC2Env):
             - cfg
             - players:list of two sc2_env.Agent or sc2_env.Bot in the game
         """
-
-        self.map_size = get_map_size(cfg.env.map_name)
+        self.cfg = cfg
+        self.map_size = get_map_size(cfg.env.map_name, cropped=cfg.env.crop_map_to_playable_area)
 
         agent_interface_format = sc2_env.parse_agent_interface_format(
             feature_screen=cfg.env.screen_resolution,
-            feature_minimap=self.map_size  # x, y
+            feature_minimap=self.map_size,  # x, y
+            raw_crop_to_playable_area=cfg.env.crop_map_to_playable_area
         )
 
         self.agent_num = sum([isinstance(p, sc2_env.Agent) for p in players])
@@ -51,31 +52,38 @@ class AlphaStarEnv(SC2Env):
         self.use_available_action_transform = cfg.env.use_available_action_transform
 
         self.use_stat = cfg.env.use_stat
-        if self.use_stat:
-            self.stat = self._init_stat(cfg.env.stat_path, cfg.env.beginning_build_order_num)
+        self.stat = [None] * self.agent_num
         self._reset_flag = False
 
-    def _init_stat(self, path, begin_num):
-        stat = torch.load(path)
+    def load_stat(self, stat, agent_no):
+        """
+        Set the statistics to be append to every observation of each agent
+        stat
+        agent_no: 0 or 1
+        """
+        assert self.use_stat, 'We should not load stat when we are not going to use stat'
+        stat = copy.deepcopy(stat)
+        begin_num = self.cfg.env.beginning_build_order_num
         stat['beginning_build_order'] = stat['beginning_build_order'][:begin_num]
         if stat['beginning_build_order'].shape[0] < begin_num:
+            # filling zeros if there is too few begining_build_order entries
             B, N = stat['beginning_build_order'].shape
             B0 = begin_num - B
             stat['beginning_build_order'] = torch.cat([stat['beginning_build_order'], torch.zeros(B0, N)])
-        return stat
+        self.stat[agent_no] = stat
 
-    def _merge_stat(self, obs):
-        obs['scalar_info']['mmr'] = self.stat['mmr']
-        obs['scalar_info']['beginning_build_order'] = self.stat['beginning_build_order']
+    def _merge_stat(self, obs, agent_no):
+        """
+        Append the statistics to the observation
+        """
+        stat = self.stat[agent_no]
+        obs['scalar_info']['mmr'] = stat['mmr']  # TODO: check with detailed-architechture.txt
+        obs['scalar_info']['beginning_build_order'] = stat['beginning_build_order']
         if self.use_global_cumulative_stat:
-            obs['scalar_info']['cumulative_stat'] = self.stat['cumulative_stat']
+            obs['scalar_info']['cumulative_stat'] = stat['cumulative_stat']
         return obs
 
-    def _merge_action(self, obs, last_action):
-        if isinstance(last_action['action_type'], torch.Tensor):
-            for index, item in enumerate(last_action['action_type']):
-                last_action['action_type'][index] = ACTIONS_REORDER_INV[item.item()]
-
+    def _merge_action(self, obs, last_action, add_dim=True):
         last_action_type = last_action['action_type']
         last_delay = last_action['delay']
         last_queued = last_action['queued']
@@ -89,17 +97,20 @@ class AlphaStarEnv(SC2Env):
         if obs['entity_info'] is None:
             obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 4)], dim=1)
             return obs
+        if add_dim:
+            obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 4)], dim=1)
+        else:
+            obs['entity_info'][:, -4].zero_()
+
         selected_units = last_action['selected_units']
         target_units = last_action['target_units']
-        obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 2)], dim=1)
         selected_units = selected_units if isinstance(selected_units, torch.Tensor) else []
         for idx, v in enumerate(obs['entity_raw']['id']):
             if v in selected_units:
-                obs['entity_info'][idx, -1] = 1
+                obs['entity_info'][idx, -3] = 1
             else:
-                obs['entity_info'][idx, -2] = 1
+                obs['entity_info'][idx, -4] = 1
 
-        obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 2)], dim=1)
         target_units = target_units if isinstance(target_units, torch.Tensor) else []
         for idx, v in enumerate(obs['entity_raw']['id']):
             if v in target_units:
@@ -108,7 +119,8 @@ class AlphaStarEnv(SC2Env):
                 obs['entity_info'][idx, -2] = 1
         return obs
 
-    def _get_obs(self, obs, last_actions):
+    def _get_obs(self, obs, last_actions, agent_no):
+        # post process observations returned from sc2env
         if 'enemy_upgrades' not in obs.keys():
             obs['enemy_upgrades'] = np.array([0])
         entity_info, entity_raw = self.entity_wrapper.parse(obs)
@@ -122,12 +134,13 @@ class AlphaStarEnv(SC2Env):
 
         new_obs = self._merge_action(new_obs, last_actions)
         if self.use_stat:
-            new_obs = self._merge_stat(new_obs)
+            new_obs = self._merge_stat(new_obs, agent_no)
         if self.use_available_action_transform:
             new_obs = get_available_actions_processed_data(new_obs)
         return new_obs
 
-    def _get_action(self, actions):
+    def _transform_action(self, actions):
+        actions = copy.deepcopy(actions)
         # tensor2value
         for k, v in actions.items():
             if isinstance(v, torch.Tensor):
@@ -137,8 +150,17 @@ class AlphaStarEnv(SC2Env):
                     actions[k] = v.tolist()
                 elif k in ['queued', 'delay']:
                     actions[k] = v.item()
+                elif k == 'action_entity_raw':
+                    pass
                 else:
                     raise KeyError("invalid key:{}".format(k))
+        # action unit id transform
+        for k in ['selected_units', 'target_units']:
+            if actions[k] is not None:
+                unit_ids = []
+                for unit in actions[k]:
+                    unit_ids.append(actions['action_entity_raw'][unit]['id'])
+                actions[k] = unit_ids
         # action target location transform
         target_location = actions['target_location']
         if target_location is not None:
@@ -146,10 +168,10 @@ class AlphaStarEnv(SC2Env):
             y = target_location[0]
             y = self.map_size[1] - y
             actions['target_location'] = [x, y]
-        # TODO(nyz) cur_action support 2 agent
-        self._cur_actions = self.action_to_string(actions)
-        self._cur_action_type = actions['action_type']
+        return actions
 
+    def _get_action(self, actions):
+        # Covert network output to pysc2 FunctionCalls
         action_type = actions['action_type']
         delay = actions['delay']
         arg_keys = ['queued', 'selected_units', 'target_units', 'target_location']
@@ -163,7 +185,7 @@ class AlphaStarEnv(SC2Env):
             - actions: list of actions for each agent, length should be the number of agents
             if an agent don't want to act this time, the action should be set to None
         Return:
-            - step: actually how many steps are forwarded during this call
+            - step: total game steps after this call
             - due: list of bool telling which agents should take the next action
             - obs: list of ob dicts for two agents after taking action
             - rewards: win/loss reward
@@ -171,32 +193,36 @@ class AlphaStarEnv(SC2Env):
             - info
         """
         assert (self._reset_flag)
-        transformed_actions = [None] * self.agent_num
+        sc2_actions = [None] * self.agent_num
         for n in range(self.agent_num):
             action = actions[n]
             if action is not None:
-                t, d = self._get_action(action)
-                transformed_actions[n] = t
+                transformed_action = self._transform_action(action)
+                t, d = self._get_action(transformed_action)
+                sc2_actions[n] = t
                 self._next_obs[n] = self._episode_steps + d
-                self.last_actions[n] = action
+                self.last_actions[n] = transformed_action
             else:
-                transformed_actions[n] = []
+                sc2_actions[n] = []
         step_mul = min(self._next_obs) - self._episode_steps
         if step_mul == 0:
             # repeat last observation and store last action
             # at least one agent requested by returning zero delay
             for n in range(self.agent_num):
-                if transformed_actions[n]:
-                    self._buffered_actions[n].append(transformed_actions[n])
+                if sc2_actions[n]:
+                    self._buffered_actions[n].append(sc2_actions[n])
             _, _, obs, rewards, done, info = self._last_output
+            for n in range(self.agent_num):
+                obs[n] = self._merge_action(obs[n], self.last_actions[n], add_dim=False)
             due = [s <= self._episode_steps for s in self._next_obs]
         else:
             for n in range(self.agent_num):
-                if transformed_actions[n]:
-                    transformed_actions[n] = self._buffered_actions[n] + [transformed_actions[n]]
-            assert (any(transformed_actions))
+                if sc2_actions[n]:
+                    # append buffered actions to current actions list
+                    sc2_actions[n] = self._buffered_actions[n] + [sc2_actions[n]]
+            assert (any(sc2_actions))
             assert (step_mul >= 0), 'Some agent requested negative delay!'
-            timesteps = super().step(transformed_actions, step_mul=step_mul)
+            timesteps = super().step(sc2_actions, step_mul=step_mul)
             due = [s <= self._episode_steps for s in self._next_obs]
             assert (any(due))
             self._buffered_actions = [[]] * self.agent_num
@@ -210,11 +236,11 @@ class AlphaStarEnv(SC2Env):
                     done = done or timestep.last()
                     _, rewards[n], _, o, info[n] = timestep
                     assert (self.last_actions[n])
-                    obs[n] = self._get_obs(o, self.last_actions[n])
-            self._last_output = [step_mul, due, obs, rewards, done, info]
+                    obs[n] = self._get_obs(o, self.last_actions[n], n)
+            self._last_output = [self._episode_steps, due, obs, rewards, done, info]
         # as obs may be changed somewhere in parsing
         # we have to return a copy to keep the self._last_ouput intact
-        return step_mul, due, copy.deepcopy(obs), rewards, done, info
+        return self._episode_steps, due, copy.deepcopy(obs), rewards, done, info
 
     def reset(self):
         timesteps = super().reset()
@@ -226,15 +252,15 @@ class AlphaStarEnv(SC2Env):
             'target_units': None,
             'target_location': None
         }
-        # TODO(nyz) cur_action support 2 agent
-        self._cur_actions = self.action_to_string(last_action)
-        self._cur_action_type = last_action['action_type']
         self.last_actions = [last_action] * self.agent_num
-        obs = [self._get_obs(timestep.observation, last_action) for timestep in timesteps]
+        obs = []
+        for n in range(self.agent_num):
+            obs.append(self._get_obs(timesteps[n].observation, last_action, n))
         infos = [timestep.game_info for timestep in timesteps]
 
         # just trust the map size from cfg.env.map_size passed in during init
         env_provided_map_size = infos[0].start_raw.map_size
+        env_provided_map_size = [env_provided_map_size.x, env_provided_map_size.y]
         assert tuple(env_provided_map_size) == tuple(self.map_size), \
             "Environment uses a different map size {} compared to config " \
             "{}.".format(env_provided_map_size, self.map_size)
@@ -246,16 +272,22 @@ class AlphaStarEnv(SC2Env):
         self._last_output = [0, [True] * self.agent_num, obs, [0] * self.agent_num, False, infos]
         return copy.deepcopy(obs)
 
-    @property
-    def cur_actions(self):
-        return self._cur_actions
-
-    @property
-    def cur_action_type(self):
-        return self._cur_action_type
-
-    def action_to_string(self, actions):
+    def transformed_action_to_string(self, action):
         return '[Action: type({}) delay({}) queued({}) selected_units({}) target_units({}) target_location({})]'.format(
-            actions['action_type'], actions['delay'], actions['queued'], actions['selected_units'],
-            actions['target_units'], actions['target_location']
+            action['action_type'], action['delay'], action['queued'], action['selected_units'], action['target_units'],
+            action['target_location']
         )
+
+    def action_to_string(self, action):
+        # producing human readable debug output from network output
+        if action is None:
+            return 'None'
+        action = self._transform_action(action)
+        return self.transformed_action_to_string(action)
+
+    def get_action_type(self, action):
+        # get transformed action type from network output
+        if action is None:
+            return None
+        action = self._transform_action(action)
+        return action['action_type']
