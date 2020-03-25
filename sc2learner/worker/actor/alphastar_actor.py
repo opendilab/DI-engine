@@ -1,4 +1,5 @@
 import time
+import copy
 import torch
 
 import pysc2.env.sc2_env as sc2_env
@@ -166,13 +167,14 @@ class AlphaStarActor:
                     'have_teacher': self.use_teacher_model,
                     'teacher_lstm_state_before': self.teacher_lstm_states_cpu[i]
                 }
-                obs[i] = unsqueeze_batch_dim(obs[i])
+                obs_copy = copy.deepcopy(obs)
+                obs_copy[i] = unsqueeze_batch_dim(obs_copy[i])
                 done = True
                 if self.cfg.env.use_cuda:
-                    obs[i] = to_device(obs[i], 'cuda')
+                    obs_copy[i] = to_device(obs_copy[i], 'cuda')
                 if self.use_teacher_model:
                     _, teacher_logits, self.teacher_lstm_states[i] = self.teacher_agent.compute_action(
-                        obs[i],
+                        obs_copy[i],
                         mode="evaluate",
                         prev_states=self.teacher_lstm_states[i],
                         require_grad=False,
@@ -181,7 +183,7 @@ class AlphaStarActor:
                 else:
                     teacher_logits = None
                 action, logits, self.lstm_states[i] = self.agents[i].compute_action(
-                    obs[i],
+                    obs_copy[i],
                     mode="evaluate",
                     prev_states=self.lstm_states[i],
                     require_grad=False,
@@ -259,6 +261,7 @@ class AlphaStarActor:
                     # trajectory buffer is full or the game is finished
                     # so the length of a trajectory may not necessay be data_push_length
                     self.data_pusher.push(job, i, data_buffer[i])
+                    d = data_buffer[i][10]
                     data_buffer[i] = []
             if done:
                 break

@@ -33,7 +33,7 @@ class EvalActor(AlphaStarActor):
         self.last_time = None
 
     def action_modifier(self, act, step):
-        if self.cfg.evaluate.get(show_system_stat, False) and self.cfg.env.use_cuda:
+        if self.cfg.evaluate.get('show_system_stat', False) and self.cfg.env.use_cuda:
             print('Max CUDA memory:{}'.format(torch.cuda.max_memory_allocated()))
 
         # Here we implement statistics and optional clipping on actions
