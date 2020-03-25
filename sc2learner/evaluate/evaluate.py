@@ -33,6 +33,9 @@ class EvalActor(AlphaStarActor):
         self.last_time = None
 
     def action_modifier(self, act, step):
+        if self.cfg.evaluate.get('show_system_stat', False) and self.cfg.env.use_cuda:
+            print('Max CUDA memory:{}'.format(torch.cuda.max_memory_allocated()))
+
         # Here we implement statistics and optional clipping on actions
         for n in range(len(act)):
             if act[n] is not None:
@@ -54,6 +57,7 @@ class EvalJobGetter:
             job = {
                 'game_type': 'game_vs_bot',
                 'model_id': ['agent0'],
+                'teacher_model_id': None,
                 'stat_id': ['agent0'],
                 'map_name': self.cfg.evaluate.map_name,
                 'random_seed': self.cfg.evaluate.seed,
@@ -63,10 +67,11 @@ class EvalJobGetter:
                 'build': self.cfg.evaluate.bot_build,
                 'data_push_length': 64,
             }
-        else:
+        elif self.cfg.evaluate.game_type == 'self_play':
             job = {
                 'game_type': 'self_play',
                 'model_id': ['agent0', 'agent1'],
+                'teacher_model_id': None,
                 'stat_id': ['agent0', 'agent1'],
                 'map_name': self.cfg.evaluate.map_name,
                 'random_seed': self.cfg.evaluate.seed,
@@ -74,6 +79,8 @@ class EvalJobGetter:
                 'away_race': self.cfg.evaluate.away_race,
                 'data_push_length': 64,
             }
+        else:
+            raise NotImplementedError('Unknown game_type')
         self.job_req_id += 1
         return job
 
@@ -89,6 +96,9 @@ class LocalModelLoader:
         helper = build_checkpoint_helper('')
         helper.load(model_path, model, prefix_op='remove', prefix='module.')
         print('loaded, time:{}'.format(time.time() - t))
+
+    def load_teacher_model(self, job, model):
+        raise NotImplementedError('Why we need teacher model for eval?')
 
 
 class LocalStatLoader:

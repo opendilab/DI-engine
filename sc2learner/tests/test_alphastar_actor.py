@@ -3,8 +3,8 @@ Test script for actor
 Example Usage:
 
     srun -p x_cerebra --gres=gpu:1 -w SH-IDC1-10-198-6-64 \
-    python3 -u -m sc2learner.worker.actor.test_alphastar_actor \
-    --config_path test.yaml --nofake_dataset
+    python3 -u -m sc2learner.tests.test_alphastar_actor \
+    --config_path test_alphastar_actor.yaml --nofake_dataset
 
 If you want to test this script in your local computer, try to run:
 
@@ -15,6 +15,7 @@ import random
 import time
 
 import yaml
+import torch
 from absl import app
 from absl import flags
 from easydict import EasyDict
@@ -60,9 +61,12 @@ class TestActor(AlphaStarActor):
         self.job_getter = DummyJobGetter(self.cfg)
         self.model_loader = DummyModelLoader(self.cfg)
         self.data_pusher = DummyDataPusher(self.cfg)
+        self.stat_requester = DummyStatLoader(self.cfg)
         self.last_time = None
 
     def action_modifier(self, act, step):
+        if self.cfg.env.use_cuda:
+            print('Max CUDA memory:{}'.format(torch.cuda.max_memory_allocated()))
         t = time.time()
         if self.last_time is not None:
             print('Time between action:{}'.format(t - self.last_time))
@@ -86,6 +90,8 @@ class DummyJobGetter:
             job = {
                 'game_type': 'game_vs_bot',
                 'model_id': 'test',
+                'teacher_model_id': 'test',
+                'stat_id': '',
                 'map_name': 'AbyssalReef',
                 'random_seed': 10,
                 'home_race': 'zerg',
@@ -98,6 +104,8 @@ class DummyJobGetter:
             job = {
                 'game_type': 'self_play',
                 'model_id': 'test',
+                'teacher_model_id': 'test',
+                'stat_id': '',
                 'map_name': 'AbyssalReef',
                 'random_seed': 10,
                 'home_race': 'zerg',
@@ -114,6 +122,9 @@ class DummyModelLoader:
     def load_model(self, job, agent_no, model):
         print('received request, job:{}, agent_no:{}'.format(str(job), agent_no))
 
+    def load_teacher_model(self, job, model):
+        pass
+
 
 class DummyDataPusher:
     def __init__(self, cfg):
@@ -121,6 +132,14 @@ class DummyDataPusher:
 
     def push(self, job, agent_no, data_buffer):
         print('pushed agent no:{} len:{}'.format(agent_no, len(data_buffer)))
+
+
+class DummyStatLoader:
+    def __init__(self, cfg):
+        self.cfg = cfg
+
+    def request_stat(self, job, agent_no):
+        return None
 
 
 def main(unused_argv):
