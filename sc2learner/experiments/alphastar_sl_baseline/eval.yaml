@@ -18,11 +18,12 @@ evaluate:
     model_path:
         agent0: '/mnt/lustre/share_data/niuyazhe/iterations_2200.pth.tar'
         agent1: '/mnt/lustre/share_data/niuyazhe/iterations_2200.pth.tar'
+    show_system_stat: True
 env:
-    use_cuda: False
+    use_cuda: True
     screen_resolution: [128, 128]
     default_step_mul: 8  # not used
-    game_steps_per_episode: 600
+    game_steps_per_episode: 2000
     disable_fog: False
     realtime: False
     use_stat: True

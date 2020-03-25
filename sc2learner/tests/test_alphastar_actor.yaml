@@ -3,9 +3,8 @@ data:
         dataloader_type: epoch  # [epoch, iter]
         trajectory_type: slide_window  # [epoch: [slide_window], iter: [sequential]]
         slide_window_step: 1
-train:
-    use_cuda: False
 env:
+    use_cuda: True
     screen_resolution: 128
     default_step_mul: 8  # not used
     game_steps_per_episode: 4320

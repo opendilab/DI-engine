@@ -123,6 +123,7 @@ class AlphaStarActor:
 
         if job['teacher_model_id']:
             # agent for evaluation of the SL model to produce the logits
+            # for human_policy_kl_loss in rl.py of AlphaStar Supp. Mat.
             self.teacher_agent = AlphaStarAgent(
                 model_config=self.cfg.model,
                 num_concurrent_episodes=1,
@@ -137,6 +138,7 @@ class AlphaStarActor:
     def _make_env(self, players):
         return AlphaStarEnv(self.cfg, players)
 
+    # this is to be overriden
     def _module_init(self):
         self.job_getter = JobGetter(self.cfg)
         self.model_loader = ModelLoader(self.cfg)
@@ -154,6 +156,9 @@ class AlphaStarActor:
         actions = [None] * self.agent_num
         for i in range(self.agent_num):
             if due[i]:
+                # self.last_state_action[i] stores the last observation, lstm state and the action of agent i
+                # once the simulation of the step is complete, this will be combined with the next observation
+                # and rewards then put into the trajectory buffer for agent i
                 self.last_state_action[i] = {
                     'agent_no': i,
                     'prev_obs': obs,
@@ -218,7 +223,17 @@ class AlphaStarActor:
                     self.env.load_stat(stat, i)
         obs = self.env.reset()
         data_buffer = [[]] * self.agent_num
-        # if True, the corresponding agent need to take action at next step
+        # Actor Logic:
+        # When a agent is due to act at game_step, it will take the obs and decide what action to do (after env delay)
+        # and when (after how many steps) should the agent be notified of newer obs and asked to act again
+        # this is done by calculating a delay (Note:different from env delay), and the game will proceed until
+        # game_step is at the time to obs and act requested by any of the agents.
+        # due[i] is set to True when agent[i] requested steps of simulation has been completed
+        # and then, agent[i] need to take its action at the next step.
+        # Agent j with due[j]==False will be skipped and its action is None
+        # It's possible that two actors are simutanously required to act
+        # but any(due) must be True, since the simulation should keep going before reaching any requested observation
+        # At the begining of the game, every agent should act and give a delay
         due = [True] * self.agent_num
         game_step = 0
         self._init_states()
@@ -241,6 +256,8 @@ class AlphaStarActor:
                     traj_data['info'] = info
                     data_buffer[i].append(traj_data)
                 if len(data_buffer[i]) >= job['data_push_length'] or done:
+                    # trajectory buffer is full or the game is finished
+                    # so the length of a trajectory may not necessay be data_push_length
                     self.data_pusher.push(job, i, data_buffer[i])
                     data_buffer[i] = []
             if done:
@@ -316,7 +333,7 @@ class StatRequester:
     def __init__(self, cfg):
         pass
 
-    def request_model(self, job, agent_no):
+    def request_stat(self, job, agent_no):
         pass
 
 

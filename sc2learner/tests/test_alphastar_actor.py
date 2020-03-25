@@ -3,8 +3,8 @@ Test script for actor
 Example Usage:
 
     srun -p x_cerebra --gres=gpu:1 -w SH-IDC1-10-198-6-64 \
-    python3 -u -m sc2learner.worker.actor.test_alphastar_actor \
-    --config_path test.yaml --nofake_dataset
+    python3 -u -m sc2learner.tests.test_alphastar_actor \
+    --config_path test_alphastar_actor.yaml --nofake_dataset
 
 If you want to test this script in your local computer, try to run:
 
@@ -15,6 +15,7 @@ import random
 import time
 
 import yaml
+import torch
 from absl import app
 from absl import flags
 from easydict import EasyDict
@@ -64,6 +65,8 @@ class TestActor(AlphaStarActor):
         self.last_time = None
 
     def action_modifier(self, act, step):
+        if self.cfg.env.use_cuda:
+            print('Max CUDA memory:{}'.format(torch.cuda.max_memory_allocated()))
         t = time.time()
         if self.last_time is not None:
             print('Time between action:{}'.format(t - self.last_time))
