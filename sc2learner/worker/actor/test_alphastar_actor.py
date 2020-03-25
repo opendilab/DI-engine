@@ -60,6 +60,7 @@ class TestActor(AlphaStarActor):
         self.job_getter = DummyJobGetter(self.cfg)
         self.model_loader = DummyModelLoader(self.cfg)
         self.data_pusher = DummyDataPusher(self.cfg)
+        self.stat_requester = DummyStatLoader(self.cfg)
         self.last_time = None
 
     def action_modifier(self, act, step):
@@ -86,6 +87,8 @@ class DummyJobGetter:
             job = {
                 'game_type': 'game_vs_bot',
                 'model_id': 'test',
+                'teacher_model_id': 'test',
+                'stat_id': '',
                 'map_name': 'AbyssalReef',
                 'random_seed': 10,
                 'home_race': 'zerg',
@@ -98,6 +101,8 @@ class DummyJobGetter:
             job = {
                 'game_type': 'self_play',
                 'model_id': 'test',
+                'teacher_model_id': 'test',
+                'stat_id': '',
                 'map_name': 'AbyssalReef',
                 'random_seed': 10,
                 'home_race': 'zerg',
@@ -114,6 +119,9 @@ class DummyModelLoader:
     def load_model(self, job, agent_no, model):
         print('received request, job:{}, agent_no:{}'.format(str(job), agent_no))
 
+    def load_teacher_model(self, job, model):
+        pass
+
 
 class DummyDataPusher:
     def __init__(self, cfg):
@@ -121,6 +129,14 @@ class DummyDataPusher:
 
     def push(self, job, agent_no, data_buffer):
         print('pushed agent no:{} len:{}'.format(agent_no, len(data_buffer)))
+
+
+class DummyStatLoader:
+    def __init__(self, cfg):
+        self.cfg = cfg
+
+    def request_stat(self, job, agent_no):
+        return None
 
 
 def main(unused_argv):

@@ -130,11 +130,12 @@ class AlphaStarAgent(BaseAgent):
         """
         # FIXME(pzh) remove all 'mode' in any part of the model. it's too counter-intuitive
         assert mode in ["mimic", "evaluate"]
-        assert PREV_STATE not in step_data
+        assert PREV_STATE not in step_data, 'this property will be overwriten, use prev_states arg'
         assert len(step_data["entity_info"]) <= self.num_concurrent_episodes
 
         # if the outer caller indicates the prev_states then use the value, otherwise agent will record
         # the prev_states for each episode, which is supoorted by field `start_step` and `end_index` in step_data
+        step_data = step_data.copy()
         if prev_states == 'no_outer_states':
             step_data[PREV_STATE] = self._before_forward(step_data["end_index"])
         else:
