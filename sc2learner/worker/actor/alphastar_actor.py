@@ -261,7 +261,6 @@ class AlphaStarActor:
                     # trajectory buffer is full or the game is finished
                     # so the length of a trajectory may not necessay be data_push_length
                     self.data_pusher.push(job, i, data_buffer[i])
-                    d = data_buffer[i][10]
                     data_buffer[i] = []
             if done:
                 break
