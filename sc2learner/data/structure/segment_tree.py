@@ -10,9 +10,9 @@ class SegmentTree(object):
             if operation is sum:
                 neutral_element = 0.
             elif operation is min:
-                neutral_element = -np.inf
-            elif operation is max:
                 neutral_element = np.inf
+            elif operation is max:
+                neutral_element = -np.inf
         self.neutral_element = neutral_element
         self.value = [self.neutral_element for _ in range(2 * capacity)]
 
