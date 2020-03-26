@@ -1,62 +1,148 @@
 import numpy as np
+from .segment_tree import SumSegmentTree, MinSegmentTree
 
 
-class BaseBuffer(object):
-    def __init__(self, maxlen, max_reuse=None, min_sample_ratio=1.):
+class PrioritizedBuffer(BaseBuffer):
+    '''
+    Interfacce: __init__, append, extend, sample, update
+    '''
+    def __init__(self, maxlen, max_reuse=None, min_sample_ratio=1., alpha=0., beta=0.):
         '''
         Arguments:
             - maxlen (:obj:`int`): the maximum value of the buffer length
             - max_reuse (:obj:`int` or None): the maximum reuse times of each element in buffer
             - min_sample_ratio (:obj:`float`) : the minimum ratio of the current element size in buffer
                                                 divides sample size
+            - alpha (:obj:`float`): how much prioritization is used(0: no prioritization, 1: full prioritization)
+            - beta (:obj:`float`):
         '''
-        self.maxlen = maxlen
+        # TODO(nyz) remove elements according to priority
+        self._maxlen = maxlen
         self._data = [None for _ in range(maxlen)]
         self._reuse_count = [0 for _ in range(maxlen)]
-        self._valid = []
+
         self.max_reuse = max_reuse if max_reuse is not None else np.inf
         assert (min_sample_ratio >= 1)
         self.min_sample_ratio = min_sample_ratio
+        assert (0 <= alpha <= 1)
+        self.alpha = alpha
+        assert (0 <= beta <= 1)
+        capacity = int(np.power(2, np.ceil(np.log2(self.maxlen))))
+        self.sum_tree = SumSegmentTree(capacity)
+        self.use_priority = np.fabs(alpha) > 1e-4
+        if self.use_priority:  # for simplifying runtime execution of the no priority buffer
+            self.min_tree = MinSegmentTree(capacity)
+
+        self.max_priority = 1.0
+        self.valid_count = 0
         self.pointer = 0
+        self.data_id = 0
+
+        self.check_list = [lambda x: isinstance(x, dict)]
+
+    def _set_weight(self, idx, data):
+        if 'priority' not in data.keys() or data['priority'] is None:
+            data['priority'] = self.max_priority
+        weight = data['priority']**self.alpha
+        self.sum_tree[idx] = weight
+        if self.use_priority:
+            self.min_tree[idx] = weight
+
+    def _get_IS(self):
+        '''
+        Note: get the importance sampling weight for gradient step
+        '''
+        # TODO(nyz)
+        pass
+
+    def sample(self, size):
+        '''
+        Returns:
+            - sample_batch (:obj:`list`): each data owns keys:
+                original data keys + ['IS', 'priority', 'replay_buffer_id', 'replay_buffer_idx]'
+        '''
+        self._sample_check(size)
+        indices = self._get_indices(size)
+        return self._sample_with_indices(indices)
 
     def append(self, data):
+        assert (self._data_check(data))
+        data['replay_buffer_id'] = self.data_id
+        data['replay_buffer_idx'] = self.pointer
+        self._set_weight(self.pointer, data)
         self._data[self.pointer] = data
         self._reuse_count[self.pointer] = 0
-        self._valid.append(self.pointer)
-        self.pointer = (self.pointer + 1) % self.maxlen
+        self.pointer = (self.pointer + 1) % self._maxlen
+        self.valid_count += 1
+        self.data_id += 1
 
     def extend(self, data):
+        assert (all([self._data_check(d) for d in data]))
         L = len(data)
-        if self.pointer + L <= self.maxlen:
+        for i in range(L):
+            data[i]['replay_buffer_id'] = self.data_id + i
+            data[i]['replay_buffer_idx'] = (self.pointer + i) % self.maxlen
+            self._set_weight((self.pointer + i) % self.maxlen, data[i])
+
+        if self.pointer + L <= self._maxlen:
             self._data[self.pointer:self.pointer + L] = data
             self._reuse_count[self.pointer:self.pointer + L] = [0 for _ in range(L)]
             self._valid.extend([i for i in range(self.pointer, self.pointer + L)])
         else:
-            mid = self.maxlen - self.pointer
+            mid = self._maxlen - self.pointer
             self._data[self.pointer:self.pointer + mid] = data[:mid]
             self._data[:L - mid] = data[mid:]
             self._reuse_count[self.pointer:self.pointer + mid] = [0 for _ in range(mid)]
             self._reuse_count[:L - mid] = [0 for _ in range(L - mid)]
-            self._valid.extend([(i % self.maxlen) for i in range(self.pointer, self.pointer + L)])
+            self._valid.extend([(i % self._maxlen) for i in range(self.pointer, self.pointer + L)])
 
-        self.pointer = (self.pointer + L) % self.maxlen
+        self.pointer = (self.pointer + L) % self._maxlen
+        self.valid_count += L
+        self.data_id += L
 
-    def sample(self, size):
-        if len(self._valid) / size < self.min_sample_ratio:
+    def update(self, info):
+        for id, idx, priority in zip(*info.values()):
+            if self._data[idx]['replay_buffer_id'] == id:  # confirm the same transition
+                assert priority > 0
+                self._data[idx]['priority'] = priority
+                self._set_weight(idx, self._data[idx])
+                self.max_priority = max(self.max_priority, priority)
+
+    def _data_check(self, d):
+        return all([fn(d) for fn in self.check_list])
+
+    def _get_indices(self, size):
+        # average divide size intervals and sample from them
+        intervals = np.array([i * 1.0 / size for i in range(size)])
+        mass = intervals + np.random.uniform(size=(size, )) * 1. / size
+        mass *= self.sum_tree.reduce()
+        return [self.sum_tree.find_prefixsum_idx(m) for m in mass]
+
+    def _sample_check(self, size):
+        if self.valid_count / size < self.min_sample_ratio:
             raise Exception(
                 "no enough element for sample(expect: {}/current have: {}, min_sample_ratio: {})".format(
-                    size, len(self._valid, self.min_sample_ratio)
+                    size, self.valid_count, self.min_sample_ratio
                 )
             )
 
-        valid_indices = np.random.choice(self._valid, size, replace=False)
-        data_indices = []
-        for idx in valid_indices:
-            data_idx = self._valid[idx]
-            data_indices.append(self._data[data_idx])
-            self._reuse_count[data_idx] += 1
+    def _sample_with_indices(self, indices):
+        data = []
+        for idx in indices:
+            data.append(self._data[idx])
+            self._reuse_count[idx] += 1
             # remove the item which reuse is bigger than max_reuse
-            if self._reuse_count[data_idx] > self.max_reuse:
-                self._data[data_idx] = None
-                del self._valid[idx]
-        return data_indices
+            if self._reuse_count[idx] > self.max_reuse:
+                self._data[idx] = None
+                self.sum_tree[idx] = 0.
+                self.min_tree[idx] = 0.
+                self.valid_count -= 1
+        return data
+
+    @property
+    def maxlen(self):
+        return self._maxlen
+
+    @property
+    def validlen(self):
+        return self.valid_count
