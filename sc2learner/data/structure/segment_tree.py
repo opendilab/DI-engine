@@ -23,6 +23,7 @@ class SegmentTree(object):
         '''
         if end is None:
             end = self.capacity
+        assert (start < end)
 
         start += self.capacity
         end += self.capacity
@@ -30,11 +31,11 @@ class SegmentTree(object):
 
         while start < end:
             if start & 1:
-                result = self.operation(result, self.value[start])
+                result = self.operation([result, self.value[start]])
                 start += 1
             if end & 1:
                 end -= 1
-                result = self.operation(result, self.value[end])
+                result = self.operation([result, self.value[end]])
 
             start = start >> 1
             end = end >> 1
@@ -48,7 +49,7 @@ class SegmentTree(object):
         idx = idx >> 1  # transform to father node idx
         while idx >= 1:
             child_base = 2 * idx
-            self.value[idx] = self.operation(self.value[child_base], self.value[child_base + 1])
+            self.value[idx] = self.operation([self.value[child_base], self.value[child_base + 1]])
             idx = idx >> 1
 
     def __getitem__(self, idx):

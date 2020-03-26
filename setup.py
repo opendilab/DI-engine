@@ -59,15 +59,15 @@ setup(
         'pysc2.tests',
         'sc2learner',
         'sc2learner.agent',
+        'sc2learner.data',
         'sc2learner.envs',
         'sc2learner.optimizer',
         'sc2learner.utils',
         'sc2learner.train',
-        'sc2learner.nn_utils',
-        'sc2learner.tools',
         'sc2learner.torch_utils',
         'sc2learner.worker',
         'sc2learner.rl_utils',
+        'sc2learner.scripts'
     ],
     install_requires=[
         'absl-py>=0.1.0',
@@ -98,7 +98,8 @@ setup(
         'opencv-python',
         'tensorboardX',
         'matplotlib',
-        'yapf==0.29.0'
+        'yapf==0.29.0',
+        'pytest',
     ],
     entry_points={
         'console_scripts': [
