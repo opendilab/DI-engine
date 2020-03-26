@@ -45,5 +45,5 @@ class BaseBuffer(object):
             # remove the item which reuse is bigger than reuse_max_limit
             if self._reuse_count[data_idx] > self.reuse_max_limit:
                 self._data[data_idx] = None
-                self._valid.remove(idx)  # TODO(nyz) select better container for self._valid
+                del self._valid[idx]
         return data_indices
