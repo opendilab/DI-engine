@@ -1,8 +1,9 @@
 import numpy as np
+import copy
 from .segment_tree import SumSegmentTree, MinSegmentTree
 
 
-class PrioritizedBuffer(BaseBuffer):
+class PrioritizedBuffer(object):
     '''
     Interfacce: __init__, append, extend, sample, update
     '''
@@ -17,6 +18,7 @@ class PrioritizedBuffer(BaseBuffer):
             - beta (:obj:`float`):
         '''
         # TODO(nyz) remove elements according to priority
+        # TODO(nyz) whether use Lock
         self._maxlen = maxlen
         self._data = [None for _ in range(maxlen)]
         self._reuse_count = [0 for _ in range(maxlen)]
@@ -48,22 +50,34 @@ class PrioritizedBuffer(BaseBuffer):
         if self.use_priority:
             self.min_tree[idx] = weight
 
-    def _get_IS(self):
+    def _get_IS(self, data):
         '''
         Note: get the importance sampling weight for gradient step
         '''
-        # TODO(nyz)
-        pass
+        if self.use_priority:
+            sum_tree_root = self.sum_tree.reduce()
+            p_min = self.min_tree.reduce() / sum_tree_root
+            max_weight = (self.valid_count * p_min)**(-self.beta)
+            for d in data:
+                p_sample = self.sum_tree[d['replay_buffer_idx']] / sum_tree_root
+                weight = (self.valid_count * p_sample)**(-self.beta)
+                d['IS'] = weight / max_weight
+        else:
+            for d in data:
+                d['IS'] = 1.0
+        return data
 
     def sample(self, size):
         '''
         Returns:
-            - sample_batch (:obj:`list`): each data owns keys:
+            - sample_data (:obj:`list`): each data owns keys:
                 original data keys + ['IS', 'priority', 'replay_buffer_id', 'replay_buffer_idx]'
         '''
         self._sample_check(size)
         indices = self._get_indices(size)
-        return self._sample_with_indices(indices)
+        sample_data = self._sample_with_indices(indices)
+        sample_data = self._get_IS(sample_data)
+        return sample_data
 
     def append(self, data):
         assert (self._data_check(data))
@@ -129,7 +143,7 @@ class PrioritizedBuffer(BaseBuffer):
     def _sample_with_indices(self, indices):
         data = []
         for idx in indices:
-            data.append(self._data[idx])
+            data.append(copy.deepcopy(self._data[idx]))
             self._reuse_count[idx] += 1
             # remove the item which reuse is bigger than max_reuse
             if self._reuse_count[idx] > self.max_reuse:
