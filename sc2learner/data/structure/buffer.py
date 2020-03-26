@@ -2,12 +2,21 @@ import numpy as np
 
 
 class BaseBuffer(object):
-    def __init__(self, maxlen, reuse_max_limit=None):
+    def __init__(self, maxlen, max_reuse=None, min_sample_ratio=1.):
+        '''
+        Arguments:
+            - maxlen (:obj:`int`): the maximum value of the buffer length
+            - max_reuse (:obj:`int` or None): the maximum reuse times of each element in buffer
+            - min_sample_ratio (:obj:`float`) : the minimum ratio of the current element size in buffer
+                                                divides sample size
+        '''
         self.maxlen = maxlen
         self._data = [None for _ in range(maxlen)]
         self._reuse_count = [0 for _ in range(maxlen)]
         self._valid = []
-        self.reuse_max_limit = reuse_max_limit if reuse_max_limit is not None else np.inf
+        self.max_reuse = max_reuse if max_reuse is not None else np.inf
+        assert (min_sample_ratio >= 1)
+        self.min_sample_ratio = min_sample_ratio
         self.pointer = 0
 
     def append(self, data):
@@ -33,8 +42,12 @@ class BaseBuffer(object):
         self.pointer = (self.pointer + L) % self.maxlen
 
     def sample(self, size):
-        if size > len(self._valid):
-            raise Exception("no enough element for sample(expect: {}/current have: {})".format(size, len(self._valid)))
+        if len(self._valid) / size < self.min_sample_ratio:
+            raise Exception(
+                "no enough element for sample(expect: {}/current have: {}, min_sample_ratio: {})".format(
+                    size, len(self._valid, self.min_sample_ratio)
+                )
+            )
 
         valid_indices = np.random.choice(self._valid, size, replace=False)
         data_indices = []
@@ -42,8 +55,8 @@ class BaseBuffer(object):
             data_idx = self._valid[idx]
             data_indices.append(self._data[data_idx])
             self._reuse_count[data_idx] += 1
-            # remove the item which reuse is bigger than reuse_max_limit
-            if self._reuse_count[data_idx] > self.reuse_max_limit:
+            # remove the item which reuse is bigger than max_reuse
+            if self._reuse_count[data_idx] > self.max_reuse:
                 self._data[data_idx] = None
                 del self._valid[idx]
         return data_indices
