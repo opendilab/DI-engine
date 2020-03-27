@@ -100,6 +100,7 @@ setup(
         'matplotlib',
         'yapf==0.29.0',
         'pytest',
+        #'pytest-xdist',
     ],
     entry_points={
         'console_scripts': [
