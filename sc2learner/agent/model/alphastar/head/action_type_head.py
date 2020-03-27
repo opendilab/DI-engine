@@ -66,7 +66,8 @@ class ActionTypeHead(nn.Module):
         x = self.project(lstm_output)  # embeds lstm_output into a 1D tensor of size of res_dim, use 256 as default
         x = self.res(x)  # passes x through 16 ResBlocks with layer normalization and ReLU
         x = self.action_fc(x)  # fc for action type without normalization
-        x -= (1 - action_type_mask) * 1e9
+        if self.cfg.use_mask:
+            x -= (1 - action_type_mask) * 1e9
         if action_type is None:
             x = F.softmax(x.div(temperature), dim=1)
             handle = self.pd(x)
