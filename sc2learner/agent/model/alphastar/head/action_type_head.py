@@ -94,7 +94,7 @@ def test_action_type_head():
             self.input_dim = 384
             self.res_dim = 256
             self.res_num = 16
-            self.action_num = 329
+            self.action_num = 327
             self.action_map_dim = 256
             self.gate_dim = 1024
             self.context_dim = 120

@@ -98,16 +98,20 @@ class Policy(nn.Module):
                 action_attr[k].append(action_info_hard_craft[k])
         return action_attr, action_arg_mask
 
-    def _action_type_forward(self, lstm_output, scalar_context, temperature, action_type=None):
+    def _action_type_forward(self, lstm_output, scalar_context, action_type_mask, temperature, action_type=None):
         kwargs = {
             'lstm_output': lstm_output,
             'scalar_context': scalar_context,
+            'action_type_mask': action_type_mask,
             'temperature': temperature,
             'action_type': action_type
         }
         if 'action_type_head' in self.head.keys():
             return self.head['action_type_head'](**kwargs)
         elif 'base_action_type_head' in self.head.keys() and 'spec_action_type_head' in self.head.keys():
+            # get part action mask
+            base_action_type_mask = action_type_mask[:, list(PART_ACTIONS_MAP['base'].keys())]
+            spec_action_type_mask = action_type_mask[:, list(PART_ACTIONS_MAP['spec'].keys())]
             if action_type is not None:
                 base_action_type = action_type.clone()
                 spec_action_type = action_type.clone()
@@ -124,11 +128,15 @@ class Policy(nn.Module):
                         base_action_type[idx] = 0
                 # double head forward
                 kwargs['action_type'] = base_action_type
+                kwargs['action_type_mask'] = base_action_type_mask
                 base_logits, base_action_type, base_embeddings = self.head['base_action_type_head'](**kwargs)
                 kwargs['action_type'] = spec_action_type
+                kwargs['action_type_mask'] = spec_action_type_mask
                 spec_logits, spec_action_type, spec_embeddings = self.head['spec_action_type_head'](**kwargs)
             else:
+                kwargs['action_type_mask'] = base_action_type_mask
                 base_logits, base_action_type, base_embeddings = self.head['base_action_type_head'](**kwargs)
+                kwargs['action_type_mask'] = spec_action_type_mask
                 spec_logits, spec_action_type, spec_embeddings = self.head['spec_action_type_head'](**kwargs)
             # to total action type id
             for idx, val in enumerate(base_action_type):

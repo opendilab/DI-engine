@@ -30,7 +30,7 @@ model:
                 input_dim: 384  # core.hidden_size
                 res_dim: 256
                 res_num: 16
-                action_num: 323
+                action_num: 322
                 action_map_dim: 256
                 gate_dim: 1024
                 context_dim: 256  # use_stat(True: 256, False: 128)
