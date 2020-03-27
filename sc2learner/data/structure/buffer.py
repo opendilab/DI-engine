@@ -15,7 +15,7 @@ class PrioritizedBuffer(object):
             - min_sample_ratio (:obj:`float`) : the minimum ratio of the current element size in buffer
                                                 divides sample size
             - alpha (:obj:`float`): how much prioritization is used(0: no prioritization, 1: full prioritization)
-            - beta (:obj:`float`):
+            - beta (:obj:`float`): how much correction is used(0: no correction, 1: full correction)
         '''
         # TODO(nyz) remove elements according to priority
         # TODO(nyz) whether use Lock
@@ -29,6 +29,7 @@ class PrioritizedBuffer(object):
         assert (0 <= alpha <= 1)
         self.alpha = alpha
         assert (0 <= beta <= 1)
+        self._beta = beta
         capacity = int(np.power(2, np.ceil(np.log2(self.maxlen))))
         self.sum_tree = SumSegmentTree(capacity)
         self.use_priority = np.fabs(alpha) > 1e-4
@@ -57,10 +58,10 @@ class PrioritizedBuffer(object):
         if self.use_priority:
             sum_tree_root = self.sum_tree.reduce()
             p_min = self.min_tree.reduce() / sum_tree_root
-            max_weight = (self.valid_count * p_min)**(-self.beta)
+            max_weight = (self.valid_count * p_min)**(-self._beta)
             for d in data:
                 p_sample = self.sum_tree[d['replay_buffer_idx']] / sum_tree_root
-                weight = (self.valid_count * p_sample)**(-self.beta)
+                weight = (self.valid_count * p_sample)**(-self._beta)
                 d['IS'] = weight / max_weight
         else:
             for d in data:
@@ -80,42 +81,47 @@ class PrioritizedBuffer(object):
         return sample_data
 
     def append(self, data):
-        assert (self._data_check(data))
+        try:
+            assert (self._data_check(data))
+        except AssertionError:
+            return
+        if self._data[self.pointer] is None:
+            self.valid_count += 1
         data['replay_buffer_id'] = self.data_id
         data['replay_buffer_idx'] = self.pointer
         self._set_weight(self.pointer, data)
         self._data[self.pointer] = data
         self._reuse_count[self.pointer] = 0
         self.pointer = (self.pointer + 1) % self._maxlen
-        self.valid_count += 1
         self.data_id += 1
 
     def extend(self, data):
-        assert (all([self._data_check(d) for d in data]))
-        L = len(data)
+        check_result = [self._data_check(d) for d in data]
+        valid_data = [d for d, flag in zip(data, check_result) if flag]
+        L = len(valid_data)
         for i in range(L):
-            data[i]['replay_buffer_id'] = self.data_id + i
-            data[i]['replay_buffer_idx'] = (self.pointer + i) % self.maxlen
-            self._set_weight((self.pointer + i) % self.maxlen, data[i])
+            valid_data[i]['replay_buffer_id'] = self.data_id + i
+            valid_data[i]['replay_buffer_idx'] = (self.pointer + i) % self.maxlen
+            self._set_weight((self.pointer + i) % self.maxlen, valid_data[i])
+            if self._data[(self.pointer + i) % self.maxlen] is None:
+                self.valid_count += 1
 
         if self.pointer + L <= self._maxlen:
-            self._data[self.pointer:self.pointer + L] = data
+            self._data[self.pointer:self.pointer + L] = valid_data
             self._reuse_count[self.pointer:self.pointer + L] = [0 for _ in range(L)]
-            self._valid.extend([i for i in range(self.pointer, self.pointer + L)])
         else:
             mid = self._maxlen - self.pointer
-            self._data[self.pointer:self.pointer + mid] = data[:mid]
-            self._data[:L - mid] = data[mid:]
+            self._data[self.pointer:self.pointer + mid] = valid_data[:mid]
+            self._data[:L - mid] = valid_data[mid:]
             self._reuse_count[self.pointer:self.pointer + mid] = [0 for _ in range(mid)]
             self._reuse_count[:L - mid] = [0 for _ in range(L - mid)]
-            self._valid.extend([(i % self._maxlen) for i in range(self.pointer, self.pointer + L)])
 
         self.pointer = (self.pointer + L) % self._maxlen
-        self.valid_count += L
         self.data_id += L
 
     def update(self, info):
-        for id, idx, priority in zip(*info.values()):
+        data = [info['replay_buffer_id'], info['replay_buffer_idx'], info['priority']]
+        for id, idx, priority in zip(*data):
             if self._data[idx]['replay_buffer_id'] == id:  # confirm the same transition
                 assert priority > 0
                 self._data[idx]['priority'] = priority
@@ -149,7 +155,8 @@ class PrioritizedBuffer(object):
             if self._reuse_count[idx] > self.max_reuse:
                 self._data[idx] = None
                 self.sum_tree[idx] = 0.
-                self.min_tree[idx] = 0.
+                if self.use_priority:
+                    self.min_tree[idx] = 0.
                 self.valid_count -= 1
         return data
 
@@ -160,3 +167,11 @@ class PrioritizedBuffer(object):
     @property
     def validlen(self):
         return self.valid_count
+
+    @property
+    def beta(self):
+        return self._beta
+
+    @beta.setter
+    def beta(self, beta):
+        self._beta = beta
