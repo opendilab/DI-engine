@@ -25,7 +25,8 @@ class AlphaStarEnv(SC2Env):
         agent_interface_format = sc2_env.parse_agent_interface_format(
             feature_screen=cfg.env.screen_resolution,
             feature_minimap=self.map_size,  # x, y
-            raw_crop_to_playable_area=cfg.env.crop_map_to_playable_area
+            raw_crop_to_playable_area=cfg.env.crop_map_to_playable_area,
+            action_delays=cfg.env.get('action_delays')
         )
 
         self.agent_num = sum([isinstance(p, sc2_env.Agent) for p in players])
@@ -84,10 +85,6 @@ class AlphaStarEnv(SC2Env):
         return obs
 
     def _merge_action(self, obs, last_action, add_dim=True):
-        if isinstance(last_action['action_type'], torch.Tensor):
-            for index, item in enumerate(last_action['action_type']):
-                last_action['action_type'][index] = ACTIONS_REORDER_INV[item.item()]
-
         last_action_type = last_action['action_type']
         last_delay = last_action['delay']
         last_queued = last_action['queued']
@@ -124,6 +121,7 @@ class AlphaStarEnv(SC2Env):
         return obs
 
     def _get_obs(self, obs, last_actions, agent_no):
+        # post process observations returned from sc2env
         if 'enemy_upgrades' not in obs.keys():
             obs['enemy_upgrades'] = np.array([0])
         entity_info, entity_raw = self.entity_wrapper.parse(obs)
@@ -142,7 +140,8 @@ class AlphaStarEnv(SC2Env):
             new_obs = get_available_actions_processed_data(new_obs)
         return new_obs
 
-    def _get_action(self, actions):
+    def _transform_action(self, actions):
+        actions = copy.deepcopy(actions)
         # tensor2value
         for k, v in actions.items():
             if isinstance(v, torch.Tensor):
@@ -152,8 +151,17 @@ class AlphaStarEnv(SC2Env):
                     actions[k] = v.tolist()
                 elif k in ['queued', 'delay']:
                     actions[k] = v.item()
+                elif k == 'action_entity_raw':
+                    pass
                 else:
                     raise KeyError("invalid key:{}".format(k))
+        # action unit id transform
+        for k in ['selected_units', 'target_units']:
+            if actions[k] is not None:
+                unit_ids = []
+                for unit in actions[k]:
+                    unit_ids.append(actions['action_entity_raw'][unit]['id'])
+                actions[k] = unit_ids
         # action target location transform
         target_location = actions['target_location']
         if target_location is not None:
@@ -161,10 +169,10 @@ class AlphaStarEnv(SC2Env):
             y = target_location[0]
             y = self.map_size[1] - y
             actions['target_location'] = [x, y]
-        # TODO(nyz) cur_action support 2 agent
-        self._cur_actions = self.action_to_string(actions)
-        self._cur_action_type = actions['action_type']
+        return actions
 
+    def _get_action(self, actions):
+        # Covert network output to pysc2 FunctionCalls
         action_type = actions['action_type']
         delay = actions['delay']
         arg_keys = ['queued', 'selected_units', 'target_units', 'target_location']
@@ -178,7 +186,7 @@ class AlphaStarEnv(SC2Env):
             - actions: list of actions for each agent, length should be the number of agents
             if an agent don't want to act this time, the action should be set to None
         Return:
-            - step: actually how many steps are forwarded during this call
+            - step: total game steps after this call
             - due: list of bool telling which agents should take the next action
             - obs: list of ob dicts for two agents after taking action
             - rewards: win/loss reward
@@ -186,34 +194,36 @@ class AlphaStarEnv(SC2Env):
             - info
         """
         assert (self._reset_flag)
-        transformed_actions = [None] * self.agent_num
+        sc2_actions = [None] * self.agent_num
         for n in range(self.agent_num):
             action = actions[n]
             if action is not None:
-                t, d = self._get_action(action)
-                transformed_actions[n] = t
+                transformed_action = self._transform_action(action)
+                t, d = self._get_action(transformed_action)
+                sc2_actions[n] = t
                 self._next_obs[n] = self._episode_steps + d
-                self.last_actions[n] = action
+                self.last_actions[n] = transformed_action
             else:
-                transformed_actions[n] = []
+                sc2_actions[n] = []
         step_mul = min(self._next_obs) - self._episode_steps
         if step_mul == 0:
             # repeat last observation and store last action
             # at least one agent requested by returning zero delay
             for n in range(self.agent_num):
-                if transformed_actions[n]:
-                    self._buffered_actions[n].append(transformed_actions[n])
+                if sc2_actions[n]:
+                    self._buffered_actions[n].append(sc2_actions[n])
             _, _, obs, rewards, done, info = self._last_output
             for n in range(self.agent_num):
                 obs[n] = self._merge_action(obs[n], self.last_actions[n], add_dim=False)
             due = [s <= self._episode_steps for s in self._next_obs]
         else:
             for n in range(self.agent_num):
-                if transformed_actions[n]:
-                    transformed_actions[n] = self._buffered_actions[n] + [transformed_actions[n]]
-            assert (any(transformed_actions))
+                if sc2_actions[n]:
+                    # append buffered actions to current actions list
+                    sc2_actions[n] = self._buffered_actions[n] + [sc2_actions[n]]
+            assert (any(sc2_actions))
             assert (step_mul >= 0), 'Some agent requested negative delay!'
-            timesteps = super().step(transformed_actions, step_mul=step_mul)
+            timesteps = super().step(sc2_actions, step_mul=step_mul)
             due = [s <= self._episode_steps for s in self._next_obs]
             assert (any(due))
             self._buffered_actions = [[]] * self.agent_num
@@ -228,10 +238,10 @@ class AlphaStarEnv(SC2Env):
                     _, rewards[n], _, o, info[n] = timestep
                     assert (self.last_actions[n])
                     obs[n] = self._get_obs(o, self.last_actions[n], n)
-            self._last_output = [step_mul, due, obs, rewards, done, info]
+            self._last_output = [self._episode_steps, due, obs, rewards, done, info]
         # as obs may be changed somewhere in parsing
         # we have to return a copy to keep the self._last_ouput intact
-        return step_mul, due, copy.deepcopy(obs), rewards, done, info
+        return self._episode_steps, due, copy.deepcopy(obs), rewards, done, info
 
     def reset(self):
         timesteps = super().reset()
@@ -243,9 +253,6 @@ class AlphaStarEnv(SC2Env):
             'target_units': None,
             'target_location': None
         }
-        # TODO(nyz) cur_action support 2 agent
-        self._cur_actions = self.action_to_string(last_action)
-        self._cur_action_type = last_action['action_type']
         self.last_actions = [last_action] * self.agent_num
         obs = []
         for n in range(self.agent_num):
@@ -266,16 +273,22 @@ class AlphaStarEnv(SC2Env):
         self._last_output = [0, [True] * self.agent_num, obs, [0] * self.agent_num, False, infos]
         return copy.deepcopy(obs)
 
-    @property
-    def cur_actions(self):
-        return self._cur_actions
-
-    @property
-    def cur_action_type(self):
-        return self._cur_action_type
-
-    def action_to_string(self, actions):
+    def transformed_action_to_string(self, action):
         return '[Action: type({}) delay({}) queued({}) selected_units({}) target_units({}) target_location({})]'.format(
-            actions['action_type'], actions['delay'], actions['queued'], actions['selected_units'],
-            actions['target_units'], actions['target_location']
+            action['action_type'], action['delay'], action['queued'], action['selected_units'], action['target_units'],
+            action['target_location']
         )
+
+    def action_to_string(self, action):
+        # producing human readable debug output from network output
+        if action is None:
+            return 'None'
+        action = self._transform_action(action)
+        return self.transformed_action_to_string(action)
+
+    def get_action_type(self, action):
+        # get transformed action type from network output
+        if action is None:
+            return None
+        action = self._transform_action(action)
+        return action['action_type']

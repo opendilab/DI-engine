@@ -9,6 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from sc2learner.torch_utils import build_activation, ResFCBlock, fc_block, one_hot
 from sc2learner.torch_utils import CategoricalPdPytorch
+from pysc2.lib.static_data import PART_ACTIONS_MAP_INV
 
 
 class ActionTypeHead(nn.Module):
@@ -24,6 +25,7 @@ class ActionTypeHead(nn.Module):
                 - cfg (:obj:`dict`): head architecture definition
         '''
         super(ActionTypeHead, self).__init__()
+        self.cfg = cfg
         self.act = build_activation(cfg.activation)  # use relu as default
         self.project = fc_block(cfg.input_dim, cfg.res_dim, activation=self.act, norm_type=cfg.norm_type)
         blocks = [ResFCBlock(cfg.res_dim, cfg.res_dim, self.act, cfg.norm_type) for _ in range(cfg.res_num)]
@@ -36,7 +38,7 @@ class ActionTypeHead(nn.Module):
         self.glu2 = build_activation('glu')(cfg.input_dim, cfg.gate_dim, cfg.context_dim)
         self.action_num = cfg.action_num
 
-    def forward(self, lstm_output, scalar_context, action_type_mask, temperature=1.0, action=None):
+    def forward(self, lstm_output, scalar_context, action_type_mask, temperature=1.0, action_type=None):
         '''
             Overview: This head embeds lstm_output into a 1D tensor of size 256, passes it through 16 ResBlocks
                       with layer normalization each of size 256, and applies a ReLU. The output is converted to
@@ -54,7 +56,7 @@ class ActionTypeHead(nn.Module):
                                                   cumulative_statistics, beginning_build_order
                 - action_type_mask (:obj:`tensor`): 0-1 value tensor contains available action type
                 - temperature (:obj:`float`): sampling temperature for action in case action input is None
-                - action (:obj:`tensor`): Action type, of size [1]
+                - action_type (:obj:`tensor`): Action type, of size [1]
             Returns:
                 - (:obj`tensor`): action_type_logits corresponding to the probabilities of taking each action
                 - (:obj`tensor`): action_type sampled from the action_type_logits
@@ -65,7 +67,7 @@ class ActionTypeHead(nn.Module):
         x = self.res(x)  # passes x through 16 ResBlocks with layer normalization and ReLU
         x = self.action_fc(x)  # fc for action type without normalization
         x -= (1 - action_type_mask) * 1e9
-        if action is None:
+        if action_type is None:
             x = F.softmax(x.div(temperature), dim=1)
             handle = self.pd(x)
             # action_type is sampled from these logits using a multinomial with temperature 0.8.
@@ -77,13 +79,13 @@ class ActionTypeHead(nn.Module):
                 action = handle.mode()
 
         # to get autoregressive_embedding
-        action_one_hot = one_hot(action, self.action_num)  # one-hot version of action_type
+        action_one_hot = one_hot(action_type, self.action_num)  # one-hot version of action_type
         embedding1 = self.action_map_fc(action_one_hot)
         embedding1 = self.glu1(embedding1, scalar_context)
         embedding2 = self.glu2(lstm_output, scalar_context)
         embedding = embedding1 + embedding2
 
-        return x, action, embedding
+        return x, action_type, embedding
 
 
 def test_action_type_head():
@@ -92,7 +94,7 @@ def test_action_type_head():
             self.input_dim = 384
             self.res_dim = 256
             self.res_num = 16
-            self.action_num = 314
+            self.action_num = 329
             self.action_map_dim = 256
             self.gate_dim = 1024
             self.context_dim = 120

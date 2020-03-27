@@ -3,20 +3,22 @@ data:
         dataloader_type: epoch  # [epoch, iter]
         trajectory_type: slide_window  # [epoch: [slide_window], iter: [sequential]]
         slide_window_step: 1
-train:
-    use_cuda: False
 env:
+    use_cuda: True
     screen_resolution: 128
     default_step_mul: 8  # not used
     game_steps_per_episode: 4320
     disable_fog: False
     realtime: True
+    temperature: 1.0
+    crop_map_to_playable_area: False
+    action_delays: null
 
 rl_train:
     data_push_length: 64
     use_global_cumulative_stat: True
     use_available_action_transform: True
-    use_stat: True
+    use_stat: False
     beginning_build_order_num: 20
     temperature: 0.8
 
