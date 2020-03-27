@@ -30,7 +30,7 @@ class AlphaStarActorCritic(ActorCriticBase):
 
     def __init__(self, model_config=None):
         super(AlphaStarActorCritic, self).__init__()
-        self.cfg = merge_dicts(alphastar_model_default_config, model_config)
+        self.cfg = merge_dicts(alphastar_model_default_config["model"], model_config)
         self.encoder = Encoder(self.cfg.encoder)
         self.policy = Policy(self.cfg.policy)
         if self.cfg.use_value_network:
