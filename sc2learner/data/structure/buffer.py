@@ -104,7 +104,7 @@ class PrioritizedBuffer(object):
     def update(self, info):
         data = [info['replay_buffer_id'], info['replay_buffer_idx'], info['priority']]
         for id, idx, priority in zip(*data):
-            if self._data[idx]['replay_buffer_id'] == id:  # confirm the same transition
+            if self._data[idx] is not None and self._data[idx]['replay_buffer_id'] == id:  # confirm the same transition
                 assert priority > 0
                 self._data[idx]['priority'] = priority
                 self._set_weight(idx, self._data[idx])
