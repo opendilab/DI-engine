@@ -41,8 +41,8 @@ class TestSumSegmentTree:
             assert (isinstance(e, AssertionError))
 
     def test_find_prefixsum_idx(self):
-        tree = SumSegmentTree(capacity=4)
-        elements = [0.1, 0.5, 0.2, 0.8]
+        tree = SumSegmentTree(capacity=8)
+        elements = [0, 0.1, 0.5, 0, 0, 0.2, 0.8, 0]
         for idx, val in enumerate(elements):
             tree[idx] = val
         try:
@@ -56,13 +56,14 @@ class TestSumSegmentTree:
         except Exception as e:
             assert (isinstance(e, AssertionError))
 
-        assert (tree.find_prefixsum_idx(0) == 0)
-        assert (tree.find_prefixsum_idx(0.09) == 0)
-        assert (tree.find_prefixsum_idx(0.1) == 1)
-        assert (tree.find_prefixsum_idx(0.6) == 2)
-        assert (tree.find_prefixsum_idx(0.799) == 2)
-        assert (tree.find_prefixsum_idx(0.8) == 3)
-        assert (tree.find_prefixsum_idx(tree.reduce()) == 3)
+        assert (tree.find_prefixsum_idx(0) == 1)
+        assert (tree.find_prefixsum_idx(0.09) == 1)
+        assert (tree.find_prefixsum_idx(0.1) == 2)
+        assert (tree.find_prefixsum_idx(0.59) == 2)
+        assert (tree.find_prefixsum_idx(0.6) == 5)
+        assert (tree.find_prefixsum_idx(0.799) == 5)
+        assert (tree.find_prefixsum_idx(0.8) == 6)
+        assert (tree.find_prefixsum_idx(tree.reduce()) == 6)
 
 
 class TestMinSegmentTree:
