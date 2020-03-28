@@ -13,12 +13,12 @@ import math
 import torch
 import gym
 from pysc2.lib.features import FeatureUnit
-from pysc2.lib.action_dict import ACT_TO_GENERAL_ACT
-from pysc2.lib.static_data import NUM_BUFFS, NUM_ABILITIES, NUM_UNIT_TYPES, UNIT_TYPES_REORDER,\
-    BUFFS_REORDER, ABILITIES_REORDER, NUM_UPGRADES, UPGRADES_REORDER, NUM_ACTIONS, ACTIONS_REORDER,\
-    NUM_ADDON, ADDON_REORDER, NUM_BEGIN_ACTIONS, NUM_UNIT_BUILD_ACTIONS, NUM_EFFECT_ACTIONS, \
-    NUM_RESEARCH_ACTIONS, UNIT_BUILD_ACTIONS_REORDER, EFFECT_ACTIONS_REORDER, RESEARCH_ACTIONS_REORDER, \
-    BEGIN_ACTIONS_REORDER
+from pysc2.lib.action_dict import ACT_TO_GENERAL_ACT, ACT_TO_GENERAL_ACT_ARRAY
+from pysc2.lib.static_data import NUM_BUFFS, NUM_ABILITIES, NUM_UNIT_TYPES, UNIT_TYPES_REORDER, UNIT_TYPES_REORDER_ARRAY,\
+    BUFFS_REORDER_ARRAY, ABILITIES_REORDER_ARRAY, NUM_UPGRADES, UPGRADES_REORDER, UPGRADES_REORDER_ARRAY, NUM_ACTIONS, ACTIONS_REORDER_ARRAY,\
+    NUM_ADDON, ADDON_REORDER_ARRAY, NUM_BEGIN_ACTIONS, NUM_UNIT_BUILD_ACTIONS, NUM_EFFECT_ACTIONS, \
+    NUM_RESEARCH_ACTIONS, UNIT_BUILD_ACTIONS_REORDER_ARRAY, EFFECT_ACTIONS_REORDER_ARRAY, RESEARCH_ACTIONS_REORDER_ARRAY, \
+    BEGIN_ACTIONS_REORDER_ARRAY
 from sc2learner.torch_utils import one_hot
 from functools import partial
 from collections import OrderedDict
@@ -305,6 +305,15 @@ def reorder_one_hot(v, dictionary, num, transform=None):
     return one_hot(new_v, num)
 
 
+def reorder_one_hot_array(v, array, num, transform=None):
+    v=v.numpy()
+    if transform is None:
+        val = array[v]
+    else:
+        val = array[transform[v]]
+    return one_hot(torch.LongTensor(val), num)
+
+
 def div_func(inputs, other, unsqueeze_dim=1):
     inputs = inputs.float()
     if unsqueeze_dim is not None:
@@ -388,7 +397,7 @@ def transform_entity_data(resolution=128, pad_value=-1e9):
         {
             'key': 'unit_type',
             'dim': NUM_UNIT_TYPES,
-            'op': partial(reorder_one_hot, dictionary=UNIT_TYPES_REORDER, num=NUM_UNIT_TYPES),
+            'op': partial(reorder_one_hot_array, array=UNIT_TYPES_REORDER_ARRAY, num=NUM_UNIT_TYPES),
             'other': 'one-hot'
         },
         #{'key': 'unit_attr', 'dim': 13, 'other': 'each one boolean'},
@@ -535,43 +544,43 @@ def transform_entity_data(resolution=128, pad_value=-1e9):
         {
             'key': 'order_id_0',
             'dim': NUM_ABILITIES,
-            'op': partial(reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT),
+            'op': partial(reorder_one_hot_array, array=ACTIONS_REORDER_ARRAY, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT_ARRAY),
             'other': 'one-hot'
         },  # noqa
         {
             'key': 'order_id_1',
             'dim': NUM_ACTIONS,
-            'op': partial(reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT),
+            'op': partial(reorder_one_hot_array, array=ACTIONS_REORDER_ARRAY, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT_ARRAY),
             'other': 'one-hot'
         },  # TODO only building order  # noqa
         {
             'key': 'order_id_2',
             'dim': NUM_ACTIONS,
-            'op': partial(reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT),
+            'op': partial(reorder_one_hot_array, array=ACTIONS_REORDER_ARRAY, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT_ARRAY),
             'other': 'one-hot'
         },  # TODO only building order  # noqa
         {
             'key': 'order_id_3',
             'dim': NUM_ACTIONS,
-            'op': partial(reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT),
+            'op': partial(reorder_one_hot_array, array=ACTIONS_REORDER_ARRAY, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT_ARRAY),
             'other': 'one-hot'
         },  # TODO only building order  # noqa
         {
             'key': 'buff_id_0',
             'dim': NUM_BUFFS,
-            'op': partial(reorder_one_hot, dictionary=BUFFS_REORDER, num=NUM_BUFFS),
+            'op': partial(reorder_one_hot_array, array=BUFFS_REORDER_ARRAY, num=NUM_BUFFS),
             'other': 'one-hot'
         },
         {
             'key': 'buff_id_1',
             'dim': NUM_BUFFS,
-            'op': partial(reorder_one_hot, dictionary=BUFFS_REORDER, num=NUM_BUFFS),
+            'op': partial(reorder_one_hot_array, array=BUFFS_REORDER_ARRAY, num=NUM_BUFFS),
             'other': 'one-hot'
         },
         {
             'key': 'addon_unit_type',
             'dim': NUM_ADDON,
-            'op': partial(reorder_one_hot, dictionary=ADDON_REORDER, num=NUM_ADDON),
+            'op': partial(reorder_one_hot_array, array=ADDON_REORDER_ARRAY, num=NUM_ADDON),
             'other': 'one-hot'
         },
         {
@@ -804,7 +813,7 @@ def transform_scalar_data():
             'input_dim': NUM_ACTIONS,
             'output_dim': 128,
             'ori': 'action',
-            'op': partial(reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS),
+            'op': partial(reorder_one_hot_array, array=ACTIONS_REORDER_ARRAY, num=NUM_ACTIONS),
             'other': 'one-hot NUM_ACTIONS'
         },  # noqa
     ]
@@ -868,11 +877,11 @@ def transform_cum_stat(cumulative_stat):
     }
     for k, v in cumulative_stat.items():
         if v['goal'] in ['unit', 'build']:
-            cumulative_stat_tensor['unit_build'][UNIT_BUILD_ACTIONS_REORDER[k]] = 1
+            cumulative_stat_tensor['unit_build'][UNIT_BUILD_ACTIONS_REORDER_ARRAY[k]] = 1
         elif v['goal'] in ['effect']:
-            cumulative_stat_tensor['effect'][EFFECT_ACTIONS_REORDER[k]] = 1
+            cumulative_stat_tensor['effect'][EFFECT_ACTIONS_REORDER_ARRAY[k]] = 1
         elif v['goal'] in ['research']:
-            cumulative_stat_tensor['research'][RESEARCH_ACTIONS_REORDER[k]] = 1
+            cumulative_stat_tensor['research'][RESEARCH_ACTIONS_REORDER_ARRAY[k]] = 1
     return cumulative_stat_tensor
 
 
@@ -882,7 +891,7 @@ def transform_stat(stat, meta, location_num=LOCATION_BIT_NUM):
     for item in beginning_build_order:
         action_type, location = item['action_type'], item['location']
         action_type = torch.LongTensor([action_type])
-        action_type = reorder_one_hot(action_type, BEGIN_ACTIONS_REORDER, num=NUM_BEGIN_ACTIONS)
+        action_type = reorder_one_hot_array(action_type, BEGIN_ACTIONS_REORDER_ARRAY, num=NUM_BEGIN_ACTIONS)
         if location == 'none':
             location = torch.zeros(location_num * 2)
         else:
