@@ -140,6 +140,7 @@ class PrioritizedBuffer(object):
         data = []
         for idx in indices:
             copy_data = copy.deepcopy(self._data[idx])
+            assert (copy_data is not None)
             # get IS(importance sampling weight for gradient step)
             if self.use_priority:
                 p_sample = self.sum_tree[copy_data['replay_buffer_idx']] / sum_tree_root
@@ -148,8 +149,9 @@ class PrioritizedBuffer(object):
             else:
                 copy_data['IS'] = 1.0
             data.append(copy_data)
-            # remove the item which reuse is bigger than max_reuse
             self._reuse_count[idx] += 1
+        # remove the item which reuse is bigger than max_reuse
+        for idx in indices:
             if self._reuse_count[idx] > self.max_reuse:
                 self._data[idx] = None
                 self.sum_tree[idx] = self.sum_tree.neutral_element

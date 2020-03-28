@@ -42,7 +42,7 @@ class SegmentTree(object):
         return result
 
     def __setitem__(self, idx, val):
-        assert (0 <= idx <= self.capacity)
+        assert (0 <= idx < self.capacity)
         idx += self.capacity
         self.value[idx] = val
 
@@ -53,7 +53,7 @@ class SegmentTree(object):
             idx = idx >> 1
 
     def __getitem__(self, idx):
-        assert (0 <= idx <= self.capacity)
+        assert (0 <= idx < self.capacity)
         return self.value[idx + self.capacity]
 
 
