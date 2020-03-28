@@ -75,9 +75,9 @@ class ActionTypeHead(nn.Module):
             # Note that during supervised learning, action_type will be the ground truth human action type,
             # and temperature is 1.0 (and similarly for all other arguments).
             if self.training:
-                action = handle.sample()
+                action_type = handle.sample()
             else:
-                action = handle.mode()
+                action_type = handle.mode()
 
         # to get autoregressive_embedding
         action_one_hot = one_hot(action_type, self.action_num)  # one-hot version of action_type
