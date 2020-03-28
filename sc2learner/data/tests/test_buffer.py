@@ -115,15 +115,14 @@ class TestBaseBuffer:
             setup_base_buffer.append(generate_data())
         reuse_dict = defaultdict(int)
         while True:
-            try:
-                batch = setup_base_buffer.sample(32)
-                assert (len(batch) == 32)
-                assert (all([b['IS'] == 1.0 for b in batch]))
-                idx = [b['replay_buffer_idx'] for b in batch]
-                for i in idx:
-                    reuse_dict[i] += 1
-            except Exception as e:
+            batch = setup_base_buffer.sample(32)
+            if batch is None:
                 break
+            assert (len(batch) == 32)
+            assert (all([b['IS'] == 1.0 for b in batch]))
+            idx = [b['replay_buffer_idx'] for b in batch]
+            for i in idx:
+                reuse_dict[i] += 1
         assert sum(
             map(lambda x: x[1] > setup_base_buffer.max_reuse, reuse_dict.items())
         ) == setup_base_buffer.maxlen - setup_base_buffer.validlen

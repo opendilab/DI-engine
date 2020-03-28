@@ -51,34 +51,16 @@ class PrioritizedBuffer(object):
         if self.use_priority:
             self.min_tree[idx] = weight
 
-    def _get_IS(self, data):
-        '''
-        Note: get the importance sampling weight for gradient step
-        '''
-        if self.use_priority:
-            sum_tree_root = self.sum_tree.reduce()
-            p_min = self.min_tree.reduce() / sum_tree_root
-            max_weight = (self.valid_count * p_min)**(-self._beta)
-            for d in data:
-                p_sample = self.sum_tree[d['replay_buffer_idx']] / sum_tree_root
-                weight = (self.valid_count * p_sample)**(-self._beta)
-                d['IS'] = weight / max_weight
-        else:
-            for d in data:
-                d['IS'] = 1.0
-        return data
-
     def sample(self, size):
         '''
         Returns:
             - sample_data (:obj:`list`): each data owns keys:
                 original data keys + ['IS', 'priority', 'replay_buffer_id', 'replay_buffer_idx]'
         '''
-        self._sample_check(size)
+        if not self._sample_check(size):
+            return None
         indices = self._get_indices(size)
-        sample_data = self._sample_with_indices(indices)
-        sample_data = self._get_IS(sample_data)
-        return sample_data
+        return self._sample_with_indices(indices)
 
     def append(self, data):
         try:
@@ -140,23 +122,39 @@ class PrioritizedBuffer(object):
 
     def _sample_check(self, size):
         if self.valid_count / size < self.min_sample_ratio:
-            raise Exception(
+            print(
                 "no enough element for sample(expect: {}/current have: {}, min_sample_ratio: {})".format(
                     size, self.valid_count, self.min_sample_ratio
                 )
             )
+            return False
+        else:
+            return True
 
     def _sample_with_indices(self, indices):
+        if self.use_priority:
+            sum_tree_root = self.sum_tree.reduce()
+            p_min = self.min_tree.reduce() / sum_tree_root
+            max_weight = (self.valid_count * p_min)**(-self._beta)
+
         data = []
         for idx in indices:
-            data.append(copy.deepcopy(self._data[idx]))
-            self._reuse_count[idx] += 1
+            copy_data = copy.deepcopy(self._data[idx])
+            # get IS(importance sampling weight for gradient step)
+            if self.use_priority:
+                p_sample = self.sum_tree[copy_data['replay_buffer_idx']] / sum_tree_root
+                weight = (self.valid_count * p_sample)**(-self._beta)
+                copy_data['IS'] = weight / max_weight
+            else:
+                copy_data['IS'] = 1.0
+            data.append(copy_data)
             # remove the item which reuse is bigger than max_reuse
+            self._reuse_count[idx] += 1
             if self._reuse_count[idx] > self.max_reuse:
                 self._data[idx] = None
-                self.sum_tree[idx] = 0.
+                self.sum_tree[idx] = self.sum_tree.neutral_element
                 if self.use_priority:
-                    self.min_tree[idx] = 0.
+                    self.min_tree[idx] = self.min_tree.neutral_element
                 self.valid_count -= 1
         return data
 
