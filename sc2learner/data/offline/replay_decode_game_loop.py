@@ -21,7 +21,6 @@ import copy
 
 from absl import app
 from absl import logging
-logging.set_verbosity(logging.INFO)
 from absl import flags
 from future.builtins import range  # pylint: disable=redefined-builtin
 import torch
@@ -38,6 +37,7 @@ from sc2learner.envs.observations.alphastar_obs_wrapper import AlphastarObsParse
     transform_cum_stat, transform_stat
 from sc2learner.envs.actions.alphastar_act_wrapper import AlphastarActParser, remove_repeat_data
 
+logging.set_verbosity(logging.INFO)
 FLAGS = flags.FLAGS
 flags.DEFINE_string("replays", "E:/data/replays", "Path to a directory of replays.")
 flags.DEFINE_string("output_dir", "E:/data/replay_data", "Path to save data")
