@@ -1,9 +1,10 @@
-import torch
 import copy
 from collections.abc import Sequence
 
+import torch
 
-class SequenceContainer(object):
+
+class SequenceContainer:
     _name = 'SequenceContainer'
 
     def __init__(self, **kwargs):

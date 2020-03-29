@@ -1,16 +1,17 @@
 import time
 from queue import Queue
 from threading import Thread
+
 from sc2learner.utils import LockContext
 
 
-class Cache(object):
-    def __init__(self, maxlen, timeout, monitor_interval=1.0, debug=False):
-        assert (maxlen > 0)
+class Cache:
+    def __init__(self, maxlen, timeout, monitor_interval=1.0, _debug=False):
+        assert maxlen > 0
         self.maxlen = maxlen
         self.timeout = timeout
         self.monitor_interval = monitor_interval
-        self.debug = debug
+        self.debug = _debug
         self.receive_queue = Queue(maxlen)
         self.send_queue = Queue(maxlen)
         self.receive_lock = LockContext(lock_type='thread')
@@ -33,16 +34,23 @@ class Cache(object):
             time.sleep(self.monitor_interval)
             with self.receive_lock:
                 while not self.receive_queue.empty():
-                    wait_time = time.time() - self.receive_queue.queue[0][1]
-                    if wait_time >= self.timeout:
-                        self.dprint(
-                            'excess the maximum wait time, eject from the cache.(wait_time/timeout: {}/{}'.format(
-                                wait_time, self.timeout
-                            )
-                        )
-                        self.send_queue.put(self.receive_queue.get()[0])
-                    else:
+                    is_timeout = self._warn_if_timeout()
+                    if not is_timeout:
                         break
+
+    def _warn_if_timeout(self):
+        """Return whether is timeout"""
+        wait_time = time.time() - self.receive_queue.queue[0][1]
+        if wait_time >= self.timeout:
+            self.dprint(
+                'excess the maximum wait time, eject from the cache.(wait_time/timeout: {}/{}'.format(
+                    wait_time, self.timeout
+                )
+            )
+            self.send_queue.put(self.receive_queue.get()[0])
+            return True
+        else:
+            return False
 
     def run(self):
         self._timeout_thread.start()

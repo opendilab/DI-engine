@@ -1,13 +1,14 @@
-import pytest
-import time
-import numpy as np
 import threading
+import time
 from threading import Thread
+
+import numpy as np
+
 from sc2learner.data.structure import Cache
 
 
 class TestCache:
-    cache = Cache(16, 4, monitor_interval=1.0, debug=True)
+    cache = Cache(16, 4, monitor_interval=1.0, _debug=True)
     send_count = 0
     produce_count = 0
 

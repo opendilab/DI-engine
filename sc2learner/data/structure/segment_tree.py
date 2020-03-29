@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class SegmentTree(object):
+class SegmentTree:
     def __init__(self, capacity, operation, neutral_element=None):
         assert capacity > 0 and capacity & (capacity - 1) == 0
         self.capacity = capacity
@@ -13,14 +13,16 @@ class SegmentTree(object):
                 neutral_element = np.inf
             elif operation is max:
                 neutral_element = -np.inf
+            else:
+                raise ValueError("operation argument should be in min, max, sum (built in python functions).")
         self.neutral_element = neutral_element
         self.value = [self.neutral_element for _ in range(2 * capacity)]
 
     def reduce(self, start=0, end=None):
-        '''
+        """
         Note:
             [start, end)
-        '''
+        """
         if end is None:
             end = self.capacity
         assert (start < end)
@@ -62,9 +64,9 @@ class SumSegmentTree(SegmentTree):
         super(SumSegmentTree, self).__init__(capacity, operation=sum)
 
     def find_prefixsum_idx(self, prefixsum, trust_caller=True):
-        '''
+        """
         Overview: find the highest non-zero index i, which for j in 0 <= j < i, sum_{j}leaf[j] <= prefixsum
-        '''
+        """
         if not trust_caller:
             assert 0 <= prefixsum <= self.reduce() + 1e-5
         idx = 1  # parent node
