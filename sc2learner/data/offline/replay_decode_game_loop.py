@@ -381,7 +381,7 @@ def main(unused_argv):
             i.join()
     else:
         # single process
-        decoder = ReplayDecoder(run_config, fitered_replays[:8], FLAGS.output_dir)
+        decoder = ReplayDecoder(run_config, fitered_replays, FLAGS.output_dir)
         decoder.run()
 
 
