@@ -63,7 +63,7 @@ class SumSegmentTree(SegmentTree):
 
     def find_prefixsum_idx(self, prefixsum, trust_caller=True):
         '''
-        Overview: find the highest non-zero index i, which for j in 0 <= j < i, \sum_{j}leaf[j] <= prefixsum
+        Overview: find the highest non-zero index i, which for j in 0 <= j < i, sum_{j}leaf[j] <= prefixsum
         '''
         if not trust_caller:
             assert 0 <= prefixsum <= self.reduce() + 1e-5

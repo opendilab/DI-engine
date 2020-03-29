@@ -1,4 +1,5 @@
 import pytest
+import os
 import numpy as np
 import time
 import yaml
@@ -17,7 +18,7 @@ CONSUMER_NUM = 4
 
 @pytest.fixture(scope="function")
 def setup_replay_buffer():
-    with open('../online/replay_buffer_default_config.yaml', 'r') as f:
+    with open(os.path.join(os.path.dirname(__file__), '../online/replay_buffer_default_config.yaml'), 'r') as f:
         cfg = yaml.safe_load(f)
     cfg = EasyDict(cfg)
     return ReplayBuffer(cfg.replay_buffer)
