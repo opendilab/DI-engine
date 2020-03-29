@@ -88,7 +88,7 @@ setup(
         'whichcraft',
         'gym==0.10.5',
         'torch==1.1.0',
-        'tensorflow>=1.4.1',
+        #'tensorflow>=1.4.1',  enable if necessary
         'joblib',
         'pyzmq',
         'sphinx',
@@ -100,7 +100,7 @@ setup(
         'matplotlib',
         'yapf==0.29.0',
         'pytest',
-        #'pytest-xdist',
+        'pytest-xdist',
     ],
     entry_points={
         'console_scripts': [
