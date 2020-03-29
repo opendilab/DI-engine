@@ -102,6 +102,7 @@ setup(
         'yapf==0.29.0',
         'pytest',
         'pytest-xdist',
+        'flask',
     ],
     entry_points={
         'console_scripts': [
@@ -118,8 +119,7 @@ setup(
         'Operating System :: POSIX :: Linux',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: MacOS :: MacOS X',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
     ],
 )
