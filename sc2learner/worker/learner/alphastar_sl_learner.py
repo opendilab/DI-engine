@@ -24,8 +24,8 @@ default_config = read_config(osp.join(osp.dirname(__file__), "alphastar_sl_learn
 
 def build_config(user_config):
     """Aggregate a general config at the highest level class: Learner"""
-    default_config["model"] = alphastar_model_default_config
-    return merge_dicts(default_config, user_config)
+    default_config_with_model = merge_dicts(default_config, alphastar_model_default_config)
+    return merge_dicts(default_config_with_model, user_config)
 
 
 class AlphaStarSupervisedLearner(SupervisedLearner):

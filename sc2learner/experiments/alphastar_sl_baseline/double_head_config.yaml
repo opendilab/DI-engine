@@ -1,8 +1,8 @@
 data:
     train:
-        dataloader_type: epoch  # [epoch, iter]
+        dataloader_type: iter  # [epoch, iter]
         trajectory_len: 48
-        trajectory_type: slide_window  # [epoch: [slide_window], iter: [sequential]]
+        trajectory_type: sequential  # [epoch: [slide_window], iter: [sequential]]
         slide_window_step: 1
 train:
     criterion:
@@ -26,14 +26,16 @@ model:
                 activation: 'relu'
                 norm_type: 'LN'
                 action_type_map: 'base'
+                use_mask: True
             spec_action_type_head:
                 input_dim: 384  # core.hidden_size
                 res_dim: 256
                 res_num: 16
-                action_num: 323
+                action_num: 322
                 action_map_dim: 256
                 gate_dim: 1024
                 context_dim: 256  # use_stat(True: 256, False: 128)
                 activation: 'relu'
                 norm_type: 'LN'
                 action_type_map: 'spec'
+                use_mask: True

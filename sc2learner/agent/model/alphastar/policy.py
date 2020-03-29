@@ -3,7 +3,7 @@ from collections import namedtuple
 import torch
 import torch.nn as nn
 
-from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
+from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK, ACTIONS_STAT
 from pysc2.lib.static_data import NUM_UNIT_TYPES, UNIT_TYPES_REORDER, ACTIONS_REORDER_INV, PART_ACTIONS_MAP,\
     PART_ACTIONS_MAP_INV
 from .head import DelayHead, QueuedHead, SelectedUnitsHead, TargetUnitsHead, LocationHead, ActionTypeHead, \
@@ -27,12 +27,14 @@ def build_head(name):
 
 class Policy(nn.Module):
     MimicInput = namedtuple(
-        'MimicInput', ['actions', 'entity_raw', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context']
-    )  # noqa
+        'MimicInput',
+        ['actions', 'entity_raw', 'action_type_mask', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context']
+    )
 
     EvaluateInput = namedtuple(
-        'EvaluateInput', ['entity_raw', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context']
-    )  # noqa
+        'EvaluateInput',
+        ['entity_raw', 'action_type_mask', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context']
+    )
 
     def __init__(self, cfg):
         super(Policy, self).__init__()
@@ -42,7 +44,7 @@ class Policy(nn.Module):
             self.head[item] = build_head(item)(cfg.head[item])
 
     def _look_up_action_attr(self, action_type, entity_raw, units_num, location_dims=(256, 256)):
-        action_mask = {
+        action_arg_mask = {
             'select_unit_type_mask': [],
             'select_unit_mask': [],
             'target_unit_type_mask': [],
@@ -50,56 +52,66 @@ class Policy(nn.Module):
             'location_mask': []
         }
         device = action_type[0].device
-        '''
-        for idx, action in enumerate(action_type):
-            action_mask['select_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
-            action_mask['select_unit_type_mask'].append(torch.ones(1, NUM_UNIT_TYPES, device=device))
-            action_mask['target_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
-            action_mask['target_unit_type_mask'].append(torch.ones(1, NUM_UNIT_TYPES, device=device))
-            action_mask['location_mask'].append(torch.ones(1, *location_dims, device=device))
-        action_attr = {'queued': 'none', 'selected_units': 'none', 'target_units': 'none', 'target_location': 'none'}
-        '''
         action_attr = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
         for idx, action in enumerate(action_type):
-            value = GENERAL_ACTION_INFO_MASK[ACTIONS_REORDER_INV[action.item()]]
-            if value['selected_units']:
-                type_list = value['avail_unit_type_id']
-                reorder_type_list = [UNIT_TYPES_REORDER[t] for t in type_list]
+            action_type_val = ACTIONS_REORDER_INV[action.item()]
+            action_info_hard_craft = GENERAL_ACTION_INFO_MASK[action_type_val]
+            action_info_stat = ACTIONS_STAT[action_type_val]
+            # else case is the placeholder
+            if action_info_hard_craft['selected_units']:
+                type_hard_craft = set(action_info_hard_craft['avail_unit_type_id'])
+                type_stat = set(action_info_stat['selected_type'])
+                type_set = type_hard_craft.union(type_stat)
+                reorder_type_list = [UNIT_TYPES_REORDER[t] for t in type_set]
                 select_unit_type_mask = torch.zeros(1, NUM_UNIT_TYPES)
                 select_unit_type_mask[:, reorder_type_list] = 1
-                action_mask['select_unit_type_mask'].append(select_unit_type_mask.to(device))
+                action_arg_mask['select_unit_type_mask'].append(select_unit_type_mask.to(device))
                 select_unit_mask = torch.zeros(1, units_num[idx])
                 for i, t in enumerate(entity_raw[idx]['type']):
-                    if t in type_list:
+                    if t in type_set:
                         select_unit_mask[0, i] = 1
-                action_mask['select_unit_mask'].append(select_unit_mask.to(device))
+                action_arg_mask['select_unit_mask'].append(select_unit_mask.to(device))
             else:
-                action_mask['select_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
-                action_mask['select_unit_type_mask'].append(torch.ones(1, NUM_UNIT_TYPES, device=device))
-            if value['target_units']:
-                action_mask['target_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
-                action_mask['target_unit_type_mask'].append(torch.ones(1, NUM_UNIT_TYPES, device=device))
+                action_arg_mask['select_unit_mask'].append(None)
+                action_arg_mask['select_unit_type_mask'].append(None)
+            if action_info_hard_craft['target_units']:
+                type_set = set(action_info_stat['target_type'])
+                reorder_type_list = [UNIT_TYPES_REORDER[t] for t in type_set]
+                target_unit_type_mask = torch.zeros(1, NUM_UNIT_TYPES)
+                target_unit_type_mask[:, reorder_type_list] = 1
+                action_arg_mask['target_unit_type_mask'].append(target_unit_type_mask.to(device))
+                target_unit_mask = torch.zeros(1, units_num[idx])
+                for i, t in enumerate(entity_raw[idx]['type']):
+                    if t in type_set:
+                        target_unit_mask[0, i] = 1
+                action_arg_mask['target_unit_mask'].append(target_unit_mask.to(device))
             else:
-                action_mask['target_unit_mask'].append(torch.ones(1, units_num[idx], device=device))
-                action_mask['target_unit_type_mask'].append(torch.ones(1, NUM_UNIT_TYPES, device=device))
-            if value['target_location']:
-                action_mask['location_mask'].append(torch.ones(1, *location_dims, device=device))
+                action_arg_mask['target_unit_mask'].append(None)
+                action_arg_mask['target_unit_type_mask'].append(None)
+            if action_info_hard_craft['target_location']:
+                # TODO(nyz) location mask
+                action_arg_mask['location_mask'].append(torch.ones(1, *location_dims, device=device))
             else:
-                action_mask['location_mask'].append(torch.ones(1, *location_dims, device=device))
+                action_arg_mask['location_mask'].append(None)
+            # get action attibute(which args the action type owns)
             for k in action_attr.keys():
-                action_attr[k].append(value[k])
-        return action_attr, action_mask
+                action_attr[k].append(action_info_hard_craft[k])
+        return action_attr, action_arg_mask
 
-    def _action_type_forward(self, lstm_output, scalar_context, temperature, action_type=None):
+    def _action_type_forward(self, lstm_output, scalar_context, action_type_mask, temperature, action_type=None):
         kwargs = {
             'lstm_output': lstm_output,
             'scalar_context': scalar_context,
+            'action_type_mask': action_type_mask,
             'temperature': temperature,
             'action_type': action_type
         }
         if 'action_type_head' in self.head.keys():
             return self.head['action_type_head'](**kwargs)
         elif 'base_action_type_head' in self.head.keys() and 'spec_action_type_head' in self.head.keys():
+            # get part action mask
+            base_action_type_mask = action_type_mask[:, list(PART_ACTIONS_MAP['base'].keys())]
+            spec_action_type_mask = action_type_mask[:, list(PART_ACTIONS_MAP['spec'].keys())]
             if action_type is not None:
                 base_action_type = action_type.clone()
                 spec_action_type = action_type.clone()
@@ -116,11 +128,15 @@ class Policy(nn.Module):
                         base_action_type[idx] = 0
                 # double head forward
                 kwargs['action_type'] = base_action_type
+                kwargs['action_type_mask'] = base_action_type_mask
                 base_logits, base_action_type, base_embeddings = self.head['base_action_type_head'](**kwargs)
                 kwargs['action_type'] = spec_action_type
+                kwargs['action_type_mask'] = spec_action_type_mask
                 spec_logits, spec_action_type, spec_embeddings = self.head['spec_action_type_head'](**kwargs)
             else:
+                kwargs['action_type_mask'] = base_action_type_mask
                 base_logits, base_action_type, base_embeddings = self.head['base_action_type_head'](**kwargs)
+                kwargs['action_type_mask'] = spec_action_type_mask
                 spec_logits, spec_action_type, spec_embeddings = self.head['spec_action_type_head'](**kwargs)
             # to total action type id
             for idx, val in enumerate(base_action_type):
@@ -148,14 +164,14 @@ class Policy(nn.Module):
             Returns:
                 - logits (:obj:`dict`) logits(or other format) for calculating supervised learning loss
         '''
-        actions, entity_raw, lstm_output, entity_embeddings, map_skip, scalar_context = inputs
+        actions, entity_raw, action_type_mask, lstm_output, entity_embeddings, map_skip, scalar_context = inputs
 
         logits = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
         action_type = torch.LongTensor(actions['action_type']).to(lstm_output.device)
         units_num = [len(t['id']) for t in entity_raw]
 
         logits['action_type'], action_type, embeddings = self._action_type_forward(
-            lstm_output, scalar_context, temperature, action_type
+            lstm_output, scalar_context, action_type_mask, temperature, action_type
         )
         action_attr, mask = self._look_up_action_attr(action_type, entity_raw, units_num)
 
@@ -210,7 +226,7 @@ class Policy(nn.Module):
                 - logits (:obj:`dict`) logits
                 - actions (:obj:`dict`) actions predicted by agent(policy)
         '''
-        entity_raw, lstm_output, entity_embeddings, map_skip, scalar_context = inputs
+        entity_raw, action_type_mask, lstm_output, entity_embeddings, map_skip, scalar_context = inputs
 
         B = len(entity_raw)
         actions = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
@@ -219,7 +235,7 @@ class Policy(nn.Module):
 
         # action type
         logits['action_type'], action_type, embeddings = self._action_type_forward(
-            lstm_output, scalar_context, temperature
+            lstm_output, scalar_context, action_type_mask, temperature
         )
         actions['action_type'] = torch.chunk(action_type, B, dim=0)
         action_attr, mask = self._look_up_action_attr(actions['action_type'], entity_raw, units_num)
