@@ -98,7 +98,8 @@ setup(
         'opencv-python',
         'tensorboardX',
         'matplotlib',
-        'yapf==0.29.0'
+        'yapf==0.29.0',
+        'flask'
     ],
     entry_points={
         'console_scripts': [

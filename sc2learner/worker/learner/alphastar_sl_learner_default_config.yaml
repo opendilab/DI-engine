@@ -1,4 +1,6 @@
 # This file provide configs for "data" and "train" fields, both top-level fields.
+
+# ===== Supervised Learning Data Setting =====
 data:
     train:
         replay_list: ''
@@ -27,6 +29,8 @@ data:
         use_ceph: True
         use_distributed: False
         use_available_action_transform: True
+
+# ===== Supervised Learning Training Setting =====
 train:
     use_cuda: True
     max_epochs: 1000
@@ -37,3 +41,4 @@ train:
         type: cross_entropy  # [cross_entropy, label_smooth_ce]
         kwargs:  # {label_smooth_ce: [smooth_ratio]}
             smooth_ratio: 0.1
+        action_type: normal  # [normal, double_head]

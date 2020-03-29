@@ -262,6 +262,17 @@ RESEARCH_ACTIONS_REORDER = {
 
 RESEARCH_ACTIONS_REORDER_ARRAY = get_reorder_lookup_array(RESEARCH_ACTIONS)
 
+# ACTIONS_REORDER value
+# 0, 168, 2, 1, 12, 503
+BASE_ACTIONS = [0, 1, 2, 265, 266, 278]
+
+PART_ACTIONS_MAP = {
+    'base': {k: idx for idx, k in enumerate(BASE_ACTIONS)},
+    'spec': {k: idx for idx, k in enumerate([0] + list(set(ACTIONS_REORDER.values()) - set(BASE_ACTIONS)))},
+}
+
+PART_ACTIONS_MAP_INV = {k: {v1: k1 for k1, v1 in v.items()} for k, v in PART_ACTIONS_MAP.items()}
+
 
 def ger_reorder_tag(val, template):
     low = 0
