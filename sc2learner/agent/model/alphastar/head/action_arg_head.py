@@ -149,6 +149,7 @@ class SelectedUnitsHead(nn.Module):
 
         self.max_entity_num = cfg.max_entity_num
         self.key_dim = cfg.key_dim
+        self.use_mask = cfg.use_mask
         self.pd = CategoricalPdPytorch
 
     def _get_key(self, entity_embedding):
@@ -200,7 +201,8 @@ class SelectedUnitsHead(nn.Module):
                 x, state = self.lstm(x, state)
                 query_result = x.permute(1, 0, 2) * key
                 query_result = query_result.mean(dim=2)
-                query_result.sub_((1 - mask) * 1e9)
+                if self.use_mask:
+                    query_result.sub_((1 - mask) * 1e9)
                 query_result = F.softmax(query_result.div(temperature), dim=1)
                 handle = self.pd(query_result)
                 if self.training:
@@ -223,8 +225,10 @@ class SelectedUnitsHead(nn.Module):
                 x, state = self.lstm(x, state)
                 query_result = x.permute(1, 0, 2) * key
                 query_result = query_result.mean(dim=2)
-                # query_result.sub_((1 - mask) * 1e9)
-                handle = self.pd(query_result.div(temperature))
+                if self.use_mask:
+                    query_result.sub_((1 - mask) * 1e9)
+                query_result = F.softmax(query_result.div(temperature), dim=1)
+                handle = self.pd(query_result)
                 if self.training:
                     entity_num = handle.sample()
                 else:
@@ -236,7 +240,8 @@ class SelectedUnitsHead(nn.Module):
                         logits[b].append(query_result)
                         units[b][entity_num[b]] = 1
                         if entity_num[b] != end_flag_index:
-                            mask[b][entity_num[b]] = 0
+                            # mask[b][entity_num[b]] = 0
+                            pass
                     else:
                         logits[b].append(query_result)
         embedding_selected = units.unsqueeze(2).to(key.dtype)
@@ -419,6 +424,7 @@ class TargetUnitHead(nn.Module):
         self.func_fc = fc_block(cfg.unit_type_dim, cfg.func_dim, activation=self.act, norm_type=None)
         self.fc1 = fc_block(cfg.input_dim, cfg.func_dim, activation=self.act, norm_type=None)
         self.fc2 = fc_block(cfg.func_dim, cfg.key_dim, activation=self.act, norm_type=None)
+        self.use_mask = cfg.use_mask
 
         self.pd = CategoricalPdPytorch
 
@@ -455,7 +461,8 @@ class TargetUnitHead(nn.Module):
         query = self._get_query(embedding, available_unit_type_mask)
         logits = query.unsqueeze(1) * key
         logits = logits.mean(dim=2)
-        logits.sub_((1 - mask) * 1e9)
+        if self.use_mask:
+            logits.sub_((1 - mask) * 1e9)
 
         B, N = key.shape[:2]
         units = torch.zeros(B, N, device=key.device, dtype=torch.long)
@@ -523,6 +530,7 @@ class LocationHead(nn.Module):
                     )
                 )
 
+        self.use_mask = cfg.use_mask
         self.output_type = cfg.output_type
         assert (self.output_type in ['cls', 'soft_argmax'])
         if self.output_type == 'cls':
@@ -564,7 +572,8 @@ class LocationHead(nn.Module):
             x = act(x, skip)
         for layer in self.upsample:
             x = layer(x)
-        #x = x - ((1 - available_location_mask)*1e9)
+        if self.use_mask:
+            x -= ((1 - available_location_mask) * 1e9)
         if self.output_type == 'cls':
             logits_flatten = x.view(x.shape[0], -1)
             logits_flatten = F.softmax(logits_flatten.div(temperature), dim=1)

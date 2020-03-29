@@ -103,7 +103,7 @@ away_race = None
 target_map = None
 trajectory_len = 64
 min_mmr = 3500
-replay_list = '/mnt/lustre/zhangming/data/ceph.upload.410.clean.list'
+replay_list = '/mnt/lustre/zhangming/data/replay_decode_410_clean.train.list'
 output_dir = '.'
 
 if __name__ == "__main__":
