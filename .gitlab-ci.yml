@@ -15,7 +15,7 @@ style:
 test:
   stage: test
   script:
-    - python setup.py install
+    - pip install -e .
     - pytest sc2learner/data/tests/ -sv 
 
 pages:
