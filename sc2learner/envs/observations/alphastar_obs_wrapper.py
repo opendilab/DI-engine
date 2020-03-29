@@ -13,14 +13,15 @@ import math
 import torch
 import gym
 from pysc2.lib.features import FeatureUnit
-from pysc2.lib.action_dict import ACT_TO_GENERAL_ACT
+from pysc2.lib.action_dict import ACT_TO_GENERAL_ACT, ACT_TO_GENERAL_ACT_ARRAY
 from pysc2.lib.static_data import NUM_BUFFS, NUM_ABILITIES, NUM_UNIT_TYPES, UNIT_TYPES_REORDER,\
-    BUFFS_REORDER, ABILITIES_REORDER, NUM_UPGRADES, UPGRADES_REORDER, NUM_ACTIONS, ACTIONS_REORDER,\
-    NUM_ADDON, ADDON_REORDER, NUM_BEGIN_ACTIONS, NUM_UNIT_BUILD_ACTIONS, NUM_EFFECT_ACTIONS, \
-    NUM_RESEARCH_ACTIONS, UNIT_BUILD_ACTIONS_REORDER, EFFECT_ACTIONS_REORDER, RESEARCH_ACTIONS_REORDER, \
-    BEGIN_ACTIONS_REORDER
+     UNIT_TYPES_REORDER_ARRAY, BUFFS_REORDER_ARRAY, ABILITIES_REORDER_ARRAY, NUM_UPGRADES, UPGRADES_REORDER,\
+     UPGRADES_REORDER_ARRAY, NUM_ACTIONS, ACTIONS_REORDER_ARRAY, NUM_ADDON, ADDON_REORDER_ARRAY,\
+     NUM_BEGIN_ACTIONS, NUM_UNIT_BUILD_ACTIONS, NUM_EFFECT_ACTIONS, NUM_RESEARCH_ACTIONS,\
+     UNIT_BUILD_ACTIONS_REORDER_ARRAY, EFFECT_ACTIONS_REORDER_ARRAY, RESEARCH_ACTIONS_REORDER_ARRAY,\
+     BEGIN_ACTIONS_REORDER_ARRAY
 from sc2learner.torch_utils import one_hot
-from functools import partial
+from functools import partial, lru_cache
 from collections import OrderedDict
 
 LOCATION_BIT_NUM = 10
@@ -256,22 +257,23 @@ class AlphastarObsParser(object):
         selected_units = last_action['selected_units']
         target_units = last_action['target_units']
         if create_entity_dim:
-            obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 2)], dim=1)
-        selected_units = selected_units if isinstance(selected_units, torch.Tensor) else []
-        for idx, v in enumerate(obs['entity_raw']['id']):
-            if v in selected_units:
-                obs['entity_info'][idx, -1] = 1
-            else:
-                obs['entity_info'][idx, -2] = 1
+            obs['entity_info'] = torch.cat([obs['entity_info'], torch.empty(N, 4)], dim=1)
+        selected_units = selected_units.numpy() if isinstance(selected_units, torch.Tensor) else []
+        obs['entity_info'][:, -3] = 0
+        obs['entity_info'][:, -4] = 1
+        ids_tensor = np.array(obs['entity_raw']['id'])
+        for v in selected_units:
+            selected = (ids_tensor == v)
+            obs['entity_info'][selected, -3] = 1
+            obs['entity_info'][selected, -4] = 0
 
-        if create_entity_dim:
-            obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 2)], dim=1)
-        target_units = target_units if isinstance(target_units, torch.Tensor) else []
-        for idx, v in enumerate(obs['entity_raw']['id']):
-            if v in target_units:
-                obs['entity_info'][idx, -1] = 1
-            else:
-                obs['entity_info'][idx, -2] = 1
+        target_units = target_units.numpy() if isinstance(target_units, torch.Tensor) else []
+        obs['entity_info'][:, -1] = 0
+        obs['entity_info'][:, -2] = 1
+        for v in target_units:
+            targeted = (ids_tensor == v)
+            obs['entity_info'][targeted, -1] = 1
+            obs['entity_info'][targeted, -2] = 0
         return obs
 
 
@@ -305,6 +307,15 @@ def reorder_one_hot(v, dictionary, num, transform=None):
     return one_hot(new_v, num)
 
 
+def reorder_one_hot_array(v, array, num, transform=None):
+    v = v.numpy()
+    if transform is None:
+        val = array[v]
+    else:
+        val = array[transform[v]]
+    return one_hot(torch.LongTensor(val), num)
+
+
 def div_func(inputs, other, unsqueeze_dim=1):
     inputs = inputs.float()
     if unsqueeze_dim is not None:
@@ -312,29 +323,21 @@ def div_func(inputs, other, unsqueeze_dim=1):
     return torch.div(inputs, other)
 
 
-def binary_encode(v, bit_num):
-    bin_v = '{:b}'.format(int(v))
-    bin_v = [int(i) for i in bin_v]
-    bit_diff = len(bin_v) - bit_num
-    if bit_diff > 0:
-        bin_v = bin_v[-bit_num:]
-    elif bit_diff < 0:
-        bin_v = [0 for _ in range(-bit_diff)] + bin_v
-    return torch.FloatTensor(bin_v)
+@lru_cache(maxsize=32)
+def get_to_and(num_bits):
+    return 2**np.arange(num_bits - 1, -1, -1).reshape([1, num_bits])
 
 
-def batch_binary_encode(v, bit_num):
-    assert (len(v.shape) == 1)
-    v = v.clamp(0, int(math.pow(2, bit_num)) - 1)
-    B = v.shape[0]
-    ret = []
-    for b in range(B):
-        try:
-            ret.append(binary_encode(v[b], bit_num))
-        except ValueError:
-            print('ValueError', v)
-            raise ValueError(v)
-    return torch.stack(ret, dim=0)
+def batch_binary_encode(x, bit_num):
+    # Big endian binary encode to float tensor
+    # Example: >>> batch_binary_encode(torch.tensor([131,71]), 10)
+    # tensor([[0., 0., 0., 1., 0., 0., 0., 0., 0., 1.],
+    #         [0., 0., 0., 0., 0., 0., 1., 1., 1., 1.]])
+    x = x.numpy()
+    xshape = list(x.shape)
+    x = x.reshape([-1, 1])
+    to_and = get_to_and(bit_num)
+    return torch.FloatTensor((x & to_and).astype(bool).astype(float).reshape(xshape + [bit_num]))
 
 
 def reorder_boolean_vector(v, dictionary, num, transform=None):
@@ -388,7 +391,7 @@ def transform_entity_data(resolution=128, pad_value=-1e9):
         {
             'key': 'unit_type',
             'dim': NUM_UNIT_TYPES,
-            'op': partial(reorder_one_hot, dictionary=UNIT_TYPES_REORDER, num=NUM_UNIT_TYPES),
+            'op': partial(reorder_one_hot_array, array=UNIT_TYPES_REORDER_ARRAY, num=NUM_UNIT_TYPES),
             'other': 'one-hot'
         },
         #{'key': 'unit_attr', 'dim': 13, 'other': 'each one boolean'},
@@ -535,43 +538,51 @@ def transform_entity_data(resolution=128, pad_value=-1e9):
         {
             'key': 'order_id_0',
             'dim': NUM_ABILITIES,
-            'op': partial(reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT),
+            'op': partial(
+                reorder_one_hot_array, array=ACTIONS_REORDER_ARRAY, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT_ARRAY
+            ),
             'other': 'one-hot'
         },  # noqa
         {
             'key': 'order_id_1',
             'dim': NUM_ACTIONS,
-            'op': partial(reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT),
+            'op': partial(
+                reorder_one_hot_array, array=ACTIONS_REORDER_ARRAY, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT_ARRAY
+            ),
             'other': 'one-hot'
         },  # TODO only building order  # noqa
         {
             'key': 'order_id_2',
             'dim': NUM_ACTIONS,
-            'op': partial(reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT),
+            'op': partial(
+                reorder_one_hot_array, array=ACTIONS_REORDER_ARRAY, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT_ARRAY
+            ),
             'other': 'one-hot'
         },  # TODO only building order  # noqa
         {
             'key': 'order_id_3',
             'dim': NUM_ACTIONS,
-            'op': partial(reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT),
+            'op': partial(
+                reorder_one_hot_array, array=ACTIONS_REORDER_ARRAY, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT_ARRAY
+            ),
             'other': 'one-hot'
         },  # TODO only building order  # noqa
         {
             'key': 'buff_id_0',
             'dim': NUM_BUFFS,
-            'op': partial(reorder_one_hot, dictionary=BUFFS_REORDER, num=NUM_BUFFS),
+            'op': partial(reorder_one_hot_array, array=BUFFS_REORDER_ARRAY, num=NUM_BUFFS),
             'other': 'one-hot'
         },
         {
             'key': 'buff_id_1',
             'dim': NUM_BUFFS,
-            'op': partial(reorder_one_hot, dictionary=BUFFS_REORDER, num=NUM_BUFFS),
+            'op': partial(reorder_one_hot_array, array=BUFFS_REORDER_ARRAY, num=NUM_BUFFS),
             'other': 'one-hot'
         },
         {
             'key': 'addon_unit_type',
             'dim': NUM_ADDON,
-            'op': partial(reorder_one_hot, dictionary=ADDON_REORDER, num=NUM_ADDON),
+            'op': partial(reorder_one_hot_array, array=ADDON_REORDER_ARRAY, num=NUM_ADDON),
             'other': 'one-hot'
         },
         {
@@ -725,18 +736,18 @@ def transform_scalar_data():
             'op': partial(batch_binary_encode, bit_num=32),
             'other': 'transformer'
         },
-        {
-            'key': 'available_actions',
-            'arch': 'fc',
-            'input_dim': NUM_ACTIONS,
-            'output_dim': 64,
-            'ori': 'available_actions',
-            'scalar_context': True,
-            'other': 'boolean vector',
-            'op': partial(
-                reorder_boolean_vector, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT
-            )
-        },  # noqa
+        # {
+        #     'key': 'available_actions',
+        #     'arch': 'fc',
+        #     'input_dim': NUM_ACTIONS,
+        #     'output_dim': 64,
+        #     'ori': 'available_actions',
+        #     'scalar_context': True,
+        #     'other': 'boolean vector',
+        #     'op': partial(
+        #         reorder_boolean_vector, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT
+        #     )
+        # },  # noqa
         {
             'key': 'unit_counts_bow',
             'arch': 'fc',
@@ -804,7 +815,7 @@ def transform_scalar_data():
             'input_dim': NUM_ACTIONS,
             'output_dim': 128,
             'ori': 'action',
-            'op': partial(reorder_one_hot, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS),
+            'op': partial(reorder_one_hot_array, array=ACTIONS_REORDER_ARRAY, num=NUM_ACTIONS),
             'other': 'one-hot NUM_ACTIONS'
         },  # noqa
     ]
@@ -812,6 +823,7 @@ def transform_scalar_data():
 
 
 def compress_obs(obs):
+    # TODO: produce compressed obs directly without one_hot encoding, expecting a ~15% performace improvement
     new_obs = {}
     special_list = ['entity_info', 'spatial_info']
     for k in obs.keys():
@@ -868,11 +880,11 @@ def transform_cum_stat(cumulative_stat):
     }
     for k, v in cumulative_stat.items():
         if v['goal'] in ['unit', 'build']:
-            cumulative_stat_tensor['unit_build'][UNIT_BUILD_ACTIONS_REORDER[k]] = 1
+            cumulative_stat_tensor['unit_build'][UNIT_BUILD_ACTIONS_REORDER_ARRAY[k]] = 1
         elif v['goal'] in ['effect']:
-            cumulative_stat_tensor['effect'][EFFECT_ACTIONS_REORDER[k]] = 1
+            cumulative_stat_tensor['effect'][EFFECT_ACTIONS_REORDER_ARRAY[k]] = 1
         elif v['goal'] in ['research']:
-            cumulative_stat_tensor['research'][RESEARCH_ACTIONS_REORDER[k]] = 1
+            cumulative_stat_tensor['research'][RESEARCH_ACTIONS_REORDER_ARRAY[k]] = 1
     return cumulative_stat_tensor
 
 
@@ -882,12 +894,12 @@ def transform_stat(stat, meta, location_num=LOCATION_BIT_NUM):
     for item in beginning_build_order:
         action_type, location = item['action_type'], item['location']
         action_type = torch.LongTensor([action_type])
-        action_type = reorder_one_hot(action_type, BEGIN_ACTIONS_REORDER, num=NUM_BEGIN_ACTIONS)
+        action_type = reorder_one_hot_array(action_type, BEGIN_ACTIONS_REORDER_ARRAY, num=NUM_BEGIN_ACTIONS)
         if location == 'none':
             location = torch.zeros(location_num * 2)
         else:
-            x = binary_encode(torch.LongTensor([location[0]]), bit_num=location_num)
-            y = binary_encode(torch.LongTensor([location[1]]), bit_num=location_num)
+            x = batch_binary_encode(torch.LongTensor([location[0]]), bit_num=location_num)[0]
+            y = batch_binary_encode(torch.LongTensor([location[1]]), bit_num=location_num)[0]
             location = torch.cat([x, y], dim=0)
         beginning_build_order_tensor.append(torch.cat([action_type.squeeze(0), location], dim=0))
     beginning_build_order_tensor = torch.stack(beginning_build_order_tensor, dim=0)
