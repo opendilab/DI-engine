@@ -7,20 +7,24 @@ from sc2learner.data.structure.segment_tree import SumSegmentTree, MinSegmentTre
 
 class PrioritizedBuffer:
     """
-    Interfacce: __init__, append, extend, sample, update
+    Overview: prioritized buffer, store and sample data
+    Interface: __init__, append, extend, sample, update
+    Property: maxlen, validlen, beta
+    Note: this buffer doesn't refer to multi-thread/multi-process, thread-safe should be ensured by the caller
     """
     def __init__(self, maxlen, max_reuse=None, min_sample_ratio=1., alpha=0., beta=0.):
         """
+        Overview: initialize the buffer
         Arguments:
             - maxlen (:obj:`int`): the maximum value of the buffer length
             - max_reuse (:obj:`int` or None): the maximum reuse times of each element in buffer
-            - min_sample_ratio (:obj:`float`) : the minimum ratio of the current element size in buffer
+            - min_sample_ratio (:obj:`float`): the minimum ratio of the current element size in buffer
                                                 divides sample size
             - alpha (:obj:`float`): how much prioritization is used(0: no prioritization, 1: full prioritization)
             - beta (:obj:`float`): how much correction is used(0: no correction, 1: full correction)
         """
         # TODO(nyz) remove elements according to priority
-        # TODO(nyz) whether use Lock
+        # TODO(nyz) add statistics module
         self._maxlen = maxlen
         self._data = [None for _ in range(maxlen)]
         self._reuse_count = {idx: 0 for idx in range(maxlen)}
@@ -32,6 +36,7 @@ class PrioritizedBuffer:
         self.alpha = alpha
         assert (0 <= beta <= 1)
         self._beta = beta
+        # capacity needs to be the power of 2
         capacity = int(np.power(2, np.ceil(np.log2(self.maxlen))))
         self.sum_tree = SumSegmentTree(capacity)
         self.use_priority = np.fabs(alpha) > 1e-4
@@ -39,15 +44,25 @@ class PrioritizedBuffer:
             self.min_tree = MinSegmentTree(capacity)
 
         self.max_priority = 1.0
+        # current valid data count
         self.valid_count = 0
         self.pointer = 0
+        # generate the unique id for each data
         self.latest_data_id = 0
 
+        # data check function list
         self.check_list = [lambda x: isinstance(x, dict)]
 
     def _set_weight(self, idx, data):
+        """
+        Overview: set the priority and tree weight of the input data
+        Arguments:
+            - idx (:obj:`int`) the index which the data will be inserted into
+            - data (:obj:`T`) the data which will be inserted
+        """
         if 'priority' not in data.keys() or data['priority'] is None:
             data['priority'] = self.max_priority
+        # weight = priority ** alpha
         weight = data['priority']**self.alpha
         self.sum_tree[idx] = weight
         if self.use_priority:
@@ -55,9 +70,13 @@ class PrioritizedBuffer:
 
     def sample(self, size):
         """
+        Overview: sample data with `size`
+        Arguments:
+            - size (:obj:`int`): the number of the data will be sampled
         Returns:
-            - sample_data (:obj:`list`): each data owns keys:
-                original data keys + ['IS', 'priority', 'replay_unique_id', 'replay_buffer_idx]'
+            - sample_data (:obj:`list`): if check fails return None, otherwise, returns a list with length `size`,
+                                         and each data owns keys: original data keys +
+                                         ['IS', 'priority', 'replay_unique_id', 'replay_buffer_idx']
         """
         if not self._sample_check(size):
             return None
@@ -65,9 +84,15 @@ class PrioritizedBuffer:
         return self._sample_with_indices(indices)
 
     def append(self, data):
+        """
+        Overview: append a data item into queue
+        Arguments:
+            - data (:obj:`T`): the data which will be inserted
+        """
         try:
             assert (self._data_check(data))
         except AssertionError:
+            # if data check fails, just return without any operations
             return
         if self._data[self.pointer] is None:
             self.valid_count += 1
@@ -80,7 +105,13 @@ class PrioritizedBuffer:
         self.latest_data_id += 1
 
     def extend(self, data):
+        """
+        Overview: extend a data list into queue
+        Arguments:
+            - data (:obj:`T`): the data list
+        """
         check_result = [self._data_check(d) for d in data]
+        # only keep the data pass the check
         valid_data = [d for d, flag in zip(data, check_result) if flag]
         L = len(valid_data)
         for i in range(L):
@@ -90,6 +121,7 @@ class PrioritizedBuffer:
             if self._data[(self.pointer + i) % self.maxlen] is None:
                 self.valid_count += 1
 
+        # the two case of the relationship among pointer, data length and queue length
         if self.pointer + L <= self._maxlen:
             self._data[self.pointer:self.pointer + L] = valid_data
             for idx in range(self.pointer, self.pointer + L):
@@ -108,25 +140,58 @@ class PrioritizedBuffer:
         self.latest_data_id += L
 
     def update(self, info):
+        """
+        Overview: update priority according to the id and idx
+        Arguments:
+            - info (:obj:`dict`): info dict contains all the necessary for update priority
+        """
         data = [info['replay_unique_id'], info['replay_buffer_idx'], info['priority']]
         for id, idx, priority in zip(*data):
-            if self._data[idx] is not None and self._data[idx]['replay_unique_id'] == id:  # confirm the same transition
+            # if the data still exists in the queue, then do the update operation
+            if self._data[idx] is not None and self._data[idx]['replay_unique_id'
+                                                               ] == id:  # confirm the same transition(data)
                 assert priority > 0
                 self._data[idx]['priority'] = priority
                 self._set_weight(idx, self._data[idx])
+                # update max priority
                 self.max_priority = max(self.max_priority, priority)
 
     def _data_check(self, d):
+        """
+        Overview: data legality check
+        Arguments:
+            - d (:obj:`T`): the data need to be checked
+        Returns:
+            - result (:obj:`bool`): whether the data pass the check
+        """
+        # only the data pass all the check function does the check return True
         return all([fn(d) for fn in self.check_list])
 
     def _get_indices(self, size):
+        """
+        Overview: according to the priority probability, get the sample index
+        Arguments:
+            - size (:obj:`int`): the number of the data will be sampled
+        Returns:
+            - index_list (:obj:`list`): a list including all the sample index
+        """
         # average divide size intervals and sample from them
         intervals = np.array([i * 1.0 / size for i in range(size)])
+        # uniform sample in each interval
         mass = intervals + np.random.uniform(size=(size, )) * 1. / size
+        # rescale to [0, S), which S is the sum of the total sum_tree
         mass *= self.sum_tree.reduce()
+        # find prefix sum index to approximate sample with probability
         return [self.sum_tree.find_prefixsum_idx(m) for m in mass]
 
     def _sample_check(self, size):
+        """
+        Overview: check whether the buffer satisfies the sample condition
+        Arguments:
+            - size (:obj:`int`): the number of the data will be sampled
+        Returns:
+            - result (:obj:`bool`): whether the buffer can sample
+        """
         if self.valid_count / size < self.min_sample_ratio:
             print(
                 "no enough element for sample(expect: {}/current have: {}, min_sample_ratio: {})".format(
@@ -138,13 +203,22 @@ class PrioritizedBuffer:
             return True
 
     def _sample_with_indices(self, indices):
+        """
+        Overview: sample the data with indices and update the internal variable
+        Arguments:
+            - indices (:obj:`list`): a list including all the sample index
+        Returns:
+            - data (:obj:`list`) sampled data
+        """
         if self.use_priority:
+            # calculate max weight for normalizing IS
             sum_tree_root = self.sum_tree.reduce()
             p_min = self.min_tree.reduce() / sum_tree_root
             max_weight = (self.valid_count * p_min)**(-self._beta)
 
         data = []
         for idx in indices:
+            # deepcopy data for avoiding interference
             copy_data = copy.deepcopy(self._data[idx])
             assert (copy_data is not None)
             # get IS(importance sampling weight for gradient step)
