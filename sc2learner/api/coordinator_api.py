@@ -103,27 +103,27 @@ def get_metadata():
 
 @app.route('/debug/get_all_manager', methods=['get'])
 def get_all_manager():
-    l = coordinator.deal_with_get_all_manager()
-    if l:
-        return build_ret(0, l)
+    info = coordinator.deal_with_get_all_manager()
+    if info:
+        return build_ret(0, info)
     else:
         return build_ret(1)
 
 
 @app.route('/debug/get_all_learner', methods=['get'])
 def get_all_learner():
-    l = coordinator.deal_with_get_all_learner()
-    if l:
-        return build_ret(0, l)
+    info = coordinator.deal_with_get_all_learner()
+    if info:
+        return build_ret(0, info)
     else:
         return build_ret(1)
 
 
 @app.route('/debug/get_all_job', methods=['get'])
 def get_all_job():
-    l = coordinator.deal_with_get_all_job()
-    if l:
-        return build_ret(0, l)
+    info = coordinator.deal_with_get_all_job()
+    if info:
+        return build_ret(0, info)
     else:
         return build_ret(1)
 

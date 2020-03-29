@@ -91,36 +91,36 @@ def get_heartbeats():
 
 @app.route('/debug/get_all_actor', methods=['get'])
 def get_all_manager():
-    l = coordinator.deal_with_get_all_actor_from_debug()
-    if l:
-        return build_ret(0, l)
+    info = manager.deal_with_get_all_actor_from_debug()
+    if info:
+        return build_ret(0, info)
     else:
         return build_ret(1)
 
 
 @app.route('/debug/get_all_job', methods=['get'])
 def get_all_job():
-    l = coordinator.deal_with_get_all_job_from_debug()
-    if l:
-        return build_ret(0, l)
+    info = manager.deal_with_get_all_job_from_debug()
+    if info:
+        return build_ret(0, info)
     else:
         return build_ret(1)
 
 
 @app.route('/debug/get_reuse_job_list', methods=['get'])
 def get_reuse_job_list():
-    l = coordinator.deal_with_get_reuse_job_list_from_debug()
-    if l:
-        return build_ret(0, l)
+    info = manager.deal_with_get_reuse_job_list_from_debug()
+    if info:
+        return build_ret(0, info)
     else:
         return build_ret(1)
 
 
 @app.route('/debug/clear_reuse_job_list', methods=['get'])
 def clear_reuse_job_list():
-    l = coordinator.deal_with_clear_reuse_job_list_from_debug()
-    if l:
-        return build_ret(0, l)
+    info = manager.deal_with_clear_reuse_job_list_from_debug()
+    if info:
+        return build_ret(0, info)
     else:
         return build_ret(1)
 

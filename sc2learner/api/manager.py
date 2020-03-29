@@ -147,10 +147,6 @@ class Manager(object):
     ###################################################################################
     #                                     threads                                     #
     ###################################################################################
-    '''
-    check if actor is dead every `self.check_dead_actor_freq`. If an actor is dead, 
-    set state of its running job_id into dead for reuse.
-    '''
 
     def time_format(self, time_item):
         return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time_item))

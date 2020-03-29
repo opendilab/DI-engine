@@ -54,7 +54,7 @@ class FakeLearner(object):
                 self.logger.info("something wrong with coordinator, {}".format(e))
             time.sleep(10)
 
-    def register_model_in_coordinator(self, model_nama):
+    def register_model_in_coordinator(self, model_name):
         # register model in coordinator
         while True:
             try:
@@ -101,11 +101,3 @@ class FakeLearner(object):
     ###################################################################################
     #                                      debug                                      #
     ###################################################################################
-
-
-if __name__ == '__main__':
-    import socket
-    hostname = socket.gethostname()
-    print(hostname)
-    ip = socket.gethostbyname(hostname)
-    print(ip)

@@ -13,7 +13,7 @@ def read_file_ceph(path, read_type='BytesIO'):
         - path (:obj:`str`): file path in ceph, start with "s3://"
         - read_type (:obj:`str`): choose in ['BytesIO', 'pickle']
     Returns:
-        - (:obj`data`): 
+        - (:obj`data`): fileStream or data
     """
     if ceph is None:
         import logging
