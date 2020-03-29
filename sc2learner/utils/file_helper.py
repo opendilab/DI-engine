@@ -42,5 +42,3 @@ def save_file_ceph(save_path, file_name, data):
     data = pickle.dumps(data)
     s3client = ceph.S3Client()
     s3client.save_from_string(save_path, file_name, data)
-
-

@@ -4,7 +4,7 @@ import time
 import uuid
 
 import numpy as np
-from itertools import count 
+from itertools import count
 import logging
 import argparse
 import yaml
@@ -12,7 +12,6 @@ from flask import Flask, request
 
 from coordinator import Coordinator
 from utils.log_helper import TextLogger
-
 
 parser = argparse.ArgumentParser(description='implementation of AlphaStar')
 parser.add_argument('--config', dest='config', required=True, help='settings of AlphaStar in yaml format')
@@ -51,6 +50,7 @@ def register_model():
     else:
         return build_ret(1)
 
+
 @app.route('/coordinator/register_manager', methods=['POST'])
 def register_manager():
     manager_uid = request.json['manager_uid']
@@ -59,6 +59,7 @@ def register_manager():
         return build_ret(0)
     else:
         return build_ret(1)
+
 
 @app.route('/coordinator/register_learner', methods=['POST'])
 def register_learner():
@@ -70,6 +71,7 @@ def register_learner():
     else:
         return build_ret(1)
 
+
 @app.route('/coordinator/ask_for_job', methods=['POST'])
 def get_sample():
     manager_uid = request.json['manager_uid']
@@ -79,6 +81,7 @@ def get_sample():
         return build_ret(0, job)
     else:
         return build_ret(1)
+
 
 @app.route('/coordinator/get_metadata', methods=['POST'])
 def get_metadata():
@@ -93,10 +96,10 @@ def get_metadata():
         return build_ret(1)
 
 
-
 ###################################################################################
 #                                    for debug                                    #
 ###################################################################################
+
 
 @app.route('/debug/get_all_manager', methods=['get'])
 def get_all_manager():
@@ -106,6 +109,7 @@ def get_all_manager():
     else:
         return build_ret(1)
 
+
 @app.route('/debug/get_all_learner', methods=['get'])
 def get_all_learner():
     l = coordinator.deal_with_get_all_learner()
@@ -113,6 +117,7 @@ def get_all_learner():
         return build_ret(0, l)
     else:
         return build_ret(1)
+
 
 @app.route('/debug/get_all_job', methods=['get'])
 def get_all_job():
@@ -125,13 +130,3 @@ def get_all_job():
 
 if __name__ == '__main__':
     app.run(host=coordinator_ip, port=coordinator_port, debug=True, use_reloader=False)
-
-
-
-
-
-
-
-
-
-

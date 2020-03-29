@@ -15,9 +15,7 @@ import yaml
 from utils.log_helper import TextLogger
 from utils import save_file_ceph
 
-
-parser = argparse.ArgumentParser(
-    description='implementation of NAS worker')
+parser = argparse.ArgumentParser(description='implementation of NAS worker')
 parser.add_argument('--config', type=str, help='training config yaml file')
 
 
@@ -32,22 +30,20 @@ class FakeActor(object):
 
         self.log_save_dir = os.path.join(self.cfg['log_save_dir'], 'actor')
         self.url_prefix = 'http://{}:{}/'.format(self.manager_ip, self.manager_port)
-        self.heartbeats_freq = 60*2
+        self.heartbeats_freq = 60 * 2
         self.stop_flag = False
 
         self._set_logger()
         self.register_actor()
-    
+
         # start sending heartbeats
         check_send_actor_heartbeats_thread = threading.Thread(target=self.send_actor_heartbeats)
         check_send_actor_heartbeats_thread.start()
         self.logger.info("[UP] send actor heartbeats thread ")
 
-
     def _set_logger(self):
         self.log_name = self.actor_uid + ".log"
         self.logger = TextLogger(self.log_save_dir, name=self.log_name)
-
 
     def send_actor_heartbeats(self):
         '''
@@ -63,8 +59,6 @@ class FakeActor(object):
                     break
         self.logger.info('check_send_actor_heartbeats_thread stop as job finished.')
 
-
-
     def register_actor(self):
         '''
             Overview: register actor to manager.
@@ -73,8 +67,7 @@ class FakeActor(object):
             d = {'actor_uid': self.actor_uid}
             response = requests.post(self.url_prefix + 'manager/register', json=d).json()
             if response['code'] == 0:
-                return 
-
+                return
 
     def ask_for_job(self):
         '''
@@ -96,14 +89,13 @@ class FakeActor(object):
             self.logger.info('[actor {}] get job {} success'.format(self.actor_uid, self.job['job_id']))
             self.job_id = self.job['job_id']
 
-
     def _get_feedback(self):
         trajectory = {
             'step': 1,
             'agent_no': 1,
             'job_id': self.job['job_id'],
             'job': self.job,
-            'prev_obs': torch.tensor([[1,2,3], [4,5,6]]),
+            'prev_obs': torch.tensor([[1, 2, 3], [4, 5, 6]]),
             'lstm_state_before': True,
             'lstm_state_after': False,
             'logits': 'logits_value',
@@ -127,7 +119,6 @@ class FakeActor(object):
             'learner_uid2': self.job['learner_uid2']
         }
         return trajectory, metadata
-        
 
     def simulate(self):
         try:
@@ -139,7 +130,6 @@ class FakeActor(object):
             return False, {}, {}
         return True, trajectory, metadata
 
-
     def send_result(self, metadata):
         d = {'actor_uid': self.actor_uid, 'job_id': self.job_id, 'metadata': metadata}
         response = requests.post(self.url_prefix + 'manager/get_metadata', json=d).json()
@@ -147,7 +137,6 @@ class FakeActor(object):
             self.logger.info("succeed sending result: {}".format(self.job_id))
         else:
             self.logger.info("failed to send result: {}".format(self.job_id))
-
 
     def stop(self):
         self.stop_flag = True
@@ -168,7 +157,7 @@ def main():
     coordinator_port = api_info['coordinator_port']
     manager_ip = api_info['manager_ip']
     manager_port = api_info['manager_port']
-    
+
     actor = FakeActor(cfg)
 
     actor.ask_for_job()
@@ -177,6 +166,7 @@ def main():
         actor.send_result(metadata)
     actor.stop()
     # exit()
+
 
 if __name__ == '__main__':
     main()

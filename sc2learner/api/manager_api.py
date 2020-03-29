@@ -4,7 +4,7 @@ import time
 import uuid
 
 import numpy as np
-from itertools import count 
+from itertools import count
 import logging
 import argparse
 import yaml
@@ -12,7 +12,6 @@ from flask import Flask, request
 
 from manager import Manager
 from utils.log_helper import TextLogger
-
 
 parser = argparse.ArgumentParser(description='implementation of AlphaStar')
 parser.add_argument('--config', dest='config', required=True, help='settings of AlphaStar in yaml format')
@@ -50,6 +49,7 @@ def register():
     else:
         return build_ret(1)
 
+
 @app.route('/manager/ask_for_job', methods=['POST'])
 def get_sample():
     actor_uid = request.json['actor_uid']
@@ -58,6 +58,7 @@ def get_sample():
         return build_ret(0, job)
     else:
         return build_ret(1)
+
 
 @app.route('/manager/get_metadata', methods=['POST'])
 def finish_sample():
@@ -70,6 +71,7 @@ def finish_sample():
     else:
         return build_ret(1)
 
+
 @app.route('/manager/get_heartbeats', methods=['POST'])
 def get_heartbeats():
     actor_uid = request.json['actor_uid']
@@ -80,12 +82,12 @@ def get_heartbeats():
         return build_ret(1)
 
 
-
 ###################################################################################
 #                                                                                 #
 #                                    for debug                                    #
 #                                                                                 #
 ###################################################################################
+
 
 @app.route('/debug/get_all_actor', methods=['get'])
 def get_all_manager():
@@ -95,6 +97,7 @@ def get_all_manager():
     else:
         return build_ret(1)
 
+
 @app.route('/debug/get_all_job', methods=['get'])
 def get_all_job():
     l = coordinator.deal_with_get_all_job_from_debug()
@@ -103,6 +106,7 @@ def get_all_job():
     else:
         return build_ret(1)
 
+
 @app.route('/debug/get_reuse_job_list', methods=['get'])
 def get_reuse_job_list():
     l = coordinator.deal_with_get_reuse_job_list_from_debug()
@@ -110,6 +114,7 @@ def get_reuse_job_list():
         return build_ret(0, l)
     else:
         return build_ret(1)
+
 
 @app.route('/debug/clear_reuse_job_list', methods=['get'])
 def clear_reuse_job_list():
@@ -122,7 +127,3 @@ def clear_reuse_job_list():
 
 if __name__ == '__main__':
     app.run(host=manager_ip, port=manager_port, debug=True, use_reloader=False)
-
-
-
-

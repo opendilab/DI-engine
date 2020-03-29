@@ -5,7 +5,7 @@ import json
 import threading
 import requests
 import numpy as np
-from itertools import count 
+from itertools import count
 import logging
 import argparse
 import yaml
@@ -15,7 +15,6 @@ import random
 
 
 class Coordinator(object):
-
     def __init__(self, cfg):
         super(Coordinator, self).__init__()
         self.cfg = cfg
@@ -24,16 +23,15 @@ class Coordinator(object):
         self.manager_ip = cfg['api']['manager_ip']
         self.manager_port = cfg['api']['manager_port']
 
-        self.manager_record = {} # {manager_uid: {actor_uid: [job_id]}}
-        self.job_record = {} # {job_id: {content: info, metadatas: [metadata], state: run/finish}}
-        self.learner_record = {} # {learner_uid: {"learner_ip": learner_ip, "job_ids": [job_id], "models": [model_name]}}
+        self.manager_record = {}  # {manager_uid: {actor_uid: [job_id]}}
+        self.job_record = {}  # {job_id: {content: info, metadatas: [metadata], state: run/finish}}
+        self.learner_record = {
+        }  # {learner_uid: {"learner_ip": learner_ip, "job_ids": [job_id], "models": [model_name]}}
 
         self._set_logger()
 
-
     def _set_logger(self, level=1):
         self.logger = logging.getLogger("coordinator.log")
-
 
     def _get_job(self):
         '''
@@ -46,7 +44,6 @@ class Coordinator(object):
         learner_uid2 = random.choice(list(self.learner_record.keys()))
         return {'job_id': job_id, 'learner_uid1': learner_uid1, 'learner_uid2': learner_uid2}
 
-
     def deal_with_register_model(self, learner_uid, model_name):
         '''
             Overview: deal with register from learner to register model
@@ -56,7 +53,6 @@ class Coordinator(object):
         '''
         self.learner_record[learner_uid]['models'].append(model_name)
         return True
-
 
     def deal_with_register_manager(self, manager_uid):
         '''
@@ -68,7 +64,6 @@ class Coordinator(object):
             self.manager_record[manager_uid] = {}
         return True
 
-
     def deal_with_register_learner(self, learner_uid, learner_ip):
         '''
             Overview: deal with register from learner
@@ -76,13 +71,8 @@ class Coordinator(object):
                 - learner_uid (:obj:`str`): learner's uid
         '''
         if learner_uid not in self.learner_record:
-            self.learner_record[learner_uid] = {
-                "learner_ip": learner_ip, 
-                "job_ids": [], 
-                "models": []
-            }
+            self.learner_record[learner_uid] = {"learner_ip": learner_ip, "job_ids": [], "models": []}
         return True
-
 
     def deal_with_ask_for_job(self, manager_uid, actor_uid):
         '''
@@ -98,9 +88,8 @@ class Coordinator(object):
         if actor_uid not in self.manager_record[manager_uid]:
             self.manager_record[manager_uid][actor_uid] = []
         self.manager_record[manager_uid][actor_uid].append(job_id)
-        self.job_record[job_id] = {'content': job, 'metadatas': [],  'state': 'running'}
+        self.job_record[job_id] = {'content': job, 'metadatas': [], 'state': 'running'}
         return job
-
 
     def deal_with_get_metadata(self, manager_uid, actor_uid, job_id, metadata):
         '''
@@ -116,8 +105,9 @@ class Coordinator(object):
         assert job_id in self.job_record, 'job_id ({}) not in job_record'.format(job_id)
         self.job_record[job_id]['metadatas'].append(metadata)
 
-        learner_uid_list = [self.job_record[job_id]['content']['learner_uid1'], 
-                            self.job_record[job_id]['content']['learner_uid2']]
+        learner_uid_list = [
+            self.job_record[job_id]['content']['learner_uid1'], self.job_record[job_id]['content']['learner_uid2']
+        ]
 
         for learner_uid in learner_uid_list:
             learner_ip = self.learner_record[learner_uid]['learner_ip']
@@ -134,8 +124,6 @@ class Coordinator(object):
                     self.logger.info("[error] {}".format(sys.exc_info()))
                 time.sleep(1)
 
-
-
     ###################################################################################
     #                                      debug                                      #
     ###################################################################################
@@ -143,16 +131,8 @@ class Coordinator(object):
     def deal_with_get_all_manager(self):
         return self.manager_record
 
-
     def deal_with_get_all_learner(self):
         return self.learner_record
 
-
     def deal_with_get_all_job(self):
         return self.job_record
-
-
-
-
-
-

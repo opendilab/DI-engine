@@ -23,7 +23,6 @@ from utils.log_helper import TextLogger
 
 from fake_learner import FakeLearner
 
-
 parser = argparse.ArgumentParser(description='implementation of AlphaStar')
 parser.add_argument('--config', dest='config', required=True, help='settings of AlphaStar in yaml format')
 args = parser.parse_args()
@@ -46,8 +45,9 @@ manager_port = api_info['manager_port']
 app = Flask(__name__)
 
 # # todo:
-# learner = learner_entry("alphastar_agent", cfg) 
+# learner = learner_entry("alphastar_agent", cfg)
 learner = FakeLearner(cfg)
+
 
 def build_ret(code, info=''):
     return {'code': code, 'info': info}
@@ -64,8 +64,5 @@ def get_sample():
 #                                      debug                                      #
 ###################################################################################
 
-
-
 if __name__ == '__main__':
     app.run(host=learner_ip, port=learner_port, debug=True, use_reloader=False)
-
