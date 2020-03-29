@@ -256,22 +256,23 @@ class AlphastarObsParser(object):
         selected_units = last_action['selected_units']
         target_units = last_action['target_units']
         if create_entity_dim:
-            obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 2)], dim=1)
+            obs['entity_info'] = torch.cat([obs['entity_info'], torch.empty(N, 4)], dim=1)
         selected_units = selected_units if isinstance(selected_units, torch.Tensor) else []
-        for idx, v in enumerate(obs['entity_raw']['id']):
-            if v in selected_units:
-                obs['entity_info'][idx, -1] = 1
-            else:
-                obs['entity_info'][idx, -2] = 1
+        obs['entity_info'][:, -3] = 0
+        obs['entity_info'][:, -4] = 1
+        ids_tensor = torch.LongTensor(obs['entity_raw']['id'])
+        for v in selected_units:
+            selected = (ids_tensor == v)
+            obs['entity_info'][selected, -3] = 1
+            obs['entity_info'][selected, -4] = 0
 
-        if create_entity_dim:
-            obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 2)], dim=1)
         target_units = target_units if isinstance(target_units, torch.Tensor) else []
-        for idx, v in enumerate(obs['entity_raw']['id']):
-            if v in target_units:
-                obs['entity_info'][idx, -1] = 1
-            else:
-                obs['entity_info'][idx, -2] = 1
+        obs['entity_info'][:, -1] = 0
+        obs['entity_info'][:, -2] = 1
+        for v in target_units:
+            targeted = (ids_tensor == v)
+            obs['entity_info'][targeted, -1] = 1
+            obs['entity_info'][targeted, -2] = 0
         return obs
 
 
