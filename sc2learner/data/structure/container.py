@@ -7,6 +7,14 @@ class SequenceContainer(object):
     _name = 'SequenceContainer'
 
     def __init__(self, **kwargs):
+        for k in kwargs.keys():
+            if isinstance(kwargs[k], torch.Tensor):
+                kwargs[k] = kwargs[k].unsqueeze(0)
+            elif isinstance(kwargs[k], Sequence):
+                kwargs[k] = [kwargs[k]]
+            else:
+                raise TypeError("not support type in class {}: {}".format(self._name, type(kwargs[k])))
+
         self.__dict__.update(kwargs)
         self._length = 1
 
@@ -47,5 +55,23 @@ class SequenceContainer(object):
         self._length += len(data)
 
     def __getitem__(self, idx):
-        data = {copy.deepcopy(self.__dict__[k]) for k in self.keys}
+        data = {k: copy.deepcopy(self.__dict__[k][idx]) for k in self.keys}
         return SequenceContainer(**data)
+
+    def __eq__(self, other):
+        if not isinstance(other, SequenceContainer):
+            return False
+        if self.keys != other.keys:
+            return False
+        if len(self) != len(other):
+            return False
+        for k in self.keys:
+            if isinstance(self.value(k), torch.Tensor):
+                if self.value(k).shape != other.value(k).shape:
+                    return False
+                if torch.abs(self.value(k) - other.value(k)).mean() > 1e-6:
+                    return False
+            else:
+                if self.value(k) != other.value(k):
+                    return False
+        return True
