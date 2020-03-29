@@ -3,10 +3,10 @@ common:
 data:
     train:
         dataset_type: replay
-        dataloader_type: epoch  # [epoch, iter]
+        dataloader_type: iter  # [epoch, iter]
         batch_size: 6
         trajectory_len: 48
-        trajectory_type: slide_window  # [epoch: [slide_window], iter: [sequential]]
+        trajectory_type: sequential  # [epoch: [slide_window], iter: [sequential]]
         slide_window_step: 1
         beginning_build_order_prob: 0.8
         use_stat: True
@@ -86,6 +86,7 @@ model:
                 context_dim: 256  # use_stat(True: 256, False: 128)
                 activation: 'relu'
                 norm_type: 'LN'
+                use_mask: True
             delay_head:
                 input_dim: 1024  # action_type_head.gate_dim
                 decode_dim: 256
@@ -109,6 +110,7 @@ model:
                 num_layers: 1
                 max_entity_num: 64
                 activation: 'relu'
+                use_mask: True
             target_unit_head:
                 input_dim: 1024  # action_type_head.gate_dim
                 entity_embedding_dim: 128  # entity_encoder.output_dim
@@ -116,6 +118,7 @@ model:
                 unit_type_dim: 259
                 func_dim: 256
                 activation: 'relu'
+                use_mask: True
             location_head:
                 upsample_type: 'deconv'
                 upsample_dims: [128, 64, 16, 1]  # len(upsample_dims)-len(down_channels)+1 = ratio
@@ -126,3 +129,4 @@ model:
                 map_skip_dim: 128  # spatial_encoder.down_channels[-1]
                 activation: 'relu'
                 output_type: 'cls'  # ['cls', 'soft_argmax']
+                use_mask: False

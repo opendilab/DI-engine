@@ -59,7 +59,6 @@ setup(
         'pysc2.tests',
         'sc2learner',
         'sc2learner.agent',
-        'sc2learner.data',
         'sc2learner.envs',
         'sc2learner.optimizer',
         'sc2learner.utils',
@@ -67,7 +66,9 @@ setup(
         'sc2learner.torch_utils',
         'sc2learner.worker',
         'sc2learner.rl_utils',
-        'sc2learner.scripts'
+        'sc2learner.data',
+        'sc2learner.scripts',
+        'sc2learner.evaluate',
     ],
     install_requires=[
         'absl-py>=0.1.0',
@@ -86,8 +87,8 @@ setup(
         'sk-video',
         'websocket-client',
         'whichcraft',
-        'gym==0.10.5',
-        'torch==1.1.0',
+        'gym',
+        'torch==1.3.1',  # 1.3.1+cuda90_cudnn7.6.3_lms
         #'tensorflow>=1.4.1',  enable if necessary
         'joblib',
         'pyzmq',

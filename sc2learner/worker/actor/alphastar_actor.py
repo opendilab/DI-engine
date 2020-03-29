@@ -1,4 +1,5 @@
 import time
+import copy
 import torch
 
 import pysc2.env.sc2_env as sc2_env
@@ -68,6 +69,8 @@ class AlphaStarActor:
         self.env = None
         self.agents = None
         self.agent_num = 0
+        self.teacher_agent = None
+        self.use_teacher_model = None
         self._module_init()
 
     def _init_with_job(self, job):
@@ -87,7 +90,7 @@ class AlphaStarActor:
                 AlphaStarAgent(
                     model_config=self.cfg.model,
                     num_concurrent_episodes=1,
-                    use_cuda=self.cfg.train.use_cuda,
+                    use_cuda=self.cfg.env.use_cuda,
                     use_distributed=False
                 )
             ]
@@ -101,13 +104,13 @@ class AlphaStarActor:
                 AlphaStarAgent(
                     model_config=self.cfg.model,
                     num_concurrent_episodes=1,
-                    use_cuda=self.cfg.train.use_cuda,
+                    use_cuda=self.cfg.env.use_cuda,
                     use_distributed=False
                 ),
                 AlphaStarAgent(
                     model_config=self.cfg.model,
                     num_concurrent_episodes=1,
-                    use_cuda=self.cfg.train.use_cuda,
+                    use_cuda=self.cfg.env.use_cuda,
                     use_distributed=False
                 )
             ]
@@ -117,23 +120,104 @@ class AlphaStarActor:
         for agent in self.agents:
             agent.eval()
             agent.set_seed(job['random_seed'])
+            agent.reset_previous_state([True])  # Here the lstm_states are resetted
 
+        if job['teacher_model_id']:
+            # agent for evaluation of the SL model to produce the logits
+            # for human_policy_kl_loss in rl.py of AlphaStar Supp. Mat.
+            self.teacher_agent = AlphaStarAgent(
+                model_config=self.cfg.model,
+                num_concurrent_episodes=1,
+                use_cuda=self.cfg.env.use_cuda,
+                use_distributed=False
+            )
+            self.use_teacher_model = True
+        else:
+            self.use_teacher_model = False
         self.env = self._make_env(players)
 
     def _make_env(self, players):
         return AlphaStarEnv(self.cfg, players)
 
+    # this is to be overriden
     def _module_init(self):
         self.job_getter = JobGetter(self.cfg)
         self.model_loader = ModelLoader(self.cfg)
         self.stat_requester = StatRequester(self.cfg)
         self.data_pusher = DataPusher(self.cfg)
 
+    def _init_states(self):
+        self.last_state_action = [None] * self.agent_num
+        self.lstm_states = [None] * self.agent_num
+        self.lstm_states_cpu = [None] * self.agent_num
+        self.teacher_lstm_states = [None] * self.agent_num
+        self.teacher_lstm_states_cpu = [None] * self.agent_num
+
+    def _eval_actions(self, obs, due):
+        actions = [None] * self.agent_num
+        for i in range(self.agent_num):
+            if due[i]:
+                # self.last_state_action[i] stores the last observation, lstm state and the action of agent i
+                # once the simulation of the step is complete, this will be combined with the next observation
+                # and rewards then put into the trajectory buffer for agent i
+                self.last_state_action[i] = {
+                    'agent_no': i,
+                    'prev_obs': obs,
+                    'lstm_state_before': self.lstm_states_cpu[i],
+                    'have_teacher': self.use_teacher_model,
+                    'teacher_lstm_state_before': self.teacher_lstm_states_cpu[i]
+                }
+                obs_copy = copy.deepcopy(obs)
+                obs_copy[i] = unsqueeze_batch_dim(obs_copy[i])
+                done = True
+                if self.cfg.env.use_cuda:
+                    obs_copy[i] = to_device(obs_copy[i], 'cuda')
+                if self.use_teacher_model:
+                    _, teacher_logits, self.teacher_lstm_states[i] = self.teacher_agent.compute_action(
+                        obs_copy[i],
+                        mode="evaluate",
+                        prev_states=self.teacher_lstm_states[i],
+                        require_grad=False,
+                        temperature=self.cfg.env.temperature
+                    )
+                else:
+                    teacher_logits = None
+                action, logits, self.lstm_states[i] = self.agents[i].compute_action(
+                    obs_copy[i],
+                    mode="evaluate",
+                    prev_states=self.lstm_states[i],
+                    require_grad=False,
+                    temperature=self.cfg.env.temperature
+                )
+
+                if self.cfg.env.use_cuda:
+                    action = to_device(action, 'cpu')
+                    logits = to_device(logits, 'cpu')
+                    teacher_logits = to_device(teacher_logits, 'cpu')
+                    # Two copies of next_state is maintained, one in cpu and one still in gpu
+                    # TODO: is this really necessary?
+                    self.lstm_states_cpu[i] = to_device(self.lstm_states[i], 'cpu')
+                    self.teacher_lstm_states_cpu[i] = to_device(self.teacher_lstm_states[i], 'cpu')
+                else:
+                    self.lstm_states_cpu[i] = self.lstm_states[i]
+                    self.teacher_lstm_states_cpu[i] = self.teacher_lstm_states[i]
+                action = dict_list2list_dict(action)[0]  # o for batch dim
+
+                actions[i] = action
+                self.last_state_action[i]['action'] = action
+                self.last_state_action[i]['logits'] = logits
+                self.last_state_action[i]['teacher_logits'] = teacher_logits
+                self.last_state_action[i]['lstm_state_after'] = self.lstm_states_cpu[i]
+                self.last_state_action[i]['teacher_lstm_state_after'] = self.teacher_lstm_states_cpu[i]
+        return actions
+
     def run_episode(self):
         job = self.job_getter.get_job(self.actor_id)
         self._init_with_job(job)
         for i in range(self.agent_num):
             self.model_loader.load_model(job, i, self.agents[i].get_model())
+        if self.use_teacher_model:
+            self.model_loader.load_teacher_model(job, self.teacher_agent.get_model())
         if self.cfg.env.use_stat:
             for i in range(self.agent_num):
                 stat = self.stat_requester.request_stat(job, i)
@@ -141,56 +225,32 @@ class AlphaStarActor:
                     self.env.load_stat(stat, i)
         obs = self.env.reset()
         data_buffer = [[]] * self.agent_num
-        # if True, the corresponding agent need to take action at next step
+        # Actor Logic:
+        # When a agent is due to act at game_step, it will take the obs and decide what action to do (after env delay)
+        # and when (after how many steps) should the agent be notified of newer obs and asked to act again
+        # this is done by calculating a delay (Note:different from env delay), and the game will proceed until
+        # game_step is at the time to obs and act requested by any of the agents.
+        # due[i] is set to True when agent[i] requested steps of simulation has been completed
+        # and then, agent[i] need to take its action at the next step.
+        # Agent j with due[j]==False will be skipped and its action is None
+        # It's possible that two actors are simutanously required to act
+        # but any(due) must be True, since the simulation should keep going before reaching any requested observation
+        # At the begining of the game, every agent should act and give a delay
         due = [True] * self.agent_num
-        last_state_action = [None] * self.agent_num
-        prev_states = [None] * self.agent_num
         game_step = 0
+        self._init_states()
         # main loop
         while True:
-            actions = [None] * self.agent_num
-            for i in range(self.agent_num):
-                if due[i]:
-                    last_state_action[i] = {
-                        'agent_no': i,
-                        'prev_obs': obs,
-                        'lstm_state_before': prev_states[i],
-                    }
-                    obs[i] = unsqueeze_batch_dim(obs[i])
-                    if self.cfg.env.use_cuda:
-                        obs[i] = to_device(obs[i], 'cuda')
-
-                    action, logits, next_state = self.agents[i].compute_action(
-                        obs[i],
-                        mode="evaluate",
-                        prev_states=prev_states[i],
-                        require_grad=False,
-                        temperature=self.cfg.env.temperature
-                    )
-
-                    if self.cfg.env.use_cuda:
-                        action = to_device(action, 'cpu')
-                        logits = to_device(logits, 'cpu')
-                        next_state_cpu = to_device(next_state, 'cpu')
-                    else:
-                        next_state_cpu = next_state
-                    action = dict_list2list_dict(action)[0]  # o for batch dim
-
-                    actions[i] = action
-                    last_state_action[i]['action'] = action
-                    last_state_action[i]['logits'] = logits
-                    last_state_action[i]['lstm_state_after'] = next_state_cpu
-                    prev_states[i] = next_state
+            actions = self._eval_actions(obs, due)
             actions = self.action_modifier(actions, game_step)
             game_step, due, obs, rewards, done, info = self.env.step(actions)
-            # TODO: log self.env.cur_actions
             if game_step >= self.cfg.env.game_steps_per_episode:
                 # game time out, force the done flag to True
                 done = True
             for i in range(self.agent_num):
                 if due[i]:
                     # we received obs from the env, add to rollout trajectory
-                    traj_data = last_state_action[i]
+                    traj_data = self.last_state_action[i]
                     traj_data['step'] = game_step
                     traj_data['next_obs'] = obs
                     traj_data['done'] = done
@@ -198,6 +258,8 @@ class AlphaStarActor:
                     traj_data['info'] = info
                     data_buffer[i].append(traj_data)
                 if len(data_buffer[i]) >= job['data_push_length'] or done:
+                    # trajectory buffer is full or the game is finished
+                    # so the length of a trajectory may not necessay be data_push_length
                     self.data_pusher.push(job, i, data_buffer[i])
                     data_buffer[i] = []
             if done:
@@ -265,12 +327,15 @@ class ModelLoader:
         """
         pass
 
+    def load_teacher_model(self, job, model):
+        pass
+
 
 class StatRequester:
     def __init__(self, cfg):
         pass
 
-    def request_model(self, job, agent_no):
+    def request_stat(self, job, agent_no):
         pass
 
 

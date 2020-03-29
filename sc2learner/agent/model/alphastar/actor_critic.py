@@ -30,7 +30,7 @@ class AlphaStarActorCritic(ActorCriticBase):
 
     def __init__(self, model_config=None):
         super(AlphaStarActorCritic, self).__init__()
-        self.cfg = merge_dicts(alphastar_model_default_config, model_config)
+        self.cfg = merge_dicts(alphastar_model_default_config["model"], model_config)
         self.encoder = Encoder(self.cfg.encoder)
         self.policy = Policy(self.cfg.policy)
         if self.cfg.use_value_network:
@@ -81,7 +81,8 @@ class AlphaStarActorCritic(ActorCriticBase):
     def mimic(self, inputs, **kwargs):
         lstm_output, next_state, entity_embeddings, map_skip, scalar_context, _, _ = self.encoder(inputs)
         policy_inputs = self.policy.MimicInput(
-            inputs['actions'], inputs['entity_raw'], lstm_output, entity_embeddings, map_skip, scalar_context
+            inputs['actions'], inputs['entity_raw'], inputs['scalar_info']['available_actions'], lstm_output,
+            entity_embeddings, map_skip, scalar_context
         )
         logits = self.policy(policy_inputs, mode='mimic')
         return self.MimicOutput(logits, next_state)
@@ -109,7 +110,8 @@ class AlphaStarActorCritic(ActorCriticBase):
 
         lstm_output, next_state, entity_embeddings, map_skip, scalar_context, _, _ = self.encoder(inputs)
         policy_inputs = self.policy.EvaluateInput(
-            inputs['entity_raw'], lstm_output, entity_embeddings, map_skip, scalar_context
+            inputs['entity_raw'], inputs['scalar_info']['available_actions'], lstm_output, entity_embeddings, map_skip,
+            scalar_context
         )
         actions, logits = self.policy(policy_inputs, mode='evaluate', **kwargs)
 

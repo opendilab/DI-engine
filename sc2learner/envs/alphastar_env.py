@@ -25,7 +25,8 @@ class AlphaStarEnv(SC2Env):
         agent_interface_format = sc2_env.parse_agent_interface_format(
             feature_screen=cfg.env.screen_resolution,
             feature_minimap=self.map_size,  # x, y
-            raw_crop_to_playable_area=cfg.env.crop_map_to_playable_area
+            raw_crop_to_playable_area=cfg.env.crop_map_to_playable_area,
+            action_delays=cfg.env.get('action_delays')
         )
 
         self.agent_num = sum([isinstance(p, sc2_env.Agent) for p in players])

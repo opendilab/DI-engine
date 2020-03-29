@@ -1,6 +1,6 @@
 data:
     train:
-        dataloader_type: epoch  # [epoch, iter]
+        dataloader_type: iter  # [epoch, iter]
         trajectory_len: 48
-        trajectory_type: slide_window  # [epoch: [slide_window], iter: [sequential]]
-        slide_window_step: 1
+        trajectory_type: sequential  # [epoch: [slide_window], iter: [sequential]]
+        slide_window_step: 1  # only in slide_window
