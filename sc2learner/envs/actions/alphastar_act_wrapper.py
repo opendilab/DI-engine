@@ -123,10 +123,7 @@ class AlphastarActParser(object):
     def _parse_raw_toggle_autocast(self, t):
         if t.HasField('ability_id'):
             ret = {'action_type': [self.ability_to_raw_func(t.ability_id, actions.raw_autocast)]}
-            if t.HasField('unit_tags'):
-                ret['selected_units'] = list(t.unit_tags)
-            else:
-                ret['action_type'] = [0]
+            ret['selected_units'] = list(t.unit_tags)
             # transfrom into general_id action
             ret['action_type'] = [ACT_TO_GENERAL_ACT[ret['action_type'][0]]]
             return ret
