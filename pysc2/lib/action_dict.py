@@ -1,3 +1,4 @@
+import numpy as np
 ACTION_INFO_MASK = \
     {
         0: {'name': 'no_op', 'func_type': 'raw_no_op', 'ability_id': None, 'general_id': None, 'goal': 'other', 'special_goal': None, 'queued': False, 'selected_units': False, 'target_units': False, 'target_location': False},
@@ -892,12 +893,15 @@ def merge_judge(target_general_action, val):
 
 GENERAL_ACTION_INFO_MASK = {}
 ACT_TO_GENERAL_ACT = {}
+ACT_TO_GENERAL_ACT_ARRAY = np.full(max(ACTION_INFO_MASK.keys()) + 1, -1, dtype=np.int)
 for k, v in ACTION_INFO_MASK.items():
     general_id = v['general_id']
     if general_id is None or general_id == 0:
         GENERAL_ACTION_INFO_MASK[k] = v
         ACT_TO_GENERAL_ACT[k] = k
+        ACT_TO_GENERAL_ACT_ARRAY[k] = k
     else:
         target_general_action = get_general(general_id)
         action_id = merge_judge(target_general_action, v)
         ACT_TO_GENERAL_ACT[k] = action_id
+        ACT_TO_GENERAL_ACT_ARRAY[k] = action_id

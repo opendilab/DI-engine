@@ -89,6 +89,7 @@ setup(
         'whichcraft',
         'gym',
         'torch==1.3.1',  # 1.3.1+cuda90_cudnn7.6.3_lms
+        #'tensorflow>=1.4.1',  enable if necessary
         'joblib',
         'pyzmq',
         'sphinx',
@@ -98,7 +99,10 @@ setup(
         'opencv-python',
         'tensorboardX',
         'matplotlib',
-        'yapf==0.29.0'
+        'yapf==0.29.0',
+        'pytest',
+        'pytest-xdist',
+        'flask',
     ],
     entry_points={
         'console_scripts': [
@@ -115,8 +119,7 @@ setup(
         'Operating System :: POSIX :: Linux',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: MacOS :: MacOS X',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
     ],
 )
