@@ -1,5 +1,5 @@
-import pytest
 import numpy as np
+
 from sc2learner.data.structure import SumSegmentTree, MinSegmentTree
 
 

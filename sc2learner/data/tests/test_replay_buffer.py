@@ -1,14 +1,13 @@
-import pytest
 import os
-import numpy as np
+import threading
 import time
+from threading import Thread
+
+import numpy as np
+import pytest
 import yaml
 from easydict import EasyDict
-import copy
-import traceback
-import threading
-from collections import defaultdict
-from threading import Thread
+
 from sc2learner.data.online import ReplayBuffer
 
 BATCH_SIZE = 8

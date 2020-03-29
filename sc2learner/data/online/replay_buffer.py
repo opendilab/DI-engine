@@ -1,10 +1,10 @@
-from multiprocessing import Queue
-from ..structure import PrioritizedBuffer, Cache
 from threading import Thread
+
+from sc2learner.data.structure import PrioritizedBuffer, Cache
 from sc2learner.utils import LockContext
 
 
-class ReplayBuffer(object):
+class ReplayBuffer:
     def __init__(self, cfg):
         self.cfg = cfg
         max_reuse = cfg.max_reuse if 'max_reuse' in cfg.keys() else None

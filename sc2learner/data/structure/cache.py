@@ -1,16 +1,17 @@
 import time
 from queue import Queue
 from threading import Thread
+
 from sc2learner.utils import LockContext
 
 
-class Cache(object):
-    def __init__(self, maxlen, timeout, monitor_interval=1.0, debug=False):
-        assert (maxlen > 0)
+class Cache:
+    def __init__(self, maxlen, timeout, monitor_interval=1.0, _debug=False):
+        assert maxlen > 0
         self.maxlen = maxlen
         self.timeout = timeout
         self.monitor_interval = monitor_interval
-        self.debug = debug
+        self.debug = _debug
         self.receive_queue = Queue(maxlen)
         self.send_queue = Queue(maxlen)
         self.receive_lock = LockContext(lock_type='thread')

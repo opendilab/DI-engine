@@ -1,14 +1,16 @@
-import numpy as np
 import copy
-from .segment_tree import SumSegmentTree, MinSegmentTree
+
+import numpy as np
+
+from sc2learner.data.structure.segment_tree import SumSegmentTree, MinSegmentTree
 
 
-class PrioritizedBuffer(object):
-    '''
+class PrioritizedBuffer:
+    """
     Interfacce: __init__, append, extend, sample, update
-    '''
+    """
     def __init__(self, maxlen, max_reuse=None, min_sample_ratio=1., alpha=0., beta=0.):
-        '''
+        """
         Arguments:
             - maxlen (:obj:`int`): the maximum value of the buffer length
             - max_reuse (:obj:`int` or None): the maximum reuse times of each element in buffer
@@ -16,7 +18,7 @@ class PrioritizedBuffer(object):
                                                 divides sample size
             - alpha (:obj:`float`): how much prioritization is used(0: no prioritization, 1: full prioritization)
             - beta (:obj:`float`): how much correction is used(0: no correction, 1: full correction)
-        '''
+        """
         # TODO(nyz) remove elements according to priority
         # TODO(nyz) whether use Lock
         self._maxlen = maxlen
@@ -52,11 +54,11 @@ class PrioritizedBuffer(object):
             self.min_tree[idx] = weight
 
     def sample(self, size):
-        '''
+        """
         Returns:
             - sample_data (:obj:`list`): each data owns keys:
                 original data keys + ['IS', 'priority', 'replay_buffer_id', 'replay_buffer_idx]'
-        '''
+        """
         if not self._sample_check(size):
             return None
         indices = self._get_indices(size)
