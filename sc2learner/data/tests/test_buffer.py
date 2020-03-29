@@ -1,7 +1,9 @@
-import pytest
 import copy
-import numpy as np
 from collections import defaultdict
+
+import numpy as np
+import pytest
+
 from sc2learner.data import PrioritizedBuffer
 
 
@@ -34,7 +36,7 @@ class TestBaseBuffer:
     def test_append(self, setup_base_buffer):
         start_pointer = setup_base_buffer.pointer
         start_vaildlen = setup_base_buffer.validlen
-        start_data_id = setup_base_buffer.data_id
+        start_data_id = setup_base_buffer.latest_data_id
         valid_count = 0
         for _ in range(100):
             if setup_base_buffer._data[setup_base_buffer.pointer] is None:
@@ -48,21 +50,20 @@ class TestBaseBuffer:
         assert (not hasattr(setup_base_buffer, 'min_tree'))
         assert (setup_base_buffer.validlen == start_vaildlen + valid_count)
         assert (setup_base_buffer.pointer == (start_pointer + 100) % setup_base_buffer.maxlen)
-        assert (setup_base_buffer.data_id == start_data_id + 100)
+        assert (setup_base_buffer.latest_data_id == start_data_id + 100)
 
         # invalid item append test
         setup_base_buffer.append([])
         assert (setup_base_buffer.validlen == start_vaildlen + valid_count)
         assert (setup_base_buffer.pointer == (start_pointer + 100) % setup_base_buffer.maxlen)
-        assert (setup_base_buffer.data_id == start_data_id + 100)
+        assert (setup_base_buffer.latest_data_id == start_data_id + 100)
 
         # tree test(alpha=0.)
         assert (np.fabs(setup_base_buffer.maxlen - setup_base_buffer.sum_tree.reduce()) < 1e-6)
 
     def test_extend(self, setup_base_buffer):
         start_pointer = setup_base_buffer.pointer
-        start_vaildlen = setup_base_buffer.validlen
-        start_data_id = setup_base_buffer.data_id
+        start_data_id = setup_base_buffer.latest_data_id
 
         data = []
         L = int(1.5 * setup_base_buffer.maxlen)
@@ -74,14 +75,14 @@ class TestBaseBuffer:
 
         setup_base_buffer.extend(data)
         valid_data_num = L - int(0.1 * L)
-        assert (setup_base_buffer.pointer == (start_pointer + valid_data_num) % setup_base_buffer.maxlen)
-        assert (setup_base_buffer.data_id == start_data_id + valid_data_num)
+        assert setup_base_buffer.pointer == (start_pointer + valid_data_num) % setup_base_buffer.maxlen
+        assert setup_base_buffer.latest_data_id == start_data_id + valid_data_num
 
         data = [None for _ in range(10)]
         setup_base_buffer.extend(data)
-        assert (setup_base_buffer.pointer == (start_pointer + valid_data_num) % setup_base_buffer.maxlen)
-        assert (setup_base_buffer.data_id == start_data_id + valid_data_num)
-        assert (sum(setup_base_buffer._reuse_count) == 0)
+        assert setup_base_buffer.pointer == (start_pointer + valid_data_num) % setup_base_buffer.maxlen
+        assert setup_base_buffer.latest_data_id == start_data_id + valid_data_num
+        assert sum(setup_base_buffer._reuse_count.values()) == 0, sum(setup_base_buffer._reuse_count)
 
     def test_beta(self, setup_base_buffer):
         assert (setup_base_buffer.beta == 0.)
@@ -91,6 +92,7 @@ class TestBaseBuffer:
     def test_update(self, setup_base_buffer):
         for _ in range(64):
             setup_base_buffer.append(generate_data())
+            assert setup_base_buffer.valid_count == sum([d is not None for d in setup_base_buffer._data])
         selected_idx = [1, 4, 8, 30, 63]
         info = {'priority': [], 'replay_buffer_id': [], 'replay_buffer_idx': []}
         for idx in selected_idx:
@@ -170,7 +172,7 @@ class TestPrioritizedBuffer:
             data.append(tmp)
             setup_prioritized_buffer.append(tmp)
         assert (setup_prioritized_buffer.validlen == 64)
-        assert (setup_prioritized_buffer.data_id == 20 + 80)
+        assert (setup_prioritized_buffer.latest_data_id == 20 + 80)
         assert (setup_prioritized_buffer.pointer == (20 + 80) % 64)
         weights = get_weights(data[-64:])
         assert (np.fabs(weights.sum() - setup_prioritized_buffer.sum_tree.reduce()) < 1e-6)
@@ -178,3 +180,7 @@ class TestPrioritizedBuffer:
         assert (np.fabs(weights.sum() - setup_prioritized_buffer.sum_tree.reduce(start=0, end=36)) < 1e-6)
         weights = get_weights(data[36:64])
         assert (np.fabs(weights.sum() - setup_prioritized_buffer.sum_tree.reduce(start=36)) < 1e-6)
+
+
+if __name__ == '__main__':
+    pytest.main(["test_buffer.py"])

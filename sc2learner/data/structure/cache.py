@@ -34,16 +34,23 @@ class Cache:
             time.sleep(self.monitor_interval)
             with self.receive_lock:
                 while not self.receive_queue.empty():
-                    wait_time = time.time() - self.receive_queue.queue[0][1]
-                    if wait_time >= self.timeout:
-                        self.dprint(
-                            'excess the maximum wait time, eject from the cache.(wait_time/timeout: {}/{}'.format(
-                                wait_time, self.timeout
-                            )
-                        )
-                        self.send_queue.put(self.receive_queue.get()[0])
-                    else:
+                    is_timeout = self._warn_if_timeout()
+                    if not is_timeout:
                         break
+
+    def _warn_if_timeout(self):
+        """Return whether is timeout"""
+        wait_time = time.time() - self.receive_queue.queue[0][1]
+        if wait_time >= self.timeout:
+            self.dprint(
+                'excess the maximum wait time, eject from the cache.(wait_time/timeout: {}/{}'.format(
+                    wait_time, self.timeout
+                )
+            )
+            self.send_queue.put(self.receive_queue.get()[0])
+            return True
+        else:
+            return False
 
     def run(self):
         self._timeout_thread.start()

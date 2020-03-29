@@ -13,6 +13,8 @@ class SegmentTree:
                 neutral_element = np.inf
             elif operation is max:
                 neutral_element = -np.inf
+            else:
+                raise ValueError("operation argument should be in min, max, sum (built in python functions).")
         self.neutral_element = neutral_element
         self.value = [self.neutral_element for _ in range(2 * capacity)]
 

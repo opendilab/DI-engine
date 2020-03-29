@@ -41,7 +41,7 @@ def generate_data():
 class TestReplayBuffer:
     produce_count = 0
 
-    def producer(self, id, replay_buffer):
+    def produce(self, id, replay_buffer):
         time.sleep(1)
         begin_time = time.time()
         count = 0
@@ -54,7 +54,7 @@ class TestReplayBuffer:
         print('[PRODUCER] thread {} finish job, total produce {} data'.format(id, count))
         self.produce_count += count
 
-    def consumer(self, id, replay_buffer):
+    def consume(self, id, replay_buffer):
         time.sleep(1)
         begin_time = time.time()
         iteration = 0
@@ -80,8 +80,8 @@ class TestReplayBuffer:
 
     def test(self, setup_replay_buffer):
         setup_replay_buffer._cache.debug = True
-        p_threadings = [Thread(target=self.producer, args=(i, setup_replay_buffer)) for i in range(PRODUCER_NUM)]
-        c_threadings = [Thread(target=self.consumer, args=(i, setup_replay_buffer)) for i in range(CONSUMER_NUM)]
+        p_threadings = [Thread(target=self.produce, args=(i, setup_replay_buffer)) for i in range(PRODUCER_NUM)]
+        c_threadings = [Thread(target=self.consume, args=(i, setup_replay_buffer)) for i in range(CONSUMER_NUM)]
         for t in p_threadings:
             t.start()
         setup_replay_buffer.run()
@@ -95,3 +95,7 @@ class TestReplayBuffer:
         setup_replay_buffer.close()
         time.sleep(1 + 0.1)
         assert (len(threading.enumerate()) <= 1)
+
+
+if __name__ == '__main__':
+    pytest.main(["test_replay_buffer.py"])
