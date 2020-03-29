@@ -1,6 +1,7 @@
 image: "registry.sensetime.com/spring/dka:pytorch0.4.1"
 stages:
   - style
+  - test
   - deploy
 
 style:
@@ -10,6 +11,12 @@ style:
     - bash format.sh --test
     - pip install flake8
     - flake8 sc2learner/
+
+test:
+  stage: test
+  script:
+    - pip install -e .
+    - pytest sc2learner/data/tests/ -sv -n 4 
 
 pages:
   stage: deploy
