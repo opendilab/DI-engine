@@ -20,7 +20,7 @@ from pysc2.lib.static_data import NUM_BUFFS, NUM_ABILITIES, NUM_UNIT_TYPES, UNIT
     NUM_RESEARCH_ACTIONS, UNIT_BUILD_ACTIONS_REORDER_ARRAY, EFFECT_ACTIONS_REORDER_ARRAY, RESEARCH_ACTIONS_REORDER_ARRAY, \
     BEGIN_ACTIONS_REORDER_ARRAY
 from sc2learner.torch_utils import one_hot
-from functools import partial
+from functools import partial, lru_cache
 from collections import OrderedDict
 
 LOCATION_BIT_NUM = 10
@@ -321,29 +321,20 @@ def div_func(inputs, other, unsqueeze_dim=1):
     return torch.div(inputs, other)
 
 
-def binary_encode(v, bit_num):
-    bin_v = '{:b}'.format(int(v))
-    bin_v = [int(i) for i in bin_v]
-    bit_diff = len(bin_v) - bit_num
-    if bit_diff > 0:
-        bin_v = bin_v[-bit_num:]
-    elif bit_diff < 0:
-        bin_v = [0 for _ in range(-bit_diff)] + bin_v
-    return torch.FloatTensor(bin_v)
+@lru_cache(maxsize=32)
+def get_to_and(num_bits):
+    return 2**np.arange(num_bits - 1, - 1, -1).reshape([1, num_bits])
 
-
-def batch_binary_encode(v, bit_num):
-    assert (len(v.shape) == 1)
-    v = v.clamp(0, int(math.pow(2, bit_num)) - 1)
-    B = v.shape[0]
-    ret = []
-    for b in range(B):
-        try:
-            ret.append(binary_encode(v[b], bit_num))
-        except ValueError:
-            print('ValueError', v)
-            raise ValueError(v)
-    return torch.stack(ret, dim=0)
+def batch_binary_encode(x, bit_num):
+    # Big endian binary encode to float tensor
+    # Example: >>> batch_binary_encode(torch.tensor([131,71]), 10)
+    # tensor([[0., 0., 0., 1., 0., 0., 0., 0., 0., 1.],
+    #         [0., 0., 0., 0., 0., 0., 1., 1., 1., 1.]])
+    x = x.numpy()
+    xshape = list(x.shape)
+    x = x.reshape([-1, 1])
+    to_and = get_to_and(bit_num)
+    return torch.FloatTensor((x & to_and).astype(bool).astype(float).reshape(xshape + [bit_num]))
 
 
 def reorder_boolean_vector(v, dictionary, num, transform=None):
@@ -895,8 +886,8 @@ def transform_stat(stat, meta, location_num=LOCATION_BIT_NUM):
         if location == 'none':
             location = torch.zeros(location_num * 2)
         else:
-            x = binary_encode(torch.LongTensor([location[0]]), bit_num=location_num)
-            y = binary_encode(torch.LongTensor([location[1]]), bit_num=location_num)
+            x = batch_binary_encode(torch.LongTensor([location[0]]), bit_num=location_num)[0]
+            y = batch_binary_encode(torch.LongTensor([location[1]]), bit_num=location_num)[0]
             location = torch.cat([x, y], dim=0)
         beginning_build_order_tensor.append(torch.cat([action_type.squeeze(0), location], dim=0))
     beginning_build_order_tensor = torch.stack(beginning_build_order_tensor, dim=0)
