@@ -68,7 +68,7 @@ class Manager(object):
         self.actor_record[actor_uid] = {'job_ids': '', 'last_beats_time': last_beats_time, 'state': 'alive'}
         return True
 
-    def _add_job_to_record(self, job):
+    def _add_job_to_record(self, actor_uid, job):
         job_id = job['job_id']
         self.job_record[job_id] = {'content': job, 'metadatas': [], 'state': 'run'}
         self.actor_record[actor_uid]['job_ids'].append(job_id)
@@ -99,7 +99,7 @@ class Manager(object):
                     response = requests.post(self.url_prefix + 'coordinator/ask_for_job', json=d).json()
                     if response['code'] == 0:
                         job = response['info']
-                        self._add_job_to_record(job)
+                        self._add_job_to_record(actor_uid, job)
                         return job
                 except Exception as e:
                     self.logger.info(''.join(traceback.format_tb(e.__traceback__)))
