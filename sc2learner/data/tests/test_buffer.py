@@ -94,10 +94,10 @@ class TestBaseBuffer:
             setup_base_buffer.append(generate_data())
             assert setup_base_buffer.valid_count == sum([d is not None for d in setup_base_buffer._data])
         selected_idx = [1, 4, 8, 30, 63]
-        info = {'priority': [], 'replay_buffer_id': [], 'replay_buffer_idx': []}
+        info = {'priority': [], 'replay_unique_id': [], 'replay_buffer_idx': []}
         for idx in selected_idx:
             info['priority'].append(np.random.uniform() + 64 - idx)
-            info['replay_buffer_id'].append(setup_base_buffer._data[idx]['replay_buffer_id'])
+            info['replay_unique_id'].append(setup_base_buffer._data[idx]['replay_unique_id'])
             info['replay_buffer_idx'].append(setup_base_buffer._data[idx]['replay_buffer_idx'])
 
         for _ in range(8):

@@ -70,10 +70,10 @@ class TestReplayBuffer:
             iteration += 1
             print('[CONSUMER] thread {} iteration {} training finish'.format(id, iteration))
             # update
-            info = {'priority': [], 'replay_buffer_id': [], 'replay_buffer_idx': []}
+            info = {'priority': [], 'replay_unique_id': [], 'replay_buffer_idx': []}
             for idx, d in enumerate(data):
                 info['priority'].append(np.random.uniform() * 1.5)
-                info['replay_buffer_id'].append(d['replay_buffer_id'])
+                info['replay_unique_id'].append(d['replay_unique_id'])
                 info['replay_buffer_idx'].append(d['replay_buffer_idx'])
             replay_buffer.update(info)
             print('[CONSUMER] thread {} iteration {} update finish'.format(id, iteration))

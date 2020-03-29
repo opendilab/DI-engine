@@ -57,7 +57,7 @@ class PrioritizedBuffer:
         """
         Returns:
             - sample_data (:obj:`list`): each data owns keys:
-                original data keys + ['IS', 'priority', 'replay_buffer_id', 'replay_buffer_idx]'
+                original data keys + ['IS', 'priority', 'replay_unique_id', 'replay_buffer_idx]'
         """
         if not self._sample_check(size):
             return None
@@ -71,7 +71,7 @@ class PrioritizedBuffer:
             return
         if self._data[self.pointer] is None:
             self.valid_count += 1
-        data['replay_buffer_id'] = self.latest_data_id
+        data['replay_unique_id'] = self.latest_data_id
         data['replay_buffer_idx'] = self.pointer
         self._set_weight(self.pointer, data)
         self._data[self.pointer] = data
@@ -84,7 +84,7 @@ class PrioritizedBuffer:
         valid_data = [d for d, flag in zip(data, check_result) if flag]
         L = len(valid_data)
         for i in range(L):
-            valid_data[i]['replay_buffer_id'] = self.latest_data_id + i
+            valid_data[i]['replay_unique_id'] = self.latest_data_id + i
             valid_data[i]['replay_buffer_idx'] = (self.pointer + i) % self.maxlen
             self._set_weight((self.pointer + i) % self.maxlen, valid_data[i])
             if self._data[(self.pointer + i) % self.maxlen] is None:
@@ -108,9 +108,9 @@ class PrioritizedBuffer:
         self.latest_data_id += L
 
     def update(self, info):
-        data = [info['replay_buffer_id'], info['replay_buffer_idx'], info['priority']]
+        data = [info['replay_unique_id'], info['replay_buffer_idx'], info['priority']]
         for id, idx, priority in zip(*data):
-            if self._data[idx] is not None and self._data[idx]['replay_buffer_id'] == id:  # confirm the same transition
+            if self._data[idx] is not None and self._data[idx]['replay_unique_id'] == id:  # confirm the same transition
                 assert priority > 0
                 self._data[idx]['priority'] = priority
                 self._set_weight(idx, self._data[idx])
