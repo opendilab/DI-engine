@@ -36,7 +36,7 @@ class FakeActor(object):
         self._set_logger()
         self.register_actor()
 
-        # start sending heartbeats
+        # start sending heartbeats thread
         check_send_actor_heartbeats_thread = threading.Thread(target=self.send_actor_heartbeats)
         check_send_actor_heartbeats_thread.start()
         self.logger.info("[UP] send actor heartbeats thread ")
