@@ -45,9 +45,7 @@ class ReplayDecoder(multiprocessing.Process):
         self.result = result
         self.replay_queue = replay_queue
         self.pro_id = proc_id
-        self.interface = sc_pb.InterfaceOptions(
-            raw=True, score=False,
-            feature_layer=sc_pb.SpatialCameraSetup(width=24))
+        self.interface = sc_pb.InterfaceOptions(raw=True, score=False, feature_layer=sc_pb.SpatialCameraSetup(width=24))
         self.units = set()
         self.upgrades = set()
         self.abilities = set()
@@ -68,13 +66,12 @@ class ReplayDecoder(multiprocessing.Process):
 
     def replay_decode(self, controller, replay_path, game_loops):
         for i in [1, 2]:
-            controller.start_replay(sc_pb.RequestStartReplay(
-                replay_path=replay_path,
-                options=self.interface,
-                observed_player_id= i))
+            controller.start_replay(
+                sc_pb.RequestStartReplay(replay_path=replay_path, options=self.interface, observed_player_id=i)
+            )
             data = controller.data_raw()
-            if (len(data.abilities) != 3801 or len(data.units) != 1970 or len(data.upgrades) != 296 or
-                    len(data.buffs) != 290 or len(data.effects) != 13):
+            if (len(data.abilities) != 3801 or len(data.units) != 1970 or len(data.upgrades) != 296
+                    or len(data.buffs) != 290 or len(data.effects) != 13):
                 raise Exception('stableid does not match')
             cur_loop = 0
             while cur_loop < game_loops:
@@ -177,7 +174,7 @@ def result_print(result_queue):
 
 
 def main(unused_argv):
-    logging.set_verbosity(logging.ERROR)    # mute remote_controller, get clear stdout
+    logging.set_verbosity(logging.ERROR)  # mute remote_controller, get clear stdout
     run_config = run_configs.get(FLAGS.version)
     replay_queue = multiprocessing.Manager().Queue()
     new_replay_queue = multiprocessing.Manager().Queue()
@@ -198,7 +195,7 @@ def main(unused_argv):
         queue.put(new_replay_queue.get())
     decoders = []
     result_queue = multiprocessing.Queue()
-    result_printer = multiprocessing.Process(target=result_print, args=(result_queue,))
+    result_printer = multiprocessing.Process(target=result_print, args=(result_queue, ))
     result_printer.start()
     for i in range(FLAGS.process_num):
         decoder = ReplayDecoder(run_config, queue, FLAGS.output_dir, result_queue, i)

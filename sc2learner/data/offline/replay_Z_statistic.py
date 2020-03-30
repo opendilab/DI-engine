@@ -27,7 +27,6 @@ from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
 from s2clientprotocol import sc2api_pb2 as sc_pb
 from sc2learner.envs.actions.alphastar_act_wrapper import AlphastarActParser
 
-
 PLAYER_NUM = 2
 PROCESS_NUM = 2
 FLAGS = flags.FLAGS
@@ -48,8 +47,8 @@ class ReplayDecoder(multiprocessing.Process):
         self.success_msg = success_msg
         self.error_msg = error_msg
         self.interface = sc_pb.InterfaceOptions(
-            raw=True, score=False,raw_crop_to_playable_area=True,
-            feature_layer=sc_pb.SpatialCameraSetup(width=24))
+            raw=True, score=False, raw_crop_to_playable_area=True, feature_layer=sc_pb.SpatialCameraSetup(width=24)
+        )
 
     def replay_decode(self, controller, replay_path, player, game_loops):
         map_size = None
@@ -78,16 +77,20 @@ class ReplayDecoder(multiprocessing.Process):
                 else:
                     location = 'none'
                 begin_statistics.append({'action_type': action_type, 'location': location})
+
         # get actions first
         cumulative_statistics = {}
         cumulative_z = []
         begin_statistics = []
         born_location = [[] for _ in range(PLAYER_NUM)]
         begin_num = 200
-        controller.start_replay(sc_pb.RequestStartReplay(
-            replay_path=replay_path,
-            options=self.interface,
-            observed_player_id=player + 1, ))
+        controller.start_replay(
+            sc_pb.RequestStartReplay(
+                replay_path=replay_path,
+                options=self.interface,
+                observed_player_id=player + 1,
+            )
+        )
         game_info = controller.game_info()
         map_size = game_info.start_raw.map_size
         ob = controller.observe()
@@ -116,8 +119,7 @@ class ReplayDecoder(multiprocessing.Process):
                         assert i.HasField('game_loop'), 'action no game_loop'  # debug
                         agent_act = act_parser.parse(i.action_raw)
                         agent_act = act_parser.merge_same_id_action(agent_act)[0]
-                        update_cum_stat(cumulative_statistics, agent_act, i.game_loop,
-                                        cumulative_z)
+                        update_cum_stat(cumulative_statistics, agent_act, i.game_loop, cumulative_z)
                         if len(begin_statistics) < begin_num:
                             update_begin_stat(begin_statistics, agent_act)
             except:
@@ -127,12 +129,10 @@ class ReplayDecoder(multiprocessing.Process):
                     raise Exception('decoding went wrong')
             cur_loop = next_loop
 
-        return ({'cumulative_statistics': cumulative_z, 'begin_statistics':
-                begin_statistics}, map_size, born_location)
+        return ({'cumulative_statistics': cumulative_z, 'begin_statistics': begin_statistics}, map_size, born_location)
 
     def parse_info(self, info, replay_path):
-        if (info.player_info[0].player_info.race_actual != 2 and
-                info.player_info[1].player_info.race_actual != 2):
+        if (info.player_info[0].player_info.race_actual != 2 and info.player_info[1].player_info.race_actual != 2):
             # not include Zerg race
             return None
         race_dict = {1: 'Terran', 2: 'Zerg', 3: 'Protoss'}
@@ -166,8 +166,9 @@ class ReplayDecoder(multiprocessing.Process):
                 if validated_data is not None:
                     for player in range(PLAYER_NUM):
                         if validated_data[player]['home_race'] == 'Zerg':
-                            stat, map_size, born_location = self.replay_decode(controller, replay_path, player,
-                                                                               info.game_duration_loops)
+                            stat, map_size, born_location = self.replay_decode(
+                                controller, replay_path, player, info.game_duration_loops
+                            )
                             # z_template = {'beginning_build_order': None, 'cumulative_stat': None, 'map_name': None,
                             #               'map_size': None,
                             #               'born_location': None, 'opponent_born_location': None,
@@ -183,10 +184,10 @@ class ReplayDecoder(multiprocessing.Process):
                             z['away_race'] = validated_data[player]['away_race']
                             z['home_result'] = validated_data[player]['home_result']
                             # save data
-                            name = '{}_{}_{}_{}_{}_{}'.format(z['home_race'], z['away_race'],
-                                                              z['home_result'], z['map_name'],
-                                                              os.path.basename(replay_path).split('.')[0],
-                                                              str(serial_number))
+                            name = '{}_{}_{}_{}_{}_{}'.format(
+                                z['home_race'], z['away_race'], z['home_result'], z['map_name'],
+                                os.path.basename(replay_path).split('.')[0], str(serial_number)
+                            )
                             torch.save(z, os.path.join(self.output_dir, name + '.z'))
                             self.success_msg.put(str(os.getpid()) + ' success parse replay: ' + replay_path)
             except Exception as e:
@@ -252,7 +253,7 @@ def main(unused_argv):
         err_msg.append(error_msg.get())
 
     def log_func(s, idx):
-        return s + '\n{}\t'.format(idx) + '-'*60 + '\n'
+        return s + '\n{}\t'.format(idx) + '-' * 60 + '\n'
 
     new_success_msg = [log_func(s, idx) for idx, s in enumerate(suc_msg)]
     new_error_msg = [log_func(s, idx) for idx, s in enumerate(err_msg)]
