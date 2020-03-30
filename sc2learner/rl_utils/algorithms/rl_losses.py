@@ -14,7 +14,7 @@ def multistep_forward_view(rewards, gammas, bootstrap_values, lambda_, need_grad
         for t in 0...T-2 :
         result[t] = rewards[t] + gammas[t]*(lambdas[t]*result[t+1] + (1-lambdas[t])*bootstrap_values[t+1])
         ```
-        Assumming the first dim of input tensors correspond to the index in batch
+        Assuming the first dim of input tensors correspond to the index in batch
         There is no special handling for terminal state value,
         if some state has reached the terminal, just fill in zeros for values and rewards beyond terminal
         (including the terminal state, which is, bootstrap_values[terminal] should also be 0)
@@ -49,7 +49,7 @@ def multistep_forward_view(rewards, gammas, bootstrap_values, lambda_, need_grad
 def generalized_lambda_returns(rewards, gammas, bootstrap_values, lambda_, need_grad=False):
     r"""
     Overview:
-        Functional equvalent to trfl.value_ops.generalized_lambda_returns
+        Functional equivalent to trfl.value_ops.generalized_lambda_returns
         https://github.com/deepmind/trfl/blob/2c07ac22512a16715cc759f0072be43a5d12ae45/trfl/value_ops.py#L74
         Passing in a number instead of tensor to make the value constant for all samples in batch
     Arguments:
@@ -106,7 +106,7 @@ def compute_importance_weights(
         - current_logits (:obj:`torch.Tensor`): the logits computed by the target policy network,
           of size [T_traj, batchsize, n_action_type]
         - action (:obj:`torch.Tensor`): the chosen action(index) in trajectory, of size [T_traj, batchsize]
-        - clipping: the clipping funtion for the importance weight,
+        - clipping: the clipping function for the importance weight,
           the raw IW tensor of size [T_traj, batchsize] is passed to the function, should return clipped value
         - eps (:obj:`float`): for numerical stability
     Returns:
@@ -274,7 +274,7 @@ def pg_loss(
         - rewards (:obj:`torch.Tensor`): the returns from time step 0 to T-1, of size [T_traj, batchsize]
         - bootstrap_values (:obj:`torch.Tensor`): estimation of the state value at step 0 to T,
           of size [T_traj+1, batchsize]
-        - clipping: the clipping funtion for the importance weight,
+        - clipping: the clipping function for the importance weight,
           the raw IW tensor of size [T_traj, batchsize] is passed in, should return clipped value
         - upgo_weight (:obj:`float`): weight for upgo
         - ent_weight (:obj:`float`): weight for entropy

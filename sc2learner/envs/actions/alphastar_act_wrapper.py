@@ -105,7 +105,7 @@ class AlphastarActParser(object):
             if ret['action_type'] == [0]:
                 ret = self._get_output_template()
                 ret['action_type'] = [0]
-            # transfrom into general_id action
+            # transform into general_id action
             ret['action_type'] = [ACT_TO_GENERAL_ACT[ret['action_type'][0]]]
             # queued attr
             has_queue_attr = GENERAL_ACTION_INFO_MASK[ret['action_type'][0]]['queued']
@@ -196,7 +196,7 @@ class AlphastarActParser(object):
 
 def action_unit_id_transform(data, inverse=False):
     '''
-    Overview: transfrom original game unit id in action to the current frame unit id
+    Overview: transform original game unit id in action to the current frame unit id
     '''
     def transform(frame):
         frame = deepcopy(frame)

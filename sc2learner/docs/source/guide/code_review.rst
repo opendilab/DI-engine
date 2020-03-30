@@ -15,7 +15,7 @@ We have the following comment format:
       - goal: explain the implementation or emphasize the code detail
   3. class and function comment
       - goal: explain the main function, input and output type and effect
-      - format: Overview, Arguments, Returns (if it doesn't have the corresponding attibute, you can omit it)
+      - format: Overview, Arguments, Returns (if it doesn't have the corresponding attribute, you can omit it)
   4. TODO
       - goal: set a todo task
       - format: `# TODO(assignee name) task statement`
