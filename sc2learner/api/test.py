@@ -1,4 +1,4 @@
-import socket
+import os
 
-hostname = socket.gethostname()
-print(hostname)
+slurm_ip = os.environ.get('SLURMD_NODENAME', 'fuck')
+print(slurm_ip)

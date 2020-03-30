@@ -119,10 +119,13 @@ if __name__ == '__main__':
                 ret_dict[partition].append([node, state])
         return ret_dict
 
-    def launch(partition, workstation):
-        output = subprocess.getoutput('srun -p {} -w {} python test.py'.format(partition, workstation)) 
-        return output
+    # def launch(partition, workstation):
+    #     output = subprocess.getoutput('srun -p {} -w {} python test.py'.format(partition, workstation)) 
+    #     return output
 
+    def launch(partition, workstation):
+        output = subprocess.getoutput(['bash', 'test.sh', partition, workstation]) 
+        return output
 
     cls_dict = get_cls_info()
     for k, v in cls_dict.items():
