@@ -8,6 +8,7 @@ import itertools
 import json
 import logging
 import os
+import platform
 import requests
 import shutil
 import subprocess
@@ -22,6 +23,7 @@ from six import print_ as print  # To get access to `flush` in python 2.
 
 API_BASE_URL = 'https://us.api.blizzard.com'
 API_NAMESPACE = 's2-client-replays'
+ZIP_PASSWORD = 'iagreetotheeula'
 
 
 class RequestError(Exception):
@@ -94,7 +96,17 @@ class BnetAPI(object):
         return meta_urls
 
 
-def download(key, secret, version, replays_dir, download_dir, extract=False, remove=False, filter_version='keep'):
+def download(
+    key,
+    secret,
+    version,
+    replays_dir,
+    download_dir,
+    zip_bin_path=None,
+    extract=False,
+    remove=False,
+    filter_version='keep'
+):
     """Download the replays for a specific vesion. Check help below."""
     # Get OAuth token from us region
     api = BnetAPI(key, secret)
@@ -135,7 +147,12 @@ def download(key, secret, version, replays_dir, download_dir, extract=False, rem
             if os.path.getsize(file_path) <= 22:  # Size of an empty zip file.
                 print_part(' ... zip file is empty')
             else:
-                subprocess.call(['unzip', '-P', 'iagreetotheeula', '-u', '-o', '-q', '-d', replays_dir, file_path])
+                if platform.system() == 'Windows':
+                    if not os.path.isfile(zip_bin_path):
+                        print('7-Zip binary not found, I need it to decompress the zips on Windows')
+                    subprocess.call([zip_bin_path, 'e', '-p' + ZIP_PASSWORD, '-o' + replays_dir, file_path])
+                else:
+                    subprocess.call(['unzip', '-P', ZIP_PASSWORD, '-u', '-o', '-q', '-d', replays_dir, file_path])
             if remove:
                 os.remove(file_path)
         print()
@@ -186,6 +203,12 @@ def main():
     parser.add_argument('--download_dir', default='./download', help='Where to save the zip files.')
     parser.add_argument('--extract', action='store_true', help='Whether to extract the zip files.')
     parser.add_argument('--remove', action='store_true', help='Whether to delete the zip files after extraction.')
+    parser.add_argument(
+        '--7zip_path',
+        dest='zip_bin_path',
+        default=r'C:\Program Files\7-Zip\7z.exe',
+        help='Where the 7zip binary resides (for Windows)'
+    )
     parser.add_argument(
         '--filter_version',
         default='keep',
