@@ -101,3 +101,32 @@ class FakeLearner(object):
     ###################################################################################
     #                                      debug                                      #
     ###################################################################################
+
+if __name__ == '__main__':
+    import subprocess
+    def get_cls_info():
+        ret_dict = {}
+        info = subprocess.getoutput('sinfo -Nh').split('\n')
+        for line in info:
+            line = line.strip().split()
+            if len(line) != 4:
+                continue
+            node, _, partition, state = line
+            if partition not in ret_dict:
+                ret_dict[partition] = []
+            assert node not in ret_dict[partition]
+            if state in ['idle', 'mix']:
+                ret_dict[partition].append([node, state])
+        return ret_dict
+
+    def launch(partition, workstation):
+        output = subprocess.getoutput('srun -p {} -w {} python test.py'.format(partition, workstation)) 
+        return output
+
+
+    cls_dict = get_cls_info()
+    for k, v in cls_dict.items():
+        for vv in v:
+            output = launch(k, vv[0])
+            print(k, vv[0], output)
+
