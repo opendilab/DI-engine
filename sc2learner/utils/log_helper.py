@@ -216,7 +216,7 @@ class TensorBoardLogger(object):
 class VariableRecord(object):
     def __init__(self, length):
         self.var_dict = {'scalar': {}, '1darray': {}}
-        self.length = max(length, 10)  # at leat average across 10 iteration
+        self.length = max(length, 10)  # at least average across 10 iteration
 
     def register_var(self, name, length=None, var_type='scalar'):
         assert (var_type in ['scalar', '1darray'])

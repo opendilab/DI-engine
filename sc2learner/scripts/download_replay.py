@@ -107,7 +107,7 @@ def download(
     remove=False,
     filter_version='keep'
 ):
-    """Download the replays for a specific vesion. Check help below."""
+    """Download the replays for a specific version. Check help below."""
     # Get OAuth token from us region
     api = BnetAPI(key, secret)
 

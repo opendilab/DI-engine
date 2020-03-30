@@ -1,7 +1,7 @@
 """
 Script to extract map_size from maps
 Usage: Run me on a computer with pysc2 environment and ladder map packs installed
-       Output will be writen to map_info.py
+       Output will be written to map_info.py
 """
 from __future__ import absolute_import
 from __future__ import division

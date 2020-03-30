@@ -144,7 +144,7 @@ def main(unused_argv):
         cfg.evaluate.job_id = 0
         return_list = [run_episode(cfg)]
     agent_nums, return_sums, action_counts = zip(*return_list)
-    agent_num = agent_nums[0]  # assumming all jobs have the same number of agents
+    agent_num = agent_nums[0]  # assuming all jobs have the same number of agents
     return_sum = np.mean(return_sums, axis=0)
     action_counts = np.mean(action_counts, axis=0)  # axis 0:games, 1:agents, 2:actions
     print('Returns: {}'.format(str(return_sum)))
