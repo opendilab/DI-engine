@@ -44,8 +44,9 @@ flags.DEFINE_string("replays", "E:/data/replays", "Path to a directory of replay
 flags.DEFINE_string("output_dir", "E:/data/replay_data", "Path to save data")
 flags.DEFINE_string("version", "4.10.0", "Game version")
 flags.DEFINE_integer("process_num", 1, "Number of sc2 process to start on the node")
-flags.DEFINE_bool("check_version", False,
-    "Check required game version of the replays and discard ones not matching version")
+flags.DEFINE_bool(
+    "check_version", False, "Check required game version of the replays and discard ones not matching version"
+)
 flags.mark_flag_as_required("replays")
 flags.mark_flag_as_required("output_dir")
 flags.FLAGS(sys.argv)
@@ -261,9 +262,11 @@ class ReplayDecoder(multiprocessing.Process):
         if (info.HasField("error")):
             logging.warning('Info have error')
             return None
-        if(info.map_name not in LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT.keys()):
-            logging.error('Found replay using unknown map {}, or there is sth wrong with locale'
-                           .format(info.map_name) + ' Try regenerate map_info.py')
+        if (info.map_name not in LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT.keys()):
+            logging.error(
+                'Found replay using unknown map {}, or there is sth wrong with locale'.format(info.map_name) +
+                ' Try regenerate map_info.py'
+            )
             return None
         if ('.'.join(info.game_version.split('.')[:3]) != self.run_config.version.game_version):
             logging.warning('Wrong version')

@@ -36,7 +36,8 @@ def get_inverse_tran_table(table, indices):\n\
     return inv_tab\n\n\
 LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT = get_inverse_tran_table(MAPS, [4, 5])'
 
-print(header+trailer)
+print(header + trailer)
+
 
 def main(unused_argv):
     with open('map_info.py', 'w', encoding='utf-8') as of:
@@ -85,15 +86,15 @@ def main(unused_argv):
                         repr(fnm), repr(mp_i.battle_net), repr(mp_i.path), repr([map_size.x, map_size.y]),
                         repr([map_size_nocrop.x, map_size_nocrop.y]), repr(bnet_localized_map_name),
                         repr(bnet_localized_map_name_cleaned)
-                        )
                     )
+                )
                 of.write(
                     '    {}: ({}, {}, {}, {}, {}, {}),\n'.format(
                         repr(fnm), repr(mp_i.battle_net), repr(mp_i.path), repr([map_size.x, map_size.y]),
                         repr([map_size_nocrop.x, map_size_nocrop.y]), repr(bnet_localized_map_name),
                         repr(bnet_localized_map_name_cleaned)
-                        )
                     )
+                )
                 of.flush()
         of.write(trailer)
 
