@@ -115,7 +115,9 @@ class EvalTrajProcessor:
         self.cfg = cfg
         self.return_sum = []
 
-    def push(self, job, agent_no, data_buffer):
+    def push(self, metadata, data_buffer):
+        agent_no = metadata['agent_no']
+        # we are summing the rewards received in the whole trajectory
         rewards_list = [d['rewards'] for d in data_buffer]
         traj_return = sum(rewards_list)
         print('agent no:{} ret:{}'.format(agent_no, traj_return))

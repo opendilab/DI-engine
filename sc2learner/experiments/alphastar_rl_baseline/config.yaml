@@ -102,3 +102,10 @@ logger:
     save_freq: 200
     eval_freq: 200
     var_record_type: 'alphastar'
+actor:
+    manager_ip: 'auto'
+    manager_port: 22333
+    heartbeats_freq: 120
+    ceph_traj_path: 'placeholder'
+    ceph_model_path: 'placeholder'
+    ceph_stat_path: 'placeholder'

@@ -17,7 +17,8 @@ def read_file_ceph(path, read_type='BytesIO'):
     """
     if ceph is None:
         import logging
-        logging.warning("You do not have ceph installed! If you are not testing locally, something is wrong!")
+        logging.warning("You do not have ceph installed! Loading local file!"
+                        " If you are not testing locally, something is wrong!")
         return open(path, "rb")
 
     s3client = ceph.S3Client()
@@ -40,5 +41,12 @@ def save_file_ceph(save_path, file_name, data):
         - data (:obj:`angthing`): could be dict, list or tensor etc.
     """
     data = pickle.dumps(data)
-    s3client = ceph.S3Client()
-    s3client.save_from_string(save_path, file_name, data)
+    if ceph is not None:
+        s3client = ceph.S3Client()
+        s3client.save_from_string(save_path, file_name, data)
+    else:
+        import logging, os
+        logging.warning("You do not have ceph installed! Saving as local file!"
+                        " If you are not testing locally, something is wrong!")
+        with open(os.path.join(save_path, file_name), 'wb') as f:
+            f.write(data)

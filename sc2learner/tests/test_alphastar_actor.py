@@ -130,8 +130,8 @@ class DummyDataPusher:
     def __init__(self, cfg):
         pass
 
-    def push(self, job, agent_no, data_buffer):
-        print('pushed agent no:{} len:{}'.format(agent_no, len(data_buffer)))
+    def push(self, metadata, data_buffer):
+        print('pushed agent no:{} len:{}'.format(metadata['agent_no'], len(data_buffer)))
 
 
 class DummyStatLoader:

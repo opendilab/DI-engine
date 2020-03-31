@@ -5,7 +5,7 @@ import torch
 import pysc2.env.sc2_env as sc2_env
 from sc2learner.agent.alphastar_agent import AlphaStarAgent
 from sc2learner.envs.alphastar_env import AlphaStarEnv
-from sc2learner.utils import get_actor_id, dict_list2list_dict
+from sc2learner.utils import get_actor_id, dict_list2list_dict, merge_two_dicts
 from sc2learner.torch_utils import to_device
 
 
@@ -38,7 +38,7 @@ def unsqueeze_batch_dim(obs):
 class AlphaStarActor:
     """
     AlphaStar Actor
-    Contents of each entry in  the trajectory dict
+    Contents of each entry in the trajectory dict
         - 'step'
         - 'agent_no'
         - 'prev_obs'
@@ -61,7 +61,7 @@ class AlphaStarActor:
         if 'train' in self.cfg:
             for k, v in self.cfg.train.items():
                 self.cfg.env[k] = v
-        # in case we want all default
+        # in case we want everything to be the default
         if 'model' not in self.cfg:
             self.cfg.model = None
         self.actor_id = get_actor_id()
@@ -169,7 +169,6 @@ class AlphaStarActor:
                 }
                 obs_copy = copy.deepcopy(obs)
                 obs_copy[i] = unsqueeze_batch_dim(obs_copy[i])
-                done = True
                 if self.cfg.env.use_cuda:
                     obs_copy[i] = to_device(obs_copy[i], 'cuda')
                 if self.use_teacher_model:
@@ -201,14 +200,17 @@ class AlphaStarActor:
                 else:
                     self.lstm_states_cpu[i] = self.lstm_states[i]
                     self.teacher_lstm_states_cpu[i] = self.teacher_lstm_states[i]
-                action = dict_list2list_dict(action)[0]  # o for batch dim
+                action = dict_list2list_dict(action)[0]  # 0 for batch dim
 
                 actions[i] = action
-                self.last_state_action[i]['action'] = action
-                self.last_state_action[i]['logits'] = logits
-                self.last_state_action[i]['teacher_logits'] = teacher_logits
-                self.last_state_action[i]['lstm_state_after'] = self.lstm_states_cpu[i]
-                self.last_state_action[i]['teacher_lstm_state_after'] = self.teacher_lstm_states_cpu[i]
+                update_after_eval = {
+                    'action': action,
+                    'logits': logits,
+                    'teacher_logits': teacher_logits,
+                    'lstm_state_after': self.lstm_states_cpu[i],
+                    'teacher_lstm_state_after': self.teacher_lstm_states_cpu[i]
+                }
+                self.last_state_action[i] = merge_two_dicts(self.last_state_action[i], update_after_eval)
         return actions
 
     def run_episode(self):
@@ -250,17 +252,32 @@ class AlphaStarActor:
             for i in range(self.agent_num):
                 if due[i]:
                     # we received obs from the env, add to rollout trajectory
-                    traj_data = self.last_state_action[i]
-                    traj_data['step'] = game_step
-                    traj_data['next_obs'] = obs
-                    traj_data['done'] = done
-                    traj_data['rewards'] = rewards[i]
-                    traj_data['info'] = info
-                    data_buffer[i].append(traj_data)
+                    obs_data = {
+                        'step': game_step,
+                        'next_obs': obs,
+                        'done': done,
+                        'rewards': rewards[i],
+                        'info': info
+                    }
+                    data_buffer[i].append(merge_two_dicts(self.last_state_action[i], obs_data))
                 if len(data_buffer[i]) >= job['data_push_length'] or done:
                     # trajectory buffer is full or the game is finished
                     # so the length of a trajectory may not necessary be data_push_length
-                    self.data_pusher.push(job, i, data_buffer[i])
+                    metadata = {
+                            'job_id': job['job_id'],
+                            'agent_no': i,
+                            'agent_model_id': job['model_id'][i],
+                            'job': job,
+                            'game_step': game_step,
+                            'done': done,
+                            'finish_time': time.time(),
+                            'actor_id': self.actor_id,
+                            'info': info,
+                            'traj_length': len(data_buffer[i]),
+                        }
+                    if done:
+                        metadata['final_reward'] = rewards[i]
+                    self.data_pusher.push(metadata, data_buffer[i])
                     data_buffer[i] = []
             if done:
                 break
@@ -269,7 +286,7 @@ class AlphaStarActor:
         while True:
             self.run_episode()
 
-    def action_modifier(self, actions):
+    def action_modifier(self, actions, game_step):
         # called before actions are sent to the env, APM limits can be implemented here
         return actions
 
@@ -278,39 +295,20 @@ class AlphaStarActor:
             self.env.save_replay(path)
 
 
-# TODO: implementation
+# The following is only a reference, never meant to be called
 class JobGetter:
     def __init__(self, cfg):
-        self.connection = None  # TODO
-        self.job_request_id = 0
         pass
 
     def get_job(self, actor_id):
         """
-        Overview: asking for a job from the coordinator
+        Overview: asking for a job from some one
         Input:
             - actor_id
         Output:
             - job: a dict with description of how the game should be
         """
-        while True:
-            job_request = {'type': 'job req', 'req_id': self.job_request_id, 'actor_id': actor_id}
-            try:
-                self.connection.send_pyobj(job_request)
-                reply = self.job_requestor.recv_pyobj()
-                assert (isinstance(reply, dict))
-                if (reply['type'] != 'job'):
-                    print('WARNING: received unknown response for job req, type:{}'.format(reply['type']))
-                    continue
-                if (reply['actor_id'] != actor_id):
-                    print('WARNING: received job is assigned to another actor')
-                self.job_request_id += 1
-                return reply['job']
-            except Exception:  # zmq.error.Again:
-                print('WARNING: Job Request Timeout')
-                time.sleep(1)  # wait for a while
-                continue
-        self.job_request_id += 1
+        pass
 
 
 class ModelLoader:
@@ -343,5 +341,5 @@ class DataPusher:
     def __init__(self, cfg):
         pass
 
-    def push(self, job, agent_no, data_buffer):
+    def push(self, metadata, data_buffer):
         pass

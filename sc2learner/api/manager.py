@@ -169,8 +169,8 @@ class Manager(object):
         while True:
             nowtime = int(time.time())
             for actor_uid, actor_info in self.actor_record.items():
-                if actor_info['state'
-                              ] == 'alive' and nowtime - actor_info['last_beats_time'] > self.check_dead_actor_freq:
+                if actor_info['state'] == 'alive' and\
+                   nowtime - actor_info['last_beats_time'] > self.check_dead_actor_freq:
                     # dead actor
                     self.logger.info(
                         "[manager][check_actor_dead] {} is dead, last_beats_time = {}".format(
