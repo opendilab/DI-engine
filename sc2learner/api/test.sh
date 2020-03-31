@@ -1,1 +1,0 @@
-# srun -p $1 -w $2 python -u test.py

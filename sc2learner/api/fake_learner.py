@@ -67,8 +67,7 @@ class FakeLearner(object):
 
     def register_model_in_coordinator(self, model_name):
         '''
-            Overview: register model in coordinator with model_name, 
-                      should be called after saving model in ceph
+            Overview: register model in coordinator with model_name, should be called after saving model in ceph
         '''
         while True:
             try:
@@ -99,9 +98,7 @@ class FakeLearner(object):
 
     def _get_trajectory_list(self, metadatas):
         '''
-            Overview: get list of trajectory by trajectory_path in metadatas. 
-                      Using OrderedDict, and move_to_end() will set key to top 
-                      to avoid being deleted.
+            Overview: get list of trajectory by trajectory_path in metadatas. Using OrderedDict, and move_to_end() will set key to top to avoid being deleted.
             Arguments:
                 - metadatas (:obj:`dict`): list of actor's metadata
             Returns:
