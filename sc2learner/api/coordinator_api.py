@@ -96,6 +96,17 @@ def get_metadata():
         return build_ret(1)
 
 
+@app.route('/coordinator/update_replay_buffer', methods=['POST'])
+def update_replay_buffer():
+    update_info = request.json['update_info']
+    ret_code = coordinator.deal_with_update_replay_buffer(update_info)
+    if ret_code:
+        return build_ret(0)
+    else:
+        return build_ret(1)
+
+
+
 ###################################################################################
 #                                    for debug                                    #
 ###################################################################################

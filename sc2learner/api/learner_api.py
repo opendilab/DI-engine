@@ -52,17 +52,29 @@ learner = FakeLearner(cfg)
 def build_ret(code, info=''):
     return {'code': code, 'info': info}
 
-
-@app.route('/learner/get_metadata', methods=['POST'])
-def get_sample():
-    metadata = request.json['metadata']
-    info = learner.deal_with_get_metadata(metadata)
-    return build_ret(0, info)
-
-
 ###################################################################################
 #                                      debug                                      #
 ###################################################################################
+
+@app.route('/learner/get_trajectory_record_len', methods=['GET'])
+def get_trajectory_record_len():
+    info = learner.deal_with_get_trajectory_record_len()
+    return build_ret(0, info)
+
+@app.route('/learner/set_delete_trajectory_record', methods=['POST'])
+def set_delete_trajectory_record():
+    state = request.json['state']
+    num = request.json['num']
+    info = learner.deal_with_set_delete_trajectory_record(state, num)
+    return build_ret(0, info)
+
+@app.route('/learner/set_train_freq', methods=['POST'])
+def set_train_freq():
+    freq = request.json['freq']
+    info = learner.deal_with_set_train_freq(freq)
+    return build_ret(0, info)
+
+
 
 if __name__ == '__main__':
     app.run(host=learner_ip, port=learner_port, debug=True, use_reloader=False)
