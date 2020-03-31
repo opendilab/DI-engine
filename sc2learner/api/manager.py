@@ -65,7 +65,7 @@ class Manager(object):
         '''
         assert actor_uid not in self.actor_record
         last_beats_time = int(time.time())
-        self.actor_record[actor_uid] = {'job_ids': '', 'last_beats_time': last_beats_time, 'state': 'alive'}
+        self.actor_record[actor_uid] = {'job_ids': [], 'last_beats_time': last_beats_time, 'state': 'alive'}
         return True
 
     def _add_job_to_record(self, actor_uid, job):
@@ -125,6 +125,8 @@ class Manager(object):
                 if response['code'] == 0:
                     job = response['info']
                     return True
+                else:
+                    self.logger.info("[manager - deal_with_get_metadata] response = ".format(response))
             except Exception as e:
                 self.logger.info(''.join(traceback.format_tb(e.__traceback__)))
                 self.logger.info("[error] {}".format(sys.exc_info()))

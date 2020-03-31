@@ -156,9 +156,10 @@ class FakeLearner(object):
         '''
         self.logger.info("getting trajectory data ... ")
         train_trajectory_list = self._get_trajectory_list(metadatas)
+        self.logger.info("train_trajectory_list = {}".format(train_trajectory_list))
         self.logger.info("training ... ")
         model = {'model': torch.tensor([[1, 2, 3], [4, 5, 6]]), 'type': 'learner'}
-        model_name = "learner-{}-{}".format(self.learner_uid, str(uuid.uuid1()))
+        model_name = "learner-{}-{}.model".format(self.learner_uid, str(uuid.uuid1()))
         self.logger.info("saving model in ceph ... ")
         self._save_model_to_ceph(model_name, model)
         self._delete_trajectory_record()

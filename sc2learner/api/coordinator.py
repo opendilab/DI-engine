@@ -12,6 +12,7 @@ import yaml
 import traceback
 import uuid
 import random
+from easydict import EasyDict
 
 from sc2learner.data.online import ReplayBuffer
 
@@ -32,7 +33,7 @@ class Coordinator(object):
         # {learner_uid: {"learner_ip": learner_ip,
         #                "job_ids": [job_id], "models": [model_name]}}
         self.learner_record = {}  
-        self.replay_buffer = ReplayBuffer(self.cfg)
+        self.replay_buffer = ReplayBuffer(EasyDict(self.cfg['replay_buffer']))
         self.replay_buffer.run()
 
         self._set_logger()
@@ -94,7 +95,6 @@ class Coordinator(object):
         '''
         job = self._get_job()
         job_id = job['job_id']
-        learner_uid = job['learner_uid']
         if manager_uid not in self.manager_record:
             self.deal_with_register_manager(manager_uid)
         if actor_uid not in self.manager_record[manager_uid]:
@@ -119,6 +119,7 @@ class Coordinator(object):
         '''
         assert job_id in self.job_record, 'job_id ({}) not in job_record'.format(job_id)
         self.replay_buffer.push_data(metadata)
+        return True
 
     def deal_with_ask_for_metadata(self, learner_uid, batch_size):
         '''
@@ -157,3 +158,6 @@ class Coordinator(object):
 
     def deal_with_get_all_job(self):
         return self.job_record
+
+    def deal_with_get_replay_buffer(self):
+        return self.replay_buffer
