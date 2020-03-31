@@ -34,6 +34,6 @@ class BaseRLAlgorithm(object):
         '''
         Overview: algorithm introduction and related hyper-parameters setting
         Returns:
-            - s (:obj:`str`) infomation string
+            - s (:obj:`str`) information string
         '''
         raise NotImplementedError

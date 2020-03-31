@@ -189,25 +189,23 @@ def one_hot(val, num, num_first=False):
     Overview: convert a Long tensor to one hot encoding
         if num_first is False, the one hot code dimension is added as the last
         if num_first is True, the code is made as the first dimension
+        this implementation can be slightly faster than torch.nn.functional.one_hot
     Arguments:
-        - val (:obj:`torch.Tensor`): each element contains the state to be encoded
+        - val (:obj:`torch.LongTensor`): each element contains the state to be encoded
         - num: number of states of the one hot encoding
         - num_first
     Returns:
-        - one_hot (:obj:`torch.Tensor`)
+        - one_hot (:obj:`torch.FloatTensor`)
     Example:
         >>> one_hot(2*torch.ones([2,2]).long(),3)
         tensor([[[0., 0., 1.],
-         [0., 0., 1.]],
-        [[0., 0., 1.],
-         [0., 0., 1.]]])
+                 [0., 0., 1.]],
+                [[0., 0., 1.],
+                 [0., 0., 1.]]])
         >>> one_hot(2*torch.ones([2,2]).long(),3,num_first=True)
-        tensor([[[0., 0.],
-         [1., 0.]],
-        [[0., 1.],
-         [0., 0.]],
-        [[1., 0.],
-         [0., 1.]]])
+        tensor([[[0., 0.], [1., 0.]],
+                [[0., 1.], [0., 0.]],
+                [[1., 0.], [0., 1.]]])
     """
     assert (isinstance(val, torch.Tensor))
     assert (len(val.shape) >= 1)

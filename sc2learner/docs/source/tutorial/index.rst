@@ -45,7 +45,7 @@ Training
     ./viz.sh <port_id>
     # enter '<lustre_ip>:<port_id>' in your browser
 
-You can use **sinfo** to inspect avaliable partitions.
+You can use **sinfo** to inspect available partitions.
 
 Evaluate by elite bot
 ---------------------

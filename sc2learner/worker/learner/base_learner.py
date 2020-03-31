@@ -24,7 +24,7 @@ class Learner:
     def __init__(self, cfg):
         """
             Overview: initialization method, using setting to build model, dataset, optimizer, lr_scheduler
-                      and other helper. It can alse load checkpoint.
+                      and other helper. It can also load checkpoint.
             Arguments:
                 - cfg (:obj:`dict`): learner config
 

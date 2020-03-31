@@ -59,7 +59,7 @@ def deep_update(original, new_dict, new_keys_allowed=False, whitelist=None, over
             level.
         override_all_if_type_changes(Optional[List[str]]): List of top level
             keys with value=dict, for which we always simply override the
-            entire value (dict), iff the "type" key in that value dict changes.
+            entire value (dict), if the "type" key in that value dict changes.
     """
     whitelist = whitelist or []
     override_all_if_type_changes = override_all_if_type_changes or []
