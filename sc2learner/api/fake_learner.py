@@ -34,9 +34,9 @@ class FakeLearner(object):
         self.register_learner_in_coordinator()
 
         self.batch_size = 4
-        self.train_freq = 10 # ask for metadata and train every `train_freq` seconds
-        
-        self.trajectory_record = OrderedDict() # {trajectory_name: trajectory}
+        self.train_freq = 10  # ask for metadata and train every `train_freq` seconds
+
+        self.trajectory_record = OrderedDict()  # {trajectory_name: trajectory}
         self.delete_trajectory_record = True  # if delete trajectory_record
         self.delete_trajectory_record_num = 1000  # if larger than len(self.trajectory_record), delete by time sort
 
@@ -111,12 +111,12 @@ class FakeLearner(object):
         for metadata in metadatas:
             job_id = metadata['job_id']
             trajectory_path = metadata['trajectory_path']
-            if trajectory_path in self.trajectory_record: 
+            if trajectory_path in self.trajectory_record:
                 trajectory = self.trajectory_record[trajectory_path]
             else:
                 trajectory = self._load_trajectory_from_ceph(trajectory_path)
                 self.trajectory_record[trajectory_path] = trajectory
-            self.trajectory_record.move_to_end(trajectory_path, last=False) # avoid being deleted
+            self.trajectory_record.move_to_end(trajectory_path, last=False)  # avoid being deleted
             train_trajectory_list.append(trajectory)
         return train_trajectory_list
 
@@ -221,6 +221,7 @@ class FakeLearner(object):
 
 if __name__ == '__main__':
     import subprocess
+
     def get_cls_info():
         ret_dict = {}
         info = subprocess.getoutput('sinfo -Nh').split('\n')
@@ -237,15 +238,14 @@ if __name__ == '__main__':
         return ret_dict
 
     def launch(partition, workstation):
-        output = subprocess.getoutput(['bash', 'test.sh', partition, workstation]) 
+        output = subprocess.getoutput(['bash', 'test.sh', partition, workstation])
         return output
 
     cls_dict = get_cls_info()
     for k, v in cls_dict.items():
-        if k in ['VI_SP_Y_V100_B', 'VI_SP_Y_V100_A', 'VI_SP_VA_V100',
-                  'VI_SP_VA_1080TI', 'VI_Face_1080TI', 'VI_ID_1080TI']:
+        if k in ['VI_SP_Y_V100_B', 'VI_SP_Y_V100_A', 'VI_SP_VA_V100', 'VI_SP_VA_1080TI', 'VI_Face_1080TI',
+                 'VI_ID_1080TI']:
             for vv in v:
                 # output = launch(k, vv[0])
                 # print(k, vv[0], output)
                 print('srun -p {} -w {} python test.py'.format(k, vv[0]))
-

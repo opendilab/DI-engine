@@ -27,12 +27,12 @@ class Coordinator(object):
         self.manager_port = cfg['api']['manager_port']
 
         # {manager_uid: {actor_uid: [job_id]}}
-        self.manager_record = {}  
+        self.manager_record = {}
         # {job_id: {content: info, state: run/finish}}
-        self.job_record = {}  
+        self.job_record = {}
         # {learner_uid: {"learner_ip": learner_ip,
         #                "job_ids": [job_id], "models": [model_name]}}
-        self.learner_record = {}  
+        self.learner_record = {}
         self.replay_buffer = ReplayBuffer(EasyDict(self.cfg['replay_buffer']))
         self.replay_buffer.run()
 
@@ -79,11 +79,7 @@ class Coordinator(object):
                 - learner_uid (:obj:`str`): learner's uid
         '''
         if learner_uid not in self.learner_record:
-            self.learner_record[learner_uid] = {
-                    "learner_ip": learner_ip, 
-                    "job_ids": [], 
-                    "models": []
-                }
+            self.learner_record[learner_uid] = {"learner_ip": learner_ip, "job_ids": [], "models": []}
         return True
 
     def deal_with_ask_for_job(self, manager_uid, actor_uid):
@@ -100,10 +96,7 @@ class Coordinator(object):
         if actor_uid not in self.manager_record[manager_uid]:
             self.manager_record[manager_uid][actor_uid] = []
         self.manager_record[manager_uid][actor_uid].append(job_id)
-        self.job_record[job_id] = {
-                'content': job, 
-                'state': 'running'
-            }
+        self.job_record[job_id] = {'content': job, 'state': 'running'}
         return job
 
     def deal_with_get_metadata(self, manager_uid, actor_uid, job_id, metadata):
@@ -144,7 +137,6 @@ class Coordinator(object):
         '''
         self.replay_buffer.update(update_info)
         return True
-
 
     ###################################################################################
     #                                      debug                                      #

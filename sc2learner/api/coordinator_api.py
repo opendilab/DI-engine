@@ -14,7 +14,6 @@ from coordinator import Coordinator
 from utils.log_helper import TextLogger
 from sc2learner.utils import read_config, merge_dicts
 
-
 parser = argparse.ArgumentParser(description='implementation of AlphaStar')
 parser.add_argument('--config', dest='config', required=True, help='settings of AlphaStar in yaml format')
 args = parser.parse_args()
@@ -117,7 +116,6 @@ def update_replay_buffer():
         return build_ret(0)
     else:
         return build_ret(1)
-
 
 
 ###################################################################################
