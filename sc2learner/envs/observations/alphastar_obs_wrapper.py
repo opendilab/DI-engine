@@ -737,17 +737,17 @@ def transform_scalar_data():
             'other': 'transformer'
         },
         {
-             'key': 'available_actions',
-             'arch': 'fc',
-             'input_dim': NUM_ACTIONS,
-             'output_dim': 64,
-             'ori': 'available_actions',
-             'scalar_context': True,
-             'other': 'boolean vector',
-        #     'op': partial(
-        #         reorder_boolean_vector, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT
-        #     )
-             'op': lambda x: x,
+            'key': 'available_actions',
+            'arch': 'fc',
+            'input_dim': NUM_ACTIONS,
+            'output_dim': 64,
+            'ori': 'available_actions',
+            'scalar_context': True,
+            'other': 'boolean vector',
+            #     'op': partial(
+            #         reorder_boolean_vector, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT
+            #     )
+            'op': lambda x: x,
         },
         {
             'key': 'unit_counts_bow',
