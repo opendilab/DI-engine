@@ -1,8 +1,8 @@
 api:
     learner_port: 18293               # learner port
-    coordinator_ip: 10.5.36.31       # learner and coordinator are in same cluster
+    coordinator_ip: 10.198.6.31       # learner and coordinator are in same cluster
     coordinator_port: 18294
-    manager_ip: 10.5.36.31           # could be all cluster
+    manager_ip: 10.198.6.31           # could be all cluster
     manager_port: 18295
     ceph_path: s3://alphastar_fake_data/
     actor:
