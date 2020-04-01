@@ -90,3 +90,11 @@ model:
                 norm_type: 'LN'
                 res_dim: 256
                 res_num: 16
+# for test of actor worker
+actor:
+    manager_ip: 'auto'
+    manager_port: 18295
+    heartbeats_freq: 120
+    ceph_traj_path: 's3://alphastar_fake_data/'
+    ceph_model_path: 's3://alphastar_fake_data/'
+    ceph_stat_path: 's3://alphastar_fake_data/'

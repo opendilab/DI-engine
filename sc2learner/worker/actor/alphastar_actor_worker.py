@@ -32,7 +32,8 @@ class AlphaStarActorWorker(AlphaStarActor):
         self._set_logger()
         self._module_init()
         self.job_getter.register_actor()
-        self.heartbeat_worker.start_heartbeats_thread()
+        if self.cfg.actor.get('heartbeats_thread', True):
+            self.heartbeat_worker.start_heartbeats_thread()
 
     def _set_logger(self):
         self.log_name = self.actor_id + ".log"
@@ -82,13 +83,20 @@ class HeartBeatWorker:
         '''
         while not self.stop_flag:
             d = {'actor_id': self.context.actor_id}
-            response = requests.post(self.context.url_prefix + 'manager/get_heartbeats', json=d).json()
-            for _ in range(self.context.cfg["actor"]["heartbeats_freq"]):
-                if not self.stop_flag:
-                    time.sleep(1)
+            try:
+                response = requests.post(self.context.url_prefix + 'manager/get_heartbeats', json=d).json()
+                if response['code'] != 0:
+                    self.context.logger.warn('send heartbeat failed, response={}'.format(response))
                 else:
-                    break
-        self.context.logger.info('check_send_actor_heartbeats_thread stop as job finished.')
+                    self.context.logger.info('check_send_actor_heartbeats_thread stop as job finished.')
+                for _ in range(self.context.cfg["actor"]["heartbeats_freq"]):
+                    if not self.stop_flag:
+                        time.sleep(1)
+                    else:
+                        break
+            except Exception as e:
+                self.context.logger.error(''.join(traceback.format_tb(e.__traceback__)))
+                self.context.logger.error("[error] {}".format(sys.exc_info()))
 
 class JobGetter:
     def __init__(self, context):
@@ -146,6 +154,7 @@ class DataPusher:
         metadata_supp = {
             'ceph_path': self.ceph_path,
             'ceph_name': ceph_name,
+            'this_traj_learner_uid': [job.get('learner_uid1'), job.get('learner_uid2')][agent_no],
             'learner_uid1': job.get('learner_uid1'),
             'learner_uid2': job.get('learner_uid2')
         }
@@ -155,7 +164,7 @@ class DataPusher:
         if response['code'] == 0:
             self.context.logger.info("succeed sending result: {}".format(job_id))
         else:
-            self.context.logger.info("failed to send result: {}".format(job_id))
+            self.context.logger.warn("failed to send result: {}".format(job_id))
 
 class ModelLoader:
     def __init__(self, context):

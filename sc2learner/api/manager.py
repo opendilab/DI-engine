@@ -138,7 +138,7 @@ class Manager(object):
                     job = response['info']
                     return True
                 else:
-                    self.logger.info("[manager - deal_with_get_metadata] response = ".format(response))
+                    self.logger.info("[manager - deal_with_get_metadata] response = {}".format(response))
             except Exception as e:
                 self.logger.info(''.join(traceback.format_tb(e.__traceback__)))
                 self.logger.info("[error] {}".format(sys.exc_info()))
