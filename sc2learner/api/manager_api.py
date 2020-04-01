@@ -125,5 +125,17 @@ def clear_reuse_job_list():
         return build_ret(1)
 
 
+@app.route('/debug/launch_actor', methods=['POST'])
+def launch_actor():
+    use_partitions = request.json['use_partitions']
+    actor_num = request.json['actor_num']
+    info = manager.deal_with_launch_actor()
+    if info:
+        return build_ret(0, info)
+    else:
+        return build_ret(1)
+
+
+
 if __name__ == '__main__':
     app.run(host=manager_ip, port=manager_port, debug=True, use_reloader=False)

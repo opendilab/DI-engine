@@ -1,0 +1,20 @@
+[2020-04-01 15:59:12,341][  log_helper.py][line:  99][    INFO] [UP] send actor heartbeats thread 
+[2020-04-01 16:00:04,169][  log_helper.py][line:  99][    INFO]   File "../api/fake_actor.py", line 91, in ask_for_job
+    response = requests.post(self.url_prefix + 'manager/ask_for_job', json=d).json()
+  File "/mnt/lustre/share/spring/envs/r0.3.0/lib/python3.6/site-packages/requests/api.py", line 112, in post
+    return request('post', url, data=data, json=json, **kwargs)
+  File "/mnt/lustre/share/spring/envs/r0.3.0/lib/python3.6/site-packages/requests/api.py", line 58, in request
+    return session.request(method=method, url=url, **kwargs)
+  File "/mnt/lustre/share/spring/envs/r0.3.0/lib/python3.6/site-packages/requests/sessions.py", line 508, in request
+    resp = self.send(prep, **send_kwargs)
+  File "/mnt/lustre/share/spring/envs/r0.3.0/lib/python3.6/site-packages/requests/sessions.py", line 618, in send
+    r = adapter.send(request, **kwargs)
+  File "/mnt/lustre/share/spring/envs/r0.3.0/lib/python3.6/site-packages/requests/adapters.py", line 490, in send
+    raise ConnectionError(err, request=request)
+
+[2020-04-01 16:00:04,171][  log_helper.py][line:  99][    INFO] [error][ask_for_job] <class 'requests.exceptions.ConnectionError'>
+[2020-04-01 16:00:04,171][  log_helper.py][line:  99][    INFO]   File "../api/fake_actor.py", line 142, in simulate
+    model = self._get_model(self.job['model_id'][0])
+
+[2020-04-01 16:00:04,171][  log_helper.py][line:  99][    INFO] [error] (<class 'AttributeError'>, AttributeError("'FakeActor' object has no attribute 'job'",), <traceback object at 0x7fd0a6c02d88>)
+[2020-04-01 16:00:04,403][  log_helper.py][line:  99][    INFO] check_send_actor_heartbeats_thread stop as job finished.

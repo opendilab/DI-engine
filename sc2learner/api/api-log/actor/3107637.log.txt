@@ -1,0 +1,22 @@
+[2020-04-01 16:01:25,840][  log_helper.py][line:  99][    INFO] [UP] send actor heartbeats thread 
+[2020-04-01 16:01:25,857][  log_helper.py][line:  99][    INFO] [ask_for_job] {'away_race': 'Zerg', 'build': 0, 'data_push_length': 128, 'difficulty': 1, 'game_type': 'league', 'home_race': 'Zerg', 'job_id': 'fc2ebcb0-73ee-11ea-96e2-37373f73a5ac', 'learner_uid': ['ea4f5680-73ee-11ea-b98a-3549e1b86b25', 'ea4f5680-73ee-11ea-b98a-3549e1b86b25'], 'map_name': '', 'model_id': ['iterations_1500.pth.tar', 'iterations_1500.pth.tar'], 'random_seed': 0, 'stat_id': ['Zerg_Zerg_6200_72d9c190968b27df23839a441393c8c601c115d01ed6eebe691b00202ab7702a.stat_processed', 'Zerg_Zerg_6200_72d9c190968b27df23839a441393c8c601c115d01ed6eebe691b00202ab7702a.stat_processed'], 'teacher_model_id': ''}
+[2020-04-01 16:01:25,858][  log_helper.py][line:  99][    INFO] [actor 3107637] get job fc2ebcb0-73ee-11ea-96e2-37373f73a5ac success
+[2020-04-01 16:01:27,440][  log_helper.py][line:  99][    INFO]   File "../api/fake_actor.py", line 142, in simulate
+    model = self._get_model(self.job['model_id'][0])
+  File "../api/fake_actor.py", line 106, in _get_model
+    model = torch.load(read_file_ceph(self.ceph_path + model_name))
+  File "/mnt/lustre/zhangming/.local/lib/python3.6/site-packages/torch-1.1.0-py3.6-linux-x86_64.egg/torch/serialization.py", line 387, in load
+    return _load(f, map_location, pickle_module, **pickle_load_args)
+  File "/mnt/lustre/zhangming/.local/lib/python3.6/site-packages/torch-1.1.0-py3.6-linux-x86_64.egg/torch/serialization.py", line 574, in _load
+    result = unpickler.load()
+  File "/mnt/lustre/zhangming/.local/lib/python3.6/site-packages/torch-1.1.0-py3.6-linux-x86_64.egg/torch/serialization.py", line 537, in persistent_load
+    deserialized_objects[root_key] = restore_location(obj, location)
+  File "/mnt/lustre/zhangming/.local/lib/python3.6/site-packages/torch-1.1.0-py3.6-linux-x86_64.egg/torch/serialization.py", line 119, in default_restore_location
+    result = fn(storage, location)
+  File "/mnt/lustre/zhangming/.local/lib/python3.6/site-packages/torch-1.1.0-py3.6-linux-x86_64.egg/torch/serialization.py", line 95, in _cuda_deserialize
+    device = validate_cuda_device(location)
+  File "/mnt/lustre/zhangming/.local/lib/python3.6/site-packages/torch-1.1.0-py3.6-linux-x86_64.egg/torch/serialization.py", line 79, in validate_cuda_device
+    raise RuntimeError('Attempting to deserialize object on a CUDA '
+
+[2020-04-01 16:01:27,440][  log_helper.py][line:  99][    INFO] [error] (<class 'RuntimeError'>, RuntimeError("Attempting to deserialize object on a CUDA device but torch.cuda.is_available() is False. If you are running on a CPU-only machine, please use torch.load with map_location='cpu' to map your storages to the CPU.",), <traceback object at 0x7fc7010c45c8>)
+[2020-04-01 16:01:27,847][  log_helper.py][line:  99][    INFO] check_send_actor_heartbeats_thread stop as job finished.

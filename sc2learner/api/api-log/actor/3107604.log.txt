@@ -1,0 +1,2 @@
+[2020-04-01 16:00:12,385][  log_helper.py][line:  99][    INFO] something wrong with coordinator, HTTPConnectionPool(host='10.5.36.31', port=18295): Max retries exceeded with url: /manager/register (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f04021e15c0>: Failed to establish a new connection: [Errno 111] Connection refused',))
+[2020-04-01 16:00:22,404][  log_helper.py][line:  99][    INFO] [UP] send actor heartbeats thread 

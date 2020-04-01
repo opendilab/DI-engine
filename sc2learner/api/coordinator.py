@@ -26,6 +26,11 @@ class Coordinator(object):
         self.manager_ip = cfg['api']['manager_ip']
         self.manager_port = cfg['api']['manager_port']
 
+        self.use_fake_data = cfg['api']['coordinator']['use_fake_data']
+        if self.use_fake_data:
+            self.fake_model_path = cfg['api']['coordinator']['fake_model_path']
+            self.fake_stat_path = cfg['api']['coordinator']['fake_stat_path']
+
         # {manager_uid: {actor_uid: [job_id]}}
         self.manager_record = {}
         # {job_id: {content: info, state: run/finish}}
@@ -48,9 +53,56 @@ class Coordinator(object):
                 - (:obj`dict`): job info
         '''
         job_id = str(uuid.uuid1())
-        learner_uid1 = random.choice(list(self.learner_record.keys()))
-        learner_uid2 = random.choice(list(self.learner_record.keys()))
-        return {'job_id': job_id, 'learner_uid1': learner_uid1, 'learner_uid2': learner_uid2}
+        ret = {}
+
+        if self.use_fake_data:
+            learner_uid1 = random.choice(list(self.learner_record.keys()))
+            learner_uid2 = random.choice(list(self.learner_record.keys()))
+            model_name1 = self.fake_model_path
+            model_name2 = self.fake_model_path
+            ret = {
+                'job_id': job_id, 
+                'learner_uid': [learner_uid1, learner_uid2],
+                'stat_id': [self.fake_stat_path, self.fake_stat_path],
+                'game_type': 'league',
+                'model_id': [model_name1, model_name2],
+                'teacher_model_id': '',
+                'map_name': '',
+                'random_seed': 0,
+                'home_race': 'Zerg',
+                'away_race': 'Zerg',
+                'difficulty': 1,
+                'build': 0,
+                'data_push_length': 128
+            }
+        else:
+            use_learner_uid_list = []
+            for learner_uid in list(self.learner_record.keys()):
+                if len(self.learner_record[learner_uid]['models']) > 0:
+                    use_learner_uid_list.append(learner_uid)
+            if use_learner_uid_list:
+                learner_uid1 = random.choice(use_learner_uid_list)
+                learner_uid2 = random.choice(use_learner_uid_list)
+                model_name1 = self.learner_record[learner_uid1]['models'][-1]
+                model_name2 = self.learner_record[learner_uid2]['models'][-1]
+                ret = {
+                    'job_id': job_id, 
+                    'learner_uid': [learner_uid1, learner_uid2],
+                    'stat_id': [self.fake_stat_path, self.fake_stat_path],
+                    'game_type': 'league',
+                    'model_id': [model_name1, model_name2],
+                    'teacher_model_id': '',
+                    'map_name': '',
+                    'random_seed': 0,
+                    'home_race': 'Zerg',
+                    'away_race': 'Zerg',
+                    'difficulty': 1,
+                    'build': 0,
+                    'data_push_length': 128
+                }
+            else:
+                ret = {}
+        return ret
 
     def deal_with_register_model(self, learner_uid, model_name):
         '''

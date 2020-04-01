@@ -4,7 +4,17 @@ api:
     coordinator_port: 18294
     manager_ip: 10.5.36.31           # could be all cluster
     manager_port: 18295
-    ceph_path: s3://zhangming/
+    ceph_path: s3://alphastar_fake_data/
+    actor:
+        heartbeats_thread: True
+    manager:
+        auto_run_actor: False
+        use_partitions: ['VI_SP_Y_V100_A', 'VI_SP_Y_V100_B']
+        actor_num: [2, 2]
+    coordinator:
+        use_fake_data: True
+        fake_model_path: iterations_1500.pth.tar
+        fake_stat_path: Zerg_Zerg_6200_72d9c190968b27df23839a441393c8c601c115d01ed6eebe691b00202ab7702a.stat_processed
 replay_buffer:
     meta_maxlen: 4096
     max_reuse: 2

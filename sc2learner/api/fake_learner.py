@@ -65,7 +65,7 @@ class FakeLearner(object):
                 self.logger.info("something wrong with coordinator, {}".format(e))
             time.sleep(10)
 
-    def register_model_in_coordinator(self, model_name):
+    def _register_model_in_coordinator(self, model_name):
         '''
             Overview: register model in coordinator with model_name, should be called after saving model in ceph
         '''
@@ -159,6 +159,7 @@ class FakeLearner(object):
         model_name = "learner-{}-{}.model".format(self.learner_uid, str(uuid.uuid1()))
         self.logger.info("saving model in ceph ... ")
         self._save_model_to_ceph(model_name, model)
+        self._register_model_in_coordinator(model_name)
         self._delete_trajectory_record()
         update_info = self._get_update_info(metadatas)
         try:
