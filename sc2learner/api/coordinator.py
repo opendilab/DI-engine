@@ -33,7 +33,7 @@ class Coordinator(object):
 
         # {manager_uid: {actor_uid: [job_id]}}
         self.manager_record = {}
-        # {job_id: {content: info, state: run/finish}}
+        # {job_id: {content: info, state: running/finish}}
         self.job_record = {}
         # {learner_uid: {"learner_ip": learner_ip,
         #                "job_ids": [job_id], "models": [model_name]}}
@@ -164,6 +164,19 @@ class Coordinator(object):
         '''
         assert job_id in self.job_record, 'job_id ({}) not in job_record'.format(job_id)
         self.replay_buffer.push_data(metadata)
+        return True
+
+    def deal_with_finish_job(self, manager_uid, actor_uid, job_id):
+        '''
+            Overview: when receiving actor's request of finishing job, ,return True/False
+            Arguments:
+                - actor_uid (:obj:`str`): actor's uid
+                - job_id (:obj:`str`): job's id
+            Returns:
+                - (:obj`bool`): state
+        '''
+        assert job_id in self.job_record, 'job_id ({}) not in job_record'.format(job_id)
+        self.job_record[job_id]['state'] = 'finish'
         return True
 
     def deal_with_ask_for_metadata(self, learner_uid, batch_size):
