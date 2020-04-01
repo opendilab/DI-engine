@@ -34,10 +34,13 @@ class FakeEnv:
         step = 16
         due = [True] * self.num_agents
         obs = self._get_obs()
-        reward = 0.0
+        reward = [0.0] * self.num_agents
         done = False
         info = {}
         return step, due, obs, reward, done, info
+
+    def load_stat(self, stat, agent_no):
+        pass
 
 
 class TestActor(AlphaStarActorWorker):

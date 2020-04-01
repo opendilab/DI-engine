@@ -16,7 +16,7 @@ from pysc2.lib.features import FeatureUnit
 from pysc2.lib.action_dict import ACT_TO_GENERAL_ACT, ACT_TO_GENERAL_ACT_ARRAY
 from pysc2.lib.static_data import NUM_BUFFS, NUM_ABILITIES, NUM_UNIT_TYPES, UNIT_TYPES_REORDER,\
      UNIT_TYPES_REORDER_ARRAY, BUFFS_REORDER_ARRAY, ABILITIES_REORDER_ARRAY, NUM_UPGRADES, UPGRADES_REORDER,\
-     UPGRADES_REORDER_ARRAY, NUM_ACTIONS, ACTIONS_REORDER_ARRAY, NUM_ADDON, ADDON_REORDER_ARRAY,\
+     UPGRADES_REORDER_ARRAY, NUM_ACTIONS, ACTIONS_REORDER_ARRAY, ACTIONS_REORDER,  NUM_ADDON, ADDON_REORDER_ARRAY,\
      NUM_BEGIN_ACTIONS, NUM_UNIT_BUILD_ACTIONS, NUM_EFFECT_ACTIONS, NUM_RESEARCH_ACTIONS,\
      UNIT_BUILD_ACTIONS_REORDER_ARRAY, EFFECT_ACTIONS_REORDER_ARRAY, RESEARCH_ACTIONS_REORDER_ARRAY,\
      BEGIN_ACTIONS_REORDER_ARRAY
@@ -736,18 +736,18 @@ def transform_scalar_data():
             'op': partial(batch_binary_encode, bit_num=32),
             'other': 'transformer'
         },
-        # {
-        #     'key': 'available_actions',
-        #     'arch': 'fc',
-        #     'input_dim': NUM_ACTIONS,
-        #     'output_dim': 64,
-        #     'ori': 'available_actions',
-        #     'scalar_context': True,
-        #     'other': 'boolean vector',
-        #     'op': partial(
-        #         reorder_boolean_vector, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT
-        #     )
-        # },  # noqa
+        {
+            'key': 'available_actions',
+            'arch': 'fc',
+            'input_dim': NUM_ACTIONS,
+            'output_dim': 64,
+            'ori': 'available_actions',
+            'scalar_context': True,
+            'other': 'boolean vector',
+            'op': partial(
+                reorder_boolean_vector, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT
+            )
+        },  # noqa
         {
             'key': 'unit_counts_bow',
             'arch': 'fc',
