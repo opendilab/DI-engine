@@ -56,7 +56,7 @@ class FakeReplayDataset(ReplayDataset):
     def step(self, index=None):
         if index is None:
             index = range(len(self.path_list))
-        end_list = []  # a list containes replay index which access the end of the replay
+        end_list = []  # a list contains replay index which access the end of the replay
         for i in index:
             handle = self.path_list[i]
             if 'step_num' not in handle.keys():

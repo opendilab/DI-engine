@@ -53,7 +53,7 @@ Datasets
           type: COCO               # choices = {'COCO', 'VOC', 'mAP'} 
           kwargs:
               gt_file: /mnt/lustre/share/DSK/datasets/mscoco2017/annotations/instances_val2017.json
-              iou_types: [bbox]      # calcuate AP_bbox only
+              iou_types: [bbox]      # calculate AP_bbox only
     
 .. _PASCALAnchor:
 

@@ -102,7 +102,7 @@ class ReplayProcessor(multiprocessing.Process):
         self.handles = []
         self.controllers = []
         self.player_ids = [i + 1 for i in range(2)]
-        # start game and initial two game controlloers for both players, controller hanldes communication with game
+        # start game and initial two game controlloers for both players, controller handles communication with game
         for i in self.player_ids:
             handle = self.run_config.start(want_rgb=interface.HasField("render"))
             controller = handle.controller
@@ -376,7 +376,7 @@ class ReplayProcessor(multiprocessing.Process):
                     actions.append([t.action_raw for t in a])
                 else:
                     actions.append([])
-            # when one of the player has action, transfrom all the previous observation
+            # when one of the player has action, transform all the previous observation
             t1 = time.time()
             if len(actions[0]) > 0 or len(actions[1]) > 0:
                 for i in range(len(prev_obs_queue)):
@@ -572,7 +572,7 @@ def main(unused_argv):
 def replay_decode(paths, version):
     '''
         Overview: decode replays and gather results
-        Argumens:
+        Arguments:
             - paths (:obj:'string'): replays directory
             - version (:obj:'Version'): game version
         Returns:

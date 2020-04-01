@@ -120,7 +120,7 @@ class AlphaStarActor:
         for agent in self.agents:
             agent.eval()
             agent.set_seed(job['random_seed'])
-            agent.reset_previous_state([True])  # Here the lstm_states are resetted
+            agent.reset_previous_state([True])  # Here the lstm_states are reset
 
         if job['teacher_model_id']:
             # agent for evaluation of the SL model to produce the logits
@@ -139,7 +139,7 @@ class AlphaStarActor:
     def _make_env(self, players):
         return AlphaStarEnv(self.cfg, players)
 
-    # this is to be overriden
+    # this is to be overridden
     def _module_init(self):
         self.job_getter = JobGetter(self.cfg)
         self.model_loader = ModelLoader(self.cfg)
@@ -235,7 +235,7 @@ class AlphaStarActor:
         # Agent j with due[j]==False will be skipped and its action is None
         # It's possible that two actors are simutanously required to act
         # but any(due) must be True, since the simulation should keep going before reaching any requested observation
-        # At the begining of the game, every agent should act and give a delay
+        # At the beginning of the game, every agent should act and give a delay
         due = [True] * self.agent_num
         game_step = 0
         self._init_states()
@@ -259,7 +259,7 @@ class AlphaStarActor:
                     data_buffer[i].append(traj_data)
                 if len(data_buffer[i]) >= job['data_push_length'] or done:
                     # trajectory buffer is full or the game is finished
-                    # so the length of a trajectory may not necessay be data_push_length
+                    # so the length of a trajectory may not necessary be data_push_length
                     self.data_pusher.push(job, i, data_buffer[i])
                     data_buffer[i] = []
             if done:

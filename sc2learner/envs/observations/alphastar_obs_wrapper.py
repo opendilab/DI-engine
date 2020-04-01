@@ -823,7 +823,7 @@ def transform_scalar_data():
 
 
 def compress_obs(obs):
-    # TODO: produce compressed obs directly without one_hot encoding, expecting a ~15% performace improvement
+    # TODO: produce compressed obs directly without one_hot encoding, expecting a ~15% performance improvement
     new_obs = {}
     special_list = ['entity_info', 'spatial_info']
     for k in obs.keys():

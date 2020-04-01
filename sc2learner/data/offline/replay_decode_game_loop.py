@@ -36,6 +36,7 @@ from s2clientprotocol import sc2api_pb2 as sc_pb
 from sc2learner.envs.observations.alphastar_obs_wrapper import AlphastarObsParser, compress_obs, decompress_obs, \
     transform_cum_stat, transform_stat
 from sc2learner.envs.actions.alphastar_act_wrapper import AlphastarActParser, remove_repeat_data
+from sc2learner.envs.maps.map_info import LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT
 
 logging.set_verbosity(logging.INFO)
 FLAGS = flags.FLAGS
@@ -43,6 +44,9 @@ flags.DEFINE_string("replays", "E:/data/replays", "Path to a directory of replay
 flags.DEFINE_string("output_dir", "E:/data/replay_data", "Path to save data")
 flags.DEFINE_string("version", "4.10.0", "Game version")
 flags.DEFINE_integer("process_num", 1, "Number of sc2 process to start on the node")
+flags.DEFINE_bool(
+    "check_version", False, "Check required game version of the replays and discard ones not matching version"
+)
 flags.mark_flag_as_required("replays")
 flags.mark_flag_as_required("output_dir")
 flags.FLAGS(sys.argv)
@@ -167,6 +171,7 @@ class ReplayDecoder(multiprocessing.Process):
         def unit_id_mapping(obs):
             raw_units = obs['raw_units']
             key_index = FeatureUnit['unit_type']
+            # TODO: Why this vvvv
             for i in range(raw_units.shape[0]):
                 if raw_units[i, key_index] == 1879:
                     raw_units[i, key_index] = 1904
@@ -257,6 +262,12 @@ class ReplayDecoder(multiprocessing.Process):
         if (info.HasField("error")):
             logging.warning('Info have error')
             return None
+        if (info.map_name not in LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT.keys()):
+            logging.error(
+                'Found replay using unknown map {}, or there is sth wrong with locale'.format(info.map_name) +
+                ' Try regenerate map_info.py'
+            )
+            return None
         if ('.'.join(info.game_version.split('.')[:3]) != self.run_config.version.game_version):
             logging.warning('Wrong version')
             return None
@@ -284,7 +295,7 @@ class ReplayDecoder(multiprocessing.Process):
             ret = dict()
             ret['game_duration_loops'] = info.game_duration_loops
             ret['game_version'] = info.game_version
-            ret['map_name'] = info.map_name
+            ret['map_name'] = LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT[info.map_name]
             ret['home_race'] = race_dict[info.player_info[home].player_info.race_actual]
             ret['home_mmr'] = info.player_info[home].player_mmr
             ret['home_apm'] = info.player_info[home].player_apm
@@ -360,10 +371,13 @@ def main(unused_argv):
     run_config = run_configs.get(FLAGS.version)
     replay_list = sorted(run_config.replay_paths(FLAGS.replays))
     fitered_replays = []  # filter replays by version
-    for replay_path in replay_list:
-        version = replay.get_replay_version(run_config.replay_data(replay_path))
-        if version.game_version == FLAGS.version:
-            fitered_replays.append(replay_path)
+    if FLAGS.check_version:
+        for replay_path in replay_list:
+            version = replay.get_replay_version(run_config.replay_data(replay_path))
+            if version.game_version == FLAGS.version:
+                fitered_replays.append(replay_path)
+    else:
+        fitered_replays = replay_list
     N = FLAGS.process_num
     if N > 1:
         # using multiprocessing

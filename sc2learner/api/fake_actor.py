@@ -57,6 +57,8 @@ class FakeActor(object):
                     time.sleep(1)
                 else:
                     break
+            if self.stop_flag:
+                break
         self.logger.info('check_send_actor_heartbeats_thread stop as job finished.')
 
     def register_actor(self):
@@ -109,7 +111,7 @@ class FakeActor(object):
             'teacher_lstm_state_after': 1,
             'teacher_logits': 1
         }
-        trajectory = [trajectory] * 10000
+        trajectory = [trajectory] * 1
         ceph_name = "job_{}_{}.traj".format(self.job_id, str(uuid.uuid1()))
         save_file_ceph(self.ceph_path, ceph_name, trajectory)
         metadata = {

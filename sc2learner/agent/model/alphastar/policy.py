@@ -93,7 +93,7 @@ class Policy(nn.Module):
                 action_arg_mask['location_mask'].append(torch.ones(1, *location_dims, device=device))
             else:
                 action_arg_mask['location_mask'].append(None)
-            # get action attibute(which args the action type owns)
+            # get action attribute(which args the action type owns)
             for k in action_attr.keys():
                 action_attr[k].append(action_info_hard_craft[k])
         return action_attr, action_arg_mask

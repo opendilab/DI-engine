@@ -2,7 +2,7 @@
 Copyright 2020 Sensetime X-lab. All Rights Reserved
 
 Main Function:
-    1. supervised learning for Alphastar useing human replays
+    1. supervised learning for Alphastar using human replays
 '''
 import os
 import sys

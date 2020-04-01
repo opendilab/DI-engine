@@ -20,7 +20,7 @@ class JobManager():
         step: only used in the manager for stat and checkpointing
         start_rollout_at: For actors, don't send rollout to learner before this, but should always check in
         game_vs_bot:
-            seed: the enviroment and action choice seed
+            seed: the environment and action choice seed
             difficulty
     """
     def __init__(self, cfg, job_generator):
@@ -281,6 +281,6 @@ class Coordinator():
         print('Setting Readiness to False')
         # after recovered from a checkpoint, we need to wait actors to
         # run to its original game steps without sending rollouts
-        # to avoid introducing an overhelming amount of samples of the begining
+        # to avoid introducing an overhelming amount of samples of the beginning
         # of games and more inprecise bootstrapping value, so set the ready to False
         self.job_manager.ready = False
