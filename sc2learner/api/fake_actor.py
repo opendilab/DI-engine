@@ -129,11 +129,7 @@ class FakeActor(object):
         trajectory = [trajectory] * 1
         ceph_name = "job_{}_{}.traj".format(self.job_id, str(uuid.uuid1()))
         save_file_ceph(self.ceph_path, ceph_name, trajectory)
-        metadata = {
-            'job_id': self.job_id,
-            'trajectory_path': ceph_name,
-            'learner_uid': self.job['learner_uid']
-        }
+        metadata = {'job_id': self.job_id, 'trajectory_path': ceph_name, 'learner_uid': self.job['learner_uid']}
         return trajectory, metadata
 
     def simulate(self):
@@ -141,8 +137,11 @@ class FakeActor(object):
             # only use one model
             model = self._get_model(self.job['model_id'][0])
             stat = self._get_model(self.job['stat_id'][0])
-            self.logger.info('actor {} simulate job {}, using model ({}) & stat ({})'
-                .format(self.actor_uid, self.job_id, self.job['model_id'][0], self.job['stat_id'][0]))
+            self.logger.info(
+                'actor {} simulate job {}, using model ({}) & stat ({})'.format(
+                    self.actor_uid, self.job_id, self.job['model_id'][0], self.job['stat_id'][0]
+                )
+            )
             trajectory, metadata = self._get_feedback()
         except Exception as e:
             self.logger.info(''.join(traceback.format_tb(e.__traceback__)))

@@ -12,6 +12,7 @@ MANAGER_NODE_TABLE = {
     '10.10.30': '10.10.30.91',
 }
 
+
 def get_ip(on_slurm=True):
     if on_slurm:
         nodename = os.environ.get('SLURMD_NODENAME', '')
@@ -28,7 +29,7 @@ def get_pid():
     return os.getpid()
 
 
-def get_actor_id():
+def get_actor_uid():
     return os.getenv('SLURM_JOB_ID', 'PID' + str(get_pid()) + 'UUID' + str(uuid.uuid1()))
 
 
@@ -46,4 +47,4 @@ def get_manager_node_ip(node_ip=None):
 if __name__ == "__main__":
     print('ip', get_ip())
     print('pid', get_pid())
-    print('actor id', get_actor_id())
+    print('actor id', get_actor_uid())

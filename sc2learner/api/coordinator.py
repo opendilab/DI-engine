@@ -56,23 +56,26 @@ class Coordinator(object):
         ret = {}
 
         if self.use_fake_data:
+            if not self.learner_record:
+                self.learner_record['test1'] = {"learner_ip": '0.0.0.0', "job_ids": [], "models": []}
+                self.learner_record['test2'] = {"learner_ip": '0.0.0.0', "job_ids": [], "models": []}
             learner_uid1 = random.choice(list(self.learner_record.keys()))
             learner_uid2 = random.choice(list(self.learner_record.keys()))
             model_name1 = self.fake_model_path
             model_name2 = self.fake_model_path
             ret = {
-                'job_id': job_id, 
+                'job_id': job_id,
                 'learner_uid': [learner_uid1, learner_uid2],
                 'stat_id': [self.fake_stat_path, self.fake_stat_path],
                 'game_type': 'league',
                 'model_id': [model_name1, model_name2],
                 'teacher_model_id': '',
-                'map_name': '',
+                'map_name': 'AbyssalReef',
                 'random_seed': 0,
-                'home_race': 'Zerg',
-                'away_race': 'Zerg',
-                'difficulty': 1,
-                'build': 0,
+                'home_race': 'zerg',
+                'away_race': 'zerg',
+                'difficulty': 'easy',
+                'build': 'random',
                 'data_push_length': 128
             }
         else:
@@ -86,7 +89,7 @@ class Coordinator(object):
                 model_name1 = self.learner_record[learner_uid1]['models'][-1]
                 model_name2 = self.learner_record[learner_uid2]['models'][-1]
                 ret = {
-                    'job_id': job_id, 
+                    'job_id': job_id,
                     'learner_uid': [learner_uid1, learner_uid2],
                     'stat_id': [self.fake_stat_path, self.fake_stat_path],
                     'game_type': 'league',

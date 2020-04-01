@@ -20,6 +20,10 @@ flags.DEFINE_string('config_path', '', 'Path to the config yaml file')
 
 
 class EvalActor(AlphaStarActor):
+    def __init__(self, cfg):
+        super(EvalActor, self).__init__(cfg)
+        self._module_init()
+
     def _make_env(self, players):
         self.action_counts = [[0] * (max(ACTION_INFO_MASK.keys()) + 1)] * self.agent_num
         return super()._make_env(players)
@@ -51,8 +55,8 @@ class EvalJobGetter:
         self.cfg = cfg
         self.job_req_id = 0
 
-    def get_job(self, actor_id):
-        print('received job req from:{}'.format(actor_id))
+    def get_job(self, actor_uid):
+        print('received job req from:{}'.format(actor_uid))
         if self.cfg.evaluate.game_type == 'game_vs_bot':
             job = {
                 'game_type': 'game_vs_bot',

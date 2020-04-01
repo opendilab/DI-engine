@@ -1,0 +1,24 @@
+env:
+    use_cuda: False
+    screen_resolution: [128, 128]
+    default_step_mul: 8  # not used
+    game_steps_per_episode: 2000
+    disable_fog: False
+    realtime: False  # realtime mode, incompatible with action_delays
+    use_stat: True
+    beginning_build_order_num: 20
+    use_global_cumulative_stat: True
+    use_available_action_transform: True
+    temperature: 1.0
+    crop_map_to_playable_area: False
+    action_delays: [0.5, 0.25, 0.25]  # list of probablities of delay from 1 to n or null for delay=1
+model:
+    action_type: fixed
+# for testing actor worker
+actor:
+    manager_ip: 'auto'
+    manager_port: 18295
+    heartbeats_freq: 120
+    ceph_traj_path: 's3://alphastar_fake_data/'
+    ceph_model_path: 's3://alphastar_fake_data/'
+    ceph_stat_path: 's3://alphastar_fake_data/'

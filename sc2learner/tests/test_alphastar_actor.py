@@ -51,6 +51,10 @@ class FakeEnv:
 
 
 class TestActor(AlphaStarActor):
+    def __init__(self, cfg):
+        super(TestActor, self).__init__(cfg)
+        self._module_init()
+
     def _make_env(self, players):
         if FLAGS.fake_dataset:
             return FakeEnv(len(players))
@@ -84,8 +88,8 @@ class DummyJobGetter:
         self.job_request_id = 0
         pass
 
-    def get_job(self, actor_id):
-        print('received job req from:{}'.format(actor_id))
+    def get_job(self, actor_uid):
+        print('received job req from:{}'.format(actor_uid))
         if FLAGS.single_agent:
             job = {
                 'game_type': 'game_vs_bot',

@@ -5,7 +5,7 @@ import torch
 import pysc2.env.sc2_env as sc2_env
 from sc2learner.agent.alphastar_agent import AlphaStarAgent
 from sc2learner.envs.alphastar_env import AlphaStarEnv
-from sc2learner.utils import get_actor_id, dict_list2list_dict, merge_two_dicts
+from sc2learner.utils import get_actor_uid, dict_list2list_dict, merge_two_dicts
 from sc2learner.torch_utils import to_device
 
 
@@ -64,14 +64,13 @@ class AlphaStarActor:
         # in case we want everything to be the default
         if 'model' not in self.cfg:
             self.cfg.model = None
-        self.actor_id = get_actor_id()
+        self.actor_uid = get_actor_uid()
         # env and agents are to be created after receiving job description from coordinator
         self.env = None
         self.agents = None
         self.agent_num = 0
         self.teacher_agent = None
         self.use_teacher_model = None
-        self._module_init()
 
     def _init_with_job(self, job):
         self.cfg.env.map_name = job['map_name']
@@ -214,7 +213,7 @@ class AlphaStarActor:
         return actions
 
     def run_episode(self):
-        job = self.job_getter.get_job(self.actor_id)
+        job = self.job_getter.get_job(self.actor_uid)
         self._init_with_job(job)
         for i in range(self.agent_num):
             self.model_loader.load_model(job, i, self.agents[i].get_model())
@@ -252,29 +251,23 @@ class AlphaStarActor:
             for i in range(self.agent_num):
                 if due[i]:
                     # we received obs from the env, add to rollout trajectory
-                    obs_data = {
-                        'step': game_step,
-                        'next_obs': obs,
-                        'done': done,
-                        'rewards': rewards[i],
-                        'info': info
-                    }
+                    obs_data = {'step': game_step, 'next_obs': obs, 'done': done, 'rewards': rewards[i], 'info': info}
                     data_buffer[i].append(merge_two_dicts(self.last_state_action[i], obs_data))
                 if len(data_buffer[i]) >= job['data_push_length'] or done:
                     # trajectory buffer is full or the game is finished
                     # so the length of a trajectory may not necessary be data_push_length
                     metadata = {
-                            'job_id': job['job_id'],
-                            'agent_no': i,
-                            'agent_model_id': job['model_id'][i],
-                            'job': job,
-                            'game_step': game_step,
-                            'done': done,
-                            'finish_time': time.time(),
-                            'actor_id': self.actor_id,
-                            'info': info,
-                            'traj_length': len(data_buffer[i]),
-                        }
+                        'job_id': job['job_id'],
+                        'agent_no': i,
+                        'agent_model_id': job['model_id'][i],
+                        'job': job,
+                        'game_step': game_step,
+                        'done': done,
+                        'finish_time': time.time(),
+                        'actor_uid': self.actor_uid,
+                        'info': info,
+                        'traj_length': len(data_buffer[i]),
+                    }
                     if done:
                         metadata['final_reward'] = rewards[i]
                     self.data_pusher.push(metadata, data_buffer[i])
@@ -300,11 +293,11 @@ class JobGetter:
     def __init__(self, cfg):
         pass
 
-    def get_job(self, actor_id):
+    def get_job(self, actor_uid):
         """
         Overview: asking for a job from some one
         Input:
-            - actor_id
+            - actor_uid
         Output:
             - job: a dict with description of how the game should be
         """

@@ -13,8 +13,8 @@ api:
         actor_num: [2, 2]
     coordinator:
         use_fake_data: True
-        fake_model_path: iterations_1500.pth.tar
-        fake_stat_path: Zerg_Zerg_6200_72d9c190968b27df23839a441393c8c601c115d01ed6eebe691b00202ab7702a.stat_processed
+        fake_model_path: iterations_2200.pth.tar
+        fake_stat_path: Zerg_Zerg_6280_d35c22b2d7e462f1481621cbf765709961e3f9a2a99f8f6c6fa814ccffc831d6.stat_processed
 replay_buffer:
     meta_maxlen: 4096
     max_reuse: 2

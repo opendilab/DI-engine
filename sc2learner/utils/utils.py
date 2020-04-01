@@ -51,8 +51,8 @@ def dict_list2list_dict(data):
         new_data.append(v)
     new_data = list(zip(*new_data))
     new_data = [{k: v for k, v in zip(data.keys(), t)} for t in new_data]
-    return 
-    
+    return
+
 
 def merge_two_dicts(x, y):
     """Merge two dicts into a new dict as a shallow copy."""

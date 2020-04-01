@@ -3,6 +3,7 @@ Test script for actor worker on SLURM
 """
 import random
 import time
+import os
 
 import yaml
 import torch
@@ -40,6 +41,9 @@ class FakeEnv:
 
 
 class TestActor(AlphaStarActorWorker):
+    def __init__(self, cfg):
+        super(TestActor, self).__init__(cfg)
+
     def _make_env(self, players):
         if FLAGS.fake_dataset:
             return FakeEnv(len(players))
@@ -47,7 +51,7 @@ class TestActor(AlphaStarActorWorker):
             return super()._make_env(players)
 
     def _module_init(self):
-        super()._module_init(self)
+        super()._module_init()
         self.last_time = None
 
     def action_modifier(self, act, step):
@@ -63,10 +67,12 @@ class TestActor(AlphaStarActorWorker):
             print('Act {}:{}'.format(n, str(act[n])))
         return act
 
+
 def main(unused_argv):
     with open(FLAGS.config_path) as f:
         cfg = yaml.load(f)
     cfg = EasyDict(cfg)
+    cfg["log_path"] = os.path.dirname(FLAGS.config_path)
     ta = TestActor(cfg)
     ta.run()
 
