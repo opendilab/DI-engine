@@ -10,6 +10,7 @@ import logging
 import argparse
 import yaml
 import traceback
+import subprocess
 
 from utils.log_helper import TextLogger
 
@@ -28,6 +29,12 @@ class Manager(object):
         # to attach coordinator
         self.url_prefix = 'http://{}:{}/'.format(self.coordinator_ip, self.coordinator_port)
         self.check_dead_actor_freq = 120
+
+        # auto run actor
+        self.auto_run_actor = cfg['api']['manager']['auto_run_actor']
+        if self.auto_run_actor:
+            self.use_partitions = cfg['api']['manager']['use_partitions']
+            self.actor_num = cfg['api']['manager']['actor_num']
 
         self.actor_record = {
         }  # {actor_uid: {"job_ids": [job_id], "last_beats_time": last_beats_time, "state": 'alive'/'dead'}}}
@@ -65,7 +72,7 @@ class Manager(object):
         '''
         assert actor_uid not in self.actor_record
         last_beats_time = int(time.time())
-        self.actor_record[actor_uid] = {'job_ids': '', 'last_beats_time': last_beats_time, 'state': 'alive'}
+        self.actor_record[actor_uid] = {'job_ids': [], 'last_beats_time': last_beats_time, 'state': 'alive'}
         return True
 
     def _add_job_to_record(self, actor_uid, job):
@@ -83,6 +90,9 @@ class Manager(object):
         '''
         if actor_uid not in self.actor_record:
             self.deal_with_register_actor(actor_uid)
+
+        # refresh actor's last_beats_time
+        self.actor_record[actor_uid]['last_beats_time'] = time.time()
 
         # reuse job
         if len(self.reuse_job_list) > 0:
@@ -117,6 +127,8 @@ class Manager(object):
                 - (:obj`bool`): state
         '''
         assert actor_uid in self.actor_record, 'actor_uid ({}) not in actor_record'.format(actor_uid)
+        # refresh actor's last_beats_time
+        self.actor_record[actor_uid]['last_beats_time'] = time.time()
         self.job_record[job_id]['metadatas'].append(metadata)
         d = {"manager_uid": self.manager_uid, "actor_uid": actor_uid, "job_id": job_id, "metadata": metadata}
         while True:
@@ -125,6 +137,8 @@ class Manager(object):
                 if response['code'] == 0:
                     job = response['info']
                     return True
+                else:
+                    self.logger.info("[manager - deal_with_get_metadata] response = ".format(response))
             except Exception as e:
                 self.logger.info(''.join(traceback.format_tb(e.__traceback__)))
                 self.logger.info("[error] {}".format(sys.exc_info()))
@@ -180,6 +194,16 @@ class Manager(object):
                     self.deal_with_dead_actor(actor_uid)
             time.sleep(self.check_dead_actor_freq)
 
+    def launch_actor(self, partition):
+        subprocess.run(['bash', 'run_actor.sh', partition])
+
+    def check_run_actor(self):
+        if self.auto_run_actor:
+            for partition, num in zip(self.use_partitions, self.actor_num):
+                for i in range(num):
+                    self.launch_actor(partition)
+                    self.logger.info('launch actor {} in {}'.format(i, partition))
+
     ###################################################################################
     #                                      debug                                      #
     ###################################################################################
@@ -195,4 +219,11 @@ class Manager(object):
 
     def deal_with_clear_reuse_job_list_from_debug(self):
         self.reuse_job_list = []
+        return True
+
+    def deal_with_launch_actor(self, use_partitions, actor_num):
+        for partition, num in zip(use_partitions, actor_num):
+            for i in range(num):
+                self.launch_actor(partition)
+                self.logger.info('launch actor {} in {}'.format(i, partition))
         return True
