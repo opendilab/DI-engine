@@ -38,6 +38,9 @@ class Coordinator(object):
 
         self._set_logger()
 
+    def close(self):
+        self.replay_buffer.close()
+
     def _set_logger(self, level=1):
         self.logger = logging.getLogger("coordinator.log")
 

@@ -11,7 +11,7 @@ import time
 import requests
 from collections import OrderedDict
 
-from utils import read_file_ceph, save_file_ceph
+from sc2learner.utils import read_file_ceph, save_file_ceph
 
 
 class FakeLearner(object):
