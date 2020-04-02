@@ -20,7 +20,7 @@ cfg.api.learner_ip = learner_ip
 cfg.api.coordinator_ip = coordinator_ip
 cfg.data = {}
 cfg.data.train = {}
-cfg.data.train.batch_size = 4
+cfg.data.train.batch_size = 128
 
 log_path = os.path.join(os.path.dirname(__file__))
 api_dir_name = 'api-log'
@@ -79,6 +79,25 @@ def coordinator():
         ret = coordinator.deal_with_ask_for_metadata(learner_uid, batch_size)
         if ret:
             return build_ret(0, ret)
+        else:
+            return build_ret(1)
+
+    @coordinator_app.route('/coordinator/update_replay_buffer', methods=['POST'])
+    def update_replay_buffer():
+        update_info = request.json['update_info']
+        ret_code = coordinator.deal_with_update_replay_buffer(update_info)
+        if ret_code:
+            return build_ret(0)
+        else:
+            return build_ret(1)
+
+    @coordinator_app.route('/coordinator/register_model', methods=['POST'])
+    def register_model():
+        learner_uid = request.json['learner_uid']
+        model_name = request.json['model_name']
+        ret_code = coordinator.deal_with_register_model(learner_uid, model_name)
+        if ret_code:
+            return build_ret(0)
         else:
             return build_ret(1)
 
