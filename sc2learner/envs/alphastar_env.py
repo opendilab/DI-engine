@@ -10,6 +10,7 @@ from pysc2.lib.static_data import NUM_ACTIONS, ACTIONS_REORDER_INV
 from sc2learner.envs import get_available_actions_processed_data, get_map_size
 from sc2learner.envs.observations.alphastar_obs_wrapper import SpatialObsWrapper, ScalarObsWrapper, EntityObsWrapper, \
     transform_spatial_data, transform_scalar_data, transform_entity_data
+from sc2learner.envs.statistics import Statistics
 
 
 class AlphaStarEnv(SC2Env):
@@ -140,35 +141,35 @@ class AlphaStarEnv(SC2Env):
             new_obs = get_available_actions_processed_data(new_obs)
         return new_obs
 
-    def _transform_action(self, actions):
-        actions = copy.deepcopy(actions)
+    def _transform_action(self, action):
+        action = copy.deepcopy(action)
         # tensor2value
-        for k, v in actions.items():
+        for k, v in action.items():
             if isinstance(v, torch.Tensor):
                 if k == 'action_type':
-                    actions[k] = ACTIONS_REORDER_INV[v.item()]
+                    action[k] = ACTIONS_REORDER_INV[v.item()]
                 elif k in ['selected_units', 'target_units', 'target_location']:
-                    actions[k] = v.tolist()
+                    action[k] = v.tolist()
                 elif k in ['queued', 'delay']:
-                    actions[k] = v.item()
+                    action[k] = v.item()
                 elif k == 'action_entity_raw':
                     pass
                 else:
                     raise KeyError("invalid key:{}".format(k))
         # action unit id transform
         for k in ['selected_units', 'target_units']:
-            if actions[k] is not None:
+            if action[k] is not None:
                 unit_ids = []
-                for unit in actions[k]:
-                    unit_ids.append(actions['action_entity_raw'][unit]['id'])
-                actions[k] = unit_ids
+                for unit in action[k]:
+                    unit_ids.append(action['action_entity_raw'][unit]['id'])
+                action[k] = unit_ids
         # action target location transform
-        target_location = actions['target_location']
+        target_location = action['target_location']
         if target_location is not None:
             x = target_location[1]
             y = target_location[0]
             y = self.map_size[1] - y
-            actions['target_location'] = [x, y]
+            action['target_location'] = [x, y]
         return actions
 
     def _get_action(self, actions):
@@ -183,7 +184,7 @@ class AlphaStarEnv(SC2Env):
         """
         Overview: Apply actions, step the world forward, and return observations.
         Input:
-            - actions: list of actions for each agent, length should be the number of agents
+            - actions: list of action for each agent, length should be the number of agents
             if an agent don't want to act this time, the action should be set to None
         Return:
             - step: total game steps after this call
@@ -191,6 +192,7 @@ class AlphaStarEnv(SC2Env):
             - obs: list of ob dicts for two agents after taking action
             - rewards: win/loss reward
             - done: if the game terminated
+            - stat: 
             - info
         """
         assert (self._reset_flag)
@@ -208,11 +210,11 @@ class AlphaStarEnv(SC2Env):
         step_mul = min(self._next_obs) - self._episode_steps
         if step_mul == 0:
             # repeat last observation and store last action
-            # at least one agent requested by returning zero delay
+            # as at least one agent requested this by returning delay=0
             for n in range(self.agent_num):
                 if sc2_actions[n]:
                     self._buffered_actions[n].append(sc2_actions[n])
-            _, _, obs, rewards, done, info = self._last_output
+            _, _, obs, rewards, done, stat, info = self._last_output
             for n in range(self.agent_num):
                 obs[n] = self._merge_action(obs[n], self.last_actions[n], add_dim=False)
             due = [s <= self._episode_steps for s in self._next_obs]
@@ -223,6 +225,8 @@ class AlphaStarEnv(SC2Env):
                     sc2_actions[n] = self._buffered_actions[n] + [sc2_actions[n]]
             assert (any(sc2_actions))
             assert (step_mul >= 0), 'Some agent requested negative delay!'
+            # Note: the SC2Env can accept actions like [[agent1_act1, agent1_act2], []]
+            # but I can not simutanously do multiple actions (may need a external loop)
             timesteps = super().step(sc2_actions, step_mul=step_mul)
             due = [s <= self._episode_steps for s in self._next_obs]
             assert (any(due))
@@ -238,10 +242,13 @@ class AlphaStarEnv(SC2Env):
                     _, rewards[n], _, o, info[n] = timestep
                     assert (self.last_actions[n])
                     obs[n] = self._get_obs(o, self.last_actions[n], n)
-            self._last_output = [self._episode_steps, due, obs, rewards, done, info]
+                if due[n]:
+                    self.stat.update_stat(self.last_actions[n], obs[n], n)
+            stat = self.stat.get_stat()
+            self._last_output = [self._episode_steps, due, obs, rewards, done, stat, info]
         # as obs may be changed somewhere in parsing
         # we have to return a copy to keep the self._last_ouput intact
-        return self._episode_steps, due, copy.deepcopy(obs), rewards, done, info
+        return self._episode_steps, due, copy.deepcopy(obs), rewards, done, stat, info
 
     def reset(self):
         timesteps = super().reset()
@@ -271,6 +278,7 @@ class AlphaStarEnv(SC2Env):
         self._reset_flag = True
         self._buffered_actions = [[]] * self.agent_num
         self._last_output = [0, [True] * self.agent_num, obs, [0] * self.agent_num, False, infos]
+        self._stat = Statistics(player_num=self.agent_num, begin_num=self.cfg.env.get('begin_num', 200))
         return copy.deepcopy(obs)
 
     def transformed_action_to_string(self, action):

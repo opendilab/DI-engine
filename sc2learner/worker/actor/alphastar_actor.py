@@ -35,9 +35,15 @@ def unsqueeze_batch_dim(obs):
             obs[k] = [obs[k]]
     return obs
 
-
+# TODO: move to utils
 def simple_compressor(obs):
     return copy.deepcopy([compress_obs(o) for o in obs])
+
+def zlib_compressor(obs):
+    return zlib.compress(pickle.dumps([compress_obs(o) for o in obs]))
+
+def lz4_compressor(obs):
+    return lz4.frame.compress(pickle.dumps([compress_obs(o) for o in obs]))
 
 
 class AlphaStarActor:
@@ -76,8 +82,17 @@ class AlphaStarActor:
         self.agent_num = 0
         self.teacher_agent = None
         self.use_teacher_model = None
-        if self.cfg.env.get('compress_obs'):
+        self.compressor_name = self.cfg.env.get('compress_obs', 'none')
+        if self.compressor_name == 'simple':
             self.compressor = simple_compressor
+        elif self.compressor_name == 'zlib':
+            import pickle
+            import zlib
+            self.compressor = zlib_compressor
+        elif self.compressor_name == 'lz4':
+            import pickle
+            import lz4
+            self.compressor = lz4_compressor
         else:
             self.compressor = lambda x: x
 
@@ -171,6 +186,7 @@ class AlphaStarActor:
                 self.last_state_action[i] = {
                     'agent_no': i,
                     'prev_obs': self.compressor(obs),
+                    'obs_compressor': self.compressor_name,
                     'lstm_state_before': self.lstm_states_cpu[i],
                     'have_teacher': self.use_teacher_model,
                     'teacher_lstm_state_before': self.teacher_lstm_states_cpu[i]
@@ -253,7 +269,7 @@ class AlphaStarActor:
         while True:
             actions = self._eval_actions(obs, due)
             actions = self.action_modifier(actions, game_step)
-            game_step, due, obs, rewards, done, info = self.env.step(actions)
+            game_step, due, obs, rewards, done, this_game_stat, info = self.env.step(actions)
             if game_step >= self.cfg.env.game_steps_per_episode:
                 # game time out, force the done flag to True
                 done = True
@@ -263,6 +279,7 @@ class AlphaStarActor:
                     # we received obs from the env, add to rollout trajectory
                     # the 'next_obs' is saved (and to be sent) if only this is the last obs of the traj
                     obs_data = {
+                        'this_game_stat': this_game_stat,
                         'step': game_step,
                         'next_obs': self.compressor(obs) if at_traj_end else None,
                         'done': done,
@@ -278,6 +295,7 @@ class AlphaStarActor:
                         'agent_no': i,
                         'agent_model_id': job['model_id'][i],
                         'job': job,
+                        'obs_compressor': self.compressor_name,
                         'game_step': game_step,
                         'done': done,
                         'finish_time': time.time(),

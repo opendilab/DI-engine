@@ -21,6 +21,7 @@ from pysc2.lib.static_data import NUM_BUFFS, NUM_ABILITIES, NUM_UNIT_TYPES, UNIT
      UNIT_BUILD_ACTIONS_REORDER_ARRAY, EFFECT_ACTIONS_REORDER_ARRAY, RESEARCH_ACTIONS_REORDER_ARRAY,\
      BEGIN_ACTIONS_REORDER_ARRAY
 from sc2learner.torch_utils import one_hot
+from sc2learner.envs.actions import get_available_actions_raw_data
 from functools import partial, lru_cache
 from collections import OrderedDict
 
@@ -186,6 +187,9 @@ class ScalarObsWrapper(object):
                 ret[key] = self._parse_agent_statistics(obs)
             elif key == 'unit_counts_bow':
                 ret[key] = self._parse_unit_counts(obs)
+            # TODO: check whether this is correct
+            elif key == 'available_actions':
+                ret[key] = get_available_actions_raw_data(obs)
             else:
                 if key == 'enemy_upgrades':
                     if 'enemy_upgrades' not in obs.keys():
@@ -873,6 +877,7 @@ def decompress_obs(obs):
 
 
 def transform_cum_stat(cumulative_stat):
+    print('transform_cum_stat moved to envs/statistics.py, should not be used')
     cumulative_stat_tensor = {
         'unit_build': torch.zeros(NUM_UNIT_BUILD_ACTIONS),
         'effect': torch.zeros(NUM_EFFECT_ACTIONS),
@@ -889,6 +894,7 @@ def transform_cum_stat(cumulative_stat):
 
 
 def transform_stat(stat, meta, location_num=LOCATION_BIT_NUM):
+    print('transform_stat moved to envs/statistics.py, should not be used')
     beginning_build_order = stat['begin_statistics']
     beginning_build_order_tensor = []
     for item in beginning_build_order:

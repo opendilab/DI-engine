@@ -33,9 +33,9 @@ from pysc2.lib.remote_controller import RequestError
 
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
 from s2clientprotocol import sc2api_pb2 as sc_pb
-from sc2learner.envs.observations.alphastar_obs_wrapper import AlphastarObsParser, compress_obs, decompress_obs, \
-    transform_cum_stat, transform_stat
+from sc2learner.envs.observations.alphastar_obs_wrapper import AlphastarObsParser, compress_obs, decompress_obs
 from sc2learner.envs.actions.alphastar_act_wrapper import AlphastarActParser, remove_repeat_data
+from sc2learner.envs.statistics import Statistics, transform_stat
 from sc2learner.envs.maps.map_info import LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT
 
 logging.set_verbosity(logging.INFO)
@@ -113,61 +113,6 @@ class ReplayDecoder(multiprocessing.Process):
                 actions[cut_player] = actions[cut_player][:i]
                 break
 
-        def update_action_stat(action_statistics, act, obs):
-            def get_unit_types(units, entity_type_dict):
-                unit_types = set()
-                for u in units:
-                    try:
-                        unit_type = entity_type_dict[u]
-                        unit_types.add(unit_type)
-                    except KeyError:
-                        logging.warning("Not found unit(id: {})".format(u))
-                return unit_types
-
-            action_type = act['action_type'].item()
-            if action_type not in action_statistics.keys():
-                action_statistics[action_type] = {
-                    'count': 0,
-                    'selected_type': set(),
-                    'target_type': set(),
-                }
-            action_statistics[action_type]['count'] += 1
-            entity_type_dict = {id: type for id, type in zip(obs['entity_raw']['id'], obs['entity_raw']['type'])}
-            if isinstance(act['selected_units'], torch.Tensor):
-                units = act['selected_units'].tolist()
-                unit_types = get_unit_types(units, entity_type_dict)
-                action_statistics[action_type]['selected_type'] = action_statistics[action_type]['selected_type'].union(
-                    unit_types
-                )  # noqa
-            if isinstance(act['target_units'], torch.Tensor):
-                units = act['target_units'].tolist()
-                unit_types = get_unit_types(units, entity_type_dict)
-                action_statistics[action_type]['target_type'] = action_statistics[action_type]['target_type'].union(
-                    unit_types
-                )  # noqa
-
-        def update_cum_stat(cumulative_statistics, act):
-            action_type = act['action_type'].item()
-            goal = GENERAL_ACTION_INFO_MASK[action_type]['goal']
-            if goal != 'other':
-                if action_type not in cumulative_statistics.keys():
-                    cumulative_statistics[action_type] = {'count': 1, 'goal': goal}
-                else:
-                    cumulative_statistics[action_type]['count'] += 1
-
-        def update_begin_stat(begin_statistics, act):
-            target_list = ['unit', 'build', 'research', 'effect']
-            action_type = act['action_type'].item()
-            goal = GENERAL_ACTION_INFO_MASK[action_type]['goal']
-            if goal in target_list:
-                if goal == 'build':
-                    location = act['target_location']
-                    if isinstance(location, torch.Tensor):  # for build ves, no target_location
-                        location = location.tolist()
-                else:
-                    location = 'none'
-                begin_statistics.append({'action_type': action_type, 'location': location})
-
         def unit_id_mapping(obs):
             raw_units = obs['raw_units']
             key_index = FeatureUnit['unit_type']
@@ -179,21 +124,9 @@ class ReplayDecoder(multiprocessing.Process):
                     raw_units[i, key_index] = 1908
             return obs
 
-        def unit_record(obs, s):
-            for idx, ob in enumerate(obs):
-                raw_set = ob['entity_raw']['id']
-                # units = [4352376833]  # for debug
-                # for u in units:
-                #    if u in raw_set:
-                #        i = raw_set.index(u)
-                #        print(u, idx, ob['entity_raw']['type'][i], s)
-
         # view replay by action order, combine observation and action
         step_data = [[] for _ in range(PLAYER_NUM)]  # initial return data
-        action_statistics = [{} for _ in range(PLAYER_NUM)]
-        cumulative_statistics = [{} for _ in range(PLAYER_NUM)]
-        begin_statistics = [[] for _ in range(PLAYER_NUM)]
-        begin_num = 200
+        stat = Statistics(player_num=PLAYER_NUM, begin_num=200)
         for player in range(PLAYER_NUM):  # gain data by player order
             logging.info('Start getting data for player {}'.format(player))
             assert map_size is not None
@@ -236,11 +169,8 @@ class ReplayDecoder(multiprocessing.Process):
                 assert len(agent_act) == 1
                 agent_act = act_parser.merge_same_id_action(agent_act)[0]
                 agent_act['delay'] = torch.LongTensor([delay])
-                update_action_stat(action_statistics[player], agent_act, agent_ob)
-                update_cum_stat(cumulative_statistics[player], agent_act)
-                if len(begin_statistics[player]) < begin_num:
-                    update_begin_stat(begin_statistics[player], agent_act)
-                agent_ob['scalar_info']['cumulative_stat'] = transform_cum_stat(cumulative_statistics[player])
+                stat.update_stat(agent_act, agent_ob, player)
+                agent_ob['scalar_info']['cumulative_stat'] = stat.get_transformed_cum_stat(player)
                 result_obs = self.obs_parser.merge_action(agent_ob, last_action, True)
                 result_obs.update({'actions': agent_act})
                 # store only the compressed obs, and let gc clear uncompressed obs
@@ -248,15 +178,7 @@ class ReplayDecoder(multiprocessing.Process):
                 step_data[player].append(compressed_obs)
                 last_action = agent_act
                 self.controller.step(delay)
-        return (
-            step_data, [
-                {
-                    'action_statistics': action_statistics[idx],
-                    'cumulative_statistics': cumulative_statistics[idx],
-                    'begin_statistics': begin_statistics[idx]
-                } for idx in range(2)
-            ], map_size
-        )
+        return (step_data, stat.get_stat(), map_size)
 
     def parse_info(self, info, replay_path):
         if (info.HasField("error")):
