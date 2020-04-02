@@ -7,8 +7,7 @@ import signal
 from easydict import EasyDict
 from threading import Thread
 from flask import Flask, request
-from ..learner_communication_helper import LearnerCommunicationHelper
-from ..coordinator import Coordinator
+from sc2learner.api import Coordinator, LearnerCommunicationHelper
 from sc2learner.utils.log_helper import TextLogger
 
 with open(os.path.join(os.path.dirname(__file__), '../config.yaml')) as f:
