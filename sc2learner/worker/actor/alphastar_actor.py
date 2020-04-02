@@ -251,6 +251,7 @@ class AlphaStarActor:
                     self.env.load_stat(stat, i)
         obs = self.env.reset()
         data_buffer = [[]] * self.agent_num
+        last_buffer = [[]] * self.agent_num
         # Actor Logic:
         # When a agent is due to act at game_step, it will take the obs and decide what action to do (after env delay)
         # and when (after how many steps) should the agent be notified of newer obs and asked to act again
@@ -305,7 +306,13 @@ class AlphaStarActor:
                     }
                     if done:
                         metadata['final_reward'] = rewards[i]
+                    delta = len(data_buffer[i]) - job['data_push_length']
+                    # if the the data actually in the buffer when the episode ends is shorter than
+                    # job['data_push_length'], the buffer is than filled with data from the last trajectory
+                    if delta:
+                        data_buffer[i] = last_buffer[i][-delta:] + data_buffer[i]
                     self.data_pusher.push(metadata, data_buffer[i])
+                    last_buffer[i] = data_buffer[i].copy()
                     data_buffer[i] = []
             if done:
                 break
