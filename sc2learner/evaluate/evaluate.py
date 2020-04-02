@@ -59,6 +59,7 @@ class EvalJobGetter:
         print('received job req from:{}'.format(actor_uid))
         if self.cfg.evaluate.game_type == 'game_vs_bot':
             job = {
+                'job_id': 'test0',
                 'game_type': 'game_vs_bot',
                 'model_id': ['agent0'],
                 'teacher_model_id': None,
@@ -73,6 +74,7 @@ class EvalJobGetter:
             }
         elif self.cfg.evaluate.game_type == 'self_play':
             job = {
+                'job_id': 'test0',
                 'game_type': 'self_play',
                 'model_id': ['agent0', 'agent1'],
                 'teacher_model_id': None,

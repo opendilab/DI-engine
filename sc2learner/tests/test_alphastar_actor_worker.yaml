@@ -12,6 +12,7 @@ env:
     temperature: 1.0
     crop_map_to_playable_area: False
     action_delays: [0.5, 0.25, 0.25]  # list of probablities of delay from 1 to n or null for delay=1
+    compress_obs: True
 model:
     action_type: fixed
 # for testing actor worker

@@ -92,6 +92,7 @@ class DummyJobGetter:
         print('received job req from:{}'.format(actor_uid))
         if FLAGS.single_agent:
             job = {
+                'job_id': 'test0',
                 'game_type': 'game_vs_bot',
                 'model_id': 'test',
                 'teacher_model_id': 'test',
@@ -106,6 +107,7 @@ class DummyJobGetter:
             }
         else:
             job = {
+                'job_id': 'test0',
                 'game_type': 'self_play',
                 'model_id': 'test',
                 'teacher_model_id': 'test',

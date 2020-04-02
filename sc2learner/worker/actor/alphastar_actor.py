@@ -6,6 +6,7 @@ import pysc2.env.sc2_env as sc2_env
 from sc2learner.agent.alphastar_agent import AlphaStarAgent
 from sc2learner.envs.alphastar_env import AlphaStarEnv
 from sc2learner.utils import get_actor_uid, dict_list2list_dict, merge_two_dicts
+from sc2learner.envs.observations.alphastar_obs_wrapper import compress_obs
 from sc2learner.torch_utils import to_device
 
 
@@ -33,6 +34,10 @@ def unsqueeze_batch_dim(obs):
         if k in list_keys:
             obs[k] = [obs[k]]
     return obs
+
+
+def simple_compressor(obs):
+    return copy.deepcopy([compress_obs(o) for o in obs])
 
 
 class AlphaStarActor:
@@ -71,6 +76,10 @@ class AlphaStarActor:
         self.agent_num = 0
         self.teacher_agent = None
         self.use_teacher_model = None
+        if self.cfg.env.get('compress_obs'):
+            self.compressor = simple_compressor
+        else:
+            self.compressor = lambda x: x
 
     def _init_with_job(self, job):
         self.cfg.env.map_name = job['map_name']
@@ -161,7 +170,7 @@ class AlphaStarActor:
                 # and rewards then put into the trajectory buffer for agent i
                 self.last_state_action[i] = {
                     'agent_no': i,
-                    'prev_obs': obs,
+                    'prev_obs': self.compressor(obs),
                     'lstm_state_before': self.lstm_states_cpu[i],
                     'have_teacher': self.use_teacher_model,
                     'teacher_lstm_state_before': self.teacher_lstm_states_cpu[i]
@@ -249,11 +258,19 @@ class AlphaStarActor:
                 # game time out, force the done flag to True
                 done = True
             for i in range(self.agent_num):
+                at_traj_end = len(data_buffer[i]) >= job['data_push_length'] or done
                 if due[i]:
                     # we received obs from the env, add to rollout trajectory
-                    obs_data = {'step': game_step, 'next_obs': obs, 'done': done, 'rewards': rewards[i], 'info': info}
+                    # the 'next_obs' is saved (and to be sent) if only this is the last obs of the traj
+                    obs_data = {
+                        'step': game_step,
+                        'next_obs': self.compressor(obs) if at_traj_end else None,
+                        'done': done,
+                        'rewards': rewards[i],
+                        'info': info
+                    }
                     data_buffer[i].append(merge_two_dicts(self.last_state_action[i], obs_data))
-                if len(data_buffer[i]) >= job['data_push_length'] or done:
+                if at_traj_end:
                     # trajectory buffer is full or the game is finished
                     # so the length of a trajectory may not necessary be data_push_length
                     metadata = {

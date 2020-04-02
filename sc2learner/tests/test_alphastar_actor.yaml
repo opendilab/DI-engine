@@ -13,6 +13,7 @@ env:
     temperature: 1.0
     crop_map_to_playable_area: False
     action_delays: null
+    compress_obs: True
 
 rl_train:
     data_push_length: 64
