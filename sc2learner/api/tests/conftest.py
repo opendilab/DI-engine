@@ -5,12 +5,11 @@ import yaml
 import socket
 import signal
 from easydict import EasyDict
-from multiprocessing import Process
+from threading import Thread
 from flask import Flask, request
 from ..learner_communication_helper import LearnerCommunicationHelper
 from ..coordinator import Coordinator
 from sc2learner.utils.log_helper import TextLogger
-
 
 with open(os.path.join(os.path.dirname(__file__), '../config.yaml')) as f:
     cfg = yaml.safe_load(f)
@@ -43,13 +42,14 @@ def learner():
             learner_app.run(host=learner_ip, port=cfg.api.learner_port, debug=True, use_reloader=False)
         except KeyboardInterrupt:
             pass
+
     logger = TextLogger(log_path, name="learner.log")
     learner = LearnerCommunicationHelper(cfg)
-    launch_process = Process(target=run)
-    launch_process.start()
+    launch_thread = Thread(target=run)
+    launch_thread.daemon = True
+    launch_thread.start()
     yield learner
     # close resource operation
-    os.kill(launch_process.pid, signal.SIGINT)
 
 
 @pytest.fixture(scope='module')
@@ -84,9 +84,9 @@ def coordinator():
 
     logger = TextLogger(log_path, name="coordinator.log")
     coordinator = Coordinator(cfg)
-    launch_process = Process(target=run)
-    launch_process.start()
+    launch_thread = Thread(target=run)
+    launch_thread.daemon = True
+    launch_thread.start()
     yield coordinator
     # close resource operation
-    os.kill(launch_process.pid, signal.SIGINT)
     coordinator.close()
