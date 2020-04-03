@@ -31,8 +31,7 @@ class Statistics:
                 except KeyError:
                     logging.warning("Not found unit(id: {})".format(u))
             return unit_types
-
-        action_type = act['action_type'].item()
+        action_type = int(act['action_type'])  # this can accept either torch.LongTensor and int
         if action_type not in self.action_statistics[player].keys():
             self.action_statistics[player][action_type] = {
                 'count': 0,
@@ -56,7 +55,7 @@ class Statistics:
             )  # noqa
 
     def update_cum_stat(self, act, player):
-        action_type = act['action_type'].item()
+        action_type = int(act['action_type'])
         goal = GENERAL_ACTION_INFO_MASK[action_type]['goal']
         if goal != 'other':
             if action_type not in self.cumulative_statistics[player].keys():
@@ -66,7 +65,7 @@ class Statistics:
 
     def update_begin_stat(self, act, player):
         target_list = ['unit', 'build', 'research', 'effect']
-        action_type = act['action_type'].item()
+        action_type = int(act['action_type'])
         goal = GENERAL_ACTION_INFO_MASK[action_type]['goal']
         if goal in target_list:
             if goal == 'build':
@@ -78,7 +77,10 @@ class Statistics:
             self.begin_statistics[player].append({'action_type': action_type, 'location': location})
 
     def update_stat(self, act, obs, player):
-        """Update action_stat cum_stat and begin_stat"""
+        """
+        Update action_stat cum_stat and begin_stat
+        act should be preprocessed general action
+        """
         self.update_action_stat(act, obs, player)
         self.update_cum_stat(act, player)
         if len(self.begin_statistics[player]) < self.begin_num:

@@ -44,17 +44,17 @@ class AlphaStarEnv(SC2Env):
             ensure_available_actions=False,
             realtime=cfg.env.realtime,
         )
-        self.spatial_wrapper = SpatialObsWrapper(transform_spatial_data())
-        self.entity_wrapper = EntityObsWrapper(transform_entity_data())
+        self._spatial_wrapper = SpatialObsWrapper(transform_spatial_data())
+        self._entity_wrapper = EntityObsWrapper(transform_entity_data())
         template_obs, template_replay, template_act = transform_scalar_data()
-        self.scalar_wrapper = ScalarObsWrapper(template_obs)
-        self.template_act = template_act
-        self.action_num = NUM_ACTIONS
-        self.use_global_cumulative_stat = cfg.env.use_global_cumulative_stat
-        self.use_available_action_transform = cfg.env.use_available_action_transform
+        self._scalar_wrapper = ScalarObsWrapper(template_obs)
+        self._template_act = template_act
+        self._use_global_cumulative_stat = cfg.env.use_global_cumulative_stat
+        self._use_available_action_transform = cfg.env.use_available_action_transform
 
-        self.use_stat = cfg.env.use_stat
-        self.stat = [None] * self.agent_num
+        self._use_stat = cfg.env.use_stat
+        self._loaded_stat = [None] * self.agent_num  # This is the human games statistics used as an input of network
+        self._episode_stat = None  # This is for the statistics of current episode actions and obs
         self._reset_flag = False
 
     def load_stat(self, stat, agent_no):
@@ -63,7 +63,7 @@ class AlphaStarEnv(SC2Env):
         stat
         agent_no: 0 or 1
         """
-        assert self.use_stat, 'We should not load stat when we are not going to use stat'
+        assert self._use_stat, 'We should not load stat when we are not going to use stat'
         stat = copy.deepcopy(stat)
         begin_num = self.cfg.env.beginning_build_order_num
         stat['beginning_build_order'] = stat['beginning_build_order'][:begin_num]
@@ -72,16 +72,16 @@ class AlphaStarEnv(SC2Env):
             B, N = stat['beginning_build_order'].shape
             B0 = begin_num - B
             stat['beginning_build_order'] = torch.cat([stat['beginning_build_order'], torch.zeros(B0, N)])
-        self.stat[agent_no] = stat
+        self._loaded_stat[agent_no] = stat
 
     def _merge_stat(self, obs, agent_no):
         """
         Append the statistics to the observation
         """
-        stat = self.stat[agent_no]
+        stat = self._loaded_stat[agent_no]
         obs['scalar_info']['mmr'] = stat['mmr']  # TODO: check with detailed-architechture.txt
         obs['scalar_info']['beginning_build_order'] = stat['beginning_build_order']
-        if self.use_global_cumulative_stat:
+        if self._use_global_cumulative_stat:
             obs['scalar_info']['cumulative_stat'] = stat['cumulative_stat']
         return obs
 
@@ -90,9 +90,9 @@ class AlphaStarEnv(SC2Env):
         last_delay = last_action['delay']
         last_queued = last_action['queued']
         last_queued = last_queued if isinstance(last_queued, torch.Tensor) else torch.LongTensor([2])  # 2 as 'none'
-        obs['scalar_info']['last_delay'] = self.template_act[0]['op'](torch.LongTensor([last_delay])).squeeze()
-        obs['scalar_info']['last_queued'] = self.template_act[1]['op'](torch.LongTensor([last_queued])).squeeze()
-        obs['scalar_info']['last_action_type'] = self.template_act[2]['op'](torch.LongTensor([last_action_type])
+        obs['scalar_info']['last_delay'] = self._template_act[0]['op'](torch.LongTensor([last_delay])).squeeze()
+        obs['scalar_info']['last_queued'] = self._template_act[1]['op'](torch.LongTensor([last_queued])).squeeze()
+        obs['scalar_info']['last_action_type'] = self._template_act[2]['op'](torch.LongTensor([last_action_type])
                                                                             ).squeeze()
 
         N = obs['entity_info'].shape[0]
@@ -125,19 +125,19 @@ class AlphaStarEnv(SC2Env):
         # post process observations returned from sc2env
         if 'enemy_upgrades' not in obs.keys():
             obs['enemy_upgrades'] = np.array([0])
-        entity_info, entity_raw = self.entity_wrapper.parse(obs)
+        entity_info, entity_raw = self._entity_wrapper.parse(obs)
         new_obs = {
-            'scalar_info': self.scalar_wrapper.parse(obs),
-            'spatial_info': self.spatial_wrapper.parse(obs),
+            'scalar_info': self._scalar_wrapper.parse(obs),
+            'spatial_info': self._spatial_wrapper.parse(obs),
             'entity_info': entity_info,
             'entity_raw': entity_raw,
             'map_size': [self.map_size[1], self.map_size[0]],  # x,y -> y,x
         }
 
         new_obs = self._merge_action(new_obs, last_actions)
-        if self.use_stat:
+        if self._use_stat:
             new_obs = self._merge_stat(new_obs, agent_no)
-        if self.use_available_action_transform:
+        if self._use_available_action_transform:
             new_obs = get_available_actions_processed_data(new_obs)
         return new_obs
 
@@ -170,7 +170,7 @@ class AlphaStarEnv(SC2Env):
             y = target_location[0]
             y = self.map_size[1] - y
             action['target_location'] = [x, y]
-        return actions
+        return action
 
     def _get_action(self, actions):
         # Covert network output to pysc2 FunctionCalls
@@ -243,12 +243,13 @@ class AlphaStarEnv(SC2Env):
                     assert (self.last_actions[n])
                     obs[n] = self._get_obs(o, self.last_actions[n], n)
                 if due[n]:
-                    self.stat.update_stat(self.last_actions[n], obs[n], n)
-            stat = self.stat.get_stat()
-            self._last_output = [self._episode_steps, due, obs, rewards, done, stat, info]
+                    assert (self.last_actions[n])
+                    self._episode_stat.update_stat(self.last_actions[n], obs[n], n)
+            episode_stat = self._episode_stat.get_stat()
+            self._last_output = [self._episode_steps, due, obs, rewards, done, episode_stat, info]
         # as obs may be changed somewhere in parsing
         # we have to return a copy to keep the self._last_ouput intact
-        return self._episode_steps, due, copy.deepcopy(obs), rewards, done, stat, info
+        return self._episode_steps, due, copy.deepcopy(obs), rewards, done, episode_stat, info
 
     def reset(self):
         timesteps = super().reset()
@@ -278,7 +279,7 @@ class AlphaStarEnv(SC2Env):
         self._reset_flag = True
         self._buffered_actions = [[]] * self.agent_num
         self._last_output = [0, [True] * self.agent_num, obs, [0] * self.agent_num, False, infos]
-        self._stat = Statistics(player_num=self.agent_num, begin_num=self.cfg.env.get('begin_num', 200))
+        self._episode_stat = Statistics(player_num=self.agent_num, begin_num=self.cfg.env.get('begin_num', 200))
         return copy.deepcopy(obs)
 
     def transformed_action_to_string(self, action):
