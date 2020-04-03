@@ -46,8 +46,9 @@ class FakeEnv:
         obs = self._get_obs()
         reward = 0.0
         done = False
+        episode_stat = [{}] * self.num_agents
         info = {}
-        return step, due, obs, reward, done, info
+        return step, due, obs, reward, done, episode_stat, info
 
 
 class TestActor(AlphaStarActor):

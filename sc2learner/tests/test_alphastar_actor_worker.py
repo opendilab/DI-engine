@@ -36,8 +36,9 @@ class FakeEnv:
         obs = self._get_obs()
         reward = [0.0] * self.num_agents
         done = False
+        episode_stat = [{}] * self.num_agents
         info = {}
-        return step, due, obs, reward, done, info
+        return step, due, obs, reward, done, episode_stat, info
 
     def load_stat(self, stat, agent_no):
         pass
