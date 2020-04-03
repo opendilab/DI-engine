@@ -93,17 +93,18 @@ def td_lambda_loss(values, rewards, gamma=1.0, lambda_=0.8):
 
 
 def compute_importance_weights(
-    current_logits, action_logits, action, min_clip=None, max_clip=None, eps=1e-8, need_grad=False
+    target_output, behaviour_output, output_type, action, min_clip=None, max_clip=None, eps=1e-8, need_grad=False
 ):
     r"""
     Overview:
         Computing UPGO loss given constant gamma and lambda. There is no special handling for terminal state value.
         If zeros are passed in, output is not defined but will not be nans.
     Arguments:
-        - current_logits (:obj:`torch.Tensor`): the logits computed by the target policy network,
-          of size [T_traj, batchsize, n_action_type]
-        - action_logits (:obj:`torch.Tensor`):
-          the logits used producing the trajectory, of size [T_traj, batchsize, n_action_type]
+        - target_output (:obj:`torch.Tensor`): the output computed by the target policy network,
+          of size [T_traj, batchsize, n_output]
+        - behaviour_output (:obj:`torch.Tensor`):
+          the output used producing the trajectory, of size [T_traj, batchsize, n_output]
+        - output_type (:obj:`str`): the type of target/behaviour output(value, logit)
         - action (:obj:`torch.Tensor`): the chosen action(index) in trajectory, of size [T_traj, batchsize]
         - min_clip (:obj:`float`): the lower bound of clip(default: None)
         - max_clip (:obj:`float`): the upper bound of clip(default: None)
@@ -116,16 +117,14 @@ def compute_importance_weights(
 
     assert isinstance(action, torch.Tensor)
 
-    if action.dtype == torch.float:
-        rhos = F.l1_loss(
-            current_logits, action.float(), reduction='none'
-        ) / (F.l1_loss(action_logits, action.float(), reduction='none') + eps)
-    elif action.dtype == torch.long:
+    if output_type == 'value':
+        rhos = torch.clamp(target_output / (behaviour_output + eps), max=3)  # action_logits can be zero
+    elif output_type == 'logit':
         rhos = F.cross_entropy(
-            current_logits, action, reduction='none'
-        ) / (F.cross_entropy(action_logits, action, reduction='none') + eps)
+            target_output, action, reduction='none'
+        ) / (F.cross_entropy(behaviour_output, action, reduction='none') + eps)
     else:
-        raise RuntimeError("not support torch tensor type: {}".format(action.dtype))
+        raise RuntimeError("not support target output type: {}".format(output_type))
     rhos = rhos.clamp(min_clip, max_clip)
 
     torch.set_grad_enabled(grad_mode)
@@ -212,14 +211,15 @@ def vtrace_advantages(clipped_rhos, clipped_cs, rewards, bootstrap_values, gamma
     return result
 
 
-def vtrace_loss(current_logits, rhos, cs, action, rewards, bootstrap_values, gamma=1.0, lambda_=0.8):
+def vtrace_loss(target_output, output_type, rhos, cs, action, rewards, bootstrap_values, gamma=1.0, lambda_=0.8):
     r"""
     Overview:
         Computing UPGO loss given constant gamma and lambda. There is no special handling for terminal state value,
         if the last state in trajectory is the terminal, just pass a 0 as bootstrap_terminal_value.
     Arguments:
-        - current_logits (:obj:`torch.Tensor`): the logits computed by the target policy network,
-          of size [T_traj, batchsize, n_action_type]
+        - target_output (:obj:`torch.Tensor`): the output computed by the target policy network,
+          of size [T_traj, batchsize, n_output]
+        - output_type (:obj:`str`): the type of target output(value, logit)
         - rhos (:obj:`torch.Tensor`): the clipped importance sampling ratio $\rho$, of size [T_traj, batchsize]
         - cs (:obj:`torch.Tensor`): the clipped importance sampling ratio c, of size [T_traj, batchsize]
         - action (:obj:`torch.Tensor`): the action taken, of size [T_traj, batchsize]
@@ -231,12 +231,12 @@ def vtrace_loss(current_logits, rhos, cs, action, rewards, bootstrap_values, gam
     """
     with torch.no_grad():
         advantages = vtrace_advantages(rhos, cs, rewards, bootstrap_values, gammas=gamma, lambda_=lambda_)
-    if action.dtype == torch.float:
-        metric = F.l1_loss(current_logits, action.float())
-    elif action.dtype == torch.long:
-        metric = F.cross_entropy(current_logits, action)
+    if output_type == 'value':
+        metric = F.l1_loss(target_output, action.float())
+    elif output_type == 'logit':
+        metric = F.cross_entropy(target_output, action)
     else:
-        raise RuntimeError("not support torch tensor type: {}".format(action.dtype))
+        raise RuntimeError("not support target output type: {}".format(output_type))
     losses = advantages * metric
     return -losses.mean()
 
