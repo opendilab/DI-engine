@@ -1,5 +1,7 @@
 """Library for RL returns and losses evaluation"""
 
+import math
+from functools import reduce
 import torch
 import torch.nn.functional as F
 
@@ -239,7 +241,7 @@ def vtrace_loss(current_logits, rhos, cs, action, rewards, bootstrap_values, gam
     return -losses.mean()
 
 
-def entropy(policy_logits):
+def entropy(policy_logits, masked_threshold=-1e3):
     r"""
     Overview:
         Computing entropy given the logits
@@ -249,14 +251,17 @@ def entropy(policy_logits):
     Returns:
         - entropy (:obj:`torch.Tensor`): Computed entropy, averaged over the samples, of size []
     """
-    valid_flag = torch.max(torch.abs(policy_logits), 2)[0] > 0  # exclude all zero logits
-    ent_step = -torch.sum(F.softmax(policy_logits, dim=2) * F.log_softmax(policy_logits, dim=2), dim=2)
-    numel = policy_logits.size()[0] * policy_logits.size()[1]
-    ent = torch.sum(ent_step * valid_flag) * numel / torch.sum(valid_flag)
+    # mask all the masked logits in entropy computation
+    valid_flag = torch.where(
+        policy_logits > masked_threshold, torch.one_like(policy_logits), torch.zeros_like(policy_logits)
+    )
+    entropy = -F.softmax(policy_logits, dim=2) * F.log_softmax(policy_logits, dim=2)
+    entropy = entropy * valid_flag
+    entropy = torch.mean(entropy)
     # Normalize by actions available.
-    normalized_entropy = ent / \
-        torch.log(torch.tensor(policy_logits.size()[2]).float())
-    return normalized_entropy
+    numel = reduce(lambda x, y: x * y, policy_logits.shape)
+    entropy = entropy * numel / torch.sum(valid_flag)
+    return entropy
 
 
 def pg_loss(

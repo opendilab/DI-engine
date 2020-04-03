@@ -11,7 +11,7 @@ import torch.nn.functional as F
 
 from sc2learner.optimizer.base_loss import BaseLoss
 from sc2learner.torch_utils import MultiLogitsLoss, build_criterion
-from sc2learner.rl_utils import td_lambda_loss, vtrace_loss, compute_importance_weights
+from sc2learner.rl_utils import td_lambda_loss, vtrace_loss, compute_importance_weights, entropy
 
 
 def build_temperature_scheduler(temperature):
@@ -42,6 +42,7 @@ class AlphaStarSupervisedLoss(BaseLoss):
 
         self.T = train_config.trajectory_len
         self.vtrace_rhos_min_clip = train_config.vtrace.min_clip
+        self.entropy_keys = train_config.entropy.keys
 
         self.location_expand_ratio = model_config.policy.location_expand_ratio
         self.location_output_type = model_config.policy.head.location_head.output_type
@@ -136,5 +137,8 @@ class AlphaStarSupervisedLoss(BaseLoss):
     def _human_kl_loss(self, target_logits, teacher_logits, masks, game_seconds):
         pass
 
-    def _entropy_loss(self, target_logits, masks):
-        pass
+    def _entropy_loss(self, target_logits):
+        loss = 0.
+        for k in self.entropy_keys:
+            loss += entropy(target_logits[k])
+        return loss
