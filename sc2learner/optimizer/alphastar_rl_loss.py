@@ -43,6 +43,8 @@ class AlphaStarSupervisedLoss(BaseLoss):
         self.T = train_config.trajectory_len
         self.vtrace_rhos_min_clip = train_config.vtrace.min_clip
         self.action_output_types = train_config.action_output_types
+        assert (all([t in ['value', 'logit'] for t in self.action_output_types]))
+        self.action_type_kl_seconds = train_config.action_type_kl_seconds
 
         self.location_expand_ratio = model_config.policy.location_expand_ratio
         self.location_output_type = model_config.policy.head.location_head.output_type
@@ -138,8 +140,22 @@ class AlphaStarSupervisedLoss(BaseLoss):
     def _upgo_loss(self):
         pass
 
-    def _human_kl_loss(self, target_outputs, teacher_outputs, masks, game_seconds):
-        pass
+    def _human_kl_loss(self, target_outputs, teacher_outputs, game_seconds):
+        kl_loss = 0.
+        for k in self.action_keys:
+            if self.action_output_types[k] == 'logit':
+                target_output = F.log_softmax(target_outputs[k], dim=2)
+                teacher_output = F.softmax(teacher_outputs[k], dim=2)
+                kl_loss += F.kl_div(target_output, teacher_output)
+            elif self.action_output_types[k] == 'value':
+                target_output, teacher_output = target_outputs[k], teacher_outputs[k]
+                kl_loss += F.l1_loss(target_output, teacher_output)
+
+        if game_seconds < self.action_type_kl_seconds:
+            target_output = F.log_softmax(target_outputs['action_type'], dim=2)
+            teacher_output = F.softmax(teacher_outputs['action_type'], dim=2)
+            action_type_kl_loss = F.kl_div(target_output, teacher_output)
+        return kl_loss, action_type_kl_loss
 
     def _entropy_loss(self, target_outputs):
         loss = 0.
