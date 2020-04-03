@@ -56,7 +56,11 @@ class Policy(nn.Module):
         for idx, action in enumerate(action_type):
             action_type_val = ACTIONS_REORDER_INV[action.item()]
             action_info_hard_craft = GENERAL_ACTION_INFO_MASK[action_type_val]
-            action_info_stat = ACTIONS_STAT[action_type_val]
+            try:
+                action_info_stat = ACTIONS_STAT[action_type_val]
+            except KeyError as e:
+                print('We are issuing a command (reordered:{}), never seen in replays'.format(action_type_val))
+                action_info_stat = {'selected_type': [], 'target_type': []}
             # else case is the placeholder
             if action_info_hard_craft['selected_units']:
                 type_hard_craft = set(action_info_hard_craft['avail_unit_type_id'])

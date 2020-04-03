@@ -209,6 +209,11 @@ NUM_ACTIONS = len(ACTIONS)
 
 NUM_ACTIONS_RAW = len(list(ACTION_INFO_MASK.keys()))
 
+# this is for the translation from pysc2 functions to pysc2 raw_functions
+# _FUNCTIONS:
+# https://github.com/deepmind/pysc2/blob/5ca04dbf6dd0b852966418379e2d95d9ad3393f8/pysc2/lib/actions.py#L583
+# _RAW_FUNCTIONS:
+# https://github.com/deepmind/pysc2/blob/5ca04dbf6dd0b852966418379e2d95d9ad3393f8/pysc2/lib/actions.py#L1186
 ACTIONS_REORDER = {
     item: idx for idx, item in enumerate(ACTIONS)
 }

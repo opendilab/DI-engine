@@ -214,7 +214,7 @@ class AlphaStarEnv(SC2Env):
             for n in range(self.agent_num):
                 if sc2_actions[n]:
                     self._buffered_actions[n].append(sc2_actions[n])
-            _, _, obs, rewards, done, stat, info = self._last_output
+            _, _, obs, rewards, done, episode_stat, info = self._last_output
             for n in range(self.agent_num):
                 obs[n] = self._merge_action(obs[n], self.last_actions[n], add_dim=False)
             due = [s <= self._episode_steps for s in self._next_obs]

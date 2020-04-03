@@ -4,7 +4,7 @@ data:
         trajectory_type: slide_window  # [epoch: [slide_window], iter: [sequential]]
         slide_window_step: 1
 env:
-    use_cuda: True
+    use_cuda: False
     screen_resolution: 128
     default_step_mul: 8  # not used
     game_steps_per_episode: 4320

@@ -302,7 +302,7 @@ class AlphaStarActor:
                         'finish_time': time.time(),
                         'actor_uid': self.actor_uid,
                         'info': info,
-                        'traj_length': len(data_buffer[i]),
+                        'traj_length': len(data_buffer[i]),  # this is the real length, without reused last traj
                     }
                     if done:
                         metadata['final_reward'] = rewards[i]
