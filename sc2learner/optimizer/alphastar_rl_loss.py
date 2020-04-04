@@ -5,6 +5,7 @@ Main Function:
     1. base class for supervised learning on linklink, including basic processes.
 """
 import collections
+from collections import namedtuple
 
 import torch
 import torch.nn.functional as F
@@ -38,6 +39,13 @@ def build_temperature_scheduler(temperature):
 class AlphaStarSupervisedLoss(BaseLoss):
     def __init__(self, agent, train_config, model_config):
         self.action_keys = ['action_type', 'delay', 'queued', 'selected_units', ' target_units', 'target_location']
+        self.loss_keys = ['total', 'td_lambda', 'vtrace', 'upgo', 'kl', 'action_type_kl', 'entropy']
+        self.rollout_outputs = namedtuple(
+            "rollout_outputs", [
+                'target_outputs', 'behaviour_outputs', 'teacher_outputs', 'baselines', 'rewards', 'actions',
+                'game_seconds'
+            ]
+        )
         self.agent = agent
 
         self.T = train_config.trajectory_len
@@ -47,6 +55,7 @@ class AlphaStarSupervisedLoss(BaseLoss):
         assert (all([t in ['value', 'logit'] for t in self.action_output_types]))
         self.action_type_kl_seconds = train_config.action_type_kl_seconds
         self.build_order_location_max_limit = train_config.build_order_location_max_limit
+        self.use_target_state = train_config.use_target_state
 
         self.location_expand_ratio = model_config.policy.location_expand_ratio
         self.location_output_type = model_config.policy.head.location_head.output_type
@@ -57,7 +66,7 @@ class AlphaStarSupervisedLoss(BaseLoss):
         )  # get naive temperature scheduler
 
     def register_log(self, variable_record, tb_logger):
-        for k in self.loss_func.keys():
+        for k in self.loss_keys:
             variable_record.register_var(k + '_loss')
             tb_logger.register_var(k + '_loss')
 
@@ -79,8 +88,9 @@ class AlphaStarSupervisedLoss(BaseLoss):
             actor_critic_loss += self._vtrace_pg_loss(baseline, reward, target_outputs, behaviour_outputs,
                                                       actions) * self.loss_weights.pg[field]
         # upgo loss
-        upgo_loss = self._upgo_loss(baseline['winloss'], reward['winloss'], target_outputs, behaviour_outputs,
-                                    actions) * self.loss_weights.upgo['winloss']
+        upgo_loss = self._upgo_loss(
+            baselines['winloss'], rewards['winloss'], target_outputs, behaviour_outputs, actions
+        ) * self.loss_weights.upgo['winloss']
 
         # human kl loss
         kl_loss, action_type_kl_loss = self._human_kl_loss(target_outputs, teacher_outputs, game_seconds)
@@ -96,16 +106,40 @@ class AlphaStarSupervisedLoss(BaseLoss):
             'kl_loss': kl_loss,
             'action_type_kl_loss': action_type_kl_loss,
             'ent_loss': ent_loss,
-            #'upgo_loss': upgo_loss,
+            'upgo_loss': upgo_loss,
         }
 
     def _rollout(self, data):
         temperature = self.temperature_scheduler.step()
+        next_state_home, next_state_away = None, None
+        outputs = self.rollout_outputs(*[[] for _ in range(len(self.rollout_outputs._fields))])
         for idx, step_data in enumerate(data):
-            rewards = self._compute_pseudo_rewards(step_data)
-            target_outputs, baselines, next_state = self.agent.compute_action(
-                step_data, 'step', temperature=temperature
+            if self.use_target_state and next_state_home is not None:
+                step_data['home']['prev_state'] = next_state_home
+                step_data['away']['prev_state'] = next_state_away
+            target_outputs, baselines, next_state_home, next_state_away = self.agent.compute_action_value(
+                step_data, temperature
             )
+            # add to outputs
+            home = step_data['home']
+            outputs.target_outputs.append(target_outputs)
+            outputs.behaviour_outputs.append(home['behaviour_outputs'])
+            outputs.teacher_outputs.append(home['teacher_outputs'])
+            outputs.baselines.append(baselines)
+            outputs.rewards.append(
+                self._compute_pseudo_rewards(home['agent_z'], home['target_z'], home['rewards'], home['game_seconds'])
+            )
+            outputs.actions.append(home['actions'])
+        # last baselines/values
+        last_obs = {'home': data[-1]['home_next'], 'away': data[-1]['away_next']}
+        if self.use_target_state and next_state_home is not None:
+            last_obs['home']['prev_state'] = next_state_home
+            last_obs['away']['prev_state'] = next_state_away
+        last_baselines = self.agent.compute_action_value(last_obs, temperature)
+        outputs = list(zip(*outputs))
+        # add game_seconds
+        outputs.append(data[0]['home']['game_seconds'])
+        return outputs
 
     def _compute_pseudo_rewards(self, agent_z, target_z, rewards, game_seconds):
         """

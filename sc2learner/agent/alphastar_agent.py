@@ -160,9 +160,9 @@ class AlphaStarAgent(BaseAgent):
             self._after_forward(next_states)
         return AgentOutput(actions=actions, logits=logits, next_state=next_states)
 
-    def compute_value(self, step_data):
+    def compute_action_value(self, step_data, temperature=1.0):
         # Corresponding to value mode of original ActorCritic
-        raise NotImplementedError()
+        return self.model(step_data, mode="step", temperature=temperature)
 
     def get_model(self):
         return self.model
