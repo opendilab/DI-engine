@@ -170,7 +170,7 @@ class AlphaStarActorCritic(ActorCriticBase):
 
         # policy
         policy_inputs = self.policy.EvaluateInput(
-            inputs['home']['entity_raw'], lstm_output_home, entity_embeddings, map_skip, scalar_context
+            inputs['home']['entity_raw'], inputs['home']['scalar_info']['available_actions'], lstm_output_home, entity_embeddings, map_skip, scalar_context
         )
         actions = self.policy(policy_inputs, mode='evaluate', **kwargs)
         return self.StepOutput(actions, baselines, next_state_home, next_state_away)
@@ -189,7 +189,7 @@ class AlphaStarActorCritic(ActorCriticBase):
                     ret.append(v)
             return ret
 
-        cum_stat_home, cum_stat_away = inputs['cum_stat_home'], inputs['cum_stat_away']
+        cum_stat_home, cum_stat_away = inputs.cum_stat_home, inputs.cum_stat_away
         # 'lstm_output_home', 'lstm_output_away', 'baseline_feature_home', 'baseline_feature_away'
         # are torch.Tensors and are shared across all baselines
         same_part = torch.cat(inputs[:4], dim=1)
