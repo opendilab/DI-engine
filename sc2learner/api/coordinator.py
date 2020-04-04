@@ -43,6 +43,9 @@ class Coordinator(object):
 
         self._set_logger()
 
+    def close(self):
+        self.replay_buffer.close()
+
     def _set_logger(self, level=1):
         self.logger = logging.getLogger("coordinator.log")
 
@@ -76,7 +79,7 @@ class Coordinator(object):
                 'away_race': 'zerg',
                 'difficulty': 'easy',
                 'build': 'random',
-                'data_push_length': 128
+                'data_push_length': 8
             }
         else:
             use_learner_uid_list = []
@@ -101,7 +104,7 @@ class Coordinator(object):
                     'away_race': 'Zerg',
                     'difficulty': 1,
                     'build': 0,
-                    'data_push_length': 128
+                    'data_push_length': 8
                 }
             else:
                 ret = {}

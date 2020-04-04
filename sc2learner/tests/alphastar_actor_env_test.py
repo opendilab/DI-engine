@@ -3,12 +3,12 @@ Test script for actor
 Example Usage:
 
     srun -p x_cerebra --gres=gpu:1 -w SH-IDC1-10-198-6-64 \
-    python3 -u -m sc2learner.tests.test_alphastar_actor \
+    python3 -u -m sc2learner.tests.alphastar_actor_env_test \
     --config_path test_alphastar_actor.yaml --nofake_dataset
 
 If you want to test this script in your local computer, try to run:
 
-    python test_alphastar_actor.py --fake_dataset --config_path test.yaml
+    python alphastar_actor_env_test.py --fake_dataset --config_path test.yaml
 
 """
 import random
@@ -20,35 +20,12 @@ from absl import app
 from absl import flags
 from easydict import EasyDict
 
-from sc2learner.data.tests.fake_dataset import FakeReplayDataset
 from sc2learner.worker.actor.alphastar_actor import AlphaStarActor
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string('config_path', '', 'Path to the config yaml file for test')
 flags.DEFINE_bool('fake_dataset', True, 'Whether to use fake dataset')
 flags.DEFINE_bool('single_agent', False, 'Test game_vs_bot mode')
-
-
-class FakeEnv:
-    def __init__(self, num_agents, *args, **kwargs):
-        self.dataset = FakeReplayDataset(dict(trajectory_len=1))
-        self.num_agents = num_agents
-
-    def _get_obs(self):
-        return [random.choice(self.dataset)[0] for _ in range(self.num_agents)]
-
-    def reset(self):
-        return self._get_obs()
-
-    def step(self, *args, **kwargs):
-        step = 16
-        due = [True] * self.num_agents
-        obs = self._get_obs()
-        reward = 0.0
-        done = False
-        episode_stat = [{}] * self.num_agents
-        info = {}
-        return step, due, obs, reward, done, episode_stat, info
 
 
 class TestActor(AlphaStarActor):
@@ -58,6 +35,7 @@ class TestActor(AlphaStarActor):
 
     def _make_env(self, players):
         if FLAGS.fake_dataset:
+            from .fake_env import FakeEnv
             return FakeEnv(len(players))
         else:
             return super()._make_env(players)

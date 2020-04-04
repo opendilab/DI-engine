@@ -12,7 +12,7 @@ import yaml
 import traceback
 import subprocess
 
-from utils.log_helper import TextLogger
+from sc2learner.utils.log_helper import TextLogger
 
 
 class Manager(object):
@@ -46,6 +46,7 @@ class Manager(object):
 
         # threads
         check_actor_dead_thread = threading.Thread(target=self.check_actor_dead)
+        check_actor_dead_thread.daemon = True
         check_actor_dead_thread.start()
         self.logger.info("[UP] check actor dead thread ")
 

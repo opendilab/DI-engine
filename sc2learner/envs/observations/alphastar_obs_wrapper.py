@@ -113,6 +113,7 @@ class SpatialObsWrapper(object):
                 if key in self.feature_screen_id.keys():
                     dim += item['dim']
         self._dim = dim
+        return dim
 
     @property
     def dim(self):

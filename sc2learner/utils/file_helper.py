@@ -49,9 +49,16 @@ def save_file_ceph(save_path, file_name, data):
     else:
         import logging
         import os
-        logging.warning(
-            "You do not have ceph installed! Saving as local file!"
-            " If you are not testing locally, something is wrong!"
-        )
-        with open(os.path.join(save_path, file_name), 'wb') as f:
+        if(save_path == 'do_not_save'):
+            logging.warning(
+                "You do not have ceph installed! ignored {}!".format(file_name) +
+                " If you are not testing locally, something is wrong!"
+            )
+            return
+        p = os.path.join(save_path, file_name)
+        with open(p, 'wb') as f:
+            logging.warning(
+                "You do not have ceph installed! Saving as local file at {}!".format(p) +
+                " If you are not testing locally, something is wrong!"
+            )
             f.write(data)

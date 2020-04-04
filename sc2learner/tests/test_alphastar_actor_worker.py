@@ -4,6 +4,10 @@ Test script for actor worker on SLURM
 import random
 import time
 import os
+import pytest
+import socket
+from threading import Thread
+import logging
 
 import yaml
 import torch
@@ -11,37 +15,23 @@ from absl import app
 from absl import flags
 from easydict import EasyDict
 
-from sc2learner.data.tests.fake_dataset import FakeReplayDataset
 from sc2learner.worker.actor.alphastar_actor_worker import AlphaStarActorWorker
+# TODO: move the api modules
+from sc2learner.api.coordinator import Coordinator
+from sc2learner.api.coordinator_api import create_coordinator_app
+from sc2learner.api.manager import Manager
+from sc2learner.api.manager_api import create_manager_app
 
-FLAGS = flags.FLAGS
-flags.DEFINE_string('config_path', '', 'Path to the config yaml file for test')
-flags.DEFINE_bool('fake_dataset', True, 'Whether to use fake dataset')
 
+PRINT_ACTIONS = False
 
-class FakeEnv:
-    def __init__(self, num_agents, *args, **kwargs):
-        self.dataset = FakeReplayDataset(dict(trajectory_len=1))
-        self.num_agents = num_agents
-
-    def _get_obs(self):
-        return [random.choice(self.dataset)[0] for _ in range(self.num_agents)]
-
-    def reset(self):
-        return self._get_obs()
-
-    def step(self, *args, **kwargs):
-        step = 16
-        due = [True] * self.num_agents
-        obs = self._get_obs()
-        reward = [0.0] * self.num_agents
-        done = False
-        episode_stat = [{}] * self.num_agents
-        info = {}
-        return step, due, obs, reward, done, episode_stat, info
-
-    def load_stat(self, stat, agent_no):
-        pass
+if __name__ == '__main__':
+    FLAGS = flags.FLAGS
+    flags.DEFINE_string('config_path', '', 'Path to the config yaml file for test')
+    flags.DEFINE_bool('fake_dataset', True, 'Whether to use fake dataset')
+else:
+    FLAGS = None
+    PYTEST = True
 
 
 class TestActor(AlphaStarActorWorker):
@@ -49,7 +39,8 @@ class TestActor(AlphaStarActorWorker):
         super(TestActor, self).__init__(cfg)
 
     def _make_env(self, players):
-        if FLAGS.fake_dataset:
+        if (FLAGS and FLAGS.fake_dataset) or PYTEST:
+            from .fake_env import FakeEnv
             return FakeEnv(len(players))
         else:
             return super()._make_env(players)
@@ -68,18 +59,79 @@ class TestActor(AlphaStarActorWorker):
         for n in range(len(act)):
             if act[n] and act[n]['delay'] == 0:
                 act[n]['delay'] = random.randint(0, 10)
-            print('Act {}:{}'.format(n, str(act[n])))
+            if PRINT_ACTIONS:
+                print('Act {}:{}'.format(n, str(act[n])))
         return act
 
 
-def main(unused_argv):
-    with open(FLAGS.config_path) as f:
-        cfg = yaml.load(f)
+def get_test_cfg():
+    with open(__file__.replace('.py', '.yaml')) as f:
+        cfg = yaml.safe_load(f)
     cfg = EasyDict(cfg)
-    cfg["log_path"] = os.path.dirname(FLAGS.config_path)
-    ta = TestActor(cfg)
-    ta.run()
+    local_ip = '127.0.0.1' #  socket.gethostname()
+    learner_ip = local_ip
+    coordinator_ip = local_ip
+    manager_ip = local_ip
+    cfg.api.learner_ip = learner_ip
+    cfg.api.coordinator_ip = coordinator_ip
+    cfg.api.manager_ip = manager_ip
+    cfg.actor.coordinator_ip = coordinator_ip
+    cfg.actor.manager_ip = manager_ip
+    cfg.actor.ceph_traj_path = 'do_not_save'
+    cfg.actor.ceph_model_path = 'do_not_save'
+    cfg.actor.ceph_stat_path = os.path.dirname(__file__) + '/'
+    cfg.data = {}
+    cfg.data.train = {}
+    cfg.data.train.batch_size = 128
+    return cfg
 
+@pytest.fixture(scope='module')
+def coordinator():
+    cfg = get_test_cfg()
+    coordinator = Coordinator(cfg)
+    app = create_coordinator_app(coordinator)
+    def run():
+        app.run(host=cfg.api.coordinator_ip, port=cfg.api.coordinator_port, debug=True, use_reloader=False)
+    coordinator_thread = Thread(target=run)
+    coordinator_thread.daemon = True
+    coordinator_thread.start()
+    logging.info('coordinator started')
+    yield coordinator
+    coordinator.close()
+
+@pytest.fixture(scope='module')
+def manager():
+    cfg = get_test_cfg()
+    manager = Manager(cfg)
+    app = create_manager_app(manager)
+    def run():
+        app.run(host=cfg.api.manager_ip, port=cfg.api.manager_port, debug=True, use_reloader=False)
+    manager_thread = Thread(target=run)
+    manager_thread.daemon = True
+    manager_thread.start()
+    logging.info('manager started')
+    return manager
+
+
+def test_actor(coordinator, manager):
+    # to be called by pytest
+    cfg = get_test_cfg()
+    actor = TestActor(cfg)
+    logging.info('actor started, running the 1st loop')
+    actor.run_episode()
+    logging.info('actor running the 2nd loop')
+    actor.run_episode()
+    actor.heartbeat_worker.stop_heatbeat()
+
+def main(unused_argv):
+    # start a actor for full test on cluster (with network connection)
+    # not used for pytest
+    with open(FLAGS.config_path) as f:
+        ft_cfg = yaml.load(f)
+    ft_cfg = EasyDict(ft_cfg)
+    ft_cfg["log_path"] = os.path.dirname(FLAGS.config_path)
+    ta = TestActor(ft_cfg)
+    ta.run()
 
 if __name__ == '__main__':
     app.run(main)
