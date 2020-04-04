@@ -93,7 +93,7 @@ def td_lambda_loss(values, rewards, gamma=1.0, lambda_=0.8):
 
 
 def compute_importance_weights(
-    target_output, behaviour_output, output_type, action, min_clip=None, max_clip=None, eps=1e-8, need_grad=False
+    target_output, behaviour_output, output_type, action, min_clip=None, max_clip=None, eps=1e-8, requires_grad=False
 ):
     r"""
     Overview:
@@ -112,23 +112,22 @@ def compute_importance_weights(
     Returns:
         - rhos (:obj:`torch.Tensor`): Importance weight, of size [T_traj, batchsize]
     """
-    grad_mode = torch.is_grad_enabled()
-    torch.set_grad_enabled(need_grad)
+    grad_context = torch.enable_grad() if requires_grad else torch.no_grad()
 
     assert isinstance(action, torch.Tensor)
 
-    if output_type == 'value':
-        rhos = torch.clamp(target_output / (behaviour_output + eps), max=3)  # action_logits can be zero
-    elif output_type == 'logit':
-        rhos = F.cross_entropy(
-            target_output, action, reduction='none'
-        ) / (F.cross_entropy(behaviour_output, action, reduction='none') + eps)
-    else:
-        raise RuntimeError("not support target output type: {}".format(output_type))
-    rhos = rhos.clamp(min_clip, max_clip)
+    with grad_context:
+        if output_type == 'value':
+            rhos = torch.clamp(target_output / (behaviour_output + eps), max=3)  # action_logits can be zero
+        elif output_type == 'logit':
+            rhos = F.cross_entropy(
+                target_output, action, reduction='none'
+            ) / (F.cross_entropy(behaviour_output, action, reduction='none') + eps)
+        else:
+            raise RuntimeError("not support target output type: {}".format(output_type))
+        rhos = rhos.clamp(min_clip, max_clip)
 
-    torch.set_grad_enabled(grad_mode)
-    return rhos
+        return rhos
 
 
 def upgo_returns(rewards, bootstrap_values):
@@ -151,14 +150,15 @@ def upgo_returns(rewards, bootstrap_values):
     return generalized_lambda_returns(rewards, 1.0, bootstrap_values, lambdas, False)
 
 
-def upgo_loss(current_logits, rhos, action, rewards, bootstrap_values):
+def upgo_loss(target_output, output_type, rhos, action, rewards, bootstrap_values):
     r"""
     Overview:
         Computing UPGO loss given constant gamma and lambda. There is no special handling for terminal state value,
         if the last state in trajectory is the terminal, just pass a 0 as bootstrap_terminal_value.
     Arguments:
-        - current_logits (:obj:`torch.Tensor`): the logits computed by the target policy network,
-          of size [T_traj, batchsize, n_action_type]
+        - target_output (:obj:`torch.Tensor`): the output computed by the target policy network,
+          of size [T_traj, batchsize, n_output]
+        - output_type (:obj:`str`): the type of target output(value, logit)
         - rhos (:obj:`torch.Tensor`): the importance sampling ratio, of size [T_traj, batchsize]
         - action (:obj:`torch.Tensor`): the action taken, of size [T_traj, batchsize]
         - rewards (:obj:`torch.Tensor`): the returns from time step 0 to T-1, of size [T_traj, batchsize]
@@ -167,17 +167,21 @@ def upgo_loss(current_logits, rhos, action, rewards, bootstrap_values):
     Returns:
         - loss (:obj:`torch.Tensor`): Computed importance sampled UPGO loss, averaged over the samples, of size []
     """
-    returns = upgo_returns(rewards, bootstrap_values)
     # discard the value at T as it should be considered in the next slice
-    advantages = rhos * (returns - bootstrap_values[:-1])
-    advantages = advantages.detach()  # to make sure
-    losses = advantages * \
-        F.log_softmax(current_logits, dim=2).gather(
-            2, action.long().unsqueeze(2)).squeeze(2)
+    with torch.no_grad():
+        returns = upgo_returns(rewards, bootstrap_values)
+        advantages = rhos * (returns - bootstrap_values[:-1])
+    if output_type == 'value':
+        metric = F.l1_loss(target_output, action.float())
+    elif output_type == 'logit':
+        metric = F.cross_entropy(target_output, action)
+    else:
+        raise RuntimeError("not support target output type: {}".format(output_type))
+    losses = advantages * metric
     return -losses.mean()
 
 
-def vtrace_advantages(clipped_rhos, clipped_cs, rewards, bootstrap_values, gammas=1.0, lambda_=0.8, need_grad=False):
+def vtrace_advantages(clipped_rhos, clipped_cs, rewards, bootstrap_values, gammas=1.0, lambda_=0.8):
     r"""
     Overview:
         Computing vtrace advantages.
@@ -190,9 +194,6 @@ def vtrace_advantages(clipped_rhos, clipped_cs, rewards, bootstrap_values, gamma
     Returns:
         - result (:obj:`torch.Tensor`): Computed V-trace advantage, of size [T_traj, batchsize]
     """
-    grad_mode = torch.is_grad_enabled()
-    torch.set_grad_enabled(need_grad)
-
     if not isinstance(gammas, torch.Tensor):
         gammas = gammas * torch.ones(rewards.size(), dtype=rewards.dtype)
     if not isinstance(lambda_, torch.Tensor):
@@ -207,7 +208,6 @@ def vtrace_advantages(clipped_rhos, clipped_cs, rewards, bootstrap_values, gamma
             + gammas[t, :] * lambda_[t, :] * clipped_cs[t, :] * \
             (result[t+1, :] - bootstrap_values[t+1, :])
 
-    torch.set_grad_enabled(grad_mode)
     return result
 
 

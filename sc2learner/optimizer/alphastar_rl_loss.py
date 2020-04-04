@@ -11,7 +11,7 @@ import torch.nn.functional as F
 
 from sc2learner.optimizer.base_loss import BaseLoss
 from sc2learner.torch_utils import MultioutputsLoss, build_criterion
-from sc2learner.rl_utils import td_lambda_loss, vtrace_loss, compute_importance_weights, entropy
+from sc2learner.rl_utils import td_lambda_loss, vtrace_loss, upgo_loss, compute_importance_weights, entropy
 
 
 def build_temperature_scheduler(temperature):
@@ -42,6 +42,7 @@ class AlphaStarSupervisedLoss(BaseLoss):
 
         self.T = train_config.trajectory_len
         self.vtrace_rhos_min_clip = train_config.vtrace.min_clip
+        self.upgo_rhos_min_clip = train_config.upgo.min_clip
         self.action_output_types = train_config.action_output_types
         assert (all([t in ['value', 'logit'] for t in self.action_output_types]))
         self.action_type_kl_seconds = train_config.action_type_kl_seconds
@@ -74,9 +75,11 @@ class AlphaStarSupervisedLoss(BaseLoss):
         actor_critic_loss = 0.
         for field, baseline, reward in zip(baselines._fields, baselines, rewards):
             actor_critic_loss += self._td_lambda_loss(baseline, reward) * self.loss_weights.baseline[field]
-            actor_critic_loss += self._vtrace_pg_loss(baseline, reward, target_outputs,
-                                                      behaviour_outputs) * self.loss_weights.pg[field]
+            actor_critic_loss += self._vtrace_pg_loss(baseline, reward, target_outputs, behaviour_outputs,
+                                                      actions) * self.loss_weights.pg[field]
         # upgo loss
+        upgo_loss = self._upgo_loss(baseline['winloss'], reward['winloss'], target_outputs, behaviour_outputs,
+                                    actions) * self.loss_weights.upgo['winloss']
 
         # human kl loss
         kl_loss, action_type_kl_loss = self._human_kl_loss(target_outputs, teacher_outputs, game_seconds)
@@ -137,8 +140,17 @@ class AlphaStarSupervisedLoss(BaseLoss):
 
         return loss
 
-    def _upgo_loss(self):
-        pass
+    def _upgo_loss(self, baseline, reward, target_outputs, behaviour_outputs, actions):
+        def _upgo(target_output, behaviour_output, action, action_output_type):
+            clipped_rhos = compute_importance_weights(
+                target_output, behaviour_output, action_output_type, action, min_clip=self.upgo_rhos_min_clip
+            )
+            return upgo_loss(target_output, action_output_type, clipped_rhos, action, reward, baseline)
+
+        loss = 0.
+        for k in self.action_keys:
+            loss += _upgo(target_outputs[k], behaviour_outputs[k], actions[k], self.action_output_types)
+        return loss
 
     def _human_kl_loss(self, target_outputs, teacher_outputs, game_seconds):
         kl_loss = 0.
