@@ -10,7 +10,7 @@ import torch
 import torch.nn.functional as F
 
 from sc2learner.optimizer.base_loss import BaseLoss
-from sc2learner.torch_utils import MultioutputsLoss, build_criterion
+from sc2learner.torch_utils import MultioutputsLoss, build_criterion, levenshtein_distance, hamming_distance
 from sc2learner.rl_utils import td_lambda_loss, vtrace_loss, upgo_loss, compute_importance_weights, entropy
 
 
@@ -46,6 +46,7 @@ class AlphaStarSupervisedLoss(BaseLoss):
         self.action_output_types = train_config.action_output_types
         assert (all([t in ['value', 'logit'] for t in self.action_output_types]))
         self.action_type_kl_seconds = train_config.action_type_kl_seconds
+        self.build_order_location_max_limit = train_config.build_order_location_max_limit
 
         self.location_expand_ratio = model_config.policy.location_expand_ratio
         self.location_output_type = model_config.policy.head.location_head.output_type
@@ -106,14 +107,43 @@ class AlphaStarSupervisedLoss(BaseLoss):
                 step_data, 'step', temperature=temperature
             )
 
-    def _compute_pseudo_rewards(self):
+    def _compute_pseudo_rewards(self, agent_z, target_z, rewards, game_seconds):
         """
+            Overview: compute pseudo rewards from human replay z
+            Arguments:
+                - agent_z (:obj:`dict`)
+                - target_z (:obj:`dict`)
+                - rewards (:obj:`torch.Tensor`)
+                - game_seconds (:obj:`int`)
+            Returns:
+                - rewards (:obj:`dict`): a dict contains different type rewards
+        """
+        def loc_fn(p1, p2, max_limit=self.build_order_location_max_limit):
+            dist = F.l1_loss(p1, p2, reduction='sum')
+            dist = dist.clamp(0, max_limit)
+            return dist
 
-        Returns:
-            - rewards (:obj:`dict`): a dict contains different type rewards
-        Note:
-            agent_z, target_z, reward
-        """
+        def get_time_factor():
+            if game_seconds < 8 * 60:
+                return 1.0
+            elif game_seconds < 16 * 60:
+                return 0.5
+            elif game_seconds < 24 * 60:
+                return 0.25
+            else:
+                return 0
+
+        new_rewards = {}
+        new_rewards['winloss'] = rewards
+        new_rewards['build_order'] = levenshtein_distance(
+            agent_z['build_order']['type'], target_z['build_order']['type'], agent_z['build_order']['loc'],
+            target_z['build_order']['loc'], loc_fn
+        )
+        for k in ['built_units', 'upgrades', 'effects']:
+            new_rewards[k] = hamming_distance(agent_z[k], target_z[k])
+        factor = get_time_factor()
+        new_rewards = {k: v * factor for k, v in new_rewards.items()}
+        return new_rewards
 
     def _td_lambda_loss(self, baseline, reward):
         """
