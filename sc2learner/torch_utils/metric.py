@@ -41,12 +41,12 @@ def levenshtein_distance(pred, target, pred_extra=None, target_extra=None, extra
     return torch.LongTensor([distance]).to(pred.device)
 
 
-def hamming_distance(pred, target):
+def hamming_distance(pred, target, weight=1.):
     '''
     Overview: Hamming Distance
     Arguments:
-        - (:obj:`torch.LongTensor`) pred, shape[N]
-        - (:obj:`torch.LongTensor`) target, shape[N]
+        - (:obj:`torch.LongTensor`) pred, shape[B, N]
+        - (:obj:`torch.LongTensor`) target, shape[B, N]
     Returns:
         - (:obj:`torch.LongTensor`) distance(scalar), shape[1]
     Note: pred, target are also boolean vector(0 or 1)
@@ -54,7 +54,7 @@ def hamming_distance(pred, target):
     assert (isinstance(pred, torch.LongTensor) and isinstance(target, torch.LongTensor))
     assert (pred.device == target.device)
     assert (pred.shape == target.shape)
-    return pred.ne(target).sum()
+    return pred.ne(target).sum(dim=1).float().mul_(weight)
 
 
 def test_levenshtein_distance():

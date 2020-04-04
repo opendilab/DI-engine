@@ -170,7 +170,8 @@ class AlphaStarActorCritic(ActorCriticBase):
 
         # policy
         policy_inputs = self.policy.EvaluateInput(
-            inputs['home']['entity_raw'], inputs['home']['scalar_info']['available_actions'], lstm_output_home, entity_embeddings, map_skip, scalar_context
+            inputs['home']['entity_raw'], inputs['home']['scalar_info']['available_actions'], lstm_output_home,
+            entity_embeddings, map_skip, scalar_context
         )
         actions = self.policy(policy_inputs, mode='evaluate', **kwargs)
         return self.StepOutput(actions, baselines, next_state_home, next_state_away)

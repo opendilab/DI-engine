@@ -34,7 +34,7 @@ class BaseAgent:
 
 
 class AlphaStarAgent(BaseAgent):
-    def __init__(self, model_config, num_concurrent_episodes, use_cuda, use_distributed):
+    def __init__(self, model_config, num_concurrent_episodes=1, use_cuda=True, use_distributed=False):
         self.num_concurrent_episodes = num_concurrent_episodes
 
         # Build model

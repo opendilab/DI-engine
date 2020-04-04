@@ -5,14 +5,15 @@ Main Function:
     1. base class for supervised learning on linklink, including basic processes.
 """
 import collections
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 
 import torch
 import torch.nn.functional as F
 
 from sc2learner.optimizer.base_loss import BaseLoss
-from sc2learner.torch_utils import MultioutputsLoss, build_criterion, levenshtein_distance, hamming_distance
+from sc2learner.torch_utils import levenshtein_distance, hamming_distance
 from sc2learner.rl_utils import td_lambda_loss, vtrace_loss, upgo_loss, compute_importance_weights, entropy
+from sc2learner.utils import list_dict2dict_list
 
 
 def build_temperature_scheduler(temperature):
@@ -36,7 +37,7 @@ def build_temperature_scheduler(temperature):
     return ConstantTemperatureSchedule(init_val=temperature)
 
 
-class AlphaStarSupervisedLoss(BaseLoss):
+class AlphaStarRLLoss(BaseLoss):
     def __init__(self, agent, train_config, model_config):
         self.action_keys = ['action_type', 'delay', 'queued', 'selected_units', ' target_units', 'target_location']
         self.loss_keys = ['total', 'td_lambda', 'vtrace', 'upgo', 'kl', 'action_type_kl', 'entropy']
@@ -49,16 +50,15 @@ class AlphaStarSupervisedLoss(BaseLoss):
         self.agent = agent
 
         self.T = train_config.trajectory_len
+        self.batch_size = train_config.batch_size
         self.vtrace_rhos_min_clip = train_config.vtrace.min_clip
         self.upgo_rhos_min_clip = train_config.upgo.min_clip
         self.action_output_types = train_config.action_output_types
-        assert (all([t in ['value', 'logit'] for t in self.action_output_types]))
-        self.action_type_kl_seconds = train_config.action_type_kl_seconds
-        self.build_order_location_max_limit = train_config.build_order_location_max_limit
+        assert (all([t in ['value', 'logit'] for t in self.action_output_types.values()]))
+        self.action_type_kl_seconds = train_config.kl.action_type_kl_seconds
+        self.build_order_location_max_limit = train_config.build_order_location.max_limit
+        self.build_order_location_rescale = train_config.build_order_location.rescale
         self.use_target_state = train_config.use_target_state
-
-        self.location_expand_ratio = model_config.policy.location_expand_ratio
-        self.location_output_type = model_config.policy.head.location_head.output_type
 
         self.loss_weights = train_config.loss_weights
         self.temperature_scheduler = build_temperature_scheduler(
@@ -83,7 +83,7 @@ class AlphaStarSupervisedLoss(BaseLoss):
 
         # td_lambda and v_trace
         actor_critic_loss = 0.
-        for field, baseline, reward in zip(baselines._fields, baselines, rewards):
+        for field, baseline, reward in zip(baselines.keys(), baselines.values(), rewards.values()):
             actor_critic_loss += self._td_lambda_loss(baseline, reward) * self.loss_weights.baseline[field]
             actor_critic_loss += self._vtrace_pg_loss(baseline, reward, target_outputs, behaviour_outputs,
                                                       actions) * self.loss_weights.pg[field]
@@ -112,7 +112,7 @@ class AlphaStarSupervisedLoss(BaseLoss):
     def _rollout(self, data):
         temperature = self.temperature_scheduler.step()
         next_state_home, next_state_away = None, None
-        outputs = self.rollout_outputs(*[[] for _ in range(len(self.rollout_outputs._fields))])
+        outputs_dict = OrderedDict({k: [] for k in self.rollout_outputs._fields})
         for idx, step_data in enumerate(data):
             if self.use_target_state and next_state_home is not None:
                 step_data['home']['prev_state'] = next_state_home
@@ -122,24 +122,34 @@ class AlphaStarSupervisedLoss(BaseLoss):
             )
             # add to outputs
             home = step_data['home']
-            outputs.target_outputs.append(target_outputs)
-            outputs.behaviour_outputs.append(home['behaviour_outputs'])
-            outputs.teacher_outputs.append(home['teacher_outputs'])
-            outputs.baselines.append(baselines)
-            outputs.rewards.append(
+            outputs_dict['target_outputs'].append(target_outputs)
+            outputs_dict['behaviour_outputs'].append(home['behaviour_outputs'])
+            outputs_dict['teacher_outputs'].append(home['teacher_outputs'])
+            outputs_dict['baselines'].append(baselines)
+            outputs_dict['rewards'].append(
                 self._compute_pseudo_rewards(home['agent_z'], home['target_z'], home['rewards'], home['game_seconds'])
             )
-            outputs.actions.append(home['actions'])
+            outputs_dict['actions'].append(home['actions'])
         # last baselines/values
         last_obs = {'home': data[-1]['home_next'], 'away': data[-1]['away_next']}
         if self.use_target_state and next_state_home is not None:
             last_obs['home']['prev_state'] = next_state_home
             last_obs['away']['prev_state'] = next_state_away
-        last_baselines = self.agent.compute_action_value(last_obs, temperature)
-        outputs = list(zip(*outputs))
+        last_baselines = self.agent.compute_action_value(last_obs, temperature)[1]
+        outputs_dict['baselines'].append(last_baselines)
+        # change dim(tra_len, key, bs->key, tra_len, bs)
+        for k in outputs_dict.keys():
+            if k != 'game_seconds':
+                print('key', k)
+                outputs_dict[k] = list_dict2dict_list(outputs_dict[k])
+        outputs_dict['baselines'] = {
+            k: torch.stack(v, dim=0)
+            for k, v in zip(outputs_dict['baselines']._fields, outputs_dict['baselines'])
+        }
+        outputs_dict['rewards'] = {k: torch.stack(v, dim=0) for k, v in outputs_dict['rewards'].items()}
         # add game_seconds
-        outputs.append(data[0]['home']['game_seconds'])
-        return outputs
+        outputs_dict['game_seconds'].extend(data[-1]['home']['game_seconds'])
+        return self.rollout_outputs(*outputs_dict.values())
 
     def _compute_pseudo_rewards(self, agent_z, target_z, rewards, game_seconds):
         """
@@ -155,28 +165,35 @@ class AlphaStarSupervisedLoss(BaseLoss):
         def loc_fn(p1, p2, max_limit=self.build_order_location_max_limit):
             dist = F.l1_loss(p1, p2, reduction='sum')
             dist = dist.clamp(0, max_limit)
+            dist = dist / max_limit * self.build_order_location_rescale
             return dist
 
-        def get_time_factor():
-            if game_seconds < 8 * 60:
+        def get_time_factor(game_second):
+            if game_second < 8 * 60:
                 return 1.0
-            elif game_seconds < 16 * 60:
+            elif game_second < 16 * 60:
                 return 0.5
-            elif game_seconds < 24 * 60:
+            elif game_second < 24 * 60:
                 return 0.25
             else:
                 return 0
 
+        factors = torch.FloatTensor([get_time_factor(s) for s in game_seconds]).to(rewards.device)
+
         new_rewards = {}
-        new_rewards['winloss'] = rewards
-        new_rewards['build_order'] = levenshtein_distance(
-            agent_z['build_order']['type'], target_z['build_order']['type'], agent_z['build_order']['loc'],
-            target_z['build_order']['loc'], loc_fn
-        )
+        assert rewards.shape == (self.batch_size, 1)
+        new_rewards['winloss'] = rewards.squeeze(1)
+        build_order_reward = []
+        for i in range(self.batch_size):
+            build_order_reward.append(
+                levenshtein_distance(
+                    agent_z['build_order']['type'][i], target_z['build_order']['type'][i],
+                    agent_z['build_order']['loc'][i], target_z['build_order']['loc'][i], loc_fn
+                ) * factors[i]
+            )
+        new_rewards['build_order'] = torch.FloatTensor(build_order_reward).to(rewards.device)
         for k in ['built_units', 'upgrades', 'effects']:
-            new_rewards[k] = hamming_distance(agent_z[k], target_z[k])
-        factor = get_time_factor()
-        new_rewards = {k: v * factor for k, v in new_rewards.items()}
+            new_rewards[k] = hamming_distance(agent_z[k], target_z[k], factors)
         return new_rewards
 
     def _td_lambda_loss(self, baseline, reward):
