@@ -56,7 +56,10 @@ class Policy(nn.Module):
         for idx, action in enumerate(action_type):
             action_type_val = ACTIONS_REORDER_INV[action.item()]
             action_info_hard_craft = GENERAL_ACTION_INFO_MASK[action_type_val]
-            action_info_stat = ACTIONS_STAT[action_type_val]
+            try:
+                action_info_stat = ACTIONS_STAT[action_type_val]
+            except KeyError:
+                action_info_stat = {'selected_type': [], 'target_type': []}
             # else case is the placeholder
             if action_info_hard_craft['selected_units']:
                 type_hard_craft = set(action_info_hard_craft['avail_unit_type_id'])
@@ -277,7 +280,7 @@ class Policy(nn.Module):
             actions['target_units'].append(target_units)
             # action arg target_location
             if action_attr['target_location'][idx]:
-                map_skip_single = [t[idx:idx + 1] for t in map_skip]
+                map_skip_single = [t[idx] for t in map_skip]
                 logits_location, location = self.head['location_head'](
                     embedding, map_skip_single, mask['location_mask'][idx], temperature
                 )
