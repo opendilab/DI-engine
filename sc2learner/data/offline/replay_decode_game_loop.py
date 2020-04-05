@@ -18,6 +18,7 @@ import sys
 import collections
 import time
 import copy
+import traceback
 
 from absl import app
 from absl import logging
@@ -36,7 +37,7 @@ from s2clientprotocol import sc2api_pb2 as sc_pb
 from sc2learner.envs.observations.alphastar_obs_wrapper import AlphastarObsParser, compress_obs, decompress_obs, \
     transform_cum_stat, transform_stat
 from sc2learner.envs.actions.alphastar_act_wrapper import AlphastarActParser, remove_repeat_data
-from sc2learner.envs.maps.map_info import LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT
+from sc2learner.envs.maps.map_info import LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT, LE_BNET_NAME_TO_PYSC2_NAME_LUT
 
 logging.set_verbosity(logging.INFO)
 FLAGS = flags.FLAGS
@@ -262,7 +263,7 @@ class ReplayDecoder(multiprocessing.Process):
         if (info.HasField("error")):
             logging.warning('Info have error')
             return None
-        if (info.map_name not in LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT.keys()):
+        if (info.map_name not in LE_BNET_NAME_TO_PYSC2_NAME_LUT.keys()):
             logging.error(
                 'Found replay using unknown map {}, or there is sth wrong with locale'.format(info.map_name) +
                 ' Try regenerate map_info.py'
@@ -295,7 +296,7 @@ class ReplayDecoder(multiprocessing.Process):
             ret = dict()
             ret['game_duration_loops'] = info.game_duration_loops
             ret['game_version'] = info.game_version
-            ret['map_name'] = LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT[info.map_name]
+            ret['map_name'] = LE_BNET_NAME_TO_PYSC2_NAME_LUT[info.map_name]
             ret['home_race'] = race_dict[info.player_info[home].player_info.race_actual]
             ret['home_mmr'] = info.player_info[home].player_mmr
             ret['home_apm'] = info.player_info[home].player_apm
@@ -308,6 +309,27 @@ class ReplayDecoder(multiprocessing.Process):
             ret['screen_resolution'] = 1  # placeholder
             returns.append(ret)
         return returns
+
+    def check_steps(self, replay):
+        new_replay = []
+        for i, step in enumerate(replay):
+            entity_raw = step['entity_raw']
+            actions = step['actions']
+            id_list = entity_raw['id']
+            flag = True
+            if isinstance(actions['selected_units'], torch.Tensor):
+                for val in actions['selected_units']:
+                    if val not in id_list:
+                        flag = False
+                        continue
+            if isinstance(actions['target_units'], torch.Tensor):
+                for val in actions['target_units']:
+                    if val not in id_list:
+                        flag = False
+                        continue
+            if flag:
+                new_replay.append(step)
+        return new_replay
 
     def run(self):
         # interface to be called when starting process
@@ -345,11 +367,11 @@ class ReplayDecoder(multiprocessing.Process):
                         os.path.basename(replay_path).split('.')[0]
                     )
                     torch.save(meta_data_0, os.path.join(self.output_dir, name0 + '.meta'))
-                    torch.save(step_data[0], os.path.join(self.output_dir, name0 + '.step'))
+                    torch.save(self.check_steps(step_data[0]), os.path.join(self.output_dir, name0 + '.step'))
                     torch.save(stat[0], os.path.join(self.output_dir, name0 + '.stat'))
                     torch.save(stat_processed_0, os.path.join(self.output_dir, name0 + '.stat_processed'))
                     torch.save(meta_data_1, os.path.join(self.output_dir, name1 + '.meta'))
-                    torch.save(step_data[1], os.path.join(self.output_dir, name1 + '.step'))
+                    torch.save(self.check_steps(step_data[1]), os.path.join(self.output_dir, name1 + '.step'))
                     torch.save(stat[1], os.path.join(self.output_dir, name1 + '.stat'))
                     torch.save(stat_processed_1, os.path.join(self.output_dir, name1 + '.stat_processed'))
                     logging.info(
@@ -364,12 +386,16 @@ class ReplayDecoder(multiprocessing.Process):
                 self.handle.close()
                 self.handle = self.run_config.start(want_rgb=False)
                 self.controller = self.handle.controller
+            except Exception as e:
+                logger.info(''.join(traceback.format_tb(e.__traceback__)))
+                logging.error('InnerError: {}'.format(sys.exc_info()))
         self.handle.close()
 
 
 def main(unused_argv):
     run_config = run_configs.get(FLAGS.version)
-    replay_list = sorted(run_config.replay_paths(FLAGS.replays))
+    # replay_list = sorted(run_config.replay_paths(FLAGS.replays))
+    replay_list = [x.strip() for x in open(FLAGS.replays, 'r').readlines()]
     fitered_replays = []  # filter replays by version
     if FLAGS.check_version:
         for replay_path in replay_list:

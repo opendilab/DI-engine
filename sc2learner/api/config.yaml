@@ -8,7 +8,7 @@ api:
     actor:
         heartbeats_thread: True
     manager:
-        auto_run_actor: True
+        auto_run_actor: False
         use_partitions: ['VI_Face_1080TI', 'VI_SP_Y_V100_B']
         actor_num: [2, 2]
     coordinator:

@@ -218,7 +218,7 @@ def one_hot(val, num, num_first=False):
         print(val_reshape, num, val_reshape.shape)
         raise RuntimeError
     if num_first:
-        return ret.reshape(num, *old_shape)
+        return ret.permute(1, 0).reshape(num, *old_shape)
     else:
         return ret.reshape(*old_shape, num)
 
