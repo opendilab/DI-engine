@@ -1,4 +1,9 @@
 """Library for RL optimization"""
+import math
+import numpy as np
+import torch
+import torch.Tensor as Tensor  # TODO(nyz) update specific tensor API
+
 
 class BaseOptimizer:
     """optimizer
@@ -22,14 +27,13 @@ class BaseOptimizer:
         self.old_critic = critic
         self.old_critic.eval()
         self.old_actor = actor
-        self.old_actor.eval()    
-        
+        self.old_actor.eval()
+
     def update_weight(self):
         self.old_actor.load_state_dict(self.actor.state_dict())
         self.old_critic.load_state_dict(self.critic.state_dict())
 
-
-    def update_ppo(a_batch_of_data):
+    def update_ppo(self, a_batch_of_data):
         batch_size = a_batch_of_data.size(0)
 
         rewards = a_batch_of_data['rewards']
@@ -57,7 +61,7 @@ class BaseOptimizer:
         if self.cfg.rl.advantage_norm:
             advantages = (advantages - advantages.mean()) / (advantages.std() + self.cfg.rl.EPS)
 
-        losses, surr_losses, value_losses, ent_losses = [],[],[],[]
+        losses, surr_losses, value_losses, ent_losses = [], [], [], []
 
         for i_epoch in range(int(self.cfg.rl.num_train_epoch * batch_size / self.cfg.rl.mini_batch_size)):
             minibatch_ind = np.random.choice(batch_size, self.cfg.rl.mini_batch_size, replace=False)
@@ -69,14 +73,16 @@ class BaseOptimizer:
             minibatch_returns = returns[minibatch_ind]
             minibatch_newvalues = self.critic(minibatch_states).flatten()
 
-            ratio =  torch.exp(minibatch_newlogproba - minibatch_oldlogproba)
+            ratio = torch.exp(minibatch_newlogproba - minibatch_oldlogproba)
             surr1 = ratio * minibatch_advantages
             surr2 = ratio.clamp(1 - self.cfg.rl.ppo_clip, 1 + self.cfg.rl.ppo_clip) * minibatch_advantages
-            loss_surr = - torch.mean(torch.min(surr1, surr2))
+            loss_surr = -torch.mean(torch.min(surr1, surr2))
             loss_value = torch.mean((minibatch_newvalues - minibatch_returns).pow(2))
             loss_entropy = torch.mean(torch.exp(minibatch_newlogproba) * minibatch_newlogproba)
-            total_loss = loss_surr + self.cfg.rl.loss_coeff_value * loss_value + self.cfg.rl.loss_coeff_entropy * loss_entropy
-            
+            total_loss = (
+                loss_surr + self.cfg.rl.loss_coeff_value * loss_value + self.cfg.rl.loss_coeff_entropy * loss_entropy
+            )
+
             losses.append(total_loss.detach().cpu().numpy())
             surr_losses.append(loss_surr.detach().cpu().numpy())
             value_losses.append(loss_value.detach().cpu().numpy())
@@ -85,16 +91,16 @@ class BaseOptimizer:
             self.optim.zero_grad()
             total_loss.backward()
             self.optim.step()
-            
+
         self.sync_weight()
         return {
             'loss': losses,
             'loss_surr': surr_losses,
             'loss_value': value_losses,
             'loss_entropy': ent_losses,
-        } 
+        }
 
-    def update_a2c(a_batch_of_data):
+    def update_a2c(self, a_batch_of_data):
         batch_size = a_batch_of_data.size(0)
 
         rewards = a_batch_of_data['rewards']
@@ -129,9 +135,9 @@ class BaseOptimizer:
         action_mean, action_std_curr, value_curr = self.actor(Tensor(states))
         logproba_curr = self.actor.get_logproba(Tensor(states), Tensor(actions))
 
-        loss_policy = torch.mean(- logproba_curr * advantages)
+        loss_policy = torch.mean(-logproba_curr * advantages)
         loss_value = torch.mean((value_curr - returns).pow(2))
-        loss_entropy = torch.mean(- (torch.log(2 * math.pi * action_std_curr.pow(2)) + 1) / 2)
+        loss_entropy = torch.mean(-(torch.log(2 * math.pi * action_std_curr.pow(2)) + 1) / 2)
         loss = loss_policy + self.cfg.rl.loss_coeff_value * loss_value + self.cfg.rl.loss_coeff_entropy * loss_entropy
 
         self.optim.zero_grad()
@@ -144,22 +150,22 @@ class BaseOptimizer:
             'loss_value': loss_value,
             'loss_entropy': loss_entropy,
         }
-        
-
 
     def process_data(a_batch_of_data):
         raise NotImplementedError
 
 
 class UPGOOptimizer(BaseOptimizer):
-    def update(a_batch_of_data)
+    def update(a_batch_of_data):
+        raise NotImplementedError
 
-    def process_data(a_batch_of_data)
-
+    def process_data(a_batch_of_data):
+        raise NotImplementedError
 
 
 class VTraceOptimizer(BaseOptimizer):
-    def update(a_batch_of_data)
+    def update(a_batch_of_data):
+        raise NotImplementedError
 
-    def process_datas(a_batch_of_data)
-
+    def process_datas(a_batch_of_data):
+        raise NotImplementedError

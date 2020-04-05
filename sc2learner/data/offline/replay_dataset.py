@@ -237,9 +237,7 @@ def policy_collate_fn(batch, max_delay=63, action_type_transform=True):
     b_len = [len(b) for b in batch]
     max_len = max(b_len)
     min_len = min(b_len)
-    if max_len == min_len:
-        seq = list(zip(*batch))
-    else:
+    if max_len != min_len:
         seq = []
         for i in range(max_len):
             tmp = []
