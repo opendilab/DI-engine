@@ -47,7 +47,7 @@ class Learner:
             import logging
             logging.error("You do not have GPU! If you are not testing locally, something is going wrong.")
             self.use_cuda = False
-        assert self.train_dataloader_type in ['epoch', 'iter']
+        assert self.train_dataloader_type in ['epoch', 'iter', 'online']
 
         # build model
         self.agent = self._setup_agent()  # build model by policy from alphaStar
@@ -115,7 +115,7 @@ class Learner:
         self.checkpoint_manager = build_checkpoint_helper(self.cfg.common.save_path, self.rank)
         if self.train_dataloader_type == 'epoch':
             self.ckpt_dataset = self.dataset
-        elif self.train_dataloader_type == 'iter':
+        elif self.train_dataloader_type in ['iter', 'online']:
             # iter type doesn't save some context
             self.ckpt_dataset = None
         else:
@@ -175,7 +175,7 @@ class Learner:
                     self.lr_scheduler.step()  # update lr
                 self._run()
                 self.last_epoch.add(1)
-        elif self.train_dataloader_type == 'iter':
+        elif self.train_dataloader_type in ['iter', 'online']:
             self._run()
 
         self.save_checkpoint()
@@ -239,7 +239,7 @@ class Learner:
 
 class SupervisedLearner(Learner):
     """An abstract supervised learning learner class"""
-    _name = "BaseSuppervisedLearner"
+    _name = "BaseSupervisedLearner"
 
 
 def transform_dict(var_items, keys):

@@ -19,7 +19,7 @@ class AlphaStarActorCritic(ActorCriticBase):
     EvalOutput = namedtuple('EvalOutput', ['actions', 'logits', 'next_state'])
     MimicOutput = namedtuple('MimicOutput', ['logits', 'next_state'])
     StepInput = namedtuple('StepInput', ['home', 'away'])
-    StepOutput = namedtuple('StepOutput', ['actions', 'baselines', 'next_state_home', 'next_state_away'])
+    StepOutput = namedtuple('StepOutput', ['actions', 'logits', 'baselines', 'next_state_home', 'next_state_away'])
     CriticInput = namedtuple(
         'CriticInput', [
             'lstm_output_home', 'lstm_output_away', 'baseline_feature_home', 'baseline_feature_away', 'cum_stat_home',
@@ -170,10 +170,11 @@ class AlphaStarActorCritic(ActorCriticBase):
 
         # policy
         policy_inputs = self.policy.EvaluateInput(
-            inputs['home']['entity_raw'], lstm_output_home, entity_embeddings, map_skip, scalar_context
+            inputs['home']['entity_raw'], inputs['home']['scalar_info']['available_actions'], lstm_output_home,
+            entity_embeddings, map_skip, scalar_context
         )
-        actions = self.policy(policy_inputs, mode='evaluate', **kwargs)
-        return self.StepOutput(actions, baselines, next_state_home, next_state_away)
+        actions, logits = self.policy(policy_inputs, mode='evaluate', **kwargs)
+        return self.StepOutput(actions, logits, baselines, next_state_home, next_state_away)
 
     # overwrite
     def _critic_forward(self, inputs):
@@ -189,7 +190,7 @@ class AlphaStarActorCritic(ActorCriticBase):
                     ret.append(v)
             return ret
 
-        cum_stat_home, cum_stat_away = inputs['cum_stat_home'], inputs['cum_stat_away']
+        cum_stat_home, cum_stat_away = inputs.cum_stat_home, inputs.cum_stat_away
         # 'lstm_output_home', 'lstm_output_away', 'baseline_feature_home', 'baseline_feature_away'
         # are torch.Tensors and are shared across all baselines
         same_part = torch.cat(inputs[:4], dim=1)

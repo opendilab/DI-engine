@@ -1,9 +1,7 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import numbers
 from datetime import datetime
+from collections.abc import Sequence
+from collections import namedtuple
 
 import numpy as np
 import torch
@@ -17,7 +15,7 @@ def deepcopy(data):
         new_data = {}
         for k, v in data.items():
             new_data[k] = deepcopy(v)
-    elif isinstance(data, list) or isinstance(data, tuple):
+    elif isinstance(data, Sequence):
         new_data = []
         for item in data:
             new_data.append(deepcopy(item))
@@ -33,14 +31,20 @@ def deepcopy(data):
 
 
 def list_dict2dict_list(data):
-    assert (isinstance(data, list))
+    assert (isinstance(data, Sequence))
     if len(data) == 0:
         raise ValueError("empty data")
-    keys = data[0].keys()
-    new_data = {k: [] for k in keys}
-    for b in range(len(data)):
-        for k in keys:
-            new_data[k].append(data[b][k])
+    if isinstance(data[0], dict):
+        keys = data[0].keys()
+        new_data = {k: [] for k in keys}
+        for b in range(len(data)):
+            for k in keys:
+                new_data[k].append(data[b][k])
+    elif isinstance(data[0], tuple) and hasattr(data[0], '_fields'):  # namedtuple
+        new_data = list(zip(*data))
+        new_data = type(data[0])(*new_data)
+    else:
+        raise TypeError("not support element type: {}".format(type(data[0])))
     return new_data
 
 

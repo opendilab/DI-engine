@@ -1,1 +1,2 @@
-from sc2learner.optimizer.alphastar_sl_optimizer import AlphaStarSupervisedOptimizer
+from .alphastar_sl_optimizer import AlphaStarSupervisedOptimizer
+from .alphastar_rl_optimizer import AlphaStarRLOptimizer

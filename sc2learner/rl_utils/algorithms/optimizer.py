@@ -1,4 +1,9 @@
 """Library for RL optimization"""
+import math
+import numpy as np
+import torch
+import torch.Tensor as Tensor  # TODO(nyz) update specific tensor API
+
 
 
 class BaseOptimizer:
@@ -29,7 +34,7 @@ class BaseOptimizer:
         self.old_actor.load_state_dict(self.actor.state_dict())
         self.old_critic.load_state_dict(self.critic.state_dict())
 
-    def update_ppo(a_batch_of_data):
+    def update_ppo(self, a_batch_of_data):
         batch_size = a_batch_of_data.size(0)
 
         rewards = a_batch_of_data['rewards']
@@ -75,7 +80,9 @@ class BaseOptimizer:
             loss_surr = -torch.mean(torch.min(surr1, surr2))
             loss_value = torch.mean((minibatch_newvalues - minibatch_returns).pow(2))
             loss_entropy = torch.mean(torch.exp(minibatch_newlogproba) * minibatch_newlogproba)
-            total_loss = loss_surr + self.cfg.rl.loss_coeff_value * loss_value + self.cfg.rl.loss_coeff_entropy * loss_entropy
+            total_loss = (
+                loss_surr + self.cfg.rl.loss_coeff_value * loss_value + self.cfg.rl.loss_coeff_entropy * loss_entropy
+            )
 
             losses.append(total_loss.detach().cpu().numpy())
             surr_losses.append(loss_surr.detach().cpu().numpy())
@@ -94,7 +101,7 @@ class BaseOptimizer:
             'loss_entropy': ent_losses,
         }
 
-    def update_a2c(a_batch_of_data):
+    def update_a2c(self, a_batch_of_data):
         batch_size = a_batch_of_data.size(0)
 
         rewards = a_batch_of_data['rewards']

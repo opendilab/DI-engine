@@ -39,7 +39,6 @@ class BaseOptimizer:
         self.loss.register_log(variable_record, tb_logger)
 
     def state_dict(self):
-        # FIXME(pzh, nyz) should we add optimizer state to the agent / learner state??
         return self.optimizer.state_dict()
 
     def load_state_dict(self, state_dict):

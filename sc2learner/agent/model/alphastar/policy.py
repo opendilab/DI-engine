@@ -281,7 +281,7 @@ class Policy(nn.Module):
             actions['target_units'].append(target_units)
             # action arg target_location
             if action_attr['target_location'][idx]:
-                map_skip_single = [t[idx:idx + 1] for t in map_skip]
+                map_skip_single = [t[idx] for t in map_skip]
                 logits_location, location = self.head['location_head'](
                     embedding, map_skip_single, mask['location_mask'][idx], temperature
                 )

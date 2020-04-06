@@ -749,10 +749,11 @@ def transform_scalar_data():
             'ori': 'available_actions',
             'scalar_context': True,
             'other': 'boolean vector',
-            'op': partial(
-                reorder_boolean_vector, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT
-            )
-        },  # noqa
+            #     'op': partial(
+            #         reorder_boolean_vector, dictionary=ACTIONS_REORDER, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT
+            #     )
+            'op': lambda x: x,
+        },
         {
             'key': 'unit_counts_bow',
             'arch': 'fc',
