@@ -348,14 +348,13 @@ def get_available_actions_raw_data(obs):
     vector = []
     for function in FUNCTION_LIST:
         if function.func_id == 111 or function.func_id == 112:
-            if ((87 in upgrades_set and 74 in units_set)
-               or (141 in upgrades_set and 76 in units_set)):
+            if ((87 in upgrades_set and 74 in units_set) or (141 in upgrades_set and 76 in units_set)):
                 vector.append(1)
             else:
                 vector.append(0)
         elif function.func_id == 232 or function.func_id == 246:
-            if ((498 in units_set or 500 in units_set) or (502 in units_set)
-               or (64 in upgrades_set) or (503 in units_set)):
+            if ((498 in units_set or 500 in units_set) or (502 in units_set) or (64 in upgrades_set)
+                    or (503 in units_set)):
                 vector.append(1)
             else:
                 vector.append(0)
@@ -386,7 +385,7 @@ def get_available_actions_processed_data(data):
     alliance_start = 4 + 259
     units_set = set()
     for unit_type, info in zip(data['entity_raw']['type'], data['entity_info']):
-        alliance = info[alliance_start:alliance_start+5]
+        alliance = info[alliance_start:alliance_start + 5]
         if alliance[1] == 1:
             units_set.add(unit_type)
     upgrades_set = set()
@@ -395,14 +394,13 @@ def get_available_actions_processed_data(data):
     vector = []
     for function in FUNCTION_LIST:
         if function.func_id == 111 or function.func_id == 112:
-            if ((87 in upgrades_set and 74 in units_set)
-               or (141 in upgrades_set and 76 in units_set)):
+            if ((87 in upgrades_set and 74 in units_set) or (141 in upgrades_set and 76 in units_set)):
                 vector.append(function.func_id)
             else:
                 pass
         elif function.func_id == 232 or function.func_id == 246:
-            if ((498 in units_set or 500 in units_set) or (502 in units_set)
-               or (64 in upgrades_set) or (503 in units_set)):
+            if ((498 in units_set or 500 in units_set) or (502 in units_set) or (64 in upgrades_set)
+                    or (503 in units_set)):
                 vector.append(function.func_id)
             else:
                 pass
