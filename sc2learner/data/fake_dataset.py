@@ -31,7 +31,7 @@ def random_tensor(size, dtype=torch.float32):
 
 
 def random_action_type():
-    action_type = np.random.choice(ACTION_CANDIDATES, [1])
+    action_type = np.random.choice(NUM_ACTION_TYPES, [1])
     return torch.from_numpy(action_type).type(torch.int64)
 
 
@@ -80,7 +80,6 @@ def get_single_step_data():
     )
 
     # TODO(pzh) it's all int64 here. not correct.
-
     actions = OrderedDict(
         action_type=random_action_type(),
         delay=torch.randint(0, DELAY_MAX, size=[1], dtype=torch.int64),
@@ -91,6 +90,7 @@ def get_single_step_data():
         target_location=NOOP
         if np.random.random() > 0.8 else torch.randint(0, min(MAP_SIZE), size=[2], dtype=torch.int64)
     )
+
     return OrderedDict(
         scalar_info=scalar_info,
         entity_raw=entity_raw,
@@ -195,7 +195,7 @@ class FakeActorDataset:
         def get_outputs():
             prob = np.random.random()
             ret = {}
-            ret['action_type'] = torch.rand(ACTION_CANDIDATES)
+            ret['action_type'] = torch.rand(NUM_ACTION_TYPES)
             ret['delay'] = torch.rand(1) * DELAY_MAX
             ret['queued'] = NOOP if np.random.random() > 0.8 else torch.randn(2)
             if prob < 0.5:
@@ -240,6 +240,7 @@ class FakeActorDataset:
                                                         ) if np.random.random() > 0.3 else get_outputs()
             base['teacher_outputs'] = disturb_outputs(base['target_outputs']
                                                       ) if np.random.random() > 0.3 else get_outputs()
+            base['teacher_actions'] = copy.deepcopy(base['actions'])
             return base
 
         data = []
