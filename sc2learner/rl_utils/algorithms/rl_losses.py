@@ -119,10 +119,18 @@ def compute_importance_weights(
     with grad_context:
         if output_type == 'value':
             rhos = torch.clamp(target_output / (behaviour_output + eps), max=3)  # action_logits can be zero
+            rhos = rhos.mean(dim=2)
         elif output_type == 'logit':
+            assert (len(action.shape) == 2)
+            old_shape = action.shape
+            target_output = target_output.reshape(-1, target_output.shape[-1])
+            behaviour_output = behaviour_output.reshape(-1, behaviour_output.shape[-1])
+            action = action.reshape(-1)
+            # (N, n_output) (N)
             rhos = F.cross_entropy(
                 target_output, action, reduction='none'
             ) / (F.cross_entropy(behaviour_output, action, reduction='none') + eps)
+            rhos = rhos.reshape(*old_shape)
         else:
             raise RuntimeError("not support target output type: {}".format(output_type))
         rhos = rhos.clamp(min_clip, max_clip)
@@ -147,7 +155,7 @@ def upgo_returns(rewards, bootstrap_values):
     bootstrap_values_tp1 = bootstrap_values[1:, :]
     bootstrap_values_tp2 = torch.cat((bootstrap_values_tp1[1:, :], bootstrap_values[-1, :].unsqueeze(0)), 0)
     lambdas = 1.0 * (rewards + bootstrap_values_tp2) >= bootstrap_values_tp1
-    return generalized_lambda_returns(rewards, 1.0, bootstrap_values, lambdas, False)
+    return generalized_lambda_returns(rewards, 1.0, bootstrap_values, lambdas)
 
 
 def upgo_loss(target_output, output_type, rhos, action, rewards, bootstrap_values):
@@ -172,8 +180,14 @@ def upgo_loss(target_output, output_type, rhos, action, rewards, bootstrap_value
         returns = upgo_returns(rewards, bootstrap_values)
         advantages = rhos * (returns - bootstrap_values[:-1])
     if output_type == 'value':
+        assert (target_output.shape[2] == 1)
+        target_output = target_output.squeeze(2)
         metric = F.l1_loss(target_output, action.float())
     elif output_type == 'logit':
+        assert (len(action.shape) == 2)
+        old_shape = action.shape
+        target_output = target_output.reshape(-1, target_output.shape[-1])
+        action = action.reshape(-1)
         metric = F.cross_entropy(target_output, action)
     else:
         raise RuntimeError("not support target output type: {}".format(output_type))
@@ -232,8 +246,14 @@ def vtrace_loss(target_output, output_type, rhos, cs, action, rewards, bootstrap
     with torch.no_grad():
         advantages = vtrace_advantages(rhos, cs, rewards, bootstrap_values, gammas=gamma, lambda_=lambda_)
     if output_type == 'value':
+        assert (target_output.shape[2] == 1)
+        target_output = target_output.squeeze(2)
         metric = F.l1_loss(target_output, action.float())
     elif output_type == 'logit':
+        assert (len(action.shape) == 2)
+        old_shape = action.shape
+        target_output = target_output.reshape(-1, target_output.shape[-1])
+        action = action.reshape(-1)
         metric = F.cross_entropy(target_output, action)
     else:
         raise RuntimeError("not support target output type: {}".format(output_type))
@@ -253,7 +273,7 @@ def entropy(policy_logits, masked_threshold=-1e3):
     """
     # mask all the masked logits in entropy computation
     valid_flag = torch.where(
-        policy_logits > masked_threshold, torch.one_like(policy_logits), torch.zeros_like(policy_logits)
+        policy_logits > masked_threshold, torch.ones_like(policy_logits), torch.zeros_like(policy_logits)
     )
     entropy = -F.softmax(policy_logits, dim=2) * F.log_softmax(policy_logits, dim=2)
     entropy = entropy * valid_flag
@@ -305,46 +325,3 @@ def pg_loss(
                        gamma=vtrace_gamma, lambda_=vtrace_lambda)\
         + upgo_weight * upgo_loss(current_logits, rhos, action, rewards, bootstrap_values)\
         - ent_weight * entropy(current_logits)
-
-
-if __name__ == '__main__':
-    test_data = {}
-    test_data['T_traj'] = 64
-    test_data['batchsize'] = 32
-    test_data['n_action_type'] = 3
-    torch.manual_seed(10)
-    test_data['action_logits'] = torch.cat(
-        (
-            torch.ones((test_data['T_traj'] - 2, test_data['batchsize'], test_data['n_action_type'])),
-            torch.zeros((2, test_data['batchsize'], test_data['n_action_type']))
-        )
-    )
-    test_data['current_logits'] = torch.cat(
-        (
-            torch.ones((test_data['T_traj'] - 2, test_data['batchsize'], test_data['n_action_type'])),
-            torch.zeros((2, test_data['batchsize'], test_data['n_action_type']))
-        )
-    )
-    test_data['action'] = torch.randint(0, test_data['n_action_type'], (test_data['T_traj'], test_data['batchsize']))
-    test_data['rewards'] = torch.cat(
-        (torch.ones((test_data['T_traj'] - 2, test_data['batchsize'])), torch.zeros((2, test_data['batchsize'])))
-    )
-    # test_data['rewards'][1,:]=100
-    test_data['bootstrap_value'] = torch.cat(
-        (torch.ones((test_data['T_traj'] - 2, test_data['batchsize'])), torch.zeros((2 + 1, test_data['batchsize'])))
-    )
-
-    test_data['bootstrap_value'][1, :] = -100
-    test_data['bootstrap_value'][2, :] = -100
-    print(
-        pg_loss(
-            test_data['action_logits'],
-            test_data['current_logits'],
-            test_data['action'],
-            test_data['rewards'],
-            test_data['bootstrap_value'],
-            upgo_weight=1,
-            ent_weight=0.01
-        )
-    )
-    print(td_lambda_loss(test_data['rewards'], test_data['bootstrap_value'], gamma=1, lambda_=0))
