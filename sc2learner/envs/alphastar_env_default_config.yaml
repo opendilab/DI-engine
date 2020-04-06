@@ -10,5 +10,6 @@ env:
     obs_stat_type: 'self_online'  # self_online, replay_online, replay_last
     pseudo_reward_type: 'global'  # global, immediate
     pseudo_reward_prob: 0.25
+    ignore_camera: True
     begin_num: 20
     action_delays: [0.5, 0.25, 0.25]  # list of probablities of delay from 1 to n or null for delay=1

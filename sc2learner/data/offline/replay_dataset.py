@@ -45,6 +45,7 @@ class ReplayDataset(BaseDataset):
         self.use_ceph = dataset_config.use_ceph
         self.use_available_action_transform = dataset_config.use_available_action_transform
         self.use_enemy_upgrades = dataset_config.use_enemy_upgrades
+        self.ignore_camera = dataset_config.get('ignore_camera', True)
 
     def __len__(self):
         return len(self.path_list)
@@ -157,6 +158,12 @@ class ReplayDataset(BaseDataset):
         enemy_upgrades = None
         for i in range(len(sample_data)):
             sample_data[i]['map_size'] = map_size
+            if self.ignore_camera:
+                # mask camera spatial info
+                sample_data[i]['spatial_info'][1:3] *= 0
+                # mask is_on_screen entity info
+                sample_data[i]['entity_info'][:, 408:410] *= 0
+
             if self.use_stat:
                 sample_data[i]['scalar_info']['beginning_build_order'] = beginning_build_order * self.bool_bo
                 sample_data[i]['scalar_info']['mmr'] = mmr
