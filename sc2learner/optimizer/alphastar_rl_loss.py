@@ -59,7 +59,7 @@ def pad_stack(data, pad_val):
 
 class AlphaStarRLLoss(BaseLoss):
     def __init__(self, agent, train_config, model_config):
-        self.action_keys = ['action_type', 'delay', 'queued', 'target_units', 'target_location']
+        self.action_keys = ['action_type', 'delay', 'queued', 'selected_units', 'target_units', 'target_location']
         self.loss_keys = ['total', 'td_lambda', 'vtrace', 'upgo', 'kl', 'action_type_kl', 'entropy']
         self.rollout_outputs = namedtuple(
             "rollout_outputs", [
@@ -277,16 +277,25 @@ class AlphaStarRLLoss(BaseLoss):
         return loss
 
     def _human_kl_loss(self, target_outputs, teacher_outputs, target_actions, teacher_actions, game_seconds):
+        def kl(stu, tea):
+            stu = F.log_softmax(stu, dim=-1)
+            tea = F.softmax(tea, dim=-1)
+            return F.kl_div(stu, tea)
+
         target_outputs, teacher_outputs, target_actions, teacher_actions = self._filter_pack(
             target_outputs, teacher_outputs, target_actions, teacher_actions
         )
         kl_loss = 0.
         for k in self.action_keys:
-            if len(teacher_actions[k]) > 0:
+            if len(teacher_outputs[k]) > 0:
                 if self.action_output_types[k] == 'logit':
-                    target_output = F.log_softmax(target_outputs[k], dim=-1)
-                    teacher_output = F.softmax(teacher_outputs[k], dim=-1)
-                    kl_loss += F.kl_div(target_output, teacher_output)
+                    if k == 'selected_units':
+                        for t in range(self.T):
+                            for b in range(self.batch_size):
+                                if teacher_outputs[k][t][b] is not None:
+                                    kl_loss += kl(target_outputs[k][t][b], teacher_outputs[k][t][b])
+                    else:
+                        kl_loss += kl(target_outputs[k], teacher_outputs[k])
                 elif self.action_output_types[k] == 'value':
                     target_output, teacher_output = target_outputs[k], teacher_outputs[k]
                     kl_loss += F.l1_loss(target_output, teacher_output)
@@ -295,9 +304,7 @@ class AlphaStarRLLoss(BaseLoss):
         for i in range(len(game_seconds)):
             if game_seconds[i] < self.action_type_kl_seconds:
                 # batch dim
-                target_output = F.log_softmax(target_outputs['action_type'][:, i], dim=1)
-                teacher_output = F.softmax(teacher_outputs['action_type'][:, i], dim=1)
-                action_type_kl_loss += F.kl_div(target_output, teacher_output)
+                action_type_kl_loss += kl(target_outputs['action_type'][:, i], teacher_outputs['action_type'][:, i])
 
         return kl_loss, action_type_kl_loss
 
@@ -328,10 +335,9 @@ class AlphaStarRLLoss(BaseLoss):
 
         eq = torch.eq(new_base_actions['action_type'].squeeze(2), new_pred_actions['action_type'].squeeze(2))
         eq_idx = torch.nonzero(eq).tolist()
-        # selected_units
 
-        # queued, target_units, target_location
-        for k in ['queued', 'target_units', 'target_location']:
+        # queued, selected_units, target_units, target_location
+        for k in ['queued', 'selected_units', 'target_units', 'target_location']:
             for d, new_d in zip([pred_outputs, base_outputs, pred_actions, base_actions],
                                 [new_pred_outputs, new_base_outputs, new_pred_actions, new_base_actions]):
                 valid_list = []
@@ -341,16 +347,35 @@ class AlphaStarRLLoss(BaseLoss):
                     if tmp is not None:
                         valid_list.append(tmp)
                 if len(valid_list) > 0:
-                    # (T, B, n_output_dim)
-                    if not same_shape(valid_list):
-                        valid_list = pad_stack(valid_list, self.pad_value)
-                    ref = valid_list[0]
-                    size = (self.T, self.batch_size) + ref.shape
-                    new_d[k] = torch.zeros(size).to(dtype=ref.dtype, device=ref.device)
-                    for item, idx in zip(valid_list, eq_idx):
-                        new_d[k][idx] = item
+                    if k == 'selected_units':
+                        new_d[k] = [[None for _ in range(self.batch_size)] for _ in range(self.T)]
+                    else:
+                        # (T, B, n_output_dim)
+                        if not same_shape(valid_list):
+                            valid_list = pad_stack(valid_list, self.pad_value)
+                        ref = valid_list[0]
+                        size = (self.T, self.batch_size) + ref.shape
+                        new_d[k] = torch.zeros(size).to(dtype=ref.dtype, device=ref.device)
+                    for item, (t_idx, b_idx) in zip(valid_list, eq_idx):
+                        new_d[k][t_idx][b_idx] = item
                 else:
                     new_d[k] = []
+        # cut off selected_units num by base
+        for t in range(self.T):
+            for b in range(self.batch_size):
+                if len(new_base_actions['selected_units']) <= 0:
+                    continue
+                if new_base_actions['selected_units'][t][b] is not None:
+                    base_num = new_base_outputs['selected_units'][t][b].shape[0]
+                    pred_num = new_pred_outputs['selected_units'][t][b].shape[0]
+                    if base_num == pred_num:
+                        continue
+                    elif base_num < pred_num:
+                        new_pred_actions['selected_units'][t][b] = new_pred_actions['selected_units'][t][b][:base_num]
+                        new_pred_outputs['selected_units'][t][b] = new_pred_outputs['selected_units'][t][b][:base_num]
+                    else:
+                        new_base_actions['selected_units'][t][b] = new_base_actions['selected_units'][t][b][:pred_num]
+                        new_base_outputs['selected_units'][t][b] = new_base_outputs['selected_units'][t][b][:pred_num]
 
         return new_pred_outputs, new_base_outputs, new_pred_actions, new_base_actions
 
@@ -361,7 +386,7 @@ class AlphaStarRLLoss(BaseLoss):
         new_outputs = {}
         for k in ['action_type', 'delay']:
             new_outputs[k] = torch.stack(outputs[k], dim=0)
-        for k in ['queued', 'target_units', 'target_location']:
+        for k in ['queued', 'selected_units', 'target_units', 'target_location']:
             valid_list = []
             for t in range(self.T):
                 for b in range(self.batch_size):

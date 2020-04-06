@@ -215,7 +215,7 @@ class SelectedUnitsHead(nn.Module):
                     if end_flag_trigger[b]:
                         continue
                     else:
-                        logits[b].append(query_result)
+                        logits[b].append(query_result[b])
                         if entity_num[b] == end_flag_index:
                             end_flag_trigger[b] = True
                             continue
@@ -238,13 +238,14 @@ class SelectedUnitsHead(nn.Module):
                     if i > output_entity_num[b]:
                         continue
                     elif i < output_entity_num[b]:
-                        logits[b].append(query_result)
+                        logits[b].append(query_result[b])
                         units[b][entity_num[b]] = 1
                         if entity_num[b] != end_flag_index:
                             # mask[b][entity_num[b]] = 0
                             pass
                     else:
                         logits[b].append(query_result)
+        logits = [torch.stack(t, dim=0) for t in logits]
         embedding_selected = units.unsqueeze(2).to(key.dtype)
         embedding_selected = embedding_selected * key
         embedding_selected = embedding_selected.mean(dim=1)

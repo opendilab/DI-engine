@@ -262,6 +262,7 @@ class Policy(nn.Module):
                     embedding, mask['select_unit_type_mask'][idx], mask['select_unit_mask'][idx],
                     entity_embeddings[idx], temperature
                 )
+                logits_selected_units = logits_selected_units[0]
                 selected_units = selected_units[0]
             else:
                 logits_selected_units, selected_units = None, None

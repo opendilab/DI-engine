@@ -207,7 +207,7 @@ class FakeActorDataset:
             if isinstance(actions['selected_units'], type(NOOP)):
                 ret['selected_units'] = NOOP
             else:
-                num = random.randint(1, MAX_SELECTED_UNITS)
+                num = actions['selected_units'].shape[0]
                 ret['selected_units'] = torch.rand(num, entity_num)
             if isinstance(actions['target_units'], type(NOOP)):
                 ret['target_units'] = NOOP
@@ -233,6 +233,17 @@ class FakeActorDataset:
                 new_outputs['target_location'] += torch.randn_like(new_outputs['target_location']) * 0.1
             return new_outputs
 
+        def disturb_actions(actions):
+            new_actions = copy.deepcopy(actions)
+            if new_actions['selected_units'] != NOOP:
+                num = np.random.randint(-2, 2)
+                if num > 0:
+                    handle = new_actions['selected_units']
+                    new_actions['selected_units'] = torch.cat([handle, handle[:num]], dim=0)
+                elif num < 0:
+                    new_actions['selected_units'] = new_actions['selected_units'][:num]
+            return new_actions
+
         def get_single_rl_agent_step_data():
             base = get_single_step_data()
             base['prev_state'] = [torch.zeros(*LSTM_DIMS), torch.zeros(*LSTM_DIMS)]
@@ -244,10 +255,12 @@ class FakeActorDataset:
             base['behaviour_outputs'] = disturb_outputs(
                 base['target_outputs']
             ) if np.random.random() > 0.3 else get_outputs(base['actions'], base['entity_info'].shape[0])
-            base['teacher_outputs'] = disturb_outputs(
-                base['target_outputs']
-            ) if np.random.random() > 0.3 else get_outputs(base['actions'], base['entity_info'].shape[0])
-            base['teacher_actions'] = copy.deepcopy(base['actions'])
+            if np.random.random() > 0.3:
+                base['teacher_actions'] = copy.deepcopy(base['actions'])
+                base['teacher_outputs'] = disturb_outputs(base['target_outputs'])
+            else:
+                base['teacher_actions'] = disturb_actions(base['actions'])
+                base['teacher_outputs'] = get_outputs(base['teacher_actions'], base['entity_info'].shape[0])
             return base
 
         data = []
