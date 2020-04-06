@@ -6,6 +6,31 @@ import torch
 import torch.nn.functional as F
 
 
+def cross_entropy_preprocess(label, logit):
+    if isinstance(logit, torch.Tensor):
+        logit = [logit]
+
+    assert (len(label.shape) in [2, 3])
+    if label.shape == 3:
+        if label.shape[2] == 1:
+            label = label.squeeze(2)
+        elif label.shape[2] == 2:
+            n_output_shape = logit[0].shape[2:]
+            label = label[..., 0] * n_output_shape[1] + label[..., 1]
+            for i in range(len(logit)):
+                logit[i] = logit[i].reshape(*logit[i].shape[:2], -1)
+        else:
+            raise RuntimeError("not support labe dimension: {}".format(label.shape))
+    old_shape = label.shape[:2]
+    label = label.reshape(-1)
+    for i in range(len(logit)):
+        logit[i] = logit[i].reshape(-1, logit[i].shape[-1])
+    if len(logit) == 1:
+        logit = logit[0]
+
+    return old_shape, label, logit
+
+
 def multistep_forward_view(rewards, gammas, bootstrap_values, lambda_):
     r"""
     Overview:
@@ -105,7 +130,8 @@ def compute_importance_weights(
         - behaviour_output (:obj:`torch.Tensor`):
           the output used producing the trajectory, of size [T_traj, batchsize, n_output]
         - output_type (:obj:`str`): the type of target/behaviour output(value, logit)
-        - action (:obj:`torch.Tensor`): the chosen action(index) in trajectory, of size [T_traj, batchsize]
+        - action (:obj:`torch.Tensor`): the chosen action(index) in trajectory, of size [T_traj, batchsize] or
+          [T_traj, batchsize, n_other]
         - min_clip (:obj:`float`): the lower bound of clip(default: None)
         - max_clip (:obj:`float`): the upper bound of clip(default: None)
         - eps (:obj:`float`): for numerical stability
@@ -121,11 +147,8 @@ def compute_importance_weights(
             rhos = torch.clamp(target_output / (behaviour_output + eps), max=3)  # action_logits can be zero
             rhos = rhos.mean(dim=2)
         elif output_type == 'logit':
-            assert (len(action.shape) == 2)
-            old_shape = action.shape
-            target_output = target_output.reshape(-1, target_output.shape[-1])
-            behaviour_output = behaviour_output.reshape(-1, behaviour_output.shape[-1])
-            action = action.reshape(-1)
+            old_shape, action, [target_output,
+                                behaviour_output] = cross_entropy_preprocess(action, [target_output, behaviour_output])
             # (N, n_output) (N)
             rhos = F.cross_entropy(
                 target_output, action, reduction='none'
@@ -168,7 +191,8 @@ def upgo_loss(target_output, output_type, rhos, action, rewards, bootstrap_value
           of size [T_traj, batchsize, n_output]
         - output_type (:obj:`str`): the type of target output(value, logit)
         - rhos (:obj:`torch.Tensor`): the importance sampling ratio, of size [T_traj, batchsize]
-        - action (:obj:`torch.Tensor`): the action taken, of size [T_traj, batchsize]
+        - action (:obj:`torch.Tensor`): the chosen action(index) in trajectory, of size [T_traj, batchsize] or
+          [T_traj, batchsize, n_other]
         - rewards (:obj:`torch.Tensor`): the returns from time step 0 to T-1, of size [T_traj, batchsize]
         - bootstrap_values (:obj:`torch.Tensor`): estimation of the state value at step 0 to T,
           of size [T_traj+1, batchsize]
@@ -180,15 +204,12 @@ def upgo_loss(target_output, output_type, rhos, action, rewards, bootstrap_value
         returns = upgo_returns(rewards, bootstrap_values)
         advantages = rhos * (returns - bootstrap_values[:-1])
     if output_type == 'value':
-        assert (target_output.shape[2] == 1)
-        target_output = target_output.squeeze(2)
-        metric = F.l1_loss(target_output, action.float())
+        metric = F.l1_loss(target_output, action.float(), reduction='none')
+        metric = metric.mean(dim=2)
     elif output_type == 'logit':
-        assert (len(action.shape) == 2)
-        old_shape = action.shape
-        target_output = target_output.reshape(-1, target_output.shape[-1])
-        action = action.reshape(-1)
-        metric = F.cross_entropy(target_output, action)
+        old_shape, action, target_output = cross_entropy_preprocess(action, target_output)
+        metric = F.cross_entropy(target_output, action, reduction='none')
+        metric = metric.reshape(*old_shape)
     else:
         raise RuntimeError("not support target output type: {}".format(output_type))
     losses = advantages * metric
@@ -236,7 +257,8 @@ def vtrace_loss(target_output, output_type, rhos, cs, action, rewards, bootstrap
         - output_type (:obj:`str`): the type of target output(value, logit)
         - rhos (:obj:`torch.Tensor`): the clipped importance sampling ratio $\rho$, of size [T_traj, batchsize]
         - cs (:obj:`torch.Tensor`): the clipped importance sampling ratio c, of size [T_traj, batchsize]
-        - action (:obj:`torch.Tensor`): the action taken, of size [T_traj, batchsize]
+        - action (:obj:`torch.Tensor`): the chosen action(index) in trajectory, of size [T_traj, batchsize] or
+          [T_traj, batchsize, n_other]
         - rewards (:obj:`torch.Tensor`): the returns from time step 0 to T-1, of size [T_traj, batchsize]
         - bootstrap_values (:obj:`torch.Tensor`): estimation of the state value at step 0 to T,
           of size [T_traj+1, batchsize]
@@ -246,15 +268,12 @@ def vtrace_loss(target_output, output_type, rhos, cs, action, rewards, bootstrap
     with torch.no_grad():
         advantages = vtrace_advantages(rhos, cs, rewards, bootstrap_values, gammas=gamma, lambda_=lambda_)
     if output_type == 'value':
-        assert (target_output.shape[2] == 1)
-        target_output = target_output.squeeze(2)
-        metric = F.l1_loss(target_output, action.float())
+        metric = F.l1_loss(target_output, action.float(), reduction='none')
+        metric = metric.mean(dim=2)
     elif output_type == 'logit':
-        assert (len(action.shape) == 2)
-        old_shape = action.shape
-        target_output = target_output.reshape(-1, target_output.shape[-1])
-        action = action.reshape(-1)
-        metric = F.cross_entropy(target_output, action)
+        old_shape, action, target_output = cross_entropy_preprocess(action, target_output)
+        metric = F.cross_entropy(target_output, action, reduction='none')
+        metric = metric.reshape(*old_shape)
     else:
         raise RuntimeError("not support target output type: {}".format(output_type))
     losses = advantages * metric
@@ -275,7 +294,7 @@ def entropy(policy_logits, masked_threshold=-1e3):
     valid_flag = torch.where(
         policy_logits > masked_threshold, torch.ones_like(policy_logits), torch.zeros_like(policy_logits)
     )
-    entropy = -F.softmax(policy_logits, dim=2) * F.log_softmax(policy_logits, dim=2)
+    entropy = -F.softmax(policy_logits, dim=-1) * F.log_softmax(policy_logits, dim=-1)
     entropy = entropy * valid_flag
     entropy = torch.mean(entropy)
     # Normalize by actions available.
