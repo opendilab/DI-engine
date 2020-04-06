@@ -59,13 +59,14 @@ class DelayHead(nn.Module):
         x = self.fc1(embedding)
         x = self.fc2(x)
         x = self.fc3(x)
-        delay = (x * self.delay_max_range).squeeze(1)
+        delay_output = (x * self.delay_max_range)
+        delay = torch.round(delay_output).long().squeeze(1)
 
-        delay_encode = binary_encode(delay, self.delay_max_range)
+        delay_encode = binary_encode(delay, self.delay_max_range).float()
         embedding_delay = self.embed_fc1(delay_encode)
         embedding_delay = self.embed_fc2(embedding_delay)  # get autoregressive_embedding
 
-        return delay, torch.round(delay).long(), embedding + embedding_delay
+        return delay_output, delay, embedding + embedding_delay
 
 
 class QueuedHead(nn.Module):
