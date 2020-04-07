@@ -93,7 +93,7 @@ class AlphaStarEnv(SC2Env):
         obs['scalar_info']['last_delay'] = self._template_act[0]['op'](torch.LongTensor([last_delay])).squeeze()
         obs['scalar_info']['last_queued'] = self._template_act[1]['op'](torch.LongTensor([last_queued])).squeeze()
         obs['scalar_info']['last_action_type'] = self._template_act[2]['op'](torch.LongTensor([last_action_type])
-                                                                            ).squeeze()
+                                                                             ).squeeze()
 
         N = obs['entity_info'].shape[0]
         if obs['entity_info'] is None:
@@ -192,7 +192,7 @@ class AlphaStarEnv(SC2Env):
             - obs: list of ob dicts for two agents after taking action
             - rewards: win/loss reward
             - done: if the game terminated
-            - stat: 
+            - stat:
             - info
         """
         assert (self._reset_flag)

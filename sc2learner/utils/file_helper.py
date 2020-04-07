@@ -56,7 +56,7 @@ def save_file_ceph(save_path, file_name, data):
         import logging
         import os
         size = len(data)
-        if(save_path == 'do_not_save'):
+        if (save_path == 'do_not_save'):
             logging.info(
                 "You do not have ceph installed! ignored file {} of size {}!".format(file_name, size) +
                 " If you are not testing locally, something is wrong!"

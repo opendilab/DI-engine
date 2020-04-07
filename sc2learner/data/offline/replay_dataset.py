@@ -12,6 +12,7 @@ from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UPGRADES
 from sc2learner.data.base_dataset import BaseDataset
 from sc2learner.envs import get_available_actions_processed_data, decompress_obs, action_unit_id_transform
 from sc2learner.utils import read_file_ceph
+from sc2learner.data.collate_fn import list_dict2dict_list, default_collate
 
 META_SUFFIX = '.meta'
 DATA_SUFFIX = '.step'
@@ -95,9 +96,9 @@ class ReplayDataset(BaseDataset):
         for i in index:
             self.path_list[i].pop('cur_step')
 
-    def _read_file(self, path):
+    def _read_file(self, path, read_type='BytesIO'):
         if self.use_ceph:
-            return read_file_ceph(path)
+            return read_file_ceph(path, read_type=read_type)
         else:
             return path
 
@@ -178,8 +179,8 @@ class ReplayDataset(BaseDataset):
         else:
             sample_data[0][START_STEP] = False
 
-        print('total cost {}'.format(t8-t1))
-        print('    size = {}, read .step cost {}, load cost  {}'.format(sys.getsizeof(data), t9-t1, t2-t9))
+        print('total cost {}'.format(t8 - t1))
+        print('    size = {}, read .step cost {}, load cost  {}'.format(sys.getsizeof(data), t9 - t1, t2 - t9))
         # print('    clip the dataset cost                     {}'.format(t3-t2))
         # print('    action_unit_id_transform cost             {}'.format(t4-t3))
         # print('    decompress_obs cost                       {}'.format(t5-t4))
@@ -188,3 +189,66 @@ class ReplayDataset(BaseDataset):
         # print('    use_stat cost                             {}'.format(t8-t7))
 
         return sample_data
+
+
+def policy_collate_fn(batch, max_delay=63, action_type_transform=True):
+    data_item = {
+        'spatial_info': False,  # special op
+        'scalar_info': True,
+        'entity_info': False,
+        'entity_raw': False,
+        'actions': False,
+        'map_size': False,
+        START_STEP: False
+    }
+
+    def merge_func(data):
+        valid_data = [t for t in data if t is not None]
+        new_data = list_dict2dict_list(valid_data)
+        for k, merge in data_item.items():
+            if merge:
+                new_data[k] = default_collate(new_data[k])
+            if k == 'spatial_info':
+                shape = [t.shape for t in new_data[k]]
+                if len(set(shape)) != 1:
+                    tmp_shape = list(zip(*shape))
+                    H, W = max(tmp_shape[1]), max(tmp_shape[2])
+                    new_spatial_info = []
+                    for item in new_data[k]:
+                        h, w = item.shape[-2:]
+                        new_spatial_info.append(F.pad(item, [0, W - w, 0, H - h], "constant", 0))
+                    new_data[k] = default_collate(new_spatial_info)
+                else:
+                    new_data[k] = default_collate(new_data[k])
+            if k == 'actions':
+                new_data[k] = list_dict2dict_list(new_data[k])
+                new_data[k]['delay'] = [torch.clamp(x, 0, max_delay) for x in new_data[k]['delay']]  # clip
+                if action_type_transform:
+                    action_type = [t.item() for t in new_data[k]['action_type']]
+                    L = len(action_type)
+                    for i in range(L):
+                        action_type[i] = ACTIONS_REORDER[action_type[i]]
+                    action_type = torch.LongTensor(action_type)
+                    new_data[k]['action_type'] = list(torch.chunk(action_type, L, dim=0))
+        new_data['end_index'] = [idx for idx, t in enumerate(data) if t is None]
+        return new_data
+
+    # sequence, batch
+    b_len = [len(b) for b in batch]
+    max_len = max(b_len)
+    min_len = min(b_len)
+    if max_len != min_len:
+        seq = []
+        for i in range(max_len):
+            tmp = []
+            for j in range(len(batch)):
+                if i >= b_len[j]:
+                    tmp.append(None)
+                else:
+                    tmp.append(batch[j][i])
+            seq.append(tmp)
+
+    seq = list(zip(*batch))
+    for s in range(len(seq)):
+        seq[s] = merge_func(seq[s])
+    return seq

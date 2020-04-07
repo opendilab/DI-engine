@@ -130,7 +130,7 @@ class FakeActor(object):
         ceph_name = "job_{}_{}.traj".format(self.job_id, str(uuid.uuid1()))
         t1 = time.time()
         save_file_ceph(self.ceph_path, ceph_name, trajectory)
-        self.logger.info("save to ceph cost {} seconds. ".format(time.time() - t1) )
+        self.logger.info("save to ceph cost {} seconds. ".format(time.time() - t1))
         metadata = {
             'job_id': self.job_id,
             'trajectory_path': ceph_name,

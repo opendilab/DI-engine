@@ -1,6 +1,10 @@
 import time
 import copy
+import pickle
+
 import torch
+import zlib
+import lz4
 
 import pysc2.env.sc2_env as sc2_env
 from sc2learner.agent.alphastar_agent import AlphaStarAgent
@@ -35,12 +39,15 @@ def unsqueeze_batch_dim(obs):
             obs[k] = [obs[k]]
     return obs
 
+
 # TODO: move to utils
 def simple_compressor(obs):
     return copy.deepcopy([compress_obs(o) for o in obs])
 
+
 def zlib_compressor(obs):
     return zlib.compress(pickle.dumps([compress_obs(o) for o in obs]))
+
 
 def lz4_compressor(obs):
     return lz4.frame.compress(pickle.dumps([compress_obs(o) for o in obs]))

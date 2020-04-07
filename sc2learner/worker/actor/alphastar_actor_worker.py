@@ -53,7 +53,7 @@ class ActorContext:
         self.url_prefix = 'http://{}:{}/'.format(self.manager_ip, self.manager_port)
         self._set_logger()
         self._set_req_session()
-   
+
     def _set_logger(self):
         self.log_name = 'actor' + self.actor_uid + ".log"
         self.logger = logging.getLogger(self.log_name)
@@ -91,7 +91,8 @@ class HeartBeatWorker:
             d = {'actor_uid': self.context.actor_uid}
             try:
                 response = self.context.requests_session.post(
-                           self.context.url_prefix + 'manager/get_heartbeats', json=d).json()
+                    self.context.url_prefix + 'manager/get_heartbeats', json=d
+                ).json()
                 if response['code'] != 0:
                     self.context.logger.warn('send heartbeat failed, response={}'.format(response))
                 else:
@@ -119,7 +120,8 @@ class JobGetter:
             try:
                 d = {'actor_uid': self.context.actor_uid}
                 response = self.context.requests_session.post(
-                           self.context.url_prefix + 'manager/register', json=d).json()
+                    self.context.url_prefix + 'manager/register', json=d
+                ).json()
                 if response['code'] == 0:
                     self.context.logger.info('actor register succeed')
                     return
@@ -139,7 +141,8 @@ class JobGetter:
             while True:
                 d = {'request_id': self.job_request_id, 'actor_uid': actor_uid}
                 response = self.context.requests_session.post(
-                           self.context.url_prefix + 'manager/ask_for_job', json=d).json()
+                    self.context.url_prefix + 'manager/ask_for_job', json=d
+                ).json()
                 if response['code'] == 0 and response['info'] != '':
                     self.context.logger.info('[ask_for_job] {}'.format(response['info']))
                     self.job_request_id += 1
@@ -158,8 +161,7 @@ class DataPusher:
     def finish_job(self, job_id):
         d = {'actor_uid': self.context.actor_uid, 'job_id': job_id}
         try:
-            response = self.context.requests_session.post(
-                       self.context.url_prefix + 'manager/finish_job', json=d).json()
+            response = self.context.requests_session.post(self.context.url_prefix + 'manager/finish_job', json=d).json()
             if response['code'] == 0:
                 self.context.logger.info("succeed sending result: {}".format(job_id))
             else:
@@ -194,7 +196,8 @@ class DataPusher:
         d = {'actor_uid': self.context.actor_uid, 'job_id': job_id, 'metadata': metadata}
         try:
             response = self.context.requests_session.post(
-                       self.context.url_prefix + 'manager/get_metadata', json=d).json()
+                self.context.url_prefix + 'manager/get_metadata', json=d
+            ).json()
             if response['code'] == 0:
                 self.context.logger.info("succeed sending result: {}".format(job_id))
             else:

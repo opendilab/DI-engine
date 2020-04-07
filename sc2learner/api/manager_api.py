@@ -14,10 +14,8 @@ from sc2learner.utils.log_helper import TextLogger
 def create_manager_app(manager):
     app = Flask(__name__)
 
-
     def build_ret(code, info=''):
         return {'code': code, 'info': info}
-
 
     @app.route('/manager/register', methods=['POST'])
     def register():
@@ -28,7 +26,6 @@ def create_manager_app(manager):
         else:
             return build_ret(1)
 
-
     @app.route('/manager/ask_for_job', methods=['POST'])
     def get_sample():
         actor_uid = request.json['actor_uid']
@@ -37,7 +34,6 @@ def create_manager_app(manager):
             return build_ret(0, job)
         else:
             return build_ret(1)
-
 
     @app.route('/manager/get_metadata', methods=['POST'])
     def finish_sample():
@@ -50,7 +46,6 @@ def create_manager_app(manager):
         else:
             return build_ret(1)
 
-
     @app.route('/manager/finish_job', methods=['POST'])
     def finish_job():
         actor_uid = request.json['actor_uid']
@@ -61,7 +56,6 @@ def create_manager_app(manager):
         else:
             return build_ret(1)
 
-
     @app.route('/manager/get_heartbeats', methods=['POST'])
     def get_heartbeats():
         actor_uid = request.json['actor_uid']
@@ -71,13 +65,11 @@ def create_manager_app(manager):
         else:
             return build_ret(1)
 
-
     ###################################################################################
     #                                                                                 #
     #                                    for debug                                    #
     #                                                                                 #
     ###################################################################################
-
 
     @app.route('/debug/get_all_actor', methods=['get'])
     def get_all_manager():
@@ -87,7 +79,6 @@ def create_manager_app(manager):
         else:
             return build_ret(1)
 
-
     @app.route('/debug/get_all_job', methods=['get'])
     def get_all_job():
         info = manager.deal_with_get_all_job_from_debug()
@@ -95,7 +86,6 @@ def create_manager_app(manager):
             return build_ret(0, info)
         else:
             return build_ret(1)
-
 
     @app.route('/debug/get_reuse_job_list', methods=['get'])
     def get_reuse_job_list():
@@ -105,7 +95,6 @@ def create_manager_app(manager):
         else:
             return build_ret(1)
 
-
     @app.route('/debug/clear_reuse_job_list', methods=['get'])
     def clear_reuse_job_list():
         info = manager.deal_with_clear_reuse_job_list_from_debug()
@@ -113,7 +102,6 @@ def create_manager_app(manager):
             return build_ret(0, info)
         else:
             return build_ret(1)
-
 
     @app.route('/debug/launch_actor', methods=['POST'])
     def launch_actor():
@@ -124,4 +112,5 @@ def create_manager_app(manager):
             return build_ret(0, info)
         else:
             return build_ret(1)
+
     return app

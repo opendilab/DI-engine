@@ -310,7 +310,7 @@ class ReplayDecoder(multiprocessing.Process):
                 self.controller = self.handle.controller
             except Exception as e:
                 logging.info(''.join(traceback.format_tb(e.__traceback__)))
-                logging.error('InnerError: {}'.format(sys.exc_info()))
+                logging.info('InnerError: {}'.format(sys.exc_info()))
         self.handle.close()
 
 

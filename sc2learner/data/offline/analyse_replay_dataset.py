@@ -16,7 +16,8 @@ from sc2learner.utils import read_file_ceph
 
 
 def get_dataset_config():
-    with open('/mnt/lustre/zhangming/workspace/software/SenseStar-refactoring/sc2learner/worker/learner/alphastar_sl_learner_default_config.yaml', "r") as f:
+    with open('/mnt/lustre/zhangming/workspace/software/SenseStar-refactoring/' +
+              'sc2learner/worker/learner/alphastar_sl_learner_default_config.yaml', "r") as f:
         config = yaml.safe_load(f)
     config = EasyDict(config)
     config.data.train.replay_list = '/mnt/lustre/zhangming/data/train/Zerg_None_None_3500_train_5200.txt.5.local'
@@ -45,7 +46,7 @@ def analyse_replay_dataset():
     dataset_config = get_dataset_config()
     dataset_config.use_ceph = False
     replay_dataloader = build(dataset_config, train_dataset=True)
-    
+
     replay_dataloader.dataset.step()
     for idx, batch_data in enumerate(replay_dataloader):
         print(idx, type(batch_data), sys.getsizeof(batch_data))
@@ -63,7 +64,9 @@ def test_serial():
         print("{} cost {}".format(index, t2 - t1))
     print("[serial] total time {}, avg time = {}".format(sum, sum / 20))
 
+
 parallel_sum = 0
+
 
 def process_thread(index, file_path):
     t1 = time.time()
@@ -72,9 +75,11 @@ def process_thread(index, file_path):
     print("{} cost {}".format(index, t2 - t1))
     return t2 - t1
 
+
 def process_callback(t):
     global parallel_sum
     parallel_sum += t
+
 
 def test_parallel_thread():
     p = "/mnt/lustre/zhangming/data/Zerg_None_None_3500_train_5200.txt"
@@ -82,15 +87,16 @@ def test_parallel_thread():
     thread_list = []
     lines = open(p, 'r').readlines()
     for index, line in enumerate(lines[:20]):
-        thread_list.append(threading.Thread(target=process_thread,args=(index, line.strip())))
+        thread_list.append(threading.Thread(target=process_thread, args=(index, line.strip())))
 
     t1 = time.time()
     for t in thread_list:
         t.start()
     for t in thread_list:
-        t.join()  
+        t.join()
     t2 = time.time()
     print("totally cost {}".format(t2 - t1))
+
 
 def test_parallel_process():
     global parallel_sum
@@ -103,9 +109,7 @@ def test_parallel_process():
     p.close()
     p.join()
     t2 = time.time()
-    print("[parallel] totally time {}, avg time {}".format(t2-t1, (t2-t1) / 20))
-
-
+    print("[parallel] totally time {}, avg time {}".format(t2 - t1, (t2 - t1) / 20))
 
 
 if __name__ == '__main__':
@@ -118,7 +122,3 @@ if __name__ == '__main__':
     test_serial()
     print("-----------------------------------")
     test_parallel_process()
-
-
-
-

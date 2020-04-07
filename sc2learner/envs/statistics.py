@@ -31,6 +31,7 @@ class Statistics:
                 except KeyError:
                     logging.warning("Not found unit(id: {})".format(u))
             return unit_types
+
         action_type = int(act['action_type'])  # this can accept either torch.LongTensor and int
         if action_type not in self.action_statistics[player].keys():
             self.action_statistics[player][action_type] = {
@@ -50,9 +51,8 @@ class Statistics:
         if isinstance(act['target_units'], torch.Tensor):
             units = act['target_units'].tolist()
             unit_types = get_unit_types(units, entity_type_dict)
-            self.action_statistics[player][action_type]['target_type'] = self.action_statistics[player][action_type]['target_type'].union(
-                unit_types
-            )  # noqa
+            self.action_statistics[player][action_type]['target_type'] = self.action_statistics[player][action_type][
+                'target_type'].union(unit_types)  # noqa
 
     def update_cum_stat(self, act, player):
         action_type = int(act['action_type'])
@@ -91,12 +91,13 @@ class Statistics:
 
     def get_stat(self):
         return [
-                {
-                    'action_statistics': self.action_statistics[idx],
-                    'cumulative_statistics': self.cumulative_statistics[idx],
-                    'begin_statistics': self.begin_statistics[idx]
-                } for idx in range(self.player_num)
-            ]
+            {
+                'action_statistics': self.action_statistics[idx],
+                'cumulative_statistics': self.cumulative_statistics[idx],
+                'begin_statistics': self.begin_statistics[idx]
+            } for idx in range(self.player_num)
+        ]
+
 
 def transform_cum_stat(cumulative_stat):
     cumulative_stat_tensor = {
@@ -138,4 +139,3 @@ def transform_stat(stat, meta, location_num=LOCATION_BIT_NUM):
         'beginning_build_order': beginning_build_order_tensor,
         'cumulative_stat': cumulative_stat_tensor
     }  # noqa
-

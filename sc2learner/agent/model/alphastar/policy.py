@@ -151,9 +151,8 @@ class Policy(nn.Module):
                 spec_action_type == 0, torch.ones_like(spec_action_type), torch.zeros_like(spec_action_type)
             )  # noqa
             action_type = mask * base_action_type + spec_action_type
-            mask = mask.view(-1, *[1 for _ in range(len(base_embeddings.shape) - 1)]).to(
-                base_embeddings.dtype
-            )  # batch is the first dim  # noqa
+            mask = mask.view(-1, *[1 for _ in range(len(base_embeddings.shape) - 1)
+                                   ]).to(base_embeddings.dtype)  # batch is the first dim  # noqa
             embeddings = mask * base_embeddings + (1 - mask) * spec_embeddings
             return [base_logits, spec_logits], action_type, embeddings
         else:

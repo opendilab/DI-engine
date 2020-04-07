@@ -8,13 +8,12 @@ from itertools import count
 import logging
 from flask import Flask, request
 
+
 def create_coordinator_app(coordinator):
     app = Flask(__name__)
 
-
     def build_ret(code, info=''):
         return {'code': code, 'info': info}
-
 
     @app.route('/coordinator/register_model', methods=['POST'])
     def register_model():
@@ -26,7 +25,6 @@ def create_coordinator_app(coordinator):
         else:
             return build_ret(1)
 
-
     @app.route('/coordinator/register_manager', methods=['POST'])
     def register_manager():
         manager_uid = request.json['manager_uid']
@@ -35,7 +33,6 @@ def create_coordinator_app(coordinator):
             return build_ret(0)
         else:
             return build_ret(1)
-
 
     @app.route('/coordinator/register_learner', methods=['POST'])
     def register_learner():
@@ -47,7 +44,6 @@ def create_coordinator_app(coordinator):
         else:
             return build_ret(1)
 
-
     @app.route('/coordinator/ask_for_job', methods=['POST'])
     def get_sample():
         manager_uid = request.json['manager_uid']
@@ -57,7 +53,6 @@ def create_coordinator_app(coordinator):
             return build_ret(0, job)
         else:
             return build_ret(1)
-
 
     @app.route('/coordinator/get_metadata', methods=['POST'])
     def get_metadata():
@@ -71,7 +66,6 @@ def create_coordinator_app(coordinator):
         else:
             return build_ret(1)
 
-
     @app.route('/coordinator/finish_job', methods=['POST'])
     def finish_job():
         manager_uid = request.json['manager_uid']
@@ -83,7 +77,6 @@ def create_coordinator_app(coordinator):
         else:
             return build_ret(1)
 
-
     @app.route('/coordinator/ask_for_metadata', methods=['POST'])
     def ask_for_metadata():
         learner_uid = request.json['learner_uid']
@@ -94,7 +87,6 @@ def create_coordinator_app(coordinator):
         else:
             return build_ret(1)
 
-
     @app.route('/coordinator/update_replay_buffer', methods=['POST'])
     def update_replay_buffer():
         update_info = request.json['update_info']
@@ -104,11 +96,9 @@ def create_coordinator_app(coordinator):
         else:
             return build_ret(1)
 
-
     ###################################################################################
     #                                    for debug                                    #
     ###################################################################################
-
 
     @app.route('/debug/get_all_manager', methods=['get'])
     def get_all_manager():
@@ -118,7 +108,6 @@ def create_coordinator_app(coordinator):
         else:
             return build_ret(1)
 
-
     @app.route('/debug/get_all_learner', methods=['get'])
     def get_all_learner():
         info = coordinator.deal_with_get_all_learner()
@@ -127,7 +116,6 @@ def create_coordinator_app(coordinator):
         else:
             return build_ret(1)
 
-
     @app.route('/debug/get_all_job', methods=['get'])
     def get_all_job():
         info = coordinator.deal_with_get_all_job()
@@ -135,5 +123,5 @@ def create_coordinator_app(coordinator):
             return build_ret(0, info)
         else:
             return build_ret(1)
-    
+
     return app

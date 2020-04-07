@@ -5,7 +5,6 @@ import torch
 import torch.Tensor as Tensor  # TODO(nyz) update specific tensor API
 
 
-
 class BaseOptimizer:
     """optimizer
 
