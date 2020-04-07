@@ -110,7 +110,7 @@ class FakeReplayDataset(ReplayDataset):
         self.path_list = [dict(name=tempfile.mkstemp(), count=0) for _ in range(length)]
 
     def __getitem__(self, item):
-        sample_batch = [self.get_single_step_data() for _ in range(self.trajectory_len)]
+        sample_batch = [get_single_step_data() for _ in range(self.trajectory_len)]
         sample_batch[0][START_STEP] = np.random.random() > 0.5
         return sample_batch
 

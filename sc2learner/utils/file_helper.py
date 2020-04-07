@@ -17,7 +17,7 @@ def read_file_ceph(path, read_type='BytesIO'):
     """
     if ceph is None:
         import logging
-        logging.warning(
+        logging.info(
             "You do not have ceph installed! Loading local file!"
             " If you are not testing locally, something is wrong!"
         )
@@ -49,16 +49,17 @@ def save_file_ceph(save_path, file_name, data):
     else:
         import logging
         import os
+        size = len(data)
         if(save_path == 'do_not_save'):
-            logging.warning(
-                "You do not have ceph installed! ignored {}!".format(file_name) +
+            logging.info(
+                "You do not have ceph installed! ignored file {} of size {}!".format(file_name, size) +
                 " If you are not testing locally, something is wrong!"
             )
             return
         p = os.path.join(save_path, file_name)
         with open(p, 'wb') as f:
-            logging.warning(
-                "You do not have ceph installed! Saving as local file at {}!".format(p) +
+            logging.info(
+                "You do not have ceph installed! Saving as local file at {} of size {}!".format(p, size) +
                 " If you are not testing locally, something is wrong!"
             )
             f.write(data)

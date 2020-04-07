@@ -230,7 +230,7 @@ class AlphaStarEnv(SC2Env):
             timesteps = super().step(sc2_actions, step_mul=step_mul)
             due = [s <= self._episode_steps for s in self._next_obs]
             assert (any(due))
-            self._buffered_actions = [[]] * self.agent_num
+            self._buffered_actions = [[] for i in range(self.agent_num)]
             done = False
             obs = [None] * self.agent_num
             rewards = [None] * self.agent_num
@@ -277,7 +277,7 @@ class AlphaStarEnv(SC2Env):
         self._next_obs = [0] * self.agent_num
         self._episode_steps = 0
         self._reset_flag = True
-        self._buffered_actions = [[]] * self.agent_num
+        self._buffered_actions = [[] for i in range(self.agent_num)]
         self._last_output = [0, [True] * self.agent_num, obs, [0] * self.agent_num, False, infos]
         self._episode_stat = Statistics(player_num=self.agent_num, begin_num=self.cfg.env.get('begin_num', 200))
         return copy.deepcopy(obs)

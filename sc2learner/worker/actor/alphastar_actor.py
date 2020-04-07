@@ -250,8 +250,8 @@ class AlphaStarActor:
                 if isinstance(stat, dict):
                     self.env.load_stat(stat, i)
         obs = self.env.reset()
-        data_buffer = [[]] * self.agent_num
-        last_buffer = [[]] * self.agent_num
+        data_buffer = [[] for i in range(self.agent_num)]
+        last_buffer = [[] for i in range(self.agent_num)]
         # Actor Logic:
         # When a agent is due to act at game_step, it will take the obs and decide what action to do (after env delay)
         # and when (after how many steps) should the agent be notified of newer obs and asked to act again
@@ -275,7 +275,7 @@ class AlphaStarActor:
                 # game time out, force the done flag to True
                 done = True
             for i in range(self.agent_num):
-                at_traj_end = len(data_buffer[i]) >= job['data_push_length'] or done
+                at_traj_end = len(data_buffer[i]) + 1 * due[i] >= job['data_push_length'] or done
                 if due[i]:
                     # we received obs from the env, add to rollout trajectory
                     # the 'next_obs' is saved (and to be sent) if only this is the last obs of the traj
@@ -290,7 +290,6 @@ class AlphaStarActor:
                     data_buffer[i].append(merge_two_dicts(self.last_state_action[i], obs_data))
                 if at_traj_end:
                     # trajectory buffer is full or the game is finished
-                    # so the length of a trajectory may not necessary be data_push_length
                     metadata = {
                         'job_id': job['job_id'],
                         'agent_no': i,
@@ -306,11 +305,12 @@ class AlphaStarActor:
                     }
                     if done:
                         metadata['final_reward'] = rewards[i]
-                    delta = len(data_buffer[i]) - job['data_push_length']
+                    delta =  job['data_push_length'] - len(data_buffer[i])
                     # if the the data actually in the buffer when the episode ends is shorter than
                     # job['data_push_length'], the buffer is than filled with data from the last trajectory
-                    if delta:
+                    if delta > 0:
                         data_buffer[i] = last_buffer[i][-delta:] + data_buffer[i]
+                    metadata['length'] = len(data_buffer[i])  # should agree with job['data_push_length']
                     self.data_pusher.push(metadata, data_buffer[i])
                     last_buffer[i] = data_buffer[i].copy()
                     data_buffer[i] = []

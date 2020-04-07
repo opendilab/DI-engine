@@ -113,12 +113,38 @@ def manager():
     return manager
 
 
-def test_actor(coordinator, manager):
+def test_actor(coordinator, manager, caplog):
+    caplog.set_level(logging.INFO)
     # to be called by pytest
     cfg = get_test_cfg()
     actor = TestActor(cfg)
+    logging.info('expecting a manager registered at the coordinator {}'\
+                 .format(str(coordinator.manager_record)))
+    assert(len(coordinator.manager_record) == 1)
+    logging.info('expecting a actor registered at the manager {}'\
+                 .format(str(manager.actor_record)))
+    assert(len(manager.actor_record) == 1)
+
+    # Running a episode
     logging.info('actor started, running the 1st loop')
     actor.run_episode()
+
+    logging.info('expecting a job record in coordinator: {}'\
+                 .format(str(coordinator.job_record)))
+    job_id = list(coordinator.job_record.keys())[0]
+    assert(job_id in manager.job_record)
+    # the numbers are set in the coordinator (in the fake jobs)
+    logging.info('expecting a job record in manager with ceil(30/8)*2=8 entries: {}'\
+                 .format(str(len(manager.job_record[job_id]['metadatas']))))
+    # print(manager.job_record[job_id]['metadatas'])
+    for entry in manager.job_record[job_id]['metadatas']:
+        assert(entry['length'] == 8)
+    assert(len(manager.job_record[job_id]['metadatas']) == 8)
+    batch_size = 2
+    time.sleep(1)
+    assert coordinator.replay_buffer.sample(batch_size) is not None
+
+    # Running another episode
     logging.info('actor running the 2nd loop')
     actor.run_episode()
     actor.heartbeat_worker.stop_heatbeat()
