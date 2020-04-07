@@ -1,5 +1,5 @@
 """
-Test script for actor worker on SLURM
+Unit test for the AlphaStar actor worker (not including model&stat loading)
 """
 import random
 import time
@@ -8,6 +8,7 @@ import pytest
 import socket
 from threading import Thread
 import logging
+import tempfile
 
 import yaml
 import torch
@@ -16,6 +17,8 @@ from absl import flags
 from easydict import EasyDict
 
 from sc2learner.worker.actor.alphastar_actor_worker import AlphaStarActorWorker
+from sc2learner.data.fake_dataset import FakeActorDataset
+from sc2learner.utils.file_helper import read_file_ceph
 # TODO: move the api modules
 from sc2learner.api.coordinator import Coordinator
 from sc2learner.api.coordinator_api import create_coordinator_app
@@ -24,6 +27,7 @@ from sc2learner.api.manager_api import create_manager_app
 
 
 PRINT_ACTIONS = False
+TEMP_TRAJ_DIR = tempfile.TemporaryDirectory()
 
 if __name__ == '__main__':
     FLAGS = flags.FLAGS
@@ -68,7 +72,7 @@ def get_test_cfg():
     with open(__file__.replace('.py', '.yaml')) as f:
         cfg = yaml.safe_load(f)
     cfg = EasyDict(cfg)
-    local_ip = '127.0.0.1' #  socket.gethostname()
+    local_ip = '127.0.0.1'  # socket.gethostname()
     learner_ip = local_ip
     coordinator_ip = local_ip
     manager_ip = local_ip
@@ -77,9 +81,9 @@ def get_test_cfg():
     cfg.api.manager_ip = manager_ip
     cfg.actor.coordinator_ip = coordinator_ip
     cfg.actor.manager_ip = manager_ip
-    cfg.actor.ceph_traj_path = 'do_not_save'
-    cfg.actor.ceph_model_path = 'do_not_save'
-    cfg.actor.ceph_stat_path = os.path.dirname(__file__) + '/'
+    cfg.actor.ceph_traj_path =  TEMP_TRAJ_DIR.name + os.sep
+    cfg.actor.ceph_model_path = 'do_not_save/'
+    cfg.actor.ceph_stat_path = 'do_not_save/'
     cfg.data = {}
     cfg.data.train = {}
     cfg.data.train.batch_size = 128
@@ -112,6 +116,8 @@ def manager():
     logging.info('manager started')
     return manager
 
+def check_with_fake_dataset(traj):
+    pass
 
 def test_actor(coordinator, manager, caplog):
     caplog.set_level(logging.INFO)
@@ -142,15 +148,21 @@ def test_actor(coordinator, manager, caplog):
     assert(manager.job_record[job_id]['state'] == 'finish')
     assert(len(manager.job_record[job_id]['metadatas']) == 8)
     batch_size = 2
-    time.sleep(1)
+    time.sleep(0.1)
     # notice we are using a very small number of samples for testing
     # so the replay buffer caching should be set to a small value
-    assert coordinator.replay_buffer.sample(batch_size) is not None
+    smpls = coordinator.replay_buffer.sample(batch_size)
+    assert smpls is not None
+    assert isinstance(smpls, list) and len(smpls) == 2
+    for smpl in smpls:
+        traj = read_file_ceph(smpl['ceph_name'] + smpl['trajectory_path'], read_type='pickle')
+        check_with_fake_dataset(traj)
 
     # Running another episode
     logging.info('actor running the 2nd loop')
     actor.run_episode()
     actor.heartbeat_worker.stop_heatbeat()
+    TEMP_TRAJ_DIR.cleanup()
 
 def main(unused_argv):
     # start a actor for full test on cluster (with network connection)

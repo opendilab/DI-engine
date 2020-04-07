@@ -21,26 +21,32 @@ def read_file_ceph(path, read_type='BytesIO'):
             "You do not have ceph installed! Loading local file!"
             " If you are not testing locally, something is wrong!"
         )
-        return open(path, "rb")
-
-    s3client = ceph.S3Client()
-    value = s3client.Get(path)
-    if not value:
-        raise FileNotFoundError("File({}) doesn't exist in ceph".format(path))
-    if read_type == 'BytesIO':
-        value = BytesIO(value)
-    elif read_type == 'pickle':
-        value = pickle.loads(value)
-    return value
+        f = open(path, "rb")
+        if read_type == 'BytesIO':
+            return f
+        elif read_type == 'pickle':
+            value = pickle.load(f)
+            f.close()
+            return value
+    else:
+        s3client = ceph.S3Client()
+        value = s3client.Get(path)
+        if not value:
+            raise FileNotFoundError("File({}) doesn't exist in ceph".format(path))
+        if read_type == 'BytesIO':
+            value = BytesIO(value)
+        elif read_type == 'pickle':
+            value = pickle.loads(value)
+        return value
 
 
 def save_file_ceph(save_path, file_name, data):
     """
-    Overview: save file to ceph
+    Overview: save pickle dumped data file to ceph
     Arguments:
         - save_path (:obj:`str`): save root path in ceph, start with "s3://"
         - file_name (:obj:`str`): save file name in ceph
-        - data (:obj:`angthing`): could be dict, list or tensor etc.
+        - data (:obj:`anything`): could be dict, list or tensor etc.
     """
     data = pickle.dumps(data)
     if ceph is not None:

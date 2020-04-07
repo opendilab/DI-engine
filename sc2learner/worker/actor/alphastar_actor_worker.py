@@ -181,9 +181,12 @@ class DataPusher:
 
         # sending report to manager
         metadata_supp = {
-            'ceph_path': self.ceph_path,
-            'ceph_name': ceph_name,
-            'this_traj_learner_uid': [job.get('learner_uid1'), job.get('learner_uid2')][agent_no],
+            # file name in ceph
+            'trajectory_path': ceph_name,
+            # full path to this trajectory = md['ceph_name'] + md['trajectory_path'] (no need for os.path.join)
+            'ceph_name': self.ceph_path,
+            # the uid for this agent
+            'learner_uid': [job.get('learner_uid1'), job.get('learner_uid2')][agent_no],
             'learner_uid1': job.get('learner_uid1'),
             'learner_uid2': job.get('learner_uid2')
         }
