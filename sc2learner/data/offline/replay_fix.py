@@ -11,9 +11,19 @@ import traceback
 from sc2learner.envs import compress_obs, decompress_obs
 from sc2learner.utils import read_file_ceph, save_file_ceph
 
+import zlib
+
 
 def zlib_compressor(obs):
     return zlib.compress(pickle.dumps(obs))
+
+
+def zlib_decompressor(local_saev_path):
+    data = torch.load(local_save_path)
+    new_data = []
+    for item in data:
+        new_data.append(pickle.loads(zlib.decompress(item)))
+    return new_data
 
 
 def replay_fix(ceph_root, replay_path, ceph_save_root, local_save_path):
@@ -63,8 +73,10 @@ def replay_fix(ceph_root, replay_path, ceph_save_root, local_save_path):
     # print("----new_data_zlib_decompress")
     # print(pickle.loads(zlib.decompress(new_data_zlib_load[0])))
     print(
-        "{} totally {:.3f} download {:.3f}, torch.load {:.3f}, process {:.3f} (zlib {:.3f}), upload {:.3f}, torch.save {:.3f}"
-        .format(replay_path, t6 - t1, t2 - t1, t3 - t2, t4 - t3, t_zlib, t5 - t4, t6 - t5)
+        (
+            "{} totally {:.3f} download {:.3f}, torch.load {:.3f}, " +
+            "process {:.3f} (zlib {:.3f}), upload {:.3f}, torch.save {:.3f}"
+        ).format(replay_path, t6 - t1, t2 - t1, t3 - t2, t4 - t3, t_zlib, t5 - t4, t6 - t5)
     )
 
 
@@ -86,7 +98,6 @@ if __name__ == '__main__':
     for index, line in enumerate(lines):
         # if index % 10 == 0:
         replay_path = line.strip()
-        # print('{} processing {} {} ... '.format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time())), index, replay_path))
         local_save_path = os.path.join(local_save_root, replay_path)
         try:
             replay_fix(ceph_root, replay_path, ceph_save_root, local_save_path)

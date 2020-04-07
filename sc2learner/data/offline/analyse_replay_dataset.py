@@ -16,9 +16,8 @@ from sc2learner.utils import read_file_ceph
 
 
 def get_dataset_config():
-    with open(
-            '/mnt/lustre/zhangming/workspace/software/SenseStar-refactoring/sc2learner/worker/learner/alphastar_sl_learner_default_config.yaml',
-            "r") as f:
+    with open('/mnt/lustre/zhangming/workspace/software/SenseStar-refactoring/' +
+              'sc2learner/worker/learner/alphastar_sl_learner_default_config.yaml', "r") as f:
         config = yaml.safe_load(f)
     config = EasyDict(config)
     config.data.train.replay_list = '/mnt/lustre/zhangming/data/train/Zerg_None_None_3500_train_5200.txt.5.local'
