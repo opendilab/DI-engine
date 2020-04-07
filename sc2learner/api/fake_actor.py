@@ -128,8 +128,15 @@ class FakeActor(object):
         }
         trajectory = [trajectory] * 1
         ceph_name = "job_{}_{}.traj".format(self.job_id, str(uuid.uuid1()))
+        t1 = time.time()
         save_file_ceph(self.ceph_path, ceph_name, trajectory)
-        metadata = {'job_id': self.job_id, 'trajectory_path': ceph_name, 'learner_uid': self.job['learner_uid']}
+        self.logger.info("save to ceph cost {} seconds. ".format(time.time() - t1) )
+        metadata = {
+            'job_id': self.job_id,
+            'trajectory_path': ceph_name,
+            'learner_uid': self.job['learner_uid'],
+            'data': torch.tensor([[1, 2, 3], [4, 5, 6]]).tolist()
+        }
         return trajectory, metadata
 
     def simulate(self):
@@ -149,13 +156,21 @@ class FakeActor(object):
             return False, {}, {}
         return True, trajectory, metadata
 
-    def send_result(self, metadata):
+    def send_metadata(self, metadata):
         d = {'actor_uid': self.actor_uid, 'job_id': self.job_id, 'metadata': metadata}
         response = requests.post(self.url_prefix + 'manager/get_metadata', json=d).json()
         if response['code'] == 0:
             self.logger.info("succeed sending result: {}".format(self.job_id))
         else:
             self.logger.info("failed to send result: {}".format(self.job_id))
+
+    def finish_job(self):
+        d = {'actor_uid': self.actor_uid, 'job_id': self.job_id}
+        response = requests.post(self.url_prefix + 'manager/finish_job', json=d).json()
+        if response['code'] == 0:
+            self.logger.info("succeed finishing job: {}".format(self.job_id))
+        else:
+            self.logger.info("failed to finish job: {}".format(self.job_id))
 
     def stop(self):
         self.stop_flag = True
@@ -182,7 +197,8 @@ def main():
     actor.ask_for_job()
     state, trajectory, metadata = actor.simulate()
     if state:
-        actor.send_result(metadata)
+        actor.send_metadata(metadata)
+    actor.finish_job()
     actor.stop()
     # exit()
 

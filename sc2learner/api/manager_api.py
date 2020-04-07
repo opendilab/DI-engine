@@ -51,6 +51,17 @@ def create_manager_app(manager):
             return build_ret(1)
 
 
+@app.route('/manager/finish_job', methods=['POST'])
+def finish_job():
+    actor_uid = request.json['actor_uid']
+    job_id = request.json['job_id']
+    ret_code = manager.deal_with_finish_job(actor_uid, job_id)
+    if ret_code:
+        return build_ret(0)
+    else:
+        return build_ret(1)
+
+
     @app.route('/manager/get_heartbeats', methods=['POST'])
     def get_heartbeats():
         actor_uid = request.json['actor_uid']

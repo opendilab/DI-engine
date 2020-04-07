@@ -193,8 +193,10 @@ def get_inverse_tran_table(table, indices):
     inv_tab = {}
     for index in indices:
         for k, v in table.items():
-            inv_tab[v[index]] = k
+            if v[index]:
+                inv_tab[v[index]] = k
     return inv_tab
 
 
 LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT = get_inverse_tran_table(MAPS, [4, 5])
+LE_BNET_NAME_TO_PYSC2_NAME_LUT = get_inverse_tran_table(MAPS, [0])

@@ -31,7 +31,7 @@ class FakeLearner(object):
         self.url_prefix = 'http://{}:{}/'.format(self.coordinator_ip, self.coordinator_port)
 
         self._set_logger()
-        self.register_learner_in_coordinator()
+        self._register_learner_in_coordinator()
 
         self.batch_size = 4
         self.train_freq = 10  # ask for metadata and train every `train_freq` seconds
@@ -51,7 +51,7 @@ class FakeLearner(object):
         '''
         self.logger = logging.getLogger("learner.log")
 
-    def register_learner_in_coordinator(self):
+    def _register_learner_in_coordinator(self):
         '''
             Overview: register learner in coordinator with learner_uid and learner_ip
         '''
