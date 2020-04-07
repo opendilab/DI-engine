@@ -98,7 +98,7 @@ class FakeLearner(object):
 
     def _get_trajectory_list(self, metadatas):
         '''
-            Overview: get list of trajectory by trajectory_path in metadatas. 
+            Overview: get list of trajectory by trajectory_path in metadatas.
             Using OrderedDict, and move_to_end() will set key to top to avoid being deleted.
             Arguments:
                 - metadatas (:obj:`dict`): list of actor's metadata
