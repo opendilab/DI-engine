@@ -11,8 +11,6 @@ import traceback
 from sc2learner.envs import compress_obs, decompress_obs
 from sc2learner.utils import read_file_ceph, save_file_ceph
 
-import zlib
-
 
 def zlib_compressor(obs):
     return zlib.compress(pickle.dumps(obs))
