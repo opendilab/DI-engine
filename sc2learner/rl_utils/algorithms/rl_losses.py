@@ -185,12 +185,11 @@ def upgo_loss(target_output, output_type, rhos, action, rewards, bootstrap_value
         metric = F.l1_loss(target_output, action.float())
     elif output_type == 'logit':
         assert (len(action.shape) == 2)
-        old_shape = action.shape
         target_output = target_output.reshape(-1, target_output.shape[-1])
         action = action.reshape(-1)
         metric = F.cross_entropy(target_output, action)
     else:
-        raise RuntimeError("not support target output type: {}".format(output_type))
+        raise RuntimeError("not supported target output type: {}".format(output_type))
     losses = advantages * metric
     return -losses.mean()
 
@@ -251,7 +250,6 @@ def vtrace_loss(target_output, output_type, rhos, cs, action, rewards, bootstrap
         metric = F.l1_loss(target_output, action.float())
     elif output_type == 'logit':
         assert (len(action.shape) == 2)
-        old_shape = action.shape
         target_output = target_output.reshape(-1, target_output.shape[-1])
         action = action.reshape(-1)
         metric = F.cross_entropy(target_output, action)

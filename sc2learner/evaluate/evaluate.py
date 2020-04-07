@@ -131,6 +131,9 @@ class EvalTrajProcessor:
             self.return_sum.extend([0] * (agent_no - len(self.return_sum) + 1))
         self.return_sum[agent_no] += traj_return
 
+    def finish_job(self, job_id):
+        pass
+
 
 def main(unused_argv):
     with open(FLAGS.config_path) as f:

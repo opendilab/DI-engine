@@ -54,21 +54,6 @@ def lz4_compressor(obs):
 
 
 class AlphaStarActor:
-    """
-    AlphaStar Actor
-    Contents of each entry in the trajectory dict
-        - 'step'
-        - 'agent_no'
-        - 'prev_obs'
-        - 'lstm_state_before': LSTM state before the step
-        - 'lstm_state_after': LSTM state after the step
-        - 'logits': action logits
-        - 'action'
-        - 'next_obs'
-        - 'done'
-        - 'rewards'
-        - 'info'
-    """
     def __init__(self, cfg):
         self.cfg = cfg
         # copying everything in rl_train and train config entry to config.env
@@ -93,12 +78,8 @@ class AlphaStarActor:
         if self.compressor_name == 'simple':
             self.compressor = simple_compressor
         elif self.compressor_name == 'zlib':
-            import pickle
-            import zlib
             self.compressor = zlib_compressor
         elif self.compressor_name == 'lz4':
-            import pickle
-            import lz4
             self.compressor = lz4_compressor
         else:
             self.compressor = lambda x: x
@@ -194,9 +175,10 @@ class AlphaStarActor:
                     'agent_no': i,
                     'prev_obs': self.compressor(obs),
                     'obs_compressor': self.compressor_name,
-                    'lstm_state_before': self.lstm_states_cpu[i],
+                    # lstm state before forward
+                    'prev_state': self.lstm_states_cpu[i],
                     'have_teacher': self.use_teacher_model,
-                    'teacher_lstm_state_before': self.teacher_lstm_states_cpu[i]
+                    'teacher_prev_state': self.teacher_lstm_states_cpu[i]
                 }
                 obs_copy = copy.deepcopy(obs)
                 obs_copy[i] = unsqueeze_batch_dim(obs_copy[i])
@@ -236,10 +218,11 @@ class AlphaStarActor:
                 actions[i] = action
                 update_after_eval = {
                     'action': action,
-                    'logits': logits,
-                    'teacher_logits': teacher_logits,
-                    'lstm_state_after': self.lstm_states_cpu[i],
-                    'teacher_lstm_state_after': self.teacher_lstm_states_cpu[i]
+                    'behaviour_outputs': logits,
+                    'teacher_outputs': teacher_logits,
+                    # LSTM state after forward
+                    'next_state': self.lstm_states_cpu[i],
+                    'teacher_next_state': self.teacher_lstm_states_cpu[i]
                 }
                 self.last_state_action[i] = merge_two_dicts(self.last_state_action[i], update_after_eval)
         return actions
@@ -272,12 +255,16 @@ class AlphaStarActor:
         # At the beginning of the game, every agent should act and give a delay
         due = [True] * self.agent_num
         game_step = 0
+        game_seconds = 0
         self._init_states()
         # main loop
         while True:
             actions = self._eval_actions(obs, due)
             actions = self.action_modifier(actions, game_step)
             game_step, due, obs, rewards, done, this_game_stat, info = self.env.step(actions)
+            # assuming 22 step per second, round to integer
+            # TODO:need to check with https://github.com/deepmind/pysc2/blob/master/docs/environment.md#game-speed
+            game_seconds = game_step // 22
             if game_step >= self.cfg.env.game_steps_per_episode:
                 # game time out, force the done flag to True
                 done = True
@@ -287,8 +274,11 @@ class AlphaStarActor:
                     # we received obs from the env, add to rollout trajectory
                     # the 'next_obs' is saved (and to be sent) if only this is the last obs of the traj
                     obs_data = {
+                        # statistics calculated for this episode so far
+                        # FIXME: stat format
                         'this_game_stat': this_game_stat,
                         'step': game_step,
+                        'game_seconds': game_seconds,
                         'next_obs': self.compressor(obs) if at_traj_end else None,
                         'done': done,
                         'rewards': rewards[i],
@@ -385,4 +375,7 @@ class DataPusher:
         pass
 
     def push(self, metadata, data_buffer):
+        pass
+
+    def finish_job(self, job_id):
         pass

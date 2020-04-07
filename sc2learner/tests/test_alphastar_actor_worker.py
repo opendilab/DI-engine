@@ -125,6 +125,7 @@ def manager():
 def check_with_fake_dataset(traj):
     fake_dataset = FakeActorDataset(trajectory_len=2)
     fake_data = fake_dataset[0]
+    # FIXME add data format (and validness) check
     pass
 
 
