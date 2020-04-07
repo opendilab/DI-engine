@@ -139,9 +139,12 @@ def test_actor(coordinator, manager, caplog):
     # print(manager.job_record[job_id]['metadatas'])
     for entry in manager.job_record[job_id]['metadatas']:
         assert(entry['length'] == 8)
+    assert(manager.job_record[job_id]['state'] == 'finish')
     assert(len(manager.job_record[job_id]['metadatas']) == 8)
     batch_size = 2
     time.sleep(1)
+    # notice we are using a very small number of samples for testing
+    # so the replay buffer caching should be set to a small value
     assert coordinator.replay_buffer.sample(batch_size) is not None
 
     # Running another episode

@@ -50,5 +50,5 @@ replay_buffer:
     min_sample_ratio: 2
     alpha: 0.6
     beta: 0.5
-    cache_maxlen: 256
+    cache_maxlen: 2
     timeout: 8  # times of the seconds of per learning iteration

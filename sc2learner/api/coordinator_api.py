@@ -72,16 +72,16 @@ def create_coordinator_app(coordinator):
             return build_ret(1)
 
 
-@app.route('/coordinator/finish_job', methods=['POST'])
-def finish_job():
-    manager_uid = request.json['manager_uid']
-    actor_uid = request.json['actor_uid']
-    job_id = request.json['job_id']
-    ret_code = coordinator.deal_with_finish_job(manager_uid, actor_uid, job_id)
-    if ret_code:
-        return build_ret(0)
-    else:
-        return build_ret(1)
+    @app.route('/coordinator/finish_job', methods=['POST'])
+    def finish_job():
+        manager_uid = request.json['manager_uid']
+        actor_uid = request.json['actor_uid']
+        job_id = request.json['job_id']
+        ret_code = coordinator.deal_with_finish_job(manager_uid, actor_uid, job_id)
+        if ret_code:
+            return build_ret(0)
+        else:
+            return build_ret(1)
 
 
     @app.route('/coordinator/ask_for_metadata', methods=['POST'])

@@ -305,7 +305,7 @@ class AlphaStarActor:
                     }
                     if done:
                         metadata['final_reward'] = rewards[i]
-                    delta =  job['data_push_length'] - len(data_buffer[i])
+                    delta = job['data_push_length'] - len(data_buffer[i])
                     # if the the data actually in the buffer when the episode ends is shorter than
                     # job['data_push_length'], the buffer is than filled with data from the last trajectory
                     if delta > 0:
@@ -315,6 +315,7 @@ class AlphaStarActor:
                     last_buffer[i] = data_buffer[i].copy()
                     data_buffer[i] = []
             if done:
+                self.data_pusher.finish_job(job['job_id'])
                 break
 
     def run(self):

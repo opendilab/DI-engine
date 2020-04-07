@@ -53,7 +53,7 @@ class ActorContext:
         self.url_prefix = 'http://{}:{}/'.format(self.manager_ip, self.manager_port)
         self._set_logger()
         self._set_req_session()
-    
+   
     def _set_logger(self):
         self.log_name = 'actor' + self.actor_uid + ".log"
         self.logger = logging.getLogger(self.log_name)
@@ -154,6 +154,19 @@ class DataPusher:
     def __init__(self, context):
         self.context = context
         self.ceph_path = self.context.cfg['actor']['ceph_traj_path']
+
+    def finish_job(self, job_id):
+        d = {'actor_uid': self.context.actor_uid, 'job_id': job_id}
+        try:
+            response = self.context.requests_session.post(
+                       self.context.url_prefix + 'manager/finish_job', json=d).json()
+            if response['code'] == 0:
+                self.context.logger.info("succeed sending result: {}".format(job_id))
+            else:
+                self.context.logger.warn("failed to send result: {}".format(job_id))
+        except Exception as e:
+            self.context.logger.error(''.join(traceback.format_tb(e.__traceback__)))
+            self.context.logger.error("[error] {}".format(sys.exc_info()))
 
     def push(self, metadata, data_buffer):
         job = metadata['job']
