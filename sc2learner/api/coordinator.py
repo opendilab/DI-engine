@@ -61,7 +61,7 @@ class Coordinator(object):
             model_name1 = self.fake_model_path
             model_name2 = self.fake_model_path
             ret = {
-                'job_id': job_id, 
+                'job_id': job_id,
                 'learner_uid': [learner_uid1, learner_uid2],
                 'stat_id': [self.fake_stat_path, self.fake_stat_path],
                 'game_type': 'league',
@@ -86,7 +86,7 @@ class Coordinator(object):
                 model_name1 = self.learner_record[learner_uid1]['models'][-1]
                 model_name2 = self.learner_record[learner_uid2]['models'][-1]
                 ret = {
-                    'job_id': job_id, 
+                    'job_id': job_id,
                     'learner_uid': [learner_uid1, learner_uid2],
                     'stat_id': [self.fake_stat_path, self.fake_stat_path],
                     'game_type': 'league',

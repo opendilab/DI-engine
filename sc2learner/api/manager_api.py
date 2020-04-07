@@ -147,6 +147,5 @@ def launch_actor():
         return build_ret(1)
 
 
-
 if __name__ == '__main__':
     app.run(host=manager_ip, port=manager_port, debug=True, use_reloader=False)

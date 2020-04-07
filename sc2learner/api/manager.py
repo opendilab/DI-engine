@@ -49,7 +49,7 @@ class Manager(object):
         check_actor_dead_thread.start()
         self.logger.info("[UP] check actor dead thread ")
 
-        # launch actor 
+        # launch actor
         check_run_actor_thread = threading.Thread(target=self.check_run_actor)
         check_run_actor_thread.start()
         self.logger.info("[UP] check run actor thread ")

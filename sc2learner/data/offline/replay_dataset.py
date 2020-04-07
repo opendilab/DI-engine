@@ -96,9 +96,9 @@ class ReplayDataset(BaseDataset):
         for i in index:
             self.path_list[i].pop('cur_step')
 
-    def _read_file(self, path):
+    def _read_file(self, path, read_type='BytesIO'):
         if self.use_ceph:
-            return read_file_ceph(path)
+            return read_file_ceph(path, read_type=read_type)
         else:
             return path
 
@@ -179,8 +179,8 @@ class ReplayDataset(BaseDataset):
         else:
             sample_data[0][START_STEP] = False
 
-        print('total cost {}'.format(t8-t1))
-        print('    size = {}, read .step cost {}, load cost  {}'.format(sys.getsizeof(data), t9-t1, t2-t9))
+        print('total cost {}'.format(t8 - t1))
+        print('    size = {}, read .step cost {}, load cost  {}'.format(sys.getsizeof(data), t9 - t1, t2 - t9))
         # print('    clip the dataset cost                     {}'.format(t3-t2))
         # print('    action_unit_id_transform cost             {}'.format(t4-t3))
         # print('    decompress_obs cost                       {}'.format(t5-t4))

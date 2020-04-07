@@ -8,14 +8,17 @@ import subprocess
 me = subprocess.getoutput('whoami')[:8]
 finish_list = []
 
+
 def launch(partition, workstation, replay_name, output_dir, parallel, log_dir):
     log_path = os.path.join(log_dir, 'log.' + workstation)
-    subprocess.run(['bash', 'replay_decode_game_loop.sh', partition, workstation, replay_name, output_dir, parallel, log_path]) 
+    subprocess.run(
+        ['bash', 'replay_decode_game_loop.sh', partition, workstation, replay_name, output_dir, parallel, log_path]
+    )
 
 
 def launch_check(partition, workstation, list_path, log_dir):
     log_path = os.path.join(log_dir, 'log.' + workstation)
-    subprocess.run(['bash', 'check.sh', partition, workstation, list_path, log_path]) 
+    subprocess.run(['bash', 'check.sh', partition, workstation, list_path, log_path])
 
 
 # get all info of cluster
@@ -34,6 +37,7 @@ def get_cls_info():
             ret_dict[partition].append([node, state])
 
     return ret_dict
+
 
 # get my task number by node
 def get_workstation_info(partition, workstation):
@@ -63,8 +67,9 @@ def main():
     workers_num_std = 2
     log_dir = '/mnt/lustre/zhangming/data/logs_valid'
     output_dir = '/mnt/lustre/zhangming/data/Replays_decode_valid'
-    partitions = ['VI_SP_Y_V100_B', 'VI_SP_Y_V100_A', 'VI_SP_VA_V100',
-                  'VI_SP_VA_1080TI', 'VI_Face_1080TI', 'VI_ID_1080TI']
+    partitions = [
+        'VI_SP_Y_V100_B', 'VI_SP_Y_V100_A', 'VI_SP_VA_V100', 'VI_SP_VA_1080TI', 'VI_Face_1080TI', 'VI_ID_1080TI'
+    ]
     #partitions = ['VI_SP_Y_V100_A']
     info = get_cls_info()
     replays = open('/mnt/lustre/zhangming/data/listtemp/replays.valid.list.06', 'r').readlines()
@@ -115,9 +120,9 @@ def main_4_8():
     if not os.path.isdir(output_dir):
         os.mkdir(output_dir)
 
-    partitions = ['VI_SP_Y_V100_B', 'VI_SP_Y_V100_A', 'VI_SP_VA_V100',
-                  'VI_SP_VA_1080TI', 'VI_ID_1080TI', 'VI_Face_1080TI']
-    # partitions = ['VI_SP_Y_V100_A']
+    # partitions = ['VI_SP_Y_V100_A', 'VI_SP_Y_V100_B', 'VI_SP_VA_V100',
+    #               'VI_SP_VA_1080TI', 'VI_ID_1080TI', 'VI_Face_1080TI']
+    partitions = ['VI_SP_Y_V100_A']
     info = get_cls_info()
     total_list_num = 0
     for k, v in info.items():
@@ -151,7 +156,8 @@ def main_4_8():
             if workstation not in delete_workstations:
                 replay_list_path_now = os.path.join(replay_list_path, workstation)
                 with open(replay_list_path_now, 'w') as f:
-                    for replay in replays[replays_index*len_per_workstation:(replays_index+1)*len_per_workstation]:
+                    for replay in replays[replays_index * len_per_workstation:(replays_index + 1) *
+                                          len_per_workstation]:
                         f.write(replay + '\n')
                 if state == 'idle':
                     workers_num_std_spe = workers_num_my
@@ -173,8 +179,7 @@ def main_check():
     if not os.path.isdir(log_dir):
         os.mkdir(log_dir)
 
-    partitions = ['VI_SP_Y_V100_B', 'VI_SP_Y_V100_A', 'VI_SP_VA_V100',
-                  'VI_SP_VA_1080TI', 'VI_ID_1080TI']
+    partitions = ['VI_SP_Y_V100_B', 'VI_SP_Y_V100_A', 'VI_SP_VA_V100', 'VI_SP_VA_1080TI', 'VI_ID_1080TI']
     # partitions = ['VI_SP_Y_V100_A']
     info = get_cls_info()
     total_list_num = 0
@@ -207,11 +212,13 @@ def main_check():
             if workstation not in delete_workstations:
                 replay_list_path_now = os.path.join(replay_list_path, workstation)
                 with open(replay_list_path_now, 'w') as f:
-                    for replay in replays[replays_index*len_per_workstation:(replays_index+1)*len_per_workstation]:
+                    for replay in replays[replays_index * len_per_workstation:(replays_index + 1) *
+                                          len_per_workstation]:
                         f.write(replay.strip() + '\n')
                 launch_check(partition, workstation, replay_list_path_now, log_dir)
                 print('{} {}'.format(replays_index, replay_list_path_now))
                 replays_index += 1
+
 
 if __name__ == '__main__':
     func_name = sys.argv[1]

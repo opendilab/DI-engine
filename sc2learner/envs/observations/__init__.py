@@ -1,1 +1,1 @@
-from .alphastar_obs_wrapper import decompress_obs
+from .alphastar_obs_wrapper import compress_obs, decompress_obs
