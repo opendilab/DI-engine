@@ -245,7 +245,11 @@ class AlphaStarRLLoss(BaseLoss):
         """
         def _vtrace(target_output, behaviour_output, action, action_output_type):
             clipped_rhos = compute_importance_weights(
-                target_output, behaviour_output, action_output_type, action, min_clip=self.vtrace_rhos_min_clip,
+                target_output,
+                behaviour_output,
+                action_output_type,
+                action,
+                min_clip=self.vtrace_rhos_min_clip,
                 device=self.device
             )
             clipped_cs = clipped_rhos
@@ -266,7 +270,11 @@ class AlphaStarRLLoss(BaseLoss):
     def _upgo_loss(self, baseline, reward, target_outputs, behaviour_outputs, target_actions, behaviour_actions):
         def _upgo(target_output, behaviour_output, action, action_output_type):
             clipped_rhos = compute_importance_weights(
-                target_output, behaviour_output, action_output_type, action, min_clip=self.upgo_rhos_min_clip,
+                target_output,
+                behaviour_output,
+                action_output_type,
+                action,
+                min_clip=self.upgo_rhos_min_clip,
                 device=self.device
             )
             return upgo_loss(target_output, action_output_type, clipped_rhos, action, reward, baseline)
