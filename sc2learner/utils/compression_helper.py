@@ -16,6 +16,7 @@ def list_proc(func):
             return out
         else:
             return func(x)
+
     return f
 
 

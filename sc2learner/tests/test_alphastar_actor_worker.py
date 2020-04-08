@@ -149,7 +149,7 @@ def recu_check_keys(ref, under_test, trace='ROOT'):
         if len(under_test) != len(ref):
             warnings.warn('Mismatch length: REF{} DUT{} {}'.format(len(ref), len(under_test), trace))
         for n in range(min(len(ref), len(under_test))):
-            recu_check_keys(ref[n], under_test[n], trace=trace+':'+str(n))
+            recu_check_keys(ref[n], under_test[n], trace=trace + ':' + str(n))
     elif isinstance(under_test, dict):
         assert isinstance(ref, dict)
         for k, v in ref.items():
