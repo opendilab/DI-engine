@@ -13,6 +13,7 @@ from __future__ import print_function
 
 import multiprocessing
 import os
+import platform
 import signal
 import sys
 import collections
@@ -37,7 +38,7 @@ from s2clientprotocol import sc2api_pb2 as sc_pb
 from sc2learner.envs.observations.alphastar_obs_wrapper import AlphastarObsParser, compress_obs, decompress_obs
 from sc2learner.envs.actions.alphastar_act_wrapper import AlphastarActParser, remove_repeat_data
 from sc2learner.envs.statistics import Statistics, transform_stat
-from sc2learner.envs.maps.map_info import LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT, LE_BNET_NAME_TO_PYSC2_NAME_LUT
+from sc2learner.envs.maps.map_info import LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT
 
 logging.set_verbosity(logging.INFO)
 FLAGS = flags.FLAGS
@@ -185,7 +186,7 @@ class ReplayDecoder(multiprocessing.Process):
         if (info.HasField("error")):
             logging.warning('Info have error')
             return None
-        if (info.map_name not in LE_BNET_NAME_TO_PYSC2_NAME_LUT.keys()):
+        if (info.map_name not in LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT.keys()):
             logging.error(
                 'Found replay using unknown map {}, or there is sth wrong with locale'.format(info.map_name) +
                 ' Try regenerate map_info.py'
@@ -218,7 +219,7 @@ class ReplayDecoder(multiprocessing.Process):
             ret = dict()
             ret['game_duration_loops'] = info.game_duration_loops
             ret['game_version'] = info.game_version
-            ret['map_name'] = LE_BNET_NAME_TO_PYSC2_NAME_LUT[info.map_name]
+            ret['map_name'] = LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT[info.map_name]
             ret['home_race'] = race_dict[info.player_info[home].player_info.race_actual]
             ret['home_mmr'] = info.player_info[home].player_mmr
             ret['home_apm'] = info.player_info[home].player_apm
@@ -316,8 +317,10 @@ class ReplayDecoder(multiprocessing.Process):
 
 def main(unused_argv):
     run_config = run_configs.get(FLAGS.version)
-    # replay_list = sorted(run_config.replay_paths(FLAGS.replays))
-    replay_list = [x.strip() for x in open(FLAGS.replays, 'r').readlines()]
+    if platform.system() == 'Windows':
+        replay_list = sorted(run_config.replay_paths(FLAGS.replays))
+    else:
+        replay_list = [x.strip() for x in open(FLAGS.replays, 'r').readlines()]
     fitered_replays = []  # filter replays by version
     if FLAGS.check_version:
         for replay_path in replay_list:
