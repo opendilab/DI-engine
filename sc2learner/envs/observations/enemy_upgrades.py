@@ -212,8 +212,7 @@ def get_enemy_upgrades_processed_data(obs, upgrades):
     if upgrades is None:
         upgrades = torch.zeros(48).long()
     slices = {}
-    slices['alliance_slice'] = slice(263, 263 + 5)
-    slices['unit_type_slice'] = slice(4, 4 + 259)
+    slices['alliance'] = slice(263, 263 + 5)
     slices['attack_upgrade_level'] = slice(-16, -16 + 4)
     slices['armor_upgrade_level'] = slice(-12, -12 + 4)
     slices['shield_upgrade_level'] = slice(-8, -8 + 4)
@@ -221,7 +220,7 @@ def get_enemy_upgrades_processed_data(obs, upgrades):
 
     info = {
         k: []
-        for k in ['alliance', 'unit_type', 'attack_upgrade_level', 'armor_upgrade_level', 'shield_upgrade_level']
+        for k in ['alliance', 'attack_upgrade_level', 'armor_upgrade_level', 'shield_upgrade_level']
     }
     for k in info.keys():
         info[k] = entity_info[:, slices[k]]
@@ -231,6 +230,7 @@ def get_enemy_upgrades_processed_data(obs, upgrades):
     # get enemy
     enemy_index = [idx for idx, v in enumerate(info['alliance']) if v == 4]
     # get the original unit type
+    info['unit_type'] = obs['entity_raw']['type']
     level_map = {0: 'attack_upgrade_level', 1: 'armor_upgrade_level', 2: 'shield_upgrade_level'}
 
     for idx in enemy_index:
@@ -241,9 +241,9 @@ def get_enemy_upgrades_processed_data(obs, upgrades):
                 type_idx = t_idx
         if type_idx != -1:
             upgrade_idx = unit_type2upgrade_idx[type_idx].upgrade_idx
-        for i, u_idx in enumerate(upgrade_idx):
-            val = info[level_map[i]][idx]
-            if val > 0:
-                upgrades[u_idx:u_idx + 3] = one_hot(torch.LongTensor([val - 1]), 3)
+            for i, u_idx in enumerate(upgrade_idx):
+                val = info[level_map[i]][idx]
+                if val > 0:
+                    upgrades[u_idx:u_idx + 3] = one_hot(torch.LongTensor([val - 1]), 3)
 
     return upgrades

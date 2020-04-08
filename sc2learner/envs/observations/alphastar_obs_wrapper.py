@@ -186,6 +186,8 @@ class ScalarObsWrapper(object):
                 ret[key] = self._parse_agent_statistics(obs)
             elif key == 'unit_counts_bow':
                 ret[key] = self._parse_unit_counts(obs)
+            elif key == 'available_actions':
+                continue  # parse by the additional function
             else:
                 if key == 'enemy_upgrades':
                     if 'enemy_upgrades' not in obs.keys():

@@ -35,6 +35,7 @@ from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
 from s2clientprotocol import sc2api_pb2 as sc_pb
 from sc2learner.envs.observations.alphastar_obs_wrapper import AlphastarObsParser, compress_obs, decompress_obs, \
     transform_cum_stat, transform_stat
+from sc2learner.envs.observations import get_enemy_upgrades_raw_data, get_enemy_upgrades_processed_data
 from sc2learner.envs.actions.alphastar_act_wrapper import AlphastarActParser, remove_repeat_data
 from sc2learner.envs.maps.map_info import LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT
 
@@ -193,6 +194,7 @@ class ReplayDecoder(multiprocessing.Process):
         action_statistics = [{} for _ in range(PLAYER_NUM)]
         cumulative_statistics = [{} for _ in range(PLAYER_NUM)]
         begin_statistics = [[] for _ in range(PLAYER_NUM)]
+        enemy_upgrades = [None for _ in range(PLAYER_NUM)]
         begin_num = 200
         for player in range(PLAYER_NUM):  # gain data by player order
             logging.info('Start getting data for player {}'.format(player))
@@ -230,8 +232,6 @@ class ReplayDecoder(multiprocessing.Process):
                 base_ob = feat.transform_obs(obs)
                 base_ob = unit_id_mapping(base_ob)
                 agent_ob = self.obs_parser.parse(base_ob)
-                # TODO(zh) compute enemy_upgrades by observation
-                agent_ob['scalar_info']['enemy_upgrades'] = torch.zeros(128, dtype=torch.long)
                 agent_act = act_parser.parse(action.action)
                 assert len(agent_act) == 1
                 agent_act = act_parser.merge_same_id_action(agent_act)[0]
@@ -242,12 +242,19 @@ class ReplayDecoder(multiprocessing.Process):
                     update_begin_stat(begin_statistics[player], agent_act)
                 agent_ob['scalar_info']['cumulative_stat'] = transform_cum_stat(cumulative_statistics[player])
                 result_obs = self.obs_parser.merge_action(agent_ob, last_action, True)
+                # get_enemy_upgrades_processed_data must be used after merge_action
+                enemy_upgrades_raw = get_enemy_upgrades_raw_data(base_ob, copy.deepcopy(enemy_upgrades[player]))
+                #enemy_upgrades_proc = get_enemy_upgrades_processed_data(result_obs, copy.deepcopy(enemy_upgrades[player]))
+                #assert(enemy_upgrades_raw.ne(enemy_upgrades_proc).sum().item() == 0), enemy_upgrades_proc
+                agent_ob['scalar_info']['enemy_upgrades'] = enemy_upgrades_raw
+                enemy_upgrades[player] = enemy_upgrades_raw
                 result_obs.update({'actions': agent_act})
                 # store only the compressed obs, and let gc clear uncompressed obs
                 compressed_obs = copy.deepcopy(compress_obs(result_obs))
                 step_data[player].append(compressed_obs)
                 last_action = agent_act
                 self.controller.step(delay)
+                print('action{} over, delay{}'.format(idx, delay))
         return (
             step_data, [
                 {
@@ -263,6 +270,7 @@ class ReplayDecoder(multiprocessing.Process):
             logging.warning('Info have error')
             return None
         if (info.map_name not in LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT.keys()):
+            logging.error(LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT.keys())
             logging.error(
                 'Found replay using unknown map {}, or there is sth wrong with locale'.format(info.map_name) +
                 ' Try regenerate map_info.py'
