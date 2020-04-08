@@ -243,11 +243,10 @@ class ReplayDecoder(multiprocessing.Process):
                 agent_ob['scalar_info']['cumulative_stat'] = transform_cum_stat(cumulative_statistics[player])
                 result_obs = self.obs_parser.merge_action(agent_ob, last_action, True)
                 # get_enemy_upgrades_processed_data must be used after merge_action
-                enemy_upgrades_raw = get_enemy_upgrades_raw_data(base_ob, copy.deepcopy(enemy_upgrades[player]))
-                #enemy_upgrades_proc = get_enemy_upgrades_processed_data(result_obs, copy.deepcopy(enemy_upgrades[player]))
-                #assert(enemy_upgrades_raw.ne(enemy_upgrades_proc).sum().item() == 0), enemy_upgrades_proc
-                agent_ob['scalar_info']['enemy_upgrades'] = enemy_upgrades_raw
-                enemy_upgrades[player] = enemy_upgrades_raw
+                # enemy_upgrades_raw = get_enemy_upgrades_raw_data(base_ob, copy.deepcopy(enemy_upgrades[player]))
+                enemy_upgrades_proc = get_enemy_upgrades_processed_data(result_obs, enemy_upgrades[player])
+                agent_ob['scalar_info']['enemy_upgrades'] = enemy_upgrades_proc
+                enemy_upgrades[player] = enemy_upgrades_proc
                 result_obs.update({'actions': agent_act})
                 # store only the compressed obs, and let gc clear uncompressed obs
                 compressed_obs = copy.deepcopy(compress_obs(result_obs))
