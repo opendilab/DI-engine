@@ -86,7 +86,7 @@ class AlphaStarRLLoss(BaseLoss):
         )  # get naive temperature scheduler
 
         self.dtype = torch.float
-        self.device = 'cpu'
+        self.device = 'cuda' if train_config.use_cuda and torch.cuda.is_available() else 'cpu'
         self.pad_value = -1e6
 
     def register_log(self, variable_record, tb_logger):
@@ -194,10 +194,12 @@ class AlphaStarRLLoss(BaseLoss):
                 - rewards (:obj:`dict`): a dict contains different type rewards
         """
         def loc_fn(p1, p2, max_limit=self.build_order_location_max_limit):
+            p1 = p1.float().to(self.device)
+            p2 = p2.float().to(self.device)
             dist = F.l1_loss(p1, p2, reduction='sum')
             dist = dist.clamp(0, max_limit)
             dist = dist / max_limit * self.build_order_location_rescale
-            return dist
+            return dist.item()
 
         def get_time_factor(game_second):
             if game_second < 8 * 60:
@@ -225,6 +227,8 @@ class AlphaStarRLLoss(BaseLoss):
         new_rewards['build_order'] = torch.FloatTensor(build_order_reward).to(rewards.device)
         for k in ['built_units', 'upgrades', 'effects']:
             new_rewards[k] = hamming_distance(agent_z[k], target_z[k], factors)
+        for k in new_rewards.keys():
+            new_rewards[k] = new_rewards[k].float()
         return new_rewards
 
     def _td_lambda_loss(self, baseline, reward):
@@ -241,7 +245,8 @@ class AlphaStarRLLoss(BaseLoss):
         """
         def _vtrace(target_output, behaviour_output, action, action_output_type):
             clipped_rhos = compute_importance_weights(
-                target_output, behaviour_output, action_output_type, action, min_clip=self.vtrace_rhos_min_clip
+                target_output, behaviour_output, action_output_type, action, min_clip=self.vtrace_rhos_min_clip,
+                device=self.device
             )
             clipped_cs = clipped_rhos
             return vtrace_loss(target_output, action_output_type, clipped_rhos, clipped_cs, action, reward, baseline)
@@ -261,7 +266,8 @@ class AlphaStarRLLoss(BaseLoss):
     def _upgo_loss(self, baseline, reward, target_outputs, behaviour_outputs, target_actions, behaviour_actions):
         def _upgo(target_output, behaviour_output, action, action_output_type):
             clipped_rhos = compute_importance_weights(
-                target_output, behaviour_output, action_output_type, action, min_clip=self.upgo_rhos_min_clip
+                target_output, behaviour_output, action_output_type, action, min_clip=self.upgo_rhos_min_clip,
+                device=self.device
             )
             return upgo_loss(target_output, action_output_type, clipped_rhos, action, reward, baseline)
 

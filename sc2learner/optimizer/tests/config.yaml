@@ -2,6 +2,7 @@ model:
     use_value_network: True
 train:
     trajectory_len: 3
+    use_cuda: True
     batch_size: 2
     action_output_types:
         action_type: logit

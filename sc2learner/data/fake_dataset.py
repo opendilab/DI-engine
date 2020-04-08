@@ -223,19 +223,19 @@ class FakeActorDataset:
             new_outputs = copy.deepcopy(outputs)
             new_outputs['action_type'] += torch.randn_like(new_outputs['action_type']) * 0.1
             new_outputs['delay'] = torch.clamp(new_outputs['delay'] + torch.randn(1) * 10, 0, DELAY_MAX)
-            if new_outputs['queued'] != NOOP:
+            if new_outputs['queued'] is not NOOP:
                 new_outputs['queued'] += torch.randn_like(new_outputs['queued']) * 0.1
-            if new_outputs['selected_units'] != NOOP:
+            if new_outputs['selected_units'] is not NOOP:
                 new_outputs['selected_units'] += torch.randn_like(new_outputs['selected_units']) * 0.1
-            if new_outputs['target_units'] != NOOP:
+            if new_outputs['target_units'] is not NOOP:
                 new_outputs['target_units'] += torch.randn_like(new_outputs['target_units']) * 0.1
-            if new_outputs['target_location'] != NOOP:
+            if new_outputs['target_location'] is not NOOP:
                 new_outputs['target_location'] += torch.randn_like(new_outputs['target_location']) * 0.1
             return new_outputs
 
         def disturb_actions(actions):
             new_actions = copy.deepcopy(actions)
-            if new_actions['selected_units'] != NOOP:
+            if new_actions['selected_units'] is not NOOP:
                 num = np.random.randint(-2, 2)
                 if num > 0:
                     handle = new_actions['selected_units']

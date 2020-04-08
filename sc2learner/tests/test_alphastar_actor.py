@@ -20,7 +20,7 @@ from absl import app
 from absl import flags
 from easydict import EasyDict
 
-from sc2learner.data.tests.fake_dataset import FakeReplayDataset
+from sc2learner.data.fake_dataset import FakeReplayDataset
 from sc2learner.worker.actor.alphastar_actor import AlphaStarActor
 
 FLAGS = flags.FLAGS

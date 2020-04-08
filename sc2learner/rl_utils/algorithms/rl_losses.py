@@ -53,7 +53,7 @@ def multistep_forward_view(rewards, gammas, bootstrap_values, lambda_):
         - ret (:obj:`torch.Tensor`): Computed lambda return value
          for each state from 0 to T-1, of size [T_traj, batchsize]
     """
-    result = torch.empty(rewards.size())
+    result = torch.empty_like(rewards)
     # Forced cutoff at the last one
     result[-1, :] = rewards[-1, :] + gammas[-1, :] * bootstrap_values[-1, :]
     discounts = gammas * lambda_
@@ -84,9 +84,9 @@ def generalized_lambda_returns(rewards, gammas, bootstrap_values, lambda_):
           for each state from 0 to T-1, of size [T_traj, batchsize]
     """
     if not isinstance(gammas, torch.Tensor):
-        gammas = gammas * torch.ones(rewards.size(), dtype=rewards.dtype)
+        gammas = gammas * torch.ones_like(rewards)
     if not isinstance(lambda_, torch.Tensor):
-        lambda_ = lambda_ * torch.ones(rewards.size(), dtype=rewards.dtype)
+        lambda_ = lambda_ * torch.ones_like(rewards)
     bootstrap_values_tp1 = bootstrap_values[1:, :]
     return multistep_forward_view(rewards, gammas, bootstrap_values_tp1, lambda_)
 
@@ -114,7 +114,8 @@ def td_lambda_loss(values, rewards, gamma=1.0, lambda_=0.8):
 
 
 def compute_importance_weights(
-    target_output, behaviour_output, output_type, action, min_clip=None, max_clip=None, eps=1e-8, requires_grad=False
+    target_output, behaviour_output, output_type, action, min_clip=None, max_clip=None, eps=1e-8, requires_grad=False,
+    device='cpu'
 ):
     r"""
     Overview:
@@ -145,7 +146,7 @@ def compute_importance_weights(
         elif output_type == 'logit':
             if isinstance(action, list):
                 T, B = len(action), len(action[0])
-                rhos = torch.ones(T, B)
+                rhos = torch.ones(T, B).to(device)
                 for t in range(T):
                     for b in range(B):
                         if action[t][b] is None:
@@ -240,13 +241,13 @@ def vtrace_advantages(clipped_rhos, clipped_cs, rewards, bootstrap_values, gamma
         - result (:obj:`torch.Tensor`): Computed V-trace advantage, of size [T_traj, batchsize]
     """
     if not isinstance(gammas, torch.Tensor):
-        gammas = gammas * torch.ones(rewards.size(), dtype=rewards.dtype)
+        gammas = gammas * torch.ones_like(rewards)
     if not isinstance(lambda_, torch.Tensor):
-        lambda_ = lambda_ * torch.ones(rewards.size(), dtype=rewards.dtype)
+        lambda_ = lambda_ * torch.ones_like(rewards)
     deltas = clipped_rhos * \
         (rewards + gammas *
          bootstrap_values[1:, :] - bootstrap_values[:-1, :])  # from 0 to T-1
-    result = torch.empty(rewards.size())
+    result = torch.empty_like(rewards)
     result[-1, :] = bootstrap_values[-2, :] + deltas[-1, :]
     for t in reversed(range(rewards.size()[0] - 1)):
         result[t, :] = bootstrap_values[t, :] + deltas[t, :]\

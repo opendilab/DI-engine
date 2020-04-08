@@ -75,7 +75,7 @@ def diff_shape_collate(batch):
 
     elem = batch[0]
     elem_type = type(elem)
-    if None in batch:
+    if any([isinstance(elem, type(None)) for elem in batch]):
         return batch
     elif isinstance(elem, torch.Tensor):
         shapes = [e.shape for e in batch]
