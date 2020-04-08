@@ -3,13 +3,11 @@ import copy
 import pickle
 
 import torch
-import zlib
-import lz4
 
 import pysc2.env.sc2_env as sc2_env
 from sc2learner.agent.alphastar_agent import AlphaStarAgent
 from sc2learner.envs.alphastar_env import AlphaStarEnv
-from sc2learner.utils import get_actor_uid, dict_list2list_dict, merge_two_dicts
+from sc2learner.utils import get_actor_uid, dict_list2list_dict, merge_two_dicts, get_step_data_compressor
 from sc2learner.envs.observations.alphastar_obs_wrapper import compress_obs
 from sc2learner.torch_utils import to_device
 
@@ -40,19 +38,6 @@ def unsqueeze_batch_dim(obs):
     return obs
 
 
-# TODO: move to utils
-def simple_compressor(obs):
-    return copy.deepcopy([compress_obs(o) for o in obs])
-
-
-def zlib_compressor(obs):
-    return zlib.compress(pickle.dumps([compress_obs(o) for o in obs]))
-
-
-def lz4_compressor(obs):
-    return lz4.frame.compress(pickle.dumps([compress_obs(o) for o in obs]))
-
-
 class AlphaStarActor:
     def __init__(self, cfg):
         self.cfg = cfg
@@ -75,14 +60,7 @@ class AlphaStarActor:
         self.teacher_agent = None
         self.use_teacher_model = None
         self.compressor_name = self.cfg.env.get('compress_obs', 'none')
-        if self.compressor_name == 'simple':
-            self.compressor = simple_compressor
-        elif self.compressor_name == 'zlib':
-            self.compressor = zlib_compressor
-        elif self.compressor_name == 'lz4':
-            self.compressor = lz4_compressor
-        else:
-            self.compressor = lambda x: x
+        self.compressor = get_step_data_compressor(self.compressor_name)
 
     def _init_with_job(self, job):
         self.cfg.env.map_name = job['map_name']
@@ -158,7 +136,8 @@ class AlphaStarActor:
         self.data_pusher = DataPusher(self.cfg)
 
     def _init_states(self):
-        self.last_state_action = [None] * self.agent_num
+        self.last_state_action_home = [None] * self.agent_num
+        self.last_state_action_away = [None] * self.agent_num
         self.lstm_states = [None] * self.agent_num
         self.lstm_states_cpu = [None] * self.agent_num
         self.teacher_lstm_states = [None] * self.agent_num
@@ -168,24 +147,32 @@ class AlphaStarActor:
         actions = [None] * self.agent_num
         for i in range(self.agent_num):
             if due[i]:
-                # self.last_state_action[i] stores the last observation, lstm state and the action of agent i
+                # self.last_state_action_home[i] stores the last observation, lstm state and the action of agent i
                 # once the simulation of the step is complete, this will be combined with the next observation
                 # and rewards then put into the trajectory buffer for agent i
-                self.last_state_action[i] = {
+                self.last_state_action_home[i] = {
                     'agent_no': i,
-                    'prev_obs': self.compressor(obs),
-                    'obs_compressor': self.compressor_name,
                     # lstm state before forward
                     'prev_state': self.lstm_states_cpu[i],
                     'have_teacher': self.use_teacher_model,
                     'teacher_prev_state': self.teacher_lstm_states_cpu[i]
                 }
+                self.last_state_action_home[i].update(obs[i])
+                if self.agent_num == 2:
+                    self.last_state_action_away[1 - i] = {
+                        'agent_no': 1 - i,
+                        # lstm state before forward
+                        'prev_state': self.lstm_states_cpu[1 - i],
+                        'have_teacher': self.use_teacher_model,
+                        'teacher_prev_state': self.teacher_lstm_states_cpu[1 - i]
+                    }
+                    self.last_state_action_away[1 - i].update(obs[1 - i])
                 obs_copy = copy.deepcopy(obs)
                 obs_copy[i] = unsqueeze_batch_dim(obs_copy[i])
                 if self.cfg.env.use_cuda:
                     obs_copy[i] = to_device(obs_copy[i], 'cuda')
                 if self.use_teacher_model:
-                    _, teacher_logits, self.teacher_lstm_states[i] = self.teacher_agent.compute_action(
+                    teacher_action, teacher_logits, self.teacher_lstm_states[i] = self.teacher_agent.compute_action(
                         obs_copy[i],
                         mode="evaluate",
                         prev_states=self.teacher_lstm_states[i],
@@ -193,6 +180,7 @@ class AlphaStarActor:
                         temperature=self.cfg.env.temperature
                     )
                 else:
+                    teacher_action = None
                     teacher_logits = None
                 action, logits, self.lstm_states[i] = self.agents[i].compute_action(
                     obs_copy[i],
@@ -216,15 +204,24 @@ class AlphaStarActor:
                 action = dict_list2list_dict(action)[0]  # 0 for batch dim
 
                 actions[i] = action
-                update_after_eval = {
+                update_after_eval_home = {
                     'action': action,
                     'behaviour_outputs': logits,
+                    'teacher_action': teacher_action,
                     'teacher_outputs': teacher_logits,
                     # LSTM state after forward
                     'next_state': self.lstm_states_cpu[i],
                     'teacher_next_state': self.teacher_lstm_states_cpu[i]
                 }
-                self.last_state_action[i] = merge_two_dicts(self.last_state_action[i], update_after_eval)
+                self.last_state_action_home[i].update(update_after_eval_home)
+        if self.agent_num == 2:
+            for i in range(self.agent_num):
+                update_after_eval_away = {
+                    # LSTM state after forward
+                    'next_state': self.lstm_states_cpu[1 - i],
+                    'teacher_next_state': self.teacher_lstm_states_cpu[1 - i]
+                }
+                self.last_state_action_away[1 - i].update(update_after_eval_away)
         return actions
 
     def run_episode(self):
@@ -271,20 +268,43 @@ class AlphaStarActor:
             for i in range(self.agent_num):
                 at_traj_end = len(data_buffer[i]) + 1 * due[i] >= job['data_push_length'] or done
                 if due[i]:
-                    # we received obs from the env, add to rollout trajectory
+                    # we received outcome from the env, add to rollout trajectory
                     # the 'next_obs' is saved (and to be sent) if only this is the last obs of the traj
-                    obs_data = {
+                    step_data_update_home = {
                         # statistics calculated for this episode so far
                         # FIXME: stat format
-                        'this_game_stat': this_game_stat,
+                        'this_game_stat': this_game_stat[i],
                         'step': game_step,
                         'game_seconds': game_seconds,
-                        'next_obs': self.compressor(obs) if at_traj_end else None,
                         'done': done,
                         'rewards': rewards[i],
                         'info': info
                     }
-                    data_buffer[i].append(merge_two_dicts(self.last_state_action[i], obs_data))
+                    home_step_data = merge_two_dicts(self.last_state_action_home[i], step_data_update_home)
+                    if self.agent_num == 2:
+                        step_data_update_away = {
+                            'this_game_stat': this_game_stat[1 - i],
+                            'step': game_step,
+                            'game_seconds': game_seconds,
+                            'done': done,
+                            'rewards': rewards[1 - i],
+                            'info': info
+                        }
+                        away_step_data = merge_two_dicts(self.last_state_action_away[i], step_data_update_away)
+                    else:
+                        away_step_data = None
+                    home_next_step_obs = obs[i] if at_traj_end else None
+                    away_next_step_obs = obs[1 - i] if self.agent_num == 2 and at_traj_end else None
+                    data_buffer[i].append(
+                        self.compressor(
+                            {
+                                'home': home_step_data,
+                                'away': away_step_data,
+                                'home_next': home_next_step_obs,
+                                'away_next': away_next_step_obs
+                            }
+                        )
+                    )
                 if at_traj_end:
                     # trajectory buffer is full or the game is finished
                     metadata = {

@@ -1,6 +1,6 @@
 import os
 
-from .communication_helper import ManagerZmq, nparray2dict, dict2nparray, send_array, recv_array
+from .compression_helper import get_step_data_compressor, get_step_data_decompressor, compress_obs, decompress_obs
 from .config_utils import merge_dicts, read_config
 from .file_helper import read_file_ceph, save_file_ceph
 from .import_utils import try_import_ceph, try_import_link

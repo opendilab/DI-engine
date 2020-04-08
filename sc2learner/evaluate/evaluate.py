@@ -123,11 +123,10 @@ class EvalTrajProcessor:
 
     def push(self, metadata, data_buffer):
         agent_no = metadata['agent_no']
-        # we are summing the rewards received in the whole trajectory
-        rewards_list = [d['rewards'] for d in data_buffer]
-        traj_return = sum(rewards_list)
+        traj_return = metadata.get('final_reward', 0)
         print('agent no:{} ret:{}'.format(agent_no, traj_return))
         if agent_no + 1 > len(self.return_sum):
+            # extending return store
             self.return_sum.extend([0] * (agent_no - len(self.return_sum) + 1))
         self.return_sum[agent_no] += traj_return
 
