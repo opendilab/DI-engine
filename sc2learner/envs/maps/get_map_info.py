@@ -1,6 +1,7 @@
 """
 Script to extract map_size from maps
 Usage: Run me on a computer with pysc2 environment and ladder map packs installed
+       The LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT can be used to convert any kind of map name to pysc2 name
        Output will be written to map_info.py
 """
 from __future__ import absolute_import
@@ -30,11 +31,14 @@ def get_localized_map_name(map_name, cleared=True):\n\
     return MAPS[map_name][5 if cleared else 4]\n\n\
 def get_inverse_tran_table(table, indices):\n\
     inv_tab = {}\n\
+    for k, v in table.items():\n\
+        inv_tab[k] = k\n\
     for index in indices:\n\
         for k, v in table.items():\n\
-            inv_tab[v[index]] = k\n\
+            if v[index]:\n\
+                inv_tab[v[index]] = k\n\
     return inv_tab\n\n\
-LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT = get_inverse_tran_table(MAPS, [4, 5])'
+LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT = get_inverse_tran_table(MAPS, [0, 4, 5, 6])'
 
 print(header + trailer)
 
@@ -82,17 +86,19 @@ def main(unused_argv):
                 else:
                     formated_name_list.append(fnm)
                 print(
-                    '{}: ({}, {}, {}, {}, {}, {})'.format(
+                    '{}: ({}, {}, {}, {}, {}, {}, {})'.format(
                         repr(fnm), repr(mp_i.battle_net), repr(mp_i.path), repr([map_size.x, map_size.y]),
                         repr([map_size_nocrop.x, map_size_nocrop.y]), repr(bnet_localized_map_name),
-                        repr(bnet_localized_map_name_cleaned)
+                        repr(bnet_localized_map_name_cleaned),
+                        repr(re.sub(r"[ ']", "", mp_i.battle_net) if mp_i.battle_net else None)
                     )
                 )
                 of.write(
-                    '    {}: ({}, {}, {}, {}, {}, {}),\n'.format(
+                    '    {}: ({}, {}, {}, {}, {}, {}, {}),\n'.format(
                         repr(fnm), repr(mp_i.battle_net), repr(mp_i.path), repr([map_size.x, map_size.y]),
                         repr([map_size_nocrop.x, map_size_nocrop.y]), repr(bnet_localized_map_name),
-                        repr(bnet_localized_map_name_cleaned)
+                        repr(bnet_localized_map_name_cleaned),
+                        repr(re.sub(r"[ ']", "", mp_i.battle_net) if mp_i.battle_net else None)
                     )
                 )
                 of.flush()
