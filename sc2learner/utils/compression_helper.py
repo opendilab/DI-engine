@@ -6,6 +6,19 @@ import pickle
 import copy
 
 
+def list_proc(func):
+    def f(x):
+        if isinstance(x, list):
+            out = []
+            for item in x:
+                assert isinstance(item, dict)
+                out.append(func(item))
+            return out
+        else:
+            return func(x)
+    return f
+
+
 def compress_obs(obs):
     if obs is None:
         return None
@@ -61,15 +74,20 @@ def decompress_obs(obs):
 
 def get_step_data_compressor(name):
     if name == 'simple':
-        return simple_step_data_compressor
+        compressor = simple_step_data_compressor
     elif name == 'lz4':
-        return lz4_step_data_compressor
+        compressor = lz4_step_data_compressor
     elif name == 'zlib':
-        return zlib_step_data_compressor
+        compressor = zlib_step_data_compressor
     elif name == 'none':
-        return lambda x: copy.deepcopy(x)
+        compressor = dummy_compressor
     else:
         raise NotImplementedError
+    return list_proc(compressor)
+
+
+def dummy_compressor(step_data):
+    return copy.deepcopy(step_data)
 
 
 def simple_step_data_compressor(step_data):
@@ -86,15 +104,20 @@ def lz4_step_data_compressor(step_data):
 
 def get_step_data_decompressor(name):
     if name == 'simple':
-        return simple_step_data_decompressor
+        decompressor = simple_step_data_decompressor
     elif name == 'lz4':
-        return lz4_step_data_decompressor
+        decompressor = lz4_step_data_decompressor
     elif name == 'zlib':
-        return zlib_step_data_decompressor
+        decompressor = zlib_step_data_decompressor
     elif name == 'none':
-        return lambda x: copy.deepcopy(x)
+        decompressor = dummy_decompressor
     else:
         raise NotImplementedError
+    return list_proc(decompressor)
+
+
+def dummy_decompressor(step_data):
+    return copy.deepcopy(step_data)
 
 
 def simple_step_data_decompressor(compressed_step_data):

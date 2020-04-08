@@ -9,6 +9,8 @@ import socket
 from threading import Thread
 import logging
 import tempfile
+import warnings
+import atexit
 
 import yaml
 import torch
@@ -24,9 +26,11 @@ from sc2learner.api.coordinator import Coordinator
 from sc2learner.api.coordinator_api import create_coordinator_app
 from sc2learner.api.manager import Manager
 from sc2learner.api.manager_api import create_manager_app
+from sc2learner.utils.compression_helper import get_step_data_decompressor
 
 PRINT_ACTIONS = False
 TEMP_TRAJ_DIR = tempfile.TemporaryDirectory()
+atexit.register(TEMP_TRAJ_DIR.cleanup)
 
 if __name__ == '__main__':
     FLAGS = flags.FLAGS
@@ -37,9 +41,9 @@ else:
     PYTEST = True
 
 
-class TestActor(AlphaStarActorWorker):
+class ActorForTest(AlphaStarActorWorker):
     def __init__(self, cfg):
-        super(TestActor, self).__init__(cfg)
+        super(ActorForTest, self).__init__(cfg)
 
     def _make_env(self, players):
         if (FLAGS and FLAGS.fake_dataset) or PYTEST:
@@ -122,18 +126,49 @@ def manager():
     return manager
 
 
+IGNORE_LIST = []
+
+
+def recu_check_keys(ref, under_test, trace='ROOT'):
+    for item in IGNORE_LIST:
+        if item in trace:
+            print('Skipped {}'.format(trace))
+            return
+    print('Checking {}'.format(trace))
+    if under_test is None and ref is not None\
+       or ref is None and under_test is not None:
+        warnings.warn('Only one is None. REF{} DUT{} {}'.format(ref, under_test, trace))
+    elif isinstance(under_test, torch.Tensor) or isinstance(ref, torch.Tensor):
+        # FIXME
+        return
+        assert(isinstance(under_test, torch.Tensor) and isinstance(ref, torch.Tensor)),\
+            'one is tensor and the other is not tensor or None {}'.format(trace)
+        if under_test.size() != ref.size():
+            warnings.warn('Mismatch size: REF{} DUT{} {}'.format(ref.size(), under_test.size(), trace))
+    elif isinstance(under_test, list) or isinstance(under_test, tuple):
+        if len(under_test) != len(ref):
+            warnings.warn('Mismatch length: REF{} DUT{} {}'.format(len(ref), len(under_test), trace))
+        for n in range(min(len(ref), len(under_test))):
+            recu_check_keys(ref[n], under_test[n], trace=trace+':'+str(n))
+    elif isinstance(under_test, dict):
+        assert isinstance(ref, dict)
+        for k, v in ref.items():
+            if k in under_test:
+                recu_check_keys(v, under_test[k], trace=trace + ':' + str(k))
+            else:
+                warnings.warn('Missing key: {}'.format(trace + ':' + str(k)))
+
+
 def check_with_fake_dataset(traj):
-    fake_dataset = FakeActorDataset(trajectory_len=2)
-    fake_data = fake_dataset[0]
-    # FIXME add data format (and validness) check
-    pass
+    fake_dataset = FakeActorDataset(trajectory_len=1)
+    recu_check_keys(fake_dataset.get_1v1_agent_data(), traj[-1:])
 
 
 def test_actor(coordinator, manager, caplog):
     caplog.set_level(logging.INFO)
     # to be called by pytest
     cfg = get_test_cfg()
-    actor = TestActor(cfg)
+    actor = ActorForTest(cfg)
     logging.info('expecting a manager registered at the coordinator {}'.format(str(coordinator.manager_record)))
     assert (len(coordinator.manager_record) == 1)
     logging.info('expecting a actor registered at the manager {}'.format(str(manager.actor_record)))
@@ -163,16 +198,17 @@ def test_actor(coordinator, manager, caplog):
     # so the replay buffer caching should be set to a small value
     smpls = coordinator.replay_buffer.sample(batch_size)
     assert smpls is not None
-    assert isinstance(smpls, list) and len(smpls) == 2
+    assert isinstance(smpls, list) and len(smpls) == batch_size
+    decompressor = get_step_data_decompressor(cfg.env.compress_obs)
     for smpl in smpls:
         traj = read_file_ceph(smpl['ceph_name'] + smpl['trajectory_path'], read_type='pickle')
-        check_with_fake_dataset(traj)
+        decompressed_traj = decompressor(traj)
+        check_with_fake_dataset(decompressed_traj)
 
     # Running another episode
     logging.info('actor running the 2nd loop')
     actor.run_episode()
     actor.heartbeat_worker.stop_heatbeat()
-    TEMP_TRAJ_DIR.cleanup()
 
 
 def main(unused_argv):
@@ -182,7 +218,7 @@ def main(unused_argv):
         ft_cfg = yaml.load(f)
     ft_cfg = EasyDict(ft_cfg)
     ft_cfg["log_path"] = os.path.dirname(FLAGS.config_path)
-    ta = TestActor(ft_cfg)
+    ta = ActorForTest(ft_cfg)
     ta.run()
 
 

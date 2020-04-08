@@ -120,6 +120,9 @@ class AlphaStarActor:
                 use_cuda=self.cfg.env.use_cuda,
                 use_distributed=False
             )
+            self.teacher_agent.eval()
+            self.teacher_agent.set_seed(job['random_seed'])
+            self.teacher_agent.reset_previous_state([True])
             self.use_teacher_model = True
         else:
             self.use_teacher_model = False
@@ -138,10 +141,10 @@ class AlphaStarActor:
     def _init_states(self):
         self.last_state_action_home = [None] * self.agent_num
         self.last_state_action_away = [None] * self.agent_num
-        self.lstm_states = [None] * self.agent_num
-        self.lstm_states_cpu = [None] * self.agent_num
-        self.teacher_lstm_states = [None] * self.agent_num
-        self.teacher_lstm_states_cpu = [None] * self.agent_num
+        self.lstm_states = [[None] for i in range(self.agent_num)]
+        self.lstm_states_cpu = [[None] for i in range(self.agent_num)]
+        self.teacher_lstm_states = [[None] for i in range(self.agent_num)]
+        self.teacher_lstm_states_cpu = [[None] for i in range(self.agent_num)]
 
     def _eval_actions(self, obs, due):
         actions = [None] * self.agent_num
@@ -153,18 +156,18 @@ class AlphaStarActor:
                 self.last_state_action_home[i] = {
                     'agent_no': i,
                     # lstm state before forward
-                    'prev_state': self.lstm_states_cpu[i],
+                    'prev_state': self.lstm_states_cpu[i][0],
                     'have_teacher': self.use_teacher_model,
-                    'teacher_prev_state': self.teacher_lstm_states_cpu[i]
+                    'teacher_prev_state': self.teacher_lstm_states_cpu[i][0]
                 }
                 self.last_state_action_home[i].update(obs[i])
                 if self.agent_num == 2:
                     self.last_state_action_away[1 - i] = {
                         'agent_no': 1 - i,
-                        # lstm state before forward
-                        'prev_state': self.lstm_states_cpu[1 - i],
+                        # lstm state before forward, [0] for batch dim
+                        'prev_state': self.lstm_states_cpu[1 - i][0],
                         'have_teacher': self.use_teacher_model,
-                        'teacher_prev_state': self.teacher_lstm_states_cpu[1 - i]
+                        'teacher_prev_state': self.teacher_lstm_states_cpu[1 - i][0]
                     }
                     self.last_state_action_away[1 - i].update(obs[1 - i])
                 obs_copy = copy.deepcopy(obs)
@@ -193,6 +196,7 @@ class AlphaStarActor:
                 if self.cfg.env.use_cuda:
                     action = to_device(action, 'cpu')
                     logits = to_device(logits, 'cpu')
+                    teacher_action = to_device(teacher_action, 'cpu')
                     teacher_logits = to_device(teacher_logits, 'cpu')
                     # Two copies of next_state is maintained, one in cpu and one still in gpu
                     # TODO: is this really necessary?
@@ -202,7 +206,8 @@ class AlphaStarActor:
                     self.lstm_states_cpu[i] = self.lstm_states[i]
                     self.teacher_lstm_states_cpu[i] = self.teacher_lstm_states[i]
                 action = dict_list2list_dict(action)[0]  # 0 for batch dim
-
+                if self.use_teacher_model:
+                    teacher_action = dict_list2list_dict(teacher_action)[0]
                 actions[i] = action
                 update_after_eval_home = {
                     'action': action,
@@ -210,8 +215,8 @@ class AlphaStarActor:
                     'teacher_action': teacher_action,
                     'teacher_outputs': teacher_logits,
                     # LSTM state after forward
-                    'next_state': self.lstm_states_cpu[i],
-                    'teacher_next_state': self.teacher_lstm_states_cpu[i]
+                    'next_state': self.lstm_states_cpu[i][0],
+                    'teacher_next_state': self.teacher_lstm_states_cpu[i][0]
                 }
                 self.last_state_action_home[i].update(update_after_eval_home)
         if self.agent_num == 2:
@@ -277,7 +282,7 @@ class AlphaStarActor:
                         'step': game_step,
                         'game_seconds': game_seconds,
                         'done': done,
-                        'rewards': rewards[i],
+                        'rewards': torch.tensor(rewards[i]),
                         'info': info
                     }
                     home_step_data = merge_two_dicts(self.last_state_action_home[i], step_data_update_home)
@@ -287,7 +292,7 @@ class AlphaStarActor:
                             'step': game_step,
                             'game_seconds': game_seconds,
                             'done': done,
-                            'rewards': rewards[1 - i],
+                            'rewards': torch.tensor(rewards[1 - i]),
                             'info': info
                         }
                         away_step_data = merge_two_dicts(self.last_state_action_away[i], step_data_update_away)
