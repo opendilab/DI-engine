@@ -16,7 +16,7 @@ from sc2learner.envs.observations.alphastar_obs_wrapper import reorder_one_hot_a
 
 
 class Statistics:
-    def __init__(self, player_num=2, begin_num=200):
+    def __init__(self, player_num=2, begin_num=200, fix_mmr=True):
         self.player_num = player_num
         self.action_statistics = [{} for _ in range(player_num)]
         self.cumulative_statistics = [{} for _ in range(player_num)]
@@ -24,6 +24,9 @@ class Statistics:
         self.cached_transformed_stat = [None] * self.player_num
         self.cached_z = [None] * self.player_num
         self.begin_num = begin_num
+        # according to detailed-arch L109, mmr is fixed to 6200 unless in supervised learning
+        # this will not affect replay decoding, where the meta for transform_stat is externally supplied
+        self.mmr = 6200
 
     def load_from_transformed_stat(self, transformed_stat, player, begin_num=None):
         '''loading cumulative_statistics and build_order_statistics
@@ -63,7 +66,7 @@ class Statistics:
             x = np.sum(bu_np[n[0], -2 * LOCATION_BIT_NUM:-1 * LOCATION_BIT_NUM] * weight_arr)
             y = np.sum(bu_np[n[0], -1 * LOCATION_BIT_NUM:] * weight_arr)
             self.build_order_statistics[player].append({'action_type': BEGIN_ACTIONS[n[1]], 'location': [x, y]})
-
+        transformed_stat['mmr'] = div_one_hot(torch.LongTensor([self.mmr]), 6000, 1000).squeeze(0)
         self.cached_transformed_stat[player] = transformed_stat
         self.cached_z = [None] * self.player_num
 
@@ -157,8 +160,10 @@ class Statistics:
     def get_transformed_cum_stat(self, player):
         return transform_cum_stat(self.cumulative_statistics[player])
 
-    def get_transformed_stat(self, player=None, mmr=0):
+    def get_transformed_stat(self, player=None, mmr=None):
         '''export as transformed stat'''
+        if mmr is None:
+            mmr = self.mmr
         if player is None:
             ret = []
             for player in range(self.player_num):
