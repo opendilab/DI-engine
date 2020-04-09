@@ -1,4 +1,6 @@
 import torch
+import copy
+import numpy as np
 import logging
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
 from pysc2.lib.static_data import NUM_BUFFS, NUM_ABILITIES, NUM_UNIT_TYPES, UNIT_TYPES_REORDER,\
@@ -6,7 +8,7 @@ from pysc2.lib.static_data import NUM_BUFFS, NUM_ABILITIES, NUM_UNIT_TYPES, UNIT
      UPGRADES_REORDER_ARRAY, NUM_ACTIONS, ACTIONS_REORDER_ARRAY, NUM_ADDON, ADDON_REORDER_ARRAY,\
      NUM_BEGIN_ACTIONS, NUM_UNIT_BUILD_ACTIONS, NUM_EFFECT_ACTIONS, NUM_RESEARCH_ACTIONS,\
      UNIT_BUILD_ACTIONS_REORDER_ARRAY, EFFECT_ACTIONS_REORDER_ARRAY, RESEARCH_ACTIONS_REORDER_ARRAY,\
-     BEGIN_ACTIONS_REORDER_ARRAY
+     BEGIN_ACTIONS_REORDER_ARRAY, UNIT_BUILD_ACTIONS, EFFECT_ACTIONS, RESEARCH_ACTIONS, BEGIN_ACTIONS
 
 # TODO: move these shared functions to utils
 from sc2learner.envs.observations.alphastar_obs_wrapper import reorder_one_hot_array,\
@@ -18,10 +20,44 @@ class Statistics:
         self.player_num = player_num
         self.action_statistics = [{} for _ in range(player_num)]
         self.cumulative_statistics = [{} for _ in range(player_num)]
-        self.begin_statistics = [[] for _ in range(player_num)]
+        self.build_order_statistics = [[] for _ in range(player_num)]
+        self.cached_transformed_stat = [None] * self.player_num
+        self.cached_z = [None] * self.player_num
         self.begin_num = begin_num
 
+    def load_from_transformed_stat(self, transformed_stat, player):
+        '''loading cumulative_statistics and build_order_statistics
+           produced by transform_stat/get_transformed_stat
+           as the count of actions is lost in the processing, the loaded count will not be vaild
+        '''
+        # loading cumulative_stat
+        bu = np.argwhere(transformed_stat['cumulative_stat']['unit_build'].numpy() == 1)
+        for n in bu:
+            act = UNIT_BUILD_ACTIONS[n[0]]
+            self.update_cum_stat({'action_type': act}, player)
+        eff = np.argwhere(transformed_stat['cumulative_stat']['effect'].numpy() == 1)
+        for n in eff:
+            act = EFFECT_ACTIONS[n[0]]
+            self.update_cum_stat({'action_type': act}, player)
+        rs = np.argwhere(transformed_stat['cumulative_stat']['research'].numpy() == 1)
+        for n in rs:
+            act = RESEARCH_ACTIONS[n[0]]
+            self.update_cum_stat({'action_type': act}, player)
+        # loading build_order_statistics
+        bu_np = transformed_stat['beginning_build_order'].numpy()
+        bu = np.argwhere(bu_np[:, :-2 * LOCATION_BIT_NUM])
+        weight_arr = 2**np.arange(LOCATION_BIT_NUM - 1, -1, -1)
+        for n in bu:
+            x = np.sum(bu_np[n[0], -2 * LOCATION_BIT_NUM:-1 * LOCATION_BIT_NUM] * weight_arr)
+            y = np.sum(bu_np[n[0], -1 * LOCATION_BIT_NUM:] * weight_arr)
+            self.build_order_statistics[player].append({'action_type': BEGIN_ACTIONS[n[1]], 'location': [x, y]})
+
+        self.cached_transformed_stat[player] = copy.deepcopy(transformed_stat)
+        self.cached_z = [None] * self.player_num
+
     def update_action_stat(self, act, obs, player):
+        # this will not clear the cache
+
         def get_unit_types(units, entity_type_dict):
             unit_types = set()
             for u in units:
@@ -55,6 +91,7 @@ class Statistics:
                 'target_type'].union(unit_types)  # noqa
 
     def update_cum_stat(self, act, player):
+        # this will not clear the cache
         action_type = int(act['action_type'])
         goal = GENERAL_ACTION_INFO_MASK[action_type]['goal']
         if goal != 'other':
@@ -63,7 +100,8 @@ class Statistics:
             else:
                 self.cumulative_statistics[player][action_type]['count'] += 1
 
-    def update_begin_stat(self, act, player):
+    def update_build_order_stat(self, act, player):
+        # this will not clear the cache
         target_list = ['unit', 'build', 'research', 'effect']
         action_type = int(act['action_type'])
         goal = GENERAL_ACTION_INFO_MASK[action_type]['goal']
@@ -74,29 +112,87 @@ class Statistics:
                     location = location.tolist()
             else:
                 location = 'none'
-            self.begin_statistics[player].append({'action_type': action_type, 'location': location})
+            self.build_order_statistics[player].append({'action_type': action_type, 'location': location})
 
     def update_stat(self, act, obs, player):
         """
-        Update action_stat cum_stat and begin_stat
+        Update action_stat cum_stat and build_order_stat
         act should be preprocessed general action
         """
+        self.cached_transformed_stat[player] = None
+        self.cached_z[player] = None
         self.update_action_stat(act, obs, player)
         self.update_cum_stat(act, player)
-        if len(self.begin_statistics[player]) < self.begin_num:
-            self.update_begin_stat(act, player)
+        if len(self.build_order_statistics[player]) < self.begin_num:
+            self.update_build_order_stat(act, player)
+
+    def get_stat(self, player=None):
+        if player is None:
+            return [
+                {
+                    'action_statistics': self.action_statistics[idx],
+                    'cumulative_statistics': self.cumulative_statistics[idx],
+                    'begin_statistics': self.build_order_statistics[idx]
+                } for idx in range(self.player_num)
+            ]
+        else:
+            return {
+                'action_statistics': self.action_statistics[player],
+                'cumulative_statistics': self.cumulative_statistics[player],
+                'begin_statistics': self.build_order_statistics[player]
+            }
 
     def get_transformed_cum_stat(self, player):
         return transform_cum_stat(self.cumulative_statistics[player])
 
-    def get_stat(self):
-        return [
-            {
-                'action_statistics': self.action_statistics[idx],
-                'cumulative_statistics': self.cumulative_statistics[idx],
-                'begin_statistics': self.begin_statistics[idx]
-            } for idx in range(self.player_num)
-        ]
+    def get_transformed_stat(self, player=None, mmr=0):
+        '''export as transformed stat'''
+        if player is None:
+            ret = []
+            for player in range(self.player_num):
+                if self.cached_transformed_stat[player] is not None:
+                    ret.append(self.cached_transformed_stat[player])
+                else:
+                    meta = {'home_mmr': mmr}
+                    tstat = transform_stat(self.get_stat(player), meta)
+                    ret.append(tstat)
+                    self.cached_transformed_stat[player] = copy.deepcopy(tstat)
+            return ret
+        else:
+            if self.cached_transformed_stat[player] is not None:
+                return self.cached_transformed_stat[player]
+            else:
+                meta = {'home_mmr': mmr}
+                tstat = transform_stat(self.get_stat(player), meta)
+                self.cached_transformed_stat[player] = copy.deepcopy(tstat)
+                return tstat
+
+    def get_z(self, idx):
+        # an alternative format for the statistics used for RL training
+        # note: the actions in build_order is raw_ability
+        if self.cached_z[idx] is not None:
+            return self.cached_z[idx]
+        cum_stat_tensor = transform_cum_stat(self.cumulative_statistics[idx])
+        ret = {
+            'built_units': cum_stat_tensor['unit_build'],
+            'effects': cum_stat_tensor['effect'],
+            'upgrades': cum_stat_tensor['research'],
+            'build_order': transform_build_order_to_z_format(self.build_order_statistics[idx])
+        }
+        self.cached_z[idx] = copy.deepcopy(ret)
+        return ret
+
+
+def transform_build_order_to_z_format(stat):
+    ret = {'type': np.zeros(len(stat), dtype=np.int), 'loc': np.empty((len(stat), 2), dtype=np.int)}
+    zeroxy = np.array([0, 0], dtype=np.int)
+    for n in range(len(stat)):
+        action_type, location = stat[n]['action_type'], stat[n]['location']
+        ret['type'][n] = action_type
+        ret['loc'][n] = location if location != 'none' else zeroxy  # TODO: check is x,y or y,x
+    ret['type'] = torch.Tensor(ret['type'])
+    ret['loc'] = torch.Tensor(ret['loc'])
+    return ret
 
 
 def transform_cum_stat(cumulative_stat):

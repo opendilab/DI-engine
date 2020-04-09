@@ -60,7 +60,7 @@ class AlphaStarEnv(SC2Env):
     def load_stat(self, stat, agent_no):
         """
         Set the statistics to be append to every observation of each agent
-        stat
+        stat: stat dict processed by transform_stat
         agent_no: 0 or 1
         """
         assert self._use_stat, 'We should not load stat when we are not going to use stat'

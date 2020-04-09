@@ -336,8 +336,8 @@ def get_to_and(num_bits):
 def batch_binary_encode(x, bit_num):
     # Big endian binary encode to float tensor
     # Example: >>> batch_binary_encode(torch.tensor([131,71]), 10)
-    # tensor([[0., 0., 0., 1., 0., 0., 0., 0., 0., 1.],
-    #         [0., 0., 0., 0., 0., 0., 1., 1., 1., 1.]])
+    # tensor([[0., 0., 1., 0., 0., 0., 0., 0., 1., 1.],
+    #         [0., 0., 0., 1., 0., 0., 0., 1., 1., 1.]])
     x = x.numpy()
     xshape = list(x.shape)
     x = x.reshape([-1, 1])
