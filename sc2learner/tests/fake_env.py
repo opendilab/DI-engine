@@ -1,5 +1,13 @@
 import random
-from sc2learner.data.fake_dataset import FakeReplayDataset
+from sc2learner.data.fake_dataset import FakeReplayDataset, get_z
+
+
+class DummyStat:
+    def __init__(self):
+        pass
+
+    def get_z(self, idx):
+        return get_z()
 
 
 class FakeEnv:
@@ -7,6 +15,7 @@ class FakeEnv:
         self.dataset = FakeReplayDataset(dict(trajectory_len=1))
         self.num_agents = num_agents
         self.game_step = 0
+        self.loaded_eval_stat = DummyStat()
 
     def _get_obs(self):
         return [random.choice(self.dataset)[0] for _ in range(self.num_agents)]

@@ -134,7 +134,7 @@ def recu_check_keys(ref, under_test, trace='ROOT'):
         if item in trace:
             print('Skipped {}'.format(trace))
             return
-    print('Checking {}'.format(trace))
+    # print('Checking {}'.format(trace))
     if under_test is None and ref is not None\
        or ref is None and under_test is not None:
         warnings.warn('Only one is None. REF{} DUT{} {}'.format(ref, under_test, trace))

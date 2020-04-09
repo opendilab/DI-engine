@@ -25,11 +25,23 @@ class Statistics:
         self.cached_z = [None] * self.player_num
         self.begin_num = begin_num
 
-    def load_from_transformed_stat(self, transformed_stat, player):
+    def load_from_transformed_stat(self, transformed_stat, player, begin_num=None):
         '''loading cumulative_statistics and build_order_statistics
            produced by transform_stat/get_transformed_stat
-           as the count of actions is lost in the processing, the loaded count will not be vaild
+           as the count of actions is lost in the processing, the loaded action count will not be vaild
+           begin_num: the beginning_build_order will be cutted/padded with zeros to this length
         '''
+        transformed_stat = copy.deepcopy(transformed_stat)
+        if begin_num is not None:
+            transformed_stat['beginning_build_order'] = transformed_stat['beginning_build_order'][:begin_num]
+            if transformed_stat['beginning_build_order'].shape[0] < begin_num:
+                # filling zeros if there is too few begining_build_order entries
+                B, N = transformed_stat['beginning_build_order'].shape
+                B0 = begin_num - B
+                transformed_stat['beginning_build_order'] = torch.cat(
+                    [transformed_stat['beginning_build_order'],
+                     torch.zeros(B0, N)]
+                )
         # loading cumulative_stat
         bu = np.argwhere(transformed_stat['cumulative_stat']['unit_build'].numpy() == 1)
         for n in bu:
@@ -52,7 +64,7 @@ class Statistics:
             y = np.sum(bu_np[n[0], -1 * LOCATION_BIT_NUM:] * weight_arr)
             self.build_order_statistics[player].append({'action_type': BEGIN_ACTIONS[n[1]], 'location': [x, y]})
 
-        self.cached_transformed_stat[player] = copy.deepcopy(transformed_stat)
+        self.cached_transformed_stat[player] = transformed_stat
         self.cached_z = [None] * self.player_num
 
     def update_action_stat(self, act, obs, player):

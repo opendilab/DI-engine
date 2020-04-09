@@ -6,6 +6,9 @@ import numpy as np
 import pickle
 import base64
 import zlib
+import warnings
+
+from sc2learner.data.fake_dataset import FakeActorDataset
 
 
 @pytest.fixture
@@ -52,6 +55,39 @@ def compare(a, b, ignore_list=['mmr'], trace='ROOT'):
     return 0
 
 
+IGNORE_LIST = []
+
+
+def recu_check_keys(ref, under_test, trace='ROOT'):
+    for item in IGNORE_LIST:
+        if item in trace:
+            print('Skipped {}'.format(trace))
+            return
+    print('Checking {}'.format(trace))
+    if under_test is None and ref is not None\
+       or ref is None and under_test is not None:
+        warnings.warn('Only one is None. REF{} DUT{} {}'.format(ref, under_test, trace))
+    elif isinstance(under_test, torch.Tensor) or isinstance(ref, torch.Tensor):
+        # FIXME
+        return
+        assert(isinstance(under_test, torch.Tensor) and isinstance(ref, torch.Tensor)),\
+            'one is tensor and the other is not tensor or None {}'.format(trace)
+        if under_test.size() != ref.size():
+            warnings.warn('Mismatch size: REF{} DUT{} {}'.format(ref.size(), under_test.size(), trace))
+    elif isinstance(under_test, list) or isinstance(under_test, tuple):
+        if len(under_test) != len(ref):
+            warnings.warn('Mismatch length: REF{} DUT{} {}'.format(len(ref), len(under_test), trace))
+        for n in range(min(len(ref), len(under_test))):
+            recu_check_keys(ref[n], under_test[n], trace=trace + ':' + str(n))
+    elif isinstance(under_test, dict):
+        assert isinstance(ref, dict)
+        for k, v in ref.items():
+            if k in under_test:
+                recu_check_keys(v, under_test[k], trace=trace + ':' + str(k))
+            else:
+                warnings.warn('Missing key: {}'.format(trace + ':' + str(k)))
+
+
 def test_transformed_load_export(stat_processed):
     stat = Statistics(player_num=2)
     stat.load_from_transformed_stat(stat_processed, 0)
@@ -63,3 +99,7 @@ def test_transformed_load_export(stat_processed):
     assert compare(stat_processed, dumped) == 0
     print(stat.build_order_statistics)
     print(stat.get_z(0))
+    fad = FakeActorDataset(trajectory_len=1)
+    data = fad.get_1v1_agent_data()[0]
+    ref = data['home']['agent_z']
+    recu_check_keys(ref, stat.get_z(0))

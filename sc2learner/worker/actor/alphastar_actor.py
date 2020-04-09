@@ -276,9 +276,10 @@ class AlphaStarActor:
                     # we received outcome from the env, add to rollout trajectory
                     # the 'next_obs' is saved (and to be sent) if only this is the last obs of the traj
                     step_data_update_home = {
+                        # the z used for the behavior network
+                        'target_z': self.env.loaded_eval_stat.get_z(i),
                         # statistics calculated for this episode so far
-                        # FIXME: stat format
-                        'this_game_stat': this_game_stat[i],
+                        'agent_z': this_game_stat[i],
                         'step': game_step,
                         'game_seconds': game_seconds,
                         'done': done,
@@ -288,7 +289,8 @@ class AlphaStarActor:
                     home_step_data = merge_two_dicts(self.last_state_action_home[i], step_data_update_home)
                     if self.agent_num == 2:
                         step_data_update_away = {
-                            'this_game_stat': this_game_stat[1 - i],
+                            'target_z': self.env.loaded_eval_stat.get_z(i),
+                            'agent_z': this_game_stat[1 - i],
                             'step': game_step,
                             'game_seconds': game_seconds,
                             'done': done,

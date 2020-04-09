@@ -53,9 +53,10 @@ class AlphaStarEnv(SC2Env):
         self._use_available_action_transform = cfg.env.use_available_action_transform
 
         self._use_stat = cfg.env.use_stat
-        self._loaded_stat = [None] * self.agent_num  # This is the human games statistics used as an input of network
         self._episode_stat = None  # This is for the statistics of current episode actions and obs
         self._reset_flag = False
+        # This is the human games statistics used as an input of network
+        self.loaded_eval_stat = Statistics(player_num=self.agent_num)
 
     def load_stat(self, stat, agent_no):
         """
@@ -64,21 +65,14 @@ class AlphaStarEnv(SC2Env):
         agent_no: 0 or 1
         """
         assert self._use_stat, 'We should not load stat when we are not going to use stat'
-        stat = copy.deepcopy(stat)
         begin_num = self.cfg.env.beginning_build_order_num
-        stat['beginning_build_order'] = stat['beginning_build_order'][:begin_num]
-        if stat['beginning_build_order'].shape[0] < begin_num:
-            # filling zeros if there is too few begining_build_order entries
-            B, N = stat['beginning_build_order'].shape
-            B0 = begin_num - B
-            stat['beginning_build_order'] = torch.cat([stat['beginning_build_order'], torch.zeros(B0, N)])
-        self._loaded_stat[agent_no] = stat
+        self.loaded_eval_stat.load_from_transformed_stat(stat, agent_no, begin_num=begin_num)
 
     def _merge_stat(self, obs, agent_no):
         """
         Append the statistics to the observation
         """
-        stat = self._loaded_stat[agent_no]
+        stat = self.loaded_eval_stat.get_transformed_stat(agent_no)
         obs['scalar_info']['mmr'] = stat['mmr']  # TODO: check with detailed-architechture.txt
         obs['scalar_info']['beginning_build_order'] = stat['beginning_build_order']
         if self._use_global_cumulative_stat:
@@ -245,7 +239,7 @@ class AlphaStarEnv(SC2Env):
                 if due[n]:
                     assert (self.last_actions[n])
                     self._episode_stat.update_stat(self.last_actions[n], obs[n], n)
-            episode_stat = self._episode_stat.get_stat()
+            episode_stat = [self._episode_stat.get_z(n) for n in range(self.agent_num)]
             self._last_output = [self._episode_steps, due, obs, rewards, done, episode_stat, info]
         # as obs may be changed somewhere in parsing
         # we have to return a copy to keep the self._last_ouput intact

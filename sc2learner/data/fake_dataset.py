@@ -101,6 +101,19 @@ def get_single_step_data():
     )
 
 
+def get_z():
+    ret = {}
+    ret['built_units'] = random_binary_tensor([120], dtype=torch.long)
+    ret['effects'] = random_binary_tensor([83], dtype=torch.long)
+    ret['upgrades'] = random_binary_tensor([60], dtype=torch.long)
+    num = random.randint(10, 100)
+    ret['build_order'] = {
+        'type': torch.from_numpy(np.random.choice(range(NUM_ACTION_TYPES), size=num, replace=True)),
+        'loc': torch.randint(*MAP_SIZE, size=(num, 2))
+    }
+    return ret
+
+
 class FakeReplayDataset(ReplayDataset):
     def __init__(self, cfg=None):
         # Completely independent with the config
@@ -180,18 +193,6 @@ class FakeActorDataset:
         return self.get_1v1_agent_data()
 
     def get_1v1_agent_data(self):
-        def get_z():
-            ret = {}
-            ret['built_units'] = random_binary_tensor([120], dtype=torch.long)
-            ret['effects'] = random_binary_tensor([83], dtype=torch.long)
-            ret['upgrades'] = random_binary_tensor([60], dtype=torch.long)
-            num = random.randint(10, 100)
-            ret['build_order'] = {
-                'type': torch.from_numpy(np.random.choice(range(NUM_ACTION_TYPES), size=num, replace=True)),
-                'loc': torch.randint(*MAP_SIZE, size=(num, 2))
-            }
-            return ret
-
         def get_outputs():
             prob = np.random.random()
             ret = {}
