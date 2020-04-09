@@ -66,8 +66,6 @@ class SpatialEncoder(nn.Module):
             h, w = m
             h, w = h // ratio, w // ratio
             new_data.append(d[..., :h, :w].unsqueeze(0))
-        if len(new_data) == 1:
-            new_data = new_data[0]
         return new_data
 
     def _forward(self, x, map_size):

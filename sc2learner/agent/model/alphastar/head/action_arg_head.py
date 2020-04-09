@@ -578,6 +578,7 @@ class LocationHead(nn.Module):
         if self.use_mask:
             x -= ((1 - available_location_mask) * 1e9)
         if self.output_type == 'cls':
+            W = x.shape[3]
             logits_flatten = x.view(x.shape[0], -1)
             logits_flatten = F.softmax(logits_flatten.div(temperature), dim=1)
             handle = self.pd(logits_flatten)
@@ -586,6 +587,8 @@ class LocationHead(nn.Module):
             else:
                 location = handle.mode()
 
+            location = torch.stack([location // W, location % W], dim=1)
+            location /= self.ratio
             x = self._map2origin_size(x)
             return x, location
         elif self.output_type == 'soft_argmax':

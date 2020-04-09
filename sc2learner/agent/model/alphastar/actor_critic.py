@@ -115,12 +115,6 @@ class AlphaStarActorCritic(ActorCriticBase):
         )
         actions, logits = self.policy(policy_inputs, mode='evaluate', **kwargs)
 
-        if isinstance(actions['target_location'][0], torch.Tensor):
-            location = actions['target_location'][0]
-            transformed_location = torch.cat([location // (ratio * X), location % (ratio * X)], 0)
-            transformed_location = transformed_location.float().div(ratio)
-            actions['target_location'] = [transformed_location]
-
         # error action(no necessary selected units)
         if isinstance(actions['selected_units'][0], torch.Tensor) and actions['selected_units'][0].shape[0] == 0:
             device = actions['action_type'][0].device
