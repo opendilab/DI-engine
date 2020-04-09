@@ -244,7 +244,7 @@ class SelectedUnitsHead(nn.Module):
                             # mask[b][entity_num[b]] = 0
                             pass
                     else:
-                        logits[b].append(query_result)
+                        logits[b].append(query_result[b])
         logits = [torch.stack(t, dim=0) for t in logits]
         embedding_selected = units.unsqueeze(2).to(key.dtype)
         embedding_selected = embedding_selected * key
