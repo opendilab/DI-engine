@@ -186,10 +186,9 @@ class ScalarObsWrapper(object):
                 ret[key] = self._parse_agent_statistics(obs)
             elif key == 'unit_counts_bow':
                 ret[key] = self._parse_unit_counts(obs)
+            elif key in ['available_actions', 'enemy_upgrades']:
+                continue  # parse by the additional function
             else:
-                if key == 'enemy_upgrades':
-                    if 'enemy_upgrades' not in obs.keys():
-                        continue  # parse by enemy obs
                 ori = item['ori']
                 item_data = obs[ori]
                 item_data = torch.LongTensor(item_data)
@@ -721,10 +720,9 @@ def transform_scalar_data():
         {
             'key': 'enemy_upgrades',
             'arch': 'fc',
-            'input_dim': NUM_UPGRADES,
+            'input_dim': 48,
             'output_dim': 128,
             'ori': 'enemy_upgrades',
-            'op': partial(reorder_boolean_vector, dictionary=UPGRADES_REORDER, num=NUM_UPGRADES),
             'other': 'boolean'
         },
         {

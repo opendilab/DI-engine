@@ -36,6 +36,7 @@ from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
 from s2clientprotocol import sc2api_pb2 as sc_pb
 from sc2learner.envs.observations.alphastar_obs_wrapper import AlphastarObsParser, compress_obs, decompress_obs, \
     transform_cum_stat, transform_stat
+from sc2learner.envs.observations import get_enemy_upgrades_raw_data, get_enemy_upgrades_processed_data
 from sc2learner.envs.actions.alphastar_act_wrapper import AlphastarActParser, remove_repeat_data
 from functools import partial
 
@@ -346,6 +347,7 @@ class ReplayProcessor(multiprocessing.Process):
         cumulative_statistics = [{} for _ in range(N)]
         begin_statistics = [[] for _ in range(N)]
         last_step_data = [None for _ in range(N)]
+        enemy_upgrades = [None for _ in range(N)]
         begin_num = 200
         prev_obs_queue = deque(maxlen=8)  # (len, 2)
 
@@ -426,6 +428,9 @@ class ReplayProcessor(multiprocessing.Process):
                     agent_obs['scalar_info']['cumulative_stat'] = transform_cum_stat(cumulative_statistics[idx])
                     # merge action info into obs
                     result_obs = self.obs_parser.merge_action(agent_obs, last_actions[idx], create_entity_dim)
+                    enemy_upgrades_proc = get_enemy_upgrades_processed_data(result_obs, enemy_upgrades[idx])
+                    result_obs['scalar_info']['enemy_upgrades'] = enemy_upgrades_proc
+                    enemy_upgrades[idx] = enemy_upgrades_proc
                     result_obs.update({'actions': v})
 
                     last_step_data[idx] = compress_obs(result_obs)
