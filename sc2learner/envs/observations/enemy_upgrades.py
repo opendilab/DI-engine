@@ -219,10 +219,7 @@ def get_enemy_upgrades_processed_data(obs, upgrades):
     entity_info = obs['entity_info']
     assert entity_info.shape[1] == 2102, entity_info.shape  # the entity_info after the merge_action
 
-    info = {
-        k: []
-        for k in ['alliance', 'attack_upgrade_level', 'armor_upgrade_level', 'shield_upgrade_level']
-    }
+    info = {k: [] for k in ['alliance', 'attack_upgrade_level', 'armor_upgrade_level', 'shield_upgrade_level']}
     for k in info.keys():
         info[k] = entity_info[:, slices[k]]
     # all the values are one-hot code

@@ -18,6 +18,7 @@ data:
         use_ceph: True
         use_distributed: False
         use_available_action_transform: True
+        use_enemy_upgrades: True
     eval:
         replay_list: ''
         dataset_type: replay_eval
@@ -29,6 +30,7 @@ data:
         use_ceph: True
         use_distributed: False
         use_available_action_transform: True
+        use_enemy_upgrades: True
 
 # ===== Supervised Learning Training Setting =====
 train:

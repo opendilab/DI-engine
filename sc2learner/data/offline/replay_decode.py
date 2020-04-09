@@ -427,7 +427,7 @@ class ReplayProcessor(multiprocessing.Process):
                     # merge cumulative_statistics
                     agent_obs['scalar_info']['cumulative_stat'] = transform_cum_stat(cumulative_statistics[idx])
                     # merge action info into obs
-                    wresult_obs = self.obs_parser.merge_action(agent_obs, last_actions[idx], create_entity_dim)
+                    result_obs = self.obs_parser.merge_action(agent_obs, last_actions[idx], create_entity_dim)
                     enemy_upgrades_proc = get_enemy_upgrades_processed_data(result_obs, enemy_upgrades[idx])
                     result_obs['scalar_info']['enemy_upgrades'] = enemy_upgrades_proc
                     enemy_upgrades[idx] = enemy_upgrades_proc
