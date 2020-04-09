@@ -532,6 +532,7 @@ class LocationHead(nn.Module):
                     )
                 )
 
+        self.ratio = cfg.location_expand_ratio
         self.use_mask = cfg.use_mask
         self.output_type = cfg.output_type
         assert (self.output_type in ['cls', 'soft_argmax'])
@@ -585,10 +586,19 @@ class LocationHead(nn.Module):
             else:
                 location = handle.mode()
 
+            x = self._map2origin_size(x)
             return x, location
         elif self.output_type == 'soft_argmax':
+            x = self._map2origin_size(x)
             x = self.soft_argmax(x)
             return x, x.detach()
+
+    def _map2origin_size(self, x):
+        if self.ratio > 1:
+            r = self.ratio
+            x = F.avg_pool2d(x, kernel_size=r, stride=r)
+            x *= (r*r)
+        return x
 
 
 def test_location_head():

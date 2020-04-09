@@ -144,3 +144,4 @@ model:
                 activation: 'relu'
                 output_type: 'cls'  # ['cls', 'soft_argmax']
                 use_mask: False
+                location_expand_ratio: 2
