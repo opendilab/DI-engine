@@ -16,7 +16,7 @@ test:
   stage: test
   script:
     - pip install -e .
-    - pytest sc2learner/data/tests/ -sv -n 4 
+    - pytest sc2learner/ -sv -n 4 -m unittest 
 
 pages:
   stage: deploy

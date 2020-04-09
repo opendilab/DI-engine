@@ -597,7 +597,7 @@ class LocationHead(nn.Module):
         if self.ratio > 1:
             r = self.ratio
             x = F.avg_pool2d(x, kernel_size=r, stride=r)
-            x *= (r*r)
+            x *= (r * r)
         return x
 
 
