@@ -245,7 +245,7 @@ class ReplayDecoder(multiprocessing.Process):
                 # get_enemy_upgrades_processed_data must be used after merge_action
                 # enemy_upgrades_raw = get_enemy_upgrades_raw_data(base_ob, copy.deepcopy(enemy_upgrades[player]))
                 enemy_upgrades_proc = get_enemy_upgrades_processed_data(result_obs, enemy_upgrades[player])
-                agent_ob['scalar_info']['enemy_upgrades'] = enemy_upgrades_proc
+                result_obs['scalar_info']['enemy_upgrades'] = enemy_upgrades_proc
                 enemy_upgrades[player] = enemy_upgrades_proc
                 result_obs.update({'actions': agent_act})
                 # store only the compressed obs, and let gc clear uncompressed obs
