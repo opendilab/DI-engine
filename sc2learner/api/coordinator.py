@@ -134,9 +134,9 @@ class Coordinator(object):
         '''
             Overview: when receiving learner's request of updating replay buffer, return True/False
             Arguments:
-                - update_info (:obj:`str`): learner's uid
+                - update_info (:obj:`dict`): info dict
             Returns:
-                - (:obj`list`): metadata list
+                - (:obj`bool`): True
         '''
         self.replay_buffer.update(update_info)
         return True

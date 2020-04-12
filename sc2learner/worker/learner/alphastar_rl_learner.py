@@ -44,7 +44,7 @@ class AlphaStarRLLearner(BaseRLLearner):
             self.cfg.data.train.dataloader_type,
             self.cfg.data.train.batch_size,
             self.use_distributed,
-            read_data_fn=self.load_trajectory_from_ceph,
+            read_data_fn=self.load_trajectory,
         )
         return None, dataloader, None
 
@@ -56,7 +56,7 @@ class AlphaStarRLLearner(BaseRLLearner):
 
     @override(BaseRLLearner)
     def _setup_optimizer(self, model):
-        return AlphaStarRLOptimizer(self.agent, self.cfg.train, self.cfg.model)
+        return AlphaStarRLOptimizer(self.agent, self.cfg)
 
     @override(BaseRLLearner)
     def _preprocess_data(self, batch_data):
@@ -76,6 +76,8 @@ class AlphaStarRLLearner(BaseRLLearner):
         self.tb_logger.register_var('epoch')
         self.tb_logger.register_var('total_batch_time')
 
+        self.optimizer.register_stats(variable_record=self.variable_record, tb_logger=self.tb_logger)
+
     @override(BaseRLLearner)
     def _setup_lr_scheduler(self, optimizer):
         torch_optimizer = optimizer.optimizer
@@ -90,5 +92,19 @@ class AlphaStarRLLearner(BaseRLLearner):
     def evaluate(self):
         pass
 
+    @override(BaseRLLearner)
+    def _update_data_priority(self, data, var_items):
+        handle = data[0]  # get one frame of the trajectory
+        # TODO(nyz) how to design priority for AS
+        info = {
+            'replay_unique_id': handle['replay_unique_id'],
+            'replay_buffer_idx': handle['replay_buffer_idx'],
+            'priority': [1.0 for _ in range(len(handle['replay_unique_id']))]
+        }
+        self.update_info(info)
+
     def _get_data_stat(self, data):
-        return NotImplementedError
+        """
+        Overview: get the statistics of input data
+        """
+        return {}

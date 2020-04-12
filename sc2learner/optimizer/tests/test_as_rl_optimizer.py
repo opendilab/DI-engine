@@ -12,7 +12,7 @@ from sc2learner.torch_utils import to_device
 
 @pytest.fixture(scope='class')
 def setup_config():
-    with open(os.path.join(os.path.dirname(__file__), 'config.yaml'), 'r') as f:
+    with open(os.path.join(os.path.dirname(__file__), '../alphastar_rl_optimizer_default_config.yaml'), 'r') as f:
         cfg = yaml.safe_load(f)
     return EasyDict(cfg)
 
@@ -31,7 +31,7 @@ class TestASRLOptimizer:
         use_cuda = setup_config.train.use_cuda
         dataloader = get_dataloader(setup_config.train.batch_size)
         agent = AlphaStarAgent(setup_config.model, use_cuda=use_cuda)
-        optimizer = AlphaStarRLOptimizer(agent, setup_config.train, setup_config.model)
+        optimizer = AlphaStarRLOptimizer(agent, setup_config)
         assert isinstance(optimizer.agent.model, torch.nn.Module)
         assert optimizer.agent.model.training
 

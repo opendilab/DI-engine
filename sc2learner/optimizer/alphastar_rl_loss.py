@@ -60,7 +60,7 @@ def pad_stack(data, pad_val):
 class AlphaStarRLLoss(BaseLoss):
     def __init__(self, agent, train_config, model_config):
         self.action_keys = ['action_type', 'delay', 'queued', 'selected_units', 'target_units', 'target_location']
-        self.loss_keys = ['total', 'td_lambda', 'vtrace', 'upgo', 'kl', 'action_type_kl', 'entropy']
+        self.loss_keys = ['td_lambda', 'vtrace', 'upgo', 'kl', 'action_type_kl', 'entropy']
         self.rollout_outputs = namedtuple(
             "rollout_outputs", [
                 'target_outputs', 'behaviour_outputs', 'teacher_outputs', 'baselines', 'rewards', 'target_actions',
@@ -102,6 +102,7 @@ class AlphaStarRLLoss(BaseLoss):
 
         """
         rollout_outputs = self._rollout(data)
+        # TODO(nyz) apply the importance sampling weight in gradient update
         target_outputs, behaviour_outputs, teacher_outputs, baselines = rollout_outputs[:4]
         rewards, target_actions, behaviour_actions, teacher_actions, game_seconds = rollout_outputs[4:]
 

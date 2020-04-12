@@ -29,7 +29,7 @@ class OnlineDataLoader(object):
 
 
 class OnlineIteratorDataLoader:
-    def __init__(self, data_iterator, batch_size, collate_fn=None, read_data_fn=None, num_workers=4):
+    def __init__(self, data_iterator, batch_size, collate_fn=None, read_data_fn=None, num_workers=0):
         assert (isinstance(data_iterator, Iterator))
         assert (read_data_fn is not None)
         self.data_iterator = data_iterator

@@ -30,6 +30,7 @@ class LearnerCommunicationHelper(object):
         self.coordinator_ip = self.cfg['api']['coordinator_ip']
         self.coordinator_port = self.cfg['api']['coordinator_port']
         self.ceph_path = self.cfg['api']['ceph_path']
+        self.use_ceph = self.cfg['api']['use_ceph']
 
         self.url_prefix = 'http://{}:{}/'.format(self.coordinator_ip, self.coordinator_port)
 
@@ -77,16 +78,28 @@ class LearnerCommunicationHelper(object):
         save_file_ceph(self.ceph_path, model_name, model)
         self.comm_logger.info("save model {} to ceph".format(model_name))
 
-    def load_trajectory_from_ceph(self, metadata):
+    def load_trajectory(self, metadata):
         '''
-            Overview: load trajectory from ceph, using pickle
+            Overview: load trajectory from ceph or lustre
             Returns:
                 - (:obj`dict`): trajectory
         '''
         assert (isinstance(metadata, dict))
-        metadata['raw_data'] = read_file_ceph(self.ceph_path + metadata['trajectory_path'], read_type='pickle')
-        self.comm_logger.info("load trajectory {} to ceph".format(metadata['trajectory_path']))
-        return metadata
+        data = self._read_file(metadata['trajectory_path'])
+        data = torch.load(data)
+        for k, v in metadata.items():
+            for i in range(len(data)):
+                data[i][k] = v
+        file_system = 'ceph' if self.use_ceph else 'lustre'
+        self.comm_logger.info("load trajectory {} from {}".format(metadata['trajectory_path'], file_system))
+        return data
+
+    def _read_file(self, path):
+        if self.use_ceph:
+            ceph_path = self.ceph_path + path
+            return read_file_ceph(ceph_path, read_type='pickle')
+        else:
+            return path
 
     def deal_with_get_metadata(self, metadatas):
         assert (isinstance(metadatas, list))
@@ -109,7 +122,7 @@ class LearnerCommunicationHelper(object):
             if trajectory_path in self.trajectory_record:
                 trajectory = self.trajectory_record[trajectory_path]
             else:
-                trajectory = self._load_trajectory_from_ceph(trajectory_path)
+                trajectory = self.load_trajectory(trajectory_path)
                 self.trajectory_record[trajectory_path] = trajectory
             self.trajectory_record.move_to_end(trajectory_path, last=False)  # avoid being deleted
             train_trajectory_list.append(trajectory)
@@ -132,7 +145,7 @@ class LearnerCommunicationHelper(object):
         """
             Overview: send some info to coordinator and update coordinator
             Arguments:
-                - info (:obj:`dict`): information dict
+                - info (:obj:`dict`): info dict
         """
         try:
             d = {'update_info': info}

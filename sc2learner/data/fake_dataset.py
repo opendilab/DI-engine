@@ -2,6 +2,7 @@ import random
 import tempfile
 from collections import OrderedDict
 import copy
+import os
 
 import numpy as np
 import torch
@@ -174,14 +175,31 @@ class FakeReplayDataset(ReplayDataset):
 
 
 class FakeActorDataset:
-    def __init__(self, trajectory_len=3):
+    def __init__(self, trajectory_len=3, use_meta=False):
         self.trajectory_len = trajectory_len
+        self.use_meta = use_meta
+        if self.use_meta:
+            self.count = 1
+        self.output_dir = './data'
+        if not os.path.exists(self.output_dir):
+            os.mkdir(self.output_dir)
 
     def __len__(self):
         return 128  # pseudo length, only for implement interface
 
     def __getitem__(self, idx):
-        return self.get_1v1_agent_data()
+        if self.use_meta:
+            data = self.get_1v1_agent_data()
+            path = os.path.join(self.output_dir, 'data_{}.pt'.format(self.count))
+            torch.save(data, path)
+            self.count += 1
+            return {
+                'job_id': self.count - 1,
+                'trajectory_path': path,
+                'priority': 1.0,
+            }
+        else:
+            return self.get_1v1_agent_data()
 
     def get_1v1_agent_data(self):
         def get_z():

@@ -26,8 +26,10 @@ def build_dataloader(dataset, dataloader_type, batch_size, use_distributed, read
         # FIXME ReplayIterationDataLoader is not tested locally at all!
         # assert use_distributed
         dataloader = ReplayIterationDataLoader(dataset, batch_size, collate_fn=policy_collate_fn)
-    elif dataloader_type == 'iterator':
-        dataloader = OnlineIteratorDataLoader(dataset, batch_size=batch_size, read_data_fn=read_data_fn)
+    elif dataloader_type == 'online':
+        dataloader = OnlineIteratorDataLoader(
+            dataset, batch_size=batch_size, collate_fn=actor_collate_fn, read_data_fn=read_data_fn
+        )
     elif dataloader_type == 'fake_actor':
         dataloader = DataLoader(dataset, batch_size=batch_size, collate_fn=actor_collate_fn, num_workers=0)
     else:
