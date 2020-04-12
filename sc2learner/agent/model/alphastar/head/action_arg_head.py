@@ -112,8 +112,8 @@ class QueuedHead(nn.Module):
         x = self.fc1(embedding)
         x = self.fc2(x)
         x = self.fc3(x)
-        x = F.softmax(x.div(temperature), dim=1)
-        handle = self.pd(x)
+        p = F.softmax(x.div(temperature), dim=1)
+        handle = self.pd(p)
         if self.training:
             queued = handle.sample()
         else:
@@ -203,8 +203,8 @@ class SelectedUnitsHead(nn.Module):
                 query_result = query_result.mean(dim=2)
                 if self.use_mask:
                     query_result.sub_((1 - mask) * 1e9)
-                query_result = F.softmax(query_result.div(temperature), dim=1)
-                handle = self.pd(query_result)
+                p = F.softmax(query_result.div(temperature), dim=1)
+                handle = self.pd(p)
                 if self.training:
                     entity_num = handle.sample()
                 else:
@@ -227,8 +227,8 @@ class SelectedUnitsHead(nn.Module):
                 query_result = query_result.mean(dim=2)
                 if self.use_mask:
                     query_result.sub_((1 - mask) * 1e9)
-                query_result = F.softmax(query_result.div(temperature), dim=1)
-                handle = self.pd(query_result)
+                p = F.softmax(query_result.div(temperature), dim=1)
+                handle = self.pd(p)
                 if self.training:
                     entity_num = handle.sample()
                 else:
@@ -336,8 +336,8 @@ class TargetUnitsHead(nn.Module):
                 query_result = x.permute(1, 0, 2) * key
                 query_result = query_result.mean(dim=2)
                 query_result.sub_((1 - mask) * 1e9)
-                query_result = F.softmax(query_result.div(temperature), dim=1)
-                handle = self.pd(query_result)
+                p = F.softmax(query_result.div(temperature), dim=1)
+                handle = self.pd(p)
                 if self.training:
                     entity_num = handle.sample()
                 else:
@@ -359,8 +359,12 @@ class TargetUnitsHead(nn.Module):
                 query_result = x.permute(1, 0, 2) * key
                 query_result = query_result.mean(dim=2)
                 query_result.sub_((1 - mask) * 1e9)
-                handle = self.pd(query_result.div(temperature))
-                entity_num = handle.sample()
+                p = F.softmax(query_result.div(temperature), dim=1)
+                handle = self.pd(p)
+                if self.training:
+                    entity_num = handle.sample()
+                else:
+                    entity_num = handle.mode()
                 for b in range(B):
                     if i > output_entity_num[b]:
                         continue
@@ -466,8 +470,8 @@ class TargetUnitHead(nn.Module):
 
         B, N = key.shape[:2]
         units = torch.zeros(B, N, device=key.device, dtype=torch.long)
-        logits = F.softmax(logits.div(temperature), dim=1)
-        handle = self.pd(logits)
+        p = F.softmax(logits.div(temperature), dim=1)
+        handle = self.pd(p)
         if self.training:
             sample_num = handle.sample()
         else:
@@ -576,8 +580,8 @@ class LocationHead(nn.Module):
             x -= ((1 - available_location_mask) * 1e9)
         if self.output_type == 'cls':
             logits_flatten = x.view(x.shape[0], -1)
-            logits_flatten = F.softmax(logits_flatten.div(temperature), dim=1)
-            handle = self.pd(logits_flatten)
+            p = F.softmax(logits_flatten.div(temperature), dim=1)
+            handle = self.pd(p)
             if self.training:
                 location = handle.sample()
             else:
