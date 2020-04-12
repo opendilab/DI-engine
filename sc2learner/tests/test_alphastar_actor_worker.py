@@ -38,7 +38,7 @@ if __name__ == '__main__':
     flags.DEFINE_bool('fake_dataset', True, 'Whether to use fake dataset')
 else:
     FLAGS = None
-    PYTEST = True
+    PYTEST_FAKE_DATASET = True
 
 
 class ActorForTest(AlphaStarActorWorker):
@@ -46,7 +46,7 @@ class ActorForTest(AlphaStarActorWorker):
         super(ActorForTest, self).__init__(cfg)
 
     def _make_env(self, players):
-        if (FLAGS and FLAGS.fake_dataset) or PYTEST:
+        if (FLAGS and FLAGS.fake_dataset) or PYTEST_FAKE_DATASET:
             from .fake_env import FakeEnv
             return FakeEnv(len(players))
         else:
@@ -139,8 +139,6 @@ def recu_check_keys(ref, under_test, trace='ROOT'):
        or ref is None and under_test is not None:
         warnings.warn('Only one is None. REF{} DUT{} {}'.format(ref, under_test, trace))
     elif isinstance(under_test, torch.Tensor) or isinstance(ref, torch.Tensor):
-        # FIXME
-        return
         assert(isinstance(under_test, torch.Tensor) and isinstance(ref, torch.Tensor)),\
             'one is tensor and the other is not tensor or None {}'.format(trace)
         if under_test.size() != ref.size():
@@ -203,6 +201,10 @@ def test_actor(coordinator, manager, caplog):
     for smpl in smpls:
         traj = read_file_ceph(smpl['ceph_name'] + smpl['trajectory_path'], read_type='pickle')
         decompressed_traj = decompressor(traj)
+        # here I'm checking the stored trajectory against FakeDataset
+        # the format of observations is not tested here as it's from the same FakeEnv and the same FakeDataset
+        # we need alphastar_actor_env_test.py to test the transfer of observation from SC2 to env to actor
+        # but the outputs from the model are real and tested
         check_with_fake_dataset(decompressed_traj)
 
     # Running another episode

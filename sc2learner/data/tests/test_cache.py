@@ -1,3 +1,4 @@
+import pytest
 import threading
 import time
 from threading import Thread
@@ -7,6 +8,7 @@ import numpy as np
 from sc2learner.data.structure import Cache
 
 
+@pytest.mark.unittest
 class TestCache:
     cache = Cache(16, 4, monitor_interval=1.0, _debug=True)
     send_count = 0
@@ -52,6 +54,6 @@ class TestCache:
 
         self.cache.close()
         # wait the cache internal thread close and the consumer_thread get 'STOP' signal
-        time.sleep(1 + 0.1)
+        time.sleep(1 + 0.5)
         assert (not consumer_thread.is_alive())
         assert (len(threading.enumerate()) <= 1)

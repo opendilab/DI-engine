@@ -75,7 +75,7 @@ def diff_shape_collate(batch):
 
     elem = batch[0]
     elem_type = type(elem)
-    if None in batch:
+    if any([isinstance(elem, type(None)) for elem in batch]):
         return batch
     elif isinstance(elem, torch.Tensor):
         shapes = [e.shape for e in batch]
@@ -129,6 +129,7 @@ def actor_collate_fn(batch, max_delay=63, action_type_transform=True):
         'teacher_outputs': True,
         'behaviour_outputs': True,
     }
+    data_keys = ['home', 'away', 'home_next', 'away_next']
 
     def merge_func(data):
         new_data = list_dict2dict_list(data)
@@ -156,6 +157,9 @@ def actor_collate_fn(batch, max_delay=63, action_type_transform=True):
         step_data = list_dict2dict_list(seq[s])
         tmp = {}
         for k in step_data.keys():
-            tmp[k] = merge_func(step_data[k])
+            if k in data_keys:
+                tmp[k] = merge_func(step_data[k])
+            else:
+                tmp[k] = step_data[k]
         seq[s] = tmp
     return seq

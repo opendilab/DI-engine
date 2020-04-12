@@ -253,6 +253,7 @@ class Policy(nn.Module):
             # action arg queued
             if action_attr['queued'][idx]:
                 logits_queued, queued, embedding = self.head['queued_head'](embedding, temperature)
+                logits_queued, queued = logits_queued[0], queued[0]
             else:
                 logits_queued, queued = None, None
             logits['queued'].append(logits_queued)
@@ -263,6 +264,7 @@ class Policy(nn.Module):
                     embedding, mask['select_unit_type_mask'][idx], mask['select_unit_mask'][idx],
                     entity_embeddings[idx], temperature
                 )
+                logits_selected_units = logits_selected_units[0]
                 selected_units = selected_units[0]
             else:
                 logits_selected_units, selected_units = None, None
@@ -274,6 +276,7 @@ class Policy(nn.Module):
                     embedding, mask['target_unit_type_mask'][idx], mask['target_unit_mask'][idx],
                     entity_embeddings[idx], temperature
                 )
+                logits_target_units = logits_target_units[0]
                 target_units = target_units[0]
             else:
                 logits_target_units, target_units = None, None
@@ -285,6 +288,8 @@ class Policy(nn.Module):
                 logits_location, location = self.head['location_head'](
                     embedding, map_skip_single, mask['location_mask'][idx], temperature
                 )
+                # logits_location (batch and channel dim are both 1)
+                logits_location, location = logits_location[0][0], location[0]
             else:
                 logits_location, location = None, None
             logits['target_location'].append(logits_location)

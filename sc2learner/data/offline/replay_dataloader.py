@@ -8,6 +8,7 @@ class ReplayIterationDataLoader(object):
     def __init__(self, dataset, batch_size, collate_fn=None):
         self.dataset = dataset
         assert collate_fn is not None
+        self.collate_fn = collate_fn
         self.batch_size = batch_size
         self.rank = get_rank()
         self.world_size = get_world_size()

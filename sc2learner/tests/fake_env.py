@@ -30,7 +30,9 @@ class FakeEnv:
         obs = self._get_obs()
         reward = [0.0] * self.num_agents
         done = False
-        episode_stat = [{} for i in range(self.num_agents)]
+        # This fake z is generated from get_z, it's useless to check it against itself
+        # use real environment to check the format of z
+        episode_stat = [get_z() for i in range(self.num_agents)]
         info = {}
         return self.game_step, due, obs, reward, done, episode_stat, info
 

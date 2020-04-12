@@ -215,7 +215,7 @@ class SelectedUnitsHead(nn.Module):
                     if end_flag_trigger[b]:
                         continue
                     else:
-                        logits[b].append(query_result)
+                        logits[b].append(query_result[b])
                         if entity_num[b] == end_flag_index:
                             end_flag_trigger[b] = True
                             continue
@@ -238,13 +238,14 @@ class SelectedUnitsHead(nn.Module):
                     if i > output_entity_num[b]:
                         continue
                     elif i < output_entity_num[b]:
-                        logits[b].append(query_result)
+                        logits[b].append(query_result[b])
                         units[b][entity_num[b]] = 1
                         if entity_num[b] != end_flag_index:
                             # mask[b][entity_num[b]] = 0
                             pass
                     else:
-                        logits[b].append(query_result)
+                        logits[b].append(query_result[b])
+        logits = [torch.stack(t, dim=0) for t in logits]
         embedding_selected = units.unsqueeze(2).to(key.dtype)
         embedding_selected = embedding_selected * key
         embedding_selected = embedding_selected.mean(dim=1)
@@ -531,6 +532,7 @@ class LocationHead(nn.Module):
                     )
                 )
 
+        self.ratio = cfg.location_expand_ratio
         self.use_mask = cfg.use_mask
         self.output_type = cfg.output_type
         assert (self.output_type in ['cls', 'soft_argmax'])
@@ -576,6 +578,7 @@ class LocationHead(nn.Module):
         if self.use_mask:
             x -= ((1 - available_location_mask) * 1e9)
         if self.output_type == 'cls':
+            W = x.shape[3]
             logits_flatten = x.view(x.shape[0], -1)
             logits_flatten = F.softmax(logits_flatten.div(temperature), dim=1)
             handle = self.pd(logits_flatten)
@@ -584,10 +587,21 @@ class LocationHead(nn.Module):
             else:
                 location = handle.mode()
 
+            location = torch.stack([location // W, location % W], dim=1)
+            location /= self.ratio
+            x = self._map2origin_size(x)
             return x, location
         elif self.output_type == 'soft_argmax':
+            x = self._map2origin_size(x)
             x = self.soft_argmax(x)
             return x, x.detach()
+
+    def _map2origin_size(self, x):
+        if self.ratio > 1:
+            r = self.ratio
+            x = F.avg_pool2d(x, kernel_size=r, stride=r)
+            x *= (r * r)
+        return x
 
 
 def test_location_head():

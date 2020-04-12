@@ -38,6 +38,7 @@ def generate_data():
     return ret
 
 
+@pytest.mark.unittest
 class TestReplayBuffer:
     produce_count = 0
 
@@ -93,7 +94,7 @@ class TestReplayBuffer:
         for t in c_threadings:
             t.join()
         setup_replay_buffer.close()
-        time.sleep(1 + 0.1)
+        time.sleep(1 + 0.5)
         assert (len(threading.enumerate()) <= 1)
 
 

@@ -3,6 +3,7 @@ model:
 train:
     trajectory_len: 3
     batch_size: 2
+    use_cuda: False
     action_output_types:
         action_type: logit
         delay: value

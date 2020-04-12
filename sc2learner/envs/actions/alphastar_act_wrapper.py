@@ -8,10 +8,10 @@ Main Function:
 import collections
 import torch
 import enum
+import copy
 from pysc2.lib import actions
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK, ACT_TO_GENERAL_ACT
 from sc2learner.torch_utils import to_tensor
-from sc2learner.utils import deepcopy
 
 
 class AlphastarActParser(object):
@@ -199,7 +199,7 @@ def action_unit_id_transform(data, inverse=False):
     Overview: transform original game unit id in action to the current frame unit id
     '''
     def transform(frame):
-        frame = deepcopy(frame)
+        frame = copy.deepcopy(frame)
         id_list = frame['entity_raw']['id']
         action = frame['actions']
         for k in ['selected_units', 'target_units']:

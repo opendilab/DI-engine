@@ -2,11 +2,13 @@ import random
 import tempfile
 from collections import OrderedDict
 import copy
+import os
 
 import numpy as np
 import torch
 
-from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UNIT_TYPES
+from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UNIT_TYPES, ACTIONS_REORDER_INV
+from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
 from sc2learner.data.offline.replay_dataset import ReplayDataset, START_STEP
 
 META_SUFFIX = '.meta'
@@ -80,15 +82,18 @@ def get_single_step_data():
     )
 
     # TODO(pzh) it's all int64 here. not correct.
+    action_type = random_action_type()
+    action_type_inv = ACTIONS_REORDER_INV[action_type.item()]
+    action_attr = GENERAL_ACTION_INFO_MASK[action_type_inv]
     actions = OrderedDict(
-        action_type=random_action_type(),
+        action_type=action_type,
         delay=torch.randint(0, DELAY_MAX, size=[1], dtype=torch.int64),
-        queued=NOOP if np.random.random() > 0.8 else torch.randint(0, 1, size=[1], dtype=torch.int64),
-        selected_units=NOOP
-        if np.random.random() > 0.8 else torch.randint(0, num_units, size=[selected_num_units], dtype=torch.int64),
-        target_units=NOOP if np.random.random() > 0.8 else torch.randint(0, num_units, size=[1], dtype=torch.int64),
-        target_location=NOOP
-        if np.random.random() > 0.8 else torch.randint(0, min(MAP_SIZE), size=[2], dtype=torch.int64)
+        queued=torch.randint(0, 1, size=[1], dtype=torch.int64) if action_attr['queued'] else NOOP,
+        selected_units=torch.randint(0, num_units, size=[selected_num_units], dtype=torch.int64)
+        if action_attr['selected_units'] else NOOP,
+        target_units=torch.randint(0, num_units, size=[1], dtype=torch.int64) if action_attr['target_units'] else NOOP,
+        target_location=torch.randint(0, min(MAP_SIZE), size=[2], dtype=torch.int64)
+        if action_attr['target_location'] else NOOP
     )
 
     return OrderedDict(
@@ -194,35 +199,53 @@ class FakeReplayDataset(ReplayDataset):
 
 
 class FakeActorDataset:
-    def __init__(self, trajectory_len=3):
+    def __init__(self, trajectory_len=3, use_meta=False):
         self.trajectory_len = trajectory_len
+        self.use_meta = use_meta
+        if self.use_meta:
+            self.count = 1
+        self.output_dir = './data'
+        if not os.path.exists(self.output_dir):
+            os.mkdir(self.output_dir)
 
     def __len__(self):
         return 128  # pseudo length, only for implement interface
 
     def __getitem__(self, idx):
-        return self.get_1v1_agent_data()
+        if self.use_meta:
+            data = self.get_1v1_agent_data()
+            path = os.path.join(self.output_dir, 'data_{}.pt'.format(self.count))
+            torch.save(data, path)
+            self.count += 1
+            return {
+                'job_id': self.count - 1,
+                'trajectory_path': path,
+                'priority': 1.0,
+            }
+        else:
+            return self.get_1v1_agent_data()
 
     def get_1v1_agent_data(self):
-        def get_outputs():
-            prob = np.random.random()
+        def get_outputs(actions, entity_num):
             ret = {}
             ret['action_type'] = torch.rand(NUM_ACTION_TYPES)
             ret['delay'] = torch.rand(1) * DELAY_MAX
-            ret['queued'] = NOOP if np.random.random() > 0.8 else torch.randn(2)
-            if prob < 0.5:
+            if isinstance(actions['queued'], type(NOOP)):
+                ret['queued'] = NOOP
+            else:
+                ret['queued'] = torch.randn(2)
+            if isinstance(actions['selected_units'], type(NOOP)):
                 ret['selected_units'] = NOOP
             else:
-                num = random.randint(1, MAX_SELECTED_UNITS)
-                ret['selected_units'] = torch.rand(num, NUM_UNIT_TYPES)
-            if prob < 0.33:
+                num = actions['selected_units'].shape[0]
+                ret['selected_units'] = torch.rand(num, entity_num)
+            if isinstance(actions['target_units'], type(NOOP)):
                 ret['target_units'] = NOOP
-                ret['target_location'] = NOOP
-            elif prob < 0.67:
-                ret['target_units'] = torch.rand(NUM_UNIT_TYPES)
+            else:
+                ret['target_units'] = torch.rand(entity_num)
+            if isinstance(actions['target_location'], type(NOOP)):
                 ret['target_location'] = NOOP
             else:
-                ret['target_units'] = NOOP
                 ret['target_location'] = torch.rand(*MAP_SIZE)
             return ret
 
@@ -230,15 +253,26 @@ class FakeActorDataset:
             new_outputs = copy.deepcopy(outputs)
             new_outputs['action_type'] += torch.randn_like(new_outputs['action_type']) * 0.1
             new_outputs['delay'] = torch.clamp(new_outputs['delay'] + torch.randn(1) * 10, 0, DELAY_MAX)
-            if new_outputs['queued'] != NOOP:
+            if new_outputs['queued'] is not NOOP:
                 new_outputs['queued'] += torch.randn_like(new_outputs['queued']) * 0.1
-            if new_outputs['selected_units'] != NOOP:
+            if new_outputs['selected_units'] is not NOOP:
                 new_outputs['selected_units'] += torch.randn_like(new_outputs['selected_units']) * 0.1
-            if new_outputs['target_units'] != NOOP:
+            if new_outputs['target_units'] is not NOOP:
                 new_outputs['target_units'] += torch.randn_like(new_outputs['target_units']) * 0.1
-            if new_outputs['target_location'] != NOOP:
+            if new_outputs['target_location'] is not NOOP:
                 new_outputs['target_location'] += torch.randn_like(new_outputs['target_location']) * 0.1
             return new_outputs
+
+        def disturb_actions(actions):
+            new_actions = copy.deepcopy(actions)
+            if new_actions['selected_units'] is not NOOP:
+                num = np.random.randint(-2, 2)
+                if num > 0:
+                    handle = new_actions['selected_units']
+                    new_actions['selected_units'] = torch.cat([handle, handle[:num]], dim=0)
+                elif num < 0:
+                    new_actions['selected_units'] = new_actions['selected_units'][:num]
+            return new_actions
 
         def get_single_rl_agent_step_data():
             base = get_single_step_data()
@@ -247,12 +281,16 @@ class FakeActorDataset:
             base['game_seconds'] = random.randint(0, 24 * 60)
             base['agent_z'] = get_z()
             base['target_z'] = get_z()
-            base['target_outputs'] = get_outputs()
-            base['behaviour_outputs'] = disturb_outputs(base['target_outputs']
-                                                        ) if np.random.random() > 0.3 else get_outputs()
-            base['teacher_outputs'] = disturb_outputs(base['target_outputs']
-                                                      ) if np.random.random() > 0.3 else get_outputs()
-            base['teacher_actions'] = copy.deepcopy(base['actions'])
+            base['target_outputs'] = get_outputs(base['actions'], base['entity_info'].shape[0])
+            base['behaviour_outputs'] = disturb_outputs(
+                base['target_outputs']
+            ) if np.random.random() > 0.3 else get_outputs(base['actions'], base['entity_info'].shape[0])
+            if np.random.random() > 0.3:
+                base['teacher_actions'] = copy.deepcopy(base['actions'])
+                base['teacher_outputs'] = disturb_outputs(base['target_outputs'])
+            else:
+                base['teacher_actions'] = disturb_actions(base['actions'])
+                base['teacher_outputs'] = get_outputs(base['teacher_actions'], base['entity_info'].shape[0])
             return base
 
         data = []

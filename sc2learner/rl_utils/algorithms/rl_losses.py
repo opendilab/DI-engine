@@ -6,6 +6,27 @@ import torch
 import torch.nn.functional as F
 
 
+def fn(x):
+    return x.unsqueeze(0).unsqueeze(0)
+
+
+def tb_cross_entropy(logit, label):
+    assert (len(label.shape) >= 2)
+    T, B = label.shape[:2]
+    # special 2D case
+    if label.shape[2] == 2 and label.shape[2] != logit.shape[2]:
+        assert (len(label.shape) == 3)
+        n_output_shape = logit.shape[2:]
+        label = label[..., 0] * n_output_shape[1] + label[..., 1]
+        logit = logit.reshape(T, B, -1)
+
+    label = label.reshape(-1)
+    logit = logit.reshape(-1, logit.shape[-1])
+    ce = F.cross_entropy(logit, label, reduction='none')
+    ce = ce.reshape(T, B, -1)
+    return ce.mean(dim=2)
+
+
 def multistep_forward_view(rewards, gammas, bootstrap_values, lambda_):
     r"""
     Overview:
@@ -32,7 +53,7 @@ def multistep_forward_view(rewards, gammas, bootstrap_values, lambda_):
         - ret (:obj:`torch.Tensor`): Computed lambda return value
          for each state from 0 to T-1, of size [T_traj, batchsize]
     """
-    result = torch.empty(rewards.size())
+    result = torch.empty_like(rewards)
     # Forced cutoff at the last one
     result[-1, :] = rewards[-1, :] + gammas[-1, :] * bootstrap_values[-1, :]
     discounts = gammas * lambda_
@@ -63,9 +84,9 @@ def generalized_lambda_returns(rewards, gammas, bootstrap_values, lambda_):
           for each state from 0 to T-1, of size [T_traj, batchsize]
     """
     if not isinstance(gammas, torch.Tensor):
-        gammas = gammas * torch.ones(rewards.size(), dtype=rewards.dtype)
+        gammas = gammas * torch.ones_like(rewards)
     if not isinstance(lambda_, torch.Tensor):
-        lambda_ = lambda_ * torch.ones(rewards.size(), dtype=rewards.dtype)
+        lambda_ = lambda_ * torch.ones_like(rewards)
     bootstrap_values_tp1 = bootstrap_values[1:, :]
     return multistep_forward_view(rewards, gammas, bootstrap_values_tp1, lambda_)
 
@@ -93,7 +114,15 @@ def td_lambda_loss(values, rewards, gamma=1.0, lambda_=0.8):
 
 
 def compute_importance_weights(
-    target_output, behaviour_output, output_type, action, min_clip=None, max_clip=None, eps=1e-8, requires_grad=False
+    target_output,
+    behaviour_output,
+    output_type,
+    action,
+    min_clip=None,
+    max_clip=None,
+    eps=1e-8,
+    requires_grad=False,
+    device='cpu'
 ):
     r"""
     Overview:
@@ -101,11 +130,12 @@ def compute_importance_weights(
         If zeros are passed in, output is not defined but will not be nans.
     Arguments:
         - target_output (:obj:`torch.Tensor`): the output computed by the target policy network,
-          of size [T_traj, batchsize, n_output]
+          of size [T_traj, batchsize, n_output], n_output can be a list
         - behaviour_output (:obj:`torch.Tensor`):
           the output used producing the trajectory, of size [T_traj, batchsize, n_output]
         - output_type (:obj:`str`): the type of target/behaviour output(value, logit)
-        - action (:obj:`torch.Tensor`): the chosen action(index) in trajectory, of size [T_traj, batchsize]
+        - action (:obj:`torch.Tensor`): the chosen action(index) in trajectory, of size [T_traj, batchsize] or
+          [T_traj, batchsize, n_other]
         - min_clip (:obj:`float`): the lower bound of clip(default: None)
         - max_clip (:obj:`float`): the upper bound of clip(default: None)
         - eps (:obj:`float`): for numerical stability
@@ -114,23 +144,26 @@ def compute_importance_weights(
     """
     grad_context = torch.enable_grad() if requires_grad else torch.no_grad()
 
-    assert isinstance(action, torch.Tensor)
+    assert isinstance(action, torch.Tensor) or isinstance(action, list)
 
     with grad_context:
         if output_type == 'value':
             rhos = torch.clamp(target_output / (behaviour_output + eps), max=3)  # action_logits can be zero
             rhos = rhos.mean(dim=2)
         elif output_type == 'logit':
-            assert (len(action.shape) == 2)
-            old_shape = action.shape
-            target_output = target_output.reshape(-1, target_output.shape[-1])
-            behaviour_output = behaviour_output.reshape(-1, behaviour_output.shape[-1])
-            action = action.reshape(-1)
-            # (N, n_output) (N)
-            rhos = F.cross_entropy(
-                target_output, action, reduction='none'
-            ) / (F.cross_entropy(behaviour_output, action, reduction='none') + eps)
-            rhos = rhos.reshape(*old_shape)
+            if isinstance(action, list):
+                T, B = len(action), len(action[0])
+                rhos = torch.ones(T, B).to(device)
+                for t in range(T):
+                    for b in range(B):
+                        if action[t][b] is None:
+                            rhos[t, b] = 1
+                        else:
+                            rhos[t, b] = tb_cross_entropy(fn(target_output[t][b]), fn(action[t][b])) /\
+                                         (tb_cross_entropy(fn(behaviour_output[t][b]), fn(action[t][b])) + eps)
+            else:
+                rhos = tb_cross_entropy(target_output, action) / (tb_cross_entropy(behaviour_output, action) + eps)
+                assert (rhos.shape == action.shape[:2])
         else:
             raise RuntimeError("not support target output type: {}".format(output_type))
         rhos = rhos.clamp(min_clip, max_clip)
@@ -180,14 +213,21 @@ def upgo_loss(target_output, output_type, rhos, action, rewards, bootstrap_value
         returns = upgo_returns(rewards, bootstrap_values)
         advantages = rhos * (returns - bootstrap_values[:-1])
     if output_type == 'value':
-        assert (target_output.shape[2] == 1)
-        target_output = target_output.squeeze(2)
-        metric = F.l1_loss(target_output, action.float())
+        metric = F.l1_loss(target_output, action.float(), reduction='none')
+        metric = metric.mean(dim=2)
     elif output_type == 'logit':
-        assert (len(action.shape) == 2)
-        target_output = target_output.reshape(-1, target_output.shape[-1])
-        action = action.reshape(-1)
-        metric = F.cross_entropy(target_output, action)
+        if isinstance(action, list):
+            T, B = len(action), len(action[0])
+            metric = torch.zeros(T, B).to(dtype=rewards.dtype, device=rewards.device)
+            for t in range(T):
+                for b in range(B):
+                    if action[t][b] is None:
+                        metric[t][b] = 0
+                    else:
+                        metric[t][b] = tb_cross_entropy(fn(target_output[t][b]), fn(action[t][b]))
+        else:
+            metric = tb_cross_entropy(target_output, action)
+            assert (metric.shape == action.shape[:2])
     else:
         raise RuntimeError("not supported target output type: {}".format(output_type))
     losses = advantages * metric
@@ -208,13 +248,13 @@ def vtrace_advantages(clipped_rhos, clipped_cs, rewards, bootstrap_values, gamma
         - result (:obj:`torch.Tensor`): Computed V-trace advantage, of size [T_traj, batchsize]
     """
     if not isinstance(gammas, torch.Tensor):
-        gammas = gammas * torch.ones(rewards.size(), dtype=rewards.dtype)
+        gammas = gammas * torch.ones_like(rewards)
     if not isinstance(lambda_, torch.Tensor):
-        lambda_ = lambda_ * torch.ones(rewards.size(), dtype=rewards.dtype)
+        lambda_ = lambda_ * torch.ones_like(rewards)
     deltas = clipped_rhos * \
         (rewards + gammas *
          bootstrap_values[1:, :] - bootstrap_values[:-1, :])  # from 0 to T-1
-    result = torch.empty(rewards.size())
+    result = torch.empty_like(rewards)
     result[-1, :] = bootstrap_values[-2, :] + deltas[-1, :]
     for t in reversed(range(rewards.size()[0] - 1)):
         result[t, :] = bootstrap_values[t, :] + deltas[t, :]\
@@ -245,14 +285,21 @@ def vtrace_loss(target_output, output_type, rhos, cs, action, rewards, bootstrap
     with torch.no_grad():
         advantages = vtrace_advantages(rhos, cs, rewards, bootstrap_values, gammas=gamma, lambda_=lambda_)
     if output_type == 'value':
-        assert (target_output.shape[2] == 1)
-        target_output = target_output.squeeze(2)
-        metric = F.l1_loss(target_output, action.float())
+        metric = F.l1_loss(target_output, action.float(), reduction='none')
+        metric = metric.mean(dim=2)
     elif output_type == 'logit':
-        assert (len(action.shape) == 2)
-        target_output = target_output.reshape(-1, target_output.shape[-1])
-        action = action.reshape(-1)
-        metric = F.cross_entropy(target_output, action)
+        if isinstance(action, list):
+            T, B = len(action), len(action[0])
+            metric = torch.zeros(T, B).to(dtype=rewards.dtype, device=rewards.device)
+            for t in range(T):
+                for b in range(B):
+                    if action[t][b] is None:
+                        metric[t][b] = 0
+                    else:
+                        metric[t][b] = tb_cross_entropy(fn(target_output[t][b]), fn(action[t][b]))
+        else:
+            metric = tb_cross_entropy(target_output, action)
+            assert (metric.shape == action.shape[:2])
     else:
         raise RuntimeError("not support target output type: {}".format(output_type))
     losses = advantages * metric
@@ -273,7 +320,7 @@ def entropy(policy_logits, masked_threshold=-1e3):
     valid_flag = torch.where(
         policy_logits > masked_threshold, torch.ones_like(policy_logits), torch.zeros_like(policy_logits)
     )
-    entropy = -F.softmax(policy_logits, dim=2) * F.log_softmax(policy_logits, dim=2)
+    entropy = -F.softmax(policy_logits, dim=-1) * F.log_softmax(policy_logits, dim=-1)
     entropy = entropy * valid_flag
     entropy = torch.mean(entropy)
     # Normalize by actions available.

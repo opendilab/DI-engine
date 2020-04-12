@@ -1,5 +1,6 @@
 """
-Test script for actor
+Test script for actor, this is intended to be run as a independent test, not a pytest unittest
+as this need starting SC2 games and is resource heavy
 Example Usage:
 
     srun -p x_cerebra --gres=gpu:1 -w SH-IDC1-10-198-6-64 \
@@ -9,6 +10,7 @@ Example Usage:
 If you want to test this script in your local computer, try to run:
 
     python alphastar_actor_env_test.py --fake_dataset --config_path test.yaml
+    python alphastar_actor_env_test.py --nofake_dataset --config_path test.yaml --check_data_structure
 
 """
 import random
@@ -26,11 +28,10 @@ from sc2learner.tests.fake_env import FakeEnv
 from sc2learner.envs.alphastar_env import AlphaStarEnv
 
 FLAGS = flags.FLAGS
-flags.DEFINE_string('config_path', '', 'Path to the config yaml file for test')
+flags.DEFINE_string('config_path', 'test_alphastar_actor.yaml', 'Path to the config yaml file for test')
 flags.DEFINE_bool('fake_dataset', True, 'Whether to use fake dataset')
-flags.DEFINE_bool('check_data_structure', True, 'Compare the output and FakeEnv')
+flags.DEFINE_bool('check_data_structure', False, 'Compare the output and FakeEnv')
 flags.DEFINE_bool('single_agent', False, 'Test game_vs_bot mode')
-
 
 IGNORE_LIST = []
 
