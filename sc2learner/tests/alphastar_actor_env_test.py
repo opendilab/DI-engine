@@ -21,11 +21,60 @@ from absl import flags
 from easydict import EasyDict
 
 from sc2learner.worker.actor.alphastar_actor import AlphaStarActor
+from sc2learner.data.fake_dataset import fake_stat_processed, get_single_step_data
+from sc2learner.tests.fake_env import FakeEnv
+from sc2learner.envs.alphastar_env import AlphaStarEnv
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string('config_path', '', 'Path to the config yaml file for test')
 flags.DEFINE_bool('fake_dataset', True, 'Whether to use fake dataset')
+flags.DEFINE_bool('check_data_structure', True, 'Compare the output and FakeEnv')
 flags.DEFINE_bool('single_agent', False, 'Test game_vs_bot mode')
+
+
+IGNORE_LIST = []
+
+
+def recu_check_keys(ref, under_test, trace='ROOT'):
+    import warnings
+    # only testing shape and type
+    for item in IGNORE_LIST:
+        if item in trace:
+            print('Skipped {}'.format(trace))
+            return
+    print('Checking {}'.format(trace))
+    if under_test is None and ref is not None\
+       or ref is None and under_test is not None:
+        warnings.warn('Only one is None. REF{} DUT{} {}'.format(ref, under_test, trace))
+    elif isinstance(under_test, torch.Tensor) or isinstance(ref, torch.Tensor):
+        assert(isinstance(under_test, torch.Tensor) and isinstance(ref, torch.Tensor)),\
+            'one is tensor and the other is not tensor or None {}'.format(trace)
+        if under_test.size() != ref.size():
+            warnings.warn('Mismatch size: REF{} DUT{} {}'.format(ref.size(), under_test.size(), trace))
+    elif isinstance(under_test, list) or isinstance(under_test, tuple):
+        if len(under_test) != len(ref):
+            warnings.warn('Mismatch length: REF{} DUT{} {}'.format(len(ref), len(under_test), trace))
+        for n in range(min(len(ref), len(under_test))):
+            recu_check_keys(ref[n], under_test[n], trace=trace + ':' + str(n))
+    elif isinstance(under_test, dict):
+        assert isinstance(ref, dict)
+        for k, v in ref.items():
+            if k in under_test:
+                recu_check_keys(v, under_test[k], trace=trace + ':' + str(k))
+            else:
+                warnings.warn('Missing key: {}'.format(trace + ':' + str(k)))
+
+
+class TestEnv(AlphaStarEnv):
+    def reset(self):
+        obs = super().reset()
+        if FLAGS.check_data_structure:
+            recu_check_keys(get_single_step_data(), obs[0])
+        return obs
+
+    def step(self, actions):
+        out = super().step(actions)
+        return out
 
 
 class TestActor(AlphaStarActor):
@@ -35,10 +84,10 @@ class TestActor(AlphaStarActor):
 
     def _make_env(self, players):
         if FLAGS.fake_dataset:
-            from .fake_env import FakeEnv
             return FakeEnv(len(players))
         else:
-            return super()._make_env(players)
+            # return super()._make_env(players)
+            return TestEnv(self.cfg, players)
 
     def _module_init(self):
         self.job_getter = DummyJobGetter(self.cfg)
@@ -127,7 +176,8 @@ class DummyStatLoader:
         self.cfg = cfg
 
     def request_stat(self, job, agent_no):
-        return None
+        print('received stat req')
+        return fake_stat_processed()
 
 
 def main(unused_argv):
