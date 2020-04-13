@@ -130,7 +130,7 @@ def manager():
     return manager
 
 
-IGNORE_LIST = ['target_outputs', 'actions:delay']
+IGNORE_LIST = ['target_outputs']
 
 
 def recu_check_keys(ref, under_test, trace='ROOT'):
