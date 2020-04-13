@@ -5,6 +5,7 @@ api:
     manager_ip: 10.5.36.31           # could be all cluster
     manager_port: 18295
     ceph_path: s3://zhangming/
+    use_ceph: False
 replay_buffer:
     meta_maxlen: 4096
     max_reuse: 2
