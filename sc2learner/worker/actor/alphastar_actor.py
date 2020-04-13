@@ -206,13 +206,16 @@ class AlphaStarActor:
                     self.lstm_states_cpu[i] = self.lstm_states[i]
                     self.teacher_lstm_states_cpu[i] = self.teacher_lstm_states[i]
                 action = dict_list2list_dict(action)[0]  # 0 for batch dim
+                logits = dict_list2list_dict(logits)[0]
                 if self.use_teacher_model:
                     teacher_action = dict_list2list_dict(teacher_action)[0]
+                    teacher_logits = dict_list2list_dict(teacher_logits)[0]
                 actions[i] = action
                 update_after_eval_home = {
-                    'action': action,
+                    # TODO: why should not this named action rather than actionS
+                    'actions': action,
                     'behaviour_outputs': logits,
-                    'teacher_action': teacher_action,
+                    'teacher_actions': teacher_action,
                     'teacher_outputs': teacher_logits,
                     # LSTM state after forward
                     'next_state': self.lstm_states_cpu[i][0],
@@ -283,7 +286,7 @@ class AlphaStarActor:
                         'step': game_step,
                         'game_seconds': game_seconds,
                         'done': done,
-                        'rewards': torch.tensor(rewards[i]),
+                        'rewards': torch.tensor([rewards[i]]),
                         'info': info
                     }
                     home_step_data = merge_two_dicts(self.last_state_action_home[i], step_data_update_home)
@@ -294,7 +297,7 @@ class AlphaStarActor:
                             'step': game_step,
                             'game_seconds': game_seconds,
                             'done': done,
-                            'rewards': torch.tensor(rewards[1 - i]),
+                            'rewards': torch.tensor([rewards[1 - i]]),
                             'info': info
                         }
                         away_step_data = merge_two_dicts(self.last_state_action_away[i], step_data_update_away)

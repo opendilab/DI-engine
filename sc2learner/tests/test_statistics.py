@@ -64,15 +64,15 @@ def recu_check_keys(ref, under_test, trace='ROOT'):
     print('Checking {}'.format(trace))
     if under_test is None and ref is not None\
        or ref is None and under_test is not None:
-        warnings.warn('Only one is None. REF{} DUT{} {}'.format(ref, under_test, trace))
+        warnings.warn('Only one is None. REF={} DUT={} {}'.format(ref, under_test, trace))
     elif isinstance(under_test, torch.Tensor) or isinstance(ref, torch.Tensor):
         assert(isinstance(under_test, torch.Tensor) and isinstance(ref, torch.Tensor)),\
             'one is tensor and the other is not tensor or None {}'.format(trace)
         if under_test.size() != ref.size():
-            warnings.warn('Mismatch size: REF{} DUT{} {}'.format(ref.size(), under_test.size(), trace))
+            warnings.warn('Mismatch size: REF={} DUT={} {}'.format(ref.size(), under_test.size(), trace))
     elif isinstance(under_test, list) or isinstance(under_test, tuple):
         if len(under_test) != len(ref):
-            warnings.warn('Mismatch length: REF{} DUT{} {}'.format(len(ref), len(under_test), trace))
+            warnings.warn('Mismatch length: REF={} DUT={} {}'.format(len(ref), len(under_test), trace))
         for n in range(min(len(ref), len(under_test))):
             recu_check_keys(ref[n], under_test[n], trace=trace + ':' + str(n))
     elif isinstance(under_test, dict):

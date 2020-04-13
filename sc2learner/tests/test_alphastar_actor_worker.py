@@ -19,7 +19,7 @@ from absl import flags
 from easydict import EasyDict
 
 from sc2learner.worker.actor.alphastar_actor_worker import AlphaStarActorWorker
-from sc2learner.data.fake_dataset import FakeActorDataset
+from sc2learner.data.fake_dataset import FakeActorDataset, get_single_step_data
 from sc2learner.utils.file_helper import read_file_ceph
 # TODO: move the api modules
 from sc2learner.api.coordinator import Coordinator
@@ -57,6 +57,10 @@ class ActorForTest(AlphaStarActorWorker):
         self.last_time = None
 
     def action_modifier(self, act, step):
+        # if act[0]:
+        #    recu_check_keys(get_single_step_data()['actions'], act[0])
+        # if act[1]:
+        #    recu_check_keys(get_single_step_data()['actions'], act[1])
         if self.cfg.env.use_cuda:
             print('Max CUDA memory:{}'.format(torch.cuda.max_memory_allocated()))
         t = time.time()
@@ -126,7 +130,7 @@ def manager():
     return manager
 
 
-IGNORE_LIST = []
+IGNORE_LIST = ['target_outputs', 'actions:delay']
 
 
 def recu_check_keys(ref, under_test, trace='ROOT'):
@@ -137,20 +141,26 @@ def recu_check_keys(ref, under_test, trace='ROOT'):
     # print('Checking {}'.format(trace))
     if under_test is None and ref is not None\
        or ref is None and under_test is not None:
-        warnings.warn('Only one is None. REF{} DUT{} {}'.format(ref, under_test, trace))
+        warnings.warn('Only one is None. REF={} DUT={} {}'.format(ref, under_test, trace))
     elif isinstance(under_test, torch.Tensor) or isinstance(ref, torch.Tensor):
         assert(isinstance(under_test, torch.Tensor) and isinstance(ref, torch.Tensor)),\
             'one is tensor and the other is not tensor or None {}'.format(trace)
         if under_test.size() != ref.size():
-            warnings.warn('Mismatch size: REF{} DUT{} {}'.format(ref.size(), under_test.size(), trace))
+            warnings.warn('Mismatch size: REF={} DUT={} {}'.format(ref.size(), under_test.size(), trace))
     elif isinstance(under_test, list) or isinstance(under_test, tuple):
         if len(under_test) != len(ref):
-            warnings.warn('Mismatch length: REF{} DUT{} {}'.format(len(ref), len(under_test), trace))
+            warnings.warn('Mismatch length: REF={} DUT={} {}'.format(len(ref), len(under_test), trace))
         for n in range(min(len(ref), len(under_test))):
+            if n in IGNORE_LIST:
+                print('Skipped {}'.format(trace + ':' + str(n)))
+                return
             recu_check_keys(ref[n], under_test[n], trace=trace + ':' + str(n))
     elif isinstance(under_test, dict):
         assert isinstance(ref, dict)
         for k, v in ref.items():
+            if k in IGNORE_LIST:
+                print('Skipped {}'.format(trace + ':' + str(k)))
+                return
             if k in under_test:
                 recu_check_keys(v, under_test[k], trace=trace + ':' + str(k))
             else:

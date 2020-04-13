@@ -248,8 +248,8 @@ class AlphaStarEnv(SC2Env):
     def reset(self):
         timesteps = super().reset()
         last_action = {
-            'action_type': 0,
-            'delay': 0,
+            'action_type': torch.Tensor([0]),
+            'delay': torch.Tensor([0]),
             'queued': None,
             'selected_units': None,
             'target_units': None,
@@ -272,8 +272,11 @@ class AlphaStarEnv(SC2Env):
         self._episode_steps = 0
         self._reset_flag = True
         self._buffered_actions = [[] for i in range(self.agent_num)]
-        self._last_output = [0, [True] * self.agent_num, obs, [0] * self.agent_num, False, infos]
         self._episode_stat = Statistics(player_num=self.agent_num, begin_num=self.cfg.env.get('begin_num', 200))
+        self._last_output = [
+            0, [True] * self.agent_num, obs, [0] * self.agent_num, False,
+            [self._episode_stat.get_z(n) for n in range(self.agent_num)], infos
+        ]
         return copy.deepcopy(obs)
 
     def transformed_action_to_string(self, action):
