@@ -590,7 +590,7 @@ class LocationHead(nn.Module):
             return x, location
         elif self.output_type == 'soft_argmax':
             x = self.soft_argmax(x)
-            return x, x.detach()
+            return x, x.detach().long()
 
 
 def test_location_head():
