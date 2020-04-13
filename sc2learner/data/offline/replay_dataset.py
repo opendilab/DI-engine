@@ -8,8 +8,9 @@ import torch.nn.functional as F
 
 from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UPGRADES
 from sc2learner.data.base_dataset import BaseDataset
-from sc2learner.envs import get_available_actions_processed_data, decompress_obs, action_unit_id_transform
-from sc2learner.utils import read_file_ceph
+from sc2learner.envs import get_available_actions_processed_data, decompress_obs, action_unit_id_transform,\
+    get_enemy_upgrades_processed_data
+from sc2learner.utils import read_file_ceph, list_dict2dict_list
 
 META_SUFFIX = '.meta'
 DATA_SUFFIX = '.step'
@@ -41,6 +42,7 @@ class ReplayDataset(BaseDataset):
         self.use_global_cumulative_stat = dataset_config.use_global_cumulative_stat
         self.use_ceph = dataset_config.use_ceph
         self.use_available_action_transform = dataset_config.use_available_action_transform
+        self.use_enemy_upgrades = dataset_config.use_enemy_upgrades
 
     def __len__(self):
         return len(self.path_list)
@@ -150,14 +152,17 @@ class ReplayDataset(BaseDataset):
         if self.use_stat:
             beginning_build_order, cumulative_stat, mmr = self._load_stat(handle)
 
+        enemy_upgrades = None
         for i in range(len(sample_data)):
             sample_data[i]['map_size'] = map_size
-            sample_data[i]['scalar_info']['enemy_upgrades'] = torch.zeros(NUM_UPGRADES).float()  # fix 4.10 data bug
             if self.use_stat:
                 sample_data[i]['scalar_info']['beginning_build_order'] = beginning_build_order
                 sample_data[i]['scalar_info']['mmr'] = mmr
                 if self.use_global_cumulative_stat:
                     sample_data[i]['scalar_info']['cumulative_stat'] = cumulative_stat
+            if self.use_enemy_upgrades:
+                enemy_upgrades = get_enemy_upgrades_processed_data(sample_data[i], enemy_upgrades)
+                sample_data[i]['scalar_info']['enemy_upgrades'] = enemy_upgrades.float()
 
         if start == 0:
             sample_data[0][START_STEP] = True
