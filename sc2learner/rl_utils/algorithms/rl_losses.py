@@ -325,7 +325,7 @@ def entropy(policy_logits, masked_threshold=-1e3):
     entropy = torch.mean(entropy)
     # Normalize by actions available.
     numel = reduce(lambda x, y: x * y, policy_logits.shape)
-    entropy = entropy * numel / torch.sum(valid_flag)
+    entropy = entropy * numel / (1e-6 + torch.sum(valid_flag))
     return entropy
 
 
