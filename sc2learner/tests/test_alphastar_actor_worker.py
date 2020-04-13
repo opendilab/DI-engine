@@ -69,7 +69,8 @@ class ActorForTest(AlphaStarActorWorker):
         self.last_time = t
         for n in range(len(act)):
             if act[n] and act[n]['delay'] == 0:
-                act[n]['delay'] = random.randint(0, 10)
+                print('clipping delay == 0 to 1')
+                act[n]['delay'] = torch.LongTensor([random.randint(0, 10)])
             if PRINT_ACTIONS:
                 print('Act {}:{}'.format(n, str(act[n])))
         return act
@@ -207,9 +208,9 @@ def test_actor(coordinator, manager, caplog):
     smpls = coordinator.replay_buffer.sample(batch_size)
     assert smpls is not None
     assert isinstance(smpls, list) and len(smpls) == batch_size
-    decompressor = get_step_data_decompressor(cfg.env.compress_obs)
     for smpl in smpls:
         traj = read_file_ceph(smpl['ceph_name'] + smpl['trajectory_path'], read_type='pickle')
+        decompressor = get_step_data_decompressor(smpl['obs_compressor'])
         decompressed_traj = decompressor(traj)
         # here I'm checking the stored trajectory against FakeDataset
         # the format of observations is not tested here as it's from the same FakeEnv and the same FakeDataset

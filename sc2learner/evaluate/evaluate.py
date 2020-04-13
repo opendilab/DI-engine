@@ -44,7 +44,8 @@ class EvalActor(AlphaStarActor):
         for n in range(len(act)):
             if act[n] is not None:
                 if act[n]['delay'] == 0:
-                    act[n]['delay'] = 1
+                    print('clipping delay == 0 to 1')
+                    act[n]['delay'] = torch.LongTensor([1])
                 self.action_counts[n][self.env.get_action_type(act[n])] += 1
             print('Act {}:{}:{:5}:{}'.format(self.cfg.evaluate.job_id, n, step, self.env.action_to_string(act[n])))
         return act
@@ -61,6 +62,7 @@ class EvalJobGetter:
             job = {
                 'job_id': 'test0',
                 'game_type': 'game_vs_bot',
+                'obs_compressor': 'simple',
                 'model_id': ['agent0'],
                 'teacher_model_id': None,
                 'stat_id': ['agent0'],
@@ -76,6 +78,7 @@ class EvalJobGetter:
             job = {
                 'job_id': 'test0',
                 'game_type': 'self_play',
+                'obs_compressor': 'simple',
                 'model_id': ['agent0', 'agent1'],
                 'teacher_model_id': None,
                 'stat_id': ['agent0', 'agent1'],

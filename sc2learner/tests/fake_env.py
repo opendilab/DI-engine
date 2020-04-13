@@ -18,7 +18,12 @@ class FakeEnv:
         self.loaded_eval_stat = DummyStat()
 
     def _get_obs(self):
-        return [random.choice(self.dataset)[0] for _ in range(self.num_agents)]
+        obs = []
+        for _ in range(self.num_agents):
+            stepdata = random.choice(self.dataset)[0]
+            del stepdata['actions']
+            obs.append(stepdata)
+        return obs
 
     def reset(self):
         self.game_step = 0

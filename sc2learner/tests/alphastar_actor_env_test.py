@@ -107,7 +107,8 @@ class TestActor(AlphaStarActor):
         self.last_time = t
         for n in range(len(act)):
             if act[n] and act[n]['delay'] == 0:
-                act[n]['delay'] = random.randint(0, 10)
+                print('clipping delay == 0')
+                act[n]['delay'] = torch.LongTensor([random.randint(0, 10)])
             print('Act {}:{}'.format(n, str(act[n])))
         return act
 
@@ -124,6 +125,7 @@ class DummyJobGetter:
             job = {
                 'job_id': 'test0',
                 'game_type': 'game_vs_bot',
+                'obs_compressor': 'lz4',
                 'model_id': 'test',
                 'teacher_model_id': 'test',
                 'stat_id': '',
@@ -139,6 +141,7 @@ class DummyJobGetter:
             job = {
                 'job_id': 'test0',
                 'game_type': 'self_play',
+                'obs_compressor': 'lz4',
                 'model_id': 'test',
                 'teacher_model_id': 'test',
                 'stat_id': '',

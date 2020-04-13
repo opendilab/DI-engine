@@ -8,7 +8,6 @@ import pysc2.env.sc2_env as sc2_env
 from sc2learner.agent.alphastar_agent import AlphaStarAgent
 from sc2learner.envs.alphastar_env import AlphaStarEnv
 from sc2learner.utils import get_actor_uid, dict_list2list_dict, merge_two_dicts, get_step_data_compressor
-from sc2learner.envs.observations.alphastar_obs_wrapper import compress_obs
 from sc2learner.torch_utils import to_device
 
 
@@ -59,8 +58,8 @@ class AlphaStarActor:
         self.agent_num = 0
         self.teacher_agent = None
         self.use_teacher_model = None
-        self.compressor_name = self.cfg.env.get('compress_obs', 'none')
-        self.compressor = get_step_data_compressor(self.compressor_name)
+        self.compressor_name = None
+        self.compressor = None
 
     def _init_with_job(self, job):
         self.cfg.env.map_name = job['map_name']
@@ -112,7 +111,7 @@ class AlphaStarActor:
             agent.reset_previous_state([True])  # Here the lstm_states are reset
 
         if job['teacher_model_id']:
-            # agent for evaluation of the SL model to produce the logits
+            # agent for evaluation of the SL model to produce the teacher_logits
             # for human_policy_kl_loss in rl.py of AlphaStar Supp. Mat.
             self.teacher_agent = AlphaStarAgent(
                 model_config=self.cfg.model,
@@ -127,6 +126,8 @@ class AlphaStarActor:
         else:
             self.use_teacher_model = False
         self.env = self._make_env(players)
+        self.compressor_name = job['obs_compressor']
+        self.compressor = get_step_data_compressor(self.compressor_name)
 
     def _make_env(self, players):
         return AlphaStarEnv(self.cfg, players)
@@ -250,8 +251,8 @@ class AlphaStarActor:
         # Actor Logic:
         # When a agent is due to act at game_step, it will take the obs and decide what action to do (after env delay)
         # and when (after how many steps) should the agent be notified of newer obs and asked to act again
-        # this is done by calculating a delay (Note:different from env delay), and the game will proceed until
-        # game_step is at the time to obs and act requested by any of the agents.
+        # this is done by calculating a delay (Note: different from env delay), and the game will proceed until
+        # game_step arrived the time to observe and act as requested by any of the agents.
         # due[i] is set to True when agent[i] requested steps of simulation has been completed
         # and then, agent[i] need to take its action at the next step.
         # Agent j with due[j]==False will be skipped and its action is None

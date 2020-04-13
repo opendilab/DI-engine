@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 import zlib
-import lz4
+import lz4.block
 import pickle
 import copy
 
@@ -11,10 +11,11 @@ def list_proc(func):
         if isinstance(x, list):
             out = []
             for item in x:
-                assert isinstance(item, dict)
+                assert isinstance(item, dict) or isinstance(item, bytes)
                 out.append(func(item))
             return out
         else:
+            assert isinstance(x, dict) or isinstance(x, bytes)
             return func(x)
 
     return f
@@ -100,7 +101,7 @@ def zlib_step_data_compressor(step_data):
 
 
 def lz4_step_data_compressor(step_data):
-    return lz4.frame.compress(pickle.dumps({k: compress_obs(v) for k, v in step_data.items()}))
+    return lz4.block.compress(pickle.dumps({k: compress_obs(v) for k, v in step_data.items()}))
 
 
 def get_step_data_decompressor(name):
@@ -126,8 +127,8 @@ def simple_step_data_decompressor(compressed_step_data):
 
 
 def lz4_step_data_decompressor(compressed_step_data):
-    return pickle.loads(lz4.frame.decompress(compressed_step_data))
+    return {k: decompress_obs(v) for k, v in pickle.loads(lz4.block.decompress(compressed_step_data)).items()}
 
 
 def zlib_step_data_decompressor(compressed_step_data):
-    return pickle.loads(zlib.decompress(compressed_step_data))
+    return {k: decompress_obs(v) for k, v in pickle.loads(zlib.decompress(compressed_step_data)).items()}
