@@ -169,16 +169,6 @@ class ReplayDataset(BaseDataset):
             sample_data[0][START_STEP] = True
         else:
             sample_data[0][START_STEP] = False
-
-        print('total cost {}'.format(t8 - t1))
-        print('    size = {}, read .step cost {}, load cost  {}'.format(sys.getsizeof(data), t9 - t1, t2 - t9))
-        # print('    clip the dataset cost                     {}'.format(t3-t2))
-        # print('    action_unit_id_transform cost             {}'.format(t4-t3))
-        # print('    decompress_obs cost                       {}'.format(t5-t4))
-        # print('    get_available_actions_processed_data cost {}'.format(t6-t5))
-        # print('    complete_episode cost                     {}'.format(t7-t6))
-        # print('    use_stat cost                             {}'.format(t8-t7))
-
         return sample_data
 
 
