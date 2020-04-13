@@ -252,7 +252,7 @@ class Policy(nn.Module):
             # action arg queued
             if action_attr['queued'][idx]:
                 logits_queued, queued, embedding = self.head['queued_head'](embedding, temperature)
-                logits_queued, queued = logits_queued[0], queued[0]
+                logits_queued = logits_queued[0]
             else:
                 logits_queued, queued = None, None
             logits['queued'].append(logits_queued)
