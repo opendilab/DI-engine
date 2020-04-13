@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 import numbers
 
 
@@ -12,6 +13,8 @@ def to_device(item, device):
     elif isinstance(item, dict):
         return {k: to_device(item[k], device) for k in item.keys()}
     elif isinstance(item, numbers.Integral) or isinstance(item, numbers.Real):
+        return item
+    elif isinstance(item, np.ndarray):
         return item
     elif item is None or isinstance(item, str):
         return item

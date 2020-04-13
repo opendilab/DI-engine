@@ -1,10 +1,33 @@
 """Library for RL returns and losses evaluation"""
 
+import math
+from functools import reduce
 import torch
 import torch.nn.functional as F
 
 
-def multistep_forward_view(rewards, gammas, bootstrap_values, lambda_, need_grad=False):
+def fn(x):
+    return x.unsqueeze(0).unsqueeze(0)
+
+
+def tb_cross_entropy(logit, label):
+    assert (len(label.shape) >= 2)
+    T, B = label.shape[:2]
+    # special 2D case
+    if label.shape[2] == 2 and label.shape[2] != logit.shape[2]:
+        assert (len(label.shape) == 3)
+        n_output_shape = logit.shape[2:]
+        label = label[..., 0] * n_output_shape[1] + label[..., 1]
+        logit = logit.reshape(T, B, -1)
+
+    label = label.reshape(-1)
+    logit = logit.reshape(-1, logit.shape[-1])
+    ce = F.cross_entropy(logit, label, reduction='none')
+    ce = ce.reshape(T, B, -1)
+    return ce.mean(dim=2)
+
+
+def multistep_forward_view(rewards, gammas, bootstrap_values, lambda_):
     r"""
     Overview:
         Same as trfl.sequence_ops.multistep_forward_view
@@ -30,10 +53,7 @@ def multistep_forward_view(rewards, gammas, bootstrap_values, lambda_, need_grad
         - ret (:obj:`torch.Tensor`): Computed lambda return value
          for each state from 0 to T-1, of size [T_traj, batchsize]
     """
-    grad_mode = torch.is_grad_enabled()
-    torch.set_grad_enabled(need_grad)
-
-    result = torch.empty(rewards.size())
+    result = torch.empty_like(rewards)
     # Forced cutoff at the last one
     result[-1, :] = rewards[-1, :] + gammas[-1, :] * bootstrap_values[-1, :]
     discounts = gammas * lambda_
@@ -42,11 +62,10 @@ def multistep_forward_view(rewards, gammas, bootstrap_values, lambda_, need_grad
             + discounts[t, :] * result[t+1, :]\
             + (gammas[t, :] - discounts[t, :]) * bootstrap_values[t, :]
 
-    torch.set_grad_enabled(grad_mode)
     return result
 
 
-def generalized_lambda_returns(rewards, gammas, bootstrap_values, lambda_, need_grad=False):
+def generalized_lambda_returns(rewards, gammas, bootstrap_values, lambda_):
     r"""
     Overview:
         Functional equivalent to trfl.value_ops.generalized_lambda_returns
@@ -65,14 +84,14 @@ def generalized_lambda_returns(rewards, gammas, bootstrap_values, lambda_, need_
           for each state from 0 to T-1, of size [T_traj, batchsize]
     """
     if not isinstance(gammas, torch.Tensor):
-        gammas = gammas * torch.ones(rewards.size(), dtype=rewards.dtype)
+        gammas = gammas * torch.ones_like(rewards)
     if not isinstance(lambda_, torch.Tensor):
-        lambda_ = lambda_ * torch.ones(rewards.size(), dtype=rewards.dtype)
+        lambda_ = lambda_ * torch.ones_like(rewards)
     bootstrap_values_tp1 = bootstrap_values[1:, :]
-    return multistep_forward_view(rewards, gammas, bootstrap_values_tp1, lambda_, need_grad=need_grad)
+    return multistep_forward_view(rewards, gammas, bootstrap_values_tp1, lambda_)
 
 
-def td_lambda_loss(rewards, values, gamma=1.0, lambda_=0.8):
+def td_lambda_loss(values, rewards, gamma=1.0, lambda_=0.8):
     r"""
     Overview:
         Computing TD($\lambda$) loss given constant gamma and lambda.
@@ -80,47 +99,76 @@ def td_lambda_loss(rewards, values, gamma=1.0, lambda_=0.8):
         if some state has reached the terminal, just fill in zeros for values and rewards beyond terminal
         (*including the terminal state*, values[terminal] should also be 0)
     Arguments:
-        - rewards (:obj:`torch.Tensor`): the returns from time step 0 to T-1, of size [T_traj, batchsize]
         - values (:obj:`torch.Tensor`): estimation of the state value at step 0 to T, of size [T_traj+1, batchsize]
+        - rewards (:obj:`torch.Tensor`): the returns from time step 0 to T-1, of size [T_traj, batchsize]
         - gamma (:obj:`float`): constant gamma
         - lambda_ (:obj:`float`): constant lambda (between 0 to 1)
     Returns:
         - loss (:obj:`torch.Tensor`): Computed MSE loss, averaged over the batch, of size []
     """
-    returns = generalized_lambda_returns(rewards, gamma, values, lambda_, False)
+    with torch.no_grad():
+        returns = generalized_lambda_returns(rewards, gamma, values, lambda_)
     # discard the value at T as it should be considered in the next slice
     loss = 0.5 * torch.pow(returns - values[:-1], 2).mean()
     return loss
 
 
 def compute_importance_weights(
-    action_logits, current_logits, action, clipping=lambda x: torch.clamp(x, min=1), eps=1e-8, need_grad=False
+    target_output,
+    behaviour_output,
+    output_type,
+    action,
+    min_clip=None,
+    max_clip=None,
+    eps=1e-8,
+    requires_grad=False,
+    device='cpu'
 ):
     r"""
     Overview:
         Computing UPGO loss given constant gamma and lambda. There is no special handling for terminal state value.
         If zeros are passed in, output is not defined but will not be nans.
     Arguments:
-        - action_logits (:obj:`torch.Tensor`):
-          the logits used producing the trajectory, of size [T_traj, batchsize, n_action_type]
-        - current_logits (:obj:`torch.Tensor`): the logits computed by the target policy network,
-          of size [T_traj, batchsize, n_action_type]
-        - action (:obj:`torch.Tensor`): the chosen action(index) in trajectory, of size [T_traj, batchsize]
-        - clipping: the clipping function for the importance weight,
-          the raw IW tensor of size [T_traj, batchsize] is passed to the function, should return clipped value
+        - target_output (:obj:`torch.Tensor`): the output computed by the target policy network,
+          of size [T_traj, batchsize, n_output], n_output can be a list
+        - behaviour_output (:obj:`torch.Tensor`):
+          the output used producing the trajectory, of size [T_traj, batchsize, n_output]
+        - output_type (:obj:`str`): the type of target/behaviour output(value, logit)
+        - action (:obj:`torch.Tensor`): the chosen action(index) in trajectory, of size [T_traj, batchsize] or
+          [T_traj, batchsize, n_other]
+        - min_clip (:obj:`float`): the lower bound of clip(default: None)
+        - max_clip (:obj:`float`): the upper bound of clip(default: None)
         - eps (:obj:`float`): for numerical stability
     Returns:
         - rhos (:obj:`torch.Tensor`): Importance weight, of size [T_traj, batchsize]
     """
-    grad_mode = torch.is_grad_enabled()
-    torch.set_grad_enabled(need_grad)
+    grad_context = torch.enable_grad() if requires_grad else torch.no_grad()
 
-    rhos = F.softmax(current_logits, dim=2).gather(2, action.long().unsqueeze(2)).squeeze(2)\
-        / (F.softmax(action_logits, dim=2).gather(2, action.long().unsqueeze(2)).squeeze(2)+eps)
-    rhos = clipping(rhos)
+    assert isinstance(action, torch.Tensor) or isinstance(action, list)
 
-    torch.set_grad_enabled(grad_mode)
-    return rhos
+    with grad_context:
+        if output_type == 'value':
+            rhos = torch.clamp(target_output / (behaviour_output + eps), max=3)  # action_logits can be zero
+            rhos = rhos.mean(dim=2)
+        elif output_type == 'logit':
+            if isinstance(action, list):
+                T, B = len(action), len(action[0])
+                rhos = torch.ones(T, B).to(device)
+                for t in range(T):
+                    for b in range(B):
+                        if action[t][b] is None:
+                            rhos[t, b] = 1
+                        else:
+                            rhos[t, b] = tb_cross_entropy(fn(target_output[t][b]), fn(action[t][b])) /\
+                                         (tb_cross_entropy(fn(behaviour_output[t][b]), fn(action[t][b])) + eps)
+            else:
+                rhos = tb_cross_entropy(target_output, action) / (tb_cross_entropy(behaviour_output, action) + eps)
+                assert (rhos.shape == action.shape[:2])
+        else:
+            raise RuntimeError("not support target output type: {}".format(output_type))
+        rhos = rhos.clamp(min_clip, max_clip)
+
+        return rhos
 
 
 def upgo_returns(rewards, bootstrap_values):
@@ -140,17 +188,18 @@ def upgo_returns(rewards, bootstrap_values):
     bootstrap_values_tp1 = bootstrap_values[1:, :]
     bootstrap_values_tp2 = torch.cat((bootstrap_values_tp1[1:, :], bootstrap_values[-1, :].unsqueeze(0)), 0)
     lambdas = 1.0 * (rewards + bootstrap_values_tp2) >= bootstrap_values_tp1
-    return generalized_lambda_returns(rewards, 1.0, bootstrap_values, lambdas, False)
+    return generalized_lambda_returns(rewards, 1.0, bootstrap_values, lambdas)
 
 
-def upgo_loss(current_logits, rhos, action, rewards, bootstrap_values):
+def upgo_loss(target_output, output_type, rhos, action, rewards, bootstrap_values):
     r"""
     Overview:
         Computing UPGO loss given constant gamma and lambda. There is no special handling for terminal state value,
         if the last state in trajectory is the terminal, just pass a 0 as bootstrap_terminal_value.
     Arguments:
-        - current_logits (:obj:`torch.Tensor`): the logits computed by the target policy network,
-          of size [T_traj, batchsize, n_action_type]
+        - target_output (:obj:`torch.Tensor`): the output computed by the target policy network,
+          of size [T_traj, batchsize, n_output]
+        - output_type (:obj:`str`): the type of target output(value, logit)
         - rhos (:obj:`torch.Tensor`): the importance sampling ratio, of size [T_traj, batchsize]
         - action (:obj:`torch.Tensor`): the action taken, of size [T_traj, batchsize]
         - rewards (:obj:`torch.Tensor`): the returns from time step 0 to T-1, of size [T_traj, batchsize]
@@ -159,17 +208,33 @@ def upgo_loss(current_logits, rhos, action, rewards, bootstrap_values):
     Returns:
         - loss (:obj:`torch.Tensor`): Computed importance sampled UPGO loss, averaged over the samples, of size []
     """
-    returns = upgo_returns(rewards, bootstrap_values)
     # discard the value at T as it should be considered in the next slice
-    advantages = rhos * (returns - bootstrap_values[:-1])
-    advantages = advantages.detach()  # to make sure
-    losses = advantages * \
-        F.log_softmax(current_logits, dim=2).gather(
-            2, action.long().unsqueeze(2)).squeeze(2)
+    with torch.no_grad():
+        returns = upgo_returns(rewards, bootstrap_values)
+        advantages = rhos * (returns - bootstrap_values[:-1])
+    if output_type == 'value':
+        metric = F.l1_loss(target_output, action.float(), reduction='none')
+        metric = metric.mean(dim=2)
+    elif output_type == 'logit':
+        if isinstance(action, list):
+            T, B = len(action), len(action[0])
+            metric = torch.zeros(T, B).to(dtype=rewards.dtype, device=rewards.device)
+            for t in range(T):
+                for b in range(B):
+                    if action[t][b] is None:
+                        metric[t][b] = 0
+                    else:
+                        metric[t][b] = tb_cross_entropy(fn(target_output[t][b]), fn(action[t][b]))
+        else:
+            metric = tb_cross_entropy(target_output, action)
+            assert (metric.shape == action.shape[:2])
+    else:
+        raise RuntimeError("not support target output type: {}".format(output_type))
+    losses = advantages * metric
     return -losses.mean()
 
 
-def vtrace_advantages(clipped_rhos, clipped_cs, rewards, bootstrap_values, gammas=1.0, lambda_=0.8, need_grad=False):
+def vtrace_advantages(clipped_rhos, clipped_cs, rewards, bootstrap_values, gammas=1.0, lambda_=0.8):
     r"""
     Overview:
         Computing vtrace advantages.
@@ -182,35 +247,32 @@ def vtrace_advantages(clipped_rhos, clipped_cs, rewards, bootstrap_values, gamma
     Returns:
         - result (:obj:`torch.Tensor`): Computed V-trace advantage, of size [T_traj, batchsize]
     """
-    grad_mode = torch.is_grad_enabled()
-    torch.set_grad_enabled(need_grad)
-
     if not isinstance(gammas, torch.Tensor):
-        gammas = gammas * torch.ones(rewards.size(), dtype=rewards.dtype)
+        gammas = gammas * torch.ones_like(rewards)
     if not isinstance(lambda_, torch.Tensor):
-        lambda_ = lambda_ * torch.ones(rewards.size(), dtype=rewards.dtype)
+        lambda_ = lambda_ * torch.ones_like(rewards)
     deltas = clipped_rhos * \
         (rewards + gammas *
          bootstrap_values[1:, :] - bootstrap_values[:-1, :])  # from 0 to T-1
-    result = torch.empty(rewards.size())
+    result = torch.empty_like(rewards)
     result[-1, :] = bootstrap_values[-2, :] + deltas[-1, :]
     for t in reversed(range(rewards.size()[0] - 1)):
         result[t, :] = bootstrap_values[t, :] + deltas[t, :]\
             + gammas[t, :] * lambda_[t, :] * clipped_cs[t, :] * \
             (result[t+1, :] - bootstrap_values[t+1, :])
 
-    torch.set_grad_enabled(grad_mode)
     return result
 
 
-def vtrace_loss(current_logits, rhos, cs, action, rewards, bootstrap_values, gamma=1.0, lambda_=0.8):
+def vtrace_loss(target_output, output_type, rhos, cs, action, rewards, bootstrap_values, gamma=1.0, lambda_=0.8):
     r"""
     Overview:
         Computing UPGO loss given constant gamma and lambda. There is no special handling for terminal state value,
         if the last state in trajectory is the terminal, just pass a 0 as bootstrap_terminal_value.
     Arguments:
-        - current_logits (:obj:`torch.Tensor`): the logits computed by the target policy network,
-          of size [T_traj, batchsize, n_action_type]
+        - target_output (:obj:`torch.Tensor`): the output computed by the target policy network,
+          of size [T_traj, batchsize, n_output]
+        - output_type (:obj:`str`): the type of target output(value, logit)
         - rhos (:obj:`torch.Tensor`): the clipped importance sampling ratio $\rho$, of size [T_traj, batchsize]
         - cs (:obj:`torch.Tensor`): the clipped importance sampling ratio c, of size [T_traj, batchsize]
         - action (:obj:`torch.Tensor`): the action taken, of size [T_traj, batchsize]
@@ -220,15 +282,31 @@ def vtrace_loss(current_logits, rhos, cs, action, rewards, bootstrap_values, gam
     Returns:
         - loss (:obj:`torch.Tensor`): Computed V-trace loss, averaged over the samples, of size []
     """
-    advantages = vtrace_advantages(rhos, cs, rewards, bootstrap_values, gammas=gamma, lambda_=lambda_)
-    advantages = advantages.detach()  # to make sure
-    losses = advantages * \
-        F.log_softmax(current_logits, dim=2).gather(
-            2, action.long().unsqueeze(2)).squeeze(2)
+    with torch.no_grad():
+        advantages = vtrace_advantages(rhos, cs, rewards, bootstrap_values, gammas=gamma, lambda_=lambda_)
+    if output_type == 'value':
+        metric = F.l1_loss(target_output, action.float(), reduction='none')
+        metric = metric.mean(dim=2)
+    elif output_type == 'logit':
+        if isinstance(action, list):
+            T, B = len(action), len(action[0])
+            metric = torch.zeros(T, B).to(dtype=rewards.dtype, device=rewards.device)
+            for t in range(T):
+                for b in range(B):
+                    if action[t][b] is None:
+                        metric[t][b] = 0
+                    else:
+                        metric[t][b] = tb_cross_entropy(fn(target_output[t][b]), fn(action[t][b]))
+        else:
+            metric = tb_cross_entropy(target_output, action)
+            assert (metric.shape == action.shape[:2])
+    else:
+        raise RuntimeError("not support target output type: {}".format(output_type))
+    losses = advantages * metric
     return -losses.mean()
 
 
-def entropy(policy_logits):
+def entropy(policy_logits, masked_threshold=-1e3):
     r"""
     Overview:
         Computing entropy given the logits
@@ -238,14 +316,17 @@ def entropy(policy_logits):
     Returns:
         - entropy (:obj:`torch.Tensor`): Computed entropy, averaged over the samples, of size []
     """
-    valid_flag = torch.max(torch.abs(policy_logits), 2)[0] > 0  # exclude all zero logits
-    ent_step = -torch.sum(F.softmax(policy_logits, dim=2) * F.log_softmax(policy_logits, dim=2), dim=2)
-    numel = policy_logits.size()[0] * policy_logits.size()[1]
-    ent = torch.sum(ent_step * valid_flag) * numel / torch.sum(valid_flag)
+    # mask all the masked logits in entropy computation
+    valid_flag = torch.where(
+        policy_logits > masked_threshold, torch.ones_like(policy_logits), torch.zeros_like(policy_logits)
+    )
+    entropy = -F.softmax(policy_logits, dim=-1) * F.log_softmax(policy_logits, dim=-1)
+    entropy = entropy * valid_flag
+    entropy = torch.mean(entropy)
     # Normalize by actions available.
-    normalized_entropy = ent / \
-        torch.log(torch.tensor(policy_logits.size()[2]).float())
-    return normalized_entropy
+    numel = reduce(lambda x, y: x * y, policy_logits.shape)
+    entropy = entropy * numel / (1e-6 + torch.sum(valid_flag))
+    return entropy
 
 
 def pg_loss(
@@ -289,46 +370,3 @@ def pg_loss(
                        gamma=vtrace_gamma, lambda_=vtrace_lambda)\
         + upgo_weight * upgo_loss(current_logits, rhos, action, rewards, bootstrap_values)\
         - ent_weight * entropy(current_logits)
-
-
-if __name__ == '__main__':
-    test_data = {}
-    test_data['T_traj'] = 64
-    test_data['batchsize'] = 32
-    test_data['n_action_type'] = 3
-    torch.manual_seed(10)
-    test_data['action_logits'] = torch.cat(
-        (
-            torch.ones((test_data['T_traj'] - 2, test_data['batchsize'], test_data['n_action_type'])),
-            torch.zeros((2, test_data['batchsize'], test_data['n_action_type']))
-        )
-    )
-    test_data['current_logits'] = torch.cat(
-        (
-            torch.ones((test_data['T_traj'] - 2, test_data['batchsize'], test_data['n_action_type'])),
-            torch.zeros((2, test_data['batchsize'], test_data['n_action_type']))
-        )
-    )
-    test_data['action'] = torch.randint(0, test_data['n_action_type'], (test_data['T_traj'], test_data['batchsize']))
-    test_data['rewards'] = torch.cat(
-        (torch.ones((test_data['T_traj'] - 2, test_data['batchsize'])), torch.zeros((2, test_data['batchsize'])))
-    )
-    # test_data['rewards'][1,:]=100
-    test_data['bootstrap_value'] = torch.cat(
-        (torch.ones((test_data['T_traj'] - 2, test_data['batchsize'])), torch.zeros((2 + 1, test_data['batchsize'])))
-    )
-
-    test_data['bootstrap_value'][1, :] = -100
-    test_data['bootstrap_value'][2, :] = -100
-    print(
-        pg_loss(
-            test_data['action_logits'],
-            test_data['current_logits'],
-            test_data['action'],
-            test_data['rewards'],
-            test_data['bootstrap_value'],
-            upgo_weight=1,
-            ent_weight=0.01
-        )
-    )
-    print(td_lambda_loss(test_data['rewards'], test_data['bootstrap_value'], gamma=1, lambda_=0))

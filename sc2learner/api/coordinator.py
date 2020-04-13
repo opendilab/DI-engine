@@ -12,6 +12,9 @@ import yaml
 import traceback
 import uuid
 import random
+from easydict import EasyDict
+
+from sc2learner.data.online import ReplayBuffer
 
 
 class Coordinator(object):
@@ -23,12 +26,20 @@ class Coordinator(object):
         self.manager_ip = cfg['api']['manager_ip']
         self.manager_port = cfg['api']['manager_port']
 
-        self.manager_record = {}  # {manager_uid: {actor_uid: [job_id]}}
-        self.job_record = {}  # {job_id: {content: info, metadatas: [metadata], state: run/finish}}
-        self.learner_record = {
-        }  # {learner_uid: {"learner_ip": learner_ip, "job_ids": [job_id], "models": [model_name]}}
+        # {manager_uid: {actor_uid: [job_id]}}
+        self.manager_record = {}
+        # {job_id: {content: info, state: run/finish}}
+        self.job_record = {}
+        # {learner_uid: {"learner_ip": learner_ip,
+        #                "job_ids": [job_id], "models": [model_name]}}
+        self.learner_record = {}
+        self.replay_buffer = ReplayBuffer(EasyDict(self.cfg['replay_buffer']))
+        self.replay_buffer.run()
 
         self._set_logger()
+
+    def close(self):
+        self.replay_buffer.close()
 
     def _set_logger(self, level=1):
         self.logger = logging.getLogger("coordinator.log")
@@ -88,12 +99,12 @@ class Coordinator(object):
         if actor_uid not in self.manager_record[manager_uid]:
             self.manager_record[manager_uid][actor_uid] = []
         self.manager_record[manager_uid][actor_uid].append(job_id)
-        self.job_record[job_id] = {'content': job, 'metadatas': [], 'state': 'running'}
+        self.job_record[job_id] = {'content': job, 'state': 'running'}
         return job
 
     def deal_with_get_metadata(self, manager_uid, actor_uid, job_id, metadata):
         '''
-            Overview: when receiving manager's request of sending metadata, ,return True/False
+            Overview: when receiving manager's request of sending metadata, return True/False
             Arguments:
                 - manager_uid (:obj:`str`): manager's uid
                 - actor_uid (:obj:`str`): actor's uid
@@ -103,26 +114,32 @@ class Coordinator(object):
                 - (:obj`bool`): state
         '''
         assert job_id in self.job_record, 'job_id ({}) not in job_record'.format(job_id)
-        self.job_record[job_id]['metadatas'].append(metadata)
+        self.replay_buffer.push_data(metadata)
+        return True
 
-        learner_uid_list = [
-            self.job_record[job_id]['content']['learner_uid1'], self.job_record[job_id]['content']['learner_uid2']
-        ]
+    def deal_with_ask_for_metadata(self, learner_uid, batch_size):
+        '''
+            Overview: when receiving learner's request of asking for metadata, return metadatas
+            Arguments:
+                - learner_uid (:obj:`str`): learner's uid
+                - batch_size (:obj:`int`): batch size
+            Returns:
+                - (:obj`list`): metadata list
+        '''
+        assert learner_uid in self.learner_record, 'learner_uid ({}) not in learner_record'.format(learner_uid)
+        metadatas = self.replay_buffer.sample(batch_size)
+        return metadatas
 
-        for learner_uid in learner_uid_list:
-            learner_ip = self.learner_record[learner_uid]['learner_ip']
-            url_prefix = 'http://{}:{}/'.format(learner_ip, self.learner_port)
-            d = {"metadata": metadata}
-            while True:
-                try:
-                    response = requests.post(url_prefix + 'learner/get_metadata', json=d).json()
-                    if response['code'] == 0:
-                        job = response['info']
-                        return True
-                except Exception as e:
-                    self.logger.info(''.join(traceback.format_tb(e.__traceback__)))
-                    self.logger.info("[error] {}".format(sys.exc_info()))
-                time.sleep(1)
+    def deal_with_update_replay_buffer(self, update_info):
+        '''
+            Overview: when receiving learner's request of updating replay buffer, return True/False
+            Arguments:
+                - update_info (:obj:`dict`): info dict
+            Returns:
+                - (:obj`bool`): True
+        '''
+        self.replay_buffer.update(update_info)
+        return True
 
     ###################################################################################
     #                                      debug                                      #
@@ -136,3 +153,6 @@ class Coordinator(object):
 
     def deal_with_get_all_job(self):
         return self.job_record
+
+    def deal_with_get_replay_buffer(self):
+        return self.replay_buffer

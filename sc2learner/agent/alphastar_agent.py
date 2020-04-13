@@ -34,7 +34,7 @@ class BaseAgent:
 
 
 class AlphaStarAgent(BaseAgent):
-    def __init__(self, model_config, num_concurrent_episodes, use_cuda, use_distributed):
+    def __init__(self, model_config, num_concurrent_episodes=1, use_cuda=True, use_distributed=False):
         self.num_concurrent_episodes = num_concurrent_episodes
 
         # Build model
@@ -160,9 +160,9 @@ class AlphaStarAgent(BaseAgent):
             self._after_forward(next_states)
         return AgentOutput(actions=actions, logits=logits, next_state=next_states)
 
-    def compute_value(self, step_data):
+    def compute_action_value(self, step_data, temperature=1.0):
         # Corresponding to value mode of original ActorCritic
-        raise NotImplementedError()
+        return self.model(step_data, mode="step", temperature=temperature)
 
     def get_model(self):
         return self.model

@@ -1,5 +1,5 @@
 import random
-from .replay_dataset import policy_collate_fn, START_STEP
+from .replay_dataset import START_STEP
 from collections import deque
 from sc2learner.utils import get_rank, get_world_size
 
@@ -7,10 +7,8 @@ from sc2learner.utils import get_rank, get_world_size
 class ReplayIterationDataLoader(object):
     def __init__(self, dataset, batch_size, collate_fn=None):
         self.dataset = dataset
-        if collate_fn is None:
-            self.collate_fn = policy_collate_fn
-        else:
-            self.collate_fn = collate_fn
+        assert collate_fn is not None
+        self.collate_fn = collate_fn
         self.batch_size = batch_size
         self.rank = get_rank()
         self.world_size = get_world_size()

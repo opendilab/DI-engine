@@ -3,6 +3,53 @@ model:
     freeze_targets: []
     state_dict_mask: []
     use_value_network: False
+    # ===== Value =====
+    value:
+        winloss:
+            name: winloss
+            cum_stat_keys: ['unit_build']
+            param:
+                input_dim: 1536
+                activation: 'relu'
+                norm_type: 'LN'
+                res_dim: 256
+                res_num: 16
+        build_orders:
+            name: build_orders
+            cum_stat_keys: ['unit_build', 'effect', 'research']
+            param:
+                input_dim: 1664
+                activation: 'relu'
+                norm_type: 'LN'
+                res_dim: 256
+                res_num: 16
+        built_units:
+            name: built_units
+            cum_stat_keys: ['unit_build']
+            param:
+                input_dim: 1536
+                activation: 'relu'
+                norm_type: 'LN'
+                res_dim: 256
+                res_num: 16
+        effects:
+            name: effects
+            cum_stat_keys: ['effect']
+            param:
+                input_dim: 1536
+                activation: 'relu'
+                norm_type: 'LN'
+                res_dim: 256
+                res_num: 16
+        upgrades:
+            name: upgrades
+            cum_stat_keys: ['research']
+            param:
+                input_dim: 1536
+                activation: 'relu'
+                norm_type: 'LN'
+                res_dim: 256
+                res_num: 16
     # ===== Encoder =====
     encoder:
         obs_encoder:
@@ -97,3 +144,4 @@ model:
                 activation: 'relu'
                 output_type: 'cls'  # ['cls', 'soft_argmax']
                 use_mask: False
+                location_expand_ratio: 2

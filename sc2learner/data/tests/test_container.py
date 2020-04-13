@@ -14,6 +14,7 @@ def generate_data():
     return ret
 
 
+@pytest.mark.unittest
 class TestSequenceContainer:
     def test_create(self):
         container = SequenceContainer(**generate_data())

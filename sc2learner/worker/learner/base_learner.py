@@ -7,6 +7,7 @@ Main Function:
 import numbers
 import os
 
+import numpy as np
 import torch
 
 from sc2learner.agent.alphastar_agent import BaseAgent
@@ -36,8 +37,12 @@ class Learner:
         self.cfg = cfg
         self.use_distributed = cfg.train.use_distributed
         self.use_cuda = cfg.train.use_cuda
-        self.max_epochs = cfg.train.max_epochs
         self.train_dataloader_type = cfg.data.train.dataloader_type
+        if self.train_dataloader_type == 'epoch':
+            self.max_epochs = cfg.train.max_epochs
+            self.max_iterations = np.inf
+        else:
+            self.max_iterations = int(cfg.train.max_iterations)
         self.use_cuda = cfg.train.use_cuda
         if self.use_distributed:
             self.rank, self.world_size = dist_init()  # initialize rank and world size for linklink
@@ -47,7 +52,7 @@ class Learner:
             import logging
             logging.error("You do not have GPU! If you are not testing locally, something is going wrong.")
             self.use_cuda = False
-        assert self.train_dataloader_type in ['epoch', 'iter']
+        assert self.train_dataloader_type in ['epoch', 'iter', 'online']
 
         # build model
         self.agent = self._setup_agent()  # build model by policy from alphaStar
@@ -64,7 +69,7 @@ class Learner:
         if self.rank == 0:  # only one thread need to build logger
             self.logger, self.tb_logger, self.variable_record = self._setup_logger(self.rank)
             self.logger.info('cfg:\n{}'.format(self.cfg))
-            self.logger.info('model:\n{}'.format(self.agent))
+            #self.logger.info('model:\n{}'.format(self.agent))
             self._setup_stats()
         else:
             self.logger, _, _ = self._setup_logger(self.rank)
@@ -115,7 +120,7 @@ class Learner:
         self.checkpoint_manager = build_checkpoint_helper(self.cfg.common.save_path, self.rank)
         if self.train_dataloader_type == 'epoch':
             self.ckpt_dataset = self.dataset
-        elif self.train_dataloader_type == 'iter':
+        elif self.train_dataloader_type in ['iter', 'online']:
             # iter type doesn't save some context
             self.ckpt_dataset = None
         else:
@@ -175,7 +180,7 @@ class Learner:
                     self.lr_scheduler.step()  # update lr
                 self._run()
                 self.last_epoch.add(1)
-        elif self.train_dataloader_type == 'iter':
+        elif self.train_dataloader_type in ['iter', 'online']:
             self._run()
 
         self.save_checkpoint()
@@ -184,20 +189,24 @@ class Learner:
         return data
 
     def _run(self):
-        # FIXME(pzh) make a general data interface
-        for idx, batch_data in enumerate(self.dataloader):
+        while self.last_iter.val < self.max_iterations:
             with self.total_timer:
                 with self.data_timer:
+                    try:
+                        batch_data = next(self.dataloader)
+                    except StopIteration:  # for limited length dataloader
+                        return
                     processed_data, data_stats = self._preprocess_data(batch_data)
                 var_items, time_stats = self.optimizer.learn(processed_data)
+                var_items['cur_lr'] = self.lr_scheduler.get_lr()[0]
+                var_items['epoch'] = self.last_epoch.val
+                var_items.update(data_stats)
+
+                self._update_data_priority(processed_data, var_items)
             time_stats.update(
                 data_time=self.data_timer.value,
                 total_batch_time=self.total_timer.value,
             )
-            var_items['cur_lr'] = self.lr_scheduler.get_lr()[0]
-            var_items['epoch'] = self.last_epoch.val
-            var_items.update(data_stats)
-
             self._manage_learning_information(var_items, time_stats)
 
             self.last_iter.add(1)
@@ -231,6 +240,9 @@ class Learner:
         if iterations % self.cfg.logger.save_freq == 0:
             self.save_checkpoint()
 
+    def _update_data_priority(self, data, var_items):
+        pass
+
     def finalize(self):
         """ Overview: finalize, called after training """
         if self.use_distributed:
@@ -239,7 +251,7 @@ class Learner:
 
 class SupervisedLearner(Learner):
     """An abstract supervised learning learner class"""
-    _name = "BaseSuppervisedLearner"
+    _name = "BaseSupervisedLearner"
 
 
 def transform_dict(var_items, keys):

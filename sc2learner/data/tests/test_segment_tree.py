@@ -1,8 +1,10 @@
+import pytest
 import numpy as np
 
 from sc2learner.data.structure import SumSegmentTree, MinSegmentTree
 
 
+@pytest.mark.unittest
 class TestSumSegmentTree:
     def test_create(self):
         try:

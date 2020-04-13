@@ -1,2 +1,2 @@
-from .replay_dataset import ReplayDataset, policy_collate_fn
+from .replay_dataset import ReplayDataset
 from .replay_dataloader import ReplayIterationDataLoader

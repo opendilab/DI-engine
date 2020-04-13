@@ -1,4 +1,5 @@
 import torch
+from collections.abc import Iterator
 from torch.utils.data import _utils
 
 
@@ -25,6 +26,33 @@ class OnlineDataLoader(object):
     @cur_model_index.setter
     def cur_model_index(self, cur_model_index):
         self._cur_model_index = cur_model_index
+
+
+class OnlineIteratorDataLoader:
+    def __init__(self, data_iterator, batch_size, collate_fn=None, read_data_fn=None, num_workers=0):
+        assert (isinstance(data_iterator, Iterator))
+        assert (read_data_fn is not None)
+        self.data_iterator = data_iterator
+        if collate_fn is None:
+            self.collate_fn = _utils.collate.default_collate
+        else:
+            self.collate_fn = collate_fn
+        self.batch_size = batch_size
+        self.read_data_fn = read_data_fn
+        self.num_workers = num_workers
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        data = next(self.data_iterator)
+        if self.num_workers == 0:
+            data = [self.read_data_fn(d) for d in data]
+        else:
+            # TODO(nyz) multi-process read
+            raise NotImplementedError
+        data = self.collate_fn(data)
+        return data
 
 
 def unroll_split_collate_fn(*args, collate_fn=_utils.collate.default_collate, **kwargs):

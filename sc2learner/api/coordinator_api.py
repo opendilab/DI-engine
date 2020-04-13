@@ -12,6 +12,7 @@ from flask import Flask, request
 
 from coordinator import Coordinator
 from utils.log_helper import TextLogger
+from sc2learner.utils import read_config, merge_dicts
 
 parser = argparse.ArgumentParser(description='implementation of AlphaStar')
 parser.add_argument('--config', dest='config', required=True, help='settings of AlphaStar in yaml format')
@@ -90,6 +91,27 @@ def get_metadata():
     job_id = request.json['job_id']
     metadata = request.json['metadata']
     ret_code = coordinator.deal_with_get_metadata(manager_uid, actor_uid, job_id, metadata)
+    if ret_code:
+        return build_ret(0)
+    else:
+        return build_ret(1)
+
+
+@app.route('/coordinator/ask_for_metadata', methods=['POST'])
+def ask_for_metadata():
+    learner_uid = request.json['learner_uid']
+    batch_size = request.json['batch_size']
+    ret = coordinator.deal_with_ask_for_metadata(learner_uid, batch_size)
+    if ret:
+        return build_ret(0, ret)
+    else:
+        return build_ret(1)
+
+
+@app.route('/coordinator/update_replay_buffer', methods=['POST'])
+def update_replay_buffer():
+    update_info = request.json['update_info']
+    ret_code = coordinator.deal_with_update_replay_buffer(update_info)
     if ret_code:
         return build_ret(0)
     else:

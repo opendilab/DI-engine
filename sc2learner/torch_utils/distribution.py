@@ -83,12 +83,15 @@ class CategoricalPd(Pd):
 
 
 class CategoricalPdPytorch(torch.distributions.Categorical):
-    def __init__(self, logits=None):
-        if logits is not None:
-            self.update_logits(logits)
+    def __init__(self, probs=None):
+        if probs is not None:
+            self.update_probs(probs)
 
     def update_logits(self, logits):
         super(CategoricalPdPytorch, self).__init__(logits=logits)
+
+    def update_probs(self, probs):
+        super(CategoricalPdPytorch, self).__init__(probs=probs)
 
     def sample(self):
         return super().sample()

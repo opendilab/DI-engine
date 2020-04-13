@@ -56,7 +56,10 @@ class Policy(nn.Module):
         for idx, action in enumerate(action_type):
             action_type_val = ACTIONS_REORDER_INV[action.item()]
             action_info_hard_craft = GENERAL_ACTION_INFO_MASK[action_type_val]
-            action_info_stat = ACTIONS_STAT[action_type_val]
+            try:
+                action_info_stat = ACTIONS_STAT[action_type_val]
+            except KeyError:
+                action_info_stat = {'selected_type': [], 'target_type': []}
             # else case is the placeholder
             if action_info_hard_craft['selected_units']:
                 type_hard_craft = set(action_info_hard_craft['avail_unit_type_id'])
@@ -249,6 +252,7 @@ class Policy(nn.Module):
             # action arg queued
             if action_attr['queued'][idx]:
                 logits_queued, queued, embedding = self.head['queued_head'](embedding, temperature)
+                logits_queued = logits_queued[0]
             else:
                 logits_queued, queued = None, None
             logits['queued'].append(logits_queued)
@@ -259,6 +263,7 @@ class Policy(nn.Module):
                     embedding, mask['select_unit_type_mask'][idx], mask['select_unit_mask'][idx],
                     entity_embeddings[idx], temperature
                 )
+                logits_selected_units = logits_selected_units[0]
                 selected_units = selected_units[0]
             else:
                 logits_selected_units, selected_units = None, None
@@ -270,6 +275,7 @@ class Policy(nn.Module):
                     embedding, mask['target_unit_type_mask'][idx], mask['target_unit_mask'][idx],
                     entity_embeddings[idx], temperature
                 )
+                logits_target_units = logits_target_units[0]
                 target_units = target_units[0]
             else:
                 logits_target_units, target_units = None, None
@@ -277,10 +283,12 @@ class Policy(nn.Module):
             actions['target_units'].append(target_units)
             # action arg target_location
             if action_attr['target_location'][idx]:
-                map_skip_single = [t[idx:idx + 1] for t in map_skip]
+                map_skip_single = [t[idx] for t in map_skip]
                 logits_location, location = self.head['location_head'](
                     embedding, map_skip_single, mask['location_mask'][idx], temperature
                 )
+                # logits_location (batch and channel dim are both 1)
+                logits_location, location = logits_location[0][0], location[0]
             else:
                 logits_location, location = None, None
             logits['target_location'].append(logits_location)

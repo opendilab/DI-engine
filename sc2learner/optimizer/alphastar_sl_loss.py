@@ -50,7 +50,6 @@ class AlphaStarSupervisedLoss(BaseLoss):
         self.agent = agent
 
         self.use_value_network = model_config.use_value_network
-        self.location_expand_ratio = model_config.policy.location_expand_ratio
         self.location_output_type = model_config.policy.head.location_head.output_type
 
         self.criterion_config = train_config.criterion
@@ -182,7 +181,7 @@ class AlphaStarSupervisedLoss(BaseLoss):
             return loss.clamp(0).mean()
 
         if isinstance(labels, collections.Sequence):
-            labels = torch.cat(labels, dim=0)
+            labels = torch.stack(labels, dim=0)
         labels = labels.to(preds.dtype)
         assert (preds.shape == labels.shape)
         return delay_l1(preds, labels)
@@ -223,7 +222,6 @@ class AlphaStarSupervisedLoss(BaseLoss):
         loss = []
         for batch_index in range(batch_size):
             logit, label = logits[batch_index], labels[batch_index]
-            logit = torch.cat(logit, dim=0)  # logit becomes a [num_selected_units, num_units_type] tensor.
             if logit.shape[0] != label.shape[0]:  # when agents selected different number of agents compared to expert
                 assert (logit.shape[0] == 1 + label.shape[0])  # ISSUE(zm) why?
                 end_flag_label = torch.LongTensor([logit.shape[1] - 1]).to(label.device)
@@ -264,18 +262,14 @@ class AlphaStarSupervisedLoss(BaseLoss):
         labels = [x for x in labels if isinstance(x, torch.Tensor)]
         if len(labels) == 0:
             return 0
-        ratio = self.location_expand_ratio
         loss = []
         for logit, label in zip(logits, labels):
             if self.location_output_type == 'cls':
-                logit = F.avg_pool2d(logit, kernel_size=ratio, stride=ratio)  # achieve same resolution with label
-                logit.mul_(ratio * ratio)
                 H, W = logit.shape[2:]
                 label = torch.LongTensor([label[0] * W + label[1]]).to(device=logit.device)  # (y, x)
                 logit = logit.view(1, -1)
                 loss.append(self.criterion(logit, label))
             elif self.location_output_type == 'soft_argmax':
-                logit /= ratio
                 label = label.to(logit.dtype)
                 loss.append(F.mse_loss(logit, label))
         return sum(loss) / len(loss)
