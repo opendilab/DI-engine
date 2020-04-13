@@ -10,9 +10,9 @@ import torch.nn.functional as F
 
 from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UPGRADES
 from sc2learner.data.base_dataset import BaseDataset
-from sc2learner.envs import get_available_actions_processed_data, decompress_obs, action_unit_id_transform
-from sc2learner.utils import read_file_ceph
-from sc2learner.data.collate_fn import list_dict2dict_list, default_collate
+from sc2learner.envs import get_available_actions_processed_data, decompress_obs, action_unit_id_transform,\
+    get_enemy_upgrades_processed_data
+from sc2learner.utils import read_file_ceph, list_dict2dict_list
 
 META_SUFFIX = '.meta'
 DATA_SUFFIX = '.step'
@@ -44,6 +44,7 @@ class ReplayDataset(BaseDataset):
         self.use_global_cumulative_stat = dataset_config.use_global_cumulative_stat
         self.use_ceph = dataset_config.use_ceph
         self.use_available_action_transform = dataset_config.use_available_action_transform
+        self.use_enemy_upgrades = dataset_config.use_enemy_upgrades
 
     def __len__(self):
         return len(self.path_list)
@@ -156,80 +157,20 @@ class ReplayDataset(BaseDataset):
         if self.use_stat:
             beginning_build_order, cumulative_stat, mmr = self._load_stat(handle)
 
+        enemy_upgrades = None
         for i in range(len(sample_data)):
             sample_data[i]['map_size'] = map_size
-            sample_data[i]['scalar_info']['enemy_upgrades'] = torch.zeros(NUM_UPGRADES).float()  # fix 4.10 data bug
             if self.use_stat:
                 sample_data[i]['scalar_info']['beginning_build_order'] = beginning_build_order
                 sample_data[i]['scalar_info']['mmr'] = mmr
                 if self.use_global_cumulative_stat:
                     sample_data[i]['scalar_info']['cumulative_stat'] = cumulative_stat
+            if self.use_enemy_upgrades:
+                enemy_upgrades = get_enemy_upgrades_processed_data(sample_data[i], enemy_upgrades)
+                sample_data[i]['scalar_info']['enemy_upgrades'] = enemy_upgrades.float()
 
         if start == 0:
             sample_data[0][START_STEP] = True
         else:
             sample_data[0][START_STEP] = False
         return sample_data
-
-
-def policy_collate_fn(batch, max_delay=63, action_type_transform=True):
-    data_item = {
-        'spatial_info': False,  # special op
-        'scalar_info': True,
-        'entity_info': False,
-        'entity_raw': False,
-        'actions': False,
-        'map_size': False,
-        START_STEP: False
-    }
-
-    def merge_func(data):
-        valid_data = [t for t in data if t is not None]
-        new_data = list_dict2dict_list(valid_data)
-        for k, merge in data_item.items():
-            if merge:
-                new_data[k] = default_collate(new_data[k])
-            if k == 'spatial_info':
-                shape = [t.shape for t in new_data[k]]
-                if len(set(shape)) != 1:
-                    tmp_shape = list(zip(*shape))
-                    H, W = max(tmp_shape[1]), max(tmp_shape[2])
-                    new_spatial_info = []
-                    for item in new_data[k]:
-                        h, w = item.shape[-2:]
-                        new_spatial_info.append(F.pad(item, [0, W - w, 0, H - h], "constant", 0))
-                    new_data[k] = default_collate(new_spatial_info)
-                else:
-                    new_data[k] = default_collate(new_data[k])
-            if k == 'actions':
-                new_data[k] = list_dict2dict_list(new_data[k])
-                new_data[k]['delay'] = [torch.clamp(x, 0, max_delay) for x in new_data[k]['delay']]  # clip
-                if action_type_transform:
-                    action_type = [t.item() for t in new_data[k]['action_type']]
-                    L = len(action_type)
-                    for i in range(L):
-                        action_type[i] = ACTIONS_REORDER[action_type[i]]
-                    action_type = torch.LongTensor(action_type)
-                    new_data[k]['action_type'] = list(torch.chunk(action_type, L, dim=0))
-        new_data['end_index'] = [idx for idx, t in enumerate(data) if t is None]
-        return new_data
-
-    # sequence, batch
-    b_len = [len(b) for b in batch]
-    max_len = max(b_len)
-    min_len = min(b_len)
-    if max_len != min_len:
-        seq = []
-        for i in range(max_len):
-            tmp = []
-            for j in range(len(batch)):
-                if i >= b_len[j]:
-                    tmp.append(None)
-                else:
-                    tmp.append(batch[j][i])
-            seq.append(tmp)
-
-    seq = list(zip(*batch))
-    for s in range(len(seq)):
-        seq[s] = merge_func(seq[s])
-    return seq

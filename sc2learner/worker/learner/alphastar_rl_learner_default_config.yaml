@@ -5,11 +5,11 @@ common:
     load_path: ''
     only_evaluate: False
 api:
-    learner_port: 18293               # learner port
+    learner_port: 18193               # learner port
     coordinator_ip: 10.5.36.31       # learner and coordinator are in same cluster
-    coordinator_port: 18294
+    coordinator_port: 18194
     manager_ip: 10.5.36.31           # could be all cluster
-    manager_port: 18295
+    manager_port: 18195
     ceph_path: s3://zhangming/
     use_ceph: False
 replay_buffer:

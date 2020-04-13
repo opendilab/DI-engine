@@ -1,6 +1,7 @@
+![system](http://gitlab.bj.sensetime.com/xialiqiao/SenseStar/-/wikis/uploads/a586d7ac741f472e11b14c04271f187e/Screen_Shot_2020-04-10_at_12.42.01.png)
 # Refatoring Branch Quickstart Manual 
 
-Updated on 2020.03.21
+Updated on 2020.04.10
 
 Documents: http://xialiqiao.pages.gitlab.bj.sensetime.com/SenseStar 
 

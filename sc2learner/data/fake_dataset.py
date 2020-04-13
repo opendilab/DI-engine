@@ -59,7 +59,7 @@ def get_single_step_data():
         race=random_one_hot([5]),
         enemy_race=random_one_hot([5]),
         upgrades=random_binary_tensor([90]),
-        enemy_upgrades=random_binary_tensor([90]),
+        enemy_upgrades=random_binary_tensor([48]),  # refer to envs/observations/enemy_upgrades.py
         time=random_binary_tensor([32]),
         available_actions=random_binary_tensor([NUM_ACTION_TYPES]),
         unit_counts_bow=random_tensor([259]),

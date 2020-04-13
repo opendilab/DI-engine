@@ -5,6 +5,7 @@ api:
     manager_ip: 10.198.6.31           # could be all cluster
     manager_port: 18295
     ceph_path: s3://alphastar_fake_data/
+    use_ceph: False
     actor:
         heartbeats_thread: True
     manager:
