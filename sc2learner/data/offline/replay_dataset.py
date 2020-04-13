@@ -124,11 +124,8 @@ class ReplayDataset(BaseDataset):
         handle = self.path_list[idx]
         print(handle)
 
-        t1 = time.time()
         d1 = self._read_file(handle['name'] + DATA_SUFFIX)
-        t9 = time.time()
         data = torch.load(d1)
-        t2 = time.time()
 
         # clip the dataset
         if self.complete_episode:
@@ -139,14 +136,10 @@ class ReplayDataset(BaseDataset):
             end = start + self.trajectory_len
             sample_data = data[start:end]
 
-        t3 = time.time()
         sample_data = action_unit_id_transform(sample_data)
-        t4 = time.time()
         sample_data = [decompress_obs(d) for d in sample_data]
-        t5 = time.time()
         if self.use_available_action_transform:
             sample_data = [get_available_actions_processed_data(d) for d in sample_data]
-        t6 = time.time()
 
         if self.complete_episode:
             meta = torch.load(self._read_file(handle['name'] + META_SUFFIX))
@@ -159,7 +152,6 @@ class ReplayDataset(BaseDataset):
                 print('[Error] data name: {}'.format(handle['name']))
                 raise e
             map_size = list(reversed(handle['map_size']))
-        t7 = time.time()
 
         if self.use_stat:
             beginning_build_order, cumulative_stat, mmr = self._load_stat(handle)
@@ -172,7 +164,6 @@ class ReplayDataset(BaseDataset):
                 sample_data[i]['scalar_info']['mmr'] = mmr
                 if self.use_global_cumulative_stat:
                     sample_data[i]['scalar_info']['cumulative_stat'] = cumulative_stat
-        t8 = time.time()
 
         if start == 0:
             sample_data[0][START_STEP] = True
