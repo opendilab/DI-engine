@@ -36,6 +36,7 @@ class TestLearnerCommHelper:
         Note: coordinator must be in the front of learner in the arguments
         """
         push_data_thread = Thread(target=self.fake_push_data, args=(coordinator, ))
+        push_data_thread.daemon = True
         push_data_thread.start()
         handle = coordinator.replay_buffer._meta_buffer
 

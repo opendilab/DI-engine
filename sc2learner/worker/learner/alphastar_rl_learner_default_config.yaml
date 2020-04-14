@@ -12,6 +12,14 @@ api:
     manager_port: 18195
     ceph_path: s3://zhangming/
     use_ceph: False
+    manager:
+        auto_run_actor: False
+        use_partitions: ['VI_Face_1080TI', 'VI_SP_Y_V100_B']
+        actor_num: [2, 2]
+    coordinator:
+        use_fake_data: True
+        fake_model_path: iterations_2200.pth.tar
+        fake_stat_path: Zerg_Zerg_6280_d35c22b2d7e462f1481621cbf765709961e3f9a2a99f8f6c6fa814ccffc831d6.stat_processed
 replay_buffer:
     meta_maxlen: 4096
     max_reuse: 2

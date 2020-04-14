@@ -26,9 +26,14 @@ class Coordinator(object):
         self.manager_ip = cfg['api']['manager_ip']
         self.manager_port = cfg['api']['manager_port']
 
+        self.use_fake_data = cfg['api']['coordinator']['use_fake_data']
+        if self.use_fake_data:
+            self.fake_model_path = cfg['api']['coordinator']['fake_model_path']
+            self.fake_stat_path = cfg['api']['coordinator']['fake_stat_path']
+
         # {manager_uid: {actor_uid: [job_id]}}
         self.manager_record = {}
-        # {job_id: {content: info, state: run/finish}}
+        # {job_id: {content: info, state: running/finish}}
         self.job_record = {}
         # {learner_uid: {"learner_ip": learner_ip,
         #                "job_ids": [job_id], "models": [model_name]}}
@@ -51,9 +56,61 @@ class Coordinator(object):
                 - (:obj`dict`): job info
         '''
         job_id = str(uuid.uuid1())
-        learner_uid1 = random.choice(list(self.learner_record.keys()))
-        learner_uid2 = random.choice(list(self.learner_record.keys()))
-        return {'job_id': job_id, 'learner_uid1': learner_uid1, 'learner_uid2': learner_uid2}
+        ret = {}
+
+        if self.use_fake_data:
+            if not self.learner_record:
+                self.learner_record['test1'] = {"learner_ip": '0.0.0.0', "job_ids": [], "models": []}
+                self.learner_record['test2'] = {"learner_ip": '0.0.0.0', "job_ids": [], "models": []}
+            learner_uid1 = random.choice(list(self.learner_record.keys()))
+            learner_uid2 = random.choice(list(self.learner_record.keys()))
+            model_name1 = self.fake_model_path
+            model_name2 = self.fake_model_path
+            ret = {
+                'job_id': job_id,
+                'learner_uid': [learner_uid1, learner_uid2],
+                'stat_id': [self.fake_stat_path, self.fake_stat_path],
+                'game_type': 'league',
+                'obs_compressor': 'lz4',
+                'model_id': [model_name1, model_name2],
+                'teacher_model_id': model_name1,
+                'map_name': 'AbyssalReef',
+                'random_seed': 0,
+                'home_race': 'zerg',
+                'away_race': 'zerg',
+                'difficulty': 'easy',
+                'build': 'random',
+                'data_push_length': 8
+            }
+        else:
+            use_learner_uid_list = []
+            for learner_uid in list(self.learner_record.keys()):
+                if len(self.learner_record[learner_uid]['models']) > 0:
+                    use_learner_uid_list.append(learner_uid)
+            if use_learner_uid_list:
+                learner_uid1 = random.choice(use_learner_uid_list)
+                learner_uid2 = random.choice(use_learner_uid_list)
+                model_name1 = self.learner_record[learner_uid1]['models'][-1]
+                model_name2 = self.learner_record[learner_uid2]['models'][-1]
+                ret = {
+                    'job_id': job_id,
+                    'learner_uid': [learner_uid1, learner_uid2],
+                    'stat_id': [self.fake_stat_path, self.fake_stat_path],
+                    'game_type': 'league',
+                    'obs_compressor': 'lz4',
+                    'model_id': [model_name1, model_name2],
+                    'teacher_model_id': model_name1,
+                    'map_name': '',
+                    'random_seed': 0,
+                    'home_race': 'Zerg',
+                    'away_race': 'Zerg',
+                    'difficulty': 1,
+                    'build': 0,
+                    'data_push_length': 8
+                }
+            else:
+                ret = {}
+        return ret
 
     def deal_with_register_model(self, learner_uid, model_name):
         '''
@@ -115,6 +172,19 @@ class Coordinator(object):
         '''
         assert job_id in self.job_record, 'job_id ({}) not in job_record'.format(job_id)
         self.replay_buffer.push_data(metadata)
+        return True
+
+    def deal_with_finish_job(self, manager_uid, actor_uid, job_id):
+        '''
+            Overview: when receiving actor's request of finishing job, ,return True/False
+            Arguments:
+                - actor_uid (:obj:`str`): actor's uid
+                - job_id (:obj:`str`): job's id
+            Returns:
+                - (:obj`bool`): state
+        '''
+        assert job_id in self.job_record, 'job_id ({}) not in job_record'.format(job_id)
+        self.job_record[job_id]['state'] = 'finish'
         return True
 
     def deal_with_ask_for_metadata(self, learner_uid, batch_size):

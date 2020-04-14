@@ -204,8 +204,10 @@ class CheckpointHelper(object):
                 - state_dict_mask (:obj:`list`) a list contains state_dict keys,
                     which shouldn't be loaded into model(after prefix op)
         """
-        # Note: don't use assign operation('=') to updare input argument value
-        assert (os.path.exists(load_path))
+        # Note: don't use assign operation('=') to update input argument value
+        if isinstance(load_path, str):
+            # don't assume this if input is not a path (like BytesIO for ceph)
+            assert (os.path.exists(load_path))
         # Note: for reduce first GPU memory cost and compatible for cpu env
         checkpoint = torch.load(load_path, map_location='cpu')
         state_dict = checkpoint['state_dict']
@@ -283,8 +285,8 @@ def auto_checkpoint(func):
         valid_sig = []
         invalid_sig = []
         for sig in all_signals:
-            sig = getattr(signal, sig)
             try:
+                sig = getattr(signal, sig)
                 signal.signal(sig, handler)
                 valid_sig.append(sig)
             except Exception:

@@ -31,7 +31,7 @@ class FakeLearner(object):
         self.url_prefix = 'http://{}:{}/'.format(self.coordinator_ip, self.coordinator_port)
 
         self._set_logger()
-        self.register_learner_in_coordinator()
+        self._register_learner_in_coordinator()
 
         self.batch_size = 4
         self.train_freq = 10  # ask for metadata and train every `train_freq` seconds
@@ -51,7 +51,7 @@ class FakeLearner(object):
         '''
         self.logger = logging.getLogger("learner.log")
 
-    def register_learner_in_coordinator(self):
+    def _register_learner_in_coordinator(self):
         '''
             Overview: register learner in coordinator with learner_uid and learner_ip
         '''
@@ -65,7 +65,7 @@ class FakeLearner(object):
                 self.logger.info("something wrong with coordinator, {}".format(e))
             time.sleep(10)
 
-    def register_model_in_coordinator(self, model_name):
+    def _register_model_in_coordinator(self, model_name):
         '''
             Overview: register model in coordinator with model_name, should be called after saving model in ceph
         '''
@@ -98,8 +98,8 @@ class FakeLearner(object):
 
     def _get_trajectory_list(self, metadatas):
         '''
-            Overview: get list of trajectory by trajectory_path in metadatas. Using OrderedDict,
-                      and move_to_end() will set key to top to avoid being deleted.
+            Overview: get list of trajectory by trajectory_path in metadatas.
+            Using OrderedDict, and move_to_end() will set key to top to avoid being deleted.
             Arguments:
                 - metadatas (:obj:`dict`): list of actor's metadata
             Returns:
@@ -160,6 +160,7 @@ class FakeLearner(object):
         model_name = "learner-{}-{}.model".format(self.learner_uid, str(uuid.uuid1()))
         self.logger.info("saving model in ceph ... ")
         self._save_model_to_ceph(model_name, model)
+        self._register_model_in_coordinator(model_name)
         self._delete_trajectory_record()
         update_info = self._get_update_info(metadatas)
         try:

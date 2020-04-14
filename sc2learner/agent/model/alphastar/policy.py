@@ -58,7 +58,8 @@ class Policy(nn.Module):
             action_info_hard_craft = GENERAL_ACTION_INFO_MASK[action_type_val]
             try:
                 action_info_stat = ACTIONS_STAT[action_type_val]
-            except KeyError:
+            except KeyError as e:
+                print('We are issuing a command (reordered:{}), never seen in replays'.format(action_type_val))
                 action_info_stat = {'selected_type': [], 'target_type': []}
             # else case is the placeholder
             if action_info_hard_craft['selected_units']:

@@ -8,13 +8,14 @@ from easydict import EasyDict
 from threading import Thread
 from flask import Flask, request
 from sc2learner.api import Coordinator, LearnerCommunicationHelper
+from sc2learner.api.coordinator_api import create_coordinator_app
 from sc2learner.utils.log_helper import TextLogger
 
 with open(os.path.join(os.path.dirname(__file__), '../config.yaml')) as f:
     cfg = yaml.safe_load(f)
 cfg = EasyDict(cfg)
-learner_ip = socket.gethostname()
-coordinator_ip = socket.gethostname()
+learner_ip = '127.0.0.1'  # socket.gethostname()
+coordinator_ip = '127.0.0.1'  # socket.gethostname()
 cfg.api.learner_ip = learner_ip
 cfg.api.coordinator_ip = coordinator_ip
 cfg.data = {}
@@ -53,7 +54,9 @@ def learner():
 
 @pytest.fixture(scope='module')
 def coordinator():
-    coordinator_app = Flask("__main__")
+    logger = TextLogger(log_path, name="coordinator.log")
+    coordinator = Coordinator(cfg)
+    coordinator_app = create_coordinator_app(coordinator)
 
     def run():
         try:
@@ -61,47 +64,6 @@ def coordinator():
         except KeyboardInterrupt:
             pass
 
-    @coordinator_app.route('/coordinator/register_learner', methods=['POST'])
-    def register_learner():
-        learner_uid = request.json['learner_uid']
-        learner_ip = request.json['learner_ip']
-        ret_code = coordinator.deal_with_register_learner(learner_uid, learner_ip)
-        if ret_code:
-            return build_ret(0)
-        else:
-            return build_ret(1)
-
-    @coordinator_app.route('/coordinator/ask_for_metadata', methods=['POST'])
-    def ask_for_metadata():
-        learner_uid = request.json['learner_uid']
-        batch_size = request.json['batch_size']
-        ret = coordinator.deal_with_ask_for_metadata(learner_uid, batch_size)
-        if ret:
-            return build_ret(0, ret)
-        else:
-            return build_ret(1)
-
-    @coordinator_app.route('/coordinator/update_replay_buffer', methods=['POST'])
-    def update_replay_buffer():
-        update_info = request.json['update_info']
-        ret_code = coordinator.deal_with_update_replay_buffer(update_info)
-        if ret_code:
-            return build_ret(0)
-        else:
-            return build_ret(1)
-
-    @coordinator_app.route('/coordinator/register_model', methods=['POST'])
-    def register_model():
-        learner_uid = request.json['learner_uid']
-        model_name = request.json['model_name']
-        ret_code = coordinator.deal_with_register_model(learner_uid, model_name)
-        if ret_code:
-            return build_ret(0)
-        else:
-            return build_ret(1)
-
-    logger = TextLogger(log_path, name="coordinator.log")
-    coordinator = Coordinator(cfg)
     launch_thread = Thread(target=run)
     launch_thread.daemon = True
     launch_thread.start()

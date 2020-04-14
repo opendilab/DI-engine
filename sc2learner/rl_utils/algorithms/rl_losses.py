@@ -229,7 +229,7 @@ def upgo_loss(target_output, output_type, rhos, action, rewards, bootstrap_value
             metric = tb_cross_entropy(target_output, action)
             assert (metric.shape == action.shape[:2])
     else:
-        raise RuntimeError("not support target output type: {}".format(output_type))
+        raise RuntimeError("not supported target output type: {}".format(output_type))
     losses = advantages * metric
     return -losses.mean()
 

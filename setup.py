@@ -103,6 +103,7 @@ setup(
         'pytest',
         'pytest-xdist',
         'flask',
+        'lz4',
     ],
     entry_points={
         'console_scripts': [

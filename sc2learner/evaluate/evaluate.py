@@ -20,6 +20,10 @@ flags.DEFINE_string('config_path', '', 'Path to the config yaml file')
 
 
 class EvalActor(AlphaStarActor):
+    def __init__(self, cfg):
+        super(EvalActor, self).__init__(cfg)
+        self._module_init()
+
     def _make_env(self, players):
         self.action_counts = [[0] * (max(ACTION_INFO_MASK.keys()) + 1)] * self.agent_num
         return super()._make_env(players)
@@ -40,7 +44,8 @@ class EvalActor(AlphaStarActor):
         for n in range(len(act)):
             if act[n] is not None:
                 if act[n]['delay'] == 0:
-                    act[n]['delay'] = 1
+                    print('clipping delay == 0 to 1')
+                    act[n]['delay'] = torch.LongTensor([1])
                 self.action_counts[n][self.env.get_action_type(act[n])] += 1
             print('Act {}:{}:{:5}:{}'.format(self.cfg.evaluate.job_id, n, step, self.env.action_to_string(act[n])))
         return act
@@ -51,11 +56,13 @@ class EvalJobGetter:
         self.cfg = cfg
         self.job_req_id = 0
 
-    def get_job(self, actor_id):
-        print('received job req from:{}'.format(actor_id))
+    def get_job(self, actor_uid):
+        print('received job req from:{}'.format(actor_uid))
         if self.cfg.evaluate.game_type == 'game_vs_bot':
             job = {
+                'job_id': 'test0',
                 'game_type': 'game_vs_bot',
+                'obs_compressor': 'simple',
                 'model_id': ['agent0'],
                 'teacher_model_id': None,
                 'stat_id': ['agent0'],
@@ -69,7 +76,9 @@ class EvalJobGetter:
             }
         elif self.cfg.evaluate.game_type == 'self_play':
             job = {
+                'job_id': 'test0',
                 'game_type': 'self_play',
+                'obs_compressor': 'simple',
                 'model_id': ['agent0', 'agent1'],
                 'teacher_model_id': None,
                 'stat_id': ['agent0', 'agent1'],
@@ -115,13 +124,17 @@ class EvalTrajProcessor:
         self.cfg = cfg
         self.return_sum = []
 
-    def push(self, job, agent_no, data_buffer):
-        rewards_list = [d['rewards'] for d in data_buffer]
-        traj_return = sum(rewards_list)
+    def push(self, metadata, data_buffer):
+        agent_no = metadata['agent_no']
+        traj_return = metadata.get('final_reward', 0)
         print('agent no:{} ret:{}'.format(agent_no, traj_return))
         if agent_no + 1 > len(self.return_sum):
+            # extending return store
             self.return_sum.extend([0] * (agent_no - len(self.return_sum) + 1))
         self.return_sum[agent_no] += traj_return
+
+    def finish_job(self, job_id):
+        pass
 
 
 def main(unused_argv):

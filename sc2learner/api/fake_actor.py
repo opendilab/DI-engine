@@ -13,7 +13,7 @@ import argparse
 import yaml
 
 from utils.log_helper import TextLogger
-from utils import save_file_ceph
+from utils import read_file_ceph, save_file_ceph
 
 parser = argparse.ArgumentParser(description='implementation of NAS worker')
 parser.add_argument('--config', type=str, help='training config yaml file')
@@ -27,6 +27,7 @@ class FakeActor(object):
         self.manager_port = cfg['api']['manager_port']
         self.actor_uid = os.environ.get('SLURM_JOB_ID', str(uuid.uuid1()))
         self.ceph_path = self.cfg['api']['ceph_path']
+        self.heartbeats_thread = cfg['api']['actor']['heartbeats_thread']
 
         self.log_save_dir = os.path.join(self.cfg['log_save_dir'], 'actor')
         self.url_prefix = 'http://{}:{}/'.format(self.manager_ip, self.manager_port)
@@ -37,9 +38,10 @@ class FakeActor(object):
         self.register_actor()
 
         # start sending heartbeats thread
-        check_send_actor_heartbeats_thread = threading.Thread(target=self.send_actor_heartbeats)
-        check_send_actor_heartbeats_thread.start()
-        self.logger.info("[UP] send actor heartbeats thread ")
+        if self.heartbeats_thread:
+            check_send_actor_heartbeats_thread = threading.Thread(target=self.send_actor_heartbeats)
+            check_send_actor_heartbeats_thread.start()
+            self.logger.info("[UP] send actor heartbeats thread ")
 
     def _set_logger(self):
         self.log_name = self.actor_uid + ".log"
@@ -51,14 +53,18 @@ class FakeActor(object):
         '''
         while not self.stop_flag:
             d = {'actor_uid': self.actor_uid}
-            response = requests.post(self.url_prefix + 'manager/get_heartbeats', json=d).json()
-            for _ in range(self.heartbeats_freq):
-                if not self.stop_flag:
-                    time.sleep(1)
-                else:
+            try:
+                response = requests.post(self.url_prefix + 'manager/get_heartbeats', json=d).json()
+                for _ in range(self.heartbeats_freq):
+                    if not self.stop_flag:
+                        time.sleep(1)
+                    else:
+                        break
+                if self.stop_flag:
                     break
-            if self.stop_flag:
-                break
+            except Exception as e:
+                self.logger.info("something wrong with coordinator, {}".format(e))
+            time.sleep(1)
         self.logger.info('check_send_actor_heartbeats_thread stop as job finished.')
 
     def register_actor(self):
@@ -66,10 +72,14 @@ class FakeActor(object):
             Overview: register actor to manager.
         '''
         while True:
-            d = {'actor_uid': self.actor_uid}
-            response = requests.post(self.url_prefix + 'manager/register', json=d).json()
-            if response['code'] == 0:
-                return
+            try:
+                d = {'actor_uid': self.actor_uid}
+                response = requests.post(self.url_prefix + 'manager/register', json=d).json()
+                if response['code'] == 0:
+                    return True
+            except Exception as e:
+                self.logger.info("something wrong with coordinator, {}".format(e))
+            time.sleep(10)
 
     def ask_for_job(self):
         '''
@@ -82,7 +92,8 @@ class FakeActor(object):
                 if response['code'] == 0 and response['info'] != '':
                     self.logger.info('[ask_for_job] {}'.format(response['info']))
                     self.job = response['info']
-                    break
+                    if self.job:
+                        break
                 time.sleep(2)
         except Exception as e:
             self.logger.info(''.join(traceback.format_tb(e.__traceback__)))
@@ -90,6 +101,10 @@ class FakeActor(object):
         else:
             self.logger.info('[actor {}] get job {} success'.format(self.actor_uid, self.job['job_id']))
             self.job_id = self.job['job_id']
+
+    def _get_model(self, model_name):
+        model = torch.load(read_file_ceph(self.ceph_path + model_name))
+        return model
 
     def _get_feedback(self):
         trajectory = {
@@ -113,18 +128,27 @@ class FakeActor(object):
         }
         trajectory = [trajectory] * 1
         ceph_name = "job_{}_{}.traj".format(self.job_id, str(uuid.uuid1()))
+        t1 = time.time()
         save_file_ceph(self.ceph_path, ceph_name, trajectory)
+        self.logger.info("save to ceph cost {} seconds. ".format(time.time() - t1))
         metadata = {
             'job_id': self.job_id,
             'trajectory_path': ceph_name,
-            'learner_uid1': self.job['learner_uid1'],
-            'learner_uid2': self.job['learner_uid2']
+            'learner_uid': self.job['learner_uid'],
+            'data': torch.tensor([[1, 2, 3], [4, 5, 6]]).tolist()
         }
         return trajectory, metadata
 
     def simulate(self):
         try:
-            self.logger.info('actor {} simulate {}'.format(self.actor_uid, self.job_id))
+            # only use one model
+            model = self._get_model(self.job['model_id'][0])
+            stat = self._get_model(self.job['stat_id'][0])
+            self.logger.info(
+                'actor {} simulate job {}, using model ({}) & stat ({})'.format(
+                    self.actor_uid, self.job_id, self.job['model_id'][0], self.job['stat_id'][0]
+                )
+            )
             trajectory, metadata = self._get_feedback()
         except Exception as e:
             self.logger.info(''.join(traceback.format_tb(e.__traceback__)))
@@ -132,13 +156,21 @@ class FakeActor(object):
             return False, {}, {}
         return True, trajectory, metadata
 
-    def send_result(self, metadata):
+    def send_metadata(self, metadata):
         d = {'actor_uid': self.actor_uid, 'job_id': self.job_id, 'metadata': metadata}
         response = requests.post(self.url_prefix + 'manager/get_metadata', json=d).json()
         if response['code'] == 0:
             self.logger.info("succeed sending result: {}".format(self.job_id))
         else:
             self.logger.info("failed to send result: {}".format(self.job_id))
+
+    def finish_job(self):
+        d = {'actor_uid': self.actor_uid, 'job_id': self.job_id}
+        response = requests.post(self.url_prefix + 'manager/finish_job', json=d).json()
+        if response['code'] == 0:
+            self.logger.info("succeed finishing job: {}".format(self.job_id))
+        else:
+            self.logger.info("failed to finish job: {}".format(self.job_id))
 
     def stop(self):
         self.stop_flag = True
@@ -165,7 +197,8 @@ def main():
     actor.ask_for_job()
     state, trajectory, metadata = actor.simulate()
     if state:
-        actor.send_result(metadata)
+        actor.send_metadata(metadata)
+    actor.finish_job()
     actor.stop()
     # exit()
 

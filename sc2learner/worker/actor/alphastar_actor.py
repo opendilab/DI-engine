@@ -1,11 +1,13 @@
 import time
 import copy
+import pickle
+
 import torch
 
 import pysc2.env.sc2_env as sc2_env
 from sc2learner.agent.alphastar_agent import AlphaStarAgent
 from sc2learner.envs.alphastar_env import AlphaStarEnv
-from sc2learner.utils import get_actor_id, dict_list2list_dict
+from sc2learner.utils import get_actor_uid, dict_list2list_dict, merge_two_dicts, get_step_data_compressor
 from sc2learner.torch_utils import to_device
 
 
@@ -36,21 +38,6 @@ def unsqueeze_batch_dim(obs):
 
 
 class AlphaStarActor:
-    """
-    AlphaStar Actor
-    Contents of each entry in  the trajectory dict
-        - 'step'
-        - 'agent_no'
-        - 'prev_obs'
-        - 'lstm_state_before': LSTM state before the step
-        - 'lstm_state_after': LSTM state after the step
-        - 'logits': action logits
-        - 'action'
-        - 'next_obs'
-        - 'done'
-        - 'rewards'
-        - 'info'
-    """
     def __init__(self, cfg):
         self.cfg = cfg
         # copying everything in rl_train and train config entry to config.env
@@ -61,17 +48,18 @@ class AlphaStarActor:
         if 'train' in self.cfg:
             for k, v in self.cfg.train.items():
                 self.cfg.env[k] = v
-        # in case we want all default
+        # in case we want everything to be the default
         if 'model' not in self.cfg:
             self.cfg.model = None
-        self.actor_id = get_actor_id()
+        self.actor_uid = get_actor_uid()
         # env and agents are to be created after receiving job description from coordinator
         self.env = None
         self.agents = None
         self.agent_num = 0
         self.teacher_agent = None
         self.use_teacher_model = None
-        self._module_init()
+        self.compressor_name = None
+        self.compressor = None
 
     def _init_with_job(self, job):
         self.cfg.env.map_name = job['map_name']
@@ -123,7 +111,7 @@ class AlphaStarActor:
             agent.reset_previous_state([True])  # Here the lstm_states are reset
 
         if job['teacher_model_id']:
-            # agent for evaluation of the SL model to produce the logits
+            # agent for evaluation of the SL model to produce the teacher_logits
             # for human_policy_kl_loss in rl.py of AlphaStar Supp. Mat.
             self.teacher_agent = AlphaStarAgent(
                 model_config=self.cfg.model,
@@ -131,10 +119,15 @@ class AlphaStarActor:
                 use_cuda=self.cfg.env.use_cuda,
                 use_distributed=False
             )
+            self.teacher_agent.eval()
+            self.teacher_agent.set_seed(job['random_seed'])
+            self.teacher_agent.reset_previous_state([True])
             self.use_teacher_model = True
         else:
             self.use_teacher_model = False
         self.env = self._make_env(players)
+        self.compressor_name = job['obs_compressor']
+        self.compressor = get_step_data_compressor(self.compressor_name)
 
     def _make_env(self, players):
         return AlphaStarEnv(self.cfg, players)
@@ -147,33 +140,43 @@ class AlphaStarActor:
         self.data_pusher = DataPusher(self.cfg)
 
     def _init_states(self):
-        self.last_state_action = [None] * self.agent_num
-        self.lstm_states = [None] * self.agent_num
-        self.lstm_states_cpu = [None] * self.agent_num
-        self.teacher_lstm_states = [None] * self.agent_num
-        self.teacher_lstm_states_cpu = [None] * self.agent_num
+        self.last_state_action_home = [None] * self.agent_num
+        self.last_state_action_away = [None] * self.agent_num
+        self.lstm_states = [[None] for i in range(self.agent_num)]
+        self.lstm_states_cpu = [[None] for i in range(self.agent_num)]
+        self.teacher_lstm_states = [[None] for i in range(self.agent_num)]
+        self.teacher_lstm_states_cpu = [[None] for i in range(self.agent_num)]
 
     def _eval_actions(self, obs, due):
         actions = [None] * self.agent_num
         for i in range(self.agent_num):
             if due[i]:
-                # self.last_state_action[i] stores the last observation, lstm state and the action of agent i
+                # self.last_state_action_home[i] stores the last observation, lstm state and the action of agent i
                 # once the simulation of the step is complete, this will be combined with the next observation
                 # and rewards then put into the trajectory buffer for agent i
-                self.last_state_action[i] = {
+                self.last_state_action_home[i] = {
                     'agent_no': i,
-                    'prev_obs': obs,
-                    'lstm_state_before': self.lstm_states_cpu[i],
+                    # lstm state before forward
+                    'prev_state': self.lstm_states_cpu[i][0],
                     'have_teacher': self.use_teacher_model,
-                    'teacher_lstm_state_before': self.teacher_lstm_states_cpu[i]
+                    'teacher_prev_state': self.teacher_lstm_states_cpu[i][0]
                 }
+                self.last_state_action_home[i].update(obs[i])
+                if self.agent_num == 2:
+                    self.last_state_action_away[1 - i] = {
+                        'agent_no': 1 - i,
+                        # lstm state before forward, [0] for batch dim
+                        'prev_state': self.lstm_states_cpu[1 - i][0],
+                        'have_teacher': self.use_teacher_model,
+                        'teacher_prev_state': self.teacher_lstm_states_cpu[1 - i][0]
+                    }
+                    self.last_state_action_away[1 - i].update(obs[1 - i])
                 obs_copy = copy.deepcopy(obs)
                 obs_copy[i] = unsqueeze_batch_dim(obs_copy[i])
-                done = True
                 if self.cfg.env.use_cuda:
                     obs_copy[i] = to_device(obs_copy[i], 'cuda')
                 if self.use_teacher_model:
-                    _, teacher_logits, self.teacher_lstm_states[i] = self.teacher_agent.compute_action(
+                    teacher_action, teacher_logits, self.teacher_lstm_states[i] = self.teacher_agent.compute_action(
                         obs_copy[i],
                         mode="evaluate",
                         prev_states=self.teacher_lstm_states[i],
@@ -181,6 +184,7 @@ class AlphaStarActor:
                         temperature=self.cfg.env.temperature
                     )
                 else:
+                    teacher_action = None
                     teacher_logits = None
                 action, logits, self.lstm_states[i] = self.agents[i].compute_action(
                     obs_copy[i],
@@ -193,6 +197,7 @@ class AlphaStarActor:
                 if self.cfg.env.use_cuda:
                     action = to_device(action, 'cpu')
                     logits = to_device(logits, 'cpu')
+                    teacher_action = to_device(teacher_action, 'cpu')
                     teacher_logits = to_device(teacher_logits, 'cpu')
                     # Two copies of next_state is maintained, one in cpu and one still in gpu
                     # TODO: is this really necessary?
@@ -201,18 +206,35 @@ class AlphaStarActor:
                 else:
                     self.lstm_states_cpu[i] = self.lstm_states[i]
                     self.teacher_lstm_states_cpu[i] = self.teacher_lstm_states[i]
-                action = dict_list2list_dict(action)[0]  # o for batch dim
-
+                action = dict_list2list_dict(action)[0]  # 0 for batch dim
+                logits = dict_list2list_dict(logits)[0]
+                if self.use_teacher_model:
+                    teacher_action = dict_list2list_dict(teacher_action)[0]
+                    teacher_logits = dict_list2list_dict(teacher_logits)[0]
                 actions[i] = action
-                self.last_state_action[i]['action'] = action
-                self.last_state_action[i]['logits'] = logits
-                self.last_state_action[i]['teacher_logits'] = teacher_logits
-                self.last_state_action[i]['lstm_state_after'] = self.lstm_states_cpu[i]
-                self.last_state_action[i]['teacher_lstm_state_after'] = self.teacher_lstm_states_cpu[i]
+                update_after_eval_home = {
+                    # TODO: why should not this named action rather than actionS
+                    'actions': action,
+                    'behaviour_outputs': logits,
+                    'teacher_actions': teacher_action,
+                    'teacher_outputs': teacher_logits,
+                    # LSTM state after forward
+                    'next_state': self.lstm_states_cpu[i][0],
+                    'teacher_next_state': self.teacher_lstm_states_cpu[i][0]
+                }
+                self.last_state_action_home[i].update(update_after_eval_home)
+        if self.agent_num == 2:
+            for i in range(self.agent_num):
+                update_after_eval_away = {
+                    # LSTM state after forward
+                    'next_state': self.lstm_states_cpu[1 - i],
+                    'teacher_next_state': self.teacher_lstm_states_cpu[1 - i]
+                }
+                self.last_state_action_away[1 - i].update(update_after_eval_away)
         return actions
 
     def run_episode(self):
-        job = self.job_getter.get_job(self.actor_id)
+        job = self.job_getter.get_job(self.actor_uid)
         self._init_with_job(job)
         for i in range(self.agent_num):
             self.model_loader.load_model(job, i, self.agents[i].get_model())
@@ -224,12 +246,13 @@ class AlphaStarActor:
                 if isinstance(stat, dict):
                     self.env.load_stat(stat, i)
         obs = self.env.reset()
-        data_buffer = [[]] * self.agent_num
+        data_buffer = [[] for i in range(self.agent_num)]
+        last_buffer = [[] for i in range(self.agent_num)]
         # Actor Logic:
         # When a agent is due to act at game_step, it will take the obs and decide what action to do (after env delay)
         # and when (after how many steps) should the agent be notified of newer obs and asked to act again
-        # this is done by calculating a delay (Note:different from env delay), and the game will proceed until
-        # game_step is at the time to obs and act requested by any of the agents.
+        # this is done by calculating a delay (Note: different from env delay), and the game will proceed until
+        # game_step arrived the time to observe and act as requested by any of the agents.
         # due[i] is set to True when agent[i] requested steps of simulation has been completed
         # and then, agent[i] need to take its action at the next step.
         # Agent j with due[j]==False will be skipped and its action is None
@@ -238,38 +261,96 @@ class AlphaStarActor:
         # At the beginning of the game, every agent should act and give a delay
         due = [True] * self.agent_num
         game_step = 0
+        game_seconds = 0
         self._init_states()
         # main loop
         while True:
             actions = self._eval_actions(obs, due)
             actions = self.action_modifier(actions, game_step)
-            game_step, due, obs, rewards, done, info = self.env.step(actions)
+            game_step, due, obs, rewards, done, this_game_stat, info = self.env.step(actions)
+            # assuming 22 step per second, round to integer
+            # TODO:need to check with https://github.com/deepmind/pysc2/blob/master/docs/environment.md#game-speed
+            game_seconds = game_step // 22
             if game_step >= self.cfg.env.game_steps_per_episode:
                 # game time out, force the done flag to True
                 done = True
             for i in range(self.agent_num):
+                at_traj_end = len(data_buffer[i]) + 1 * due[i] >= job['data_push_length'] or done
                 if due[i]:
-                    # we received obs from the env, add to rollout trajectory
-                    traj_data = self.last_state_action[i]
-                    traj_data['step'] = game_step
-                    traj_data['next_obs'] = obs
-                    traj_data['done'] = done
-                    traj_data['rewards'] = rewards[i]
-                    traj_data['info'] = info
-                    data_buffer[i].append(traj_data)
-                if len(data_buffer[i]) >= job['data_push_length'] or done:
+                    # we received outcome from the env, add to rollout trajectory
+                    # the 'next_obs' is saved (and to be sent) if only this is the last obs of the traj
+                    step_data_update_home = {
+                        # the z used for the behavior network
+                        'target_z': self.env.loaded_eval_stat.get_z(i),
+                        # statistics calculated for this episode so far
+                        'agent_z': this_game_stat[i],
+                        'step': game_step,
+                        'game_seconds': game_seconds,
+                        'done': done,
+                        'rewards': torch.tensor([rewards[i]]),
+                        'info': info
+                    }
+                    home_step_data = merge_two_dicts(self.last_state_action_home[i], step_data_update_home)
+                    if self.agent_num == 2:
+                        step_data_update_away = {
+                            'target_z': self.env.loaded_eval_stat.get_z(i),
+                            'agent_z': this_game_stat[1 - i],
+                            'step': game_step,
+                            'game_seconds': game_seconds,
+                            'done': done,
+                            'rewards': torch.tensor([rewards[1 - i]]),
+                            'info': info
+                        }
+                        away_step_data = merge_two_dicts(self.last_state_action_away[i], step_data_update_away)
+                    else:
+                        away_step_data = None
+                    home_next_step_obs = obs[i] if at_traj_end else None
+                    away_next_step_obs = obs[1 - i] if self.agent_num == 2 and at_traj_end else None
+                    data_buffer[i].append(
+                        self.compressor(
+                            {
+                                'home': home_step_data,
+                                'away': away_step_data,
+                                'home_next': home_next_step_obs,
+                                'away_next': away_next_step_obs
+                            }
+                        )
+                    )
+                if at_traj_end:
                     # trajectory buffer is full or the game is finished
-                    # so the length of a trajectory may not necessary be data_push_length
-                    self.data_pusher.push(job, i, data_buffer[i])
+                    metadata = {
+                        'job_id': job['job_id'],
+                        'agent_no': i,
+                        'agent_model_id': job['model_id'][i],
+                        'job': job,
+                        'obs_compressor': self.compressor_name,
+                        'game_step': game_step,
+                        'done': done,
+                        'finish_time': time.time(),
+                        'actor_uid': self.actor_uid,
+                        'info': info,
+                        'traj_length': len(data_buffer[i]),  # this is the real length, without reused last traj
+                    }
+                    if done:
+                        metadata['final_reward'] = rewards[i]
+                    delta = job['data_push_length'] - len(data_buffer[i])
+                    # if the the data actually in the buffer when the episode ends is shorter than
+                    # job['data_push_length'], the buffer is than filled with data from the last trajectory
+                    if delta > 0:
+                        data_buffer[i] = last_buffer[i][-delta:] + data_buffer[i]
+                    metadata['length'] = len(data_buffer[i])  # should agree with job['data_push_length']
+                    self.data_pusher.push(metadata, data_buffer[i])
+                    last_buffer[i] = data_buffer[i].copy()
                     data_buffer[i] = []
             if done:
+                self.data_pusher.finish_job(job['job_id'])
                 break
 
     def run(self):
         while True:
             self.run_episode()
 
-    def action_modifier(self, actions):
+    def action_modifier(self, actions, game_step):
         # called before actions are sent to the env, APM limits can be implemented here
         return actions
 
@@ -278,39 +359,20 @@ class AlphaStarActor:
             self.env.save_replay(path)
 
 
-# TODO: implementation
+# The following is only a reference, never meant to be called
 class JobGetter:
     def __init__(self, cfg):
-        self.connection = None  # TODO
-        self.job_request_id = 0
         pass
 
-    def get_job(self, actor_id):
+    def get_job(self, actor_uid):
         """
-        Overview: asking for a job from the coordinator
+        Overview: asking for a job from some one
         Input:
-            - actor_id
+            - actor_uid
         Output:
             - job: a dict with description of how the game should be
         """
-        while True:
-            job_request = {'type': 'job req', 'req_id': self.job_request_id, 'actor_id': actor_id}
-            try:
-                self.connection.send_pyobj(job_request)
-                reply = self.job_requestor.recv_pyobj()
-                assert (isinstance(reply, dict))
-                if (reply['type'] != 'job'):
-                    print('WARNING: received unknown response for job req, type:{}'.format(reply['type']))
-                    continue
-                if (reply['actor_id'] != actor_id):
-                    print('WARNING: received job is assigned to another actor')
-                self.job_request_id += 1
-                return reply['job']
-            except Exception:  # zmq.error.Again:
-                print('WARNING: Job Request Timeout')
-                time.sleep(1)  # wait for a while
-                continue
-        self.job_request_id += 1
+        pass
 
 
 class ModelLoader:
@@ -343,5 +405,8 @@ class DataPusher:
     def __init__(self, cfg):
         pass
 
-    def push(self, job, agent_no, data_buffer):
+    def push(self, metadata, data_buffer):
+        pass
+
+    def finish_job(self, job_id):
         pass
