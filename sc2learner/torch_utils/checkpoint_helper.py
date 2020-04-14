@@ -285,8 +285,8 @@ def auto_checkpoint(func):
         valid_sig = []
         invalid_sig = []
         for sig in all_signals:
-            sig = getattr(signal, sig)
             try:
+                sig = getattr(signal, sig)
                 signal.signal(sig, handler)
                 valid_sig.append(sig)
             except Exception:

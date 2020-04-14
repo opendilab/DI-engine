@@ -124,8 +124,8 @@ def get_z():
     ret['upgrades'] = random_binary_tensor([60], dtype=torch.long)
     num = random.randint(10, 100)
     ret['build_order'] = {
-        'type': torch.from_numpy(np.random.choice(range(NUM_ACTION_TYPES), size=num, replace=True)),
-        'loc': torch.randint(*MAP_SIZE, size=(num, 2))
+        'type': torch.from_numpy(np.random.choice(range(NUM_ACTION_TYPES), size=num, replace=True)).long(),
+        'loc': torch.randint(*MAP_SIZE, size=(num, 2)).long()
     }
     return ret
 
@@ -221,6 +221,7 @@ class FakeActorDataset:
                 'job_id': self.count - 1,
                 'trajectory_path': path,
                 'priority': 1.0,
+                'obs_compressor': 'none',
             }
         else:
             return self.get_1v1_agent_data()

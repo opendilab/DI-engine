@@ -11,11 +11,11 @@ def list_proc(func):
         if isinstance(x, list):
             out = []
             for item in x:
-                assert isinstance(item, dict) or isinstance(item, bytes)
+                # assert isinstance(item, dict) or isinstance(item, bytes), 'Unknown type {}'.format(type(x))
                 out.append(func(item))
             return out
         else:
-            assert isinstance(x, dict) or isinstance(x, bytes)
+            # assert isinstance(x, dict) or isinstance(x, bytes), 'Unknown type {}'.format(type(x))
             return func(x)
 
     return f

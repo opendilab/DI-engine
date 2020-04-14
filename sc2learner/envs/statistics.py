@@ -122,6 +122,11 @@ class Statistics:
         goal = GENERAL_ACTION_INFO_MASK[action_type]['goal']
         if goal in target_list:
             if goal == 'build':
+                if act['target_location'] is None:
+                    print(
+                        'build action have no target_location!'
+                        'this shouldn\'t happen with real model: {}'.format(act)
+                    )
                 location = act['target_location']
                 if isinstance(location, torch.Tensor):  # for build ves, no target_location
                     location = location.tolist()
@@ -206,7 +211,8 @@ def transform_build_order_to_z_format(stat):
     for n in range(len(stat)):
         action_type, location = stat[n]['action_type'], stat[n]['location']
         ret['type'][n] = action_type
-        ret['loc'][n] = location if location != 'none' else zeroxy  # TODO: check is x,y or y,x
+        # TODO: check this 'loc' is x,y or y,x
+        ret['loc'][n] = location if location is not None and location != 'none' else zeroxy
     ret['type'] = torch.Tensor(ret['type'])
     ret['loc'] = torch.Tensor(ret['loc'])
     return ret
