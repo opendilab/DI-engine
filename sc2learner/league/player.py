@@ -1,5 +1,6 @@
 import numpy as np
 from collections import namedtuple
+from .algorithm import pfsp
 
 
 class Player:
@@ -13,6 +14,7 @@ class Player:
         self._race = race
         self._payoff = init_payoff
         self._checkpoint_path = checkpoint_path
+        assert isinstance(player_id, str)
         self._player_id = player_id
 
     @property
@@ -43,24 +45,40 @@ class ActivePlayer(Player):
     _name = "ActivePlayer"
     BRANCH = namedtuple("BRANCH", ['name', 'prob'])
 
-    def __init__(self, *args, branch_probs):
+    def __init__(self, *args, branch_probs, strong_win_rate, one_phase_steps):
         """
         Overview: initialize player metadata
         Arguments:
-            - branch_probs: (:obj:`list`): a list contains the probabilities of selecting the different opponent branch
+            - branch_probs (:obj:`list`): a list contains the probabilities of selecting the different opponent branch
+            - strong_win_rate (:obj:`float`): if the win rate between this player and the opponent is more than this value,
+                this player can be regarded as strong enough to the opponent
+             - one_phase_steps (:obj:`int`): one training phase steps
         """
         super(ActivePlayer, self).__init__(*args)
         assert isinstance(branch_probs, dict)
         self._branch_probs = [self.BRANCH(k, v) for k, v in branch_probs]
+        self._one_phase_steps = one_phase_steps
         self._total_agent_steps = 0
+        self._last_enough_steps = 0
 
-    def is_trained_enough(self):
+    def is_trained_enough(self, select_fn):
         """
         Overview: return whether this player is trained enough for further operation
+        Arguments:
+            - select_fn (:obj:`function`): select players function
         Returns:
-            - ret (:obj:`bool`): whether this player is trained enough
+            - flag (:obj:`bool`): whether this player is trained enough
         """
-        raise NotImplementedError
+        step_passed = self._total_agent_steps - self._last_enough_steps
+        if step_passed < self._one_phase_steps:
+            return False
+
+        historical = self._get_players(select_fn(p))
+        win_rates = self._payoff[self, historical]
+        flag = win_rates.min() > self._strong_win_rate or step_passed >= 2 * self._one_phase_steps
+        if flag:
+            self._last_enough_steps = self._total_agent_steps
+        return flag
 
     def snapshot(self):
         """
@@ -68,8 +86,8 @@ class ActivePlayer(Player):
         Returns:
             - snapshot_player (:obj:`HistoricalPlayer`): snapshot player
         Note:
-            this method only generates a player object without saving the checkpoint, which should be completed by the interaction
-            between coordinator and learner
+            this method only generates a player object without saving the checkpoint, which should be completed
+            by the interaction between coordinator and learner
         """
         path = self.checkpoint_path.split('.pth')[0] + '_{}'.format(self._total_agent_steps) + '.pth'
         return HistoricalPlayer(
@@ -87,13 +105,14 @@ class ActivePlayer(Player):
         """
         raise NotImplementedError
 
-    def get_match(self):
+    def get_match(self, p=None):
         """
         Overview: get an opponent to do a match
         Returns:
             - opponent (:obj:`Player`): match opponent
         """
-        p = np.random.uniform()
+        if p is None:
+            p = np.random.uniform()
         L = len(self._branch_probs)
         cum_p = [0.] + [sum([j.prob for j in self._branch_probs[:i + 1]]) for i in range(L)]
         idx = [cum_p[i] <= p and p < cum_p[i + 1] for i in range(L)].index(True)
@@ -110,6 +129,13 @@ class ActivePlayer(Player):
             - step (:obj:`int`): current agent step
         """
         self._total_agent_steps = step
+
+    def _get_players(self, select_fn):
+        return [player for player in self._payoff.players if select_fn(player)]
+
+    def _get_opponent(self, players, p=None):
+        idx = np.random.choice(len(players), p=p)
+        return players[idx]
 
 
 class HistoricalPlayer(Player):
@@ -128,40 +154,167 @@ class HistoricalPlayer(Player):
         return self._parent_id
 
 
-class PFSPPlayer(ActivePlayer):
-    _name = "PFSPPlayer"
-
-    def _pfsp_branch(self):
-        pass
-
-    def _sp_branch(self):
-        pass
-
-    def _verification_branch(self):
-        pass
-
-
-class MainPlayer(PFSPPlayer):
+class MainPlayer(ActivePlayer):
+    """
+    Overview: main player in league training, default branch(0.5 pfsp, 0.35 sp, 0.15 veri)
+    """
     _name = "MainPlayer"
 
     def __init__(self, *args):
         super(MainPlayer, self).__init__(*args)
 
-    # override
-    def is_trained_enough(self):
-        pass
+    def _pfsp_branch(self):
+        """
+        Overview: select prioritized fictitious self-play opponent
+        Returns:
+            - player (:obj:`HistoricalPlayer`): the selected historical player
+        """
+        # TODO(nyz) how to deal with len(historical) == 0
+        historical = self._get_players(lambda p: isinstance(p, HistoricalPlayer))
+        win_rates = self._payoff[self, historical]
+        p = pfsp(win_rates, weighting='squared')
+        return self._get_opponent(historical, p)
+
+    def _sp_branch(self):
+        """
+        Overview: select normal self-play opponent
+        """
+        main_players = self._get_players(lambda p: isinstance(p, MainPlayer))
+        main_opponent = self._get_opponent(main_players)
+
+        # TODO(nyz) if only one main_player, self-play win_rates are constantly equal to 0.5
+        if self._payoff[self, main_opponent] < self._strong_win_rate:
+            return main_opponent
+
+        # if the main_opponent is too strong, select a past alternative
+        historical = self._get_players(
+            lambda p: isinstance(p, HistoricalPlayer) and p.parent_id == main_opponent.player_id
+        )
+        win_rates = self._payoff[self, historical]
+        p = pfsp(win_rates, weighting='variance')
+        return self._get_opponent(historical, p)
+
+    def _verification_branch(self):
+        """
+        Overview: verify no strong main exploiter and no forgetten past main player
+        """
+        # check exploitation
+        main_exploiters = self._get_players(lambda p: isinstance(p, MainExploiter))
+        exp_historical = self._get_players(
+            lambda p: isinstance(p, HistoricalPlayer) and any([p.parent_id == m.player_id for m in main_exploiters])
+        )
+        win_rates = self._payoff[self, exp_historical]
+        # TODO(nyz) why min win_rates 0.3
+        if len(win_rates) and win_rates.min() < 1 - self._strong_win_rate:
+            p = pfsp(win_rates, weighting='squared')
+            return self._get_opponent(exp_historical, p)
+
+        # check forgetten
+        main_players = self._get_players(lambda p: isinstance(p, MainPlayer))
+        main_opponent = self._get_opponent(main_players)
+        historical = self._get_players(
+            lambda p: isinstance(p, HistoricalPlayer) and p.parent_id == main_opponent.player_id
+        )
+        win_rates = self._payoff[self, historical]
+        # TODO(nyz) whether the method `_get_players` should return players with some sequence(such as steps)
+        win_rates, historical = self._remove_monotonic_suffix(win_rates, historical)
+        if len(win_rates) and win_rates.min() < self._strong_win_rate:
+            p = pfsp(win_rates, weighting='squared')
+            return self._get_opponent(historical, p)
+
+        return self._sp_branch()
+
+    def _remove_monotonic_suffix(self, win_rates, players):
+        if not len(win_rates):
+            return win_rates, players
+
+        for i in range(len(win_rates) - 1, 0, -1):
+            if win_rates[i - 1] < win_rates[i]:
+                return win_rates[:i + 1], players[:i + 1]
+
+        return np.array([]), []
 
     # override
-    def mutate(self):
+    def is_trained_enough(self):
+        return super().is_trained_enough(select_fn=lambda p: isinstance(p, HistoricalPlayer))
+
+    # override
+    def mutate(self, info):
         """
         Overview: MainPlayer does no mutation
         """
         return None
 
 
-class MainExploiter(PFSPPlayer):
+class MainExploiter(ActivePlayer):
+    """
+    Overview: main exploiter in league training, default branch(1.0 main_players)
+    """
     _name = "MainExploiter"
 
+    def __init__(*args, min_valid_win_rate):
+        super(MainExploiter, self).__init__()
+        self._min_valid_win_rate = min_valid_win_rate
 
-class LeagueExploiter(PFSPPlayer):
+    def _main_players_branch(self):
+        main_players = self._get_players(lambda p: isinstance(p, MainPlayer))
+        main_opponent = self._get_opponent(main_players)
+
+        # if this main_opponent can produce valid training signals
+        if self._payoff[self, main_opponent] >= self._min_valid_win_rate:
+            return main_opponent
+
+        # otherwise, curriculum learning
+        historical = self._get_players(
+            lambda p: isinstance(p, HistoricalPlayer) and p.parent_id == main_opponent.player_id
+        )
+        win_rates = self._payoff[self, historical]
+        p = pfsp(win_rates, weighting='variance')
+        return self._get_opponent(historical)
+
+    # override
+    def is_trained_enough(self):
+        return super().is_trained_enough(select_fn=lambda p: isinstance(p, MainPlayer))
+
+    # override
+    def mutate(self, info):
+        """
+        Overview: main exploiter is sure to mutates(reset) to the supervised learning player
+        """
+        return info['sl_checkpoint_path']
+
+
+class LeagueExploiter(ActivePlayer):
+    """
+    Overview: league exploiter in league training, default branch(1.0 pfsp)
+    """
     _name = "LeagueExploiter"
+
+    def _pfsp_branch(self):
+        """
+        Overview: select prioritized fictitious self-play opponent
+        Returns:
+            - player (:obj:`HistoricalPlayer`): the selected historical player
+        Note:
+            This branch is the same as the psfp branch in MainPlayer
+        """
+        # TODO(nyz) how to deal with len(historical) == 0
+        historical = self._get_players(lambda p: isinstance(p, HistoricalPlayer))
+        win_rates = self._payoff[self, historical]
+        p = pfsp(win_rates, weighting='squared')
+        return self._get_opponent(historical, p)
+
+    # override
+    def is_trained_enough(self):
+        return super().is_trained_enough(select_fn=lambda p: isinstance(p, HistoricalPlayer))
+
+    # override
+    def mutate(self, info):
+        """
+        Overview: league exploiter can mutate to the supervised learning player with 0.25 prob
+        """
+        p = np.random.uniform()
+        if p < 0.25:
+            return info['sl_checkpoint_path']
+
+        return None
