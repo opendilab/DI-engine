@@ -196,7 +196,7 @@ def get_enemy_upgrades_raw_data(obs, upgrades=None):
                     upgrades[44 + level] = 1
                     if level > 1:
                         upgrades[43 + level] = 0
-    return upgrades
+    return upgrades.float()
 
 
 def get_enemy_upgrades_processed_data(obs, upgrades):
@@ -244,4 +244,4 @@ def get_enemy_upgrades_processed_data(obs, upgrades):
                 if val > 0:
                     upgrades[u_idx:u_idx + 3] = one_hot(torch.LongTensor([val - 1]), 3)
 
-    return upgrades
+    return upgrades.float()

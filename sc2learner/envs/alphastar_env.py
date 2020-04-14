@@ -7,7 +7,7 @@ import pysc2.env.sc2_env as sc2_env
 from pysc2.env.sc2_env import SC2Env
 from pysc2.lib.actions import FunctionCall
 from pysc2.lib.static_data import NUM_ACTIONS, ACTIONS_REORDER_INV
-from sc2learner.envs import get_available_actions_processed_data, get_map_size
+from sc2learner.envs import get_available_actions_processed_data, get_map_size, get_enemy_upgrades_processed_data
 from sc2learner.envs.observations.alphastar_obs_wrapper import SpatialObsWrapper, ScalarObsWrapper, EntityObsWrapper, \
     transform_spatial_data, transform_scalar_data, transform_entity_data
 from sc2learner.envs.statistics import Statistics
@@ -57,6 +57,7 @@ class AlphaStarEnv(SC2Env):
         self._reset_flag = False
         # This is the human games statistics used as an input of network
         self.loaded_eval_stat = Statistics(player_num=self.agent_num)
+        self.enemy_upgrades = [None] * self.agent_num
 
     def load_stat(self, stat, agent_no):
         """
@@ -117,8 +118,6 @@ class AlphaStarEnv(SC2Env):
 
     def _get_obs(self, obs, last_actions, agent_no):
         # post process observations returned from sc2env
-        if 'enemy_upgrades' not in obs.keys():
-            obs['enemy_upgrades'] = np.array([0])
         entity_info, entity_raw = self._entity_wrapper.parse(obs)
         new_obs = {
             'scalar_info': self._scalar_wrapper.parse(obs),
@@ -133,6 +132,8 @@ class AlphaStarEnv(SC2Env):
             new_obs = self._merge_stat(new_obs, agent_no)
         if self._use_available_action_transform:
             new_obs = get_available_actions_processed_data(new_obs)
+        self.enemy_upgrades[agent_no] = get_enemy_upgrades_processed_data(new_obs, self.enemy_upgrades[agent_no])
+        new_obs['scalar_info']['enemy_upgrades'] = self.enemy_upgrades[agent_no].float()
         return new_obs
 
     def _transform_action(self, action):

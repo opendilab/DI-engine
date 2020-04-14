@@ -61,7 +61,7 @@ def recu_check_keys(ref, under_test, trace='ROOT'):
     elif isinstance(under_test, dict):
         assert isinstance(ref, dict)
         for k, v in ref.items():
-            if k in under_test:
+            if k in under_test and k not in IGNORE_LIST:
                 recu_check_keys(v, under_test[k], trace=trace + ':' + str(k))
             else:
                 warnings.warn('Missing key: {}'.format(trace + ':' + str(k)))
