@@ -12,8 +12,8 @@ import logging
 import argparse
 import yaml
 
-from utils.log_helper import TextLogger
-from utils import read_file_ceph, save_file_ceph
+from sc2learner.utils.log_helper import TextLogger
+from sc2learner.utils import read_file_ceph, save_file_ceph
 
 parser = argparse.ArgumentParser(description='implementation of NAS worker')
 parser.add_argument('--config', type=str, help='training config yaml file')
@@ -23,11 +23,11 @@ class FakeActor(object):
     def __init__(self, cfg):
         self.cfg = cfg
 
-        self.manager_ip = cfg['api']['manager_ip']
-        self.manager_port = cfg['api']['manager_port']
+        self.manager_ip = cfg['system']['manager_ip']
+        self.manager_port = cfg['system']['manager_port']
         self.actor_uid = os.environ.get('SLURM_JOB_ID', str(uuid.uuid1()))
-        self.ceph_path = self.cfg['api']['ceph_path']
-        self.heartbeats_thread = cfg['api']['actor']['heartbeats_thread']
+        self.ceph_path = self.cfg['ceph_path']
+        self.heartbeats_thread = cfg['actor']['heartbeats_thread']
 
         self.log_save_dir = os.path.join(self.cfg['log_save_dir'], 'actor')
         self.url_prefix = 'http://{}:{}/'.format(self.manager_ip, self.manager_port)
@@ -185,7 +185,7 @@ def main():
 
     cfg = yaml.load(open(args.config, 'r'))
     cfg['log_save_dir'] = log_path
-    api_info = cfg['api']
+    api_info = cfg['system']
     learner_port = api_info['learner_port']
     coordinator_ip = api_info['coordinator_ip']
     coordinator_port = api_info['coordinator_port']

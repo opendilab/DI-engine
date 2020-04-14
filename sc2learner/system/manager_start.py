@@ -9,9 +9,9 @@ import logging
 import argparse
 import yaml
 
-from manager import Manager
+from .manager import Manager
 from sc2learner.utils.log_helper import TextLogger
-from manager_api import create_manager_app
+from .manager_api import create_manager_app
 
 parser = argparse.ArgumentParser(description='implementation of AlphaStar')
 parser.add_argument('--config', dest='config', required=True, help='settings of AlphaStar in yaml format')
@@ -24,10 +24,8 @@ log_path = os.path.join(log_path, api_dir_name)
 logger = TextLogger(log_path, name="coordinator.log")
 
 cfg = yaml.safe_load(open(args.config, 'r'))
-# TODO: separate modules
-api_info = cfg['api']
-manager_ip = api_info['manager_ip']
-manager_port = api_info['manager_port']
+manager_ip = cfg['system']['manager_ip']
+manager_port = cfg['system']['manager_port']
 
 manager = Manager(cfg)
 app = create_manager_app(manager)

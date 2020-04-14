@@ -11,7 +11,7 @@ import time
 import requests
 from collections import OrderedDict
 
-from sc2learner.utils import read_file_ceph, save_file_ceph, get_step_data_decompressor
+from sc2learner.utils import read_file_ceph, save_file_ceph, get_step_data_decompressor, get_manager_node_ip
 
 
 class LearnerCommunicationHelper(object):
@@ -21,16 +21,16 @@ class LearnerCommunicationHelper(object):
         self.cfg = cfg
 
         self.learner_uid = str(uuid.uuid1())
-        if 'learner_ip' in self.cfg.api.keys():
-            self.learner_ip = self.cfg.api.learner_ip
+        if 'learner_ip' in self.cfg.system.keys():
+            self.learner_ip = self.cfg.system.learner_ip
         else:
             self.learner_ip = os.environ.get('SLURMD_NODENAME', '')  # hostname like SH-IDC1-10-5-36-236
         if not self.learner_ip:
             raise ValueError('learner_ip must be ip address, but found {}'.format(self.learner_ip))
-        self.coordinator_ip = self.cfg['api']['coordinator_ip']
-        self.coordinator_port = self.cfg['api']['coordinator_port']
-        self.ceph_path = self.cfg['api']['ceph_path']
-        self.use_ceph = self.cfg['api']['use_ceph']
+        self.coordinator_ip = self.cfg['system']['coordinator_ip']
+        self.coordinator_port = self.cfg['system']['coordinator_port']
+        self.ceph_model_path = self.cfg['system']['ceph_model_path']
+        self.use_ceph = self.cfg['system']['use_ceph']
 
         self.url_prefix = 'http://{}:{}/'.format(self.coordinator_ip, self.coordinator_port)
 
@@ -75,7 +75,7 @@ class LearnerCommunicationHelper(object):
             time.sleep(10)
 
     def save_model_to_ceph(self, model_name, model):
-        save_file_ceph(self.ceph_path, model_name, model)
+        save_file_ceph(self.ceph_model_path, model_name, model)
         self.comm_logger.info("save model {} to ceph".format(model_name))
 
     def load_trajectory(self, metadata):
@@ -98,8 +98,8 @@ class LearnerCommunicationHelper(object):
 
     def _read_file(self, path):
         if self.use_ceph:
-            ceph_path = self.ceph_path + path
-            return read_file_ceph(ceph_path, read_type='pickle')
+            ceph_model_path = self.ceph_model_path + path
+            return read_file_ceph(ceph_model_path, read_type='pickle')
         else:
             return path
 

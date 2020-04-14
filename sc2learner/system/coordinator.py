@@ -22,14 +22,10 @@ class Coordinator(object):
         super(Coordinator, self).__init__()
         self.cfg = cfg
 
-        self.learner_port = cfg['api']['learner_port']
-        self.manager_ip = cfg['api']['manager_ip']
-        self.manager_port = cfg['api']['manager_port']
-
-        self.use_fake_data = cfg['api']['coordinator']['use_fake_data']
+        self.use_fake_data = cfg['coordinator']['use_fake_data']
         if self.use_fake_data:
-            self.fake_model_path = cfg['api']['coordinator']['fake_model_path']
-            self.fake_stat_path = cfg['api']['coordinator']['fake_stat_path']
+            self.fake_model_path = cfg['coordinator']['fake_model_path']
+            self.fake_stat_path = cfg['coordinator']['fake_stat_path']
 
         # {manager_uid: {actor_uid: [job_id]}}
         self.manager_record = {}

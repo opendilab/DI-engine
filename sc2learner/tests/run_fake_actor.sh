@@ -10,7 +10,7 @@ while true
 do
     GLOG_vmodule=MemcachedClient=-1 srun --mpi=pmi2 -p $1 -n1 --gres=gpu:1 \
         --job-name=actor \
-    python -u $ROOT/api/fake_actor.py \
+    python -u ./fake_actor.py \
       --config=${cfg}
       
     echo finish one!

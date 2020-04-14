@@ -34,13 +34,18 @@ def get_actor_uid():
 
 
 def get_manager_node_ip(node_ip=None):
+    '''Look up the manager node of the slurm cluster'''
     if 'SLURM_JOB_ID' not in os.environ:
         import logging
-        logging.warning('We are not running on slurm!')
+        logging.error('We are not running on slurm!, \'auto\' for manager_ip or '
+                      'coordinator_ip is only intended for running on multiple slurm clusters')
         return '127.0.0.1'
     if node_ip is None:
         node_ip = get_ip(True)
     learner_manager_ip_prefix = '.'.join(node_ip.split('.')[0:3])
+    assert learner_manager_ip_prefix in MANAGER_NODE_TABLE,\
+        'I don\'t know where is the manager node of this cluster'\
+        'Please add it to the MANAGER_NODE_TABLE in {}'.format(__file__)
     return MANAGER_NODE_TABLE[learner_manager_ip_prefix]
 
 

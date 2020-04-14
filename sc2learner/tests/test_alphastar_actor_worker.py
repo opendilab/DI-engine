@@ -18,14 +18,10 @@ from absl import app
 from absl import flags
 from easydict import EasyDict
 
-from sc2learner.worker.actor.alphastar_actor_worker import AlphaStarActorWorker
+from sc2learner.worker.actor.api import AlphaStarActorWorker
 from sc2learner.data.fake_dataset import FakeActorDataset, get_single_step_data
 from sc2learner.utils.file_helper import read_file_ceph
-# TODO: move the api modules
-from sc2learner.api.coordinator import Coordinator
-from sc2learner.api.coordinator_api import create_coordinator_app
-from sc2learner.api.manager import Manager
-from sc2learner.api.manager_api import create_manager_app
+from sc2learner.system import Coordinator, create_coordinator_app, Manager, create_manager_app
 from sc2learner.utils.compression_helper import get_step_data_decompressor
 
 PRINT_ACTIONS = False
@@ -84,14 +80,12 @@ def get_test_cfg():
     learner_ip = local_ip
     coordinator_ip = local_ip
     manager_ip = local_ip
-    cfg.api.learner_ip = learner_ip
-    cfg.api.coordinator_ip = coordinator_ip
-    cfg.api.manager_ip = manager_ip
-    cfg.actor.coordinator_ip = coordinator_ip
-    cfg.actor.manager_ip = manager_ip
-    cfg.actor.ceph_traj_path = TEMP_TRAJ_DIR.name + os.sep
-    cfg.actor.ceph_model_path = 'do_not_save/'
-    cfg.actor.ceph_stat_path = 'do_not_save/'
+    cfg.system.learner_ip = learner_ip
+    cfg.system.coordinator_ip = coordinator_ip
+    cfg.system.manager_ip = manager_ip
+    cfg.system.ceph_traj_path = TEMP_TRAJ_DIR.name + os.sep
+    cfg.system.ceph_model_path = 'do_not_save/'
+    cfg.system.ceph_stat_path = 'do_not_save/'
     cfg.data = {}
     cfg.data.train = {}
     cfg.data.train.batch_size = 128
@@ -105,7 +99,7 @@ def coordinator():
     app = create_coordinator_app(coordinator)
 
     def run():
-        app.run(host=cfg.api.coordinator_ip, port=cfg.api.coordinator_port, debug=True, use_reloader=False)
+        app.run(host=cfg.system.coordinator_ip, port=cfg.system.coordinator_port, debug=True, use_reloader=False)
 
     coordinator_thread = Thread(target=run)
     coordinator_thread.daemon = True
@@ -122,7 +116,7 @@ def manager():
     app = create_manager_app(manager)
 
     def run():
-        app.run(host=cfg.api.manager_ip, port=cfg.api.manager_port, debug=True, use_reloader=False)
+        app.run(host=cfg.system.manager_ip, port=cfg.system.manager_port, debug=True, use_reloader=False)
 
     manager_thread = Thread(target=run)
     manager_thread.daemon = True

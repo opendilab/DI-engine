@@ -17,7 +17,7 @@ import yaml
 from sc2learner.utils.log_helper import TextLogger
 from sc2learner.torch_utils import build_checkpoint_helper
 from sc2learner.utils import read_file_ceph, save_file_ceph, get_manager_node_ip, merge_two_dicts
-from .alphastar_actor import AlphaStarActor
+from sc2learner.worker.actor import AlphaStarActor
 
 parser = argparse.ArgumentParser(description='AlphaStar Actor (for training on slurm cluster)')
 parser.add_argument('--config', type=str, help='training config yaml file')
@@ -44,12 +44,12 @@ class AlphaStarActorWorker(AlphaStarActor):
 class ActorContext:
     def __init__(self, cfg, actor_uid):
         self.cfg = cfg
-        if cfg['actor']['manager_ip'].lower() == 'auto':
+        if cfg['system']['manager_ip'].lower() == 'auto':
             self.manager_ip = get_manager_node_ip()
         else:
-            self.manager_ip = cfg['actor']['manager_ip']
+            self.manager_ip = cfg['system']['manager_ip']
         self.actor_uid = actor_uid
-        self.manager_port = cfg['actor']['manager_port']
+        self.manager_port = cfg['system']['manager_port']
         self.url_prefix = 'http://{}:{}/'.format(self.manager_ip, self.manager_port)
         self._set_logger()
         self._set_req_session()
@@ -156,7 +156,7 @@ class JobGetter:
 class DataPusher:
     def __init__(self, context):
         self.context = context
-        self.ceph_path = self.context.cfg['actor']['ceph_traj_path']
+        self.ceph_path = self.context.cfg['system']['ceph_traj_path']
 
     def finish_job(self, job_id):
         d = {'actor_uid': self.context.actor_uid, 'job_id': job_id}
@@ -210,7 +210,7 @@ class DataPusher:
 class ModelLoader:
     def __init__(self, context):
         self.context = context
-        self.ceph_path = self.context.cfg['actor']['ceph_model_path']
+        self.ceph_path = self.context.cfg['system']['ceph_model_path']
 
     def _get_model_ceph_path(self, model_id, teacher=False):
         return self.ceph_path + model_id
@@ -249,7 +249,7 @@ class ModelLoader:
 class StatRequester:
     def __init__(self, context):
         self.context = context
-        self.ceph_path = self.context.cfg['actor']['ceph_stat_path']
+        self.ceph_path = self.context.cfg['system']['ceph_stat_path']
 
     def _get_stat_ceph_path(self, stat_id):
         return self.ceph_path + stat_id

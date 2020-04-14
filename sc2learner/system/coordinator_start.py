@@ -10,9 +10,9 @@ import argparse
 import yaml
 from flask import Flask, request
 
-from coordinator import Coordinator
+from .coordinator import Coordinator
 from sc2learner.utils.log_helper import TextLogger
-from coordinator_api import create_coordinator_app
+from .coordinator_api import create_coordinator_app
 
 parser = argparse.ArgumentParser(description='implementation of AlphaStar')
 parser.add_argument('--config', dest='config', required=True, help='settings of AlphaStar in yaml format')
@@ -25,9 +25,8 @@ log_path = os.path.join(log_path, api_dir_name)
 logger = TextLogger(log_path, name="coordinator.log")
 
 cfg = yaml.safe_load(open(args.config, 'r'))
-# TODO: separate cfg.api
-coordinator_ip = cfg['api']['ip']
-coordinator_port = cfg['api']['port']
+coordinator_ip = cfg['system']['coordinator_ip']
+coordinator_port = cfg['system']['coordinator_port']
 
 coordinator = Coordinator(cfg)
 app = create_coordinator_app(coordinator)

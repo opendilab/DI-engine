@@ -21,9 +21,9 @@ class Manager(object):
 
         self.cfg = cfg
 
-        self.coordinator_ip = cfg['api']['coordinator_ip']
-        self.coordinator_port = cfg['api']['coordinator_port']
-        self.manager_ip = cfg['api']['manager_ip']
+        self.coordinator_ip = cfg['system']['coordinator_ip']
+        self.coordinator_port = cfg['system']['coordinator_port']
+        self.manager_ip = cfg['system']['manager_ip']
         self.manager_uid = self.manager_ip
 
         # to attach coordinator
@@ -31,10 +31,10 @@ class Manager(object):
         self.check_dead_actor_freq = 120
 
         # auto run actor
-        self.auto_run_actor = cfg['api']['manager']['auto_run_actor']
+        self.auto_run_actor = cfg['system']['auto_run_actor']
         if self.auto_run_actor:
-            self.use_partitions = cfg['api']['manager']['use_partitions']
-            self.actor_num = cfg['api']['manager']['actor_num']
+            self.use_partitions = cfg['system']['use_partitions']
+            self.actor_num = cfg['system']['actor_num']
 
         self.actor_record = {
         }  # {actor_uid: {"job_ids": [job_id], "last_beats_time": last_beats_time, "state": 'alive'/'dead'}}}
