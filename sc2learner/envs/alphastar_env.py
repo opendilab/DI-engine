@@ -133,7 +133,7 @@ class AlphaStarEnv(SC2Env):
         if self._use_available_action_transform:
             new_obs = get_available_actions_processed_data(new_obs)
         self.enemy_upgrades[agent_no] = get_enemy_upgrades_processed_data(new_obs, self.enemy_upgrades[agent_no])
-        new_obs['scalar_info']['enemy_upgrades'] = self.enemy_upgrades[agent_no].float()
+        new_obs['scalar_info']['enemy_upgrades'] = self.enemy_upgrades[agent_no]
         return new_obs
 
     def _transform_action(self, action):
