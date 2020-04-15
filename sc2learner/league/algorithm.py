@@ -11,8 +11,8 @@ def pfsp(win_rates, weighting):
         - probs (:obj:`np.array`): a numpy array of the corresponding probability of each element is selected, shape(N)
     """
     weighting_func = {
-        'squared': lambda x: (1-x)**2,
-        'variance': lambda x: x*(1-x),
+        'squared': lambda x: (1 - x)**2,
+        'variance': lambda x: x * (1 - x),
     }
     if weighting in weighting_func.keys():
         fn = weighting_func[weighting]

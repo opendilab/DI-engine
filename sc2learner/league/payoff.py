@@ -17,7 +17,7 @@ class Payoff:
             - home_id (:obj:`str`): home player id
             - decay (:obj:`float`): update step decay factor
         """
-        # self._players is a list including the reference of all the possible opponent player
+        # self._players is a list including the reference(shallow copy) of all the possible opponent player
         self._players = []
         # self._data is a dict, whose key is the player_id of the element of self._players,
         # and whose value is a dict about the attributes in self.data_keys
@@ -79,6 +79,8 @@ class Payoff:
         Overview: update payoff with a match_info
         Arguments:
             - match_info (:obj:`dict`): a dict contains match information
+        Returns:
+            - result (:obj:`bool`): whether update is successful
         Note:
             match_info owns at least 3 keys('home', 'away', 'result')
         """
@@ -87,14 +89,15 @@ class Payoff:
             assert match_info['home'] == self._home_id
             assert match_info['away'] in self._data.keys()
             assert match_info['result'] in self.data_keys[:3]
-        except AssertionError:
-            print("invalid match_info: {}".format(match_info))
-            return
+        except Exception:
+            print("[ERROR] invalid match_info: {}".format(match_info))
+            return False
         # decay
         key = match_info['away']
         for k in self.data_keys:
-            self._data[key][k] *= self.decay
+            self._data[key][k] *= self._decay
 
         # update
-        self._data[key][self._games] += 1
+        self._data[key]['games'] += 1
         self._data[key][match_info['result']] += 1
+        return True
