@@ -183,6 +183,7 @@ class DataPusher:
 
         # sending report to manager
         metadata_supp = {
+            # TODO: clean these confusing names
             # file name in ceph
             'trajectory_path': ceph_name,
             # full path to this trajectory = md['ceph_name'] + md['trajectory_path'] (no need for os.path.join)
@@ -218,10 +219,10 @@ class ModelLoader:
     def load_model(self, job, agent_no, model):
         """
         Overview: fetch a model from ceph
-        Input:
+        Args:
             - job: a dict with description of how the game should be
             - agent_no: 0 or 1, labeling the two agents of game
-            - model: the model in agent, should be modified here
+            - model: the model in agent, will be modified here
         """
         path = self._get_model_ceph_path(job['model_id'][agent_no])
         t = time.time()
@@ -255,6 +256,7 @@ class StatRequester:
         return self.ceph_path + stat_id
 
     def request_stat(self, job, agent_no):
+        # loading stored z from ceph
         path = self._get_stat_ceph_path(job['stat_id'][agent_no])
         if 'do_not_load' in path:
             return {}

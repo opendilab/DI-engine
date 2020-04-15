@@ -62,6 +62,7 @@ class AlphaStarActor:
         self.compressor = None
 
     def _init_with_job(self, job):
+        # preparing the environment with the received job description
         self.cfg.env.map_name = job['map_name']
         self.cfg.env.random_seed = job['random_seed']
 
@@ -132,28 +133,23 @@ class AlphaStarActor:
     def _make_env(self, players):
         return AlphaStarEnv(self.cfg, players)
 
-    # this is to be overridden
+    # this is to be overridden in real worker or evaluator classes
     def _module_init(self):
         self.job_getter = JobGetter(self.cfg)
         self.model_loader = ModelLoader(self.cfg)
         self.stat_requester = StatRequester(self.cfg)
         self.data_pusher = DataPusher(self.cfg)
 
-    def _init_states(self):
-        self.last_state_action_home = [None] * self.agent_num
-        self.last_state_action_away = [None] * self.agent_num
-        self.lstm_states = [[None] for i in range(self.agent_num)]
-        self.lstm_states_cpu = [[None] for i in range(self.agent_num)]
-        self.teacher_lstm_states = [[None] for i in range(self.agent_num)]
-        self.teacher_lstm_states_cpu = [[None] for i in range(self.agent_num)]
-
     def _eval_actions(self, obs, due):
+        # doing inference
         actions = [None] * self.agent_num
         for i in range(self.agent_num):
             if due[i]:
                 # self.last_state_action_home[i] stores the last observation, lstm state and the action of agent i
                 # once the simulation of the step is complete, this will be combined with the next observation
                 # and rewards then put into the trajectory buffer for agent i
+                # the self.last_state_action_away[i] contains the last observation and lstm states of the enemy
+                # (for value network)
                 self.last_state_action_home[i] = {
                     'agent_no': i,
                     # lstm state before forward
@@ -233,7 +229,31 @@ class AlphaStarActor:
                 self.last_state_action_away[1 - i].update(update_after_eval_away)
         return actions
 
+    def _init_states(self):
+        self.last_state_action_home = [None] * self.agent_num
+        self.last_state_action_away = [None] * self.agent_num
+        self.lstm_states = [[None] for i in range(self.agent_num)]
+        self.lstm_states_cpu = [[None] for i in range(self.agent_num)]
+        self.teacher_lstm_states = [[None] for i in range(self.agent_num)]
+        self.teacher_lstm_states_cpu = [[None] for i in range(self.agent_num)]
+
     def run_episode(self):
+        """
+        Run simulation for one game episode after pulling the job using job_getter
+        Load models and stats(z) using model_loader and stat_requester.
+        Then pushing data to ceph, send the metadata to manager (and then forwarded to learner) using data_pusher
+        Actor Logic:
+            When a agent is due to act at game_step, it will take the obs and decide what action to do (after env delay)
+            and when (after how many steps) should the agent be notified of newer obs and asked to act again
+            this is done by calculating a delay (Note: different from env delay), and the game will proceed until
+            game_step arrived the time to observe and act as requested by any of the agents.
+            After every step, due[i] is set to True when steps of simulation requested by agent[i] has been completed
+            and then, agent[i] need to take its action at the next step.
+            Agent j with due[j]==False will be skipped and its action is None
+            It's possible that two actors are simutanously required to act
+            but any(due) must be True, since the simulation should keep going before reaching any requested observation
+            At the beginning of the game, every agent should act and give a delay
+        """
         job = self.job_getter.get_job(self.actor_uid)
         self._init_with_job(job)
         for i in range(self.agent_num):
@@ -248,25 +268,16 @@ class AlphaStarActor:
         obs = self.env.reset()
         data_buffer = [[] for i in range(self.agent_num)]
         last_buffer = [[] for i in range(self.agent_num)]
-        # Actor Logic:
-        # When a agent is due to act at game_step, it will take the obs and decide what action to do (after env delay)
-        # and when (after how many steps) should the agent be notified of newer obs and asked to act again
-        # this is done by calculating a delay (Note: different from env delay), and the game will proceed until
-        # game_step arrived the time to observe and act as requested by any of the agents.
-        # due[i] is set to True when agent[i] requested steps of simulation has been completed
-        # and then, agent[i] need to take its action at the next step.
-        # Agent j with due[j]==False will be skipped and its action is None
-        # It's possible that two actors are simutanously required to act
-        # but any(due) must be True, since the simulation should keep going before reaching any requested observation
-        # At the beginning of the game, every agent should act and give a delay
         due = [True] * self.agent_num
         game_step = 0
         game_seconds = 0
         self._init_states()
         # main loop
         while True:
+            # inferencing using the model
             actions = self._eval_actions(obs, due)
             actions = self.action_modifier(actions, game_step)
+            # stepping
             game_step, due, obs, rewards, done, this_game_stat, info = self.env.step(actions)
             # assuming 22 step per second, round to integer
             # TODO:need to check with https://github.com/deepmind/pysc2/blob/master/docs/environment.md#game-speed
@@ -275,6 +286,7 @@ class AlphaStarActor:
                 # game time out, force the done flag to True
                 done = True
             for i in range(self.agent_num):
+                # flag telling that we should push the data buffer for agent i before next step
                 at_traj_end = len(data_buffer[i]) + 1 * due[i] >= job['data_push_length'] or done
                 if due[i]:
                     # we received outcome from the env, add to rollout trajectory
@@ -340,7 +352,7 @@ class AlphaStarActor:
                     # job['data_push_length'], the buffer is than filled with data from the last trajectory
                     if delta > 0:
                         data_buffer[i] = last_buffer[i][-delta:] + data_buffer[i]
-                    metadata['length'] = len(data_buffer[i])  # should agree with job['data_push_length']
+                    metadata['length'] = len(data_buffer[i])  # should always agree with job['data_push_length']
                     self.data_pusher.push(metadata, data_buffer[i])
                     last_buffer[i] = data_buffer[i].copy()
                     data_buffer[i] = []
@@ -353,6 +365,7 @@ class AlphaStarActor:
             self.run_episode()
 
     def action_modifier(self, actions, game_step):
+        # to be overrided
         # called before actions are sent to the env, APM limits can be implemented here
         return actions
 

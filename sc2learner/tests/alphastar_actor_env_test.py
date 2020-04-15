@@ -136,7 +136,7 @@ class DummyJobGetter:
                 'home_race': 'zerg',
                 'away_race': 'zerg',
                 'difficulty': 'very_easy',
-                'build': None,
+                'build': 'random',
                 'data_push_length': 64,
             }
         else:
