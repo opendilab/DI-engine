@@ -330,6 +330,8 @@ class AlphaStarActor:
                         'actor_uid': self.actor_uid,
                         'info': info,
                         'traj_length': len(data_buffer[i]),  # this is the real length, without reused last traj
+                        # TODO: implement other priority initialization algo, setting it to a big num now
+                        'priority': 1e7,
                     }
                     if done:
                         metadata['final_reward'] = rewards[i]

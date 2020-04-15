@@ -10,6 +10,7 @@ import torch
 from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UNIT_TYPES, ACTIONS_REORDER_INV
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
 from sc2learner.data.offline.replay_dataset import ReplayDataset, START_STEP
+from sc2learner.utils import get_step_data_compressor
 
 META_SUFFIX = '.meta'
 DATA_SUFFIX = '.step'
@@ -199,11 +200,13 @@ class FakeReplayDataset(ReplayDataset):
 
 
 class FakeActorDataset:
-    def __init__(self, trajectory_len=3, use_meta=False):
+    def __init__(self, trajectory_len=3, use_meta=False, step_data_compressor='lz4'):
         self.trajectory_len = trajectory_len
         self.use_meta = use_meta
         if self.use_meta:
             self.count = 1
+        self.step_data_compressor_name = step_data_compressor
+        self.step_data_compressor = get_step_data_compressor(step_data_compressor)
         self.output_dir = './data'
         if not os.path.exists(self.output_dir):
             os.mkdir(self.output_dir)
@@ -213,15 +216,17 @@ class FakeActorDataset:
 
     def __getitem__(self, idx):
         if self.use_meta:
-            data = self.get_1v1_agent_data()
-            path = os.path.join(self.output_dir, 'data_{}.pt'.format(self.count))
-            torch.save(data, path)
+            # save only one fake data file to reduce resource waste
+            path = os.path.join(self.output_dir, 'data_{}.pt'.format(1))
+            if not os.path.exists(path):
+                data = self.step_data_compressor(self.get_1v1_agent_data())
+                torch.save(data, path)
             self.count += 1
             return {
                 'job_id': self.count - 1,
                 'trajectory_path': path,
                 'priority': 1.0,
-                'step_data_compressor': 'none',
+                'step_data_compressor': self.step_data_compressor_name,
             }
         else:
             return self.get_1v1_agent_data()

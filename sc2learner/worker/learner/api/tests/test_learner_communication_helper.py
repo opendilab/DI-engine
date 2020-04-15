@@ -6,10 +6,7 @@ import threading
 from threading import Thread
 import torch
 import numpy as np
-
-
-def generate_data():
-    return {'raw_data': torch.randn(4).tolist(), 'step_data_compressor': 'none', 'trajectory_path': './data/data_1.pt'}
+from sc2learner.data import FakeActorDataset
 
 
 def train(data):
@@ -26,8 +23,9 @@ def train(data):
 class TestLearnerCommHelper:
     def fake_push_data(self, coordinator):
         time.sleep(3)  # monitor empty replay_buffer state
+        dataset = FakeActorDataset(use_meta=True)
         for i in range(1024):
-            coordinator.replay_buffer.push_data(generate_data())
+            coordinator.replay_buffer.push_data(dataset[i])
         time.sleep(1)  # wait the cache flush out
         assert (1024 == coordinator.replay_buffer._meta_buffer.validlen)
 
