@@ -50,8 +50,8 @@ class ActivePlayer(Player):
         Overview: initialize player metadata
         Arguments:
             - branch_probs (:obj:`list`): a list contains the probabilities of selecting the different opponent branch
-            - strong_win_rate (:obj:`float`): if the win rate between this player and the opponent is more than this value,
-                this player can be regarded as strong enough to the opponent
+            - strong_win_rate (:obj:`float`): if the win rate between this player and the opponent is more than
+                this value, this player can be regarded as strong enough to the opponent
              - one_phase_steps (:obj:`int`): one training phase steps
         """
         super(ActivePlayer, self).__init__(*args)
@@ -73,7 +73,7 @@ class ActivePlayer(Player):
         if step_passed < self._one_phase_steps:
             return False
 
-        historical = self._get_players(select_fn(p))
+        historical = self._get_players(select_fn)
         win_rates = self._payoff[self, historical]
         flag = win_rates.min() > self._strong_win_rate or step_passed >= 2 * self._one_phase_steps
         if flag:
@@ -252,7 +252,7 @@ class MainExploiter(ActivePlayer):
     """
     _name = "MainExploiter"
 
-    def __init__(*args, min_valid_win_rate):
+    def __init__(self, *args, min_valid_win_rate):
         super(MainExploiter, self).__init__()
         self._min_valid_win_rate = min_valid_win_rate
 
