@@ -172,7 +172,7 @@ class Statistics:
 
         Args:
             player: index of player or None for getting a list of all players
-        
+
         Return:
             stat: a dict with keys of 'action_statistics', 'cumulative_statistics', 'begin_statistics'
                 or a list of dicts if player=None
