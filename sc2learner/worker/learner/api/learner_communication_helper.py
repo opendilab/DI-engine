@@ -29,6 +29,7 @@ class LearnerCommunicationHelper(object):
             raise ValueError('learner_ip must be ip address, but found {}'.format(self.learner_ip))
         self.coordinator_ip = self.cfg['system']['coordinator_ip']
         self.coordinator_port = self.cfg['system']['coordinator_port']
+        self.ceph_traj_path = self.cfg['system']['ceph_traj_path']
         self.ceph_model_path = self.cfg['system']['ceph_model_path']
         self.use_ceph = self.cfg['system']['use_ceph']
 
@@ -85,7 +86,7 @@ class LearnerCommunicationHelper(object):
                 - (:obj`dict`): trajectory
         '''
         assert (isinstance(metadata, dict))
-        decompressor = get_step_data_decompressor(metadata['obs_compressor'])
+        decompressor = get_step_data_decompressor(metadata['step_data_compressor'])
         data = self._read_file(metadata['trajectory_path'])
         data = decompressor(data)
         data = torch.load(data)
@@ -98,8 +99,8 @@ class LearnerCommunicationHelper(object):
 
     def _read_file(self, path):
         if self.use_ceph:
-            ceph_model_path = self.ceph_model_path + path
-            return read_file_ceph(ceph_model_path, read_type='pickle')
+            ceph_traj_path = self.ceph_traj_path + path
+            return read_file_ceph(ceph_traj_path, read_type='pickle')
         else:
             return path
 

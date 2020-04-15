@@ -126,7 +126,7 @@ class AlphaStarActor:
         else:
             self.use_teacher_model = False
         self.env = self._make_env(players)
-        self.compressor_name = job['obs_compressor']
+        self.compressor_name = job['step_data_compressor']
         self.compressor = get_step_data_compressor(self.compressor_name)
 
     def _make_env(self, players):
@@ -323,7 +323,7 @@ class AlphaStarActor:
                         'agent_no': i,
                         'agent_model_id': job['model_id'][i],
                         'job': job,
-                        'obs_compressor': self.compressor_name,
+                        'step_data_compressor': self.compressor_name,
                         'game_step': game_step,
                         'done': done,
                         'finish_time': time.time(),

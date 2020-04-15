@@ -135,7 +135,8 @@ class FakeActor(object):
             'job_id': self.job_id,
             'trajectory_path': ceph_name,
             'learner_uid': self.job['learner_uid'],
-            'data': torch.tensor([[1, 2, 3], [4, 5, 6]]).tolist()
+            'data': torch.tensor([[1, 2, 3], [4, 5, 6]]).tolist(),
+            'step_data_compressor': 'none'
         }
         return trajectory, metadata
 

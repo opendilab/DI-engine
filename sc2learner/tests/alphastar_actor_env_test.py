@@ -127,7 +127,7 @@ class DummyJobGetter:
             job = {
                 'job_id': 'test0',
                 'game_type': 'game_vs_bot',
-                'obs_compressor': 'lz4',
+                'step_data_compressor': 'lz4',
                 'model_id': 'test',
                 'teacher_model_id': 'test',
                 'stat_id': '',
@@ -143,7 +143,7 @@ class DummyJobGetter:
             job = {
                 'job_id': 'test0',
                 'game_type': 'self_play',
-                'obs_compressor': 'lz4',
+                'step_data_compressor': 'lz4',
                 'model_id': 'test',
                 'teacher_model_id': 'test',
                 'stat_id': '',

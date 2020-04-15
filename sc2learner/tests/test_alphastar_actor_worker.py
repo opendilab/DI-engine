@@ -204,7 +204,7 @@ def test_actor(coordinator, manager, caplog):
     assert isinstance(smpls, list) and len(smpls) == batch_size
     for smpl in smpls:
         traj = read_file_ceph(smpl['ceph_name'] + smpl['trajectory_path'], read_type='pickle')
-        decompressor = get_step_data_decompressor(smpl['obs_compressor'])
+        decompressor = get_step_data_decompressor(smpl['step_data_compressor'])
         decompressed_traj = decompressor(traj)
         # here I'm checking the stored trajectory against FakeDataset
         # the format of observations is not tested here as it's from the same FakeEnv and the same FakeDataset

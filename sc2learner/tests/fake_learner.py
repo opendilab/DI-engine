@@ -139,7 +139,7 @@ class FakeLearner(object):
             Returns:
                 - (:obj`dict`): update info
         '''
-        update_info = {'replay_unique_id': [], 'replay_buffer_idx': [], 'priority': []}
+        update_info = {'replay_unique_id': [], 'replay_buffer_idx': [], 'priority': [], 'step_data_compressor': 'none'}
         for metadata in metadatas:
             update_info['replay_unique_id'].append(metadata['replay_unique_id'])
             update_info['replay_buffer_idx'].append(metadata['replay_buffer_idx'])

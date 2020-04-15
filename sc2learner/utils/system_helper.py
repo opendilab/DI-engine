@@ -37,8 +37,10 @@ def get_manager_node_ip(node_ip=None):
     '''Look up the manager node of the slurm cluster'''
     if 'SLURM_JOB_ID' not in os.environ:
         import logging
-        logging.error('We are not running on slurm!, \'auto\' for manager_ip or '
-                      'coordinator_ip is only intended for running on multiple slurm clusters')
+        logging.error(
+            'We are not running on slurm!, \'auto\' for manager_ip or '
+            'coordinator_ip is only intended for running on multiple slurm clusters'
+        )
         return '127.0.0.1'
     if node_ip is None:
         node_ip = get_ip(True)

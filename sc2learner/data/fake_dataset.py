@@ -221,7 +221,7 @@ class FakeActorDataset:
                 'job_id': self.count - 1,
                 'trajectory_path': path,
                 'priority': 1.0,
-                'obs_compressor': 'none',
+                'step_data_compressor': 'none',
             }
         else:
             return self.get_1v1_agent_data()

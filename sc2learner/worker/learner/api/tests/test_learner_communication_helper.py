@@ -9,7 +9,7 @@ import numpy as np
 
 
 def generate_data():
-    return {'raw_data': torch.randn(4).tolist()}
+    return {'raw_data': torch.randn(4).tolist(), 'step_data_compressor': 'none', 'trajectory_path': './data/data_1.pt'}
 
 
 def train(data):
