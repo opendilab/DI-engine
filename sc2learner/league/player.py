@@ -178,8 +178,6 @@ class MainPlayer(ActivePlayer):
             - player (:obj:`HistoricalPlayer`): the selected historical player
         """
         historical = self._get_players(lambda p: isinstance(p, HistoricalPlayer))
-        if len(historical) == 0:
-            return self._sp_branch()
         win_rates = self._payoff[self, historical]
         p = pfsp(win_rates, weighting='squared')
         return self._get_opponent(historical, p)
@@ -277,8 +275,6 @@ class MainExploiter(ActivePlayer):
         historical = self._get_players(
             lambda p: isinstance(p, HistoricalPlayer) and p.parent_id == main_opponent.player_id
         )
-        if len(historical) == 0:
-            return main_opponent
         win_rates = self._payoff[self, historical]
         p = pfsp(win_rates, weighting='variance')
         return self._get_opponent(historical)
@@ -310,8 +306,6 @@ class LeagueExploiter(ActivePlayer):
             This branch is the same as the psfp branch in MainPlayer
         """
         historical = self._get_players(lambda p: isinstance(p, HistoricalPlayer))
-        if len(historical) == 0:
-            return self._sp_branch()
         win_rates = self._payoff[self, historical]
         p = pfsp(win_rates, weighting='squared')
         return self._get_opponent(historical, p)

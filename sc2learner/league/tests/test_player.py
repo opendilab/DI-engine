@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from sc2learner.league.shared_payoff import SharedPayoff
-from sc2learner.league.player import Player, MainPlayer, MainExploiter, LeagueExploiter, HistoricalPlayer
+from sc2learner.league.player import Player, MainPlayer, MainExploiter, LeagueExploiter, HistoricalPlayer, ActivePlayer
 
 STRONG = 0.7
 ONE_PHASE_STEPS = 2e3
@@ -60,6 +60,13 @@ def setup_league(setup_payoff):
                     one_phase_steps=ONE_PHASE_STEPS
                 )
             )
+        # sl player is used as initial HistoricalPlayer
+        sl_hp_name = '{}_{}_sl'.format('MainPlayer', race)
+        players.append(
+            HistoricalPlayer(
+                race, setup_payoff, 'ckpt_sl_{}'.format(sl_hp_name), sl_hp_name, parent_id=main_player_name
+            )
+        )
 
     for p in players:
         setup_payoff.add_player(p)
@@ -79,24 +86,16 @@ class TestMainPlayer:
                     assert isinstance(opponent, Player)
                     assert opponent in setup_league
 
-        # indicated p with no HistoricalPlayer
-        for p in setup_league:
-            if isinstance(p, MainPlayer):
-                for i in range(N):
-                    for idx, prob in enumerate([0.4, 0.6, 0.9]):
-                        opponent = p.get_match(p=prob)
-                        assert isinstance(opponent, MainPlayer)
-
         payoff = setup_league[np.random.randint(0, len(setup_league))].payoff  # random select reference
         hp_list = []
         for p in setup_league:
-            p.update_agent_step(2 * ONE_PHASE_STEPS)
-            hp = p.snapshot()
-            hp_list.append(hp)
-            payoff.add_player(hp)
+            if isinstance(p, ActivePlayer):
+                p.update_agent_step(2 * ONE_PHASE_STEPS)
+                hp = p.snapshot()
+                hp_list.append(hp)
+                payoff.add_player(hp)
         setup_league += hp_list
 
-        # indicated p with HistoricalPlayer
         for p in setup_league:
             if isinstance(p, MainPlayer):
                 for i in range(N):
@@ -118,23 +117,25 @@ class TestMainPlayer:
         N = 10
         for p in setup_league:
             for i in range(N):
-                hp = p.snapshot()
-                assert isinstance(hp, HistoricalPlayer)
-                assert id(hp.payoff) == id(p.payoff)
-                assert hp.parent_id == p.player_id
+                if isinstance(p, ActivePlayer):
+                    hp = p.snapshot()
+                    assert isinstance(hp, HistoricalPlayer)
+                    assert id(hp.payoff) == id(p.payoff)
+                    assert hp.parent_id == p.player_id
 
     def test_is_trained_enough(self, setup_league):
         for p in setup_league:
-            assert not p.is_trained_enough()
-            assert p._last_enough_steps == 0
+            if isinstance(p, ActivePlayer):
+                assert not p.is_trained_enough()
+                assert p._last_enough_steps == 0
 
-            p.update_agent_step(ONE_PHASE_STEPS * 0.99)
-            assert not p.is_trained_enough()
-            assert p._last_enough_steps == 0
+                p.update_agent_step(ONE_PHASE_STEPS * 0.99)
+                assert not p.is_trained_enough()
+                assert p._last_enough_steps == 0
 
-            p.update_agent_step(ONE_PHASE_STEPS + 1)
-            assert not p.is_trained_enough()
-            assert p._last_enough_steps == 0
+                p.update_agent_step(ONE_PHASE_STEPS + 1)
+                assert not p.is_trained_enough()
+                assert p._last_enough_steps == 0
 
         payoff = setup_league[np.random.randint(0, len(setup_league))].payoff  # random select reference
         # prepare HistoricalPlayer
@@ -149,7 +150,7 @@ class TestMainPlayer:
         N = 10
         assert isinstance(setup_league[0], MainPlayer)
         for n in range(N):
-            for hp in hp_list:
+            for hp in [p for p in setup_league if isinstance(p, HistoricalPlayer)]:
                 match_info = {
                     'home': setup_league[0].player_id,
                     'away': hp.player_id,
@@ -158,11 +159,11 @@ class TestMainPlayer:
                 result = payoff.update(match_info)
                 assert result
 
-        assert isinstance(setup_league[4], MainPlayer)
+        assert isinstance(setup_league[5], MainPlayer)
         for n in range(N):
             for hp in hp_list:
                 match_info = {
-                    'home': setup_league[4].player_id,
+                    'home': setup_league[5].player_id,
                     'away': hp.player_id,
                     'result': 'draws',
                 }
@@ -175,11 +176,11 @@ class TestMainPlayer:
         assert setup_league[0].is_trained_enough()
         assert setup_league[0]._last_enough_steps == setup_league[0]._total_agent_steps
 
-        assert setup_league[4]._total_agent_steps > ONE_PHASE_STEPS
-        assert not setup_league[4].is_trained_enough()
+        assert setup_league[5]._total_agent_steps > ONE_PHASE_STEPS
+        assert not setup_league[5].is_trained_enough()
 
-        setup_league[4].update_agent_step(2 * ONE_PHASE_STEPS)
-        assert setup_league[4].is_trained_enough()
+        setup_league[5].update_agent_step(2 * ONE_PHASE_STEPS)
+        assert setup_league[5].is_trained_enough()
 
     def test_mutate(self, setup_league):
         assert isinstance(setup_league[0], MainPlayer)
@@ -203,7 +204,7 @@ class TestMainExploiter:
                     assert payoff.update(match_info)
 
         opponent = setup_league[1].get_match()
-        assert isinstance(opponent, MainPlayer)
+        assert isinstance(opponent, HistoricalPlayer) and 'MainPlayer' in opponent.parent_id
         hp_list = []
         for i in range(3):
             for p in setup_league:
@@ -222,7 +223,7 @@ class TestMainExploiter:
             match_info = {'home': home.player_id, 'away': away.player_id, 'result': result}
             assert payoff.update(match_info)
 
-        for i in range(100):
+        for i in range(10):
             opponent = setup_league[1].get_match()
             assert isinstance(opponent, HistoricalPlayer) and 'MainPlayer' in opponent.parent_id
 
