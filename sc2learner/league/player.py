@@ -56,7 +56,8 @@ class ActivePlayer(Player):
         """
         super(ActivePlayer, self).__init__(*args)
         assert isinstance(branch_probs, dict)
-        self._branch_probs = [self.BRANCH(k, v) for k, v in branch_probs]
+        self._branch_probs = [self.BRANCH(k, v) for k, v in branch_probs.items()]
+        self._strong_win_rate = strong_win_rate
         self._one_phase_steps = one_phase_steps
         self._total_agent_steps = 0
         self._last_enough_steps = 0
@@ -72,13 +73,19 @@ class ActivePlayer(Player):
         step_passed = self._total_agent_steps - self._last_enough_steps
         if step_passed < self._one_phase_steps:
             return False
-
-        historical = self._get_players(select_fn)
-        win_rates = self._payoff[self, historical]
-        flag = win_rates.min() > self._strong_win_rate or step_passed >= 2 * self._one_phase_steps
-        if flag:
+        elif step_passed >= 2 * self._one_phase_steps:
             self._last_enough_steps = self._total_agent_steps
-        return flag
+            return True
+        else:
+            historical = self._get_players(select_fn)
+            if len(historical) == 0:
+                return False
+            win_rates = self._payoff[self, historical]
+            if win_rates.min() > self._strong_win_rate:
+                self._last_enough_steps = self._total_agent_steps
+                return True
+            else:
+                return False
 
     def snapshot(self):
         """
@@ -91,7 +98,11 @@ class ActivePlayer(Player):
         """
         path = self.checkpoint_path.split('.pth')[0] + '_{}'.format(self._total_agent_steps) + '.pth'
         return HistoricalPlayer(
-            self.race, self.payoff, path, self.player_id, self.player_id + '-{}'.format(self._total_agent_steps)
+            self.race,
+            self.payoff,
+            path,
+            self.player_id + '-{}'.format(self._total_agent_steps),
+            parent_id=self.player_id
         )
 
     def mutate(self, info):
@@ -160,17 +171,15 @@ class MainPlayer(ActivePlayer):
     """
     _name = "MainPlayer"
 
-    def __init__(self, *args):
-        super(MainPlayer, self).__init__(*args)
-
     def _pfsp_branch(self):
         """
         Overview: select prioritized fictitious self-play opponent
         Returns:
             - player (:obj:`HistoricalPlayer`): the selected historical player
         """
-        # TODO(nyz) how to deal with len(historical) == 0
         historical = self._get_players(lambda p: isinstance(p, HistoricalPlayer))
+        if len(historical) == 0:
+            return self._sp_branch()
         win_rates = self._payoff[self, historical]
         p = pfsp(win_rates, weighting='squared')
         return self._get_opponent(historical, p)
@@ -252,8 +261,8 @@ class MainExploiter(ActivePlayer):
     """
     _name = "MainExploiter"
 
-    def __init__(self, *args, min_valid_win_rate):
-        super(MainExploiter, self).__init__()
+    def __init__(self, *args, min_valid_win_rate=0.2, **kwargs):
+        super(MainExploiter, self).__init__(*args, **kwargs)
         self._min_valid_win_rate = min_valid_win_rate
 
     def _main_players_branch(self):
@@ -298,8 +307,9 @@ class LeagueExploiter(ActivePlayer):
         Note:
             This branch is the same as the psfp branch in MainPlayer
         """
-        # TODO(nyz) how to deal with len(historical) == 0
         historical = self._get_players(lambda p: isinstance(p, HistoricalPlayer))
+        if len(historical) == 0:
+            return self._sp_branch()
         win_rates = self._payoff[self, historical]
         p = pfsp(win_rates, weighting='squared')
         return self._get_opponent(historical, p)
