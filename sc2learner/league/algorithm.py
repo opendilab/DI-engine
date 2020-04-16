@@ -24,5 +24,5 @@ def pfsp(win_rates, weighting):
     if win_rates.sum() < 1e-8:
         return np.ones_like(win_rates) / len(win_rates)
     fn_win_rates = fn(win_rates)
-    probs = win_rates / fn_win_rates
+    probs = fn_win_rates / fn_win_rates.sum()
     return probs

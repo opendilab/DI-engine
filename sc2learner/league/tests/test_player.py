@@ -87,6 +87,28 @@ class TestMainPlayer:
                         opponent = p.get_match(p=prob)
                         assert isinstance(opponent, MainPlayer)
 
+        payoff = setup_league[np.random.randint(0, len(setup_league))].payoff  # random select reference
+        hp_list = []
+        for p in setup_league:
+            p.update_agent_step(2 * ONE_PHASE_STEPS)
+            hp = p.snapshot()
+            hp_list.append(hp)
+            payoff.add_player(hp)
+        setup_league += hp_list
+
+        # indicated p with HistoricalPlayer
+        for p in setup_league:
+            if isinstance(p, MainPlayer):
+                for i in range(N):
+                    for idx, prob in enumerate([0.4, 0.6, 0.9]):
+                        opponent = p.get_match(p=prob)
+                        if idx == 0:
+                            assert isinstance(opponent, HistoricalPlayer)
+                        elif idx == 1:
+                            assert isinstance(opponent, MainPlayer)
+                        else:
+                            assert isinstance(opponent, HistoricalPlayer) and 'MainPlayer' in opponent.parent_id
+
     def test_update_agent_step(self, setup_league):
         assert setup_league[0]._total_agent_steps == 0
         setup_league[0].update_agent_step(ONE_PHASE_STEPS)
@@ -163,3 +185,72 @@ class TestMainPlayer:
         assert isinstance(setup_league[0], MainPlayer)
         for _ in range(10):
             assert setup_league[0].mutate({}) is None
+
+
+@pytest.mark.unittest
+class TestMainExploiter:
+    def test_get_match(self, setup_league, random_match_result):
+        assert isinstance(setup_league[1], MainExploiter)
+        opponent = setup_league[1].get_match()
+        assert isinstance(opponent, MainPlayer)
+
+        N = 10
+        payoff = setup_league[np.random.randint(0, len(setup_league))].payoff  # random select reference
+        for n in range(N):
+            for p in setup_league:
+                if isinstance(p, MainPlayer):
+                    match_info = {'home': setup_league[1].player_id, 'away': p.player_id, 'result': 'losses'}
+                    assert payoff.update(match_info)
+
+        opponent = setup_league[1].get_match()
+        assert isinstance(opponent, MainPlayer)
+        hp_list = []
+        for i in range(3):
+            for p in setup_league:
+                if isinstance(p, MainPlayer):
+                    p.update_agent_step((i + 1) * 2 * ONE_PHASE_STEPS)
+                    hp = p.snapshot()
+                    payoff.add_player(hp)
+                    hp_list.append(hp)
+        setup_league += hp_list
+
+        no_main_player_league = [p for p in setup_league if not isinstance(p, MainPlayer)]
+        for i in range(10000):
+            home = np.random.choice(no_main_player_league)
+            away = np.random.choice(no_main_player_league)
+            result = random_match_result()
+            match_info = {'home': home.player_id, 'away': away.player_id, 'result': result}
+            assert payoff.update(match_info)
+
+        for i in range(100):
+            opponent = setup_league[1].get_match()
+            assert isinstance(opponent, HistoricalPlayer) and 'MainPlayer' in opponent.parent_id
+
+    def test_is_trained_enough(self, setup_league):
+        # only a few differences from `is_trained_enough` of MainPlayer
+        pass
+
+    def test_mutate(self, setup_league):
+        assert isinstance(setup_league[1], MainExploiter)
+        info = {'sl_checkpoint_path': 'sl_checkpoint.pth'}
+        for _ in range(10):
+            assert setup_league[1].mutate(info) == info['sl_checkpoint_path']
+
+
+@pytest.mark.unittest
+class TestLeagueExploiter:
+    def test_get_match(self, setup_league):
+        pass
+
+    def test_is_trained_enough(self, setup_league):
+        # this function is the same as `is_trained_enough` of MainPlayer
+        pass
+
+    def test_mutate(self, setup_league):
+        assert isinstance(setup_league[2], LeagueExploiter)
+        info = {'sl_checkpoint_path': 'sl_checkpoint.pth'}
+        results = []
+        for _ in range(1000):
+            results.append(setup_league[2].mutate(info))
+        freq = len([t for t in results if t]) * 1.0 / len(results)
+        assert freq >= 0.2 and freq <= 0.3  # approximate

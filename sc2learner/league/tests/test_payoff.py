@@ -26,16 +26,6 @@ def get_fake_player():
     return player
 
 
-def random_match_result():
-    p = np.random.uniform()
-    if p < 1. / 3:
-        return "wins"
-    elif p < 2. / 3:
-        return "draws"
-    else:
-        return "losses"
-
-
 @pytest.mark.unittest
 class TestPayoff:
     def test_add_player(self, setup_payoff):
@@ -61,7 +51,7 @@ class TestPayoff:
             p_ori._payoff = np.random.uniform()
             assert p_ori.payoff == p_copy.payoff
 
-    def test_update(self, setup_payoff):
+    def test_update(self, setup_payoff, random_match_result):
         assert len(setup_payoff.players) == 0
         N = 10
         games_per_player = 8
@@ -87,7 +77,7 @@ class TestPayoff:
         match_info = None
         assert not setup_payoff.update(match_info)
 
-    def test_getitem(self, setup_payoff):
+    def test_getitem(self, setup_payoff, random_match_result):
         assert len(setup_payoff.players) == 0
         N = 10
         match_num = 314
@@ -162,7 +152,7 @@ def get_shared_payoff_player(payoff):
 
 @pytest.mark.unittest
 class TestSharedPayoff:
-    def test_update(self, setup_shared_payoff):
+    def test_update(self, setup_shared_payoff, random_match_result):
         N = 10
         games_per_player = 4
         player_list = [get_shared_payoff_player(setup_shared_payoff) for _ in range(N)]
@@ -191,7 +181,7 @@ class TestSharedPayoff:
         for p in player_list:
             assert id(p.payoff) == id(setup_shared_payoff)
 
-    def test_getitem(self, setup_shared_payoff):
+    def test_getitem(self, setup_shared_payoff, random_match_result):
         N = 10
         games_per_player = 4
         player_list = [get_shared_payoff_player(setup_shared_payoff) for _ in range(N)]

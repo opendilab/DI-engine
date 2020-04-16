@@ -101,7 +101,7 @@ class ActivePlayer(Player):
             self.race,
             self.payoff,
             path,
-            self.player_id + '-{}'.format(self._total_agent_steps),
+            self.player_id + '_{}'.format(int(self._total_agent_steps)),
             parent_id=self.player_id
         )
 
@@ -226,7 +226,7 @@ class MainPlayer(ActivePlayer):
         )
         win_rates = self._payoff[self, historical]
         # TODO(nyz) whether the method `_get_players` should return players with some sequence(such as steps)
-        win_rates, historical = self._remove_monotonic_suffix(win_rates, historical)
+        # win_rates, historical = self._remove_monotonic_suffix(win_rates, historical)
         if len(win_rates) and win_rates.min() < self._strong_win_rate:
             p = pfsp(win_rates, weighting='squared')
             return self._get_opponent(historical, p)
@@ -277,6 +277,8 @@ class MainExploiter(ActivePlayer):
         historical = self._get_players(
             lambda p: isinstance(p, HistoricalPlayer) and p.parent_id == main_opponent.player_id
         )
+        if len(historical) == 0:
+            return main_opponent
         win_rates = self._payoff[self, historical]
         p = pfsp(win_rates, weighting='variance')
         return self._get_opponent(historical)
