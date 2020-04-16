@@ -84,4 +84,5 @@ class Encoder(nn.Module):
             embedded_entity, embedded_spatial, embedded_scalar, inputs['prev_state']
         )
         lstm_output = lstm_output.squeeze(0)
-        return lstm_output, next_state, entity_embeddings, map_skip, scalar_context, baseline_feature, cum_stat
+        return lstm_output, next_state, entity_embeddings, map_skip, scalar_context, inputs[
+            'spatial_info'], baseline_feature, cum_stat
