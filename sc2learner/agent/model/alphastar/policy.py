@@ -98,7 +98,7 @@ class Policy(nn.Module):
                 action_arg_mask['target_unit_mask'].append(None)
                 action_arg_mask['target_unit_type_mask'].append(None)
             if action_info_hard_craft['target_location']:
-                location_mask = get_location_mask(action_type_val, spatial_info)
+                location_mask = get_location_mask(action_type_val, spatial_info[idx])
                 action_arg_mask['location_mask'].append(location_mask)
             else:
                 action_arg_mask['location_mask'].append(None)
@@ -173,7 +173,8 @@ class Policy(nn.Module):
             Returns:
                 - logits (:obj:`dict`) logits(or other format) for calculating supervised learning loss
         '''
-        actions, entity_raw, action_type_mask, lstm_output, entity_embeddings, map_skip, scalar_context, spatial_info = inputs
+        actions, entity_raw, action_type_mask, lstm_output,\
+            entity_embeddings, map_skip, scalar_context, spatial_info = inputs
 
         logits = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
         action_type = torch.LongTensor(actions['action_type']).to(lstm_output.device)
