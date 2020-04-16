@@ -1,7 +1,9 @@
 import pytest
 import numpy as np
 from sc2learner.league.payoff import Payoff
+from sc2learner.league.shared_payoff import PayoffDict, SharedPayoff
 from sc2learner.league.player import Player
+
 
 @pytest.fixture(scope='function')
 def setup_payoff():
@@ -26,9 +28,9 @@ def get_fake_player():
 
 def random_match_result():
     p = np.random.uniform()
-    if p < 1./3:
+    if p < 1. / 3:
         return "wins"
-    elif p < 2./3:
+    elif p < 2. / 3:
         return "draws"
     else:
         return "losses"
@@ -79,7 +81,7 @@ class TestPayoff:
                 old = setup_payoff._data[away][match_result]
                 result = setup_payoff.update(match_info)
                 assert result
-                assert old*setup_payoff._decay + 1 == setup_payoff._data[away][match_result]
+                assert old * setup_payoff._decay + 1 == setup_payoff._data[away][match_result]
 
         # invalid update test
         match_info = None
@@ -108,7 +110,7 @@ class TestPayoff:
         assert isinstance(win_rates, np.ndarray)
         handle = setup_payoff._data[player.player_id]
         if handle['games'] > 1e-6:
-            assert win_rates[0] == pytest.approx((handle['wins'] + 0.5*handle['draws']) / handle['games'])
+            assert win_rates[0] == pytest.approx((handle['wins'] + 0.5 * handle['draws']) / handle['games'])
         else:
             assert win_rates[0] == pytest.approx(0.5)
 
@@ -119,6 +121,115 @@ class TestPayoff:
         for win_rate, player in zip(win_rates, players):
             handle = setup_payoff._data[player.player_id]
             if handle['games'] > 1e-6:
-                assert win_rate == pytest.approx((handle['wins'] + 0.5*handle['draws']) / handle['games'])
+                assert win_rate == pytest.approx((handle['wins'] + 0.5 * handle['draws']) / handle['games'])
             else:
                 assert win_rate == pytest.approx(0.5)
+
+
+@pytest.mark.unittest
+class TestPayoffDict:
+    def test_init(self):
+        data = PayoffDict()
+        data['test_player_0-test_player_1'] *= 1
+        assert data['test_player_0-test_player_1']['wins'] == 0
+        assert data['test_player_0-test_player_1']['draws'] == 0
+        assert data['test_player_0-test_player_1']['losses'] == 0
+        assert data['test_player_0-test_player_1']['games'] == 0
+        with pytest.raises(KeyError):
+            tmp = data['test_player_0-test_player_1']['xxx']
+
+
+@pytest.fixture(scope='function')
+def setup_shared_payoff():
+    return SharedPayoff(decay=0.99)
+
+
+global sp_player_count
+sp_player_count = 0
+
+
+def get_shared_payoff_player(payoff):
+    global sp_player_count
+    player = Player(
+        race='zerg',
+        init_payoff=payoff,
+        checkpoint_path='sp_ckpt_{}.pth'.format(sp_player_count),
+        player_id='sp_player_{}'.format(sp_player_count)
+    )
+    sp_player_count += 1
+    return player
+
+
+@pytest.mark.unittest
+class TestSharedPayoff:
+    def test_update(self, setup_shared_payoff):
+        N = 10
+        games_per_player = 4
+        player_list = [get_shared_payoff_player(setup_shared_payoff) for _ in range(N)]
+        for p in player_list:
+            setup_shared_payoff.add_player(p)
+
+        for home in player_list:
+            for away in player_list:
+                for i in range(games_per_player):
+                    match_result = random_match_result()
+                    match_info = {
+                        'home': home.player_id,
+                        'away': away.player_id,
+                        'result': match_result,
+                    }
+                    key = setup_shared_payoff.get_key(home.player_id, away.player_id)
+                    if key in setup_shared_payoff._data.keys():
+                        old = setup_shared_payoff._data[key][match_result]
+                    else:
+                        old = 0
+                    result = setup_shared_payoff.update(match_info)
+                    assert result
+                    assert old * setup_shared_payoff._decay + 1 == setup_shared_payoff._data[key][match_result]
+
+        # test shared payoff
+        for p in player_list:
+            assert id(p.payoff) == id(setup_shared_payoff)
+
+    def test_getitem(self, setup_shared_payoff):
+        N = 10
+        games_per_player = 4
+        player_list = [get_shared_payoff_player(setup_shared_payoff) for _ in range(N)]
+        for p in player_list:
+            setup_shared_payoff.add_player(p)
+
+        # test key not in setup_shared_payoff._data
+        home = player_list[0]
+        away = player_list[0]
+        key = setup_shared_payoff.get_key(home.player_id, away.player_id)
+        assert key not in setup_shared_payoff._data.keys()
+        win_rate = setup_shared_payoff[home, away]
+        assert key in setup_shared_payoff._data.keys()
+        assert len(win_rate.shape) == 1
+        assert win_rate[0] == pytest.approx(0.5)
+
+        # test playes list
+        for i in range(314):
+            home = np.random.choice(setup_shared_payoff.players)
+            away = np.random.choice(setup_shared_payoff.players)
+            match_info = {'home': home.player_id, 'away': away.player_id, 'result': random_match_result()}
+            result = setup_shared_payoff.update(match_info)
+            assert result
+        for i in range(314):
+            home_num = np.random.randint(1, N + 1)
+            home = np.random.choice(setup_shared_payoff.players, home_num).tolist()
+            away_num = np.random.randint(1, N + 1)
+            away = np.random.choice(setup_shared_payoff.players, away_num).tolist()
+            win_rates = setup_shared_payoff[home, away]
+            assert isinstance(win_rates, np.ndarray)
+            if home_num == 1 or away_num == 1:
+                assert len(win_rates.shape) == 1
+            else:
+                assert len(win_rates.shape) == 2
+                assert win_rates.shape == (home_num, away_num)
+            assert win_rates.max() <= 1.
+            assert win_rates.min() >= 0.
+
+        # test shared payoff
+        for p in player_list:
+            assert id(p.payoff) == id(setup_shared_payoff)
