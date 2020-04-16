@@ -10,12 +10,13 @@ class Payoff:
     """
     data_keys = ['wins', 'draws', 'losses', 'games']
 
-    def __init__(self, home_id, decay):
+    def __init__(self, home_id, decay, min_win_rate_games=8):
         """
         Overview: initialize payoff
         Arguments:
             - home_id (:obj:`str`): home player id
             - decay (:obj:`float`): update step decay factor
+            - min_win_rate_games (:obj:`int`): min games for win rate calculation
         """
         # self._players is a list including the reference(shallow copy) of all the possible opponent player
         self._players = []
@@ -24,6 +25,7 @@ class Payoff:
         self._data = {}
         self._home_id = home_id
         self._decay = decay
+        self._min_win_rate_games = min_win_rate_games
 
     def __getitem__(self, players):
         """
@@ -50,7 +52,7 @@ class Payoff:
         key = player.player_id
         handle = self._data[key]
         # no game record case
-        if handle['games'] < 1e-6:
+        if handle['games'] < self._min_win_rate_games:
             return 0.5
 
         return (handle['wins'] + 0.5 * handle['draws']) / (handle['games'])

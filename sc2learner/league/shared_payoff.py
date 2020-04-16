@@ -35,7 +35,7 @@ class SharedPayoff:
 
     # TODO(nyz) whether ensures the thread-safe
 
-    def __init__(self, decay):
+    def __init__(self, decay, min_win_rate_games=8):
         """
         Overview: initialize payoff
         Arguments:
@@ -48,6 +48,7 @@ class SharedPayoff:
         # and whose value is a RecordDict
         self._data = PayoffDict()
         self._decay = decay
+        self._min_win_rate_games = min_win_rate_games
 
     def __getitem__(self, players):
         """
@@ -84,7 +85,7 @@ class SharedPayoff:
         key = self.get_key(home, away)
         handle = self._data[key]
         # no game record case
-        if handle['games'] < 1e-6:
+        if handle['games'] < self._min_win_rate_games:
             return 0.5
 
         return (handle['wins'] + 0.5 * handle['draws']) / (handle['games'])
