@@ -152,8 +152,8 @@ class TestMainPlayer:
         for n in range(N):
             for hp in [p for p in setup_league if isinstance(p, HistoricalPlayer)]:
                 match_info = {
-                    'home': setup_league[0].player_id,
-                    'away': hp.player_id,
+                    'home_id': setup_league[0].player_id,
+                    'away_id': hp.player_id,
                     'result': 'wins',
                 }
                 result = payoff.update(match_info)
@@ -163,8 +163,8 @@ class TestMainPlayer:
         for n in range(N):
             for hp in hp_list:
                 match_info = {
-                    'home': setup_league[5].player_id,
-                    'away': hp.player_id,
+                    'home_id': setup_league[5].player_id,
+                    'away_id': hp.player_id,
                     'result': 'draws',
                 }
                 result = payoff.update(match_info)
@@ -200,7 +200,7 @@ class TestMainExploiter:
         for n in range(N):
             for p in setup_league:
                 if isinstance(p, MainPlayer):
-                    match_info = {'home': setup_league[1].player_id, 'away': p.player_id, 'result': 'losses'}
+                    match_info = {'home_id': setup_league[1].player_id, 'away_id': p.player_id, 'result': 'losses'}
                     assert payoff.update(match_info)
 
         opponent = setup_league[1].get_match()
@@ -220,7 +220,7 @@ class TestMainExploiter:
             home = np.random.choice(no_main_player_league)
             away = np.random.choice(no_main_player_league)
             result = random_match_result()
-            match_info = {'home': home.player_id, 'away': away.player_id, 'result': result}
+            match_info = {'home_id': home.player_id, 'away_id': away.player_id, 'result': result}
             assert payoff.update(match_info)
 
         for i in range(10):

@@ -2,6 +2,7 @@ import numpy as np
 import copy
 from collections import defaultdict
 from .player import Player
+from sc2learner.utils import LockContext
 
 
 class RecordDict(dict):
@@ -49,6 +50,7 @@ class SharedPayoff:
         self._data = PayoffDict()
         self._decay = decay
         self._min_win_rate_games = min_win_rate_games
+        self._lock = LockContext(lock_type='thread')
 
     def __getitem__(self, players):
         """
@@ -58,20 +60,21 @@ class SharedPayoff:
         Returns:
             - win_rates (:obj:`np.array`): win rate numpy array
         """
-        home, away = players
-        assert isinstance(home, list) or isinstance(home, Player)
-        assert isinstance(away, list) or isinstance(away, Player)
-        # single player case
-        if isinstance(home, Player):
-            home = [home]
-        if isinstance(away, Player):
-            away = [away]
+        with self._lock:
+            home, away = players
+            assert isinstance(home, list) or isinstance(home, Player)
+            assert isinstance(away, list) or isinstance(away, Player)
+            # single player case
+            if isinstance(home, Player):
+                home = [home]
+            if isinstance(away, Player):
+                away = [away]
 
-        win_rates = np.array([[self._win_rate(h.player_id, a.player_id) for a in away] for h in home])
-        if len(home) == 1 or len(away) == 1:
-            win_rates = win_rates.reshape(-1)
+            win_rates = np.array([[self._win_rate(h.player_id, a.player_id) for a in away] for h in home])
+            if len(home) == 1 or len(away) == 1:
+                win_rates = win_rates.reshape(-1)
 
-        return win_rates
+            return win_rates
 
     def _win_rate(self, home, away):
         """
@@ -97,7 +100,8 @@ class SharedPayoff:
         Returns:
             - players (:obj:`list`): players list
         """
-        return self._players
+        with self._lock:
+            return self._players
 
     def add_player(self, player):
         """
@@ -105,8 +109,9 @@ class SharedPayoff:
         Arguments:
             - player (:obj:`Player`): a player to be added
         """
-        self._players.append(player)
-        self._players_ids.append(player.player_id)
+        with self._lock:
+            self._players.append(player)
+            self._players_ids.append(player.player_id)
 
     def update(self, match_info):
         """
@@ -119,22 +124,23 @@ class SharedPayoff:
             match_info owns at least 3 keys('home', 'away', 'result')
         """
         # check
-        try:
-            assert match_info['home'] in self._players_ids
-            assert match_info['away'] in self._players_ids
-            assert match_info['result'] in RecordDict.data_keys[:3]
-        except Exception as e:
-            print("[ERROR] invalid match_info: {}".format(match_info))
-            print(e)
-            return False
-        # decay
-        key = self.get_key(match_info['home'], match_info['away'])
-        self._data[key] *= self._decay
+        with self._lock:
+            try:
+                assert match_info['home_id'] in self._players_ids
+                assert match_info['away_id'] in self._players_ids
+                assert match_info['result'] in RecordDict.data_keys[:3]
+            except Exception as e:
+                print("[ERROR] invalid match_info: {}".format(match_info))
+                print(e)
+                return False
+            # decay
+            key = self.get_key(match_info['home_id'], match_info['away_id'])
+            self._data[key] *= self._decay
 
-        # update
-        self._data[key]['games'] += 1
-        self._data[key][match_info['result']] += 1
-        return True
+            # update
+            self._data[key]['games'] += 1
+            self._data[key][match_info['result']] += 1
+            return True
 
     def get_key(self, home, away):
         assert isinstance(home, str)

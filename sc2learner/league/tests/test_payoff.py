@@ -64,8 +64,8 @@ class TestPayoff:
             for i in range(games_per_player):
                 match_result = random_match_result()
                 match_info = {
-                    'home': setup_payoff._home_id,
-                    'away': away,
+                    'home_id': setup_payoff._home_id,
+                    'away_id': away,
                     'result': match_result,
                 }
                 old = setup_payoff._data[away][match_result]
@@ -88,8 +88,8 @@ class TestPayoff:
         for i in range(match_num):
             away = np.random.choice(setup_payoff.players).player_id
             match_info = {
-                'home': setup_payoff._home_id,
-                'away': away,
+                'home_id': setup_payoff._home_id,
+                'away_id': away,
                 'result': random_match_result(),
             }
             setup_payoff.update(match_info)
@@ -164,8 +164,8 @@ class TestSharedPayoff:
                 for i in range(games_per_player):
                     match_result = random_match_result()
                     match_info = {
-                        'home': home.player_id,
-                        'away': away.player_id,
+                        'home_id': home.player_id,
+                        'away_id': away.player_id,
                         'result': match_result,
                     }
                     key = setup_shared_payoff.get_key(home.player_id, away.player_id)
@@ -202,7 +202,7 @@ class TestSharedPayoff:
         for i in range(314):
             home = np.random.choice(setup_shared_payoff.players)
             away = np.random.choice(setup_shared_payoff.players)
-            match_info = {'home': home.player_id, 'away': away.player_id, 'result': random_match_result()}
+            match_info = {'home_id': home.player_id, 'away_id': away.player_id, 'result': random_match_result()}
             result = setup_shared_payoff.update(match_info)
             assert result
         for i in range(314):

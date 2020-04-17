@@ -88,14 +88,14 @@ class Payoff:
         """
         # check
         try:
-            assert match_info['home'] == self._home_id
-            assert match_info['away'] in self._data.keys()
+            assert match_info['home_id'] == self._home_id
+            assert match_info['away_id'] in self._data.keys()
             assert match_info['result'] in self.data_keys[:3]
         except Exception:
             print("[ERROR] invalid match_info: {}".format(match_info))
             return False
         # decay
-        key = match_info['away']
+        key = match_info['away_id']
         for k in self.data_keys:
             self._data[key][k] *= self._decay
 
