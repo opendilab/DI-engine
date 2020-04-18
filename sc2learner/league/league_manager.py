@@ -77,7 +77,7 @@ class LeagueManager:
             for k, n in self.cfg.active_players.items():
                 for i in range(n):
                     name = '{}_{}_{}'.format(k, r, i)  # e.g. main_player_zerg_0
-                    ckpt_path = '{}_ckpt.pth'
+                    ckpt_path = '{}_ckpt.pth'.format(name)
                     player = player_map[k](r, self.payoff, ckpt_path, name, **self.cfg[k])
                     self.active_players.append(player)
                     self.payoff.add_player(player)
@@ -167,7 +167,7 @@ class LeagueManager:
 
     def update_active_player(self, player_info):
         try:
-            idx = self.active_players_ids.find(player_info['player_id'])
+            idx = self.active_players_ids.index(player_info['player_id'])
             self.active_players[idx].update_agent_step(player_info['train_step'])
         except ValueError:
             pass

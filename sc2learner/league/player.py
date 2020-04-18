@@ -58,7 +58,7 @@ class ActivePlayer(Player):
         assert isinstance(branch_probs, dict)
         self._branch_probs = [self.BRANCH(k, v) for k, v in branch_probs.items()]
         self._strong_win_rate = strong_win_rate
-        self._one_phase_steps = one_phase_steps
+        self._one_phase_steps = int(float(one_phase_steps))
         self._total_agent_steps = 0
         self._last_enough_steps = 0
 

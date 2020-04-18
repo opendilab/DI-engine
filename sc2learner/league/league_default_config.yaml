@@ -34,4 +34,4 @@ league:
     # ---runner---
     max_active_player_match: 3
     #per_match_games: 8
-    time_interval: 10
+    time_interval: 5
