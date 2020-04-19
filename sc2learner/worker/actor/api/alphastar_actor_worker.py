@@ -158,8 +158,8 @@ class DataPusher:
         self.context = context
         self.ceph_path = self.context.cfg['system']['ceph_traj_path']
 
-    def finish_job(self, job_id):
-        d = {'actor_uid': self.context.actor_uid, 'job_id': job_id}
+    def finish_job(self, job_id, result):
+        d = {'actor_uid': self.context.actor_uid, 'job_id': job_id, 'result': result}
         try:
             response = self.context.requests_session.post(self.context.url_prefix + 'manager/finish_job', json=d).json()
             if response['code'] == 0:

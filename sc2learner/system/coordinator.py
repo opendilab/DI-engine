@@ -271,12 +271,13 @@ class Coordinator(object):
         '''
         assert job_id in self.job_record, 'job_id ({}) not in job_record'.format(job_id)
         self.job_record[job_id]['state'] = 'finish'
-        home_learner_uid = self.job_record[job_id]['content']['learner_uid'][0]
-        away_learner_uid = self.job_record[job_id]['content']['learner_uid'][1]
-        home_id = home_learner_uid if home_learner_uid.endswith('_sl') else self.learner_to_player[home_learner_uid]
-        away_id = away_learner_uid if away_learner_uid.endswith('_sl') else self.learner_to_player[away_learner_uid]
-        match_info = {'home_id': home_id, 'away_id': away_id, 'result': result}
-        self.league_manager.finish_match(match_info)
+        if not self.use_fake_data:
+            home_learner_uid = self.job_record[job_id]['content']['learner_uid'][0]
+            away_learner_uid = self.job_record[job_id]['content']['learner_uid'][1]
+            home_id = home_learner_uid if home_learner_uid.endswith('_sl') else self.learner_to_player[home_learner_uid]
+            away_id = away_learner_uid if away_learner_uid.endswith('_sl') else self.learner_to_player[away_learner_uid]
+            match_info = {'home_id': home_id, 'away_id': away_id, 'result': result}
+            self.league_manager.finish_match(match_info)
         return True
 
     def deal_with_ask_for_metadata(self, learner_uid, batch_size):

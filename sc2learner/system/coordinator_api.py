@@ -71,7 +71,8 @@ def create_coordinator_app(coordinator):
         manager_uid = request.json['manager_uid']
         actor_uid = request.json['actor_uid']
         job_id = request.json['job_id']
-        ret_code = coordinator.deal_with_finish_job(manager_uid, actor_uid, job_id)
+        result = request.json['result']
+        ret_code = coordinator.deal_with_finish_job(manager_uid, actor_uid, job_id, result)
         if ret_code:
             return build_ret(0)
         else:

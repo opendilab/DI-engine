@@ -357,7 +357,9 @@ class AlphaStarActor:
                     last_buffer[i] = data_buffer[i].copy()
                     data_buffer[i] = []
             if done:
-                self.data_pusher.finish_job(job['job_id'])
+                result_map = {1: 'wins', 0: 'draws', '-1': 'losses'}
+                result = result_map[rewards[0]]
+                self.data_pusher.finish_job(job['job_id'], result)
                 break
 
     def run(self):
@@ -423,5 +425,5 @@ class DataPusher:
     def push(self, metadata, data_buffer):
         pass
 
-    def finish_job(self, job_id):
+    def finish_job(self, job_id, result):
         pass
