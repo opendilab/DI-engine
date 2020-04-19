@@ -218,18 +218,17 @@ class SelectedUnitsHead(nn.Module):
                     if end_flag_trigger[b]:
                         continue
                     else:
+                        logits[b].append(query_result[b])
                         if entity_num[b] == end_flag_index:
                             end_flag_trigger[b] = True
-                            # logits == 0 case, select the second largest unit
-                            if len(logits[b]) == 0:
+                            # evaluate and logits == 1 case(only end_flag), select the second largest unit
+                            if not self.training and len(logits[b]) == 1:
                                 logit = query_result[b]
                                 logit[end_flag_index] = -1e9
-                                logits[b].append(logit)
+                                logits[b].insert(0, logit)
                                 entity_num_b = self._get_pred_with_logit(logit, temperature)
                                 units[b][entity_num_b] = 1
                             continue
-                        # not add end_flag logits
-                        logits[b].append(query_result[b])
                         units[b][entity_num[b]] = 1
                         mask[b][entity_num[b]] = 0
         else:
