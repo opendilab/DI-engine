@@ -172,6 +172,8 @@ def test_actor(coordinator, manager, caplog):
     caplog.set_level(logging.INFO)
     # to be called by pytest
     cfg = get_test_cfg()
+    cfg.system.learner_port += 9
+    cfg.system.coordinator_port += 9
     actor = ActorForTest(cfg)
     logging.info('expecting a manager registered at the coordinator {}'.format(str(coordinator.manager_record)))
     assert (len(coordinator.manager_record) == 1)

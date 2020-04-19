@@ -30,7 +30,7 @@ class Encoder(nn.Module):
         self.scatter_dim = cfg.scatter.output_dim
 
     def _scatter_connection(self, spatial_info, entity_embeddings, entity_raw):
-        if isinstance(entity_embeddings, collections.Sequence):
+        if isinstance(entity_embeddings, collections.abc.Sequence):
             x = [t.squeeze(0) for t in entity_embeddings]
             num_list = [t.shape[0] for t in x]
             x = torch.cat(x, dim=0)

@@ -188,6 +188,14 @@ class SelectedUnitsHead(nn.Module):
         state = None
         return x, state
 
+    def _get_pred_with_logit(self, logit, temperature):
+        p = F.softmax(logit.div(temperature), dim=-1)
+        handle = self.pd(p)
+        if self.training:
+            return handle.sample()
+        else:
+            return handle.mode()
+
     def _query(self, key, end_flag_index, x, state, mask, temperature, output_entity_num):
         B, N = key.shape[:2]
         units = torch.zeros(B, N, device=key.device, dtype=torch.long)
@@ -204,21 +212,24 @@ class SelectedUnitsHead(nn.Module):
                 query_result = query_result.mean(dim=2)
                 if self.use_mask:
                     query_result.sub_((1 - mask) * 1e9)
-                p = F.softmax(query_result.div(temperature), dim=1)
-                handle = self.pd(p)
-                if self.training:
-                    entity_num = handle.sample()
-                else:
-                    entity_num = handle.mode()
+                entity_num = self._get_pred_with_logit(query_result, temperature)
 
                 for b in range(B):
                     if end_flag_trigger[b]:
                         continue
                     else:
-                        logits[b].append(query_result[b])
                         if entity_num[b] == end_flag_index:
                             end_flag_trigger[b] = True
+                            # logits == 0 case, select the second largest unit
+                            if len(logits[b]) == 0:
+                                logit = query_result[b]
+                                logit[end_flag_index] = -1e9
+                                logits[b].append(logit)
+                                entity_num_b = self._get_pred_with_logit(logit, temperature)
+                                units[b][entity_num_b] = 1
                             continue
+                        # not add end_flag logits
+                        logits[b].append(query_result[b])
                         units[b][entity_num[b]] = 1
                         mask[b][entity_num[b]] = 0
         else:
