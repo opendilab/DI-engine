@@ -59,7 +59,6 @@ class Coordinator(object):
         print('initialize league')
         self.logger.info('[logger] initialize league')
 
-
     def close(self):
         self.replay_buffer.close()
 
@@ -122,7 +121,6 @@ class Coordinator(object):
         self.league_manager = LeagueManager(self.cfg, save_checkpoint_fn, load_checkpoint_fn, launch_match_fn)
         self.player_ids = self.league_manager.active_players_ids
         print('{} learners should be registered totally. '.format(len(self.player_ids)))
-
 
     def _get_job(self):
         '''
@@ -198,7 +196,9 @@ class Coordinator(object):
                     self.learner_to_player[learner_uid] = player_id
                     self.logger.info('leaner ({}) set to player ({})'.format(learner_uid, player_id))
                     break
-        self.logger.info('{}/{} learners have been registered'.format(len(self.player_to_learner), len(self.player_ids)))
+        self.logger.info(
+            '{}/{} learners have been registered'.format(len(self.player_to_learner), len(self.player_ids))
+        )
         if len(self.player_ids) == len(self.player_to_learner) and not self.league_flag:
             self.league_flag = True
             self.league_manager.run()
@@ -251,12 +251,8 @@ class Coordinator(object):
         home_learner_uid = self.job_record[job_id]['content']['learner_uid'][0]
         away_learner_uid = self.job_record[job_id]['content']['learner_uid'][1]
         home_id = home_learner_uid if home_learner_uid.endswith('_sl') else self.learner_to_player[home_learner_uid]
-        away_id = away_learner_uid if away_learner_uid.endswith('_sl') else self.learner_to_player[away_learner_uid]  
-        match_info = {
-            'home_id': home_id,
-            'away_id': away_id,
-            'result': result
-        }
+        away_id = away_learner_uid if away_learner_uid.endswith('_sl') else self.learner_to_player[away_learner_uid]
+        match_info = {'home_id': home_id, 'away_id': away_id, 'result': result}
         self.league_manager.finish_match(match_info)
         return True
 
@@ -289,16 +285,11 @@ class Coordinator(object):
         url_prefix = self.url_prefix_format.format(learner_ip, self.learner_port)
         return url_prefix
 
-
     def deal_with_get_learner_train_step(self, learner_uid, train_step):
         player_id = self.player_to_learner.get(learner_uid, random.choice(list(self.player_to_learner.values())))
-        player_info = {
-            'player_id': player_id,
-            'train_step': train_step
-        }
+        player_info = {'player_id': player_id, 'train_step': train_step}
         self.league_manager.update_active_player(player_info)
         return True
-
 
     ###################################################################################
     #                                      debug                                      #

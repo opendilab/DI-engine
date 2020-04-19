@@ -52,7 +52,7 @@ def get_dict():
     for index, line in enumerate(lines):
         if index % 1000 == 0:
             print(index)
-        meta = torch.load(read_file_ceph(line.strip()+".meta"))
+        meta = torch.load(read_file_ceph(line.strip() + ".meta"))
         del meta['replay_path']
         k = line.strip().split('/')[-1]
         assert k not in result
@@ -70,7 +70,7 @@ def filter():
     for k, v in metas.items():
         if v['map_name'] in ['Kairos Junction LE', 'KairosJunction'] \
            and v['home_race'] == 'Zerg' and v['away_race'] == 'Zerg':
-           result.append(prefix + k)
+            result.append(prefix + k)
     with open(save_path, 'w') as f:
         for item in result:
             f.write(item + '\n')
@@ -92,7 +92,6 @@ def process():
                 print(line.strip())
                 count += 1
     print(count)
-
 
 
 def zlib_decompressor_save(local_path, save_path):
@@ -197,8 +196,7 @@ def auto():
     save_dir = '/mnt/lustre/zhangming/data/replay_decode_410_clean_decompress/'
     list_dir = '/mnt/lustre/zhangming/data/list_decompress_temp'
     delete_workstations = []
-    partitions = ['VI_SP_Y_V100_A', 'VI_SP_Y_V100_B', 'VI_SP_VA_V100',
-                  'VI_ID_1080TI', 'VI_Face_1080TI']
+    partitions = ['VI_SP_Y_V100_A', 'VI_SP_Y_V100_B', 'VI_SP_VA_V100', 'VI_ID_1080TI', 'VI_Face_1080TI']
     info = get_cls_info()
     total_list_num = 0
     for k, v in info.items():
@@ -232,7 +230,10 @@ def auto():
                     for replay in replays[replays_index * len_per_workstation:(replays_index + 1) *
                                           len_per_workstation]:
                         f.write(replay + '\n')
-                print('srun -p {} -w {} python -u test.py clean {} >> /mnt/lustre/zhangming/data/clean_2.log 2>&1 &'.format(partition, workstation, replay_list_path_now))
+                print(
+                    'srun -p {} -w {} python -u test.py clean {} >> /mnt/lustre/zhangming/data/clean_2.log 2>&1 &'.
+                    format(partition, workstation, replay_list_path_now)
+                )
                 replays_index += 1
 
 
@@ -244,8 +245,7 @@ def auto_clean_for_manyuan():
     todolist = '/mnt/lustre/zhangmanyuan/nature-agi/sl_data/Protoss_1708.txt'
     list_dir = '/mnt/lustre/zhangming/data/list_for_manyuan'
     delete_workstations = []
-    partitions = ['VI_SP_Y_V100_A', 'VI_SP_Y_V100_B', 'VI_SP_VA_V100',
-                  'VI_ID_1080TI', 'VI_Face_1080TI']
+    partitions = ['VI_SP_Y_V100_A', 'VI_SP_Y_V100_B', 'VI_SP_VA_V100', 'VI_ID_1080TI', 'VI_Face_1080TI']
     info = get_cls_info()
     total_list_num = 0
     for k, v in info.items():
@@ -280,7 +280,10 @@ def auto_clean_for_manyuan():
                         for replay in replays[replays_index * len_per_workstation:(replays_index + 1) *
                                               len_per_workstation]:
                             f.write(replay + '\n')
-                    print('srun -p {} -w {} python -u test.py clean_for_manyuan {} >> /mnt/lustre/zhangming/data/clean_for_manyuan.log.2 2>&1 &'.format(partition, workstation, replay_list_path_now))
+                    print(
+                        'srun -p {} -w {} python -u test.py clean_for_manyuan {} >> /mnt/lustre/zhangming/data/clean_for_manyuan.log.2 2>&1 &'
+                        .format(partition, workstation, replay_list_path_now)
+                    )
                     replays_index += 1
 
 
@@ -372,15 +375,18 @@ class A:
     def func(self):
         self.func1('aaab')
 
+
 class B:
     def __init__(self):
         self.password = '123456'
-        def f(x,y=1):
+
+        def f(x, y=1):
             if x == 'aaa':
                 x = x + ' - ' + self.password
             else:
                 x = x + ' - not aaa'
             print(x, y)
+
         self.a = A(f)
 
     def go(self):
@@ -395,7 +401,6 @@ def process_0419():
             for workstation, state in v:
                 if count < 12:
                     print('sh run_coordinator.sh {} {} &'.format(k, workstation))
-
 
 
 if __name__ == '__main__':
@@ -427,7 +432,3 @@ if __name__ == '__main__':
         b.go()
     elif func_name == 'process_0419':
         process_0419()
-
-
-
-

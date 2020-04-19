@@ -182,7 +182,6 @@ class FakeLearner(object):
         except Exception as e:
             self.logger.info("something wrong with coordinator, {}".format(e))
 
-
     def reset(self, checkpoint_path):
         model = self._load_checkpoint_from_ceph(checkpoint_path)
         return True
