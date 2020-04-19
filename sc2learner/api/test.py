@@ -164,7 +164,6 @@ def clean_for_manyuan(todolist):
                         break
             if flag:
                 new_replay.append(step)
-        # print("bad_vals = {} {} \n delete from {} to {}".format(bad_vals, len(bad_vals), len(replay), len(new_replay)))
         # print("selected_units {}, target_units {}".format(count1, count2))
         return new_replay
 
@@ -280,8 +279,9 @@ def auto_clean_for_manyuan():
                         for replay in replays[replays_index * len_per_workstation:(replays_index + 1) *
                                               len_per_workstation]:
                             f.write(replay + '\n')
+                    x = '>> /mnt/lustre/zhangming/data/clean_for_manyuan.log.2 2>&1 &'
                     print(
-                        'srun -p {} -w {} python -u test.py clean_for_manyuan {} >> /mnt/lustre/zhangming/data/clean_for_manyuan.log.2 2>&1 &'
+                        ('srun -p {} -w {} python -u test.py clean_for_manyuan {} ' + x)
                         .format(partition, workstation, replay_list_path_now)
                     )
                     replays_index += 1
