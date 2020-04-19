@@ -7,8 +7,8 @@ import signal
 from easydict import EasyDict
 from threading import Thread
 from flask import Flask, request
-from sc2learner.api import Coordinator, LearnerCommunicationHelper
-from sc2learner.api.coordinator_api import create_coordinator_app
+from sc2learner.system import Coordinator, create_coordinator_app
+from sc2learner.worker.learner.api import LearnerCommunicationHelper
 from sc2learner.utils.log_helper import TextLogger
 
 with open(os.path.join(os.path.dirname(__file__), '../alphastar_rl_learner_default_config.yaml')) as f:
@@ -16,8 +16,8 @@ with open(os.path.join(os.path.dirname(__file__), '../alphastar_rl_learner_defau
 cfg = EasyDict(cfg)
 learner_ip = '127.0.0.1'  # socket.gethostname()
 coordinator_ip = '127.0.0.1'  # socket.gethostname()
-cfg.api.learner_ip = learner_ip
-cfg.api.coordinator_ip = coordinator_ip
+cfg.system.learner_ip = learner_ip
+cfg.system.coordinator_ip = coordinator_ip
 
 log_path = os.path.join(os.path.dirname(__file__))
 api_dir_name = 'api-log'
@@ -41,7 +41,7 @@ def learner():
 
     def run():
         try:
-            learner_app.run(host=learner_ip, port=cfg.api.learner_port, debug=True, use_reloader=False)
+            learner_app.run(host=learner_ip, port=cfg.system.learner_port, debug=True, use_reloader=False)
         except KeyboardInterrupt:
             pass
 
@@ -62,7 +62,7 @@ def coordinator():
 
     def run():
         try:
-            coordinator_app.run(host=coordinator_ip, port=cfg.api.coordinator_port, debug=True, use_reloader=False)
+            coordinator_app.run(host=coordinator_ip, port=cfg.system.coordinator_port, debug=True, use_reloader=False)
         except KeyboardInterrupt:
             pass
 

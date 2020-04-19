@@ -84,6 +84,7 @@ def recu_check_keys(ref, under_test, trace='ROOT'):
                 warnings.warn('Missing key: {}'.format(trace + ':' + str(k)))
 
 
+@pytest.mark.unittest
 def test_transformed_load_export(stat_processed):
     stat = Statistics(player_num=2)
     stat.load_from_transformed_stat(stat_processed, 0)

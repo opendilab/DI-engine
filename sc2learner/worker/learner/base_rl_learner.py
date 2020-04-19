@@ -1,4 +1,4 @@
-from sc2learner.api import LearnerCommunicationHelper
+from sc2learner.worker.learner.api import LearnerCommunicationHelper
 from .base_learner import Learner
 
 

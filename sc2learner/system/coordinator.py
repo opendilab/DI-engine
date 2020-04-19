@@ -22,14 +22,10 @@ class Coordinator(object):
         super(Coordinator, self).__init__()
         self.cfg = cfg
 
-        self.learner_port = cfg['api']['learner_port']
-        self.manager_ip = cfg['api']['manager_ip']
-        self.manager_port = cfg['api']['manager_port']
-
-        self.use_fake_data = cfg['api']['coordinator']['use_fake_data']
+        self.use_fake_data = cfg['coordinator']['use_fake_data']
         if self.use_fake_data:
-            self.fake_model_path = cfg['api']['coordinator']['fake_model_path']
-            self.fake_stat_path = cfg['api']['coordinator']['fake_stat_path']
+            self.fake_model_path = cfg['coordinator']['fake_model_path']
+            self.fake_stat_path = cfg['coordinator']['fake_stat_path']
 
         # {manager_uid: {actor_uid: [job_id]}}
         self.manager_record = {}
@@ -71,7 +67,7 @@ class Coordinator(object):
                 'learner_uid': [learner_uid1, learner_uid2],
                 'stat_id': [self.fake_stat_path, self.fake_stat_path],
                 'game_type': 'league',
-                'obs_compressor': 'lz4',
+                'step_data_compressor': 'lz4',
                 'model_id': [model_name1, model_name2],
                 'teacher_model_id': model_name1,
                 'map_name': 'AbyssalReef',
@@ -97,7 +93,7 @@ class Coordinator(object):
                     'learner_uid': [learner_uid1, learner_uid2],
                     'stat_id': [self.fake_stat_path, self.fake_stat_path],
                     'game_type': 'league',
-                    'obs_compressor': 'lz4',
+                    'step_data_compressor': 'lz4',
                     'model_id': [model_name1, model_name2],
                     'teacher_model_id': model_name1,
                     'map_name': '',
