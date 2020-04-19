@@ -56,7 +56,7 @@ class TextLogger(object):
         Overview: save terminal output to file
         Interface: __init__, info
     '''
-    def __init__(self, path, name=None):
+    def __init__(self, path, name=None, level=logging.INFO):
         '''
             Overview: initialization method, create logger.
             Arguments:
@@ -70,7 +70,7 @@ class TextLogger(object):
             os.makedirs(path)
         except FileExistsError:
             pass
-        self.logger = self._create_logger(name, os.path.join(path, name + '.txt'))
+        self.logger = self._create_logger(name, os.path.join(path, name + '.txt'), level=level)
 
     def _create_logger(self, name, path, level=logging.INFO):
         '''

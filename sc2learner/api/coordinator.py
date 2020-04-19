@@ -13,8 +13,11 @@ import traceback
 import uuid
 import random
 from easydict import EasyDict
+from queue import Queue
 
 from sc2learner.data.online import ReplayBuffer
+from sc2learner.utils import read_file_ceph, save_file_ceph
+from sc2learner.league import LeagueManager
 
 
 class Coordinator(object):
@@ -25,18 +28,37 @@ class Coordinator(object):
         self.learner_port = cfg['api']['learner_port']
         self.manager_ip = cfg['api']['manager_ip']
         self.manager_port = cfg['api']['manager_port']
+        self.ceph_path = cfg['api']['ceph_path']
+
+        self.use_fake_data = cfg['api']['coordinator']['use_fake_data']
+        if self.use_fake_data:
+            self.fake_model_path = cfg['api']['coordinator']['fake_model_path']
+            self.fake_stat_path = cfg['api']['coordinator']['fake_stat_path']
 
         # {manager_uid: {actor_uid: [job_id]}}
         self.manager_record = {}
-        # {job_id: {content: info, state: run/finish}}
+        # {job_id: {content: info, state: running/finish}}
         self.job_record = {}
         # {learner_uid: {"learner_ip": learner_ip,
         #                "job_ids": [job_id], "models": [model_name]}}
         self.learner_record = {}
+
+        self.url_prefix_format = 'http://{}:{}/'
+
         self.replay_buffer = ReplayBuffer(EasyDict(self.cfg['replay_buffer']))
         self.replay_buffer.run()
 
         self._set_logger()
+
+        # for league
+        self.player_to_learner = {}
+        self.learner_to_player = {}
+        self.job_queue = Queue()
+        self.league_flag = False
+        self._init_league_manager()
+        print('initialize league')
+        self.logger.info('[logger] initialize league')
+
 
     def close(self):
         self.replay_buffer.close()
@@ -44,16 +66,99 @@ class Coordinator(object):
     def _set_logger(self, level=1):
         self.logger = logging.getLogger("coordinator.log")
 
+    def _init_league_manager(self):
+        def save_checkpoint_fn(src_checkpoint, dst_checkpoint, read_type='pickle'):
+            '''
+                Overview: copy src_checkpoint as dst_checkpoint
+                Arguments:
+                    - src_checkpoint (:obj:`str`): source checkpoint's path, e.g. s3://alphastar_fake_data/ckpt.pth
+                    - dst_checkpoint (:obj:`str`): dst checkpoint's path, e.g. s3://alphastar_fake_data/ckpt.pth
+            '''
+            src_checkpoint = self.ceph_path + src_checkpoint
+            dst_checkpoint = self.ceph_path + dst_checkpoint
+            checkpoint = read_file_ceph(src_checkpoint, read_type=read_type)
+            ceph_path, file_name = dst_checkpoint.strip().rsplit('/', 1)
+            save_file_ceph(ceph_path, file_name, checkpoint)
+
+        def load_checkpoint_fn(player_id, checkpoint_path):
+            d = {'checkpoint_path': checkpoint_path}
+            # need to be refine
+            learner_uid = self.player_to_learner.get(player_id, random.choice(list(self.learner_record.keys())))
+            while True:
+                try:
+                    response = requests.post(self.get_url_prefix(learner_uid) + "learner/reset", json=d).json()
+                    if response['code'] == 0:
+                        return True
+                except Exception as e:
+                    print("something wrong with coordinator, {}".format(e))
+                time.sleep(10)
+            return False
+
+        def launch_match_fn(launch_info):
+            home_id = launch_info['home_id']
+            away_id = launch_info['away_id']
+            home_checkpoint_path = launch_info['home_checkpoint_path']
+            away_checkpoint_path = launch_info['away_checkpoint_path']
+            home_learner_uid = home_id if home_id.endswith('_sl') else self.player_to_learner[home_id]
+            away_learner_uid = away_id if away_id.endswith('_sl') else self.player_to_learner[away_id]
+            job = {
+                'job_id': str(uuid.uuid1()),
+                'learner_uid': [home_learner_uid, away_learner_uid],
+                'stat_id': ['fake_stat_path', 'fake_stat_path'],
+                'game_type': 'league',
+                'obs_compressor': 'lz4',
+                'model_id': [home_checkpoint_path, away_checkpoint_path],
+                'teacher_model_id': home_checkpoint_path,
+                'map_name': 'AbyssalReef',
+                'random_seed': 0,
+                'home_race': 'zerg',
+                'away_race': 'zerg',
+                'difficulty': 'easy',
+                'build': 'random',
+                'data_push_length': 8
+            }
+            self.job_queue.put(job)
+
+        self.league_manager = LeagueManager(self.cfg, save_checkpoint_fn, load_checkpoint_fn, launch_match_fn)
+        self.player_ids = self.league_manager.active_players_ids
+        print('{} learners should be registered totally. '.format(len(self.player_ids)))
+
+
     def _get_job(self):
         '''
             Overview: return job info for actor
             Returns:
                 - (:obj`dict`): job info
         '''
-        job_id = str(uuid.uuid1())
-        learner_uid1 = random.choice(list(self.learner_record.keys()))
-        learner_uid2 = random.choice(list(self.learner_record.keys()))
-        return {'job_id': job_id, 'learner_uid1': learner_uid1, 'learner_uid2': learner_uid2}
+        ret = {}
+
+        if self.use_fake_data:
+            if not self.learner_record:
+                self.learner_record['test1'] = {"learner_ip": '0.0.0.0', "job_ids": [], "models": []}
+                self.learner_record['test2'] = {"learner_ip": '0.0.0.0', "job_ids": [], "models": []}
+            learner_uid1 = random.choice(list(self.learner_record.keys()))
+            learner_uid2 = random.choice(list(self.learner_record.keys()))
+            model_name1 = self.fake_model_path
+            model_name2 = self.fake_model_path
+            ret = {
+                'job_id': str(uuid.uuid1()),
+                'learner_uid': [learner_uid1, learner_uid2],
+                'stat_id': [self.fake_stat_path, self.fake_stat_path],
+                'game_type': 'league',
+                'obs_compressor': 'lz4',
+                'model_id': [model_name1, model_name2],
+                'teacher_model_id': model_name1,
+                'map_name': 'AbyssalReef',
+                'random_seed': 0,
+                'home_race': 'zerg',
+                'away_race': 'zerg',
+                'difficulty': 'easy',
+                'build': 'random',
+                'data_push_length': 8
+            }
+        else:
+            ret = self.job_queue.get()
+        return ret
 
     def deal_with_register_model(self, learner_uid, model_name):
         '''
@@ -83,6 +188,21 @@ class Coordinator(object):
         '''
         if learner_uid not in self.learner_record:
             self.learner_record[learner_uid] = {"learner_ip": learner_ip, "job_ids": [], "models": []}
+        if len(self.player_to_learner) == len(self.player_ids):
+            self.logger.info('enough learners have been registered.')
+            return False
+        else:
+            for player_id in self.player_ids:
+                if player_id not in self.player_to_learner:
+                    self.player_to_learner[player_id] = learner_uid
+                    self.learner_to_player[learner_uid] = player_id
+                    self.logger.info('leaner ({}) set to player ({})'.format(learner_uid, player_id))
+                    break
+        self.logger.info('{}/{} learners have been registered'.format(len(self.player_to_learner), len(self.player_ids)))
+        if len(self.player_ids) == len(self.player_to_learner) and not self.league_flag:
+            self.league_flag = True
+            self.league_manager.run()
+            self.logger.info('league_manager run. ')
         return True
 
     def deal_with_ask_for_job(self, manager_uid, actor_uid):
@@ -117,6 +237,29 @@ class Coordinator(object):
         self.replay_buffer.push_data(metadata)
         return True
 
+    def deal_with_finish_job(self, manager_uid, actor_uid, job_id, result):
+        '''
+            Overview: when receiving actor's request of finishing job, ,return True/False
+            Arguments:
+                - actor_uid (:obj:`str`): actor's uid
+                - job_id (:obj:`str`): job's id
+            Returns:
+                - (:obj`bool`): state
+        '''
+        assert job_id in self.job_record, 'job_id ({}) not in job_record'.format(job_id)
+        self.job_record[job_id]['state'] = 'finish'
+        home_learner_uid = self.job_record[job_id]['content']['learner_uid'][0]
+        away_learner_uid = self.job_record[job_id]['content']['learner_uid'][1]
+        home_id = home_learner_uid if home_learner_uid.endswith('_sl') else self.learner_to_player[home_learner_uid]
+        away_id = away_learner_uid if away_learner_uid.endswith('_sl') else self.learner_to_player[away_learner_uid]  
+        match_info = {
+            'home_id': home_id,
+            'away_id': away_id,
+            'result': result
+        }
+        self.league_manager.finish_match(match_info)
+        return True
+
     def deal_with_ask_for_metadata(self, learner_uid, batch_size):
         '''
             Overview: when receiving learner's request of asking for metadata, return metadatas
@@ -140,6 +283,22 @@ class Coordinator(object):
         '''
         self.replay_buffer.update(update_info)
         return True
+
+    def get_url_prefix(self, learner_uid):
+        learner_ip = self.learner_record[learner_uid]['learner_ip']
+        url_prefix = self.url_prefix_format.format(learner_ip, self.learner_port)
+        return url_prefix
+
+
+    def deal_with_get_learner_train_step(self, learner_uid, train_step):
+        player_id = self.player_to_learner.get(learner_uid, random.choice(list(self.player_to_learner.values())))
+        player_info = {
+            'player_id': player_id,
+            'train_step': train_step
+        }
+        self.league_manager.update_active_player(player_info)
+        return True
+
 
     ###################################################################################
     #                                      debug                                      #

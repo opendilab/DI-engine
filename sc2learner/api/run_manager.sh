@@ -5,5 +5,5 @@ cfg=config.yaml
 ROOT=..
 export PYTHONPATH=$ROOT:$ROOT/..:$PYTHONPATH
 
-python -u $ROOT/api/manager_api.py \
+python -u $ROOT/api/manager_start.py \
   --config=${cfg} \
