@@ -281,8 +281,8 @@ def auto_clean_for_manyuan():
                             f.write(replay + '\n')
                     x = '>> /mnt/lustre/zhangming/data/clean_for_manyuan.log.2 2>&1 &'
                     print(
-                        ('srun -p {} -w {} python -u test.py clean_for_manyuan {} ' + x)
-                        .format(partition, workstation, replay_list_path_now)
+                        ('srun -p {} -w {} python -u test.py clean_for_manyuan {} ' +
+                         x).format(partition, workstation, replay_list_path_now)
                     )
                     replays_index += 1
 
