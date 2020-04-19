@@ -13,3 +13,5 @@ __pycache__
 PySC2.egg-info
 sensestar.egg-info
 sc2learner/experiments/
+experiment_config.yaml
+api-log/

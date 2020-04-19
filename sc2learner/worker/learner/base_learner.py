@@ -42,7 +42,7 @@ class Learner:
             self.max_epochs = cfg.train.max_epochs
             self.max_iterations = np.inf
         else:
-            self.max_iterations = int(cfg.train.max_iterations)
+            self.max_iterations = int(float(cfg.train.max_iterations))
         self.use_cuda = cfg.train.use_cuda
         if self.use_distributed:
             self.rank, self.world_size = dist_init()  # initialize rank and world size for linklink

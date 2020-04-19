@@ -209,6 +209,12 @@ NUM_ACTIONS = len(ACTIONS)
 
 NUM_ACTIONS_RAW = len(list(ACTION_INFO_MASK.keys()))
 
+# this is for the translation from pysc2 ability id to pysc2 raw ability id
+# _FUNCTIONS:
+# https://github.com/deepmind/pysc2/blob/5ca04dbf6dd0b852966418379e2d95d9ad3393f8/pysc2/lib/actions.py#L583
+# _RAW_FUNCTIONS:
+# https://github.com/deepmind/pysc2/blob/5ca04dbf6dd0b852966418379e2d95d9ad3393f8/pysc2/lib/actions.py#L1186
+# ACTIONS_REORDER[pysc2_ability_id] = pysc2_raw_ability_id
 ACTIONS_REORDER = {
     item: idx for idx, item in enumerate(ACTIONS)
 }
@@ -221,6 +227,7 @@ ACTIONS_REORDER_INV = {
 
 ACTIONS_REORDER_INV_ARRAY = ACTIONS
 
+# Begin actions: actions (raw ability ids) included in the beginning_build_order
 target_list = ['unit', 'build', 'research', 'effect']
 BEGIN_ACTIONS = [k for k, v in GENERAL_ACTION_INFO_MASK.items() if v['goal'] in target_list]
 

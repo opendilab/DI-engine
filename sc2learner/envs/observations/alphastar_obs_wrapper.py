@@ -16,11 +16,12 @@ from pysc2.lib.features import FeatureUnit
 from pysc2.lib.action_dict import ACT_TO_GENERAL_ACT, ACT_TO_GENERAL_ACT_ARRAY
 from pysc2.lib.static_data import NUM_BUFFS, NUM_ABILITIES, NUM_UNIT_TYPES, UNIT_TYPES_REORDER,\
      UNIT_TYPES_REORDER_ARRAY, BUFFS_REORDER_ARRAY, ABILITIES_REORDER_ARRAY, NUM_UPGRADES, UPGRADES_REORDER,\
-     UPGRADES_REORDER_ARRAY, NUM_ACTIONS, ACTIONS_REORDER_ARRAY, NUM_ADDON, ADDON_REORDER_ARRAY,\
+     UPGRADES_REORDER_ARRAY, NUM_ACTIONS, ACTIONS_REORDER_ARRAY, ACTIONS_REORDER, NUM_ADDON, ADDON_REORDER_ARRAY,\
      NUM_BEGIN_ACTIONS, NUM_UNIT_BUILD_ACTIONS, NUM_EFFECT_ACTIONS, NUM_RESEARCH_ACTIONS,\
      UNIT_BUILD_ACTIONS_REORDER_ARRAY, EFFECT_ACTIONS_REORDER_ARRAY, RESEARCH_ACTIONS_REORDER_ARRAY,\
      BEGIN_ACTIONS_REORDER_ARRAY
 from sc2learner.torch_utils import one_hot
+from sc2learner.envs.actions import get_available_actions_raw_data
 from functools import partial, lru_cache
 from collections import OrderedDict
 
@@ -112,6 +113,7 @@ class SpatialObsWrapper(object):
                 if key in self.feature_screen_id.keys():
                     dim += item['dim']
         self._dim = dim
+        return dim
 
     @property
     def dim(self):
@@ -187,7 +189,7 @@ class ScalarObsWrapper(object):
             elif key == 'unit_counts_bow':
                 ret[key] = self._parse_unit_counts(obs)
             elif key in ['available_actions', 'enemy_upgrades']:
-                continue  # parse by the additional function
+                continue  # will be parsed by an additional function
             else:
                 ori = item['ori']
                 item_data = obs[ori]
@@ -330,8 +332,8 @@ def get_to_and(num_bits):
 def batch_binary_encode(x, bit_num):
     # Big endian binary encode to float tensor
     # Example: >>> batch_binary_encode(torch.tensor([131,71]), 10)
-    # tensor([[0., 0., 0., 1., 0., 0., 0., 0., 0., 1.],
-    #         [0., 0., 0., 0., 0., 0., 1., 1., 1., 1.]])
+    # tensor([[0., 0., 1., 0., 0., 0., 0., 0., 1., 1.],
+    #         [0., 0., 0., 1., 0., 0., 0., 1., 1., 1.]])
     x = x.numpy()
     xshape = list(x.shape)
     x = x.reshape([-1, 1])
@@ -872,6 +874,7 @@ def decompress_obs(obs):
 
 
 def transform_cum_stat(cumulative_stat):
+    print('transform_cum_stat moved to envs/statistics.py, should not be used')
     cumulative_stat_tensor = {
         'unit_build': torch.zeros(NUM_UNIT_BUILD_ACTIONS),
         'effect': torch.zeros(NUM_EFFECT_ACTIONS),
@@ -888,6 +891,7 @@ def transform_cum_stat(cumulative_stat):
 
 
 def transform_stat(stat, meta, location_num=LOCATION_BIT_NUM):
+    print('transform_stat moved to envs/statistics.py, should not be used')
     beginning_build_order = stat['begin_statistics']
     beginning_build_order_tensor = []
     for item in beginning_build_order:

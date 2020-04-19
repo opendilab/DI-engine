@@ -1,5 +1,7 @@
 import os
 import random
+import time
+import sys
 
 import numpy as np
 import torch
@@ -95,9 +97,9 @@ class ReplayDataset(BaseDataset):
         for i in index:
             self.path_list[i].pop('cur_step')
 
-    def _read_file(self, path):
+    def _read_file(self, path, read_type='BytesIO'):
         if self.use_ceph:
-            return read_file_ceph(path)
+            return read_file_ceph(path, read_type=read_type)
         else:
             return path
 
@@ -121,7 +123,10 @@ class ReplayDataset(BaseDataset):
 
     def __getitem__(self, idx):
         handle = self.path_list[idx]
-        data = torch.load(self._read_file(handle['name'] + DATA_SUFFIX))
+        print(handle)
+
+        d1 = self._read_file(handle['name'] + DATA_SUFFIX)
+        data = torch.load(d1)
 
         # clip the dataset
         if self.complete_episode:
@@ -168,5 +173,4 @@ class ReplayDataset(BaseDataset):
             sample_data[0][START_STEP] = True
         else:
             sample_data[0][START_STEP] = False
-
         return sample_data

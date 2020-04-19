@@ -79,10 +79,10 @@ class AlphaStarActorCritic(ActorCriticBase):
 
     # overwrite
     def mimic(self, inputs, **kwargs):
-        lstm_output, next_state, entity_embeddings, map_skip, scalar_context, _, _ = self.encoder(inputs)
+        lstm_output, next_state, entity_embeddings, map_skip, scalar_context, spatial_info, _, _ = self.encoder(inputs)
         policy_inputs = self.policy.MimicInput(
             inputs['actions'], inputs['entity_raw'], inputs['scalar_info']['available_actions'], lstm_output,
-            entity_embeddings, map_skip, scalar_context
+            entity_embeddings, map_skip, scalar_context, spatial_info
         )
         logits = self.policy(policy_inputs, mode='mimic')
         return self.MimicOutput(logits, next_state)
@@ -108,10 +108,15 @@ class AlphaStarActorCritic(ActorCriticBase):
         ratio = self.cfg.policy.location_expand_ratio
         Y, X = inputs['map_size'][0]
 
-        lstm_output, next_state, entity_embeddings, map_skip, scalar_context, _, _ = self.encoder(inputs)
+        lstm_output, next_state, entity_embeddings, map_skip, scalar_context, spatial_info, _, _ = self.encoder(inputs)
         policy_inputs = self.policy.EvaluateInput(
-            inputs['entity_raw'], inputs['scalar_info']['available_actions'], lstm_output, entity_embeddings, map_skip,
-            scalar_context
+            inputs['entity_raw'],
+            inputs['scalar_info']['available_actions'],
+            lstm_output,
+            entity_embeddings,
+            map_skip,
+            scalar_context,
+            spatial_info,
         )
         actions, logits = self.policy(policy_inputs, mode='evaluate', **kwargs)
 
@@ -149,11 +154,14 @@ class AlphaStarActorCritic(ActorCriticBase):
         entity_embeddings, \
         map_skip, \
         scalar_context, \
+        spatial_info, \
         baseline_feature_home, \
         cum_stat_home = self.encoder(
             inputs['home']
         )  # noqa
-        lstm_output_away, next_state_away, _, _, _, baseline_feature_away, cum_stat_away = self.encoder(inputs['away'])
+        lstm_output_away, next_state_away, _, _, _, _, baseline_feature_away, cum_stat_away = self.encoder(
+            inputs['away']
+        )
 
         # value
         critic_inputs = self.CriticInput(
@@ -165,7 +173,7 @@ class AlphaStarActorCritic(ActorCriticBase):
         # policy
         policy_inputs = self.policy.EvaluateInput(
             inputs['home']['entity_raw'], inputs['home']['scalar_info']['available_actions'], lstm_output_home,
-            entity_embeddings, map_skip, scalar_context
+            entity_embeddings, map_skip, scalar_context, spatial_info
         )
         actions, logits = self.policy(policy_inputs, mode='evaluate', **kwargs)
         return self.StepOutput(actions, logits, baselines, next_state_home, next_state_away)

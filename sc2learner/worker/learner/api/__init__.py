@@ -1,2 +1,1 @@
 from .learner_communication_helper import LearnerCommunicationHelper
-from .coordinator import Coordinator

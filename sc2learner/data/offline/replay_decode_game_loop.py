@@ -13,11 +13,13 @@ from __future__ import print_function
 
 import multiprocessing
 import os
+import platform
 import signal
 import sys
 import collections
 import time
 import copy
+import traceback
 
 from absl import app
 from absl import logging
@@ -33,10 +35,10 @@ from pysc2.lib.remote_controller import RequestError
 
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
 from s2clientprotocol import sc2api_pb2 as sc_pb
-from sc2learner.envs.observations.alphastar_obs_wrapper import AlphastarObsParser, compress_obs, decompress_obs, \
-    transform_cum_stat, transform_stat
+from sc2learner.envs.observations.alphastar_obs_wrapper import AlphastarObsParser, compress_obs, decompress_obs
 from sc2learner.envs.observations import get_enemy_upgrades_raw_data, get_enemy_upgrades_processed_data
 from sc2learner.envs.actions.alphastar_act_wrapper import AlphastarActParser, remove_repeat_data
+from sc2learner.envs.statistics import Statistics, transform_stat
 from sc2learner.envs.maps.map_info import LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT
 
 logging.set_verbosity(logging.INFO)
@@ -114,61 +116,6 @@ class ReplayDecoder(multiprocessing.Process):
                 actions[cut_player] = actions[cut_player][:i]
                 break
 
-        def update_action_stat(action_statistics, act, obs):
-            def get_unit_types(units, entity_type_dict):
-                unit_types = set()
-                for u in units:
-                    try:
-                        unit_type = entity_type_dict[u]
-                        unit_types.add(unit_type)
-                    except KeyError:
-                        logging.warning("Not found unit(id: {})".format(u))
-                return unit_types
-
-            action_type = act['action_type'].item()
-            if action_type not in action_statistics.keys():
-                action_statistics[action_type] = {
-                    'count': 0,
-                    'selected_type': set(),
-                    'target_type': set(),
-                }
-            action_statistics[action_type]['count'] += 1
-            entity_type_dict = {id: type for id, type in zip(obs['entity_raw']['id'], obs['entity_raw']['type'])}
-            if isinstance(act['selected_units'], torch.Tensor):
-                units = act['selected_units'].tolist()
-                unit_types = get_unit_types(units, entity_type_dict)
-                action_statistics[action_type]['selected_type'] = action_statistics[action_type]['selected_type'].union(
-                    unit_types
-                )  # noqa
-            if isinstance(act['target_units'], torch.Tensor):
-                units = act['target_units'].tolist()
-                unit_types = get_unit_types(units, entity_type_dict)
-                action_statistics[action_type]['target_type'] = action_statistics[action_type]['target_type'].union(
-                    unit_types
-                )  # noqa
-
-        def update_cum_stat(cumulative_statistics, act):
-            action_type = act['action_type'].item()
-            goal = GENERAL_ACTION_INFO_MASK[action_type]['goal']
-            if goal != 'other':
-                if action_type not in cumulative_statistics.keys():
-                    cumulative_statistics[action_type] = {'count': 1, 'goal': goal}
-                else:
-                    cumulative_statistics[action_type]['count'] += 1
-
-        def update_begin_stat(begin_statistics, act):
-            target_list = ['unit', 'build', 'research', 'effect']
-            action_type = act['action_type'].item()
-            goal = GENERAL_ACTION_INFO_MASK[action_type]['goal']
-            if goal in target_list:
-                if goal == 'build':
-                    location = act['target_location']
-                    if isinstance(location, torch.Tensor):  # for build ves, no target_location
-                        location = location.tolist()
-                else:
-                    location = 'none'
-                begin_statistics.append({'action_type': action_type, 'location': location})
-
         def unit_id_mapping(obs):
             raw_units = obs['raw_units']
             key_index = FeatureUnit['unit_type']
@@ -180,20 +127,9 @@ class ReplayDecoder(multiprocessing.Process):
                     raw_units[i, key_index] = 1908
             return obs
 
-        def unit_record(obs, s):
-            for idx, ob in enumerate(obs):
-                raw_set = ob['entity_raw']['id']
-                # units = [4352376833]  # for debug
-                # for u in units:
-                #    if u in raw_set:
-                #        i = raw_set.index(u)
-                #        print(u, idx, ob['entity_raw']['type'][i], s)
-
         # view replay by action order, combine observation and action
         step_data = [[] for _ in range(PLAYER_NUM)]  # initial return data
-        action_statistics = [{} for _ in range(PLAYER_NUM)]
-        cumulative_statistics = [{} for _ in range(PLAYER_NUM)]
-        begin_statistics = [[] for _ in range(PLAYER_NUM)]
+        stat = Statistics(player_num=PLAYER_NUM, begin_num=200)
         enemy_upgrades = [None for _ in range(PLAYER_NUM)]
         begin_num = 200
         for player in range(PLAYER_NUM):  # gain data by player order
@@ -236,11 +172,8 @@ class ReplayDecoder(multiprocessing.Process):
                 assert len(agent_act) == 1
                 agent_act = act_parser.merge_same_id_action(agent_act)[0]
                 agent_act['delay'] = torch.LongTensor([delay])
-                update_action_stat(action_statistics[player], agent_act, agent_ob)
-                update_cum_stat(cumulative_statistics[player], agent_act)
-                if len(begin_statistics[player]) < begin_num:
-                    update_begin_stat(begin_statistics[player], agent_act)
-                agent_ob['scalar_info']['cumulative_stat'] = transform_cum_stat(cumulative_statistics[player])
+                stat.update_stat(agent_act, agent_ob, player)
+                agent_ob['scalar_info']['cumulative_stat'] = stat.get_transformed_cum_stat(player)
                 result_obs = self.obs_parser.merge_action(agent_ob, last_action, True)
                 # get_enemy_upgrades_processed_data must be used after merge_action
                 # enemy_upgrades_raw = get_enemy_upgrades_raw_data(base_ob, copy.deepcopy(enemy_upgrades[player]))
@@ -253,16 +186,7 @@ class ReplayDecoder(multiprocessing.Process):
                 step_data[player].append(compressed_obs)
                 last_action = agent_act
                 self.controller.step(delay)
-                print('action{} over, delay{}'.format(idx, delay))
-        return (
-            step_data, [
-                {
-                    'action_statistics': action_statistics[idx],
-                    'cumulative_statistics': cumulative_statistics[idx],
-                    'begin_statistics': begin_statistics[idx]
-                } for idx in range(2)
-            ], map_size
-        )
+        return (step_data, stat.get_stat(), map_size)
 
     def parse_info(self, info, replay_path):
         if (info.HasField("error")):
@@ -316,6 +240,27 @@ class ReplayDecoder(multiprocessing.Process):
             returns.append(ret)
         return returns
 
+    def check_steps(self, replay):
+        new_replay = []
+        for i, step in enumerate(replay):
+            entity_raw = step['entity_raw']
+            actions = step['actions']
+            id_list = entity_raw['id']
+            flag = True
+            if isinstance(actions['selected_units'], torch.Tensor):
+                for val in actions['selected_units']:
+                    if val not in id_list:
+                        flag = False
+                        continue
+            if isinstance(actions['target_units'], torch.Tensor):
+                for val in actions['target_units']:
+                    if val not in id_list:
+                        flag = False
+                        continue
+            if flag:
+                new_replay.append(step)
+        return new_replay
+
     def run(self):
         # interface to be called when starting process
         signal.signal(signal.SIGTERM, lambda a, b: sys.exit())
@@ -352,11 +297,11 @@ class ReplayDecoder(multiprocessing.Process):
                         os.path.basename(replay_path).split('.')[0]
                     )
                     torch.save(meta_data_0, os.path.join(self.output_dir, name0 + '.meta'))
-                    torch.save(step_data[0], os.path.join(self.output_dir, name0 + '.step'))
+                    torch.save(self.check_steps(step_data[0]), os.path.join(self.output_dir, name0 + '.step'))
                     torch.save(stat[0], os.path.join(self.output_dir, name0 + '.stat'))
                     torch.save(stat_processed_0, os.path.join(self.output_dir, name0 + '.stat_processed'))
                     torch.save(meta_data_1, os.path.join(self.output_dir, name1 + '.meta'))
-                    torch.save(step_data[1], os.path.join(self.output_dir, name1 + '.step'))
+                    torch.save(self.check_steps(step_data[1]), os.path.join(self.output_dir, name1 + '.step'))
                     torch.save(stat[1], os.path.join(self.output_dir, name1 + '.stat'))
                     torch.save(stat_processed_1, os.path.join(self.output_dir, name1 + '.stat_processed'))
                     logging.info(
@@ -371,12 +316,18 @@ class ReplayDecoder(multiprocessing.Process):
                 self.handle.close()
                 self.handle = self.run_config.start(want_rgb=False)
                 self.controller = self.handle.controller
+            except Exception as e:
+                logging.info(''.join(traceback.format_tb(e.__traceback__)))
+                logging.info('InnerError: {}'.format(sys.exc_info()))
         self.handle.close()
 
 
 def main(unused_argv):
     run_config = run_configs.get(FLAGS.version)
-    replay_list = sorted(run_config.replay_paths(FLAGS.replays))
+    if platform.system() == 'Windows':
+        replay_list = sorted(run_config.replay_paths(FLAGS.replays))
+    else:
+        replay_list = [x.strip() for x in open(FLAGS.replays, 'r').readlines()]
     fitered_replays = []  # filter replays by version
     if FLAGS.check_version:
         for replay_path in replay_list:

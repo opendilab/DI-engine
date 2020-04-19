@@ -4,6 +4,8 @@ data:
         trajectory_len: 48
         trajectory_type: sequential  # [epoch: [slide_window], iter: [sequential]]
         slide_window_step: 1  # only in slide_window
+train:
+    max_iterations: 1e9
 api:
     learner_port: 8293               # learner port
     coordinator_ip: 10.5.36.31       # learner and coordinator are in same cluster

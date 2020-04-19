@@ -55,7 +55,7 @@ def remove_repeat_data(min_delay=16, max_move=3):
                     not_same = list(set(not_same_s).union(set(not_same_t)))
                     result = [part[0]]
                     if len(not_same) > 0:
-                        print('not same selected_units and target_units\n', actions)
+                        # print('not same selected_units and target_units\n', actions)
                         result.extend(single_action_merge(start + not_same[0], end, False))
                 # target location
                 else:
@@ -63,7 +63,7 @@ def remove_repeat_data(min_delay=16, max_move=3):
                     a0_s_units = actions[0]['selected_units']
                     not_same = [idx for idx, a in enumerate(actions) if not equal(a['selected_units'], a0_s_units)]
                     if len(not_same) > 0:
-                        print('not same selected_units\n', actions, not_same)
+                        # print('not same selected_units\n', actions, not_same)
                         result = []
                         result.extend(single_action_merge(start, start + not_same[0], False))
                         result.extend(single_action_merge(start + not_same[0] + 1, end, False))

@@ -10,6 +10,7 @@ import torch
 from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UNIT_TYPES, ACTIONS_REORDER_INV
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
 from sc2learner.data.offline.replay_dataset import ReplayDataset, START_STEP
+from sc2learner.utils import get_step_data_compressor
 
 META_SUFFIX = '.meta'
 DATA_SUFFIX = '.step'
@@ -106,6 +107,30 @@ def get_single_step_data():
     )
 
 
+def fake_stat_processed():
+    # produced by base64.b64encode(zlib.compress(pickle.dumps(torch.load(
+    # r'Zerg_Terran_2479_0005e0d00cf4bca92d0432ecf23bd227337e39f7f8870a560ac3abfe7f89abc1.stat_processed'))))
+    import pickle
+    import base64
+    import zlib
+    example_stat_processed = b'eJzt3ctO20AUBmA7CYS6pdBLSim90HvoJaXmLiEhoZZNRC/OxhtkBWdIXDk2x54gqISUjavSZ+gD9Ikq9RF4hEpddByDSoAUCYWQwP8tEskcPOOZc05WmVTjmySl9bgkSeWyR7LJXc8sZYwKt2xfMTy2XLHsgsGZ47uesaYqFEvvxPjiLV9kimG7+YKx4rllY3mDM1+h+HxKlqRq7Jti//m+8Hv4048Pg5lqbHE7Ll5r4/WL8VY9l7umaxtrzPMt1yFZBOi94i+2xbnNDOYUrLxDsa+6Ii7yjVVm+NZn5pOYcyKtd4mLfsn1OHVlY7UnsBxO3dmEngjv4TpFSmYTlYoYM60nw+BowiRFD6AsiInz3M5TkFwbWh2bGZtQJyfHJ6ZmVIpua65WKJ5NvuOU+ChutkTSIaFyPhOOUa86t/8KJQLq0sQspWwyEPOTA+rZMsUq2MzkYhF85b1XYB4rvLFMrtCFEY0UThc1uqSnxL8vs6LlOJZTNKJ9ccNg6i3F0qX4/M+lTl/08emxukVfnBpouOq1WLHqUwMHlh0ATszBrgYA0HzoNQDQKdCvAOAo6BMA0AroNQDQCug1zYO1BDjbwhrfW+f/q/nd2N2Ydu8P7T4/gPNmbw/Z33v2xjRjHAAAAGhP+JwGgFZArwGAVkCvAYBWQK8BADgIvREAWgG9BgBaAb0G4PxC/QNAq6HvAMBh0BsAoBOhdwGcfajz46DLAfVp1J+VsqnFIfkLXRGvWfF+dasUHhF/jdN1jVJ6n4g1K+WKnefWGjN8nud0Y5MG0rXD3CuOxaNz4+lmdGL8r1innxivTqmjdcf0rzc8ML4WKucz68fagqO+mN9s7VYozf5S8Ek/X3WOBgO6pdGQKJr1gG6HP7VwJyqXu5zuaTSsd4s4trLCTE73o4J42/kFMaFO1xVErnFBhKGiIHInuxPnEj0I6KFGj0Ty5QJ6HCbfkyj5nnJKazSi94goj/ksL7aUnkXpt93xP5uiTqrjdek32zj9wlCRfrOntEWn41/fo+cBvdDopUiR2YAyYYq8ilJklNNrjVSxB38BIhnvSw=='  # noqa
+    example_stat_processed = pickle.loads(zlib.decompress(base64.b64decode(example_stat_processed)))
+    return example_stat_processed
+
+
+def get_z():
+    ret = {}
+    ret['built_units'] = random_binary_tensor([120], dtype=torch.long)
+    ret['effects'] = random_binary_tensor([83], dtype=torch.long)
+    ret['upgrades'] = random_binary_tensor([60], dtype=torch.long)
+    num = random.randint(10, 100)
+    ret['build_order'] = {
+        'type': torch.from_numpy(np.random.choice(range(NUM_ACTION_TYPES), size=num, replace=True)).long(),
+        'loc': torch.randint(*MAP_SIZE, size=(num, 2)).long()
+    }
+    return ret
+
+
 class FakeReplayDataset(ReplayDataset):
     def __init__(self, cfg=None):
         # Completely independent with the config
@@ -115,7 +140,7 @@ class FakeReplayDataset(ReplayDataset):
         self.path_list = [dict(name=tempfile.mkstemp(), count=0) for _ in range(length)]
 
     def __getitem__(self, item):
-        sample_batch = [self.get_single_step_data() for _ in range(self.trajectory_len)]
+        sample_batch = [get_single_step_data() for _ in range(self.trajectory_len)]
         sample_batch[0][START_STEP] = np.random.random() > 0.5
         return sample_batch
 
@@ -175,11 +200,13 @@ class FakeReplayDataset(ReplayDataset):
 
 
 class FakeActorDataset:
-    def __init__(self, trajectory_len=3, use_meta=False):
+    def __init__(self, trajectory_len=3, use_meta=False, step_data_compressor='lz4'):
         self.trajectory_len = trajectory_len
         self.use_meta = use_meta
         if self.use_meta:
             self.count = 1
+        self.step_data_compressor_name = step_data_compressor
+        self.step_data_compressor = get_step_data_compressor(step_data_compressor)
         self.output_dir = './data'
         if not os.path.exists(self.output_dir):
             os.mkdir(self.output_dir)
@@ -189,31 +216,22 @@ class FakeActorDataset:
 
     def __getitem__(self, idx):
         if self.use_meta:
-            data = self.get_1v1_agent_data()
-            path = os.path.join(self.output_dir, 'data_{}.pt'.format(self.count))
-            torch.save(data, path)
+            # save only one fake data file to reduce resource waste
+            path = os.path.join(self.output_dir, 'data_{}.pt'.format(1))
+            if not os.path.exists(path):
+                data = self.step_data_compressor(self.get_1v1_agent_data())
+                torch.save(data, path)
             self.count += 1
             return {
                 'job_id': self.count - 1,
                 'trajectory_path': path,
                 'priority': 1.0,
+                'step_data_compressor': self.step_data_compressor_name,
             }
         else:
             return self.get_1v1_agent_data()
 
     def get_1v1_agent_data(self):
-        def get_z():
-            ret = {}
-            ret['built_units'] = random_binary_tensor([120], dtype=torch.long)
-            ret['effects'] = random_binary_tensor([83], dtype=torch.long)
-            ret['upgrades'] = random_binary_tensor([60], dtype=torch.long)
-            num = random.randint(10, 100)
-            ret['build_order'] = {
-                'type': torch.from_numpy(np.random.choice(range(NUM_ACTION_TYPES), size=num, replace=True)),
-                'loc': torch.randint(*MAP_SIZE, size=(num, 2))
-            }
-            return ret
-
         def get_outputs(actions, entity_num):
             ret = {}
             ret['action_type'] = torch.rand(NUM_ACTION_TYPES)
@@ -226,6 +244,7 @@ class FakeActorDataset:
                 ret['selected_units'] = NOOP
             else:
                 num = actions['selected_units'].shape[0]
+                num = min(MAX_SELECTED_UNITS, num + 1)
                 ret['selected_units'] = torch.rand(num, entity_num)
             if isinstance(actions['target_units'], type(NOOP)):
                 ret['target_units'] = NOOP

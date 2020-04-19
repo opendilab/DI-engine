@@ -58,6 +58,13 @@ def dict_list2list_dict(data):
     return new_data
 
 
+def merge_two_dicts(x, y):
+    """Merge two dicts into a new dict as a shallow copy."""
+    z = x.copy()
+    z.update(y)
+    return z
+
+
 def override(cls):
     """Annotation for documenting method overrides.
 

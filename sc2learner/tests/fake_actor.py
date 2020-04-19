@@ -13,8 +13,8 @@ import argparse
 import yaml
 import random
 
-from utils.log_helper import TextLogger
-from utils import read_file_ceph, save_file_ceph
+from sc2learner.utils.log_helper import TextLogger
+from sc2learner.utils import read_file_ceph, save_file_ceph
 
 parser = argparse.ArgumentParser(description='implementation of NAS worker')
 parser.add_argument('--config', type=str, help='training config yaml file')
@@ -24,11 +24,11 @@ class FakeActor(object):
     def __init__(self, cfg):
         self.cfg = cfg
 
-        self.manager_ip = cfg['api']['manager_ip']
-        self.manager_port = cfg['api']['manager_port']
+        self.manager_ip = cfg['system']['manager_ip']
+        self.manager_port = cfg['system']['manager_port']
         self.actor_uid = os.environ.get('SLURM_JOB_ID', str(uuid.uuid1()))
-        self.ceph_path = self.cfg['api']['ceph_path']
-        self.heartbeats_thread = cfg['api']['actor']['heartbeats_thread']
+        self.ceph_path = self.cfg['ceph_path']
+        self.heartbeats_thread = cfg['actor']['heartbeats_thread']
 
         self.log_save_dir = os.path.join(self.cfg['log_save_dir'], 'actor')
         self.url_prefix = 'http://{}:{}/'.format(self.manager_ip, self.manager_port)
@@ -104,9 +104,7 @@ class FakeActor(object):
             self.job_id = self.job['job_id']
 
     def _get_model(self, model_name):
-        # model = torch.load(read_file_ceph(self.ceph_path + model_name))
-        model = {}
-        self.logger.info('load model from ceph {}'.format(model_name))
+        model = torch.load(read_file_ceph(self.ceph_path + model_name))
         return model
 
     def _get_feedback(self):
@@ -133,13 +131,14 @@ class FakeActor(object):
         ceph_name = "job_{}_{}.traj".format(self.job_id, str(uuid.uuid1()))
         t1 = time.time()
         self.logger.info('save to {} with {}'.format(self.ceph_path, ceph_name))
-        # save_file_ceph(self.ceph_path, ceph_name, trajectory)
+        save_file_ceph(self.ceph_path, ceph_name, trajectory)
         self.logger.info("save to ceph cost {} seconds. ".format(time.time() - t1))
         metadata = {
             'job_id': self.job_id,
             'trajectory_path': ceph_name,
             'learner_uid': self.job['learner_uid'],
-            'data': torch.tensor([[1, 2, 3], [4, 5, 6]]).tolist()
+            'data': torch.tensor([[1, 2, 3], [4, 5, 6]]).tolist(),
+            'step_data_compressor': 'none'
         }
         return trajectory, metadata
 
@@ -190,7 +189,7 @@ def main():
 
     cfg = yaml.load(open(args.config, 'r'))
     cfg['log_save_dir'] = log_path
-    api_info = cfg['api']
+    api_info = cfg['system']
     learner_port = api_info['learner_port']
     coordinator_ip = api_info['coordinator_ip']
     coordinator_port = api_info['coordinator_port']

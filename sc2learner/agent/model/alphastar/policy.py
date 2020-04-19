@@ -6,6 +6,7 @@ import torch.nn as nn
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK, ACTIONS_STAT
 from pysc2.lib.static_data import NUM_UNIT_TYPES, UNIT_TYPES_REORDER, ACTIONS_REORDER_INV, PART_ACTIONS_MAP,\
     PART_ACTIONS_MAP_INV
+from sc2learner.envs import get_location_mask
 from .head import DelayHead, QueuedHead, SelectedUnitsHead, TargetUnitsHead, LocationHead, ActionTypeHead, \
     TargetUnitHead
 
@@ -27,13 +28,17 @@ def build_head(name):
 
 class Policy(nn.Module):
     MimicInput = namedtuple(
-        'MimicInput',
-        ['actions', 'entity_raw', 'action_type_mask', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context']
+        'MimicInput', [
+            'actions', 'entity_raw', 'action_type_mask', 'lstm_output', 'entity_embeddings', 'map_skip',
+            'scalar_context', 'spatial_info'
+        ]
     )
 
     EvaluateInput = namedtuple(
-        'EvaluateInput',
-        ['entity_raw', 'action_type_mask', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context']
+        'EvaluateInput', [
+            'entity_raw', 'action_type_mask', 'lstm_output', 'entity_embeddings', 'map_skip', 'scalar_context',
+            'spatial_info'
+        ]
     )
 
     def __init__(self, cfg):
@@ -43,7 +48,7 @@ class Policy(nn.Module):
         for item in cfg.head.head_names:
             self.head[item] = build_head(item)(cfg.head[item])
 
-    def _look_up_action_attr(self, action_type, entity_raw, units_num, location_dims=(256, 256)):
+    def _look_up_action_attr(self, action_type, entity_raw, units_num, spatial_info):
         action_arg_mask = {
             'select_unit_type_mask': [],
             'select_unit_mask': [],
@@ -58,7 +63,8 @@ class Policy(nn.Module):
             action_info_hard_craft = GENERAL_ACTION_INFO_MASK[action_type_val]
             try:
                 action_info_stat = ACTIONS_STAT[action_type_val]
-            except KeyError:
+            except KeyError as e:
+                print('We are issuing a command (reordered:{}), never seen in replays'.format(action_type_val))
                 action_info_stat = {'selected_type': [], 'target_type': []}
             # else case is the placeholder
             if action_info_hard_craft['selected_units']:
@@ -92,8 +98,8 @@ class Policy(nn.Module):
                 action_arg_mask['target_unit_mask'].append(None)
                 action_arg_mask['target_unit_type_mask'].append(None)
             if action_info_hard_craft['target_location']:
-                # TODO(nyz) location mask
-                action_arg_mask['location_mask'].append(torch.ones(1, *location_dims, device=device))
+                location_mask = get_location_mask(action_type_val, spatial_info[idx])
+                action_arg_mask['location_mask'].append(location_mask)
             else:
                 action_arg_mask['location_mask'].append(None)
             # get action attribute(which args the action type owns)
@@ -167,7 +173,8 @@ class Policy(nn.Module):
             Returns:
                 - logits (:obj:`dict`) logits(or other format) for calculating supervised learning loss
         '''
-        actions, entity_raw, action_type_mask, lstm_output, entity_embeddings, map_skip, scalar_context = inputs
+        actions, entity_raw, action_type_mask, lstm_output,\
+            entity_embeddings, map_skip, scalar_context, spatial_info = inputs
 
         logits = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
         action_type = torch.LongTensor(actions['action_type']).to(lstm_output.device)
@@ -176,7 +183,7 @@ class Policy(nn.Module):
         logits['action_type'], action_type, embeddings = self._action_type_forward(
             lstm_output, scalar_context, action_type_mask, temperature, action_type
         )
-        action_attr, mask = self._look_up_action_attr(action_type, entity_raw, units_num)
+        action_attr, mask = self._look_up_action_attr(action_type, entity_raw, units_num, spatial_info)
 
         logits['delay'], delay, embeddings = self.head['delay_head'](embeddings)
         for idx in range(action_type.shape[0]):
@@ -229,7 +236,7 @@ class Policy(nn.Module):
                 - logits (:obj:`dict`) logits
                 - actions (:obj:`dict`) actions predicted by agent(policy)
         '''
-        entity_raw, action_type_mask, lstm_output, entity_embeddings, map_skip, scalar_context = inputs
+        entity_raw, action_type_mask, lstm_output, entity_embeddings, map_skip, scalar_context, spatial_info = inputs
 
         B = len(entity_raw)
         actions = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
@@ -241,7 +248,7 @@ class Policy(nn.Module):
             lstm_output, scalar_context, action_type_mask, temperature
         )
         actions['action_type'] = torch.chunk(action_type, B, dim=0)
-        action_attr, mask = self._look_up_action_attr(actions['action_type'], entity_raw, units_num)
+        action_attr, mask = self._look_up_action_attr(actions['action_type'], entity_raw, units_num, spatial_info)
 
         # action arg delay
         logits['delay'], delay, embeddings = self.head['delay_head'](embeddings)
