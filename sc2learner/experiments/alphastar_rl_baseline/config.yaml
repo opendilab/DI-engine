@@ -8,6 +8,7 @@ env:
    disable_fog: False
    realtime: False
    crop_map_to_playable_area: False
+   map_name: 'KairosJunction'
 
 rl_train:
    data_push_length: 64
@@ -24,6 +25,12 @@ logger:
     save_freq: 200
     eval_freq: 200
     var_record_type: 'alphastar'
+league:
+    race: ['zerg']
+    active_players:
+        main_player: 1
+        main_exploiter: 0
+        league_exploiter: 0
 actor:
     use_cuda: False
     heartbeats_freq: 120
@@ -31,10 +38,7 @@ actor:
 manager:
     # not used at the moment
 coordinator:
-    ceph_path: 's3://alphastar_fake_data/'
-    use_fake_data: True
-    fake_model_path: iterations_2200.pth.tar
-    fake_stat_path: Zerg_Zerg_6280_d35c22b2d7e462f1481621cbf765709961e3f9a2a99f8f6c6fa814ccffc831d6.stat_processed
+    use_fake_data: False
 replay_buffer:
     meta_maxlen: 4096
     max_reuse: 2

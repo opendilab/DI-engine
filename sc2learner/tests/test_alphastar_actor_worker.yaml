@@ -20,7 +20,6 @@ actor:
     heartbeats_freq: 10
     max_connection_retries: 20
 coordinator:
-    ceph_path: 's3://'
     use_fake_data: True
     fake_model_path: do_not_load
     fake_stat_path: do_not_load

@@ -10,7 +10,6 @@ actor:
     heartbeats_freq: 10
     max_connection_retries: 20
 coordinator:
-    ceph_path: 's3://'
     use_fake_data: True
     fake_model_path: iterations_2200.pth.tar
     fake_stat_path: Zerg_Zerg_6280_d35c22b2d7e462f1481621cbf765709961e3f9a2a99f8f6c6fa814ccffc831d6.stat_processed

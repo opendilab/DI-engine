@@ -36,8 +36,12 @@ class LeagueManager:
                 - launch_info (:obj:`dict`)
                     - home_id (:obj:`str`)
                     - away_id (:obj:`str`)
+                    - home_race (:obj:`str`)
+                    - away_race (:obj:`str`)
                     - home_checkpoint_path (:obj:`str`)
                     - away_checkpoint_path (:obj:`str`)
+                    - home_teacher_checkpoint_path (:obj:`str`)
+                    - away_teacher_checkpoint_path (:obj:`str`)
         save_checkpoint_fn:
             Arguments:
                 - src_checkpoint (:obj:`str`): src must be a existing path
@@ -123,8 +127,12 @@ class LeagueManager:
                             launch_info = {
                                 'home_id': home.player_id,
                                 'away_id': away.player_id,
+                                'home_race': home.race,
+                                'away_race': away.race,
                                 'home_checkpoint_path': home.checkpoint_path,
-                                'away_checkpoint_path': away.checkpoint_path
+                                'away_checkpoint_path': away.checkpoint_path,
+                                'home_teacher_checkpoint_path': self.cfg.sl_checkpoint_path[home.race],
+                                'away_teacher_checkpoint_path': self.cfg.sl_checkpoint_path[away.race],
                             }
                             self.launch_match_fn(launch_info)
 
