@@ -79,7 +79,7 @@ class AlphaStarActor:
                 AlphaStarAgent(
                     model_config=self.cfg.model,
                     num_concurrent_episodes=1,
-                    use_cuda=self.cfg.env.use_cuda,
+                    use_cuda=self.cfg.actor.use_cuda,
                     use_distributed=False
                 )
             ]
@@ -93,13 +93,13 @@ class AlphaStarActor:
                 AlphaStarAgent(
                     model_config=self.cfg.model,
                     num_concurrent_episodes=1,
-                    use_cuda=self.cfg.env.use_cuda,
+                    use_cuda=self.cfg.actor.use_cuda,
                     use_distributed=False
                 ),
                 AlphaStarAgent(
                     model_config=self.cfg.model,
                     num_concurrent_episodes=1,
-                    use_cuda=self.cfg.env.use_cuda,
+                    use_cuda=self.cfg.actor.use_cuda,
                     use_distributed=False
                 )
             ]
@@ -117,7 +117,7 @@ class AlphaStarActor:
             self.teacher_agent = AlphaStarAgent(
                 model_config=self.cfg.model,
                 num_concurrent_episodes=1,
-                use_cuda=self.cfg.env.use_cuda,
+                use_cuda=self.cfg.actor.use_cuda,
                 use_distributed=False
             )
             self.teacher_agent.eval()
@@ -169,7 +169,7 @@ class AlphaStarActor:
                     self.last_state_action_away[1 - i].update(obs[1 - i])
                 obs_copy = copy.deepcopy(obs)
                 obs_copy[i] = unsqueeze_batch_dim(obs_copy[i])
-                if self.cfg.env.use_cuda:
+                if self.cfg.actor.use_cuda:
                     obs_copy[i] = to_device(obs_copy[i], 'cuda')
                 if self.use_teacher_model:
                     teacher_action, teacher_logits, self.teacher_lstm_states[i] = self.teacher_agent.compute_action(
@@ -190,7 +190,7 @@ class AlphaStarActor:
                     temperature=self.cfg.env.temperature
                 )
 
-                if self.cfg.env.use_cuda:
+                if self.cfg.actor.use_cuda:
                     action = to_device(action, 'cpu')
                     logits = to_device(logits, 'cpu')
                     teacher_action = to_device(teacher_action, 'cpu')

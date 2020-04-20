@@ -22,7 +22,7 @@ flags.DEFINE_bool("only_evaluate", False, "only sl evaluate")
 flags.DEFINE_bool("use_fake_dataset", False, "whether to use fake dataset")
 flags.FLAGS(sys.argv)
 
-default_config = read_config(os.path.join(os.path.dirname(__file__), "train_default_config.yaml"))
+default_config = read_config(os.path.join(os.path.dirname(__file__), "train_sl_default_config.yaml"))
 
 
 def main(argv):

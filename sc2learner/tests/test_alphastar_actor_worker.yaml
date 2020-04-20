@@ -1,5 +1,4 @@
 env:
-    use_cuda: False
     screen_resolution: [128, 128]
     default_step_mul: 8  # not used
     game_steps_per_episode: 30
@@ -16,6 +15,7 @@ model:
     action_type: fixed
 # for testing actor worker
 actor:
+    use_cuda: False
     heartbeats_thread: True
     heartbeats_freq: 10
     max_connection_retries: 20

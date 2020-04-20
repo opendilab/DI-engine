@@ -57,7 +57,7 @@ class ActorForTest(AlphaStarActorWorker):
         #    recu_check_keys(get_single_step_data()['actions'], act[0])
         # if act[1]:
         #    recu_check_keys(get_single_step_data()['actions'], act[1])
-        if self.cfg.env.use_cuda:
+        if self.cfg.actor.use_cuda:
             print('Max CUDA memory:{}'.format(torch.cuda.max_memory_allocated()))
         t = time.time()
         if self.last_time is not None:

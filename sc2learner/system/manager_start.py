@@ -21,7 +21,7 @@ args = parser.parse_args()
 log_path = os.path.dirname(args.config)
 api_dir_name = 'api-log'
 log_path = os.path.join(log_path, api_dir_name)
-logger = TextLogger(log_path, name="coordinator.log")
+logger = TextLogger(log_path, name="manager.log")
 
 cfg = yaml.safe_load(open(args.config, 'r'))
 manager_ip = cfg['system']['manager_ip']

@@ -88,7 +88,7 @@ class Manager(object):
 
     def deal_with_ask_for_job(self, actor_uid):
         '''
-            Overview: when receiving actor's request of asking for job, ,return job
+            Overview: when receiving actor's request of asking for job, return job
             Arguments:
                 - actor_uid (:obj:`str`): actor's uid
             Returns:

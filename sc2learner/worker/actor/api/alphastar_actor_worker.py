@@ -19,9 +19,6 @@ from sc2learner.torch_utils import build_checkpoint_helper
 from sc2learner.utils import read_file_ceph, save_file_ceph, get_manager_node_ip, merge_two_dicts
 from sc2learner.worker.actor import AlphaStarActor
 
-parser = argparse.ArgumentParser(description='AlphaStar Actor (for training on slurm cluster)')
-parser.add_argument('--config', type=str, help='training config yaml file')
-
 
 class AlphaStarActorWorker(AlphaStarActor):
     def __init__(self, cfg):
@@ -263,14 +260,3 @@ class StatRequester:
         ceph_handle = read_file_ceph(path)
         stat = torch.load(ceph_handle, map_location='cpu')
         return stat
-
-
-def main():
-    args = parser.parse_args()
-    cfg = yaml.safe_load(open(args.config, 'r'))
-    actor = AlphaStarActorWorker(cfg)
-    actor.run()
-
-
-if __name__ == '__main__':
-    main()
