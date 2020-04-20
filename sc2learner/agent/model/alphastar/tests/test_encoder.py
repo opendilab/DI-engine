@@ -15,6 +15,16 @@ def setup_config():
     return cfg
 
 
+def is_differentiable(loss, model):
+    assert isinstance(loss, torch.Tensor)
+    assert isinstance(model, torch.nn.Module)
+    for p in model.parameters():
+        assert p.grad is None
+    loss.backward()
+    for p in model.parameters():
+        assert isinstance(p.grad, torch.Tensor)
+
+
 @pytest.mark.unitest
 class TestEncoder:
     def test_scalar_encoder(self, setup_config):
@@ -44,8 +54,4 @@ class TestEncoder:
             assert v.shape == (B, template_replay[1]['output_dim'])
 
         loss = embedded_scalar.mean()
-        for p in model.parameters():
-            assert p.grad is None
-        loss.backward()
-        for p in model.parameters():
-            assert isinstance(p.grad, torch.Tensor)
+        is_differentiable(loss, model)
