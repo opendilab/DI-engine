@@ -99,13 +99,14 @@ class Coordinator(object):
             away_teacher_checkpoint_path = launch_info['away_teacher_checkpoint_path']
             home_learner_uid = home_id if home_id.endswith('_sl') else self.player_to_learner[home_id]
             away_learner_uid = away_id if away_id.endswith('_sl') else self.player_to_learner[away_id]
+            stat = 'Zerg_Zerg_6280_d35c22b2d7e462f1481621cbf765709961e3f9a2a99f8f6c6fa814ccffc831d6.stat_processed'
             job = {
                 'job_id': str(uuid.uuid1()),
                 'learner_uid': [home_learner_uid, away_learner_uid],
                 # TODO(nyz) adaptive z
-                'stat_id': ['fake_stat_path', 'fake_stat_path'],
+                'stat_id': [stat, stat],
                 'game_type': 'league',
-                'obs_compressor': 'lz4',
+                'step_data_compressor': 'lz4',
                 'model_id': [home_checkpoint_path, away_checkpoint_path],
                 'teacher_model_id': home_teacher_checkpoint_path,  # away_teacher_checkpoint_path
                 # TODO(nyz) random map and seed
@@ -113,7 +114,7 @@ class Coordinator(object):
                 'random_seed': 0,
                 'home_race': launch_info['home_race'],
                 'away_race': launch_info['away_race'],
-                'data_push_length': 8
+                'data_push_length': self.cfg.train.trajectory_len,
             }
             self.job_queue.put(job)
 

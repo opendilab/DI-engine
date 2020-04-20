@@ -9,17 +9,15 @@ env:
    realtime: False
    crop_map_to_playable_area: False
    map_name: 'KairosJunction'
-
-rl_train:
-   data_push_length: 64
    use_global_cumulative_stat: True
    use_available_action_transform: True
-   use_stat: False
+   use_stat: True
    beginning_build_order_num: 20
-   temperature: 0.8
-
 model:
     use_value_network: True
+train:
+    trajectory_len: 64
+    temperature: 0.8
 logger:
     print_freq: 10
     save_freq: 200

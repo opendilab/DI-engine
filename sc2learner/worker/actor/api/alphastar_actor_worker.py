@@ -225,9 +225,9 @@ class ModelLoader:
         t = time.time()
         # during testing, we don't necessary load the real weights
         if 'do_not_load' not in path:
-            model_handle = read_file_ceph(path)
+            model_handle = read_file_ceph(path, read_type='pickle')
             helper = build_checkpoint_helper('')
-            helper.load(model_handle, model, prefix_op='remove', prefix='module.')
+            helper.load(model_handle, model, prefix_op='remove', prefix='module.', strict=False, need_torch_load=False)
         self.context.logger.info('Model {} loaded for agent {}, time:{}'.format(path, agent_no, time.time() - t))
 
     def load_teacher_model(self, job, model):
@@ -238,9 +238,9 @@ class ModelLoader:
         t = time.time()
         # during testing, we don't necessary load the real weights
         if 'do_not_load' not in path:
-            model_handle = read_file_ceph(path)
+            model_handle = read_file_ceph(path, read_type='pickle')
             helper = build_checkpoint_helper('')
-            helper.load(model_handle, model, prefix_op='remove', prefix='module.')
+            helper.load(model_handle, model, prefix_op='remove', prefix='module.', strict=False, need_torch_load=False)
         self.context.logger.info('Teacher Model {} loaded, time:{}'.format(path, time.time() - t))
 
 

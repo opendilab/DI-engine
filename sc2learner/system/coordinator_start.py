@@ -8,6 +8,7 @@ from itertools import count
 import logging
 import argparse
 import yaml
+from easydict import EasyDict
 from flask import Flask, request
 
 from .coordinator import Coordinator
@@ -25,6 +26,7 @@ log_path = os.path.join(log_path, api_dir_name)
 logger = TextLogger(log_path, name="coordinator.log")
 
 cfg = yaml.safe_load(open(args.config, 'r'))
+cfg = EasyDict(cfg)
 coordinator_ip = cfg['system']['coordinator_ip']
 coordinator_port = cfg['system']['coordinator_port']
 

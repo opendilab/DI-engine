@@ -40,14 +40,6 @@ def unsqueeze_batch_dim(obs):
 class AlphaStarActor:
     def __init__(self, cfg):
         self.cfg = cfg
-        # copying everything in rl_train and train config entry to config.env
-        # TODO: better handling for common variables used in different situations
-        if 'rl_train' in self.cfg:
-            for k, v in self.cfg.rl_train.items():
-                self.cfg.env[k] = v
-        if 'train' in self.cfg:
-            for k, v in self.cfg.train.items():
-                self.cfg.env[k] = v
         # in case we want everything to be the default
         if 'model' not in self.cfg:
             self.cfg.model = None
@@ -178,7 +170,7 @@ class AlphaStarActor:
                         mode="evaluate",
                         prev_states=self.teacher_lstm_states[i],
                         require_grad=False,
-                        temperature=self.cfg.env.temperature
+                        temperature=self.cfg.train.temperature
                     )
                 else:
                     teacher_action = None
@@ -188,7 +180,7 @@ class AlphaStarActor:
                     mode="evaluate",
                     prev_states=self.lstm_states[i],
                     require_grad=False,
-                    temperature=self.cfg.env.temperature
+                    temperature=self.cfg.train.temperature
                 )
 
                 if self.cfg.actor.use_cuda:
@@ -343,8 +335,8 @@ class AlphaStarActor:
                         'actor_uid': self.actor_uid,
                         'info': info,
                         'traj_length': len(data_buffer[i]),  # this is the real length, without reused last traj
-                        # TODO: implement other priority initialization algo, setting it to a big num now
-                        'priority': 1e7,
+                        # TODO(nyz): implement other priority initialization algo, setting it to 1.0 now
+                        'priority': 1.0,
                     }
                     if done:
                         metadata['final_reward'] = rewards[i]
