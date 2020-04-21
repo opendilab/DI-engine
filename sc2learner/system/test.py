@@ -16,7 +16,8 @@ url_prefix_format = 'http://{}:{}/'
 manager_uid = 'fake_manager_uid'
 actor_uid = 'fake_actor_uid'
 job_id = '8d2e8eda-83d9-11ea-8bb0-1be4f1872daf'
-trajectory_path = 's3://alphastar_fake_data/model_main_player_zerg_0_ckpt.pth_job_1a572940-838d-11ea-9feb-8f9bf499ec33_agent_0_step_2332_7df970f2-838d-11ea-86b6-355c4fbf42b9.traj'
+trajectory_path = 's3://alphastar_fake_data/model_main_player_zerg_0_ckpt.' \
+    'pth_job_1a572940-838d-11ea-9feb-8f9bf499ec33_agent_0_step_2332_7df970f2-838d-11ea-86b6-355c4fbf42b9.traj'
 learner_uid = '8d2a0fb8-83d9-11ea-bdab-1d045ae924a7'
 
 metadata = {

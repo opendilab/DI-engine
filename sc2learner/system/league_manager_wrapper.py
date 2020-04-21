@@ -13,7 +13,6 @@ import traceback
 import uuid
 import random
 from easydict import EasyDict
-import requests
 
 from sc2learner.data.online import ReplayBuffer
 from sc2learner.utils import read_file_ceph, save_file_ceph
