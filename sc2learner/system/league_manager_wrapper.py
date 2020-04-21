@@ -37,7 +37,10 @@ class LeagueManagerWrapper(object):
         self.use_ceph = self.cfg['system']['use_ceph']
 
         self.url_prefix = 'http://{}:{}/'.format(self.coordinator_ip, self.coordinator_port)
-
+        self.use_fake_data = cfg['system']['use_fake_data']
+        if self.use_fake_data:
+            self.fake_model_path = cfg['system']['fake_model_path']
+            self.fake_stat_path = cfg['system']['fake_stat_path']
         self._set_logger()
         self._init_league_manager()
         self._register_league_manager()
@@ -54,6 +57,8 @@ class LeagueManagerWrapper(object):
                     - src_checkpoint (:obj:`str`): source checkpoint's path, e.g. s3://alphastar_fake_data/ckpt.pth
                     - dst_checkpoint (:obj:`str`): dst checkpoint's path, e.g. s3://alphastar_fake_data/ckpt.pth
             '''
+            if self.use_fake_data:
+                return
             src_checkpoint = os.path.join(self.ceph_model_path, src_checkpoint)
             dst_checkpoint = os.path.join(self.ceph_model_path, dst_checkpoint)
             checkpoint = read_file_ceph(src_checkpoint, read_type=read_type)

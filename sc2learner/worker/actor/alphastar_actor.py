@@ -272,6 +272,7 @@ class AlphaStarActor:
             actions = self.action_modifier(actions, game_step)
             # stepping
             game_step, due, obs, rewards, done, this_game_stat, info = self.env.step(actions)
+            game_step = int(game_step)  # np.int32->int
             # assuming 22 step per second, round to integer
             # TODO:need to check with https://github.com/deepmind/pysc2/blob/master/docs/environment.md#game-speed
             game_seconds = game_step // 22
@@ -293,7 +294,7 @@ class AlphaStarActor:
                         'game_seconds': game_seconds,
                         'done': done,
                         'rewards': torch.tensor([rewards[i]]),
-                        'info': info
+                        #'info': info
                     }
                     home_step_data = merge_two_dicts(self.last_state_action_home[i], step_data_update_home)
                     if self.agent_num == 2:
@@ -304,23 +305,17 @@ class AlphaStarActor:
                             'game_seconds': game_seconds,
                             'done': done,
                             'rewards': torch.tensor([rewards[1 - i]]),
-                            'info': info
+                            #'info': info
                         }
                         away_step_data = merge_two_dicts(self.last_state_action_away[i], step_data_update_away)
                     else:
                         away_step_data = None
-                    home_next_step_obs = obs[i] if at_traj_end else None
-                    away_next_step_obs = obs[1 - i] if self.agent_num == 2 and at_traj_end else None
-                    data_buffer[i].append(
-                        self.compressor(
-                            {
-                                'home': home_step_data,
-                                'away': away_step_data,
-                                'home_next': home_next_step_obs,
-                                'away_next': away_next_step_obs
-                            }
-                        )
-                    )
+                    step_data = {'home': home_step_data, 'away': away_step_data}
+                    if at_traj_end:
+                        step_data['home_next'] = obs[i]
+                    if self.agent_num == 2 and at_traj_end:
+                        step_data['away_next'] = obs[1 - i]
+                    data_buffer[i].append(self.compressor(step_data))
                 if at_traj_end:
                     # trajectory buffer is full or the game is finished
                     metadata = {
@@ -333,7 +328,7 @@ class AlphaStarActor:
                         'done': done,
                         'finish_time': time.time(),
                         'actor_uid': self.actor_uid,
-                        'info': info,
+                        #'info': info,
                         'traj_length': len(data_buffer[i]),  # this is the real length, without reused last traj
                         # TODO(nyz): implement other priority initialization algo, setting it to 1.0 now
                         'priority': 1.0,

@@ -96,7 +96,6 @@ class LearnerCommunicationHelper(object):
         decompressor = get_step_data_decompressor(metadata['step_data_compressor'])
         data = self._read_file(metadata['trajectory_path'])
         data = decompressor(data)
-        data = torch.load(data)
         for k, v in metadata.items():
             for i in range(len(data)):
                 data[i][k] = v
