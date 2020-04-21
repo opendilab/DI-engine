@@ -213,12 +213,7 @@ class Policy(nn.Module):
             if isinstance(actions['target_location'][idx], torch.Tensor):
                 if not action_attr['target_location'][idx]:
                     print('target_location', actions['action_type'][idx], actions['target_location'][idx], idx)
-                if isinstance(map_skip[0], torch.Tensor):
-                    map_skip_single = [t[idx:idx + 1] for t in map_skip]
-                elif isinstance(map_skip[0], list):
-                    map_skip_single = [t[idx] for t in map_skip]
-                else:
-                    raise TypeError("invalid map_skip element type: {}".format(type(map_skip[0])))
+                map_skip_single = [t[idx].unsqueeze(0) for t in map_skip]
                 logits_location, location = self.head['location_head'](
                     embedding, map_skip_single, mask['location_mask'][idx], temperature
                 )
@@ -290,7 +285,7 @@ class Policy(nn.Module):
             actions['target_units'].append(target_units)
             # action arg target_location
             if action_attr['target_location'][idx]:
-                map_skip_single = [t[idx] for t in map_skip]
+                map_skip_single = [t[idx].unsqueeze(0) for t in map_skip]
                 logits_location, location = self.head['location_head'](
                     embedding, map_skip_single, mask['location_mask'][idx], temperature
                 )

@@ -40,7 +40,7 @@ class EntityEncoder(nn.Module):
                about the fields in the dim 2
         Output:
             entity_embeddings: Tensor of size [batch_size, entity_num, output_dim] or
-                tuple(len=batch_size)->element(torch.Tensor), shape(entity_num_b, output_dim)
+                tuple(len=batch_size)->element: torch.Tensor, shape(entity_num_b, output_dim)
             embedded_entity: Tensor of size [batch_size, output_dim]
         '''
         if isinstance(x, Sequence):

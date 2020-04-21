@@ -4,7 +4,7 @@ import numpy as np
 import yaml
 import os
 from easydict import EasyDict
-from sc2learner.agent.model.alphastar.obs_encoder import ScalarEncoder, EntityEncoder
+from sc2learner.agent.model.alphastar.obs_encoder import ScalarEncoder, EntityEncoder, SpatialEncoder
 from sc2learner.envs.observations import transform_scalar_data
 
 
@@ -26,7 +26,7 @@ def is_differentiable(loss, model):
         assert isinstance(p.grad, torch.Tensor), k
 
 
-@pytest.mark.unitest
+@pytest.mark.unittest
 class TestEncoder:
     def test_scalar_encoder(self, setup_config):
         B = 4
@@ -90,3 +90,56 @@ class TestEncoder:
             assert isinstance(entity_embedding, torch.Tensor)
             assert entity_embedding.shape == (entity_num, handle.output_dim)
         assert embedded_entity.shape == (B, handle.output_dim)
+
+    def test_spatial_encoder(self, setup_config):
+        B = 5
+        handle = setup_config.model.encoder.obs_encoder.spatial_encoder
+        model = SpatialEncoder(handle)
+        assert isinstance(model, torch.nn.Module)
+
+        H = np.random.randint(20, 25) * 8
+        W = np.random.randint(20, 25) * 8
+        # input_dim: 52(20 + 32)
+        inputs = torch.randn(B, handle.input_dim, H, W)
+        map_size = [[H, W] for _ in range(B)]
+        output, map_skip = model(inputs, map_size)
+        assert isinstance(output, torch.Tensor)
+        assert output.shape == (B, handle.fc_dim)
+        assert isinstance(map_skip, list)
+        # resblock_num: 4
+        assert len(map_skip) == handle.resblock_num
+        for m in map_skip:
+            assert len(m) == B
+            for t in m:
+                assert t.shape == (handle.down_channels[-1], H // 8, W // 8)
+        loss = output.mean()
+        is_differentiable(loss, model)
+
+    def test_spatial_encoder_input_list(self, setup_config):
+        B = 5
+        handle = setup_config.model.encoder.obs_encoder.spatial_encoder
+        model = SpatialEncoder(handle)
+        assert isinstance(model, torch.nn.Module)
+
+        for n in range(10):
+            inputs = []
+            map_size = []
+            for _ in range(B):
+                H = np.random.randint(20, 25) * 8
+                W = np.random.randint(20, 25) * 8
+                inputs.append(torch.randn(handle.input_dim, H, W))
+                map_size.append([H, W])
+            if n % 2 == 0:
+                # fake pad input
+                max_h, max_w = max(list(zip(*map_size))[0]), max(list(zip(*map_size))[1])
+                inputs = torch.randn(B, handle.input_dim, max_h, max_w)
+            output, map_skip = model(inputs, map_size)
+            assert isinstance(output, torch.Tensor)
+            assert output.shape == (B, handle.fc_dim)
+            assert isinstance(map_skip, list)
+            # resblock_num: 4
+            assert len(map_skip) == handle.resblock_num
+            for m in map_skip:
+                assert len(m) == B
+                for t, (H, W) in zip(m, map_size):
+                    assert t.shape == (handle.down_channels[-1], H // 8, W // 8)
