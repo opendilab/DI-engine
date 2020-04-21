@@ -272,6 +272,7 @@ class AlphaStarActor:
             actions = self.action_modifier(actions, game_step)
             # stepping
             game_step, due, obs, rewards, done, this_game_stat, info = self.env.step(actions)
+            game_step = int(game_step)  # np.int32->int
             # assuming 22 step per second, round to integer
             # TODO:need to check with https://github.com/deepmind/pysc2/blob/master/docs/environment.md#game-speed
             game_seconds = game_step // 22
@@ -333,7 +334,7 @@ class AlphaStarActor:
                         'done': done,
                         'finish_time': time.time(),
                         'actor_uid': self.actor_uid,
-                        'info': info,
+                        #'info': info,
                         'traj_length': len(data_buffer[i]),  # this is the real length, without reused last traj
                         # TODO(nyz): implement other priority initialization algo, setting it to 1.0 now
                         'priority': 1.0,

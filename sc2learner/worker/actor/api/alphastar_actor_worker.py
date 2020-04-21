@@ -150,6 +150,22 @@ class JobGetter:
             self.context.logger.info('[error][ask_for_job] {}'.format(sys.exc_info()[0]))
 
 
+def print_type(d):
+    if isinstance(d, list) or isinstance(d, tuple):
+        print('-' * 10 + 'list begin' + '-' * 10)
+        for t in d:
+            print_type(t)
+        print('-' * 10 + 'list end' + '-' * 10)
+    elif isinstance(d, dict):
+        print('-' * 10 + 'dict begin' + '-' * 10)
+        for k, v in d.items():
+            print('key {}:'.format(k))
+            print_type(v)
+        print('-' * 10 + 'dict end' + '-' * 10)
+    else:
+        print(type(d))
+
+
 class DataPusher:
     def __init__(self, context):
         self.context = context
@@ -191,6 +207,7 @@ class DataPusher:
             'learner_uid2': job.get('learner_uid2')
         }
         metadata = merge_two_dicts(metadata, metadata_supp)
+
         d = {'actor_uid': self.context.actor_uid, 'job_id': job_id, 'metadata': metadata}
         try:
             response = self.context.requests_session.post(
