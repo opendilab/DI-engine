@@ -70,6 +70,8 @@ class Coordinator(object):
                     - src_checkpoint (:obj:`str`): source checkpoint's path, e.g. s3://alphastar_fake_data/ckpt.pth
                     - dst_checkpoint (:obj:`str`): dst checkpoint's path, e.g. s3://alphastar_fake_data/ckpt.pth
             '''
+            if self.use_fake_data:
+                return
             src_checkpoint = os.path.join(self.ceph_path, src_checkpoint)
             dst_checkpoint = os.path.join(self.ceph_path, dst_checkpoint)
             checkpoint = read_file_ceph(src_checkpoint, read_type=read_type)
