@@ -199,7 +199,7 @@ class Policy(nn.Module):
                 selected_units_num = [actions['selected_units'][idx].shape[0]]
                 logits_selected_units, selected_units, embedding = self.head['selected_units_head'](
                     embedding, mask['select_unit_type_mask'][idx], mask['select_unit_mask'][idx],
-                    entity_embeddings[idx], temperature, selected_units_num
+                    entity_embeddings[idx].unsqueeze(0), temperature, selected_units_num
                 )
                 logits['selected_units'].append(logits_selected_units[0])
             if isinstance(actions['target_units'][idx], torch.Tensor):
@@ -207,7 +207,7 @@ class Policy(nn.Module):
                     print('target_units', actions['action_type'][idx], actions['target_units'][idx], idx)
                 logits_target_units, target_units = self.head['target_unit_head'](
                     embedding, mask['target_unit_type_mask'][idx], mask['target_unit_mask'][idx],
-                    entity_embeddings[idx], temperature
+                    entity_embeddings[idx].unsqueeze(0), temperature
                 )
                 logits['target_units'].append(logits_target_units)
             if isinstance(actions['target_location'][idx], torch.Tensor):
@@ -268,7 +268,7 @@ class Policy(nn.Module):
             if action_attr['selected_units'][idx]:
                 logits_selected_units, selected_units, embedding = self.head['selected_units_head'](
                     embedding, mask['select_unit_type_mask'][idx], mask['select_unit_mask'][idx],
-                    entity_embeddings[idx], temperature
+                    entity_embeddings[idx].unsqueeze(0), temperature
                 )
                 logits_selected_units = logits_selected_units[0]
                 selected_units = selected_units[0]
@@ -280,7 +280,7 @@ class Policy(nn.Module):
             if action_attr['target_units'][idx]:
                 logits_target_units, target_units = self.head['target_unit_head'](
                     embedding, mask['target_unit_type_mask'][idx], mask['target_unit_mask'][idx],
-                    entity_embeddings[idx], temperature
+                    entity_embeddings[idx].unsqueeze(0), temperature
                 )
                 logits_target_units = logits_target_units[0]
                 target_units = target_units[0]
