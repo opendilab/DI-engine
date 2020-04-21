@@ -57,28 +57,3 @@ class EntityEncoder(nn.Module):
             entity_embeddings = self.entity_fc(x)
             embedded_entity = self.embed_fc(x.mean(dim=1))  # TODO masked
             return entity_embeddings, embedded_entity
-
-
-def test_entity_encoder():
-    class CFG(object):
-        def __init__(self):
-            self.input_dim = 256  # origin 512
-            self.head_dim = 128
-            self.hidden_dim = 1024
-            self.output_dim = 256
-            self.head_num = 2
-            self.mlp_num = 2
-            self.layer_num = 3
-            self.dropout_ratio = 0.1
-            self.activation = 'relu'
-
-    model = EntityEncoder(CFG()).cuda()
-    input = torch.randn(2, 14, 256).cuda()
-    entity_embeddings, embedded_entity = model(input)
-    print(model)
-    print(entity_embeddings.shape)
-    print(embedded_entity.shape)
-
-
-if __name__ == "__main__":
-    test_entity_encoder()

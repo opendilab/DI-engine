@@ -1,9 +1,10 @@
 import pytest
 import torch
+import numpy as np
 import yaml
 import os
 from easydict import EasyDict
-from sc2learner.agent.model.alphastar.obs_encoder import ScalarEncoder
+from sc2learner.agent.model.alphastar.obs_encoder import ScalarEncoder, EntityEncoder
 from sc2learner.envs.observations import transform_scalar_data
 
 
@@ -21,8 +22,8 @@ def is_differentiable(loss, model):
     for p in model.parameters():
         assert p.grad is None
     loss.backward()
-    for p in model.parameters():
-        assert isinstance(p.grad, torch.Tensor)
+    for k, p in model.named_parameters():
+        assert isinstance(p.grad, torch.Tensor), k
 
 
 @pytest.mark.unitest
@@ -54,4 +55,19 @@ class TestEncoder:
             assert v.shape == (B, template_replay[1]['output_dim'])
 
         loss = embedded_scalar.mean()
+        is_differentiable(loss, model)
+
+    def test_entity_encoder(self, setup_config):
+        B = 4
+        handle = setup_config.model.encoder.obs_encoder.entity_encoder
+        model = EntityEncoder(handle)
+        assert isinstance(model, torch.nn.Module)
+
+        entity_num = np.random.randint(200, 300)
+        # input_dim: 2102, output_dim: 256
+        inputs = torch.randn(B, entity_num, handle.input_dim)
+        entity_embeddings, embedded_entity = model(inputs)
+        assert entity_embeddings.shape == (B, entity_num, handle.output_dim)
+        assert embedded_entity.shape == (B, handle.output_dim)
+        loss = embedded_entity.mean() + entity_embeddings.mean()
         is_differentiable(loss, model)
