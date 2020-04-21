@@ -45,7 +45,6 @@ class LeagueManagerWrapper(object):
         self._init_league_manager()
         self._register_league_manager()
 
-
     def _set_logger(self, level=1):
         self.logger = logging.getLogger("league_manager.log")
 
@@ -123,11 +122,3 @@ class LeagueManagerWrapper(object):
 
     def get_ip(self):
         return self.league_manager_ip
-
-
-
-
-
-
-
-

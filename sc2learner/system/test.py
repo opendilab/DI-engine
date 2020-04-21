@@ -26,8 +26,10 @@ metadata = {
     'data': torch.tensor([[1, 2, 3], [4, 5, 6]]).tolist()
 }
 
+
 def get_url_prefix(ip, port):
     return url_prefix_format.format(ip, port)
+
 
 def test_coordinator_register_manager():
     url_prefix = get_url_prefix(coordinator_ip, coordinator_port)
@@ -35,45 +37,30 @@ def test_coordinator_register_manager():
     response = requests.post(url_prefix + 'coordinator/register_manager', json=d).json()
     print(response)
 
+
 def test_coordinator_ask_for_job():
     url_prefix = get_url_prefix(coordinator_ip, coordinator_port)
     d = {"manager_uid": manager_uid, "actor_uid": actor_uid}
     response = requests.post(url_prefix + 'coordinator/ask_for_job', json=d).json()
     print(response)
 
+
 def test_coordinator_get_metadata():
     url_prefix = get_url_prefix(coordinator_ip, coordinator_port)
-    d = {
-        "manager_uid": manager_uid, 
-        "actor_uid": actor_uid, 
-        "job_id": job_id, 
-        "metadata": metadata
-    }
+    d = {"manager_uid": manager_uid, "actor_uid": actor_uid, "job_id": job_id, "metadata": metadata}
     response = requests.post(url_prefix + 'coordinator/get_metadata', json=d).json()
     print(response)
 
+
 def test_coordinator_finish_job():
     url_prefix = get_url_prefix(coordinator_ip, coordinator_port)
-    d = {
-        "manager_uid": manager_uid, 
-        "actor_uid": actor_uid, 
-        "job_id": job_id, 
-        "result": 'wins'
-    }
+    d = {"manager_uid": manager_uid, "actor_uid": actor_uid, "job_id": job_id, "result": 'wins'}
     response = requests.post(url_prefix + 'coordinator/finish_job', json=d).json()
     print(response)
-    
+
 
 if __name__ == '__main__':
     # test_coordinator_register_manager()
     # test_coordinator_ask_for_job()
     test_coordinator_get_metadata()
     test_coordinator_finish_job()
-
-
-
-
-
-
-
-

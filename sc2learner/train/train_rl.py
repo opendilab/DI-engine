@@ -14,7 +14,6 @@ from sc2learner.worker.learner import AlphaStarRLLearner
 from sc2learner.worker.learner import create_learner_app
 from sc2learner.worker.actor import AlphaStarActorWorker
 
-
 FLAGS = flags.FLAGS
 flags.DEFINE_string("config_path", "", "path to config file")
 flags.DEFINE_string("load_path", "", "path to model checkpoint")

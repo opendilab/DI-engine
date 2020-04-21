@@ -38,17 +38,14 @@ def create_learner_app(learner):
         info = learner.reset(checkpoint_path)
         return build_ret(0, info)
 
-
     ###################################################################################
     #                                      debug                                      #
     ###################################################################################
-
 
     @app.route('/learner/get_trajectory_record_len', methods=['GET'])
     def get_trajectory_record_len():
         info = learner.deal_with_get_trajectory_record_len()
         return build_ret(0, info)
-
 
     @app.route('/learner/set_delete_trajectory_record', methods=['POST'])
     def set_delete_trajectory_record():
@@ -56,7 +53,6 @@ def create_learner_app(learner):
         num = request.json['num']
         info = learner.deal_with_set_delete_trajectory_record(state, num)
         return build_ret(0, info)
-
 
     @app.route('/learner/set_train_freq', methods=['POST'])
     def set_train_freq():

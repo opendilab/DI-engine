@@ -60,7 +60,7 @@ class LearnerCommunicationHelper(object):
                 d = {'learner_uid': self.learner_uid, 'learner_ip': self.learner_ip}
                 response = requests.post(self.url_prefix + "coordinator/register_learner", json=d).json()
                 if response['code'] == 0:
-                    self.checkpoint_path = response['info'] # without s3://{}/ , only file name
+                    self.checkpoint_path = response['info']  # without s3://{}/ , only file name
                     return True
                 else:
                     self.comm_logger.info(response['info'])

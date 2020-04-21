@@ -38,7 +38,7 @@ class Coordinator(object):
         # {job_id: {content: info, state: running/finish}}
         self.job_record = {}
         # {learner_uid: {"learner_ip": learner_ip,
-        #                "job_ids": [job_id], 
+        #                "job_ids": [job_id],
         #                "checkpoint_path": checkpoint_path,
         #                "replay_buffer": replay_buffer}}
         self.learner_record = {}
@@ -56,7 +56,6 @@ class Coordinator(object):
         self.learner_to_player = {}
         self.job_queue = Queue()
         self.league_flag = False
-
 
     def close(self):
         self.replay_buffer.close()
@@ -312,7 +311,6 @@ class Coordinator(object):
         self.job_queue.put(job)
         return True
 
-
     ###################################################################################
     #                                      debug                                      #
     ###################################################################################
@@ -331,4 +329,3 @@ class Coordinator(object):
 
     def deal_with_get_job_queue(self):
         pass
-
