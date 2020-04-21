@@ -26,10 +26,10 @@ class Coordinator(object):
         self.cfg = cfg
 
         self.ceph_path = cfg['system']['ceph_model_path']
-        self.use_fake_data = cfg['system']['use_fake_data']
+        self.use_fake_data = cfg['coordinator']['use_fake_data']
         if self.use_fake_data:
-            self.fake_model_path = cfg['system']['fake_model_path']
-            self.fake_stat_path = cfg['system']['fake_stat_path']
+            self.fake_model_path = cfg['coordinator']['fake_model_path']
+            self.fake_stat_path = cfg['coordinator']['fake_stat_path']
         self.learner_port = cfg['system']['learner_port']
         self.league_manager_port = cfg['system']['league_manager_port']
 
@@ -121,10 +121,10 @@ class Coordinator(object):
         return True
 
     def _tell_league_manager_to_run(self):
-        url_prefix = self.url_prefix_format(self.league_manager_ip, self.league_manager_port)
+        url_prefix = self.url_prefix_format.format(self.league_manager_ip, self.league_manager_port)
         while True:
             try:
-                response = requests.post(url_prefix + "league/run_league", json=d).json()
+                response = requests.get(url_prefix + "league/run_league").json()
                 if response['code'] == 0:
                     return True
             except Exception as e:
@@ -140,7 +140,7 @@ class Coordinator(object):
         '''
         if learner_uid not in self.learner_record:
             self.learner_record[learner_uid] = {"learner_ip": learner_ip, "job_ids": [], "checkpoint_path": ''}
-        if hasattr(self, 'player_ids')
+        if hasattr(self, 'player_ids'):
             if len(self.player_to_learner) == len(self.player_ids):
                 self.logger.info('enough learners have been registered.')
                 return False
@@ -159,7 +159,7 @@ class Coordinator(object):
             if len(self.player_ids) == len(self.player_to_learner) and not self.league_flag:
                 self.league_flag = True
                 self._tell_league_manager_to_run()
-                self.logger.info('league_manager run. ')
+                self.logger.info('league_manager run with table {}. '.format(self.player_to_learner))
             return self.learner_record[learner_uid]['checkpoint_path']
         else:
             self.logger.info('learner can not register now, because league manager is not set up')
@@ -214,7 +214,17 @@ class Coordinator(object):
             home_id = home_learner_uid if home_learner_uid.endswith('_sl') else self.learner_to_player[home_learner_uid]
             away_id = away_learner_uid if away_learner_uid.endswith('_sl') else self.learner_to_player[away_learner_uid]
             match_info = {'home_id': home_id, 'away_id': away_id, 'result': result}
-            self.league_manager.finish_match(match_info)
+            url_prefix = self.url_prefix_format.format(self.league_manager_ip, self.league_manager_port)
+            d = {'match_info': match_info}
+            while True:
+                try:
+                    response = requests.post(url_prefix + "league/finish_match", json=d).json()
+                    if response['code'] == 0:
+                        return True
+                except Exception as e:
+                    print("something wrong with league_manager, {}".format(e))
+                time.sleep(10)
+            return False
         return True
 
     def deal_with_ask_for_metadata(self, learner_uid, batch_size):
@@ -252,13 +262,14 @@ class Coordinator(object):
         self.league_manager.update_active_player(player_info)
         return True
 
-    def deal_with_register_league_manager(league_manager_ip, player_ids, player_ckpts):
+    def deal_with_register_league_manager(self, league_manager_ip, player_ids, player_ckpts):
         self.league_manager_ip = league_manager_ip
         self.player_ids = player_ids
-        self.players_ckpts = player_ckpts
+        self.player_ckpts = player_ckpts
+        self.logger.info('register league_manager from {}'.format(self.league_manager_ip))
         return True
 
-    def deal_with_ask_learner_to_reset(player_id, checkpoint_path):
+    def deal_with_ask_learner_to_reset(self, player_id, checkpoint_path):
         learner_uid = self.player_to_learner(player_id)
         d = {'checkpoint_path': checkpoint_path}
         url_prefix = self.get_url_prefix(learner_uid)
@@ -272,7 +283,7 @@ class Coordinator(object):
             time.sleep(10)
         return False
 
-    def deal_with_add_launch_info(launch_info):
+    def deal_with_add_launch_info(self, launch_info):
         home_id = launch_info['home_id']
         away_id = launch_info['away_id']
         home_checkpoint_path = launch_info['home_checkpoint_path']
@@ -317,3 +328,7 @@ class Coordinator(object):
 
     def deal_with_get_replay_buffer(self):
         return self.replay_buffer
+
+    def deal_with_get_job_queue(self):
+        pass
+

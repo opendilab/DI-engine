@@ -30,10 +30,10 @@ cfg = EasyDict(cfg)
 
 league_manager_port = cfg['system']['league_manager_port']
 
-league_manager = LeagueManager(cfg)
-league_manager_ip = league_manager.get_ip()
+league_manager_wrapper = LeagueManagerWrapper(cfg)
+league_manager_ip = league_manager_wrapper.get_ip()
 
-app = create_league_manager_app(league_manager)
+app = create_league_manager_app(league_manager_wrapper)
 
 if __name__ == '__main__':
     app.run(host=league_manager_ip, port=league_manager_port, debug=True, use_reloader=False)

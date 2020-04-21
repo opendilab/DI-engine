@@ -98,7 +98,7 @@ def create_coordinator_app(coordinator):
             return build_ret(1)
 
     @app.route('/coordinator/register_league_manager', methods=['POST'])
-    def update_replay_buffer():
+    def register_league_manager():
         league_manager_ip = request.json['league_manager_ip']
         player_ids = request.json['player_ids']
         player_ckpts = request.json['player_ckpts']

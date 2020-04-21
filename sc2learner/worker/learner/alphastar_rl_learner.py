@@ -8,6 +8,7 @@ Main Function:
 import os.path as osp
 
 import torch
+import threading
 
 from sc2learner.agent.alphastar_agent import AlphaStarAgent
 from sc2learner.agent.model import alphastar_model_default_config
@@ -42,7 +43,7 @@ class AlphaStarRLLearner(BaseRLLearner):
         run_thread.daemon = True
         run_thread.start()
 
-    def run():
+    def run(self):
         super().run()
         super().finalize()
 

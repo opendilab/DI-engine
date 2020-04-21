@@ -19,8 +19,8 @@ import logging
 import socket
 from flask import Flask, request
 
-from utils.log_helper import TextLogger
-from fake_learner import FakeLearner
+from sc2learner.utils.log_helper import TextLogger
+# from fake_learner import FakeLearner
 from sc2learner.utils import read_config, merge_dicts
 from sc2learner.worker.learner import AlphaStarRLLearner
 from sc2learner.worker.actor import AlphaStarActorWorker
@@ -63,3 +63,5 @@ def create_learner_app(learner):
         freq = request.json['freq']
         info = learner.deal_with_set_train_freq(freq)
         return build_ret(0, info)
+
+    return app

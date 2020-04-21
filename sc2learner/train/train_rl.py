@@ -11,7 +11,7 @@ from absl import app, flags, logging
 
 from sc2learner.utils import read_config, merge_dicts
 from sc2learner.worker.learner import AlphaStarRLLearner
-from sc2learner.worker.learner.learner_api import create_learner_app
+from sc2learner.worker.learner import create_learner_app
 from sc2learner.worker.actor import AlphaStarActorWorker
 
 

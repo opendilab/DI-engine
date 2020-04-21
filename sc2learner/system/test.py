@@ -1,43 +1,79 @@
 import os
 import sys
 import subprocess
+import requests
+import torch
 
+learner_port = '18293'
+coordinator_ip = '10.5.36.31'
+coordinator_port = '18294'
+manager_ip = '10.5.36.31'
+manager_port = '18295'
+league_manager_port = '18296'
 
-# get all info of cluster
-def get_cls_info():
-    ret_dict = {}
-    info = subprocess.getoutput('sinfo -Nh').split('\n')
-    for line in info:
-        line = line.strip().split()
-        if len(line) != 4:
-            continue
-        node, _, partition, state = line
-        if partition not in ret_dict:
-            ret_dict[partition] = []
-        assert node not in ret_dict[partition]
-        if state in ['idle', 'mix']:
-            ret_dict[partition].append([node, state])
+url_prefix_format = 'http://{}:{}/'
 
-    return ret_dict
+manager_uid = 'fake_manager_uid'
+actor_uid = 'fake_actor_uid'
+job_id = '8d2e8eda-83d9-11ea-8bb0-1be4f1872daf'
+trajectory_path = 's3://alphastar_fake_data/model_main_player_zerg_0_ckpt.pth_job_1a572940-838d-11ea-9feb-8f9bf499ec33_agent_0_step_2332_7df970f2-838d-11ea-86b6-355c4fbf42b9.traj'
+learner_uid = '8d2a0fb8-83d9-11ea-bdab-1d045ae924a7'
 
+metadata = {
+    'job_id': job_id,
+    'trajectory_path': trajectory_path,
+    'learner_uid': learner_uid,
+    'data': torch.tensor([[1, 2, 3], [4, 5, 6]]).tolist()
+}
 
-def generate():
-    p = 'nohup srun -p {} -w {} python -u replay_fix.py {} > {} 2>&1 &'
-    list_p = '/mnt/lustre/zhangming/data/listtempfix_2/todo.list.'
-    log_p = '/mnt/lustre/zhangming/data/logfix_2/log.'
-    d = get_cls_info()
-    partitions = ['VI_SP_Y_V100_A', 'VI_SP_VA_V100', 'VI_SP_VA_1080TI', 'VI_ID_1080TI']
+def get_url_prefix(ip, port):
+    return url_prefix_format.format(ip, port)
 
-    count = 0
-    for partition in partitions:
-        workstations = d[partition]
-        for workstation_state in workstations:
-            workstation = workstation_state[0]
-            print(p.format(partition, workstation, list_p + "{:02d}".format(count), log_p + "{:02d}".format(count)))
-            count += 1
-            if count >= 50:
-                exit()
+def test_coordinator_register_manager():
+    url_prefix = get_url_prefix(coordinator_ip, coordinator_port)
+    d = {'manager_uid': manager_uid}
+    response = requests.post(url_prefix + 'coordinator/register_manager', json=d).json()
+    print(response)
 
+def test_coordinator_ask_for_job():
+    url_prefix = get_url_prefix(coordinator_ip, coordinator_port)
+    d = {"manager_uid": manager_uid, "actor_uid": actor_uid}
+    response = requests.post(url_prefix + 'coordinator/ask_for_job', json=d).json()
+    print(response)
+
+def test_coordinator_get_metadata():
+    url_prefix = get_url_prefix(coordinator_ip, coordinator_port)
+    d = {
+        "manager_uid": manager_uid, 
+        "actor_uid": actor_uid, 
+        "job_id": job_id, 
+        "metadata": metadata
+    }
+    response = requests.post(url_prefix + 'coordinator/get_metadata', json=d).json()
+    print(response)
+
+def test_coordinator_finish_job():
+    url_prefix = get_url_prefix(coordinator_ip, coordinator_port)
+    d = {
+        "manager_uid": manager_uid, 
+        "actor_uid": actor_uid, 
+        "job_id": job_id, 
+        "result": 'wins'
+    }
+    response = requests.post(url_prefix + 'coordinator/finish_job', json=d).json()
+    print(response)
+    
 
 if __name__ == '__main__':
-    generate()
+    # test_coordinator_register_manager()
+    # test_coordinator_ask_for_job()
+    test_coordinator_get_metadata()
+    test_coordinator_finish_job()
+
+
+
+
+
+
+
+

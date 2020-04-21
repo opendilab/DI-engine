@@ -5,7 +5,7 @@ import uuid
 import numpy as np
 from itertools import count
 import logging
-from flask import Flask
+from flask import Flask, request
 
 from sc2learner.league import LeagueManager
 
@@ -19,6 +19,15 @@ def create_league_manager_app(league_manager):
     @app.route('/league/run_league', methods=['GET'])
     def run_league():
         ret_code = league_manager.deal_with_run_league()
+        if ret_code:
+            return build_ret(0)
+        else:
+            return build_ret(1)
+
+    @app.route('/league/finish_match', methods=['POST'])
+    def finish_match():
+        match_info = request.json['match_info']
+        ret_code = league_manager.deal_with_finish_match(match_info)
         if ret_code:
             return build_ret(0)
         else:
