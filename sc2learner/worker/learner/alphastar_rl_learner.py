@@ -37,6 +37,15 @@ class AlphaStarRLLearner(BaseRLLearner):
         pretty_print({"config": self.cfg})
         self.checkpoint_manager.save_config(self.cfg)
 
+        # run thread
+        run_thread = threading.Thread(target=self.run)
+        run_thread.daemon = True
+        run_thread.start()
+
+    def run():
+        super().run()
+        super().finalize()
+
     @override(BaseRLLearner)
     def _setup_data_source(self):
         dataloader = build_dataloader(

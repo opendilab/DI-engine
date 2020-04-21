@@ -102,6 +102,7 @@ class LeagueManager:
 
         # save active_players player_id
         self.active_players_ids = [p.player_id for p in self.active_players]
+        self.active_players_ckpts = [p.checkpoint_path for p in self.active_players]
         # validate unique player_id
         assert len(self.active_players_ids) == len(set(self.active_players_ids))
 
