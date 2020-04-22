@@ -27,6 +27,7 @@ class LearnerCommunicationHelper(object):
             self.learner_ip = os.environ.get('SLURMD_NODENAME', '')  # hostname like SH-IDC1-10-5-36-236
         if not self.learner_ip:
             raise ValueError('learner_ip must be ip address, but found {}'.format(self.learner_ip))
+        self.learner_port = self.cfg.system.learner_port
         self.coordinator_ip = self.cfg['system']['coordinator_ip']
         self.coordinator_port = self.cfg['system']['coordinator_port']
         self.ceph_traj_path = self.cfg['system']['ceph_traj_path']
@@ -47,6 +48,9 @@ class LearnerCommunicationHelper(object):
     def _setup_comm_logger(self):
         self.comm_logger = logging.getLogger("learner.log")
 
+    def get_ip_port(self):
+        return self.learner_ip, self.learner_port
+
     def register_learner_in_coordinator(self):
         '''
             Overview: register learner in coordinator with learner_uid and learner_ip
@@ -56,7 +60,10 @@ class LearnerCommunicationHelper(object):
                 d = {'learner_uid': self.learner_uid, 'learner_ip': self.learner_ip}
                 response = requests.post(self.url_prefix + "coordinator/register_learner", json=d).json()
                 if response['code'] == 0:
+                    self.checkpoint_path = response['info']  # without s3://{}/ , only file name
                     return True
+                else:
+                    self.comm_logger.info(response['info'])
             except Exception as e:
                 self.comm_logger.info("something wrong with coordinator, {}".format(e))
             time.sleep(10)
@@ -184,6 +191,20 @@ class LearnerCommunicationHelper(object):
             self.comm_logger.info(''.join(traceback.format_tb(e.__traceback__)))
             self.comm_logger.info("[error] {}".format(sys.exc_info()))
         return None
+
+    def _load_checkpoint_from_ceph(self, checkpoint_path, read_type='pickle'):
+        '''
+            Overview: load model from ceph, using pickle as default
+            Returns:
+                - (:obj`dict`): model
+        '''
+        checkpoint = read_file_ceph(self.ceph_path + checkpoint_path, read_type=read_type)
+        self.comm_logger.info("load checkpoint {} from ceph".format(checkpoint_path))
+        return checkpoint
+
+    def deal_with_reset(self, checkpoint_path):
+        model = self._load_checkpoint_from_ceph(checkpoint_path)
+        return True
 
     @property
     def data_iterator(self):

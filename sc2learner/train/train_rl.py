@@ -11,6 +11,7 @@ from absl import app, flags, logging
 
 from sc2learner.utils import read_config, merge_dicts
 from sc2learner.worker.learner import AlphaStarRLLearner
+from sc2learner.worker.learner import create_learner_app
 from sc2learner.worker.actor import AlphaStarActorWorker
 
 FLAGS = flags.FLAGS
@@ -35,8 +36,11 @@ def main(argv):
     assert FLAGS.job_name in ['learner', 'actor']
     if FLAGS.job_name == 'learner':
         learner = AlphaStarRLLearner(cfg)
-        learner.run()
-        learner.finalize()
+        # learner.run()
+        # learner.finalize()
+        learner_app = create_learner_app(learner)
+        learner_ip, learner_port = learner.get_ip_port()
+        learner_app.run(host=learner_ip, port=learner_port, debug=True, use_reloader=False)
     elif FLAGS.job_name == 'actor':
         actor = AlphaStarActorWorker(cfg)
         actor.run()

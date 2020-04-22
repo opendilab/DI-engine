@@ -8,6 +8,7 @@ Main Function:
 import os.path as osp
 
 import torch
+import threading
 
 from sc2learner.agent.alphastar_agent import AlphaStarAgent
 from sc2learner.agent.model import alphastar_model_default_config
@@ -36,6 +37,15 @@ class AlphaStarRLLearner(BaseRLLearner):
         # Print and save config as metadata
         pretty_print({"config": self.cfg})
         self.checkpoint_manager.save_config(self.cfg)
+
+        # run thread
+        run_thread = threading.Thread(target=self.run)
+        run_thread.daemon = True
+        run_thread.start()
+
+    def run(self):
+        super().run()
+        super().finalize()
 
     @override(BaseRLLearner)
     def _setup_data_source(self):

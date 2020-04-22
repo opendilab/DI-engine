@@ -53,13 +53,14 @@ replay_buffer:
 # values in this section is mean to be shared by multiple components
 system:
     learner_port: 18293               # learner port
-    coordinator_ip: 10.198.8.31       # learner and coordinator are in same cluster
+    coordinator_ip: 10.5.36.31       # learner and coordinator are in same cluster
     coordinator_port: 18294
     # manager_ip can be set to 'auto' or the real IP of the manager instance
     # this value is used by actors to find what they should connect and report to
     # if it's set to 'auto', the manager node of the Slurm cluster will be used as the manager
-    manager_ip: 10.198.8.31 #'auto'
+    manager_ip: 10.5.36.31 #'auto'
     manager_port: 18295
+    league_manager_port: 18296
     auto_run_actor: False
     use_partitions: ['x_cerebra']  #['VI_SP_Y_V100_A', 'VI_SP_Y_V100_B']
     actor_num: [2, 2]
