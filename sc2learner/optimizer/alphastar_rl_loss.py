@@ -68,7 +68,7 @@ class AlphaStarRLLoss(BaseLoss):
             ]
         )
         self.agent = agent
-
+        self.use_battle_reward = train_config.use_battle_reward
         self.T = train_config.trajectory_len
         self.batch_size = train_config.batch_size
         self.vtrace_rhos_min_clip = train_config.vtrace.min_clip
@@ -157,9 +157,24 @@ class AlphaStarRLLoss(BaseLoss):
             outputs_dict['behaviour_outputs'].append(home['behaviour_outputs'])
             outputs_dict['teacher_outputs'].append(home['teacher_outputs'])
             outputs_dict['baselines'].append(baselines)
-            outputs_dict['rewards'].append(
-                self._compute_pseudo_rewards(home['agent_z'], home['target_z'], home['rewards'], home['game_seconds'])
-            )
+            if idx < len(data) - 1:
+                outputs_dict['rewards'].append(
+                    self._compute_pseudo_rewards(home['agent_z'], home['target_z'],
+                                                 home['rewards'], home['game_seconds'],
+                                                 (step_data['home']['battle_value'],
+                                                 step_data['away']['battle_value'],
+                                                 data[idx + 1]['home']['battle_value'],
+                                                 data[idx + 1]['away']['battle_value']))
+                )
+            else:
+                outputs_dict['rewards'].append(
+                    self._compute_pseudo_rewards(home['agent_z'], home['target_z'],
+                                                 home['rewards'],home['game_seconds'],
+                                                 (step_data['home']['battle_value'],
+                                                 step_data['away']['battle_value'],
+                                                 step_data['home_next']['battle_value'],
+                                                 step_data['away_next']['battle_value']))
+                )
             outputs_dict['target_actions'].append(target_actions)
             outputs_dict['behaviour_actions'].append(home['actions'])
             outputs_dict['teacher_actions'].append(home['teacher_actions'])
@@ -183,7 +198,7 @@ class AlphaStarRLLoss(BaseLoss):
         outputs_dict['game_seconds'].extend(data[-1]['home']['game_seconds'])
         return self.rollout_outputs(*outputs_dict.values())  # outputs_dict is a OrderedDict
 
-    def _compute_pseudo_rewards(self, agent_z, target_z, rewards, game_seconds):
+    def _compute_pseudo_rewards(self, agent_z, target_z, rewards, game_seconds, battle_values):
         """
             Overview: compute pseudo rewards from human replay z
             Arguments:
@@ -230,6 +245,12 @@ class AlphaStarRLLoss(BaseLoss):
             new_rewards[k] = hamming_distance(agent_z[k], target_z[k], factors)
         for k in new_rewards.keys():
             new_rewards[k] = new_rewards[k].float()
+        if self.use_battle_reward:
+            battle_reward = []
+            home_value, away_value, home_next_value, away_next_value = battle_values
+            for i in self.batch_size:
+                battle_reward.append(home_next_value[i] - home_value[i] - (away_next_value[i] - away_value[i]))
+            new_rewards['battle'] = torch.FloatTensor(battle_reward).to(rewards.device)
         return new_rewards
 
     def _td_lambda_loss(self, baseline, reward):

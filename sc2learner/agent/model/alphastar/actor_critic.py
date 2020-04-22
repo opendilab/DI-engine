@@ -22,8 +22,8 @@ class AlphaStarActorCritic(ActorCriticBase):
     StepOutput = namedtuple('StepOutput', ['actions', 'logits', 'baselines', 'next_state_home', 'next_state_away'])
     CriticInput = namedtuple(
         'CriticInput', [
-            'lstm_output_home', 'lstm_output_away', 'baseline_feature_home', 'baseline_feature_away', 'cum_stat_home',
-            'cum_stat_away'
+            'lstm_output_home', 'lstm_output_away', 'baseline_feature_home', 'baseline_feature_away',
+            'score_embedding_home', 'score_embedding_away', 'cum_stat_home', 'cum_stat_away'
         ]
     )
     CriticOutput = namedtuple('CriticOutput', ['winloss', 'build_orders', 'built_units', 'effects', 'upgrades'])
@@ -41,6 +41,12 @@ class AlphaStarActorCritic(ActorCriticBase):
                 self.value_networks[v.name] = ValueBaseline(v.param)
                 # name of needed cumulative stat items
                 self.value_cum_stat_keys[v.name] = v.cum_stat_keys
+            if not self.cfg.use_battle_reward:
+                self.value_networks.pop('battle')
+                self.value_cum_stat_keys.pop('battle')
+            else:
+                self.CriticOutput = namedtuple('CriticOutput', ['winloss', 'build_orders', 'built_units',
+                                                                'effects', 'upgrades', 'battle'])
         self.freeze_module(self.cfg.freeze_targets)
 
     def freeze_module(self, freeze_targets=None):
@@ -156,17 +162,17 @@ class AlphaStarActorCritic(ActorCriticBase):
         scalar_context, \
         spatial_info, \
         baseline_feature_home, \
-        cum_stat_home = self.encoder(
+        cum_stat_home, \
+        score_embedding_home = self.encoder(
             inputs['home']
         )  # noqa
-        lstm_output_away, next_state_away, _, _, _, _, baseline_feature_away, cum_stat_away = self.encoder(
-            inputs['away']
-        )
+        lstm_output_away, next_state_away, _, _, _, _, baseline_feature_away, cum_stat_away, \
+        score_embedding_away = self.encoder(inputs['away'])  # noqa
 
         # value
         critic_inputs = self.CriticInput(
-            lstm_output_home, lstm_output_away, baseline_feature_home, baseline_feature_away, cum_stat_home,
-            cum_stat_away
+            lstm_output_home, lstm_output_away, baseline_feature_home, baseline_feature_away,
+            score_embedding_home, score_embedding_away, cum_stat_home,cum_stat_away
         )
         baselines = self._critic_forward(critic_inputs)
 
@@ -195,7 +201,7 @@ class AlphaStarActorCritic(ActorCriticBase):
         cum_stat_home, cum_stat_away = inputs.cum_stat_home, inputs.cum_stat_away
         # 'lstm_output_home', 'lstm_output_away', 'baseline_feature_home', 'baseline_feature_away'
         # are torch.Tensors and are shared across all baselines
-        same_part = torch.cat(inputs[:4], dim=1)
+        same_part = torch.cat(inputs[:6], dim=1)
         ret = []
         for (name, m), (_, key) in zip(self.value_networks.items(), self.value_cum_stat_keys.items()):
             cum_stat_home_subset = select_item(cum_stat_home, key)

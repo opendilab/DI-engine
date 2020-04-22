@@ -133,6 +133,25 @@ class AlphaStarEnv(SC2Env):
             'map_size': [self.map_size[1], self.map_size[0]],  # x,y -> y,x
         }
 
+        def battle_value(obs):
+            '''
+            The value of destroyed units belong to enemy, sum up minerals and vespene, add for battle baseline
+            '''
+            kill_value = (np.sum(obs['score_by_category']['killed_minerals']) +
+                          np.sum(obs['score_by_category']['killed_vespene']))
+            return kill_value
+
+        new_obs['battle_value'] = battle_value(obs)
+
+        def score_wrapper(obs):
+            '''
+            add cumulative_score for baseline
+            '''
+            score = obs['score_cumulative']
+            data = torch.FloatTensor(score)
+            return torch.log(data + 1)
+
+        new_obs['score_cumulative'] = score_wrapper(obs)
         new_obs = self._merge_action(new_obs, last_actions)
         if self._use_stat:
             new_obs = self._merge_stat(new_obs, agent_no)
