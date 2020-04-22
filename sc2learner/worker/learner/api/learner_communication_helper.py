@@ -21,7 +21,7 @@ class LearnerCommunicationHelper(object):
         super(LearnerCommunicationHelper, self).__init__()
         self.cfg = cfg
 
-        self.learner_uid = str(os.environ.get('SLURM_JOB_ID', str(random.randint(0,100000))))
+        self.learner_uid = str(os.environ.get('SLURM_JOB_ID', str(random.randint(0, 100000))))
 
         self.use_distributed = cfg.train.use_distributed
         if self.use_distributed:
@@ -194,7 +194,7 @@ class LearnerCommunicationHelper(object):
                 self.comm_logger.info(''.join(traceback.format_tb(e.__traceback__)))
                 self.comm_logger.info("[error] {}".format(sys.exc_info()))
             time.sleep(3)
-        
+
     def sample(self):
         d = {'learner_uid': self.learner_uid, 'batch_size': self.batch_size}
         try:

@@ -15,6 +15,7 @@ from sc2learner.envs.observations.alphastar_obs_wrapper import reorder_one_hot_a
      batch_binary_encode, div_one_hot, LOCATION_BIT_NUM
 from sc2learner.torch_utils import to_dtype
 
+
 class Statistics:
     """
     Class carrying the game statistics of multiple players

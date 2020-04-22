@@ -84,8 +84,18 @@ class Coordinator(object):
 
         if self.use_fake_data:
             if not self.learner_record:
-                self.learner_record['test1'] = {"learner_ip": '0.0.0.0', "job_ids": [], "checkpoint_path": '', 'ret_metadatas': {}}
-                self.learner_record['test2'] = {"learner_ip": '0.0.0.0', "job_ids": [], "checkpoint_path": '', 'ret_metadatas': {}}
+                self.learner_record['test1'] = {
+                    "learner_ip": '0.0.0.0',
+                    "job_ids": [],
+                    "checkpoint_path": '',
+                    'ret_metadatas': {}
+                }
+                self.learner_record['test2'] = {
+                    "learner_ip": '0.0.0.0',
+                    "job_ids": [],
+                    "checkpoint_path": '',
+                    'ret_metadatas': {}
+                }
             learner_uid1 = random.choice(list(self.learner_record.keys()))
             learner_uid2 = random.choice(list(self.learner_record.keys()))
             model_name1 = self.fake_model_path
@@ -152,13 +162,18 @@ class Coordinator(object):
                 self.logger.info('learner ({}) exists, ip {}'.format(learner_uid, learner_ip))
                 return True
             else:
-                self.learner_record[learner_uid] = {"learner_ip": learner_ip, "job_ids": [], "checkpoint_path": '', 'ret_metadatas': {}}
+                self.learner_record[learner_uid] = {
+                    "learner_ip": learner_ip,
+                    "job_ids": [],
+                    "checkpoint_path": '',
+                    'ret_metadatas': {}
+                }
                 self.logger.info('learner ({}) register, ip {}'.format(learner_uid, learner_ip))
-            
+
                 if len(self.player_to_learner) == len(self.player_ids):
                     self.logger.info('enough learners have been registered.')
                     return False
-                
+
                 for index, player_id in enumerate(self.player_ids):
                     if player_id not in self.player_to_learner:
                         self.player_to_learner[player_id] = learner_uid
@@ -359,17 +374,20 @@ class Coordinator(object):
         pass
 
     def deal_with_push_data_to_replay_buffer(self):
-        self.replay_buffer.push_data({
+        self.replay_buffer.push_data(
+            {
                 'job_id': 'job_id',
                 'trajectory_path': 'trajectory_path',
                 'learner_uid': 'learner_uid',
                 'data': [[1, 2, 3], [4, 5, 6]]
-            })
-        self.replay_buffer.push_data({
+            }
+        )
+        self.replay_buffer.push_data(
+            {
                 'job_id': 'job_id',
                 'trajectory_path': 'trajectory_path',
                 'learner_uid': 'learner_uid',
                 'data': [[1, 2, 3], [4, 5, 6]]
-            })
+            }
+        )
         return True
-

@@ -45,8 +45,10 @@ class OnlineIteratorDataLoader:
         self.num_workers = num_workers
 
         if self.num_workers < 0:
-            raise ValueError('num_workers option should be non-negative; '
-                             'use num_workers=0 to disable multiprocessing.')
+            raise ValueError(
+                'num_workers option should be non-negative; '
+                'use num_workers=0 to disable multiprocessing.'
+            )
 
         if self.num_workers > 0:
             self.shared_index = torch.tensor(0)
@@ -60,7 +62,6 @@ class OnlineIteratorDataLoader:
                 p = multiprocessing.Process(target=self._worker_loop, args=())
                 p.start()
             print('using {} workers loading data'.format(self.num_workers))
-
 
     def __iter__(self):
         return self

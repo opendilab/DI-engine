@@ -403,7 +403,6 @@ def process_0419():
                     print('sh run_coordinator.sh {} {} &'.format(k, workstation))
 
 
-
 if __name__ == '__main__':
     # get_dict()
     # filter()
