@@ -1,29 +1,9 @@
 import pytest
 import torch
 import numpy as np
-import yaml
-import os
-from easydict import EasyDict
 from sc2learner.agent.model.alphastar.obs_encoder import ScalarEncoder, EntityEncoder, SpatialEncoder
 from sc2learner.envs.observations import transform_scalar_data
-
-
-@pytest.fixture(scope='function')
-def setup_config():
-    with open(os.path.join(os.path.dirname(__file__), '../actor_critic_default_config.yaml')) as f:
-        cfg = yaml.safe_load(f)
-    cfg = EasyDict(cfg)
-    return cfg
-
-
-def is_differentiable(loss, model):
-    assert isinstance(loss, torch.Tensor)
-    assert isinstance(model, torch.nn.Module)
-    for p in model.parameters():
-        assert p.grad is None
-    loss.backward()
-    for k, p in model.named_parameters():
-        assert isinstance(p.grad, torch.Tensor), k
+from sc2learner.agent.model.alphastar.tests.conftest import is_differentiable
 
 
 @pytest.mark.unittest
