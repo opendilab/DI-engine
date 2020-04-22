@@ -2,7 +2,7 @@ common:
     name: ZergStat
     time_wrapper_type: cuda
 env:
-   screen_resolution: 128
+   screen_resolution: 128  # not used
    default_step_mul: 8  # not used
    game_steps_per_episode: 43200
    disable_fog: False
@@ -16,8 +16,12 @@ env:
 model:
     use_value_network: True
 train:
+    #batch_size: 64
     trajectory_len: 64
     temperature: 0.8
+    use_cuda: True
+    use_distributed: True
+    max_iterations: 1e9
 logger:
     print_freq: 10
     save_freq: 200
@@ -43,7 +47,7 @@ replay_buffer:
     min_sample_ratio: 2
     alpha: 0.6
     beta: 0.5
-    cache_maxlen: 256
+    cache_maxlen: 64
     timeout: 8  # times of the seconds of per learning iteration
     
 # values in this section is mean to be shared by multiple components
