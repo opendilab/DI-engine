@@ -21,6 +21,7 @@ actor:
     heartbeats_thread: True
     heartbeats_freq: 10
     max_connection_retries: 20
+    print_freq: 4
 coordinator:
     use_fake_data: True
     fake_model_path: do_not_load
@@ -36,6 +37,7 @@ system:
     # if it's set to 'auto', the manager node of the Slurm cluster will be used as the manager
     manager_ip: 'auto'
     manager_port: 18295
+    league_manager_port: 18296
     auto_run_actor: False
     use_partitions: ['VI_SP_Y_V100_A', 'VI_SP_Y_V100_B']
     actor_num: [2, 2]

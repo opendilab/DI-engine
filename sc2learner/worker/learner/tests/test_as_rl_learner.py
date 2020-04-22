@@ -7,7 +7,7 @@ from sc2learner.worker import AlphaStarRLLearner
 from sc2learner.data import FakeActorDataset
 
 
-@pytest.mark.unittest
+# @pytest.mark.unittest
 class TestASRLLearner:
     def fake_push_data(self, coordinator):
         time.sleep(3)  # monitor empty replay_buffer state

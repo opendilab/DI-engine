@@ -279,6 +279,12 @@ class AlphaStarActor:
             if game_step >= self.cfg.env.game_steps_per_episode:
                 # game time out, force the done flag to True
                 done = True
+            if len(data_buffer[0]) % self.cfg.actor.print_freq == 0:
+                print(
+                    'actor: uid({}), game_step({}), len of data_buffer({})'.format(
+                        self.actor_uid, game_step, len(data_buffer[0])
+                    )
+                )
             for i in range(self.agent_num):
                 # flag telling that we should push the data buffer for agent i before next step
                 at_traj_end = len(data_buffer[i]) + 1 * due[i] >= job['data_push_length'] or done
@@ -287,9 +293,9 @@ class AlphaStarActor:
                     # the 'next_obs' is saved (and to be sent) if only this is the last obs of the traj
                     step_data_update_home = {
                         # the z used for the behavior network
-                        'target_z': self.env.loaded_eval_stat.get_z(i),
+                        'human_target_z': self.env.loaded_eval_stat.get_z(i),
                         # statistics calculated for this episode so far
-                        'agent_z': this_game_stat[i],
+                        'behaviour_z': this_game_stat[i],
                         'step': game_step,
                         'game_seconds': game_seconds,
                         'done': done,
@@ -299,8 +305,8 @@ class AlphaStarActor:
                     home_step_data = merge_two_dicts(self.last_state_action_home[i], step_data_update_home)
                     if self.agent_num == 2:
                         step_data_update_away = {
-                            'target_z': self.env.loaded_eval_stat.get_z(i),
-                            'agent_z': this_game_stat[1 - i],
+                            'human_target_z': self.env.loaded_eval_stat.get_z(i),
+                            'behaviour_z': this_game_stat[1 - i],
                             'step': game_step,
                             'game_seconds': game_seconds,
                             'done': done,

@@ -191,6 +191,7 @@ class Coordinator(object):
                 self.logger.info('league_manager run with table {}. '.format(self.player_to_learner))
             return self.learner_record[learner_uid]['checkpoint_path']
         else:
+            # TODO(nyz) no league learner register
             self.logger.info('learner can not register now, because league manager is not set up')
             return False
 

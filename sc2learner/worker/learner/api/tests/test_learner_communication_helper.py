@@ -19,7 +19,7 @@ def train(data):
     return info
 
 
-@pytest.mark.unittest
+# @pytest.mark.unittest
 class TestLearnerCommHelper:
     def fake_push_data(self, coordinator):
         time.sleep(3)  # monitor empty replay_buffer state

@@ -286,8 +286,8 @@ class FakeActorDataset:
             base['prev_state'] = [torch.zeros(*LSTM_DIMS), torch.zeros(*LSTM_DIMS)]
             base['rewards'] = torch.randint(0, 1, size=[1])
             base['game_seconds'] = random.randint(0, 24 * 60)
-            base['agent_z'] = get_z()
-            base['target_z'] = get_z()
+            base['behaviour_z'] = get_z()
+            base['human_target_z'] = get_z()
             base['target_outputs'] = get_outputs(base['actions'], base['entity_info'].shape[0])
             base['behaviour_outputs'] = disturb_outputs(
                 base['target_outputs']

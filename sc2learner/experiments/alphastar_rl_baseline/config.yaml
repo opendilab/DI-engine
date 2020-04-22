@@ -13,17 +13,23 @@ env:
    use_available_action_transform: True
    use_stat: True
    beginning_build_order_num: 20
+data:
+    train:
+        batch_size: 4
 model:
     use_value_network: True
 train:
-    #batch_size: 64
-    trajectory_len: 64
+    batch_size: 4
+    trajectory_len: 48
     temperature: 0.8
     use_cuda: True
     use_distributed: True
     max_iterations: 1e9
+    loss_weights:
+        kl: 0.0
+        action_kl: 0.0
 logger:
-    print_freq: 10
+    print_freq: 1
     save_freq: 200
     eval_freq: 200
     var_record_type: 'alphastar'
@@ -37,6 +43,7 @@ actor:
     use_cuda: False
     heartbeats_freq: 120
     heartbeats_thread: True
+    print_freq: 4
 manager:
     # not used at the moment
 coordinator:
@@ -53,12 +60,12 @@ replay_buffer:
 # values in this section is mean to be shared by multiple components
 system:
     learner_port: 18293               # learner port
-    coordinator_ip: 10.5.36.31       # learner and coordinator are in same cluster
+    coordinator_ip: 10.198.8.31       # learner and coordinator are in same cluster
     coordinator_port: 18294
     # manager_ip can be set to 'auto' or the real IP of the manager instance
     # this value is used by actors to find what they should connect and report to
     # if it's set to 'auto', the manager node of the Slurm cluster will be used as the manager
-    manager_ip: 10.5.36.31 #'auto'
+    manager_ip: 10.198.8.31 #'auto'
     manager_port: 18295
     league_manager_port: 18296
     auto_run_actor: False
