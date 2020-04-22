@@ -23,6 +23,12 @@ def get_world_size():
     return link.get_world_size()
 
 
+def broadcast(value, rank_num):
+    if is_fake_link:
+        raise NotImplementedError
+    link.broadcast(value, rank_num)
+
+
 def allreduce(data):
     if is_fake_link:
         return data

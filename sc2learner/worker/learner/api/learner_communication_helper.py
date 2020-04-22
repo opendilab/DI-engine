@@ -10,23 +10,33 @@ import uuid
 import time
 import requests
 from collections import OrderedDict
+import random
 
 from sc2learner.utils import read_file_ceph, save_file_ceph, get_step_data_decompressor, get_manager_node_ip
+from sc2learner.utils import dist_init, broadcast
 
 
 class LearnerCommunicationHelper(object):
     def __init__(self, cfg):
         super(LearnerCommunicationHelper, self).__init__()
-
         self.cfg = cfg
 
-        self.learner_uid = str(uuid.uuid1())
+        self.learner_uid = str(os.environ.get('SLURM_JOB_ID', str(random.randint(0,100000))))
+
+        self.use_distributed = cfg.train.use_distributed
+        if self.use_distributed:
+            self.rank, self.world_size = dist_init()
+            self.data_index = torch.tensor(0)
+        else:
+            self.rank, self.world_size = 0, 1
+
         if 'learner_ip' in self.cfg.system.keys():
             self.learner_ip = self.cfg.system.learner_ip
         else:
             self.learner_ip = os.environ.get('SLURMD_NODENAME', '')  # hostname like SH-IDC1-10-5-36-236
         if not self.learner_ip:
             raise ValueError('learner_ip must be ip address, but found {}'.format(self.learner_ip))
+
         self.learner_port = self.cfg.system.learner_port
         self.coordinator_ip = self.cfg['system']['coordinator_ip']
         self.coordinator_port = self.cfg['system']['coordinator_port']
@@ -37,7 +47,7 @@ class LearnerCommunicationHelper(object):
         self.url_prefix = 'http://{}:{}/'.format(self.coordinator_ip, self.coordinator_port)
 
         self._setup_comm_logger()
-        self.register_learner_in_coordinator()
+        self._register_learner_in_coordinator()
 
         self.batch_size = cfg.data.train.batch_size  # once len(self.trajectory_record) reach this value, train
 
@@ -47,26 +57,28 @@ class LearnerCommunicationHelper(object):
 
     def _setup_comm_logger(self):
         self.comm_logger = logging.getLogger("learner.log")
+        self.comm_logger.info('learner_uid {}, learner_ip {}'.format(self.learner_uid, self.learner_ip))
 
     def get_ip_port(self):
         return self.learner_ip, self.learner_port
 
-    def register_learner_in_coordinator(self):
+    def _register_learner_in_coordinator(self):
         '''
             Overview: register learner in coordinator with learner_uid and learner_ip
         '''
-        while True:
-            try:
-                d = {'learner_uid': self.learner_uid, 'learner_ip': self.learner_ip}
-                response = requests.post(self.url_prefix + "coordinator/register_learner", json=d).json()
-                if response['code'] == 0:
-                    self.checkpoint_path = response['info']  # without s3://{}/ , only file name
-                    return True
-                else:
-                    self.comm_logger.info(response['info'])
-            except Exception as e:
-                self.comm_logger.info("something wrong with coordinator, {}".format(e))
-            time.sleep(10)
+        if self.rank == 0:
+            while True:
+                try:
+                    d = {'learner_uid': self.learner_uid, 'learner_ip': self.learner_ip}
+                    response = requests.post(self.url_prefix + "coordinator/register_learner", json=d).json()
+                    if response['code'] == 0:
+                        # self.checkpoint_path = response['info']  # without s3://{}/ , only file name
+                        return True
+                    else:
+                        self.comm_logger.info(response['info'])
+                except Exception as e:
+                    self.comm_logger.info("something wrong with coordinator, {}".format(e))
+                time.sleep(10)
 
     def register_model_in_coordinator(self, model_name):
         '''
@@ -165,10 +177,14 @@ class LearnerCommunicationHelper(object):
             self.comm_logger.info("something wrong with coordinator, {}".format(e))
 
     def _get_sample_data(self):
-        d = {'learner_uid': self.learner_uid, 'batch_size': self.batch_size}
         while True:
             try:
+                if self.use_distributed:
+                    broadcast(self.data_index, 0)
+                data_index = self.data_index.item()
+                d = {'learner_uid': self.learner_uid, 'batch_size': self.batch_size, 'data_index': data_index}
                 response = requests.post(self.url_prefix + 'coordinator/ask_for_metadata', json=d).json()
+                self.data_index += 1
                 if response['code'] == 0:
                     metadatas = response['info']
                     if metadatas is not None:
@@ -178,7 +194,7 @@ class LearnerCommunicationHelper(object):
                 self.comm_logger.info(''.join(traceback.format_tb(e.__traceback__)))
                 self.comm_logger.info("[error] {}".format(sys.exc_info()))
             time.sleep(3)
-
+        
     def sample(self):
         d = {'learner_uid': self.learner_uid, 'batch_size': self.batch_size}
         try:

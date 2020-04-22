@@ -14,6 +14,7 @@ import uuid
 import random
 from easydict import EasyDict
 from queue import Queue
+from multiprocessing import Lock
 
 from sc2learner.data.online import ReplayBuffer
 from sc2learner.utils import read_file_ceph, save_file_ceph
@@ -40,7 +41,8 @@ class Coordinator(object):
         # {learner_uid: {"learner_ip": learner_ip,
         #                "job_ids": [job_id],
         #                "checkpoint_path": checkpoint_path,
-        #                "replay_buffer": replay_buffer}}
+        #                "replay_buffer": replay_buffer,
+        #                "ret_metadata": {data_index: metadata}}
         self.learner_record = {}
 
         self.url_prefix_format = 'http://{}:{}/'
@@ -49,6 +51,8 @@ class Coordinator(object):
         self.replay_buffer = ReplayBuffer(EasyDict(self.cfg['replay_buffer']))
         self.replay_buffer.run()
 
+        self.lock = Lock()
+        self.save_ret_metadata_num = 5
         self._set_logger()
 
         # for league
@@ -63,6 +67,12 @@ class Coordinator(object):
     def _set_logger(self, level=1):
         self.logger = logging.getLogger("coordinator.log")
 
+    def _acquire_lock(self):
+        self.lock.acquire()
+
+    def _release_lock(self):
+        self.lock.release()
+
     def _get_job(self):
         '''
             Overview: return job info for actor
@@ -74,8 +84,8 @@ class Coordinator(object):
 
         if self.use_fake_data:
             if not self.learner_record:
-                self.learner_record['test1'] = {"learner_ip": '0.0.0.0', "job_ids": [], "checkpoint_path": ''}
-                self.learner_record['test2'] = {"learner_ip": '0.0.0.0', "job_ids": [], "checkpoint_path": ''}
+                self.learner_record['test1'] = {"learner_ip": '0.0.0.0', "job_ids": [], "checkpoint_path": '', 'ret_metadatas': {}}
+                self.learner_record['test2'] = {"learner_ip": '0.0.0.0', "job_ids": [], "checkpoint_path": '', 'ret_metadatas': {}}
             learner_uid1 = random.choice(list(self.learner_record.keys()))
             learner_uid2 = random.choice(list(self.learner_record.keys()))
             model_name1 = self.fake_model_path
@@ -137,13 +147,18 @@ class Coordinator(object):
             Arguments:
                 - learner_uid (:obj:`str`): learner's uid
         '''
-        if learner_uid not in self.learner_record:
-            self.learner_record[learner_uid] = {"learner_ip": learner_ip, "job_ids": [], "checkpoint_path": ''}
         if hasattr(self, 'player_ids'):
-            if len(self.player_to_learner) == len(self.player_ids):
-                self.logger.info('enough learners have been registered.')
-                return False
+            if learner_uid in self.learner_record:
+                self.logger.info('learner ({}) exists, ip {}'.format(learner_uid, learner_ip))
+                return True
             else:
+                self.learner_record[learner_uid] = {"learner_ip": learner_ip, "job_ids": [], "checkpoint_path": '', 'ret_metadatas': {}}
+                self.logger.info('learner ({}) register, ip {}'.format(learner_uid, learner_ip))
+            
+                if len(self.player_to_learner) == len(self.player_ids):
+                    self.logger.info('enough learners have been registered.')
+                    return False
+                
                 for index, player_id in enumerate(self.player_ids):
                     if player_id not in self.player_to_learner:
                         self.player_to_learner[player_id] = learner_uid
@@ -151,9 +166,9 @@ class Coordinator(object):
                         self.learner_record[learner_uid]['checkpoint_path'] = self.player_ckpts[index]
                         self.logger.info('learner ({}) set to player ({})'.format(learner_uid, player_id))
                         break
-            self.logger.info(
-                '{}/{} learners have been registered'.format(len(self.player_to_learner), len(self.player_ids))
-            )
+                self.logger.info(
+                    '{}/{} learners have been registered'.format(len(self.player_to_learner), len(self.player_ids))
+                )
             # TODO(nyz) learner load init model
             if len(self.player_ids) == len(self.player_to_learner) and not self.league_flag:
                 self.league_flag = True
@@ -226,17 +241,30 @@ class Coordinator(object):
             return False
         return True
 
-    def deal_with_ask_for_metadata(self, learner_uid, batch_size):
+    def deal_with_ask_for_metadata(self, learner_uid, batch_size, data_index):
         '''
             Overview: when receiving learner's request of asking for metadata, return metadatas
             Arguments:
                 - learner_uid (:obj:`str`): learner's uid
                 - batch_size (:obj:`int`): batch size
+                - data_index (:obj:`int`): data index, return same data if same
             Returns:
                 - (:obj`list`): metadata list
         '''
         assert learner_uid in self.learner_record, 'learner_uid ({}) not in learner_record'.format(learner_uid)
-        metadatas = self.replay_buffer.sample(batch_size)
+        self._acquire_lock()
+        if data_index not in self.learner_record[learner_uid]['ret_metadatas']:
+            metadatas = self.replay_buffer.sample(batch_size)
+            self.learner_record[learner_uid]['ret_metadatas'][data_index] = metadatas
+            self.logger.info('[ask_for_metadata] [first] learner ({}) data_index ({})'.format(learner_uid, data_index))
+        else:
+            metadatas = self.learner_record[learner_uid]['ret_metadatas'][data_index]
+            self.logger.info('[ask_for_metadata] [second] learner ({}) data_index ({})'.format(learner_uid, data_index))
+        self._release_lock()
+        # clean saved metadata in learner_record
+        for i in range(data_index - self.save_ret_metadata_num):
+            if i in self.learner_record[learner_uid]['ret_metadatas']:
+                del self.learner_record[learner_uid]['ret_metadatas'][i]
         return metadatas
 
     def deal_with_update_replay_buffer(self, update_info):
@@ -329,3 +357,19 @@ class Coordinator(object):
 
     def deal_with_get_job_queue(self):
         pass
+
+    def deal_with_push_data_to_replay_buffer(self):
+        self.replay_buffer.push_data({
+                'job_id': 'job_id',
+                'trajectory_path': 'trajectory_path',
+                'learner_uid': 'learner_uid',
+                'data': [[1, 2, 3], [4, 5, 6]]
+            })
+        self.replay_buffer.push_data({
+                'job_id': 'job_id',
+                'trajectory_path': 'trajectory_path',
+                'learner_uid': 'learner_uid',
+                'data': [[1, 2, 3], [4, 5, 6]]
+            })
+        return True
+

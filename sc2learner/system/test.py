@@ -59,9 +59,14 @@ def test_coordinator_finish_job():
     response = requests.post(url_prefix + 'coordinator/finish_job', json=d).json()
     print(response)
 
+def test_coordinator_push_data_to_replay_buffer():
+    url_prefix = get_url_prefix(coordinator_ip, coordinator_port)
+    requests.get(url_prefix + 'debug/push_data_to_replay_buffer')
+
 
 if __name__ == '__main__':
     # test_coordinator_register_manager()
     # test_coordinator_ask_for_job()
-    test_coordinator_get_metadata()
-    test_coordinator_finish_job()
+    # test_coordinator_get_metadata()
+    # test_coordinator_finish_job()
+    test_coordinator_push_data_to_replay_buffer()

@@ -1,6 +1,9 @@
 import torch
 from collections.abc import Iterator
 from torch.utils.data import _utils
+import torch.multiprocessing as multiprocessing
+from torch._six import queue
+import time
 
 
 class OnlineDataLoader(object):
@@ -41,18 +44,66 @@ class OnlineIteratorDataLoader:
         self.read_data_fn = read_data_fn
         self.num_workers = num_workers
 
+        if self.num_workers < 0:
+            raise ValueError('num_workers option should be non-negative; '
+                             'use num_workers=0 to disable multiprocessing.')
+
+        if self.num_workers > 0:
+            self.shared_index = torch.tensor(0)
+            self.shared_index.share_memory_()
+            self.put_index = torch.tensor(0)
+            self.put_index.share_memory_()
+            self.lock = multiprocessing.Lock()
+            self.data_queue = multiprocessing.Queue()
+            self.max_length = 10 * self.num_workers
+            for _ in range(self.num_workers):
+                p = multiprocessing.Process(target=self._worker_loop, args=())
+                p.start()
+            print('using {} workers loading data'.format(self.num_workers))
+
+
     def __iter__(self):
         return self
 
     def __next__(self):
-        data = next(self.data_iterator)
         if self.num_workers == 0:
+            data = next(self.data_iterator)
             data = [self.read_data_fn(d) for d in data]
         else:
-            # TODO(nyz) multi-process read
-            raise NotImplementedError
+            while True:
+                if self.data_queue.qsize() > 0:
+                    data = self.data_queue.get()
+                    break
+                else:
+                    print('waiting for loading data ...')
+                    time.sleep(1)
         data = self.collate_fn(data)
         return data
+
+    def _acquire_lock(self):
+        self.lock.acquire()
+
+    def _release_lock(self):
+        self.lock.release()
+
+    def _worker_loop(self):
+        while True:
+            if self.data_queue.qsize() < self.max_length:
+                self._acquire_lock()
+                index = self.shared_index
+                self.shared_index += 1
+                data = next(self.data_iterator)
+                self._release_lock()
+                data = [self.read_data_fn(d) for d in data]
+                while True:
+                    if self.shared_index - self.put_index == 1:
+                        self.data_queue.put(data)
+                        self._acquire_lock()
+                        self.put_index += 1
+                        self._release_lock()
+                        break
+                    time.sleep(0.01)
+            time.sleep(0.01)
 
 
 def unroll_split_collate_fn(*args, collate_fn=_utils.collate.default_collate, **kwargs):
