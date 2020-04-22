@@ -36,6 +36,7 @@ system:
     # if it's set to 'auto', the manager node of the Slurm cluster will be used as the manager
     manager_ip: 'auto'
     manager_port: 18295
+    league_manager_port: 18296
     auto_run_actor: False
     use_partitions: ['VI_SP_Y_V100_A', 'VI_SP_Y_V100_B']
     actor_num: [2, 2]
