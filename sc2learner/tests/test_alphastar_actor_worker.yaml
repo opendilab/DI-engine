@@ -21,6 +21,7 @@ actor:
     heartbeats_thread: True
     heartbeats_freq: 10
     max_connection_retries: 20
+    print_freq: 4
 coordinator:
     use_fake_data: True
     fake_model_path: do_not_load

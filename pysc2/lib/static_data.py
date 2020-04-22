@@ -237,6 +237,8 @@ BEGIN_ACTIONS_REORDER = {
     item: idx for idx, item in enumerate(BEGIN_ACTIONS)
 }
 
+BUILD_ORDER_REWARD_ACTIONS = [v for k, v in ACTIONS_REORDER.items() if k in BEGIN_ACTIONS]
+
 BEGIN_ACTIONS_REORDER_ARRAY = get_reorder_lookup_array(BEGIN_ACTIONS)
 
 UNIT_BUILD_ACTIONS = [k for k, v in GENERAL_ACTION_INFO_MASK.items() if v['goal'] in ['unit', 'build']]
@@ -249,6 +251,8 @@ UNIT_BUILD_ACTIONS_REORDER = {
 
 UNIT_BUILD_ACTIONS_REORDER_ARRAY = get_reorder_lookup_array(UNIT_BUILD_ACTIONS)
 
+UNITS_REWARD_ACTIONS = [v for k, v in ACTIONS_REORDER.items() if k in UNIT_BUILD_ACTIONS]
+
 EFFECT_ACTIONS = [k for k, v in GENERAL_ACTION_INFO_MASK.items() if v['goal'] in ['effect']]
 
 NUM_EFFECT_ACTIONS = len(EFFECT_ACTIONS)
@@ -259,6 +263,8 @@ EFFECT_ACTIONS_REORDER = {
 
 EFFECT_ACTIONS_REORDER_ARRAY = get_reorder_lookup_array(EFFECT_ACTIONS)
 
+EFFECT_REWARD_ACTIONS = [v for k, v in ACTIONS_REORDER.items() if k in EFFECT_ACTIONS]
+
 RESEARCH_ACTIONS = [k for k, v in GENERAL_ACTION_INFO_MASK.items() if v['goal'] in ['research']]
 
 NUM_RESEARCH_ACTIONS = len(RESEARCH_ACTIONS)
@@ -266,6 +272,8 @@ NUM_RESEARCH_ACTIONS = len(RESEARCH_ACTIONS)
 RESEARCH_ACTIONS_REORDER = {
     item: idx for idx, item in enumerate(RESEARCH_ACTIONS)
 }
+
+RESEARCH_REWARD_ACTIONS = [v for k, v in ACTIONS_REORDER.items() if k in RESEARCH_ACTIONS]
 
 RESEARCH_ACTIONS_REORDER_ARRAY = get_reorder_lookup_array(RESEARCH_ACTIONS)
 
