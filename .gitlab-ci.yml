@@ -1,4 +1,4 @@
-image: "registry.sensetime.com/spring/dka:pytorch0.4.1"
+image: "registry.sensetime.com/xlab/sensestar-docker:cuda9-centos7"
 stages:
   - style
   - test
@@ -16,7 +16,7 @@ test:
   stage: test
   script:
     - pip install -e .
-    - pytest sc2learner/ -sv -n 4 -m unittest 
+    - pytest sc2learner/ -n 4 -sv -m unittest 
 
 pages:
   stage: deploy
