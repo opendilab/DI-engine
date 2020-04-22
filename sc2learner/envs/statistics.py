@@ -13,7 +13,7 @@ from pysc2.lib.static_data import NUM_BUFFS, NUM_ABILITIES, NUM_UNIT_TYPES, UNIT
 # TODO: move these shared functions to utils
 from sc2learner.envs.observations.alphastar_obs_wrapper import reorder_one_hot_array,\
      batch_binary_encode, div_one_hot, LOCATION_BIT_NUM
-
+from sc2learner.torch_utils import to_dtype
 
 class Statistics:
     """
@@ -252,6 +252,7 @@ class Statistics:
             'upgrades': cum_stat_tensor['research'],
             'build_order': transform_build_order_to_z_format(self.build_order_statistics[idx])
         }
+        ret = to_dtype(ret, torch.long)
         self.cached_z[idx] = copy.deepcopy(ret)
         return ret
 

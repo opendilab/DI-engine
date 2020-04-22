@@ -333,8 +333,6 @@ class AlphaStarActor:
                         # TODO(nyz): implement other priority initialization algo, setting it to 1.0 now
                         'priority': 1.0,
                     }
-                    if done:
-                        metadata['final_reward'] = rewards[i]
                     delta = job['data_push_length'] - len(data_buffer[i])
                     # if the the data actually in the buffer when the episode ends is shorter than
                     # job['data_push_length'], the buffer is than filled with data from the last trajectory
