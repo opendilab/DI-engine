@@ -45,8 +45,10 @@ class OnlineIteratorDataLoader:
         self.num_workers = num_workers
 
         if self.num_workers < 0:
-            raise ValueError('num_workers option should be non-negative; '
-                             'use num_workers=0 to disable multiprocessing.')
+            raise ValueError(
+                'num_workers option should be non-negative; '
+                'use num_workers=0 to disable multiprocessing.'
+            )
 
         if self.num_workers > 0:
             self.shared_index = torch.tensor(0)
@@ -57,10 +59,9 @@ class OnlineIteratorDataLoader:
             self.data_queue = multiprocessing.Queue()
             self.max_length = 10 * self.num_workers
             for i in range(self.num_workers):
-                p = multiprocessing.Process(target=self._worker_loop, args=(i,))
+                p = multiprocessing.Process(target=self._worker_loop, args=(i, ))
                 p.start()
             print('using {} workers loading data'.format(self.num_workers))
-
 
     def __iter__(self):
         return self
@@ -93,20 +94,15 @@ class OnlineIteratorDataLoader:
                 index = int(self.shared_index.item())
                 self.shared_index += 1
                 data = next(self.data_iterator)
-                # print('thread {} get data {}'.format(thread_id, index))
                 self._release_lock()
                 data = [self.read_data_fn(d) for d in data]
-                # print('thread {} finish reading data {}'.format(thread_id, index))
                 while True:
                     if index - self.put_index == 1:
                         self.data_queue.put(data)
                         self._acquire_lock()
                         self.put_index += 1
-                        # print('thread {} put data {}, now put_index={}'.format(thread_id, index, self.put_index))
                         self._release_lock()
                         break
-                    else:
-                        # print('thread {} waiting to put data {}, now put_index={}'.format(thread_id, index, self.put_index))
                     time.sleep(0.1)
             time.sleep(0.1)
 
