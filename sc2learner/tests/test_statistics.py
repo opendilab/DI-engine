@@ -100,5 +100,5 @@ def test_transformed_load_export(stat_processed):
     print(stat.get_z(0))
     fad = FakeActorDataset(trajectory_len=1)
     data = fad.get_1v1_agent_data()[0]
-    ref = data['home']['agent_z']
+    ref = data['home']['behaviour_z']
     recu_check_keys(ref, stat.get_z(0))
