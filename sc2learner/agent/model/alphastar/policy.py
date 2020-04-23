@@ -185,13 +185,15 @@ class Policy(nn.Module):
         )
         action_attr, mask = self._look_up_action_attr(action_type, entity_raw, units_num, spatial_info)
 
-        logits['delay'], delay, embeddings = self.head['delay_head'](embeddings)
+        delay = torch.LongTensor(actions['delay']).to(lstm_output.device)
+        logits['delay'], delay, embeddings = self.head['delay_head'](embeddings, delay)
         for idx in range(action_type.shape[0]):
             embedding = embeddings[idx:idx + 1]
             if isinstance(actions['queued'][idx], torch.Tensor):
                 if not action_attr['queued'][idx]:
                     print('queued', actions['action_type'][idx], actions['queued'][idx], idx)
-                logits_queued, queued, embedding = self.head['queued_head'](embedding, temperature)
+                queued = actions['queued'][idx]
+                logits_queued, queued, embedding = self.head['queued_head'](embedding, temperature, queued)
                 logits['queued'].append(logits_queued)
             if isinstance(actions['selected_units'][idx], torch.Tensor):
                 if not action_attr['selected_units'][idx]:

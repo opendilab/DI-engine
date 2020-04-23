@@ -39,7 +39,7 @@ class DelayHead(nn.Module):
 
         self.delay_max_range = math.pow(2, cfg.delay_encode_dim) - 1
 
-    def forward(self, embedding):
+    def forward(self, embedding, delay=None):
         '''
             Overview: This head uses autoregressive_embedding to get delay_logits. Autoregressive_embedding
                       is decoded using a 2-layer (each with size 256) linear network with ReLUs, before being
@@ -50,18 +50,22 @@ class DelayHead(nn.Module):
                       linear network with ReLUs, and added to autoregressive_embedding.
             Arguments:
                 - embedding (:obj:`tensor`): autoregressive_embedding
+                - delay (:obj:`tensor or None`): when SL training, the caller indicates delay value to calculate
+                    embedding
             Returns:
-                - (:obj`tensor`): delay for calculation loss
-                - (:obj`tensor`): delay action
+                - (:obj`tensor`): delay for calculation loss, shape(B, 1), dtype(torch.float)
+                - (:obj`tensor`): delay action, shape(B, ), dtype(torch.long)
                 - (:obj`tensor`): autoregressive_embedding that combines information from lstm_output
-                                  and all previous sampled arguments.
+                                  and all previous sampled arguments, shape(B, input_dim)
         '''
         x = self.fc1(embedding)
         x = self.fc2(x)
         x = self.fc3(x)
         delay_output = (x * self.delay_max_range)
-        delay = torch.round(delay_output).long().squeeze(1)
+        if delay is None:
+            delay = torch.round(delay_output).long().squeeze(1)
 
+        # embedding gradient can't backprop to the fc predicting delay
         delay_encode = binary_encode(delay, self.delay_max_range).float()
         embedding_delay = self.embed_fc1(delay_encode)
         embedding_delay = self.embed_fc2(embedding_delay)  # get autoregressive_embedding
@@ -95,7 +99,7 @@ class QueuedHead(nn.Module):
 
         self.queued_dim = cfg.queued_dim
 
-    def forward(self, embedding, temperature=1.0):
+    def forward(self, embedding, temperature=1.0, queued=None):
         '''
             Overview: This head uses autoregressive_embedding to get queued_logits. Queued Head is similar to
                       the delay head except a temperature of 0.8 is applied to the logits before sampling, the
@@ -103,7 +107,8 @@ class QueuedHead(nn.Module):
                       not added to autoregressive_embedding if queuing is not possible for the chosen action_type.
             Arguments:
                 - embedding (:obj:`tensor`): autoregressive_embedding
-                - temperature (:obj:`float`):
+                - temperature (:obj:`float`): temperature
+                - queued (obj:`tensor or None`): when SL training, the caller indicates queued to calculate embedding
             Returns:
                 - (:obj`tensor`): queued_logits corresponding to the probabilities of queueing and not queueing
                 - (:obj`tensor`): queued that whether or no to queue this action
@@ -113,12 +118,13 @@ class QueuedHead(nn.Module):
         x = self.fc1(embedding)
         x = self.fc2(x)
         x = self.fc3(x)
-        p = F.softmax(x.div(temperature), dim=1)
-        handle = self.pd(p)
-        if self.training:
-            queued = handle.sample()
-        else:
-            queued = handle.mode()
+        if queued is None:
+            p = F.softmax(x.div(temperature), dim=1)
+            handle = self.pd(p)
+            if self.training:
+                queued = handle.sample()
+            else:
+                queued = handle.mode()
         queued_one_hot = one_hot(queued, self.queued_dim)
         embedding_queued = self.embed_fc1(queued_one_hot)
         embedding_queued = self.embed_fc2(embedding_queued)  # get autoregressive_embedding
@@ -631,44 +637,6 @@ def test_location_head():
     print(location)
 
 
-def test_delay_head():
-    class CFG:
-        def __init__(self):
-            self.input_dim = 1024
-            self.decode_dim = 256
-            self.delay_dim = 128
-            self.delay_map_dim = 256
-            self.activation = 'relu'
-
-    model = DelayHead(CFG()).cuda()
-    input = torch.randn(4, 1024).cuda()
-    logits, delay, embedding = model(input)
-    print(model)
-    print(logits.shape)
-    print(delay)
-    print(embedding.shape)
-    print(input.mean(), embedding.mean())
-
-
-def test_queued_head():
-    class CFG:
-        def __init__(self):
-            self.input_dim = 1024
-            self.decode_dim = 256
-            self.queued_dim = 2
-            self.queued_map_dim = 256
-            self.activation = 'relu'
-
-    model = QueuedHead(CFG()).cuda()
-    input = torch.randn(4, 1024).cuda()
-    logits, queued, embedding = model(input)
-    print(model)
-    print(logits.shape)
-    print(queued)
-    print(embedding.shape)
-    print(input.mean(), embedding.mean())
-
-
 def test_selected_units_head():
     class CFG:
         def __init__(self):
@@ -714,11 +682,3 @@ def test_target_unit_head():
     logits, units = model(input, available_unit_type_mask, available_units_mask, entity_embedding)
     print(logits.shape)
     print(units)
-
-
-if __name__ == "__main__":
-    test_target_unit_head()
-    test_selected_units_head()
-    test_location_head()
-    test_delay_head()
-    test_queued_head()
