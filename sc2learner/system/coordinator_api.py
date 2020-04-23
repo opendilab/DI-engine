@@ -82,7 +82,8 @@ def create_coordinator_app(coordinator):
     def ask_for_metadata():
         learner_uid = request.json['learner_uid']
         batch_size = request.json['batch_size']
-        ret = coordinator.deal_with_ask_for_metadata(learner_uid, batch_size)
+        data_index = request.json['data_index']
+        ret = coordinator.deal_with_ask_for_metadata(learner_uid, batch_size, data_index)
         if ret:
             return build_ret(0, ret)
         else:
@@ -150,6 +151,14 @@ def create_coordinator_app(coordinator):
     @app.route('/debug/get_all_job', methods=['get'])
     def get_all_job():
         info = coordinator.deal_with_get_all_job()
+        if info:
+            return build_ret(0, info)
+        else:
+            return build_ret(1)
+
+    @app.route('/debug/push_data_to_replay_buffer', methods=['get'])
+    def push_data_to_replay_buffer():
+        info = coordinator.deal_with_push_data_to_replay_buffer()
         if info:
             return build_ret(0, info)
         else:

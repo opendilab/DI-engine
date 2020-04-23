@@ -166,9 +166,10 @@ class AlphaStarRLLoss(BaseLoss):
             outputs_dict['teacher_outputs'].append(home['teacher_outputs'])
             outputs_dict['baselines'].append(baselines)
             outputs_dict['rewards'].append(
-                self._compute_pseudo_rewards(home['behaviour_z'], home['human_target_z'],
-                                             home['rewards'], home['game_seconds'],
-                                             home['actions']['action_type'])
+                self._compute_pseudo_rewards(
+                    home['behaviour_z'], home['human_target_z'], home['rewards'], home['game_seconds'],
+                    home['actions']['action_type']
+                )
             )
             outputs_dict['target_actions'].append(target_actions)
             outputs_dict['behaviour_actions'].append(home['actions'])
@@ -222,8 +223,12 @@ class AlphaStarRLLoss(BaseLoss):
             else:
                 return 0
 
-        action_type_map = {'upgrades': RESEARCH_REWARD_ACTIONS, 'effects': EFFECT_REWARD_ACTIONS,
-                           'built_units': UNITS_REWARD_ACTIONS, 'build_order': BUILD_ORDER_REWARD_ACTIONS}
+        action_type_map = {
+            'upgrades': RESEARCH_REWARD_ACTIONS,
+            'effects': EFFECT_REWARD_ACTIONS,
+            'built_units': UNITS_REWARD_ACTIONS,
+            'build_order': BUILD_ORDER_REWARD_ACTIONS
+        }
 
         factors = torch.FloatTensor([get_time_factor(s) for s in game_seconds]).to(rewards.device)
 
