@@ -159,14 +159,14 @@ class AlphaStarActor:
                 }
                 self.last_state_action_home[i].update(obs[i])
                 if self.agent_num == 2:
-                    self.last_state_action_away[1 - i] = {
+                    self.last_state_action_away[i] = {
                         'agent_no': 1 - i,
                         # lstm state before forward, [0] for batch dim
                         'prev_state': self.lstm_states_cpu[1 - i][0],
                         'have_teacher': self.use_teacher_model,
                         'teacher_prev_state': self.teacher_lstm_states_cpu[1 - i][0]
                     }
-                    self.last_state_action_away[1 - i].update(obs[1 - i])
+                    self.last_state_action_away[i].update(obs[1 - i])
                 obs_copy = copy.deepcopy(obs)
                 obs_copy[i] = unsqueeze_batch_dim(obs_copy[i])
                 if self.cfg.env.use_cuda:
@@ -226,7 +226,7 @@ class AlphaStarActor:
                     'next_state': self.lstm_states_cpu[1 - i],
                     'teacher_next_state': self.teacher_lstm_states_cpu[1 - i]
                 }
-                self.last_state_action_away[1 - i].update(update_after_eval_away)
+                self.last_state_action_away[i].update(update_after_eval_away)
         return actions
 
     def _init_states(self):
@@ -291,6 +291,9 @@ class AlphaStarActor:
                 if due[i]:
                     # we received outcome from the env, add to rollout trajectory
                     # the 'next_obs' is saved (and to be sent) if only this is the last obs of the traj
+                    battle_reward = self.compute_battle_reward(self.last_state_action_home[i]['battle_value'],
+                                                               self.last_state_action_away[i]['battle_value'],
+                                                               obs[i]['battle_value'], obs[1 - i]['battle_value'],)
                     step_data_update_home = {
                         # the z used for the behavior network
                         'target_z': self.env.loaded_eval_stat.get_z(i),
@@ -300,7 +303,8 @@ class AlphaStarActor:
                         'game_seconds': game_seconds,
                         'done': done,
                         'rewards': torch.tensor([rewards[i]]),
-                        'info': info
+                        'info': info,
+                        'battle_reward': battle_reward
                     }
                     home_step_data = merge_two_dicts(self.last_state_action_home[i], step_data_update_home)
                     if self.agent_num == 2:
@@ -311,7 +315,8 @@ class AlphaStarActor:
                             'game_seconds': game_seconds,
                             'done': done,
                             'rewards': torch.tensor([rewards[1 - i]]),
-                            'info': info
+                            'info': info,
+                            'battle_reward': - battle_reward
                         }
                         away_step_data = merge_two_dicts(self.last_state_action_away[i], step_data_update_away)
                     else:
@@ -372,6 +377,10 @@ class AlphaStarActor:
     def save_replay(self, path):
         if path:
             self.env.save_replay(path)
+
+    def compute_battle_reward(self, home_value, away_value, home_next_value, away_next_value):
+        v = home_next_value - home_value - (away_next_value - away_value)
+        return torch.FloatTensor([v])
 
 
 # The following is only a reference, never meant to be called

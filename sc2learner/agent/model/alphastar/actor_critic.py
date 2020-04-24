@@ -26,7 +26,8 @@ class AlphaStarActorCritic(ActorCriticBase):
             'score_embedding_home', 'score_embedding_away', 'cum_stat_home', 'cum_stat_away'
         ]
     )
-    CriticOutput = namedtuple('CriticOutput', ['winloss', 'build_orders', 'built_units', 'effects', 'upgrades'])
+    CriticOutput = namedtuple('CriticOutput', ['winloss', 'build_orders',
+                                               'built_units', 'effects', 'upgrades', 'battle'])
 
     def __init__(self, model_config=None):
         super(AlphaStarActorCritic, self).__init__()
@@ -41,12 +42,9 @@ class AlphaStarActorCritic(ActorCriticBase):
                 self.value_networks[v.name] = ValueBaseline(v.param)
                 # name of needed cumulative stat items
                 self.value_cum_stat_keys[v.name] = v.cum_stat_keys
-            if not self.cfg.use_battle_reward:
-                self.value_networks.pop('battle')
-                self.value_cum_stat_keys.pop('battle')
-            else:
-                self.CriticOutput = namedtuple('CriticOutput', ['winloss', 'build_orders', 'built_units',
-                                                                'effects', 'upgrades', 'battle'])
+                if not self.cfg.use_battle_reward:
+                    self.value_networks['battle'] = None
+
         self.freeze_module(self.cfg.freeze_targets)
 
     def freeze_module(self, freeze_targets=None):
@@ -208,5 +206,9 @@ class AlphaStarActorCritic(ActorCriticBase):
             cum_stat_away_subset = select_item(cum_stat_away, key)
             inputs = torch.cat([same_part] + cum_stat_home_subset + cum_stat_away_subset, dim=1)
             # apply the value network to inputs
-            ret.append(m(inputs))
+            # self.cfg.use_battle_reward = False
+            if m is None:
+                ret.append(None)
+            else:
+                ret.append(m(inputs))
         return self.CriticOutput(*ret)

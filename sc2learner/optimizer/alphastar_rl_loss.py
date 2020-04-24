@@ -109,10 +109,12 @@ class AlphaStarRLLoss(BaseLoss):
         # td_lambda and v_trace
         actor_critic_loss = 0.
         for field, baseline, reward in zip(baselines.keys(), baselines.values(), rewards.values()):
-            actor_critic_loss += self._td_lambda_loss(baseline, reward) * self.loss_weights.baseline[field]
-            actor_critic_loss += self._vtrace_pg_loss(
-                baseline, reward, target_outputs, behaviour_outputs, target_actions, behaviour_actions
-            ) * self.loss_weights.pg[field]
+            # None means not using battle reward
+            if baseline is not None:
+                actor_critic_loss += self._td_lambda_loss(baseline, reward) * self.loss_weights.baseline[field]
+                actor_critic_loss += self._vtrace_pg_loss(
+                    baseline, reward, target_outputs, behaviour_outputs, target_actions, behaviour_actions
+                ) * self.loss_weights.pg[field]
         # upgo loss
         upgo_loss = self._upgo_loss(
             baselines['winloss'], rewards['winloss'], target_outputs, behaviour_outputs, target_actions,
@@ -157,24 +159,10 @@ class AlphaStarRLLoss(BaseLoss):
             outputs_dict['behaviour_outputs'].append(home['behaviour_outputs'])
             outputs_dict['teacher_outputs'].append(home['teacher_outputs'])
             outputs_dict['baselines'].append(baselines)
-            if idx < len(data) - 1:
-                outputs_dict['rewards'].append(
-                    self._compute_pseudo_rewards(home['agent_z'], home['target_z'],
-                                                 home['rewards'], home['game_seconds'],
-                                                 (step_data['home']['battle_value'],
-                                                 step_data['away']['battle_value'],
-                                                 data[idx + 1]['home']['battle_value'],
-                                                 data[idx + 1]['away']['battle_value']))
-                )
-            else:
-                outputs_dict['rewards'].append(
-                    self._compute_pseudo_rewards(home['agent_z'], home['target_z'],
-                                                 home['rewards'],home['game_seconds'],
-                                                 (step_data['home']['battle_value'],
-                                                 step_data['away']['battle_value'],
-                                                 step_data['home_next']['battle_value'],
-                                                 step_data['away_next']['battle_value']))
-                )
+            outputs_dict['rewards'].append(
+                self._compute_pseudo_rewards(home['agent_z'], home['target_z'], home['rewards'],
+                                             home['game_seconds'], home['battle_reward'])
+            )
             outputs_dict['target_actions'].append(target_actions)
             outputs_dict['behaviour_actions'].append(home['actions'])
             outputs_dict['teacher_actions'].append(home['teacher_actions'])
@@ -198,7 +186,7 @@ class AlphaStarRLLoss(BaseLoss):
         outputs_dict['game_seconds'].extend(data[-1]['home']['game_seconds'])
         return self.rollout_outputs(*outputs_dict.values())  # outputs_dict is a OrderedDict
 
-    def _compute_pseudo_rewards(self, agent_z, target_z, rewards, game_seconds, battle_values):
+    def _compute_pseudo_rewards(self, agent_z, target_z, rewards, game_seconds, battle_reward):
         """
             Overview: compute pseudo rewards from human replay z
             Arguments:
@@ -241,16 +229,12 @@ class AlphaStarRLLoss(BaseLoss):
                 ) * factors[i]
             )
         new_rewards['build_order'] = torch.FloatTensor(build_order_reward).to(rewards.device)
-        for k in ['built_units', 'upgrades', 'effects']:
+        for k in ['built_units', 'effects', 'upgrades']:
             new_rewards[k] = hamming_distance(agent_z[k], target_z[k], factors)
         for k in new_rewards.keys():
             new_rewards[k] = new_rewards[k].float()
-        if self.use_battle_reward:
-            battle_reward = []
-            home_value, away_value, home_next_value, away_next_value = battle_values
-            for i in self.batch_size:
-                battle_reward.append(home_next_value[i] - home_value[i] - (away_next_value[i] - away_value[i]))
-            new_rewards['battle'] = torch.FloatTensor(battle_reward).to(rewards.device)
+        assert battle_reward.shape == (self.batch_size, 1)
+        new_rewards['battle'] = battle_reward.squeeze(1)
         return new_rewards
 
     def _td_lambda_loss(self, baseline, reward):
