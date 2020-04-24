@@ -31,14 +31,14 @@ class Coordinator(object):
         if self.use_fake_data:
             self.fake_model_path = cfg['coordinator']['fake_model_path']
             self.fake_stat_path = cfg['coordinator']['fake_stat_path']
-        self.learner_port = cfg['system']['learner_port']
+        # self.learner_port = cfg['system']['learner_port']
         self.league_manager_port = cfg['system']['league_manager_port']
 
         # {manager_uid: {actor_uid: [job_id]}}
         self.manager_record = {}
         # {job_id: {content: info, state: running/finish}}
         self.job_record = {}
-        # {learner_uid: {"learner_ip": learner_ip,
+        # {learner_uid: {"learner_ip_port_list": [[learner_ip, learner_port]],
         #                "job_ids": [job_id],
         #                "checkpoint_path": checkpoint_path,
         #                "replay_buffer": replay_buffer,
@@ -151,48 +151,53 @@ class Coordinator(object):
             time.sleep(10)
         return False
 
-    def deal_with_register_learner(self, learner_uid, learner_ip):
+    def deal_with_register_learner(self, learner_uid, learner_ip, learner_port):
         '''
             Overview: deal with register from learner, make learner and player pairs
             Arguments:
                 - learner_uid (:obj:`str`): learner's uid
         '''
         if hasattr(self, 'player_ids'):
-            if learner_uid in self.learner_record:
-                self.logger.info('learner ({}) exists, ip {}'.format(learner_uid, learner_ip))
-                return True
-            else:
-                self.learner_record[learner_uid] = {
-                    "learner_ip": learner_ip,
-                    "job_ids": [],
-                    "checkpoint_path": '',
-                    'ret_metadatas': {}
-                }
-                self.logger.info('learner ({}) register, ip {}'.format(learner_uid, learner_ip))
-
-                if len(self.player_to_learner) == len(self.player_ids):
+            self._acquire_lock()
+            if learner_uid not in self.learner_record:
+                if len(self.player_to_learner) < len(self.player_ids):
+                    self.learner_record[learner_uid] = {
+                        "learner_ip_port_list": [[learner_ip, learner_port]],
+                        "job_ids": [],
+                        "checkpoint_path": '',
+                        'ret_metadatas': {}
+                    }
+                    for index, player_id in enumerate(self.player_ids):
+                        if player_id not in self.player_to_learner:
+                            self.player_to_learner[player_id] = learner_uid
+                            self.learner_to_player[learner_uid] = player_id
+                            self.learner_record[learner_uid]['checkpoint_path'] = self.player_ckpts[index]
+                            self.logger.info('learner ({}) set to player ({})'.format(learner_uid, player_id))
+                            break
+                    self.logger.info(
+                        '{}/{} learners have been registered'.format(len(self.player_to_learner), len(self.player_ids))
+                    )
+                    if len(self.player_ids) == len(self.player_to_learner) and not self.league_flag:
+                        self.league_flag = True
+                        self._tell_league_manager_to_run()
+                        self.logger.info('league_manager run with table {}. '.format(self.player_to_learner))
+                else:
                     self.logger.info('enough learners have been registered.')
+                    self._release_lock()
                     return False
+            else:
+                if [learner_ip, learner_port] not in self.learner_record[learner_uid]['learner_ip_port_list']:
+                    self.learner_record[learner_uid]['learner_ip_port_list'].append([learner_ip, learner_port])
 
-                for index, player_id in enumerate(self.player_ids):
-                    if player_id not in self.player_to_learner:
-                        self.player_to_learner[player_id] = learner_uid
-                        self.learner_to_player[learner_uid] = player_id
-                        self.learner_record[learner_uid]['checkpoint_path'] = self.player_ckpts[index]
-                        self.logger.info('learner ({}) set to player ({})'.format(learner_uid, player_id))
-                        break
-                self.logger.info(
-                    '{}/{} learners have been registered'.format(len(self.player_to_learner), len(self.player_ids))
-                )
+            self.logger.info('learner ({}) register, ip {}, port {}'.format(learner_uid, learner_ip, learner_port))
             # TODO(nyz) learner load init model
-            if len(self.player_ids) == len(self.player_to_learner) and not self.league_flag:
-                self.league_flag = True
-                self._tell_league_manager_to_run()
-                self.logger.info('league_manager run with table {}. '.format(self.player_to_learner))
+            self._release_lock()
             return self.learner_record[learner_uid]['checkpoint_path']
         else:
-            # TODO(nyz) no league learner register
-            self.logger.info('learner can not register now, because league manager is not set up')
+            if not hasattr(self, 'player_ids'):
+                self.logger.info('learner can not register now, because league manager is not set up')
+            if hasattr(self, 'player_ids') and len(self.player_to_learner) == len(self.player_ids):
+                self.logger.info('enough learners have been registered.')
             return False
 
     def deal_with_ask_for_job(self, manager_uid, actor_uid):
@@ -315,16 +320,17 @@ class Coordinator(object):
     def deal_with_ask_learner_to_reset(self, player_id, checkpoint_path):
         learner_uid = self.player_to_learner(player_id)
         d = {'checkpoint_path': checkpoint_path}
-        url_prefix = self.get_url_prefix(learner_uid)
-        while True:
-            try:
-                response = requests.post(url_prefix + "learner/reset", json=d).json()
-                if response['code'] == 0:
-                    return True
-            except Exception as e:
-                print("something wrong with learner {}, {}".format(learner_uid, e))
-            time.sleep(10)
-        return False
+        for learner_ip, learner_port in self.learner_record[learner_uid]['learner_ip_port_list']:
+            url_prefix = self.url_prefix_format.format(learner_ip, learner_port)
+            while True:
+                try:
+                    response = requests.post(url_prefix + "learner/reset", json=d).json()
+                    if response['code'] == 0:
+                        break
+                except Exception as e:
+                    print("something wrong with learner {}, {}".format(learner_uid, e))
+                time.sleep(0.5)
+        return True
 
     def deal_with_add_launch_info(self, launch_info):
         home_id = launch_info['home_id']

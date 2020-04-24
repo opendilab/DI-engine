@@ -37,7 +37,7 @@ class LearnerCommunicationHelper(object):
         if not self.learner_ip:
             raise ValueError('learner_ip must be ip address, but found {}'.format(self.learner_ip))
 
-        self.learner_port = self.cfg.system.learner_port
+        self.learner_port = self.cfg.system.learner_port - int(self.rank)
         self.coordinator_ip = self.cfg['system']['coordinator_ip']
         self.coordinator_port = self.cfg['system']['coordinator_port']
         self.ceph_traj_path = self.cfg['system']['ceph_traj_path']
@@ -66,19 +66,18 @@ class LearnerCommunicationHelper(object):
         '''
             Overview: register learner in coordinator with learner_uid and learner_ip
         '''
-        if self.rank == 0:
-            while True:
-                try:
-                    d = {'learner_uid': self.learner_uid, 'learner_ip': self.learner_ip}
-                    response = requests.post(self.url_prefix + "coordinator/register_learner", json=d).json()
-                    if response['code'] == 0:
-                        # self.checkpoint_path = response['info']  # without s3://{}/ , only file name
-                        return True
-                    else:
-                        self.comm_logger.info(response['info'])
-                except Exception as e:
-                    self.comm_logger.info("something wrong with coordinator, {}".format(e))
-                time.sleep(10)
+        while True:
+            try:
+                d = {'learner_uid': self.learner_uid, 'learner_ip': self.learner_ip, 'learner_port': self.learner_port}
+                response = requests.post(self.url_prefix + "coordinator/register_learner", json=d).json()
+                if response['code'] == 0:
+                    # self.checkpoint_path = response['info']  # without s3://{}/ , only file name
+                    return True
+                else:
+                    self.comm_logger.info(response['info'])
+            except Exception as e:
+                self.comm_logger.info("something wrong with coordinator, {}".format(e))
+            time.sleep(10)
 
     def register_model_in_coordinator(self, model_name):
         '''

@@ -38,7 +38,8 @@ def create_coordinator_app(coordinator):
     def register_learner():
         learner_uid = request.json['learner_uid']
         learner_ip = request.json['learner_ip']
-        ret_info = coordinator.deal_with_register_learner(learner_uid, learner_ip)
+        learner_port = request.json['learner_port']
+        ret_info = coordinator.deal_with_register_learner(learner_uid, learner_ip, learner_port)
         if ret_info:
             return build_ret(0, ret_info)
         else:
