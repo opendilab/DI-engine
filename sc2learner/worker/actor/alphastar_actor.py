@@ -99,7 +99,7 @@ class AlphaStarActor:
             raise NotImplementedError()
 
         for agent in self.agents:
-            agent.eval()
+            agent.train()
             agent.set_seed(job['random_seed'])
             agent.reset_previous_state([True])  # Here the lstm_states are reset
 
@@ -152,14 +152,14 @@ class AlphaStarActor:
                 }
                 self.last_state_action_home[i].update(obs[i])
                 if self.agent_num == 2:
-                    self.last_state_action_away[1 - i] = {
+                    self.last_state_action_away[i] = {
                         'agent_no': 1 - i,
                         # lstm state before forward, [0] for batch dim
                         'prev_state': self.lstm_states_cpu[1 - i][0],
                         'have_teacher': self.use_teacher_model,
                         'teacher_prev_state': self.teacher_lstm_states_cpu[1 - i][0]
                     }
-                    self.last_state_action_away[1 - i].update(obs[1 - i])
+                    self.last_state_action_away[i].update(obs[1 - i])
                 obs_copy = copy.deepcopy(obs)
                 obs_copy[i] = unsqueeze_batch_dim(obs_copy[i])
                 if self.cfg.actor.use_cuda:
@@ -200,12 +200,19 @@ class AlphaStarActor:
                 if self.use_teacher_model:
                     teacher_action = dict_list2list_dict(teacher_action)[0]
                     teacher_logits = dict_list2list_dict(teacher_logits)[0]
+                # remove evaluate related key
+                send_action = copy.deepcopy(action)
+                if 'action_entity_raw' in send_action:
+                    send_action.pop('action_entity_raw')
+                send_teacher_action = copy.deepcopy(teacher_action)
+                if 'action_entity_raw' in send_teacher_action:
+                    send_teacher_action.pop('action_entity_raw')
                 actions[i] = action
                 update_after_eval_home = {
                     # TODO: why should not this named action rather than actionS
-                    'actions': action,
+                    'actions': send_action,
                     'behaviour_outputs': logits,
-                    'teacher_actions': teacher_action,
+                    'teacher_actions': send_teacher_action,
                     'teacher_outputs': teacher_logits,
                     # LSTM state after forward
                     'next_state': self.lstm_states_cpu[i][0],
@@ -219,7 +226,7 @@ class AlphaStarActor:
                     'next_state': self.lstm_states_cpu[1 - i],
                     'teacher_next_state': self.teacher_lstm_states_cpu[1 - i]
                 }
-                self.last_state_action_away[1 - i].update(update_after_eval_away)
+                self.last_state_action_away[i].update(update_after_eval_away)
         return actions
 
     def _init_states(self):
@@ -305,7 +312,7 @@ class AlphaStarActor:
                     home_step_data = merge_two_dicts(self.last_state_action_home[i], step_data_update_home)
                     if self.agent_num == 2:
                         step_data_update_away = {
-                            'human_target_z': self.env.loaded_eval_stat.get_z(i),
+                            'human_target_z': self.env.loaded_eval_stat.get_z(1 - i),
                             'behaviour_z': this_game_stat[1 - i],
                             'step': game_step,
                             'game_seconds': game_seconds,
