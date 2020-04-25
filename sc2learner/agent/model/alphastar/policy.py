@@ -277,7 +277,7 @@ class Policy(nn.Module):
                     entity_embeddings[idx].unsqueeze(0), temperature
                 )
                 logits_target_units = logits_target_units[0]
-                target_units = target_units[0]
+                target_units = target_units
             else:
                 logits_target_units, target_units = None, None
             logits['target_units'].append(logits_target_units)

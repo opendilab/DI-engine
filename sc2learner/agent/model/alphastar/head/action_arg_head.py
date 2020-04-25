@@ -194,6 +194,14 @@ class SelectedUnitsHead(nn.Module):
         state = None
         return x, state
 
+    def _get_pred_with_logit(self, logit, temperature):
+        p = F.softmax(logit.div(temperature), dim=-1)
+        handle = self.pd(p)
+        if self.training:
+            return handle.sample()
+        else:
+            return handle.mode()
+
     def _query(self, key, end_flag_index, x, state, mask, temperature, selected_units):
         B, N = key.shape[:2]
         units = torch.zeros(B, N, device=key.device, dtype=torch.long)
