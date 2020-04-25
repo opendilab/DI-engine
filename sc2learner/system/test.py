@@ -25,7 +25,7 @@ metadata = {
     'trajectory_path': trajectory_path,
     'learner_uid': learner_uid,
     'data': torch.tensor([[1, 2, 3], [4, 5, 6]]).tolist(),
-    'step_data_compressor': 'none'
+    'step_data_compressor': 'lz4'
 }
 
 
@@ -80,6 +80,6 @@ if __name__ == '__main__':
     # test_coordinator_ask_for_job()
     # test_coordinator_get_metadata()
     # test_coordinator_finish_job()
-    # test_coordinator_push_data_to_replay_buffer()
-    test_read_file()
+    test_coordinator_push_data_to_replay_buffer()
+    # test_read_file()
 

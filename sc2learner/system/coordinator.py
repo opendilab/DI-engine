@@ -391,7 +391,7 @@ class Coordinator(object):
                 'trajectory_path': trajectory_path,
                 'learner_uid': learner_uid,
                 'data': [[1, 2, 3], [4, 5, 6]],
-                'step_data_compressor': 'none'
+                'step_data_compressor': 'lz4'
             }
         )
         self.replay_buffer.push_data(
@@ -400,7 +400,7 @@ class Coordinator(object):
                 'trajectory_path': trajectory_path,
                 'learner_uid': learner_uid,
                 'data': [[1, 2, 3], [4, 5, 6]],
-                'step_data_compressor': 'none'
+                'step_data_compressor': 'lz4'
             }
         )
         self.replay_buffer.push_data(
@@ -409,7 +409,7 @@ class Coordinator(object):
                 'trajectory_path': trajectory_path,
                 'learner_uid': learner_uid,
                 'data': [[1, 2, 3], [4, 5, 6]],
-                'step_data_compressor': 'none'
+                'step_data_compressor': 'lz4'
             }
         )
         self.replay_buffer.push_data(
@@ -418,7 +418,7 @@ class Coordinator(object):
                 'trajectory_path': trajectory_path,
                 'learner_uid': learner_uid,
                 'data': [[1, 2, 3], [4, 5, 6]],
-                'step_data_compressor': 'none'
+                'step_data_compressor': 'lz4'
             }
         )
         return True
