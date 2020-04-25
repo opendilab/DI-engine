@@ -112,7 +112,7 @@ class AlphaStarRLLoss(BaseLoss):
         actor_critic_loss = 0.
         td_lambda_loss_val = {}
         vtrace_loss_val = {}
-        for field, baseline, reward in zip(baselines.keys(), baselines.values(), rewards.values()):
+        for (field, baseline), (reward_key, reward) in zip(baselines.items(), rewards.items()):
             td_lambda_loss = self._td_lambda_loss(baseline, reward) * self.loss_weights.baseline[field]
             td_lambda_loss_val[field] = td_lambda_loss.item()
             vtrace_loss = self._vtrace_pg_loss(
@@ -232,7 +232,7 @@ class AlphaStarRLLoss(BaseLoss):
 
         factors = torch.FloatTensor([get_time_factor(s) for s in game_seconds]).to(rewards.device)
 
-        new_rewards = {}
+        new_rewards = OrderedDict()
         assert rewards.shape == (self.batch_size, 1), 'rewards shape: {}'.format(rewards.shape)
         new_rewards['winloss'] = rewards.squeeze(1)
         build_order_reward = []
@@ -245,7 +245,7 @@ class AlphaStarRLLoss(BaseLoss):
                 ) * factors[i] * mask
             )
         new_rewards['build_order'] = torch.FloatTensor(build_order_reward).to(rewards.device)
-        for k in ['built_units', 'upgrades', 'effects']:
+        for k in ['built_units', 'effects', 'upgrades']:
             mask = torch.zeros(self.batch_size).to(self.device)
             for i in range(self.batch_size):
                 if action_type[i].item() in action_type_map[k]:
