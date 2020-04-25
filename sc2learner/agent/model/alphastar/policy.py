@@ -7,8 +7,7 @@ from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK, ACTIONS_STAT
 from pysc2.lib.static_data import NUM_UNIT_TYPES, UNIT_TYPES_REORDER, ACTIONS_REORDER_INV, PART_ACTIONS_MAP,\
     PART_ACTIONS_MAP_INV
 from sc2learner.envs import get_location_mask
-from .head import DelayHead, QueuedHead, SelectedUnitsHead, TargetUnitsHead, LocationHead, ActionTypeHead, \
-    TargetUnitHead
+from .head import DelayHead, QueuedHead, SelectedUnitsHead, TargetUnitHead, LocationHead, ActionTypeHead
 
 
 def build_head(name):
@@ -19,7 +18,6 @@ def build_head(name):
         'delay_head': DelayHead,
         'queued_head': QueuedHead,
         'selected_units_head': SelectedUnitsHead,
-        'target_units_head': TargetUnitsHead,
         'target_unit_head': TargetUnitHead,
         'location_head': LocationHead,
     }

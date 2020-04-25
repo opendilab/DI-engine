@@ -134,6 +134,7 @@ model:
                 activation: 'relu'
                 use_mask: True
             location_head:
+                input_dim: 1024
                 upsample_type: 'deconv'
                 upsample_dims: [128, 64, 16, 1]  # len(upsample_dims)-len(down_channels)+1 = ratio
                 res_dim: 128

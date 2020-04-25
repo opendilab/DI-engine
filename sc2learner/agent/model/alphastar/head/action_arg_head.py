@@ -296,126 +296,6 @@ class SelectedUnitsHead(nn.Module):
         return logits, units, embedding + embedding_selected
 
 
-class TargetUnitsHead(nn.Module):
-    def __init__(self, cfg):
-        super(TargetUnitsHead, self).__init__()
-        self.act = build_activation(cfg.activation)
-        self.key_fc = fc_block(cfg.entity_embedding_dim, cfg.key_dim, activation=None, norm_type=None)
-        self.func_fc = fc_block(cfg.unit_type_dim, cfg.func_dim, activation=self.act, norm_type=None)
-        self.fc1 = fc_block(cfg.input_dim, cfg.func_dim, activation=self.act, norm_type=None)
-        self.fc2 = fc_block(cfg.func_dim, cfg.key_dim, activation=self.act, norm_type=None)
-        self.lstm = LSTM(cfg.key_dim, cfg.hidden_dim, cfg.num_layers, norm_type='LN')
-
-        self.max_entity_num = cfg.max_entity_num
-        self.key_dim = cfg.key_dim
-        self.pd = CategoricalPdPytorch
-
-    def _get_key(self, entity_embedding):
-        B, N = entity_embedding.shape[:2]
-        key = self.key_fc(entity_embedding)
-        end_flag = torch.zeros(B, 1, self.key_dim, device=key.device)
-        key = torch.cat([key, end_flag], dim=1)
-        end_flag_index = N
-        return key, end_flag_index
-
-    def _get_init_query(self, embedding, available_unit_type_mask):
-        func_embed = self.func_fc(available_unit_type_mask)
-        x = self.fc1(embedding)
-        x = self.fc2(x + func_embed)
-
-        state = None
-        return x, state
-
-    def _query(self, key, end_flag_index, x, state, mask, temperature, output_entity_num):
-        B, N = key.shape[:2]
-        units = torch.zeros(B, N, device=key.device, dtype=torch.long)
-        logits = [[] for _ in range(B)]
-        x = x.unsqueeze(0)
-        if output_entity_num is None:
-            end_flag_trigger = [False for _ in range(B)]
-
-            for i in range(self.max_entity_num):
-                if sum(end_flag_trigger) == B:
-                    break
-                x, state = self.lstm(x, state)
-                query_result = x.permute(1, 0, 2) * key
-                query_result = query_result.mean(dim=2)
-                query_result.sub_((1 - mask) * 1e9)
-                p = F.softmax(query_result.div(temperature), dim=1)
-                handle = self.pd(p)
-                if self.training:
-                    entity_num = handle.sample()
-                else:
-                    entity_num = handle.mode()
-
-                for b in range(B):
-                    if end_flag_trigger[b]:
-                        continue
-                    else:
-                        logits[b].append(query_result)
-                        if entity_num[b] == end_flag_index:
-                            end_flag_trigger[b] = True
-                            continue
-                        units[b][entity_num[b]] = 1
-                        mask[b][entity_num[b]] = 0
-        else:
-            for i in range(max(output_entity_num) + 1):
-                x, state = self.lstm(x, state)
-                query_result = x.permute(1, 0, 2) * key
-                query_result = query_result.mean(dim=2)
-                query_result.sub_((1 - mask) * 1e9)
-                p = F.softmax(query_result.div(temperature), dim=1)
-                handle = self.pd(p)
-                if self.training:
-                    entity_num = handle.sample()
-                else:
-                    entity_num = handle.mode()
-                for b in range(B):
-                    if i > output_entity_num[b]:
-                        continue
-                    elif i < output_entity_num[b]:
-                        logits[b].append(query_result)
-                        units[b][entity_num[b]] = 1
-                        if entity_num[b] != end_flag_index:
-                            mask[b][entity_num[b]] = 0
-                    else:
-                        logits[b].append(query_result)
-        return logits, units
-
-    def forward(
-        self,
-        embedding,
-        available_unit_type_mask,
-        available_units_mask,
-        entity_embedding,
-        temperature=1.0,
-        output_entity_num=None
-    ):
-        '''
-        Input:
-            embedding: [batch_size, input_dim(1024)]
-            available_unit_type_mask: [batch_size, num_unit_type]
-            available_units_mask: [batch_size, num_units]
-            entity_embedding: [batch_size, num_units, entity_embedding_dim(256)]
-        Output:
-            logits: List(batch_size) - List(num_selected_units) - num_units
-            units: [batch_size, num_units] 0-1 vector
-        '''
-        assert (isinstance(entity_embedding, list) or isinstance(entity_embedding, torch.Tensor))
-
-        input, state = self._get_init_query(embedding, available_unit_type_mask)
-        mask = available_units_mask
-        key, end_flag_index = self._get_key(entity_embedding)
-        mask = torch.cat([mask, torch.ones_like(mask[:, 0:1])], dim=1)
-        logits, units = self._query(key, end_flag_index, input, state, mask, temperature, output_entity_num)
-        units_index = []
-        for unit in units:
-            index = torch.nonzero(unit).squeeze(1)
-            units_index.append(index)
-
-        return logits, units_index
-
-
 class TargetUnitHead(nn.Module):
     '''
         Overview: The target unit head uses autoregressive_embedding to get target_unit_logits and target_unit.
@@ -461,9 +341,9 @@ class TargetUnitHead(nn.Module):
                 - temperature (:obj:`float`):
             Returns:
                 - (:obj`tensor`): logits, List(batch_size) - List(num_selected_units) - num_units
-                - (:obj`tensor`): units, [batch_size, num_units] 0-1 vector
+                - (:obj`tensor`): target_unit, [batch_size] target_unit index
         '''
-        assert (isinstance(entity_embedding, list) or isinstance(entity_embedding, torch.Tensor))
+        assert isinstance(entity_embedding, torch.Tensor)
 
         mask = available_units_mask
         key = self.key_fc(entity_embedding)
@@ -473,20 +353,14 @@ class TargetUnitHead(nn.Module):
         if self.use_mask:
             logits.sub_((1 - mask) * 1e9)
 
-        B, N = key.shape[:2]
-        units = torch.zeros(B, N, device=key.device, dtype=torch.long)
         p = F.softmax(logits.div(temperature), dim=1)
         handle = self.pd(p)
         if self.training:
-            sample_num = handle.sample()
+            target_unit = handle.sample()
         else:
-            sample_num = handle.mode()
-        units.scatter_(1, sample_num.unsqueeze(1), 1)
-        units_index = []
-        for unit in units:
-            units_index.append(torch.nonzero(unit).squeeze(1))
+            target_unit = handle.mode()
 
-        return logits, units_index
+        return logits, target_unit
 
 
 class LocationHead(nn.Module):
@@ -564,12 +438,13 @@ class LocationHead(nn.Module):
                       for build actions) with temperature 0.8 to get the actual target position.
             Arguments:
                 - embedding (:obj`tensor`): autoregressive_embeddingm, [batch_size, input_dim(1024)]
-                - map_skip (:obj`tensor`): tensors of the outputs of intermediate computations
-                - available_location_mask (:obj`tensor`): [batch_size, num_units]
-                - temperature (:obj:`float`): use 1.0 as default
+                - map_skip (:obj`tensor`): tensors of the outputs of intermediate computations, len=res_num, each
+                    element is a torch FloatTensor with shape[batch_size, res_dim, map_y // 8, map_x // 8]
+                - available_location_mask (:obj`tensor`): [batch_size, 1, map_y, map_x]
+                - temperature (:obj:`float`): temperature
             Returns:
-                - (:obj`tensor`): logits
-                - (:obj`tensor`): location
+                - (:obj`tensor`): outputs, shape[batch_size, 1, map_y, map_x](cls), shape[batch_size, 2](soft_argmax)
+                - (:obj`tensor`): location, shape[batch_size, 2]
         '''
         reshape_embedding = embedding.reshape(-1, self.reshape_channel, *self.reshape_size)
         reshape_embedding = F.interpolate(reshape_embedding, size=map_skip[0].shape[2:], mode='bilinear')
@@ -609,46 +484,3 @@ class LocationHead(nn.Module):
             x = F.avg_pool2d(x, kernel_size=r, stride=r)
             x *= (r * r)
         return x
-
-
-def test_location_head():
-    class CFG:
-        def __init__(self):
-            self.activation = 'relu'
-            self.upsample_type = 'deconv'
-            self.upsample_dims = [128, 64, 16, 1]
-            self.res_dim = 128
-            self.reshape_size = (16, 16)
-            self.reshape_channel = 4
-            self.map_skip_dim = 128
-            self.res_num = 4
-            self.output_type = 'cls'
-
-    model = LocationHead(CFG()).cuda()
-    embedding = torch.randn(4, 1024).cuda()
-    available_location_mask = torch.ones(4, 1, 256, 256).cuda()
-    map_skip = [torch.randn(4, 128, 16, 16).cuda() for _ in range(4)]
-    logits, location = model(embedding, map_skip, available_location_mask)
-    print(model)
-    print(logits.shape)
-    print(location)
-
-
-def test_target_unit_head():
-    class CFG:
-        def __init__(self):
-            self.input_dim = 1024
-            self.activation = 'relu'
-            self.entity_embedding_dim = 256
-            self.key_dim = 32
-            self.unit_type_dim = 259
-            self.func_dim = 256
-
-    model = TargetUnitHead(CFG()).cuda()
-    input = torch.randn(2, 1024).cuda()
-    available_unit_type_mask = torch.ones(2, 259).cuda()
-    available_units_mask = torch.ones(2, 12).cuda()
-    entity_embedding = torch.randn(2, 12, 256).cuda()
-    logits, units = model(input, available_unit_type_mask, available_units_mask, entity_embedding)
-    print(logits.shape)
-    print(units)
