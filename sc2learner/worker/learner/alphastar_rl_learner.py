@@ -72,7 +72,7 @@ class AlphaStarRLLearner(BaseRLLearner):
     def _preprocess_data(self, batch_data):
         data_stat = self._get_data_stat(batch_data)
         if self.use_cuda:
-            batch_data = to_device(batch_data, 'cuda')
+            batch_data = to_device(batch_data, 'cuda:{}'.format(self.rank % 8))
         return batch_data, data_stat
 
     @override(BaseRLLearner)
