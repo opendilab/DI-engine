@@ -4,12 +4,12 @@ import subprocess
 import requests
 import torch
 
-learner_port = '18293'
+learner_port = '18193'
 coordinator_ip = '10.5.36.31'
-coordinator_port = '18294'
+coordinator_port = '18194'
 manager_ip = '10.5.36.31'
-manager_port = '18295'
-league_manager_port = '18296'
+manager_port = '18195'
+league_manager_port = '18196'
 
 url_prefix_format = 'http://{}:{}/'
 
@@ -24,7 +24,8 @@ metadata = {
     'job_id': job_id,
     'trajectory_path': trajectory_path,
     'learner_uid': learner_uid,
-    'data': torch.tensor([[1, 2, 3], [4, 5, 6]]).tolist()
+    'data': torch.tensor([[1, 2, 3], [4, 5, 6]]).tolist(),
+    'step_data_compressor': 'none'
 }
 
 
@@ -65,9 +66,20 @@ def test_coordinator_push_data_to_replay_buffer():
     requests.get(url_prefix + 'debug/push_data_to_replay_buffer')
 
 
+def test_read_file():
+    from sc2learner.utils import read_file_ceph, get_step_data_decompressor
+    decompressor = get_step_data_decompressor('lz4')
+    x = read_file_ceph(trajectory_path, read_type='pickle')
+    x = decompressor(x)
+    print(x)
+
+
+
 if __name__ == '__main__':
     # test_coordinator_register_manager()
     # test_coordinator_ask_for_job()
     # test_coordinator_get_metadata()
     # test_coordinator_finish_job()
-    test_coordinator_push_data_to_replay_buffer()
+    # test_coordinator_push_data_to_replay_buffer()
+    test_read_file()
+

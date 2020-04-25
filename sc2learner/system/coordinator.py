@@ -381,20 +381,44 @@ class Coordinator(object):
         pass
 
     def deal_with_push_data_to_replay_buffer(self):
+        job_id = '8d2e8eda-83d9-11ea-8bb0-1be4f1872daf'
+        learner_uid = '3458436'
+        trajectory_path = 'model_main_player_zerg_0_ckpt.' \
+    'pth_job_1a572940-838d-11ea-9feb-8f9bf499ec33_agent_0_step_2332_7df970f2-838d-11ea-86b6-355c4fbf42b9.traj'
         self.replay_buffer.push_data(
             {
-                'job_id': 'job_id',
-                'trajectory_path': 'trajectory_path',
-                'learner_uid': 'learner_uid',
-                'data': [[1, 2, 3], [4, 5, 6]]
+                'job_id': job_id,
+                'trajectory_path': trajectory_path,
+                'learner_uid': learner_uid,
+                'data': [[1, 2, 3], [4, 5, 6]],
+                'step_data_compressor': 'none'
             }
         )
         self.replay_buffer.push_data(
             {
-                'job_id': 'job_id',
-                'trajectory_path': 'trajectory_path',
-                'learner_uid': 'learner_uid',
-                'data': [[1, 2, 3], [4, 5, 6]]
+                'job_id': job_id,
+                'trajectory_path': trajectory_path,
+                'learner_uid': learner_uid,
+                'data': [[1, 2, 3], [4, 5, 6]],
+                'step_data_compressor': 'none'
+            }
+        )
+        self.replay_buffer.push_data(
+            {
+                'job_id': job_id,
+                'trajectory_path': trajectory_path,
+                'learner_uid': learner_uid,
+                'data': [[1, 2, 3], [4, 5, 6]],
+                'step_data_compressor': 'none'
+            }
+        )
+        self.replay_buffer.push_data(
+            {
+                'job_id': job_id,
+                'trajectory_path': trajectory_path,
+                'learner_uid': learner_uid,
+                'data': [[1, 2, 3], [4, 5, 6]],
+                'step_data_compressor': 'none'
             }
         )
         return True
