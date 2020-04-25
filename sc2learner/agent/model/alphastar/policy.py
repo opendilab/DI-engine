@@ -198,10 +198,9 @@ class Policy(nn.Module):
             if isinstance(actions['selected_units'][idx], torch.Tensor):
                 if not action_attr['selected_units'][idx]:
                     print('selected_units', actions['action_type'][idx], actions['selected_units'][idx], idx)
-                selected_units_num = [actions['selected_units'][idx].shape[0]]
                 logits_selected_units, selected_units, embedding = self.head['selected_units_head'](
                     embedding, mask['select_unit_type_mask'][idx], mask['select_unit_mask'][idx],
-                    entity_embeddings[idx].unsqueeze(0), temperature, selected_units_num
+                    entity_embeddings[idx].unsqueeze(0), temperature, actions['selected_units']
                 )
                 logits['selected_units'].append(logits_selected_units[0])
             if isinstance(actions['target_units'][idx], torch.Tensor):

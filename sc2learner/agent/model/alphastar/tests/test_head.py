@@ -1,7 +1,8 @@
 import pytest
-import torch
 import math
-from sc2learner.agent.model.alphastar.head import ActionTypeHead, DelayHead, QueuedHead
+import numpy as np
+import torch
+from sc2learner.agent.model.alphastar.head import ActionTypeHead, DelayHead, QueuedHead, SelectedUnitsHead
 from sc2learner.agent.model.alphastar.tests.conftest import is_differentiable
 
 
@@ -71,3 +72,51 @@ class TestHead:
         queued = torch.randint(0, handle.queued_dim, size=(B, ))
         output, queued_pred, embedding = model(autoregressive_embedding, queued=queued)
         assert queued_pred.eq(queued).sum() == B
+
+    def test_selected_units_head(self, setup_config):
+        B = 4
+        handle = setup_config.model.policy.head.selected_units_head
+        model = SelectedUnitsHead(handle)
+        assert isinstance(model, torch.nn.Module)
+        autoregressive_embedding = torch.randn(B, handle.input_dim)
+        unit_type_mask = torch.ones(B, handle.unit_type_dim)
+        max_entity_num = handle.max_entity_num
+        # no selected_units, tensor input
+        entity_num = np.random.randint(200, 300)
+        unit_mask = torch.ones(B, entity_num)
+        masked_index = np.random.choice(entity_num, size=(100, ), replace=False)
+        unit_mask[:, masked_index] = 0
+        entity_embedding = torch.randn(B, entity_num, handle.entity_embedding_dim)
+        logits, selected_units, embedding = model(
+            autoregressive_embedding, unit_type_mask, unit_mask, entity_embedding, temperature=0.8
+        )
+        assert isinstance(logits, list) and len(logits) == B
+        assert isinstance(selected_units, list) and len(selected_units) == B
+        assert embedding.shape == (B, handle.input_dim)
+        loss = embedding.mean()
+        for logit, selected_unit in zip(logits, selected_units):
+            assert isinstance(logit, torch.FloatTensor)
+            assert isinstance(selected_unit, torch.LongTensor)
+            assert logit.shape == (min(max_entity_num, selected_unit.shape[0] + 1), entity_num + 1)
+            loss += logit.mean()
+        is_differentiable(loss, model)
+        # indicated selected_units
+        selected_units = []
+        for _ in range(B):
+            num_b = np.random.randint(1, max_entity_num)
+            unit_index = torch.LongTensor(np.random.choice(entity_num, size=(num_b, ), replace=False))
+            unit_index = torch.sort(unit_index).values
+            selected_units.append(unit_index)
+        logits, selected_units_output, embedding = model(
+            autoregressive_embedding,
+            unit_type_mask,
+            unit_mask,
+            entity_embedding,
+            temperature=0.8,
+            selected_units=selected_units
+        )
+        assert len(selected_units) == len(selected_units_output)
+        for su, suo in zip(selected_units, selected_units_output):
+            assert su.ne(suo).sum() == 0
+        for logit, selected_unit in zip(logits, selected_units_output):
+            assert logit.shape == (selected_unit.shape[0] + 1, entity_num + 1)

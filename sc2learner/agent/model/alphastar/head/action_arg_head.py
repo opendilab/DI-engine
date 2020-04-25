@@ -194,12 +194,12 @@ class SelectedUnitsHead(nn.Module):
         state = None
         return x, state
 
-    def _query(self, key, end_flag_index, x, state, mask, temperature, output_entity_num):
+    def _query(self, key, end_flag_index, x, state, mask, temperature, selected_units):
         B, N = key.shape[:2]
         units = torch.zeros(B, N, device=key.device, dtype=torch.long)
         logits = [[] for _ in range(B)]
         x = x.unsqueeze(0)
-        if output_entity_num is None:
+        if selected_units is None:
             end_flag_trigger = [False for _ in range(B)]
 
             for i in range(self.max_entity_num):
@@ -228,27 +228,20 @@ class SelectedUnitsHead(nn.Module):
                         units[b][entity_num[b]] = 1
                         mask[b][entity_num[b]] = 0
         else:
+            output_entity_num = [t.shape[0] for t in selected_units]
+            # transform selected_units to units format
+            for idx, su in enumerate(selected_units):
+                for u in su:
+                    units[idx][u] = 1
             for i in range(max(output_entity_num) + 1):
                 x, state = self.lstm(x, state)
                 query_result = x.permute(1, 0, 2) * key
                 query_result = query_result.mean(dim=2)
                 if self.use_mask:
                     query_result.sub_((1 - mask) * 1e9)
-                p = F.softmax(query_result.div(temperature), dim=1)
-                handle = self.pd(p)
-                if self.training:
-                    entity_num = handle.sample()
-                else:
-                    entity_num = handle.mode()
                 for b in range(B):
                     if i > output_entity_num[b]:
                         continue
-                    elif i < output_entity_num[b]:
-                        logits[b].append(query_result[b])
-                        units[b][entity_num[b]] = 1
-                        if entity_num[b] != end_flag_index:
-                            # mask[b][entity_num[b]] = 0
-                            pass
                     else:
                         logits[b].append(query_result[b])
         logits = [torch.stack(t, dim=0) for t in logits]
@@ -270,7 +263,7 @@ class SelectedUnitsHead(nn.Module):
         available_units_mask,
         entity_embedding,
         temperature=1.0,
-        output_entity_num=None
+        selected_units=None
     ):
         '''
         Input:
@@ -281,6 +274,10 @@ class SelectedUnitsHead(nn.Module):
             available_units_mask: A mask of which units can be selected, initialised to allow selecting all
                                   entities that exist (including enemy units). [batch_size, num_units]
             entity_embedding: [batch_size, num_units, entity_embedding_dim(256)]
+            selected_units: when SL training, the caller indicates selected_units to calculate embedding
+        Note:
+            num_units can be different among the samples in a batch, if so and batch_size > 1, unis_mask and
+            entity_embedding are both list(len=batch_size) and each element is shape [1, ...]
         Output:
             logits: List(batch_size) - List(num_selected_units) - num_units
             units: [batch_size, num_units] 0-1 vector
@@ -293,7 +290,7 @@ class SelectedUnitsHead(nn.Module):
         key, end_flag_index = self._get_key(entity_embedding)
         mask = torch.cat([mask, torch.ones_like(mask[:, 0:1])], dim=1)
         logits, units, embedding_selected = self._query(
-            key, end_flag_index, input, state, mask, temperature, output_entity_num
+            key, end_flag_index, input, state, mask, temperature, selected_units
         )
 
         return logits, units, embedding + embedding_selected
@@ -635,33 +632,6 @@ def test_location_head():
     print(model)
     print(logits.shape)
     print(location)
-
-
-def test_selected_units_head():
-    class CFG:
-        def __init__(self):
-            self.input_dim = 1024
-            self.activation = 'relu'
-            self.entity_embedding_dim = 256
-            self.key_dim = 32
-            self.unit_type_dim = 47  # temp
-            self.func_dim = 256
-            self.hidden_dim = 32
-            self.num_layers = 1
-            self.max_entity_num = 64
-
-    model = SelectedUnitsHead(CFG()).cuda()
-    print(model)
-    input = torch.randn(2, 1024).cuda()
-    available_unit_type_mask = torch.ones(2, 47).cuda()
-    available_units_mask = torch.ones(2, 89).cuda()
-    entity_embedding = torch.randn(2, 89, 256).cuda()
-    logits, units, embedding = model(input, available_unit_type_mask, available_units_mask, entity_embedding)
-    for b in range(2):
-        print(b, len(logits[b]))
-    print(logits[0][0].shape)
-    print(units[0].shape, torch.nonzero(units[0]).shape)
-    print(embedding.shape, input.mean(), embedding.mean())
 
 
 def test_target_unit_head():
