@@ -245,7 +245,7 @@ class FakeActorDataset:
             else:
                 num = actions['selected_units'].shape[0]
                 num = min(MAX_SELECTED_UNITS, num + 1)
-                ret['selected_units'] = torch.rand(num, entity_num)
+                ret['selected_units'] = torch.rand(num, entity_num + 1)
             if isinstance(actions['target_units'], type(NOOP)):
                 ret['target_units'] = NOOP
             else:
