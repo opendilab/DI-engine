@@ -210,12 +210,7 @@ class SelectedUnitsHead(nn.Module):
                 query_result = query_result.mean(dim=2)
                 if self.use_mask:
                     query_result.sub_((1 - mask) * 1e9)
-                p = F.softmax(query_result.div(temperature), dim=1)
-                handle = self.pd(p)
-                if self.training:
-                    entity_num = handle.sample()
-                else:
-                    entity_num = handle.mode()
+                entity_num = self._get_pred_with_logit(query_result, temperature)
 
                 for b in range(B):
                     if end_flag_trigger[b]:
@@ -224,6 +219,13 @@ class SelectedUnitsHead(nn.Module):
                         logits[b].append(query_result[b])
                         if entity_num[b] == end_flag_index:
                             end_flag_trigger[b] = True
+                            # evaluate and logits == 1 case(only end_flag), select the second largest unit
+                            if not self.training and len(logits[b]) == 1:
+                                logit = query_result[b]
+                                logit[end_flag_index] = -1e9
+                                logits[b].insert(0, logit)
+                                entity_num_b = self._get_pred_with_logit(logit, temperature)
+                                units[b][entity_num_b] = 1
                             continue
                         units[b][entity_num[b]] = 1
                         mask[b][entity_num[b]] = 0

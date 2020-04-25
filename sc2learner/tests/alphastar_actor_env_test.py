@@ -16,6 +16,7 @@ or this if you want to test real SC2 environment
 """
 import random
 import time
+import os.path as osp
 
 import yaml
 import torch
@@ -23,13 +24,14 @@ from absl import app
 from absl import flags
 from easydict import EasyDict
 
-from sc2learner.worker.actor.alphastar_actor import AlphaStarActor
+from sc2learner.utils import read_config
+from sc2learner.worker.actor import AlphaStarActor
 from sc2learner.data.fake_dataset import fake_stat_processed, get_single_step_data
 from sc2learner.tests.fake_env import FakeEnv
 from sc2learner.envs.alphastar_env import AlphaStarEnv
 
 FLAGS = flags.FLAGS
-flags.DEFINE_string('config_path', 'test_alphastar_actor.yaml', 'Path to the config yaml file for test')
+flags.DEFINE_string('config_path', '', 'Path to the config yaml file for test')
 flags.DEFINE_bool('fake_dataset', True, 'Whether to use fake dataset')
 flags.DEFINE_bool('check_data_structure', False, 'Compare the output and FakeEnv')
 flags.DEFINE_bool('single_agent', False, 'Test game_vs_bot mode')
@@ -125,7 +127,7 @@ class DummyJobGetter:
             job = {
                 'job_id': 'test0',
                 'game_type': 'game_vs_bot',
-                'obs_compressor': 'lz4',
+                'step_data_compressor': 'lz4',
                 'model_id': 'test',
                 'teacher_model_id': 'test',
                 'stat_id': '',
@@ -134,14 +136,14 @@ class DummyJobGetter:
                 'home_race': 'zerg',
                 'away_race': 'zerg',
                 'difficulty': 'very_easy',
-                'build': None,
+                'build': 'random',
                 'data_push_length': 64,
             }
         else:
             job = {
                 'job_id': 'test0',
                 'game_type': 'self_play',
-                'obs_compressor': 'lz4',
+                'step_data_compressor': 'lz4',
                 'model_id': 'test',
                 'teacher_model_id': 'test',
                 'stat_id': '',
@@ -186,9 +188,11 @@ class DummyStatLoader:
 
 
 def main(unused_argv):
-    with open(FLAGS.config_path) as f:
-        cfg = yaml.load(f)
-    cfg = EasyDict(cfg)
+    if FLAGS.config_path:
+        config_path = FLAGS.config_path
+    else:
+        config_path = osp.join(osp.dirname(__file__), "test_alphastar_actor.yaml")
+    cfg = read_config(config_path)
     ta = TestActor(cfg)
     ta.run()
 

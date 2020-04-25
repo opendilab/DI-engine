@@ -16,7 +16,15 @@ from sc2learner.envs.observations.alphastar_obs_wrapper import reorder_one_hot_a
 
 
 class Statistics:
-    def __init__(self, player_num=2, begin_num=200, fix_mmr=True):
+    """
+    Class carrying the game statistics of multiple players
+
+    Args:
+        player_num: number of players to be hold
+        begin_num: how many of build actions need to be recorded in the statistics
+            in L111 of detailed-architecture.txt, only the first 20 are stored
+    """
+    def __init__(self, player_num=2, begin_num=200):
         self.player_num = player_num
         self.action_statistics = [{} for _ in range(player_num)]
         self.cumulative_statistics = [{} for _ in range(player_num)]
@@ -29,11 +37,19 @@ class Statistics:
         self.mmr = 6200
 
     def load_from_transformed_stat(self, transformed_stat, player, begin_num=None):
-        '''loading cumulative_statistics and build_order_statistics
-           produced by transform_stat/get_transformed_stat
-           as the count of actions is lost in the processing, the loaded action count will not be vaild
-           begin_num: the beginning_build_order will be cutted/padded with zeros to this length
-        '''
+        """
+        Loading cumulative_statistics and build_order_statistics
+        produced by transform_stat/get_transformed_stat as a Statistics object
+        as the count of actions is lost in the processing, the loaded action count will not be vaild
+
+        Args:
+            transformed_stat: input stat
+            begin_num: the beginning_build_order will be cutted/padded with zeros to this length
+            player: the index of player should the stat be loaded for
+
+        Returns:
+            None
+        """
         transformed_stat = copy.deepcopy(transformed_stat)
         if begin_num is not None:
             transformed_stat['beginning_build_order'] = transformed_stat['beginning_build_order'][:begin_num]
@@ -137,7 +153,11 @@ class Statistics:
     def update_stat(self, act, obs, player):
         """
         Update action_stat cum_stat and build_order_stat
-        act should be preprocessed general action
+
+        Args:
+            act: Processed general action
+            obs: observation
+            player: index of the player to update
         """
         self.cached_transformed_stat[player] = None
         self.cached_z[player] = None
@@ -147,6 +167,16 @@ class Statistics:
             self.update_build_order_stat(act, player)
 
     def get_stat(self, player=None):
+        """
+        Get raw statistics data (before transformation to tensor input)
+
+        Args:
+            player: index of player or None for getting a list of all players
+
+        Return:
+            stat: a dict with keys of 'action_statistics', 'cumulative_statistics', 'begin_statistics'
+                or a list of dicts if player=None
+        """
         if player is None:
             return [
                 {
@@ -166,7 +196,21 @@ class Statistics:
         return transform_cum_stat(self.cumulative_statistics[player])
 
     def get_transformed_stat(self, player=None, mmr=None):
-        '''export as transformed stat'''
+        '''
+        Export the statistics as transformed stat, which is ready as the network input
+        Args:
+            player: the index of the player or None if requesting for all players as a list
+            mmr: the mmr to be encoded in the tensors, if set to None, self.mmr=6200 will be used
+        Returns:
+            stat: encoded stat dict like
+            {
+                'mmr': mmr,  # one hot encoded mmr
+                'beginning_build_order': beginning_build_order_tensor,
+                'cumulative_stat': cumulative_stat_tensor
+            }
+            all tensors are LongTensor
+            this is also the format accepted by load_from_transformed_stat
+        '''
         if mmr is None:
             mmr = self.mmr
         if player is None:
@@ -190,8 +234,15 @@ class Statistics:
                 return tstat
 
     def get_z(self, idx):
-        # an alternative format for the statistics used for RL training
-        # note: the actions in build_order is raw_ability
+        '''
+        Export the cum and build statistics
+        in an alternative format used for computing RL training baselines
+        Args:
+            idx: the index of the player
+        Returns:
+            a dict with keys 'built_units', 'effects', 'upgrades', 'build_order'
+            note: the actions in build_order is raw_ability
+        '''
         if self.cached_z[idx] is not None:
             return self.cached_z[idx]
         cum_stat_tensor = transform_cum_stat(self.cumulative_statistics[idx])
@@ -206,6 +257,8 @@ class Statistics:
 
 
 def transform_build_order_to_z_format(stat):
+    '''Used internally by Statistics.get_z()
+    '''
     ret = {'type': np.zeros(len(stat), dtype=np.int), 'loc': np.empty((len(stat), 2), dtype=np.int)}
     zeroxy = np.array([0, 0], dtype=np.int)
     for n in range(len(stat)):

@@ -62,7 +62,7 @@ class EvalJobGetter:
             job = {
                 'job_id': 'test0',
                 'game_type': 'game_vs_bot',
-                'obs_compressor': 'simple',
+                'step_data_compressor': 'simple',
                 'model_id': ['agent0'],
                 'teacher_model_id': None,
                 'stat_id': ['agent0'],
@@ -78,7 +78,7 @@ class EvalJobGetter:
             job = {
                 'job_id': 'test0',
                 'game_type': 'self_play',
-                'obs_compressor': 'simple',
+                'step_data_compressor': 'simple',
                 'model_id': ['agent0', 'agent1'],
                 'teacher_model_id': None,
                 'stat_id': ['agent0', 'agent1'],

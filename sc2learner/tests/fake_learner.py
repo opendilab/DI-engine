@@ -24,9 +24,9 @@ class FakeLearner(object):
         self.learner_ip = os.environ.get('SLURMD_NODENAME', '')  # hostname like SH-IDC1-10-5-36-236
         if not self.learner_ip:
             raise ValueError('learner_ip must be ip address, but found {}'.format(self.learner_ip))
-        self.coordinator_ip = self.cfg['api']['coordinator_ip']
-        self.coordinator_port = self.cfg['api']['coordinator_port']
-        self.ceph_path = self.cfg['api']['ceph_path']
+        self.coordinator_ip = self.cfg['system']['coordinator_ip']
+        self.coordinator_port = self.cfg['system']['coordinator_port']
+        self.ceph_path = self.cfg['system']['ceph_path']
 
         self.url_prefix = 'http://{}:{}/'.format(self.coordinator_ip, self.coordinator_port)
 
@@ -139,7 +139,7 @@ class FakeLearner(object):
             Returns:
                 - (:obj`dict`): update info
         '''
-        update_info = {'replay_unique_id': [], 'replay_buffer_idx': [], 'priority': []}
+        update_info = {'replay_unique_id': [], 'replay_buffer_idx': [], 'priority': [], 'step_data_compressor': 'none'}
         for metadata in metadatas:
             update_info['replay_unique_id'].append(metadata['replay_unique_id'])
             update_info['replay_buffer_idx'].append(metadata['replay_buffer_idx'])

@@ -81,6 +81,12 @@ class AlphaStarEnv(SC2Env):
         return obs
 
     def _merge_action(self, obs, last_action, add_dim=True):
+        """
+        adding information of last action to the scalar_info in the observations
+        see detailed-architecture.txt L112-L114
+        and encode whether the entities are selected or targeted in last action
+        see detailed-architechure.txt L61-62
+        """
         last_action_type = last_action['action_type']
         last_delay = last_action['delay']
         last_queued = last_action['queued']
@@ -137,6 +143,7 @@ class AlphaStarEnv(SC2Env):
         return new_obs
 
     def _transform_action(self, action):
+        # convert network output to SC2 raw input
         action = copy.deepcopy(action)
         # tensor2value
         for k, v in action.items():
@@ -168,7 +175,7 @@ class AlphaStarEnv(SC2Env):
         return action
 
     def _get_action(self, actions):
-        # Covert network output to pysc2 FunctionCalls
+        # Convert transformed actions to pysc2 FunctionCalls
         action_type = actions['action_type']
         delay = actions['delay']
         arg_keys = ['queued', 'selected_units', 'target_units', 'target_location']
@@ -187,7 +194,7 @@ class AlphaStarEnv(SC2Env):
             - obs: list of ob dicts for two agents after taking action
             - rewards: win/loss reward
             - done: if the game terminated
-            - stat:
+            - stat: the statistics for what happened in the current episode, in get_z format
             - info
         """
         assert (self._reset_flag)
@@ -247,6 +254,11 @@ class AlphaStarEnv(SC2Env):
         return self._episode_steps, due, copy.deepcopy(obs), rewards, done, episode_stat, info
 
     def reset(self):
+        """
+        Reset the env, should be called before start stepping
+        Return:
+            obs: initial observation
+        """
         timesteps = super().reset()
         last_action = {
             'action_type': torch.Tensor([0]),
@@ -261,8 +273,6 @@ class AlphaStarEnv(SC2Env):
         for n in range(self.agent_num):
             obs.append(self._get_obs(timesteps[n].observation, last_action, n))
         infos = [timestep.game_info for timestep in timesteps]
-
-        # just trust the map size from cfg.env.map_size passed in during init
         env_provided_map_size = infos[0].start_raw.map_size
         env_provided_map_size = [env_provided_map_size.x, env_provided_map_size.y]
         assert tuple(env_provided_map_size) == tuple(self.map_size), \
@@ -281,6 +291,7 @@ class AlphaStarEnv(SC2Env):
         return copy.deepcopy(obs)
 
     def transformed_action_to_string(self, action):
+        # producing human readable debug output
         return '[Action: type({}) delay({}) queued({}) selected_units({}) target_units({}) target_location({})]'.format(
             action['action_type'], action['delay'], action['queued'], action['selected_units'], action['target_units'],
             action['target_location']
