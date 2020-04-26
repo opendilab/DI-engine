@@ -7,6 +7,7 @@ Main Function:
 import collections
 from collections import namedtuple, OrderedDict
 
+import numpy as np
 import torch
 import torch.nn.functional as F
 
@@ -86,6 +87,7 @@ class AlphaStarRLLoss(BaseLoss):
         self.temperature_scheduler = build_temperature_scheduler(
             train_config.temperature
         )  # get naive temperature scheduler
+        self.pseudo_reward_prob = train_config.pseudo_reward_prob
 
         self.dtype = torch.float
         self.rank = get_rank()
@@ -236,9 +238,14 @@ class AlphaStarRLLoss(BaseLoss):
         new_rewards = OrderedDict()
         assert rewards.shape == (self.batch_size, 1), 'rewards shape: {}'.format(rewards.shape)
         new_rewards['winloss'] = rewards.squeeze(1)
+        # build_order
+        p = np.random.uniform()
         build_order_reward = []
         for i in range(self.batch_size):
+            # only proper action can activate
             mask = 1 if action_type[i].item() in action_type_map['build_order'] else 0
+            # only some prob can activate
+            mask = mask if p < self.pseudo_reward_prob else 0
             build_order_reward.append(
                 -levenshtein_distance(
                     behaviour_z['build_order']['type'][i], human_target_z['build_order']['type'][i],
@@ -246,12 +253,17 @@ class AlphaStarRLLoss(BaseLoss):
                 ) * factors[i] * mask
             )
         new_rewards['build_order'] = torch.FloatTensor(build_order_reward).to(rewards.device)
+        # built_units, effects, upgrades
+        # p is independent from all the pseudo reward and the same in a batch
         for k in ['built_units', 'effects', 'upgrades']:
             mask = torch.zeros(self.batch_size).to(self.device)
             for i in range(self.batch_size):
                 if action_type[i].item() in action_type_map[k]:
                     mask[i] = 1
-            new_rewards[k] = -hamming_distance(behaviour_z[k], human_target_z[k], factors)
+            p = np.random.uniform()
+            mask_factor = 1 if p < self.pseudo_reward_prob else 0
+            mask *= mask_factor
+            new_rewards[k] = -hamming_distance(behaviour_z[k], human_target_z[k], factors) * mask
         for k in new_rewards.keys():
             new_rewards[k] = new_rewards[k].float()
         return new_rewards

@@ -296,6 +296,9 @@ class LeagueExploiter(ActivePlayer):
     Overview: league exploiter in league training, default branch(1.0 pfsp)
     """
     _name = "LeagueExploiter"
+    def __init__(self, *args, mutate_prob=0.25, **kwargs):
+        super(LeagueExploiter, self).__init__(*args, **kwargs)
+        self.mutate_prob = mutate_prob
 
     def _pfsp_branch(self):
         """
@@ -320,7 +323,7 @@ class LeagueExploiter(ActivePlayer):
         Overview: league exploiter can mutate to the supervised learning player with 0.25 prob
         """
         p = np.random.uniform()
-        if p < 0.25:
+        if p < self.mutate_prob:
             return info['sl_checkpoint_path']
 
         return None

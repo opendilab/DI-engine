@@ -4,6 +4,7 @@ train:
     trajectory_len: 3
     batch_size: 2
     use_cuda: False
+    pseudo_reward_prob: 0.25
     action_output_types:
         action_type: logit
         delay: value
