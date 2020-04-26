@@ -383,8 +383,7 @@ class Coordinator(object):
     def deal_with_push_data_to_replay_buffer(self):
         job_id = '8d2e8eda-83d9-11ea-8bb0-1be4f1872daf'
         learner_uid = '3458436'
-        trajectory_path = 'model_main_player_zerg_0_ckpt.' \
-    'pth_job_1a572940-838d-11ea-9feb-8f9bf499ec33_agent_0_step_2332_7df970f2-838d-11ea-86b6-355c4fbf42b9.traj'
+        trajectory_path = 'model_main_player_zerg_0_ckpt.pth_job_0098e642-841e-11ea-9918-6f27a4855242_agent_0_step_1159_0707b170-8423-11ea-99b0-db6573da5763.traj'
         self.replay_buffer.push_data(
             {
                 'job_id': job_id,

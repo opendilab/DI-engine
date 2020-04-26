@@ -49,14 +49,23 @@ class AlphaStarRLLearner(BaseRLLearner):
 
     @override(BaseRLLearner)
     def _setup_data_source(self):
+        # dataloader = build_dataloader(
+        #     self.data_iterator,
+        #     self.cfg.data.train.dataloader_type,
+        #     self.cfg.data.train.batch_size,
+        #     self.use_distributed,
+        #     read_data_fn=self.load_trajectory,
+        # )
+        from sc2learner.data import FakeActorDataset
+        dataset = FakeActorDataset()
         dataloader = build_dataloader(
-            self.data_iterator,
-            self.cfg.data.train.dataloader_type,
+            dataset,
+            'fake_actor',
             self.cfg.data.train.batch_size,
             self.use_distributed,
             read_data_fn=self.load_trajectory,
         )
-        return None, dataloader, None
+        return None, iter(dataloader), None
 
     @override(BaseRLLearner)
     def _setup_agent(self):
@@ -72,7 +81,7 @@ class AlphaStarRLLearner(BaseRLLearner):
     def _preprocess_data(self, batch_data):
         data_stat = self._get_data_stat(batch_data)
         if self.use_cuda:
-            batch_data = to_device(batch_data, 'cuda')
+            batch_data = to_device(batch_data, 'cuda:{}'.format(self.rank % 8))
         return batch_data, data_stat
 
     @override(BaseRLLearner)
