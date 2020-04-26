@@ -42,7 +42,9 @@ class Coordinator(object):
         #                "job_ids": [job_id],
         #                "checkpoint_path": checkpoint_path,
         #                "replay_buffer": replay_buffer,
-        #                "ret_metadata": {data_index: metadata}}
+        #                "ret_metadata": {data_index: metadata},
+        #                "last_beats_time": last_beats_time,
+        #                "state": choices in ['alive', 'dead']}
         self.learner_record = {}
 
         self.url_prefix_format = 'http://{}:{}/'
@@ -60,6 +62,15 @@ class Coordinator(object):
         self.learner_to_player = {}
         self.job_queue = Queue()
         self.league_flag = False
+
+        self.check_dead_learner_freq = cfg.system.coordinator_check_dead_learner_freq
+
+        # thread to check actor if dead
+        check_learner_dead_thread = threading.Thread(target=self.check_learner_dead)
+        check_learner_dead_thread.daemon = True
+        check_learner_dead_thread.start()
+        self.logger.info("[UP] check learner dead thread ")
+
 
     def close(self):
         self.replay_buffer.close()
@@ -151,7 +162,7 @@ class Coordinator(object):
             time.sleep(10)
         return False
 
-    def deal_with_register_learner(self, learner_uid, learner_ip, learner_port):
+    def deal_with_register_learner(self, learner_uid, learner_ip, learner_port, learner_re_register=False):
         '''
             Overview: deal with register from learner, make learner and player pairs
             Arguments:
@@ -159,13 +170,16 @@ class Coordinator(object):
         '''
         if hasattr(self, 'player_ids'):
             self._acquire_lock()
+            self.logger.info('now learner_record: {}'.format(self.learner_record))
             if learner_uid not in self.learner_record:
                 if len(self.player_to_learner) < len(self.player_ids):
                     self.learner_record[learner_uid] = {
                         "learner_ip_port_list": [[learner_ip, learner_port]],
                         "job_ids": [],
                         "checkpoint_path": '',
-                        'ret_metadatas': {}
+                        "ret_metadatas": {},
+                        "last_beats_time": int(time.time()),
+                        "state": 'alive'
                     }
                     for index, player_id in enumerate(self.player_ids):
                         if player_id not in self.player_to_learner:
@@ -182,10 +196,15 @@ class Coordinator(object):
                         self._tell_league_manager_to_run()
                         self.logger.info('league_manager run with table {}. '.format(self.player_to_learner))
                 else:
-                    self.logger.info('enough learners have been registered.')
+                    self.logger.info(
+                        'learner {} try to register, but enough learners have been registered.'.format(learner_uid)
+                        )
                     self._release_lock()
                     return False
             else:
+                if learner_re_register:
+                    self.learner_record[learner_uid]['learner_ip_port_list'] = []
+                    self.learner_record[learner_uid]['state'] = 'alive'
                 if [learner_ip, learner_port] not in self.learner_record[learner_uid]['learner_ip_port_list']:
                     self.learner_record[learner_uid]['learner_ip_port_list'].append([learner_ip, learner_port])
 
@@ -273,6 +292,7 @@ class Coordinator(object):
                 - (:obj`list`): metadata list
         '''
         assert learner_uid in self.learner_record, 'learner_uid ({}) not in learner_record'.format(learner_uid)
+        self.learner_record[learner_uid]['last_beats_time'] = int(time.time())
         self._acquire_lock()
         if data_index not in self.learner_record[learner_uid]['ret_metadatas']:
             metadatas = self.replay_buffer.sample(batch_size)
@@ -288,7 +308,7 @@ class Coordinator(object):
                 del self.learner_record[learner_uid]['ret_metadatas'][i]
         return metadatas
 
-    def deal_with_update_replay_buffer(self, update_info):
+    def deal_with_update_replay_buffer(self, learner_uid, update_info):
         '''
             Overview: when receiving learner's request of updating replay buffer, return True/False
             Arguments:
@@ -296,6 +316,7 @@ class Coordinator(object):
             Returns:
                 - (:obj`bool`): True
         '''
+        self.learner_record[learner_uid]['last_beats_time'] = int(time.time())
         self.replay_buffer.update(update_info)
         return True
 
@@ -305,6 +326,7 @@ class Coordinator(object):
         return url_prefix
 
     def deal_with_get_learner_train_step(self, learner_uid, train_step):
+        self.learner_record[learner_uid]['last_beats_time'] = int(time.time())
         player_id = self.learner_to_player.get(learner_uid)
         player_info = {'player_id': player_id, 'train_step': train_step}
         self.league_manager.update_active_player(player_info)
@@ -360,6 +382,45 @@ class Coordinator(object):
         }
         self.job_queue.put(job)
         return True
+
+    def deal_with_get_heartbeats(self, learner_uid):
+        '''
+            Overview: when receiving learner's heartbeats, update last_beats_time.
+            Arguments:
+                - actor_uid (:obj:`str`): learner's uid
+            Returns:
+                - (:obj`bool`): state
+        '''
+        assert learner_uid in self.learner_record
+        self.learner_record[learner_uid]['last_beats_time'] = int(time.time())
+        return True
+
+    ###################################################################################
+    #                                     threads                                     #
+    ###################################################################################
+
+    def time_format(self, time_item):
+        return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time_item))
+
+    def deal_with_dead_learner(self, learner_uid, reuse=True):
+        self.learner_record[learner_uid]['state'] = 'dead'
+        os.system('scancel ' + learner_uid)
+        self.logger.info('[kill-dead] dead learner {} was killed'.format(learner_uid))
+
+    def check_learner_dead(self):
+        while True:
+            nowtime = int(time.time())
+            for learner_uid, learner_info in self.learner_record.items():
+                if learner_info['state'] == 'alive' and\
+                   nowtime - learner_info['last_beats_time'] > self.check_dead_learner_freq:
+                    # dead learner
+                    self.logger.info(
+                        "[coordinator][check_learner_dead] {} is dead, last_beats_time = {}".format(
+                            learner_uid, self.time_format(learner_info['last_beats_time'])
+                        )
+                    )
+                    self.deal_with_dead_learner(learner_uid)
+            time.sleep(self.check_dead_learner_freq)
 
     ###################################################################################
     #                                      debug                                      #

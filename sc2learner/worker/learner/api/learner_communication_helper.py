@@ -21,7 +21,17 @@ class LearnerCommunicationHelper(object):
         super(LearnerCommunicationHelper, self).__init__()
         self.cfg = cfg
 
-        self.learner_uid = str(os.environ.get('SLURM_JOB_ID', str(random.randint(0, 100000))))
+        # if want to rerun learner, learner_uid should be set in cfg.system
+        if 'learner_uid' in self.cfg.system.keys() and self.cfg.system.learner_uid:
+            self.learner_uid = str(self.cfg.system.learner_uid)
+        else:
+            self.learner_uid = str(os.environ.get('SLURM_JOB_ID', str(random.randint(0, 1000000))))
+
+        # if want to rerun learner, learner_re_register should be set True in cfg.system
+        if 'learner_re_register' in self.cfg.system.keys():
+            self.learner_re_register = self.cfg.system.learner_re_register
+        else:
+            self.learner_re_register = False
 
         self.use_distributed = cfg.train.use_distributed
         if self.use_distributed:
@@ -38,11 +48,12 @@ class LearnerCommunicationHelper(object):
             raise ValueError('learner_ip must be ip address, but found {}'.format(self.learner_ip))
 
         self.learner_port = self.cfg.system.learner_port - int(self.rank)
-        self.coordinator_ip = self.cfg['system']['coordinator_ip']
-        self.coordinator_port = self.cfg['system']['coordinator_port']
-        self.ceph_traj_path = self.cfg['system']['ceph_traj_path']
-        self.ceph_model_path = self.cfg['system']['ceph_model_path']
-        self.use_ceph = self.cfg['system']['use_ceph']
+        self.coordinator_ip = self.cfg.system.coordinator_ip
+        self.coordinator_port = self.cfg.system.coordinator_port
+        self.ceph_traj_path = self.cfg.system.ceph_traj_path
+        self.ceph_model_path = self.cfg.system.ceph_model_path
+        self.use_ceph = self.cfg.system.use_ceph
+        self.learner_heartbeats_thread = self.cfg.system.learner_heartbeats_thread
 
         self.url_prefix = 'http://{}:{}/'.format(self.coordinator_ip, self.coordinator_port)
 
@@ -55,6 +66,16 @@ class LearnerCommunicationHelper(object):
         self.delete_trajectory_record = False  # if delete trajectory_record
         self.delete_trajectory_record_num = 1000  # if larger than len(self.trajectory_record), delete by time sort
 
+        # heartbeats
+        self.stop_flag = False
+        self.heartbeats_freq = self.cfg.system.learner_heartbeats_freq
+
+        if self.learner_heartbeats_thread:
+            check_send_learner_heartbeats_thread = threading.Thread(target=self.send_learner_heartbeats)
+            check_send_learner_heartbeats_thread.setDaemon(True)
+            check_send_learner_heartbeats_thread.start()
+            self.comm_logger.info("[UP] send learner heartbeats thread ")
+
     def _setup_comm_logger(self):
         self.comm_logger = logging.getLogger("learner.log")
         self.comm_logger.info('learner_uid {}, learner_ip {}'.format(self.learner_uid, self.learner_ip))
@@ -62,13 +83,39 @@ class LearnerCommunicationHelper(object):
     def get_ip_port(self):
         return self.learner_ip, self.learner_port
 
+    def send_learner_heartbeats(self):
+        '''
+            Overview: actor sends heartbeats to coordinator
+        '''
+        d = {'learner_uid': self.learner_uid}
+        while not self.stop_flag:
+            try:
+                response = requests.post(self.url_prefix + 'coordinator/get_heartbeats', json=d).json()
+                for _ in range(self.heartbeats_freq):
+                    if not self.stop_flag:
+                        time.sleep(1)
+                    else:
+                        break
+                if self.stop_flag:
+                    break
+            except Exception as e:
+                self.comm_logger.info("something wrong with coordinator, {}".format(e))
+            time.sleep(1)
+        self.comm_logger.info('check_send_learner_heartbeats_thread stop as job finished.')
+
+
     def _register_learner_in_coordinator(self):
         '''
             Overview: register learner in coordinator with learner_uid and learner_ip
         '''
+        d = {
+            'learner_uid': self.learner_uid, 
+            'learner_ip': self.learner_ip, 
+            'learner_port': self.learner_port,
+            'learner_re_register': self.learner_re_register
+        }
         while True:
             try:
-                d = {'learner_uid': self.learner_uid, 'learner_ip': self.learner_ip, 'learner_port': self.learner_port}
                 response = requests.post(self.url_prefix + "coordinator/register_learner", json=d).json()
                 if response['code'] == 0:
                     # self.checkpoint_path = response['info']  # without s3://{}/ , only file name
@@ -168,7 +215,7 @@ class LearnerCommunicationHelper(object):
                 - info (:obj:`dict`): info dict
         """
         try:
-            d = {'update_info': info}
+            d = {'update_info': info, 'learner_uid': self.learner_uid}
             response = requests.post(self.url_prefix + "coordinator/update_replay_buffer", json=d).json()
             if response['code'] == 0:
                 return True
