@@ -13,7 +13,7 @@ import torch.nn.functional as F
 from sc2learner.optimizer.base_loss import BaseLoss
 from sc2learner.torch_utils import levenshtein_distance, hamming_distance
 from sc2learner.rl_utils import td_lambda_loss, vtrace_loss, upgo_loss, compute_importance_weights, entropy
-from sc2learner.utils import list_dict2dict_list
+from sc2learner.utils import list_dict2dict_list, get_rank
 from sc2learner.data import diff_shape_collate
 from pysc2.lib.static_data import RESEARCH_REWARD_ACTIONS, EFFECT_REWARD_ACTIONS, UNITS_REWARD_ACTIONS, \
     BUILD_ORDER_REWARD_ACTIONS
@@ -88,7 +88,8 @@ class AlphaStarRLLoss(BaseLoss):
         )  # get naive temperature scheduler
 
         self.dtype = torch.float
-        self.device = 'cuda' if train_config.use_cuda and torch.cuda.is_available() else 'cpu'
+        self.rank = get_rank()
+        self.device = 'cuda:{}'.format(self.rank % 8) if train_config.use_cuda and torch.cuda.is_available() else 'cpu'
         self.pad_value = -1e6
 
     def register_log(self, variable_record, tb_logger):
