@@ -74,7 +74,6 @@ def test_read_file():
     print(x)
 
 
-
 if __name__ == '__main__':
     # test_coordinator_register_manager()
     # test_coordinator_ask_for_job()
@@ -82,4 +81,3 @@ if __name__ == '__main__':
     # test_coordinator_finish_job()
     test_coordinator_push_data_to_replay_buffer()
     # test_read_file()
-

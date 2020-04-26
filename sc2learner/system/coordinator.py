@@ -71,7 +71,6 @@ class Coordinator(object):
         check_learner_dead_thread.start()
         self.logger.info("[UP] check learner dead thread ")
 
-
     def close(self):
         self.replay_buffer.close()
 
@@ -198,7 +197,7 @@ class Coordinator(object):
                 else:
                     self.logger.info(
                         'learner {} try to register, but enough learners have been registered.'.format(learner_uid)
-                        )
+                    )
                     self._release_lock()
                     return False
             else:

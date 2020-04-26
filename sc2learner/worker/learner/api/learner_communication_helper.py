@@ -103,14 +103,13 @@ class LearnerCommunicationHelper(object):
             time.sleep(1)
         self.comm_logger.info('check_send_learner_heartbeats_thread stop as job finished.')
 
-
     def _register_learner_in_coordinator(self):
         '''
             Overview: register learner in coordinator with learner_uid and learner_ip
         '''
         d = {
-            'learner_uid': self.learner_uid, 
-            'learner_ip': self.learner_ip, 
+            'learner_uid': self.learner_uid,
+            'learner_ip': self.learner_ip,
             'learner_port': self.learner_port,
             'learner_re_register': self.learner_re_register
         }
