@@ -133,8 +133,10 @@ class Statistics:
 
     def update_build_order_stat(self, act, player):
         # this will not clear the cache
-        target_list = ['unit', 'build', 'research', 'effect']
+        target_list = ['unit', 'build', 'research']
         action_type = int(act['action_type'])
+        if action_type in (35, 64, 520, 222, 515, 503):  # exclude worker and supply
+            return
         goal = GENERAL_ACTION_INFO_MASK[action_type]['goal']
         if goal in target_list:
             if goal == 'build':
