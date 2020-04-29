@@ -8,12 +8,13 @@ from pysc2.lib.static_data import NUM_BUFFS, NUM_ABILITIES, NUM_UNIT_TYPES, UNIT
      UPGRADES_REORDER_ARRAY, NUM_ACTIONS, ACTIONS_REORDER_ARRAY, NUM_ADDON, ADDON_REORDER_ARRAY,\
      NUM_BEGIN_ACTIONS, NUM_UNIT_BUILD_ACTIONS, NUM_EFFECT_ACTIONS, NUM_RESEARCH_ACTIONS,\
      UNIT_BUILD_ACTIONS_REORDER_ARRAY, EFFECT_ACTIONS_REORDER_ARRAY, RESEARCH_ACTIONS_REORDER_ARRAY,\
-     BEGIN_ACTIONS_REORDER_ARRAY, UNIT_BUILD_ACTIONS, EFFECT_ACTIONS, RESEARCH_ACTIONS, BEGIN_ACTIONS
+     BEGIN_ACTIONS_REORDER_ARRAY, UNIT_BUILD_ACTIONS, EFFECT_ACTIONS, RESEARCH_ACTIONS, BEGIN_ACTIONS,\
+     OLD_BEGIN_ACTIONS_REORDER_INV
 
 # TODO: move these shared functions to utils
 from sc2learner.envs.observations.alphastar_obs_wrapper import reorder_one_hot_array,\
      batch_binary_encode, div_one_hot, LOCATION_BIT_NUM
-from sc2learner.torch_utils import to_dtype
+from sc2learner.torch_utils import to_dtype, one_hot
 
 
 def binary_search(data, item):
@@ -432,3 +433,23 @@ def transformed_stat_mmr(stat, mmr, location_num=LOCATION_BIT_NUM):
         'beginning_build_order': beginning_build_order_tensor,
         'cumulative_stat': cumulative_stat_tensor
     }
+
+
+def transform_stat_processed(old_stat_processed):
+    new_stat_processed = copy.deepcopy(old_stat_processed)
+    beginning_build_order = new_stat_processed['beginning_build_order']
+    new_beginning_build_order = []
+    location_dim = 2 * LOCATION_BIT_NUM
+    for item in beginning_build_order:
+        action_type, location = item[:-location_dim], item[-location_dim:]
+        action_type = torch.nonzero(action_type).item()
+        action_type = OLD_BEGIN_ACTIONS_REORDER_INV[action_type]
+        if action_type not in BEGIN_ACTIONS:
+            continue
+        action_type = BEGIN_ACTIONS_REORDER_ARRAY[action_type]
+        action_type = torch.LongTensor([action_type])
+        action_type = one_hot(action_type, NUM_BEGIN_ACTIONS)[0]
+        new_item = torch.cat([action_type, location], dim=0)
+        new_beginning_build_order.append(new_item)
+    new_stat_processed['beginning_build_order'] = torch.stack(new_beginning_build_order, dim=0)
+    return new_stat_processed
