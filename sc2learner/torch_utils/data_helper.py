@@ -45,3 +45,9 @@ def to_tensor(item, dtype):
         return 'none'  # for convenience in dataloader
     else:
         raise TypeError("not support item type: {}".format(type(item)))
+
+
+def same_shape(data):
+    assert (isinstance(data, list))
+    shapes = [t.shape for t in data]
+    return len(set(shapes)) == 1

@@ -11,7 +11,7 @@ import torch
 import torch.nn.functional as F
 
 from sc2learner.optimizer.base_loss import BaseLoss
-from sc2learner.torch_utils import levenshtein_distance, hamming_distance
+from sc2learner.torch_utils import levenshtein_distance, hamming_distance, same_shape
 from sc2learner.rl_utils import td_lambda_loss, vtrace_loss, upgo_loss, compute_importance_weights, entropy
 from sc2learner.utils import list_dict2dict_list
 from sc2learner.data import diff_shape_collate
@@ -36,12 +36,6 @@ def build_temperature_scheduler(temperature):
             return self.init_val
 
     return ConstantTemperatureSchedule(init_val=temperature)
-
-
-def same_shape(data):
-    assert (isinstance(data, list))
-    shapes = [t.shape for t in data]
-    return len(set(shapes)) == 1
 
 
 def pad_stack(data, pad_val):
