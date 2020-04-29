@@ -89,8 +89,8 @@ class FakeCoordinator:
                 update_agent_step({'player_id': player_id, 'train_step': self.update_count * self.one_phase_steps})
 
 
-@pytest.mark.unittest
 class TestLeagueManager:
+    @pytest.mark.unittest
     def test_naive(self, random_match_result):
         match_runner = FakeMatchRunner(random_match_result)
         league_manager = LeagueManager({}, save_checkpoint_fn, load_checkpoint_fn, match_runner.launch_match)

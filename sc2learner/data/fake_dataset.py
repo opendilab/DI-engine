@@ -7,10 +7,11 @@ import os
 import numpy as np
 import torch
 
-from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UNIT_TYPES, ACTIONS_REORDER_INV
+from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UNIT_TYPES, ACTIONS_REORDER_INV, NUM_BEGIN_ACTIONS
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
 from sc2learner.data.offline.replay_dataset import ReplayDataset, START_STEP
 from sc2learner.utils import get_step_data_compressor
+from sc2learner.envs.observations import LOCATION_BIT_NUM
 
 META_SUFFIX = '.meta'
 DATA_SUFFIX = '.step'
@@ -73,7 +74,7 @@ def get_single_step_data():
             effect=random_binary_tensor([83]),
             research=random_binary_tensor([60])
         ),
-        beginning_build_order=random_tensor([20, 283]),
+        beginning_build_order=random_tensor([20, NUM_BEGIN_ACTIONS + 2 * LOCATION_BIT_NUM]),
     )
 
     entity_raw = OrderedDict(

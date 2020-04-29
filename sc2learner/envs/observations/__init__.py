@@ -1,2 +1,2 @@
-from .alphastar_obs_wrapper import decompress_obs
+from .alphastar_obs_wrapper import decompress_obs, LOCATION_BIT_NUM
 from .enemy_upgrades import get_enemy_upgrades_raw_data, get_enemy_upgrades_processed_data
