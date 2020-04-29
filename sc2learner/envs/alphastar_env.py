@@ -50,9 +50,10 @@ class AlphaStarEnv(SC2Env):
         self._scalar_wrapper = ScalarObsWrapper(template_obs)
         self._template_act = template_act
         self._use_available_action_transform = cfg.env.use_available_action_transform
+        self._obs_stat_type = cfg.env.obs_stat_type
+        assert self._obs_stat_type in ['replay_online', 'self_online', 'replay_last']
 
         self._use_stat = cfg.env.use_stat
-        self._episode_stat = None  # This is for the statistics of current episode actions and obs
         self._reset_flag = False
         # This is the human games statistics used as an input of network
         self.loaded_eval_stat = [None] * self.agent_num
@@ -72,10 +73,15 @@ class AlphaStarEnv(SC2Env):
         """
         Append the statistics to the observation
         """
-        stat = self.loaded_eval_stat[agent_no].get_input_z_by_game_loop(game_loop)
-        obs['scalar_info']['mmr'] = stat['mmr']
-        obs['scalar_info']['beginning_build_order'] = stat['beginning_build_order']
-        obs['scalar_info']['cumulative_stat'] = stat['cumulative_stat']
+        if self._obs_stat_type == 'replay_online':
+            stat = self.loaded_eval_stat[agent_no].get_input_z_by_game_loop(game_loop)
+        elif self._obs_stat_type == 'self_online':
+            stat = self._episode_stat.get_transformed_stat(agent_no)
+        elif self._obs_stat_type == 'replay_last':
+            stat = self.loaded_eval_stat[agent_no].get_input_z_by_game_loop(None)
+
+        assert set(stat.keys) == set(['mmr', 'beginning_build_order', 'cumulative_stat'])
+        obs['scalar_info'].update(stat)
         return obs
 
     def _merge_action(self, obs, last_action, add_dim=True):
@@ -267,6 +273,8 @@ class AlphaStarEnv(SC2Env):
             'target_location': None
         }
         self.last_actions = [last_action] * self.agent_num
+        # This is for the statistics of current episode actions and obs
+        self._episode_stat = Statistics(player_num=self.agent_num, begin_num=self.cfg.env.get('begin_num', 200))
         obs = []
         for n in range(self.agent_num):
             obs.append(self._get_obs(timesteps[n].observation, last_action, n))
@@ -281,7 +289,6 @@ class AlphaStarEnv(SC2Env):
         self._episode_steps = 0
         self._reset_flag = True
         self._buffered_actions = [[] for i in range(self.agent_num)]
-        self._episode_stat = Statistics(player_num=self.agent_num, begin_num=self.cfg.env.get('begin_num', 200))
         self._last_output = [
             0, [True] * self.agent_num, obs, [0] * self.agent_num, False,
             [self._episode_stat.get_z(n) for n in range(self.agent_num)], infos

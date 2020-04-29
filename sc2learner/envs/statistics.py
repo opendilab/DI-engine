@@ -322,8 +322,9 @@ class GameLoopStatistics:
         Note: if game_loop is None, load global stat
         """
         if game_loop is None:
-            raise NotImplementedError
-        _, cumulative_stat = self._get_stat_by_game_loop(game_loop)
+            cumulative_stat = self.ori_stat['cumulative_stat'][-1]
+        else:
+            _, cumulative_stat = self._get_stat_by_game_loop(game_loop)
         beginning_build_order = self.ori_stat['beginning_build_order']
         if len(beginning_build_order) < self.begin_num:
             miss_num = self.begin_num - len(beginning_build_order)
