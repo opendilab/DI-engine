@@ -19,7 +19,7 @@ class AlphastarActParser(object):
         Overview: parse action into tensors
         Interface: __init__, parse
     '''
-    def __init__(self, feature_layer_resolution, map_size):
+    def __init__(self, feature_layer_resolution, map_size, use_resolution):
         '''
             Overview: initial related attributes
             Arguments:
@@ -33,10 +33,9 @@ class AlphastarActParser(object):
         }
         self.output_template = ['action_type', 'delay', 'queued', 'selected_units', 'target_units', 'target_location']
         self.map_size = map_size
-        if isinstance(feature_layer_resolution, collections.Sequence):
-            self.resolution = feature_layer_resolution
-        else:
-            self.resolution = (feature_layer_resolution, feature_layer_resolution)
+        assert self.map_size[0] != 0 and self.map_size[1] != 0
+        self.use_resolution = use_resolution
+        self.resolution = feature_layer_resolution
 
     def _get_output_template(self):
         template = {k: None for k in self.output_template}
@@ -61,25 +60,18 @@ class AlphastarActParser(object):
         return list(ret.values())
 
     def world_coord_to_minimap(self, coord):
-        coord[0] = min(self.map_size[0], coord[0])
-        coord[1] = min(self.map_size[1], coord[1])
-        new_x = int(coord[0] * self.resolution[0] / (self.map_size[0] + 1e-3))
-        new_y = int(coord[1] * self.resolution[1] / (self.map_size[1] + 1e-3))
-        max_limit = self.resolution[0] * self.resolution[1]
-        assert (new_x < max_limit and new_y < max_limit)
-        return (new_x, new_y)
-
-    def minimap_to_world_coord(self, location):
-        assert (location[0] < self.resolution[0])
-        assert (location[1] < self.resolution[1])
-        new_x = location[0] * self.map_size[0] / self.resolution[0]
-        new_y = location[1] * self.map_size[1] / self.resolution[1]
-        return (new_x, new_y)
+        max_dim = max(self.map_size[0], self.map_size[1])   # spatial aspect ratio doesn't change with any resolution
+        new_x = coord[0] * self.resolution / max_dim
+        new_y = (self.map_size[1] - coord[1]) * self.resolution / max_dim
+        return [new_y, new_x]   # spatial information is y major coordinate
 
     # refer to https://github.com/Blizzard/s2client-proto/blob/master/s2clientprotocol/raw.proto
     def _parse_raw_camera_move(self, t):
         if t.HasField('center_world_space'):
-            location = [self.map_size[1] - t.center_world_space.y, t.center_world_space.x]  # y major
+            if self.use_resolution:
+                location = self.world_coord_to_minimap((t.center_world_space.x, t.center_world_space.y))
+            else:
+                location = [self.map_size[1] - t.center_world_space.y, t.center_world_space.x]  # y major
             return {'action_type': [168], 'target_location': location}  # raw_camera_move 168
         else:
             return None
@@ -92,9 +84,13 @@ class AlphastarActParser(object):
             assert ((t.HasField('target_world_space_pos')) + (t.HasField('target_unit_tag')) <= 1)
             if t.HasField('target_world_space_pos'):
                 # origin world position
-                ret['target_location'] = [
-                    self.map_size[1] - t.target_world_space_pos.y, t.target_world_space_pos.x
-                ]  # y major  # noqa
+                if self.use_resolution:
+                    ret['target_location'] = self.world_coord_to_minimap((t.target_world_space_pos.x,
+                                                                          t.target_world_space_pos.y))
+                else:
+                    ret['target_location'] = [
+                        self.map_size[1] - t.target_world_space_pos.y, t.target_world_space_pos.x
+                    ]  # y major  # noqa
                 ret['action_type'] = [self.ability_to_raw_func(t.ability_id, actions.raw_cmd_pt)]
             else:
                 if t.HasField('target_unit_tag'):
