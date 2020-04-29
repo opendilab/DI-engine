@@ -318,6 +318,9 @@ class GameLoopStatistics:
         return new_stat
 
     def get_input_z_by_game_loop(self, game_loop):
+        """
+        Note: if game_loop is None, load global stat
+        """
         if game_loop is None:
             raise NotImplementedError
         _, cumulative_stat = self._get_stat_by_game_loop(game_loop)
@@ -335,6 +338,9 @@ class GameLoopStatistics:
         )
 
     def get_reward_z_by_game_loop(self, game_loop):
+        """
+        Note: if game_loop is None, load global stat
+        """
         if game_loop is None:
             raise NotImplementedError
         beginning_build_order, cumulative_stat = self._get_stat_by_game_loop(game_loop)

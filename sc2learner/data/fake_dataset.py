@@ -114,7 +114,10 @@ def fake_stat_processed():
     import pickle
     import base64
     import zlib
-    path = os.path.join(os.path.dirname(__file__), 'stat_data/Zerg_Terran_2479_0005e0d00cf4bca92d0432ecf23bd227337e39f7f8870a560ac3abfe7f89abc1.stat_processed_new')  # noqa
+    path = os.path.join(
+        os.path.dirname(__file__),
+        'stat_data/Zerg_Terran_2479_0005e0d00cf4bca92d0432ecf23bd227337e39f7f8870a560ac3abfe7f89abc1.stat_processed_new'
+    )
     example_stat_processed = base64.b64encode(zlib.compress(pickle.dumps(torch.load(path))))
     example_stat_processed = pickle.loads(zlib.decompress(base64.b64decode(example_stat_processed)))
     return example_stat_processed
