@@ -68,6 +68,7 @@ class AlphaStarEnv(SC2Env):
         assert self._use_stat, 'We should not load stat when we are not going to use stat'
         begin_num = self.cfg.env.beginning_build_order_num
         self.loaded_eval_stat[agent_no] = GameLoopStatistics(stat, begin_num)
+        self._episode_stat.load_global_bo(agent_no, self.loaded_eval_stat[agent_no].global_bo)
 
     def _merge_stat(self, obs, agent_no, game_loop=None):
         """

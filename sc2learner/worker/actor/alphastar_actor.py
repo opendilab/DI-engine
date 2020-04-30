@@ -270,6 +270,8 @@ class AlphaStarActor:
                     self.env.load_stat(stat, i)
                 else:
                     raise TypeError("invalid stat type: {}".format(type(stat)))
+        # reset
+        # Note: reset must be after the load stat
         obs = self.env.reset()
         self._init_states()
         # initialize loop variable

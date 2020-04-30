@@ -49,6 +49,7 @@ class Statistics:
         self.build_order_statistics = [[] for _ in range(player_num)]
         self.cached_transformed_stat = [None] * self.player_num
         self.cached_z = [None] * self.player_num
+        self.global_bo = [None] * self.player_num
         self.begin_num = begin_num
         # according to detailed-arch L109, mmr is fixed to 6200 unless in supervised learning
         # this will not affect replay decoding, where the meta for transform_stat is externally supplied
@@ -238,7 +239,11 @@ class Statistics:
                     ret.append(self.cached_transformed_stat[player])
                 else:
                     meta = {'home_mmr': mmr}
-                    tstat = transform_stat(self.get_stat(player), meta)
+                    # get current stat
+                    stat = self.get_stat(player)
+                    # update global bo
+                    stat['begin_statistics'] = self.global_bo
+                    tstat = transform_stat(stat, meta)
                     ret.append(tstat)
                     self.cached_transformed_stat[player] = copy.deepcopy(tstat)
             return ret
@@ -247,7 +252,11 @@ class Statistics:
                 return self.cached_transformed_stat[player]
             else:
                 meta = {'home_mmr': mmr}
-                tstat = transform_stat(self.get_stat(player), meta)
+                # get current stat
+                stat = self.get_stat(player)
+                # update global bo
+                stat['begin_statistics'] = self.global_bo
+                tstat = transform_stat(stat, meta)
                 self.cached_transformed_stat[player] = copy.deepcopy(tstat)
                 return tstat
 
@@ -274,6 +283,9 @@ class Statistics:
         self.cached_z[idx] = copy.deepcopy(ret)
         return ret
 
+    def load_global_bo(self, player, bo):
+        self.global_bo[player] = copy.deepcopy(bo)
+
 
 class GameLoopStatistics:
     """
@@ -284,6 +296,7 @@ class GameLoopStatistics:
         self.ori_stat = self.add_game_loop(self.ori_stat)
         self.begin_num = begin_num
         self.mmr = 6200
+        self._clip_global_bo()
 
     def add_game_loop(self, stat):
         beginning_build_order = stat['beginning_build_order']
@@ -317,6 +330,16 @@ class GameLoopStatistics:
         new_stat['cum_game_loop'] = [t['game_loop'] for t in new_stat['cumulative_stat']]
         return new_stat
 
+    def _clip_global_bo(self):
+        beginning_build_order = self.ori_stat['beginning_build_order']
+        if len(beginning_build_order) < self.begin_num:
+            miss_num = self.begin_num - len(beginning_build_order)
+            beginning_build_order += [{'action_type': 0, 'location': 'none'} for _ in range(miss_num)]
+        else:
+            beginning_build_order = beginning_build_order[:self.begin_num]
+        # set global_bo
+        self.global_bo = beginning_build_order
+
     def get_input_z_by_game_loop(self, game_loop):
         """
         Note: if game_loop is None, load global stat
@@ -325,16 +348,11 @@ class GameLoopStatistics:
             cumulative_stat = self.ori_stat['cumulative_stat'][-1]
         else:
             _, cumulative_stat = self._get_stat_by_game_loop(game_loop)
-        beginning_build_order = self.ori_stat['beginning_build_order']
-        if len(beginning_build_order) < self.begin_num:
-            miss_num = self.begin_num - len(beginning_build_order)
-            beginning_build_order += [{'action_type': 0, 'location': 'none'} for _ in range(miss_num)]
-        else:
-            beginning_build_order = beginning_build_order[:self.begin_num]
+        beginning_build_order = self.global_bo
         return transformed_stat_mmr(
             {
-                'beginning_build_order': beginning_build_order,
-                'cumulative_stat': cumulative_stat
+                'begin_statistics': beginning_build_order,
+                'cumulative_statistics': cumulative_stat
             }, self.mmr
         )
 
