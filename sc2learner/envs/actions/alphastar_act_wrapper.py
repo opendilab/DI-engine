@@ -35,7 +35,7 @@ class AlphastarActParser(object):
         self.map_size = map_size
         assert self.map_size[0] != 0 and self.map_size[1] != 0
         self.use_resolution = use_resolution
-        self.resolution = feature_layer_resolution
+        self.resolution = feature_layer_resolution * 2
 
     def _get_output_template(self):
         template = {k: None for k in self.output_template}
