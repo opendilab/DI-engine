@@ -20,8 +20,6 @@ flags.DEFINE_string("load_path", "", "path to model checkpoint")
 flags.DEFINE_string("job_name", "", "job name:[learner, actor]")
 flags.FLAGS(sys.argv)
 
-# default_config = read_config(os.path.join(os.path.dirname(__file__), "train_sl_default_config.yaml"))
-
 
 def main(argv):
     logging.set_verbosity(logging.ERROR)

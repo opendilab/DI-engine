@@ -29,7 +29,7 @@ class TestLearnerCommHelper:
         time.sleep(1)  # wait the cache flush out
         assert (1024 == coordinator.replay_buffer._meta_buffer.validlen)
 
-    def test_data_sample_update(self, coordinator, league_manager, fake_train_learner):
+    def test_data_sample_update(self, setup_config_api, coordinator, league_manager, fake_train_learner):
         """
         Note: coordinator must be in the front of learner in the arguments
         """
