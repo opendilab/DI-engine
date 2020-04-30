@@ -88,7 +88,7 @@ setup(
         'websocket-client',
         'whichcraft',
         'gym',
-        'torch==1.3.1',  # 1.3.1+cuda90_cudnn7.6.3_lms
+        'torch>=1.3.1',  # 1.3.1+cuda90_cudnn7.6.3_lms
         #'tensorflow>=1.4.1',  enable if necessary
         'joblib',
         'pyzmq',

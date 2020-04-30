@@ -43,14 +43,14 @@ from sc2learner.envs.maps.map_info import LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT
 
 logging.set_verbosity(logging.INFO)
 FLAGS = flags.FLAGS
-flags.DEFINE_string("replays", "E:/data/replays", "Path to a directory of replays.")
-flags.DEFINE_string("output_dir", "E:/data/replay_data", "Path to save data")
+flags.DEFINE_string("replays", "/Users/zhangmanyuan/Desktop/sl_data/single_data.txt", "Path to a directory of replays.")
+flags.DEFINE_string("output_dir", "/Users/zhangmanyuan/Desktop/sl_data/", "Path to save data")
 flags.DEFINE_string("version", "4.10.0", "Game version")
 flags.DEFINE_integer("process_num", 1, "Number of sc2 process to start on the node")
 flags.DEFINE_bool(
     "check_version", False, "Check required game version of the replays and discard ones not matching version"
 )
-flags.DEFINE_bool("resolution", True, "whether to use defined resolution rather than map size as spatial size")
+flags.DEFINE_bool("resolution", False, "whether to use defined resolution rather than map size as spatial size")
 flags.mark_flag_as_required("replays")
 flags.mark_flag_as_required("output_dir")
 flags.FLAGS(sys.argv)
@@ -226,10 +226,10 @@ class ReplayDecoder(multiprocessing.Process):
                 # Low MMR = corrupt replay or player who is weak.
                 logging.warning('Low APM or MMR')
                 return None
-        if (info.player_info[0].player_info.race_actual != 2 and info.player_info[1].player_info.race_actual != 2):
-            # not include Zerg race
-            logging.warning('No Zerg')
-            return None
+        # if (info.player_info[0].player_info.race_actual != 2 and info.player_info[1].player_info.race_actual != 2):
+        #     # not include Zerg race
+        #     logging.warning('No Zerg')
+        #     return None
         race_dict = {1: 'Terran', 2: 'Zerg', 3: 'Protoss'}
         returns = []
         for home in range(2):
