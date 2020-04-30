@@ -37,9 +37,6 @@ class LeagueManagerWrapper(object):
 
         self.url_prefix = 'http://{}:{}/'.format(self.coordinator_ip, self.coordinator_port)
         self.use_fake_data = cfg['coordinator']['use_fake_data']
-        if self.use_fake_data:
-            self.fake_model_path = cfg['system']['fake_model_path']
-            self.fake_stat_path = cfg['system']['fake_stat_path']
         self._set_logger()
         self._init_league_manager()
         self._register_league_manager()
@@ -121,3 +118,6 @@ class LeagueManagerWrapper(object):
 
     def get_ip(self):
         return self.league_manager_ip
+
+    def close(self):
+        self.league_manager.close()

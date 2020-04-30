@@ -49,18 +49,9 @@ class AlphaStarRLLearner(BaseRLLearner):
 
     @override(BaseRLLearner)
     def _setup_data_source(self):
-        # dataloader = build_dataloader(
-        #     self.data_iterator,
-        #     self.cfg.data.train.dataloader_type,
-        #     self.cfg.data.train.batch_size,
-        #     self.use_distributed,
-        #     read_data_fn=self.load_trajectory,
-        # )
-        from sc2learner.data import FakeActorDataset
-        dataset = FakeActorDataset()
         dataloader = build_dataloader(
-            dataset,
-            'fake_actor',
+            self.data_iterator,
+            self.cfg.data.train.dataloader_type,
             self.cfg.data.train.batch_size,
             self.use_distributed,
             read_data_fn=self.load_trajectory,

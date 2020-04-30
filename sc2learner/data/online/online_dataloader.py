@@ -4,6 +4,7 @@ from torch.utils.data import _utils
 import torch.multiprocessing as multiprocessing
 from torch._six import queue
 import time
+from sc2learner.utils import LockContext
 
 
 class OnlineDataLoader(object):
@@ -50,12 +51,12 @@ class OnlineIteratorDataLoader:
                 'use num_workers=0 to disable multiprocessing.'
             )
 
+        self.lock = LockContext(lock_type='process')
         if self.num_workers > 0:
             self.shared_index = torch.tensor(0)
             self.shared_index.share_memory_()
             self.put_index = torch.tensor(0)
             self.put_index.share_memory_()
-            self.lock = multiprocessing.Lock()
             self.data_queue = multiprocessing.Queue()
             self.max_length = 10 * self.num_workers
             for i in range(self.num_workers):
@@ -68,7 +69,9 @@ class OnlineIteratorDataLoader:
 
     def __next__(self):
         if self.num_workers == 0:
-            data = next(self.data_iterator)
+            # TODO(nyz) why this line code must be wrappered by lock
+            with self.lock:
+                data = next(self.data_iterator)
             data = [self.read_data_fn(d) for d in data]
         else:
             while True:
@@ -81,27 +84,19 @@ class OnlineIteratorDataLoader:
         data = self.collate_fn(data)
         return data
 
-    def _acquire_lock(self):
-        self.lock.acquire()
-
-    def _release_lock(self):
-        self.lock.release()
-
     def _worker_loop(self, thread_id):
         while True:
             if self.data_queue.qsize() < self.max_length:
-                self._acquire_lock()
-                index = int(self.shared_index.item())
-                self.shared_index += 1
-                data = next(self.data_iterator)
-                self._release_lock()
+                with self.lock:
+                    index = int(self.shared_index.item())
+                    self.shared_index += 1
+                    data = next(self.data_iterator)
                 data = [self.read_data_fn(d) for d in data]
                 while True:
                     if index - self.put_index == 1:
                         self.data_queue.put(data)
-                        self._acquire_lock()
-                        self.put_index += 1
-                        self._release_lock()
+                        with self.lock:
+                            self.put_index += 1
                         break
                     time.sleep(0.1)
             time.sleep(0.1)

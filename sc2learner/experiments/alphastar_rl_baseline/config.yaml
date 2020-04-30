@@ -11,7 +11,7 @@ env:
    map_name: 'KairosJunction'
    use_available_action_transform: True
    use_stat: True
-   obs_stat_type: ['self_online']  # self_online, replay_online, replay_last
+   obs_stat_type: 'self_online'  # self_online, replay_online, replay_last
    beginning_build_order_num: 20
 model:
     use_value_network: True

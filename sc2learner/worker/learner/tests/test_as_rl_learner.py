@@ -7,7 +7,7 @@ from sc2learner.worker import AlphaStarRLLearner
 from sc2learner.data import FakeActorDataset
 
 
-# @pytest.mark.unittest
+@pytest.mark.unittest
 class TestASRLLearner:
     def fake_push_data(self, coordinator):
         time.sleep(3)  # monitor empty replay_buffer state
@@ -17,7 +17,7 @@ class TestASRLLearner:
         time.sleep(1)  # wait the cache flush out
         assert (64 == coordinator.replay_buffer._meta_buffer.validlen)
 
-    def test_data_sample_update(self, coordinator, learner, setup_config):
+    def test_data_sample_update(self, coordinator, league_manager, setup_config):
         """
         Note: coordinator must be in the front of learner in the arguments
         """
