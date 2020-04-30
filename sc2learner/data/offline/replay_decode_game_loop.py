@@ -141,11 +141,11 @@ class ReplayDecoder(multiprocessing.Process):
         for player in range(PLAYER_NUM):  # gain data by player order
             logging.info('Start getting data for player {}'.format(player))
             assert map_size is not None
+            map_size_point = point.Point(map_size.x, map_size.y)
             if self.use_resolution:
                 resolution = point.Point(RESOLUTION, RESOLUTION)
                 resolution.assign_to(self.interface.feature_layer.minimap_resolution)
             else:
-                map_size_point = point.Point(map_size.x, map_size.y)
                 map_size_point.assign_to(self.interface.feature_layer.minimap_resolution)  # update map size
             self.controller.start_replay(
                 sc_pb.RequestStartReplay(
