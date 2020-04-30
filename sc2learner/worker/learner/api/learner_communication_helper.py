@@ -39,6 +39,7 @@ class LearnerCommunicationHelper(object):
             self.data_index = torch.tensor(0)
         else:
             self.rank, self.world_size = 0, 1
+            self.data_index = torch.tensor(0)
 
         if 'learner_ip' in self.cfg.system.keys():
             self.learner_ip = self.cfg.system.learner_ip
@@ -165,7 +166,7 @@ class LearnerCommunicationHelper(object):
             ceph_traj_path = self.ceph_traj_path + path
             return read_file_ceph(ceph_traj_path, read_type='pickle')
         else:
-            return path
+            return torch.load(path)
 
     def deal_with_get_metadata(self, metadatas):
         assert (isinstance(metadatas, list))

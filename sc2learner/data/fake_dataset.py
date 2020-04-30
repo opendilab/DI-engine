@@ -215,7 +215,7 @@ class FakeReplayDataset(ReplayDataset):
 
 
 class FakeActorDataset:
-    def __init__(self, trajectory_len=3, use_meta=False, step_data_compressor='lz4'):
+    def __init__(self, trajectory_len=3, use_meta=False, step_data_compressor='none'):
         self.trajectory_len = trajectory_len
         self.use_meta = use_meta
         if self.use_meta:

@@ -35,6 +35,12 @@ system:
     ceph_traj_path: 's3://alphastar_fake_data/'
     ceph_model_path: 's3://alphastar_fake_data/'
     ceph_stat_path: 's3://alphastar_fake_data/'
+league:
+    race: ['zerg']
+    active_players:
+        main_player: 1
+        main_exploiter: 0
+        league_exploiter: 0
 replay_buffer:
     meta_maxlen: 4096
     max_reuse: 2
