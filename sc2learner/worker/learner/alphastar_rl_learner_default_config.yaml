@@ -16,8 +16,11 @@ coordinator:
 # values in this section is mean to be shared by multiple components
 system:
     learner_port: 18293               # learner port
+    learner_heartbeats_thread: False  # if use thread to send heartbeats to coordinator in learner
+    learner_heartbeats_freq: 10       # send heartbeats each `freq`
     coordinator_ip: 10.198.6.31       # learner and coordinator are in same cluster
     coordinator_port: 18294
+    coordinator_check_dead_learner_freq: 300
     # manager_ip can be set to 'auto' or the real IP of the manager instance
     # this value is used by actors to find what they should connect and report to
     # if it's set to 'auto', the manager node of the Slurm cluster will be used as the manager

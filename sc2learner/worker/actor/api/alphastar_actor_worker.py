@@ -190,7 +190,7 @@ class DataPusher:
         model_id = job['model_id'][agent_no]
         # saving to ceph
         ceph_name = "model_{}_job_{}_agent_{}_step_{}_{}.traj".format(
-            model_id, job_id, agent_no, metadata['game_step'], str(uuid.uuid1())
+            model_id, job_id, agent_no, metadata['game_loop'], str(uuid.uuid1())
         )
         save_file_ceph(self.ceph_path, ceph_name, data_buffer)
 

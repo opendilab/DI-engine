@@ -8,12 +8,29 @@ from pysc2.lib.static_data import NUM_BUFFS, NUM_ABILITIES, NUM_UNIT_TYPES, UNIT
      UPGRADES_REORDER_ARRAY, NUM_ACTIONS, ACTIONS_REORDER_ARRAY, NUM_ADDON, ADDON_REORDER_ARRAY,\
      NUM_BEGIN_ACTIONS, NUM_UNIT_BUILD_ACTIONS, NUM_EFFECT_ACTIONS, NUM_RESEARCH_ACTIONS,\
      UNIT_BUILD_ACTIONS_REORDER_ARRAY, EFFECT_ACTIONS_REORDER_ARRAY, RESEARCH_ACTIONS_REORDER_ARRAY,\
-     BEGIN_ACTIONS_REORDER_ARRAY, UNIT_BUILD_ACTIONS, EFFECT_ACTIONS, RESEARCH_ACTIONS, BEGIN_ACTIONS
+     BEGIN_ACTIONS_REORDER_ARRAY, UNIT_BUILD_ACTIONS, EFFECT_ACTIONS, RESEARCH_ACTIONS, BEGIN_ACTIONS,\
+     OLD_BEGIN_ACTIONS_REORDER_INV
 
 # TODO: move these shared functions to utils
 from sc2learner.envs.observations.alphastar_obs_wrapper import reorder_one_hot_array,\
      batch_binary_encode, div_one_hot, LOCATION_BIT_NUM
-from sc2learner.torch_utils import to_dtype
+from sc2learner.torch_utils import to_dtype, one_hot
+
+
+def binary_search(data, item):
+    if len(data) <= 0:
+        raise RuntimeError("empty data with len: {}".format(len(data)))
+    low = 0
+    high = len(data) - 1
+    while low <= high:
+        mid = (high + low) // 2
+        if data[mid] == item:
+            return mid
+        elif data[mid] < item:
+            low = mid + 1
+        else:
+            high = mid - 1
+    return low - 1
 
 
 class Statistics:
@@ -258,9 +275,97 @@ class Statistics:
         return ret
 
 
+class GameLoopStatistics:
+    """
+    Overview: Human replay data statistics specified by game loop
+    """
+    def __init__(self, stat, begin_num=20):
+        self.ori_stat = stat
+        self.ori_stat = self.add_game_loop(self.ori_stat)
+        self.begin_num = begin_num
+        self.mmr = 6200
+
+    def add_game_loop(self, stat):
+        beginning_build_order = stat['beginning_build_order']
+        cumulative_stat = stat['cumulative_stat']
+
+        def is_action_frame(action_type, cum_idx):
+            last_frame = cumulative_stat[cum_idx - 1]
+            cur_frame = cumulative_stat[cum_idx]
+            miss_key = cur_frame.keys() - last_frame.keys()
+            diff_count_key = set()
+            for k in last_frame.keys():
+                if k != 'game_loop' and cur_frame[k]['count'] != last_frame[k]['count']:
+                    diff_count_key.add(k)
+            diff_key = miss_key.union(diff_count_key)
+            return action_type in diff_key
+
+        cum_idx = 1
+        new_beginning_build_order = []
+        for i in range(len(beginning_build_order)):
+            item = beginning_build_order[i]
+            action_type = item['action_type']
+            while cum_idx < len(cumulative_stat) and not is_action_frame(action_type, cum_idx):
+                cum_idx += 1
+            if cum_idx < len(cumulative_stat):
+                item.update({'game_loop': cumulative_stat[cum_idx]['game_loop']})
+                new_beginning_build_order.append(item)
+
+        new_stat = stat
+        new_stat['beginning_build_order'] = new_beginning_build_order
+        new_stat['begin_game_loop'] = [t['game_loop'] for t in new_beginning_build_order]
+        new_stat['cum_game_loop'] = [t['game_loop'] for t in new_stat['cumulative_stat']]
+        return new_stat
+
+    def get_input_z_by_game_loop(self, game_loop):
+        """
+        Note: if game_loop is None, load global stat
+        """
+        if game_loop is None:
+            cumulative_stat = self.ori_stat['cumulative_stat'][-1]
+        else:
+            _, cumulative_stat = self._get_stat_by_game_loop(game_loop)
+        beginning_build_order = self.ori_stat['beginning_build_order']
+        if len(beginning_build_order) < self.begin_num:
+            miss_num = self.begin_num - len(beginning_build_order)
+            beginning_build_order += [{'action_type': 0, 'location': 'none'} for _ in range(miss_num)]
+        else:
+            beginning_build_order = beginning_build_order[:self.begin_num]
+        return transformed_stat_mmr(
+            {
+                'beginning_build_order': beginning_build_order,
+                'cumulative_stat': cumulative_stat
+            }, self.mmr
+        )
+
+    def get_reward_z_by_game_loop(self, game_loop):
+        """
+        Note: if game_loop is None, load global stat
+        """
+        if game_loop is None:
+            raise NotImplementedError
+        beginning_build_order, cumulative_stat = self._get_stat_by_game_loop(game_loop)
+        cum_stat_tensor = transform_cum_stat(cumulative_stat)
+        ret = {
+            'built_units': cum_stat_tensor['unit_build'],
+            'effects': cum_stat_tensor['effect'],
+            'upgrades': cum_stat_tensor['research'],
+            'build_order': transform_build_order_to_z_format(beginning_build_order),
+        }
+        ret = to_dtype(ret, torch.long)
+        return ret
+
+    def _get_stat_by_game_loop(self, game_loop):
+        begin_idx = binary_search(self.ori_stat['begin_game_loop'], game_loop)
+        cum_idx = binary_search(self.ori_stat['cum_game_loop'], game_loop)
+        return self.ori_stat['beginning_build_order'][:begin_idx + 1], self.ori_stat['cumulative_stat'][cum_idx]
+
+
 def transform_build_order_to_z_format(stat):
-    '''Used internally by Statistics.get_z()
-    '''
+    """
+    Overview: transform beginning_build_order to the format to calculate reward
+    stat: list->element: dict('action_type': int, 'location': list(len=2)->element: int)
+    """
     ret = {'type': np.zeros(len(stat), dtype=np.int), 'loc': np.empty((len(stat), 2), dtype=np.int)}
     zeroxy = np.array([0, 0], dtype=np.int)
     for n in range(len(stat)):
@@ -273,26 +378,13 @@ def transform_build_order_to_z_format(stat):
     return ret
 
 
-def transform_cum_stat(cumulative_stat):
-    cumulative_stat_tensor = {
-        'unit_build': torch.zeros(NUM_UNIT_BUILD_ACTIONS),
-        'effect': torch.zeros(NUM_EFFECT_ACTIONS),
-        'research': torch.zeros(NUM_RESEARCH_ACTIONS)
-    }
-    for k, v in cumulative_stat.items():
-        if v['goal'] in ['unit', 'build']:
-            cumulative_stat_tensor['unit_build'][UNIT_BUILD_ACTIONS_REORDER_ARRAY[k]] = 1
-        elif v['goal'] in ['effect']:
-            cumulative_stat_tensor['effect'][EFFECT_ACTIONS_REORDER_ARRAY[k]] = 1
-        elif v['goal'] in ['research']:
-            cumulative_stat_tensor['research'][RESEARCH_ACTIONS_REORDER_ARRAY[k]] = 1
-    return cumulative_stat_tensor
-
-
-def transform_stat(stat, meta, location_num=LOCATION_BIT_NUM):
-    beginning_build_order = stat['begin_statistics']
+def transform_build_order_to_input_format(stat, location_num=LOCATION_BIT_NUM):
+    """
+    Overview: transform beginning_build_order to the format for input
+    stat: list->element: dict('action_type': int, 'location': list(len=2)->element: int)
+    """
     beginning_build_order_tensor = []
-    for item in beginning_build_order:
+    for item in stat:
         action_type, location = item['action_type'], item['location']
         action_type = torch.LongTensor([action_type])
         action_type = reorder_one_hot_array(action_type, BEGIN_ACTIONS_REORDER_ARRAY, num=NUM_BEGIN_ACTIONS)
@@ -304,12 +396,67 @@ def transform_stat(stat, meta, location_num=LOCATION_BIT_NUM):
             location = torch.cat([x, y], dim=0)
         beginning_build_order_tensor.append(torch.cat([action_type.squeeze(0), location], dim=0))
     beginning_build_order_tensor = torch.stack(beginning_build_order_tensor, dim=0)
-    cumulative_stat_tensor = transform_cum_stat(stat['cumulative_statistics'])
+    return beginning_build_order_tensor
+
+
+def transform_cum_stat(cumulative_stat):
+    """
+    Overview: transform cumulative_stat to the format for both input and reward
+    cumulative_stat: dict('action_type': {'goal': str, count: int})
+    """
+    cumulative_stat_tensor = {
+        'unit_build': torch.zeros(NUM_UNIT_BUILD_ACTIONS),
+        'effect': torch.zeros(NUM_EFFECT_ACTIONS),
+        'research': torch.zeros(NUM_RESEARCH_ACTIONS)
+    }
+    for k, v in cumulative_stat.items():
+        if k == 'game_loop':
+            continue
+        if v['goal'] in ['unit', 'build']:
+            cumulative_stat_tensor['unit_build'][UNIT_BUILD_ACTIONS_REORDER_ARRAY[k]] = 1
+        elif v['goal'] in ['effect']:
+            cumulative_stat_tensor['effect'][EFFECT_ACTIONS_REORDER_ARRAY[k]] = 1
+        elif v['goal'] in ['research']:
+            cumulative_stat_tensor['research'][RESEARCH_ACTIONS_REORDER_ARRAY[k]] = 1
+    return cumulative_stat_tensor
+
+
+def transform_stat(stat, meta, location_num=LOCATION_BIT_NUM):
     mmr = meta['home_mmr']
+    return transformed_stat_mmr(stat, mmr, location_num)
+
+
+def transformed_stat_mmr(stat, mmr, location_num=LOCATION_BIT_NUM):
+    """
+    Overview: transform replay metadata and statdata to input stat(mmr + z)
+    """
+    beginning_build_order = stat['begin_statistics']
+    beginning_build_order_tensor = transform_build_order_to_input_format(beginning_build_order)
+    cumulative_stat_tensor = transform_cum_stat(stat['cumulative_statistics'])
     mmr = torch.LongTensor([mmr])
     mmr = div_one_hot(mmr, 6000, 1000).squeeze(0)
     return {
         'mmr': mmr,
         'beginning_build_order': beginning_build_order_tensor,
         'cumulative_stat': cumulative_stat_tensor
-    }  # noqa
+    }
+
+
+def transform_stat_processed(old_stat_processed):
+    new_stat_processed = copy.deepcopy(old_stat_processed)
+    beginning_build_order = new_stat_processed['beginning_build_order']
+    new_beginning_build_order = []
+    location_dim = 2 * LOCATION_BIT_NUM
+    for item in beginning_build_order:
+        action_type, location = item[:-location_dim], item[-location_dim:]
+        action_type = torch.nonzero(action_type).item()
+        action_type = OLD_BEGIN_ACTIONS_REORDER_INV[action_type]
+        if action_type not in BEGIN_ACTIONS:
+            continue
+        action_type = BEGIN_ACTIONS_REORDER_ARRAY[action_type]
+        action_type = torch.LongTensor([action_type])
+        action_type = one_hot(action_type, NUM_BEGIN_ACTIONS)[0]
+        new_item = torch.cat([action_type, location], dim=0)
+        new_beginning_build_order.append(new_item)
+    new_stat_processed['beginning_build_order'] = torch.stack(new_beginning_build_order, dim=0)
+    return new_stat_processed
