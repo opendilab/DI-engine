@@ -58,6 +58,8 @@ class AlphaStarEnv(SC2Env):
         # This is the human games statistics used as an input of network
         self.loaded_eval_stat = [None] * self.agent_num
         self.enemy_upgrades = [None] * self.agent_num
+        # This is for the statistics of current episode actions and obs
+        self._episode_stat = Statistics(player_num=self.agent_num, begin_num=self.cfg.env.get('begin_num', 200))
 
     def load_stat(self, stat, agent_no):
         """
@@ -81,7 +83,7 @@ class AlphaStarEnv(SC2Env):
         elif self._obs_stat_type == 'replay_last':
             stat = self.loaded_eval_stat[agent_no].get_input_z_by_game_loop(None)
 
-        assert set(stat.keys) == set(['mmr', 'beginning_build_order', 'cumulative_stat'])
+        assert set(stat.keys()) == set(['mmr', 'beginning_build_order', 'cumulative_stat'])
         obs['scalar_info'].update(stat)
         return obs
 
@@ -274,8 +276,6 @@ class AlphaStarEnv(SC2Env):
             'target_location': None
         }
         self.last_actions = [last_action] * self.agent_num
-        # This is for the statistics of current episode actions and obs
-        self._episode_stat = Statistics(player_num=self.agent_num, begin_num=self.cfg.env.get('begin_num', 200))
         obs = []
         for n in range(self.agent_num):
             obs.append(self._get_obs(timesteps[n].observation, last_action, n))

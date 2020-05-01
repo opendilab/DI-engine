@@ -54,6 +54,7 @@ class Statistics:
         # according to detailed-arch L109, mmr is fixed to 6200 unless in supervised learning
         # this will not affect replay decoding, where the meta for transform_stat is externally supplied
         self.mmr = 6200
+        self.global_begin_bo_num = 20
 
     def load_from_transformed_stat(self, transformed_stat, player, begin_num=None):
         """
@@ -242,7 +243,7 @@ class Statistics:
                     # get current stat
                     stat = self.get_stat(player)
                     # update global bo
-                    stat['begin_statistics'] = self.global_bo
+                    stat['begin_statistics'] = self.global_bo[player]
                     tstat = transform_stat(stat, meta)
                     ret.append(tstat)
                     self.cached_transformed_stat[player] = copy.deepcopy(tstat)
@@ -255,7 +256,7 @@ class Statistics:
                 # get current stat
                 stat = self.get_stat(player)
                 # update global bo
-                stat['begin_statistics'] = self.global_bo
+                stat['begin_statistics'] = self.global_bo[player]
                 tstat = transform_stat(stat, meta)
                 self.cached_transformed_stat[player] = copy.deepcopy(tstat)
                 return tstat
