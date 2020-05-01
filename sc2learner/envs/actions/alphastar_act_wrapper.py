@@ -60,10 +60,10 @@ class AlphastarActParser(object):
         return list(ret.values())
 
     def world_coord_to_minimap(self, coord):
-        max_dim = max(self.map_size[0], self.map_size[1])   # spatial aspect ratio doesn't change with any resolution
+        max_dim = max(self.map_size[0], self.map_size[1])  # spatial aspect ratio doesn't change with any resolution
         new_x = coord[0] * self.resolution / max_dim
         new_y = (self.map_size[1] - coord[1]) * self.resolution / max_dim
-        return [new_y, new_x]   # spatial information is y major coordinate
+        return [new_y, new_x]  # spatial information is y major coordinate
 
     # refer to https://github.com/Blizzard/s2client-proto/blob/master/s2clientprotocol/raw.proto
     def _parse_raw_camera_move(self, t):
@@ -85,8 +85,9 @@ class AlphastarActParser(object):
             if t.HasField('target_world_space_pos'):
                 # origin world position
                 if self.use_resolution:
-                    ret['target_location'] = self.world_coord_to_minimap((t.target_world_space_pos.x,
-                                                                          t.target_world_space_pos.y))
+                    ret['target_location'] = self.world_coord_to_minimap(
+                        (t.target_world_space_pos.x, t.target_world_space_pos.y)
+                    )
                 else:
                     ret['target_location'] = [
                         self.map_size[1] - t.target_world_space_pos.y, t.target_world_space_pos.x

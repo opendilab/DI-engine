@@ -72,10 +72,12 @@ class ReplayDecoder(multiprocessing.Process):
         self.output_dir = output_dir
         self.obs_parser = AlphastarObsParser()
         size = point.Point(1, 1)
-        self.interface = sc_pb.InterfaceOptions(raw=True, score=False,
-                                                raw_crop_to_playable_area=True,
-                                                feature_layer=sc_pb.SpatialCameraSetup(width=24,
-                                                                                       crop_to_playable_area=True))
+        self.interface = sc_pb.InterfaceOptions(
+            raw=True,
+            score=False,
+            raw_crop_to_playable_area=True,
+            feature_layer=sc_pb.SpatialCameraSetup(width=24, crop_to_playable_area=True)
+        )
         size.assign_to(self.interface.feature_layer.resolution)
         size.assign_to(self.interface.feature_layer.minimap_resolution)
         self.use_resolution = ues_resolution
@@ -153,8 +155,9 @@ class ReplayDecoder(multiprocessing.Process):
                 )
             )
             feat = features.features_from_game_info(self.controller.game_info(), use_raw_actions=True)
-            act_parser = AlphastarActParser(feature_layer_resolution=RESOLUTION, map_size=map_size_point,
-                                            use_resolution=self.use_resolution)
+            act_parser = AlphastarActParser(
+                feature_layer_resolution=RESOLUTION, map_size=map_size_point, use_resolution=self.use_resolution
+            )
             actions[player].append(Action(None, game_loops + 1))  # padding
             last_action = {
                 'action_type': torch.LongTensor([0]),
