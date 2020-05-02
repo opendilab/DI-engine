@@ -87,7 +87,6 @@ class AlphaStarRLLoss(BaseLoss):
         self.temperature_scheduler = build_temperature_scheduler(
             train_config.temperature
         )  # get naive temperature scheduler
-        self.pseudo_reward_prob = train_config.pseudo_reward_prob
 
         self.dtype = torch.float
         self.rank = get_rank()
@@ -168,12 +167,7 @@ class AlphaStarRLLoss(BaseLoss):
             outputs_dict['behaviour_outputs'].append(home['behaviour_outputs'])
             outputs_dict['teacher_outputs'].append(home['teacher_outputs'])
             outputs_dict['baselines'].append(baselines)
-            outputs_dict['rewards'].append(
-                self._compute_pseudo_rewards(
-                    home['behaviour_z'], home['human_target_z'], home['rewards'], home['game_seconds'],
-                    home['actions']['action_type']
-                )
-            )
+            outputs_dict['rewards'].append(home['rewards'])
             outputs_dict['target_actions'].append(target_actions)
             outputs_dict['behaviour_actions'].append(home['actions'])
             outputs_dict['teacher_actions'].append(home['teacher_actions'])
@@ -192,81 +186,11 @@ class AlphaStarRLLoss(BaseLoss):
             k: torch.stack(v, dim=0)
             for k, v in zip(outputs_dict['baselines']._fields, outputs_dict['baselines'])
         }
-        outputs_dict['rewards'] = {k: torch.stack(v, dim=0) for k, v in outputs_dict['rewards'].items()}
+        # each value: (batch_size, 1) -> stack+squeeze -> (tra_len, batch_size)
+        outputs_dict['rewards'] = {k: torch.stack(v, dim=0).squeeze(2) for k, v in outputs_dict['rewards'].items()}
         # add game_seconds
         outputs_dict['game_seconds'].extend(data[-1]['home']['game_seconds'])
         return self.rollout_outputs(*outputs_dict.values())  # outputs_dict is a OrderedDict
-
-    def _compute_pseudo_rewards(self, behaviour_z, human_target_z, rewards, game_seconds, action_type):
-        """
-            Overview: compute pseudo rewards from human replay z
-            Arguments:
-                - behaviour_z (:obj:`dict`)
-                - human_target_z (:obj:`dict`)
-                - rewards (:obj:`torch.Tensor`)
-                - game_seconds (:obj:`int`)
-            Returns:
-                - rewards (:obj:`dict`): a dict contains different type rewards
-        """
-        def loc_fn(p1, p2, max_limit=self.build_order_location_max_limit):
-            p1 = p1.float().to(self.device)
-            p2 = p2.float().to(self.device)
-            dist = F.l1_loss(p1, p2, reduction='sum')
-            dist = dist.clamp(0, max_limit)
-            dist = dist / max_limit * self.build_order_location_rescale
-            return dist.item()
-
-        def get_time_factor(game_second):
-            if game_second < 8 * 60:
-                return 1.0
-            elif game_second < 16 * 60:
-                return 0.5
-            elif game_second < 24 * 60:
-                return 0.25
-            else:
-                return 0
-
-        action_type_map = {
-            'upgrades': RESEARCH_REWARD_ACTIONS,
-            'effects': EFFECT_REWARD_ACTIONS,
-            'built_units': UNITS_REWARD_ACTIONS,
-            'build_order': BUILD_ORDER_REWARD_ACTIONS
-        }
-
-        factors = torch.FloatTensor([get_time_factor(s) for s in game_seconds]).to(rewards.device)
-
-        new_rewards = OrderedDict()
-        assert rewards.shape == (self.batch_size, 1), 'rewards shape: {}'.format(rewards.shape)
-        new_rewards['winloss'] = rewards.squeeze(1)
-        # build_order
-        p = np.random.uniform()
-        build_order_reward = []
-        for i in range(self.batch_size):
-            # only proper action can activate
-            mask = 1 if action_type[i].item() in action_type_map['build_order'] else 0
-            # only some prob can activate
-            mask = mask if p < self.pseudo_reward_prob else 0
-            build_order_reward.append(
-                -levenshtein_distance(
-                    behaviour_z['build_order']['type'][i], human_target_z['build_order']['type'][i],
-                    behaviour_z['build_order']['loc'][i], human_target_z['build_order']['loc'][i], loc_fn
-                ) * factors[i] * mask
-            )
-        new_rewards['build_order'] = torch.FloatTensor(build_order_reward).to(rewards.device)
-        # built_units, effects, upgrades
-        # p is independent from all the pseudo reward and the same in a batch
-        for k in ['built_units', 'effects', 'upgrades']:
-            mask = torch.zeros(self.batch_size).to(self.device)
-            for i in range(self.batch_size):
-                if action_type[i].item() in action_type_map[k]:
-                    mask[i] = 1
-            p = np.random.uniform()
-            mask_factor = 1 if p < self.pseudo_reward_prob else 0
-            mask *= mask_factor
-            new_rewards[k] = -hamming_distance(behaviour_z[k], human_target_z[k], factors) * mask
-        for k in new_rewards.keys():
-            new_rewards[k] = new_rewards[k].float()
-        return new_rewards
 
     def _td_lambda_loss(self, baseline, reward):
         """

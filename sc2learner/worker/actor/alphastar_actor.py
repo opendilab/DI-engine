@@ -286,7 +286,7 @@ class AlphaStarActor:
             actions = self._eval_actions(obs, due)
             actions = self.action_modifier(actions, game_loop)
             # stepping
-            game_loop, due, obs, rewards, done, this_game_stat, info = self.env.step(actions)
+            game_loop, due, obs, rewards, done, info = self.env.step(actions)
             game_loop = int(game_loop)  # np.int32->int
             # assuming 22 step per second, round to integer
             game_seconds = game_loop // 22
@@ -306,25 +306,19 @@ class AlphaStarActor:
                     # we received outcome from the env, add to rollout trajectory
                     # the 'next_obs' is saved (and to be sent) if only this is the last obs of the traj
                     step_data_update_home = {
-                        # the z used for the behavior network
-                        'human_target_z': self.env.get_target_z(i, game_loop),
-                        # statistics calculated for this episode so far
-                        'behaviour_z': this_game_stat[i],
                         'step': game_loop,
                         'game_seconds': game_seconds,
                         'done': done,
-                        'rewards': torch.tensor([rewards[i]]),
+                        'rewards': rewards[i],
                         #'info': info
                     }
                     home_step_data = merge_two_dicts(self.last_state_action_home[i], step_data_update_home)
                     if self.agent_num == 2:
                         step_data_update_away = {
-                            'human_target_z': self.env.get_target_z(1 - i, game_loop),
-                            'behaviour_z': this_game_stat[1 - i],
                             'step': game_loop,
                             'game_seconds': game_seconds,
                             'done': done,
-                            'rewards': torch.tensor([rewards[1 - i]]),
+                            'rewards': rewards[1 - i],
                             #'info': info
                         }
                         away_step_data = merge_two_dicts(self.last_state_action_away[i], step_data_update_away)
@@ -364,7 +358,7 @@ class AlphaStarActor:
                     data_buffer[i] = []
             if done:
                 result_map = {1: 'wins', 0: 'draws', '-1': 'losses'}
-                result = result_map[rewards[0]]
+                result = result_map[rewards[0]['winloss']]
                 self.data_pusher.finish_job(job['job_id'], result)
                 break
 
