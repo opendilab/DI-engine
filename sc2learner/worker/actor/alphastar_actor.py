@@ -263,13 +263,12 @@ class AlphaStarActor:
         if self.use_teacher_model:
             self.model_loader.load_teacher_model(job, self.teacher_agent.get_model())
         # load stat
-        if self.cfg.env.use_stat:
-            for i in range(self.agent_num):
-                stat = self.stat_requester.request_stat(job, i)
-                if isinstance(stat, dict):
-                    self.env.load_stat(stat, i)
-                else:
-                    raise TypeError("invalid stat type: {}".format(type(stat)))
+        for i in range(self.agent_num):
+            stat = self.stat_requester.request_stat(job, i)
+            if isinstance(stat, dict):
+                self.env.load_stat(stat, i)
+            else:
+                raise TypeError("invalid stat type: {}".format(type(stat)))
         # reset
         # Note: reset must be after the load stat
         obs = self.env.reset()
@@ -357,8 +356,8 @@ class AlphaStarActor:
                     last_buffer[i] = data_buffer[i].copy()
                     data_buffer[i] = []
             if done:
-                result_map = {1: 'wins', 0: 'draws', '-1': 'losses'}
-                result = result_map[rewards[0]['winloss']]
+                result_map = {1: 'wins', 0: 'draws', -1: 'losses'}
+                result = result_map[rewards[0]['winloss'].int().item()]
                 self.data_pusher.finish_job(job['job_id'], result)
                 break
 

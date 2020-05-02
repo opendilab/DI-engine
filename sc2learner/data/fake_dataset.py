@@ -46,6 +46,18 @@ def random_one_hot(size, dtype=torch.float32):
     return tensor
 
 
+def get_fake_rewards():
+    rewards = {}
+    rewards['winloss'] = torch.randint(-1, 2, size=(1, ))
+    rewards['build_order'] = torch.randint(-20, 1, size=(1, ))
+    rewards['built_units'] = torch.randint(-10, 1, size=(1, ))
+    rewards['upgrades'] = torch.randint(-10, 1, size=(1, ))
+    rewards['effects'] = torch.randint(-10, 1, size=(1, ))
+    for k in rewards.keys():
+        rewards[k] = rewards[k].float()
+    return rewards
+
+
 def get_single_step_data():
     # TODO(pzh) we should build a general data structure (a SampleBatch class)
 
@@ -295,17 +307,6 @@ class FakeActorDataset:
                 elif num < 0:
                     new_actions['selected_units'] = new_actions['selected_units'][:num]
             return new_actions
-
-        def get_fake_rewards():
-            rewards = {}
-            rewards['winloss'] = torch.randint(-1, 2, size=(1, ))
-            rewards['build_order'] = torch.randint(-20, 1, size=(1, ))
-            rewards['built_units'] = torch.randint(-10, 1, size=(1, ))
-            rewards['upgrades'] = torch.randint(-10, 1, size=(1, ))
-            rewards['effects'] = torch.randint(-10, 1, size=(1, ))
-            for k in rewards.keys():
-                rewards[k] = rewards[k].float()
-            return rewards
 
         def get_single_rl_agent_step_data():
             base = get_single_step_data()
