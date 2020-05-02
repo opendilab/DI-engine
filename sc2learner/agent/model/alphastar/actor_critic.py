@@ -26,8 +26,9 @@ class AlphaStarActorCritic(ActorCriticBase):
             'score_embedding_home', 'score_embedding_away', 'cum_stat_home', 'cum_stat_away'
         ]
     )
-    CriticOutput = namedtuple('CriticOutput', ['winloss', 'build_orders',
-                                               'built_units', 'effects', 'upgrades', 'battle'])
+    CriticOutput = namedtuple(
+        'CriticOutput', ['winloss', 'build_orders', 'built_units', 'effects', 'upgrades', 'battle']
+    )
 
     def __init__(self, model_config=None):
         super(AlphaStarActorCritic, self).__init__()
@@ -169,8 +170,8 @@ class AlphaStarActorCritic(ActorCriticBase):
 
         # value
         critic_inputs = self.CriticInput(
-            lstm_output_home, lstm_output_away, baseline_feature_home, baseline_feature_away,
-            score_embedding_home, score_embedding_away, cum_stat_home,cum_stat_away
+            lstm_output_home, lstm_output_away, baseline_feature_home, baseline_feature_away, score_embedding_home,
+            score_embedding_away, cum_stat_home, cum_stat_away
         )
         baselines = self._critic_forward(critic_inputs)
 

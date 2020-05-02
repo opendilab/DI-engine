@@ -28,9 +28,10 @@ class Encoder(nn.Module):
 
         self.scatter_project = fc_block(cfg.scatter.input_dim, cfg.scatter.output_dim)
         self.scatter_dim = cfg.scatter.output_dim
-        self.score_cumulative_encoder = fc_block(self.cfg.score_cumulative.input_dim,
-                                                  self.cfg.score_cumulative.output_dim,
-                                                  self.cfg.score_cumulative.activation)
+        self.score_cumulative_encoder = fc_block(
+            self.cfg.score_cumulative.input_dim, self.cfg.score_cumulative.output_dim,
+            self.cfg.score_cumulative.activation
+        )
 
     def _scatter_connection(self, spatial_info, entity_embeddings, entity_raw):
         if isinstance(entity_embeddings, collections.abc.Sequence):
