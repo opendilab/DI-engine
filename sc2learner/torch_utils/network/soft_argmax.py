@@ -19,9 +19,9 @@ class SoftArgmax(nn.Module):
         device, dtype = x.device, x.dtype
         # 1 channel
         assert (x.shape[1] == 1)
-        h_kernel = torch.arange(0, H, device=device).to(dtype) / H
+        h_kernel = torch.arange(0, H, device=device).to(dtype)
         h_kernel = h_kernel.view(1, 1, H, 1).repeat(1, 1, 1, W)
-        w_kernel = torch.arange(0, W, device=device).to(dtype) / W
+        w_kernel = torch.arange(0, W, device=device).to(dtype)
         w_kernel = w_kernel.view(1, 1, 1, W).repeat(1, 1, H, 1)
         x = F.softmax(x.view(B, C, -1), dim=-1).view(B, C, H, W)
         h = (x * h_kernel).sum(dim=[1, 2, 3])

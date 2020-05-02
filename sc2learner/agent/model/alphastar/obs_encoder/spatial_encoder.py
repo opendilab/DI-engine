@@ -1,8 +1,9 @@
 import math
+from collections.abc import Sequence
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from sc2learner.torch_utils import conv2d_block, fc_block, build_activation, ResBlock
+from sc2learner.torch_utils import conv2d_block, fc_block, build_activation, ResBlock, same_shape
 
 
 class SpatialEncoder(nn.Module):
@@ -29,6 +30,7 @@ class SpatialEncoder(nn.Module):
         self.downsample = nn.Sequential(*down_layers)
         self.res = nn.ModuleList()
         dim = dims[-1]
+        self.resblock_num = cfg.resblock_num
         for i in range(cfg.resblock_num):
             self.res.append(ResBlock(dim, dim, 3, 1, 1, activation=self.act, norm_type=self.norm))
 
@@ -39,22 +41,23 @@ class SpatialEncoder(nn.Module):
         '''
         Arguments:
             x: [batch_size, input_dim, H, W]
-            map_size: list[list]  (y, x)
+            map_size: list[len=batch_size]->element: list[len=2] (y, x)
         Returns:
             output: [batch_size, fc_dim]
-            map_skip: list[Tensor(batch_size, 128, H//8, W//8) x 4]
+            map_skip: list[len=resblock_num]->element: list[len=batch_size]->
+                element: torch.Tensor(down_channels[-1], H//8, W//8) x 4]
         '''
         if isinstance(x, torch.Tensor):
             return self._forward(x, map_size)
-        elif isinstance(x, list):
+        elif isinstance(x, Sequence):
             output = []
             map_skip = []
-            for item in x:
-                o, m = self._forward(item.unsqueeze(0), map_size)
+            for item, m in zip(x, map_size):
+                o, m = self._forward(item.unsqueeze(0), [m])
                 output.append(o)
                 map_skip.append(m)
-            output = torch.stack(output, dim=0)
-            map_skip = list(zip(*map_skip))
+            output = torch.cat(output, dim=0)
+            map_skip = [[map_skip[j][i][0] for j in range(len(map_skip))] for i in range(self.resblock_num)]
             return output, map_skip
         else:
             raise TypeError("invalid input type: {}".format(type(x)))
@@ -65,7 +68,9 @@ class SpatialEncoder(nn.Module):
         for d, m in zip(data, map_size):
             h, w = m
             h, w = h // ratio, w // ratio
-            new_data.append(d[..., :h, :w].unsqueeze(0))
+            new_data.append(d[..., :h, :w])
+        if len(new_data) > 1 and same_shape(new_data):
+            new_data = torch.stack(new_data, dim=0)
         return new_data
 
     def _forward(self, x, map_size):
@@ -81,34 +86,9 @@ class SpatialEncoder(nn.Module):
         elif isinstance(x, list):
             output = []
             for idx, t in enumerate(x):
-                output.append(self.gap(t))
+                output.append(self.gap(t.unsqueeze(0)))
             x = torch.cat(output, dim=0)
             del output
         x = x.view(x.shape[:2])
         x = self.fc(x)
         return x, map_skip
-
-
-def test_spatial_encoder():
-    class CFG:
-        def __init__(self):
-            self.fc_dim = 256
-            self.resblock_num = 4
-            self.input_dim = 40
-            self.project_dim = 32
-            self.downsample_type = 'conv2d'
-            self.down_channels = [64, 128, 128]
-            self.activation = 'relu'
-            self.norm_type = 'BN'
-
-    model = SpatialEncoder(CFG()).cuda()
-    input = torch.randn(4, 40, 128, 128).cuda()
-    output, map_skip = model(input)
-    print(model)
-    print(output.shape)
-    for idx, item in enumerate(map_skip):
-        print(idx, item.shape)
-
-
-if __name__ == "__main__":
-    test_spatial_encoder()

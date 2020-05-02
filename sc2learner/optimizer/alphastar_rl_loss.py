@@ -12,7 +12,7 @@ import torch
 import torch.nn.functional as F
 
 from sc2learner.optimizer.base_loss import BaseLoss
-from sc2learner.torch_utils import levenshtein_distance, hamming_distance
+from sc2learner.torch_utils import levenshtein_distance, hamming_distance, same_shape
 from sc2learner.rl_utils import td_lambda_loss, vtrace_loss, upgo_loss, compute_importance_weights, entropy
 from sc2learner.utils import list_dict2dict_list, get_rank
 from sc2learner.data import diff_shape_collate
@@ -41,12 +41,6 @@ def build_temperature_scheduler(temperature):
     return ConstantTemperatureSchedule(init_val=temperature)
 
 
-def same_shape(data):
-    assert (isinstance(data, list))
-    shapes = [t.shape for t in data]
-    return len(set(shapes)) == 1
-
-
 def pad_stack(data, pad_val):
     assert (isinstance(data, list))
     dtype, device = data[0].dtype, data[0].device
@@ -71,7 +65,7 @@ class AlphaStarRLLoss(BaseLoss):
             ]
         )
         self.agent = agent
-
+        self.use_battle_reward = train_config.use_battle_reward
         self.T = train_config.trajectory_len
         self.batch_size = train_config.batch_size
         self.vtrace_rhos_min_clip = train_config.vtrace.min_clip
@@ -115,13 +109,16 @@ class AlphaStarRLLoss(BaseLoss):
         td_lambda_loss_val = {}
         vtrace_loss_val = {}
         for (field, baseline), (reward_key, reward) in zip(baselines.items(), rewards.items()):
-            td_lambda_loss = self._td_lambda_loss(baseline, reward) * self.loss_weights.baseline[field]
-            td_lambda_loss_val[field] = td_lambda_loss.item()
-            vtrace_loss = self._vtrace_pg_loss(
-                baseline, reward, target_outputs, behaviour_outputs, target_actions, behaviour_actions
-            ) * self.loss_weights.pg[field]
-            vtrace_loss_val[field] = vtrace_loss.item()
-            actor_critic_loss += td_lambda_loss + vtrace_loss
+            # None means not using battle reward
+            if baseline is not None:
+                assert field == reward_key
+                td_lambda_loss = self._td_lambda_loss(baseline, reward) * self.loss_weights.baseline[field]
+                td_lambda_loss_val[field] = td_lambda_loss.item()
+                vtrace_loss = self._vtrace_pg_loss(
+                    baseline, reward, target_outputs, behaviour_outputs, target_actions, behaviour_actions
+                ) * self.loss_weights.pg[field]
+                vtrace_loss_val[field] = vtrace_loss.item()
+                actor_critic_loss += td_lambda_loss + vtrace_loss
         # upgo loss
         upgo_loss = self._upgo_loss(
             baselines['winloss'], rewards['winloss'], target_outputs, behaviour_outputs, target_actions,

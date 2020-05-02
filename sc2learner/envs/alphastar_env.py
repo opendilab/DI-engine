@@ -147,6 +147,27 @@ class AlphaStarEnv(SC2Env):
             'map_size': [self.map_size[1], self.map_size[0]],  # x,y -> y,x
         }
 
+        def battle_value(obs):
+            '''
+            The value of destroyed units belong to enemy, sum up minerals and vespene, add for battle baseline
+            '''
+            kill_value = (
+                np.sum(obs['score_by_category']['killed_minerals']) +
+                np.sum(obs['score_by_category']['killed_vespene'])
+            )
+            return kill_value
+
+        new_obs['battle_value'] = battle_value(obs)
+
+        def score_wrapper(obs):
+            '''
+            add cumulative_score for baseline
+            '''
+            score = obs['score_cumulative']
+            data = torch.FloatTensor(score)
+            return torch.log(data + 1)
+
+        new_obs['score_cumulative'] = score_wrapper(obs)
         new_obs = self._merge_action(new_obs, last_actions)
         new_obs = self._merge_stat(new_obs, agent_no)
         new_obs = get_available_actions_processed_data(new_obs)
@@ -260,6 +281,8 @@ class AlphaStarEnv(SC2Env):
                 if due[n]:
                     assert (self.last_actions[n])
                     self._episode_stat[n].update_stat(self.last_actions[n], obs[n], self._episode_steps)
+            if self.agent_num == 2:
+                rewards = self._compute_battle_reward(rewards, self._last_output[2], obs)
             self._last_output = [self._episode_steps, due, obs, rewards, done, info]
         # as obs may be changed somewhere in parsing
         # we have to return a copy to keep the self._last_ouput intact
@@ -409,3 +432,11 @@ class AlphaStarEnv(SC2Env):
         for k in new_rewards.keys():
             new_rewards[k] = new_rewards[k].float()
         return new_rewards
+
+    def _compute_battle_reward(self, rewards, last_obs, cur_obs):
+        v = (cur_obs[0]['battle_value'] -
+             last_obs[0]['battle_value']) - (cur_obs[1]['battle_value'] - last_obs[1]['battle_value'])
+        v = torch.FloatTensor([v])
+        rewards[0]['battle'] = v
+        rewards[1]['battle'] = -v
+        return rewards

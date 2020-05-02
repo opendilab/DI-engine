@@ -325,6 +325,8 @@ class FakeActorDataset:
             else:
                 base['teacher_actions'] = disturb_actions(base['actions'])
                 base['teacher_outputs'] = get_outputs(base['teacher_actions'], base['entity_info'].shape[0])
+            base['battle_reward'] = torch.randint(0, 100000, size=[1], dtype=torch.int32)
+            base['score_cumulative'] = random_tensor([13])
             return base
 
         data = []
