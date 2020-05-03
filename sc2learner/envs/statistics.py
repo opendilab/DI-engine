@@ -154,6 +154,7 @@ class GameLoopStatistics:
         self._clip_global_bo()
         self.cache_reward_z = None
         self.cache_input_z = None
+        self.max_game_loop = self.ori_stat['cumulative_stat'][-1]['game_loop']
 
     def add_game_loop(self, stat):
         beginning_build_order = stat['beginning_build_order']
@@ -190,14 +191,21 @@ class GameLoopStatistics:
         return new_stat
 
     def _clip_global_bo(self):
-        beginning_build_order = self.ori_stat['beginning_build_order']
+        beginning_build_order = copy.deepcopy(self.ori_stat['beginning_build_order'])
         if len(beginning_build_order) < self.begin_num:
             miss_num = self.begin_num - len(beginning_build_order)
-            beginning_build_order += [{'action_type': 0, 'location': 'none'} for _ in range(miss_num)]
+            pad_beginning_build_order = beginning_build_order + [
+                {
+                    'action_type': 0,
+                    'location': 'none'
+                } for _ in range(miss_num)
+            ]
+            self.input_global_bo = pad_beginning_build_order
+            self.reward_global_bo = beginning_build_order
         else:
             beginning_build_order = beginning_build_order[:self.begin_num]
-        # set global_bo
-        self.global_bo = beginning_build_order
+            self.input_global_bo = beginning_build_order
+            self.reward_global_bo = beginning_build_order
 
     def get_input_z_by_game_loop(self, game_loop, cumulative_stat=None):
         """
@@ -210,7 +218,7 @@ class GameLoopStatistics:
                 cumulative_stat = self.ori_stat['cumulative_stat'][-1]
             else:
                 _, cumulative_stat = self._get_stat_by_game_loop(game_loop)
-        beginning_build_order = self.global_bo
+        beginning_build_order = self.input_global_bo
         ret = transformed_stat_mmr(
             {
                 'begin_statistics': beginning_build_order,
@@ -228,7 +236,7 @@ class GameLoopStatistics:
         if game_loop == self.cache_reward_z.key:
             return self.cache_reward_z.value
         if game_loop is None:
-            beginning_build_order = self.global_bo
+            beginning_build_order = self.reward_global_bo
             cumulative_stat = self.ori_stat['cumulative_stat'][-1]
         else:
             beginning_build_order, cumulative_stat = self._get_stat_by_game_loop(game_loop)
@@ -247,6 +255,9 @@ class GameLoopStatistics:
         begin_idx = binary_search(self.ori_stat['begin_game_loop'], game_loop)
         cum_idx = binary_search(self.ori_stat['cum_game_loop'], game_loop)
         return self.ori_stat['beginning_build_order'][:begin_idx + 1], self.ori_stat['cumulative_stat'][cum_idx]
+
+    def excess_max_game_loop(self, agent_game_loop):
+        return agent_game_loop > self.max_game_loop
 
 
 def transform_build_order_to_z_format(stat):

@@ -14,7 +14,7 @@ from sc2learner.envs import get_available_actions_processed_data, get_map_size, 
 from sc2learner.envs.observations.alphastar_obs_wrapper import SpatialObsWrapper, ScalarObsWrapper, EntityObsWrapper, \
     transform_spatial_data, transform_scalar_data, transform_entity_data
 from sc2learner.envs.statistics import GameLoopStatistics, RealTimeStatistics
-from sc2learner.torch_utils import levenshtein_distance, hamming_distance
+from sc2learner.torch_utils import levenshtein_distance, hamming_distance, to_device
 from sc2learner.data import diff_shape_collate
 
 
@@ -343,24 +343,38 @@ class AlphaStarEnv(SC2Env):
         action = self._transform_action(action)
         return action['action_type']
 
-    def _get_rewards(self, reward, agent_no):
+    def _get_pseudo_rewards(self, reward, agent_no):
         action_type = self.last_actions[agent_no]['action_type']
-        game_seconds = self._episode_steps // 22
+        game_loop = self._episode_steps
+        game_seconds = game_loop // 22
+        # if current game_loop excesses the loaded human replay game_loop, return zero pseudo rewards
+        if self.loaded_eval_stat.excess_max_game_loop(game_loop):
+            return self._get_zero_rewards(reward)
+
         if self._pseudo_reward_type == 'global':
             behaviour_z = self._episode_stat.get_reward_z(use_max_bo_clip=True)
             human_target_z = self.loaded_eval_stat.get_reward_z_by_game_loop(game_loop=None)
         elif self._pseudo_reward_type == 'immediate':
             behaviour_z = self._episode_stat.get_reward_z(use_max_bo_clip=False)
-            human_target_z = self.loaded_eval_stat.get_reward_z_by_game_loop(game_loop=self._episode_steps)
+            human_target_z = self.loaded_eval_stat.get_reward_z_by_game_loop(game_loop=game_loop)
         # add batch
         self.batch_size = 1
         game_seconds = [game_seconds]
         rewards = torch.FloatTensor([reward])
         action_type = [action_type]
         self.device = rewards.device
+        assert self.device == torch.device('cpu')
         behaviour_z = diff_shape_collate([behaviour_z])
         human_target_z = diff_shape_collate([human_target_z])
         rewards = self._compute_pseudo_rewards(behaviour_z, human_target_z, rewards, game_seconds, action_type)
+        return rewards
+
+    def _get_zero_rewards(self, reward):
+        rewards = {}
+        rewards['winloss'] = torch.FloatTensor([reward])
+        for k in ['build_order', 'built_units', 'upgrades', 'effects']:
+            rewards[k] = torch.FloatTensor([0])
+        rewards = to_device(rewards, self.device)
         return rewards
 
     def _compute_pseudo_rewards(self, behaviour_z, human_target_z, rewards, game_seconds, action_type):
@@ -399,7 +413,7 @@ class AlphaStarEnv(SC2Env):
             'build_order': BUILD_ORDER_REWARD_ACTIONS
         }
 
-        factors = torch.FloatTensor([get_time_factor(s) for s in game_seconds]).to(rewards.device)
+        factors = torch.FloatTensor([get_time_factor(s) for s in game_seconds]).to(self.device)
 
         new_rewards = OrderedDict()
         new_rewards['winloss'] = rewards
@@ -411,17 +425,21 @@ class AlphaStarEnv(SC2Env):
             mask = 1 if action_type[i] in action_type_map['build_order'] else 0
             # only some prob can activate
             mask = mask if p < self._pseudo_reward_prob else 0
-            build_order_reward.append(
-                -levenshtein_distance(
-                    behaviour_z['build_order']['type'][i], human_target_z['build_order']['type'][i],
-                    behaviour_z['build_order']['loc'][i], human_target_z['build_order']['loc'][i], loc_fn
-                ) * factors[i] * mask
-            )
-        new_rewards['build_order'] = torch.FloatTensor(build_order_reward).to(rewards.device)
+            # if current the length of the behaviour_build_order is longer than that of human_target_z, return zero
+            if len(behaviour_z['build_order']['type'][i]) > len(human_target_z['build_order']['type'][i]):
+                build_order_reward.append(torch.FloatTensor([0]))
+            else:
+                build_order_reward.append(
+                    -levenshtein_distance(
+                        behaviour_z['build_order']['type'][i], human_target_z['build_order']['type'][i],
+                        behaviour_z['build_order']['loc'][i], human_target_z['build_order']['loc'][i], loc_fn
+                    ) * factors[i] * mask
+                )
+        new_rewards['build_order'] = torch.FloatTensor(build_order_reward).to(self.device)
         # built_units, effects, upgrades
         # p is independent from all the pseudo reward and the same in a batch
         for k in ['built_units', 'effects', 'upgrades']:
-            mask = torch.zeros(self.batch_size).to(rewards.device)
+            mask = torch.zeros(self.batch_size).to(self.device)
             for i in range(self.batch_size):
                 if action_type[i] in action_type_map[k]:
                     mask[i] = 1
@@ -436,7 +454,7 @@ class AlphaStarEnv(SC2Env):
     def _compute_battle_reward(self, rewards, last_obs, cur_obs):
         v = (cur_obs[0]['battle_value'] -
              last_obs[0]['battle_value']) - (cur_obs[1]['battle_value'] - last_obs[1]['battle_value'])
-        v = torch.FloatTensor([v])
+        v = torch.FloatTensor([v]).to(self.device)
         rewards[0]['battle'] = v
         rewards[1]['battle'] = -v
         return rewards

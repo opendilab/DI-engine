@@ -1,4 +1,3 @@
-from sc2learner.envs.statistics import Statistics
 import pytest
 import torch
 import torch.nn.functional as F
