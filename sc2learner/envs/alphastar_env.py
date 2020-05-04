@@ -320,6 +320,7 @@ class AlphaStarEnv(SC2Env):
         self._reset_flag = True
         self._buffered_actions = [[] for i in range(self.agent_num)]
         self._last_output = [0, [True] * self.agent_num, obs, [0] * self.agent_num, False, infos]
+        self.last_behaviour_z = [None] * self.agent_num
         return copy.deepcopy(obs)
 
     def transformed_action_to_string(self, action):
@@ -366,7 +367,9 @@ class AlphaStarEnv(SC2Env):
         assert self.device == torch.device('cpu')
         behaviour_z = diff_shape_collate([behaviour_z])
         human_target_z = diff_shape_collate([human_target_z])
-        rewards = self._compute_pseudo_rewards(behaviour_z, human_target_z, rewards, game_seconds, action_type)
+        masks = self._get_reward_masks(action_type, behaviour_z, self.last_behaviour_z[agent_no])
+        rewards = self._compute_pseudo_rewards(behaviour_z, human_target_z, rewards, game_seconds, masks)
+        self.last_behaviour_z[agent_no] = copy.deepcopy(behaviour_z)
         return rewards
 
     def _get_zero_rewards(self, reward):
@@ -377,7 +380,19 @@ class AlphaStarEnv(SC2Env):
         rewards = to_device(rewards, self.device)
         return rewards
 
-    def _compute_pseudo_rewards(self, behaviour_z, human_target_z, rewards, game_seconds, action_type):
+    def _get_reward_masks(self, action_type, behaviour_z, last_behaviour_z):
+        masks = {}
+        mask_build_order = torch.zeros(self.batch_size)
+        for i in range(self.batch_size):
+            mask_build_order[i] = 1 if action_type[i] in BUILD_ORDER_REWARD_ACTIONS else 0
+        masks['build_order'] = mask_build_order
+        for k in ['built_units', 'effects', 'upgrades']:
+            ne_num = behaviour_z[k].ne(last_behaviour_z[k]).sum(dim=1)
+            masks[k] = torch.where(ne_num > 0, torch.ones(self.batch_size), torch.zeros(self.batch_size))
+        masks = to_device(masks, self.device)
+        return masks
+
+    def _compute_pseudo_rewards(self, behaviour_z, human_target_z, rewards, game_seconds, masks):
         """
             Overview: compute pseudo rewards from human replay z
             Arguments:
@@ -406,13 +421,6 @@ class AlphaStarEnv(SC2Env):
             else:
                 return 0
 
-        action_type_map = {
-            'upgrades': RESEARCH_REWARD_ACTIONS,
-            'effects': EFFECT_REWARD_ACTIONS,
-            'built_units': UNITS_REWARD_ACTIONS,
-            'build_order': BUILD_ORDER_REWARD_ACTIONS
-        }
-
         factors = torch.FloatTensor([get_time_factor(s) for s in game_seconds]).to(self.device)
 
         new_rewards = OrderedDict()
@@ -422,7 +430,7 @@ class AlphaStarEnv(SC2Env):
         build_order_reward = []
         for i in range(self.batch_size):
             # only proper action can activate
-            mask = 1 if action_type[i] in action_type_map['build_order'] else 0
+            mask = masks['build_order'][i]
             # only some prob can activate
             mask = mask if p < self._pseudo_reward_prob else 0
             # if current the length of the behaviour_build_order is longer than that of human_target_z, return zero
@@ -439,10 +447,7 @@ class AlphaStarEnv(SC2Env):
         # built_units, effects, upgrades
         # p is independent from all the pseudo reward and the same in a batch
         for k in ['built_units', 'effects', 'upgrades']:
-            mask = torch.zeros(self.batch_size).to(self.device)
-            for i in range(self.batch_size):
-                if action_type[i] in action_type_map[k]:
-                    mask[i] = 1
+            mask = masks[k]
             p = np.random.uniform()
             mask_factor = 1 if p < self._pseudo_reward_prob else 0
             mask *= mask_factor
