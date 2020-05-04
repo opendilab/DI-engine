@@ -149,7 +149,7 @@ class Manager(object):
 
     def deal_with_get_metadata(self, actor_uid, job_id, metadata):
         '''
-            Overview: when receiving actor's request of sending metadata, ,return True/False
+            Overview: when receiving actor's request of sending metadata, return True/False
             Arguments:
                 - actor_uid (:obj:`str`): actor's uid
                 - job_id (:obj:`str`): job's id

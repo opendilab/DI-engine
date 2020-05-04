@@ -68,7 +68,7 @@ class Learner:
         # build logger
         if self.rank == 0:  # only one thread need to build logger
             self.logger, self.tb_logger, self.variable_record = self._setup_logger(self.rank)
-            self.logger.info('cfg:\n{}'.format(self.cfg))
+            #self.logger.info('cfg:\n{}'.format(self.cfg))
             #self.logger.info('model:\n{}'.format(self.agent))
             self._setup_stats()
         else:

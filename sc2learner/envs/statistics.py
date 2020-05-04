@@ -1,4 +1,5 @@
 import torch
+from collections import namedtuple
 import copy
 import numpy as np
 import logging
@@ -33,79 +34,18 @@ def binary_search(data, item):
     return low - 1
 
 
-class Statistics:
+class RealTimeStatistics:
     """
-    Class carrying the game statistics of multiple players
-
-    Args:
-        player_num: number of players to be hold
-        begin_num: how many of build actions need to be recorded in the statistics
-            in L111 of detailed-architecture.txt, only the first 20 are stored
+    Overview: real time agent statistics
     """
-    def __init__(self, player_num=2, begin_num=200):
-        self.player_num = player_num
-        self.action_statistics = [{} for _ in range(player_num)]
-        self.cumulative_statistics = [{} for _ in range(player_num)]
-        self.build_order_statistics = [[] for _ in range(player_num)]
-        self.cached_transformed_stat = [None] * self.player_num
-        self.cached_z = [None] * self.player_num
-        self.global_bo = [None] * self.player_num
+    def __init__(self, begin_num=20):
+        self.action_statistics = {}
+        self.cumulative_statistics = {}
+        self.cumulative_statistics_game_loop = []
+        self.begin_statistics = []
         self.begin_num = begin_num
-        # according to detailed-arch L109, mmr is fixed to 6200 unless in supervised learning
-        # this will not affect replay decoding, where the meta for transform_stat is externally supplied
-        self.mmr = 6200
 
-    def load_from_transformed_stat(self, transformed_stat, player, begin_num=None):
-        """
-        Loading cumulative_statistics and build_order_statistics
-        produced by transform_stat/get_transformed_stat as a Statistics object
-        as the count of actions is lost in the processing, the loaded action count will not be vaild
-
-        Args:
-            transformed_stat: input stat
-            begin_num: the beginning_build_order will be cutted/padded with zeros to this length
-            player: the index of player should the stat be loaded for
-
-        Returns:
-            None
-        """
-        transformed_stat = copy.deepcopy(transformed_stat)
-        if begin_num is not None:
-            transformed_stat['beginning_build_order'] = transformed_stat['beginning_build_order'][:begin_num]
-            if transformed_stat['beginning_build_order'].shape[0] < begin_num:
-                # filling zeros if there is too few begining_build_order entries
-                B, N = transformed_stat['beginning_build_order'].shape
-                B0 = begin_num - B
-                transformed_stat['beginning_build_order'] = torch.cat(
-                    [transformed_stat['beginning_build_order'],
-                     torch.zeros(B0, N)]
-                )
-        # loading cumulative_stat
-        bu = np.argwhere(transformed_stat['cumulative_stat']['unit_build'].numpy() == 1)
-        for n in bu:
-            act = UNIT_BUILD_ACTIONS[n[0]]
-            self.update_cum_stat({'action_type': act}, player)
-        eff = np.argwhere(transformed_stat['cumulative_stat']['effect'].numpy() == 1)
-        for n in eff:
-            act = EFFECT_ACTIONS[n[0]]
-            self.update_cum_stat({'action_type': act}, player)
-        rs = np.argwhere(transformed_stat['cumulative_stat']['research'].numpy() == 1)
-        for n in rs:
-            act = RESEARCH_ACTIONS[n[0]]
-            self.update_cum_stat({'action_type': act}, player)
-        # loading build_order_statistics
-        bu_np = transformed_stat['beginning_build_order'].numpy()
-        bu = np.argwhere(bu_np[:, :-2 * LOCATION_BIT_NUM])
-        weight_arr = 2**np.arange(LOCATION_BIT_NUM - 1, -1, -1)
-        for n in bu:
-            x = np.sum(bu_np[n[0], -2 * LOCATION_BIT_NUM:-1 * LOCATION_BIT_NUM] * weight_arr)
-            y = np.sum(bu_np[n[0], -1 * LOCATION_BIT_NUM:] * weight_arr)
-            self.build_order_statistics[player].append({'action_type': BEGIN_ACTIONS[n[1]], 'location': [x, y]})
-        transformed_stat['mmr'] = div_one_hot(torch.LongTensor([self.mmr]), 6000, 1000).squeeze(0)
-        self.cached_transformed_stat[player] = transformed_stat
-        self.cached_z = [None] * self.player_num
-
-    def update_action_stat(self, act, obs, player):
+    def update_action_stat(self, act, obs):
         # this will not clear the cache
 
         def get_unit_types(units, entity_type_dict):
@@ -119,45 +59,47 @@ class Statistics:
             return unit_types
 
         action_type = int(act['action_type'])  # this can accept either torch.LongTensor and int
-        if action_type not in self.action_statistics[player].keys():
-            self.action_statistics[player][action_type] = {
+        if action_type not in self.action_statistics.keys():
+            self.action_statistics[action_type] = {
                 'count': 0,
                 'selected_type': set(),
                 'target_type': set(),
             }
-        self.action_statistics[player][action_type]['count'] += 1
+        self.action_statistics[action_type]['count'] += 1
         entity_type_dict = {id: type for id, type in zip(obs['entity_raw']['id'], obs['entity_raw']['type'])}
         if isinstance(act['selected_units'], torch.Tensor):
             units = act['selected_units'].tolist()
             unit_types = get_unit_types(units, entity_type_dict)
-            self.action_statistics[player][action_type]['selected_type'] =\
-                self.action_statistics[player][action_type]['selected_type'].union(
+            self.action_statistics[action_type]['selected_type'] =\
+                self.action_statistics[action_type]['selected_type'].union(
                 unit_types
             )  # noqa
         if isinstance(act['target_units'], torch.Tensor):
             units = act['target_units'].tolist()
             unit_types = get_unit_types(units, entity_type_dict)
-            self.action_statistics[player][action_type]['target_type'] = self.action_statistics[player][action_type][
+            self.action_statistics[action_type]['target_type'] = self.action_statistics[action_type][
                 'target_type'].union(unit_types)  # noqa
 
-    def update_cum_stat(self, act, player):
+    def update_cum_stat(self, act, game_loop):
         # this will not clear the cache
         action_type = int(act['action_type'])
         goal = GENERAL_ACTION_INFO_MASK[action_type]['goal']
         if goal != 'other':
-            if action_type not in self.cumulative_statistics[player].keys():
-                self.cumulative_statistics[player][action_type] = {'count': 1, 'goal': goal}
+            if action_type not in self.cumulative_statistics.keys():
+                self.cumulative_statistics[action_type] = {'count': 1, 'goal': goal}
             else:
-                self.cumulative_statistics[player][action_type]['count'] += 1
+                self.cumulative_statistics[action_type]['count'] += 1
+            loop_stat = copy.deepcopy(self.cumulative_statistics)
+            loop_stat['game_loop'] = game_loop
+            self.cumulative_statistics_game_loop.append(loop_stat)
 
-    def update_build_order_stat(self, act, player):
+    def update_build_order_stat(self, act, game_loop):
         # this will not clear the cache
-        target_list = ['unit', 'build', 'research', 'effect']
         action_type = int(act['action_type'])
         goal = GENERAL_ACTION_INFO_MASK[action_type]['goal']
-        if goal in target_list:
+        if action_type in BEGIN_ACTIONS:
             if goal == 'build':
-                if act['target_location'] is None:
+                if action_type not in [36, 197, 214] and act['target_location'] is None:
                     print(
                         'build action have no target_location!'
                         'this shouldn\'t happen with real model: {}'.format(act)
@@ -167,124 +109,36 @@ class Statistics:
                     location = location.tolist()
             else:
                 location = 'none'
-            self.build_order_statistics[player].append({'action_type': action_type, 'location': location})
+            self.begin_statistics.append({'action_type': action_type, 'location': location, 'game_loop': game_loop})
 
-    def update_stat(self, act, obs, player):
+    def update_stat(self, act, obs, game_loop):
         """
         Update action_stat cum_stat and build_order_stat
 
         Args:
             act: Processed general action
             obs: observation
-            player: index of the player to update
+            game_loop: current game loop
         """
-        self.cached_transformed_stat[player] = None
-        self.cached_z[player] = None
-        self.update_action_stat(act, obs, player)
-        self.update_cum_stat(act, player)
-        if len(self.build_order_statistics[player]) < self.begin_num:
-            self.update_build_order_stat(act, player)
+        if obs is not None:
+            self.update_action_stat(act, obs)
+        self.update_cum_stat(act, game_loop)
+        self.update_build_order_stat(act, game_loop)
 
-    def get_stat(self, player=None):
-        """
-        Get raw statistics data (before transformation to tensor input)
-
-        Args:
-            player: index of player or None for getting a list of all players
-
-        Return:
-            stat: a dict with keys of 'action_statistics', 'cumulative_statistics', 'begin_statistics'
-                or a list of dicts if player=None
-        """
-        if player is None:
-            return [
-                {
-                    'action_statistics': self.action_statistics[idx],
-                    'cumulative_statistics': self.cumulative_statistics[idx],
-                    'begin_statistics': self.build_order_statistics[idx]
-                } for idx in range(self.player_num)
-            ]
-        else:
-            return {
-                'action_statistics': self.action_statistics[player],
-                'cumulative_statistics': self.cumulative_statistics[player],
-                'begin_statistics': self.build_order_statistics[player]
-            }
-
-    def get_transformed_cum_stat(self, player):
-        return transform_cum_stat(self.cumulative_statistics[player])
-
-    def get_transformed_stat(self, player=None, mmr=None):
-        '''
-        Export the statistics as transformed stat, which is ready as the network input
-        Args:
-            player: the index of the player or None if requesting for all players as a list
-            mmr: the mmr to be encoded in the tensors, if set to None, self.mmr=6200 will be used
-        Returns:
-            stat: encoded stat dict like
-            {
-                'mmr': mmr,  # one hot encoded mmr
-                'beginning_build_order': beginning_build_order_tensor,
-                'cumulative_stat': cumulative_stat_tensor
-            }
-            all tensors are LongTensor
-            this is also the format accepted by load_from_transformed_stat
-        '''
-        if mmr is None:
-            mmr = self.mmr
-        if player is None:
-            ret = []
-            for player in range(self.player_num):
-                if self.cached_transformed_stat[player] is not None:
-                    ret.append(self.cached_transformed_stat[player])
-                else:
-                    meta = {'home_mmr': mmr}
-                    # get current stat
-                    stat = self.get_stat(player)
-                    # update global bo
-                    stat['begin_statistics'] = self.global_bo
-                    tstat = transform_stat(stat, meta)
-                    ret.append(tstat)
-                    self.cached_transformed_stat[player] = copy.deepcopy(tstat)
-            return ret
-        else:
-            if self.cached_transformed_stat[player] is not None:
-                return self.cached_transformed_stat[player]
-            else:
-                meta = {'home_mmr': mmr}
-                # get current stat
-                stat = self.get_stat(player)
-                # update global bo
-                stat['begin_statistics'] = self.global_bo
-                tstat = transform_stat(stat, meta)
-                self.cached_transformed_stat[player] = copy.deepcopy(tstat)
-                return tstat
-
-    def get_z(self, idx):
-        '''
-        Export the cum and build statistics
-        in an alternative format used for computing RL training baselines
-        Args:
-            idx: the index of the player
-        Returns:
-            a dict with keys 'built_units', 'effects', 'upgrades', 'build_order'
-            note: the actions in build_order is raw_ability
-        '''
-        if self.cached_z[idx] is not None:
-            return self.cached_z[idx]
-        cum_stat_tensor = transform_cum_stat(self.cumulative_statistics[idx])
+    def get_reward_z(self, use_max_bo_clip):
+        beginning_build_order = self.begin_statistics
+        if use_max_bo_clip and len(beginning_build_order) > self.begin_num:
+            beginning_build_order = beginning_build_order[:self.begin_num]
+        cumulative_stat = self.cumulative_statistics
+        cum_stat_tensor = transform_cum_stat(cumulative_stat)
         ret = {
-            'built_units': cum_stat_tensor['unit_build'],
-            'effects': cum_stat_tensor['effect'],
-            'upgrades': cum_stat_tensor['research'],
-            'build_order': transform_build_order_to_z_format(self.build_order_statistics[idx])
+            'built_unit': cum_stat_tensor['unit_build'],
+            'effect': cum_stat_tensor['effect'],
+            'upgrade': cum_stat_tensor['research'],
+            'build_order': transform_build_order_to_z_format(beginning_build_order),
         }
         ret = to_dtype(ret, torch.long)
-        self.cached_z[idx] = copy.deepcopy(ret)
         return ret
-
-    def load_global_bo(self, player, bo):
-        self.global_bo[player] = copy.deepcopy(bo)
 
 
 class GameLoopStatistics:
@@ -297,10 +151,16 @@ class GameLoopStatistics:
         self.begin_num = begin_num
         self.mmr = 6200
         self._clip_global_bo()
+        self.cache_reward_z = None
+        self.cache_input_z = None
+        self.max_game_loop = self.ori_stat['cumulative_stat'][-1]['game_loop']
+        self._init_global_z()
 
     def add_game_loop(self, stat):
         beginning_build_order = stat['beginning_build_order']
         cumulative_stat = stat['cumulative_stat']
+        if 'game_loop' in beginning_build_order[0].keys():
+            return stat
 
         def is_action_frame(action_type, cum_idx):
             last_frame = cumulative_stat[cum_idx - 1]
@@ -331,43 +191,74 @@ class GameLoopStatistics:
         return new_stat
 
     def _clip_global_bo(self):
-        beginning_build_order = self.ori_stat['beginning_build_order']
+        beginning_build_order = copy.deepcopy(self.ori_stat['beginning_build_order'])
         if len(beginning_build_order) < self.begin_num:
             miss_num = self.begin_num - len(beginning_build_order)
-            beginning_build_order += [{'action_type': 0, 'location': 'none'} for _ in range(miss_num)]
+            pad_beginning_build_order = beginning_build_order + [
+                {
+                    'action_type': 0,
+                    'location': 'none'
+                } for _ in range(miss_num)
+            ]
+            self.input_global_bo = pad_beginning_build_order
+            self.reward_global_bo = beginning_build_order
         else:
             beginning_build_order = beginning_build_order[:self.begin_num]
-        # set global_bo
-        self.global_bo = beginning_build_order
+            self.input_global_bo = beginning_build_order
+            self.reward_global_bo = beginning_build_order
 
-    def get_input_z_by_game_loop(self, game_loop):
-        """
-        Note: if game_loop is None, load global stat
-        """
-        if game_loop is None:
-            cumulative_stat = self.ori_stat['cumulative_stat'][-1]
-        else:
-            _, cumulative_stat = self._get_stat_by_game_loop(game_loop)
-        beginning_build_order = self.global_bo
-        return transformed_stat_mmr(
+    def _init_global_z(self):
+        # init input_global_z
+        beginning_build_order, cumulative_stat = self.input_global_bo, self.ori_stat['cumulative_stat'][-1]
+        self.input_global_z = transformed_stat_mmr(
             {
                 'begin_statistics': beginning_build_order,
                 'cumulative_statistics': cumulative_stat
             }, self.mmr
         )
+        # init reward_global_z
+        beginning_build_order, cumulative_stat = self.reward_global_bo, self.ori_stat['cumulative_stat'][-1]
+        cum_stat_tensor = transform_cum_stat(cumulative_stat)
+        self.reward_global_z = {
+            'built_unit': cum_stat_tensor['unit_build'],
+            'effect': cum_stat_tensor['effect'],
+            'upgrade': cum_stat_tensor['research'],
+            'build_order': transform_build_order_to_z_format(beginning_build_order),
+        }
+        self.reward_global_z = to_dtype(self.reward_global_z, torch.long)
+
+    def get_input_z_by_game_loop(self, game_loop, cumulative_stat=None):
+        """
+        Note: if game_loop is None, load global stat
+        """
+        if cumulative_stat is None:
+            if game_loop is None:
+                return self.input_global_z
+            else:
+                _, cumulative_stat = self._get_stat_by_game_loop(game_loop)
+        beginning_build_order = self.input_global_bo
+        ret = transformed_stat_mmr(
+            {
+                'begin_statistics': beginning_build_order,
+                'cumulative_statistics': cumulative_stat
+            }, self.mmr
+        )
+        return ret
 
     def get_reward_z_by_game_loop(self, game_loop):
         """
         Note: if game_loop is None, load global stat
         """
         if game_loop is None:
-            raise NotImplementedError
-        beginning_build_order, cumulative_stat = self._get_stat_by_game_loop(game_loop)
+            return self.reward_global_z
+        else:
+            beginning_build_order, cumulative_stat = self._get_stat_by_game_loop(game_loop)
+        # TODO(nyz) same game_loop case
         cum_stat_tensor = transform_cum_stat(cumulative_stat)
         ret = {
-            'built_units': cum_stat_tensor['unit_build'],
-            'effects': cum_stat_tensor['effect'],
-            'upgrades': cum_stat_tensor['research'],
+            'built_unit': cum_stat_tensor['unit_build'],
+            'effect': cum_stat_tensor['effect'],
+            'upgrade': cum_stat_tensor['research'],
             'build_order': transform_build_order_to_z_format(beginning_build_order),
         }
         ret = to_dtype(ret, torch.long)
@@ -377,6 +268,9 @@ class GameLoopStatistics:
         begin_idx = binary_search(self.ori_stat['begin_game_loop'], game_loop)
         cum_idx = binary_search(self.ori_stat['cum_game_loop'], game_loop)
         return self.ori_stat['beginning_build_order'][:begin_idx + 1], self.ori_stat['cumulative_stat'][cum_idx]
+
+    def excess_max_game_loop(self, agent_game_loop):
+        return agent_game_loop > self.max_game_loop
 
 
 def transform_build_order_to_z_format(stat):
@@ -461,6 +355,9 @@ def transformed_stat_mmr(stat, mmr, location_num=LOCATION_BIT_NUM):
 
 
 def transform_stat_processed(old_stat_processed):
+    """
+    Overview: transform new begin action(for stat_processed)
+    """
     new_stat_processed = copy.deepcopy(old_stat_processed)
     beginning_build_order = new_stat_processed['beginning_build_order']
     new_beginning_build_order = []
@@ -478,3 +375,14 @@ def transform_stat_processed(old_stat_processed):
         new_beginning_build_order.append(new_item)
     new_stat_processed['beginning_build_order'] = torch.stack(new_beginning_build_order, dim=0)
     return new_stat_processed
+
+
+def transform_stat_professional_player(old_stat):
+    new_stat = copy.deepcopy(old_stat)
+    beginning_build_order = new_stat['beginning_build_order']
+    new_beginning_build_order = []
+    for item in beginning_build_order:
+        if item['action_type'] in BEGIN_ACTIONS:
+            new_beginning_build_order.append(item)
+    new_stat['beginning_build_order'] = new_beginning_build_order
+    return new_stat

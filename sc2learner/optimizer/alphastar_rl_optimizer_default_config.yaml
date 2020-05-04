@@ -1,10 +1,10 @@
 model:
     use_value_network: True
+    use_battle_reward: False
 train:
     trajectory_len: 3
     batch_size: 2
     use_cuda: False
-    pseudo_reward_prob: 0.25
     action_output_types:
         action_type: logit
         delay: value
@@ -12,9 +12,6 @@ train:
         selected_units: logit
         target_units: logit
         target_location: logit
-    build_order_location:
-        max_limit: 2
-        rescale: 0.8
     kl:
         action_type_kl_seconds: 240
     vtrace:
@@ -26,16 +23,18 @@ train:
     loss_weights:
         baseline:
             winloss: 10.0
-            build_orders: 1.0
-            built_units: 1.0
-            effects: 1.0
-            upgrades: 1.0
+            build_order: 1.0
+            built_unit: 1.0
+            effect: 1.0
+            upgrade: 1.0
+            battle: 0.5
         pg:
             winloss: 1.0
-            build_orders: 4.0
-            built_units: 6.0
-            effects: 6.0
-            upgrades: 6.0
+            build_order: 4.0
+            built_unit: 6.0
+            effect: 6.0
+            upgrade: 6.0
+            battle: 1.0
         upgo:
             winloss: 1.0
         kl: 0.002

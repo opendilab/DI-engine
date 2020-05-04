@@ -50,16 +50,18 @@ flags.DEFINE_integer("process_num", 1, "Number of sc2 process to start on the no
 flags.DEFINE_bool(
     "check_version", False, "Check required game version of the replays and discard ones not matching version"
 )
+flags.DEFINE_bool("resolution", True, "whether to use defined resolution rather than map size as spatial size")
 flags.mark_flag_as_required("replays")
 flags.mark_flag_as_required("output_dir")
 flags.FLAGS(sys.argv)
 
 FeatureUnit = features.FeatureUnit
 Action = collections.namedtuple('Action', ['action', 'game_loop'])
+RESOLUTION = 128
 
 
 class ReplayDecoder(multiprocessing.Process):
-    def __init__(self, run_config, replay_list, output_dir):
+    def __init__(self, run_config, replay_list, output_dir, ues_resolution):
         super(ReplayDecoder, self).__init__()
         self.run_config = run_config
         self.replay_list = replay_list
@@ -70,9 +72,15 @@ class ReplayDecoder(multiprocessing.Process):
         self.output_dir = output_dir
         self.obs_parser = AlphastarObsParser()
         size = point.Point(1, 1)
-        self.interface = sc_pb.InterfaceOptions(raw=True, score=False, feature_layer=sc_pb.SpatialCameraSetup(width=24))
+        self.interface = sc_pb.InterfaceOptions(
+            raw=True,
+            score=False,
+            raw_crop_to_playable_area=True,
+            feature_layer=sc_pb.SpatialCameraSetup(width=24, crop_to_playable_area=True)
+        )
         size.assign_to(self.interface.feature_layer.resolution)
         size.assign_to(self.interface.feature_layer.minimap_resolution)
+        self.use_resolution = ues_resolution
 
     def replay_decode(self, replay_data, game_loops):
         """Where real decoding is happening"""
@@ -103,9 +111,10 @@ class ReplayDecoder(multiprocessing.Process):
                 ob = self.controller.observe()
                 for i in ob.actions:
                     if i.HasField('action_raw'):
-                        assert i.HasField('game_loop')  # debug
-                        action = Action(i.action_raw, i.game_loop)
-                        player_actions.append(action)
+                        if not i.action_raw.HasField('camera_move'):
+                            assert i.HasField('game_loop')  # debug
+                            action = Action(i.action_raw, i.game_loop)
+                            player_actions.append(action)
             if player_actions[-1].game_loop <= minimum_loop:
                 assert (player_actions[-1].game_loop != 0)  # valid game_loop
                 minimum_loop = player_actions[-1].game_loop
@@ -129,21 +138,26 @@ class ReplayDecoder(multiprocessing.Process):
 
         # view replay by action order, combine observation and action
         step_data = [[] for _ in range(PLAYER_NUM)]  # initial return data
-        stat = Statistics(player_num=PLAYER_NUM, begin_num=200)
+        stat = Statistics(player_num=PLAYER_NUM, begin_num=20)
         enemy_upgrades = [None for _ in range(PLAYER_NUM)]
-        begin_num = 200
         for player in range(PLAYER_NUM):  # gain data by player order
             logging.info('Start getting data for player {}'.format(player))
             assert map_size is not None
-            map_size_point = point.Point(map_size.x, map_size.y)
-            map_size_point.assign_to(self.interface.feature_layer.minimap_resolution)  # update map size
+            if self.use_resolution:
+                resolution = point.Point(RESOLUTION, RESOLUTION)
+                resolution.assign_to(self.interface.feature_layer.minimap_resolution)
+            else:
+                map_size_point = point.Point(map_size.x, map_size.y)
+                map_size_point.assign_to(self.interface.feature_layer.minimap_resolution)  # update map size
             self.controller.start_replay(
                 sc_pb.RequestStartReplay(
                     replay_data=replay_data, options=self.interface, observed_player_id=player + 1
                 )
             )
             feat = features.features_from_game_info(self.controller.game_info(), use_raw_actions=True)
-            act_parser = AlphastarActParser(feature_layer_resolution=1, map_size=map_size_point)
+            act_parser = AlphastarActParser(
+                feature_layer_resolution=RESOLUTION, map_size=map_size_point, use_resolution=self.use_resolution
+            )
             actions[player].append(Action(None, game_loops + 1))  # padding
             last_action = {
                 'action_type': torch.LongTensor([0]),
@@ -210,7 +224,7 @@ class ReplayDecoder(multiprocessing.Process):
             return None
         for p in info.player_info:
             if (p.HasField('player_apm') and p.player_apm < 10
-                    or (p.HasField('player_mmr') and p.player_mmr < 1000)):  # noqa
+                    or (p.HasField('player_mmr') and p.player_mmr < 3500)):  # noqa
                 # Low APM = player just standing around.
                 # Low MMR = corrupt replay or player who is weak.
                 logging.warning('Low APM or MMR')
@@ -346,14 +360,14 @@ def main(unused_argv):
         decoders = []
         print('Writing output to: {}'.format(FLAGS.output_dir))
         for i in range(N):
-            decoder = ReplayDecoder(run_config, replay_split_list[i], FLAGS.output_dir)
+            decoder = ReplayDecoder(run_config, replay_split_list[i], FLAGS.output_dir, FLAGS.resolution)
             decoder.start()
             decoders.append(decoder)
         for i in decoders:
             i.join()
     else:
         # single process
-        decoder = ReplayDecoder(run_config, fitered_replays, FLAGS.output_dir)
+        decoder = ReplayDecoder(run_config, fitered_replays, FLAGS.output_dir, FLAGS.resolution)
         decoder.run()
 
 

@@ -263,13 +263,12 @@ class AlphaStarActor:
         if self.use_teacher_model:
             self.model_loader.load_teacher_model(job, self.teacher_agent.get_model())
         # load stat
-        if self.cfg.env.use_stat:
-            for i in range(self.agent_num):
-                stat = self.stat_requester.request_stat(job, i)
-                if isinstance(stat, dict):
-                    self.env.load_stat(stat, i)
-                else:
-                    raise TypeError("invalid stat type: {}".format(type(stat)))
+        for i in range(self.agent_num):
+            stat = self.stat_requester.request_stat(job, i)
+            if isinstance(stat, dict):
+                self.env.load_stat(stat, i)
+            else:
+                raise TypeError("invalid stat type: {}".format(type(stat)))
         # reset
         # Note: reset must be after the load stat
         obs = self.env.reset()
@@ -286,7 +285,7 @@ class AlphaStarActor:
             actions = self._eval_actions(obs, due)
             actions = self.action_modifier(actions, game_loop)
             # stepping
-            game_loop, due, obs, rewards, done, this_game_stat, info = self.env.step(actions)
+            game_loop, due, obs, rewards, done, info = self.env.step(actions)
             game_loop = int(game_loop)  # np.int32->int
             # assuming 22 step per second, round to integer
             game_seconds = game_loop // 22
@@ -306,25 +305,19 @@ class AlphaStarActor:
                     # we received outcome from the env, add to rollout trajectory
                     # the 'next_obs' is saved (and to be sent) if only this is the last obs of the traj
                     step_data_update_home = {
-                        # the z used for the behavior network
-                        'human_target_z': self.env.get_target_z(i, game_loop),
-                        # statistics calculated for this episode so far
-                        'behaviour_z': this_game_stat[i],
                         'step': game_loop,
                         'game_seconds': game_seconds,
                         'done': done,
-                        'rewards': torch.tensor([rewards[i]]),
+                        'rewards': rewards[i],
                         #'info': info
                     }
                     home_step_data = merge_two_dicts(self.last_state_action_home[i], step_data_update_home)
                     if self.agent_num == 2:
                         step_data_update_away = {
-                            'human_target_z': self.env.get_target_z(1 - i, game_loop),
-                            'behaviour_z': this_game_stat[1 - i],
                             'step': game_loop,
                             'game_seconds': game_seconds,
                             'done': done,
-                            'rewards': torch.tensor([rewards[1 - i]]),
+                            'rewards': rewards[1 - i],
                             #'info': info
                         }
                         away_step_data = merge_two_dicts(self.last_state_action_away[i], step_data_update_away)
@@ -363,8 +356,8 @@ class AlphaStarActor:
                     last_buffer[i] = data_buffer[i].copy()
                     data_buffer[i] = []
             if done:
-                result_map = {1: 'wins', 0: 'draws', '-1': 'losses'}
-                result = result_map[rewards[0]]
+                result_map = {1: 'wins', 0: 'draws', -1: 'losses'}
+                result = result_map[rewards[0]['winloss'].int().item()]
                 self.data_pusher.finish_job(job['job_id'], result)
                 break
 

@@ -141,26 +141,3 @@ class ScalarEncoder(nn.Module):
         baseline_feature = torch.cat(baseline_feature, dim=1)
         cum_stat_data = self.cumulative_stat.data if 'cumulative_stat' in self.keys else None
         return embedded_scalar, scalar_context, baseline_feature, cum_stat_data
-
-
-def test_scalar_encoder():
-    class CFG:
-        def __init__(self):
-            self.activation = 'relu'
-
-    template_obs = transform_scalar_data()[0]
-    model = ScalarEncoder(CFG(), template_obs).cuda()
-    inputs = {}
-    B = 4
-    for item in template_obs:
-        if 'input_dim' in item.keys() and 'output_dim' in item.keys():
-            inputs[item['key']] = torch.randn(B, item['input_dim']).cuda()
-    print(model)
-    embedded_scalar, scalar_context, baseline_feature, cumulative_stat = model(inputs)
-    print(embedded_scalar.shape)
-    print(scalar_context.shape)
-    print(baseline_feature.shape)
-
-
-if __name__ == "__main__":
-    test_scalar_encoder()

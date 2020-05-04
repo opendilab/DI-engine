@@ -3,7 +3,6 @@ import os
 import torch
 import time
 from threading import Thread
-from sc2learner.worker import AlphaStarRLLearner
 from sc2learner.data import FakeActorDataset
 
 
@@ -17,12 +16,10 @@ class TestASRLLearner:
         time.sleep(1)  # wait the cache flush out
         assert (64 == coordinator.replay_buffer._meta_buffer.validlen)
 
-    def test_data_sample_update(self, coordinator, league_manager, setup_config):
+    def test_data_sample_update(self, setup_config_real, coordinator, league_manager, real_learner):
         """
         Note: coordinator must be in the front of learner in the arguments
         """
-        learner = AlphaStarRLLearner(setup_config)
         push_data_thread = Thread(target=self.fake_push_data, args=(coordinator, ))
         push_data_thread.start()
-        handle = coordinator.replay_buffer._meta_buffer
-        learner.run()
+        time.sleep(60)

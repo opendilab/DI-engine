@@ -69,8 +69,8 @@ class ActionTypeHead(nn.Module):
         if self.cfg.use_mask:
             x -= (1 - action_type_mask) * 1e9
         if action_type is None:
-            x = F.softmax(x.div(temperature), dim=1)
-            handle = self.pd(x)
+            p = F.softmax(x.div(temperature), dim=1)
+            handle = self.pd(p)
             # action_type is sampled from these logits using a multinomial with temperature 0.8.
             # Note that during supervised learning, action_type will be the ground truth human action type,
             # and temperature is 1.0 (and similarly for all other arguments).
@@ -87,30 +87,3 @@ class ActionTypeHead(nn.Module):
         embedding = embedding1 + embedding2
 
         return x, action_type, embedding
-
-
-def test_action_type_head():
-    class CFG:
-        def __init__(self):
-            self.input_dim = 384
-            self.res_dim = 256
-            self.res_num = 16
-            self.action_num = 327
-            self.action_map_dim = 256
-            self.gate_dim = 1024
-            self.context_dim = 120
-            self.activation = 'relu'
-            self.norm_type = 'LN'
-
-    model = ActionTypeHead(CFG()).cuda()
-    lstm_output = torch.randn(4, 384).cuda()
-    scalar_context = torch.randn(4, 120).cuda()
-    logits, action, embedding = model(lstm_output, scalar_context)
-    print(model)
-    print(logits.shape)
-    print(action)
-    print(embedding.shape)
-
-
-if __name__ == "__main__":
-    test_action_type_head()

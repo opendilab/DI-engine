@@ -1,16 +1,19 @@
 import copy
+from collections import OrderedDict, namedtuple
 
 import numpy as np
 import torch
+import torch.nn.functional as F
 
 import pysc2.env.sc2_env as sc2_env
 from pysc2.env.sc2_env import SC2Env
 from pysc2.lib.actions import FunctionCall
 from pysc2.lib.static_data import NUM_ACTIONS, ACTIONS_REORDER_INV
 from sc2learner.envs import get_available_actions_processed_data, get_map_size, get_enemy_upgrades_processed_data
-from sc2learner.envs.observations.alphastar_obs_wrapper import SpatialObsWrapper, ScalarObsWrapper, EntityObsWrapper, \
+from .observations.alphastar_obs_wrapper import SpatialObsWrapper, ScalarObsWrapper, EntityObsWrapper, \
     transform_spatial_data, transform_scalar_data, transform_entity_data
-from sc2learner.envs.statistics import Statistics, GameLoopStatistics
+from .statistics import GameLoopStatistics, RealTimeStatistics
+from .rewards import RewardHelper
 
 
 class AlphaStarEnv(SC2Env):
@@ -49,15 +52,19 @@ class AlphaStarEnv(SC2Env):
         template_obs, template_replay, template_act = transform_scalar_data()
         self._scalar_wrapper = ScalarObsWrapper(template_obs)
         self._template_act = template_act
-        self._use_available_action_transform = cfg.env.use_available_action_transform
+        self._begin_num = cfg._begin_num
         self._obs_stat_type = cfg.env.obs_stat_type
+        self._pseudo_reward_type = cfg.env.pseudo_reward_type
+        self._pseudo_reward_prob = cfg.env.pseudo_reward_prob
         assert self._obs_stat_type in ['replay_online', 'self_online', 'replay_last']
+        self.reward_helper = RewardHelper(self.agent_num, cfg.env.pseudo_reward_type, cfg.env.pseudo_reward_prob)
 
-        self._use_stat = cfg.env.use_stat
         self._reset_flag = False
         # This is the human games statistics used as an input of network
         self.loaded_eval_stat = [None] * self.agent_num
         self.enemy_upgrades = [None] * self.agent_num
+        # This is for the statistics of current episode actions and obs
+        self._episode_stats = [RealTimeStatistics(self._begin_num) for _ in range(self.agent_num)]
 
     def load_stat(self, stat, agent_no):
         """
@@ -65,23 +72,22 @@ class AlphaStarEnv(SC2Env):
         stat: stat dict processed by transform_stat
         agent_no: 0 or 1
         """
-        assert self._use_stat, 'We should not load stat when we are not going to use stat'
-        begin_num = self.cfg.env.beginning_build_order_num
-        self.loaded_eval_stat[agent_no] = GameLoopStatistics(stat, begin_num)
-        self._episode_stat.load_global_bo(agent_no, self.loaded_eval_stat[agent_no].global_bo)
+        self.loaded_eval_stat[agent_no] = GameLoopStatistics(stat, self._begin_num)
 
     def _merge_stat(self, obs, agent_no, game_loop=None):
         """
         Append the statistics to the observation
         """
+        assert self.loaded_eval_stat[agent_no] is not None, "please call load_stat method first"
         if self._obs_stat_type == 'replay_online':
-            stat = self.loaded_eval_stat[agent_no].get_input_z_by_game_loop(game_loop)
+            stat = self.loaded_eval_stat[agent_no].get_input_z_by_game_loop(game_loop=game_loop)
         elif self._obs_stat_type == 'self_online':
-            stat = self._episode_stat.get_transformed_stat(agent_no)
+            cumulative_stat = self._episode_stats[agent_no].cumulative_statistics
+            stat = self.loaded_eval_stat[agent_no].get_input_z_by_game_loop(cumulative_stat=cumulative_stat)
         elif self._obs_stat_type == 'replay_last':
-            stat = self.loaded_eval_stat[agent_no].get_input_z_by_game_loop(None)
+            stat = self.loaded_eval_stat[agent_no].get_input_z_by_game_loop(game_loop=None)
 
-        assert set(stat.keys) == set(['mmr', 'beginning_build_order', 'cumulative_stat'])
+        assert set(stat.keys()) == set(['mmr', 'beginning_build_order', 'cumulative_stat'])
         obs['scalar_info'].update(stat)
         return obs
 
@@ -127,8 +133,9 @@ class AlphaStarEnv(SC2Env):
                 obs['entity_info'][idx, -2] = 1
         return obs
 
-    def _get_obs(self, obs, last_actions, agent_no):
+    def _get_obs(self, obs, agent_no):
         # post process observations returned from sc2env
+        last_actions = self.last_actions[agent_no]
         entity_info, entity_raw = self._entity_wrapper.parse(obs)
         new_obs = {
             'scalar_info': self._scalar_wrapper.parse(obs),
@@ -138,11 +145,30 @@ class AlphaStarEnv(SC2Env):
             'map_size': [self.map_size[1], self.map_size[0]],  # x,y -> y,x
         }
 
+        def battle_value(obs):
+            '''
+            The value of destroyed units belong to enemy, sum up minerals and vespene, add for battle baseline
+            '''
+            kill_value = (
+                np.sum(obs['score_by_category']['killed_minerals']) +
+                np.sum(obs['score_by_category']['killed_vespene'])
+            )
+            return kill_value
+
+        new_obs['battle_value'] = battle_value(obs)
+
+        def score_wrapper(obs):
+            '''
+            add cumulative_score for baseline
+            '''
+            score = obs['score_cumulative']
+            data = torch.FloatTensor(score)
+            return torch.log(data + 1)
+
+        new_obs['score_cumulative'] = score_wrapper(obs)
         new_obs = self._merge_action(new_obs, last_actions)
-        if self._use_stat:
-            new_obs = self._merge_stat(new_obs, agent_no)
-        if self._use_available_action_transform:
-            new_obs = get_available_actions_processed_data(new_obs)
+        new_obs = self._merge_stat(new_obs, agent_no)
+        new_obs = get_available_actions_processed_data(new_obs)
         self.enemy_upgrades[agent_no] = get_enemy_upgrades_processed_data(new_obs, self.enemy_upgrades[agent_no])
         new_obs['scalar_info']['enemy_upgrades'] = self.enemy_upgrades[agent_no]
         return new_obs
@@ -221,7 +247,7 @@ class AlphaStarEnv(SC2Env):
             for n in range(self.agent_num):
                 if sc2_actions[n]:
                     self._buffered_actions[n].append(sc2_actions[n])
-            _, _, obs, rewards, done, episode_stat, info = self._last_output
+            _, _, obs, rewards, done, info = self._last_output
             for n in range(self.agent_num):
                 obs[n] = self._merge_action(obs[n], self.last_actions[n], add_dim=False)
             due = [s <= self._episode_steps for s in self._next_obs]
@@ -246,17 +272,34 @@ class AlphaStarEnv(SC2Env):
                 timestep = timesteps[n]
                 if timestep is not None:
                     done = done or timestep.last()
-                    _, rewards[n], _, o, info[n] = timestep
+                    _, r, _, o, info[n] = timestep
                     assert (self.last_actions[n])
-                    obs[n] = self._get_obs(o, self.last_actions[n], n)
+                    obs[n] = self._get_obs(o, n)
+                    rewards[n] = r
                 if due[n]:
                     assert (self.last_actions[n])
-                    self._episode_stat.update_stat(self.last_actions[n], obs[n], n)
-            episode_stat = [self._episode_stat.get_z(n) for n in range(self.agent_num)]
-            self._last_output = [self._episode_steps, due, obs, rewards, done, episode_stat, info]
+                    self._episode_stats[n].update_stat(self.last_actions[n], obs[n], self._episode_steps)
+            action_types = [a['action_type'] for a in self.last_actions]
+            if self.agent_num == 2:
+                battle_values = RewardHelper.BattleValues(
+                    self._last_output[2][0]['battle_value'], obs[0]['battle_value'],
+                    self._last_output[2][1]['battle_value'], obs[1]['battle_value']
+                )
+            else:
+                battle_values = RewardHelper.BattleValues(0, 0, 0, 0)
+            rewards = self.reward_helper.get_pseudo_rewards(
+                rewards,
+                action_types,
+                self._episode_stats,
+                self.loaded_eval_stats,
+                self._episode_steps,
+                battle_values,
+                return_list=True
+            )
+            self._last_output = [self._episode_steps, due, obs, rewards, done, info]
         # as obs may be changed somewhere in parsing
         # we have to return a copy to keep the self._last_ouput intact
-        return self._episode_steps, due, copy.deepcopy(obs), rewards, done, episode_stat, info
+        return self._episode_steps, due, copy.deepcopy(obs), rewards, done, info
 
     def reset(self):
         """
@@ -273,9 +316,7 @@ class AlphaStarEnv(SC2Env):
             'target_units': None,
             'target_location': None
         }
-        self.last_actions = [last_action] * self.agent_num
-        # This is for the statistics of current episode actions and obs
-        self._episode_stat = Statistics(player_num=self.agent_num, begin_num=self.cfg.env.get('begin_num', 200))
+        self.last_actions = [last_action for _ in range(self.agent_num)]
         obs = []
         for n in range(self.agent_num):
             obs.append(self._get_obs(timesteps[n].observation, last_action, n))
@@ -287,13 +328,11 @@ class AlphaStarEnv(SC2Env):
             "{}.".format(env_provided_map_size, self.map_size)
 
         self._next_obs = [0] * self.agent_num
+        # Note: self._episode_steps is updated in SC2Env
         self._episode_steps = 0
         self._reset_flag = True
         self._buffered_actions = [[] for i in range(self.agent_num)]
-        self._last_output = [
-            0, [True] * self.agent_num, obs, [0] * self.agent_num, False,
-            [self._episode_stat.get_z(n) for n in range(self.agent_num)], infos
-        ]
+        self._last_output = [0, [True] * self.agent_num, obs, [0] * self.agent_num, False, infos]
         return copy.deepcopy(obs)
 
     def transformed_action_to_string(self, action):
@@ -316,6 +355,3 @@ class AlphaStarEnv(SC2Env):
             return None
         action = self._transform_action(action)
         return action['action_type']
-
-    def get_target_z(self, agent_no, game_loop):
-        return self.loaded_eval_stat[agent_no].get_reward_z_by_game_loop(game_loop)
