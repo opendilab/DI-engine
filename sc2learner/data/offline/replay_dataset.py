@@ -114,11 +114,6 @@ class ReplayDataset(BaseDataset):
             B0 = self.beginning_build_order_num - B
             beginning_build_order = torch.cat([beginning_build_order, torch.zeros(B0, N)])
         cumulative_stat = stat['cumulative_stat']
-        if not self.complete_episode:
-            bool_bo = float(np.random.rand() < self.beginning_build_order_prob)
-            bool_cum = float(np.random.rand() < self.cumulative_stat_prob)
-            beginning_build_order = bool_bo * beginning_build_order
-            cumulative_stat = {k: bool_cum * v for k, v in cumulative_stat.items()}
         return beginning_build_order, cumulative_stat, mmr
 
     def __getitem__(self, idx):
@@ -132,10 +127,13 @@ class ReplayDataset(BaseDataset):
         if self.complete_episode:
             start = 0
             sample_data = data
+            self.bool_bo, self.bool_cum = 1, 1
         else:
             start = handle['cur_step']
             end = start + self.trajectory_len
             sample_data = data[start:end]
+            self.bool_bo = float(np.random.rand() < self.beginning_build_order_prob)
+            self.bool_cum = float(np.random.rand() < self.cumulative_stat_prob)
 
         sample_data = action_unit_id_transform(sample_data)
         sample_data = [decompress_obs(d) for d in sample_data]
@@ -158,13 +156,21 @@ class ReplayDataset(BaseDataset):
             beginning_build_order, cumulative_stat, mmr = self._load_stat(handle)
 
         enemy_upgrades = None
+        bool_cum = float(np.random.rand() < self.cumulative_stat_prob)
         for i in range(len(sample_data)):
             sample_data[i]['map_size'] = map_size
             if self.use_stat:
-                sample_data[i]['scalar_info']['beginning_build_order'] = beginning_build_order
+                sample_data[i]['scalar_info']['beginning_build_order'] = beginning_build_order * self.bool_bo
                 sample_data[i]['scalar_info']['mmr'] = mmr
                 if self.use_global_cumulative_stat:
-                    sample_data[i]['scalar_info']['cumulative_stat'] = cumulative_stat
+                    step_cum_stat = cumulative_stat
+                else:
+                    step_cum_stat = sample_data[i]['scalar_info']['cumulative_stat']
+                sample_data[i]['scalar_info']['cumulative_stat'] = {
+                    k: self.bool_cum * v
+                    for k, v in step_cum_stat.items()
+                }
+
             if self.use_enemy_upgrades:
                 enemy_upgrades = get_enemy_upgrades_processed_data(sample_data[i], enemy_upgrades)
                 sample_data[i]['scalar_info']['enemy_upgrades'] = enemy_upgrades.float()
