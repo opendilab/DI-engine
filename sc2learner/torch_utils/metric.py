@@ -12,11 +12,11 @@ def levenshtein_distance(pred, target, pred_extra=None, target_extra=None, extra
         - target_extra (:obj:`torch.Tensor or None`)
         - extra_fn (:obj:`function or None`): if specified, the distance metric of the extra input data
     Returns:
-        - (:obj:`torch.LongTensor`) distance(scalar), shape[1]
+        - (:obj:`torch.FloatTensor`) distance(scalar), shape[1]
     Note: N1 >= 0, N2 >= 0
     '''
     assert (isinstance(pred, torch.Tensor) and isinstance(target, torch.Tensor))
-    assert (pred.dtype == torch.long and target.dtype == torch.long)
+    assert (pred.dtype == torch.long and target.dtype == torch.long), '{}\t{}'.format(pred.dtype, target.dtype)
     assert (pred.device == target.device)
     assert (type(pred_extra) == type(target_extra))
     if not extra_fn:
@@ -26,11 +26,20 @@ def levenshtein_distance(pred, target, pred_extra=None, target_extra=None, extra
     if N1 == 0 or N2 == 0:
         distance = max(N1, N2)
     else:
-        dp_array = torch.zeros(N1, N2).int()
-        dp_array[0, :] = torch.arange(0, N2)
-        dp_array[:, 0] = torch.arange(0, N1)
+        dp_array = torch.zeros(N1, N2).float()
+        if extra_fn:
+            if pred[0] == target[0]:
+                extra = extra_fn(pred_extra[0], target_extra[0])
+            else:
+                extra = 1.
+            dp_array[0, :] = torch.arange(0, N2) + extra
+            dp_array[:, 0] = torch.arange(0, N1) + extra
+        else:
+            dp_array[0, :] = torch.arange(0, N2)
+            dp_array[:, 0] = torch.arange(0, N1)
         for i in range(1, N1):
             for j in range(1, N2):
+                print(i, j, pred[i], target[j])
                 if pred[i] == target[j]:
                     if extra_fn:
                         dp_array[i, j] = dp_array[i - 1, j - 1] + extra_fn(pred_extra[i], target_extra[j])
@@ -39,7 +48,7 @@ def levenshtein_distance(pred, target, pred_extra=None, target_extra=None, extra
                 else:
                     dp_array[i, j] = min(dp_array[i - 1, j] + 1, dp_array[i, j - 1] + 1, dp_array[i - 1, j - 1] + 1)
         distance = dp_array[N1 - 1, N2 - 1]
-    return torch.LongTensor([distance]).to(pred.device)
+    return torch.FloatTensor([distance]).to(pred.device)
 
 
 def hamming_distance(pred, target, weight=1.):
