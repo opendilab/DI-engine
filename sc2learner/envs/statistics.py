@@ -131,9 +131,9 @@ class RealTimeStatistics:
         cumulative_stat = self.cumulative_statistics
         cum_stat_tensor = transform_cum_stat(cumulative_stat)
         ret = {
-            'built_units': cum_stat_tensor['unit_build'],
-            'effects': cum_stat_tensor['effect'],
-            'upgrades': cum_stat_tensor['research'],
+            'built_unit': cum_stat_tensor['unit_build'],
+            'effect': cum_stat_tensor['effect'],
+            'upgrade': cum_stat_tensor['research'],
             'build_order': transform_build_order_to_z_format(beginning_build_order),
         }
         ret = to_dtype(ret, torch.long)
@@ -219,9 +219,9 @@ class GameLoopStatistics:
         beginning_build_order, cumulative_stat = self.reward_global_bo, self.ori_stat['cumulative_stat'][-1]
         cum_stat_tensor = transform_cum_stat(cumulative_stat)
         self.reward_global_z = {
-            'built_units': cum_stat_tensor['unit_build'],
-            'effects': cum_stat_tensor['effect'],
-            'upgrades': cum_stat_tensor['research'],
+            'built_unit': cum_stat_tensor['unit_build'],
+            'effect': cum_stat_tensor['effect'],
+            'upgrade': cum_stat_tensor['research'],
             'build_order': transform_build_order_to_z_format(beginning_build_order),
         }
 
@@ -254,9 +254,9 @@ class GameLoopStatistics:
         # TODO(nyz) same game_loop case
         cum_stat_tensor = transform_cum_stat(cumulative_stat)
         ret = {
-            'built_units': cum_stat_tensor['unit_build'],
-            'effects': cum_stat_tensor['effect'],
-            'upgrades': cum_stat_tensor['research'],
+            'built_unit': cum_stat_tensor['unit_build'],
+            'effect': cum_stat_tensor['effect'],
+            'upgrade': cum_stat_tensor['research'],
             'build_order': transform_build_order_to_z_format(beginning_build_order),
         }
         return ret

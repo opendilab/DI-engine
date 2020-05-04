@@ -50,9 +50,10 @@ def get_fake_rewards():
     rewards = {}
     rewards['winloss'] = torch.randint(-1, 2, size=(1, ))
     rewards['build_order'] = torch.randint(-20, 1, size=(1, ))
-    rewards['built_units'] = torch.randint(-10, 1, size=(1, ))
-    rewards['upgrades'] = torch.randint(-10, 1, size=(1, ))
-    rewards['effects'] = torch.randint(-10, 1, size=(1, ))
+    rewards['built_unit'] = torch.randint(-10, 1, size=(1, ))
+    rewards['upgrade'] = torch.randint(-10, 1, size=(1, ))
+    rewards['effect'] = torch.randint(-10, 1, size=(1, ))
+    rewards['battle'] = torch.randint(0, 100000, size=[1])
     for k in rewards.keys():
         rewards[k] = rewards[k].float()
     return rewards
@@ -109,6 +110,7 @@ def get_single_step_data():
         target_location=torch.randint(0, min(MAP_SIZE), size=[2], dtype=torch.int64)
         if action_attr['target_location'] else NOOP
     )
+    score_cumulative = random_tensor([13])
 
     return OrderedDict(
         scalar_info=scalar_info,
@@ -117,6 +119,7 @@ def get_single_step_data():
         entity_info=random_tensor([num_units, 2102]),
         spatial_info=random_tensor([20] + MAP_SIZE),
         map_size=MAP_SIZE,
+        score_cumulative=score_cumulative,
     )
 
 
@@ -147,9 +150,9 @@ def fake_stat_processed_professional_player():
 
 def get_z():
     ret = {}
-    ret['built_units'] = random_binary_tensor([120], dtype=torch.long)
-    ret['effects'] = random_binary_tensor([83], dtype=torch.long)
-    ret['upgrades'] = random_binary_tensor([60], dtype=torch.long)
+    ret['built_unit'] = random_binary_tensor([120], dtype=torch.long)
+    ret['effect'] = random_binary_tensor([83], dtype=torch.long)
+    ret['upgrade'] = random_binary_tensor([60], dtype=torch.long)
     num = random.randint(10, 100)
     ret['build_order'] = {
         'type': torch.from_numpy(np.random.choice(range(NUM_ACTION_TYPES), size=num, replace=True)).long(),
@@ -313,8 +316,6 @@ class FakeActorDataset:
             base['prev_state'] = [torch.zeros(*LSTM_DIMS), torch.zeros(*LSTM_DIMS)]
             base['rewards'] = get_fake_rewards()
             base['game_seconds'] = random.randint(0, 24 * 60)
-            base['behaviour_z'] = get_z()
-            base['human_target_z'] = get_z()
             base['target_outputs'] = get_outputs(base['actions'], base['entity_info'].shape[0])
             base['behaviour_outputs'] = disturb_outputs(
                 base['target_outputs']
@@ -325,8 +326,6 @@ class FakeActorDataset:
             else:
                 base['teacher_actions'] = disturb_actions(base['actions'])
                 base['teacher_outputs'] = get_outputs(base['teacher_actions'], base['entity_info'].shape[0])
-            base['battle_reward'] = torch.randint(0, 100000, size=[1], dtype=torch.int32)
-            base['score_cumulative'] = random_tensor([13])
             return base
 
         data = []

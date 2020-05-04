@@ -27,7 +27,7 @@ class AlphaStarActorCritic(ActorCriticBase):
         ]
     )
     CriticOutput = namedtuple(
-        'CriticOutput', ['winloss', 'build_orders', 'built_units', 'effects', 'upgrades', 'battle']
+        'CriticOutput', ['winloss', 'build_order', 'built_unit', 'effect', 'upgrade', 'battle']
     )
 
     def __init__(self, model_config=None):
@@ -43,8 +43,9 @@ class AlphaStarActorCritic(ActorCriticBase):
                 self.value_networks[v.name] = ValueBaseline(v.param)
                 # name of needed cumulative stat items
                 self.value_cum_stat_keys[v.name] = v.cum_stat_keys
-                if not self.cfg.use_battle_reward:
-                    self.value_networks['battle'] = None
+            if not self.cfg.use_battle_reward:
+                self.value_networks.pop('battle')
+                self.value_cum_stat_keys.pop('battle')
 
         self.freeze_module(self.cfg.freeze_targets)
 
@@ -202,14 +203,13 @@ class AlphaStarActorCritic(ActorCriticBase):
         # are torch.Tensors and are shared across all baselines
         same_part = torch.cat(inputs[:6], dim=1)
         ret = []
-        for (name, m), (_, key) in zip(self.value_networks.items(), self.value_cum_stat_keys.items()):
+        for (name_n, m), (name_c, key) in zip(self.value_networks.items(), self.value_cum_stat_keys.items()):
             cum_stat_home_subset = select_item(cum_stat_home, key)
             cum_stat_away_subset = select_item(cum_stat_away, key)
             inputs = torch.cat([same_part] + cum_stat_home_subset + cum_stat_away_subset, dim=1)
             # apply the value network to inputs
-            # self.cfg.use_battle_reward = False
-            if m is None:
-                ret.append(None)
-            else:
-                ret.append(m(inputs))
+            ret.append(m(inputs))
+        # if not use_battle_reward, set returns by None
+        if not self.cfg.use_battle_reward:
+            ret.append(None)
         return self.CriticOutput(*ret)

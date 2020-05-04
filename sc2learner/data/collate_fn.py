@@ -126,6 +126,7 @@ def actor_collate_fn(batch, max_delay=63, action_type_transform=True):
         'target_outputs': True,
         'teacher_outputs': True,
         'behaviour_outputs': True,
+        'score_cumulative': True,
     }
     data_keys = ['home', 'away', 'home_next', 'away_next']
 

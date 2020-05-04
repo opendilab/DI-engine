@@ -375,7 +375,7 @@ class AlphaStarEnv(SC2Env):
     def _get_zero_rewards(self, reward):
         rewards = {}
         rewards['winloss'] = torch.FloatTensor([reward])
-        for k in ['build_order', 'built_units', 'upgrades', 'effects']:
+        for k in ['build_order', 'built_unit', 'upgrade', 'effect']:
             rewards[k] = torch.FloatTensor([0])
         rewards = to_device(rewards, self.device)
         return rewards
@@ -386,7 +386,7 @@ class AlphaStarEnv(SC2Env):
         for i in range(self.batch_size):
             mask_build_order[i] = 1 if action_type[i] in BUILD_ORDER_REWARD_ACTIONS else 0
         masks['build_order'] = mask_build_order
-        for k in ['built_units', 'effects', 'upgrades']:
+        for k in ['built_unit', 'effect', 'upgrade']:
             ne_num = behaviour_z[k].ne(last_behaviour_z[k]).sum(dim=1)
             masks[k] = torch.where(ne_num > 0, torch.ones(self.batch_size), torch.zeros(self.batch_size))
         masks = to_device(masks, self.device)
@@ -444,9 +444,9 @@ class AlphaStarEnv(SC2Env):
                     ) * factors[i] * mask
                 )
         new_rewards['build_order'] = torch.FloatTensor(build_order_reward).to(self.device)
-        # built_units, effects, upgrades
+        # built_unit, effect, upgrade
         # p is independent from all the pseudo reward and the same in a batch
-        for k in ['built_units', 'effects', 'upgrades']:
+        for k in ['built_unit', 'effect', 'upgrade']:
             mask = masks[k]
             p = np.random.uniform()
             mask_factor = 1 if p < self._pseudo_reward_prob else 0

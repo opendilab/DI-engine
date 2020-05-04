@@ -3,7 +3,7 @@ import collections
 import torch
 import torch.nn as nn
 
-from sc2learner.torch_utils import fc_block
+from sc2learner.torch_utils import fc_block, build_activation
 from .core import CoreLstm
 from .obs_encoder import ScalarEncoder, SpatialEncoder, EntityEncoder
 
@@ -30,7 +30,7 @@ class Encoder(nn.Module):
         self.scatter_dim = cfg.scatter.output_dim
         self.score_cumulative_encoder = fc_block(
             self.cfg.score_cumulative.input_dim, self.cfg.score_cumulative.output_dim,
-            self.cfg.score_cumulative.activation
+            activation=build_activation(self.cfg.score_cumulative.activation)
         )
 
     def _scatter_connection(self, spatial_info, entity_embeddings, entity_raw):

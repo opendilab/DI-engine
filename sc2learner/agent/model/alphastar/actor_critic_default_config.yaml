@@ -15,8 +15,8 @@ model:
                 norm_type: 'LN'
                 res_dim: 256
                 res_num: 16
-        build_orders:
-            name: build_orders
+        build_order:
+            name: build_order
             cum_stat_keys: ['unit_build', 'effect', 'research']
             param:
                 input_dim: 1792
@@ -24,8 +24,8 @@ model:
                 norm_type: 'LN'
                 res_dim: 256
                 res_num: 16
-        built_units:
-            name: built_units
+        built_unit:
+            name: built_unit
             cum_stat_keys: ['unit_build']
             param:
                 input_dim: 1664
@@ -33,8 +33,8 @@ model:
                 norm_type: 'LN'
                 res_dim: 256
                 res_num: 16
-        effects:
-            name: effects
+        effect:
+            name: effect
             cum_stat_keys: ['effect']
             param:
                 input_dim: 1664
@@ -42,8 +42,8 @@ model:
                 norm_type: 'LN'
                 res_dim: 256
                 res_num: 16
-        upgrades:
-            name: upgrades
+        upgrade:
+            name: upgrade
             cum_stat_keys: ['research']
             param:
                 input_dim: 1664

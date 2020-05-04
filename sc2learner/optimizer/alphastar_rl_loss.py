@@ -65,7 +65,6 @@ class AlphaStarRLLoss(BaseLoss):
             ]
         )
         self.agent = agent
-        self.use_battle_reward = train_config.use_battle_reward
         self.T = train_config.trajectory_len
         self.batch_size = train_config.batch_size
         self.vtrace_rhos_min_clip = train_config.vtrace.min_clip
@@ -108,17 +107,15 @@ class AlphaStarRLLoss(BaseLoss):
         actor_critic_loss = 0.
         td_lambda_loss_val = {}
         vtrace_loss_val = {}
-        for (field, baseline), (reward_key, reward) in zip(baselines.items(), rewards.items()):
-            # None means not using battle reward
-            if baseline is not None:
-                assert field == reward_key
-                td_lambda_loss = self._td_lambda_loss(baseline, reward) * self.loss_weights.baseline[field]
-                td_lambda_loss_val[field] = td_lambda_loss.item()
-                vtrace_loss = self._vtrace_pg_loss(
-                    baseline, reward, target_outputs, behaviour_outputs, target_actions, behaviour_actions
-                ) * self.loss_weights.pg[field]
-                vtrace_loss_val[field] = vtrace_loss.item()
-                actor_critic_loss += td_lambda_loss + vtrace_loss
+        for field, baseline in baselines.items():
+            reward = rewards[field]
+            td_lambda_loss = self._td_lambda_loss(baseline, reward) * self.loss_weights.baseline[field]
+            td_lambda_loss_val[field] = td_lambda_loss.item()
+            vtrace_loss = self._vtrace_pg_loss(
+                baseline, reward, target_outputs, behaviour_outputs, target_actions, behaviour_actions
+            ) * self.loss_weights.pg[field]
+            vtrace_loss_val[field] = vtrace_loss.item()
+            actor_critic_loss += td_lambda_loss + vtrace_loss
         # upgo loss
         upgo_loss = self._upgo_loss(
             baselines['winloss'], rewards['winloss'], target_outputs, behaviour_outputs, target_actions,
@@ -181,7 +178,7 @@ class AlphaStarRLLoss(BaseLoss):
                 outputs_dict[k] = list_dict2dict_list(outputs_dict[k])
         outputs_dict['baselines'] = {
             k: torch.stack(v, dim=0)
-            for k, v in zip(outputs_dict['baselines']._fields, outputs_dict['baselines'])
+            for k, v in zip(outputs_dict['baselines']._fields, outputs_dict['baselines']) if v[0] is not None
         }
         # each value: (batch_size, 1) -> stack+squeeze -> (tra_len, batch_size)
         outputs_dict['rewards'] = {k: torch.stack(v, dim=0).squeeze(2) for k, v in outputs_dict['rewards'].items()}
