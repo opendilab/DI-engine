@@ -15,6 +15,7 @@ import random
 from easydict import EasyDict
 from queue import Queue
 from multiprocessing import Lock
+import torch
 
 from sc2learner.data.online import ReplayBuffer
 from sc2learner.utils import read_file_ceph, save_file_ceph
@@ -34,6 +35,9 @@ class Coordinator(object):
         # self.learner_port = cfg['system']['learner_port']
         self.league_manager_port = cfg['system']['league_manager_port']
 
+        self.resume_dir = cfg.system.resume_dir
+        self.resume_label = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime(time.time()))
+
         # {manager_uid: {actor_uid: [job_id]}}
         self.manager_record = {}
         # {job_id: {content: info, state: running/finish}}
@@ -42,7 +46,7 @@ class Coordinator(object):
         #                "job_ids": [job_id],
         #                "checkpoint_path": checkpoint_path,
         #                "replay_buffer": replay_buffer,
-        #                "ret_metadata": {data_index: metadata},
+        #                "ret_metadatas": {data_index: metadata},
         #                "last_beats_time": last_beats_time,
         #                "state": choices in ['alive', 'dead']}
         self.learner_record = {}
@@ -50,8 +54,9 @@ class Coordinator(object):
         self.url_prefix_format = 'http://{}:{}/'
 
         # TODO(nyz) each learner has its own replay_buffer
-        self.replay_buffer = ReplayBuffer(EasyDict(self.cfg['replay_buffer']))
-        self.replay_buffer.run()
+        # move to register_learner
+        # self.replay_buffer = ReplayBuffer(EasyDict(self.cfg['replay_buffer']))
+        # self.replay_buffer.run()
 
         self.lock = Lock()
         self.save_ret_metadata_num = 5
@@ -71,6 +76,16 @@ class Coordinator(object):
         check_learner_dead_thread.start()
         self.logger.info("[UP] check learner dead thread ")
 
+        # resume
+        self._load_resume()
+        self.save_resume_freq = 60 * 1
+
+        # thread to save resume
+        check_resume_thread = threading.Thread(target=self.check_resume)
+        check_resume_thread.daemon = True
+        check_resume_thread.start()
+        self.logger.info("[UP] check resume thread ")
+
     def close(self):
         self.replay_buffer.close()
 
@@ -82,6 +97,27 @@ class Coordinator(object):
 
     def _release_lock(self):
         self.lock.release()
+
+    def _load_resume(self):
+        if self.cfg.system.coordinator_resume_path and os.path.isfile(self.cfg.system.coordinator_resume_path):
+            data = torch.load(self.cfg.system.coordinator_resume_path)
+            self.manager_record, self.job_record, self.learner_record = data
+            for k, v in self.learner_record.items():
+                self.learner_record[k]['replay_buffer'] = ReplayBuffer(EasyDict(self.cfg['replay_buffer']))
+                self.learner_record[k]['replay_buffer'].run()
+                self.learner_record[k]['ret_metadatas'] = {}
+                self.learner_record[k]['last_beats_time'] = time.time()
+
+    def _save_resume(self):
+        tmp = {}
+        for k, v in self.learner_record.items():
+            tmp[k] = {}
+            tmp[k]['learner_ip_port_list'] = v['learner_ip_port_list']
+            tmp[k]['job_ids'] = v['job_ids']
+            tmp[k]['checkpoint_path'] = v['checkpoint_path']
+            tmp[k]['state'] = v['state']
+        data = [self.manager_record, self.job_record, tmp]
+        torch.save(data, os.path.join(self.resume_dir, 'coordinator.resume.' + self.resume_label))
 
     def _get_job(self):
         '''
@@ -176,10 +212,12 @@ class Coordinator(object):
                         "learner_ip_port_list": [[learner_ip, learner_port]],
                         "job_ids": [],
                         "checkpoint_path": '',
+                        "replay_buffer": ReplayBuffer(EasyDict(self.cfg['replay_buffer'])),
                         "ret_metadatas": {},
                         "last_beats_time": int(time.time()),
                         "state": 'alive'
                     }
+                    self.learner_record[learner_uid]['replay_buffer'].run()
                     for index, player_id in enumerate(self.player_ids):
                         if player_id not in self.player_to_learner:
                             self.player_to_learner[player_id] = learner_uid
@@ -246,8 +284,9 @@ class Coordinator(object):
             Returns:
                 - (:obj`bool`): state
         '''
-        assert job_id in self.job_record, 'job_id ({}) not in job_record'.format(job_id)
-        self.replay_buffer.push_data(metadata)
+        # assert job_id in self.job_record, 'job_id ({}) not in job_record'.format(job_id)
+        learner_uid = metadata['learner_uid']
+        self.learner_record[learner_uid]['replay_buffer'].push_data(metadata)
         return True
 
     def deal_with_finish_job(self, manager_uid, actor_uid, job_id, result):
@@ -294,7 +333,7 @@ class Coordinator(object):
         self.learner_record[learner_uid]['last_beats_time'] = int(time.time())
         self._acquire_lock()
         if data_index not in self.learner_record[learner_uid]['ret_metadatas']:
-            metadatas = self.replay_buffer.sample(batch_size)
+            metadatas = self.learner_record[learner_uid]['replay_buffer'].sample(batch_size)
             self.learner_record[learner_uid]['ret_metadatas'][data_index] = metadatas
             self.logger.info('[ask_for_metadata] [first] learner ({}) data_index ({})'.format(learner_uid, data_index))
         else:
@@ -316,13 +355,8 @@ class Coordinator(object):
                 - (:obj`bool`): True
         '''
         self.learner_record[learner_uid]['last_beats_time'] = int(time.time())
-        self.replay_buffer.update(update_info)
+        self.learner_record[learner_uid]['replay_buffer'].update(update_info)
         return True
-
-    def get_url_prefix(self, learner_uid):
-        learner_ip = self.learner_record[learner_uid]['learner_ip']
-        url_prefix = self.url_prefix_format.format(learner_ip, self.learner_port)
-        return url_prefix
 
     def deal_with_get_learner_train_step(self, learner_uid, train_step):
         self.learner_record[learner_uid]['last_beats_time'] = int(time.time())
@@ -421,6 +455,17 @@ class Coordinator(object):
                     self.deal_with_dead_learner(learner_uid)
             time.sleep(self.check_dead_learner_freq)
 
+    def check_resume(self):
+        self.lasttime = int(time.time())
+        while True:
+            nowtime = int(time.time())
+            if nowtime - self.lasttime > self.save_resume_freq:
+                self._save_resume()
+                p = os.path.join(self.resume_dir, 'coordinator.resume.' + self.resume_label)
+                self.logger.info('[resume] save to {}'.format(p))
+                self.lasttime = nowtime
+            time.sleep(self.save_resume_freq)
+
     ###################################################################################
     #                                      debug                                      #
     ###################################################################################
@@ -434,18 +479,18 @@ class Coordinator(object):
     def deal_with_get_all_job(self):
         return self.job_record
 
-    def deal_with_get_replay_buffer(self):
-        return self.replay_buffer
+    def deal_with_get_replay_buffer(self, learner_uid):
+        return self.learner_record[learner_uid]['replay_buffer']
 
     def deal_with_get_job_queue(self):
         pass
 
-    def deal_with_push_data_to_replay_buffer(self):
+    def deal_with_push_data_to_replay_buffer(self, learner_uid):
         job_id = '8d2e8eda-83d9-11ea-8bb0-1be4f1872daf'
-        learner_uid = '3458436'
+        # learner_uid = '3458436'
         trajectory_path = 'model_main_player_zerg_0_ckpt'\
             '.pth_job_0098e642-841e-11ea-9918-6f27a4855242_agent_0_step_1159_0707b170-8423-11ea-99b0-db6573da5763.traj'
-        self.replay_buffer.push_data(
+        self.learner_record[learner_uid]['replay_buffer'].push_data(
             {
                 'job_id': job_id,
                 'trajectory_path': trajectory_path,
@@ -454,7 +499,7 @@ class Coordinator(object):
                 'step_data_compressor': 'lz4'
             }
         )
-        self.replay_buffer.push_data(
+        self.learner_record[learner_uid]['replay_buffer'].push_data(
             {
                 'job_id': job_id,
                 'trajectory_path': trajectory_path,
@@ -463,7 +508,7 @@ class Coordinator(object):
                 'step_data_compressor': 'lz4'
             }
         )
-        self.replay_buffer.push_data(
+        self.learner_record[learner_uid]['replay_buffer'].push_data(
             {
                 'job_id': job_id,
                 'trajectory_path': trajectory_path,
@@ -472,7 +517,7 @@ class Coordinator(object):
                 'step_data_compressor': 'lz4'
             }
         )
-        self.replay_buffer.push_data(
+        self.learner_record[learner_uid]['replay_buffer'].push_data(
             {
                 'job_id': job_id,
                 'trajectory_path': trajectory_path,

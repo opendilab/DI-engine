@@ -11,6 +11,7 @@ import argparse
 import yaml
 import traceback
 import subprocess
+import torch
 
 from sc2learner.utils.log_helper import TextLogger
 
@@ -30,6 +31,9 @@ class Manager(object):
         self.url_prefix = 'http://{}:{}/'.format(self.coordinator_ip, self.coordinator_port)
         self.check_dead_actor_freq = 120
 
+        self.resume_dir = cfg.system.resume_dir
+        self.resume_label = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime(time.time()))
+
         # auto run actor
         self.auto_run_actor = cfg['system']['auto_run_actor']
         if self.auto_run_actor:
@@ -42,6 +46,9 @@ class Manager(object):
         self.reuse_job_list = []
 
         self._set_logger()
+        self._load_resume()
+        self.save_resume_freq = 60 * 1
+
         self.register_manager_in_coordinator()
 
         # thread to check actor if dead
@@ -52,11 +59,29 @@ class Manager(object):
 
         # launch actor
         check_run_actor_thread = threading.Thread(target=self.check_run_actor)
+        check_run_actor_thread.daemon = True
         check_run_actor_thread.start()
         self.logger.info("[UP] check run actor thread ")
 
+        # thread to save resume
+        check_resume_thread = threading.Thread(target=self.check_resume)
+        check_resume_thread.daemon = True
+        check_resume_thread.start()
+        self.logger.info("[UP] check resume thread ")
+
     def _set_logger(self):
         self.logger = logging.getLogger("manager.log")
+
+    def _load_resume(self):
+        if self.cfg.system.manager_resume_path and os.path.isfile(self.cfg.system.manager_resume_path):
+            data = torch.load(self.cfg.system.manager_resume_path)
+            self.actor_record, self.job_record, self.reuse_job_list = data
+            for k, v in self.learner_record.items():
+                self.actor_record[k]['last_beats_time'] = time.time()
+
+    def _save_resume(self):
+        data = [self.actor_record, self.job_record, self.reuse_job_list]
+        torch.save(data, os.path.join(self.resume_dir, 'manager.resume.' + self.resume_label))
 
     def register_manager_in_coordinator(self):
         '''
@@ -235,6 +260,17 @@ class Manager(object):
                 for i in range(num):
                     self.launch_actor(partition)
                     self.logger.info('launch actor {} in {}'.format(i, partition))
+
+    def check_resume(self):
+        self.lasttime = int(time.time())
+        while True:
+            nowtime = int(time.time())
+            if nowtime - self.lasttime > self.save_resume_freq:
+                self._save_resume()
+                p = os.path.join(self.resume_dir, 'manager.resume.' + self.resume_label)
+                self.logger.info('[resume] save to {}'.format(p))
+                self.lasttime = nowtime
+            time.sleep(self.save_resume_freq)
 
     ###################################################################################
     #                                      debug                                      #

@@ -168,9 +168,19 @@ def create_coordinator_app(coordinator):
         else:
             return build_ret(1)
 
-    @app.route('/debug/push_data_to_replay_buffer', methods=['get'])
+    @app.route('/debug/get_replay_buffer', methods=['post'])
+    def get_replay_buffer():
+        learner_uid = request.json['learner_uid']
+        info = coordinator.deal_with_get_replay_buffer(learner_uid)
+        if info:
+            return build_ret(0, info)
+        else:
+            return build_ret(1)
+
+    @app.route('/debug/push_data_to_replay_buffer', methods=['post'])
     def push_data_to_replay_buffer():
-        info = coordinator.deal_with_push_data_to_replay_buffer()
+        learner_uid = request.json['learner_uid']
+        info = coordinator.deal_with_push_data_to_replay_buffer(learner_uid)
         if info:
             return build_ret(0, info)
         else:

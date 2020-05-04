@@ -45,6 +45,7 @@ flags.DEFINE_string("version", "4.8.6", "Game version")
 # flags.mark_flag_as_required("output_dir")
 flags.FLAGS(sys.argv)
 
+
 def parse_info(info, replay_path):
     if (info.HasField("error")):
         print('{} have error'.format(replay_path))

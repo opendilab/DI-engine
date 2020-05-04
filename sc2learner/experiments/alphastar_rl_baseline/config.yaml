@@ -60,11 +60,14 @@ system:
     coordinator_ip: 10.5.36.31        # learner and coordinator are in same cluster
     coordinator_port: 18194
     coordinator_check_dead_learner_freq: 300
+    coordinator_resume_path: 
+    # coordinator_resume_path: './api-log/coordinator.resume.2020-05-04-23-18-31'
     # manager_ip can be set to 'auto' or the real IP of the manager instance
     # this value is used by actors to find what they should connect and report to
     # if it's set to 'auto', the manager node of the Slurm cluster will be used as the manager
     manager_ip: 10.5.36.31 #'auto'
     manager_port: 18195
+    manager_resume_path: 
     league_manager_port: 18196
     auto_run_actor: False
     use_partitions: ['x_cerebra']  #['VI_SP_Y_V100_A', 'VI_SP_Y_V100_B']

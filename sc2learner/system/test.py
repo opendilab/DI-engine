@@ -63,7 +63,8 @@ def test_coordinator_finish_job():
 
 def test_coordinator_push_data_to_replay_buffer():
     url_prefix = get_url_prefix(coordinator_ip, coordinator_port)
-    requests.get(url_prefix + 'debug/push_data_to_replay_buffer')
+    d = {'learner_uid': '3578336'}
+    requests.post(url_prefix + 'debug/push_data_to_replay_buffer', json=d)
 
 
 def test_read_file():
@@ -74,6 +75,12 @@ def test_read_file():
     print(x)
 
 
+def read_resume():
+    p = '../experiments/alphastar_rl_baseline/api-log/coordinator.resume.2020-05-04-23-18-31'
+    data = torch.load(p)
+    print(data)
+
+
 if __name__ == '__main__':
     # test_coordinator_register_manager()
     # test_coordinator_ask_for_job()
@@ -81,3 +88,4 @@ if __name__ == '__main__':
     # test_coordinator_finish_job()
     test_coordinator_push_data_to_replay_buffer()
     # test_read_file()
+    # read_resume()

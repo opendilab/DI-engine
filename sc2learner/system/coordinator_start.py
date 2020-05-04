@@ -9,7 +9,6 @@ import logging
 import argparse
 import yaml
 from easydict import EasyDict
-from flask import Flask, request
 
 from .coordinator import Coordinator
 from sc2learner.utils.log_helper import TextLogger
@@ -27,6 +26,7 @@ logger = TextLogger(log_path, name="coordinator.log")
 
 cfg = yaml.safe_load(open(args.config, 'r'))
 cfg = EasyDict(cfg)
+cfg.system.resume_dir = log_path
 coordinator_ip = cfg['system']['coordinator_ip']
 coordinator_port = cfg['system']['coordinator_port']
 
