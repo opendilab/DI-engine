@@ -39,7 +39,6 @@ def levenshtein_distance(pred, target, pred_extra=None, target_extra=None, extra
             dp_array[:, 0] = torch.arange(0, N1)
         for i in range(1, N1):
             for j in range(1, N2):
-                print(i, j, pred[i], target[j])
                 if pred[i] == target[j]:
                     if extra_fn:
                         dp_array[i, j] = dp_array[i - 1, j - 1] + extra_fn(pred_extra[i], target_extra[j])

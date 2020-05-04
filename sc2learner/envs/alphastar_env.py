@@ -1,5 +1,5 @@
 import copy
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 
 import numpy as np
 import torch
@@ -8,14 +8,12 @@ import torch.nn.functional as F
 import pysc2.env.sc2_env as sc2_env
 from pysc2.env.sc2_env import SC2Env
 from pysc2.lib.actions import FunctionCall
-from pysc2.lib.static_data import NUM_ACTIONS, ACTIONS_REORDER_INV, RESEARCH_REWARD_ACTIONS, EFFECT_REWARD_ACTIONS,\
-    UNITS_REWARD_ACTIONS, BUILD_ORDER_REWARD_ACTIONS
+from pysc2.lib.static_data import NUM_ACTIONS, ACTIONS_REORDER_INV
 from sc2learner.envs import get_available_actions_processed_data, get_map_size, get_enemy_upgrades_processed_data
-from sc2learner.envs.observations.alphastar_obs_wrapper import SpatialObsWrapper, ScalarObsWrapper, EntityObsWrapper, \
+from .observations.alphastar_obs_wrapper import SpatialObsWrapper, ScalarObsWrapper, EntityObsWrapper, \
     transform_spatial_data, transform_scalar_data, transform_entity_data
-from sc2learner.envs.statistics import GameLoopStatistics, RealTimeStatistics
-from sc2learner.torch_utils import levenshtein_distance, hamming_distance, to_device
-from sc2learner.data import diff_shape_collate
+from .statistics import GameLoopStatistics, RealTimeStatistics
+from .rewards import RewardHelper
 
 
 class AlphaStarEnv(SC2Env):
@@ -59,14 +57,14 @@ class AlphaStarEnv(SC2Env):
         self._pseudo_reward_type = cfg.env.pseudo_reward_type
         self._pseudo_reward_prob = cfg.env.pseudo_reward_prob
         assert self._obs_stat_type in ['replay_online', 'self_online', 'replay_last']
-        assert self._pseudo_reward_type in ['global', 'immediate']
+        self.reward_helper = RewardHelper(self.agent_num, cfg.env.pseudo_reward_type, cfg.env.pseudo_reward_prob)
 
         self._reset_flag = False
         # This is the human games statistics used as an input of network
         self.loaded_eval_stat = [None] * self.agent_num
         self.enemy_upgrades = [None] * self.agent_num
         # This is for the statistics of current episode actions and obs
-        self._episode_stat = [RealTimeStatistics(self._begin_num)] * self.agent_num
+        self._episode_stats = [RealTimeStatistics(self._begin_num) for _ in range(self.agent_num)]
 
     def load_stat(self, stat, agent_no):
         """
@@ -84,7 +82,7 @@ class AlphaStarEnv(SC2Env):
         if self._obs_stat_type == 'replay_online':
             stat = self.loaded_eval_stat[agent_no].get_input_z_by_game_loop(game_loop=game_loop)
         elif self._obs_stat_type == 'self_online':
-            cumulative_stat = self._episode_stat[agent_no].cumulative_statistics
+            cumulative_stat = self._episode_stats[agent_no].cumulative_statistics
             stat = self.loaded_eval_stat[agent_no].get_input_z_by_game_loop(cumulative_stat=cumulative_stat)
         elif self._obs_stat_type == 'replay_last':
             stat = self.loaded_eval_stat[agent_no].get_input_z_by_game_loop(game_loop=None)
@@ -277,12 +275,27 @@ class AlphaStarEnv(SC2Env):
                     _, r, _, o, info[n] = timestep
                     assert (self.last_actions[n])
                     obs[n] = self._get_obs(o, n)
-                    rewards[n] = self._get_pseudo_rewards(r, n)
+                    rewards[n] = r
                 if due[n]:
                     assert (self.last_actions[n])
-                    self._episode_stat[n].update_stat(self.last_actions[n], obs[n], self._episode_steps)
+                    self._episode_stats[n].update_stat(self.last_actions[n], obs[n], self._episode_steps)
+            action_types = [a['action_type'] for a in self.last_actions]
             if self.agent_num == 2:
-                rewards = self._compute_battle_reward(rewards, self._last_output[2], obs)
+                battle_values = RewardHelper.BattleValues(
+                    self._last_output[2][0]['battle_value'], obs[0]['battle_value'],
+                    self._last_output[2][1]['battle_value'], obs[1]['battle_value']
+                )
+            else:
+                battle_values = RewardHelper.BattleValues(0, 0, 0, 0)
+            rewards = self.reward_helper.get_pseudo_rewards(
+                rewards,
+                action_types,
+                self._episode_stats,
+                self.loaded_eval_stats,
+                self._episode_steps,
+                battle_values,
+                return_list=True
+            )
             self._last_output = [self._episode_steps, due, obs, rewards, done, info]
         # as obs may be changed somewhere in parsing
         # we have to return a copy to keep the self._last_ouput intact
@@ -303,7 +316,7 @@ class AlphaStarEnv(SC2Env):
             'target_units': None,
             'target_location': None
         }
-        self.last_actions = [last_action] * self.agent_num
+        self.last_actions = [last_action for _ in range(self.agent_num)]
         obs = []
         for n in range(self.agent_num):
             obs.append(self._get_obs(timesteps[n].observation, last_action, n))
@@ -320,7 +333,6 @@ class AlphaStarEnv(SC2Env):
         self._reset_flag = True
         self._buffered_actions = [[] for i in range(self.agent_num)]
         self._last_output = [0, [True] * self.agent_num, obs, [0] * self.agent_num, False, infos]
-        self.last_behaviour_z = [None] * self.agent_num
         return copy.deepcopy(obs)
 
     def transformed_action_to_string(self, action):
@@ -343,123 +355,3 @@ class AlphaStarEnv(SC2Env):
             return None
         action = self._transform_action(action)
         return action['action_type']
-
-    def _get_pseudo_rewards(self, reward, agent_no):
-        action_type = self.last_actions[agent_no]['action_type']
-        game_loop = self._episode_steps
-        game_seconds = game_loop // 22
-        # if current game_loop excesses the loaded human replay game_loop, return zero pseudo rewards
-        if self.loaded_eval_stat.excess_max_game_loop(game_loop):
-            return self._get_zero_rewards(reward)
-
-        if self._pseudo_reward_type == 'global':
-            behaviour_z = self._episode_stat.get_reward_z(use_max_bo_clip=True)
-            human_target_z = self.loaded_eval_stat.get_reward_z_by_game_loop(game_loop=None)
-        elif self._pseudo_reward_type == 'immediate':
-            behaviour_z = self._episode_stat.get_reward_z(use_max_bo_clip=False)
-            human_target_z = self.loaded_eval_stat.get_reward_z_by_game_loop(game_loop=game_loop)
-        # add batch
-        self.batch_size = 1
-        game_seconds = [game_seconds]
-        rewards = torch.FloatTensor([reward])
-        action_type = [action_type]
-        self.device = rewards.device
-        assert self.device == torch.device('cpu')
-        behaviour_z = diff_shape_collate([behaviour_z])
-        human_target_z = diff_shape_collate([human_target_z])
-        masks = self._get_reward_masks(action_type, behaviour_z, self.last_behaviour_z[agent_no])
-        rewards = self._compute_pseudo_rewards(behaviour_z, human_target_z, rewards, game_seconds, masks)
-        self.last_behaviour_z[agent_no] = copy.deepcopy(behaviour_z)
-        return rewards
-
-    def _get_zero_rewards(self, reward):
-        rewards = {}
-        rewards['winloss'] = torch.FloatTensor([reward])
-        for k in ['build_order', 'built_unit', 'upgrade', 'effect']:
-            rewards[k] = torch.FloatTensor([0])
-        rewards = to_device(rewards, self.device)
-        return rewards
-
-    def _get_reward_masks(self, action_type, behaviour_z, last_behaviour_z):
-        masks = {}
-        mask_build_order = torch.zeros(self.batch_size)
-        for i in range(self.batch_size):
-            mask_build_order[i] = 1 if action_type[i] in BUILD_ORDER_REWARD_ACTIONS else 0
-        masks['build_order'] = mask_build_order
-        for k in ['built_unit', 'effect', 'upgrade']:
-            ne_num = behaviour_z[k].ne(last_behaviour_z[k]).sum(dim=1)
-            masks[k] = torch.where(ne_num > 0, torch.ones(self.batch_size), torch.zeros(self.batch_size))
-        masks = to_device(masks, self.device)
-        return masks
-
-    def _compute_pseudo_rewards(self, behaviour_z, human_target_z, rewards, game_seconds, masks):
-        """
-            Overview: compute pseudo rewards from human replay z
-            Arguments:
-                - behaviour_z (:obj:`dict`)
-                - human_target_z (:obj:`dict`)
-                - rewards (:obj:`torch.Tensor`)
-                - game_seconds (:obj:`int`)
-            Returns:
-                - rewards (:obj:`dict`): a dict contains different type rewards
-        """
-        def loc_fn(p1, p2, max_limit=self.build_order_location_max_limit):
-            p1 = p1.float().to(self.device)
-            p2 = p2.float().to(self.device)
-            dist = F.l1_loss(p1, p2, reduction='sum')
-            dist = dist.clamp(0, max_limit)
-            dist = dist / max_limit * self.build_order_location_rescale
-            return dist.item()
-
-        def get_time_factor(game_second):
-            if game_second < 8 * 60:
-                return 1.0
-            elif game_second < 16 * 60:
-                return 0.5
-            elif game_second < 24 * 60:
-                return 0.25
-            else:
-                return 0
-
-        factors = torch.FloatTensor([get_time_factor(s) for s in game_seconds]).to(self.device)
-
-        new_rewards = OrderedDict()
-        new_rewards['winloss'] = rewards
-        # build_order
-        p = np.random.uniform()
-        build_order_reward = []
-        for i in range(self.batch_size):
-            # only proper action can activate
-            mask = masks['build_order'][i]
-            # only some prob can activate
-            mask = mask if p < self._pseudo_reward_prob else 0
-            # if current the length of the behaviour_build_order is longer than that of human_target_z, return zero
-            if len(behaviour_z['build_order']['type'][i]) > len(human_target_z['build_order']['type'][i]):
-                build_order_reward.append(torch.FloatTensor([0]))
-            else:
-                build_order_reward.append(
-                    -levenshtein_distance(
-                        behaviour_z['build_order']['type'][i], human_target_z['build_order']['type'][i],
-                        behaviour_z['build_order']['loc'][i], human_target_z['build_order']['loc'][i], loc_fn
-                    ) * factors[i] * mask
-                )
-        new_rewards['build_order'] = torch.FloatTensor(build_order_reward).to(self.device)
-        # built_unit, effect, upgrade
-        # p is independent from all the pseudo reward and the same in a batch
-        for k in ['built_unit', 'effect', 'upgrade']:
-            mask = masks[k]
-            p = np.random.uniform()
-            mask_factor = 1 if p < self._pseudo_reward_prob else 0
-            mask *= mask_factor
-            new_rewards[k] = -hamming_distance(behaviour_z[k], human_target_z[k], factors) * mask
-        for k in new_rewards.keys():
-            new_rewards[k] = new_rewards[k].float()
-        return new_rewards
-
-    def _compute_battle_reward(self, rewards, last_obs, cur_obs):
-        v = (cur_obs[0]['battle_value'] -
-             last_obs[0]['battle_value']) - (cur_obs[1]['battle_value'] - last_obs[1]['battle_value'])
-        v = torch.FloatTensor([v]).to(self.device)
-        rewards[0]['battle'] = v
-        rewards[1]['battle'] = -v
-        return rewards

@@ -72,8 +72,6 @@ class AlphaStarRLLoss(BaseLoss):
         self.action_output_types = train_config.action_output_types
         assert (all([t in ['value', 'logit'] for t in self.action_output_types.values()]))
         self.action_type_kl_seconds = train_config.kl.action_type_kl_seconds
-        self.build_order_location_max_limit = train_config.build_order_location.max_limit
-        self.build_order_location_rescale = train_config.build_order_location.rescale
         self.use_target_state = train_config.use_target_state
 
         self.loss_weights = train_config.loss_weights

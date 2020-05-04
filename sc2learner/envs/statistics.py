@@ -120,7 +120,8 @@ class RealTimeStatistics:
             obs: observation
             game_loop: current game loop
         """
-        self.update_action_stat(act, obs)
+        if obs is not None:
+            self.update_action_stat(act, obs)
         self.update_cum_stat(act, game_loop)
         self.update_build_order_stat(act, game_loop)
 
@@ -224,6 +225,7 @@ class GameLoopStatistics:
             'upgrade': cum_stat_tensor['research'],
             'build_order': transform_build_order_to_z_format(beginning_build_order),
         }
+        self.reward_global_z = to_dtype(self.reward_global_z, torch.long)
 
     def get_input_z_by_game_loop(self, game_loop, cumulative_stat=None):
         """
@@ -259,6 +261,7 @@ class GameLoopStatistics:
             'upgrade': cum_stat_tensor['research'],
             'build_order': transform_build_order_to_z_format(beginning_build_order),
         }
+        ret = to_dtype(ret, torch.long)
         return ret
 
     def _get_stat_by_game_loop(self, game_loop):

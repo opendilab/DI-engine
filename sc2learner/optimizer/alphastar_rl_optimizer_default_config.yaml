@@ -12,9 +12,6 @@ train:
         selected_units: logit
         target_units: logit
         target_location: logit
-    build_order_location:
-        max_limit: 2
-        rescale: 0.8
     kl:
         action_type_kl_seconds: 240
     vtrace:
