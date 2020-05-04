@@ -144,8 +144,6 @@ class GameLoopStatistics:
     """
     Overview: Human replay data statistics specified by game loop
     """
-    CacheItem = namedtuple('CacheItem', ['key', 'value'])
-
     def __init__(self, stat, begin_num=20):
         self.ori_stat = stat
         self.ori_stat = self.add_game_loop(self.ori_stat)
@@ -155,6 +153,7 @@ class GameLoopStatistics:
         self.cache_reward_z = None
         self.cache_input_z = None
         self.max_game_loop = self.ori_stat['cumulative_stat'][-1]['game_loop']
+        self._init_global_z()
 
     def add_game_loop(self, stat):
         beginning_build_order = stat['beginning_build_order']
@@ -207,15 +206,32 @@ class GameLoopStatistics:
             self.input_global_bo = beginning_build_order
             self.reward_global_bo = beginning_build_order
 
+    def _init_global_z(self):
+        # init input_global_z
+        beginning_build_order, cumulative_stat = self.input_global_bo, self.ori_stat['cumulative_stat'][-1]
+        self.input_global_z = transformed_stat_mmr(
+            {
+                'begin_statistics': beginning_build_order,
+                'cumulative_statistics': cumulative_stat
+            }, self.mmr
+        )
+        # init reward_global_z
+        beginning_build_order, cumulative_stat = self.reward_global_bo, self.ori_stat['cumulative_stat'][-1]
+        cum_stat_tensor = transform_cum_stat(cumulative_stat)
+        self.reward_global_z = {
+            'built_units': cum_stat_tensor['unit_build'],
+            'effects': cum_stat_tensor['effect'],
+            'upgrades': cum_stat_tensor['research'],
+            'build_order': transform_build_order_to_z_format(beginning_build_order),
+        }
+
     def get_input_z_by_game_loop(self, game_loop, cumulative_stat=None):
         """
         Note: if game_loop is None, load global stat
         """
         if cumulative_stat is None:
-            if game_loop == self.cache_input_z.key:
-                return self.cache_input_z.value
             if game_loop is None:
-                cumulative_stat = self.ori_stat['cumulative_stat'][-1]
+                return self.input_global_z
             else:
                 _, cumulative_stat = self._get_stat_by_game_loop(game_loop)
         beginning_build_order = self.input_global_bo
@@ -225,21 +241,17 @@ class GameLoopStatistics:
                 'cumulative_statistics': cumulative_stat
             }, self.mmr
         )
-        if cumulative_stat is None:
-            self.cache_input_z = self.CacheItem(game_loop, ret)
         return ret
 
     def get_reward_z_by_game_loop(self, game_loop):
         """
         Note: if game_loop is None, load global stat
         """
-        if game_loop == self.cache_reward_z.key:
-            return self.cache_reward_z.value
         if game_loop is None:
-            beginning_build_order = self.reward_global_bo
-            cumulative_stat = self.ori_stat['cumulative_stat'][-1]
+            return self.reward_global_z
         else:
             beginning_build_order, cumulative_stat = self._get_stat_by_game_loop(game_loop)
+        # TODO(nyz) same game_loop case
         cum_stat_tensor = transform_cum_stat(cumulative_stat)
         ret = {
             'built_units': cum_stat_tensor['unit_build'],
@@ -247,8 +259,6 @@ class GameLoopStatistics:
             'upgrades': cum_stat_tensor['research'],
             'build_order': transform_build_order_to_z_format(beginning_build_order),
         }
-        ret = to_dtype(ret, torch.long)
-        self.cache_reward_z = self.CacheItem(game_loop, ret)
         return ret
 
     def _get_stat_by_game_loop(self, game_loop):
