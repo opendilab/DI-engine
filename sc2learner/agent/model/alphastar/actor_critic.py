@@ -26,9 +26,7 @@ class AlphaStarActorCritic(ActorCriticBase):
             'score_embedding_home', 'score_embedding_away', 'cum_stat_home', 'cum_stat_away'
         ]
     )
-    CriticOutput = namedtuple(
-        'CriticOutput', ['winloss', 'build_order', 'built_unit', 'effect', 'upgrade', 'battle']
-    )
+    CriticOutput = namedtuple('CriticOutput', ['winloss', 'build_order', 'built_unit', 'effect', 'upgrade', 'battle'])
 
     def __init__(self, model_config=None):
         super(AlphaStarActorCritic, self).__init__()
@@ -85,7 +83,9 @@ class AlphaStarActorCritic(ActorCriticBase):
 
     # overwrite
     def mimic(self, inputs, **kwargs):
-        lstm_output, next_state, entity_embeddings, map_skip, scalar_context, spatial_info, _, _ = self.encoder(inputs)
+        lstm_output, next_state, entity_embeddings, map_skip, scalar_context, spatial_info, _, _, _ = self.encoder(
+            inputs
+        )
         policy_inputs = self.policy.MimicInput(
             inputs['actions'], inputs['entity_raw'], inputs['scalar_info']['available_actions'], lstm_output,
             entity_embeddings, map_skip, scalar_context, spatial_info
@@ -114,7 +114,9 @@ class AlphaStarActorCritic(ActorCriticBase):
         ratio = self.cfg.policy.location_expand_ratio
         Y, X = inputs['map_size'][0]
 
-        lstm_output, next_state, entity_embeddings, map_skip, scalar_context, spatial_info, _, _ = self.encoder(inputs)
+        lstm_output, next_state, entity_embeddings, map_skip, scalar_context, spatial_info, _, _, _ = self.encoder(
+            inputs
+        )
         policy_inputs = self.policy.EvaluateInput(
             inputs['entity_raw'],
             inputs['scalar_info']['available_actions'],

@@ -29,7 +29,8 @@ class Encoder(nn.Module):
         self.scatter_project = fc_block(cfg.scatter.input_dim, cfg.scatter.output_dim)
         self.scatter_dim = cfg.scatter.output_dim
         self.score_cumulative_encoder = fc_block(
-            self.cfg.score_cumulative.input_dim, self.cfg.score_cumulative.output_dim,
+            self.cfg.score_cumulative.input_dim,
+            self.cfg.score_cumulative.output_dim,
             activation=build_activation(self.cfg.score_cumulative.activation)
         )
 
@@ -90,6 +91,9 @@ class Encoder(nn.Module):
             embedded_entity, embedded_spatial, embedded_scalar, inputs['prev_state']
         )
         lstm_output = lstm_output.squeeze(0)
-        score_embedding = self.score_cumulative_encoder(inputs['score_cumulative'])
+        if 'score_embedding' in inputs.keys():
+            score_embedding = self.score_cumulative_encoder(inputs['score_cumulative'])
+        else:
+            score_embedding = None  # placeholder
         return lstm_output, next_state, entity_embeddings, map_skip, scalar_context, inputs[
             'spatial_info'], baseline_feature, cum_stat, score_embedding
