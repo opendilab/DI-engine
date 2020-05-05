@@ -52,7 +52,7 @@ class AlphaStarEnv(SC2Env):
         template_obs, template_replay, template_act = transform_scalar_data()
         self._scalar_wrapper = ScalarObsWrapper(template_obs)
         self._template_act = template_act
-        self._begin_num = cfg._begin_num
+        self._begin_num = cfg.env.begin_num
         self._obs_stat_type = cfg.env.obs_stat_type
         self._pseudo_reward_type = cfg.env.pseudo_reward_type
         self._pseudo_reward_prob = cfg.env.pseudo_reward_prob
