@@ -52,6 +52,7 @@ replay_buffer:
     
 # values in this section is mean to be shared by multiple components
 system:
+    resume_dir:    # placeholder, it's set by coordinator_start.py
     learner_port: 18193               # learner port
     learner_uid:              # uid could be set, used with re_register and an existed uid should be set
     learner_re_register:          # if reregister learner, choices in [True, False], False as default

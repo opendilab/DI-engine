@@ -91,7 +91,7 @@ class Encoder(nn.Module):
             embedded_entity, embedded_spatial, embedded_scalar, inputs['prev_state']
         )
         lstm_output = lstm_output.squeeze(0)
-        if 'score_embedding' in inputs.keys():
+        if 'score_cumulative' in inputs.keys():
             score_embedding = self.score_cumulative_encoder(inputs['score_cumulative'])
         else:
             score_embedding = None  # placeholder

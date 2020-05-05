@@ -16,8 +16,6 @@ from sc2learner.torch_utils import levenshtein_distance, hamming_distance, same_
 from sc2learner.rl_utils import td_lambda_loss, vtrace_loss, upgo_loss, compute_importance_weights, entropy
 from sc2learner.utils import list_dict2dict_list, get_rank
 from sc2learner.data import diff_shape_collate
-from pysc2.lib.static_data import RESEARCH_REWARD_ACTIONS, EFFECT_REWARD_ACTIONS, UNITS_REWARD_ACTIONS, \
-    BUILD_ORDER_REWARD_ACTIONS
 
 
 def build_temperature_scheduler(temperature):

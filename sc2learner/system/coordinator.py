@@ -53,11 +53,6 @@ class Coordinator(object):
 
         self.url_prefix_format = 'http://{}:{}/'
 
-        # TODO(nyz) each learner has its own replay_buffer
-        # move to register_learner
-        # self.replay_buffer = ReplayBuffer(EasyDict(self.cfg['replay_buffer']))
-        # self.replay_buffer.run()
-
         self.lock = Lock()
         self.save_ret_metadata_num = 5
         self._set_logger()
@@ -87,7 +82,8 @@ class Coordinator(object):
         self.logger.info("[UP] check resume thread ")
 
     def close(self):
-        self.replay_buffer.close()
+        for k, v in self.learner_record.items():
+            self.learner_record[k]['replay_buffer'].close()
 
     def _set_logger(self, level=1):
         self.logger = logging.getLogger("coordinator.log")
@@ -131,17 +127,25 @@ class Coordinator(object):
         if self.use_fake_data:
             if not self.learner_record:
                 self.learner_record['test1'] = {
-                    "learner_ip": '0.0.0.0',
+                    "learner_ip_port_list": [['0.0.0.0'], [11111]],
                     "job_ids": [],
                     "checkpoint_path": '',
-                    'ret_metadatas': {}
+                    "replay_buffer": ReplayBuffer(EasyDict(self.cfg['replay_buffer'])),
+                    'ret_metadatas': {},
+                    "last_beats_time": int(time.time()),
+                    "state": 'alive'
                 }
                 self.learner_record['test2'] = {
-                    "learner_ip": '0.0.0.0',
+                    "learner_ip_port_list": [['0.0.0.1'], [11112]],
                     "job_ids": [],
                     "checkpoint_path": '',
-                    'ret_metadatas': {}
+                    "replay_buffer": ReplayBuffer(EasyDict(self.cfg['replay_buffer'])),
+                    'ret_metadatas': {},
+                    "last_beats_time": int(time.time()),
+                    "state": 'alive'
                 }
+                self.learner_record['test1']['replay_buffer'].run()
+                self.learner_record['test2']['replay_buffer'].run()
             learner_uid1 = random.choice(list(self.learner_record.keys()))
             learner_uid2 = random.choice(list(self.learner_record.keys()))
             model_name1 = self.fake_model_path
