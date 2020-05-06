@@ -31,7 +31,9 @@ def binary_search(data, item):
             low = mid + 1
         else:
             high = mid - 1
-    return low - 1
+    if low == len(data):
+        low -= 1  # limit low within [0, len(data)-1]
+    return low
 
 
 class RealTimeStatistics:
@@ -245,12 +247,15 @@ class GameLoopStatistics:
         )
         return ret
 
-    def get_reward_z_by_game_loop(self, game_loop):
+    def get_reward_z_by_game_loop(self, game_loop, build_order_length=None):
         """
         Note: if game_loop is None, load global stat
         """
         if game_loop is None:
-            return self.reward_global_z
+            global_z = copy.deepcopy(self.reward_global_z)
+            global_z['build_order']['type'] = global_z['build_order']['type'][:build_order_length]
+            global_z['build_order']['loc'] = global_z['build_order']['loc'][:build_order_length]
+            return global_z
         else:
             beginning_build_order, cumulative_stat = self._get_stat_by_game_loop(game_loop)
         # TODO(nyz) same game_loop case

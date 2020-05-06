@@ -41,7 +41,9 @@ class RewardHelper:
             for i in range(self.agent_num):
                 if self.pseudo_reward_type == 'global':
                     behaviour_z = episode_stats[i].get_reward_z(use_max_bo_clip=True)
-                    human_target_z = loaded_eval_stats[i].get_reward_z_by_game_loop(game_loop=None)
+                    bo_length = len(behaviour_z['build_order']['type'])
+                    human_target_z = loaded_eval_stats[i].get_reward_z_by_game_loop(game_loop=None,
+                                                                                    build_order_length=bo_length)
                 elif self.pseudo_reward_type == 'immediate':
                     behaviour_z = episode_stats[i].get_reward_z(use_max_bo_clip=False)
                     human_target_z = loaded_eval_stats[i].get_reward_z_by_game_loop(game_loop=game_loop)
@@ -135,7 +137,8 @@ class RewardHelper:
             # only some prob can activate
             mask = mask if p < self.pseudo_reward_prob else 0
             # if current the length of the behaviour_build_order is longer than that of human_target_z, return zero
-            if len(behaviour_z['build_order']['type'][i]) > len(human_target_z['build_order']['type'][i]):
+            if (len(behaviour_z['build_order']['type'][i]) > len(human_target_z['build_order']['type'][i])
+                    and self.pseudo_reward_type == 'global'):
                 build_order_reward.append(torch.FloatTensor([0]))
             else:
                 build_order_reward.append(
