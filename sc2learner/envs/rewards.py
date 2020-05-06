@@ -42,8 +42,9 @@ class RewardHelper:
                 if self.pseudo_reward_type == 'global':
                     behaviour_z = episode_stats[i].get_reward_z(use_max_bo_clip=True)
                     bo_length = len(behaviour_z['build_order']['type'])
-                    human_target_z = loaded_eval_stats[i].get_reward_z_by_game_loop(game_loop=None,
-                                                                                    build_order_length=bo_length)
+                    human_target_z = loaded_eval_stats[i].get_reward_z_by_game_loop(
+                        game_loop=None, build_order_length=bo_length
+                    )
                 elif self.pseudo_reward_type == 'immediate':
                     behaviour_z = episode_stats[i].get_reward_z(use_max_bo_clip=False)
                     human_target_z = loaded_eval_stats[i].get_reward_z_by_game_loop(game_loop=game_loop)

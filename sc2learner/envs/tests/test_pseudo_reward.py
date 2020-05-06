@@ -66,15 +66,36 @@ class TestPseudoReward:
         episode_stats = [RealTimeStatistics() for _ in range(2)]
         win_loss_rewards = [0, 0]
         battle_values = RewardHelper.BattleValues(50, 100, 550, 600)
-        actions = [{'action_type': 217, 'target_location': [17, 19]},
-                   {'action_type': 217, 'target_location': [17, 20]},
-                   {'action_type': 197, 'target_location': [36, 13]},
-                   {'action_type': 193, 'target_location': 'none'},
-                   {'action_type': 315, 'target_location': 'none'},
-                   {'action_type': 437, 'target_location': 'none'},
-                   {'action_type': 495, 'target_location': 'none'},
-                   {'action_type': 296, 'target_location': 'none'},
-                   {'action_type': 185, 'target_location': 'none'}]
+        actions = [
+            {
+                'action_type': 217,
+                'target_location': [17, 19]
+            }, {
+                'action_type': 217,
+                'target_location': [17, 20]
+            }, {
+                'action_type': 197,
+                'target_location': [36, 13]
+            }, {
+                'action_type': 193,
+                'target_location': 'none'
+            }, {
+                'action_type': 315,
+                'target_location': 'none'
+            }, {
+                'action_type': 437,
+                'target_location': 'none'
+            }, {
+                'action_type': 495,
+                'target_location': 'none'
+            }, {
+                'action_type': 296,
+                'target_location': 'none'
+            }, {
+                'action_type': 185,
+                'target_location': 'none'
+            }
+        ]
         action_types = [197, 217]
         episode_stats[0].update_stat(actions[2], None, 1)
         episode_stats[1].update_stat(actions[0], None, 1)
@@ -120,8 +141,6 @@ class TestPseudoReward:
         assert rewards['effect'].tolist() == pytest.approx([-1, 0])
         assert rewards['built_unit'].tolist() == pytest.approx([0, -15])
         assert rewards['upgrade'].tolist() == pytest.approx([0, 0])
-
-
 
     def test_immediate(self, setup_loaded_stats):
         reward_helper = RewardHelper(2, 'immediate', 1.)
@@ -181,9 +200,24 @@ class TestPseudoReward:
         episode_stats = [RealTimeStatistics() for _ in range(2)]
         battle_values = RewardHelper.BattleValues(150, 200, 250, 350)
         win_loss_rewards = [0, 0]
-        actions = [{'action_type': 197, 'target_location': [1, 1]},{'action_type': 217, 'target_location': [17, 19]},
-                   {'action_type': 516, 'target_location': 'none'},{'action_type': 193, 'target_location': 'none'},
-                   ]
+        actions = [
+            {
+                'action_type': 197,
+                'target_location': [1, 1]
+            },
+            {
+                'action_type': 217,
+                'target_location': [17, 19]
+            },
+            {
+                'action_type': 516,
+                'target_location': 'none'
+            },
+            {
+                'action_type': 193,
+                'target_location': 'none'
+            },
+        ]
 
         action_types = [197, 197]
         episode_stats[0].update_stat(actions[0], None, 1)
@@ -213,6 +247,7 @@ class TestPseudoReward:
             win_loss_rewards, action_types, episode_stats, setup_loaded_stats, 2590, battle_values
         )
         assert rewards['build_order'].tolist() == pytest.approx([-2.8, -2.8])
+
 
 if __name__ == '__main__':
     pytest.main(['test_pseudo_reward.py', '-s'])
