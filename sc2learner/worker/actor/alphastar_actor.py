@@ -75,6 +75,20 @@ class AlphaStarActor:
                     use_distributed=False
                 )
             ]
+        elif job['game_type'] == 'game_vs_agent':
+            self.agent_num = 1
+            players = [
+                sc2_env.Agent(sc2_env.Race[job['home_race']]),
+                sc2_env.Agent(sc2_env.Race[job['away_race']]),
+            ]
+            self.agents = [
+                AlphaStarAgent(
+                    model_config=self.cfg.model,
+                    num_concurrent_episodes=1,
+                    use_cuda=self.cfg.env.use_cuda,
+                    use_distributed=False
+                )
+            ]
         elif job['game_type'] in ['self_play', 'league']:
             self.agent_num = 2
             players = [

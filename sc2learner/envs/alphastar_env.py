@@ -34,7 +34,10 @@ class AlphaStarEnv(SC2Env):
             action_delays=cfg.env.get('action_delays')
         )
 
-        self.agent_num = sum([isinstance(p, sc2_env.Agent) for p in players])
+        if self.cfg.evaluate.game_type == 'game_vs_agent':
+            self.agent_num = 1
+        else:
+            self.agent_num = sum([isinstance(p, sc2_env.Agent) for p in players])
         assert (self.agent_num <= 2)
         super(AlphaStarEnv, self).__init__(
             map_name=cfg.env.map_name,

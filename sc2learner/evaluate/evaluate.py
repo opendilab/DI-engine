@@ -88,6 +88,20 @@ class EvalJobGetter:
                 'away_race': self.cfg.evaluate.away_race,
                 'data_push_length': 64,
             }
+        elif self.cfg.evaluate.game_type == 'game_vs_agent':
+            job = {
+                'job_id': 'test0',
+                'game_type': 'game_vs_agent',
+                'step_data_compressor': 'simple',
+                'model_id': ['agent0'],
+                'teacher_model_id': None,
+                'stat_id': ['agent0'],
+                'map_name': self.cfg.evaluate.map_name,
+                'random_seed': self.cfg.evaluate.seed,
+                'home_race': self.cfg.evaluate.home_race,
+                'away_race': self.cfg.evaluate.away_race,
+                'data_push_length': 64,
+            }
         else:
             raise NotImplementedError('Unknown game_type')
         self.job_req_id += 1

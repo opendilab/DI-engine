@@ -415,7 +415,10 @@ class SC2Env(environment.Base):
                 create.player_setup.add(
                     type=sc_pb.Computer, race=random.choice(p.race),
                     difficulty=p.difficulty, ai_build=random.choice(p.build))
-        self._controllers[0].create_game(create)
+        if self._num_agents > 1:
+            self._controllers[1].create_game(create)
+        else:
+            self._controllers[0].create_game(create)
 
         # Create the join requests.
         agent_players = [p for p in self._players if isinstance(p, Agent)]
