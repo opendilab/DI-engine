@@ -1,7 +1,9 @@
-import torch
+import os
+import pickle
 from collections import namedtuple
 import copy
 import numpy as np
+import torch
 import logging
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
 from pysc2.lib.static_data import NUM_BUFFS, NUM_ABILITIES, NUM_UNIT_TYPES, UNIT_TYPES_REORDER,\
@@ -391,3 +393,74 @@ def transform_stat_professional_player(old_stat):
             new_beginning_build_order.append(item)
     new_stat['beginning_build_order'] = new_beginning_build_order
     return new_stat
+
+
+class StatKey:
+    def __init__(self, home_race=None, away_race=None, map_name=None, player_id=None):
+        self.home_race = home_race
+        self.away_race = away_race
+        self.map_name = map_name
+        self.player_id = player_id
+
+    @classmethod
+    def check_path(cls, item):
+        """
+        Overview: check stat path name format
+        Note:
+            format template: homerace_awayrace_mapname_playerid_id
+        """
+        race_list = ['zerg', 'terran', 'protoss']
+        map_list = ['KingsCove', 'KairosJunction', 'NewRepugnancy', 'CyberForest']
+        try:
+            item_contents = item.split('_')
+            assert len(item_contents) == 5
+            assert item_contents[0] in race_list
+            assert item_contents[1] in race_list
+            assert item_contents[2] in map_list
+            assert item_contents[3] in ['1', '2']
+        except Exception as e:
+            print(item_contents)
+            return False
+        return True
+
+    @classmethod
+    def path2key(cls, path):
+        items = path.split('_')[:4]
+        return StatKey(*items)
+
+    def match(self, other):
+        assert isinstance(other, StatKey)
+        for k, v in self.__dict__.items():
+            if v is not None:
+                if other.__dict__[k] != v:
+                    return False
+        return True
+
+
+class StatManager:
+    def __init__(self, stat_dir):
+        assert os.path.exists(stat_dir), stat_dir
+        self.stat_dir = stat_dir
+        self.stat_paths = [item for item in os.listdir(self.stat_dir) if StatKey.check_path(item)]
+        self.stat_keys = [StatKey.path2key(t) for t in self.stat_paths]
+
+    def get_ava_stats(self, **kwargs):
+        assert kwargs['player_id'] == 'ava'
+        # select matched results
+        stats = []
+        for player_id in ['1', '2']:
+            kwargs['player_id'] = player_id
+            query = StatKey(**kwargs)
+            matched_results_idx = [idx for idx, t in enumerate(self.stat_keys) if query.match(t)]
+            if len(matched_results_idx) == 0:
+                raise RuntimeError("no matched stat, input kwargs are: {}".format(kwargs))
+            # random sample
+            selected_idx = np.random.choice(matched_results_idx)
+            stat_path = self.stat_paths[selected_idx]
+            stats.append(self._load_stat(stat_path))
+        return stats
+
+    def _load_stat(self, path):
+        with open(os.path.join(self.stat_dir, path), 'rb') as f:
+            stat = pickle.load(f)
+        return stat
