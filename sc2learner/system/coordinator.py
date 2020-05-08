@@ -14,11 +14,10 @@ import uuid
 import random
 from easydict import EasyDict
 from queue import Queue
-from multiprocessing import Lock
 import torch
 
 from sc2learner.data.online import ReplayBuffer
-from sc2learner.utils import read_file_ceph, save_file_ceph
+from sc2learner.utils import read_file_ceph, save_file_ceph, LockContext
 from sc2learner.league import LeagueManager
 from sc2learner.envs import StatManager
 
@@ -58,7 +57,7 @@ class Coordinator(object):
         self.map_name_list = cfg.env.map_name_list
         assert len(self.map_name_list) > 0
 
-        self.lock = Lock()
+        self.lock = LockContext(lock_type='process')
         self.save_ret_metadata_num = 5
         self._set_logger()
 
@@ -95,12 +94,6 @@ class Coordinator(object):
 
     def _set_logger(self, level=1):
         self.logger = logging.getLogger("coordinator.log")
-
-    def _acquire_lock(self):
-        self.lock.acquire()
-
-    def _release_lock(self):
-        self.lock.release()
 
     def _load_resume(self):
         if self.cfg.system.coordinator_resume_path and os.path.isfile(self.cfg.system.coordinator_resume_path):
@@ -216,51 +209,49 @@ class Coordinator(object):
                 - learner_uid (:obj:`str`): learner's uid
         '''
         if hasattr(self, 'player_ids'):
-            self._acquire_lock()
-            self.logger.info('now learner_record: {}'.format(self.learner_record))
-            if learner_uid not in self.learner_record:
-                if len(self.player_to_learner) < len(self.player_ids):
-                    self.learner_record[learner_uid] = {
-                        "learner_ip_port_list": [[learner_ip, learner_port]],
-                        "job_ids": [],
-                        "checkpoint_path": '',
-                        "replay_buffer": ReplayBuffer(EasyDict(self.cfg['replay_buffer'])),
-                        "ret_metadatas": {},
-                        "last_beats_time": int(time.time()),
-                        "state": 'alive'
-                    }
-                    self.learner_record[learner_uid]['replay_buffer'].run()
-                    for index, player_id in enumerate(self.player_ids):
-                        if player_id not in self.player_to_learner:
-                            self.player_to_learner[player_id] = learner_uid
-                            self.learner_to_player[learner_uid] = player_id
-                            self.learner_record[learner_uid]['checkpoint_path'] = self.player_ckpts[index]
-                            self.logger.info('learner ({}) set to player ({})'.format(learner_uid, player_id))
-                            break
-                    self.logger.info(
-                        '{}/{} learners have been registered'.format(len(self.player_to_learner), len(self.player_ids))
-                    )
-                    if len(self.player_ids) == len(self.player_to_learner) and not self.league_flag:
-                        self.league_flag = True
-                        self._tell_league_manager_to_run()
-                        self.logger.info('league_manager run with table {}. '.format(self.player_to_learner))
+            with self.lock:
+                self.logger.info('now learner_record: {}'.format(self.learner_record))
+                if learner_uid not in self.learner_record:
+                    if len(self.player_to_learner) < len(self.player_ids):
+                        self.learner_record[learner_uid] = {
+                            "learner_ip_port_list": [[learner_ip, learner_port]],
+                            "job_ids": [],
+                            "checkpoint_path": '',
+                            "replay_buffer": ReplayBuffer(EasyDict(self.cfg['replay_buffer'])),
+                            "ret_metadatas": {},
+                            "last_beats_time": int(time.time()),
+                            "state": 'alive'
+                        }
+                        self.learner_record[learner_uid]['replay_buffer'].run()
+                        for index, player_id in enumerate(self.player_ids):
+                            if player_id not in self.player_to_learner:
+                                self.player_to_learner[player_id] = learner_uid
+                                self.learner_to_player[learner_uid] = player_id
+                                self.learner_record[learner_uid]['checkpoint_path'] = self.player_ckpts[index]
+                                self.logger.info('learner ({}) set to player ({})'.format(learner_uid, player_id))
+                                break
+                        self.logger.info(
+                            '{}/{} learners have been registered'.format(len(self.player_to_learner), len(self.player_ids))
+                        )
+                        if len(self.player_ids) == len(self.player_to_learner) and not self.league_flag:
+                            self.league_flag = True
+                            self._tell_league_manager_to_run()
+                            self.logger.info('league_manager run with table {}. '.format(self.player_to_learner))
+                    else:
+                        self.logger.info(
+                            'learner {} try to register, but enough learners have been registered.'.format(learner_uid)
+                        )
+                        return False
                 else:
-                    self.logger.info(
-                        'learner {} try to register, but enough learners have been registered.'.format(learner_uid)
-                    )
-                    self._release_lock()
-                    return False
-            else:
-                if learner_re_register:
-                    self.learner_record[learner_uid]['learner_ip_port_list'] = []
-                    self.learner_record[learner_uid]['state'] = 'alive'
-                if [learner_ip, learner_port] not in self.learner_record[learner_uid]['learner_ip_port_list']:
-                    self.learner_record[learner_uid]['learner_ip_port_list'].append([learner_ip, learner_port])
+                    if learner_re_register:
+                        self.learner_record[learner_uid]['learner_ip_port_list'] = []
+                        self.learner_record[learner_uid]['state'] = 'alive'
+                    if [learner_ip, learner_port] not in self.learner_record[learner_uid]['learner_ip_port_list']:
+                        self.learner_record[learner_uid]['learner_ip_port_list'].append([learner_ip, learner_port])
 
-            self.logger.info('learner ({}) register, ip {}, port {}'.format(learner_uid, learner_ip, learner_port))
-            # TODO(nyz) learner load init model
-            self._release_lock()
-            return self.learner_record[learner_uid]['checkpoint_path']
+                self.logger.info('learner ({}) register, ip {}, port {}'.format(learner_uid, learner_ip, learner_port))
+                # TODO(nyz) learner load init model
+                return self.learner_record[learner_uid]['checkpoint_path']
         else:
             if not hasattr(self, 'player_ids'):
                 self.logger.info('learner can not register now, because league manager is not set up')
@@ -343,15 +334,14 @@ class Coordinator(object):
         '''
         assert learner_uid in self.learner_record, 'learner_uid ({}) not in learner_record'.format(learner_uid)
         self.learner_record[learner_uid]['last_beats_time'] = int(time.time())
-        self._acquire_lock()
-        if data_index not in self.learner_record[learner_uid]['ret_metadatas']:
-            metadatas = self.learner_record[learner_uid]['replay_buffer'].sample(batch_size)
-            self.learner_record[learner_uid]['ret_metadatas'][data_index] = metadatas
-            self.logger.info('[ask_for_metadata] [first] learner ({}) data_index ({})'.format(learner_uid, data_index))
-        else:
-            metadatas = self.learner_record[learner_uid]['ret_metadatas'][data_index]
-            self.logger.info('[ask_for_metadata] [second] learner ({}) data_index ({})'.format(learner_uid, data_index))
-        self._release_lock()
+        with self.lock:
+            if data_index not in self.learner_record[learner_uid]['ret_metadatas']:
+                metadatas = self.learner_record[learner_uid]['replay_buffer'].sample(batch_size)
+                self.learner_record[learner_uid]['ret_metadatas'][data_index] = metadatas
+                self.logger.info('[ask_for_metadata] [first] learner ({}) data_index ({})'.format(learner_uid, data_index))
+            else:
+                metadatas = self.learner_record[learner_uid]['ret_metadatas'][data_index]
+                self.logger.info('[ask_for_metadata] [second] learner ({}) data_index ({})'.format(learner_uid, data_index))
         # clean saved metadata in learner_record
         for i in range(data_index - self.save_ret_metadata_num):
             if i in self.learner_record[learner_uid]['ret_metadatas']:
