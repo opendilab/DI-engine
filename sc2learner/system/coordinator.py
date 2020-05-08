@@ -20,6 +20,7 @@ import torch
 from sc2learner.data.online import ReplayBuffer
 from sc2learner.utils import read_file_ceph, save_file_ceph
 from sc2learner.league import LeagueManager
+from sc2learner.envs import StatManager
 
 
 class Coordinator(object):
@@ -52,6 +53,10 @@ class Coordinator(object):
         self.learner_record = {}
 
         self.url_prefix_format = 'http://{}:{}/'
+        if not self.use_fake_data:
+            self.stat_manager = StatManager(cfg.system.stat_path_list)
+        self.map_name_list = cfg.env.map_name_list
+        assert len(self.map_name_list) > 0
 
         self.lock = Lock()
         self.save_ret_metadata_num = 5
@@ -84,6 +89,9 @@ class Coordinator(object):
     def close(self):
         for k, v in self.learner_record.items():
             self.learner_record[k]['replay_buffer'].close()
+
+    def _get_random_map_name(self):
+        return np.random.choice(self.map_name_list)
 
     def _set_logger(self, level=1):
         self.logger = logging.getLogger("coordinator.log")
@@ -400,19 +408,26 @@ class Coordinator(object):
         away_teacher_checkpoint_path = launch_info['away_teacher_checkpoint_path']
         home_learner_uid = home_id if home_id.endswith('_sl') else self.player_to_learner[home_id]
         away_learner_uid = away_id if away_id.endswith('_sl') else self.player_to_learner[away_id]
-        stat = 'Zerg_Zerg_6280_d35c22b2d7e462f1481621cbf765709961e3f9a2a99f8f6c6fa814ccffc831d6.stat_processed'
+        map_name = self._get_random_map_name()
+        random_seed = np.random.randint(0, 314) + int(1e7)
+        # stats(len=2, stat path)
+        kwargs = {
+            'home_race': launch_info['home_race'],
+            'away_race': launch_info['away_race'],
+            'map_name': map_name,
+            'player_id': 'ava'
+        }
+        stats = self.stat_manager.get_ava_stats(**kwargs)
         job = {
             'job_id': str(uuid.uuid1()),
             'learner_uid': [home_learner_uid, away_learner_uid],
-            # TODO(nyz) adaptive z
-            'stat_id': [stat, stat],
+            'stat_id': stats,
             'game_type': 'league',
             'step_data_compressor': 'lz4',
             'model_id': [home_checkpoint_path, away_checkpoint_path],
             'teacher_model_id': home_teacher_checkpoint_path,  # away_teacher_checkpoint_path
-            # TODO(nyz) random map and seed
-            'map_name': 'KairosJunction',
-            'random_seed': 0,
+            'map_name': map_name,
+            'random_seed': random_seed,
             'home_race': launch_info['home_race'],
             'away_race': launch_info['away_race'],
             'data_push_length': self.cfg.train.trajectory_len,

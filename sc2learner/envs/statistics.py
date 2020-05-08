@@ -438,10 +438,11 @@ class StatKey:
 
 
 class StatManager:
-    def __init__(self, stat_dir):
-        assert os.path.exists(stat_dir), stat_dir
-        self.stat_dir = stat_dir
-        self.stat_paths = [item for item in os.listdir(self.stat_dir) if StatKey.check_path(item)]
+    def __init__(self, stat_path_list):
+        with open(stat_path_list, 'r') as f:
+            data = f.readlines()
+            data = [t.strip() for t in data]
+        self.stat_paths = [item for item in data if StatKey.check_path(item)]
         self.stat_keys = [StatKey.path2key(t) for t in self.stat_paths]
 
     def get_ava_stats(self, **kwargs):
@@ -457,10 +458,5 @@ class StatManager:
             # random sample
             selected_idx = np.random.choice(matched_results_idx)
             stat_path = self.stat_paths[selected_idx]
-            stats.append(self._load_stat(stat_path))
+            stats.append(stat_path)
         return stats
-
-    def _load_stat(self, path):
-        with open(os.path.join(self.stat_dir, path), 'rb') as f:
-            stat = pickle.load(f)
-        return stat

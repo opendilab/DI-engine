@@ -209,7 +209,6 @@ class AlphaStarActor:
                     send_teacher_action.pop('action_entity_raw')
                 actions[i] = action
                 update_after_eval_home = {
-                    # TODO: why should not this named action rather than actionS
                     'actions': send_action,
                     'behaviour_outputs': logits,
                     'teacher_actions': send_teacher_action,
