@@ -274,6 +274,4 @@ class StatRequester:
         path = self._get_stat_ceph_path(job['stat_id'][agent_no])
         if 'do_not_load' in path:
             return {}
-        ceph_handle = read_file_ceph(path)
-        stat = torch.load(ceph_handle, map_location='cpu')
-        return stat
+        return read_file_ceph(path, read_type='pickle')

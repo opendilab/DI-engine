@@ -305,8 +305,11 @@ def transform_build_order_to_input_format(stat, location_num=LOCATION_BIT_NUM):
     beginning_build_order_tensor = []
     for item in stat:
         action_type, location = item['action_type'], item['location']
-        action_type = torch.LongTensor([action_type])
-        action_type = reorder_one_hot_array(action_type, BEGIN_ACTIONS_REORDER_ARRAY, num=NUM_BEGIN_ACTIONS)
+        if action_type == 0:
+            action_type = torch.zeros(NUM_BEGIN_ACTIONS)
+        else:
+            action_type = torch.LongTensor([action_type])
+            action_type = reorder_one_hot_array(action_type, BEGIN_ACTIONS_REORDER_ARRAY, num=NUM_BEGIN_ACTIONS)
         if location == 'none':
             location = torch.zeros(location_num * 2)
         else:

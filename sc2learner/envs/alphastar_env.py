@@ -61,7 +61,7 @@ class AlphaStarEnv(SC2Env):
 
         self._reset_flag = False
         # This is the human games statistics used as an input of network
-        self.loaded_eval_stat = [None] * self.agent_num
+        self._loaded_eval_stats = [None] * self.agent_num
         self.enemy_upgrades = [None] * self.agent_num
         # This is for the statistics of current episode actions and obs
         self._episode_stats = [RealTimeStatistics(self._begin_num) for _ in range(self.agent_num)]
@@ -72,20 +72,20 @@ class AlphaStarEnv(SC2Env):
         stat: stat dict processed by transform_stat
         agent_no: 0 or 1
         """
-        self.loaded_eval_stat[agent_no] = GameLoopStatistics(stat, self._begin_num)
+        self._loaded_eval_stats[agent_no] = GameLoopStatistics(stat, self._begin_num)
 
     def _merge_stat(self, obs, agent_no, game_loop=None):
         """
         Append the statistics to the observation
         """
-        assert self.loaded_eval_stat[agent_no] is not None, "please call load_stat method first"
+        assert self._loaded_eval_stats[agent_no] is not None, "please call load_stat method first"
         if self._obs_stat_type == 'replay_online':
-            stat = self.loaded_eval_stat[agent_no].get_input_z_by_game_loop(game_loop=game_loop)
+            stat = self._loaded_eval_stats[agent_no].get_input_z_by_game_loop(game_loop=game_loop)
         elif self._obs_stat_type == 'self_online':
             cumulative_stat = self._episode_stats[agent_no].cumulative_statistics
-            stat = self.loaded_eval_stat[agent_no].get_input_z_by_game_loop(cumulative_stat=cumulative_stat)
+            stat = self._loaded_eval_stats[agent_no].get_input_z_by_game_loop(game_loop=None, cumulative_stat=cumulative_stat)
         elif self._obs_stat_type == 'replay_last':
-            stat = self.loaded_eval_stat[agent_no].get_input_z_by_game_loop(game_loop=None)
+            stat = self._loaded_eval_stats[agent_no].get_input_z_by_game_loop(game_loop=None)
 
         assert set(stat.keys()) == set(['mmr', 'beginning_build_order', 'cumulative_stat'])
         obs['scalar_info'].update(stat)
@@ -149,7 +149,7 @@ class AlphaStarEnv(SC2Env):
             '''
             The value of destroyed units belong to enemy, sum up minerals and vespene, add for battle baseline
             '''
-            kill_value = (
+            kill_value = int(
                 np.sum(obs['score_by_category']['killed_minerals']) +
                 np.sum(obs['score_by_category']['killed_vespene'])
             )
@@ -291,7 +291,7 @@ class AlphaStarEnv(SC2Env):
                 rewards,
                 action_types,
                 self._episode_stats,
-                self.loaded_eval_stats,
+                self._loaded_eval_stats,
                 self._episode_steps,
                 battle_values,
                 return_list=True
@@ -319,7 +319,7 @@ class AlphaStarEnv(SC2Env):
         self.last_actions = [last_action for _ in range(self.agent_num)]
         obs = []
         for n in range(self.agent_num):
-            obs.append(self._get_obs(timesteps[n].observation, last_action, n))
+            obs.append(self._get_obs(timesteps[n].observation, n))
         infos = [timestep.game_info for timestep in timesteps]
         env_provided_map_size = infos[0].start_raw.map_size
         env_provided_map_size = [env_provided_map_size.x, env_provided_map_size.y]
