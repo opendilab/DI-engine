@@ -40,6 +40,7 @@ system:
     ceph_model_path: 's3://alphastar_fake_data/'
     ceph_stat_path: 's3://alphastar_rl_stat/'
     stat_path_list: ''
+    save_model_seconds: 30
 league:
     race: ['zerg']
     active_players:

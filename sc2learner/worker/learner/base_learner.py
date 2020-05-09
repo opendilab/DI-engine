@@ -111,6 +111,12 @@ class Learner:
         """
         pass
 
+    def _update_data_priority(self, data, var_items):
+        pass
+
+    def _preprocess_data(self, data):
+        return data
+
     # === Functions that should not be override. ===
     def _setup_logger(self, rank):
         """Setup logger"""
@@ -185,9 +191,6 @@ class Learner:
 
         self.save_checkpoint()
 
-    def _preprocess_data(self, data):
-        return data
-
     def _run(self):
         while self.last_iter.val < self.max_iterations:
             with self.total_timer:
@@ -239,9 +242,6 @@ class Learner:
 
         if iterations % self.cfg.logger.save_freq == 0:
             self.save_checkpoint()
-
-    def _update_data_priority(self, data, var_items):
-        pass
 
     def finalize(self):
         """ Overview: finalize, called after training """

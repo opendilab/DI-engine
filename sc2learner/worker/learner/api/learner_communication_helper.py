@@ -13,7 +13,7 @@ from collections import OrderedDict
 import random
 
 from sc2learner.utils import read_file_ceph, save_file_ceph, get_step_data_decompressor, get_manager_node_ip
-from sc2learner.utils import dist_init, broadcast
+from sc2learner.utils import dist_init, broadcast, EasyTimer
 
 
 class LearnerCommunicationHelper(object):
@@ -57,6 +57,7 @@ class LearnerCommunicationHelper(object):
         self.learner_heartbeats_thread = self.cfg.system.learner_heartbeats_thread
 
         self.url_prefix = 'http://{}:{}/'.format(self.coordinator_ip, self.coordinator_port)
+        self.file_system = 'ceph' if self.use_ceph else 'disk'
 
         self._setup_comm_logger()
         self._register_learner_in_coordinator()
@@ -67,6 +68,8 @@ class LearnerCommunicationHelper(object):
         self.delete_trajectory_record = False  # if delete trajectory_record
         self.delete_trajectory_record_num = 1000  # if larger than len(self.trajectory_record), delete by time sort
 
+        self.timer = EasyTimer()
+
         # heartbeats
         self.stop_flag = False
         self.heartbeats_freq = self.cfg.system.learner_heartbeats_freq
@@ -76,6 +79,12 @@ class LearnerCommunicationHelper(object):
             check_send_learner_heartbeats_thread.setDaemon(True)
             check_send_learner_heartbeats_thread.start()
             self.comm_logger.info("[UP] send learner heartbeats thread ")
+
+        # save_model
+        self.save_model_seconds = self.cfg.system.save_model_seconds
+        # this thread starts when register_learner has finished and self.model_name is set
+        self.save_model_thread = threading.Thread(target=self.save_model_to_ceph)
+        self.comm_logger.info("[UP] save model thread")
 
     def _setup_comm_logger(self):
         self.comm_logger = logging.getLogger("learner.log")
@@ -118,7 +127,9 @@ class LearnerCommunicationHelper(object):
             try:
                 response = requests.post(self.url_prefix + "coordinator/register_learner", json=d).json()
                 if response['code'] == 0:
-                    # self.checkpoint_path = response['info']  # without s3://{}/ , only file name
+                    self.model_name = response['info']  # without s3://{}/ , only file name
+                    if self.rank == 0:
+                        self.save_model_thread.start()
                     return True
                 else:
                     self.comm_logger.info(response['info'])
@@ -126,6 +137,7 @@ class LearnerCommunicationHelper(object):
                 self.comm_logger.info("something wrong with coordinator, {}".format(e))
             time.sleep(10)
 
+    # deprecated
     def register_model_in_coordinator(self, model_name):
         '''
             Overview: register model in coordinator with model_name, should be called after saving model in ceph
@@ -140,9 +152,20 @@ class LearnerCommunicationHelper(object):
                 self.comm_logger.info("something wrong with coordinator, {}".format(e))
             time.sleep(10)
 
-    def save_model_to_ceph(self, model_name, model):
-        save_file_ceph(self.ceph_model_path, model_name, model)
-        self.comm_logger.info("save model {} to ceph".format(model_name))
+    def save_model_to_ceph(self):
+        while True:
+            with self.timer:
+                model = self._get_model_state_dict()
+                if self.use_ceph:
+                    save_file_ceph(self.ceph_model_path, self.model_name, model)
+                else:
+                    # for local test
+                    pass
+            self.comm_logger.info("save model {} to {} with {:.3f}s".format(self.model_name, self.file_system, self.timer.value))
+            time.sleep(self.save_model_seconds)
+
+    def _get_model_state_dict(self):
+        raise NotImplementedError
 
     def load_trajectory(self, metadata):
         '''
@@ -157,8 +180,7 @@ class LearnerCommunicationHelper(object):
         for k, v in metadata.items():
             for i in range(len(data)):
                 data[i][k] = v
-        file_system = 'ceph' if self.use_ceph else 'lustre'
-        self.comm_logger.info("load trajectory {} from {}".format(metadata['trajectory_path'], file_system))
+        self.comm_logger.info("load trajectory {} from {}".format(metadata['trajectory_path'], self.file_system))
         return data
 
     def _read_file(self, path):

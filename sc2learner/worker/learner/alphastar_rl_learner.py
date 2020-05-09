@@ -118,3 +118,7 @@ class AlphaStarRLLearner(BaseRLLearner):
         Overview: get the statistics of input data
         """
         return {}
+
+    @override(BaseRLLearner)
+    def _get_model_state_dict(self):
+        return self.agent.get_model().state_dict()

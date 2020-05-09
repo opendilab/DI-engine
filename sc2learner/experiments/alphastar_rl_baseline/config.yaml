@@ -78,3 +78,4 @@ system:
     ceph_traj_path: 's3://alphastar_fake_data/'
     ceph_model_path: 's3://alphastar_fake_data/'
     ceph_stat_path: 's3://alphastar_fake_data/'
+    save_model_seconds: 30
