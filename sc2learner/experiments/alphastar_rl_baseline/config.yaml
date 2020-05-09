@@ -8,23 +8,29 @@ env:
    disable_fog: False
    realtime: False
    crop_map_to_playable_area: False
-   map_name: 'KairosJunction'
    obs_stat_type: 'self_online'  # self_online, replay_online, replay_last
    pseudo_reward_type: 'global'  # global, immediate
    pseudo_reward_prob: 0.25
    begin_num: 20
+   map_name_list: ['KairosJunction']
+data:
+    train:
+        batch_size: 16
 model:
     use_value_network: True
 train:
-    #batch_size: 64
-    trajectory_len: 64
+    batch_size: 16
+    trajectory_len: 4
     temperature: 0.8
     use_cuda: True
     use_distributed: True
     max_iterations: 1e9
+    loss_weights:
+        kl: 0.0
+        action_kl: 0.0
 logger:
-    print_freq: 10
-    save_freq: 200
+    print_freq: 1
+    save_freq: 50
     eval_freq: 200
     var_record_type: 'alphastar'
 league:
@@ -33,21 +39,24 @@ league:
         main_player: 1
         main_exploiter: 0
         league_exploiter: 0
+    max_active_player_match: 24
 actor:
     use_cuda: False
     heartbeats_freq: 120
     heartbeats_thread: True
+    print_freq: 4
+    load_model_freq: 4
 manager:
     # not used at the moment
 coordinator:
     use_fake_data: False
 replay_buffer:
-    meta_maxlen: 4096
+    meta_maxlen: 128
     max_reuse: 2
-    min_sample_ratio: 2
+    min_sample_ratio: 1
     alpha: 0.6
     beta: 0.5
-    cache_maxlen: 64
+    cache_maxlen: 32
     timeout: 8  # times of the seconds of per learning iteration
     
 # values in this section is mean to be shared by multiple components
@@ -58,7 +67,7 @@ system:
     learner_re_register:          # if reregister learner, choices in [True, False], False as default
     learner_heartbeats_thread: False  # if use thread to send heartbeats to coordinator in learner
     learner_heartbeats_freq: 10       # send heartbeats each `freq`
-    coordinator_ip: 10.5.36.31        # learner and coordinator are in same cluster
+    coordinator_ip: 10.198.8.31        # learner and coordinator are in same cluster
     coordinator_port: 18194
     coordinator_check_dead_learner_freq: 300
     coordinator_resume_path: 
@@ -66,7 +75,7 @@ system:
     # manager_ip can be set to 'auto' or the real IP of the manager instance
     # this value is used by actors to find what they should connect and report to
     # if it's set to 'auto', the manager node of the Slurm cluster will be used as the manager
-    manager_ip: 10.5.36.31 #'auto'
+    manager_ip: 10.198.8.31 #'auto'
     manager_port: 18195
     manager_resume_path: 
     league_manager_port: 18196
@@ -77,5 +86,6 @@ system:
     # The paths must end with a /
     ceph_traj_path: 's3://alphastar_fake_data/'
     ceph_model_path: 's3://alphastar_fake_data/'
-    ceph_stat_path: 's3://alphastar_fake_data/'
+    ceph_stat_path: 's3://alphastar_rl_stat/'
+    stat_path_list: '/mnt/lustre/share_data/niuyazhe/rl_stat.list'
     save_model_seconds: 30
