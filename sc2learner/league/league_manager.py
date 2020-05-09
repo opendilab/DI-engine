@@ -86,6 +86,7 @@ class LeagueManager:
                     self.active_players.append(player)
                     self.payoff.add_player(player)
                     self.save_checkpoint_fn(self.cfg.sl_checkpoint_path[r], player.checkpoint_path)
+                    self.load_checkpoint_fn(player.player_id, player.checkpoint_path)
 
         # add sl player as the initial HistoricalPlayer
         if self.cfg.use_sl_init_historical:

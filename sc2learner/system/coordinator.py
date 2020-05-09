@@ -250,7 +250,6 @@ class Coordinator(object):
                         self.learner_record[learner_uid]['learner_ip_port_list'].append([learner_ip, learner_port])
 
                 self.logger.info('learner ({}) register, ip {}, port {}'.format(learner_uid, learner_ip, learner_port))
-                # TODO(nyz) learner load init model
                 return self.learner_record[learner_uid]['checkpoint_path']
         else:
             if not hasattr(self, 'player_ids'):
