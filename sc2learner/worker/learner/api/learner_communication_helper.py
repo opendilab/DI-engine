@@ -81,10 +81,12 @@ class LearnerCommunicationHelper(object):
             self.comm_logger.info("[UP] send learner heartbeats thread ")
 
         # save_model
-        self.save_model_seconds = self.cfg.system.save_model_seconds
-        # this thread starts when register_learner has finished and self.model_name is set
-        self.save_model_thread = threading.Thread(target=self.save_model_to_ceph)
-        self.comm_logger.info("[UP] save model thread")
+        if self.rank == 0:
+            self.save_model_seconds = self.cfg.system.save_model_seconds
+            # this thread starts when register_learner has finished and self.model_name is set
+            self.save_model_thread = threading.Thread(target=self.save_model_to_ceph)
+            self.save_model_thread.start()
+            self.comm_logger.info("[UP] save model thread")
 
     def _setup_comm_logger(self):
         self.comm_logger = logging.getLogger("learner.log")
@@ -128,8 +130,6 @@ class LearnerCommunicationHelper(object):
                 response = requests.post(self.url_prefix + "coordinator/register_learner", json=d).json()
                 if response['code'] == 0:
                     self.model_name = response['info']  # without s3://{}/ , only file name
-                    if self.rank == 0:
-                        self.save_model_thread.start()
                     return True
                 else:
                     self.comm_logger.info(response['info'])
@@ -261,7 +261,7 @@ class LearnerCommunicationHelper(object):
             except Exception as e:
                 self.comm_logger.info(''.join(traceback.format_tb(e.__traceback__)))
                 self.comm_logger.info("[error] {}".format(sys.exc_info()))
-            time.sleep(3)
+            time.sleep(10)
 
     def sample(self):
         d = {'learner_uid': self.learner_uid, 'batch_size': self.batch_size}

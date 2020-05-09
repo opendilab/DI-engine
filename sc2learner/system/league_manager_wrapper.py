@@ -109,6 +109,7 @@ class LeagueManagerWrapper(object):
         return False
 
     def deal_with_run_league(self):
+        self.league_manager.init_player_model()
         self.league_manager.run()
         return True
 

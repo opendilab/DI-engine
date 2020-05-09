@@ -65,7 +65,12 @@ class Coordinator(object):
         self.player_to_learner = {}
         self.learner_to_player = {}
         self.job_queue = Queue()
-        self.league_flag = False
+        self.league_manager_flag = False
+        # thread to launch league manager
+        launch_league_thread = threading.Thread(target=self._launch_league_manager)
+        launch_league_thread.data_index = True
+        launch_league_thread.start()
+        self.logger.info("[UP] launch league manager thread ")
 
         self.check_dead_learner_freq = cfg.system.coordinator_check_dead_learner_freq
 
@@ -171,6 +176,7 @@ class Coordinator(object):
             ret = self.job_queue.get()
         return ret
 
+    # deprecated
     def deal_with_register_model(self, learner_uid, model_name):
         '''
             Overview: deal with register from learner to register model
@@ -190,17 +196,18 @@ class Coordinator(object):
             self.manager_record[manager_uid] = {}
         return True
 
-    def _tell_league_manager_to_run(self):
-        url_prefix = self.url_prefix_format.format(self.league_manager_ip, self.league_manager_port)
+    def _launch_league_manager(self):
         while True:
-            try:
-                response = requests.get(url_prefix + "league/run_league").json()
-                if response['code'] == 0:
-                    return True
-            except Exception as e:
-                print("something wrong with league_manager, {}".format(e))
+            if self.league_manager_flag and len(self.player_ids) == len(self.player_to_learner):
+                try:
+                    url_prefix = self.url_prefix_format.format(self.league_manager_ip, self.league_manager_port)
+                    response = requests.get(url_prefix + "league/run_league").json()
+                    if response['code'] == 0:
+                        self.logger.info('league_manager run with table {}. '.format(self.player_to_learner))
+                        break
+                except Exception as e:
+                    self.logger.info('launch_league_thread error {}'.format(e))
             time.sleep(10)
-        return False
 
     def deal_with_register_learner(self, learner_uid, learner_ip, learner_port, learner_re_register=False):
         '''
@@ -233,10 +240,6 @@ class Coordinator(object):
                         self.logger.info(
                             '{}/{} learners have been registered'.format(len(self.player_to_learner), len(self.player_ids))
                         )
-                        if len(self.player_ids) == len(self.player_to_learner) and not self.league_flag:
-                            self.league_flag = True
-                            self._tell_league_manager_to_run()
-                            self.logger.info('league_manager run with table {}. '.format(self.player_to_learner))
                     else:
                         self.logger.info(
                             'learner {} try to register, but enough learners have been registered.'.format(learner_uid)
@@ -371,10 +374,11 @@ class Coordinator(object):
         self.player_ids = player_ids
         self.player_ckpts = player_ckpts
         self.logger.info('register league_manager from {}'.format(self.league_manager_ip))
+        self.league_manager_flag = True
         return True
 
     def deal_with_ask_learner_to_reset(self, player_id, checkpoint_path):
-        learner_uid = self.player_to_learner(player_id)
+        learner_uid = self.player_to_learner[player_id]
         d = {'checkpoint_path': checkpoint_path}
         for learner_ip, learner_port in self.learner_record[learner_uid]['learner_ip_port_list']:
             url_prefix = self.url_prefix_format.format(learner_ip, learner_port)

@@ -121,4 +121,4 @@ class AlphaStarRLLearner(BaseRLLearner):
 
     @override(BaseRLLearner)
     def _get_model_state_dict(self):
-        return self.agent.get_model().state_dict()
+        return {'state_dict': self.agent.get_model().state_dict()}

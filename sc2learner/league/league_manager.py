@@ -29,7 +29,7 @@ class LimitedSpaceContainer:
 class LeagueManager:
     """
     Overview: league training manager
-    Interface: __init__, run, close, finish_match, update_active_player
+    Interface: __init__, run, close, finish_match, update_active_player, init_player_model
     Note:
         launch_match_fn:
             Arguments:
@@ -85,8 +85,9 @@ class LeagueManager:
                     player = player_map[k](r, self.payoff, ckpt_path, name, **self.cfg[k])
                     self.active_players.append(player)
                     self.payoff.add_player(player)
+                    # set sl checkpoint as initial player checkpoint
+                    # only file copy, learner will load the checkpoint when learner-player mapping has been established
                     self.save_checkpoint_fn(self.cfg.sl_checkpoint_path[r], player.checkpoint_path)
-                    self.load_checkpoint_fn(player.player_id, player.checkpoint_path)
 
         # add sl player as the initial HistoricalPlayer
         if self.cfg.use_sl_init_historical:
@@ -113,6 +114,10 @@ class LeagueManager:
 
     def close(self):
         self._end_flag = True
+
+    def init_player_model(self):
+        for p in self.active_players:
+            self.load_checkpoint_fn(p.player_id, p.checkpoint_path)
 
     def _launch_match(self):
         while not self._end_flag:
