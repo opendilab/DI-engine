@@ -81,11 +81,13 @@ class LearnerCommunicationHelper(object):
             self.comm_logger.info("[UP] send learner heartbeats thread ")
 
         # save_model
+        # must be after register learner
         if self.rank == 0:
             self.save_model_seconds = self.cfg.system.save_model_seconds
             # this thread starts when register_learner has finished and self.model_name is set
-            self.save_model_thread = threading.Thread(target=self.save_model_to_ceph)
-            self.save_model_thread.start()
+            save_model_thread = threading.Thread(target=self.save_model_to_ceph)
+            save_model_thread.daemon = True
+            save_model_thread.start()
             self.comm_logger.info("[UP] save model thread")
 
     def _setup_comm_logger(self):
@@ -153,6 +155,9 @@ class LearnerCommunicationHelper(object):
             time.sleep(10)
 
     def save_model_to_ceph(self):
+        # TODO(nyz) more graceful implementation
+        # waif for system init
+        time.sleep(60)
         while True:
             with self.timer:
                 model = self._get_model_state_dict()
@@ -282,13 +287,17 @@ class LearnerCommunicationHelper(object):
             Returns:
                 - (:obj`dict`): model
         '''
-        checkpoint = read_file_ceph(self.ceph_path + checkpoint_path, read_type=read_type)
+        checkpoint = read_file_ceph(checkpoint_path, read_type=read_type)
         self.comm_logger.info("load checkpoint {} from ceph".format(checkpoint_path))
         return checkpoint
 
     def deal_with_reset(self, checkpoint_path):
-        model = self._load_checkpoint_from_ceph(checkpoint_path)
+        checkpoint = self._load_checkpoint_from_ceph(checkpoint_path)
+        self._load_checkpoint_to_model(checkpoint)
         return True
+
+    def _load_checkpoint_to_model(self, checkpoint):
+        raise NotImplementedError
 
     @property
     def data_iterator(self):

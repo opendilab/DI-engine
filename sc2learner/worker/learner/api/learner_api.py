@@ -35,7 +35,7 @@ def create_learner_app(learner):
     @app.route('/learner/reset', methods=['POST'])
     def reset():
         checkpoint_path = request.json['checkpoint_path']
-        info = learner.reset(checkpoint_path)
+        info = learner.deal_with_reset(checkpoint_path)
         return build_ret(0, info)
 
     ###################################################################################

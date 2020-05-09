@@ -122,3 +122,12 @@ class AlphaStarRLLearner(BaseRLLearner):
     @override(BaseRLLearner)
     def _get_model_state_dict(self):
         return {'state_dict': self.agent.get_model().state_dict()}
+
+    @override(BaseRLLearner)
+    def _load_checkpoint_to_model(self, checkpoint):
+        self.checkpoint_manager.load(
+            checkpoint,
+            self.agent.get_model(),
+            strict=False,
+            need_torch_load=False
+        )
