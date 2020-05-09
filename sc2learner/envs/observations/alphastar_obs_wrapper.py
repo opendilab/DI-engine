@@ -19,7 +19,7 @@ from pysc2.lib.static_data import NUM_BUFFS, NUM_ABILITIES, NUM_UNIT_TYPES, UNIT
      UPGRADES_REORDER_ARRAY, NUM_ACTIONS, ACTIONS_REORDER_ARRAY, ACTIONS_REORDER, NUM_ADDON, ADDON_REORDER_ARRAY,\
      NUM_BEGIN_ACTIONS, NUM_UNIT_BUILD_ACTIONS, NUM_EFFECT_ACTIONS, NUM_RESEARCH_ACTIONS,\
      UNIT_BUILD_ACTIONS_REORDER_ARRAY, EFFECT_ACTIONS_REORDER_ARRAY, RESEARCH_ACTIONS_REORDER_ARRAY,\
-     BEGIN_ACTIONS_REORDER_ARRAY
+     BEGIN_ACTIONS_REORDER_ARRAY, NUM_ORDER_ACTIONS, ORDER_ACTIONS_REORDER_ARRAY
 from sc2learner.torch_utils import one_hot
 from sc2learner.envs.actions import get_available_actions_raw_data
 from functools import partial, lru_cache
@@ -133,20 +133,15 @@ class EntityObsWrapper(object):
         num_unit, num_attr = feature_unit.shape
         entity_raw = {'location': [], 'id': [], 'type': []}
         for idx in range(num_unit):
-            entity_raw['location'].append((round(feature_unit[idx].y), round(feature_unit[idx].x)))
+            entity_raw['location'].append((feature_unit[idx].y, feature_unit[idx].x))
             entity_raw['id'].append(int(feature_unit[idx].tag))
             entity_raw['type'].append(int(feature_unit[idx].unit_type))
 
         ret = []
         for idx, item in enumerate(self.cfg):
             key = item['key']
-            if 'ori' in item.keys():
-                ori = item['ori']
-                item_data = obs[ori][key]
-                item_data = [item_data for _ in range(num_unit)]
-            else:
-                key_index = FeatureUnit[key]
-                item_data = feature_unit[:, key_index]
+            key_index = FeatureUnit[key]
+            item_data = feature_unit[:, key_index]
             item_data = torch.LongTensor(item_data)
             try:
                 item_data = item['op'](item_data)
@@ -368,25 +363,25 @@ def transform_entity_data(resolution=128, pad_value=-1e9):
         {
             'key': 'build_progress',
             'dim': 1,
-            'op': partial(div_func, other=256.),
+            'op': partial(div_func, other=100.),
             'other': 'float [0, 1]'
         },
         {
             'key': 'health_ratio',
             'dim': 1,
-            'op': partial(div_func, other=256.),
+            'op': partial(div_func, other=255.),
             'other': 'float [0, 1]'
         },
         {
             'key': 'shield_ratio',
             'dim': 1,
-            'op': partial(div_func, other=256.),
+            'op': partial(div_func, other=255.),
             'other': 'float [0, 1]'
         },
         {
             'key': 'energy_ratio',
             'dim': 1,
-            'op': partial(div_func, other=256.),
+            'op': partial(div_func, other=255.),
             'other': 'float [0, 1]'
         },
         {
@@ -499,20 +494,6 @@ def transform_entity_data(resolution=128, pad_value=-1e9):
             'other': 'one-hot, 2600/100'
         },
         {
-            'key': 'minerals',
-            'dim': 43,
-            'op': partial(sqrt_one_hot, max_val=1800),
-            'ori': 'player',
-            'other': 'one-hot, sqrt(1800), floor'
-        },
-        {
-            'key': 'vespene',
-            'dim': 51,
-            'op': partial(sqrt_one_hot, max_val=2500),
-            'ori': 'player',
-            'other': 'one-hot, sqrt(2500), floor'
-        },
-        {
             'key': 'assigned_harvesters',
             'dim': 35,
             'op': partial(clip_one_hot, num=35),
@@ -546,17 +527,19 @@ def transform_entity_data(resolution=128, pad_value=-1e9):
         },  # noqa
         {
             'key': 'order_id_1',
-            'dim': NUM_ACTIONS,
+            'dim': NUM_ORDER_ACTIONS,
             'op': partial(
-                reorder_one_hot_array, array=ACTIONS_REORDER_ARRAY, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT_ARRAY
+                reorder_one_hot_array, array=ORDER_ACTIONS_REORDER_ARRAY, num=NUM_ORDER_ACTIONS,
+                transform=ACT_TO_GENERAL_ACT_ARRAY
             ),
             'other': 'one-hot'
         },  # TODO only building order  # noqa
         {
             'key': 'order_id_2',
-            'dim': NUM_ACTIONS,
+            'dim': NUM_ORDER_ACTIONS,
             'op': partial(
-                reorder_one_hot_array, array=ACTIONS_REORDER_ARRAY, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT_ARRAY
+                reorder_one_hot_array, array=ORDER_ACTIONS_REORDER_ARRAY, num=NUM_ORDER_ACTIONS,
+                transform=ACT_TO_GENERAL_ACT_ARRAY
             ),
             'other': 'one-hot'
         },  # TODO only building order  # noqa
@@ -564,7 +547,8 @@ def transform_entity_data(resolution=128, pad_value=-1e9):
             'key': 'order_id_3',
             'dim': NUM_ACTIONS,
             'op': partial(
-                reorder_one_hot_array, array=ACTIONS_REORDER_ARRAY, num=NUM_ACTIONS, transform=ACT_TO_GENERAL_ACT_ARRAY
+                reorder_one_hot_array, array=ORDER_ACTIONS_REORDER_ARRAY, num=NUM_ORDER_ACTIONS,
+                transform=ACT_TO_GENERAL_ACT_ARRAY
             ),
             'other': 'one-hot'
         },  # TODO only building order  # noqa
@@ -589,13 +573,13 @@ def transform_entity_data(resolution=128, pad_value=-1e9):
         {
             'key': 'order_progress_0',
             'dim': 10,
-            'op': partial(div_one_hot, max_val=1, ratio=0.1),
+            'op': partial(div_one_hot, max_val=90, ratio=10),
             'other': 'one-hot(1/0.1)'
         },
         {
             'key': 'order_progress_1',
             'dim': 10,
-            'op': partial(div_one_hot, max_val=1, ratio=0.1),
+            'op': partial(div_one_hot, max_val=90, ratio=10),
             'other': 'one-hot(1/0.1)'
         },
         {
