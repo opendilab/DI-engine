@@ -201,7 +201,7 @@ class Learner:
                         return
                     processed_data, data_stats = self._preprocess_data(batch_data)
                 var_items, time_stats = self.optimizer.learn(processed_data)
-                var_items['cur_lr'] = self.lr_scheduler.get_last_lr()[0]
+                var_items['cur_lr'] = self.lr_scheduler.get_lr()[0]
                 var_items['epoch'] = self.last_epoch.val
                 var_items.update(data_stats)
 

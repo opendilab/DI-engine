@@ -357,7 +357,7 @@ class AlphaStarActor:
                     data_buffer[i] = []
                     trajectory_count += 1
                     # when several trajectories are finished, reload(update) model
-                    if trajectory_count % self.cfg.load_model_freq == 0:
+                    if trajectory_count % self.cfg.actor.load_model_freq == 0:
                         for i in range(self.agent_num):
                             self.model_loader.load_model(job, i, self.agents[i].get_model())
 

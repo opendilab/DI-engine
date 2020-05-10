@@ -159,6 +159,7 @@ class Coordinator(object):
             ret = {
                 'job_id': job_id,
                 'learner_uid': [learner_uid1, learner_uid2],
+                'player_id': [learner_uid1, learner_uid2],
                 'stat_id': [self.fake_stat_path, self.fake_stat_path],
                 'game_type': 'league',
                 'step_data_compressor': 'lz4',
@@ -399,8 +400,9 @@ class Coordinator(object):
         away_checkpoint_path = launch_info['away_checkpoint_path']
         home_teacher_checkpoint_path = launch_info['home_teacher_checkpoint_path']
         away_teacher_checkpoint_path = launch_info['away_teacher_checkpoint_path']
-        home_learner_uid = home_id if home_id.endswith('_sl') else self.player_to_learner[home_id]
-        away_learner_uid = away_id if away_id.endswith('_sl') else self.player_to_learner[away_id]
+        # only the players which has mapping to learner own learner_uid
+        home_learner_uid = self.player_to_learner[home_id] if home_id in self.player_to_learner.keys() else None
+        away_learner_uid = self.player_to_learner[away_id] if away_id in self.player_to_learner.keys() else None
         map_name = self._get_random_map_name()
         random_seed = np.random.randint(0, 314) + int(1e7)
         # stats(len=2, stat path)
@@ -414,6 +416,7 @@ class Coordinator(object):
         job = {
             'job_id': str(uuid.uuid1()),
             'learner_uid': [home_learner_uid, away_learner_uid],
+            'player_id': [home_id, away_id],
             'stat_id': stats,
             'game_type': 'league',
             'step_data_compressor': 'lz4',

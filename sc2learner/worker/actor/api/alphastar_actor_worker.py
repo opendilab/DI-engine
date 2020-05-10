@@ -188,6 +188,10 @@ class DataPusher:
         job_id = job['job_id']
         agent_no = metadata['agent_no']
         model_id = job['model_id'][agent_no]
+        learner_uid = job['learner_uid'][agent_no]
+        # if learner_uid is None(not active player, which owns learner), don't push traj
+        if learner_uid is None:
+            return
         # saving to ceph
         ceph_name = "model_{}_job_{}_agent_{}_step_{}_{}.traj".format(
             model_id, job_id, agent_no, metadata['game_loop'], str(uuid.uuid1())
@@ -202,9 +206,9 @@ class DataPusher:
             # full path to this trajectory = md['ceph_name'] + md['trajectory_path'] (no need for os.path.join)
             'ceph_name': self.ceph_path,
             # the uid for this agent
-            'learner_uid': job.get('learner_uid')[agent_no],
-            'learner_uid1': job.get('learner_uid')[0],
-            'learner_uid2': job.get('learner_uid')[1]
+            'learner_uid': learner_uid,
+            # home away player_id
+            'player_id': job.get('player_id'),
         }
         metadata = merge_two_dicts(metadata, metadata_supp)
 
