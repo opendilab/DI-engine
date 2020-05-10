@@ -7,10 +7,11 @@ import os
 import numpy as np
 import torch
 
-from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UNIT_TYPES, ACTIONS_REORDER_INV
+from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UNIT_TYPES, ACTIONS_REORDER_INV, NUM_BEGIN_ACTIONS
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
 from sc2learner.data.offline.replay_dataset import ReplayDataset, START_STEP
 from sc2learner.utils import get_step_data_compressor
+from sc2learner.envs.observations import LOCATION_BIT_NUM
 
 META_SUFFIX = '.meta'
 DATA_SUFFIX = '.step'
@@ -45,6 +46,19 @@ def random_one_hot(size, dtype=torch.float32):
     return tensor
 
 
+def get_fake_rewards():
+    rewards = {}
+    rewards['winloss'] = torch.randint(-1, 2, size=(1, ))
+    rewards['build_order'] = torch.randint(-20, 1, size=(1, ))
+    rewards['built_unit'] = torch.randint(-10, 1, size=(1, ))
+    rewards['upgrade'] = torch.randint(-10, 1, size=(1, ))
+    rewards['effect'] = torch.randint(-10, 1, size=(1, ))
+    rewards['battle'] = torch.randint(0, 100000, size=[1])
+    for k in rewards.keys():
+        rewards[k] = rewards[k].float()
+    return rewards
+
+
 def get_single_step_data():
     # TODO(pzh) we should build a general data structure (a SampleBatch class)
 
@@ -73,7 +87,7 @@ def get_single_step_data():
             effect=random_binary_tensor([83]),
             research=random_binary_tensor([60])
         ),
-        beginning_build_order=random_tensor([20, 283]),
+        beginning_build_order=random_tensor([20, NUM_BEGIN_ACTIONS + 2 * LOCATION_BIT_NUM]),
     )
 
     entity_raw = OrderedDict(
@@ -96,6 +110,7 @@ def get_single_step_data():
         target_location=torch.randint(0, min(MAP_SIZE), size=[2], dtype=torch.int64)
         if action_attr['target_location'] else NOOP
     )
+    score_cumulative = random_tensor([13])
 
     return OrderedDict(
         scalar_info=scalar_info,
@@ -104,6 +119,7 @@ def get_single_step_data():
         entity_info=random_tensor([num_units, 2102]),
         spatial_info=random_tensor([20] + MAP_SIZE),
         map_size=MAP_SIZE,
+        score_cumulative=score_cumulative,
     )
 
 
@@ -113,16 +129,30 @@ def fake_stat_processed():
     import pickle
     import base64
     import zlib
-    example_stat_processed = b'eJzt3ctO20AUBmA7CYS6pdBLSim90HvoJaXmLiEhoZZNRC/OxhtkBWdIXDk2x54gqISUjavSZ+gD9Ikq9RF4hEpddByDSoAUCYWQwP8tEskcPOOZc05WmVTjmySl9bgkSeWyR7LJXc8sZYwKt2xfMTy2XLHsgsGZ47uesaYqFEvvxPjiLV9kimG7+YKx4rllY3mDM1+h+HxKlqRq7Jti//m+8Hv4048Pg5lqbHE7Ll5r4/WL8VY9l7umaxtrzPMt1yFZBOi94i+2xbnNDOYUrLxDsa+6Ii7yjVVm+NZn5pOYcyKtd4mLfsn1OHVlY7UnsBxO3dmEngjv4TpFSmYTlYoYM60nw+BowiRFD6AsiInz3M5TkFwbWh2bGZtQJyfHJ6ZmVIpua65WKJ5NvuOU+ChutkTSIaFyPhOOUa86t/8KJQLq0sQspWwyEPOTA+rZMsUq2MzkYhF85b1XYB4rvLFMrtCFEY0UThc1uqSnxL8vs6LlOJZTNKJ9ccNg6i3F0qX4/M+lTl/08emxukVfnBpouOq1WLHqUwMHlh0ATszBrgYA0HzoNQDQKdCvAOAo6BMA0AroNQDQCug1zYO1BDjbwhrfW+f/q/nd2N2Ydu8P7T4/gPNmbw/Z33v2xjRjHAAAAGhP+JwGgFZArwGAVkCvAYBWQK8BADgIvREAWgG9BgBaAb0G4PxC/QNAq6HvAMBh0BsAoBOhdwGcfajz46DLAfVp1J+VsqnFIfkLXRGvWfF+dasUHhF/jdN1jVJ6n4g1K+WKnefWGjN8nud0Y5MG0rXD3CuOxaNz4+lmdGL8r1innxivTqmjdcf0rzc8ML4WKucz68fagqO+mN9s7VYozf5S8Ek/X3WOBgO6pdGQKJr1gG6HP7VwJyqXu5zuaTSsd4s4trLCTE73o4J42/kFMaFO1xVErnFBhKGiIHInuxPnEj0I6KFGj0Ty5QJ6HCbfkyj5nnJKazSi94goj/ksL7aUnkXpt93xP5uiTqrjdek32zj9wlCRfrOntEWn41/fo+cBvdDopUiR2YAyYYq8ilJklNNrjVSxB38BIhnvSw=='  # noqa
+    path = os.path.join(
+        os.path.dirname(__file__),
+        'stat_data/Zerg_Terran_2479_0005e0d00cf4bca92d0432ecf23bd227337e39f7f8870a560ac3abfe7f89abc1.stat_processed_new'
+    )
+    example_stat_processed = base64.b64encode(zlib.compress(pickle.dumps(torch.load(path))))
+    example_stat_processed = pickle.loads(zlib.decompress(base64.b64decode(example_stat_processed)))
+    return example_stat_processed
+
+
+def fake_stat_processed_professional_player():
+    import pickle
+    import base64
+    import zlib
+    path = os.path.join(os.path.dirname(__file__), 'stat_data/KJ_2498_win.z')
+    example_stat_processed = base64.b64encode(zlib.compress(pickle.dumps(torch.load(path))))
     example_stat_processed = pickle.loads(zlib.decompress(base64.b64decode(example_stat_processed)))
     return example_stat_processed
 
 
 def get_z():
     ret = {}
-    ret['built_units'] = random_binary_tensor([120], dtype=torch.long)
-    ret['effects'] = random_binary_tensor([83], dtype=torch.long)
-    ret['upgrades'] = random_binary_tensor([60], dtype=torch.long)
+    ret['built_unit'] = random_binary_tensor([120], dtype=torch.long)
+    ret['effect'] = random_binary_tensor([83], dtype=torch.long)
+    ret['upgrade'] = random_binary_tensor([60], dtype=torch.long)
     num = random.randint(10, 100)
     ret['build_order'] = {
         'type': torch.from_numpy(np.random.choice(range(NUM_ACTION_TYPES), size=num, replace=True)).long(),
@@ -200,7 +230,7 @@ class FakeReplayDataset(ReplayDataset):
 
 
 class FakeActorDataset:
-    def __init__(self, trajectory_len=3, use_meta=False, step_data_compressor='lz4'):
+    def __init__(self, trajectory_len=3, use_meta=False, step_data_compressor='none'):
         self.trajectory_len = trajectory_len
         self.use_meta = use_meta
         if self.use_meta:
@@ -245,7 +275,7 @@ class FakeActorDataset:
             else:
                 num = actions['selected_units'].shape[0]
                 num = min(MAX_SELECTED_UNITS, num + 1)
-                ret['selected_units'] = torch.rand(num, entity_num)
+                ret['selected_units'] = torch.rand(num, entity_num + 1)
             if isinstance(actions['target_units'], type(NOOP)):
                 ret['target_units'] = NOOP
             else:
@@ -284,10 +314,8 @@ class FakeActorDataset:
         def get_single_rl_agent_step_data():
             base = get_single_step_data()
             base['prev_state'] = [torch.zeros(*LSTM_DIMS), torch.zeros(*LSTM_DIMS)]
-            base['rewards'] = torch.randint(0, 1, size=[1])
+            base['rewards'] = get_fake_rewards()
             base['game_seconds'] = random.randint(0, 24 * 60)
-            base['agent_z'] = get_z()
-            base['target_z'] = get_z()
             base['target_outputs'] = get_outputs(base['actions'], base['entity_info'].shape[0])
             base['behaviour_outputs'] = disturb_outputs(
                 base['target_outputs']

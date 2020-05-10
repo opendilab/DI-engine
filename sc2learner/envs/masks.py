@@ -20,7 +20,7 @@ def get_location_mask(action_type, spatial_info):
 
     action_info = GENERAL_ACTION_INFO_MASK[action_type]
     if 'Build_' in action_info['name'] and action_info['target_location']:
-        if action_info['name'] == 'Build_Hatchery_pt':
+        if action_info['name'] in ['Build_Hatchery_pt', 'Build_NydusWorm_pt']:
             return is_buildable
         elif has_zerg_unit(action_info['avail_unit_type']):
             return (is_creep.long() & is_buildable.long()).to(spatial_info.dtype)

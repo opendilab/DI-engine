@@ -11,6 +11,7 @@ from itertools import count
 import logging
 import argparse
 import yaml
+import random
 
 from sc2learner.utils.log_helper import TextLogger
 from sc2learner.utils import read_file_ceph, save_file_ceph
@@ -129,6 +130,7 @@ class FakeActor(object):
         trajectory = [trajectory] * 1
         ceph_name = "job_{}_{}.traj".format(self.job_id, str(uuid.uuid1()))
         t1 = time.time()
+        self.logger.info('save to {} with {}'.format(self.ceph_path, ceph_name))
         save_file_ceph(self.ceph_path, ceph_name, trajectory)
         self.logger.info("save to ceph cost {} seconds. ".format(time.time() - t1))
         metadata = {
@@ -166,7 +168,8 @@ class FakeActor(object):
             self.logger.info("failed to send result: {}".format(self.job_id))
 
     def finish_job(self):
-        d = {'actor_uid': self.actor_uid, 'job_id': self.job_id}
+        result = random.choice(['wins', 'draws', 'losses'])
+        d = {'actor_uid': self.actor_uid, 'job_id': self.job_id, 'result': result}
         response = requests.post(self.url_prefix + 'manager/finish_job', json=d).json()
         if response['code'] == 0:
             self.logger.info("succeed finishing job: {}".format(self.job_id))

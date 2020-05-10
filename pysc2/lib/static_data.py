@@ -228,14 +228,24 @@ ACTIONS_REORDER_INV = {
 ACTIONS_REORDER_INV_ARRAY = ACTIONS
 
 # Begin actions: actions (raw ability ids) included in the beginning_build_order
-target_list = ['unit', 'build', 'research', 'effect']
+target_list = ['unit', 'build', 'research']
 BEGIN_ACTIONS = [k for k, v in GENERAL_ACTION_INFO_MASK.items() if v['goal'] in target_list]
+OLD_BEGIN_ACTIONS = [k for k, v in GENERAL_ACTION_INFO_MASK.items() if v['goal'] in target_list + ['effect']]
 
+removed_actions = [35, 64, 520, 222, 515, 503]
+for i in removed_actions:
+    BEGIN_ACTIONS.remove(i)
 NUM_BEGIN_ACTIONS = len(BEGIN_ACTIONS)
 
-BEGIN_ACTIONS_REORDER = {
-    item: idx for idx, item in enumerate(BEGIN_ACTIONS)
+OLD_BEGIN_ACTIONS_REORDER = {
+    item: idx for idx, item in enumerate(OLD_BEGIN_ACTIONS)
 }
+
+OLD_BEGIN_ACTIONS_REORDER_INV = {
+    v: k for k, v in OLD_BEGIN_ACTIONS_REORDER.items()
+}
+
+BUILD_ORDER_REWARD_ACTIONS = BEGIN_ACTIONS
 
 BEGIN_ACTIONS_REORDER_ARRAY = get_reorder_lookup_array(BEGIN_ACTIONS)
 

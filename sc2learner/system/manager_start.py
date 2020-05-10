@@ -8,6 +8,7 @@ from itertools import count
 import logging
 import argparse
 import yaml
+from easydict import EasyDict
 
 from .manager import Manager
 from sc2learner.utils.log_helper import TextLogger
@@ -21,9 +22,11 @@ args = parser.parse_args()
 log_path = os.path.dirname(args.config)
 api_dir_name = 'api-log'
 log_path = os.path.join(log_path, api_dir_name)
-logger = TextLogger(log_path, name="coordinator.log")
+logger = TextLogger(log_path, name="manager.log")
 
 cfg = yaml.safe_load(open(args.config, 'r'))
+cfg = EasyDict(cfg)
+cfg.system.resume_dir = log_path
 manager_ip = cfg['system']['manager_ip']
 manager_port = cfg['system']['manager_port']
 

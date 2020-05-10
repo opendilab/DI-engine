@@ -21,33 +21,33 @@ def train(data):
 
 @pytest.mark.unittest
 class TestLearnerCommHelper:
-    def fake_push_data(self, coordinator):
+    def fake_push_data(self, coordinator, learner_uid):
+        handle = coordinator.learner_record[learner_uid]['replay_buffer']
         time.sleep(3)  # monitor empty replay_buffer state
         dataset = FakeActorDataset(use_meta=True)
         for i in range(1024):
-            coordinator.replay_buffer.push_data(dataset[i])
+            handle.push_data(dataset[i])
         time.sleep(1)  # wait the cache flush out
-        assert (1024 == coordinator.replay_buffer._meta_buffer.validlen)
+        assert (1024 == handle._meta_buffer.validlen)
 
-    def test_data_sample_update(self, coordinator, learner):
+    def test_data_sample_update(self, setup_config_api, coordinator, league_manager, fake_train_learner):
         """
         Note: coordinator must be in the front of learner in the arguments
         """
-        push_data_thread = Thread(target=self.fake_push_data, args=(coordinator, ))
+        learner_uid = fake_train_learner.learner_uid
+        push_data_thread = Thread(target=self.fake_push_data, args=(coordinator, learner_uid))
         push_data_thread.daemon = True
         push_data_thread.start()
-        handle = coordinator.replay_buffer._meta_buffer
+        handle = coordinator.learner_record[learner_uid]['replay_buffer']._meta_buffer
 
         for i in range(10):
             print('-' * 20 + 'Training Iteration {}'.format(i) + '-' * 20)
             print('current replay_buffer len: {}'.format(handle.validlen))
             print('current replay_buffer priority sum: {}'.format(handle.sum_tree.reduce()))
-            data = next(learner.data_iterator)
+            data = next(fake_train_learner.data_iterator)
             assert isinstance(data, list)
-            assert len(data) == learner.batch_size
+            assert len(data) == fake_train_learner.batch_size
             info = train(data)
-            assert learner.update_info(info)
-            assert learner.register_model_in_coordinator('test_model')
-            assert len(coordinator.learner_record[learner.learner_uid]['models']) == i + 1
+            assert fake_train_learner.update_info(info)
 
         push_data_thread.join()

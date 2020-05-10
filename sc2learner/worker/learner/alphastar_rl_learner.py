@@ -8,6 +8,7 @@ Main Function:
 import os.path as osp
 
 import torch
+import threading
 
 from sc2learner.agent.alphastar_agent import AlphaStarAgent
 from sc2learner.agent.model import alphastar_model_default_config
@@ -34,8 +35,18 @@ class AlphaStarRLLearner(BaseRLLearner):
         super(AlphaStarRLLearner, self).__init__(cfg)
 
         # Print and save config as metadata
-        pretty_print({"config": self.cfg})
-        self.checkpoint_manager.save_config(self.cfg)
+        if self.rank == 0:
+            pretty_print({"config": self.cfg})
+            self.checkpoint_manager.save_config(self.cfg)
+
+        # run thread
+        run_thread = threading.Thread(target=self.run)
+        run_thread.daemon = True
+        run_thread.start()
+
+    def run(self):
+        super().run()
+        super().finalize()
 
     @override(BaseRLLearner)
     def _setup_data_source(self):
@@ -46,7 +57,7 @@ class AlphaStarRLLearner(BaseRLLearner):
             self.use_distributed,
             read_data_fn=self.load_trajectory,
         )
-        return None, dataloader, None
+        return None, iter(dataloader), None
 
     @override(BaseRLLearner)
     def _setup_agent(self):
@@ -62,7 +73,7 @@ class AlphaStarRLLearner(BaseRLLearner):
     def _preprocess_data(self, batch_data):
         data_stat = self._get_data_stat(batch_data)
         if self.use_cuda:
-            batch_data = to_device(batch_data, 'cuda')
+            batch_data = to_device(batch_data, 'cuda:{}'.format(self.rank % 8))
         return batch_data, data_stat
 
     @override(BaseRLLearner)
@@ -108,3 +119,23 @@ class AlphaStarRLLearner(BaseRLLearner):
         Overview: get the statistics of input data
         """
         return {}
+
+    @override(BaseRLLearner)
+    def _get_model_state_dict(self):
+        state_dict = self.agent.get_model().state_dict()
+        state_dict = to_device(state_dict, 'cpu')
+        if self.use_distributed:
+            state_dict = {k[7:]: v for k, v in state_dict.items()}  # remove module.
+        return {'state_dict': state_dict}
+
+    @override(BaseRLLearner)
+    def _load_checkpoint_to_model(self, checkpoint):
+        if self.use_distributed:
+            prefix = 'module.'
+            prefix_op = 'add'
+        else:
+            prefix = None
+            prefix_op = None
+        self.checkpoint_manager.load(
+            checkpoint, self.agent.get_model(), prefix=prefix, prefix_op=prefix_op, strict=False, need_torch_load=False
+        )

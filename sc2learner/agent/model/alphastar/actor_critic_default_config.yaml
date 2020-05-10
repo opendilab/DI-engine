@@ -3,49 +3,59 @@ model:
     freeze_targets: []
     state_dict_mask: []
     use_value_network: False
+    use_battle_reward: False
     # ===== Value =====
     value:
         winloss:
             name: winloss
             cum_stat_keys: ['unit_build']
             param:
-                input_dim: 1536
+                input_dim: 1664
                 activation: 'relu'
                 norm_type: 'LN'
                 res_dim: 256
                 res_num: 16
-        build_orders:
-            name: build_orders
+        build_order:
+            name: build_order
             cum_stat_keys: ['unit_build', 'effect', 'research']
+            param:
+                input_dim: 1792
+                activation: 'relu'
+                norm_type: 'LN'
+                res_dim: 256
+                res_num: 16
+        built_unit:
+            name: built_unit
+            cum_stat_keys: ['unit_build']
             param:
                 input_dim: 1664
                 activation: 'relu'
                 norm_type: 'LN'
                 res_dim: 256
                 res_num: 16
-        built_units:
-            name: built_units
-            cum_stat_keys: ['unit_build']
-            param:
-                input_dim: 1536
-                activation: 'relu'
-                norm_type: 'LN'
-                res_dim: 256
-                res_num: 16
-        effects:
-            name: effects
+        effect:
+            name: effect
             cum_stat_keys: ['effect']
             param:
-                input_dim: 1536
+                input_dim: 1664
                 activation: 'relu'
                 norm_type: 'LN'
                 res_dim: 256
                 res_num: 16
-        upgrades:
-            name: upgrades
+        upgrade:
+            name: upgrade
             cum_stat_keys: ['research']
             param:
-                input_dim: 1536
+                input_dim: 1664
+                activation: 'relu'
+                norm_type: 'LN'
+                res_dim: 256
+                res_num: 16
+        battle:
+            name: battle
+            cum_stat_keys: ['unit_build', 'effect', 'research']
+            param:
+                input_dim: 1792
                 activation: 'relu'
                 norm_type: 'LN'
                 res_dim: 256
@@ -85,6 +95,10 @@ model:
             input_size: 1792  # spatial_encoder.fc_dim + entity_encoder.output_dim + scalar_encoder.output_dim
             hidden_size: 384
             num_layers: 3
+        score_cumulative:
+            input_dim: 13
+            output_dim: 64
+            activation: 'relu'
     # ===== Policy =====
     policy:
         location_expand_ratio: 2

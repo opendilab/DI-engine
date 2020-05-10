@@ -53,6 +53,13 @@ def build_ret(code, info=''):
     return {'code': code, 'info': info}
 
 
+@app.route('/learner/reset', methods=['POST'])
+def reset():
+    checkpoint_path = request.json['checkpoint_path']
+    info = learner.reset(checkpoint_path)
+    return build_ret(0, info)
+
+
 ###################################################################################
 #                                      debug                                      #
 ###################################################################################

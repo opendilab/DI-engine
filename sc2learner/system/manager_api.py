@@ -50,7 +50,8 @@ def create_manager_app(manager):
     def finish_job():
         actor_uid = request.json['actor_uid']
         job_id = request.json['job_id']
-        ret_code = manager.deal_with_finish_job(actor_uid, job_id)
+        result = request.json['result']
+        ret_code = manager.deal_with_finish_job(actor_uid, job_id, result)
         if ret_code:
             return build_ret(0)
         else:

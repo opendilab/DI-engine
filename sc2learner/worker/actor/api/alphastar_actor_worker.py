@@ -19,9 +19,6 @@ from sc2learner.torch_utils import build_checkpoint_helper
 from sc2learner.utils import read_file_ceph, save_file_ceph, get_manager_node_ip, merge_two_dicts
 from sc2learner.worker.actor import AlphaStarActor
 
-parser = argparse.ArgumentParser(description='AlphaStar Actor (for training on slurm cluster)')
-parser.add_argument('--config', type=str, help='training config yaml file')
-
 
 class AlphaStarActorWorker(AlphaStarActor):
     def __init__(self, cfg):
@@ -153,13 +150,29 @@ class JobGetter:
             self.context.logger.info('[error][ask_for_job] {}'.format(sys.exc_info()[0]))
 
 
+def print_type(d):
+    if isinstance(d, list) or isinstance(d, tuple):
+        print('-' * 10 + 'list begin' + '-' * 10)
+        for t in d:
+            print_type(t)
+        print('-' * 10 + 'list end' + '-' * 10)
+    elif isinstance(d, dict):
+        print('-' * 10 + 'dict begin' + '-' * 10)
+        for k, v in d.items():
+            print('key {}:'.format(k))
+            print_type(v)
+        print('-' * 10 + 'dict end' + '-' * 10)
+    else:
+        print(type(d))
+
+
 class DataPusher:
     def __init__(self, context):
         self.context = context
         self.ceph_path = self.context.cfg['system']['ceph_traj_path']
 
-    def finish_job(self, job_id):
-        d = {'actor_uid': self.context.actor_uid, 'job_id': job_id}
+    def finish_job(self, job_id, result):
+        d = {'actor_uid': self.context.actor_uid, 'job_id': job_id, 'result': result}
         try:
             response = self.context.requests_session.post(self.context.url_prefix + 'manager/finish_job', json=d).json()
             if response['code'] == 0:
@@ -175,9 +188,13 @@ class DataPusher:
         job_id = job['job_id']
         agent_no = metadata['agent_no']
         model_id = job['model_id'][agent_no]
+        learner_uid = job['learner_uid'][agent_no]
+        # if learner_uid is None(not active player, which owns learner), don't push traj
+        if learner_uid is None:
+            return
         # saving to ceph
         ceph_name = "model_{}_job_{}_agent_{}_step_{}_{}.traj".format(
-            model_id, job_id, agent_no, metadata['game_step'], str(uuid.uuid1())
+            model_id, job_id, agent_no, metadata['game_loop'], str(uuid.uuid1())
         )
         save_file_ceph(self.ceph_path, ceph_name, data_buffer)
 
@@ -189,11 +206,12 @@ class DataPusher:
             # full path to this trajectory = md['ceph_name'] + md['trajectory_path'] (no need for os.path.join)
             'ceph_name': self.ceph_path,
             # the uid for this agent
-            'learner_uid': [job.get('learner_uid1'), job.get('learner_uid2')][agent_no],
-            'learner_uid1': job.get('learner_uid1'),
-            'learner_uid2': job.get('learner_uid2')
+            'learner_uid': learner_uid,
+            # home away player_id
+            'player_id': job.get('player_id'),
         }
         metadata = merge_two_dicts(metadata, metadata_supp)
+
         d = {'actor_uid': self.context.actor_uid, 'job_id': job_id, 'metadata': metadata}
         try:
             response = self.context.requests_session.post(
@@ -228,9 +246,9 @@ class ModelLoader:
         t = time.time()
         # during testing, we don't necessary load the real weights
         if 'do_not_load' not in path:
-            model_handle = read_file_ceph(path)
+            model_handle = read_file_ceph(path, read_type='pickle')
             helper = build_checkpoint_helper('')
-            helper.load(model_handle, model, prefix_op='remove', prefix='module.')
+            helper.load(model_handle, model, prefix_op='remove', prefix='module.', strict=False, need_torch_load=False)
         self.context.logger.info('Model {} loaded for agent {}, time:{}'.format(path, agent_no, time.time() - t))
 
     def load_teacher_model(self, job, model):
@@ -241,9 +259,9 @@ class ModelLoader:
         t = time.time()
         # during testing, we don't necessary load the real weights
         if 'do_not_load' not in path:
-            model_handle = read_file_ceph(path)
+            model_handle = read_file_ceph(path, read_type='pickle')
             helper = build_checkpoint_helper('')
-            helper.load(model_handle, model, prefix_op='remove', prefix='module.')
+            helper.load(model_handle, model, prefix_op='remove', prefix='module.', strict=False, need_torch_load=False)
         self.context.logger.info('Teacher Model {} loaded, time:{}'.format(path, time.time() - t))
 
 
@@ -260,17 +278,4 @@ class StatRequester:
         path = self._get_stat_ceph_path(job['stat_id'][agent_no])
         if 'do_not_load' in path:
             return {}
-        ceph_handle = read_file_ceph(path)
-        stat = torch.load(ceph_handle, map_location='cpu')
-        return stat
-
-
-def main():
-    args = parser.parse_args()
-    cfg = yaml.safe_load(open(args.config, 'r'))
-    actor = AlphaStarActorWorker(cfg)
-    actor.run()
-
-
-if __name__ == '__main__':
-    main()
+        return read_file_ceph(path, read_type='pickle')

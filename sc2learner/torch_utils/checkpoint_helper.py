@@ -184,7 +184,8 @@ class CheckpointHelper(object):
         prefix=None,
         strict=True,
         logger_prefix='',
-        state_dict_mask=[]
+        state_dict_mask=[],
+        need_torch_load=True,
     ):
         """
             Overview: load checkpoint by given path
@@ -203,13 +204,18 @@ class CheckpointHelper(object):
                 - logger_prefix (:obj:`str`): prefix of logger
                 - state_dict_mask (:obj:`list`) a list contains state_dict keys,
                     which shouldn't be loaded into model(after prefix op)
+                - need_torch_load (:obj:`bool`): whether need torch.load operation
         """
         # Note: don't use assign operation('=') to update input argument value
         if isinstance(load_path, str):
             # don't assume this if input is not a path (like BytesIO for ceph)
             assert (os.path.exists(load_path))
         # Note: for reduce first GPU memory cost and compatible for cpu env
-        checkpoint = torch.load(load_path, map_location='cpu')
+        if need_torch_load:
+            checkpoint = torch.load(load_path, map_location='cpu')
+        else:
+            checkpoint = load_path
+            load_path = 'object'
         state_dict = checkpoint['state_dict']
         if prefix_op is not None:
             prefix_func = {'remove': self._remove_prefix, 'add': self._add_prefix}

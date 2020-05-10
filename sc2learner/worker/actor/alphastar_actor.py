@@ -40,14 +40,6 @@ def unsqueeze_batch_dim(obs):
 class AlphaStarActor:
     def __init__(self, cfg):
         self.cfg = cfg
-        # copying everything in rl_train and train config entry to config.env
-        # TODO: better handling for common variables used in different situations
-        if 'rl_train' in self.cfg:
-            for k, v in self.cfg.rl_train.items():
-                self.cfg.env[k] = v
-        if 'train' in self.cfg:
-            for k, v in self.cfg.train.items():
-                self.cfg.env[k] = v
         # in case we want everything to be the default
         if 'model' not in self.cfg:
             self.cfg.model = None
@@ -79,7 +71,7 @@ class AlphaStarActor:
                 AlphaStarAgent(
                     model_config=self.cfg.model,
                     num_concurrent_episodes=1,
-                    use_cuda=self.cfg.env.use_cuda,
+                    use_cuda=self.cfg.actor.use_cuda,
                     use_distributed=False
                 )
             ]
@@ -93,13 +85,13 @@ class AlphaStarActor:
                 AlphaStarAgent(
                     model_config=self.cfg.model,
                     num_concurrent_episodes=1,
-                    use_cuda=self.cfg.env.use_cuda,
+                    use_cuda=self.cfg.actor.use_cuda,
                     use_distributed=False
                 ),
                 AlphaStarAgent(
                     model_config=self.cfg.model,
                     num_concurrent_episodes=1,
-                    use_cuda=self.cfg.env.use_cuda,
+                    use_cuda=self.cfg.actor.use_cuda,
                     use_distributed=False
                 )
             ]
@@ -107,7 +99,7 @@ class AlphaStarActor:
             raise NotImplementedError()
 
         for agent in self.agents:
-            agent.eval()
+            agent.train()
             agent.set_seed(job['random_seed'])
             agent.reset_previous_state([True])  # Here the lstm_states are reset
 
@@ -117,7 +109,7 @@ class AlphaStarActor:
             self.teacher_agent = AlphaStarAgent(
                 model_config=self.cfg.model,
                 num_concurrent_episodes=1,
-                use_cuda=self.cfg.env.use_cuda,
+                use_cuda=self.cfg.actor.use_cuda,
                 use_distributed=False
             )
             self.teacher_agent.eval()
@@ -126,6 +118,7 @@ class AlphaStarActor:
             self.use_teacher_model = True
         else:
             self.use_teacher_model = False
+        # TODO(nyz) change map env
         self.env = self._make_env(players)
         self.compressor_name = job['step_data_compressor']
         self.compressor = get_step_data_compressor(self.compressor_name)
@@ -159,17 +152,17 @@ class AlphaStarActor:
                 }
                 self.last_state_action_home[i].update(obs[i])
                 if self.agent_num == 2:
-                    self.last_state_action_away[1 - i] = {
+                    self.last_state_action_away[i] = {
                         'agent_no': 1 - i,
                         # lstm state before forward, [0] for batch dim
                         'prev_state': self.lstm_states_cpu[1 - i][0],
                         'have_teacher': self.use_teacher_model,
                         'teacher_prev_state': self.teacher_lstm_states_cpu[1 - i][0]
                     }
-                    self.last_state_action_away[1 - i].update(obs[1 - i])
+                    self.last_state_action_away[i].update(obs[1 - i])
                 obs_copy = copy.deepcopy(obs)
                 obs_copy[i] = unsqueeze_batch_dim(obs_copy[i])
-                if self.cfg.env.use_cuda:
+                if self.cfg.actor.use_cuda:
                     obs_copy[i] = to_device(obs_copy[i], 'cuda')
                 if self.use_teacher_model:
                     teacher_action, teacher_logits, self.teacher_lstm_states[i] = self.teacher_agent.compute_action(
@@ -177,7 +170,7 @@ class AlphaStarActor:
                         mode="evaluate",
                         prev_states=self.teacher_lstm_states[i],
                         require_grad=False,
-                        temperature=self.cfg.env.temperature
+                        temperature=self.cfg.train.temperature
                     )
                 else:
                     teacher_action = None
@@ -187,10 +180,10 @@ class AlphaStarActor:
                     mode="evaluate",
                     prev_states=self.lstm_states[i],
                     require_grad=False,
-                    temperature=self.cfg.env.temperature
+                    temperature=self.cfg.train.temperature
                 )
 
-                if self.cfg.env.use_cuda:
+                if self.cfg.actor.use_cuda:
                     action = to_device(action, 'cpu')
                     logits = to_device(logits, 'cpu')
                     teacher_action = to_device(teacher_action, 'cpu')
@@ -207,12 +200,18 @@ class AlphaStarActor:
                 if self.use_teacher_model:
                     teacher_action = dict_list2list_dict(teacher_action)[0]
                     teacher_logits = dict_list2list_dict(teacher_logits)[0]
+                # remove evaluate related key
+                send_action = copy.deepcopy(action)
+                if 'action_entity_raw' in send_action:
+                    send_action.pop('action_entity_raw')
+                send_teacher_action = copy.deepcopy(teacher_action)
+                if 'action_entity_raw' in send_teacher_action:
+                    send_teacher_action.pop('action_entity_raw')
                 actions[i] = action
                 update_after_eval_home = {
-                    # TODO: why should not this named action rather than actionS
-                    'actions': action,
+                    'actions': send_action,
                     'behaviour_outputs': logits,
-                    'teacher_actions': teacher_action,
+                    'teacher_actions': send_teacher_action,
                     'teacher_outputs': teacher_logits,
                     # LSTM state after forward
                     'next_state': self.lstm_states_cpu[i][0],
@@ -226,7 +225,7 @@ class AlphaStarActor:
                     'next_state': self.lstm_states_cpu[1 - i],
                     'teacher_next_state': self.teacher_lstm_states_cpu[1 - i]
                 }
-                self.last_state_action_away[1 - i].update(update_after_eval_away)
+                self.last_state_action_away[i].update(update_after_eval_away)
         return actions
 
     def _init_states(self):
@@ -243,10 +242,10 @@ class AlphaStarActor:
         Load models and stats(z) using model_loader and stat_requester.
         Then pushing data to ceph, send the metadata to manager (and then forwarded to learner) using data_pusher
         Actor Logic:
-            When a agent is due to act at game_step, it will take the obs and decide what action to do (after env delay)
+            When a agent is due to act at game_loop, it will take the obs and decide what action to do (after env delay)
             and when (after how many steps) should the agent be notified of newer obs and asked to act again
             this is done by calculating a delay (Note: different from env delay), and the game will proceed until
-            game_step arrived the time to observe and act as requested by any of the agents.
+            game_loop arrived the time to observe and act as requested by any of the agents.
             After every step, due[i] is set to True when steps of simulation requested by agent[i] has been completed
             and then, agent[i] need to take its action at the next step.
             Agent j with due[j]==False will be skipped and its action is None
@@ -256,35 +255,49 @@ class AlphaStarActor:
         """
         job = self.job_getter.get_job(self.actor_uid)
         self._init_with_job(job)
+        # load model
         for i in range(self.agent_num):
             self.model_loader.load_model(job, i, self.agents[i].get_model())
+        # teacher_model is fixed in the whole RL training
         if self.use_teacher_model:
             self.model_loader.load_teacher_model(job, self.teacher_agent.get_model())
-        if self.cfg.env.use_stat:
-            for i in range(self.agent_num):
-                stat = self.stat_requester.request_stat(job, i)
-                if isinstance(stat, dict):
-                    self.env.load_stat(stat, i)
+        # load stat
+        for i in range(self.agent_num):
+            stat = self.stat_requester.request_stat(job, i)
+            if isinstance(stat, dict):
+                self.env.load_stat(stat, i)
+            else:
+                raise TypeError("invalid stat type: {}".format(type(stat)))
+        # reset
+        # Note: reset must be after the load stat
         obs = self.env.reset()
-        data_buffer = [[] for i in range(self.agent_num)]
-        last_buffer = [[] for i in range(self.agent_num)]
-        due = [True] * self.agent_num
-        game_step = 0
-        game_seconds = 0
         self._init_states()
+        # initialize loop variable
+        data_buffer = [[] for i in range(self.agent_num)]
+        last_buffer = [[] for i in range(self.agent_num)]  # for non-aligned trajectory length
+        due = [True] * self.agent_num
+        game_loop = 0
+        game_seconds = 0
+        trajectory_count = 0
         # main loop
         while True:
             # inferencing using the model
             actions = self._eval_actions(obs, due)
-            actions = self.action_modifier(actions, game_step)
+            actions = self.action_modifier(actions, game_loop)
             # stepping
-            game_step, due, obs, rewards, done, this_game_stat, info = self.env.step(actions)
+            game_loop, due, obs, rewards, done, info = self.env.step(actions)
+            game_loop = int(game_loop)  # np.int32->int
             # assuming 22 step per second, round to integer
-            # TODO:need to check with https://github.com/deepmind/pysc2/blob/master/docs/environment.md#game-speed
-            game_seconds = game_step // 22
-            if game_step >= self.cfg.env.game_steps_per_episode:
+            game_seconds = game_loop // 22
+            if game_loop >= self.cfg.env.game_steps_per_episode:
                 # game time out, force the done flag to True
                 done = True
+            if len(data_buffer[0]) % self.cfg.actor.print_freq == 0:
+                print(
+                    'actor: uid({}), game_loop({}), len of data_buffer({})'.format(
+                        self.actor_uid, game_loop, len(data_buffer[0])
+                    )
+                )
             for i in range(self.agent_num):
                 # flag telling that we should push the data buffer for agent i before next step
                 at_traj_end = len(data_buffer[i]) + 1 * due[i] >= job['data_push_length'] or done
@@ -292,42 +305,30 @@ class AlphaStarActor:
                     # we received outcome from the env, add to rollout trajectory
                     # the 'next_obs' is saved (and to be sent) if only this is the last obs of the traj
                     step_data_update_home = {
-                        # the z used for the behavior network
-                        'target_z': self.env.loaded_eval_stat.get_z(i),
-                        # statistics calculated for this episode so far
-                        'agent_z': this_game_stat[i],
-                        'step': game_step,
+                        'step': game_loop,
                         'game_seconds': game_seconds,
                         'done': done,
-                        'rewards': torch.tensor([rewards[i]]),
-                        'info': info
+                        'rewards': rewards[i],
+                        #'info': info
                     }
                     home_step_data = merge_two_dicts(self.last_state_action_home[i], step_data_update_home)
                     if self.agent_num == 2:
                         step_data_update_away = {
-                            'target_z': self.env.loaded_eval_stat.get_z(i),
-                            'agent_z': this_game_stat[1 - i],
-                            'step': game_step,
+                            'step': game_loop,
                             'game_seconds': game_seconds,
                             'done': done,
-                            'rewards': torch.tensor([rewards[1 - i]]),
-                            'info': info
+                            'rewards': rewards[1 - i],
+                            #'info': info
                         }
                         away_step_data = merge_two_dicts(self.last_state_action_away[i], step_data_update_away)
                     else:
                         away_step_data = None
-                    home_next_step_obs = obs[i] if at_traj_end else None
-                    away_next_step_obs = obs[1 - i] if self.agent_num == 2 and at_traj_end else None
-                    data_buffer[i].append(
-                        self.compressor(
-                            {
-                                'home': home_step_data,
-                                'away': away_step_data,
-                                'home_next': home_next_step_obs,
-                                'away_next': away_next_step_obs
-                            }
-                        )
-                    )
+                    step_data = {'home': home_step_data, 'away': away_step_data}
+                    if at_traj_end:
+                        step_data['home_next'] = obs[i]
+                    if self.agent_num == 2 and at_traj_end:
+                        step_data['away_next'] = obs[1 - i]
+                    data_buffer[i].append(self.compressor(step_data))
                 if at_traj_end:
                     # trajectory buffer is full or the game is finished
                     metadata = {
@@ -336,17 +337,15 @@ class AlphaStarActor:
                         'agent_model_id': job['model_id'][i],
                         'job': job,
                         'step_data_compressor': self.compressor_name,
-                        'game_step': game_step,
+                        'game_loop': game_loop,
                         'done': done,
                         'finish_time': time.time(),
                         'actor_uid': self.actor_uid,
-                        'info': info,
+                        #'info': info,
                         'traj_length': len(data_buffer[i]),  # this is the real length, without reused last traj
-                        # TODO: implement other priority initialization algo, setting it to a big num now
-                        'priority': 1e7,
+                        # TODO(nyz): implement other priority initialization algo, setting it to 1.0 now
+                        'priority': 1.0,
                     }
-                    if done:
-                        metadata['final_reward'] = rewards[i]
                     delta = job['data_push_length'] - len(data_buffer[i])
                     # if the the data actually in the buffer when the episode ends is shorter than
                     # job['data_push_length'], the buffer is than filled with data from the last trajectory
@@ -356,15 +355,23 @@ class AlphaStarActor:
                     self.data_pusher.push(metadata, data_buffer[i])
                     last_buffer[i] = data_buffer[i].copy()
                     data_buffer[i] = []
+                    trajectory_count += 1
+                    # when several trajectories are finished, reload(update) model
+                    if trajectory_count % self.cfg.actor.load_model_freq == 0:
+                        for i in range(self.agent_num):
+                            self.model_loader.load_model(job, i, self.agents[i].get_model())
+
             if done:
-                self.data_pusher.finish_job(job['job_id'])
+                result_map = {1: 'wins', 0: 'draws', -1: 'losses'}
+                result = result_map[rewards[0]['winloss'].int().item()]
+                self.data_pusher.finish_job(job['job_id'], result)
                 break
 
     def run(self):
         while True:
             self.run_episode()
 
-    def action_modifier(self, actions, game_step):
+    def action_modifier(self, actions, game_loop):
         # to be overrided
         # called before actions are sent to the env, APM limits can be implemented here
         return actions
@@ -423,5 +430,5 @@ class DataPusher:
     def push(self, metadata, data_buffer):
         pass
 
-    def finish_job(self, job_id):
+    def finish_job(self, job_id, result):
         pass

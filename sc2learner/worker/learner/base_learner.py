@@ -68,7 +68,7 @@ class Learner:
         # build logger
         if self.rank == 0:  # only one thread need to build logger
             self.logger, self.tb_logger, self.variable_record = self._setup_logger(self.rank)
-            self.logger.info('cfg:\n{}'.format(self.cfg))
+            #self.logger.info('cfg:\n{}'.format(self.cfg))
             #self.logger.info('model:\n{}'.format(self.agent))
             self._setup_stats()
         else:
@@ -110,6 +110,12 @@ class Learner:
                 - iterations (:obj:`int`): iteration number
         """
         pass
+
+    def _update_data_priority(self, data, var_items):
+        pass
+
+    def _preprocess_data(self, data):
+        return data
 
     # === Functions that should not be override. ===
     def _setup_logger(self, rank):
@@ -185,9 +191,6 @@ class Learner:
 
         self.save_checkpoint()
 
-    def _preprocess_data(self, data):
-        return data
-
     def _run(self):
         while self.last_iter.val < self.max_iterations:
             with self.total_timer:
@@ -239,9 +242,6 @@ class Learner:
 
         if iterations % self.cfg.logger.save_freq == 0:
             self.save_checkpoint()
-
-    def _update_data_priority(self, data, var_items):
-        pass
 
     def finalize(self):
         """ Overview: finalize, called after training """

@@ -41,9 +41,9 @@ class FakeLearner(object):
         self.delete_trajectory_record_num = 1000  # if larger than len(self.trajectory_record), delete by time sort
 
         # threads
-        check_train_thread = threading.Thread(target=self.check_train)
-        check_train_thread.start()
-        self.logger.info("[UP] check train thread ")
+        # check_train_thread = threading.Thread(target=self.check_train)
+        # check_train_thread.start()
+        # self.logger.info("[UP] check train thread ")
 
     def _set_logger(self):
         '''
@@ -86,14 +86,24 @@ class FakeLearner(object):
         save_file_ceph(self.ceph_path, model_name, model)
         self.logger.info("save model {} to ceph".format(model_name))
 
-    def _load_trajectory_from_ceph(self, trajectory_name):
+    def _load_checkpoint_from_ceph(self, checkpoint_path, read_type='pickle'):
+        '''
+            Overview: load model from ceph, using pickle as default
+            Returns:
+                - (:obj`dict`): model
+        '''
+        checkpoint = read_file_ceph(self.ceph_path + checkpoint_path, read_type=read_type)
+        self.logger.info("load checkpoint {} from ceph".format(checkpoint_path))
+        return checkpoint
+
+    def _load_trajectory_from_ceph(self, trajectory_name, read_type='pickle'):
         '''
             Overview: load trajectory from ceph, using pickle
             Returns:
                 - (:obj`dict`): trajectory
         '''
-        trajectory = read_file_ceph(self.ceph_path + trajectory_name, read_type='pickle')
-        self.logger.info("load trajectory {} to ceph".format(trajectory_name))
+        trajectory = read_file_ceph(self.ceph_path + trajectory_name, read_type=read_type)
+        self.logger.info("load trajectory {} from ceph".format(trajectory_name))
         return trajectory
 
     def _get_trajectory_list(self, metadatas):
@@ -112,7 +122,8 @@ class FakeLearner(object):
             if trajectory_path in self.trajectory_record:
                 trajectory = self.trajectory_record[trajectory_path]
             else:
-                trajectory = self._load_trajectory_from_ceph(trajectory_path)
+                # trajectory = self._load_trajectory_from_ceph(trajectory_path)
+                trajectory = {'traj': 'data'}
                 self.trajectory_record[trajectory_path] = trajectory
             self.trajectory_record.move_to_end(trajectory_path, last=False)  # avoid being deleted
             train_trajectory_list.append(trajectory)
@@ -170,6 +181,10 @@ class FakeLearner(object):
                 return True
         except Exception as e:
             self.logger.info("something wrong with coordinator, {}".format(e))
+
+    def reset(self, checkpoint_path):
+        model = self._load_checkpoint_from_ceph(checkpoint_path)
+        return True
 
     ###################################################################################
     #                                     threads                                     #

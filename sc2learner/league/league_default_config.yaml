@@ -1,0 +1,37 @@
+league:
+    # ---player----
+    race: ['zerg', 'terran', 'protoss']
+    active_players: 
+        main_player: 1
+        main_exploiter: 1
+        league_exploiter: 2
+    main_player:
+        branch_probs:
+            pfsp: 0.5
+            sp: 0.35
+            verification: 0.15
+        strong_win_rate: 0.7
+        one_phase_steps: 2e3
+    main_exploiter:
+        branch_probs:
+            main_players: 1.0
+        strong_win_rate: 0.7
+        one_phase_steps: 2e3
+        min_valid_win_rate: 0.2
+    league_exploiter:
+        branch_probs:
+            pfsp: 1.0
+        strong_win_rate: 0.7
+        one_phase_steps: 2e3
+    use_sl_init_historical: True
+    sl_checkpoint_path: 
+        zerg: 'sl_checkpoint_zerg.pth'
+        terran: 'sl_checkpoint_terran.pth'
+        protoss: 'sl_checkpoint_protoss.pth'
+    # ---payoff---
+    payoff_decay: 0.99
+    min_win_rate_games: 8
+    # ---runner---
+    max_active_player_match: 3
+    #per_match_games: 8
+    time_interval: 1
