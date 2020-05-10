@@ -166,7 +166,9 @@ class LearnerCommunicationHelper(object):
                 else:
                     # for local test
                     pass
-            self.comm_logger.info("save model {} to {} with {:.3f}s".format(self.model_name, self.file_system, self.timer.value))
+            self.comm_logger.info(
+                "save model {} to {} with {:.3f}s".format(self.model_name, self.file_system, self.timer.value)
+            )
             time.sleep(self.save_model_seconds)
 
     def _get_model_state_dict(self):

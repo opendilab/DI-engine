@@ -239,7 +239,9 @@ class Coordinator(object):
                                 self.logger.info('learner ({}) set to player ({})'.format(learner_uid, player_id))
                                 break
                         self.logger.info(
-                            '{}/{} learners have been registered'.format(len(self.player_to_learner), len(self.player_ids))
+                            '{}/{} learners have been registered'.format(
+                                len(self.player_to_learner), len(self.player_ids)
+                            )
                         )
                     else:
                         self.logger.info(
@@ -341,10 +343,14 @@ class Coordinator(object):
             if data_index not in self.learner_record[learner_uid]['ret_metadatas']:
                 metadatas = self.learner_record[learner_uid]['replay_buffer'].sample(batch_size)
                 self.learner_record[learner_uid]['ret_metadatas'][data_index] = metadatas
-                self.logger.info('[ask_for_metadata] [first] learner ({}) data_index ({})'.format(learner_uid, data_index))
+                self.logger.info(
+                    '[ask_for_metadata] [first] learner ({}) data_index ({})'.format(learner_uid, data_index)
+                )
             else:
                 metadatas = self.learner_record[learner_uid]['ret_metadatas'][data_index]
-                self.logger.info('[ask_for_metadata] [second] learner ({}) data_index ({})'.format(learner_uid, data_index))
+                self.logger.info(
+                    '[ask_for_metadata] [second] learner ({}) data_index ({})'.format(learner_uid, data_index)
+                )
         # clean saved metadata in learner_record
         for i in range(data_index - self.save_ret_metadata_num):
             if i in self.learner_record[learner_uid]['ret_metadatas']:

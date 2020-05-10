@@ -83,7 +83,9 @@ class AlphaStarEnv(SC2Env):
             stat = self._loaded_eval_stats[agent_no].get_input_z_by_game_loop(game_loop=game_loop)
         elif self._obs_stat_type == 'self_online':
             cumulative_stat = self._episode_stats[agent_no].cumulative_statistics
-            stat = self._loaded_eval_stats[agent_no].get_input_z_by_game_loop(game_loop=None, cumulative_stat=cumulative_stat)
+            stat = self._loaded_eval_stats[agent_no].get_input_z_by_game_loop(
+                game_loop=None, cumulative_stat=cumulative_stat
+            )
         elif self._obs_stat_type == 'replay_last':
             stat = self._loaded_eval_stats[agent_no].get_input_z_by_game_loop(game_loop=None)
 

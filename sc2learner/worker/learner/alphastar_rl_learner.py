@@ -137,10 +137,5 @@ class AlphaStarRLLearner(BaseRLLearner):
             prefix = None
             prefix_op = None
         self.checkpoint_manager.load(
-            checkpoint,
-            self.agent.get_model(),
-            prefix=prefix,
-            prefix_op=prefix_op,
-            strict=False,
-            need_torch_load=False
+            checkpoint, self.agent.get_model(), prefix=prefix, prefix_op=prefix_op, strict=False, need_torch_load=False
         )
