@@ -256,9 +256,9 @@ class AlphaStarActor:
         job = self.job_getter.get_job(self.actor_uid)
         self._init_with_job(job)
         # load model
-        # TODO(nyz) load model by faster frequency
         for i in range(self.agent_num):
             self.model_loader.load_model(job, i, self.agents[i].get_model())
+        # teacher_model is fixed in the whole RL training
         if self.use_teacher_model:
             self.model_loader.load_teacher_model(job, self.teacher_agent.get_model())
         # load stat
@@ -278,6 +278,7 @@ class AlphaStarActor:
         due = [True] * self.agent_num
         game_loop = 0
         game_seconds = 0
+        trajectory_count = 0
         # main loop
         while True:
             # inferencing using the model
@@ -354,6 +355,12 @@ class AlphaStarActor:
                     self.data_pusher.push(metadata, data_buffer[i])
                     last_buffer[i] = data_buffer[i].copy()
                     data_buffer[i] = []
+                    trajectory_count += 1
+                    # when several trajectories are finished, reload(update) model
+                    if trajectory_count % self.cfg.load_model_freq == 0:
+                        for i in range(self.agent_num):
+                            self.model_loader.load_model(job, i, self.agents[i].get_model())
+
             if done:
                 result_map = {1: 'wins', 0: 'draws', -1: 'losses'}
                 result = result_map[rewards[0]['winloss'].int().item()]
