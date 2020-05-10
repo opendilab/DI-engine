@@ -99,7 +99,10 @@ class RealTimeStatistics:
 
     def update_build_order_stat(self, act, game_loop):
         # this will not clear the cache
+        target_list = ['unit', 'build', 'research']
         action_type = int(act['action_type'])
+        if action_type in (35, 64, 520, 222, 515, 503):  # exclude worker and supply
+            return
         goal = GENERAL_ACTION_INFO_MASK[action_type]['goal']
         if action_type in BEGIN_ACTIONS:
             if goal == 'build':
