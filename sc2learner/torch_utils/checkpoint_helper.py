@@ -215,6 +215,7 @@ class CheckpointHelper(object):
             checkpoint = torch.load(load_path, map_location='cpu')
         else:
             checkpoint = load_path
+            load_path = 'object'
         state_dict = checkpoint['state_dict']
         if prefix_op is not None:
             prefix_func = {'remove': self._remove_prefix, 'add': self._add_prefix}

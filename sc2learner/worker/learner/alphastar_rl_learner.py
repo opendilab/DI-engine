@@ -35,8 +35,9 @@ class AlphaStarRLLearner(BaseRLLearner):
         super(AlphaStarRLLearner, self).__init__(cfg)
 
         # Print and save config as metadata
-        pretty_print({"config": self.cfg})
-        self.checkpoint_manager.save_config(self.cfg)
+        if self.rank == 0:
+            pretty_print({"config": self.cfg})
+            self.checkpoint_manager.save_config(self.cfg)
 
         # run thread
         run_thread = threading.Thread(target=self.run)
@@ -121,13 +122,25 @@ class AlphaStarRLLearner(BaseRLLearner):
 
     @override(BaseRLLearner)
     def _get_model_state_dict(self):
-        return {'state_dict': self.agent.get_model().state_dict()}
+        state_dict = self.agent.get_model().state_dict()
+        state_dict = to_device(state_dict, 'cpu')
+        if self.use_distributed:
+            state_dict = {k[7:]: v for k, v in state_dict.items()}  # remove module.
+        return {'state_dict': state_dict}
 
     @override(BaseRLLearner)
     def _load_checkpoint_to_model(self, checkpoint):
+        if self.use_distributed:
+            prefix = 'module.'
+            prefix_op = 'add'
+        else:
+            prefix = None
+            prefix_op = None
         self.checkpoint_manager.load(
             checkpoint,
             self.agent.get_model(),
+            prefix=prefix,
+            prefix_op=prefix_op,
             strict=False,
             need_torch_load=False
         )
