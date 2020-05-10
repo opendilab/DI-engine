@@ -4,6 +4,8 @@ common:
     save_path: '.'
     load_path: ''
     only_evaluate: False
+env:
+    map_name_list: ['KairosJunction']
 # for testing actor worker
 actor:
     heartbeats_thread: True
@@ -15,7 +17,7 @@ coordinator:
     fake_stat_path: Zerg_Zerg_6280_d35c22b2d7e462f1481621cbf765709961e3f9a2a99f8f6c6fa814ccffc831d6.stat_processed
 # values in this section is mean to be shared by multiple components
 system:
-    resume_dir:    # placeholder, it's set by coordinator_start.py
+    resume_dir: '.'    # placeholder, it's set by coordinator_start.py
     learner_port: 18293               # learner port
     learner_heartbeats_thread: False  # if use thread to send heartbeats to coordinator in learner
     learner_heartbeats_freq: 10       # send heartbeats each `freq`

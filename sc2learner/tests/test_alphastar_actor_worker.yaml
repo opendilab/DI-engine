@@ -10,6 +10,7 @@ env:
     begin_num: 20
     crop_map_to_playable_area: False
     action_delays: [0.5, 0.25, 0.25]  # list of probablities of delay from 1 to n or null for delay=1
+    map_name_list: ['KairosJunction']
 # for testing actor worker
 train:
     trajectory_len: 16
@@ -20,6 +21,7 @@ actor:
     heartbeats_freq: 10
     max_connection_retries: 20
     print_freq: 4
+    load_model_freq: 4
 coordinator:
     use_fake_data: True
     fake_model_path: do_not_load
@@ -27,7 +29,7 @@ coordinator:
 
 # values in this section is mean to be shared by multiple components
 system:
-    resume_dir:    # placeholder, it's set by coordinator_start.py
+    resume_dir: '.'    # placeholder, it's set by coordinator_start.py
     learner_port: 18293               # learner port
     learner_heartbeats_thread: False  # if use thread to send heartbeats to coordinator in learner
     learner_heartbeats_freq: 10       # send heartbeats each `freq`
@@ -55,7 +57,7 @@ system:
 replay_buffer:
     meta_maxlen: 4096
     max_reuse: 2
-    min_sample_ratio: 2
+    min_sample_ratio: 1
     alpha: 0.6
     beta: 0.5
     cache_maxlen: 2

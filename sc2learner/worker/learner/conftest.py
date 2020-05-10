@@ -10,7 +10,7 @@ from threading import Thread
 from flask import Flask, request
 from sc2learner.system import Coordinator, create_coordinator_app, LeagueManagerWrapper, create_league_manager_app
 from sc2learner.worker.learner.api import LearnerCommunicationHelper
-from sc2learner.worker.learner import AlphaStarRLLearner
+from sc2learner.worker.learner import AlphaStarRLLearner, create_learner_app
 from sc2learner.utils.log_helper import TextLogger
 
 with open(os.path.join(os.path.dirname(__file__), 'alphastar_rl_learner_default_config.yaml')) as f:
@@ -52,7 +52,11 @@ def setup_config_real():
 
 @pytest.fixture(scope='class')
 def fake_train_learner():
-    learner_app = Flask("__main__")
+    cfg.data = {}
+    cfg.data.train = {}
+    cfg.data.train.batch_size = 128
+    learner = LearnerCommunicationHelper(cfg)
+    learner_app = create_learner_app(learner)
 
     def run():
         try:
@@ -60,12 +64,7 @@ def fake_train_learner():
         except KeyboardInterrupt:
             pass
 
-    logger = TextLogger(log_path, name="learner.log")
-    learner_cfg = copy.deepcopy(cfg)
-    cfg.data = {}
-    cfg.data.train = {}
-    cfg.data.train.batch_size = 128
-    learner = LearnerCommunicationHelper(cfg)
+    logger = TextLogger(log_path, name="fake_learner.log")
     launch_thread = Thread(target=run)
     launch_thread.daemon = True
     launch_thread.start()
@@ -75,7 +74,8 @@ def fake_train_learner():
 
 @pytest.fixture(scope='class')
 def real_learner():
-    learner_app = Flask("__main__")
+    learner = AlphaStarRLLearner(cfg)
+    learner_app = create_learner_app(learner)
 
     def run():
         try:
@@ -83,9 +83,7 @@ def real_learner():
         except KeyboardInterrupt:
             pass
 
-    logger = TextLogger(log_path, name="learner.log")
-    learner_cfg = copy.deepcopy(cfg)
-    learner = AlphaStarRLLearner(cfg)
+    logger = TextLogger(log_path, name="real_learner.log")
     launch_thread = Thread(target=run)
     launch_thread.daemon = True
     launch_thread.start()

@@ -160,7 +160,13 @@ class LearnerCommunicationHelper(object):
         time.sleep(60)
         while True:
             with self.timer:
-                model = self._get_model_state_dict()
+                try:
+                    model = self._get_model_state_dict()
+                except NotImplementedError:
+                    print(
+                        'not implemented method: {}, if you don\'t test locally, please check it'.
+                        format('_get_model_state_dict')
+                    )
                 if self.use_ceph:
                     save_file_ceph(self.ceph_model_path, self.model_name, model)
                 else:
@@ -289,13 +295,24 @@ class LearnerCommunicationHelper(object):
             Returns:
                 - (:obj`dict`): model
         '''
-        checkpoint = read_file_ceph(checkpoint_path, read_type=read_type)
-        self.comm_logger.info("load checkpoint {} from ceph".format(checkpoint_path))
-        return checkpoint
+        if self.use_ceph:
+            checkpoint = read_file_ceph(checkpoint_path, read_type=read_type)
+            self.comm_logger.info("load checkpoint {} from ceph".format(checkpoint_path))
+            return checkpoint
+        else:
+            # for local test
+            return None
 
     def deal_with_reset(self, checkpoint_path):
         checkpoint = self._load_checkpoint_from_ceph(checkpoint_path)
-        self._load_checkpoint_to_model(checkpoint)
+        try:
+            if self.use_ceph:
+                self._load_checkpoint_to_model(checkpoint)
+        except NotImplementedError:
+            print(
+                'not implemented method: {}, if you don\'t test locally, please check it'.
+                format('_load_checkpoint_to_model')
+            )
         return True
 
     def _load_checkpoint_to_model(self, checkpoint):

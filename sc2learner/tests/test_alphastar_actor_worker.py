@@ -110,6 +110,7 @@ def coordinator():
     logging.info('coordinator started')
     yield coordinator
     coordinator.close()
+    logging.info('coordinator end')
 
 
 @pytest.fixture(scope='module')
@@ -126,6 +127,7 @@ def manager():
     manager_thread.start()
     logging.info('manager started')
     yield manager
+    logging.info('manager end')
 
 
 IGNORE_LIST = ['target_outputs']
@@ -220,6 +222,7 @@ def test_actor(coordinator, manager, caplog):
     logging.info('actor running the 2nd loop')
     actor.run_episode()
     actor.heartbeat_worker.stop_heatbeat()
+    return
 
 
 def main(unused_argv):

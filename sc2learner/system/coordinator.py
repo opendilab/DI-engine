@@ -152,7 +152,7 @@ class Coordinator(object):
                 }
                 self.learner_record['test1']['replay_buffer'].run()
                 self.learner_record['test2']['replay_buffer'].run()
-            learner_uid1 = random.choice(list(self.learner_record.keys()))
+            learner_uid1 = 'test1'
             learner_uid2 = random.choice(list(self.learner_record.keys()))
             model_name1 = self.fake_model_path
             model_name2 = self.fake_model_path
@@ -418,7 +418,10 @@ class Coordinator(object):
             'map_name': map_name,
             'player_id': 'ava'
         }
-        stats = self.stat_manager.get_ava_stats(**kwargs)
+        if self.use_fake_data:
+            stats = None
+        else:
+            stats = self.stat_manager.get_ava_stats(**kwargs)
         job = {
             'job_id': str(uuid.uuid1()),
             'learner_uid': [home_learner_uid, away_learner_uid],
