@@ -328,13 +328,9 @@ class AlphaStarEnv(SC2Env):
             'target_units': None,
             'target_location': None
         }
-<<<<<<< sc2learner/envs/alphastar_env.py
-        self.last_actions = [last_action] * self.agent_num
+        self.last_actions = [last_action for _ in range(self.agent_num)]
         self.repeat_action_type = [-1] * self.agent_num
         self.repeat_count = [0] * self.agent_num
-=======
-        self.last_actions = [last_action for _ in range(self.agent_num)]
->>>>>>> sc2learner/envs/alphastar_env.py
         obs = []
         for n in range(self.agent_num):
             obs.append(self._get_obs(timesteps[n].observation, n))
