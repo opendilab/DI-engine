@@ -317,7 +317,12 @@ class Policy(nn.Module):
             keys = entity_raw_per_frame.keys()
             action_entity_raw_per_frame = {}
             for u in units:
-                entity_raw_u = {k: entity_raw_per_frame[k][u] for k in keys}
+                try:
+                    entity_raw_u = {k: entity_raw_per_frame[k][u] for k in keys}
+                except IndexError:
+                    entity_raw_u = {k: entity_raw_per_frame[k][-1] for k in keys}
+                    print('[ERROR]: invalid unit idx: {} {} {}'.format(u, selected_units, target_units))
+                    print('[ERROR]: len entity_raw_per_frame: {}'.format(len(entity_raw_per_frame['id'])))
                 action_entity_raw_per_frame[u] = entity_raw_u
             action_entity_raw.append(action_entity_raw_per_frame)
 

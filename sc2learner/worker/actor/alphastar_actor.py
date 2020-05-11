@@ -239,6 +239,7 @@ class AlphaStarActor:
                 device = action_su.device
                 end_flag_label = torch.LongTensor([outputs_su.shape[1] - 1]).to(device)
                 send_action['selected_units'] = torch.cat([action_su, end_flag_label], dim=0)
+        return send_action
 
     def _init_states(self):
         self.last_state_action_home = [None] * self.agent_num
