@@ -116,8 +116,9 @@ def main():
 def main_4_9():
     workers_num_std = 1
     workers_num_my = 1
-    delete_workstations = ['SH-IDC1-10-5-36-104', 'SH-IDC1-10-5-36-152', 'SH-IDC1-10-5-36-154',
-                           'SH-IDC1-10-5-36-141', 'SH-IDC1-10-5-37-28']
+    delete_workstations = [
+        'SH-IDC1-10-5-36-104', 'SH-IDC1-10-5-36-152', 'SH-IDC1-10-5-36-154', 'SH-IDC1-10-5-36-141', 'SH-IDC1-10-5-37-28'
+    ]
     list_dir = '/mnt/lustre/zhangming/data/listtemp493'
     log_dir = '/mnt/lustre/zhangming/data/logs_valid_493'
     output_dir = '/mnt/lustre/zhangming/data/replays_decode_493_compress'
@@ -128,8 +129,7 @@ def main_4_9():
     # if not os.path.isdir(output_dir):
     #     os.mkdir(output_dir)
 
-    partitions = ['VI_SP_Y_V100_A', 'VI_SP_Y_V100_B', 'VI_SP_VA_V100', 
-                  'VI_Face_V100', 'VI_SP_VA_1080TI']
+    partitions = ['VI_SP_Y_V100_A', 'VI_SP_Y_V100_B', 'VI_SP_VA_V100', 'VI_Face_V100', 'VI_SP_VA_1080TI']
     # partitions = ['VI_SP_Y_V100_A']
     info = get_cls_info()
     total_list_num = 0
