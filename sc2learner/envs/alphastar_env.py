@@ -244,6 +244,9 @@ class AlphaStarEnv(SC2Env):
             else:
                 sc2_actions[n] = []
         step_mul = min(self._next_obs) - self._episode_steps
+        # TODO(nyz) deal with step == 0 case for stat and reward
+        # temporally set step_mul >= 1
+        step_mul = max(1, step_mul)
         if step_mul == 0:
             # repeat last observation and store last action
             # as at least one agent requested this by returning delay=0
