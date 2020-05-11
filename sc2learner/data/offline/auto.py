@@ -231,7 +231,5 @@ if __name__ == '__main__':
     func_name = sys.argv[1]
     if func_name == 'main_4_9':
         main_4_9()
-    elif func_name == 'main_4_10':
-        main_4_10()
     elif func_name == 'main_check':
         main_check()
