@@ -3,7 +3,7 @@ import collections
 import torch
 import torch.nn as nn
 
-from sc2learner.torch_utils import fc_block
+from sc2learner.torch_utils import fc_block, build_activation
 from .core import CoreLstm
 from .obs_encoder import ScalarEncoder, SpatialEncoder, EntityEncoder
 
@@ -28,6 +28,11 @@ class Encoder(nn.Module):
 
         self.scatter_project = fc_block(cfg.scatter.input_dim, cfg.scatter.output_dim)
         self.scatter_dim = cfg.scatter.output_dim
+        self.score_cumulative_encoder = fc_block(
+            self.cfg.score_cumulative.input_dim,
+            self.cfg.score_cumulative.output_dim,
+            activation=build_activation(self.cfg.score_cumulative.activation)
+        )
 
     def _scatter_connection(self, spatial_info, entity_embeddings, entity_raw):
         if isinstance(entity_embeddings, collections.abc.Sequence):
@@ -61,6 +66,7 @@ class Encoder(nn.Module):
                 - entity_info
                 - map_size
                 - prev_state
+                - score_cumulative
         Outputs:
             - lstm_output: The LSTM state for the next step. Tensor of size [seq_len, batch_size, hidden_size]
             - next_state: The LSTM state for the next step.
@@ -70,6 +76,7 @@ class Encoder(nn.Module):
             - scalar_context
             - baseline_feature
             - cum_stat: OrderedDict of various cumulative_statistics
+            - socre_embedding: score cumulative embedding for baseline
         '''
         embedded_scalar, scalar_context, baseline_feature, cum_stat = self.encoder['scalar_encoder'](
             inputs['scalar_info']
@@ -85,5 +92,9 @@ class Encoder(nn.Module):
             embedded_entity, embedded_spatial, embedded_scalar, inputs['prev_state']
         )
         lstm_output = lstm_output.squeeze(0)
+        if 'score_cumulative' in inputs.keys():
+            score_embedding = self.score_cumulative_encoder(inputs['score_cumulative'])
+        else:
+            score_embedding = None  # placeholder
         return lstm_output, next_state, entity_embeddings, map_skip, scalar_context, inputs[
-            'spatial_info'], baseline_feature, cum_stat
+            'spatial_info'], baseline_feature, cum_stat, score_embedding

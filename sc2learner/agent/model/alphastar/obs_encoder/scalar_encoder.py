@@ -129,7 +129,7 @@ class ScalarEncoder(nn.Module):
                 if key in self.baseline_feature_keys:
                     baseline_feature.append(embedding)
             else:
-                raise ValueError("Required {} not in keys of data: {}.".format(key, x.keys))
+                raise ValueError("Required {} not in keys of data: {}.".format(key, x.keys()))
         embedded_scalar = torch.cat(embedded_scalar, dim=1)
         scalar_context = torch.cat(scalar_context, dim=1)
         baseline_feature = torch.cat(baseline_feature, dim=1)

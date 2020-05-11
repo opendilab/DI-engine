@@ -7,13 +7,14 @@ Main Function:
 import collections
 from collections import namedtuple, OrderedDict
 
+import numpy as np
 import torch
 import torch.nn.functional as F
 
 from sc2learner.optimizer.base_loss import BaseLoss
 from sc2learner.torch_utils import levenshtein_distance, hamming_distance, same_shape
 from sc2learner.rl_utils import td_lambda_loss, vtrace_loss, upgo_loss, compute_importance_weights, entropy
-from sc2learner.utils import list_dict2dict_list
+from sc2learner.utils import list_dict2dict_list, get_rank
 from sc2learner.data import diff_shape_collate
 
 
@@ -62,7 +63,6 @@ class AlphaStarRLLoss(BaseLoss):
             ]
         )
         self.agent = agent
-
         self.T = train_config.trajectory_len
         self.batch_size = train_config.batch_size
         self.vtrace_rhos_min_clip = train_config.vtrace.min_clip
@@ -70,8 +70,6 @@ class AlphaStarRLLoss(BaseLoss):
         self.action_output_types = train_config.action_output_types
         assert (all([t in ['value', 'logit'] for t in self.action_output_types.values()]))
         self.action_type_kl_seconds = train_config.kl.action_type_kl_seconds
-        self.build_order_location_max_limit = train_config.build_order_location.max_limit
-        self.build_order_location_rescale = train_config.build_order_location.rescale
         self.use_target_state = train_config.use_target_state
 
         self.loss_weights = train_config.loss_weights
@@ -80,7 +78,8 @@ class AlphaStarRLLoss(BaseLoss):
         )  # get naive temperature scheduler
 
         self.dtype = torch.float
-        self.device = 'cuda' if train_config.use_cuda and torch.cuda.is_available() else 'cpu'
+        self.rank = get_rank()
+        self.device = 'cuda:{}'.format(self.rank % 8) if train_config.use_cuda and torch.cuda.is_available() else 'cpu'
         self.pad_value = -1e6
 
     def register_log(self, variable_record, tb_logger):
@@ -102,11 +101,17 @@ class AlphaStarRLLoss(BaseLoss):
 
         # td_lambda and v_trace
         actor_critic_loss = 0.
-        for field, baseline, reward in zip(baselines.keys(), baselines.values(), rewards.values()):
-            actor_critic_loss += self._td_lambda_loss(baseline, reward) * self.loss_weights.baseline[field]
-            actor_critic_loss += self._vtrace_pg_loss(
+        td_lambda_loss_val = {}
+        vtrace_loss_val = {}
+        for field, baseline in baselines.items():
+            reward = rewards[field]
+            td_lambda_loss = self._td_lambda_loss(baseline, reward) * self.loss_weights.baseline[field]
+            td_lambda_loss_val[field] = td_lambda_loss.item()
+            vtrace_loss = self._vtrace_pg_loss(
                 baseline, reward, target_outputs, behaviour_outputs, target_actions, behaviour_actions
             ) * self.loss_weights.pg[field]
+            vtrace_loss_val[field] = vtrace_loss.item()
+            actor_critic_loss += td_lambda_loss + vtrace_loss
         # upgo loss
         upgo_loss = self._upgo_loss(
             baselines['winloss'], rewards['winloss'], target_outputs, behaviour_outputs, target_actions,
@@ -122,14 +127,15 @@ class AlphaStarRLLoss(BaseLoss):
         # entropy loss
         ent_loss = self._entropy_loss(target_outputs) * self.loss_weights.entropy
 
-        total_loss = actor_critic_loss + kl_loss + action_type_kl_loss + ent_loss  # + upgo_loss
+        total_loss = actor_critic_loss + kl_loss + action_type_kl_loss + ent_loss + upgo_loss
         return {
             'total_loss': total_loss,
-            'actor_critic_loss': actor_critic_loss,
             'kl_loss': kl_loss,
             'action_type_kl_loss': action_type_kl_loss,
             'ent_loss': ent_loss,
             'upgo_loss': upgo_loss,
+            'td_lambda_loss': sum(td_lambda_loss_val.values()),
+            'vtrace_loss': sum(vtrace_loss_val.values()),
         }
 
     def _rollout(self, data):
@@ -151,9 +157,7 @@ class AlphaStarRLLoss(BaseLoss):
             outputs_dict['behaviour_outputs'].append(home['behaviour_outputs'])
             outputs_dict['teacher_outputs'].append(home['teacher_outputs'])
             outputs_dict['baselines'].append(baselines)
-            outputs_dict['rewards'].append(
-                self._compute_pseudo_rewards(home['agent_z'], home['target_z'], home['rewards'], home['game_seconds'])
-            )
+            outputs_dict['rewards'].append(home['rewards'])
             outputs_dict['target_actions'].append(target_actions)
             outputs_dict['behaviour_actions'].append(home['actions'])
             outputs_dict['teacher_actions'].append(home['teacher_actions'])
@@ -170,61 +174,13 @@ class AlphaStarRLLoss(BaseLoss):
                 outputs_dict[k] = list_dict2dict_list(outputs_dict[k])
         outputs_dict['baselines'] = {
             k: torch.stack(v, dim=0)
-            for k, v in zip(outputs_dict['baselines']._fields, outputs_dict['baselines'])
+            for k, v in zip(outputs_dict['baselines']._fields, outputs_dict['baselines']) if v[0] is not None
         }
-        outputs_dict['rewards'] = {k: torch.stack(v, dim=0) for k, v in outputs_dict['rewards'].items()}
+        # each value: (batch_size, 1) -> stack+squeeze -> (tra_len, batch_size)
+        outputs_dict['rewards'] = {k: torch.stack(v, dim=0).squeeze(2) for k, v in outputs_dict['rewards'].items()}
         # add game_seconds
         outputs_dict['game_seconds'].extend(data[-1]['home']['game_seconds'])
         return self.rollout_outputs(*outputs_dict.values())  # outputs_dict is a OrderedDict
-
-    def _compute_pseudo_rewards(self, agent_z, target_z, rewards, game_seconds):
-        """
-            Overview: compute pseudo rewards from human replay z
-            Arguments:
-                - agent_z (:obj:`dict`)
-                - target_z (:obj:`dict`)
-                - rewards (:obj:`torch.Tensor`)
-                - game_seconds (:obj:`int`)
-            Returns:
-                - rewards (:obj:`dict`): a dict contains different type rewards
-        """
-        def loc_fn(p1, p2, max_limit=self.build_order_location_max_limit):
-            p1 = p1.float().to(self.device)
-            p2 = p2.float().to(self.device)
-            dist = F.l1_loss(p1, p2, reduction='sum')
-            dist = dist.clamp(0, max_limit)
-            dist = dist / max_limit * self.build_order_location_rescale
-            return dist.item()
-
-        def get_time_factor(game_second):
-            if game_second < 8 * 60:
-                return 1.0
-            elif game_second < 16 * 60:
-                return 0.5
-            elif game_second < 24 * 60:
-                return 0.25
-            else:
-                return 0
-
-        factors = torch.FloatTensor([get_time_factor(s) for s in game_seconds]).to(rewards.device)
-
-        new_rewards = {}
-        assert rewards.shape == (self.batch_size, 1)
-        new_rewards['winloss'] = rewards.squeeze(1)
-        build_order_reward = []
-        for i in range(self.batch_size):
-            build_order_reward.append(
-                levenshtein_distance(
-                    agent_z['build_order']['type'][i], target_z['build_order']['type'][i],
-                    agent_z['build_order']['loc'][i], target_z['build_order']['loc'][i], loc_fn
-                ) * factors[i]
-            )
-        new_rewards['build_order'] = torch.FloatTensor(build_order_reward).to(rewards.device)
-        for k in ['built_units', 'upgrades', 'effects']:
-            new_rewards[k] = hamming_distance(agent_z[k], target_z[k], factors)
-        for k in new_rewards.keys():
-            new_rewards[k] = new_rewards[k].float()
-        return new_rewards
 
     def _td_lambda_loss(self, baseline, reward):
         """

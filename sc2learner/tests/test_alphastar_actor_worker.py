@@ -57,7 +57,7 @@ class ActorForTest(AlphaStarActorWorker):
         #    recu_check_keys(get_single_step_data()['actions'], act[0])
         # if act[1]:
         #    recu_check_keys(get_single_step_data()['actions'], act[1])
-        if self.cfg.env.use_cuda:
+        if self.cfg.actor.use_cuda:
             print('Max CUDA memory:{}'.format(torch.cuda.max_memory_allocated()))
         t = time.time()
         if self.last_time is not None:
@@ -110,6 +110,7 @@ def coordinator():
     logging.info('coordinator started')
     yield coordinator
     coordinator.close()
+    logging.info('coordinator end')
 
 
 @pytest.fixture(scope='module')
@@ -125,7 +126,8 @@ def manager():
     manager_thread.daemon = True
     manager_thread.start()
     logging.info('manager started')
-    return manager
+    yield manager
+    logging.info('manager end')
 
 
 IGNORE_LIST = ['target_outputs']
@@ -203,7 +205,7 @@ def test_actor(coordinator, manager, caplog):
     time.sleep(0.1)
     # notice we are using a very small number of samples for testing
     # so the replay buffer caching should be set to a small value
-    smpls = coordinator.replay_buffer.sample(batch_size)
+    smpls = coordinator.learner_record['test1']['replay_buffer'].sample(batch_size)
     assert smpls is not None
     assert isinstance(smpls, list) and len(smpls) == batch_size
     for smpl in smpls:
@@ -220,6 +222,7 @@ def test_actor(coordinator, manager, caplog):
     logging.info('actor running the 2nd loop')
     actor.run_episode()
     actor.heartbeat_worker.stop_heatbeat()
+    return
 
 
 def main(unused_argv):
