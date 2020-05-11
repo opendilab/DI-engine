@@ -8,7 +8,7 @@ logpath=$6
 nohup srun -p $partition -w $workstation --job-name=cpu python -u -m sc2learner.data.offline.replay_decode_game_loop \
     --replays $replays \
     --output_dir $outputdir \
-    --version 4.8.0 \
+    --version 4.9.3 \
     --process_num $process_num \
 > $logpath 2>&1 &
 
