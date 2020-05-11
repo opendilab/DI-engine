@@ -136,6 +136,23 @@ class ReplayDecoder(multiprocessing.Process):
                     raw_units[i, key_index] = 1908
             return obs
 
+        def check_step(obs, action):
+            tags = set()
+            selected_tags = set()
+            for i in obs.observation.raw_data.units:
+                tags.add(i.tag)
+            if action.HasField('unit_command'):
+                uc = action.unit_command
+                for i in uc.unit_tags:
+                    selected_tags.add(i)
+                if uc.HasField('target_unit_tag'):
+                    target_tag = uc.target_unit_tag
+                    if target_tag not in tags:
+                        return False
+                if len(selected_tags - tags) > 0:
+                    return False
+            return True
+
         # view replay by action order, combine observation and action
         step_data = [[] for _ in range(PLAYER_NUM)]  # initial return data
         stat = Statistics(player_num=PLAYER_NUM, begin_num=20)
@@ -183,9 +200,13 @@ class ReplayDecoder(multiprocessing.Process):
             for idx, action in enumerate(actions[player]):
                 if idx == len(actions[player]) - 1:
                     break
-                else:
-                    delay = actions[player][idx + 1].game_loop - action.game_loop  # game_steps between two actions
                 obs = self.controller.observe()
+                delay = actions[player][idx + 1].game_loop - action.game_loop  # game_steps between two actions
+                if not check_step(obs, action.action):
+                    last_action['delay'] += delay
+                    step_data[player][-1]['actions']['delay'] += delay
+                    self.controller.step(delay)
+                    continue
                 assert (obs.observation.game_loop == action.game_loop)
                 if action.game_loop - last_print > 1000:
                     last_print = action.game_loop
@@ -273,26 +294,6 @@ class ReplayDecoder(multiprocessing.Process):
             returns.append(ret)
         return returns
 
-    def check_steps(self, replay):
-        new_replay = []
-        for i, step in enumerate(replay):
-            entity_raw = step['entity_raw']
-            actions = step['actions']
-            id_list = entity_raw['id']
-            flag = True
-            if isinstance(actions['selected_units'], torch.Tensor):
-                for val in actions['selected_units']:
-                    if val not in id_list:
-                        flag = False
-                        continue
-            if isinstance(actions['target_units'], torch.Tensor):
-                for val in actions['target_units']:
-                    if val not in id_list:
-                        flag = False
-                        continue
-            if flag:
-                new_replay.append(step)
-        return new_replay
 
     def run(self):
         # interface to be called when starting process
@@ -315,7 +316,7 @@ class ReplayDecoder(multiprocessing.Process):
                     meta_data_0 = validated_data[0]
                     meta_data_1 = validated_data[1]
                     # remove repeat data
-                    step_data = [remove_repeat_data(d) for d in step_data]
+                    # step_data = [remove_repeat_data(d) for d in step_data]
                     meta_data_0['step_num'] = len(step_data[0])
                     meta_data_1['step_num'] = len(step_data[1])
                     # transform stat
@@ -348,12 +349,12 @@ class ReplayDecoder(multiprocessing.Process):
                         os.path.basename(replay_path).split('.')[0]
                     )
                     torch.save(meta_data_0, os.path.join(self.output_dir, name0 + '.meta'))
-                    torch.save(self.check_steps(step_data[0]), os.path.join(self.output_dir, name0 + '.step'))
+                    torch.save(step_data[0], os.path.join(self.output_dir, name0 + '.step'))
                     torch.save(stat[0], os.path.join(self.output_dir, name0 + '.stat'))
                     torch.save(stat_processed_0, os.path.join(self.output_dir, name0 + '.stat_processed'))
                     torch.save(stat_z[0], os.path.join(self.output_dir, name0 + '.z'))
                     torch.save(meta_data_1, os.path.join(self.output_dir, name1 + '.meta'))
-                    torch.save(self.check_steps(step_data[1]), os.path.join(self.output_dir, name1 + '.step'))
+                    torch.save(step_data[1], os.path.join(self.output_dir, name1 + '.step'))
                     torch.save(stat[1], os.path.join(self.output_dir, name1 + '.stat'))
                     torch.save(stat_processed_1, os.path.join(self.output_dir, name1 + '.stat_processed'))
                     torch.save(stat_z[1], os.path.join(self.output_dir, name1 + '.z'))

@@ -29,6 +29,22 @@ LOCATION_BIT_NUM = 10
 DELAY_BIT_NUM = 6
 
 
+def compute_denominator(x):
+    x = x // 2 * 2
+    x = torch.div(x, 64.)
+    x = torch.pow(10000., x)
+    x = torch.div(1., x)
+    return x
+
+POSITION_ARRAY = compute_denominator(torch.arange(0, 64, dtype=torch.float))
+
+def get_postion_vector(x):
+    v = torch.zeros(64, dtype=torch.float)
+    v[0::2] = torch.sin(x * POSITION_ARRAY[0::2])
+    v[1::2] = torch.cos(x * POSITION_ARRAY[1::2])
+    return v
+
+
 class SpatialObsWrapper(object):
     '''
         Overview: parse spatial observation into tensors
@@ -209,6 +225,8 @@ class AlphastarObsParser(object):
         template_obs, template_replay, template_act = transform_scalar_data()
         self.scalar_wrapper = ScalarObsWrapper(template_obs)
         self.template_act = template_act
+        self.repeat_action_type = -1
+        self.repeat_count = 0
 
     def parse(self, obs):
         '''
@@ -246,6 +264,14 @@ class AlphastarObsParser(object):
         obs['scalar_info']['last_queued'] = self.template_act[1]['op'](torch.LongTensor(last_queued)).squeeze()
         obs['scalar_info']['last_action_type'] = self.template_act[2]['op'](torch.LongTensor(last_action_type)
                                                                             ).squeeze()
+
+        if self.repeat_action_type == last_action_type.item():
+            self.repeat_count += 1
+        else:
+            self.repeat_action_type = last_action_type.item()
+            self.repeat_count = 0
+        repeat_tensor = clip_one_hot(torch.tensor([self.repeat_count]), 7).squeeze()
+        obs['scalar_info']['last_queued'] = torch.cat((obs['scalar_info']['last_queued'], repeat_tensor), dim=0)
 
         if obs['entity_info'] is None:
             return obs
@@ -713,12 +739,12 @@ def transform_scalar_data():
         },
         {
             'key': 'time',
-            'arch': 'transformer',
-            'input_dim': 32,
+            'arch': 'transformer position encode',
+            'input_dim': 64,
             'output_dim': 64,
             'ori': 'game_loop',
-            'op': partial(batch_binary_encode, bit_num=32),
-            'other': 'transformer'
+            'op': get_postion_vector,
+            'other': 'no further operation'
         },
         {
             'key': 'available_actions',
@@ -779,10 +805,10 @@ def transform_scalar_data():
         {
             'key': 'last_delay',
             'arch': 'fc',
-            'input_dim': DELAY_BIT_NUM,
+            'input_dim': 128,
             'output_dim': 64,
             'ori': 'action',
-            'op': partial(batch_binary_encode, bit_num=DELAY_BIT_NUM),
+            'op': partial(clip_one_hot, num=128),
             'other': 'int'
         },
         {
