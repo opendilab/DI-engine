@@ -36,7 +36,9 @@ def compute_denominator(x):
     x = torch.div(1., x)
     return x
 
+
 POSITION_ARRAY = compute_denominator(torch.arange(0, 64, dtype=torch.float))
+
 
 def get_postion_vector(x):
     v = torch.zeros(64, dtype=torch.float)
@@ -555,7 +557,9 @@ def transform_entity_data(resolution=128, pad_value=-1e9):
             'key': 'order_id_1',
             'dim': NUM_ORDER_ACTIONS,
             'op': partial(
-                reorder_one_hot_array, array=ORDER_ACTIONS_REORDER_ARRAY, num=NUM_ORDER_ACTIONS,
+                reorder_one_hot_array,
+                array=ORDER_ACTIONS_REORDER_ARRAY,
+                num=NUM_ORDER_ACTIONS,
                 transform=ACT_TO_GENERAL_ACT_ARRAY
             ),
             'other': 'one-hot'
@@ -564,7 +568,9 @@ def transform_entity_data(resolution=128, pad_value=-1e9):
             'key': 'order_id_2',
             'dim': NUM_ORDER_ACTIONS,
             'op': partial(
-                reorder_one_hot_array, array=ORDER_ACTIONS_REORDER_ARRAY, num=NUM_ORDER_ACTIONS,
+                reorder_one_hot_array,
+                array=ORDER_ACTIONS_REORDER_ARRAY,
+                num=NUM_ORDER_ACTIONS,
                 transform=ACT_TO_GENERAL_ACT_ARRAY
             ),
             'other': 'one-hot'
@@ -573,7 +579,9 @@ def transform_entity_data(resolution=128, pad_value=-1e9):
             'key': 'order_id_3',
             'dim': NUM_ACTIONS,
             'op': partial(
-                reorder_one_hot_array, array=ORDER_ACTIONS_REORDER_ARRAY, num=NUM_ORDER_ACTIONS,
+                reorder_one_hot_array,
+                array=ORDER_ACTIONS_REORDER_ARRAY,
+                num=NUM_ORDER_ACTIONS,
                 transform=ACT_TO_GENERAL_ACT_ARRAY
             ),
             'other': 'one-hot'

@@ -294,7 +294,6 @@ class ReplayDecoder(multiprocessing.Process):
             returns.append(ret)
         return returns
 
-
     def run(self):
         # interface to be called when starting process
         signal.signal(signal.SIGTERM, lambda a, b: sys.exit())
