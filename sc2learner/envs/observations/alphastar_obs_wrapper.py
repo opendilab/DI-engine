@@ -27,7 +27,7 @@ from collections import OrderedDict
 
 LOCATION_BIT_NUM = 10
 DELAY_BIT_NUM = 6
-
+ENTITY_INFO_DIM = 1340
 
 def compute_denominator(x):
     x = x // 2 * 2
@@ -272,7 +272,7 @@ class AlphastarObsParser(object):
         else:
             self.repeat_action_type = last_action_type.item()
             self.repeat_count = 0
-        repeat_tensor = clip_one_hot(torch.tensor([self.repeat_count]), 7).squeeze()
+        repeat_tensor = clip_one_hot(torch.LongTensor([self.repeat_count]), 7).squeeze()
         obs['scalar_info']['last_queued'] = torch.cat((obs['scalar_info']['last_queued'], repeat_tensor), dim=0)
 
         if obs['entity_info'] is None:
@@ -577,7 +577,7 @@ def transform_entity_data(resolution=128, pad_value=-1e9):
         },  # TODO only building order  # noqa
         {
             'key': 'order_id_3',
-            'dim': NUM_ACTIONS,
+            'dim': NUM_ORDER_ACTIONS,
             'op': partial(
                 reorder_one_hot_array,
                 array=ORDER_ACTIONS_REORDER_ARRAY,
@@ -608,13 +608,13 @@ def transform_entity_data(resolution=128, pad_value=-1e9):
             'key': 'order_progress_0',
             'dim': 10,
             'op': partial(div_one_hot, max_val=90, ratio=10),
-            'other': 'one-hot(1/0.1)'
+            'other': 'one-hot(90/10)'
         },
         {
             'key': 'order_progress_1',
             'dim': 10,
             'op': partial(div_one_hot, max_val=90, ratio=10),
-            'other': 'one-hot(1/0.1)'
+            'other': 'one-hot(90/10)'
         },
         {
             'key': 'attack_upgrade_level',

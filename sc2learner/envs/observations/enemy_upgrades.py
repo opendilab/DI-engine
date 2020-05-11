@@ -7,6 +7,7 @@ Main Function:
 import torch
 from collections import namedtuple
 from sc2learner.torch_utils import one_hot
+from sc2learner.envs.observations.alphastar_obs_wrapper import ENTITY_INFO_DIM
 '''
 UPGRADES_LIST = [
     "TerranInfantryWeaponsLevel1",
@@ -217,7 +218,7 @@ def get_enemy_upgrades_processed_data(obs, upgrades):
     slices['armor_upgrade_level'] = slice(-12, -12 + 4)
     slices['shield_upgrade_level'] = slice(-8, -8 + 4)
     entity_info = obs['entity_info']
-    assert entity_info.shape[1] == 1340, entity_info.shape  # the entity_info after the merge_action
+    assert entity_info.shape[1] == ENTITY_INFO_DIM, entity_info.shape  # the entity_info after the merge_action
 
     info = {k: [] for k in ['alliance', 'attack_upgrade_level', 'armor_upgrade_level', 'shield_upgrade_level']}
     for k in info.keys():
