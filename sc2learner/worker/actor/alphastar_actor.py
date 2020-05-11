@@ -61,7 +61,7 @@ class AlphaStarActor:
         if job['game_type'] == 'game_vs_bot':
             self.agent_num = 1
             players = [
-                sc2_env.Agent(sc2_env.Race[job['home_race']]),
+                sc2_env.Agent(sc2_env.Race[job['race'][0]]),
                 sc2_env.Bot(
                     sc2_env.Race[job['away_race']], sc2_env.Difficulty[job['difficulty']],
                     sc2_env.BotBuild[job['build']] if 'build' in job else None
@@ -78,8 +78,8 @@ class AlphaStarActor:
         elif job['game_type'] in ['self_play', 'league']:
             self.agent_num = 2
             players = [
-                sc2_env.Agent(sc2_env.Race[job['home_race']]),
-                sc2_env.Agent(sc2_env.Race[job['away_race']]),
+                sc2_env.Agent(sc2_env.Race[job['race'][0]]),
+                sc2_env.Agent(sc2_env.Race[job['race'][1]]),
             ]
             self.agents = [
                 AlphaStarAgent(

@@ -168,8 +168,7 @@ class Coordinator(object):
                 'teacher_model_id': model_name1,
                 'map_name': 'AbyssalReef',
                 'random_seed': 0,
-                'home_race': 'zerg',
-                'away_race': 'zerg',
+                'race': ['zerg', 'zerg'],
                 'difficulty': 'easy',
                 'build': 'random',
                 'data_push_length': 8
@@ -430,8 +429,7 @@ class Coordinator(object):
             'teacher_model_id': home_teacher_checkpoint_path,  # away_teacher_checkpoint_path
             'map_name': map_name,
             'random_seed': random_seed,
-            'home_race': home_race,
-            'away_race': away_race,
+            'race': [home_race, away_race],
             'data_push_length': self.cfg.train.trajectory_len,
         }
         self.job_queue.put(job)
