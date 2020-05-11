@@ -273,7 +273,7 @@ class AlphastarObsParser(object):
         else:
             self.repeat_action_type = last_action_type.item()
             self.repeat_count = 0
-        repeat_tensor = clip_one_hot(torch.LongTensor([self.repeat_count]), 7).squeeze()
+        repeat_tensor = clip_one_hot(torch.LongTensor([self.repeat_count]), 17).squeeze()
         obs['scalar_info']['last_queued'] = torch.cat((obs['scalar_info']['last_queued'], repeat_tensor), dim=0)
 
         if obs['entity_info'] is None:
@@ -823,11 +823,11 @@ def transform_scalar_data():
         {
             'key': 'last_queued',
             'arch': 'fc',
-            'input_dim': 10,
+            'input_dim': 20,
             'output_dim': 256,
             'ori': 'action',
             'op': partial(num_first_one_hot, num=3),
-            'other': 'one-hot 3'
+            'other': 'one-hot 20, 3 for queue, 17 for repeat'
         },  # 0 False 1 True 2 None
         {
             'key': 'last_action_type',

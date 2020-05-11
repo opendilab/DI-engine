@@ -9,7 +9,7 @@ from pysc2.lib.actions import FunctionCall
 from pysc2.lib.static_data import NUM_ACTIONS, ACTIONS_REORDER_INV
 from sc2learner.envs import get_available_actions_processed_data, get_map_size, get_enemy_upgrades_processed_data
 from sc2learner.envs.observations.alphastar_obs_wrapper import SpatialObsWrapper, ScalarObsWrapper, EntityObsWrapper, \
-    transform_spatial_data, transform_scalar_data, transform_entity_data
+    transform_spatial_data, transform_scalar_data, transform_entity_data, clip_one_hot
 from sc2learner.envs.statistics import Statistics
 
 
@@ -81,7 +81,7 @@ class AlphaStarEnv(SC2Env):
             obs['scalar_info']['cumulative_stat'] = stat['cumulative_stat']
         return obs
 
-    def _merge_action(self, obs, last_action, add_dim=True):
+    def _merge_action(self, obs, last_action, agent_no, add_dim=True):
         """
         adding information of last action to the scalar_info in the observations
         see detailed-architecture.txt L112-L114
@@ -96,7 +96,13 @@ class AlphaStarEnv(SC2Env):
         obs['scalar_info']['last_queued'] = self._template_act[1]['op'](torch.LongTensor([last_queued])).squeeze()
         obs['scalar_info']['last_action_type'] = self._template_act[2]['op'](torch.LongTensor([last_action_type])
                                                                              ).squeeze()
-
+        if self.repeat_action_type[agent_no] == last_action_type:
+            self.repeat_count[agent_no] += 1
+        else:
+            self.repeat_action_type[agent_no] = last_action_type
+            self.repeat_count[agent_no] = 0
+        repeat_tensor = clip_one_hot(torch.LongTensor([self.repeat_count[agent_no]]), 17).squeeze()
+        obs['scalar_info']['last_queued'] = torch.cat((obs['scalar_info']['last_queued'], repeat_tensor), dim=0)
         N = obs['entity_info'].shape[0]
         if obs['entity_info'] is None:
             obs['entity_info'] = torch.cat([obs['entity_info'], torch.zeros(N, 4)], dim=1)
@@ -134,7 +140,7 @@ class AlphaStarEnv(SC2Env):
             'map_size': [self.map_size[1], self.map_size[0]],  # x,y -> y,x
         }
 
-        new_obs = self._merge_action(new_obs, last_actions)
+        new_obs = self._merge_action(new_obs, last_actions, agent_no)
         if self._use_stat:
             new_obs = self._merge_stat(new_obs, agent_no)
         if self._use_available_action_transform:
@@ -219,7 +225,7 @@ class AlphaStarEnv(SC2Env):
                     self._buffered_actions[n].append(sc2_actions[n])
             _, _, obs, rewards, done, episode_stat, info = self._last_output
             for n in range(self.agent_num):
-                obs[n] = self._merge_action(obs[n], self.last_actions[n], add_dim=False)
+                obs[n] = self._merge_action(obs[n], self.last_actions[n], n, add_dim=False)
             due = [s <= self._episode_steps for s in self._next_obs]
         else:
             for n in range(self.agent_num):
@@ -262,7 +268,7 @@ class AlphaStarEnv(SC2Env):
         """
         timesteps = super().reset()
         last_action = {
-            'action_type': torch.Tensor([0]),
+            'action_type': 0,
             'delay': torch.Tensor([0]),
             'queued': None,
             'selected_units': None,
@@ -270,6 +276,8 @@ class AlphaStarEnv(SC2Env):
             'target_location': None
         }
         self.last_actions = [last_action] * self.agent_num
+        self.repeat_action_type = [-1] * self.agent_num
+        self.repeat_count = [0] * self.agent_num
         obs = []
         for n in range(self.agent_num):
             obs.append(self._get_obs(timesteps[n].observation, last_action, n))
