@@ -822,7 +822,7 @@ def transform_scalar_data():
         {
             'key': 'last_queued',
             'arch': 'fc',
-            'input_dim': 3,
+            'input_dim': 10,
             'output_dim': 256,
             'ori': 'action',
             'op': partial(num_first_one_hot, num=3),
