@@ -29,6 +29,7 @@ LOCATION_BIT_NUM = 10
 DELAY_BIT_NUM = 6
 ENTITY_INFO_DIM = 1340
 
+
 def compute_denominator(x):
     x = x // 2 * 2
     x = torch.div(x, 64.)

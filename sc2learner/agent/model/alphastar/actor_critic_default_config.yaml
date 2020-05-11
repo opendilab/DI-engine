@@ -69,7 +69,7 @@ model:
                 activation: 'relu'
                 norm_type: 'BN'
             entity_encoder:
-                input_dim: 2102
+                input_dim: 1340  # refer to alphastar_obs_wrapper
                 head_dim: 128
                 hidden_dim: 1024
                 output_dim: 256

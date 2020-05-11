@@ -11,6 +11,7 @@ from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UNIT_TYPES, ACTIONS_REORD
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
 from sc2learner.data.offline.replay_dataset import ReplayDataset, START_STEP
 from sc2learner.utils import get_step_data_compressor
+from sc2learner.envs.observations.alphastar_obs_wrapper import ENTITY_INFO_DIM
 
 META_SUFFIX = '.meta'
 DATA_SUFFIX = '.step'
@@ -61,11 +62,11 @@ def get_single_step_data():
         enemy_race=random_one_hot([5]),
         upgrades=random_binary_tensor([90]),
         enemy_upgrades=random_binary_tensor([48]),  # refer to envs/observations/enemy_upgrades.py
-        time=random_binary_tensor([32]),
+        time=random_binary_tensor([64]),
         available_actions=random_binary_tensor([NUM_ACTION_TYPES]),
         unit_counts_bow=random_tensor([259]),
-        last_delay=random_binary_tensor([6]),
-        last_queued=random_binary_tensor([3]),
+        last_delay=random_one_hot([128]),
+        last_queued=random_binary_tensor([10]),
         last_action_type=random_one_hot([NUM_ACTION_TYPES]),
         mmr=random_binary_tensor([7]),
         cumulative_stat=OrderedDict(
@@ -101,7 +102,7 @@ def get_single_step_data():
         scalar_info=scalar_info,
         entity_raw=entity_raw,
         actions=actions,
-        entity_info=random_tensor([num_units, 2102]),
+        entity_info=random_tensor([num_units, ENTITY_INFO_DIM]),
         spatial_info=random_tensor([20] + MAP_SIZE),
         map_size=MAP_SIZE,
     )
