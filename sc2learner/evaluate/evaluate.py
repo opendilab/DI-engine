@@ -23,6 +23,7 @@ class EvalActor(AlphaStarActor):
     def __init__(self, cfg):
         super(EvalActor, self).__init__(cfg)
         self._module_init()
+        self.set_agent_mode(train=False)
 
     def _make_env(self, players):
         self.action_counts = [[0] * (max(ACTION_INFO_MASK.keys()) + 1)] * self.agent_num

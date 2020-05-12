@@ -25,6 +25,7 @@ class AlphaStarActorWorker(AlphaStarActor):
         super(AlphaStarActorWorker, self).__init__(cfg)
         self.stop_flag = False
         self._module_init()
+        self.set_agent_mode(train=True)
         self.job_getter.register_actor()
         if self.cfg.actor.get('heartbeats_thread', True):
             self.heartbeat_worker.start_heartbeats_thread()

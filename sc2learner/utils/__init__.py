@@ -4,7 +4,7 @@ from .compression_helper import get_step_data_compressor, get_step_data_decompre
 from .config_utils import merge_dicts, read_config
 from .file_helper import read_file_ceph, save_file_ceph
 from .import_utils import try_import_ceph, try_import_link
-from .log_helper import build_logger, DistributionTimeImage, get_default_logger, pretty_print
+from .log_helper import build_logger, DistributionTimeImage, get_default_logger, pretty_print, build_logger_naive
 from .system_helper import get_ip, get_pid, get_actor_uid, get_manager_node_ip
 from .time_helper import build_time_helper, EasyTimer
 from .utils import override, deepcopy, dict_list2list_dict, list_dict2dict_list, merge_two_dicts
