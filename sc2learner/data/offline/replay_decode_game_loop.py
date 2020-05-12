@@ -38,7 +38,7 @@ from s2clientprotocol import sc2api_pb2 as sc_pb
 from sc2learner.envs.observations.alphastar_obs_wrapper import AlphastarObsParser, compress_obs, decompress_obs
 from sc2learner.envs.observations import get_enemy_upgrades_raw_data, get_enemy_upgrades_processed_data
 from sc2learner.envs.actions.alphastar_act_wrapper import AlphastarActParser, remove_repeat_data
-from sc2learner.envs.statistics import Statistics, transform_stat
+from sc2learner.envs.statistics import RealTimeStatistics, transform_stat, transform_cum_stat
 from sc2learner.envs.maps.map_info import LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT
 from sc2learner.utils import save_file_ceph
 
@@ -156,8 +156,7 @@ class ReplayDecoder(multiprocessing.Process):
 
         # view replay by action order, combine observation and action
         step_data = [[] for _ in range(PLAYER_NUM)]  # initial return data
-        stat = Statistics(player_num=PLAYER_NUM, begin_num=20)
-        cumulative_z = [[] for _ in range(PLAYER_NUM)]
+        stat = [RealTimeStatistics(begin_num=20) for _ in range(PLAYER_NUM)]
         enemy_upgrades = [None for _ in range(PLAYER_NUM)]
         born_location = [[] for _ in range(PLAYER_NUM)]
         for player in range(PLAYER_NUM):  # gain data by player order
@@ -219,16 +218,8 @@ class ReplayDecoder(multiprocessing.Process):
                 assert len(agent_act) == 1
                 agent_act = act_parser.merge_same_id_action(agent_act)[0]
                 agent_act['delay'] = torch.LongTensor([delay])
-                agent_ob['scalar_info']['cumulative_stat'] = stat.get_transformed_cum_stat(player)
-                # update cumulative_z
-                action_type = last_action['action_type'].item()
-                goal = GENERAL_ACTION_INFO_MASK[action_type]['goal']
-                if goal != 'other':
-                    this_loop_stat = stat.get_stat(player)
-                    this_loop_cum_stat = copy.deepcopy(this_loop_stat['cumulative_statistics'])
-                    this_loop_cum_stat['game_loop'] = action.game_loop
-                    cumulative_z[player].append(this_loop_cum_stat)
-                stat.update_stat(agent_act, agent_ob, player)
+                agent_ob['scalar_info']['cumulative_stat'] = transform_cum_stat(stat[player].cumulative_statistics)
+                stat[player].update_stat(agent_act, agent_ob, action.game_loop)
                 result_obs = self.obs_parser.merge_action(agent_ob, last_action, True)
                 # get_enemy_upgrades_processed_data must be used after merge_action
                 # enemy_upgrades_raw = get_enemy_upgrades_raw_data(base_ob, copy.deepcopy(enemy_upgrades[player]))
@@ -241,7 +232,8 @@ class ReplayDecoder(multiprocessing.Process):
                 step_data[player].append(compressed_obs)
                 last_action = agent_act
                 self.controller.step(delay)
-        return (step_data, stat.get_stat(), map_size, cumulative_z, born_location)
+        return (step_data, [stat[i].get_stat() for i in range(PLAYER_NUM)], map_size,
+                [stat[i].cumulative_statistics_game_loop for i in range(PLAYER_NUM)], born_location)
 
     def parse_info(self, info, replay_path):
         if (info.HasField("error")):
@@ -349,12 +341,12 @@ class ReplayDecoder(multiprocessing.Process):
                         os.path.basename(replay_path).split('.')[0]
                     )
                     # torch.save(meta_data_0, os.path.join(self.output_dir, name0 + '.meta'))
-                    # torch.save(self.check_steps(step_data[0]), os.path.join(self.output_dir, name0 + '.step'))
+                    # torch.save(step_data[0], os.path.join(self.output_dir, name0 + '.step'))
                     # torch.save(stat[0], os.path.join(self.output_dir, name0 + '.stat'))
                     # torch.save(stat_processed_0, os.path.join(self.output_dir, name0 + '.stat_processed'))
                     # torch.save(stat_z[0], os.path.join(self.output_dir, name0 + '.z'))
                     # torch.save(meta_data_1, os.path.join(self.output_dir, name1 + '.meta'))
-                    # torch.save(self.check_steps(step_data[1]), os.path.join(self.output_dir, name1 + '.step'))
+                    # torch.save(step_data[1], os.path.join(self.output_dir, name1 + '.step'))
                     # torch.save(stat[1], os.path.join(self.output_dir, name1 + '.stat'))
                     # torch.save(stat_processed_1, os.path.join(self.output_dir, name1 + '.stat_processed'))
                     # torch.save(stat_z[1], os.path.join(self.output_dir, name1 + '.z'))
