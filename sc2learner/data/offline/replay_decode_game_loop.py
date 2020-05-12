@@ -39,7 +39,7 @@ from sc2learner.envs.observations.alphastar_obs_wrapper import AlphastarObsParse
 from sc2learner.envs.observations import get_enemy_upgrades_raw_data, get_enemy_upgrades_processed_data
 from sc2learner.envs.actions.alphastar_act_wrapper import AlphastarActParser, remove_repeat_data
 from sc2learner.envs.statistics import RealTimeStatistics, transform_stat, transform_cum_stat
-from sc2learner.envs.maps.map_info import LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT
+from sc2learner.envs.maps.map_info import LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT, get_map_size
 from sc2learner.utils import save_file_ceph
 
 logging.set_verbosity(logging.INFO)
