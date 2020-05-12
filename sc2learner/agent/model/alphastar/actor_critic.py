@@ -165,9 +165,9 @@ class AlphaStarActorCritic(ActorCriticBase):
         cum_stat_home, \
         score_embedding_home = self.encoder(
             inputs['home']
-        )  # noqa
+        )
         lstm_output_away, next_state_away, _, _, _, _, baseline_feature_away, cum_stat_away, \
-        score_embedding_away = self.encoder(inputs['away'])  # noqa
+        score_embedding_away = self.encoder(inputs['away'])
 
         # value
         critic_inputs = self.CriticInput(

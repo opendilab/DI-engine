@@ -160,7 +160,7 @@ class Policy(nn.Module):
             embeddings = mask * base_embeddings + (1 - mask) * spec_embeddings
             return [base_logits, spec_logits], action_type, embeddings
         else:
-            raise KeyError("no necessary action type head in heads()".format(self.head.keys()))
+            raise KeyError("no necessary action type head in heads{}".format(self.head.keys()))
 
     def mimic(self, inputs, temperature=1.0):
         '''
