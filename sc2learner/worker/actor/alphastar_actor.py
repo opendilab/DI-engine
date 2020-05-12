@@ -1,4 +1,5 @@
 import time
+import os
 import copy
 import pickle
 
@@ -59,7 +60,8 @@ class AlphaStarActor:
 
     def _setup_logger(self):
         print_freq = self.cfg.actor.print_freq
-        path = self.cfg.common.save_path
+        path = os.path.join(self.cfg.common.save_path, 'actor-log')
+        os.makedirs(path, exist_ok=True)
         name = 'actor.{}.log'.format(self.actor_uid)
         self.logger, self.variable_record = build_logger_naive(path, name)
         self.variable_record.register_var('total_step_time')
@@ -69,12 +71,8 @@ class AlphaStarActor:
     def _actor_string(self, s):
         return 'actor({}): {}'.format(self.actor_uid, s)
 
-    def set_agent_mode(self, train=True):
-        for agent in self.agents:
-            if train:
-                agent.train()
-            else:
-                agent.eval()
+    def _set_agent_mode(self):
+        raise NotImplementedError
 
     def _init_with_job(self, job):
         # preparing the environment with the received job description
@@ -122,6 +120,8 @@ class AlphaStarActor:
         else:
             raise NotImplementedError("invalid game_type: {}".format(job['game_type']))
 
+        # set agent
+        self._set_agent_mode()
         for agent in self.agents:
             agent.set_seed(job['random_seed'])
             agent.reset_previous_state([True])  # Here the lstm_states are reset
@@ -141,7 +141,9 @@ class AlphaStarActor:
             self.use_teacher_model = True
         else:
             self.use_teacher_model = False
-        self.env = self._make_env(players)
+        with self.timer:
+            self.env = self._make_env(players)
+        self.logger.info(self._actor_string('env_launch_time: {}'.format(self.timer.value)))
         self.compressor_name = job['step_data_compressor']
         self.compressor = get_step_data_compressor(self.compressor_name)
 

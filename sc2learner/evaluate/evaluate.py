@@ -1,4 +1,3 @@
-import random
 import time
 from multiprocessing import Pool
 import copy
@@ -12,7 +11,6 @@ from easydict import EasyDict
 
 from sc2learner.worker.actor.alphastar_actor import AlphaStarActor
 from sc2learner.torch_utils import build_checkpoint_helper
-from sc2learner.utils import build_logger
 from pysc2.lib.action_dict import ACTION_INFO_MASK
 
 FLAGS = flags.FLAGS
@@ -23,7 +21,6 @@ class EvalActor(AlphaStarActor):
     def __init__(self, cfg):
         super(EvalActor, self).__init__(cfg)
         self._module_init()
-        self.set_agent_mode(train=False)
 
     def _make_env(self, players):
         self.action_counts = [[0] * (max(ACTION_INFO_MASK.keys()) + 1)] * self.agent_num
@@ -50,6 +47,10 @@ class EvalActor(AlphaStarActor):
                 self.action_counts[n][self.env.get_action_type(act[n])] += 1
             print('Act {}:{}:{:5}:{}'.format(self.cfg.evaluate.job_id, n, step, self.env.action_to_string(act[n])))
         return act
+
+    def _set_agent_mode(self):
+        for agent in self.agents:
+            agent.eval()
 
 
 class EvalJobGetter:
