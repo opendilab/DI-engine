@@ -232,8 +232,10 @@ class ReplayDecoder(multiprocessing.Process):
                 step_data[player].append(compressed_obs)
                 last_action = agent_act
                 self.controller.step(delay)
-        return (step_data, [stat[i].get_stat() for i in range(PLAYER_NUM)], map_size,
-                [stat[i].cumulative_statistics_game_loop for i in range(PLAYER_NUM)], born_location)
+        return (
+            step_data, [stat[i].get_stat() for i in range(PLAYER_NUM)], map_size,
+            [stat[i].cumulative_statistics_game_loop for i in range(PLAYER_NUM)], born_location
+        )
 
     def parse_info(self, info, replay_path):
         if (info.HasField("error")):

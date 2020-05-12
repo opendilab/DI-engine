@@ -148,10 +148,7 @@ class RealTimeStatistics:
         return ret
 
     def get_stat(self):
-        ret = {
-            'begin_statistics': self.begin_statistics,
-            'cumulative_statistics': self.cumulative_statistics
-        }
+        ret = {'begin_statistics': self.begin_statistics, 'cumulative_statistics': self.cumulative_statistics}
         return ret
 
 
