@@ -3,7 +3,7 @@ model:
     freeze_targets: []
     state_dict_mask: []
     use_value_network: False
-    use_battle_reward: False
+    enable_baselines: ['winloss', 'build_order', 'built_unit', 'effect', 'upgrade', 'battle']
     # ===== Value =====
     value:
         winloss:

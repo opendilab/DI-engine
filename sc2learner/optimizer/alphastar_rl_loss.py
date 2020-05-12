@@ -81,11 +81,19 @@ class AlphaStarRLLoss(BaseLoss):
         self.rank = get_rank()
         self.device = 'cuda:{}'.format(self.rank % 8) if train_config.use_cuda and torch.cuda.is_available() else 'cpu'
         self.pad_value = -1e6
+        self.enable_baselines = model_config.enable_baselines
 
     def register_log(self, variable_record, tb_logger):
         for k in self.loss_keys:
             variable_record.register_var(k + '_loss')
             tb_logger.register_var(k + '_loss')
+        for k in self.enable_baselines:
+            variable_record.register_var('td_lambda_loss_' + k)
+            tb_logger.register_var('td_lambda_loss_' + k)
+            variable_record.register_var('vtrace_loss_' + k)
+            tb_logger.register_var('vtrace_loss_' + k)
+            variable_record.register_var('reward_' + k)
+            tb_logger.register_var('reward_' + k)
 
     def compute_loss(self, data):
         """
@@ -103,6 +111,7 @@ class AlphaStarRLLoss(BaseLoss):
         actor_critic_loss = 0.
         td_lambda_loss_val = {}
         vtrace_loss_val = {}
+        rewards_val = {k: v.mean().item() for k, v in rewards.items()}
         for field, baseline in baselines.items():
             reward = rewards[field]
             td_lambda_loss = self._td_lambda_loss(baseline, reward) * self.loss_weights.baseline[field]
@@ -128,7 +137,7 @@ class AlphaStarRLLoss(BaseLoss):
         ent_loss = self._entropy_loss(target_outputs) * self.loss_weights.entropy
 
         total_loss = actor_critic_loss + kl_loss + action_type_kl_loss + ent_loss + upgo_loss
-        return {
+        ret = {
             'total_loss': total_loss,
             'kl_loss': kl_loss,
             'action_type_kl_loss': action_type_kl_loss,
@@ -137,6 +146,10 @@ class AlphaStarRLLoss(BaseLoss):
             'td_lambda_loss': sum(td_lambda_loss_val.values()),
             'vtrace_loss': sum(vtrace_loss_val.values()),
         }
+        ret.update({'td_lambda_loss_' + k: v for k, v in td_lambda_loss_val.items()})
+        ret.update({'vtrace_loss_' + k: v for k, v in vtrace_loss_val.items()})
+        ret.update({'reward_' + k: v for k, v in rewards_val.items()})
+        return ret
 
     def _rollout(self, data):
         temperature = self.temperature_scheduler.step()
