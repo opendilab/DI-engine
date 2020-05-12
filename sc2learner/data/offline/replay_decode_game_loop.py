@@ -26,7 +26,7 @@ from absl import logging
 from absl import flags
 from future.builtins import range  # pylint: disable=redefined-builtin
 import torch
-
+import numpy as np
 from pysc2 import run_configs
 from pysc2.lib import features
 from pysc2.lib import point
@@ -48,6 +48,7 @@ flags.DEFINE_string("replays", "D:/game/replays", "Path to a directory of replay
 flags.DEFINE_string("output_dir", "E:/data/replay_data_test", "Path to save data")
 flags.DEFINE_string("version", "4.10.0", "Game version")
 flags.DEFINE_integer("process_num", 1, "Number of sc2 process to start on the node")
+flags.DEFINE_boolean("crop", False, "whether to crop the map to playable area")
 flags.DEFINE_bool(
     "check_version", True, "Check required game version of the replays and discard ones not matching version"
 )
@@ -62,7 +63,7 @@ RESOLUTION = 128
 
 
 class ReplayDecoder(multiprocessing.Process):
-    def __init__(self, run_config, replay_list, output_dir, ues_resolution):
+    def __init__(self, run_config, replay_list, output_dir, ues_resolution, crop):
         super(ReplayDecoder, self).__init__()
         self.run_config = run_config
         self.replay_list = replay_list
@@ -76,12 +77,13 @@ class ReplayDecoder(multiprocessing.Process):
         self.interface = sc_pb.InterfaceOptions(
             raw=True,
             score=False,
-            raw_crop_to_playable_area=True,
-            feature_layer=sc_pb.SpatialCameraSetup(width=24, crop_to_playable_area=True)
+            raw_crop_to_playable_area=crop,
+            feature_layer=sc_pb.SpatialCameraSetup(width=24, crop_to_playable_area=crop)
         )
         size.assign_to(self.interface.feature_layer.resolution)
         size.assign_to(self.interface.feature_layer.minimap_resolution)
         self.use_resolution = ues_resolution
+        self.crop = crop
 
     def replay_decode(self, replay_data, game_loops):
         """Where real decoding is happening"""
@@ -103,6 +105,7 @@ class ReplayDecoder(multiprocessing.Process):
                 )
             )
             map_size = self.controller.game_info().start_raw.map_size
+            assert [map_size.x, map_size.y] == self.map_size, 'map crop failed, check gcc version!'
             player_actions = []
             cur_loop = 0
             while cur_loop < game_loops:
@@ -183,6 +186,8 @@ class ReplayDecoder(multiprocessing.Process):
             assert len(location) == 1, 'this replay is corrupt, no fog of war, check replays from this game version'
             born_location[player] = location[0]
             feat = features.features_from_game_info(self.controller.game_info(), use_raw_actions=True)
+            ob = feat.transform_obs(ob)
+            assert np.sum(ob['feature_minimap']['buildable']) > 0, 'no buildable map, check gcc version!'
             act_parser = AlphastarActParser(
                 feature_layer_resolution=RESOLUTION, map_size=map_size_point, use_resolution=self.use_resolution
             )
@@ -303,6 +308,7 @@ class ReplayDecoder(multiprocessing.Process):
                 info = self.controller.replay_info(replay_data)
                 validated_data = self.parse_info(info, replay_path)
                 if validated_data is not None:
+                    self.map_size = get_map_size(validated_data[0]['map_name'], cropped=self.crop)
                     (step_data, stat, map_size, cumulative_z,
                      born_location) = self.replay_decode(replay_data, info.game_duration_loops)
                     validated_data[0]['map_size'] = [map_size.x, map_size.y]
@@ -410,14 +416,14 @@ def main(unused_argv):
         decoders = []
         print('Writing output to: {}'.format(FLAGS.output_dir))
         for i in range(N):
-            decoder = ReplayDecoder(run_config, replay_split_list[i], FLAGS.output_dir, FLAGS.resolution)
+            decoder = ReplayDecoder(run_config, replay_split_list[i], FLAGS.output_dir, FLAGS.resolution, FLAGS.crop)
             decoder.start()
             decoders.append(decoder)
         for i in decoders:
             i.join()
     else:
         # single process
-        decoder = ReplayDecoder(run_config, fitered_replays, FLAGS.output_dir, FLAGS.resolution)
+        decoder = ReplayDecoder(run_config, fitered_replays, FLAGS.output_dir, FLAGS.resolution, FLAGS.crop)
         decoder.run()
 
 
