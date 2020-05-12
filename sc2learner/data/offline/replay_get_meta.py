@@ -36,7 +36,7 @@ logging.set_verbosity(logging.INFO)
 FLAGS = flags.FLAGS
 # flags.DEFINE_string("replays", "E:/data/replays", "Path to a directory of replays.")
 # flags.DEFINE_string("output_dir", "E:/data/replay_data", "Path to save data")
-flags.DEFINE_string("version", "4.8.6", "Game version")
+flags.DEFINE_string("version", "4.10.0", "Game version")
 # flags.DEFINE_integer("process_num", 1, "Number of sc2 process to start on the node")
 # flags.DEFINE_bool(
 #     "check_version", False, "Check required game version of the replays and discard ones not matching version"
@@ -98,7 +98,7 @@ def main(unused_argv):
     replay_list_path = '/mnt/lustre/zhangming/data/list/raw_replay/{}.list'.format(sc2_version)
     replays = open(replay_list_path, 'r').readlines()
     for index, replay_path in enumerate(replays):
-        if index % 1000 == 0:
+        if index % 1 == 0:
             print('{} {}/{}'.format(time_format(time.time()), len(results), index))
         try:
             replay_path = replay_path.strip()

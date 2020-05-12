@@ -224,6 +224,7 @@ class AlphaStarActor:
                 if self.use_teacher_model:
                     teacher_action = dict_list2list_dict(teacher_action)[0]
                     teacher_logits = dict_list2list_dict(teacher_logits)[0]
+                actions[i] = action
                 # remove evaluate related key
                 send_action = copy.deepcopy(action)
                 if 'action_entity_raw' in send_action:
@@ -231,7 +232,8 @@ class AlphaStarActor:
                 send_teacher_action = copy.deepcopy(teacher_action)
                 if 'action_entity_raw' in send_teacher_action:
                     send_teacher_action.pop('action_entity_raw')
-                actions[i] = action
+                # correct action selected_units
+                send_action = self._correct_send_action(send_action, logits)
                 update_after_eval_home = {
                     'actions': send_action,
                     'behaviour_outputs': logits,
@@ -251,6 +253,17 @@ class AlphaStarActor:
                 }
                 self.last_state_action_away[i].update(update_after_eval_away)
         return actions
+
+    def _correct_send_action(self, send_action, outputs):
+        action_su = send_action['selected_units']
+        outputs_su = outputs['selected_units']
+        if action_su is not None:
+            if action_su.shape[0] == outputs_su.shape[0] - 1:
+                # add end_flag label
+                device = action_su.device
+                end_flag_label = torch.LongTensor([outputs_su.shape[1] - 1]).to(device)
+                send_action['selected_units'] = torch.cat([action_su, end_flag_label], dim=0)
+        return send_action
 
     def _init_states(self):
         self.last_state_action_home = [None] * self.agent_num

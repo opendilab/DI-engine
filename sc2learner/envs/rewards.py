@@ -34,7 +34,7 @@ class RewardHelper:
         game_second = game_loop // 22
         # single player pseudo rewards
         if loaded_eval_stats[0].excess_max_game_loop(game_loop):  # differnet agents have the same game_loop
-            rewards = [self._get_zero_rewards(reward) for reward in rewards]
+            rewards = self._get_zero_rewards(rewards)
         else:
             behaviour_zs = []
             human_target_zs = []
@@ -65,11 +65,11 @@ class RewardHelper:
             rewards = [{k: rewards[k][i].unsqueeze(0) for k in rewards.keys()} for i in range(self.agent_num)]
         return rewards
 
-    def _get_zero_rewards(self, reward):
+    def _get_zero_rewards(self, rewards):
         rewards = {}
-        rewards['winloss'] = torch.FloatTensor([reward])
+        rewards['winloss'] = torch.FloatTensor([rewards])
         for k in ['build_order', 'built_unit', 'upgrade', 'effect']:
-            rewards[k] = torch.FloatTensor([0])
+            rewards[k] = torch.zeros(self.batch_size)
         rewards = to_device(rewards, self.device)
         return rewards
 

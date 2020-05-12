@@ -40,6 +40,7 @@ from sc2learner.envs.observations import get_enemy_upgrades_raw_data, get_enemy_
 from sc2learner.envs.actions.alphastar_act_wrapper import AlphastarActParser, remove_repeat_data
 from sc2learner.envs.statistics import Statistics, transform_stat
 from sc2learner.envs.maps.map_info import LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT
+from sc2learner.utils import save_file_ceph
 
 logging.set_verbosity(logging.INFO)
 FLAGS = flags.FLAGS
@@ -50,7 +51,7 @@ flags.DEFINE_integer("process_num", 1, "Number of sc2 process to start on the no
 flags.DEFINE_bool(
     "check_version", True, "Check required game version of the replays and discard ones not matching version"
 )
-flags.DEFINE_bool("resolution", True, "whether to use defined resolution rather than map size as spatial size")
+flags.DEFINE_bool("resolution", False, "whether to use defined resolution rather than map size as spatial size")
 flags.mark_flag_as_required("replays")
 flags.mark_flag_as_required("output_dir")
 flags.FLAGS(sys.argv)
@@ -347,16 +348,30 @@ class ReplayDecoder(multiprocessing.Process):
                         meta_data_1['home_race'], meta_data_1['away_race'], meta_data_1['home_mmr'],
                         os.path.basename(replay_path).split('.')[0]
                     )
-                    torch.save(meta_data_0, os.path.join(self.output_dir, name0 + '.meta'))
-                    torch.save(self.check_steps(step_data[0]), os.path.join(self.output_dir, name0 + '.step'))
-                    torch.save(stat[0], os.path.join(self.output_dir, name0 + '.stat'))
-                    torch.save(stat_processed_0, os.path.join(self.output_dir, name0 + '.stat_processed'))
-                    torch.save(stat_z[0], os.path.join(self.output_dir, name0 + '.z'))
-                    torch.save(meta_data_1, os.path.join(self.output_dir, name1 + '.meta'))
-                    torch.save(self.check_steps(step_data[1]), os.path.join(self.output_dir, name1 + '.step'))
-                    torch.save(stat[1], os.path.join(self.output_dir, name1 + '.stat'))
-                    torch.save(stat_processed_1, os.path.join(self.output_dir, name1 + '.stat_processed'))
-                    torch.save(stat_z[1], os.path.join(self.output_dir, name1 + '.z'))
+
+                    # torch.save(meta_data_0, os.path.join(self.output_dir, name0 + '.meta'))
+                    # torch.save(self.check_steps(step_data[0]), os.path.join(self.output_dir, name0 + '.step'))
+                    # torch.save(stat[0], os.path.join(self.output_dir, name0 + '.stat'))
+                    # torch.save(stat_processed_0, os.path.join(self.output_dir, name0 + '.stat_processed'))
+                    # torch.save(stat_z[0], os.path.join(self.output_dir, name0 + '.z'))
+                    # torch.save(meta_data_1, os.path.join(self.output_dir, name1 + '.meta'))
+                    # torch.save(self.check_steps(step_data[1]), os.path.join(self.output_dir, name1 + '.step'))
+                    # torch.save(stat[1], os.path.join(self.output_dir, name1 + '.stat'))
+                    # torch.save(stat_processed_1, os.path.join(self.output_dir, name1 + '.stat_processed'))
+                    # torch.save(stat_z[1], os.path.join(self.output_dir, name1 + '.z'))
+
+                    ceph_root = 's3://replay_decode_493_2'
+                    save_file_ceph(ceph_root, name0 + '.meta', meta_data_0)
+                    save_file_ceph(ceph_root, name0 + '.step', self.check_steps(step_data[0]))
+                    save_file_ceph(ceph_root, name0 + '.stat', stat[0])
+                    save_file_ceph(ceph_root, name0 + '.stat_processed', stat_processed_0)
+                    save_file_ceph(ceph_root, name0 + '.z', stat_z[0])
+                    save_file_ceph(ceph_root, name1 + '.meta', meta_data_1)
+                    save_file_ceph(ceph_root, name1 + '.step', self.check_steps(step_data[1]))
+                    save_file_ceph(ceph_root, name1 + '.stat', stat[1])
+                    save_file_ceph(ceph_root, name1 + '.stat_processed', stat_processed_1)
+                    save_file_ceph(ceph_root, name1 + '.z', stat_z[1])
+
                     logging.info(
                         'Replay parsing success, t=({}) ({})({}): {}'.format(
                             time.time() - t, str(meta_data_0), str(meta_data_1), replay_path
@@ -376,10 +391,13 @@ class ReplayDecoder(multiprocessing.Process):
 
 
 def main(unused_argv):
+    os.environ['SC2PATH'] = '/mnt/lustre/zhangming/StarCraftII_Linux_Package/StarCraftII_' + FLAGS.version
+    print(os.environ['SC2PATH'])
     run_config = run_configs.get(FLAGS.version)
     if platform.system() == 'Windows':
         replay_list = sorted(run_config.replay_paths(FLAGS.replays))
     else:
+        print('processing {}'.format(FLAGS.replays))
         replay_list = [x.strip() for x in open(FLAGS.replays, 'r').readlines()]
     fitered_replays = []  # filter replays by version
     if FLAGS.check_version:
