@@ -206,8 +206,6 @@ class DataPusher:
             'ceph_name': self.ceph_path,
             # the uid for this agent
             'learner_uid': learner_uid,
-            # home away player_id
-            'player_id': job.get('player_id'),
         }
         metadata = merge_two_dicts(metadata, metadata_supp)
 
