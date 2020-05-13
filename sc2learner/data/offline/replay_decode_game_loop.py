@@ -26,7 +26,7 @@ from absl import logging
 from absl import flags
 from future.builtins import range  # pylint: disable=redefined-builtin
 import torch
-
+import numpy as np
 from pysc2 import run_configs
 from pysc2.lib import features
 from pysc2.lib import point
@@ -38,8 +38,8 @@ from s2clientprotocol import sc2api_pb2 as sc_pb
 from sc2learner.envs.observations.alphastar_obs_wrapper import AlphastarObsParser, compress_obs, decompress_obs
 from sc2learner.envs.observations import get_enemy_upgrades_raw_data, get_enemy_upgrades_processed_data
 from sc2learner.envs.actions.alphastar_act_wrapper import AlphastarActParser, remove_repeat_data
-from sc2learner.envs.statistics import Statistics, transform_stat
-from sc2learner.envs.maps.map_info import LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT
+from sc2learner.envs.statistics import RealTimeStatistics, transform_stat, transform_cum_stat
+from sc2learner.envs.maps.map_info import LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT, get_map_size
 from sc2learner.utils import save_file_ceph
 
 logging.set_verbosity(logging.INFO)
@@ -48,6 +48,7 @@ flags.DEFINE_string("replays", "D:/game/replays", "Path to a directory of replay
 flags.DEFINE_string("output_dir", "E:/data/replay_data_test", "Path to save data")
 flags.DEFINE_string("version", "4.10.0", "Game version")
 flags.DEFINE_integer("process_num", 1, "Number of sc2 process to start on the node")
+flags.DEFINE_boolean("crop", False, "whether to crop the map to playable area")
 flags.DEFINE_bool(
     "check_version", True, "Check required game version of the replays and discard ones not matching version"
 )
@@ -62,7 +63,7 @@ RESOLUTION = 128
 
 
 class ReplayDecoder(multiprocessing.Process):
-    def __init__(self, run_config, replay_list, output_dir, ues_resolution):
+    def __init__(self, run_config, replay_list, output_dir, ues_resolution, crop):
         super(ReplayDecoder, self).__init__()
         self.run_config = run_config
         self.replay_list = replay_list
@@ -76,12 +77,13 @@ class ReplayDecoder(multiprocessing.Process):
         self.interface = sc_pb.InterfaceOptions(
             raw=True,
             score=False,
-            raw_crop_to_playable_area=True,
-            feature_layer=sc_pb.SpatialCameraSetup(width=24, crop_to_playable_area=True)
+            raw_crop_to_playable_area=crop,
+            feature_layer=sc_pb.SpatialCameraSetup(width=24, crop_to_playable_area=crop)
         )
         size.assign_to(self.interface.feature_layer.resolution)
         size.assign_to(self.interface.feature_layer.minimap_resolution)
         self.use_resolution = ues_resolution
+        self.crop = crop
 
     def replay_decode(self, replay_data, game_loops):
         """Where real decoding is happening"""
@@ -103,6 +105,7 @@ class ReplayDecoder(multiprocessing.Process):
                 )
             )
             map_size = self.controller.game_info().start_raw.map_size
+            assert [map_size.x, map_size.y] == self.map_size, 'map crop failed, check gcc version!'
             player_actions = []
             cur_loop = 0
             while cur_loop < game_loops:
@@ -137,10 +140,26 @@ class ReplayDecoder(multiprocessing.Process):
                     raw_units[i, key_index] = 1908
             return obs
 
+        def check_step(obs, action):
+            tags = set()
+            selected_tags = set()
+            for i in obs.observation.raw_data.units:
+                tags.add(i.tag)
+            if action.HasField('unit_command'):
+                uc = action.unit_command
+                for i in uc.unit_tags:
+                    selected_tags.add(i)
+                if uc.HasField('target_unit_tag'):
+                    target_tag = uc.target_unit_tag
+                    if target_tag not in tags:
+                        return False
+                if len(selected_tags - tags) > 0:
+                    return False
+            return True
+
         # view replay by action order, combine observation and action
         step_data = [[] for _ in range(PLAYER_NUM)]  # initial return data
-        stat = Statistics(player_num=PLAYER_NUM, begin_num=20)
-        cumulative_z = [[] for _ in range(PLAYER_NUM)]
+        stat = [RealTimeStatistics(begin_num=20) for _ in range(PLAYER_NUM)]
         enemy_upgrades = [None for _ in range(PLAYER_NUM)]
         born_location = [[] for _ in range(PLAYER_NUM)]
         for player in range(PLAYER_NUM):  # gain data by player order
@@ -167,6 +186,8 @@ class ReplayDecoder(multiprocessing.Process):
             assert len(location) == 1, 'this replay is corrupt, no fog of war, check replays from this game version'
             born_location[player] = location[0]
             feat = features.features_from_game_info(self.controller.game_info(), use_raw_actions=True)
+            ob = feat.transform_obs(ob)
+            assert np.sum(ob['feature_minimap']['buildable']) > 0, 'no buildable map, check gcc version!'
             act_parser = AlphastarActParser(
                 feature_layer_resolution=RESOLUTION, map_size=map_size_point, use_resolution=self.use_resolution
             )
@@ -184,9 +205,13 @@ class ReplayDecoder(multiprocessing.Process):
             for idx, action in enumerate(actions[player]):
                 if idx == len(actions[player]) - 1:
                     break
-                else:
-                    delay = actions[player][idx + 1].game_loop - action.game_loop  # game_steps between two actions
                 obs = self.controller.observe()
+                delay = actions[player][idx + 1].game_loop - action.game_loop  # game_steps between two actions
+                if not check_step(obs, action.action):
+                    last_action['delay'] += delay
+                    step_data[player][-1]['actions']['delay'] += delay
+                    self.controller.step(delay)
+                    continue
                 assert (obs.observation.game_loop == action.game_loop)
                 if action.game_loop - last_print > 1000:
                     last_print = action.game_loop
@@ -198,16 +223,8 @@ class ReplayDecoder(multiprocessing.Process):
                 assert len(agent_act) == 1
                 agent_act = act_parser.merge_same_id_action(agent_act)[0]
                 agent_act['delay'] = torch.LongTensor([delay])
-                agent_ob['scalar_info']['cumulative_stat'] = stat.get_transformed_cum_stat(player)
-                # update cumulative_z
-                action_type = last_action['action_type'].item()
-                goal = GENERAL_ACTION_INFO_MASK[action_type]['goal']
-                if goal != 'other':
-                    this_loop_stat = stat.get_stat(player)
-                    this_loop_cum_stat = copy.deepcopy(this_loop_stat['cumulative_statistics'])
-                    this_loop_cum_stat['game_loop'] = action.game_loop
-                    cumulative_z[player].append(this_loop_cum_stat)
-                stat.update_stat(agent_act, agent_ob, player)
+                agent_ob['scalar_info']['cumulative_stat'] = transform_cum_stat(stat[player].cumulative_statistics)
+                stat[player].update_stat(agent_act, agent_ob, action.game_loop)
                 result_obs = self.obs_parser.merge_action(agent_ob, last_action, True)
                 # get_enemy_upgrades_processed_data must be used after merge_action
                 # enemy_upgrades_raw = get_enemy_upgrades_raw_data(base_ob, copy.deepcopy(enemy_upgrades[player]))
@@ -220,7 +237,10 @@ class ReplayDecoder(multiprocessing.Process):
                 step_data[player].append(compressed_obs)
                 last_action = agent_act
                 self.controller.step(delay)
-        return (step_data, stat.get_stat(), map_size, cumulative_z, born_location)
+        return (
+            step_data, [stat[i].get_stat() for i in range(PLAYER_NUM)], map_size,
+            [stat[i].cumulative_statistics_game_loop for i in range(PLAYER_NUM)], born_location
+        )
 
     def parse_info(self, info, replay_path):
         if (info.HasField("error")):
@@ -274,27 +294,6 @@ class ReplayDecoder(multiprocessing.Process):
             returns.append(ret)
         return returns
 
-    def check_steps(self, replay):
-        new_replay = []
-        for i, step in enumerate(replay):
-            entity_raw = step['entity_raw']
-            actions = step['actions']
-            id_list = entity_raw['id']
-            flag = True
-            if isinstance(actions['selected_units'], torch.Tensor):
-                for val in actions['selected_units']:
-                    if val not in id_list:
-                        flag = False
-                        continue
-            if isinstance(actions['target_units'], torch.Tensor):
-                for val in actions['target_units']:
-                    if val not in id_list:
-                        flag = False
-                        continue
-            if flag:
-                new_replay.append(step)
-        return new_replay
-
     def run(self):
         # interface to be called when starting process
         signal.signal(signal.SIGTERM, lambda a, b: sys.exit())
@@ -309,6 +308,7 @@ class ReplayDecoder(multiprocessing.Process):
                 info = self.controller.replay_info(replay_data)
                 validated_data = self.parse_info(info, replay_path)
                 if validated_data is not None:
+                    self.map_size = get_map_size(validated_data[0]['map_name'], cropped=self.crop)
                     (step_data, stat, map_size, cumulative_z,
                      born_location) = self.replay_decode(replay_data, info.game_duration_loops)
                     validated_data[0]['map_size'] = [map_size.x, map_size.y]
@@ -316,7 +316,7 @@ class ReplayDecoder(multiprocessing.Process):
                     meta_data_0 = validated_data[0]
                     meta_data_1 = validated_data[1]
                     # remove repeat data
-                    step_data = [remove_repeat_data(d) for d in step_data]
+                    # step_data = [remove_repeat_data(d) for d in step_data]
                     meta_data_0['step_num'] = len(step_data[0])
                     meta_data_1['step_num'] = len(step_data[1])
                     # transform stat
@@ -348,26 +348,25 @@ class ReplayDecoder(multiprocessing.Process):
                         meta_data_1['home_race'], meta_data_1['away_race'], meta_data_1['home_mmr'],
                         os.path.basename(replay_path).split('.')[0]
                     )
-
                     # torch.save(meta_data_0, os.path.join(self.output_dir, name0 + '.meta'))
-                    # torch.save(self.check_steps(step_data[0]), os.path.join(self.output_dir, name0 + '.step'))
+                    # torch.save(step_data[0], os.path.join(self.output_dir, name0 + '.step'))
                     # torch.save(stat[0], os.path.join(self.output_dir, name0 + '.stat'))
                     # torch.save(stat_processed_0, os.path.join(self.output_dir, name0 + '.stat_processed'))
                     # torch.save(stat_z[0], os.path.join(self.output_dir, name0 + '.z'))
                     # torch.save(meta_data_1, os.path.join(self.output_dir, name1 + '.meta'))
-                    # torch.save(self.check_steps(step_data[1]), os.path.join(self.output_dir, name1 + '.step'))
+                    # torch.save(step_data[1], os.path.join(self.output_dir, name1 + '.step'))
                     # torch.save(stat[1], os.path.join(self.output_dir, name1 + '.stat'))
                     # torch.save(stat_processed_1, os.path.join(self.output_dir, name1 + '.stat_processed'))
                     # torch.save(stat_z[1], os.path.join(self.output_dir, name1 + '.z'))
 
                     ceph_root = 's3://replay_decode_493_2'
                     save_file_ceph(ceph_root, name0 + '.meta', meta_data_0)
-                    save_file_ceph(ceph_root, name0 + '.step', self.check_steps(step_data[0]))
+                    save_file_ceph(ceph_root, name0 + '.step', step_data[0])
                     save_file_ceph(ceph_root, name0 + '.stat', stat[0])
                     save_file_ceph(ceph_root, name0 + '.stat_processed', stat_processed_0)
                     save_file_ceph(ceph_root, name0 + '.z', stat_z[0])
                     save_file_ceph(ceph_root, name1 + '.meta', meta_data_1)
-                    save_file_ceph(ceph_root, name1 + '.step', self.check_steps(step_data[1]))
+                    save_file_ceph(ceph_root, name1 + '.step', step_data[1])
                     save_file_ceph(ceph_root, name1 + '.stat', stat[1])
                     save_file_ceph(ceph_root, name1 + '.stat_processed', stat_processed_1)
                     save_file_ceph(ceph_root, name1 + '.z', stat_z[1])
@@ -417,14 +416,14 @@ def main(unused_argv):
         decoders = []
         print('Writing output to: {}'.format(FLAGS.output_dir))
         for i in range(N):
-            decoder = ReplayDecoder(run_config, replay_split_list[i], FLAGS.output_dir, FLAGS.resolution)
+            decoder = ReplayDecoder(run_config, replay_split_list[i], FLAGS.output_dir, FLAGS.resolution, FLAGS.crop)
             decoder.start()
             decoders.append(decoder)
         for i in decoders:
             i.join()
     else:
         # single process
-        decoder = ReplayDecoder(run_config, fitered_replays, FLAGS.output_dir, FLAGS.resolution)
+        decoder = ReplayDecoder(run_config, fitered_replays, FLAGS.output_dir, FLAGS.resolution, FLAGS.crop)
         decoder.run()
 
 

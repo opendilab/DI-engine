@@ -147,6 +147,10 @@ class RealTimeStatistics:
         ret = to_dtype(ret, torch.long)
         return ret
 
+    def get_stat(self):
+        ret = {'begin_statistics': self.begin_statistics, 'cumulative_statistics': self.cumulative_statistics}
+        return ret
+
 
 class GameLoopStatistics:
     """

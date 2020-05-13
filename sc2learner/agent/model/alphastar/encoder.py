@@ -49,6 +49,7 @@ class Encoder(nn.Module):
             N = entity_embeddings[b].shape[0]
             for n in range(N):
                 h, w = entity_raw[b]['location'][n]
+                h, w = int(h), int(w)
                 h = min(max(0, h), H - 1)
                 w = min(max(0, w), W - 1)
                 scatter_map[b, :, h, w] = project_embeddings[b][n]

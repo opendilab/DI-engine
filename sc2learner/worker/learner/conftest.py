@@ -74,6 +74,7 @@ def fake_train_learner():
 
 @pytest.fixture(scope='class')
 def real_learner():
+    cfg.data.train.batch_size = 2
     learner = AlphaStarRLLearner(cfg)
     learner_app = create_learner_app(learner)
 
