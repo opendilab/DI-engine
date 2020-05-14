@@ -33,28 +33,19 @@ class EntityEncoder(nn.Module):
     def forward(self, x):
         '''
         Input:
-            x: Tensor of size [batch_size, entity_num, input_dim]
-               or list(tuple) of batch_size * Tensor of size [entity_num, input_dim]
+            x: list(tuple) of batch_size * Tensor of size [entity_num, input_dim]
                entity_num may differ for each tensor in the list
                See detailed-architecture.txt line 19-64 for more detail
                about the fields in the dim 2
         Output:
-            entity_embeddings: Tensor of size [batch_size, entity_num, output_dim] or
-                tuple(len=batch_size)->element: torch.Tensor, shape(entity_num_b, output_dim)
+            entity_embeddings: tuple(len=batch_size)->element: torch.Tensor, shape(entity_num_b, output_dim)
             embedded_entity: Tensor of size [batch_size, output_dim]
         '''
-        if isinstance(x, Sequence):
-            num_list = [t.shape[0] for t in x]
-            x = torch.cat(x, dim=0)  # cat to size [sum of entity_num, input_dim]
-            x = self.act(self.transformer(x))
-            entity_embeddings = self.entity_fc(x)
-            x = torch.split(x, num_list, dim=0)  # split elements originated from different sample
-            entity_embeddings = torch.split(entity_embeddings, num_list, dim=0)
-            embedded_entity = [t.mean(dim=0) for t in x]
-            embedded_entity = torch.stack(embedded_entity)
-            return entity_embeddings, embedded_entity
-        else:
-            x = self.act(self.transformer(x))
-            entity_embeddings = self.entity_fc(x)
-            embedded_entity = self.embed_fc(x.mean(dim=1))  # TODO masked
-            return entity_embeddings, embedded_entity
+        x, valid_num = self.transformer(x, tensor_output=True)
+        x = self.act(x)
+        entity_embeddings = self.entity_fc(x)
+        entity_embeddings = [e[:v] for e, v in zip(entity_embeddings, valid_num)]
+        embedded_entity = [t[:v].mean(dim=0) for t, v in zip(x, valid_num)]
+        embedded_entity = torch.stack(embedded_entity)
+        embedded_entity = self.embed_fc(embedded_entity)
+        return entity_embeddings, embedded_entity

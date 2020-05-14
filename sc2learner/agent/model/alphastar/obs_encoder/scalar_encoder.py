@@ -29,25 +29,20 @@ class CumulativeStatEncoder(nn.Module):
 class BeginningBuildOrderEncoder(nn.Module):
     '''
     Overview:
-    x -> fc -> fc -> transformer -> out
+    transformer -> mean -> fc
     '''
-    def __init__(self, input_dim, begin_num, output_dim, activation):
+    def __init__(self, input_dim, output_dim, activation):
         super(BeginningBuildOrderEncoder, self).__init__()
         self.act = activation
-        self.fc1 = fc_block(input_dim, 16, activation=self.act)
-        self.fc2 = fc_block(16, 1, activation=self.act)
         self.transformer = Transformer(
-            input_dim=begin_num,
-            head_dim=output_dim // 2,
-            hidden_dim=output_dim,
-            output_dim=output_dim,
+            input_dim=input_dim, head_dim=16, hidden_dim=64, output_dim=64, activation=self.act
         )
+        self.embedd_fc = fc_block(64, output_dim, activation=self.act)
 
     def forward(self, x):
-        x = self.fc1(x)
-        x = self.fc2(x)
-        x = x.squeeze(2)
         x = self.transformer(x)
+        x = x.mean(dim=1)
+        x = self.embedd_fc(x)
         return x
 
 
@@ -93,7 +88,7 @@ class ScalarEncoder(nn.Module):
                     )
                     setattr(self, key, module)
                 elif key == 'beginning_build_order':
-                    module = BeginningBuildOrderEncoder(item['input_dim'], cfg.begin_num, item['output_dim'], self.act)
+                    module = BeginningBuildOrderEncoder(item['input_dim'], item['output_dim'], self.act)
                     setattr(self, key, module)
                 else:
                     raise NotImplementedError("key: {}".format(key))

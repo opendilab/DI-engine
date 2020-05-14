@@ -37,21 +37,6 @@ class TestEncoder:
         loss = embedded_scalar.mean()
         is_differentiable(loss, model)
 
-    def test_entity_encoder(self, setup_config):
-        B = 4
-        handle = setup_config.model.encoder.obs_encoder.entity_encoder
-        model = EntityEncoder(handle)
-        assert isinstance(model, torch.nn.Module)
-
-        entity_num = np.random.randint(200, 300)
-        # input_dim: 2102, output_dim: 256
-        inputs = torch.randn(B, entity_num, handle.input_dim)
-        entity_embeddings, embedded_entity = model(inputs)
-        assert entity_embeddings.shape == (B, entity_num, handle.output_dim)
-        assert embedded_entity.shape == (B, handle.output_dim)
-        loss = embedded_entity.mean() + entity_embeddings.mean()
-        is_differentiable(loss, model)
-
     def test_entity_encoder_input_list(self, setup_config):
         B = 4
         handle = setup_config.model.encoder.obs_encoder.entity_encoder
@@ -60,16 +45,19 @@ class TestEncoder:
 
         entity_nums = []
         inputs = []  # list or tuple
+        # input_dim: 1340, output_dim: 256
         for b in range(B):
-            entity_num = np.random.randint(200, 300)
+            entity_num = np.random.randint(200, 600)
             entity_nums.append(entity_num)
             inputs.append(torch.randn(entity_num, handle.input_dim))
         entity_embeddings, embedded_entity = model(inputs)
-        assert isinstance(entity_embeddings, tuple)
+        assert isinstance(entity_embeddings, list)
         for entity_embedding, entity_num in zip(entity_embeddings, entity_nums):
             assert isinstance(entity_embedding, torch.Tensor)
-            assert entity_embedding.shape == (entity_num, handle.output_dim)
+            assert entity_embedding.shape == (min(512, entity_num), handle.output_dim)
         assert embedded_entity.shape == (B, handle.output_dim)
+        loss = embedded_entity.mean() + sum([t.mean() for t in entity_embedding])
+        is_differentiable(loss, model)
 
     def test_spatial_encoder(self, setup_config):
         B = 5

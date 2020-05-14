@@ -13,38 +13,50 @@ class Attention(nn.Module):
         self.head_dim = head_dim
         self.attention_pre = fc_block(input_dim, head_dim * head_num * 3)  # query, key, value
         self.dropout = nn.Dropout(dropout_ratio)
-        self.project = fc_block(head_dim, output_dim)
+        self.project = fc_block(head_dim * head_num, output_dim)
 
     def split(self, x, T=False):
-        B = x.shape[0]
-        x = x.view(B, self.head_num, self.head_dim)
+        B, N = x.shape[:2]
+        x = x.view(B, N, self.head_num, self.head_dim)
+        x = x.permute(0, 2, 1, 3).contiguous()  # B, head_num, N, head_dim
         if T:
-            x = x.permute(0, 2, 1).contiguous()
+            x = x.permute(0, 1, 3, 2).contiguous()
         return x
 
     def forward(self, x):
-        assert (len(x.shape) >= 2)
-        old_shape = x.shape[:-1]
-        N = x.shape[-1]
-        B = reduce(lambda x, y: x * y, old_shape)
-        x = x.reshape(B, N)
+        """
+        Overview:
+            x: [batch_size, seq_len, embeddding_size]
+        """
+        assert (len(x.shape) == 3)
+        B, N = x.shape[:2]
         x = self.attention_pre(x)
-        query, key, value = torch.chunk(x, 3, dim=1)
+        query, key, value = torch.chunk(x, 3, dim=2)
         query, key, value = self.split(query), self.split(key, T=True), self.split(value)
 
-        score = torch.matmul(query, key)
-        score /= math.sqrt(value.shape[2])
-        score = F.softmax(score, dim=2)
+        score = torch.matmul(query, key)  # B, head_num, N, N
+        score /= math.sqrt(self.head_dim)
+        score = F.softmax(score, dim=-1)
         score = self.dropout(score)
-        attention = torch.matmul(score, value)
+        attention = torch.matmul(score, value)  # B, head_num, N, head_dim
 
-        attention = attention.view(B * self.head_num, self.head_dim)
-        attention = self.project(attention)
-        attention = attention.view(B, self.head_num, -1)
-        attention = attention.sum(dim=1)
+        attention = attention.permute(0, 2, 1, 3).contiguous()  # B, N, head_num, head_dim
+        attention = self.project(attention.view(B, N, -1))  # B, N, output_dim
         attention = self.dropout(attention)
-        attention = attention.view(*old_shape, -1)
         return attention
+
+
+class AttentionEmbedding(nn.Module):
+    def __init__(self, input_dim, embedding_dim, head_dim=2, head_num=16, dropout_ratio=0.1, activation=nn.ReLU()):
+        super(AttentionEmbedding, self).__init__()
+        self.attention = Attention(1, head_dim, 1, head_num, dropout_ratio)
+        self.embedding = fc_block(input_dim, embedding_dim, activation=activation)
+
+    def forward(self, x):
+        B, S = x.shape[:2]
+        x = x.view(B * S, -1, 1)
+        x = self.attention(x).view(B, S, -1)
+        return self.embedding(x)
 
 
 class TransformerLayer(nn.Module):
@@ -82,11 +94,16 @@ class Transformer(nn.Module):
         head_num=2,
         mlp_num=2,
         layer_num=3,
+        max_seq_len=512,
+        pad_val=-1e9,
         dropout_ratio=0.1,
         activation=nn.ReLU()
     ):
         super(Transformer, self).__init__()
         self.embedding = fc_block(input_dim, output_dim, activation=activation)
+        #self.embedding = AttentionEmbedding(input_dim, output_dim, activation=activation)
+        self.max_seq_len = max_seq_len
+        self.pad_val = pad_val
         self.act = activation
         layers = []
         dims = [output_dim] + [output_dim] * layer_num
@@ -98,6 +115,41 @@ class Transformer(nn.Module):
             )
         self.main = nn.Sequential(*layers)
 
-    def forward(self, x):
-        x = self.embedding(x)
-        return self.main(x)
+    def forward(self, x, tensor_output=False):
+        if isinstance(x, list):
+            x, valid_num = self._pack_inputs(x)  # batch_size, seq_len, input_dim
+            x = self.embedding(x)
+            x = self.main(x)
+            if tensor_output:
+                return x, valid_num
+            else:
+                return self._filter_outputs(x, valid_num)
+        elif isinstance(x, torch.Tensor):
+            x = self.embedding(x)
+            x = self.main(x)
+            return x
+        else:
+            raise TypeError("invalid type: {}".format(type(x)))
+
+    def _pack_inputs(self, x):
+        assert isinstance(x, list)
+        aligned_x = []
+        valid_num = []
+        for item in x:
+            assert len(item.shape) == 2  # seq_len, embeddding_size
+            N, M = item.shape
+            if N >= self.max_seq_len:
+                aligned_x.append(item[:self.max_seq_len])
+                valid_num.append(self.max_seq_len)
+            else:
+                pad_tensor = torch.full(size=(self.max_seq_len - N, M), fill_value=self.pad_val).to(item.device)
+                aligned_x.append(torch.cat([item, pad_tensor], dim=0))
+                valid_num.append(N)
+        aligned_x = torch.stack(aligned_x, dim=0)
+        return aligned_x, valid_num
+
+    def _filter_outputs(self, x, valid_num):
+        ret = []
+        for item, v in zip(x, valid_num):
+            ret.append(item[:v])
+        return ret
