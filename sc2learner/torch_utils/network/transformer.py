@@ -23,7 +23,7 @@ class Attention(nn.Module):
             x = x.permute(0, 1, 3, 2).contiguous()
         return x
 
-    def forward(self, x):
+    def forward(self, x, vaild_num=None):
         """
         Overview:
             x: [batch_size, seq_len, embeddding_size]
@@ -36,6 +36,11 @@ class Attention(nn.Module):
 
         score = torch.matmul(query, key)  # B, head_num, N, N
         score /= math.sqrt(self.head_dim)
+        if vaild_num is not None:
+            for idx, v in enumerate(vaild_num):
+                score[idx, :, v:, :] = -1e9
+                score[idx, :, :, v:] = -1e9
+
         score = F.softmax(score, dim=-1)
         score = self.dropout(score)
         attention = torch.matmul(score, value)  # B, head_num, N, head_dim
@@ -72,12 +77,13 @@ class TransformerLayer(nn.Module):
         self.mlp = nn.Sequential(*layers)
         self.layernorm2 = build_normalization('LN')(output_dim)
 
-    def forward(self, x):
-        a = self.attention(x)
+    def forward(self, inputs):
+        x, valid_num = inputs['data'], inputs['vaild_num']
+        a = self.attention(x, valid_num)
         x = self.layernorm1(x + a)
         m = self.mlp(x)
         x = self.layernorm2(x + m)
-        return x
+        return {'data': x, 'vaild_num': valid_num}
 
 
 class Transformer(nn.Module):
@@ -95,7 +101,7 @@ class Transformer(nn.Module):
         mlp_num=2,
         layer_num=3,
         max_seq_len=512,
-        pad_val=-1e9,
+        pad_val=0,
         dropout_ratio=0.1,
         activation=nn.ReLU()
     ):
@@ -119,14 +125,14 @@ class Transformer(nn.Module):
         if isinstance(x, list):
             x, valid_num = self._pack_inputs(x)  # batch_size, seq_len, input_dim
             x = self.embedding(x)
-            x = self.main(x)
+            x = self.main({'data': x, 'vaild_num': valid_num})['data']
             if tensor_output:
                 return x, valid_num
             else:
                 return self._filter_outputs(x, valid_num)
         elif isinstance(x, torch.Tensor):
             x = self.embedding(x)
-            x = self.main(x)
+            x = self.main({'data': x, 'vaild_num': None})['data']
             return x
         else:
             raise TypeError("invalid type: {}".format(type(x)))
