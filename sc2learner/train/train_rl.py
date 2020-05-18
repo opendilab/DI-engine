@@ -8,6 +8,9 @@ import os
 import sys
 
 from absl import app, flags, logging
+from multiprocessing import Pool, Process
+import torch
+torch.multiprocessing.set_start_method('spawn', force=True)
 
 from sc2learner.utils import read_config, merge_dicts
 from sc2learner.worker.learner import AlphaStarRLLearner
@@ -18,8 +21,12 @@ FLAGS = flags.FLAGS
 flags.DEFINE_string("config_path", "", "path to config file")
 flags.DEFINE_string("load_path", "", "path to model checkpoint")
 flags.DEFINE_string("job_name", "", "job name:[learner, actor]")
+flags.DEFINE_integer("actor_num", 4, "number of actor to run when job_name is actor")
 flags.FLAGS(sys.argv)
 
+def run_actor(cfg):
+    actor = AlphaStarActorWorker(cfg)
+    actor.run()
 
 def main(argv):
     logging.set_verbosity(logging.ERROR)
@@ -40,9 +47,13 @@ def main(argv):
         learner_ip, learner_port = learner.get_ip_port()
         learner_app.run(host=learner_ip, port=learner_port, debug=True, use_reloader=False)
     elif FLAGS.job_name == 'actor':
-        actor = AlphaStarActorWorker(cfg)
-        actor.run()
-
+        ps = []
+        for i in range(FLAGS.actor_num):
+            ps.append(Process(target=run_actor, args=(cfg,)))
+        for p in ps:
+            p.start()
+        for p in ps:
+            p.join()
 
 if __name__ == '__main__':
     app.run(main)

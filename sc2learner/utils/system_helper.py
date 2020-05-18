@@ -1,6 +1,7 @@
 import socket
 import os
 import uuid
+import time
 
 MANAGER_NODE_TABLE = {
     '10.198.8': '10.198.8.31',
@@ -30,7 +31,8 @@ def get_pid():
 
 
 def get_actor_uid():
-    return os.getenv('SLURM_JOB_ID', 'PID' + str(get_pid()) + 'UUID' + str(uuid.uuid1()))
+    t = time.time()
+    return os.getenv('SLURM_JOB_ID', 'PID' + str(get_pid()) + 'UUID' + str(uuid.uuid1())) + '_' + str(t)
 
 
 def get_manager_node_ip(node_ip=None):
