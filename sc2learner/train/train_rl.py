@@ -24,9 +24,11 @@ flags.DEFINE_string("job_name", "", "job name:[learner, actor]")
 flags.DEFINE_integer("actor_num", 4, "number of actor to run when job_name is actor")
 flags.FLAGS(sys.argv)
 
+
 def run_actor(cfg):
     actor = AlphaStarActorWorker(cfg)
     actor.run()
+
 
 def main(argv):
     logging.set_verbosity(logging.ERROR)
@@ -49,11 +51,12 @@ def main(argv):
     elif FLAGS.job_name == 'actor':
         ps = []
         for i in range(FLAGS.actor_num):
-            ps.append(Process(target=run_actor, args=(cfg,)))
+            ps.append(Process(target=run_actor, args=(cfg, )))
         for p in ps:
             p.start()
         for p in ps:
             p.join()
+
 
 if __name__ == '__main__':
     app.run(main)
