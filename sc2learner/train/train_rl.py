@@ -12,10 +12,10 @@ from multiprocessing import Pool, Process
 import torch
 torch.multiprocessing.set_start_method('spawn', force=True)
 
-from sc2learner.utils import read_config, merge_dicts
-from sc2learner.worker.learner import AlphaStarRLLearner
-from sc2learner.worker.learner import create_learner_app
-from sc2learner.worker.actor import AlphaStarActorWorker
+from sc2learner.utils import read_config, merge_dicts  # noqa
+from sc2learner.worker.learner import AlphaStarRLLearner  # noqa
+from sc2learner.worker.learner import create_learner_app  # noqa
+from sc2learner.worker.actor import AlphaStarActorWorker  # noqa
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string("config_path", "", "path to config file")

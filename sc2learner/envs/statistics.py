@@ -197,6 +197,7 @@ class GameLoopStatistics:
             if cum_idx < len(cumulative_stat):
                 item.update({'game_loop': cumulative_stat[cum_idx]['game_loop']})
                 new_beginning_build_order.append(item)
+            cum_idx += 1
 
         new_stat = stat
         new_stat['beginning_build_order'] = new_beginning_build_order
