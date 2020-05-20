@@ -174,6 +174,9 @@ class GameLoopStatistics:
             return stat
 
         def is_action_frame(action_type, cum_idx):
+            # for start case
+            if cum_idx == 0:
+                return action_type in cumulative_stat[cum_idx].keys()
             last_frame = cumulative_stat[cum_idx - 1]
             cur_frame = cumulative_stat[cum_idx]
             miss_key = cur_frame.keys() - last_frame.keys()
@@ -184,7 +187,7 @@ class GameLoopStatistics:
             diff_key = miss_key.union(diff_count_key)
             return action_type in diff_key
 
-        cum_idx = 1
+        cum_idx = 0
         new_beginning_build_order = []
         for i in range(len(beginning_build_order)):
             item = beginning_build_order[i]
