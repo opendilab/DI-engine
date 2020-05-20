@@ -23,7 +23,7 @@ class LearnerCommunicationHelper(object):
 
         self.learner_uid = str(os.environ.get('SLURM_JOB_ID'))
         if self.learner_uid == 'None':
-            self.learner_uid = str(random(0, 100000))
+            self.learner_uid = str(random.randint(0, 100000))
             print("[WARNING]: Can't get learner_uid, if you don't test locally, please check it")
 
         # if want to rerun learner, learner_re_register should be set True in cfg.system
