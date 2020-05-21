@@ -207,6 +207,9 @@ class SelectedUnitsHead(nn.Module):
         units = torch.zeros(B, N, device=key.device, dtype=torch.long)
         logits = [[] for _ in range(B)]
         x = x.unsqueeze(0)
+        # mask is used to avoid select unavaliable and repeat unit
+        # logits_mask is used to calculate loss, therefore only refers to unavaliable part
+        logits_mask = mask.clone()  # immutable, for logits
         if selected_units is None:
             end_flag_trigger = [False for _ in range(B)]
 
@@ -217,6 +220,7 @@ class SelectedUnitsHead(nn.Module):
                 query_result = x.permute(1, 0, 2) * key
                 query_result = query_result.mean(dim=2)
                 if self.use_mask:
+                    masked_logits = query_result.sub((1 - logits_mask))
                     query_result.sub_((1 - mask) * 1e9)
                 entity_num = self._get_pred_with_logit(query_result, temperature)
 
@@ -224,7 +228,7 @@ class SelectedUnitsHead(nn.Module):
                     if end_flag_trigger[b]:
                         continue
                     else:
-                        logits[b].append(query_result[b])
+                        logits[b].append(masked_logits[b])
                         if entity_num[b] == end_flag_index:
                             end_flag_trigger[b] = True
                             # evaluate and logits == 1 case(only end_flag), select the second largest unit
@@ -236,9 +240,8 @@ class SelectedUnitsHead(nn.Module):
                                 units[b][entity_num_b] = 1
                             continue
                         units[b][entity_num[b]] = 1
-                        if not self.training:
-                            # only work in eval mode
-                            mask[b][entity_num[b]] = 0
+                        # mask selected unit to avoid repeat
+                        mask[b][entity_num[b]] = 0
         else:
             output_entity_num = [t.shape[0] for t in selected_units]
             # transform selected_units to units format
