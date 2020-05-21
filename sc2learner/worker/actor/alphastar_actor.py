@@ -369,6 +369,7 @@ class AlphaStarActor:
                         data_buffer[i].append(self.compressor(step_data))
                     if at_traj_end:
                         # trajectory buffer is full or the game is finished
+                        player_id = job['player_id']
                         metadata = {
                             'job_id': job['job_id'],
                             'agent_no': i,
@@ -383,6 +384,7 @@ class AlphaStarActor:
                             'traj_length': len(data_buffer[i]),  # this is the real length, without reused last traj
                             # TODO(nyz): implement other priority initialization algo, setting it to 1.0 now
                             'priority': 1.0,
+                            'player_id': [player_id[i], player_id[1 - i]]
                         }
                         delta = job['data_push_length'] - len(data_buffer[i])
                         # if the the data actually in the buffer when the episode ends is shorter than
@@ -405,6 +407,8 @@ class AlphaStarActor:
                 self.logger.info(
                     self._actor_string('game_loop({})\t{}'.format(game_loop, self.variable_record.get_vars_text()))
                 )
+                string = ''.join(['agent {} data len: {}\t'.format(i, len(data_buffer[i])) for i in range(self.agent_num)])
+                self.logger.info(self._actor_string(string))
             # finish job
             if done:
                 result_map = {1: 'wins', 0: 'draws', -1: 'losses'}

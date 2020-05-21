@@ -7,12 +7,11 @@ Main Function:
 import collections
 from collections import namedtuple, OrderedDict
 
-import numpy as np
 import torch
 import torch.nn.functional as F
 
 from sc2learner.optimizer.base_loss import BaseLoss
-from sc2learner.torch_utils import levenshtein_distance, hamming_distance, same_shape
+from sc2learner.torch_utils import same_shape
 from sc2learner.rl_utils import td_lambda_loss, vtrace_loss, upgo_loss, compute_importance_weights, entropy
 from sc2learner.utils import list_dict2dict_list, get_rank
 from sc2learner.data import diff_shape_collate
@@ -66,7 +65,9 @@ class AlphaStarRLLoss(BaseLoss):
         self.T = train_config.trajectory_len
         self.batch_size = train_config.batch_size
         self.vtrace_rhos_min_clip = train_config.vtrace.min_clip
+        self.vtrace_rhos_max_clip = train_config.vtrace.max_clip
         self.upgo_rhos_min_clip = train_config.upgo.min_clip
+        self.upgo_rhos_max_clip = train_config.upgo.max_clip
         self.action_output_types = train_config.action_output_types
         assert (all([t in ['value', 'logit'] for t in self.action_output_types.values()]))
         self.action_type_kl_seconds = train_config.kl.action_type_kl_seconds
@@ -111,7 +112,7 @@ class AlphaStarRLLoss(BaseLoss):
         actor_critic_loss = 0.
         td_lambda_loss_val = {}
         vtrace_loss_val = {}
-        rewards_val = {k: v.mean().item() for k, v in rewards.items()}
+        rewards_val = {k: v.clone().mean().item() for k, v in rewards.items()}
         for field, baseline in baselines.items():
             reward = rewards[field]
             td_lambda_loss = self._td_lambda_loss(baseline, reward) * self.loss_weights.baseline[field]
@@ -214,6 +215,7 @@ class AlphaStarRLLoss(BaseLoss):
                 action_output_type,
                 action,
                 min_clip=self.vtrace_rhos_min_clip,
+                max_clip=self.vtrace_rhos_max_clip,
                 device=self.device
             )
             clipped_cs = clipped_rhos
@@ -239,6 +241,7 @@ class AlphaStarRLLoss(BaseLoss):
                 action_output_type,
                 action,
                 min_clip=self.upgo_rhos_min_clip,
+                max_clip=self.upgo_rhos_max_clip,
                 device=self.device
             )
             return upgo_loss(target_output, action_output_type, clipped_rhos, action, reward, baseline)
