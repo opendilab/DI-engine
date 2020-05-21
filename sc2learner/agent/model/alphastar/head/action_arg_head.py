@@ -236,7 +236,9 @@ class SelectedUnitsHead(nn.Module):
                                 units[b][entity_num_b] = 1
                             continue
                         units[b][entity_num[b]] = 1
-                        mask[b][entity_num[b]] = 0
+                        if not self.training:
+                            # only work in eval mode
+                            mask[b][entity_num[b]] = 0
         else:
             output_entity_num = [t.shape[0] for t in selected_units]
             # transform selected_units to units format
