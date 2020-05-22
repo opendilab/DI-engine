@@ -620,19 +620,19 @@ def transform_entity_data(resolution=128, pad_value=-1e9):
         {
             'key': 'attack_upgrade_level',
             'dim': 4,
-            'op': partial(one_hot, num=4),
+            'op': partial(clip_one_hot, num=4),
             'other': 'one-hot'
         },
         {
             'key': 'armor_upgrade_level',
             'dim': 4,
-            'op': partial(one_hot, num=4),
+            'op': partial(clip_one_hot, num=4),
             'other': 'one-hot'
         },
         {
             'key': 'shield_upgrade_level',
             'dim': 4,
-            'op': partial(one_hot, num=4),
+            'op': partial(clip_one_hot, num=4),
             'other': 'one-hot'
         },
         # {'key': 'was_selected', 'dim': 2, 'other': 'one-hot, last action'},
