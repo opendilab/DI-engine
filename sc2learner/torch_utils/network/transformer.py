@@ -100,7 +100,6 @@ class Transformer(nn.Module):
         head_num=2,
         mlp_num=2,
         layer_num=3,
-        max_seq_len=512,
         pad_val=0,
         dropout_ratio=0.1,
         activation=nn.ReLU()
@@ -108,7 +107,6 @@ class Transformer(nn.Module):
         super(Transformer, self).__init__()
         self.embedding = fc_block(input_dim, output_dim, activation=activation)
         #self.embedding = AttentionEmbedding(input_dim, output_dim, activation=activation)
-        self.max_seq_len = max_seq_len
         self.pad_val = pad_val
         self.act = activation
         layers = []
@@ -139,6 +137,7 @@ class Transformer(nn.Module):
 
     def _pack_inputs(self, x):
         assert isinstance(x, list)
+        self.max_seq_len = max([t.shape[0] for t in x])
         aligned_x = []
         valid_num = []
         for item in x:

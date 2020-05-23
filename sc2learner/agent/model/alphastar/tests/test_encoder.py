@@ -54,7 +54,7 @@ class TestEncoder:
         assert isinstance(entity_embeddings, list)
         for entity_embedding, entity_num in zip(entity_embeddings, entity_nums):
             assert isinstance(entity_embedding, torch.Tensor)
-            assert entity_embedding.shape == (min(512, entity_num), handle.output_dim)
+            assert entity_embedding.shape == (entity_num, handle.output_dim)
         assert embedded_entity.shape == (B, handle.output_dim)
         loss = embedded_entity.mean() + sum([t.mean() for t in entity_embedding])
         is_differentiable(loss, model)
