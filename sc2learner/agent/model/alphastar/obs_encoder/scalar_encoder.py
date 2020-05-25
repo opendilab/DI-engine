@@ -29,20 +29,22 @@ class CumulativeStatEncoder(nn.Module):
 class BeginningBuildOrderEncoder(nn.Module):
     '''
     Overview:
-    transformer -> mean -> fc
+    transformer -> fc -> squeeze
+    B, 20, N1 -> B, 20, N2 -> B, 20, 1 -> B, 20
     '''
     def __init__(self, input_dim, output_dim, activation):
         super(BeginningBuildOrderEncoder, self).__init__()
+        self.output_dim = output_dim
         self.act = activation
         self.transformer = Transformer(
             input_dim=input_dim, head_dim=16, hidden_dim=64, output_dim=64, activation=self.act
         )
-        self.embedd_fc = fc_block(64, output_dim, activation=self.act)
+        self.embedd_fc = fc_block(64, 1, activation=self.act)
 
     def forward(self, x):
+        assert len(x.shape) == 3 and x.shape[1] == self.output_dim
         x = self.transformer(x)
-        x = x.mean(dim=1)
-        x = self.embedd_fc(x)
+        x = self.embedd_fc(x).squeeze(2)
         return x
 
 

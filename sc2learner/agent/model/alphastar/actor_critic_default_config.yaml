@@ -10,7 +10,7 @@ model:
             name: winloss
             cum_stat_keys: ['unit_build']
             param:
-                input_dim: 1664
+                input_dim: 1640
                 activation: 'relu'
                 norm_type: 'LN'
                 res_dim: 256
@@ -19,7 +19,7 @@ model:
             name: build_order
             cum_stat_keys: ['unit_build', 'effect', 'research']
             param:
-                input_dim: 1792
+                input_dim: 1768
                 activation: 'relu'
                 norm_type: 'LN'
                 res_dim: 256
@@ -28,7 +28,7 @@ model:
             name: built_unit
             cum_stat_keys: ['unit_build']
             param:
-                input_dim: 1664
+                input_dim: 1640
                 activation: 'relu'
                 norm_type: 'LN'
                 res_dim: 256
@@ -37,7 +37,7 @@ model:
             name: effect
             cum_stat_keys: ['effect']
             param:
-                input_dim: 1664
+                input_dim: 1640
                 activation: 'relu'
                 norm_type: 'LN'
                 res_dim: 256
@@ -46,7 +46,7 @@ model:
             name: upgrade
             cum_stat_keys: ['research']
             param:
-                input_dim: 1664
+                input_dim: 1640
                 activation: 'relu'
                 norm_type: 'LN'
                 res_dim: 256
@@ -68,7 +68,7 @@ model:
                 use_stat: True  # whether use statistics z
                 activation: 'relu'
                 begin_num: 20  # beginning_build_order_num
-                output_dim: 1280  # use_stat(True: 1280, False: 1088)
+                output_dim: 1268  # use_stat(True: 1268, False: 1076)
             spatial_encoder:
                 input_dim: 52
                 resblock_num: 4
@@ -92,7 +92,7 @@ model:
             input_dim: 256  # entity_encoder.output_dim
             output_dim: 32
         core_lstm:
-            input_size: 1792  # spatial_encoder.fc_dim + entity_encoder.output_dim + scalar_encoder.output_dim
+            input_size: 1780  # spatial_encoder.fc_dim + entity_encoder.output_dim + scalar_encoder.output_dim
             hidden_size: 384
             num_layers: 3
         score_cumulative:
@@ -111,7 +111,7 @@ model:
                 action_num: 327
                 action_map_dim: 256
                 gate_dim: 1024
-                context_dim: 256  # use_stat(True: 256, False: 128)
+                context_dim: 244  # use_stat(True: 244, False: 116)
                 activation: 'relu'
                 norm_type: 'LN'
                 use_mask: True
