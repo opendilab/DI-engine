@@ -2,7 +2,7 @@ from collections import OrderedDict
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from sc2learner.torch_utils import fc_block, build_activation, Transformer
+from sc2learner.torch_utils import fc_block, build_activation, Transformer, one_hot
 from sc2learner.envs.observations.alphastar_obs_wrapper import transform_scalar_data
 
 
@@ -41,8 +41,16 @@ class BeginningBuildOrderEncoder(nn.Module):
         )
         self.embedd_fc = fc_block(64, 1, activation=self.act)
 
+    def _add_seq_info(self, x):
+        N = x.shape[1]
+        indices = torch.arange(x.shape[1])
+        indices_one_hot = one_hot(indices, num=N).to(x.device)
+        indices_one_hot = indices_one_hot.unsqueeze(0).repeat(x.shape[0], 1, 1)  # expand to batch dim
+        return torch.cat([x, indices_one_hot], dim=2)
+
     def forward(self, x):
         assert len(x.shape) == 3 and x.shape[1] == self.output_dim
+        x = self._add_seq_info(x)
         x = self.transformer(x)
         x = self.embedd_fc(x).squeeze(2)
         return x

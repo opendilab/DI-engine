@@ -803,7 +803,7 @@ def transform_scalar_data():
         {
             'key': 'beginning_build_order',
             'arch': 'transformer',
-            'input_dim': NUM_BEGIN_ACTIONS + LOCATION_BIT_NUM * 2,
+            'input_dim': NUM_BEGIN_ACTIONS + LOCATION_BIT_NUM * 2 + 20,
             'output_dim': 20,  # 20(begin build order num)
             'scalar_context': True,
             'baseline_feature': True,
