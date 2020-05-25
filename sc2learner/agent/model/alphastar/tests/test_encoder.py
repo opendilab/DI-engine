@@ -19,7 +19,8 @@ class TestEncoder:
             if 'input_dim' in item.keys() and 'output_dim' in item.keys():
                 if item['key'] == 'beginning_build_order':
                     N = setup_config.model.encoder.obs_encoder.scalar_encoder.begin_num
-                    inputs[item['key']] = torch.randn(B, N, item['input_dim'])
+                    # subtract seq info dim, which is automatedly added by bo network
+                    inputs[item['key']] = torch.randn(B, N, item['input_dim'] - 20)
                 else:
                     inputs[item['key']] = torch.randn(B, item['input_dim'])
         cumulative_stat_input = {}
@@ -28,9 +29,9 @@ class TestEncoder:
         inputs['cumulative_stat'] = cumulative_stat_input
 
         embedded_scalar, scalar_context, baseline_feature, cumulative_stat = model(inputs)
-        assert (embedded_scalar.shape == (B, 1280))
-        assert (scalar_context.shape == (B, 256))
-        assert (baseline_feature.shape == (B, 352))
+        assert (embedded_scalar.shape == (B, 1268))
+        assert (scalar_context.shape == (B, 244))
+        assert (baseline_feature.shape == (B, 340))
         for k, v in cumulative_stat.items():
             assert v.shape == (B, template_replay[1]['output_dim'])
 
