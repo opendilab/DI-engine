@@ -51,6 +51,8 @@ class LSTM(nn.Module):
                 device=inputs.device
             )
             prev_state = (zeros, zeros)
+        elif isinstance(prev_state, list) and len(prev_state) == 2 and isinstance(prev_state[0], torch.Tensor):
+            pass
         elif isinstance(prev_state, list) and len(prev_state) == batch_size:
             num_directions = 1
             zeros = torch.zeros(
