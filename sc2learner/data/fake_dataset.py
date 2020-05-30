@@ -231,13 +231,13 @@ class FakeReplayDataset(ReplayDataset):
 
 
 class FakeActorDataset:
-    def __init__(self, trajectory_len=3, use_meta=False, step_data_compressor='none'):
-        self.trajectory_len = trajectory_len
-        self.use_meta = use_meta
+    def __init__(self, cfg=None):
+        self.trajectory_len = cfg.get('trajectory_len', 3) if cfg else 3
+        self.use_meta = cfg.get('use_meta', False) if cfg else False
         if self.use_meta:
             self.count = 1
-        self.step_data_compressor_name = step_data_compressor
-        self.step_data_compressor = get_step_data_compressor(step_data_compressor)
+        self.step_data_compressor_name = cfg.get('step_data_compressor', 'none') if cfg else 'none'
+        self.step_data_compressor = get_step_data_compressor(self.step_data_compressor_name)
         self.output_dir = './data'
         if not os.path.exists(self.output_dir):
             os.mkdir(self.output_dir)

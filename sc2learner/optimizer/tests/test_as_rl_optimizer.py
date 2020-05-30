@@ -17,19 +17,17 @@ def setup_config():
     return EasyDict(cfg)
 
 
-def get_dataloader(batch_size):
-    class CFG:
-        dataset_type = 'fake_actor'
-
-    dataset = build_dataset(CFG(), True)
-    return build_dataloader(dataset, 'fake_actor', batch_size=batch_size, use_distributed=False)
+def get_dataloader(cfg):
+    cfg.dataset_type = 'fake_actor'
+    dataset = build_dataset(cfg, True)
+    return build_dataloader(dataset, 'fake_actor', batch_size=cfg.batch_size, use_distributed=False)
 
 
 @pytest.mark.unittest
 class TestASRLOptimizer:
     def test_rl_training(self, setup_config):
         use_cuda = setup_config.train.use_cuda
-        dataloader = get_dataloader(setup_config.train.batch_size)
+        dataloader = get_dataloader(setup_config.train)
         agent = AlphaStarAgent(setup_config.model, use_cuda=use_cuda)
         optimizer = AlphaStarRLOptimizer(agent, setup_config)
         assert isinstance(optimizer.agent.model, torch.nn.Module)
