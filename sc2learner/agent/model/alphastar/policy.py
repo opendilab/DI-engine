@@ -70,39 +70,44 @@ class Policy(nn.Module):
                 type_stat = set(action_info_stat['selected_type'])
                 type_set = type_hard_craft.union(type_stat)
                 reorder_type_list = [UNIT_TYPES_REORDER[t] for t in type_set]
-                select_unit_type_mask = torch.zeros(1, NUM_UNIT_TYPES)
-                select_unit_type_mask[:, reorder_type_list] = 1
+                select_unit_type_mask = torch.zeros(NUM_UNIT_TYPES)
+                select_unit_type_mask[reorder_type_list] = 1
                 action_arg_mask['select_unit_type_mask'].append(select_unit_type_mask.to(device))
-                select_unit_mask = torch.zeros(1, units_num[idx])
+                select_unit_mask = torch.zeros(units_num[idx])
                 for i, t in enumerate(entity_raw[idx]['type']):
                     if t in type_set:
-                        select_unit_mask[0, i] = 1
+                        select_unit_mask[i] = 1
                 action_arg_mask['select_unit_mask'].append(select_unit_mask.to(device))
             else:
-                action_arg_mask['select_unit_mask'].append(None)
-                action_arg_mask['select_unit_type_mask'].append(None)
+                action_arg_mask['select_unit_mask'].append(torch.zeros(units_num[idx]).to(device))
+                action_arg_mask['select_unit_type_mask'].append(torch.zeros(NUM_UNIT_TYPES).to(device))
             if action_info_hard_craft['target_units']:
                 type_set = set(action_info_stat['target_type'])
                 reorder_type_list = [UNIT_TYPES_REORDER[t] for t in type_set]
-                target_unit_type_mask = torch.zeros(1, NUM_UNIT_TYPES)
-                target_unit_type_mask[:, reorder_type_list] = 1
+                target_unit_type_mask = torch.zeros(NUM_UNIT_TYPES)
+                target_unit_type_mask[reorder_type_list] = 1
                 action_arg_mask['target_unit_type_mask'].append(target_unit_type_mask.to(device))
-                target_unit_mask = torch.zeros(1, units_num[idx])
+                target_unit_mask = torch.zeros(units_num[idx])
                 for i, t in enumerate(entity_raw[idx]['type']):
                     if t in type_set:
-                        target_unit_mask[0, i] = 1
+                        target_unit_mask[i] = 1
                 action_arg_mask['target_unit_mask'].append(target_unit_mask.to(device))
             else:
-                action_arg_mask['target_unit_mask'].append(None)
-                action_arg_mask['target_unit_type_mask'].append(None)
+                action_arg_mask['target_unit_mask'].append(torch.zeros(units_num[idx]).to(device))
+                action_arg_mask['target_unit_type_mask'].append(torch.zeros(NUM_UNIT_TYPES).to(device))
+            # TODO(nyz) location mask for different map size
             if action_info_hard_craft['target_location']:
                 location_mask = get_location_mask(action_type_val, spatial_info[idx])
                 action_arg_mask['location_mask'].append(location_mask)
             else:
-                action_arg_mask['location_mask'].append(None)
+                shapes = spatial_info[idx].shape[-2:]
+                action_arg_mask['location_mask'].append(torch.zeros(1, *shapes).to(device))
             # get action attribute(which args the action type owns)
             for k in action_attr.keys():
                 action_attr[k].append(action_info_hard_craft[k])
+        # stack mask
+        for k in ['select_unit_type_mask', 'target_unit_type_mask', 'location_mask']:
+            action_arg_mask[k] = torch.stack(action_arg_mask[k], dim=0)
         return action_attr, action_arg_mask
 
     def _action_type_forward(self, lstm_output, scalar_context, action_type_mask, temperature, action_type=None):
@@ -252,56 +257,43 @@ class Policy(nn.Module):
         logits['delay'], delay, embeddings = self.head['delay_head'](embeddings)
         actions['delay'] = torch.chunk(delay, B, dim=0)
 
-        for idx in range(B):
-            embedding = embeddings[idx:idx + 1]
-            # action arg queued
-            if action_attr['queued'][idx]:
-                logits_queued, queued, embedding = self.head['queued_head'](embedding, temperature)
-                logits_queued = logits_queued[0]
-            else:
-                logits_queued, queued = None, None
-            logits['queued'].append(logits_queued)
-            actions['queued'].append(queued)
-            # action arg selected_units
-            if action_attr['selected_units'][idx]:
-                logits_selected_units, selected_units, embedding = self.head['selected_units_head'](
-                    embedding, mask['select_unit_type_mask'][idx], mask['select_unit_mask'][idx],
-                    entity_embeddings[idx].unsqueeze(0), temperature
-                )
-                logits_selected_units = logits_selected_units[0]
-                selected_units = selected_units[0]
-            else:
-                logits_selected_units, selected_units = None, None
-            logits['selected_units'].append(logits_selected_units)
-            actions['selected_units'].append(selected_units)
-            # action arg target_units
-            if action_attr['target_units'][idx]:
-                logits_target_units, target_units = self.head['target_unit_head'](
-                    embedding, mask['target_unit_type_mask'][idx], mask['target_unit_mask'][idx],
-                    entity_embeddings[idx].unsqueeze(0), temperature
-                )
-                logits_target_units = logits_target_units[0]
-                target_units = target_units
-            else:
-                logits_target_units, target_units = None, None
-            logits['target_units'].append(logits_target_units)
-            actions['target_units'].append(target_units)
-            # action arg target_location
-            if action_attr['target_location'][idx]:
-                map_skip_single = [t[idx].unsqueeze(0) for t in map_skip]
-                logits_location, location = self.head['location_head'](
-                    embedding, map_skip_single, mask['location_mask'][idx], temperature
-                )
-                # logits_location (batch and channel dim are both 1)
-                logits_location, location = logits_location[0][0], location[0]
-            else:
-                logits_location, location = None, None
-            logits['target_location'].append(logits_location)
-            actions['target_location'].append(location)
+        logits_queued, queued, embeddings = self.head['queued_head'](embeddings, temperature)
+        logits['queued'], actions['queued'] = self._mask_select(logits_queued, queued, action_attr['queued'])
+
+        logits_selected_units, selected_units, embeddings = self.head['selected_units_head'](
+            embeddings, mask['select_unit_type_mask'], mask['select_unit_mask'], entity_embeddings, temperature
+        )
+        logits['selected_units'], actions['selected_units'] = self._mask_select(
+            logits_selected_units, selected_units, action_attr['selected_units']
+        )
+
+        logits_target_units, target_units = self.head['target_unit_head'](
+            embeddings, mask['target_unit_type_mask'], mask['target_unit_mask'], entity_embeddings, temperature
+        )
+        logits['target_units'], actions['target_units'] = self._mask_select(
+            logits_target_units, target_units, action_attr['target_units']
+        )
+
+        logits_location, location = self.head['location_head'](embeddings, map_skip, mask['location_mask'], temperature)
+        logits['target_location'], actions['target_location'] = self._mask_select(
+            logits_location, location, action_attr['target_location']
+        )
 
         actions = self._get_action_entity_raw(actions, entity_raw)
 
         return actions, logits
+
+    def _mask_select(self, output, action, mask):
+        def chunk(data):
+            return torch.chunk(data, data.shape[0], 0) if isinstance(data, torch.Tensor) else data
+
+        output = list(chunk(output))
+        action = list(chunk(action))
+        for idx, m in enumerate(mask):
+            if not m:
+                output[idx] = None
+                action[idx] = None
+        return output, action
 
     def _get_action_entity_raw(self, actions, entity_raw):
         B = len(entity_raw)
