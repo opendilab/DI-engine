@@ -154,21 +154,39 @@ class CheckpointHelper(object):
     def save_config(self, config):
         save_config(config, os.path.join(self.data_save_path, "experiment_config.yaml"))
 
-    def _print_mismatch_keys(self, model_state_dict, ckpt_state_dict):
+    def _load_matched_model_state_dict(self, model, ckpt_state_dict):
         """
-            Overview: show mismatch keys between model's state_dict and checkpoint's state_dict
+            Overview: load matched model state_dict, and show mismatch keys between
+                      model's state_dict and checkpoint's state_dict
             Arguments:
-                - model_state_dict (:obj:`dict`): model's state_dict
+                - model (:obj:`torch.nn.Module`): model
                 - ckpt_state_dict (:obj:`dict`): checkpoint's state_dict
         """
+        assert isinstance(model, torch.nn.Module)
+        diff = {'miss_keys': [], 'redundant_keys': [], 'mismatch_shape_keys': []}
+        model_state_dict = model.state_dict()
         model_keys = set(model_state_dict.keys())
         ckpt_keys = set(ckpt_state_dict.keys())
-        miss_keys = model_keys - ckpt_keys
-        redundant_keys = ckpt_keys - model_keys
-        for k in miss_keys:
-            logger.info('miss_keys: {}'.format(k))
-        for k in redundant_keys:
-            logger.info('redundant_keys: {}'.format(k))
+        diff['miss_keys'] = model_keys - ckpt_keys
+        diff['redundant_keys'] = ckpt_keys - model_keys
+
+        intersection_keys = model_keys.intersection(ckpt_keys)
+        valid_keys = []
+        for k in intersection_keys:
+            if model_state_dict[k].shape == ckpt_state_dict[k].shape:
+                valid_keys.append(k)
+            else:
+                diff['mismatch_shape_keys'].append(
+                    '{}\tmodel_shape: {}\tckpt_shape: {}'.format(
+                        k, model_state_dict[k].shape, ckpt_state_dict[k].shape
+                    )
+                )
+        valid_ckpt_state_dict = {k: v for k, v in ckpt_state_dict.items() if k in valid_keys}
+        model.load_state_dict(valid_ckpt_state_dict, strict=False)
+
+        for n, keys in diff.items():
+            for k in keys:
+                logger.info('{}: {}'.format(n, k))
 
     def load(
         self,
@@ -235,9 +253,11 @@ class CheckpointHelper(object):
                 for k in state_dict_keys:
                     if k.startswith(m):
                         state_dict.pop(k)  # ignore return value
-        model.load_state_dict(state_dict, strict=strict)
+        if strict:
+            model.load_state_dict(state_dict, strict=True)
+        else:
+            self._load_matched_model_state_dict(model, state_dict)
         logger.info(logger_prefix + 'load model state_dict in {}'.format(load_path))
-        self._print_mismatch_keys(model.state_dict(), state_dict)
 
         if dataset is not None:
             dataset.load_state_dict(checkpoint['dataset'])
