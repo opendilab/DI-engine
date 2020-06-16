@@ -95,6 +95,7 @@ model:
             input_size: 1780  # spatial_encoder.fc_dim + entity_encoder.output_dim + scalar_encoder.output_dim
             hidden_size: 384
             num_layers: 3
+            dropout_ratio: 0.2
         score_cumulative:
             input_dim: 13
             output_dim: 64

@@ -6,7 +6,7 @@ from .normalization import build_normalization
 
 
 class LSTM(nn.Module):
-    def __init__(self, input_size, hidden_size, num_layers, norm_type=None, bias=True):
+    def __init__(self, input_size, hidden_size, num_layers, norm_type=None, bias=True, dropout_ratio=0.):
         super(LSTM, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
@@ -24,6 +24,9 @@ class LSTM(nn.Module):
             self.bias = nn.Parameter(torch.zeros(num_layers, hidden_size * 4))
         else:
             self.bias = None
+        self.use_dropout = dropout_ratio > 0.
+        if self.use_dropout:
+            self.dropout = nn.Dropout(dropout_ratio)
         self._init()
 
     def _init(self):
@@ -72,6 +75,8 @@ class LSTM(nn.Module):
         next_state = []
         for l in range(self.num_layers):
             h, c = H[l], C[l]
+            if self.use_dropout:  # layer input dropout
+                x = self.dropout(x)
             new_x = []
             for s in range(seq_len):
                 gate = torch.matmul(x[s], self.wx[l]) + torch.matmul(h, self.wh[l])
@@ -87,7 +92,6 @@ class LSTM(nn.Module):
                 u = torch.tanh(u)
                 c = f * c + i * u
                 h = o * torch.tanh(c)
-                # new_x.append(self.dropout(h))
                 new_x.append(h)
             next_state.append((h, c))
             x = torch.stack(new_x, dim=0)

@@ -9,7 +9,9 @@ class CoreLstm(nn.Module):
         super(CoreLstm, self).__init__()
         self.hidden_size = cfg.hidden_size
         self.num_layers = cfg.num_layers
-        self.lstm = LSTM(cfg.input_size, cfg.hidden_size, cfg.num_layers, norm_type='LN')
+        self.lstm = LSTM(
+            cfg.input_size, cfg.hidden_size, cfg.num_layers, norm_type='LN', dropout_ratio=cfg.dropout_ratio
+        )
 
     def forward(self, embedded_entity, embedded_spatial, embedded_scalar, prev_state):
         '''
