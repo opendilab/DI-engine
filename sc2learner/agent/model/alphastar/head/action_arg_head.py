@@ -257,7 +257,7 @@ class SelectedUnitsHead(nn.Module):
         logits = [torch.stack(t, dim=0) for t in logits]
         embedding_selected = units.unsqueeze(2).to(key.dtype)
         embedding_selected = embedding_selected * key
-        embedding_selected = embedding_selected.sum(dim=1) / units.sum(dim=1)  # mean by the valid units
+        embedding_selected = embedding_selected.sum(dim=1) / torch.clamp(units.sum(dim=1), 1)  # mean by the valid units
         embedding_selected = self.embed_fc(embedding_selected)
 
         units_index = []
