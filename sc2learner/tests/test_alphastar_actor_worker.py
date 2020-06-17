@@ -168,7 +168,7 @@ def recu_check_keys(ref, under_test, trace='ROOT'):
 
 
 def check_with_fake_dataset(traj):
-    fake_dataset = FakeActorDataset(trajectory_len=1)
+    fake_dataset = FakeActorDataset({'trajector_len': 1})
     recu_check_keys(fake_dataset.get_1v1_agent_data(), traj[-1:])
 
 
