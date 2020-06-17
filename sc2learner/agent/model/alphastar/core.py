@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from sc2learner.torch_utils import LSTM
+from sc2learner.torch_utils import get_lstm
 
 
 class CoreLstm(nn.Module):
@@ -9,8 +9,8 @@ class CoreLstm(nn.Module):
         super(CoreLstm, self).__init__()
         self.hidden_size = cfg.hidden_size
         self.num_layers = cfg.num_layers
-        self.lstm = LSTM(
-            cfg.input_size, cfg.hidden_size, cfg.num_layers, norm_type='LN', dropout_ratio=cfg.dropout_ratio
+        self.lstm = get_lstm(
+            cfg.lstm_type, cfg.input_size, cfg.hidden_size, cfg.num_layers, norm_type='LN', dropout=cfg.dropout
         )
 
     def forward(self, embedded_entity, embedded_spatial, embedded_scalar, prev_state):

@@ -13,7 +13,7 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from sc2learner.torch_utils import fc_block, conv2d_block, deconv2d_block, build_activation, one_hot, LSTM, \
+from sc2learner.torch_utils import fc_block, conv2d_block, deconv2d_block, build_activation, one_hot, get_lstm, \
     ResBlock, NearestUpsample, BilinearUpsample, binary_encode, SoftArgmax
 from sc2learner.torch_utils import CategoricalPdPytorch
 
@@ -152,7 +152,7 @@ class SelectedUnitsHead(nn.Module):
         self.fc1 = fc_block(cfg.input_dim, cfg.func_dim, activation=self.act, norm_type=None)
         self.fc2 = fc_block(cfg.func_dim, cfg.key_dim, activation=self.act, norm_type=None)
         self.embed_fc = fc_block(cfg.key_dim, cfg.input_dim, activation=None, norm_type=None)
-        self.lstm = LSTM(cfg.key_dim, cfg.hidden_dim, cfg.num_layers, norm_type='LN')
+        self.lstm = get_lstm(cfg.lstm_type, cfg.key_dim, cfg.hidden_dim, cfg.num_layers, norm_type='LN')
 
         self.max_entity_num = cfg.max_entity_num
         self.key_dim = cfg.key_dim
