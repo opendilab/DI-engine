@@ -2,7 +2,7 @@ import pytest
 import torch
 import numpy as np
 import copy
-from sc2learner.data.structure import SequenceContainer
+from sc2learner.data.structure import SequenceContainer, SpecialContainer
 
 data_generation_func = {'obs': lambda: torch.randn(1, 6), 'reward': lambda: [np.random.randint(0, 2)]}
 
@@ -51,3 +51,78 @@ class TestSequenceContainer:
         assert (cat_container[0] == containers[0])
         assert (cat_container[1] == containers[1])
         assert (cat_container[N - 1] == containers[N - 1])
+
+
+@pytest.mark.tmp
+class TestSpecialContainer:
+    def test_init(self):
+        container = SpecialContainer(torch.randn(4))
+        assert container.shape == (1, 1, 1)
+        assert container._data_idx == 1
+
+        container = SpecialContainer([torch.randn(4) for i in range(12)], shape=(2, 2, 3))
+        assert container.shape == (2, 2, 3)
+        assert container._data_idx == 12
+        assert container._index_map['010'] == 4 - 1
+        assert container._index_map['112'] == 12 - 1
+        print(container)
+
+    def test_cat(self):
+        container = SpecialContainer([torch.randn(4) for i in range(12)], shape=(2, 2, 3))
+        container_cat = SpecialContainer([torch.randn(4) for i in range(6)], shape=(1, 2, 3))
+        assert container.shape == (2, 2, 3)
+        assert container._data_idx == 12
+        container.cat(container_cat, dim=0)
+        assert container.shape == (3, 2, 3)
+        assert container._data_idx == 12 + 6
+        assert container._index_map['200'] == 12
+        # error case
+        with pytest.raises(AssertionError):
+            container_cat = SpecialContainer([torch.randn(4) for i in range(8)], shape=(4, 2, 1))
+            container.cat(container_cat, dim=0)
+
+    def create_container(self):
+        A, T, B = (3, 2, 4)
+        tmp = []
+        for _ in range(B):
+            tmp.append(SpecialContainer(torch.randn(4)))
+        for i in range(1, B):
+            tmp[0].cat(tmp[i], dim=2)
+        tmp = tmp[0]
+        tmp_copy = copy.deepcopy(tmp)
+        for _ in range(T - 1):
+            tmp.cat(tmp_copy, dim=1)
+        tmp_copy = copy.deepcopy(tmp)
+        for _ in range(A - 1):
+            tmp.cat(tmp_copy, dim=0)
+
+        assert tmp.shape == (A, T, B)
+        return tmp
+
+    def test_getitem(self):
+        container = self.create_container()
+        # int
+        assert container[1].shape == (1, 2, 4)
+        # slice
+        assert container[:].shape == (3, 2, 4)
+        assert container[1:].shape == (2, 2, 4)
+        assert container[1:2].shape == (1, 2, 4)
+        # tuple
+        assert container[:2, 1].shape == (2, 1, 4)
+        assert container[:, :, 1].shape == (3, 2, 1)
+        # dict
+        assert container[{'agent_num': [0, 2]}].shape == (2, 2, 4)
+        assert container[{'trajectory_len': [0], 'agent_num': [1]}].shape == (1, 1, 4)
+        # error case
+        with pytest.raises(AssertionError):
+            container[3:2]
+        with pytest.raises(AssertionError):
+            container[-1:]
+        with pytest.raises(AssertionError):
+            container[5]
+
+        # item
+        data = container[0, 0, 0]
+        assert data.shape == (1, 1, 1)
+        data_item = data.item
+        assert isinstance(data_item, torch.Tensor) and data_item.shape == (4, )
