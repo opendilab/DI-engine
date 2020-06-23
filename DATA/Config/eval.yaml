@@ -1,0 +1,139 @@
+evaluate:
+    fix_seed: False
+    seed: 1
+    use_multiprocessing: False  # multiprocessing may be incompatible with GPU inference
+    bot_multi_test: False
+    num_episodes: 4
+    num_instance_per_node: 2
+    z_number: 1 # max 5
+    game_type: 'game_vs_agent'  # self_play or game_vs_bot
+    map_name: 'KairosJunction'    #   'KingsCove' # 'KairosJunction'
+    home_race: 'zerg'
+    away_race: 'zerg'
+    bot_difficulty: 'very_hard'
+    max_bot_difficulty: 'very_hard'
+    local: True
+    bot_build: 'random'
+    save_replay: True
+    replay_path: 'test'
+    reload_game: False 
+    stat_path:
+#        agent0: '/mnt/lustre/songguanglu/Data_t1/SenseStar_v2/DATA/Zerg_Zerg_2_Kairos Junction LE_Game 1 - Kairos Junction LE_2322.z'
+        agent0: 'C:\data\replay_data_test\Zerg_Terran_100_2.z'
+        agent1: '/mnt/lustre/songguanglu/Data_t1/SenseStar_v2/KJ_2498_win.z'
+    model_path:
+        agent0: 'C:\Users\Public\iterations_9000.pth.tar'
+        agent1: '/mnt/lustre/songguanglu/Data_t1/SenseStar_v2/SenseStar/sc2learner/experiments/transformer_born_global_Z/train_ckpt_v2/checkpoints/iterations_5000.pth.tar'
+
+    reload_path:
+        agent0: '/mnt/lustre/zhangmanyuan/nature-agi/sl_data/0_113e76df32258d0a6271c78bcf055388536e13efd73aade6faa9f60aa63d2db7.step'
+        agent1: '/mnt/lustre/zhangmanyuan/nature-agi/sl_data/1_113e76df32258d0a6271c78bcf055388536e13efd73aade6faa9f60aa63d2db7.step'
+    reload_game_loop: 5000
+
+    show_system_stat: False
+env:
+    use_cuda: True
+    ignore_invalid_action: True
+    screen_resolution: [1, 1]
+    default_step_mul: 8  # not used
+    game_steps_per_episode: 15000
+    disable_fog: False
+    realtime: False  # realtime mode, incompatible with action_delays
+    use_stat: True
+    beginning_build_order_num: 20
+    use_available_action_transform: True
+    obs_stat_type: replay_last #['replay_online', 'self_online', 'replay_last']
+    temperature: 1.0
+    crop_map_to_playable_area: True
+    action_delays: [1]  # list of probablities of delay from 1 to n or null for delay=1
+#    action_delays: [50, 20,20]
+model:
+    prev_type: 'prev_end'
+    action_type: fixed
+    encoder:
+        ignore_prev: False
+        core_lstm:
+            hidden_size: 384
+            input_size: 1792
+            num_layers: 3
+        obs_encoder:
+            scalar_encoder:
+              activation: relu
+              use_stat: true
+              begin_num: 20
+              output_dim: 1280
+              ignore_last: False
+            entity_encoder:
+              activation: relu
+              dropout_ratio: 0.1
+              head_dim: 128
+              head_num: 2
+              hidden_dim: 1024
+              input_dim: 1340
+              layer_num: 3
+              mlp_num: 2
+              output_dim: 256
+    policy:
+        head:
+            action_type_head:
+              use_input: False
+              activation: relu
+              ignore_last: True
+            location_head:
+              activation: relu
+              map_skip_dim: 128
+              output_type: cls
+              use_mask: True
+              upsample_type: bilinear
+              location_expand_ratio: 1
+              upsample_dims:
+              - 128
+              - 64
+              - 1
+
+            value_head:
+              activation: relu
+              decode_dim: 256
+              input_dim: 384
+              value_dim: 2
+              loss_num: 4
+              ignore_last: False
+            delay_head:
+              activation: relu
+              decode_dim: 256
+              delay_dim: 128
+              delay_encode_dim: 6
+              delay_map_dim: 256
+              input_dim: 1024
+            head_names:
+            - action_type_head
+            - delay_head
+            - queued_head
+            - selected_units_head
+            - target_unit_head
+            - location_head
+            - value_head
+            selected_units_head:
+              activation: relu
+              entity_embedding_dim: 256
+              func_dim: 256
+              hidden_dim: 32
+              input_dim: 1024
+              key_dim: 32
+              max_entity_num: 64
+              num_layers: 1
+              unit_type_dim: 259
+              use_mask: True
+              use_new_entity: False
+              use_pointer_net: True
+            target_unit_head:
+              activation: relu
+              entity_embedding_dim: 256
+              func_dim: 256
+              input_dim: 1024
+              key_dim: 256
+              unit_type_dim: 259
+              use_mask: True
+              use_new_entity: False
+
+        location_expand_ratio: 1

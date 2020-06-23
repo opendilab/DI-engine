@@ -25,7 +25,7 @@ Z_LIST = {
     's3://replay_decode_493_0515/Zerg_Zerg_5686_45b9de68fb9666bb2d32ca632356043a7989069545371664d38371b8514c561a': '12d_allin',  # noqa
     's3://replay_decode_493_0515/Zerg_Zerg_5678_25cc1c8fbf7fff4ab12d13e4ae027e3e5d9fe19372bf9ea80eefdf8d6a45addf': 'pool_base_muta',  # noqa
     's3://replay_decode_493_0515/Zerg_Zerg_5689_5550a6274f14b6f5a6bfbdb93249aa05baf4f8bee1e68cf0295c4c5d95d2c9a2': 'base_pool_normal',  # noqa
-    's3://replay_decode_493_0515/Zerg_Zerg_5670_33042f61da2d477a6f13a6cb6ded3ebeed109cd2aac358c3e1ffb5e16eaf1027': 'base_pool_dog_rush',  # noq
+    's3://replay_decode_493_0515/Zerg_Zerg_5670_33042f61da2d477a6f13a6cb6ded3ebeed109cd2aac358c3e1ffb5e16eaf1027': 'base_pool_dog_rush',  # noqa
 }
 
 DIFFICULTY = [
