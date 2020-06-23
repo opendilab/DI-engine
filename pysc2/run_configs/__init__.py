@@ -19,6 +19,7 @@ from __future__ import print_function
 
 from absl import flags
 
+import sys
 from pysc2.lib import sc_process
 from pysc2.run_configs import platforms
 from pysc2.run_configs import lib
@@ -26,6 +27,7 @@ from pysc2.run_configs import lib
 flags.DEFINE_string("sc2_run_config", None,
                     "Which run_config to use to spawn the binary.")
 FLAGS = flags.FLAGS
+flags.FLAGS(sys.argv[:1])
 
 
 def get(version=None):

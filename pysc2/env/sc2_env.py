@@ -559,7 +559,18 @@ class SC2Env(environment.Base):
                 item = (c.acts, a)
             funcs_with_args.append(item)
 
-        self._parallel.run(funcs_with_args)
+        action_result = self._parallel.run(funcs_with_args)
+        # assert len(action_result) == self._num_agents
+        results = []
+        for item in action_result:
+            if item is None:
+                results.append(None)
+            else:
+                result = item.result
+                if len(result) > 1:
+                    results.append(1)
+                else:
+                    results.append(sum([j == 1 for j in result]) >= 1)
 
         # TODO merge fix(sc_pb.RequestAction(actions=a))
         # self._parallel.run((c.actions, sc_pb.RequestAction(actions=a))

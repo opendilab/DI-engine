@@ -2,6 +2,9 @@ import random
 import time
 from multiprocessing import Pool
 import copy
+import pickle
+import logging
+import sys
 
 import torch
 import numpy as np
@@ -12,11 +15,23 @@ from easydict import EasyDict
 
 from sc2learner.worker.actor.alphastar_actor import AlphaStarActor
 from sc2learner.torch_utils import build_checkpoint_helper
-from sc2learner.utils import build_logger
+from sc2learner.utils import build_logger, read_file_ceph
 from pysc2.lib.action_dict import ACTION_INFO_MASK
 
 FLAGS = flags.FLAGS
-flags.DEFINE_string('config_path', '', 'Path to the config yaml file')
+FLAGS(sys.argv)
+Z_LIST = {
+    's3://replay_decode_493_0515/Zerg_Zerg_5722_7ccb1bd08dca7715db2282abf9bb55dec4f34874fa629a80f48b8521da71dc13': '12d_base',  # noqa
+    's3://replay_decode_493_0515/Zerg_Zerg_5686_45b9de68fb9666bb2d32ca632356043a7989069545371664d38371b8514c561a': '12d_allin',  # noqa
+    's3://replay_decode_493_0515/Zerg_Zerg_5678_25cc1c8fbf7fff4ab12d13e4ae027e3e5d9fe19372bf9ea80eefdf8d6a45addf': 'pool_base_muta',  # noqa
+    's3://replay_decode_493_0515/Zerg_Zerg_5689_5550a6274f14b6f5a6bfbdb93249aa05baf4f8bee1e68cf0295c4c5d95d2c9a2': 'base_pool_normal',  # noqa
+    's3://replay_decode_493_0515/Zerg_Zerg_5670_33042f61da2d477a6f13a6cb6ded3ebeed109cd2aac358c3e1ffb5e16eaf1027': 'base_pool_dog_rush',  # noq
+}
+
+DIFFICULTY = [
+    'very_easy', 'easy', 'medium', 'medium_hard', 'hard', 'harder', 'very_hard', 'cheat_vision', 'cheat_money',
+    'cheat_insane'
+]
 
 
 class EvalActor(AlphaStarActor):
@@ -43,11 +58,50 @@ class EvalActor(AlphaStarActor):
         # Here we implement statistics and optional clipping on actions
         for n in range(len(act)):
             if act[n] is not None:
+                if True:
+                    locations = [
+                        [15.5, 13.5], [13.5, 36.5], [11.5, 66.5], [10.5, 95.5], [12.5, 126.5], [48.5, 21.5],
+                        [39.5, 59.5], [42.5, 125.5], [71.5, 118.5], [80.5, 80.5], [77.5, 14.5], [109.5, 44.5],
+                        [108.5, 73.5], [106.5, 103.5], [104.5, 126.5]
+                    ]
+                    action = act[n]
+                    for i in range(self.agent_num):
+                        if action['action_type'].item() == 32:
+                            x = action['target_location'][1]
+                            y = action['target_location'][0]
+                            threshold = 100.0
+                            distance = []
+                            for location in locations:
+                                distance.append((x - location[0])**2 + (y - location[1])**2)
+                            idx = distance.index(min(distance))
+                            if distance[idx] <= threshold:
+                                action['target_location'][1] = locations[idx][0]
+                                action['target_location'][0] = locations[idx][1]
+                            else:
+                                action['action_type'] *= 0
+
+                        # if action['action_type'].item() == 48:
+                        #     action['target_location'][1] = 97
+                        #     action['target_location'][0] = 120.5
+                        # if action['action_type'].item() == 53:
+                        #     action['target_location'][1] = 100
+                        #     action['target_location'][0] = 130.5
+
                 if act[n]['delay'] == 0:
                     print('clipping delay == 0 to 1')
                     act[n]['delay'] = torch.LongTensor([1])
                 self.action_counts[n][self.env.get_action_type(act[n])] += 1
-            print('Act {}:{}:{:5}:{}'.format(self.cfg.evaluate.job_id, n, step, self.env.action_to_string(act[n])))
+            if not self.cfg.evaluate.get('bot_multi_test', False):
+                print('Act {}:{}:{:5}:{}'.format(self.cfg.evaluate.job_id, n, step, self.env.action_to_string(act[n])))
+            else:
+                if step - self.last_print > 1000:
+                    self.last_print = step
+                    logging.info(
+                        '{:15}{:22} steps: {}/{}'.format(
+                            self.cfg.evaluate.bot_difficulty, Z_LIST[self.cfg.evaluate.stat_path.agent0], step,
+                            self.cfg.env.game_steps_per_episode
+                        )
+                    )
         return act
 
 
@@ -129,7 +183,21 @@ class LocalStatLoader:
         self.cfg = cfg
 
     def request_stat(self, job, agent_no):
-        stat = torch.load(self.cfg.evaluate.stat_path[job['stat_id'][agent_no]], map_location='cpu')
+        if self.cfg.evaluate.get('local', False):
+            path = [
+                '../../DATA/Z/12d_allin.pkl',
+                '../../DATA/Z/12d_base.pkl',
+                '../../DATA/Z/base_pool_dog_rush.pkl',
+                '../../DATA/Z/base_pool_normal.pkl',
+                '../../DATA/Z/pool_base_muta.pkl',
+            ]
+            p = path[random.randint(0, 4)]
+            print('[INFO] choosed Z:', p)
+            f = open(p, 'rb')
+            stat = pickle.load(f)
+        else:
+            file_list = self.cfg.evaluate.stat_path[job['stat_id'][agent_no]]
+            stat = read_file_ceph(file_list + '.z', read_type='pickle')
         return stat
 
 
