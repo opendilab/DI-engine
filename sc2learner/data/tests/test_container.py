@@ -2,7 +2,7 @@ import pytest
 import torch
 import numpy as np
 import copy
-from sc2learner.data.structure import SequenceContainer, SpecialContainer
+from sc2learner.data.structure import SequenceContainer, SpecialContainer, TensorContainer
 
 data_generation_func = {'obs': lambda: torch.randn(1, 6), 'reward': lambda: [np.random.randint(0, 2)]}
 
@@ -53,7 +53,7 @@ class TestSequenceContainer:
         assert (cat_container[N - 1] == containers[N - 1])
 
 
-@pytest.mark.tmp
+@pytest.mark.unittest
 class TestSpecialContainer:
     def test_init(self):
         container = SpecialContainer(torch.randn(4))
@@ -126,3 +126,65 @@ class TestSpecialContainer:
         assert data.shape == (1, 1, 1)
         data_item = data.item
         assert isinstance(data_item, torch.Tensor) and data_item.shape == (4, )
+
+
+@pytest.mark.unittest
+class TestTensorContainer:
+    def test_init(self):
+        container = TensorContainer(torch.randn(4, 5))
+        assert container.shape == (1, 1, 1)
+        assert container.item_shape == (4, 5)
+        assert container.data.shape == (1, 1, 1, 4, 5)
+        print(container)
+        shape3 = (2, 3, 4)
+        container = TensorContainer(torch.randn(*shape3, 5), shape=shape3)
+        assert container.shape == shape3
+
+        # error case
+        with pytest.raises(AssertionError):
+            container = TensorContainer(torch.randn(*shape3, 5), shape=[3] * 3)
+
+    def test_cat(self):
+        container = TensorContainer(torch.randn(4, 3))
+        assert container.shape == (1, 1, 1)
+        container.cat(container, dim=0)
+        assert container.shape == (2, 1, 1)
+
+        # error case
+        container_cat_error = TensorContainer(torch.randn(4, 4))
+        with pytest.raises(AssertionError):
+            container.cat(container_cat_error, dim=0)
+
+    def test_item(self):
+        shape3 = (2, 3, 4)
+        container = TensorContainer(torch.randn(*shape3), shape=shape3)
+        assert container.shape == shape3
+        item = container[0, 0, 0].item
+        assert isinstance(item, torch.Tensor)
+        assert item.shape == ()
+
+        # error case
+        with pytest.raises(AssertionError):
+            container.item
+
+    def test_getitem(self):
+        shape3 = (2, 3, 4)
+        container = TensorContainer(torch.randn(*shape3), shape=shape3)
+        # int
+        item = container[1]
+        assert item.shape == (1, 3, 4)
+        # slice
+        item = container[:]
+        assert item.shape == (2, 3, 4)
+        item = container[1:]
+        assert item.shape == (1, 3, 4)
+        # tuple
+        item = container[:, 1, :]
+        assert item.shape == (2, 1, 4)
+        item = container[1:, :, 0]
+        assert item.shape == (1, 3, 1)
+        # dict
+        item = container[{'trajectory_len': [1, 2]}]
+        assert item.shape == (2, 2, 4)
+        item = container[{'agent_num': [1], 'batch_size': [0, 3]}]
+        assert item.shape == (1, 3, 2)

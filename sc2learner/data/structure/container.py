@@ -140,7 +140,7 @@ class SequenceContainer:
         return True
 
 
-class SpecialContainer(object):
+class BaseContainer(object):
     """
     agent_num, trajectory_len, batch_size
     """
@@ -148,6 +148,99 @@ class SpecialContainer(object):
     trajectory_len_dim = 1
     batch_size_dim = 2
 
+    def cat(self, other: 'BaseContainer', dim: int) -> None:
+        raise NotImplementedError
+
+    def __getitem__(self, idx: Union[int, slice, tuple, dict]) -> 'BaseContainer':
+        raise NotImplementedError
+
+    def __repr__(self) -> str:
+        raise NotImplementedError
+
+    @property
+    def data(self) -> list:
+        raise NotImplementedError
+
+    @property
+    def shape(self) -> tuple:
+        raise NotImplementedError
+
+    @property
+    def item(self) -> Any:
+        raise NotImplementedError
+
+
+class TensorContainer(BaseContainer):
+    def __init__(self, data: torch.Tensor, shape: Optional[tuple] = tuple()) -> None:
+        if len(shape) == 0:
+            self._data = data.view(1, 1, 1, *data.shape)
+        else:
+            assert data.shape[:3] == shape, 'the first three dim of data must match the input shape: {}/{}'.format(
+                data.shape[:3], shape
+            )
+            self._data = data
+
+    def cat(self, other: 'TensorContainer', dim: int) -> None:
+        """
+        Inplace cat
+        """
+        assert dim >= 0 and dim <= 2, "invalid dim value: {}".format(dim)
+        assert all([self.shape[i] == other.shape[i]
+                    for i in (set(range(3)) - set([dim]))]), '{}/{}'.format(self.shape, other.shape)
+        assert self.item_shape == other.item_shape, '{}/{}'.format(self.item_shape, other.item_shape)
+        self._data = torch.cat([self._data, other.data], dim=dim)
+
+    def __getitem__(self, idx: Union[int, slice, tuple, dict]) -> 'TensorContainer':
+        if isinstance(idx, slice):
+            data = self._data[idx]
+        elif isinstance(idx, int):
+            data = self._data[slice(idx, idx + 1)]
+        elif isinstance(idx, tuple):
+            assert len(idx) <= 3
+            keep_dim_idx = list(idx)
+            for i, item in enumerate(keep_dim_idx):
+                if isinstance(item, int):
+                    tmp = keep_dim_idx[i]
+                    keep_dim_idx[i] = slice(tmp, tmp + 1)
+            data = self._data[keep_dim_idx]
+        elif isinstance(idx, dict):
+            selected_indexes = [None for _ in range(3)]
+            for k, v in idx.items():
+                dim = getattr(self, k + '_dim')
+                selected_indexes[dim] = v
+            handle = self._data
+            for dim, idx in enumerate(selected_indexes):
+                if idx is None:
+                    handle = handle
+                else:
+                    handle = torch.index_select(handle, dim, torch.LongTensor(idx))
+            data = handle
+        else:
+            raise TypeError(type(idx))
+        return TensorContainer(data, shape=data.shape[:3])
+
+    def __repr__(self) -> str:
+        return 'TensorContainer(agent_num={}, trajectory_len={}, batch_size={})'.format(*self.shape)
+
+    @property
+    def data(self) -> torch.Tensor:
+        return self._data
+
+    @property
+    def shape(self) -> tuple:
+        return tuple(self._data.shape[:3])
+
+    @property
+    def item(self) -> torch.Tensor:
+        assert self.shape == (1, 1, 1), self.shape
+        return self._data[0, 0, 0]
+
+    @property
+    def item_shape(self) -> tuple:
+        return tuple(self._data[0, 0, 0].shape)
+
+
+class SpecialContainer(BaseContainer):
     def __init__(self, data: Any, shape: Optional[tuple] = tuple()) -> None:
         self._data = []
         self._shape = []
@@ -222,7 +315,7 @@ class SpecialContainer(object):
         return SpecialContainer(data=selected_data, shape=selected_shape)
 
     def __repr__(self) -> str:
-        return 'SpecialContainer(agent_num={}, trajectory_len={}, batch_size={})'.format(*self._shape)
+        return 'SpecialContainer(agent_num={}, trajectory_len={}, batch_size={})'.format(*self.shape)
 
     @property
     def data(self) -> list:
