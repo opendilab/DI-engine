@@ -243,7 +243,7 @@ class SelectedUnitsHead(nn.Module):
                     if end_flag_trigger[b]:
                         continue
                     else:
-                        logits[b].append(query_result[b])
+                        logits[b].append(query_result[b][:end_flag_index[b] + 1])
                         if entity_num[b] == end_flag_index[b]:
                             end_flag_trigger[b] = True
                             # evaluate and logits == 1 case(only end_flag), select the second largest unit
@@ -400,6 +400,7 @@ class TargetUnitHead(nn.Module):
                 - (:obj`tensor`): logits, List(batch_size) - List(num_selected_units) - num_units
                 - (:obj`tensor`): target_unit, [batch_size] target_unit index
         '''
+        shapes = [e.shape[0] for e in entity_embedding]
         key, mask = self._get_key_mask(entity_embedding, available_units_mask)
         query = self._get_query(embedding, available_unit_type_mask)
         logits = query.unsqueeze(1) * key
@@ -413,8 +414,13 @@ class TargetUnitHead(nn.Module):
             target_unit = handle.sample()
         else:
             target_unit = handle.mode()
+        logits = self._get_valid_logits(logits, shapes)
 
         return logits, target_unit
+
+    def _get_valid_logits(self, logits, shapes):
+        logits = torch.chunk(logits, logits.shape[0], 0)
+        return [t[0][:s] for t, s in zip(logits, shapes)]
 
 
 class LocationHead(nn.Module):
