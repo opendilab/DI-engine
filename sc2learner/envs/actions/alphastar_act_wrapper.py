@@ -231,6 +231,14 @@ def action_unit_id_transform(data, inverse=False):
         raise TypeError("invalid input type: {}".format(type(data)))
 
 
+def action_type_transform(data):
+    assert isinstance(data, list), type(data)
+    for idx in range(len(data)):
+        item = data[idx]['action']['action_type'].item()
+        data[idx]['action']['action_type'] = torch.LongTensor(ACTIONS_REORDER[item])
+    return data
+
+
 class State(enum.IntEnum):
     init = 0,
     add = 1,

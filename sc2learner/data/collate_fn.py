@@ -7,7 +7,7 @@ from pysc2.lib.static_data import ACTIONS_REORDER
 from sc2learner.utils import list_dict2dict_list
 
 
-def policy_collate_fn(batch, max_delay=63, action_type_transform=True):
+def policy_collate_fn(batch, max_delay=63):
     data_item = {
         'spatial_info': False,  # special op
         'scalar_info': True,
@@ -39,13 +39,6 @@ def policy_collate_fn(batch, max_delay=63, action_type_transform=True):
             if k == 'actions':
                 new_data[k] = list_dict2dict_list(new_data[k])
                 new_data[k]['delay'] = [torch.clamp(x, 0, max_delay) for x in new_data[k]['delay']]  # clip
-                if action_type_transform:
-                    action_type = [t.item() for t in new_data[k]['action_type']]
-                    L = len(action_type)
-                    for i in range(L):
-                        action_type[i] = ACTIONS_REORDER[action_type[i]]
-                    action_type = torch.LongTensor(action_type)
-                    new_data[k]['action_type'] = list(torch.chunk(action_type, L, dim=0))
         new_data['end_index'] = [idx for idx, t in enumerate(data) if t is None]
         return new_data
 

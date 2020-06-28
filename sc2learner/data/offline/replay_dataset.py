@@ -11,7 +11,7 @@ import torch.nn.functional as F
 from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UPGRADES
 from sc2learner.data.base_dataset import BaseDataset
 from sc2learner.envs import get_available_actions_processed_data, decompress_obs, action_unit_id_transform,\
-    get_enemy_upgrades_processed_data
+    get_enemy_upgrades_processed_data, action_type_transform
 from sc2learner.utils import read_file_ceph, list_dict2dict_list
 
 META_SUFFIX = '.meta'
@@ -136,6 +136,7 @@ class ReplayDataset(BaseDataset):
             self.bool_cum = float(np.random.rand() < self.cumulative_stat_prob)
 
         sample_data = action_unit_id_transform(sample_data)
+        sample_data = action_type_transform(sample_data)
         sample_data = [decompress_obs(d) for d in sample_data]
         if self.use_available_action_transform:
             sample_data = [get_available_actions_processed_data(d) for d in sample_data]
