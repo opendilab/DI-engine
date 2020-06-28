@@ -233,13 +233,15 @@ class Policy(nn.Module):
         logits['selected_units'] = self._mask_select([logits_selected_units], action_attr['selected_units'])
 
         logits_target_units, _ = self.head['target_unit_head'](
-            embeddings, mask['target_unit_type_mask'], mask['target_unit_mask'], entity_embeddings, temperature,
+            embeddings,
+            mask['target_unit_type_mask'],
+            mask['target_unit_mask'],
+            entity_embeddings,
+            temperature,
         )
         logits['target_units'] = self._mask_select([logits_target_units], action_attr['target_units'])
 
-        logits_location, _ = self.head['location_head'](
-            embeddings, map_skip, mask['location_mask'], temperature
-        )
+        logits_location, _ = self.head['location_head'](embeddings, map_skip, mask['location_mask'], temperature)
         logits['target_location'] = self._mask_select([logits_location], action_attr['target_location'])
 
         return logits

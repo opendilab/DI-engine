@@ -20,7 +20,7 @@ STAT_SUFFIX = '.stat_processed'
 MAP_SIZE = [176, 200]
 DELAY_MAX = 63
 MAX_SELECTED_UNITS = 64
-ACTION_CANDIDATES = list(ACTIONS_REORDER.keys())
+ACTION_CANDIDATES = list(ACTIONS_REORDER.values())
 NUM_ACTION_TYPES = len(ACTION_CANDIDATES)
 LSTM_DIMS = [3, 1, 384]
 
@@ -36,8 +36,9 @@ def random_tensor(size, dtype=torch.float32):
 
 
 def random_action_type():
-    action_type = np.random.choice(NUM_ACTION_TYPES, [1])
-    return torch.from_numpy(action_type).type(torch.int64)
+    action_type_idx = np.random.choice(range(len(ACTION_CANDIDATES)))
+    action_type = ACTION_CANDIDATES[action_type_idx]
+    return torch.LongTensor([action_type])
 
 
 def random_one_hot(size, dtype=torch.float32):
@@ -111,7 +112,6 @@ def get_single_step_data():
         target_location=torch.randint(0, min(MAP_SIZE), size=[2], dtype=torch.int64)
         if action_attr['target_location'] else NOOP
     )
-    score_cumulative = random_tensor([13])
 
     return OrderedDict(
         scalar_info=scalar_info,
@@ -120,7 +120,6 @@ def get_single_step_data():
         entity_info=random_tensor([num_units, ENTITY_INFO_DIM]),
         spatial_info=random_tensor([20] + MAP_SIZE),
         map_size=MAP_SIZE,
-        score_cumulative=score_cumulative,
     )
 
 
@@ -314,6 +313,7 @@ class FakeActorDataset:
 
         def get_single_rl_agent_step_data():
             base = get_single_step_data()
+            base['score_cumulative'] = random_tensor([13])
             base['prev_state'] = [torch.zeros(*LSTM_DIMS), torch.zeros(*LSTM_DIMS)]
             base['rewards'] = get_fake_rewards()
             base['game_seconds'] = random.randint(0, 24 * 60)

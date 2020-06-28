@@ -1,0 +1,16 @@
+model:
+    use_value_network: False
+    policy:
+        head:
+            location_head:
+                output_type: 'cls'
+train:
+    batch_size: 3
+    trajectory_len: 2
+    use_cuda: False
+    criterion:
+        type: 'cross_entropy'
+        action_type: 'normal'
+    temperature: 1.0
+    learning_rate: 0.001
+    weight_decay: 0.0001
