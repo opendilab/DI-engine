@@ -11,6 +11,7 @@ import enum
 import copy
 from pysc2.lib import actions
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK, ACT_TO_GENERAL_ACT
+from pysc2.lib.static_data import ACTIONS_REORDER
 from sc2learner.torch_utils import to_tensor
 
 

@@ -186,7 +186,6 @@ class Policy(nn.Module):
                 elif k in ['queued']:
                     new_v = []
                     for t in v:
-                        #new_v += [t] if isinstance(t, torch.Tensor) else [torch.zeros(1, dtype=torch.long, device=device)]
                         if isinstance(t, torch.Tensor):
                             new_v.append(t)
                         else:

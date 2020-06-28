@@ -333,5 +333,7 @@ class FakeActorDataset:
         for i in range(self.trajectory_len):
             data.append({'home': get_single_rl_agent_step_data(), 'away': get_single_rl_agent_step_data()})
         data[-1]['home_next'] = get_single_step_data()
+        data[-1]['home_next']['score_cumulative'] = random_tensor([13])
         data[-1]['away_next'] = get_single_step_data()
+        data[-1]['away_next']['score_cumulative'] = random_tensor([13])
         return data
