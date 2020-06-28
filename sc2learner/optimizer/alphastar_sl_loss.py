@@ -250,11 +250,9 @@ class AlphaStarSupervisedLoss(BaseLoss):
         assert len(logits) == len(labels), '{}/{}'.format(len(logits), len(labels))
         if len(labels) == 0:
             return 0
-        loss = []
-        for b in range(len(labels)):
-            lo, la = logits[b], labels[b]
-            loss.append(self.criterion(lo, la))
-        return sum(loss) / len(loss)
+        labels = torch.cat(labels, dim=0)  # B
+        logits = torch.stack(logits, dim=0)  # B, N
+        return self.criterion(logits, labels)
 
     def _target_location_loss(self, logits, labels):
         """
