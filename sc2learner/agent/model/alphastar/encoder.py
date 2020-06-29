@@ -44,15 +44,17 @@ class Encoder(nn.Module):
         else:
             project_embeddings = self.scatter_project(entity_embeddings)
         B, _, H, W = spatial_info.shape
-        scatter_map = torch.zeros(B, self.scatter_dim, H, W, device=spatial_info.device)
+        scatter_map = torch.zeros(B, self.scatter_dim, H * W, device=spatial_info.device)
         for b in range(B):
             N = entity_embeddings[b].shape[0]
-            for n in range(N):
-                h, w = entity_raw[b]['location'][n]
-                h, w = int(h), int(w)
-                h = min(max(0, h), H - 1)
-                w = min(max(0, w), W - 1)
-                scatter_map[b, :, h, w] = project_embeddings[b][n]
+            index = torch.LongTensor(entity_raw[b]['location'])
+            index[:, 0].clamp_(0, H - 1)
+            index[:, 1].clamp_(0, W - 1)
+            index = index[:, 0] * W + index[:, 1]
+            index = index.unsqueeze(0).repeat(self.scatter_dim, 1)
+            src = project_embeddings[b].permute(1, 0)
+            scatter_map[b].scatter_(dim=1, index=index, src=src)
+        scatter_map = scatter_map.reshape(B, self.scatter_dim, H, W)
         return torch.cat([spatial_info, scatter_map], dim=1)
 
     def forward(self, inputs):
