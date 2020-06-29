@@ -5,6 +5,7 @@ Main Function:
     1. base class for supervised learning on linklink, including basic processes.
 """
 import collections
+from functools import reduce
 
 import torch
 import torch.nn.functional as F
@@ -54,6 +55,7 @@ class AlphaStarSupervisedLoss(BaseLoss):
 
         self.criterion_config = train_config.criterion
         self.criterion = build_criterion(train_config.criterion)
+        self.parallel = train_config.parallel
         self.temperature_scheduler = build_temperature_scheduler(
             train_config.temperature
         )  # get naive temperature scheduler
@@ -79,16 +81,28 @@ class AlphaStarSupervisedLoss(BaseLoss):
 
         temperature = self.temperature_scheduler.step()
         self.agent.reset_previous_state(data[0]["start_step"])
+        data[0].pop('start_step')  # remove used key 'start_step'
 
         loss_dict = collections.defaultdict(list)
 
-        for i, step_data in enumerate(data):
-            _, policy_logits, _ = self.agent.compute_action(step_data, mode='mimic', temperature=temperature)
+        if self.parallel:
+            _, policy_logits, _ = self.agent.compute_action_parallel(data, mode='mimic', temperature=temperature)
+            actions = {
+                k: reduce(lambda x, y: x + y, [d['actions'][k] for d in data])
+                for k in data[0]['actions'].keys()
+            }
+
             for loss_item_name, loss_func in self.loss_func.items():
                 loss_name = "{}_loss".format(loss_item_name)
-                loss_dict[loss_name].append(
-                    loss_func(policy_logits[loss_item_name], step_data["actions"][loss_item_name])
-                )
+                loss_dict[loss_name].append(loss_func(policy_logits[loss_item_name], actions[loss_item_name]))
+        else:
+            for i, step_data in enumerate(data):
+                _, policy_logits, _ = self.agent.compute_action(step_data, mode='mimic', temperature=temperature)
+                for loss_item_name, loss_func in self.loss_func.items():
+                    loss_name = "{}_loss".format(loss_item_name)
+                    loss_dict[loss_name].append(
+                        loss_func(policy_logits[loss_item_name], step_data["actions"][loss_item_name])
+                    )
 
         new_loss_dict = dict()
         for loss_name, loss_val_list in loss_dict.items():
@@ -250,9 +264,10 @@ class AlphaStarSupervisedLoss(BaseLoss):
         assert len(logits) == len(labels), '{}/{}'.format(len(logits), len(labels))
         if len(labels) == 0:
             return 0
-        labels = torch.cat(labels, dim=0)  # B
-        logits = torch.stack(logits, dim=0)  # B, N
-        return self.criterion(logits, labels)
+        loss = []
+        for lo, la in zip(logits, labels):
+            loss.append(self.criterion(lo.unsqueeze(0), la))
+        return sum(loss) / len(loss)
 
     def _target_location_loss(self, logits, labels):
         """

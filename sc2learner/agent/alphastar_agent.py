@@ -160,6 +160,18 @@ class AlphaStarAgent(BaseAgent):
             self._after_forward(next_states)
         return AgentOutput(actions=actions, logits=logits, next_state=next_states)
 
+    def compute_action_parallel(self, data, mode, prev_states='no_outer_states', temperature=1.0):
+        assert mode in ["mimic", "evaluate"]
+        # TODO(nyz) check equal trajectory
+        # TODO(nyz) pass hidden states
+        data[0]['prev_state'] = None
+        if mode == 'mimic':
+            logits, next_states = self.model(data, mode=mode + '_parallel', temperature=temperature)
+            actions = None  # placeholder
+        else:
+            raise NotImplementedError(mode)
+        return AgentOutput(actions=actions, logits=logits, next_state=next_states)
+
     def compute_action_value(self, step_data, temperature=1.0):
         # Corresponding to value mode of original ActorCritic
         return self.model(step_data, mode="step", temperature=temperature)
