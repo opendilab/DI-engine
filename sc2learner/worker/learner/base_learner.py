@@ -196,7 +196,7 @@ class Learner:
             with self.total_timer:
                 with self.data_timer:
                     try:
-                        batch_data = next(self.dataloader)
+                        batch_data = next(iter(self.dataloader))
                     except StopIteration:  # for limited length dataloader
                         return
                     processed_data, data_stats = self._preprocess_data(batch_data)

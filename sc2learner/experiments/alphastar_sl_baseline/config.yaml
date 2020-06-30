@@ -1,9 +1,10 @@
 data:
     train:
-        dataloader_type: iter  # [epoch, iter]
-        trajectory_len: 48
-        trajectory_type: sequential  # [epoch: [slide_window], iter: [sequential]]
+        dataloader_type: epoch  # [epoch, iter]
+        trajectory_len: 32
+        trajectory_type: slide_window  # [epoch: [slide_window], iter: [sequential]]
         slide_window_step: 1  # only in slide_window
+        use_distributed: True
 train:
     max_iterations: 1e9
 api:
