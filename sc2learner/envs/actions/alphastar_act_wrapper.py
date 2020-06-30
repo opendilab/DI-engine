@@ -235,8 +235,8 @@ def action_unit_id_transform(data, inverse=False):
 def action_type_transform(data):
     assert isinstance(data, list), type(data)
     for idx in range(len(data)):
-        item = data[idx]['action']['action_type'].item()
-        data[idx]['action']['action_type'] = torch.LongTensor(ACTIONS_REORDER[item])
+        item = data[idx]['actions']['action_type'].item()
+        data[idx]['actions']['action_type'] = torch.LongTensor([ACTIONS_REORDER[item]])
     return data
 
 

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 work_path=$(dirname $0)
 ITER=00
-srun --mpi=pmi2 -p $1 -n8 --gres=gpu:8 --ntasks-per-node=8 --cpus-per-task=3 python3 -u -m sc2learner.train.train_sl \
+srun --mpi=pmi2 -p $1 -n2 --gres=gpu:2 --ntasks-per-node=2 --cpus-per-task=3 python3 -u -m sc2learner.train.train_sl \
     --use_distributed \
     --config_path $work_path/config.yaml \
     --noonly_evaluate \
-    --replay_list /mnt/lustre/share_data/niuyazhe/Zerg_None_None_3500_train_5200.txt \
-    --eval_replay_list /mnt/lustre/share_data/niuyazhe/Zerg_None_None_3500_val_274.txt \
+    --replay_list /mnt/lustre/zhangmanyuan/as_data/602.zerg.128.zvz \
+    --eval_replay_list /mnt/lustre/songguanglu/SenseStar/DATA/602.zerg.val \
 #    --load_path $work_path/checkpoints/iterations_$ITER.pth.tar \

@@ -26,7 +26,7 @@ class ReplayDataset(BaseDataset):
         super(ReplayDataset, self).__init__(dataset_config)
         with open(dataset_config.replay_list, 'r') as f:
             path_list = f.readlines()
-        self.path_list = [{'name': p[:-1], 'count': 0} for idx, p in enumerate(path_list)]
+        self.path_list = [{'name': p[:-1].split(' ')[0], 'count': 0} for idx, p in enumerate(path_list)]
 
         # if train_mode is set to True, then we return a clipped version of data. Otherwise return the whole episode.
         self.complete_episode = not train_mode
@@ -63,7 +63,7 @@ class ReplayDataset(BaseDataset):
         for i in index:
             handle = self.path_list[i]
             if 'step_num' not in handle.keys():
-                meta = torch.load(self._read_file(handle['name'] + META_SUFFIX))
+                meta = self._read_file(handle['name'] + META_SUFFIX)
                 step_num = meta['step_num']
                 handle['step_num'] = step_num
                 handle['map_size'] = meta['map_size']
@@ -97,14 +97,14 @@ class ReplayDataset(BaseDataset):
         for i in index:
             self.path_list[i].pop('cur_step')
 
-    def _read_file(self, path, read_type='BytesIO'):
+    def _read_file(self, path, read_type='pickle'):
         if self.use_ceph:
             return read_file_ceph(path, read_type=read_type)
         else:
-            return path
+            return torch.load(path)
 
     def _load_stat(self, handle):
-        stat = torch.load(self._read_file(handle['name'] + STAT_SUFFIX))
+        stat = self._read_file(handle['name'] + STAT_SUFFIX)
         mmr = stat['mmr']
         beginning_build_order = stat['beginning_build_order']
         # first self.beginning_build_order_num item
@@ -118,10 +118,8 @@ class ReplayDataset(BaseDataset):
 
     def __getitem__(self, idx):
         handle = self.path_list[idx]
-        print(handle)
 
-        d1 = self._read_file(handle['name'] + DATA_SUFFIX)
-        data = torch.load(d1)
+        data = self._read_file(handle['name'] + DATA_SUFFIX)
 
         # clip the dataset
         if self.complete_episode:
@@ -142,7 +140,7 @@ class ReplayDataset(BaseDataset):
             sample_data = [get_available_actions_processed_data(d) for d in sample_data]
 
         if self.complete_episode:
-            meta = torch.load(self._read_file(handle['name'] + META_SUFFIX))
+            meta = self._read_file(handle['name'] + META_SUFFIX)
             map_size = list(reversed(meta['map_size']))
         else:
             # check raw coordinate (x, y) <-> (y, x)
