@@ -44,10 +44,11 @@ class Encoder(nn.Module):
         else:
             project_embeddings = self.scatter_project(entity_embeddings)
         B, _, H, W = spatial_info.shape
-        scatter_map = torch.zeros(B, self.scatter_dim, H * W, device=spatial_info.device)
+        device = spatial_info.device
+        scatter_map = torch.zeros(B, self.scatter_dim, H * W, device=device)
         for b in range(B):
             N = entity_embeddings[b].shape[0]
-            index = torch.LongTensor(entity_raw[b]['location'])
+            index = torch.LongTensor(entity_raw[b]['location']).to(device)
             index[:, 0].clamp_(0, H - 1)
             index[:, 1].clamp_(0, W - 1)
             index = index[:, 0] * W + index[:, 1]
@@ -108,4 +109,7 @@ class Encoder(nn.Module):
         entity_embeddings, embedded_entity = self.encoder['entity_encoder'](inputs['entity_info'])
         spatial_input = self._scatter_connection(inputs['spatial_info'], entity_embeddings, inputs['entity_raw'])
         embedded_spatial, map_skip = self.encoder['spatial_encoder'](spatial_input, inputs['map_size'])
-        return embedded_entity, embedded_spatial, embedded_scalar, scalar_context, baseline_feature, cum_stat, entity_embeddings, map_skip
+        return [
+            embedded_entity, embedded_spatial, embedded_scalar, scalar_context, baseline_feature, cum_stat,
+            entity_embeddings, map_skip
+        ]
