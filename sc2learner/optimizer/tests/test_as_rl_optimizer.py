@@ -23,7 +23,7 @@ def get_dataloader(cfg):
     return build_dataloader(dataset, 'fake_actor', batch_size=cfg.batch_size, use_distributed=False)
 
 
-@pytest.mark.unittest
+@pytest.mark.tmp
 class TestASRLOptimizer:
     def test_rl_training(self, setup_config):
         use_cuda = setup_config.train.use_cuda

@@ -130,7 +130,7 @@ def manager():
     logging.info('manager end')
 
 
-IGNORE_LIST = ['target_outputs']
+IGNORE_LIST = ['target_outputs', 'prev_state']
 
 
 def recu_check_keys(ref, under_test, trace='ROOT'):
