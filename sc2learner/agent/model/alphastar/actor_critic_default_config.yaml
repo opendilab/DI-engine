@@ -92,9 +92,11 @@ model:
             input_dim: 256  # entity_encoder.output_dim
             output_dim: 32
         core_lstm:
+            lstm_type: 'normal'
             input_size: 1780  # spatial_encoder.fc_dim + entity_encoder.output_dim + scalar_encoder.output_dim
             hidden_size: 384
             num_layers: 3
+            dropout: 0.2
         score_cumulative:
             input_dim: 13
             output_dim: 64
@@ -129,6 +131,7 @@ model:
                 queued_map_dim: 256
                 activation: 'relu'
             selected_units_head:
+                lstm_type: 'normal'
                 input_dim: 1024  # action_type_head.gate_dim
                 entity_embedding_dim: 256  # entity_encoder.output_dim
                 key_dim: 32
