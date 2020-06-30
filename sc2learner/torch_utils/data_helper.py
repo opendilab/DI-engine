@@ -7,7 +7,9 @@ import numbers
 def to_device(item, device, ignore_keys=[]):
     def is_element_need(d):
         if isinstance(d, Sequence):
-            if isinstance(d[0], np.int64) or isinstance(d[0], numbers.Integral):
+            if len(d) <= 0:
+                return False
+            elif isinstance(d[0], np.int64) or isinstance(d[0], numbers.Integral):
                 return False
             elif isinstance(d[0], str):
                 return False
