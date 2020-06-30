@@ -155,7 +155,6 @@ class ReplayDataset(BaseDataset):
             beginning_build_order, cumulative_stat, mmr = self._load_stat(handle)
 
         enemy_upgrades = None
-        bool_cum = float(np.random.rand() < self.cumulative_stat_prob)
         for i in range(len(sample_data)):
             sample_data[i]['map_size'] = map_size
             if self.use_stat:
