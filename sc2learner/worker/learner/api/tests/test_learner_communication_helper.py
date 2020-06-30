@@ -24,7 +24,7 @@ class TestLearnerCommHelper:
     def fake_push_data(self, coordinator, learner_uid):
         handle = coordinator.learner_record[learner_uid]['replay_buffer']
         time.sleep(3)  # monitor empty replay_buffer state
-        dataset = FakeActorDataset(use_meta=True)
+        dataset = FakeActorDataset({'use_meta': True})
         for i in range(1024):
             handle.push_data(dataset[i])
         time.sleep(1)  # wait the cache flush out

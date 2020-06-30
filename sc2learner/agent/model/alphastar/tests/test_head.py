@@ -82,12 +82,15 @@ class TestHead:
         autoregressive_embedding = torch.randn(B, handle.input_dim)
         unit_type_mask = torch.ones(B, handle.unit_type_dim)
         max_entity_num = handle.max_entity_num
-        # no selected_units, tensor input
-        entity_num = np.random.randint(200, 300)
-        unit_mask = torch.ones(B, entity_num)
-        masked_index = np.random.choice(entity_num, size=(100, ), replace=False)
-        unit_mask[:, masked_index] = 0
-        entity_embedding = torch.randn(B, entity_num, handle.entity_embedding_dim)
+        # no selected_units
+        entity_num = [np.random.randint(200, 300) for _ in range(B)]
+        unit_mask = []
+        for b in range(B):
+            mask = torch.ones(entity_num[b])
+            masked_index = np.random.choice(entity_num[b], size=(100, ), replace=False)
+            mask[masked_index] = 0
+            unit_mask.append(mask)
+        entity_embedding = [torch.randn(entity_num[b], handle.entity_embedding_dim) for b in range(B)]
         logits, selected_units, embedding = model(
             autoregressive_embedding, unit_type_mask, unit_mask, entity_embedding, temperature=0.8
         )
@@ -95,17 +98,17 @@ class TestHead:
         assert isinstance(selected_units, list) and len(selected_units) == B
         assert embedding.shape == (B, handle.input_dim)
         loss = embedding.mean()
-        for logit, selected_unit in zip(logits, selected_units):
+        for idx, (logit, selected_unit) in enumerate(zip(logits, selected_units)):
             assert isinstance(logit, torch.FloatTensor)
             assert isinstance(selected_unit, torch.LongTensor)
-            assert logit.shape == (min(max_entity_num, selected_unit.shape[0] + 1), entity_num + 1)
+            assert logit.shape == (min(max_entity_num, selected_unit.shape[0] + 1), entity_num[idx] + 1)
             loss += logit.mean()
         is_differentiable(loss, model)
         # indicated selected_units
         selected_units = []
         for _ in range(B):
             num_b = np.random.randint(1, max_entity_num)
-            unit_index = torch.LongTensor(np.random.choice(entity_num, size=(num_b, ), replace=False))
+            unit_index = torch.LongTensor(np.random.choice(entity_num[b], size=(num_b, ), replace=False))
             unit_index = torch.sort(unit_index).values
             selected_units.append(unit_index)
         logits, selected_units_output, embedding = model(
@@ -119,8 +122,8 @@ class TestHead:
         assert len(selected_units) == len(selected_units_output)
         for su, suo in zip(selected_units, selected_units_output):
             assert su.ne(suo).sum() == 0
-        for logit, selected_unit in zip(logits, selected_units_output):
-            assert logit.shape == (selected_unit.shape[0] + 1, entity_num + 1)
+        for idx, (logit, selected_unit) in enumerate(zip(logits, selected_units_output)):
+            assert logit.shape == (selected_unit.shape[0] + 1, entity_num[idx] + 1)
 
     def test_target_unit_head(self, setup_config):
         B = 4
@@ -129,21 +132,20 @@ class TestHead:
         assert isinstance(model, torch.nn.Module)
 
         autoregressive_embedding = torch.randn(B, handle.input_dim)
-        entity_num = np.random.randint(200, 300)
+        # entity_num can be different among a batch
+        entity_num = [np.random.randint(200, 300) for _ in range(B)]
         unit_type_mask = torch.ones(B, handle.unit_type_dim)
-        unit_mask = torch.ones(B, entity_num)
-        masked_index = np.random.choice(entity_num, size=(100, ), replace=False)
-        unit_mask[:, masked_index] = 0
-        entity_embedding = torch.randn(B, entity_num, handle.entity_embedding_dim)
+        unit_mask = [torch.ones(entity_num[b]) for b in range(B)]
+        entity_embedding = [torch.randn(entity_num[b], handle.entity_embedding_dim) for b in range(B)]
         logits, target_unit = model(
             autoregressive_embedding, unit_type_mask, unit_mask, entity_embedding, temperature=0.8
         )
-        assert isinstance(logits, torch.FloatTensor)
+        assert isinstance(logits, list) and len(logits) == B
         assert isinstance(target_unit, torch.LongTensor)
-        assert logits.shape == (B, entity_num)
+        assert all([logits[b].shape[0] == entity_num[b] for b in range(B)])
         assert target_unit.shape == (B, )
-        assert target_unit.min() >= 0 and target_unit.max() < entity_num
-        loss = logits.mean()
+        assert target_unit.min() >= 0 and all([target_unit[b] < entity_num[b] for b in range(B)])
+        loss = sum([l.mean() for l in logits])
         is_differentiable(loss, model)
 
     def _location_head(self, handle):
@@ -158,7 +160,7 @@ class TestHead:
         assert isinstance(outputs, torch.FloatTensor)
         assert isinstance(location, torch.LongTensor)
         if handle.output_type == 'cls':
-            assert outputs.shape == (B, 1, map_size[0], map_size[1])
+            assert outputs.shape == (B, map_size[0], map_size[1])
         elif handle.output_type == 'soft_argmax':
             assert outputs.shape == (B, 2)
         assert location.shape == (B, 2)

@@ -10,7 +10,7 @@ from sc2learner.data import FakeActorDataset
 class TestASRLLearner:
     def fake_push_data(self, coordinator, learner_uid):
         time.sleep(3)  # monitor empty replay_buffer state
-        dataset = FakeActorDataset(use_meta=True)
+        dataset = FakeActorDataset({'use_meta': True})
         replay_buffer_handle = coordinator.learner_record[learner_uid]['replay_buffer']
         for i in range(64):
             replay_buffer_handle.push_data(dataset[i])

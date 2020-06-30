@@ -313,13 +313,18 @@ class SelectedUnitsHead(nn.Module):
             new_embedding: [batch_size, input_dim(1024)]
         '''
 
+        shapes = [e.shape[0] for e in entity_embedding]
         input, state = self._get_init_query(embedding, available_unit_type_mask)
         key, mask, end_flag_index = self._get_key_mask(entity_embedding, available_units_mask)
         logits, units, embedding_selected = self._query(
             key, end_flag_index, input, state, mask, temperature, selected_units
         )
+        logits = self._get_valid_logits(logits, shapes)
 
         return logits, units, embedding + embedding_selected
+
+    def _get_valid_logits(self, logits, shapes):
+        return [t[:, :s + 1] for t, s in zip(logits, shapes)]
 
 
 class TargetUnitHead(nn.Module):
