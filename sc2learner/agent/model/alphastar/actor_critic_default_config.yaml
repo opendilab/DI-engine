@@ -10,7 +10,7 @@ model:
             name: winloss
             cum_stat_keys: ['unit_build']
             param:
-                input_dim: 1640
+                input_dim: 1664
                 activation: 'relu'
                 norm_type: 'LN'
                 res_dim: 256
@@ -19,7 +19,7 @@ model:
             name: build_order
             cum_stat_keys: ['unit_build', 'effect', 'research']
             param:
-                input_dim: 1768
+                input_dim: 1792
                 activation: 'relu'
                 norm_type: 'LN'
                 res_dim: 256
@@ -28,7 +28,7 @@ model:
             name: built_unit
             cum_stat_keys: ['unit_build']
             param:
-                input_dim: 1640
+                input_dim: 1664
                 activation: 'relu'
                 norm_type: 'LN'
                 res_dim: 256
@@ -37,7 +37,7 @@ model:
             name: effect
             cum_stat_keys: ['effect']
             param:
-                input_dim: 1640
+                input_dim: 1664
                 activation: 'relu'
                 norm_type: 'LN'
                 res_dim: 256
@@ -46,7 +46,7 @@ model:
             name: upgrade
             cum_stat_keys: ['research']
             param:
-                input_dim: 1640
+                input_dim: 1664
                 activation: 'relu'
                 norm_type: 'LN'
                 res_dim: 256

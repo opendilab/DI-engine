@@ -7,7 +7,7 @@ import os
 import numpy as np
 import torch
 
-from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UNIT_TYPES, ACTIONS_REORDER_INV, NUM_BEGIN_ACTIONS
+from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UNIT_TYPES, ACTIONS_REORDER_INV, NUM_BEGIN_ACTIONS, NUM_UPGRADES
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
 from sc2learner.data.offline.replay_dataset import ReplayDataset, START_STEP
 from sc2learner.utils import get_step_data_compressor
@@ -18,7 +18,7 @@ META_SUFFIX = '.meta'
 DATA_SUFFIX = '.step'
 STAT_SUFFIX = '.stat_processed'
 MAP_SIZE = [176, 200]
-DELAY_MAX = 63
+DELAY_MAX = 127
 MAX_SELECTED_UNITS = 64
 ACTION_CANDIDATES = list(ACTIONS_REORDER.values())
 NUM_ACTION_TYPES = len(ACTION_CANDIDATES)
@@ -76,7 +76,7 @@ def get_single_step_data():
         race=random_one_hot([5]),
         enemy_race=random_one_hot([5]),
         upgrades=random_binary_tensor([90]),
-        enemy_upgrades=random_binary_tensor([48]),  # refer to envs/observations/enemy_upgrades.py
+        enemy_upgrades=random_binary_tensor([NUM_UPGRADES]),  # refer to envs/observations/enemy_upgrades.py
         time=random_binary_tensor([64]),
         available_actions=random_binary_tensor([NUM_ACTION_TYPES]),
         unit_counts_bow=random_tensor([259]),
@@ -265,7 +265,7 @@ class FakeActorDataset:
         def get_outputs(actions, entity_num):
             ret = {}
             ret['action_type'] = torch.rand(NUM_ACTION_TYPES)
-            ret['delay'] = torch.rand(1) * DELAY_MAX
+            ret['delay'] = torch.rand(DELAY_MAX + 1)
             if isinstance(actions['queued'], type(NOOP)):
                 ret['queued'] = NOOP
             else:

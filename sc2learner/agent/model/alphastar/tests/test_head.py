@@ -42,7 +42,7 @@ class TestHead:
         autoregressive_embedding = torch.randn(B, handle.input_dim)
         # no delay
         output, delay, embedding = model(autoregressive_embedding)
-        assert output.shape == (B, 1)
+        assert output.shape == (B, handle.delay_dim)
         assert output.dtype == torch.float
         assert delay.shape == (B, )
         assert delay.dtype == torch.long
@@ -51,7 +51,7 @@ class TestHead:
         loss = output.mean() + embedding.mean()
         is_differentiable(loss, model)
         # indicated delay
-        delay = torch.randint(0, int(model.delay_max_range), size=(B, ))
+        delay = torch.randint(0, handle.delay_dim, size=(B, ))
         output, delay_pred, embedding = model(autoregressive_embedding, delay)
         assert delay_pred.dtype == torch.long
         assert delay_pred.shape == (B, )
