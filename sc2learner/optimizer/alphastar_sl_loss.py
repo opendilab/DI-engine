@@ -7,6 +7,7 @@ Main Function:
 import collections
 from functools import reduce
 
+import numpy as np
 import torch
 import torch.nn.functional as F
 
@@ -182,7 +183,7 @@ class AlphaStarSupervisedLoss(BaseLoss):
 
     def _delay_loss(self, preds, labels):
         """
-            Overview: calculate L1 loss of taking each action or each delay
+            Overview: calculate CE loss of taking each action or each delay
             Arguments:
                 - preds (:obj:`tensor`): the predict delay
                 - labels (:obj:`list`): label from batch_data, list[Tensor](len=batch size)
@@ -195,10 +196,8 @@ class AlphaStarSupervisedLoss(BaseLoss):
             return loss.clamp(0).mean()
 
         if isinstance(labels, collections.Sequence):
-            labels = torch.stack(labels, dim=0)
-        labels = labels.to(preds.dtype)
-        assert (preds.shape == labels.shape), '{}/{}'.format(preds.shape, labels.shape)
-        return delay_l1(preds, labels)
+            labels = torch.cat(labels, dim=0)
+        return self.criterion(preds, labels)
 
     def _queued_loss(self, logits, labels):
         """
@@ -243,9 +242,11 @@ class AlphaStarSupervisedLoss(BaseLoss):
             if logit.shape[0] != label.shape[0]:  # when agents selected different number of agents compared to expert
                 assert (logit.shape[0] == 1 + label.shape[0])
                 end_flag_label = torch.LongTensor([logit.shape[1] - 1]).to(label.device)
-                end_flag_loss = self.criterion(logit[-1:], end_flag_label)
-                logits_loss = criterion(logit[:-1], label)
-                loss.append((end_flag_loss + logits_loss) / 2)
+                # end_flag_loss = self.criterion(logit[-1:], end_flag_label)
+                # logits_loss = criterion(logit[:-1], label)
+                # loss.append((end_flag_loss + logits_loss) / 2)
+                label = torch.cat([label, end_flag_label])
+                loss.append(self.criterion(logit, label) * np.sqrt(len(label)))
             else:
                 loss.append(criterion(logit, label))
         return sum(loss) / len(loss)

@@ -198,23 +198,18 @@ class SelectedUnitsHead(nn.Module):
             start = end
         return pad_key, pad_mask, end_flag_index
 
-    def _get_init_query(self, embedding, available_unit_type_mask):
+    def _get_query(self, embedding, func_embed):
         '''
             Overview: passes autoregressive_embedding through a linear of size 256, adds func_embed, and
                       passes the combination through a ReLU and a linear of size 32.
             Arguments:
                 - embedding (:obj:`tensor`): autoregressive_embedding
-                - available_unit_type_mask (:obj:`tensor`): mask for available unit type
+                - func_embed (:obj:`tensor`): embedding derived from available_unit_type_mask
             Returns:
                 - (:obj`tensor`): result
-                - (:obj`tensor`): state use None as default
         '''
-        func_embed = self.func_fc(available_unit_type_mask)
         x = self.fc1(embedding)
-        x = self.fc2(x + func_embed)
-
-        state = None
-        return x, state
+        return self.fc2(x + func_embed)
 
     def _get_pred_with_logit(self, logit, temperature):
         p = F.softmax(logit.div(temperature), dim=-1)
@@ -224,71 +219,97 @@ class SelectedUnitsHead(nn.Module):
         else:
             return handle.mode()
 
-    def _query(self, key, end_flag_index, x, state, mask, temperature, selected_units):
+    def _query(self, key, end_flag_index, autoregressive_embedding, func_embed, mask, temperature, selected_units):
         B, N = key.shape[:2]
-        units = torch.zeros(B, N, device=key.device, dtype=torch.long)
         logits = [[] for _ in range(B)]
-        x = x.unsqueeze(0)
+
         if selected_units is None:
+            units_index = [[] for _ in range(B)]
             end_flag_trigger = [False for _ in range(B)]
+            state = None
 
             for i in range(self.max_entity_num):
                 if sum(end_flag_trigger) == B:
                     break
-                x, state = self.lstm(x, state)
-                query_result = x.permute(1, 0, 2) * key
+                lstm_input = self._get_query(autoregressive_embedding, func_embed).unsqueeze(0)
+                lstm_output, state = self.lstm(lstm_input, state)
+                query_result = lstm_output.permute(1, 0, 2) * key
                 query_result = query_result.mean(dim=2)
                 if self.use_mask:
                     query_result.sub_((1 - mask) * 1e9)
                 entity_num = self._get_pred_with_logit(query_result, temperature)
 
+                selected_units_step = torch.zeros(B, device=key.device, dtype=torch.long)
                 for b in range(B):
                     if end_flag_trigger[b]:
                         continue
                     else:
-                        logits[b].append(query_result[b][:end_flag_index[b] + 1])
+                        logits[b].append(query_result[b])
+                        # end_flag doesn't also contribute to autoregressive_embedding
                         if entity_num[b] == end_flag_index[b]:
-                            end_flag_trigger[b] = True
-                            # evaluate and logits == 1 case(only end_flag), select the second largest unit
-                            if not self.training and len(logits[b]) == 1:
+                            # logits == 1 case(only end_flag), select the second largest unit
+                            if len(logits[b]) == 1:
                                 logit = query_result[b]
                                 logit[end_flag_index] = -1e9
-                                logits[b].insert(0, logit)
+                                logits[b][0] = logit
                                 entity_num_b = self._get_pred_with_logit(logit, temperature)
-                                units[b][entity_num_b] = 1
-                            continue
-                        units[b][entity_num[b]] = 1
-                        mask[b][entity_num[b]] = 0
+                                units_index[b].append(entity_num_b)
+                                mask[b][entity_num_b] = 0
+                                selected_units_step[b] = entity_num_b
+                            else:
+                                end_flag_trigger[b] = True
+                        else:
+                            units_index[b].append(entity_num[b])
+                            mask[b][entity_num[b]] = 0
+                            selected_units_step[b] = entity_num[b]
+                selected_mask = torch.LongTensor(end_flag_trigger).to(key.device)
+
+                embedding_selected = one_hot(selected_units_step, N).unsqueeze(2)
+                embedding_selected = embedding_selected * key
+                embedding_selected = embedding_selected.mean(dim=1)
+                autoregressive_embedding = autoregressive_embedding + self.embed_fc(embedding_selected
+                                                                                    ) * selected_mask.view(B, 1)
+
+            units_index = [torch.stack(t, dim=0) for t in units_index]
         else:
+            # rewrite some parts of mask which is related to selected_units label
+            # TODO(nyz) output warning info about the rewrite parts
+            for i, t in enumerate(selected_units):
+                mask[i, t] = 1
+
+            state = None
             output_entity_num = [t.shape[0] for t in selected_units]
-            # transform selected_units to units format
-            for idx, su in enumerate(selected_units):
-                for u in su:
-                    units[idx][u] = 1
             for i in range(max(output_entity_num) + 1):
-                x, state = self.lstm(x, state)
-                query_result = x.permute(1, 0, 2) * key
+                lstm_input = self._get_query(autoregressive_embedding, func_embed).unsqueeze(0)
+                lstm_output, state = self.lstm(lstm_input, state)
+                query_result = lstm_output.permute(1, 0, 2) * key
                 query_result = query_result.mean(dim=2)
                 if self.use_mask:
                     query_result.sub_((1 - mask) * 1e9)
+
+                # record logits and get selected_units_step
+                selected_units_step = torch.zeros(B, device=key.device, dtype=torch.long)
                 for b in range(B):
                     if i > output_entity_num[b]:
                         continue
+                    # end_flag doesn't contribute to autoregressive_embedding
+                    elif i == output_entity_num[b]:
+                        logits[b].append(query_result[b])
                     else:
                         logits[b].append(query_result[b])
-        logits = [torch.stack(t, dim=0) for t in logits]
-        embedding_selected = units.unsqueeze(2).to(key.dtype)
-        embedding_selected = embedding_selected * key
-        embedding_selected = embedding_selected.sum(dim=1) / torch.clamp(
-            units.sum(dim=1, keepdim=True), 1
-        )  # mean by the valid units
-        embedding_selected = self.embed_fc(embedding_selected)
+                        selected_units_step[b] = selected_units[b][i]
+                selected_mask = torch.LongTensor([i < num for num in output_entity_num]).to(key.device)
 
-        units_index = []
-        for unit in units:
-            index = torch.nonzero(unit).squeeze(1)
-            units_index.append(index)
-        return logits, units_index, embedding_selected
+                embedding_selected = one_hot(selected_units_step, N).unsqueeze(2)
+                embedding_selected = embedding_selected * key
+                embedding_selected = embedding_selected.mean(dim=1)
+                autoregressive_embedding = autoregressive_embedding + self.embed_fc(embedding_selected
+                                                                                    ) * selected_mask.view(B, 1)
+
+            units_index = selected_units
+
+        logits = [torch.stack(t, dim=0) for t in logits]
+        return logits, units_index, autoregressive_embedding
 
     def forward(
         self,
@@ -319,14 +340,14 @@ class SelectedUnitsHead(nn.Module):
         '''
 
         shapes = [e.shape[0] for e in entity_embedding]
-        input, state = self._get_init_query(embedding, available_unit_type_mask)
         key, mask, end_flag_index = self._get_key_mask(entity_embedding, available_units_mask)
-        logits, units, embedding_selected = self._query(
-            key, end_flag_index, input, state, mask, temperature, selected_units
+        func_embed = self.func_fc(available_unit_type_mask)
+        logits, units, embedding = self._query(
+            key, end_flag_index, embedding, func_embed, mask, temperature, selected_units
         )
         logits = self._get_valid_logits(logits, shapes)
 
-        return logits, units, embedding + embedding_selected
+        return logits, units, embedding
 
     def _get_valid_logits(self, logits, shapes):
         return [t[:, :s + 1] for t, s in zip(logits, shapes)]
@@ -401,7 +422,7 @@ class TargetUnitHead(nn.Module):
                       one of the two terminal arguments (along with Location Head, since no action has
                       both a target unit and a target location), it does not return autoregressive_embedding.
             Arguments:
-                - embedding (:obj`tensor`): autoregressive_embeddingm, [batch_size, input_dim(1024)]
+                - embedding (:obj`tensor`): autoregressive_embedding, [batch_size, input_dim(1024)]
                 - available_unit_type_mask (:obj`tensor`): [batch_size, num_unit_type]
                 - available_units_mask (:obj`tensor`): [batch_size, num_units]
                 - entity_embedding (:obj`tensor`): [batch_size, num_units, entity_embedding_dim(256)]
@@ -508,7 +529,7 @@ class LocationHead(nn.Module):
                       sampled (masking out invalid locations using `action_type`, such as those outside the camera
                       for build actions) with temperature 0.8 to get the actual target position.
             Arguments:
-                - embedding (:obj`tensor`): autoregressive_embeddingm, [batch_size, input_dim(1024)]
+                - embedding (:obj`tensor`): autoregressive_embedding, [batch_size, input_dim(1024)]
                 - map_skip (:obj`tensor`): tensors of the outputs of intermediate computations, len=res_num, each
                     element is a torch FloatTensor with shape[batch_size, res_dim, map_y // 8, map_x // 8]
                 - available_location_mask (:obj`tensor`): [batch_size, 1, map_y, map_x]
