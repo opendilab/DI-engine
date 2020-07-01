@@ -30,9 +30,9 @@ class TestEncoder:
         inputs['cumulative_stat'] = cumulative_stat_input
 
         embedded_scalar, scalar_context, baseline_feature, cumulative_stat = model(inputs)
-        assert (embedded_scalar.shape == (B, 1268))
-        assert (scalar_context.shape == (B, 244))
-        assert (baseline_feature.shape == (B, 340))
+        assert (embedded_scalar.shape == (B, 1280))
+        assert (scalar_context.shape == (B, 256))
+        assert (baseline_feature.shape == (B, 352))
         for k, v in cumulative_stat.items():
             assert v.shape == (B, template_replay[1]['output_dim'])
 
