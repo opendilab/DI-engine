@@ -108,11 +108,10 @@ class AlphaStarAgent(BaseAgent):
         for ep_id, activate in self.active_episodes.items():
             if activate:
                 # self.prev_state[ep_id] = [element.detach() for element in next_states[activate_episode_index]]
-                self.prev_state[ep_id] = next_states[activate_episode_index]
+                self.prev_state[ep_id] = [t[:, activate_episode_index].unsqueeze(1) for t in next_states]
                 activate_episode_index += 1
             else:
                 self.prev_state[ep_id] = None
-        assert activate_episode_index == len(next_states), (activate_episode_index, len(next_states))
 
     def compute_action(self, step_data, mode, prev_states='no_outer_states', temperature=1.0, require_grad=None):
         """ Forward pass the agent's model to collect its response in the given timestep.
