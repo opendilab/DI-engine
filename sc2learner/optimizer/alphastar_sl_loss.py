@@ -5,6 +5,7 @@ Main Function:
     1. base class for supervised learning on linklink, including basic processes.
 """
 import collections
+from functools import reduce
 
 import torch
 import torch.nn.functional as F
@@ -54,6 +55,7 @@ class AlphaStarSupervisedLoss(BaseLoss):
 
         self.criterion_config = train_config.criterion
         self.criterion = build_criterion(train_config.criterion)
+        self.parallel = train_config.parallel
         self.temperature_scheduler = build_temperature_scheduler(
             train_config.temperature
         )  # get naive temperature scheduler
@@ -79,16 +81,28 @@ class AlphaStarSupervisedLoss(BaseLoss):
 
         temperature = self.temperature_scheduler.step()
         self.agent.reset_previous_state(data[0]["start_step"])
+        data[0].pop('start_step')  # remove used key 'start_step'
 
         loss_dict = collections.defaultdict(list)
 
-        for i, step_data in enumerate(data):
-            _, policy_logits, _ = self.agent.compute_action(step_data, mode='mimic', temperature=temperature)
+        if self.parallel:
+            _, policy_logits, _ = self.agent.compute_action_parallel(data, mode='mimic', temperature=temperature)
+            actions = {
+                k: reduce(lambda x, y: x + y, [d['actions'][k] for d in data])
+                for k in data[0]['actions'].keys()
+            }
+
             for loss_item_name, loss_func in self.loss_func.items():
                 loss_name = "{}_loss".format(loss_item_name)
-                loss_dict[loss_name].append(
-                    loss_func(policy_logits[loss_item_name], step_data["actions"][loss_item_name])
-                )
+                loss_dict[loss_name].append(loss_func(policy_logits[loss_item_name], actions[loss_item_name]))
+        else:
+            for i, step_data in enumerate(data):
+                _, policy_logits, _ = self.agent.compute_action(step_data, mode='mimic', temperature=temperature)
+                for loss_item_name, loss_func in self.loss_func.items():
+                    loss_name = "{}_loss".format(loss_item_name)
+                    loss_dict[loss_name].append(
+                        loss_func(policy_logits[loss_item_name], step_data["actions"][loss_item_name])
+                    )
 
         new_loss_dict = dict()
         for loss_name, loss_val_list in loss_dict.items():
@@ -183,7 +197,7 @@ class AlphaStarSupervisedLoss(BaseLoss):
         if isinstance(labels, collections.Sequence):
             labels = torch.stack(labels, dim=0)
         labels = labels.to(preds.dtype)
-        assert (preds.shape == labels.shape)
+        assert (preds.shape == labels.shape), '{}/{}'.format(preds.shape, labels.shape)
         return delay_l1(preds, labels)
 
     def _queued_loss(self, logits, labels):
@@ -197,8 +211,10 @@ class AlphaStarSupervisedLoss(BaseLoss):
                 - (:obj`tensor`): criterion result
         """
         labels = [x for x in labels if isinstance(x, torch.Tensor)]
+        logits = [x for x in logits if isinstance(x, torch.Tensor)]
+        assert len(logits) == len(labels), '{}/{}'.format(len(logits), len(labels))
         if len(labels) == 0:
-            return 0
+            return 0.0
         logits = torch.cat(logits, dim=0)
         labels = torch.cat(labels, dim=0)
         return self.criterion(logits, labels)
@@ -215,6 +231,8 @@ class AlphaStarSupervisedLoss(BaseLoss):
         """
         criterion = MultiLogitsLoss(self.criterion_config)
         labels = [x for x in labels if isinstance(x, torch.Tensor)]
+        logits = [x for x in logits if isinstance(x, torch.Tensor)]
+        assert len(logits) == len(labels), '{}/{}'.format(len(logits), len(labels))
         batch_size = len(labels)
         if batch_size == 0:
             return 0.0
@@ -223,7 +241,7 @@ class AlphaStarSupervisedLoss(BaseLoss):
         for batch_index in range(batch_size):
             logit, label = logits[batch_index], labels[batch_index]
             if logit.shape[0] != label.shape[0]:  # when agents selected different number of agents compared to expert
-                assert (logit.shape[0] == 1 + label.shape[0])  # ISSUE(zm) why?
+                assert (logit.shape[0] == 1 + label.shape[0])
                 end_flag_label = torch.LongTensor([logit.shape[1] - 1]).to(label.device)
                 end_flag_loss = self.criterion(logit[-1:], end_flag_label)
                 logits_loss = criterion(logit[:-1], label)
@@ -242,12 +260,13 @@ class AlphaStarSupervisedLoss(BaseLoss):
                 - (:obj`tensor`): criterion result
         """
         labels = [x for x in labels if isinstance(x, torch.Tensor)]
+        logits = [x for x in logits if isinstance(x, torch.Tensor)]
+        assert len(logits) == len(labels), '{}/{}'.format(len(logits), len(labels))
         if len(labels) == 0:
             return 0
         loss = []
-        for b in range(len(labels)):
-            lo, la = logits[b], labels[b]
-            loss.append(self.criterion(lo, la))
+        for lo, la in zip(logits, labels):
+            loss.append(self.criterion(lo.unsqueeze(0), la))
         return sum(loss) / len(loss)
 
     def _target_location_loss(self, logits, labels):
@@ -260,12 +279,14 @@ class AlphaStarSupervisedLoss(BaseLoss):
                 - (:obj`tensor`): criterion result
         """
         labels = [x for x in labels if isinstance(x, torch.Tensor)]
+        logits = [x for x in logits if isinstance(x, torch.Tensor)]
+        assert len(logits) == len(labels), '{}/{}'.format(len(logits), len(labels))
         if len(labels) == 0:
             return 0
         loss = []
         for logit, label in zip(logits, labels):
             if self.location_output_type == 'cls':
-                H, W = logit.shape[2:]
+                H, W = logit.shape[-2:]
                 label = torch.LongTensor([label[0] * W + label[1]]).to(device=logit.device)  # (y, x)
                 logit = logit.view(1, -1)
                 loss.append(self.criterion(logit, label))

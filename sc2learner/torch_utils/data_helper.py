@@ -5,22 +5,15 @@ import numbers
 
 
 def to_device(item, device, ignore_keys=[]):
-    def is_element_need(d):
-        if isinstance(d, Sequence):
-            if isinstance(d[0], np.int64) or isinstance(d[0], numbers.Integral):
-                return False
-            elif isinstance(d[0], str):
-                return False
-        return True
-
     if isinstance(item, torch.nn.Module):
         return item.to(device)
     elif isinstance(item, torch.Tensor):
         return item.to(device)
     elif isinstance(item, Sequence):
-        if not is_element_need(item):
+        if isinstance(item, str):
             return item
-        return [to_device(t, device) for t in item]
+        else:
+            return [to_device(t, device) for t in item]
     elif isinstance(item, dict):
         new_item = {}
         for k in item.keys():

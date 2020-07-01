@@ -11,6 +11,7 @@ import enum
 import copy
 from pysc2.lib import actions
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK, ACT_TO_GENERAL_ACT
+from pysc2.lib.static_data import ACTIONS_REORDER
 from sc2learner.torch_utils import to_tensor
 
 
@@ -229,6 +230,14 @@ def action_unit_id_transform(data, inverse=False):
         return transform(data)
     else:
         raise TypeError("invalid input type: {}".format(type(data)))
+
+
+def action_type_transform(data):
+    assert isinstance(data, list), type(data)
+    for idx in range(len(data)):
+        item = data[idx]['actions']['action_type'].item()
+        data[idx]['actions']['action_type'] = torch.LongTensor([ACTIONS_REORDER[item]])
+    return data
 
 
 class State(enum.IntEnum):

@@ -1,5 +1,6 @@
 import os.path as osp
 from collections import namedtuple, OrderedDict
+from functools import reduce
 import torch
 import torch.nn as nn
 
@@ -92,6 +93,50 @@ class AlphaStarActorCritic(ActorCriticBase):
         )
         logits = self.policy(policy_inputs, mode='mimic')
         return self.MimicOutput(logits, next_state)
+
+    # overwrite
+    def mimic_parallel(self, inputs, **kwargs):
+        self.traj = len(inputs)
+        self.batch_size = len(inputs[0]['spatial_info'])
+        prev_state = inputs[0].pop('prev_state')
+        inputs = self._merge_traj(inputs)
+        # encoder
+        embedded_entity, embedded_spatial, embedded_scalar, scalar_context, baseline_feature,\
+            cum_stat, entity_embeddings, map_skip = self.encoder.encode_parallel_forward(inputs)
+        embedded_entity, embedded_spatial, embedded_scalar = [
+            self._split_traj(t) for t in [embedded_entity, embedded_spatial, embedded_scalar]
+        ]
+        # lstm
+        lstm_output, next_state = self.encoder.core_lstm(embedded_entity, embedded_spatial, embedded_scalar, prev_state)
+        lstm_output = self._merge_traj(lstm_output)
+        # head
+        policy_inputs = self.policy.MimicInput(
+            inputs['actions'], inputs['entity_raw'], inputs['scalar_info']['available_actions'], lstm_output,
+            entity_embeddings, map_skip, scalar_context, inputs['spatial_info']
+        )
+        logits = self.policy(policy_inputs, mode='mimic')
+        return self.MimicOutput(logits, next_state)
+
+    def _merge_traj(self, data):
+        def merge(t):
+            if isinstance(t[0], torch.Tensor):
+                t = torch.stack(t, dim=0)
+                return t.reshape(-1, *t.shape[2:])
+            elif isinstance(t[0], list):
+                return reduce(lambda x, y: x + y, t)
+            elif isinstance(t[0], dict):
+                return {k: merge([m[k] for m in t]) for k in t[0].keys()}
+            else:
+                raise TypeError(type(t[0]))
+
+        if isinstance(data, torch.Tensor):
+            return data.reshape(-1, *data.shape[2:])
+        else:
+            return merge(data)
+
+    def _split_traj(self, data):
+        assert isinstance(data, torch.Tensor)
+        return torch.stack(torch.chunk(data, self.traj, 0), 0)  # TxB, N -> T, B, N
 
     # overwrite
     def evaluate(self, inputs, **kwargs):

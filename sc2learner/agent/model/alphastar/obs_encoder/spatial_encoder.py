@@ -69,7 +69,7 @@ class SpatialEncoder(nn.Module):
             h, w = m
             h, w = h // ratio, w // ratio
             new_data.append(d[..., :h, :w])
-        if len(new_data) > 1 and same_shape(new_data):
+        if same_shape(new_data):
             new_data = torch.stack(new_data, dim=0)
         return new_data
 

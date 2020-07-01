@@ -44,3 +44,4 @@ train:
         kwargs:  # {label_smooth_ce: [smooth_ratio]}
             smooth_ratio: 0.1
         action_type: normal  # [normal, double_head]
+    parallel: True

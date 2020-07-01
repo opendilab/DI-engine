@@ -30,6 +30,8 @@ def build_dataloader(dataset, dataloader_type, batch_size, use_distributed, read
         dataloader = OnlineIteratorDataLoader(
             dataset, batch_size=batch_size, collate_fn=actor_collate_fn, read_data_fn=read_data_fn
         )
+    elif dataloader_type == 'fake':
+        dataloader = DataLoader(dataset, batch_size=batch_size, collate_fn=policy_collate_fn, num_workers=0)
     elif dataloader_type == 'fake_actor':
         dataloader = DataLoader(dataset, batch_size=batch_size, collate_fn=actor_collate_fn, num_workers=0)
     else:
