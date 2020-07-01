@@ -33,11 +33,11 @@ class DelayHead(nn.Module):
         self.act = build_activation(cfg.activation)
         self.fc1 = fc_block(cfg.input_dim, cfg.decode_dim, activation=self.act, norm_type=None)
         self.fc2 = fc_block(cfg.decode_dim, cfg.decode_dim, activation=self.act, norm_type=None)
-        self.fc3 = fc_block(cfg.decode_dim, 1, activation=nn.Sigmoid(), norm_type=None)  # regression
-        self.embed_fc1 = fc_block(cfg.delay_encode_dim, cfg.delay_map_dim, activation=self.act, norm_type=None)
+        self.fc3 = fc_block(cfg.decode_dim, cfg.delay_dim, activation=nn.Sigmoid(), norm_type=None)  # regression
+        self.embed_fc1 = fc_block(cfg.delay_dim, cfg.delay_map_dim, activation=self.act, norm_type=None)
         self.embed_fc2 = fc_block(cfg.delay_map_dim, cfg.input_dim, activation=self.act, norm_type=None)
-
-        self.delay_max_range = math.pow(2, cfg.delay_encode_dim) - 1
+        self.pd = CategoricalPdPytorch
+        self.delay_dim = cfg.delay_dim
 
     def forward(self, embedding, delay=None):
         '''
@@ -53,7 +53,7 @@ class DelayHead(nn.Module):
                 - delay (:obj:`tensor or None`): when SL training, the caller indicates delay value to calculate
                     embedding
             Returns:
-                - (:obj`tensor`): delay for calculation loss, shape(B, 1), dtype(torch.float)
+                - (:obj`tensor`): delay for calculation loss, shape(B, delay_dim), dtype(torch.float)
                 - (:obj`tensor`): delay action, shape(B, ), dtype(torch.long)
                 - (:obj`tensor`): autoregressive_embedding that combines information from lstm_output
                                   and all previous sampled arguments, shape(B, input_dim)
@@ -61,16 +61,19 @@ class DelayHead(nn.Module):
         x = self.fc1(embedding)
         x = self.fc2(x)
         x = self.fc3(x)
-        delay_output = (x * self.delay_max_range)
         if delay is None:
-            delay = torch.round(delay_output).long().squeeze(1)
+            p = F.softmax(x, dim=1)
+            handle = self.pd(p)
+            if self.training:
+                delay = handle.sample()
+            else:
+                delay = handle.mode()
 
-        # embedding gradient can't backprop to the fc predicting delay
-        delay_encode = binary_encode(delay, self.delay_max_range).float()
+        delay_encode = one_hot(delay, self.delay_dim)
         embedding_delay = self.embed_fc1(delay_encode)
         embedding_delay = self.embed_fc2(embedding_delay)  # get autoregressive_embedding
 
-        return delay_output, delay, embedding + embedding_delay
+        return x, delay, embedding + embedding_delay
 
 
 class QueuedHead(nn.Module):
@@ -152,7 +155,7 @@ class SelectedUnitsHead(nn.Module):
         self.fc1 = fc_block(cfg.input_dim, cfg.func_dim, activation=self.act, norm_type=None)
         self.fc2 = fc_block(cfg.func_dim, cfg.key_dim, activation=self.act, norm_type=None)
         self.embed_fc = fc_block(cfg.key_dim, cfg.input_dim, activation=None, norm_type=None)
-        self.lstm = get_lstm(cfg.lstm_type, cfg.key_dim, cfg.hidden_dim, cfg.num_layers, norm_type='LN')
+        self.lstm = get_lstm(cfg.lstm_type, cfg.key_dim, cfg.hidden_dim, cfg.num_layers, norm_type=cfg.lstm_norm_type)
 
         self.max_entity_num = cfg.max_entity_num
         self.key_dim = cfg.key_dim
@@ -479,6 +482,7 @@ class LocationHead(nn.Module):
                         conv2d_block(dims[i], dims[i + 1], 3, 1, 1, activation=self.act, norm_type=None)
                     )
                 )
+        self.ensemble_conv = conv2d_block(dims[-1], 1, 1, 1, 0, activation=None, norm_type=None)
 
         self.ratio = cfg.location_expand_ratio
         self.use_mask = cfg.use_mask
@@ -524,6 +528,7 @@ class LocationHead(nn.Module):
             x = act(x, skip)
         for layer in self.upsample:
             x = layer(x)
+        x = self.ensemble_conv(x)
         if self.use_mask:
             x -= ((1 - available_location_mask) * 1e9)
         if self.output_type == 'cls':

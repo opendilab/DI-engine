@@ -1,6 +1,9 @@
 model:
     use_value_network: True
     use_battle_reward: False
+    encoder:
+        obs_encoder:
+            use_score_cumulative: True
 train:
     trajectory_len: 4
     batch_size: 3

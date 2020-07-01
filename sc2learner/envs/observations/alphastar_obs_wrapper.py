@@ -741,7 +741,7 @@ def transform_scalar_data():
         {
             'key': 'enemy_upgrades',
             'arch': 'fc',
-            'input_dim': 48,
+            'input_dim': NUM_UPGRADES,
             'output_dim': 128,
             'ori': 'enemy_upgrades',
             'other': 'boolean'
@@ -804,7 +804,7 @@ def transform_scalar_data():
             'key': 'beginning_build_order',
             'arch': 'transformer',
             'input_dim': NUM_BEGIN_ACTIONS + LOCATION_BIT_NUM * 2 + 20,
-            'output_dim': 20,  # 20(begin build order num)
+            'output_dim': 32,
             'scalar_context': True,
             'baseline_feature': True,
             'other': 'transformer'
