@@ -144,9 +144,9 @@ class BaseContainer(object):
     """
     agent_num, trajectory_len, batch_size
     """
-    agent_num_dim = 0
-    trajectory_len_dim = 1
-    batch_size_dim = 2
+    AGENT_NUM_DIM = 0
+    TRAJECTORY_LEN_DIM = 1
+    BATCH_SIZE_DIM = 2
 
     def cat(self, other: 'BaseContainer', dim: int) -> None:
         raise NotImplementedError
@@ -172,6 +172,7 @@ class BaseContainer(object):
 
 class TensorContainer(BaseContainer):
     def __init__(self, data: torch.Tensor, shape: Optional[tuple] = tuple()) -> None:
+        assert len(shape) == 0 or (len(shape) == 3 and all([isinstance(s, numbers.Integral) for s in shape]))
         if len(shape) == 0:
             self._data = data.view(1, 1, 1, *data.shape)
         else:
@@ -206,14 +207,14 @@ class TensorContainer(BaseContainer):
         elif isinstance(idx, dict):
             selected_indexes = [None for _ in range(3)]
             for k, v in idx.items():
-                dim = getattr(self, k + '_dim')
+                dim = getattr(self, (k + '_dim').upper())
                 selected_indexes[dim] = v
             handle = self._data
-            for dim, idx in enumerate(selected_indexes):
-                if idx is None:
+            for d, i in enumerate(selected_indexes):
+                if i is None:
                     handle = handle
                 else:
-                    handle = torch.index_select(handle, dim, torch.LongTensor(idx))
+                    handle = torch.index_select(handle, d, torch.LongTensor(i))
             data = handle
         else:
             raise TypeError(type(idx))
@@ -302,7 +303,7 @@ class SpecialContainer(BaseContainer):
         elif isinstance(idx, dict):
             for k, v in idx.items():
                 assert isinstance(v, list), type(v)
-                dim = getattr(self, k + '_dim')
+                dim = getattr(self, (k + '_dim').upper())
                 selected_ranges[dim] = v
         for i, item in enumerate(selected_ranges):
             if item is None:
