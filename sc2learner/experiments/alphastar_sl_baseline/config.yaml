@@ -7,6 +7,8 @@ data:
         use_distributed: True
 train:
     max_iterations: 1e9
+    criterion:
+        type: 'soft_focal_loss'  # ['cross_entropy', 'label_smooth', 'soft_focal_loss']
 api:
     learner_port: 8293               # learner port
     coordinator_ip: 10.5.36.31       # learner and coordinator are in same cluster

@@ -228,7 +228,7 @@ class AlphaStarSupervisedLoss(BaseLoss):
             Returns:
                 - (:obj`tensor`): criterion result
         """
-        criterion = MultiLogitsLoss(self.criterion_config)
+        # criterion = MultiLogitsLoss(self.criterion_config)
         labels = [x for x in labels if isinstance(x, torch.Tensor)]
         logits = [x for x in logits if isinstance(x, torch.Tensor)]
         assert len(logits) == len(labels), '{}/{}'.format(len(logits), len(labels))
@@ -248,7 +248,7 @@ class AlphaStarSupervisedLoss(BaseLoss):
                 label = torch.cat([label, end_flag_label])
                 loss.append(self.criterion(logit, label) * np.sqrt(len(label)))
             else:
-                loss.append(criterion(logit, label))
+                loss.append(self.criterion(logit, label) * np.sqrt(len(label)))
         return sum(loss) / len(loss)
 
     def _target_units_loss(self, logits, labels):

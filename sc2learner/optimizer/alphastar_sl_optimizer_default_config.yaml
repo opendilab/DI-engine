@@ -9,7 +9,7 @@ train:
     trajectory_len: 3
     use_cuda: False
     criterion:
-        type: 'cross_entropy'
+        type: 'soft_focal_loss'  # ['cross_entropy', 'label_smooth', 'soft_focal_loss']
         action_type: 'normal'
     temperature: 1.0
     learning_rate: 0.001
