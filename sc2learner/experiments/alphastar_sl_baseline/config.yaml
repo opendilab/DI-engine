@@ -9,6 +9,13 @@ train:
     max_iterations: 1e9
     criterion:
         type: 'soft_focal_loss'  # ['cross_entropy', 'label_smooth', 'soft_focal_loss']
+    loss_weight:
+        action_type: 4.0
+        delay: 0.4
+        queued: 1.0
+        selected_units: 1.0
+        target_units: 0.8
+        target_location: 1.0
 api:
     learner_port: 8293               # learner port
     coordinator_ip: 10.5.36.31       # learner and coordinator are in same cluster

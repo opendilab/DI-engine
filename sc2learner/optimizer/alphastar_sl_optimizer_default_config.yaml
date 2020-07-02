@@ -11,6 +11,13 @@ train:
     criterion:
         type: 'soft_focal_loss'  # ['cross_entropy', 'label_smooth', 'soft_focal_loss']
         action_type: 'normal'
+    loss_weight:
+        action_type: 4.0
+        delay: 0.4
+        queued: 1.0
+        selected_units: 1.0
+        target_units: 0.8
+        target_location: 1.0
     temperature: 1.0
     learning_rate: 0.001
     weight_decay: 0.0001

@@ -56,6 +56,7 @@ class AlphaStarSupervisedLoss(BaseLoss):
 
         self.criterion_config = train_config.criterion
         self.criterion = build_criterion(train_config.criterion)
+        self.loss_weight = train_config.loss_weight
         self.parallel = train_config.parallel
         self.temperature_scheduler = build_temperature_scheduler(
             train_config.temperature
@@ -95,14 +96,16 @@ class AlphaStarSupervisedLoss(BaseLoss):
 
             for loss_item_name, loss_func in self.loss_func.items():
                 loss_name = "{}_loss".format(loss_item_name)
-                loss_dict[loss_name].append(loss_func(policy_logits[loss_item_name], actions[loss_item_name]))
+                w = self.loss_weight[loss_item_name]
+                loss_dict[loss_name].append(loss_func(policy_logits[loss_item_name], actions[loss_item_name]) * w)
         else:
             for i, step_data in enumerate(data):
                 _, policy_logits, _ = self.agent.compute_action(step_data, mode='mimic', temperature=temperature)
                 for loss_item_name, loss_func in self.loss_func.items():
                     loss_name = "{}_loss".format(loss_item_name)
+                    w = self.loss_weight[loss_item_name]
                     loss_dict[loss_name].append(
-                        loss_func(policy_logits[loss_item_name], step_data["actions"][loss_item_name])
+                        loss_func(policy_logits[loss_item_name], step_data["actions"][loss_item_name]) * w
                     )
 
         new_loss_dict = dict()
