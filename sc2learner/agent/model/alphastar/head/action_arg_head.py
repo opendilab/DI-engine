@@ -448,7 +448,7 @@ class TargetUnitHead(nn.Module):
         if self.use_mask:
             if target_unit is not None:
                 for i, t in enumerate(target_unit):
-                    if t is not None:
+                    if isinstance(t, torch.Tensor):
                         mask[i, t] = 1
             logits.sub_((1 - mask) * 1e9)
 
@@ -568,7 +568,7 @@ class LocationHead(nn.Module):
         if self.use_mask:
             if location is not None:
                 for i, t in enumerate(location):
-                    if t is not None:
+                    if isinstance(t, torch.Tensor):
                         available_location_mask[i, 0, t[0], t[1]] = 1
             x -= ((1 - available_location_mask) * 1e9)
         if self.output_type == 'cls':
