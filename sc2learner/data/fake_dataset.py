@@ -28,7 +28,8 @@ NOOP = None
 
 
 def random_binary_tensor(size, dtype=torch.float32):
-    return torch.randint(0, 1, size=size, dtype=dtype)
+    randn = torch.randn(size)
+    return torch.where(randn > 0, torch.ones_like(randn), torch.zeros_like(randn)).to(dtype)
 
 
 def random_tensor(size, dtype=torch.float32):
