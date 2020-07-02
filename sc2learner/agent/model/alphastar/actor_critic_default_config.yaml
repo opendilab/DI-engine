@@ -10,7 +10,7 @@ model:
             name: winloss
             cum_stat_keys: ['unit_build']
             param:
-                input_dim: 1640
+                input_dim: 1664
                 activation: 'relu'
                 norm_type: 'LN'
                 res_dim: 256
@@ -19,7 +19,7 @@ model:
             name: build_order
             cum_stat_keys: ['unit_build', 'effect', 'research']
             param:
-                input_dim: 1768
+                input_dim: 1792
                 activation: 'relu'
                 norm_type: 'LN'
                 res_dim: 256
@@ -28,7 +28,7 @@ model:
             name: built_unit
             cum_stat_keys: ['unit_build']
             param:
-                input_dim: 1640
+                input_dim: 1664
                 activation: 'relu'
                 norm_type: 'LN'
                 res_dim: 256
@@ -37,7 +37,7 @@ model:
             name: effect
             cum_stat_keys: ['effect']
             param:
-                input_dim: 1640
+                input_dim: 1664
                 activation: 'relu'
                 norm_type: 'LN'
                 res_dim: 256
@@ -46,7 +46,7 @@ model:
             name: upgrade
             cum_stat_keys: ['research']
             param:
-                input_dim: 1640
+                input_dim: 1664
                 activation: 'relu'
                 norm_type: 'LN'
                 res_dim: 256
@@ -68,7 +68,7 @@ model:
                 use_stat: True  # whether use statistics z
                 activation: 'relu'
                 begin_num: 20  # beginning_build_order_num
-                output_dim: 1268  # use_stat(True: 1268, False: 1076)
+                output_dim: 1280  # use_stat(True: 1280, False: 1088)
             spatial_encoder:
                 input_dim: 52
                 resblock_num: 4
@@ -88,12 +88,13 @@ model:
                 layer_num: 3
                 dropout_ratio: 0.1
                 activation: 'relu'
+            use_score_cumulative: False
         scatter:
             input_dim: 256  # entity_encoder.output_dim
             output_dim: 32
         core_lstm:
             lstm_type: 'normal'
-            input_size: 1780  # spatial_encoder.fc_dim + entity_encoder.output_dim + scalar_encoder.output_dim
+            input_size: 1792  # spatial_encoder.fc_dim + entity_encoder.output_dim + scalar_encoder.output_dim
             hidden_size: 384
             num_layers: 3
             dropout: 0.2
@@ -113,7 +114,7 @@ model:
                 action_num: 327
                 action_map_dim: 256
                 gate_dim: 1024
-                context_dim: 244  # use_stat(True: 244, False: 116)
+                context_dim: 256
                 activation: 'relu'
                 norm_type: 'LN'
                 use_mask: True
@@ -121,7 +122,6 @@ model:
                 input_dim: 1024  # action_type_head.gate_dim
                 decode_dim: 256
                 delay_dim: 128
-                delay_encode_dim: 6
                 delay_map_dim: 256
                 activation: 'relu'
             queued_head:
@@ -131,7 +131,8 @@ model:
                 queued_map_dim: 256
                 activation: 'relu'
             selected_units_head:
-                lstm_type: 'normal'
+                lstm_type: 'pytorch'
+                lstm_norm_type: 'none'
                 input_dim: 1024  # action_type_head.gate_dim
                 entity_embedding_dim: 256  # entity_encoder.output_dim
                 key_dim: 32
@@ -145,15 +146,15 @@ model:
             target_unit_head:
                 input_dim: 1024  # action_type_head.gate_dim
                 entity_embedding_dim: 256  # entity_encoder.output_dim
-                key_dim: 32
+                key_dim: 256
                 unit_type_dim: 259
                 func_dim: 256
                 activation: 'relu'
                 use_mask: True
             location_head:
                 input_dim: 1024
-                upsample_type: 'deconv'
-                upsample_dims: [128, 64, 16, 1]  # len(upsample_dims)-len(down_channels)+1 = ratio
+                upsample_type: 'bilinear'
+                upsample_dims: [128, 64, 1]  # len(upsample_dims)-len(down_channels)+1 = ratio
                 res_dim: 128
                 res_num: 4
                 reshape_size: [16, 16]
@@ -162,4 +163,4 @@ model:
                 activation: 'relu'
                 output_type: 'cls'  # ['cls', 'soft_argmax']
                 use_mask: False
-                location_expand_ratio: 2
+                location_expand_ratio: 1

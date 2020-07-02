@@ -28,11 +28,13 @@ class Encoder(nn.Module):
 
         self.scatter_project = fc_block(cfg.scatter.input_dim, cfg.scatter.output_dim)
         self.scatter_dim = cfg.scatter.output_dim
-        self.score_cumulative_encoder = fc_block(
-            self.cfg.score_cumulative.input_dim,
-            self.cfg.score_cumulative.output_dim,
-            activation=build_activation(self.cfg.score_cumulative.activation)
-        )
+        self.use_score_cumulative = cfg.obs_encoder.use_score_cumulative
+        if self.use_score_cumulative:
+            self.score_cumulative_encoder = fc_block(
+                self.cfg.score_cumulative.input_dim,
+                self.cfg.score_cumulative.output_dim,
+                activation=build_activation(self.cfg.score_cumulative.activation)
+            )
 
     def _scatter_connection(self, spatial_info, entity_embeddings, entity_raw):
         if isinstance(entity_embeddings, collections.abc.Sequence):
@@ -44,15 +46,18 @@ class Encoder(nn.Module):
         else:
             project_embeddings = self.scatter_project(entity_embeddings)
         B, _, H, W = spatial_info.shape
-        scatter_map = torch.zeros(B, self.scatter_dim, H, W, device=spatial_info.device)
+        device = spatial_info.device
+        scatter_map = torch.zeros(B, self.scatter_dim, H * W, device=device)
         for b in range(B):
             N = entity_embeddings[b].shape[0]
-            for n in range(N):
-                h, w = entity_raw[b]['location'][n]
-                h, w = int(h), int(w)
-                h = min(max(0, h), H - 1)
-                w = min(max(0, w), W - 1)
-                scatter_map[b, :, h, w] = project_embeddings[b][n]
+            index = torch.LongTensor(entity_raw[b]['location']).to(device)
+            index[:, 0].clamp_(0, H - 1)
+            index[:, 1].clamp_(0, W - 1)
+            index = index[:, 0] * W + index[:, 1]
+            index = index.unsqueeze(0).repeat(self.scatter_dim, 1)
+            src = project_embeddings[b].permute(1, 0)
+            scatter_map[b].scatter_(dim=1, index=index, src=src)
+        scatter_map = scatter_map.reshape(B, self.scatter_dim, H, W)
         return torch.cat([spatial_info, scatter_map], dim=1)
 
     def forward(self, inputs):
@@ -80,7 +85,7 @@ class Encoder(nn.Module):
         '''
         embedded_scalar, scalar_context, baseline_feature, cum_stat = self.encoder['scalar_encoder'](
             inputs['scalar_info']
-        )  # noqa
+        )
         entity_embeddings, embedded_entity = self.encoder['entity_encoder'](inputs['entity_info'])
         spatial_input = self._scatter_connection(inputs['spatial_info'], entity_embeddings, inputs['entity_raw'])
         embedded_spatial, map_skip = self.encoder['spatial_encoder'](spatial_input, inputs['map_size'])
@@ -92,9 +97,21 @@ class Encoder(nn.Module):
             embedded_entity, embedded_spatial, embedded_scalar, inputs['prev_state']
         )
         lstm_output = lstm_output.squeeze(0)
-        if 'score_cumulative' in inputs.keys():
+        if self.use_score_cumulative:
             score_embedding = self.score_cumulative_encoder(inputs['score_cumulative'])
         else:
             score_embedding = None  # placeholder
         return lstm_output, next_state, entity_embeddings, map_skip, scalar_context, inputs[
             'spatial_info'], baseline_feature, cum_stat, score_embedding
+
+    def encode_parallel_forward(self, inputs):
+        embedded_scalar, scalar_context, baseline_feature, cum_stat = self.encoder['scalar_encoder'](
+            inputs['scalar_info']
+        )
+        entity_embeddings, embedded_entity = self.encoder['entity_encoder'](inputs['entity_info'])
+        spatial_input = self._scatter_connection(inputs['spatial_info'], entity_embeddings, inputs['entity_raw'])
+        embedded_spatial, map_skip = self.encoder['spatial_encoder'](spatial_input, inputs['map_size'])
+        return [
+            embedded_entity, embedded_spatial, embedded_scalar, scalar_context, baseline_feature, cum_stat,
+            entity_embeddings, map_skip
+        ]

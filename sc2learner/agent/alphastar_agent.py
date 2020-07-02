@@ -108,11 +108,13 @@ class AlphaStarAgent(BaseAgent):
         for ep_id, activate in self.active_episodes.items():
             if activate:
                 # self.prev_state[ep_id] = [element.detach() for element in next_states[activate_episode_index]]
+                # when lstm arg `list_next_state` == False
+                # self.prev_state[ep_id] = [t[:, activate_episode_index].unsqueeze(1) for t in next_states]
+                # when lstm arg `list_next_state` == True
                 self.prev_state[ep_id] = next_states[activate_episode_index]
                 activate_episode_index += 1
             else:
                 self.prev_state[ep_id] = None
-        assert activate_episode_index == len(next_states), (activate_episode_index, len(next_states))
 
     def compute_action(self, step_data, mode, prev_states='no_outer_states', temperature=1.0, require_grad=None):
         """ Forward pass the agent's model to collect its response in the given timestep.
@@ -158,6 +160,18 @@ class AlphaStarAgent(BaseAgent):
                 actions, logits, next_states = self.model(step_data, mode="evaluate", temperature=temperature)
         if prev_states == 'no_outer_states':
             self._after_forward(next_states)
+        return AgentOutput(actions=actions, logits=logits, next_state=next_states)
+
+    def compute_action_parallel(self, data, mode, prev_states='no_outer_states', temperature=1.0):
+        assert mode in ["mimic", "evaluate"]
+        # TODO(nyz) check equal trajectory
+        # TODO(nyz) pass hidden states
+        data[0]['prev_state'] = None
+        if mode == 'mimic':
+            logits, next_states = self.model(data, mode=mode + '_parallel', temperature=temperature)
+            actions = None  # placeholder
+        else:
+            raise NotImplementedError(mode)
         return AgentOutput(actions=actions, logits=logits, next_state=next_states)
 
     def compute_action_value(self, step_data, temperature=1.0):

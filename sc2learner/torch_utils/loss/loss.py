@@ -17,25 +17,22 @@ class LabelSmoothCELoss(nn.Module):
         return -torch.sum(logits * (one_hot.detach())) / B
 
 
+class SoftFocalLoss(torch.nn.Module):
+    def __init__(self, gamma=2, weight=None, size_average=True, reduce=None):
+        super(SoftFocalLoss, self).__init__()
+        self.gamma = gamma
+        self.nll_loss = torch.nn.NLLLoss2d(weight, size_average, reduce=reduce)
+
+    def forward(self, inputs, targets):
+        return self.nll_loss((1 - F.softmax(inputs, 1))**self.gamma * F.log_softmax(inputs, 1), targets)
+
+
 def build_criterion(cfg):
     if cfg.type == 'cross_entropy':
         return nn.CrossEntropyLoss()
     elif cfg.type == 'label_smooth_ce':
         return LabelSmoothCELoss(cfg.kwargs.smooth_ratio)
+    elif cfg.type == 'soft_focal_loss':
+        return SoftFocalLoss()
     else:
         raise ValueError("invalid criterion type:{}".format(cfg.type))
-
-
-def test_label_smooth_ce_loss():
-    logits = torch.randn(4, 6)
-    labels = torch.LongTensor([i for i in range(4)])
-    criterion1 = LabelSmoothCELoss(0)
-    criterion2 = nn.CrossEntropyLoss()
-    print(criterion1(logits, labels))
-    print(criterion2(logits, labels))
-    assert (torch.abs(criterion1(logits, labels) - criterion2(logits, labels)) < 1e-6)
-    print("test end")
-
-
-if __name__ == "__main__":
-    test_label_smooth_ce_loss()

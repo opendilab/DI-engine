@@ -39,7 +39,7 @@ class BeginningBuildOrderEncoder(nn.Module):
         self.transformer = Transformer(
             input_dim=input_dim, head_dim=16, hidden_dim=64, output_dim=64, activation=self.act
         )
-        self.embedd_fc = fc_block(64, 1, activation=self.act)
+        self.embedd_fc = fc_block(64, self.output_dim, activation=self.act)
 
     def _add_seq_info(self, x):
         N = x.shape[1]
@@ -49,10 +49,11 @@ class BeginningBuildOrderEncoder(nn.Module):
         return torch.cat([x, indices_one_hot], dim=2)
 
     def forward(self, x):
-        assert len(x.shape) == 3 and x.shape[1] == self.output_dim
+        assert len(x.shape) == 3
         x = self._add_seq_info(x)
         x = self.transformer(x)
-        x = self.embedd_fc(x).squeeze(2)
+        x = x.mean(dim=1)
+        x = self.embedd_fc(x)
         return x
 
 

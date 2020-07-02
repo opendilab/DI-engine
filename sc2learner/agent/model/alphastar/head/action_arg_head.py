@@ -33,11 +33,11 @@ class DelayHead(nn.Module):
         self.act = build_activation(cfg.activation)
         self.fc1 = fc_block(cfg.input_dim, cfg.decode_dim, activation=self.act, norm_type=None)
         self.fc2 = fc_block(cfg.decode_dim, cfg.decode_dim, activation=self.act, norm_type=None)
-        self.fc3 = fc_block(cfg.decode_dim, 1, activation=nn.Sigmoid(), norm_type=None)  # regression
-        self.embed_fc1 = fc_block(cfg.delay_encode_dim, cfg.delay_map_dim, activation=self.act, norm_type=None)
+        self.fc3 = fc_block(cfg.decode_dim, cfg.delay_dim, activation=nn.Sigmoid(), norm_type=None)  # regression
+        self.embed_fc1 = fc_block(cfg.delay_dim, cfg.delay_map_dim, activation=self.act, norm_type=None)
         self.embed_fc2 = fc_block(cfg.delay_map_dim, cfg.input_dim, activation=self.act, norm_type=None)
-
-        self.delay_max_range = math.pow(2, cfg.delay_encode_dim) - 1
+        self.pd = CategoricalPdPytorch
+        self.delay_dim = cfg.delay_dim
 
     def forward(self, embedding, delay=None):
         '''
@@ -53,7 +53,7 @@ class DelayHead(nn.Module):
                 - delay (:obj:`tensor or None`): when SL training, the caller indicates delay value to calculate
                     embedding
             Returns:
-                - (:obj`tensor`): delay for calculation loss, shape(B, 1), dtype(torch.float)
+                - (:obj`tensor`): delay for calculation loss, shape(B, delay_dim), dtype(torch.float)
                 - (:obj`tensor`): delay action, shape(B, ), dtype(torch.long)
                 - (:obj`tensor`): autoregressive_embedding that combines information from lstm_output
                                   and all previous sampled arguments, shape(B, input_dim)
@@ -61,16 +61,19 @@ class DelayHead(nn.Module):
         x = self.fc1(embedding)
         x = self.fc2(x)
         x = self.fc3(x)
-        delay_output = (x * self.delay_max_range)
         if delay is None:
-            delay = torch.round(delay_output).long().squeeze(1)
+            p = F.softmax(x, dim=1)
+            handle = self.pd(p)
+            if self.training:
+                delay = handle.sample()
+            else:
+                delay = handle.mode()
 
-        # embedding gradient can't backprop to the fc predicting delay
-        delay_encode = binary_encode(delay, self.delay_max_range).float()
+        delay_encode = one_hot(delay, self.delay_dim)
         embedding_delay = self.embed_fc1(delay_encode)
         embedding_delay = self.embed_fc2(embedding_delay)  # get autoregressive_embedding
 
-        return delay_output, delay, embedding + embedding_delay
+        return x, delay, embedding + embedding_delay
 
 
 class QueuedHead(nn.Module):
@@ -152,47 +155,61 @@ class SelectedUnitsHead(nn.Module):
         self.fc1 = fc_block(cfg.input_dim, cfg.func_dim, activation=self.act, norm_type=None)
         self.fc2 = fc_block(cfg.func_dim, cfg.key_dim, activation=self.act, norm_type=None)
         self.embed_fc = fc_block(cfg.key_dim, cfg.input_dim, activation=None, norm_type=None)
-        self.lstm = get_lstm(cfg.lstm_type, cfg.key_dim, cfg.hidden_dim, cfg.num_layers, norm_type='LN')
+        self.lstm = get_lstm(cfg.lstm_type, cfg.key_dim, cfg.hidden_dim, cfg.num_layers, norm_type=cfg.lstm_norm_type)
 
         self.max_entity_num = cfg.max_entity_num
         self.key_dim = cfg.key_dim
         self.use_mask = cfg.use_mask
         self.pd = CategoricalPdPytorch
 
-    def _get_key(self, entity_embedding):
+        self.end_embedding = torch.nn.Parameter(torch.FloatTensor(1, self.key_dim))
+        stdv = 1. / math.sqrt(self.end_embedding.size(1))
+        self.end_embedding.data.uniform_(-stdv, stdv)
+
+    def _get_key_mask(self, entity_embedding, entity_mask):
         '''
             Overview: computes a key corresponding to each entity by feeding entity_embeddings through
                       a 1D convolution with 32 channels and kernel size 1.
+                      pad with the maximum entity number in a batch and pack into tensor
             Arguments:
-                - entity_embedding (:obj:`tensor`): entity embeddings
+                - entity_embedding (:obj:`list`): entity embeddings
+                - entity_mask (:obj:`list`): entity mask
             Returns:
-                - (:obj`tensor`): corresponding to ending unit selection
-                - (:obj`tensor`): end_flag_index, should be the number of entity
+                - pad_key (:obj`tensor`): pad entity embeddings, which are the keys in the next match
+                - pad_mask (:obj:`tensor`): pad entity mask
+                - end_flag_index (:obj`tensor`): end_flag_index, should be the number of entity
         '''
-        B, N = entity_embedding.shape[:2]
-        key = self.key_fc(entity_embedding)
-        end_flag = torch.zeros(B, 1, self.key_dim, device=key.device)  # zero initial state
-        key = torch.cat([key, end_flag], dim=1)  # corresponding
-        end_flag_index = N
-        return key, end_flag_index
+        end_flag_index = [e.shape[0] for e in entity_embedding]  # 0 index
+        batch_size = len(end_flag_index)
+        pad_num = max(end_flag_index) + 1
+        # key_fc
+        key = self.key_fc(torch.cat(entity_embedding, dim=0))
+        # pad key and mask, add end_flag
+        pad_key = torch.zeros(batch_size, pad_num, self.key_dim, device=key.device)
+        pad_mask = torch.zeros(batch_size, pad_num, device=key.device)
+        start = 0
+        for b in range(batch_size):
+            real_num = end_flag_index[b]
+            end = start + real_num
+            pad_key[b, :real_num] = key[start:end]
+            pad_key[b, real_num:real_num + 1] = self.end_embedding
+            pad_mask[b, :real_num] = entity_mask[b]
+            pad_mask[b, real_num] = 1
+            start = end
+        return pad_key, pad_mask, end_flag_index
 
-    def _get_init_query(self, embedding, available_unit_type_mask):
+    def _get_query(self, embedding, func_embed):
         '''
             Overview: passes autoregressive_embedding through a linear of size 256, adds func_embed, and
                       passes the combination through a ReLU and a linear of size 32.
             Arguments:
                 - embedding (:obj:`tensor`): autoregressive_embedding
-                - available_unit_type_mask (:obj:`tensor`): mask for available unit type
+                - func_embed (:obj:`tensor`): embedding derived from available_unit_type_mask
             Returns:
                 - (:obj`tensor`): result
-                - (:obj`tensor`): state use None as default
         '''
-        func_embed = self.func_fc(available_unit_type_mask)
         x = self.fc1(embedding)
-        x = self.fc2(x + func_embed)
-
-        state = None
-        return x, state
+        return self.fc2(x + func_embed)
 
     def _get_pred_with_logit(self, logit, temperature):
         p = F.softmax(logit.div(temperature), dim=-1)
@@ -202,71 +219,97 @@ class SelectedUnitsHead(nn.Module):
         else:
             return handle.mode()
 
-    def _query(self, key, end_flag_index, x, state, mask, temperature, selected_units):
+    def _query(self, key, end_flag_index, autoregressive_embedding, func_embed, mask, temperature, selected_units):
         B, N = key.shape[:2]
-        units = torch.zeros(B, N, device=key.device, dtype=torch.long)
         logits = [[] for _ in range(B)]
-        x = x.unsqueeze(0)
+
         if selected_units is None:
+            units_index = [[] for _ in range(B)]
             end_flag_trigger = [False for _ in range(B)]
+            state = None
 
             for i in range(self.max_entity_num):
                 if sum(end_flag_trigger) == B:
                     break
-                x, state = self.lstm(x, state)
-                query_result = x.permute(1, 0, 2) * key
+                lstm_input = self._get_query(autoregressive_embedding, func_embed).unsqueeze(0)
+                lstm_output, state = self.lstm(lstm_input, state)
+                query_result = lstm_output.permute(1, 0, 2) * key
                 query_result = query_result.mean(dim=2)
                 if self.use_mask:
                     query_result.sub_((1 - mask) * 1e9)
                 entity_num = self._get_pred_with_logit(query_result, temperature)
 
+                selected_units_step = torch.zeros(B, device=key.device, dtype=torch.long)
                 for b in range(B):
                     if end_flag_trigger[b]:
                         continue
                     else:
                         logits[b].append(query_result[b])
-                        if entity_num[b] == end_flag_index:
-                            end_flag_trigger[b] = True
-                            # evaluate and logits == 1 case(only end_flag), select the second largest unit
-                            if not self.training and len(logits[b]) == 1:
+                        # end_flag doesn't also contribute to autoregressive_embedding
+                        if entity_num[b] == end_flag_index[b]:
+                            # logits == 1 case(only end_flag), select the second largest unit
+                            if len(logits[b]) == 1:
                                 logit = query_result[b]
                                 logit[end_flag_index] = -1e9
-                                logits[b].insert(0, logit)
+                                logits[b][0] = logit
                                 entity_num_b = self._get_pred_with_logit(logit, temperature)
-                                units[b][entity_num_b] = 1
-                            continue
-                        units[b][entity_num[b]] = 1
-                        mask[b][entity_num[b]] = 0
+                                units_index[b].append(entity_num_b)
+                                mask[b][entity_num_b] = 0
+                                selected_units_step[b] = entity_num_b
+                            else:
+                                end_flag_trigger[b] = True
+                        else:
+                            units_index[b].append(entity_num[b])
+                            mask[b][entity_num[b]] = 0
+                            selected_units_step[b] = entity_num[b]
+                selected_mask = torch.LongTensor(end_flag_trigger).to(key.device)
+
+                embedding_selected = one_hot(selected_units_step, N).unsqueeze(2)
+                embedding_selected = embedding_selected * key
+                embedding_selected = embedding_selected.mean(dim=1)
+                autoregressive_embedding = autoregressive_embedding + self.embed_fc(embedding_selected
+                                                                                    ) * selected_mask.view(B, 1)
+
+            units_index = [torch.stack(t, dim=0) for t in units_index]
         else:
+            # rewrite some parts of mask which is related to selected_units label
+            # TODO(nyz) output warning info about the rewrite parts
+            for i, t in enumerate(selected_units):
+                mask[i, t] = 1
+
+            state = None
             output_entity_num = [t.shape[0] for t in selected_units]
-            # transform selected_units to units format
-            for idx, su in enumerate(selected_units):
-                for u in su:
-                    units[idx][u] = 1
             for i in range(max(output_entity_num) + 1):
-                x, state = self.lstm(x, state)
-                query_result = x.permute(1, 0, 2) * key
+                lstm_input = self._get_query(autoregressive_embedding, func_embed).unsqueeze(0)
+                lstm_output, state = self.lstm(lstm_input, state)
+                query_result = lstm_output.permute(1, 0, 2) * key
                 query_result = query_result.mean(dim=2)
                 if self.use_mask:
                     query_result.sub_((1 - mask) * 1e9)
+
+                # record logits and get selected_units_step
+                selected_units_step = torch.zeros(B, device=key.device, dtype=torch.long)
                 for b in range(B):
                     if i > output_entity_num[b]:
                         continue
+                    # end_flag doesn't contribute to autoregressive_embedding
+                    elif i == output_entity_num[b]:
+                        logits[b].append(query_result[b])
                     else:
                         logits[b].append(query_result[b])
-        logits = [torch.stack(t, dim=0) for t in logits]
-        embedding_selected = units.unsqueeze(2).to(key.dtype)
-        embedding_selected = embedding_selected * key
-        embedding_selected = embedding_selected.sum(dim=1) / torch.clamp(
-            units.sum(dim=1, keepdim=True), 1
-        )  # mean by the valid units
-        embedding_selected = self.embed_fc(embedding_selected)
+                        selected_units_step[b] = selected_units[b][i]
+                selected_mask = torch.LongTensor([i < num for num in output_entity_num]).to(key.device)
 
-        units_index = []
-        for unit in units:
-            index = torch.nonzero(unit).squeeze(1)
-            units_index.append(index)
-        return logits, units_index, embedding_selected
+                embedding_selected = one_hot(selected_units_step, N).unsqueeze(2)
+                embedding_selected = embedding_selected * key
+                embedding_selected = embedding_selected.mean(dim=1)
+                autoregressive_embedding = autoregressive_embedding + self.embed_fc(embedding_selected
+                                                                                    ) * selected_mask.view(B, 1)
+
+            units_index = selected_units
+
+        logits = [torch.stack(t, dim=0) for t in logits]
+        return logits, units_index, autoregressive_embedding
 
     def forward(
         self,
@@ -295,17 +338,19 @@ class SelectedUnitsHead(nn.Module):
             units: [batch_size, num_units] 0-1 vector
             new_embedding: [batch_size, input_dim(1024)]
         '''
-        assert (isinstance(entity_embedding, torch.Tensor))
 
-        input, state = self._get_init_query(embedding, available_unit_type_mask)
-        mask = available_units_mask
-        key, end_flag_index = self._get_key(entity_embedding)
-        mask = torch.cat([mask, torch.ones_like(mask[:, 0:1])], dim=1)
-        logits, units, embedding_selected = self._query(
-            key, end_flag_index, input, state, mask, temperature, selected_units
+        shapes = [e.shape[0] for e in entity_embedding]
+        key, mask, end_flag_index = self._get_key_mask(entity_embedding, available_units_mask)
+        func_embed = self.func_fc(available_unit_type_mask)
+        logits, units, embedding = self._query(
+            key, end_flag_index, embedding, func_embed, mask, temperature, selected_units
         )
+        logits = self._get_valid_logits(logits, shapes)
 
-        return logits, units, embedding + embedding_selected
+        return logits, units, embedding
+
+    def _get_valid_logits(self, logits, shapes):
+        return [t[:, :s + 1] for t, s in zip(logits, shapes)]
 
 
 class TargetUnitHead(nn.Module):
@@ -328,6 +373,7 @@ class TargetUnitHead(nn.Module):
         self.use_mask = cfg.use_mask
 
         self.pd = CategoricalPdPytorch
+        self.key_dim = cfg.key_dim
 
     def _get_query(self, embedding, available_unit_type_mask):
         func_embed = self.func_fc(available_unit_type_mask)
@@ -335,7 +381,45 @@ class TargetUnitHead(nn.Module):
         x = self.fc2(x + func_embed)
         return x
 
-    def forward(self, embedding, available_unit_type_mask, available_units_mask, entity_embedding, temperature=1.0):
+    def _get_key_mask(self, entity_embedding, entity_mask):
+        '''
+            Overview: computes a key corresponding to each entity by feeding entity_embeddings through
+                      a 1D convolution with 32 channels and kernel size 1.
+                      pad with the maximum entity number in a batch and pack into tensor
+            Arguments:
+                - entity_embedding (:obj:`list`): entity embeddings
+                - entity_mask (:obj:`list`): entity mask
+            Returns:
+                - pad_key (:obj`tensor`): pad entity embeddings, which are the keys in the next match
+                - pad_mask (:obj:`tensor`): pad entity mask
+                - end_flag_index (:obj`tensor`): end_flag_index, should be the number of entity
+        '''
+        shapes = [e.shape[0] for e in entity_embedding]
+        batch_size = len(entity_embedding)
+        pad_num = max(shapes)
+        # key_fc
+        key = self.key_fc(torch.cat(entity_embedding, dim=0))
+        # pad key and mask, add end_flag
+        pad_key = torch.zeros(batch_size, pad_num, self.key_dim, device=key.device)
+        pad_mask = torch.zeros(batch_size, pad_num, device=key.device)
+        start = 0
+        for b in range(batch_size):
+            real_num = shapes[b]
+            end = start + real_num
+            pad_key[b, :real_num] = key[start:end]
+            pad_mask[b, :real_num] = entity_mask[b]
+            start = end
+        return pad_key, pad_mask
+
+    def forward(
+        self,
+        embedding,
+        available_unit_type_mask,
+        available_units_mask,
+        entity_embedding,
+        temperature=1.0,
+        target_unit=None
+    ):
         '''
             Overview: First func_embed is computed the same as in the Selected Units head, and used in the
                       same way for the query (added to the output of the autoregressive_embedding passed
@@ -346,33 +430,42 @@ class TargetUnitHead(nn.Module):
                       one of the two terminal arguments (along with Location Head, since no action has
                       both a target unit and a target location), it does not return autoregressive_embedding.
             Arguments:
-                - embedding (:obj`tensor`): autoregressive_embeddingm, [batch_size, input_dim(1024)]
+                - embedding (:obj`tensor`): autoregressive_embedding, [batch_size, input_dim(1024)]
                 - available_unit_type_mask (:obj`tensor`): [batch_size, num_unit_type]
                 - available_units_mask (:obj`tensor`): [batch_size, num_units]
                 - entity_embedding (:obj`tensor`): [batch_size, num_units, entity_embedding_dim(256)]
-                - temperature (:obj:`float`):
+                - temperature (:obj:`float`): logits sample temperature
+                - target_unit (:obj:`Tensor` or None): when SL training, the caller indicates target_unit
             Returns:
                 - (:obj`tensor`): logits, List(batch_size) - List(num_selected_units) - num_units
                 - (:obj`tensor`): target_unit, [batch_size] target_unit index
         '''
-        assert isinstance(entity_embedding, torch.Tensor)
-
-        mask = available_units_mask
-        key = self.key_fc(entity_embedding)
+        shapes = [e.shape[0] for e in entity_embedding]
+        key, mask = self._get_key_mask(entity_embedding, available_units_mask)
         query = self._get_query(embedding, available_unit_type_mask)
         logits = query.unsqueeze(1) * key
         logits = logits.mean(dim=2)
         if self.use_mask:
+            if target_unit is not None:
+                for i, t in enumerate(target_unit):
+                    if isinstance(t, torch.Tensor):
+                        mask[i, t] = 1
             logits.sub_((1 - mask) * 1e9)
 
-        p = F.softmax(logits.div(temperature), dim=1)
-        handle = self.pd(p)
-        if self.training:
-            target_unit = handle.sample()
-        else:
-            target_unit = handle.mode()
+        if target_unit is None:
+            p = F.softmax(logits.div(temperature), dim=1)
+            handle = self.pd(p)
+            if self.training:
+                target_unit = handle.sample()
+            else:
+                target_unit = handle.mode()
+        logits = self._get_valid_logits(logits, shapes)
 
         return logits, target_unit
+
+    def _get_valid_logits(self, logits, shapes):
+        logits = torch.chunk(logits, logits.shape[0], 0)
+        return [t[0][:s] for t, s in zip(logits, shapes)]
 
 
 class LocationHead(nn.Module):
@@ -424,6 +517,7 @@ class LocationHead(nn.Module):
                         conv2d_block(dims[i], dims[i + 1], 3, 1, 1, activation=self.act, norm_type=None)
                     )
                 )
+        self.ensemble_conv = conv2d_block(dims[-1], 1, 1, 1, 0, activation=None, norm_type=None)
 
         self.ratio = cfg.location_expand_ratio
         self.use_mask = cfg.use_mask
@@ -434,7 +528,7 @@ class LocationHead(nn.Module):
         else:
             self.soft_argmax = SoftArgmax()
 
-    def forward(self, embedding, map_skip, available_location_mask, temperature=1.0):
+    def forward(self, embedding, map_skip, available_location_mask, temperature=1.0, location=None):
         '''
             Overview: First autoregressive_embedding is reshaped to have the same height/width as the final skip
                       in map_skip (which was just before map information was reshaped to a 1D embedding) with 4
@@ -449,13 +543,14 @@ class LocationHead(nn.Module):
                       sampled (masking out invalid locations using `action_type`, such as those outside the camera
                       for build actions) with temperature 0.8 to get the actual target position.
             Arguments:
-                - embedding (:obj`tensor`): autoregressive_embeddingm, [batch_size, input_dim(1024)]
+                - embedding (:obj`tensor`): autoregressive_embedding, [batch_size, input_dim(1024)]
                 - map_skip (:obj`tensor`): tensors of the outputs of intermediate computations, len=res_num, each
                     element is a torch FloatTensor with shape[batch_size, res_dim, map_y // 8, map_x // 8]
                 - available_location_mask (:obj`tensor`): [batch_size, 1, map_y, map_x]
                 - temperature (:obj:`float`): temperature
+                - location (:obj:`Tensor`):  when SL training, the caller indicates location
             Returns:
-                - (:obj`tensor`): outputs, shape[batch_size, 1, map_y, map_x](cls), shape[batch_size, 2](soft_argmax)
+                - (:obj`tensor`): outputs, shape[batch_size, map_y, map_x](cls), shape[batch_size, 2](soft_argmax)
                 - (:obj`tensor`): location, shape[batch_size, 2]
         '''
         reshape_embedding = embedding.reshape(-1, self.reshape_channel, *self.reshape_size)
@@ -469,26 +564,34 @@ class LocationHead(nn.Module):
             x = act(x, skip)
         for layer in self.upsample:
             x = layer(x)
+        x = self.ensemble_conv(x)
         if self.use_mask:
+            if location is not None:
+                for i, t in enumerate(location):
+                    if isinstance(t, torch.Tensor):
+                        available_location_mask[i, 0, t[0], t[1]] = 1
             x -= ((1 - available_location_mask) * 1e9)
         if self.output_type == 'cls':
             W = x.shape[3]
             logits_flatten = x.view(x.shape[0], -1)
-            p = F.softmax(logits_flatten.div(temperature), dim=1)
-            handle = self.pd(p)
-            if self.training:
-                location = handle.sample()
-            else:
-                location = handle.mode()
+            if location is None:
+                p = F.softmax(logits_flatten.div(temperature), dim=1)
+                handle = self.pd(p)
+                if self.training:
+                    location = handle.sample()
+                else:
+                    location = handle.mode()
 
-            location = torch.stack([location // W, location % W], dim=1)
-            location /= self.ratio
+                location = torch.stack([location // W, location % W], dim=1)
+                location /= self.ratio
             x = self._map2origin_size(x)
-            return x, location
+            return x.squeeze(1), location
         elif self.output_type == 'soft_argmax':
             x = self._map2origin_size(x)
             x = self.soft_argmax(x)
-            return x, x.detach().long()
+            if location is None:
+                location = x.detach().long()
+            return x, location
 
     def _map2origin_size(self, x):
         if self.ratio > 1:

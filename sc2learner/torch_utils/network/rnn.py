@@ -2,7 +2,7 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from .normalization import build_normalization
+from sc2learner.torch_utils.network.normalization import build_normalization
 
 
 class LSTMForwardWrapper(object):
@@ -116,7 +116,7 @@ class LSTM(nn.Module, LSTMForwardWrapper):
             next_state.append((h, c))
             x = torch.stack(new_x, dim=0)
 
-        next_state = self._after_forward(next_state)
+        next_state = self._after_forward(next_state, list_next_state)
         return x, next_state
 
 

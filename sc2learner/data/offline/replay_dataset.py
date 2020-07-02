@@ -11,7 +11,7 @@ import torch.nn.functional as F
 from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UPGRADES
 from sc2learner.data.base_dataset import BaseDataset
 from sc2learner.envs import get_available_actions_processed_data, decompress_obs, action_unit_id_transform,\
-    get_enemy_upgrades_processed_data
+    get_enemy_upgrades_processed_data, action_type_transform
 from sc2learner.utils import read_file_ceph, list_dict2dict_list
 
 META_SUFFIX = '.meta'
@@ -26,7 +26,7 @@ class ReplayDataset(BaseDataset):
         super(ReplayDataset, self).__init__(dataset_config)
         with open(dataset_config.replay_list, 'r') as f:
             path_list = f.readlines()
-        self.path_list = [{'name': p[:-1], 'count': 0} for idx, p in enumerate(path_list)]
+        self.path_list = [{'name': p[:-1].split(' ')[0], 'count': 0} for idx, p in enumerate(path_list)]
 
         # if train_mode is set to True, then we return a clipped version of data. Otherwise return the whole episode.
         self.complete_episode = not train_mode
@@ -45,6 +45,7 @@ class ReplayDataset(BaseDataset):
         self.use_ceph = dataset_config.use_ceph
         self.use_available_action_transform = dataset_config.use_available_action_transform
         self.use_enemy_upgrades = dataset_config.use_enemy_upgrades
+        self.ignore_camera = dataset_config.get('ignore_camera', True)
 
     def __len__(self):
         return len(self.path_list)
@@ -63,7 +64,7 @@ class ReplayDataset(BaseDataset):
         for i in index:
             handle = self.path_list[i]
             if 'step_num' not in handle.keys():
-                meta = torch.load(self._read_file(handle['name'] + META_SUFFIX))
+                meta = self._read_file(handle['name'] + META_SUFFIX)
                 step_num = meta['step_num']
                 handle['step_num'] = step_num
                 handle['map_size'] = meta['map_size']
@@ -97,14 +98,14 @@ class ReplayDataset(BaseDataset):
         for i in index:
             self.path_list[i].pop('cur_step')
 
-    def _read_file(self, path, read_type='BytesIO'):
+    def _read_file(self, path, read_type='pickle'):
         if self.use_ceph:
             return read_file_ceph(path, read_type=read_type)
         else:
-            return path
+            return torch.load(path)
 
     def _load_stat(self, handle):
-        stat = torch.load(self._read_file(handle['name'] + STAT_SUFFIX))
+        stat = self._read_file(handle['name'] + STAT_SUFFIX)
         mmr = stat['mmr']
         beginning_build_order = stat['beginning_build_order']
         # first self.beginning_build_order_num item
@@ -118,10 +119,8 @@ class ReplayDataset(BaseDataset):
 
     def __getitem__(self, idx):
         handle = self.path_list[idx]
-        print(handle)
 
-        d1 = self._read_file(handle['name'] + DATA_SUFFIX)
-        data = torch.load(d1)
+        data = self._read_file(handle['name'] + DATA_SUFFIX)
 
         # clip the dataset
         if self.complete_episode:
@@ -136,12 +135,13 @@ class ReplayDataset(BaseDataset):
             self.bool_cum = float(np.random.rand() < self.cumulative_stat_prob)
 
         sample_data = action_unit_id_transform(sample_data)
+        sample_data = action_type_transform(sample_data)
         sample_data = [decompress_obs(d) for d in sample_data]
         if self.use_available_action_transform:
             sample_data = [get_available_actions_processed_data(d) for d in sample_data]
 
         if self.complete_episode:
-            meta = torch.load(self._read_file(handle['name'] + META_SUFFIX))
+            meta = self._read_file(handle['name'] + META_SUFFIX)
             map_size = list(reversed(meta['map_size']))
         else:
             # check raw coordinate (x, y) <-> (y, x)
@@ -156,9 +156,14 @@ class ReplayDataset(BaseDataset):
             beginning_build_order, cumulative_stat, mmr = self._load_stat(handle)
 
         enemy_upgrades = None
-        bool_cum = float(np.random.rand() < self.cumulative_stat_prob)
         for i in range(len(sample_data)):
             sample_data[i]['map_size'] = map_size
+            if self.ignore_camera:
+                # mask camera spatial info
+                sample_data[i]['spatial_info'][1:3] *= 0
+                # mask is_on_screen entity info
+                sample_data[i]['entity_info'][:, 408:410] *= 0
+
             if self.use_stat:
                 sample_data[i]['scalar_info']['beginning_build_order'] = beginning_build_order * self.bool_bo
                 sample_data[i]['scalar_info']['mmr'] = mmr

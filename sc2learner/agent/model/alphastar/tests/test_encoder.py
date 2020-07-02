@@ -2,6 +2,7 @@ import pytest
 import torch
 import numpy as np
 from sc2learner.agent.model.alphastar.obs_encoder import ScalarEncoder, EntityEncoder, SpatialEncoder
+from sc2learner.agent.model.alphastar.encoder import Encoder
 from sc2learner.envs.observations import transform_scalar_data
 from sc2learner.agent.model.alphastar.tests.conftest import is_differentiable
 
@@ -29,9 +30,9 @@ class TestEncoder:
         inputs['cumulative_stat'] = cumulative_stat_input
 
         embedded_scalar, scalar_context, baseline_feature, cumulative_stat = model(inputs)
-        assert (embedded_scalar.shape == (B, 1268))
-        assert (scalar_context.shape == (B, 244))
-        assert (baseline_feature.shape == (B, 340))
+        assert (embedded_scalar.shape == (B, 1280))
+        assert (scalar_context.shape == (B, 256))
+        assert (baseline_feature.shape == (B, 352))
         for k, v in cumulative_stat.items():
             assert v.shape == (B, template_replay[1]['output_dim'])
 
@@ -112,3 +113,27 @@ class TestEncoder:
                 assert len(m) == B
                 for t, (H, W) in zip(m, map_size):
                     assert t.shape == (handle.down_channels[-1], H // 8, W // 8)
+
+    def test_scatter_connection(self, setup_config):
+        B = 5
+        handle = setup_config.model.encoder
+        model = Encoder(handle)
+        assert isinstance(model, torch.nn.Module)
+        map_size = (200, 180)
+
+        spatial_info = torch.randn(B, 8, *map_size)
+        entity_num = [np.random.randint(200, 300) for _ in range(B)]
+        entity_raw = [
+            {
+                'location': [
+                    [np.random.randint(0, map_size[0]),
+                     np.random.randint(0, map_size[1])] for _ in range(entity_num[b])
+                ]
+            } for b in range(B)
+        ]
+        entity_embedding = [torch.randn(entity_num[b], handle.scatter.input_dim) for b in range(B)]
+
+        output = model._scatter_connection(spatial_info, entity_embedding, entity_raw)
+        assert output.shape == (B, 8 + handle.scatter.output_dim, *map_size)
+        loss = output.mean()
+        is_differentiable(loss, model.scatter_project)

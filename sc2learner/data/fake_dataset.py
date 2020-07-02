@@ -7,7 +7,7 @@ import os
 import numpy as np
 import torch
 
-from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UNIT_TYPES, ACTIONS_REORDER_INV, NUM_BEGIN_ACTIONS
+from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UNIT_TYPES, ACTIONS_REORDER_INV, NUM_BEGIN_ACTIONS, NUM_UPGRADES
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
 from sc2learner.data.offline.replay_dataset import ReplayDataset, START_STEP
 from sc2learner.utils import get_step_data_compressor
@@ -18,9 +18,9 @@ META_SUFFIX = '.meta'
 DATA_SUFFIX = '.step'
 STAT_SUFFIX = '.stat_processed'
 MAP_SIZE = [176, 200]
-DELAY_MAX = 63
+DELAY_MAX = 127
 MAX_SELECTED_UNITS = 64
-ACTION_CANDIDATES = list(ACTIONS_REORDER.keys())
+ACTION_CANDIDATES = list(ACTIONS_REORDER.values())
 NUM_ACTION_TYPES = len(ACTION_CANDIDATES)
 LSTM_DIMS = [3, 1, 384]
 
@@ -28,7 +28,8 @@ NOOP = None
 
 
 def random_binary_tensor(size, dtype=torch.float32):
-    return torch.randint(0, 1, size=size, dtype=dtype)
+    randn = torch.randn(size)
+    return torch.where(randn > 0, torch.ones_like(randn), torch.zeros_like(randn)).to(dtype)
 
 
 def random_tensor(size, dtype=torch.float32):
@@ -36,8 +37,9 @@ def random_tensor(size, dtype=torch.float32):
 
 
 def random_action_type():
-    action_type = np.random.choice(NUM_ACTION_TYPES, [1])
-    return torch.from_numpy(action_type).type(torch.int64)
+    action_type_idx = np.random.choice(range(len(ACTION_CANDIDATES)))
+    action_type = ACTION_CANDIDATES[action_type_idx]
+    return torch.LongTensor([action_type])
 
 
 def random_one_hot(size, dtype=torch.float32):
@@ -75,7 +77,7 @@ def get_single_step_data():
         race=random_one_hot([5]),
         enemy_race=random_one_hot([5]),
         upgrades=random_binary_tensor([90]),
-        enemy_upgrades=random_binary_tensor([48]),  # refer to envs/observations/enemy_upgrades.py
+        enemy_upgrades=random_binary_tensor([NUM_UPGRADES]),  # refer to envs/observations/enemy_upgrades.py
         time=random_binary_tensor([64]),
         available_actions=random_binary_tensor([NUM_ACTION_TYPES]),
         unit_counts_bow=random_tensor([259]),
@@ -111,7 +113,6 @@ def get_single_step_data():
         target_location=torch.randint(0, min(MAP_SIZE), size=[2], dtype=torch.int64)
         if action_attr['target_location'] else NOOP
     )
-    score_cumulative = random_tensor([13])
 
     return OrderedDict(
         scalar_info=scalar_info,
@@ -120,7 +121,6 @@ def get_single_step_data():
         entity_info=random_tensor([num_units, ENTITY_INFO_DIM]),
         spatial_info=random_tensor([20] + MAP_SIZE),
         map_size=MAP_SIZE,
-        score_cumulative=score_cumulative,
     )
 
 
@@ -266,7 +266,7 @@ class FakeActorDataset:
         def get_outputs(actions, entity_num):
             ret = {}
             ret['action_type'] = torch.rand(NUM_ACTION_TYPES)
-            ret['delay'] = torch.rand(1) * DELAY_MAX
+            ret['delay'] = torch.rand(DELAY_MAX + 1)
             if isinstance(actions['queued'], type(NOOP)):
                 ret['queued'] = NOOP
             else:
@@ -314,6 +314,7 @@ class FakeActorDataset:
 
         def get_single_rl_agent_step_data():
             base = get_single_step_data()
+            base['score_cumulative'] = random_tensor([13])
             base['prev_state'] = [torch.zeros(*LSTM_DIMS), torch.zeros(*LSTM_DIMS)]
             base['rewards'] = get_fake_rewards()
             base['game_seconds'] = random.randint(0, 24 * 60)
@@ -333,5 +334,7 @@ class FakeActorDataset:
         for i in range(self.trajectory_len):
             data.append({'home': get_single_rl_agent_step_data(), 'away': get_single_rl_agent_step_data()})
         data[-1]['home_next'] = get_single_step_data()
+        data[-1]['home_next']['score_cumulative'] = random_tensor([13])
         data[-1]['away_next'] = get_single_step_data()
+        data[-1]['away_next']['score_cumulative'] = random_tensor([13])
         return data

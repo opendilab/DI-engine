@@ -34,7 +34,10 @@ class AlphaStarEnv(SC2Env):
             action_delays=cfg.env.get('action_delays')
         )
 
-        self.agent_num = sum([isinstance(p, sc2_env.Agent) for p in players])
+        if self.cfg.evaluate.game_type == 'game_vs_agent':
+            self.agent_num = 1
+        else:
+            self.agent_num = sum([isinstance(p, sc2_env.Agent) for p in players])
         assert (self.agent_num <= 2)
         super(AlphaStarEnv, self).__init__(
             map_name=cfg.env.map_name,
@@ -57,6 +60,7 @@ class AlphaStarEnv(SC2Env):
         self._obs_stat_type = cfg.env.obs_stat_type
         self._pseudo_reward_type = cfg.env.pseudo_reward_type
         self._pseudo_reward_prob = cfg.env.pseudo_reward_prob
+        self._ignore_camera = cfg.env.ignore_camera
         assert self._obs_stat_type in ['replay_online', 'self_online', 'replay_last']
         self.reward_helper = RewardHelper(self.agent_num, cfg.env.pseudo_reward_type, cfg.env.pseudo_reward_prob)
 
@@ -180,7 +184,14 @@ class AlphaStarEnv(SC2Env):
         new_obs = get_available_actions_processed_data(new_obs)
         self.enemy_upgrades[agent_no] = get_enemy_upgrades_processed_data(new_obs, self.enemy_upgrades[agent_no])
         new_obs['scalar_info']['enemy_upgrades'] = self.enemy_upgrades[agent_no]
+        new_obs = self._mask_obs(new_obs)
         return new_obs
+
+    def _mask_obs(self, obs):
+        if self._ignore_camera:
+            obs['spatial_info'][1:3] *= 0
+            obs['entity_info'][:, 408:410] *= 0
+        return obs
 
     def _transform_action(self, action):
         # convert network output to SC2 raw input

@@ -238,7 +238,7 @@ class BilinearUpsample(nn.Module):
         self.scale_factor = scale_factor
 
     def forward(self, x):
-        return F.interpolate(x, self.scale_factor, mode='bilinear', align_corner=False)
+        return F.interpolate(x, scale_factor=self.scale_factor, mode='bilinear', align_corners=False)
 
 
 def binary_encode(y, max_val):
