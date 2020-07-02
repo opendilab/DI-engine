@@ -3,6 +3,7 @@ import torch
 import numpy as np
 import copy
 from sc2learner.data.structure import SequenceContainer, SpecialContainer, TensorContainer
+from sc2learner.torch_utils import to_dtype
 
 data_generation_func = {'obs': lambda: torch.randn(1, 6), 'reward': lambda: [np.random.randint(0, 2)]}
 
@@ -81,11 +82,11 @@ class TestSpecialContainer:
             container_cat = SpecialContainer([torch.randn(4) for i in range(8)], shape=(4, 2, 1))
             container.cat(container_cat, dim=0)
 
-    def create_container(self):
+    def create_container(self, **kwargs):
         A, T, B = (3, 2, 4)
         tmp = []
         for _ in range(B):
-            tmp.append(SpecialContainer(torch.randn(4)))
+            tmp.append(SpecialContainer(torch.randn(4), **kwargs))
         for i in range(1, B):
             tmp[0].cat(tmp[i], dim=2)
         tmp = tmp[0]
@@ -126,6 +127,19 @@ class TestSpecialContainer:
         assert data.shape == (1, 1, 1)
         data_item = data.item
         assert isinstance(data_item, torch.Tensor) and data_item.shape == (4, )
+
+    def test_to_dtype(self):
+        available_dtype = [torch.int64, torch.float32]
+        dtype_fn = to_dtype
+        container = self.create_container(dtype_fn=dtype_fn, available_dtype=available_dtype)
+        assert container[0, 0, 0].item.dtype == torch.float32
+        container.to_dtype(torch.int64)
+        assert container[0, 0, 0].item.dtype == torch.int64
+        assert container[0, 0, 1].item.dtype == torch.int64
+
+        container.to_dtype(torch.float32)
+        assert container[0, 0, 0].item.dtype == torch.float32
+        assert container[0, 0, 2].item.dtype == torch.float32
 
 
 @pytest.mark.unittest
@@ -188,3 +202,16 @@ class TestTensorContainer:
         assert item.shape == (2, 2, 4)
         item = container[{'agent_num': [1], 'batch_size': [0, 3]}]
         assert item.shape == (1, 3, 2)
+
+    def test_to_dtype(self):
+        shape3 = (2, 3, 4)
+        container = TensorContainer(torch.randn(*shape3), shape=shape3)
+        assert container._data.dtype == torch.float32
+        available_dtype = container.available_dtype
+        assert torch.int64 in available_dtype
+        container.to_dtype(torch.int64)
+        assert container._data.dtype == torch.int64
+
+        assert torch.float32 in available_dtype
+        container.to_dtype(torch.float32)
+        assert container._data.dtype == torch.float32

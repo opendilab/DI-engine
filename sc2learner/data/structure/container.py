@@ -3,7 +3,7 @@ from collections.abc import Sequence
 import numbers
 from itertools import product
 from functools import reduce
-from typing import Union, Any, Optional
+from typing import Union, Any, Optional, Callable
 
 import torch
 
@@ -157,6 +157,9 @@ class BaseContainer(object):
     def __repr__(self) -> str:
         raise NotImplementedError
 
+    def to_dtype(self) -> None:
+        raise NotImplementedError
+
     @property
     def data(self) -> list:
         raise NotImplementedError
@@ -167,6 +170,10 @@ class BaseContainer(object):
 
     @property
     def item(self) -> Any:
+        raise NotImplementedError
+
+    @property
+    def available_dtype(self) -> list:
         raise NotImplementedError
 
 
@@ -180,6 +187,7 @@ class TensorContainer(BaseContainer):
                 data.shape[:3], shape
             )
             self._data = data
+        self._available_dtype = [torch.int64, torch.float32]
 
     def cat(self, other: 'TensorContainer', dim: int) -> None:
         """
@@ -223,6 +231,10 @@ class TensorContainer(BaseContainer):
     def __repr__(self) -> str:
         return 'TensorContainer(agent_num={}, trajectory_len={}, batch_size={})'.format(*self.shape)
 
+    def to_dtype(self, dtype: torch.dtype) -> None:
+        assert dtype in self._available_dtype, '{}/{}'.format(dtype, self._available_dtype)
+        self._data = self._data.to(dtype)
+
     @property
     def data(self) -> torch.Tensor:
         return self._data
@@ -237,12 +249,22 @@ class TensorContainer(BaseContainer):
         return self._data[0, 0, 0]
 
     @property
+    def available_dtype(self) -> list:
+        return self._available_dtype
+
+    @property
     def item_shape(self) -> tuple:
         return tuple(self._data[0, 0, 0].shape)
 
 
 class SpecialContainer(BaseContainer):
-    def __init__(self, data: Any, shape: Optional[tuple] = tuple()) -> None:
+    def __init__(
+            self,
+            data: Any,
+            shape: Optional[tuple] = tuple(),
+            dtype_fn: Optional[Callable[[Any], None]] = None,
+            available_dtype: Optional[list] = None
+    ) -> None:
         self._data = []
         self._shape = []
         self._index_map = {}
@@ -261,6 +283,10 @@ class SpecialContainer(BaseContainer):
             for idx, index in enumerate(indexes):
                 self._index_map[self._get_index_key(index)] = idx
             self._data_idx += reduce(lambda x, y: x * y, shape)
+
+        # dtype_fn is used to change the dtype of element in container
+        self._dtype_fn = dtype_fn
+        self._available_dtype = available_dtype
 
     def cat(self, other: 'SpecialContainer', dim: int) -> None:
         """
@@ -318,6 +344,12 @@ class SpecialContainer(BaseContainer):
     def __repr__(self) -> str:
         return 'SpecialContainer(agent_num={}, trajectory_len={}, batch_size={})'.format(*self.shape)
 
+    def to_dtype(self, dtype: Any) -> None:
+        assert self._dtype_fn is not None, 'dtype_fn is None, please specify it when creates container'
+        assert dtype in self._available_dtype
+        for i in range(len(self._data)):
+            self._data[i] = self._dtype_fn(self._data[i], dtype)
+
     @property
     def data(self) -> list:
         return self._data
@@ -325,6 +357,10 @@ class SpecialContainer(BaseContainer):
     @property
     def shape(self) -> tuple:
         return tuple(self._shape)
+
+    @property
+    def available_dtype(self) -> list:
+        return self._available_dtype
 
     @property
     def item(self) -> Any:
