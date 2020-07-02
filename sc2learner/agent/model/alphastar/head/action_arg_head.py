@@ -411,7 +411,15 @@ class TargetUnitHead(nn.Module):
             start = end
         return pad_key, pad_mask
 
-    def forward(self, embedding, available_unit_type_mask, available_units_mask, entity_embedding, temperature=1.0):
+    def forward(
+        self,
+        embedding,
+        available_unit_type_mask,
+        available_units_mask,
+        entity_embedding,
+        temperature=1.0,
+        target_unit=None
+    ):
         '''
             Overview: First func_embed is computed the same as in the Selected Units head, and used in the
                       same way for the query (added to the output of the autoregressive_embedding passed
@@ -426,7 +434,8 @@ class TargetUnitHead(nn.Module):
                 - available_unit_type_mask (:obj`tensor`): [batch_size, num_unit_type]
                 - available_units_mask (:obj`tensor`): [batch_size, num_units]
                 - entity_embedding (:obj`tensor`): [batch_size, num_units, entity_embedding_dim(256)]
-                - temperature (:obj:`float`):
+                - temperature (:obj:`float`): logits sample temperature
+                - target_unit (:obj:`Tensor` or None): when SL training, the caller indicates target_unit
             Returns:
                 - (:obj`tensor`): logits, List(batch_size) - List(num_selected_units) - num_units
                 - (:obj`tensor`): target_unit, [batch_size] target_unit index
@@ -437,14 +446,19 @@ class TargetUnitHead(nn.Module):
         logits = query.unsqueeze(1) * key
         logits = logits.mean(dim=2)
         if self.use_mask:
+            if target_unit is not None:
+                for i, t in enumerate(target_unit):
+                    if t is not None:
+                        mask[i, t] = 1
             logits.sub_((1 - mask) * 1e9)
 
-        p = F.softmax(logits.div(temperature), dim=1)
-        handle = self.pd(p)
-        if self.training:
-            target_unit = handle.sample()
-        else:
-            target_unit = handle.mode()
+        if target_unit is None:
+            p = F.softmax(logits.div(temperature), dim=1)
+            handle = self.pd(p)
+            if self.training:
+                target_unit = handle.sample()
+            else:
+                target_unit = handle.mode()
         logits = self._get_valid_logits(logits, shapes)
 
         return logits, target_unit
@@ -514,7 +528,7 @@ class LocationHead(nn.Module):
         else:
             self.soft_argmax = SoftArgmax()
 
-    def forward(self, embedding, map_skip, available_location_mask, temperature=1.0):
+    def forward(self, embedding, map_skip, available_location_mask, temperature=1.0, location=None):
         '''
             Overview: First autoregressive_embedding is reshaped to have the same height/width as the final skip
                       in map_skip (which was just before map information was reshaped to a 1D embedding) with 4
@@ -534,6 +548,7 @@ class LocationHead(nn.Module):
                     element is a torch FloatTensor with shape[batch_size, res_dim, map_y // 8, map_x // 8]
                 - available_location_mask (:obj`tensor`): [batch_size, 1, map_y, map_x]
                 - temperature (:obj:`float`): temperature
+                - location (:obj:`Tensor`):  when SL training, the caller indicates location
             Returns:
                 - (:obj`tensor`): outputs, shape[batch_size, map_y, map_x](cls), shape[batch_size, 2](soft_argmax)
                 - (:obj`tensor`): location, shape[batch_size, 2]
@@ -551,25 +566,32 @@ class LocationHead(nn.Module):
             x = layer(x)
         x = self.ensemble_conv(x)
         if self.use_mask:
+            if location is not None:
+                for i, t in enumerate(location):
+                    if t is not None:
+                        available_location_mask[i, 0, t[0], t[1]] = 1
             x -= ((1 - available_location_mask) * 1e9)
         if self.output_type == 'cls':
             W = x.shape[3]
             logits_flatten = x.view(x.shape[0], -1)
-            p = F.softmax(logits_flatten.div(temperature), dim=1)
-            handle = self.pd(p)
-            if self.training:
-                location = handle.sample()
-            else:
-                location = handle.mode()
+            if location is None:
+                p = F.softmax(logits_flatten.div(temperature), dim=1)
+                handle = self.pd(p)
+                if self.training:
+                    location = handle.sample()
+                else:
+                    location = handle.mode()
 
-            location = torch.stack([location // W, location % W], dim=1)
-            location /= self.ratio
+                location = torch.stack([location // W, location % W], dim=1)
+                location /= self.ratio
             x = self._map2origin_size(x)
             return x.squeeze(1), location
         elif self.output_type == 'soft_argmax':
             x = self._map2origin_size(x)
             x = self.soft_argmax(x)
-            return x, x.detach().long()
+            if location is None:
+                location = x.detach().long()
+            return x, location
 
     def _map2origin_size(self, x):
         if self.ratio > 1:
