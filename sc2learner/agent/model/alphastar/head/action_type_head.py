@@ -66,6 +66,12 @@ class ActionTypeHead(nn.Module):
         x = self.project(lstm_output)  # embeds lstm_output into a 1D tensor of size of res_dim, use 256 as default
         x = self.res(x)  # passes x through 16 ResBlocks with layer normalization and ReLU
         x = self.action_fc(x, scalar_context)  # fc for action type without normalization
+        # TODO(nyz) show warning info about the masked action_type label
+        # action_type_mask is used as inputs in some network parts, so we must detach it from graph
+        action_type_mask = action_type_mask.clone().detach()
+        if action_type is not None:
+            for i, a in enumerate(action_type):
+                action_type_mask[i, a.item()] = 1
         if self.cfg.use_mask:
             x -= (1 - action_type_mask) * 1e9
         if action_type is None:
