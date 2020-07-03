@@ -1,3 +1,6 @@
+from collections import namedtuple
+
+
 class EnvElement(object):
     info = namedtuple('EnvElementInfo', ['shape', 'value', 'to_agent_processor', 'from_agent_processor'])
     _instance = None
@@ -9,12 +12,11 @@ class EnvElement(object):
         # self._value = {'min': 0, 'max': 1, 'dtype': 'float'}
         # self._to_agent_processer = lambda x: x
         # self._from_agent_processor = None
-        pass
+        assert self._check(), 'this class {} is not a legal subclass of EnvElement'.format(cls)
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
             cls._instance = object.__new__(cls, *args, **kwargs)
-            assert self._check(), 'this class {} is not a legal subclass of EnvElement'.format(cls)
         return cls._instance
 
     def __repr__(self) -> str:

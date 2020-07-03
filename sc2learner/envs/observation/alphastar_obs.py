@@ -3,11 +3,13 @@ Copyright 2020 Sensetime X-lab. All Rights Reserved
 
 Main Function:
     1. parse numpy arrays observations into tensors that pytorch can use
+    2. compress and decompress the processed data
 '''
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import copy
 import numpy as np
 import torch
 from functools import partial
@@ -21,6 +23,7 @@ from pysc2.lib.static_data import NUM_BUFFS, NUM_ABILITIES, NUM_UNIT_TYPES, UNIT
      UNIT_BUILD_ACTIONS_REORDER_ARRAY, EFFECT_ACTIONS_REORDER_ARRAY, RESEARCH_ACTIONS_REORDER_ARRAY,\
      BEGIN_ACTIONS_REORDER_ARRAY, NUM_ORDER_ACTIONS, ORDER_ACTIONS_REORDER_ARRAY
 from collections import OrderedDict
+from sc2learner.torch_utils import one_hot
 from sc2learner.common import EnvElement, num_first_one_hot, sqrt_one_hot, div_one_hot,\
     reorder_one_hot_array, div_func, batch_binary_encode, reorder_boolean_vector, clip_one_hot,\
     get_postion_vector
@@ -753,6 +756,7 @@ class EntityObs(EnvElement):
         return ret, entity_raw
 
     def _get_last_action_entity_info(self, obs, last_action):
+        N = obs.shape[0]
         selected_units = last_action['selected_units']
         target_units = last_action['target_units']
         obs = torch.cat([obs, torch.empty(N, 4)], dim=1)
@@ -787,6 +791,8 @@ class ScalarObs(EnvElement):
                 data = data.squeeze()
 
             return wrapper
+
+        self.tensor_wrapper = tensor_wrapper
 
         self.template = [
             {
@@ -1015,7 +1021,7 @@ class ScalarObs(EnvElement):
             self.repeat_count = 0
         last_queued = last_action['queued']
         last_queued = last_queued if isinstance(last_queued, torch.Tensor) else torch.LongTensor([2])  # 2 as 'none'
-        last_queued = tensor_wrapper(partial(num_first_one_hot, num=3))(last_queued)
+        last_queued = self.tensor_wrapper(partial(num_first_one_hot, num=3))(last_queued)
 
         last_action_type = last_action['action_type']
 
@@ -1024,7 +1030,7 @@ class ScalarObs(EnvElement):
         else:
             self.repeat_action_type = last_action_type.item()
             self.repeat_count = 0
-        last_repeat = tensor_wrapper(clip_one_hot)([self.repeat_count])
+        last_repeat = self.tensor_wrapper(clip_one_hot)([self.repeat_count])
         return torch.cat([last_queued, last_repeat], dim=0)
 
     def _parse_enemy_upgrades(self, raw_units):
