@@ -5,6 +5,7 @@ from itertools import product
 from functools import reduce
 from typing import Union, Any, Optional, Callable
 
+import numpy as np
 import torch
 
 
@@ -177,19 +178,48 @@ class BaseContainer(object):
         raise NotImplementedError
 
 
-class TensorContainer(BaseContainer):
-    def __init__(self, data: torch.Tensor, shape: Optional[tuple] = tuple()) -> None:
-        assert len(shape) == 0 or (len(shape) == 3 and all([isinstance(s, numbers.Integral) for s in shape]))
+def to_keep_dim_index(idx):
+    def int2slice(t):
+        return slice(t, t + 1)
+
+    def single_list2slice(t):
+        assert len(t) == 1
+        return slice(t[0], t[0] + 1)
+
+    if isinstance(idx, int):
+        return int2slice(idx)
+    elif isinstance(idx, list):
+        if len(idx) == 1:
+            return single_list2slice(idx)
+        else:
+            return idx
+    elif isinstance(idx, tuple):
+        idx = list(idx)
+        for i, item in enumerate(idx):
+            if isinstance(item, int):
+                idx[i] = int2slice(item)
+            elif isinstance(item, list) or isinstance(item, tuple):
+                if len(item) == 1:
+                    idx[i] = single_list2slice(item)
+        return tuple(idx)
+    else:
+        return idx
+
+
+class RegularContainer(BaseContainer):
+    def __init__(self, data: Any, shape: Optional[tuple] = tuple()) -> None:
+        assert len(shape) == 0 or (len(shape) == 3 and all([isinstance(s, numbers.Integral) for s in shape])), shape
         if len(shape) == 0:
-            self._data = data.view(1, 1, 1, *data.shape)
+            self._data = data.reshape(1, 1, 1, *data.shape)
         else:
             assert data.shape[:3] == shape, 'the first three dim of data must match the input shape: {}/{}'.format(
                 data.shape[:3], shape
             )
             self._data = data
-        self._available_dtype = [torch.int64, torch.float32]
+        # the following member variable need to be overrided by subclass
+        self.cat_fn = None
 
-    def cat(self, other: 'TensorContainer', dim: int) -> None:
+    def cat(self, other: 'RegularContainer', dim: int) -> None:
         """
         Inplace cat
         """
@@ -197,56 +227,25 @@ class TensorContainer(BaseContainer):
         assert all([self.shape[i] == other.shape[i]
                     for i in (set(range(3)) - set([dim]))]), '{}/{}'.format(self.shape, other.shape)
         assert self.item_shape == other.item_shape, '{}/{}'.format(self.item_shape, other.item_shape)
-        self._data = torch.cat([self._data, other.data], dim=dim)
+        self._data = self.cat_fn([self._data, other.data], dim)
 
-    def __getitem__(self, idx: Union[int, slice, tuple, dict]) -> 'TensorContainer':
-        if isinstance(idx, slice):
-            data = self._data[idx]
-        elif isinstance(idx, int):
-            data = self._data[slice(idx, idx + 1)]
-        elif isinstance(idx, tuple):
-            assert len(idx) <= 3
-            keep_dim_idx = list(idx)
-            for i, item in enumerate(keep_dim_idx):
-                if isinstance(item, int):
-                    tmp = keep_dim_idx[i]
-                    keep_dim_idx[i] = slice(tmp, tmp + 1)
-            data = self._data[keep_dim_idx]
-        elif isinstance(idx, dict):
-            selected_indexes = [None for _ in range(3)]
+    def __getitem__(self, idx: Union[int, slice, list, tuple, dict]) -> 'RegularContainer':
+        if isinstance(idx, dict):
+            new_idx = [slice(None) for _ in range(3)]
             for k, v in idx.items():
                 dim = getattr(self, (k + '_dim').upper())
-                selected_indexes[dim] = v
-            handle = self._data
-            for d, i in enumerate(selected_indexes):
-                if i is None:
-                    handle = handle
-                else:
-                    handle = torch.index_select(handle, d, torch.LongTensor(i))
-            data = handle
+                new_idx[dim] = to_keep_dim_index(v)
+            new_idx = tuple(new_idx)
+            data = self._data[new_idx]
         else:
-            raise TypeError(type(idx))
-        return TensorContainer(data, shape=data.shape[:3])
-
-    def __repr__(self) -> str:
-        return 'TensorContainer(agent_num={}, trajectory_len={}, batch_size={})'.format(*self.shape)
-
-    def to_dtype(self, dtype: torch.dtype) -> None:
-        assert dtype in self._available_dtype, '{}/{}'.format(dtype, self._available_dtype)
-        self._data = self._data.to(dtype)
-
-    @property
-    def data(self) -> torch.Tensor:
-        return self._data
+            # keep origin 3 dim
+            idx = to_keep_dim_index(idx)
+            data = self._data[idx]
+        return self.__class__(data, shape=data.shape[:3])
 
     @property
     def shape(self) -> tuple:
         return tuple(self._data.shape[:3])
-
-    @property
-    def item(self) -> torch.Tensor:
-        assert self.shape == (1, 1, 1), self.shape
-        return self._data[0, 0, 0]
 
     @property
     def available_dtype(self) -> list:
@@ -255,6 +254,43 @@ class TensorContainer(BaseContainer):
     @property
     def item_shape(self) -> tuple:
         return tuple(self._data[0, 0, 0].shape)
+
+    @property
+    def data(self) -> Any:
+        return self._data
+
+    @property
+    def item(self) -> Any:
+        assert self.shape == (1, 1, 1), self.shape
+        return self._data[0, 0, 0]
+
+
+class TensorContainer(RegularContainer):
+    def __init__(self, data: torch.Tensor, shape: Optional[tuple] = tuple()) -> None:
+        super(TensorContainer, self).__init__(data, shape)
+        self._available_dtype = [torch.int64, torch.float32]
+        self.cat_fn = torch.cat
+
+    def __repr__(self) -> str:
+        return 'TensorContainer(agent_num={}, trajectory_len={}, batch_size={})'.format(*self.shape)
+
+    def to_dtype(self, dtype: torch.dtype) -> None:
+        assert dtype in self._available_dtype, '{}/{}'.format(dtype, self._available_dtype)
+        self._data = self._data.to(dtype)
+
+
+class NumpyContainer(RegularContainer):
+    def __init__(self, data: np.ndarray, shape: Optional[tuple] = tuple()) -> None:
+        super(NumpyContainer, self).__init__(data, shape)
+        self._available_dtype = [np.int64, np.float32]
+        self.cat_fn = np.concatenate
+
+    def __repr__(self) -> str:
+        return 'NumpyContainer(agent_num={}, trajectory_len={}, batch_size={})'.format(*self.shape)
+
+    def to_dtype(self, dtype: torch.dtype) -> None:
+        assert dtype in self._available_dtype, '{}/{}'.format(dtype, self._available_dtype)
+        self._data = self._data.astype(dtype)
 
 
 class SpecialContainer(BaseContainer):
@@ -306,6 +342,7 @@ class SpecialContainer(BaseContainer):
         self._shape[dim] += other.shape[dim]
 
     def __getitem__(self, idx: Union[int, slice, tuple, dict]) -> 'SpecialContainer':
+        # TODO(nyz) support list index
         if isinstance(idx, slice) or isinstance(idx, numbers.Integral):
             idx = tuple([idx])
         assert isinstance(idx, tuple) or isinstance(idx, dict), type(idx)

@@ -2,7 +2,7 @@ import pytest
 import torch
 import numpy as np
 import copy
-from sc2learner.data.structure import SequenceContainer, SpecialContainer, TensorContainer
+from sc2learner.data.structure import SequenceContainer, SpecialContainer, TensorContainer, NumpyContainer
 from sc2learner.torch_utils import to_dtype
 
 data_generation_func = {'obs': lambda: torch.randn(1, 6), 'reward': lambda: [np.random.randint(0, 2)]}
@@ -192,11 +192,18 @@ class TestTensorContainer:
         assert item.shape == (2, 3, 4)
         item = container[1:]
         assert item.shape == (1, 3, 4)
+        # list
+        item = container[[1], [0, 2]]
+        assert item.shape == (1, 2, 4)
+        item = container[[0]]
+        assert item.shape == (1, 3, 4)
         # tuple
         item = container[:, 1, :]
         assert item.shape == (2, 1, 4)
         item = container[1:, :, 0]
         assert item.shape == (1, 3, 1)
+        item = container[1, [1], :]
+        assert item.shape == (1, 1, 4)
         # dict
         item = container[{'trajectory_len': [1, 2]}]
         assert item.shape == (2, 2, 4)
@@ -215,3 +222,59 @@ class TestTensorContainer:
         assert torch.float32 in available_dtype
         container.to_dtype(torch.float32)
         assert container._data.dtype == torch.float32
+
+
+@pytest.mark.unittest
+class TestNumpyContainer:
+    def test_cat(self):
+        container = NumpyContainer(np.random.randn(4, 3).astype(np.float32))
+        assert container.shape == (1, 1, 1)
+        container.cat(container, dim=0)
+        assert container.shape == (2, 1, 1)
+
+        # error case
+        container_cat_error = TensorContainer(np.random.randn(4, 4).astype(np.float32))
+        with pytest.raises(AssertionError):
+            container.cat(container_cat_error, dim=0)
+
+    def test_getitem(self):
+        shape3 = (2, 3, 4)
+        container = NumpyContainer(np.random.randn(*shape3).astype(np.float32), shape=shape3)
+        # int
+        item = container[1]
+        assert item.shape == (1, 3, 4)
+        # slice
+        item = container[:]
+        assert item.shape == (2, 3, 4)
+        item = container[1:]
+        assert item.shape == (1, 3, 4)
+        # list
+        item = container[[1], [0, 2]]
+        assert item.shape == (1, 2, 4)
+        item = container[[0]]
+        assert item.shape == (1, 3, 4)
+        # tuple
+        item = container[:, 1, :]
+        assert item.shape == (2, 1, 4)
+        item = container[1:, :, 0]
+        assert item.shape == (1, 3, 1)
+        item = container[1, [1], :]
+        assert item.shape == (1, 1, 4)
+        # dict
+        item = container[{'trajectory_len': [1, 2]}]
+        assert item.shape == (2, 2, 4)
+        item = container[{'agent_num': [1], 'batch_size': [0, 3]}]
+        assert item.shape == (1, 3, 2)
+
+    def test_to_dtype(self):
+        shape3 = (2, 3, 4)
+        container = NumpyContainer(np.random.randn(*shape3).astype(np.float32), shape=shape3)
+        assert container._data.dtype == np.float32
+        available_dtype = container.available_dtype
+        assert np.int64 in available_dtype
+        container.to_dtype(np.int64)
+        assert container._data.dtype == np.int64
+
+        assert np.float32 in available_dtype
+        container.to_dtype(np.float32)
+        assert container._data.dtype == np.float32
