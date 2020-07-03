@@ -12,7 +12,7 @@ class EnvElement(object):
         # self._value = {'min': 0, 'max': 1, 'dtype': 'float'}
         # self._to_agent_processer = lambda x: x
         # self._from_agent_processor = None
-        assert self._check(), 'this class {} is not a legal subclass of EnvElement'.format(cls)
+        assert self._check(), 'this class {} is not a legal subclass of EnvElement'.format(self.__class__)
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
