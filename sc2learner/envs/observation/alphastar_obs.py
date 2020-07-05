@@ -527,7 +527,7 @@ class EntityObs(EnvElement):
             },
             {
                 'key': 'order_id_0',
-                'dim': NUM_ABILITIES,
+                'dim': NUM_ACTIONS,
                 'op': partial(
                     reorder_one_hot_array,
                     array=ACTIONS_REORDER_ARRAY,
@@ -753,11 +753,11 @@ class EntityObs(EnvElement):
         ret = [torch.cat(item, dim=0) for item in ret]
         ret = torch.stack(ret, dim=0)
         # `was_` attribute
-        ret = self._get_last_action_entity_info(ret, obs['last_action'])
-        assert ret.shape[-1] == self.entity_attribute_dim
+        ret = self._get_last_action_entity_info(ret, entity_raw, obs['last_action'])
+        assert ret.shape[-1] == self.entity_attribute_dim, '{}/{}'.format(ret.shape, self.entity_attribute_dim)
         return ret, entity_raw
 
-    def _get_last_action_entity_info(self, obs: torch.Tensor, last_action: dict) -> torch.Tensor:
+    def _get_last_action_entity_info(self, obs: torch.Tensor, entity_raw: dict, last_action: dict) -> torch.Tensor:
         N = obs.shape[0]
         selected_units = last_action['selected_units']
         target_units = last_action['target_units']
@@ -766,7 +766,7 @@ class EntityObs(EnvElement):
         selected_units = selected_units.numpy() if isinstance(selected_units, torch.Tensor) else []
         obs[:, -3] = 0
         obs[:, -4] = 1
-        ids_tensor = np.array(obs['entity_raw']['id'])
+        ids_tensor = np.array(entity_raw['id'])
         for v in selected_units:
             selected = (ids_tensor == v)
             obs[selected, -3] = 1
@@ -796,6 +796,7 @@ class ScalarObs(EnvElement):
                 data = torch.LongTensor(data)
                 data = fn(data)
                 data = data.squeeze()
+                return data
 
             return wrapper
 
@@ -862,7 +863,7 @@ class ScalarObs(EnvElement):
             {
                 'key': 'enemy_upgrades',
                 'dim': 48,
-                'ori': 'enemy_upgrades',
+                'ori': 'raw_units',
                 'op': self._parse_enemy_upgrades,
                 'value': {
                     'min': 0,
@@ -1044,7 +1045,7 @@ class ScalarObs(EnvElement):
         last_queued = last_queued if isinstance(last_queued, torch.Tensor) else torch.LongTensor([2])  # 2 as 'none'
         last_queued = self.tensor_wrapper(partial(num_first_one_hot, num=3))(last_queued)
 
-        last_repeat = self.tensor_wrapper(clip_one_hot)([last_action['repeat_count']])
+        last_repeat = self.tensor_wrapper(partial(clip_one_hot, num=17))([last_action['repeat_count']])
         return torch.cat([last_queued, last_repeat], dim=0)
 
     def _parse_enemy_upgrades(self, raw_units: dict) -> torch.Tensor:

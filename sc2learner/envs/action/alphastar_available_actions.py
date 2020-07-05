@@ -381,7 +381,7 @@ def get_available_actions_raw_data(obs):
                         vector.append(1)
                     else:
                         vector.append(0)
-    return vector
+    return torch.FloatTensor(vector)
 
 
 def get_available_actions_processed_data(data, check_action=False):

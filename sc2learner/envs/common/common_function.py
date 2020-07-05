@@ -101,6 +101,7 @@ POSITION_ARRAY = compute_denominator(torch.arange(0, 64, dtype=torch.float))
 
 def get_postion_vector(x):
     v = torch.zeros(64, dtype=torch.float)
+    x = torch.FloatTensor(x)
     v[0::2] = torch.sin(x * POSITION_ARRAY[0::2])
     v[1::2] = torch.cos(x * POSITION_ARRAY[1::2])
     return v

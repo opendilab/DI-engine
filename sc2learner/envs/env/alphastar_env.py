@@ -97,7 +97,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
             self._repeat_count[agent_no] += 1
         else:
             self._repeat_count[agent_no] = 0
-            self._repeat_action_type = last_action_type
+            self._repeat_action_type[agent_no] = last_action_type
         last_action['repeat_count'] = self._repeat_count[agent_no]
         # merge last action
         obs['last_action'] = last_action
@@ -149,7 +149,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
             action_type,
             self._episode_stat,
             self._loaded_eval_stat,
-            self._episode_stat,
+            self._episode_steps,
             battle_value,
             return_list=True
         )
@@ -197,12 +197,14 @@ class AlphaStarEnv(BaseEnv, SC2Env):
             step_mul = 1
 
         # env step
-        timestep = SC2Env.step(raw_action, step_mul=step_mul)
+        timestep = SC2Env.step(self, raw_action, step_mul=step_mul)
         due = [d <= step_mul for d in delay]
         assert any(due), 'at least one of the agents must finish its delay'
         # transform obs, reward and record statistics
         done = False
-        obs = reward = info = [None] * self.agent_num
+        obs = [None] * self.agent_num
+        reward = [None] * self.agent_num
+        info = [None] * self.agent_num
         for n in range(self.agent_num):
             t = timestep[n]
             if t is not None:
@@ -213,7 +215,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
             if due[n]:
                 self._episode_stat[n].update_stat(action[n], self._last_obs[n], self._episode_steps)
         # Note: pseudo reward must be derived after statistics update
-        battle_value = self._get_battle_value([t[3] for t in timestep])
+        battle_value = self._get_battle_value([t.observation for t in timestep])
         reward = self._get_pseudo_rewards(reward, battle_value, action)
         # update state variable
         self._last_action = action

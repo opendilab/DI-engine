@@ -27,7 +27,7 @@ class TestAlphaStarEnv:
         agent_num = env.agent_num
         obs = env.reset([setup_as_stat for _ in range(agent_num)])
 
-        S = 10
+        S = 5
         for s in range(S):
             action = self._get_random_action(agent_num)
             timestep = env.step(action)
