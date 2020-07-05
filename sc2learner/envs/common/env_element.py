@@ -6,13 +6,14 @@ class EnvElement(object):
     _instance = None
     _name = 'EnvElement'
 
-    def __init__(self) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         # placeholder
         # self._shape = 4
         # self._value = {'min': 0, 'max': 1, 'dtype': 'float'}
         # self._to_agent_processor = lambda x: x
         # self._from_agent_processor = None
-        assert self._check(), 'this class {} is not a legal subclass of EnvElement'.format(self.__class__)
+        self._init(*args, **kwargs)
+        self._check()
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
@@ -20,17 +21,23 @@ class EnvElement(object):
             cls._instance = object.__new__(cls)
         return cls._instance
 
+    def _init(*args, **kwargs) -> None:
+        raise NotImplementedError
+
     def __repr__(self) -> str:
         return '{}: {}'.format(self.name, self._details())
 
     def _details(self) -> str:
         return "placeholder"
 
-    def _check(self) -> bool:
-        return all[hasattr(self, '_shape'),
-                   hasattr(self, '_value'),
-                   hasattr(self, '_to_agent_processer'),
-                   hasattr(self, '_from_agent_processor'), ]
+    def _check(self) -> None:
+        flag = [
+            hasattr(self, '_shape'),
+            hasattr(self, '_value'),
+            hasattr(self, '_to_agent_processor'),
+            hasattr(self, '_from_agent_processor'),
+        ]
+        assert all(flag), 'this class {} is not a legal subclass of EnvElement({})'.format(self.__class__, flag)
 
     @property
     def info(self) -> 'EnvElement.info':
