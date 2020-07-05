@@ -10,13 +10,14 @@ class EnvElement(object):
         # placeholder
         # self._shape = 4
         # self._value = {'min': 0, 'max': 1, 'dtype': 'float'}
-        # self._to_agent_processer = lambda x: x
+        # self._to_agent_processor = lambda x: x
         # self._from_agent_processor = None
         assert self._check(), 'this class {} is not a legal subclass of EnvElement'.format(self.__class__)
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
-            cls._instance = object.__new__(cls, *args, **kwargs)
+            # after python3.3, user don't need to pass the extra arguments to the `object` method which is overrided
+            cls._instance = object.__new__(cls)
         return cls._instance
 
     def __repr__(self) -> str:
