@@ -1,5 +1,5 @@
 from collections import namedtuple
-from sc2learner.data import BaseContainer
+from typing import Any
 
 
 class BaseEnv:
@@ -20,7 +20,7 @@ class BaseEnv:
     def close(self) -> None:
         raise NotImplementedError
 
-    def step(self, action: BaseContainer) -> 'BaseEnv.timestep':
+    def step(self, action: Any) -> 'BaseEnv.timestep':
         raise NotImplementedError
 
     def seed(self, seed: int) -> None:

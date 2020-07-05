@@ -13,6 +13,7 @@ import copy
 import numpy as np
 import torch
 from functools import partial
+from typing import Optional
 
 from pysc2.lib.features import FeatureUnit
 from pysc2.lib.action_dict import ACT_TO_GENERAL_ACT, ACT_TO_GENERAL_ACT_ARRAY
@@ -24,11 +25,11 @@ from pysc2.lib.static_data import NUM_BUFFS, NUM_ABILITIES, NUM_UNIT_TYPES, UNIT
      BEGIN_ACTIONS_REORDER_ARRAY, NUM_ORDER_ACTIONS, ORDER_ACTIONS_REORDER_ARRAY
 from collections import OrderedDict
 from sc2learner.torch_utils import one_hot
-from sc2learner.common import EnvElement, num_first_one_hot, sqrt_one_hot, div_one_hot,\
+from sc2learner.envs.common import EnvElement, num_first_one_hot, sqrt_one_hot, div_one_hot,\
     reorder_one_hot_array, div_func, batch_binary_encode, reorder_boolean_vector, clip_one_hot,\
     get_postion_vector
 from sc2learner.envs.action.alphastar_available_actions import get_available_actions_raw_data
-from sc2learner.envs.observation.alphastar_ememy_upgrades import get_enemy_upgrades_raw_data
+from sc2learner.envs.observation.alphastar_enemy_upgrades import get_enemy_upgrades_raw_data
 
 LOCATION_BIT_NUM = 10
 DELAY_BIT_NUM = 6
@@ -38,11 +39,11 @@ ENTITY_INFO_DIM = 1340
 class SpatialObs(EnvElement):
     '''
         Overview: parse spatial observation into tensors
-        Interface: __init__, parse
     '''
     _name = "AlphaStarSpatialObs"
 
-    def __init__(self, cfg: dict) -> None:
+    # override
+    def _init(self, cfg: dict) -> None:
         '''
             Overview: initial related attributes
             Arguments:
@@ -157,8 +158,8 @@ class SpatialObs(EnvElement):
             },
         ]
         self.cfg = cfg
-        self.spatial_resulotion = cfg.spatial_resulotion
-        self._shape = tuple(self.channel_dim, *self.spatial_resulotion)
+        self.spatial_resolution = cfg.spatial_resolution
+        self._shape = tuple([self.channel_dim, *self.spatial_resolution])
         self._value = {'min': 0, 'max': 1, 'dtype': float, 'dinfo': 'float(0) + one_hot(1:)'}
         self._to_agent_processor = self.parse
         self._from_agent_processor = None
@@ -167,7 +168,7 @@ class SpatialObs(EnvElement):
     def _details(self) -> str:
         return '3-dim [CxHxW] spatial observation'
 
-    def _parse(self, feature, idx_dict) -> list:
+    def _parse(self, feature: np.ndarray, idx_dict: dict) -> list:
         '''
             Overview: find corresponding setting in cfg, parse the feature
             Arguments:
@@ -209,7 +210,8 @@ class SpatialObs(EnvElement):
 class EntityObs(EnvElement):
     _name = "AlphaStarEntityObs"
 
-    def __init__(self, cfg: dict) -> None:
+    # override
+    def _init(self, cfg: dict) -> None:
         self.template = [
             {
                 'key': 'build_progress',
@@ -715,14 +717,14 @@ class EntityObs(EnvElement):
         self.key = 'feature_units' if not self.use_raw_units else 'raw_units'
 
         # entity_num can be different from game frames
-        entity_num = 314
+        entity_num = 314  # placeholder
         self.entity_attribute_dim = sum(item['dim'] for item in self.template)
-        self._shape = tuple(entity_num, self.entity_attribute_dim)
+        self._shape = tuple([entity_num, self.entity_attribute_dim])
         self._value = {'min': 0, 'max': 1, 'dtype': float, 'dinfo': 'float(:4) + one_hot(4:)'}
         self._to_agent_processor = self.parse
         self._from_agent_processor = None
 
-    def parse(self, obs: dict):
+    def parse(self, obs: dict) -> torch.Tensor:
         feature_unit = obs[self.key]
         if len(feature_unit.shape) == 1:  # when feature_unit is None
             return None, None
@@ -755,7 +757,7 @@ class EntityObs(EnvElement):
         assert ret.shape[-1] == self.entity_attribute_dim
         return ret, entity_raw
 
-    def _get_last_action_entity_info(self, obs, last_action):
+    def _get_last_action_entity_info(self, obs: torch.Tensor, last_action: dict) -> torch.Tensor:
         N = obs.shape[0]
         selected_units = last_action['selected_units']
         target_units = last_action['target_units']
@@ -779,11 +781,16 @@ class EntityObs(EnvElement):
             obs[targeted, -2] = 0
         return obs
 
+    # override
+    def _details(self) -> str:
+        return '2-dim [MxN] entity observation(M->entity num, N->entity attributes dim)'
+
 
 class ScalarObs(EnvElement):
     _name = "AlphaStarScalarObs"
 
-    def __init__(self, cfg):
+    # override
+    def _init(self, cfg: dict) -> None:
         def tensor_wrapper(fn):
             def wrapper(data):
                 data = torch.LongTensor(data)
@@ -793,6 +800,7 @@ class ScalarObs(EnvElement):
             return wrapper
 
         self.tensor_wrapper = tensor_wrapper
+        self.begin_num = cfg.begin_num
 
         self.template = [
             {
@@ -919,7 +927,7 @@ class ScalarObs(EnvElement):
             },
             {
                 'key': 'cumulative_stat',
-                'dims': OrderedDict(
+                'dim': OrderedDict(
                     [
                         ('unit_build', NUM_UNIT_BUILD_ACTIONS), ('effect', NUM_EFFECT_ACTIONS),
                         ('research', NUM_RESEARCH_ACTIONS)
@@ -941,7 +949,7 @@ class ScalarObs(EnvElement):
             },
             {
                 'key': 'beginning_build_order',
-                'dim': NUM_BEGIN_ACTIONS + LOCATION_BIT_NUM * 2 + 20,
+                'dim': NUM_BEGIN_ACTIONS + LOCATION_BIT_NUM * 2 + self.begin_num,
                 'ori': 'beginning_build_order',
                 'op': lambda x: x,
                 'value': {
@@ -994,18 +1002,34 @@ class ScalarObs(EnvElement):
                 'other': 'one-hot NUM_ACTIONS'
             },
         ]
+        if cfg.use_score_cumulative:
+            self.template += [
+                {
+                    'key': 'score_cumulative',
+                    'dim': 10,
+                    'ori': 'score_cumulative',
+                    'op': lambda x: torch.log(1 + torch.FloatTensor(x)),
+                    'value': {
+                        'min': 0,
+                        'max': 'inf',
+                        'dtype': float,
+                        'dinfo': 'float'
+                    },
+                    'other': 'log(1+x)'
+                }
+            ]
         self.cfg = cfg
         self._shape = {t['key']: t['dim'] for t in self.template}
         self._value = {t['key']: t['value'] for t in self.template}
         self._to_agent_processor = self.parse
         self._from_agent_processor = None
 
-    def _parse_agent_statistics(self, data):
+    def _parse_agent_statistics(self, data: np.ndarray) -> torch.Tensor:
         data = torch.FloatTensor(data)
         data = data[1:]
         return torch.log(data + 1)
 
-    def _parse_unit_counts(self, data, max_val=225):
+    def _parse_unit_counts(self, data: dict, max_val: Optional[int] = 225) -> torch.Tensor:
         ret = torch.zeros(NUM_UNIT_TYPES)
         key = data.keys()
         val = list(data.values())
@@ -1015,36 +1039,26 @@ class ScalarObs(EnvElement):
             ret[idx] = v
         return ret
 
-    def _parse_last_queued_repeat(self, last_action):
-        if not hasattr(self, 'repeat_action_type'):
-            self.repeat_action_type = -1
-            self.repeat_count = 0
+    def _parse_last_queued_repeat(self, last_action: dict) -> torch.Tensor:
         last_queued = last_action['queued']
         last_queued = last_queued if isinstance(last_queued, torch.Tensor) else torch.LongTensor([2])  # 2 as 'none'
         last_queued = self.tensor_wrapper(partial(num_first_one_hot, num=3))(last_queued)
 
-        last_action_type = last_action['action_type']
-
-        if self.repeat_action_type == last_action_type.item():
-            self.repeat_count += 1
-        else:
-            self.repeat_action_type = last_action_type.item()
-            self.repeat_count = 0
-        last_repeat = self.tensor_wrapper(clip_one_hot)([self.repeat_count])
+        last_repeat = self.tensor_wrapper(clip_one_hot)([last_action['repeat_count']])
         return torch.cat([last_queued, last_repeat], dim=0)
 
-    def _parse_enemy_upgrades(self, raw_units):
+    def _parse_enemy_upgrades(self, raw_units: dict) -> torch.Tensor:
         if not hasattr(self, 'enemy_upgrades'):
             self.enemy_upgrades = None
         self.enemy_upgrades = get_enemy_upgrades_raw_data(raw_units, self.enemy_upgrades)
         return copy.deepcopy(self.enemy_upgrades)
 
-    def parse(self, obs):
+    def parse(self, obs: dict) -> dict:
         obs['last_action_type'] = obs['last_action']['action_type']
         obs['last_delay'] = obs['last_action']['delay']
 
         ret = {}
-        for idx, item in enumerate(self.cfg):
+        for idx, item in enumerate(self.template):
             key = item['key']
             if 'ori' in item:
                 item_data = obs[item['ori']]
@@ -1053,6 +1067,10 @@ class ScalarObs(EnvElement):
             item_data = item['op'](item_data)
             ret[key] = item_data
         return ret
+
+    # override
+    def _details(self) -> str:
+        return 'dict including global scalar observation: {}'.format('\t'.join([t['key'] for t in self.template]))
 
 
 def compress_obs(obs):
