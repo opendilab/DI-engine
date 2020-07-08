@@ -9,11 +9,11 @@ import torch
 
 from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UNIT_TYPES, ACTIONS_REORDER_INV, NUM_BEGIN_ACTIONS, NUM_UPGRADES
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
-from sc2learner.data.offline.replay_dataset import ReplayDataset, START_STEP
+from sc2learner.data.offline.replay_dataset import START_STEP
 from sc2learner.utils import get_step_data_compressor
-from sc2learner.envs.observations.alphastar_obs_wrapper import ENTITY_INFO_DIM
-from sc2learner.envs.observations import LOCATION_BIT_NUM
+from sc2learner.envs.observation import LOCATION_BIT_NUM
 
+ENTITY_INFO_DIM = 1340
 META_SUFFIX = '.meta'
 DATA_SUFFIX = '.step'
 STAT_SUFFIX = '.stat_processed'
@@ -162,7 +162,7 @@ def get_z():
     return ret
 
 
-class FakeReplayDataset(ReplayDataset):
+class FakeReplayDataset:
     def __init__(self, cfg=None):
         # Completely independent with the config
         self.trajectory_len = cfg.get("trajectory_len", 11) if cfg else 11
