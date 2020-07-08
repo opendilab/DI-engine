@@ -68,6 +68,20 @@ def to_tensor(item, dtype):
         raise TypeError("not support item type: {}".format(type(item)))
 
 
+def tensor_to_list(item):
+    if isinstance(item, torch.tensor):
+        if item.shape == (1, ):
+            return item.item()
+        else:
+            return item.tolist()
+    elif isinstance(item, list) or isinstance(item, tuple):
+        return [tensor_to_list(t) for t in item]
+    elif isinstance(item, dict):
+        return {k: tensor_to_list(v) for k, v in item.items()}
+    else:
+        raise TypeError("not support item type: {}".format(type(item)))
+
+
 def same_shape(data):
     assert (isinstance(data, list))
     shapes = [t.shape for t in data]

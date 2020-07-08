@@ -8,6 +8,7 @@ from pysc2.env.sc2_env import SC2Env
 from pysc2.lib.actions import FunctionCall
 from sc2learner.envs.env.base_env import BaseEnv
 from sc2learner.envs.observation.alphastar_obs import ScalarObs, SpatialObs, EntityObs
+from sc2learner.envs.action.alphastar_action import AlphaStarRawAction
 from sc2learner.envs.reward.alphastar_reward import AlphaStarReward
 from sc2learner.envs.other.alphastar_map import get_map_size
 from sc2learner.envs.stat.alphastar_statistics import RealTimeStatistics, GameLoopStatistics
@@ -52,6 +53,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         self._obs_spatial = SpatialObs(cfg.obs_spatial)
         self._obs_entity = EntityObs(cfg.obs_entity)
         self._begin_num = self._obs_scalar.begin_num
+        self._action_helper = AlphaStarRawAction(cfg.action)
         self._reward_helper = AlphaStarReward(self.agent_num, cfg.pseudo_reward_type, cfg.pseudo_reward_prob)
 
         self._reset_flag = False
@@ -122,7 +124,11 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         return obs
 
     def _get_action(self, action):
-        return FunctionCall.init_with_validation(0, [], raw=True), 4
+        action = copy.deepcopy(action)
+        action = self._action_helper._from_agent_processor(action)
+        action_type, delay = action[:2]
+        args = [v for v in action[2:] if v is not None]  # queued, selected_units, target_units, target_location
+        return FunctionCall.init_with_validation(action_type, args, raw=True), delay
 
     def _get_battle_value(self, raw_obs):
         minerals_ratio = 1.
