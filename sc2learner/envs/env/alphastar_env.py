@@ -235,13 +235,21 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         )
 
     def seed(self, seed: int) -> None:
+        """Note: because SC2Env sets up the random seed in input args, we don't implement this method"""
         raise NotImplementedError
 
     def info(self) -> 'AlphaStarEnv.info':
-        pass
+        obs_info = {'scalar': self._obs_scalar.info, 'spatial': self._obs_spatial.info, 'entity': self._obs_entity.info}
+        return {'obs': obs_info, 'act': {self._action_helper.info}, 'reward': {self._reward_helper.info}}
 
     def __repr__(self) -> str:
-        pass
+        obs_str = 'scalar: {}\tspatial: {}\tentity: {}'.format(
+            repr(self._obs_scalar), repr(self._obs_spatial), repr(self._obs_entity)
+        )
+        return 'AlphaStarEnv:\n\
+                \tobservation: {}\n\
+                \taction: {}\n\
+                \treward: {}\n'.format(obs_str, repr(self._action_helper), repr(self._reward_helper))
 
     def close(self) -> None:
         SC2Env.close(self)

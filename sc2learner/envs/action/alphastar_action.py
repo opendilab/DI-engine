@@ -232,6 +232,10 @@ class AlphaStarRawAction(EnvElement):
         action = self._content_processor(data, 'from_agent_processor')
         return AlphaStarRawAction.AgentAction(**action)
 
+    # override
+    def _details(self):
+        return self._action_keys
+
 
 class AlphaStarReplayActionHelper:
     def __init__(self):
