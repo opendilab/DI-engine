@@ -1,1 +1,0 @@
-from .map_info import get_map_size, get_localized_map_name, LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT
