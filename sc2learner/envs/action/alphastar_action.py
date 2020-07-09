@@ -2,6 +2,7 @@ import copy
 import enum
 from collections import namedtuple
 from functools import partial
+import numpy as np
 import torch
 
 from pysc2.lib import actions
@@ -20,21 +21,27 @@ def action_unit_id_transform(data, inv=False):
     def transform(frame):
         frame = copy.deepcopy(frame)
         id_list = frame['entity_raw']['id']
-        action = frame['action']
-        for k in ['selected_units', 'target_units']:
-            if action[k] is not None:
-                unit_ids = []
-                for unit in action[k]:
-                    val = unit.item()
-                    if inv:
-                        unit_ids.append(id_list[val])
+        if 'selected_units' in data.keys():
+            units = frame['selected_units']
+        elif 'target_units' in data.keys():
+            units = frame['target_units']
+        else:
+            raise KeyError("invalid key in action_unit_id_transform frame: {}".format(frame.keys()))
+        if units is not None:
+            if np.isscalar(units):
+                units = [units]
+            unit_ids = []
+            for unit in units:
+                if inv:
+                    unit_ids.append(id_list[unit])
+                else:
+                    if unit in id_list:
+                        unit_ids.append(id_list.index(unit))
                     else:
-                        if val in id_list:
-                            unit_ids.append(id_list.index(val))
-                        else:
-                            raise Exception("not found {} id({}) in nearest observation".format(k, val))
-                frame['action'][k] = unit_ids
-        return frame
+                        raise Exception("not found id({}) in nearest observation".format(unit))
+            return unit_ids
+        else:
+            return units
 
     if isinstance(data, list):
         for idx, item in enumerate(data):
@@ -53,6 +60,8 @@ def location_transform(data, inv):
             2. if inv=True, agent->env; otherwise, env->agent
     """
     location, map_size = data['target_location'], data['map_size']
+    if location is None:
+        return location
 
     def location_check(x, y):
         try:
@@ -79,13 +88,14 @@ def location_transform(data, inv):
 class AlphaStarRawAction(EnvElement):
     _name = "AlphaStarRawAction"
     _action_keys = ['action_type', 'delay', 'queued', 'selected_units', 'target_units', 'target_location']
-    Action = namedtuple('Action', _action_keys)
+    AgentAction = namedtuple('AgentAction', _action_keys)
 
     def _init(self, cfg):
         self._map_size = cfg.map_size
         self._default_val = None
         self._selected_units_num = 32  # placeholder, [1,inf)
-        self._template = [
+        self._template = {
+            'action_type':
             {
                 'name': 'action_type',
                 'shape': (1, ),
@@ -101,6 +111,7 @@ class AlphaStarRawAction(EnvElement):
                 'from_agent_processor': lambda x: ACTIONS_REORDER_INV[x],
                 'necessary': True,
             },
+            'delay':
             {
                 'name': 'delay',
                 'shape': (1, ),
@@ -115,6 +126,7 @@ class AlphaStarRawAction(EnvElement):
                 'from_agent_processor': lambda x: x,
                 'necessary': True,
             },
+            'queued':
             {
                 'name': 'queued',
                 'shape': (1, ),
@@ -129,6 +141,7 @@ class AlphaStarRawAction(EnvElement):
                 'from_agent_processor': lambda x: x,
                 'necessary': False,
             },
+            'selected_units':
             {
                 'name': 'selected_units',
                 'shape': (self._selected_units_num, ),
@@ -144,6 +157,7 @@ class AlphaStarRawAction(EnvElement):
                 'necessary': False,
                 'other': 'value is entity index',
             },
+            'target_units':
             {
                 'name': 'target_units',
                 'shape': (1, ),
@@ -159,6 +173,7 @@ class AlphaStarRawAction(EnvElement):
                 'necessary': False,
                 'other': 'value is entity index',
             },
+            'target_location':
             {
                 'name': 'target_location',
                 'shape': (2, ),
@@ -174,7 +189,10 @@ class AlphaStarRawAction(EnvElement):
                 'necessary': False,
                 'other': 'agent value use round env value',
             },
-        ]
+        }
+        self._shape = {t['name']: t['shape'] for t in self._template.values()}
+        self._value = {t['name']: t['value'] for t in self._template.values()}
+        self._replay_action_helper = AlphaStarReplayActionHelper()
 
     def _get_output_template(self):
         template = {k: None for k in self._action_keys}
@@ -186,32 +204,33 @@ class AlphaStarRawAction(EnvElement):
         if 'map_size' in data.keys():
             map_size = data['map_size']
         else:
-            map_size = self.map_size
+            map_size = self._map_size
 
         for k, v in action.items():
             if k in ['selected_units', 'target_units']:
-                data = {k: v, 'entity_raw': entity_raw}
+                action_key = {k: v, 'entity_raw': entity_raw}
             elif k == 'target_location':
-                data = {k: v, 'map_size': map_size}
+                action_key = {k: v, 'map_size': map_size}
             else:
-                data = data
-            action[k] = self.template[k][key](data)
+                action_key = v
+            action[k] = self._template[k][key](action_key)
+        return action
 
     def _to_agent_processor(self, data):
+        # replay action parse
+        data['action'] = self._replay_action_helper(data['action'])
         # content processor
-        data = self._content_processor(data, 'to_agent_processor')
+        action = self._content_processor(data, 'to_agent_processor')
         # format processor
-        data = to_tensor(data)
-        return data
+        action = to_tensor(action)
+        return action
 
     def _from_agent_processor(self, data):
-        # replay action parse
-        data = self._replay_action_helper(data)
         # format processor
-        data = tensor_to_list(data)
+        data['action'] = tensor_to_list(data['action'])
         # content processor
-        data = self._content_processor(data, 'from_agent_processor')
-        return data
+        action = self._content_processor(data, 'from_agent_processor')
+        return AlphaStarRawAction.AgentAction(**action)
 
 
 class AlphaStarReplayActionHelper:

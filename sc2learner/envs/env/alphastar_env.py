@@ -21,6 +21,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
     def __init__(self, cfg: dict) -> None:
         self.map_size = get_map_size(cfg.map_name, cropped=cfg.crop_map_to_playable_area)
         cfg.obs_spatial.spatial_resolution = self.map_size
+        cfg.action.map_size = self.map_size
         self.cfg = cfg
 
         agent_interface_format = sc2_env.parse_agent_interface_format(
@@ -127,7 +128,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         action = copy.deepcopy(action)
         action = self._action_helper._from_agent_processor(action)
         action_type, delay = action[:2]
-        args = [v for v in action[2:] if v is not None]  # queued, selected_units, target_units, target_location
+        args = [v for v in action[2:6] if v is not None]  # queued, selected_units, target_units, target_location
         return FunctionCall.init_with_validation(action_type, args, raw=True), delay
 
     def _get_battle_value(self, raw_obs):
@@ -191,10 +192,11 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         self._reset_flag = True
         return copy.deepcopy(obs)
 
-    def step(self, action: list) -> 'AlphaStarEnv.timestep':
+    def step(self, action_data: list) -> 'AlphaStarEnv.timestep':
         assert self._reset_flag
         # get transformed action and delay
-        raw_action, delay = list(zip(*[self._get_action(a) for a in action]))
+        raw_action, delay = list(zip(*[self._get_action(a) for a in action_data]))
+        action = [t['action'] for t in action_data]
         # get step_mul
         step_mul = min(delay)
         assert step_mul >= 0

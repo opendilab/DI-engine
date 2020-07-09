@@ -69,7 +69,9 @@ def to_tensor(item, dtype):
 
 
 def tensor_to_list(item):
-    if isinstance(item, torch.tensor):
+    if item is None:
+        return item
+    elif isinstance(item, torch.Tensor):
         if item.shape == (1, ):
             return item.item()
         else:

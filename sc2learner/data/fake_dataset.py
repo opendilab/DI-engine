@@ -62,6 +62,27 @@ def get_fake_rewards():
     return rewards
 
 
+def get_random_action(num_units=None, selected_num_units=None):
+    if num_units is None:
+        num_units = np.random.randint(200, 300)
+    if selected_num_units is None:
+        selected_num_units = np.random.randint(1, MAX_SELECTED_UNITS)
+    action_type = random_action_type()
+    action_type_inv = ACTIONS_REORDER_INV[action_type.item()]
+    action_attr = GENERAL_ACTION_INFO_MASK[action_type_inv]
+    action = OrderedDict(
+        action_type=action_type,
+        delay=torch.randint(0, 4, size=[1], dtype=torch.int64),  # 4 for convenience
+        queued=torch.randint(0, 1, size=[1], dtype=torch.int64) if action_attr['queued'] else NOOP,
+        selected_units=torch.randint(0, num_units, size=[selected_num_units], dtype=torch.int64)
+        if action_attr['selected_units'] else NOOP,
+        target_units=torch.randint(0, num_units, size=[1], dtype=torch.int64) if action_attr['target_units'] else NOOP,
+        target_location=torch.randint(0, min(MAP_SIZE), size=[2], dtype=torch.int64)
+        if action_attr['target_location'] else NOOP
+    )
+    return action
+
+
 def get_single_step_data():
     # TODO(pzh) we should build a general data structure (a SampleBatch class)
 
@@ -99,25 +120,12 @@ def get_single_step_data():
         type=list(np.random.randint(0, NUM_UNIT_TYPES, size=num_units, dtype=int))
     )
 
-    # TODO(pzh) it's all int64 here. not correct.
-    action_type = random_action_type()
-    action_type_inv = ACTIONS_REORDER_INV[action_type.item()]
-    action_attr = GENERAL_ACTION_INFO_MASK[action_type_inv]
-    actions = OrderedDict(
-        action_type=action_type,
-        delay=torch.randint(0, DELAY_MAX, size=[1], dtype=torch.int64),
-        queued=torch.randint(0, 1, size=[1], dtype=torch.int64) if action_attr['queued'] else NOOP,
-        selected_units=torch.randint(0, num_units, size=[selected_num_units], dtype=torch.int64)
-        if action_attr['selected_units'] else NOOP,
-        target_units=torch.randint(0, num_units, size=[1], dtype=torch.int64) if action_attr['target_units'] else NOOP,
-        target_location=torch.randint(0, min(MAP_SIZE), size=[2], dtype=torch.int64)
-        if action_attr['target_location'] else NOOP
-    )
+    action = get_random_action(num_units, selected_num_units)
 
     return OrderedDict(
         scalar_info=scalar_info,
         entity_raw=entity_raw,
-        actions=actions,
+        actions=action,
         entity_info=random_tensor([num_units, ENTITY_INFO_DIM]),
         spatial_info=random_tensor([20] + MAP_SIZE),
         map_size=MAP_SIZE,

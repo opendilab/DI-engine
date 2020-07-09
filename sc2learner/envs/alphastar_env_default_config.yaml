@@ -20,6 +20,8 @@ env:
     obs_entity:
         use_raw_units: True
         begin_num: 20
+    action:
+        placeholder: 'placeholder'
     game_type: 'agent_vs_agent'  # game_vs_bot, agent_vs_agent
     player1:
         race: 'zerg'
