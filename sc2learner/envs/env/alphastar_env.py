@@ -16,7 +16,7 @@ from sc2learner.envs.stat.alphastar_statistics import RealTimeStatistics, GameLo
 
 class AlphaStarEnv(BaseEnv, SC2Env):
     timestep = namedtuple('AlphaStarTimestep', ['obs', 'reward', 'done', 'info', 'episode_steps', 'due'])
-    info = namedtuple('BaseEnvInfo', ['agents_num', 'obs_space', 'act_space', 'rew_space'])
+    info_template = namedtuple('BaseEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space'])
 
     def __init__(self, cfg: dict) -> None:
         self.map_size = get_map_size(cfg.map_name, cropped=cfg.crop_map_to_playable_area)
@@ -95,7 +95,8 @@ class AlphaStarEnv(BaseEnv, SC2Env):
     def _get_obs(self, obs, agent_no):
         # get last action repeat
         last_action = self._last_action[agent_no]
-        last_action_type = last_action['action_type'].item()
+        last_action = {k: getattr(last_action, k) for k in last_action._fields}
+        last_action_type = last_action['action_type']
         if last_action_type == self._repeat_action_type[agent_no]:
             self._repeat_count[agent_no] += 1
         else:
@@ -129,7 +130,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         action = self._action_helper._from_agent_processor(action)
         action_type, delay = action[:2]
         args = [v for v in action[2:6] if v is not None]  # queued, selected_units, target_units, target_location
-        return FunctionCall.init_with_validation(action_type, args, raw=True), delay
+        return FunctionCall.init_with_validation(action_type, args, raw=True), delay, action
 
     def _get_battle_value(self, raw_obs):
         minerals_ratio = 1.
@@ -144,7 +145,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         return [battle_fn(raw_obs[n]) for n in range(self.agent_num)]
 
     def _get_pseudo_rewards(self, reward, battle_value, action):
-        action_type = [a['action_type'] for a in action]
+        action_type = [a.action_type for a in action]
         if self.agent_num == 1:
             battle_value = AlphaStarReward.BattleValues(
                 self._last_battle_value[0], battle_value[0], self._last_battle_value[1], battle_value[1]
@@ -162,14 +163,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         )
 
     def reset(self, loaded_stat: list) -> dict:
-        last_action = {
-            'action_type': torch.LongTensor([0]),
-            'delay': torch.LongTensor([0]),
-            'queued': None,
-            'selected_units': None,
-            'target_units': None,
-            'target_location': None
-        }
+        last_action = AlphaStarRawAction.AgentAction(0, 0, None, None, None, None)
         self._last_action = [last_action for _ in range(self.agent_num)]
         self._last_battle_value = [0] * self.agent_num
         self._episode_stat = [RealTimeStatistics(self._begin_num) for _ in range(self.agent_num)]
@@ -195,8 +189,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
     def step(self, action_data: list) -> 'AlphaStarEnv.timestep':
         assert self._reset_flag
         # get transformed action and delay
-        raw_action, delay = list(zip(*[self._get_action(a) for a in action_data]))
-        action = [t['action'] for t in action_data]
+        raw_action, delay, action = list(zip(*[self._get_action(a) for a in action_data]))
         # get step_mul
         step_mul = min(delay)
         assert step_mul >= 0
@@ -240,16 +233,22 @@ class AlphaStarEnv(BaseEnv, SC2Env):
 
     def info(self) -> 'AlphaStarEnv.info':
         obs_info = {'scalar': self._obs_scalar.info, 'spatial': self._obs_spatial.info, 'entity': self._obs_entity.info}
-        return {'obs': obs_info, 'act': {self._action_helper.info}, 'reward': {self._reward_helper.info}}
+        info_data = {
+            'agent_num': self.agent_num,
+            'obs_space': obs_info,
+            'act_space': self._action_helper.info,
+            'rew_space': self._reward_helper.info,
+        }
+        return AlphaStarEnv.info_template(**info_data)
 
     def __repr__(self) -> str:
         obs_str = 'scalar: {}\tspatial: {}\tentity: {}'.format(
             repr(self._obs_scalar), repr(self._obs_spatial), repr(self._obs_entity)
         )
         return 'AlphaStarEnv:\n\
-                \tobservation: {}\n\
-                \taction: {}\n\
-                \treward: {}\n'.format(obs_str, repr(self._action_helper), repr(self._reward_helper))
+                \tobservation[{}]\n\
+                \taction[{}]\n\
+                \treward[{}]\n'.format(obs_str, repr(self._action_helper), repr(self._reward_helper))
 
     def close(self) -> None:
         SC2Env.close(self)

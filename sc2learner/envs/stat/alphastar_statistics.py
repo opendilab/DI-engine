@@ -61,7 +61,7 @@ class RealTimeStatistics:
                     logging.warning("Not found unit(id: {})".format(u))
             return unit_types
 
-        action_type = int(act['action_type'])  # this can accept either torch.LongTensor and int
+        action_type = act.action_type
         if action_type not in self.action_statistics.keys():
             self.action_statistics[action_type] = {
                 'count': 0,
@@ -70,22 +70,22 @@ class RealTimeStatistics:
             }
         self.action_statistics[action_type]['count'] += 1
         entity_type_dict = {id: type for id, type in zip(obs['entity_raw']['id'], obs['entity_raw']['type'])}
-        if isinstance(act['selected_units'], torch.Tensor):
-            units = act['selected_units'].tolist()
+        if act.selected_units is not None:
+            units = act.selected_units
             unit_types = get_unit_types(units, entity_type_dict)
             self.action_statistics[action_type]['selected_type'] =\
                 self.action_statistics[action_type]['selected_type'].union(
                 unit_types
-            )  # noqa
-        if isinstance(act['target_units'], torch.Tensor):
-            units = act['target_units'].tolist()
+            )
+        if act.target_units is not None:
+            units = act.target_units
             unit_types = get_unit_types(units, entity_type_dict)
             self.action_statistics[action_type]['target_type'] = self.action_statistics[action_type][
-                'target_type'].union(unit_types)  # noqa
+                'target_type'].union(unit_types)
 
     def update_cum_stat(self, act, game_loop):
         # this will not clear the cache
-        action_type = int(act['action_type'])
+        action_type = act.action_type
         goal = GENERAL_ACTION_INFO_MASK[action_type]['goal']
         if goal != 'other':
             if action_type not in self.cumulative_statistics.keys():
@@ -99,18 +99,18 @@ class RealTimeStatistics:
     def update_build_order_stat(self, act, game_loop):
         # this will not clear the cache
         target_list = ['unit', 'build', 'research']
-        action_type = int(act['action_type'])
+        action_type = act.action_type
         if action_type in (35, 64, 520, 222, 515, 503):  # exclude worker and supply
             return
         goal = GENERAL_ACTION_INFO_MASK[action_type]['goal']
         if action_type in BEGIN_ACTIONS:
             if goal == 'build':
-                if action_type not in [36, 197, 214] and act['target_location'] is None:
+                if action_type not in [36, 197, 214] and act.target_location is None:
                     print(
                         'build action have no target_location!'
                         'this shouldn\'t happen with real model: {}'.format(act)
                     )
-                location = act['target_location']
+                location = act.target_location
                 if isinstance(location, torch.Tensor):  # for build ves, no target_location
                     location = location.tolist()
             else:

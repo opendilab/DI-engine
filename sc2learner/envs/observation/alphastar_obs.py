@@ -1055,8 +1055,8 @@ class ScalarObs(EnvElement):
         return copy.deepcopy(self.enemy_upgrades)
 
     def parse(self, obs: dict) -> dict:
-        obs['last_action_type'] = obs['last_action']['action_type']
-        obs['last_delay'] = obs['last_action']['delay']
+        obs['last_action_type'] = [obs['last_action']['action_type']]
+        obs['last_delay'] = [obs['last_action']['delay']]  # one_hot need 1-dim
 
         ret = {}
         for idx, item in enumerate(self.template):

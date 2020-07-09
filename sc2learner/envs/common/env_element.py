@@ -2,7 +2,7 @@ from collections import namedtuple
 
 
 class EnvElement(object):
-    info = namedtuple('EnvElementInfo', ['shape', 'value', 'to_agent_processor', 'from_agent_processor'])
+    info_template = namedtuple('EnvElementInfo', ['shape', 'value', 'to_agent_processor', 'from_agent_processor'])
     _instance = None
     _name = 'EnvElement'
 
@@ -25,7 +25,7 @@ class EnvElement(object):
         raise NotImplementedError
 
     def __repr__(self) -> str:
-        return '{}: {}'.format(self.name, self._details())
+        return '{}: {}'.format(self._name, self._details())
 
     def _details(self) -> str:
         return "placeholder"
@@ -41,9 +41,9 @@ class EnvElement(object):
 
     @property
     def info(self) -> 'EnvElement.info':
-        return self.info(
+        return self.info_template(
             shape=self._shape,
             value=self._value,
-            to_agent_processor=self._to_agent_processer,
+            to_agent_processor=self._to_agent_processor,
             from_agent_processor=self._from_agent_processor
         )

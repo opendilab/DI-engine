@@ -9,7 +9,7 @@ class BaseEnv:
     Property: timestep
     """
     timestep = namedtuple('BaseEnvTimestep', ['obs', 'act', 'reward', 'done', 'info'])
-    info = namedtuple('BaseEnvInfo', ['agents_num', 'obs_space', 'act_space', 'rew_space'])
+    info_template = namedtuple('BaseEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space'])
 
     def __init__(self, cfg: dict) -> None:
         raise NotImplementedError

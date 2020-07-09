@@ -234,7 +234,7 @@ class AlphaStarRawAction(EnvElement):
 
     # override
     def _details(self):
-        return self._action_keys
+        return '\t'.join(self._action_keys)
 
 
 class AlphaStarReplayActionHelper:
