@@ -1,5 +1,5 @@
 common:
-    name: ZergStat
+    name: ZergLeagueRL
     time_wrapper_type: cuda
 env:
    screen_resolution: 128  # not used
@@ -12,6 +12,8 @@ env:
    pseudo_reward_type: 'global'  # global, immediate
    pseudo_reward_prob: 0.25
    begin_num: 20
+   ignore_camera: True
+   use_enemy_upgrades: False
    map_name_list: ['KairosJunction']
 data:
     train:
@@ -66,8 +68,8 @@ replay_buffer:
 system:
     resume_dir:    # placeholder, it's set by coordinator_start.py
     learner_port: 18193               # learner port
-    learner_uid:              # uid could be set, used with re_register and an existed uid should be set
-    learner_re_register:          # if reregister learner, choices in [True, False], False as default
+    learner_uid: 1641781              # uid could be set, used with re_register and an existed uid should be set
+    learner_re_register: False          # if reregister learner, choices in [True, False], False as default
     learner_heartbeats_thread: False  # if use thread to send heartbeats to coordinator in learner
     learner_heartbeats_freq: 10       # send heartbeats each `freq`
     coordinator_ip: 10.198.8.31        # learner and coordinator are in same cluster
@@ -88,7 +90,7 @@ system:
     use_ceph: True  # TODO: there is no support for lustre file on the actor side
     # The paths must end with a /
     ceph_traj_path: 's3://alphastar_fake_data/'
-    ceph_model_path: 's3://alphastar_fake_data/'
+    ceph_model_path: 's3://alphastar_rl_model/'
     ceph_stat_path: 's3://alphastar_rl_stat/'
     stat_path_list: '/mnt/lustre/share_data/niuyazhe/rl_stat.list'
     save_model_seconds: 30

@@ -133,6 +133,7 @@ class AlphaStarActor:
         else:
             self.use_teacher_model = False
         # TODO(nyz) change map env
+        self.cfg.env.game_type = job['game_type']
         self.env = self._make_env(players)
         self.compressor_name = job['step_data_compressor']
         self.compressor = get_step_data_compressor(self.compressor_name)

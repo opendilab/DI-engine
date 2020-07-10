@@ -8,7 +8,7 @@ import torch.nn.functional as F
 import pysc2.env.sc2_env as sc2_env
 from pysc2.env.sc2_env import SC2Env
 from pysc2.lib.actions import FunctionCall
-from pysc2.lib.static_data import NUM_ACTIONS, ACTIONS_REORDER_INV
+from pysc2.lib.static_data import NUM_ACTIONS, ACTIONS_REORDER_INV, NUM_UPGRADES
 from sc2learner.envs import get_available_actions_processed_data, get_map_size, get_enemy_upgrades_processed_data
 from .observations.alphastar_obs_wrapper import SpatialObsWrapper, ScalarObsWrapper, EntityObsWrapper, \
     transform_spatial_data, transform_scalar_data, transform_entity_data, clip_one_hot
@@ -34,7 +34,7 @@ class AlphaStarEnv(SC2Env):
             action_delays=cfg.env.get('action_delays')
         )
 
-        if self.cfg.evaluate.game_type == 'game_vs_agent':
+        if self.cfg.env.game_type == 'game_vs_agent':
             self.agent_num = 1
         else:
             self.agent_num = sum([isinstance(p, sc2_env.Agent) for p in players])
@@ -61,6 +61,7 @@ class AlphaStarEnv(SC2Env):
         self._pseudo_reward_type = cfg.env.pseudo_reward_type
         self._pseudo_reward_prob = cfg.env.pseudo_reward_prob
         self._ignore_camera = cfg.env.ignore_camera
+        self._use_enemy_upgrades = cfg.env.use_enemy_upgrades
         assert self._obs_stat_type in ['replay_online', 'self_online', 'replay_last']
         self.reward_helper = RewardHelper(self.agent_num, cfg.env.pseudo_reward_type, cfg.env.pseudo_reward_prob)
 
@@ -179,10 +180,13 @@ class AlphaStarEnv(SC2Env):
             return torch.log(data + 1)
 
         new_obs['score_cumulative'] = score_wrapper(obs)
-        new_obs = self._merge_action(new_obs, last_actions)
+        new_obs = self._merge_action(new_obs, last_actions, agent_no)
         new_obs = self._merge_stat(new_obs, agent_no)
         new_obs = get_available_actions_processed_data(new_obs)
-        self.enemy_upgrades[agent_no] = get_enemy_upgrades_processed_data(new_obs, self.enemy_upgrades[agent_no])
+        if self._use_enemy_upgrades:
+            self.enemy_upgrades[agent_no] = get_enemy_upgrades_processed_data(new_obs, self.enemy_upgrades[agent_no])
+        else:
+            self.enemy_upgrades[agent_no] = torch.zeros(NUM_UPGRADES)
         new_obs['scalar_info']['enemy_upgrades'] = self.enemy_upgrades[agent_no]
         new_obs = self._mask_obs(new_obs)
         return new_obs
@@ -219,8 +223,8 @@ class AlphaStarEnv(SC2Env):
         # action target location transform
         target_location = action['target_location']
         if target_location is not None:
-            x = target_location[1]
-            y = target_location[0]
+            x = target_location[0][1]
+            y = target_location[0][0]
             y = self.map_size[1] - y
             action['target_location'] = [x, y]
         return action
