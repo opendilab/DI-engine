@@ -28,7 +28,7 @@ from sc2learner.utils import read_config
 from sc2learner.worker.actor import AlphaStarActor
 from sc2learner.data.fake_dataset import fake_stat_processed, get_single_step_data
 from sc2learner.tests.fake_env import FakeEnv
-from sc2learner.envs.alphastar_env import AlphaStarEnv
+from sc2learner.envs import AlphaStarEnv
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string('config_path', '', 'Path to the config yaml file for test')

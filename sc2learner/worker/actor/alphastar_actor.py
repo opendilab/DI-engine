@@ -6,7 +6,7 @@ import torch
 
 import pysc2.env.sc2_env as sc2_env
 from sc2learner.agent.alphastar_agent import AlphaStarAgent
-from sc2learner.envs.alphastar_env import AlphaStarEnv
+from sc2learner.envs import AlphaStarEnv
 from sc2learner.utils import get_actor_uid, dict_list2list_dict, merge_two_dicts, get_step_data_compressor
 from sc2learner.torch_utils import to_device
 
@@ -57,16 +57,12 @@ class AlphaStarActor:
         # preparing the environment with the received job description
         self.cfg.env.map_name = job['map_name']
         self.cfg.env.random_seed = job['random_seed']
+        self.cfg.env.game_type = job['game_type']
+        self.cfg.env.player1 = job['player1']
+        self.cfg.env.player2 = job['player2']
 
         if job['game_type'] == 'game_vs_bot':
             self.agent_num = 1
-            players = [
-                sc2_env.Agent(sc2_env.Race[job['home_race']]),
-                sc2_env.Bot(
-                    sc2_env.Race[job['away_race']], sc2_env.Difficulty[job['difficulty']],
-                    sc2_env.BotBuild[job['build']] if 'build' in job else None
-                ),
-            ]
             self.agents = [
                 AlphaStarAgent(
                     model_config=self.cfg.model,
@@ -77,10 +73,6 @@ class AlphaStarActor:
             ]
         elif job['game_type'] == 'game_vs_agent':
             self.agent_num = 1
-            players = [
-                sc2_env.Agent(sc2_env.Race[job['home_race']]),
-                sc2_env.Agent(sc2_env.Race[job['away_race']]),
-            ]
             self.agents = [
                 AlphaStarAgent(
                     model_config=self.cfg.model,
@@ -89,12 +81,8 @@ class AlphaStarActor:
                     use_distributed=False
                 )
             ]
-        elif job['game_type'] in ['self_play', 'league']:
+        elif job['game_type'] == 'agent_vs_agent':
             self.agent_num = 2
-            players = [
-                sc2_env.Agent(sc2_env.Race[job['home_race']]),
-                sc2_env.Agent(sc2_env.Race[job['away_race']]),
-            ]
             self.agents = [
                 AlphaStarAgent(
                     model_config=self.cfg.model,
@@ -132,13 +120,12 @@ class AlphaStarActor:
             self.use_teacher_model = True
         else:
             self.use_teacher_model = False
-        # TODO(nyz) change map env
-        self.env = self._make_env(players)
+        self.env = self._make_env()
         self.compressor_name = job['step_data_compressor']
         self.compressor = get_step_data_compressor(self.compressor_name)
 
-    def _make_env(self, players):
-        return AlphaStarEnv(self.cfg, players)
+    def _make_env(self):
+        return AlphaStarEnv(self.cfg)
 
     # this is to be overridden in real worker or evaluator classes
     def _module_init(self):
@@ -289,15 +276,10 @@ class AlphaStarActor:
         if self.use_teacher_model:
             self.model_loader.load_teacher_model(job, self.teacher_agent.get_model())
         # load stat
-        for i in range(self.agent_num):
-            stat = self.stat_requester.request_stat(job, i)
-            if isinstance(stat, dict):
-                self.env.load_stat(stat, i)
-            else:
-                raise TypeError("invalid stat type: {}".format(type(stat)))
+        stat = [self.stat_requester.request_stat(job, i) for i in range(self.agent_num)]
+        assert all(isinstance(t, dict) for t in stat)
         # reset
-        # Note: reset must be after the load stat
-        obs = self.env.reset()
+        obs = self.env.reset(stat)
         self._init_states()
         # initialize loop variable
         data_buffer = [[] for i in range(self.agent_num)]

@@ -161,16 +161,20 @@ class Coordinator(object):
                 'learner_uid': [learner_uid1, learner_uid2],
                 'player_id': [learner_uid1, learner_uid2],
                 'stat_id': [self.fake_stat_path, self.fake_stat_path],
-                'game_type': 'league',
+                'game_type': 'agent_vs_agent',
                 'step_data_compressor': 'lz4',
                 'model_id': [model_name1, model_name2],
                 'teacher_model_id': model_name1,
                 'map_name': 'AbyssalReef',
                 'random_seed': 0,
-                'home_race': 'zerg',
-                'away_race': 'zerg',
-                'difficulty': 'easy',
-                'build': 'random',
+                'player1': {
+                    'race': 'zerg'
+                },
+                'player2': {
+                    'race': 'zerg'
+                    #'difficulty': 'easy',
+                    #'build': 'random',
+                },
                 'data_push_length': 8
             }
         else:
@@ -427,14 +431,20 @@ class Coordinator(object):
             'learner_uid': [home_learner_uid, away_learner_uid],
             'player_id': [home_id, away_id],
             'stat_id': stats,
-            'game_type': 'league',
+            'game_type': 'agent_vs_agent',
             'step_data_compressor': 'lz4',
             'model_id': [home_checkpoint_path, away_checkpoint_path],
             'teacher_model_id': home_teacher_checkpoint_path,  # away_teacher_checkpoint_path
             'map_name': map_name,
             'random_seed': random_seed,
-            'home_race': launch_info['home_race'],
-            'away_race': launch_info['away_race'],
+            'player1': {
+                'race': 'zerg'
+            },
+            'player2': {
+                'race': 'zerg'
+                #'difficulty': 'easy',
+                #'build': 'random',
+            },
             'data_push_length': self.cfg.train.trajectory_len,
         }
         self.job_queue.put(job)

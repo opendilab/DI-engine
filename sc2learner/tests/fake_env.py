@@ -11,7 +11,7 @@ class DummyStat:
 
 
 class FakeEnv:
-    def __init__(self, num_agents, *args, **kwargs):
+    def __init__(self, num_agents=2):
         self.dataset = FakeReplayDataset(dict(trajectory_len=1))
         self.num_agents = num_agents
         self.game_loop = 0
@@ -25,7 +25,7 @@ class FakeEnv:
             obs.append(stepdata)
         return obs
 
-    def reset(self):
+    def reset(self, stat):
         self.game_loop = 0
         return self._get_obs()
 
@@ -39,9 +39,6 @@ class FakeEnv:
         # use real environment to check the format of z
         info = {}
         return self.game_loop, due, obs, reward, done, info
-
-    def load_stat(self, stat, agent_no):
-        pass
 
     def get_target_z(self, agent_no, game_loop):
         return None

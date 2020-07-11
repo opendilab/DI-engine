@@ -41,12 +41,12 @@ class ActorForTest(AlphaStarActorWorker):
     def __init__(self, cfg):
         super(ActorForTest, self).__init__(cfg)
 
-    def _make_env(self, players):
+    def _make_env(self):
         if (FLAGS and FLAGS.fake_dataset) or PYTEST_FAKE_DATASET:
             from .fake_env import FakeEnv
-            return FakeEnv(len(players))
+            return FakeEnv()
         else:
-            return super()._make_env(players)
+            return super()._make_env()
 
     def _module_init(self):
         super()._module_init()

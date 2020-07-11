@@ -1,7 +1,10 @@
 import pytest
+from collections import namedtuple
 from sc2learner.data.fake_dataset import fake_stat_processed_professional_player
 from sc2learner.envs.stat.alphastar_statistics import GameLoopStatistics, RealTimeStatistics
 from sc2learner.envs.reward.alphastar_reward import AlphaStarReward
+
+TmpAction = namedtuple('TmpAction', ['action_type', 'target_location'])
 
 
 @pytest.fixture(scope='function')
@@ -17,17 +20,8 @@ class TestPseudoReward:
         episode_stats = [RealTimeStatistics() for _ in range(2)]
         # case 1
         rewards = [-1, 1]
-        actions = [
-            {
-                'action_type': 197,
-                'target_location': [19, 20]
-            },
-            {
-                'action_type': 1,
-                'target_location': [18, 21]
-            },
-        ]  # build_hatchery_pt, smart_pt
-        action_types = [a['action_type'] for a in actions]
+        actions = [TmpAction(197, [19, 20]), TmpAction(1, [18, 21])]  # build_hatchery_pt, smart_pt
+        action_types = [a.action_type for a in actions]
         episode_stats[0].update_stat(actions[0], None, 22)
         episode_stats[1].update_stat(actions[1], None, 22)
         battle_values = AlphaStarReward.BattleValues(150, 200, 250, 350)
@@ -42,8 +36,8 @@ class TestPseudoReward:
         assert rewards['battle'].tolist() == [-50, 50]
         # case 2
         rewards = [0, 0]
-        actions = [{'action_type': 217, 'target_location': [17, 19]}, {'action_type': 197, 'target_location': [36, 13]}]
-        action_types = [a['action_type'] for a in actions]
+        actions = [TmpAction(217, [17, 19]), TmpAction(197, [36, 13])]
+        action_types = [a.action_type for a in actions]
         episode_stats[0].update_stat(actions[0], None, 44)
         episode_stats[1].update_stat(actions[1], None, 44)
         battle_values = AlphaStarReward.BattleValues(50, 100, 550, 600)
@@ -67,34 +61,15 @@ class TestPseudoReward:
         win_loss_rewards = [0, 0]
         battle_values = AlphaStarReward.BattleValues(50, 100, 550, 600)
         actions = [
-            {
-                'action_type': 217,
-                'target_location': [17, 19]
-            }, {
-                'action_type': 217,
-                'target_location': [17, 20]
-            }, {
-                'action_type': 197,
-                'target_location': [36, 13]
-            }, {
-                'action_type': 193,
-                'target_location': 'none'
-            }, {
-                'action_type': 315,
-                'target_location': 'none'
-            }, {
-                'action_type': 437,
-                'target_location': 'none'
-            }, {
-                'action_type': 495,
-                'target_location': 'none'
-            }, {
-                'action_type': 296,
-                'target_location': 'none'
-            }, {
-                'action_type': 185,
-                'target_location': 'none'
-            }
+            TmpAction(217, [17, 19]),
+            TmpAction(217, [17, 20]),
+            TmpAction(197, [36, 13]),
+            TmpAction(193, None),
+            TmpAction(315, None),
+            TmpAction(437, None),
+            TmpAction(495, None),
+            TmpAction(296, None),
+            TmpAction(185, None),
         ]
         action_types = [197, 217]
         episode_stats[0].update_stat(actions[2], None, 1)
@@ -147,17 +122,8 @@ class TestPseudoReward:
         episode_stats = [RealTimeStatistics() for _ in range(2)]
         # case 1
         rewards = [-1, 1]
-        actions = [
-            {
-                'action_type': 197,
-                'target_location': [19, 20]
-            },
-            {
-                'action_type': 503,
-                'target_location': 'none'
-            },
-        ]  # build_hatchery_pt, smart_pt
-        action_types = [a['action_type'] for a in actions]
+        actions = [TmpAction(197, [19, 20]), TmpAction(503, None)]  # build_hatchery_pt, smart_pt
+        action_types = [a.action_type for a in actions]
         episode_stats[0].update_stat(actions[0], None, 22)
         episode_stats[1].update_stat(actions[1], None, 22)
         battle_values = AlphaStarReward.BattleValues(150, 200, 250, 350)
@@ -172,17 +138,8 @@ class TestPseudoReward:
         assert rewards['battle'].tolist() == [-50, 50]
         # case 2
         rewards = [-1, 1]
-        actions = [
-            {
-                'action_type': 217,
-                'target_location': [17, 19]
-            },
-            {
-                'action_type': 515,
-                'target_location': 'none'
-            },
-        ]  # build_hatchery_pt, smart_pt
-        action_types = [a['action_type'] for a in actions]
+        actions = [TmpAction(217, [17, 19]), TmpAction(515, None)]  # build_hatchery_pt, smart_pt
+        action_types = [a.action_type for a in actions]
         episode_stats[0].update_stat(actions[0], None, 44)
         episode_stats[1].update_stat(actions[1], None, 44)
         battle_values = AlphaStarReward.BattleValues(150, 200, 250, 350)
@@ -200,24 +157,7 @@ class TestPseudoReward:
         episode_stats = [RealTimeStatistics() for _ in range(2)]
         battle_values = AlphaStarReward.BattleValues(150, 200, 250, 350)
         win_loss_rewards = [0, 0]
-        actions = [
-            {
-                'action_type': 197,
-                'target_location': [1, 1]
-            },
-            {
-                'action_type': 217,
-                'target_location': [17, 19]
-            },
-            {
-                'action_type': 516,
-                'target_location': 'none'
-            },
-            {
-                'action_type': 193,
-                'target_location': 'none'
-            },
-        ]
+        actions = [TmpAction(197, [1, 1]), TmpAction(217, [17, 19]), TmpAction(516, None), TmpAction(193, None)]
 
         action_types = [197, 197]
         episode_stats[0].update_stat(actions[0], None, 1)
