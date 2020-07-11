@@ -83,22 +83,13 @@ def get_random_action(num_units=None, selected_num_units=None):
     return action
 
 
-def get_single_step_data():
-    # TODO(pzh) we should build a general data structure (a SampleBatch class)
-
-    # TODO(pzh) our system should not high dependent on the data structure, because we may add / delete item
-    #  in future
-
-    num_units = np.random.randint(200, 300)
-    selected_num_units = np.random.randint(1, MAX_SELECTED_UNITS)
-
-    # TODO(pzh) we should use a more light-weight data type to store binary.
+def get_scalar_encoder_data():
     scalar_info = OrderedDict(
         agent_statistics=random_tensor([10]),
         race=random_one_hot([5]),
         enemy_race=random_one_hot([5]),
-        upgrades=random_binary_tensor([90]),
-        enemy_upgrades=random_binary_tensor([NUM_UPGRADES]),  # refer to envs/observations/enemy_upgrades.py
+        upgrades=random_binary_tensor([NUM_UPGRADES]),
+        enemy_upgrades=random_binary_tensor([48]),  # refer to envs/observations/enemy_upgrades.py
         time=random_binary_tensor([64]),
         available_actions=random_binary_tensor([NUM_ACTION_TYPES]),
         unit_counts_bow=random_tensor([259]),
@@ -113,6 +104,18 @@ def get_single_step_data():
         ),
         beginning_build_order=random_tensor([20, NUM_BEGIN_ACTIONS + 2 * LOCATION_BIT_NUM]),
     )
+    return scalar_info
+
+
+def get_single_step_data():
+    # TODO(pzh) we should build a general data structure (a SampleBatch class)
+
+    # TODO(pzh) our system should not high dependent on the data structure, because we may add / delete item
+    #  in future
+
+    num_units = np.random.randint(200, 300)
+    selected_num_units = np.random.randint(1, MAX_SELECTED_UNITS)
+    scalar_info = get_scalar_encoder_data()
 
     entity_raw = OrderedDict(
         location=list(np.random.randint(0, min(MAP_SIZE), size=[num_units, 2], dtype=int)),
@@ -236,6 +239,9 @@ class FakeReplayDataset:
         )
         mmr = random_binary_tensor([7])
         return beginning_build_order, cumulative_stat, mmr
+
+    def __len__(self):
+        return 100
 
 
 class FakeActorDataset:
