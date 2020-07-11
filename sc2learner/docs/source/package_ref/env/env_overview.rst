@@ -76,6 +76,11 @@ Environment
           6. info: 返回环境基本信息，包含智能体数目，观察空间维度信息等
           7. __repr__: 返回环境类状态说明的字符串
 
+            .. note::
+
+                具体问题的运行环境创建不应该在 `__init__` 方法中实现，因为存在创建模型实例但不运行的使用场景（比如获取环境observation的维度等信息），推荐在reset方法中\
+                判断运行环境是否已创建，如果没有则进行创建再reset，如果有则直接reset已有环境。
+
 
 
     2. EnvElement (common/env_element.py)

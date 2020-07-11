@@ -24,29 +24,8 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         cfg.action.map_size = self.map_size
         self.cfg = cfg
 
-        agent_interface_format = sc2_env.parse_agent_interface_format(
-            feature_screen=cfg.screen_resolution,
-            feature_minimap=self.map_size,  # x, y
-            crop_to_playable_area=cfg.crop_map_to_playable_area,
-            raw_crop_to_playable_area=cfg.crop_map_to_playable_area,
-            action_delays=cfg.action_delays
-        )
+        self.players, self.agent_num = self._get_players(cfg)
 
-        players, self.agent_num = self._get_players(cfg)
-
-        SC2Env.__init__(
-            self,
-            map_name=cfg.map_name,
-            random_seed=cfg.random_seed,
-            step_mul=cfg.default_step_mul,
-            players=players,
-            game_steps_per_episode=cfg.game_steps_per_episode,
-            agent_interface_format=agent_interface_format,
-            disable_fog=cfg.disable_fog,
-            score_index=-1,  # use win/loss reward rather than score
-            ensure_available_actions=False,
-            realtime=cfg.realtime,
-        )
         self._obs_stat_type = cfg.obs_stat_type
         self._ignore_camera = cfg.ignore_camera
 
@@ -57,7 +36,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         self._action_helper = AlphaStarRawAction(cfg.action)
         self._reward_helper = AlphaStarReward(self.agent_num, cfg.pseudo_reward_type, cfg.pseudo_reward_prob)
 
-        self._reset_flag = False
+        self._launch_env_flag = False
 
     def _get_players(self, cfg):
         if cfg.game_type == 'game_vs_bot':
@@ -162,7 +141,33 @@ class AlphaStarEnv(BaseEnv, SC2Env):
             return_list=True
         )
 
+    def _launch_env(self) -> None:
+        cfg = self.cfg
+        agent_interface_format = sc2_env.parse_agent_interface_format(
+            feature_screen=cfg.screen_resolution,
+            feature_minimap=self.map_size,  # x, y
+            crop_to_playable_area=cfg.crop_map_to_playable_area,
+            raw_crop_to_playable_area=cfg.crop_map_to_playable_area,
+            action_delays=cfg.action_delays
+        )
+
+        SC2Env.__init__(
+            self,
+            map_name=cfg.map_name,
+            random_seed=cfg.random_seed,
+            step_mul=cfg.default_step_mul,
+            players=self.players,
+            game_steps_per_episode=cfg.game_steps_per_episode,
+            agent_interface_format=agent_interface_format,
+            disable_fog=cfg.disable_fog,
+            score_index=-1,  # use win/loss reward rather than score
+            ensure_available_actions=False,
+            realtime=cfg.realtime,
+        )
+
     def reset(self, loaded_stat: list) -> dict:
+        if not self._launch_env_flag:
+            self._launch_env()
         last_action = AlphaStarRawAction.AgentAction(0, 0, None, None, None, None)
         self._last_action = [last_action for _ in range(self.agent_num)]
         self._last_battle_value = [0] * self.agent_num
@@ -183,11 +188,11 @@ class AlphaStarEnv(BaseEnv, SC2Env):
             "{}.".format(env_provided_map_size, self.map_size)
         # Note: self._episode_steps is updated in SC2Env
         self._episode_steps = 0
-        self._reset_flag = True
+        self._launch_env_flag = True
         return copy.deepcopy(obs)
 
     def step(self, action_data: list) -> 'AlphaStarEnv.timestep':
-        assert self._reset_flag
+        assert self._launch_env_flag
         # get transformed action and delay
         raw_action, delay, action = list(zip(*[self._get_action(a) for a in action_data]))
         # get step_mul
