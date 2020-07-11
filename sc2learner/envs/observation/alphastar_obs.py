@@ -1007,7 +1007,7 @@ class ScalarObs(EnvElement):
             self.template += [
                 {
                     'key': 'score_cumulative',
-                    'dim': 10,
+                    'dim': 13,
                     'ori': 'score_cumulative',
                     'op': lambda x: torch.log(1 + torch.FloatTensor(x)),
                     'value': {

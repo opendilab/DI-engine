@@ -1,5 +1,6 @@
 from collections import namedtuple
 import copy
+import os
 import numpy as np
 import torch
 
@@ -12,6 +13,9 @@ from sc2learner.envs.action.alphastar_action import AlphaStarRawAction
 from sc2learner.envs.reward.alphastar_reward import AlphaStarReward
 from sc2learner.envs.other.alphastar_map import get_map_size
 from sc2learner.envs.stat.alphastar_statistics import RealTimeStatistics, GameLoopStatistics
+from sc2learner.utils import merge_dicts, read_config
+
+default_config = read_config(os.path.join(os.path.dirname(__file__), '../alphastar_env_default_config.yaml'))
 
 
 class AlphaStarEnv(BaseEnv, SC2Env):
@@ -19,6 +23,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
     info_template = namedtuple('BaseEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space'])
 
     def __init__(self, cfg: dict) -> None:
+        cfg = merge_dicts(default_config.env, cfg)
         self.map_size = get_map_size(cfg.map_name, cropped=cfg.crop_map_to_playable_area)
         cfg.obs_spatial.spatial_resolution = self.map_size
         cfg.action.map_size = self.map_size
