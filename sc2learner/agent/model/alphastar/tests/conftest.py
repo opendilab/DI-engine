@@ -6,7 +6,7 @@ from easydict import EasyDict
 from sc2learner.envs import AlphaStarEnv
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='function')
 def setup_config():
     with open(os.path.join(os.path.dirname(__file__), '../actor_critic_default_config.yaml')) as f:
         cfg = yaml.safe_load(f)

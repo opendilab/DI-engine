@@ -121,9 +121,14 @@ class TestEncoder:
                 for t, (H, W) in zip(m, map_size):
                     assert t.shape == (handle.down_channels[-1], H // 8, W // 8)
 
-    def test_scatter_connection(self, setup_config):
+    def test_scatter_connection(self, setup_config, setup_env_info):
         B = 5
         handle = setup_config.model.encoder
+        handle.obs_encoder.spatial_encoder.input_dim = setup_env_info.obs_space['spatial'].shape[0]
+        handle.obs_encoder.entity_encoder.input_dim = setup_env_info.obs_space['entity'].shape[-1]
+        for k, v in handle.obs_encoder.scalar_encoder.module.items():
+            handle.obs_encoder.scalar_encoder.module[k].input_dim = setup_env_info.obs_space['scalar'].shape[k]
+        handle.score_cumulative.input_dim = setup_env_info.obs_space['scalar'].shape['score_cumulative']
         model = Encoder(handle)
         assert isinstance(model, torch.nn.Module)
         map_size = (200, 180)
