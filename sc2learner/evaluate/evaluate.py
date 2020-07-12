@@ -1,5 +1,5 @@
-import random
 import time
+import random
 from multiprocessing import Pool
 import copy
 import pickle
@@ -103,6 +103,10 @@ class EvalActor(AlphaStarActor):
                         )
                     )
         return act
+
+    def _set_agent_mode(self):
+        for agent in self.agents:
+            agent.eval()
 
 
 class EvalJobGetter:

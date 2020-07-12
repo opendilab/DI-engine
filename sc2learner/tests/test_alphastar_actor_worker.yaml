@@ -1,3 +1,5 @@
+common:
+    save_path: '.'
 env:
     screen_resolution: [128, 128]
     default_step_mul: 8  # not used

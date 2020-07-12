@@ -222,8 +222,10 @@ class SelectedUnitsHead(nn.Module):
     def _query(self, key, end_flag_index, autoregressive_embedding, func_embed, mask, temperature, selected_units):
         B, N = key.shape[:2]
         logits = [[] for _ in range(B)]
-
         if selected_units is None:
+            # mask is used to avoid select unavaliable and repeat unit
+            # logits_mask is used to calculate loss, therefore only refers to unavaliable part
+            logits_mask = mask.clone()  # immutable, for logits
             units_index = [[] for _ in range(B)]
             end_flag_trigger = [False for _ in range(B)]
             state = None
@@ -236,6 +238,7 @@ class SelectedUnitsHead(nn.Module):
                 query_result = lstm_output.permute(1, 0, 2) * key
                 query_result = query_result.mean(dim=2)
                 if self.use_mask:
+                    masked_logits = query_result.sub((1 - logits_mask) * 1e9)
                     query_result.sub_((1 - mask) * 1e9)
                 entity_num = self._get_pred_with_logit(query_result, temperature)
 
@@ -244,14 +247,15 @@ class SelectedUnitsHead(nn.Module):
                     if end_flag_trigger[b]:
                         continue
                     else:
-                        logits[b].append(query_result[b])
+                        logits[b].append(masked_logits[b])
                         # end_flag doesn't also contribute to autoregressive_embedding
                         if entity_num[b] == end_flag_index[b]:
                             # logits == 1 case(only end_flag), select the second largest unit
                             if len(logits[b]) == 1:
                                 logit = query_result[b]
                                 logit[end_flag_index] = -1e9
-                                logits[b][0] = logit
+                                masked_logits[b][end_flag_index] = -1e9
+                                logits[b][0] = masked_logits[b]
                                 entity_num_b = self._get_pred_with_logit(logit, temperature)
                                 units_index[b].append(entity_num_b)
                                 mask[b][entity_num_b] = 0

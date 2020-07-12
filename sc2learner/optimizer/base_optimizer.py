@@ -35,6 +35,7 @@ class BaseOptimizer:
         variable_record.register_var('sync_gradients_time')
         tb_logger.register_var('total_loss')
         tb_logger.register_var('backward_time')
+        tb_logger.register_var('forward_time')
         tb_logger.register_var('sync_gradients_time')
         self.loss.register_log(variable_record, tb_logger)
 

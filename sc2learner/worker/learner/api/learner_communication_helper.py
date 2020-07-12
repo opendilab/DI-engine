@@ -21,15 +21,18 @@ class LearnerCommunicationHelper(object):
         super(LearnerCommunicationHelper, self).__init__()
         self.cfg = cfg
 
-        # if want to rerun learner, learner_uid should be set in cfg.system
-        if 'learner_uid' in self.cfg.system.keys() and self.cfg.system.learner_uid:
-            self.learner_uid = str(self.cfg.system.learner_uid)
-        else:
-            self.learner_uid = str(os.environ.get('SLURM_JOB_ID', str(random.randint(0, 1000000))))
+        self.learner_uid = str(os.environ.get('SLURM_JOB_ID'))
+        if self.learner_uid == 'None':
+            self.learner_uid = str(random.randint(0, 100000))
+            print("[WARNING]: Can't get learner_uid, if you don't test locally, please check it")
 
         # if want to rerun learner, learner_re_register should be set True in cfg.system
+        # if want to rerun learner, learner_uid should be set in cfg.system
         if 'learner_re_register' in self.cfg.system.keys():
             self.learner_re_register = self.cfg.system.learner_re_register
+            if self.learner_re_register:
+                assert self.cfg.system.learner_uid
+                self.learner_uid = str(self.cfg.system.learner_uid)
         else:
             self.learner_re_register = False
 
