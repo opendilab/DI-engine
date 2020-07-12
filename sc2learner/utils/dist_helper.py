@@ -18,7 +18,7 @@ def error_wrapper(fn, default_ret):
         except Exception:
             ret = default_ret
             print(
-                '[WARNING]: linklink operation error, return default_ret({}). If you are not in unittest, please check it'
+                '[WARNING]: call linklink error, return default_ret({}). If you are not in unittest, please check it'
                 .format(default_ret)
             )
         return ret

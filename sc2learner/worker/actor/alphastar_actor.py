@@ -423,7 +423,9 @@ class AlphaStarActor:
                 self.logger.info(
                     self._actor_string('game_loop({})\t{}'.format(game_loop, self.variable_record.get_vars_text()))
                 )
-                string = ''.join(['agent {} data len: {}\t'.format(i, len(data_buffer[i])) for i in range(self.agent_num)])
+                string = ''.join(
+                    ['agent {} data len: {}\t'.format(i, len(data_buffer[i])) for i in range(self.agent_num)]
+                )
                 self.logger.info(self._actor_string(string))
             # finish job
             if done:
