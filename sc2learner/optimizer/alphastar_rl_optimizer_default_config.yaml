@@ -10,7 +10,7 @@ train:
     use_cuda: False
     action_output_types:
         action_type: logit
-        delay: value
+        delay: logit
         queued: logit
         selected_units: logit
         target_units: logit

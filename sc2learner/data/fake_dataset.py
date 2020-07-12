@@ -114,6 +114,8 @@ def get_single_step_data():
         if action_attr['target_location'] else NOOP
     )
 
+    scalar_info['available_actions'][actions['action_type']] = 1
+
     return OrderedDict(
         scalar_info=scalar_info,
         entity_raw=entity_raw,
