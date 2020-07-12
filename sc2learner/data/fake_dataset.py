@@ -3,16 +3,18 @@ import tempfile
 from collections import OrderedDict
 import copy
 import os
-
 import numpy as np
 import torch
 
 from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UNIT_TYPES, ACTIONS_REORDER_INV, NUM_BEGIN_ACTIONS, NUM_UPGRADES
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
-from sc2learner.data.offline.replay_dataset import ReplayDataset, START_STEP
+#from sc2learner.data.offline.replay_dataset import START_STEP
+START_STEP = 'start_step'
 from sc2learner.utils import get_step_data_compressor
-from sc2learner.envs.observations.alphastar_obs_wrapper import ENTITY_INFO_DIM
-from sc2learner.envs.observations import LOCATION_BIT_NUM
+#from sc2learner.envs.observations.alphastar_obs_wrapper import ENTITY_INFO_DIM
+ENTITY_INFO_DIM = 1340
+#from sc2learner.envs.observations import LOCATION_BIT_NUM
+LOCATION_BIT_NUM = 10
 
 META_SUFFIX = '.meta'
 DATA_SUFFIX = '.step'
@@ -164,7 +166,7 @@ def get_z():
     return ret
 
 
-class FakeReplayDataset(ReplayDataset):
+class FakeReplayDataset:
     def __init__(self, cfg=None):
         # Completely independent with the config
         self.trajectory_len = cfg.get("trajectory_len", 11) if cfg else 11
@@ -230,6 +232,9 @@ class FakeReplayDataset(ReplayDataset):
         )
         mmr = random_binary_tensor([7])
         return beginning_build_order, cumulative_stat, mmr
+
+    def __len__(self):
+        return 100
 
 
 class FakeActorDataset:

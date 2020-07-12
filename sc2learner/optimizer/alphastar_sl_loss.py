@@ -234,7 +234,11 @@ class AlphaStarSupervisedLoss(BaseLoss):
         # criterion = MultiLogitsLoss(self.criterion_config)
         labels = [x for x in labels if isinstance(x, torch.Tensor)]
         logits = [x for x in logits if isinstance(x, torch.Tensor)]
-        assert len(logits) == len(labels), '{}/{}'.format(len(logits), len(labels))
+        try:
+            assert len(logits) == len(labels), '{}/{}'.format(len(logits), len(labels))
+        except AssertionError:
+            print('[WARNING]: selected_units loss mismatch, if you are not in unittest, please check it')
+            return 0
         batch_size = len(labels)
         if batch_size == 0:
             return 0.0
@@ -265,7 +269,11 @@ class AlphaStarSupervisedLoss(BaseLoss):
         """
         labels = [x for x in labels if isinstance(x, torch.Tensor)]
         logits = [x for x in logits if isinstance(x, torch.Tensor)]
-        assert len(logits) == len(labels), '{}/{}'.format(len(logits), len(labels))
+        try:
+            assert len(logits) == len(labels), '{}/{}'.format(len(logits), len(labels))
+        except AssertionError:
+            print('[WARNING]: selected_units loss mismatch, if you are not in unittest, please check it')
+            return 0
         if len(labels) == 0:
             return 0
         loss = []

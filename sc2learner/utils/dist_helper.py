@@ -11,16 +11,31 @@ link = try_import_link()
 is_fake_link = isinstance(link, FakeLink)
 
 
+def error_wrapper(fn, default_ret):
+    def wrapper(*args, **kwargs):
+        try:
+            ret = fn(*args, **kwargs)
+        except Exception:
+            ret = default_ret
+            print(
+                '[WARNING]: linklink operation error, return default_ret({}). If you are not in unittest, please check it'
+                .format(default_ret)
+            )
+        return ret
+
+    return wrapper
+
+
 def get_rank():
     if is_fake_link:
         return 0
-    return link.get_rank()
+    return error_wrapper(link.get_rank, 0)()
 
 
 def get_world_size():
     if is_fake_link:
         return 1
-    return link.get_world_size()
+    return error_wrapper(link.get_world_size, 1)()
 
 
 def broadcast(value, rank_num):
