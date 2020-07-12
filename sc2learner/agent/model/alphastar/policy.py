@@ -295,9 +295,18 @@ class Policy(nn.Module):
             [logits_location, location], action_attr['target_location']
         )
 
+        actions = self._squeeze_one_batch(actions)
+        logits = self._squeeze_one_batch(logits)
         actions = self._get_action_entity_raw(actions, entity_raw)
 
         return actions, logits
+
+    def _squeeze_one_batch(self, actions):
+        for k in actions.keys():
+            for i in range(len(actions[k])):
+                if isinstance(actions[k][i], torch.Tensor) and len(actions[k][i].shape) > 1:
+                    actions[k][i].squeeze_(0)
+        return actions
 
     def _mask_select(self, data, mask):
         def chunk(item):
