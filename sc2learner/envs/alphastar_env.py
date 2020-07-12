@@ -223,8 +223,8 @@ class AlphaStarEnv(SC2Env):
         # action target location transform
         target_location = action['target_location']
         if target_location is not None:
-            x = target_location[0][1]
-            y = target_location[0][0]
+            x = target_location[1]
+            y = target_location[0]
             y = self.map_size[1] - y
             action['target_location'] = [x, y]
         return action

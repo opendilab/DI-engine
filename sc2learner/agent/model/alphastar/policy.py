@@ -109,7 +109,7 @@ class Policy(nn.Module):
                 # if no available units, set the corresponding attribute False
                 # TODO(nyz) deal with these illegal action in the interaction between agent and env
                 if k in ['selected_units', 'target_units']:
-                    if action_arg_mask[k + '_mask'][-1].abs().sum() < 1e-6:
+                    if action_attr[k][-1] and action_arg_mask[k + '_mask'][-1].abs().sum() < 1e-6:
                         print('[WARNING]: action_type {} has no available units'.format(action_type_val))
                         action_attr[k][-1] = False
         # stack mask
