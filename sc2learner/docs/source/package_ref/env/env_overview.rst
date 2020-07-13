@@ -25,7 +25,7 @@ Environment
 
         .. code:: python
 
-            class BaseEnv:
+            class BaseEnv(ABC):
                 """
                 Overview: basic environment class
                 Interface: __init__
@@ -34,24 +34,31 @@ Environment
                 timestep = namedtuple('BaseEnvTimestep', ['obs', 'act', 'reward', 'done', 'info'])
                 info_template = namedtuple('BaseEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space'])
 
+                @abstractmethod
                 def __init__(self, cfg: dict) -> None:
                     raise NotImplementedError
 
+                @abstractmethod
                 def reset(self) -> Any:
                     raise NotImplementedError
 
+                @abstractmethod
                 def close(self) -> None:
                     raise NotImplementedError
 
+                @abstractmethod
                 def step(self, action: Any) -> 'BaseEnv.timestep':
                     raise NotImplementedError
 
+                @abstractmethod
                 def seed(self, seed: int) -> None:
                     raise NotImplementedError
 
+                @abstractmethod
                 def info(self) -> 'BaseEnv.info':
                     raise NotImplementedError
 
+                @abstractmethod
                 def __repr__(self) -> str:
                     raise NotImplementedError
 
@@ -87,34 +94,37 @@ Environment
 
         .. code:: python
 
-            class EnvElement(object):
+            class EnvElement(ABC):
                 info_template = namedtuple('EnvElementInfo', ['shape', 'value', 'to_agent_processor', 'from_agent_processor'])
                 _instance = None
                 _name = 'EnvElement'
 
                 def __init__(self, *args, **kwargs) -> None:
                     # placeholder
-                    # self._shape = 4
-                    # self._value = {'min': 0, 'max': 1, 'dtype': 'float'}
-                    # self._to_agent_processor = lambda x: x
+                    # self._shape = None
+                    # self._value = None
+                    # self._to_agent_processor = None
                     # self._from_agent_processor = None
                     self._init(*args, **kwargs)
                     self._check()
 
                 def __new__(cls, *args, **kwargs):
+                    """Singleton design"""
                     if cls._instance is None:
                         # after python3.3, user don't need to pass the extra arguments to the `object` method which is overrided
                         cls._instance = object.__new__(cls)
                     return cls._instance
 
+                @abstractmethod
                 def _init(*args, **kwargs) -> None:
                     raise NotImplementedError
 
                 def __repr__(self) -> str:
                     return '{}: {}'.format(self._name, self._details())
 
+                @abstractmethod
                 def _details(self) -> str:
-                    return "placeholder"
+                    raise NotImplementedError
 
                 def _check(self) -> None:
                     flag = [
