@@ -1,26 +1,29 @@
+from abc import ABC, abstractmethod
 from collections import namedtuple
 
 
-class EnvElement(object):
+class EnvElement(ABC):
     info_template = namedtuple('EnvElementInfo', ['shape', 'value', 'to_agent_processor', 'from_agent_processor'])
     _instance = None
     _name = 'EnvElement'
 
     def __init__(self, *args, **kwargs) -> None:
         # placeholder
-        # self._shape = 4
-        # self._value = {'min': 0, 'max': 1, 'dtype': 'float'}
-        # self._to_agent_processor = lambda x: x
-        # self._from_agent_processor = None
+        self._shape = None
+        self._value = None
+        self._to_agent_processor = None
+        self._from_agent_processor = None
         self._init(*args, **kwargs)
         self._check()
 
     def __new__(cls, *args, **kwargs):
+        """Singleton design"""
         if cls._instance is None:
             # after python3.3, user don't need to pass the extra arguments to the `object` method which is overrided
             cls._instance = object.__new__(cls)
         return cls._instance
 
+    @abstractmethod
     def _init(*args, **kwargs) -> None:
         raise NotImplementedError
 
@@ -32,10 +35,10 @@ class EnvElement(object):
 
     def _check(self) -> None:
         flag = [
-            hasattr(self, '_shape'),
-            hasattr(self, '_value'),
-            hasattr(self, '_to_agent_processor'),
-            hasattr(self, '_from_agent_processor'),
+            self._shape is not None,
+            self._value is not None,
+            self._to_agent_processor is not None,
+            self._from_agent_processor is not None
         ]
         assert all(flag), 'this class {} is not a legal subclass of EnvElement({})'.format(self.__class__, flag)
 

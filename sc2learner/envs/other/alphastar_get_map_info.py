@@ -1,6 +1,6 @@
 """
 Script to extract map_size from maps
-Usage: Run me on a computer with pysc2 environment and ladder map packs installed
+Usage: Run me on a computer with pysc2 environment with ladder map packs installed
        The LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT can be used to convert any kind of map name to pysc2 name
        Output will be written to map_info.py
 """

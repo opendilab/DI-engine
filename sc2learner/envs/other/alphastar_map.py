@@ -238,20 +238,18 @@ MAPS = {
 def get_map_size(map_name, cropped=True):
     return MAPS[map_name][2 if cropped else 3]
 
-
-def get_localized_map_name(map_name, cleared=True):
-    return MAPS[map_name][5 if cleared else 4]
-
-
-def get_inverse_tran_table(table, indices):
-    inv_tab = {}
-    for k, v in table.items():
-        inv_tab[k] = k
-    for index in indices:
-        for k, v in table.items():
-            if v[index]:
-                inv_tab[v[index]] = k
-    return inv_tab
+# def get_localized_map_name(map_name, cleared=True):
+#     return MAPS[map_name][5 if cleared else 4]
 
 
-LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT = get_inverse_tran_table(MAPS, [0, 4, 5, 6])
+# def get_inverse_tran_table(table, indices):
+#     inv_tab = {}
+#     for k, v in table.items():
+#         inv_tab[k] = k
+#     for index in indices:
+#         for k, v in table.items():
+#             if v[index]:
+#                 inv_tab[v[index]] = k
+#     return inv_tab
+
+# LOCALIZED_BNET_NAME_TO_PYSC2_NAME_LUT = get_inverse_tran_table(MAPS, [0, 4, 5, 6])

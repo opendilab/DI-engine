@@ -1,17 +1,17 @@
-from collections import namedtuple
 import copy
 import os
+from collections import namedtuple
+
 import numpy as np
-import torch
 
 import pysc2.env.sc2_env as sc2_env
 from pysc2.env.sc2_env import SC2Env
 from pysc2.lib.actions import FunctionCall
+from sc2learner.envs.action.alphastar_action import AlphaStarRawAction
 from sc2learner.envs.env.base_env import BaseEnv
 from sc2learner.envs.observation.alphastar_obs import ScalarObs, SpatialObs, EntityObs
-from sc2learner.envs.action.alphastar_action import AlphaStarRawAction
-from sc2learner.envs.reward.alphastar_reward import AlphaStarReward
 from sc2learner.envs.other.alphastar_map import get_map_size
+from sc2learner.envs.reward.alphastar_reward import AlphaStarReward
 from sc2learner.envs.stat.alphastar_statistics import RealTimeStatistics, GameLoopStatistics
 from sc2learner.utils import merge_dicts, read_config
 
@@ -71,8 +71,10 @@ class AlphaStarEnv(BaseEnv, SC2Env):
             )
         elif self._obs_stat_type == 'replay_last':
             stat = self._loaded_eval_stat[agent_no].get_input_z_by_game_loop(game_loop=None)
+        else:
+            raise ValueError(f"{self._obs_stat_type} unknown!")
 
-        assert set(stat.keys()) == set(['mmr', 'beginning_build_order', 'cumulative_stat'])
+        assert set(stat.keys()) == {'mmr', 'beginning_build_order', 'cumulative_stat'}
         obs.update(stat)
         return obs
 
@@ -119,18 +121,16 @@ class AlphaStarEnv(BaseEnv, SC2Env):
     def _get_battle_value(self, raw_obs):
         minerals_ratio = 1.
         vespene_ratio = 1.
-
-        def battle_fn(obs):
-            return int(
+        return [
+            int(
                 np.sum(obs['score_by_category']['killed_minerals']) * minerals_ratio +
                 np.sum(obs['score_by_category']['killed_vespene'] * vespene_ratio)
-            )
-
-        return [battle_fn(raw_obs[n]) for n in range(self.agent_num)]
+            ) for obs in raw_obs
+        ]
 
     def _get_pseudo_rewards(self, reward, battle_value, action):
         action_type = [a.action_type for a in action]
-        if self.agent_num == 1:
+        if self.agent_num == 1:  # If we are in agent vs bot mode.
             battle_value = AlphaStarReward.BattleValues(
                 self._last_battle_value[0], battle_value[0], self._last_battle_value[1], battle_value[1]
             )
@@ -170,7 +170,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
             realtime=cfg.realtime,
         )
 
-    def reset(self, loaded_stat: list) -> dict:
+    def reset(self, loaded_stat: list) -> list:
         if not self._launch_env_flag:
             self._launch_env()
         last_action = AlphaStarRawAction.AgentAction(0, 0, None, None, None, None)
@@ -230,7 +230,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         reward = self._get_pseudo_rewards(reward, battle_value, action)
         # update state variable
         self._last_action = action
-        self._last_obs = obs
+        self._last_obs = obs.copy()
         self._last_battle_value = battle_value
 
         return AlphaStarEnv.timestep(
@@ -239,7 +239,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
 
     def seed(self, seed: int) -> None:
         """Note: because SC2Env sets up the random seed in input args, we don't implement this method"""
-        raise NotImplementedError
+        raise NotImplementedError()
 
     def info(self) -> 'AlphaStarEnv.info':
         obs_info = {'scalar': self._obs_scalar.info, 'spatial': self._obs_spatial.info, 'entity': self._obs_entity.info}

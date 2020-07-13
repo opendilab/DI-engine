@@ -1,19 +1,15 @@
-import os
-import pickle
-from collections import namedtuple
 import copy
+import copy
+import logging
+
 import numpy as np
 import torch
-import logging
-from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
-from pysc2.lib.static_data import NUM_BUFFS, NUM_ABILITIES, NUM_UNIT_TYPES, UNIT_TYPES_REORDER,\
-     UNIT_TYPES_REORDER_ARRAY, BUFFS_REORDER_ARRAY, ABILITIES_REORDER_ARRAY, NUM_UPGRADES, UPGRADES_REORDER,\
-     UPGRADES_REORDER_ARRAY, NUM_ACTIONS, ACTIONS_REORDER_ARRAY, NUM_ADDON, ADDON_REORDER_ARRAY,\
-     NUM_BEGIN_ACTIONS, NUM_UNIT_BUILD_ACTIONS, NUM_EFFECT_ACTIONS, NUM_RESEARCH_ACTIONS,\
-     UNIT_BUILD_ACTIONS_REORDER_ARRAY, EFFECT_ACTIONS_REORDER_ARRAY, RESEARCH_ACTIONS_REORDER_ARRAY,\
-     BEGIN_ACTIONS_REORDER_ARRAY, UNIT_BUILD_ACTIONS, EFFECT_ACTIONS, RESEARCH_ACTIONS, BEGIN_ACTIONS,\
-     OLD_BEGIN_ACTIONS_REORDER_INV
 
+from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
+from pysc2.lib.static_data import NUM_BEGIN_ACTIONS, NUM_UNIT_BUILD_ACTIONS, NUM_EFFECT_ACTIONS, NUM_RESEARCH_ACTIONS, \
+    UNIT_BUILD_ACTIONS_REORDER_ARRAY, EFFECT_ACTIONS_REORDER_ARRAY, RESEARCH_ACTIONS_REORDER_ARRAY, \
+    BEGIN_ACTIONS_REORDER_ARRAY, BEGIN_ACTIONS, \
+    OLD_BEGIN_ACTIONS_REORDER_INV
 from sc2learner.envs.common import reorder_one_hot_array, batch_binary_encode, div_one_hot
 from sc2learner.envs.observation.alphastar_obs import LOCATION_BIT_NUM
 from sc2learner.torch_utils import to_dtype, one_hot
@@ -41,6 +37,7 @@ class RealTimeStatistics:
     """
     Overview: real time agent statistics
     """
+
     def __init__(self, begin_num=20):
         self.action_statistics = {}
         self.cumulative_statistics = {}
@@ -73,10 +70,10 @@ class RealTimeStatistics:
         if act.selected_units is not None:
             units = act.selected_units
             unit_types = get_unit_types(units, entity_type_dict)
-            self.action_statistics[action_type]['selected_type'] =\
+            self.action_statistics[action_type]['selected_type'] = \
                 self.action_statistics[action_type]['selected_type'].union(
-                unit_types
-            )
+                    unit_types
+                )
         if act.target_units is not None:
             units = act.target_units
             unit_types = get_unit_types(units, entity_type_dict)
@@ -98,14 +95,14 @@ class RealTimeStatistics:
 
     def update_build_order_stat(self, act, game_loop):
         # this will not clear the cache
-        target_list = ['unit', 'build', 'research']
+        worker_and_supply_units = (35, 64, 520, 222, 515, 503)
         action_type = act.action_type
-        if action_type in (35, 64, 520, 222, 515, 503):  # exclude worker and supply
+        if action_type in worker_and_supply_units:  # exclude worker and supply
             return
         goal = GENERAL_ACTION_INFO_MASK[action_type]['goal']
         if action_type in BEGIN_ACTIONS:
             if goal == 'build':
-                if action_type not in [36, 197, 214] and act.target_location is None:
+                if action_type not in (36, 197, 214) and act.target_location is None:
                     print(
                         'build action have no target_location!'
                         'this shouldn\'t happen with real model: {}'.format(act)
@@ -132,6 +129,9 @@ class RealTimeStatistics:
         self.update_build_order_stat(act, game_loop)
 
     def get_reward_z(self, use_max_bo_clip):
+        """
+        use_max_bo_clip (boolean): Whether to keep only the building orders of the first self.begin_num units.
+        """
         beginning_build_order = self.begin_statistics
         if use_max_bo_clip and len(beginning_build_order) > self.begin_num:
             beginning_build_order = beginning_build_order[:self.begin_num]
@@ -155,6 +155,7 @@ class GameLoopStatistics:
     """
     Overview: Human replay data statistics specified by game loop
     """
+
     def __init__(self, stat, begin_num=20):
         self.ori_stat = stat
         self.ori_stat = self.add_game_loop(self.ori_stat)
@@ -208,13 +209,13 @@ class GameLoopStatistics:
         beginning_build_order = copy.deepcopy(self.ori_stat['beginning_build_order'])
         if len(beginning_build_order) < self.begin_num:
             miss_num = self.begin_num - len(beginning_build_order)
-            pad_beginning_build_order = beginning_build_order + [
+            padded_beginning_build_order = beginning_build_order + [
                 {
                     'action_type': 0,
                     'location': 'none'
                 } for _ in range(miss_num)
             ]
-            self.input_global_bo = pad_beginning_build_order
+            self.input_global_bo = padded_beginning_build_order
             self.reward_global_bo = beginning_build_order
         else:
             beginning_build_order = beginning_build_order[:self.begin_num]
@@ -270,7 +271,7 @@ class GameLoopStatistics:
             return global_z
         else:
             beginning_build_order, cumulative_stat = self._get_stat_by_game_loop(game_loop)
-        # TODO(nyz) same game_loop case
+
         cum_stat_tensor = transform_cum_stat(cumulative_stat)
         ret = {
             'built_unit': cum_stat_tensor['unit_build'],
@@ -300,7 +301,6 @@ def transform_build_order_to_z_format(stat):
     for n in range(len(stat)):
         action_type, location = stat[n]['action_type'], stat[n]['location']
         ret['type'][n] = action_type
-        # TODO: check this 'loc' is x,y or y,x
         ret['loc'][n] = location if location is not None and location != 'none' else zeroxy
     ret['type'] = torch.Tensor(ret['type'])
     ret['loc'] = torch.Tensor(ret['loc'])
@@ -451,6 +451,7 @@ class StatKey:
 
 
 class StatManager:
+    # TODO this class should be move out from sc2learner/envs
     def __init__(self, stat_path_list):
         with open(stat_path_list, 'r') as f:
             data = f.readlines()

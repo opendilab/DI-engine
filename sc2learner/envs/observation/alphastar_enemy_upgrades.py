@@ -4,9 +4,12 @@ Copyright 2020 Sensetime X-lab. All Rights Reserved
 Main Function:
     1. compute enemy upgrades from units infomation
 '''
-import torch
 from collections import namedtuple
+
+import torch
+
 from sc2learner.torch_utils import one_hot
+
 '''
 UPGRADES_LIST = [
     "TerranInfantryWeaponsLevel1",

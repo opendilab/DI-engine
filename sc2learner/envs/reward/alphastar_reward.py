@@ -1,13 +1,15 @@
+import copy
 from collections import namedtuple, OrderedDict
 from typing import Optional
+
 import numpy as np
 import torch
 import torch.nn.functional as F
-import copy
+
 from pysc2.lib.static_data import BUILD_ORDER_REWARD_ACTIONS, UNIT_BUILD_ACTIONS, EFFECT_ACTIONS, RESEARCH_ACTIONS
 from sc2learner.data.collate_fn import diff_shape_collate
-from sc2learner.torch_utils import levenshtein_distance, hamming_distance, to_device
 from sc2learner.envs.common import EnvElement
+from sc2learner.torch_utils import levenshtein_distance, hamming_distance, to_device
 
 
 class AlphaStarReward(EnvElement):
@@ -29,7 +31,7 @@ class AlphaStarReward(EnvElement):
         self.battle_range = 5000
 
         self._reward_key = ['winloss', 'build_order', 'built_unit', 'upgrade', 'effect', 'battle']
-        self._shape = {k: (1, ) for k in self._reward_key}
+        self._shape = {k: (1,) for k in self._reward_key}
         begin_num = 20
         self._value = {
             'winloss': {
@@ -108,6 +110,8 @@ class AlphaStarReward(EnvElement):
                 elif self.pseudo_reward_type == 'immediate':
                     behaviour_z = episode_stats[i].get_reward_z(use_max_bo_clip=False)
                     human_target_z = loaded_eval_stats[i].get_reward_z_by_game_loop(game_loop=game_loop)
+                else:
+                    raise ValueError(f"{self.pseudo_reward_type} unknown!")
                 behaviour_zs.append(behaviour_z)
                 human_target_zs.append(human_target_z)
             game_seconds = [game_second] * self.agent_num
@@ -170,6 +174,7 @@ class AlphaStarReward(EnvElement):
             Returns:
                 - rewards (:obj:`dict`): a dict contains different type rewards
         """
+
         def loc_fn(p1, p2, max_limit=self.build_order_location_max_limit):
             p1 = p1.float().to(self.device)
             p2 = p2.float().to(self.device)

@@ -1,6 +1,7 @@
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
 
 
+# TODO The only usage of this function is in AS agent. Consider move this to there.
 def get_location_mask(action_type, spatial_info):
     def has_zerg_unit(units):
         assert isinstance(units, list)
