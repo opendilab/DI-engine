@@ -107,7 +107,7 @@ class RealTimeStatistics:
                 if isinstance(location, torch.Tensor):  # for build ves, no target_location
                     location = location.tolist()
             else:
-                location = 'none'
+                location = None
             self.begin_statistics.append({'action_type': action_type, 'location': location, 'game_loop': game_loop})
 
     def update_stat(self, act, obs, game_loop):
@@ -207,7 +207,7 @@ class GameLoopStatistics:
             padded_beginning_build_order = beginning_build_order + [
                 {
                     'action_type': 0,
-                    'location': 'none'
+                    'location': None
                 } for _ in range(miss_num)
             ]
             self.input_global_bo = padded_beginning_build_order
@@ -296,7 +296,7 @@ def transform_build_order_to_z_format(stat):
     for n in range(len(stat)):
         action_type, location = stat[n]['action_type'], stat[n]['location']
         ret['type'][n] = action_type
-        ret['loc'][n] = location if location is not None and location != 'none' else zeroxy
+        ret['loc'][n] = location if location is not None and location != None else zeroxy
     ret['type'] = torch.Tensor(ret['type'])
     ret['loc'] = torch.Tensor(ret['loc'])
     return ret
@@ -315,7 +315,7 @@ def transform_build_order_to_input_format(stat, location_num=LOCATION_BIT_NUM):
         else:
             action_type = torch.LongTensor([action_type])
             action_type = reorder_one_hot_array(action_type, BEGIN_ACTIONS_REORDER_ARRAY, num=NUM_BEGIN_ACTIONS)
-        if location == 'none':
+        if location == None:
             location = torch.zeros(location_num * 2)
         else:
             x = batch_binary_encode(torch.LongTensor([location[0]]), bit_num=location_num)[0]
