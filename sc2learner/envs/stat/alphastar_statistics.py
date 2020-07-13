@@ -203,14 +203,8 @@ class GameLoopStatistics:
     def _clip_global_bo(self):
         beginning_build_order = copy.deepcopy(self.ori_stat['beginning_build_order'])
         if len(beginning_build_order) < self.begin_num:
-            miss_num = self.begin_num - len(beginning_build_order)
-            padded_beginning_build_order = beginning_build_order + [
-                {
-                    'action_type': 0,
-                    'location': None
-                } for _ in range(miss_num)
-            ]
-            self.input_global_bo = padded_beginning_build_order
+            # the input_global_bo will be padded up to begin_num when transformed into input format
+            self.input_global_bo = beginning_build_order
             self.reward_global_bo = beginning_build_order
         else:
             beginning_build_order = beginning_build_order[:self.begin_num]
@@ -224,7 +218,7 @@ class GameLoopStatistics:
             {
                 'begin_statistics': beginning_build_order,
                 'cumulative_statistics': cumulative_stat
-            }, self.mmr
+            }, self.mmr, self.begin_num
         )
         # init reward_global_z
         beginning_build_order, cumulative_stat = self.reward_global_bo, self.ori_stat['cumulative_stat'][-1]
@@ -296,13 +290,13 @@ def transform_build_order_to_z_format(stat):
     for n in range(len(stat)):
         action_type, location = stat[n]['action_type'], stat[n]['location']
         ret['type'][n] = action_type
-        ret['loc'][n] = location if location is not None and location != None else zeroxy
+        ret['loc'][n] = location if location is not None and location is not None else zeroxy
     ret['type'] = torch.Tensor(ret['type'])
     ret['loc'] = torch.Tensor(ret['loc'])
     return ret
 
 
-def transform_build_order_to_input_format(stat, location_num=LOCATION_BIT_NUM):
+def transform_build_order_to_input_format(stat, begin_num, location_num=LOCATION_BIT_NUM):
     """
     Overview: transform beginning_build_order to the format for input
     stat: list->element: dict('action_type': int, 'location': list(len=2)->element: int)
@@ -315,7 +309,7 @@ def transform_build_order_to_input_format(stat, location_num=LOCATION_BIT_NUM):
         else:
             action_type = torch.LongTensor([action_type])
             action_type = reorder_one_hot_array(action_type, BEGIN_ACTIONS_REORDER_ARRAY, num=NUM_BEGIN_ACTIONS)
-        if location == None:
+        if location is None:
             location = torch.zeros(location_num * 2)
         else:
             x = batch_binary_encode(torch.LongTensor([location[0]]), bit_num=location_num)[0]
@@ -323,6 +317,11 @@ def transform_build_order_to_input_format(stat, location_num=LOCATION_BIT_NUM):
             location = torch.cat([x, y], dim=0)
         beginning_build_order_tensor.append(torch.cat([action_type.squeeze(0), location], dim=0))
     beginning_build_order_tensor = torch.stack(beginning_build_order_tensor, dim=0)
+    # pad
+    if beginning_build_order_tensor.shape[0] < begin_num:
+        miss_num = begin_num - beginning_build_order_tensor.shape[0]
+        pad_part = torch.zeros(miss_num, beginning_build_order_tensor.shape[1])
+        beginning_build_order_tensor = torch.cat([beginning_build_order_tensor, pad_part], dim=0)
     return beginning_build_order_tensor
 
 
@@ -353,12 +352,12 @@ def transform_stat(stat, meta, location_num=LOCATION_BIT_NUM):
     return transformed_stat_mmr(stat, mmr, location_num)
 
 
-def transformed_stat_mmr(stat, mmr, location_num=LOCATION_BIT_NUM):
+def transformed_stat_mmr(stat, mmr, begin_num):
     """
     Overview: transform replay metadata and statdata to input stat(mmr + z)
     """
     beginning_build_order = stat['begin_statistics']
-    beginning_build_order_tensor = transform_build_order_to_input_format(beginning_build_order)
+    beginning_build_order_tensor = transform_build_order_to_input_format(beginning_build_order, begin_num)
     cumulative_stat_tensor = transform_cum_stat(stat['cumulative_statistics'])
     mmr = torch.LongTensor([mmr])
     mmr = div_one_hot(mmr, 6000, 1000).squeeze(0)
