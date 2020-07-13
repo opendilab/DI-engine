@@ -1,6 +1,7 @@
 import time
 import os
 import copy
+from copy import deepcopy
 import pickle
 
 import torch
@@ -378,11 +379,7 @@ class AlphaStarActor:
                         else:
                             away_step_data = None
                         step_data = {'home': home_step_data, 'away': away_step_data}
-                        if at_traj_end:
-                            step_data['home_next'] = obs[i]
-                        if self.agent_num == 2 and at_traj_end:
-                            step_data['away_next'] = obs[1 - i]
-                        data_buffer[i].append(self.compressor(step_data))
+                        data_buffer[i].append(step_data)
                     if at_traj_end:
                         # trajectory buffer is full or the game is finished
                         player_id = job['player_id']
@@ -408,8 +405,16 @@ class AlphaStarActor:
                         if delta > 0:
                             data_buffer[i] = last_buffer[i][-delta:] + data_buffer[i]
                         metadata['length'] = len(data_buffer[i])  # should always agree with job['data_push_length']
+                        # last buffer must be in the front of next frame and data compression
+                        last_buffer[i] = deepcopy(data_buffer[i])  # must be deepcopy
+                        # last next frame
+                        data_buffer[i][-1]['home_next'] = obs[i]
+                        if self.agent_num == 2:
+                            data_buffer[i][-1]['away_next'] = obs[1 - i]
+                        # compressor
+                        for d_idx in range(len(data_buffer[i])):
+                            data_buffer[i][d_idx] = self.compressor(data_buffer[i][d_idx])
                         self.data_pusher.push(metadata, data_buffer[i])
-                        last_buffer[i] = data_buffer[i].copy()
                         data_buffer[i] = []
                         trajectory_count += 1
                         # when several trajectories are finished, reload(update) model
