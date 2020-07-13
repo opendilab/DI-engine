@@ -1,5 +1,4 @@
 import copy
-import copy
 import logging
 
 import numpy as np
@@ -37,7 +36,6 @@ class RealTimeStatistics:
     """
     Overview: real time agent statistics
     """
-
     def __init__(self, begin_num=20):
         self.action_statistics = {}
         self.cumulative_statistics = {}
@@ -71,9 +69,7 @@ class RealTimeStatistics:
             units = act.selected_units
             unit_types = get_unit_types(units, entity_type_dict)
             self.action_statistics[action_type]['selected_type'] = \
-                self.action_statistics[action_type]['selected_type'].union(
-                    unit_types
-                )
+                self.action_statistics[action_type]['selected_type'].union(unit_types)
         if act.target_units is not None:
             units = act.target_units
             unit_types = get_unit_types(units, entity_type_dict)
@@ -155,7 +151,6 @@ class GameLoopStatistics:
     """
     Overview: Human replay data statistics specified by game loop
     """
-
     def __init__(self, stat, begin_num=20):
         self.ori_stat = stat
         self.ori_stat = self.add_game_loop(self.ori_stat)
