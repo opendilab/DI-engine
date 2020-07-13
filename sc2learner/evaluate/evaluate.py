@@ -1,4 +1,5 @@
 import time
+import os
 import random
 from multiprocessing import Pool
 import copy
@@ -19,6 +20,7 @@ from sc2learner.utils import build_logger, read_file_ceph
 from pysc2.lib.action_dict import ACTION_INFO_MASK
 
 FLAGS = flags.FLAGS
+flags.DEFINE_string('config_path', '', 'path to eval config file')
 FLAGS(sys.argv)
 Z_LIST = {
     's3://replay_decode_493_0515/Zerg_Zerg_5722_7ccb1bd08dca7715db2282abf9bb55dec4f34874fa629a80f48b8521da71dc13': '12d_base',  # noqa
@@ -37,10 +39,11 @@ DIFFICULTY = [
 class EvalActor(AlphaStarActor):
     def __init__(self, cfg):
         super(EvalActor, self).__init__(cfg)
+        self.enable_push_data = False
         self._module_init()
 
     def _make_env(self, players):
-        self.action_counts = [[0] * (max(ACTION_INFO_MASK.keys()) + 1)] * self.agent_num
+        self.action_counts = [[0 for _ in range(max(ACTION_INFO_MASK.keys()) + 1)] for _ in range(self.agent_num)]
         return super()._make_env(players)
 
     def _module_init(self):
@@ -106,7 +109,8 @@ class EvalActor(AlphaStarActor):
 
     def _set_agent_mode(self):
         for agent in self.agents:
-            agent.eval()
+            # agent.eval()
+            agent.train()
 
 
 class EvalJobGetter:
@@ -142,8 +146,7 @@ class EvalJobGetter:
                 'stat_id': ['agent0', 'agent1'],
                 'map_name': self.cfg.evaluate.map_name,
                 'random_seed': self.cfg.evaluate.seed,
-                'home_race': self.cfg.evaluate.home_race,
-                'away_race': self.cfg.evaluate.away_race,
+                'race': [self.cfg.evaluate.home_race, self.cfg.evaluate.away_race],
                 'data_push_length': 64,
             }
         elif self.cfg.evaluate.game_type == 'game_vs_agent':
@@ -175,7 +178,7 @@ class LocalModelLoader:
         t = time.time()
         model_path = self.cfg.evaluate.model_path[job['model_id'][agent_no]]
         helper = build_checkpoint_helper('')
-        helper.load(model_path, model, prefix_op='remove', prefix='module.')
+        helper.load(model_path, model, prefix_op='remove', prefix='module.', strict=False)
         print('loaded, time:{}'.format(time.time() - t))
 
     def load_teacher_model(self, job, model):
@@ -227,6 +230,7 @@ def main(unused_argv):
     with open(FLAGS.config_path) as f:
         cfg = yaml.load(f)
     cfg = EasyDict(cfg)
+    cfg.common.save_path = os.path.dirname(FLAGS.config_path)
     use_multiprocessing = cfg.evaluate.get("use_multiprocessing", False)
     if use_multiprocessing:
         pool = Pool(min(cfg.evaluate.num_episodes, cfg.evaluate.num_instance_per_node))

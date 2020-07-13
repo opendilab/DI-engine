@@ -58,6 +58,7 @@ class AlphaStarActor:
         self._setup_logger()
         self.timer = EasyTimer()
         self.total_timer = EasyTimer()
+        self.enable_push_data = True
 
     def _setup_logger(self):
         print_freq = self.cfg.actor.print_freq
@@ -211,7 +212,7 @@ class AlphaStarActor:
                         mode="evaluate",
                         prev_states=self.teacher_lstm_states[i],
                         require_grad=False,
-                        temperature=self.cfg.train.temperature
+                        temperature=self.cfg.actor.temperature
                     )
                 else:
                     teacher_action = None
@@ -221,7 +222,7 @@ class AlphaStarActor:
                     mode="evaluate",
                     prev_states=self.lstm_states[i],
                     require_grad=False,
-                    temperature=self.cfg.train.temperature
+                    temperature=self.cfg.actor.temperature
                 )
 
                 if self.cfg.actor.use_cuda:
@@ -247,8 +248,9 @@ class AlphaStarActor:
                 if 'action_entity_raw' in send_action:
                     send_action.pop('action_entity_raw')
                 send_teacher_action = copy.deepcopy(teacher_action)
-                if 'action_entity_raw' in send_teacher_action:
-                    send_teacher_action.pop('action_entity_raw')
+                if self.use_teacher_model:
+                    if 'action_entity_raw' in send_teacher_action:
+                        send_teacher_action.pop('action_entity_raw')
                 # correct action selected_units
                 send_action = self._correct_send_action(send_action, logits)
                 update_after_eval_home = {
@@ -380,7 +382,7 @@ class AlphaStarActor:
                             away_step_data = None
                         step_data = {'home': home_step_data, 'away': away_step_data}
                         data_buffer[i].append(step_data)
-                    if at_traj_end:
+                    if self.enable_push_data and at_traj_end:
                         # trajectory buffer is full or the game is finished
                         player_id = job['player_id']
                         metadata = {

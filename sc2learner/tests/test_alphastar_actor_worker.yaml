@@ -17,9 +17,9 @@ env:
 # for testing actor worker
 train:
     trajectory_len: 16
-    temperature: 0.8
 actor:
     use_cuda: False
+    temperature: 0.8
     heartbeats_thread: True
     heartbeats_freq: 10
     max_connection_retries: 20

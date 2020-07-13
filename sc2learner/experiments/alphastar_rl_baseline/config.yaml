@@ -2,37 +2,34 @@ common:
     name: ZergLeagueRL
     time_wrapper_type: cuda
 env:
-   screen_resolution: 128  # not used
-   default_step_mul: 8  # not used
-   game_steps_per_episode: 43200
-   disable_fog: False
-   realtime: False
-   crop_map_to_playable_area: False
-   obs_stat_type: 'self_online'  # self_online, replay_online, replay_last
-   pseudo_reward_type: 'global'  # global, immediate
-   pseudo_reward_prob: 0.25
-   begin_num: 20
-   ignore_camera: True
-   use_enemy_upgrades: False
-   map_name_list: ['KairosJunction']
+    screen_resolution: 128  # not used
+    default_step_mul: 8  # not used
+    game_steps_per_episode: 43200
+    disable_fog: False
+    realtime: False
+    crop_map_to_playable_area: False
+    obs_stat_type: 'self_online'  # self_online, replay_online, replay_last
+    pseudo_reward_type: 'global'  # global, immediate
+    pseudo_reward_prob: 0.25
+    begin_num: 20
+    ignore_camera: True
+    use_enemy_upgrades: False
+    map_name_list: ['KairosJunction']
 data:
     train:
-        batch_size: 16
+        batch_size: 4
 model:
     use_value_network: True
     encoder:
         obs_encoder:
             use_score_cumulative: True
 train:
-    batch_size: 16
-    trajectory_len: 4
+    batch_size: 4
+    trajectory_len: 16
     temperature: 0.8
     use_cuda: True
     use_distributed: True
     max_iterations: 1e9
-    loss_weights:
-        kl: 0.0
-        action_kl: 0.0
 logger:
     print_freq: 1
     save_freq: 50
@@ -46,11 +43,12 @@ league:
         league_exploiter: 0
     max_active_player_match: 24
 actor:
-    use_cuda: False
+    use_cuda: True
     heartbeats_freq: 120
+    temperature: 0.8
     heartbeats_thread: True
-    print_freq: 4
-    load_model_freq: 4
+    print_freq: 16
+    load_model_freq: 64
 manager:
     # not used at the moment
 coordinator:
@@ -62,13 +60,13 @@ replay_buffer:
     alpha: 0.6
     beta: 0.5
     cache_maxlen: 32
-    timeout: 8  # times of the seconds of per learning iteration
+    timeout: 16  # times of the seconds of per learning iteration
     
 # values in this section is mean to be shared by multiple components
 system:
     resume_dir:    # placeholder, it's set by coordinator_start.py
     learner_port: 18193               # learner port
-    learner_uid: 1641781              # uid could be set, used with re_register and an existed uid should be set
+    learner_uid: 1687730              # uid could be set, used with re_register and an existed uid should be set
     learner_re_register: False          # if reregister learner, choices in [True, False], False as default
     learner_heartbeats_thread: False  # if use thread to send heartbeats to coordinator in learner
     learner_heartbeats_freq: 10       # send heartbeats each `freq`
