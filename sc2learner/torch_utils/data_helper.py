@@ -54,7 +54,7 @@ def to_tensor(item, dtype):
         return new_data
     elif isinstance(item, list) or isinstance(item, tuple):
         if len(item) == 0:
-            return 'none'  # for convenience in dataloader
+            return None
         elif isinstance(item[0], numbers.Integral) or isinstance(item[0], numbers.Real):
             return transform(item)
         else:
@@ -63,7 +63,7 @@ def to_tensor(item, dtype):
                 new_data.append(to_tensor(t, dtype))
             return new_data
     elif item is None:
-        return 'none'  # for convenience in dataloader
+        return None
     else:
         raise TypeError("not support item type: {}".format(type(item)))
 

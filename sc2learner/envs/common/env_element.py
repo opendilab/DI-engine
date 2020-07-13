@@ -9,10 +9,10 @@ class EnvElement(ABC):
 
     def __init__(self, *args, **kwargs) -> None:
         # placeholder
-        self._shape = None
-        self._value = None
-        self._to_agent_processor = None
-        self._from_agent_processor = None
+        # self._shape = None
+        # self._value = None
+        # self._to_agent_processor = None
+        # self._from_agent_processor = None
         self._init(*args, **kwargs)
         self._check()
 
@@ -30,15 +30,16 @@ class EnvElement(ABC):
     def __repr__(self) -> str:
         return '{}: {}'.format(self._name, self._details())
 
+    @abstractmethod
     def _details(self) -> str:
-        return "placeholder"
+        raise NotImplementedError
 
     def _check(self) -> None:
         flag = [
-            self._shape is not None,
-            self._value is not None,
-            self._to_agent_processor is not None,
-            self._from_agent_processor is not None
+            hasattr(self, '_shape'),
+            hasattr(self, '_value'),
+            hasattr(self, '_to_agent_processor'),
+            hasattr(self, '_from_agent_processor'),
         ]
         assert all(flag), 'this class {} is not a legal subclass of EnvElement({})'.format(self.__class__, flag)
 

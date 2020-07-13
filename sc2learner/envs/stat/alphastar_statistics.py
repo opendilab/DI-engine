@@ -290,7 +290,7 @@ def transform_build_order_to_z_format(stat):
     for n in range(len(stat)):
         action_type, location = stat[n]['action_type'], stat[n]['location']
         ret['type'][n] = action_type
-        ret['loc'][n] = location if location is not None and location is not None else zeroxy
+        ret['loc'][n] = location if isinstance(location, list) else zeroxy
     ret['type'] = torch.Tensor(ret['type'])
     ret['loc'] = torch.Tensor(ret['loc'])
     return ret
@@ -309,12 +309,12 @@ def transform_build_order_to_input_format(stat, begin_num, location_num=LOCATION
         else:
             action_type = torch.LongTensor([action_type])
             action_type = reorder_one_hot_array(action_type, BEGIN_ACTIONS_REORDER_ARRAY, num=NUM_BEGIN_ACTIONS)
-        if location is None:
-            location = torch.zeros(location_num * 2)
-        else:
+        if isinstance(location, list):
             x = batch_binary_encode(torch.LongTensor([location[0]]), bit_num=location_num)[0]
             y = batch_binary_encode(torch.LongTensor([location[1]]), bit_num=location_num)[0]
             location = torch.cat([x, y], dim=0)
+        else:
+            location = torch.zeros(location_num * 2)
         beginning_build_order_tensor.append(torch.cat([action_type.squeeze(0), location], dim=0))
     beginning_build_order_tensor = torch.stack(beginning_build_order_tensor, dim=0)
     # pad
