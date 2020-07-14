@@ -10,7 +10,7 @@ train:
     use_cuda: False
     action_output_types:
         action_type: logit
-        delay: value
+        delay: logit
         queued: logit
         selected_units: logit
         target_units: logit
@@ -18,9 +18,11 @@ train:
     kl:
         action_type_kl_seconds: 240
     vtrace:
-        min_clip: 1.0
+        min_clip: 0.8
+        max_clip: 1.2
     upgo:
-        min_clip: 1.0
+        min_clip: 0.8
+        max_clip: 1.2
     use_target_state: True
     temperature: 0.8
     loss_weights:

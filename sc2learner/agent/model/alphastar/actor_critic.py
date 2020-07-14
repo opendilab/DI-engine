@@ -40,13 +40,11 @@ class AlphaStarActorCritic(ActorCriticBase):
             self.value_networks = nn.ModuleDict()
             self.value_cum_stat_keys = OrderedDict()
             for k, v in self.cfg.value.items():
-                # creating a ValueBaseline network for each baseline, to be used in _critic_forward
-                self.value_networks[v.name] = ValueBaseline(v.param)
-                # name of needed cumulative stat items
-                self.value_cum_stat_keys[v.name] = v.cum_stat_keys
-            if not self.cfg.use_battle_reward:
-                self.value_networks.pop('battle')
-                self.value_cum_stat_keys.pop('battle')
+                if k in self.cfg.enable_baselines:
+                    # creating a ValueBaseline network for each baseline, to be used in _critic_forward
+                    self.value_networks[v.name] = ValueBaseline(v.param)
+                    # name of needed cumulative stat items
+                    self.value_cum_stat_keys[v.name] = v.cum_stat_keys
 
         self.freeze_module(self.cfg.freeze_targets)
 
@@ -262,14 +260,12 @@ class AlphaStarActorCritic(ActorCriticBase):
         # 'lstm_output_home', 'lstm_output_away', 'baseline_feature_home', 'baseline_feature_away'
         # are torch.Tensors and are shared across all baselines
         same_part = torch.cat(inputs[:6], dim=1)
-        ret = []
+        ret = {k: None for k in self.CriticOutput._fields}
         for (name_n, m), (name_c, key) in zip(self.value_networks.items(), self.value_cum_stat_keys.items()):
+            assert name_n == name_c
             cum_stat_home_subset = select_item(cum_stat_home, key)
             cum_stat_away_subset = select_item(cum_stat_away, key)
             inputs = torch.cat([same_part] + cum_stat_home_subset + cum_stat_away_subset, dim=1)
             # apply the value network to inputs
-            ret.append(m(inputs))
-        # if not use_battle_reward, set returns by None
-        if not self.cfg.use_battle_reward:
-            ret.append(None)
-        return self.CriticOutput(*ret)
+            ret[name_n] = m(inputs)
+        return self.CriticOutput(**ret)

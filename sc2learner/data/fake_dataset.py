@@ -3,7 +3,6 @@ import tempfile
 from collections import OrderedDict
 import copy
 import os
-
 import numpy as np
 import torch
 
@@ -124,6 +123,8 @@ def get_single_step_data():
     )
 
     action = get_random_action(num_units, selected_num_units)
+
+    scalar_info['available_actions'][action['action_type']] = 1
 
     return OrderedDict(
         scalar_info=scalar_info,

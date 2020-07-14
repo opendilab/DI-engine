@@ -1,20 +1,15 @@
 import torch
 import sys
-import os
 import time
 import uuid
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 import threading
-import numpy as np
 import traceback
 from itertools import count
 import logging
-import argparse
-import yaml
 
-from sc2learner.utils.log_helper import TextLogger
 from sc2learner.torch_utils import build_checkpoint_helper
 from sc2learner.utils import read_file_ceph, save_file_ceph, get_manager_node_ip, merge_two_dicts
 from sc2learner.worker.actor import AlphaStarActor
@@ -36,6 +31,10 @@ class AlphaStarActorWorker(AlphaStarActor):
         self.stat_requester = StatRequester(self.context)
         self.data_pusher = DataPusher(self.context)
         self.heartbeat_worker = HeartBeatWorker(self.context)
+
+    def _set_agent_mode(self):
+        for agent in self.agents:
+            agent.train()
 
 
 class ActorContext:
@@ -207,8 +206,6 @@ class DataPusher:
             'ceph_name': self.ceph_path,
             # the uid for this agent
             'learner_uid': learner_uid,
-            # home away player_id
-            'player_id': job.get('player_id'),
         }
         metadata = merge_two_dicts(metadata, metadata_supp)
 

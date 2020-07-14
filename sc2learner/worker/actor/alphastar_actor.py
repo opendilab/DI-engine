@@ -1,5 +1,7 @@
 import time
+import os
 import copy
+from copy import deepcopy
 import pickle
 
 import torch
@@ -7,7 +9,8 @@ import torch
 import pysc2.env.sc2_env as sc2_env
 from sc2learner.agent.alphastar_agent import AlphaStarAgent
 from sc2learner.envs import AlphaStarEnv
-from sc2learner.utils import get_actor_uid, dict_list2list_dict, merge_two_dicts, get_step_data_compressor
+from sc2learner.utils import get_actor_uid, dict_list2list_dict, merge_two_dicts, get_step_data_compressor,\
+    build_logger_naive, EasyTimer
 from sc2learner.torch_utils import to_device
 
 
@@ -52,9 +55,30 @@ class AlphaStarActor:
         self.use_teacher_model = None
         self.compressor_name = None
         self.compressor = None
+        self._setup_logger()
+        self.timer = EasyTimer()
+        self.total_timer = EasyTimer()
+        self.enable_push_data = True
+
+    def _setup_logger(self):
+        print_freq = self.cfg.actor.print_freq
+        path = os.path.join(self.cfg.common.save_path, 'actor-log')
+        os.makedirs(path, exist_ok=True)
+        name = 'actor.{}.log'.format(self.actor_uid)
+        self.logger, self.variable_record = build_logger_naive(path, name)
+        self.variable_record.register_var('total_step_time')
+        self.variable_record.register_var('inference_time')
+        self.variable_record.register_var('env_time')
+
+    def _actor_string(self, s):
+        return 'actor({}): {}'.format(self.actor_uid, s)
+
+    def _set_agent_mode(self):
+        raise NotImplementedError
 
     def _init_with_job(self, job):
         # preparing the environment with the received job description
+        self.logger.info(self._actor_string('job content:\n{}'.format(job)))
         self.cfg.env.map_name = job['map_name']
         self.cfg.env.random_seed = job['random_seed']
         self.cfg.env.game_type = job['game_type']
@@ -98,10 +122,11 @@ class AlphaStarActor:
                 )
             ]
         else:
-            raise NotImplementedError()
+            raise NotImplementedError("invalid game_type: {}".format(job['game_type']))
 
+        # set agent
+        self._set_agent_mode()
         for agent in self.agents:
-            agent.train()
             agent.set_seed(job['random_seed'])
             agent.reset_previous_state([True])  # Here the lstm_states are reset
 
@@ -120,7 +145,10 @@ class AlphaStarActor:
             self.use_teacher_model = True
         else:
             self.use_teacher_model = False
-        self.env = self._make_env()
+        self.cfg.env.game_type = job['game_type']
+        with self.timer:
+            self.env = self._make_env()
+        self.logger.info(self._actor_string('env_launch_time: {}'.format(self.timer.value)))
         self.compressor_name = job['step_data_compressor']
         self.compressor = get_step_data_compressor(self.compressor_name)
 
@@ -171,7 +199,7 @@ class AlphaStarActor:
                         mode="evaluate",
                         prev_states=self.teacher_lstm_states[i],
                         require_grad=False,
-                        temperature=self.cfg.train.temperature
+                        temperature=self.cfg.actor.temperature
                     )
                 else:
                     teacher_action = None
@@ -181,7 +209,7 @@ class AlphaStarActor:
                     mode="evaluate",
                     prev_states=self.lstm_states[i],
                     require_grad=False,
-                    temperature=self.cfg.train.temperature
+                    temperature=self.cfg.actor.temperature
                 )
 
                 if self.cfg.actor.use_cuda:
@@ -207,8 +235,9 @@ class AlphaStarActor:
                 if 'action_entity_raw' in send_action:
                     send_action.pop('action_entity_raw')
                 send_teacher_action = copy.deepcopy(teacher_action)
-                if 'action_entity_raw' in send_teacher_action:
-                    send_teacher_action.pop('action_entity_raw')
+                if self.use_teacher_model:
+                    if 'action_entity_raw' in send_teacher_action:
+                        send_teacher_action.pop('action_entity_raw')
                 # correct action selected_units
                 send_action = self._correct_send_action(send_action, logits)
                 update_after_eval_home = {
@@ -288,91 +317,110 @@ class AlphaStarActor:
         game_loop = 0
         game_seconds = 0
         trajectory_count = 0
+        step_count = 0
+        self.logger.info(self._actor_string('start new episode'))
         # main loop
         while True:
             # inferencing using the model
-            actions = self._eval_actions(obs, due)
-            actions = self.action_modifier(actions, game_loop)
-            # stepping
-            game_loop, due, obs, rewards, done, info = self.env.step(actions)
-            game_loop = int(game_loop)  # np.int32->int
-            # assuming 22 step per second, round to integer
-            game_seconds = game_loop // 22
-            if game_loop >= self.cfg.env.game_steps_per_episode:
-                # game time out, force the done flag to True
-                done = True
-            if len(data_buffer[0]) % self.cfg.actor.print_freq == 0:
-                print(
-                    'actor: uid({}), game_loop({}), len of data_buffer({})'.format(
-                        self.actor_uid, game_loop, len(data_buffer[0])
-                    )
-                )
-            for i in range(self.agent_num):
-                # flag telling that we should push the data buffer for agent i before next step
-                at_traj_end = len(data_buffer[i]) + 1 * due[i] >= job['data_push_length'] or done
-                if due[i]:
-                    # we received outcome from the env, add to rollout trajectory
-                    # the 'next_obs' is saved (and to be sent) if only this is the last obs of the traj
-                    step_data_update_home = {
-                        'step': game_loop,
-                        'game_seconds': game_seconds,
-                        'done': done,
-                        'rewards': rewards[i],
-                        #'info': info
-                    }
-                    home_step_data = merge_two_dicts(self.last_state_action_home[i], step_data_update_home)
-                    if self.agent_num == 2:
-                        step_data_update_away = {
+            with self.total_timer:
+                with self.timer:
+                    actions = self._eval_actions(obs, due)
+                    actions = self.action_modifier(actions, game_loop)
+                self.variable_record.update_var({'inference_time': self.timer.value})
+                # stepping
+                with self.timer:
+                    game_loop, due, obs, rewards, done, info = self.env.step(actions)
+                self.variable_record.update_var({'env_time': self.timer.value})
+                game_loop = int(game_loop)  # np.int32->int
+                # assuming 22 step per second, round to integer
+                game_seconds = game_loop // 22
+                if game_loop >= self.cfg.env.game_steps_per_episode:
+                    # game time out, force the done flag to True
+                    done = True
+                for i in range(self.agent_num):
+                    # flag telling that we should push the data buffer for agent i before next step
+                    at_traj_end = len(data_buffer[i]) + 1 * due[i] >= job['data_push_length'] or done
+                    if due[i]:
+                        # we received outcome from the env, add to rollout trajectory
+                        # the 'next_obs' is saved (and to be sent) if only this is the last obs of the traj
+                        step_data_update_home = {
                             'step': game_loop,
                             'game_seconds': game_seconds,
                             'done': done,
-                            'rewards': rewards[1 - i],
+                            'rewards': rewards[i],
                             #'info': info
                         }
-                        away_step_data = merge_two_dicts(self.last_state_action_away[i], step_data_update_away)
-                    else:
-                        away_step_data = None
-                    step_data = {'home': home_step_data, 'away': away_step_data}
-                    if at_traj_end:
-                        step_data['home_next'] = obs[i]
-                    if self.agent_num == 2 and at_traj_end:
-                        step_data['away_next'] = obs[1 - i]
-                    data_buffer[i].append(self.compressor(step_data))
-                if at_traj_end:
-                    # trajectory buffer is full or the game is finished
-                    metadata = {
-                        'job_id': job['job_id'],
-                        'agent_no': i,
-                        'agent_model_id': job['model_id'][i],
-                        'job': job,
-                        'step_data_compressor': self.compressor_name,
-                        'game_loop': game_loop,
-                        'done': done,
-                        'finish_time': time.time(),
-                        'actor_uid': self.actor_uid,
-                        #'info': info,
-                        'traj_length': len(data_buffer[i]),  # this is the real length, without reused last traj
-                        # TODO(nyz): implement other priority initialization algo, setting it to 1.0 now
-                        'priority': 1.0,
-                    }
-                    delta = job['data_push_length'] - len(data_buffer[i])
-                    # if the the data actually in the buffer when the episode ends is shorter than
-                    # job['data_push_length'], the buffer is than filled with data from the last trajectory
-                    if delta > 0:
-                        data_buffer[i] = last_buffer[i][-delta:] + data_buffer[i]
-                    metadata['length'] = len(data_buffer[i])  # should always agree with job['data_push_length']
-                    self.data_pusher.push(metadata, data_buffer[i])
-                    last_buffer[i] = data_buffer[i].copy()
-                    data_buffer[i] = []
-                    trajectory_count += 1
-                    # when several trajectories are finished, reload(update) model
-                    if trajectory_count % self.cfg.actor.load_model_freq == 0:
-                        for i in range(self.agent_num):
-                            self.model_loader.load_model(job, i, self.agents[i].get_model())
+                        home_step_data = merge_two_dicts(self.last_state_action_home[i], step_data_update_home)
+                        if self.agent_num == 2:
+                            step_data_update_away = {
+                                'step': game_loop,
+                                'game_seconds': game_seconds,
+                                'done': done,
+                                'rewards': rewards[1 - i],
+                                #'info': info
+                            }
+                            away_step_data = merge_two_dicts(self.last_state_action_away[i], step_data_update_away)
+                        else:
+                            away_step_data = None
+                        step_data = {'home': home_step_data, 'away': away_step_data}
+                        data_buffer[i].append(step_data)
+                    if self.enable_push_data and at_traj_end:
+                        # trajectory buffer is full or the game is finished
+                        player_id = job['player_id']
+                        metadata = {
+                            'job_id': job['job_id'],
+                            'agent_no': i,
+                            'agent_model_id': job['model_id'][i],
+                            'job': job,
+                            'step_data_compressor': self.compressor_name,
+                            'game_loop': game_loop,
+                            'done': done,
+                            'finish_time': time.time(),
+                            'actor_uid': self.actor_uid,
+                            #'info': info,
+                            'traj_length': len(data_buffer[i]),  # this is the real length, without reused last traj
+                            # TODO(nyz): implement other priority initialization algo, setting it to 1.0 now
+                            'priority': 1.0,
+                            'player_id': [player_id[i], player_id[1 - i]]
+                        }
+                        delta = job['data_push_length'] - len(data_buffer[i])
+                        # if the the data actually in the buffer when the episode ends is shorter than
+                        # job['data_push_length'], the buffer is than filled with data from the last trajectory
+                        if delta > 0:
+                            data_buffer[i] = last_buffer[i][-delta:] + data_buffer[i]
+                        metadata['length'] = len(data_buffer[i])  # should always agree with job['data_push_length']
+                        # last buffer must be in the front of next frame and data compression
+                        last_buffer[i] = deepcopy(data_buffer[i])  # must be deepcopy
+                        # last next frame
+                        data_buffer[i][-1]['home_next'] = obs[i]
+                        if self.agent_num == 2:
+                            data_buffer[i][-1]['away_next'] = obs[1 - i]
+                        # compressor
+                        for d_idx in range(len(data_buffer[i])):
+                            data_buffer[i][d_idx] = self.compressor(data_buffer[i][d_idx])
+                        self.data_pusher.push(metadata, data_buffer[i])
+                        data_buffer[i] = []
+                        trajectory_count += 1
+                        # when several trajectories are finished, reload(update) model
+                        if trajectory_count % self.cfg.actor.load_model_freq == 0:
+                            for i in range(self.agent_num):
+                                self.model_loader.load_model(job, i, self.agents[i].get_model())
 
+            self.variable_record.update_var({'total_step_time': self.total_timer.value})
+            step_count += 1
+            if step_count % self.cfg.actor.print_freq == 0:
+                self.logger.info(
+                    self._actor_string('game_loop({})\t{}'.format(game_loop, self.variable_record.get_vars_text()))
+                )
+                string = ''.join(
+                    ['agent {} data len: {}\t'.format(i, len(data_buffer[i])) for i in range(self.agent_num)]
+                )
+                self.logger.info(self._actor_string(string))
+            # finish job
             if done:
                 result_map = {1: 'wins', 0: 'draws', -1: 'losses'}
                 result = result_map[rewards[0]['winloss'].int().item()]
+                self.logger.info(self._actor_string('finish job with result({})'.format(result)))
                 self.data_pusher.finish_job(job['job_id'], result)
                 break
 

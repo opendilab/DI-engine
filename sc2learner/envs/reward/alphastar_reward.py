@@ -129,9 +129,9 @@ class AlphaStarReward(EnvElement):
             rewards = [{k: rewards[k][i].unsqueeze(0) for k in rewards.keys()} for i in range(self.agent_num)]
         return rewards
 
-    def _get_zero_rewards(self, rewards: list) -> dict:
+    def _get_zero_rewards(self, ori_rewards: list) -> dict:
         rewards = {}
-        rewards['winloss'] = torch.FloatTensor([rewards])
+        rewards['winloss'] = torch.FloatTensor(ori_rewards)
         for k in ['build_order', 'built_unit', 'upgrade', 'effect']:
             rewards[k] = torch.zeros(self.batch_size)
         rewards = to_device(rewards, self.device)

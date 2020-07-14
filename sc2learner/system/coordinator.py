@@ -105,6 +105,7 @@ class Coordinator(object):
             data = torch.load(self.cfg.system.coordinator_resume_path)
             self.manager_record, self.job_record, self.learner_record = data
             for k, v in self.learner_record.items():
+                # launch new replay buffer
                 self.learner_record[k]['replay_buffer'] = ReplayBuffer(EasyDict(self.cfg['replay_buffer']))
                 self.learner_record[k]['replay_buffer'].run()
                 self.learner_record[k]['ret_metadatas'] = {}
@@ -201,24 +202,14 @@ class Coordinator(object):
             self.manager_record[manager_uid] = {}
         return True
 
-    def _launch_league_manager(self):
-        while True:
-            if self.league_manager_flag and len(self.player_ids) == len(self.player_to_learner):
-                try:
-                    url_prefix = self.url_prefix_format.format(self.league_manager_ip, self.league_manager_port)
-                    response = requests.get(url_prefix + "league/run_league").json()
-                    if response['code'] == 0:
-                        self.logger.info('league_manager run with table {}. '.format(self.player_to_learner))
-                        break
-                except Exception as e:
-                    self.logger.info('launch_league_thread error {}'.format(e))
-            time.sleep(10)
-
     def deal_with_register_learner(self, learner_uid, learner_ip, learner_port, learner_re_register=False):
         '''
             Overview: deal with register from learner, make learner and player pairs
             Arguments:
                 - learner_uid (:obj:`str`): learner's uid
+                - learner_ip (:obj:`str`): learner's ip
+                - learner_port (:obj:`str`): learner's port
+                - learner_re_register (:obj:`bool`): whether register the previous learner
         '''
         if hasattr(self, 'player_ids'):
             with self.lock:
@@ -254,6 +245,7 @@ class Coordinator(object):
                         return False
                 else:
                     if learner_re_register:
+                        # if re_register, empty learner_ip_port_list
                         self.learner_record[learner_uid]['learner_ip_port_list'] = []
                         self.learner_record[learner_uid]['state'] = 'alive'
                     if [learner_ip, learner_port] not in self.learner_record[learner_uid]['learner_ip_port_list']:
@@ -264,8 +256,6 @@ class Coordinator(object):
         else:
             if not hasattr(self, 'player_ids'):
                 self.logger.info('learner can not register now, because league manager is not set up')
-            if hasattr(self, 'player_ids') and len(self.player_to_learner) == len(self.player_ids):
-                self.logger.info('enough learners have been registered.')
             return False
 
     def deal_with_ask_for_job(self, manager_uid, actor_uid):
@@ -297,26 +287,27 @@ class Coordinator(object):
                 - (:obj`bool`): state
         '''
         # assert job_id in self.job_record, 'job_id ({}) not in job_record'.format(job_id)
+        # keep related id info as func arguments, which is ready for further development
         learner_uid = metadata['learner_uid']
         self.learner_record[learner_uid]['replay_buffer'].push_data(metadata)
         return True
 
     def deal_with_finish_job(self, manager_uid, actor_uid, job_id, result):
         '''
-            Overview: when receiving actor's request of finishing job, ,return True/False
+            Overview: when receiving actor's request of finishing job, return True/False
             Arguments:
+                - manager_uid (:obj:`str`): manager's uid
                 - actor_uid (:obj:`str`): actor's uid
                 - job_id (:obj:`str`): job's id
+                - result (:obj:`str`): job result
             Returns:
                 - (:obj`bool`): state
         '''
         assert job_id in self.job_record, 'job_id ({}) not in job_record'.format(job_id)
         self.job_record[job_id]['state'] = 'finish'
         if not self.use_fake_data:
-            home_learner_uid = self.job_record[job_id]['content']['learner_uid'][0]
-            away_learner_uid = self.job_record[job_id]['content']['learner_uid'][1]
-            home_id = home_learner_uid if home_learner_uid.endswith('_sl') else self.learner_to_player[home_learner_uid]
-            away_id = away_learner_uid if away_learner_uid.endswith('_sl') else self.learner_to_player[away_learner_uid]
+            home_id = self.job_record[job_id]['content']['player_id'][0]
+            away_id = self.job_record[job_id]['content']['player_id'][1]
             match_info = {'home_id': home_id, 'away_id': away_id, 'result': result}
             url_prefix = self.url_prefix_format.format(self.league_manager_ip, self.league_manager_port)
             d = {'match_info': match_info}
@@ -326,7 +317,7 @@ class Coordinator(object):
                     if response['code'] == 0:
                         return True
                 except Exception as e:
-                    print("something wrong with league_manager, {}".format(e))
+                    self.logger.info("something wrong with league_manager, {}".format(e))
                 time.sleep(10)
             return False
         return True
@@ -344,6 +335,7 @@ class Coordinator(object):
         assert learner_uid in self.learner_record, 'learner_uid ({}) not in learner_record'.format(learner_uid)
         self.learner_record[learner_uid]['last_beats_time'] = int(time.time())
         with self.lock:
+            # for a learner with multi-process, each process has the same data_index, so they sample the same data
             if data_index not in self.learner_record[learner_uid]['ret_metadatas']:
                 metadatas = self.learner_record[learner_uid]['replay_buffer'].sample(batch_size)
                 self.learner_record[learner_uid]['ret_metadatas'][data_index] = metadatas
@@ -365,6 +357,7 @@ class Coordinator(object):
         '''
             Overview: when receiving learner's request of updating replay buffer, return True/False
             Arguments:
+                - learner_uid (:obj:`str`): learner's uid
                 - update_info (:obj:`dict`): info dict
             Returns:
                 - (:obj`bool`): True
@@ -399,11 +392,18 @@ class Coordinator(object):
                     if response['code'] == 0:
                         break
                 except Exception as e:
-                    print("something wrong with learner {}, {}".format(learner_uid, e))
-                time.sleep(0.5)
+                    self.logger.info("something wrong with learner {}, {}".format(learner_uid, e))
+                time.sleep(2)
         return True
 
     def deal_with_add_launch_info(self, launch_info):
+        """
+            Overview: when receiving league manager's launch match request, prepare a new job and push it into job_queue
+            Arguments:
+                - launch_info (:obj:`dict`): launch match info, please refer to league manager for details
+            Returns:
+                - (:obj`bool`): state
+        """
         home_id = launch_info['home_id']
         away_id = launch_info['away_id']
         home_checkpoint_path = launch_info['home_checkpoint_path']
@@ -415,13 +415,10 @@ class Coordinator(object):
         away_learner_uid = self.player_to_learner[away_id] if away_id in self.player_to_learner.keys() else None
         map_name = self._get_random_map_name()
         random_seed = np.random.randint(0, 314) + int(1e7)
+        home_race = launch_info['home_race']
+        away_race = launch_info['away_race']
         # stats(len=2, stat path)
-        kwargs = {
-            'home_race': launch_info['home_race'],
-            'away_race': launch_info['away_race'],
-            'map_name': map_name,
-            'player_id': 'ava'
-        }
+        kwargs = {'home_race': home_race, 'away_race': away_race, 'map_name': map_name, 'player_id': 'ava'}
         if self.use_fake_data:
             stats = None
         else:
@@ -465,6 +462,20 @@ class Coordinator(object):
     ###################################################################################
     #                                     threads                                     #
     ###################################################################################
+
+    def _launch_league_manager(self):
+        while True:
+            # league_manager and enough learners have been registered
+            if self.league_manager_flag and len(self.player_ids) == len(self.player_to_learner):
+                try:
+                    url_prefix = self.url_prefix_format.format(self.league_manager_ip, self.league_manager_port)
+                    response = requests.get(url_prefix + "league/run_league").json()
+                    if response['code'] == 0:
+                        self.logger.info('league_manager run with table {}. '.format(self.player_to_learner))
+                        break
+                except Exception as e:
+                    self.logger.info('launch_league_thread error {}'.format(e))
+            time.sleep(10)
 
     def time_format(self, time_item):
         return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time_item))

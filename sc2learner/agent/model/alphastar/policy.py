@@ -49,10 +49,10 @@ class Policy(nn.Module):
 
     def _look_up_action_attr(self, action_type, entity_raw, units_num, spatial_info):
         action_arg_mask = {
-            'select_unit_type_mask': [],
-            'select_unit_mask': [],
-            'target_unit_type_mask': [],
-            'target_unit_mask': [],
+            'selected_units_type_mask': [],
+            'selected_units_mask': [],
+            'target_units_type_mask': [],
+            'target_units_mask': [],
             'location_mask': []
         }
         device = action_type[0].device
@@ -71,31 +71,31 @@ class Policy(nn.Module):
                 type_stat = set(action_info_stat['selected_type'])
                 type_set = type_hard_craft.union(type_stat)
                 reorder_type_list = [UNIT_TYPES_REORDER[t] for t in type_set]
-                select_unit_type_mask = torch.zeros(NUM_UNIT_TYPES)
-                select_unit_type_mask[reorder_type_list] = 1
-                action_arg_mask['select_unit_type_mask'].append(select_unit_type_mask.to(device))
-                select_unit_mask = torch.zeros(units_num[idx])
+                selected_units_type_mask = torch.zeros(NUM_UNIT_TYPES)
+                selected_units_type_mask[reorder_type_list] = 1
+                action_arg_mask['selected_units_type_mask'].append(selected_units_type_mask.to(device))
+                selected_units_mask = torch.zeros(units_num[idx])
                 for i, t in enumerate(entity_raw[idx]['type']):
                     if t in type_set:
-                        select_unit_mask[i] = 1
-                action_arg_mask['select_unit_mask'].append(select_unit_mask.to(device))
+                        selected_units_mask[i] = 1
+                action_arg_mask['selected_units_mask'].append(selected_units_mask.to(device))
             else:
-                action_arg_mask['select_unit_mask'].append(torch.zeros(units_num[idx]).to(device))
-                action_arg_mask['select_unit_type_mask'].append(torch.zeros(NUM_UNIT_TYPES).to(device))
+                action_arg_mask['selected_units_mask'].append(torch.zeros(units_num[idx]).to(device))
+                action_arg_mask['selected_units_type_mask'].append(torch.zeros(NUM_UNIT_TYPES).to(device))
             if action_info_hard_craft['target_units']:
                 type_set = set(action_info_stat['target_type'])
                 reorder_type_list = [UNIT_TYPES_REORDER[t] for t in type_set]
-                target_unit_type_mask = torch.zeros(NUM_UNIT_TYPES)
-                target_unit_type_mask[reorder_type_list] = 1
-                action_arg_mask['target_unit_type_mask'].append(target_unit_type_mask.to(device))
-                target_unit_mask = torch.zeros(units_num[idx])
+                target_units_type_mask = torch.zeros(NUM_UNIT_TYPES)
+                target_units_type_mask[reorder_type_list] = 1
+                action_arg_mask['target_units_type_mask'].append(target_units_type_mask.to(device))
+                target_units_mask = torch.zeros(units_num[idx])
                 for i, t in enumerate(entity_raw[idx]['type']):
                     if t in type_set:
-                        target_unit_mask[i] = 1
-                action_arg_mask['target_unit_mask'].append(target_unit_mask.to(device))
+                        target_units_mask[i] = 1
+                action_arg_mask['target_units_mask'].append(target_units_mask.to(device))
             else:
-                action_arg_mask['target_unit_mask'].append(torch.zeros(units_num[idx]).to(device))
-                action_arg_mask['target_unit_type_mask'].append(torch.zeros(NUM_UNIT_TYPES).to(device))
+                action_arg_mask['target_units_mask'].append(torch.zeros(units_num[idx]).to(device))
+                action_arg_mask['target_units_type_mask'].append(torch.zeros(NUM_UNIT_TYPES).to(device))
             # TODO(nyz) location mask for different map size
             if action_info_hard_craft['target_location']:
                 location_mask = get_location_mask(action_type_val, spatial_info[idx])
@@ -106,8 +106,14 @@ class Policy(nn.Module):
             # get action attribute(which args the action type owns)
             for k in action_attr.keys():
                 action_attr[k].append(action_info_hard_craft[k])
+                # if no available units, set the corresponding attribute False
+                # TODO(nyz) deal with these illegal action in the interaction between agent and env
+                if k in ['selected_units', 'target_units']:
+                    if action_attr[k][-1] and action_arg_mask[k + '_mask'][-1].abs().sum() < 1e-6:
+                        print('[WARNING]: action_type {} has no available units'.format(action_type_val))
+                        action_attr[k][-1] = False
         # stack mask
-        for k in ['select_unit_type_mask', 'target_unit_type_mask', 'location_mask']:
+        for k in ['selected_units_type_mask', 'target_units_type_mask', 'location_mask']:
             action_arg_mask[k] = torch.stack(action_arg_mask[k], dim=0)
         return action_attr, action_arg_mask
 
@@ -227,13 +233,13 @@ class Policy(nn.Module):
         logits['queued'] = self._mask_select([logits_queued], action_attr['queued'])
 
         logits_selected_units, _, embeddings = self.head['selected_units_head'](
-            embeddings, mask['select_unit_type_mask'], mask['select_unit_mask'], entity_embeddings, temperature,
+            embeddings, mask['selected_units_type_mask'], mask['selected_units_mask'], entity_embeddings, temperature,
             actions['selected_units']
         )
         logits['selected_units'] = self._mask_select([logits_selected_units], action_attr['selected_units'])
 
         logits_target_units, _ = self.head['target_unit_head'](
-            embeddings, mask['target_unit_type_mask'], mask['target_unit_mask'], entity_embeddings, temperature,
+            embeddings, mask['target_units_type_mask'], mask['target_units_mask'], entity_embeddings, temperature,
             actions['target_units']
         )
         logits['target_units'] = self._mask_select([logits_target_units], action_attr['target_units'])
@@ -277,14 +283,14 @@ class Policy(nn.Module):
         logits['queued'], actions['queued'] = self._mask_select([logits_queued, queued], action_attr['queued'])
 
         logits_selected_units, selected_units, embeddings = self.head['selected_units_head'](
-            embeddings, mask['select_unit_type_mask'], mask['select_unit_mask'], entity_embeddings, temperature
+            embeddings, mask['selected_units_type_mask'], mask['selected_units_mask'], entity_embeddings, temperature
         )
         logits['selected_units'], actions['selected_units'] = self._mask_select(
             [logits_selected_units, selected_units], action_attr['selected_units']
         )
 
         logits_target_units, target_units = self.head['target_unit_head'](
-            embeddings, mask['target_unit_type_mask'], mask['target_unit_mask'], entity_embeddings, temperature
+            embeddings, mask['target_units_type_mask'], mask['target_units_mask'], entity_embeddings, temperature
         )
         logits['target_units'], actions['target_units'] = self._mask_select(
             [logits_target_units, target_units], action_attr['target_units']

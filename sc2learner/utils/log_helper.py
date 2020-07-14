@@ -45,6 +45,12 @@ def build_logger(cfg, name=None, rank=0):
         return logger, None, None
 
 
+def build_logger_naive(path, name, level=logging.INFO, print_freq=1):
+    logger = TextLogger(path, name, level)
+    variable_record = VariableRecord(print_freq)
+    return logger, variable_record
+
+
 def get_default_logger(name=None):
     if name is None:
         name = 'default_logger'
