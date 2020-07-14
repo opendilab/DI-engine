@@ -245,7 +245,7 @@ class GameLoopStatistics:
             {
                 'begin_statistics': beginning_build_order,
                 'cumulative_statistics': cumulative_stat
-            }, self.mmr
+            }, self.mmr, self.begin_num
         )
         return ret
 
@@ -347,9 +347,9 @@ def transform_cum_stat(cumulative_stat):
     return cumulative_stat_tensor
 
 
-def transform_stat(stat, meta, location_num=LOCATION_BIT_NUM):
+def transform_stat(stat, meta, begin_num):
     mmr = meta['home_mmr']
-    return transformed_stat_mmr(stat, mmr, location_num)
+    return transformed_stat_mmr(stat, mmr, begin_num)
 
 
 def transformed_stat_mmr(stat, mmr, begin_num):
