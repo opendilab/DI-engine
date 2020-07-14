@@ -102,6 +102,7 @@ def get_scalar_encoder_data():
             research=random_binary_tensor([60])
         ),
         beginning_build_order=random_tensor([20, NUM_BEGIN_ACTIONS + 2 * LOCATION_BIT_NUM]),
+        score_cumulative=random_tensor([13])
     )
     return scalar_info
 
@@ -329,7 +330,6 @@ class FakeActorDataset:
 
         def get_single_rl_agent_step_data():
             base = get_single_step_data()
-            base['score_cumulative'] = random_tensor([13])
             base['prev_state'] = [torch.zeros(*LSTM_DIMS), torch.zeros(*LSTM_DIMS)]
             base['rewards'] = get_fake_rewards()
             base['game_seconds'] = random.randint(0, 24 * 60)
@@ -349,7 +349,5 @@ class FakeActorDataset:
         for i in range(self.trajectory_len):
             data.append({'home': get_single_rl_agent_step_data(), 'away': get_single_rl_agent_step_data()})
         data[-1]['home_next'] = get_single_step_data()
-        data[-1]['home_next']['score_cumulative'] = random_tensor([13])
         data[-1]['away_next'] = get_single_step_data()
-        data[-1]['away_next']['score_cumulative'] = random_tensor([13])
         return data

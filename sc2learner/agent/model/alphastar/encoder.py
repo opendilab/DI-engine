@@ -98,7 +98,7 @@ class Encoder(nn.Module):
         )
         lstm_output = lstm_output.squeeze(0)
         if self.use_score_cumulative:
-            score_embedding = self.score_cumulative_encoder(inputs['score_cumulative'])
+            score_embedding = self.score_cumulative_encoder(inputs['scalar_info']['score_cumulative'])
         else:
             score_embedding = None  # placeholder
         return lstm_output, next_state, entity_embeddings, map_skip, scalar_context, inputs[
