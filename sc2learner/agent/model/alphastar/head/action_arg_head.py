@@ -236,7 +236,7 @@ class SelectedUnitsHead(nn.Module):
                 lstm_input = self._get_query(autoregressive_embedding, func_embed).unsqueeze(0)
                 lstm_output, state = self.lstm(lstm_input, state)
                 query_result = lstm_output.permute(1, 0, 2) * key
-                query_result = query_result.mean(dim=2)
+                query_result = query_result.sum(dim=2)
                 if self.use_mask:
                     masked_logits = query_result.sub((1 - logits_mask) * 1e9)
                     query_result.sub_((1 - mask) * 1e9)
@@ -287,7 +287,7 @@ class SelectedUnitsHead(nn.Module):
                 lstm_input = self._get_query(autoregressive_embedding, func_embed).unsqueeze(0)
                 lstm_output, state = self.lstm(lstm_input, state)
                 query_result = lstm_output.permute(1, 0, 2) * key
-                query_result = query_result.mean(dim=2)
+                query_result = query_result.sum(dim=2)
                 if self.use_mask:
                     query_result.sub_((1 - mask) * 1e9)
 
@@ -448,7 +448,7 @@ class TargetUnitHead(nn.Module):
         key, mask = self._get_key_mask(entity_embedding, available_units_mask)
         query = self._get_query(embedding, available_unit_type_mask)
         logits = query.unsqueeze(1) * key
-        logits = logits.mean(dim=2)
+        logits = logits.sum(dim=2)
         if self.use_mask:
             if target_unit is not None:
                 for i, t in enumerate(target_unit):
