@@ -201,6 +201,10 @@ class AlphaStarActor:
                         require_grad=False,
                         temperature=self.cfg.actor.temperature
                     )
+                    teacher_action = teacher_action['action']
+                    # remove list(batch_size=1)
+                    teacher_action = dict_list2list_dict(teacher_action)[0]
+                    teacher_logits = dict_list2list_dict(teacher_logits)[0]
                 else:
                     teacher_action = None
                     teacher_logits = None
@@ -211,6 +215,12 @@ class AlphaStarActor:
                     require_grad=False,
                     temperature=self.cfg.actor.temperature
                 )
+                # remove list(batch_size=1)
+                new_action = {}
+                new_action['action'] = dict_list2list_dict(action['action'])[0]
+                new_action['entity_raw'] = action['entity_raw'][0]
+                action = new_action
+                logits = dict_list2list_dict(logits)[0]
 
                 if self.cfg.actor.use_cuda:
                     action = to_device(action, 'cpu')
@@ -224,20 +234,11 @@ class AlphaStarActor:
                 else:
                     self.lstm_states_cpu[i] = self.lstm_states[i]
                     self.teacher_lstm_states_cpu[i] = self.teacher_lstm_states[i]
-                action = dict_list2list_dict(action)[0]  # 0 for batch dim
-                logits = dict_list2list_dict(logits)[0]
-                if self.use_teacher_model:
-                    teacher_action = dict_list2list_dict(teacher_action)[0]
-                    teacher_logits = dict_list2list_dict(teacher_logits)[0]
                 actions[i] = action
                 # remove evaluate related key
                 send_action = copy.deepcopy(action)
-                if 'action_entity_raw' in send_action:
-                    send_action.pop('action_entity_raw')
+                send_action = send_action['action']
                 send_teacher_action = copy.deepcopy(teacher_action)
-                if self.use_teacher_model:
-                    if 'action_entity_raw' in send_teacher_action:
-                        send_teacher_action.pop('action_entity_raw')
                 # correct action selected_units
                 send_action = self._correct_send_action(send_action, logits)
                 update_after_eval_home = {

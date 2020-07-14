@@ -163,7 +163,7 @@ class AlphaStarRLLoss(BaseLoss):
             target_actions, target_outputs, baselines, next_state_home, next_state_away = (
                 self.agent.compute_action_value(step_data, temperature)
             )
-            target_actions.pop('action_entity_raw')
+            target_actions = target_actions['action']
             target_actions = {k: diff_shape_collate(v) for k, v in target_actions.items()}
             # add to outputs
             home = step_data['home']
