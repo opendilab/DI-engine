@@ -41,10 +41,8 @@ class EvalActor(AlphaStarActor):
         super(EvalActor, self).__init__(cfg)
         self.enable_push_data = False
         self._module_init()
-
-    def _make_env(self, players):
-        self.action_counts = [[0 for _ in range(max(ACTION_INFO_MASK.keys()) + 1)] for _ in range(self.agent_num)]
-        return super()._make_env(players)
+        self.bot_multi_test = self.cfg.evaluate.get('bot_multi_test', False)
+        self.last_print = 0
 
     def _module_init(self):
         self.job_getter = EvalJobGetter(self.cfg)
@@ -69,19 +67,19 @@ class EvalActor(AlphaStarActor):
                     ]
                     action = act[n]
                     for i in range(self.agent_num):
-                        if action['action_type'].item() == 32:
-                            x = action['target_location'][1]
-                            y = action['target_location'][0]
+                        if action['action']['action_type'].item() == 32:
+                            x = action['action']['target_location'][1]
+                            y = action['action']['target_location'][0]
                             threshold = 100.0
                             distance = []
                             for location in locations:
                                 distance.append((x - location[0])**2 + (y - location[1])**2)
                             idx = distance.index(min(distance))
                             if distance[idx] <= threshold:
-                                action['target_location'][1] = locations[idx][0]
-                                action['target_location'][0] = locations[idx][1]
+                                action['action']['target_location'][1] = locations[idx][0]
+                                action['action']['target_location'][0] = locations[idx][1]
                             else:
-                                action['action_type'] *= 0
+                                action['action']['action_type'] *= 0
 
                         # if action['action_type'].item() == 48:
                         #     action['target_location'][1] = 97
@@ -90,27 +88,39 @@ class EvalActor(AlphaStarActor):
                         #     action['target_location'][1] = 100
                         #     action['target_location'][0] = 130.5
 
-                if act[n]['delay'] == 0:
+                if act[n]['action']['delay'] == 0:
                     print('clipping delay == 0 to 1')
-                    act[n]['delay'] = torch.LongTensor([1])
-                self.action_counts[n][self.env.get_action_type(act[n])] += 1
-            if not self.cfg.evaluate.get('bot_multi_test', False):
-                print('Act {}:{}:{:5}:{}'.format(self.cfg.evaluate.job_id, n, step, self.env.action_to_string(act[n])))
-            else:
-                if step - self.last_print > 1000:
-                    self.last_print = step
-                    logging.info(
-                        '{:15}{:22} steps: {}/{}'.format(
-                            self.cfg.evaluate.bot_difficulty, Z_LIST[self.cfg.evaluate.stat_path.agent0], step,
-                            self.cfg.env.game_steps_per_episode
-                        )
-                    )
+                    act[n]['action']['delay'] = torch.LongTensor([1])
         return act
 
     def _set_agent_mode(self):
         for agent in self.agents:
             # agent.eval()
             agent.train()
+
+    def _print_action_info(self, step):
+        def action_to_string(action):
+            return '[Action: type({}) delay({}) queued({}) selected_units({}) target_units({}) target_location({})]'.format(  # noqa
+                action['action_type'], action['delay'], action['queued'], action['selected_units'],
+                action['target_units'], action['target_location']
+            )
+
+        if not hasattr(self, 'action_counts'):
+            self.action_counts = [[0 for _ in range(max(ACTION_INFO_MASK.keys()) + 1)] for _ in range(self.agent_num)]
+        last_raw_action = self.env.last_action
+        for n in range(self.agent_num):
+            self.action_counts[n][last_raw_action[n]['action_type']] += 1
+            if self.bot_multi_test:
+                if step - self.last_print > 1000:
+                    self.last_print = step
+                    logging.info(
+                        '{:15}{:22} steps: {}/{}'.format(
+                            self.cfg.evaluate.player1.difficulty, Z_LIST[self.cfg.evaluate.player0.stat], step,
+                            self.cfg.env.game_steps_per_episode
+                        )
+                    )
+            else:
+                print('Act {}:{}:{}:{}'.format(self.cfg.evaluate.job_id, n, step, action_to_string(last_raw_action[n])))
 
 
 class EvalJobGetter:
@@ -120,51 +130,24 @@ class EvalJobGetter:
 
     def get_job(self, actor_uid):
         print('received job req from:{}'.format(actor_uid))
-        if self.cfg.evaluate.game_type == 'game_vs_bot':
-            job = {
-                'job_id': 'test0',
-                'game_type': 'game_vs_bot',
-                'step_data_compressor': 'simple',
-                'model_id': ['agent0'],
-                'teacher_model_id': None,
-                'stat_id': ['agent0'],
-                'map_name': self.cfg.evaluate.map_name,
-                'random_seed': self.cfg.evaluate.seed,
-                'home_race': self.cfg.evaluate.home_race,
-                'away_race': self.cfg.evaluate.away_race,
-                'difficulty': self.cfg.evaluate.bot_difficulty,
-                'build': self.cfg.evaluate.bot_build,
-                'data_push_length': 64,
-            }
-        elif self.cfg.evaluate.game_type == 'agent_vs_agent':
-            job = {
-                'job_id': 'test0',
-                'game_type': 'self_play',
-                'step_data_compressor': 'simple',
-                'model_id': ['agent0', 'agent1'],
-                'teacher_model_id': None,
-                'stat_id': ['agent0', 'agent1'],
-                'map_name': self.cfg.evaluate.map_name,
-                'random_seed': self.cfg.evaluate.seed,
-                'race': [self.cfg.evaluate.home_race, self.cfg.evaluate.away_race],
-                'data_push_length': 64,
-            }
-        elif self.cfg.evaluate.game_type == 'game_vs_agent':
-            job = {
-                'job_id': 'test0',
-                'game_type': 'game_vs_agent',
-                'step_data_compressor': 'simple',
-                'model_id': ['agent0'],
-                'teacher_model_id': None,
-                'stat_id': ['agent0'],
-                'map_name': self.cfg.evaluate.map_name,
-                'random_seed': self.cfg.evaluate.seed,
-                'home_race': self.cfg.evaluate.home_race,
-                'away_race': self.cfg.evaluate.away_race,
-                'data_push_length': 64,
-            }
-        else:
-            raise NotImplementedError('Unknown game_type: {}'.format(self.cfg.evaluate.game_type))
+        game_type = self.cfg.evaluate.game_type
+        assert game_type in ['game_vs_bot', 'game_vs_agent',
+                             'agent_vs_agent'], 'Unknown game_type: {}'.format(game_type)
+        job = {
+            'job_id': '{}_{}'.format(game_type, actor_uid),
+            'game_type': game_type,
+            'step_data_compressor': 'simple',
+            'map_name': self.cfg.evaluate.map_name,
+            'random_seed': self.cfg.evaluate.seed,
+            'player0': self.cfg.evaluate.player0,
+            'player1': self.cfg.evaluate.player1,
+            'data_push_length': 100000  # necessary for compatibility
+        }
+        # TODO(nyz) config(yaml) deal with `None`
+        if job['player0']['teacher_model'] == 'None':
+            job['player0']['teacher_model'] = None
+        if job['player1']['teacher_model'] == 'None':
+            job['player1']['teacher_model'] = None
         self.job_req_id += 1
         return job
 
@@ -176,7 +159,7 @@ class LocalModelLoader:
     def load_model(self, job, agent_no, model):
         print('received request, job:{}, agent_no:{}'.format(str(job), agent_no))
         t = time.time()
-        model_path = self.cfg.evaluate.model_path[job['model_id'][agent_no]]
+        model_path = job['player{}'.format(agent_no)]['model']
         helper = build_checkpoint_helper('')
         helper.load(model_path, model, prefix_op='remove', prefix='module.', strict=False)
         print('loaded, time:{}'.format(time.time() - t))
@@ -203,8 +186,8 @@ class LocalStatLoader:
             f = open(p, 'rb')
             stat = pickle.load(f)
         else:
-            file_list = self.cfg.evaluate.stat_path[job['stat_id'][agent_no]]
-            stat = read_file_ceph(file_list + '.z', read_type='pickle')
+            stat_path = job['player{}'.format(agent_no)]['stat']
+            stat = read_file_ceph(stat_path + '.z', read_type='pickle')
         return stat
 
 

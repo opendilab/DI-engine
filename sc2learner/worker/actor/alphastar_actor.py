@@ -82,8 +82,8 @@ class AlphaStarActor:
         self.cfg.env.map_name = job['map_name']
         self.cfg.env.random_seed = job['random_seed']
         self.cfg.env.game_type = job['game_type']
+        self.cfg.env.player0 = job['player0']
         self.cfg.env.player1 = job['player1']
-        self.cfg.env.player2 = job['player2']
 
         if job['game_type'] == 'game_vs_bot':
             self.agent_num = 1
@@ -130,7 +130,8 @@ class AlphaStarActor:
             agent.set_seed(job['random_seed'])
             agent.reset_previous_state([True])  # Here the lstm_states are reset
 
-        if job['teacher_model_id']:
+        # TODO(nyz) each player has its own teacher model
+        if job['player0']['teacher_model']:
             # agent for evaluation of the SL model to produce the teacher_logits
             # for human_policy_kl_loss in rl.py of AlphaStar Supp. Mat.
             self.teacher_agent = AlphaStarAgent(
@@ -153,7 +154,7 @@ class AlphaStarActor:
         self.compressor = get_step_data_compressor(self.compressor_name)
 
     def _make_env(self):
-        return AlphaStarEnv(self.cfg)
+        return AlphaStarEnv(self.cfg.env)
 
     # this is to be overridden in real worker or evaluator classes
     def _module_init(self):
@@ -330,7 +331,8 @@ class AlphaStarActor:
                 self.variable_record.update_var({'inference_time': self.timer.value})
                 # stepping
                 with self.timer:
-                    game_loop, due, obs, rewards, done, info = self.env.step(actions)
+                    obs, rewards, done, info, game_loop, due = self.env.step(actions)
+                self._print_action_info(game_loop)
                 self.variable_record.update_var({'env_time': self.timer.value})
                 game_loop = int(game_loop)  # np.int32->int
                 # assuming 22 step per second, round to integer
