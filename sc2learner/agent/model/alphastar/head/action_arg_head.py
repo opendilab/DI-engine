@@ -33,7 +33,7 @@ class DelayHead(nn.Module):
         self.act = build_activation(cfg.activation)
         self.fc1 = fc_block(cfg.input_dim, cfg.decode_dim, activation=self.act, norm_type=None)
         self.fc2 = fc_block(cfg.decode_dim, cfg.decode_dim, activation=self.act, norm_type=None)
-        self.fc3 = fc_block(cfg.decode_dim, cfg.delay_dim, activation=nn.Sigmoid(), norm_type=None)  # regression
+        self.fc3 = fc_block(cfg.decode_dim, cfg.delay_dim, activation=None, norm_type=None)
         self.embed_fc1 = fc_block(cfg.delay_dim, cfg.delay_map_dim, activation=self.act, norm_type=None)
         self.embed_fc2 = fc_block(cfg.delay_map_dim, cfg.input_dim, activation=self.act, norm_type=None)
         self.pd = CategoricalPdPytorch
@@ -153,7 +153,7 @@ class SelectedUnitsHead(nn.Module):
         # determines which entity types can accept action_type
         self.func_fc = fc_block(cfg.unit_type_dim, cfg.func_dim, activation=self.act, norm_type=None)
         self.fc1 = fc_block(cfg.input_dim, cfg.func_dim, activation=self.act, norm_type=None)
-        self.fc2 = fc_block(cfg.func_dim, cfg.key_dim, activation=self.act, norm_type=None)
+        self.fc2 = fc_block(cfg.func_dim, cfg.key_dim, activation=None, norm_type=None)
         self.embed_fc = fc_block(cfg.key_dim, cfg.input_dim, activation=None, norm_type=None)
         self.lstm = get_lstm(cfg.lstm_type, cfg.key_dim, cfg.hidden_dim, cfg.num_layers, norm_type=cfg.lstm_norm_type)
 
@@ -222,6 +222,8 @@ class SelectedUnitsHead(nn.Module):
     def _query(self, key, end_flag_index, autoregressive_embedding, func_embed, mask, temperature, selected_units):
         B, N = key.shape[:2]
         logits = [[] for _ in range(B)]
+        assert isinstance(end_flag_index, list)
+        real_entity_num = torch.Tensor(end_flag_index).to(dtype=key.dtype, device=key.device)
         if selected_units is None:
             # mask is used to avoid select unavaliable and repeat unit
             # logits_mask is used to calculate loss, therefore only refers to unavaliable part
@@ -266,11 +268,12 @@ class SelectedUnitsHead(nn.Module):
                             units_index[b].append(entity_num[b])
                             mask[b][entity_num[b]] = 0
                             selected_units_step[b] = entity_num[b]
-                selected_mask = torch.LongTensor(end_flag_trigger).to(key.device)
+                selected_mask = 1 - torch.LongTensor(end_flag_trigger).to(key.device)
 
                 embedding_selected = one_hot(selected_units_step, N).unsqueeze(2)
                 embedding_selected = embedding_selected * key
-                embedding_selected = embedding_selected.mean(dim=1)
+                embedding_selected = embedding_selected.sum(dim=1)
+                embedding_selected = embedding_selected / (real_entity_num.view(B, 1))  # norm by real entity num
                 autoregressive_embedding = autoregressive_embedding + self.embed_fc(embedding_selected
                                                                                     ) * selected_mask.view(B, 1)
 
@@ -302,11 +305,13 @@ class SelectedUnitsHead(nn.Module):
                     else:
                         logits[b].append(query_result[b])
                         selected_units_step[b] = selected_units[b][i]
+                        mask[b, selected_units[b][i]] = 0
                 selected_mask = torch.LongTensor([i < num for num in output_entity_num]).to(key.device)
 
                 embedding_selected = one_hot(selected_units_step, N).unsqueeze(2)
                 embedding_selected = embedding_selected * key
-                embedding_selected = embedding_selected.mean(dim=1)
+                embedding_selected = embedding_selected.sum(dim=1)
+                embedding_selected = embedding_selected / (real_entity_num.view(B, 1))  # norm by real entity num
                 autoregressive_embedding = autoregressive_embedding + self.embed_fc(embedding_selected
                                                                                     ) * selected_mask.view(B, 1)
 
@@ -373,7 +378,7 @@ class TargetUnitHead(nn.Module):
         self.key_fc = fc_block(cfg.entity_embedding_dim, cfg.key_dim, activation=None, norm_type=None)
         self.func_fc = fc_block(cfg.unit_type_dim, cfg.func_dim, activation=self.act, norm_type=None)
         self.fc1 = fc_block(cfg.input_dim, cfg.func_dim, activation=self.act, norm_type=None)
-        self.fc2 = fc_block(cfg.func_dim, cfg.key_dim, activation=self.act, norm_type=None)
+        self.fc2 = fc_block(cfg.func_dim, cfg.key_dim, activation=None, norm_type=None)
         self.use_mask = cfg.use_mask
 
         self.pd = CategoricalPdPytorch
