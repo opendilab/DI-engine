@@ -36,6 +36,9 @@ class AlphaStarActorWorker(AlphaStarActor):
         for agent in self.agents:
             agent.train()
 
+    def _print_action_info(self, step):
+        pass
+
 
 class ActorContext:
     def __init__(self, cfg, actor_uid):
@@ -186,7 +189,7 @@ class DataPusher:
         job = metadata['job']
         job_id = job['job_id']
         agent_no = metadata['agent_no']
-        model_id = job['model_id'][agent_no]
+        model_id = job['player{}'.format(agent_no)]['model']
         learner_uid = job['learner_uid'][agent_no]
         # if learner_uid is None(not active player, which owns learner), don't push traj
         if learner_uid is None:
@@ -239,7 +242,7 @@ class ModelLoader:
             - agent_no: 0 or 1, labeling the two agents of game
             - model: the model in agent, will be modified here
         """
-        path = self._get_model_ceph_path(job['model_id'][agent_no])
+        path = self._get_model_ceph_path(job['player{}'.format(agent_no)]['model'])
         t = time.time()
         # during testing, we don't necessary load the real weights
         if 'do_not_load' not in path:
@@ -248,11 +251,11 @@ class ModelLoader:
             helper.load(model_handle, model, prefix_op='remove', prefix='module.', strict=False, need_torch_load=False)
         self.context.logger.info('Model {} loaded for agent {}, time:{}'.format(path, agent_no, time.time() - t))
 
-    def load_teacher_model(self, job, model):
+    def load_teacher_model(self, job, model, agent_no=0):
         if 'teacher_model_id' not in job.keys():
             self.context.logger.info('Teacher SL model eval on actor is disabled, not loading')
             return
-        path = self._get_model_ceph_path(job['teacher_model_id'], teacher=True)
+        path = self._get_model_ceph_path(job['player{}'.format(agent_no)]['teacher_model'], teacher=True)
         t = time.time()
         # during testing, we don't necessary load the real weights
         if 'do_not_load' not in path:
@@ -272,7 +275,7 @@ class StatRequester:
 
     def request_stat(self, job, agent_no):
         # loading stored z from ceph
-        path = self._get_stat_ceph_path(job['stat_id'][agent_no])
+        path = self._get_stat_ceph_path(job['player{}'.format(agent_no)]['stat'])
         if 'do_not_load' in path:
             return {}
         return read_file_ceph(path, read_type='pickle')

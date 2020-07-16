@@ -38,7 +38,7 @@ class FakeEnv:
         # This fake z is generated from get_z, it's useless to check it against itself
         # use real environment to check the format of z
         info = {}
-        return self.game_loop, due, obs, reward, done, info
+        return obs, reward, done, info, self.game_loop, due
 
     def get_target_z(self, agent_no, game_loop):
         return None

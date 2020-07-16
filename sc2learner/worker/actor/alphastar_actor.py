@@ -373,7 +373,7 @@ class AlphaStarActor:
                         metadata = {
                             'job_id': job['job_id'],
                             'agent_no': i,
-                            'agent_model_id': job['model_id'][i],
+                            'agent_model_id': job['player{}'.format(i)]['model'],
                             'job': job,
                             'step_data_compressor': self.compressor_name,
                             'game_loop': game_loop,
