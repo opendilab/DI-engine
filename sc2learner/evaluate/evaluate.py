@@ -99,6 +99,12 @@ class EvalActor(AlphaStarActor):
             agent.train()
 
     def _print_action_info(self, step):
+        def action_to_dict(action):
+            tmp = {}
+            for f in action._fields:
+                tmp[f] = getattr(action, f)
+            return tmp
+
         def action_to_string(action):
             return '[Action: type({}) delay({}) queued({}) selected_units({}) target_units({}) target_location({})]'.format(  # noqa
                 action['action_type'], action['delay'], action['queued'], action['selected_units'],
@@ -107,9 +113,9 @@ class EvalActor(AlphaStarActor):
 
         if not hasattr(self, 'action_counts'):
             self.action_counts = [[0 for _ in range(max(ACTION_INFO_MASK.keys()) + 1)] for _ in range(self.agent_num)]
-        last_raw_action = self.env.last_action
+        action = self.env.action
         for n in range(self.agent_num):
-            self.action_counts[n][last_raw_action[n]['action_type']] += 1
+            self.action_counts[n][action[n]['action_type']] += 1
             if self.bot_multi_test:
                 if step - self.last_print > 1000:
                     self.last_print = step
@@ -120,7 +126,11 @@ class EvalActor(AlphaStarActor):
                         )
                     )
             else:
-                print('Act {}:{}:{}:{}'.format(self.cfg.evaluate.job_id, n, step, action_to_string(last_raw_action[n])))
+                print(
+                    'Act {}:{}:{}:{}'.format(
+                        self.cfg.evaluate.job_id, n, step, action_to_string(action_to_dict(action[n]))
+                    )
+                )
 
 
 class EvalJobGetter:

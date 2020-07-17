@@ -30,7 +30,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         cfg.obs_spatial.spatial_resolution = self._map_size
         cfg.action.map_size = self._map_size
         self._players, self._agent_num = self._get_players(cfg)
-        cfg.agent_num = agent_num
+        cfg.agent_num = self._agent_num
         self._cfg = cfg
 
         self._begin_num = self._obs_scalar.begin_num
@@ -157,7 +157,6 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         done = any([timestep[n].last() for n in range(self._agent_num)])
         # Note: pseudo reward must be derived after statistics update
         self.action = action
-        self.reward = reward
         self.reward = self._reward_helper.get(self)
         # update last state variable
         self._last_obs = obs
@@ -167,7 +166,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
             reward=self.reward,
             done=done,
             info=info,
-            episode_steps=self._episode_steps,
+            episode_steps=self.episode_steps,
             due=due
         )
 
@@ -192,17 +191,6 @@ class AlphaStarEnv(BaseEnv, SC2Env):
 
     def close(self) -> None:
         SC2Env.close(self)
-
-    @property
-    def last_action(self) -> list:
-        ret = []
-        for n in range(self._agent_num):
-            handle = self._last_action[n]
-            tmp = {}
-            for f in handle._fields:
-                tmp[f] = getattr(handle, f)
-            ret.append(tmp)
-        return ret
 
     @property
     def episode_stat(self) -> RealTimeStatistics:
