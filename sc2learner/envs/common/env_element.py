@@ -1,8 +1,20 @@
 from abc import ABC, abstractmethod
 from collections import namedtuple
+from typing import Any
 
 
-class EnvElement(ABC):
+class IEnvElement(ABC):
+    @abstractmethod
+    def __repr__(self) -> str:
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def info(self) -> Any:
+        raise NotImplementedError
+
+
+class EnvElement(IEnvElement):
     info_template = namedtuple('EnvElementInfo', ['shape', 'value', 'to_agent_processor', 'from_agent_processor'])
     _instance = None
     _name = 'EnvElement'
