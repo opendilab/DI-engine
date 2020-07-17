@@ -226,6 +226,7 @@ class TestPseudoReward:
     def test_reward_runner(self, setup_fake_env):
         env = setup_fake_env
         reward_helper = AlphaStarRewardRunner(2, 'global', 1, return_list=False)
+        reward_helper.reset()
         # case 1
         action = [TmpAction(197, [19, 20]), TmpAction(1, [18, 21])]  # build_hatchery_pt, smart_pt
         action_types = [a.action_type for a in action]

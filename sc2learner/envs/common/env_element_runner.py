@@ -9,6 +9,10 @@ class IEnvElementRunner(IEnvElement):
     def get(self, engine: BaseEnv) -> Any:
         raise NotImplementedError
 
+    @abstractmethod
+    def reset(self, *args, **kwargs) -> None:
+        raise NotImplementedError
+
 
 class EnvElementRunner(IEnvElementRunner):
     def __init__(self, *args, **kwargs) -> None:

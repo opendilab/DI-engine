@@ -175,6 +175,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         if not self._launch_env_flag:
             self._launch_env()
         last_action = AlphaStarRawAction.AgentAction(0, 0, None, None, None, None)
+        self._reward_helper.reset()
         self._last_action = [last_action for _ in range(self._agent_num)]
         self._episode_stat = [RealTimeStatistics(self._begin_num) for _ in range(self._agent_num)]
         assert len(loaded_stat) == self._agent_num

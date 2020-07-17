@@ -8,7 +8,6 @@ class AlphaStarRewardRunner(EnvElementRunner):
     def _init(self, *args, return_list=True, **kwargs):
         self._core = AlphaStarReward(*args, **kwargs)
         agent_num = self._core.agent_num
-        self._last_battle_value = [0] * agent_num
         self._agent_num = agent_num
         self._return_list = return_list
 
@@ -40,3 +39,7 @@ class AlphaStarRewardRunner(EnvElementRunner):
             battle_value,
             return_list=self._return_list
         )
+
+    # override
+    def reset(self) -> None:
+        self._last_battle_value = [0] * self._agent_num
