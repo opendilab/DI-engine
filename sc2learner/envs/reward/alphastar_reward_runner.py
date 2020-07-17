@@ -1,3 +1,4 @@
+import numpy as np
 from ..common import EnvElementRunner
 from ..env.base_env import BaseEnv
 from .alphastar_reward import AlphaStarReward
@@ -15,7 +16,7 @@ class AlphaStarRewardRunner(EnvElementRunner):
     def get(self, engine: BaseEnv) -> dict:
         assert isinstance(engine, BaseEnv)
         action = engine.action
-        now_battle_value = engine.battle_value
+        now_battle_value = self._get_battle_value(engine.raw_obs)
 
         action_type = [0] * self._agent_num
         for i, a in enumerate(action):
@@ -43,3 +44,13 @@ class AlphaStarRewardRunner(EnvElementRunner):
     # override
     def reset(self) -> None:
         self._last_battle_value = [0] * self._agent_num
+
+    def _get_battle_value(self, raw_obs):
+        minerals_ratio = 1.
+        vespene_ratio = 1.
+        return [
+            int(
+                np.sum(obs['score_by_category']['killed_minerals']) * minerals_ratio +
+                np.sum(obs['score_by_category']['killed_vespene'] * vespene_ratio)
+            ) for obs in raw_obs
+        ]

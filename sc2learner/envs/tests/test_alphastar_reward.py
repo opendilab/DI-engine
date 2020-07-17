@@ -236,7 +236,19 @@ class TestPseudoReward:
         env.action = action
         env.reward = [-1, 1]
         reward_helper._last_battle_value = [100, 150]
-        env.battle_value = [100, 200]
+        env.raw_obs = [
+            {
+                'score_by_category': {
+                    'killed_minerals': 50,
+                    'killed_vespene': 50
+                }
+            }, {
+                'score_by_category': {
+                    'killed_minerals': 100,
+                    'killed_vespene': 100
+                }
+            }
+        ]
         reward = reward_helper.get(env)
         assert reward['winloss'].tolist() == [-1, 1]
         assert reward['build_order'].tolist() == pytest.approx([-0.8, -0])
@@ -256,7 +268,19 @@ class TestPseudoReward:
         env.action = action
         env.reward = [0, 0]
         assert reward_helper._last_battle_value == [100, 200]
-        env.battle_value = [150, 250]
+        env.raw_obs = [
+            {
+                'score_by_category': {
+                    'killed_minerals': 50,
+                    'killed_vespene': 100
+                }
+            }, {
+                'score_by_category': {
+                    'killed_minerals': 50,
+                    'killed_vespene': 200
+                }
+            }
+        ]
         reward = reward_helper.get(env)
         assert reward['winloss'].tolist() == [0, 0]
         assert reward['build_order'].tolist() == pytest.approx([-0.8, -0])
