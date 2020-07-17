@@ -44,7 +44,7 @@ class EnvElement(ABC):
         assert all(flag), 'this class {} is not a legal subclass of EnvElement({})'.format(self.__class__, flag)
 
     @property
-    def info(self) -> 'EnvElement.info':
+    def info(self) -> 'EnvElement.info_template':
         return self.info_template(
             shape=self._shape,
             value=self._value,

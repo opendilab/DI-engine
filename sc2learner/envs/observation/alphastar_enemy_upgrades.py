@@ -9,7 +9,6 @@ from collections import namedtuple
 import torch
 
 from sc2learner.torch_utils import one_hot
-
 '''
 UPGRADES_LIST = [
     "TerranInfantryWeaponsLevel1",

@@ -12,7 +12,7 @@ from sc2learner.envs.action.alphastar_action import AlphaStarRawAction
 from sc2learner.envs.env.base_env import BaseEnv
 from sc2learner.envs.observation.alphastar_obs import ScalarObs, SpatialObs, EntityObs
 from sc2learner.envs.other.alphastar_map import get_map_size
-from sc2learner.envs.reward.alphastar_reward import AlphaStarReward
+from sc2learner.envs.reward.alphastar_reward_runner import AlphaStarRewardRunner
 from sc2learner.envs.stat.alphastar_statistics import RealTimeStatistics, GameLoopStatistics
 from sc2learner.utils import merge_dicts, read_config
 
@@ -41,7 +41,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         self._obs_entity = EntityObs(cfg.obs_entity)
         self._begin_num = self._obs_scalar.begin_num
         self._action_helper = AlphaStarRawAction(cfg.action)
-        self._reward_helper = AlphaStarReward(self._agent_num, cfg.pseudo_reward_type, cfg.pseudo_reward_prob)
+        self._reward_helper = AlphaStarRewardRunner(self._agent_num, cfg.pseudo_reward_type, cfg.pseudo_reward_prob)
 
         self._launch_env_flag = False
 
@@ -147,27 +147,6 @@ class AlphaStarEnv(BaseEnv, SC2Env):
             ) for obs in raw_obs
         ]
 
-    def _get_pseudo_rewards(self, reward, battle_value, action):
-        action_type = [0 for _ in range(len(action))]
-        for i, a in enumerate(action):
-            if a is not None:
-                action_type[i] = a.action_type
-        if self._agent_num == 1:  # If we are in agent vs bot mode.
-            battle_value = AlphaStarReward.BattleValues(
-                self._last_battle_value[0], battle_value[0], self._last_battle_value[1], battle_value[1]
-            )
-        else:
-            battle_value = AlphaStarReward.BattleValues(0, 0, 0, 0)
-        return self._reward_helper._to_agent_processor(
-            reward,
-            action_type,
-            self._episode_stat,
-            self._loaded_eval_stat,
-            self._episode_steps,
-            battle_value,
-            return_list=True
-        )
-
     def _launch_env(self) -> None:
         cfg = self._cfg
         agent_interface_format = sc2_env.parse_agent_interface_format(
@@ -249,7 +228,9 @@ class AlphaStarEnv(BaseEnv, SC2Env):
                     self._episode_stat[n].update_stat(action[n], self._last_obs[n], self._episode_steps)
         # Note: pseudo reward must be derived after statistics update
         battle_value = self._get_battle_value([t.observation for t in timestep])
-        reward = self._get_pseudo_rewards(reward, battle_value, action)
+        self.action = action
+        self.reward = reward
+        self.reward = self._reward_helper.get(self)
         # update last state variable
         self._last_obs = obs.copy()
         for n in range(self._agent_num):
@@ -259,7 +240,12 @@ class AlphaStarEnv(BaseEnv, SC2Env):
                 self._last_battle_value[n] = battle_value[n]
 
         return AlphaStarEnv.timestep(
-            obs=copy.deepcopy(obs), reward=reward, done=done, info=info, episode_steps=self._episode_steps, due=due
+            obs=copy.deepcopy(obs),
+            reward=self.reward,
+            done=done,
+            info=info,
+            episode_steps=self._episode_steps,
+            due=due
         )
 
     def seed(self, seed: int) -> None:
@@ -298,3 +284,31 @@ class AlphaStarEnv(BaseEnv, SC2Env):
                 tmp[f] = getattr(handle, f)
             ret.append(tmp)
         return ret
+
+    @property
+    def episode_stat(self) -> RealTimeStatistics:
+        return self._episode_stat
+
+    @property
+    def episode_steps(self) -> int:
+        return self._episode_steps
+
+    @property
+    def loaded_eval_stat(self) -> GameLoopStatistics:
+        return self._loaded_eval_stat
+
+    @property
+    def action(self) -> namedtuple:
+        return self._action
+
+    @action.setter
+    def action(self, _action: namedtuple) -> None:
+        self._action = _action
+
+    @property
+    def reward(self) -> list:
+        return self._reward
+
+    @reward.setter
+    def reward(self, _reward: list) -> None:
+        self._reward = _reward

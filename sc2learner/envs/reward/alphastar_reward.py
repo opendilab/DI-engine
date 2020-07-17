@@ -18,7 +18,7 @@ class AlphaStarReward(EnvElement):
 
     # override
     def _init(self, agent_num: int, pseudo_reward_type: str, pseudo_reward_prob: float) -> None:
-        assert agent_num == 2
+        assert agent_num in [1, 2]
         self.agent_num = agent_num
         self.pseudo_reward_prob = pseudo_reward_prob
         self.pseudo_reward_type = pseudo_reward_type
