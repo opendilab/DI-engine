@@ -33,10 +33,10 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         cfg.agent_num = self._agent_num
         self._cfg = cfg
 
-        self._begin_num = self._obs_scalar.begin_num
         self._obs_helper = AlphaStarObsRunner(cfg)
         self._action_helper = AlphaStarRawAction(cfg.action)
         self._reward_helper = AlphaStarRewardRunner(self._agent_num, cfg.pseudo_reward_type, cfg.pseudo_reward_prob)
+        self._begin_num = self._obs_helper._obs_scalar.begin_num
 
         self._launch_env_flag = False
 

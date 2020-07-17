@@ -423,7 +423,7 @@ class Coordinator(object):
         # stats(len=2, stat path)
         kwargs = {'home_race': home_race, 'away_race': away_race, 'map_name': map_name, 'player_id': 'ava'}
         if self.use_fake_data:
-            stats = None
+            stats = ['do_not_load', 'do_not_load']
         else:
             stats = self.stat_manager.get_ava_stats(**kwargs)
         job = {
