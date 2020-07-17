@@ -32,12 +32,12 @@ class TestAlphaStarEnv:
         env = AlphaStarEnv(setup_as_config.env)
         print(env)
         env_info = env.info()
-        assert env_info.agent_num == env.agent_num
+        assert env_info.agent_num == env._agent_num
         print({k: v.shape for k, v in env_info.obs_space.items()})
         print(env_info.act_space.shape)
         print(env_info.rew_space.value)
-        agent_num = env.agent_num
-        map_size = env.map_size
+        agent_num = env._agent_num
+        map_size = env._map_size
         obs = env.reset([setup_as_stat for _ in range(agent_num)])
 
         S = 5

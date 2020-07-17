@@ -176,7 +176,6 @@ class AlphaStarEnv(BaseEnv, SC2Env):
             self._launch_env()
         last_action = AlphaStarRawAction.AgentAction(0, 0, None, None, None, None)
         self._last_action = [last_action for _ in range(self._agent_num)]
-        self._last_battle_value = [0] * self._agent_num
         self._episode_stat = [RealTimeStatistics(self._begin_num) for _ in range(self._agent_num)]
         assert len(loaded_stat) == self._agent_num
         self._loaded_eval_stat = [GameLoopStatistics(s, self._begin_num) for s in loaded_stat]
@@ -227,7 +226,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
                 if action[n] is not None and due[n]:
                     self._episode_stat[n].update_stat(action[n], self._last_obs[n], self._episode_steps)
         # Note: pseudo reward must be derived after statistics update
-        battle_value = self._get_battle_value([t.observation for t in timestep])
+        self.battle_value = self._get_battle_value([t.observation for t in timestep])
         self.action = action
         self.reward = reward
         self.reward = self._reward_helper.get(self)
@@ -237,7 +236,6 @@ class AlphaStarEnv(BaseEnv, SC2Env):
             # only valid action update these variable
             if action[n] is not None:
                 self._last_action[n] = action[n]
-                self._last_battle_value[n] = battle_value[n]
 
         return AlphaStarEnv.timestep(
             obs=copy.deepcopy(obs),
@@ -312,3 +310,11 @@ class AlphaStarEnv(BaseEnv, SC2Env):
     @reward.setter
     def reward(self, _reward: list) -> None:
         self._reward = _reward
+
+    @property
+    def battle_value(self) -> list:
+        return self._battle_value
+
+    @battle_value.setter
+    def battle_value(self, _battle_value) -> None:
+        self._battle_value = _battle_value
