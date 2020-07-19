@@ -100,7 +100,7 @@ setup(
         'tensorboardX',
         'matplotlib',
         'yapf==0.29.0',
-        'pytest',
+        'pytest==5.1.1',
         'pytest-xdist',
         'flask',
         'lz4',

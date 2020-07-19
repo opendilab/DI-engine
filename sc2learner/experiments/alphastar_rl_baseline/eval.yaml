@@ -6,20 +6,22 @@ evaluate:
     use_multiprocessing: False  # multiprocessing may be incompatible with GPU inference
     num_episodes: 4
     num_instance_per_node: 2
-    game_type: 'self_play'  # self_play or game_vs_bot or game_vs_agent
+    game_type: 'agent_vs_agent'  # agent_vs_agent or game_vs_bot or game_vs_agent
     map_name: 'KairosJunction'
-    home_race: 'zerg'
-    away_race: 'zerg'
-    bot_difficulty: 'very_easy'
-    bot_build: 'random'
-    save_replay: False
+    player0:
+        race: 'zerg'
+        stat: 's3://replay_decode_493_0515/Zerg_Zerg_5689_5550a6274f14b6f5a6bfbdb93249aa05baf4f8bee1e68cf0295c4c5d95d2c9a2'
+        model: '/mnt/lustre/niuyazhe/code/gitlab/SenseStar/sc2learner/experiments/alphastar_rl_baseline/checkpoints/iterations_0.pth.tar'
+        teacher_model: None
+    player1:
+        race: 'zerg'
+        stat: 's3://replay_decode_493_0515/Zerg_Zerg_5689_5550a6274f14b6f5a6bfbdb93249aa05baf4f8bee1e68cf0295c4c5d95d2c9a2'
+        model: '/mnt/lustre/niuyazhe/code/gitlab/SenseStar/sc2learner/experiments/alphastar_rl_baseline/checkpoints/iterations_1000.pth.tar'
+        teacher_model: None
+        #difficulty: 'very_easy'
+        #build: 'random'
+    save_replay: True
     replay_path: 'test'
-    stat_path:
-        agent0: 's3://replay_decode_493_0515/Zerg_Zerg_5689_5550a6274f14b6f5a6bfbdb93249aa05baf4f8bee1e68cf0295c4c5d95d2c9a2'
-        agent1: 's3://replay_decode_493_0515/Zerg_Zerg_5689_5550a6274f14b6f5a6bfbdb93249aa05baf4f8bee1e68cf0295c4c5d95d2c9a2'
-    model_path:
-        agent0: '/mnt/lustre/niuyazhe/code/gitlab/SenseStar/sc2learner/experiments/alphastar_rl_baseline/checkpoints/iterations_0.pth.tar'
-        agent1: '/mnt/lustre/niuyazhe/code/gitlab/SenseStar/sc2learner/experiments/alphastar_rl_baseline/checkpoints/iterations_1000.pth.tar'
     show_system_stat: False
 env:
     use_cuda: True

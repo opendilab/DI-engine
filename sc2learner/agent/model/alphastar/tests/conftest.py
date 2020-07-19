@@ -3,6 +3,7 @@ import torch
 import os
 import yaml
 from easydict import EasyDict
+from sc2learner.envs import AlphaStarEnv
 
 
 @pytest.fixture(scope='function')
@@ -21,3 +22,9 @@ def is_differentiable(loss, model):
     loss.backward()
     for k, p in model.named_parameters():
         assert isinstance(p.grad, torch.Tensor), k
+
+
+@pytest.fixture(scope='module')
+def setup_env_info():
+    env = AlphaStarEnv(cfg={})
+    return env.info()

@@ -41,12 +41,12 @@ class ActorForTest(AlphaStarActorWorker):
     def __init__(self, cfg):
         super(ActorForTest, self).__init__(cfg)
 
-    def _make_env(self, players):
+    def _make_env(self):
         if (FLAGS and FLAGS.fake_dataset) or PYTEST_FAKE_DATASET:
             from .fake_env import FakeEnv
-            return FakeEnv(len(players))
+            return FakeEnv()
         else:
-            return super()._make_env(players)
+            return super()._make_env()
 
     def _module_init(self):
         super()._module_init()
@@ -64,9 +64,9 @@ class ActorForTest(AlphaStarActorWorker):
             print('Time between action:{}'.format(t - self.last_time))
         self.last_time = t
         for n in range(len(act)):
-            if act[n] and act[n]['delay'] == 0:
+            if act[n] and act[n]['action']['delay'] == 0:
                 print('clipping delay == 0 to 1')
-                act[n]['delay'] = torch.LongTensor([random.randint(0, 10)])
+                act[n]['action']['delay'] = torch.LongTensor([random.randint(0, 10)])
             if PRINT_ACTIONS:
                 print('Act {}:{}'.format(n, str(act[n])))
         return act

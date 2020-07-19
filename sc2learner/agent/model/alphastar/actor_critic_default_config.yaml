@@ -65,12 +65,75 @@ model:
         obs_encoder:
             encoder_names: [scalar_encoder, spatial_encoder, entity_encoder]
             scalar_encoder:
-                use_stat: True  # whether use statistics z
+                module:
+                    agent_statistics:
+                        name: agent_statistics
+                        arch: fc
+                        output_dim: 64
+                        baseline_feature: True
+                    race:
+                        name: race
+                        arch: fc
+                        output_dim: 32
+                        scalar_context: True
+                    enemy_race:
+                        name: enemy_race
+                        arch: fc
+                        output_dim: 32
+                        scalar_context: True
+                    upgrades:
+                        name: upgrades
+                        arch: fc
+                        output_dim: 128
+                        baseline_feature: True
+                    enemy_upgrades:
+                        name: enemy_upgrades
+                        arch: fc
+                        output_dim: 128
+                    time:
+                        name: time
+                        arch: identity
+                    available_actions:
+                        name: available_actions
+                        arch: fc
+                        output_dim: 64
+                        scalar_context: True
+                    unit_counts_bow:
+                        name: unit_counts_bow
+                        arch: fc
+                        output_dim: 128
+                        baseline_feature: True
+                    mmr:
+                        name: mmr
+                        arch: fc
+                        output_dim: 64
+                    cumulative_stat:
+                        name: cumulative_stat
+                        arch: multi_fc
+                        output_dim: 32  # 32x3
+                        scalar_context: True
+                    beginning_build_order:
+                        name: beginning_build_order
+                        arch: transformer
+                        output_dim: 32
+                        scalar_context: True
+                        baseline_feature: True
+                    last_delay:
+                        name: last_delay
+                        arch: fc
+                        output_dim: 64
+                    last_queued:
+                        name: last_queued
+                        arch: fc
+                        output_dim: 256
+                    last_action_type:
+                        name: last_action_type
+                        arch: fc
+                        output_dim: 128
                 activation: 'relu'
                 begin_num: 20  # beginning_build_order_num
                 output_dim: 1280  # use_stat(True: 1280, False: 1088)
             spatial_encoder:
-                input_dim: 52
                 resblock_num: 4
                 fc_dim: 256
                 project_dim: 32
@@ -79,7 +142,6 @@ model:
                 activation: 'relu'
                 norm_type: 'BN'
             entity_encoder:
-                input_dim: 1340  # refer to alphastar_obs_wrapper
                 head_dim: 128
                 hidden_dim: 1024
                 output_dim: 256
@@ -99,7 +161,6 @@ model:
             num_layers: 3
             dropout: 0.2
         score_cumulative:
-            input_dim: 13
             output_dim: 64
             activation: 'relu'
     # ===== Policy =====

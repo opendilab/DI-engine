@@ -3,45 +3,48 @@ import torch
 import numpy as np
 from sc2learner.agent.model.alphastar.obs_encoder import ScalarEncoder, EntityEncoder, SpatialEncoder
 from sc2learner.agent.model.alphastar.encoder import Encoder
-from sc2learner.envs.observations import transform_scalar_data
 from sc2learner.agent.model.alphastar.tests.conftest import is_differentiable
 
 
 @pytest.mark.unittest
 class TestEncoder:
-    def test_scalar_encoder(self, setup_config):
+    def test_scalar_encoder(self, setup_config, setup_env_info):
         B = 4
-        template_obs, template_replay, template_action = transform_scalar_data()
+        handle = setup_env_info.obs_space['scalar'].shape
+        cfg = setup_config.model.encoder.obs_encoder.scalar_encoder
+        # merge input dim
+        for k, v in cfg.module.items():
+            cfg.module[k].input_dim = handle[k]
+
         model = ScalarEncoder(setup_config.model.encoder.obs_encoder.scalar_encoder)
         assert isinstance(model, torch.nn.Module)
 
         inputs = {}
-        for item in template_obs + template_replay + template_action:
-            if 'input_dim' in item.keys() and 'output_dim' in item.keys():
-                if item['key'] == 'beginning_build_order':
-                    N = setup_config.model.encoder.obs_encoder.scalar_encoder.begin_num
-                    # subtract seq info dim, which is automatedly added by bo network
-                    inputs[item['key']] = torch.randn(B, N, item['input_dim'] - 20)
-                else:
-                    inputs[item['key']] = torch.randn(B, item['input_dim'])
-        cumulative_stat_input = {}
-        for k, v in template_replay[1]['input_dims'].items():
-            cumulative_stat_input[k] = torch.randn(B, v)
-        inputs['cumulative_stat'] = cumulative_stat_input
+        for k, v in handle.items():
+            if k == 'beginning_build_order':
+                N = setup_config.model.encoder.obs_encoder.scalar_encoder.begin_num
+                # subtract seq info dim, which is automatedly added by bo network
+                inputs[k] = torch.randn(B, N, v - 20)
+            elif k == 'cumulative_stat':
+                inputs[k] = {k1: torch.randn(B, v1) for k1, v1 in v.items()}
+            else:
+                inputs[k] = torch.randn(B, v)
 
         embedded_scalar, scalar_context, baseline_feature, cumulative_stat = model(inputs)
         assert (embedded_scalar.shape == (B, 1280))
         assert (scalar_context.shape == (B, 256))
         assert (baseline_feature.shape == (B, 352))
         for k, v in cumulative_stat.items():
-            assert v.shape == (B, template_replay[1]['output_dim'])
+            assert v.shape == (B, 32)
 
         loss = embedded_scalar.mean()
         is_differentiable(loss, model)
 
-    def test_entity_encoder_input_list(self, setup_config):
+    def test_entity_encoder_input_list(self, setup_config, setup_env_info):
         B = 4
         handle = setup_config.model.encoder.obs_encoder.entity_encoder
+        handle_env = setup_env_info.obs_space['entity']
+        handle.input_dim = handle_env.shape[-1]
         model = EntityEncoder(handle)
         assert isinstance(model, torch.nn.Module)
 
@@ -61,9 +64,11 @@ class TestEncoder:
         loss = embedded_entity.mean() + sum([t.mean() for t in entity_embedding])
         is_differentiable(loss, model)
 
-    def test_spatial_encoder(self, setup_config):
+    def test_spatial_encoder(self, setup_config, setup_env_info):
         B = 5
         handle = setup_config.model.encoder.obs_encoder.spatial_encoder
+        handle_env = setup_env_info.obs_space['spatial']
+        handle.input_dim = handle_env.shape[0]
         model = SpatialEncoder(handle)
         assert isinstance(model, torch.nn.Module)
 
@@ -85,9 +90,11 @@ class TestEncoder:
         loss = output.mean()
         is_differentiable(loss, model)
 
-    def test_spatial_encoder_input_list(self, setup_config):
+    def test_spatial_encoder_input_list(self, setup_config, setup_env_info):
         B = 5
         handle = setup_config.model.encoder.obs_encoder.spatial_encoder
+        handle_env = setup_env_info.obs_space['spatial']
+        handle.input_dim = handle_env.shape[0]
         model = SpatialEncoder(handle)
         assert isinstance(model, torch.nn.Module)
 
@@ -114,9 +121,14 @@ class TestEncoder:
                 for t, (H, W) in zip(m, map_size):
                     assert t.shape == (handle.down_channels[-1], H // 8, W // 8)
 
-    def test_scatter_connection(self, setup_config):
+    def test_scatter_connection(self, setup_config, setup_env_info):
         B = 5
         handle = setup_config.model.encoder
+        handle.obs_encoder.spatial_encoder.input_dim = setup_env_info.obs_space['spatial'].shape[0]
+        handle.obs_encoder.entity_encoder.input_dim = setup_env_info.obs_space['entity'].shape[-1]
+        for k, v in handle.obs_encoder.scalar_encoder.module.items():
+            handle.obs_encoder.scalar_encoder.module[k].input_dim = setup_env_info.obs_space['scalar'].shape[k]
+        handle.score_cumulative.input_dim = setup_env_info.obs_space['scalar'].shape['score_cumulative']
         model = Encoder(handle)
         assert isinstance(model, torch.nn.Module)
         map_size = (200, 180)

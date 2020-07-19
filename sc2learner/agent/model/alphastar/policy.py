@@ -28,7 +28,7 @@ def build_head(name):
 class Policy(nn.Module):
     MimicInput = namedtuple(
         'MimicInput', [
-            'actions', 'entity_raw', 'action_type_mask', 'lstm_output', 'entity_embeddings', 'map_skip',
+            'action', 'entity_raw', 'action_type_mask', 'lstm_output', 'entity_embeddings', 'map_skip',
             'scalar_context', 'spatial_info'
         ]
     )
@@ -183,12 +183,12 @@ class Policy(nn.Module):
             Returns:
                 - logits (:obj:`dict`) logits(or other format) for calculating supervised learning loss
         '''
-        def to_tensor_action(actions):
-            actions = copy.deepcopy(actions)
-            device = actions['action_type'][0].device
-            for k, v in actions.items():
+        def to_tensor_action(action):
+            action = copy.deepcopy(action)
+            device = action['action_type'][0].device
+            for k, v in action.items():
                 if k in ['action_type', 'delay']:
-                    actions[k] = torch.cat(v, dim=0)
+                    action[k] = torch.cat(v, dim=0)
                 elif k in ['queued']:
                     new_v = []
                     for t in v:
@@ -196,7 +196,7 @@ class Policy(nn.Module):
                             new_v.append(t)
                         else:
                             new_v.append(torch.zeros(1, dtype=torch.long, device=device))  # set no_queued to not_queued
-                    actions[k] = torch.cat(new_v, dim=0)
+                    action[k] = torch.cat(new_v, dim=0)
                 elif k in ['selected_units']:
                     new_v = []
                     for t in v:
@@ -204,48 +204,48 @@ class Policy(nn.Module):
                             new_v.append(t)
                         else:
                             new_v.append(torch.LongTensor([]).to(device))
-                    actions[k] = new_v
+                    action[k] = new_v
                 elif k in ['target_units', 'target_location']:
                     # TODO(nyz) set default
                     pass
                 else:
                     raise KeyError(k)
-            return actions
+            return action
 
-        actions, entity_raw, action_type_mask, lstm_output,\
+        action, entity_raw, action_type_mask, lstm_output,\
             entity_embeddings, map_skip, scalar_context, spatial_info = inputs
-        actions = to_tensor_action(actions)
+        action = to_tensor_action(action)
         B = len(entity_raw)
         logits = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
         units_num = [len(t['id']) for t in entity_raw]
 
         # action type
         logits['action_type'], _, embeddings = self._action_type_forward(
-            lstm_output, scalar_context, action_type_mask, temperature, actions['action_type']
+            lstm_output, scalar_context, action_type_mask, temperature, action['action_type']
         )
-        action_attr, mask = self._look_up_action_attr(actions['action_type'], entity_raw, units_num, spatial_info)
+        action_attr, mask = self._look_up_action_attr(action['action_type'], entity_raw, units_num, spatial_info)
 
         # action arg delay
-        logits['delay'], _, embeddings = self.head['delay_head'](embeddings, actions['delay'])
+        logits['delay'], _, embeddings = self.head['delay_head'](embeddings, action['delay'])
 
         # action arg queued
-        logits_queued, _, embeddings = self.head['queued_head'](embeddings, temperature, actions['queued'])
+        logits_queued, _, embeddings = self.head['queued_head'](embeddings, temperature, action['queued'])
         logits['queued'] = self._mask_select([logits_queued], action_attr['queued'])
 
         logits_selected_units, _, embeddings = self.head['selected_units_head'](
             embeddings, mask['selected_units_type_mask'], mask['selected_units_mask'], entity_embeddings, temperature,
-            actions['selected_units']
+            action['selected_units']
         )
         logits['selected_units'] = self._mask_select([logits_selected_units], action_attr['selected_units'])
 
         logits_target_units, _ = self.head['target_unit_head'](
             embeddings, mask['target_units_type_mask'], mask['target_units_mask'], entity_embeddings, temperature,
-            actions['target_units']
+            action['target_units']
         )
         logits['target_units'] = self._mask_select([logits_target_units], action_attr['target_units'])
 
         logits_location, _ = self.head['location_head'](
-            embeddings, map_skip, mask['location_mask'], temperature, actions['target_location']
+            embeddings, map_skip, mask['location_mask'], temperature, action['target_location']
         )
         logits['target_location'] = self._mask_select([logits_location], action_attr['target_location'])
 
@@ -259,12 +259,12 @@ class Policy(nn.Module):
                 - temperature (:obj:`float`) logits sample temperature
             Returns:
                 - logits (:obj:`dict`) logits
-                - actions (:obj:`dict`) actions predicted by agent(policy)
+                - action (:obj:`dict`) action predicted by agent(policy)
         '''
         entity_raw, action_type_mask, lstm_output, entity_embeddings, map_skip, scalar_context, spatial_info = inputs
 
         B = len(entity_raw)
-        actions = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
+        action = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
         logits = {'queued': [], 'selected_units': [], 'target_units': [], 'target_location': []}
         units_num = [len(t['id']) for t in entity_raw]
 
@@ -272,47 +272,47 @@ class Policy(nn.Module):
         logits['action_type'], action_type, embeddings = self._action_type_forward(
             lstm_output, scalar_context, action_type_mask, temperature
         )
-        actions['action_type'] = torch.chunk(action_type, B, dim=0)
-        action_attr, mask = self._look_up_action_attr(actions['action_type'], entity_raw, units_num, spatial_info)
+        action['action_type'] = torch.chunk(action_type, B, dim=0)
+        action_attr, mask = self._look_up_action_attr(action['action_type'], entity_raw, units_num, spatial_info)
 
         # action arg delay
         logits['delay'], delay, embeddings = self.head['delay_head'](embeddings)
-        actions['delay'] = torch.chunk(delay, B, dim=0)
+        action['delay'] = torch.chunk(delay, B, dim=0)
 
         logits_queued, queued, embeddings = self.head['queued_head'](embeddings, temperature)
-        logits['queued'], actions['queued'] = self._mask_select([logits_queued, queued], action_attr['queued'])
+        logits['queued'], action['queued'] = self._mask_select([logits_queued, queued], action_attr['queued'])
 
         logits_selected_units, selected_units, embeddings = self.head['selected_units_head'](
             embeddings, mask['selected_units_type_mask'], mask['selected_units_mask'], entity_embeddings, temperature
         )
-        logits['selected_units'], actions['selected_units'] = self._mask_select(
+        logits['selected_units'], action['selected_units'] = self._mask_select(
             [logits_selected_units, selected_units], action_attr['selected_units']
         )
 
         logits_target_units, target_units = self.head['target_unit_head'](
             embeddings, mask['target_units_type_mask'], mask['target_units_mask'], entity_embeddings, temperature
         )
-        logits['target_units'], actions['target_units'] = self._mask_select(
+        logits['target_units'], action['target_units'] = self._mask_select(
             [logits_target_units, target_units], action_attr['target_units']
         )
 
         logits_location, location = self.head['location_head'](embeddings, map_skip, mask['location_mask'], temperature)
-        logits['target_location'], actions['target_location'] = self._mask_select(
+        logits['target_location'], action['target_location'] = self._mask_select(
             [logits_location, location], action_attr['target_location']
         )
 
-        actions = self._squeeze_one_batch(actions)
+        action = self._squeeze_one_batch(action)
         logits = self._squeeze_one_batch(logits)
-        actions = self._get_action_entity_raw(actions, entity_raw)
+        action = self._prepare_action_data(action, entity_raw)
 
-        return actions, logits
+        return action, logits
 
-    def _squeeze_one_batch(self, actions):
-        for k in actions.keys():
-            for i in range(len(actions[k])):
-                if isinstance(actions[k][i], torch.Tensor) and len(actions[k][i].shape) > 1:
-                    actions[k][i].squeeze_(0)
-        return actions
+    def _squeeze_one_batch(self, action):
+        for k in action.keys():
+            for i in range(len(action[k])):
+                if isinstance(action[k][i], torch.Tensor) and len(action[k][i].shape) > 1:
+                    action[k][i].squeeze_(0)
+        return action
 
     def _mask_select(self, data, mask):
         def chunk(item):
@@ -329,31 +329,37 @@ class Policy(nn.Module):
         else:
             return data
 
-    def _get_action_entity_raw(self, actions, entity_raw):
+    def _prepare_action_data(self, action, entity_raw):
         B = len(entity_raw)
         action_entity_raw = []
+        device = action['action_type'][0].device
         for b in range(B):
-            selected_units = actions['selected_units'][b]
-            target_units = actions['target_units'][b]
-            selected_units = [] if selected_units is None else selected_units.tolist()
-            target_units = [] if target_units is None else target_units.tolist()
-            units = list(set(selected_units).union(set(target_units)))
+            num = len(entity_raw[b]['id'])
+            selected_units = action['selected_units'][b]
+            target_units = action['target_units'][b]
+            if selected_units is not None:
+                selected_units = selected_units.tolist()
+                flag = [s < num for s in selected_units]
+                if not all(flag):
+                    print('[ERROR]: invalid selected_units idx: {}, total entity num: {}'.format(selected_units, num))
+                action['selected_units'][b] = torch.masked_select(
+                    action['selected_units'][b],
+                    torch.BoolTensor(flag).to(device)
+                )
+            if target_units is not None:
+                target_units = target_units.tolist()
+                flag = [s < num for s in target_units]
+                if not all(flag):
+                    print('[ERROR]: invalid selected_units idx: {}, total entity num: {}'.format(target_units, num))
+                action['target_units'][b] = torch.masked_select(
+                    action['target_units'][b],
+                    torch.BoolTensor(flag).to(device)
+                )
 
-            entity_raw_per_frame = entity_raw[b]
-            keys = entity_raw_per_frame.keys()
-            action_entity_raw_per_frame = {}
-            for u in units:
-                try:
-                    entity_raw_u = {k: entity_raw_per_frame[k][u] for k in keys}
-                except IndexError:
-                    entity_raw_u = {k: entity_raw_per_frame[k][-1] for k in keys}
-                    print('[ERROR]: invalid unit idx: {} {} {}'.format(u, selected_units, target_units))
-                    print('[ERROR]: len entity_raw_per_frame: {}'.format(len(entity_raw_per_frame['id'])))
-                action_entity_raw_per_frame[u] = entity_raw_u
-            action_entity_raw.append(action_entity_raw_per_frame)
-
-        actions['action_entity_raw'] = action_entity_raw
-        return actions
+        action_data = {}
+        action_data['entity_raw'] = entity_raw
+        action_data['action'] = action
+        return action_data
 
     def forward(self, inputs, mode=None, **kwargs):
         assert (mode in ['mimic', 'evaluate'])

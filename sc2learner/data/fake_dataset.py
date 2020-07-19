@@ -8,14 +8,11 @@ import torch
 
 from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UNIT_TYPES, ACTIONS_REORDER_INV, NUM_BEGIN_ACTIONS, NUM_UPGRADES
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
-#from sc2learner.data.offline.replay_dataset import START_STEP
+from sc2learner.data.offline.replay_dataset import START_STEP
 from sc2learner.utils import get_step_data_compressor
-#from sc2learner.envs.observations.alphastar_obs_wrapper import ENTITY_INFO_DIM
-START_STEP = 'start_step'
-ENTITY_INFO_DIM = 1340
-#from sc2learner.envs.observations import LOCATION_BIT_NUM
-LOCATION_BIT_NUM = 10
 
+ENTITY_INFO_DIM = 1340
+LOCATION_BIT_NUM = 10
 META_SUFFIX = '.meta'
 DATA_SUFFIX = '.step'
 STAT_SUFFIX = '.stat_processed'
@@ -64,22 +61,34 @@ def get_fake_rewards():
     return rewards
 
 
-def get_single_step_data():
-    # TODO(pzh) we should build a general data structure (a SampleBatch class)
+def get_random_action(num_units=None, selected_num_units=None):
+    if num_units is None:
+        num_units = np.random.randint(200, 300)
+    if selected_num_units is None:
+        selected_num_units = np.random.randint(1, MAX_SELECTED_UNITS)
+    action_type = random_action_type()
+    action_type_inv = ACTIONS_REORDER_INV[action_type.item()]
+    action_attr = GENERAL_ACTION_INFO_MASK[action_type_inv]
+    action = OrderedDict(
+        action_type=action_type,
+        delay=torch.randint(0, 4, size=[1], dtype=torch.int64),  # 4 for convenience
+        queued=torch.randint(0, 1, size=[1], dtype=torch.int64) if action_attr['queued'] else NOOP,
+        selected_units=torch.randint(0, num_units, size=[selected_num_units], dtype=torch.int64)
+        if action_attr['selected_units'] else NOOP,
+        target_units=torch.randint(0, num_units, size=[1], dtype=torch.int64) if action_attr['target_units'] else NOOP,
+        target_location=torch.randint(0, min(MAP_SIZE), size=[2], dtype=torch.int64)
+        if action_attr['target_location'] else NOOP
+    )
+    return action
 
-    # TODO(pzh) our system should not high dependent on the data structure, because we may add / delete item
-    #  in future
 
-    num_units = np.random.randint(200, 300)
-    selected_num_units = np.random.randint(1, MAX_SELECTED_UNITS)
-
-    # TODO(pzh) we should use a more light-weight data type to store binary.
+def get_scalar_encoder_data():
     scalar_info = OrderedDict(
         agent_statistics=random_tensor([10]),
         race=random_one_hot([5]),
         enemy_race=random_one_hot([5]),
-        upgrades=random_binary_tensor([90]),
-        enemy_upgrades=random_binary_tensor([NUM_UPGRADES]),  # refer to envs/observations/enemy_upgrades.py
+        upgrades=random_binary_tensor([NUM_UPGRADES]),
+        enemy_upgrades=random_binary_tensor([48]),  # refer to envs/observations/enemy_upgrades.py
         time=random_binary_tensor([64]),
         available_actions=random_binary_tensor([NUM_ACTION_TYPES]),
         unit_counts_bow=random_tensor([259]),
@@ -93,7 +102,20 @@ def get_single_step_data():
             research=random_binary_tensor([60])
         ),
         beginning_build_order=random_tensor([20, NUM_BEGIN_ACTIONS + 2 * LOCATION_BIT_NUM]),
+        score_cumulative=random_tensor([13])
     )
+    return scalar_info
+
+
+def get_single_step_data():
+    # TODO(pzh) we should build a general data structure (a SampleBatch class)
+
+    # TODO(pzh) our system should not high dependent on the data structure, because we may add / delete item
+    #  in future
+
+    num_units = np.random.randint(200, 300)
+    selected_num_units = np.random.randint(1, MAX_SELECTED_UNITS)
+    scalar_info = get_scalar_encoder_data()
 
     entity_raw = OrderedDict(
         location=list(np.random.randint(0, min(MAP_SIZE), size=[num_units, 2], dtype=int)),
@@ -101,27 +123,14 @@ def get_single_step_data():
         type=list(np.random.randint(0, NUM_UNIT_TYPES, size=num_units, dtype=int))
     )
 
-    # TODO(pzh) it's all int64 here. not correct.
-    action_type = random_action_type()
-    action_type_inv = ACTIONS_REORDER_INV[action_type.item()]
-    action_attr = GENERAL_ACTION_INFO_MASK[action_type_inv]
-    actions = OrderedDict(
-        action_type=action_type,
-        delay=torch.randint(0, DELAY_MAX, size=[1], dtype=torch.int64),
-        queued=torch.randint(0, 1, size=[1], dtype=torch.int64) if action_attr['queued'] else NOOP,
-        selected_units=torch.randint(0, num_units, size=[selected_num_units], dtype=torch.int64)
-        if action_attr['selected_units'] else NOOP,
-        target_units=torch.randint(0, num_units, size=[1], dtype=torch.int64) if action_attr['target_units'] else NOOP,
-        target_location=torch.randint(0, min(MAP_SIZE), size=[2], dtype=torch.int64)
-        if action_attr['target_location'] else NOOP
-    )
+    action = get_random_action(num_units, selected_num_units)
 
-    scalar_info['available_actions'][actions['action_type']] = 1
+    scalar_info['available_actions'][action['action_type']] = 1
 
     return OrderedDict(
         scalar_info=scalar_info,
         entity_raw=entity_raw,
-        actions=actions,
+        actions=action,
         entity_info=random_tensor([num_units, ENTITY_INFO_DIM]),
         spatial_info=random_tensor([20] + MAP_SIZE),
         map_size=MAP_SIZE,
@@ -321,7 +330,6 @@ class FakeActorDataset:
 
         def get_single_rl_agent_step_data():
             base = get_single_step_data()
-            base['score_cumulative'] = random_tensor([13])
             base['prev_state'] = [torch.zeros(*LSTM_DIMS), torch.zeros(*LSTM_DIMS)]
             base['rewards'] = get_fake_rewards()
             base['game_seconds'] = random.randint(0, 24 * 60)
@@ -341,7 +349,5 @@ class FakeActorDataset:
         for i in range(self.trajectory_len):
             data.append({'home': get_single_rl_agent_step_data(), 'away': get_single_rl_agent_step_data()})
         data[-1]['home_next'] = get_single_step_data()
-        data[-1]['home_next']['score_cumulative'] = random_tensor([13])
         data[-1]['away_next'] = get_single_step_data()
-        data[-1]['away_next']['score_cumulative'] = random_tensor([13])
         return data

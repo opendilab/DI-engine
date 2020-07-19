@@ -54,7 +54,7 @@ def to_tensor(item, dtype):
         return new_data
     elif isinstance(item, list) or isinstance(item, tuple):
         if len(item) == 0:
-            return 'none'  # for convenience in dataloader
+            return None
         elif isinstance(item[0], numbers.Integral) or isinstance(item[0], numbers.Real):
             return transform(item)
         else:
@@ -63,7 +63,23 @@ def to_tensor(item, dtype):
                 new_data.append(to_tensor(t, dtype))
             return new_data
     elif item is None:
-        return 'none'  # for convenience in dataloader
+        return None
+    else:
+        raise TypeError("not support item type: {}".format(type(item)))
+
+
+def tensor_to_list(item):
+    if item is None:
+        return item
+    elif isinstance(item, torch.Tensor):
+        if item.shape == (1, ):
+            return item.item()
+        else:
+            return item.tolist()
+    elif isinstance(item, list) or isinstance(item, tuple):
+        return [tensor_to_list(t) for t in item]
+    elif isinstance(item, dict):
+        return {k: tensor_to_list(v) for k, v in item.items()}
     else:
         raise TypeError("not support item type: {}".format(type(item)))
 

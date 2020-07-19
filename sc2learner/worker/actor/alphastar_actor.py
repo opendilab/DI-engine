@@ -8,7 +8,7 @@ import torch
 
 import pysc2.env.sc2_env as sc2_env
 from sc2learner.agent.alphastar_agent import AlphaStarAgent
-from sc2learner.envs.alphastar_env import AlphaStarEnv
+from sc2learner.envs import AlphaStarEnv
 from sc2learner.utils import get_actor_uid, dict_list2list_dict, merge_two_dicts, get_step_data_compressor,\
     build_logger_naive, EasyTimer
 from sc2learner.torch_utils import to_device
@@ -81,16 +81,12 @@ class AlphaStarActor:
         self.logger.info(self._actor_string('job content:\n{}'.format(job)))
         self.cfg.env.map_name = job['map_name']
         self.cfg.env.random_seed = job['random_seed']
+        self.cfg.env.game_type = job['game_type']
+        self.cfg.env.player0 = job['player0']
+        self.cfg.env.player1 = job['player1']
 
         if job['game_type'] == 'game_vs_bot':
             self.agent_num = 1
-            players = [
-                sc2_env.Agent(sc2_env.Race[job['race'][0]]),
-                sc2_env.Bot(
-                    sc2_env.Race[job['away_race']], sc2_env.Difficulty[job['difficulty']],
-                    sc2_env.BotBuild[job['build']] if 'build' in job else None
-                ),
-            ]
             self.agents = [
                 AlphaStarAgent(
                     model_config=self.cfg.model,
@@ -101,10 +97,6 @@ class AlphaStarActor:
             ]
         elif job['game_type'] == 'game_vs_agent':
             self.agent_num = 1
-            players = [
-                sc2_env.Agent(sc2_env.Race[job['home_race']]),
-                sc2_env.Agent(sc2_env.Race[job['away_race']]),
-            ]
             self.agents = [
                 AlphaStarAgent(
                     model_config=self.cfg.model,
@@ -113,12 +105,8 @@ class AlphaStarActor:
                     use_distributed=False
                 )
             ]
-        elif job['game_type'] in ['self_play', 'league']:
+        elif job['game_type'] == 'agent_vs_agent':
             self.agent_num = 2
-            players = [
-                sc2_env.Agent(sc2_env.Race[job['race'][0]]),
-                sc2_env.Agent(sc2_env.Race[job['race'][1]]),
-            ]
             self.agents = [
                 AlphaStarAgent(
                     model_config=self.cfg.model,
@@ -142,7 +130,8 @@ class AlphaStarActor:
             agent.set_seed(job['random_seed'])
             agent.reset_previous_state([True])  # Here the lstm_states are reset
 
-        if job['teacher_model_id']:
+        # TODO(nyz) each player has its own teacher model
+        if job['player0']['teacher_model']:
             # agent for evaluation of the SL model to produce the teacher_logits
             # for human_policy_kl_loss in rl.py of AlphaStar Supp. Mat.
             self.teacher_agent = AlphaStarAgent(
@@ -157,16 +146,15 @@ class AlphaStarActor:
             self.use_teacher_model = True
         else:
             self.use_teacher_model = False
-        # TODO(nyz) change map env
         self.cfg.env.game_type = job['game_type']
         with self.timer:
-            self.env = self._make_env(players)
+            self.env = self._make_env()
         self.logger.info(self._actor_string('env_launch_time: {}'.format(self.timer.value)))
         self.compressor_name = job['step_data_compressor']
         self.compressor = get_step_data_compressor(self.compressor_name)
 
-    def _make_env(self, players):
-        return AlphaStarEnv(self.cfg, players)
+    def _make_env(self):
+        return AlphaStarEnv(self.cfg.env)
 
     # this is to be overridden in real worker or evaluator classes
     def _module_init(self):
@@ -214,6 +202,10 @@ class AlphaStarActor:
                         require_grad=False,
                         temperature=self.cfg.actor.temperature
                     )
+                    teacher_action = teacher_action['action']
+                    # remove list(batch_size=1)
+                    teacher_action = dict_list2list_dict(teacher_action)[0]
+                    teacher_logits = dict_list2list_dict(teacher_logits)[0]
                 else:
                     teacher_action = None
                     teacher_logits = None
@@ -224,6 +216,12 @@ class AlphaStarActor:
                     require_grad=False,
                     temperature=self.cfg.actor.temperature
                 )
+                # remove list(batch_size=1)
+                new_action = {}
+                new_action['action'] = dict_list2list_dict(action['action'])[0]
+                new_action['entity_raw'] = action['entity_raw'][0]
+                action = new_action
+                logits = dict_list2list_dict(logits)[0]
 
                 if self.cfg.actor.use_cuda:
                     action = to_device(action, 'cpu')
@@ -237,20 +235,11 @@ class AlphaStarActor:
                 else:
                     self.lstm_states_cpu[i] = self.lstm_states[i]
                     self.teacher_lstm_states_cpu[i] = self.teacher_lstm_states[i]
-                action = dict_list2list_dict(action)[0]  # 0 for batch dim
-                logits = dict_list2list_dict(logits)[0]
-                if self.use_teacher_model:
-                    teacher_action = dict_list2list_dict(teacher_action)[0]
-                    teacher_logits = dict_list2list_dict(teacher_logits)[0]
                 actions[i] = action
                 # remove evaluate related key
                 send_action = copy.deepcopy(action)
-                if 'action_entity_raw' in send_action:
-                    send_action.pop('action_entity_raw')
+                send_action = send_action['action']
                 send_teacher_action = copy.deepcopy(teacher_action)
-                if self.use_teacher_model:
-                    if 'action_entity_raw' in send_teacher_action:
-                        send_teacher_action.pop('action_entity_raw')
                 # correct action selected_units
                 send_action = self._correct_send_action(send_action, logits)
                 update_after_eval_home = {
@@ -318,15 +307,10 @@ class AlphaStarActor:
         if self.use_teacher_model:
             self.model_loader.load_teacher_model(job, self.teacher_agent.get_model())
         # load stat
-        for i in range(self.agent_num):
-            stat = self.stat_requester.request_stat(job, i)
-            if isinstance(stat, dict):
-                self.env.load_stat(stat, i)
-            else:
-                raise TypeError("invalid stat type: {}".format(type(stat)))
+        stat = [self.stat_requester.request_stat(job, i) for i in range(self.agent_num)]
+        assert all(isinstance(t, dict) for t in stat)
         # reset
-        # Note: reset must be after the load stat
-        obs = self.env.reset()
+        obs = self.env.reset(stat)
         self._init_states()
         # initialize loop variable
         data_buffer = [[] for i in range(self.agent_num)]
@@ -347,7 +331,8 @@ class AlphaStarActor:
                 self.variable_record.update_var({'inference_time': self.timer.value})
                 # stepping
                 with self.timer:
-                    game_loop, due, obs, rewards, done, info = self.env.step(actions)
+                    obs, rewards, done, info, game_loop, due = self.env.step(actions)
+                self._print_action_info(game_loop)
                 self.variable_record.update_var({'env_time': self.timer.value})
                 game_loop = int(game_loop)  # np.int32->int
                 # assuming 22 step per second, round to integer
@@ -388,7 +373,7 @@ class AlphaStarActor:
                         metadata = {
                             'job_id': job['job_id'],
                             'agent_no': i,
-                            'agent_model_id': job['model_id'][i],
+                            'agent_model_id': job['player{}'.format(i)]['model'],
                             'job': job,
                             'step_data_compressor': self.compressor_name,
                             'game_loop': game_loop,

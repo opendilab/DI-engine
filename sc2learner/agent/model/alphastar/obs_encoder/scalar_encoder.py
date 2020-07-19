@@ -3,16 +3,16 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from sc2learner.torch_utils import fc_block, build_activation, Transformer, one_hot
-from sc2learner.envs.observations.alphastar_obs_wrapper import transform_scalar_data
 
 
 class CumulativeStatEncoder(nn.Module):
-    def __init__(self, input_dims, output_dim, activation):
-        # The order of the concatenation of outputs is the order of input_dims
+    def __init__(self, input_dim, output_dim, activation):
+        # The order of the concatenation of outputs is the order of input_dim
         super(CumulativeStatEncoder, self).__init__()
+        assert isinstance(input_dim, dict)
         self.data = OrderedDict()  # placeholder, to be filled when forward
         self.keys = []
-        for k, v in input_dims.items():
+        for k, v in input_dim.items():
             module = fc_block(v, output_dim, activation=activation)
             setattr(self, k, module)
             self.keys.append(k)
@@ -58,7 +58,7 @@ class BeginningBuildOrderEncoder(nn.Module):
 
 
 class ScalarEncoder(nn.Module):
-    def __init__(self, cfg, template=None):
+    def __init__(self, cfg):
         '''
         Overview: Build a ScalarEncoder according to the given template or return of  transform_scalar_data
         template is a list of dicts describing each module of the encoder
@@ -75,39 +75,32 @@ class ScalarEncoder(nn.Module):
         '''
         super(ScalarEncoder, self).__init__()
         self.act = build_activation(cfg.activation)
-        self.use_stat = cfg.use_stat
         self.keys = []
         self.scalar_context_keys = []
         self.baseline_feature_keys = []
-        if template is None:
-            template_obs, template_replay, template_act = transform_scalar_data()
-            template = template_obs + template_act
-            if self.use_stat:
-                template += template_replay
 
-        for item in template:
+        for k, item in cfg.module.items():
             if item['arch'] == 'fc':
                 encoder = fc_block(item['input_dim'], item['output_dim'], activation=self.act)
-                setattr(self, item['key'], encoder)
+                setattr(self, k, encoder)
+            elif item['arch'] == 'identity':
+                setattr(self, k, nn.Identity())
             else:
-                key = item['key']
-                if key == 'time':
-                    setattr(self, key, nn.Identity())
-                elif key == 'cumulative_stat':
+                if k == 'cumulative_stat':
                     module = CumulativeStatEncoder(
-                        input_dims=item['input_dims'], output_dim=item['output_dim'], activation=self.act
+                        input_dim=item['input_dim'], output_dim=item['output_dim'], activation=self.act
                     )
-                    setattr(self, key, module)
-                elif key == 'beginning_build_order':
+                    setattr(self, k, module)
+                elif k == 'beginning_build_order':
                     module = BeginningBuildOrderEncoder(item['input_dim'], item['output_dim'], self.act)
-                    setattr(self, key, module)
+                    setattr(self, k, module)
                 else:
-                    raise NotImplementedError("key: {}".format(key))
-            self.keys.append(item['key'])
+                    raise NotImplementedError("key: {}".format(k))
+            self.keys.append(k)
             if 'scalar_context' in item.keys() and item['scalar_context']:
-                self.scalar_context_keys.append(item['key'])
+                self.scalar_context_keys.append(k)
             if 'baseline_feature' in item.keys() and item['baseline_feature']:
-                self.baseline_feature_keys.append(item['key'])
+                self.baseline_feature_keys.append(k)
 
     def forward(self, x):
         '''
@@ -116,7 +109,7 @@ class ScalarEncoder(nn.Module):
                   except 'cumulative_stat', which expects a OrderedDict like {'stat1_name': input_tensor1,...}
         Output:
             All output tensors are shaped like [batch_size, feature1_out_dim + feature2_out_dim + ...]
-            The order of the concatenation of forward outputs from modules is the order of modules in template
+            The order of the concatenation of forward outputs from modules is the order of modules in cfg
             - embedded_scalar: A tensor of all embedded scalar features, see detailed-architecture.txt L91 for more info
             - scalar_context: A tensor of certain scalar features we want to use as context for gating later
             - baseline_feature: A tensor of certain scalar features for baselines

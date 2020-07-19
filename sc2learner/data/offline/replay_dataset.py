@@ -10,9 +10,13 @@ import torch.nn.functional as F
 
 from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UPGRADES
 from sc2learner.data.base_dataset import BaseDataset
-from sc2learner.envs import get_available_actions_processed_data, decompress_obs, action_unit_id_transform,\
-    get_enemy_upgrades_processed_data, action_type_transform
+#from sc2learner.envs import get_available_actions_processed_data, decompress_obs, action_unit_id_transform,\
+#    get_enemy_upgrades_processed_data, action_type_transform
+# TODO(nyz) sync new_env with ReplayDataset
 from sc2learner.utils import read_file_ceph, list_dict2dict_list
+
+get_enemy_upgrades_processed_data = decompress_obs = action_unit_id_transform = None
+action_type_transform = get_available_actions_processed_data = None
 
 META_SUFFIX = '.meta'
 DATA_SUFFIX = '.step'

@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 
 from sc2learner.utils import read_config, merge_dicts
+from sc2learner.envs import AlphaStarEnv
 from .encoder import Encoder
 from .policy import Policy
 from .value import ValueBaseline
@@ -31,7 +32,8 @@ class AlphaStarActorCritic(ActorCriticBase):
 
     def __init__(self, model_config=None):
         super(AlphaStarActorCritic, self).__init__()
-        self.cfg = merge_dicts(alphastar_model_default_config["model"], model_config)
+        cfg = merge_dicts(alphastar_model_default_config["model"], model_config)
+        self.cfg = self._merge_input_dim(cfg)
         self.encoder = Encoder(self.cfg.encoder)
         self.policy = Policy(self.cfg.policy)
         if self.cfg.use_value_network:
@@ -45,6 +47,17 @@ class AlphaStarActorCritic(ActorCriticBase):
                     self.value_cum_stat_keys[v.name] = v.cum_stat_keys
 
         self.freeze_module(self.cfg.freeze_targets)
+
+    def _merge_input_dim(self, cfg):
+        env_info = AlphaStarEnv({}).info()
+        cfg.encoder.obs_encoder.entity_encoder.input_dim = env_info.obs_space['entity'].shape[-1]
+        cfg.encoder.obs_encoder.spatial_encoder.input_dim = env_info.obs_space['spatial'].shape[
+            0] + cfg.encoder.scatter.output_dim
+        handle = cfg.encoder.obs_encoder.scalar_encoder.module
+        for k in handle.keys():
+            handle[k].input_dim = env_info.obs_space['scalar'].shape[k]
+        cfg.encoder.score_cumulative.input_dim = env_info.obs_space['scalar'].shape['score_cumulative']
+        return cfg
 
     def freeze_module(self, freeze_targets=None):
         """
@@ -171,17 +184,6 @@ class AlphaStarActorCritic(ActorCriticBase):
         )
         actions, logits = self.policy(policy_inputs, mode='evaluate', **kwargs)
 
-        # error action(no necessary selected units)
-        if isinstance(actions['selected_units'][0], torch.Tensor) and actions['selected_units'][0].shape[0] == 0:
-            device = actions['action_type'][0].device
-            actions = {
-                'action_type': [torch.LongTensor([0]).to(device)],
-                'delay': [torch.LongTensor([0]).to(device)],
-                'queued': [None],
-                'selected_units': [None],
-                'target_units': [None],
-                'target_location': [None]
-            }
         return self.EvalOutput(actions, logits, next_state)
 
     # overwrite

@@ -1,8 +1,8 @@
 image: "registry.sensetime.com/xlab/sensestar-docker:centos7"
 stages:
   - style
+  - doc
   - test
-  - deploy
 
 style:
   stage: style
@@ -12,22 +12,20 @@ style:
     - pip install flake8
     - flake8 sc2learner/
 
-test:
-  stage: test
-  script:
-    - pip install -e .
-    - pytest sc2learner/ -n 4 -sv -m unittest 
-
 pages:
-  stage: deploy
+  stage: doc
   script:
   - pip install sphinx sphinx_rtd_theme
   - cd sc2learner/docs
-  - PYTHONPATH=../patches:$PYTHONPATH make html
+  - make html
   - mv build/html ../../public
   - rm -r build
   artifacts:
     paths:
     - public
-  only:
-    - nyz-dev
+
+test:
+  stage: test
+  script:
+    - pip install -e .
+    - pytest sc2learner/ -n 4 -sv -m unittest 
