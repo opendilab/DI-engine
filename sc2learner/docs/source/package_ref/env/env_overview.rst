@@ -13,12 +13,19 @@ Environment
 
         1. env: 环境基类和具体的环境类（用于和智能体交互）, **唯一外部接口类和外部接口函数定义**
         2. common: 通用环境元素基类，公共函数（负责各种前后处理，与环境相关的数据转换，例：独热编码）
-        3. observation: 具体环境观察类
-        4. action: 具体环境动作类
-        5. reward: 具体环境奖励类
-        6. stat: 具体统计信息类（负责环境中各种统计信息的记录和使用，比如alphastar中的人类统计量z）
-        7. config: 具体的配置文件
-        8. other: 其他模块（一般存放不属于上述内容的模块，例如alphastar中的地图信息模块）
+        3. 具体的问题环境实例(即一个问题用同一个文件夹管理)，实例中可能包括如下内容：
+
+            1. observation: 具体环境观察类
+            2. action: 具体环境动作类
+            3. reward: 具体环境奖励类
+            4. stat: 具体统计信息类（负责环境中各种统计信息的记录和使用，比如alphastar中的人类统计量z）
+            5. config: 具体的配置文件
+            6. other: 其他模块（一般存放不属于上述内容的模块，例如alphastar中的地图信息模块）
+            7. tests: 单元测试
+
+                示例如下：
+
+                .. image:: alphastar_env_structure.png
 
 基类定义：
     1. BaseEnv (env/base_env.py)
