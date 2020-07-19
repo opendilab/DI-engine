@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 import torch
 from sc2learner.data.fake_dataset import fake_stat_processed_professional_player, get_random_action
-from sc2learner.envs import AlphaStarEnv
+from ..alphastar_env import AlphaStarEnv
 
 
 @pytest.fixture(scope='function')

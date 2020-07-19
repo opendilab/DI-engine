@@ -10,7 +10,7 @@ from pysc2.lib.static_data import NUM_BEGIN_ACTIONS, NUM_UNIT_BUILD_ACTIONS, NUM
     BEGIN_ACTIONS_REORDER_ARRAY, BEGIN_ACTIONS, \
     OLD_BEGIN_ACTIONS_REORDER_INV
 from sc2learner.envs.common import reorder_one_hot_array, batch_binary_encode, div_one_hot
-from sc2learner.envs.observation.alphastar_obs import LOCATION_BIT_NUM
+from ..obs.alphastar_obs import LOCATION_BIT_NUM
 from sc2learner.torch_utils import to_dtype, one_hot
 
 

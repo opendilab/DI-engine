@@ -10,9 +10,9 @@ from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UNIT_TYPES, ACTIONS_REORD
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
 from sc2learner.data.offline.replay_dataset import START_STEP
 from sc2learner.utils import get_step_data_compressor
-from sc2learner.envs.observation import LOCATION_BIT_NUM
 
 ENTITY_INFO_DIM = 1340
+LOCATION_BIT_NUM = 10
 META_SUFFIX = '.meta'
 DATA_SUFFIX = '.step'
 STAT_SUFFIX = '.stat_processed'

@@ -1,5 +1,5 @@
 import pytest
-from sc2learner.envs.action.alphastar_action import merge_same_id_action
+from ..action.alphastar_action import merge_same_id_action
 
 
 @pytest.mark.unittest

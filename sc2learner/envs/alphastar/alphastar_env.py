@@ -7,14 +7,14 @@ import numpy as np
 import pysc2.env.sc2_env as sc2_env
 from pysc2.env.sc2_env import SC2Env
 from sc2learner.envs.env.base_env import BaseEnv
-from sc2learner.envs.other.alphastar_map import get_map_size
-from sc2learner.envs.action.alphastar_action_runner import AlphaStarRawActionRunner
-from sc2learner.envs.reward.alphastar_reward_runner import AlphaStarRewardRunner
-from sc2learner.envs.observation.alphastar_obs_runner import AlphaStarObsRunner
-from sc2learner.envs.stat.alphastar_statistics import RealTimeStatistics, GameLoopStatistics
+from .other.alphastar_map import get_map_size
+from .action.alphastar_action_runner import AlphaStarRawActionRunner
+from .reward.alphastar_reward_runner import AlphaStarRewardRunner
+from .obs.alphastar_obs_runner import AlphaStarObsRunner
+from .other.alphastar_statistics import RealTimeStatistics, GameLoopStatistics
 from sc2learner.utils import merge_dicts, read_config
 
-default_config = read_config(os.path.join(os.path.dirname(__file__), '../alphastar_env_default_config.yaml'))
+default_config = read_config(os.path.join(os.path.dirname(__file__), 'alphastar_env_default_config.yaml'))
 
 
 class AlphaStarEnv(BaseEnv, SC2Env):
@@ -24,6 +24,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
     def __init__(self, cfg: dict) -> None:
         cfg = merge_dicts(default_config.env, cfg)
         self._map_size = get_map_size(cfg.map_name, cropped=cfg.crop_map_to_playable_area)
+        cfg.map_size = self._map_size
         cfg.obs_spatial.spatial_resolution = self._map_size
         cfg.action.map_size = self._map_size
         self._players, self._agent_num = self._get_players(cfg)
@@ -135,6 +136,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         self.reward = self._reward_helper.get(self)
         # update last state variable
         self._last_obs = obs
+        self._obs_helper.update_last_action(self)
 
         return AlphaStarEnv.timestep(
             obs=copy.deepcopy(obs),
@@ -208,5 +210,5 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         return self._agent_action
 
     @agent_action.setter
-    def agent_action(self) -> None:
-        return self._agent_action
+    def agent_action(self, _agent_action) -> None:
+        self._agent_action = _agent_action

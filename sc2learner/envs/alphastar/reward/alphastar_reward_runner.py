@@ -1,6 +1,6 @@
 import numpy as np
-from ..common import EnvElementRunner
-from ..env.base_env import BaseEnv
+from sc2learner.envs.common import EnvElementRunner
+from sc2learner.envs.env.base_env import BaseEnv
 from .alphastar_reward import AlphaStarReward
 
 

@@ -28,8 +28,8 @@ from sc2learner.torch_utils import one_hot
 from sc2learner.envs.common import EnvElement, num_first_one_hot, sqrt_one_hot, div_one_hot,\
     reorder_one_hot_array, div_func, batch_binary_encode, reorder_boolean_vector, clip_one_hot,\
     get_postion_vector
-from sc2learner.envs.action.alphastar_available_actions import get_available_actions_raw_data
-from sc2learner.envs.observation.alphastar_enemy_upgrades import get_enemy_upgrades_raw_data
+from ..action.alphastar_available_actions import get_available_actions_raw_data
+from .alphastar_enemy_upgrades import get_enemy_upgrades_raw_data
 
 LOCATION_BIT_NUM = 10
 DELAY_BIT_NUM = 6

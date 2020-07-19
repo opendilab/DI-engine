@@ -1,7 +1,7 @@
-from ..common import EnvElementRunner
-from ..observation.alphastar_obs import ScalarObs, SpatialObs, EntityObs
+from sc2learner.envs.common import EnvElementRunner
+from sc2learner.envs.env.base_env import BaseEnv
+from .alphastar_obs import ScalarObs, SpatialObs, EntityObs
 from ..action.alphastar_action import AlphaStarRawAction
-from ..env.base_env import BaseEnv
 
 
 class AlphaStarObsRunner(EnvElementRunner):
@@ -14,10 +14,11 @@ class AlphaStarObsRunner(EnvElementRunner):
         self._ignore_camera = cfg.ignore_camera
         self._agent_num = cfg.agent_num
         self._core = self._obs_entity  # placeholder
+        self._map_size = cfg.map_size
 
     # override
     def reset(self) -> None:
-        last_action = AlphaStarRawAction.AgentAction(0, 0, None, None, None, None)
+        last_action = AlphaStarRawAction.Action(0, 0, None, None, None, None)
         self._last_action = [last_action for _ in range(self._agent_num)]
         self._repeat_action_type = [-1] * self._agent_num
         self._repeat_count = [0] * self._agent_num
@@ -39,25 +40,27 @@ class AlphaStarObsRunner(EnvElementRunner):
                     self._repeat_action_type[i] = last_action_type
                 last_action['repeat_count'] = self._repeat_count[i]
                 # merge last action
-                raw_obs['last_action'] = last_action
+                o['last_action'] = last_action
                 # merge stat
-                raw_obs = self._merge_stat2obs(raw_obs, engine, i)
+                o = self._merge_stat2obs(o, engine, i)
                 # transform obs
-                entity_info, entity_raw = self._obs_entity._to_agent_processor(raw_obs)
+                entity_info, entity_raw = self._obs_entity._to_agent_processor(o)
                 obs[i] = {
-                    'scalar_info': self._obs_scalar._to_agent_processor(raw_obs),
-                    'spatial_info': self._obs_spatial._to_agent_processor(raw_obs),
+                    'scalar_info': self._obs_scalar._to_agent_processor(o),
+                    'spatial_info': self._obs_spatial._to_agent_processor(o),
                     'entity_info': entity_info,
                     'entity_raw': entity_raw,
                     'map_size': [self._map_size[1], self._map_size[0]],  # x,y -> y,x
                 }
                 obs[i] = self._mask_obs(obs[i])
+        return obs
+
+    def update_last_action(self, engine: BaseEnv) -> None:
         action = engine.action
         for n in range(self._agent_num):
             # only valid action update these variable
             if action[n] is not None:
                 self._last_action[n] = action[n]
-        return obs
 
     # override
     def __repr__(self) -> str:

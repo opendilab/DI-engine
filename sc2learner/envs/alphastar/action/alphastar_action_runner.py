@@ -3,8 +3,8 @@ import copy
 from pysc2.lib.actions import FunctionCall
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
 from sc2learner.envs.env.base_env import BaseEnv
-from ..action.alphastar_action import AlphaStarRawAction
-from ..common import EnvElementRunner
+from sc2learner.envs.common import EnvElementRunner
+from .alphastar_action import AlphaStarRawAction
 
 
 DELAY_INF = 100000
@@ -19,9 +19,10 @@ class AlphaStarRawActionRunner(EnvElementRunner):
     # override
     def get(self, engine: BaseEnv) -> Tuple[List[FunctionCall], List[int], List[AlphaStarRawAction.Action]]:
         agent_action = copy.deepcopy(engine.agent_action)
-        assert isinstance(agent_action, list)
+        assert isinstance(agent_action, list) and len(agent_action) == self._agent_num
         ret = []
-        for action in agent_action:
+        for i in range(self._agent_num):
+            action = agent_action[i]
             if action is None:
                 ret.append([FunctionCall.init_with_validation(0, [], raw=True), DELAY_INF, None])
             action = self._core._from_agent_processor(action)

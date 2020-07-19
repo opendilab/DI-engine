@@ -1,9 +1,9 @@
 import pytest
 from collections import namedtuple
 from sc2learner.data.fake_dataset import fake_stat_processed_professional_player
-from sc2learner.envs.stat.alphastar_statistics import GameLoopStatistics, RealTimeStatistics
-from sc2learner.envs.reward.alphastar_reward import AlphaStarReward
-from sc2learner.envs.reward.alphastar_reward_runner import AlphaStarRewardRunner
+from ..other.alphastar_statistics import GameLoopStatistics, RealTimeStatistics
+from ..reward.alphastar_reward import AlphaStarReward
+from ..reward.alphastar_reward_runner import AlphaStarRewardRunner
 from sc2learner.envs.env.base_env import BaseEnv
 
 TmpAction = namedtuple('TmpAction', ['action_type', 'target_location'])
