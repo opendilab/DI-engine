@@ -88,7 +88,7 @@ def location_transform(data, inv):
 class AlphaStarRawAction(EnvElement):
     _name = "AlphaStarRawAction"
     _action_keys = ['action_type', 'delay', 'queued', 'selected_units', 'target_units', 'target_location']
-    AgentAction = namedtuple('AgentAction', _action_keys)
+    Action = namedtuple('Action', _action_keys)
 
     def _init(self, cfg):
         self._map_size = cfg.map_size
@@ -230,7 +230,7 @@ class AlphaStarRawAction(EnvElement):
         data['action'] = tensor_to_list(data['action'])
         # content processor
         action = self._content_processor(data, 'from_agent_processor')
-        return AlphaStarRawAction.AgentAction(**action)
+        return AlphaStarRawAction.Action(**action)
 
     # override
     def _details(self):

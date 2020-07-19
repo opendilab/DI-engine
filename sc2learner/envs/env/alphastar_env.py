@@ -6,18 +6,15 @@ import numpy as np
 
 import pysc2.env.sc2_env as sc2_env
 from pysc2.env.sc2_env import SC2Env
-from pysc2.lib.actions import FunctionCall
-from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
-from sc2learner.envs.action.alphastar_action import AlphaStarRawAction
 from sc2learner.envs.env.base_env import BaseEnv
 from sc2learner.envs.other.alphastar_map import get_map_size
+from sc2learner.envs.action.alphastar_action_runner import AlphaStarRawActionRunner
 from sc2learner.envs.reward.alphastar_reward_runner import AlphaStarRewardRunner
 from sc2learner.envs.observation.alphastar_obs_runner import AlphaStarObsRunner
 from sc2learner.envs.stat.alphastar_statistics import RealTimeStatistics, GameLoopStatistics
 from sc2learner.utils import merge_dicts, read_config
 
 default_config = read_config(os.path.join(os.path.dirname(__file__), '../alphastar_env_default_config.yaml'))
-DELAY_INF = 100000
 
 
 class AlphaStarEnv(BaseEnv, SC2Env):
@@ -34,9 +31,9 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         self._cfg = cfg
 
         self._obs_helper = AlphaStarObsRunner(cfg)
-        self._action_helper = AlphaStarRawAction(cfg.action)
-        self._reward_helper = AlphaStarRewardRunner(self._agent_num, cfg.pseudo_reward_type, cfg.pseudo_reward_prob)
         self._begin_num = self._obs_helper._obs_scalar.begin_num
+        self._action_helper = AlphaStarRawActionRunner(cfg)
+        self._reward_helper = AlphaStarRewardRunner(self._agent_num, cfg.pseudo_reward_type, cfg.pseudo_reward_prob)
 
         self._launch_env_flag = False
 
@@ -56,30 +53,6 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         else:
             raise KeyError("invalid game_type: {}".format(cfg.game_type))
         return players, agent_num
-
-    def _check_action(self, action):
-        action_attr = GENERAL_ACTION_INFO_MASK[action.action_type]
-        if action_attr['selected_units']:
-            if action.selected_units is None or len(action.selected_units) == 0:
-                return False
-        if action_attr['target_units']:
-            if action.target_units is None or len(action.target_units) == 0:
-                return False
-        return True
-
-    def _get_action(self, action):
-        action = copy.deepcopy(action)
-        if action is None:
-            return FunctionCall.init_with_validation(0, [], raw=True), DELAY_INF, None
-        action = self._action_helper._from_agent_processor(action)
-        legal = self._check_action(action)
-        if not legal:
-            # TODO(nyz) more fined solution for illegal action
-            print('[WARNING], illegal raw action: {}'.format(action))
-            return FunctionCall.init_with_validation(0, [], raw=True), 1, None
-        action_type, delay = action[:2]
-        args = [v for v in action[2:6] if v is not None]  # queued, selected_units, target_units, target_location
-        return FunctionCall.init_with_validation(action_type, args, raw=True), delay, action
 
     def _launch_env(self) -> None:
         cfg = self._cfg
@@ -110,6 +83,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
             self._launch_env()
         self._reward_helper.reset()
         self._obs_helper.reset()
+        self._action_helper.reset()
         self._episode_stat = [RealTimeStatistics(self._begin_num) for _ in range(self._agent_num)]
         assert len(loaded_stat) == self._agent_num
         self._loaded_eval_stat = [GameLoopStatistics(s, self._begin_num) for s in loaded_stat]
@@ -132,7 +106,8 @@ class AlphaStarEnv(BaseEnv, SC2Env):
     def step(self, action_data: list) -> 'AlphaStarEnv.timestep':
         assert self._launch_env_flag
         # get transformed action and delay
-        raw_action, delay, action = list(zip(*[self._get_action(a) for a in action_data]))
+        self.agent_action = action_data
+        raw_action, delay, action = self._action_helper.get(self)
         # get step_mul
         step_mul = min(delay)
         assert step_mul >= 0
@@ -227,3 +202,11 @@ class AlphaStarEnv(BaseEnv, SC2Env):
     @raw_obs.setter
     def raw_obs(self, _raw_obs) -> None:
         self._raw_obs = _raw_obs
+
+    @property
+    def agent_action(self) -> list:
+        return self._agent_action
+
+    @agent_action.setter
+    def agent_action(self) -> None:
+        return self._agent_action
