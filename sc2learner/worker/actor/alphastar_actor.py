@@ -394,6 +394,9 @@ class AlphaStarActor:
                         metadata['length'] = len(data_buffer[i])  # should always agree with job['data_push_length']
                         # last buffer must be in the front of next frame and data compression
                         last_buffer[i] = deepcopy(data_buffer[i])  # must be deepcopy
+                        # no enough length data_buffer will be ignored
+                        if len(data_buffer[i]) != job['data_push_length']:
+                            continue
                         # last next frame
                         data_buffer[i][-1]['home_next'] = obs[i]
                         if self.agent_num == 2:
