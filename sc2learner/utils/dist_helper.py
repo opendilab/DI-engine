@@ -44,12 +44,17 @@ def broadcast(value, rank_num):
     link.broadcast(value, rank_num)
 
 
-def allreduce(data):
+def allreduce(data, op='sum'):
+    link_op_map = {'sum': link.allreduceOp_t.Sum, 'max': link.allreduceOp_t.Max}
+    if op not in link_op_map.keys():
+        raise KeyError("not support allreduce op type: {}".format(op))
+    else:
+        link_op = link_op_map[op]
     if is_fake_link:
         return data
-    # TODO(pzh) add some test. looks really vulnerable.
-    link.allreduce(data)
-    data.div_(get_world_size())
+    link.allreduce(data, reduce_op=link_op)
+    if op == 'sum':
+        data.div_(get_world_size())
 
 
 def get_group(group_size):
