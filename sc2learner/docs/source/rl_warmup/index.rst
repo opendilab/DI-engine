@@ -19,11 +19,15 @@ Paper List
 7. DDPG
 8. SAC
 
+.. note::
+    一个部分论文的链接: `传送门 <https://zhuanlan.zhihu.com/p/23600620>`_
+
 Blog List
 ~~~~~~~~~~
 1. `强化学习入门简述 <https://zhuanlan.zhihu.com/p/64197895?utm_source=wechat_session&utm_medium=social&utm_oi=778950235199127552&utm_content=sec>`_
 2. `强化学习之遇到的一些面试问题 <https://zhuanlan.zhihu.com/p/52143798?utm_source=wechat_session&utm_medium=social&utm_oi=778950235199127552&utm_content=sec>`_
 3. `炼丹感悟：On the Generalization of RL <https://zhuanlan.zhihu.com/p/105898705?utm_source=wechat_session&utm_medium=social&utm_oi=778950235199127552&utm_content=sec>`_
+4. `Pytorch RL tutorial <https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html>`_
 
 Questions(即需要理解清楚的概念和问题)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
