@@ -132,6 +132,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
                 self._episode_stat[n].update_stat(action[n], self._last_obs[n], self.episode_steps)
 
         # env step
+        last_episode_steps = self.episode_steps
         timestep = SC2Env.step(self, raw_action, step_mul=step_mul)  # update episode_steps
 
         # transform obs, reward and record statistics
@@ -152,7 +153,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
             reward=self.reward,
             done=done,
             info=info,
-            episode_steps=self.episode_steps,
+            episode_steps=last_episode_steps,
             due=due
         )
 
