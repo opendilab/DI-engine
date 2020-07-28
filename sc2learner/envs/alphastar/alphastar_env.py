@@ -144,6 +144,9 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         # Note: pseudo reward must be derived after statistics update
         self.action = action
         self.reward = self._reward_helper.get(self)
+        # set valid next_obs
+        for n in range(self._agent_num):
+            obs[n]['is_valid_next_obs'] = due[n]
         # update last state variable
         self._last_obs = obs
         self._obs_helper.update_last_action(self)
