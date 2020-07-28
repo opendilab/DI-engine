@@ -7,9 +7,6 @@ from sc2learner.envs.common import EnvElementRunner
 from .alphastar_action import AlphaStarRawAction
 
 
-DELAY_INF = 100000
-
-
 class AlphaStarRawActionRunner(EnvElementRunner):
     # override
     def _init(self, cfg: dict) -> None:
@@ -24,7 +21,7 @@ class AlphaStarRawActionRunner(EnvElementRunner):
         for i in range(self._agent_num):
             action = agent_action[i]
             if action is None:
-                ret.append([FunctionCall.init_with_validation(0, [], raw=True), DELAY_INF, None])
+                ret.append([FunctionCall.init_with_validation(0, [], raw=True), 0, None])
             action = self._core._from_agent_processor(action)
             legal = self._check_action(action)
             if not legal:

@@ -88,6 +88,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         self._episode_stat = [RealTimeStatistics(self._begin_num) for _ in range(self._agent_num)]
         assert len(loaded_stat) == self._agent_num
         self._loaded_eval_stat = [GameLoopStatistics(s, self._begin_num) for s in loaded_stat]
+        self._next_obs_step = [0 for _ in range(self._agent_num)]
 
         timestep = SC2Env.reset(self)
         self._raw_obs = [timestep[n].observation for n in range(self._agent_num)]
@@ -105,25 +106,33 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         return copy.deepcopy(obs)
 
     def step(self, action_data: list) -> 'AlphaStarEnv.timestep':
+        """
+        Note:
+            delay: delay is the relative steps between two observations of a agent
+            step_mul: step_mul is the relative steps that the env executes in the next step operation
+            episode_steps: episode_steps is the current absolute steps that the env has finished
+            _next_obs_step: _next_obs_step is the absolute steps what a agent gets its observation
+        """
         assert self._launch_env_flag
         # get transformed action and delay
         self.agent_action = action_data
         raw_action, delay, action = self._action_helper.get(self)
         # get step_mul
-        step_mul = min(delay)
+        self._next_obs_step = [s + d for s, d in zip(self._next_obs_step, delay)]
+        step_mul = min(self._next_obs_step) - self.episode_steps
         assert step_mul >= 0
         # TODO(nyz) deal with step == 0 case for stat and reward
         if step_mul == 0:
             step_mul = 1
-        due = [d <= step_mul for d in delay]
+        due = [s <= self.episode_steps + step_mul for s in self._next_obs_step]
         assert any(due), 'at least one of the agents must finish its delay'
         # Note: record statistics must be executed before env step
         for n in range(self._agent_num):
             if action[n] is not None and due[n]:
-                self._episode_stat[n].update_stat(action[n], self._last_obs[n], self._episode_steps)
+                self._episode_stat[n].update_stat(action[n], self._last_obs[n], self.episode_steps)
 
         # env step
-        timestep = SC2Env.step(self, raw_action, step_mul=step_mul)
+        timestep = SC2Env.step(self, raw_action, step_mul=step_mul)  # update episode_steps
 
         # transform obs, reward and record statistics
         self.raw_obs = [timestep[n].observation for n in range(self._agent_num)]
