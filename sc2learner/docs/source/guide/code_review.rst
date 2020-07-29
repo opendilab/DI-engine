@@ -15,13 +15,18 @@ We have the following comment format:
       - goal: explain the implementation or emphasize the code detail
   3. class and function comment
       - goal: explain the main function, input and output type and effect
-      - format: Overview, Arguments, Returns (if it doesn't have the corresponding attribute, you can omit it)
+      - format: Overview, Arguments, Returns, Shapes
+        (if it doesn't have the corresponding attribute, you can omit it)
   4. TODO
       - goal: set a todo task
       - format: `# TODO(assignee name) task statement`
   5. ISSUE
       - goal: issue some doubt about the code
       - format: `# ISSUE(questioner name) issue statement`
+
+.. note::
+    According to the formated class and function comment, we can automatically generate the corresponding doc,
+    a example result is `link <../package_ref/model/alphastar.html>`_
 
 And you can know about the specific format from next code example
 
