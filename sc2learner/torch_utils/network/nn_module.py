@@ -1,3 +1,9 @@
+"""
+Copyright 2020 Sensetime X-lab. All Rights Reserved
+
+Main Function:
+    1. The neural network model, include methods such as init weight, build conv block or fully-connected block ,etc.
+"""
 import math
 import torch
 import torch.nn as nn
@@ -7,6 +13,15 @@ from .normalization import build_normalization
 
 
 def weight_init_(weight, init_type="xavier", activation=None):
+    r"""
+    Overview:
+        Init weight according to the given init_type.
+
+    Arguments:
+        - weight (:obj:`tensor`): the weight that needed to init
+        - init_type (:obj:`str`): the type of init to implement, include ["xavier", "kaiming", "orthogonal"]
+        - activation (:obj:`str`): the non-linear function (`nn.functional` name), recommended to use only with ``'relu'`` or ``'leaky_relu'``.
+    """
     def xavier_init(weight, *args):
         xavier_normal_(weight)
 
@@ -28,12 +43,19 @@ def weight_init_(weight, init_type="xavier", activation=None):
 
 
 def sequential_pack(layers):
-    '''
-    Overview: Packing the layers in the input list to a nn.Sequential module
-              if there is a convolutional layer in module, an extra attribute
-              `out_channels` will be added to the module
-              and set to the out_channel of the conv layer
-    '''
+    r"""
+    Overview: 
+        Packing the layers in the input list to a nn.Sequential module
+        if there is a convolutional layer in module, an extra attribute
+        `out_channels` will be added to the module
+        and set to the out_channel of the conv layer
+
+    Arguments:
+        - layers (:obj:`list`): the input list
+
+    Returns:
+        - seq (:obj:`nn.Sequential`): packed sequential container
+    """
     assert isinstance(layers, list)
     seq = nn.Sequential(*layers)
     for item in layers:
@@ -58,6 +80,21 @@ def conv1d_block(
     activation=None,
     norm_type=None
 ):
+    r"""
+    Overview: 
+        create a 1-dim convlution layer.
+
+    Arguments:
+        Note:
+            Conv1d (https://pytorch.org/docs/stable/generated/torch.nn.Conv1d.html#torch.nn.Conv1d)
+
+        - init_type (:obj:`str`): the type of init to implement
+        - activation (:obj:`nn.Module`): the optional activation function
+        - norm_type (:obj:`str`): type of the normalization
+
+    Returns: 
+        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 1 dim convlution layer
+    """
     # conv1d + norm + activation
     block = []
     block.append(nn.Conv1d(in_channels, out_channels, kernel_size, stride, padding, dilation, groups))
@@ -84,7 +121,23 @@ def conv2d_block(
     activation=None,
     norm_type=None
 ):
-    # conv2d + norm + activation
+    r"""
+    Overview: 
+        create a 2-dim convlution layer.
+
+    Arguments:
+        Note:
+            Conv2d (https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html#torch.nn.Conv2d)
+
+        - init_type (:obj:`str`): the type of init to implement
+        - pad_type (:obj:`str`): the way to add padding, include ['zero', 'reflect', 'replicate'] 
+        - activation (:obj:`nn.Moduel`): the optional activation function
+        - norm_type (:obj:`str`): type of the normalization
+
+    Returns: 
+        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 2 dim convlution layer
+    """
+
     block = []
     if pad_type == 'zero':
         block.append(nn.ZeroPad2d(padding))
@@ -119,7 +172,22 @@ def deconv2d_block(
     activation=None,
     norm_type=None
 ):
-    # transpose conv2d + norm + activation
+    r"""
+    Overview: 
+        create a 2-dim transopse convlution layer.
+
+    Arguments:
+        Note: 
+            ConvTranspose2d (https://pytorch.org/docs/master/generated/torch.nn.ConvTranspose2d.html)
+
+        - init_type (:obj:`str`): the type of init to implement
+        - pad_type (:obj:`str`): the way to add padding, include ['zero', 'reflect', 'replicate'] 
+        - activation (:obj:`nn.Moduel`): the optional activation function
+        - norm_type (:obj:`str`): type of the normalization
+
+    Returns: 
+        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 2 dim transpose convlution layer
+    """
     block = []
     block.append(
         nn.ConvTranspose2d(
@@ -151,12 +219,25 @@ def fc_block(
     use_dropout=False,
     dropout_probability=0.5
 ):
-    '''
-    Overview: create a fully-connected block
+    r"""
+    Overview: 
+        create a fully-connected block
         optional normalization can be done to the dim 1 (across the channels)
         x -> fc -> norm -> act -> dropout -> out
-    Returns: a sequential list containing the torch layers
-    '''
+
+    Arguments:
+        Note:
+            nn.linear (https://pytorch.org/docs/master/generated/torch.nn.Linear.html)
+
+        - init_type (:obj:`str`): the type of init to implement
+        - activation (:obj:`nn.Moduel`): the optional activation function
+        - norm_type (:obj:`str`): type of the normalization
+        - use_dropout (:obj:`bool`) : whether to use dropout in the fully-connected block
+        - dropout_probability (:obj:`float`) : probability of an element to be zeroed in the dropout. Default: 0.5
+
+    Returns: 
+        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the fully-connected block
+    """
     block = []
     block.append(nn.Linear(in_channels, out_channels))
     weight_init_(block[-1].weight, init_type, activation)
@@ -172,11 +253,41 @@ def fc_block(
 
 
 class ChannelShuffle(nn.Module):
+    r"""
+        Overview:
+            Apply channelShuffle to the input tensor
+
+        Interface:
+            __init__, forward
+
+
+        Note: 
+            You can see the original paper shuffle net in link below
+            shuffleNet(https://arxiv.org/abs/1707.01083)
+    """
+
     def __init__(self, group_num):
+        r"""
+            Overview:
+                Init class ChannelShuffle
+
+            Arguments:
+                - group_num (:obj:`int`): the number of groups to exchange
+        """
         super(ChannelShuffle, self).__init__()
         self.group_num = group_num
 
     def forward(self, x):
+        r"""
+        Overview:
+            return the upsampled input
+
+        Arguments:
+            - x (:obj:`tensor`): the input tensor
+
+        Returns:
+            - x (:obj:`tensor`): the shuffled input tensor
+        """
         b, c, h, w = x.shape
         g = self.group_num
         assert (c % g == 0)
@@ -186,16 +297,20 @@ class ChannelShuffle(nn.Module):
 
 def one_hot(val, num, num_first=False):
     r"""
-    Overview: convert a Long tensor to one hot encoding
+    Overview: 
+        convert a Long tensor to one hot encoding
         if num_first is False, the one hot code dimension is added as the last
         if num_first is True, the code is made as the first dimension
         this implementation can be slightly faster than torch.nn.functional.one_hot
+
     Arguments:
         - val (:obj:`torch.LongTensor`): each element contains the state to be encoded
-        - num: number of states of the one hot encoding
-        - num_first
+        - num (:obj:`int`): number of states of the one hot encoding
+        - num_first (:obj:`bool`)
+
     Returns:
         - one_hot (:obj:`torch.FloatTensor`)
+
     Example:
         >>> one_hot(2*torch.ones([2,2]).long(),3)
         tensor([[[0., 0., 1.],
@@ -224,30 +339,88 @@ def one_hot(val, num, num_first=False):
 
 
 class NearestUpsample(nn.Module):
+    r"""
+    Overview:
+        Upsamples the input to the given member varible scale_factor using mode nearest
+
+    Interface:
+        __init__, forward
+    """
+
     def __init__(self, scale_factor):
+        r"""
+        Overview:
+            Init class NearestUpsample
+
+        Arguments:
+            - scale_factor (:obj:`float` or :obj:`list` of :obj:`float`): multiplier for spatial size
+        """
         super(NearestUpsample, self).__init__()
         self.scale_factor = scale_factor
 
     def forward(self, x):
+        r"""
+        Overview:
+            return the upsampled input
+
+        Arguments:
+            - x (:obj:`tensor`): the input tensor
+
+        Returns:
+            - upsample(:obj:`tensor`): the upsampled input tensor
+        """
         return F.interpolate(x, self.scale_factor, mode='nearest')
 
 
 class BilinearUpsample(nn.Module):
+    r"""
+    Overview:
+        Upsamples the input to the given member varible scale_factor using mode biliner
+
+    Interface:
+        __init__, forward
+    """
+
     def __init__(self, scale_factor):
+        r"""
+        Overview:
+            Init class BilinearUpsample
+
+        Arguments:
+            - scale_factor (:obj:`float` or :obj:`list` of :obj:`float`): multiplier for spatial size
+        """
         super(BilinearUpsample, self).__init__()
         self.scale_factor = scale_factor
 
     def forward(self, x):
+        r"""
+        Overview:
+            return the upsampled input
+
+        Arguments:
+            - x (:obj:`tensor`): the input tensor
+
+        Returns:
+            - upsample(:obj:`tensor`): the upsampled input tensor
+        """
         return F.interpolate(x, scale_factor=self.scale_factor, mode='bilinear', align_corners=False)
 
 
 def binary_encode(y, max_val):
     r"""
-    Overview: Convert elements in a tensor to its binary representation
+    Overview: 
+        Convert elements in a tensor to its binary representation
+
+    Arguments:
+        - y (:obj:`tensor`): the tensor to be transfered into its binary representation
+        - max_val (:obj:`tensor`): the max value of the elements in tensor
+
+    Returns:
+        - binary (:obj:`tensor`): the input tensor in its binary representation
 
     Example:
-    >>> binary_encode(torch.tensor([3,2]),torch.tensor(8))
-    tensor([[0, 0, 1, 1],[0, 0, 1, 0]])
+        >>> binary_encode(torch.tensor([3,2]),torch.tensor(8))
+        tensor([[0, 0, 1, 1],[0, 0, 1, 0]])
     """
     assert (max_val > 0)
     x = y.clamp(0, max_val)
