@@ -20,7 +20,8 @@ def weight_init_(weight, init_type="xavier", activation=None):
     Arguments:
         - weight (:obj:`tensor`): the weight that needed to init
         - init_type (:obj:`str`): the type of init to implement, include ["xavier", "kaiming", "orthogonal"]
-        - activation (:obj:`str`): the non-linear function (`nn.functional` name), recommended to use only with ``'relu'`` or ``'leaky_relu'``.
+        - activation (:obj:`str`): the non-linear function (`nn.functional` name), recommended to use only with
+                                   ``'relu'`` or ``'leaky_relu'``.
     """
     def xavier_init(weight, *args):
         xavier_normal_(weight)
@@ -44,7 +45,7 @@ def weight_init_(weight, init_type="xavier", activation=None):
 
 def sequential_pack(layers):
     r"""
-    Overview: 
+    Overview:
         Packing the layers in the input list to a nn.Sequential module
         if there is a convolutional layer in module, an extra attribute
         `out_channels` will be added to the module
@@ -81,7 +82,7 @@ def conv1d_block(
     norm_type=None
 ):
     r"""
-    Overview: 
+    Overview:
         create a 1-dim convlution layer.
 
     Arguments:
@@ -92,7 +93,7 @@ def conv1d_block(
         - activation (:obj:`nn.Module`): the optional activation function
         - norm_type (:obj:`str`): type of the normalization
 
-    Returns: 
+    Returns:
         - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 1 dim convlution layer
     """
     # conv1d + norm + activation
@@ -122,7 +123,7 @@ def conv2d_block(
     norm_type=None
 ):
     r"""
-    Overview: 
+    Overview:
         create a 2-dim convlution layer.
 
     Arguments:
@@ -130,11 +131,11 @@ def conv2d_block(
             Conv2d (https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html#torch.nn.Conv2d)
 
         - init_type (:obj:`str`): the type of init to implement
-        - pad_type (:obj:`str`): the way to add padding, include ['zero', 'reflect', 'replicate'] 
+        - pad_type (:obj:`str`): the way to add padding, include ['zero', 'reflect', 'replicate']
         - activation (:obj:`nn.Moduel`): the optional activation function
         - norm_type (:obj:`str`): type of the normalization
 
-    Returns: 
+    Returns:
         - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 2 dim convlution layer
     """
 
@@ -173,20 +174,21 @@ def deconv2d_block(
     norm_type=None
 ):
     r"""
-    Overview: 
+    Overview:
         create a 2-dim transopse convlution layer.
 
     Arguments:
-        Note: 
+        Note:
             ConvTranspose2d (https://pytorch.org/docs/master/generated/torch.nn.ConvTranspose2d.html)
 
         - init_type (:obj:`str`): the type of init to implement
-        - pad_type (:obj:`str`): the way to add padding, include ['zero', 'reflect', 'replicate'] 
+        - pad_type (:obj:`str`): the way to add padding, include ['zero', 'reflect', 'replicate']
         - activation (:obj:`nn.Moduel`): the optional activation function
         - norm_type (:obj:`str`): type of the normalization
 
-    Returns: 
-        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 2 dim transpose convlution layer
+    Returns:
+        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 2 dim transpose
+                                        convlution layer
     """
     block = []
     block.append(
@@ -220,7 +222,7 @@ def fc_block(
     dropout_probability=0.5
 ):
     r"""
-    Overview: 
+    Overview:
         create a fully-connected block
         optional normalization can be done to the dim 1 (across the channels)
         x -> fc -> norm -> act -> dropout -> out
@@ -235,7 +237,7 @@ def fc_block(
         - use_dropout (:obj:`bool`) : whether to use dropout in the fully-connected block
         - dropout_probability (:obj:`float`) : probability of an element to be zeroed in the dropout. Default: 0.5
 
-    Returns: 
+    Returns:
         - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the fully-connected block
     """
     block = []
@@ -261,7 +263,7 @@ class ChannelShuffle(nn.Module):
             __init__, forward
 
 
-        Note: 
+        Note:
             You can see the original paper shuffle net in link below
             shuffleNet(https://arxiv.org/abs/1707.01083)
     """
@@ -297,7 +299,7 @@ class ChannelShuffle(nn.Module):
 
 def one_hot(val, num, num_first=False):
     r"""
-    Overview: 
+    Overview:
         convert a Long tensor to one hot encoding
         if num_first is False, the one hot code dimension is added as the last
         if num_first is True, the code is made as the first dimension
@@ -408,7 +410,7 @@ class BilinearUpsample(nn.Module):
 
 def binary_encode(y, max_val):
     r"""
-    Overview: 
+    Overview:
         Convert elements in a tensor to its binary representation
 
     Arguments:
