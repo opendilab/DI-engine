@@ -4,6 +4,7 @@ from collections import namedtuple
 from typing import Union, Any
 from sc2learner.data import BaseContainer
 from sc2learner.utils import build_logger_naive, EasyTimer, get_actor_uid
+from .comm import ActorCommMetalass, FlaskCephActor
 
 
 class BaseActor(ABC):
@@ -17,6 +18,28 @@ class BaseActor(ABC):
         assert hasattr(self, 'send_traj_metadata')
         assert hasattr(self, 'send_traj_stepdata')
         assert hasattr(self, 'send_finish_job')
+
+    def __new__(cls, *args, **kwargs):
+        if 'comm_cfg' in kwargs.keys():
+            comm_cfg = kwargs.pop('comm_cfg')
+        else:
+            print('[WARNING]: use default single machine communication strategy', kwargs)
+            # TODO single machine actor
+            raise NotImplementedError
+
+        instance = object.__new__(cls)
+
+        comm_map = {'flask_ceph': FlaskCephActor}
+        comm_type = comm_cfg['type']
+        if comm_type not in comm_map.keys():
+            raise KeyError(comm_type)
+        else:
+            instance._comm = comm_map[comm_type](comm_cfg)
+
+        for item in dir(instance._comm):
+            if not item.startswith('_'):  # only public method and variable
+                setattr(instance, item, getattr(instance._comm, item))
+        return instance
 
     @abstractmethod
     def _init_with_job(self, job: dict) -> None:
@@ -63,9 +86,11 @@ class BaseActor(ABC):
     def _accumulate_timestep(self, obs: Any, action: Any, timestep: namedtuple) -> None:
         raise NotImplementedError
 
+    @abstractmethod
     def _finish_episode(self, timestep: namedtuple) -> None:
         raise NotImplementedError
 
+    @abstractmethod
     def _finish_job(self) -> None:
         raise NotImplementedError
 
