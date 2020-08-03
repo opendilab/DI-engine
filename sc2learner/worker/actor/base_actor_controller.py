@@ -14,6 +14,9 @@ class BaseActor(ABC):
         self._timer = EasyTimer()
         self._setup_logger()
 
+    def _check(self) -> None:
+        assert hasattr(self, 'init_service')
+        assert hasattr(self, 'get_job')
         assert hasattr(self, 'get_agent_update_info')
         assert hasattr(self, 'send_traj_metadata')
         assert hasattr(self, 'send_traj_stepdata')
@@ -35,10 +38,15 @@ class BaseActor(ABC):
             raise KeyError(comm_type)
         else:
             instance._comm = comm_map[comm_type](comm_cfg)
+        # instance -> comm
+        instance._comm.actor_uid = instance._actor_uid
+        instance._comm._logger = instance._logger
 
+        # comm -> instance
         for item in dir(instance._comm):
             if not item.startswith('_'):  # only public method and variable
                 setattr(instance, item, getattr(instance._comm, item))
+        instance._check()
         return instance
 
     @abstractmethod
@@ -53,26 +61,28 @@ class BaseActor(ABC):
     def _setup_logger(self) -> None:
         path = os.path.join(self.cfg.common.save_path, 'actor-log')
         name = 'actor.{}.log'.format(self.actor_uid)
-        self.logger, self.variable_record = build_logger_naive(path, name)
-        raise NotImplementedError
+        self._logger, self._variable_record = build_logger_naive(path, name)
 
     @abstractmethod
     def __repr__(self) -> str:
         raise NotImplementedError
 
     def run(self, job: dict) -> None:
-        self._init_with_job(job)
-        for episode_idx in range(job['episode_num']):
-            obs = self.episode_reset()
-            while True:
-                action = self._agent_inference(obs)
-                timestep = self._env_step(action)
-                self._accumulate_data(obs, action, timestep)
-                obs = timestep.obs
-                if timestep.all_done:
-                    break
-            self._finish_episode(timestep)
-        self._finish_job()
+        self.init_service()
+        while True:
+            job = self.get_job()
+            self._init_with_job(job)
+            for episode_idx in range(job['episode_num']):
+                obs = self.episode_reset()
+                while True:
+                    action = self._agent_inference(obs)
+                    timestep = self._env_step(action)
+                    self._accumulate_data(obs, action, timestep)
+                    obs = timestep.obs
+                    if timestep.all_done:
+                        break
+                self._finish_episode(timestep)
+            self._finish_job()
 
     @abstractmethod
     def _agent_inference(self, obs: Any) -> Any:

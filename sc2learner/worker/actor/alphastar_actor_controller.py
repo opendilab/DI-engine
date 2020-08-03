@@ -125,13 +125,14 @@ class AlphaStarActor(BaseActor):
         result_map = {1: 'wins', 0: 'draws', -1: 'losses'}
         result = [result_map[timestep.reward[0][j]['winloss'].int().item()] for j in range(self._job['env_num'])]
         self._episode_result.append(result)
-        self.logger.info('finish episode{} in {}'.format(len(self._episode_result) - 1, time.time()))
+        self._logger.info('finish episode{} in {}'.format(len(self._episode_result) - 1, time.time()))
 
     # override
     def _finish_job(self) -> None:
         assert len(self._episode_result) == self._job['episode_num']
         job_finish_info = {
             'job_id': self._job['job_id'],
+            'actor_uid': self._actor_uid,
             'player_id': self._job['player_id'],
             'episode_num': self._job['episode_num'],
             'env_num': self._job['env_num'],
@@ -154,7 +155,7 @@ class AlphaStarActor(BaseActor):
                 for name, agent in self._agents.items():
                     agent_update_info = self.get_agent_update_info(self._job['agent'][name]['agent_update_path'])
                     agent.update(agent_update_info)
-                self.logger.info('update agent in {}'.format(time.time()))
+                self._logger.info('update agent in {}'.format(time.time()))
                 last = time.time()
 
     # override
@@ -190,4 +191,4 @@ class AlphaStarActor(BaseActor):
             # save data
             data = self._compressor(data)
             self.send_traj_stepdata(data)
-            self.logger.info('send traj({}) in {}'.format(traj_id, time.time()))
+            self._logger.info('send traj({}) in {}'.format(traj_id, time.time()))
