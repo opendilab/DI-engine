@@ -55,7 +55,7 @@ class AlphaStarActor(BaseActor):
         action = [[] for _ in range(self._job['agent_num'])]
         hidden_state = [[] for _ in range(self._job['agent_num'])]
         for agent_obs_idx, agent in zip(self._job['agent_obs_idx'], self._agents.values()):
-            act, h = agent(obs[agent_obs_idx])
+            act, h = agent.forward(obs[agent_obs_idx])
             action.append(act)
             hidden_state.append(h)
         data = {}
@@ -160,7 +160,7 @@ class AlphaStarActor(BaseActor):
             else:
                 for name, agent in self._agents.items():
                     agent_update_info = self.get_agent_update_info(self._job['agent'][name]['agent_update_path'])
-                    agent.update(agent_update_info)
+                    agent.load_state_dict(agent_update_info)
                 self._logger.info('update agent in {}'.format(time.time()))
                 last = time.time()
 
