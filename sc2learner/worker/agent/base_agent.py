@@ -1,16 +1,20 @@
 from abc import ABC, abstractmethod
-from typing import Any, Tuple, Callable
+from typing import Any, Union, Optional
+from collections import OrderedDict
 import torch
 from .agent_plugin import register_plugin
 
 
 class BaseAgent(ABC):
-    def __init__(self, model: torch.nn.Module, plugin_cfg) -> None:
+    def __init__(self, model: torch.nn.Module, plugin_cfg: Union[OrderedDict, None]) -> None:
         self._model = model
         register_plugin(self, plugin_cfg)
 
-    def forward(self, data: Any, param: dict) -> Any:
-        return self._model(data, param)
+    def forward(self, data: Any, param: Optional[dict] = None) -> Any:
+        if param is not None:
+            return self._model(data, param)
+        else:
+            return self._model(data)
 
     def mode(self, train: bool) -> None:
         if train:

@@ -1,12 +1,12 @@
-from typing import Any, Tuple, Callable
+from typing import Any, Tuple, Callable, Union
+from collections import OrderedDict
 import torch
 from abc import ABC, abstractmethod, abstractclassmethod
-from .base_agent import BaseAgent
 
 
 class IAgentPlugin(ABC):
     @abstractclassmethod
-    def register(cls: type, agent: BaseAgent, **kwargs) -> None:
+    def register(cls: type, agent: Any, **kwargs) -> None:
         """inplace modify agent"""
         raise NotImplementedError
 
@@ -20,7 +20,10 @@ class IAgentStatefulPlugin(IAgentPlugin):
         raise NotImplementedError
 
 
-def register_plugin(agent: BaseAgent, plugin_cfg: dict) -> None:
+def register_plugin(agent: Any, plugin_cfg: Union[OrderedDict, None]) -> None:
+    if plugin_cfg is None:
+        return
+    assert isinstance(plugin_cfg, OrderedDict), "plugin_cfg muse be ordered dict"
     plugin_name_map = {'grad': GradHelper, 'hidden_state': HiddenStateHelper}
     for k, v in plugin_cfg.items():
         if k not in plugin_name_map.keys():
@@ -31,7 +34,7 @@ def register_plugin(agent: BaseAgent, plugin_cfg: dict) -> None:
 
 class GradHelper(IAgentStatelessPlugin):
     @classmethod
-    def register(cls: type, agent: BaseAgent, enable_grad: bool) -> None:
+    def register(cls: type, agent: Any, enable_grad: bool) -> None:
         def grad_wrapper(fn):
             context = torch.enable_grad() if enable_grad else torch.no_grad()
 
@@ -54,14 +57,14 @@ class HiddenStateHelper(IAgentStatefulPlugin):
         2. this helper must deal with the single sample state reset
     """
     @classmethod
-    def register(cls: type, agent: BaseAgent, state_num: int) -> None:
+    def register(cls: type, agent: Any, state_num: int) -> None:
         state_manager = cls(state_num, init_fn=lambda: None)
         agent._state_manager = state_manager
 
         def state_wrapper(forward_fn):
             def wrapper(data, **kwargs):
                 data, state_info = agent._state_manager.before_forward(data)
-                output, h = agent.forward(data)
+                output, h = forward_fn(data)
                 agent._state_manager.after_forward(h, state_info)
                 return output
 
@@ -85,6 +88,6 @@ class HiddenStateHelper(IAgentStatefulPlugin):
         return data, state_info
 
     def after_forward(self, h: Any, state_info: dict) -> None:
-        assert len(h) == len(state_info)
-        for idx in state_info.keys():
-            self._state[idx] = h[idx]
+        assert len(h) == len(state_info), '{}/{}'.format(len(h), len(state_info))
+        for i, idx in enumerate(state_info.keys()):
+            self._state[idx] = h[i]
