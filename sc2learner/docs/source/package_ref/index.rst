@@ -12,4 +12,8 @@ Package Reference
     env/env_overview
     model/alphastar
     torch_utils_network/network
+    torch_utils/checkpoint_helper
+    torch_utils/metric
+    torch_utils/data_helper
+    
 
