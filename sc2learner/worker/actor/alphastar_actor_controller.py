@@ -16,11 +16,17 @@ class AlphaStarActor(BaseActor):
         super(AlphaStarActor, self).__init__(cfg)
 
     # override
+    def _check(self) -> None:
+        super()._check()
+        hasattr(self, 'get_env_stat')
+
+    # override
     def _init_with_job(self, job: dict) -> None:
         self._job = job
         self._agents = None
         self._env_manager = None
         self._compressor = get_step_data_compressor(self._job['compressor'])
+        self._stat = self.get_env_stat(self._job['stat_path'])
 
         self._update_agent_thread = Thread(target=self._update_agent, args=())
         self._update_agent_thread.start()  # keep alive in the whole job
@@ -29,7 +35,7 @@ class AlphaStarActor(BaseActor):
     def episode_reset(self) -> None:
         for a in self._agents.values():
             a.reset()
-        obs = self._env_manager.reset()
+        obs = self._env_manager.reset(self._stat)
         self._alive_env = [i for i in range(self._job['env_num'])]
         self._data_buffer = {k: {k1: [] for k1 in self._job['env_num']} for k in self._job['env_agent_num']}
         self._last_buffer = {k: {k1: [] for k1 in self._job['env_num']} for k in self._job['env_agent_num']}

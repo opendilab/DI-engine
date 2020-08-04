@@ -92,3 +92,14 @@ class FlaskCephActor(BaseCommActor):
             self._logger.error(''.join(traceback.format_tb(e.__traceback__)))
             self._logger.error("[error] api({}): {}".format(api, sys.exc_info()))
         return response
+
+
+class ASFlaskCephActor(FlaskCephActor):
+    def __init__(self, *args, **kwargs):
+        super(ASFlaskCephActor, self).__init__(*args, **kwargs)
+        self._ceph_path_stat = self._cfg.ceph_path_stat
+
+    def get_env_stat(self, path: str) -> list:
+        ceph_path = os.path.join(self._ceph_path_stat, path)
+        info = read_file_ceph(ceph_path, read_type='pickle')
+        return info

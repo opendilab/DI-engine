@@ -4,7 +4,7 @@ from collections import namedtuple
 from typing import Union, Any
 from sc2learner.data import BaseContainer
 from sc2learner.utils import build_logger_naive, EasyTimer, get_actor_uid
-from .comm import ActorCommMetalass, FlaskCephActor
+from .comm import ActorCommMetalass, FlaskCephActor, ASFlaskCephActor
 
 
 class BaseActor(ABC):
@@ -32,7 +32,7 @@ class BaseActor(ABC):
 
         instance = object.__new__(cls)
 
-        comm_map = {'flask_ceph': FlaskCephActor}
+        comm_map = {'flask_ceph': FlaskCephActor, 'as_flake_ceph': ASFlaskCephActor}
         comm_type = comm_cfg['type']
         if comm_type not in comm_map.keys():
             raise KeyError(comm_type)
