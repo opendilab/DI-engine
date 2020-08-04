@@ -7,7 +7,7 @@ import pickle
 import torch
 
 import pysc2.env.sc2_env as sc2_env
-from sc2learner.agent.alphastar_agent import AlphaStarAgent
+from sc2learner.worker.agent.alphastar_agent import AlphaStarAgent
 from sc2learner.envs import AlphaStarEnv
 from sc2learner.utils import get_actor_uid, dict_list2list_dict, merge_two_dicts, get_step_data_compressor,\
     build_logger_naive, EasyTimer

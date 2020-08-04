@@ -1,9 +1,9 @@
 import pytest
 import torch
 import numpy as np
-from sc2learner.agent.model.alphastar.obs_encoder import ScalarEncoder, EntityEncoder, SpatialEncoder
-from sc2learner.agent.model.alphastar.encoder import Encoder
-from sc2learner.agent.model.alphastar.tests.conftest import is_differentiable
+from sc2learner.model.alphastar.obs_encoder import ScalarEncoder, EntityEncoder, SpatialEncoder
+from sc2learner.model.alphastar.encoder import Encoder
+from sc2learner.model.alphastar.tests.conftest import is_differentiable
 
 
 @pytest.mark.unittest

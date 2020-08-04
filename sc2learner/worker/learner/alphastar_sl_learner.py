@@ -10,8 +10,8 @@ import os.path as osp
 import torch
 
 from pysc2.lib.static_data import ACTIONS_REORDER_INV, ACTIONS
-from sc2learner.agent.alphastar_agent import AlphaStarAgent
-from sc2learner.agent.model import alphastar_model_default_config
+from sc2learner.worker.agent.alphastar_agent import AlphaStarAgent
+from sc2learner.model import alphastar_model_default_config
 from sc2learner.data import build_dataloader, build_dataset, START_STEP
 from sc2learner.evaluate.supervised_criterion import SupervisedCriterion
 from sc2learner.optimizer import AlphaStarSupervisedOptimizer

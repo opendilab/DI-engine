@@ -10,7 +10,7 @@ import os
 import numpy as np
 import torch
 
-from sc2learner.agent.alphastar_agent import BaseAgent
+from sc2learner.worker.agent.alphastar_agent import BaseAgent
 from sc2learner.torch_utils import build_checkpoint_helper, auto_checkpoint, CountVar
 from sc2learner.utils import build_logger, dist_init, dist_finalize, allreduce, EasyTimer
 

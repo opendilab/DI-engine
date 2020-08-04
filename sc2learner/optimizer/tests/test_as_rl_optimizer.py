@@ -6,7 +6,7 @@ import yaml
 from easydict import EasyDict
 from sc2learner.optimizer import AlphaStarRLOptimizer
 from sc2learner.data import build_dataset, build_dataloader
-from sc2learner.agent import AlphaStarAgent
+from sc2learner.worker.agent import AlphaStarAgent
 from sc2learner.torch_utils import to_device
 
 

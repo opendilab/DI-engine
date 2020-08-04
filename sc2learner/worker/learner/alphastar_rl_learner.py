@@ -10,8 +10,8 @@ import os.path as osp
 import torch
 import threading
 
-from sc2learner.agent.alphastar_agent import AlphaStarAgent
-from sc2learner.agent.model import alphastar_model_default_config
+from sc2learner.worker.agent.alphastar_agent import AlphaStarAgent
+from sc2learner.model import alphastar_model_default_config
 from sc2learner.data import build_dataloader
 from sc2learner.optimizer import AlphaStarRLOptimizer
 from sc2learner.torch_utils import to_device

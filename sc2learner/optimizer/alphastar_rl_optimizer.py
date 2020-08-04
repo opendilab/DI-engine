@@ -6,7 +6,7 @@ Main Function:
 """
 import os.path as osp
 from sc2learner.utils import override, merge_dicts, pretty_print, read_config
-from sc2learner.agent.model import alphastar_model_default_config
+from sc2learner.model import alphastar_model_default_config
 from sc2learner.optimizer.alphastar_rl_loss import AlphaStarRLLoss
 from sc2learner.optimizer.base_optimizer import BaseOptimizer
 

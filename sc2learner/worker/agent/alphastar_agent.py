@@ -10,7 +10,7 @@ from collections import namedtuple
 
 import torch
 
-from sc2learner.agent.model.alphastar import AlphaStarActorCritic
+from sc2learner.model.alphastar import AlphaStarActorCritic
 from sc2learner.torch_utils import to_device
 from sc2learner.utils import DistModule
 

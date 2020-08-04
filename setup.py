@@ -58,7 +58,7 @@ setup(
         'pysc2.run_configs',
         'pysc2.tests',
         'sc2learner',
-        'sc2learner.agent',
+        'sc2learner.model',
         'sc2learner.envs',
         'sc2learner.optimizer',
         'sc2learner.utils',

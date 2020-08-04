@@ -2,9 +2,9 @@ import pytest
 import math
 import numpy as np
 import torch
-from sc2learner.agent.model.alphastar.head import ActionTypeHead, DelayHead, QueuedHead, SelectedUnitsHead,\
+from sc2learner.model.alphastar.head import ActionTypeHead, DelayHead, QueuedHead, SelectedUnitsHead,\
     TargetUnitHead, LocationHead
-from sc2learner.agent.model.alphastar.tests.conftest import is_differentiable
+from sc2learner.model.alphastar.tests.conftest import is_differentiable
 
 
 @pytest.mark.unittest
