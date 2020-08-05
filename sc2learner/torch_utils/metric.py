@@ -1,3 +1,11 @@
+"""
+Copyright 2020 Sensetime X-lab. All Rights Reserved
+
+Main Function:
+    1. Levenshtein_distance and hamming_distance: Calculate the levenshtein distance and the hamming distance 
+        of the given inputs.
+"""
+
 import torch
 import random
 
