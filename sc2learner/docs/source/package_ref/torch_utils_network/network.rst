@@ -64,3 +64,17 @@ ChannelShuffle
 
 .. autoclass:: sc2learner.torch_utils.network.nn_module.ChannelShuffle
     :members: __init__, forward
+
+
+
+
+soft_argmax
+------------
+
+
+
+SoftArgmax
+~~~~~~~~~~~~~~~~
+
+.. autoclass:: sc2learner.torch_utils.network.soft_argmax.SoftArgmax
+    :members: __init__, forward

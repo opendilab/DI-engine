@@ -1,15 +1,33 @@
+"""
+Copyright 2020 Sensetime X-lab. All Rights Reserved
+
+Main Function:
+    1. SoftArgmax: a nn.Module that computes SoftArgmax
+"""
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 
 class SoftArgmax(nn.Module):
+    r"""
+    Overview: 
+        a nn.Module that computes SoftArgmax
+    
+     Interface: 
+        __init__, forward
+    """
     def __init__(self):
+        r"""
+        Overview: 
+            initialize the SoftArgmax module
+        """
         super(SoftArgmax, self).__init__()
 
     def forward(self, x):
-        '''
-        Overview: soft-argmax for location regression
+        r'''
+        Overview: 
+            soft-argmax for location regression
         Arguments:
             - x (:obj:`Tensor`): [B, C, H, W] predict heat map
         Returns:
