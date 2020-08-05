@@ -78,3 +78,25 @@ SoftArgmax
 
 .. autoclass:: sc2learner.torch_utils.network.soft_argmax.SoftArgmax
     :members: __init__, forward
+
+
+
+
+activation
+------------
+
+
+
+GLU
+~~~~~~~~~~~~~~~~
+
+.. autoclass:: sc2learner.torch_utils.network.activation.GLU
+    :members: __init__, forward
+
+
+
+build_activation
+~~~~~~~~~~~~~~~~~
+
+.. automodule:: sc2learner.torch_utils.network.activation.build_activation
+
