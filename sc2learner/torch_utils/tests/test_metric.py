@@ -1,7 +1,7 @@
 import pytest
 import torch
 import random
-import sc2learner.torch_utils.metric
+from sc2learner.torch_utils.metric import levenshtein_distance, hamming_distance
 
 
 @pytest.mark.unittest

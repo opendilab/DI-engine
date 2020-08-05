@@ -13,6 +13,11 @@ class SoftArgmax(nn.Module):
     r"""
     Overview: 
         a nn.Module that computes SoftArgmax
+        
+        Note: 
+            for more softargmax info, you can reference the wiki page 
+            <https://wikimili.com/en/Softmax_function> or reference the lecture
+            <https://mc.ai/softmax-function-beyond-the-basics/>
     
      Interface: 
         __init__, forward
@@ -25,14 +30,22 @@ class SoftArgmax(nn.Module):
         super(SoftArgmax, self).__init__()
 
     def forward(self, x):
-        r'''
+        r"""
         Overview: 
             soft-argmax for location regression
+        
         Arguments:
-            - x (:obj:`Tensor`): [B, C, H, W] predict heat map
+            - x (:obj:`Tensor`): predict heat map
+        
         Returns:
-            - location (:obj:`Tensor`): [B, 2] predict location
-        '''
+            - location (:obj:`Tensor`): predict location
+        
+        Shapes:
+            - x (:obj:`Tensor`): :math:`(B, C, H, W)`, while B is the batch size, 
+            C is number of channels , H and W stands for height and width
+            
+            - location (:obj:`Tensor`): :math:`(B, 2)`, while B is the batch size
+        """
         B, C, H, W = x.shape
         device, dtype = x.device, x.dtype
         # 1 channel

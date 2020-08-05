@@ -11,7 +11,7 @@ import random
 
 
 def levenshtein_distance(pred, target, pred_extra=None, target_extra=None, extra_fn=None):
-    r'''
+    r"""
     Overview: 
         Levenshtein Distance(Edit Distance)
     
@@ -27,7 +27,7 @@ def levenshtein_distance(pred, target, pred_extra=None, target_extra=None, extra
     
     Returns:
         - (:obj:`torch.FloatTensor`) distance(scalar), shape[1]
-    '''
+    """
     assert (isinstance(pred, torch.Tensor) and isinstance(target, torch.Tensor))
     assert (pred.dtype == torch.long and target.dtype == torch.long), '{}\t{}'.format(pred.dtype, target.dtype)
     assert (pred.device == target.device)
@@ -65,19 +65,21 @@ def levenshtein_distance(pred, target, pred_extra=None, target_extra=None, extra
 
 def hamming_distance(pred, target, weight=1.):
     r'''
-    Overview: 
+    Overview:
         Hamming Distance
 
     Arguments:
-        Note: 
+        Note:
             pred, target are also boolean vector(0 or 1)
 
-        - (:obj:`torch.LongTensor`) pred, shape[B, N]
-        - (:obj:`torch.LongTensor`) target, shape[B, N]
+        - pred (:obj:`torch.LongTensor`): pred input, shape[B, N], while B is the batch size
+        - target (:obj:`torch.LongTensor`): target input, shape[B, N], while B is the batch size
     
     Returns:
-        - (:obj:`torch.LongTensor`) distance(scalar), shape[1]
+        - distance(:obj:`torch.LongTensor`): distance(scalar), the shape[1]
     
+    Shapes:
+        - pred & targe (:obj:`torch.LongTensor`): shape :math:`(B, N)`, while B is the batch size and N is the dimension
     '''
     assert (isinstance(pred, torch.Tensor) and isinstance(target, torch.Tensor))
     assert (pred.dtype == torch.long and target.dtype == torch.long)

@@ -14,7 +14,13 @@ def build_grad_clip(cfg):
         build the gradient cliper
     
     Arguments:
-        - cfg (:obj:`dict`): the config file
+        Notes:
+            for more detail you can view the Brief Intro on Config System 
+            on <http://gitlab.bj.sensetime.com/xialiqiao/SenseStar>
+
+        - cfg (:obj:`dict`): the config file, which is a multilevel dict, have 
+            large domain evaluate, common, model, train etc, and each large domain 
+            has it's smaller domain.
 
     Returns:
         - GradClip(:obj:`object`)the built gradient clipper
@@ -35,10 +41,10 @@ class GradClip(object):
     def __init__(self, clip_value, clip_type, norm_type=2):
         r"""
         Overview: 
+            initialization the GradClip.
+
             Note : 
                 reference <https://pytorch.org/docs/stable/generated/torch.nn.utils.clip_grad_norm_.html>
-
-            initialization the GradClip.
 
         Arguments:
             - clip_value (:obj:`float` or :obj:`int`): the defalut clip value
