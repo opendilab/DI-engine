@@ -10,3 +10,4 @@ Package Reference
     :maxdepth: 3
 
     env/env_overview
+    worker/agent/agent_overview
