@@ -1,3 +1,9 @@
+"""
+Copyright 2020 Sensetime X-lab. All Rights Reserved
+
+Main Function:
+    1. build LSTM: you can use build_LSTM to build the lstm module
+"""
 import math
 import torch
 import torch.nn as nn

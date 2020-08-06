@@ -13,6 +13,9 @@ class GLU(nn.Module):
     Overview:
         a glu nn module
 
+        Note:
+            For beginner, you can reference <https://www.jianshu.com/p/d4793635a4c4> to learn more about activation functions.
+
     Interface:
         __init__, forward
     """

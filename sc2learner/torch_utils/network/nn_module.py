@@ -133,7 +133,7 @@ def conv2d_block(
         - init_type (:obj:`str`): the type of init to implement
         - pad_type (:obj:`str`): the way to add padding, include ['zero', 'reflect', 'replicate']
         - activation (:obj:`nn.Moduel`): the optional activation function
-        - norm_type (:obj:`str`): type of the normalization
+        - norm_type (:obj:`str`): type of the normalization, default set to None, now support ['BN', 'IN', 'SyncBN']
 
     Returns:
         - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 2 dim convlution layer

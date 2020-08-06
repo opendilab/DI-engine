@@ -42,8 +42,7 @@ class SoftArgmax(nn.Module):
         
         Shapes:
             - x (:obj:`Tensor`): :math:`(B, C, H, W)`, while B is the batch size, 
-            C is number of channels , H and W stands for height and width
-            
+                C is number of channels , H and W stands for height and width
             - location (:obj:`Tensor`): :math:`(B, 2)`, while B is the batch size
         """
         B, C, H, W = x.shape
