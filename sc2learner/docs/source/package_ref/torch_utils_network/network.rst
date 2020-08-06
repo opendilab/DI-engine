@@ -100,3 +100,50 @@ build_activation
 
 .. automodule:: sc2learner.torch_utils.network.activation.build_activation
 
+
+
+
+block
+---------
+
+ResBlock
+~~~~~~~~~~~~~~~~
+
+.. autoclass:: sc2learner.torch_utils.network.block.ResBlock
+    :members: __init__, forward
+
+
+
+ResFCBlock
+~~~~~~~~~~~~~~~~
+
+.. autoclass:: sc2learner.torch_utils.network.block.ResFCBlock
+    :members: __init__, forward
+
+
+normalization
+-----------------
+
+GroupSyncBatchNorm
+~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: sc2learner.torch_utils.network.normalization.GroupSyncBatchNorm
+    :members: __init__, __repr__
+
+
+AdaptiveInstanceNorm2d
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: sc2learner.torch_utils.network.normalization.AdaptiveInstanceNorm2d
+    :members: __init__, forward
+
+
+build_normalization
+~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: sc2learner.torch_utils.network.normalization.build_normalization
+
+
+
+
+
