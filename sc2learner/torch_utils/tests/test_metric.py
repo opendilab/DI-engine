@@ -6,7 +6,7 @@ from sc2learner.torch_utils.metric import levenshtein_distance, hamming_distance
 
 @pytest.mark.unittest
 class TestMetric():
-    def test_levenshtein_distance():
+    def test_levenshtein_distance(self):
         r'''
         Overview: 
             Test the Levenshtein Distance
@@ -25,7 +25,7 @@ class TestMetric():
         assert (distance.item() == 2)
         print('test_levenshtein_distance pass')
 
-    def test_hamming_distance():
+    def test_hamming_distance(self):
         r'''
         Overview: 
             Test the Hamming Distance
@@ -39,6 +39,8 @@ class TestMetric():
             pred[pred_idx] = 1
             target = base.clone()
             target[target_idx] = 1
+            pred = pred.unsqueeze(0)
+            target = target.unsqueeze(0)
             distance = hamming_distance(pred, target)
             diff = len(set(pred_idx).union(set(target_idx)) - set(pred_idx).intersection(set(target_idx)))
             assert (distance.item() == diff)
