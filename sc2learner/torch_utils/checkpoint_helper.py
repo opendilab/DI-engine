@@ -21,13 +21,13 @@ logger = logging.getLogger('default_logger')
 
 def build_checkpoint_helper(save_path, rank=0):
     r"""
-    Overview: 
+    Overview:
         Use config to build checkpoint helper.
-    
+
     Arguments:
         - save_path (:obj:`str`): the path to save checkpoint
         - rank (:obj:`int`): creator process rank
-    
+
     Returns:
         - (:obj:`CheckpointHelper`): checkpoint_helper created by this function
     """
@@ -36,15 +36,15 @@ def build_checkpoint_helper(save_path, rank=0):
 
 class CheckpointHelper(object):
     r"""
-    Overview: 
+    Overview:
         Concrete implementation of CheckpointHelper, to help to save or load checkpoint
-    
-    Interface: 
+
+    Interface:
         __init__, save_iterations, save, save_data, load
     """
     def __init__(self, save_dir='', rank=0):
         r"""
-            Overview: 
+            Overview:
                 initialization method, check if save_dir exists.
             Arguments:
                 - save_dir (:obj:`str`): checkpoint save dir. if empty, saving is disabled
@@ -59,13 +59,13 @@ class CheckpointHelper(object):
 
     def _remove_prefix(self, state_dict, prefix='module.'):
         r"""
-        Overview: 
+        Overview:
             remove prefix in state_dict
-        
+
         Arguments:
             - state_dict (:obj:`dict`): model's state_dict
             - prefix (:obj:`str`): this prefix will be removed in keys
-        
+
         Returns:
             - (:obj:`dict`): new state_dict after removing prefix
         """
@@ -80,13 +80,13 @@ class CheckpointHelper(object):
 
     def _add_prefix(self, state_dict, prefix='module.'):
         r"""
-        Overview: 
+        Overview:
             add prefix in state_dict
-        
+
         Arguments:
             - state_dict (:obj:`dict`): model's state_dict
             - prefix (:obj:`str`): this prefix will be added in keys
-        
+
         Returns:
             - (:obj:`dict`): new state_dict after adding prefix
         """
@@ -94,9 +94,9 @@ class CheckpointHelper(object):
 
     def save_iterations(self, iterations, model, **kwargs):
         r"""
-        Overview: 
+        Overview:
             save with iterations num
-        
+
         Arguments:
             - iterations (:obj:`int`): iterations num
             - model (:obj:`str`): model to be saved
@@ -117,9 +117,9 @@ class CheckpointHelper(object):
         prefix=None
     ):
         r"""
-        Overview: 
+        Overview:
             save checkpoint by given args
-        
+
         Arguments:
             - name (:obj:`str`): checkpoint's name
             - model (:obj:`torch.nn.Module`): model to be saved
@@ -157,7 +157,7 @@ class CheckpointHelper(object):
 
     def save_data(self, name, data, device='cpu'):
         r"""
-        Overview: 
+        Overview:
             save given tensor or dict
 
         Arguments:
@@ -181,10 +181,10 @@ class CheckpointHelper(object):
 
     def _load_matched_model_state_dict(self, model, ckpt_state_dict):
         r"""
-        Overview: 
+        Overview:
             load matched model state_dict, and show mismatch keys between
             model's state_dict and checkpoint's state_dict
-        
+
         Arguments:
             - model (:obj:`torch.nn.Module`): model
             - ckpt_state_dict (:obj:`dict`): checkpoint's state_dict
@@ -234,7 +234,7 @@ class CheckpointHelper(object):
     ):
         r"""
         Overview: load checkpoint by given path
-        
+
         Arguments:
             - load_path (:obj:`str`): checkpoint's path
             - model (:obj:`torch.nn.Module`): model definition
@@ -326,7 +326,7 @@ class CountVar(object):
     """
     def __init__(self, init_val):
         r"""
-        Overview: 
+        Overview:
             init the var counter
 
         Arguments:
@@ -340,7 +340,7 @@ class CountVar(object):
 
     def update(self, val):
         r"""
-        Overview: 
+        Overview:
             update the var counter
 
         Arguments:
@@ -350,7 +350,7 @@ class CountVar(object):
 
     def add(self, add_num):
         r"""
-        Overview: 
+        Overview:
             add the var counter
 
         Arguments:
@@ -361,8 +361,8 @@ class CountVar(object):
 
 def auto_checkpoint(func):
     r"""
-    Overview: 
-        Create a wrapper to wrap function, and the wrapper will call the save_checkpoint method 
+    Overview:
+        Create a wrapper to wrap function, and the wrapper will call the save_checkpoint method
         whenever an exception happens.
 
     Arguments:

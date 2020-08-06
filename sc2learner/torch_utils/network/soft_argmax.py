@@ -11,37 +11,37 @@ import torch.nn.functional as F
 
 class SoftArgmax(nn.Module):
     r"""
-    Overview: 
+    Overview:
         a nn.Module that computes SoftArgmax
-        
-        Note: 
-            for more softargmax info, you can reference the wiki page 
+
+        Note:
+            for more softargmax info, you can reference the wiki page
             <https://wikimili.com/en/Softmax_function> or reference the lecture
             <https://mc.ai/softmax-function-beyond-the-basics/>
-    
-     Interface: 
+
+     Interface:
         __init__, forward
     """
     def __init__(self):
         r"""
-        Overview: 
+        Overview:
             initialize the SoftArgmax module
         """
         super(SoftArgmax, self).__init__()
 
     def forward(self, x):
         r"""
-        Overview: 
+        Overview:
             soft-argmax for location regression
-        
+
         Arguments:
             - x (:obj:`Tensor`): predict heat map
-        
+
         Returns:
             - location (:obj:`Tensor`): predict location
-        
+
         Shapes:
-            - x (:obj:`Tensor`): :math:`(B, C, H, W)`, while B is the batch size, 
+            - x (:obj:`Tensor`): :math:`(B, C, H, W)`, while B is the batch size,
                 C is number of channels , H and W stands for height and width
             - location (:obj:`Tensor`): :math:`(B, 2)`, while B is the batch size
         """

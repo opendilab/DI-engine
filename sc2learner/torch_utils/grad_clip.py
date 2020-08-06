@@ -10,16 +10,16 @@ from torch.nn.utils import clip_grad_norm_, clip_grad_value_
 
 def build_grad_clip(cfg):
     r"""
-    Overview: 
+    Overview:
         build the gradient cliper
-    
+
     Arguments:
         Notes:
-            for more detail you can view the Brief Intro on Config System 
+            for more detail you can view the Brief Intro on Config System
             on <http://gitlab.bj.sensetime.com/xialiqiao/SenseStar>
 
-        - cfg (:obj:`dict`): the config file, which is a multilevel dict, have 
-            large domain evaluate, common, model, train etc, and each large domain 
+        - cfg (:obj:`dict`): the config file, which is a multilevel dict, have
+            large domain evaluate, common, model, train etc, and each large domain
             has it's smaller domain.
 
     Returns:
@@ -32,18 +32,18 @@ def build_grad_clip(cfg):
 
 class GradClip(object):
     r"""
-    Overview: 
+    Overview:
         the gradient cliper
-    
-     Interface: 
+
+     Interface:
         __init__, apply
     """
     def __init__(self, clip_value, clip_type, norm_type=2):
         r"""
-        Overview: 
+        Overview:
             initialization the GradClip.
 
-            Note : 
+            Note :
                 reference <https://pytorch.org/docs/stable/generated/torch.nn.utils.clip_grad_norm_.html>
 
         Arguments:
@@ -57,15 +57,16 @@ class GradClip(object):
 
     def apply(self, parameters, value=None):
         r"""
-        Overview: 
+        Overview:
             apply the GradClip to given parameters.
 
         Arguments:
-            Note : 
+            Note :
                 reference <https://pytorch.org/docs/stable/generated/torch.nn.utils.clip_grad_norm_.html>
-            
-            - parameters (:obj:`Iterable[Tensor]` or :obj:`Tensor`): an iterable of Tensors or a single Tensor that will have gradients normalized
-            - value (:obj:`float` or :obj:`int` or :obj:`None`): the clip value, if is :obj:`None` then use the defalut clip_value
+
+            - parameters (:obj:`Iterable[Tensor]` or :obj:`Tensor`): an iterable of Tensors or a single Tensor that will
+                                                                     have gradients normalized
+            - value (:obj:`float` or :obj:`int` or :obj:`None`): the clip value, if is None then use the defalut value
 
         """
         if value is None:

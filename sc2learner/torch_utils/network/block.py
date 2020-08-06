@@ -16,10 +16,10 @@ class ResBlock(nn.Module):
         Residual Block with conv2d_block
 
         Note:
-            For beginners, you can reference <https://www.jianshu.com/p/d4793635a4c4> 
-            and <https://towardsdatascience.com/residual-blocks-building-blocks-of-resnet-fd90ca15d6ec> 
+            For beginners, you can reference <https://www.jianshu.com/p/d4793635a4c4>
+            and <https://towardsdatascience.com/residual-blocks-building-blocks-of-resnet-fd90ca15d6ec>
             to learn more about ResBlock and ResNet.
-    
+
     Interface:
         __init__, forward
     '''
@@ -31,9 +31,10 @@ class ResBlock(nn.Module):
         Arguments:
             Notes:
                 Conv2d <https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html#torch.nn.Conv2d>
-            
+
             - activation (:obj:`nn.Module`): the optional activation function
-            - norm_type (:obj:`str`): type of the normalization, defalut set to batch normalization, support ['BN', 'IN', 'SyncBN', None]
+            - norm_type (:obj:`str`): type of the normalization, defalut set to batch normalization,
+                                      support ['BN', 'IN', 'SyncBN', None]
         """
         super(ResBlock, self).__init__()
         assert (stride == 1)
@@ -71,7 +72,7 @@ class ResFCBlock(nn.Module):
         Residual Block with 2 fully connected block
         x -> fc1 -> norm -> act -> fc2 -> norm -> act -> out
         \____________________________________/+
-    
+
     Interface:
         __init__, forward
     '''
@@ -84,9 +85,9 @@ class ResFCBlock(nn.Module):
             Notes:
                 you can reference .nn_module.fcblock
                 nn.linear <https://pytorch.org/docs/master/generated/torch.nn.Linear.html>
-            
+
             - activation (:obj:`nn.Module`): the optional activation function
-            - norm_type (:obj:`str`): type of the normalization, defalut set to batch normalization, support ['BN', 'IN', 'SyncBN', None]
+            - norm_type (:obj:`str`): type of the normalization, defalut set to batch normalization
         """
         super(ResFCBlock, self).__init__()
         assert (in_channels == out_channels)

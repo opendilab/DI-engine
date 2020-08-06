@@ -6,13 +6,13 @@ import numbers
 
 def to_device(item, device, ignore_keys=[]):
     r"""
-    Overview: 
+    Overview:
         transfer data to certain device
 
     Arguments:
         Note:
             Now supported item type :obj:`torch.nn.Module`, :obj:`torch.Tensor`, :obj:`Sequence`, :obj:`dict`,
-            :obj:`numbers.Integral`, :obj:`numbers.Real`, :obj:`np.ndarray`, :obj:`str` and :obj:`None`.  
+            :obj:`numbers.Integral`, :obj:`numbers.Real`, :obj:`np.ndarray`, :obj:`str` and :obj:`None`.
 
         - item (:obj:`object`): the item to be transfered
         - device (:obj:`torch.divice`): the device wanted
@@ -50,7 +50,7 @@ def to_device(item, device, ignore_keys=[]):
 
 def to_dtype(item, dtype):
     r"""
-    Overview: 
+    Overview:
         transfer data to certain dtype
 
     Arguments:
@@ -59,7 +59,7 @@ def to_dtype(item, dtype):
 
         - item (:obj:`object`): the item to be transfered
         - dtype (:obj:`type`): the type wanted
-       
+
     Returns:
         - item (:obj:`object`): the transfered item
     """
@@ -75,7 +75,7 @@ def to_dtype(item, dtype):
 
 def to_tensor(item, dtype):
     r"""
-    Overview: 
+    Overview:
         transfer data to certain dtype tensor
 
     Arguments:
@@ -84,7 +84,7 @@ def to_tensor(item, dtype):
 
         - item (:obj:`object`): the item to be transfered
         - dtype (:obj:`type`): the type of wanted tensor
-       
+
     Returns:
         - item (:obj:`object`): the transfered item
     """
@@ -114,7 +114,7 @@ def to_tensor(item, dtype):
 
 def tensor_to_list(item):
     r"""
-    Overview: 
+    Overview:
         transfer data to certain dtype
 
     Arguments:
@@ -122,7 +122,7 @@ def tensor_to_list(item):
             Now supported item type: :obj:`torch.Tensor`, :obj:`dict`, :obj:`list`, :obj:`tuple` and :obj:`None`
 
         - item (:obj:`object`): the item to be transfered
-       
+
     Returns:
         - item (:obj:`list`): the transfered list
     """
@@ -143,12 +143,12 @@ def tensor_to_list(item):
 
 def same_shape(data):
     r"""
-    Overview: 
+    Overview:
         whether a list of data have same shapes
 
     Arguments:
         - data (:obj:`list`): the list of data
-       
+
     Returns:
         - same (:obj:`bool`): whether the list of data all have same shapes
     """

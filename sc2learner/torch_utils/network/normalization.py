@@ -16,7 +16,9 @@ link = try_import_link()
 class GroupSyncBatchNorm(link.nn.SyncBatchNorm2d):
     r"""
     Overview:
-       Applies Batch Normalization over a N-Dimensional input (a mini-batch of [N-2]D inputs with additional channel dimension) as described in the paper 
+       Applies Batch Normalization over a N-Dimensional input (a mini-batch of [N-2]D inputs with additional channel
+       dimension) as described in the paper:
+
        Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift .
 
         Notes:
@@ -32,7 +34,7 @@ class GroupSyncBatchNorm(link.nn.SyncBatchNorm2d):
         r"""
         Overview:
             Init class GroupSyncBatchNorm
-        
+
         Arguments:
             Notes:
                 reference https://pytorch.org/docs/stable/generated/torch.nn.SyncBatchNorm.html
@@ -70,9 +72,9 @@ class AdaptiveInstanceNorm2d(nn.Module):
     r"""
     Overview:
         the Adaptive Instance Normalization with 2 dimensions.
-       
+
         Notes:
-            you can reference <https://www.jianshu.com/p/7aeb1b41930b> or read paper <https://arxiv.org/pdf/1703.06868.pdf>
+            you can reference <https://www.jianshu.com/p/7aeb1b41930b> or read paper <https://arxiv.org/pdf/1703.06868.pdf>  # noqa
             to learn more about Adaptive Instance Normalization
 
     Interface:
@@ -109,8 +111,8 @@ class AdaptiveInstanceNorm2d(nn.Module):
             - x (:obj:`Tensor`): the batch input tensor of AdaIN
 
         Shapes:
-            - x (:obj:`Tensor`): :math:`(B, C, H, W)`, while B is the batch size, 
-                C is number of channels , H and W stands for height and width    
+            - x (:obj:`Tensor`): :math:`(B, C, H, W)`, while B is the batch size,
+                C is number of channels , H and W stands for height and width
         """
         assert self.weight is not None and self.bias is not None
         b, c, h, w = x.shape
@@ -129,7 +131,7 @@ def build_normalization(norm_type, dim=None):
     r"""
     Overview:
         build the corresponding normalization module
-    
+
     Arguments:
         - norm_type (:obj:`str`): type of the normaliztion, now support ['BN', 'IN', 'SyncBN', 'AdaptiveIN']
         - dim (:obj:`int`): dimension of the normalization, when norm_type is in [BN, IN]
