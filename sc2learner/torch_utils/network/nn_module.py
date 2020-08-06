@@ -267,7 +267,6 @@ class ChannelShuffle(nn.Module):
             You can see the original paper shuffle net in link below
             shuffleNet(https://arxiv.org/abs/1707.01083)
     """
-
     def __init__(self, group_num):
         r"""
             Overview:
@@ -348,7 +347,6 @@ class NearestUpsample(nn.Module):
     Interface:
         __init__, forward
     """
-
     def __init__(self, scale_factor):
         r"""
         Overview:
@@ -382,7 +380,6 @@ class BilinearUpsample(nn.Module):
     Interface:
         __init__, forward
     """
-
     def __init__(self, scale_factor):
         r"""
         Overview:

@@ -8,7 +8,7 @@ from sc2learner.torch_utils.metric import levenshtein_distance, hamming_distance
 class TestMetric():
     def test_levenshtein_distance(self):
         r'''
-        Overview: 
+        Overview:
             Test the Levenshtein Distance
         '''
         pred = torch.LongTensor([1, 4, 6, 4, 1])
@@ -27,7 +27,7 @@ class TestMetric():
 
     def test_hamming_distance(self):
         r'''
-        Overview: 
+        Overview:
             Test the Hamming Distance
         '''
         base = torch.zeros(8).long()
