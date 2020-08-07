@@ -27,6 +27,9 @@ def levenshtein_distance(pred, target, pred_extra=None, target_extra=None, extra
 
     Returns:
         - (:obj:`torch.FloatTensor`) distance(scalar), shape[1]
+    
+    Test:
+        torch_utils/network/tests/test_metric.py
     """
     assert (isinstance(pred, torch.Tensor) and isinstance(target, torch.Tensor))
     assert (pred.dtype == torch.long and target.dtype == torch.long), '{}\t{}'.format(pred.dtype, target.dtype)
@@ -80,6 +83,9 @@ def hamming_distance(pred, target, weight=1.):
 
     Shapes:
         - pred & targe (:obj:`torch.LongTensor`): shape :math:`(B, N)`, while B is the batch size and N is the dimension
+
+    Test:
+        torch_utils/network/tests/test_metric.py
     '''
     assert (isinstance(pred, torch.Tensor) and isinstance(target, torch.Tensor))
     assert (pred.dtype == torch.long and target.dtype == torch.long)
