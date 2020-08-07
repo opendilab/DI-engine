@@ -34,9 +34,12 @@ class GroupSyncBatchNorm(link.nn.SyncBatchNorm2d):
         r"""
         Overview:
             Init class GroupSyncBatchNorm
+            
+            Notes:
+                reference the linklink implementation <http://spring.sensetime.com/docs/linklink/api/index.html#syncbn>
         Arguments:
             Notes:
-                reference https://pytorch.org/docs/stable/generated/torch.nn.SyncBatchNorm.html
+                reference <https://pytorch.org/docs/stable/generated/torch.nn.SyncBatchNorm.html>
         """
         self.group_size = bn_group_size
         super(GroupSyncBatchNorm, self).__init__(
@@ -130,6 +133,9 @@ def build_normalization(norm_type, dim=None):
     r"""
     Overview:
         build the corresponding normalization module
+        
+        Notes:
+            For beginers, you can reference <https://zhuanlan.zhihu.com/p/34879333> to learn more about batch normalization
     Arguments:
         - norm_type (:obj:`str`): type of the normaliztion, now support ['BN', 'IN', 'SyncBN', 'AdaptiveIN']
         - dim (:obj:`int`): dimension of the normalization, when norm_type is in [BN, IN]

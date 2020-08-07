@@ -19,8 +19,11 @@ class SoftArgmax(nn.Module):
             <https://wikimili.com/en/Softmax_function> or reference the lecture
             <https://mc.ai/softmax-function-beyond-the-basics/>
 
-     Interface:
+    Interface:
         __init__, forward
+    
+    Test:
+        torch_utils/network/tests/test_soft_argmax.py
     """
     def __init__(self):
         r"""
@@ -41,11 +44,7 @@ class SoftArgmax(nn.Module):
             - location (:obj:`Tensor`): predict location
 
         Shapes:
-<<<<<<< HEAD
-            - x (:obj:`Tensor`): :math:`(B, C, H, W)`, while B is the batch size, 
-=======
             - x (:obj:`Tensor`): :math:`(B, C, H, W)`, while B is the batch size,
->>>>>>> ae7262943426c0153d1d9069f468e484c24eab89
                 C is number of channels , H and W stands for height and width
             - location (:obj:`Tensor`): :math:`(B, 2)`, while B is the batch size
         """

@@ -14,12 +14,7 @@ class GLU(nn.Module):
         a glu nn module
 
         Note:
-<<<<<<< HEAD
-            For beginner, you can reference <https://www.jianshu.com/p/d4793635a4c4> to learn more about activation functions.
-=======
             For beginner, you can reference <https://www.jianshu.com/p/d4793635a4c4> to learn more about it.
->>>>>>> ae7262943426c0153d1d9069f468e484c24eab89
-
     Interface:
         __init__, forward
     """
@@ -27,7 +22,6 @@ class GLU(nn.Module):
         r"""
         Overview:
             Init glu
-
         Arguments:
             - input_dim (:obj:`int`): the input dimension
             - output_dim (:obj:`int`): the output dimension

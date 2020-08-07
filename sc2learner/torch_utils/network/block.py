@@ -16,17 +16,10 @@ class ResBlock(nn.Module):
         Residual Block with conv2d_block
 
         Note:
-<<<<<<< HEAD
-            For beginners, you can reference <https://www.jianshu.com/p/d4793635a4c4> 
-            and <https://towardsdatascience.com/residual-blocks-building-blocks-of-resnet-fd90ca15d6ec> 
-            to learn more about ResBlock and ResNet.
-    
-=======
             For beginners, you can reference <https://www.jianshu.com/p/d4793635a4c4>
             and <https://towardsdatascience.com/residual-blocks-building-blocks-of-resnet-fd90ca15d6ec>
             to learn more about ResBlock and ResNet.
 
->>>>>>> ae7262943426c0153d1d9069f468e484c24eab89
     Interface:
         __init__, forward
     '''
@@ -38,16 +31,10 @@ class ResBlock(nn.Module):
         Arguments:
             Notes:
                 Conv2d <https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html#torch.nn.Conv2d>
-<<<<<<< HEAD
-            
-            - activation (:obj:`nn.Module`): the optional activation function
-            - norm_type (:obj:`str`): type of the normalization, defalut set to batch normalization, support ['BN', 'IN', 'SyncBN', None]
-=======
 
             - activation (:obj:`nn.Module`): the optional activation function
             - norm_type (:obj:`str`): type of the normalization, defalut set to batch normalization,
                                       support ['BN', 'IN', 'SyncBN', None]
->>>>>>> ae7262943426c0153d1d9069f468e484c24eab89
         """
         super(ResBlock, self).__init__()
         assert (stride == 1)
@@ -57,7 +44,7 @@ class ResBlock(nn.Module):
         self.conv2 = conv2d_block(
             out_channels, out_channels, kernel_size, stride, padding, activation=self.act, norm_type=norm_type
         )
-        # using kernal size = 1 is equal to a full connent layer?
+        # using kernal size = 1 to serve as bottleneck
         self.conv3 = conv2d_block(out_channels, out_channels, 1, 1, 0, activation=None, norm_type=norm_type)
 
     def forward(self, x):
@@ -85,11 +72,6 @@ class ResFCBlock(nn.Module):
         Residual Block with 2 fully connected block
         x -> fc1 -> norm -> act -> fc2 -> norm -> act -> out
         \____________________________________/+
-<<<<<<< HEAD
-    
-=======
-
->>>>>>> ae7262943426c0153d1d9069f468e484c24eab89
     Interface:
         __init__, forward
     '''
@@ -102,15 +84,9 @@ class ResFCBlock(nn.Module):
             Notes:
                 you can reference .nn_module.fcblock
                 nn.linear <https://pytorch.org/docs/master/generated/torch.nn.Linear.html>
-<<<<<<< HEAD
-            
-            - activation (:obj:`nn.Module`): the optional activation function
-            - norm_type (:obj:`str`): type of the normalization, defalut set to batch normalization, support ['BN', 'IN', 'SyncBN', None]
-=======
 
             - activation (:obj:`nn.Module`): the optional activation function
             - norm_type (:obj:`str`): type of the normalization, defalut set to batch normalization
->>>>>>> ae7262943426c0153d1d9069f468e484c24eab89
         """
         super(ResFCBlock, self).__init__()
         assert (in_channels == out_channels)
