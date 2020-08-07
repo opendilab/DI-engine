@@ -14,20 +14,33 @@ class BaseEnvManager(ABC):
         raise NotImplementedError
 
     def __getattr__(self, key: str) -> Any:
+        """
+        Note: if a python object doesn't have the attribute named key, it will call this method
+        """
         return [getattr(env, key) if hasattr(env, key) else None for env in self._envs]
 
     @property
     def env_num(self) -> int:
         return self._env_num
 
-    def reset(self, reset_param: Union[None, List[dict]], env_id: Union[None, List[int]]) -> Union[list, dict]:
+    def reset(self,
+              reset_param: Union[None, List[dict]] = None,
+              env_id: Union[None, List[int]] = None) -> Union[list, dict]:
+        for i in (env_id if env_id is not None else range(self.env_num)):
+            self._env_done[i] = False
         return self._execute_by_envid('reset', param=reset_param, env_id=env_id)
 
-    def step(self, action: List[Any], env_id: Union[None, List[int]]) -> Union[list, dict]:
+    def step(self, action: List[Any], env_id: Union[None, List[int]] = None) -> Union[list, dict]:
         param = [{'action': act} for act in action]
-        return self._execute_by_envid('step', param=param, env_id=env_id)
+        ret = self._execute_by_envid('step', param=param, env_id=env_id)
+        if isinstance(ret, list):
+            self._env_done = [t.done for t in ret]
+        elif isinstance(ret, dict):
+            for k, v in ret.items():
+                self._env_done[k] = v.done
+        return ret
 
-    def seed(self, seed: List[int], env_id: Union[None, List[int]]) -> None:
+    def seed(self, seed: List[int], env_id: Union[None, List[int]] = None) -> None:
         param = [{'seed': s} for s in seed]
         return self._execute_by_envid('seed', param=param, env_id=env_id)
 
@@ -51,3 +64,11 @@ class BaseEnvManager(ABC):
     def close(self) -> None:
         for env in self._envs:
             env.close()
+
+    @property
+    def all_done(self) -> bool:
+        return all(self._env_done)
+
+    @property
+    def env_done(self) -> List[bool]:
+        return self._env_done
