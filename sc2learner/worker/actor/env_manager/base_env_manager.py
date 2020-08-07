@@ -39,11 +39,11 @@ class BaseEnvManager(ABC):
     ) -> Union[list, dict]:
         real_env_id = list(range(self.env_num)) if env_id is None else env_id
         if param is None:
-            ret = {real_env_id[i]: getattr(self._envs[real_env_id[i]], fn_name)() for i in real_env_id}
+            ret = {real_env_id[i]: getattr(self._envs[real_env_id[i]], fn_name)() for i in range(len(real_env_id))}
         else:
             ret = {
                 real_env_id[i]: getattr(self._envs[real_env_id[i]], fn_name)(**param[i])
-                for i in enumerate(real_env_id)
+                for i in range(len(real_env_id))
             }
         ret = list(ret.values()) if env_id is None else ret
         return ret
@@ -51,11 +51,3 @@ class BaseEnvManager(ABC):
     def close(self) -> None:
         for env in self._envs:
             env.close()
-
-
-class SubprocessEnvManager(BaseEnvManager):
-    def __init__(
-            self,
-            cfg: dict,
-    ) -> None:
-        super(SubprocessEnvManager, self).__init__()
