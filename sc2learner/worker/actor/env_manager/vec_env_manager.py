@@ -24,7 +24,7 @@ class SubprocessEnvManager(BaseEnvManager):
             self,
             cfg: dict,
     ) -> None:
-        super(SubprocessEnvManager, self).__init__()
+        super(SubprocessEnvManager, self).__init__(cfg)
         self._parent_remote, self._child_remote = zip(*[Pipe() for _ in range(self.env_num)])
         self._processes = [
             Process(target=self.worker_fn, args=(parent, child, CloudpickleWrapper(env)), daemon=True)
@@ -50,6 +50,9 @@ class SubprocessEnvManager(BaseEnvManager):
                         c.send(getattr(env, cmd)())
                     else:
                         c.send(getattr(env, cmd)(**data))
+                    if cmd == 'close':
+                        c.close()
+                        break
                 else:
                     c.close()
                     raise KeyError("not support env cmd: {}".format(cmd))
@@ -69,7 +72,7 @@ class SubprocessEnvManager(BaseEnvManager):
                 self._parent_remote[real_env_id[i]].send([fn_name, None])
             else:
                 self._parent_remote[real_env_id[i]].send([fn_name, param[i]])
-        ret = [self._parent_remote[i].recv() for i in real_env_id]
+        ret = {i: self._parent_remote[i].recv() for i in real_env_id}
         ret = list(ret.values()) if env_id is None else ret
         return ret
 

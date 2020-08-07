@@ -35,6 +35,10 @@ class FakeEnv(object):
         self._seed = seed
 
 
+# TODO(nyz) pickle can't find conftest.timestep
+timestep = FakeEnv.timestep
+
+
 @pytest.fixture(scope='class')
 def setup_env_type():
     return FakeEnv

@@ -104,6 +104,7 @@ setup(
         'pytest-xdist',
         'flask',
         'lz4',
+        'cloudpickle'
     ],
     entry_points={
         'console_scripts': [
