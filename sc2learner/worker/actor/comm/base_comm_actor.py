@@ -68,25 +68,10 @@ class BaseCommActor(ABC):
 
     # ************************** thread *********************************
     @abstractmethod
-    def _send_actor_heartbeat(self) -> None:
+    def _send_actor_heartbeats(self) -> None:
         raise NotImplementedError
-
-
-class ActorCommMetalass(type):
-    def __new__(cls, name, bases, attrs):
-        attrs['__init__'] = cls.enable_comm_helper(attrs['__init__'])
-        return type.__new__(cls, name, bases, attrs)
-
-    @classmethod
-    def enable_comm_helper(cls, fn):
-        def wrapper(*args, **kwargs):
-            if 'comm_cfg' in kwargs.keys():
-                comm_cfg = kwargs.pop('comm_cfg')
-            return fn(*args, **kwargs)
-
-        return wrapper
 
 
 class SingleMachineActor(ABC):
     # TODO single matchine actor for some micro envs
-    pass
+   pass
