@@ -32,7 +32,7 @@ class BaseCommActor(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def send_finish_job(self, finish_info: Any) -> None:
+    def send_finish_job(self, path: str, finish_info: Any) -> None:
         raise NotImplementedError
 
     def start_heartbeats_thread(self) -> None:

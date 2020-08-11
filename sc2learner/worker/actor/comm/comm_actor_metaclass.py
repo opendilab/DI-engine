@@ -1,4 +1,4 @@
-from .flask_ceph_actor import FlaskCephActor, ASFlaskCephActor
+from .flask_fs_actor import FlaskFileSystemActor, ASFlaskFileSystemActor
 
 
 class ActorCommMetaclass(type):
@@ -9,7 +9,7 @@ class ActorCommMetaclass(type):
 
     @staticmethod
     def get_comm_map():
-        return {'flask_ceph': FlaskCephActor, 'as_flask_ceph': ASFlaskCephActor}
+        return {'as_flask_fs': ASFlaskFileSystemActor, 'flask_fs': FlaskFileSystemActor}
 
     @classmethod
     def enable_comm_helper(cls, fn):

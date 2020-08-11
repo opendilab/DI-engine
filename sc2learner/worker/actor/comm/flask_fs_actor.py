@@ -5,21 +5,25 @@ import traceback
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+import torch
 from .base_comm_actor import BaseCommActor
 from sc2learner.utils import read_file_ceph, save_file_ceph
 
 
-class FlaskCephActor(BaseCommActor):
+class FlaskFileSystemActor(BaseCommActor):
     def __init__(self, cfg: dict) -> None:
-        super(FlaskCephActor, self).__init__(cfg)
-        self._ceph_path_agent = cfg.ceph_path_agent
-        self._ceph_path_traj = cfg.ceph_path_traj
-        self._heartbeats_freq = cfg.heartbeats_freq
+        super(FlaskFileSystemActor, self).__init__(cfg)
         self._url_prefix = 'http://{}:{}/'.format(cfg.manager_ip, cfg.manager_port)
         self._requests_session = requests.session()
         retries = Retry(total=20, backoff_factor=1)
         self._requests_session.mount('http://', HTTPAdapter(max_retries=retries))
         self._job_request_id = 0
+
+        self._path_agent = cfg.path_agent
+        self._path_traj = cfg.path_traj
+        self._heartbeats_freq = cfg.heartbeats_freq
+        self._file_system_type = cfg.file_system_type
+        assert self._file_system_type in ['ceph', 'normal']
 
     # override
     def get_job(self) -> dict:
@@ -36,13 +40,20 @@ class FlaskCephActor(BaseCommActor):
 
     # override
     def get_agent_update_info(self, path: str) -> dict:
-        ceph_path = os.path.join(self._ceph_path_agent, path)
-        info = read_file_ceph(ceph_path, read_type='pickle')
+        path = os.path.join(self._path_agent, path)
+        if self._file_system_type == 'ceph':
+            info = read_file_ceph(path, read_type='pickle')
+        elif self._file_system_type == 'normal':
+            info = torch.load(path)
         return info
 
     # override
-    def send_traj_stepdata(self, stepdata: list) -> None:
-        save_file_ceph(self._ceph_path_traj, stepdata, stepdata)
+    def send_traj_stepdata(self, path: str, stepdata: list) -> None:
+        if self._file_system_type == 'ceph':
+            save_file_ceph(self._path_traj, path, stepdata)
+        elif self._file_system_type == 'normal':
+            name = os.path.join(self._path_traj, )
+            torch.save(stepdata, name)
 
     # override
     def send_traj_metadata(self, metadata: dict) -> None:
@@ -94,12 +105,15 @@ class FlaskCephActor(BaseCommActor):
         return response
 
 
-class ASFlaskCephActor(FlaskCephActor):
+class ASFlaskFileSystemActor(FlaskFileSystemActor):
     def __init__(self, *args, **kwargs):
-        super(ASFlaskCephActor, self).__init__(*args, **kwargs)
-        self._ceph_path_stat = self._cfg.ceph_path_stat
+        super(ASFlaskFileSystemActor, self).__init__(*args, **kwargs)
+        self._path_stat = self._cfg.path_stat
 
     def get_env_stat(self, path: str) -> list:
-        ceph_path = os.path.join(self._ceph_path_stat, path)
-        info = read_file_ceph(ceph_path, read_type='pickle')
+        path = os.path.join(self._path_stat, path)
+        if self._file_system_type == 'ceph':
+            info = read_file_ceph(path, read_type='pickle')
+        elif self._file_system_type == 'normal':
+            info = torch.load(path)
         return info
