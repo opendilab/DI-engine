@@ -31,3 +31,6 @@ class BaseAgent(ABC):
 
     def load_state_dict(self, state_dict: dict) -> None:
         self._model.load_state_dict(state_dict['model'])
+
+    def reset(self) -> None:
+        pass

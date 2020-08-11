@@ -66,8 +66,12 @@ class TestAgentPlugin:
         model = TempLSTM()
         state_num = 4
         plugin_cfg = OrderedDict({
-            'hidden_state': {'state_num': state_num},
-            'grad': {'enable_grad': True},
+            'hidden_state': {
+                'state_num': state_num
+            },
+            'grad': {
+                'enable_grad': True
+            },
         })
         # the former plugin is registered in inner layer
         agent = BaseAgent(model, plugin_cfg)
@@ -88,3 +92,7 @@ class TestAgentPlugin:
         data3 = {'data': torch.randn(2, 2, 36), 'state_info': {0: True, 1: False}}
         output = agent.forward(data3)
         assert output.shape == (2, 2, 32)
+
+        assert all([isinstance(s, tuple) and len(s) == 2 for s in agent._state_manager._state.values()])
+        agent.reset()
+        assert all([isinstance(s, type(None)) for s in agent._state_manager._state.values()])
