@@ -103,6 +103,18 @@ model:
                         arch: fc
                         output_dim: 128
                         baseline_feature: True
+                    last_delay:
+                        name: last_delay
+                        arch: fc
+                        output_dim: 64
+                    last_queued:
+                        name: last_queued
+                        arch: fc
+                        output_dim: 256
+                    last_action_type:
+                        name: last_action_type
+                        arch: fc
+                        output_dim: 128
                     mmr:
                         name: mmr
                         arch: fc
@@ -118,18 +130,6 @@ model:
                         output_dim: 32
                         scalar_context: True
                         baseline_feature: True
-                    last_delay:
-                        name: last_delay
-                        arch: fc
-                        output_dim: 64
-                    last_queued:
-                        name: last_queued
-                        arch: fc
-                        output_dim: 256
-                    last_action_type:
-                        name: last_action_type
-                        arch: fc
-                        output_dim: 128
                 activation: 'relu'
                 begin_num: 20  # beginning_build_order_num
                 output_dim: 1280  # use_stat(True: 1280, False: 1088)
@@ -165,7 +165,7 @@ model:
             activation: 'relu'
     # ===== Policy =====
     policy:
-        location_expand_ratio: 2
+        location_expand_ratio: 1
         head:
             head_names: [action_type_head, delay_head, queued_head, selected_units_head, target_unit_head, location_head]
             action_type_head:
