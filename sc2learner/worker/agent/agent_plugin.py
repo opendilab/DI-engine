@@ -24,18 +24,6 @@ class IAgentStatefulPlugin(IAgentPlugin):
         raise NotImplementedError
 
 
-def register_plugin(agent: Any, plugin_cfg: Union[OrderedDict, None]) -> None:
-    if plugin_cfg is None:
-        return
-    assert isinstance(plugin_cfg, OrderedDict), "plugin_cfg muse be ordered dict"
-    plugin_name_map = {'grad': GradHelper, 'hidden_state': HiddenStateHelper}
-    for k, v in plugin_cfg.items():
-        if k not in plugin_name_map.keys():
-            raise KeyError("invalid agent plugin name: {}".format(k))
-        else:
-            plugin_name_map[k].register(agent, **v)
-
-
 class GradHelper(IAgentStatelessPlugin):
     @classmethod
     def register(cls: type, agent: Any, enable_grad: bool) -> None:
@@ -106,3 +94,23 @@ class HiddenStateHelper(IAgentStatefulPlugin):
         assert len(h) == len(state_info), '{}/{}'.format(len(h), len(state_info))
         for i, idx in enumerate(state_info.keys()):
             self._state[idx] = h[i]
+
+
+plugin_name_map = {'grad': GradHelper, 'hidden_state': HiddenStateHelper}
+
+
+def register_plugin(agent: Any, plugin_cfg: Union[OrderedDict, None]) -> None:
+    if plugin_cfg is None:
+        return
+    assert isinstance(plugin_cfg, OrderedDict), "plugin_cfg muse be ordered dict"
+    for k, v in plugin_cfg.items():
+        if k not in plugin_name_map.keys():
+            raise KeyError("invalid agent plugin name: {}".format(k))
+        else:
+            plugin_name_map[k].register(agent, **v)
+
+
+def add_plugin(name, plugin_type):
+    assert isinstance(name, str)
+    assert isinstance(plugin_type, IAgentPlugin)
+    plugin_name_map[name] = plugin_type
