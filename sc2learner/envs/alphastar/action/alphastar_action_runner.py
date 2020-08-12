@@ -25,6 +25,7 @@ class AlphaStarRawActionRunner(EnvElementRunner):
             action = agent_action[i]
             if action is None:
                 ret.append([FunctionCall.init_with_validation(0, [], raw=True), DELAY_INF, None])
+                continue
             action = self._core._from_agent_processor(action)
             legal = self._check_action(action)
             if not legal:

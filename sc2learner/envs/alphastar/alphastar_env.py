@@ -88,7 +88,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         self._episode_stat = [RealTimeStatistics(self._begin_num) for _ in range(self._agent_num)]
         assert len(loaded_stat) == self._agent_num
         self._loaded_eval_stat = [GameLoopStatistics(s, self._begin_num) for s in loaded_stat]
-
+        self._next_obs_step = [0 for _ in range(self._agent_num)]
         timestep = SC2Env.reset(self)
         self._raw_obs = [timestep[n].observation for n in range(self._agent_num)]
         obs = self._obs_helper.get(self)
@@ -110,12 +110,15 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         self.agent_action = action_data
         raw_action, delay, action = self._action_helper.get(self)
         # get step_mul
-        step_mul = min(delay)
+        for n in range(self._agent_num):
+            if action[n] is not None:
+                self._next_obs_step[n] = self._next_obs_step[n] + delay[n]
+        step_mul = min(self._next_obs_step) - self.episode_steps
         assert step_mul >= 0
         # TODO(nyz) deal with step == 0 case for stat and reward
         if step_mul == 0:
             step_mul = 1
-        due = [d <= step_mul for d in delay]
+        due = [s <= self.episode_steps + step_mul for s in self._next_obs_step]
         assert any(due), 'at least one of the agents must finish its delay'
         # Note: record statistics must be executed before env step
         for n in range(self._agent_num):
