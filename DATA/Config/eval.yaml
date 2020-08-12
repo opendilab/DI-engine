@@ -1,29 +1,30 @@
 evaluate:
     fix_seed: False
-    seed: 1
+    seed: 666
+    local: True
     use_multiprocessing: False  # multiprocessing may be incompatible with GPU inference
     bot_multi_test: False
-    num_episodes: 4
-    num_instance_per_node: 2
-    z_number: 1 # max 5
-    game_type: 'game_vs_agent'  # self_play or game_vs_bot
-    map_name: 'KairosJunction'    #   'KingsCove' # 'KairosJunction'
+    num_episodes: 14
+    num_instance_per_node: 7
+    game_type: 'agent_vs_agent'  # agent_vs_agent or game_vs_bot or game_vs_agent
     home_race: 'zerg'
     away_race: 'zerg'
-    bot_difficulty: 'very_hard'
-    max_bot_difficulty: 'very_hard'
-    local: True
+
+    map_name: 'KairosJunction'
+    z_number: 5
+    bot_difficulty: very_hard
+    max_bot_difficulty: very_hard
+
     bot_build: 'random'
     save_replay: True
-    replay_path: 'test'
-    reload_game: False 
-    stat_path:
-#        agent0: '/mnt/lustre/songguanglu/Data_t1/SenseStar_v2/DATA/Zerg_Zerg_2_Kairos Junction LE_Game 1 - Kairos Junction LE_2322.z'
-        agent0: 'C:\data\replay_data_test\Zerg_Terran_100_2.z'
-        agent1: '/mnt/lustre/songguanglu/Data_t1/SenseStar_v2/KJ_2498_win.z'
-    model_path:
-        agent0: 'C:\Users\Public\iterations_9000.pth.tar'
-        agent1: '/mnt/lustre/songguanglu/Data_t1/SenseStar_v2/SenseStar/sc2learner/experiments/transformer_born_global_Z/train_ckpt_v2/checkpoints/iterations_5000.pth.tar'
+    replay_path: 'new_data'
+    reload_game: False
+    player0:
+        model: 'C:\Users\Public/iterations_15800.pth.tar'
+        teacher_model: 'None'
+    player1:
+        model: 'C:\Users\Public/iterations_20200.pth.tar'
+        teacher_model: 'None'
 
     reload_path:
         agent0: '/mnt/lustre/zhangmanyuan/nature-agi/sl_data/0_113e76df32258d0a6271c78bcf055388536e13efd73aade6faa9f60aa63d2db7.step'
@@ -31,109 +32,148 @@ evaluate:
     reload_game_loop: 5000
 
     show_system_stat: False
+train:
+    temperature: 1
+common:
+    save_path: ./
 env:
+    game_type: 'game_vs_bot'  # self_play or game_vs_bot
+    sl_test: True
     use_cuda: True
-    ignore_invalid_action: True
+    ignore_invalid_action: False
     screen_resolution: [1, 1]
     default_step_mul: 8  # not used
-    game_steps_per_episode: 15000
+    game_steps_per_episode: 30000
     disable_fog: False
     realtime: False  # realtime mode, incompatible with action_delays
+    speed: 1000
     use_stat: True
-    beginning_build_order_num: 20
+    begin_num: 20
+    ignore_camera: True
     use_available_action_transform: True
     obs_stat_type: replay_last #['replay_online', 'self_online', 'replay_last']
     temperature: 1.0
     crop_map_to_playable_area: True
     action_delays: [1]  # list of probablities of delay from 1 to n or null for delay=1
+    pseudo_reward_type: 'global'  # global, immediate
+    pseudo_reward_prob: 0.25
+    map_name_list: ['KairosJunction']
+    beginning_build_order_prob: 1.0
+    cumulative_stat_prob: 1.0
+    player1:
+        race: 'zerg'
+    player2:
+        race: 'zerg'
+        difficulty: very_easy
+        build: 'random'
 #    action_delays: [50, 20,20]
+
+actor:
+    use_cuda: True
+    heartbeats_freq: 120
+    heartbeats_thread: True
+    print_freq: 1000000
+    load_model_freq: 1000000
+    temperature: 1
 model:
-    prev_type: 'prev_end'
-    action_type: fixed
     encoder:
-        ignore_prev: False
-        core_lstm:
-            hidden_size: 384
-            input_size: 1792
-            num_layers: 3
         obs_encoder:
+            encoder_names: [scalar_encoder, spatial_encoder, entity_encoder]
             scalar_encoder:
-              activation: relu
-              use_stat: true
-              begin_num: 20
-              output_dim: 1280
-              ignore_last: False
+                use_stat: True  # whether use statistics z
+                activation: 'relu'
+                begin_num: 20  # beginning_build_order_num
+                output_dim: 1280  # use_stat(True: 1280, False: 1088)
+            spatial_encoder:
+                input_dim: 52
+                resblock_num: 4
+                fc_dim: 256
+                project_dim: 32
+                downsample_type: 'conv2d'
+                down_channels: [64, 128, 128]
+                activation: 'relu'
+                norm_type: 'BN'
             entity_encoder:
-              activation: relu
-              dropout_ratio: 0.1
-              head_dim: 128
-              head_num: 2
-              hidden_dim: 1024
-              input_dim: 1340
-              layer_num: 3
-              mlp_num: 2
-              output_dim: 256
+                input_dim: 1340  # refer to alphastar_obs_wrapper
+                head_dim: 128
+                hidden_dim: 1024
+                output_dim: 256
+                head_num: 2
+                mlp_num: 2
+                layer_num: 3
+                dropout_ratio: 0
+                activation: 'relu'
+            use_score_cumulative: False
+        scatter:
+            input_dim: 256  # entity_encoder.output_dim
+            output_dim: 32
+        core_lstm:
+            lstm_type: 'normal'
+            input_size: 1792  # spatial_encoder.fc_dim + entity_encoder.output_dim + scalar_encoder.output_dim
+            hidden_size: 384
+            num_layers: 3
+            dropout: 0
+        score_cumulative:
+            input_dim: 13
+            output_dim: 64
+            activation: 'relu'
     policy:
         head:
+            head_names: [action_type_head, delay_head, queued_head, selected_units_head, target_unit_head, location_head]
             action_type_head:
-              use_input: False
-              activation: relu
-              ignore_last: True
-            location_head:
-              activation: relu
-              map_skip_dim: 128
-              output_type: cls
-              use_mask: True
-              upsample_type: bilinear
-              location_expand_ratio: 1
-              upsample_dims:
-              - 128
-              - 64
-              - 1
-
-            value_head:
-              activation: relu
-              decode_dim: 256
-              input_dim: 384
-              value_dim: 2
-              loss_num: 4
-              ignore_last: False
+                input_dim: 384  # core.hidden_size
+                res_dim: 256
+                res_num: 16
+                action_num: 327
+                action_map_dim: 256
+                gate_dim: 1024
+                context_dim: 256
+                activation: 'relu'
+                norm_type: 'LN'
+                use_mask: False
             delay_head:
-              activation: relu
-              decode_dim: 256
-              delay_dim: 128
-              delay_encode_dim: 6
-              delay_map_dim: 256
-              input_dim: 1024
-            head_names:
-            - action_type_head
-            - delay_head
-            - queued_head
-            - selected_units_head
-            - target_unit_head
-            - location_head
-            - value_head
+                input_dim: 1024  # action_type_head.gate_dim
+                decode_dim: 256
+                delay_dim: 128
+                delay_map_dim: 256
+                activation: 'relu'
+            queued_head:
+                input_dim: 1024  # action_type_head.gate_dim
+                decode_dim: 256
+                queued_dim: 2
+                queued_map_dim: 256
+                activation: 'relu'
             selected_units_head:
-              activation: relu
-              entity_embedding_dim: 256
-              func_dim: 256
-              hidden_dim: 32
-              input_dim: 1024
-              key_dim: 32
-              max_entity_num: 64
-              num_layers: 1
-              unit_type_dim: 259
-              use_mask: True
-              use_new_entity: False
-              use_pointer_net: True
+                lstm_type: 'pytorch'
+                lstm_norm_type: 'none'
+                input_dim: 1024  # action_type_head.gate_dim
+                entity_embedding_dim: 256  # entity_encoder.output_dim
+                key_dim: 32
+                unit_type_dim: 259
+                func_dim: 256
+                hidden_dim: 32
+                num_layers: 1
+                max_entity_num: 64
+                activation: 'relu'
+                use_mask: False
             target_unit_head:
-              activation: relu
-              entity_embedding_dim: 256
-              func_dim: 256
-              input_dim: 1024
-              key_dim: 256
-              unit_type_dim: 259
-              use_mask: True
-              use_new_entity: False
-
-        location_expand_ratio: 1
+                input_dim: 1024  # action_type_head.gate_dim
+                entity_embedding_dim: 256  # entity_encoder.output_dim
+                key_dim: 256
+                unit_type_dim: 259
+                func_dim: 256
+                activation: 'relu'
+                use_mask: False
+            location_head:
+                input_dim: 1024
+                upsample_type: 'bilinear'
+                upsample_dims: [128, 64, 1]  # len(upsample_dims)-len(down_channels)+1 = ratio
+                res_dim: 128
+                res_num: 4
+                reshape_size: [16, 16]
+                reshape_channel: 4  # entity_encoder.gate_dim / reshape_size
+                map_skip_dim: 128  # spatial_encoder.down_channels[-1]
+                activation: 'relu'
+                output_type: 'cls'  # ['cls', 'soft_argmax']
+                use_mask: True
+                location_expand_ratio: 1
