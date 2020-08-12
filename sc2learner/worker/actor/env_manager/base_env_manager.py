@@ -7,7 +7,7 @@ class BaseEnvManager(ABC):
         self._cfg = cfg
         self._env_num = cfg.env_num
         self._init()
-        hasattr(self, '_envs')
+        assert hasattr(self, '_envs')
 
     @abstractmethod
     def _init(self) -> None:

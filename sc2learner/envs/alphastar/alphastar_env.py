@@ -79,6 +79,12 @@ class AlphaStarEnv(BaseEnv, SC2Env):
             realtime=cfg.realtime,
         )
 
+    def _raw_env_reset(self):
+        return SC2Env.reset(self)
+
+    def _raw_env_step(self, raw_action, step_mul):
+        return SC2Env.step(self, raw_action, step_mul=step_mul)
+
     def reset(self, loaded_stat: list) -> list:
         if not self._launch_env_flag:
             self._launch_env()
@@ -90,7 +96,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         self._loaded_eval_stat = [GameLoopStatistics(s, self._begin_num) for s in loaded_stat]
         self._next_obs_step = [0 for _ in range(self._agent_num)]
 
-        timestep = SC2Env.reset(self)
+        timestep = self._raw_env_reset()
         self._raw_obs = [timestep[n].observation for n in range(self._agent_num)]
         obs = self._obs_helper.get(self)
         self._last_obs = obs
@@ -133,7 +139,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
 
         # env step
         last_episode_steps = self.episode_steps
-        timestep = SC2Env.step(self, raw_action, step_mul=step_mul)  # update episode_steps
+        timestep = self._raw_env_step(raw_action, step_mul)# update episode_steps
 
         # transform obs, reward and record statistics
         self.raw_obs = [timestep[n].observation for n in range(self._agent_num)]
@@ -225,3 +231,17 @@ class AlphaStarEnv(BaseEnv, SC2Env):
     @agent_action.setter
     def agent_action(self, _agent_action) -> None:
         self._agent_action = _agent_action
+
+
+class FakeAlphaStarEnv(AlphaStarEnv):
+    def __init__(self, *args, **kwargs):
+        super(FakeAlphaStarEnv, self).__init__(*args, **kwargs)
+        self.fake_data = np.load(os.path.join(os.path.dirname(__file__), 'fake_raw_env_data.npy'), allow_pickle=True)
+
+    def reset(self, loaded_stat):
+        idx = np.random.choice(range(len(self.fake_data)))
+        return self.fake_data[idx][0]
+
+    def step(self, raw_action, step_mul):
+        idx = np.random.choice(range(len(self.fake_data)))
+        return FakeAlphaStarEnv.timestep(*(self.fake_data[idx]))
