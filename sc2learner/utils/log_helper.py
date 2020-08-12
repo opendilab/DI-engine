@@ -25,8 +25,10 @@ def build_logger(cfg, name=None, rank=0):
         - rank (:obj:`int`): only rank == 0 can build, else return TextLogger that only save terminal output
     Returns:
         - logger (:obj`TextLogger`): logger that save terminal output
-        - tb_logger (:obj`TensorBoardLogger` or :obj:`None`): logger that save output to tensorboard, if rank != then None
-        - variable_record (:obj`VariableRecord` or :obj:`None`): logger that record variable for further process, if rank != then None
+        - tb_logger (:obj`TensorBoardLogger` or :obj:`None`): logger that save output to tensorboard,
+                                                              if rank != 0 then None
+        - variable_record (:obj`VariableRecord` or :obj:`None`): logger that record variable for further process,
+                                                              if rank != 0 then None
     '''
     path = cfg.common.save_path
     # Note: Only support rank0 tb_logger, variable_record
@@ -48,7 +50,7 @@ def build_logger(cfg, name=None, rank=0):
 
 def build_logger_naive(path, name, level=logging.INFO, print_freq=1):
     r'''
-    Overview: 
+    Overview:
         use config to build Textlogger and VariableRecord
     Arguments:
         - path (:obj:`str`): logger's save dir, please reference log_helper.TextLogger
@@ -66,9 +68,9 @@ def build_logger_naive(path, name, level=logging.INFO, print_freq=1):
 
 def get_default_logger(name=None):
     r"""
-    Overview: 
+    Overview:
         get the logger using logging.getLogger
-    
+
     Arguments:
         - name (:obj:`str`): the name of logger, if None then get 'default_logger'
 
@@ -89,7 +91,7 @@ class TextLogger(object):
     """
     def __init__(self, path, name=None, level=logging.INFO):
         r"""
-        Overview: 
+        Overview:
             initialization method, create logger.
         Arguments:
             - path (:obj:`str`): logger's save dir
@@ -107,7 +109,7 @@ class TextLogger(object):
 
     def _create_logger(self, name, path, level=logging.INFO):
         r"""
-        Overview: 
+        Overview:
             create logger using logging
         Arguments:
             - name (:obj:`str`): logger's name
@@ -126,22 +128,22 @@ class TextLogger(object):
 
     def info(self, s):
         r"""
-        Overview: 
+        Overview:
             add message to logger
         Arguments:
             - s (:obj:`str`): message to add to logger
-        Notes: 
+        Notes:
             you can reference Logger class in the python3 /logging/__init__.py
         """
         self.logger.info(s)
 
     def bug(self, s):
         r"""
-        Overview: 
+        Overview:
             call logger.debug
         Arguments:
             - s (:obj:`str`): message to add to logger
-        Notes: 
+        Notes:
             you can reference Logger class in the python3 /logging/__init__.py
         """
         self.logger.debug(s)
@@ -149,15 +151,16 @@ class TextLogger(object):
 
 class TensorBoardLogger(object):
     r"""
-    Overview: 
+    Overview:
         logger that save message to tensorboard
-    
+
     Interface:
-        __init__, add_scalar, add_text, add_scalars, add_histogram, add_figure, add_image, add_scalar_list, register_var, scalar_var_names
+        __init__, add_scalar, add_text, add_scalars, add_histogram, add_figure, add_image, add_scalar_list,
+        register_var, scalar_var_names
     """
     def __init__(self, path, name=None):
         r"""
-        Overview: 
+        Overview:
             initialization method, create logger and set var names.
         Arguments:
             - path (:obj:`str`): logger save dir
@@ -177,7 +180,7 @@ class TensorBoardLogger(object):
 
     def add_scalar(self, name, *args, **kwargs):
         r"""
-        Overview: 
+        Overview:
             add message to scalar
         Arguments:
             - name (:obj:`str`): name to add which in self._var_names['scalar']
@@ -187,7 +190,7 @@ class TensorBoardLogger(object):
 
     def add_text(self, name, *args, **kwargs):
         r"""
-        Overview: 
+        Overview:
             add message to text
         Arguments:
             - name (:obj:`str`): name to add which in self._var_names['text']
@@ -197,7 +200,7 @@ class TensorBoardLogger(object):
 
     def add_scalars(self, name, *args, **kwargs):
         r"""
-        Overview: 
+        Overview:
             add message to scalars
         Arguments:
             - name (:obj:`str`): name to add which in self._var_names['scalars']
@@ -207,7 +210,7 @@ class TensorBoardLogger(object):
 
     def add_histogram(self, name, *args, **kwargs):
         r"""
-        Overview: 
+        Overview:
             add message to histogram
         Arguments:
             - name (:obj:`str`): name to add which in self._var_names['histogram']
@@ -217,7 +220,7 @@ class TensorBoardLogger(object):
 
     def add_figure(self, name, *args, **kwargs):
         r"""
-        Overview: 
+        Overview:
             add message to figure
         Arguments:
             - name (:obj:`str`): name to add which in self._var_names['figure']
@@ -227,7 +230,7 @@ class TensorBoardLogger(object):
 
     def add_image(self, name, *args, **kwargs):
         r"""
-        Overview: 
+        Overview:
             add message to image
         Arguments:
             - name (:obj:`str`): name to add which in self._var_names['image']
@@ -237,7 +240,7 @@ class TensorBoardLogger(object):
 
     def add_val_list(self, val_list, viz_type):
         r"""
-        Overview: 
+        Overview:
             add val_list info to tb
         Arguments:
             - val_list (:obj:`list`): include element(name, value, step) to be added
@@ -262,9 +265,9 @@ class TensorBoardLogger(object):
         r"""
         Overview:
             add var to self_var._names
-        
+
         Arguments:
-            - name (:obj:`str`): name to add 
+            - name (:obj:`str`): name to add
             - var_type (:obj:`str`): the type of var to add to, defalut set to 'scalar',
                 support [scalar', 'text', 'scalars', 'histogram', 'figure', 'image']
         """
@@ -306,7 +309,7 @@ class VariableRecord(object):
         Overview:
             add var to self_var._names, calculate it's average value
         Arguments:
-            - name (:obj:`str`): name to add 
+            - name (:obj:`str`): name to add
             - length (:obj:`int` or :obj:`None`): length of iters to average, default set to self.length
             - var_type (:obj:`str`): the type of var to add to, defalut set to 'scalar', also support '1darray'
         """
@@ -388,7 +391,7 @@ class VariableRecord(object):
         Overview:
             get the ext discription of var
         Arguments:
-            - var_type(:obj:`str`): default set to scalar, support support ['scalar', '1darray'], 
+            - var_type(:obj:`str`): default set to scalar, support support ['scalar', '1darray'],
         Returns:
             - ret (:obj:`list` of :obj:`str`): the list of text discription of vars queried
         """
@@ -417,13 +420,14 @@ class AlphastarVarRecord(VariableRecord):
     Interface:
         register_var, _get_vars_text_1darray, _get_vars_tb_format_1darray
     """
+
     # overwrite
     def register_var(self, name, length=None, var_type='scalar', var_item_keys=None):
         r"""
         Overview:
             overwrite implementation of VariableRecord.register_var
         Arguments:
-            - name (:obj:`str`): name to add 
+            - name (:obj:`str`): name to add
             - length (:obj:`int` or :obj:`None`): length of iters to average, default set to self.length
             - var_type (:obj:`str`): the type of var to add to, defalut set to 'scalar', also support '1darray'
         """
@@ -493,7 +497,7 @@ class AlphastarVarRecord(VariableRecord):
 
 class AverageMeter(object):
     r"""
-    Overview: 
+    Overview:
         Computes and stores the average and current value, scalar and 1D-array
     Interface:
         __init__, reset, update
@@ -523,7 +527,7 @@ class AverageMeter(object):
         Overview:
             update AverageMeter class, append the val to the history and calculate the average
         Arguments:
-            - val (:obj:`numbers.Integral` or :obj:`list` or :obj:`numbers.Real` ) : set the default length of iters to average
+            - val (:obj:`numbers.Integral` or :obj:`list` or :obj:`numbers.Real` ) : the latest value
         """
         assert (isinstance(val, list) or isinstance(val, numbers.Integral) or isinstance(val, numbers.Real))
         self.history.append(val)
@@ -536,19 +540,21 @@ class AverageMeter(object):
 
 class DistributionTimeImage(object):
     r"""
-    Overview: 
-        DistributionTimeImage can be used to store images accorrding to time_steps, form image of data in different timesteps
+    Overview:
+        DistributionTimeImage can be used to store images accorrding to time_steps,
+        for data with 3 dims(time, category, value)
     Interface:
         __init__, add_one_time_step, get_image
     """
     def __init__(self, maxlen=600, val_range=None):
         r"""
-        Overview: 
+        Overview:
             init the DistributionTimeImage class
         Arguments:
             - maxlen (:obj:`int`): the max length of data inputs
-            - val_range (:obj:`dict` or :obj:`None`): contain :obj:`int` type val_range['min'] and val_range['max'], default set to None
-        """ 
+            - val_range (:obj:`dict` or :obj:`None`): contain :obj:`int` type val_range['min'] and val_range['max'],
+                                                      default set to None
+        """
         self.maxlen = maxlen
         self.val_range = val_range
         self.img = np.ones((maxlen, maxlen))
@@ -557,11 +563,11 @@ class DistributionTimeImage(object):
 
     def add_one_time_step(self, data):
         r"""
-        Overview: 
+        Overview:
             step one timestep in DistributionTimeImage and add the data to distribution image
         Arguments:
             - data (:obj:`np.array`):the data input
-        """ 
+        """
         assert (isinstance(data, np.ndarray))
         data = np.expand_dims(data, 1)
         data = cv2.resize(data, (1, self.maxlen), interpolation=cv2.INTER_LINEAR)

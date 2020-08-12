@@ -27,7 +27,7 @@ def levenshtein_distance(pred, target, pred_extra=None, target_extra=None, extra
 
     Returns:
         - (:obj:`torch.FloatTensor`) distance(scalar), shape[1]
-    
+
     Test:
         torch_utils/network/tests/test_metric.py
     """

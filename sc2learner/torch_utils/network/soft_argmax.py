@@ -21,7 +21,7 @@ class SoftArgmax(nn.Module):
 
     Interface:
         __init__, forward
-    
+
     Test:
         torch_utils/network/tests/test_soft_argmax.py
     """
