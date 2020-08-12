@@ -74,13 +74,16 @@ def location_transform(data, inv):
 
     if inv:
         y, x = location
-        y = map_size[1] - 1 - y
+        y += 0.5    # building fix on .5 coordination
+        x += 0.5
+        y = map_size[1] - y
         x, y = location_check(x, y)
         location = [x, y]
     else:
         x, y = location
+        y = map_size[1] - y
+        x, y = int(x), int(y)
         x, y = location_check(x, y)
-        y = map_size[1] - 1 - y
         location = [y, x]
     return location
 
