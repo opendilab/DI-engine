@@ -50,6 +50,7 @@ class AlphaStarAgent(BaseAgent):
         self.episode_ids = set(range(self.num_concurrent_episodes))
         self.prev_state = {episode_id: None for episode_id in self.episode_ids}
         self.active_episodes = {episode_id: False for episode_id in self.episode_ids}
+        self.para_prev_state = [None] * num_concurrent_episodes
 
     @property
     def is_training(self):
@@ -74,6 +75,7 @@ class AlphaStarAgent(BaseAgent):
             self.episode_ids = set(range(self.num_concurrent_episodes))
             self.prev_state = {episode_id: None for episode_id in self.episode_ids}
             self.active_episodes = {episode_id: False for episode_id in self.episode_ids}
+            self.para_prev_state = [None] * len(if_new_episodes)
 
         # TODO(pzh) this is a potential risk! If_new_episodes is a list and its order is problematic.
         for ep_id, is_start in enumerate(if_new_episodes):
@@ -84,6 +86,15 @@ class AlphaStarAgent(BaseAgent):
                 self.prev_state[ep_id] = [s.detach() for s in self.prev_state[ep_id]]
             else:
                 logging.warning("Previous state is None, and the episode is not restart now, why does this happen?")
+
+        # add ZH
+        for i in range(len(self.para_prev_state)):
+            if if_new_episodes[i]:
+                self.para_prev_state[i] = None
+            else:
+                self.para_prev_state[i] = (s.detach() for s in self.para_prev_state[i])
+
+
 
     def _before_forward(self, end_episode_ids):
         """ Call this function each step before conducting forward pass
@@ -166,9 +177,11 @@ class AlphaStarAgent(BaseAgent):
         assert mode in ["mimic", "evaluate"]
         # TODO(nyz) check equal trajectory
         # TODO(nyz) pass hidden states
-        data[0]['prev_state'] = None
+        data[0]['prev_state'] = self.para_prev_state
         if mode == 'mimic':
             logits, next_states = self.model(data, mode=mode + '_parallel', temperature=temperature)
+            assert len(self.para_prev_state) == len(next_states), 'pre state length does not match'
+            self.para_prev_state = next_states
             actions = None  # placeholder
         else:
             raise NotImplementedError(mode)

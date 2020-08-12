@@ -107,9 +107,10 @@ class AlphaStarActorCritic(ActorCriticBase):
 
     # overwrite
     def mimic_parallel(self, inputs, **kwargs):
-        self.traj = len(inputs)
+        self.traj = [len(b['spatial_info']) for b in inputs]
         self.batch_size = len(inputs[0]['spatial_info'])
         prev_state = inputs[0].pop('prev_state')
+        end_idx = [[i for i in inputs[j]['end_index']] for j in range(len(inputs))]
         inputs = self._merge_traj(inputs)
         # encoder
         embedded_entity, embedded_spatial, embedded_scalar, scalar_context, baseline_feature,\
@@ -118,7 +119,15 @@ class AlphaStarActorCritic(ActorCriticBase):
             self._split_traj(t) for t in [embedded_entity, embedded_spatial, embedded_scalar]
         ]
         # lstm
-        lstm_output, next_state = self.encoder.core_lstm(embedded_entity, embedded_spatial, embedded_scalar, prev_state)
+        lstm_output = []
+        for idx, embedding in enumerate(zip(embedded_entity, embedded_spatial, embedded_scalar)):
+            active_state = [i for i in range(self.batch_size) if i not in end_idx[idx]]
+            tmp_state = [prev_state[i] for i in active_state]
+            tmp_output, tmp_state = self.encoder.core_lstm(embedding[0], embedding[1], embedding[2], tmp_state)
+            for _idx, active_idx in enumerate(active_state):
+                prev_state[active_idx] = tmp_state[_idx]
+            lstm_output.append(tmp_output.squeeze(0))
+        next_state = prev_state
         lstm_output = self._merge_traj(lstm_output)
         # head
         policy_inputs = self.policy.MimicInput(
@@ -131,8 +140,10 @@ class AlphaStarActorCritic(ActorCriticBase):
     def _merge_traj(self, data):
         def merge(t):
             if isinstance(t[0], torch.Tensor):
-                t = torch.stack(t, dim=0)
-                return t.reshape(-1, *t.shape[2:])
+                # t = torch.stack(t, dim=0)
+                # return t.reshape(-1, *t.shape[2:])
+                t = torch.cat(t, dim=0)
+                return t
             elif isinstance(t[0], list):
                 return reduce(lambda x, y: x + y, t)
             elif isinstance(t[0], dict):
@@ -147,7 +158,9 @@ class AlphaStarActorCritic(ActorCriticBase):
 
     def _split_traj(self, data):
         assert isinstance(data, torch.Tensor)
-        return torch.stack(torch.chunk(data, self.traj, 0), 0)  # TxB, N -> T, B, N
+        ret = [d.unsqueeze(0) for d in torch.split(data, self.traj, 0)]
+        assert len(ret) == len(self.traj), 'resume data length must equal to original data'
+        return ret
 
     # overwrite
     def evaluate(self, inputs, **kwargs):
