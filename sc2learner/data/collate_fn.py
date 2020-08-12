@@ -7,7 +7,7 @@ from pysc2.lib.static_data import ACTIONS_REORDER
 from sc2learner.utils import list_dict2dict_list
 
 
-def policy_collate_fn(batch, max_delay=63):
+def policy_collate_fn(batch, max_delay=127):
     data_item = {
         'spatial_info': False,  # special op
         'scalar_info': True,
@@ -56,8 +56,8 @@ def policy_collate_fn(batch, max_delay=63):
                 else:
                     tmp.append(batch[j][i])
             seq.append(tmp)
-
-    seq = list(zip(*batch))
+    else:
+        seq = list(zip(*batch))
     for s in range(len(seq)):
         seq[s] = merge_func(seq[s])
     return seq
