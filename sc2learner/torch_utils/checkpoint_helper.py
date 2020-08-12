@@ -96,6 +96,7 @@ class CheckpointHelper(object):
         optimizer=None,
         last_iter=None,
         last_epoch=None,
+        last_frame=None,
         dataset=None,
         actor_info=None,
         prefix_op=None,
@@ -128,6 +129,7 @@ class CheckpointHelper(object):
             assert (last_iter is not None or last_epoch is not None)
             checkpoint['last_iter'] = last_iter
             checkpoint['last_epoch'] = last_epoch
+            checkpoint['last_frame'] = last_frame
             checkpoint['optimizer'] = optimizer.state_dict()
 
         if dataset is not None:
@@ -193,6 +195,7 @@ class CheckpointHelper(object):
         load_path,
         model,
         optimizer=None,
+        last_frame=None,
         last_iter=None,
         last_epoch=None,
         lr_schduler=None,
@@ -266,6 +269,12 @@ class CheckpointHelper(object):
         if optimizer is not None:
             optimizer.load_state_dict(checkpoint['optimizer'])
             logger.info(logger_prefix + 'load optimizer in {}'.format(load_path))
+
+        if last_frame is not None:
+            last_frame.update(checkpoint['last_frame'])
+            logger.info(
+                logger_prefix + 'load last_frame in {}, current last_frame is {}'.format(load_path, last_frame.val)
+            )
 
         if last_iter is not None:
             last_iter.update(checkpoint['last_iter'])

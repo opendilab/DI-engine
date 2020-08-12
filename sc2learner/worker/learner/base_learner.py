@@ -75,6 +75,7 @@ class Learner:
             self.logger, _, _ = self._setup_logger(self.rank)
         self.last_iter = CountVar(init_val=0)  # count for iterations
         self.last_epoch = CountVar(init_val=0)  # count for epochs
+        self.last_frame = CountVar(init_val=0)  # count for frames
         self.data_timer = EasyTimer()
         self.total_timer = EasyTimer()
 
@@ -135,6 +136,7 @@ class Learner:
             self.restore(self.cfg.common.load_path)
             self.last_epoch.add(1)  # skip interrupted epoch
             self.last_iter.add(1)  # skip interrupted iter
+            self.last_frame.add(1)
 
     def _check_checkpoint_path(self, ckpt):
         """ Validate the checkpoint """
@@ -148,11 +150,13 @@ class Learner:
                 checkpoint_path,
                 self.agent.get_model(),
                 optimizer=self.optimizer,
+                last_frame=self.last_frame,
                 last_iter=self.last_iter,
                 last_epoch=self.last_epoch,  # TODO last_epoch for lr_scheduler
                 dataset=self.ckpt_dataset,
                 logger_prefix='({})'.format(self._name)
             )
+        self.last_frame.update(int(self.last_frame.val / self.world_size))  # adjust to different GPUs
 
     def save_checkpoint(self):
         """
@@ -163,8 +167,10 @@ class Learner:
                 self.last_iter.val,
                 self.agent.get_model(),
                 optimizer=self.optimizer,
-                dataset=self.dataset,
-                last_epoch=self.last_epoch.val
+                # dataset=self.dataset,
+                dataset=None,
+                last_epoch=self.last_epoch.val,
+                last_frame=self.last_frame.val * self.world_size    # total frames from all GPUs
             )
 
     @auto_checkpoint
@@ -230,13 +236,14 @@ class Learner:
         self.variable_record.update_var(time_items)
 
         iterations = self.last_iter.val
-
+        total_frames = self.last_frame.val * link.get_world_size()
+        total_frames -= total_frames % 100
         if iterations % self.cfg.logger.print_freq == 0:
             self.logger.info("=== Training Iteration {} Result ===".format(self.last_iter.val))
             self.logger.info('iterations:{}\t{}'.format(iterations, self.variable_record.get_vars_text()))
             tb_keys = self.tb_logger.scalar_var_names
             self.tb_logger.add_val_list(
-                self.variable_record.get_vars_tb_format(tb_keys, iterations, var_type='scalar'), viz_type='scalar'
+                self.variable_record.get_vars_tb_format(tb_keys, total_frames, var_type='scalar'), viz_type='scalar'
             )
             self._record_additional_info(iterations)
 
