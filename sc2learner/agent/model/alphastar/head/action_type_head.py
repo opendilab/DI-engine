@@ -92,15 +92,12 @@ class ActionTypeHead(nn.Module):
         if self.cfg.use_mask:
             x -= (1 - action_type_mask) * 1e9
         if action_type is None:
-            p = F.softmax(x.div(temperature), dim=1)
+            p = F.softmax(x.div(0.8), dim=1)
             handle = self.pd(p)
             # action_type is sampled from these logits using a multinomial with temperature 0.8.
             # Note that during supervised learning, action_type will be the ground truth human action type,
             # and temperature is 1.0 (and similarly for all other arguments).
-            if self.training:
-                action_type = handle.sample()
-            else:
-                action_type = handle.mode()
+            action_type = handle.sample()
 
         # to get autoregressive_embedding
         action_one_hot = one_hot(action_type, self.action_num)  # one-hot version of action_type
