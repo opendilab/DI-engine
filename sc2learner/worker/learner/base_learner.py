@@ -170,7 +170,7 @@ class Learner:
                 # dataset=self.dataset,
                 dataset=None,
                 last_epoch=self.last_epoch.val,
-                last_frame=self.last_frame.val * self.world_size    # total frames from all GPUs
+                last_frame=self.last_frame.val * self.world_size  # total frames from all GPUs
             )
 
     @auto_checkpoint
@@ -236,7 +236,7 @@ class Learner:
         self.variable_record.update_var(time_items)
 
         iterations = self.last_iter.val
-        total_frames = self.last_frame.val * link.get_world_size()
+        total_frames = self.last_frame.val * self.get_world_size()
         total_frames -= total_frames % 100
         if iterations % self.cfg.logger.print_freq == 0:
             self.logger.info("=== Training Iteration {} Result ===".format(self.last_iter.val))

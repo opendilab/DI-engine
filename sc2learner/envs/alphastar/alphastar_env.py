@@ -142,12 +142,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         self._obs_helper.update_last_action(self)
 
         return AlphaStarEnv.timestep(
-            obs=copy.deepcopy(obs),
-            reward=self.reward,
-            done=done,
-            info=info,
-            episode_steps=self.episode_steps,
-            due=due
+            obs=copy.deepcopy(obs), reward=self.reward, done=done, info=info, episode_steps=self.episode_steps, due=due
         )
 
     def seed(self, seed: int) -> None:

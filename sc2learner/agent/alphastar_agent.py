@@ -94,8 +94,6 @@ class AlphaStarAgent(BaseAgent):
             else:
                 self.para_prev_state[i] = (s.detach() for s in self.para_prev_state[i])
 
-
-
     def _before_forward(self, end_episode_ids):
         """ Call this function each step before conducting forward pass
 

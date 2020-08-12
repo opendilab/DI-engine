@@ -233,7 +233,7 @@ class SelectedUnitsHead(nn.Module):
                 query_result.sub_((1 - mask) * 1e9)
                 if i == 0:  # mask end flag when first select
                     for b in range(B):
-                        query_result[b][end_flag_index[b]] = - 1e9
+                        query_result[b][end_flag_index[b]] = -1e9
                 entity_num = self._get_pred_with_logit(query_result, temperature)
 
                 selected_units_step = torch.zeros(B, device=key.device, dtype=torch.long)
@@ -555,9 +555,7 @@ class LocationHead(nn.Module):
             x = layer(x)
         x = self.ensemble_conv(x)
         if self.use_mask:
-            available_location_mask = F.interpolate(
-                available_location_mask, size=x.shape[2:], mode='bilinear'
-            )
+            available_location_mask = F.interpolate(available_location_mask, size=x.shape[2:], mode='bilinear')
 
             available_location_mask *= (available_location_mask >= 1).float()
             x -= ((1 - available_location_mask) * 1e9)

@@ -123,10 +123,7 @@ class EvalActor(AlphaStarActor):
                 action.append(None)
         for n in range(self.agent_num):
             if action[n] is None:
-                print(
-                    'Act {}:{}:{}: None'.format(
-                        self.cfg.evaluate.job_id, n, step)
-                    )
+                print('Act {}:{}:{}: None'.format(self.cfg.evaluate.job_id, n, step))
                 continue
             self.action_counts[n][action[n]['action_type']] += 1
             if self.bot_multi_test:
@@ -139,11 +136,7 @@ class EvalActor(AlphaStarActor):
                         )
                     )
             else:
-                print(
-                    'Act {}:{}:{}:{}'.format(
-                        self.cfg.evaluate.job_id, n, step, action_to_string(action[n])
-                    )
-                )
+                print('Act {}:{}:{}:{}'.format(self.cfg.evaluate.job_id, n, step, action_to_string(action[n])))
 
 
 class EvalJobGetter:
@@ -196,22 +189,22 @@ class LocalStatLoader:
         self.cfg = cfg
 
     def request_stat(self, job, agent_no):
-        import pickle
-        path = ['../../DATA/Z/normal_hydra_lurker.pkl',
-                '../../DATA/Z/12d_base.pkl',
-                '../../DATA/Z/base_pool_dog_rush.pkl',
-                '../../DATA/Z/base_pool_normal.pkl',
-                '../../DATA/Z/pool_base_muta.pkl',
-                ]
+        path = [
+            '../../DATA/Z/normal_hydra_lurker.pkl',
+            '../../DATA/Z/12d_base.pkl',
+            '../../DATA/Z/base_pool_dog_rush.pkl',
+            '../../DATA/Z/base_pool_normal.pkl',
+            '../../DATA/Z/pool_base_muta.pkl',
+        ]
         if self.cfg.evaluate.get('local', False):
             import random
             p = path[random.randint(0, 4)]
             print('[INFO] choosed Z:', p)
         else:
-            import os
             dirs = os.path.dirname(__file__).split('/')
-            dirs = dirs[: dirs.index('sc2learner')]
-            p = '/' + os.path.join(*dirs) + '/DATA/Z/' + Z_LIST[self.cfg.evaluate.stat_path[job['stat_id'][agent_no]]] + '.pkl'  # noqa
+            dirs = dirs[:dirs.index('sc2learner')]
+            p = '/' + os.path.join(*dirs) + '/DATA/Z/' + Z_LIST[self.cfg.evaluate.stat_path[job['stat_id'][agent_no]]
+                                                                ] + '.pkl'  # noqa
         f = open(p, 'rb')
         stat = pickle.load(f)
         f.close()
@@ -247,8 +240,9 @@ def main(unused_argv):
         var_list = []
         if cfg.evaluate.get("bot_multi_test", False):
             pool = Pool(cfg.evaluate.num_instance_per_node)
-            difficulty = DIFFICULTY[DIFFICULTY.index(cfg.evaluate.bot_difficulty): DIFFICULTY.index(
-                cfg.evaluate.max_bot_difficulty) + 1]
+            difficulty = DIFFICULTY[DIFFICULTY.index(cfg.evaluate.
+                                                     bot_difficulty):DIFFICULTY.index(cfg.evaluate.max_bot_difficulty) +
+                                    1]
             z_keys = list(Z_LIST.keys())
             random.shuffle(z_keys)
             z_list = {k: Z_LIST[k] for k in z_keys[:cfg.evaluate.z_number]}
@@ -316,8 +310,8 @@ def run_episode(cfg):
     if cfg.evaluate.get('save_replay', True) and cfg.evaluate.replay_path:
         result = {0: 'tie', 1: 'win', -1: 'lose'}
         if cfg.evaluate.bot_multi_test:
-            prefix = cfg.evaluate.bot_difficulty + '--' + result[ea.data_pusher.return_sum[0]] + '--' + Z_LIST[
-                cfg.evaluate.stat_path.agent0]
+            prefix = cfg.evaluate.bot_difficulty + '--' + result[ea.data_pusher.return_sum[0]
+                                                                 ] + '--' + Z_LIST[cfg.evaluate.stat_path.agent0]
             logging.info('saving replay:' + prefix)
         else:
             prefix = cfg.evaluate.bot_difficulty + '--' + result[ea.data_pusher.return_sum[0]]

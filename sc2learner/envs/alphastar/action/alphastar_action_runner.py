@@ -6,7 +6,6 @@ from sc2learner.envs.env.base_env import BaseEnv
 from sc2learner.envs.common import EnvElementRunner
 from .alphastar_action import AlphaStarRawAction
 
-
 DELAY_INF = 100000
 
 

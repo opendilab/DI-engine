@@ -388,8 +388,7 @@ def get_available_actions_raw_data(obs):
     remove_func = []
     for func in vector:
         if func[4]:  # resource
-            if (stat_data[0] < func.resource[0]
-                    or stat_data[1] < func.resource[1]):
+            if (stat_data[0] < func.resource[0] or stat_data[1] < func.resource[1]):
                 remove_func.append(func)
                 continue
         if func[5]:  # mana
