@@ -60,7 +60,9 @@ class TestAgentPlugin:
                 self.model = get_lstm(lstm_type='pytorch', input_size=36, hidden_size=32, num_layers=2, norm_type=None)
 
             def forward(self, data):
-                inputs, prev_state = data['data'], data['prev_state']
+                inputs = torch.stack([d['f'] for d in data], dim=1)
+                prev_state = [d['prev_state'] for d in data]
+
                 return self.model(inputs, prev_state, list_next_state=True)
 
         model = TempLSTM()
@@ -75,21 +77,27 @@ class TestAgentPlugin:
         })
         # the former plugin is registered in inner layer
         agent = BaseAgent(model, plugin_cfg)
-        data1 = {'data': torch.randn(2, state_num, 36), 'state_info': {i: False for i in range(state_num)}}
+        data1 = {
+            'data': [{
+                'f': torch.randn(2, 36)
+            } for _ in range(state_num)],
+            'state_info': {i: False
+                           for i in range(state_num)}
+        }
         output = agent.forward(data1)
         assert output.shape == (2, state_num, 32)
         for item in agent._state_manager._state.values():
             assert isinstance(item, tuple) and len(item) == 2
             assert all(t.shape == (2, 1, 32) for t in item)
 
-        data2 = {'data': torch.randn(2, 3, 36), 'state_info': {i: False for i in [0, 2, 3]}}
+        data2 = {'data': [{'f': torch.randn(2, 36)} for _ in range(3)], 'state_info': {i: False for i in [0, 2, 3]}}
         output = agent.forward(data2)
         assert output.shape == (2, 3, 32)
         for item in agent._state_manager._state.values():
             assert isinstance(item, tuple) and len(item) == 2
             assert all(t.shape == (2, 1, 32) for t in item)
 
-        data3 = {'data': torch.randn(2, 2, 36), 'state_info': {0: True, 1: False}}
+        data3 = {'data': [{'f': torch.randn(2, 36)} for _ in range(2)], 'state_info': {0: True, 1: False}}
         output = agent.forward(data3)
         assert output.shape == (2, 2, 32)
 

@@ -12,7 +12,7 @@ class BaseAgent(ABC):
 
     def forward(self, data: Any, param: Optional[dict] = None) -> Any:
         if param is not None:
-            return self._model(data, param)
+            return self._model(data, **param)
         else:
             return self._model(data)
 

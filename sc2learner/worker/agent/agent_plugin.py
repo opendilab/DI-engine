@@ -56,7 +56,7 @@ class HiddenStateHelper(IAgentStatefulPlugin):
         def forward_state_wrapper(forward_fn):
             def wrapper(data, **kwargs):
                 data, state_info = agent._state_manager.before_forward(data)
-                output, h = forward_fn(data)
+                output, h = forward_fn(data, **kwargs)
                 agent._state_manager.after_forward(h, state_info)
                 return output
 
@@ -80,14 +80,19 @@ class HiddenStateHelper(IAgentStatefulPlugin):
     def reset(self) -> None:
         self._state = {i: self._init_fn() for i in range(self._state_num)}
 
-    def before_forward(self, data: dict) -> Tuple[dict, dict]:
-        assert 'state_info' in data.keys()
-        state_info = data['state_info']
+    def before_forward(self, inputs: dict) -> Tuple[dict, dict]:
+        if 'state_info' in inputs.keys():
+            state_info = inputs['state_info']
+        else:
+            state_info = {i: False for i in range(self._state_num)}
         for idx, is_reset in state_info.items():
             if is_reset:
                 self._state[idx] = self._init_fn()
         state = [self._state[idx] for idx in state_info.keys()]
-        data['prev_state'] = state
+        data = inputs['data']
+        assert all([isinstance(d, dict) for d in data]), [type(d) for d in data]
+        for d, s in zip(data, state):
+            d['prev_state'] = s
         return data, state_info
 
     def after_forward(self, h: Any, state_info: dict) -> None:
