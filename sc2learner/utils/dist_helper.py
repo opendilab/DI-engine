@@ -18,8 +18,8 @@ def error_wrapper(fn, default_ret):
         except Exception:
             ret = default_ret
             print(
-                '[WARNING]: call linklink error, return default_ret({}). If you are not in unittest, please check it'
-                .format(default_ret)
+                '[WARNING]: call linklink error, return default_ret({}). If you are not in unittest, please check it'.
+                format(default_ret)
             )
         return ret
 

@@ -16,14 +16,14 @@ def build_time_helper(cfg=None, wrapper_type=None):
         build the timehelper
 
     Arguments:
-        - cfg (:obj:`dict`): 
-            the config file, which is a multilevel dict, have large domain like 
+        - cfg (:obj:`dict`):
+            the config file, which is a multilevel dict, have large domain like
             evaluate, common, model, train etc, and each large domain
             has it's smaller domain.
         - wrapper_type (:obj:`str`): the type of wrapper returned, support ['time', 'cuda']
 
     Returns:
-        - time_wrapper (:obj:`TimeWrapper`): 
+        - time_wrapper (:obj:`TimeWrapper`):
             return the corresponding timewrapper, reference sc2learner.utils.timehelper.TimeWrapperTime
             and sc2learner.utils.timehelper.get_cuda_time_wrapper
     """
@@ -45,7 +45,7 @@ class EasyTimer:
     r"""
     Overview:
         A decent timer wrapper that can be used easily.
-    
+
     Interface:
         __init__, __enter__, __exit__
 
@@ -59,7 +59,7 @@ class EasyTimer:
         r"""
         Overview:
             Init class EasyTimer
-         
+
         Arguments:
             - cuda (:obj:`bool`): whether to build timer with cuda type
         """
@@ -90,7 +90,7 @@ class TimeWrapper(object):
     r"""
     Overview:
         A abstract class method that defines TimeWrapper class
-    
+
     Interface:
         wrapper, start_time, end_time
     """
@@ -99,7 +99,7 @@ class TimeWrapper(object):
         r"""
         Overview:
             classmethod wrapper, wrap a function and automatically return its running time
-        
+
         - fn (:obj:`function`): the function to be wrap and timed
         """
         def time_func(*args, **kwargs):
@@ -131,7 +131,7 @@ class TimeWrapperTime(TimeWrapper):
     r"""
     Overview:
         A class method that inherit from TimeWrapper class
-    
+
     Interface:
         start_time, end_time
     """
@@ -166,6 +166,7 @@ def get_cuda_time_wrapper():
     Returns:
         - TimeWrapperCuda(:obj:`class`): see TimeWrapperCuda class
     """
+
     #TODO find a way to autodoc the class within method
     class TimeWrapperCuda(TimeWrapper):
         r"""
@@ -184,7 +185,6 @@ def get_cuda_time_wrapper():
 
         # overwrite
         @classmethod
-
         def start_time(cls):
             r"""
             Overview:
