@@ -23,11 +23,15 @@ class FakeASEnvManager(SubprocessEnvManager):
         assert isinstance(timestep, list)
         assert isinstance(timestep[0], tuple)
         timestep_type = type(timestep[0])
+
         def pair(data):
             if not (isinstance(data, list) or isinstance(data, tuple)):
                 return [data, data]
             else:
                 return data
+
         # item, agent_num, env_num
-        items = [list(zip(*[pair(getattr(timestep[i], item)) for i in range(len(timestep))])) for item in timestep[0]._fields]
+        items = [
+            list(zip(*[pair(getattr(timestep[i], item)) for i in range(len(timestep))])) for item in timestep[0]._fields
+        ]
         return timestep_type(*items)

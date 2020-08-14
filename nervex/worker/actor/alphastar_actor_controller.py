@@ -50,8 +50,16 @@ class AlphaStarActor(BaseActor):
             agent.load_state_dict(agent_update_info)
         obs = self._env_manager.reset(reset_param=[{'loaded_stat': self._stat} for _ in range(self._job['env_num'])])
         self._alive_env = [i for i in range(self._job['env_num'])]
-        self._data_buffer = {k: {k1: [] for k1 in range(self._job['env_num'])} for k in range(self._job['send_data_agent_num'])}
-        self._last_data_buffer = {k: {k1: [] for k1 in range(self._job['env_num'])} for k in range(self._job['send_data_agent_num'])}
+        self._data_buffer = {
+            k: {k1: []
+                for k1 in range(self._job['env_num'])}
+            for k in range(self._job['send_data_agent_num'])
+        }
+        self._last_data_buffer = {
+            k: {k1: []
+                for k1 in range(self._job['env_num'])}
+            for k in range(self._job['send_data_agent_num'])
+        }
         self._traj_queue = queue.Queue()
         return obs
 

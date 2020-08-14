@@ -1,7 +1,6 @@
 from .base_comm_actor import BaseCommActor
 from .flask_fs_actor import FlaskFileSystemActor
 
-
 comm_map = {'flask_fs': FlaskFileSystemActor}
 
 

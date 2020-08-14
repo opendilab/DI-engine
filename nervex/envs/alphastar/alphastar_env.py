@@ -140,7 +140,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
 
         # env step
         last_episode_steps = self.episode_steps
-        timestep = self._raw_env_step(raw_action, step_mul)# update episode_steps
+        timestep = self._raw_env_step(raw_action, step_mul)  # update episode_steps
 
         # transform obs, reward and record statistics
         self.raw_obs = [timestep[n].observation for n in range(self._agent_num)]
@@ -159,12 +159,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         self._obs_helper.update_last_action(self)
 
         return AlphaStarEnv.timestep(
-            obs=copy.deepcopy(obs),
-            reward=self.reward,
-            done=done,
-            info=info,
-            episode_steps=last_episode_steps,
-            due=due
+            obs=copy.deepcopy(obs), reward=self.reward, done=done, info=info, episode_steps=last_episode_steps, due=due
         )
 
     def seed(self, seed: int) -> None:

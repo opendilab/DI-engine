@@ -8,7 +8,7 @@ if ! echo $ver | grep -q 0.29.0; then
   exit 1
 fi
 
-yapf --in-place --recursive -p --verbose --style .style.yapf sc2learner/
+yapf --in-place --recursive -p --verbose --style .style.yapf nervex/
 
 if [[ "$1" == '--test' ]]; then # Only for CI usage, user should not use --test flag.
   if ! git diff --quiet &>/dev/null; then

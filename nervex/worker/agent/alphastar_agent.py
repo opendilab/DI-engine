@@ -48,6 +48,7 @@ class ASDataTransformPlugin(IAgentStatelessPlugin):
                 data = as_eval_collate_fn(data)
                 ret = fn(data, **kwargs)
                 return post_processing(ret, prev_state, bs=len(ret[2]))
+
             return wrapper
 
         agent.forward = data_transform_wrapper(agent.forward)
@@ -58,13 +59,15 @@ add_plugin('as_data_transform', ASDataTransformPlugin)
 
 class AlphaStarAgent(BaseAgent):
     def __init__(self, model: torch.nn.Module, env_num: int) -> None:
-        plugin_cfg = OrderedDict({
-            'as_data_transform': {},
-            'hidden_state': {
-                'state_num': env_num
-            },
-            'grad': {
-                'enable_grad': False
-            },
-        })
+        plugin_cfg = OrderedDict(
+            {
+                'as_data_transform': {},
+                'hidden_state': {
+                    'state_num': env_num
+                },
+                'grad': {
+                    'enable_grad': False
+                },
+            }
+        )
         super(AlphaStarAgent, self).__init__(model, plugin_cfg)
