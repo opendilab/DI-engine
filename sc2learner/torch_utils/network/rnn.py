@@ -24,7 +24,8 @@ class LSTMForwardWrapper(object):
             preprocess the inputs and previous states
         Arguments:
             - inputs (:obj:`tensor`): input vector of cell, tensor of size [seq_len, batch_size, input_size]
-            - prev_state (:obj:`tensor`): None or tensor of size [num_directions*num_layers, batch_size, hidden_size], if None then prv_state will be initialized to all zeros.
+            - prev_state (:obj:`tensor`): None or tensor of size [num_directions*num_layers, batch_size, hidden_size],
+                                          if None then prv_state will be initialized to all zeros.
         """
         assert hasattr(self, 'num_layers')
         assert hasattr(self, 'hidden_size')
@@ -61,7 +62,7 @@ class LSTMForwardWrapper(object):
         Overview:
             post process the next_state, return list or tensor type next_states
         Arguments:
-            - next_state (:obj:`list` :obj:`Tuple` of :obj:`tensor`): list of Tuple contain the next_state's hidden state and cell state
+            - next_state (:obj:`list` :obj:`Tuple` of :obj:`tensor`): list of Tuple contains the next (h, c)
             - list_next_state (:obj:`bool`): whether return next_state with list format, default set to False
         Returns:
             - next_state(:obj:`list` of :obj:`tensor` or :obj:`tensor`): the formated next_state
@@ -88,14 +89,14 @@ class LSTM(nn.Module, LSTMForwardWrapper):
     """
     def __init__(self, input_size, hidden_size, num_layers, norm_type=None, bias=True, dropout=0.):
         r"""
-        Overview: 
+        Overview:
             initializate the LSTM cell
-        
+
         Arguments:
             - input_size (:obj:`int`): size of the input vector
             - hidden_size (:obj:`int`): size of the hidden state vector
             - num_layers (:obj:`int`): number of lstm layers
-            - norm_type (:obj:`str`): type of the normaliztion, now support ['BN', 'IN', 'SyncBN', 'AdaptiveIN'], default set to None
+            - norm_type (:obj:`str`): type of the normaliztion, (default: None)
             - bias (:obj:`bool`): whether to use bias, default set to True
             - dropout (:obj:float):  dropout rate, default set to .0
         """
@@ -133,7 +134,7 @@ class LSTM(nn.Module, LSTMForwardWrapper):
         r"""
         Overview:
             Take the previous state and the input and calculate the output and the nextstate
-        
+
         Arguments:
             - inputs (:obj:`tensor`): input vector of cell, tensor of size [seq_len, batch_size, input_size]
             - prev_state (:obj:`tensor`): None or tensor of size [num_directions*num_layers, batch_size, hidden_size]
@@ -177,7 +178,7 @@ class PytorchLSTM(nn.LSTM, LSTMForwardWrapper):
     Overview:
         Wrap the nn.LSTM , format the input and output
         Notes:
-            you can reference the <https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html#torch.nn.LSTM> 
+            you can reference the <https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html#torch.nn.LSTM>
     Interface:
         forward
     """
@@ -214,7 +215,7 @@ def get_lstm(lstm_type, input_size, hidden_size, num_layers, norm_type, dropout=
         - input_size (:obj:`int`): size of the input vector
         - hidden_size (:obj:`int`): size of the hidden state vector
         - num_layers (:obj:`int`): number of lstm layers
-        - norm_type (:obj:`str`): type of the normaliztion, now support ['BN', 'IN', 'SyncBN', 'AdaptiveIN'], default set to None
+        - norm_type (:obj:`str`): type of the normaliztion, (default: None)
         - bias (:obj:`bool`): whether to use bias, default set to True
         - dropout (:obj:float):  dropout rate, default set to .0
     Returns:
