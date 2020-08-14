@@ -117,5 +117,5 @@ def register_plugin(agent: Any, plugin_cfg: Union[OrderedDict, None]) -> None:
 
 def add_plugin(name, plugin_type):
     assert isinstance(name, str)
-    assert isinstance(plugin_type, IAgentPlugin)
+    assert issubclass(plugin_type, IAgentPlugin)
     plugin_name_map[name] = plugin_type

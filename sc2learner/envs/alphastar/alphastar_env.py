@@ -233,6 +233,9 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         self._agent_action = _agent_action
 
 
+AlphaStarTimestep = AlphaStarEnv.timestep
+
+
 class FakeAlphaStarEnv(AlphaStarEnv):
     def __init__(self, *args, **kwargs):
         super(FakeAlphaStarEnv, self).__init__(*args, **kwargs)
@@ -242,6 +245,6 @@ class FakeAlphaStarEnv(AlphaStarEnv):
         idx = np.random.choice(range(len(self.fake_data)))
         return self.fake_data[idx][0]
 
-    def step(self, raw_action, step_mul):
+    def step(self, action):
         idx = np.random.choice(range(len(self.fake_data)))
         return FakeAlphaStarEnv.timestep(*(self.fake_data[idx]))
