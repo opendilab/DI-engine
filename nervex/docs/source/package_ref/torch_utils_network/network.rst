@@ -7,62 +7,62 @@ nn_module
 weight_init_
 ~~~~~~~~~~~~~~~
 
-.. automodule:: sc2learner.torch_utils.network.nn_module.weight_init_
+.. automodule:: nervex.torch_utils.network.nn_module.weight_init_
 
 
 sequential_pack
 ~~~~~~~~~~~~~~~
 
-.. automodule:: sc2learner.torch_utils.network.nn_module.sequential_pack
+.. automodule:: nervex.torch_utils.network.nn_module.sequential_pack
 
 conv1d_block
 ~~~~~~~~~~~~~~~
 
-.. automodule:: sc2learner.torch_utils.network.nn_module.conv1d_block
+.. automodule:: nervex.torch_utils.network.nn_module.conv1d_block
 
 conv2d_block
 ~~~~~~~~~~~~~~~
 
-.. automodule:: sc2learner.torch_utils.network.nn_module.conv2d_block
+.. automodule:: nervex.torch_utils.network.nn_module.conv2d_block
 
 deconv2d_block
 ~~~~~~~~~~~~~~~
 
-.. automodule:: sc2learner.torch_utils.network.nn_module.deconv2d_block
+.. automodule:: nervex.torch_utils.network.nn_module.deconv2d_block
 
 
 fc_block
 ~~~~~~~~~~~~~~~
 
-.. automodule:: sc2learner.torch_utils.network.nn_module.fc_block
+.. automodule:: nervex.torch_utils.network.nn_module.fc_block
 
 one_hot
 ~~~~~~~~~~~~~~~
 
-.. automodule:: sc2learner.torch_utils.network.nn_module.one_hot
+.. automodule:: nervex.torch_utils.network.nn_module.one_hot
 
 binary_encode
 ~~~~~~~~~~~~~~~
 
-.. automodule:: sc2learner.torch_utils.network.nn_module.binary_encode
+.. automodule:: nervex.torch_utils.network.nn_module.binary_encode
 
 BilinearUpsample
 ~~~~~~~~~~~~~~~~
 
-.. autoclass:: sc2learner.torch_utils.network.nn_module.BilinearUpsample
+.. autoclass:: nervex.torch_utils.network.nn_module.BilinearUpsample
     :members: __init__, forward
 
 NearestUpsample
 ~~~~~~~~~~~~~~~~
 
-.. autoclass:: sc2learner.torch_utils.network.nn_module.NearestUpsample
+.. autoclass:: nervex.torch_utils.network.nn_module.NearestUpsample
     :members: __init__, forward
 
 
 ChannelShuffle
 ~~~~~~~~~~~~~~~~
 
-.. autoclass:: sc2learner.torch_utils.network.nn_module.ChannelShuffle
+.. autoclass:: nervex.torch_utils.network.nn_module.ChannelShuffle
     :members: __init__, forward
 
 
@@ -76,7 +76,7 @@ soft_argmax
 SoftArgmax
 ~~~~~~~~~~~~~~~~
 
-.. autoclass:: sc2learner.torch_utils.network.soft_argmax.SoftArgmax
+.. autoclass:: nervex.torch_utils.network.soft_argmax.SoftArgmax
     :members: __init__, forward
 
 
@@ -90,7 +90,7 @@ activation
 GLU
 ~~~~~~~~~~~~~~~~
 
-.. autoclass:: sc2learner.torch_utils.network.activation.GLU
+.. autoclass:: nervex.torch_utils.network.activation.GLU
     :members: __init__, forward
 
 
@@ -98,7 +98,7 @@ GLU
 build_activation
 ~~~~~~~~~~~~~~~~~
 
-.. automodule:: sc2learner.torch_utils.network.activation.build_activation
+.. automodule:: nervex.torch_utils.network.activation.build_activation
 
 
 
@@ -109,7 +109,7 @@ block
 ResBlock
 ~~~~~~~~~~~~~~~~
 
-.. autoclass:: sc2learner.torch_utils.network.block.ResBlock
+.. autoclass:: nervex.torch_utils.network.block.ResBlock
     :members: __init__, forward
 
 
@@ -117,7 +117,7 @@ ResBlock
 ResFCBlock
 ~~~~~~~~~~~~~~~~
 
-.. autoclass:: sc2learner.torch_utils.network.block.ResFCBlock
+.. autoclass:: nervex.torch_utils.network.block.ResFCBlock
     :members: __init__, forward
 
 
@@ -127,21 +127,21 @@ normalization
 GroupSyncBatchNorm
 ~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: sc2learner.torch_utils.network.normalization.GroupSyncBatchNorm
+.. autoclass:: nervex.torch_utils.network.normalization.GroupSyncBatchNorm
     :members: __init__, __repr__
 
 
 AdaptiveInstanceNorm2d
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: sc2learner.torch_utils.network.normalization.AdaptiveInstanceNorm2d
+.. autoclass:: nervex.torch_utils.network.normalization.AdaptiveInstanceNorm2d
     :members: __init__, forward
 
 
 build_normalization
 ~~~~~~~~~~~~~~~~~~~~
 
-.. automodule:: sc2learner.torch_utils.network.normalization.build_normalization
+.. automodule:: nervex.torch_utils.network.normalization.build_normalization
 
 
 
@@ -151,22 +151,22 @@ rnn
 LSTMForwardWrapper
 ~~~~~~~~~~~~~~~~~~~~`
 
-.. autoclass:: sc2learner.torch_utils.network.rnn.LSTMForwardWrapper
+.. autoclass:: nervex.torch_utils.network.rnn.LSTMForwardWrapper
     :members: _before_forward, _after_forward
 
 LSTM
 ~~~~~~~~~~~~~~~~
 
-.. autoclass:: sc2learner.torch_utils.network.rnn.LSTM
+.. autoclass:: nervex.torch_utils.network.rnn.LSTM
     :members: __init__, forward
 
 
 PytorchLSTM
 ~~~~~~~~~~~~~~
-.. autoclass:: sc2learner.torch_utils.network.rnn.PytorchLSTM
+.. autoclass:: nervex.torch_utils.network.rnn.PytorchLSTM
     :members: forward
 
 get_lstm
 ~~~~~~~~~~~~~~~~~
 
-.. automodule:: sc2learner.torch_utils.network.rnn.get_lstm
+.. automodule:: nervex.torch_utils.network.rnn.get_lstm

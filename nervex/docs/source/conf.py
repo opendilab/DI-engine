@@ -18,9 +18,9 @@ sys.path.insert(0, os.path.abspath('../../'))
 print(sys.path)
 # -- Project information -----------------------------------------------------
 
-project = 'SenseStar'
-copyright = '2019, X-lab'
-author = 'X-lab'
+project = 'nerveX'
+copyright = '2019, X-Lab'
+author = 'X-Lab'
 
 # The short X.Y version
 version = ''
@@ -103,7 +103,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'sensestardoc'
+htmlhelp_basename = 'nervexdoc'
 
 # -- Options for LaTeX output ------------------------------------------------
 
@@ -129,14 +129,14 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'sensestar.tex', 'sensestar Documentation', 'bao', 'manual'),
+    (master_doc, 'nervex.tex', 'nervex Documentation', 'bao', 'manual'),
 ]
 
 # -- Options for manual page output ------------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, 'sensestar', 'sensestar Documentation', [author], 1)]
+man_pages = [(master_doc, 'nervex', 'nervex Documentation', [author], 1)]
 
 # -- Options for Texinfo output ----------------------------------------------
 
@@ -145,7 +145,7 @@ man_pages = [(master_doc, 'sensestar', 'sensestar Documentation', [author], 1)]
 #  dir menu entry, description, category)
 texinfo_documents = [
     (
-        master_doc, 'sensestar', 'sensestar Documentation', author, 'sensestar', 'One line description of project.',
+        master_doc, 'nervex', 'nervex Documentation', author, 'nervex', 'One line description of project.',
         'Miscellaneous'
     ),
 ]

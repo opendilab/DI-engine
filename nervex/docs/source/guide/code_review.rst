@@ -45,7 +45,7 @@ And you can know about the specific format from next code example
     import random
     from torch.utils.data import Dataset
     from torch.utils.data._utils.collate import default_collate
-    from sc2learner.envs.observations.alphastar_obs_wrapper import decompress_obs
+    from nervex.envs.observations.alphastar_obs_wrapper import decompress_obs
 
 
     META_SUFFIX = '.meta'  # the suffix of meta data info, such as race, mmr and so on
