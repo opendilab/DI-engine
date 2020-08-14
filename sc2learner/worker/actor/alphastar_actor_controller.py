@@ -7,6 +7,7 @@ from typing import List, Dict
 from sc2learner.worker.actor.base_actor_controller import BaseActor
 from sc2learner.model import AlphaStarActorCritic
 from sc2learner.worker.agent.alphastar_agent import AlphaStarAgent
+import sc2learner.worker.actor.comm.as_comm_actor
 from sc2learner.worker.actor.env_manager.alphastar_env_manager import AlphaStarEnvManager
 from sc2learner.utils import get_step_data_compressor
 

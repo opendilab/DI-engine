@@ -103,17 +103,3 @@ class FlaskFileSystemActor(BaseCommActor):
             self._logger.error(''.join(traceback.format_tb(e.__traceback__)))
             self._logger.error("[error] api({}): {}".format(api, sys.exc_info()))
         return response
-
-
-class ASFlaskFileSystemActor(FlaskFileSystemActor):
-    def __init__(self, *args, **kwargs):
-        super(ASFlaskFileSystemActor, self).__init__(*args, **kwargs)
-        self._path_stat = self._cfg.path_stat
-
-    def get_env_stat(self, path: str) -> list:
-        path = os.path.join(self._path_stat, path)
-        if self._file_system_type == 'ceph':
-            info = read_file_ceph(path, read_type='pickle')
-        elif self._file_system_type == 'normal':
-            info = torch.load(path)
-        return info

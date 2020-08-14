@@ -1,4 +1,8 @@
-from .flask_fs_actor import FlaskFileSystemActor, ASFlaskFileSystemActor
+from .base_comm_actor import BaseCommActor
+from .flask_fs_actor import FlaskFileSystemActor
+
+
+comm_map = {'flask_fs': FlaskFileSystemActor}
 
 
 class ActorCommMetaclass(type):
@@ -6,10 +10,6 @@ class ActorCommMetaclass(type):
         if '__init__' in attrs.keys():
             attrs['__init__'] = cls.enable_comm_helper(attrs['__init__'])
         return type.__new__(cls, name, bases, attrs)
-
-    @staticmethod
-    def get_comm_map():
-        return {'as_flask_fs': ASFlaskFileSystemActor, 'flask_fs': FlaskFileSystemActor}
 
     @classmethod
     def enable_comm_helper(cls, fn):
@@ -23,7 +23,6 @@ class ActorCommMetaclass(type):
 
             ret = fn(*args, **kwargs)
             instance = args[0]
-            comm_map = cls.get_comm_map()
             comm_type = comm_cfg['type']
             if comm_type not in comm_map.keys():
                 raise KeyError(comm_type)
@@ -42,3 +41,9 @@ class ActorCommMetaclass(type):
             return ret
 
         return wrapper
+
+
+def add_comm_actor(name, actor_type):
+    assert isinstance(name, str)
+    assert issubclass(actor_type, BaseCommActor)
+    comm_map[name] = actor_type

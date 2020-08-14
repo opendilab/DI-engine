@@ -3,7 +3,7 @@ import os
 from collections import namedtuple
 from typing import Union, Any
 from sc2learner.utils import build_logger_naive, EasyTimer, get_actor_uid
-from .comm import ActorCommMetaclass
+from .comm.comm_actor_metaclass import ActorCommMetaclass
 
 
 # TODO(nyz) fix extend ABC class problem
