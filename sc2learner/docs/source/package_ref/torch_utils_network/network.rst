@@ -145,5 +145,28 @@ build_normalization
 
 
 
+rnn
+-----------------
+
+LSTMForwardWrapper
+~~~~~~~~~~~~~~~~~~~~`
+
+.. autoclass:: sc2learner.torch_utils.network.rnn.LSTMForwardWrapper
+    :members: _before_forward, _after_forward
+
+LSTM
+~~~~~~~~~~~~~~~~
+
+.. autoclass:: sc2learner.torch_utils.network.rnn.LSTM
+    :members: __init__, forward
 
 
+PytorchLSTM
+~~~~~~~~~~~~~~
+.. autoclass:: sc2learner.torch_utils.network.rnn.PytorchLSTM
+    :members: forward
+
+get_lstm
+~~~~~~~~~~~~~~~~~
+
+.. automodule:: sc2learner.torch_utils.network.rnn.get_lstm
