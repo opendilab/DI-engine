@@ -7,3 +7,4 @@ Developer Guide
 
    supervised_learning
    code_review
+   doc_contribution

@@ -1,20 +1,36 @@
+"""
+Copyright 2020 Sensetime X-lab. All Rights Reserved
+
+Main Function:
+    1. Levenshtein_distance and hamming_distance: Calculate the levenshtein distance and the hamming distance
+        of the given inputs.
+"""
+
 import torch
 import random
 
 
 def levenshtein_distance(pred, target, pred_extra=None, target_extra=None, extra_fn=None):
-    '''
-    Overview: Levenshtein Distance(Edit Distance)
+    r"""
+    Overview:
+        Levenshtein Distance(Edit Distance)
+
     Arguments:
+        Note:
+            N1 >= 0, N2 >= 0
+
         - pred (:obj:`torch.LongTensor`): shape[N1]
         - target (:obj:`torch.LongTensor`): shape[N2]
         - pred_extra (:obj:`torch.Tensor or None`)
         - target_extra (:obj:`torch.Tensor or None`)
         - extra_fn (:obj:`function or None`): if specified, the distance metric of the extra input data
+
     Returns:
         - (:obj:`torch.FloatTensor`) distance(scalar), shape[1]
-    Note: N1 >= 0, N2 >= 0
-    '''
+
+    Test:
+        torch_utils/network/tests/test_metric.py
+    """
     assert (isinstance(pred, torch.Tensor) and isinstance(target, torch.Tensor))
     assert (pred.dtype == torch.long and target.dtype == torch.long), '{}\t{}'.format(pred.dtype, target.dtype)
     assert (pred.device == target.device)
@@ -51,14 +67,25 @@ def levenshtein_distance(pred, target, pred_extra=None, target_extra=None, extra
 
 
 def hamming_distance(pred, target, weight=1.):
-    '''
-    Overview: Hamming Distance
+    r'''
+    Overview:
+        Hamming Distance
+
     Arguments:
-        - (:obj:`torch.LongTensor`) pred, shape[B, N]
-        - (:obj:`torch.LongTensor`) target, shape[B, N]
+        Note:
+            pred, target are also boolean vector(0 or 1)
+
+        - pred (:obj:`torch.LongTensor`): pred input, shape[B, N], while B is the batch size
+        - target (:obj:`torch.LongTensor`): target input, shape[B, N], while B is the batch size
+
     Returns:
-        - (:obj:`torch.LongTensor`) distance(scalar), shape[1]
-    Note: pred, target are also boolean vector(0 or 1)
+        - distance(:obj:`torch.LongTensor`): distance(scalar), the shape[1]
+
+    Shapes:
+        - pred & targe (:obj:`torch.LongTensor`): shape :math:`(B, N)`, while B is the batch size and N is the dimension
+
+    Test:
+        torch_utils/network/tests/test_metric.py
     '''
     assert (isinstance(pred, torch.Tensor) and isinstance(target, torch.Tensor))
     assert (pred.dtype == torch.long and target.dtype == torch.long)
@@ -67,7 +94,13 @@ def hamming_distance(pred, target, weight=1.):
     return pred.ne(target).sum(dim=1).float().mul_(weight)
 
 
+#TODO
+#集成到pytest
 def test_levenshtein_distance():
+    r'''
+    Overview:
+        Test the Levenshtein Distance
+    '''
     pred = torch.LongTensor([1, 4, 6, 4, 1])
     target1 = torch.LongTensor([1, 6, 4, 4, 1])
     distance = levenshtein_distance(pred, target1)
@@ -83,7 +116,13 @@ def test_levenshtein_distance():
     print('test_levenshtein_distance pass')
 
 
+#TODO
+#集成到pytest
 def test_hamming_distance():
+    r'''
+    Overview:
+        Test the Hamming Distance
+    '''
     base = torch.zeros(8).long()
     index = [i for i in range(8)]
     for i in range(2):

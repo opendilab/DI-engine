@@ -121,7 +121,10 @@ class ScalarEncoder(nn.Module):
         baseline_feature = []
         for key in self.keys:
             if key in x.keys():
-                embedding = getattr(self, key)(x[key])
+                if 'last_queued' in key:
+                    embedding = getattr(self, key)(x[key]) * 0
+                else:
+                    embedding = getattr(self, key)(x[key])
                 embedded_scalar.append(embedding)
                 if key in self.scalar_context_keys:
                     scalar_context.append(embedding)

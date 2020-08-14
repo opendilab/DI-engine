@@ -341,9 +341,12 @@ FUNCTION_LIST = [
 def get_available_actions_raw_data(obs):
     units = obs["raw_units"]
     units_set = set()
+    units_mana = collections.defaultdict(list)
     for unit in units:
         if unit.alliance == 1 and unit.build_progress >= 1:
             units_set.add(unit.unit_type)
+            if unit.energy > 0:
+                units_mana[unit.unit_type].append(unit.energy)
     upgrades = obs["upgrades"]
     upgrades_set = set()
     for upgrade in upgrades:
@@ -352,20 +355,20 @@ def get_available_actions_raw_data(obs):
     for function in FUNCTION_LIST:
         if function.func_id == 111 or function.func_id == 112:
             if ((87 in upgrades_set and 74 in units_set) or (141 in upgrades_set and 76 in units_set)):
-                vector.append(1)
+                vector.append(function)
             else:
-                vector.append(0)
+                pass
         elif function.func_id == 232 or function.func_id == 246:
             if ((498 in units_set or 500 in units_set) or (502 in units_set) or (64 in upgrades_set)
                     or (503 in units_set)):
-                vector.append(1)
+                vector.append(function)
             else:
-                vector.append(0)
+                pass
         elif function.units == 0 and function.upgrade == 0:
-            vector.append(0)
+            pass
         else:
             if function.units is None and function.upgrade is None:
-                vector.append(1)
+                vector.append(function)
             else:
                 bool_vector = []
                 for units_group in function.units:
@@ -375,13 +378,39 @@ def get_available_actions_raw_data(obs):
                             flag = 1
                     bool_vector.append(flag)
                 if 0 in bool_vector:
-                    vector.append(0)
+                    pass
                 else:
                     if function.upgrade is None or function.upgrade in upgrades_set:
-                        vector.append(1)
+                        vector.append(function)
                     else:
-                        vector.append(0)
-    return torch.FloatTensor(vector)
+                        pass
+    stat_data = obs['player'][1:]
+    remove_func = []
+    for func in vector:
+        if func[4]:  # resource
+            if (stat_data[0] < func.resource[0] or stat_data[1] < func.resource[1]):
+                remove_func.append(func)
+                continue
+        if func[5]:  # mana
+            flag = False
+            for unit_type in func.units[0]:
+                for unit_mana in units_mana[unit_type]:
+                    if unit_mana >= func.mana:
+                        flag = True
+            if not flag:
+                remove_func.append(func)
+                continue
+        if func[6]:  # supply
+            if stat_data[3] - stat_data[2] < func.supply:
+                remove_func.append(func)
+                continue
+
+    for item in remove_func:
+        vector.remove(item)
+    ava_action = torch.zeros(NUM_ACTIONS)
+    for t in vector:
+        ava_action[ACTIONS_REORDER[t.func_id]] = 1
+    return torch.FloatTensor(ava_action)
 
 
 def get_available_actions_processed_data(data, check_action=False):

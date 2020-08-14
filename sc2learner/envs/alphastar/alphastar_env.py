@@ -95,7 +95,6 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         assert len(loaded_stat) == self._agent_num
         self._loaded_eval_stat = [GameLoopStatistics(s, self._begin_num) for s in loaded_stat]
         self._next_obs_step = [0 for _ in range(self._agent_num)]
-
         timestep = self._raw_env_reset()
         self._raw_obs = [timestep[n].observation for n in range(self._agent_num)]
         obs = self._obs_helper.get(self)
@@ -124,7 +123,9 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         self.agent_action = action_data
         raw_action, delay, action = self._action_helper.get(self)
         # get step_mul
-        self._next_obs_step = [s + d for s, d in zip(self._next_obs_step, delay)]
+        for n in range(self._agent_num):
+            if action[n] is not None:
+                self._next_obs_step[n] = self._next_obs_step[n] + delay[n]
         step_mul = min(self._next_obs_step) - self.episode_steps
         assert step_mul >= 0
         # TODO(nyz) deal with step == 0 case for stat and reward

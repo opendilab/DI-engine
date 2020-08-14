@@ -18,6 +18,7 @@ class FakeNN:
 class FakeLink:
     nn = FakeNN()
     syncbnVarMode_t = namedtuple("syncbnVarMode_t", "L2")(L2=None)
+    allreduceOp_t = namedtuple("allreduceOp_t", ['Sum', 'Max'])
 
 
 link = FakeLink()

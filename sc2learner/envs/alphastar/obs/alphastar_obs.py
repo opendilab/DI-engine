@@ -763,7 +763,7 @@ class EntityObs(EnvElement):
         target_units = last_action['target_units']
         obs = torch.cat([obs, torch.empty(N, 4)], dim=1)
 
-        selected_units = selected_units.numpy() if isinstance(selected_units, torch.Tensor) else []
+        selected_units = selected_units if isinstance(selected_units, list) else []
         obs[:, -3] = 0
         obs[:, -4] = 1
         ids_tensor = np.array(entity_raw['id'])
@@ -772,7 +772,7 @@ class EntityObs(EnvElement):
             obs[selected, -3] = 1
             obs[selected, -4] = 0
 
-        target_units = target_units.numpy() if isinstance(target_units, torch.Tensor) else []
+        target_units = target_units if isinstance(target_units, list) else []
         obs[:, -1] = 0
         obs[:, -2] = 1
         for v in target_units:

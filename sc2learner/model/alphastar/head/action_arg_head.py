@@ -33,9 +33,9 @@ class DelayHead(nn.Module):
         self.act = build_activation(cfg.activation)
         self.fc1 = fc_block(cfg.input_dim, cfg.decode_dim, activation=self.act, norm_type=None)
         self.fc2 = fc_block(cfg.decode_dim, cfg.decode_dim, activation=self.act, norm_type=None)
-        self.fc3 = fc_block(cfg.decode_dim, cfg.delay_dim, activation=None, norm_type=None)
+        self.fc3 = fc_block(cfg.decode_dim, cfg.delay_dim, activation=None, norm_type=None)  # regression
         self.embed_fc1 = fc_block(cfg.delay_dim, cfg.delay_map_dim, activation=self.act, norm_type=None)
-        self.embed_fc2 = fc_block(cfg.delay_map_dim, cfg.input_dim, activation=self.act, norm_type=None)
+        self.embed_fc2 = fc_block(cfg.delay_map_dim, cfg.input_dim, activation=None, norm_type=None)
         self.pd = CategoricalPdPytorch
         self.delay_dim = cfg.delay_dim
 
@@ -64,10 +64,7 @@ class DelayHead(nn.Module):
         if delay is None:
             p = F.softmax(x, dim=1)
             handle = self.pd(p)
-            if self.training:
-                delay = handle.sample()
-            else:
-                delay = handle.mode()
+            delay = handle.sample()
 
         delay_encode = one_hot(delay, self.delay_dim)
         embedding_delay = self.embed_fc1(delay_encode)
@@ -97,7 +94,7 @@ class QueuedHead(nn.Module):
 
         # to get autoregressive_embedding
         self.embed_fc1 = fc_block(cfg.queued_dim, cfg.queued_map_dim, activation=self.act, norm_type=None)
-        self.embed_fc2 = fc_block(cfg.queued_map_dim, cfg.input_dim, activation=self.act, norm_type=None)
+        self.embed_fc2 = fc_block(cfg.queued_map_dim, cfg.input_dim, activation=None, norm_type=None)
         self.pd = CategoricalPdPytorch
 
         self.queued_dim = cfg.queued_dim
@@ -122,12 +119,9 @@ class QueuedHead(nn.Module):
         x = self.fc2(x)
         x = self.fc3(x)
         if queued is None:
-            p = F.softmax(x.div(temperature), dim=1)
+            p = F.softmax(x.div(0.8), dim=1)
             handle = self.pd(p)
-            if self.training:
-                queued = handle.sample()
-            else:
-                queued = handle.mode()
+            queued = handle.sample()
         queued_one_hot = one_hot(queued, self.queued_dim)
         embedding_queued = self.embed_fc1(queued_one_hot)
         embedding_queued = self.embed_fc2(embedding_queued)  # get autoregressive_embedding
@@ -152,7 +146,7 @@ class SelectedUnitsHead(nn.Module):
         self.key_fc = fc_block(cfg.entity_embedding_dim, cfg.key_dim, activation=None, norm_type=None)
         # determines which entity types can accept action_type
         self.func_fc = fc_block(cfg.unit_type_dim, cfg.func_dim, activation=self.act, norm_type=None)
-        self.fc1 = fc_block(cfg.input_dim, cfg.func_dim, activation=self.act, norm_type=None)
+        self.fc1 = fc_block(cfg.input_dim, cfg.func_dim, activation=None, norm_type=None)
         self.fc2 = fc_block(cfg.func_dim, cfg.key_dim, activation=None, norm_type=None)
         self.embed_fc = fc_block(cfg.key_dim, cfg.input_dim, activation=None, norm_type=None)
         self.lstm = get_lstm(cfg.lstm_type, cfg.key_dim, cfg.hidden_dim, cfg.num_layers, norm_type=cfg.lstm_norm_type)
@@ -193,7 +187,10 @@ class SelectedUnitsHead(nn.Module):
             end = start + real_num
             pad_key[b, :real_num] = key[start:end]
             pad_key[b, real_num:real_num + 1] = self.end_embedding
-            pad_mask[b, :real_num] = entity_mask[b]
+            if self.use_mask:
+                pad_mask[b, :real_num] = entity_mask[b]
+            else:
+                pad_mask[b, :real_num] = torch.ones_like(entity_mask[b], device=key.device)
             pad_mask[b, real_num] = 1
             start = end
         return pad_key, pad_mask, end_flag_index
@@ -209,25 +206,19 @@ class SelectedUnitsHead(nn.Module):
                 - (:obj`tensor`): result
         '''
         x = self.fc1(embedding)
-        return self.fc2(x + func_embed)
+        x = self.fc2(F.relu(x + func_embed))
+        return x
 
     def _get_pred_with_logit(self, logit, temperature):
-        p = F.softmax(logit.div(temperature), dim=-1)
+        p = F.softmax(logit.div(0.8), dim=-1)
         handle = self.pd(p)
-        if self.training:
-            return handle.sample()
-        else:
-            return handle.mode()
+        return handle.sample()
 
     def _query(self, key, end_flag_index, autoregressive_embedding, func_embed, mask, temperature, selected_units):
         B, N = key.shape[:2]
         logits = [[] for _ in range(B)]
-        assert isinstance(end_flag_index, list)
-        real_entity_num = torch.Tensor(end_flag_index).to(dtype=key.dtype, device=key.device)
+        split_entity_num = torch.FloatTensor(end_flag_index).to(key.device).unsqueeze(1)
         if selected_units is None:
-            # mask is used to avoid select unavaliable and repeat unit
-            # logits_mask is used to calculate loss, therefore only refers to unavaliable part
-            logits_mask = mask.clone()  # immutable, for logits
             units_index = [[] for _ in range(B)]
             end_flag_trigger = [False for _ in range(B)]
             state = None
@@ -239,9 +230,10 @@ class SelectedUnitsHead(nn.Module):
                 lstm_output, state = self.lstm(lstm_input, state)
                 query_result = lstm_output.permute(1, 0, 2) * key
                 query_result = query_result.sum(dim=2)
-                if self.use_mask:
-                    masked_logits = query_result.sub((1 - logits_mask) * 1e9)
-                    query_result.sub_((1 - mask) * 1e9)
+                query_result.sub_((1 - mask) * 1e9)
+                if i == 0:  # mask end flag when first select
+                    for b in range(B):
+                        query_result[b][end_flag_index[b]] = -1e9
                 entity_num = self._get_pred_with_logit(query_result, temperature)
 
                 selected_units_step = torch.zeros(B, device=key.device, dtype=torch.long)
@@ -249,21 +241,10 @@ class SelectedUnitsHead(nn.Module):
                     if end_flag_trigger[b]:
                         continue
                     else:
-                        logits[b].append(masked_logits[b])
+                        logits[b].append(query_result[b])
                         # end_flag doesn't also contribute to autoregressive_embedding
                         if entity_num[b] == end_flag_index[b]:
-                            # logits == 1 case(only end_flag), select the second largest unit
-                            if len(logits[b]) == 1:
-                                logit = query_result[b]
-                                logit[end_flag_index] = -1e9
-                                masked_logits[b][end_flag_index] = -1e9
-                                logits[b][0] = masked_logits[b]
-                                entity_num_b = self._get_pred_with_logit(logit, temperature)
-                                units_index[b].append(entity_num_b)
-                                mask[b][entity_num_b] = 0
-                                selected_units_step[b] = entity_num_b
-                            else:
-                                end_flag_trigger[b] = True
+                            end_flag_trigger[b] = True
                         else:
                             units_index[b].append(entity_num[b])
                             mask[b][entity_num[b]] = 0
@@ -273,7 +254,8 @@ class SelectedUnitsHead(nn.Module):
                 embedding_selected = one_hot(selected_units_step, N).unsqueeze(2)
                 embedding_selected = embedding_selected * key
                 embedding_selected = embedding_selected.sum(dim=1)
-                embedding_selected = embedding_selected / (real_entity_num.view(B, 1))  # norm by real entity num
+                embedding_selected = torch.div(embedding_selected, split_entity_num)  # reduce on real number
+                # embedding_selected = embedding_selected.mean(dim=1)
                 autoregressive_embedding = autoregressive_embedding + self.embed_fc(embedding_selected
                                                                                     ) * selected_mask.view(B, 1)
 
@@ -291,8 +273,7 @@ class SelectedUnitsHead(nn.Module):
                 lstm_output, state = self.lstm(lstm_input, state)
                 query_result = lstm_output.permute(1, 0, 2) * key
                 query_result = query_result.sum(dim=2)
-                if self.use_mask:
-                    query_result.sub_((1 - mask) * 1e9)
+                query_result.sub_((1 - mask) * 1e9)
 
                 # record logits and get selected_units_step
                 selected_units_step = torch.zeros(B, device=key.device, dtype=torch.long)
@@ -303,15 +284,15 @@ class SelectedUnitsHead(nn.Module):
                     elif i == output_entity_num[b]:
                         logits[b].append(query_result[b])
                     else:
+                        mask[b, selected_units[b][i]] = 0
                         logits[b].append(query_result[b])
                         selected_units_step[b] = selected_units[b][i]
-                        mask[b, selected_units[b][i]] = 0
                 selected_mask = torch.LongTensor([i < num for num in output_entity_num]).to(key.device)
 
                 embedding_selected = one_hot(selected_units_step, N).unsqueeze(2)
                 embedding_selected = embedding_selected * key
                 embedding_selected = embedding_selected.sum(dim=1)
-                embedding_selected = embedding_selected / (real_entity_num.view(B, 1))  # norm by real entity num
+                embedding_selected = torch.div(embedding_selected, split_entity_num)  # reduce on real number
                 autoregressive_embedding = autoregressive_embedding + self.embed_fc(embedding_selected
                                                                                     ) * selected_mask.view(B, 1)
 
@@ -377,7 +358,7 @@ class TargetUnitHead(nn.Module):
         self.act = build_activation(cfg.activation)
         self.key_fc = fc_block(cfg.entity_embedding_dim, cfg.key_dim, activation=None, norm_type=None)
         self.func_fc = fc_block(cfg.unit_type_dim, cfg.func_dim, activation=self.act, norm_type=None)
-        self.fc1 = fc_block(cfg.input_dim, cfg.func_dim, activation=self.act, norm_type=None)
+        self.fc1 = fc_block(cfg.input_dim, cfg.func_dim, activation=None, norm_type=None)
         self.fc2 = fc_block(cfg.func_dim, cfg.key_dim, activation=None, norm_type=None)
         self.use_mask = cfg.use_mask
 
@@ -387,7 +368,7 @@ class TargetUnitHead(nn.Module):
     def _get_query(self, embedding, available_unit_type_mask):
         func_embed = self.func_fc(available_unit_type_mask)
         x = self.fc1(embedding)
-        x = self.fc2(x + func_embed)
+        x = self.fc2(F.relu(x + func_embed))
         return x
 
     def _get_key_mask(self, entity_embedding, entity_mask):
@@ -416,7 +397,10 @@ class TargetUnitHead(nn.Module):
             real_num = shapes[b]
             end = start + real_num
             pad_key[b, :real_num] = key[start:end]
-            pad_mask[b, :real_num] = entity_mask[b]
+            if self.use_mask:
+                pad_mask[b, :real_num] = entity_mask[b]
+            else:
+                pad_mask[b, :real_num] = torch.ones_like(entity_mask[b], device=key.device)
             start = end
         return pad_key, pad_mask
 
@@ -454,20 +438,16 @@ class TargetUnitHead(nn.Module):
         query = self._get_query(embedding, available_unit_type_mask)
         logits = query.unsqueeze(1) * key
         logits = logits.sum(dim=2)
-        if self.use_mask:
-            if target_unit is not None:
-                for i, t in enumerate(target_unit):
-                    if isinstance(t, torch.Tensor):
-                        mask[i, t] = 1
-            logits.sub_((1 - mask) * 1e9)
+        if isinstance(target_unit, torch.Tensor):
+            for i, t in enumerate(target_unit):
+                if t is not None:
+                    mask[i, t] = 1
+        logits.sub_((1 - mask) * 1e9)
 
         if target_unit is None:
-            p = F.softmax(logits.div(temperature), dim=1)
-            handle = self.pd(p)
-            if self.training:
-                target_unit = handle.sample()
-            else:
-                target_unit = handle.mode()
+            p = F.softmax(logits.div(0.8), dim=1)
+            target_unit = torch.multinomial(p, 1).squeeze(1)
+
         logits = self._get_valid_logits(logits, shapes)
 
         return logits, target_unit
@@ -575,10 +555,9 @@ class LocationHead(nn.Module):
             x = layer(x)
         x = self.ensemble_conv(x)
         if self.use_mask:
-            if location is not None:
-                for i, t in enumerate(location):
-                    if isinstance(t, torch.Tensor):
-                        available_location_mask[i, 0, t[0], t[1]] = 1
+            available_location_mask = F.interpolate(available_location_mask, size=x.shape[2:], mode='bilinear')
+
+            available_location_mask *= (available_location_mask >= 1).float()
             x -= ((1 - available_location_mask) * 1e9)
         if self.output_type == 'cls':
             W = x.shape[3]

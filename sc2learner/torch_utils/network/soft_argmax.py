@@ -1,20 +1,53 @@
+"""
+Copyright 2020 Sensetime X-lab. All Rights Reserved
+
+Main Function:
+    1. SoftArgmax: a nn.Module that computes SoftArgmax
+"""
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 
 class SoftArgmax(nn.Module):
+    r"""
+    Overview:
+        a nn.Module that computes SoftArgmax
+
+        Note:
+            for more softargmax info, you can reference the wiki page
+            <https://wikimili.com/en/Softmax_function> or reference the lecture
+            <https://mc.ai/softmax-function-beyond-the-basics/>
+
+    Interface:
+        __init__, forward
+
+    Test:
+        torch_utils/network/tests/test_soft_argmax.py
+    """
     def __init__(self):
+        r"""
+        Overview:
+            initialize the SoftArgmax module
+        """
         super(SoftArgmax, self).__init__()
 
     def forward(self, x):
-        '''
-        Overview: soft-argmax for location regression
+        r"""
+        Overview:
+            soft-argmax for location regression
+
         Arguments:
-            - x (:obj:`Tensor`): [B, C, H, W] predict heat map
+            - x (:obj:`Tensor`): predict heat map
+
         Returns:
-            - location (:obj:`Tensor`): [B, 2] predict location
-        '''
+            - location (:obj:`Tensor`): predict location
+
+        Shapes:
+            - x (:obj:`Tensor`): :math:`(B, C, H, W)`, while B is the batch size,
+                C is number of channels , H and W stands for height and width
+            - location (:obj:`Tensor`): :math:`(B, 2)`, while B is the batch size
+        """
         B, C, H, W = x.shape
         device, dtype = x.device, x.dtype
         # 1 channel

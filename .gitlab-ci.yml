@@ -1,8 +1,14 @@
 image: "registry.sensetime.com/xlab/sensestar-docker:centos7"
 stages:
+  - install
   - style
   - doc
   - test
+
+install:
+  stage: install
+  script:
+    - pip install -e .
 
 style:
   stage: style
@@ -15,6 +21,7 @@ style:
 pages:
   stage: doc
   script:
+  - pip install -e .
   - pip install sphinx sphinx_rtd_theme
   - cd sc2learner/docs
   - make html
@@ -27,5 +34,4 @@ pages:
 test:
   stage: test
   script:
-    - pip install -e .
     - pytest sc2learner/ -n 4 -sv -m unittest 
