@@ -41,34 +41,24 @@ Macro-action-based StarCraft-II learning environment.
 """
 
 setup(
-    name='sensestar',
+    name='nerveX',
     version='0.0.1',
-    description='Starcraft II environment and library for training agents.',
+    description='X-lab Reinforcement Learning Framework',
     long_description=description,
     author='X-lab',
     license='Apache License, Version 2.0',
-    keywords='StarCraft AI',
+    keywords='RL Framework',
     packages=[
-        'pysc2',
-        'pysc2.agents',
-        'pysc2.bin',
-        'pysc2.env',
-        'pysc2.lib',
-        'pysc2.maps',
-        'pysc2.run_configs',
-        'pysc2.tests',
         'nervex',
         'nervex.model',
         'nervex.envs',
         'nervex.optimizer',
         'nervex.utils',
-        'nervex.train',
         'nervex.torch_utils',
         'nervex.worker',
         'nervex.rl_utils',
+        'nervex.train',
         'nervex.data',
-        'nervex.scripts',
-        'nervex.evaluate',
     ],
     install_requires=[
         'absl-py>=0.1.0',
@@ -80,18 +70,14 @@ setup(
         'numpy>=1.10',
         'portpicker>=1.2.0',
         'protobuf>=2.6',
-        'pygame',
         'requests',
-        's2clientprotocol>=3.19.0.58400.0',
         'six',
         'sk-video',
         'websocket-client',
         'whichcraft',
         'gym',
         'torch>=1.3.1',  # 1.3.1+cuda90_cudnn7.6.3_lms
-        #'tensorflow>=1.4.1',  enable if necessary
         'joblib',
-        'pyzmq',
         'sphinx',
         'sphinx_rtd_theme',
         'pyyaml',
@@ -106,13 +92,6 @@ setup(
         'lz4',
         'cloudpickle'
     ],
-    entry_points={
-        'console_scripts': [
-            'pysc2_agent = pysc2.bin.agent:entry_point',
-            'pysc2_play = pysc2.bin.play:entry_point',
-            'pysc2_replay_info = pysc2.bin.replay_info:entry_point',
-        ],
-    },
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
