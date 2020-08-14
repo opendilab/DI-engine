@@ -9,40 +9,21 @@ Installation
 
 .. code-block:: bash
 
-     git clone git@gitlab.bj.sensetime.com:xialiqiao/SenseStar.git
-     cd SenseStar
+     git clone http://gitlab.bj.sensetime.com/open-XLab/cell/nerveX.git
+     cd nerveX
 
 
-2. Activate environment and install
+2. Activate environment and install(in server cluster)
 
 .. code-block:: bash
 
-     # actiavte environment in lustre
-     source r0.3.0
+     # actiavte environment in server cluster
+     source r0.3.2
 
      # install for development
+     # Note: use `--user` option to install the related packages in the user own directory(e.g.: ~/.local)
      pip install -e . --user
 
 .. note:: 
     
     you can also install this project in your own virtual environment
-
-3. Prepare SC2 game setting
-
-   - Download SC2 game packages and maps(refer to https://github.com/Blizzard/s2client-proto)
-     - Default game version: 4.10
-
-   - Set up environment variable **SC2PATH**
-
-.. code-block:: bash
-
-    # for example you can run the following shell command,
-    # or you can add it into your .bashrc or .zshrc
-    export SC2PATH=/mnt/lustre/niuyazhe/StarCraftII
-
-    - prepare replay dir
-
-.. code-block:: bash
-
-    # in your StarCraftII path(such as: /mnt/lustre/niuyazhe/StarCraftII)
-    mkdir Replays

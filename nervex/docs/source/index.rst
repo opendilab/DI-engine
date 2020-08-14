@@ -3,18 +3,18 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to SenseStar's documentation!
+Welcome to nerveX's documentation!
 =====================================
 
 
 Overview
 --------
-Sensetime AI of StarCraft II developed by X-Lab AGI team
+X-Lab Deep Reinforcement Learning Framework System
 
 
 Main Function
 -------------
-Online Reinforcement learning train and evaluate for SC2, and supervised learning from SC2 replay
+Online Distributed Reinforcement learning train and evaluate system
 
 
 .. toctree::
@@ -25,7 +25,6 @@ Online Reinforcement learning train and evaluate for SC2, and supervised learnin
    tutorial/index
    configuration/index
    guide/index
-   baselines/index
    package_ref/index
    faq/index
    rl_warmup/index
