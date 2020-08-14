@@ -16,14 +16,14 @@ style:
     - pip install yapf==0.29.0
     - bash format.sh --test
     - pip install flake8
-    - flake8 sc2learner/
+    - flake8 nervex/
 
 pages:
   stage: doc
   script:
   - pip install -e .
   - pip install sphinx sphinx_rtd_theme
-  - cd sc2learner/docs
+  - cd nervex/docs
   - make html
   - mv build/html ../../public
   - rm -r build
@@ -34,4 +34,4 @@ pages:
 test:
   stage: test
   script:
-    - pytest sc2learner/ -n 4 -sv -m unittest 
+    - pytest nervex/ -n 4 -sv -m unittest
