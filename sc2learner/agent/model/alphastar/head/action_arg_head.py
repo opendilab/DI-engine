@@ -446,7 +446,7 @@ class TargetUnitHead(nn.Module):
 
         if target_unit is None:
             p = F.softmax(logits.div(0.8), dim=1)
-            target_unit = torch.multinomial(p, 1)[0]
+            target_unit = torch.multinomial(p, 1).squeeze(1)
 
         logits = self._get_valid_logits(logits, shapes)
 
