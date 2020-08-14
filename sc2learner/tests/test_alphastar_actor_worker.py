@@ -172,7 +172,7 @@ def check_with_fake_dataset(traj):
     recu_check_keys(fake_dataset.get_1v1_agent_data(), traj[-1:])
 
 
-@pytest.mark.unittest
+#@pytest.mark.unittest
 def test_actor(coordinator, manager, caplog):
     caplog.set_level(logging.INFO)
     # to be called by pytest

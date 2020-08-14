@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, abstractproperty
 import os
 from collections import namedtuple
 from typing import Union, Any
@@ -39,7 +39,7 @@ class BaseActor(object, metaclass=ActorCommMetaclass):
     def __repr__(self) -> str:
         raise NotImplementedError
 
-    def run(self, job: dict) -> None:
+    def run(self) -> None:
         self.init_service()
         while True:
             job = self.get_job()
@@ -49,9 +49,9 @@ class BaseActor(object, metaclass=ActorCommMetaclass):
                 while True:
                     action = self._agent_inference(obs)
                     timestep = self._env_step(action)
-                    self._accumulate_data(obs, action, timestep)
+                    self._accumulate_timestep(obs, action, timestep)
                     obs = timestep.obs
-                    if timestep.all_done:
+                    if self.all_done:
                         break
                 self._finish_episode(timestep)
             self._finish_job()
@@ -80,4 +80,8 @@ class BaseActor(object, metaclass=ActorCommMetaclass):
         raise NotImplementedError
 
     def _update_agent(self) -> None:
+        raise NotImplementedError
+
+    @abstractproperty
+    def all_done(self) -> bool:
         raise NotImplementedError

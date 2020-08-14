@@ -1,0 +1,15 @@
+common:
+    save_path: '.'
+actor:
+    print_freq: 1
+    communication:
+        type: as_flask_fs
+        file_system_type: 'normal'  # ['normal', 'ceph']
+        path_agent: '.'
+        path_traj: '.'
+        path_stat: '.'
+        heartbeats_freq: 30
+        manager_ip: '127.0.0.1'
+        manager_port: 18295
+env:
+    game_steps_per_episode: 200

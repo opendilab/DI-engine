@@ -16,7 +16,7 @@ class FakeASEnvManager(SubprocessEnvManager):
         return list(zip(*obs))
 
     # override
-    def step(self, action) -> 'AlphaStarEnv.timestep':
+    def step(self, action) -> 'AlphaStarEnv.timestep':  # noqa
         # agent_num, env_num -> env_num, agent_num
         action = list(zip(*action))
         timestep = super().step(action)

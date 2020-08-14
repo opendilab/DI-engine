@@ -4,17 +4,14 @@ import copy
 import queue
 from threading import Thread
 from typing import List, Dict
-from sc2learner.worker.actor import BaseActor
-from sc2learner.data import BaseContainer
-from sc2learner.agent import AlphaStarAgent
+from sc2learner.worker.actor.base_actor_controller import BaseActor
+from sc2learner.model import AlphaStarActorCritic
+from sc2learner.worker.agent.alphastar_agent import AlphaStarAgent
+from sc2learner.worker.actor.env_manager.alphastar_env_manager import AlphaStarEnvManager
 from sc2learner.utils import get_step_data_compressor
 
 
 class AlphaStarActor(BaseActor):
-    # override
-    def __init__(self, cfg: dict) -> None:
-        super(AlphaStarActor, self).__init__(cfg)
-
     # override
     def _check(self) -> None:
         super()._check()
@@ -23,25 +20,38 @@ class AlphaStarActor(BaseActor):
     # override
     def _init_with_job(self, job: dict) -> None:
         self._job = job
-        self._agents = None
-        self._env_manager = None
+        self._setup_agents()
+        self._setup_env_manager()
         self._compressor = get_step_data_compressor(self._job['compressor'])
-        self._stat = self.get_env_stat(self._job['stat_path'])
+        self._stat = [self.get_env_stat(p) for p in self._job['stat_path']]
+        self._episode_result = []
 
         self._update_agent_thread = Thread(target=self._update_agent, args=())
         self._update_agent_thread.start()  # keep alive in the whole job
 
+    def _setup_env_manager(self) -> None:
+        raise NotImplementedError
+
+    def _setup_agents(self):
+        self._agents = {}
+        for name, agent_cfg in self._job['agent'].items():
+            model = AlphaStarActorCritic(agent_cfg['model'])
+            agent = AlphaStarAgent(model, self._job['env_num'])
+            self._agents[name] = agent
+
     # override
     def episode_reset(self) -> None:
-        for a in self._agents.values():
-            a.reset()
-        obs = self._env_manager.reset(self._stat)
+        for name, agent in self._agents.items():
+            # reset state(e.g. lstm hidden state)
+            agent.reset()
+            # load model
+            agent_update_info = self.get_agent_update_info(self._job['agent'][name]['agent_update_path'])
+            agent.load_state_dict(agent_update_info)
+        obs = self._env_manager.reset(reset_param=[{'loaded_stat': self._stat} for _ in range(self._job['env_num'])])
         self._alive_env = [i for i in range(self._job['env_num'])]
-        self._data_buffer = {k: {k1: [] for k1 in self._job['env_num']} for k in self._job['env_agent_num']}
-        self._last_buffer = {k: {k1: [] for k1 in self._job['env_num']} for k in self._job['env_agent_num']}
+        self._data_buffer = {k: {k1: [] for k1 in range(self._job['env_num'])} for k in range(self._job['send_data_agent_num'])}
+        self._last_data_buffer = {k: {k1: [] for k1 in range(self._job['env_num'])} for k in range(self._job['send_data_agent_num'])}
         self._traj_queue = queue.Queue()
-        self._pack_trajectory_thread = Thread(target=self._pack_trajectory, args=())
-        self._pack_trajectory.start()  # launch in each episode
         return obs
 
     # override
@@ -51,37 +61,43 @@ class AlphaStarActor(BaseActor):
     # override
     def _agent_inference(self, obs: List[Dict]) -> dict:
         assert self._job['agent_num'] in [2, 3, 4]  # 1v1, whether with teacher agent
-        assert len(obs) == 2
-        action = [[] for _ in range(self._job['agent_num'])]
-        hidden_state = [[] for _ in range(self._job['agent_num'])]
+        assert len(obs) == 2, len(obs)
+        env_action, algo_action, action_output, hidden_state = [], [], [], []
         for agent_obs_idx, agent in zip(self._job['agent_obs_idx'], self._agents.values()):
-            act, h = agent.forward(obs[agent_obs_idx])
-            action.append(act)
-            hidden_state.append(h)
+            inputs = {'data': obs[agent_obs_idx], 'state_info': {i: False for i in self._alive_env}}
+            output = agent.forward(inputs, param={'mode': 'evaluate'})
+            env_action.append(output['env_action'])
+            algo_action.append(output['algo_action'])
+            action_output.append(output['action_output'])
+            hidden_state.append(output['prev_state'])
         data = {}
-        data['action'] = action[self._job['agent_idx']]
-        data['prev_state'] = hidden_state[self._job['agent_idx']]
+        data['env_action'] = [env_action[i] for i in self._job['agent_idx']]
+        data['algo_action'] = [algo_action[i] for i in self._job['agent_idx']]
+        data['action_output'] = [action_output[i] for i in self._job['agent_idx']]
+        data['prev_state'] = [hidden_state[i] for i in self._job['agent_idx']]
         if 'teacher_agent_idx' in self._job.keys():
-            data['teacher_action'] = action[self._job['teacher_agent_idx']]
-            data['teacher_prev_state'] = hidden_state[self._job['teacher_agent_idx']]
+            data['teacher_action'] = [algo_action[i] for i in self._job['teacher_agent_idx']]
+            data['teacher_action_output'] = [action_output[i] for i in self._job['teacher_agent_idx']]
+            data['teacher_prev_state'] = [hidden_state[i] for i in self._job['teacher_agent_idx']]
         return data
 
     # override
     def _env_step(self, action: dict) -> namedtuple:
-        return self._env_manager.step(action['action'])
+        return self._env_manager.step(action['env_action'])
 
     # override
     def _accumulate_timestep(self, obs: List[Dict], action: dict, timestep: namedtuple) -> None:
-        for i in range(len(self._job['env_agent_num'])):
+        for i in range(self._job['send_data_agent_num']):
             for j, env_id in enumerate(self._alive_env):
-                action = action['action'][i][j]
+                test_action = action['algo_action'][i][j]
                 # only valid action step can be pushed into data_buffer
-                if action is not None:
+                if test_action is not None:
                     data = {'obs_home': obs[i][j]}
                     data.update({'obs_away': obs[1 - i][j]})
                     data.update(
                         {
-                            'action': action['action'][i][j],
+                            'action': action['algo_action'][i][j],
+                            'action_output': action['action_output'][i][j],
                             'prev_state': action['prev_state'][i][j],
                             'reward': timestep.reward[i][j],
                             'done': timestep.done[i][j],
@@ -94,6 +110,7 @@ class AlphaStarActor(BaseActor):
                         data.update(
                             {
                                 'teacher_action': action['teacher_action'][i][j],
+                                'teacher_action_output': action['teacher_action_output'][i][j],
                                 'teacher_prev_state': action['teacher_prev_state'][i][j],
                             }
                         )
@@ -115,19 +132,20 @@ class AlphaStarActor(BaseActor):
                     if miss_len > 0:
                         self._data_buffer[i][
                             env_id] = self._last_data_buffer[i][env_id][-miss_len:] + self._data_buffer[i][env_id]
+                    handle = self._data_buffer[i][env_id][-1]
                     handle['obs_home_next'] = timestep.obs[i][j]
                     handle['obs_away_next'] = timestep.obs[1 - i][j]
                     self._traj_queue.put({'data': self._data_buffer[i][env_id], 'env_id': env_id, 'agent_id': i})
 
         # deal with alive_env
         for idx, d in enumerate(timestep.done):
-            if d:
+            if any(d):
                 self._alive_env[idx] = -1
         self._alive_env = [e for e in self._alive_env if e != -1]
 
     # override
     def _finish_episode(self, timestep: namedtuple) -> None:
-        assert timestep.all_done, 'all envs must be done'
+        assert self.all_done, 'all envs must be done'
         result_map = {1: 'wins', 0: 'draws', -1: 'losses'}
         result = [result_map[timestep.reward[0][j]['winloss'].int().item()] for j in range(self._job['env_num'])]
         self._episode_result.append(result)
@@ -154,8 +172,8 @@ class AlphaStarActor(BaseActor):
         while True:
             cur = time.time()
             interval = cur - last
-            if interval < self._job['update_agent_freq']:
-                time.sleep(self._job['update_agent_freq'] * 0.1)
+            if interval < self._job['agent_update_freq']:
+                time.sleep(self._job['agent_update_freq'] * 0.1)
                 continue
             else:
                 for name, agent in self._agents.items():
@@ -196,5 +214,10 @@ class AlphaStarActor(BaseActor):
             self.send_traj_metadata(metadata)
             # save data
             data = self._compressor(data)
-            self.send_traj_stepdata(data)
+            self.send_traj_stepdata(traj_id, data)
             self._logger.info('send traj({}) in {}'.format(traj_id, time.time()))
+
+    # override
+    @property
+    def all_done(self) -> bool:
+        return self._env_manager.all_done
