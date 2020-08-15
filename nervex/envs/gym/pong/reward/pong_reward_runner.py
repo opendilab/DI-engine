@@ -1,0 +1,22 @@
+from typing import List, Tuple
+import copy
+from sc2learner.envs.env.base_env import BaseEnv
+from sc2learner.envs.common import EnvElementRunner
+from .pong_reward import PongReward
+
+# done
+class PongRewardRunner(EnvElementRunner):
+
+    def _init(self, *args, **kwargs) -> None:
+        # set self._core and other state variable
+        self._core = PongReward()
+
+    def get(self, engine: BaseEnv) -> float:
+        assert isinstance(engine, BaseEnv)
+        reward_of_action = copy.deepcopy(engine.reward_of_action)
+        ret = reward_of_action
+        return ret
+
+    #overriede
+    def reset(self) -> None:
+        pass
