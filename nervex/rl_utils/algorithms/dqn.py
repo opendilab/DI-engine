@@ -78,15 +78,17 @@ class DqnRunner(nn.Module):
 
     def __init__(self, 
         q_network,
-        env: Optinal[SubprocessEnvManager] = ,
+        # env: Optinal[SubprocessEnvManager] = ,
+        env: Optional[BaseEnv]= PongEnv,
         dqn_loss: Optional[DqnLoss] = DqnLoss(),
         opitmizer_type: Optional[str] = 'Adam',
-        learning_rate: Optional[float] = 0.001,
-        total_frame_num: Optional[int] = 10000,
-        target_update_freq: Optional[int] = 200,
-        is_dobule: Optional[bool] = False,
+        learning_rate: Optional[float] = 0.001,      
+        total_frame_num: Optional[int] = 10000, 
+        batch_size: Optional[int] = 64,
         buffer: Optional[PrioritizedBuffer] = PrioritizedBuffer(1000),
         bandit: Optional[function] = None,
+        is_dobule: Optional[bool] = False,
+        target_update_freq: Optional[int] = 200,
         device: Optinal[str] = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     ):
         r"""
@@ -98,24 +100,33 @@ class DqnRunner(nn.Module):
 
         """
         self.q_function = q_network.to(device)
+        #TODO add vec_env, enable multi workers
+        # self.env = env
+        self.env = env({})
+        self.dqn_loss = dqn_loss.to(device)
+        if opitmizer_type == 'Adam':
+            self.opitmizer = optim.Adam(self.q_function.parameters(), learning_rate)
+        else :
+            self.opitmizer = optim.SGD(self.q_function.parameters(), learning_rate)
+      
+        self.batch_size = batch_size
+        self.is_dobule = is_dobule
+
         if is_dobule:
             self.target_q_fuction = deepcopy(self.q_function)
         else:
             self.target_q_fuction = q_function
+        self.target_update_freq = target_update_freq
+
         self.total_frame_num = total_frame_num
-        self.is_dobule = is_dobule
         self.buffer = buffer.to(device)
-        self.dqn_loss = dqn_loss.to(device)
         if bandit == None:
             self.bandit = lambda x: return 0.3
         else:
             self.bandit = bandit
         
-        if opitmizer_type == 'Adam':
-            self.opitmizer = optim.Adam(self.q_function.parameters(), learning_rate)
-        else :
-            self.opitmizer = optim.SGD(self.q_function.parameters(), learning_rate)
-        
+        self.device = device
+
         #TODO
         self.n_actions = 6
     
@@ -142,10 +153,10 @@ class DqnRunner(nn.Module):
         death = 0
         duration = 0
         for i_frame in range(self.total_frame_num):
+            duration += 1
             print("Start trainging epoch{}".format())    
             state = self.env.reset().transpose((2, 0, 1))
             for t in count():
-                total_step += 1
                 action = self.select_action(state, total_step)
                 next_state, reward, done, _  = self.env.step(action.item())
                 next_state = next_state.transpose((2,0,1))
@@ -175,7 +186,6 @@ class DqnRunner(nn.Module):
                 state = next_state
 
                 if self.buffer.validlen < self.batch_size:
-                    print("buffer vaildlen too small, continue.")
                     continue
 
                 batchs = self.buffer.sample(self.batch_size)
@@ -185,8 +195,6 @@ class DqnRunner(nn.Module):
                 action_batch = torch.cat([torch.IntTensor([x['acts']]) for x in batchs]).to(device)
                 reward_batch = torch.cat([x['rewards'] for x in batchs]).to(device)
                 terminate_batch = torch.cat([x['termianls'] for x in batchs]).to(device)
-                
-
 
                 q_value = self.q_function(state_batch.to(device))
                 next_q_value = self.q_function(nextstate_batch.to(device))
@@ -206,8 +214,6 @@ class DqnRunner(nn.Module):
 
                 self.optimizer.step()
 
-                duration += 1
-
                 if i_frame % self.target_update_freq == 0:
                     self._update_target_networks()
         
@@ -217,5 +223,17 @@ class DqnRunner(nn.Module):
                     death = 0
                     duration = 0
                     break
-                duration = t
  
+
+
+def epsilon_greedy(start, end, decay):
+    return lambda x: (start - end) * math.exp(-1*x / decay) + end
+
+if __name__ == "__main__":
+    bandit = epsilon_greed(0.95, 0.03, 10000)
+    q_network = DqnCNNnetwork(210, 160, 6).to(device)
+    dqn_runner = DqnRunner(q_network=q_network, 
+        learning_rate=0.0001, total_frame_num=1000000, 
+        is_dobule=True, buffer=PrioritizedBuffer(10000), 
+        bandit=epsilon_greedy(0.95, 0.05, 50000), batch_size=64)
+    dqn_runner.train()
