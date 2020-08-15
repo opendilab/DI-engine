@@ -1,7 +1,7 @@
 from typing import List, Tuple
 import copy
-from sc2learner.envs.env.base_env import BaseEnv
-from sc2learner.envs.common import EnvElementRunner
+from nervex.envs.env.base_env import BaseEnv
+from nervex.envs.common import EnvElementRunner
 from .pong_reward import PongReward
 
 # done

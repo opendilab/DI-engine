@@ -5,8 +5,8 @@ from functools import partial
 import numpy as np
 import torch
 
-from sc2learner.torch_utils import to_tensor, tensor_to_list
-from sc2learner.envs.common import EnvElement
+from nervex.torch_utils import to_tensor, tensor_to_list
+from nervex.envs.common import EnvElement
 
 
 class PongReward(EnvElement):
