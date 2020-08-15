@@ -7,6 +7,7 @@ import numpy as np
 import math, random
 
 from collections import namedtuple
+from copy import deepcopy
 
 from nervex.utils.log_helper import build_logger, build_logger_naive, pretty_print
 
@@ -16,6 +17,7 @@ from nervex.worker.actor.env_manager.vec_env_manager import SubprocessEnvManager
 from nervex.data.structure.buffer import PrioritizedBuffer
 
 from nervex.rl_utils.algorithms.dqnloss import DqnLoss
+
 
 class DqnCNNnetwork(nn.Module):
     def __init__(self, h, w, outputs):
@@ -63,10 +65,7 @@ class DqnLoss(nn.Module):
         else:
             q_function_loss = self.q_function_criterion(q_s_a, target_q_s_a.detach())
         return q_function_loss
-
-
             
-
 
 
 class DqnRunner(nn.Module):
@@ -79,12 +78,16 @@ class DqnRunner(nn.Module):
 
     def __init__(self, 
         q_network,
+        env: Optinal[SubprocessEnvManager] = ,
+        dqn_loss: Optional[DqnLoss] = DqnLoss(),
+        opitmizer_type: Optional[str] = 'Adam',
+        learning_rate: Optional[float] = 0.001,
         total_frame_num: Optional[int] = 10000,
+        target_update_freq: Optional[int] = 200,
         is_dobule: Optional[bool] = False,
-        prior_alpha: Optional[float] = 0.,
-        buffer_len: Optional[int] = 1000,
+        buffer: Optional[PrioritizedBuffer] = PrioritizedBuffer(1000),
         bandit: Optional[function] = None,
-
+        device: Optinal[str] = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     ):
         r"""
         Arguments:
@@ -94,15 +97,125 @@ class DqnRunner(nn.Module):
             - bandit (:obj:`function`)
 
         """
-        self.q_function = q_network
+        self.q_function = q_network.to(device)
+        if is_dobule:
+            self.target_q_fuction = deepcopy(self.q_function)
+        else:
+            self.target_q_fuction = q_function
         self.total_frame_num = total_frame_num
         self.is_dobule = is_dobule
-        self.prior_alpha = prior_alpha
-        
-        self.buffer = PrioritizedBuffer(buffer_len, max_reuse=None, min_sample_ratio=1., alpha=prior_alpha, beta=0.)
+        self.buffer = buffer.to(device)
+        self.dqn_loss = dqn_loss.to(device)
         if bandit == None:
             self.bandit = lambda x: return 0.3
         else:
             self.bandit = bandit
         
+        if opitmizer_type == 'Adam':
+            self.opitmizer = optim.Adam(self.q_function.parameters(), learning_rate)
+        else :
+            self.opitmizer = optim.SGD(self.q_function.parameters(), learning_rate)
         
+        #TODO
+        self.n_actions = 6
+    
+    
+    def _update_target_networks(self):
+        self.target_q_fuction.load_state_dict(self.q_function.state_dict())
+        
+    def select_action(self,state, curstep=None):
+        sample = random.random()
+        if curstep != None:
+            eps_threshold = self.bandit(curstep)
+        else:
+            eps_threshold = 0.3
+        if sample > eps_threshold:
+            with torch.no_grad():
+                return self.q_function(torch.FloatTensor(state).unsqueeze(0).to(device)).max(1)[1].view(1, 1)
+        else:
+            return torch.tensor([[random.randrange(self.n_actions)]], device=self.device, dtype=torch.long)
+
+    def train(self):
+        print("-------Start Training----------")
+        epoch_num = 0
+        losses = []
+        death = 0
+        duration = 0
+        for i_frame in range(self.total_frame_num):
+            print("Start trainging epoch{}".format())    
+            state = self.env.reset().transpose((2, 0, 1))
+            for t in count():
+                total_step += 1
+                action = self.select_action(state, total_step)
+                next_state, reward, done, _  = self.env.step(action.item())
+                next_state = next_state.transpose((2,0,1))
+                if reward == -1.0:
+                    reward = -10.0
+                    death += 1
+                else:
+                    reward = 1.0
+                if death >= 5:
+                    done = True
+                reward = torch.tensor([reward], device=device)
+                
+                step = {}
+                # step['"obs", "acts", "nextobs", "rewards", "termianls"']
+                step['obs'] = state
+                step['acts']= action
+                step['nextobs'] = next_state
+                step['rewards'] = reward
+                if done:
+                    isdone = torch.ones(1)
+                else :
+                    isdone = torch.zeros(1)
+                step['termianls'] = isdone
+
+                self.buffer.append(step)
+                
+                state = next_state
+
+                if self.buffer.validlen < self.batch_size:
+                    print("buffer vaildlen too small, continue.")
+                    continue
+
+                batchs = self.buffer.sample(self.batch_size)
+
+                state_batch = torch.cat([torch.Tensor([x['obs']]) for x in batchs], 0).to(device)
+                nextstate_batch = torch.cat([torch.Tensor([x['nextobs']]) for x in batchs], 0).to(device)
+                action_batch = torch.cat([torch.IntTensor([x['acts']]) for x in batchs]).to(device)
+                reward_batch = torch.cat([x['rewards'] for x in batchs]).to(device)
+                terminate_batch = torch.cat([x['termianls'] for x in batchs]).to(device)
+                
+
+
+                q_value = self.q_function(state_batch.to(device))
+                next_q_value = self.q_function(nextstate_batch.to(device))
+                
+                if self.is_dobule:
+                    target_q_value = self.target_q_fuction(nextstate_batch.to(device))
+                else:
+                    target_q_value = next_q_value
+                
+                loss = self.dqn_loss(q_value, next_q_value, target_q_value, action_batch, reward_batch, terminate_batch)
+
+                self.optimizer.zero_grad()
+                
+                losses.append[loss]
+
+                loss.backward()
+
+                self.optimizer.step()
+
+                duration += 1
+
+                if i_frame % self.target_update_freq == 0:
+                    self._update_target_networks()
+        
+                if done:
+                    epoch_num += 1
+                    losses = []
+                    death = 0
+                    duration = 0
+                    break
+                duration = t
+ 
