@@ -2,7 +2,7 @@
 Copyright 2020 Sensetime X-lab. All Rights Reserved
 
 Main Function:
-    1. base class for supervised learning on linklink, including basic processes.
+    1. base class for model optimization procedure
 """
 
 import torch
