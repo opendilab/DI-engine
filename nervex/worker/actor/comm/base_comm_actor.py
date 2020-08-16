@@ -43,9 +43,9 @@ class BaseCommActor(ABC):
         self._logger.info("Actor({}) send heartbeat thread start...".format(self._comm_actor_id))
 
     def init_service(self) -> None:
-        self.register_actor()
+        #self.register_actor()
         self._active_flag = True
-        self.start_heartbeats_thread()
+        #self.start_heartbeats_thread()
 
     def close(self) -> None:
         self._active_flag = False
