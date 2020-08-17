@@ -361,7 +361,7 @@ class VariableRecord(object):
             handle_var = self.var_dict[var_type][name]
             return '{}: val({:.6f})|avg({:.6f})'.format(name, handle_var.val, handle_var.avg)
         elif var_type == '1darray':
-            return self._get_var_text_1darray(name)
+            return self._get_vars_text_1darray(name)
 
     def get_vars_tb_format(self, keys, cur_step, var_type='scalar', **kwargs):
         r"""

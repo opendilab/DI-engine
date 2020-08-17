@@ -16,8 +16,6 @@ from nervex.worker.actor.env_manager.vec_env_manager import SubprocessEnvManager
 
 from nervex.data.structure.buffer import PrioritizedBuffer
 
-from nervex.rl_utils.algorithms.dqnloss import DqnLoss
-
 
 class DqnCNNnetwork(nn.Module):
     def __init__(self, h, w, outputs):
@@ -28,8 +26,8 @@ class DqnCNNnetwork(nn.Module):
 
         # Number of Linear input connections depends on output of conv2d layers
         # and therefore the input image size, so compute it.
-        def conv2d_size_out(size, kernel_size = 5, stride = 2):
-            return (size - (kernel_size - 1) - 1) // stride  + 1
+        def conv2d_size_out(size, kernel_size=5, stride=2):
+            return (size - (kernel_size - 1) - 1) // stride + 1
         convw = conv2d_size_out(conv2d_size_out(conv2d_size_out(w)))
         convh = conv2d_size_out(conv2d_size_out(conv2d_size_out(h)))
         linear_input_size = convw * convh * 32
@@ -46,27 +44,27 @@ class DqnCNNnetwork(nn.Module):
 
 class DqnLoss(nn.Module):
 
-    def __init__(self,
-                discount_factor: Optional[float] = 0.99,
-                q_function_criterion=nn.MSELoss()
-        ):
+    def __init__(
+        self,
+        discount_factor: Optional[float] = 0.99,
+        q_function_criterion=nn.MSELoss()
+    ):
         super().__init__()
         self._gamma = discount_factor
         self.q_function_criterion = q_function_criterion
         
   
-
-    def forward(self, is_double, q_value, next_q_value ,target_q_value,  action,  reward, terminals, weights=None):
-        rewards =  reward
+    def forward(self, is_double, q_value, next_q_value, target_q_value, action, reward, terminals, weights=None):
+        rewards = reward
         q_s_a = q_value.gather(1, action.unsqueeze(1).long()).squeeze(1)
-        target_q_s_a = rewards + self._gamma * ( 1 - terminals) * target_q_value.gather(1, torch.max(next_q_value,1)[1].unsqueeze(1)).squeeze(1).to(device)
-        if weights != None:
+        target_q_s_a = rewards + self._gamma * (1 - terminals) * \
+            target_q_value.gather(1, torch.max(next_q_value, 1)[1].unsqueeze(1)).squeeze(1).to(self.device)
+        if weights is not None:
             q_function_loss = self.q_function_criterion(q_s_a, target_q_s_a.detach()) * weights
         else:
             q_function_loss = self.q_function_criterion(q_s_a, target_q_s_a.detach())
         return q_function_loss
             
-
 
 class DqnRunner(nn.Module):
     r"""
@@ -76,7 +74,9 @@ class DqnRunner(nn.Module):
         __init__, train
     """
 
-    def __init__(self, 
+    def __init__(
+        self,
+        cfg,
         q_network,
         # env: Optinal[SubprocessEnvManager] = ,
         env: Optional[BaseEnv]= PongEnv,
@@ -99,14 +99,16 @@ class DqnRunner(nn.Module):
             - bandit (:obj:`function`)
 
         """
-        self.q_function = q_network.to(device)
+        self.device = device
+        self.cfg = cfg
+        self.q_function = q_network.to(self.device)
         #TODO add vec_env, enable multi workers
         # self.env = env
         self.env = env({})
-        self.dqn_loss = dqn_loss.to(device)
+        self.dqn_loss = dqn_loss.to(self.device)
         if opitmizer_type == 'Adam':
             self.opitmizer = optim.Adam(self.q_function.parameters(), learning_rate)
-        else :
+        else:
             self.opitmizer = optim.SGD(self.q_function.parameters(), learning_rate)
       
         self.batch_size = batch_size
@@ -119,30 +121,28 @@ class DqnRunner(nn.Module):
         self.target_update_freq = target_update_freq
 
         self.total_frame_num = total_frame_num
-        self.buffer = buffer.to(device)
-        if bandit == None:
-            self.bandit = lambda x: return 0.3
+        self.buffer = buffer.to(self.device)
+        if bandit is None:
+            self.bandit = lambda x: 0.3
         else:
             self.bandit = bandit
-        
-        self.device = device
 
         #TODO
         self.n_actions = 6
-    
+        self.logger, self.tb_logger, self.variable_record = build_logger(self.cfg, name="dqn_test")
     
     def _update_target_networks(self):
         self.target_q_fuction.load_state_dict(self.q_function.state_dict())
-        
-    def select_action(self,state, curstep=None):
+
+    def select_action(self, state, curstep=None):
         sample = random.random()
-        if curstep != None:
+        if curstep is not None:
             eps_threshold = self.bandit(curstep)
         else:
             eps_threshold = 0.3
         if sample > eps_threshold:
             with torch.no_grad():
-                return self.q_function(torch.FloatTensor(state).unsqueeze(0).to(device)).max(1)[1].view(1, 1)
+                return self.q_function(torch.FloatTensor(state).unsqueeze(0).to(self.device)).max(1)[1].view(1, 1)
         else:
             return torch.tensor([[random.randrange(self.n_actions)]], device=self.device, dtype=torch.long)
 
@@ -154,9 +154,9 @@ class DqnRunner(nn.Module):
         duration = 0
         for i_frame in range(self.total_frame_num):
             duration += 1
-            print("Start trainging epoch{}".format())    
+            print("Start trainging epoch{}".format(epoch_num))    
             state = self.env.reset().transpose((2, 0, 1))
-            for t in count():
+            while True:
                 action = self.select_action(state, total_step)
                 next_state, reward, done, _  = self.env.step(action.item())
                 next_state = next_state.transpose((2,0,1))
@@ -167,7 +167,7 @@ class DqnRunner(nn.Module):
                     reward = 1.0
                 if death >= 5:
                     done = True
-                reward = torch.tensor([reward], device=device)
+                reward = torch.tensor([reward], device=self.device)
                 
                 step = {}
                 # step['"obs", "acts", "nextobs", "rewards", "termianls"']
@@ -190,17 +190,17 @@ class DqnRunner(nn.Module):
 
                 batchs = self.buffer.sample(self.batch_size)
 
-                state_batch = torch.cat([torch.Tensor([x['obs']]) for x in batchs], 0).to(device)
-                nextstate_batch = torch.cat([torch.Tensor([x['nextobs']]) for x in batchs], 0).to(device)
-                action_batch = torch.cat([torch.IntTensor([x['acts']]) for x in batchs]).to(device)
-                reward_batch = torch.cat([x['rewards'] for x in batchs]).to(device)
-                terminate_batch = torch.cat([x['termianls'] for x in batchs]).to(device)
+                state_batch = torch.cat([torch.Tensor([x['obs']]) for x in batchs], 0).to(self.device)
+                nextstate_batch = torch.cat([torch.Tensor([x['nextobs']]) for x in batchs], 0).to(self.device)
+                action_batch = torch.cat([torch.IntTensor([x['acts']]) for x in batchs]).to(self.device)
+                reward_batch = torch.cat([x['rewards'] for x in batchs]).to(self.device)
+                terminate_batch = torch.cat([x['termianls'] for x in batchs]).to(self.device)
 
-                q_value = self.q_function(state_batch.to(device))
-                next_q_value = self.q_function(nextstate_batch.to(device))
+                q_value = self.q_function(state_batch.to(self.device))
+                next_q_value = self.q_function(nextstate_batch.to(self.device))
                 
                 if self.is_dobule:
-                    target_q_value = self.target_q_fuction(nextstate_batch.to(device))
+                    target_q_value = self.target_q_fuction(nextstate_batch.to(self.device))
                 else:
                     target_q_value = next_q_value
                 
@@ -208,6 +208,8 @@ class DqnRunner(nn.Module):
 
                 self.optimizer.zero_grad()
                 
+                self.tb_logger.add_scalar('loss',loss,i_frame)
+
                 losses.append[loss]
 
                 loss.backward()
@@ -219,19 +221,20 @@ class DqnRunner(nn.Module):
         
                 if done:
                     epoch_num += 1
+                    if(len(losses) != 0):
+                        self.tb_logger.add_scalar('loss_avg',sum(losses)/len(losses), epoch_num)
                     losses = []
                     death = 0
                     duration = 0
                     break
  
 
-
 def epsilon_greedy(start, end, decay):
     return lambda x: (start - end) * math.exp(-1*x / decay) + end
 
 if __name__ == "__main__":
     bandit = epsilon_greed(0.95, 0.03, 10000)
-    q_network = DqnCNNnetwork(210, 160, 6).to(device)
+    q_network = DqnCNNnetwork(210, 160, 6).to(self.device)
     dqn_runner = DqnRunner(q_network=q_network, 
         learning_rate=0.0001, total_frame_num=1000000, 
         is_dobule=True, buffer=PrioritizedBuffer(10000), 
