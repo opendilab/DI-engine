@@ -6,6 +6,8 @@ from nervex.envs.common import EnvElementRunner
 from .pong_obs import PongObs
 
 # done
+
+
 class PongObsRunner(EnvElementRunner):
 
     def _init(self, *args, **kwargs) -> None:
@@ -21,3 +23,6 @@ class PongObsRunner(EnvElementRunner):
     #overriede
     def reset(self) -> None:
         pass
+
+    # def info(self) -> dict:
+    #     self._core.info_template

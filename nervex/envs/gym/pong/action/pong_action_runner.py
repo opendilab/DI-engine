@@ -20,3 +20,6 @@ class PongRawActionRunner(EnvElementRunner):
     #override
     def reset(self) -> None:
         pass
+
+    # def info(self) -> dict:
+    #     self._core.info_template

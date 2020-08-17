@@ -18,7 +18,7 @@ class PongRawAction(EnvElement):
 
     def _init(self):
         self._default_val = None
-        self.info_template = {
+        self.template = {
             'action_type': 
             {
                 'name': 'action_type', 

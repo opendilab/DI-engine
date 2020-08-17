@@ -20,3 +20,6 @@ class PongRewardRunner(EnvElementRunner):
     #overriede
     def reset(self) -> None:
         pass
+
+    # def info(self) -> dict:
+    #     return self._core.info_template

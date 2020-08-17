@@ -19,7 +19,7 @@ class PongReward(EnvElement):
 
     def _init(self) -> None:
         self._default_val = 0.0
-        self.info_template = {
+        self.template = {
             'reward_value': 
             {
                 'name': 'reward_value', 
@@ -38,6 +38,7 @@ class PongReward(EnvElement):
         }
         self._shape = (1,)
         self._value = 0
+    
     def _to_agent_processor(self, reward: float) -> float:
         return reward
 

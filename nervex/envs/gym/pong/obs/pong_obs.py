@@ -14,7 +14,7 @@ class PongObs(EnvElement):
     
     def _init(self):
         self._default_val = None
-        self.info_template = {
+        self.template = {
             'pongObs':
             {
                 'name': 'pongObs',
