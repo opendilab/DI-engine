@@ -21,28 +21,41 @@ class PongEnv(BaseEnv):
         self._action_helper = PongRawActionRunner()
         self._reward_helper = PongRewardRunner()
         self._obs_helper = PongObsRunner()
-        
+
         #cfg TODO
         #util_ezpickle?
-        if(cfg != {}): 
+        if (cfg != {}):
             self._game = cfg.get('game', None)
             self._mode = cfg.get('mode', None)
             self._difficulty = cfg.get('difficulty', None)
             self._obs_type = cfg.get('obs_type', None)
             self.frameskip = cfg.get('frameskip', None)
             self.rep_prob = cfg.get('rep_prob', None)
-        
+
         #TODO
         self._isGameover = False
-        
         self._launch_env_flag = False
-        self._env = gym.make("PongNoFrameskip-v0").unwrapped
+        if self.rep_prob == 0:
+            self.rep_name = '-v0'
+        elif self.rep_prob == 0.25:
+            self.rep_name = '-v4'
+        else:
+            raise NotImplementedError
+        if self.frameskip == 4:
+            self.frame_name = 'Deterministic'
+        elif self.frameskip == 2:
+            self.frame_name = ''
+        elif self.frameskip == 1:
+            self.frame_name = 'NoFrameskip'
+        else:
+            raise NotImplementedError
+        self._env = gym.make("Pong" + self.frame_name + self.rep_name).unwrapped
         self._launch_env_flag = True
         # self._env.render()
         self._pong_obs = self._env.reset()
-        
+
     def _launch_env(self):
-        self._env = gym.make("PongNoFrameskip-v0").unwrapped
+        self._env = gym.make("Pong" + self.frame_name + self.rep_name).unwrapped
         self._launch_env_flag = True
 
     def reset(self):
@@ -57,7 +70,7 @@ class PongEnv(BaseEnv):
     def close(self):
         self._env.close()
 
-    def step(self, action: int) -> 'PongrEnv.timestep':
+    def step(self, action: int) -> 'PongEnv.timestep':
         assert self._launch_env_flag
         self.agent_action = action
 
@@ -71,16 +84,11 @@ class PongEnv(BaseEnv):
         self.reward = self._reward_helper.get(self)
         self.obs = self._obs_helper.get(self)
 
-        return PongEnv.timestep(
-            obs=self.obs,
-            reward=self.reward,
-            done=self._is_gameover,
-            rest_lives=self._rest_life
-        )
+        return PongEnv.timestep(obs=self.obs, reward=self.reward, done=self._is_gameover, rest_lives=self._rest_life)
 
     def seed(self, seed: int) -> None:
         self._env.seed(seed)
-    
+
     def info(self) -> 'PongEnv.info':
         info_data = {
             'obs_space': self._obs_helper.info,
@@ -120,5 +128,6 @@ class PongEnv(BaseEnv):
     @pong_obs.setter
     def pong_obs(self, _obs) -> None:
         self._pong_obs = _obs
+
 
 pongTimestep = PongEnv.timestep
