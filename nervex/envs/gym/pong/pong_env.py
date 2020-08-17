@@ -11,6 +11,10 @@ import gym
 
 
 class PongEnv(BaseEnv):
+    r"""
+    Notes:
+        To see information about atari_env: https://blog.csdn.net/qq_27008079/article/details/100126060
+    """
     timestep = namedtuple('pongTimestep', ['obs', 'reward', 'done', 'rest_lives'])
     info_template = namedtuple('BaseEnvInfo', ['obs_space', 'act_space', 'rew_space', 'frame_skip', 'rep_prob'])
 
