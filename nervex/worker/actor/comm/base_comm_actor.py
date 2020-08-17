@@ -37,15 +37,15 @@ class BaseCommActor(ABC):
 
     def start_heartbeats_thread(self) -> None:
         # start sending heartbeats thread
-        check_send_actor_heartbeats_thread = threading.Thread(target=self._send_actor_heartbeat)
+        check_send_actor_heartbeats_thread = threading.Thread(target=self._send_actor_heartbeats)
         check_send_actor_heartbeats_thread.daemon = True
         check_send_actor_heartbeats_thread.start()
-        self._logger.info("Actor({}) send heartbeat thread start...".format(self._comm_actor_id))
+        self._logger.info("Actor({}) send heartbeat thread start...".format(self._actor_uid))
 
     def init_service(self) -> None:
-        #self.register_actor()
+        self.register_actor()
         self._active_flag = True
-        #self.start_heartbeats_thread()
+        self.start_heartbeats_thread()
 
     def close(self) -> None:
         self._active_flag = False

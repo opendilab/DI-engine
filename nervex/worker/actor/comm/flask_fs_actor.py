@@ -90,6 +90,7 @@ class FlaskFileSystemActor(BaseCommActor):
                 time.sleep(1)
 
     def _flask_send(self, data, api):
+        response = None
         try:
             response = self._requests_session.post(self._url_prefix + api, json=data).json()
             name = self._actor_uid

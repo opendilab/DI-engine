@@ -148,6 +148,9 @@ class TextLogger(object):
         """
         self.logger.debug(s)
 
+    def error(self, s):
+        self.logger.error(s)
+
 
 class TensorBoardLogger(object):
     r"""
