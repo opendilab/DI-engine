@@ -5,7 +5,8 @@ import torch.optim as optim
 from tensorboardX import SummaryWriter
 
 import numpy as np
-import math, random
+import math
+import random
 
 from collections import namedtuple
 from copy import deepcopy
@@ -15,9 +16,13 @@ from nervex.utils.log_helper import build_logger, build_logger_naive, pretty_pri
 from nervex.worker.actor.env_manager.base_env_manager import BaseEnvManager
 from nervex.worker.actor.env_manager.vec_env_manager import SubprocessEnvManager
 from nervex.envs.gym.pong.pong_env import PongEnv
-from nervex.envs.gym.pong.pong_vec_env import PongEnvManager 
+from nervex.envs.gym.pong.pong_vec_env import PongEnvManager
 
 from nervex.data.structure.buffer import PrioritizedBuffer
+
+from typing import Optional, Callable
+
+from easydict import EasyDict
 
 
 class DqnCNNnetwork(nn.Module):
@@ -76,18 +81,18 @@ class DqnRunner(nn.Module):
         self,
         cfg,
         q_network,
-        # env: Optinal[SubprocessEnvManager] = PongEnvManager,
-        env: Optional[BaseEnv] = PongEnv,
+        env: Optional[SubprocessEnvManager] = PongEnvManager,
+        # env: Optional[BaseEnv] = PongEnv,
         dqn_loss: Optional[DqnLoss] = DqnLoss(),
         opitmizer_type: Optional[str] = 'Adam',
         learning_rate: Optional[float] = 0.001,
         total_frame_num: Optional[int] = 10000,
         batch_size: Optional[int] = 64,
         buffer: Optional[PrioritizedBuffer] = PrioritizedBuffer(1000),
-        bandit: Optional[function] = None,
+        bandit: Optional[Callable] = None,
         is_dobule: Optional[bool] = False,
         target_update_freq: Optional[int] = 200,
-        device: Optinal[str] = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        device: Optional[str] = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     ):
         r"""
         Arguments:
@@ -97,6 +102,7 @@ class DqnRunner(nn.Module):
             - bandit (:obj:`function`)
 
         """
+        super().__init__()
         self.device = device
         self.cfg = cfg
         self.q_function = q_network.to(self.device)
@@ -119,7 +125,7 @@ class DqnRunner(nn.Module):
         self.target_update_freq = target_update_freq
 
         self.total_frame_num = total_frame_num
-        self.buffer = buffer.to(self.device)
+        self.buffer = buffer
         if bandit is None:
             self.bandit = lambda x: 0.3
         else:
@@ -127,7 +133,8 @@ class DqnRunner(nn.Module):
 
         #TODO
         self.n_actions = 6
-        self.logger, self.tb_logger, self.variable_record = build_logger(self.cfg, name="dqn_test")
+        # self.logger, self.tb_logger, self.variable_record = build_logger(self.cfg, name="dqn_test")
+        self.max_epoch_frame = 10000
 
     def _update_target_networks(self):
         self.target_q_fuction.load_state_dict(self.q_function.state_dict())
@@ -144,49 +151,73 @@ class DqnRunner(nn.Module):
         else:
             return torch.tensor([[random.randrange(self.n_actions)]], device=self.device, dtype=torch.long)
 
+    def select_actions(self, states, curstep=None):
+        actions = []
+        for state in states:
+            sample = random.random()
+            if curstep is not None:
+                eps_threshold = self.bandit(curstep)
+            else:
+                eps_threshold = 0.3
+            if sample > eps_threshold:
+                with torch.no_grad():
+                    actions.append(
+                        self.q_function(torch.FloatTensor(state).unsqueeze(0).to(self.device)).max(1)[1].view(1,
+                                                                                                              1).item()
+                    )
+            else:
+                actions.append(
+                    torch.tensor([[random.randrange(self.n_actions)]], device=self.device, dtype=torch.long).item()
+                )
+        return actions
+
     def train(self):
         # print("-------Start Training----------")
-        self.logger.info('cfg:\n{}'.format(self.cfg))
+        # self.logger.info('cfg:\n{}'.format(self.cfg))
         epoch_num = 0
         losses = []
-        death = 0
+        # death = [0] * self.env.env_num
         duration = 0
-        self.tb_logger.register_var('loss')
-        self.tb_logger.register_var('loss_avg')
+        # self.tb_logger.register_var('loss')
+        # self.tb_logger.register_var('loss_avg')
+
         for i_frame in range(self.total_frame_num):
             duration += 1
             print("Start trainging epoch{}".format(epoch_num))
-            self.logger.info("=== Training Iteration {} Result ===".format(epoch_num))
-            
-            state = self.env.reset().transpose((2, 0, 1))
+            # self.logger.info("=== Training Iteration {} Result ===".format(epoch_num))
+            states = self.env.reset()
+            next_states = states
+            cur_epoch_frame = 0
             while True:
-                action = self.select_action(state, i_frame)
-                next_state, reward, done, _ = self.env.step(action.item())
-                next_state = next_state.transpose((2, 0, 1))
-                if reward == -1.0:
-                    reward = -10.0
-                    death += 1
-                else:
-                    reward = 1.0
-                if death >= 5:
-                    done = True
-                reward = torch.tensor([reward], device=self.device)
+                actions = self.select_actions(states, i_frame)
+                rets = self.env.step(actions)
+                for i in range(len(rets)):
+                    next_states[i], reward, done, _ = rets[i]
+                    # next_state, reward, done, _ = self.env.step(action.item())
+                    if reward == -1.0:
+                        reward = -10.0
+                        # death += 1
+                    else:
+                        reward = 1.0
+                    # if death >= 5:
+                    #     done = True
+                    reward = torch.tensor([reward], device=self.device)
 
-                step = {}
-                # step['"obs", "acts", "nextobs", "rewards", "termianls"']
-                step['obs'] = state
-                step['acts'] = action
-                step['nextobs'] = next_state
-                step['rewards'] = reward
-                if done:
-                    isdone = torch.ones(1)
-                else:
-                    isdone = torch.zeros(1)
-                step['termianls'] = isdone
+                    step = {}
+                    # step['"obs", "acts", "nextobs", "rewards", "termianls"']
+                    step['obs'] = states[i]
+                    step['acts'] = actions[i]
+                    step['nextobs'] = next_states[i]
+                    step['rewards'] = reward
+                    if done:
+                        isdone = torch.ones(1)
+                    else:
+                        isdone = torch.zeros(1)
+                    step['termianls'] = isdone
 
-                self.buffer.append(step)
+                    self.buffer.append(step)
 
-                state = next_state
+                    states[i] = next_states[i]
 
                 if self.buffer.validlen < self.batch_size:
                     continue
@@ -207,11 +238,12 @@ class DqnRunner(nn.Module):
                 else:
                     target_q_value = next_q_value
 
-                loss = self.dqn_loss(q_value, next_q_value, target_q_value, action_batch, reward_batch, terminate_batch)
+                loss = self.dqn_loss(True, q_value, next_q_value, target_q_value, action_batch, reward_batch, \
+                                     terminate_batch)
 
                 self.optimizer.zero_grad()
 
-                self.tb_logger.add_scalar('loss', loss, i_frame)
+                # self.tb_logger.add_scalar('loss', loss, i_frame)
 
                 losses.append(loss)
 
@@ -222,12 +254,13 @@ class DqnRunner(nn.Module):
                 if i_frame % self.target_update_freq == 0:
                     self._update_target_networks()
 
-                if done:
+                if done or (i_frame - cur_epoch_frame) % self.max_epoch_frame:
+                    cur_epoch_frame = i_frame
                     epoch_num += 1
-                    if (len(losses) != 0):
-                        self.tb_logger.add_scalar('loss_avg', sum(losses) / len(losses), epoch_num)
+                    # if (len(losses) != 0):
+                        # self.tb_logger.add_scalar('loss_avg', sum(losses) / len(losses), epoch_num)
                     losses = []
-                    death = 0
+                    # death = 0
                     duration = 0
                     break
 
@@ -241,7 +274,13 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     q_network = DqnCNNnetwork(210, 160, 6).to(device)
     dqn_runner = DqnRunner(
-        cfg={},
+        cfg=EasyDict({
+            'env': {},
+            'env_num': 4,
+            'common':{
+                'save_path': "./summary_log"
+            },
+        }),
         q_network=q_network,
         learning_rate=0.0001,
         total_frame_num=1000000,

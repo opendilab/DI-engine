@@ -20,8 +20,8 @@ class PongEnv(BaseEnv):
 
     def __init__(self, cfg):
         self._cfg = cfg
-        self.frameskip = 4
-        self.rep_prob = 0.25
+        self.frameskip = 1
+        self.rep_prob = 0
         self._action_helper = PongRawActionRunner()
         self._reward_helper = PongRewardRunner()
         self._obs_helper = PongObsRunner()
@@ -33,15 +33,15 @@ class PongEnv(BaseEnv):
             self._mode = cfg.get('mode', None)
             self._difficulty = cfg.get('difficulty', None)
             self._obs_type = cfg.get('obs_type', None)
-            self.frameskip = cfg.get('frameskip', None)
-            self.rep_prob = cfg.get('rep_prob', None)
+            self.frameskip = cfg.get('frameskip', 1)
+            self.rep_prob = cfg.get('rep_prob', 0)
 
         #TODO
         self._isGameover = False
         self._launch_env_flag = False
-        if self.rep_prob == 0:
+        if self.rep_prob == 0.25:
             self.rep_name = '-v0'
-        elif self.rep_prob == 0.25:
+        elif self.rep_prob == 0:
             self.rep_name = '-v4'
         else:
             raise NotImplementedError
