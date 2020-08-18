@@ -1,4 +1,5 @@
 import copy
+from typing import Tuple, Union
 import enum
 from collections import namedtuple
 from functools import partial
@@ -10,42 +11,84 @@ from nervex.envs.common import EnvElement
 
 
 class SumoReward(EnvElement):
-    _name = "sumoReward"
+    _name = "SumoReward"
 
-    def wait_time(self, wait_time_reward):
-        return wait_time_reward
-
-    def queue_len(self, queue_len):
-        return -queue_len
-
-    def delay_time(self, collect_delay_time):
-        return collect_delay_time
-
-    def _init(self, reward_types) -> None:
-        self.reward_types = reward_types
-        self._reward_keys = ['wait_time', 'queue_len', 'delay_time']
-        self._shape = {k: (1, ) for k in self._reward_keys}
-        self._value = {'wait_time': {}, 'queue_len': {}, 'delay_time': {}}
-        self.reward_func_dict = {'wait_time': self.wait_time, 'queue_len': self.queue_len, 'delay_time': self.delay_time}
-
-    def _to_agent_processor(self, reward_types, wait_time_reward, queue_len, collect_delay_time):
-        reward = {}
-        for t in self.reward_types:
-            if t == 'wait_time':
-                reward[t] = wait_time_reward
-            elif t == 'queue_len':
-                reward[t] = - queue_len
-            elif t == 'delay_time':
-                reward[t] = collect_delay_time
-        #     reward[t] = self.reward_func_dict[t]()
-        if len(reward) == 1:
-            return list(reward.values())[0]
+    def _get_wait_time(self, data: dict) -> Tuple[Union[float, dict], dict]:
+        incoming_roads = self._incoming_roads
+        car_list = traci.vehicle.getIDList()
+        tracking_cars = [car_id for car_id in car_list if traci.vehicle.getRoadID(car_id) in incoming_roads]
+        current_wait = {c: traci.vehicle.getAccumulatedWaitingTime(c) for c in tracking_cars}
+        wait_time_reward = {}
+        last_wait = data['last_wait_time']
+        for k, v in current_wait.items():
+            if k in last_wait.keys():
+                wait_time_reward[k] = last_wait[k] - v
+            else:
+                wait_time_reward[k] = -v
+        if self._reduce_by_tl:
+            t = wait_time_reward.values()
+            return sum(t) / (len(t) + 1e-8), wait_time
         else:
-            return reward
+            wait_time_reward_tl = {r: 0. for r in incoming_roads}
+            for k, v in wait_time_reward:
+                r = traci.vehicle.getRoadID(k)
+                if r in incoming_roads:
+                    wait_time_reward_tl[r] = (wait_time_reward_tl[r] + v) / 2
+            return wait_time_reward_tl, wait_time
 
-    def _from_agent_processor(self):
-        return None
+    def _get_queue_len(self, data: dict) -> Union[float, dict]:
+        incoming_roads = self._incoming_roads
+        if self._reduce_by_tl:
+            return sum([-1. * traci.edge.getLastStepHaltingNumber(r) for r in incoming_roads])
+        else:
+            return {r: -1. * traci.edge.getLastStepHaltingNumber(r) for r in incoming_roads}
 
-        # override
+    def _get_delay_time(self, data: dict) -> Tuple[Union[float, dict], dict]:
+        car_list = traci.vehicle.getIDList()
+        cur_vehicle_info = {car_id: {'time': traci.vehicle.getLastActionTime(car_id), 'distance': traci.vehicle.getDistance(car_id)} for car_id in car_list}
+        last_vehicle_info = data['last_vehicle_info']
+        delay_time_reward = {}
+        for car_id in cur_vehicle_info.keys():
+            if car_id in last_vehicle_info.keys():
+                real_distance = cur_vehicle_info[car_id]['distance'] - last_vehicle_info[car_id]['distance']
+                target_speed = traci.vehicle.getMaxSpeed(car_id)
+                target_distance = (cur_vehicle_info[car_id]['time'] - last_vehicle_info[car_id]['time']) * target_speed
+                delay_time_reward[car_id] = (real_distance - target_distance) / (target_speed + 1e-8)
+        if self._reduce_by_tl:
+            t = delay_time_reward.values()
+            return sum(t) / (len(t) + 1e-8), wait_time
+        else:
+            delay_time_reward_tl = {r: 0. for r in incoming_roads}
+            for k, v in delay_time_reward:
+                r = traci.vehicle.getRoadID(k)
+                if r in incoming_roads:
+                    delay_time_reward_tl[r] = (delay_time_reward_tl[r] + v) / 2
+            return delay_time_reward_tl, wait_time
+
+    def _init(self, cfg: dict) -> None:
+        self._reduce_by_tl = cfg.reduce_by_tl
+        reward_type = cfg.reward_type
+        if not isinstance(reward_type, list):
+            reward_type = [reward_type]
+        self._reward_func_dict = {'wait_time': self.wait_time, 'queue_len': self.queue_len, 'delay_time': self.delay_time}
+        assert set(reward_type).issubset(self._reward_func_dict.keys()), set(reward_type)
+        self._reward_type = reward_type
+
+        self._incoming_roads = incoming_roads
+        single_reward_shape = (1, ) if self._reduce_by_tl else {r: (1,) for r in cfg.incoming_roads}
+        self._shape = {k: single_reward_shape for k in self._reward_keys}
+        self._value = {'wait_time': {'min': '-inf', 'max': 'inf', 'dtype': float}, 'queue_len': {'min': '-inf', 'max': 0, 'dtype': float}, 'delay_time': {'min': '-inf', 'max': 'inf', 'dtype': float}}
+        self._from_agent_processor = None
+
+    def _to_agent_processor(self, data: dict) -> dict:
+        reward = {}
+        assert set(data.keys()) == set(self._reward_type)
+        for k, item in data.items():
+            reward[k] = getattr(self, '_get_' + k)(item)
+        if len(reward) == 1:
+            reward = list(reward.values())[0]
+        return reward
+
+    # override
     def _details(self):
-        return '\t'.join(self._reward_keys)
+        return 'reward_type: {}\treduce_by_tl: {}'.join(self._reward_type, self._reduce_by_tl)
