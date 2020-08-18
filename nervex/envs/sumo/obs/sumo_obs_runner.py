@@ -5,22 +5,16 @@ from nervex.envs.env.base_env import BaseEnv
 from nervex.envs.common import EnvElementRunner
 from nervex.envs.sumo.obs.sumo_obs import SumoObs
 
-# done
-
 
 class SumoObsRunner(EnvElementRunner):
-
-    def _init(self, *args, **kwargs) -> None:
+    def _init(self, cfg: dict) -> None:
         # set self._core and other state variable
-        self._core = SumoObs()
+        self._core = SumoObs(cfg)
 
     def get(self, engine: BaseEnv) -> int:
         # obs = copy.deepcopy(engine.sumo_obs)
-        return engine.sumo_obs
+        return self._core._to_agent_processor()
 
-    #overriede
+    # override
     def reset(self) -> None:
         pass
-
-    # def info(self) -> dict:
-    #     self._core.info_template

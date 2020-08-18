@@ -6,7 +6,6 @@ from nervex.envs.sumo.reward.sumo_reward import SumoReward
 
 
 class SumoRewardRunner(EnvElementRunner):
-
     def _init(self, cfg: dict) -> None:
         # set self._core and other state variable
         self._core = SumoReward(cfg)
@@ -14,7 +13,7 @@ class SumoRewardRunner(EnvElementRunner):
         self._last_wait_time = 0
         self._last_vehicle_info = {}
 
-    def reset(self) -> None
+    def reset(self) -> None:
         self._last_wait_time = 0
         self._last_vehicle_info = {}
 
@@ -42,7 +41,3 @@ class SumoRewardRunner(EnvElementRunner):
                 reward[k] = output_data
 
         return reward
-
-    #overriede
-    def reset(self) -> None:
-        self.last_total_wait = 0

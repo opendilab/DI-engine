@@ -1,0 +1,38 @@
+env:
+    sumocfg_path: '/Users/nyz/code/gitlab/nerveX/nervex/envs/sumo/beijing_wj/sumo_config.sumocfg'
+    max_episode_steps: 2000
+    green_duration: 10
+    yellow_duration: 3
+    inference: True  # if not inference, this env will not calculate something(e.g. reward) to speed up
+    obs:
+        tls:  ['htxdj_wjj', 'haxl_wjj', 'haxl_htxdj']  # traffic light name -> load name -> lane name
+        incoming_roads: 
+            htxdj_wjj: ['wjj_s3', 'htxdj_e5', 'htxdj_w4', 'wjj_n4']
+            haxl_wjj: ['wjj_s5', 'haxl_e7', 'haxl_w6', 'wjj_n6']
+            haxl_htxdj: ['htxdj_e3.94', 'haxl_e6', 'haxl_w5', 'htxdj_w2.141']
+        incoming_roads_lanes:
+            'wjj_s3': ['wjj_s3_0', 'wjj_s3_1', 'wjj_s3_2']
+            'htxdj_e5': ['htxdj_e5_0', 'htxdj_e5_1', 'htxdj_e5_2']
+            'htxdj_w4': ['htxdj_w4_0', 'htxdj_w4_1', 'htxdj_w4_2']
+            'wjj_n4': ['wjj_n4_0', 'wjj_n4_1', 'wjj_n4_2']
+            'wjj_s5': ['wjj_s5_0', 'wjj_s5_1', 'wjj_s5_2']
+            'haxl_e7': ['haxl_e7_0', 'haxl_e7_1', 'haxl_e7_2']
+            'haxl_w6': ['haxl_w6_0', 'haxl_w6_1', 'haxl_w6_2']
+            'wjj_n6': ['wjj_n6_0', 'wjj_n6_1', 'wjj_n6_2']
+            'htxdj_e3.94': ['htxdj_e3.94_0', 'htxdj_e3.94_1', 'htxdj_e3.94_2', 'htxdj_e3.94_3']
+            'haxl_e6': ['haxl_e6_0', 'haxl_e6_1', 'haxl_e6_2']
+            'haxl_w5': ['haxl_w5_0', 'haxl_w5_1', 'haxl_w5_2']
+            'htxdj_w2.141': ['htxdj_w2.141_0', 'htxdj_w2.141_1', 'htxdj_w2.141_2', 'htxdj_w2.141_3']
+        use_centralized_obs: True
+    action:
+        tls_green_action: 
+            htxdj_wjj: [0, 3]
+            haxl_wjj: [0, 3]
+            haxl_htxdj: [0, 2, 4]
+        tls_yellow_action: 
+            htxdj_wjj: [1, 4]
+            haxl_wjj: [1, 4]
+            haxl_htxdj: [1, 3, 5]
+    reward:
+        reward_type:  [queue_len, wait_time, delay_time] # [queue_len, wait_time, delay_time]
+        reduce_by_tl: True  # if True, reward will be reduced among all the traffic lights(centralized model), otherwise(multi-agent)

@@ -1,8 +1,9 @@
 import copy
+import traci
 from typing import Tuple, Union
 import enum
 from collections import namedtuple
-from functools import partial
+from functools import partial, reduce
 import numpy as np
 import torch
 
@@ -13,10 +14,44 @@ from nervex.envs.common import EnvElement
 class SumoReward(EnvElement):
     _name = "SumoReward"
 
+    def _init(self, cfg: dict) -> None:
+        self._cfg = cfg
+        self._reduce_by_tl = cfg.reduce_by_tl
+        reward_type = cfg.reward_type
+        if not isinstance(reward_type, list):
+            reward_type = [reward_type]
+        self._reward_keys = ['wait_time', 'queue_len', 'delay_time']
+        assert set(reward_type).issubset(self._reward_keys), set(reward_type)
+        self._reward_type = reward_type
+
+        self._incoming_roads = cfg.incoming_roads
+        self._total_incoming_roads = reduce(lambda x, y: x + y, self._incoming_roads.values())
+        self._tls = cfg.tls
+        self._road2tls = {t: k for k, v in self._incoming_roads.items() for t in v}
+        single_reward_shape = (1, ) if self._reduce_by_tl else {t: (1, ) for t in cfg.tls}
+        self._shape = {k: single_reward_shape for k in self._reward_keys}
+        self._value = {
+            'wait_time': {
+                'min': '-inf',
+                'max': 'inf',
+                'dtype': float
+            },
+            'queue_len': {
+                'min': '-inf',
+                'max': 0,
+                'dtype': float
+            },
+            'delay_time': {
+                'min': '-inf',
+                'max': 'inf',
+                'dtype': float
+            }
+        }
+        self._from_agent_processor = None
+
     def _get_wait_time(self, data: dict) -> Tuple[Union[float, dict], dict]:
-        incoming_roads = self._incoming_roads
         car_list = traci.vehicle.getIDList()
-        tracking_cars = [car_id for car_id in car_list if traci.vehicle.getRoadID(car_id) in incoming_roads]
+        tracking_cars = [car_id for car_id in car_list if traci.vehicle.getRoadID(car_id) in self._total_incoming_roads]
         current_wait = {c: traci.vehicle.getAccumulatedWaitingTime(c) for c in tracking_cars}
         wait_time_reward = {}
         last_wait = data['last_wait_time']
@@ -27,25 +62,31 @@ class SumoReward(EnvElement):
                 wait_time_reward[k] = -v
         if self._reduce_by_tl:
             t = wait_time_reward.values()
-            return sum(t) / (len(t) + 1e-8), wait_time
+            return sum(t) / (len(t) + 1e-8), current_wait
         else:
-            wait_time_reward_tl = {r: 0. for r in incoming_roads}
+            wait_time_reward_tl = {t: 0. for t in self._tls}
             for k, v in wait_time_reward:
-                r = traci.vehicle.getRoadID(k)
-                if r in incoming_roads:
-                    wait_time_reward_tl[r] = (wait_time_reward_tl[r] + v) / 2
-            return wait_time_reward_tl, wait_time
+                tl = self._road2tls[traci.vehicle.getRoadID(k)]
+                wait_time_reward_tl[tl] = (wait_time_reward_tl[tl] + v) / 2
+            return wait_time_reward_tl, current_wait
 
     def _get_queue_len(self, data: dict) -> Union[float, dict]:
-        incoming_roads = self._incoming_roads
+        queue_len_reward = {}
+        for k, v in self._incoming_roads.items():
+            queue_len_reward[k] = sum([-1. * traci.edge.getLastStepHaltingNumber(r) for r in v])
         if self._reduce_by_tl:
-            return sum([-1. * traci.edge.getLastStepHaltingNumber(r) for r in incoming_roads])
-        else:
-            return {r: -1. * traci.edge.getLastStepHaltingNumber(r) for r in incoming_roads}
+            queue_len_reward = sum(queue_len_reward.values())
+        return queue_len_reward
 
     def _get_delay_time(self, data: dict) -> Tuple[Union[float, dict], dict]:
         car_list = traci.vehicle.getIDList()
-        cur_vehicle_info = {car_id: {'time': traci.vehicle.getLastActionTime(car_id), 'distance': traci.vehicle.getDistance(car_id)} for car_id in car_list}
+        cur_vehicle_info = {
+            car_id: {
+                'time': traci.vehicle.getLastActionTime(car_id),
+                'distance': traci.vehicle.getDistance(car_id)
+            }
+            for car_id in car_list if traci.vehicle.getRoadID(car_id) in self._total_incoming_roads
+        }
         last_vehicle_info = data['last_vehicle_info']
         delay_time_reward = {}
         for car_id in cur_vehicle_info.keys():
@@ -56,29 +97,13 @@ class SumoReward(EnvElement):
                 delay_time_reward[car_id] = (real_distance - target_distance) / (target_speed + 1e-8)
         if self._reduce_by_tl:
             t = delay_time_reward.values()
-            return sum(t) / (len(t) + 1e-8), wait_time
+            return sum(t) / (len(t) + 1e-8), cur_vehicle_info
         else:
-            delay_time_reward_tl = {r: 0. for r in incoming_roads}
+            delay_time_reward_tl = {t: 0. for t in self._tls}
             for k, v in delay_time_reward:
-                r = traci.vehicle.getRoadID(k)
-                if r in incoming_roads:
-                    delay_time_reward_tl[r] = (delay_time_reward_tl[r] + v) / 2
-            return delay_time_reward_tl, wait_time
-
-    def _init(self, cfg: dict) -> None:
-        self._reduce_by_tl = cfg.reduce_by_tl
-        reward_type = cfg.reward_type
-        if not isinstance(reward_type, list):
-            reward_type = [reward_type]
-        self._reward_func_dict = {'wait_time': self.wait_time, 'queue_len': self.queue_len, 'delay_time': self.delay_time}
-        assert set(reward_type).issubset(self._reward_func_dict.keys()), set(reward_type)
-        self._reward_type = reward_type
-
-        self._incoming_roads = incoming_roads
-        single_reward_shape = (1, ) if self._reduce_by_tl else {r: (1,) for r in cfg.incoming_roads}
-        self._shape = {k: single_reward_shape for k in self._reward_keys}
-        self._value = {'wait_time': {'min': '-inf', 'max': 'inf', 'dtype': float}, 'queue_len': {'min': '-inf', 'max': 0, 'dtype': float}, 'delay_time': {'min': '-inf', 'max': 'inf', 'dtype': float}}
-        self._from_agent_processor = None
+                tl = self._road2tls[traci.vehicle.getRoadID(k)]
+                delay_time_reward_tl[tl] = (delay_time_reward_tl[tl] + v) / 2
+            return delay_time_reward_tl, cur_vehicle_info
 
     def _to_agent_processor(self, data: dict) -> dict:
         reward = {}
@@ -91,4 +116,4 @@ class SumoReward(EnvElement):
 
     # override
     def _details(self):
-        return 'reward_type: {}\treduce_by_tl: {}'.join(self._reward_type, self._reduce_by_tl)
+        return 'reward_type: {}\treduce_by_tl: {}'.format(self._reward_type, self._reduce_by_tl)
