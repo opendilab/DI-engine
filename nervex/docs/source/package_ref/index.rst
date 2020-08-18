@@ -11,6 +11,7 @@ Package Reference
 
     env/env_overview
     worker/agent/agent_overview
+    worker/learner/learner
     model/alphastar
     torch_utils_network/network
     torch_utils/checkpoint_helper
@@ -19,3 +20,4 @@ Package Reference
     torch_utils/grad_clip
     utils/time_helper
     utils/log_helper
+
