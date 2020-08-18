@@ -133,7 +133,7 @@ class DqnRunner(nn.Module):
 
         #TODO
         self.n_actions = 6
-        # self.logger, self.tb_logger, self.variable_record = build_logger(self.cfg, name="dqn_test")
+        self.logger, self.tb_logger, self.variable_record = build_logger(self.cfg, name="dqn_test")
         self.max_epoch_frame = 10000
 
     def _update_target_networks(self):
@@ -173,18 +173,18 @@ class DqnRunner(nn.Module):
 
     def train(self):
         # print("-------Start Training----------")
-        # self.logger.info('cfg:\n{}'.format(self.cfg))
+        self.logger.info('cfg:\n{}'.format(self.cfg))
         epoch_num = 0
         losses = []
         # death = [0] * self.env.env_num
         duration = 0
-        # self.tb_logger.register_var('loss')
-        # self.tb_logger.register_var('loss_avg')
+        self.tb_logger.register_var('loss')
+        self.tb_logger.register_var('loss_avg')
 
         for i_frame in range(self.total_frame_num):
             duration += 1
-            print("Start trainging epoch{}".format(epoch_num))
-            # self.logger.info("=== Training Iteration {} Result ===".format(epoch_num))
+            # print("Start trainging epoch{}".format(epoch_num))
+            self.logger.info("=== Training Iteration {} Result ===".format(epoch_num))
             states = self.env.reset()
             next_states = states
             cur_epoch_frame = 0
@@ -243,7 +243,7 @@ class DqnRunner(nn.Module):
 
                 self.optimizer.zero_grad()
 
-                # self.tb_logger.add_scalar('loss', loss, i_frame)
+                self.tb_logger.add_scalar('loss', loss, i_frame)
 
                 losses.append(loss)
 
@@ -257,8 +257,8 @@ class DqnRunner(nn.Module):
                 if done or (i_frame - cur_epoch_frame) % self.max_epoch_frame:
                     cur_epoch_frame = i_frame
                     epoch_num += 1
-                    # if (len(losses) != 0):
-                        # self.tb_logger.add_scalar('loss_avg', sum(losses) / len(losses), epoch_num)
+                    if (len(losses) != 0):
+                        self.tb_logger.add_scalar('loss_avg', sum(losses) / len(losses), epoch_num)
                     losses = []
                     # death = 0
                     duration = 0
@@ -274,19 +274,33 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     q_network = DqnCNNnetwork(210, 160, 6).to(device)
     dqn_runner = DqnRunner(
-        cfg=EasyDict({
-            'env': {},
-            'env_num': 4,
-            'common':{
-                'save_path': "./summary_log"
-            },
-        }),
+        cfg=EasyDict(
+            {
+                'env': {},
+                'env_num': 4,
+                'common': {
+                    'save_path': "./summary_log",
+                    'load_path': '',
+                    'name': 'DQNPong',
+                    'only_evaluate': False,
+                },
+                'logger': {
+                    'print_freq': 10,
+                    'save_freq': 200,
+                    'eval_freq': 200,
+                },
+                'data': {
+                    'train': {},
+                    'eval': {},
+                }
+            }
+        ),
         q_network=q_network,
         learning_rate=0.0001,
         total_frame_num=1000000,
         is_dobule=True,
         buffer=PrioritizedBuffer(10000),
         bandit=epsilon_greedy(0.95, 0.05, 50000),
-        batch_size=64
+        batch_size=4
     )
     dqn_runner.train()
