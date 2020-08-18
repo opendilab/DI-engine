@@ -27,7 +27,7 @@ from easydict import EasyDict
 
 class DqnCNNnetwork(nn.Module):
     def __init__(self, h, w, outputs):
-        super().__init__()
+        super(DqnCNNnetwork, self).__init__()
         self.conv1 = nn.Conv2d(3, 16, kernel_size=5, stride=2)
         self.conv2 = nn.Conv2d(16, 32, kernel_size=5, stride=2)
         self.conv3 = nn.Conv2d(32, 32, kernel_size=5, stride=2)
@@ -51,9 +51,39 @@ class DqnCNNnetwork(nn.Module):
         return self.head(x.view(x.size(0), -1))
 
 
+class FCDQN(nn.Module):
+    def __init__(self, input_dim, action_dim, hidden_dim_list=[128, 256, 256], device='cpu'):
+        super(FCDQN, self).__init__()
+        self.act = nn.ReLU()
+        layers = []
+        for dim in hidden_dim_list:
+            layers.append(nn.Linear(input_dim, dim))
+            layers.append(self.act)
+            input_dim = dim
+        self.main = nn.Sequential(*layers)
+        self.action_dim = action_dim
+        if isinstance(self.action_dim, list):
+            self.pred = nn.ModuleList()
+            for dim in self.action_dim:
+                self.pred.append(nn.Linear(input_dim, dim))
+        else:
+            self.pred = nn.Linear(input_dim, action_dim)
+        self.device = device
+
+    def forward(self, x, info={}):
+        if not isinstance(x, torch.Tensor):
+            x = torch.tensor(x, device=self.device, dtype=torch.float)
+        x = self.main(x)
+        if isinstance(self.action_dim, list):
+            x = [m(x) for m in self.pred]
+        else:
+            x = self.pred(x)
+        return x
+
+
 class DqnLoss(nn.Module):
     def __init__(self, discount_factor: Optional[float] = 0.99, q_function_criterion=nn.MSELoss()):
-        super().__init__()
+        super(DqnLoss, self).__init__()
         self._gamma = discount_factor
         self.q_function_criterion = q_function_criterion
 
@@ -68,6 +98,27 @@ class DqnLoss(nn.Module):
         else:
             q_function_loss = self.q_function_criterion(q_s_a, target_q_s_a.detach())
         return q_function_loss
+
+
+class DqnLoss2D(nn.Module):
+    def __init__(self, discount_factor: Optional[float] = 0.99, q_function_criterion=nn.MSELoss()):
+        super(DqnLoss2D, self).__init__()
+        self._gamma = discount_factor
+        self.q_function_criterion = q_function_criterion
+
+    def forward(self, is_double, q_values, next_q_values, target_q_values, action, reward, terminals, weights=None):
+        q_function_losses = []
+        rewards = reward
+        for q_value, next_q_value, target_q_value in q_values, next_q_values, target_q_values:
+            q_s_a = q_value[:, action.unsqueeze(1).long()].squeeze(1)
+            target_q_s_a = rewards + self._gamma * (1 - terminals) * \
+                target_q_value.gather(1, torch.max(next_q_value, 1)[1].unsqueeze(1)).squeeze(1).to(self.device)
+            if weights is not None:
+                q_function_loss = self.q_function_criterion(q_s_a, target_q_s_a.detach()) * weights
+            else:
+                q_function_loss = self.q_function_criterion(q_s_a, target_q_s_a.detach())
+            q_function_losses.append(q_function_loss)
+        return q_function_losses
 
 
 class DqnRunner(nn.Module):
@@ -171,6 +222,30 @@ class DqnRunner(nn.Module):
                 )
         return actions
 
+    #TODO
+    def select_actions2D(self, states, action_dim, curstep=None):
+        actions = []
+        for state in states:
+            sample = random.random()
+            if curstep is not None:
+                eps_threshold = self.bandit(curstep)
+            else:
+                eps_threshold = 0.3
+            if sample > eps_threshold:
+                with torch.no_grad():
+                    action = []
+                    for q in self.q_function(torch.FloatTensor(state).unsqueeze(0).to(self.device)):
+                        action.append(q.max(1)[1].view(1, 1).item())
+                    actions.append(action)
+            else:
+                actions.append(
+                    [
+                        torch.tensor([[random.randrange(dim)]], device=self.device, dtype=torch.long).item()
+                        for dim in action_dim
+                    ]
+                )
+        return actions
+
     def train(self):
         # print("-------Start Training----------")
         self.logger.info('cfg:\n{}'.format(self.cfg))
@@ -188,11 +263,13 @@ class DqnRunner(nn.Module):
             states = self.env.reset()
             next_states = states
             cur_epoch_frame = 0
+            dones = [False] * len(states)
             while True:
-                actions = self.select_actions(states, i_frame)
+                # actions = self.select_actions(states, i_frame)
+                actions = self.select_actions2D(states, i_frame)
                 rets = self.env.step(actions)
                 for i in range(len(rets)):
-                    next_states[i], reward, done, _ = rets[i]
+                    next_states[i], reward, dones[i], _ = rets[i]
                     # next_state, reward, done, _ = self.env.step(action.item())
                     if reward == -1.0:
                         reward = -10.0
@@ -209,7 +286,7 @@ class DqnRunner(nn.Module):
                     step['acts'] = actions[i]
                     step['nextobs'] = next_states[i]
                     step['rewards'] = reward
-                    if done:
+                    if dones[i]:
                         isdone = torch.ones(1)
                     else:
                         isdone = torch.zeros(1)
@@ -243,9 +320,11 @@ class DqnRunner(nn.Module):
 
                 self.optimizer.zero_grad()
 
-                self.tb_logger.add_scalar('loss', loss, i_frame)
+                # self.tb_logger.add_scalar('loss', loss, i_frame)
+                self.tb_logger.add_scalar('loss', sum(loss), i_frame)
 
-                losses.append(loss)
+                # losses.append(loss)
+                losses.append(sum(loss))
 
                 loss.backward()
 
@@ -254,14 +333,16 @@ class DqnRunner(nn.Module):
                 if i_frame % self.target_update_freq == 0:
                     self._update_target_networks()
 
-                if done or (i_frame - cur_epoch_frame) % self.max_epoch_frame:
+                if all(dones) or (i_frame - cur_epoch_frame) % self.max_epoch_frame:
                     cur_epoch_frame = i_frame
                     epoch_num += 1
                     if (len(losses) != 0):
+                        # pass
                         self.tb_logger.add_scalar('loss_avg', sum(losses) / len(losses), epoch_num)
                     losses = []
                     # death = 0
                     duration = 0
+                    states = self.env.reset()
                     break
 
 
