@@ -2,7 +2,7 @@
 Copyright 2020 Sensetime X-lab. All Rights Reserved
 
 Main Function:
-    1. base class for supervised learning on linklink, including basic processes.
+    1. base class for model learning(SL/RL) on linklink, including basic processes.
 """
 import numbers
 import os
@@ -18,22 +18,24 @@ from nervex.utils import build_logger, dist_init, dist_finalize, allreduce, Easy
 class Learner:
     r"""
     Overview:
-        base class for supervised learning on linklink, including basic processes.
+        base class for model learning(SL/RL), which uses linklink for multi-GPU learning
     Interface:
-        __init__, run, finalize, save_checkpoint, eval, restore
+        __init__, run, finalize, save_checkpoint, evaluate, restore
     """
     _name = "BaseSupervisedLearner"  # override this variable for high-level learner
 
     def __init__(self, cfg):
-        r"""
-        Overview: initialization method, using setting to build model, dataset, optimizer, lr_scheduler
-                    and other helper. It can also load checkpoint.
+        """
+        Overview:
+            initialization method, using config setting to build model, dataset, optimizer, lr_scheduler
+            and other helper. It can also load and save checkpoint.
         Arguments:
-            - cfg (:obj:`dict`): learner config, you can view
-            <http://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/blob/master/nervex/train/train_sl_default_config.yaml>
+            - cfg (:obj:`dict`): learner config, you can view `learner_cfg <../../../configuration/index.html>`_\
             for reference
         Notes:
-            # os.environ['CUDA_LAUNCH_BLOCKING'] = "1"  # for debug async CUDA
+            if you want to debug in sync CUDA mode, please use the following line code in the beginning of `__init__`.
+
+            os.environ['CUDA_LAUNCH_BLOCKING'] = "1"  # for debug async CUDA
         """
         assert "Base" not in self._name, "You should subclass base learner to get a runnable learner!"
 
@@ -90,17 +92,17 @@ class Learner:
         raise NotImplementedError()
 
     def _setup_agent(self):
-        """Build the agent object of learner"""
+        """Build the agent object of learner, which is the runtime object of model"""
         raise NotImplementedError()
 
     def _setup_optimizer(self, model):
-        """Build a sensestar optimizer"""
+        """Build a training optimizer"""
         raise NotImplementedError()
 
     def evaluate(self):
         r"""
         Overview:
-            abstract method, to be implemented
+            evaluate training result(usually used in SL/IL setting)
         """
         pass
 
@@ -109,13 +111,20 @@ class Learner:
         pass
 
     def _setup_lr_scheduler(self, optimizer):
-        """Build lr scheduler"""
-        return None
+        """
+        Overview:
+            setup lr scheduler, you can refer to `PyTorch lr_scheduler interface <https://pytorch.org/docs/master/\
+            optim.html#how-to-adjust-learning-rate>`_ for reference, we also implement some customized lr_schedulers
+        Arguments:
+            - optimizer (:obj:`torch.optim.Optimizer`): optimizer
+        """
+        pass
 
     def _record_additional_info(self, iterations):
         r"""
         Overview:
-            empty interface to record additional info on logger
+            empty interface to record additional info on logger, learner subclass can override this inferface to
+            add its own information into logger and tensorboard.
         Arguments:
             - iterations (:obj:`int`): iteration number
         """
@@ -125,6 +134,10 @@ class Learner:
         pass
 
     def _preprocess_data(self, data):
+        """
+        Overview:
+            interface for specific preprocess for input data
+        """
         return data
 
     # === Functions that should not be override. ===
@@ -175,7 +188,7 @@ class Learner:
 
     def save_checkpoint(self):
         r"""
-        Overview: 
+        Overview:
             save checkpoint named by current iteration(only rank 0)
         """
         if self.rank == 0:
@@ -194,7 +207,7 @@ class Learner:
         r"""
         Overview:
             train / evaluate model with dataset in numbers of epoch, main loop of Learner,
-                and will automatically save checkpoints
+            and will automatically save checkpoints periodically
             wrapped by auto_checkpoint in checkpoint_helper, you can reference checkpoint_helper.auto_checkpoint
         """
 
@@ -217,6 +230,10 @@ class Learner:
         self.save_checkpoint()
 
     def _run(self):
+        """
+        Overview:
+            the pipeline of one iteration(data prepare, forward, backward)
+        """
         while self.last_iter.val < self.max_iterations:
             with self.total_timer:
                 with self.data_timer:
@@ -238,11 +255,20 @@ class Learner:
             self._manage_learning_information(var_items, time_stats)
 
             self.last_iter.add(1)
+            # periodically evaluate
             if self.last_iter.val % self.cfg.logger.eval_freq == 0:
                 self.evaluate()
 
     def _manage_learning_information(self, var_items, time_items):
+        """
+        Overview:
+            manage the information produced by learning iteration, such as loss/criterion, time and other viz info
+        Arguments:
+            - var_items (:obj:`dict`) var_items: other variable items(e.g.: loss, acc)
+            - time_items (:obj:`dict`) time_items: time items
+        """
 
+        # if use multi-GPU training, you should first aggregate these items among all the ranks
         if self.use_distributed:
             var_items = aggregate(var_items)
             time_items = aggregate(time_items)
@@ -257,6 +283,7 @@ class Learner:
         iterations = self.last_iter.val
         total_frames = self.last_frame.val * self.world_size
         total_frames -= total_frames % 100
+        # periodically print training info
         if iterations % self.cfg.logger.print_freq == 0:
             self.logger.info("=== Training Iteration {} Result ===".format(self.last_iter.val))
             self.logger.info('iterations:{}\t{}'.format(iterations, self.variable_record.get_vars_text()))
@@ -266,13 +293,15 @@ class Learner:
             )
             self._record_additional_info(iterations)
 
+        # periodically save checkpoint
         if iterations % self.cfg.logger.save_freq == 0:
             self.save_checkpoint()
 
     def finalize(self):
-        r""" 
+        r"""
         Overview:
-            finalize, called after training, used to finalize linklink if uesd distribution
+            finalize learner at the end of training, used to clean sources such as finalizing linklink if used
+            distributed
         """
         if self.use_distributed:
             dist_finalize()
@@ -314,13 +343,11 @@ def transform_dict(var_items, keys):
 def aggregate(data):
     r"""
     Overview:
-        merge all info from other rank
-
+        aggregate the information from all ranks(usually use sync allreduce)
     Arguments:
-        - data (:obj:`dict`): data needs to be reduced. Could be dict, torch.Tensor,
-                              numbers.Integral or numbers.Real
+        - data (:obj:`dict`): data needs to be reduced. Could be dict, torch.Tensor, numbers.Integral or numbers.Real.
     Returns:
-        - (:obj:`dict`): data after reduce
+        - new_data (:obj:`dict`): data after reduce
     """
     if isinstance(data, dict):
         new_data = {}
