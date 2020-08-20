@@ -11,6 +11,7 @@ Package Reference
 
     env/env_overview
     worker/agent/agent_overview
+    worker/actor/actor_overview
     worker/learner/learner
     model/alphastar
     torch_utils_network/network
