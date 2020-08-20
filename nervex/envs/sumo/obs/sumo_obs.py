@@ -54,7 +54,7 @@ class SumoObs(EnvElement):
             return the formated observation
         Returns:
             - obs(:obj:`torch.Size([380])` or :obj:`dict`{junction : obs}): the returned observation,
-                :obj:`torch.Size([380]) if used centerlized_obs, else :obj:`dict` 
+            :obj:`torch.Size([380]) if used centerlized_obs, else :obj:`dict`
         """
         self._lane_lens = {t: traci.lane.getLength(t) for v in self._incoming_roads_lanes.values() for t in v}
         obs = {k: torch.zeros(v) for k, v in self._tls_obs_num.items()}

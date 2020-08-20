@@ -123,7 +123,7 @@ class SumoReward(EnvElement):
         Overview:
             return the raw_reward
         Returns:
-            - reward(:obj:`dict`{reward_type(:obj:str) : reward(:obj: float)}): the reward dict for each type of the reward
+            - reward(:obj:`dict`{reward_type(:obj:str) : reward(:obj: float)}): the reward dict
         """
         reward = {}
         assert set(data.keys()) == set(self._reward_type)

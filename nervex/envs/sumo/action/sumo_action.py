@@ -47,9 +47,9 @@ class SumoRawAction(EnvElement):
         Overview:
             get the raw_action and return corresponding action
         Arguments:
-            - data (:obj:`dict`): for data info you can reference the example below 
+            - data (:obj:`dict`): for data info you can reference the example below
             Example:
-                >>> data {'htxdj_wjj': {'action': tensor([0]), 'last_action': tensor([0])}, 'haxl_wjj': {'action': tensor([0]), 'last_action': tensor([1])}, 'haxl_htxdj': {'action': tensor([0]), 'last_action': tensor([1])}}
+                >>> data {'htxdj_wjj': {'action': tensor([0]), 'last_action': tensor([0])}, 'haxl_wjj': {'action': tensor([0]), 'last_action': tensor([1])}, 'haxl_htxdj': {'action': tensor([0]), 'last_action': tensor([1])}}  # noqa
         Returns:
             - raw_action(:obj:`dict`): the returned raw_action
         """
