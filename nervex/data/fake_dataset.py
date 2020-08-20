@@ -366,7 +366,7 @@ class FakeSumoDataset:
     def get_random_action(self):
         action = []
         for i in self.action_dim:
-            action.append(random.randint(0, i-1))
+            action.append(random.randint(0, i - 1))
         return action
 
     def get_random_obs(self):

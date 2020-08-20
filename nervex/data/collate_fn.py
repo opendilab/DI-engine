@@ -173,4 +173,10 @@ def sumo_dqn_collect_fn(data):
     action = [torch.stack(t) for t in action]
     terminate = terminate_batch
 
-    return {'state': state_batch, 'next_state': nextstate_batch, 'action': action, 'reward': reward, 'terminate': terminate}
+    return {
+        'state': state_batch,
+        'next_state': nextstate_batch,
+        'action': action,
+        'reward': reward,
+        'terminate': terminate
+    }

@@ -13,7 +13,6 @@ import yaml
 from easydict import EasyDict
 
 from nervex.worker.agent.sumo_dqn_agent import SumoDqnAgent
-# from nervex.model import alphastar_model_default_config
 from nervex.data import build_dataloader
 from nervex.optimizer.sumo_dqn_optimizer import SumoDqnOptimizer
 from nervex.torch_utils import to_device
@@ -27,17 +26,10 @@ from nervex.data.collate_fn import sumo_dqn_collect_fn
 default_config = read_config(osp.join(osp.dirname(__file__), "alphastar_rl_learner_default_config.yaml"))
 
 
-# def build_config(user_config):
-#     """Aggregate a general config at the highest level class: Learner"""
-#     default_config_with_model = merge_dicts(default_config, alphastar_model_default_config)
-#     return merge_dicts(default_config_with_model, user_config)
-
-
 class SumoDqnLearner(Learner):
     _name = "SumoDqnLearner"
 
     def __init__(self, cfg):
-        # cfg = build_config(cfg)
         self.data_iterator = FakeSumoDataset(cfg.data.train.batch_size).getBatchSample()
 
         super(SumoDqnLearner, self).__init__(cfg)
@@ -110,39 +102,8 @@ class SumoDqnLearner(Learner):
     def evaluate(self):
         pass
 
-    # @override(Learner)
-    # def _update_data_priority(self, data, var_items):
-    #     handle = data[0]  # get one frame of the trajectory
-    #     # TODO(nyz) how to design priority for AS
-    #     info = {
-    #         'replay_unique_id': handle['replay_unique_id'],
-    #         'replay_buffer_idx': handle['replay_buffer_idx'],
-    #         'priority': [1.0 for _ in range(len(handle['replay_unique_id']))]
-    #     }
-    #     self.update_info(info)
-
     def _get_data_stat(self, data):
         """
         Overview: get the statistics of input data
         """
         return {}
-
-    # @override(Learner)
-    # def _get_model_state_dict(self):
-    #     state_dict = self.agent.state_dict()
-    #     state_dict = to_device(state_dict, 'cpu')
-    #     if self.use_distributed:
-    #         state_dict = {k[7:]: v for k, v in state_dict.items()}  # remove module.
-    #     return {'state_dict': state_dict}
-
-    # @override(Learner)
-    # def _load_checkpoint_to_model(self, checkpoint):
-    #     if self.use_distributed:
-    #         prefix = 'module.'
-    #         prefix_op = 'add'
-    #     else:
-    #         prefix = None
-    #         prefix_op = None
-    #     self.checkpoint_manager.load(
-    #         checkpoint, self.agent.model, prefix=prefix, prefix_op=prefix_op, strict=False, need_torch_load=False
-    #     )

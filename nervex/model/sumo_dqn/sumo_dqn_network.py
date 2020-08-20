@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+
 class FCDQN(nn.Module):
     def __init__(self, input_dim, action_dim, hidden_dim_list=[128, 256, 256], device='cpu'):
         super(FCDQN, self).__init__()
