@@ -43,11 +43,6 @@ class SumoDqnLearner(Learner):
             pretty_print({"config": self.cfg})
             self.checkpoint_manager.save_config(self.cfg)
 
-        # run thread
-        run_thread = threading.Thread(target=self.run)
-        run_thread.daemon = True
-        run_thread.start()
-      
     def run(self):
         super().run()
         super().finalize()
