@@ -351,3 +351,45 @@ class FakeActorDataset:
         data[-1]['home_next'] = get_single_step_data()
         data[-1]['away_next'] = get_single_step_data()
         return data
+
+
+class FakeSumoDataset:
+    def __init__(self, batch_size):
+        self.action_dim = [2, 2, 3]
+        self.input_dim = 380
+        self.batch_size = batch_size
+        np.random.seed(114514)
+
+    def __len__(self):
+        return self.batch_size
+
+    def get_random_action(self):
+        action = []
+        for i in self.action_dim:
+            action.append(random.randint(0, i-1))
+        return action
+
+    def get_random_obs(self):
+        return np.random.rand(380)
+
+    def get_random_reward(self):
+        return random.random() - 0.5
+
+    def get_random_terminals(self):
+        sample = random.random()
+        if sample > 0.99:
+            return 1
+        return 0
+
+    def getBatchSample(self):
+        while True:
+            batch = []
+            for _ in range(self.batch_size):
+                step = {}
+                step['obs'] = self.get_random_obs()
+                step['next_obs'] = self.get_random_obs()
+                step['acts'] = self.get_random_action()
+                step['terminals'] = self.get_random_terminals()
+                step['rewards'] = self.get_random_reward()
+                batch.append(step)
+            yield batch

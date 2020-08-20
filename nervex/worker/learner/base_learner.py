@@ -165,7 +165,7 @@ class Learner:
         if self.rank == 0:
             self.checkpoint_manager.save_iterations(
                 self.last_iter.val,
-                self.agent.get_model(),
+                self.agent.model,
                 optimizer=self.optimizer,
                 # dataset=self.dataset,
                 dataset=None,
@@ -236,7 +236,7 @@ class Learner:
         self.variable_record.update_var(time_items)
 
         iterations = self.last_iter.val
-        total_frames = self.last_frame.val * self.get_world_size()
+        total_frames = self.last_frame.val * self.world_size
         total_frames -= total_frames % 100
         if iterations % self.cfg.logger.print_freq == 0:
             self.logger.info("=== Training Iteration {} Result ===".format(self.last_iter.val))
