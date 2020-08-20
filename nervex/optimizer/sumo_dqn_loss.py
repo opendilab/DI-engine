@@ -32,14 +32,14 @@ class SumoDqnLoss(BaseLoss):
         # q_value = data.get('q_value')
         # next_q_value = data.get('next_q_value')
         # target_q_value = data.get('target_q_value')
-        batchs = data
+        # batchs = data
 
-        state_batch = torch.cat([torch.Tensor([x['obs']]) for x in batchs], 0)
-        nextstate_batch = torch.cat([torch.Tensor([x['next_obs']]) for x in batchs], 0)
-        action_batch = torch.cat([torch.LongTensor([x['acts']]) for x in batchs])
-        reward_batch = torch.cat([torch.Tensor([x['rewards']]) for x in batchs])
-        terminate_batch = torch.cat([torch.Tensor([x['terminals']]) for x in batchs])
-        unterminate = torch.cat([torch.Tensor([1 - x['terminals']]) for x in batchs])
+        # state_batch = torch.cat([torch.Tensor([x['obs']]) for x in batchs], 0)
+        # nextstate_batch = torch.cat([torch.Tensor([x['next_obs']]) for x in batchs], 0)
+        # action_batch = torch.cat([torch.LongTensor([x['acts']]) for x in batchs])
+        # reward_batch = torch.cat([torch.Tensor([x['rewards']]) for x in batchs])
+        # terminate_batch = torch.cat([torch.Tensor([x['terminals']]) for x in batchs])
+        # unterminate = torch.cat([torch.Tensor([1 - x['terminals']]) for x in batchs])
 
         # obs = data.get('obs')
         # nextobs = data.get('nextobs')
@@ -47,6 +47,12 @@ class SumoDqnLoss(BaseLoss):
         # reward = data.get('reward')
         # terminals = data.get('terminals')
         # weights = data.get('weights', None)
+        state_batch = data.get('state')
+        nextstate_batch = data.get('next_state')
+        reward = data.get('reward')
+        action = data.get('action')
+        terminate = data.get('terminate')
+
         weights = None
 
         q_value = self.agent.forward(state_batch)
@@ -58,11 +64,11 @@ class SumoDqnLoss(BaseLoss):
         else:
             target_q_value = next_q_value
 
-        reward = reward_batch
-        action = action_batch
-        action = list(zip(*action))
-        action = [torch.stack(t) for t in action]
-        terminate = terminate_batch
+        # reward = reward_batch
+        # action = action_batch
+        # action = list(zip(*action))
+        # action = [torch.stack(t) for t in action]
+        # terminate = terminate_batch
 
         tl_num = 3
         loss = []
@@ -71,7 +77,6 @@ class SumoDqnLoss(BaseLoss):
             loss.append(self._single_tl_dqn_loss(data, weights))
         loss = sum(loss) / (len(loss) + 1e-8)
         return {'total_loss': loss}
-
 
     def _single_tl_dqn_loss(self, data, weights=None):
         q, next_q, act, reward, terminate = data

@@ -8,10 +8,22 @@ from nervex.envs.sumo.action.sumo_action_runner import SumoRawActionRunner
 from nervex.envs.sumo.reward.sumo_reward_runner import SumoRewardRunner
 from nervex.envs.sumo.obs.sumo_obs_runner import SumoObsRunner
 import numpy as np
+import yaml
+from easydict import EasyDict
+from nervex.utils import override, merge_dicts, pretty_print, read_config
 
 import time
 import traci
 from functools import reduce
+
+
+def build_config(user_config):
+    """Aggregate a general config at the highest level class: Learner"""
+    with open(os.path.join(os.path.dirname(__file__), 'sumo_env_default_config.yaml')) as f:
+        cfg = yaml.safe_load(f)
+    cfg = EasyDict(cfg)
+    default_config = cfg.env
+    return merge_dicts(default_config, user_config)
 
 
 class SumoWJ3Env(BaseEnv):
@@ -28,6 +40,7 @@ class SumoWJ3Env(BaseEnv):
         Arguments:
             - cfg (:obj:`dict`): config, you can refer to `env/sumo/sumo_env_default_config.yaml`
         """
+        cfg = build_config(cfg)
         self._cfg = cfg
 
         self._sumocfg_path = cfg.sumocfg_path

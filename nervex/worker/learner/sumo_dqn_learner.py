@@ -6,10 +6,11 @@ Main Function:
 """
 
 import os.path as osp
-
 import torch
 import torch.nn as nn
 import threading
+import yaml
+from easydict import EasyDict
 
 from nervex.worker.agent.sumo_dqn_agent import SumoDqnAgent
 # from nervex.model import alphastar_model_default_config
@@ -19,6 +20,9 @@ from nervex.torch_utils import to_device
 from nervex.utils import override, merge_dicts, pretty_print, read_config
 from nervex.worker.learner.base_learner import Learner
 from nervex.data.fake_dataset import FakeSumoDataset
+from nervex.model.sumo_dqn.sumo_dqn_network import FCDQN
+from nervex.envs.sumo.sumo_env import SumoWJ3Env
+from nervex.data.collate_fn import sumo_dqn_collect_fn
 
 default_config = read_config(osp.join(osp.dirname(__file__), "alphastar_rl_learner_default_config.yaml"))
 
@@ -55,14 +59,14 @@ class SumoDqnLearner(Learner):
             self.cfg.data.train.batch_size,
             self.use_distributed,
             read_data_fn=lambda x: x,
-            collate_fn=lambda x: x
+            collate_fn=sumo_dqn_collect_fn
         )
         return None, iter(dataloader), None
 
     @override(Learner)
     def _setup_agent(self):
-        #To add model
-        model = FCDQN(380, [2, 2, 3])
+        sumo_env = SumoWJ3Env({})
+        model = FCDQN(sumo_env.info().obs_space.shape, [v for k, v in sumo_env.info().act_space.shape.items()])
         agent = SumoDqnAgent(model)
         agent.mode(train=True)
         return agent
@@ -142,33 +146,3 @@ class SumoDqnLearner(Learner):
     #     self.checkpoint_manager.load(
     #         checkpoint, self.agent.model, prefix=prefix, prefix_op=prefix_op, strict=False, need_torch_load=False
     #     )
-
-
-class FCDQN(nn.Module):
-    def __init__(self, input_dim, action_dim, hidden_dim_list=[128, 256, 256], device='cpu'):
-        super(FCDQN, self).__init__()
-        self.act = nn.ReLU()
-        layers = []
-        for dim in hidden_dim_list:
-            layers.append(nn.Linear(input_dim, dim))
-            layers.append(self.act)
-            input_dim = dim
-        self.main = nn.Sequential(*layers)
-        self.action_dim = action_dim
-        if isinstance(self.action_dim, list):
-            self.pred = nn.ModuleList()
-            for dim in self.action_dim:
-                self.pred.append(nn.Linear(input_dim, dim))
-        else:
-            self.pred = nn.Linear(input_dim, action_dim)
-        self.device = device
-
-    def forward(self, x, info={}):
-        if not isinstance(x, torch.Tensor):
-            x = torch.tensor(x, device=self.device, dtype=torch.float)
-        x = self.main(x)
-        if isinstance(self.action_dim, list):
-            x = [m(x) for m in self.pred]
-        else:
-            x = self.pred(x)
-        return x
