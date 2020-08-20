@@ -6,7 +6,19 @@ from nervex.envs.sumo.reward.sumo_reward import SumoReward
 
 
 class SumoRewardRunner(EnvElementRunner):
+    r"""
+    Overview:
+        runner that help to get the reward space
+    Interface:
+        _init, get, reset
+    """
     def _init(self, cfg: dict) -> None:
+        r"""
+        Overview:
+            init the sumo reward helper with the given config file
+        Arguments:
+            - cfg(:obj:`EasyDict`): config, you can refer to `env/sumo/sumo_env_default_config.yaml`
+        """
         # set self._core and other state variable
         self._core = SumoReward(cfg)
         self._reward_type = self._core._reward_type
@@ -18,6 +30,14 @@ class SumoRewardRunner(EnvElementRunner):
         self._last_vehicle_info = {}
 
     def get(self, engine: BaseEnv) -> float:
+        r"""
+        Overview:
+            return the raw_action
+        Arguments:
+            - engine(:obj:`BaseEnv`): the sumo_env
+        Returns:
+            - reward(:obj:`float`): the reward of current env
+        """
         assert isinstance(engine, BaseEnv)
         inputs_data = {}
         for k in self._reward_type:

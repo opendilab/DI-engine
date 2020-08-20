@@ -10,9 +10,22 @@ from nervex.envs.common import EnvElement
 
 
 class SumoRawAction(EnvElement):
+    r"""
+    Overview:
+        the action element of Sumo enviroment
+
+    Interface:
+        _init, _from_agent_processor
+    """
     _name = "SumoRawAction"
 
     def _init(self, cfg):
+        r"""
+        Overview:
+            init the sumo action environment with the given config file
+        Arguments:
+            - cfg(:obj:`EasyDict`): config, you can refer to `env/sumo/sumo_env_default_config.yaml`
+        """
         self._cfg = cfg
         self._tls_green_action = cfg.tls_green_action
         self._tls_yellow_action = cfg.tls_yellow_action
@@ -30,6 +43,16 @@ class SumoRawAction(EnvElement):
         self._to_agent_processor = None
 
     def _from_agent_processor(self, data):
+        r"""
+        Overview:
+            get the raw_action and return corresponding action
+        Arguments:
+            - data (:obj:`dict`): for data info you can reference the example below 
+            Example:
+                >>> data {'htxdj_wjj': {'action': tensor([0]), 'last_action': tensor([0])}, 'haxl_wjj': {'action': tensor([0]), 'last_action': tensor([1])}, 'haxl_htxdj': {'action': tensor([0]), 'last_action': tensor([1])}}
+        Returns:
+            - raw_action(:obj:`dict`): the returned raw_action
+        """
         print('data', data)
         data = tensor_to_list(data)
         raw_action = {k: {} for k in data.keys()}

@@ -12,9 +12,22 @@ from nervex.envs.common import EnvElement
 
 
 class SumoReward(EnvElement):
+    r"""
+    Overview:
+        the reward element of Sumo enviroment
+
+    Interface:
+        _init, to_agent_processor
+    """
     _name = "SumoReward"
 
     def _init(self, cfg: dict) -> None:
+        r"""
+        Overview:
+            init the sumo reward environment with the given config file
+        Arguments:
+            - cfg(:obj:`EasyDict`): config, you can refer to `env/sumo/sumo_env_default_config.yaml`
+        """
         self._cfg = cfg
         self._reduce_by_tl = cfg.reduce_by_tl
         reward_type = cfg.reward_type
@@ -106,6 +119,12 @@ class SumoReward(EnvElement):
             return delay_time_reward_tl, cur_vehicle_info
 
     def _to_agent_processor(self, data: dict) -> dict:
+        r"""
+        Overview:
+            return the raw_reward
+        Returns:
+            - reward(:obj:`dict`{reward_type(:obj:str) : reward(:obj: float)}): the reward dict for each type of the reward
+        """
         reward = {}
         assert set(data.keys()) == set(self._reward_type)
         for k, item in data.items():

@@ -11,9 +11,22 @@ from nervex.envs.common import EnvElement
 
 
 class SumoObs(EnvElement):
+    r"""
+    Overview:
+        the observation element of Sumo enviroment
+
+    Interface:
+        _init, to_agent_processor
+    """
     _name = "SumoObs"
 
     def _init(self, cfg) -> None:
+        r"""
+        Overview:
+            init the sumo observation environment with the given config file
+        Arguments:
+            - cfg(:obj:`EasyDict`): config, you can refer to `env/sumo/sumo_env_default_config.yaml`
+        """
         self._cfg = cfg
         self._tls_num = len(cfg.tls)
         self._tls = cfg.tls
@@ -35,7 +48,14 @@ class SumoObs(EnvElement):
         self._value = {'min': 0, 'max': 1, 'dtype': float, 'dinfo': '0 or 1'}
         self._from_agent_processor = None
 
-    def _to_agent_processor(self, raw_obs=None) -> dict:
+    def _to_agent_processor(self) -> dict:
+        r"""
+        Overview:
+            return the formated observation
+        Returns:
+            - obs(:obj:`torch.Size([380])` or :obj:`dict`{junction : obs}): the returned observation,
+                :obj:`torch.Size([380]) if used centerlized_obs, else :obj:`dict` 
+        """
         self._lane_lens = {t: traci.lane.getLength(t) for v in self._incoming_roads_lanes.values() for t in v}
         obs = {k: torch.zeros(v) for k, v in self._tls_obs_num.items()}
         for car_id in traci.vehicle.getIDList():

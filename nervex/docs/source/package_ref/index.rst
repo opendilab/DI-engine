@@ -10,6 +10,7 @@ Package Reference
     :maxdepth: 3
 
     env/env_overview
+    env/sumo_env
     worker/agent/agent_overview
     worker/learner/learner
     model/alphastar

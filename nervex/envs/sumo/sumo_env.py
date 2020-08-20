@@ -16,13 +16,16 @@ from functools import reduce
 
 class SumoWJ3Env(BaseEnv):
     r"""
-    Overview: Sumo WangJing 3 intersection env
+    Overview:
+        Sumo WangJing 3 intersection env
+    Interface:
+        __init__, reset, close, step, info
     """
     timestep = namedtuple('SumoTimestep', ['obs', 'reward', 'done', 'info'])
     info_template = namedtuple('BaseEnvInfo', ['obs_space', 'act_space', 'rew_space', 'agent_num'])
 
     def __init__(self, cfg: dict) -> None:
-        """
+        r"""
         Overview:
             initialize sumo WJ 3 intersection Env
         Arguments:
@@ -71,6 +74,12 @@ class SumoWJ3Env(BaseEnv):
         return sumo_cmd
 
     def reset(self):
+        r"""
+        Overview:
+            reset the current env
+        Returns:
+            - obs (:obj:`torch.Size([380])`): the observation to env after reset
+        """
         self._current_steps = 0
         obs = self._reward_helper.reset()
         self._obs_helper.reset()
@@ -79,9 +88,23 @@ class SumoWJ3Env(BaseEnv):
         return obs
 
     def close(self):
+        r"""
+        Overview:
+            close the traci env
+        """
         traci.close()
 
-    def step(self, action: int) -> 'SumoWJ3Env.timestep':
+    def step(self, action: list) -> 'SumoWJ3Env.timestep':
+        r"""
+        Overview:
+            step the sumo env with action
+        Arguments:
+            - action(:obj:`list`): list of length 3, represent 3 actions to take in 3 junction
+        Returns:
+            - timpstep(:obj:`SumoWJ3Env.timestep`): the timestep, contain obs(:obj:`torch.Size([380])`),
+                reward(:obj:`float`),
+                done(:obj:`bool`) and info(:obj:`dict`)
+        """
         assert self._launch_env_flag
         self.action = action
         raw_action = self._action_helper.get(self)
@@ -112,6 +135,14 @@ class SumoWJ3Env(BaseEnv):
         self._current_steps += self._green_duration
 
     def info(self) -> 'SumoWJ3Env.info':
+        r"""
+        Overview:
+            return the info_template of env
+        Returns:
+            - info_template(:obj:`SumoWJ3Env.info_template`):
+                the info_template contain information about agent_num,
+                observation space, action space and reward space.
+        """
         info_data = {
             'agent_num': 1,
             'obs_space': self._obs_helper.info,
