@@ -194,7 +194,7 @@ class Learner:
         if self.rank == 0:
             self.checkpoint_manager.save_iterations(
                 self.last_iter.val,
-                self.agent.get_model(),
+                self.agent.model,
                 optimizer=self.optimizer,
                 # dataset=self.dataset,
                 dataset=None,

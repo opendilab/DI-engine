@@ -43,8 +43,10 @@ class SumoObs(EnvElement):
         self._lane_obs_num = 10
         self._tls_obs_num = {k: v * 10 for k, v in self._tls_lanes_num.items()}
         self._use_centralized_obs = cfg.use_centralized_obs
-
-        self._shape = self._tls_obs_num
+        if self._use_centralized_obs:
+            self._shape = sum([v * 10 for k, v in self._tls_lanes_num.items()])
+        else:
+            self._shape = self._tls_obs_num
         self._value = {'min': 0, 'max': 1, 'dtype': float, 'dinfo': '0 or 1'}
         self._from_agent_processor = None
 

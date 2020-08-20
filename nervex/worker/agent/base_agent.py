@@ -34,3 +34,10 @@ class BaseAgent(ABC):
 
     def reset(self) -> None:
         pass
+
+    ##added
+    def get_parameters(self):
+        return self._model.parameters()
+
+    def process_gradient(self):
+        pass
