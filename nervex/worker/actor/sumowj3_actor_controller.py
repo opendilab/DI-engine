@@ -63,7 +63,7 @@ class SumoWJ3Actor(BaseActor):
     def _agent_inference(self, obs: List[torch.Tensor]) -> dict:
         assert self._job['agent_num'] in [1]
         assert len(obs) == len(self._alive_env), len(obs)
-        action, q_value = self._agents['0'].forward(obs)
+        action, q_value = self._agents['0'].forward(obs, eps=self._job['eps'])
         data = {}
         data['action'] = action
         data['q_value'] = q_value

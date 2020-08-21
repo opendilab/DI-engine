@@ -48,14 +48,13 @@ class SumoDqnLearner(Learner):
             }
         }
         self.plugin_cfg = OrderedDict(plugin_cfg)
-        
+
         super(SumoDqnLearner, self).__init__(cfg)
 
         # Print and save config as metadata
         if self.rank == 0:
             pretty_print({"config": self.cfg})
             self.checkpoint_manager.save_config(self.cfg)
-
 
     def run(self):
         super().run()

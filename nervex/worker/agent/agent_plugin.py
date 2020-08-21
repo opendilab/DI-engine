@@ -1,8 +1,10 @@
 from typing import Any, Tuple, Callable, Union, Optional
 import copy
 from collections import OrderedDict
+import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from abc import ABC, abstractmethod, abstractclassmethod
 
 
@@ -103,6 +105,40 @@ class HiddenStateHelper(IAgentStatefulPlugin):
             self._state[idx] = h[i]
 
 
+class ArgmaxSampleHelper(IAgentStatelessPlugin):
+    @classmethod
+    def register(cls: type, agent: Any):
+        def sample_wrapper(forward_fn):
+            def wrapper(*args, **kwargs):
+                logit = forward_fn(*args, **kwargs)
+                action = logit.argmax(dim=-1)
+                return action, logit
+
+            return wrapper
+
+        agent.forward = sample_wrapper(agent.forward)
+
+
+class EpsGreedySampleHelper(IAgentStatelessPlugin):
+    @classmethod
+    def register(cls: type, agent: Any):
+        def sample_wrapper(forward_fn):
+            def wrapper(*args, **kwargs):
+                eps = kwargs.pop('eps')
+                logits = forward_fn(*args, **kwargs)
+                action = []
+                for logit in logits:
+                    if np.random.random() > eps:
+                        action.append(logit.argmax(dim=-1))
+                    else:
+                        action.append(torch.randint(0, logit.shape[-1], size=(logit.shape[0], )))
+                return action, logits
+
+            return wrapper
+
+        agent.forward = sample_wrapper(agent.forward)
+
+
 class TargetNetworkHelper(IAgentStatefulPlugin):
     @classmethod
     def register(cls: type, agent: Any, update_cfg: dict):
@@ -144,7 +180,13 @@ class TargetNetworkHelper(IAgentStatefulPlugin):
         self.update_target_network(state_dict)
 
 
-plugin_name_map = {'grad': GradHelper, 'hidden_state': HiddenStateHelper, 'target_network': TargetNetworkHelper}
+plugin_name_map = {
+    'grad': GradHelper,
+    'hidden_state': HiddenStateHelper,
+    'target_network': TargetNetworkHelper,
+    'argmax_sample': ArgmaxSampleHelper,
+    'eps_greedy_sample': EpsGreedySampleHelper
+}
 
 
 def register_plugin(agent: Any, plugin_cfg: Union[OrderedDict, None]) -> None:

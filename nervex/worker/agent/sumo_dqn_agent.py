@@ -21,6 +21,7 @@ class SumoDqnAgent(BaseAgent):
 class SumoDqnActorAgent(BaseAgent):
     def __init__(self, model: torch.nn.Module) -> None:
         plugin_cfg = OrderedDict({
+            'eps_greedy_sample': {},
             'grad': {
                 'enable_grad': False
             },
