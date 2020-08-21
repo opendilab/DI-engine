@@ -1,6 +1,8 @@
-from typing import Any, Tuple, Callable, Union
+from typing import Any, Tuple, Callable, Union, Optional
+import copy
 from collections import OrderedDict
 import torch
+import torch.nn as nn
 from abc import ABC, abstractmethod, abstractclassmethod
 
 
@@ -101,7 +103,48 @@ class HiddenStateHelper(IAgentStatefulPlugin):
             self._state[idx] = h[i]
 
 
-plugin_name_map = {'grad': GradHelper, 'hidden_state': HiddenStateHelper}
+class TargetNetworkHelper(IAgentStatefulPlugin):
+    @classmethod
+    def register(cls: type, agent: Any, update_cfg: dict):
+        target_network = cls(agent.model, update_cfg)
+        agent._target_network = target_network
+        for method_name in ['update_target_network', 'target_mode', 'target_forward']:
+            setattr(agent, method_name, getattr(agent._target_network, method_name))
+
+    def __init__(self, model: torch.nn.Module, update_cfg: dict) -> None:
+        self._model = copy.deepcopy(model)
+        self.target_mode(train=True)
+        update_type = update_cfg['type']
+        assert update_type in ['momentum', 'assign']
+        self._update_type = update_type
+        self._update_kwargs = update_cfg['kwargs']
+
+    def update_target_network(self, state_dict: dict) -> None:
+        if self._update_type == 'assign':
+            self._model.load_state_dict(state_dict, strict=True)
+        elif self._update_type == 'momentum':
+            theta = self._update_kwargs['theta']
+            for name, p in self._model.named_parameters():
+                p = theta * p + (1 - theta) * state_dict[name]
+
+    def target_mode(self, train: bool) -> None:
+        if train:
+            self._model.train()
+        else:
+            self._model.eval()
+
+    def target_forward(self, data: Any, param: Optional[dict] = None) -> Any:
+        with torch.no_grad():
+            if param is not None:
+                return self._model(data, **param)
+            else:
+                return self._model(data)
+
+    def reset(self, state_dict: dict) -> None:
+        self.update_target_network(state_dict)
+
+
+plugin_name_map = {'grad': GradHelper, 'hidden_state': HiddenStateHelper, 'target_network': TargetNetworkHelper}
 
 
 def register_plugin(agent: Any, plugin_cfg: Union[OrderedDict, None]) -> None:
