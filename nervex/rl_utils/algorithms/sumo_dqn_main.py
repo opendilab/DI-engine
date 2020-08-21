@@ -52,23 +52,27 @@ class SumoDqnRun():
                 eps_threshold = self.bandit(curstep)
             else:
                 eps_threshold = 0.3
+            if state is None:
+                actions.append([torch.tensor([random.randint(0, dim - 1)]) for dim in self.action_dim])
+                continue
             if sample > eps_threshold:
                 with torch.no_grad():
                     action = []
                     for q in self.agent.model.forward(state):
-                        action.append(q.argmax(dim=1))
+                        action.append(q.argmax(dim=0))
                     actions.append(action)
             else:
-                actions.append([torch.tensor([[random.randint(0, dim - 1)]]).item() for dim in self.action_dim])
+                actions.append([torch.tensor([random.randint(0, dim - 1)]) for dim in self.action_dim])
         return actions
 
     def train(self):
         epoch_num = 0
-        losses = []
         duration = 0
         for i_frame in range(self.total_frame_num):
             duration += 1
             states = self.env.reset()
+            # TODO FIX env.reset()
+            # print("states after reset = ", states)
             next_states = states
             cur_epoch_frame = 0
             dones = [False] * len(states)
@@ -103,9 +107,6 @@ class SumoDqnRun():
                     break
 
     def run(self):
-        # self.train()
-        # self.learner.run()
-        # self.train()
         threads = []
         threads.append(threading.Thread(target=self.learner.run))
         threads.append(threading.Thread(target=self.train))
