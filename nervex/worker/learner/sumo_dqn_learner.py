@@ -29,8 +29,8 @@ default_config = read_config(osp.join(osp.dirname(__file__), "alphastar_rl_learn
 class SumoDqnLearner(Learner):
     _name = "SumoDqnLearner"
 
-    def __init__(self, cfg):
-        self.data_iterator = FakeSumoDataset(cfg.data.train.batch_size).getBatchSample()
+    def __init__(self, cfg, data_iterator):
+        self.data_iterator = data_iterator
 
         super(SumoDqnLearner, self).__init__(cfg)
 
