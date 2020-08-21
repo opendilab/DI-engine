@@ -53,7 +53,7 @@ class SumoRawAction(EnvElement):
         Returns:
             - raw_action(:obj:`dict`): the returned raw_action
         """
-        print('data', data)
+        # print('data', data)
         data = tensor_to_list(data)
         raw_action = {k: {} for k in data.keys()}
         for k, v in data.items():

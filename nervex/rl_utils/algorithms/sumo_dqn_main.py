@@ -86,13 +86,13 @@ class SumoDqnRun():
                     # step['"obs", "acts", "nextobs", "rewards", "termianls"']
                     step['obs'] = states[i]
                     step['acts'] = actions[i]
-                    step['nextobs'] = next_states[i]
+                    step['next_obs'] = next_states[i]
                     step['rewards'] = reward
                     if dones[i]:
                         isdone = torch.ones(1)
                     else:
                         isdone = torch.zeros(1)
-                    step['termianls'] = isdone
+                    step['terminals'] = isdone
 
                     self.buffer.append(step)
 
