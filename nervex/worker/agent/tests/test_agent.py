@@ -151,5 +151,5 @@ class TestAgentPlugin:
         agent.mode(train=True)
         agent.target_mode(train=True)
         output = agent.forward(inputs)
-        output_target = agent.forward(inputs)
-        assert output_target.eq(output_target).sum() == 2 * 6
+        output_target = agent.target_forward(inputs)
+        assert output.eq(output_target).sum() == 2 * 6

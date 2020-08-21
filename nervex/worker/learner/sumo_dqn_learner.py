@@ -11,6 +11,7 @@ import torch.nn as nn
 import threading
 import yaml
 from easydict import EasyDict
+from collections import OrderedDict
 
 from nervex.worker.agent.sumo_dqn_agent import SumoDqnAgent
 from nervex.data import build_dataloader
@@ -22,6 +23,7 @@ from nervex.data.fake_dataset import FakeSumoDataset
 from nervex.model.sumo_dqn.sumo_dqn_network import FCDQN
 from nervex.envs.sumo.sumo_env import SumoWJ3Env
 from nervex.data.collate_fn import sumo_dqn_collect_fn
+from nervex.worker.agent.agent_plugin import TargetNetworkHelper
 
 default_config = read_config(osp.join(osp.dirname(__file__), "alphastar_rl_learner_default_config.yaml"))
 
@@ -32,12 +34,28 @@ class SumoDqnLearner(Learner):
     def __init__(self, cfg, data_iterator):
         self.data_iterator = data_iterator
 
+        plugin_cfg = {
+            'grad': {
+                'enable_grad': True
+            },
+            'target_network': {
+                'update_cfg': {
+                    'type': 'momentum',
+                    'kwargs': {
+                        'theta': 0.99
+                    }
+                }
+            }
+        }
+        self.plugin_cfg = OrderedDict(plugin_cfg)
+        
         super(SumoDqnLearner, self).__init__(cfg)
 
         # Print and save config as metadata
         if self.rank == 0:
             pretty_print({"config": self.cfg})
             self.checkpoint_manager.save_config(self.cfg)
+
 
     def run(self):
         super().run()
@@ -59,8 +77,9 @@ class SumoDqnLearner(Learner):
     def _setup_agent(self):
         sumo_env = SumoWJ3Env({})
         model = FCDQN(sumo_env.info().obs_space.shape, [v for k, v in sumo_env.info().act_space.shape.items()])
-        agent = SumoDqnAgent(model)
+        agent = SumoDqnAgent(model, self.plugin_cfg)
         agent.mode(train=True)
+        agent.target_mode(train=True)
         return agent
 
     @override(Learner)
