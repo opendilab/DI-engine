@@ -46,7 +46,7 @@ class SumoWJ3Env(BaseEnv):
         cfg = build_config(cfg)
         self._cfg = cfg
 
-        self._sumocfg_path = cfg.sumocfg_path
+        self._sumocfg_path = os.path.dirname(__file__)+'/' + cfg.sumocfg_path
         self._max_episode_steps = cfg.max_episode_steps
         self._inference = cfg.inference
         self._yellow_duration = cfg.yellow_duration

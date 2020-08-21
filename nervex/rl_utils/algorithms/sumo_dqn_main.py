@@ -8,6 +8,7 @@ import math
 import random
 import yaml
 from easydict import EasyDict
+import threading
 
 from typing import Optional
 
@@ -28,19 +29,19 @@ def setup_config():
     cfg = EasyDict(cfg)
     return cfg
 
-class SumoDqnRun():
 
+class SumoDqnRun():
     def __init__(self):
         sumo_env = SumoWJ3Env({})
         self.action_dim = [v for k, v in sumo_env.info().act_space.shape.items()]
         self.cfg = setup_config()
         self.batch_size = self.cfg.train.batch_size
-        self.env = SumoEnvManager({})
+        self.env = SumoEnvManager(EasyDict({'env_num': 4}))
         self.total_frame_num = 1000000
         self.max_epoch_frame = 2000
         self.buffer = PrioritizedBufferWrapper(10000)
         self.bandit = epsilon_greedy(0.95, 0.03, 10000)
-        self.learner = SumoDqnLearner(self.cfg, self.buffer.iterable_sample(batch_size))
+        self.learner = SumoDqnLearner(self.cfg, self.buffer.iterable_sample(self.batch_size))
         self.agent = self.learner.agent
 
     def select_sumo_actions(self, states, curstep):
@@ -58,12 +59,7 @@ class SumoDqnRun():
                         action.append(q.argmax(dim=1))
                     actions.append(action)
             else:
-                actions.append(
-                    [
-                        torch.tensor([[random.randint(0, dim - 1)]]).item()
-                        for dim in action_dim
-                    ]
-                )
+                actions.append([torch.tensor([[random.randint(0, dim - 1)]]).item() for dim in self.action_dim])
         return actions
 
     def train(self):
@@ -97,7 +93,7 @@ class SumoDqnRun():
                     self.buffer.append(step)
 
                     states[i] = next_states[i]
-                
+
                 if all(dones) or (i_frame - cur_epoch_frame) % self.max_epoch_frame:
                     cur_epoch_frame = i_frame
                     epoch_num += 1
@@ -105,10 +101,17 @@ class SumoDqnRun():
                     duration = 0
                     states = self.env.reset()
                     break
-    
+
     def run(self):
-        self.learner.run()
-        self.train()
+        # self.train()
+        # self.learner.run()
+        # self.train()
+        threads = []
+        threads.append(threading.Thread(target=self.learner.run))
+        threads.append(threading.Thread(target=self.train))
+        for t in threads:
+            print(t)
+            t.start()
 
 
 sumo_dqn_run = SumoDqnRun()
