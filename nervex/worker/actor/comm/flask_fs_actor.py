@@ -52,7 +52,7 @@ class FlaskFileSystemActor(BaseCommActor):
         if self._file_system_type == 'ceph':
             save_file_ceph(self._path_traj, path, stepdata)
         elif self._file_system_type == 'normal':
-            name = os.path.join(self._path_traj, )
+            name = os.path.join(self._path_traj, path)
             torch.save(stepdata, name)
 
     # override

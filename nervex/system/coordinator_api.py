@@ -58,11 +58,9 @@ def create_coordinator_app(coordinator):
 
     @app.route('/coordinator/get_metadata', methods=['POST'])
     def get_metadata():
-        manager_uid = request.json['manager_uid']
-        actor_uid = request.json['actor_uid']
         job_id = request.json['job_id']
         metadata = request.json['metadata']
-        ret_code = coordinator.deal_with_get_metadata(manager_uid, actor_uid, job_id, metadata)
+        ret_code = coordinator.deal_with_get_metadata(job_id, metadata)
         if ret_code:
             return build_ret(0)
         else:
