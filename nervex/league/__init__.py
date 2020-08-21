@@ -1,1 +1,1 @@
-from .league_manager import LeagueManager
+from .base_league_manager import BaseLeagueManager

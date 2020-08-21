@@ -40,7 +40,7 @@ class Player:
 class ActivePlayer(Player):
     """
     Overview: active player class, active player can be updated
-    Interface: is_trained_enough, snapshot, mutate, get_match, update_agent_step
+    Interface: is_trained_enough, snapshot, mutate, get_task, update_agent_step
     """
     _name = "ActivePlayer"
     BRANCH = namedtuple("BRANCH", ['name', 'prob'])
@@ -116,7 +116,7 @@ class ActivePlayer(Player):
         """
         raise NotImplementedError
 
-    def get_match(self, p=None):
+    def get_task(self, p=None):
         """
         Overview: get an opponent to do a match
         Returns:
@@ -288,7 +288,7 @@ class MainExploiter(ActivePlayer):
         """
         Overview: main exploiter is sure to mutates(reset) to the supervised learning player
         """
-        return info['sl_checkpoint_path']
+        return info['pretrain_checkpoint_path']
 
 
 class LeagueExploiter(ActivePlayer):
@@ -325,6 +325,6 @@ class LeagueExploiter(ActivePlayer):
         """
         p = np.random.uniform()
         if p < self.mutate_prob:
-            return info['sl_checkpoint_path']
+            return info['pretrain_checkpoint_path']
 
         return None

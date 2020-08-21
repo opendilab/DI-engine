@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 import os.path as osp
 from collections import OrderedDict
 from threading import Thread
@@ -26,14 +27,14 @@ class LimitedSpaceContainer:
         self.cur = max(self.min_val, self.cur - 1)
 
 
-class LeagueManager:
+class BaseLeagueManager(ABC):
     """
     Overview: league training manager
-    Interface: __init__, run, close, finish_match, update_active_player, init_player_model
+    Interface: __init__, run, close, finish_task, update_active_player
     Note:
-        launch_match_fn:
+        launch_task_fn:
             Arguments:
-                - launch_info (:obj:`dict`)
+                - task_info (:obj:`dict`)
                     - home_id (:obj:`str`)
                     - away_id (:obj:`str`)
                     - home_race (:obj:`str`)
@@ -50,7 +51,7 @@ class LeagueManager:
             Arguments:
                 - player_id: (:obj:`str`)
                 - checkpoint_path: (:obj:`str`)
-        match_info (:obj:`dict`)
+        task_info (:obj:`dict`)
             - home_id (:obj:`str`)
             - away_id (:obj:`str`)
             - result (:obj:`str`): `wins`, `draws`, `losses`
@@ -58,18 +59,18 @@ class LeagueManager:
             - player_id (:obj:`str`)
             - train_step (:obj:`int`)
     """
-    def __init__(self, cfg, save_checkpoint_fn, load_checkpoint_fn, launch_match_fn):
+    def __init__(self, cfg, save_checkpoint_fn, load_checkpoint_fn, launch_task_fn):
         self.cfg = merge_dicts(default_config, cfg).league
         self.active_players = []
         self.historical_players = []
         self.payoff = SharedPayoff(self.cfg.payoff_decay, self.cfg.min_win_rate_games)
-        self.max_active_player_match = self.cfg.max_active_player_match
+        self.max_active_player_task = self.cfg.max_active_player_task
 
         self.save_checkpoint_fn = save_checkpoint_fn
         self.load_checkpoint_fn = load_checkpoint_fn
-        self.launch_match_fn = launch_match_fn
+        self.launch_task_fn = launch_task_fn
         self._active_players_lock = LockContext(lock_type='thread')
-        self._launch_match_thread = Thread(target=self._launch_match)
+        self._launch_task_thread = Thread(target=self._launch_task)
         self._snapshot_thread = Thread(target=self._snapshot)
         self._end_flag = False
 
@@ -77,30 +78,31 @@ class LeagueManager:
 
     def _init_league(self):
         player_map = {'main_player': MainPlayer, 'main_exploiter': MainExploiter, 'league_exploiter': LeagueExploiter}
-        for r in self.cfg.race:
+        for r in self.cfg.player_category:
             for k, n in self.cfg.active_players.items():
                 for i in range(n):
-                    name = '{}_{}_{}'.format(k, r, i)  # e.g. main_player_zerg_0
+                    name = '{}_{}_{}'.format(k, r, i)
                     ckpt_path = '{}_ckpt.pth'.format(name)
                     player = player_map[k](r, self.payoff, ckpt_path, name, **self.cfg[k])
                     self.active_players.append(player)
                     self.payoff.add_player(player)
-                    # set sl checkpoint as initial player checkpoint
+                    # set pretrain checkpoint as initial player checkpoint
                     # only file copy, learner will load the checkpoint when learner-player mapping has been established
-                    self.save_checkpoint_fn(self.cfg.sl_checkpoint_path[r], player.checkpoint_path)
+                    self.save_checkpoint_fn(self.cfg.pretrain_checkpoint_path[r], player.checkpoint_path)
+        self._init_player_model()
 
-        # add sl player as the initial HistoricalPlayer
-        if self.cfg.use_sl_init_historical:
-            for r in self.cfg.race:
-                name = '{}_{}_0_sl'.format('main_player', r)
+        # add pretrain player as the initial HistoricalPlayer
+        if self.cfg.use_pretrain_init_historical:
+            for r in self.cfg.player_category:
+                name = '{}_{}_0_pretrain'.format('main_player', r)
                 parent_name = '{}_{}_0'.format('main_player', r)
-                hp = HistoricalPlayer(r, self.payoff, self.cfg.sl_checkpoint_path[r], name, parent_id=parent_name)
+                hp = HistoricalPlayer(r, self.payoff, self.cfg.pretrain_checkpoint_path[r], name, parent_id=parent_name)
                 self.historical_players.append(hp)
                 self.payoff.add_player(hp)
 
         # register launch_count attribute for each active player
         for p in self.active_players:
-            setattr(p, 'launch_count', LimitedSpaceContainer(0, self.max_active_player_match))
+            setattr(p, 'launch_count', LimitedSpaceContainer(0, self.max_active_player_task))
 
         # save active_players player_id
         self.active_players_ids = [p.player_id for p in self.active_players]
@@ -109,52 +111,43 @@ class LeagueManager:
         assert len(self.active_players_ids) == len(set(self.active_players_ids))
 
     def run(self):
-        self._launch_match_thread.start()
+        self._launch_task_thread.start()
         self._snapshot_thread.start()
 
     def close(self):
         self._end_flag = True
 
-    def init_player_model(self):
+    def _init_player_model(self):
         for p in self.active_players:
             self.load_checkpoint_fn(p.player_id, p.checkpoint_path)
 
-    def _launch_match(self):
+    def _launch_task(self):
         while not self._end_flag:
             # check whether there is empty task launcher
-            launch_counts = [0 for _ in range(len(self.active_players))]
             with self._active_players_lock:
                 launch_counts = [p.launch_count.get_residual_space() for p in self.active_players]
 
-                # launch match
+                # launch task
                 if sum(launch_counts) != 0:
                     for idx, c in enumerate(launch_counts):
                         for _ in range(c):
-                            home = self.active_players[idx]
-                            away = self.active_players[idx].get_match()
-                            launch_info = {
-                                'home_id': home.player_id,
-                                'away_id': away.player_id,
-                                'home_race': home.race,
-                                'away_race': away.race,
-                                'home_checkpoint_path': home.checkpoint_path,
-                                'away_checkpoint_path': away.checkpoint_path,
-                                'home_teacher_checkpoint_path': self.cfg.sl_checkpoint_path[home.race],
-                                'away_teacher_checkpoint_path': self.cfg.sl_checkpoint_path[away.race],
-                            }
-                            self.launch_match_fn(launch_info)
+                            player = self.active_players[idx]
+                            task_info = self._get_task_info(player)
+                            assert 'launch_player' in task_info.keys(
+                            ) and task_info['launch_player'] == player.player_id
+                            self.launch_task_fn(task_info)
 
             time.sleep(self.cfg.time_interval)
 
-    def finish_match(self, match_info):
+    def finish_task(self, task_info):
         # update launch_count
         with self._active_players_lock:
-            home_id = match_info['home_id']
-            idx = self.active_players_ids.index(home_id)
+            launch_player = task_info['launch_player']
+            idx = self.active_players_ids.index(launch_player)
             self.active_players[idx].launch_count.release_space()
-        # save match info
-        # TODO(nyz) more fine-grained match info
-        self.payoff.update(match_info)
+        # save task info
+        # TODO(nyz) more fine-grained task info
+        self.payoff.update(task_info)
 
     def _snapshot(self):
         time.sleep(int(0.5 * self.cfg.time_interval))
@@ -174,16 +167,25 @@ class LeagueManager:
                             self.historical_players.append(hp)
                             self.payoff.add_player(hp)
                             # mutate
-                            info = {'sl_checkpoint_path': self.cfg.sl_checkpoint_path[player.race]}
-                            result = player.mutate(info)
-                            if result is not None:
-                                self.load_checkpoint_fn(player.player_id, result)
-                                self.save_checkpoint_fn(result, player.checkpoint_path)
+                            self._mutate_player(player)
             time.sleep(self.cfg.time_interval)
 
     def update_active_player(self, player_info):
         try:
             idx = self.active_players_ids.index(player_info['player_id'])
-            self.active_players[idx].update_agent_step(player_info['train_step'])
+            player = self.active_players[idx]
+            self._update_player(player, player_info)
         except ValueError:
             pass
+
+    @abstractmethod
+    def _get_task_info(self, player):
+        raise NotImplementedError
+
+    @abstractmethod
+    def _mutate_player(self, player):
+        raise NotImplementedError
+
+    @abstractmethod
+    def _update_player(self, player, player_info):
+        raise NotImplementedError
