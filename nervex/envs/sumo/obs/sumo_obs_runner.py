@@ -38,6 +38,6 @@ class SumoObsRunner(EnvElementRunner):
     def reset(self) -> None:
         r"""
         Overview:
-            pass
+            reset obs runner, and return the initial obs
         """
-        pass
+        return self._core._to_agent_processor()

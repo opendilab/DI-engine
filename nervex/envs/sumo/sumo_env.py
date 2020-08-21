@@ -60,6 +60,8 @@ class SumoWJ3Env(BaseEnv):
         self._launch_env_flag = False
 
     def _launch_env(self, gui=False):
+        if self._launch_env_flag:
+            return
         # set gui=True can get visualization simulation result with sumo, apply gui=False in the normal training
         # and test setting
 
@@ -84,8 +86,6 @@ class SumoWJ3Env(BaseEnv):
         traci.start(sumo_cmd, label=time.time())
         self._launch_env_flag = True
 
-        return sumo_cmd
-
     def reset(self):
         r"""
         Overview:
@@ -94,10 +94,10 @@ class SumoWJ3Env(BaseEnv):
             - obs (:obj:`torch.Size([380])`): the observation to env after reset
         """
         self._current_steps = 0
-        obs = self._reward_helper.reset()
-        self._obs_helper.reset()
-        self._action_helper.reset()
         self._launch_env()
+        self._reward_helper.reset()
+        self._action_helper.reset()
+        obs = self._obs_helper.reset()
         return obs
 
     def close(self):
