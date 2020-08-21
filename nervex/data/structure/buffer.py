@@ -263,4 +263,5 @@ class PrioritizedBufferWrapper(PrioritizedBuffer):
 
     def iterable_sample(self, batch_size):
         while True:
-            yield self.sample(batch_size)
+            if batch_size < self.validlen:
+                yield self.sample(batch_size)
