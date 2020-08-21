@@ -11,10 +11,16 @@ data:
 train:
     use_cuda: False
     use_distributed: False
-    max_iterations: 5
+    max_iterations: 1000000
     batch_size: 4
     learning_rate: 0.001
     weight_decay: 0.001
+    dqn:
+        total_frame_num: 1000000
+        max_epoch_frame: 2000
+        buffer_length: 10000
+        update_target_freq: 300
+        
 model:
     use_value_network: True
     encoder:
@@ -24,3 +30,5 @@ logger:
     print_freq: 1
     save_freq: 200
     eval_freq: 200
+env:
+    env_num: 4

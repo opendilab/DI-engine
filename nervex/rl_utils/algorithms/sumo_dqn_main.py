@@ -31,15 +31,15 @@ def setup_config():
 
 
 class SumoDqnRun():
-    def __init__(self):
+    def __init__(self, cfg):
         sumo_env = SumoWJ3Env({})
         self.action_dim = [v for k, v in sumo_env.info().act_space.shape.items()]
-        self.cfg = setup_config()
+        self.cfg = cfg
         self.batch_size = self.cfg.train.batch_size
-        self.env = SumoEnvManager(EasyDict({'env_num': 4}))
-        self.total_frame_num = 1000000
-        self.max_epoch_frame = 2000
-        self.buffer = PrioritizedBufferWrapper(10000)
+        self.env = SumoEnvManager(cfg.env)
+        self.total_frame_num = cfg.train.dqn.total_frame_num
+        self.max_epoch_frame = cfg.train.dqn.max_epoch_frame
+        self.buffer = PrioritizedBufferWrapper(cfg.train.dqn.buffer_length)
         self.bandit = epsilon_greedy(0.95, 0.03, 10000)
         self.learner = SumoDqnLearner(self.cfg, self.buffer.iterable_sample(self.batch_size))
         self.agent = self.learner.agent
@@ -115,5 +115,5 @@ class SumoDqnRun():
             t.start()
 
 
-sumo_dqn_run = SumoDqnRun()
+sumo_dqn_run = SumoDqnRun(setup_config())
 sumo_dqn_run.run()
