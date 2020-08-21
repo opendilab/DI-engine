@@ -24,7 +24,12 @@ def setup_manager(setup_config):
 
     def run():
         try:
-            manager_app.run(host=setup_config.system.manager_ip, port=setup_config.system.manager_port, debug=True, use_reloader=False)
+            manager_app.run(
+                host=setup_config.system.manager_ip,
+                port=setup_config.system.manager_port,
+                debug=True,
+                use_reloader=False
+            )
         except KeyboardInterrupt:
             pass
 
@@ -74,7 +79,12 @@ def setup_coordinator(setup_config):
 
     def run():
         try:
-            coordinator_app.run(host=setup_config.system.coordinator_ip, port=setup_config.system.coordinator_port, debug=True, use_reloader=False)
+            coordinator_app.run(
+                host=setup_config.system.coordinator_ip,
+                port=setup_config.system.coordinator_port,
+                debug=True,
+                use_reloader=False
+            )
         except KeyboardInterrupt:
             pass
 

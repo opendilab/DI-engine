@@ -96,8 +96,7 @@ class SumoWJ3Actor(BaseActor):
                 cur_len = len(self._data_buffer[env_id])
                 miss_len = self._job['data_push_length'] - cur_len
                 if miss_len > 0:
-                    self._data_buffer[
-                        env_id] = self._last_data_buffer[env_id][-miss_len:] + self._data_buffer[env_id]
+                    self._data_buffer[env_id] = self._last_data_buffer[env_id][-miss_len:] + self._data_buffer[env_id]
                 self._traj_queue.put({'data': self._data_buffer[env_id], 'env_id': env_id})
 
         # deal with alive_env
@@ -111,7 +110,9 @@ class SumoWJ3Actor(BaseActor):
         assert self.all_done, 'all envs must be done'
         result = [sum(t) / (len(t) + 1e-8) for t in self._episode_reward]
         self._episode_result.append(result)
-        self._logger.info('finish episode{} in {} with cum_reward: {}'.format(len(self._episode_result) - 1, time.time(), result))
+        self._logger.info(
+            'finish episode{} in {} with cum_reward: {}'.format(len(self._episode_result) - 1, time.time(), result)
+        )
 
     # override
     def _finish_job(self) -> None:

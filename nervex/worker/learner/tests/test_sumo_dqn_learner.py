@@ -5,6 +5,7 @@ import os
 import random
 from easydict import EasyDict
 from nervex.worker.learner.sumo_dqn_learner import SumoDqnLearner
+from nervex.data.fake_dataset import FakeSumoDataset
 
 
 @pytest.fixture(scope='function')
@@ -18,5 +19,5 @@ def setup_config():
 @pytest.mark.unittest
 class TestSumoDqnLearner:
     def test_data_sample_update(self, setup_config):
-        sumo_learner = SumoDqnLearner(setup_config)
+        sumo_learner = SumoDqnLearner(setup_config, FakeSumoDataset(setup_config.train.batch_size).getBatchSample())
         sumo_learner.run()

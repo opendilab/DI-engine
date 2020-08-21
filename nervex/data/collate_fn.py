@@ -160,18 +160,22 @@ def actor_collate_fn(batch, max_delay=63, action_type_transform=True):
 def sumo_dqn_collect_fn(data):
     batchs = data
 
-    state_batch = torch.cat([torch.Tensor([x['obs']]) for x in batchs], 0)
-    nextstate_batch = torch.cat([torch.Tensor([x['next_obs']]) for x in batchs], 0)
+    # print("data of collect:", data)
+
+    state_batch = torch.cat([x['obs'].unsqueeze(0) for x in batchs], 0)
+    nextstate_batch = torch.cat([x['next_obs'].unsqueeze(0) for x in batchs], 0)
     action_batch = torch.cat([torch.LongTensor([x['acts']]) for x in batchs])
     reward_batch = torch.cat([torch.Tensor([x['rewards']]) for x in batchs])
     terminate_batch = torch.cat([torch.Tensor([x['terminals']]) for x in batchs])
-    unterminate = torch.cat([torch.Tensor([1 - x['terminals']]) for x in batchs])
 
     reward = reward_batch
     action = action_batch
     action = list(zip(*action))
     action = [torch.stack(t) for t in action]
     terminate = terminate_batch
+
+    # print("state_batch = ", state_batch)
+    # print("state_batch_shape = ", state_batch.shape)
 
     return {
         'state': state_batch,

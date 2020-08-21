@@ -1,5 +1,5 @@
 env:
-    sumocfg_path: '/Users/nyz/code/gitlab/nerveX/nervex/envs/sumo/beijing_wj/sumo_config.sumocfg'
+    sumocfg_path: 'beijing_wj/sumo_config.sumocfg'
     max_episode_steps: 2000
     green_duration: 10
     yellow_duration: 3
