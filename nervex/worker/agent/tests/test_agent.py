@@ -2,6 +2,7 @@ import pytest
 import copy
 from collections import OrderedDict
 import torch
+import torch.nn as nn
 from nervex.worker.agent.base_agent import BaseAgent
 from nervex.torch_utils import get_lstm
 
@@ -104,3 +105,51 @@ class TestAgentPlugin:
         assert all([isinstance(s, tuple) and len(s) == 2 for s in agent._state_manager._state.values()])
         agent.reset()
         assert all([isinstance(s, type(None)) for s in agent._state_manager._state.values()])
+
+    def test_target_network_helper(self):
+        class TempMLP(torch.nn.Module):
+            def __init__(self):
+                super(TempMLP, self).__init__()
+                self.fc1 = nn.Linear(3, 4)
+                self.bn1 = nn.BatchNorm1d(4)
+                self.fc2 = nn.Linear(4, 6)
+                self.act = nn.ReLU()
+
+            def forward(self, x):
+                x = self.fc1(x)
+                x = self.bn1(x)
+                x = self.act(x)
+                x = self.fc2(x)
+                x = self.act(x)
+                return x
+
+        model = TempMLP()
+        plugin_cfg = {
+            'grad': {
+                'enable_grad': True
+            },
+            'target_network': {
+                'update_cfg': {
+                    'type': 'momentum',
+                    'kwargs': {
+                        'theta': 0.99
+                    }
+                }
+            }
+        }
+        plugin_cfg = OrderedDict(plugin_cfg)
+        agent = BaseAgent(model, plugin_cfg)
+        assert all(
+            [hasattr(agent, n) for n in ['_target_network', 'target_mode', 'target_forward', 'update_target_network']]
+        )
+        assert agent.model.fc1.weight.eq(agent._target_network._model.fc1.weight).sum() == 12
+        agent.model.fc1.weight.data = torch.randn_like(agent.model.fc1.weight)
+        assert agent.model.fc1.weight.ne(agent._target_network._model.fc1.weight).sum() == 12
+        agent.update_target_network(agent.state_dict()['model'])
+
+        inputs = torch.randn(2, 3)
+        agent.mode(train=True)
+        agent.target_mode(train=True)
+        output = agent.forward(inputs)
+        output_target = agent.forward(inputs)
+        assert output_target.eq(output_target).sum() == 2 * 6
