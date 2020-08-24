@@ -177,10 +177,4 @@ def sumo_dqn_collect_fn(data):
     # print("state_batch = ", state_batch)
     # print("state_batch_shape = ", state_batch.shape)
 
-    return {
-        'obs': obs_batch,
-        'next_obs': nextobs_batch,
-        'action': action,
-        'reward': reward,
-        'done': done
-    }
+    return {'obs': obs_batch, 'next_obs': nextobs_batch, 'action': action, 'reward': reward, 'done': done}

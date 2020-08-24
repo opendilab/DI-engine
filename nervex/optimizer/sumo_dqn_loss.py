@@ -12,9 +12,7 @@ from nervex.optimizer.base_loss import BaseLoss
 class SumoDqnLoss(BaseLoss):
     td_data = namedtuple('td_data', ['q', 'next_q', 'act', 'reward', 'terminate'])
 
-    def __init__(
-        self, agent, cfg, q_function_criterion=nn.MSELoss(reduction='none')
-    ):
+    def __init__(self, agent, cfg, q_function_criterion=nn.MSELoss(reduction='none')):
         self.agent = agent
         self._gamma = cfg.dqn.discount_factor
         self.q_function_criterion = q_function_criterion

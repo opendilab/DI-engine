@@ -18,6 +18,7 @@ class DataTransformHelper(IAgentStatelessPlugin):
                     return list(zip(*ret))
                 else:
                     return [list(zip(*r)) for r in ret]
+
             return wrapper
 
         agent.forward = data_wrapper(agent.forward)
@@ -30,7 +31,9 @@ class SumoDqnLearnerAgent(BaseAgent):
     def __init__(self, model: torch.nn.Module, plugin_cfg) -> None:
         if plugin_cfg is None:
             self.plugin_cfg = OrderedDict({
-                'sumowj3_data_transform': {'ret_num': 1},
+                'sumowj3_data_transform': {
+                    'ret_num': 1
+                },
                 'grad': {
                     'enable_grad': True
                 },
@@ -42,11 +45,15 @@ class SumoDqnLearnerAgent(BaseAgent):
 
 class SumoDqnActorAgent(BaseAgent):
     def __init__(self, model: torch.nn.Module) -> None:
-        plugin_cfg = OrderedDict({
-            'eps_greedy_sample': {},
-            'sumowj3_data_transform': {'ret_num': 2},
-            'grad': {
-                'enable_grad': False
-            },
-        })
+        plugin_cfg = OrderedDict(
+            {
+                'eps_greedy_sample': {},
+                'sumowj3_data_transform': {
+                    'ret_num': 2
+                },
+                'grad': {
+                    'enable_grad': False
+                },
+            }
+        )
         super(SumoDqnActorAgent, self).__init__(model, plugin_cfg)
