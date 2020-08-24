@@ -45,7 +45,7 @@ class FakeCoordinator(Coordinator):
         fake_job = {
             'job_id': str(uuid.uuid1()),
             'episode_num': 2,
-            'env_num': 3,
+            'env_num': 4,
             'agent_num': 1,
             'agent': {
                 '0': {

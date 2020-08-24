@@ -9,7 +9,6 @@ class SumoWJ3EnvManager(SubprocessEnvManager):
 
     # override
     def step(self, action) -> 'SumoWJ3Env.timestep':  # noqa
-        action = list(zip(*action))
         timestep = super().step(action)
         assert isinstance(timestep, list)
         assert isinstance(timestep[0], tuple)
