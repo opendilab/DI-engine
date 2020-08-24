@@ -13,7 +13,7 @@ import yaml
 from easydict import EasyDict
 from collections import OrderedDict
 
-from nervex.worker.agent.sumo_dqn_agent import SumoDqnAgent
+from nervex.worker.agent.sumo_dqn_agent import SumoDqnLearnerAgent
 from nervex.data import build_dataloader
 from nervex.optimizer.sumo_dqn_optimizer import SumoDqnOptimizer
 from nervex.torch_utils import to_device
@@ -76,7 +76,7 @@ class SumoDqnLearner(Learner):
     def _setup_agent(self):
         sumo_env = SumoWJ3Env({})
         model = FCDQN(sumo_env.info().obs_space.shape, [v for k, v in sumo_env.info().act_space.shape.items()])
-        agent = SumoDqnAgent(model, self.plugin_cfg)
+        agent = SumoDqnLearnerAgent(model, self.plugin_cfg)
         agent.mode(train=True)
         agent.target_mode(train=True)
         return agent

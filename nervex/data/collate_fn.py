@@ -162,25 +162,25 @@ def sumo_dqn_collect_fn(data):
 
     # print("data of collect:", data)
 
-    state_batch = torch.cat([x['obs'].unsqueeze(0) for x in batchs], 0)
-    nextstate_batch = torch.cat([x['next_obs'].unsqueeze(0) for x in batchs], 0)
-    action_batch = torch.cat([torch.LongTensor([x['acts']]) for x in batchs])
-    reward_batch = torch.cat([torch.Tensor([x['rewards']]) for x in batchs])
-    terminate_batch = torch.cat([torch.Tensor([x['terminals']]) for x in batchs])
+    obs_batch = torch.cat([x['obs'].unsqueeze(0) for x in batchs], 0)
+    nextobs_batch = torch.cat([x['next_obs'].unsqueeze(0) for x in batchs], 0)
+    action_batch = torch.cat([torch.LongTensor([x['action']]) for x in batchs])
+    reward_batch = torch.cat([torch.Tensor([x['reward']]) for x in batchs])
+    done_batch = torch.cat([torch.Tensor([x['done']]) for x in batchs])
 
     reward = reward_batch
     action = action_batch
     action = list(zip(*action))
     action = [torch.stack(t) for t in action]
-    terminate = terminate_batch
+    done = done_batch
 
     # print("state_batch = ", state_batch)
     # print("state_batch_shape = ", state_batch.shape)
 
     return {
-        'state': state_batch,
-        'next_state': nextstate_batch,
+        'obs': obs_batch,
+        'next_obs': nextobs_batch,
         'action': action,
         'reward': reward,
-        'terminate': terminate
+        'done': done
     }

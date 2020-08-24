@@ -106,6 +106,8 @@ def to_tensor(item, dtype):
             for t in item:
                 new_data.append(to_tensor(t, dtype))
             return new_data
+    elif isinstance(item, np.ndarray):
+        return torch.from_numpy(item).to(dtype)
     elif item is None:
         return None
     else:

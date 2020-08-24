@@ -12,14 +12,10 @@ from nervex.optimizer.base_loss import BaseLoss
 class SumoDqnLoss(BaseLoss):
     td_data = namedtuple('td_data', ['q', 'next_q', 'act', 'reward', 'terminate'])
 
-    # def __init__(
-    #     self, agent, discount_factor: Optional[float] = 0.99, q_function_criterion=nn.MSELoss(reduction='none')
-    # ):
     def __init__(
         self, agent, cfg, q_function_criterion=nn.MSELoss(reduction='none')
     ):
         self.agent = agent
-        # self._gamma = discount_factor
         self._gamma = cfg.dqn.discount_factor
         self.q_function_criterion = q_function_criterion
         self.update_target_freq = cfg.dqn.update_target_freq
@@ -28,18 +24,17 @@ class SumoDqnLoss(BaseLoss):
 
     def compute_loss(self, data: dict):
         self.iter_count += 1
-        state_batch = data.get('state')
-        nextstate_batch = data.get('next_state')
+        obs_batch = data.get('obs')
+        nextobs_batch = data.get('next_obs')
         reward = data.get('reward')
         action = data.get('action')
-        terminate = data.get('terminate')
+        terminate = data.get('done')
+        weights = data.get('weights', None)
 
-        weights = None
-
-        q_value = self.agent.forward(state_batch)
-        next_q_value = self.agent.forward(nextstate_batch)
+        q_value = self.agent.forward(obs_batch)
+        next_q_value = self.agent.forward(nextobs_batch)
         if self.is_double:
-            target_q_value = self.agent.target_forward(nextstate_batch)
+            target_q_value = self.agent.target_forward(nextobs_batch)
         else:
             target_q_value = next_q_value
 

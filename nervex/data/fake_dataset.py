@@ -9,6 +9,7 @@ import torch
 from pysc2.lib.static_data import ACTIONS_REORDER, NUM_UNIT_TYPES, ACTIONS_REORDER_INV, NUM_BEGIN_ACTIONS, NUM_UPGRADES
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
 from nervex.data.offline.replay_dataset import START_STEP
+from nervex.torch_utils import to_tensor
 from nervex.utils import get_step_data_compressor
 
 ENTITY_INFO_DIM = 1340
@@ -358,7 +359,6 @@ class FakeSumoDataset:
         self.action_dim = [2, 2, 3]
         self.input_dim = 380
         self.batch_size = batch_size
-        np.random.seed(114514)
 
     def __len__(self):
         return self.batch_size
@@ -366,11 +366,11 @@ class FakeSumoDataset:
     def get_random_action(self):
         action = []
         for i in self.action_dim:
-            action.append(random.randint(0, i - 1))
+            action.append(torch.randint(0, i - 1, size=(1,)))
         return action
 
     def get_random_obs(self):
-        return np.random.rand(380)
+        return torch.randn(380)
 
     def get_random_reward(self):
         return random.random() - 0.5
@@ -388,8 +388,8 @@ class FakeSumoDataset:
                 step = {}
                 step['obs'] = self.get_random_obs()
                 step['next_obs'] = self.get_random_obs()
-                step['acts'] = self.get_random_action()
-                step['terminals'] = self.get_random_terminals()
-                step['rewards'] = self.get_random_reward()
+                step['action'] = self.get_random_action()
+                step['done'] = self.get_random_terminals()
+                step['reward'] = self.get_random_reward()
                 batch.append(step)
             yield batch
