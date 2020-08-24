@@ -29,7 +29,7 @@ class SumoObsRunner(EnvElementRunner):
             return the formated observation
         Returns:
             - obs(:obj:`torch.Size([380])` or :obj:`dict`{junction : obs}): the returned observation,
-                :obj:`torch.Size([380]) if used centerlized_obs, else :obj:`dict` 
+            :obj:`torch.Size([380]) if used centerlized_obs, else :obj:`dict`
         """
         # obs = copy.deepcopy(engine.sumo_obs)
         return self._core._to_agent_processor()

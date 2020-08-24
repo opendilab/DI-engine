@@ -12,6 +12,7 @@ Package Reference
     env/env_overview
     env/sumo_env
     worker/agent/agent_overview
+    worker/actor/actor_overview
     worker/learner/learner
     model/alphastar
     torch_utils_network/network
