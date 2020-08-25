@@ -17,7 +17,7 @@ class SumoRawActionRunner(EnvElementRunner):
         Overview:
             init the sumo action helper with the given config file
         Arguments:
-            - cfg(:obj:`EasyDict`): config, you can refer to `env/sumo/sumo_env_default_config.yaml`
+            - cfg(:obj:`EasyDict`): config, you can refer to `envs/sumo/sumo_env_default_config.yaml`
         """
         # set self._core and other state variable
         self._core = SumoRawAction(cfg)

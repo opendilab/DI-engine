@@ -25,7 +25,7 @@ class SumoObs(EnvElement):
         Overview:
             init the sumo observation environment with the given config file
         Arguments:
-            - cfg(:obj:`EasyDict`): config, you can refer to `env/sumo/sumo_env_default_config.yaml`
+            - cfg(:obj:`EasyDict`): config, you can refer to `envs/sumo/sumo_env_default_config.yaml`
         """
         self._cfg = cfg
         self._tls_num = len(cfg.tls)
@@ -51,12 +51,13 @@ class SumoObs(EnvElement):
         self._from_agent_processor = None
 
     def _to_agent_processor(self) -> dict:
-        r"""
+        """
         Overview:
             return the formated observation
         Returns:
-            - obs(:obj:`torch.Size([380])` or :obj:`dict`{junction : obs}): the returned observation,
-            :obj:`torch.Size([380]) if used centerlized_obs, else :obj:`dict`
+            - obs(:obj:`torch.Tensor` or :obj:`dict`): the returned observation,\
+            :obj:`torch.Tensor` if used centerlized_obs, else :obj:`dict` with format {traffic_light: reward}
+
         """
         self._lane_lens = {t: traci.lane.getLength(t) for v in self._incoming_roads_lanes.values() for t in v}
         obs = {k: torch.zeros(v) for k, v in self._tls_obs_num.items()}

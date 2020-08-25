@@ -14,7 +14,6 @@ Package Reference
     worker/agent/agent_overview
     worker/actor/actor_overview
     worker/learner/learner
-    model/alphastar
     torch_utils_network/network
     torch_utils/checkpoint_helper
     torch_utils/metric
@@ -22,4 +21,3 @@ Package Reference
     torch_utils/grad_clip
     utils/time_helper
     utils/log_helper
-

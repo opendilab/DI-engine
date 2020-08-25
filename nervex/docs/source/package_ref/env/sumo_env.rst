@@ -1,4 +1,4 @@
-env.sumo
+Env SumoWJ3
 ===================
 
 sumo_env

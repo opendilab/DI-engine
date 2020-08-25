@@ -24,7 +24,7 @@ class SumoRawAction(EnvElement):
         Overview:
             init the sumo action environment with the given config file
         Arguments:
-            - cfg(:obj:`EasyDict`): config, you can refer to `env/sumo/sumo_env_default_config.yaml`
+            - cfg(:obj:`EasyDict`): config, you can refer to `envs/sumo/sumo_env_default_config.yaml`
         """
         self._cfg = cfg
         self._tls_green_action = cfg.tls_green_action
@@ -48,8 +48,12 @@ class SumoRawAction(EnvElement):
             get the raw_action and return corresponding action
         Arguments:
             - data (:obj:`dict`): for data info you can reference the example below
+
             Example:
-                >>> data {'htxdj_wjj': {'action': tensor([0]), 'last_action': tensor([0])}, 'haxl_wjj': {'action': tensor([0]), 'last_action': tensor([1])}, 'haxl_htxdj': {'action': tensor([0]), 'last_action': tensor([1])}}  # noqa
+                >>> data = {'htxdj_wjj': {'action': torch.tensor([0]), 'last_action': torch.tensor([0])},
+                ...         'haxl_wjj': {'action': torch.tensor([0]), 'last_action': torch.tensor([1])},
+                ...         'haxl_htxdj': {'action': torch.tensor([0]), 'last_action': torch.tensor([1])}}
+
         Returns:
             - raw_action(:obj:`dict`): the returned raw_action
         """

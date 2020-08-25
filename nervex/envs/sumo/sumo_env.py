@@ -18,7 +18,7 @@ from functools import reduce
 
 
 def build_config(user_config):
-    """Aggregate a general config at the highest level class: Learner"""
+    """Aggregate a general config"""
     with open(os.path.join(os.path.dirname(__file__), 'sumo_env_default_config.yaml')) as f:
         cfg = yaml.safe_load(f)
     cfg = EasyDict(cfg)
@@ -41,7 +41,7 @@ class SumoWJ3Env(BaseEnv):
         Overview:
             initialize sumo WJ 3 intersection Env
         Arguments:
-            - cfg (:obj:`dict`): config, you can refer to `env/sumo/sumo_env_default_config.yaml`
+            - cfg (:obj:`dict`): config, you can refer to `envs/sumo/sumo_env_default_config.yaml`
         """
         cfg = build_config(cfg)
         self._cfg = cfg
@@ -92,7 +92,7 @@ class SumoWJ3Env(BaseEnv):
         Overview:
             reset the current env
         Returns:
-            - obs (:obj:`torch.Size([380])`): the observation to env after reset
+            - obs (:obj:`torch.Tensor` or :obj:`dict`): the observation to env after reset
         """
         self._current_steps = 0
         self._launch_env()
@@ -104,22 +104,21 @@ class SumoWJ3Env(BaseEnv):
     def close(self):
         r"""
         Overview:
-            close the traci env
+            close traci, set launch_env_flag as False
         """
         if self._launch_env_flag:
             self._launch_env_flag = False
             traci.close()
 
     def step(self, action: list) -> 'SumoWJ3Env.timestep':
-        r"""
+        """
         Overview:
             step the sumo env with action
         Arguments:
-            - action(:obj:`list`): list of length 3, represent 3 actions to take in 3 junction
+            - action(:obj:`list`): list of length 3, represent 3 actions to take in 3 traffic light junction
         Returns:
-            - timpstep(:obj:`SumoWJ3Env.timestep`): the timestep, contain obs(:obj:`torch.Size([380])`),
-                reward(:obj:`float`),
-                done(:obj:`bool`) and info(:obj:`dict`)
+            - timpstep(:obj:`SumoWJ3Env.timestep`): the timestep, contain obs(:obj:`torch.Tensor` or :obj:`dict`)\
+            reward(:obj:`float` or :obj:`dict`), done(:obj:`bool`) and info(:obj:`dict`)
         """
         assert self._launch_env_flag
         self.action = action
@@ -153,13 +152,12 @@ class SumoWJ3Env(BaseEnv):
         traci.simulationStep(self._current_steps)
 
     def info(self) -> 'SumoWJ3Env.info':
-        r"""
+        """
         Overview:
             return the info_template of env
         Returns:
-            - info_template(:obj:`SumoWJ3Env.info_template`):
-                the info_template contain information about agent_num,
-                observation space, action space and reward space.
+            - info_template(:obj:`SumoWJ3Env.info_template`): the info_template contain information about agent_num,\
+            observation space, action space and reward space.
         """
         info_data = {
             'agent_num': self._agent_num,

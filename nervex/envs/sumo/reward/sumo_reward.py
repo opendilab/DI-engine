@@ -26,7 +26,7 @@ class SumoReward(EnvElement):
         Overview:
             init the sumo reward environment with the given config file
         Arguments:
-            - cfg(:obj:`EasyDict`): config, you can refer to `env/sumo/sumo_env_default_config.yaml`
+            - cfg(:obj:`EasyDict`): config, you can refer to `envs/sumo/sumo_env_default_config.yaml`
         """
         self._cfg = cfg
         self._reduce_by_tl = cfg.reduce_by_tl
@@ -123,7 +123,7 @@ class SumoReward(EnvElement):
         Overview:
             return the raw_reward
         Returns:
-            - reward(:obj:`dict`{reward_type(:obj:str) : reward(:obj: float)}): the reward dict
+            - reward(:obj:`dict` or :obj:`float`): different type reward with format {reward_type: val}
         """
         reward = {}
         assert set(data.keys()) == set(self._reward_type)
