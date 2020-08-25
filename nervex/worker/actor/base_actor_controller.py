@@ -13,6 +13,7 @@ class BaseActor(object, metaclass=ActorCommMetaclass):
         self._actor_uid = get_actor_uid()
         self._timer = EasyTimer()
         self._setup_logger()
+        self._end_flag = False
 
     def _check(self) -> None:
         assert hasattr(self, 'init_service')
@@ -41,7 +42,7 @@ class BaseActor(object, metaclass=ActorCommMetaclass):
 
     def run(self) -> None:
         self.init_service()
-        while True:
+        while not self._end_flag:
             job = self.get_job()
             self._init_with_job(job)
             for episode_idx in range(job['episode_num']):
@@ -55,6 +56,9 @@ class BaseActor(object, metaclass=ActorCommMetaclass):
                         break
                 self._finish_episode(timestep)
             self._finish_job()
+
+    def close(self) -> None:
+        self._end_flag = True
 
     @abstractmethod
     def _agent_inference(self, obs: Any) -> Any:

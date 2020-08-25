@@ -131,7 +131,7 @@ class SumoWJ3Actor(BaseActor):
     # override
     def _update_agent(self) -> None:
         last = time.time()
-        while True:
+        while not self._end_flag:
             cur = time.time()
             interval = cur - last
             if interval < self._job['agent_update_freq']:
@@ -146,7 +146,7 @@ class SumoWJ3Actor(BaseActor):
 
     # override
     def _pack_trajectory(self) -> None:
-        while True:
+        while not self._end_flag:
             try:
                 data = self._traj_queue.get()
             except queue.Empty:

@@ -52,6 +52,7 @@ class Coordinator(object):
         self._learner_to_player = {}
         self._league_manager_flag = False
         launch_league_thread = threading.Thread(target=self._launch_league_manager)
+        launch_league_thread.daemon = True
         launch_league_thread.data_index = True
         launch_league_thread.start()
         self._logger.info("[UP] launch league manager thread ")
@@ -83,7 +84,7 @@ class Coordinator(object):
         self.job_queue = Queue()
 
     def close(self):
-        for k, v in self.learner_record.items():
+        for k, v in self._learner_record.items():
             self._learner_record[k]['replay_buffer'].close()
 
     def _setup_logger(self, level=1):

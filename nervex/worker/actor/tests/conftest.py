@@ -51,7 +51,7 @@ class FakeCoordinator(Coordinator):
                 '0': {
                     'name': '0',
                     'model': {},
-                    'agent_update_path': 'model_placeholder'
+                    'agent_update_path': os.path.join(os.path.dirname(__file__), 'model_placeholder'),
                 }
             },
             'learner_uid': 'learner_uid_placeholder',
@@ -94,3 +94,4 @@ def setup_coordinator(setup_config):
     launch_thread.start()
     yield launch_thread
     # clean coordinator source
+    coordinator.close()
