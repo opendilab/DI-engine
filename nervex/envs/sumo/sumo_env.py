@@ -53,6 +53,7 @@ class SumoWJ3Env(BaseEnv):
         self._green_duration = cfg.green_duration
 
         self._obs_helper = SumoObsRunner(cfg.obs)
+        self._agent_num = cfg.obs.tls if not cfg.obs.use_centralized_obs else 1
         cfg.reward.tls = cfg.obs.tls
         cfg.reward.incoming_roads = cfg.obs.incoming_roads
         self._reward_helper = SumoRewardRunner(cfg.reward)
@@ -105,7 +106,9 @@ class SumoWJ3Env(BaseEnv):
         Overview:
             close the traci env
         """
-        traci.close()
+        if self._launch_env_flag:
+            self._launch_env_flag = False
+            traci.close()
 
     def step(self, action: list) -> 'SumoWJ3Env.timestep':
         r"""
@@ -126,6 +129,8 @@ class SumoWJ3Env(BaseEnv):
         obs = self._obs_helper.get(self)
         reward = self._reward_helper.get(self) if not self._inference else 0.
         done = self._current_steps >= self._max_episode_steps
+        if done:
+            self.close()
         info = {}
         # return obs, reward, done, info
         return SumoWJ3Env.timestep(obs, reward, done, info)
@@ -138,14 +143,14 @@ class SumoWJ3Env(BaseEnv):
             yellow_phase = v['yellow_phase']
             if yellow_phase is not None:
                 traci.trafficlight.setPhase(tls, yellow_phase)
-        traci.simulationStep(self._yellow_duration)
         self._current_steps += self._yellow_duration
+        traci.simulationStep(self._current_steps)
 
         for tls, v in raw_action.items():
             green_phase = v['green_phase']
             traci.trafficlight.setPhase(tls, green_phase)
-        traci.simulationStep(self._green_duration)
         self._current_steps += self._green_duration
+        traci.simulationStep(self._current_steps)
 
     def info(self) -> 'SumoWJ3Env.info':
         r"""
@@ -157,7 +162,7 @@ class SumoWJ3Env(BaseEnv):
                 observation space, action space and reward space.
         """
         info_data = {
-            'agent_num': 1,
+            'agent_num': self._agent_num,
             'obs_space': self._obs_helper.info,
             'act_space': self._action_helper.info,
             'rew_space': self._reward_helper.info,
