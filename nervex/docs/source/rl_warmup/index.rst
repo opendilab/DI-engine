@@ -195,18 +195,27 @@ DP的效率问题
 TD与MC的对比
 - MC更新的目标是 :math:`G_t` 即时刻t的真实回报， 而TD(此时讨论单步TD即TD(0))更新的目标是 :math:`R_{t+1} + \gamma V(S_{t+1})`
 
-TD loss: :math:`\delta_{t} = R_{t+1} + \gamma V(S_{t+1}) - V(S_t)`
+TD loss:
+ :math:`\delta_{t} = R_{t+1} + \gamma V(S_{t+1}) - V(S_t)`
 
 Sarsa
 ^^^^^^^^^^^^^^^^
+ :math:`Q(S_t, A_t) \leftarrow Q(S_t,A_t) + \alpha[R_{t+1} + \gamma Q(S_{t+1}, A_{t+1}) - Q(S_t, A_t)]`
+
+Question:为什么说Sarsa是on-policy算法？
+
 
 Q-learning
 ^^^^^^^^^^^^^^^^
+ :math:`Q(S_t, A_t) \leftarrow Q(S_t, A_t) + \alpha[R_{t+1} + \gamma {argmax}_a Q(S_{t+1}, a) - Q(S_t, A_t)]`
 
+Question:为什么说Sarsa是off-policy算法？
 
 双学习
 ^^^^^^^^^^^^^^^^
+双学习
 
+对于Q-learning的双学习优化是2010年在Deep Reinforcement Learning with Double Q-learning论文中提出的。
 
 
 
@@ -217,24 +226,34 @@ n步自举法
 Q&A
 ~~~~~~~~~~~~~
 Q0: MC、TD、DP分别指什么？这些方法有哪些异同？
+ - Answer：MC指蒙特卡洛方法，TD指时序差分学习，DP指动态规划。
 
 Q1: 什么是model base和model free，两者区别是什么？MC、TD、DP三者中哪些是model free，哪些是model based？
+ - Answer：蒙特卡洛和TD算法隶属于model-free，而动态规划属于model-based。
 
 Q2: 什么是value-based， policy-based和actor-critic？ 分别有哪些算法是value-based，policy-based和actor-critic的？他们分别有什么advantage？有哪些drawback？
+ - Answer：
 
 Q3: 什么是on-policy和off-policy？
+ - Answer：
 
 Q4: 什么是online training和offline training？我们通常如何实现offline training？
+ - Answer：
 
 Q5: 什么是expolration and expolitation？我们通常使用哪些方法平衡expolration and expolitation？
+ - Answer：
 
 Q6: 什么是discrete space和continuous space？我们哪些算法适用于discrete space？哪些算法适用于continuous space？
+ - Answer：
 
 Q7: 为什么要使用replay buffer？experience replay作用在哪里？
+ - Answer：通过使用replay buffer我们可以将experience存入buffer，而在之后的训练中取出buffer中的experience使用。经验回放技术（experience replay）就是将系统探索环境获得的样本保存起来，然后从中采样出样本以更新模型参数。
 
 Q8: 算法中的value(state function), Q值(state-action function)和advantage分别是什么意思？
+ - Answer：
 
 Q9: MDP中的return，value和reward分别指什么？
+ - Answer：
 
 
 ..
@@ -243,6 +262,7 @@ Q9: MDP中的return，value和reward分别指什么？
 
     RL Algorithm
     ~~~~~~~~~~~~
+..
 
     Paper List
     ^^^^^^^^^^
