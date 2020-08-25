@@ -15,6 +15,8 @@ train:
     batch_size: 4
     learning_rate: 0.001
     weight_decay: 0.001
+    reward_weights:
+        'queue_len': 1.0
     dqn:
         total_frame_num: 1000000
         max_epoch_frame: 2000

@@ -29,7 +29,7 @@ class FakeSumoDataset:
         return torch.randn(380)
 
     def get_random_reward(self):
-        return random.random() - 0.5
+        return {'queue_len': torch.FloatTensor([random.random() - 0.5])}
 
     def get_random_terminals(self):
         sample = random.random()

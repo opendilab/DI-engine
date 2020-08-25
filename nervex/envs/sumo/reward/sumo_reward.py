@@ -75,13 +75,13 @@ class SumoReward(EnvElement):
                 wait_time_reward[k] = -v
         if self._reduce_by_tl:
             t = wait_time_reward.values()
-            return sum(t) / (len(t) + 1e-8), current_wait
+            return torch.FloatTensor([sum(t) / (len(t) + 1e-8)]), current_wait
         else:
             wait_time_reward_tl = {t: 0. for t in self._tls}
             for k, v in wait_time_reward:
                 tl = self._road2tls[traci.vehicle.getRoadID(k)]
                 wait_time_reward_tl[tl] = (wait_time_reward_tl[tl] + v) / 2
-            return wait_time_reward_tl, current_wait
+            return torch.FloatTensor([wait_time_reward_tl]), current_wait
 
     def _get_queue_len(self, data: dict) -> Union[float, dict]:
         queue_len_reward = {}
@@ -89,7 +89,7 @@ class SumoReward(EnvElement):
             queue_len_reward[k] = sum([-1. * traci.edge.getLastStepHaltingNumber(r) for r in v])
         if self._reduce_by_tl:
             queue_len_reward = sum(queue_len_reward.values())
-        return queue_len_reward
+        return torch.FloatTensor([queue_len_reward])
 
     def _get_delay_time(self, data: dict) -> Tuple[Union[float, dict], dict]:
         car_list = traci.vehicle.getIDList()
@@ -110,13 +110,13 @@ class SumoReward(EnvElement):
                 delay_time_reward[car_id] = (real_distance - target_distance) / (target_speed + 1e-8)
         if self._reduce_by_tl:
             t = delay_time_reward.values()
-            return sum(t) / (len(t) + 1e-8), cur_vehicle_info
+            return torch.FloatTensor([sum(t) / (len(t) + 1e-8)]), cur_vehicle_info
         else:
             delay_time_reward_tl = {t: 0. for t in self._tls}
             for k, v in delay_time_reward:
                 tl = self._road2tls[traci.vehicle.getRoadID(k)]
                 delay_time_reward_tl[tl] = (delay_time_reward_tl[tl] + v) / 2
-            return delay_time_reward_tl, cur_vehicle_info
+            return torch.FloatTensor([delay_time_reward_tl]), cur_vehicle_info
 
     def _to_agent_processor(self, data: dict) -> dict:
         r"""
@@ -129,8 +129,6 @@ class SumoReward(EnvElement):
         assert set(data.keys()) == set(self._reward_type)
         for k, item in data.items():
             reward[k] = getattr(self, '_get_' + k)(item)
-        if len(reward) == 1:
-            reward = list(reward.values())[0]
         return reward
 
     # override

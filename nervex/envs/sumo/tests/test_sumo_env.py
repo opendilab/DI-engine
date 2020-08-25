@@ -31,5 +31,6 @@ class TestSumoWJ3Env:
         for i in range(10):
             action = self.get_random_action(env.info().act_space.shape)
             timestep = env.step(action)
+            print(timestep.reward)
             print('step {} with action {}'.format(i, action))
         print('end')

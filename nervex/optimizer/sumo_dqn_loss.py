@@ -1,5 +1,6 @@
 import numpy as np
 from collections import namedtuple
+from functools import reduce
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -19,12 +20,21 @@ class SumoDqnLoss(BaseLoss):
         self.update_target_freq = cfg.dqn.update_target_freq
         self.iter_count = 0
         self.is_double = cfg.dqn.is_double
+        self.reward_weights = cfg.reward_weights
 
     def compute_loss(self, data: dict):
         self.iter_count += 1
         obs_batch = data.get('obs')
         nextobs_batch = data.get('next_obs')
         reward = data.get('reward')
+        if len(self.reward_weights) >= 2:
+            reward = reduce(
+                lambda x, y: reward[x] * self.reward_weights[x] + reward[y] * self.reward_weights[y],
+                self.reward_weights.keys()
+            )
+        else:
+            reward = reward[list(self.reward_weights.keys())[0]]
+
         action = data.get('action')
         terminate = data.get('done')
         weights = data.get('weights', None)

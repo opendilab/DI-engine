@@ -58,6 +58,6 @@ class SumoRewardRunner(EnvElementRunner):
                 reward[k] = output_data[k][0]
                 self._last_vehicle_info = output_data[k][1]
             elif k == 'queue_len':
-                reward[k] = output_data
+                reward[k] = output_data[k]
 
         return reward

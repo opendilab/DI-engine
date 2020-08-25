@@ -54,7 +54,7 @@ def sumo_dqn_collect_fn(data):
     obs_batch = torch.cat([x['obs'].unsqueeze(0) for x in batchs], 0)
     nextobs_batch = torch.cat([x['next_obs'].unsqueeze(0) for x in batchs], 0)
     action_batch = torch.cat([torch.LongTensor([x['action']]) for x in batchs])
-    reward_batch = torch.cat([torch.Tensor([x['reward']]) for x in batchs])
+    reward_batch = default_collate([x['reward'] for x in batchs])
     done_batch = torch.cat([torch.Tensor([x['done']]) for x in batchs])
 
     reward = reward_batch
