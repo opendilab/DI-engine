@@ -34,4 +34,5 @@ pages:
 test:
   stage: test
   script:
+    - pip install -e .
     - pytest nervex/ -n 4 -sv -m unittest

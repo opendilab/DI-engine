@@ -2,7 +2,6 @@ import pytest
 import threading
 from threading import Thread
 import time
-from sensewow.worker.actor.alphastar_actor_controller import AlphaStarActor
 from nervex.worker.actor.sumowj3_actor_controller import SumoWJ3Actor
 
 

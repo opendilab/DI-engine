@@ -15,6 +15,7 @@ def setup_config():
     return cfg.env
 
 
+@pytest.mark.envtest
 class TestSumoWJ3Env:
     def get_random_action(self, action_dim):
         action = []

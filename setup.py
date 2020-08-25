@@ -90,7 +90,7 @@ setup(
         'pytest-xdist',
         'flask',
         'lz4',
-        'cloudpickle'
+        'cloudpickle',
     ],
     classifiers=[
         'Development Status :: 4 - Beta',
