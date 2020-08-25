@@ -142,7 +142,11 @@ example
 只不过降低了计算复杂的和对环境模型完备的假设。
 
 自举
- - 更新时基于当前已存在的估计
+ - 更新时基于当前已存在的估计：用后继各个状态的价值估计值来更新当前某个状态的价值估计值
+ - 渐进性收敛
+ - 优点：降低了方差并加快了学习
+ - 缺点：存在依赖于函数逼近质量的偏差
+
 
 策略迭代与价值迭代
  - 策略迭代
@@ -265,28 +269,31 @@ RL Algorithm
 
 DQN
 ^^^^^^^
-DQN最早在2015年的文章`Playing Atari with Deep Reinforcement Learning <https://arxiv.org/abs/1312.5602>`_ 一文中被提出，将Q-learning的思路与神经网络结合。一年后做出了微小改进后又发表在`Human-level control through deep reinforcement learning <https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf>`_ 一文;
+DQN最早在2015年的文章 `Playing Atari with Deep Reinforcement Learning <https://arxiv.org/abs/1312.5602>`_ 一文中被提出，将Q-learning的思路与神经网络结合。一年后做出了微小改进后又发表在 `Human-level control through deep reinforcement learning <https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf>`_ 一文;
 DQN使用神经网络接受state输入进行价值估计，然后使用argmax选择预计value最大的action作为策略，通过计算td-loss进行神经网络的梯度下降.
 
 Double DQN
 ^^^^^^^^^^^^^
-Double DQN是利用双学习，仿照Double Q-learning思路对DQN做的改进，发表在`Deep Reinforcement Learning with Double Q-learning <https://arxiv.org/abs/1509.06461>`_。
+Double DQN是利用双学习，仿照Double Q-learning思路对DQN做的改进，发表在 `Deep Reinforcement Learning with Double Q-learning <https://arxiv.org/abs/1509.06461>`_ 。
 Double DQN不再是直接在目标Q网络里面找各个动作中最大Q值，而是先在当前Q网络中先找出最大Q值对应的动作，然后利用这个选择出来的动作在目标网络里面去计算目标Q值。其余与普通的DQN相同。
 Double DQN的目的是更加精确的估计目标Q值的计算，解决over estimation的问题，并且减少过大的bias。
 
 Dueling DQN
 ^^^^^^^^^^^^^^^^
-Dueling DQN在`Dueling Network Architectures for Deep Reinforcement Learning <https://arxiv.org/abs/1511.06581>`_一文中提出。通过使用Dueling结构，成果优化了网络结构，使得Q值的估计分为了两部分，分为state-value 和 advantages for each action，使得神经网络能更好的对单独价值进行评估。
+Dueling DQN在 `Dueling Network Architectures for Deep Reinforcement Learning <https://arxiv.org/abs/1511.06581>`_ 一文中提出。通过使用Dueling结构，成果优化了网络结构，使得Q值的估计分为了两部分，分为state-value 和 advantages for each action，使得神经网络能更好的对单独价值进行评估。
 
 Policy Gradient
 ^^^^^^^^^^^^^^^^^^^
-之前所提的大部分方法都是基于“动作价值函数”，通过学习动作价值函数，然后根据估计的动作价值函数选择动作。
+之前所提的大部分方法都是基于“动作价值函数”，通过学习动作价值函数，然后根据估计的动作价值函数选择动作 `Policy Gradient <https://homes.cs.washington.edu/~todorov/courses/amath579/reading/PolicyGradient.pdf>`_。
 而策略梯度方法则是可以直接学习参数化的策略，动作选择不再直接依赖于价值函数，而是将价值函数作为学习策略的参数，不再是动作选择必须的了。
 
+优点：对于连续的策略参数化，动作选择的概率会平滑的变化；而基于动作价值函数的方法会随Q值变化而导致动作选择的概率有很大变化。因此，基于policy gradient的方法能比基于动作价值函数的方法有更好的收敛性保证。
+
+缺点：没有自举，方差相对较高，学习相对较慢
 
 PPO
 ^^^^^
-PPO
+PPO即Proximal Policy Optimization，在2017年的`Proximal Policy Optimization Algorithms <https://arxiv.org/abs/1707.06347>`_ 中被提出。
 
 ..
 
