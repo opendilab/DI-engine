@@ -5,7 +5,7 @@ import os
 import random
 from easydict import EasyDict
 from nervex.worker.learner.sumo_dqn_learner import SumoDqnLearner
-from nervex.data.fake_dataset import FakeSumoDataset
+from nervex.envs.sumo.fake_dataset import FakeSumoDataset
 
 
 @pytest.fixture(scope='function')

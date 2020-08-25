@@ -19,7 +19,6 @@ from nervex.optimizer.sumo_dqn_optimizer import SumoDqnOptimizer
 from nervex.torch_utils import to_device
 from nervex.utils import override, merge_dicts, pretty_print, read_config
 from nervex.worker.learner.base_learner import Learner
-from nervex.data.fake_dataset import FakeSumoDataset
 from nervex.model.sumo_dqn.sumo_dqn_network import FCDQN
 from nervex.envs.sumo.sumo_env import SumoWJ3Env
 from nervex.data.collate_fn import sumo_dqn_collect_fn
