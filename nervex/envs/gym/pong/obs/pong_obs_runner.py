@@ -18,10 +18,6 @@ class PongObsRunner(EnvElementRunner):
         ret = copy.deepcopy(engine.pong_obs)
         assert isinstance(ret, np.ndarray)
         return ret
-
-    #overriede
+        
     def reset(self) -> None:
         pass
-
-    # def info(self) -> dict:
-    #     self._core.info_template

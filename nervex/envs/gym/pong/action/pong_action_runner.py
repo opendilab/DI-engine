@@ -17,9 +17,5 @@ class PongRawActionRunner(EnvElementRunner):
         ret = agent_action
         return ret
 
-    #override
     def reset(self) -> None:
         pass
-
-    # def info(self) -> dict:
-    #     self._core.info_template

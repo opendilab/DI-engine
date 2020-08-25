@@ -16,9 +16,6 @@ class PongRewardRunner(EnvElementRunner):
         ret = reward_of_action
         return ret
 
-    #overriede
     def reset(self) -> None:
         pass
 
-    # def info(self) -> dict:
-    #     return self._core.info_template

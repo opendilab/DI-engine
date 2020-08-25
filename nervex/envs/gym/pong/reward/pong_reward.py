@@ -49,6 +49,5 @@ class PongReward(EnvElement):
     def _from_agent_processor(self, reward: float) -> float:
         return reward
 
-        # override
     def _details(self):
         return '\t'.join(self._reward_keys)

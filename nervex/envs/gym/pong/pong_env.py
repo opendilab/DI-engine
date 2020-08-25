@@ -16,7 +16,11 @@ class PongEnv(BaseEnv):
         To see information about atari_env: https://blog.csdn.net/qq_27008079/article/details/100126060
     """
     timestep = namedtuple('pongTimestep', ['obs', 'reward', 'done', 'rest_lives'])
+  
     info_template = namedtuple('BaseEnvInfo', ['obs_space', 'act_space', 'rew_space', 'frame_skip', 'rep_prob'])
+    # frame_skip: how many frame in one step, should be 1 or 2 or 4.
+    # rep_prob: the probability of rerun the previous action in this step, should be 0 or 0.25.
+
 
     def __init__(self, cfg):
         self._cfg = cfg
@@ -26,7 +30,7 @@ class PongEnv(BaseEnv):
         self._reward_helper = PongRewardRunner()
         self._obs_helper = PongObsRunner()
 
-        if (cfg != {}):
+        if cfg != {}:
             self._game = cfg.get('game', None)
             self._mode = cfg.get('mode', None)
             self._difficulty = cfg.get('difficulty', None)
@@ -52,8 +56,6 @@ class PongEnv(BaseEnv):
             raise NotImplementedError
         self._env = gym.make("Pong" + self.frame_name + self.rep_name).unwrapped
         self._launch_env_flag = True
-        # self._env.render()
-        self._pong_obs = self._env.reset()
 
     def _launch_env(self):
         self._env = gym.make("Pong" + self.frame_name + self.rep_name).unwrapped
@@ -75,11 +77,11 @@ class PongEnv(BaseEnv):
         assert self._launch_env_flag
         self.agent_action = action
 
-        #env step
+        # env step
         self._pong_obs, self._reward_of_action, self._is_gameover, self._rest_life = self._env.step(action)
         self._pong_obs = self._pong_obs.transpose((2, 0, 1))
 
-        #transform obs, reward and record statistics
+        # transform obs, reward and record statistics
 
         self.action = self._action_helper.get(self)
         self.reward = self._reward_helper.get(self)

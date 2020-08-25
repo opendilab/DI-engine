@@ -19,7 +19,6 @@ class PongObs(EnvElement):
                 'name': 'pongObs',
                 'shape': (3, 210, 160),
                 'value': {
-                    #TODO
                     'min': 0,
                     'max': 255,
                     'dtype': np.ndarray,
@@ -33,7 +32,6 @@ class PongObs(EnvElement):
         }
         self._shape = (3, 210, 160)
         self._value = {
-            #TODO
             'min': 0,
             'max': 255,
             'dtype': np.ndarray,
@@ -46,6 +44,5 @@ class PongObs(EnvElement):
     def _from_agent_processor(self, obs):
         return obs
 
-    # override
     def _details(self):
         return '\t'.join(self._name)
