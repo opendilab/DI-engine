@@ -91,6 +91,8 @@ setup(
         'flask',
         'lz4',
         'cloudpickle',
+        'sumolib',
+        'traci',
     ],
     classifiers=[
         'Development Status :: 4 - Beta',
