@@ -8,7 +8,7 @@ from nervex.utils import merge_dicts, read_config, LockContext
 from nervex.league.player import ActivePlayer, MainPlayer, MainExploiter, LeagueExploiter, HistoricalPlayer
 from nervex.league.shared_payoff import SharedPayoff
 
-default_config = read_config(osp.join(osp.dirname(__file__), "league_default_config.yaml"))
+default_config = read_config(osp.join(osp.dirname(__file__), "league_manager_default_config.yaml"))
 
 
 class LimitedSpaceContainer:

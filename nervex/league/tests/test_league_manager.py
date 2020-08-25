@@ -1,16 +1,45 @@
 import pytest
 import time
+import os
+import yaml
+from easydict import EasyDict
 import numpy as np
 import threading
 from threading import Thread
 from multiprocessing import Queue
 from multiprocessing.queues import Empty
-from nervex.league.league_manager import LeagueManager
+from nervex.league import BaseLeagueManager
 
 global BEGIN_COUNT, FINISH_COUNT
 BEGIN_COUNT = 0
 FINISH_COUNT = 0
 SAVE_COUNT = 0
+
+
+class FakeLeagueManager(BaseLeagueManager):
+    def _get_task_info(self, player):
+        return {
+            'launch_player': player.player_id,
+            'player_id': [player.player_id, player.player_id],
+        }
+
+    def _mutate_player(self, player):
+        info = {'pretrain_checkpoint_path': 'pretrain_path_placeholder'}
+        result = player.mutate(info)
+        if result is not None:
+            self.load_checkpoint_fn(player.player_id, result)
+            self.save_checkpoint_fn(result, player.checkpoint_path)
+
+    def _update_player(self, player, player_info):
+        pass
+
+
+@pytest.fixture(scope='function')
+def setup_config():
+    with open(os.path.join(os.path.dirname(__file__), '../league_manager_default_config.yaml')) as f:
+        cfg = yaml.safe_load(f)
+    cfg = EasyDict(cfg)
+    return cfg
 
 
 def save_checkpoint_fn(src_checkpoint, dst_checkpoint):
@@ -33,20 +62,27 @@ class FakeMatchRunner:
         self.random_match_result = random_match_result
 
     def launch_match(self, match_info):
+        print('match_info', match_info)
         t = np.random.uniform() * 0.2 + 0.1
         time.sleep(t)
-        thread = Thread(
-            target=self.simulate_match, args=(match_info['home_id'], match_info['away_id'], self.random_match_result)
-        )
+        thread = Thread(target=self.simulate_match, args=(match_info, self.random_match_result))
         thread.start()
 
-    def simulate_match(self, home_id, away_id, random_match_result):
+    def simulate_match(self, match_info, random_match_result):
+        home_id, away_id = match_info['player_id']
         print('match begin: home({}) VS away({})'.format(home_id, away_id))
         global BEGIN_COUNT
         BEGIN_COUNT += 1
         t = np.random.randint(2, 4)
         time.sleep(t)
-        self.queue.put({'home_id': home_id, 'away_id': away_id, 'result': random_match_result()})
+        self.queue.put(
+            {
+                'home_id': home_id,
+                'away_id': away_id,
+                'launch_player': match_info['launch_player'],
+                'result': random_match_result()
+            }
+        )
 
 
 class FakeCoordinator:
@@ -89,16 +125,18 @@ class FakeCoordinator:
                 update_agent_step({'player_id': player_id, 'train_step': self.update_count * self.one_phase_steps})
 
 
-class TestLeagueManager:
+class TestFakeLeagueManager:
     @pytest.mark.unittest
-    def test_naive(self, random_match_result):
+    def test_naive(self, random_match_result, setup_config):
         match_runner = FakeMatchRunner(random_match_result)
-        league_manager = LeagueManager({}, save_checkpoint_fn, load_checkpoint_fn, match_runner.launch_match)
+        league_manager = FakeLeagueManager(
+            setup_config, save_checkpoint_fn, load_checkpoint_fn, match_runner.launch_match
+        )
         assert (len(league_manager.active_players) == 12)
         assert (len(league_manager.historical_players) == 3)
         active_player_ids = [p.player_id for p in league_manager.active_players]
         coordinator = FakeCoordinator(
-            match_runner.queue, league_manager.finish_match, league_manager.update_active_player, active_player_ids
+            match_runner.queue, league_manager.finish_task, league_manager.update_active_player, active_player_ids
         )
 
         league_manager.run()
@@ -115,7 +153,7 @@ class TestLeagueManager:
         global SAVE_COUNT
         SAVE_COUNT = 0
         match_runner = FakeMatchRunner(random_match_result)
-        league_manager = LeagueManager({}, save_checkpoint_fn, load_checkpoint_fn, match_runner.launch_match)
+        league_manager = FakeLeagueManager({}, save_checkpoint_fn, load_checkpoint_fn, match_runner.launch_match)
         # fix mutate
         for p in league_manager.active_players:
             if hasattr(p, 'mutate_prob'):

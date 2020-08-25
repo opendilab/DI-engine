@@ -76,13 +76,13 @@ def setup_league(setup_payoff):
 
 @pytest.mark.unittest
 class TestMainPlayer:
-    def test_get_match(self, setup_league):
+    def test_get_task(self, setup_league):
         N = 10
         # no indicated p
         for p in setup_league:
             if isinstance(p, MainPlayer):
                 for i in range(N):
-                    opponent = p.get_match()
+                    opponent = p.get_task()
                     assert isinstance(opponent, Player)
                     assert opponent in setup_league
 
@@ -100,7 +100,7 @@ class TestMainPlayer:
             if isinstance(p, MainPlayer):
                 for i in range(N):
                     for idx, prob in enumerate([0.4, 0.6, 0.9]):
-                        opponent = p.get_match(p=prob)
+                        opponent = p.get_task(p=prob)
                         if idx == 0:
                             assert isinstance(opponent, HistoricalPlayer)
                         elif idx == 1:
@@ -190,9 +190,9 @@ class TestMainPlayer:
 
 @pytest.mark.unittest
 class TestMainExploiter:
-    def test_get_match(self, setup_league, random_match_result):
+    def test_get_task(self, setup_league, random_match_result):
         assert isinstance(setup_league[1], MainExploiter)
-        opponent = setup_league[1].get_match()
+        opponent = setup_league[1].get_task()
         assert isinstance(opponent, MainPlayer)
 
         N = 10
@@ -203,7 +203,7 @@ class TestMainExploiter:
                     match_info = {'home_id': setup_league[1].player_id, 'away_id': p.player_id, 'result': 'losses'}
                     assert payoff.update(match_info)
 
-        opponent = setup_league[1].get_match()
+        opponent = setup_league[1].get_task()
         assert isinstance(opponent, HistoricalPlayer) and 'MainPlayer' in opponent.parent_id
         hp_list = []
         for i in range(3):
@@ -224,7 +224,7 @@ class TestMainExploiter:
             assert payoff.update(match_info)
 
         for i in range(10):
-            opponent = setup_league[1].get_match()
+            opponent = setup_league[1].get_task()
             assert isinstance(opponent, HistoricalPlayer) and 'MainPlayer' in opponent.parent_id
 
     def test_is_trained_enough(self, setup_league):
@@ -233,14 +233,14 @@ class TestMainExploiter:
 
     def test_mutate(self, setup_league):
         assert isinstance(setup_league[1], MainExploiter)
-        info = {'sl_checkpoint_path': 'sl_checkpoint.pth'}
+        info = {'pretrain_checkpoint_path': 'pretrain_checkpoint.pth'}
         for _ in range(10):
-            assert setup_league[1].mutate(info) == info['sl_checkpoint_path']
+            assert setup_league[1].mutate(info) == info['pretrain_checkpoint_path']
 
 
 @pytest.mark.unittest
 class TestLeagueExploiter:
-    def test_get_match(self, setup_league):
+    def test_get_task(self, setup_league):
         pass
 
     def test_is_trained_enough(self, setup_league):
@@ -249,7 +249,7 @@ class TestLeagueExploiter:
 
     def test_mutate(self, setup_league):
         assert isinstance(setup_league[2], LeagueExploiter)
-        info = {'sl_checkpoint_path': 'sl_checkpoint.pth'}
+        info = {'pretrain_checkpoint_path': 'pretrain_checkpoint.pth'}
         results = []
         for _ in range(1000):
             results.append(setup_league[2].mutate(info))
