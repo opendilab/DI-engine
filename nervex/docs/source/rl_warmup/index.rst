@@ -2,15 +2,18 @@
    :format: html latex
 ..
 
-强化学习warm up
-===============
 
-导论
-----
 
-机器学习与强化学习
- -  强化学习目前与机器学习有很大关联性，但是不同于机器学习
- -  强化学习有很多与机器学习无关的基础方法，如Q-learning等
+
+RL Warmup
+===============================
+
+导论/Intro
+-------------
+
+深度学习与强化学习
+ -  强化学习目前与深度学习有很大关联性，但是不同于深度学习
+ -  强化学习有很多与神经网络无关的基础方法，如Q-learning等
  -  强化学习研究在交互中学习的\ **计算性**\ 方法。
  -  强化学习侧重于以交互目标为导向进行学习
 
@@ -46,8 +49,8 @@ Q1:什么是强化学习？
  -  强化学习是智能体（Agent）以“试错”的方式进行学习
  -  “学习做什么（将情景映射为动作）才能使得数值化的收益信号（reward）最大化”
 
-基本概念
---------
+基本概念/Basics
+-----------------
 
 试错与开发- 多臂赌博机（Multi-Arm Bandit）
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -72,7 +75,7 @@ multi-arm bandit
 -  bandit算法就是为了平衡\ **Exploration and Exploitation**
 -  bandit算法应用广泛，比如最直接的应用就是推荐系统，还可应用于MDP模型的游戏、等等。
 
-经典的bandit算法:
+经典的bandit算法
 ^^^^^^^^^^^^^^^^
 
 朴素bandit
@@ -108,12 +111,18 @@ UCB（Upper Confidence Bound）
 
    其中 :math:`j` 为编号即表示第j臂， :math:`T_{j,t}` 为在t时刻第j个臂累计的被使用次数。
 -  UCB在简单的bandit算法中，是相对效果最好的一个
-..
- TODO：对比用ipy文件
+
+
+example
+^^^^^^^^^
+.. toctree::
+     :maxdepth: 2
+
+     bandit/bandit
 
 
 马尔可夫决策过程(MDP)
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 马尔可夫决策过程(MDP)是强化学习在数学上的理想化形式，也是最常见的常见模型。
 这个问题的数学化结构中有若干关键要素
 
@@ -127,10 +136,13 @@ UCB（Upper Confidence Bound）
 
 
 动态规划(DP)
-~~~~~~~~~~~
+~~~~~~~~~~~~~
 动态规划DP是一类优化方法，在给定一个MDP完备欢迎的情况下，可以计算最优的策略。但是对于强化学习问题，传统DP的作用十分有限。
 很多强化学习问题无法获得完备的环境模型，且DP在大维度时计算复杂度极高。不过DP仍不失为一个重要理论，很多其他方法都是对DP的一种近似，
 只不过降低了计算复杂的和对环境模型完备的假设。
+
+自举
+ - 更新时基于当前已存在的估计
 
 策略迭代与价值迭代
  - 策略迭代
@@ -145,11 +157,13 @@ UCB（Upper Confidence Bound）
 广义策略迭代GPI
 
 DP的效率问题
- - 维度灾难
+ - 维度灾难最早就是指在DP过程中，state variable数量随维数指数增长导致的维度问题，后来在其他领域也得到了延伸
+ `怎样理解 Curse of Dimensionality（维数灾难） <https://www.zhihu.com/question/27836140>`_
 
+用当前估计的 :math:`V(S_{t+1})` 代替真实的 :math:`v_{\pi}(S_{t+1})`
 
 蒙特卡洛方法(MC)
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
 
 - 首次访问MC
 - 每次访问MC 
@@ -170,27 +184,60 @@ DP的效率问题
 - 可以只评估关注的状态
 - 在马尔可夫性不成立时性能损失较小
 
+用样本回报代替实际的期望回报
 
 
 
 
 时序差分学习(TD)
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+
+TD与MC的对比
+- MC更新的目标是 :math:`G_t` 即时刻t的真实回报， 而TD(此时讨论单步TD即TD(0))更新的目标是 :math:`R_{t+1} + \gamma V(S_{t+1})`
+
+TD loss: :math:`\delta_{t} = R_{t+1} + \gamma V(S_{t+1}) - V(S_t)`
+
+Sarsa
+^^^^^^^^^^^^^^^^
+
+Q-learning
+^^^^^^^^^^^^^^^^
+
+
+双学习
+^^^^^^^^^^^^^^^^
+
+
+
+
+n步自举法
+~~~~~~~~~~~~~
+
+
+Q&A
+~~~~~~~~~~~~~
+Q0: MC、TD、DP分别指什么？这些方法有哪些异同？
+
+Q1: 什么是model base和model free，两者区别是什么？MC、TD、DP三者中哪些是model free，哪些是model based？
+
+Q2: 什么是value-based， policy-based和actor-critic？ 分别有哪些算法是value-based，policy-based和actor-critic的？他们分别有什么advantage？有哪些drawback？
+
+Q3: 什么是on-policy和off-policy？
+
+Q4: 什么是online training和offline training？我们通常如何实现offline training？
+
+Q5: 什么是expolration and expolitation？我们通常使用哪些方法平衡expolration and expolitation？
+
+Q6: 什么是discrete space和continuous space？我们哪些算法适用于discrete space？哪些算法适用于continuous space？
+
+Q7: 为什么要使用replay buffer？experience replay作用在哪里？
+
+Q8: 算法中的value(state function), Q值(state-action function)和advantage分别是什么意思？
+
+Q9: MDP中的return，value和reward分别指什么？
+
 
 ..
-
-    n步自举法
-    ~~~~~~~~~
-
-
-
-    Q&A
-    ~~~
-
-    Q1:
-
-    -
-
     算法
     ----
 
@@ -225,12 +272,6 @@ DP的效率问题
     .. |img| image:: https://bkimg.cdn.bcebos.com/formula/6b72394d178730e1676d40f3824c2f46.svg
 
 
-RL Warmup
-===============================
-
-.. toctree::
-   :maxdepth: 3
-
 
 RL Algorithm
 ------------
@@ -256,21 +297,10 @@ Blog List
 3. `炼丹感悟：On the Generalization of RL <https://zhuanlan.zhihu.com/p/105898705?utm_source=wechat_session&utm_medium=social&utm_oi=778950235199127552&utm_content=sec>`_
 4. `Pytorch RL tutorial <https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html>`_
 
-Questions(即需要理解清楚的概念和问题)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-1. model-free and model-based
-2. value-based, policy-based, actor-critic
-3. on-policy and off-policy
-4. off-policy and offline training(batch RL)
-5. expolration and expolitation
-6. discrete space and continuous space
-7. replay buffer
-8. td-error(temporal difference), 1-step, n-step, MC, DP
-9. value(state function), Q(state-action function), advantage
-10. return and reward
 
-MARL
-------
+
+MARL Algorithm
+------------------
 to be continued
 
 Large Scale RL Training
