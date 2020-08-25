@@ -7,8 +7,6 @@ from itertools import count
 import logging
 from flask import Flask, request
 
-from nervex.league import LeagueManager
-
 
 def create_league_manager_app(league_manager):
     app = Flask(__name__)

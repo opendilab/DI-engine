@@ -16,7 +16,7 @@ from easydict import EasyDict
 
 from nervex.data.online import ReplayBuffer
 from nervex.utils import read_file_ceph, save_file_ceph
-from nervex.league import LeagueManager
+from nervex.league import BaseLeagueManager
 
 
 class LeagueManagerWrapper(object):
@@ -87,7 +87,7 @@ class LeagueManagerWrapper(object):
                 time.sleep(10)
             return False
 
-        self.league_manager = LeagueManager(self.cfg, save_checkpoint_fn, load_checkpoint_fn, launch_match_fn)
+        self.league_manager = BaseLeagueManager(self.cfg, save_checkpoint_fn, load_checkpoint_fn, launch_match_fn)
         self.player_ids = self.league_manager.active_players_ids
         self.player_ckpts = self.league_manager.active_players_ckpts
         print('{} learners should be registered totally. '.format(len(self.player_ids)))
