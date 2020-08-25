@@ -11,15 +11,14 @@ from nervex.envs.common import EnvElement
 
 class PongObs(EnvElement):
     _name = "pongObs"
-    
+
     def _init(self):
         self._default_val = None
         self.template = {
-            'pongObs':
-            {
+            'pongObs': {
                 'name': 'pongObs',
-                'shape' :(210, 160, 3), 
-                'value' : {
+                'shape': (3, 210, 160),
+                'value': {
                     #TODO
                     'min': 0,
                     'max': 255,
@@ -32,8 +31,15 @@ class PongObs(EnvElement):
                 'necessary': True,
             }
         }
-        self._shape = (210, 160, 3)
-        self._value = 255
+        self._shape = (3, 210, 160)
+        self._value = {
+            #TODO
+            'min': 0,
+            'max': 255,
+            'dtype': np.ndarray,
+            'dinfo': 'int value ndarray of shape (C, H, W)',
+        }
+
     def _to_agent_processor(self, obs):
         return obs
 

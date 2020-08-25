@@ -20,11 +20,10 @@ class PongReward(EnvElement):
     def _init(self) -> None:
         self._default_val = 0.0
         self.template = {
-            'reward_value': 
-            {
-                'name': 'reward_value', 
-                'shape' :(1, ), 
-                'value' : {
+            'reward_value': {
+                'name': 'reward_value',
+                'shape': (1, ),
+                'value': {
                     'min': -1.0,
                     'max': 1.0,
                     'dtype': float,
@@ -36,9 +35,14 @@ class PongReward(EnvElement):
                 'necessary': True,
             }
         }
-        self._shape = (1,)
-        self._value = 0
-    
+        self._shape = (1, )
+        self._value = {
+            'min': -1.0,
+            'max': 1.0,
+            'dtype': float,
+            'dinfo': 'float value',
+        }
+
     def _to_agent_processor(self, reward: float) -> float:
         return reward
 

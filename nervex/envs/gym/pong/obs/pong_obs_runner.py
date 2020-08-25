@@ -15,9 +15,8 @@ class PongObsRunner(EnvElementRunner):
         self._core = PongObs()
 
     def get(self, engine: BaseEnv) -> int:
-        ram_obs = copy.deepcopy(engine.pong_obs)
-        assert isinstance(ram_obs, np.ndarray)
-        ret = ram_obs
+        ret = copy.deepcopy(engine.pong_obs)
+        assert isinstance(ret, np.ndarray)
         return ret
 
     #overriede

@@ -19,11 +19,10 @@ class PongRawAction(EnvElement):
     def _init(self):
         self._default_val = None
         self.template = {
-            'action_type': 
-            {
-                'name': 'action_type', 
-                'shape' :(1, ), 
-                'value' : {
+            'action_type': {
+                'name': 'action_type',
+                'shape': (1, ),
+                'value': {
                     'min': 0,
                     'max': 5,
                     'dtype': int,
@@ -35,8 +34,14 @@ class PongRawAction(EnvElement):
                 'necessary': True,
             }
         }
-        self._shape = (1,)
-        self._value = 0
+        self._shape = (1, )
+        self._value = {
+            'min': 0,
+            'max': 5,
+            'dtype': int,
+            'dinfo': 'int value, action_meanings:{NOOP, FIRE, RIGHT, LEFT, RIGHTFIRE, LEFTFIRE}',
+        }
+
     def _to_agent_processor(self, action):
         return action
 
@@ -46,4 +51,3 @@ class PongRawAction(EnvElement):
     # override
     def _details(self):
         return '\t'.join(self._action_keys)
-

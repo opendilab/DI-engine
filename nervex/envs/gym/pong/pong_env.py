@@ -26,8 +26,6 @@ class PongEnv(BaseEnv):
         self._reward_helper = PongRewardRunner()
         self._obs_helper = PongObsRunner()
 
-        #cfg TODO
-        #util_ezpickle?
         if (cfg != {}):
             self._game = cfg.get('game', None)
             self._mode = cfg.get('mode', None)
@@ -36,7 +34,6 @@ class PongEnv(BaseEnv):
             self.frameskip = cfg.get('frameskip', 1)
             self.rep_prob = cfg.get('rep_prob', 0)
 
-        #TODO
         self._isGameover = False
         self._launch_env_flag = False
         if self.rep_prob == 0.25:

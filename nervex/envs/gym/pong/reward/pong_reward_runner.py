@@ -12,7 +12,6 @@ class PongRewardRunner(EnvElementRunner):
         self._core = PongReward()
 
     def get(self, engine: BaseEnv) -> float:
-        assert isinstance(engine, BaseEnv)
         reward_of_action = copy.deepcopy(engine.reward_of_action)
         ret = reward_of_action
         return ret
