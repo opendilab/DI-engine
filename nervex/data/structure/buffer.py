@@ -6,15 +6,20 @@ from nervex.data.structure.segment_tree import SumSegmentTree, MinSegmentTree
 
 
 class PrioritizedBuffer:
-    """
-    Overview: prioritized buffer, store and sample data
-    Interface: __init__, append, extend, sample, update
-    Property: maxlen, validlen, beta
-    Note: this buffer doesn't refer to multi-thread/multi-process, thread-safe should be ensured by the caller
+    r"""
+    Overview:
+        prioritized buffer, store and sample data
+    Interface:
+        __init__, append, extend, sample, update
+    Property: 
+        maxlen, validlen, beta
+    Note: 
+        this buffer doesn't refer to multi-thread/multi-process, thread-safe should be ensured by the caller
     """
     def __init__(self, maxlen, max_reuse=None, min_sample_ratio=1., alpha=0., beta=0.):
-        """
-        Overview: initialize the buffer
+        r"""
+        Overview:
+            initialize the buffer
         Arguments:
             - maxlen (:obj:`int`): the maximum value of the buffer length
             - max_reuse (:obj:`int` or None): the maximum reuse times of each element in buffer
@@ -54,8 +59,9 @@ class PrioritizedBuffer:
         self.check_list = [lambda x: isinstance(x, dict)]
 
     def _set_weight(self, idx, data):
-        """
-        Overview: set the priority and tree weight of the input data
+        r"""
+        Overview:
+            set the priority and tree weight of the input data
         Arguments:
             - idx (:obj:`int`) the index which the data will be inserted into
             - data (:obj:`T`) the data which will be inserted
@@ -69,8 +75,9 @@ class PrioritizedBuffer:
             self.min_tree[idx] = weight
 
     def sample(self, size):
-        """
-        Overview: sample data with `size`
+        r"""
+        Overview:
+            sample data with `size`
         Arguments:
             - size (:obj:`int`): the number of the data will be sampled
         Returns:
@@ -84,8 +91,9 @@ class PrioritizedBuffer:
         return self._sample_with_indices(indices)
 
     def append(self, data):
-        """
-        Overview: append a data item into queue
+        r"""
+        Overview:
+            append a data item into queue
         Arguments:
             - data (:obj:`T`): the data which will be inserted
         """
@@ -105,8 +113,9 @@ class PrioritizedBuffer:
         self.latest_data_id += 1
 
     def extend(self, data):
-        """
-        Overview: extend a data list into queue
+        r"""
+        Overview:
+            extend a data list into queue
         Arguments:
             - data (:obj:`T`): the data list
         """
@@ -140,8 +149,9 @@ class PrioritizedBuffer:
         self.latest_data_id += L
 
     def update(self, info):
-        """
-        Overview: update priority according to the id and idx
+        r"""
+        Overview:
+            update priority according to the id and idx
         Arguments:
             - info (:obj:`dict`): info dict contains all the necessary for update priority
         """
@@ -157,8 +167,9 @@ class PrioritizedBuffer:
                 self.max_priority = max(self.max_priority, priority)
 
     def _data_check(self, d):
-        """
-        Overview: data legality check
+        r"""
+        Overview:
+            data legality check
         Arguments:
             - d (:obj:`T`): the data need to be checked
         Returns:
@@ -168,8 +179,9 @@ class PrioritizedBuffer:
         return all([fn(d) for fn in self.check_list])
 
     def _get_indices(self, size):
-        """
-        Overview: according to the priority probability, get the sample index
+        r"""
+        Overview:
+            according to the priority probability, get the sample index
         Arguments:
             - size (:obj:`int`): the number of the data will be sampled
         Returns:
@@ -185,8 +197,9 @@ class PrioritizedBuffer:
         return [self.sum_tree.find_prefixsum_idx(m) for m in mass]
 
     def _sample_check(self, size):
-        """
-        Overview: check whether the buffer satisfies the sample condition
+        r"""
+        Overview:
+            check whether the buffer satisfies the sample condition
         Arguments:
             - size (:obj:`int`): the number of the data will be sampled
         Returns:
@@ -203,8 +216,9 @@ class PrioritizedBuffer:
             return True
 
     def _sample_with_indices(self, indices):
-        """
-        Overview: sample the data with indices and update the internal variable
+        r"""
+        Overview:
+            sample the data with indices and update the internal variable
         Arguments:
             - indices (:obj:`list`): a list including all the sample index
         Returns:

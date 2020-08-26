@@ -237,6 +237,11 @@ Q1: 什么是model base和model free，两者区别是什么？MC、TD、DP三�
 
 Q2: 什么是value-based， policy-based和actor-critic？ 分别有哪些算法是value-based，policy-based和actor-critic的？他们分别有什么advantage？有哪些drawback？
  - Answer：
+   所谓value-based就是在学习如何critic(评判一个输入状态的价值)，policy-based对应的是学习如何去做actor(判断在一个输入状态应该采取什么行动)，而actor-critic就是一边去学习如何判断critic，一边去训练做actor的网络。
+   具体关系用下图就能很好解释：
+      
+.. image:: actor-critic.jpg
+    :scale: 50 %
 
 Q3: 什么是on-policy和off-policy？
  - Answer：
@@ -255,6 +260,9 @@ Q7: 为什么要使用replay buffer？experience replay作用在哪里？
 
 Q8: 算法中的value(state function), Q值(state-action function)和advantage分别是什么意思？
  - Answer：
+   Value即是算法中的 :math:`V(S_t)`， 代表某时刻某个状态下的状态价值函数，即某个策略经过该状态之后预计能得到的reward数值。
+   Q值即是算法中的 :math:`Q(S_t, A_t）`，代表某时刻某个状态下选择了某个动作后的状态动作价值函数，经过该状态说选择某个动作之后预计能得到的reward数值。
+   Advantage则是与动作相关的 :math:`A(S_t, A_t) = Q(S_t, A_t) - V(S_t)`， 代表某时刻某个状态下选择了某个动作相比与选择其他动作的优势，预计比选择其他动作之后能多获得多少reward数值。
 
 Q9: MDP中的return，value和reward分别指什么？
  - Answer：
@@ -282,29 +290,75 @@ Dueling DQN
 ^^^^^^^^^^^^^^^^
 Dueling DQN在 `Dueling Network Architectures for Deep Reinforcement Learning <https://arxiv.org/abs/1511.06581>`_ 一文中提出。通过使用Dueling结构，成果优化了网络结构，使得Q值的估计分为了两部分，分为state-value 和 advantages for each action，使得神经网络能更好的对单独价值进行评估。
 
+Prioritized Replay Buffer in DQN
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+
+.. note::
+   DQN算法的基础实现教程可以参考pytorch官方上的 `pytorch的DQN教程 <https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html>`_ ，该教程只是最基本的demo，适合作为入门参考。
+   有关于Double、Dueling DQN和prioritized replay DQN的算法实现可以参考Github上的 `RL-Adventure <https://github.com/higgsfield/RL-Adventure>`_， 该repo上的各种DQN实现较全，尽管torch版本较低，但不失作为参考。
+   DQN算法在nervex框架中的入口可以参考 `nervx框架下的DQN实现 <http://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/blob/master/nervex/rl_utils/algorithms/sumo_dqn_main.py>`_。
+
+
+
+
+
 Policy Gradient
 ^^^^^^^^^^^^^^^^^^^
 之前所提的大部分方法都是基于“动作价值函数”，通过学习动作价值函数，然后根据估计的动作价值函数选择动作 `Policy Gradient <https://homes.cs.washington.edu/~todorov/courses/amath579/reading/PolicyGradient.pdf>`_。
 而策略梯度方法则是可以直接学习参数化的策略，动作选择不再直接依赖于价值函数，而是将价值函数作为学习策略的参数，不再是动作选择必须的了。
 
+Add baseline
+
+Assign suitable credit
+
 优点：对于连续的策略参数化，动作选择的概率会平滑的变化；而基于动作价值函数的方法会随Q值变化而导致动作选择的概率有很大变化。因此，基于policy gradient的方法能比基于动作价值函数的方法有更好的收敛性保证。
 
 缺点：没有自举，方差相对较高，学习相对较慢
 
+
+DDPG
+^^^^^^^^^^^^^^^
+DDPG即Deep Deterministic Policy Gradient，在2015年的paper `Continuous control with deep reinforcement learning <https://arxiv.org/abs/1509.02971>`_ 中提出。 DDPG是基于actor-critic的model-free算法，
+
+
+
+A2C
+^^^^^^^^
+
+
 PPO
 ^^^^^
-PPO即Proximal Policy Optimization，在2017年的`Proximal Policy Optimization Algorithms <https://arxiv.org/abs/1707.06347>`_ 中被提出。
+PPO即Proximal Policy Optimization，在2017年的 `Proximal Policy Optimization Algorithms <https://arxiv.org/abs/1707.06347>`_ 中被提出。是基于Policy Gradient方法的改进。
+PPO 是OpenAI的default reinforcement learning algorithm。
 
+
+
+GAE
+^^^^^^^^^^^^^^^
+
+
+
+
+
+
+SAC
+^^^^^^^^
+
+
+.. note::
+    一个部分论文的链接: `传送门 <https://zhuanlan.zhihu.com/p/23600620>`_
 ..
 
     Paper List
     ^^^^^^^^^^
 
     Q&A
-    ^^^
+    ^^^^^
 
     MARL
-    ~~~~
+    ~~~~~~~~
 
     Paper List
     ^^^^^^^^^^
@@ -313,13 +367,13 @@ PPO即Proximal Policy Optimization，在2017年的`Proximal Policy Optimization 
     ^^^
 
     Large Scale RL Training
-    ~~~~~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Paper List
     ^^^^^^^^^^
 
     Q&A
-    ^^^
+    ^^^^^^^
 
 
     .. |img| image:: https://bkimg.cdn.bcebos.com/formula/6b72394d178730e1676d40f3824c2f46.svg
@@ -340,8 +394,7 @@ Paper List
 7. DDPG
 8. SAC
 
-.. note::
-    一个部分论文的链接: `传送门 <https://zhuanlan.zhihu.com/p/23600620>`_
+
 
 Blog List
 ~~~~~~~~~~
