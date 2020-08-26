@@ -4,9 +4,8 @@ from nervex.envs.env.base_env import BaseEnv
 from nervex.envs.common import EnvElementRunner
 from .pong_reward import PongReward
 
-# done
-class PongRewardRunner(EnvElementRunner):
 
+class PongRewardRunner(EnvElementRunner):
     def _init(self, *args, **kwargs) -> None:
         # set self._core and other state variable
         self._core = PongReward()
@@ -18,4 +17,3 @@ class PongRewardRunner(EnvElementRunner):
 
     def reset(self) -> None:
         pass
-

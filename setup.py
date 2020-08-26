@@ -76,6 +76,7 @@ setup(
         'websocket-client',
         'whichcraft',
         'gym',
+        'atari_py',
         'torch>=1.3.1',  # 1.3.1+cuda90_cudnn7.6.3_lms
         'joblib',
         'sphinx',

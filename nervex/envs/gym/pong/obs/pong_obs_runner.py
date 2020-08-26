@@ -9,7 +9,6 @@ from .pong_obs import PongObs
 
 
 class PongObsRunner(EnvElementRunner):
-
     def _init(self, *args, **kwargs) -> None:
         # set self._core and other state variable
         self._core = PongObs()
@@ -18,6 +17,6 @@ class PongObsRunner(EnvElementRunner):
         ret = copy.deepcopy(engine.pong_obs)
         assert isinstance(ret, np.ndarray)
         return ret
-        
+
     def reset(self) -> None:
         pass

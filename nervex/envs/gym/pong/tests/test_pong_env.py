@@ -4,13 +4,15 @@ import os
 import random
 from nervex.envs.gym.pong.pong_env import PongEnv
 
+
+@pytest.mark.unittest
 class TestPongEnv:
     def get_random_action(self, min_value, max_value):
         action = random.randint(min_value, max_value)
         return action
 
     def test_naive(self):
-        env = PongEnv({'frameskip':2})
+        env = PongEnv({'frameskip': 2})
         print(env.info())
         obs = env.reset()
         for i in range(10):
