@@ -1,4 +1,5 @@
 import numpy as np
+import argparse
 from collections import namedtuple
 import torch
 import torch.nn as nn
@@ -17,14 +18,17 @@ from nervex.envs.sumo.sumo_env import SumoWJ3Env
 from nervex.worker.learner.sumo_dqn_learner import SumoDqnLearner
 from nervex.data.structure.buffer import PrioritizedBufferWrapper
 from nervex.worker.agent.sumo_dqn_agent import SumoDqnActorAgent
+from nervex.torch_utils import to_device
 
 
 def epsilon_greedy(start, end, decay):
     return lambda x: (start - end) * math.exp(-1 * x / decay) + end
 
 
-def setup_config():
-    with open(os.path.join(os.path.dirname(__file__), 'sumo_dqn_default_config.yaml')) as f:
+def setup_config(path=None):
+    if path is None:
+        path = os.path.join(os.path.dirname(__file__), 'sumo_dqn_default_config.yaml')
+    with open(path, 'r') as f:
         cfg = yaml.safe_load(f)
     cfg = EasyDict(cfg)
     return cfg
@@ -52,7 +56,9 @@ class SumoDqnRun():
             dones = [False for _ in range(self.env.env_num)]
             while True:
                 eps_threshold = self.bandit(self.learner.last_iter.val)
+                obs = to_device(obs, 'cuda')
                 actions, _ = self.actor_agent.forward(obs, eps=eps_threshold)
+                actions = to_device(actions, 'cpu')
                 timestep = self.env.step(actions)
                 for i, d in enumerate(dones):
                     if not d:
@@ -79,5 +85,9 @@ class SumoDqnRun():
             t.start()
 
 
-sumo_dqn_run = SumoDqnRun(setup_config())
-sumo_dqn_run.run()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config_path')
+    args = parser.parse_known_args()[0]
+    sumo_dqn_run = SumoDqnRun(setup_config(args.config_path))
+    sumo_dqn_run.run()

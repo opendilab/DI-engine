@@ -75,6 +75,8 @@ class SumoDqnLearner(Learner):
     def _setup_agent(self):
         sumo_env = SumoWJ3Env({})
         model = FCDQN(sumo_env.info().obs_space.shape, [v for k, v in sumo_env.info().act_space.shape.items()])
+        if self.use_cuda:
+            model.cuda()
         agent = SumoDqnLearnerAgent(model, self.plugin_cfg)
         agent.mode(train=True)
         agent.target_mode(train=True)

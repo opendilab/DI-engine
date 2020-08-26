@@ -6,15 +6,15 @@ common:
     only_evaluate: False
 data:
     train:
-        batch_size: 4
+        batch_size: 64
         dataloader_type: 'online'
 train:
-    use_cuda: False
+    use_cuda: True
     use_distributed: False
     max_iterations: 1000000
-    batch_size: 4
+    batch_size: 64
     learning_rate: 0.001
-    weight_decay: 0.001
+    weight_decay: 0.0001
     reward_weights:
         'queue_len': 1.0
     dqn:
@@ -22,11 +22,11 @@ train:
         max_epoch_frame: 2000
         buffer_length: 10000
         update_target_freq: 300
-        discount_factor: 0.99
+        discount_factor: 0.95
         is_double: True
 logger:
-    print_freq: 1
-    save_freq: 200
+    print_freq: 100
+    save_freq: 10000
     eval_freq: 200
 env:
     env_num: 4
