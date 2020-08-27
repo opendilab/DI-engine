@@ -89,7 +89,6 @@ class BaseLeagueManager(ABC):
                     # set pretrain checkpoint as initial player checkpoint
                     # only file copy, learner will load the checkpoint when learner-player mapping has been established
                     self.save_checkpoint_fn(self.cfg.pretrain_checkpoint_path[r], player.checkpoint_path)
-        self._init_player_model()
 
         # add pretrain player as the initial HistoricalPlayer
         if self.cfg.use_pretrain_init_historical:
@@ -117,7 +116,7 @@ class BaseLeagueManager(ABC):
     def close(self):
         self._end_flag = True
 
-    def _init_player_model(self):
+    def init_player_model(self):
         for p in self.active_players:
             self.load_checkpoint_fn(p.player_id, p.checkpoint_path)
 

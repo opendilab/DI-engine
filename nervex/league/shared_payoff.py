@@ -113,33 +113,37 @@ class SharedPayoff:
             self._players.append(player)
             self._players_ids.append(player.player_id)
 
-    def update(self, match_info):
+    def update(self, task_info):
         """
         Overview: update payoff with a match_info
         Arguments:
-            - match_info (:obj:`dict`): a dict contains match information
+            - task_info (:obj:`dict`): a dict contains task result information
         Returns:
             - result (:obj:`bool`): whether update is successful
         Note:
-            match_info owns at least 3 keys('home', 'away', 'result')
+            task_info owns at least 4 keys('player_id', 'env_num', 'epsiode_num', 'result')
+            result is a two-layer list with the length of (episode_num, env_num)
         """
         # check
         with self._lock:
+            home_id, away_id = task_info['player_id']
             try:
-                assert match_info['home_id'] in self._players_ids
-                assert match_info['away_id'] in self._players_ids
-                assert match_info['result'] in RecordDict.data_keys[:3]
+                assert home_id in self._players_ids
+                assert away_id in self._players_ids
+                assert all([i in RecordDict.data_keys[:3] for j in task_info['result'] for i in j])
             except Exception as e:
-                print("[ERROR] invalid match_info: {}".format(match_info))
+                print("[ERROR] invalid task_info: {}".format(task_info))
                 print(e)
                 return False
             # decay
-            key = self.get_key(match_info['home_id'], match_info['away_id'])
+            key = self.get_key(home_id, away_id)
             self._data[key] *= self._decay
 
             # update
-            self._data[key]['games'] += 1
-            self._data[key][match_info['result']] += 1
+            for j in task_info['result']:
+                for i in j:
+                    self._data[key]['games'] += 1
+                    self._data[key][i] += 1
             return True
 
     def get_key(self, home, away):

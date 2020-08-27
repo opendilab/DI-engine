@@ -5,6 +5,7 @@ import json
 import threading
 import requests
 import numpy as np
+import torch
 from itertools import count
 import logging
 import argparse
@@ -14,9 +15,7 @@ import uuid
 import random
 from easydict import EasyDict
 
-from nervex.data.online import ReplayBuffer
 from nervex.utils import read_file_ceph, save_file_ceph
-from nervex.league import BaseLeagueManager
 
 
 class LeagueManagerWrapper(object):
@@ -28,21 +27,31 @@ class LeagueManagerWrapper(object):
         else:
             self.league_manager_ip = os.environ.get('SLURMD_NODENAME', '')  # hostname like SH-IDC1-10-5-36-236
         if not self.league_manager_ip:
-            raise ValueError('league_manager_ip must be ip address, but found {}'.format(self.learner_ip))
+            raise ValueError('league_manager_ip must be ip address, but found {}'.format(self.league_manager_ip))
         self.coordinator_ip = self.cfg['system']['coordinator_ip']
         self.coordinator_port = self.cfg['system']['coordinator_port']
-        self.ceph_traj_path = self.cfg['system']['ceph_traj_path']
-        self.ceph_model_path = self.cfg['system']['ceph_model_path']
-        self.use_ceph = self.cfg['system']['use_ceph']
+        self.fs_type = self.cfg.league.communication.file_system_type
+        self.path_agent = self.cfg.league.communication.path_agent
 
         self.url_prefix = 'http://{}:{}/'.format(self.coordinator_ip, self.coordinator_port)
-        self.use_fake_data = cfg['coordinator']['use_fake_data']
         self._set_logger()
         self._init_league_manager()
         self._register_league_manager()
 
     def _set_logger(self, level=1):
         self.logger = logging.getLogger("league_manager.log")
+
+    def _read_file(self, path):
+        if self.fs_type == 'normal':
+            return torch.load(path)
+        elif self.fs_type == 'ceph':
+            return read_file_ceph(path, read_type='pickle')
+
+    def _save_file(self, path, file_name, data):
+        if self.fs_type == 'normal':
+            torch.save(data, os.path.join(path, file_name))
+        elif self.fs_type == 'ceph':
+            save_file_ceph(path, file_name, data)
 
     def _init_league_manager(self):
         def save_checkpoint_fn(src_checkpoint, dst_checkpoint, read_type='pickle'):
@@ -52,17 +61,15 @@ class LeagueManagerWrapper(object):
                     - src_checkpoint (:obj:`str`): source checkpoint's path, e.g. s3://alphastar_fake_data/ckpt.pth
                     - dst_checkpoint (:obj:`str`): dst checkpoint's path, e.g. s3://alphastar_fake_data/ckpt.pth
             '''
-            if self.use_fake_data:
-                return
-            src_checkpoint = os.path.join(self.ceph_model_path, src_checkpoint)
-            dst_checkpoint = os.path.join(self.ceph_model_path, dst_checkpoint)
-            checkpoint = read_file_ceph(src_checkpoint, read_type=read_type)
-            ceph_path, file_name = dst_checkpoint.strip().rsplit('/', 1)
-            save_file_ceph(ceph_path, file_name, checkpoint)
+            src_checkpoint = os.path.join(self.path_agent, src_checkpoint)
+            dst_checkpoint = os.path.join(self.path_agent, dst_checkpoint)
+            checkpoint = self._read_file(src_checkpoint)
+            path, file_name = dst_checkpoint.strip().rsplit('/', 1)
+            self._save_file(path, file_name, checkpoint)
             self.logger.info('[league manager] load {} and resave to {}.'.format(src_checkpoint, dst_checkpoint))
 
         def load_checkpoint_fn(player_id, checkpoint_path):
-            d = {'player_id': player_id, 'checkpoint_path': self.ceph_model_path + checkpoint_path}
+            d = {'player_id': player_id, 'checkpoint_path': self.path_agent + checkpoint_path}
             # need to be refine
             while True:
                 try:
@@ -87,10 +94,13 @@ class LeagueManagerWrapper(object):
                 time.sleep(10)
             return False
 
-        self.league_manager = BaseLeagueManager(self.cfg, save_checkpoint_fn, load_checkpoint_fn, launch_match_fn)
+        self._setup_league_manager(save_checkpoint_fn, load_checkpoint_fn, launch_match_fn)
         self.player_ids = self.league_manager.active_players_ids
         self.player_ckpts = self.league_manager.active_players_ckpts
         print('{} learners should be registered totally. '.format(len(self.player_ids)))
+
+    def _setup_league_manager(self, save_checkpoint_fn, load_checkpoint_fn, launch_match_fn):
+        raise NotImplementedError
 
     def _register_league_manager(self):
         d = {
@@ -113,8 +123,8 @@ class LeagueManagerWrapper(object):
         self.league_manager.run()
         return True
 
-    def deal_with_finish_match(self, match_info):
-        self.league_manager.finish_match(match_info)
+    def deal_with_finish_task(self, task_info):
+        self.league_manager.finish_task(task_info)
         return True
 
     def get_ip(self):
