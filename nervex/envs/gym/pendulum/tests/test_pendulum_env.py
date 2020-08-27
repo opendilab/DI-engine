@@ -20,5 +20,5 @@ class TestPendulumEnv:
             action = self.get_random_action(env.info().act_space.value['min'], env.info().act_space.value['max'])
             timestep = env.step(action)
             print('step {} with action {}'.format(i, action))
-            print('reward {} in step'.format(timestep.reward, i))
+            print('reward {} in step {}'.format(timestep.reward, i))
         print('end')
