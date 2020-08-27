@@ -1,0 +1,21 @@
+from typing import List, Tuple
+import numpy as np
+import copy
+from nervex.envs.env.base_env import BaseEnv
+from nervex.envs.common import EnvElementRunner
+from nervex.envs.gym.pendulum.obs.pendulum_obs import PendulumObs
+
+# done
+
+
+class PendulumObsRunner(EnvElementRunner):
+    def _init(self, *args, **kwargs) -> None:
+        # set self._core and other state variable
+        self._core = PendulumObs()
+
+    def get(self, engine: BaseEnv) -> int:
+        ret = copy.deepcopy(engine.obs)
+        return ret
+
+    def reset(self) -> None:
+        pass
