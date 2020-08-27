@@ -137,11 +137,12 @@ class SharedPayoff:
                 return False
             # decay
             key = self.get_key(home_id, away_id)
-            self._data[key] *= self._decay
 
             # update
             for j in task_info['result']:
                 for i in j:
+                    # all categories should decay
+                    self._data[key] *= self._decay
                     self._data[key]['games'] += 1
                     self._data[key][i] += 1
             return True

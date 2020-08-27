@@ -51,7 +51,7 @@ class TestPayoff:
             p_ori._payoff = np.random.uniform()
             assert p_ori.payoff == p_copy.payoff
 
-    def test_update(self, setup_payoff, random_match_result):
+    def test_update(self, setup_payoff, random_task_result):
         assert len(setup_payoff.players) == 0
         N = 10
         games_per_player = 8
@@ -62,37 +62,37 @@ class TestPayoff:
         for n in range(N):
             away = setup_payoff.players[n].player_id
             for i in range(games_per_player):
-                match_result = random_match_result()
-                match_info = {
+                task_result = random_task_result()
+                task_info = {
                     'home_id': setup_payoff._home_id,
                     'away_id': away,
-                    'result': match_result,
+                    'result': task_result,
                 }
-                old = setup_payoff._data[away][match_result]
-                result = setup_payoff.update(match_info)
+                old = setup_payoff._data[away][task_result]
+                result = setup_payoff.update(task_info)
                 assert result
-                assert old * setup_payoff._decay + 1 == setup_payoff._data[away][match_result]
+                assert old * setup_payoff._decay + 1 == setup_payoff._data[away][task_result]
 
         # invalid update test
-        match_info = None
-        assert not setup_payoff.update(match_info)
+        task_info = None
+        assert not setup_payoff.update(task_info)
 
-    def test_getitem(self, setup_payoff, random_match_result):
+    def test_getitem(self, setup_payoff, random_task_result):
         assert len(setup_payoff.players) == 0
         N = 10
-        match_num = 314
+        task_num = 314
         player_list = [get_fake_player() for _ in range(N)]
         for p in player_list:
             setup_payoff.add_player(p)
 
-        for i in range(match_num):
+        for i in range(task_num):
             away = np.random.choice(setup_payoff.players).player_id
-            match_info = {
+            task_info = {
                 'home_id': setup_payoff._home_id,
                 'away_id': away,
-                'result': random_match_result(),
+                'result': random_task_result(),
             }
-            setup_payoff.update(match_info)
+            setup_payoff.update(task_info)
         # single player
         idx = np.random.randint(0, len(setup_payoff.players))
         player = setup_payoff.players[idx]
@@ -152,7 +152,7 @@ def get_shared_payoff_player(payoff):
 
 @pytest.mark.unittest
 class TestSharedPayoff:
-    def test_update(self, setup_shared_payoff, random_match_result):
+    def test_update(self, setup_shared_payoff, random_task_result, get_task_result_categories):
         N = 10
         games_per_player = 4
         player_list = [get_shared_payoff_player(setup_shared_payoff) for _ in range(N)]
@@ -162,26 +162,37 @@ class TestSharedPayoff:
         for home in player_list:
             for away in player_list:
                 for i in range(games_per_player):
-                    match_result = random_match_result()
-                    match_info = {
-                        'home_id': home.player_id,
-                        'away_id': away.player_id,
-                        'result': match_result,
+                    episode_num = 2
+                    env_num = 4
+                    task_result = [[random_task_result() for _ in range(env_num)] for _ in range(episode_num)]
+                    task_info = {
+                        'player_id': [home.player_id, away.player_id],
+                        'episode_num': episode_num,
+                        'env_num': env_num,
+                        'result': task_result
                     }
                     key = setup_shared_payoff.get_key(home.player_id, away.player_id)
                     if key in setup_shared_payoff._data.keys():
-                        old = setup_shared_payoff._data[key][match_result]
+                        old = setup_shared_payoff._data[key]
                     else:
-                        old = 0
-                    result = setup_shared_payoff.update(match_info)
-                    assert result
-                    assert old * setup_shared_payoff._decay + 1 == setup_shared_payoff._data[key][match_result]
+                        old = {k: 0 for k in get_task_result_categories}
+                    assert setup_shared_payoff.update(task_info)
+
+                    decay = setup_shared_payoff._decay
+                    for j in task_result:
+                        for i in j:
+                            for k in get_task_result_categories:
+                                old[k] *= decay
+                            old[i] += 1
+
+                    for t in get_task_result_categories:
+                        assert old[t] == setup_shared_payoff._data[key][t]
 
         # test shared payoff
         for p in player_list:
             assert id(p.payoff) == id(setup_shared_payoff)
 
-    def test_getitem(self, setup_shared_payoff, random_match_result):
+    def test_getitem(self, setup_shared_payoff, random_task_result):
         N = 10
         games_per_player = 4
         player_list = [get_shared_payoff_player(setup_shared_payoff) for _ in range(N)]
@@ -202,8 +213,16 @@ class TestSharedPayoff:
         for i in range(314):
             home = np.random.choice(setup_shared_payoff.players)
             away = np.random.choice(setup_shared_payoff.players)
-            match_info = {'home_id': home.player_id, 'away_id': away.player_id, 'result': random_match_result()}
-            result = setup_shared_payoff.update(match_info)
+            env_num = 1
+            episode_num = 1
+            task_result = [[random_task_result() for _ in range(env_num)] for _ in range(episode_num)]
+            task_info = {
+                'player_id': [home.player_id, away.player_id],
+                'episode_num': episode_num,
+                'env_num': env_num,
+                'result': task_result
+            }
+            result = setup_shared_payoff.update(task_info)
             assert result
         for i in range(314):
             home_num = np.random.randint(1, N + 1)

@@ -57,18 +57,18 @@ def load_checkpoint_fn(player_id, checkpoint_path):
 
 
 class FakeMatchRunner:
-    def __init__(self, random_match_result):
+    def __init__(self, random_task_result):
         self.queue = Queue(maxsize=10)
-        self.random_match_result = random_match_result
+        self.random_task_result = random_task_result
 
     def launch_match(self, match_info):
         print('match_info', match_info)
         t = np.random.uniform() * 0.2 + 0.1
         time.sleep(t)
-        thread = Thread(target=self.simulate_match, args=(match_info, self.random_match_result))
+        thread = Thread(target=self.simulate_match, args=(match_info, self.random_task_result))
         thread.start()
 
-    def simulate_match(self, match_info, random_match_result):
+    def simulate_match(self, match_info, random_task_result):
         home_id, away_id = match_info['player_id']
         print('match begin: home({}) VS away({})'.format(home_id, away_id))
         global BEGIN_COUNT
@@ -77,10 +77,9 @@ class FakeMatchRunner:
         time.sleep(t)
         self.queue.put(
             {
-                'home_id': home_id,
-                'away_id': away_id,
+                'player_id': [home_id, away_id],
                 'launch_player': match_info['launch_player'],
-                'result': random_match_result()
+                'result': [[random_task_result()]],
             }
         )
 
@@ -110,7 +109,7 @@ class FakeCoordinator:
             finish_match(match_result)
             print(
                 'match finish: home({}) {} away({})'.format(
-                    match_result['home_id'], match_result['result'], match_result['away_id']
+                    match_result['player_id'][0], match_result['result'][0][0], match_result['player_id'][1]
                 )
             )
             FINISH_COUNT += 1
@@ -127,8 +126,8 @@ class FakeCoordinator:
 
 class TestFakeLeagueManager:
     @pytest.mark.unittest
-    def test_naive(self, random_match_result, setup_config):
-        match_runner = FakeMatchRunner(random_match_result)
+    def test_naive(self, random_task_result, setup_config):
+        match_runner = FakeMatchRunner(random_task_result)
         league_manager = FakeLeagueManager(
             setup_config, save_checkpoint_fn, load_checkpoint_fn, match_runner.launch_match
         )
@@ -149,10 +148,10 @@ class TestFakeLeagueManager:
         assert BEGIN_COUNT == FINISH_COUNT
         assert (len(threading.enumerate()) <= 2), threading.enumerate()  # main thread + QueueFeederThread
 
-    def test_snapshot_priority(self, random_match_result):
+    def test_snapshot_priority(self, random_task_result):
         global SAVE_COUNT
         SAVE_COUNT = 0
-        match_runner = FakeMatchRunner(random_match_result)
+        match_runner = FakeMatchRunner(random_task_result)
         league_manager = FakeLeagueManager({}, save_checkpoint_fn, load_checkpoint_fn, match_runner.launch_match)
         # fix mutate
         for p in league_manager.active_players:
@@ -162,7 +161,7 @@ class TestFakeLeagueManager:
         assert (len(league_manager.historical_players) == 3)
         active_player_ids = [p.player_id for p in league_manager.active_players]
         coordinator = FakeCoordinator(
-            match_runner.queue, league_manager.finish_match, league_manager.update_active_player, active_player_ids
+            match_runner.queue, league_manager.finish_task, league_manager.update_active_player, active_player_ids
         )
 
         league_manager.run()

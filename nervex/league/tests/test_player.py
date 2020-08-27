@@ -152,9 +152,8 @@ class TestMainPlayer:
         for n in range(N):
             for hp in [p for p in setup_league if isinstance(p, HistoricalPlayer)]:
                 match_info = {
-                    'home_id': setup_league[0].player_id,
-                    'away_id': hp.player_id,
-                    'result': 'wins',
+                    'player_id': [setup_league[0].player_id, hp.player_id],
+                    'result': [['wins']],
                 }
                 result = payoff.update(match_info)
                 assert result
@@ -163,9 +162,8 @@ class TestMainPlayer:
         for n in range(N):
             for hp in hp_list:
                 match_info = {
-                    'home_id': setup_league[5].player_id,
-                    'away_id': hp.player_id,
-                    'result': 'draws',
+                    'player_id': [setup_league[5].player_id, hp.player_id],
+                    'result': [['draws']],
                 }
                 result = payoff.update(match_info)
                 assert result
@@ -190,7 +188,7 @@ class TestMainPlayer:
 
 @pytest.mark.unittest
 class TestMainExploiter:
-    def test_get_task(self, setup_league, random_match_result):
+    def test_get_task(self, setup_league, random_task_result):
         assert isinstance(setup_league[1], MainExploiter)
         opponent = setup_league[1].get_task()
         assert isinstance(opponent, MainPlayer)
@@ -200,7 +198,10 @@ class TestMainExploiter:
         for n in range(N):
             for p in setup_league:
                 if isinstance(p, MainPlayer):
-                    match_info = {'home_id': setup_league[1].player_id, 'away_id': p.player_id, 'result': 'losses'}
+                    match_info = {
+                        'player_id': [setup_league[1].player_id, p.player_id],
+                        'result': [['losses']],
+                    }
                     assert payoff.update(match_info)
 
         opponent = setup_league[1].get_task()
@@ -219,8 +220,11 @@ class TestMainExploiter:
         for i in range(10000):
             home = np.random.choice(no_main_player_league)
             away = np.random.choice(no_main_player_league)
-            result = random_match_result()
-            match_info = {'home_id': home.player_id, 'away_id': away.player_id, 'result': result}
+            result = random_task_result()
+            match_info = {
+                'player_id': [home.player_id, away.player_id],
+                'result': [[result]],
+            }
             assert payoff.update(match_info)
 
         for i in range(10):
