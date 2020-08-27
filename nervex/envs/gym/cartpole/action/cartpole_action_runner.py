@@ -11,7 +11,7 @@ class CartpoleRawActionRunner(EnvElementRunner):
         self._core = CartpoleRawAction()
 
     def get(self, engine: BaseEnv) -> list:
-        raw_action = engine.action
+        raw_action = self._core._from_agent_processor(engine.action)
         return raw_action
 
     def reset(self) -> None:

@@ -19,7 +19,7 @@ class PendulumObs(EnvElement):
             'min': [-1.0, -1.0, -8.0],
             'max': [1.0, 1.0, 8.0],
             'dtype': np.ndarray,
-            'dinfo': 'float value ndarray of (cost_heta, sin_theta, theta_dot)',
+            'dinfo': 'float value ndarray of (cos_theta, sin_theta, theta_dot)',
         }
 
     def _to_agent_processor(self, obs):

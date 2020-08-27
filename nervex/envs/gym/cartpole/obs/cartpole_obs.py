@@ -19,7 +19,7 @@ class CartpoleObs(EnvElement):
             'min': [-4.8, float("-inf"), -0.42, float("-inf")],
             'max': [4.8, float("inf"), 0.42, float("inf")],
             'dtype': np.ndarray,
-            'dinfo': 'float value ndarray of (cost_heta, sin_theta, theta_dot)',
+            'dinfo': 'float value ndarray',
         }
 
     def _to_agent_processor(self, obs):

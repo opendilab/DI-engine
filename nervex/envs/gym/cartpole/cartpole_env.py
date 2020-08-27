@@ -15,9 +15,6 @@ class CartpoleEnv(BaseEnv):
 
     info_template = namedtuple('BaseEnvInfo', ['obs_space', 'act_space', 'rew_space'])
 
-    # frame_skip: how many frame in one step, should be 1 or 2 or 4.
-    # rep_prob: the probability of rerun the previous action in this step, should be 0 or 0.25.
-
     def __init__(self, cfg):
         self._cfg = cfg
         self.rep_prob = 0
