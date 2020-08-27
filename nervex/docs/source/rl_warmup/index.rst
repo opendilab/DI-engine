@@ -322,25 +322,21 @@ DDPG
 ^^^^^^^^^^^^^^^
 DDPG即Deep Deterministic Policy Gradient，在2015年的paper `Continuous control with deep reinforcement learning <https://arxiv.org/abs/1509.02971>`_ 中提出。 DDPG是基于actor-critic的model-free算法，
 
-
-
-A2C
-^^^^^^^^
-
-
 PPO
 ^^^^^
 PPO即Proximal Policy Optimization，在2017年的 `Proximal Policy Optimization Algorithms <https://arxiv.org/abs/1707.06347>`_ 中被提出。是基于Policy Gradient方法的改进。
 PPO 是OpenAI的default reinforcement learning algorithm。
 
 
+Actor Critic
+^^^^^^^^^^^^
+
+A2C
+^^^^^^^^
+
 
 GAE
 ^^^^^^^^^^^^^^^
-
-
-
-
 
 
 SAC
