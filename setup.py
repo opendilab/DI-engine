@@ -59,6 +59,8 @@ setup(
         'nervex.rl_utils',
         'nervex.train',
         'nervex.data',
+        'nervex.system',
+        'nervex.league',
     ],
     install_requires=[
         'absl-py>=0.1.0',
