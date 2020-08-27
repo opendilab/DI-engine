@@ -138,7 +138,7 @@ class Coordinator(object):
             with self.lock:
                 self._logger.info('now learner_record: {}'.format(self._learner_record))
                 if learner_uid not in self._learner_record:
-                    if len(self._player_to_learner) < len(self.player_ids):
+                    if len(self._player_to_learner) < len(self._player_ids):
                         self._learner_record[learner_uid] = {
                             "learner_ip_port_list": [[learner_ip, learner_port]],
                             "job_ids": [],
@@ -149,16 +149,16 @@ class Coordinator(object):
                             "state": LearnerState.alive
                         }
                         self._learner_record[learner_uid]['replay_buffer'].run()
-                        for index, player_id in enumerate(self.player_ids):
+                        for index, player_id in enumerate(self._player_ids):
                             if player_id not in self._player_to_learner:
                                 self._player_to_learner[player_id] = learner_uid
                                 self._learner_to_player[learner_uid] = player_id
-                                self._learner_record[learner_uid]['checkpoint_path'] = self.player_ckpts[index]
+                                self._learner_record[learner_uid]['checkpoint_path'] = self._player_ckpts[index]
                                 self._logger.info('learner ({}) set to player ({})'.format(learner_uid, player_id))
                                 break
                         self._logger.info(
                             '{}/{} learners have been registered'.format(
-                                len(self._player_to_learner), len(self.player_ids)
+                                len(self._player_to_learner), len(self._player_ids)
                             )
                         )
                     else:
@@ -188,7 +188,6 @@ class Coordinator(object):
                 - manager_uid (:obj:`str`): manager's uid
                 - actor_uid (:obj:`str`): actor's uid
         '''
-        print('deal_with_ask_for_job', actor_uid)
         job = self.job_queue.get()
         assert isinstance(job, dict)
         job_id = job['job_id']
@@ -230,11 +229,11 @@ class Coordinator(object):
         '''
         assert job_id in self.job_record, 'job_id ({}) not in job_record'.format(job_id)
         self.job_record[job_id]['state'] = JobState.finish
-        url_prefix = self.url_prefix_format.format(self.league_manager_ip, self.league_manager_port)
-        d = {'result': result}
+        url_prefix = self.url_prefix_format.format(self._league_manager_ip, self._league_manager_port)
+        d = {'task_result': result}
         while True:
             try:
-                response = requests.post(url_prefix + "league/finish_result", json=d).json()
+                response = requests.post(url_prefix + "league/finish_task", json=d).json()
                 if response['code'] == 0:
                     return True
             except Exception as e:
@@ -294,10 +293,10 @@ class Coordinator(object):
         return True
 
     def deal_with_register_league_manager(self, league_manager_ip, player_ids, player_ckpts):
-        self.league_manager_ip = league_manager_ip
-        self.player_ids = player_ids
-        self.player_ckpts = player_ckpts
-        self._logger.info('register league_manager from {}'.format(self.league_manager_ip))
+        self._league_manager_ip = league_manager_ip
+        self._player_ids = player_ids
+        self._player_ckpts = player_ckpts
+        self._logger.info('register league_manager from {}'.format(self._league_manager_ip))
         self._league_manager_flag = True
         return True
 
@@ -355,9 +354,9 @@ class Coordinator(object):
     def _launch_league_manager(self):
         while True:
             # league_manager and enough learners have been registered
-            if self._league_manager_flag and len(self.player_ids) == len(self._player_to_learner):
+            if self._league_manager_flag and len(self._player_ids) == len(self._player_to_learner):
                 try:
-                    url_prefix = self.url_prefix_format.format(self.league_manager_ip, self.league_manager_port)
+                    url_prefix = self.url_prefix_format.format(self._league_manager_ip, self._league_manager_port)
                     response = requests.get(url_prefix + "league/run_league").json()
                     if response['code'] == 0:
                         self._logger.info('league_manager run with table {}. '.format(self._player_to_learner))
