@@ -1,5 +1,5 @@
 import copy
-
+import time
 import numpy as np
 
 from nervex.data.structure.segment_tree import SumSegmentTree, MinSegmentTree
@@ -258,10 +258,11 @@ class PrioritizedBuffer:
 
 
 class PrioritizedBufferWrapper(PrioritizedBuffer):
-    def __init__(self, *args):
-        super(PrioritizedBufferWrapper, self).__init__(*args)
+    def __init__(self, *args, **kwargs):
+        super(PrioritizedBufferWrapper, self).__init__(*args, **kwargs)
 
     def iterable_sample(self, batch_size):
         while True:
             if batch_size < self.validlen:
                 yield self.sample(batch_size)
+                time.sleep(0.1)
