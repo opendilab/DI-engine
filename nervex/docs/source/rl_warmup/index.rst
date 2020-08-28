@@ -3,8 +3,6 @@
 ..
 
 
-
-
 RL Warmup
 ===============================
 
@@ -132,14 +130,14 @@ example
 通过MDP过程，就能大致理解深度学习智能体环境交互的定义。
 
 .. note::
-    https://zhuanlan.zhihu.com/p/28084942
+   MDP过程是强化学习的问题定义，也是最基本的模型，具体介绍可以直接去查wiki上的定义或者自行搜索一些博客/专栏比如 `知乎专栏：马尔科夫决策过程 <https://zhuanlan.zhihu.com/p/28084942>`_ 。
 
 
 动态规划(DP)
 ~~~~~~~~~~~~~
 动态规划DP是一类优化方法，在给定一个MDP完备欢迎的情况下，可以计算最优的策略。但是对于强化学习问题，传统DP的作用十分有限。
-很多强化学习问题无法获得完备的环境模型，且DP在大维度时计算复杂度极高。不过DP仍不失为一个重要理论，很多其他方法都是对DP的一种近似，
-只不过降低了计算复杂的和对环境模型完备的假设。
+
+很多强化学习问题无法获得完备的环境模型，且DP在大维度时计算复杂度极高。不过DP仍不失为一个重要理论，很多其他方法都是对DP的一种近似，只不过降低了计算复杂的和对环境模型完备的假设。
 
 自举
  - 更新时基于当前已存在的估计：用后继各个状态的价值估计值来更新当前某个状态的价值估计值
@@ -213,18 +211,19 @@ Q-learning
 ^^^^^^^^^^^^^^^^
  :math:`Q(S_t, A_t) \leftarrow Q(S_t, A_t) + \alpha[R_{t+1} + \gamma {argmax}_a Q(S_{t+1}, a) - Q(S_t, A_t)]`
 
-Question:为什么说Sarsa是off-policy算法？
+Question:为什么说Q-learning是off-policy算法？
+
+随着深度学习的发展，Q-learning在与神经网络相结合后，衍生出了很多相关的深度学习算法，如DQN等。 Q值的估计也是基本的三种critic方式中较为常用的一种。
 
 双学习
 ^^^^^^^^^^^^^^^^
-双学习
 
-对于Q-learning的双学习优化是2010年在Deep Reinforcement Learning with Double Q-learning论文中提出的。
-
+对于Q-learning的双学习优化是2010年在 `Deep Reinforcement Learning with Double Q-learning <https://arxiv.org/abs/1509.06461>`_ 中提出的。
 
 
-n步自举法
-~~~~~~~~~~~~~
+
+.. n步自举法
+.. ~~~~~~~~~~~~~
 
 
 Q&A
@@ -249,7 +248,7 @@ Q3: 什么是on-policy和off-policy？
  on-policy和off-policy只是训练方式的界限，在有时一个算法甚至可能有on-policy和off-policy的不同实现，理解概念即可。
 
 Q4: 什么是online training和offline training？我们通常如何实现offline training？
-..  - Answer：
+ - Answer：略。
 
 
 Q5: 什么是expolration and expolitation？我们通常使用哪些方法平衡expolration and expolitation？
@@ -258,7 +257,7 @@ Q5: 什么是expolration and expolitation？我们通常使用哪些方法平衡
 
 
 Q6: 什么是discrete space和continuous space？我们哪些算法适用于discrete space？哪些算法适用于continuous space？
- - Answer：discrete space就是环境的动作空间离散，比如玩石头剪刀布时我们的动作就是离散的三种。
+ - Answer：discrete space就是环境的动作空间离散，比如玩石头剪刀布时我们的动作就是离散的三种动作。continuous space环境的动作空间连续，比如我们在开车的时候控制方向盘的角度，或者机械臂在抓取过程中各个关节的控制，就是连续的动作。
 
 Q7: 为什么要使用replay buffer？experience replay作用在哪里？
  - Answer：通过使用replay buffer我们可以将experience存入buffer，而在之后的训练中取出buffer中的experience使用。经验回放技术（experience replay）就是将系统探索环境获得的样本保存起来，然后从中采样出样本以更新模型参数。
@@ -283,6 +282,7 @@ RL Algorithm
 DQN
 ^^^^^^^
 DQN最早在2015年的文章 `Playing Atari with Deep Reinforcement Learning <https://arxiv.org/abs/1312.5602>`_ 一文中被提出，将Q-learning的思路与神经网络结合。一年后做出了微小改进后又发表在 `Human-level control through deep reinforcement learning <https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf>`_ 一文;
+
 DQN使用神经网络接受state输入进行价值估计，然后使用argmax选择预计value最大的action作为策略，通过计算td-loss进行神经网络的梯度下降。
 
 算法可见：
@@ -293,7 +293,9 @@ DQN使用神经网络接受state输入进行价值估计，然后使用argmax选
 Double DQN
 ^^^^^^^^^^^^^
 Double DQN是利用双学习，仿照Double Q-learning思路对DQN做的改进，发表在 `Deep Reinforcement Learning with Double Q-learning <https://arxiv.org/abs/1509.06461>`_ 。
+
 Double DQN不再是直接在目标Q网络里面找各个动作中最大Q值，而是先在当前Q网络中先找出最大Q值对应的动作，然后利用这个选择出来的动作在目标网络里面去计算目标Q值。其余与普通的DQN相同。
+
 Double DQN的目的是更加精确的估计目标Q值的计算，解决over estimation的问题，并且减少过大的bias。
 
 Dueling DQN
@@ -316,7 +318,9 @@ Prioritized Replay Buffer in DQN
 
 .. note::
    DQN算法的基础实现教程可以参考pytorch官方上的 `pytorch的DQN教程 <https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html>`_ ，该教程只是最基本的demo，适合作为入门参考。
+   
    有关于Double、Dueling DQN和prioritized replay DQN的算法实现可以参考Github上的 `RL-Adventure <https://github.com/higgsfield/RL-Adventure>`_， 该repo上的各种DQN实现较全，尽管torch版本较低，但不失作为参考。
+
    DQN算法在nervex框架中的入口可以参考 `nervx框架下的DQN实现 <http://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/blob/master/nervex/rl_utils/algorithms/sumo_dqn_main.py>`_。
 
 
@@ -366,7 +370,7 @@ Policy Gradient公式及其推导过程:
 再加入baseline后，该公式依旧存在一定的问题，即使用policy gradient由于一次sample的reward会等量的影响到整个过程中的动作选择，虽然从均值上讲依旧无偏，但是过程中的方差会极大。
 这时，我们通过修改公式，让每个动作在一次过程中不考虑该动作发生前的reward，只关联动作发生后所产生的reward，即减小了动作取值的方差，加快收敛。
 
-我们通过**Assign credit**的方式，将公式从 :math:`\nabla \bar{R_{\theta}} = \frac{1}{N} \sum_{n=1}^{N} \sum_{t = 1}^{T} (R(\tau) - b)\nabla \log{P_{\theta}(a_t^n|s_t^n)}`
+我们通过\ **Assign credit**\ 的方式，将公式从 :math:`\nabla \bar{R_{\theta}} = \frac{1}{N} \sum_{n=1}^{N} \sum_{t = 1}^{T} (R(\tau) - b)\nabla \log{P_{\theta}(a_t^n|s_t^n)}`
 
 变为 :math:`\nabla \bar{R_{\theta}} = \frac{1}{N} \sum_{n=1}^{N} \sum_{t = 1}^{T}` 
 :math:`(\sum_{t' = t}^{T_n} r_{t'}^{n} - b)\nabla \log{P_{\theta}(a_t^n|s_t^n)}`  
@@ -407,6 +411,10 @@ DDPG是基于actor-critic的model-free算法，是基于policy gradient和actor 
 
  - Critic Target Network :math:`Q'`：计算Target Q时，用buffer中取出的状态和Actor Target Network选出的该状态对应的动作，去计算对应Q值。
 
+DDPG相比于DDQN算法，其区别就在于引入了Actor Network。DDPG实质上是使用了神经网络Actor Network去选取动作，而DQN则是使用了贪心策略（argmax），根据Q值表中的动作中选择对应Q值估计最大的动作。
+
+因为DDPG使用神经网络去选择动作，将Actor Network的输出直接当作action，因此action space是连续的，可以用于解决连续动作空间的问题。
+
 具体算法实现如图：
 
 .. image:: DDPG.jpg
@@ -421,24 +429,60 @@ PPO 是OpenAI的default reinforcement learning algorithm， 足见这个算法�
 
 PPO通过使用Importance Sampling，使得算法可以使用之前策略得到的轨迹进行训练。PPO通过设定一定的constrain，使得之前策略轨迹的训练不会导致大的偏差，而相比于TRPO，constrain的实现也更加简单有效。
 
-PPO的具体理解可以参考下面的lecture和slides。
+PPO利用一个期望上的等同，使得可以使用旧策略下的概率分布 :math:`q`，去等同计算当前策略下的概率分布 :math:`p`， 概率的等同如下式：
+
+:math:`E_{x~p}[f(x)] = E_{x~q}[f(x) \frac{p(x)}{q(x)}]`。 
+
+这样梯度下降的公式就可以转换为：
+
+:math:`J^{\theta'}(\theta) = E_{(s_t, a_t)~\pi_{\theta'} [\frac{p_{\theta}(a_t | s_t)}{p_{\theta'}(a_t | s_t)} A^{\theta'}(s_t, a_t)]}` 
+ 其中 :math:`A^{\theta'}(s_t, a_t)` 即为 :math:`\theta'` 策略下的advantage
+
+该公式虽然在大样本量的情况下没有偏差，但是在sample样本过小的时候，若两个策略的概率分布 :math:`\theta ~ p(x)` 与 :math:`\theta' ~ q(x)` 相差过大，则会产生很大的方差，导致训练结果不稳定难以收敛。
+
+因此，我们在训练过程中，加入一定的constrain，使得两个策略的概率分布不会过大。在此我们通过 `相对熵 <https://baike.baidu.com/item/%E7%9B%B8%E5%AF%B9%E7%86%B5/4233536>`_（ `Kullback-Leibler Divergence <https://wiki2.org/en/Kullback%E2%80%93Leibler_divergence>`_ ）即 :math:`KL(\theta, \theta')` 来判断两个策略概率分布的差距。
+
+在TRPO中，通过引入 `trust region method <https://optimization.mccormick.northwestern.edu/index.php/Trust-region_methods>`_ 来推导限定在两个策略的概率分布差别不大时，训练的结果是可靠的。
+
+TRPO在梯度推导时大致就是：
+
+:math:`J_{TRPO}^{\theta'}(\theta) = J^{\theta'}(\theta) | KL(\theta, \theta') < \delta` 
+ 其中 :math:`J^{\theta'}(\theta) = E_{(s_t, a_t)~\pi_{\theta'} [\frac{p_{\theta}(a_t | s_t)}{p_{\theta'}(a_t | s_t)} A^{\theta'}(s_t, a_t)]}` 
+
+而目前的PPO则是有两个种实现方式，PPO1和PPO2。
+
+PPO1直接将两个策略的 :math:`KL(\theta, \theta')` 引入到梯度计算当中，通过直接计算
+:math:`J_{PPO1}^{\theta'}(\theta) = J^{\theta'}(\theta) - \beta KL(\theta, \theta')` ，
+ 其中 :math:`\beta` 可以直接定为参数，也可以通过自适应调整。
+在求梯度的过程中自然的减少了两个策略的概率分布差距。
+
+而PPO2则是使用了Cliping的方式，
+
+在此只是介绍了PPO的一个基本思路，PPO的具体理解可以参考下面的lecture和slides。
 
 .. note::
    lecture可见李宏毅强化学习课程P4和P5，在 `youtube <https://www.youtube.com/watch?v=OAKAZhFmYoI&list=PLJV_el3uVTsODxQFgzMzPLa16h6B8kWM_&index=2>`_ 和 `b站 <https://www.bilibili.com/video/BV1UE411G78S?p=5>`_ 上均有课程视频。
+
    课程对应的ppt可见 `slides <http://speech.ee.ntu.edu.tw/~tlkagk/courses/MLDS_2018/Lecture/PPO%20(v3).pdf>`_。
+
    李宏毅老师的强化学习课程虽然没有包括所有算法，但是对于基本概念的解释很清楚，对于RL算法的理解很深刻，推荐有时间看一下。
 
 
 
 A2C and A3C
 ^^^^^^^^^^^^^^
+暂略。
 
 
 GAE
 ^^^^^^^^^^^^^^^
+暂略。
+
 
 SAC
 ^^^^^^^^
+暂略。
+
 
 
 .. note::
