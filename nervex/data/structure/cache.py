@@ -9,7 +9,7 @@ class Cache:
     r"""
     Overview:
         data cache for reducing concurrent pressure, with timeout and full queue eject mechanism
-    Interface: 
+    Interface:
         __init__, push_data, get_cached_data_iter, run, close
     Property: remain_data_count
     """

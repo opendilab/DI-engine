@@ -11,9 +11,9 @@ class PrioritizedBuffer:
         prioritized buffer, store and sample data
     Interface:
         __init__, append, extend, sample, update
-    Property: 
+    Property:
         maxlen, validlen, beta
-    Note: 
+    Note:
         this buffer doesn't refer to multi-thread/multi-process, thread-safe should be ensured by the caller
     """
     def __init__(self, maxlen, max_reuse=None, min_sample_ratio=1., alpha=0., beta=0.):
