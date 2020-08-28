@@ -310,8 +310,14 @@ Dueling DQN在 `Dueling Network Architectures for Deep Reinforcement Learning <h
 
 Prioritized Replay Buffer in DQN
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Prioritized Replay Buffer的提出是在 `PRIORITIZED EXPERIENCE REPLAY <https://arxiv.org/abs/1511.05952> `_ 一文，使用buffer sample时通过加权提高训练数据质量，加快训练速度并提高效率。
 
-算法可见：
+nerveX系统中buffer的实现结构可见下图：
+
+.. image:: buffer.jpg
+
+
+具体的Prioritized DDQN算法可见：
 
 .. image:: PDDQN.png
 
@@ -357,7 +363,8 @@ Policy Gradient公式及其推导过程:
 
 不过这个基本的公式还有很多不足之处：
 比如由于是整体的概率分布，要求所有概率和为1，因此在进行梯度下降时，如果某一个不常见的动作一直没有被sample到，那么随着其他动作被sample后概率上升，这个动作的对应概率就会下降。
-可是动作的常见与否与某个阶段是否应该采取一个动作无关，因此我们需要通过引入baseline的方式，让公式更合理：
+
+动作的常见与否与某个阶段是否应该采取一个动作无关，因此我们需要通过引入baseline的方式，让公式更合理：
 
 **Add baseline**
 
@@ -435,19 +442,20 @@ PPO利用一个期望上的等同，使得可以使用旧策略下的概率分�
 
 这样梯度下降的公式就可以转换为：
 
-:math:`J^{\theta'}(\theta) = E_{(s_t, a_t)~\pi_{\theta'} [\frac{p_{\theta}(a_t | s_t)}{p_{\theta'}(a_t | s_t)} A^{\theta'}(s_t, a_t)]}` 
+:math:`J^{\theta'}(\theta) = E_{(s_t, a_t)~\pi_{\theta'}} [\frac{p_{\theta}(a_t | s_t)}{p_{\theta'}(a_t | s_t)} A^{\theta'}(s_t, a_t)]`
  其中 :math:`A^{\theta'}(s_t, a_t)` 即为 :math:`\theta'` 策略下的advantage
 
 该公式虽然在大样本量的情况下没有偏差，但是在sample样本过小的时候，若两个策略的概率分布 :math:`\theta ~ p(x)` 与 :math:`\theta' ~ q(x)` 相差过大，则会产生很大的方差，导致训练结果不稳定难以收敛。
 
-因此，我们在训练过程中，加入一定的constrain，使得两个策略的概率分布不会过大。在此我们通过 `相对熵 <https://baike.baidu.com/item/%E7%9B%B8%E5%AF%B9%E7%86%B5/4233536>`_（ `Kullback-Leibler Divergence <https://wiki2.org/en/Kullback%E2%80%93Leibler_divergence>`_ ）即 :math:`KL(\theta, \theta')` 来判断两个策略概率分布的差距。
+因此，我们在训练过程中，加入一定的constrain，使得两个策略的概率分布不会过大。在此我们通过 `相对熵 <https://baike.baidu.com/item/%E7%9B%B8%E5%AF%B9%E7%86%B5/4233536>`_ 
+（ `Kullback-Leibler Divergence <https://wiki2.org/en/Kullback%E2%80%93Leibler_divergence>`_ ）即 :math:`KL(\theta, \theta')` 来判断两个策略概率分布的差距。
 
 在TRPO中，通过引入 `trust region method <https://optimization.mccormick.northwestern.edu/index.php/Trust-region_methods>`_ 来推导限定在两个策略的概率分布差别不大时，训练的结果是可靠的。
 
 TRPO在梯度推导时大致就是：
 
 :math:`J_{TRPO}^{\theta'}(\theta) = J^{\theta'}(\theta) | KL(\theta, \theta') < \delta` 
- 其中 :math:`J^{\theta'}(\theta) = E_{(s_t, a_t)~\pi_{\theta'} [\frac{p_{\theta}(a_t | s_t)}{p_{\theta'}(a_t | s_t)} A^{\theta'}(s_t, a_t)]}` 
+ 其中 :math:`J^{\theta'}(\theta) = E_{(s_t, a_t)~\pi_{\theta'}} [\frac{p_{\theta}(a_t | s_t)}{p_{\theta'}(a_t | s_t)} A^{\theta'}(s_t, a_t)]` 
 
 而目前的PPO则是有两个种实现方式，PPO1和PPO2。
 
@@ -456,9 +464,13 @@ PPO1直接将两个策略的 :math:`KL(\theta, \theta')` 引入到梯度计算�
  其中 :math:`\beta` 可以直接定为参数，也可以通过自适应调整。
 在求梯度的过程中自然的减少了两个策略的概率分布差距。
 
-而PPO2则是使用了Cliping的方式，
+而PPO2则是使用了Clipping的方式： 
 
-在此只是介绍了PPO的一个基本思路，PPO的具体理解可以参考下面的lecture和slides。
+:math:`J^{\theta'}(\theta) = \sum_{(s_t, a_t)} min(\frac{p_{\theta}(a_t | s_t)}{p_{\theta'}(a_t | s_t)} A^{\theta'}(s_t, a_t) , clip(\frac{p_{\theta}(a_t | s_t)}{p_{\theta'}(a_t | s_t)}, 1-\epsilon, 1+\epsilon) A^{\theta'}(s_t, a_t) )` 
+
+在PPO的实际实现中，PPO2的实现最为简单高效，而PPO1和TRPO由于要计算KL Divergence花销相对较大。在实际实现的效果上，PPO2是要好于PPO1和TRPO的。在nerveX系统中我们也是以PPO2的形式实现算法模块。
+
+在此处只是介绍了PPO的一个基本思路，PPO的具体理解可以参考下面的lecture和slides，如果对数学概念和收敛性证明感兴趣，建议阅读原文 `Proximal Policy Optimization Algorithms <https://arxiv.org/abs/1707.06347>`_。
 
 .. note::
    lecture可见李宏毅强化学习课程P4和P5，在 `youtube <https://www.youtube.com/watch?v=OAKAZhFmYoI&list=PLJV_el3uVTsODxQFgzMzPLa16h6B8kWM_&index=2>`_ 和 `b站 <https://www.bilibili.com/video/BV1UE411G78S?p=5>`_ 上均有课程视频。
