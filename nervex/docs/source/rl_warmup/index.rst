@@ -310,7 +310,7 @@ Dueling DQN在 `Dueling Network Architectures for Deep Reinforcement Learning <h
 
 Prioritized Replay Buffer in DQN
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Prioritized Replay Buffer的提出是在 `PRIORITIZED EXPERIENCE REPLAY <https://arxiv.org/abs/1511.05952> `_ 一文，使用buffer sample时通过加权提高训练数据质量，加快训练速度并提高效率。
+Prioritized Replay Buffer的提出是在 `PRIORITIZED EXPERIENCE REPLAY <https://arxiv.org/abs/1511.05952>`_ 一文，使用buffer sample时通过加权提高训练数据质量，加快训练速度并提高效率。
 
 nerveX系统中buffer的实现结构可见下图：
 
