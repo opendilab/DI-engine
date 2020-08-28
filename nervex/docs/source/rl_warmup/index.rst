@@ -241,19 +241,24 @@ Q2: 什么是value-based， policy-based和actor-critic？ 分别有哪些算法
    具体关系用下图就能很好解释：
       
 .. image:: actor-critic.jpg
-    :scale: 50 %
+   :scale: 30 %
 
 Q3: 什么是on-policy和off-policy？
- - Answer：
+ - Answer：on-policy是使用当前的策略进行训练，用于生成采样数据序列的策略和用于实际决策的待评估和改进策略是相同的。 
+ off-policy则是可以使用之前过程中的策略进行训练，用于生成采样数据序列的策略和用于实际决策的待评估和改进策略是不同的，即生成的数据“离开”了待优化的策略锁决定的决策序列轨迹。
+ on-policy和off-policy只是训练方式的界限，在有时一个算法甚至可能有on-policy和off-policy的不同实现，理解概念即可。
 
 Q4: 什么是online training和offline training？我们通常如何实现offline training？
- - Answer：
+..  - Answer：
+
 
 Q5: 什么是expolration and expolitation？我们通常使用哪些方法平衡expolration and expolitation？
- - Answer：
+ - Answer：Expolration即是RL中的agent需要不断的去探索环境的不同状态，而Expolitation则是agent需要去选择当前状态下尽可能的收益高的动作。
+ 平衡expolration and expolitation有很多种方式，在不同的算法中有不同的实现，比如可以采用一定概率选择随机动作，或者在动作选择时加入一定噪声等方式。
+
 
 Q6: 什么是discrete space和continuous space？我们哪些算法适用于discrete space？哪些算法适用于continuous space？
- - Answer：
+ - Answer：discrete space就是环境的动作空间离散，比如玩石头剪刀布时我们的动作就是离散的三种。
 
 Q7: 为什么要使用replay buffer？experience replay作用在哪里？
  - Answer：通过使用replay buffer我们可以将experience存入buffer，而在之后的训练中取出buffer中的experience使用。经验回放技术（experience replay）就是将系统探索环境获得的样本保存起来，然后从中采样出样本以更新模型参数。
@@ -264,8 +269,8 @@ Q8: 算法中的value(state function), Q值(state-action function)和advantage�
    Q值即是算法中的 :math:`Q(S_t, A_t）`，代表某时刻某个状态下选择了某个动作后的状态动作价值函数，经过该状态说选择某个动作之后预计能得到的reward数值。
    Advantage则是与动作相关的 :math:`A(S_t, A_t) = Q(S_t, A_t) - V(S_t)`， 代表某时刻某个状态下选择了某个动作相比与选择其他动作的优势，预计比选择其他动作之后能多获得多少reward数值。
 
-Q9: MDP中的return，value和reward分别指什么？
- - Answer：
+.. Q9: MDP中的return，value和reward分别指什么？
+..  - Answer：
 
 
 
@@ -278,7 +283,12 @@ RL Algorithm
 DQN
 ^^^^^^^
 DQN最早在2015年的文章 `Playing Atari with Deep Reinforcement Learning <https://arxiv.org/abs/1312.5602>`_ 一文中被提出，将Q-learning的思路与神经网络结合。一年后做出了微小改进后又发表在 `Human-level control through deep reinforcement learning <https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf>`_ 一文;
-DQN使用神经网络接受state输入进行价值估计，然后使用argmax选择预计value最大的action作为策略，通过计算td-loss进行神经网络的梯度下降.
+DQN使用神经网络接受state输入进行价值估计，然后使用argmax选择预计value最大的action作为策略，通过计算td-loss进行神经网络的梯度下降。
+
+算法可见：
+
+.. image:: DQN.png
+
 
 Double DQN
 ^^^^^^^^^^^^^
@@ -290,9 +300,18 @@ Dueling DQN
 ^^^^^^^^^^^^^^^^
 Dueling DQN在 `Dueling Network Architectures for Deep Reinforcement Learning <https://arxiv.org/abs/1511.06581>`_ 一文中提出。通过使用Dueling结构，成果优化了网络结构，使得Q值的估计分为了两部分，分为state-value 和 advantages for each action，使得神经网络能更好的对单独价值进行评估。
 
+结构变化如下：
+
+.. image:: Dueling_DQN.png
+   :scale: 70 %
+
+
 Prioritized Replay Buffer in DQN
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+算法可见：
+
+.. image:: PDDQN.png
 
 
 .. note::
@@ -305,11 +324,13 @@ Prioritized Replay Buffer in DQN
 Policy Gradient
 ^^^^^^^^^^^^^^^^^^^
 之前所提的大部分方法都是基于“动作价值函数”，通过学习动作价值函数，然后根据估计的动作价值函数选择动作 `Policy Gradient <https://homes.cs.washington.edu/~todorov/courses/amath579/reading/PolicyGradient.pdf>`_。
+
 而策略梯度方法则是可以直接学习参数化的策略，动作选择不再直接依赖于价值函数，而是将价值函数作为学习策略的参数，不再是动作选择必须的了。
 
 Policy Gradient公式及其推导过程:
 
-我们Policy Gradient的目的是通过gradient ascend去最大化在一个策略下的reward之和。我们记某个策略对应的参数为 :math:`{\theta}^{\pi}` 简写为 :math:`\theta`， 
+我们Policy Gradient的目的是通过gradient ascend去最大化在一个策略下的reward之和。
+我们记某个策略对应的参数为 :math:`{\theta}^{\pi}` 简写为 :math:`\theta`， 
 记从开始到结束的整个过程为 :math:`\tau`，在策略 :math:`\theta` 下整个过程为 :math:`\tau`的概率为 :math:`p_{\theta}(\tau)`。
 
 整个过程中的reward之和记为 :math:`R(\tau) = \sum_{t=1}^{T} r_t`，某个策略下reward之和的期望记为 :math:`\bar{R_{\theta}} = \sum_{\tau} R(\tau) p_{\theta}(\tau)`。
@@ -317,21 +338,24 @@ Policy Gradient公式及其推导过程:
 我们要最大化整个过程中的reward之和的期望，即对 :math:`\bar{R_{\theta}}` 进行梯度上升。
 
 :math:`\bar{R_{\theta}(\tau)}` 的梯度为 :math:`\nabla \bar{R_{\theta}(\tau)}`， 而 :math:`\bar{R_{\theta}} = \sum_{\tau}R(\tau) p_{\theta}(\tau)`。
-其中 :math:`p_{theta}(\tau) = p(s_1) \prod_{t=1}^{T}p_{theta}(a_t|s_t)p_{\theta}(s_{t+1}|s_t, a_t)`， 
+
+其中 :math:`p_{\theta}(\tau) = p(s_1) \prod_{t=1}^{T}p_{\theta}(a_t|s_t)p_{\theta}(s_{t+1}|s_t, a_t)`， 
 而 :math:`p_{\theta}(s_{t+1} | s_t, a_t)` 不随策略 :math:`\theta` 的变化而改变，因此梯度为零。
 
-我们可以做一个变化，即利用公式 :math:`\nabla p_{theta}(\tau) = p_{\theta}(\tau) \frac{\nabla p_{\theta}(\tau)}{p_{\theta}(\tau)} = p_{\theta}(\tau) \nabla \log{P_{\theta}(\tau)}` ，
-再通过使用 :math:`N` 次重复取平均的方式消去 :math:`\sum_{\tau} p_{theta}(\tau)` ，
-可以推导出：
+我们可以做一个变化，即利用公式 :math:`\nabla p_{\theta}(\tau) = p_{\theta}(\tau) \frac{\nabla p_{\theta}(\tau)}{p_{\theta}(\tau)} = p_{\theta}(\tau) \nabla \log{P_{\theta}(\tau)}` ，转化概率分布。
+
+再通过使用 :math:`N` 次重复取平均的方式消去 :math:`\sum_{\tau} p_{\theta}(\tau)` ；
+
+由此可以推导出：
 :math:`\nabla \bar{R_{\theta}} = \frac{1}{N} \sum_{n=1}^{N} \sum_{t = 1}^{T} R(\tau) \nabla \log{P_{\theta}(a_t^n|s_t^n)}` 。
 
 这就是Policy Gradient的最基本的公式。Policy Gradient是一个On-policy的算法。
 
-不过这个基本的公式还有很多不足之处。
+不过这个基本的公式还有很多不足之处：
 比如由于是整体的概率分布，要求所有概率和为1，因此在进行梯度下降时，如果某一个不常见的动作一直没有被sample到，那么随着其他动作被sample后概率上升，这个动作的对应概率就会下降。
 可是动作的常见与否与某个阶段是否应该采取一个动作无关，因此我们需要通过引入baseline的方式，让公式更合理：
 
-Add baseline
+**Add baseline**
 
 公式从 :math:`\nabla \bar{R_{\theta}} = \frac{1}{N} \sum_{n=1}^{N} \sum_{t = 1}^{T} R(\tau) \nabla \log{P_{\theta}(a_t^n|s_t^n)}`
 
@@ -341,7 +365,8 @@ Add baseline
 
 再加入baseline后，该公式依旧存在一定的问题，即使用policy gradient由于一次sample的reward会等量的影响到整个过程中的动作选择，虽然从均值上讲依旧无偏，但是过程中的方差会极大。
 这时，我们通过修改公式，让每个动作在一次过程中不考虑该动作发生前的reward，只关联动作发生后所产生的reward，即减小了动作取值的方差，加快收敛。
-我们通过Assign suitable credit的方式，将公式从 :math:`\nabla \bar{R_{\theta}} = \frac{1}{N} \sum_{n=1}^{N} \sum_{t = 1}^{T} (R(\tau) - b)\nabla \log{P_{\theta}(a_t^n|s_t^n)}`
+
+我们通过**Assign credit**的方式，将公式从 :math:`\nabla \bar{R_{\theta}} = \frac{1}{N} \sum_{n=1}^{N} \sum_{t = 1}^{T} (R(\tau) - b)\nabla \log{P_{\theta}(a_t^n|s_t^n)}`
 
 变为 :math:`\nabla \bar{R_{\theta}} = \frac{1}{N} \sum_{n=1}^{N} \sum_{t = 1}^{T}` 
 :math:`(\sum_{t' = t}^{T_n} r_{t'}^{n} - b)\nabla \log{P_{\theta}(a_t^n|s_t^n)}`  
@@ -356,29 +381,61 @@ Add baseline
 缺点：在没有自举的时候，方差相对较高，学习相对较慢。因此引入了advantage。
 
 
+Actor Critic
+^^^^^^^^^^^^
+Actor Critic 模型早在2000年的paper `Actor Critic Algorithm <http://papers.nips.cc/paper/1786-actor-critic-algorithms.pdf>`_ 中被提出。 
+Actor Critic作为最基本的一种强化学习算法，后面衍生除了很多种改进，包括DDPG、A2C、A3C等等。
+
 DDPG
 ^^^^^^^^^^^^^^^
-DDPG即Deep Deterministic Policy Gradient，在2015年的paper `Continuous control with deep reinforcement learning <https://arxiv.org/abs/1509.02971>`_ 中提出。 DDPG是基于actor-critic的model-free算法，
+DDPG即Deep Deterministic Policy Gradient，在2015年的paper `Continuous control with deep reinforcement learning <https://arxiv.org/abs/1509.02971>`_ 中提出。
+DDPG是基于actor-critic的model-free算法，是基于policy gradient和actor critic的改进，其改进思路借鉴了DDQN的改进方式，并且整体思想偏向于Q-learning。
+
+从Policy Gradient到Deterministic Policy Gradient：
+
+在使用随机策略时，假如像DQN一样研究策略中所有的可能动作的概率，并计算各个可能的动作的价值的话( :math:`Q(s_t, a_t)`)，就需要大量的样本进行训练。如果在同一个状态处的动作，只取策略中最大概率的动作，就能去掉策略的概率分布，完成一定的化简。
+
+从Deterministic Policy Gradient到Deep Deterministic Policy Gradient：
+
+在DDPG中，我们还引入了双网络的概念。Actor Critic中本身就有两个网络，在引入双网络后，DDPG总共持有四个网络，分别是：
+
+ - Actor Current Network :math:`\mu`：计算当前状态对应的动作，与环境交互。
+
+ - Actor Target Network :math:`\mu'`：在计算Target Q时，用buffer中取出的状态选择对应用动作；定期从Current Network中复制信息。
+
+ - Critic Current Network :math:`Q`：计算当前状态和动作对应的Q值。
+
+ - Critic Target Network :math:`Q'`：计算Target Q时，用buffer中取出的状态和Actor Target Network选出的该状态对应的动作，去计算对应Q值。
+
+具体算法实现如图：
+
+.. image:: DDPG.jpg
+
 
 PPO
 ^^^^^
 PPO即Proximal Policy Optimization，在2017年的 `Proximal Policy Optimization Algorithms <https://arxiv.org/abs/1707.06347>`_ 中被提出。是基于Policy Gradient方法的改进。
-PPO 是OpenAI的default reinforcement learning algorithm。
+PPO 是OpenAI的default reinforcement learning algorithm， 足见这个算法的强大。
 
-Off-policy
+相比于朴素的Policy Gradient，PPO将PG从On-policy引入了Off-policy的思想，使得梯度上升的过程中可以使用之前策略所产生的数据，不再是一条sample只能使用一次，大大的提高了收敛速度和算法效率。
 
-Importance Sampling
+PPO通过使用Importance Sampling，使得算法可以使用之前策略得到的轨迹进行训练。PPO通过设定一定的constrain，使得之前策略轨迹的训练不会导致大的偏差，而相比于TRPO，constrain的实现也更加简单有效。
 
-Actor Critic
-^^^^^^^^^^^^
+PPO的具体理解可以参考下面的lecture和slides。
 
-A2C
-^^^^^^^^
+.. note::
+   lecture可见李宏毅强化学习课程P4和P5，在 `youtube <https://www.youtube.com/watch?v=OAKAZhFmYoI&list=PLJV_el3uVTsODxQFgzMzPLa16h6B8kWM_&index=2>`_ 和 `b站 <https://www.bilibili.com/video/BV1UE411G78S?p=5>`_ 上均有课程视频。
+   课程对应的ppt可见 `slides <http://speech.ee.ntu.edu.tw/~tlkagk/courses/MLDS_2018/Lecture/PPO%20(v3).pdf>`_。
+   李宏毅老师的强化学习课程虽然没有包括所有算法，但是对于基本概念的解释很清楚，对于RL算法的理解很深刻，推荐有时间看一下。
+
+
+
+A2C and A3C
+^^^^^^^^^^^^^^
 
 
 GAE
 ^^^^^^^^^^^^^^^
-
 
 SAC
 ^^^^^^^^
