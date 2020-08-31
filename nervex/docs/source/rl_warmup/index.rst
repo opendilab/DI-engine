@@ -38,13 +38,13 @@ RL Warmup
 强化学习的历史发展
  - 试错法
  - 最优控制
- - 时许差分方法
+ - 时序差分方法
 
 Q&A
 ~~~
 
 Q1:什么是强化学习？
- -  强化学习是智能体（Agent）以“试错”的方式进行学习
+ -  强化学习是智能体（Agent）以“试错”的方式在与环境(Environment)的过程中进行学习
  -  “学习做什么（将情景映射为动作）才能使得数值化的收益信号（reward）最大化”
 
 基本概念/Basics
@@ -248,7 +248,7 @@ Q3: 什么是on-policy和off-policy？
  on-policy和off-policy只是训练方式的界限，在有时一个算法甚至可能有on-policy和off-policy的不同实现，理解概念即可。
 
 Q4: 什么是online training和offline training？我们通常如何实现offline training？
- - Answer：略。
+ - Answer： Offline training即是training时不使用actor与环境进行交互，而是直接使用fixed dataset作为算法的输入， 比如behavior cloning就是经典的Offline training算法。 我们通常使用batch为单位将fixed dataset输入，因此offline RL又称Batch RL。
 
 
 Q5: 什么是expolration and expolitation？我们通常使用哪些方法平衡expolration and expolitation？
@@ -273,8 +273,8 @@ Q8: 算法中的value(state function), Q值(state-action function)和advantage�
 
 
 
-算法
-----
+算法与训练/Algorithm and Training
+----------------------------------
 
 RL Algorithm
 ~~~~~~~~~~~~
@@ -481,7 +481,7 @@ PPO1直接将两个策略的 :math:`KL(\theta, \theta')` 引入到梯度计算�
 
 
 
-A2C and A3C
+A2C
 ^^^^^^^^^^^^^^
 暂略。
 
@@ -493,6 +493,197 @@ GAE
 
 SAC
 ^^^^^^^^
+暂略。
+
+Large Scale RL Training
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+A3C
+^^^^^^^^^^
+暂略。
+
+Ape-X
+^^^^^^^^^^^
+暂略。
+
+IMPALA
+^^^^^^^^^^^
+暂略。
+
+Seed RL
+^^^^^^^^^^^^
+暂略。
+
+
+
+ACME
+^^^^^^^^
+ACME是DeepMind在2020年6月份发布的分布式深度学习框架:`Acme: A new framework for distributed reinforcement learning <https://deepmind.com/research/publications/Acme>`_ 。
+
+随着深度学习和强化学习的相互结合，强化学习算法程序的复杂度和规模都在急剧增加，这使得大规模的强化学习算法程序变得难以复现、改进和拓展。
+Deepmind构造ACME框架的目的，主要有三点：
+
+1. 使得RL算法方法和结果变得可复现（To enable the reproducibility of our methods and results）
+2. 使得新RL算法的设计方式变得更加简单（To simplify the way we design new algorithms）
+3. 使得RL算法变得更有可读性（To enhance the readability of RL agents）
+
+为了说明ACME框架是如何实现这些目的，我们将讲述ACME框架的设计结构和其背后的设计思路。
+
+RL算法结构
+'''''''''''''''
+
+之前在RL的基本介绍中，我们提及了强化学习的定义：
+ - 强化学习是智能体（Agent）以“试错”的方式在与环境(Environment)的过程中进行学习
+
+与环境的互动过程如图，此处的“Actor”用更准确的称呼应是agent：
+
+.. image:: ACME_high.jpg
+   :scale: 60 %
+
+而在具体的算法实现过程中，可以发现“Actor”即Agent的实际作用可以分为两部分：
+我们将其与环境直接互动的部分称为actor component，而其中与之相对的概念即是learner component。
+actor根据agent所持有的policy去选择相应的动作并且收集数据，learner则是根据收集到的去对策略进行一个改进（对于使用神经网络的模型来说通常是使用梯度更新方式）。
+
+在很多程序中的实现当中，actor和learner是直接聚合在一起的，在同一个循环中实现。
+但是，如果我们把actor和learner的实现进行分离，我们就可以设计agent持有一个或者多个分布式的actor，把数据去传输到一个或多个learner过程中。
+
+比如我们可以通过将actor和learner分离后，可以对actor进行一个复制，并且采用分布式的结构，这样就能组成一个现代的分布式强化学习框架。
+而我们将actor的acting部分分离，而变为直接向learner传送固定的数据集，则是组成了一个offline-RL框架，即batch-RL。
+
+ACME架构
+'''''''''''''''''''
+ACME是一个轻量级的深度学习框架及软件库，其核心是构造能够在不同的规模执行的agent程序。
+ACME的一个核心feature即是agent既可以单进程运行，也可以通过调整模块结构在高分布的情况下运行。
+为了明白ACME的架构是如何降低耦合的，我们将介绍先ACME的单进程运行模式，之后再拓展到分布式结构。
+
+下图很好的体现了环境是如何与learning agent交互的：
+
+.. image:: ACME_general.jpg
+   :scale: 80 %
+
+Environments and Actor
+"""""""""""""""""""""""""
+actor是与环境做最紧密交互的模块，
+在RL算法和ACME框架的定义中，actor根据当前持有的policy和之前环境返回的observation :math:`O_t` ，选择某个action :math:`a_t` ; 
+而环境根据actor所选择的action，返回下一个阶段的observation :math:`O_{t+1}` 和对应的reward :math:`r_t`。
+
+actor与环境的互动过程如图所示：
+
+.. image:: ACME_actor.jpg
+   :scale: 70 %
+
+
+Learner and Agents
+"""""""""""""""""""""""
+Learner接收数据，通过消耗数据来获得更好的策略，对agent持有的policy进行更新。 
+
+尽管我们可以将learner和环境完全分离（offline RL），RL中更多的是关心整个智能体与环境交互学习的过程，因此我们将既包含acting又包含learning部分的“actor”称为agent，以作为区分。
+
+
+Dataset and Adders
+"""""""""""""""""""""""
+Dataset在actor和learner component之间。 Dataset可以有多种不同设置，包括on-policy和off-policy、experience replay是否带priority、数据进出的先后顺序等等。 
+比如我们在DQN中使用的 `buffer <http://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/blob/master/nervex/data/structure/buffer.py>`_ 就是起到了dataset的作用。
+
+除了dataset接口之外，ACME框架还提供了在actor与dataset之间的 `adder <https://github.com/deepmind/acme/tree/master/acme/adders>`_ 接口：
+
+.. image:: adder.jpg
+   :scale: 50 %
+
+通过实现adder，我们可以在将数据从actor取出加入dataset之前进行一些预处理和聚合。我们所使用的 `collate <http://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/blob/master/nervex/data/collate_fn.py>`_ 从某种意义上就是在干adder的活。 ACME框架中Adder将数据聚合送入replay buffer中，并且对数据进行一定程度的reduction/transformation。
+
+Adder根据agent需要什么样的数据进行相应操作，可能的数据要求包括：
+ - sampling transitions
+ - n-step transitions（有时agent需要n-步的转换数据）
+ - sequences（有时agent需要序列形式的数据）
+ - entire episodes（有时agent一次需要整个episodes的数据）
+
+
+通过adder，我们可以方便的实现不同种类的数据预处理和聚合，比如在ACME中的actor可大致分为feed-forward和recurrent两种，对应的adder可能是简单的sampled或者是n-step transition。
+
+
+Reverb and Rate limitation
+""""""""""""""""""""""""""""
+`Reverb <https://github.com/deepmind/reverb>`_ 是dataset的接口，通过reverb接口我们能简洁明了的实现灵活的数据插入、删除和采样过程。同时，reverb接口也使得dataset可以支持不同的数据格式，并且保证了数据操作的效率。
+
+reverb的结构如下图，此处以DQN中为例：
+
+.. image:: reverb.jpg
+
+
+reverb中实现的功能大致分为：
+ - Tables（存放items，每个item是一个或多个数据元素的reference），有以下实现：
+
+  - Uniform Experience Replay
+  - Prioritized Experience Replay
+  - Queue
+  - ...
+ - Item selection strategies（sample时选择数据的方式），有以下实现：
+  
+  - Uniform 
+  - Prioritized
+  - FIFO/LIFO
+  - MinHeap/MaxHeap
+ - Checkpointing（自动存储当前reverb）
+ - Rate Limiting
+
+  - rate limitation在当actor和learner运行的比率超出了一定范围时，rate limitation会通过暂停/降速的方式控制actor或learner，以保证训练的效果。（比如当某种愿意导致actor与环境的交互变慢时，rate limit会限定learner的速度；而当learner因资源不足或某些原因导致策略更新速度变慢时，rate limit会降低actor产生数据的速度）
+  - 通过rate limitation的限定，能够保证actor与learner运行的同步。
+
+具体还请参考 `DeepMind/Reverb文档 <https://github.com/deepmind/reverb/blob/master/README.md>`_
+
+Distributed agents
+"""""""""""""""""""""""
+RL中，很多算法都是持有一个actor和一个learner，但是也有很多算法是需要多个actor和环境共同产生数据的，比如A3C（Asynchronous Advantage Actor-critic）就是A2C的（Advantage Actor-critic）持有多个actor和environment的优化，多个actor和environment非同步（Asynchronous）的产生数据，再将各个actor计算的梯度进行聚合。
+
+在ACME框架中，框架通过将acting、learning和data storage各个功能分为多个不同的进程/线程，来通过并行的方式加速训练过程、使得算法learning的速度和data产生的速度相匹配，从而实现更好的效果。
+
+.. image:: ACME_distribute.jpg
+   :scale: 70 %
+
+在ACME的分布式框架中，框架使用 **launchpad** 来控制总的训练过程。 Launchpad创建了一个由节点和边构成的图结构，其中各个节点即表示了各个模块（比如actor/learner/dataset/environment等），而各个边则是表示了两个模块之间的通信（通过client/server channel实现）。整个图的结构由launchpad维护，由launchpad控制两个模块之间合适创建channel。
+
+通过launchpad的抽象，ACME框架中的各个模块并不需要对模块之间的通信进行处理。在launchpad维护下，一个模块接收或调用其他模块的数据或功能就像是在程序中调用一个方法(method call)一样。
+
+
+Deepmind ACME框架实现的算法baseline
+""""""""""""""""""""""""""""""""""""
+
+ - DQN
+
+  - Rainbow DQN 包含（Double Q-learning， prioritized experient replay, duelling networks）
+  - Apex DQN (目前还未开源)
+
+ - Recurrent DQN
+ - Actor Critic
+ - IMPALA ( `Importance Weighted Actor-Learner Architecture <https://arxiv.org/abs/1802.01561>`_)
+ - DDPG
+ - MPO( `Maximum a Posteriori Policy Optimisation <https://arxiv.org/abs/1806.06920>`_)
+ - Distibutional critic, D4PG, DMPO
+ - MCTS(MOnte Carlo Tree Search)
+
+ - Behaviour Cloning
+
+
+
+AlphaGo
+^^^^^^^^^^^^^
+暂略。
+
+AlphaStar
+^^^^^^^^^^^^^
+
+`AlphaStar <https://alphastar.academy/>`_ 是Deepmind基于星际争霸II的一个尝试项目。
+
+我们也有基于星际争霸II的项目 `SenseStar <http://gitlab.bj.sensetime.com/xialiqiao/SenseStar>`_ , 其中部分参考了AlphaStar的一些结构，还在不断调整中。
+
+OpenAI Five
+^^^^^^^^^^^^^
+暂略。
+
+Rllib
+^^^^^^^^^^^^^
 暂略。
 
 
@@ -530,11 +721,14 @@ SAC
 
 
 
+附录/Appendix
+--------------------
+
 RL Algorithm
-------------
+~~~~~~~~~~~~~~~~~~~
 
 Paper List
-~~~~~~~~~~
+^^^^^^^^^^^^^
 1. DQN
 2. Dueling DQN
 3. Prioritized Replay Buffer
@@ -547,24 +741,23 @@ Paper List
 
 
 Blog List
-~~~~~~~~~~
+^^^^^^^^^^^^
 1. `强化学习入门简述 <https://zhuanlan.zhihu.com/p/64197895?utm_source=wechat_session&utm_medium=social&utm_oi=778950235199127552&utm_content=sec>`_
 2. `强化学习之遇到的一些面试问题 <https://zhuanlan.zhihu.com/p/52143798?utm_source=wechat_session&utm_medium=social&utm_oi=778950235199127552&utm_content=sec>`_
 3. `炼丹感悟：On the Generalization of RL <https://zhuanlan.zhihu.com/p/105898705?utm_source=wechat_session&utm_medium=social&utm_oi=778950235199127552&utm_content=sec>`_
 4. `Pytorch RL tutorial <https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html>`_
 
 
-
 MARL Algorithm
-------------------
+~~~~~~~~~~~~~~~~~
 to be continued
 
 Large Scale RL Training
------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Paper List
-~~~~~~~~~~
+^^^^^^^^^^^^^^^^
 1. A3C
 2. Ape-X
 3. IMPALA
@@ -576,12 +769,12 @@ Paper List
 9. Rllib
 
 Blog List
-~~~~~~~~~
+^^^^^^^^^^^^^^
 1. `最前沿：深度强化学习的强者之路 <https://zhuanlan.zhihu.com/p/161548181?utm_source=wechat_session&utm_medium=social&utm_oi=30146627108864&utm_content=first&from=singlemessage&isappinstalled=0&wechatShare=1&s_r=0>`_
 
 
 Questions(即需要理解清楚的概念和问题)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 1. async training in A3C(gradient)
 2. Actor-Learner Architecture
 3. v-trace(importance weight)
