@@ -49,10 +49,10 @@ class SumoDqnLoss(BaseLoss):
         tl_num = len(q_value)
         loss = []
         for i in range(tl_num):
-            data = SumoDqnLoss.td_data(q_value[i], next_q_value[i], action[i], reward, terminate)
+            data = SumoDqnLoss.td_data(q_value[i], target_q_value[i], action[i], reward, terminate)
             loss.append(self._single_tl_dqn_loss(data, weights))
         loss = sum(loss) / (len(loss) + 1e-8)
-        if self.iter_count % self.update_target_freq == 0:
+        if self.is_double and self.iter_count % self.update_target_freq == 0:
             self.agent.update_target_network(self.agent.state_dict()['model'])
         return {'total_loss': loss}
 

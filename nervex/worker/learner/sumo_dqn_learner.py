@@ -33,11 +33,13 @@ class SumoDqnLearner(Learner):
     def __init__(self, cfg, data_iterator):
         self.data_iterator = data_iterator
 
-        plugin_cfg = {
+        plugin_cfg = OrderedDict({
             'grad': {
                 'enable_grad': True
             },
-            'target_network': {
+        })
+        if cfg.train.dqn.is_double:
+            plugin_cfg['target_network'] = {
                 'update_cfg': {
                     'type': 'momentum',
                     'kwargs': {
@@ -45,7 +47,6 @@ class SumoDqnLearner(Learner):
                     }
                 }
             }
-        }
         self.plugin_cfg = OrderedDict(plugin_cfg)
 
         super(SumoDqnLearner, self).__init__(cfg)
