@@ -89,7 +89,7 @@ class BaseActor(object, metaclass=ActorCommMetaclass):
                     action = self._agent_inference(obs)
                     timestep = self._env_step(action)
                     self._accumulate_timestep(obs, action, timestep)
-                    obs = timestep.obs
+                    obs = self._get_next_obs(timestep)
                     self._iter_after_hook()
                     if self.all_done:
                         break
@@ -108,6 +108,10 @@ class BaseActor(object, metaclass=ActorCommMetaclass):
                 )
             )
         self._iter_count += 1
+
+    def _get_next_obs(self, timestep: namedtuple) -> Any:
+        # some special actor will do additional operation on next obs, thus we design this interface
+        return timestep.obs
 
     @abstractmethod
     def _agent_inference(self, obs: Any) -> Any:
