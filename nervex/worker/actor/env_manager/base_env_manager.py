@@ -69,7 +69,7 @@ class BaseEnvManager(ABC):
 
     @property
     def all_done(self) -> bool:
-        return all(self._env_done)
+        return all(self._env_done.values())
 
     @property
     def env_done(self) -> List[bool]:
