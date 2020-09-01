@@ -26,6 +26,7 @@ class BaseEnvManager(ABC):
     def reset(self,
               reset_param: Union[None, List[dict]] = None,
               env_id: Union[None, List[int]] = None) -> Union[list, dict]:
+        self._env_done = {}
         for i in (env_id if env_id is not None else range(self.env_num)):
             self._env_done[i] = False
         return self._execute_by_envid('reset', param=reset_param, env_id=env_id)
@@ -34,10 +35,11 @@ class BaseEnvManager(ABC):
         param = [{'action': act} for act in action]
         ret = self._execute_by_envid('step', param=param, env_id=env_id)
         if isinstance(ret, list):
-            self._env_done = [t.done if isinstance(t.done, bool) else t.done[0] for t in ret]
+            for i, t in enumerate(ret):
+                self._env_done[i] = t.done
         elif isinstance(ret, dict):
             for k, v in ret.items():
-                self._env_done[k] = v.done if isinstance(v.done, bool) else v.done[0]
+                self._env_done[k] = v.done
         return ret
 
     def seed(self, seed: List[int], env_id: Union[None, List[int]] = None) -> None:
