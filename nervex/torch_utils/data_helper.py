@@ -40,7 +40,7 @@ def to_device(item, device, ignore_keys=[]):
         return new_item
     elif isinstance(item, numbers.Integral) or isinstance(item, numbers.Real):
         return item
-    elif isinstance(item, np.ndarray) or isinstance(item. np.bool_):
+    elif isinstance(item, np.ndarray) or isinstance(item, np.bool_):
         return item
     elif item is None or isinstance(item, str):
         return item
