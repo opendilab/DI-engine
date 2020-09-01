@@ -25,6 +25,7 @@ class TestASActorFakeEnv:
 
         def run():
             controller.run()
+
         run_thread = Thread(target=run, args=())
         run_thread.daemon = True
         run_thread.start()

@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod, abstractproperty
 import os
+import sys
 from collections import namedtuple
 from typing import Union, Any
-from nervex.utils import build_logger_naive, EasyTimer, get_actor_uid
+from nervex.utils import build_logger_naive, EasyTimer, get_actor_uid, VariableRecord
 from .comm.comm_actor_metaclass import ActorCommMetaclass
 
 
@@ -11,9 +12,40 @@ class BaseActor(object, metaclass=ActorCommMetaclass):
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._actor_uid = get_actor_uid()
-        self._timer = EasyTimer()
         self._setup_logger()
         self._end_flag = False
+        self._setup_timer()
+
+    def _setup_timer(self):
+        self._timer = EasyTimer()
+
+        def agent_wrapper(fn):
+            def wrapper(*args, **kwargs):
+                with self._timer:
+                    ret = fn(*args, **kwargs)
+                self._variable_record.update_var({'agent_time': self._timer.value})
+                return ret
+
+            return wrapper
+
+        def env_wrapper(fn):
+            def wrapper(*args, **kwargs):
+                with self._timer:
+                    ret = fn(*args, **kwargs)
+                size = sys.getsizeof(ret) / (1024 * 1024)  # MB
+                self._variable_record.update_var(
+                    {
+                        'env_time': self._timer.value,
+                        'timestep_size': size,
+                        'norm_env_time': self._timer.value / size
+                    }
+                )
+                return ret
+
+            return wrapper
+
+        self._agent_inference = agent_wrapper(self._agent_inference)
+        self._env_step = env_wrapper(self._env_step)
 
     def _check(self) -> None:
         assert hasattr(self, 'init_service')
@@ -23,9 +55,15 @@ class BaseActor(object, metaclass=ActorCommMetaclass):
         assert hasattr(self, 'send_traj_stepdata')
         assert hasattr(self, 'send_finish_job')
 
-    @abstractmethod
     def _init_with_job(self, job: dict) -> None:
-        raise NotImplementedError
+        # update iter_count and varibale_record for each job
+        self._iter_count = 0
+        self._variable_record = VariableRecord(self._cfg.actor.print_freq)
+        self._variable_record.register_var('agent_time')
+        self._variable_record.register_var('env_time')
+        self._variable_record.register_var('timestep_size')
+        self._variable_record.register_var('norm_env_time')
+        # other parts need to be implemented by subclass
 
     @abstractmethod
     def episode_reset(self) -> None:
@@ -52,6 +90,7 @@ class BaseActor(object, metaclass=ActorCommMetaclass):
                     timestep = self._env_step(action)
                     self._accumulate_timestep(obs, action, timestep)
                     obs = timestep.obs
+                    self._iter_after_hook()
                     if self.all_done:
                         break
                 self._finish_episode(timestep)
@@ -59,6 +98,16 @@ class BaseActor(object, metaclass=ActorCommMetaclass):
 
     def close(self) -> None:
         self._end_flag = True
+
+    def _iter_after_hook(self):
+        # print info
+        if self._iter_count % self._cfg.actor.print_freq == 0:
+            self._logger.info(
+                'actor({}):\n{}TimeStep{}{} {}'.format(
+                    self._actor_uid, '=' * 35, self._iter_count, '=' * 35, self._variable_record.get_vars_text()
+                )
+            )
+        self._iter_count += 1
 
     @abstractmethod
     def _agent_inference(self, obs: Any) -> Any:

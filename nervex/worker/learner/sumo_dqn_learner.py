@@ -39,14 +39,7 @@ class SumoDqnLearner(Learner):
             },
         })
         if cfg.train.dqn.is_double:
-            plugin_cfg['target_network'] = {
-                'update_cfg': {
-                    'type': 'momentum',
-                    'kwargs': {
-                        'theta': 0.99
-                    }
-                }
-            }
+            plugin_cfg['target_network'] = {'update_cfg': {'type': 'momentum', 'kwargs': {'theta': 0.99}}}
         self.plugin_cfg = OrderedDict(plugin_cfg)
 
         super(SumoDqnLearner, self).__init__(cfg)

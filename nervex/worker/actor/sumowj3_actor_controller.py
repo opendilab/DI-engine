@@ -15,6 +15,7 @@ from nervex.utils import get_step_data_compressor
 class SumoWJ3Actor(BaseActor):
     # override
     def _init_with_job(self, job: dict) -> None:
+        super()._init_with_job(job)
         self._job = job
         self._setup_agents()
         self._setup_env_manager()
