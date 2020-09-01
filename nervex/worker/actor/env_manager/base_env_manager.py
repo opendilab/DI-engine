@@ -34,10 +34,10 @@ class BaseEnvManager(ABC):
         param = [{'action': act} for act in action]
         ret = self._execute_by_envid('step', param=param, env_id=env_id)
         if isinstance(ret, list):
-            self._env_done = [t.done for t in ret]
+            self._env_done = [t.done if isinstance(t.done, bool) else t.done[0] for t in ret]
         elif isinstance(ret, dict):
             for k, v in ret.items():
-                self._env_done[k] = v.done
+                self._env_done[k] = v.done if isinstance(v.done, bool) else v.done[0]
         return ret
 
     def seed(self, seed: List[int], env_id: Union[None, List[int]] = None) -> None:
