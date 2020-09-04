@@ -17,7 +17,7 @@ class FakeSumoWJ3Actor(SumoWJ3Actor):
             a.load_state_dict = no_op_fn
 
 
-@pytest.mark.unittest
+@pytest.mark.envtest
 class TestASActorFakeEnv:
     def test_naive(self, setup_config, setup_coordinator, setup_manager):
         comm_cfg = setup_config.actor.communication
