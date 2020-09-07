@@ -16,24 +16,15 @@ RL Warmup
  -  强化学习侧重于以交互目标为导向进行学习
 
 强化学习特征
- - 侧重在线学习
- - 延迟收益 
+ - 智能体从与不确定环境的交互中得到反馈从而进行学习
  - 平衡\ **试错与开发** 
- - 从整个过程考虑目标导向的智能体与不确定环境的交互
 
-监督学习与强化学习
- - 有监督学习
-
-   - 从外部监督者提供的带标注训练集中进行学习 
- - 无监督学习
-
-   - 使用无标注训练集中进行学习，寻找未标注数据中的隐含结构
-
-强化学习的关键要素 
- - 策略 
- - 收益信号 
- - 价值函数 
- - 模型(Optional)
+强化学习的关键要素 (Key Concepts in RL)
+ - 环境（Environment）
+ - 动作（Action by agent)
+ - 状态 (State or Observation)
+ - 奖励 (Reward)
+ - 策略 (Policy)
 
 强化学习的历史发展
  - 试错法
@@ -268,10 +259,6 @@ Q8: 算法中的value(state function), Q值(state-action function)和advantage�
    Q值即是算法中的 :math:`Q(S_t, A_t）`，代表某时刻某个状态下选择了某个动作后的状态动作价值函数，经过该状态说选择某个动作之后预计能得到的reward数值。
    Advantage则是与动作相关的 :math:`A(S_t, A_t) = Q(S_t, A_t) - V(S_t)`， 代表某时刻某个状态下选择了某个动作相比与选择其他动作的优势，预计比选择其他动作之后能多获得多少reward数值。
 
-.. Q9: MDP中的return，value和reward分别指什么？
-..  - Answer：
-
-
 
 算法与训练/Algorithm and Training
 ----------------------------------
@@ -279,9 +266,21 @@ Q8: 算法中的value(state function), Q值(state-action function)和advantage�
 RL Algorithm
 ~~~~~~~~~~~~
 
+# 分开off policy和on policy（基于pg, q-value, actor-critic的方法不要混在一起）
+
+Off policy:
+value-based: DQN, Double DQN, Dueling DQN
+actor-critic: ddpg, td3, sac
+
+On policy:
+policy-based: pg, trpo, ppo
+actor-critic: a2c
+
+# 关于Replay Buffer的改进单独开一个部分写，参考buffer相关的paper
+
 DQN
 ^^^^^^^
-DQN最早在2015年的文章 `Playing Atari with Deep Reinforcement Learning <https://arxiv.org/abs/1312.5602>`_ 一文中被提出，将Q-learning的思路与神经网络结合。一年后做出了微小改进后又发表在 `Human-level control through deep reinforcement learning <https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf>`_ 一文;
+DQN来自 `Playing Atari with Deep Reinforcement Learning <https://arxiv.org/abs/1312.5602>`_ 一文中被提出，将Q-learning的思路与神经网络结合。一年后做出了微小改进后又发表在 `Human-level control through deep reinforcement learning <https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf>`_ 一文;
 
 DQN使用神经网络接受state输入进行价值估计，然后使用argmax选择预计value最大的action作为策略，通过计算td-loss进行神经网络的梯度下降。
 
