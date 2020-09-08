@@ -29,7 +29,7 @@ class TestASActorFakeEnv:
         run_thread = Thread(target=run, args=())
         run_thread.daemon = True
         run_thread.start()
-        time.sleep(10)
+        time.sleep(3)
         controller.close()
-        time.sleep(5)
+        time.sleep(3)
         print('end')
