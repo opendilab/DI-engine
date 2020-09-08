@@ -7,7 +7,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 import torch
 from .base_comm_actor import BaseCommActor
-from nervex.utils import read_file_ceph, save_file_ceph
+from nervex.utils import read_file, save_file
 
 
 class FlaskFileSystemActor(BaseCommActor):
@@ -22,8 +22,6 @@ class FlaskFileSystemActor(BaseCommActor):
         self._path_agent = cfg.path_agent
         self._path_traj = cfg.path_traj
         self._heartbeats_freq = cfg.heartbeats_freq
-        self._file_system_type = cfg.file_system_type
-        assert self._file_system_type in ['ceph', 'normal']
 
     # override
     def get_job(self) -> dict:
@@ -41,19 +39,12 @@ class FlaskFileSystemActor(BaseCommActor):
     # override
     def get_agent_update_info(self, path: str) -> dict:
         path = os.path.join(self._path_agent, path)
-        if self._file_system_type == 'ceph':
-            info = read_file_ceph(path, read_type='pickle')
-        elif self._file_system_type == 'normal':
-            info = torch.load(path)
-        return info
+        return read_file(path)
 
     # override
     def send_traj_stepdata(self, path: str, stepdata: list) -> None:
-        if self._file_system_type == 'ceph':
-            save_file_ceph(self._path_traj, path, stepdata)
-        elif self._file_system_type == 'normal':
-            name = os.path.join(self._path_traj, path)
-            torch.save(stepdata, name)
+        name = os.path.join(self._path_traj, path)
+        save_file(name, stepdata)
 
     # override
     def send_traj_metadata(self, metadata: dict) -> None:

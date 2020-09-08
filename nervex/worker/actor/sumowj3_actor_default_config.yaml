@@ -4,23 +4,22 @@ actor:
     print_freq: 1
     communication:
         type: flask_fs
-        file_system_type: 'normal'  # ['normal', 'ceph']
         path_agent: '.'
         path_traj: '.'
         path_stat: '.'
         heartbeats_freq: 30
         manager_ip: '127.0.0.1'
-        manager_port: 17296
+        manager_port: 16296
 env:
     placeholder: xxx
 system:
     manager_ip: '127.0.0.1'
-    manager_port: 17296
+    manager_port: 16296
     coordinator_ip: '127.0.0.1'
-    coordinator_port: 17297
+    coordinator_port: 16297
     resume_dir: '.'
     auto_run_actor: False
     manager_resume_path:
     coordinator_resume_path:
     coordinator_check_dead_learner_freq: 300
-    league_manager_port: 17298
+    league_manager_port: 16298

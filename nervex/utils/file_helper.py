@@ -1,17 +1,17 @@
-from io import BytesIO
 import pickle
+import torch
+import os
 
 from .import_utils import try_import_ceph
 
 ceph = try_import_ceph()
 
 
-def read_file_ceph(path, read_type='BytesIO'):
+def read_file_ceph(path):
     """
     Overview: read file from ceph
     Arguments:
         - path (:obj:`str`): file path in ceph, start with "s3://"
-        - read_type (:obj:`str`): choose in ['BytesIO', 'pickle']
     Returns:
         - (:obj`data`): fileStream or data
     """
@@ -21,40 +21,33 @@ def read_file_ceph(path, read_type='BytesIO'):
             "You do not have ceph installed! Loading local file!"
             " If you are not testing locally, something is wrong!"
         )
-        f = open(path, "rb")
-        if read_type == 'BytesIO':
-            return f
-        elif read_type == 'pickle':
+        with open(path, "rb") as f:
             value = pickle.load(f)
-            f.close()
-            return value
+        return value
     else:
         s3client = ceph.S3Client()
         value = s3client.Get(path)
         if not value:
             raise FileNotFoundError("File({}) doesn't exist in ceph".format(path))
-        if read_type == 'BytesIO':
-            value = BytesIO(value)
-        elif read_type == 'pickle':
-            value = pickle.loads(value)
+        value = pickle.loads(value)
         return value
 
 
-def save_file_ceph(save_path, file_name, data):
+def save_file_ceph(path, data):
     """
     Overview: save pickle dumped data file to ceph
     Arguments:
-        - save_path (:obj:`str`): save root path in ceph, start with "s3://"
-        - file_name (:obj:`str`): save file name in ceph
+        - path (:obj:`str`): file path in ceph, start with "s3://"
         - data (:obj:`anything`): could be dict, list or tensor etc.
     """
     data = pickle.dumps(data)
+    save_path = os.path.dirname(path)
+    file_name = os.path.basename(path)
     if ceph is not None:
         s3client = ceph.S3Client()
         s3client.save_from_string(save_path, file_name, data)
     else:
         import logging
-        import os
         size = len(data)
         if (save_path == 'do_not_save'):
             logging.info(
@@ -69,3 +62,20 @@ def save_file_ceph(save_path, file_name, data):
                 " If you are not testing locally, something is wrong!"
             )
             f.write(data)
+
+
+def read_file(path, fs_type):
+    assert fs_type in ['normal', 'ceph']
+    if fs_type == 'ceph':
+        data = read_file_ceph(path)
+    elif fs_type == 'normal':
+        data = torch.load(path)
+    return data
+
+
+def save_file(path, data, fs_type):
+    assert fs_type in ['normal', 'ceph']
+    if fs_type == 'ceph':
+        save_file_ceph(path, data)
+    elif fs_type == 'normal':
+        torch.save(data, path)

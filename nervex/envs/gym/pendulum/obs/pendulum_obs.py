@@ -14,7 +14,7 @@ class PendulumObs(EnvElement):
 
     def _init(self):
         self._default_val = None
-        self._shape = (3,)
+        self._shape = (3, )
         self._value = {
             'min': [-1.0, -1.0, -8.0],
             'max': [1.0, 1.0, 8.0],
