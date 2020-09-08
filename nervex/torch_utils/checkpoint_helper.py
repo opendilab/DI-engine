@@ -13,25 +13,28 @@ import traceback
 
 import torch
 
-from nervex.utils.config_utils import save_config
+from nervex.utils import read_file, save_file
 from .data_helper import to_device
 
 logger = logging.getLogger('default_logger')
 
 
-def build_checkpoint_helper(save_path, rank=0):
+def build_checkpoint_helper(cfg, rank):
     r"""
     Overview:
         Use config to build checkpoint helper.
 
     Arguments:
-        - save_path (:obj:`str`): the path to save checkpoint
-        - rank (:obj:`int`): creator process rank
+        - cfg (:obj:`dict`): ckpt_helper config
+        - rank (:obj:`int`): the rank of the caller, only rank0 can build checkpoint_helper
 
     Returns:
         - (:obj:`CheckpointHelper`): checkpoint_helper created by this function
     """
-    return CheckpointHelper(save_path, rank)
+    if rank == 0:
+        return CheckpointHelper()
+    else:
+        return None
 
 
 class CheckpointHelper(object):
@@ -42,20 +45,12 @@ class CheckpointHelper(object):
     Interface:
         __init__, save_iterations, save, save_data, load
     """
-    def __init__(self, save_dir='', rank=0):
+    def __init__(self):
         r"""
             Overview:
-                initialization method, check if save_dir exists.
-            Arguments:
-                - save_dir (:obj:`str`): checkpoint save dir. if empty, saving is disabled
-                - rank (:obj:`int`): creator process rank
+                initialization method
         """
-        if save_dir:
-            self.save_path = os.path.join(save_dir, 'checkpoints')
-            self.data_save_path = os.path.join(save_dir, 'data')
-            if rank == 0:
-                os.makedirs(self.save_path, exist_ok=True)
-                os.makedirs(self.data_save_path, exist_ok=True)
+        pass
 
     def _remove_prefix(self, state_dict, prefix='module.'):
         r"""
@@ -106,7 +101,7 @@ class CheckpointHelper(object):
 
     def save(
         self,
-        name,
+        path,
         model,
         optimizer=None,
         last_iter=None,
@@ -122,7 +117,7 @@ class CheckpointHelper(object):
             save checkpoint by given args
 
         Arguments:
-            - name (:obj:`str`): checkpoint's name
+            - path (:obj:`str`): the path of saving checkpoint
             - model (:obj:`torch.nn.Module`): model to be saved
             - optimizer (:obj:`torch.optim.Optimizer`): optimizer obj
             - last_iter (:obj:`CountVar`): iter num, default zero
@@ -153,33 +148,8 @@ class CheckpointHelper(object):
             checkpoint['dataset'] = dataset.state_dict()
         if actor_info is not None:
             checkpoint['actor_info'] = actor_info.state_dict()
-        path = os.path.join(self.save_path, name + '.pth.tar')
-        torch.save(checkpoint, path)
+        save_file(path, checkpoint)
         logger.info('save checkpoint in {}'.format(path))
-
-    def save_data(self, name, data, device='cpu'):
-        r"""
-        Overview:
-            save given tensor or dict
-
-        Arguments:
-            - name (:obj:`int`): file's name to be saved
-            - data (:obj:`str`): data to be saved
-            - device (:obj:`str`): save from gpu or cpu
-        """
-        assert (isinstance(data, torch.Tensor) or isinstance(data, dict))
-        data = to_device(data, device)
-        path = os.path.join(self.data_save_path, name + '_data.pt')
-        torch.save(data, path)
-
-    def save_config(self, config):
-        r"""
-        Overview: save config to data_save_path
-
-        Arguments:
-            - config (:obj:`dict`): the config file to be saved
-        """
-        save_config(config, os.path.join(self.data_save_path, "experiment_config.yaml"))
 
     def _load_matched_model_state_dict(self, model, ckpt_state_dict):
         r"""
@@ -233,7 +203,6 @@ class CheckpointHelper(object):
         strict=True,
         logger_prefix='',
         state_dict_mask=[],
-        need_torch_load=True,
     ):
         r"""
         Overview: load checkpoint by given path
@@ -253,18 +222,10 @@ class CheckpointHelper(object):
             - logger_prefix (:obj:`str`): prefix of logger
             - state_dict_mask (:obj:`list`): a list contains state_dict keys,
                 which shouldn't be loaded into model(after prefix op)
-            - need_torch_load (:obj:`bool`): whether need torch.load operation
         """
-        # Note: don't use assign operation('=') to update input argument value
-        if isinstance(load_path, str):
-            # don't assume this if input is not a path (like BytesIO for ceph)
-            assert (os.path.exists(load_path))
+        # TODO save config
         # Note: for reduce first GPU memory cost and compatible for cpu env
-        if need_torch_load:
-            checkpoint = torch.load(load_path, map_location='cpu')
-        else:
-            checkpoint = load_path
-            load_path = 'object'
+        checkpoint = read_file(load_path)
         state_dict = checkpoint['state_dict']
         if prefix_op is not None:
             prefix_func = {'remove': self._remove_prefix, 'add': self._add_prefix}

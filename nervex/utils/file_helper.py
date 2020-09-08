@@ -69,7 +69,7 @@ def read_file(path, fs_type):
     if fs_type == 'ceph':
         data = read_file_ceph(path)
     elif fs_type == 'normal':
-        data = torch.load(path)
+        data = torch.load(path, map_location='cpu')
     return data
 
 
