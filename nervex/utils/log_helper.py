@@ -24,10 +24,10 @@ def build_logger(cfg, name=None, rank=0):
         - name (:obj:`str`): the logger file name
         - rank (:obj:`int`): only rank == 0 can build, else return TextLogger that only save terminal output
     Returns:
-        - logger (:obj`TextLogger`): logger that save terminal output
-        - tb_logger (:obj`TensorBoardLogger` or :obj:`None`): logger that save output to tensorboard,
+        - logger (:obj:`TextLogger`): logger that save terminal output
+        - tb_logger (:obj:`TensorBoardLogger` or :obj:`None`): logger that save output to tensorboard,
                                                               if rank != 0 then None
-        - variable_record (:obj`VariableRecord` or :obj:`None`): logger that record variable for further process,
+        - variable_record (:obj:`VariableRecord` or :obj:`None`): logger that record variable for further process,
                                                               if rank != 0 then None
     '''
     path = cfg.common.save_path
@@ -35,11 +35,11 @@ def build_logger(cfg, name=None, rank=0):
     if rank == 0:
         logger = TextLogger(path, name=name)
         tb_logger = TensorBoardLogger(path, name=name)
-        var_record_type = cfg.logger.get("var_record_type", None)
+        var_record_type = cfg.learner.get("var_record_type", None)
         if var_record_type is None:
-            variable_record = VariableRecord(cfg.logger.print_freq)
+            variable_record = VariableRecord(cfg.learner.log_freq)
         elif var_record_type == 'alphastar':
-            variable_record = AlphastarVarRecord(cfg.logger.print_freq)
+            variable_record = AlphastarVarRecord(cfg.learner.log_freq)
         else:
             raise NotImplementedError("not support var_record_type: {}".format(var_record_type))
         return logger, tb_logger, variable_record
@@ -58,8 +58,8 @@ def build_logger_naive(path, name, level=logging.INFO, print_freq=1):
         - level (:obj:`int` or :obj:`str`): Set the logging level of logger
         - rank (:obj:`int`): only rank == 0 can build, else return TextLogger that only save terminal output
     Returns:
-        - logger (:obj`TextLogger`): logger that save terminal output
-        - variable_record (:obj`VariableRecord`): logger that record variable for further process
+        - logger (:obj:`TextLogger`): logger that save terminal output
+        - variable_record (:obj:`VariableRecord`): logger that record variable for further process
     '''
     logger = TextLogger(path, name, level)
     variable_record = VariableRecord(print_freq)

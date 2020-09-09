@@ -64,7 +64,9 @@ def save_file_ceph(path, data):
             f.write(data)
 
 
-def read_file(path, fs_type):
+def read_file(path, fs_type=None):
+    if fs_type is None:
+        fs_type = 'ceph' if path.lower().startswith('s3') else 'normal'
     assert fs_type in ['normal', 'ceph']
     if fs_type == 'ceph':
         data = read_file_ceph(path)
@@ -73,7 +75,9 @@ def read_file(path, fs_type):
     return data
 
 
-def save_file(path, data, fs_type):
+def save_file(path, data, fs_type=None):
+    if fs_type is None:
+        fs_type = 'ceph' if path.lower().startswith('s3') else 'normal'
     assert fs_type in ['normal', 'ceph']
     if fs_type == 'ceph':
         save_file_ceph(path, data)

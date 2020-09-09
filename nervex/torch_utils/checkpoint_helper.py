@@ -43,7 +43,7 @@ class CheckpointHelper(object):
         Concrete implementation of CheckpointHelper, to help to save or load checkpoint
 
     Interface:
-        __init__, save_iterations, save, save_data, load
+        __init__, save, load
     """
     def __init__(self):
         r"""
@@ -87,18 +87,6 @@ class CheckpointHelper(object):
         """
         return {prefix + k: v for k, v in state_dict.items()}
 
-    def save_iterations(self, iterations, model, **kwargs):
-        r"""
-        Overview:
-            save with iterations num
-
-        Arguments:
-            - iterations (:obj:`int`): iterations num
-            - model (:obj:`str`): model to be saved
-        """
-        kwargs['last_iter'] = iterations
-        return self.save('iterations_{}'.format(iterations), model, **kwargs)
-
     def save(
         self,
         path,
@@ -139,9 +127,11 @@ class CheckpointHelper(object):
 
         if optimizer is not None:  # save optimizer
             assert (last_iter is not None or last_epoch is not None)
-            checkpoint['last_iter'] = last_iter
-            checkpoint['last_epoch'] = last_epoch
-            checkpoint['last_frame'] = last_frame
+            checkpoint['last_iter'] = last_iter.val
+            if last_epoch is not None:
+                checkpoint['last_epoch'] = last_epoch.val
+            if last_frame is not None:
+                checkpoint['last_frame'] = last_frame.val
             checkpoint['optimizer'] = optimizer.state_dict()
 
         if dataset is not None:
