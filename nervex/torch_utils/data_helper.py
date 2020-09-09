@@ -183,5 +183,3 @@ def build_log_buffer():
         - log_buffer (:obj:`LogDict`): log buffer dict
     """
     return LogDict()
-
-
