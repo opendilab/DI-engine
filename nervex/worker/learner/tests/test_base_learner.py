@@ -3,6 +3,7 @@ import random
 import torch
 import os
 from nervex.worker import BaseLearner
+from nervex.worker.learner import LearnerHook, register_learner_hook
 
 
 class FakeLearner(BaseLearner):
@@ -72,3 +73,14 @@ class TestBaseLearner:
             assert not os.path.exists('ckpt/iteration_{}.pth.tar'.format(n))
         assert learner.last_iter.val == 10
         os.popen('rm -rf ckpt')
+
+
+@pytest.mark.unittest
+class TestLearnerHook:
+    def test_register(self):
+        class FakeHook(LearnerHook):
+            pass
+
+        register_learner_hook('fake', FakeHook)
+        with pytest.raises(AssertionError):
+            register_learner_hook('placeholder', type)
