@@ -14,7 +14,6 @@ from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoin
 from nervex.utils import build_logger, dist_init, EasyTimer, dist_finalize, pretty_print, merge_dicts, read_config
 from .learner_hook import build_learner_hook_by_cfg
 
-
 default_config = read_config(osp.join(osp.dirname(__file__), "base_learner_default_config.yaml"))
 
 

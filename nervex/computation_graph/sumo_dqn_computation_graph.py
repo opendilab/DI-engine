@@ -11,11 +11,13 @@ from nervex.model.sumo_dqn.sumo_dqn_network import FCDQN
 from nervex.envs.sumo.sumo_env import SumoWJ3Env
 from nervex.worker.agent.sumo_dqn_agent import SumoDqnLearnerAgent
 from nervex.computation_graph import BaseCompGraph
+from nervex.rl_utils import td_data, one_step_td_error
 
 
 class SumoDqnGraph(BaseCompGraph):
-    td_data = namedtuple('td_data', ['q', 'next_q', 'act', 'reward', 'terminate'])
-
+    """
+    Overview: Double DQN with eps-greedy
+    """
     def __init__(self, cfg: dict) -> None:
         sumo_env = SumoWJ3Env({})
         model = FCDQN(sumo_env.info().obs_space.shape, [v for k, v in sumo_env.info().act_space.shape.items()])
@@ -28,7 +30,6 @@ class SumoDqnGraph(BaseCompGraph):
             self.agent.target_mode(train=True)
 
         self._gamma = cfg.dqn.discount_factor
-        self.q_function_criterion = nn.MSELoss(reduction='none')
         self.update_target_freq = cfg.dqn.update_target_freq
         self.iter_count = 0
         self.reward_weights = cfg.reward_weights
@@ -60,26 +61,12 @@ class SumoDqnGraph(BaseCompGraph):
         tl_num = len(q_value)
         loss = []
         for i in range(tl_num):
-            data = SumoDqnGraph.td_data(q_value[i], target_q_value[i], action[i], reward, terminate)
-            loss.append(self._single_tl_dqn_loss(data, weights))
+            data = td_data(q_value[i], target_q_value[i], action[i], reward, terminate)
+            loss.append(one_step_td_error(data, self._gamma, weights))
         loss = sum(loss) / (len(loss) + 1e-8)
         if self.is_double and self.iter_count % self.update_target_freq == 0:
             self.agent.update_target_network(self.agent.state_dict()['model'])
         return {'total_loss': loss}
-
-    def _single_tl_dqn_loss(self, data, weights=None):
-        q, next_q, act, reward, terminate = data
-        batch_range = torch.arange(act.shape[0])
-        if weights is None:
-            weights = torch.ones_like(reward)
-
-        q_s_a = q[batch_range, act]
-
-        next_act = next_q.argmax(dim=1)
-        target_q_s_a = next_q[batch_range, next_act]
-        target_q_s_a = self._gamma * (1 - terminate) * target_q_s_a + reward
-
-        return (self.q_function_criterion(q_s_a, target_q_s_a.detach()) * weights).mean()
 
     def register_stats(self, variable_record, tb_logger):
         variable_record.register_var('total_loss')

@@ -19,10 +19,7 @@ from nervex.worker.learner.sumo_dqn_learner import SumoDqnLearner
 from nervex.data.structure.buffer import PrioritizedBufferWrapper
 from nervex.worker.agent.sumo_dqn_agent import SumoDqnActorAgent
 from nervex.torch_utils import to_device
-
-
-def epsilon_greedy(start, end, decay):
-    return lambda x: (start - end) * math.exp(-1 * x / decay) + end
+from nervex.rl_utils import epsilon_greedy
 
 
 def setup_config(path=None):

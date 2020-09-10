@@ -57,10 +57,10 @@ setup(
         'nervex.torch_utils',
         'nervex.worker',
         'nervex.rl_utils',
-        'nervex.train',
         'nervex.data',
         'nervex.system',
         'nervex.league',
+        'nervex.entry',
     ],
     install_requires=[
         'absl-py>=0.1.0',
