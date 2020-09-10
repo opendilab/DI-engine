@@ -10,20 +10,12 @@ import yaml
 import os.path as osp
 from easydict import EasyDict
 import torch
-from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer
-from nervex.utils import build_logger, dist_init, EasyTimer, dist_finalize, pretty_print, merge_dicts
+from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer, to_device
+from nervex.utils import build_logger, dist_init, EasyTimer, dist_finalize, pretty_print, merge_dicts, read_config
 from .learner_hook import build_learner_hook_by_cfg
 
 
-def build_default_config():
-    r"""
-    Overview:
-        Load the default config from base_learner_default_config.yaml and wrap with easydict
-    """
-    with open(osp.join(osp.dirname(__file__), 'base_learner_default_config.yaml'), 'r') as f:
-        cfg = yaml.safe_load(f)
-    cfg = EasyDict(cfg)
-    return cfg
+default_config = read_config(osp.join(osp.dirname(__file__), "base_learner_default_config.yaml"))
 
 
 class BaseLearner(ABC):
@@ -35,7 +27,7 @@ class BaseLearner(ABC):
         _get_data, _train, register_stats, run, close, call_hook, info, save_checkpoint
     """
 
-    _name = "BaseLearner"  # oveßrride this variable for sub-class learner
+    _name = "BaseLearner"  # override this variable for sub-class learner
 
     def __init__(self, cfg: EasyDict) -> None:
         """
@@ -50,7 +42,7 @@ class BaseLearner(ABC):
 
             os.environ['CUDA_LAUNCH_BLOCKING'] = "1"  # for debug async CUDA
         """
-        self._cfg = merge_dicts(build_default_config(), cfg)
+        self._cfg = merge_dicts(default_config, cfg)
         self._load_path = self._cfg.common.load_path
         self._save_path = self._cfg.common.save_path
         self._use_cuda = self._cfg.learner.use_cuda
@@ -139,7 +131,7 @@ class BaseLearner(ABC):
         """
         data = next(self._data_source)
         if self._use_cuda:
-            data = data.cuda()
+            data = to_device(data, 'cuda')
         return data
 
     def _train(self, data: Any) -> dict:
