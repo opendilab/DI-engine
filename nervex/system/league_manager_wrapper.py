@@ -15,7 +15,7 @@ import uuid
 import random
 from easydict import EasyDict
 
-from nervex.utils import read_file_ceph, save_file_ceph
+from nervex.utils import read_file, save_file
 
 
 class LeagueManagerWrapper(object):
@@ -41,18 +41,6 @@ class LeagueManagerWrapper(object):
     def _set_logger(self, level=1):
         self.logger = logging.getLogger("league_manager.log")
 
-    def _read_file(self, path):
-        if self.fs_type == 'normal':
-            return torch.load(path)
-        elif self.fs_type == 'ceph':
-            return read_file_ceph(path, read_type='pickle')
-
-    def _save_file(self, path, file_name, data):
-        if self.fs_type == 'normal':
-            torch.save(data, os.path.join(path, file_name))
-        elif self.fs_type == 'ceph':
-            save_file_ceph(path, file_name, data)
-
     def _init_league_manager(self):
         def save_checkpoint_fn(src_checkpoint, dst_checkpoint, read_type='pickle'):
             '''
@@ -63,9 +51,8 @@ class LeagueManagerWrapper(object):
             '''
             src_checkpoint = os.path.join(self.path_agent, src_checkpoint)
             dst_checkpoint = os.path.join(self.path_agent, dst_checkpoint)
-            checkpoint = self._read_file(src_checkpoint)
-            path, file_name = dst_checkpoint.strip().rsplit('/', 1)
-            self._save_file(path, file_name, checkpoint)
+            checkpoint = read_file(src_checkpoint)
+            save_file(dst_checkpoint, checkpoint)
             self.logger.info('[league manager] load {} and resave to {}.'.format(src_checkpoint, dst_checkpoint))
 
         def load_checkpoint_fn(player_id, checkpoint_path):

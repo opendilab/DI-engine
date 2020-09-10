@@ -157,3 +157,29 @@ def same_shape(data):
     assert (isinstance(data, list))
     shapes = [t.shape for t in data]
     return len(set(shapes)) == 1
+
+
+class LogDict(dict):
+    def _transform(self, data):
+        if isinstance(data, torch.Tensor):
+            if data.shape == (1, ):
+                new_data = data.item()
+            else:
+                new_data = data.tolist()
+        else:
+            new_data = data
+        return new_data
+
+    def __setitem__(self, key, value):
+        value = self._transform(value)
+        super().__setitem__(key, value)
+
+
+def build_log_buffer():
+    r"""
+    Overview:
+        builg log buffer, a subclass of dict which can transform the input data into log format
+    Returns:
+        - log_buffer (:obj:`LogDict`): log buffer dict
+    """
+    return LogDict()

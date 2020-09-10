@@ -68,9 +68,9 @@ def test_coordinator_push_data_to_replay_buffer():
 
 
 def test_read_file():
-    from nervex.utils import read_file_ceph, get_step_data_decompressor
+    from nervex.utils import read_file, get_step_data_decompressor
     decompressor = get_step_data_decompressor('lz4')
-    x = read_file_ceph(trajectory_path, read_type='pickle')
+    x = read_file(trajectory_path)
     x = decompressor(x)
     print(x)
 
