@@ -14,6 +14,7 @@ def setup_config():
     with open(os.path.join(os.path.dirname(__file__), '../sumowj3_actor_default_config.yaml'), 'r') as f:
         cfg = yaml.safe_load(f)
     cfg = EasyDict(cfg)
+    cfg.env.env_type = 'fake'
     return cfg
 
 

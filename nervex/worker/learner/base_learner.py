@@ -1,3 +1,9 @@
+"""
+Copyright 2020 Sensetime X-lab. All Rights Reserved
+
+Main Function:
+    1. base class for model learning
+"""
 from abc import ABC, abstractmethod, abstractproperty
 from typing import Any, Union
 import yaml
@@ -10,6 +16,10 @@ from .learner_hook import build_learner_hook_by_cfg
 
 
 def build_default_config():
+    r"""
+    Overview:
+        Load the default config from base_learner_default_config.yaml and wrap with easydict
+    """
     with open(osp.join(osp.dirname(__file__), 'base_learner_default_config.yaml'), 'r') as f:
         cfg = yaml.safe_load(f)
     cfg = EasyDict(cfg)
@@ -17,11 +27,24 @@ def build_default_config():
 
 
 class BaseLearner(ABC):
+    r"""
+    Overview:
+        base class for model learning(SL/RL), which uses linklink for multi-GPU learning
+    Interface:
+        __init__, _setup_hook, _setup_wrapper, time_wrapper, _setup_data_source, _setup_optimizer,
+        _get_data, _train, register_stats, run, close, call_hook, info, save_checkpoint
+    """
 
-    _name = "BaseLearner"  # override this variable for sub-class learner
+    _name = "BaseLearner"  # oveßrride this variable for sub-class learner
 
     def __init__(self, cfg: EasyDict) -> None:
         """
+        Overview:
+            initialization method, using config setting to build model, dataset, optimizer, lr_scheduler
+            and other helper. It can also load and save checkpoint.
+        Arguments:
+            - cfg (:obj:`dict`): learner config, you can view `learner_cfg <../../../configuration/index.html>`_\
+            for reference
         Notes:
             if you want to debug in sync CUDA mode, please use the following line code in the beginning of `__init__`.
 
@@ -61,13 +84,26 @@ class BaseLearner(ABC):
         self._setup_hook()
 
     def _setup_hook(self) -> None:
+        """
+        Overview:
+            Setup hook for base_learner. Hook is the way to implement actually functions in base_learner.
+            You can reference learner_hook.py
+        """
         self._hooks = build_learner_hook_by_cfg(self._cfg.learner.hook)
 
     def _setup_wrapper(self) -> None:
+        """
+        Overview:
+            Setup time_wrapper to get the data_time and train_time
+        """
         self._get_data = self.time_wrapper(self._get_data, 'data_time')
         self._train = self.time_wrapper(self._train, 'train_time')
 
     def time_wrapper(self, fn, name):
+        """
+        Overview:
+            The time_wrapper used to get the time a function used
+        """
         def wrapper(*args, **kwargs):
             with self._timer:
                 ret = fn(*args, **kwargs)
@@ -78,6 +114,10 @@ class BaseLearner(ABC):
 
     @abstractmethod
     def _setup_data_source(self) -> None:
+        """
+        Overview:
+            Setup learner's data_source, data_source need to be iterable
+        """
         raise NotImplementedError
 
     @abstractmethod
@@ -86,9 +126,17 @@ class BaseLearner(ABC):
 
     @abstractmethod
     def _setup_optimizer(self) -> None:
+        """
+        Overview:
+            Setup learner's optimizer
+        """
         raise NotImplementedError
 
     def _get_data(self) -> Any:
+        """
+        Overview:
+            get data from data_source
+        """
         data = next(self._data_source)
         if self._use_cuda:
             data = data.cuda()
@@ -112,6 +160,10 @@ class BaseLearner(ABC):
             self._log_buffer[k] = v
 
     def register_stats(self) -> None:
+        """
+        Overview:
+            register cur_lr, data_time, train_time to record, and register record to optimizer
+        """
         self._record.register_var('cur_lr')
         self._record.register_var('data_time')
         self._record.register_var('train_time')
@@ -128,6 +180,13 @@ class BaseLearner(ABC):
 
     @auto_checkpoint
     def run(self, max_iterations: Union[int, None] = None) -> None:
+        """
+        Overview:
+            Run the learner
+        Arguments:
+            - max_iterations (:obj:`int` or :obj:`None`): the max run iteration,
+                if None then set to default_max_iterations
+        """
         if max_iterations is None:
             max_iterations = self._default_max_iterations
         # before run hook
@@ -146,18 +205,35 @@ class BaseLearner(ABC):
         self.call_hook('after_run')
 
     def close(self) -> None:
+        """
+        Overview:
+            Close linklink if use_distributed
+        """
         if self._use_distributed:
             dist_finalize()
 
     def call_hook(self, name: str) -> None:
+        """
+        Overview:
+            Call the corresponding hook plugins according to name
+        Arguments:
+             - name (:obj:`str`): which hooks to call,
+                should be in ['before_run', 'after_run', 'before_iter', 'after_iter']
+        """
         for hook in self._hooks[name]:
             hook(self)
 
     def info(self, s: str) -> None:
+        """
+        Overview:
+            Return logger.info
+        """
         self._logger.info(s)
 
     def save_checkpoint(self) -> None:
         """
+        Overview:
+            Automatically save checkpoints
         Note:
             this method is designed for auto_checkpoint
         """

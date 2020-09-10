@@ -1,4 +1,5 @@
 env:
+    env_type: 'normal'  # ['normal', 'fake']
     sumocfg_path: 'beijing_wj/sumo_config.sumocfg'
     max_episode_steps: 2000
     green_duration: 10
