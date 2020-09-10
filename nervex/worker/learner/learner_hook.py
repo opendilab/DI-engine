@@ -36,8 +36,7 @@ class LearnerHook(Hook):
 
 
 class LrSchdulerHook(LearnerHook):
-    def __init__(self, *args, **kwargs) -> None:
-        ext_args = kwargs.pop('ext_args')
+    def __init__(self, *args, ext_args: dict={}, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if ext_args == {}:
             self._freq = 1
@@ -52,8 +51,7 @@ class LrSchdulerHook(LearnerHook):
 
 
 class LoadCkptHook(LearnerHook):
-    def __init__(self, *args, **kwargs) -> None:
-        ext_args = kwargs.pop('ext_args')
+    def __init__(self, *args, ext_args: dict={}, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
     def __call__(self, engine: 'BaseLearner') -> None:  # noqa
@@ -71,8 +69,7 @@ class LoadCkptHook(LearnerHook):
 
 
 class SaveCkptHook(LearnerHook):
-    def __init__(self, *args, **kwargs) -> None:
-        ext_args = kwargs.pop('ext_args')
+    def __init__(self, *args, ext_args: dict={}, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if ext_args == {}:
             self._freq = 1
@@ -95,8 +92,7 @@ class SaveCkptHook(LearnerHook):
 
 
 class LogShowHook(LearnerHook):
-    def __init__(self, *args, **kwargs) -> None:
-        ext_args = kwargs.pop('ext_args')
+    def __init__(self, *args, ext_args: dict={}, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if ext_args == {}:
             self._freq = 1
@@ -120,8 +116,7 @@ class LogShowHook(LearnerHook):
 
 
 class LogReduceHook(LearnerHook):
-    def __init__(self, *args, **kwargs) -> None:
-        ext_args = kwargs.pop('ext_args')
+    def __init__(self, *args, ext_args: dict={}, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
     def __call__(self, engine: 'BaseLearner') -> None:  # noqa
