@@ -60,7 +60,7 @@ class LoadCkptHook(LearnerHook):
             return
         engine.checkpoint_manager.load(
             path,
-            model=engine.optimizer.agent.model,
+            model=engine.computation_graph.agent.model,
             optimizer=engine.optimizer,
             last_iter=engine.last_iter,
             logger_prefix='({})'.format(engine.name),
@@ -84,7 +84,7 @@ class SaveCkptHook(LearnerHook):
             path = os.path.join(dirname, 'iteration_{}.pth.tar'.format(engine.last_iter.val))
             engine.checkpoint_manager.save(
                 path,
-                model=engine.optimizer.agent.model,
+                model=engine.computation_graph.agent.model,
                 optimizer=engine.optimizer,
                 last_iter=engine.last_iter,
             )
@@ -101,10 +101,10 @@ class LogShowHook(LearnerHook):
 
     def __call__(self, engine: 'BaseLearner') -> None:  # noqa
         if engine.rank != 0:  # only show log at rank 0
-            engine.log_buffer = {}  # reset log buffer
+            engine.log_buffer.clear()  # reset log buffer
             return
         engine.record.update_var(engine.log_buffer)
-        engine.log_buffer = {}
+        engine.log_buffer.clear()
         iters = engine.last_iter.val
         if iters % self._freq == 0:
             engine.info("=== Training Iteration {} Result ===".format(iters))

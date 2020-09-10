@@ -10,38 +10,35 @@ class FakeLearner(BaseLearner):
     def _setup_data_source(self):
         class DataLoader():
             def __next__(self):
-                return {}
+                return torch.randn(4, 2)
 
         self._data_source = DataLoader()
 
     def _setup_optimizer(self):
-        class Optimizer:
+        self._optimizer = torch.optim.Adam(self._computation_graph.agent.model.parameters(), 0.1)
+        self._lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(self._optimizer, milestones=[5], gamma=0.1)
+
+    def _setup_computation_graph(self):
+        class Graph:
             def __init__(self):
                 class Agent():
                     pass
 
                 self.agent = Agent()
                 setattr(self.agent, 'model', torch.nn.Linear(2, 2))
-                self.optimizer = torch.optim.Adam(self.agent.model.parameters(), 0.1)
 
-            def learn(self, data):
+            def forward(self, data):
                 return {
-                    'total_loss': random.uniform(0, 1),
-                    'forward_time': random.uniform(0.1, 0.2),
-                    'backward_time': random.uniform(0.01, 0.05)
+                    'total_loss': self.agent.model(data).mean(),
                 }
 
             def register_stats(self, record, tb_logger):
                 record.register_var('total_loss')
-                record.register_var('forward_time')
-                record.register_var('backward_time')
 
                 tb_logger.register_var('total_loss')
-                tb_logger.register_var('forward_time')
-                tb_logger.register_var('backward_time')
 
             def __repr__(self):
-                return 'Optimizer'
+                return 'FakeComputationGraph'
 
             def state_dict(self):
                 return {}
@@ -49,8 +46,7 @@ class FakeLearner(BaseLearner):
             def load_state_dict(self, state_dict):
                 pass
 
-        self._optimizer = Optimizer()
-        self._lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(self._optimizer.optimizer, milestones=[5], gamma=0.1)
+        self._computation_graph = Graph()
 
     @property
     def optimizer(self):
@@ -59,6 +55,10 @@ class FakeLearner(BaseLearner):
     @property
     def lr_scheduler(self):
         return self._lr_scheduler
+
+    @property
+    def computation_graph(self):
+        return self._computation_graph
 
 
 @pytest.mark.unittest
@@ -73,6 +73,7 @@ class TestBaseLearner:
             assert not os.path.exists('ckpt/iteration_{}.pth.tar'.format(n))
         assert learner.last_iter.val == 10
         os.popen('rm -rf ckpt')
+        os.popen('rm -rf default_*')
 
 
 @pytest.mark.unittest

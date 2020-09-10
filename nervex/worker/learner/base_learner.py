@@ -41,6 +41,7 @@ class BaseLearner(ABC):
         self._timer = EasyTimer()
 
         self._setup_data_source()
+        self._setup_computation_graph()
         self._setup_optimizer()
 
         # logger
@@ -49,7 +50,12 @@ class BaseLearner(ABC):
         # checkpoint helper
         self._checkpointer_manager = build_checkpoint_helper(self._cfg, rank=self._rank)
         self.register_stats()
-        self.info(pretty_print({"config": self._cfg, "optimizer": repr(self._optimizer)}, direct_print=False))
+        self.info(
+            pretty_print({
+                "config": self._cfg,
+                "computation_graph": repr(self._computation_graph)
+            }, direct_print=False)
+        )
 
         self._setup_wrapper()
         self._setup_hook()
@@ -75,6 +81,10 @@ class BaseLearner(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def _setup_computation_graph(self) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
     def _setup_optimizer(self) -> None:
         raise NotImplementedError
 
@@ -85,18 +95,36 @@ class BaseLearner(ABC):
         return data
 
     def _train(self, data: Any) -> dict:
-        return self._optimizer.learn(data)
+        with self._timer:
+            log_vars = self._computation_graph.forward(data)
+            loss = log_vars['total_loss']
+        self._log_buffer['forward_time'] = self._timer.value
+
+        with self._timer:
+            self._optimizer.zero_grad()
+            loss.backward()
+            if self._use_distributed:
+                self._computation_graph.sync_gradients()
+            self._optimizer.step()
+        self._log_buffer['backward_time'] = self._timer.value
+        #self._log_buffer.update(log_vars)
+        for k, v in log_vars.items():
+            self._log_buffer[k] = v
 
     def register_stats(self) -> None:
         self._record.register_var('cur_lr')
         self._record.register_var('data_time')
         self._record.register_var('train_time')
+        self._record.register_var('forward_time')
+        self._record.register_var('backward_time')
 
         self._tb_logger.register_var('cur_lr')
         self._tb_logger.register_var('data_time')
         self._tb_logger.register_var('train_time')
+        self._tb_logger.register_var('forward_time')
+        self._tb_logger.register_var('backward_time')
 
-        self._optimizer.register_stats(self._record, self._tb_logger)
+        self._computation_graph.register_stats(self._record, self._tb_logger)
 
     @auto_checkpoint
     def run(self, max_iterations: Union[int, None] = None) -> None:
@@ -110,7 +138,6 @@ class BaseLearner(ABC):
             # before iter hook
             self.call_hook('before_iter')
             log_vars = self._train(data)
-            self._log_buffer.update(log_vars)
             # after iter hook
             self.call_hook('after_iter')
             self._last_iter.add(1)
@@ -149,6 +176,10 @@ class BaseLearner(ABC):
 
     @abstractproperty
     def lr_scheduler(self) -> torch.optim.lr_scheduler._LRScheduler:
+        raise NotImplementedError
+
+    @abstractproperty
+    def computation_graph(self) -> Any:
         raise NotImplementedError
 
     @property

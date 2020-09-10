@@ -162,7 +162,7 @@ def same_shape(data):
 class LogDict(dict):
     def _transform(self, data):
         if isinstance(data, torch.Tensor):
-            if data.shape == (1, ):
+            if data.shape == (1, ) or data.shape == ():
                 new_data = data.item()
             else:
                 new_data = data.tolist()
@@ -171,8 +171,8 @@ class LogDict(dict):
         return new_data
 
     def __setitem__(self, key, value):
-        value = self._transform(value)
-        super().__setitem__(key, value)
+        new_value = self._transform(value)
+        super().__setitem__(key, new_value)
 
 
 def build_log_buffer():
