@@ -8,21 +8,5 @@ base_learner
 
 Learner
 ~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.worker.learner.base_learner.Learner
-    :members: __init__, run, finalize, save_checkpoint, evaluate, restore, _record_additional_info, _manage_learning_information
-
-
-SupervisedLearner
-~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.worker.learner.base_learner.SupervisedLearner
-    
-
-transform_dict
-~~~~~~~~~~~~~~~~~~
-
-.. automodule:: nervex.worker.learner.base_learner.transform_dict
-
-aggregate
-~~~~~~~~~~~~~~~~~~
-
-.. automodule:: nervex.worker.learner.base_learner.aggregate
+.. autoclass:: nervex.worker.learner.base_learner.BaseLearner
+    :members: __init__, _setup_hook, _setup_wrapper, time_wrapper, _setup_data_source, _setup_optimizer, _get_data, _train, register_stats, run, close, call_hook, info, save_checkpoint
