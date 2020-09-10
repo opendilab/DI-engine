@@ -36,7 +36,7 @@ class LearnerHook(Hook):
 
 
 class LrSchdulerHook(LearnerHook):
-    def __init__(self, *args, ext_args: dict={}, **kwargs) -> None:
+    def __init__(self, *args, ext_args: dict = {}, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if ext_args == {}:
             self._freq = 1
@@ -51,7 +51,7 @@ class LrSchdulerHook(LearnerHook):
 
 
 class LoadCkptHook(LearnerHook):
-    def __init__(self, *args, ext_args: dict={}, **kwargs) -> None:
+    def __init__(self, *args, ext_args: dict = {}, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
     def __call__(self, engine: 'BaseLearner') -> None:  # noqa
@@ -69,7 +69,7 @@ class LoadCkptHook(LearnerHook):
 
 
 class SaveCkptHook(LearnerHook):
-    def __init__(self, *args, ext_args: dict={}, **kwargs) -> None:
+    def __init__(self, *args, ext_args: dict = {}, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if ext_args == {}:
             self._freq = 1
@@ -92,7 +92,7 @@ class SaveCkptHook(LearnerHook):
 
 
 class LogShowHook(LearnerHook):
-    def __init__(self, *args, ext_args: dict={}, **kwargs) -> None:
+    def __init__(self, *args, ext_args: dict = {}, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if ext_args == {}:
             self._freq = 1
@@ -116,7 +116,7 @@ class LogShowHook(LearnerHook):
 
 
 class LogReduceHook(LearnerHook):
-    def __init__(self, *args, ext_args: dict={}, **kwargs) -> None:
+    def __init__(self, *args, ext_args: dict = {}, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
     def __call__(self, engine: 'BaseLearner') -> None:  # noqa
@@ -150,17 +150,24 @@ class LogReduceHook(LearnerHook):
         engine.log_buffer = aggregate(engine.buffer)
 
 
+hook_mapping = {
+    'lr_scheduler': LrSchdulerHook,
+    'load_ckpt': LoadCkptHook,
+    'save_ckpt': SaveCkptHook,
+    'log_show': LogShowHook,
+    'log_reduce': LogReduceHook,
+}
+
+
+def register_learner_hook(name: str, hook_type: type):
+    assert issubclass(hook_type, LearnerHook)
+    hook_mapping[name] = hook_type
+
+
 def build_learner_hook_by_cfg(cfg: EasyDict):
     """
     Note: lower value means higher priority
     """
-    hook_mapping = {
-        'lr_scheduler': LrSchdulerHook,
-        'load_ckpt': LoadCkptHook,
-        'save_ckpt': SaveCkptHook,
-        'log_show': LogShowHook,
-        'log_reduce': LogReduceHook,
-    }
     hooks = {k: [] for k in LearnerHook.positions}
     for item in cfg.values():
         priority = item.get('priority', 0)
