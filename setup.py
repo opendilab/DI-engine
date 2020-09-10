@@ -52,7 +52,7 @@ setup(
         'nervex',
         'nervex.model',
         'nervex.envs',
-        'nervex.optimizer',
+        'nervex.computation_graph',
         'nervex.utils',
         'nervex.torch_utils',
         'nervex.worker',

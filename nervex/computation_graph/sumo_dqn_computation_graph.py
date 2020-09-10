@@ -7,22 +7,33 @@ import torch.nn.functional as F
 
 from typing import Optional
 
-from nervex.optimizer.base_loss import BaseLoss
+from nervex.model.sumo_dqn.sumo_dqn_network import FCDQN
+from nervex.envs.sumo.sumo_env import SumoWJ3Env
+from nervex.worker.agent.sumo_dqn_agent import SumoDqnLearnerAgent
+from nervex.computation_graph import BaseCompGraph
 
 
-class SumoDqnLoss(BaseLoss):
+class SumoDqnGraph(BaseCompGraph):
     td_data = namedtuple('td_data', ['q', 'next_q', 'act', 'reward', 'terminate'])
 
-    def __init__(self, agent, cfg, q_function_criterion=nn.MSELoss(reduction='none')):
-        self.agent = agent
+    def __init__(self, cfg: dict) -> None:
+        sumo_env = SumoWJ3Env({})
+        model = FCDQN(sumo_env.info().obs_space.shape, [v for k, v in sumo_env.info().act_space.shape.items()])
+        if cfg.use_cuda:
+            model.cuda()
+        self.is_double = cfg.dqn.is_double
+        self.agent = SumoDqnLearnerAgent(model, plugin_cfg={'is_double': self.is_double})
+        self.agent.mode(train=True)
+        if self.is_double:
+            self.agent.target_mode(train=True)
+
         self._gamma = cfg.dqn.discount_factor
-        self.q_function_criterion = q_function_criterion
+        self.q_function_criterion = nn.MSELoss(reduction='none')
         self.update_target_freq = cfg.dqn.update_target_freq
         self.iter_count = 0
-        self.is_double = cfg.dqn.is_double
         self.reward_weights = cfg.reward_weights
 
-    def compute_loss(self, data: dict):
+    def forward(self, data: dict) -> dict:
         self.iter_count += 1
         obs_batch = data.get('obs')
         nextobs_batch = data.get('next_obs')
@@ -49,7 +60,7 @@ class SumoDqnLoss(BaseLoss):
         tl_num = len(q_value)
         loss = []
         for i in range(tl_num):
-            data = SumoDqnLoss.td_data(q_value[i], target_q_value[i], action[i], reward, terminate)
+            data = SumoDqnGraph.td_data(q_value[i], target_q_value[i], action[i], reward, terminate)
             loss.append(self._single_tl_dqn_loss(data, weights))
         loss = sum(loss) / (len(loss) + 1e-8)
         if self.is_double and self.iter_count % self.update_target_freq == 0:
@@ -70,5 +81,12 @@ class SumoDqnLoss(BaseLoss):
 
         return (self.q_function_criterion(q_s_a, target_q_s_a.detach()) * weights).mean()
 
-    def register_log(self, variable_record, tb_logger):
+    def register_stats(self, variable_record, tb_logger):
+        variable_record.register_var('total_loss')
+        tb_logger.register_var('total_loss')
+
+    def sync_gradients(self):
         pass
+
+    def __repr__(self):
+        return "Double DQN for SUMOWJ# multi-traffic-light env"
