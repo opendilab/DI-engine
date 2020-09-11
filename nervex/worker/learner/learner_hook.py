@@ -8,7 +8,20 @@ from nervex.utils import allreduce
 
 
 class Hook(ABC):
+    """
+    Overview:
+        Abstract class for hooks
+    Interfaces:
+        __init__
+    """
     def __init__(self, name: str, priority: float, **kwargs) -> None:
+        """
+        Overview:
+            super.init method for hooks, set name and priority
+        Arguments:
+            - name (:obj:`str`): the name of hook
+            - priority (:obj:`float`): the priority in call_hook, lower value means higher priority
+        """
         self._name = name
         assert priority >= 0, "invalid priority value: {}".format(priority)
         self._priority = priority
@@ -27,16 +40,41 @@ class Hook(ABC):
 
 
 class LearnerHook(Hook):
+    """
+    Overview:
+        Abstract class for hooks used in Learner
+    Interfaces:
+        __init__
+    """
     positions = ['before_run', 'after_run', 'before_iter', 'after_iter']
 
     def __init__(self, *args, position: str, **kwargs) -> None:
+        """
+        Overview:
+            init LearnerHook
+        Arguments:
+            - position (:obj:`str`): the position to call hook in learner, 
+            must be in ['before_run', 'after_run', 'before_iter', 'after_iter']
+        """
         super().__init__(*args, **kwargs)
         assert position in self.positions
         self._position = position
 
 
 class LrSchdulerHook(LearnerHook):
+    """
+    Overview:
+        Hook used to set LrSchduler in learner
+    Interfaces:
+        __init__, __call__
+    """
     def __init__(self, *args, ext_args: dict = {}, **kwargs) -> None:
+        """
+        Overview:
+            init LrSchdulerHook
+        Arguments:
+            ext_args (:obj:`dict`): extended_args, use ext_args.freq to set lr_freq
+        """
         super().__init__(*args, **kwargs)
         if ext_args == {}:
             self._freq = 1
@@ -44,6 +82,12 @@ class LrSchdulerHook(LearnerHook):
             self._freq = ext_args.freq
 
     def __call__(self, engine: 'BaseLearner') -> None:  # noqa
+        """
+        Overview:
+            step the lr_scheduler to get new learnrate in learner
+        Arguments:
+            engine (:obj:`BaseLearner`): the BaseLearner to use lr_scheduler in
+        """
         if engine.last_iter.val % self._freq == 0:
             engine.lr_scheduler.step()
         # for the normal case that all the parameters have the same lr
@@ -51,10 +95,26 @@ class LrSchdulerHook(LearnerHook):
 
 
 class LoadCkptHook(LearnerHook):
+    """
+    Overview:
+        Hook to load check point
+    Interfaces:
+        __init__, __call__
+    """
     def __init__(self, *args, ext_args: dict = {}, **kwargs) -> None:
+        """
+        Overview:
+            init LoadCkptHook
+        """
         super().__init__(*args, **kwargs)
 
     def __call__(self, engine: 'BaseLearner') -> None:  # noqa
+        """
+        Overview:
+            Load check point
+        Arguments:
+            engine (:obj:`BaseLearner`): the BaseLearner to load checkpoint to
+        """
         path = engine.load_path
         if path == '':  # not load
             return
@@ -69,7 +129,19 @@ class LoadCkptHook(LearnerHook):
 
 
 class SaveCkptHook(LearnerHook):
+    """
+    Overview:
+        Hook to save check point
+    Interfaces:
+        __init__, __call__
+    """
     def __init__(self, *args, ext_args: dict = {}, **kwargs) -> None:
+        """
+        Overview:
+            init SaveCkptHook
+        Arguments:
+            ext_args (:obj:`dict`): extended_args, use ext_args.freq to set freq
+        """
         super().__init__(*args, **kwargs)
         if ext_args == {}:
             self._freq = 1
@@ -77,6 +149,12 @@ class SaveCkptHook(LearnerHook):
             self._freq = ext_args.freq
 
     def __call__(self, engine: 'BaseLearner') -> None:  # noqa
+        """
+        Overview:
+            Save check point
+        Arguments:
+            engine (:obj:`BaseLearner`): the BaseLearner to save checkpoint to
+        """
         if engine.rank == 0 and engine.last_iter.val % self._freq == 0:
             dirname = os.path.join(engine.save_path, 'ckpt')
             if not os.path.exists(dirname):
@@ -92,7 +170,19 @@ class SaveCkptHook(LearnerHook):
 
 
 class LogShowHook(LearnerHook):
+    """
+    Overview:
+        Hook to show log
+    Interfaces:
+        __init__, __call__
+    """
     def __init__(self, *args, ext_args: dict = {}, **kwargs) -> None:
+        """
+        Overview:
+            init LogShowHook
+        Arguments:
+            ext_args (:obj:`dict`): extended_args, use ext_args.freq to set freq
+        """
         super().__init__(*args, **kwargs)
         if ext_args == {}:
             self._freq = 1
@@ -100,6 +190,12 @@ class LogShowHook(LearnerHook):
             self._freq = ext_args.freq
 
     def __call__(self, engine: 'BaseLearner') -> None:  # noqa
+        """
+        Overview:
+            Show the Log and clear the log buffer
+        Arguments:
+            engine (:obj:`BaseLearner`): the BaseLearner
+        """
         if engine.rank != 0:  # only show log at rank 0
             engine.log_buffer.clear()  # reset log buffer
             return
@@ -116,10 +212,22 @@ class LogShowHook(LearnerHook):
 
 
 class LogReduceHook(LearnerHook):
+    """
+    Overview:
+        Hook used reduce the distributed logs
+    Interfaces:
+        __init__, __call__
+    """
     def __init__(self, *args, ext_args: dict = {}, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
     def __call__(self, engine: 'BaseLearner') -> None:  # noqa
+        """
+        Overview:
+            reduce the logs from distributed
+        Arguments:
+            engine (:obj:`BaseLearner`): the BaseLearner
+        """
         assert engine.use_distributed
 
         def aggregate(data):
@@ -160,13 +268,25 @@ hook_mapping = {
 
 
 def register_learner_hook(name: str, hook_type: type):
+    """
+    Overview:
+        add learner hook to hook mapping
+    Arguments:
+        - name (:obj:`srt`): name of the register hook
+        - hook_type (:obj:`type`): the register hook_type
+    """
     assert issubclass(hook_type, LearnerHook)
     hook_mapping[name] = hook_type
 
 
 def build_learner_hook_by_cfg(cfg: EasyDict):
     """
-    Note: lower value means higher priority
+    Overview:
+        build the learner hook by config
+    Arguments:
+        - cfg (:obj:`EasyDict`): the config dict wrapped by easydict
+    Note:
+        lower value means higher priority
     """
     hooks = {k: [] for k in LearnerHook.positions}
     for item in cfg.values():

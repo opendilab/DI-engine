@@ -22,8 +22,8 @@ class BaseLearner(ABC):
     Overview:
         base class for model learning(SL/RL), which uses linklink for multi-GPU learning
     Interface:
-        __init__, _setup_hook, _setup_wrapper, time_wrapper, _setup_data_source, _setup_optimizer,
-        _get_data, _train, register_stats, run, close, call_hook, info, save_checkpoint
+        __init__, _setup_hook, _setup_wrapper, time_wrapper, _setup_data_source, _setup_computation_graph
+        _setup_optimizer, _get_data, _train, register_stats, run, close, call_hook, info, save_checkpoint
     """
 
     _name = "BaseLearner"  # override this variable for sub-class learner
@@ -113,6 +113,10 @@ class BaseLearner(ABC):
 
     @abstractmethod
     def _setup_computation_graph(self) -> None:
+        """
+        Overview:
+            Setup computation_graph, used as loss calculater, part of the optimizer
+        """
         raise NotImplementedError
 
     @abstractmethod
@@ -134,6 +138,10 @@ class BaseLearner(ABC):
         return data
 
     def _train(self, data: Any) -> dict:
+        """
+        Overview:
+            train the input data for 1 iteration       
+        """
         with self._timer:
             log_vars = self._computation_graph.forward(data)
             loss = log_vars['total_loss']
