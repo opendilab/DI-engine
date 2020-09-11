@@ -140,7 +140,7 @@ class BaseLearner(ABC):
     def _train(self, data: Any) -> dict:
         """
         Overview:
-            train the input data for 1 iteration       
+            train the input data for 1 iteration
         """
         with self._timer:
             log_vars = self._computation_graph.forward(data)
@@ -154,9 +154,7 @@ class BaseLearner(ABC):
                 self._computation_graph.sync_gradients()
             self._optimizer.step()
         self._log_buffer['backward_time'] = self._timer.value
-        #self._log_buffer.update(log_vars)
-        for k, v in log_vars.items():
-            self._log_buffer[k] = v
+        self._log_buffer.update(log_vars)
 
     def register_stats(self) -> None:
         """

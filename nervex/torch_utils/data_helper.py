@@ -174,6 +174,10 @@ class LogDict(dict):
         new_value = self._transform(value)
         super().__setitem__(key, new_value)
 
+    def update(self, data):
+        for k, v in data.items():
+            self.__setitem__(k, v)
+
 
 def build_log_buffer():
     r"""

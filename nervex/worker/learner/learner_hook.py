@@ -53,7 +53,7 @@ class LearnerHook(Hook):
         Overview:
             init LearnerHook
         Arguments:
-            - position (:obj:`str`): the position to call hook in learner, 
+            - position (:obj:`str`): the position to call hook in learner,
             must be in ['before_run', 'after_run', 'before_iter', 'after_iter']
         """
         super().__init__(*args, **kwargs)
