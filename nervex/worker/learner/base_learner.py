@@ -142,6 +142,8 @@ class BaseLearner(ABC):
         Overview:
             train the input data for 1 iteration
         """
+        # Note 
+        # processes: forward -> backward -> sync grad(only dist) -> update param
         with self._timer:
             log_vars = self._computation_graph.forward(data)
             loss = log_vars['total_loss']

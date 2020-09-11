@@ -270,10 +270,24 @@ hook_mapping = {
 def register_learner_hook(name: str, hook_type: type):
     """
     Overview:
-        add learner hook to hook mapping
+        add learner hook to hook mapping, you can reference
+        <http://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/blob/learner-refactor-dev/nervex/worker/learner/tests/test_base_learner.py#L80>
+        or see Example below
     Arguments:
-        - name (:obj:`srt`): name of the register hook
-        - hook_type (:obj:`type`): the register hook_type
+        - name (:obj:`str`): name of the register hook
+        - hook_type (:obj:`type`): the register hook_type you implemented that realize LearnerHook
+    Examples:
+        >>> class HookToRegister(LearnerHook):
+        >>>     def __init__(*args, **kargs):
+        >>>         ...
+        >>>         ...
+        >>>     def __call__(*args, **kargs):
+        >>>         ...
+        >>>         ...
+        >>> ...
+        >>> register_learner_hook('name_of_hook', HookToRegister)
+        >>> ...
+        >>> hooks = build_learner_hook_by_cfg(cfg)
     """
     assert issubclass(hook_type, LearnerHook)
     hook_mapping[name] = hook_type
