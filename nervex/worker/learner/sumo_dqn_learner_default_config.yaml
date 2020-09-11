@@ -11,10 +11,9 @@ learner:
     weight_decay: 0.001
     reward_weights:
         'queue_len': 1.0
-    dqn:
-        total_frame_num: 1000000
-        max_epoch_frame: 2000
+    data:
         buffer_length: 10000
+    dqn:
         update_target_freq: 300
         discount_factor: 0.99
         is_double: True
