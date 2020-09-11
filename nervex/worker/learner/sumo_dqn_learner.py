@@ -16,7 +16,6 @@ from collections import OrderedDict
 from nervex.utils import override, merge_dicts, pretty_print, read_config
 from nervex.worker import BaseLearner
 from nervex.computation_graph.sumo_dqn_computation_graph import SumoDqnGraph
-from nervex.data.collate_fn import sumo_dqn_collect_fn
 
 default_config = read_config(osp.join(osp.dirname(__file__), "sumo_dqn_learner_default_config.yaml"))
 

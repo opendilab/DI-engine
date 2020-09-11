@@ -7,44 +7,46 @@ import torch.nn.functional as F
 import os
 import math
 import random
-import yaml
-from easydict import EasyDict
 import threading
 
 from typing import Optional
 
 from nervex.worker.actor.env_manager.sumowj3_env_manager import SumoWJ3EnvManager
-from nervex.envs.sumo.sumo_env import SumoWJ3Env
 from nervex.worker.learner.sumo_dqn_learner import SumoDqnLearner
 from nervex.data.structure.buffer import PrioritizedBufferWrapper
 from nervex.worker.agent.sumo_dqn_agent import SumoDqnActorAgent
+from nervex.data.collate_fn import sumo_dqn_collate_fn
 from nervex.torch_utils import to_device
+from nervex.utils import read_config
 from nervex.rl_utils import epsilon_greedy
 
 
 def setup_config(path=None):
     if path is None:
         path = os.path.join(os.path.dirname(__file__), 'sumo_dqn_default_config.yaml')
-    with open(path, 'r') as f:
-        cfg = yaml.safe_load(f)
-    cfg = EasyDict(cfg)
-    return cfg
+    return read_config(path)
 
 
 class SumoDqnRun():
     def __init__(self, cfg):
         self.cfg = cfg
-        sumo_env = SumoWJ3Env(cfg.env)
-        self.action_dim = [v for k, v in sumo_env.info().act_space.shape.items()]
-        self.batch_size = self.cfg.train.batch_size
+        self.use_cuda = self.cfg.learner.use_cuda
+        self.batch_size = self.cfg.learner.batch_size
         self.env = SumoWJ3EnvManager(cfg.env)
-        self.total_frame_num = cfg.train.dqn.total_frame_num
-        self.max_epoch_frame = cfg.train.dqn.max_epoch_frame
-        self.buffer = PrioritizedBufferWrapper(cfg.train.dqn.buffer_length)
+        self.total_frame_num = cfg.learner.dqn.total_frame_num
+        self.max_epoch_frame = cfg.learner.dqn.max_epoch_frame
+        self.buffer = PrioritizedBufferWrapper(cfg.learner.dqn.buffer_length)
         self.bandit = epsilon_greedy(0.95, 0.03, 10000)
-        self.learner = SumoDqnLearner(self.cfg, self.buffer.iterable_sample(self.batch_size))
-        self.actor_agent = SumoDqnActorAgent(self.learner.agent.model)
-        self.actor_agent.load_state_dict(self.learner.agent.state_dict())
+        self.learner = SumoDqnLearner(self.cfg)
+        self.actor_agent = SumoDqnActorAgent(self.learner.computation_graph.agent.model)
+        self.actor_agent.load_state_dict(self.learner.computation_graph.agent.state_dict())
+        self._setup_data_source()
+
+    def _setup_data_source(self):
+        def data_iterator():
+            while True:
+                yield sumo_dqn_collate_fn(next(self.buffer.iterable_sample(self.batch_size)))
+        self.learner._data_source = data_iterator()
 
     def actor(self):
         total_frame_count = 0
@@ -53,9 +55,11 @@ class SumoDqnRun():
             dones = [False for _ in range(self.env.env_num)]
             while True:
                 eps_threshold = self.bandit(self.learner.last_iter.val)
-                obs = to_device(obs, 'cuda')
+                if self.use_cuda:
+                    obs = to_device(obs, 'cuda')
                 actions, _ = self.actor_agent.forward(obs, eps=eps_threshold)
-                actions = to_device(actions, 'cpu')
+                if self.use_cuda:
+                    actions = to_device(actions, 'cpu')
                 timestep = self.env.step(actions)
                 for i, d in enumerate(dones):
                     if not d:

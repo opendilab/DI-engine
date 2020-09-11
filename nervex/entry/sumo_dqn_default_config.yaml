@@ -3,13 +3,8 @@ common:
     time_wrapper_type: cuda
     save_path: '.'
     load_path: ''
-    only_evaluate: False
-data:
-    train:
-        batch_size: 64
-        dataloader_type: 'online'
-train:
-    use_cuda: True
+learner:
+    use_cuda: False
     use_distributed: False
     max_iterations: 1000000
     batch_size: 64
@@ -21,12 +16,24 @@ train:
         total_frame_num: 1000000
         max_epoch_frame: 2000
         buffer_length: 10000
-        update_target_freq: 300
+        update_target_freq: 100
         discount_factor: 0.95
         is_double: True
-logger:
-    print_freq: 100
-    save_freq: 10000
-    eval_freq: 200
+    hook:
+        save_ckpt_after_iter:
+            name: save_ckpt_after_iter
+            type: save_ckpt
+            priority: 40
+            position: after_iter
+            ext_args:
+                freq: 500
+        log_show:
+            name: log_show
+            type: log_show
+            priority: 20
+            position: after_iter
+            ext_args:
+                freq: 50
 env:
     env_num: 4
+    env_type: 'normal'

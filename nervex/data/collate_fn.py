@@ -46,7 +46,7 @@ def diff_shape_collate(batch):
     raise TypeError('not support element type: {}'.format(elem_type))
 
 
-def sumo_dqn_collect_fn(data):
+def sumo_dqn_collate_fn(data):
     batchs = data
 
     # print("data of collect:", data)
