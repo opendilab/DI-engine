@@ -1,7 +1,7 @@
 env:
     env_type: 'normal'  # ['normal', 'fake']
     sumocfg_path: 'beijing_wj/sumo_config.sumocfg'
-    max_episode_steps: 2000
+    max_episode_steps: 1500
     green_duration: 10
     yellow_duration: 3
     inference: False  # if not inference, this env will not calculate something(e.g. reward) to speed up

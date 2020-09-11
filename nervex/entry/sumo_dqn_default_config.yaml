@@ -6,17 +6,17 @@ common:
 learner:
     use_cuda: False
     use_distributed: False
-    max_iterations: 1000000
+    max_iterations: 100
     batch_size: 64
     learning_rate: 0.001
     weight_decay: 0.0001
     reward_weights:
         'queue_len': 1.0
+    data:
+        max_reuse: 8
+        buffer_length: 2048
     dqn:
-        total_frame_num: 1000000
-        max_epoch_frame: 2000
-        buffer_length: 10000
-        update_target_freq: 100
+        update_target_freq: 20
         discount_factor: 0.95
         is_double: True
     hook:
@@ -35,5 +35,5 @@ learner:
             ext_args:
                 freq: 50
 env:
-    env_num: 4
+    env_num: 8
     env_type: 'normal'
