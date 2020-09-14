@@ -13,7 +13,7 @@ learner:
             name: lr_scheduler
             type: lr_scheduler
             priority: 20  # lower value means higher priority
-            position: before_iter
+            position: after_iter
         load_ckpt:
             name: load_ckpt
             type: load_ckpt
