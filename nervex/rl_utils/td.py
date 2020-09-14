@@ -13,6 +13,7 @@ def one_step_td_error(
         criterion: torch.nn.modules = nn.MSELoss(reduction='none')
 ) -> torch.Tensor:
     q, next_q, act, reward, terminate = data
+    assert len(reward.shape) == 1
     batch_range = torch.arange(act.shape[0])
     if weights is None:
         weights = torch.ones_like(reward)

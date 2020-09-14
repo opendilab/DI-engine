@@ -55,6 +55,7 @@ def sumo_dqn_collate_fn(data):
     nextobs_batch = torch.cat([x['next_obs'].unsqueeze(0) for x in batchs], 0)
     action_batch = torch.cat([torch.LongTensor([x['action']]) for x in batchs])
     reward_batch = default_collate([x['reward'] for x in batchs])
+    reward_batch = {k: v.squeeze(1) for k, v in reward_batch.items()}
     done_batch = torch.cat([torch.Tensor([x['done']]) for x in batchs])
 
     reward = reward_batch
