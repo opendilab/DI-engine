@@ -61,8 +61,6 @@ class SumoWJ3Env(BaseEnv):
         self._launch_env_flag = False
 
     def _launch_env(self, gui=False):
-        if self._launch_env_flag:
-            return
         # set gui=True can get visualization simulation result with sumo, apply gui=False in the normal training
         # and test setting
 
