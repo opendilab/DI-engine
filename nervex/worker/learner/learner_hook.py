@@ -60,6 +60,10 @@ class LearnerHook(Hook):
         assert position in self.positions
         self._position = position
 
+    @property
+    def position(self) -> str:
+        return self._position
+
 
 class LrSchdulerHook(LearnerHook):
     """
@@ -304,7 +308,7 @@ def build_learner_hook_by_cfg(cfg: EasyDict):
     """
     hooks = {k: [] for k in LearnerHook.positions}
     for item in cfg.values():
-        priority = item.get('priority', 0)
+        priority = item.get('priority', 100)
         pos = item.position
         idx = 0
         for i in reversed(range(len(hooks[pos]))):
@@ -315,3 +319,15 @@ def build_learner_hook_by_cfg(cfg: EasyDict):
         hook = hook_mapping[item.type](item.name, priority, position=pos, ext_args=ext_args)
         hooks[item.position].insert(idx, hook)
     return hooks
+
+
+def add_learner_hook(hooks: dict, hook: LearnerHook):
+    position = hook.position
+    priority = hook.priority
+    idx = 0
+    for i in reversed(range(len(hooks[position]))):
+        if priority >= hooks[position][i].priority:
+            idx = i + 1
+            break
+    assert isinstance(hook, LearnerHook)
+    hooks[position].insert(idx, hook)

@@ -12,7 +12,7 @@ from easydict import EasyDict
 import torch
 from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer, to_device
 from nervex.utils import build_logger, dist_init, EasyTimer, dist_finalize, pretty_print, merge_dicts, read_config
-from .learner_hook import build_learner_hook_by_cfg
+from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, LearnerHook
 
 default_config = read_config(osp.join(osp.dirname(__file__), "base_learner_default_config.yaml"))
 
@@ -142,7 +142,7 @@ class BaseLearner(ABC):
         Overview:
             train the input data for 1 iteration
         """
-        # Note 
+        # Note
         # processes: forward -> backward -> sync grad(only dist) -> update param
         with self._timer:
             log_vars = self._computation_graph.forward(data)
@@ -176,6 +176,9 @@ class BaseLearner(ABC):
         self._tb_logger.register_var('backward_time')
 
         self._computation_graph.register_stats(self._record, self._tb_logger)
+
+    def register_hook(self, hook: LearnerHook):
+        add_learner_hook(self._hooks, hook)
 
     @auto_checkpoint
     def run(self, max_iterations: Union[int, None] = None) -> None:

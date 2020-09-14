@@ -23,6 +23,29 @@ from nervex.worker.agent.sumo_dqn_agent import SumoDqnActorAgent
 from nervex.torch_utils import to_device
 from nervex.rl_utils import epsilon_greedy
 from nervex.utils import read_config
+from nervex.worker.learner import LearnerHook
+
+
+class ActorProducerHook(LearnerHook):
+    def __init__(self, runner, position, priority, freq=100):
+        super().__init__(name='actor_producer', position=position, priority=priority)
+        self._runner = runner
+        self._freq = freq
+
+    def __call__(self, engine):
+        if engine.last_iter.val % self._freq == 0:
+            self._runner.actor()
+
+
+class ActorUpdateHook(LearnerHook):
+    def __init__(self, runner, position, priority, freq=100):
+        super().__init__(name='actor_producer', position=position, priority=priority)
+        self._runner = runner
+        self._freq = freq
+
+    def __call__(self, engine):
+        if engine.last_iter.val % self._freq == 0:
+            self._runner.actor_agent.load_state_dict(engine.computation_graph.agent.state_dict())
 
 
 def setup_config(path=None):
@@ -41,8 +64,11 @@ class SumoDqnRun():
         self.bandit = epsilon_greedy(0.95, 0.03, 10000)
         self.learner = SumoDqnLearner(self.cfg)
         self.actor_agent = SumoDqnActorAgent(self.learner.computation_graph.agent.model)
-        self.actor_agent.load_state_dict(self.learner.computation_graph.agent.state_dict())
         self._setup_data_source()
+        self.learner.register_hook(ActorUpdateHook(self, 'before_run', 40))
+        self.learner.register_hook(ActorProducerHook(self, 'before_run', 100))
+        self.learner.register_hook(ActorUpdateHook(self, 'after_iter', 40))
+        self.learner.register_hook(ActorProducerHook(self, 'after_iter', 100))
         self.total_step_count = 0
 
     def _setup_data_source(self):
@@ -85,10 +111,7 @@ class SumoDqnRun():
                 )
 
     def run(self):
-        while True:
-            self.actor()
-            self.learner.run()
-            self.actor_agent.load_state_dict(self.learner.computation_graph.agent.state_dict())
+        self.learner.run()
 
 
 if __name__ == "__main__":
