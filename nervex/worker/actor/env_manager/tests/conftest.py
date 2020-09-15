@@ -34,6 +34,15 @@ class FakeEnv(object):
     def seed(self, seed):
         self._seed = seed
 
+    def pack(self, timesteps=None, obs=None):
+        if timesteps is not None:
+            return timesteps
+        if obs is not None:
+            return obs
+
+    def unpack(self, action):
+        return [{'action': act} for act in action]
+
 
 # TODO(nyz) pickle can't find conftest.timestep
 timestep = FakeEnv.timestep
