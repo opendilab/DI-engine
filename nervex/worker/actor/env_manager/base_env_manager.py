@@ -1,17 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import Union, Any, List, Callable
+from typing import Union, Any, List, Callable, Iterable
 
 
 class BaseEnvManager(ABC):
-    def __init__(self, cfg: dict) -> None:
-        self._cfg = cfg
-        self._env_num = cfg.env_num
-        self._init()
-        assert hasattr(self, '_envs')
-
-    @abstractmethod
-    def _init(self) -> None:
-        raise NotImplementedError
+    def __init__(self, env_fn: Callable, env_cfg: Iterable, env_num: int) -> None:
+        self._env_num = env_num
+        self._envs = [env_fn(c) for c in env_cfg]
+        assert len(self._envs) == self._env_num
 
     def __getattr__(self, key: str) -> Any:
         """
