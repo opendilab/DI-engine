@@ -2,12 +2,13 @@ import copy
 import os
 from collections import namedtuple
 import sys
-from nervex.envs.env.base_env import BaseEnv
+from typing import List, Any
 import numpy as np
 import torch
 import yaml
 from easydict import EasyDict
 from nervex.utils import override, merge_dicts, pretty_print, read_config
+from .sumo_env import SumoWJ3Env
 
 import time
 from functools import reduce
@@ -22,12 +23,13 @@ def build_config(user_config):
     return merge_dicts(default_config, user_config)
 
 
-class FakeSumoWJ3Env(BaseEnv):
+class FakeSumoWJ3Env(SumoWJ3Env):
     timestep = namedtuple('SumoTimestep', ['obs', 'reward', 'done', 'info'])
+    info_template = namedtuple('SumoWJ3EnvInfo', ['obs_space', 'act_space', 'rew_space', 'agent_num'])
 
     def __init__(self, cfg: dict) -> None:
         cfg = build_config(cfg)
-        self._cfg = cfg
+        super().__init__(cfg)
         self.tls = ['htxdj_wjj', 'haxl_wjj', 'haxl_htxdj']
 
     def reset(self):
@@ -46,9 +48,6 @@ class FakeSumoWJ3Env(BaseEnv):
 
     def __repr__(self):
         return 'FakeSumoWJ3Env'
-
-    def info(self):
-        return None
 
 
 SumoTimestep = FakeSumoWJ3Env.timestep

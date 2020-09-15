@@ -1,6 +1,6 @@
 from collections import namedtuple
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, List
 
 
 class BaseEnv(ABC):
@@ -38,4 +38,12 @@ class BaseEnv(ABC):
 
     @abstractmethod
     def __repr__(self) -> str:
+        raise NotImplementedError
+
+    @abstractmethod
+    def pack(self, timesteps: List['BaseEnv.timestep'] = None, obs: Any = None) -> 'BaseEnv.timestep':
+        raise NotImplementedError
+
+    @abstractmethod
+    def unpack(self, action: Any) -> List[Any]:
         raise NotImplementedError

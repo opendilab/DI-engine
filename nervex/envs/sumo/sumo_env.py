@@ -2,6 +2,7 @@ import copy
 import os
 from collections import namedtuple
 import sys
+from typing import List, Any
 from sumolib import checkBinary
 from nervex.envs.env.base_env import BaseEnv
 from nervex.envs.sumo.action.sumo_action_runner import SumoRawActionRunner
@@ -34,7 +35,7 @@ class SumoWJ3Env(BaseEnv):
         __init__, reset, close, step, info
     """
     timestep = namedtuple('SumoTimestep', ['obs', 'reward', 'done', 'info'])
-    info_template = namedtuple('BaseEnvInfo', ['obs_space', 'act_space', 'rew_space', 'agent_num'])
+    info_template = namedtuple('SumoWJ3EnvInfo', ['obs_space', 'act_space', 'rew_space', 'agent_num'])
 
     def __init__(self, cfg: dict) -> None:
         r"""
@@ -178,6 +179,23 @@ class SumoWJ3Env(BaseEnv):
     @action.setter
     def action(self, _action):
         self._action = _action
+
+    # override
+    def pack(self, timesteps: List['SumoWJ3Env.timestep'] = None, obs: Any = None) -> 'SumoWJ3Env.timestep':
+        assert not (timesteps is None and obs is None)
+        assert not (timesteps is not None and obs is not None)
+        if timesteps is not None:
+            assert isinstance(timesteps, list)
+            assert isinstance(timesteps[0], tuple)
+            timestep_type = type(timesteps[0])
+            items = [[getattr(timesteps[i], item) for i in range(len(timesteps))] for item in timesteps[0]._fields]
+            return timestep_type(*items)
+        if obs is not None:
+            return obs
+
+    # override
+    def unpack(self, action: Any) -> List[Any]:
+        return [{'action': act} for act in action]
 
 
 SumoTimestep = SumoWJ3Env.timestep
