@@ -1,6 +1,8 @@
 import copy
 import os
 from collections import namedtuple
+import sys
+from typing import List, Any
 
 from nervex.envs.env.base_env import BaseEnv
 from nervex.envs.gym.pong.action.pong_action_runner import PongRawAction, PongRawActionRunner
@@ -15,9 +17,9 @@ class PongEnv(BaseEnv):
     Notes:
         To see information about atari_env: https://blog.csdn.net/qq_27008079/article/details/100126060
     """
-    timestep = namedtuple('pongTimestep', ['obs', 'reward', 'done', 'rest_lives'])
+    timestep = namedtuple('PongTimestep', ['obs', 'reward', 'done', 'rest_lives'])
 
-    info_template = namedtuple('BaseEnvInfo', ['obs_space', 'act_space', 'rew_space', 'frame_skip', 'rep_prob'])
+    info_template = namedtuple('PongEnvInfo', ['obs_space', 'act_space', 'rew_space', 'frame_skip', 'rep_prob'])
 
     # frame_skip: how many frame in one step, should be 1 or 2 or 4.
     # rep_prob: the probability of rerun the previous action in this step, should be 0 or 0.25.
@@ -132,5 +134,20 @@ class PongEnv(BaseEnv):
     def pong_obs(self, _obs) -> None:
         self._pong_obs = _obs
 
+    def pack(self, timesteps: List['PongEnv.timestep'] = None, obs: Any = None) -> 'PongEnv.timestep':
+        assert not (timesteps is None and obs is None)
+        assert not (timesteps is not None and obs is not None)
+        if timesteps is not None:
+            assert isinstance(timesteps, list)
+            assert isinstance(timesteps[0], tuple)
+            timestep_type = type(timesteps[0])
+            items = [[getattr(timesteps[i], item) for i in range(len(timesteps))] for item in timesteps[0]._fields]
+            return timestep_type(*items)
+        if obs is not None:
+            return obs
 
-pongTimestep = PongEnv.timestep
+    def unpack(self, action: Any) -> List[Any]:
+        return [{'action': act} for act in action]
+
+
+PongTimestep = PongEnv.timestep
