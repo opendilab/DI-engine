@@ -59,6 +59,6 @@ register_learner_hook
 .. automodule:: nervex.worker.learner.learner_hook.register_learner_hook
 
 build_learner_hook_by_cfg
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. automodule:: nervex.worker.learner.learner_hook.build_learner_hook_by_cfg
 

@@ -16,7 +16,7 @@ Agent
 
 
 基类定义：
-    1. BaseEnv (worker/agent/base_agent.py)
+    1. BaseAgent (worker/agent/base_agent.py)
 
         .. code:: python
 
