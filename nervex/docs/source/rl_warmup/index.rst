@@ -82,7 +82,7 @@ Epsilon-Greedy
 Thompson sampling
 '''''''''''''''''
 
--  假设每个臂是否产生收益，其背后有一个概率分布，产生收益的概率为:math:`p`，同时该概率 :math:`p`的概率分布符合 :math:`Beta(wins,lose)`
+-  假设每个臂是否产生收益，其背后有一个概率分布，产生收益的概率为 :math:`p`，同时该概率 :math:`p`的概率分布符合 :math:`Beta(wins,lose)`
    分布，每个臂都维护一个 :math:`Beta` 分布。每次试验后，选中一个臂摇一下，有收益则该臂的 :math:`wins` 增加 1，否则该臂的 :math:`lose` 增加 1。
 -  beta分布介绍：https://www.zhihu.com/question/30269898
 -  选择方式：用每个臂现有的Beta分布产生随机数，选择随机数中最大的那个臂
