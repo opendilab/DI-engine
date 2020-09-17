@@ -1,5 +1,6 @@
 import pytest
 import os
+import time
 import torch
 import torch.nn as nn
 from nervex.torch_utils.checkpoint_helper import CheckpointHelper
@@ -27,10 +28,11 @@ class SrcModel(nn.Module):
 class TestCkptHelper:
     def test_load_model(self):
         path = 'model.pt'
+        os.popen('rm -rf ' + path)
+        time.sleep(1)
         dst_model = DstModel()
         src_model = SrcModel()
         ckpt_state_dict = {'state_dict': src_model.state_dict()}
-        os.popen('rm -rf ' + path)
         torch.save(ckpt_state_dict, path)
 
         ckpt_helper = CheckpointHelper()
