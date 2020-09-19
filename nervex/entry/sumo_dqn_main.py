@@ -14,9 +14,9 @@ import multiprocessing
 
 from typing import Optional
 
-from nervex.worker.actor.env_manager.sumowj3_env_manager import SumoWJ3EnvManager
 from nervex.envs.sumo.sumo_env import SumoWJ3Env
 from nervex.worker.learner.sumo_dqn_learner import SumoDqnLearner
+from nervex.worker import SubprocessEnvManager
 from nervex.data.structure.buffer import PrioritizedBufferWrapper
 from nervex.data.collate_fn import sumo_dqn_collate_fn
 from nervex.worker.agent.sumo_dqn_agent import SumoDqnActorAgent
@@ -45,7 +45,7 @@ class ActorUpdateHook(LearnerHook):
 
     def __call__(self, engine):
         if engine.last_iter.val % self._freq == 0:
-            self._runner.actor_agent.load_state_dict(engine.computation_graph.agent.state_dict())
+            self._runner.actor_agent.load_state_dict(engine.agent.state_dict())
 
 
 def setup_config(path=None):
@@ -59,11 +59,12 @@ class SumoDqnRun():
         self.cfg = cfg
         self.use_cuda = self.cfg.learner.use_cuda
         self.batch_size = self.cfg.learner.batch_size
-        self.env = SumoWJ3EnvManager(cfg.env)
+        env_num = cfg.env.env_num
+        self.env = SubprocessEnvManager(SumoWJ3Env, env_cfg=[cfg.env for _ in range(env_num)], env_num=env_num)
         self.buffer = PrioritizedBufferWrapper(cfg.learner.data.buffer_length, max_reuse=cfg.learner.data.max_reuse)
         self.bandit = epsilon_greedy(0.95, 0.03, 10000)
         self.learner = SumoDqnLearner(self.cfg)
-        self.actor_agent = SumoDqnActorAgent(self.learner.computation_graph.agent.model)
+        self.actor_agent = SumoDqnActorAgent(self.learner.agent.model)
         self._setup_data_source()
         self.learner.register_hook(ActorUpdateHook(self, 'before_run', 40))
         self.learner.register_hook(ActorProducerHook(self, 'before_run', 100))

@@ -15,21 +15,14 @@ class FakeLearner(BaseLearner):
         self._data_source = DataLoader()
 
     def _setup_optimizer(self):
-        self._optimizer = torch.optim.Adam(self._computation_graph.agent.model.parameters(), 0.1)
+        self._optimizer = torch.optim.Adam(self._agent.model.parameters(), 0.1)
         self._lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(self._optimizer, milestones=[5], gamma=0.1)
 
     def _setup_computation_graph(self):
         class Graph:
-            def __init__(self):
-                class Agent():
-                    pass
-
-                self.agent = Agent()
-                setattr(self.agent, 'model', torch.nn.Linear(2, 2))
-
-            def forward(self, data):
+            def forward(self, data, agent):
                 return {
-                    'total_loss': self.agent.model(data).mean(),
+                    'total_loss': agent.model(data).mean(),
                 }
 
             def register_stats(self, record, tb_logger):
@@ -48,17 +41,13 @@ class FakeLearner(BaseLearner):
 
         self._computation_graph = Graph()
 
-    @property
-    def optimizer(self):
-        return self._optimizer
+    def _setup_agent(self):
+        class Agent():
+            def __repr__(self):
+                return 'FakeAgent'
 
-    @property
-    def lr_scheduler(self):
-        return self._lr_scheduler
-
-    @property
-    def computation_graph(self):
-        return self._computation_graph
+        self._agent = Agent()
+        setattr(self._agent, 'model', torch.nn.Linear(2, 2))
 
 
 @pytest.mark.unittest

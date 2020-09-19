@@ -124,7 +124,7 @@ class LoadCkptHook(LearnerHook):
             return
         engine.checkpoint_manager.load(
             path,
-            model=engine.computation_graph.agent.model,
+            model=engine.agent.model,
             optimizer=engine.optimizer,
             last_iter=engine.last_iter,
             logger_prefix='({})'.format(engine.name),
@@ -166,7 +166,7 @@ class SaveCkptHook(LearnerHook):
             path = os.path.join(dirname, 'iteration_{}.pth.tar'.format(engine.last_iter.val))
             engine.checkpoint_manager.save(
                 path,
-                model=engine.computation_graph.agent.model,
+                model=engine.agent.model,
                 optimizer=engine.optimizer,
                 last_iter=engine.last_iter,
             )

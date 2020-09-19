@@ -11,7 +11,8 @@ import os.path as osp
 from easydict import EasyDict
 import torch
 from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer, to_device
-from nervex.utils import build_logger, dist_init, EasyTimer, dist_finalize, pretty_print, merge_dicts, read_config
+from nervex.utils import build_logger, dist_init, EasyTimer, dist_finalize, pretty_print, merge_dicts, read_config,\
+    get_task_uid
 from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, LearnerHook
 
 default_config = read_config(osp.join(osp.dirname(__file__), "base_learner_default_config.yaml"))
@@ -22,8 +23,7 @@ class BaseLearner(ABC):
     Overview:
         base class for model learning(SL/RL), which uses linklink for multi-GPU learning
     Interface:
-        __init__, _setup_hook, _setup_wrapper, time_wrapper, _setup_data_source, _setup_computation_graph
-        _setup_optimizer, _get_data, _train, register_stats, run, close, call_hook, info, save_checkpoint
+        __init__, register_stats, run, close, call_hook, info, save_checkpoint
     """
 
     _name = "BaseLearner"  # override this variable for sub-class learner
@@ -41,6 +41,7 @@ class BaseLearner(ABC):
 
             os.environ['CUDA_LAUNCH_BLOCKING'] = "1"  # for debug async CUDA
         """
+        self._learner_uid = get_task_uid()
         self._cfg = merge_dicts(default_config, cfg)
         self._load_path = self._cfg.common.load_path
         self._save_path = self._cfg.common.save_path
@@ -55,8 +56,9 @@ class BaseLearner(ABC):
         self._timer = EasyTimer()
 
         self._setup_data_source()
-        self._setup_computation_graph()
+        self._setup_agent()
         self._setup_optimizer()
+        self._setup_computation_graph()
 
         # logger
         self._logger, self._tb_logger, self._record = build_logger(self._cfg, rank=self._rank)
@@ -65,10 +67,14 @@ class BaseLearner(ABC):
         self._checkpointer_manager = build_checkpoint_helper(self._cfg, rank=self._rank)
         self.register_stats()
         self.info(
-            pretty_print({
-                "config": self._cfg,
-                "computation_graph": repr(self._computation_graph)
-            }, direct_print=False)
+            pretty_print(
+                {
+                    "config": self._cfg,
+                    "agent": repr(self._agent),
+                    "computation_graph": repr(self._computation_graph)
+                },
+                direct_print=False
+            )
         )
 
         self._setup_wrapper()
@@ -112,6 +118,15 @@ class BaseLearner(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def _setup_agent(self) -> None:
+        """
+        Overview:
+            Setup learner's runtime agent, agent is the subclass instance of `BaseAgent`.
+            There may be more than one agent.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def _setup_computation_graph(self) -> None:
         """
         Overview:
@@ -145,7 +160,7 @@ class BaseLearner(ABC):
         # Note
         # processes: forward -> backward -> sync grad(only dist) -> update param
         with self._timer:
-            log_vars = self._computation_graph.forward(data)
+            log_vars = self._computation_graph.forward(data, self._agent)
             loss = log_vars['total_loss']
         self._log_buffer['forward_time'] = self._timer.value
 
@@ -153,7 +168,7 @@ class BaseLearner(ABC):
             self._optimizer.zero_grad()
             loss.backward()
             if self._use_distributed:
-                self._computation_graph.sync_gradients()
+                self._agent.sync_gradients()
             self._optimizer.step()
         self._log_buffer['backward_time'] = self._timer.value
         self._log_buffer.update(log_vars)
@@ -248,17 +263,21 @@ class BaseLearner(ABC):
     def last_iter(self) -> CountVar:
         return self._last_iter
 
-    @abstractproperty
+    @property
     def optimizer(self) -> torch.optim.Optimizer:
-        raise NotImplementedError
+        return self._optimizer
 
-    @abstractproperty
+    @property
     def lr_scheduler(self) -> torch.optim.lr_scheduler._LRScheduler:
-        raise NotImplementedError
+        return self._lr_scheduler
 
-    @abstractproperty
+    @property
     def computation_graph(self) -> Any:
-        raise NotImplementedError
+        return self._computation_graph
+
+    @property
+    def agent(self) -> 'BaseAgent':  # noqa
+        return self._agent
 
     @property
     def log_buffer(self) -> dict:  # LogDict

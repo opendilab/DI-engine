@@ -7,7 +7,7 @@ from typing import Any
 
 class BaseCompGraph(ABC):
     @abstractmethod
-    def forward(self, data: Any) -> dict:
+    def forward(self, data: Any, agent: Any) -> dict:
         raise NotImplementedError
 
     @abstractmethod
@@ -17,8 +17,4 @@ class BaseCompGraph(ABC):
 
     @abstractmethod
     def __repr__(self) -> str:
-        raise NotImplementedError
-
-    @abstractmethod
-    def sync_gradients(self) -> None:
         raise NotImplementedError
