@@ -30,7 +30,7 @@ def get_pid():
     return os.getpid()
 
 
-def get_actor_uid():
+def get_task_uid():
     t = time.time()
     return os.getenv('SLURM_JOB_ID', 'PID' + str(get_pid()) + 'UUID' + str(uuid.uuid1())) + '_' + str(t)
 
