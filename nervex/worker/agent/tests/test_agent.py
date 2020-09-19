@@ -131,7 +131,9 @@ class TestAgentPlugin:
             'target_network': {
                 'update_cfg': {
                     'type': 'assign',
-                    'kwargs': {},
+                    'kwargs': {
+                        'freq': 10
+                    },
                 }
             }
         }
@@ -143,7 +145,7 @@ class TestAgentPlugin:
         assert agent.model.fc1.weight.eq(agent._target_network._model.fc1.weight).sum() == 12
         agent.model.fc1.weight.data = torch.randn_like(agent.model.fc1.weight)
         assert agent.model.fc1.weight.ne(agent._target_network._model.fc1.weight).sum() == 12
-        agent.update_target_network(agent.state_dict()['model'])
+        agent.update_target_network(agent.state_dict()['model'], direct=True)
 
         inputs = torch.randn(2, 3)
         agent.mode(train=True)

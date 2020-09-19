@@ -34,8 +34,10 @@ class SumoDqnLearnerAgent(BaseAgent):
                 'enable_grad': True
             },
         })
+        self.is_double = plugin_cfg['is_double']
         if plugin_cfg['is_double']:
-            self.plugin_cfg['target_network'] = {'update_cfg': {'type': 'momentum', 'kwargs': {'theta': 0.99}}}
+            self.plugin_cfg['target_network'] = {'update_cfg': {'type': 'momentum', 'kwargs': {'theta': 0.001}}}
+            # self.plugin_cfg['target_network'] = {'update_cfg': {'type': 'assign', 'kwargs': {'freq': 100}}}
         super(SumoDqnLearnerAgent, self).__init__(model, self.plugin_cfg)
 
 
