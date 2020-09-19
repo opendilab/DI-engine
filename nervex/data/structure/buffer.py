@@ -269,14 +269,3 @@ class PrioritizedBuffer:
     @beta.setter
     def beta(self, beta):
         self._beta = beta
-
-
-class PrioritizedBufferWrapper(PrioritizedBuffer):
-    def __init__(self, *args, **kwargs):
-        super(PrioritizedBufferWrapper, self).__init__(*args, **kwargs)
-
-    def iterable_sample(self, batch_size):
-        while True:
-            if batch_size < self.validlen:
-                yield self.sample(batch_size)
-                time.sleep(0.1)

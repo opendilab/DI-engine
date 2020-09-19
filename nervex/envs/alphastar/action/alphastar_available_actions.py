@@ -500,7 +500,7 @@ def get_available_actions_processed_data(data, check_action=False):
 
 if __name__ == '__main__':
     import pickle
-    from nervex.utils import read_file_ceph
+    from nervex.utils import read_file
     from nervex.envs.observations.alphastar_obs_wrapper import decompress_obs
     import multiprocessing
     import queue
@@ -521,7 +521,7 @@ if __name__ == '__main__':
                 path = q.get(block=True, timeout=1)
             except queue.Empty:
                 return
-            data = read_file_ceph(path + '.step', read_type='pickle')
+            data = read_file(path + '.step')
             print('read success:', path)
             for d in data:
                 d = decompress_obs(d)

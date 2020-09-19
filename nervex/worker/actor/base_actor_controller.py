@@ -3,7 +3,7 @@ import os
 import sys
 from collections import namedtuple
 from typing import Union, Any
-from nervex.utils import build_logger_naive, EasyTimer, get_actor_uid, VariableRecord
+from nervex.utils import build_logger_naive, EasyTimer, get_task_uid, VariableRecord
 from .comm.comm_actor_metaclass import ActorCommMetaclass
 
 
@@ -11,7 +11,7 @@ from .comm.comm_actor_metaclass import ActorCommMetaclass
 class BaseActor(object, metaclass=ActorCommMetaclass):
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
-        self._actor_uid = get_actor_uid()
+        self._actor_uid = get_task_uid()
         self._setup_logger()
         self._end_flag = False
         self._setup_timer()

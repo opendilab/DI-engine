@@ -28,18 +28,16 @@ add_plugin('sumowj3_data_transform', DataTransformHelper)
 
 
 class SumoDqnLearnerAgent(BaseAgent):
-    def __init__(self, model: torch.nn.Module, plugin_cfg) -> None:
-        if plugin_cfg is None:
-            self.plugin_cfg = OrderedDict({
-                'sumowj3_data_transform': {
-                    'ret_num': 1
-                },
-                'grad': {
-                    'enable_grad': True
-                },
-            })
-        else:
-            self.plugin_cfg = plugin_cfg
+    def __init__(self, model: torch.nn.Module, plugin_cfg: dict) -> None:
+        self.plugin_cfg = OrderedDict({
+            'grad': {
+                'enable_grad': True
+            },
+        })
+        self.is_double = plugin_cfg['is_double']
+        if plugin_cfg['is_double']:
+            self.plugin_cfg['target_network'] = {'update_cfg': {'type': 'momentum', 'kwargs': {'theta': 0.001}}}
+            # self.plugin_cfg['target_network'] = {'update_cfg': {'type': 'assign', 'kwargs': {'freq': 100}}}
         super(SumoDqnLearnerAgent, self).__init__(model, self.plugin_cfg)
 
 

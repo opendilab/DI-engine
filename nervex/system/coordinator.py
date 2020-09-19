@@ -18,7 +18,7 @@ import numpy as np
 import torch
 
 from nervex.data.online import ReplayBuffer
-from nervex.utils import read_file_ceph, save_file_ceph, LockContext
+from nervex.utils import LockContext
 
 
 class JobState(enum.IntEnum):

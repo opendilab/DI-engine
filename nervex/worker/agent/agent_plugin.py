@@ -144,7 +144,7 @@ class TargetNetworkHelper(IAgentStatefulPlugin):
     def register(cls: type, agent: Any, update_cfg: dict):
         target_network = cls(agent.model, update_cfg)
         agent._target_network = target_network
-        for method_name in ['update_target_network', 'target_mode', 'target_forward']:
+        for method_name in ['update_target_network', 'target_forward', 'target_mode']:
             setattr(agent, method_name, getattr(agent._target_network, method_name))
 
     def __init__(self, model: torch.nn.Module, update_cfg: dict) -> None:
@@ -154,14 +154,18 @@ class TargetNetworkHelper(IAgentStatefulPlugin):
         assert update_type in ['momentum', 'assign']
         self._update_type = update_type
         self._update_kwargs = update_cfg['kwargs']
+        self._update_count = 0
 
-    def update_target_network(self, state_dict: dict) -> None:
+    def update_target_network(self, state_dict: dict, direct: bool = False) -> None:
         if self._update_type == 'assign':
-            self._model.load_state_dict(state_dict, strict=True)
+            if direct or (self._update_count + 1) % self._update_kwargs['freq'] == 0:
+                self._model.load_state_dict(state_dict, strict=True)
+            self._update_count += 1
         elif self._update_type == 'momentum':
             theta = self._update_kwargs['theta']
             for name, p in self._model.named_parameters():
-                p = theta * p + (1 - theta) * state_dict[name]
+                # default theta = 0.001
+                p = (1 - theta) * p + theta * state_dict[name]
 
     def target_mode(self, train: bool) -> None:
         if train:
@@ -178,6 +182,7 @@ class TargetNetworkHelper(IAgentStatefulPlugin):
 
     def reset(self, state_dict: dict) -> None:
         self.update_target_network(state_dict)
+        self._update_count = 0
 
 
 plugin_name_map = {

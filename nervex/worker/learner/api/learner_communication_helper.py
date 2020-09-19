@@ -12,7 +12,7 @@ import requests
 from collections import OrderedDict
 import random
 
-from nervex.utils import read_file_ceph, save_file_ceph, get_step_data_decompressor, get_manager_node_ip
+from nervex.utils import read_file, save_file, get_step_data_decompressor, get_manager_node_ip
 from nervex.utils import dist_init, broadcast, EasyTimer
 
 
@@ -170,11 +170,8 @@ class LearnerCommunicationHelper(object):
                         'not implemented method: {}, if you don\'t test locally, please check it'.
                         format('_get_model_state_dict')
                     )
-                if self.use_ceph:
-                    save_file_ceph(self.ceph_model_path, self.model_name, model)
-                else:
-                    # for local test
-                    pass
+                # self.ceph_model_path, self.model_name
+                save_file(self.model_name)
             self.comm_logger.info(
                 "save model {} to {} with {:.3f}s".format(self.model_name, self.file_system, self.timer.value)
             )
@@ -200,11 +197,8 @@ class LearnerCommunicationHelper(object):
         return data
 
     def _read_file(self, path):
-        if self.use_ceph:
-            ceph_traj_path = self.ceph_traj_path + path
-            return read_file_ceph(ceph_traj_path, read_type='pickle')
-        else:
-            return torch.load(path)
+        #ceph_traj_path = self.ceph_traj_path + path
+        return read_file(path)
 
     def deal_with_get_metadata(self, metadatas):
         assert (isinstance(metadatas, list))
@@ -299,7 +293,7 @@ class LearnerCommunicationHelper(object):
                 - (:obj`dict`): model
         '''
         if self.use_ceph:
-            checkpoint = read_file_ceph(checkpoint_path, read_type=read_type)
+            checkpoint = read_file(checkpoint_path)
             self.comm_logger.info("load checkpoint {} from ceph".format(checkpoint_path))
             return checkpoint
         else:

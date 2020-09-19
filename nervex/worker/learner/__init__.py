@@ -1,1 +1,2 @@
-from .base_rl_learner import BaseRLLearner
+from .base_learner import BaseLearner
+from .learner_hook import register_learner_hook, LearnerHook

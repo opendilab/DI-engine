@@ -6,23 +6,59 @@ base_learner
 
 
 
-Learner
+BaseLearner
 ~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.worker.learner.base_learner.Learner
-    :members: __init__, run, finalize, save_checkpoint, evaluate, restore, _record_additional_info, _manage_learning_information
+.. autoclass:: nervex.worker.learner.base_learner.BaseLearner
+    :members: __init__, _setup_hook, _setup_wrapper, time_wrapper, _setup_data_source, _setup_computation_graph, _setup_optimizer, _get_data, _train, register_stats, run, close, call_hook, info, save_checkpoint
 
 
-SupervisedLearner
-~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.worker.learner.base_learner.SupervisedLearner
-    
+learner_hook
+----------------------
 
-transform_dict
+
+Hook
 ~~~~~~~~~~~~~~~~~~
+.. autoclass:: nervex.worker.learner.learner_hook.Hook
+    :members: __init__
 
-.. automodule:: nervex.worker.learner.base_learner.transform_dict
 
-aggregate
+LearnerHook
 ~~~~~~~~~~~~~~~~~~
+.. autoclass:: nervex.worker.learner.learner_hook.LearnerHook
+    :members: __init__
 
-.. automodule:: nervex.worker.learner.base_learner.aggregate
+LrSchdulerHook
+~~~~~~~~~~~~~~~~~~
+.. autoclass:: nervex.worker.learner.learner_hook.LrSchdulerHook
+    :members: __init__, __call__
+
+LoadCkptHook
+~~~~~~~~~~~~~~~~~~
+.. autoclass:: nervex.worker.learner.learner_hook.LoadCkptHook
+    :members: __init__, __call__
+
+SaveCkptHook
+~~~~~~~~~~~~~~~~~~
+.. autoclass:: nervex.worker.learner.learner_hook.SaveCkptHook
+    :members: __init__, __call__
+
+
+LogShowHook
+~~~~~~~~~~~~~~~~~~
+.. autoclass:: nervex.worker.learner.learner_hook.LogShowHook
+    :members: __init__, __call__
+
+LogReduceHook
+~~~~~~~~~~~~~~~~~~
+.. autoclass:: nervex.worker.learner.learner_hook.LogReduceHook
+    :members: __init__, __call__
+
+
+register_learner_hook
+~~~~~~~~~~~~~~~~~~~~~~~
+.. automodule:: nervex.worker.learner.learner_hook.register_learner_hook
+
+build_learner_hook_by_cfg
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. automodule:: nervex.worker.learner.learner_hook.build_learner_hook_by_cfg
+

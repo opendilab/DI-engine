@@ -34,6 +34,15 @@ class FakeEnv(object):
     def seed(self, seed):
         self._seed = seed
 
+    def pack(self, timesteps=None, obs=None):
+        if timesteps is not None:
+            return timesteps
+        if obs is not None:
+            return obs
+
+    def unpack(self, action):
+        return [{'action': act} for act in action]
+
 
 # TODO(nyz) pickle can't find conftest.timestep
 timestep = FakeEnv.timestep
@@ -48,9 +57,9 @@ def setup_env_type():
 def setup_manager_cfg(setup_env_type):
     env_num = 4
     manager_cfg = {
-        'env': [{
+        'env_fn': setup_env_type,
+        'env_cfg': [{
             'name': 'name{}'.format(i),
-            'type': setup_env_type
         } for i in range(env_num)],
         'env_num': env_num
     }

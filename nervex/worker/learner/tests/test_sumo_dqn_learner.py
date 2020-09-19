@@ -6,18 +6,20 @@ import random
 from easydict import EasyDict
 from nervex.worker.learner.sumo_dqn_learner import SumoDqnLearner
 from nervex.envs.sumo.fake_dataset import FakeSumoDataset
-
-
-@pytest.fixture(scope='function')
-def setup_config():
-    with open(os.path.join(os.path.dirname(__file__), 'test_sumo_default.yaml')) as f:
-        cfg = yaml.safe_load(f)
-    cfg = EasyDict(cfg)
-    return cfg
+from nervex.data.collate_fn import sumo_dqn_collate_fn
 
 
 @pytest.mark.unittest
 class TestSumoDqnLearner:
-    def test_data_sample_update(self, setup_config):
-        sumo_learner = SumoDqnLearner(setup_config, FakeSumoDataset(setup_config.train.batch_size).getBatchSample())
+    def test_data_sample_update(self):
+        def fake_data_source(bs):
+            dataset = FakeSumoDataset(bs).getBatchSample()
+            while True:
+                yield sumo_dqn_collate_fn(next(dataset))
+
+        os.popen('rm -rf ckpt')
+        sumo_learner = SumoDqnLearner({})
+        sumo_learner._data_source = fake_data_source(sumo_learner._cfg.learner.batch_size)
         sumo_learner.run()
+        os.popen('rm -rf ckpt')
+        os.popen('rm -rf default_*')

@@ -82,11 +82,9 @@ Epsilon-Greedy
 Thompson sampling
 '''''''''''''''''
 
--  假设每个臂是否产生收益，其背后有一个概率分布，产生收益的概率为:math:`p`，同时该概率 :math:`p`的概率分布符合 :math:`Beta(wins,lose)`
-   分布，每个臂都维护一个 :math:`Beta` 分布。每次试验后，选中一个臂摇一下，有收益则该臂的 :math:`wins` 增加 1
-   ，否则该臂的 :math:`lose` 增加 1。
--  beta分布介绍：
-    https://www.zhihu.com/question/30269898
+-  假设每个臂是否产生收益，其背后有一个概率分布，产生收益的概率为 :math:`p`，同时该概率 :math:`p`的概率分布符合 :math:`Beta(wins,lose)`
+   分布，每个臂都维护一个 :math:`Beta` 分布。每次试验后，选中一个臂摇一下，有收益则该臂的 :math:`wins` 增加 1，否则该臂的 :math:`lose` 增加 1。
+-  beta分布介绍：https://www.zhihu.com/question/30269898
 -  选择方式：用每个臂现有的Beta分布产生随机数，选择随机数中最大的那个臂
 -  Thompson
    bandit算法的本质是后验证采样，性能与最好的无分布方法(UCB)相似
@@ -96,7 +94,8 @@ UCB（Upper Confidence Bound）
 
 -  对每一个臂都试一遍，之后在任意时刻 :math:`t` 
    按照如下公式计算每个臂的分数，然后选择分数最大的臂
-:math:`x_j(t) + \sqrt{\frac{2lnt}{T_{j,t}}}`
+
+   :math:`x_j(t) + \sqrt{\frac{2lnt}{T_{j,t}}}`
 
    其中 :math:`j` 为编号即表示第j臂， :math:`T_{j,t}` 为在t时刻第j个臂累计的被使用次数。
 -  UCB在简单的bandit算法中，是相对效果最好的一个
@@ -118,6 +117,7 @@ example
 - 回报(reward)
 - 价值函数(value function)
 - 贝尔曼方程(Bellman function)
+
 通过MDP过程，就能大致理解深度学习智能体环境交互的定义。
 
 .. note::
@@ -151,7 +151,10 @@ example
 
 DP的效率问题
  - 维度灾难最早就是指在DP过程中，state variable数量随维数指数增长导致的维度问题，后来在其他领域也得到了延伸
- `怎样理解 Curse of Dimensionality（维数灾难） <https://www.zhihu.com/question/27836140>`_
+
+.. note::
+
+ 怎样理解 Curse of Dimensionality（维数灾难） `<https://www.zhihu.com/question/27836140>`_
 
 用当前估计的 :math:`V(S_{t+1})` 代替真实的 :math:`v_{\pi}(S_{t+1})`
 
@@ -235,8 +238,8 @@ Q2: 什么是value-based， policy-based和actor-critic？ 分别有哪些算法
 
 Q3: 什么是on-policy和off-policy？
  - Answer：on-policy是使用当前的策略进行训练，用于生成采样数据序列的策略和用于实际决策的待评估和改进策略是相同的。 
- off-policy则是可以使用之前过程中的策略进行训练，用于生成采样数据序列的策略和用于实际决策的待评估和改进策略是不同的，即生成的数据“离开”了待优化的策略锁决定的决策序列轨迹。
- on-policy和off-policy只是训练方式的界限，在有时一个算法甚至可能有on-policy和off-policy的不同实现，理解概念即可。
+   off-policy则是可以使用之前过程中的策略进行训练，用于生成采样数据序列的策略和用于实际决策的待评估和改进策略是不同的，即生成的数据“离开”了待优化的策略锁决定的决策序列轨迹。
+   on-policy和off-policy只是训练方式的界限，在有时一个算法甚至可能有on-policy和off-policy的不同实现，理解概念即可。
 
 Q4: 什么是online training和offline training？我们通常如何实现offline training？
  - Answer： Offline training即是training时不使用actor与环境进行交互，而是直接使用fixed dataset作为算法的输入， 比如behavior cloning就是经典的Offline training算法。 我们通常使用batch为单位将fixed dataset输入，因此offline RL又称Batch RL。
@@ -244,7 +247,7 @@ Q4: 什么是online training和offline training？我们通常如何实现offlin
 
 Q5: 什么是expolration and expolitation？我们通常使用哪些方法平衡expolration and expolitation？
  - Answer：Expolration即是RL中的agent需要不断的去探索环境的不同状态，而Expolitation则是agent需要去选择当前状态下尽可能的收益高的动作。
- 平衡expolration and expolitation有很多种方式，在不同的算法中有不同的实现，比如可以采用一定概率选择随机动作，或者在动作选择时加入一定噪声等方式。
+   平衡expolration and expolitation有很多种方式，在不同的算法中有不同的实现，比如可以采用一定概率选择随机动作，或者在动作选择时加入一定噪声等方式。
 
 
 Q6: 什么是discrete space和continuous space？我们哪些算法适用于discrete space？哪些算法适用于continuous space？
@@ -280,7 +283,7 @@ actor-critic: a2c
 
 DQN
 ^^^^^^^
-DQN来自 `Playing Atari with Deep Reinforcement Learning <https://arxiv.org/abs/1312.5602>`_ 一文中被提出，将Q-learning的思路与神经网络结合。一年后做出了微小改进后又发表在 `Human-level control through deep reinforcement learning <https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf>`_ 一文;
+DQN在 `Playing Atari with Deep Reinforcement Learning <https://arxiv.org/abs/1312.5602>`_ 一文中被提出，将Q-learning的思路与神经网络结合。一年后做出了微小改进后又发表在 `Human-level control through deep reinforcement learning <https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf>`_ 一文;
 
 DQN使用神经网络接受state输入进行价值估计，然后使用argmax选择预计value最大的action作为策略，通过计算td-loss进行神经网络的梯度下降。
 
@@ -460,7 +463,7 @@ TRPO在梯度推导时大致就是：
 
 PPO1直接将两个策略的 :math:`KL(\theta, \theta')` 引入到梯度计算当中，通过直接计算
 :math:`J_{PPO1}^{\theta'}(\theta) = J^{\theta'}(\theta) - \beta KL(\theta, \theta')` ，
- 其中 :math:`\beta` 可以直接定为参数，也可以通过自适应调整。
+其中 :math:`\beta` 可以直接定为参数，也可以通过自适应调整。
 在求梯度的过程中自然的减少了两个策略的概率分布差距。
 
 而PPO2则是使用了Clipping的方式： 
@@ -618,12 +621,14 @@ reverb中实现的功能大致分为：
   - Prioritized Experience Replay
   - Queue
   - ...
+
  - Item selection strategies（sample时选择数据的方式），有以下实现：
   
   - Uniform 
   - Prioritized
   - FIFO/LIFO
   - MinHeap/MaxHeap
+
  - Checkpointing（自动存储当前reverb）
  - Rate Limiting
 
@@ -691,29 +696,29 @@ Rllib
     一个部分论文的链接: `传送门 <https://zhuanlan.zhihu.com/p/23600620>`_
 ..
 
-    Paper List
-    ^^^^^^^^^^
+Paper List
+^^^^^^^^^^
 
-    Q&A
-    ^^^^^
+Q&A
+^^^^^
 
-    MARL
-    ~~~~~~~~
+MARL
+~~~~~~~~
 
-    Paper List
-    ^^^^^^^^^^
+Paper List
+^^^^^^^^^^
 
-    Q&A
-    ^^^
+Q&A
+^^^
 
-    Large Scale RL Training
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Large Scale RL Training
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    Paper List
-    ^^^^^^^^^^
+Paper List
+^^^^^^^^^^
 
-    Q&A
-    ^^^^^^^
+Q&A
+^^^^^^^
 
 
     .. |img| image:: https://bkimg.cdn.bcebos.com/formula/6b72394d178730e1676d40f3824c2f46.svg

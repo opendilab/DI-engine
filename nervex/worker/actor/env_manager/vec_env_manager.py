@@ -20,11 +20,8 @@ class CloudpickleWrapper(object):
 
 
 class SubprocessEnvManager(BaseEnvManager):
-    def __init__(
-            self,
-            cfg: dict,
-    ) -> None:
-        super(SubprocessEnvManager, self).__init__(cfg)
+    def __init__(self, *args, **kwargs) -> None:
+        super(SubprocessEnvManager, self).__init__(*args, **kwargs)
         self._parent_remote, self._child_remote = zip(*[Pipe() for _ in range(self.env_num)])
         self._processes = [
             Process(target=self.worker_fn, args=(parent, child, CloudpickleWrapper(env)), daemon=True)

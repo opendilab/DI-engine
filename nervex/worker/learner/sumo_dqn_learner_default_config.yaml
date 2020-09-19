@@ -1,30 +1,21 @@
 common:
     name: TestSumoDqn
-    time_wrapper_type: cuda
     save_path: '.'
     load_path: ''
-    only_evaluate: False
-data:
-    train:
-        batch_size: 4
-        dataloader_type: 'online'
-train:
+learner:
     use_cuda: False
     use_distributed: False
-    max_iterations: 5
+    max_iterations: 10
     batch_size: 4
     learning_rate: 0.001
     weight_decay: 0.001
     reward_weights:
         'queue_len': 1.0
-    dqn:
-        total_frame_num: 1000000
-        max_epoch_frame: 2000
+    data:
         buffer_length: 10000
+    dqn:
         update_target_freq: 300
         discount_factor: 0.99
         is_double: True
-logger:
-    print_freq: 1
-    save_freq: 200
-    eval_freq: 200
+env:
+    placeholder: xxx

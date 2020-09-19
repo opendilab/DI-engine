@@ -2,29 +2,33 @@
 Copyright 2020 Sensetime X-lab. All Rights Reserved
 
 Main Function:
-    1. base class for model learning(SL/RL) on linklink, including basic processes.
+    1. base class for model learning
 """
-import numbers
-import os
-
-import numpy as np
+from abc import ABC, abstractmethod, abstractproperty
+from typing import Any, Union
+import yaml
+import os.path as osp
+from easydict import EasyDict
 import torch
+from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer, to_device
+from nervex.utils import build_logger, dist_init, EasyTimer, dist_finalize, pretty_print, merge_dicts, read_config,\
+    get_task_uid
+from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, LearnerHook
 
-from nervex.worker.agent.alphastar_agent import BaseAgent
-from nervex.torch_utils import build_checkpoint_helper, auto_checkpoint, CountVar
-from nervex.utils import build_logger, dist_init, dist_finalize, allreduce, EasyTimer
+default_config = read_config(osp.join(osp.dirname(__file__), "base_learner_default_config.yaml"))
 
 
-class Learner:
+class BaseLearner(ABC):
     r"""
     Overview:
         base class for model learning(SL/RL), which uses linklink for multi-GPU learning
     Interface:
-        __init__, run, finalize, save_checkpoint, evaluate, restore
+        __init__, register_stats, run, close, call_hook, info, save_checkpoint
     """
-    _name = "BaseSupervisedLearner"  # override this variable for high-level learner
 
-    def __init__(self, cfg):
+    _name = "BaseLearner"  # override this variable for sub-class learner
+
+    def __init__(self, cfg: EasyDict) -> None:
         """
         Overview:
             initialization method, using config setting to build model, dataset, optimizer, lr_scheduler
@@ -37,333 +41,284 @@ class Learner:
 
             os.environ['CUDA_LAUNCH_BLOCKING'] = "1"  # for debug async CUDA
         """
-        assert "Base" not in self._name, "You should subclass base learner to get a runnable learner!"
-
-        # parse config
-        self.cfg = cfg
-        self.use_distributed = cfg.train.use_distributed
-        self.use_cuda = cfg.train.use_cuda
-        self.train_dataloader_type = cfg.data.train.dataloader_type
-        if self.train_dataloader_type == 'epoch':
-            self.max_epochs = cfg.train.max_epochs
-            self.max_iterations = np.inf
+        self._learner_uid = get_task_uid()
+        self._cfg = merge_dicts(default_config, cfg)
+        self._load_path = self._cfg.common.load_path
+        self._save_path = self._cfg.common.save_path
+        self._use_cuda = self._cfg.learner.use_cuda
+        self._use_distributed = self._cfg.learner.use_distributed
+        if self._use_distributed:
+            self._rank, self._world_size = dist_init()
         else:
-            self.max_iterations = int(float(cfg.train.max_iterations))
-        self.use_cuda = cfg.train.use_cuda
-        if self.use_distributed:
-            self.rank, self.world_size = dist_init()  # initialize rank and world size for linklink
-        else:
-            self.rank, self.world_size = 0, 1
-        if self.use_cuda and not torch.cuda.is_available():
-            import logging
-            logging.error("You do not have GPU! If you are not testing locally, something is going wrong.")
-            self.use_cuda = False
-        assert self.train_dataloader_type in ['epoch', 'iter', 'online']
+            self._rank, self._world_size = 0, 1
+        self._default_max_iterations = self._cfg.learner.max_iterations
+        self._last_iter = CountVar(init_val=0)
+        self._timer = EasyTimer()
 
-        # build model
-        self.agent = self._setup_agent()  # build model by policy from alphaStar
-        assert isinstance(self.agent, BaseAgent)
+        self._setup_data_source()
+        self._setup_agent()
+        self._setup_optimizer()
+        self._setup_computation_graph()
 
-        # build data source
-        self.dataset, self.dataloader, self.eval_dataloader = self._setup_data_source()
+        # logger
+        self._logger, self._tb_logger, self._record = build_logger(self._cfg, rank=self._rank)
+        self._log_buffer = build_log_buffer()
+        # checkpoint helper
+        self._checkpointer_manager = build_checkpoint_helper(self._cfg, rank=self._rank)
+        self.register_stats()
+        self.info(
+            pretty_print(
+                {
+                    "config": self._cfg,
+                    "agent": repr(self._agent),
+                    "computation_graph": repr(self._computation_graph)
+                },
+                direct_print=False
+            )
+        )
 
-        # build optimizer
-        self.optimizer = self._setup_optimizer(self.agent)
-        self.lr_scheduler = self._setup_lr_scheduler(self.optimizer)
+        self._setup_wrapper()
+        self._setup_hook()
 
-        # build logger
-        if self.rank == 0:  # only one thread need to build logger
-            self.logger, self.tb_logger, self.variable_record = self._setup_logger(self.rank)
-            #self.logger.info('cfg:\n{}'.format(self.cfg))
-            #self.logger.info('model:\n{}'.format(self.agent))
-            self._setup_stats()
-        else:
-            self.logger, _, _ = self._setup_logger(self.rank)
-        self.last_iter = CountVar(init_val=0)  # count for iterations
-        self.last_epoch = CountVar(init_val=0)  # count for epochs
-        self.last_frame = CountVar(init_val=0)  # count for frames
-        self.data_timer = EasyTimer()
-        self.total_timer = EasyTimer()
-
-        # build checkpoint helper
-        self._setup_checkpoint_manager()
-
-    def _setup_data_source(self):
-        raise NotImplementedError()
-
-    def _setup_agent(self):
-        """Build the agent object of learner, which is the runtime object of model"""
-        raise NotImplementedError()
-
-    def _setup_optimizer(self, model):
-        """Build a training optimizer"""
-        raise NotImplementedError()
-
-    def evaluate(self):
-        r"""
-        Overview:
-            evaluate training result(usually used in SL/IL setting)
-        """
-        pass
-
-    def _setup_stats(self):
-        """Setup algorithm specify statistics."""
-        pass
-
-    def _setup_lr_scheduler(self, optimizer):
+    def _setup_hook(self) -> None:
         """
         Overview:
-            setup lr scheduler, you can refer to `PyTorch lr_scheduler interface <https://pytorch.org/docs/master/\
-            optim.html#how-to-adjust-learning-rate>`_ for reference, we also implement some customized lr_schedulers
-        Arguments:
-            - optimizer (:obj:`torch.optim.Optimizer`): optimizer
+            Setup hook for base_learner. Hook is the way to implement actually functions in base_learner.
+            You can reference learner_hook.py
         """
-        pass
+        self._hooks = build_learner_hook_by_cfg(self._cfg.learner.hook)
 
-    def _record_additional_info(self, iterations):
-        r"""
-        Overview:
-            empty interface to record additional info on logger, learner subclass can override this inferface to
-            add its own information into logger and tensorboard.
-        Arguments:
-            - iterations (:obj:`int`): iteration number
-        """
-        pass
-
-    def _update_data_priority(self, data, var_items):
-        pass
-
-    def _preprocess_data(self, data):
+    def _setup_wrapper(self) -> None:
         """
         Overview:
-            interface for specific preprocess for input data
+            Setup time_wrapper to get the data_time and train_time
         """
+        self._get_data = self.time_wrapper(self._get_data, 'data_time')
+        self._train = self.time_wrapper(self._train, 'train_time')
+
+    def time_wrapper(self, fn, name):
+        """
+        Overview:
+            The time_wrapper used to get the time a function used
+        """
+        def wrapper(*args, **kwargs):
+            with self._timer:
+                ret = fn(*args, **kwargs)
+            self._log_buffer[name] = self._timer.value
+            return ret
+
+        return wrapper
+
+    @abstractmethod
+    def _setup_data_source(self) -> None:
+        """
+        Overview:
+            Setup learner's data_source, data_source need to be iterable
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def _setup_agent(self) -> None:
+        """
+        Overview:
+            Setup learner's runtime agent, agent is the subclass instance of `BaseAgent`.
+            There may be more than one agent.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def _setup_computation_graph(self) -> None:
+        """
+        Overview:
+            Setup computation_graph, used as loss calculater, part of the optimizer
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def _setup_optimizer(self) -> None:
+        """
+        Overview:
+            Setup learner's optimizer
+        """
+        raise NotImplementedError
+
+    def _get_data(self) -> Any:
+        """
+        Overview:
+            get data from data_source
+        """
+        data = next(self._data_source)
+        if self._use_cuda:
+            data = to_device(data, 'cuda')
         return data
 
-    # === Functions that should not be override. ===
-    def _setup_logger(self, rank):
-        """Setup logger"""
-        return build_logger(self.cfg, rank=rank)
-
-    def _setup_checkpoint_manager(self):
-        self.checkpoint_manager = build_checkpoint_helper(self.cfg.common.save_path, self.rank)
-        if self.train_dataloader_type == 'epoch':
-            self.ckpt_dataset = self.dataset
-        elif self.train_dataloader_type in ['iter', 'online']:
-            # iter type doesn't save some context
-            self.ckpt_dataset = None
-        else:
-            raise NotImplementedError()
-        if self.cfg.common.load_path != '':
-            self.restore(self.cfg.common.load_path)
-            self.last_epoch.add(1)  # skip interrupted epoch
-            self.last_iter.add(1)  # skip interrupted iter
-            self.last_frame.add(1)
-
-    def _check_checkpoint_path(self, ckpt):
-        """ Validate the checkpoint """
-        return os.path.exists(ckpt)
-
-    def restore(self, checkpoint_path=None):
-        r"""
-        Overview:
-            restore learner from checkpoint_path
-        Arguments:
-            - checkpoint_path (:obj:`str`): the checkpoint path to load from, if None then set to cfg.common.load_path
+    def _train(self, data: Any) -> dict:
         """
-        checkpoint_path = checkpoint_path or self.cfg.common.load_path
-        ckpt_ok = self._check_checkpoint_path(checkpoint_path)
-        if ckpt_ok:
-            self.checkpoint_manager.load(
-                checkpoint_path,
-                self.agent.get_model(),
-                optimizer=self.optimizer,
-                last_frame=self.last_frame,
-                last_iter=self.last_iter,
-                last_epoch=self.last_epoch,  # TODO last_epoch for lr_scheduler
-                dataset=self.ckpt_dataset,
-                logger_prefix='({})'.format(self._name)
-            )
-        self.last_frame.update(int(self.last_frame.val / self.world_size))  # adjust to different GPUs
-
-    def save_checkpoint(self):
-        r"""
         Overview:
-            save checkpoint named by current iteration(only rank 0)
+            train the input data for 1 iteration
         """
-        if self.rank == 0:
-            self.checkpoint_manager.save_iterations(
-                self.last_iter.val,
-                self.agent.model,
-                optimizer=self.optimizer,
-                # dataset=self.dataset,
-                dataset=None,
-                last_epoch=self.last_epoch.val,
-                last_frame=self.last_frame.val * self.world_size  # total frames from all GPUs
-            )
+        # Note
+        # processes: forward -> backward -> sync grad(only dist) -> update param
+        with self._timer:
+            log_vars = self._computation_graph.forward(data, self._agent)
+            loss = log_vars['total_loss']
+        self._log_buffer['forward_time'] = self._timer.value
+
+        with self._timer:
+            self._optimizer.zero_grad()
+            loss.backward()
+            if self._use_distributed:
+                self._agent.sync_gradients()
+            self._optimizer.step()
+        self._log_buffer['backward_time'] = self._timer.value
+        self._log_buffer.update(log_vars)
+
+    def register_stats(self) -> None:
+        """
+        Overview:
+            register cur_lr, data_time, train_time to record, and register record to optimizer
+        """
+        self._record.register_var('cur_lr')
+        self._record.register_var('data_time')
+        self._record.register_var('train_time')
+        self._record.register_var('forward_time')
+        self._record.register_var('backward_time')
+
+        self._tb_logger.register_var('cur_lr')
+        self._tb_logger.register_var('data_time')
+        self._tb_logger.register_var('train_time')
+        self._tb_logger.register_var('forward_time')
+        self._tb_logger.register_var('backward_time')
+
+        self._computation_graph.register_stats(self._record, self._tb_logger)
+
+    def register_hook(self, hook: LearnerHook):
+        add_learner_hook(self._hooks, hook)
 
     @auto_checkpoint
-    def run(self):
-        r"""
-        Overview:
-            train / evaluate model with dataset in numbers of epoch, main loop of Learner,
-            and will automatically save checkpoints periodically
-            wrapped by auto_checkpoint in checkpoint_helper, you can reference checkpoint_helper.auto_checkpoint
-        """
-
-        if self.cfg.common.only_evaluate:
-            self.evaluate()
-            return
-
-        if self.train_dataloader_type == 'epoch':
-            while self.last_epoch.val < self.max_epochs:
-                # TODO(pzh) need further consideration on this function.
-                if hasattr(self.dataloader.dataset, 'step'):  # call dataset.step()
-                    self.dataloader.dataset.step()
-                if self.lr_scheduler is not None:
-                    self.lr_scheduler.step()  # update lr
-                self._run()
-                self.last_epoch.add(1)
-        elif self.train_dataloader_type in ['iter', 'online']:
-            self._run()
-
-        self.save_checkpoint()
-
-    def _run(self):
+    def run(self, max_iterations: Union[int, None] = None) -> None:
         """
         Overview:
-            the pipeline of one iteration(data prepare, forward, backward)
-        """
-        while self.last_iter.val < self.max_iterations:
-            with self.total_timer:
-                with self.data_timer:
-                    try:
-                        batch_data = next(iter(self.dataloader))
-                    except StopIteration:  # for limited length dataloader
-                        return
-                    processed_data, data_stats = self._preprocess_data(batch_data)
-                var_items, time_stats = self.optimizer.learn(processed_data)
-                var_items['cur_lr'] = self.lr_scheduler.get_lr()[0]
-                var_items['epoch'] = self.last_epoch.val
-                var_items.update(data_stats)
-
-                self._update_data_priority(processed_data, var_items)
-            time_stats.update(
-                data_time=self.data_timer.value,
-                total_batch_time=self.total_timer.value,
-            )
-            self._manage_learning_information(var_items, time_stats)
-
-            self.last_iter.add(1)
-            # periodically evaluate
-            if self.last_iter.val % self.cfg.logger.eval_freq == 0:
-                self.evaluate()
-
-    def _manage_learning_information(self, var_items, time_items):
-        """
-        Overview:
-            manage the information produced by learning iteration, such as loss/criterion, time and other viz info
+            Run the learner
         Arguments:
-            - var_items (:obj:`dict`) var_items: other variable items(e.g.: loss, acc)
-            - time_items (:obj:`dict`) time_items: time items
+            - max_iterations (:obj:`int` or :obj:`None`): the max run iteration,
+                if None then set to default_max_iterations
         """
+        if max_iterations is None:
+            max_iterations = self._default_max_iterations
+        # before run hook
+        self.call_hook('before_run')
 
-        # if use multi-GPU training, you should first aggregate these items among all the ranks
-        if self.use_distributed:
-            var_items = aggregate(var_items)
-            time_items = aggregate(time_items)
+        for _ in range(max_iterations):
+            data = self._get_data()
+            # before iter hook
+            self.call_hook('before_iter')
+            log_vars = self._train(data)
+            # after iter hook
+            self.call_hook('after_iter')
+            self._last_iter.add(1)
 
-        if self.rank != 0:
-            return
+        # after run hook
+        self.call_hook('after_run')
 
-        keys = list(self.variable_record.get_var_names('scalar')) + list(self.variable_record.get_var_names('1darray'))
-        self.variable_record.update_var(transform_dict(var_items, keys))
-        self.variable_record.update_var(time_items)
-
-        iterations = self.last_iter.val
-        total_frames = self.last_frame.val * self.world_size
-        total_frames -= total_frames % 100
-        # periodically print training info
-        if iterations % self.cfg.logger.print_freq == 0:
-            self.logger.info("=== Training Iteration {} Result ===".format(self.last_iter.val))
-            self.logger.info('iterations:{}\t{}'.format(iterations, self.variable_record.get_vars_text()))
-            tb_keys = self.tb_logger.scalar_var_names
-            self.tb_logger.add_val_list(
-                self.variable_record.get_vars_tb_format(tb_keys, total_frames, var_type='scalar'), viz_type='scalar'
-            )
-            self._record_additional_info(iterations)
-
-        # periodically save checkpoint
-        if iterations % self.cfg.logger.save_freq == 0:
-            self.save_checkpoint()
-
-    def finalize(self):
-        r"""
+    def close(self) -> None:
+        """
         Overview:
-            finalize learner at the end of training, used to clean sources such as finalizing linklink if used
-            distributed
+            Close linklink if use_distributed
         """
-        if self.use_distributed:
+        if self._use_distributed:
             dist_finalize()
 
+    def call_hook(self, name: str) -> None:
+        """
+        Overview:
+            Call the corresponding hook plugins according to name
+        Arguments:
+             - name (:obj:`str`): which hooks to call,
+                should be in ['before_run', 'after_run', 'before_iter', 'after_iter']
+        """
+        for hook in self._hooks[name]:
+            hook(self)
 
-class SupervisedLearner(Learner):
-    r"""
-    Overview:
-        An abstract supervised learning learner class
-    """
-    _name = "BaseSupervisedLearner"
+    def info(self, s: str) -> None:
+        """
+        Overview:
+            Return logger.info
+        """
+        self._logger.info(s)
 
+    def save_checkpoint(self) -> None:
+        """
+        Overview:
+            Automatically save checkpoints
+        Note:
+            this method is designed for auto_checkpoint
+        """
+        names = [h.name for h in self._hooks['after_run']]
+        assert 'save_ckpt_after_run' in names
+        idx = names.index('save_ckpt_after_run')
+        self._hooks['after_run'][idx](self)
 
-def transform_dict(var_items, keys):
-    r"""
-    Overview:
-        transform a dict's certain key's tensor value into item or list type, and return the transformed dict
-    Arguments:
-        - var_items (:obj:`dict`): dict of var_items, value of with might be tensors
-        - keys (:obj:`str`): keys of new_dict to return
-    Returns:
-        - new_dict (:obj:`dict`): the transformed dict
-    """
-    new_dict = {}
-    for k in keys:
-        if k in var_items.keys():
-            v = var_items[k]
-            if isinstance(v, torch.Tensor):
-                if v.shape == (1, ):
-                    v = v.item()  # get item
-                else:
-                    v = v.tolist()
-            else:
-                v = v
-            new_dict[k] = v
-    return new_dict
+    @property
+    def last_iter(self) -> CountVar:
+        return self._last_iter
 
+    @property
+    def optimizer(self) -> torch.optim.Optimizer:
+        return self._optimizer
 
-def aggregate(data):
-    r"""
-    Overview:
-        aggregate the information from all ranks(usually use sync allreduce)
-    Arguments:
-        - data (:obj:`dict`): data needs to be reduced. Could be dict, torch.Tensor, numbers.Integral or numbers.Real.
-    Returns:
-        - new_data (:obj:`dict`): data after reduce
-    """
-    if isinstance(data, dict):
-        new_data = {}
-        for k, v in data.items():
-            new_data[k] = aggregate(v)
-    elif isinstance(data, list):
-        new_data = []
-        for t in data:
-            new_data.append(aggregate(t))
-    elif isinstance(data, torch.Tensor):
-        new_data = data.clone()
-        allreduce(new_data)  # get data from other processes
-    elif isinstance(data, numbers.Integral) or isinstance(data, numbers.Real):
-        new_data = torch.scalar_tensor(data).reshape([1])
-        allreduce(new_data)
-        new_data = new_data.item()
-    else:
-        raise TypeError("invalid info type: {}".format(type(data)))
-    return new_data
+    @property
+    def lr_scheduler(self) -> torch.optim.lr_scheduler._LRScheduler:
+        return self._lr_scheduler
+
+    @property
+    def computation_graph(self) -> Any:
+        return self._computation_graph
+
+    @property
+    def agent(self) -> 'BaseAgent':  # noqa
+        return self._agent
+
+    @property
+    def log_buffer(self) -> dict:  # LogDict
+        return self._log_buffer
+
+    @log_buffer.setter
+    def log_buffer(self, _log_buffer: dict) -> None:
+        self._log_buffer = _log_buffer
+
+    @property
+    def record(self) -> 'VariableRecord':  # noqa
+        return self._record
+
+    @property
+    def load_path(self) -> str:
+        return self._load_path
+
+    @load_path.setter
+    def load_path(self, _load_path: str) -> None:
+        self._load_path = _load_path
+
+    @property
+    def save_path(self) -> str:
+        return self._save_path
+
+    @property
+    def checkpoint_manager(self) -> Any:
+        return self._checkpointer_manager
+
+    @property
+    def name(self) -> str:
+        return self._name + str(id(self))
+
+    @property
+    def rank(self) -> int:
+        return self._rank
+
+    @property
+    def tb_logger(self) -> 'TensorBoardLogger':  # noqa
+        return self._tb_logger
+
+    @property
+    def use_distributed(self) -> bool:
+        return self._use_distributed

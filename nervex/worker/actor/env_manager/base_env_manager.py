@@ -1,17 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import Union, Any, List, Callable
+from typing import Union, Any, List, Callable, Iterable
 
 
 class BaseEnvManager(ABC):
-    def __init__(self, cfg: dict) -> None:
-        self._cfg = cfg
-        self._env_num = cfg.env_num
-        self._init()
-        assert hasattr(self, '_envs')
-
-    @abstractmethod
-    def _init(self) -> None:
-        raise NotImplementedError
+    def __init__(self, env_fn: Callable, env_cfg: Iterable, env_num: int) -> None:
+        self._env_num = env_num
+        self._envs = [env_fn(c) for c in env_cfg]
+        assert len(self._envs) == self._env_num
 
     def __getattr__(self, key: str) -> Any:
         """
@@ -29,10 +24,11 @@ class BaseEnvManager(ABC):
         self._env_done = {}
         for i in (env_id if env_id is not None else range(self.env_num)):
             self._env_done[i] = False
-        return self._execute_by_envid('reset', param=reset_param, env_id=env_id)
+        obs = self._execute_by_envid('reset', param=reset_param, env_id=env_id)
+        return self._envs[0].pack(obs=obs)
 
     def step(self, action: List[Any], env_id: Union[None, List[int]] = None) -> Union[list, dict]:
-        param = [{'action': act} for act in action]
+        param = self._envs[0].unpack(action)
         ret = self._execute_by_envid('step', param=param, env_id=env_id)
         if isinstance(ret, list):
             for i, t in enumerate(ret):
@@ -40,7 +36,7 @@ class BaseEnvManager(ABC):
         elif isinstance(ret, dict):
             for k, v in ret.items():
                 self._env_done[k] = v.done
-        return ret
+        return self._envs[0].pack(timesteps=ret)
 
     def seed(self, seed: List[int], env_id: Union[None, List[int]] = None) -> None:
         param = [{'seed': s} for s in seed]

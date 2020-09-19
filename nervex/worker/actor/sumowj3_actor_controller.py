@@ -8,7 +8,8 @@ from typing import List, Dict
 from nervex.worker.actor.base_actor_controller import BaseActor
 from nervex.model.sumo_dqn.sumo_dqn_network import FCDQN
 from nervex.worker.agent.sumo_dqn_agent import SumoDqnActorAgent
-from nervex.worker.actor.env_manager.sumowj3_env_manager import SumoWJ3EnvManager
+from nervex.worker.actor.env_manager import SubprocessEnvManager
+from nervex.envs.sumo import SumoWJ3Env, FakeSumoWJ3Env
 from nervex.utils import get_step_data_compressor
 
 
@@ -17,8 +18,8 @@ class SumoWJ3Actor(BaseActor):
     def _init_with_job(self, job: dict) -> None:
         super()._init_with_job(job)
         self._job = job
-        self._setup_agents()
         self._setup_env_manager()
+        self._setup_agents()
         self._compressor = get_step_data_compressor(self._job['compressor'])
         self._episode_result = []
 
@@ -28,13 +29,18 @@ class SumoWJ3Actor(BaseActor):
 
     def _setup_env_manager(self) -> None:
         env_cfg = self._cfg.env
-        env_cfg.env_num = self._job['env_num']
-        self._env_manager = SumoWJ3EnvManager(env_cfg)
+        env_fn_mapping = {'normal': SumoWJ3Env, 'fake': FakeSumoWJ3Env}
+        env_fn = env_fn_mapping[env_cfg.env_type]
+        env_num = self._job['env_num']
+        self._env_manager = SubprocessEnvManager(
+            env_fn=env_fn, env_cfg=[env_cfg for _ in range(env_num)], env_num=env_num
+        )
 
     def _setup_agents(self):
         self._agents = {}
+        env_info = self._env_manager._envs[0].info()
         for name, agent_cfg in self._job['agent'].items():
-            model = FCDQN(380, [2, 2, 3])
+            model = FCDQN(env_info.obs_space.shape, list(env_info.act_space.shape.values()))
             agent = SumoDqnActorAgent(model)
             self._agents[name] = agent
 

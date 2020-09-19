@@ -30,7 +30,7 @@ def get_pid():
     return os.getpid()
 
 
-def get_actor_uid():
+def get_task_uid():
     t = time.time()
     return os.getenv('SLURM_JOB_ID', 'PID' + str(get_pid()) + 'UUID' + str(uuid.uuid1())) + '_' + str(t)
 
@@ -51,9 +51,3 @@ def get_manager_node_ip(node_ip=None):
         'I don\'t know where is the manager node of this cluster'\
         'Please add it to the MANAGER_NODE_TABLE in {}'.format(__file__)
     return MANAGER_NODE_TABLE[learner_manager_ip_prefix]
-
-
-if __name__ == "__main__":
-    print('ip', get_ip())
-    print('pid', get_pid())
-    print('actor id', get_actor_uid())
