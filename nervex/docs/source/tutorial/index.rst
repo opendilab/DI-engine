@@ -186,8 +186,9 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
                 },
             })
             # whether use double(target) q-network plugin
+            self.is_double = is_double
             if plugin_cfg['is_double']:
-                self.plugin_cfg['target_network'] = {'update_cfg': {'type': 'momentum', 'kwargs': {'theta': 0.99}}}
+                self.plugin_cfg['target_network'] = {'update_cfg': {'type': 'momentum', 'kwargs': {'theta': 0.001}}}
             super(CartpoleDqnLearnerAgent, self).__init__(model, self.plugin_cfg)
 
 
@@ -205,6 +206,92 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
 
 搭建强化学习训练策略
 ^^^^^^^^^^^^^^^^^^^^^
+在nerveX中，构建算法训练主要需要使用者完成个人定制化的 ``computation graph`` (计算图)和 ``learner`` (学习器) 两部分。
 
-搭建数据交互生成器
+计算图是在给定数据和模型（智能体）之后，执行相应前向计算过程得到优化目标（loss）的模块，负责将预处理好后的数据合理地送入模型进行处理，之后使用模型输出结果计算该次迭代的优化目标，返回相关结果。
+
+.. note::
+
+    注意 **一个模型** 在训练时可能会选择 **多种不同的计算图** 进行优化（比如各种RL算法或是加上监督学习SL）。 **多个模型** 也可能执行 **同一个计算图** （比如多种网络结构的模型都执行TD-error（时序差分）RL算法进行更新）。故一般相关的状态变量都在模型的运行时抽象——智能体（Agent）中维护。下面是Cartpole使用Double DQN方法的计算图：
+
+.. code:: python
+
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+    from typing import Optional
+
+    from nervex.worker import BaseAgent
+    from nervex.computation_graph import BaseCompGraph
+    from nervex.rl_utils import td_data, one_step_td_error
+
+
+    class CartpoleDqnGraph(BaseCompGraph):
+        """
+        Overview: Double DQN with eps-greedy
+        """
+        def __init__(self, cfg: dict) -> None:
+            self._gamma = cfg.dqn.discount_factor
+
+        def forward(self, data: dict, agent: BaseAgent) -> dict:
+            obs = data.get('obs')
+            nextobs = data.get('next_obs')
+            reward = data.get('reward')
+            action = data.get('action')
+            terminate = data.get('done')
+            weights = data.get('weights', None)
+
+            q_value = agent.forward(obs)
+            if agent.is_double:
+                target_q_value = agent.target_forward(nextobs)
+            else:
+                target_q_value = agent.forward(nextobs)
+
+            data = td_data(q_value, target_q_value, action, reward, terminate)
+            loss = one_step_td_error(data, self._gamma, weights)
+            if agent.is_double:
+                agent.update_target_network(agent.state_dict()['model'])
+            return {'total_loss': loss}
+
+学习器维护整个训练pipeline，根据当前设定的数据源，模型，计算图完成训练迭代，输出即时的训练日志信息和其他结果。同时，作为整个系统的一种功能模块，和其他模块进行通信交互，传递当前算法训练的相关信息。一般来说，使用者首先应该关注训练迭代过程，关于学习器和数据生成器等其他模块的交互，将在之后复杂多机分布式版本的指南中介绍。Cartpole DQN的学习器示例如下：
+
+.. code:: python
+
+    import torch
+    from nervex.worker import BaseLearner
+
+
+    class CartpoleDqnLearner(BaseLearner):
+        _name = "CartpoleDqnLearner"
+
+        def __init__(self, cfg: dict):
+            super(CartpoleDqnLearner, self).__init__(cfg)
+
+        def _setup_agent(self):
+            sumo_env = CartpoleEnv(self._cfg.env)
+            model = FCDQN(sumo_env.info().obs_space.shape, sumo_env.info().act_shape.shape)
+            if self._cfg.learner.use_cuda:
+                model.cuda()
+            self._agent = CartpoleDqnLearnerAgent(model, plugin_cfg={'is_double': self._cfg.learner.dqn.is_double})
+            self._agent.mode(train=True)
+            if self._agent.is_double:
+                self._agent.target_mode(train=True)
+
+        def _setup_computation_graph(self):
+            self._computation_graph = CartpoleDqnGraph(self._cfg.learner)
+
+搭建数据队列
 ^^^^^^^^^^^^^^^^^^
+学习器和数据生成器通过数据队列进行数据帧的交互，该模块除了简单的先入先出队列之外，还集成了一些数据质量分析和数据采样的相关操作，具体API可以参见 `Prioritized Experience Replay <../package_ref/data/buffer.html>`_ 。具体使用的样例如下：
+
+.. code:: python
+
+    from from nervex.data.structure.buffer import PrioritizedBuffer 
+
+
+    buffer = PrioritizedBufferWrapper(maxlen=10000)
+
+    data = buffer.sample(4)  # sample 4 transitions
+    buffer.append(data[0])  # add 1 transition
+
+以上指南简述了如何基于nerveX搭建一个最简单的DRL训练pipeline，完整可运行的示例代码可以参见 ``nervex/entry/cartpole_main.py``。
