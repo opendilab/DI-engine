@@ -17,7 +17,7 @@ from typing import Optional
 from nervex.envs.sumo.sumo_env import SumoWJ3Env
 from nervex.worker.learner.sumo_dqn_learner import SumoDqnLearner
 from nervex.worker import SubprocessEnvManager
-from nervex.data.structure.buffer import PrioritizedBufferWrapper
+from nervex.data.structure.buffer import PrioritizedBuffer
 from nervex.data.collate_fn import sumo_dqn_collate_fn
 from nervex.worker.agent.sumo_dqn_agent import SumoDqnActorAgent
 from nervex.torch_utils import to_device
@@ -61,7 +61,7 @@ class SumoDqnRun():
         self.batch_size = self.cfg.learner.batch_size
         env_num = cfg.env.env_num
         self.env = SubprocessEnvManager(SumoWJ3Env, env_cfg=[cfg.env for _ in range(env_num)], env_num=env_num)
-        self.buffer = PrioritizedBufferWrapper(cfg.learner.data.buffer_length, max_reuse=cfg.learner.data.max_reuse)
+        self.buffer = PrioritizedBuffer(cfg.learner.data.buffer_length, max_reuse=cfg.learner.data.max_reuse)
         self.bandit = epsilon_greedy(0.95, 0.03, 10000)
         self.learner = SumoDqnLearner(self.cfg)
         self.actor_agent = SumoDqnActorAgent(self.learner.agent.model)
@@ -75,7 +75,12 @@ class SumoDqnRun():
     def _setup_data_source(self):
         def data_iterator():
             while True:
-                yield sumo_dqn_collate_fn(next(self.buffer.iterable_sample(self.batch_size)))
+                while True:
+                    data = self.buffer.sample(self.batch_size)
+                    if data is not None:
+                        break
+                    time.sleep(5)
+                yield sumo_dqn_collate_fn(data)
 
         self.learner._data_source = data_iterator()
 
