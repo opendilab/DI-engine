@@ -37,7 +37,10 @@ class SumoDqnLearner(BaseLearner):
     @override(BaseLearner)
     def _setup_agent(self):
         sumo_env = SumoWJ3Env(self._cfg.env)
-        model = FCDQN(sumo_env.info().obs_space.shape, [v for k, v in sumo_env.info().act_space.shape.items()])
+        model = FCDQN(
+            sumo_env.info().obs_space.shape, [v for k, v in sumo_env.info().act_space.shape.items()],
+            dueling=self._cfg.learner.dqn.dueling
+        )
         if self._cfg.learner.use_cuda:
             model.cuda()
         self._agent = SumoDqnLearnerAgent(model, plugin_cfg={'is_double': self._cfg.learner.dqn.is_double})

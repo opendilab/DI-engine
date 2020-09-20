@@ -1,1 +1,1 @@
-from .actor_critic import *
+from .common_arch import *
