@@ -5,5 +5,6 @@ Developer Guide
 .. toctree::
    :maxdepth: 2
 
-   code_review
+   git_guide
    doc_contribution
+   code_review
