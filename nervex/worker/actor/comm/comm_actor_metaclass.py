@@ -1,10 +1,11 @@
+from abc import ABCMeta
 from .base_comm_actor import BaseCommActor
 from .flask_fs_actor import FlaskFileSystemActor
 
 comm_map = {'flask_fs': FlaskFileSystemActor}
 
 
-class ActorCommMetaclass(type):
+class ActorCommMetaclass(ABCMeta):
     def __new__(cls, name, bases, attrs):
         if '__init__' in attrs.keys():
             attrs['__init__'] = cls.enable_comm_helper(attrs['__init__'])

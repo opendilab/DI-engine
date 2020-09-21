@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import namedtuple
 from typing import Any
+from nervex.utils import SingletonMetaclass
 
 
 class IEnvElement(ABC):
@@ -14,7 +15,7 @@ class IEnvElement(ABC):
         raise NotImplementedError
 
 
-class EnvElement(IEnvElement):
+class EnvElement(IEnvElement, metaclass=SingletonMetaclass):
     info_template = namedtuple('EnvElementInfo', ['shape', 'value', 'to_agent_processor', 'from_agent_processor'])
     _instance = None
     _name = 'EnvElement'
@@ -27,13 +28,6 @@ class EnvElement(IEnvElement):
         # self._from_agent_processor = None
         self._init(*args, **kwargs)
         self._check()
-
-    def __new__(cls, *args, **kwargs):
-        """Singleton design"""
-        if cls._instance is None:
-            # after python3.3, user don't need to pass the extra arguments to the `object` method which is overrided
-            cls._instance = object.__new__(cls)
-        return cls._instance
 
     @abstractmethod
     def _init(*args, **kwargs) -> None:
