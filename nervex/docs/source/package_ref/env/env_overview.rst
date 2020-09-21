@@ -97,6 +97,9 @@ Environment
 
         .. code:: python
 
+            from nervex.utils import SingletonMetaclass
+
+
             class IEnvElement(ABC):
                 @abstractmethod
                 def __repr__(self) -> str:
@@ -108,7 +111,7 @@ Environment
                     raise NotImplementedError
 
 
-            class EnvElement(IEnvElement):
+            class EnvElement(IEnvElement, metaclass=SingletonMetaclass):
                 info_template = namedtuple('EnvElementInfo', ['shape', 'value', 'to_agent_processor', 'from_agent_processor'])
                 _instance = None
                 _name = 'EnvElement'
@@ -121,13 +124,6 @@ Environment
                     # self._from_agent_processor = None
                     self._init(*args, **kwargs)
                     self._check()
-
-                def __new__(cls, *args, **kwargs):
-                    """Singleton design"""
-                    if cls._instance is None:
-                        # after python3.3, user don't need to pass the extra arguments to the `object` method which is overrided
-                        cls._instance = object.__new__(cls)
-                    return cls._instance
 
                 @abstractmethod
                 def _init(*args, **kwargs) -> None:
@@ -242,8 +238,3 @@ Environment
     1. 所有代码实现中命名一律使用名词单数，约定为习惯
     2. 所有代码实现秉承 **自身对外界输入质疑，自身对外界输出负责** 的思想，对输入参数做必要的check，对输出（返回值）明确规定其格式
     3. 环境元素的键值如果为空时，一律使用 `None`, 从重构版本开始废除 `'none'` 的用法。
-
-
-TODO
-    1. 完善每个类的类型注解
-    2. 完善每个类的接口注释，并完成自动文档的生成
