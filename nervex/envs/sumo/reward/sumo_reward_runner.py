@@ -24,10 +24,12 @@ class SumoRewardRunner(EnvElementRunner):
         self._reward_type = self._core._reward_type
         self._last_wait_time = 0
         self._last_vehicle_info = {}
+        self._cum_reward = {k: 0 for k in self._reward_type}
 
     def reset(self) -> None:
         self._last_wait_time = 0
         self._last_vehicle_info = {}
+        self._cum_reward = {k: 0 for k in self._reward_type}
 
     def get(self, engine: BaseEnv) -> float:
         r"""
@@ -60,4 +62,10 @@ class SumoRewardRunner(EnvElementRunner):
             elif k == 'queue_len':
                 reward[k] = output_data[k]
 
+        for k in self._reward_type:
+            self._cum_reward[k] += reward[k]
         return reward
+
+    @property
+    def cum_reward(self) -> dict:
+        return self._cum_reward

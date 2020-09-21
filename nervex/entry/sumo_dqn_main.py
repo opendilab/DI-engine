@@ -87,6 +87,7 @@ class SumoDqnRun():
     def actor(self):
         obs = self.env.reset()
         dones = [False for _ in range(self.env.env_num)]
+        cum_rewards = [0 for _ in range(self.env.env_num)]
         while True:
             eps_threshold = self.bandit(self.total_step_count)
             if self.use_cuda:
@@ -95,24 +96,28 @@ class SumoDqnRun():
             if self.use_cuda:
                 actions = to_device(actions, 'cpu')
             timestep = self.env.step(actions)
-            for i, d in enumerate(dones):
-                if not d:
-                    step = {
-                        'obs': obs[i],
-                        'action': actions[i],
-                        'next_obs': timestep.obs[i],
-                        'reward': timestep.reward[i],
-                        'done': timestep.done[i],
-                    }
-                    self.buffer.append(step)
-                    obs[i] = timestep.obs[i]
             dones = timestep.done
+            for i, d in enumerate(dones):
+                step = {
+                    'obs': obs[i],
+                    'action': actions[i],
+                    'next_obs': timestep.obs[i],
+                    'reward': timestep.reward[i],
+                    'done': timestep.done[i],
+                }
+                self.buffer.append(step)
+                obs[i] = timestep.obs[i]
+                if d:
+                    cum_rewards[i] = self.learner.computation_graph.get_weighted_reward(timestep.info[i]['cum_reward']
+                                                                                        ).item()
             self.total_step_count += 1
 
             if all(dones):
+                avg_reward = sum(cum_rewards) / len(cum_rewards)
+                self.learner.info('actor average reward: {:.3f}'.format(avg_reward))
                 break
             if self.total_step_count % 50 == 0:
-                print(
+                self.learner.info(
                     'actor run step {} with replay buffer size {}'.format(self.total_step_count, self.buffer.validlen)
                 )
 
