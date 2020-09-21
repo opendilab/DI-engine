@@ -7,8 +7,7 @@ from nervex.utils import build_logger_naive, EasyTimer, get_task_uid, VariableRe
 from .comm.comm_actor_metaclass import ActorCommMetaclass
 
 
-# TODO(nyz) fix extend ABC class problem
-class BaseActor(object, metaclass=ActorCommMetaclass):
+class BaseActor(ABC, metaclass=ActorCommMetaclass):
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._actor_uid = get_task_uid()

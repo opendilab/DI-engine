@@ -1,4 +1,9 @@
-class SingletonMetaclass(type):
+from abc import ABCMeta
+
+
+# ABCMeta is a subclass of type, extending ABCMeta makes this metaclass is compatiable with some classes
+# which extends ABC
+class SingletonMetaclass(ABCMeta):
     instances = {}
     def __call__(cls: type, *args, **kwargs) -> object:
         if cls not in SingletonMetaclass.instances:
