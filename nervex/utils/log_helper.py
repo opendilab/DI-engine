@@ -13,6 +13,7 @@ import os
 import cv2
 import numpy as np
 import yaml
+from tabulate import tabulate
 from tensorboardX import SummaryWriter
 
 
@@ -357,7 +358,7 @@ class VariableRecord(object):
             - name (:obj:`str`): name of the var to query
             - var_type(:obj:`str`): default set to scalar, support ['scalar', '1darray']
         Returns:
-            - text(:obj:`str`): the corresponding text discription
+            - text(:obj:`str`): the corresponding text description
         """
         assert (var_type in ['scalar', '1darray'])
         if var_type == 'scalar':
@@ -369,7 +370,7 @@ class VariableRecord(object):
     def get_vars_tb_format(self, keys, cur_step, var_type='scalar', **kwargs):
         r"""
         Overview:
-            get the tb_format discription of var
+            get the tb_format description of var
         Arguments:
             - keys (:obj:`str`): keys(names) of the var to query
             - cur_step (:obj:`int`): the current step
@@ -389,23 +390,19 @@ class VariableRecord(object):
         elif var_type == '1darray':
             return self._get_vars_tb_format_1darray(keys, cur_step, **kwargs)
 
-    def get_vars_text(self, var_type='scalar'):
+    def get_vars_text(self):
         r"""
         Overview:
-            get the ext discription of var
-        Arguments:
-            - var_type(:obj:`str`): default set to scalar, support support ['scalar', '1darray'],
+            get the string description of var
         Returns:
-            - ret (:obj:`list` of :obj:`str`): the list of text discription of vars queried
+            - ret (:obj:`list` of :obj:`str`): the list of text description of vars queried
         """
-        s = '\n'
-        count = 0
-        for k in self.get_var_names(var_type):
-            s += self.get_var_text(k, var_type) + '\t'
-            count += 1
-            if count % 3 == 0:
-                s += '\n'
-        s += self._get_vars_text_1darray()
+        headers = ["Name", "Value", "Avg"]
+        data = []
+        for k in self.get_var_names('scalar'):
+            handle_var = self.var_dict['scalar'][k]
+            data.append([k, "{:.6f}".format(handle_var.val), "{:.6f}".format(handle_var.avg)])
+        s = "\n" + tabulate(data, headers=headers, tablefmt='grid')
         return s
 
     def _get_vars_text_1darray(self):
@@ -447,7 +444,7 @@ class AlphastarVarRecord(VariableRecord):
         Overview:
             get the text discroption of 1darray type vars
         Returns:
-            - text(:obj:`str`): the corresponding text discription of 1darray type vars
+            - text(:obj:`str`): the corresponding text description of 1darray type vars
         """
         s = "\n"
         for k in self.get_var_names('1darray'):
@@ -470,7 +467,7 @@ class AlphastarVarRecord(VariableRecord):
     def _get_vars_tb_format_1darray(self, keys, cur_step, viz_type=None):
         r"""
         Overview:
-            get the tb_format discription of 1darray type vars
+            get the tb_format description of 1darray type vars
         Arguments:
             - keys (:obj:`str`): keys(names) of the var to query
             - cur_step (:obj:`int`): the current step

@@ -96,6 +96,7 @@ setup(
         'cloudpickle',
         'sumolib',
         'traci',
+        'tabulate',
     ],
     classifiers=[
         'Development Status :: 4 - Beta',
