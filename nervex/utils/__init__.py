@@ -12,4 +12,4 @@ from .utils import override, deepcopy, dict_list2list_dict, list_dict2dict_list,
 from .lock_helper import LockContext
 from .dist_helper import get_rank, get_world_size, distributed_mode, DistModule, dist_init, dist_finalize, \
         allreduce, get_group, broadcast
-from .design_helper import singleton
+from .design_helper import SingletonMetaclass

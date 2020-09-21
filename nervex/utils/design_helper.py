@@ -1,12 +1,7 @@
-from typing import Callable
-
-
-def singleton(cls: type) -> Callable:
+class SingletonMetaclass(type):
     instances = {}
-
-    def wrapper(*args, **kwargs):
-        if cls not in instances:
-            instances[cls] = cls(*args, **kwargs)
-        return instances[cls]
-
-    return wrapper
+    def __call__(cls: type, *args, **kwargs) -> object:
+        if cls not in SingletonMetaclass.instances:
+            SingletonMetaclass.instances[cls] = super(SingletonMetaclass, cls).__call__(*args, **kwargs)
+            cls.instance = SingletonMetaclass.instances[cls]
+        return SingletonMetaclass.instances[cls]
