@@ -22,9 +22,9 @@ class CartpoleDqnGraph(BaseCompGraph):
     def forward(self, data, agent):
         obs = data.get('obs')
         nextobs = data.get('next_obs')
-        reward = data.get('reward')
+        reward = data.get('reward').squeeze(1)
         action = data.get('action')
-        terminate = data.get('done')
+        terminate = data.get('done').float()
         weights = data.get('weights', None)
 
         q_value = agent.forward(obs)
