@@ -6,7 +6,7 @@ import random
 from easydict import EasyDict
 from nervex.worker.learner.sumo_dqn_learner import SumoDqnLearner
 from nervex.envs.sumo.fake_dataset import FakeSumoDataset
-from nervex.data.collate_fn import sumo_dqn_collate_fn
+from nervex.data import default_collate
 
 
 @pytest.mark.unittest
@@ -15,7 +15,7 @@ class TestSumoDqnLearner:
         def fake_data_source(bs):
             dataset = FakeSumoDataset(bs).getBatchSample()
             while True:
-                yield sumo_dqn_collate_fn(next(dataset))
+                yield default_collate(next(dataset))
 
         os.popen('rm -rf ckpt')
         sumo_learner = SumoDqnLearner({})

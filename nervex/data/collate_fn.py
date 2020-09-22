@@ -46,25 +46,4 @@ def diff_shape_collate(batch):
     raise TypeError('not support element type: {}'.format(elem_type))
 
 
-def sumo_dqn_collate_fn(data):
-    batchs = data
-
-    # print("data of collect:", data)
-
-    obs_batch = torch.cat([x['obs'].unsqueeze(0) for x in batchs], 0)
-    nextobs_batch = torch.cat([x['next_obs'].unsqueeze(0) for x in batchs], 0)
-    action_batch = torch.cat([torch.LongTensor([x['action']]) for x in batchs])
-    reward_batch = default_collate([x['reward'] for x in batchs])
-    reward_batch = {k: v.squeeze(1) for k, v in reward_batch.items()}
-    done_batch = torch.cat([torch.Tensor([x['done']]) for x in batchs])
-
-    reward = reward_batch
-    action = action_batch
-    action = list(zip(*action))
-    action = [torch.stack(t) for t in action]
-    done = done_batch
-
-    # print("state_batch = ", state_batch)
-    # print("state_batch_shape = ", state_batch.shape)
-
-    return {'obs': obs_batch, 'next_obs': nextobs_batch, 'action': action, 'reward': reward, 'done': done}
+default_collate_fn = default_collate

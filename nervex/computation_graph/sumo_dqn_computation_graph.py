@@ -33,11 +33,10 @@ class SumoDqnGraph(BaseCompGraph):
     def forward(self, data: dict, agent: BaseAgent) -> dict:
         obs_batch = data.get('obs')
         nextobs_batch = data.get('next_obs')
-        reward = data.get('reward')
-        reward = self.get_weighted_reward(reward)
+        reward = self.get_weighted_reward(data['reward']).squeeze(1)
 
-        action = data.get('action')
-        terminate = data.get('done')
+        action = data['action']
+        terminate = data['done'].float()
         weights = data.get('weights', None)
 
         q_value = agent.forward(obs_batch)

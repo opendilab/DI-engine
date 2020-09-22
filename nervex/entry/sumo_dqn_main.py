@@ -17,8 +17,7 @@ from typing import Optional
 from nervex.envs.sumo.sumo_env import SumoWJ3Env
 from nervex.worker.learner.sumo_dqn_learner import SumoDqnLearner
 from nervex.worker import SubprocessEnvManager
-from nervex.data.structure.buffer import PrioritizedBuffer
-from nervex.data.collate_fn import sumo_dqn_collate_fn
+from nervex.data import default_collate, PrioritizedBuffer
 from nervex.worker.agent.sumo_dqn_agent import SumoDqnActorAgent
 from nervex.torch_utils import to_device
 from nervex.rl_utils import epsilon_greedy
@@ -80,7 +79,7 @@ class SumoDqnRun():
                     if data is not None:
                         break
                     time.sleep(5)
-                yield sumo_dqn_collate_fn(data)
+                yield default_collate(data)
 
         self.learner._data_source = data_iterator()
 

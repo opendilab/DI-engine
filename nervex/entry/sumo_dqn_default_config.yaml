@@ -16,7 +16,6 @@ learner:
         max_reuse: 8
         buffer_length: 2048
     dqn:
-        update_target_freq: 20
         discount_factor: 0.95
         is_double: True
     hook:
