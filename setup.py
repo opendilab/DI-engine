@@ -97,7 +97,7 @@ setup(
         'sumolib',
         'traci',
         'tabulate',
-        'torchvision==0.5.0',
+        'torchvision',
     ],
     classifiers=[
         'Development Status :: 4 - Beta',
