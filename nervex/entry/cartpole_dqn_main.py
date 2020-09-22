@@ -92,6 +92,7 @@ class CartpoleDqnLearner(BaseLearner):
         self._computation_graph = CartpoleDqnGraph(self._cfg.learner)
 
     def _setup_data_source(self):
+        # set in SingleMachineRunner
         pass
 
 
