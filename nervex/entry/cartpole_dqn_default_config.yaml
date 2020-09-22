@@ -1,5 +1,5 @@
 common:
-    name: SumoDqnConfig
+    name: CartpoleDqnConfig
     time_wrapper_type: cuda
     save_path: '.'
     load_path: ''
@@ -8,15 +8,13 @@ learner:
     use_distributed: False
     max_iterations: 10000000
     batch_size: 64
-    learning_rate: 0.001
-    weight_decay: 0.0001
-    reward_weights:
-        'queue_len': 1.0
+    learning_rate: 0.0001
+    weight_decay: 0.0
     data:
-        max_reuse: 8
-        buffer_length: 2048
+        max_reuse: 1000
+        buffer_length: 100000
     dqn:
-        discount_factor: 0.95
+        discount_factor: 0.99
         is_double: True
     hook:
         save_ckpt_after_iter:
@@ -34,6 +32,6 @@ learner:
             ext_args:
                 freq: 50
 env:
-    env_num: 8
+    env_num: 12
     env_type: 'normal'
-    stop_val: -2000
+    stop_val: 9.75  # 195/20
