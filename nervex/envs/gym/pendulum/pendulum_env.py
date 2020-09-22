@@ -14,7 +14,7 @@ import gym
 
 
 class PendulumEnv(BaseEnv):
-    timestep = namedtuple('pendulumTimestep', ['obs', 'reward', 'done', 'rest_lives'])
+    timestep = namedtuple('pendulumTimestep', ['obs', 'reward', 'done', 'rest_lives', 'info'])
 
     info_template = namedtuple('PendulumEnvInfo', ['obs_space', 'act_space', 'rew_space', 'frame_skip'])
 
@@ -66,7 +66,9 @@ class PendulumEnv(BaseEnv):
         self.reward = self._reward_helper.get(self)
         self.obs = self._obs_helper.get(self)
 
-        return PendulumEnv.timestep(obs=self.obs, reward=self.reward, done=self._is_gameover, rest_lives={})
+        info = {'cum_reward': self._reward_helper.cum_reward}
+
+        return PendulumEnv.timestep(obs=self.obs, reward=self.reward, done=self._is_gameover, rest_lives={}, info=info)
 
     def seed(self, seed: int) -> None:
         self._env.seed(seed)

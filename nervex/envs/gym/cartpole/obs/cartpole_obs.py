@@ -23,7 +23,7 @@ class CartpoleObs(EnvElement):
         }
 
     def _to_agent_processor(self, obs):
-        return torch.from_numpy(obs).float
+        return torch.from_numpy(obs).float()
 
     def _from_agent_processor(self, obs):
         return obs

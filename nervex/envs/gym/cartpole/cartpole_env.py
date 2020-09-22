@@ -14,7 +14,7 @@ import gym
 
 
 class CartpoleEnv(BaseEnv):
-    timestep = namedtuple('cartpoleTimestep', ['obs', 'reward', 'done', 'rest_lives'])
+    timestep = namedtuple('cartpoleTimestep', ['obs', 'reward', 'done', 'rest_lives', 'info'])
 
     info_template = namedtuple('CartpoleEnvInfo', ['obs_space', 'act_space', 'rew_space'])
 
@@ -62,7 +62,9 @@ class CartpoleEnv(BaseEnv):
         self.reward = self._reward_helper.get(self)
         self.obs = self._obs_helper.get(self)
 
-        return CartpoleEnv.timestep(obs=self.obs, reward=self.reward, done=self._is_gameover, rest_lives={})
+        info = {'cum_reward': self._reward_helper.cum_reward}
+
+        return CartpoleEnv.timestep(obs=self.obs, reward=self.reward, done=self._is_gameover, rest_lives={}, info=info)
 
     def seed(self, seed: int) -> None:
         self._env.seed(seed)

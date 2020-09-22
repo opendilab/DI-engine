@@ -28,7 +28,7 @@ class PongEnv(BaseEnv):
     Notes:
         To see information about atari_env: https://blog.csdn.net/qq_27008079/article/details/100126060
     """
-    timestep = namedtuple('PongTimestep', ['obs', 'reward', 'done', 'rest_lives'])
+    timestep = namedtuple('PongTimestep', ['obs', 'reward', 'done', 'rest_lives', 'info'])
 
     info_template = namedtuple('PongEnvInfo', ['obs_space', 'act_space', 'rew_space', 'frame_skip', 'rep_prob'])
 
@@ -109,7 +109,11 @@ class PongEnv(BaseEnv):
         if self._wrap_frame:
             self.obs = transform(self._wrap_frame_height, self._wrap_frame_width)(self.obs)
 
-        return PongEnv.timestep(obs=self.obs, reward=self.reward, done=self._is_gameover, rest_lives=self._rest_life)
+        info = {'cum_reward': self._reward_helper.cum_reward}
+
+        return PongEnv.timestep(
+            obs=self.obs, reward=self.reward, done=self._is_gameover, rest_lives=self._rest_life, info=info
+        )
 
     def seed(self, seed: int) -> None:
         self._env.seed(seed)
