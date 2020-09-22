@@ -51,12 +51,3 @@ class SumoDqnLearner(BaseLearner):
     @override(BaseLearner)
     def _setup_computation_graph(self):
         self._computation_graph = SumoDqnGraph(self._cfg.learner)
-
-    @override(BaseLearner)
-    def _setup_optimizer(self):
-        self._optimizer = torch.optim.Adam(
-            self._agent.model.parameters(),
-            lr=self._cfg.learner.learning_rate,
-            weight_decay=self._cfg.learner.weight_decay
-        )
-        self._lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(self._optimizer, milestones=[], gamma=1)

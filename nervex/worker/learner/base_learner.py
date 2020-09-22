@@ -134,13 +134,17 @@ class BaseLearner(ABC):
         """
         raise NotImplementedError
 
-    @abstractmethod
     def _setup_optimizer(self) -> None:
         """
         Overview:
             Setup learner's optimizer
         """
-        raise NotImplementedError
+        self._optimizer = torch.optim.Adam(
+            self._agent.model.parameters(),
+            lr=self._cfg.learner.learning_rate,
+            weight_decay=self._cfg.learner.weight_decay
+        )
+        self._lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(self._optimizer, milestones=[], gamma=1)
 
     def _get_data(self) -> Any:
         """
