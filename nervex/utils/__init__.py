@@ -8,7 +8,7 @@ from .log_helper import build_logger, DistributionTimeImage, get_default_logger,
         AverageMeter, VariableRecord
 from .system_helper import get_ip, get_pid, get_task_uid, get_manager_node_ip
 from .time_helper import build_time_helper, EasyTimer
-from .utils import override, deepcopy, dict_list2list_dict, list_dict2dict_list, merge_two_dicts
+from .utils import override, deepcopy, dict_list2list_dict, list_dict2dict_list, merge_two_dicts, squeeze
 from .lock_helper import LockContext
 from .dist_helper import get_rank, get_world_size, distributed_mode, DistModule, dist_init, dist_finalize, \
         allreduce, get_group, broadcast

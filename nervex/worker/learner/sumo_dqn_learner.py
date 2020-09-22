@@ -16,7 +16,7 @@ from collections import OrderedDict
 from nervex.utils import override, merge_dicts, pretty_print, read_config
 from nervex.worker import BaseLearner
 from nervex.worker.agent.sumo_dqn_agent import SumoDqnLearnerAgent
-from nervex.model.sumo_dqn.sumo_dqn_network import FCDQN
+from nervex.model import FCDQN
 from nervex.envs.sumo.sumo_env import SumoWJ3Env
 from nervex.computation_graph.sumo_dqn_computation_graph import SumoDqnGraph
 

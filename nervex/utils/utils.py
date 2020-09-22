@@ -78,3 +78,13 @@ def override(cls):
         return method
 
     return check_override
+
+
+def squeeze(data):
+    if isinstance(data, tuple) or isinstance(data, list):
+        if len(data) == 1:
+            return data[0]
+    elif isinstance(data, dict):
+        if len(data) == 1:
+            return data.values()[0]
+    return data
