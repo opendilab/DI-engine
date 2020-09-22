@@ -16,7 +16,7 @@ class PongObsRunner(EnvElementRunner):
     def get(self, engine: BaseEnv) -> int:
         ret = copy.deepcopy(engine.pong_obs)
         assert isinstance(ret, np.ndarray)
-        return ret
+        return self._core._to_agent_processor(ret)
 
     def reset(self) -> None:
         pass

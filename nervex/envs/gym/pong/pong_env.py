@@ -2,12 +2,13 @@ import copy
 import os
 from collections import namedtuple
 import sys
-from typing import List, Any
+from typing import List, Any, Union
 
 from nervex.envs.env.base_env import BaseEnv
 from nervex.envs.gym.pong.action.pong_action_runner import PongRawAction, PongRawActionRunner
 from nervex.envs.gym.pong.reward.pong_reward_runner import PongReward, PongRewardRunner
 from nervex.envs.gym.pong.obs.pong_obs_runner import PongObs, PongObsRunner
+import torch
 import numpy as np
 import gym
 
@@ -70,14 +71,15 @@ class PongEnv(BaseEnv):
         self._reward_helper.reset()
         self._obs_helper.reset()
         self._action_helper.reset()
-        return ret
+        return torch.from_numpy(ret).float()
 
     def close(self):
         self._env.close()
 
-    def step(self, action: int) -> 'PongEnv.timestep':
+    def step(self, action: torch.tensor) -> 'PongEnv.timestep':
         assert self._launch_env_flag
         self.agent_action = action
+        action = action.item()
 
         # env step
         self._pong_obs, self._reward_of_action, self._is_gameover, self._rest_life = self._env.step(action)

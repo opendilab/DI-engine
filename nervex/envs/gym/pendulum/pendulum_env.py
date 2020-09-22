@@ -9,13 +9,14 @@ from nervex.envs.gym.pendulum.action.pendulum_action_runner import PendulumRawAc
 from nervex.envs.gym.pendulum.reward.pendulum_reward_runner import PendulumReward, PendulumRewardRunner
 from nervex.envs.gym.pendulum.obs.pendulum_obs_runner import PendulumObs, PendulumObsRunner
 import numpy as np
+import torch
 import gym
 
 
 class PendulumEnv(BaseEnv):
     timestep = namedtuple('pendulumTimestep', ['obs', 'reward', 'done', 'rest_lives'])
 
-    info_template = namedtuple('BaseEnvInfo', ['obs_space', 'act_space', 'rew_space', 'frame_skip'])
+    info_template = namedtuple('PendulumEnvInfo', ['obs_space', 'act_space', 'rew_space', 'frame_skip'])
 
     # frame_skip: how many frame in one step, should be 1 or 2 or 4.
 
@@ -48,14 +49,14 @@ class PendulumEnv(BaseEnv):
         self._reward_helper.reset()
         self._obs_helper.reset()
         self._action_helper.reset()
-        return ret
+        return torch.from_numpy(ret).float()
 
     def close(self):
         self._env.close()
 
     def step(self, action: float) -> 'PendulumEnv.timestep':
         assert self._launch_env_flag
-        self.action = action
+        self.action = action.item()
         raw_action = self._action_helper.get(self)
         # env step
         self.obs, self.reward, self._is_gameover, _ = self._env.step(raw_action)

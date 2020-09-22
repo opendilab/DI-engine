@@ -9,13 +9,14 @@ from nervex.envs.gym.cartpole.action.cartpole_action_runner import CartpoleRawAc
 from nervex.envs.gym.cartpole.reward.cartpole_reward_runner import CartpoleReward, CartpoleRewardRunner
 from nervex.envs.gym.cartpole.obs.cartpole_obs_runner import CartpoleObs, CartpoleObsRunner
 import numpy as np
+import torch
 import gym
 
 
 class CartpoleEnv(BaseEnv):
     timestep = namedtuple('cartpoleTimestep', ['obs', 'reward', 'done', 'rest_lives'])
 
-    info_template = namedtuple('BaseEnvInfo', ['obs_space', 'act_space', 'rew_space'])
+    info_template = namedtuple('CartpoleEnvInfo', ['obs_space', 'act_space', 'rew_space'])
 
     def __init__(self, cfg):
         self._cfg = cfg
@@ -44,14 +45,14 @@ class CartpoleEnv(BaseEnv):
         self._reward_helper.reset()
         self._obs_helper.reset()
         self._action_helper.reset()
-        return ret
+        return torch.from_numpy(ret).float()
 
     def close(self):
         self._env.close()
 
-    def step(self, action: int) -> 'CartpoleEnv.timestep':
+    def step(self, action: torch.tensor) -> 'CartpoleEnv.timestep':
         assert self._launch_env_flag
-        self.action = action
+        self.action = action.item()
         raw_action = self._action_helper.get(self)
         # env step
         self.obs, self.reward, self._is_gameover, _ = self._env.step(raw_action)

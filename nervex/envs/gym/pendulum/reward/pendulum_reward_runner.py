@@ -11,9 +11,8 @@ class PendulumRewardRunner(EnvElementRunner):
         self._core = PendulumReward()
 
     def get(self, engine: BaseEnv) -> float:
-        reward_of_action = copy.deepcopy(engine.reward)
-        ret = reward_of_action
-        return ret
+        ret = copy.deepcopy(engine.reward)
+        return self._core._to_agent_processor(ret)
 
     def reset(self) -> None:
         pass
