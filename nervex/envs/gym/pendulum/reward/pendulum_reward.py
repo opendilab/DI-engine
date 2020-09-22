@@ -20,7 +20,7 @@ class PendulumReward(EnvElement):
             'dinfo': 'float value of reward, -(theta^2 + 0.1*theta_dot^2 + action^2)',
         }
 
-    def _to_agent_processor(self, reward: float) -> float:
+    def _to_agent_processor(self, reward: float) -> torch.FloatTensor:
         return torch.FloatTensor([reward])
 
     def _from_agent_processor(self, reward: float) -> float:

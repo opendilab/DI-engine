@@ -5,7 +5,17 @@ from collections import namedtuple
 
 import numpy as np
 import torch
+from torchvision import transforms
 from absl import flags
+
+
+def transform(height, width):
+    return transforms.Compose(
+        [transforms.ToPILImage(),
+         transforms.Grayscale(),
+         transforms.Resize((height, width)),
+         transforms.ToTensor()]
+    )
 
 
 def deepcopy(data):

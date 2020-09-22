@@ -12,10 +12,11 @@ class TestPongEnv:
         return action
 
     def test_naive(self):
-        env = PongEnv({'frameskip': 2})
+        env = PongEnv({'frameskip': 2, 'wrap_frame': True})
         print(env.info())
         obs = env.reset()
         print(obs)
+        print("obs_shape = ", obs.shape)
         for i in range(10):
             action = self.get_random_action(env.info().act_space.value['min'], env.info().act_space.value['max'])
             timestep = env.step(action)

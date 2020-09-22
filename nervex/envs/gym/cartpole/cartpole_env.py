@@ -96,5 +96,9 @@ class CartpoleEnv(BaseEnv):
     def unpack(self, action: Any) -> List[Any]:
         return [{'action': act} for act in action]
 
+    @property
+    def cum_reward(self) -> torch.tensor:
+        return self._reward_helper.cum_reward
+
 
 cartpoleTimestep = CartpoleEnv.timestep

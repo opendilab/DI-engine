@@ -54,7 +54,7 @@ class PendulumEnv(BaseEnv):
     def close(self):
         self._env.close()
 
-    def step(self, action: float) -> 'PendulumEnv.timestep':
+    def step(self, action: torch.tensor) -> 'PendulumEnv.timestep':
         assert self._launch_env_flag
         self.action = action.item()
         raw_action = self._action_helper.get(self)
@@ -102,6 +102,10 @@ class PendulumEnv(BaseEnv):
     # override
     def unpack(self, action: Any) -> List[Any]:
         return [{'action': act} for act in action]
+
+    @property
+    def cum_reward(self) -> torch.tensor:
+        return self._reward_helper.cum_reward
 
 
 pendulumTimestep = PendulumEnv.timestep
