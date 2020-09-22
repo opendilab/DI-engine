@@ -5,9 +5,9 @@ import sys
 from typing import List, Any, Union
 
 from nervex.envs.env.base_env import BaseEnv
-from nervex.envs.gym.pong.action.pong_action_runner import PongRawAction, PongRawActionRunner
-from nervex.envs.gym.pong.reward.pong_reward_runner import PongReward, PongRewardRunner
-from nervex.envs.gym.pong.obs.pong_obs_runner import PongObs, PongObsRunner
+from nervex.envs.gym.pong.action.pong_action_runner import PongRawActionRunner
+from nervex.envs.gym.pong.reward.pong_reward_runner import PongRewardRunner
+from nervex.envs.gym.pong.obs.pong_obs_runner import PongObsRunner
 import torch
 import numpy as np
 import gym

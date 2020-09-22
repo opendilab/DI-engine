@@ -5,9 +5,9 @@ import sys
 from typing import List, Any
 
 from nervex.envs.env.base_env import BaseEnv
-from nervex.envs.gym.pendulum.action.pendulum_action_runner import PendulumRawAction, PendulumRawActionRunner
-from nervex.envs.gym.pendulum.reward.pendulum_reward_runner import PendulumReward, PendulumRewardRunner
-from nervex.envs.gym.pendulum.obs.pendulum_obs_runner import PendulumObs, PendulumObsRunner
+from nervex.envs.gym.pendulum.action.pendulum_action_runner import PendulumRawActionRunner
+from nervex.envs.gym.pendulum.reward.pendulum_reward_runner import PendulumRewardRunner
+from nervex.envs.gym.pendulum.obs.pendulum_obs_runner import PendulumObsRunner
 import numpy as np
 import torch
 import gym
