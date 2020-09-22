@@ -3,7 +3,7 @@ import argparse
 import torch
 import os
 
-from nervex.envs.gym import CartpoleEnv
+from nervex.envs.gym.cartpole.cartpole_env import CartpoleEnv
 from nervex.worker import BaseLearner, SubprocessEnvManager
 from nervex.worker.agent.sumo_dqn_agent import SumoDqnActorAgent
 from nervex.utils import read_config
