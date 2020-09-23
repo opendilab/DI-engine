@@ -126,12 +126,18 @@ class EpsGreedySampleHelper(IAgentStatelessPlugin):
             def wrapper(*args, **kwargs):
                 eps = kwargs.pop('eps')
                 logits = forward_fn(*args, **kwargs)
+                assert isinstance(logits, torch.Tensor) or isinstance(logits, list)
+                if isinstance(logits, torch.Tensor):
+                    logits = [logits]
                 action = []
                 for logit in logits:
+                    # TODO batch-wise e-greedy exploration
                     if np.random.random() > eps:
                         action.append(logit.argmax(dim=-1))
                     else:
                         action.append(torch.randint(0, logit.shape[-1], size=(logit.shape[0], )))
+                if len(action) == 1:
+                    action, logits = action[0], logits[0]
                 return action, logits
 
             return wrapper

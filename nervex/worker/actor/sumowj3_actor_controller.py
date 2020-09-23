@@ -6,7 +6,7 @@ import torch
 from threading import Thread
 from typing import List, Dict
 from nervex.worker.actor.base_actor_controller import BaseActor
-from nervex.model.sumo_dqn.sumo_dqn_network import FCDQN
+from nervex.model import FCDQN
 from nervex.worker.agent.sumo_dqn_agent import SumoDqnActorAgent
 from nervex.worker.actor.env_manager import SubprocessEnvManager
 from nervex.envs.sumo import SumoWJ3Env, FakeSumoWJ3Env

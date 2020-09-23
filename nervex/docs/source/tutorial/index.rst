@@ -79,16 +79,16 @@ Tutorial
 算法训练入口示例
 ~~~~~~~~~~~~~~~~~~
 
-    完成安装之后，进入 ``nervex/entry`` 目录，找到 ``sumo_dqn_main.py`` 文件,
-    即为在SUMO环境上运行的DQN算法示例（需要安装SUMO环境，配置SUMO_HOME环境变量，后续还会给出基于Atari环境的入口示例)。
-    
-    想要进行一组实验时，参照同目录下的 ``sumo_queue_len`` 文件夹，创建单独的实验文件夹，复制相应的执行脚本 ``run.sh`` 和配置文件 ``xxx.yaml`` 到实验文件夹下，修改配置文件中的参数，满足实验要求（例如在集群上运行时设置 ``use_cuda: True`` ）。然后启动执行脚本即可。下面所示为在slurm集群上的启动脚本，其中 `$1` 是相应的集群分区名。
+    完成安装之后，进入 ``nervex/entry`` 目录，找到 ``cartpole_dqn_main.py`` 文件,
+    即为在cartpole环境上运行的DQN算法示例
+
+    想要进行一组实验时，参照同目录下的 ``cartpole_baseline`` 文件夹，创建单独的实验文件夹，复制相应的执行脚本 ``run.sh`` 和配置文件 ``xxx.yaml`` 到实验文件夹下，修改配置文件中的参数，满足实验要求（例如在集群上运行时设置 ``use_cuda: True`` ）。然后启动执行脚本即可。下面所示为在slurm集群上的启动脚本，其中 `$1` 是相应的集群分区名。
 
     .. code:: bash
 
         work_path=$(dirname $0)
-        srun -p $1 --gres=gpu:1 python3 -u ../sumo_dqn_main.py\
-            --config_path $work_path/sumo_dqn_default_config.yaml 
+        srun -p $1 --gres=gpu:1 python3 -u ../cartpole_dqn_main.py\
+            --config_path $work_path/cartpole_dqn_default_config.yaml 
 
 
 DRL快速上手指南
@@ -179,21 +179,21 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
     
 
     class CartpoleDqnLearnerAgent(BaseAgent):
-        def __init__(self, model: torch.nn.Module, plugin_cfg: dict) -> None:
+        def __init__(self, model, is_double=True):
             self.plugin_cfg = OrderedDict({
                 'grad': {
                     'enable_grad': True
                 },
             })
             # whether use double(target) q-network plugin
-            self.is_double = is_double
             if plugin_cfg['is_double']:
                 self.plugin_cfg['target_network'] = {'update_cfg': {'type': 'momentum', 'kwargs': {'theta': 0.001}}}
+            self.is_double = is_double
             super(CartpoleDqnLearnerAgent, self).__init__(model, self.plugin_cfg)
 
 
     class CartpoleDqnActorAgent(BaseAgent):
-        def __init__(self, model: torch.nn.Module) -> None:
+        def __init__(self, model):
             plugin_cfg = OrderedDict(
                 {
                     'eps_greedy_sample': {},
@@ -230,7 +230,7 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
         """
         Overview: Double DQN with eps-greedy
         """
-        def __init__(self, cfg: dict) -> None:
+        def __init__(self, cfg):
             self._gamma = cfg.dqn.discount_factor
 
         def forward(self, data: dict, agent: BaseAgent) -> dict:
@@ -268,11 +268,11 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
             super(CartpoleDqnLearner, self).__init__(cfg)
 
         def _setup_agent(self):
-            sumo_env = CartpoleEnv(self._cfg.env)
-            model = FCDQN(sumo_env.info().obs_space.shape, sumo_env.info().act_shape.shape)
+            env_info = CartpoleEnv(self._cfg.env).info()
+            model = FCDQN(env_info.obs_space.shape, env_info.act_space.shape)
             if self._cfg.learner.use_cuda:
                 model.cuda()
-            self._agent = CartpoleDqnLearnerAgent(model, plugin_cfg={'is_double': self._cfg.learner.dqn.is_double})
+            self._agent = CartpoleDqnLearnerAgent(model, is_double=self._cfg.learner.dqn.is_double)
             self._agent.mode(train=True)
             if self._agent.is_double:
                 self._agent.target_mode(train=True)
@@ -294,4 +294,4 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
     data = buffer.sample(4)  # sample 4 transitions
     buffer.append(data[0])  # add 1 transition
 
-以上指南简述了如何基于nerveX搭建一个最简单的DRL训练pipeline，完整可运行的示例代码可以参见 ``nervex/entry/cartpole_main.py``。
+以上指南简述了如何基于nerveX搭建一个最简单的DRL训练pipeline，完整可运行的示例代码可以参见 ``nervex/entry/cartpole_dqn_main.py``。

@@ -7,17 +7,13 @@ from collections import OrderedDict
 
 class DataTransformHelper(IAgentStatelessPlugin):
     @classmethod
-    def register(cls: type, agent: BaseAgent, ret_num: int):
+    def register(cls: type, agent: BaseAgent):
         def data_wrapper(fn):
             def wrapper(*args, **kwargs):
                 data = args[0]
-                data = torch.stack(data, dim=0)
                 ret = fn(data, **kwargs)
                 # tl_num, bs -> bs, tl_num
-                if ret_num == 1:
-                    return list(zip(*ret))
-                else:
-                    return [list(zip(*r)) for r in ret]
+                return [list(zip(*r)) for r in ret]
 
             return wrapper
 
@@ -46,9 +42,7 @@ class SumoDqnActorAgent(BaseAgent):
         plugin_cfg = OrderedDict(
             {
                 'eps_greedy_sample': {},
-                'sumowj3_data_transform': {
-                    'ret_num': 2
-                },
+                'sumowj3_data_transform': {},
                 'grad': {
                     'enable_grad': False
                 },

@@ -16,7 +16,7 @@ from collections import OrderedDict
 from nervex.utils import override, merge_dicts, pretty_print, read_config
 from nervex.worker import BaseLearner
 from nervex.worker.agent.sumo_dqn_agent import SumoDqnLearnerAgent
-from nervex.model.sumo_dqn.sumo_dqn_network import FCDQN
+from nervex.model import FCDQN
 from nervex.envs.sumo.sumo_env import SumoWJ3Env
 from nervex.computation_graph.sumo_dqn_computation_graph import SumoDqnGraph
 
@@ -51,12 +51,3 @@ class SumoDqnLearner(BaseLearner):
     @override(BaseLearner)
     def _setup_computation_graph(self):
         self._computation_graph = SumoDqnGraph(self._cfg.learner)
-
-    @override(BaseLearner)
-    def _setup_optimizer(self):
-        self._optimizer = torch.optim.Adam(
-            self._agent.model.parameters(),
-            lr=self._cfg.learner.learning_rate,
-            weight_decay=self._cfg.learner.weight_decay
-        )
-        self._lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(self._optimizer, milestones=[], gamma=1)
