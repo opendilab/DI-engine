@@ -20,8 +20,8 @@ class CartpoleReward(EnvElement):
             'dinfo': 'float value of reward, 1.0 if cartpole hasnot fall'
         }
 
-    def _to_agent_processor(self, reward: float) -> float:
-        return reward
+    def _to_agent_processor(self, reward: float) -> torch.tensor:
+        return torch.FloatTensor([reward])
 
     def _from_agent_processor(self, reward: float) -> float:
         return reward

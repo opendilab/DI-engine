@@ -25,7 +25,7 @@ class PongRawAction(EnvElement):
                 'value': {
                     'min': 0,
                     'max': 5,
-                    'dtype': int,
+                    'dtype': torch.LongTensor,
                     'dinfo': 'int value',
                 },
                 'env_value': 'type of action, refer to AtariEnv._action_set',
@@ -38,7 +38,7 @@ class PongRawAction(EnvElement):
         self._value = {
             'min': 0,
             'max': 5,
-            'dtype': int,
+            'dtype': torch.LongTensor,
             'dinfo': 'int value, action_meanings:{NOOP, FIRE, RIGHT, LEFT, RIGHTFIRE, LEFTFIRE}',
         }
 

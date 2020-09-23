@@ -5,17 +5,18 @@ import sys
 from typing import List, Any
 
 from nervex.envs.env.base_env import BaseEnv
-from nervex.envs.gym.pendulum.action.pendulum_action_runner import PendulumRawAction, PendulumRawActionRunner
-from nervex.envs.gym.pendulum.reward.pendulum_reward_runner import PendulumReward, PendulumRewardRunner
-from nervex.envs.gym.pendulum.obs.pendulum_obs_runner import PendulumObs, PendulumObsRunner
+from nervex.envs.gym.pendulum.action.pendulum_action_runner import PendulumRawActionRunner
+from nervex.envs.gym.pendulum.reward.pendulum_reward_runner import PendulumRewardRunner
+from nervex.envs.gym.pendulum.obs.pendulum_obs_runner import PendulumObsRunner
 import numpy as np
+import torch
 import gym
 
 
 class PendulumEnv(BaseEnv):
-    timestep = namedtuple('pendulumTimestep', ['obs', 'reward', 'done', 'rest_lives'])
+    timestep = namedtuple('pendulumTimestep', ['obs', 'reward', 'done', 'rest_lives', 'info'])
 
-    info_template = namedtuple('BaseEnvInfo', ['obs_space', 'act_space', 'rew_space', 'frame_skip'])
+    info_template = namedtuple('PendulumEnvInfo', ['obs_space', 'act_space', 'rew_space', 'frame_skip'])
 
     # frame_skip: how many frame in one step, should be 1 or 2 or 4.
 
@@ -48,14 +49,14 @@ class PendulumEnv(BaseEnv):
         self._reward_helper.reset()
         self._obs_helper.reset()
         self._action_helper.reset()
-        return ret
+        return torch.from_numpy(ret).float()
 
     def close(self):
         self._env.close()
 
-    def step(self, action: float) -> 'PendulumEnv.timestep':
+    def step(self, action: torch.tensor) -> 'PendulumEnv.timestep':
         assert self._launch_env_flag
-        self.action = action
+        self.action = action.item()
         raw_action = self._action_helper.get(self)
         # env step
         self.obs, self.reward, self._is_gameover, _ = self._env.step(raw_action)
@@ -65,7 +66,9 @@ class PendulumEnv(BaseEnv):
         self.reward = self._reward_helper.get(self)
         self.obs = self._obs_helper.get(self)
 
-        return PendulumEnv.timestep(obs=self.obs, reward=self.reward, done=self._is_gameover, rest_lives={})
+        info = {'cum_reward': self._reward_helper.cum_reward}
+
+        return PendulumEnv.timestep(obs=self.obs, reward=self.reward, done=self._is_gameover, rest_lives={}, info=info)
 
     def seed(self, seed: int) -> None:
         self._env.seed(seed)
@@ -101,6 +104,10 @@ class PendulumEnv(BaseEnv):
     # override
     def unpack(self, action: Any) -> List[Any]:
         return [{'action': act} for act in action]
+
+    @property
+    def cum_reward(self) -> torch.tensor:
+        return self._reward_helper.cum_reward
 
 
 pendulumTimestep = PendulumEnv.timestep

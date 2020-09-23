@@ -7,7 +7,7 @@ import torch
 
 from nervex.torch_utils import to_tensor, tensor_to_list
 from nervex.envs.common import EnvElement
-
+from torchvision import transforms
 
 class PongObs(EnvElement):
     _name = "pongObs"
@@ -34,12 +34,12 @@ class PongObs(EnvElement):
         self._value = {
             'min': 0,
             'max': 255,
-            'dtype': np.ndarray,
-            'dinfo': 'int value ndarray of shape (C, H, W)',
+            'dtype': torch.FloatTensor,
+            'dinfo': 'float value tensor of shape (C, H, W)',
         }
 
     def _to_agent_processor(self, obs):
-        return obs
+        return torch.from_numpy(obs).float()
 
     def _from_agent_processor(self, obs):
         return obs

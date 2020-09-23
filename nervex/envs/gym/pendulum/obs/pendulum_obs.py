@@ -18,12 +18,12 @@ class PendulumObs(EnvElement):
         self._value = {
             'min': [-1.0, -1.0, -8.0],
             'max': [1.0, 1.0, 8.0],
-            'dtype': np.ndarray,
-            'dinfo': 'float value ndarray of (cos_theta, sin_theta, theta_dot)',
+            'dtype': torch.FloatTensor,
+            'dinfo': 'float value tensor of (cos_theta, sin_theta, theta_dot)',
         }
 
     def _to_agent_processor(self, obs):
-        return obs
+        return torch.from_numpy(obs).float()
 
     def _from_agent_processor(self, obs):
         return obs

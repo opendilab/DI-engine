@@ -26,7 +26,7 @@ class PongReward(EnvElement):
                 'value': {
                     'min': -1.0,
                     'max': 1.0,
-                    'dtype': float,
+                    'dtype': torch.FloatTensor,
                     'dinfo': 'float value',
                 },
                 'env_value': 'reward of action',
@@ -39,12 +39,12 @@ class PongReward(EnvElement):
         self._value = {
             'min': -1.0,
             'max': 1.0,
-            'dtype': float,
+            'dtype': torch.FloatTensor,
             'dinfo': 'float value',
         }
 
-    def _to_agent_processor(self, reward: float) -> float:
-        return reward
+    def _to_agent_processor(self, reward: float) -> torch.tensor:
+        return torch.FloatTensor([reward])
 
     def _from_agent_processor(self, reward: float) -> float:
         return reward

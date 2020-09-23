@@ -9,7 +9,7 @@ from nervex.envs.gym.pendulum.pendulum_env import PendulumEnv
 class TestPendulumEnv:
     def get_random_action(self, min_value, max_value):
         action = random.uniform(min_value, max_value)
-        return action
+        return torch.FloatTensor([action])
 
     def test_naive(self):
         env = PendulumEnv({'frameskip': 2})

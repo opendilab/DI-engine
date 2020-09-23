@@ -5,17 +5,18 @@ import sys
 from typing import List, Any
 
 from nervex.envs.env.base_env import BaseEnv
-from nervex.envs.gym.cartpole.action.cartpole_action_runner import CartpoleRawAction, CartpoleRawActionRunner
-from nervex.envs.gym.cartpole.reward.cartpole_reward_runner import CartpoleReward, CartpoleRewardRunner
-from nervex.envs.gym.cartpole.obs.cartpole_obs_runner import CartpoleObs, CartpoleObsRunner
+from nervex.envs.gym.cartpole.action.cartpole_action_runner import CartpoleRawActionRunner
+from nervex.envs.gym.cartpole.reward.cartpole_reward_runner import CartpoleRewardRunner
+from nervex.envs.gym.cartpole.obs.cartpole_obs_runner import CartpoleObsRunner
 import numpy as np
+import torch
 import gym
 
 
 class CartpoleEnv(BaseEnv):
-    timestep = namedtuple('cartpoleTimestep', ['obs', 'reward', 'done', 'rest_lives'])
+    timestep = namedtuple('cartpoleTimestep', ['obs', 'reward', 'done', 'rest_lives', 'info'])
 
-    info_template = namedtuple('BaseEnvInfo', ['obs_space', 'act_space', 'rew_space'])
+    info_template = namedtuple('CartpoleEnvInfo', ['obs_space', 'act_space', 'rew_space'])
 
     def __init__(self, cfg):
         self._cfg = cfg
@@ -44,14 +45,14 @@ class CartpoleEnv(BaseEnv):
         self._reward_helper.reset()
         self._obs_helper.reset()
         self._action_helper.reset()
-        return ret
+        return torch.from_numpy(ret).float()
 
     def close(self):
         self._env.close()
 
-    def step(self, action: int) -> 'CartpoleEnv.timestep':
+    def step(self, action: torch.tensor) -> 'CartpoleEnv.timestep':
         assert self._launch_env_flag
-        self.action = action
+        self.action = action.item()
         raw_action = self._action_helper.get(self)
         # env step
         self.obs, self.reward, self._is_gameover, _ = self._env.step(raw_action)
@@ -61,7 +62,9 @@ class CartpoleEnv(BaseEnv):
         self.reward = self._reward_helper.get(self)
         self.obs = self._obs_helper.get(self)
 
-        return CartpoleEnv.timestep(obs=self.obs, reward=self.reward, done=self._is_gameover, rest_lives={})
+        info = {'cum_reward': self._reward_helper.cum_reward}
+
+        return CartpoleEnv.timestep(obs=self.obs, reward=self.reward, done=self._is_gameover, rest_lives={}, info=info)
 
     def seed(self, seed: int) -> None:
         self._env.seed(seed)
@@ -94,6 +97,10 @@ class CartpoleEnv(BaseEnv):
 
     def unpack(self, action: Any) -> List[Any]:
         return [{'action': act} for act in action]
+
+    @property
+    def cum_reward(self) -> torch.tensor:
+        return self._reward_helper.cum_reward
 
 
 cartpoleTimestep = CartpoleEnv.timestep
