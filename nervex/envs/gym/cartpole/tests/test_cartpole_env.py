@@ -8,7 +8,7 @@ from nervex.envs.gym.cartpole.cartpole_env import CartpoleEnv
 @pytest.mark.unittest
 class TestCartpoleEnv:
     def get_random_action(self, min_value, max_value):
-        action = random.randint(min_value, max_value)
+        action = torch.randint(min_value, max_value+1, (1,))
         return action
 
     def test_naive(self):
@@ -26,7 +26,8 @@ class TestCartpoleEnv:
                 print("is done after {}duration".format(duration))
                 duration = 0
             print('step {} with action {}'.format(i, action))
-            assert (isinstance(action, int))
+            # assert (isinstance(action.dtype, torch.int64))
+            assert isinstance(action, torch.LongTensor)
             print('reward {} in step {}'.format(timestep.reward, i))
-            assert (isinstance(timestep.reward, float))
+            assert (isinstance(timestep.reward, torch.FloatTensor))
         print('end')

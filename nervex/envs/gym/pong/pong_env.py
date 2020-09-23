@@ -2,14 +2,25 @@ import copy
 import os
 from collections import namedtuple
 import sys
-from typing import List, Any
+from typing import List, Any, Union
+from torchvision import transforms
 
 from nervex.envs.env.base_env import BaseEnv
-from nervex.envs.gym.pong.action.pong_action_runner import PongRawAction, PongRawActionRunner
-from nervex.envs.gym.pong.reward.pong_reward_runner import PongReward, PongRewardRunner
-from nervex.envs.gym.pong.obs.pong_obs_runner import PongObs, PongObsRunner
+from nervex.envs.gym.pong.action.pong_action_runner import PongRawActionRunner
+from nervex.envs.gym.pong.reward.pong_reward_runner import PongRewardRunner
+from nervex.envs.gym.pong.obs.pong_obs_runner import PongObsRunner
+import torch
 import numpy as np
 import gym
+
+
+def transform(height, width):
+    return transforms.Compose(
+        [transforms.ToPILImage(),
+         transforms.Grayscale(),
+         transforms.Resize((height, width)),
+         transforms.ToTensor()]
+    )
 
 
 class PongEnv(BaseEnv):
@@ -17,7 +28,7 @@ class PongEnv(BaseEnv):
     Notes:
         To see information about atari_env: https://blog.csdn.net/qq_27008079/article/details/100126060
     """
-    timestep = namedtuple('PongTimestep', ['obs', 'reward', 'done', 'rest_lives'])
+    timestep = namedtuple('PongTimestep', ['obs', 'reward', 'done', 'rest_lives', 'info'])
 
     info_template = namedtuple('PongEnvInfo', ['obs_space', 'act_space', 'rew_space', 'frame_skip', 'rep_prob'])
 
@@ -31,6 +42,9 @@ class PongEnv(BaseEnv):
         self._action_helper = PongRawActionRunner()
         self._reward_helper = PongRewardRunner()
         self._obs_helper = PongObsRunner()
+        self._wrap_frame = cfg.get('wrap_frame', False)
+        self._wrap_frame_height = cfg.get('wrap_frame_height', 84)
+        self._wrap_frame_width = cfg.get('wrap_frame_width', 84)
 
         if cfg != {}:
             self._game = cfg.get('game', None)
@@ -70,14 +84,18 @@ class PongEnv(BaseEnv):
         self._reward_helper.reset()
         self._obs_helper.reset()
         self._action_helper.reset()
+        ret = torch.from_numpy(ret).float()
+        if self._wrap_frame:
+            ret = transform(self._wrap_frame_height, self._wrap_frame_width)(ret)
         return ret
 
     def close(self):
         self._env.close()
 
-    def step(self, action: int) -> 'PongEnv.timestep':
+    def step(self, action: torch.tensor) -> 'PongEnv.timestep':
         assert self._launch_env_flag
         self.agent_action = action
+        action = action.item()
 
         # env step
         self._pong_obs, self._reward_of_action, self._is_gameover, self._rest_life = self._env.step(action)
@@ -88,8 +106,14 @@ class PongEnv(BaseEnv):
         self.action = self._action_helper.get(self)
         self.reward = self._reward_helper.get(self)
         self.obs = self._obs_helper.get(self)
+        if self._wrap_frame:
+            self.obs = transform(self._wrap_frame_height, self._wrap_frame_width)(self.obs)
 
-        return PongEnv.timestep(obs=self.obs, reward=self.reward, done=self._is_gameover, rest_lives=self._rest_life)
+        info = {'cum_reward': self._reward_helper.cum_reward}
+
+        return PongEnv.timestep(
+            obs=self.obs, reward=self.reward, done=self._is_gameover, rest_lives=self._rest_life, info=info
+        )
 
     def seed(self, seed: int) -> None:
         self._env.seed(seed)
@@ -110,30 +134,6 @@ class PongEnv(BaseEnv):
                 \taction[{}]\n\
                 \treward[{}]\n'.format(repr(self._obs_helper), repr(self._action_helper), repr(self._reward_helper))
 
-    @property
-    def agent_action(self) -> int:
-        return self._agent_action
-
-    @agent_action.setter
-    def agent_action(self, _agent_action) -> None:
-        self._agent_action = _agent_action
-
-    @property
-    def reward_of_action(self) -> float:
-        return self._reward_of_action
-
-    @reward_of_action.setter
-    def reward_of_action(self, _reward_of_action) -> None:
-        self._reward_of_action = _reward_of_action
-
-    @property
-    def pong_obs(self) -> np.ndarray:
-        return self._pong_obs
-
-    @pong_obs.setter
-    def pong_obs(self, _obs) -> None:
-        self._pong_obs = _obs
-
     def pack(self, timesteps: List['PongEnv.timestep'] = None, obs: Any = None) -> 'PongEnv.timestep':
         assert not (timesteps is None and obs is None)
         assert not (timesteps is not None and obs is not None)
@@ -148,6 +148,10 @@ class PongEnv(BaseEnv):
 
     def unpack(self, action: Any) -> List[Any]:
         return [{'action': act} for act in action]
+
+    @property
+    def cum_reward(self) -> torch.tensor:
+        return self._reward_helper.cum_reward
 
 
 PongTimestep = PongEnv.timestep
