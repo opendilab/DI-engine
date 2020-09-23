@@ -188,6 +188,7 @@ Env Manager
            使用时，同BaseEnvManager基本相同，即使用时可以参考以cartpole为例的如下代码:
 
         .. code:: python
+        
             def _setup_env(self):
                 env_num = self.cfg.env.env_num
                 self.env = SubprocessEnvManager(CartpoleEnv, env_cfg=[self.cfg.env for _ in range(env_num)], env_num=env_num)
