@@ -15,6 +15,7 @@ Package Reference
     data/cache
     worker/agent/agent_overview
     worker/actor/actor_overview
+    worker/env_manager/env_manager_overview
     worker/learner/learner
     torch_utils_network/network
     torch_utils/checkpoint_helper

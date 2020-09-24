@@ -47,7 +47,7 @@ Communication Actor(数据生成器通信模块)
 Env Manager(环境管理器)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 概述：
-    env manager是一个向量化的环境管理器，其中同时运行多个相同类型不同配置的环境，实际实现方式包含子进程向量化和伪向量化（循环串行）两种模式，具体可参考 `env_manager_overview <env_manager_overview.html>`_ 。
+    env manager是一个向量化的环境管理器，其中同时运行多个相同类型不同配置的环境，实际实现方式包含子进程向量化和伪向量化（循环串行）两种模式，具体可参考 `env_manager_overview <../env_manager/env_manager_overview.html>`_ 。
 
 Agent(智能体)
 ~~~~~~~~~~~~~~
