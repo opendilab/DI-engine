@@ -1,9 +1,10 @@
 import time
+import copy
 import argparse
 import torch
 
 from nervex.worker import SubprocessEnvManager
-from nervex.worker.agent.sumo_dqn_agent import SumoDqnActorAgent
+from nervex.worker.agent.sumo_dqn_agent import SumoDqnActorAgent, SumoDqnEvaluateAgent
 from nervex.entry.base import SingleMachineRunner
 from nervex.envs.sumo.sumo_env import SumoWJ3Env
 from nervex.worker.learner.sumo_dqn_learner import SumoDqnLearner
@@ -19,7 +20,10 @@ class SumoRunner(SingleMachineRunner):
         self.learner = SumoDqnLearner(self.cfg)
 
     def _setup_actor_agent(self):
-        self.actor_agent = SumoDqnActorAgent(self.learner.agent.model)
+        self.actor_agent = SumoDqnActorAgent(copy.deepcopy(self.learner.agent.model))
+
+    def _setup_evaluate_agent(self):
+        self.evaluate_agent = SumoDqnEvaluateAgent(copy.deepcopy(self.learner.agent.model))
 
 
 if __name__ == "__main__":

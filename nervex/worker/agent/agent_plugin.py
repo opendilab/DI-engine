@@ -110,9 +110,14 @@ class ArgmaxSampleHelper(IAgentStatelessPlugin):
     def register(cls: type, agent: Any):
         def sample_wrapper(forward_fn):
             def wrapper(*args, **kwargs):
-                logit = forward_fn(*args, **kwargs)
-                action = logit.argmax(dim=-1)
-                return action, logit
+                logits = forward_fn(*args, **kwargs)
+                assert isinstance(logits, torch.Tensor) or isinstance(logits, list)
+                if isinstance(logits, torch.Tensor):
+                    logits = [logits]
+                action = [logit.argmax(dim=-1) for logit in logits]
+                if len(action) == 1:
+                    action, logits = action[0], logits[0]
+                return action, logits
 
             return wrapper
 

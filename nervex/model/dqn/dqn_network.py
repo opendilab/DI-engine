@@ -10,7 +10,7 @@ class FCDQN(nn.Module):
         self,
         input_dim,
         action_dim,
-        hidden_dim_list=[128, 256, 256],
+        hidden_dim_list=[128, 128, 128],
         device='cpu',
         dueling=True,
         a_layer_num=1,

@@ -7,15 +7,17 @@ learner:
     use_cuda: False
     use_distributed: False
     max_iterations: 10000000
+    train_step: 200
     batch_size: 64
     learning_rate: 0.0001
     weight_decay: 0.0
     data:
-        max_reuse: 1000
-        buffer_length: 100000
+        max_reuse: 100
+        buffer_length: 10000
     dqn:
         discount_factor: 0.99
         is_double: True
+        dueling: True
     hook:
         save_ckpt_after_iter:
             name: save_ckpt_after_iter
@@ -23,15 +25,18 @@ learner:
             priority: 40
             position: after_iter
             ext_args:
-                freq: 500
+                freq: 1000
         log_show:
             name: log_show
             type: log_show
             priority: 20
             position: after_iter
             ext_args:
-                freq: 50
+                freq: 100
 env:
-    env_num: 12
+    env_num: 8
     env_type: 'normal'
-    stop_val: 9.75  # 195/20
+    stop_val: 195
+actor:
+    episode_num: 2 
+    eval_step: 100

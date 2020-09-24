@@ -49,3 +49,17 @@ class SumoDqnActorAgent(BaseAgent):
             }
         )
         super(SumoDqnActorAgent, self).__init__(model, plugin_cfg)
+
+
+class SumoDqnEvaluateAgent(BaseAgent):
+    def __init__(self, model: torch.nn.Module) -> None:
+        plugin_cfg = OrderedDict(
+            {
+                'argmax_sample': {},
+                'sumowj3_data_transform': {},
+                'grad': {
+                    'enable_grad': False
+                },
+            }
+        )
+        super(SumoDqnEvaluateAgent, self).__init__(model, plugin_cfg)

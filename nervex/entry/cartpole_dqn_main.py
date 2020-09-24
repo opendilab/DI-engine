@@ -1,4 +1,5 @@
 import time
+import copy
 import argparse
 import torch
 import os
@@ -59,7 +60,8 @@ class CartpoleDqnLearnerAgent(BaseAgent):
         })
         # whether use double(target) q-network plugin
         if is_double:
-            self.plugin_cfg['target_network'] = {'update_cfg': {'type': 'momentum', 'kwargs': {'theta': 0.001}}}
+            #self.plugin_cfg['target_network'] = {'update_cfg': {'type': 'momentum', 'kwargs': {'theta': 0.001}}}
+            self.plugin_cfg['target_network'] = {'update_cfg': {'type': 'assign', 'kwargs': {'freq': 500}}}
         self.is_double = is_double
         super(CartpoleDqnLearnerAgent, self).__init__(model, self.plugin_cfg)
 
@@ -75,12 +77,23 @@ class CartpoleDqnActorAgent(BaseAgent):
         super(CartpoleDqnActorAgent, self).__init__(model, plugin_cfg)
 
 
+class CartpoleDqnEvaluateAgent(BaseAgent):
+    def __init__(self, model):
+        plugin_cfg = OrderedDict({
+            'argmax_sample': {},
+            'grad': {
+                'enable_grad': False
+            },
+        })
+        super(CartpoleDqnEvaluateAgent, self).__init__(model, plugin_cfg)
+
+
 class CartpoleDqnLearner(BaseLearner):
     _name = "CartpoleDqnLearner"
 
     def _setup_agent(self):
         env_info = CartpoleEnv(self._cfg.env).info()
-        model = FCDQN(env_info.obs_space.shape, env_info.act_space.shape)
+        model = FCDQN(env_info.obs_space.shape, env_info.act_space.shape, dueling=self._cfg.learner.dqn.dueling)
         if self._cfg.learner.use_cuda:
             model.cuda()
         self._agent = CartpoleDqnLearnerAgent(model, is_double=self._cfg.learner.dqn.is_double)
@@ -105,7 +118,12 @@ class CartpoleRunner(SingleMachineRunner):
         self.learner = CartpoleDqnLearner(self.cfg)
 
     def _setup_actor_agent(self):
-        self.actor_agent = CartpoleDqnActorAgent(self.learner.agent.model)
+        self.actor_agent = CartpoleDqnActorAgent(copy.deepcopy(self.learner.agent.model))
+        self.actor_agent.mode(train=False)
+
+    def _setup_evaluate_agent(self):
+        self.evaluate_agent = CartpoleDqnEvaluateAgent(copy.deepcopy(self.learner.agent.model))
+        self.evaluate_agent.mode(train=False)
 
 
 if __name__ == "__main__":

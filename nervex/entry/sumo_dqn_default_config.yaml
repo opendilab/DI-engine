@@ -7,6 +7,7 @@ learner:
     use_cuda: False
     use_distributed: False
     max_iterations: 10000000
+    train_step: 200
     batch_size: 64
     learning_rate: 0.001
     weight_decay: 0.0001
@@ -18,6 +19,7 @@ learner:
     dqn:
         discount_factor: 0.95
         is_double: True
+        dueling: True
     hook:
         save_ckpt_after_iter:
             name: save_ckpt_after_iter
@@ -37,3 +39,6 @@ env:
     env_num: 8
     env_type: 'normal'
     stop_val: -2000
+actor:
+    episode_num: 1
+    eval_step: 1000
