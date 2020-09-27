@@ -101,13 +101,13 @@ class SingleMachineRunner():
 
     def collect_data(self):
         obs = self.env.reset()
-        obs = default_collate(obs)
         alive_env = [True for _ in range(self.env.env_num)]
         while True:
             eps_threshold = self.bandit(self.actor_step_count)
+            agent_obs = default_collate(obs)
             if self.use_cuda:
-                obs = to_device(obs, 'cuda')
-            actions, _ = self.actor_agent.forward(obs, eps=eps_threshold)
+                agent_obs = to_device(agent_obs, 'cuda')
+            actions, _ = self.actor_agent.forward(agent_obs, eps=eps_threshold)
             if self.use_cuda:
                 actions = to_device(actions, 'cpu')
             timestep = self.env.step(actions)
@@ -141,13 +141,13 @@ class SingleMachineRunner():
 
     def evaluate(self):
         obs = self.env.reset()
-        obs = torch.stack(obs, dim=0)
         cum_rewards = [0 for _ in range(self.env.env_num)]
         alive_env = [True for _ in range(self.env.env_num)]
         while True:
+            agent_obs = default_collate(obs)
             if self.use_cuda:
-                obs = to_device(obs, 'cuda')
-            actions, _ = self.evaluate_agent.forward(obs)
+                agent_obs = to_device(agent_obs, 'cuda')
+            actions, _ = self.evaluate_agent.forward(agent_obs)
             if self.use_cuda:
                 actions = to_device(actions, 'cpu')
             timestep = self.env.step(actions)
