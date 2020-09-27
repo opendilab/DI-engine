@@ -11,6 +11,10 @@ import torch.nn.functional as F
 from nervex.torch_utils.network.normalization import build_normalization
 
 
+def is_sequence(data):
+    return isinstance(data, list) or isinstance(data, tuple)
+
+
 class LSTMForwardWrapper(object):
     r"""
     Overview:
@@ -40,9 +44,12 @@ class LSTMForwardWrapper(object):
                 device=inputs.device
             )
             prev_state = (zeros, zeros)
-        elif isinstance(prev_state, list) and len(prev_state) == 2 and isinstance(prev_state[0], torch.Tensor):
-            pass
-        elif isinstance(prev_state, list) and len(prev_state) == batch_size:
+        elif is_sequence(prev_state) and len(prev_state) == 2:
+            if isinstance(prev_state[0], torch.Tensor):
+                pass
+            else:
+                prev_state = [torch.cat(t, dim=1) for t in prev_state]
+        elif is_sequence(prev_state) and len(prev_state) == batch_size:
             num_directions = 1
             zeros = torch.zeros(
                 num_directions * self.num_layers, 1, self.hidden_size, dtype=inputs.dtype, device=inputs.device
@@ -55,6 +62,8 @@ class LSTMForwardWrapper(object):
                     state.append(prev)
             state = list(zip(*state))
             prev_state = [torch.cat(t, dim=1) for t in state]
+        else:
+            raise Exception()
         return prev_state
 
     def _after_forward(self, next_state, list_next_state=False):

@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from abc import ABC, abstractmethod, abstractclassmethod
+from nervex.data import diff_shape_collate
 
 
 class IAgentPlugin(ABC):
@@ -53,13 +54,13 @@ class HiddenStateHelper(IAgentStatefulPlugin):
         2. this helper must deal with the single sample state reset
     """
     @classmethod
-    def register(cls: type, agent: Any, state_num: int) -> None:
-        state_manager = cls(state_num, init_fn=lambda: None)
+    def register(cls: type, agent: Any, state_num: int, init_fn: Callable = lambda: None) -> None:
+        state_manager = cls(state_num, init_fn=init_fn)
         agent._state_manager = state_manager
 
         def forward_state_wrapper(forward_fn):
-            def wrapper(data, **kwargs):
-                data, state_info = agent._state_manager.before_forward(data)
+            def wrapper(data, state_info=None, **kwargs):
+                data, state_info = agent._state_manager.before_forward(data, state_info)
                 output, h = forward_fn(data, **kwargs)
                 agent._state_manager.after_forward(h, state_info)
                 return output
@@ -67,8 +68,8 @@ class HiddenStateHelper(IAgentStatefulPlugin):
             return wrapper
 
         def reset_state_wrapper(reset_fn):
-            def wrapper(*args, **kwargs):
-                agent._state_manager.reset()
+            def wrapper(*args, state=None, **kwargs):
+                agent._state_manager.reset(state)
                 return reset_fn(*args, **kwargs)
 
             return wrapper
@@ -81,23 +82,31 @@ class HiddenStateHelper(IAgentStatefulPlugin):
         self._state = {i: init_fn() for i in range(state_num)}
         self._init_fn = init_fn
 
-    def reset(self) -> None:
-        self._state = {i: self._init_fn() for i in range(self._state_num)}
-
-    def before_forward(self, inputs: dict) -> Tuple[dict, dict]:
-        if 'state_info' in inputs.keys():
-            state_info = inputs['state_info']
+    def reset(self, state: Union[None, list] = None) -> None:
+        if state is None:
+            self._state = {i: self._init_fn() for i in range(self._state_num)}
         else:
+            assert len(state) == self._state_num
+            self._state = {i: k for i, k in zip(range(self._state_num), state)}
+
+    def before_forward(self, data: dict, state_info: Union[None, dict] = None) -> Tuple[dict, dict]:
+        if state_info is None:
             state_info = {i: False for i in range(self._state_num)}
+
         for idx, is_reset in state_info.items():
             if is_reset:
                 self._state[idx] = self._init_fn()
         state = [self._state[idx] for idx in state_info.keys()]
-        data = inputs['data']
-        assert all([isinstance(d, dict) for d in data]), [type(d) for d in data]
-        for d, s in zip(data, state):
-            d['prev_state'] = s
+        data['prev_state'] = self.merge_state(state)
         return data, state_info
+
+    def merge_state(self, state):
+        if isinstance(state[0], dict):
+            return {k: self.merge_state([s[k] for s in state]) for k in state[0].keys()}
+        elif isinstance(state[0], list) or isinstance(state[0], tuple):
+            return [self.merge_state(s) for s in zip(*state)]
+        else:
+            return state
 
     def after_forward(self, h: Any, state_info: dict) -> None:
         assert len(h) == len(state_info), '{}/{}'.format(len(h), len(state_info))
