@@ -14,10 +14,6 @@ class FakeLearner(BaseLearner):
 
         self._data_source = DataLoader()
 
-    def _setup_optimizer(self):
-        self._optimizer = torch.optim.Adam(self._agent.model.parameters(), 0.1)
-        self._lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(self._optimizer, milestones=[5], gamma=0.1)
-
     def _setup_computation_graph(self):
         class Graph:
             def forward(self, data, agent):
