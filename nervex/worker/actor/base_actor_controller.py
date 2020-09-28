@@ -48,6 +48,7 @@ class BaseActor(ABC, metaclass=ActorCommMetaclass):
 
     def _check(self) -> None:
         assert hasattr(self, 'init_service')
+        assert hasattr(self, 'close_service')
         assert hasattr(self, 'get_job')
         assert hasattr(self, 'get_agent_update_info')
         assert hasattr(self, 'send_traj_metadata')
@@ -96,6 +97,7 @@ class BaseActor(ABC, metaclass=ActorCommMetaclass):
             self._finish_job()
 
     def close(self) -> None:
+        self.close_service()
         self._end_flag = True
 
     def _iter_after_hook(self):

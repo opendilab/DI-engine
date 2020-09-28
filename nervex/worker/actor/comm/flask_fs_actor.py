@@ -13,7 +13,7 @@ from nervex.utils import read_file, save_file
 class FlaskFileSystemActor(BaseCommActor):
     def __init__(self, cfg: dict) -> None:
         super(FlaskFileSystemActor, self).__init__(cfg)
-        self._url_prefix = 'http://{}:{}/'.format(cfg.manager_ip, cfg.manager_port)
+        self._url_prefix = 'http://{}:{}/'.format(cfg.upstream_ip, cfg.upstream_port)
         self._requests_session = requests.session()
         retries = Retry(total=20, backoff_factor=1)
         self._requests_session.mount('http://', HTTPAdapter(max_retries=retries))
@@ -26,9 +26,9 @@ class FlaskFileSystemActor(BaseCommActor):
     # override
     def get_job(self) -> dict:
         d = {'request_id': self._job_request_id, 'actor_uid': self._actor_uid}
-        while True:
+        while self._active_flag:
             result = self._flask_send(d, 'manager/ask_for_job')
-            if result['code'] == 0:
+            if result is not None and result['code'] == 0:
                 job = result['info']
                 break
             else:
@@ -63,9 +63,9 @@ class FlaskFileSystemActor(BaseCommActor):
     # override
     def register_actor(self) -> None:
         d = {'actor_uid': self._actor_uid}
-        while True:
+        while True: # only registeration succeeded `_active_flag` can be True
             result = self._flask_send(d, 'manager/register')
-            if result['code'] == 0:
+            if result is not None and result['code'] == 0:
                 return
             else:
                 time.sleep(1)

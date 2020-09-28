@@ -36,6 +36,8 @@ class ActorCommMetaclass(ABCMeta):
             # comm -> instance
             for item in dir(instance._comm):
                 if not item.startswith('_'):  # only public method and variable
+                    if hasattr(instance, item):
+                        raise RuntimeError("can't set the repeat attribute({})".format(item))
                     setattr(instance, item, getattr(instance._comm, item))
             instance._check()
             return ret

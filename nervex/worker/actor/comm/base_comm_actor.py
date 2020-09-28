@@ -47,7 +47,7 @@ class BaseCommActor(ABC):
         self._active_flag = True
         self.start_heartbeats_thread()
 
-    def close(self) -> None:
+    def close_service(self) -> None:
         self._active_flag = False
 
     @property
