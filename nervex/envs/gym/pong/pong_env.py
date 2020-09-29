@@ -12,6 +12,8 @@ from nervex.envs.gym.pong.obs.pong_obs_runner import PongObsRunner
 import torch
 import numpy as np
 import gym
+from nervex.envs.env.atari_wrappers import MonitorEnv, NoopResetEnv, MaxAndSkipEnv, EpisodicLifeEnv, FireResetEnv, \
+    WarpFrame, ScaledFloatFrame, ClipRewardEnv, FrameStack
 
 
 def transform(height, width):
@@ -37,22 +39,26 @@ class PongEnv(BaseEnv):
 
     def __init__(self, cfg):
         self._cfg = cfg
-        self.frameskip = 1
-        self.rep_prob = 0
-        self._action_helper = PongRawActionRunner()
-        self._reward_helper = PongRewardRunner()
-        self._obs_helper = PongObsRunner()
+
+        self._action_helper = PongRawActionRunner(cfg)
+        self._reward_helper = PongRewardRunner(cfg)
+        self._obs_helper = PongObsRunner(cfg)
         self._wrap_frame = cfg.get('wrap_frame', False)
+        self._use_torch_wrap_frame = cfg.get('use_torch_wrap_frame', False)
         self._wrap_frame_height = cfg.get('wrap_frame_height', 84)
         self._wrap_frame_width = cfg.get('wrap_frame_width', 84)
 
-        if cfg != {}:
-            self._game = cfg.get('game', None)
-            self._mode = cfg.get('mode', None)
-            self._difficulty = cfg.get('difficulty', None)
-            self._obs_type = cfg.get('obs_type', None)
-            self.frameskip = cfg.get('frameskip', 1)
-            self.rep_prob = cfg.get('rep_prob', 0)
+        self._game = cfg.get('game', None)
+        self._mode = cfg.get('mode', None)
+        self._difficulty = cfg.get('difficulty', None)
+        self._obs_type = cfg.get('obs_type', None)
+        self.frameskip = cfg.get('frameskip', 4)
+        self.rep_prob = cfg.get('rep_prob', 0)
+        self.use_epi_life = cfg.get('use_epi_life', True)
+        self.use_fire_reset = cfg.get('use_fire_reset', True)
+        self.scale_float_frame = cfg.get('scale_float_frame', False)
+        self.clip_reward = cfg.get('clip_reward', False)
+        self.frame_stack = cfg.get('frame_stack', -1)
 
         self._isGameover = False
         self._launch_env_flag = False
@@ -60,21 +66,27 @@ class PongEnv(BaseEnv):
             self.rep_name = '-v0'
         elif self.rep_prob == 0:
             self.rep_name = '-v4'
-        else:
-            raise NotImplementedError
-        if self.frameskip == 4:
-            self.frame_name = 'Deterministic'
-        elif self.frameskip == 2:
-            self.frame_name = ''
-        elif self.frameskip == 1:
-            self.frame_name = 'NoFrameskip'
-        else:
-            raise NotImplementedError
-        self._env = gym.make("Pong" + self.frame_name + self.rep_name).unwrapped
-        self._launch_env_flag = True
+        self.frame_name = 'NoFrameskip'
+
+        self._launch_env()
 
     def _launch_env(self):
         self._env = gym.make("Pong" + self.frame_name + self.rep_name).unwrapped
+        self._env = MonitorEnv(self._env)
+        self._env = MaxAndSkipEnv(self._env, skip=self.frameskip)
+        if self.use_epi_life:
+            self._env = EpisodicLifeEnv(self._env)
+        if self.use_fire_reset:
+            self._env = FireResetEnv(self._env)
+        if self._wrap_frame and not self._use_torch_wrap_frame:
+            self._env = WarpFrame(self._env, self._wrap_frame_height, self._wrap_frame_width)
+        if self.scale_float_frame:
+            self._env = ScaledFloatFrame(self._env)
+        if self.clip_reward:
+            self._env = ClipRewardEnv(self._env)
+        if not self.frame_stack == -1:
+            self._env = FrameStack(self._env, self.frame_stack)
+
         self._launch_env_flag = True
 
     def reset(self):
@@ -85,7 +97,7 @@ class PongEnv(BaseEnv):
         self._obs_helper.reset()
         self._action_helper.reset()
         ret = torch.from_numpy(ret).float()
-        if self._wrap_frame:
+        if self._wrap_frame and self._use_torch_wrap_frame:
             ret = transform(self._wrap_frame_height, self._wrap_frame_width)(ret)
         return ret
 
@@ -106,7 +118,7 @@ class PongEnv(BaseEnv):
         self.action = self._action_helper.get(self)
         self.reward = self._reward_helper.get(self)
         self.obs = self._obs_helper.get(self)
-        if self._wrap_frame:
+        if self._wrap_frame and self._use_torch_wrap_frame:
             self.obs = transform(self._wrap_frame_height, self._wrap_frame_width)(self.obs)
 
         info = {'cum_reward': self._reward_helper.cum_reward}

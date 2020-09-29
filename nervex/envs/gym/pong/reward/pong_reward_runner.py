@@ -7,9 +7,9 @@ from .pong_reward import PongReward
 
 
 class PongRewardRunner(EnvElementRunner):
-    def _init(self, *args, **kwargs) -> None:
+    def _init(self, cfg, *args, **kwargs) -> None:
         # set self._core and other state variable
-        self._core = PongReward()
+        self._core = PongReward(cfg)
         self._cum_reward = 0.0
 
     def get(self, engine: BaseEnv) -> torch.tensor:
