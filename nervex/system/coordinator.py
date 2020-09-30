@@ -236,7 +236,7 @@ class Coordinator(object):
                     return True
             except Exception as e:
                 self._logger.info("something wrong with league_manager, {}".format(e))
-            time.sleep(10)
+            time.sleep(3)
         return False
 
     def deal_with_ask_for_metadata(self, learner_uid, batch_size):
@@ -264,15 +264,22 @@ class Coordinator(object):
         '''
         self._learner_record[learner_uid]['last_beats_time'] = int(time.time())
         self._learner_record[learner_uid]['last_iter'] = train_info['iter']
+        # update info for league
+        player_id = self._learner_to_player.get(learner_uid)
+        player_info = {'player_id': player_id, 'train_step': train_info['iter']}
+        url_prefix = self.url_prefix_format.format(self._league_manager_ip, self._league_manager_port)
+        d = {'player_info': player_info}
+        while True:
+            try:
+                response = requests.post(url_prefix + "league/update_active_player", json=d).json()
+                if response['code'] == 0:
+                    break
+            except Exception as e:
+                self._logger.info("something wrong with league_manager, {}".format(e))
+            time.sleep(3)
+        # update info for buffer
         # TODO PER update
         #self._learner_record[learner_uid]['replay_buffer'].update(update_info)
-        return True
-
-    def deal_with_get_learner_train_step(self, learner_uid, train_step):
-        self._learner_record[learner_uid]['last_beats_time'] = int(time.time())
-        player_id = self._learner_to_player.get(learner_uid)
-        player_info = {'player_id': player_id, 'train_step': train_step}
-        self.league_manager.update_active_player(player_info)
         return True
 
     def deal_with_register_league_manager(self, league_manager_ip, player_ids, player_ckpts):

@@ -31,4 +31,13 @@ def create_league_manager_app(league_manager_wrapper):
         else:
             return build_ret(1)
 
+    @app.route('/league/update_active_player', methods=['POST'])
+    def update_active_player():
+        player_info = request.json['player_info']
+        ret_code = league_manager_wrapper.deal_with_update_active_player(player_info)
+        if ret_code:
+            return build_ret(0)
+        else:
+            return build_ret(1)
+
     return app

@@ -113,6 +113,10 @@ class LeagueManagerWrapper(object):
         self.league_manager.finish_task(task_info)
         return True
 
+    def deal_with_update_active_player(self, player_info):
+        self.league_manager.update_active_player(player_info)
+        return True
+
     def get_ip(self):
         return self.league_manager_ip
 
