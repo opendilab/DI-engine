@@ -4,12 +4,22 @@ import sys
 from collections import namedtuple
 from typing import Union, Any
 from nervex.utils import build_logger_naive, EasyTimer, get_task_uid, VariableRecord
-from .comm.comm_actor_metaclass import ActorCommMetaclass
+from .comm.actor_comm_helper import ActorCommHelper
 
 
-class BaseActor(ABC, metaclass=ActorCommMetaclass):
+class BaseActor(ABC):
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
+        self._init()
+        if self._cfg.actor.communication.type == 'single_machine':
+            self._logger.info('[WARNING]: use default single machine communication strategy')
+            # TODO single machine actor
+            raise NotImplementedError
+        else:
+            comm_cfg = self._cfg.actor.communication
+            ActorCommHelper.enable_comm_helper(self, comm_cfg)
+
+    def _init(self) -> None:
         self._actor_uid = get_task_uid()
         self._setup_logger()
         self._end_flag = False

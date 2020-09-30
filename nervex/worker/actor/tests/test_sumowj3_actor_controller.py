@@ -24,8 +24,7 @@ class TestASActorFakeEnv:
         os.popen("rm -rf job_*")
         os.popen("rm -rf actor-log")
         time.sleep(1)
-        comm_cfg = setup_config.actor.communication
-        controller = FakeSumoWJ3Actor(setup_config, comm_cfg=comm_cfg)
+        controller = FakeSumoWJ3Actor(setup_config)
 
         def run():
             controller.run()

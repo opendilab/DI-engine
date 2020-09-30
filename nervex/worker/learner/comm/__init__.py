@@ -1,1 +1,1 @@
-from .comm_learner_metaclass import LearnerCommMetaclass, add_comm_learner
+from .learner_comm_helper import LearnerCommHelper, add_comm_learner

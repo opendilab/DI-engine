@@ -3,7 +3,7 @@ common:
 actor:
     print_freq: 1
     communication:
-        type: flask_fs
+        type: flask_fs  # ['single_machine', 'flask_fs']
         path_agent: '.'
         path_traj: '.'
         path_stat: '.'

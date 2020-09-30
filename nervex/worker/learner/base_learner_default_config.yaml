@@ -41,7 +41,7 @@ learner:
             ext_args:
                 freq: 1
     communication:
-        type: 'flask_fs'
+        type: 'single_machine'  # ['single_machine', 'flask_fs']
         upstream_ip: 127.0.0.1
         upstream_port: 18296
         learner_ip: 127.0.0.1

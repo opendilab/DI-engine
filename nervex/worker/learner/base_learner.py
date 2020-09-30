@@ -14,12 +14,12 @@ from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoin
 from nervex.utils import build_logger, dist_init, EasyTimer, dist_finalize, pretty_print, merge_dicts, read_config,\
     get_task_uid
 from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, LearnerHook
-from .comm import LearnerCommMetaclass
+from .comm import LearnerCommHelper
 
 default_config = read_config(osp.join(osp.dirname(__file__), "base_learner_default_config.yaml"))
 
 
-class BaseLearner(ABC, metaclass=LearnerCommMetaclass):
+class BaseLearner(ABC):
     r"""
     Overview:
         base class for model learning(SL/RL), which uses linklink for multi-GPU learning
@@ -42,8 +42,16 @@ class BaseLearner(ABC, metaclass=LearnerCommMetaclass):
 
             os.environ['CUDA_LAUNCH_BLOCKING'] = "1"  # for debug async CUDA
         """
-        self._learner_uid = get_task_uid()
         self._cfg = merge_dicts(default_config, cfg)
+        self._init()
+        if self._cfg.learner.communication.type == 'single_machine':
+            self._logger.info("Single Machine Learner has launched")
+        else:
+            comm_cfg = self._cfg.learner.communication
+            comm_helper = LearnerCommHelper.enable_comm_helper(self, comm_cfg)
+
+    def _init(self) -> None:
+        self._learner_uid = get_task_uid()
         self._load_path = self._cfg.common.load_path
         self._save_path = self._cfg.common.save_path
         self._use_cuda = self._cfg.learner.use_cuda
