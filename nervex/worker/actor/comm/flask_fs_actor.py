@@ -63,7 +63,7 @@ class FlaskFileSystemActor(BaseCommActor):
     # override
     def register_actor(self) -> None:
         d = {'actor_uid': self._actor_uid}
-        while True: # only registeration succeeded `_active_flag` can be True
+        while True:  # only registeration succeeded `_active_flag` can be True
             result = self._flask_send(d, 'manager/register')
             if result is not None and result['code'] == 0:
                 return

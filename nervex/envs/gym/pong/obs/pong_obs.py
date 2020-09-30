@@ -9,6 +9,7 @@ from nervex.torch_utils import to_tensor, tensor_to_list
 from nervex.envs.common import EnvElement
 from torchvision import transforms
 
+
 class PongObs(EnvElement):
     _name = "pongObs"
 

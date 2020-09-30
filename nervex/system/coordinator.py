@@ -64,9 +64,9 @@ class Coordinator(object):
         self.job_record = {}
         # {learner_uid: {"learner_ip_port_list": [[learner_ip, learner_port]],
         #                "job_ids": [job_id],
+        #                "world_size": world_size,
         #                "checkpoint_path": checkpoint_path,
         #                "replay_buffer": replay_buffer,
-        #                "ret_metadatas": {data_index: metadata},
         #                "last_beats_time": last_beats_time,
         #                "state": LearnerState}
 
@@ -80,7 +80,6 @@ class Coordinator(object):
 
         self.url_prefix_format = 'http://{}:{}/'
         self.lock = LockContext(lock_type='process')
-        self._save_ret_metadata_num = 5
         self.job_queue = Queue()
 
     def close(self):
@@ -98,7 +97,6 @@ class Coordinator(object):
                 # launch new replay buffer
                 self._learner_record[k]['replay_buffer'] = ReplayBuffer(EasyDict(self.cfg['replay_buffer']))
                 self._learner_record[k]['replay_buffer'].run()
-                self._learner_record[k]['ret_metadatas'] = {}
                 self._learner_record[k]['last_beats_time'] = time.time()
 
     def _save_resume(self):
@@ -125,26 +123,27 @@ class Coordinator(object):
             self._learner_record.info('manager({}) has been registered'.format(manager_uid))
         return True
 
-    def deal_with_register_learner(self, learner_uid, learner_ip, learner_port, learner_re_register=False):
+    def deal_with_register_learner(self, learner_uid, learner_ip, learner_port, world_size, restore=False):
         '''
             Overview: deal with register from learner, make learner and player pairs
             Arguments:
                 - learner_uid (:obj:`str`): learner's uid
                 - learner_ip (:obj:`str`): learner's ip
                 - learner_port (:obj:`str`): learner's port
-                - learner_re_register (:obj:`bool`): whether register the previous learner
+                - world_size (:obj:`int`): the number of processes in one learner
+                - restore (:obj:`bool`): whether register the previous learner
         '''
-        if hasattr(self, 'player_ids'):
+        if hasattr(self, '_player_ids'):
             with self.lock:
                 self._logger.info('now learner_record: {}'.format(self._learner_record))
                 if learner_uid not in self._learner_record:
                     if len(self._player_to_learner) < len(self._player_ids):
                         self._learner_record[learner_uid] = {
                             "learner_ip_port_list": [[learner_ip, learner_port]],
+                            "world_size": world_size,
                             "job_ids": [],
                             "checkpoint_path": '',
                             "replay_buffer": ReplayBuffer(EasyDict(self.cfg['replay_buffer'])),
-                            "ret_metadatas": {},
                             "last_beats_time": int(time.time()),
                             "state": LearnerState.alive
                         }
@@ -167,8 +166,8 @@ class Coordinator(object):
                         )
                         return False
                 else:
-                    if learner_re_register:
-                        # if re_register, empty learner_ip_port_list
+                    if restore:
+                        # if restore, empty learner_ip_port_list
                         self._learner_record[learner_uid]['learner_ip_port_list'] = []
                         self._learner_record[learner_uid]['state'] = LearnerState.alive
                     if [learner_ip, learner_port] not in self._learner_record[learner_uid]['learner_ip_port_list']:
@@ -177,8 +176,7 @@ class Coordinator(object):
                 self._logger.info('learner ({}) register, ip {}, port {}'.format(learner_uid, learner_ip, learner_port))
                 return self._learner_record[learner_uid]['checkpoint_path']
         else:
-            if not hasattr(self, 'player_ids'):
-                self._logger.info('learner can not register now, because league manager is not set up')
+            self._logger.info('learner can not register now, because league manager is not set up')
             return False
 
     def deal_with_ask_for_job(self, manager_uid, actor_uid):
@@ -241,38 +239,21 @@ class Coordinator(object):
             time.sleep(10)
         return False
 
-    def deal_with_ask_for_metadata(self, learner_uid, batch_size, data_index):
+    def deal_with_ask_for_metadata(self, learner_uid, batch_size):
         '''
             Overview: when receiving learner's request of asking for metadata, return metadatas
             Arguments:
                 - learner_uid (:obj:`str`): learner's uid
                 - batch_size (:obj:`int`): batch size
-                - data_index (:obj:`int`): data index, return same data if same
             Returns:
                 - (:obj`list`): metadata list
         '''
         assert learner_uid in self._learner_record, 'learner_uid ({}) not in learner_record'.format(learner_uid)
         self._learner_record[learner_uid]['last_beats_time'] = int(time.time())
         with self.lock:
-            # for a learner with multi-process, each process has the same data_index, so they sample the same data
-            if data_index not in self._learner_record[learner_uid]['ret_metadatas']:
-                metadatas = self._learner_record[learner_uid]['replay_buffer'].sample(batch_size)
-                self._learner_record[learner_uid]['ret_metadatas'][data_index] = metadatas
-                self._logger.info(
-                    '[ask_for_metadata] [first] learner ({}) data_index ({})'.format(learner_uid, data_index)
-                )
-            else:
-                metadatas = self._learner_record[learner_uid]['ret_metadatas'][data_index]
-                self._logger.info(
-                    '[ask_for_metadata] [second] learner ({}) data_index ({})'.format(learner_uid, data_index)
-                )
-        # clean saved metadata in learner_record
-        for i in range(data_index - self._save_ret_metadata_num):
-            if i in self._learner_record[learner_uid]['ret_metadatas']:
-                del self._learner_record[learner_uid]['ret_metadatas'][i]
-        return metadatas
+            return self._learner_record[learner_uid]['replay_buffer'].sample(batch_size)
 
-    def deal_with_update_replay_buffer(self, learner_uid, update_info):
+    def deal_with_train_info(self, learner_uid, train_info):
         '''
             Overview: when receiving learner's request of updating replay buffer, return True/False
             Arguments:
@@ -282,7 +263,9 @@ class Coordinator(object):
                 - (:obj`bool`): True
         '''
         self._learner_record[learner_uid]['last_beats_time'] = int(time.time())
-        self._learner_record[learner_uid]['replay_buffer'].update(update_info)
+        self._learner_record[learner_uid]['last_iter'] = train_info['iter']
+        # TODO PER update
+        #self._learner_record[learner_uid]['replay_buffer'].update(update_info)
         return True
 
     def deal_with_get_learner_train_step(self, learner_uid, train_step):

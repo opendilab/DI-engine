@@ -86,9 +86,6 @@ class BaseLeagueManager(ABC):
                     player = player_map[k](r, self.payoff, ckpt_path, name, **self.cfg[k])
                     self.active_players.append(player)
                     self.payoff.add_player(player)
-                    # set pretrain checkpoint as initial player checkpoint
-                    # only file copy, learner will load the checkpoint when learner-player mapping has been established
-                    self.save_checkpoint_fn(self.cfg.pretrain_checkpoint_path[r], player.checkpoint_path)
 
         # add pretrain player as the initial HistoricalPlayer
         if self.cfg.use_pretrain_init_historical:
@@ -115,10 +112,6 @@ class BaseLeagueManager(ABC):
 
     def close(self):
         self._end_flag = True
-
-    def init_player_model(self):
-        for p in self.active_players:
-            self.load_checkpoint_fn(p.player_id, p.checkpoint_path)
 
     def _launch_task(self):
         while not self._end_flag:
