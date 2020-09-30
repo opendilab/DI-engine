@@ -23,9 +23,7 @@ def try_optim_with(tname, t, optim_t):
     net = LinearNet()
     mse_fn = nn.L1Loss()
     if tname == 'grad_clip':
-        optimizer = NervexOptim(
-            net.parameters(), grad_clip_type=t, clip_value=0.000001, lr=0.1, optim_type=optim_t
-        )
+        optimizer = NervexOptim(net.parameters(), grad_clip_type=t, clip_value=0.000001, lr=0.1, optim_type=optim_t)
     if tname == 'grad_ignore':
         optimizer = NervexOptim(
             net.parameters(),
@@ -46,7 +44,7 @@ def try_optim_with(tname, t, optim_t):
     loss.backward()
     optimizer.step()
 
-    if t == None:
+    if t is None:
         print("weight without optimizer clip:" + str(net.linear.weight))
     else:
         print("weight with optimizer {} of type: {} is ".format(tname, t) + str(net.linear.weight))
