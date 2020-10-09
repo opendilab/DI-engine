@@ -36,7 +36,7 @@ class FakeLeagueManager(BaseLeagueManager):
 
 @pytest.fixture(scope='function')
 def setup_config():
-    with open(os.path.join(os.path.dirname(__file__), '../league_manager_default_config.yaml')) as f:
+    with open(os.path.join(os.path.dirname(__file__), 'league_manager_test_config.yaml')) as f:
         cfg = yaml.safe_load(f)
     cfg = EasyDict(cfg)
     return cfg
@@ -148,11 +148,11 @@ class TestFakeLeagueManager:
         assert BEGIN_COUNT == FINISH_COUNT
         assert (len(threading.enumerate()) <= 2), threading.enumerate()  # main thread + QueueFeederThread
 
-    def test_snapshot_priority(self, random_task_result):
+    def test_snapshot_priority(self, random_task_result, setup_config):
         global SAVE_COUNT
         SAVE_COUNT = 0
         match_runner = FakeMatchRunner(random_task_result)
-        league_manager = FakeLeagueManager({}, save_checkpoint_fn, load_checkpoint_fn, match_runner.launch_match)
+        league_manager = FakeLeagueManager(setup_config, save_checkpoint_fn, load_checkpoint_fn, match_runner.launch_match)
         # fix mutate
         for p in league_manager.active_players:
             if hasattr(p, 'mutate_prob'):
