@@ -8,7 +8,7 @@ from typing import List, Dict
 from nervex.worker.actor import BaseActor, register_actor
 from nervex.model import FCDQN
 from nervex.worker.agent.sumo_dqn_agent import SumoDqnActorAgent
-from nervex.worker.actor.env_manager import SubprocessEnvManager
+from nervex.worker.actor.env_manager import SubprocessEnvManager, BaseEnvManager
 from nervex.envs.sumo import SumoWJ3Env, FakeSumoWJ3Env
 from nervex.utils import get_step_data_compressor
 
@@ -166,7 +166,8 @@ class SumoWJ3Actor(BaseActor):
             traj_id = "job_{}_env_{}".format(job_id, env_id)
             metadata = {
                 'traj_id': traj_id,
-                'learner_uid': self._job['learner_uid'],
+                'learner_uid': self._job['learner_uid'][0],
+                'launch_player': self._job['launch_player'],
                 'env_id': env_id,
                 'actor_uid': self._actor_uid,
                 'done': data[-1]['done'],

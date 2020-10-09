@@ -25,4 +25,4 @@ league:
         episode_num: 2
         data_push_length: 128
         agent_update_freq: 30  # second
-        compressor: 'lz4'
+        compressor: 'none'
