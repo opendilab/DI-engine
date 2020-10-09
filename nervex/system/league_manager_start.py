@@ -4,7 +4,6 @@ import time
 import uuid
 
 import numpy as np
-from itertools import count
 import logging
 import argparse
 from flask import Flask
@@ -14,8 +13,8 @@ from nervex.utils import read_config
 from .league_manager_api import create_league_manager_app
 from .league_manager_wrapper import LeagueManagerWrapper
 
-parser = argparse.ArgumentParser(description='start point of league manager wrapper')
-parser.add_argument('--config', dest='config', required=True, help='settings of AlphaStar in yaml format')
+parser = argparse.ArgumentParser(description='nervex league manager wrapper start point')
+parser.add_argument('--config', dest='config', required=True, help='league manager wrapper settings in yaml format')
 args = parser.parse_args()
 
 # experiments/xxx/api-log/learner-api.log
@@ -25,8 +24,7 @@ log_path = os.path.join(log_path, api_dir_name)
 logger = TextLogger(log_path, name="league_manager.log")
 
 cfg = read_config(args.config)
-
-league_manager_port = cfg['system']['league_manager_port']
+league_manager_port = cfg.system.league_manager_port
 
 league_manager_wrapper = LeagueManagerWrapper(cfg)
 league_manager_ip = league_manager_wrapper.get_ip()

@@ -153,3 +153,19 @@ class BaseActor(ABC):
     @abstractproperty
     def all_done(self) -> bool:
         raise NotImplementedError
+
+
+actor_mapping = {}
+
+
+def register_actor(name, actor):
+    assert isinstance(name, str)
+    assert issubclass(actor, BaseActor)
+    actor_mapping[name] = actor
+
+
+def create_actor(cfg):
+    if cfg.actor.actor_type not in actor_mapping.keys():
+        raise KeyError("not support actor type: {}".format(cfg.actor.actor_type))
+    else:
+        return actor_mapping[cfg.actor.actor_type](cfg)

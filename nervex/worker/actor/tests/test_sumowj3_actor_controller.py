@@ -4,6 +4,7 @@ import threading
 from threading import Thread
 import time
 from nervex.worker.actor.sumowj3_actor_controller import SumoWJ3Actor
+from nervex.worker.actor import create_actor, register_actor
 
 
 class FakeSumoWJ3Actor(SumoWJ3Actor):
@@ -24,7 +25,9 @@ class TestASActorFakeEnv:
         os.popen("rm -rf job_*")
         os.popen("rm -rf actor-log")
         time.sleep(1)
-        controller = FakeSumoWJ3Actor(setup_config)
+        register_actor("fake_sumowj3", FakeSumoWJ3Actor)
+        setup_config.actor.actor_type = "fake_sumowj3"
+        controller = create_actor(setup_config)
 
         def run():
             controller.run()

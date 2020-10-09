@@ -5,7 +5,7 @@ import queue
 import torch
 from threading import Thread
 from typing import List, Dict
-from nervex.worker.actor.base_actor_controller import BaseActor
+from nervex.worker.actor import BaseActor, register_actor
 from nervex.model import FCDQN
 from nervex.worker.agent.sumo_dqn_agent import SumoDqnActorAgent
 from nervex.worker.actor.env_manager import SubprocessEnvManager
@@ -188,3 +188,6 @@ class SumoWJ3Actor(BaseActor):
     @property
     def all_done(self) -> bool:
         return self._env_manager.all_done
+
+
+register_actor("sumowj3", SumoWJ3Actor)
