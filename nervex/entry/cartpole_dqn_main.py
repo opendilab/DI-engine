@@ -8,7 +8,7 @@ from nervex.envs.gym.cartpole.cartpole_env import CartpoleEnv
 from nervex.worker import BaseLearner, SubprocessEnvManager
 from nervex.worker.agent.sumo_dqn_agent import SumoDqnActorAgent
 from nervex.utils import read_config
-from nervex.entry.base import SingleMachineRunner
+from nervex.entry.base_single_machine import SingleMachineRunner
 from nervex.worker.agent import BaseAgent, IAgentStatelessPlugin
 from collections import OrderedDict
 from nervex.computation_graph import BaseCompGraph

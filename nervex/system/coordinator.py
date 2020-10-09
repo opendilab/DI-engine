@@ -120,7 +120,7 @@ class Coordinator(object):
         if manager_uid not in self.manager_record:
             self.manager_record[manager_uid] = {}
         else:
-            self._learner_record.info('manager({}) has been registered'.format(manager_uid))
+            self._logger.info('manager({}) has been registered'.format(manager_uid))
         return True
 
     def deal_with_register_learner(self, learner_uid, learner_ip, learner_port, world_size, restore=False):

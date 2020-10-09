@@ -16,6 +16,7 @@ import random
 from easydict import EasyDict
 
 from nervex.utils import read_file, save_file
+from nervex.league import StaticLeagueManager
 
 
 class LeagueManagerWrapper(object):
@@ -86,7 +87,7 @@ class LeagueManagerWrapper(object):
         print('{} learners should be registered totally. '.format(len(self.player_ids)))
 
     def _setup_league_manager(self, save_checkpoint_fn, load_checkpoint_fn, launch_match_fn):
-        raise NotImplementedError
+        self.league_manager = StaticLeagueManager(self.cfg, save_checkpoint_fn, load_checkpoint_fn, launch_match_fn)
 
     def _register_league_manager(self):
         d = {
