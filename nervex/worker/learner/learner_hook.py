@@ -95,7 +95,7 @@ class LrSchdulerHook(LearnerHook):
         if engine.last_iter.val % self._freq == 0:
             engine.lr_scheduler.step()
         # for the normal case that all the parameters have the same lr
-        engine.log_buffer['cur_lr'] = engine.lr_scheduler.get_last_lr()[0]
+        engine.log_buffer['cur_lr'] = engine.lr_scheduler.get_lr()[0]
 
 
 class LoadCkptHook(LearnerHook):

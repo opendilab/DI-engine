@@ -37,7 +37,7 @@ class SumoDqnGraph(BaseCompGraph):
 
         action = data['action']
         terminate = data['done'].float()
-        weights = data.get('weights', None)
+        weights = data.get('IS', None)
 
         q_value = agent.forward(obs_batch)
         if agent.is_double:

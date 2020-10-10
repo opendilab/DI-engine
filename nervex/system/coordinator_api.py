@@ -15,16 +15,6 @@ def create_coordinator_app(coordinator):
     def build_ret(code, info=''):
         return {'code': code, 'info': info}
 
-    @app.route('/coordinator/register_model', methods=['POST'])
-    def register_model():
-        learner_uid = request.json['learner_uid']
-        model_name = request.json['model_name']
-        ret_code = coordinator.deal_with_register_model(learner_uid, model_name)
-        if ret_code:
-            return build_ret(0)
-        else:
-            return build_ret(1)
-
     @app.route('/coordinator/register_manager', methods=['POST'])
     def register_manager():
         manager_uid = request.json['manager_uid']
@@ -39,8 +29,9 @@ def create_coordinator_app(coordinator):
         learner_uid = request.json['learner_uid']
         learner_ip = request.json['learner_ip']
         learner_port = request.json['learner_port']
-        learner_re_register = request.json['learner_re_register']
-        ret_info = coordinator.deal_with_register_learner(learner_uid, learner_ip, learner_port, learner_re_register)
+        world_size = request.json['world_size']
+        restore = request.json['restore']
+        ret_info = coordinator.deal_with_register_learner(learner_uid, learner_ip, learner_port, world_size, restore)
         if ret_info:
             return build_ret(0, ret_info)
         else:
@@ -82,18 +73,17 @@ def create_coordinator_app(coordinator):
     def ask_for_metadata():
         learner_uid = request.json['learner_uid']
         batch_size = request.json['batch_size']
-        data_index = request.json['data_index']
-        ret = coordinator.deal_with_ask_for_metadata(learner_uid, batch_size, data_index)
+        ret = coordinator.deal_with_ask_for_metadata(learner_uid, batch_size)
         if ret:
             return build_ret(0, ret)
         else:
             return build_ret(1)
 
-    @app.route('/coordinator/update_replay_buffer', methods=['POST'])
+    @app.route('/coordinator/send_train_info', methods=['POST'])
     def update_replay_buffer():
         learner_uid = request.json['learner_uid']
-        update_info = request.json['update_info']
-        ret_code = coordinator.deal_with_update_replay_buffer(learner_uid, update_info)
+        train_info = request.json['train_info']
+        ret_code = coordinator.deal_with_train_info(learner_uid, train_info)
         if ret_code:
             return build_ret(0)
         else:

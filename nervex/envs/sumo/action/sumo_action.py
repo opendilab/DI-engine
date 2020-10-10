@@ -29,7 +29,7 @@ class SumoRawAction(EnvElement):
         self._cfg = cfg
         self._tls_green_action = cfg.tls_green_action
         self._tls_yellow_action = cfg.tls_yellow_action
-        self._tls = self._tls_green_action.keys()
+        self._tls = list(self._tls_green_action.keys())
         self._shape = {k: len(v) for k, v in self._tls_green_action.items()}
         self._value = {
             k: {

@@ -335,7 +335,7 @@ def pg_loss(
     action,
     rewards,
     bootstrap_values,
-    clipping=lambda x: torch.clamp(x, min=1),
+    clipping=lambda x: torch.clamp(x, 1),
     upgo_weight=0.5,
     ent_weight=0.2,
     vtrace_gamma=1.0,

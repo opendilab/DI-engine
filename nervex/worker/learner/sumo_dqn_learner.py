@@ -14,7 +14,8 @@ from easydict import EasyDict
 from collections import OrderedDict
 
 from nervex.utils import override, merge_dicts, pretty_print, read_config
-from nervex.worker import BaseLearner
+from nervex.data import default_collate
+from nervex.worker.learner import BaseLearner, register_learner
 from nervex.worker.agent.sumo_dqn_agent import SumoDqnLearnerAgent
 from nervex.model import FCDQN
 from nervex.envs.sumo.sumo_env import SumoWJ3Env
@@ -32,7 +33,15 @@ class SumoDqnLearner(BaseLearner):
 
     @override(BaseLearner)
     def _setup_data_source(self):
-        pass
+        self._collate_fn = default_collate
+        batch_size = self._cfg.learner.batch_size
+
+        def iterator():
+            while True:
+                data = self.get_data(batch_size)
+                yield self._collate_fn(data)
+
+        self._data_source = iterator()
 
     @override(BaseLearner)
     def _setup_agent(self):
@@ -51,3 +60,6 @@ class SumoDqnLearner(BaseLearner):
     @override(BaseLearner)
     def _setup_computation_graph(self):
         self._computation_graph = SumoDqnGraph(self._cfg.learner)
+
+
+register_learner('sumo_dqn', SumoDqnLearner)

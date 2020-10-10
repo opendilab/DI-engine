@@ -4,7 +4,7 @@ import numpy as np
 from nervex.torch_utils.network import SoftArgmax
 
 
-@pytest.mark.unitest
+@pytest.mark.unittest
 class TestSoftArgmax:
     def test(self):
         H, W = (48, 64)
