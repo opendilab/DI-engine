@@ -2,8 +2,6 @@ common:
     name: TestSumoDqn
     save_path: '.'
     load_path: ''
-data:
-    batch_size: 4
 learner:
     learner_type: 'sumo_dqn'
     import_names: ['nervex.worker.learner.sumo_dqn_learner']
@@ -11,6 +9,7 @@ learner:
     use_distributed: False
     max_iterations: 10
     batch_size: 4
+    unroll_len: 1
     learning_rate: 0.001
     weight_decay: 0.001
     reward_weights:

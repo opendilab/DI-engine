@@ -34,7 +34,7 @@ class SumoDqnLearner(BaseLearner):
     @override(BaseLearner)
     def _setup_data_source(self):
         self._collate_fn = default_collate
-        batch_size = self._cfg.data.batch_size
+        batch_size = self._cfg.learner.batch_size
 
         def iterator():
             while True:
