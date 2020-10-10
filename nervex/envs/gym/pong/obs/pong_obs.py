@@ -47,11 +47,11 @@ class PongObs(EnvElement):
         if self._wrap_frame:
             self._shape = (1, self._wrap_frame_height, self._wrap_frame_width)
             self._value = {
-            'min': 0.0,
-            'max': 1.0,
-            'dtype': torch.FloatTensor,
-            'dinfo': 'float value tensor of shape (C, H, W), C=1',
-        }
+                'min': 0.0,
+                'max': 1.0,
+                'dtype': torch.FloatTensor,
+                'dinfo': 'float value tensor of shape (C, H, W), C=1',
+            }
 
     def _to_agent_processor(self, obs):
         return torch.from_numpy(obs).float()

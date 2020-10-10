@@ -158,7 +158,8 @@ class SingleMachineRunner():
                 obs[i] = timestep.obs[i]
                 if d:
                     alive_env[i] = False
-                    cum_rewards[i] = self.learner.computation_graph.get_weighted_reward(timestep.info[i]['cum_reward']).item()
+                    cum_rewards[i] = self.learner.computation_graph.get_weighted_reward(timestep.info[i]['cum_reward']
+                                                                                        ).item()
 
             if all(dones):
                 avg_reward = sum(cum_rewards) / len(cum_rewards)

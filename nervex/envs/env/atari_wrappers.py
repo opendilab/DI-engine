@@ -11,8 +11,7 @@ cv2.ocl.setUseOpenCL(False)
 
 
 def is_atari(env):
-    if (hasattr(env.observation_space, "shape")
-            and env.observation_space.shape is not None
+    if (hasattr(env.observation_space, "shape") and env.observation_space.shape is not None
             and len(env.observation_space.shape) <= 2):
         return False
     return hasattr(env, "unwrapped") and hasattr(env.unwrapped, "ale")
@@ -183,8 +182,7 @@ class MaxAndSkipEnv(gym.Wrapper):
         """Return only every `skip`-th frame"""
         gym.Wrapper.__init__(self, env)
         # most recent raw observations (for max pooling across time steps)
-        self._obs_buffer = np.zeros(
-            (2, ) + env.observation_space.shape, dtype=np.uint8)
+        self._obs_buffer = np.zeros((2, ) + env.observation_space.shape, dtype=np.uint8)
         self._skip = skip
 
     def step(self, action):
@@ -216,16 +214,11 @@ class WarpFrame(gym.ObservationWrapper):
         gym.ObservationWrapper.__init__(self, env)
         self.width = height
         self.height = width
-        self.observation_space = spaces.Box(
-            low=0,
-            high=255,
-            shape=(self.height, self.width, 1),
-            dtype=np.uint8)
+        self.observation_space = spaces.Box(low=0, high=255, shape=(self.height, self.width, 1), dtype=np.uint8)
 
     def observation(self, frame):
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-        frame = cv2.resize(
-            frame, (self.width, self.height), interpolation=cv2.INTER_AREA)
+        frame = cv2.resize(frame, (self.width, self.height), interpolation=cv2.INTER_AREA)
         return frame[:, :, None]
 
 
@@ -237,10 +230,8 @@ class FrameStack(gym.Wrapper):
         self.frames = deque([], maxlen=k)
         shp = env.observation_space.shape
         self.observation_space = spaces.Box(
-            low=0,
-            high=255,
-            shape=(shp[0], shp[1], shp[2] * k),
-            dtype=env.observation_space.dtype)
+            low=0, high=255, shape=(shp[0], shp[1], shp[2] * k), dtype=env.observation_space.dtype
+        )
 
     def reset(self):
         ob = self.env.reset()
@@ -261,8 +252,7 @@ class FrameStack(gym.Wrapper):
 class ScaledFloatFrame(gym.ObservationWrapper):
     def __init__(self, env):
         gym.ObservationWrapper.__init__(self, env)
-        self.observation_space = gym.spaces.Box(
-            low=0, high=1, shape=env.observation_space.shape, dtype=np.float32)
+        self.observation_space = gym.spaces.Box(low=0, high=1, shape=env.observation_space.shape, dtype=np.float32)
 
     def observation(self, observation):
         # careful! This undoes the memory optimization, use
