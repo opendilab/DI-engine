@@ -24,10 +24,7 @@ def setup_replay_buffer():
 
 
 def generate_data():
-    ret = {
-        'obs': np.random.randn(4),
-        'data_push_length': 1
-    }
+    ret = {'obs': np.random.randn(4), 'data_push_length': 1}
     p_weight = np.random.uniform()
     if p_weight < 1. / 3:
         pass  # no key 'priority'
