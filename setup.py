@@ -91,6 +91,7 @@ setup(
         'yapf==0.29.0',
         'pytest==5.1.1',
         'pytest-xdist',
+        'pytest-cov',
         'coverage',
         'flask',
         'lz4',
