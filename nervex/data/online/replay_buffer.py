@@ -1,4 +1,5 @@
 import os.path as osp
+import copy
 from threading import Thread
 
 from nervex.data.structure import PrioritizedBuffer, Cache
@@ -20,6 +21,10 @@ class ReplayBuffer:
         """
         self.cfg = merge_dicts(default_config, cfg)
         max_reuse = self.cfg.max_reuse if 'max_reuse' in self.cfg.keys() else None
+        self.traj_len = cfg.get('traj_len', None)
+        self.unroll_len = cfg.get('unroll_len', None)
+        if self.traj_len is not None:
+            assert self.traj_len % self.unroll_len == 0
         self._meta_buffer = PrioritizedBuffer(
             maxlen=self.cfg.meta_maxlen,
             max_reuse=max_reuse,
@@ -52,11 +57,23 @@ class ReplayBuffer:
         """
         assert (isinstance(data, list) or isinstance(data, dict))
 
+        def push(item):
+            data_push_length = item['data_push_length']
+            traj_len = self.traj_len if self.traj_len is not None else data_push_length
+            unroll_len = self.unroll_len if self.unroll_len is not None else data_push_length
+            assert data_push_length == traj_len
+            split_num = traj_len // unroll_len
+            split_item = [copy.deepcopy(item) for _ in range(split_num)]
+            for i in range(split_num):
+                split_item[i]['unroll_split_begin'] = i * unroll_len
+                split_item[i]['unroll_len'] = unroll_len
+                self._cache.push_data(split_item[i])
+
         if isinstance(data, list):
             for d in data:
-                self._cache.push_data(d)
+                push(d)
         elif isinstance(data, dict):
-            self._cache.push_data(data)
+            push(data)
 
     def sample(self, batch_size):
         """

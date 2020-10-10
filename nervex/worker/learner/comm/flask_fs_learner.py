@@ -58,10 +58,23 @@ class FlaskFileSystemLearner(BaseCommLearner):
                     stepdata = []
                     for m in metadata:
                         path = os.path.join(self._path_traj, m['traj_id'])
-                        s = read_file(path)
-                        # add metdata key-value to stepdata
-                        for i in range(len(s)):
-                            s[i].update(m)
+                        # due to read-write conflict, read_file may be error, therefore we circle this procedure
+                        while True:
+                            try:
+                                s = read_file(path)
+                                break
+                            except Exception as e:
+                                self._logger.info('read_file error: {}({})'.format(e, path))
+                                time.sleep(0.5)
+                        begin, end = m['unroll_split_begin'], m['unroll_split_begin'] + m['unroll_len']
+                        if m['unroll_len'] == 1:
+                            s = s[begin]
+                            s.update(m)
+                        else:
+                            s = s[begin:end]
+                            # add metdata key-value to stepdata
+                            for i in range(len(s)):
+                                s[i].update(m)
                         stepdata.append(s)
                     return stepdata
             time.sleep(5)

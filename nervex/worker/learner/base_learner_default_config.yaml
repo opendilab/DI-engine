@@ -8,7 +8,7 @@ learner:
     use_distributed: False
     max_iterations: 10
     batch_size: 2
-    trajectory_len: 3
+    unroll_len: 3
     log_freq: 1
     learning_rate: 0.001
     weight_decay: 0.0001
