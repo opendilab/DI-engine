@@ -35,5 +35,4 @@ test:
   stage: test
   script:
     - pip install -e .
-    - coverage run --branch --source=./nervex -m pytest nervex/ -n 4 -sv -m unittest
-    - coverage report --show-missing
+    - pytest ./nervex --cov-branch --cov-report term-missing --cov=./nervex -n 4 -sv -m unittest

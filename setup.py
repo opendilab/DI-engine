@@ -92,7 +92,6 @@ setup(
         'pytest==5.1.1',
         'pytest-xdist',
         'pytest-cov',
-        'coverage',
         'flask',
         'lz4',
         'cloudpickle',
