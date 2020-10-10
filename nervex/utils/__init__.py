@@ -3,7 +3,7 @@ import os
 from .compression_helper import get_step_data_compressor, get_step_data_decompressor, compress_obs, decompress_obs
 from .config_utils import merge_dicts, read_config
 from .file_helper import read_file, save_file
-from .import_utils import try_import_ceph, try_import_link
+from .import_utils import try_import_ceph, try_import_link, import_module
 from .log_helper import build_logger, DistributionTimeImage, get_default_logger, pretty_print, build_logger_naive, \
         AverageMeter, VariableRecord
 from .system_helper import get_ip, get_pid, get_task_uid, get_manager_node_ip
