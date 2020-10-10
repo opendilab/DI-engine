@@ -10,8 +10,7 @@
 .idea
 .DS_Store
 __pycache__
-PySC2.egg-info
-sensestar.egg-info
+*.egg-info
 sc2learner/experiments/
 experiment_config.yaml
 api-log/
