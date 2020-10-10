@@ -1,6 +1,6 @@
 import os.path as osp
 import numpy as np
-from nervex.league import BaseLeagueManager
+from nervex.league import BaseLeagueManager, register_league
 
 
 class StaticLeagueManager(BaseLeagueManager):
@@ -35,3 +35,6 @@ class StaticLeagueManager(BaseLeagueManager):
     # override
     def _update_player(self, player, player_info):
         pass
+
+
+register_league('static', StaticLeagueManager)

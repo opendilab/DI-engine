@@ -339,6 +339,7 @@ class BaseLearner(ABC):
 
 learner_mapping = {}
 
+
 def register_learner(name: str, learner: type) -> None:
     assert isinstance(name, str)
     assert issubclass(learner, BaseLearner)

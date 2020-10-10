@@ -120,7 +120,9 @@ class SumoWJ3Actor(BaseActor):
         assert self.all_done, 'all envs must be done'
         self._episode_result.append(self._one_episode_cum_reward)
         self._logger.info(
-            'finish episode{} in {} with cum_reward: {}'.format(len(self._episode_result) - 1, time.time(), self._episode_result[-1])
+            'finish episode{} in {} with cum_reward: {}'.format(
+                len(self._episode_result) - 1, time.time(), self._episode_result[-1]
+            )
         )
 
     # override

@@ -1,4 +1,6 @@
 league:
+    league_type: 'static'
+    import_names: []  # placeholder
     # ---player----
     player_category: ['zerg']  # placeholder
     active_players: 

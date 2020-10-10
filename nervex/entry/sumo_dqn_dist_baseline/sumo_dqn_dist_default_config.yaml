@@ -70,6 +70,8 @@ actor:
         upstream_ip: '127.0.0.1'
         upstream_port: 16296
 league:
+    league_type: 'static'
+    import_names: ['nervex.league.static_league_manager']
     player_category: ['main']
     pretrain_checkpoint_path:
         main: 'main_ckpt.pth'

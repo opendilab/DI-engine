@@ -4,7 +4,7 @@ from collections import OrderedDict
 from threading import Thread
 import time
 
-from nervex.utils import merge_dicts, read_config, LockContext
+from nervex.utils import merge_dicts, read_config, LockContext, import_module
 from nervex.league.player import ActivePlayer, MainPlayer, MainExploiter, LeagueExploiter, HistoricalPlayer
 from nervex.league.shared_payoff import SharedPayoff
 
@@ -181,3 +181,21 @@ class BaseLeagueManager(ABC):
     @abstractmethod
     def _update_player(self, player, player_info):
         raise NotImplementedError
+
+
+league_mapping = {}
+
+
+def register_league(name: str, league: type) -> None:
+    assert isinstance(name, str)
+    assert issubclass(league, BaseLeagueManager)
+    league_mapping[name] = league
+
+
+def create_league(cfg: dict, *args) -> BaseLeagueManager:
+    import_module(cfg.league.import_names)
+    league_type = cfg.league.league_type
+    if league_type not in league_mapping.keys():
+        raise KeyError("not support league type: {}".format(league_type))
+    else:
+        return league_mapping[league_type](cfg, *args)

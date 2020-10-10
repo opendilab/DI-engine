@@ -152,7 +152,9 @@ class TestFakeLeagueManager:
         global SAVE_COUNT
         SAVE_COUNT = 0
         match_runner = FakeMatchRunner(random_task_result)
-        league_manager = FakeLeagueManager(setup_config, save_checkpoint_fn, load_checkpoint_fn, match_runner.launch_match)
+        league_manager = FakeLeagueManager(
+            setup_config, save_checkpoint_fn, load_checkpoint_fn, match_runner.launch_match
+        )
         # fix mutate
         for p in league_manager.active_players:
             if hasattr(p, 'mutate_prob'):
