@@ -67,7 +67,7 @@ def build_activation(activation):
     Returns:
         - act_func (:obj:`torch.nn.module`): the corresponding activation module
     """
-    act_func = {'relu': nn.ReLU(inplace=False), 'glu': GLU}
+    act_func = {'relu': nn.ReLU(inplace=False), 'glu': GLU, 'prelu': nn.PReLU()}
     if activation in act_func.keys():
         return act_func[activation]
     else:
