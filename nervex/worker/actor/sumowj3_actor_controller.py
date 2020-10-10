@@ -116,7 +116,8 @@ class SumoWJ3Actor(BaseActor):
     # override
     def _finish_episode(self, timestep: namedtuple) -> None:
         assert self.all_done, 'all envs must be done'
-        result = [sum(t) / (len(t) + 1e-8) for t in self._episode_reward]
+        eps_reward = [sum(t.values()) for t in self._episode_reward]  # t is a dict, sum all the value equally
+        result = [sum(t) / (len(t) + 1e-8) for t in eps_reward]
         self._episode_result.append(result)
         self._logger.info(
             'finish episode{} in {} with cum_reward: {}'.format(len(self._episode_result) - 1, time.time(), result)

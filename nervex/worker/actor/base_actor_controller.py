@@ -3,7 +3,7 @@ import os
 import sys
 from collections import namedtuple
 from typing import Union, Any
-from nervex.utils import build_logger_naive, EasyTimer, get_task_uid, VariableRecord
+from nervex.utils import build_logger_naive, EasyTimer, get_task_uid, VariableRecord, import_module
 from .comm.actor_comm_helper import ActorCommHelper
 
 
@@ -158,13 +158,14 @@ class BaseActor(ABC):
 actor_mapping = {}
 
 
-def register_actor(name, actor):
+def register_actor(name: str, actor: BaseActor) -> None:
     assert isinstance(name, str)
     assert issubclass(actor, BaseActor)
     actor_mapping[name] = actor
 
 
-def create_actor(cfg):
+def create_actor(cfg: dict) -> BaseActor:
+    import_module(cfg.actor.import_names)
     if cfg.actor.actor_type not in actor_mapping.keys():
         raise KeyError("not support actor type: {}".format(cfg.actor.actor_type))
     else:

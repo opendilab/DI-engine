@@ -2,6 +2,7 @@ common:
     save_path: '.'
 actor:
     actor_type: 'sumowj3'
+    import_names: ['nervex.worker.actor.sumowj3_actor_controller']
     print_freq: 1
     communication:
         type: flask_fs  # ['single_machine', 'flask_fs']
