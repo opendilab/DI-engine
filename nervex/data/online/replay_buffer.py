@@ -1,7 +1,10 @@
+import os.path as osp
 from threading import Thread
 
 from nervex.data.structure import PrioritizedBuffer, Cache
-from nervex.utils import LockContext
+from nervex.utils import LockContext, read_config, merge_dicts
+
+default_config = read_config(osp.join(osp.dirname(__file__), 'replay_buffer_default_config.yaml')).replay_buffer
 
 
 class ReplayBuffer:
@@ -15,17 +18,17 @@ class ReplayBuffer:
         Arguments:
             - cfg (:obj:`dict`): config dict
         """
-        self.cfg = cfg
-        max_reuse = cfg.max_reuse if 'max_reuse' in cfg.keys() else None
+        self.cfg = merge_dicts(default_config, cfg)
+        max_reuse = self.cfg.max_reuse if 'max_reuse' in self.cfg.keys() else None
         self._meta_buffer = PrioritizedBuffer(
-            maxlen=cfg.meta_maxlen,
+            maxlen=self.cfg.meta_maxlen,
             max_reuse=max_reuse,
-            min_sample_ratio=cfg.min_sample_ratio,
-            alpha=cfg.alpha,
-            beta=cfg.beta
+            min_sample_ratio=self.cfg.min_sample_ratio,
+            alpha=self.cfg.alpha,
+            beta=self.cfg.beta
         )
         # cache mechanism: first push data into cache, then(some conditions) put forward to meta buffer
-        self._cache = Cache(maxlen=cfg.cache_maxlen, timeout=cfg.timeout)
+        self._cache = Cache(maxlen=self.cfg.cache_maxlen, timeout=self.cfg.timeout)
 
         self._meta_lock = LockContext(lock_type='thread')
         # from cache to meta data transport thread

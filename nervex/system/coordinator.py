@@ -95,7 +95,7 @@ class Coordinator(object):
             self.manager_record, self.job_record, self._learner_record = data
             for k, v in self._learner_record.items():
                 # launch new replay buffer
-                self._learner_record[k]['replay_buffer'] = ReplayBuffer(EasyDict(self.cfg['replay_buffer']))
+                self._learner_record[k]['replay_buffer'] = ReplayBuffer(EasyDict(self.cfg.replay_buffer))
                 self._learner_record[k]['replay_buffer'].run()
                 self._learner_record[k]['last_beats_time'] = time.time()
 
@@ -143,7 +143,7 @@ class Coordinator(object):
                             "world_size": world_size,
                             "job_ids": [],
                             "checkpoint_path": '',
-                            "replay_buffer": ReplayBuffer(EasyDict(self.cfg['replay_buffer'])),
+                            "replay_buffer": ReplayBuffer(EasyDict(self.cfg.replay_buffer)),
                             "last_beats_time": int(time.time()),
                             "state": LearnerState.alive
                         }
