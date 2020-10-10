@@ -2,7 +2,11 @@ common:
     name: TestSumoDqn
     save_path: '.'
     load_path: ''
+data:
+    batch_size: 4
 learner:
+    learner_type: 'sumo_dqn'
+    import_names: ['nervex.worker.learner.sumo_dqn_learner']
     use_cuda: False
     use_distributed: False
     max_iterations: 10

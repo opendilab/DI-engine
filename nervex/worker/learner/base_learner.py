@@ -12,7 +12,7 @@ from easydict import EasyDict
 import torch
 from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer, to_device
 from nervex.utils import build_logger, dist_init, EasyTimer, dist_finalize, pretty_print, merge_dicts, read_config,\
-    get_task_uid
+    get_task_uid, import_module
 from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, LearnerHook
 from .comm import LearnerCommHelper
 
@@ -335,3 +335,20 @@ class BaseLearner(ABC):
     @property
     def use_distributed(self) -> bool:
         return self._use_distributed
+
+
+learner_mapping = {}
+
+def register_learner(name: str, learner: type) -> None:
+    assert isinstance(name, str)
+    assert issubclass(learner, BaseLearner)
+    learner_mapping[name] = learner
+
+
+def create_learner(cfg: dict) -> BaseLearner:
+    import_module(cfg.learner.import_names)
+    learner_type = cfg.learner.learner_type
+    if learner_type not in learner_mapping.keys():
+        raise KeyError("not support learner type: {}".format(learner_type))
+    else:
+        return learner_mapping[learner_type](cfg)

@@ -104,6 +104,9 @@ class FlaskFileSystemLearner(BaseCommLearner):
     def hooks4call(self) -> list:
         return [
             SendAgentHook(
+                'send_agent', 100, position='before_run', ext_args={}
+            ),
+            SendAgentHook(
                 'send_agent', 100, position='after_iter', ext_args={'send_agent_freq': self._send_agent_freq}
             ),
             SendTrainInfoHook(
@@ -118,7 +121,10 @@ class FlaskFileSystemLearner(BaseCommLearner):
 class SendAgentHook(LearnerHook):
     def __init__(self, *args, ext_args: dict = {}, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self._freq = ext_args['send_agent_freq']
+        if 'send_agent_freq' in ext_args:
+            self._freq = ext_args['send_agent_freq']
+        else:
+            self._freq = 1
 
     def __call__(self, engine: 'BaseLearner') -> None:  # noqa
         last_iter = engine.last_iter.val
