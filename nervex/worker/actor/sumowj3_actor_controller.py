@@ -9,7 +9,7 @@ import torch
 
 from nervex.envs.sumo import SumoWJ3Env, FakeSumoWJ3Env
 from nervex.model import FCDQN
-from nervex.torch_utils import tensor_to_list
+from nervex.torch_utils import tensor_to_list, to_device
 from nervex.utils import get_step_data_compressor
 from nervex.worker.actor import BaseActor, register_actor
 from nervex.worker.actor.env_manager import SubprocessEnvManager
@@ -44,6 +44,8 @@ class SumoWJ3Actor(BaseActor):
         env_info = self._env_manager._envs[0].info()
         for name, agent_cfg in self._job['agent'].items():
             model = FCDQN(env_info.obs_space.shape, list(env_info.act_space.shape.values()))
+            if self._cfg.actor.use_cuda:
+                model.cuda()
             agent = SumoDqnActorAgent(model)
             self._agents[name] = agent
 
@@ -73,11 +75,13 @@ class SumoWJ3Actor(BaseActor):
     def _agent_inference(self, obs: List[torch.Tensor]) -> dict:
         assert self._job['agent_num'] in [1]
         assert len(obs) == len(self._alive_env), len(obs)
+        if self._cfg.actor.use_cuda:
+            obs = to_device(obs, 'cuda')
         obs = torch.stack(obs, dim=0)
         action, q_value = self._agents['0'].forward(obs, eps=self._job['eps'])
-        data = {}
-        data['action'] = action
-        data['q_value'] = q_value
+        data = {'action': action, 'q_value': q_value}
+        if self._cfg.action.use_cuda:
+            obs = to_device(obs, 'cpu')
         return data
 
     # override
