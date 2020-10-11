@@ -59,9 +59,9 @@ env:
 actor:
     actor_type: 'sumowj3'
     import_names: ['nervex.worker.actor.sumowj3_actor_controller']
+    use_cuda: False
     print_freq: 20
     episode_num: 2
-    eval_step: 1000
     communication:
         type: flask_fs  # ['single_machine', 'flask_fs']
         path_agent: '.'
@@ -72,6 +72,7 @@ actor:
 league:
     league_type: 'static'
     import_names: ['nervex.league.static_league_manager']
+    use_pretrain_init_historical: False
     player_category: ['main']
     pretrain_checkpoint_path:
         main: 'main_ckpt.pth'
