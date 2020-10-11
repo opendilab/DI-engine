@@ -14,6 +14,7 @@ class Hook(ABC):
     Interfaces:
         __init__
     """
+
     def __init__(self, name: str, priority: float, **kwargs) -> None:
         """
         Overview:
@@ -72,6 +73,7 @@ class LrSchdulerHook(LearnerHook):
     Interfaces:
         __init__, __call__
     """
+
     def __init__(self, *args, ext_args: dict = {}, **kwargs) -> None:
         """
         Overview:
@@ -105,6 +107,7 @@ class LoadCkptHook(LearnerHook):
     Interfaces:
         __init__, __call__
     """
+
     def __init__(self, *args, ext_args: dict = {}, **kwargs) -> None:
         """
         Overview:
@@ -139,6 +142,7 @@ class SaveCkptHook(LearnerHook):
     Interfaces:
         __init__, __call__
     """
+
     def __init__(self, *args, ext_args: dict = {}, **kwargs) -> None:
         """
         Overview:
@@ -180,6 +184,7 @@ class LogShowHook(LearnerHook):
     Interfaces:
         __init__, __call__
     """
+
     def __init__(self, *args, ext_args: dict = {}, **kwargs) -> None:
         """
         Overview:
@@ -222,6 +227,7 @@ class LogReduceHook(LearnerHook):
     Interfaces:
         __init__, __call__
     """
+
     def __init__(self, *args, ext_args: dict = {}, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 

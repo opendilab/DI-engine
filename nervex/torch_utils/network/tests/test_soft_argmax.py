@@ -13,8 +13,8 @@ class TestSoftArgmax:
         model = SoftArgmax()
         # data case 1
         for _ in range(N):
-            test_h = np.random.randint(0, H, size=(B, ))
-            test_w = np.random.randint(0, W, size=(B, ))
+            test_h = np.random.randint(0, H, size=(B,))
+            test_w = np.random.randint(0, W, size=(B,))
             test_location = torch.LongTensor([test_h, test_w]).permute(1, 0).contiguous()
             assert test_location.shape == (B, 2)
             data = torch.full((B, 1, H, W), -1e8)
@@ -27,8 +27,8 @@ class TestSoftArgmax:
         # data case 2
         pseudo_gauss_kernel = torch.FloatTensor([1, 3, 1, 3, 5, 3, 1, 3, 1]).reshape(3, 3)
         for _ in range(N):
-            test_h = np.random.randint(1, H - 1, size=(B, ))
-            test_w = np.random.randint(1, W - 1, size=(B, ))
+            test_h = np.random.randint(1, H - 1, size=(B,))
+            test_w = np.random.randint(1, W - 1, size=(B,))
             test_location = torch.LongTensor([test_h, test_w]).permute(1, 0).contiguous()
             assert test_location.shape == (B, 2)
             data = torch.full((B, 1, H, W), -1e8)

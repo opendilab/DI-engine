@@ -17,16 +17,16 @@ from typing import Optional
 
 from pysc2.lib.features import FeatureUnit
 from pysc2.lib.action_dict import ACT_TO_GENERAL_ACT, ACT_TO_GENERAL_ACT_ARRAY
-from pysc2.lib.static_data import NUM_BUFFS, NUM_ABILITIES, NUM_UNIT_TYPES, UNIT_TYPES_REORDER,\
-     UNIT_TYPES_REORDER_ARRAY, BUFFS_REORDER_ARRAY, ABILITIES_REORDER_ARRAY, NUM_UPGRADES, UPGRADES_REORDER,\
-     UPGRADES_REORDER_ARRAY, NUM_ACTIONS, ACTIONS_REORDER_ARRAY, ACTIONS_REORDER, NUM_ADDON, ADDON_REORDER_ARRAY,\
-     NUM_BEGIN_ACTIONS, NUM_UNIT_BUILD_ACTIONS, NUM_EFFECT_ACTIONS, NUM_RESEARCH_ACTIONS,\
-     UNIT_BUILD_ACTIONS_REORDER_ARRAY, EFFECT_ACTIONS_REORDER_ARRAY, RESEARCH_ACTIONS_REORDER_ARRAY,\
-     BEGIN_ACTIONS_REORDER_ARRAY, NUM_ORDER_ACTIONS, ORDER_ACTIONS_REORDER_ARRAY
+from pysc2.lib.static_data import NUM_BUFFS, NUM_ABILITIES, NUM_UNIT_TYPES, UNIT_TYPES_REORDER, \
+    UNIT_TYPES_REORDER_ARRAY, BUFFS_REORDER_ARRAY, ABILITIES_REORDER_ARRAY, NUM_UPGRADES, UPGRADES_REORDER, \
+    UPGRADES_REORDER_ARRAY, NUM_ACTIONS, ACTIONS_REORDER_ARRAY, ACTIONS_REORDER, NUM_ADDON, ADDON_REORDER_ARRAY, \
+    NUM_BEGIN_ACTIONS, NUM_UNIT_BUILD_ACTIONS, NUM_EFFECT_ACTIONS, NUM_RESEARCH_ACTIONS, \
+    UNIT_BUILD_ACTIONS_REORDER_ARRAY, EFFECT_ACTIONS_REORDER_ARRAY, RESEARCH_ACTIONS_REORDER_ARRAY, \
+    BEGIN_ACTIONS_REORDER_ARRAY, NUM_ORDER_ACTIONS, ORDER_ACTIONS_REORDER_ARRAY
 from collections import OrderedDict
 from nervex.torch_utils import one_hot
-from nervex.envs.common import EnvElement, num_first_one_hot, sqrt_one_hot, div_one_hot,\
-    reorder_one_hot_array, div_func, batch_binary_encode, reorder_boolean_vector, clip_one_hot,\
+from nervex.envs.common import EnvElement, num_first_one_hot, sqrt_one_hot, div_one_hot, \
+    reorder_one_hot_array, div_func, batch_binary_encode, reorder_boolean_vector, clip_one_hot, \
     get_postion_vector
 from ..action.alphastar_available_actions import get_available_actions_raw_data
 from .alphastar_enemy_upgrades import get_enemy_upgrades_raw_data

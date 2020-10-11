@@ -23,6 +23,7 @@ class ResBlock(nn.Module):
     Interface:
         __init__, forward
     '''
+
     def __init__(self, in_channels, out_channels, kernel_size, stride, padding, activation=nn.ReLU(), norm_type='BN'):
         r"""
         Overview:
@@ -75,6 +76,7 @@ class ResFCBlock(nn.Module):
     Interface:
         __init__, forward
     '''
+
     def __init__(self, in_channels, out_channels, activation=nn.ReLU(), norm_type='BN'):
         r"""
         Overview:

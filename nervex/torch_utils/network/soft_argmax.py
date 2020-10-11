@@ -25,6 +25,7 @@ class SoftArgmax(nn.Module):
     Test:
         torch_utils/network/tests/test_soft_argmax.py
     """
+
     def __init__(self):
         r"""
         Overview:

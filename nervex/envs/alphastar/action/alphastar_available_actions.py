@@ -504,6 +504,7 @@ if __name__ == '__main__':
     from nervex.envs.observations.alphastar_obs_wrapper import decompress_obs
     import multiprocessing
     import queue
+
     f = open('/mnt/lustre/zhouhang2/data/602.zerg.128.zvz', 'r')
     q = multiprocessing.Queue()
     for i in reversed(f.readlines()):
@@ -512,6 +513,7 @@ if __name__ == '__main__':
     f.close()
 
     import os
+
 
     def check_avail(q):
         print('{}: start!'.format(os.getpid()))
@@ -528,5 +530,6 @@ if __name__ == '__main__':
                 if d['actions']['action_type'].item() not in (1, 2, 3, 12, 102):
                     print(d['actions']['action_type'].item(), d['actions']['delay'].item())
                 get_available_actions_processed_data(d)
+
 
     check_avail(q)

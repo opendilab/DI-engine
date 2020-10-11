@@ -12,6 +12,7 @@ class SumoRawActionRunner(EnvElementRunner):
     Interface:
         _init, get, reset
     """
+
     def _init(self, cfg) -> None:
         r"""
         Overview:
@@ -42,7 +43,7 @@ class SumoRawActionRunner(EnvElementRunner):
         self._last_action = action
         return raw_action
 
-    #override
+    # override
     def reset(self) -> None:
         r"""
         Overview:

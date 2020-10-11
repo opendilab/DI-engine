@@ -238,7 +238,6 @@ MAPS = {
 def get_map_size(map_name, cropped=True):
     return MAPS[map_name][2 if cropped else 3]
 
-
 # def get_localized_map_name(map_name, cleared=True):
 #     return MAPS[map_name][5 if cleared else 4]
 

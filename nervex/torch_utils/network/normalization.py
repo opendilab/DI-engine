@@ -27,10 +27,11 @@ class GroupSyncBatchNorm(link.nn.SyncBatchNorm2d):
     Interface:
         __init__, __repr__
     """
+
     def __init__(
-        self, num_features, bn_group_size=None, momentum=0.1, sync_stats=True, var_mode=link.syncbnVarMode_t.L2
+            self, num_features, bn_group_size=None, momentum=0.1, sync_stats=True, var_mode=link.syncbnVarMode_t.L2
     ):
-        #TODO
+        # TODO
         r"""
         Overview:
             Init class GroupSyncBatchNorm
@@ -82,6 +83,7 @@ class AdaptiveInstanceNorm2d(nn.Module):
     Interface:
         __init__, forward
     """
+
     def __init__(self, num_features, eps=1e-5, momentum=0.1):
         r"""
         Overview:

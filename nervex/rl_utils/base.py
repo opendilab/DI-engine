@@ -12,6 +12,7 @@ class BaseRLAlgorithm(object):
     Overview: Basic class(interface) for all the reinforcement learning algorithm
     Interface: __init__, __call__, __repr__
     '''
+
     def __init__(self, cfg):
         '''
         Overview: initialize hyper-parameters

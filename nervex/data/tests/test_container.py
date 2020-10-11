@@ -126,7 +126,7 @@ class TestSpecialContainer:
         data = container[0, 0, 0]
         assert data.shape == (1, 1, 1)
         data_item = data.item
-        assert isinstance(data_item, torch.Tensor) and data_item.shape == (4, )
+        assert isinstance(data_item, torch.Tensor) and data_item.shape == (4,)
 
     def test_to_dtype(self):
         available_dtype = [torch.int64, torch.float32]

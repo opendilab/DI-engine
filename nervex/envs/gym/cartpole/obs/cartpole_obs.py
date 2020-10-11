@@ -14,7 +14,7 @@ class CartpoleObs(EnvElement):
 
     def _init(self):
         self._default_val = None
-        self._shape = (4, )
+        self._shape = (4,)
         self._value = {
             'min': [-4.8, float("-inf"), -0.42, float("-inf")],
             'max': [4.8, float("inf"), 0.42, float("inf")],

@@ -94,8 +94,8 @@ def hamming_distance(pred, target, weight=1.):
     return pred.ne(target).sum(dim=1).float().mul_(weight)
 
 
-#TODO
-#集成到pytest
+# TODO
+# 集成到pytest
 def test_levenshtein_distance():
     r'''
     Overview:
@@ -116,8 +116,8 @@ def test_levenshtein_distance():
     print('test_levenshtein_distance pass')
 
 
-#TODO
-#集成到pytest
+# TODO
+# 集成到pytest
 def test_hamming_distance():
     r'''
     Overview:

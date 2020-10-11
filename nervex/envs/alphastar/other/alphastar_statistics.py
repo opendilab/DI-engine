@@ -36,6 +36,7 @@ class RealTimeStatistics:
     """
     Overview: real time agent statistics
     """
+
     def __init__(self, begin_num=20):
         self.action_statistics = {}
         self.cumulative_statistics = {}
@@ -151,6 +152,7 @@ class GameLoopStatistics:
     """
     Overview: Human replay data statistics specified by game loop
     """
+
     def __init__(self, stat, begin_num=20):
         self.ori_stat = stat
         self.ori_stat = self.add_game_loop(self.ori_stat)

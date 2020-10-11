@@ -147,7 +147,7 @@ class TestPrioritizedBuffer:
                 else:
                     weights_.append(d['priority'])
             weights_ = np.array(weights_)
-            weights_ = weights_**setup_prioritized_buffer.alpha
+            weights_ = weights_ ** setup_prioritized_buffer.alpha
             return weights_
 
         # first part(20 elements, which is smaller than buffer.maxlen)

@@ -41,7 +41,7 @@ class SumoReward(EnvElement):
         self._total_incoming_roads = reduce(lambda x, y: x + y, self._incoming_roads.values())
         self._tls = cfg.tls
         self._road2tls = {t: k for k, v in self._incoming_roads.items() for t in v}
-        single_reward_shape = (1, ) if self._reduce_by_tl else {t: (1, ) for t in cfg.tls}
+        single_reward_shape = (1,) if self._reduce_by_tl else {t: (1,) for t in cfg.tls}
         self._shape = {k: single_reward_shape for k in self._reward_keys}
         self._value = {
             'wait_time': {

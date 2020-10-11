@@ -36,7 +36,7 @@ class TestCache:
         producer_num = 8
 
         self.cache.run()
-        threadings = [Thread(target=self.producer, args=(i, )) for i in range(producer_num)]
+        threadings = [Thread(target=self.producer, args=(i,)) for i in range(producer_num)]
         for t in threadings:
             t.start()
 

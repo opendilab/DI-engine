@@ -12,7 +12,7 @@ from nervex.envs.common import EnvElement
 class CartpoleReward(EnvElement):
     def _init(self) -> None:
         self._default_val = 0.0
-        self._shape = (1, )
+        self._shape = (1,)
         self._value = {
             'min': 0.0,
             'max': 1.0,

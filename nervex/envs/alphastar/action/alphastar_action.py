@@ -18,6 +18,7 @@ def action_unit_id_transform(data, inv=False):
     '''
     Overview: transform original game unit id in action to the current frame unit id
     '''
+
     def transform(frame):
         frame = copy.deepcopy(frame)
         id_list = frame['entity_raw']['id']
@@ -99,99 +100,99 @@ class AlphaStarRawAction(EnvElement):
         self._selected_units_num = 32  # placeholder, [1,inf)
         self._template = {
             'action_type':
-            {
-                'name': 'action_type',
-                'shape': (1, ),
-                # value is a range[min, max)
-                'value': {  # action used by agent
-                    'min': 0,
-                    'max': NUM_ACTIONS,
-                    'dtype': int,
-                    'dinfo': 'int value',
+                {
+                    'name': 'action_type',
+                    'shape': (1,),
+                    # value is a range[min, max)
+                    'value': {  # action used by agent
+                        'min': 0,
+                        'max': NUM_ACTIONS,
+                        'dtype': int,
+                        'dinfo': 'int value',
+                    },
+                    'env_value': 'categorial value, refer to pysc2.lib.action_dict',
+                    'to_agent_processor': lambda x: ACTIONS_REORDER[x],
+                    'from_agent_processor': lambda x: ACTIONS_REORDER_INV[x],
+                    'necessary': True,
                 },
-                'env_value': 'categorial value, refer to pysc2.lib.action_dict',
-                'to_agent_processor': lambda x: ACTIONS_REORDER[x],
-                'from_agent_processor': lambda x: ACTIONS_REORDER_INV[x],
-                'necessary': True,
-            },
             'delay':
-            {
-                'name': 'delay',
-                'shape': (1, ),
-                'value': {  # action used by agent
-                    'min': 0,
-                    'max': DELAY_MAX,
-                    'dtype': int,
-                    'dinfo': 'int value',
+                {
+                    'name': 'delay',
+                    'shape': (1,),
+                    'value': {  # action used by agent
+                        'min': 0,
+                        'max': DELAY_MAX,
+                        'dtype': int,
+                        'dinfo': 'int value',
+                    },
+                    'env_value': '[0, inf)',
+                    'to_agent_processor': lambda x: min(x, DELAY_MAX),
+                    'from_agent_processor': lambda x: x,
+                    'necessary': True,
                 },
-                'env_value': '[0, inf)',
-                'to_agent_processor': lambda x: min(x, DELAY_MAX),
-                'from_agent_processor': lambda x: x,
-                'necessary': True,
-            },
             'queued':
-            {
-                'name': 'queued',
-                'shape': (1, ),
-                'value': {  # action used by agent
-                    'min': 0,
-                    'max': 2,
-                    'dtype': int,
-                    'dinfo': 'int value',
+                {
+                    'name': 'queued',
+                    'shape': (1,),
+                    'value': {  # action used by agent
+                        'min': 0,
+                        'max': 2,
+                        'dtype': int,
+                        'dinfo': 'int value',
+                    },
+                    'env_value': 'bool',
+                    'to_agent_processor': lambda x: x,
+                    'from_agent_processor': lambda x: x,
+                    'necessary': False,
                 },
-                'env_value': 'bool',
-                'to_agent_processor': lambda x: x,
-                'from_agent_processor': lambda x: x,
-                'necessary': False,
-            },
             'selected_units':
-            {
-                'name': 'selected_units',
-                'shape': (self._selected_units_num, ),
-                'value': {  # action used by agent
-                    'min': 0,
-                    'max': 'inf',
-                    'dtype': int,
-                    'dinfo': 'int value',
+                {
+                    'name': 'selected_units',
+                    'shape': (self._selected_units_num,),
+                    'value': {  # action used by agent
+                        'min': 0,
+                        'max': 'inf',
+                        'dtype': int,
+                        'dinfo': 'int value',
+                    },
+                    'env_value': 'unique entity id',
+                    'to_agent_processor': partial(action_unit_id_transform, inv=False),
+                    'from_agent_processor': partial(action_unit_id_transform, inv=True),
+                    'necessary': False,
+                    'other': 'value is entity index',
                 },
-                'env_value': 'unique entity id',
-                'to_agent_processor': partial(action_unit_id_transform, inv=False),
-                'from_agent_processor': partial(action_unit_id_transform, inv=True),
-                'necessary': False,
-                'other': 'value is entity index',
-            },
             'target_units':
-            {
-                'name': 'target_units',
-                'shape': (1, ),
-                'value': {  # action used by agent
-                    'min': 0,
-                    'max': 'inf',
-                    'dtype': int,
-                    'dinfo': 'int value',
+                {
+                    'name': 'target_units',
+                    'shape': (1,),
+                    'value': {  # action used by agent
+                        'min': 0,
+                        'max': 'inf',
+                        'dtype': int,
+                        'dinfo': 'int value',
+                    },
+                    'env_value': 'unique entity id',
+                    'to_agent_processor': partial(action_unit_id_transform, inv=False),
+                    'from_agent_processor': partial(action_unit_id_transform, inv=True),
+                    'necessary': False,
+                    'other': 'value is entity index',
                 },
-                'env_value': 'unique entity id',
-                'to_agent_processor': partial(action_unit_id_transform, inv=False),
-                'from_agent_processor': partial(action_unit_id_transform, inv=True),
-                'necessary': False,
-                'other': 'value is entity index',
-            },
             'target_location':
-            {
-                'name': 'target_location',
-                'shape': (2, ),
-                'value': {  # action used by agent
-                    'min': (0, 0),
-                    'max': self._map_size,
-                    'dtype': float,
-                    'dinfo': 'float value',
+                {
+                    'name': 'target_location',
+                    'shape': (2,),
+                    'value': {  # action used by agent
+                        'min': (0, 0),
+                        'max': self._map_size,
+                        'dtype': float,
+                        'dinfo': 'float value',
+                    },
+                    'env_value': 'float value',
+                    'to_agent_processor': partial(location_transform, inv=False),
+                    'from_agent_processor': partial(location_transform, inv=True),
+                    'necessary': False,
+                    'other': 'agent value use round env value',
                 },
-                'env_value': 'float value',
-                'to_agent_processor': partial(location_transform, inv=False),
-                'from_agent_processor': partial(location_transform, inv=True),
-                'necessary': False,
-                'other': 'agent value use round env value',
-            },
         }
         self._shape = {t['name']: t['shape'] for t in self._template.values()}
         self._value = {t['name']: t['value'] for t in self._template.values()}
@@ -383,6 +384,7 @@ def remove_repeat_data(data, min_delay=16, max_move=3, target_action_type_list=[
     '''
         168(camera move), 12(smart unit), 3(attack unit),
     '''
+
     class State(enum.IntEnum):
         init = 0,
         add = 1,

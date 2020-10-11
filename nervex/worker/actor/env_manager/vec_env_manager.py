@@ -9,6 +9,7 @@ class CloudpickleWrapper(object):
     Overview:
         CloudpickleWrapper can be able to pickle more python object(e.g: a object with lambda expression)
     """
+
     def __init__(self, data: Any) -> None:
         self.data = data
 

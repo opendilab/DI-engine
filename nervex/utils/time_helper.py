@@ -55,6 +55,7 @@ class EasyTimer:
         >>>    func(...)
         >>> time = wait_timer.value  # in second
     """
+
     def __init__(self, cuda=True):
         r"""
         Overview:
@@ -94,6 +95,7 @@ class TimeWrapper(object):
     Interface:
         wrapper, start_time, end_time
     """
+
     @classmethod
     def wrapper(cls, fn):
         r"""
@@ -102,6 +104,7 @@ class TimeWrapper(object):
 
         - fn (:obj:`function`): the function to be wrap and timed
         """
+
         def time_func(*args, **kwargs):
             cls.start_time()
             ret = fn(*args, **kwargs)
@@ -135,6 +138,7 @@ class TimeWrapperTime(TimeWrapper):
     Interface:
         start_time, end_time
     """
+
     # overwrite
     @classmethod
     def start_time(cls):
@@ -167,7 +171,7 @@ def get_cuda_time_wrapper():
         - TimeWrapperCuda(:obj:`class`): see TimeWrapperCuda class
     """
 
-    #TODO find a way to autodoc the class within method
+    # TODO find a way to autodoc the class within method
     class TimeWrapperCuda(TimeWrapper):
         r"""
         Overview:

@@ -53,6 +53,7 @@ class HiddenStateHelper(IAgentStatefulPlugin):
         1. this helper must deal with a actual batch with some parts of samples(e.g: 6 samples of state_num 8)
         2. this helper must deal with the single sample state reset
     """
+
     @classmethod
     def register(cls: type, agent: Any, state_num: int, init_fn: Callable = lambda: None) -> None:
         state_manager = cls(state_num, init_fn=init_fn)
@@ -149,7 +150,7 @@ class EpsGreedySampleHelper(IAgentStatelessPlugin):
                     if np.random.random() > eps:
                         action.append(logit.argmax(dim=-1))
                     else:
-                        action.append(torch.randint(0, logit.shape[-1], size=(logit.shape[0], )))
+                        action.append(torch.randint(0, logit.shape[-1], size=(logit.shape[0],)))
                 if len(action) == 1:
                     action, logits = action[0], logits[0]
                 return action, logits

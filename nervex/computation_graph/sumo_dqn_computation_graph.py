@@ -16,6 +16,7 @@ class SumoDqnGraph(BaseCompGraph):
     """
     Overview: Double DQN with eps-greedy
     """
+
     def __init__(self, cfg: dict) -> None:
         self._gamma = cfg.dqn.discount_factor
         self._reward_weights = cfg.reward_weights

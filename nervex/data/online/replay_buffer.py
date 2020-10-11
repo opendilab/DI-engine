@@ -13,6 +13,7 @@ class ReplayBuffer:
     Overview: reinforcement learning replay buffer, with priority sampling, data cache
     Interface: __init__, push_data, sample, update, run, close
     """
+
     def __init__(self, cfg):
         """
         Overview: initialize replay buffer

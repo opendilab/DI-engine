@@ -24,7 +24,7 @@ class SoftFocalLoss(torch.nn.Module):
         self.nll_loss = torch.nn.NLLLoss2d(weight, size_average, reduce=reduce)
 
     def forward(self, inputs, targets):
-        return self.nll_loss((1 - F.softmax(inputs, 1))**self.gamma * F.log_softmax(inputs, 1), targets)
+        return self.nll_loss((1 - F.softmax(inputs, 1)) ** self.gamma * F.log_softmax(inputs, 1), targets)
 
 
 def build_criterion(cfg):

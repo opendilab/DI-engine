@@ -45,14 +45,14 @@ def setup_config():
 def save_checkpoint_fn(src_checkpoint, dst_checkpoint):
     global SAVE_COUNT
     t = np.random.uniform() + 0.5
-    #time.sleep(t)
+    # time.sleep(t)
     print('save_checkpoint: src({})\tdst({})'.format(src_checkpoint, dst_checkpoint))
     SAVE_COUNT += 1
 
 
 def load_checkpoint_fn(player_id, checkpoint_path):
     t = np.random.randint(2, 5)
-    #time.sleep(t)
+    # time.sleep(t)
     print('load_checkpoint: player_id({})\tcheckpoint_path({})'.format(player_id, checkpoint_path))
 
 
@@ -87,7 +87,7 @@ class FakeMatchRunner:
 class FakeCoordinator:
     def __init__(self, queue, finish_match, update_agent_step, player_ids):
         self.receive_match_thread = Thread(target=self.receive_match, args=(queue, finish_match))
-        self.update_train_step_thread = Thread(target=self.update_train_step, args=(update_agent_step, ))
+        self.update_train_step_thread = Thread(target=self.update_train_step, args=(update_agent_step,))
         self.player_ids = player_ids
         self.one_phase_steps = int(2e3)
         self._end_flag = False

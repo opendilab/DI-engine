@@ -60,7 +60,7 @@ class CartpoleDqnLearnerAgent(BaseAgent):
         })
         # whether use double(target) q-network plugin
         if is_double:
-            #self.plugin_cfg['target_network'] = {'update_cfg': {'type': 'momentum', 'kwargs': {'theta': 0.001}}}
+            # self.plugin_cfg['target_network'] = {'update_cfg': {'type': 'momentum', 'kwargs': {'theta': 0.001}}}
             self.plugin_cfg['target_network'] = {'update_cfg': {'type': 'assign', 'kwargs': {'freq': 500}}}
         self.is_double = is_double
         super(CartpoleDqnLearnerAgent, self).__init__(model, self.plugin_cfg)

@@ -13,6 +13,7 @@ class SumoObsRunner(EnvElementRunner):
     Interface:
         _init, get, reset
     """
+
     def _init(self, cfg: dict) -> None:
         r"""
         Overview:

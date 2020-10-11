@@ -7,6 +7,7 @@ from collections import deque
 import gym
 from gym import spaces
 import cv2
+
 cv2.ocl.setUseOpenCL(False)
 
 
@@ -182,7 +183,7 @@ class MaxAndSkipEnv(gym.Wrapper):
         """Return only every `skip`-th frame"""
         gym.Wrapper.__init__(self, env)
         # most recent raw observations (for max pooling across time steps)
-        self._obs_buffer = np.zeros((2, ) + env.observation_space.shape, dtype=np.uint8)
+        self._obs_buffer = np.zeros((2,) + env.observation_space.shape, dtype=np.uint8)
         self._skip = skip
 
     def step(self, action):

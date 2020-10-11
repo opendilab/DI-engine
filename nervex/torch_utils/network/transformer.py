@@ -91,22 +91,23 @@ class Transformer(nn.Module):
         Note:
           Input has passed through embedding
     '''
+
     def __init__(
-        self,
-        input_dim,
-        head_dim=128,
-        hidden_dim=1024,
-        output_dim=256,
-        head_num=2,
-        mlp_num=2,
-        layer_num=3,
-        pad_val=0,
-        dropout_ratio=0.1,
-        activation=nn.ReLU()
+            self,
+            input_dim,
+            head_dim=128,
+            hidden_dim=1024,
+            output_dim=256,
+            head_num=2,
+            mlp_num=2,
+            layer_num=3,
+            pad_val=0,
+            dropout_ratio=0.1,
+            activation=nn.ReLU()
     ):
         super(Transformer, self).__init__()
         self.embedding = fc_block(input_dim, output_dim, activation=activation)
-        #self.embedding = AttentionEmbedding(input_dim, output_dim, activation=activation)
+        # self.embedding = AttentionEmbedding(input_dim, output_dim, activation=activation)
         self.pad_val = pad_val
         self.act = activation
         layers = []

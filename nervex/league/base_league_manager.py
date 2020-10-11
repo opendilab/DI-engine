@@ -59,6 +59,7 @@ class BaseLeagueManager(ABC):
             - player_id (:obj:`str`)
             - train_step (:obj:`int`)
     """
+
     def __init__(self, cfg, save_checkpoint_fn, load_checkpoint_fn, launch_task_fn):
         self.cfg = merge_dicts(default_config, cfg).league
         self.active_players = []

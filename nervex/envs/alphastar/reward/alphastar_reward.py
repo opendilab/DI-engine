@@ -31,7 +31,7 @@ class AlphaStarReward(EnvElement):
         self.battle_range = 5000
 
         self._reward_key = ['winloss', 'build_order', 'built_unit', 'upgrade', 'effect', 'battle']
-        self._shape = {k: (1, ) for k in self._reward_key}
+        self._shape = {k: (1,) for k in self._reward_key}
         begin_num = 20
         self._value = {
             'winloss': {
@@ -174,6 +174,7 @@ class AlphaStarReward(EnvElement):
             Returns:
                 - rewards (:obj:`dict`): a dict contains different type rewards
         """
+
         def loc_fn(p1, p2, max_limit=self.build_order_location_max_limit):
             p1 = p1.float().to(self.device)
             p2 = p2.float().to(self.device)

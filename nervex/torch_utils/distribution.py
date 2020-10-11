@@ -115,5 +115,4 @@ class CategoricalPdPytorch(torch.distributions.Categorical):
         elif reduction == 'mean':
             return entropy.mean()
 
-
 # TODO alphastar distribution sampler and entropy calculation

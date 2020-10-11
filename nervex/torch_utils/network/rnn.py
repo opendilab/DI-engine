@@ -22,6 +22,7 @@ class LSTMForwardWrapper(object):
     Interface:
         _before_forward, _after_forward
     """
+
     def _before_forward(self, inputs, prev_state):
         r"""
         Overview:
@@ -96,6 +97,7 @@ class LSTM(nn.Module, LSTMForwardWrapper):
     Interface:
         __init__, forward
     """
+
     def __init__(self, input_size, hidden_size, num_layers, norm_type=None, bias=True, dropout=0.):
         r"""
         Overview:
@@ -191,6 +193,7 @@ class PytorchLSTM(nn.LSTM, LSTMForwardWrapper):
     Interface:
         forward
     """
+
     def forward(self, inputs, prev_state, list_next_state=False):
         r"""
         Overview:

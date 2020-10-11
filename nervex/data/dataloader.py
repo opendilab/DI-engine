@@ -6,7 +6,7 @@ from .sampler import DistributedSampler
 
 
 def build_dataloader(
-    dataset, dataloader_type, batch_size, use_distributed=False, read_data_fn=None, collate_fn=default_collate
+        dataset, dataloader_type, batch_size, use_distributed=False, read_data_fn=None, collate_fn=default_collate
 ):
     if dataloader_type == 'epoch':
         sampler = DistributedSampler(dataset, round_up=False) if use_distributed else None

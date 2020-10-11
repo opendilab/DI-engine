@@ -23,6 +23,7 @@ def weight_init_(weight, init_type="xavier", activation=None):
         - activation (:obj:`str`): the non-linear function (`nn.functional` name), recommended to use only with
                                    ``'relu'`` or ``'leaky_relu'``.
     """
+
     def xavier_init(weight, *args):
         xavier_normal_(weight)
 
@@ -70,16 +71,16 @@ def sequential_pack(layers):
 
 
 def conv1d_block(
-    in_channels,
-    out_channels,
-    kernel_size,
-    stride=1,
-    padding=0,
-    dilation=1,
-    groups=1,
-    init_type="xavier",
-    activation=None,
-    norm_type=None
+        in_channels,
+        out_channels,
+        kernel_size,
+        stride=1,
+        padding=0,
+        dilation=1,
+        groups=1,
+        init_type="xavier",
+        activation=None,
+        norm_type=None
 ):
     r"""
     Overview:
@@ -110,17 +111,17 @@ def conv1d_block(
 
 
 def conv2d_block(
-    in_channels,
-    out_channels,
-    kernel_size,
-    stride=1,
-    padding=0,
-    dilation=1,
-    groups=1,
-    init_type="xavier",
-    pad_type='zero',
-    activation=None,
-    norm_type=None
+        in_channels,
+        out_channels,
+        kernel_size,
+        stride=1,
+        padding=0,
+        dilation=1,
+        groups=1,
+        init_type="xavier",
+        pad_type='zero',
+        activation=None,
+        norm_type=None
 ):
     r"""
     Overview:
@@ -160,18 +161,18 @@ def conv2d_block(
 
 
 def deconv2d_block(
-    in_channels,
-    out_channels,
-    kernel_size,
-    stride=1,
-    padding=0,
-    output_padding=0,
-    dilation=1,
-    groups=1,
-    init_type="xavier",
-    pad_type='zero',
-    activation=None,
-    norm_type=None
+        in_channels,
+        out_channels,
+        kernel_size,
+        stride=1,
+        padding=0,
+        output_padding=0,
+        dilation=1,
+        groups=1,
+        init_type="xavier",
+        pad_type='zero',
+        activation=None,
+        norm_type=None
 ):
     r"""
     Overview:
@@ -213,13 +214,13 @@ def deconv2d_block(
 
 
 def fc_block(
-    in_channels,
-    out_channels,
-    init_type="xavier",
-    activation=None,
-    norm_type=None,
-    use_dropout=False,
-    dropout_probability=0.5
+        in_channels,
+        out_channels,
+        init_type="xavier",
+        activation=None,
+        norm_type=None,
+        use_dropout=False,
+        dropout_probability=0.5
 ):
     r"""
     Overview:
@@ -267,6 +268,7 @@ class ChannelShuffle(nn.Module):
             You can see the original paper shuffle net in link below
             shuffleNet(https://arxiv.org/abs/1707.01083)
     """
+
     def __init__(self, group_num):
         r"""
             Overview:
@@ -347,6 +349,7 @@ class NearestUpsample(nn.Module):
     Interface:
         __init__, forward
     """
+
     def __init__(self, scale_factor):
         r"""
         Overview:
@@ -380,6 +383,7 @@ class BilinearUpsample(nn.Module):
     Interface:
         __init__, forward
     """
+
     def __init__(self, scale_factor):
         r"""
         Overview:

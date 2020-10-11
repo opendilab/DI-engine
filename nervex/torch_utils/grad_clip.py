@@ -38,6 +38,7 @@ class GradClip(object):
      Interface:
         __init__, apply
     """
+
     def __init__(self, clip_value, clip_type, norm_type=2):
         r"""
         Overview:

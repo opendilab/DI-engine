@@ -3,6 +3,7 @@ import multiprocessing
 from multiprocessing import Process
 from nervex.utils import read_config
 from nervex.worker.actor import create_actor
+
 multiprocessing.set_start_method('spawn', force=True)
 
 
@@ -13,7 +14,7 @@ def run_actor(cfg):
 
 
 def main(cfg):
-    ps = [Process(target=run_actor, args=(cfg, )) for _ in range(cfg.system.actor_num)]
+    ps = [Process(target=run_actor, args=(cfg,)) for _ in range(cfg.system.actor_num)]
     for p in ps:
         p.start()
     for p in ps:

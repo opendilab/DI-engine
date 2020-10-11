@@ -11,7 +11,7 @@ import os.path as osp
 from easydict import EasyDict
 import torch
 from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer, to_device
-from nervex.utils import build_logger, dist_init, EasyTimer, dist_finalize, pretty_print, merge_dicts, read_config,\
+from nervex.utils import build_logger, dist_init, EasyTimer, dist_finalize, pretty_print, merge_dicts, read_config, \
     get_task_uid, import_module
 from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, LearnerHook
 from .comm import LearnerCommHelper
@@ -110,6 +110,7 @@ class BaseLearner(ABC):
         Overview:
             The time_wrapper used to get the time a function used
         """
+
         def wrapper(*args, **kwargs):
             with self._timer:
                 ret = fn(*args, **kwargs)

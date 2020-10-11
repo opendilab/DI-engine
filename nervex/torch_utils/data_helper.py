@@ -88,6 +88,7 @@ def to_tensor(item, dtype):
     Returns:
         - item (:obj:`object`): the transfered item
     """
+
     def transform(d):
         return torch.tensor(d, dtype=dtype)
 
@@ -131,7 +132,7 @@ def tensor_to_list(item):
     if item is None:
         return item
     elif isinstance(item, torch.Tensor):
-        if item.shape == (1, ):
+        if item.shape == (1,):
             return item.item()
         else:
             return item.tolist()
@@ -162,7 +163,7 @@ def same_shape(data):
 class LogDict(dict):
     def _transform(self, data):
         if isinstance(data, torch.Tensor):
-            if data.shape == (1, ) or data.shape == ():
+            if data.shape == (1,) or data.shape == ():
                 new_data = data.item()
             else:
                 new_data = data.tolist()

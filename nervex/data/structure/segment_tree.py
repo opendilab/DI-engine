@@ -7,6 +7,7 @@ class SegmentTree:
               the parents node is acquired by do some operation on left and right child
     Interface: __init__, reduce, __setitem__, __getitem__
     """
+
     def __init__(self, capacity, operation, neutral_element=None):
         """
         Overview: initialize the segment tree
