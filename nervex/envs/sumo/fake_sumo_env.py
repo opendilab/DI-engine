@@ -1,7 +1,5 @@
 import os
 from collections import namedtuple
-import os
-from collections import namedtuple
 
 import torch
 import yaml

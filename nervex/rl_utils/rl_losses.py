@@ -251,9 +251,7 @@ def vtrace_advantages(clipped_rhos, clipped_cs, rewards, bootstrap_values, gamma
         gammas = gammas * torch.ones_like(rewards)
     if not isinstance(lambda_, torch.Tensor):
         lambda_ = lambda_ * torch.ones_like(rewards)
-    deltas = clipped_rhos * \
-             (rewards + gammas *
-              bootstrap_values[1:, :] - bootstrap_values[:-1, :])  # from 0 to T-1
+    deltas = clipped_rhos * (rewards + gammas * bootstrap_values[1:, :] - bootstrap_values[:-1, :])  # from 0 to T-1
     result = torch.empty_like(rewards)
     result[-1, :] = bootstrap_values[-2, :] + deltas[-1, :]
     for t in reversed(range(rewards.size()[0] - 1)):
@@ -366,7 +364,7 @@ def pg_loss(
     """
     rhos = compute_importance_weights(action_logits, current_logits, action, clipping=clipping, need_grad=False)
     cs = rhos
-    return vtrace_loss(current_logits, rhos, cs, action, rewards, bootstrap_values,
-                       gamma=vtrace_gamma, lambda_=vtrace_lambda) \
-           + upgo_weight * upgo_loss(current_logits, rhos, action, rewards, bootstrap_values) \
-           - ent_weight * entropy(current_logits)
+    return vtrace_loss(
+        current_logits, rhos, cs, action, rewards, bootstrap_values, gamma=vtrace_gamma, lambda_=vtrace_lambda
+    ) + upgo_weight * upgo_loss(current_logits, rhos, action, rewards,
+                                bootstrap_values) - ent_weight * entropy(current_logits)

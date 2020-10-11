@@ -406,7 +406,8 @@ class Coordinator(object):
         job_id = '8d2e8eda-83d9-11ea-8bb0-1be4f1872daf'
         # learner_uid = '3458436'
         trajectory_path = 'model_main_player_zerg_0_ckpt' \
-                          '.pth_job_0098e642-841e-11ea-9918-6f27a4855242_agent_0_step_1159_0707b170-8423-11ea-99b0-db6573da5763.traj'
+                          '.pth_job_0098e642-841e-11ea-9918-6f27a4855242_agent_0_step_1159_' \
+                          '0707b170-8423-11ea-99b0-db6573da5763.traj'
         self._learner_record[learner_uid]['replay_buffer'].push_data(
             {
                 'job_id': job_id,

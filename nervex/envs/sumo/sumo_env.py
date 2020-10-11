@@ -1,6 +1,4 @@
 import os
-from collections import namedtuple
-import os
 import sys
 import time
 from collections import namedtuple

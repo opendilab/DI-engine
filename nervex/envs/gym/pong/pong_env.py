@@ -1,5 +1,4 @@
 from collections import namedtuple
-from collections import namedtuple
 from typing import List, Any
 
 import gym
