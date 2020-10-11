@@ -16,7 +16,7 @@ class PongRawAction(EnvElement):
 
     action_meanings = ['NOOP', 'FIRE', 'RIGHT', 'LEFT', 'RIGHTFIRE', 'LEFTFIRE']
 
-    def _init(self):
+    def _init(self, cfg):
         self._default_val = None
         self.template = {
             'action_type': {

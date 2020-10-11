@@ -17,7 +17,7 @@ class TestPongEnv:
         obs = env.reset()
         print(obs)
         print("obs_shape = ", obs.shape)
-        for i in range(10):
+        for i in range(1000):
             action = self.get_random_action(env.info().act_space.value['min'], env.info().act_space.value['max'])
             timestep = env.step(action)
             print('step {} with action {}'.format(i, action))
