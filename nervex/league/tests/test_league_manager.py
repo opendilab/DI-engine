@@ -19,6 +19,7 @@ SAVE_COUNT = 0
 
 
 class FakeLeagueManager(BaseLeagueManager):
+
     def _get_task_info(self, player):
         return {
             'launch_player': player.player_id,
@@ -59,6 +60,7 @@ def load_checkpoint_fn(player_id, checkpoint_path):
 
 
 class FakeMatchRunner:
+
     def __init__(self, random_task_result):
         self.queue = Queue(maxsize=10)
         self.random_task_result = random_task_result
@@ -87,9 +89,10 @@ class FakeMatchRunner:
 
 
 class FakeCoordinator:
+
     def __init__(self, queue, finish_match, update_agent_step, player_ids):
         self.receive_match_thread = Thread(target=self.receive_match, args=(queue, finish_match))
-        self.update_train_step_thread = Thread(target=self.update_train_step, args=(update_agent_step,))
+        self.update_train_step_thread = Thread(target=self.update_train_step, args=(update_agent_step, ))
         self.player_ids = player_ids
         self.one_phase_steps = int(2e3)
         self._end_flag = False
@@ -127,6 +130,7 @@ class FakeCoordinator:
 
 
 class TestFakeLeagueManager:
+
     @pytest.mark.unittest
     def test_naive(self, random_task_result, setup_config):
         match_runner = FakeMatchRunner(random_task_result)

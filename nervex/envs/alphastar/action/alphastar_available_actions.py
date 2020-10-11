@@ -513,7 +513,6 @@ if __name__ == '__main__':
 
     import os
 
-
     def check_avail(q):
         print('{}: start!'.format(os.getpid()))
 
@@ -529,6 +528,5 @@ if __name__ == '__main__':
                 if d['actions']['action_type'].item() not in (1, 2, 3, 12, 102):
                     print(d['actions']['action_type'].item(), d['actions']['delay'].item())
                 get_available_actions_processed_data(d)
-
 
     check_avail(q)

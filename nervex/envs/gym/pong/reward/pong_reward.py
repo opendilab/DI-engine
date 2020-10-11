@@ -18,7 +18,7 @@ class PongReward(EnvElement):
         self.template = {
             'reward_value': {
                 'name': 'reward_value',
-                'shape': (1,),
+                'shape': (1, ),
                 'value': {
                     'min': -1.0,
                     'max': 1.0,
@@ -31,7 +31,7 @@ class PongReward(EnvElement):
                 'necessary': True,
             }
         }
-        self._shape = (1,)
+        self._shape = (1, )
         self._value = {
             'min': -1.0,
             'max': 1.0,

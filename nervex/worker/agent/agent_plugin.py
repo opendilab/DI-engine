@@ -8,6 +8,7 @@ import torch
 
 
 class IAgentPlugin(ABC):
+
     @abstractclassmethod
     def register(cls: type, agent: Any, **kwargs) -> None:
         """inplace modify agent"""
@@ -18,6 +19,7 @@ IAgentStatelessPlugin = IAgentPlugin
 
 
 class IAgentStatefulPlugin(IAgentPlugin):
+
     @abstractmethod
     def __init__(self, *args, **kwargs) -> None:
         raise NotImplementedError
@@ -28,8 +30,10 @@ class IAgentStatefulPlugin(IAgentPlugin):
 
 
 class GradHelper(IAgentStatelessPlugin):
+
     @classmethod
     def register(cls: type, agent: Any, enable_grad: bool) -> None:
+
         def grad_wrapper(fn):
             context = torch.enable_grad() if enable_grad else torch.no_grad()
 
@@ -58,6 +62,7 @@ class HiddenStateHelper(IAgentStatefulPlugin):
         agent._state_manager = state_manager
 
         def forward_state_wrapper(forward_fn):
+
             def wrapper(data, state_info=None, **kwargs):
                 data, state_info = agent._state_manager.before_forward(data, state_info)
                 output, h = forward_fn(data, **kwargs)
@@ -67,6 +72,7 @@ class HiddenStateHelper(IAgentStatefulPlugin):
             return wrapper
 
         def reset_state_wrapper(reset_fn):
+
             def wrapper(*args, state=None, **kwargs):
                 agent._state_manager.reset(state)
                 return reset_fn(*args, **kwargs)
@@ -114,9 +120,12 @@ class HiddenStateHelper(IAgentStatefulPlugin):
 
 
 class ArgmaxSampleHelper(IAgentStatelessPlugin):
+
     @classmethod
     def register(cls: type, agent: Any):
+
         def sample_wrapper(forward_fn):
+
             def wrapper(*args, **kwargs):
                 logits = forward_fn(*args, **kwargs)
                 assert isinstance(logits, torch.Tensor) or isinstance(logits, list)
@@ -133,9 +142,12 @@ class ArgmaxSampleHelper(IAgentStatelessPlugin):
 
 
 class EpsGreedySampleHelper(IAgentStatelessPlugin):
+
     @classmethod
     def register(cls: type, agent: Any):
+
         def sample_wrapper(forward_fn):
+
             def wrapper(*args, **kwargs):
                 eps = kwargs.pop('eps')
                 logits = forward_fn(*args, **kwargs)
@@ -148,7 +160,7 @@ class EpsGreedySampleHelper(IAgentStatelessPlugin):
                     if np.random.random() > eps:
                         action.append(logit.argmax(dim=-1))
                     else:
-                        action.append(torch.randint(0, logit.shape[-1], size=(logit.shape[0],)))
+                        action.append(torch.randint(0, logit.shape[-1], size=(logit.shape[0], )))
                 if len(action) == 1:
                     action, logits = action[0], logits[0]
                 return action, logits
@@ -159,6 +171,7 @@ class EpsGreedySampleHelper(IAgentStatelessPlugin):
 
 
 class TargetNetworkHelper(IAgentStatefulPlugin):
+
     @classmethod
     def register(cls: type, agent: Any, update_cfg: dict):
         target_network = cls(agent.model, update_cfg)

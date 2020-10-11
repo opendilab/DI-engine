@@ -87,17 +87,17 @@ class CheckpointHelper(object):
         return {prefix + k: v for k, v in state_dict.items()}
 
     def save(
-            self,
-            path,
-            model,
-            optimizer=None,
-            last_iter=None,
-            last_epoch=None,
-            last_frame=None,
-            dataset=None,
-            actor_info=None,
-            prefix_op=None,
-            prefix=None
+        self,
+        path,
+        model,
+        optimizer=None,
+        last_iter=None,
+        last_epoch=None,
+        last_frame=None,
+        dataset=None,
+        actor_info=None,
+        prefix_op=None,
+        prefix=None
     ):
         r"""
         Overview:
@@ -177,21 +177,21 @@ class CheckpointHelper(object):
                 logger.info('{}: {}'.format(n, k))
 
     def load(
-            self,
-            load_path,
-            model,
-            optimizer=None,
-            last_frame=None,
-            last_iter=None,
-            last_epoch=None,
-            lr_schduler=None,
-            dataset=None,
-            actor_info=None,
-            prefix_op=None,
-            prefix=None,
-            strict=True,
-            logger_prefix='',
-            state_dict_mask=[],
+        self,
+        load_path,
+        model,
+        optimizer=None,
+        last_frame=None,
+        last_iter=None,
+        last_epoch=None,
+        lr_schduler=None,
+        dataset=None,
+        actor_info=None,
+        prefix_op=None,
+        prefix=None,
+        strict=True,
+        logger_prefix='',
+        state_dict_mask=[],
     ):
         r"""
         Overview: load checkpoint by given path

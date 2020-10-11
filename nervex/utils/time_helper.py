@@ -215,6 +215,7 @@ def get_cuda_time_wrapper():
 
 
 def test_time_wrapper():
+
     class NaiveObject(object):
         pass
 

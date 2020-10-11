@@ -4,9 +4,10 @@ from nervex.envs.common import EnvElement
 
 
 class PendulumReward(EnvElement):
+
     def _init(self) -> None:
         self._default_val = 0.0
-        self._shape = (1,)
+        self._shape = (1, )
         self._value = {
             'min': -1 * (3.14 * 3.14 + 0.1 * 8 * 8 + 0.001 * 2 * 2),
             'max': 0.0,

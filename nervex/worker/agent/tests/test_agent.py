@@ -15,6 +15,7 @@ def setup_model():
 
 
 class TestBaseAgent:
+
     def test_naive(self, setup_model):
         agent = BaseAgent(setup_model, plugin_cfg=None)
         agent.mode(train=False)
@@ -31,6 +32,7 @@ class TestBaseAgent:
 
 
 class TestAgentPlugin:
+
     def test_grad_helper(self, setup_model):
         agent1 = BaseAgent(copy.deepcopy(setup_model), plugin_cfg=OrderedDict({'grad': {'enable_grad': True}}))
         agent2 = BaseAgent(copy.deepcopy(setup_model), plugin_cfg=OrderedDict({'grad': {'enable_grad': False}}))
@@ -57,7 +59,9 @@ class TestAgentPlugin:
         assert isinstance(data.grad, torch.Tensor)
 
     def test_hidden_state_helper(self):
+
         class TempLSTM(torch.nn.Module):
+
             def __init__(self):
                 super(TempLSTM, self).__init__()
                 self.model = get_lstm(lstm_type='pytorch', input_size=36, hidden_size=32, num_layers=2, norm_type=None)
@@ -103,7 +107,9 @@ class TestAgentPlugin:
         assert all([isinstance(s, type(None)) for s in agent._state_manager._state.values()])
 
     def test_target_network_helper(self):
+
         class TempMLP(torch.nn.Module):
+
             def __init__(self):
                 super(TempMLP, self).__init__()
                 self.fc1 = nn.Linear(3, 4)

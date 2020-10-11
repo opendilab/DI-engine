@@ -4,6 +4,7 @@ import torch.nn.functional as F
 
 
 class LabelSmoothCELoss(nn.Module):
+
     def __init__(self, ratio):
         super(LabelSmoothCELoss, self).__init__()
         self.ratio = ratio
@@ -18,6 +19,7 @@ class LabelSmoothCELoss(nn.Module):
 
 
 class SoftFocalLoss(torch.nn.Module):
+
     def __init__(self, gamma=2, weight=None, size_average=True, reduce=None):
         super(SoftFocalLoss, self).__init__()
         self.gamma = gamma

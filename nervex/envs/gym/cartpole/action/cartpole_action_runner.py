@@ -4,6 +4,7 @@ from nervex.envs.gym.cartpole.action.cartpole_action import CartpoleRawAction
 
 
 class CartpoleRawActionRunner(EnvElementRunner):
+
     def _init(self, *args, **kwargs) -> None:
         # set self._core and other state variable
         self._core = CartpoleRawAction()

@@ -13,6 +13,7 @@ from nervex.worker.agent import BaseAgent
 
 
 class CartpoleDqnGraph(BaseCompGraph):
+
     def __init__(self, cfg):
         self._gamma = cfg.dqn.discount_factor
 
@@ -48,6 +49,7 @@ class CartpoleDqnGraph(BaseCompGraph):
 
 
 class CartpoleDqnLearnerAgent(BaseAgent):
+
     def __init__(self, model, is_double=True):
         self.plugin_cfg = OrderedDict({
             'grad': {
@@ -63,6 +65,7 @@ class CartpoleDqnLearnerAgent(BaseAgent):
 
 
 class CartpoleDqnActorAgent(BaseAgent):
+
     def __init__(self, model):
         plugin_cfg = OrderedDict({
             'eps_greedy_sample': {},
@@ -74,6 +77,7 @@ class CartpoleDqnActorAgent(BaseAgent):
 
 
 class CartpoleDqnEvaluateAgent(BaseAgent):
+
     def __init__(self, model):
         plugin_cfg = OrderedDict({
             'argmax_sample': {},
@@ -106,6 +110,7 @@ class CartpoleDqnLearner(BaseLearner):
 
 
 class CartpoleRunner(SingleMachineRunner):
+
     def _setup_env(self):
         env_num = self.cfg.env.env_num
         self.env = SubprocessEnvManager(CartpoleEnv, env_cfg=[self.cfg.env for _ in range(env_num)], env_num=env_num)

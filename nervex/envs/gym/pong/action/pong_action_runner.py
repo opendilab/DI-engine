@@ -8,6 +8,7 @@ from .pong_action import PongRawAction
 
 
 class PongRawActionRunner(EnvElementRunner):
+
     def _init(self, cfg, *args, **kwargs) -> None:
         # set self._core and other state variable
         self._core = PongRawAction(cfg)

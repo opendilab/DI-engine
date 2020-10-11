@@ -25,6 +25,7 @@ class LearnerState(enum.IntEnum):
 
 
 class Coordinator(object):
+
     def __init__(self, cfg: dict) -> None:
         self.cfg = cfg
         self._setup_logger()

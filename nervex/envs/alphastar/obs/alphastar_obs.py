@@ -791,7 +791,9 @@ class ScalarObs(EnvElement):
 
     # override
     def _init(self, cfg: dict) -> None:
+
         def tensor_wrapper(fn):
+
             def wrapper(data):
                 data = torch.LongTensor(data)
                 data = fn(data)

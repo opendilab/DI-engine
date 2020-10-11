@@ -8,6 +8,7 @@ import torch
 
 
 def list_proc(func):
+
     def f(x):
         if isinstance(x, list):
             out = []

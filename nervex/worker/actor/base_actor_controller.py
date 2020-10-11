@@ -9,6 +9,7 @@ from .comm.actor_comm_helper import ActorCommHelper
 
 
 class BaseActor(ABC):
+
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._init()
@@ -30,6 +31,7 @@ class BaseActor(ABC):
         self._timer = EasyTimer()
 
         def agent_wrapper(fn):
+
             def wrapper(*args, **kwargs):
                 with self._timer:
                     ret = fn(*args, **kwargs)
@@ -39,6 +41,7 @@ class BaseActor(ABC):
             return wrapper
 
         def env_wrapper(fn):
+
             def wrapper(*args, **kwargs):
                 with self._timer:
                     ret = fn(*args, **kwargs)

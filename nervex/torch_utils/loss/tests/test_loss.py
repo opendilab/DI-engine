@@ -7,6 +7,7 @@ from nervex.torch_utils.loss.loss import LabelSmoothCELoss, SoftFocalLoss
 
 @pytest.mark.unittest
 class TestLabelSmoothCE:
+
     def test_label_smooth_ce_loss(self):
         logits = torch.randn(4, 6)
         labels = torch.LongTensor([i for i in range(4)])
@@ -17,6 +18,7 @@ class TestLabelSmoothCE:
 
 @pytest.mark.unittest
 class TestSoftFocalLoss:
+
     def test_soft_focal_loss(self):
         logits = torch.randn(4, 6)
         labels = torch.LongTensor([i for i in range(4)])

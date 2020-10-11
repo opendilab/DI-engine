@@ -9,6 +9,7 @@ from nervex.utils import AverageMeter
 
 @pytest.mark.unittest
 class TestAverageMeter:
+
     def test_naive(self):
         handle = AverageMeter(length=1)
         handle.reset()

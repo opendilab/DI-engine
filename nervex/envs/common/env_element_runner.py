@@ -6,6 +6,7 @@ from ..env.base_env import BaseEnv
 
 
 class IEnvElementRunner(IEnvElement):
+
     @abstractmethod
     def get(self, engine: BaseEnv) -> Any:
         raise NotImplementedError
@@ -16,6 +17,7 @@ class IEnvElementRunner(IEnvElement):
 
 
 class EnvElementRunner(IEnvElementRunner):
+
     def __init__(self, *args, **kwargs) -> None:
         self._init(*args, **kwargs)
         self._check()

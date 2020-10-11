@@ -15,7 +15,7 @@ def run_actor(cfg):
 
 
 def main(cfg):
-    ps = [Process(target=run_actor, args=(cfg,)) for _ in range(cfg.system.actor_num)]
+    ps = [Process(target=run_actor, args=(cfg, )) for _ in range(cfg.system.actor_num)]
     for p in ps:
         p.start()
     for p in ps:

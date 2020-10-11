@@ -19,6 +19,7 @@ def generate_data():
 
 @pytest.mark.unittest
 class TestSequenceContainer:
+
     def test_create(self):
         container = SequenceContainer(**generate_data())
         assert (container.name == 'SequenceContainer')
@@ -58,6 +59,7 @@ class TestSequenceContainer:
 
 @pytest.mark.unittest
 class TestSpecialContainer:
+
     def test_init(self):
         container = SpecialContainer(torch.randn(4))
         assert container.shape == (1, 1, 1)
@@ -128,7 +130,7 @@ class TestSpecialContainer:
         data = container[0, 0, 0]
         assert data.shape == (1, 1, 1)
         data_item = data.item
-        assert isinstance(data_item, torch.Tensor) and data_item.shape == (4,)
+        assert isinstance(data_item, torch.Tensor) and data_item.shape == (4, )
 
     def test_to_dtype(self):
         available_dtype = [torch.int64, torch.float32]
@@ -146,6 +148,7 @@ class TestSpecialContainer:
 
 @pytest.mark.unittest
 class TestTensorContainer:
+
     def test_init(self):
         container = TensorContainer(torch.randn(4, 5))
         assert container.shape == (1, 1, 1)
@@ -228,6 +231,7 @@ class TestTensorContainer:
 
 @pytest.mark.unittest
 class TestNumpyContainer:
+
     def test_cat(self):
         container = NumpyContainer(np.random.randn(4, 3).astype(np.float32))
         assert container.shape == (1, 1, 1)

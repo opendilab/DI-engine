@@ -8,6 +8,7 @@ from .agent_plugin import register_plugin
 
 
 class BaseAgent(ABC):
+
     def __init__(self, model: torch.nn.Module, plugin_cfg: Union[OrderedDict, None]) -> None:
         self._model = model
         register_plugin(self, plugin_cfg)

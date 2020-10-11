@@ -11,6 +11,7 @@ default_config = read_config(osp.join(osp.dirname(__file__), "league_manager_def
 
 
 class LimitedSpaceContainer:
+
     def __init__(self, min_val, max_val):
         self.min_val = min_val
         self.max_val = max_val

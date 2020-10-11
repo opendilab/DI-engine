@@ -95,6 +95,7 @@ class SegmentTree:
 
 
 class SumSegmentTree(SegmentTree):
+
     def __init__(self, capacity):
         super(SumSegmentTree, self).__init__(capacity, operation=sum)
 
@@ -131,5 +132,6 @@ class SumSegmentTree(SegmentTree):
 
 
 class MinSegmentTree(SegmentTree):
+
     def __init__(self, capacity):
         super(MinSegmentTree, self).__init__(capacity, operation=min)

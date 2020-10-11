@@ -6,11 +6,11 @@ from nervex.envs.common import EnvElementRunner
 from nervex.envs.env.base_env import BaseEnv
 from .pong_obs import PongObs
 
-
 # done
 
 
 class PongObsRunner(EnvElementRunner):
+
     def _init(self, cfg, *args, **kwargs) -> None:
         # set self._core and other state variable
         self._core = PongObs(cfg)

@@ -19,6 +19,7 @@ def setup_config():
 
 @pytest.mark.envtest
 class TestSumoWJ3Env:
+
     def get_random_action(self, action_dim):
         action = []
         for k, v in action_dim.items():

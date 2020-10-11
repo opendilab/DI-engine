@@ -12,6 +12,7 @@ from .base_comm_actor import BaseCommActor
 
 
 class FlaskFileSystemActor(BaseCommActor):
+
     def __init__(self, cfg: dict) -> None:
         super(FlaskFileSystemActor, self).__init__(cfg)
         self._url_prefix = 'http://{}:{}/'.format(cfg.upstream_ip, cfg.upstream_port)

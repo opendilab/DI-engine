@@ -8,6 +8,7 @@ from nervex.worker.actor.env_manager.vec_env_manager import SubprocessEnvManager
 
 @pytest.mark.unittest
 class TestBaseEnvManager:
+
     def test_naive(self, setup_manager_cfg):
         env_manager = SubprocessEnvManager(**setup_manager_cfg)
         obs = env_manager.reset(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])

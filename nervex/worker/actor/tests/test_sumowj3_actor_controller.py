@@ -9,6 +9,7 @@ from nervex.worker.actor.sumowj3_actor_controller import SumoWJ3Actor
 
 
 class FakeSumoWJ3Actor(SumoWJ3Actor):
+
     def _setup_agents(self):
         super()._setup_agents()
 
@@ -22,6 +23,7 @@ class FakeSumoWJ3Actor(SumoWJ3Actor):
 
 @pytest.mark.envtest
 class TestASActorFakeEnv:
+
     def test_naive(self, setup_config, setup_coordinator, setup_manager):
         os.popen("rm -rf job_*")
         os.popen("rm -rf actor-log")

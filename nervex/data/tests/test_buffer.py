@@ -34,6 +34,7 @@ def generate_data():
 
 @pytest.mark.unittest
 class TestBaseBuffer:
+
     def test_append(self, setup_base_buffer):
         start_pointer = setup_base_buffer.pointer
         start_vaildlen = setup_base_buffer.validlen
@@ -136,6 +137,7 @@ class TestBaseBuffer:
 
 @pytest.mark.unittest
 class TestPrioritizedBuffer:
+
     def test_append(self, setup_prioritized_buffer):
         assert (setup_prioritized_buffer.validlen == 0)  # assert empty buffer
 

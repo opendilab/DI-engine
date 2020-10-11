@@ -9,6 +9,7 @@ from nervex.utils import LockContext
 
 
 class OnlineDataLoader(object):
+
     def __init__(self, dataset, batch_size, collate_fn=None):
         self.dataset = dataset
         if collate_fn is None:
@@ -34,6 +35,7 @@ class OnlineDataLoader(object):
 
 
 class OnlineIteratorDataLoader:
+
     def __init__(self, data_iterator, batch_size, collate_fn=None, read_data_fn=None, num_workers=0):
         assert (isinstance(data_iterator, Iterator))
         assert (read_data_fn is not None)
@@ -61,7 +63,7 @@ class OnlineIteratorDataLoader:
             self.data_queue = multiprocessing.Queue()
             self.max_length = 10 * self.num_workers
             for i in range(self.num_workers):
-                p = multiprocessing.Process(target=self._worker_loop, args=(i,))
+                p = multiprocessing.Process(target=self._worker_loop, args=(i, ))
                 p.start()
             print('using {} workers loading data'.format(self.num_workers))
 

@@ -29,6 +29,7 @@ def get_fake_player():
 
 @pytest.mark.unittest
 class TestPayoff:
+
     def test_add_player(self, setup_payoff):
         assert len(setup_payoff.players) == 0
         N = 10
@@ -119,6 +120,7 @@ class TestPayoff:
 
 @pytest.mark.unittest
 class TestPayoffDict:
+
     def test_init(self):
         data = PayoffDict()
         data['test_player_0-test_player_1'] *= 1
@@ -153,6 +155,7 @@ def get_shared_payoff_player(payoff):
 
 @pytest.mark.unittest
 class TestSharedPayoff:
+
     def test_update(self, setup_shared_payoff, random_task_result, get_task_result_categories):
         N = 10
         games_per_player = 4

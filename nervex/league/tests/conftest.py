@@ -4,6 +4,7 @@ import pytest
 
 @pytest.fixture(scope='session')
 def random_task_result():
+
     def fn():
         p = np.random.uniform()
         if p < 1. / 3:

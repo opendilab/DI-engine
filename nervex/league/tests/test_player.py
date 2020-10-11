@@ -77,6 +77,7 @@ def setup_league(setup_payoff):
 
 @pytest.mark.unittest
 class TestMainPlayer:
+
     def test_get_task(self, setup_league):
         N = 10
         # no indicated p
@@ -189,6 +190,7 @@ class TestMainPlayer:
 
 @pytest.mark.unittest
 class TestMainExploiter:
+
     def test_get_task(self, setup_league, random_task_result):
         assert isinstance(setup_league[1], MainExploiter)
         opponent = setup_league[1].get_task()
@@ -245,6 +247,7 @@ class TestMainExploiter:
 
 @pytest.mark.unittest
 class TestLeagueExploiter:
+
     def test_get_task(self, setup_league):
         pass
 

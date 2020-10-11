@@ -5,6 +5,7 @@ comm_map = {'flask_fs': FlaskFileSystemActor}
 
 
 class ActorCommHelper(object):
+
     @classmethod
     def enable_comm_helper(cls, instance, comm_cfg):
         comm_type = comm_cfg['type']

@@ -233,6 +233,7 @@ AlphaStarTimestep = AlphaStarEnv.timestep
 
 
 class FakeAlphaStarEnv(AlphaStarEnv):
+
     def __init__(self, *args, **kwargs):
         super(FakeAlphaStarEnv, self).__init__(*args, **kwargs)
         self.fake_data = np.load(os.path.join(os.path.dirname(__file__), 'fake_raw_env_data.npy'), allow_pickle=True)

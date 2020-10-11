@@ -23,6 +23,7 @@ class RecordDict(dict):
 
 
 class PayoffDict(defaultdict):
+
     def __init__(self, init_fn=None):
         if init_fn is None:
             init_fn = RecordDict

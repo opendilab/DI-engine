@@ -11,6 +11,7 @@ from ..learner_hook import LearnerHook
 
 
 class FlaskFileSystemLearner(BaseCommLearner):
+
     def __init__(self, cfg: dict) -> None:
         super(FlaskFileSystemLearner, self).__init__(cfg)
         self._url_prefix = 'http://{}:{}/'.format(cfg.upstream_ip, cfg.upstream_port)
@@ -132,6 +133,7 @@ class FlaskFileSystemLearner(BaseCommLearner):
 
 
 class SendAgentHook(LearnerHook):
+
     def __init__(self, *args, ext_args: dict = {}, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if 'send_agent_freq' in ext_args:
@@ -148,6 +150,7 @@ class SendAgentHook(LearnerHook):
 
 
 class SendTrainInfoHook(LearnerHook):
+
     def __init__(self, *args, ext_args: dict = {}, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self._freq = ext_args['send_train_info_freq']

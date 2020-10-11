@@ -6,7 +6,7 @@ class PendulumRawAction(EnvElement):
 
     def _init(self):
         self._default_val = None
-        self._shape = (1,)
+        self._shape = (1, )
         self._value = {'min': -2.0, 'max': 2.0, 'dtype': float, 'dinfo': 'float value, the joint effort'}
 
     def _to_agent_processor(self, action):

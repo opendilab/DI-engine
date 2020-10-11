@@ -405,6 +405,7 @@ def transform_stat_professional_player(old_stat):
 
 
 class StatKey:
+
     def __init__(self, home_race=None, away_race=None, map_name=None, player_id=None):
         self.home_race = home_race
         self.away_race = away_race

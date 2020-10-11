@@ -9,6 +9,7 @@ from nervex.torch_utils.checkpoint_helper import CheckpointHelper
 
 
 class DstModel(nn.Module):
+
     def __init__(self):
         super(DstModel, self).__init__()
 
@@ -18,6 +19,7 @@ class DstModel(nn.Module):
 
 
 class SrcModel(nn.Module):
+
     def __init__(self):
         super(SrcModel, self).__init__()
 
@@ -28,6 +30,7 @@ class SrcModel(nn.Module):
 
 @pytest.mark.unittest
 class TestCkptHelper:
+
     def test_load_model(self):
         path = 'model.pt'
         os.popen('rm -rf ' + path)

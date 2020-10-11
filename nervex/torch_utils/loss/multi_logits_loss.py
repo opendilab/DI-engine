@@ -133,6 +133,7 @@ def test_multi_logits_loss():
 
 
 def _selected_units_loss():
+
     def smooth_label(label, num, eps=0.1):
         val = eps / (num - 1)
         ret = torch.full((1, num), val)

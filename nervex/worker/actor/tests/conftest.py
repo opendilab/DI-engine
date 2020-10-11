@@ -43,6 +43,7 @@ def setup_manager(setup_config):
 
 
 class FakeCoordinator(Coordinator):
+
     def deal_with_ask_for_job(self, manager_uid, actor_uid):
         fake_job = {
             'job_id': str(uuid.uuid1()),

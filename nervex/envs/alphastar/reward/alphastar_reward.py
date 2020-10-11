@@ -31,7 +31,7 @@ class AlphaStarReward(EnvElement):
         self.battle_range = 5000
 
         self._reward_key = ['winloss', 'build_order', 'built_unit', 'upgrade', 'effect', 'battle']
-        self._shape = {k: (1,) for k in self._reward_key}
+        self._shape = {k: (1, ) for k in self._reward_key}
         begin_num = 20
         self._value = {
             'winloss': {
@@ -88,6 +88,7 @@ class AlphaStarReward(EnvElement):
             battle_values: 'AlphaStarReward.BattleValues',
             return_list: Optional[bool] = False
     ) -> dict:
+
         def check(t) -> bool:
             return isinstance(t, list) and len(t) == self.agent_num
 

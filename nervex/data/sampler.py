@@ -8,6 +8,7 @@ from nervex.utils import get_rank, get_world_size
 
 
 class DistributedSampler(Sampler):
+
     def __init__(self, dataset, world_size=None, rank=None, round_up=True):
         if world_size is None:
             world_size = get_world_size()
@@ -58,6 +59,7 @@ class DistributedSampler(Sampler):
 
 
 class DistributedGivenIterationSampler(Sampler):
+
     def __init__(self, dataset, total_iter, batch_size, world_size=None, rank=None, last_iter=0):
         if world_size is None:
             world_size = get_world_size()
@@ -111,6 +113,7 @@ class DistributedGivenIterationSampler(Sampler):
 
 
 class DistributedEpochSampler(Sampler):
+
     def __init__(self, dataset, total_iter, batch_size, world_size=None, rank=None, last_iter=0):
         if world_size is None:
             world_size = get_world_size()

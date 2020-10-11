@@ -11,6 +11,7 @@ logger = logging.getLogger('default_logger')
 
 
 class OnlineDataset(object):
+
     def __init__(self, data_maxlen, transform, block_data, min_update_count=0, seed=0):
         # TODO container optimization
         '''

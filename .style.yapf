@@ -5,3 +5,6 @@ split_before_first_argument=True
 allow_split_before_dict_value=False
 join_multiple_lines=False
 column_limit=120
+BLANK_LINE_BEFORE_NESTED_CLASS_OR_DEF=True
+BLANK_LINES_AROUND_TOP_LEVEL_DEFINITION=2
+SPACES_AROUND_POWER_OPERATOR=True

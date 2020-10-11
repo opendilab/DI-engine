@@ -8,6 +8,7 @@ from nervex.envs.gym.pendulum.reward.pendulum_reward import PendulumReward
 
 
 class PendulumRewardRunner(EnvElementRunner):
+
     def _init(self, *args, **kwargs) -> None:
         # set self._core and other state variable
         self._core = PendulumReward()

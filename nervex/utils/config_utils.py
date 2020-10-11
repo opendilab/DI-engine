@@ -139,7 +139,6 @@ if __name__ == '__main__':
     assert os.path.exists(yaml_path)
     config = read_config(yaml_path)
 
-
     def assert_equal(item1, iterm2):
         if isinstance(item1, list):
             for item11, iterm22 in zip(item1, iterm2):
@@ -149,6 +148,5 @@ if __name__ == '__main__':
                 assert_equal(item11, item22)
         else:
             assert item1 == iterm2
-
 
     assert_equal(config, old_config)

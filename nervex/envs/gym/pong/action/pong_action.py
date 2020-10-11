@@ -17,7 +17,7 @@ class PongRawAction(EnvElement):
         self.template = {
             'action_type': {
                 'name': 'action_type',
-                'shape': (1,),
+                'shape': (1, ),
                 'value': {
                     'min': 0,
                     'max': 5,
@@ -30,7 +30,7 @@ class PongRawAction(EnvElement):
                 'necessary': True,
             }
         }
-        self._shape = (1,)
+        self._shape = (1, )
         self._value = {
             'min': 0,
             'max': 5,

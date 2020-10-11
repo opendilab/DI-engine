@@ -4,6 +4,7 @@ from nervex.envs.gym.pendulum.action.pendulum_action import PendulumRawAction
 
 
 class PendulumRawActionRunner(EnvElementRunner):
+
     def _init(self, *args, **kwargs) -> None:
         # set self._core and other state variable
         self._core = PendulumRawAction()

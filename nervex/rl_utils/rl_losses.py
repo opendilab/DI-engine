@@ -114,15 +114,15 @@ def td_lambda_loss(values, rewards, gamma=1.0, lambda_=0.8):
 
 
 def compute_importance_weights(
-        target_output,
-        behaviour_output,
-        output_type,
-        action,
-        min_clip=None,
-        max_clip=None,
-        eps=1e-8,
-        requires_grad=False,
-        device='cpu'
+    target_output,
+    behaviour_output,
+    output_type,
+    action,
+    min_clip=None,
+    max_clip=None,
+    eps=1e-8,
+    requires_grad=False,
+    device='cpu'
 ):
     r"""
     Overview:
@@ -330,16 +330,16 @@ def entropy(policy_logits, masked_threshold=-1e3):
 
 
 def pg_loss(
-        action_logits,
-        current_logits,
-        action,
-        rewards,
-        bootstrap_values,
-        clipping=lambda x: torch.clamp(x, 1),
-        upgo_weight=0.5,
-        ent_weight=0.2,
-        vtrace_gamma=1.0,
-        vtrace_lambda=0.8
+    action_logits,
+    current_logits,
+    action,
+    rewards,
+    bootstrap_values,
+    clipping=lambda x: torch.clamp(x, 1),
+    upgo_weight=0.5,
+    ent_weight=0.2,
+    vtrace_gamma=1.0,
+    vtrace_lambda=0.8
 ):
     r"""
     Overview:

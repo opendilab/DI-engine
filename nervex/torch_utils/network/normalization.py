@@ -29,7 +29,7 @@ class GroupSyncBatchNorm(link.nn.SyncBatchNorm2d):
     """
 
     def __init__(
-            self, num_features, bn_group_size=None, momentum=0.1, sync_stats=True, var_mode=link.syncbnVarMode_t.L2
+        self, num_features, bn_group_size=None, momentum=0.1, sync_stats=True, var_mode=link.syncbnVarMode_t.L2
     ):
         # TODO
         r"""

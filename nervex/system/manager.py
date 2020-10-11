@@ -10,6 +10,7 @@ import torch
 
 
 class Manager(object):
+
     def __init__(self, cfg):
         super(Manager, self).__init__()
 

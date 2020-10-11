@@ -2,6 +2,7 @@ from collections import namedtuple
 
 
 class FakeClass:
+
     def __init__(self, *args, **kwargs):
         pass
 

@@ -243,6 +243,7 @@ class AlphaStarRawAction(EnvElement):
 
 
 class AlphaStarReplayActionHelper:
+
     def __init__(self):
         self._action_keys = ['action_type', 'delay', 'queued', 'selected_units', 'target_units', 'target_location']
         self._action_template = {k: None for k in self._action_keys}
@@ -328,7 +329,9 @@ class AlphaStarReplayActionHelper:
 
 
 def merge_same_id_action(actions):
+
     def merge(same_id_actions):
+
         def apply_merge(action_list):
             selected_units = []
             for a in action_list:

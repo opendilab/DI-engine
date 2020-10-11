@@ -6,8 +6,9 @@ from nervex.envs.gym.cartpole.cartpole_env import CartpoleEnv
 
 @pytest.mark.unittest
 class TestCartpoleEnv:
+
     def get_random_action(self, min_value, max_value):
-        action = torch.randint(min_value, max_value, (1,))
+        action = torch.randint(min_value, max_value, (1, ))
         return action
 
     def test_naive(self):

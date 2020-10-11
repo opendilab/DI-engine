@@ -8,7 +8,7 @@ class CartpoleRawAction(EnvElement):
 
     def _init(self):
         self._default_val = None
-        self._shape = (2,)
+        self._shape = (2, )
         self._value = {
             'min': 0,
             'max': 2,

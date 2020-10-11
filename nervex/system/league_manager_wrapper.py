@@ -9,6 +9,7 @@ from nervex.utils import read_file, save_file
 
 
 class LeagueManagerWrapper(object):
+
     def __init__(self, cfg):
         self.cfg = cfg
 
@@ -31,6 +32,7 @@ class LeagueManagerWrapper(object):
         self.logger = logging.getLogger("league_manager.log")
 
     def _init_league_manager(self):
+
         def save_checkpoint_fn(src_checkpoint, dst_checkpoint, read_type='pickle'):
             '''
                 Overview: copy src_checkpoint as dst_checkpoint

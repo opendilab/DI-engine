@@ -3,6 +3,7 @@ from typing import Union, Any, List, Callable, Iterable
 
 
 class BaseEnvManager(ABC):
+
     def __init__(self, env_fn: Callable, env_cfg: Iterable, env_num: int) -> None:
         self._env_num = env_num
         self._envs = [env_fn(c) for c in env_cfg]

@@ -23,6 +23,7 @@ class CloudpickleWrapper(object):
 
 
 class SubprocessEnvManager(BaseEnvManager):
+
     def __init__(self, *args, **kwargs) -> None:
         super(SubprocessEnvManager, self).__init__(*args, **kwargs)
         self._parent_remote, self._child_remote = zip(*[Pipe() for _ in range(self.env_num)])

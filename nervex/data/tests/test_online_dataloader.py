@@ -11,6 +11,7 @@ def make_dataset():
 
 
 def test_online():
+
     def read_data_fn(data):
         return torch.tensor([[1, 2, 3], [4, 5, 6]])
 

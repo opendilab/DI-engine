@@ -10,6 +10,7 @@ from nervex.worker.learner.sumo_dqn_learner import SumoDqnLearner
 
 
 class SumoRunner(SingleMachineRunner):
+
     def _setup_env(self):
         env_num = self.cfg.env.env_num
         self.env = SubprocessEnvManager(SumoWJ3Env, env_cfg=[self.cfg.env for _ in range(env_num)], env_num=env_num)
