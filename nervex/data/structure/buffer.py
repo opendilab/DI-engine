@@ -1,5 +1,5 @@
 import copy
-import time
+
 import numpy as np
 
 from nervex.data.structure.segment_tree import SumSegmentTree, MinSegmentTree
@@ -16,6 +16,7 @@ class PrioritizedBuffer:
     Note:
         this buffer doesn't refer to multi-thread/multi-process, thread-safe should be ensured by the caller
     """
+
     def __init__(self, maxlen, max_reuse=None, min_sample_ratio=1., alpha=0., beta=0.):
         r"""
         Overview:
@@ -69,7 +70,7 @@ class PrioritizedBuffer:
         if 'priority' not in data.keys() or data['priority'] is None:
             data['priority'] = self.max_priority
         # weight = priority ** alpha
-        weight = data['priority']**self.alpha
+        weight = data['priority'] ** self.alpha
         self.sum_tree[idx] = weight
         if self.use_priority:
             self.min_tree[idx] = weight
@@ -122,8 +123,8 @@ class PrioritizedBuffer:
         check_result = [self._data_check(d) for d in data]
         # only keep the data pass the check
         valid_data = [d for d, flag in zip(data, check_result) if flag]
-        L = len(valid_data)
-        for i in range(L):
+        length = len(valid_data)
+        for i in range(length):
             valid_data[i]['replay_unique_id'] = self.latest_data_id + i
             valid_data[i]['replay_buffer_idx'] = (self.pointer + i) % self.maxlen
             self._set_weight((self.pointer + i) % self.maxlen, valid_data[i])
@@ -131,22 +132,22 @@ class PrioritizedBuffer:
                 self.valid_count += 1
 
         # the two case of the relationship among pointer, data length and queue length
-        if self.pointer + L <= self._maxlen:
-            self._data[self.pointer:self.pointer + L] = valid_data
-            for idx in range(self.pointer, self.pointer + L):
+        if self.pointer + length <= self._maxlen:
+            self._data[self.pointer:self.pointer + length] = valid_data
+            for idx in range(self.pointer, self.pointer + length):
                 self._reuse_count[idx] = 0
         else:
             mid = self._maxlen - self.pointer
             self._data[self.pointer:self.pointer + mid] = valid_data[:mid]
-            self._data[:L - mid] = valid_data[mid:]
+            self._data[:length - mid] = valid_data[mid:]
             assert self.pointer + mid == self._maxlen
             for idx in range(self.pointer, self.pointer + mid):
                 self._reuse_count[idx] = 0
-            for idx in range(L - mid):
+            for idx in range(length - mid):
                 self._reuse_count[idx] = 0
 
-        self.pointer = (self.pointer + L) % self._maxlen
-        self.latest_data_id += L
+        self.pointer = (self.pointer + length) % self._maxlen
+        self.latest_data_id += length
 
     def update(self, info):
         r"""
@@ -156,10 +157,10 @@ class PrioritizedBuffer:
             - info (:obj:`dict`): info dict contains all the necessary for update priority
         """
         data = [info['replay_unique_id'], info['replay_buffer_idx'], info['priority']]
-        for id, idx, priority in zip(*data):
+        for id_, idx, priority in zip(*data):
             # if the data still exists in the queue, then do the update operation
-            if self._data[idx] is not None and self._data[idx]['replay_unique_id'
-                                                               ] == id:  # confirm the same transition(data)
+            if self._data[idx] is not None \
+                    and self._data[idx]['replay_unique_id'] == id_:  # confirm the same transition(data)
                 assert priority > 0
                 self._data[idx]['priority'] = priority
                 self._set_weight(idx, self._data[idx])
@@ -190,7 +191,7 @@ class PrioritizedBuffer:
         # average divide size intervals and sample from them
         intervals = np.array([i * 1.0 / size for i in range(size)])
         # uniform sample in each interval
-        mass = intervals + np.random.uniform(size=(size, )) * 1. / size
+        mass = intervals + np.random.uniform(size=(size,)) * 1. / size
         # rescale to [0, S), which S is the sum of the total sum_tree
         mass *= self.sum_tree.reduce()
         # find prefix sum index to approximate sample with probability
@@ -228,7 +229,7 @@ class PrioritizedBuffer:
             # calculate max weight for normalizing IS
             sum_tree_root = self.sum_tree.reduce()
             p_min = self.min_tree.reduce() / sum_tree_root
-            max_weight = (self.valid_count * p_min)**(-self._beta)
+            max_weight = (self.valid_count * p_min) ** (-self._beta)
 
         data = []
         for idx in indices:
@@ -238,7 +239,7 @@ class PrioritizedBuffer:
             # get IS(importance sampling weight for gradient step)
             if self.use_priority:
                 p_sample = self.sum_tree[copy_data['replay_buffer_idx']] / sum_tree_root
-                weight = (self.valid_count * p_sample)**(-self._beta)
+                weight = (self.valid_count * p_sample) ** (-self._beta)
                 copy_data['IS'] = weight / max_weight
             else:
                 copy_data['IS'] = 1.0

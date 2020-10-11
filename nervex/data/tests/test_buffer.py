@@ -67,15 +67,15 @@ class TestBaseBuffer:
         start_data_id = setup_base_buffer.latest_data_id
 
         data = []
-        L = int(1.5 * setup_base_buffer.maxlen)
-        for _ in range(L):
+        enlarged_length = int(1.5 * setup_base_buffer.maxlen)
+        for _ in range(enlarged_length):
             data.append(generate_data())
-        invalid_idx = np.random.choice([i for i in range(L)], int(0.1 * L), replace=False)
+        invalid_idx = np.random.choice([i for i in range(enlarged_length)], int(0.1 * enlarged_length), replace=False)
         for i in invalid_idx:
             data[i] = None
 
         setup_base_buffer.extend(data)
-        valid_data_num = L - int(0.1 * L)
+        valid_data_num = enlarged_length - int(0.1 * enlarged_length)
         assert setup_base_buffer.pointer == (start_pointer + valid_data_num) % setup_base_buffer.maxlen
         assert setup_base_buffer.latest_data_id == start_data_id + valid_data_num
 
@@ -139,16 +139,16 @@ class TestPrioritizedBuffer:
     def test_append(self, setup_prioritized_buffer):
         assert (setup_prioritized_buffer.validlen == 0)  # assert empty buffer
 
-        def get_weights(data):
-            weights = []
-            for d in data:
+        def get_weights(data_):
+            weights_ = []
+            for d in data_:
                 if 'priority' not in d.keys() or d['priority'] is None:
-                    weights.append(setup_prioritized_buffer.max_priority)
+                    weights_.append(setup_prioritized_buffer.max_priority)
                 else:
-                    weights.append(d['priority'])
-            weights = np.array(weights)
-            weights = weights**setup_prioritized_buffer.alpha
-            return weights
+                    weights_.append(d['priority'])
+            weights_ = np.array(weights_)
+            weights_ = weights_**setup_prioritized_buffer.alpha
+            return weights_
 
         # first part(20 elements, which is smaller than buffer.maxlen)
         data = []
@@ -160,7 +160,7 @@ class TestPrioritizedBuffer:
         assert (setup_prioritized_buffer.maxlen == 64)
         assert (setup_prioritized_buffer.beta == 0.6)
         assert (setup_prioritized_buffer.alpha == 0.6)
-        assert (setup_prioritized_buffer.use_priority)
+        assert setup_prioritized_buffer.use_priority
         assert (hasattr(setup_prioritized_buffer, 'min_tree'))
         assert (setup_prioritized_buffer.validlen == 20)
 
