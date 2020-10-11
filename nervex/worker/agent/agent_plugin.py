@@ -1,12 +1,10 @@
-from typing import Any, Tuple, Callable, Union, Optional
 import copy
+from abc import ABC, abstractmethod, abstractclassmethod
 from collections import OrderedDict
+from typing import Any, Tuple, Callable, Union, Optional
+
 import numpy as np
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from abc import ABC, abstractmethod, abstractclassmethod
-from nervex.data import diff_shape_collate
 
 
 class IAgentPlugin(ABC):

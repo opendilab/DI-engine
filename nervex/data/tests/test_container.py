@@ -1,7 +1,9 @@
+import copy
+
+import numpy as np
 import pytest
 import torch
-import numpy as np
-import copy
+
 from nervex.data.structure import SequenceContainer, SpecialContainer, TensorContainer, NumpyContainer
 from nervex.torch_utils import to_dtype
 

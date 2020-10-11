@@ -1,7 +1,8 @@
+import random
+
 import pytest
 import torch
-import os
-import random
+
 from nervex.envs.gym.pendulum.pendulum_env import PendulumEnv
 
 

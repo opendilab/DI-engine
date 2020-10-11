@@ -1,7 +1,6 @@
-from abc import ABC, abstractmethod, abstractproperty
-from typing import Any
 import threading
-import os
+from abc import ABC, abstractmethod, abstractproperty
+
 from nervex.utils import EasyTimer
 
 

@@ -1,7 +1,9 @@
+import math
+
+import numpy as np
 import torch
 from torch.utils.data.sampler import Sampler
-import math
-import numpy as np
+
 from nervex.utils import get_rank, get_world_size
 
 

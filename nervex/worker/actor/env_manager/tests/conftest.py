@@ -1,9 +1,10 @@
-import pytest
-import time
 import random
+import time
+from collections import namedtuple
+
+import pytest
 import torch
 from easydict import EasyDict
-from collections import namedtuple
 
 
 class FakeEnv(object):

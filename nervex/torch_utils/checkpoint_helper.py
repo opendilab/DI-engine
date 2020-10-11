@@ -6,7 +6,6 @@ Main Function:
     2. CountVar, to help counting number.
 """
 import logging
-import os
 import signal
 import sys
 import traceback
@@ -14,7 +13,6 @@ import traceback
 import torch
 
 from nervex.utils import read_file, save_file
-from .data_helper import to_device
 
 logger = logging.getLogger('default_logger')
 

@@ -3,15 +3,15 @@ import logging
 
 import numpy as np
 import torch
-
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
 from pysc2.lib.static_data import NUM_BEGIN_ACTIONS, NUM_UNIT_BUILD_ACTIONS, NUM_EFFECT_ACTIONS, NUM_RESEARCH_ACTIONS, \
     UNIT_BUILD_ACTIONS_REORDER_ARRAY, EFFECT_ACTIONS_REORDER_ARRAY, RESEARCH_ACTIONS_REORDER_ARRAY, \
     BEGIN_ACTIONS_REORDER_ARRAY, BEGIN_ACTIONS, \
     OLD_BEGIN_ACTIONS_REORDER_INV
+
 from nervex.envs.common import reorder_one_hot_array, batch_binary_encode, div_one_hot
-from ..obs.alphastar_obs import LOCATION_BIT_NUM
 from nervex.torch_utils import to_dtype, one_hot
+from ..obs.alphastar_obs import LOCATION_BIT_NUM
 
 
 def binary_search(data, item):

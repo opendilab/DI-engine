@@ -1,5 +1,7 @@
-import pytest
 import random
+
+import pytest
+
 from nervex.utils import SingletonMetaclass
 
 

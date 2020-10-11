@@ -1,7 +1,7 @@
-import socket
 import os
-import uuid
+import socket
 import time
+import uuid
 
 MANAGER_NODE_TABLE = {
     '10.198.8': '10.198.8.31',

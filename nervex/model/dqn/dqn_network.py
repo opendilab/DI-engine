@@ -1,6 +1,8 @@
+from functools import partial
+
 import torch
 import torch.nn as nn
-from functools import partial
+
 from nervex.model import DuelingHead
 from nervex.utils import squeeze
 

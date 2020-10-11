@@ -1,22 +1,11 @@
-import os
-import sys
-import time
-import json
-import threading
-import requests
-import numpy as np
-import torch
-from itertools import count
 import logging
-import argparse
-import yaml
-import traceback
-import uuid
-import random
-from easydict import EasyDict
+import os
+import time
 
-from nervex.utils import read_file, save_file
+import requests
+
 from nervex.league import create_league
+from nervex.utils import read_file, save_file
 
 
 class LeagueManagerWrapper(object):

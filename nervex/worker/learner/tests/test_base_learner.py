@@ -1,7 +1,8 @@
-import pytest
-import random
-import torch
 import os
+
+import pytest
+import torch
+
 from nervex.worker import BaseLearner
 from nervex.worker.learner import LearnerHook, register_learner_hook
 

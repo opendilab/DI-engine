@@ -1,7 +1,8 @@
-import pytest
 import numpy as np
-from nervex.league.shared_payoff import SharedPayoff
+import pytest
+
 from nervex.league.player import Player, MainPlayer, MainExploiter, LeagueExploiter, HistoricalPlayer, ActivePlayer
+from nervex.league.shared_payoff import SharedPayoff
 
 STRONG = 0.7
 ONE_PHASE_STEPS = 2e3

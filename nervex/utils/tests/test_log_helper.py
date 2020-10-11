@@ -1,7 +1,9 @@
-import pytest
 import random
-import numpy as np
 from collections import deque
+
+import numpy as np
+import pytest
+
 from nervex.utils import AverageMeter
 
 

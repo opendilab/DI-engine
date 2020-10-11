@@ -1,9 +1,10 @@
-import torch
-from collections.abc import Iterator
-from torch.utils.data import _utils
-import torch.multiprocessing as multiprocessing
-from torch._six import queue
 import time
+from collections.abc import Iterator
+
+import torch
+import torch.multiprocessing as multiprocessing
+from torch.utils.data import _utils
+
 from nervex.utils import LockContext
 
 

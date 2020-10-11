@@ -1,8 +1,10 @@
-import requests
-import time
 import os
-import traceback
 import sys
+import time
+import traceback
+
+import requests
+
 from nervex.utils import read_file, save_file, get_rank, get_world_size
 from .base_comm_learner import BaseCommLearner
 from ..learner_hook import LearnerHook

@@ -6,8 +6,9 @@ Main Function:
         of the given inputs.
 """
 
-import torch
 import random
+
+import torch
 
 
 def levenshtein_distance(pred, target, pred_extra=None, target_extra=None, extra_fn=None):

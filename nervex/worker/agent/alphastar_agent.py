@@ -1,7 +1,9 @@
-import torch
 import copy
-from torch.utils.data._utils.collate import default_collate
 from collections import OrderedDict
+
+import torch
+from torch.utils.data._utils.collate import default_collate
+
 from nervex.utils import list_dict2dict_list
 from nervex.worker.agent import BaseAgent, add_plugin, IAgentStatelessPlugin
 

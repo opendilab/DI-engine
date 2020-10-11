@@ -1,13 +1,15 @@
-import pytest
-import time
 import os
-import yaml
-from easydict import EasyDict
-import numpy as np
 import threading
-from threading import Thread
+import time
 from multiprocessing import Queue
 from multiprocessing.queues import Empty
+from threading import Thread
+
+import numpy as np
+import pytest
+import yaml
+from easydict import EasyDict
+
 from nervex.league import BaseLeagueManager
 
 global BEGIN_COUNT, FINISH_COUNT

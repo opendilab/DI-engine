@@ -7,11 +7,12 @@ Usage: Run me on a computer with pysc2 environment with ladder map packs install
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-import os
+
 import re
+
 from absl import app
-from pysc2 import run_configs
 from pysc2 import maps
+from pysc2 import run_configs
 from s2clientprotocol import sc2api_pb2 as sc_pb
 
 header = '# flake8: noqa\n\

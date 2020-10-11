@@ -1,7 +1,5 @@
 from collections import namedtuple
 
-import torch
-
 
 class FakeClass:
     def __init__(self, *args, **kwargs):

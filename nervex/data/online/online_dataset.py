@@ -1,10 +1,11 @@
-from collections import deque
-import os
-import time
-import torch
 import logging
+import os
 import random
+import time
+from collections import deque
 from multiprocessing import Lock
+
+import torch
 
 logger = logging.getLogger('default_logger')
 

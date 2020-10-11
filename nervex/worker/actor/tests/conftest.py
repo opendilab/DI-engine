@@ -1,10 +1,11 @@
-import pytest
-import uuid
-import torch
 import os
+import uuid
+from threading import Thread
+
+import pytest
 import yaml
 from easydict import EasyDict
-from threading import Thread
+
 from nervex.system import Manager, create_manager_app, Coordinator, create_coordinator_app
 from nervex.system.coordinator import JobState
 

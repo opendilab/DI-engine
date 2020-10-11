@@ -4,7 +4,7 @@ import numpy as np
 import torch
 
 from nervex.tests.fake_linklink import FakeLink
-from nervex.utils import try_import_link
+from .import_utils import try_import_link
 
 link = try_import_link()
 

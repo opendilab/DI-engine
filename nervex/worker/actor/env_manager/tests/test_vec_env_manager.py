@@ -1,6 +1,8 @@
+import time
+
 import pytest
 import torch
-import time
+
 from nervex.worker.actor.env_manager.vec_env_manager import SubprocessEnvManager
 
 

@@ -3,16 +3,16 @@ import os
 from collections import namedtuple
 
 import numpy as np
-
 import pysc2.env.sc2_env as sc2_env
 from pysc2.env.sc2_env import SC2Env
+
 from nervex.envs.env.base_env import BaseEnv
-from .other.alphastar_map import get_map_size
-from .action.alphastar_action_runner import AlphaStarRawActionRunner
-from .reward.alphastar_reward_runner import AlphaStarRewardRunner
-from .obs.alphastar_obs_runner import AlphaStarObsRunner
-from .other.alphastar_statistics import RealTimeStatistics, GameLoopStatistics
 from nervex.utils import merge_dicts, read_config
+from .action.alphastar_action_runner import AlphaStarRawActionRunner
+from .obs.alphastar_obs_runner import AlphaStarObsRunner
+from .other.alphastar_map import get_map_size
+from .other.alphastar_statistics import RealTimeStatistics, GameLoopStatistics
+from .reward.alphastar_reward_runner import AlphaStarRewardRunner
 
 default_config = read_config(os.path.join(os.path.dirname(__file__), 'alphastar_env_default_config.yaml'))
 

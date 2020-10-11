@@ -1,9 +1,11 @@
+import os
+import random
+
 import pytest
 import torch
 import yaml
-import os
-import random
 from easydict import EasyDict
+
 from nervex.envs.sumo.sumo_env import SumoWJ3Env
 
 

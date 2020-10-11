@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import namedtuple
 from typing import Any
+
 from nervex.utils import SingletonMetaclass
 
 

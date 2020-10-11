@@ -5,9 +5,10 @@ Main Function:
     1. build LSTM: you can use build_LSTM to build the lstm module
 """
 import math
+
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+
 from nervex.torch_utils.network.normalization import build_normalization
 
 

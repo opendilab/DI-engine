@@ -1,12 +1,9 @@
 import numbers
-from datetime import datetime
 from collections.abc import Sequence
-from collections import namedtuple
 
 import numpy as np
 import torch
 from torchvision import transforms
-from absl import flags
 
 
 def transform(height, width):

@@ -5,10 +5,12 @@ Main Function:
     1. The neural network model, include methods such as init weight, build conv block or fully-connected block ,etc.
 """
 import math
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.init import xavier_normal_, kaiming_normal_, orthogonal_
+
 from .normalization import build_normalization
 
 

@@ -1,8 +1,9 @@
-import pytest
 import numpy as np
+import pytest
+
 from nervex.league.payoff import Payoff
-from nervex.league.shared_payoff import PayoffDict, SharedPayoff
 from nervex.league.player import Player
+from nervex.league.shared_payoff import PayoffDict, SharedPayoff
 
 
 @pytest.fixture(scope='function')

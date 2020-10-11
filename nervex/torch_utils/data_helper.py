@@ -1,7 +1,8 @@
-from collections.abc import Sequence
-import torch
-import numpy as np
 import numbers
+from collections.abc import Sequence
+
+import numpy as np
+import torch
 
 
 def to_device(item, device, ignore_keys=[]):

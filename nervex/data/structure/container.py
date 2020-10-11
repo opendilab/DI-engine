@@ -1,8 +1,8 @@
 import copy
-from collections.abc import Sequence
 import numbers
-from itertools import product
+from collections.abc import Sequence
 from functools import reduce
+from itertools import product
 from typing import Union, Any, Optional, Callable
 
 import numpy as np

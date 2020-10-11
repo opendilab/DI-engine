@@ -1,8 +1,10 @@
-import pytest
 import os
 import time
+
+import pytest
 import torch
 import torch.nn as nn
+
 from nervex.torch_utils.checkpoint_helper import CheckpointHelper
 
 

@@ -4,9 +4,8 @@ Copyright 2020 Sensetime X-lab. All Rights Reserved
 Main Function:
     1. build ResBlock: you can use this classes to build residual blocks
 """
-import torch
 import torch.nn as nn
-import torch.nn.functional as F
+
 from .nn_module import conv2d_block, fc_block
 
 

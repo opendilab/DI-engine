@@ -1,3 +1,3 @@
-from .agent import *
 from .actor import *
+from .agent import *
 from .learner import *

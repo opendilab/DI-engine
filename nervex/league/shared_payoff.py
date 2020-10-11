@@ -1,8 +1,10 @@
-import numpy as np
 import copy
 from collections import defaultdict
-from .player import Player
+
+import numpy as np
+
 from nervex.utils import LockContext
+from .player import Player
 
 
 class RecordDict(dict):

@@ -1,21 +1,21 @@
-import copy
 import os
 from collections import namedtuple
+import os
 import sys
+import time
+from collections import namedtuple
 from typing import List, Any
-from sumolib import checkBinary
-from nervex.envs.env.base_env import BaseEnv
-from nervex.envs.sumo.action.sumo_action_runner import SumoRawActionRunner
-from nervex.envs.sumo.reward.sumo_reward_runner import SumoRewardRunner
-from nervex.envs.sumo.obs.sumo_obs_runner import SumoObsRunner
-import numpy as np
+
+import traci
 import yaml
 from easydict import EasyDict
-from nervex.utils import override, merge_dicts, pretty_print, read_config
+from sumolib import checkBinary
 
-import time
-import traci
-from functools import reduce
+from nervex.envs.env.base_env import BaseEnv
+from nervex.envs.sumo.action.sumo_action_runner import SumoRawActionRunner
+from nervex.envs.sumo.obs.sumo_obs_runner import SumoObsRunner
+from nervex.envs.sumo.reward.sumo_reward_runner import SumoRewardRunner
+from nervex.utils import merge_dicts
 
 
 def build_config(user_config):

@@ -1,7 +1,6 @@
 import pytest
 import torch
-import os
-import random
+
 from nervex.envs.gym.cartpole.cartpole_env import CartpoleEnv
 
 

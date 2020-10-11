@@ -1,15 +1,9 @@
-import time
-import argparse
-import torch
-import os
 import sys
-
-from typing import Optional
+import time
 
 from nervex.data import PrioritizedBuffer, default_collate
-from nervex.torch_utils import to_device
 from nervex.rl_utils import epsilon_greedy
-from nervex.utils import read_config
+from nervex.torch_utils import to_device
 from nervex.worker.learner import LearnerHook
 
 

@@ -2,11 +2,12 @@
 This is the opensource wrapper used by rllib
 """
 
-import numpy as np
 from collections import deque
-import gym
-from gym import spaces
+
 import cv2
+import gym
+import numpy as np
+from gym import spaces
 
 cv2.ocl.setUseOpenCL(False)
 

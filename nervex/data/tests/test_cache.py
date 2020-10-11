@@ -1,9 +1,9 @@
-import pytest
 import threading
 import time
 from threading import Thread
 
 import numpy as np
+import pytest
 
 from nervex.data.structure import Cache
 

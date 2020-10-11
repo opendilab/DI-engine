@@ -1,19 +1,12 @@
+import logging
 import os
 import sys
-import time
-import json
 import threading
-import requests
-import numpy as np
-from itertools import count
-import logging
-import argparse
-import yaml
+import time
 import traceback
-import subprocess
-import torch
 
-from nervex.utils.log_helper import TextLogger
+import requests
+import torch
 
 
 class Manager(object):

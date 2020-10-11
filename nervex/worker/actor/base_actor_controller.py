@@ -1,8 +1,9 @@
-from abc import ABC, abstractmethod, abstractproperty
 import os
 import sys
+from abc import ABC, abstractmethod, abstractproperty
 from collections import namedtuple
-from typing import Union, Any
+from typing import Any
+
 from nervex.utils import build_logger_naive, EasyTimer, get_task_uid, VariableRecord, import_module
 from .comm.actor_comm_helper import ActorCommHelper
 

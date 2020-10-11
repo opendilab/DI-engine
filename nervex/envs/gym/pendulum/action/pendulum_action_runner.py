@@ -1,7 +1,5 @@
-from typing import List, Tuple
-import copy
-from nervex.envs.env.base_env import BaseEnv
 from nervex.envs.common import EnvElementRunner
+from nervex.envs.env.base_env import BaseEnv
 from nervex.envs.gym.pendulum.action.pendulum_action import PendulumRawAction
 
 

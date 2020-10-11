@@ -1,7 +1,6 @@
 import pytest
 import torch
-import os
-import random
+
 from nervex.envs.gym.pong.pong_env import PongEnv
 
 

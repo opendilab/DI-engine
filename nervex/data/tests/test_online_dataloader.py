@@ -1,8 +1,3 @@
-import copy
-from collections import defaultdict
-
-import numpy as np
-import pytest
 import torch
 
 from nervex.data.online import OnlineIteratorDataLoader

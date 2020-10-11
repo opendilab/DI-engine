@@ -1,9 +1,11 @@
-from abc import ABC, abstractmethod
 import numbers
 import os
-import torch
+from abc import ABC, abstractmethod
 from typing import Any
+
+import torch
 from easydict import EasyDict
+
 from nervex.utils import allreduce
 
 

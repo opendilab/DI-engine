@@ -5,8 +5,8 @@ from typing import Optional
 import numpy as np
 import torch
 import torch.nn.functional as F
-
 from pysc2.lib.static_data import BUILD_ORDER_REWARD_ACTIONS, UNIT_BUILD_ACTIONS, EFFECT_ACTIONS, RESEARCH_ACTIONS
+
 from nervex.data.collate_fn import diff_shape_collate
 from nervex.envs.common import EnvElement
 from nervex.torch_utils import levenshtein_distance, hamming_distance, to_device

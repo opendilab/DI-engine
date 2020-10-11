@@ -1,5 +1,5 @@
-import os.path as osp
 import copy
+import os.path as osp
 from threading import Thread
 
 from nervex.data.structure import PrioritizedBuffer, Cache

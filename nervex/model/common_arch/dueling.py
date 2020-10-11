@@ -1,6 +1,8 @@
 from typing import Union
+
 import torch
 import torch.nn as nn
+
 from nervex.torch_utils import fc_block
 
 

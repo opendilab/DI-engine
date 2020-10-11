@@ -1,8 +1,8 @@
+from collections import OrderedDict
+
 import torch
-import torch.nn as nn
 
 from nervex.worker.agent import BaseAgent, IAgentStatelessPlugin, add_plugin
-from collections import OrderedDict
 
 
 class DataTransformHelper(IAgentStatelessPlugin):

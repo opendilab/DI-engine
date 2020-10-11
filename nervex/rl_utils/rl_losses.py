@@ -1,7 +1,7 @@
 """Library for RL returns and losses evaluation"""
 
-import math
 from functools import reduce
+
 import torch
 import torch.nn.functional as F
 

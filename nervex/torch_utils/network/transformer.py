@@ -1,8 +1,9 @@
+import math
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import math
-from functools import reduce
+
 from .nn_module import fc_block, build_normalization
 
 

@@ -1,6 +1,8 @@
+import random
+
 import pytest
 import torch
-import random
+
 from nervex.torch_utils.metric import levenshtein_distance, hamming_distance
 
 

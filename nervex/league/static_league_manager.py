@@ -1,5 +1,3 @@
-import os.path as osp
-import numpy as np
 from nervex.league import BaseLeagueManager, register_league
 
 

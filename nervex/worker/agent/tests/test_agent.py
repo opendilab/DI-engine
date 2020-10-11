@@ -1,10 +1,12 @@
-import pytest
 import copy
 from collections import OrderedDict
+
+import pytest
 import torch
 import torch.nn as nn
-from nervex.worker.agent.base_agent import BaseAgent
+
 from nervex.torch_utils import get_lstm
+from nervex.worker.agent.base_agent import BaseAgent
 
 
 @pytest.fixture(scope='function')
