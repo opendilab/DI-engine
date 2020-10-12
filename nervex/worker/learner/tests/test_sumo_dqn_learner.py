@@ -1,15 +1,14 @@
-import pytest
-import torch
-import yaml
 import os
-import random
-from easydict import EasyDict
-from nervex.worker.learner.sumo_dqn_learner import SumoDqnLearner
+
+import pytest
+
 from nervex.envs.sumo.fake_dataset import FakeSumoDataset
+from nervex.worker.learner.sumo_dqn_learner import SumoDqnLearner
 
 
 @pytest.mark.unittest
 class TestSumoDqnLearner:
+
     def test_data_sample_update(self):
         os.popen('rm -rf ckpt')
         sumo_learner = SumoDqnLearner({})

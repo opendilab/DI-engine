@@ -1,16 +1,13 @@
-import copy
-import os
 from collections import namedtuple
-import sys
 from typing import List, Any
+
+import gym
+import torch
 
 from nervex.envs.env.base_env import BaseEnv
 from nervex.envs.gym.pendulum.action.pendulum_action_runner import PendulumRawActionRunner
-from nervex.envs.gym.pendulum.reward.pendulum_reward_runner import PendulumRewardRunner
 from nervex.envs.gym.pendulum.obs.pendulum_obs_runner import PendulumObsRunner
-import numpy as np
-import torch
-import gym
+from nervex.envs.gym.pendulum.reward.pendulum_reward_runner import PendulumRewardRunner
 
 
 class PendulumEnv(BaseEnv):

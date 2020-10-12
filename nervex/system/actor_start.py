@@ -1,8 +1,10 @@
 import argparse
 import multiprocessing
 from multiprocessing import Process
+
 from nervex.utils import read_config
 from nervex.worker.actor import create_actor
+
 multiprocessing.set_start_method('spawn', force=True)
 
 

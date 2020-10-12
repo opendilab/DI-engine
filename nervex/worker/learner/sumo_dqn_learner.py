@@ -6,20 +6,14 @@ Main Function:
 """
 
 import os.path as osp
-import torch
-import torch.nn as nn
-import threading
-import yaml
-from easydict import EasyDict
-from collections import OrderedDict
 
-from nervex.utils import override, merge_dicts, pretty_print, read_config
-from nervex.data import default_collate
-from nervex.worker.learner import BaseLearner, register_learner
-from nervex.worker.agent.sumo_dqn_agent import SumoDqnLearnerAgent
-from nervex.model import FCDQN
-from nervex.envs.sumo.sumo_env import SumoWJ3Env
 from nervex.computation_graph.sumo_dqn_computation_graph import SumoDqnGraph
+from nervex.data import default_collate
+from nervex.envs.sumo.sumo_env import SumoWJ3Env
+from nervex.model import FCDQN
+from nervex.utils import override, merge_dicts, read_config
+from nervex.worker.agent.sumo_dqn_agent import SumoDqnLearnerAgent
+from nervex.worker.learner import BaseLearner, register_learner
 
 default_config = read_config(osp.join(osp.dirname(__file__), "sumo_dqn_learner_default_config.yaml"))
 

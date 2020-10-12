@@ -1,16 +1,18 @@
 import os
-import time
 import sys
+import time
 import traceback
+
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-import torch
-from .base_comm_actor import BaseCommActor
+
 from nervex.utils import read_file, save_file
+from .base_comm_actor import BaseCommActor
 
 
 class FlaskFileSystemActor(BaseCommActor):
+
     def __init__(self, cfg: dict) -> None:
         super(FlaskFileSystemActor, self).__init__(cfg)
         self._url_prefix = 'http://{}:{}/'.format(cfg.upstream_ip, cfg.upstream_port)

@@ -1,13 +1,15 @@
-from abc import ABC, abstractmethod, abstractproperty
 import os
 import sys
+from abc import ABC, abstractmethod, abstractproperty
 from collections import namedtuple
-from typing import Union, Any
+from typing import Any
+
 from nervex.utils import build_logger_naive, EasyTimer, get_task_uid, VariableRecord, import_module
 from .comm.actor_comm_helper import ActorCommHelper
 
 
 class BaseActor(ABC):
+
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._init()
@@ -29,6 +31,7 @@ class BaseActor(ABC):
         self._timer = EasyTimer()
 
         def agent_wrapper(fn):
+
             def wrapper(*args, **kwargs):
                 with self._timer:
                     ret = fn(*args, **kwargs)
@@ -38,6 +41,7 @@ class BaseActor(ABC):
             return wrapper
 
         def env_wrapper(fn):
+
             def wrapper(*args, **kwargs):
                 with self._timer:
                     ret = fn(*args, **kwargs)

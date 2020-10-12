@@ -1,19 +1,14 @@
-import time
-import argparse
-import torch
-import os
 import sys
-
-from typing import Optional
+import time
 
 from nervex.data import PrioritizedBuffer, default_collate
-from nervex.torch_utils import to_device
 from nervex.rl_utils import epsilon_greedy
-from nervex.utils import read_config
+from nervex.torch_utils import to_device
 from nervex.worker.learner import LearnerHook
 
 
 class ActorProducerHook(LearnerHook):
+
     def __init__(self, runner, position, priority, freq, episode_num):
         super().__init__(name='actor_producer', position=position, priority=priority)
         self._runner = runner
@@ -27,6 +22,7 @@ class ActorProducerHook(LearnerHook):
 
 
 class ActorUpdateHook(LearnerHook):
+
     def __init__(self, runner, position, priority, freq):
         super().__init__(name='actor_producer', position=position, priority=priority)
         self._runner = runner
@@ -38,6 +34,7 @@ class ActorUpdateHook(LearnerHook):
 
 
 class EvaluateHook(LearnerHook):
+
     def __init__(self, runner, priority, freq):
         super().__init__(name='evaluate', position='after_iter', priority=priority)
         self._runner = runner
@@ -50,6 +47,7 @@ class EvaluateHook(LearnerHook):
 
 
 class SingleMachineRunner():
+
     def __init__(self, cfg):
         self.cfg = cfg
         self.use_cuda = self.cfg.learner.use_cuda
@@ -88,6 +86,7 @@ class SingleMachineRunner():
         raise NotImplementedError
 
     def _setup_data_source(self):
+
         def data_iterator():
             while True:
                 while True:

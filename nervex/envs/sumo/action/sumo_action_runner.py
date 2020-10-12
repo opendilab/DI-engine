@@ -1,7 +1,5 @@
-from typing import List, Tuple
-import copy
-from nervex.envs.env.base_env import BaseEnv
 from nervex.envs.common import EnvElementRunner
+from nervex.envs.env.base_env import BaseEnv
 from nervex.envs.sumo.action.sumo_action import SumoRawAction
 
 
@@ -12,6 +10,7 @@ class SumoRawActionRunner(EnvElementRunner):
     Interface:
         _init, get, reset
     """
+
     def _init(self, cfg) -> None:
         r"""
         Overview:
@@ -42,7 +41,7 @@ class SumoRawActionRunner(EnvElementRunner):
         self._last_action = action
         return raw_action
 
-    #override
+    # override
     def reset(self) -> None:
         r"""
         Overview:

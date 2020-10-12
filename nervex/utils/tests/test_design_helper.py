@@ -1,5 +1,7 @@
-import pytest
 import random
+
+import pytest
+
 from nervex.utils import SingletonMetaclass
 
 
@@ -9,6 +11,7 @@ def test_singleton():
     count = 0
 
     class A(object, metaclass=SingletonMetaclass):
+
         def __init__(self, t):
             self.t = t
             self.p = random.randint(0, 10)

@@ -1,17 +1,16 @@
-import time
-import copy
 import argparse
-import torch
+import copy
 
-from nervex.worker import SubprocessEnvManager
-from nervex.worker.agent.sumo_dqn_agent import SumoDqnActorAgent, SumoDqnEvaluateAgent
 from nervex.entry.base_single_machine import SingleMachineRunner
 from nervex.envs.sumo.sumo_env import SumoWJ3Env
-from nervex.worker.learner.sumo_dqn_learner import SumoDqnLearner
 from nervex.utils import read_config
+from nervex.worker import SubprocessEnvManager
+from nervex.worker.agent.sumo_dqn_agent import SumoDqnActorAgent, SumoDqnEvaluateAgent
+from nervex.worker.learner.sumo_dqn_learner import SumoDqnLearner
 
 
 class SumoRunner(SingleMachineRunner):
+
     def _setup_env(self):
         env_num = self.cfg.env.env_num
         self.env = SubprocessEnvManager(SumoWJ3Env, env_cfg=[self.cfg.env for _ in range(env_num)], env_num=env_num)

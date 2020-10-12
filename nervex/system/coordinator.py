@@ -1,21 +1,14 @@
-import os
-import sys
-import time
-import json
-import threading
-import requests
-from itertools import count
-import logging
-import argparse
-import yaml
-import traceback
-import uuid
 import enum
-import random
-from easydict import EasyDict
+import logging
+import os
+import threading
+import time
+import uuid
 from queue import Queue
-import numpy as np
+
+import requests
 import torch
+from easydict import EasyDict
 
 from nervex.data.online import ReplayBuffer
 from nervex.utils import LockContext
@@ -32,6 +25,7 @@ class LearnerState(enum.IntEnum):
 
 
 class Coordinator(object):
+
     def __init__(self, cfg: dict) -> None:
         self.cfg = cfg
         self._setup_logger()
@@ -279,7 +273,7 @@ class Coordinator(object):
             time.sleep(3)
         # update info for buffer
         # TODO PER update
-        #self._learner_record[learner_uid]['replay_buffer'].update(update_info)
+        # self._learner_record[learner_uid]['replay_buffer'].update(update_info)
         return True
 
     def deal_with_register_league_manager(self, league_manager_ip, player_ids, player_ckpts):
@@ -367,8 +361,8 @@ class Coordinator(object):
         while True:
             nowtime = int(time.time())
             for learner_uid, learner_info in self._learner_record.items():
-                if learner_info['state'] == LearnerState.alive and\
-                   nowtime - learner_info['last_beats_time'] > self._check_dead_learner_freq:
+                if learner_info['state'] == LearnerState.alive and \
+                        nowtime - learner_info['last_beats_time'] > self._check_dead_learner_freq:
                     # dead learner
                     self._logger.info(
                         "[coordinator][check_learner_dead] {} is dead, last_beats_time = {}".format(
@@ -411,8 +405,9 @@ class Coordinator(object):
     def deal_with_push_data_to_replay_buffer(self, learner_uid):
         job_id = '8d2e8eda-83d9-11ea-8bb0-1be4f1872daf'
         # learner_uid = '3458436'
-        trajectory_path = 'model_main_player_zerg_0_ckpt'\
-            '.pth_job_0098e642-841e-11ea-9918-6f27a4855242_agent_0_step_1159_0707b170-8423-11ea-99b0-db6573da5763.traj'
+        trajectory_path = 'model_main_player_zerg_0_ckpt' \
+                          '.pth_job_0098e642-841e-11ea-9918-6f27a4855242_agent_0_step_1159_' \
+                          '0707b170-8423-11ea-99b0-db6573da5763.traj'
         self._learner_record[learner_uid]['replay_buffer'].push_data(
             {
                 'job_id': job_id,

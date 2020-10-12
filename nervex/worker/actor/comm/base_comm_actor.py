@@ -1,9 +1,10 @@
-from abc import ABC, abstractmethod
 import threading
+from abc import ABC, abstractmethod
 from typing import Any
 
 
 class BaseCommActor(ABC):
+
     def __init__(self, cfg):
         self._cfg = cfg
         self._active_flag = False

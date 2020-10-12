@@ -1,16 +1,10 @@
 import random
-import tempfile
-from collections import OrderedDict
-import copy
-import os
-import numpy as np
-import torch
 
-from nervex.torch_utils import to_tensor
-from nervex.utils import get_step_data_compressor
+import torch
 
 
 class FakeSumoDataset:
+
     def __init__(self):
         self.action_dim = [2, 2, 3]
         self.input_dim = 380

@@ -5,9 +5,12 @@ comm_map = {'flask_fs': FlaskFileSystemLearner}
 
 
 class LearnerCommHelper(object):
+
     @classmethod
     def enable_comm_helper(cls, instance, comm_cfg):
+
         def close_wrapper(close_fn):
+
             def wrapper(*args, **kwargs):
                 ret = close_fn(*args, **kwargs)
                 instance.close_service()

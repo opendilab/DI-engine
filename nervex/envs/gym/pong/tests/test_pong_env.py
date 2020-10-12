@@ -1,12 +1,12 @@
 import pytest
 import torch
-import os
-import random
+
 from nervex.envs.gym.pong.pong_env import PongEnv
 
 
 @pytest.mark.unittest
 class TestPongEnv:
+
     def get_random_action(self, min_value, max_value):
         action = torch.randint(min_value, max_value + 1, (1, ))
         return action

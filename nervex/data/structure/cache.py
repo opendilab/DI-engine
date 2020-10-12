@@ -13,6 +13,7 @@ class Cache:
         __init__, push_data, get_cached_data_iter, run, close
     Property: remain_data_count
     """
+
     def __init__(self, maxlen, timeout, monitor_interval=1.0, _debug=False):
         r"""
         Overview:

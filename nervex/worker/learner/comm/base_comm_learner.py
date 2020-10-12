@@ -1,11 +1,11 @@
-from abc import ABC, abstractmethod, abstractproperty
-from typing import Any
 import threading
-import os
+from abc import ABC, abstractmethod, abstractproperty
+
 from nervex.utils import EasyTimer
 
 
 class BaseCommLearner(ABC):
+
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._learner_uid = None  # str(os.environ.get('SLURM_JOB_ID'))
@@ -53,6 +53,7 @@ class BaseCommLearner(ABC):
 
 
 class BaseCommSelfPlayLearner(object):
+
     def __init__(self):
         self._reset_ckpt_path = None
 

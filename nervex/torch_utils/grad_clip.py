@@ -4,7 +4,6 @@ Copyright 2020 Sensetime X-lab. All Rights Reserved
 Main Function:
     1. Grad_clip: Clip the gradients.
 """
-import torch
 from torch.nn.utils import clip_grad_norm_, clip_grad_value_
 
 
@@ -38,6 +37,7 @@ class GradClip(object):
      Interface:
         __init__, apply
     """
+
     def __init__(self, clip_value, clip_type, norm_type=2):
         r"""
         Overview:

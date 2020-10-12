@@ -1,17 +1,17 @@
-from abc import ABC, abstractmethod
 import os.path as osp
-from collections import OrderedDict
-from threading import Thread
 import time
+from abc import ABC, abstractmethod
+from threading import Thread
 
-from nervex.utils import merge_dicts, read_config, LockContext, import_module
-from nervex.league.player import ActivePlayer, MainPlayer, MainExploiter, LeagueExploiter, HistoricalPlayer
+from nervex.league.player import MainPlayer, MainExploiter, LeagueExploiter, HistoricalPlayer
 from nervex.league.shared_payoff import SharedPayoff
+from nervex.utils import merge_dicts, read_config, LockContext, import_module
 
 default_config = read_config(osp.join(osp.dirname(__file__), "league_manager_default_config.yaml"))
 
 
 class LimitedSpaceContainer:
+
     def __init__(self, min_val, max_val):
         self.min_val = min_val
         self.max_val = max_val
@@ -59,6 +59,7 @@ class BaseLeagueManager(ABC):
             - player_id (:obj:`str`)
             - train_step (:obj:`int`)
     """
+
     def __init__(self, cfg, save_checkpoint_fn, load_checkpoint_fn, launch_task_fn):
         self.cfg = merge_dicts(default_config, cfg).league
         self.active_players = []

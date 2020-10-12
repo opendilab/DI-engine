@@ -5,8 +5,8 @@ from typing import Optional
 import numpy as np
 import torch
 import torch.nn.functional as F
-
 from pysc2.lib.static_data import BUILD_ORDER_REWARD_ACTIONS, UNIT_BUILD_ACTIONS, EFFECT_ACTIONS, RESEARCH_ACTIONS
+
 from nervex.data.collate_fn import diff_shape_collate
 from nervex.envs.common import EnvElement
 from nervex.torch_utils import levenshtein_distance, hamming_distance, to_device
@@ -88,6 +88,7 @@ class AlphaStarReward(EnvElement):
             battle_values: 'AlphaStarReward.BattleValues',
             return_list: Optional[bool] = False
     ) -> dict:
+
         def check(t) -> bool:
             return isinstance(t, list) and len(t) == self.agent_num
 
@@ -174,6 +175,7 @@ class AlphaStarReward(EnvElement):
             Returns:
                 - rewards (:obj:`dict`): a dict contains different type rewards
         """
+
         def loc_fn(p1, p2, max_limit=self.build_order_location_max_limit):
             p1 = p1.float().to(self.device)
             p2 = p2.float().to(self.device)

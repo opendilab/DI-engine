@@ -90,6 +90,7 @@ class TextLogger(object):
 
     Interface: __init__, info
     """
+
     def __init__(self, path, name=None, level=logging.INFO):
         r"""
         Overview:
@@ -162,6 +163,7 @@ class TensorBoardLogger(object):
         __init__, add_scalar, add_text, add_scalars, add_histogram, add_figure, add_image, add_scalar_list,
         register_var, scalar_var_names
     """
+
     def __init__(self, path, name=None):
         r"""
         Overview:
@@ -298,6 +300,7 @@ class VariableRecord(object):
     Interface:
         __init__, register_var, update_var, get_var_names, get_var_text, get_vars_tb_format, get_vars_text
     """
+
     def __init__(self, length):
         r"""
         Overview:
@@ -502,6 +505,7 @@ class AverageMeter(object):
     Interface:
         __init__, reset, update
     """
+
     def __init__(self, length=0):
         r"""
         Overview:
@@ -546,6 +550,7 @@ class DistributionTimeImage(object):
     Interface:
         __init__, add_one_time_step, get_image
     """
+
     def __init__(self, maxlen=600, val_range=None):
         r"""
         Overview:

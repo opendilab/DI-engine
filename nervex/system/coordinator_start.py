@@ -1,15 +1,9 @@
-import os
-import sys
-import time
-import uuid
-
-import numpy as np
-import logging
 import argparse
+import os
 
-from .coordinator import Coordinator
-from nervex.utils.log_helper import TextLogger
 from nervex.utils import read_config
+from nervex.utils.log_helper import TextLogger
+from .coordinator import Coordinator
 from .coordinator_api import create_coordinator_app
 
 parser = argparse.ArgumentParser(description="nervex coordinator start point")

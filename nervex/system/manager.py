@@ -1,22 +1,16 @@
+import logging
 import os
 import sys
-import time
-import json
 import threading
-import requests
-import numpy as np
-from itertools import count
-import logging
-import argparse
-import yaml
+import time
 import traceback
-import subprocess
-import torch
 
-from nervex.utils.log_helper import TextLogger
+import requests
+import torch
 
 
 class Manager(object):
+
     def __init__(self, cfg):
         super(Manager, self).__init__()
 
@@ -228,8 +222,8 @@ class Manager(object):
         while True:
             nowtime = int(time.time())
             for actor_uid, actor_info in self.actor_record.items():
-                if actor_info['state'] == 'alive' and\
-                   nowtime - actor_info['last_beats_time'] > self.check_dead_actor_freq:
+                if actor_info['state'] == 'alive' and \
+                        nowtime - actor_info['last_beats_time'] > self.check_dead_actor_freq:
                     # dead actor
                     self.logger.info(
                         "[manager][check_actor_dead] {} is dead, last_beats_time = {}".format(

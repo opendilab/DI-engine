@@ -54,7 +54,7 @@ def div_func(inputs, other, unsqueeze_dim=1):
 
 @lru_cache(maxsize=32)
 def get_to_and(num_bits):
-    return 2**np.arange(num_bits - 1, -1, -1).reshape([1, num_bits])
+    return 2 ** np.arange(num_bits - 1, -1, -1).reshape([1, num_bits])
 
 
 def batch_binary_encode(x, bit_num):

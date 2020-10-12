@@ -2,11 +2,13 @@
 This is the opensource wrapper used by rllib
 """
 
-import numpy as np
 from collections import deque
-import gym
-from gym import spaces
+
 import cv2
+import gym
+import numpy as np
+from gym import spaces
+
 cv2.ocl.setUseOpenCL(False)
 
 
@@ -30,6 +32,7 @@ def get_wrapper_by_cls(env, cls):
 
 
 class MonitorEnv(gym.Wrapper):
+
     def __init__(self, env=None):
         """Record episodes stats prior to EpisodicLifeEnv, etc."""
         gym.Wrapper.__init__(self, env)
@@ -80,6 +83,7 @@ class MonitorEnv(gym.Wrapper):
 
 
 class NoopResetEnv(gym.Wrapper):
+
     def __init__(self, env, noop_max=30):
         """Sample initial states by taking random number of no-ops on reset.
         No-op is assumed to be action 0.
@@ -110,6 +114,7 @@ class NoopResetEnv(gym.Wrapper):
 
 
 class ClipRewardEnv(gym.RewardWrapper):
+
     def __init__(self, env):
         gym.RewardWrapper.__init__(self, env)
 
@@ -119,6 +124,7 @@ class ClipRewardEnv(gym.RewardWrapper):
 
 
 class FireResetEnv(gym.Wrapper):
+
     def __init__(self, env):
         """Take action on reset.
         For environments that are fixed until firing."""
@@ -141,6 +147,7 @@ class FireResetEnv(gym.Wrapper):
 
 
 class EpisodicLifeEnv(gym.Wrapper):
+
     def __init__(self, env):
         """Make end-of-life == end-of-episode, but only reset on true game over.
         Done by DeepMind for the DQN and co. since it helps value estimation.
@@ -178,6 +185,7 @@ class EpisodicLifeEnv(gym.Wrapper):
 
 
 class MaxAndSkipEnv(gym.Wrapper):
+
     def __init__(self, env, skip=4):
         """Return only every `skip`-th frame"""
         gym.Wrapper.__init__(self, env)
@@ -209,6 +217,7 @@ class MaxAndSkipEnv(gym.Wrapper):
 
 
 class WarpFrame(gym.ObservationWrapper):
+
     def __init__(self, env, height, width):
         """Warp frames to the specified size (dim x dim)."""
         gym.ObservationWrapper.__init__(self, env)
@@ -223,6 +232,7 @@ class WarpFrame(gym.ObservationWrapper):
 
 
 class FrameStack(gym.Wrapper):
+
     def __init__(self, env, k):
         """Stack k last frames."""
         gym.Wrapper.__init__(self, env)
@@ -250,6 +260,7 @@ class FrameStack(gym.Wrapper):
 
 
 class ScaledFloatFrame(gym.ObservationWrapper):
+
     def __init__(self, env):
         gym.ObservationWrapper.__init__(self, env)
         self.observation_space = gym.spaces.Box(low=0, high=1, shape=env.observation_space.shape, dtype=np.float32)

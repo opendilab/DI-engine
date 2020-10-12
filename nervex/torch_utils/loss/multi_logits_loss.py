@@ -32,6 +32,7 @@ class MultiLogitsLoss(nn.Module):
         Overview: base class for supervised learning on linklink, including basic processes.
         Interface: __init__, forward
     '''
+
     def __init__(self, cfg=None, criterion=None, smooth_ratio=0.1):
         '''
             Overview: initialization method, use cross_entropy as default criterion
@@ -132,6 +133,7 @@ def test_multi_logits_loss():
 
 
 def _selected_units_loss():
+
     def smooth_label(label, num, eps=0.1):
         val = eps / (num - 1)
         ret = torch.full((1, num), val)

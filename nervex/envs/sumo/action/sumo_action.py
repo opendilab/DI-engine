@@ -1,12 +1,7 @@
-import copy
-import enum
-from collections import namedtuple
-from functools import partial
-import numpy as np
 import torch
 
-from nervex.torch_utils import to_tensor, tensor_to_list
 from nervex.envs.common import EnvElement
+from nervex.torch_utils import tensor_to_list
 
 
 class SumoRawAction(EnvElement):

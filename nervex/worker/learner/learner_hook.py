@@ -1,9 +1,11 @@
-from abc import ABC, abstractmethod
 import numbers
 import os
-import torch
+from abc import ABC, abstractmethod
 from typing import Any
+
+import torch
 from easydict import EasyDict
+
 from nervex.utils import allreduce
 
 
@@ -14,6 +16,7 @@ class Hook(ABC):
     Interfaces:
         __init__
     """
+
     def __init__(self, name: str, priority: float, **kwargs) -> None:
         """
         Overview:
@@ -72,6 +75,7 @@ class LrSchdulerHook(LearnerHook):
     Interfaces:
         __init__, __call__
     """
+
     def __init__(self, *args, ext_args: dict = {}, **kwargs) -> None:
         """
         Overview:
@@ -105,6 +109,7 @@ class LoadCkptHook(LearnerHook):
     Interfaces:
         __init__, __call__
     """
+
     def __init__(self, *args, ext_args: dict = {}, **kwargs) -> None:
         """
         Overview:
@@ -139,6 +144,7 @@ class SaveCkptHook(LearnerHook):
     Interfaces:
         __init__, __call__
     """
+
     def __init__(self, *args, ext_args: dict = {}, **kwargs) -> None:
         """
         Overview:
@@ -180,6 +186,7 @@ class LogShowHook(LearnerHook):
     Interfaces:
         __init__, __call__
     """
+
     def __init__(self, *args, ext_args: dict = {}, **kwargs) -> None:
         """
         Overview:
@@ -222,6 +229,7 @@ class LogReduceHook(LearnerHook):
     Interfaces:
         __init__, __call__
     """
+
     def __init__(self, *args, ext_args: dict = {}, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 

@@ -1,17 +1,12 @@
-import copy
 import os
 from collections import namedtuple
-import sys
-from typing import List, Any
-import numpy as np
+
 import torch
 import yaml
 from easydict import EasyDict
-from nervex.utils import override, merge_dicts, pretty_print, read_config
-from .sumo_env import SumoWJ3Env
 
-import time
-from functools import reduce
+from nervex.utils import merge_dicts
+from .sumo_env import SumoWJ3Env
 
 
 def build_config(user_config):
