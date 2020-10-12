@@ -1,9 +1,12 @@
+import importlib
+
+
 def try_import_ceph():
     try:
         import ceph
     except ModuleNotFoundError as e:
         import logging
-        logging.error(
+        logging.warning(
             "You have not installed ceph package! If you are not run locally and testing, "
             "ask coworker for help."
         )
@@ -18,9 +21,14 @@ def try_import_link():
         from nervex.tests.fake_linklink import link
         import logging
 
-        logging.error(
+        logging.warning(
             "You have not installed linklink package! If you are not run locally and testing, "
             "ask coworker for help. We will run a fake linklink for you. "
             "Refer to nervex.tests.fake_linklink.py for details."
         )
     return link
+
+
+def import_module(names):
+    for n in names:
+        importlib.import_module(n)

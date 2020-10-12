@@ -1,12 +1,15 @@
-import pytest
 import os
-import threading
-from threading import Thread
 import time
+from threading import Thread
+
+import pytest
+
+from nervex.worker.actor import create_actor, register_actor
 from nervex.worker.actor.sumowj3_actor_controller import SumoWJ3Actor
 
 
 class FakeSumoWJ3Actor(SumoWJ3Actor):
+
     def _setup_agents(self):
         super()._setup_agents()
 
@@ -20,12 +23,14 @@ class FakeSumoWJ3Actor(SumoWJ3Actor):
 
 @pytest.mark.envtest
 class TestASActorFakeEnv:
+
     def test_naive(self, setup_config, setup_coordinator, setup_manager):
         os.popen("rm -rf job_*")
         os.popen("rm -rf actor-log")
         time.sleep(1)
-        comm_cfg = setup_config.actor.communication
-        controller = FakeSumoWJ3Actor(setup_config, comm_cfg=comm_cfg)
+        register_actor("fake_sumowj3", FakeSumoWJ3Actor)
+        setup_config.actor.actor_type = "fake_sumowj3"
+        controller = create_actor(setup_config)
 
         def run():
             controller.run()

@@ -4,6 +4,7 @@ import torch.nn.functional as F
 
 
 class LabelSmoothCELoss(nn.Module):
+
     def __init__(self, ratio):
         super(LabelSmoothCELoss, self).__init__()
         self.ratio = ratio
@@ -18,13 +19,14 @@ class LabelSmoothCELoss(nn.Module):
 
 
 class SoftFocalLoss(torch.nn.Module):
+
     def __init__(self, gamma=2, weight=None, size_average=True, reduce=None):
         super(SoftFocalLoss, self).__init__()
         self.gamma = gamma
         self.nll_loss = torch.nn.NLLLoss2d(weight, size_average, reduce=reduce)
 
     def forward(self, inputs, targets):
-        return self.nll_loss((1 - F.softmax(inputs, 1))**self.gamma * F.log_softmax(inputs, 1), targets)
+        return self.nll_loss((1 - F.softmax(inputs, 1)) ** self.gamma * F.log_softmax(inputs, 1), targets)
 
 
 def build_criterion(cfg):

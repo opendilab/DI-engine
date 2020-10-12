@@ -2,11 +2,13 @@ common:
     save_path: '.'
     load_path: ''
 learner:
+    learner_type:  # placeholder
+    import_names: []  # placeholder
     use_cuda: False
     use_distributed: False
     max_iterations: 10
     batch_size: 2
-    trajectory_len: 3
+    unroll_len: 3
     log_freq: 1
     learning_rate: 0.001
     weight_decay: 0.0001
@@ -40,3 +42,15 @@ learner:
             position: after_iter
             ext_args:
                 freq: 1
+    communication:
+        type: 'single_machine'  # ['single_machine', 'flask_fs']
+        upstream_ip: 127.0.0.1
+        upstream_port: 18296
+        learner_ip: 127.0.0.1
+        learner_port: 18295
+        heartbeats_freq: 10
+        send_agent_freq: 2
+        send_train_info_freq: 1
+        path_traj: '.'
+        path_agent: '.'
+        restore: False

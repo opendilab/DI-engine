@@ -1,19 +1,16 @@
-import copy
-import os
 from collections import namedtuple
-import sys
-from typing import List, Any, Union
+from typing import List, Any
+
+import gym
+import torch
 from torchvision import transforms
 
+from nervex.envs.env.atari_wrappers import MonitorEnv, MaxAndSkipEnv, EpisodicLifeEnv, FireResetEnv, \
+    WarpFrame, ScaledFloatFrame, ClipRewardEnv, FrameStack
 from nervex.envs.env.base_env import BaseEnv
 from nervex.envs.gym.pong.action.pong_action_runner import PongRawActionRunner
-from nervex.envs.gym.pong.reward.pong_reward_runner import PongRewardRunner
 from nervex.envs.gym.pong.obs.pong_obs_runner import PongObsRunner
-import torch
-import numpy as np
-import gym
-from nervex.envs.env.atari_wrappers import MonitorEnv, NoopResetEnv, MaxAndSkipEnv, EpisodicLifeEnv, FireResetEnv, \
-    WarpFrame, ScaledFloatFrame, ClipRewardEnv, FrameStack
+from nervex.envs.gym.pong.reward.pong_reward_runner import PongRewardRunner
 
 
 def transform(height, width):

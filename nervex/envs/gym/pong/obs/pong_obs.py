@@ -1,13 +1,7 @@
-import copy
-import enum
-from collections import namedtuple
-from functools import partial
 import numpy as np
 import torch
 
-from nervex.torch_utils import to_tensor, tensor_to_list
 from nervex.envs.common import EnvElement
-from torchvision import transforms
 
 
 class PongObs(EnvElement):
@@ -47,11 +41,11 @@ class PongObs(EnvElement):
         if self._wrap_frame:
             self._shape = (1, self._wrap_frame_height, self._wrap_frame_width)
             self._value = {
-            'min': 0.0,
-            'max': 1.0,
-            'dtype': torch.FloatTensor,
-            'dinfo': 'float value tensor of shape (C, H, W), C=1',
-        }
+                'min': 0.0,
+                'max': 1.0,
+                'dtype': torch.FloatTensor,
+                'dinfo': 'float value tensor of shape (C, H, W), C=1',
+            }
 
     def _to_agent_processor(self, obs):
         return torch.from_numpy(obs).float()

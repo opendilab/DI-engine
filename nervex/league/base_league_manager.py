@@ -1,17 +1,17 @@
-from abc import ABC, abstractmethod
 import os.path as osp
-from collections import OrderedDict
-from threading import Thread
 import time
+from abc import ABC, abstractmethod
+from threading import Thread
 
-from nervex.utils import merge_dicts, read_config, LockContext
-from nervex.league.player import ActivePlayer, MainPlayer, MainExploiter, LeagueExploiter, HistoricalPlayer
+from nervex.league.player import MainPlayer, MainExploiter, LeagueExploiter, HistoricalPlayer
 from nervex.league.shared_payoff import SharedPayoff
+from nervex.utils import merge_dicts, read_config, LockContext, import_module
 
 default_config = read_config(osp.join(osp.dirname(__file__), "league_manager_default_config.yaml"))
 
 
 class LimitedSpaceContainer:
+
     def __init__(self, min_val, max_val):
         self.min_val = min_val
         self.max_val = max_val
@@ -59,8 +59,11 @@ class BaseLeagueManager(ABC):
             - player_id (:obj:`str`)
             - train_step (:obj:`int`)
     """
+
     def __init__(self, cfg, save_checkpoint_fn, load_checkpoint_fn, launch_task_fn):
-        self.cfg = merge_dicts(default_config, cfg).league
+        cfg = merge_dicts(default_config, cfg)
+        self.cfg = cfg.league
+        self.model_config = cfg.model
         self.active_players = []
         self.historical_players = []
         self.payoff = SharedPayoff(self.cfg.payoff_decay, self.cfg.min_win_rate_games)
@@ -86,9 +89,6 @@ class BaseLeagueManager(ABC):
                     player = player_map[k](r, self.payoff, ckpt_path, name, **self.cfg[k])
                     self.active_players.append(player)
                     self.payoff.add_player(player)
-                    # set pretrain checkpoint as initial player checkpoint
-                    # only file copy, learner will load the checkpoint when learner-player mapping has been established
-                    self.save_checkpoint_fn(self.cfg.pretrain_checkpoint_path[r], player.checkpoint_path)
 
         # add pretrain player as the initial HistoricalPlayer
         if self.cfg.use_pretrain_init_historical:
@@ -115,10 +115,6 @@ class BaseLeagueManager(ABC):
 
     def close(self):
         self._end_flag = True
-
-    def init_player_model(self):
-        for p in self.active_players:
-            self.load_checkpoint_fn(p.player_id, p.checkpoint_path)
 
     def _launch_task(self):
         while not self._end_flag:
@@ -188,3 +184,21 @@ class BaseLeagueManager(ABC):
     @abstractmethod
     def _update_player(self, player, player_info):
         raise NotImplementedError
+
+
+league_mapping = {}
+
+
+def register_league(name: str, league: type) -> None:
+    assert isinstance(name, str)
+    assert issubclass(league, BaseLeagueManager)
+    league_mapping[name] = league
+
+
+def create_league(cfg: dict, *args) -> BaseLeagueManager:
+    import_module(cfg.league.import_names)
+    league_type = cfg.league.league_type
+    if league_type not in league_mapping.keys():
+        raise KeyError("not support league type: {}".format(league_type))
+    else:
+        return league_mapping[league_type](cfg, *args)

@@ -1,12 +1,14 @@
+import random
+
 import pytest
 import torch
-import os
-import random
+
 from nervex.envs.gym.pendulum.pendulum_env import PendulumEnv
 
 
 @pytest.mark.unittest
 class TestPendulumEnv:
+
     def get_random_action(self, min_value, max_value):
         action = random.uniform(min_value, max_value)
         return torch.FloatTensor([action])

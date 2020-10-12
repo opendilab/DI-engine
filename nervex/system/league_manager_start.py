@@ -1,22 +1,13 @@
-import os
-import sys
-import time
-import uuid
-
-import numpy as np
-from itertools import count
-import logging
 import argparse
-import yaml
-from easydict import EasyDict
-from flask import Flask
+import os
 
+from nervex.utils import read_config
 from nervex.utils.log_helper import TextLogger
 from .league_manager_api import create_league_manager_app
 from .league_manager_wrapper import LeagueManagerWrapper
 
-parser = argparse.ArgumentParser(description='implementation of AlphaStar')
-parser.add_argument('--config', dest='config', required=True, help='settings of AlphaStar in yaml format')
+parser = argparse.ArgumentParser(description='nervex league manager wrapper start point')
+parser.add_argument('--config', dest='config', required=True, help='league manager wrapper settings in yaml format')
 args = parser.parse_args()
 
 # experiments/xxx/api-log/learner-api.log
@@ -25,10 +16,8 @@ api_dir_name = 'api-log'
 log_path = os.path.join(log_path, api_dir_name)
 logger = TextLogger(log_path, name="league_manager.log")
 
-cfg = yaml.safe_load(open(args.config, 'r'))
-cfg = EasyDict(cfg)
-
-league_manager_port = cfg['system']['league_manager_port']
+cfg = read_config(args.config)
+league_manager_port = cfg.system.league_manager_port
 
 league_manager_wrapper = LeagueManagerWrapper(cfg)
 league_manager_ip = league_manager_wrapper.get_ip()

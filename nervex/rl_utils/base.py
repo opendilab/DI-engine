@@ -4,7 +4,6 @@ Main Function:
     1. Define the basic class(interface) of reinforcement learning algorithm
     2. Define the general tool(helper) functions
 '''
-import torch.nn as nn
 
 
 class BaseRLAlgorithm(object):
@@ -12,6 +11,7 @@ class BaseRLAlgorithm(object):
     Overview: Basic class(interface) for all the reinforcement learning algorithm
     Interface: __init__, __call__, __repr__
     '''
+
     def __init__(self, cfg):
         '''
         Overview: initialize hyper-parameters

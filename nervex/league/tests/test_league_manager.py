@@ -1,13 +1,15 @@
-import pytest
-import time
 import os
-import yaml
-from easydict import EasyDict
-import numpy as np
 import threading
-from threading import Thread
+import time
 from multiprocessing import Queue
 from multiprocessing.queues import Empty
+from threading import Thread
+
+import numpy as np
+import pytest
+import yaml
+from easydict import EasyDict
+
 from nervex.league import BaseLeagueManager
 
 global BEGIN_COUNT, FINISH_COUNT
@@ -17,6 +19,7 @@ SAVE_COUNT = 0
 
 
 class FakeLeagueManager(BaseLeagueManager):
+
     def _get_task_info(self, player):
         return {
             'launch_player': player.player_id,
@@ -36,7 +39,7 @@ class FakeLeagueManager(BaseLeagueManager):
 
 @pytest.fixture(scope='function')
 def setup_config():
-    with open(os.path.join(os.path.dirname(__file__), '../league_manager_default_config.yaml')) as f:
+    with open(os.path.join(os.path.dirname(__file__), 'league_manager_test_config.yaml')) as f:
         cfg = yaml.safe_load(f)
     cfg = EasyDict(cfg)
     return cfg
@@ -45,18 +48,19 @@ def setup_config():
 def save_checkpoint_fn(src_checkpoint, dst_checkpoint):
     global SAVE_COUNT
     t = np.random.uniform() + 0.5
-    #time.sleep(t)
+    # time.sleep(t)
     print('save_checkpoint: src({})\tdst({})'.format(src_checkpoint, dst_checkpoint))
     SAVE_COUNT += 1
 
 
 def load_checkpoint_fn(player_id, checkpoint_path):
     t = np.random.randint(2, 5)
-    #time.sleep(t)
+    # time.sleep(t)
     print('load_checkpoint: player_id({})\tcheckpoint_path({})'.format(player_id, checkpoint_path))
 
 
 class FakeMatchRunner:
+
     def __init__(self, random_task_result):
         self.queue = Queue(maxsize=10)
         self.random_task_result = random_task_result
@@ -85,6 +89,7 @@ class FakeMatchRunner:
 
 
 class FakeCoordinator:
+
     def __init__(self, queue, finish_match, update_agent_step, player_ids):
         self.receive_match_thread = Thread(target=self.receive_match, args=(queue, finish_match))
         self.update_train_step_thread = Thread(target=self.update_train_step, args=(update_agent_step, ))
@@ -125,6 +130,7 @@ class FakeCoordinator:
 
 
 class TestFakeLeagueManager:
+
     @pytest.mark.unittest
     def test_naive(self, random_task_result, setup_config):
         match_runner = FakeMatchRunner(random_task_result)
@@ -148,11 +154,13 @@ class TestFakeLeagueManager:
         assert BEGIN_COUNT == FINISH_COUNT
         assert (len(threading.enumerate()) <= 2), threading.enumerate()  # main thread + QueueFeederThread
 
-    def test_snapshot_priority(self, random_task_result):
+    def test_snapshot_priority(self, random_task_result, setup_config):
         global SAVE_COUNT
         SAVE_COUNT = 0
         match_runner = FakeMatchRunner(random_task_result)
-        league_manager = FakeLeagueManager({}, save_checkpoint_fn, load_checkpoint_fn, match_runner.launch_match)
+        league_manager = FakeLeagueManager(
+            setup_config, save_checkpoint_fn, load_checkpoint_fn, match_runner.launch_match
+        )
         # fix mutate
         for p in league_manager.active_players:
             if hasattr(p, 'mutate_prob'):

@@ -35,4 +35,4 @@ test:
   stage: test
   script:
     - pip install -e .
-    - pytest nervex/ -n 4 -sv -m unittest
+    - pytest ./nervex --cov-report term-missing --cov=./nervex -n 4 -sv -m unittest

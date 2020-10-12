@@ -1,7 +1,9 @@
-import torch
 import copy
-from torch.utils.data._utils.collate import default_collate
 from collections import OrderedDict
+
+import torch
+from torch.utils.data._utils.collate import default_collate
+
 from nervex.utils import list_dict2dict_list
 from nervex.worker.agent import BaseAgent, add_plugin, IAgentStatelessPlugin
 
@@ -40,9 +42,12 @@ def post_processing(data, prev_state, bs):
 
 
 class ASDataTransformPlugin(IAgentStatelessPlugin):
+
     @classmethod
     def register(cls: type, agent: BaseAgent) -> None:
+
         def data_transform_wrapper(fn):
+
             def wrapper(data, **kwargs):
                 prev_state = [d['prev_state'] for d in data]
                 data = as_eval_collate_fn(data)
@@ -58,6 +63,7 @@ add_plugin('as_data_transform', ASDataTransformPlugin)
 
 
 class AlphaStarAgent(BaseAgent):
+
     def __init__(self, model: torch.nn.Module, env_num: int) -> None:
         plugin_cfg = OrderedDict(
             {

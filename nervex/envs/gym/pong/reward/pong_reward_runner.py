@@ -1,12 +1,14 @@
-from typing import List, Tuple
 import copy
+
 import torch
-from nervex.envs.env.base_env import BaseEnv
+
 from nervex.envs.common import EnvElementRunner
+from nervex.envs.env.base_env import BaseEnv
 from .pong_reward import PongReward
 
 
 class PongRewardRunner(EnvElementRunner):
+
     def _init(self, cfg, *args, **kwargs) -> None:
         # set self._core and other state variable
         self._core = PongReward(cfg)

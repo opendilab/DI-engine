@@ -6,6 +6,7 @@ from typing import Any
 
 
 class BaseCompGraph(ABC):
+
     @abstractmethod
     def forward(self, data: Any, agent: Any) -> dict:
         raise NotImplementedError

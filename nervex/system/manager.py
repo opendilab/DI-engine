@@ -1,22 +1,16 @@
+import logging
 import os
 import sys
-import time
-import json
 import threading
-import requests
-import numpy as np
-from itertools import count
-import logging
-import argparse
-import yaml
+import time
 import traceback
-import subprocess
-import torch
 
-from nervex.utils.log_helper import TextLogger
+import requests
+import torch
 
 
 class Manager(object):
+
     def __init__(self, cfg):
         super(Manager, self).__init__()
 
@@ -34,11 +28,7 @@ class Manager(object):
         self.resume_dir = cfg.system.resume_dir
         self.resume_label = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime(time.time()))
 
-        # auto run actor
-        self.auto_run_actor = cfg['system']['auto_run_actor']
-        if self.auto_run_actor:
-            self.use_partitions = cfg['system']['use_partitions']
-            self.actor_num = cfg['system']['actor_num']
+        self.actor_num = cfg.system.actor_num
 
         self.actor_record = {
         }  # {actor_uid: {"job_ids": [job_id], "last_beats_time": last_beats_time, "state": 'alive'/'dead'}}}
@@ -56,12 +46,6 @@ class Manager(object):
         check_actor_dead_thread.daemon = True
         check_actor_dead_thread.start()
         self.logger.info("[UP] check actor dead thread ")
-
-        # launch actor
-        check_run_actor_thread = threading.Thread(target=self.check_run_actor)
-        check_run_actor_thread.daemon = True
-        check_run_actor_thread.start()
-        self.logger.info("[UP] check run actor thread ")
 
         # thread to save resume
         check_resume_thread = threading.Thread(target=self.check_resume)
@@ -238,8 +222,8 @@ class Manager(object):
         while True:
             nowtime = int(time.time())
             for actor_uid, actor_info in self.actor_record.items():
-                if actor_info['state'] == 'alive' and\
-                   nowtime - actor_info['last_beats_time'] > self.check_dead_actor_freq:
+                if actor_info['state'] == 'alive' and \
+                        nowtime - actor_info['last_beats_time'] > self.check_dead_actor_freq:
                     # dead actor
                     self.logger.info(
                         "[manager][check_actor_dead] {} is dead, last_beats_time = {}".format(
@@ -248,18 +232,6 @@ class Manager(object):
                     )
                     self.deal_with_dead_actor(actor_uid)
             time.sleep(self.check_dead_actor_freq)
-
-    def launch_actor(self, partition):
-        self.logger.info('[launch_actor] in {}'.format(partition))
-        subprocess.Popen(['bash', 'run_actor.sh', partition, '&'])
-
-    def check_run_actor(self):
-        time.sleep(10)
-        if self.auto_run_actor:
-            for partition, num in zip(self.use_partitions, self.actor_num):
-                for i in range(num):
-                    self.launch_actor(partition)
-                    self.logger.info('launch actor {} in {}'.format(i, partition))
 
     def check_resume(self):
         self.lasttime = int(time.time())

@@ -1,21 +1,27 @@
-import pytest
-import random
-import torch
 import os
+
+import pytest
+import torch
+
 from nervex.worker import BaseLearner
 from nervex.worker.learner import LearnerHook, register_learner_hook
 
 
 class FakeLearner(BaseLearner):
+
     def _setup_data_source(self):
+
         class DataLoader():
+
             def __next__(self):
                 return torch.randn(4, 2)
 
         self._data_source = DataLoader()
 
     def _setup_computation_graph(self):
+
         class Graph:
+
             def forward(self, data, agent):
                 return {
                     'total_loss': agent.model(data).mean(),
@@ -38,7 +44,9 @@ class FakeLearner(BaseLearner):
         self._computation_graph = Graph()
 
     def _setup_agent(self):
+
         class Agent():
+
             def __repr__(self):
                 return 'FakeAgent'
 
@@ -48,6 +56,7 @@ class FakeLearner(BaseLearner):
 
 @pytest.mark.unittest
 class TestBaseLearner:
+
     def test_naive(self):
         os.popen('rm -rf ckpt')
         learner = FakeLearner({})
@@ -63,7 +72,9 @@ class TestBaseLearner:
 
 @pytest.mark.unittest
 class TestLearnerHook:
+
     def test_register(self):
+
         class FakeHook(LearnerHook):
             pass
 

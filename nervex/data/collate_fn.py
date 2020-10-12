@@ -1,9 +1,8 @@
 from collections.abc import Sequence, Mapping
 from numbers import Integral
+
 import torch
-import torch.nn.functional as F
 from torch.utils.data._utils.collate import default_collate
-from nervex.utils import list_dict2dict_list
 
 
 def diff_shape_collate(batch):

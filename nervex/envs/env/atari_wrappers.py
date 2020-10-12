@@ -2,17 +2,18 @@
 This is the opensource wrapper used by rllib
 """
 
-import numpy as np
 from collections import deque
-import gym
-from gym import spaces
+
 import cv2
+import gym
+import numpy as np
+from gym import spaces
+
 cv2.ocl.setUseOpenCL(False)
 
 
 def is_atari(env):
-    if (hasattr(env.observation_space, "shape")
-            and env.observation_space.shape is not None
+    if (hasattr(env.observation_space, "shape") and env.observation_space.shape is not None
             and len(env.observation_space.shape) <= 2):
         return False
     return hasattr(env, "unwrapped") and hasattr(env.unwrapped, "ale")
@@ -31,6 +32,7 @@ def get_wrapper_by_cls(env, cls):
 
 
 class MonitorEnv(gym.Wrapper):
+
     def __init__(self, env=None):
         """Record episodes stats prior to EpisodicLifeEnv, etc."""
         gym.Wrapper.__init__(self, env)
@@ -81,6 +83,7 @@ class MonitorEnv(gym.Wrapper):
 
 
 class NoopResetEnv(gym.Wrapper):
+
     def __init__(self, env, noop_max=30):
         """Sample initial states by taking random number of no-ops on reset.
         No-op is assumed to be action 0.
@@ -111,6 +114,7 @@ class NoopResetEnv(gym.Wrapper):
 
 
 class ClipRewardEnv(gym.RewardWrapper):
+
     def __init__(self, env):
         gym.RewardWrapper.__init__(self, env)
 
@@ -120,6 +124,7 @@ class ClipRewardEnv(gym.RewardWrapper):
 
 
 class FireResetEnv(gym.Wrapper):
+
     def __init__(self, env):
         """Take action on reset.
         For environments that are fixed until firing."""
@@ -142,6 +147,7 @@ class FireResetEnv(gym.Wrapper):
 
 
 class EpisodicLifeEnv(gym.Wrapper):
+
     def __init__(self, env):
         """Make end-of-life == end-of-episode, but only reset on true game over.
         Done by DeepMind for the DQN and co. since it helps value estimation.
@@ -179,12 +185,12 @@ class EpisodicLifeEnv(gym.Wrapper):
 
 
 class MaxAndSkipEnv(gym.Wrapper):
+
     def __init__(self, env, skip=4):
         """Return only every `skip`-th frame"""
         gym.Wrapper.__init__(self, env)
         # most recent raw observations (for max pooling across time steps)
-        self._obs_buffer = np.zeros(
-            (2, ) + env.observation_space.shape, dtype=np.uint8)
+        self._obs_buffer = np.zeros((2, ) + env.observation_space.shape, dtype=np.uint8)
         self._skip = skip
 
     def step(self, action):
@@ -211,25 +217,22 @@ class MaxAndSkipEnv(gym.Wrapper):
 
 
 class WarpFrame(gym.ObservationWrapper):
+
     def __init__(self, env, height, width):
         """Warp frames to the specified size (dim x dim)."""
         gym.ObservationWrapper.__init__(self, env)
         self.width = height
         self.height = width
-        self.observation_space = spaces.Box(
-            low=0,
-            high=255,
-            shape=(self.height, self.width, 1),
-            dtype=np.uint8)
+        self.observation_space = spaces.Box(low=0, high=255, shape=(self.height, self.width, 1), dtype=np.uint8)
 
     def observation(self, frame):
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-        frame = cv2.resize(
-            frame, (self.width, self.height), interpolation=cv2.INTER_AREA)
+        frame = cv2.resize(frame, (self.width, self.height), interpolation=cv2.INTER_AREA)
         return frame[:, :, None]
 
 
 class FrameStack(gym.Wrapper):
+
     def __init__(self, env, k):
         """Stack k last frames."""
         gym.Wrapper.__init__(self, env)
@@ -237,10 +240,8 @@ class FrameStack(gym.Wrapper):
         self.frames = deque([], maxlen=k)
         shp = env.observation_space.shape
         self.observation_space = spaces.Box(
-            low=0,
-            high=255,
-            shape=(shp[0], shp[1], shp[2] * k),
-            dtype=env.observation_space.dtype)
+            low=0, high=255, shape=(shp[0], shp[1], shp[2] * k), dtype=env.observation_space.dtype
+        )
 
     def reset(self):
         ob = self.env.reset()
@@ -259,10 +260,10 @@ class FrameStack(gym.Wrapper):
 
 
 class ScaledFloatFrame(gym.ObservationWrapper):
+
     def __init__(self, env):
         gym.ObservationWrapper.__init__(self, env)
-        self.observation_space = gym.spaces.Box(
-            low=0, high=1, shape=env.observation_space.shape, dtype=np.float32)
+        self.observation_space = gym.spaces.Box(low=0, high=1, shape=env.observation_space.shape, dtype=np.float32)
 
     def observation(self, observation):
         # careful! This undoes the memory optimization, use
