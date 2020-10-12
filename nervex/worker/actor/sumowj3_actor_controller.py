@@ -80,7 +80,7 @@ class SumoWJ3Actor(BaseActor):
         obs = torch.stack(obs, dim=0)
         action, q_value = self._agents['0'].forward(obs, eps=self._job['eps'])
         data = {'action': action, 'q_value': q_value}
-        if self._cfg.action.use_cuda:
+        if self._cfg.actor.use_cuda:
             obs = to_device(obs, 'cpu')
         return data
 

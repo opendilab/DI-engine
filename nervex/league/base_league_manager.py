@@ -61,7 +61,9 @@ class BaseLeagueManager(ABC):
     """
 
     def __init__(self, cfg, save_checkpoint_fn, load_checkpoint_fn, launch_task_fn):
-        self.cfg = merge_dicts(default_config, cfg).league
+        cfg = merge_dicts(default_config, cfg)
+        self.cfg = cfg.league
+        self.model_config = cfg.model
         self.active_players = []
         self.historical_players = []
         self.payoff = SharedPayoff(self.cfg.payoff_decay, self.cfg.min_win_rate_games)

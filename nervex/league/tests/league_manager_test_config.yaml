@@ -35,3 +35,5 @@ league:
     max_active_player_task: 3
     #per_match_games: 8
     time_interval: 1
+model:
+    placeholder:  
