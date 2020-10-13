@@ -24,7 +24,7 @@ def grad_ignore_norm(parameters, max_norm, norm_type=2):
     clip_coef = max_norm / (total_norm + 1e-6)
     if clip_coef < 1:
         for p in parameters:
-            p.grad.data.mul_(0)
+            p.grad.zero_()
     return total_norm
 
 
@@ -38,19 +38,7 @@ def grad_ignore_value(parameters, clip_value):
             flag = True
     if flag:
         for p in filter(lambda p: p.grad is not None, parameters):
-            p.grad.data.mul_(0)
-
-
-class AdamW(Adam):
-    def __init__(self, params, lr=1e-3, betas=(0.9, 0.999), eps=1e-8, weight_decay=0, amsgrad=False):
-        self._weight_decay = weight_decay
-        super(AdamW, self).__init__(params, lr=lr, betas=betas, eps=eps, weight_decay=0, amsgrad=amsgrad)
-
-    def step(self, closure=None):
-        for group in self.param_groups:
-            for param in group['params']:
-                param.data = param.data.add(-self._weight_decay * group['lr'], param.data)
-        return super(AdamW, self).step(closure=closure)
+            p.grad.data.zero_()
 
 
 class NervexOptim(Adam):
@@ -120,7 +108,7 @@ class NervexOptim(Adam):
             )
 
     def step(self, closure=None):
-        #clipping
+        # clipping
         # new_params = []
         # for group in self.param_groups:
         #     new_params += [t for t in group['params'] if t.requires_grad and t.grad is not None]
@@ -144,7 +132,7 @@ class NervexOptim(Adam):
                         # this is a big if
                         state['clip_exp_avg_sq'] = torch.zeros_like(p.data, device=p.data.device)
 
-                        state['ignore_exp_avg_sq'] = torch.zeros_like(p.data, device=p.data.device)
+                        #state['ignore_exp_avg_sq'] = torch.zeros_like(p.data, device=p.data.device)
 
                         # others
                         state['step'] = 0
@@ -182,9 +170,9 @@ class NervexOptim(Adam):
                     grad = p.grad.data
                     if len(state) == 0:
                         # this is a big if
-                        state['clip_exp_avg_sq'] = torch.zeros_like(p.data, device=p.data.device)
+                        state['clip_exp_avg_sq'] = torch.zeros_like(p.data)
 
-                        state['ignore_exp_avg_sq'] = torch.zeros_like(p.data, device=p.data.device)
+                        #state['ignore_exp_avg_sq'] = torch.zeros_like(p.data)
 
                         # others
                         state['step'] = 0
@@ -197,9 +185,10 @@ class NervexOptim(Adam):
                     #should we use same beta group?
                     beta1, beta2 = group['betas']
                     bias_correction2 = 1 - beta2**state['step']
-                    state['ignore_exp_avg_sq'].mul_(beta2).addcmul_(1 - beta2, grad, grad)
+                    # state['ignore_exp_avg_sq'].mul_(beta2).addcmul_(1 - beta2, grad, grad)
+                    state['clip_exp_avg_sq'].mul_(beta2).addcmul_(1 - beta2, grad, grad)
                     if state['step'] >= self._ignore_momentum_timestep:  # initial value is inaccurate
-                        if grad.abs() > (state['ignore_exp_avg_sq'].sqrt() /
+                        if grad.abs() > (state['clip_exp_avg_sq'].sqrt() /
                                          math.sqrt(bias_correction2)) * self._ignore_coef:
                             flag = True
                             break
@@ -212,7 +201,7 @@ class NervexOptim(Adam):
                     for p in group['params']:
                         if p.grad is None:
                             continue
-                        p.grad.data.mul_(0)
+                        p.grad.zero_()
 
         #Adam optim type
         if self._optim_type == 'adamw':
