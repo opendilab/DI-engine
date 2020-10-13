@@ -23,7 +23,10 @@ class FlaskFileSystemLearner(BaseCommLearner):
         self._send_train_info_freq = cfg.send_train_info_freq
         self._rank = get_rank()
         self._world_size = get_world_size()
-        self._learner_ip = cfg.learner_ip
+        if 'learner_ip' not in cfg.keys() or cfg.learner_ip == 'auto':
+            self._learner_ip = os.environ.get('SLURMD_NODENAME', '')
+        else:
+            self._learner_ip = cfg.learner_ip
         self._learner_port = cfg.learner_port - self._rank
         self._restore = cfg.restore
 
