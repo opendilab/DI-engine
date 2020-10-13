@@ -94,7 +94,7 @@ class TestBaseBuffer:
     def test_update(self, setup_base_buffer):
         for _ in range(64):
             setup_base_buffer.append(generate_data())
-            assert setup_base_buffer.valid_count == sum([d is not None for d in setup_base_buffer._data])
+            assert setup_base_buffer.validlen == sum([d is not None for d in setup_base_buffer._data])
         selected_idx = [1, 4, 8, 30, 63]
         info = {'priority': [], 'replay_unique_id': [], 'replay_buffer_idx': []}
         for idx in selected_idx:

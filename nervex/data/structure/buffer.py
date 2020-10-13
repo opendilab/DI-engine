@@ -1,4 +1,5 @@
 import copy
+from typing import Union, NoReturn
 
 import numpy as np
 
@@ -17,7 +18,14 @@ class PrioritizedBuffer:
         this buffer doesn't refer to multi-thread/multi-process, thread-safe should be ensured by the caller
     """
 
-    def __init__(self, maxlen, max_reuse=None, min_sample_ratio=1., alpha=0., beta=0.):
+    def __init__(
+        self,
+        maxlen: int,
+        max_reuse: Union[int, None] = None,
+        min_sample_ratio: float = 1.,
+        alpha: float = 0.,
+        beta: float = 0.
+    ):
         r"""
         Overview:
             initialize the buffer
@@ -51,7 +59,7 @@ class PrioritizedBuffer:
 
         self.max_priority = 1.0
         # current valid data count
-        self.valid_count = 0
+        self._valid_count = 0
         self.pointer = 0
         # generate the unique id for each data
         self.latest_data_id = 0
@@ -59,7 +67,7 @@ class PrioritizedBuffer:
         # data check function list
         self.check_list = [lambda x: isinstance(x, dict)]
 
-    def _set_weight(self, idx, data):
+    def _set_weight(self, idx: int, data):
         r"""
         Overview:
             set the priority and tree weight of the input data
@@ -75,7 +83,7 @@ class PrioritizedBuffer:
         if self.use_priority:
             self.min_tree[idx] = weight
 
-    def sample(self, size):
+    def sample(self, size: int) -> Union[None, list]:
         r"""
         Overview:
             sample data with `size`
@@ -104,7 +112,7 @@ class PrioritizedBuffer:
             # if data check fails, just return without any operations
             return
         if self._data[self.pointer] is None:
-            self.valid_count += 1
+            self._valid_count += 1
         data['replay_unique_id'] = self.latest_data_id
         data['replay_buffer_idx'] = self.pointer
         self._set_weight(self.pointer, data)
@@ -129,7 +137,7 @@ class PrioritizedBuffer:
             valid_data[i]['replay_buffer_idx'] = (self.pointer + i) % self.maxlen
             self._set_weight((self.pointer + i) % self.maxlen, valid_data[i])
             if self._data[(self.pointer + i) % self.maxlen] is None:
-                self.valid_count += 1
+                self._valid_count += 1
 
         # the two case of the relationship among pointer, data length and queue length
         if self.pointer + length <= self._maxlen:
@@ -149,7 +157,7 @@ class PrioritizedBuffer:
         self.pointer = (self.pointer + length) % self._maxlen
         self.latest_data_id += length
 
-    def update(self, info):
+    def update(self, info: dict):
         r"""
         Overview:
             update priority according to the id and idx
@@ -167,7 +175,7 @@ class PrioritizedBuffer:
                 # update max priority
                 self.max_priority = max(self.max_priority, priority)
 
-    def _data_check(self, d):
+    def _data_check(self, d) -> bool:
         r"""
         Overview:
             data legality check
@@ -179,7 +187,7 @@ class PrioritizedBuffer:
         # only the data pass all the check function does the check return True
         return all([fn(d) for fn in self.check_list])
 
-    def _get_indices(self, size):
+    def _get_indices(self, size: int) -> list:
         r"""
         Overview:
             according to the priority probability, get the sample index
@@ -197,7 +205,7 @@ class PrioritizedBuffer:
         # find prefix sum index to approximate sample with probability
         return [self.sum_tree.find_prefixsum_idx(m) for m in mass]
 
-    def _sample_check(self, size):
+    def _sample_check(self, size: int) -> bool:
         r"""
         Overview:
             check whether the buffer satisfies the sample condition
@@ -206,17 +214,17 @@ class PrioritizedBuffer:
         Returns:
             - result (:obj:`bool`): whether the buffer can sample
         """
-        if self.valid_count / size < self.min_sample_ratio:
+        if self._valid_count / size < self.min_sample_ratio:
             print(
                 "no enough element for sample(expect: {}/current have: {}, min_sample_ratio: {})".format(
-                    size, self.valid_count, self.min_sample_ratio
+                    size, self._valid_count, self.min_sample_ratio
                 )
             )
             return False
         else:
             return True
 
-    def _sample_with_indices(self, indices):
+    def _sample_with_indices(self, indices: list) -> list:
         r"""
         Overview:
             sample the data with indices and update the internal variable
@@ -229,7 +237,10 @@ class PrioritizedBuffer:
             # calculate max weight for normalizing IS
             sum_tree_root = self.sum_tree.reduce()
             p_min = self.min_tree.reduce() / sum_tree_root
-            max_weight = (self.valid_count * p_min) ** (-self._beta)
+            max_weight = (self._valid_count * p_min) ** (-self._beta)
+        else:
+            # TODO: complete the situation when self.use_priority is False
+            assert False
 
         data = []
         for idx in indices:
@@ -239,7 +250,7 @@ class PrioritizedBuffer:
             # get IS(importance sampling weight for gradient step)
             if self.use_priority:
                 p_sample = self.sum_tree[copy_data['replay_buffer_idx']] / sum_tree_root
-                weight = (self.valid_count * p_sample) ** (-self._beta)
+                weight = (self._valid_count * p_sample) ** (-self._beta)
                 copy_data['IS'] = weight / max_weight
             else:
                 copy_data['IS'] = 1.0
@@ -252,21 +263,21 @@ class PrioritizedBuffer:
                 self.sum_tree[idx] = self.sum_tree.neutral_element
                 if self.use_priority:
                     self.min_tree[idx] = self.min_tree.neutral_element
-                self.valid_count -= 1
+                self._valid_count -= 1
         return data
 
     @property
-    def maxlen(self):
+    def maxlen(self) -> int:
         return self._maxlen
 
     @property
-    def validlen(self):
-        return self.valid_count
+    def validlen(self) -> int:
+        return self._valid_count
 
     @property
-    def beta(self):
+    def beta(self) -> float:
         return self._beta
 
     @beta.setter
-    def beta(self, beta):
+    def beta(self, beta: float) -> NoReturn:
         self._beta = beta
