@@ -1,7 +1,9 @@
 import os
+import random
 import threading
 import time
 from threading import Thread
+from typing import List
 
 import numpy as np
 import pytest
@@ -23,7 +25,7 @@ def setup_replay_buffer():
     return ReplayBuffer(cfg.replay_buffer)
 
 
-def generate_data():
+def generate_data() -> dict:
     ret = {'obs': np.random.randn(4), 'data_push_length': 1}
     p_weight = np.random.uniform()
     if p_weight < 1. / 3:
@@ -36,6 +38,10 @@ def generate_data():
     return ret
 
 
+def generate_data_list(count: int) -> List[dict]:
+    return [generate_data() for _ in range(0, count)]
+
+
 @pytest.mark.unittest
 class TestReplayBuffer:
     produce_count = 0
@@ -45,11 +51,20 @@ class TestReplayBuffer:
         begin_time = time.time()
         count = 0
         while time.time() - begin_time < 20:
-            t = np.random.randint(1, 6)
-            time.sleep(t)
-            print('[PRODUCER] thread {} use {} second to produce a data'.format(id_, t))
-            replay_buffer.push_data(generate_data())
-            count += 1
+            duration = np.random.randint(1, 6)
+            time.sleep(duration)
+
+            if random.randint(0, 100) > 50:
+                print('[PRODUCER] thread {} use {} second to produce a data'.format(id_, duration))
+                replay_buffer.push_data(generate_data())
+                count += 1
+            else:
+                data_count = random.randint(2, 5)
+                print(
+                    '[PRODUCER] thread {} use {} second to produce a list of {} data'.format(id_, duration, data_count))
+                replay_buffer.push_data(generate_data_list(data_count))
+                count += data_count
+
         print('[PRODUCER] thread {} finish job, total produce {} data'.format(id_, count))
         self.produce_count += count
 
