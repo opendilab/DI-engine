@@ -19,8 +19,8 @@ def grad_ignore_norm(parameters, max_norm, norm_type=2):
         total_norm = 0
         for p in parameters:
             param_norm = p.grad.data.norm(norm_type)
-            total_norm += param_norm.item()**norm_type
-        total_norm = total_norm**(1. / norm_type)
+            total_norm += param_norm.item() ** norm_type
+        total_norm = total_norm ** (1. / norm_type)
     clip_coef = max_norm / (total_norm + 1e-6)
     if clip_coef < 1:
         for p in parameters:
@@ -42,6 +42,7 @@ def grad_ignore_value(parameters, clip_value):
 
 
 class NervexOptim(Adam):
+
     def __init__(
         self,
         params,
@@ -133,7 +134,8 @@ class NervexOptim(Adam):
                         #state['ignore_exp_avg_sq'] = torch.zeros_like(p.data, device=p.data.device)
 
                         # others
-                        st#TODO
+                        state['step'] = 0
+                        #TODO
                         #wait torch upgrad to 1.4, 1.3.1 didn't support memory format;ate['step'] = 0
                         state['exp_avg'] = torch.zeros_like(p.data)
                         # Exponential moving average of squared gradient values
@@ -143,7 +145,7 @@ class NervexOptim(Adam):
                             state['max_exp_avg_sq'] = torch.zeros_like(p.data)
                     #should we use same beta group?
                     beta1, beta2 = group['betas']
-                    bias_correction2 = 1 - beta2**state['step']
+                    bias_correction2 = 1 - beta2 ** state['step']
                     state['clip_exp_avg_sq'].mul_(beta2).addcmul_(1 - beta2, grad, grad)
                     if state['step'] >= self._clip_momentum_timestep:  # initial value is inaccurate
                         flag = grad.abs(
@@ -185,7 +187,7 @@ class NervexOptim(Adam):
                             state['max_exp_avg_sq'] = torch.zeros_like(p.data)
                     #should we use same beta group?
                     beta1, beta2 = group['betas']
-                    bias_correction2 = 1 - beta2**state['step']
+                    bias_correction2 = 1 - beta2 ** state['step']
                     # state['ignore_exp_avg_sq'].mul_(beta2).addcmul_(1 - beta2, grad, grad)
                     state['clip_exp_avg_sq'].mul_(beta2).addcmul_(1 - beta2, grad, grad)
                     if state['step'] >= self._ignore_momentum_timestep:  # initial value is inaccurate
