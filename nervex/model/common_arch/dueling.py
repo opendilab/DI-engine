@@ -1,10 +1,13 @@
 from typing import Union
+
 import torch
 import torch.nn as nn
+
 from nervex.torch_utils import fc_block
 
 
 class DuelingHead(nn.Module):
+
     def __init__(
             self,
             hidden_dim: int,

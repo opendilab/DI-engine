@@ -1,16 +1,19 @@
-from collections import namedtuple
-import time
 import copy
 import queue
-import torch
+import time
+from collections import namedtuple
 from threading import Thread
 from typing import List, Dict
-from nervex.worker.actor.base_actor_controller import BaseActor
-from nervex.model import FCDQN
-from nervex.worker.agent.sumo_dqn_agent import SumoDqnActorAgent
-from nervex.worker.actor.env_manager import SubprocessEnvManager
+
+import torch
+
 from nervex.envs.sumo import SumoWJ3Env, FakeSumoWJ3Env
+from nervex.model import FCDQN
+from nervex.torch_utils import tensor_to_list, to_device
 from nervex.utils import get_step_data_compressor
+from nervex.worker.actor import BaseActor, register_actor
+from nervex.worker.actor.env_manager import SubprocessEnvManager
+from nervex.worker.agent.sumo_dqn_agent import SumoDqnActorAgent
 
 
 class SumoWJ3Actor(BaseActor):
@@ -41,6 +44,8 @@ class SumoWJ3Actor(BaseActor):
         env_info = self._env_manager._envs[0].info()
         for name, agent_cfg in self._job['agent'].items():
             model = FCDQN(env_info.obs_space.shape, list(env_info.act_space.shape.values()))
+            if self._cfg.actor.use_cuda:
+                model.cuda()
             agent = SumoDqnActorAgent(model)
             self._agents[name] = agent
 
@@ -56,7 +61,7 @@ class SumoWJ3Actor(BaseActor):
         self._data_buffer = {k: [] for k in range(self._job['env_num'])}
         self._last_data_buffer = {k: [] for k in range(self._job['env_num'])}
         self._traj_queue = queue.Queue()
-        self._episode_reward = [[] for _ in range(self._job['env_num'])]
+        self._one_episode_cum_reward = [None for _ in range(self._job['env_num'])]
         self._pack_trajectory_thread = Thread(target=self._pack_trajectory, args=())
         self._pack_trajectory_thread.deamon = True
         self._pack_trajectory_thread.start()
@@ -70,11 +75,13 @@ class SumoWJ3Actor(BaseActor):
     def _agent_inference(self, obs: List[torch.Tensor]) -> dict:
         assert self._job['agent_num'] in [1]
         assert len(obs) == len(self._alive_env), len(obs)
+        if self._cfg.actor.use_cuda:
+            obs = to_device(obs, 'cuda')
         obs = torch.stack(obs, dim=0)
         action, q_value = self._agents['0'].forward(obs, eps=self._job['eps'])
-        data = {}
-        data['action'] = action
-        data['q_value'] = q_value
+        data = {'action': action, 'q_value': q_value}
+        if self._cfg.actor.use_cuda:
+            obs = to_device(obs, 'cpu')
         return data
 
     # override
@@ -86,6 +93,7 @@ class SumoWJ3Actor(BaseActor):
         for j, env_id in enumerate(self._alive_env):
             data = {
                 'obs': obs[j],
+                'next_obs': timestep.obs[j],
                 'q_value': agent_output['q_value'][j],
                 'action': agent_output['action'][j],
                 'reward': timestep.reward[j],
@@ -93,7 +101,6 @@ class SumoWJ3Actor(BaseActor):
                 'priority': 1.0,
             }
             self._data_buffer[env_id].append(data)
-            self._episode_reward[env_id].append(timestep.reward[j])
             if len(self._data_buffer[env_id]) == self._job['data_push_length']:
                 # last data copy must be in front of obs_next
                 self._last_data_buffer[env_id] = copy.deepcopy(self._data_buffer[env_id])
@@ -101,6 +108,7 @@ class SumoWJ3Actor(BaseActor):
                 self._traj_queue.put({'data': self._data_buffer[env_id], 'env_id': env_id})
                 self._data_buffer[env_id] = []
             if timestep.done[j]:
+                self._one_episode_cum_reward[env_id] = tensor_to_list(timestep.info[j]['cum_reward'])
                 cur_len = len(self._data_buffer[env_id])
                 miss_len = self._job['data_push_length'] - cur_len
                 if miss_len > 0:
@@ -116,10 +124,11 @@ class SumoWJ3Actor(BaseActor):
     # override
     def _finish_episode(self, timestep: namedtuple) -> None:
         assert self.all_done, 'all envs must be done'
-        result = [sum(t) / (len(t) + 1e-8) for t in self._episode_reward]
-        self._episode_result.append(result)
+        self._episode_result.append(self._one_episode_cum_reward)
         self._logger.info(
-            'finish episode{} in {} with cum_reward: {}'.format(len(self._episode_result) - 1, time.time(), result)
+            'finish episode{} in {} with cum_reward: {}'.format(
+                len(self._episode_result) - 1, time.time(), self._episode_result[-1]
+            )
         )
 
     # override
@@ -166,7 +175,8 @@ class SumoWJ3Actor(BaseActor):
             traj_id = "job_{}_env_{}".format(job_id, env_id)
             metadata = {
                 'traj_id': traj_id,
-                'learner_uid': self._job['learner_uid'],
+                'learner_uid': self._job['learner_uid'][0],
+                'launch_player': self._job['launch_player'],
                 'env_id': env_id,
                 'actor_uid': self._actor_uid,
                 'done': data[-1]['done'],
@@ -174,17 +184,20 @@ class SumoWJ3Actor(BaseActor):
                 'priority': 1.0,
                 'traj_finish_time': time.time(),
                 'job_id': job_id,
-                'data_push_length': self._job['data_push_length'],
+                'data_push_length': len(data),
                 'compressor': self._job['compressor'],
                 'job': self._job,
             }
-            self.send_traj_metadata(metadata)
             # save data
             data = self._compressor(data)
             self.send_traj_stepdata(traj_id, data)
+            self.send_traj_metadata(metadata)
             self._logger.info('send traj({}) in {}'.format(traj_id, time.time()))
 
     # override
     @property
     def all_done(self) -> bool:
         return self._env_manager.all_done
+
+
+register_actor("sumowj3", SumoWJ3Actor)

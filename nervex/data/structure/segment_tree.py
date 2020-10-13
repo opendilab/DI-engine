@@ -7,6 +7,7 @@ class SegmentTree:
               the parents node is acquired by do some operation on left and right child
     Interface: __init__, reduce, __setitem__, __getitem__
     """
+
     def __init__(self, capacity, operation, neutral_element=None):
         """
         Overview: initialize the segment tree
@@ -94,6 +95,7 @@ class SegmentTree:
 
 
 class SumSegmentTree(SegmentTree):
+
     def __init__(self, capacity):
         super(SumSegmentTree, self).__init__(capacity, operation=sum)
 
@@ -130,5 +132,6 @@ class SumSegmentTree(SegmentTree):
 
 
 class MinSegmentTree(SegmentTree):
+
     def __init__(self, capacity):
         super(MinSegmentTree, self).__init__(capacity, operation=min)

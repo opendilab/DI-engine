@@ -1,24 +1,15 @@
-import os
-import sys
-import time
-import json
-import threading
-import requests
-import numpy as np
-import torch
-from itertools import count
 import logging
-import argparse
-import yaml
-import traceback
-import uuid
-import random
-from easydict import EasyDict
+import os
+import time
 
+import requests
+
+from nervex.league import create_league
 from nervex.utils import read_file, save_file
 
 
 class LeagueManagerWrapper(object):
+
     def __init__(self, cfg):
         self.cfg = cfg
 
@@ -30,7 +21,6 @@ class LeagueManagerWrapper(object):
             raise ValueError('league_manager_ip must be ip address, but found {}'.format(self.league_manager_ip))
         self.coordinator_ip = self.cfg['system']['coordinator_ip']
         self.coordinator_port = self.cfg['system']['coordinator_port']
-        self.fs_type = self.cfg.league.communication.file_system_type
         self.path_agent = self.cfg.league.communication.path_agent
 
         self.url_prefix = 'http://{}:{}/'.format(self.coordinator_ip, self.coordinator_port)
@@ -42,6 +32,7 @@ class LeagueManagerWrapper(object):
         self.logger = logging.getLogger("league_manager.log")
 
     def _init_league_manager(self):
+
         def save_checkpoint_fn(src_checkpoint, dst_checkpoint, read_type='pickle'):
             '''
                 Overview: copy src_checkpoint as dst_checkpoint
@@ -87,7 +78,7 @@ class LeagueManagerWrapper(object):
         print('{} learners should be registered totally. '.format(len(self.player_ids)))
 
     def _setup_league_manager(self, save_checkpoint_fn, load_checkpoint_fn, launch_match_fn):
-        raise NotImplementedError
+        self.league_manager = create_league(self.cfg, save_checkpoint_fn, load_checkpoint_fn, launch_match_fn)
 
     def _register_league_manager(self):
         d = {
@@ -106,12 +97,16 @@ class LeagueManagerWrapper(object):
         return False
 
     def deal_with_run_league(self):
-        self.league_manager.init_player_model()
+        # TODO launch learner job
         self.league_manager.run()
         return True
 
     def deal_with_finish_task(self, task_info):
         self.league_manager.finish_task(task_info)
+        return True
+
+    def deal_with_update_active_player(self, player_info):
+        self.league_manager.update_active_player(player_info)
         return True
 
     def get_ip(self):

@@ -1,6 +1,7 @@
-import pickle
-import torch
 import os
+import pickle
+
+import torch
 
 from .import_utils import try_import_ceph
 

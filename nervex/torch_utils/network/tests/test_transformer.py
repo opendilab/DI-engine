@@ -1,11 +1,13 @@
-import pytest
 import numpy as np
+import pytest
 import torch
+
 from nervex.torch_utils import Transformer
 
 
 @pytest.mark.unittest
 class TestTransformer:
+
     def test(self):
         B = 4
         output_dim = 256

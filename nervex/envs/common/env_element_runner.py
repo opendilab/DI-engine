@@ -1,10 +1,12 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Any
+
 from .env_element import EnvElement, IEnvElement
 from ..env.base_env import BaseEnv
 
 
 class IEnvElementRunner(IEnvElement):
+
     @abstractmethod
     def get(self, engine: BaseEnv) -> Any:
         raise NotImplementedError
@@ -15,6 +17,7 @@ class IEnvElementRunner(IEnvElement):
 
 
 class EnvElementRunner(IEnvElementRunner):
+
     def __init__(self, *args, **kwargs) -> None:
         self._init(*args, **kwargs)
         self._check()

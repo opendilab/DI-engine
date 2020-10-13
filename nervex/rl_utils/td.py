@@ -1,5 +1,6 @@
 from collections import namedtuple
 from typing import Union
+
 import torch
 import torch.nn as nn
 
@@ -10,7 +11,7 @@ def one_step_td_error(
         data: td_data,
         gamma: float,
         weights: Union[torch.Tensor, None],
-        criterion: torch.nn.modules = nn.MSELoss(reduction='none')
+        criterion: torch.nn.modules = nn.MSELoss(reduction='none')  # noqa
 ) -> torch.Tensor:
     q, next_q, act, reward, terminate = data
     assert len(reward.shape) == 1

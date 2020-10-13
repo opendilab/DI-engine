@@ -4,7 +4,7 @@ import numpy as np
 import torch
 
 from nervex.tests.fake_linklink import FakeLink
-from nervex.utils import try_import_link
+from .import_utils import try_import_link
 
 link = try_import_link()
 
@@ -12,6 +12,7 @@ is_fake_link = isinstance(link, FakeLink)
 
 
 def error_wrapper(fn, default_ret):
+
     def wrapper(*args, **kwargs):
         try:
             ret = fn(*args, **kwargs)
@@ -67,6 +68,7 @@ def get_group(group_size):
 
 
 def distributed_mode(func):
+
     def wrapper(*args, **kwargs):
         dist_init()
         func(*args, **kwargs)
@@ -107,6 +109,7 @@ def simple_group_split(world_size, rank, num_groups):
 
 
 class DistModule(torch.nn.Module):
+
     def __init__(self, module, sync=True):
         super(DistModule, self).__init__()
         self.module = module
@@ -130,6 +133,7 @@ class DistModule(torch.nn.Module):
                 self._grad_accs.append(grad_acc)
 
     def _make_hook(self, name, p, i):
+
         def hook(*ignore):
             link.allreduce_async(name, p.grad.data)
 

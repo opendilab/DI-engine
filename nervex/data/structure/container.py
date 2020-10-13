@@ -1,8 +1,8 @@
 import copy
-from collections.abc import Sequence
 import numbers
-from itertools import product
+from collections.abc import Sequence
 from functools import reduce
+from itertools import product
 from typing import Union, Any, Optional, Callable
 
 import numpy as np
@@ -179,6 +179,7 @@ class BaseContainer(object):
 
 
 def to_keep_dim_index(idx):
+
     def int2slice(t):
         return slice(t, t + 1)
 
@@ -207,6 +208,7 @@ def to_keep_dim_index(idx):
 
 
 class RegularContainer(BaseContainer):
+
     def __init__(self, data: Any, shape: Optional[tuple] = tuple()) -> None:
         assert len(shape) == 0 or (len(shape) == 3 and all([isinstance(s, numbers.Integral) for s in shape])), shape
         if len(shape) == 0:
@@ -266,6 +268,7 @@ class RegularContainer(BaseContainer):
 
 
 class TensorContainer(RegularContainer):
+
     def __init__(self, data: torch.Tensor, shape: Optional[tuple] = tuple()) -> None:
         super(TensorContainer, self).__init__(data, shape)
         self._available_dtype = [torch.int64, torch.float32]
@@ -280,6 +283,7 @@ class TensorContainer(RegularContainer):
 
 
 class NumpyContainer(RegularContainer):
+
     def __init__(self, data: np.ndarray, shape: Optional[tuple] = tuple()) -> None:
         super(NumpyContainer, self).__init__(data, shape)
         self._available_dtype = [np.int64, np.float32]
@@ -294,6 +298,7 @@ class NumpyContainer(RegularContainer):
 
 
 class SpecialContainer(BaseContainer):
+
     def __init__(
             self,
             data: Any,

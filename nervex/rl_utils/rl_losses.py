@@ -1,7 +1,7 @@
 """Library for RL returns and losses evaluation"""
 
-import math
 from functools import reduce
+
 import torch
 import torch.nn.functional as F
 
@@ -58,9 +58,9 @@ def multistep_forward_view(rewards, gammas, bootstrap_values, lambda_):
     result[-1, :] = rewards[-1, :] + gammas[-1, :] * bootstrap_values[-1, :]
     discounts = gammas * lambda_
     for t in reversed(range(rewards.size()[0] - 1)):
-        result[t, :] = rewards[t, :]\
-            + discounts[t, :] * result[t+1, :]\
-            + (gammas[t, :] - discounts[t, :]) * bootstrap_values[t, :]
+        result[t, :] = rewards[t, :] \
+                       + discounts[t, :] * result[t + 1, :] \
+                       + (gammas[t, :] - discounts[t, :]) * bootstrap_values[t, :]
 
     return result
 
@@ -159,7 +159,7 @@ def compute_importance_weights(
                         if action[t][b] is None:
                             rhos[t, b] = 1
                         else:
-                            rhos[t, b] = tb_cross_entropy(fn(target_output[t][b]), fn(action[t][b])) /\
+                            rhos[t, b] = tb_cross_entropy(fn(target_output[t][b]), fn(action[t][b])) / \
                                          (tb_cross_entropy(fn(behaviour_output[t][b]), fn(action[t][b])) + eps)
             else:
                 rhos = tb_cross_entropy(target_output, action) / (tb_cross_entropy(behaviour_output, action) + eps)
@@ -251,15 +251,13 @@ def vtrace_advantages(clipped_rhos, clipped_cs, rewards, bootstrap_values, gamma
         gammas = gammas * torch.ones_like(rewards)
     if not isinstance(lambda_, torch.Tensor):
         lambda_ = lambda_ * torch.ones_like(rewards)
-    deltas = clipped_rhos * \
-        (rewards + gammas *
-         bootstrap_values[1:, :] - bootstrap_values[:-1, :])  # from 0 to T-1
+    deltas = clipped_rhos * (rewards + gammas * bootstrap_values[1:, :] - bootstrap_values[:-1, :])  # from 0 to T-1
     result = torch.empty_like(rewards)
     result[-1, :] = bootstrap_values[-2, :] + deltas[-1, :]
     for t in reversed(range(rewards.size()[0] - 1)):
-        result[t, :] = bootstrap_values[t, :] + deltas[t, :]\
-            + gammas[t, :] * lambda_[t, :] * clipped_cs[t, :] * \
-            (result[t+1, :] - bootstrap_values[t+1, :])
+        result[t, :] = bootstrap_values[t, :] + deltas[t, :] \
+                       + gammas[t, :] * lambda_[t, :] * clipped_cs[t, :] * \
+                       (result[t + 1, :] - bootstrap_values[t + 1, :])
 
     return result
 
@@ -335,7 +333,7 @@ def pg_loss(
     action,
     rewards,
     bootstrap_values,
-    clipping=lambda x: torch.clamp(x, min=1),
+    clipping=lambda x: torch.clamp(x, 1),
     upgo_weight=0.5,
     ent_weight=0.2,
     vtrace_gamma=1.0,
@@ -366,7 +364,7 @@ def pg_loss(
     """
     rhos = compute_importance_weights(action_logits, current_logits, action, clipping=clipping, need_grad=False)
     cs = rhos
-    return vtrace_loss(current_logits, rhos, cs, action, rewards, bootstrap_values,
-                       gamma=vtrace_gamma, lambda_=vtrace_lambda)\
-        + upgo_weight * upgo_loss(current_logits, rhos, action, rewards, bootstrap_values)\
-        - ent_weight * entropy(current_logits)
+    return vtrace_loss(
+        current_logits, rhos, cs, action, rewards, bootstrap_values, gamma=vtrace_gamma, lambda_=vtrace_lambda
+    ) + upgo_weight * upgo_loss(current_logits, rhos, action, rewards,
+                                bootstrap_values) - ent_weight * entropy(current_logits)

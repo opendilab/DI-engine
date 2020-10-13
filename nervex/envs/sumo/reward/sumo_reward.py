@@ -1,13 +1,9 @@
-import copy
-import traci
+from functools import reduce
 from typing import Tuple, Union
-import enum
-from collections import namedtuple
-from functools import partial, reduce
-import numpy as np
-import torch
 
-from nervex.torch_utils import to_tensor, tensor_to_list
+import torch
+import traci
+
 from nervex.envs.common import EnvElement
 
 

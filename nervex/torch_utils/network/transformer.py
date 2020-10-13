@@ -1,12 +1,14 @@
+import math
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import math
-from functools import reduce
+
 from .nn_module import fc_block, build_normalization
 
 
 class Attention(nn.Module):
+
     def __init__(self, input_dim, head_dim, output_dim, head_num, dropout_ratio):
         super(Attention, self).__init__()
         self.head_num = head_num
@@ -52,6 +54,7 @@ class Attention(nn.Module):
 
 
 class AttentionEmbedding(nn.Module):
+
     def __init__(self, input_dim, embedding_dim, head_dim=2, head_num=16, dropout_ratio=0.1, activation=nn.ReLU()):
         super(AttentionEmbedding, self).__init__()
         self.attention = Attention(1, head_dim, 1, head_num, dropout_ratio)
@@ -65,6 +68,7 @@ class AttentionEmbedding(nn.Module):
 
 
 class TransformerLayer(nn.Module):
+
     def __init__(self, input_dim, head_dim, hidden_dim, output_dim, head_num, mlp_num, dropout_ratio, activation):
         super(TransformerLayer, self).__init__()
         self.attention = Attention(input_dim, head_dim, output_dim, head_num, dropout_ratio)
@@ -91,6 +95,7 @@ class Transformer(nn.Module):
         Note:
           Input has passed through embedding
     '''
+
     def __init__(
         self,
         input_dim,
@@ -106,7 +111,7 @@ class Transformer(nn.Module):
     ):
         super(Transformer, self).__init__()
         self.embedding = fc_block(input_dim, output_dim, activation=activation)
-        #self.embedding = AttentionEmbedding(input_dim, output_dim, activation=activation)
+        # self.embedding = AttentionEmbedding(input_dim, output_dim, activation=activation)
         self.pad_val = pad_val
         self.act = activation
         layers = []

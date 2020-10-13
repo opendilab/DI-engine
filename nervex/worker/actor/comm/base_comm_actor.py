@@ -1,9 +1,10 @@
-from abc import ABC, abstractmethod
 import threading
+from abc import ABC, abstractmethod
 from typing import Any
 
 
 class BaseCommActor(ABC):
+
     def __init__(self, cfg):
         self._cfg = cfg
         self._active_flag = False
@@ -47,7 +48,7 @@ class BaseCommActor(ABC):
         self._active_flag = True
         self.start_heartbeats_thread()
 
-    def close(self) -> None:
+    def close_service(self) -> None:
         self._active_flag = False
 
     @property

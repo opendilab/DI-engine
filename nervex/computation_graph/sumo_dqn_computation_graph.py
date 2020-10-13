@@ -1,21 +1,17 @@
-import numpy as np
-from collections import namedtuple
 from functools import reduce
+
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 
-from typing import Optional
-
-from nervex.worker import BaseAgent
 from nervex.computation_graph import BaseCompGraph
 from nervex.rl_utils import td_data, one_step_td_error
+from nervex.worker import BaseAgent
 
 
 class SumoDqnGraph(BaseCompGraph):
     """
     Overview: Double DQN with eps-greedy
     """
+
     def __init__(self, cfg: dict) -> None:
         self._gamma = cfg.dqn.discount_factor
         self._reward_weights = cfg.reward_weights
@@ -37,7 +33,7 @@ class SumoDqnGraph(BaseCompGraph):
 
         action = data['action']
         terminate = data['done'].float()
-        weights = data.get('weights', None)
+        weights = data.get('IS', None)
 
         q_value = agent.forward(obs_batch)
         if agent.is_double:

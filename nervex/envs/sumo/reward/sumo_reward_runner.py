@@ -1,7 +1,5 @@
-from typing import List, Tuple
-import copy
-from nervex.envs.env.base_env import BaseEnv
 from nervex.envs.common import EnvElementRunner
+from nervex.envs.env.base_env import BaseEnv
 from nervex.envs.sumo.reward.sumo_reward import SumoReward
 
 
@@ -12,6 +10,7 @@ class SumoRewardRunner(EnvElementRunner):
     Interface:
         _init, get, reset
     """
+
     def _init(self, cfg: dict) -> None:
         r"""
         Overview:

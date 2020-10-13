@@ -1,8 +1,9 @@
-import threading
 import multiprocessing
+import threading
 
 
 class LockContext(object):
+
     def __init__(self, lock_type):
         assert (lock_type in ['thread', 'process'])
         if lock_type == 'thread':

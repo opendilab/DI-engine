@@ -1,12 +1,7 @@
-import copy
-import enum
-from collections import namedtuple
-from functools import partial
-import numpy as np
 import torch
 
-from nervex.torch_utils import to_tensor, tensor_to_list
 from nervex.envs.common import EnvElement
+from nervex.torch_utils import tensor_to_list
 
 
 class SumoRawAction(EnvElement):
@@ -29,7 +24,7 @@ class SumoRawAction(EnvElement):
         self._cfg = cfg
         self._tls_green_action = cfg.tls_green_action
         self._tls_yellow_action = cfg.tls_yellow_action
-        self._tls = self._tls_green_action.keys()
+        self._tls = list(self._tls_green_action.keys())
         self._shape = {k: len(v) for k, v in self._tls_green_action.items()}
         self._value = {
             k: {

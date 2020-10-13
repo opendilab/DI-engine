@@ -1,7 +1,7 @@
-import socket
 import os
-import uuid
+import socket
 import time
+import uuid
 
 MANAGER_NODE_TABLE = {
     '10.198.8': '10.198.8.31',
@@ -47,7 +47,7 @@ def get_manager_node_ip(node_ip=None):
     if node_ip is None:
         node_ip = get_ip(True)
     learner_manager_ip_prefix = '.'.join(node_ip.split('.')[0:3])
-    assert learner_manager_ip_prefix in MANAGER_NODE_TABLE,\
-        'I don\'t know where is the manager node of this cluster'\
+    assert learner_manager_ip_prefix in MANAGER_NODE_TABLE, \
+        'I don\'t know where is the manager node of this cluster' \
         'Please add it to the MANAGER_NODE_TABLE in {}'.format(__file__)
     return MANAGER_NODE_TABLE[learner_manager_ip_prefix]

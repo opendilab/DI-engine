@@ -1,8 +1,10 @@
-import numpy as np
 import copy
 from collections import defaultdict
-from .player import Player
+
+import numpy as np
+
 from nervex.utils import LockContext
+from .player import Player
 
 
 class RecordDict(dict):
@@ -21,6 +23,7 @@ class RecordDict(dict):
 
 
 class PayoffDict(defaultdict):
+
     def __init__(self, init_fn=None):
         if init_fn is None:
             init_fn = RecordDict

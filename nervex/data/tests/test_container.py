@@ -1,7 +1,9 @@
+import copy
+
+import numpy as np
 import pytest
 import torch
-import numpy as np
-import copy
+
 from nervex.data.structure import SequenceContainer, SpecialContainer, TensorContainer, NumpyContainer
 from nervex.torch_utils import to_dtype
 
@@ -17,6 +19,7 @@ def generate_data():
 
 @pytest.mark.unittest
 class TestSequenceContainer:
+
     def test_create(self):
         container = SequenceContainer(**generate_data())
         assert (container.name == 'SequenceContainer')
@@ -56,6 +59,7 @@ class TestSequenceContainer:
 
 @pytest.mark.unittest
 class TestSpecialContainer:
+
     def test_init(self):
         container = SpecialContainer(torch.randn(4))
         assert container.shape == (1, 1, 1)
@@ -144,6 +148,7 @@ class TestSpecialContainer:
 
 @pytest.mark.unittest
 class TestTensorContainer:
+
     def test_init(self):
         container = TensorContainer(torch.randn(4, 5))
         assert container.shape == (1, 1, 1)
@@ -226,6 +231,7 @@ class TestTensorContainer:
 
 @pytest.mark.unittest
 class TestNumpyContainer:
+
     def test_cat(self):
         container = NumpyContainer(np.random.randn(4, 3).astype(np.float32))
         assert container.shape == (1, 1, 1)

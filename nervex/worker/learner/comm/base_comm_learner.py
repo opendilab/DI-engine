@@ -1,11 +1,11 @@
-from abc import ABC, abstractmethod
-from typing import Any
 import threading
-import os
+from abc import ABC, abstractmethod, abstractproperty
+
 from nervex.utils import EasyTimer
 
 
 class BaseCommLearner(ABC):
+
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._learner_uid = None  # str(os.environ.get('SLURM_JOB_ID'))
@@ -17,15 +17,11 @@ class BaseCommLearner(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def send_model(self, model: dict) -> None:
+    def send_agent(self, state_dict: dict) -> None:
         raise NotImplementedError
 
     @abstractmethod
-    def get_data(self) -> Any:
-        raise NotImplementedError
-
-    @abstractmethod
-    def send_data_info(self, data_info: dict) -> None:
+    def get_data(self, batch_size: int) -> list:
         raise NotImplementedError
 
     @abstractmethod
@@ -43,7 +39,7 @@ class BaseCommLearner(ABC):
         self._active_flag = True
         self.start_heartbeats_thread()
 
-    def close(self):
+    def close_service(self):
         self._active_flag = False
 
     # ************************** thread *********************************
@@ -51,8 +47,13 @@ class BaseCommLearner(ABC):
     def _send_learner_heartbeats(self) -> None:
         raise NotImplementedError
 
+    @abstractproperty
+    def hooks4call(self) -> list:
+        raise NotImplementedError
+
 
 class BaseCommSelfPlayLearner(object):
+
     def __init__(self):
         self._reset_ckpt_path = None
 
