@@ -1,11 +1,7 @@
-import copy
-import enum
 from collections import namedtuple
-from functools import partial
-import numpy as np
+
 import torch
 
-from nervex.torch_utils import to_tensor, tensor_to_list
 from nervex.envs.common import EnvElement
 
 
@@ -16,7 +12,7 @@ class PongRawAction(EnvElement):
 
     action_meanings = ['NOOP', 'FIRE', 'RIGHT', 'LEFT', 'RIGHTFIRE', 'LEFTFIRE']
 
-    def _init(self):
+    def _init(self, cfg):
         self._default_val = None
         self.template = {
             'action_type': {

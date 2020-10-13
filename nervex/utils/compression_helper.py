@@ -1,12 +1,14 @@
-import torch
-import numpy as np
-import zlib
-import lz4.block
-import pickle
 import copy
+import pickle
+import zlib
+
+import lz4.block
+import numpy as np
+import torch
 
 
 def list_proc(func):
+
     def f(x):
         if isinstance(x, list):
             out = []

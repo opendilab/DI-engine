@@ -1,9 +1,11 @@
-from typing import List, Tuple
 import copy
-from pysc2.lib.actions import FunctionCall
+from typing import List, Tuple
+
 from pysc2.lib.action_dict import GENERAL_ACTION_INFO_MASK
-from nervex.envs.env.base_env import BaseEnv
+from pysc2.lib.actions import FunctionCall
+
 from nervex.envs.common import EnvElementRunner
+from nervex.envs.env.base_env import BaseEnv
 from .alphastar_action import AlphaStarRawAction
 
 

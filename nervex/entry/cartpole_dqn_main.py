@@ -1,22 +1,19 @@
-import time
-import copy
 import argparse
-import torch
-import os
-
-from nervex.envs.gym.cartpole.cartpole_env import CartpoleEnv
-from nervex.worker import BaseLearner, SubprocessEnvManager
-from nervex.worker.agent.sumo_dqn_agent import SumoDqnActorAgent
-from nervex.utils import read_config
-from nervex.entry.base import SingleMachineRunner
-from nervex.worker.agent import BaseAgent, IAgentStatelessPlugin
+import copy
 from collections import OrderedDict
+
 from nervex.computation_graph import BaseCompGraph
+from nervex.entry.base_single_machine import SingleMachineRunner
+from nervex.envs.gym.cartpole.cartpole_env import CartpoleEnv
 from nervex.model import FCDQN
 from nervex.rl_utils import td_data, one_step_td_error
+from nervex.utils import read_config
+from nervex.worker import BaseLearner, SubprocessEnvManager
+from nervex.worker.agent import BaseAgent
 
 
 class CartpoleDqnGraph(BaseCompGraph):
+
     def __init__(self, cfg):
         self._gamma = cfg.dqn.discount_factor
 
@@ -52,6 +49,7 @@ class CartpoleDqnGraph(BaseCompGraph):
 
 
 class CartpoleDqnLearnerAgent(BaseAgent):
+
     def __init__(self, model, is_double=True):
         self.plugin_cfg = OrderedDict({
             'grad': {
@@ -60,13 +58,14 @@ class CartpoleDqnLearnerAgent(BaseAgent):
         })
         # whether use double(target) q-network plugin
         if is_double:
-            #self.plugin_cfg['target_network'] = {'update_cfg': {'type': 'momentum', 'kwargs': {'theta': 0.001}}}
+            # self.plugin_cfg['target_network'] = {'update_cfg': {'type': 'momentum', 'kwargs': {'theta': 0.001}}}
             self.plugin_cfg['target_network'] = {'update_cfg': {'type': 'assign', 'kwargs': {'freq': 500}}}
         self.is_double = is_double
         super(CartpoleDqnLearnerAgent, self).__init__(model, self.plugin_cfg)
 
 
 class CartpoleDqnActorAgent(BaseAgent):
+
     def __init__(self, model):
         plugin_cfg = OrderedDict({
             'eps_greedy_sample': {},
@@ -78,6 +77,7 @@ class CartpoleDqnActorAgent(BaseAgent):
 
 
 class CartpoleDqnEvaluateAgent(BaseAgent):
+
     def __init__(self, model):
         plugin_cfg = OrderedDict({
             'argmax_sample': {},
@@ -110,6 +110,7 @@ class CartpoleDqnLearner(BaseLearner):
 
 
 class CartpoleRunner(SingleMachineRunner):
+
     def _setup_env(self):
         env_num = self.cfg.env.env_num
         self.env = SubprocessEnvManager(CartpoleEnv, env_cfg=[self.cfg.env for _ in range(env_num)], env_num=env_num)

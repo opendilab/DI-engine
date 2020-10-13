@@ -1,12 +1,9 @@
 import numbers
-from datetime import datetime
 from collections.abc import Sequence
-from collections import namedtuple
 
 import numpy as np
 import torch
 from torchvision import transforms
-from absl import flags
 
 
 def transform(height, width):
@@ -82,6 +79,7 @@ def override(cls):
         cls (type): The superclass that provides the overridden method. If this
             cls does not actually have the method, an error is raised.
     """
+
     def check_override(method):
         if method.__name__ not in dir(cls):
             raise NameError("{} does not override any method of {}".format(method, cls))

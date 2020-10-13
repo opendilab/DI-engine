@@ -1,11 +1,7 @@
-import copy
-import enum
 from collections import namedtuple
-from functools import partial
-import numpy as np
+
 import torch
 
-from nervex.torch_utils import to_tensor, tensor_to_list
 from nervex.envs.common import EnvElement
 
 
@@ -17,7 +13,7 @@ class PongReward(EnvElement):
     MinReward = -1.0
     MaxReward = 1.0
 
-    def _init(self) -> None:
+    def _init(self, cfg) -> None:
         self._default_val = 0.0
         self.template = {
             'reward_value': {

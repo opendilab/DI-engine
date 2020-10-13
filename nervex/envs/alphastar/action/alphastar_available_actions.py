@@ -1,6 +1,6 @@
 import collections
+
 import torch
-from pysc2.lib import features
 from pysc2.lib.static_data import NUM_ACTIONS, ACTIONS_REORDER, UPGRADES_REORDER_INV
 
 Avail_fn = collections.namedtuple(
@@ -499,11 +499,11 @@ def get_available_actions_processed_data(data, check_action=False):
 
 
 if __name__ == '__main__':
-    import pickle
     from nervex.utils import read_file
     from nervex.envs.observations.alphastar_obs_wrapper import decompress_obs
     import multiprocessing
     import queue
+
     f = open('/mnt/lustre/zhouhang2/data/602.zerg.128.zvz', 'r')
     q = multiprocessing.Queue()
     for i in reversed(f.readlines()):

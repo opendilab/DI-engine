@@ -1,11 +1,14 @@
+import random
+
 import pytest
 import torch
-import random
+
 from nervex.torch_utils.metric import levenshtein_distance, hamming_distance
 
 
 @pytest.mark.unittest
 class TestMetric():
+
     def test_levenshtein_distance(self):
         r'''
         Overview:

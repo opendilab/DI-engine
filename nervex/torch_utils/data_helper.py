@@ -1,7 +1,8 @@
-from collections.abc import Sequence
-import torch
-import numpy as np
 import numbers
+from collections.abc import Sequence
+
+import numpy as np
+import torch
 
 
 def to_device(item, device, ignore_keys=[]):
@@ -88,6 +89,7 @@ def to_tensor(item, dtype):
     Returns:
         - item (:obj:`object`): the transfered item
     """
+
     def transform(d):
         return torch.tensor(d, dtype=dtype)
 
@@ -160,6 +162,7 @@ def same_shape(data):
 
 
 class LogDict(dict):
+
     def _transform(self, data):
         if isinstance(data, torch.Tensor):
             if data.shape == (1, ) or data.shape == ():

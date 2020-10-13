@@ -1,14 +1,17 @@
+from collections import OrderedDict
+
 import torch
-import torch.nn as nn
 
 from nervex.worker.agent import BaseAgent, IAgentStatelessPlugin, add_plugin
-from collections import OrderedDict
 
 
 class DataTransformHelper(IAgentStatelessPlugin):
+
     @classmethod
     def register(cls: type, agent: BaseAgent):
+
         def data_wrapper(fn):
+
             def wrapper(*args, **kwargs):
                 data = args[0]
                 ret = fn(data, **kwargs)
@@ -24,6 +27,7 @@ add_plugin('sumowj3_data_transform', DataTransformHelper)
 
 
 class SumoDqnLearnerAgent(BaseAgent):
+
     def __init__(self, model: torch.nn.Module, plugin_cfg: dict) -> None:
         self.plugin_cfg = OrderedDict({
             'grad': {
@@ -38,6 +42,7 @@ class SumoDqnLearnerAgent(BaseAgent):
 
 
 class SumoDqnActorAgent(BaseAgent):
+
     def __init__(self, model: torch.nn.Module) -> None:
         plugin_cfg = OrderedDict(
             {
@@ -52,6 +57,7 @@ class SumoDqnActorAgent(BaseAgent):
 
 
 class SumoDqnEvaluateAgent(BaseAgent):
+
     def __init__(self, model: torch.nn.Module) -> None:
         plugin_cfg = OrderedDict({
             'argmax_sample': {},

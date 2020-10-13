@@ -1,10 +1,11 @@
-import pytest
-import uuid
-import torch
 import os
+import uuid
+from threading import Thread
+
+import pytest
 import yaml
 from easydict import EasyDict
-from threading import Thread
+
 from nervex.system import Manager, create_manager_app, Coordinator, create_coordinator_app
 from nervex.system.coordinator import JobState
 
@@ -42,6 +43,7 @@ def setup_manager(setup_config):
 
 
 class FakeCoordinator(Coordinator):
+
     def deal_with_ask_for_job(self, manager_uid, actor_uid):
         fake_job = {
             'job_id': str(uuid.uuid1()),

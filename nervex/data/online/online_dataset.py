@@ -1,15 +1,17 @@
-from collections import deque
-import os
-import time
-import torch
 import logging
+import os
 import random
+import time
+from collections import deque
 from multiprocessing import Lock
+
+import torch
 
 logger = logging.getLogger('default_logger')
 
 
 class OnlineDataset(object):
+
     def __init__(self, data_maxlen, transform, block_data, min_update_count=0, seed=0):
         # TODO container optimization
         '''

@@ -1,11 +1,14 @@
-from abc import ABC, abstractmethod
-from typing import Any, Union, Optional
+from abc import ABC
 from collections import OrderedDict
+from typing import Any, Union, Optional
+
 import torch
+
 from .agent_plugin import register_plugin
 
 
 class BaseAgent(ABC):
+
     def __init__(self, model: torch.nn.Module, plugin_cfg: Union[OrderedDict, None]) -> None:
         self._model = model
         register_plugin(self, plugin_cfg)

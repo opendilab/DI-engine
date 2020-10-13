@@ -5,10 +5,12 @@ Main Function:
     1. The neural network model, include methods such as init weight, build conv block or fully-connected block ,etc.
 """
 import math
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.init import xavier_normal_, kaiming_normal_, orthogonal_
+
 from .normalization import build_normalization
 
 
@@ -23,6 +25,7 @@ def weight_init_(weight, init_type="xavier", activation=None):
         - activation (:obj:`str`): the non-linear function (`nn.functional` name), recommended to use only with
                                    ``'relu'`` or ``'leaky_relu'``.
     """
+
     def xavier_init(weight, *args):
         xavier_normal_(weight)
 
@@ -267,6 +270,7 @@ class ChannelShuffle(nn.Module):
             You can see the original paper shuffle net in link below
             shuffleNet(https://arxiv.org/abs/1707.01083)
     """
+
     def __init__(self, group_num):
         r"""
             Overview:
@@ -347,6 +351,7 @@ class NearestUpsample(nn.Module):
     Interface:
         __init__, forward
     """
+
     def __init__(self, scale_factor):
         r"""
         Overview:
@@ -380,6 +385,7 @@ class BilinearUpsample(nn.Module):
     Interface:
         __init__, forward
     """
+
     def __init__(self, scale_factor):
         r"""
         Overview:

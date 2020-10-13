@@ -1,15 +1,27 @@
-from abc import ABC, abstractmethod, abstractproperty
 import os
 import sys
+from abc import ABC, abstractmethod, abstractproperty
 from collections import namedtuple
-from typing import Union, Any
-from nervex.utils import build_logger_naive, EasyTimer, get_task_uid, VariableRecord
-from .comm.comm_actor_metaclass import ActorCommMetaclass
+from typing import Any
+
+from nervex.utils import build_logger_naive, EasyTimer, get_task_uid, VariableRecord, import_module
+from .comm.actor_comm_helper import ActorCommHelper
 
 
-class BaseActor(ABC, metaclass=ActorCommMetaclass):
+class BaseActor(ABC):
+
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
+        self._init()
+        if self._cfg.actor.communication.type == 'single_machine':
+            self._logger.info('[WARNING]: use default single machine communication strategy')
+            # TODO single machine actor
+            raise NotImplementedError
+        else:
+            comm_cfg = self._cfg.actor.communication
+            ActorCommHelper.enable_comm_helper(self, comm_cfg)
+
+    def _init(self) -> None:
         self._actor_uid = get_task_uid()
         self._setup_logger()
         self._end_flag = False
@@ -19,6 +31,7 @@ class BaseActor(ABC, metaclass=ActorCommMetaclass):
         self._timer = EasyTimer()
 
         def agent_wrapper(fn):
+
             def wrapper(*args, **kwargs):
                 with self._timer:
                     ret = fn(*args, **kwargs)
@@ -28,6 +41,7 @@ class BaseActor(ABC, metaclass=ActorCommMetaclass):
             return wrapper
 
         def env_wrapper(fn):
+
             def wrapper(*args, **kwargs):
                 with self._timer:
                     ret = fn(*args, **kwargs)
@@ -48,6 +62,7 @@ class BaseActor(ABC, metaclass=ActorCommMetaclass):
 
     def _check(self) -> None:
         assert hasattr(self, 'init_service')
+        assert hasattr(self, 'close_service')
         assert hasattr(self, 'get_job')
         assert hasattr(self, 'get_agent_update_info')
         assert hasattr(self, 'send_traj_metadata')
@@ -96,6 +111,7 @@ class BaseActor(ABC, metaclass=ActorCommMetaclass):
             self._finish_job()
 
     def close(self) -> None:
+        self.close_service()
         self._end_flag = True
 
     def _iter_after_hook(self):
@@ -141,3 +157,20 @@ class BaseActor(ABC, metaclass=ActorCommMetaclass):
     @abstractproperty
     def all_done(self) -> bool:
         raise NotImplementedError
+
+
+actor_mapping = {}
+
+
+def register_actor(name: str, actor: BaseActor) -> None:
+    assert isinstance(name, str)
+    assert issubclass(actor, BaseActor)
+    actor_mapping[name] = actor
+
+
+def create_actor(cfg: dict) -> BaseActor:
+    import_module(cfg.actor.import_names)
+    if cfg.actor.actor_type not in actor_mapping.keys():
+        raise KeyError("not support actor type: {}".format(cfg.actor.actor_type))
+    else:
+        return actor_mapping[cfg.actor.actor_type](cfg)

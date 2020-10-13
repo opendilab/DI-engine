@@ -1,16 +1,13 @@
-import copy
-import os
 from collections import namedtuple
-import sys
 from typing import List, Any
+
+import gym
+import torch
 
 from nervex.envs.env.base_env import BaseEnv
 from nervex.envs.gym.cartpole.action.cartpole_action_runner import CartpoleRawActionRunner
-from nervex.envs.gym.cartpole.reward.cartpole_reward_runner import CartpoleRewardRunner
 from nervex.envs.gym.cartpole.obs.cartpole_obs_runner import CartpoleObsRunner
-import numpy as np
-import torch
-import gym
+from nervex.envs.gym.cartpole.reward.cartpole_reward_runner import CartpoleRewardRunner
 
 
 class CartpoleEnv(BaseEnv):

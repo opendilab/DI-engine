@@ -1,11 +1,12 @@
-import pytest
 import numpy as np
+import pytest
 
 from nervex.data.structure import SumSegmentTree, MinSegmentTree
 
 
 @pytest.mark.unittest
 class TestSumSegmentTree:
+
     def test_create(self):
         try:
             tree = SumSegmentTree(capacity=13)
@@ -69,6 +70,7 @@ class TestSumSegmentTree:
 
 
 class TestMinSegmentTree:
+
     def test_create(self):
         tree = MinSegmentTree(capacity=16)
         assert (tree.operation is min)
