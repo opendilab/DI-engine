@@ -1,6 +1,5 @@
 import torch
 import math
-from torch.optim import Adam
 from torch.nn.utils import clip_grad_norm_, clip_grad_value_
 from torch._six import inf
 
@@ -41,7 +40,7 @@ def grad_ignore_value(parameters, clip_value):
             p.grad.data.zero_()
 
 
-class NervexOptim(Adam):
+class Adam(torch.optim.Adam):
 
     def __init__(
         self,
@@ -96,9 +95,9 @@ class NervexOptim(Adam):
 
         if self._optim_type == 'adamw':
             self._weight_decay = weight_decay
-            super(NervexOptim, self).__init__(params, lr=lr, betas=betas, eps=eps, weight_decay=0, amsgrad=amsgrad)
+            super(Adam, self).__init__(params, lr=lr, betas=betas, eps=eps, weight_decay=0, amsgrad=amsgrad)
         elif self._optim_type == 'adam':
-            super(NervexOptim, self).__init__(
+            super(Adam, self).__init__(
                 params, lr=lr, betas=betas, eps=eps, weight_decay=weight_decay, amsgrad=amsgrad
             )
         else:
@@ -110,9 +109,6 @@ class NervexOptim(Adam):
 
     def step(self, closure=None):
         # clipping
-        # new_params = []
-        # for group in self.param_groups:
-        #     new_params += [t for t in group['params'] if t.requires_grad and t.grad is not None]
         new_params = [
             t for group in self.param_groups for t in group['params'] if t.requires_grad and t.grad is not None
         ]
@@ -128,10 +124,7 @@ class NervexOptim(Adam):
                     state = self.state[p]
                     grad = p.grad.data
                     if len(state) == 0:
-                        # this is a big if
-                        state['clip_exp_avg_sq'] = torch.zeros_like(p.data, device=p.data.device)
-
-                        #state['ignore_exp_avg_sq'] = torch.zeros_like(p.data, device=p.data.device)
+                        state['thre_exp_avg_sq'] = torch.zeros_like(p.data, device=p.data.device)
 
                         # others
                         state['step'] = 0
@@ -146,12 +139,12 @@ class NervexOptim(Adam):
                     #should we use same beta group?
                     beta1, beta2 = group['betas']
                     bias_correction2 = 1 - beta2 ** state['step']
-                    state['clip_exp_avg_sq'].mul_(beta2).addcmul_(1 - beta2, grad, grad)
+                    state['thre_exp_avg_sq'].mul_(beta2).addcmul_(1 - beta2, grad, grad)
                     if state['step'] >= self._clip_momentum_timestep:  # initial value is inaccurate
                         flag = grad.abs(
-                        ) > (state['clip_exp_avg_sq'].sqrt() / math.sqrt(bias_correction2)) * self._clip_coef
+                        ) > (state['thre_exp_avg_sq'].sqrt() / math.sqrt(bias_correction2)) * self._clip_coef
                         grad.mul_(~flag).add_(
-                            ((state['clip_exp_avg_sq'].sqrt() / math.sqrt(bias_correction2)) *
+                            ((state['thre_exp_avg_sq'].sqrt() / math.sqrt(bias_correction2)) *
                              self._clip_coef).mul_(flag)
                         )
 
@@ -168,11 +161,7 @@ class NervexOptim(Adam):
                     state = self.state[p]
                     grad = p.grad.data
                     if len(state) == 0:
-                        # this is a big if
-                        state['clip_exp_avg_sq'] = torch.zeros_like(p.data)
-
-                        #state['ignore_exp_avg_sq'] = torch.zeros_like(p.data)
-
+                        state['thre_exp_avg_sq'] = torch.zeros_like(p.data)
                         # others
                         state['step'] = 0
                         #TODO
@@ -188,10 +177,9 @@ class NervexOptim(Adam):
                     #should we use same beta group?
                     beta1, beta2 = group['betas']
                     bias_correction2 = 1 - beta2 ** state['step']
-                    # state['ignore_exp_avg_sq'].mul_(beta2).addcmul_(1 - beta2, grad, grad)
-                    state['clip_exp_avg_sq'].mul_(beta2).addcmul_(1 - beta2, grad, grad)
+                    state['thre_exp_avg_sq'].mul_(beta2).addcmul_(1 - beta2, grad, grad)
                     if state['step'] >= self._ignore_momentum_timestep:  # initial value is inaccurate
-                        if grad.abs() > (state['clip_exp_avg_sq'].sqrt() /
+                        if grad.abs() > (state['thre_exp_avg_sq'].sqrt() /
                                          math.sqrt(bias_correction2)) * self._ignore_coef:
                             flag = True
                             break

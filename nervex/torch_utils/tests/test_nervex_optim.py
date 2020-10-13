@@ -1,11 +1,12 @@
 import torch
 import torch.nn as nn
-from nervex.torch_utils.optimizer_util import NervexOptim
+from nervex.torch_utils.optimizer_util import Adam
 import pytest
 import time
 
 
 class LinearNet(nn.Module):
+
     def __init__(self, features_in=1, features_out=1):
         super().__init__()
         self.linear = nn.Linear(features_in, features_out)
@@ -23,9 +24,9 @@ def try_optim_with(tname, t, optim_t):
     net = LinearNet()
     mse_fn = nn.L1Loss()
     if tname == 'grad_clip':
-        optimizer = NervexOptim(net.parameters(), grad_clip_type=t, clip_value=0.000001, lr=0.1, optim_type=optim_t)
+        optimizer = Adam(net.parameters(), grad_clip_type=t, clip_value=0.000001, lr=0.1, optim_type=optim_t)
     if tname == 'grad_ignore':
-        optimizer = NervexOptim(
+        optimizer = Adam(
             net.parameters(),
             grad_ignore_type=t,
             clip_value=0.000001,
@@ -54,7 +55,8 @@ def try_optim_with(tname, t, optim_t):
 
 
 @pytest.mark.unittest
-class TestNervexOptim:
+class TestAdam:
+
     def test_naive(self):
         support_type = {
             'optim': ['adam', 'adamw'],
