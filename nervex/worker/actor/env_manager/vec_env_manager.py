@@ -43,7 +43,11 @@ class SubprocessEnvManager(BaseEnvManager):
         p.close()
         try:
             while True:
-                cmd, data = c.recv()
+                try:
+                    cmd, data = c.recv()
+                except EOFError:  # for the case when the pipe has been closed
+                    c.close()
+                    break
                 if cmd == 'getattr':
                     c.send(getattr(env, data) if hasattr(env, data) else None)
                 elif cmd in ['reset', 'step', 'seed', 'close']:
