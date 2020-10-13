@@ -61,7 +61,8 @@ class TestReplayBuffer:
             else:
                 data_count = random.randint(2, 5)
                 print(
-                    '[PRODUCER] thread {} use {} second to produce a list of {} data'.format(id_, duration, data_count))
+                    '[PRODUCER] thread {} use {} second to produce a list of {} data'.format(id_, duration, data_count)
+                )
                 replay_buffer.push_data(generate_data_list(data_count))
                 count += data_count
 
