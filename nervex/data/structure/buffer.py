@@ -240,7 +240,7 @@ class PrioritizedBuffer:
             max_weight = (self._valid_count * p_min) ** (-self._beta)
         else:
             # TODO: complete the situation when self.use_priority is False
-            assert False
+            assert True
 
         data = []
         for idx in indices:
