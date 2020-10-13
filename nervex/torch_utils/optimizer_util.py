@@ -117,11 +117,9 @@ class NervexOptim(Adam):
         ]
         if self._grad_clip_type == 'clip_value':
             clip_grad_value_(new_params, self._clip_value)
-
-        if self._grad_clip_type == 'clip_norm':
+        elif self._grad_clip_type == 'clip_norm':
             clip_grad_norm_(new_params, self._clip_value, self._clip_norm_type)
-
-        if self._grad_clip_type == 'clip_momentum':
+        elif self._grad_clip_type == 'clip_momentum':
             for group in self.param_groups:
                 for p in group['params']:
                     if p.grad is None:
@@ -156,11 +154,9 @@ class NervexOptim(Adam):
 
         if self._grad_ignore_type == 'ignore_value':
             grad_ignore_value(new_params, self._ignore_value)
-
-        if self._grad_ignore_type == 'ignore_norm':
+        elif self._grad_ignore_type == 'ignore_norm':
             grad_ignore_norm(new_params, self._ignore_value, self._ignore_norm_type)
-
-        if self._grad_ignore_type == 'ignore_momentum':
+        elif self._grad_ignore_type == 'ignore_momentum':
             flag = False
             for group in self.param_groups:
                 for p in group['params']:
