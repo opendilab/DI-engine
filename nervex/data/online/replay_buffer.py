@@ -25,8 +25,6 @@ class ReplayBuffer:
         max_reuse = self.cfg.max_reuse if 'max_reuse' in self.cfg.keys() else None
         self.traj_len = cfg.get('traj_len', None)
         self.unroll_len = cfg.get('unroll_len', None)
-        if self.traj_len is not None:
-            assert self.traj_len % self.unroll_len == 0
         self._meta_buffer = PrioritizedBuffer(
             maxlen=self.cfg.meta_maxlen,
             max_reuse=max_reuse,
