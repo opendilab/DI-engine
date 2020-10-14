@@ -48,8 +48,6 @@ class TestBaseBuffer:
         assert (setup_base_buffer.maxlen == 64)
         assert (setup_base_buffer.beta == 0.)
         assert (setup_base_buffer.alpha == 0.)
-        assert (not setup_base_buffer.use_priority)
-        assert (not hasattr(setup_base_buffer, 'min_tree'))
         assert (setup_base_buffer.validlen == start_vaildlen + valid_count)
         assert (setup_base_buffer.pointer == (start_pointer + 100) % setup_base_buffer.maxlen)
         assert (setup_base_buffer.latest_data_id == start_data_id + 100)
@@ -60,12 +58,17 @@ class TestBaseBuffer:
         assert (setup_base_buffer.pointer == (start_pointer + 100) % setup_base_buffer.maxlen)
         assert (setup_base_buffer.latest_data_id == start_data_id + 100)
 
-        # tree test(alpha=0.)
-        assert (np.fabs(setup_base_buffer.maxlen - setup_base_buffer.sum_tree.reduce()) < 1e-6)
-
     def test_extend(self, setup_base_buffer):
         start_pointer = setup_base_buffer.pointer
         start_data_id = setup_base_buffer.latest_data_id
+
+        init_num = int(0.2 * setup_base_buffer.maxlen)
+        data = [generate_data() for _ in range(init_num)]
+        setup_base_buffer.extend(data)
+        assert setup_base_buffer.pointer == start_pointer + init_num
+        assert setup_base_buffer.latest_data_id == start_data_id + init_num
+        start_pointer += init_num
+        start_data_id += init_num
 
         data = []
         enlarged_length = int(1.5 * setup_base_buffer.maxlen)
@@ -94,7 +97,7 @@ class TestBaseBuffer:
     def test_update(self, setup_base_buffer):
         for _ in range(64):
             setup_base_buffer.append(generate_data())
-            assert setup_base_buffer.valid_count == sum([d is not None for d in setup_base_buffer._data])
+            assert setup_base_buffer.validlen == sum([d is not None for d in setup_base_buffer._data])
         selected_idx = [1, 4, 8, 30, 63]
         info = {'priority': [], 'replay_unique_id': [], 'replay_buffer_idx': []}
         for idx in selected_idx:
@@ -162,7 +165,7 @@ class TestPrioritizedBuffer:
         assert (setup_prioritized_buffer.maxlen == 64)
         assert (setup_prioritized_buffer.beta == 0.6)
         assert (setup_prioritized_buffer.alpha == 0.6)
-        assert setup_prioritized_buffer.use_priority
+        assert (hasattr(setup_prioritized_buffer, 'sum_tree'))
         assert (hasattr(setup_prioritized_buffer, 'min_tree'))
         assert (setup_prioritized_buffer.validlen == 20)
 
@@ -184,7 +187,3 @@ class TestPrioritizedBuffer:
         assert (np.fabs(weights.sum() - setup_prioritized_buffer.sum_tree.reduce(start=0, end=36)) < 1e-6)
         weights = get_weights(data[36:64])
         assert (np.fabs(weights.sum() - setup_prioritized_buffer.sum_tree.reduce(start=36)) < 1e-6)
-
-
-if __name__ == '__main__':
-    pytest.main(["test_buffer.py"])

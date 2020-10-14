@@ -6,20 +6,20 @@ import yaml
 from easydict import EasyDict
 
 
-def read_config(abs_yaml_path):
+def read_config(abs_yaml_path) -> EasyDict:
     if abs_yaml_path:
         assert os.path.exists(abs_yaml_path)
         with open(abs_yaml_path, "r") as f:
-            config = yaml.safe_load(f)
+            config_ = yaml.safe_load(f)
     else:
-        config = {}
-    config = EasyDict(config)
-    return config
+        config_ = {}
+    config_ = EasyDict(config_)
+    return config_
 
 
-def save_config(config, abs_yaml_path):
-    assert isinstance(config, dict)
-    config_string = json.dumps(config)
+def save_config(config_, abs_yaml_path):
+    assert isinstance(config_, dict)
+    config_string = json.dumps(config_)
     with open(abs_yaml_path, "w") as f:
         yaml.safe_dump(json.loads(config_string), f)
 

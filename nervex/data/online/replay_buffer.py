@@ -1,6 +1,7 @@
 import copy
 import os.path as osp
 from threading import Thread
+from typing import Union
 
 from nervex.data.structure import PrioritizedBuffer, Cache
 from nervex.utils import LockContext, read_config, merge_dicts
@@ -14,7 +15,7 @@ class ReplayBuffer:
     Interface: __init__, push_data, sample, update, run, close
     """
 
-    def __init__(self, cfg):
+    def __init__(self, cfg: dict):
         """
         Overview: initialize replay buffer
         Arguments:
@@ -24,8 +25,6 @@ class ReplayBuffer:
         max_reuse = self.cfg.max_reuse if 'max_reuse' in self.cfg.keys() else None
         self.traj_len = cfg.get('traj_len', None)
         self.unroll_len = cfg.get('unroll_len', None)
-        if self.traj_len is not None:
-            assert self.traj_len % self.unroll_len == 0
         self._meta_buffer = PrioritizedBuffer(
             maxlen=self.cfg.meta_maxlen,
             max_reuse=max_reuse,
@@ -49,7 +48,7 @@ class ReplayBuffer:
             with self._meta_lock:
                 self._meta_buffer.append(data)
 
-    def push_data(self, data):
+    def push_data(self, data: Union[list, dict]):
         """
         Overview: push data into replay buffer
         Arguments:
@@ -76,7 +75,7 @@ class ReplayBuffer:
         elif isinstance(data, dict):
             push(data)
 
-    def sample(self, batch_size):
+    def sample(self, batch_size: int) -> list:
         """
         Overview: sample data from replay buffer
         Arguments:
@@ -89,7 +88,7 @@ class ReplayBuffer:
             data = self._meta_buffer.sample(batch_size)
         return data
 
-    def update(self, info):
+    def update(self, info: dict):
         """
         Overview: update meta buffer with outside info
         Arguments:
