@@ -53,9 +53,7 @@ class PrioritizedBuffer:
         # capacity needs to be the power of 2
         capacity = int(np.power(2, np.ceil(np.log2(self.maxlen))))
         self.sum_tree = SumSegmentTree(capacity)
-        self.use_priority = np.fabs(alpha) > 1e-4
-        if self.use_priority:  # for simplifying runtime execution of the no priority buffer
-            self.min_tree = MinSegmentTree(capacity)
+        self.min_tree = MinSegmentTree(capacity)
 
         self.max_priority = 1.0
         # current valid data count
@@ -80,8 +78,7 @@ class PrioritizedBuffer:
         # weight = priority ** alpha
         weight = data['priority'] ** self.alpha
         self.sum_tree[idx] = weight
-        if self.use_priority:
-            self.min_tree[idx] = weight
+        self.min_tree[idx] = weight
 
     def sample(self, size: int) -> Union[None, list]:
         r"""
@@ -99,13 +96,14 @@ class PrioritizedBuffer:
         indices = self._get_indices(size)
         return self._sample_with_indices(indices)
 
-    def append(self, data):
+    def append(self, ori_data):
         r"""
         Overview:
             append a data item into queue
         Arguments:
-            - data (:obj:`T`): the data which will be inserted
+            - ori_data (:obj:`T`): the data which will be inserted
         """
+        data = copy.deepcopy(ori_data)
         try:
             assert (self._data_check(data))
         except AssertionError:
@@ -121,13 +119,14 @@ class PrioritizedBuffer:
         self.pointer = (self.pointer + 1) % self._maxlen
         self.latest_data_id += 1
 
-    def extend(self, data):
+    def extend(self, ori_data):
         r"""
         Overview:
             extend a data list into queue
         Arguments:
-            - data (:obj:`T`): the data list
+            - ori_data (:obj:`T`): the data list
         """
+        data = copy.deepcopy(ori_data)
         check_result = [self._data_check(d) for d in data]
         # only keep the data pass the check
         valid_data = [d for d, flag in zip(data, check_result) if flag]
@@ -233,36 +232,28 @@ class PrioritizedBuffer:
         Returns:
             - data (:obj:`list`) sampled data
         """
-        if self.use_priority:
-            # calculate max weight for normalizing IS
-            sum_tree_root = self.sum_tree.reduce()
-            p_min = self.min_tree.reduce() / sum_tree_root
-            max_weight = (self._valid_count * p_min) ** (-self._beta)
-        else:
-            # TODO: complete the situation when self.use_priority is False
-            assert True
-
+        # calculate max weight for normalizing IS
+        sum_tree_root = self.sum_tree.reduce()
+        p_min = self.min_tree.reduce() / sum_tree_root
+        max_weight = (self._valid_count * p_min) ** (-self._beta)
         data = []
         for idx in indices:
             # deepcopy data for avoiding interference
             copy_data = copy.deepcopy(self._data[idx])
             assert (copy_data is not None)
             # get IS(importance sampling weight for gradient step)
-            if self.use_priority:
-                p_sample = self.sum_tree[copy_data['replay_buffer_idx']] / sum_tree_root
-                weight = (self._valid_count * p_sample) ** (-self._beta)
-                copy_data['IS'] = weight / max_weight
-            else:
-                copy_data['IS'] = 1.0
+            p_sample = self.sum_tree[copy_data['replay_buffer_idx']] / sum_tree_root
+            weight = (self._valid_count * p_sample) ** (-self._beta)
+            copy_data['IS'] = weight / max_weight
             data.append(copy_data)
             self._reuse_count[idx] += 1
+
         # remove the item which reuse is bigger than max_reuse
         for idx in indices:
             if self._reuse_count[idx] > self.max_reuse:
                 self._data[idx] = None
                 self.sum_tree[idx] = self.sum_tree.neutral_element
-                if self.use_priority:
-                    self.min_tree[idx] = self.min_tree.neutral_element
+                self.min_tree[idx] = self.min_tree.neutral_element
                 self._valid_count -= 1
         return data
 
