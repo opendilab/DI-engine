@@ -627,9 +627,59 @@ Actor的参数 :math:`\omega` 需要朝着off-policy policy gradient给出的梯
 将这三项以合适的比例（超参数）加和，就得到了整体的更新方向。
 
 
-Seed RL
-^^^^^^^^^^^^
-暂略。
+SEED RL
+^^^^^^^^^
+SEED RL是Google Research 在2020年发布的分布式深度学习框架。此前在2018年中提出的IMPALA架构虽然在强化学习领域取得很多突破，但是依然存在一系列的缺点，如资源利用率相对低下、无法进行大规模扩展等等。
+针对这些问题，Google Research 在ICML2020的oral论文 `SEED RL: Scalable and Efficient Deep-RL with Accelerated Central Inference <https://arxiv.org/pdf/1910.06591.pdf>`_ 中提出了SEED RL框架。
+
+SEED RL支持扩展到数千台机器，该架构能以 **每秒百万帧的速度进行训练** ，且相比于其他方法可以 **降低训练的开销** ，使得计算效率大幅度提高。 Google Research 也已经在github放出了对应的 `代码 <https://github.com/google-research/seed_rl>`_ ，支持单机训练和基于google AI cloud Platform的多机训练。
+
+
+框架结构改进
+'''''''''''''''
+SEED和IMPALA框架有很多相似处，但是在整体架构上SEED RL作出了一些关键的改进，使得SEED RL框架能兼顾单机训练和大规模框架训练的好处。
+
+IMPALA与SEED RL训练框架的对比如下图：
+
+.. image:: SEEDRL_Compare.jpg
+
+
+IMPALA将model的Training过程放到Learner，将inference过程放在Actor中，即将模型分开存放。
+而SEED RL则是将training和inference统一放在了Learner框架中，这就使得SEED RL获得了一些优势且规避了一些IMPALA框架中的问题：
+ 
+ 1. IMPALA和其类似框架中，将模型的inference过程放在了Actor中，而Actor由于是需要跟环境进行互动，因此大部分Actor的机器是CPU base的。这就导致IMPALA框架和其他类似的模型框架 **使用了CPU去运行了神经网络的inference过程** ，而CPU去跑神经网络是相对低效的。
+ 因此，SEED RL通过将inference过程放回到使用GPU的Learner中，Actor不需要进行任何神经网络模型的计算，使得总体上神经网络的使用速度效率提升。
+ 
+ 2. IMPALA和其类似框架中的Actor需要处理两个任务：环境过程和神经网络inference的过程。而这两个过程所调用的资源是不相关的, 这 **两个不相关过程的反复调用导致Actor的资源调度和效率下降** 。
+ SEED RL将inference过程放到Learner中则很好的规避了这个问题，Learner能更好的利用TPU的加速而Actor也能分配更多的CPU资源给对应的环境，使得总体的训练开销下降。
+
+ 3. IMPALA和其类似框架中，需要Learner将其神经网络的参数发送给Actor。而在神经网络规模变大后，神经网络的参数数据量会远超于相应的环境reward、trajectory等。这说明由于神经网络分别分布在Actor和Learner中，对分布式系统各个模块之间的带宽产生了很大的要求，起到了瓶颈作用。
+ SEED RK的框架则能很好的规避这一点。在SEED RL框架下，Actor与Learner的交互之需要传递action和observation，大大降低了带宽需求。
+
+ 4.SEED RL统一将training和inference统一放在了Learner框架中, 并且使用了 `gPRC <gprc.io>`_ 解决了Latentcy的问题，减少了batching之间的消耗。与IMPALA不同的是，SEED RL在Learner中的Optimization step会更多的影响到inference的过程.
+   
+   .. image:: latency.jpg
+
+SEED RL统一将training和inference统一放在了Learner框架中，并且调整了Learner的架构使其高效，其Learner的具体框架如下图：
+
+.. image:: SEEDRL_learner.jpg
+   :scale: 80 %
+
+可以看出SEED RL将所有与模型相关的内容都放在了Learner中。
+
+
+SEED RL已实现算法
+''''''''''''''''''''
+
+- IMPALA: Scalable Distributed Deep-RL with Importance Weighted Actor-Learner Architectures
+
+- R2D2 (Recurrent Experience Replay in Distributed Reinforcement Learning)
+
+- SAC: Soft Actor-Critic
+
+实验以及结果
+''''''''''''''''''''''
+SEED RL在 DeepMind Lab 上相比与IMPALA的时间消耗有11x倍的耗时减少，在Google Research Football上获得了state of the art的分数，且在 Atari-57 上快了3.1x倍。
 
 
 
