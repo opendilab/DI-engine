@@ -522,6 +522,44 @@ SAC
 ^^^^^^^^
 暂略。
 
+
+TD3 
+^^^^^^^^^^^^^^^^^
+TD3算法即Twin Delayed Deep Deterministic policy gradient，
+算法在2018年发表在论文 `Addressing Function Approximation Error in Actor-Critic Methods <https://arxiv.org/pdf/1802.09477.pdf>`_ 中。并且附有对应 `实现实验的代码 <https://github.com/sfujim/TD3>`_ 。
+该算法是对DDPG算法的改进，通过一系列的减少bias和方差的方式，在实际应用中取得了明显优于DDPG算法的结果。
+
+TD3算法的思路具体来说就是解决DDPG算法和其他actor-critic算法中出现的累积错误，包括overestimation bias和high variance build-up。
+
+在之前的DQN与Double-DQN环节中，我们已经探讨了overestimation的问题。
+在function approximation即函数近似的setting下，噪声的存在会使得函数的估计产生一定程度的偏差。
+而由于策略总是倾向于选择更优的估计值，每次对策略or价值的较高估计会被累积起来，导致出现overestimation的偏差。
+overestimation偏差的问题可能导致任意差的估计结果，从而导致得到次优策和偏离最优策略的行为。
+
+为了解决over estimation的问题，比较常用的方式就是仿照Double-DQN，设置target Network并且进行延迟的更新，从而减缓或者避免短期的误差积累。
+不过Double-DQN的解决方案对于actor-critic模式下的算法可能相对无效，
+因为在actor-critic中，Network的更新速度比value-based的算法更缓慢，使用延迟更新target Network的方式依然不能很好的消除累积误差。
+
+为此，TD3算法仿照了Double Q-learning的做法，直接将Target Network单独进行训练，这样使得两个网络的相似程度更小，进一步减少了产生的累积误差。
+
+TD3 减小overestimation bias 的方式包括：
+
+ - Twin：即actor和critic都有两个独立训练的网络。
+
+ - Delay：即对policy进行延迟更新。
+
+不过尽管此时能做到无偏估计，但是训练两个网络可能导致算法的方差较大，因此TD3结合了一些方式并且使用了一些小技巧去降低方差。
+
+ - TD3使用了clipped Double Q-learning的思想，将存在overestimation bias的估计结果作为真实估计结果的上界，实现clipping。
+
+ - TD3使用了SARSA风格的动作价值更新，即在Target policy进行了smoothing，进一步降低了variance。
+
+TD3的具体算法如下图：
+
+.. image:: TD3.jpg
+   :scale: 60 %
+
+
 Large Scale RL Training
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -656,11 +694,11 @@ IMPALA将model的Training过程放到Learner，将inference过程放在Actor中�
  3. IMPALA和其类似框架中，需要Learner将其神经网络的参数发送给Actor。而在神经网络规模变大后，神经网络的参数数据量会远超于相应的环境reward、trajectory等。这说明由于神经网络分别分布在Actor和Learner中，对分布式系统各个模块之间的带宽产生了很大的要求，起到了瓶颈作用。
  SEED RK的框架则能很好的规避这一点。在SEED RL框架下，Actor与Learner的交互之需要传递action和observation，大大降低了带宽需求。
 
- 4.SEED RL统一将training和inference统一放在了Learner框架中, 并且使用了 `gPRC <gprc.io>`_ 解决了Latentcy的问题，减少了batching之间的消耗。与IMPALA不同的是，SEED RL在Learner中的Optimization step会更多的影响到inference的过程.
+ 4.SEED RL统一将training和inference统一放在了Learner框架中, 并且使用了 `gRPC <grpc.io>`_ 解决了Latentcy的问题，减少了batching之间的消耗。与IMPALA不同的是，SEED RL在Learner中的Optimization step会更多的影响到inference的过程.
    
    .. image:: latency.jpg
 
-SEED RL统一将training和inference统一放在了Learner框架中，并且调整了Learner的架构使其高效，其Learner的具体框架如下图：
+SEED RL将training和inference统一放在了Learner框架中，并且调整了Learner的架构使其高效，其Learner的具体框架如下图：
 
 .. image:: SEEDRL_learner.jpg
    :scale: 80 %
