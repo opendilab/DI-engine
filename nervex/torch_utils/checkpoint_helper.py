@@ -211,10 +211,13 @@ class CheckpointHelper(object):
             - logger_prefix (:obj:`str`): prefix of logger
             - state_dict_mask (:obj:`list`): a list contains state_dict keys,
                 which shouldn't be loaded into model(after prefix op)
+        Note:
+            the checkpoint loaded from load_path is a dict, whose format is like '{'state_dict': OrderedDict(), ...}'
         """
         # TODO save config
         # Note: for reduce first GPU memory cost and compatible for cpu env
         checkpoint = read_file(load_path)
+        assert isinstance(checkpoint, dict)
         state_dict = checkpoint['state_dict']
         if prefix_op is not None:
             prefix_func = {'remove': self._remove_prefix, 'add': self._add_prefix}
@@ -227,7 +230,7 @@ class CheckpointHelper(object):
                 logger.info(
                     logger_prefix +
                     '[Warning] non-empty state_dict_mask expects strict=False, but finds strict=True in input argument'
-                )  # noqa
+                )
                 strict = False
             for m in state_dict_mask:
                 state_dict_keys = list(state_dict.keys())
@@ -241,30 +244,27 @@ class CheckpointHelper(object):
         logger.info(logger_prefix + 'load model state_dict in {}'.format(load_path))
 
         if dataset is not None:
-            dataset.load_state_dict(checkpoint['dataset'])
-            logger.info(logger_prefix + 'load online data in {}'.format(load_path))
+            if 'dataset' in checkpoint.keys():
+                dataset.load_state_dict(checkpoint['dataset'])
+                logger.info(logger_prefix + 'load online data in {}'.format(load_path))
+            else:
+                logger.info(logger_prefix + "dataset not in checkpoint, ignore load procedure")
 
         if optimizer is not None:
-            optimizer.load_state_dict(checkpoint['optimizer'])
-            logger.info(logger_prefix + 'load optimizer in {}'.format(load_path))
-
-        if last_frame is not None:
-            last_frame.update(checkpoint['last_frame'])
-            logger.info(
-                logger_prefix + 'load last_frame in {}, current last_frame is {}'.format(load_path, last_frame.val)
-            )
+            if 'optimizer' in checkpoint.keys():
+                optimizer.load_state_dict(checkpoint['optimizer'])
+                logger.info(logger_prefix + 'load optimizer in {}'.format(load_path))
+            else:
+                logger.info(logger_prefix + "optimizer not in checkpoint, ignore load procedure")
 
         if last_iter is not None:
-            last_iter.update(checkpoint['last_iter'])
-            logger.info(
-                logger_prefix + 'load last_iter in {}, current last_iter is {}'.format(load_path, last_iter.val)
-            )
-
-        if last_epoch is not None:
-            last_epoch.update(checkpoint['last_epoch'])
-            logger.info(
-                logger_prefix + 'load last_epoch in {}, current last_epoch is {}'.format(load_path, last_epoch.val)
-            )  # noqa
+            if 'last_iter' in checkpoint.keys():
+                last_iter.update(checkpoint['last_iter'])
+                logger.info(
+                    logger_prefix + 'load last_iter in {}, current last_iter is {}'.format(load_path, last_iter.val)
+                )
+            else:
+                logger.info(logger_prefix + "last_iter not in checkpoint, ignore load procedure")
 
         if actor_info is not None:
             actor_info.load_state_dict(checkpoint['actor_info'])
