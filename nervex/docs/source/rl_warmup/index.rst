@@ -541,6 +541,44 @@ SAC
 ^^^^^^^^
 暂略。
 
+
+TD3 
+^^^^^^^^^^^^^^^^^
+TD3算法即Twin Delayed Deep Deterministic policy gradient，
+算法在2018年发表在论文 `Addressing Function Approximation Error in Actor-Critic Methods <https://arxiv.org/pdf/1802.09477.pdf>`_ 中。并且附有对应 `实现实验的代码 <https://github.com/sfujim/TD3>`_ 。
+该算法是对DDPG算法的改进，通过一系列的减少bias和方差的方式，在实际应用中取得了明显优于DDPG算法的结果。
+
+TD3算法的思路具体来说就是解决DDPG算法和其他actor-critic算法中出现的累积错误，包括overestimation bias和high variance build-up。
+
+在之前的DQN与Double-DQN环节中，我们已经探讨了overestimation的问题。
+在function approximation即函数近似的setting下，噪声的存在会使得函数的估计产生一定程度的偏差。
+而由于策略总是倾向于选择更优的估计值，每次对策略or价值的较高估计会被累积起来，导致出现overestimation的偏差。
+overestimation偏差的问题可能导致任意差的估计结果，从而导致得到次优策和偏离最优策略的行为。
+
+为了解决over estimation的问题，比较常用的方式就是仿照Double-DQN，设置target Network并且进行延迟的更新，从而减缓或者避免短期的误差积累。
+不过Double-DQN的解决方案对于actor-critic模式下的算法可能相对无效，
+因为在actor-critic中，Network的更新速度比value-based的算法更缓慢，使用延迟更新target Network的方式依然不能很好的消除累积误差。
+
+为此，TD3算法仿照了Double Q-learning的做法，直接将Target Network单独进行训练，这样使得两个网络的相似程度更小，进一步减少了产生的累积误差。
+
+TD3 减小overestimation bias 的方式包括：
+
+ - Twin：即actor和critic都有两个独立训练的网络。
+
+ - Delay：即对policy进行延迟更新。
+
+不过尽管此时能做到无偏估计，但是训练两个网络可能导致算法的方差较大，因此TD3结合了一些方式并且使用了一些小技巧去降低方差。
+
+ - TD3使用了clipped Double Q-learning的思想，将存在overestimation bias的估计结果作为真实估计结果的上界，实现clipping。
+
+ - TD3使用了SARSA风格的动作价值更新，即在Target policy进行了smoothing，进一步降低了variance。
+
+TD3的具体算法如下图：
+
+.. image:: TD3.jpg
+   :scale: 60 %
+
+
 Large Scale RL Training
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -665,9 +703,70 @@ Actor的参数 :math:`\omega` 需要朝着off-policy policy gradient给出的梯
 将这三项以合适的比例（超参数）加和，就得到了整体的更新方向。
 
 
-Seed RL
-^^^^^^^^^^^^
-暂略。
+SEED RL
+^^^^^^^^^
+SEED RL是Google Research 在2020年发布的分布式深度学习框架。此前在2018年中提出的IMPALA架构虽然在强化学习领域取得很多突破，但是依然存在一系列的缺点，如资源利用率相对低下、无法进行大规模扩展等等。
+针对这些问题，Google Research 在ICML2020的oral论文 `SEED RL: Scalable and Efficient Deep-RL with Accelerated Central Inference <https://arxiv.org/pdf/1910.06591.pdf>`_ 中提出了SEED RL框架。
+
+SEED RL支持扩展到数千台机器，该架构能以 **每秒百万帧的速度进行训练** ，且相比于其他方法可以 **降低训练的开销** ，使得计算效率大幅度提高。 Google Research 也已经在github放出了对应的 `代码 <https://github.com/google-research/seed_rl>`_ ，支持单机训练和基于google AI cloud Platform的多机训练。
+
+
+框架结构改进
+'''''''''''''''
+SEED和IMPALA框架有很多相似处，但是在整体架构上SEED RL作出了一些关键的改进，使得SEED RL框架能兼顾单机训练和大规模框架训练的好处。
+
+IMPALA与SEED RL训练框架的对比如下图：
+
+.. image:: SEEDRL_Compare.jpg
+
+
+IMPALA将model的Training过程放到Learner，将inference过程放在Actor中，即将模型分开存放。
+而SEED RL则是将training和inference统一放在了Learner框架中，这就使得SEED RL获得了一些优势且规避了一些IMPALA框架中的问题：
+ 
+ 1. IMPALA和其类似框架中，将模型的inference过程放在了Actor中，而Actor由于是需要跟环境进行互动，因此大部分Actor的机器是CPU base的。这就导致IMPALA框架和其他类似的模型框架 **使用了CPU去运行了神经网络的inference过程** ，而CPU去跑神经网络是相对低效的。
+ 因此，SEED RL通过将inference过程放回到使用GPU的Learner中，Actor不需要进行任何神经网络模型的计算，使得总体上神经网络的使用速度效率提升。
+ 
+ 2. IMPALA和其类似框架中的Actor需要处理两个任务：环境过程和神经网络inference的过程。而这两个过程所调用的资源是不相关的, 这 **两个不相关过程的反复调用导致Actor的资源调度和效率下降** 。
+ SEED RL将inference过程放到Learner中则很好的规避了这个问题，Learner能更好的利用TPU的加速而Actor也能分配更多的CPU资源给对应的环境，使得总体的训练开销下降。
+
+ 3. IMPALA和其类似框架中，需要Learner将其神经网络的参数发送给Actor。而在神经网络规模变大后，神经网络的参数数据量会远超于相应的环境reward、trajectory等。这说明由于神经网络分别分布在Actor和Learner中，对分布式系统各个模块之间的带宽产生了很大的要求，起到了瓶颈作用。
+ SEED RK的框架则能很好的规避这一点。在SEED RL框架下，Actor与Learner的交互之需要传递action和observation，大大降低了带宽需求。
+
+ 4.SEED RL统一将training和inference统一放在了Learner框架中, 并且使用了 `gRPC <grpc.io>`_ 解决了Latentcy的问题，减少了batching之间的消耗。与IMPALA不同的是，SEED RL在Learner中的Optimization step会更多的影响到inference的过程.
+   
+   .. image:: latency.jpg
+
+SEED RL将training和inference统一放在了Learner框架中，并且调整了Learner的架构使其高效，其Learner的具体框架如下图：
+
+.. image:: SEEDRL_learner.jpg
+   :scale: 80 %
+
+可以看出SEED RL将所有与模型相关的内容都放在了Learner中。
+
+Q&A
+''''''''''''''''''''
+Q0：请问在什么情况下，模型的inference过程有必要放在actor处而不能放在learner处？
+
+ - A：当要求每个Actor之间有较大区别时，模型的inference则不能放在learner处。
+
+
+Q1：将模型的inference过程放在learner处后，用于inference的模型能更快的得到更新。如果我们加快inference模型的更新有什么好处和坏处呢？
+
+ - A： 加快inference模型的更新会使得算法更加接近on-policy，越接近on policy优化时存在的偏差越小。但当用于inference的模型和用于训练的模型越接近的时候，就越容易产生overestimation bias。 seed RL 一个相对的缺点就是会使得多个actor的模型都十分相近，在需要充分探索的环境中可能表现不佳。
+
+
+SEED RL已实现算法
+''''''''''''''''''''
+
+- IMPALA: Scalable Distributed Deep-RL with Importance Weighted Actor-Learner Architectures
+
+- R2D2 (Recurrent Experience Replay in Distributed Reinforcement Learning)
+
+- SAC: Soft Actor-Critic
+
+实验以及结果
+''''''''''''''''''''''
+SEED RL在 DeepMind Lab 上相比与IMPALA的时间消耗有11x倍的耗时减少，在Google Research Football上获得了state of the art的分数，且在 Atari-57 上快了3.1x倍。
 
 
 
