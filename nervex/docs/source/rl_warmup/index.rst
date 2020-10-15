@@ -705,6 +705,17 @@ SEED RL将training和inference统一放在了Learner框架中，并且调整了L
 
 可以看出SEED RL将所有与模型相关的内容都放在了Learner中。
 
+Q&A
+''''''''''''''''''''
+Q0：请问在什么情况下，模型的inference过程有必要放在actor处而不能放在learner处？
+
+ - A：当要求每个Actor之间有较大区别时，模型的inference则不能放在learner处。
+
+
+Q1：将模型的inference过程放在learner处后，用于inference的模型能更快的得到更新。如果我们加快inference模型的更新有什么好处和坏处呢？
+
+ - A： 加快inference模型的更新会使得算法更加接近on-policy，越接近on policy优化时存在的偏差越小。但当用于inference的模型和用于训练的模型越接近的时候，就越容易产生overestimation bias。 seed RL 一个相对的缺点就是会使得多个actor的模型都十分相近，在需要充分探索的环境中可能表现不佳。
+
 
 SEED RL已实现算法
 ''''''''''''''''''''
