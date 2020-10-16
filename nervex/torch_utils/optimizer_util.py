@@ -186,7 +186,7 @@ class Adam(torch.optim.Adam):
                     momentum = ((state['thre_exp_avg_sq'].sqrt() / math.sqrt(bias_correction2)) *
                                 self._clip_coef).norm(self._clip_norm_type)
                     total_momentum_norm += momentum.item() ** self._clip_norm_type
-                    step = max(step, state['step'])
+                    step = min(step, state['step'])
                 if step > self._clip_momentum_timestep:
                     total_norm = total_norm ** (1. / self._clip_norm_type)
                     total_momentum_norm = total_momentum_norm ** (1. / self._clip_norm_type)
@@ -276,7 +276,7 @@ class Adam(torch.optim.Adam):
                     momentum = ((state['thre_exp_avg_sq'].sqrt() / math.sqrt(bias_correction2)) *
                                 self._ignore_coef).norm(self._ignore_norm_type)
                     total_momentum_norm += momentum.item() ** self._ignore_norm_type
-                    step = max(step, state['step'])
+                    step = min(step, state['step'])
 
                 if step > self._ignore_momentum_timestep:
                     total_norm = total_norm ** (1. / self._ignore_norm_type)
