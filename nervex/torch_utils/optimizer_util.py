@@ -188,6 +188,8 @@ class Adam(torch.optim.Adam):
                     total_momentum_norm += momentum.item() ** self._clip_norm_type
                     step = max(step, state['step'])
                 if step > self._clip_momentum_timestep:
+                    total_norm = total_norm ** (1. / self._clip_norm_type)
+                    total_momentum_norm = total_momentum_norm ** (1. / self._clip_norm_type)
                     clip_coef = total_momentum_norm / (total_norm + 1e-6)
                     if clip_coef < 1:
                         for p in group['params']:
@@ -277,6 +279,8 @@ class Adam(torch.optim.Adam):
                     step = max(step, state['step'])
 
                 if step > self._ignore_momentum_timestep:
+                    total_norm = total_norm ** (1. / self._ignore_norm_type)
+                    total_momentum_norm = total_momentum_norm ** (1. / self._ignore_norm_type)
                     ignore_coef = total_momentum_norm / (total_norm + 1e-6)
                     if ignore_coef < 1:
                         for p in group['params']:
