@@ -60,9 +60,9 @@ class TestAdam:
     def test_naive(self):
         support_type = {
             'optim': ['adam', 'adamw'],
-            'grad_clip': [None, 'clip_momentum', 'clip_value', 'clip_norm'],
+            'grad_clip': [None, 'clip_momentum', 'clip_value', 'clip_norm', 'clip_momentum_norm'],
             'grad_norm': [None],
-            'grad_ignore': [None, 'ignore_momentum', 'ignore_value', 'ignore_norm'],
+            'grad_ignore': [None, 'ignore_momentum', 'ignore_value', 'ignore_norm', 'ignore_momentum_norm'],
         }
 
         for optim_t in support_type['optim']:

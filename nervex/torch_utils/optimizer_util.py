@@ -66,9 +66,9 @@ class Adam(torch.optim.Adam):
 
         self._support_type = {
             'optim': ['adam', 'adamw'],
-            'grad_clip': [None, 'clip_momentum', 'clip_value', 'clip_norm'],
+            'grad_clip': [None, 'clip_momentum', 'clip_value', 'clip_norm', 'clip_momentum_norm'],
             'grad_norm': [None],
-            'grad_ignore': [None, 'ignore_momentum', 'ignore_value', 'ignore_norm'],
+            'grad_ignore': [None, 'ignore_momentum', 'ignore_value', 'ignore_norm', 'ignore_momentum_norm'],
         }
 
         assert optim_type in self._support_type['optim']
@@ -97,9 +97,7 @@ class Adam(torch.optim.Adam):
             self._weight_decay = weight_decay
             super(Adam, self).__init__(params, lr=lr, betas=betas, eps=eps, weight_decay=0, amsgrad=amsgrad)
         elif self._optim_type == 'adam':
-            super(Adam, self).__init__(
-                params, lr=lr, betas=betas, eps=eps, weight_decay=weight_decay, amsgrad=amsgrad
-            )
+            super(Adam, self).__init__(params, lr=lr, betas=betas, eps=eps, weight_decay=weight_decay, amsgrad=amsgrad)
         else:
             raise NotImplementedError(
                 "optimizer type {} is not implemented, support type is {}".format(
@@ -117,6 +115,11 @@ class Adam(torch.optim.Adam):
         elif self._grad_clip_type == 'clip_norm':
             clip_grad_norm_(new_params, self._clip_value, self._clip_norm_type)
         elif self._grad_clip_type == 'clip_momentum':
+            '''
+            This is the implimentation mimic the clip used in OPENAI, quote:
+                'Gradients are additionally clipped per parameter to be within between ±5√v
+                 where v is the running estimate of the second moment of the (unclipped) gradient'
+            '''
             for group in self.param_groups:
                 for p in group['params']:
                     if p.grad is None:
@@ -147,6 +150,48 @@ class Adam(torch.optim.Adam):
                             ((state['thre_exp_avg_sq'].sqrt() / math.sqrt(bias_correction2)) *
                              self._clip_coef).mul_(flag)
                         )
+        elif self._grad_clip_type == 'clip_norm_momentum':
+            # might have multi param_group, we should calculate each group differently.
+            for group in self.param_groups:
+                total_norm = 0
+                total_momentum_norm = 0
+                step = 0
+                for p in group['params']:
+                    if p.grad is None:
+                        continue
+                    state = self.state[p]
+                    grad = p.grad.data
+                    if len(state) == 0:
+                        state['thre_exp_avg_sq'] = torch.zeros_like(p.data, device=p.data.device)
+
+                        # others
+                        state['step'] = 0
+                        #TODO
+                        #wait torch upgrad to 1.4, 1.3.1 didn't support memory format;ate['step'] = 0
+                        state['exp_avg'] = torch.zeros_like(p.data)
+                        # Exponential moving average of squared gradient values
+                        state['exp_avg_sq'] = torch.zeros_like(p.data)
+                        if group['amsgrad']:
+                            # Maintains max of all exp. moving avg. of sq. grad. values
+                            state['max_exp_avg_sq'] = torch.zeros_like(p.data)
+                    #should we use same beta group?
+                    beta1, beta2 = group['betas']
+                    bias_correction2 = 1 - beta2 ** state['step']
+                    state['thre_exp_avg_sq'].mul_(beta2).addcmul_(1 - beta2, grad, grad)
+                    # sum total_norm
+                    param_norm = grad.norm(self._clip_norm_type)
+                    total_norm += param_norm.item() ** self._clip_norm_type
+
+                    #sum momentum_norm
+                    momentum = ((state['thre_exp_avg_sq'].sqrt() / math.sqrt(bias_correction2)) *
+                                self._clip_coef).norm(self._clip_norm_type)
+                    total_momentum_norm += momentum.item() ** self._clip_norm_type
+                    step = max(step, state['step'])
+                if step > self._clip_momentum_timestep:
+                    clip_coef = total_momentum_norm / (total_norm + 1e-6)
+                    if clip_coef < 1:
+                        for p in group['params']:
+                            p.grad.data.mul_(clip_coef)
 
         if self._grad_ignore_type == 'ignore_value':
             grad_ignore_value(new_params, self._ignore_value)
@@ -193,6 +238,49 @@ class Adam(torch.optim.Adam):
                         if p.grad is None:
                             continue
                         p.grad.zero_()
+        elif self._grad_ignore_type == 'ignore_norm_momentum':
+            # might have multi param_group, we should calculate each group differently.
+            step = 0
+            for group in self.param_groups:
+                total_norm = 0
+                total_momentum_norm = 0
+                for p in group['params']:
+                    if p.grad is None:
+                        continue
+                    state = self.state[p]
+                    grad = p.grad.data
+                    if len(state) == 0:
+                        state['thre_exp_avg_sq'] = torch.zeros_like(p.data, device=p.data.device)
+
+                        # others
+                        state['step'] = 0
+                        #TODO
+                        #wait torch upgrad to 1.4, 1.3.1 didn't support memory format;ate['step'] = 0
+                        state['exp_avg'] = torch.zeros_like(p.data)
+                        # Exponential moving average of squared gradient values
+                        state['exp_avg_sq'] = torch.zeros_like(p.data)
+                        if group['amsgrad']:
+                            # Maintains max of all exp. moving avg. of sq. grad. values
+                            state['max_exp_avg_sq'] = torch.zeros_like(p.data)
+                    #should we use same beta group?
+                    beta1, beta2 = group['betas']
+                    bias_correction2 = 1 - beta2 ** state['step']
+                    state['thre_exp_avg_sq'].mul_(beta2).addcmul_(1 - beta2, grad, grad)
+                    # sum total_norm
+                    param_norm = grad.norm(self._ignore_norm_type)
+                    total_norm += param_norm.item() ** self._ignore_norm_type
+
+                    #sum momentum_norm
+                    momentum = ((state['thre_exp_avg_sq'].sqrt() / math.sqrt(bias_correction2)) *
+                                self._ignore_coef).norm(self._ignore_norm_type)
+                    total_momentum_norm += momentum.item() ** self._ignore_norm_type
+                    step = max(step, state['step'])
+
+                if step > self._ignore_momentum_timestep:
+                    ignore_coef = total_momentum_norm / (total_norm + 1e-6)
+                    if ignore_coef < 1:
+                        for p in group['params']:
+                            p.grad.zero_()
 
         #Adam optim type
         if self._optim_type == 'adamw':
