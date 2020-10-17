@@ -27,6 +27,7 @@ class LearnerCommHelper(object):
         # instance -> comm
         instance._comm._logger = instance._logger
         instance._comm._learner_uid = instance._learner_uid
+        instance._comm._learner_worker_uid = instance._learner_worker_uid
 
         # comm -> instance
         for item in dir(instance._comm):

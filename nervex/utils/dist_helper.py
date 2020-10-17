@@ -156,3 +156,9 @@ class DistModule(torch.nn.Module):
     def _create_grad(self):
         for name, param in self.module.named_parameters():
             setattr(param, 'grad', torch.zeros_like(param))
+
+    def state_dict(self):
+        return self.module.state_dict()
+
+    def load_state_dict(self, state_dict):
+        self.module.load_state_dict(state_dict)
