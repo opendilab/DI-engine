@@ -198,21 +198,9 @@ class Adam(torch.optim.Adam):
                     if p.grad is None:
                         continue
                     state = self.state[p]
-                    grad = p.grad.data
                     if len(state) == 0:
-                        state['thre_exp_avg_sq'] = torch.zeros_like(p.data)
-                        # others
-                        state['step'] = 0
-                        #TODO
-                        #wait torch upgrad to 1.4, 1.3.1 didn't support memory format;
-                        #state['exp_avg'] = torch.zeros_like(p.data, memory_format=torch.preserve_format)
-                        state['exp_avg'] = torch.zeros_like(p.data)
-
-                        # Exponential moving average of squared gradient values
-                        state['exp_avg_sq'] = torch.zeros_like(p.data)
-                        if group['amsgrad']:
-                            # Maintains max of all exp. moving avg. of sq. grad. values
-                            state['max_exp_avg_sq'] = torch.zeros_like(p.data)
+                        self.state_init(p, group['amsgrad'])
+                    grad = p.grad.data
                     #should we use same beta group?
                     beta1, beta2 = group['betas']
                     bias_correction2 = 1 - beta2 ** state['step']
@@ -242,20 +230,9 @@ class Adam(torch.optim.Adam):
                     if p.grad is None:
                         continue
                     state = self.state[p]
-                    grad = p.grad.data
                     if len(state) == 0:
-                        state['thre_exp_avg_sq'] = torch.zeros_like(p.data, device=p.data.device)
-
-                        # others
-                        state['step'] = 0
-                        #TODO
-                        #wait torch upgrad to 1.4, 1.3.1 didn't support memory format;ate['step'] = 0
-                        state['exp_avg'] = torch.zeros_like(p.data)
-                        # Exponential moving average of squared gradient values
-                        state['exp_avg_sq'] = torch.zeros_like(p.data)
-                        if group['amsgrad']:
-                            # Maintains max of all exp. moving avg. of sq. grad. values
-                            state['max_exp_avg_sq'] = torch.zeros_like(p.data)
+                        self.state_init(p, group['amsgrad'])
+                    grad = p.grad.data
                     #should we use same beta group?
                     beta1, beta2 = group['betas']
                     bias_correction2 = 1 - beta2 ** state['step']
