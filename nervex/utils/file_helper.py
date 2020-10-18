@@ -16,7 +16,7 @@ def read_from_ceph(path: str) -> object:
     Arguments:
         - path (:obj:`str`): file path in ceph, start with "s3://"
     Returns:
-        - (:obj`data`): fileStream or data
+        - (:obj`data`): deserialized data
     """
     s3client = ceph.S3Client()
     value = s3client.Get(path)
@@ -28,11 +28,11 @@ def read_from_ceph(path: str) -> object:
 
 def read_from_file(path: str) -> object:
     """
-    Overview: read file from ceph
+    Overview: read file from local file system
     Arguments:
-        - path (:obj:`str`): file path in ceph, start with "s3://"
+        - path (:obj:`str`): file path in local file system
     Returns:
-        - (:obj`data`): fileStream or data
+        - (:obj`data`): deserialized data
     """
     with open(path, "rb") as f:
         value = pickle.load(f)
@@ -44,9 +44,9 @@ def read_from_path(path: str):
     """
     Overview: read file from ceph
     Arguments:
-        - path (:obj:`str`): file path in ceph, start with "s3://"
+        - path (:obj:`str`): file path in ceph, start with "s3://", or use local file system
     Returns:
-        - (:obj`data`): fileStream or data
+        - (:obj`data`): deserialized data
     """
     if ceph is None:
         logging.info(
