@@ -50,9 +50,13 @@ def deep_merge_dicts(original: dict, new_dict: dict) -> dict:
     return merged
 
 
-def deep_update(original: dict, new_dict: dict, new_keys_allowed: bool = False,
-                whitelist: Optional[List[str]] = None,
-                override_all_if_type_changes: Optional[List[str]] = None):
+def deep_update(
+    original: dict,
+    new_dict: dict,
+    new_keys_allowed: bool = False,
+    whitelist: Optional[List[str]] = None,
+    override_all_if_type_changes: Optional[List[str]] = None
+):
     """Updates original dict with values from new_dict recursively.
 
     pzh: It's only a function to merge new_dict into original. This is it.
@@ -157,7 +161,6 @@ if __name__ == '__main__':
     assert os.path.exists(yaml_path)
     config = read_config(yaml_path)
 
-
     def assert_equal(item1, iterm2):
         if isinstance(item1, list):
             for item11, iterm22 in zip(item1, iterm2):
@@ -167,6 +170,5 @@ if __name__ == '__main__':
                 assert_equal(item11, item22)
         else:
             assert item1 == iterm2
-
 
     assert_equal(config, old_config)
