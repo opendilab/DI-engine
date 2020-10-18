@@ -4,7 +4,7 @@ from threading import Thread
 from typing import Union
 
 from nervex.data.structure import PrioritizedBuffer, Cache
-from nervex.utils import LockContext, read_config, merge_dicts
+from nervex.utils import LockContext, read_config, deep_merge_dicts
 
 default_config = read_config(osp.join(osp.dirname(__file__), 'replay_buffer_default_config.yaml')).replay_buffer
 
@@ -21,7 +21,7 @@ class ReplayBuffer:
         Arguments:
             - cfg (:obj:`dict`): config dict
         """
-        self.cfg = merge_dicts(default_config, cfg)
+        self.cfg = deep_merge_dicts(default_config, cfg)
         max_reuse = self.cfg.max_reuse if 'max_reuse' in self.cfg.keys() else None
         self.traj_len = cfg.get('traj_len', None)
         self.unroll_len = cfg.get('unroll_len', None)

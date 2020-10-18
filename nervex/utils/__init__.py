@@ -1,5 +1,5 @@
 from .compression_helper import get_step_data_compressor, get_step_data_decompressor, compress_obs, decompress_obs
-from .config_utils import merge_dicts, read_config
+from .config_utils import deep_merge_dicts, read_config
 from .design_helper import SingletonMetaclass
 from .dist_helper import get_rank, get_world_size, distributed_mode, DistModule, dist_init, dist_finalize, \
     allreduce, get_group, broadcast

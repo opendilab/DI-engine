@@ -7,7 +7,7 @@ import pysc2.env.sc2_env as sc2_env
 from pysc2.env.sc2_env import SC2Env
 
 from nervex.envs.env.base_env import BaseEnv
-from nervex.utils import merge_dicts, read_config
+from nervex.utils import deep_merge_dicts, read_config
 from .action.alphastar_action_runner import AlphaStarRawActionRunner
 from .obs.alphastar_obs_runner import AlphaStarObsRunner
 from .other.alphastar_map import get_map_size
@@ -22,7 +22,7 @@ class AlphaStarEnv(BaseEnv, SC2Env):
     info_template = namedtuple('BaseEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space'])
 
     def __init__(self, cfg: dict) -> None:
-        cfg = merge_dicts(default_config.env, cfg)
+        cfg = deep_merge_dicts(default_config.env, cfg)
         self._map_size = get_map_size(cfg.map_name, cropped=cfg.crop_map_to_playable_area)
         cfg.map_size = self._map_size
         cfg.obs_spatial.spatial_resolution = self._map_size

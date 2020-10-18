@@ -13,7 +13,7 @@ from nervex.envs.env.base_env import BaseEnv
 from nervex.envs.sumo.action.sumo_action_runner import SumoRawActionRunner
 from nervex.envs.sumo.obs.sumo_obs_runner import SumoObsRunner
 from nervex.envs.sumo.reward.sumo_reward_runner import SumoRewardRunner
-from nervex.utils import merge_dicts
+from nervex.utils import deep_merge_dicts
 
 
 def build_config(user_config):
@@ -22,7 +22,7 @@ def build_config(user_config):
         cfg = yaml.safe_load(f)
     cfg = EasyDict(cfg)
     default_config = cfg.env
-    return merge_dicts(default_config, user_config)
+    return deep_merge_dicts(default_config, user_config)
 
 
 class SumoWJ3Env(BaseEnv):

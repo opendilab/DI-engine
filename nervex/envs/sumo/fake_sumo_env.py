@@ -5,7 +5,7 @@ import torch
 import yaml
 from easydict import EasyDict
 
-from nervex.utils import merge_dicts
+from nervex.utils import deep_merge_dicts
 from .sumo_env import SumoWJ3Env
 
 
@@ -15,7 +15,7 @@ def build_config(user_config):
         cfg = yaml.safe_load(f)
     cfg = EasyDict(cfg)
     default_config = cfg.env
-    return merge_dicts(default_config, user_config)
+    return deep_merge_dicts(default_config, user_config)
 
 
 class FakeSumoWJ3Env(SumoWJ3Env):
