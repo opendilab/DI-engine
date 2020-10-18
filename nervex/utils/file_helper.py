@@ -1,5 +1,7 @@
+import logging
 import os
 import pickle
+from typing import NoReturn
 
 import torch
 
@@ -8,7 +10,37 @@ from .import_utils import try_import_ceph
 ceph = try_import_ceph()
 
 
-def read_file_ceph(path):
+def read_from_ceph(path: str) -> object:
+    """
+    Overview: read file from ceph
+    Arguments:
+        - path (:obj:`str`): file path in ceph, start with "s3://"
+    Returns:
+        - (:obj`data`): fileStream or data
+    """
+    s3client = ceph.S3Client()
+    value = s3client.Get(path)
+    if not value:
+        raise FileNotFoundError("File({}) doesn't exist in ceph".format(path))
+
+    return pickle.loads(value)
+
+
+def read_from_file(path: str) -> object:
+    """
+    Overview: read file from ceph
+    Arguments:
+        - path (:obj:`str`): file path in ceph, start with "s3://"
+    Returns:
+        - (:obj`data`): fileStream or data
+    """
+    with open(path, "rb") as f:
+        value = pickle.load(f)
+
+    return value
+
+
+def read_from_path(path: str):
     """
     Overview: read file from ceph
     Arguments:
@@ -17,28 +49,20 @@ def read_file_ceph(path):
         - (:obj`data`): fileStream or data
     """
     if ceph is None:
-        import logging
         logging.info(
             "You do not have ceph installed! Loading local file!"
             " If you are not testing locally, something is wrong!"
         )
-        with open(path, "rb") as f:
-            value = pickle.load(f)
-        return value
+        return read_from_file(path)
     else:
-        s3client = ceph.S3Client()
-        value = s3client.Get(path)
-        if not value:
-            raise FileNotFoundError("File({}) doesn't exist in ceph".format(path))
-        value = pickle.loads(value)
-        return value
+        return read_from_ceph(path)
 
 
 def save_file_ceph(path, data):
     """
     Overview: save pickle dumped data file to ceph
     Arguments:
-        - path (:obj:`str`): file path in ceph, start with "s3://"
+        - path (:obj:`str`): file path in ceph, start with "s3://", use file system when not
         - data (:obj:`anything`): could be dict, list or tensor etc.
     """
     data = pickle.dumps(data)
@@ -50,7 +74,7 @@ def save_file_ceph(path, data):
     else:
         import logging
         size = len(data)
-        if (save_path == 'do_not_save'):
+        if save_path == 'do_not_save':
             logging.info(
                 "You do not have ceph installed! ignored file {} of size {}!".format(file_name, size) +
                 " If you are not testing locally, something is wrong!"
@@ -65,18 +89,18 @@ def save_file_ceph(path, data):
             f.write(data)
 
 
-def read_file(path, fs_type=None):
+def read_file(path: str, fs_type=None) -> object:
     if fs_type is None:
         fs_type = 'ceph' if path.lower().startswith('s3') else 'normal'
     assert fs_type in ['normal', 'ceph']
     if fs_type == 'ceph':
-        data = read_file_ceph(path)
+        data = read_from_path(path)
     elif fs_type == 'normal':
         data = torch.load(path, map_location='cpu')
     return data
 
 
-def save_file(path, data, fs_type=None):
+def save_file(path: str, data: object, fs_type=None) -> NoReturn:
     if fs_type is None:
         fs_type = 'ceph' if path.lower().startswith('s3') else 'normal'
     assert fs_type in ['normal', 'ceph']
