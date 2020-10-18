@@ -12,8 +12,8 @@ import torch
 from easydict import EasyDict
 
 from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer, to_device
-from nervex.utils import build_logger, dist_init, EasyTimer, dist_finalize, pretty_print, deep_merge_dicts, read_config, \
-    get_task_uid, import_module
+from nervex.utils import build_logger, dist_init, EasyTimer, dist_finalize, pretty_print, deep_merge_dicts, \
+    read_config, get_task_uid, import_module
 from .comm import LearnerCommHelper
 from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, LearnerHook
 
