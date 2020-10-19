@@ -3,7 +3,7 @@ from collections import defaultdict
 
 import numpy as np
 
-from nervex.utils import LockContext
+from nervex.utils import LockContext, LockContextType
 from .player import Player
 
 
@@ -53,7 +53,7 @@ class SharedPayoff:
         self._data = PayoffDict()
         self._decay = decay
         self._min_win_rate_games = min_win_rate_games
-        self._lock = LockContext(lock_type='thread')
+        self._lock = LockContext(type_=LockContextType.THREAD_LOCK)
 
     def __getitem__(self, players):
         """

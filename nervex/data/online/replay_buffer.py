@@ -4,7 +4,7 @@ from threading import Thread
 from typing import Union
 
 from nervex.data.structure import PrioritizedBuffer, Cache
-from nervex.utils import LockContext, read_config, deep_merge_dicts
+from nervex.utils import LockContext, LockContextType, read_config, deep_merge_dicts
 
 default_config = read_config(osp.join(osp.dirname(__file__), 'replay_buffer_default_config.yaml')).replay_buffer
 
@@ -35,7 +35,7 @@ class ReplayBuffer:
         # cache mechanism: first push data into cache, then(some conditions) put forward to meta buffer
         self._cache = Cache(maxlen=self.cfg.cache_maxlen, timeout=self.cfg.timeout)
 
-        self._meta_lock = LockContext(lock_type='thread')
+        self._meta_lock = LockContext(type_=LockContextType.THREAD_LOCK)
         # from cache to meta data transport thread
         self._cache_thread = Thread(target=self._cache2meta)
 

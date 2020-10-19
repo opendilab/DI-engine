@@ -5,7 +5,7 @@ from threading import Thread
 
 from nervex.league.player import MainPlayer, MainExploiter, LeagueExploiter, HistoricalPlayer
 from nervex.league.shared_payoff import SharedPayoff
-from nervex.utils import deep_merge_dicts, read_config, LockContext, import_module
+from nervex.utils import deep_merge_dicts, read_config, LockContext, LockContextType, import_module
 
 default_config = read_config(osp.join(osp.dirname(__file__), "league_manager_default_config.yaml"))
 
@@ -72,7 +72,7 @@ class BaseLeagueManager(ABC):
         self.save_checkpoint_fn = save_checkpoint_fn
         self.load_checkpoint_fn = load_checkpoint_fn
         self.launch_task_fn = launch_task_fn
-        self._active_players_lock = LockContext(lock_type='thread')
+        self._active_players_lock = LockContext(type_=LockContextType.THREAD_LOCK)
         self._launch_task_thread = Thread(target=self._launch_task)
         self._snapshot_thread = Thread(target=self._snapshot)
         self._end_flag = False
