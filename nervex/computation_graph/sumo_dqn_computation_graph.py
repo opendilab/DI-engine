@@ -1,5 +1,3 @@
-from functools import reduce
-
 import torch
 
 from nervex.computation_graph import BaseCompGraph
@@ -18,10 +16,7 @@ class SumoDqnGraph(BaseCompGraph):
 
     def get_weighted_reward(self, reward: dict) -> torch.Tensor:
         if len(self._reward_weights) >= 2:
-            reward = reduce(
-                lambda x, y: reward[x] * self._reward_weights[x] + reward[y] * self._reward_weights[y],
-                self._reward_weights.keys()
-            )
+            reward = sum(map(lambda x: reward[x] * self._reward_weights[x], self._reward_weights.keys()))
         else:
             reward = reward[list(self._reward_weights.keys())[0]]
         return reward
