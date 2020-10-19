@@ -16,6 +16,7 @@ _LOCK_TYPE_MAPPING = {
 
 
 class LockContext(object):
+
     def __init__(self, type_: LockContextType = LockContextType.THREAD_LOCK):
         self.lock = _LOCK_TYPE_MAPPING[type_]()
 

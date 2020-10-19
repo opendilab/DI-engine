@@ -62,7 +62,7 @@ class OnlineIteratorDataLoader:
             self.data_queue = multiprocessing.Queue()
             self.max_length = 10 * self.num_workers
             for i in range(self.num_workers):
-                p = multiprocessing.Process(target=self._worker_loop, args=(i,))
+                p = multiprocessing.Process(target=self._worker_loop, args=(i, ))
                 p.start()
             print('using {} workers loading data'.format(self.num_workers))
 
