@@ -36,7 +36,9 @@ def get_task_uid():
 
 
 def get_manager_node_ip(node_ip=None):
-    '''Look up the manager node of the slurm cluster'''
+    """
+    Look up the manager node of the slurm cluster
+    """
     if 'SLURM_JOB_ID' not in os.environ:
         import logging
         logging.error(

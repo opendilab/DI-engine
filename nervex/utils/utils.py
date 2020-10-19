@@ -1,8 +1,5 @@
-import numbers
 from collections.abc import Sequence
 
-import numpy as np
-import torch
 from torchvision import transforms
 
 
@@ -13,28 +10,6 @@ def transform(height, width):
          transforms.Resize((height, width)),
          transforms.ToTensor()]
     )
-
-
-def deepcopy(data):
-    if data is None:
-        new_data = data
-    elif isinstance(data, dict):
-        new_data = {}
-        for k, v in data.items():
-            new_data[k] = deepcopy(v)
-    elif isinstance(data, Sequence):
-        new_data = []
-        for item in data:
-            new_data.append(deepcopy(item))
-    elif isinstance(data, torch.Tensor):
-        new_data = data.clone()
-    elif isinstance(data, np.ndarray):
-        new_data = np.copy(data)
-    elif isinstance(data, str) or isinstance(data, numbers.Integral):
-        new_data = data
-    else:
-        raise TypeError("invalid data type:{}".format(type(data)))
-    return new_data
 
 
 def list_dict2dict_list(data):
