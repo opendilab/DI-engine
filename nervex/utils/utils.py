@@ -1,16 +1,5 @@
 from collections.abc import Sequence
 
-from torchvision import transforms
-
-
-def transform(height, width):
-    return transforms.Compose(
-        [transforms.ToPILImage(),
-         transforms.Grayscale(),
-         transforms.Resize((height, width)),
-         transforms.ToTensor()]
-    )
-
 
 def list_dict2dict_list(data):
     assert (isinstance(data, Sequence))
@@ -38,13 +27,6 @@ def dict_list2list_dict(data):
     new_data = list(zip(*new_data))
     new_data = [{k: v for k, v in zip(data.keys(), t)} for t in new_data]
     return new_data
-
-
-def merge_two_dicts(x, y):
-    """Merge two dicts into a new dict as a shallow copy."""
-    z = x.copy()
-    z.update(y)
-    return z
 
 
 def override(cls):
