@@ -1,8 +1,23 @@
-from collections.abc import Sequence
-from typing import Union
+from typing import Union, Mapping, List, NamedTuple, Tuple
 
 
-def list_dict2dict_list(data: Sequence) -> Union[list, dict, tuple]:
+def lists_to_dicts(data: Union[List[Union[dict, NamedTuple]], Tuple[Union[dict, NamedTuple]]]) \
+        -> Union[Mapping[object, object], NamedTuple]:
+    """
+    Transform a list of dicts to a dict of lists.
+
+    Args:
+        data (Union[List[Union[dict, NamedTuple]], Tuple[Union[dict, NamedTuple]]]):
+            A dict of lists need to be transformed
+
+    Returns:
+        Union[Mapping[object, object], NamedTuple]: A list of dicts as a result
+
+    Example:
+        >>> from nervex.utils import *
+        >>> lists_to_dicts([{1: 1, 10: 3}, {1: 2, 10: 4}])
+        {1: [1, 2], 10: [3, 4]}
+    """
     if len(data) == 0:
         raise ValueError("empty data")
     if isinstance(data[0], dict):
@@ -14,7 +29,21 @@ def list_dict2dict_list(data: Sequence) -> Union[list, dict, tuple]:
     return new_data
 
 
-def dict_list2list_dict(data: dict) -> list:
+def dicts_to_lists(data: Mapping[object, List[object]]) -> List[Mapping[object, object]]:
+    """
+    Transform a dict of lists to a list of dicts.
+
+    Args:
+        data (Mapping[object, list]): A list of dicts need to be transformed
+
+    Returns:
+        List[Mapping[object, object]]: A dict of lists as a result
+
+    Example:
+        >>> from nervex.utils import *
+        >>> dicts_to_lists({1: [1, 2], 10: [3, 4]})
+        [{1: 1, 10: 3}, {1: 2, 10: 4}]
+    """
     new_data = [v for v in data.values()]
     new_data = [{k: v for k, v in zip(data.keys(), t)} for t in list(zip(*new_data))]
     return new_data
