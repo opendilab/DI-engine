@@ -35,7 +35,9 @@ class SumoDqnGraph(BaseCompGraph):
             target_q_value = agent.target_forward(nextobs_batch)
         else:
             target_q_value = agent.forward(nextobs_batch)
-
+        if isinstance(q_value, torch.Tensor):
+            q_value = [q_value]
+            target_q_value = [target_q_value]
         tl_num = len(q_value)
         loss = []
         for i in range(tl_num):
