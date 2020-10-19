@@ -113,6 +113,7 @@ class DistModule(torch.nn.Module):
     def __init__(self, module, sync=True):
         super(DistModule, self).__init__()
         self.module = module
+        self._extend_module_attr()
         self.broadcast_params()
 
         self.sync = sync
@@ -120,9 +121,13 @@ class DistModule(torch.nn.Module):
             self._grad_accs = []
             self._register_hooks()
         self._create_grad()
-
-    def forward(self, *inputs, **kwargs):
-        return self.module(*inputs, **kwargs)
+    
+    def _extend_module_attr(self):
+        # if you want to use more attributes of torch.nn.module, please extend this module
+        # and overwrite this method or let the repo developer informed.
+        attributes = ['forward', 'state_dict', 'load_state_dict', 'named_parameters']
+        for attr in attributes:
+            setattr(self, attr, getattr(self.module, attr))
 
     def _register_hooks(self):
         for i, (name, p) in enumerate(self.named_parameters()):
@@ -142,7 +147,7 @@ class DistModule(torch.nn.Module):
     def sync_gradients(self):
         """ average gradients """
         if self.sync and link.get_world_size() > 1:
-            for name, param in self.module.named_parameters():
+            for name, param in self.named_parameters():
                 if param.requires_grad:
                     allreduce(param.grad.data)
         else:
@@ -150,15 +155,9 @@ class DistModule(torch.nn.Module):
 
     def broadcast_params(self):
         """ broadcast model parameters """
-        for name, param in self.module.state_dict().items():
+        for name, param in self.state_dict().items():
             link.broadcast(param, 0)
 
     def _create_grad(self):
-        for name, param in self.module.named_parameters():
+        for name, param in self.named_parameters():
             setattr(param, 'grad', torch.zeros_like(param))
-
-    def state_dict(self):
-        return self.module.state_dict()
-
-    def load_state_dict(self, state_dict):
-        self.module.load_state_dict(state_dict)
