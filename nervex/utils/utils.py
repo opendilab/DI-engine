@@ -1,35 +1,26 @@
 from collections.abc import Sequence
+from typing import Union
 
 
-def list_dict2dict_list(data):
-    assert (isinstance(data, Sequence))
+def list_dict2dict_list(data: Sequence) -> Union[list, dict, tuple]:
     if len(data) == 0:
         raise ValueError("empty data")
     if isinstance(data[0], dict):
-        keys = data[0].keys()
-        new_data = {k: [] for k in keys}
-        for b in range(len(data)):
-            for k in keys:
-                new_data[k].append(data[b][k])
+        new_data = {k: [data[b][k] for b in range(len(data))] for k in data[0].keys()}
     elif isinstance(data[0], tuple) and hasattr(data[0], '_fields'):  # namedtuple
-        new_data = list(zip(*data))
-        new_data = type(data[0])(*new_data)
+        new_data = type(data[0])(*list(zip(*data)))
     else:
         raise TypeError("not support element type: {}".format(type(data[0])))
     return new_data
 
 
-def dict_list2list_dict(data):
-    assert (isinstance(data, dict))
-    new_data = []
-    for v in data.values():
-        new_data.append(v)
-    new_data = list(zip(*new_data))
-    new_data = [{k: v for k, v in zip(data.keys(), t)} for t in new_data]
+def dict_list2list_dict(data: dict) -> list:
+    new_data = [v for v in data.values()]
+    new_data = [{k: v for k, v in zip(data.keys(), t)} for t in list(zip(*new_data))]
     return new_data
 
 
-def override(cls):
+def override(cls: type):
     """Annotation for documenting method overrides.
 
     Arguments:
@@ -45,7 +36,7 @@ def override(cls):
     return check_override
 
 
-def squeeze(data):
+def squeeze(data: object):
     if isinstance(data, tuple) or isinstance(data, list):
         if len(data) == 1:
             return data[0]
