@@ -1,4 +1,5 @@
 from abc import ABC
+from types import MethodType
 from typing import Union, Any, List, Callable, Iterable
 
 
@@ -8,11 +9,22 @@ class BaseEnvManager(ABC):
         self._env_num = env_num
         self._envs = [env_fn(c) for c in env_cfg]
         assert len(self._envs) == self._env_num
+        self._closed = False
+
+    def _check_closed(self):
+        assert not self._closed, "env manager is closed, please use the alive env manager"
 
     def __getattr__(self, key: str) -> Any:
         """
         Note: if a python object doesn't have the attribute named key, it will call this method
         """
+        # we suppose that all the envs has the same attributes, if you need different envs, please
+        # create different env managers.
+        if not hasattr(self._envs[0], key):
+            raise AttributeError("env `{}` doesn't have the attribute `{}`".format(type(self._envs[0]), key))
+        if isinstance(getattr(self._envs[0], key), MethodType):
+            raise TypeError("env manager getattr doesn't supports method, please override method_name_list")
+        self._check_closed()
         return [getattr(env, key) if hasattr(env, key) else None for env in self._envs]
 
     @property
@@ -22,6 +34,7 @@ class BaseEnvManager(ABC):
     def reset(self,
               reset_param: Union[None, List[dict]] = None,
               env_id: Union[None, List[int]] = None) -> Union[list, dict]:
+        self._check_closed()
         self._env_done = {}
         for i in (env_id if env_id is not None else range(self.env_num)):
             self._env_done[i] = False
@@ -29,6 +42,7 @@ class BaseEnvManager(ABC):
         return self._envs[0].pack(obs=obs)
 
     def step(self, action: List[Any], env_id: Union[None, List[int]] = None) -> Union[list, dict]:
+        self._check_closed()
         param = self._envs[0].unpack(action)
         ret = self._execute_by_envid('step', param=param, env_id=env_id)
         if isinstance(ret, list):
@@ -40,6 +54,7 @@ class BaseEnvManager(ABC):
         return self._envs[0].pack(timesteps=ret)
 
     def seed(self, seed: List[int], env_id: Union[None, List[int]] = None) -> None:
+        self._check_closed()
         param = [{'seed': s} for s in seed]
         return self._execute_by_envid('seed', param=param, env_id=env_id)
 
@@ -61,8 +76,11 @@ class BaseEnvManager(ABC):
         return ret
 
     def close(self) -> None:
+        if self._closed:
+            return
         for env in self._envs:
             env.close()
+        self._closed = True
 
     @property
     def all_done(self) -> bool:

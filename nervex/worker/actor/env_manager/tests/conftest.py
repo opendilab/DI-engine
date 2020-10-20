@@ -7,6 +7,15 @@ import torch
 from easydict import EasyDict
 
 
+class EnvException(Exception):
+    pass
+
+
+@pytest.fixture(scope='module')
+def setup_exception():
+    return EnvException
+
+
 class FakeEnv(object):
     timestep = namedtuple('timestep', ['obs', 'rew', 'done', 'info'])
 
@@ -14,12 +23,16 @@ class FakeEnv(object):
         self._target_step = random.randint(4, 8) * 3
         self._current_step = 0
         self._name = cfg['name']
+        self._stat = None
+        self._seed = 0
 
     def reset(self, stat):
         self._current_step = 0
         self._stat = stat
 
     def step(self, action):
+        if isinstance(action, str) and action == 'error':
+            raise EnvException("env error")
         obs = torch.randn(3)
         reward = torch.randint(0, 2, size=[1])
         done = self._current_step >= self._target_step
@@ -43,6 +56,13 @@ class FakeEnv(object):
 
     def unpack(self, action):
         return [{'action': act} for act in action]
+
+    def info(self):
+        return {'name': 'FakeEnv'}
+
+    @property
+    def name(self):
+        return self._name
 
 
 # TODO(nyz) pickle can't find conftest.timestep

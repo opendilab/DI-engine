@@ -1,4 +1,5 @@
 from multiprocessing import Process, Pipe
+from types import MethodType
 from typing import Any, Union, List
 
 import cloudpickle
@@ -35,10 +36,12 @@ class SubprocessEnvManager(BaseEnvManager):
             p.start()
         for c in self._child_remote:
             c.close()
-        self._closed = False
 
-    @staticmethod
-    def worker_fn(p, c, env_wrapper) -> None:
+    @property
+    def method_name_list(self) -> list:
+        return ['reset', 'step', 'seed', 'close']
+
+    def worker_fn(self, p, c, env_wrapper) -> None:
         env = env_wrapper.data
         p.close()
         try:
@@ -48,19 +51,23 @@ class SubprocessEnvManager(BaseEnvManager):
                 except EOFError:  # for the case when the pipe has been closed
                     c.close()
                     break
-                if cmd == 'getattr':
-                    c.send(getattr(env, data) if hasattr(env, data) else None)
-                elif cmd in ['reset', 'step', 'seed', 'close']:
-                    if data is None:
-                        c.send(getattr(env, cmd)())
+                try:
+                    if cmd == 'getattr':
+                        ret = getattr(env, data)
+                    elif cmd in self.method_name_list:
+                        if data is None:
+                            ret = getattr(env, cmd)()
+                        else:
+                            ret = getattr(env, cmd)(**data)
                     else:
-                        c.send(getattr(env, cmd)(**data))
-                    if cmd == 'close':
-                        c.close()
-                        break
-                else:
+                        raise KeyError("not support env cmd: {}".format(cmd))
+                    c.send(ret)
+                except Exception as e:
+                    # when there are some errors in env, worker_fn will send the errors to env manager
+                    c.send(e)
+                if cmd == 'close':
                     c.close()
-                    raise KeyError("not support env cmd: {}".format(cmd))
+                    break
         except KeyboardInterrupt:
             c.close()
 
@@ -77,15 +84,31 @@ class SubprocessEnvManager(BaseEnvManager):
                 self._parent_remote[real_env_id[i]].send([fn_name, None])
             else:
                 self._parent_remote[real_env_id[i]].send([fn_name, param[i]])
-        ret = {i: self._parent_remote[i].recv() for i in real_env_id}
+        ret = {i: self.safe_recv(self._parent_remote[i]) for i in real_env_id}
         ret = list(ret.values()) if env_id is None else ret
         return ret
 
+    def safe_recv(self, p, close=False):
+        data = p.recv()
+        if isinstance(data, Exception):
+            # when receiving env Exception, env manager will safely close and raise this Exception to caller
+            if not close:
+                self.close()
+            raise data
+        return data
+
     # override
     def __getattr__(self, key: str) -> Any:
+        self._check_closed()
+        # we suppose that all the envs has the same attributes, if you need different envs, please
+        # create different env managers.
+        if not hasattr(self._envs[0], key):
+            raise AttributeError("env `{}` doesn't have the attribute `{}`".format(type(self._envs[0]), key))
+        if isinstance(getattr(self._envs[0], key), MethodType):
+            raise TypeError("env manager getattr doesn't supports method, please override method_name_list")
         for p in self._parent_remote:
             p.send(['getattr', key])
-        return [p.recv() for p in self._parent_remote]
+        return [self.safe_recv(p) for p in self._parent_remote]
 
     # override
     def close(self) -> None:
@@ -94,7 +117,6 @@ class SubprocessEnvManager(BaseEnvManager):
         super().close()
         for p in self._parent_remote:
             p.send(['close', None])
-        result = [p.recv() for p in self._parent_remote]
+        result = [self.safe_recv(p, close=True) for p in self._parent_remote]
         for p in self._processes:
             p.join()
-        self._closed = True
