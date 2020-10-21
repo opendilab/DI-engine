@@ -5,9 +5,9 @@ import gym
 import torch
 
 from nervex.envs.env.base_env import BaseEnv
-from nervex.envs.gym.cartpole.action.cartpole_action_runner import CartpoleRawActionRunner
-from nervex.envs.gym.cartpole.obs.cartpole_obs_runner import CartpoleObsRunner
-from nervex.envs.gym.cartpole.reward.cartpole_reward_runner import CartpoleRewardRunner
+from .action.cartpole_action_runner import CartpoleRawActionRunner
+from .obs.cartpole_obs_runner import CartpoleObsRunner
+from .reward.cartpole_reward_runner import CartpoleRewardRunner
 
 
 class CartpoleEnv(BaseEnv):

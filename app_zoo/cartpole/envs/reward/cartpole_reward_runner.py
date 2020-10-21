@@ -4,7 +4,7 @@ import torch
 
 from nervex.envs.common import EnvElementRunner
 from nervex.envs.env.base_env import BaseEnv
-from nervex.envs.gym.cartpole.reward.cartpole_reward import CartpoleReward
+from .cartpole_reward import CartpoleReward
 
 
 class CartpoleRewardRunner(EnvElementRunner):

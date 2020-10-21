@@ -2,7 +2,7 @@ import copy
 
 from nervex.envs.common import EnvElementRunner
 from nervex.envs.env.base_env import BaseEnv
-from nervex.envs.gym.cartpole.obs.cartpole_obs import CartpoleObs
+from .cartpole_obs import CartpoleObs
 
 # done
 

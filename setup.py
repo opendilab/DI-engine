@@ -62,7 +62,8 @@ setup(
         'nervex.league',
         'nervex.entry',
         # application(example)
-        'app_zoo.sumo'
+        'app_zoo.sumo',
+        'app_zoo.cartpole',
     ],
     install_requires=[
         'absl-py>=0.1.0',

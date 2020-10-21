@@ -1,6 +1,6 @@
 from nervex.envs.common import EnvElementRunner
 from nervex.envs.env.base_env import BaseEnv
-from nervex.envs.gym.cartpole.action.cartpole_action import CartpoleRawAction
+from .cartpole_action import CartpoleRawAction
 
 
 class CartpoleRawActionRunner(EnvElementRunner):
