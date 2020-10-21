@@ -219,7 +219,7 @@ def get_cuda_time_wrapper() -> Callable[[], 'TimeWrapper']:
     return TimeWrapperCuda
 
 
-def test_time_wrapper():
+if __name__ == "__main__":
 
     class NaiveObject(object):
         pass
@@ -245,7 +245,3 @@ def test_time_wrapper():
     _ = func2(3)
     t = time_handle.end_time()
     print('runtime2', t)
-
-
-if __name__ == "__main__":
-    test_time_wrapper()

@@ -1,4 +1,4 @@
-from typing import Union, Mapping, List, NamedTuple, Tuple
+from typing import Union, Mapping, List, NamedTuple, Tuple, Callable
 
 
 def lists_to_dicts(
@@ -50,7 +50,9 @@ def dicts_to_lists(data: Mapping[object, List[object]]) -> List[Mapping[object, 
     return new_data
 
 
-def override(cls: type):
+def override(cls: type) -> Callable[[
+        Callable,
+], Callable]:
     """Annotation for documenting method overrides.
 
     Arguments:
@@ -58,7 +60,7 @@ def override(cls: type):
             cls does not actually have the method, an error is raised.
     """
 
-    def check_override(method):
+    def check_override(method: Callable) -> Callable:
         if method.__name__ not in dir(cls):
             raise NameError("{} does not override any method of {}".format(method, cls))
         return method
@@ -66,7 +68,7 @@ def override(cls: type):
     return check_override
 
 
-def squeeze(data: object):
+def squeeze(data: object) -> object:
     """
     Squeeze data from tuple, list or dict to single object
     """

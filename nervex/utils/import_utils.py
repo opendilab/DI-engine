@@ -1,6 +1,6 @@
 import importlib
 import logging
-from typing import List, NoReturn
+from typing import List
 
 
 def try_import_ceph():
@@ -42,7 +42,7 @@ def try_import_link():
     return link
 
 
-def import_module(modules: List[str]) -> NoReturn:
+def import_module(modules: List[str]) -> None:
     """
     Import several module as a list
     Args:
