@@ -26,6 +26,7 @@ class FakeSumoWJ3Env(SumoWJ3Env):
         cfg = build_config(cfg)
         super().__init__(cfg)
         self.tls = ['htxdj_wjj', 'haxl_wjj', 'haxl_htxdj']
+        self.count = 0
 
     def reset(self):
         return torch.randn(380)
@@ -39,7 +40,10 @@ class FakeSumoWJ3Env(SumoWJ3Env):
     def step(self, action: list) -> 'FakeSumoWJ3Env.timestep':
         obs = torch.randn(380)
         reward = {k: -torch.rand(1) for k in ['queue_len', 'wait_time', 'delay_time']}
-        return FakeSumoWJ3Env.timestep(obs, reward, False, {'cum_reward': 0})
+        done = self.count >= 200
+        info = {'cum_reward': {k: -torch.rand(1) for k in ['queue_len', 'wait_time', 'delay_time']}}
+        self.count += 1
+        return FakeSumoWJ3Env.timestep(obs, reward, done, info)
 
     def __repr__(self):
         return 'FakeSumoWJ3Env'

@@ -17,8 +17,12 @@ class ActorProducerHook(LearnerHook):
 
     def __call__(self, engine):
         if engine.last_iter.val % self._freq == 0:
+            # at least update buffer once
             for _ in range(self._episode_num):
                 self._runner.collect_data()
+            while not self._runner.is_buffer_enough():
+                for _ in range(self._episode_num):
+                    self._runner.collect_data()
 
 
 class ActorUpdateHook(LearnerHook):
@@ -53,7 +57,7 @@ class SingleMachineRunner():
         self.use_cuda = self.cfg.learner.use_cuda
         self.batch_size = self.cfg.learner.batch_size
         self._setup_env()
-        self.buffer = PrioritizedBuffer(cfg.learner.data.buffer_length, max_reuse=cfg.learner.data.max_reuse)
+        self.buffer = PrioritizedBuffer(cfg.learner.data.buffer_length, cfg.learner.data.max_reuse)
         self.bandit = epsilon_greedy(0.95, 0.05, 100000)
 
         self._setup_learner()
@@ -71,7 +75,6 @@ class SingleMachineRunner():
         )
         self.learner.register_hook(EvaluateHook(self, 100, cfg.actor.eval_step))
         self.actor_step_count = 0
-        self.learner_step_count = 0
 
     def _setup_learner(self):
         raise NotImplementedError
@@ -136,7 +139,6 @@ class SingleMachineRunner():
                         self.actor_step_count, self.buffer.validlen, eps_threshold
                     )
                 )
-        self.learner_step_count += self.train_step
 
     def evaluate(self):
         obs = self.env.reset()
@@ -169,3 +171,8 @@ class SingleMachineRunner():
 
     def run(self):
         self.learner.run()
+
+    def is_buffer_enough(self):
+        bs = self.cfg.learner.batch_size
+        size = int(1.2 * bs * self.train_step) // (self.cfg.learner.data.max_reuse)
+        return self.buffer.validlen >= size
