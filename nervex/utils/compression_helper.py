@@ -1,7 +1,7 @@
 import copy
 import pickle
 import zlib
-from typing import Union, Callable, List
+from typing import Union, Callable, List, Optional
 
 import lz4.block
 import numpy as np
@@ -23,7 +23,7 @@ def function_listed(func: Callable[[
     return _new_func
 
 
-def compress_obs(obs):
+def compress_obs(obs: Optional[dict]) -> Optional[dict]:
     if obs is None:
         return None
     new_obs = {}
@@ -55,7 +55,7 @@ def compress_obs(obs):
     return copy.deepcopy(new_obs)
 
 
-def decompress_obs(obs):
+def decompress_obs(obs: Optional[dict]) -> Optional[dict]:
     if obs is None:
         return None
     new_obs = {}
