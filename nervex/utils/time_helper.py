@@ -220,6 +220,7 @@ def get_cuda_time_wrapper() -> Callable[[], 'TimeWrapper']:
 
 
 def test_time_wrapper():
+
     class NaiveObject(object):
         pass
 

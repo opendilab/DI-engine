@@ -2,7 +2,7 @@ from typing import Union, Mapping, List, NamedTuple, Tuple
 
 
 def lists_to_dicts(
-        data: Union[List[Union[dict, NamedTuple]], Tuple[Union[dict, NamedTuple]]]
+    data: Union[List[Union[dict, NamedTuple]], Tuple[Union[dict, NamedTuple]]]
 ) -> Union[Mapping[object, object], NamedTuple]:
     """
     Transform a list of dicts to a dict of lists.

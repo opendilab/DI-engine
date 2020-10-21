@@ -34,7 +34,8 @@ def get_pid() -> int:
 
 def get_task_uid() -> str:
     return os.getenv('SLURM_JOB_ID', 'PID{pid}UUID{uuid}'.format(
-        pid=str(get_pid()), uuid=str(uuid.uuid1()),
+        pid=str(get_pid()),
+        uuid=str(uuid.uuid1()),
     )) + '_' + str(time.time())
 
 
