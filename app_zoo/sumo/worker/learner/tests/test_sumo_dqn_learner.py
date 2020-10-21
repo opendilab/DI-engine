@@ -2,8 +2,8 @@ import os
 
 import pytest
 
-from nervex.envs.sumo.fake_dataset import FakeSumoDataset
-from nervex.worker.learner.sumo_dqn_learner import SumoDqnLearner
+from app_zoo.sumo.envs.fake_dataset import FakeSumoDataset
+from app_zoo.sumo.worker.learner.sumo_dqn_learner import SumoDqnLearner
 
 
 @pytest.mark.unittest

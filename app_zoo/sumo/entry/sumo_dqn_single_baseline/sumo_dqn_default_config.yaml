@@ -37,7 +37,6 @@ learner:
                 freq: 50
 env:
     env_num: 8
-    env_type: 'normal'
     stop_val: -2000
 actor:
     episode_num: 1

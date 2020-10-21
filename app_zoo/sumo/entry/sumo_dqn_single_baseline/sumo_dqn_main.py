@@ -2,11 +2,11 @@ import argparse
 import copy
 
 from nervex.entry.base_single_machine import SingleMachineRunner
-from nervex.envs.sumo.sumo_env import SumoWJ3Env
 from nervex.utils import read_config
 from nervex.worker import SubprocessEnvManager
-from nervex.worker.agent.sumo_dqn_agent import SumoDqnActorAgent, SumoDqnEvaluateAgent
-from nervex.worker.learner.sumo_dqn_learner import SumoDqnLearner
+from app_zoo.sumo.envs.sumo_env import SumoWJ3Env
+from app_zoo.sumo.worker.agent.sumo_dqn_agent import SumoDqnActorAgent, SumoDqnEvaluateAgent
+from app_zoo.sumo.worker.learner.sumo_dqn_learner import SumoDqnLearner
 
 
 class SumoRunner(SingleMachineRunner):

@@ -7,13 +7,13 @@ from typing import List, Dict
 
 import torch
 
-from nervex.envs.sumo import SumoWJ3Env, FakeSumoWJ3Env
 from nervex.model import FCDQN
 from nervex.torch_utils import tensor_to_list, to_device
 from nervex.utils import get_step_data_compressor
 from nervex.worker.actor import BaseActor, register_actor
 from nervex.worker.actor.env_manager import SubprocessEnvManager
-from nervex.worker.agent.sumo_dqn_agent import SumoDqnActorAgent
+from app_zoo.sumo.envs import SumoWJ3Env, FakeSumoWJ3Env
+from app_zoo.sumo.worker.agent.sumo_dqn_agent import SumoDqnActorAgent
 
 
 class SumoWJ3Actor(BaseActor):

@@ -5,7 +5,7 @@ from threading import Thread
 import pytest
 
 from nervex.worker.actor import create_actor, register_actor
-from nervex.worker.actor.sumowj3_actor_controller import SumoWJ3Actor
+from app_zoo.sumo.worker.actor.sumowj3_actor_controller import SumoWJ3Actor
 
 
 class FakeSumoWJ3Actor(SumoWJ3Actor):

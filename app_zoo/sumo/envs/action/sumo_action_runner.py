@@ -1,6 +1,6 @@
 from nervex.envs.common import EnvElementRunner
 from nervex.envs.env.base_env import BaseEnv
-from nervex.envs.sumo.action.sumo_action import SumoRawAction
+from .sumo_action import SumoRawAction
 
 
 class SumoRawActionRunner(EnvElementRunner):

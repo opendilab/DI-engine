@@ -1,6 +1,6 @@
 from nervex.envs.common import EnvElementRunner
 from nervex.envs.env.base_env import BaseEnv
-from nervex.envs.sumo.reward.sumo_reward import SumoReward
+from .sumo_reward import SumoReward
 
 
 class SumoRewardRunner(EnvElementRunner):

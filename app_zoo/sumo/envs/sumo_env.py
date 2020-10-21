@@ -10,10 +10,10 @@ from easydict import EasyDict
 from sumolib import checkBinary
 
 from nervex.envs.env.base_env import BaseEnv
-from nervex.envs.sumo.action.sumo_action_runner import SumoRawActionRunner
-from nervex.envs.sumo.obs.sumo_obs_runner import SumoObsRunner
-from nervex.envs.sumo.reward.sumo_reward_runner import SumoRewardRunner
 from nervex.utils import merge_dicts
+from app_zoo.sumo.envs.action.sumo_action_runner import SumoRawActionRunner
+from app_zoo.sumo.envs.obs.sumo_obs_runner import SumoObsRunner
+from app_zoo.sumo.envs.reward.sumo_reward_runner import SumoRewardRunner
 
 
 def build_config(user_config):

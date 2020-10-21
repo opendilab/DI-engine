@@ -7,13 +7,13 @@ Main Function:
 
 import os.path as osp
 
-from nervex.computation_graph.sumo_dqn_computation_graph import SumoDqnGraph
 from nervex.data import default_collate
-from nervex.envs.sumo.sumo_env import SumoWJ3Env
 from nervex.model import FCDQN
 from nervex.utils import override, merge_dicts, read_config
-from nervex.worker.agent.sumo_dqn_agent import SumoDqnLearnerAgent
 from nervex.worker.learner import BaseLearner, register_learner
+from app_zoo.sumo.envs.sumo_env import SumoWJ3Env
+from app_zoo.sumo.computation_graph.sumo_dqn_computation_graph import SumoDqnGraph
+from app_zoo.sumo.worker.agent.sumo_dqn_agent import SumoDqnLearnerAgent
 
 default_config = read_config(osp.join(osp.dirname(__file__), "sumo_dqn_learner_default_config.yaml"))
 

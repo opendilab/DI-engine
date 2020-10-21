@@ -10,7 +10,7 @@ replay_buffer:
     unroll_len: 1
 learner:
     learner_type: 'sumo_dqn'
-    import_names: ['nervex.worker.learner.sumo_dqn_learner']
+    import_names: ['app_zoo.sumo.worker.learner.sumo_dqn_learner']
     use_cuda: False
     use_distributed: False
     max_iterations: 10000000
@@ -58,7 +58,7 @@ env:
     stop_val: -2000
 actor:
     actor_type: 'sumowj3'
-    import_names: ['nervex.worker.actor.sumowj3_actor_controller']
+    import_names: ['app_zoo.sumo.worker.actor.sumowj3_actor_controller']
     use_cuda: False
     print_freq: 20
     episode_num: 2

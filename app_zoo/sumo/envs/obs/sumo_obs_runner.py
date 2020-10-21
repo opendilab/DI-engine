@@ -1,6 +1,6 @@
 from nervex.envs.common import EnvElementRunner
 from nervex.envs.env.base_env import BaseEnv
-from nervex.envs.sumo.obs.sumo_obs import SumoObs
+from .sumo_obs import SumoObs
 
 
 class SumoObsRunner(EnvElementRunner):
