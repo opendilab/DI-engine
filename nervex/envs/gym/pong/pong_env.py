@@ -89,14 +89,14 @@ class PongEnv(BaseEnv):
     def reset(self):
         if not self._launch_env_flag:
             self._launch_env()
-        ret = self._env.reset().transpose((2, 0, 1))
+        self._pong_obs = self._env.reset().transpose((2, 0, 1))
         self._reward_helper.reset()
         self._obs_helper.reset()
         self._action_helper.reset()
-        ret = torch.from_numpy(ret).float()
+        self.obs = self._obs_helper.get(self)
         if self._wrap_frame and self._use_torch_wrap_frame:
-            ret = transform(self._wrap_frame_height, self._wrap_frame_width)(ret)
-        return ret
+            self.obs = transform(self._wrap_frame_height, self._wrap_frame_width)(self.obs)
+        return self.obs
 
     def close(self):
         self._env.close()

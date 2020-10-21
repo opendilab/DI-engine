@@ -309,7 +309,7 @@ def one_hot(val, num, num_first=False):
         this implementation can be slightly faster than torch.nn.functional.one_hot
 
     Arguments:
-        - val (:obj:`torch.LongTensor`): each element contains the state to be encoded
+        - val (:obj:`torch.LongTensor`): each element contains the state to be encoded, the range should be [0, num-1]
         - num (:obj:`int`): number of states of the one hot encoding
         - num_first (:obj:`bool`)
 

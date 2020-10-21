@@ -16,7 +16,12 @@ class DataTransformHelper(IAgentStatelessPlugin):
                 data = args[0]
                 ret = fn(data, **kwargs)
                 # tl_num, bs -> bs, tl_num
-                return [list(zip(*r)) for r in ret]
+                result = list()
+                for r in ret:
+                    if isinstance(r, torch.Tensor) and len(r.shape) == 1:
+                        r = [r]
+                    result.append(list(zip(*r)))
+                return result
 
             return wrapper
 

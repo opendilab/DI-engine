@@ -21,15 +21,17 @@ style:
 pages:
   stage: doc
   script:
-  - pip install -e .
-  - pip install sphinx sphinx_rtd_theme
-  - cd nervex/docs
-  - make html
-  - mv build/html ../../public
-  - rm -r build
+    - pip install -e .
+    - pip install sphinx sphinx_rtd_theme
+    - cd nervex/docs
+    - make html
+    - mv build/html ../../public
+    - rm -r build
   artifacts:
     paths:
-    - public
+      - public
+  only:
+    - master
 
 test:
   stage: test
