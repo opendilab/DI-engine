@@ -11,8 +11,8 @@ replay_buffer:
 learner:
     learner_type: 'sumo_dqn'
     import_names: ['nervex.worker.learner.sumo_dqn_learner']
-    use_cuda: True
-    use_distributed: True
+    use_cuda: False
+    use_distributed: False
     max_iterations: 10000000
     train_step: 200
     batch_size: 64
@@ -39,13 +39,13 @@ learner:
             priority: 20
             position: after_iter
             ext_args:
-                freq: 1
+                freq: 50
     communication:
         type: 'flask_fs'
-        upstream_ip: '10.5.36.31'
-        upstream_port: 13297
-        learner_ip: 'auto'
-        learner_port: 13295
+        upstream_ip: '127.0.0.1'
+        upstream_port: 16297
+        learner_ip: 127.0.0.1
+        learner_port: 16295
         heartbeats_freq: 50
         send_agent_freq: 10
         send_train_info_freq: 10
@@ -53,13 +53,13 @@ learner:
         path_agent: '.'
         restore: False
 env:
-    env_num: 8
-    env_type: 'normal'  # ['normal', 'fake']
+    env_num: 4
+    env_type: 'fake'  # ['normal', 'fake']
     stop_val: -2000
 actor:
     actor_type: 'sumowj3'
     import_names: ['nervex.worker.actor.sumowj3_actor_controller']
-    use_cuda: True
+    use_cuda: False
     print_freq: 20
     episode_num: 2
     communication:
@@ -67,8 +67,8 @@ actor:
         path_agent: '.'
         path_traj: '.'
         heartbeats_freq: 30
-        upstream_ip: '10.5.36.31'
-        upstream_port: 13296
+        upstream_ip: '127.0.0.1'
+        upstream_port: 16296
 league:
     league_type: 'static'
     import_names: ['nervex.league.static_league_manager']
@@ -84,14 +84,14 @@ league:
         path_agent: '.'
         path_traj: '.'
 system:
-    manager_ip: '10.5.36.31'
-    manager_port: 13296
-    coordinator_ip: '10.5.36.31'
-    coordinator_port: 13297
+    manager_ip: '127.0.0.1'
+    manager_port: 16296
+    coordinator_ip: '127.0.0.1'
+    coordinator_port: 16297
     resume_dir: '.'
     manager_resume_path:
     coordinator_resume_path:
     coordinator_check_dead_learner_freq: 300
-    league_manager_ip: 'auto'
-    league_manager_port: 13298
-    actor_num: 1
+    league_manager_ip: '127.0.0.1'
+    league_manager_port: 16298
+    actor_num: 2

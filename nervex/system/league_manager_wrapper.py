@@ -13,14 +13,14 @@ class LeagueManagerWrapper(object):
     def __init__(self, cfg):
         self.cfg = cfg
 
-        if 'league_manager_ip' in self.cfg.system.keys():
-            self.league_manager_ip = self.cfg.system.league_manager_ip
-        else:
+        if 'league_manager_ip' not in self.cfg.system.keys() or self.cfg.system.league_manager_ip == 'auto':
             self.league_manager_ip = os.environ.get('SLURMD_NODENAME', '')  # hostname like SH-IDC1-10-5-36-236
+        else:
+            self.league_manager_ip = self.cfg.system.league_manager_ip
         if not self.league_manager_ip:
             raise ValueError('league_manager_ip must be ip address, but found {}'.format(self.league_manager_ip))
-        self.coordinator_ip = self.cfg['system']['coordinator_ip']
-        self.coordinator_port = self.cfg['system']['coordinator_port']
+        self.coordinator_ip = self.cfg.system.coordinator_ip
+        self.coordinator_port = self.cfg.system.coordinator_port
         self.path_agent = self.cfg.league.communication.path_agent
 
         self.url_prefix = 'http://{}:{}/'.format(self.coordinator_ip, self.coordinator_port)
@@ -109,7 +109,8 @@ class LeagueManagerWrapper(object):
         self.league_manager.update_active_player(player_info)
         return True
 
-    def get_ip(self):
+    @property
+    def ip(self):
         return self.league_manager_ip
 
     def close(self):
