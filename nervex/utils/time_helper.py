@@ -6,11 +6,13 @@ Main Function:
         of the given inputs.
 """
 import time
+from typing import Callable
 
 import torch
+from easydict import EasyDict
 
 
-def build_time_helper(cfg=None, wrapper_type=None):
+def build_time_helper(cfg: EasyDict = None, wrapper_type: str = None) -> Callable[[], 'TimeWrapper']:
     r"""
     Overview:
         build the timehelper
@@ -32,6 +34,9 @@ def build_time_helper(cfg=None, wrapper_type=None):
         time_wrapper_type = wrapper_type
     elif cfg is not None:
         time_wrapper_type = cfg.common.time_wrapper_type
+    else:
+        raise RuntimeError('Either wrapper_type or cfg should be provided.')
+
     if time_wrapper_type == 'time' or (not torch.cuda.is_available()):
         return TimeWrapperTime
     elif time_wrapper_type == 'cuda':
@@ -51,9 +56,9 @@ class EasyTimer:
 
     Example:
         >>> wait_timer = EasyTimer()
-        >>> with wait_timer: \
+        >>> with wait_timer:
         >>>    func(...)
-        >>> time = wait_timer.value  # in second
+        >>> time_ = wait_timer.value  # in second
     """
 
     def __init__(self, cuda=True):
@@ -162,7 +167,7 @@ class TimeWrapperTime(TimeWrapper):
         return cls.end - cls.start
 
 
-def get_cuda_time_wrapper():
+def get_cuda_time_wrapper() -> Callable[[], 'TimeWrapper']:
     r"""
     Overview:
         Return the TimeWrapperCuda class
@@ -215,7 +220,6 @@ def get_cuda_time_wrapper():
 
 
 def test_time_wrapper():
-
     class NaiveObject(object):
         pass
 
@@ -237,7 +241,7 @@ def test_time_wrapper():
 
     # usage 2
     time_handle.start_time()
-    ret = func2(3)
+    _ = func2(3)
     t = time_handle.end_time()
     print('runtime2', t)
 

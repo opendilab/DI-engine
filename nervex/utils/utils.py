@@ -1,8 +1,9 @@
 from typing import Union, Mapping, List, NamedTuple, Tuple
 
 
-def lists_to_dicts(data: Union[List[Union[dict, NamedTuple]], Tuple[Union[dict, NamedTuple]]]) \
-        -> Union[Mapping[object, object], NamedTuple]:
+def lists_to_dicts(
+        data: Union[List[Union[dict, NamedTuple]], Tuple[Union[dict, NamedTuple]]]
+) -> Union[Mapping[object, object], NamedTuple]:
     """
     Transform a list of dicts to a dict of lists.
 
@@ -66,6 +67,9 @@ def override(cls: type):
 
 
 def squeeze(data: object):
+    """
+    Squeeze data from tuple, list or dict to single object
+    """
     if isinstance(data, tuple) or isinstance(data, list):
         if len(data) == 1:
             return data[0]
