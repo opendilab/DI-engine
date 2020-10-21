@@ -17,22 +17,18 @@ from nervex.utils import read_file, save_file
 logger = logging.getLogger('default_logger')
 
 
-def build_checkpoint_helper(cfg, rank):
+def build_checkpoint_helper(cfg):
     r"""
     Overview:
         Use config to build checkpoint helper.
 
     Arguments:
         - cfg (:obj:`dict`): ckpt_helper config
-        - rank (:obj:`int`): the rank of the caller, only rank0 can build checkpoint_helper
 
     Returns:
         - (:obj:`CheckpointHelper`): checkpoint_helper created by this function
     """
-    if rank == 0:
-        return CheckpointHelper()
-    else:
-        return None
+    return CheckpointHelper()
 
 
 class CheckpointHelper(object):
@@ -115,14 +111,14 @@ class CheckpointHelper(object):
             - prefix (:obj:`str`): prefix to be processed on state_dict
         """
         checkpoint = {}
-        state_dict = model.state_dict()
-        if prefix_op is not None:  # remove or add prefix to state_dict.keys()
+        model = model.state_dict()
+        if prefix_op is not None:  # remove or add prefix to model.keys()
             prefix_func = {'remove': self._remove_prefix, 'add': self._add_prefix}
             if prefix_op not in prefix_func.keys():
                 raise KeyError('invalid prefix_op:{}'.format(prefix_op))
             else:
-                state_dict = prefix_func[prefix_op](state_dict, prefix)
-        checkpoint['state_dict'] = state_dict
+                model = prefix_func[prefix_op](model, prefix)
+        checkpoint['model'] = model
 
         if optimizer is not None:  # save optimizer
             assert (last_iter is not None or last_epoch is not None)
@@ -215,7 +211,7 @@ class CheckpointHelper(object):
         # TODO save config
         # Note: for reduce first GPU memory cost and compatible for cpu env
         checkpoint = read_file(load_path)
-        state_dict = checkpoint['state_dict']
+        state_dict = checkpoint['model']
         if prefix_op is not None:
             prefix_func = {'remove': self._remove_prefix, 'add': self._add_prefix}
             if prefix_op not in prefix_func.keys():

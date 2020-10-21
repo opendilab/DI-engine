@@ -78,7 +78,7 @@ class BaseLearner(ABC):
         self._logger, self._tb_logger, self._record = build_logger(self._cfg, rank=self._rank)
         self._log_buffer = build_log_buffer()
         # checkpoint helper
-        self._checkpointer_manager = build_checkpoint_helper(self._cfg, rank=self._rank)
+        self._checkpointer_manager = build_checkpoint_helper(self._cfg)
         if self._rank == 0:
             self.register_stats()
         self.info(
