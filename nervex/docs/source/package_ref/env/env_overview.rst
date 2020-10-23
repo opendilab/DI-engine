@@ -69,6 +69,14 @@ Environment
                 def __repr__(self) -> str:
                     raise NotImplementedError
 
+                @abstractmethod
+                def pack(self, timesteps: List['BaseEnv.timestep'] = None, obs: Any = None) -> 'BaseEnv.timestep':
+                    raise NotImplementedError
+
+                @abstractmethod
+                def unpack(self, action: Any) -> List[Any]:
+                    raise NotImplementedError
+
         - 概述：
             环境基类，用于和外部智能体进行交互
 
@@ -85,6 +93,8 @@ Environment
             5. seed: 设置环境随机种子
             6. info: 返回环境基本信息，包含智能体数目，观察空间维度信息等
             7. __repr__: 返回环境类状态说明的字符串
+            8. pack: (env->agent) 对多个环境的timestep或obs进行组装打包，外界可以按照原有的属性进行访问。例如timestep.reward就可获得所有环境的reward
+            9. unpack: (agent->env) 对组装好的action进行拆分，拆解成可以直接传给各个环境的形式。
 
             .. note::
 

@@ -1,10 +1,9 @@
 .. role:: math
    :format: html latex
-..
 
 
 RL Warmup
-===============================
+===========================
 
 导论/Intro
 -------------
@@ -156,8 +155,6 @@ DP的效率问题
 
  怎样理解 Curse of Dimensionality（维数灾难） `<https://www.zhihu.com/question/27836140>`_
 
-用当前估计的 :math:`V(S_{t+1})` 代替真实的 :math:`v_{\pi}(S_{t+1})`
-
 蒙特卡洛方法(MC)
 ~~~~~~~~~~~~~~~~
 
@@ -166,12 +163,8 @@ DP的效率问题
 
 同轨策略与离轨策略
 
-- 同轨策略(on policy)
-
-  - 用于生成采样数据序列的策略和用于实际决策的待评估和改进策略是相同的
-- 离轨策略(off policy)
-
-  - 用于生成采样数据序列的策略和用于实际决策的待评估和改进策略是不同的，即生成的数据“离开”了待优化的策略锁决定的决策序列轨迹
+- 同轨策略(on policy): 用于生成采样数据序列的策略和用于实际决策的待评估和改进策略是相同的
+- 离轨策略(off policy): 用于生成采样数据序列的策略和用于实际决策的待评估和改进策略是不同的，即生成的数据“离开”了待优化的策略锁决定的决策序列轨迹
 
 蒙特卡洛方法对比DP的优势
 
@@ -188,29 +181,34 @@ DP的效率问题
 时序差分学习(TD)
 ~~~~~~~~~~~~~~~~~~~~
 
-TD与MC的对比
-- MC更新的目标是 :math:`G_t` 即时刻t的真实回报， 而TD(此时讨论单步TD即TD(0))更新的目标是 :math:`R_{t+1} + \gamma V(S_{t+1})`
+TD loss的基本形式: :math:`\delta_{t} = R_{t+1} + \gamma V(S_{t+1}) - V(S_t)`
 
-TD loss:
- :math:`\delta_{t} = R_{t+1} + \gamma V(S_{t+1}) - V(S_t)`
+.. note::
+
+    TD与MC的对比: MC更新的目标是 :math:`G_t` 即时刻t的真实回报， 而TD(此时讨论单步TD即TD(0))更新的目标是 :math:`R_{t+1} + \gamma V(S_{t+1})`
+
 
 Sarsa
 ^^^^^^^^^^^^^^^^
  :math:`Q(S_t, A_t) \leftarrow Q(S_t,A_t) + \alpha[R_{t+1} + \gamma Q(S_{t+1}, A_{t+1}) - Q(S_t, A_t)]`
-
-Question:为什么说Sarsa是on-policy算法？
 
 
 Q-learning
 ^^^^^^^^^^^^^^^^
  :math:`Q(S_t, A_t) \leftarrow Q(S_t, A_t) + \alpha[R_{t+1} + \gamma {argmax}_a Q(S_{t+1}, a) - Q(S_t, A_t)]`
 
-Question:为什么说Q-learning是off-policy算法？
+.. tip::
 
-随着深度学习的发展，Q-learning在与神经网络相结合后，衍生出了很多相关的深度学习算法，如DQN等。 Q值的估计也是基本的三种critic方式中较为常用的一种。
+    为什么说Sarsa是on-policy算法？而为什么说Q-learning是off-policy算法？
 
-双学习
-^^^^^^^^^^^^^^^^
+
+深度Q网络(DQN)
+^^^^^^^^^^^^^^^^^
+
+随着深度学习的发展，研究者们将Q-learning和神经网络相结合提出了DQN，其算法核心是维护Q函数并使用它进行决策。
+
+双学习(Double DQN)
+^^^^^^^^^^^^^^^^^^^
 
 对于Q-learning的双学习优化是2010年在 `Deep Reinforcement Learning with Double Q-learning <https://arxiv.org/abs/1509.06461>`_ 中提出的。
 
@@ -269,18 +267,6 @@ Q8: 算法中的value(state function), Q值(state-action function)和advantage�
 RL Algorithm
 ~~~~~~~~~~~~
 
-# 分开off policy和on policy（基于pg, q-value, actor-critic的方法不要混在一起）
-
-Off policy:
-value-based: DQN, Double DQN, Dueling DQN
-actor-critic: ddpg, td3, sac
-
-On policy:
-policy-based: pg, trpo, ppo
-actor-critic: a2c
-
-# 关于Replay Buffer的改进单独开一个部分写，参考buffer相关的paper
-
 DQN
 ^^^^^^^
 DQN在 `Playing Atari with Deep Reinforcement Learning <https://arxiv.org/abs/1312.5602>`_ 一文中被提出，将Q-learning的思路与神经网络结合。一年后做出了微小改进后又发表在 `Human-level control through deep reinforcement learning <https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf>`_ 一文;
@@ -296,11 +282,12 @@ DQN使用神经网络接受state输入进行价值估计，然后使用argmax选
 
    Importance Sampling的直观理解是：首先我们想计算f(x)的期望，其中x服从分布p；
    但我们却因为某些原因只能从分布q进行采样，因此要在f(x)上乘上一个系数p/q，来做一个修正，使得二者在期望上相等。公式表示为：
-    :math:`\mathbb{E}_{x\sim p} = \int f(x)p(x)dx = \int f(x)\frac{p(x)}{q(x)}q(x)dx = \mathbb{E}_{x\sim q}[f(x)\frac{p(x)}{q(x)}]`
+   
+   :math:`\mathbb{E}_{x\sim p} = \int f(x)p(x)dx = \int f(x)\frac{p(x)}{q(x)}q(x)dx = \mathbb{E}_{x\sim q}[f(x)\frac{p(x)}{q(x)}]`
 
    在one-step的Q-learning中， :math:`Q(s,a)`
-   需要去拟合
-    :math:`r(s,a)+\gamma \mathop{max}\limits_{a^*}Q(s',a^*)`
+   需要去拟合 :math:`r(s,a)+\gamma \mathop{max}\limits_{a^*}Q(s',a^*)`
+
    对于当前的 :math:`s,a` ， :math:`r(s,a)` 是由环境反馈得来的， :math:`s'` 是环境step后得到的，都与是否为off-policy无关。
    接下来在寻找使得Q函数最大的 :math:`a^*` 时，是通过原始策略 :math:`\pi` （对应当前的Q函数）计算得到的，同样与采样的策略 :math:`\mu` 无关。
    这意味着，尽管我们使用了不同的策略采样，但是它在训练的时候没有发挥任何作用，因此不需要重要性采样来修正。
@@ -310,8 +297,8 @@ DQN使用神经网络接受state输入进行价值估计，然后使用argmax选
    即使采样a1和a2的概率 :math:`p(a1|x), p(a2|x)` 改变了，也不会影响到 :math:`Q(s,a1), Q(s,a2)` ，因此不需要修正。
 
    而在n-step的Q-learning中， :math:`Q(s,a)`
-   需要去拟合
-    :math:`\sum_{t=0}^{n-1}\gamma^t r(s_t,a_t) + \gamma^n \mathop{max}\limits_{a^*}Q(s_n,a^*)`
+   需要去拟合 :math:`\sum_{t=0}^{n-1}\gamma^t r(s_t,a_t) + \gamma^n \mathop{max}\limits_{a^*}Q(s_n,a^*)`
+
    同one-step情况，:math:`r(s_0,a_0)` 和 :math:`s_1` 都与是否为off-policy无关。
    但之后在确定接下来的动作 :math:`a_1` 时，是根据当前采样的策略 :math:`\mu` 得到的，而不是原始的策略 :math:`\pi` 。
    同样，对于后面的 :math:`a_2, a_3, ...` ，都存在概率分布不同的情况，因此我们就需要使用重要性采样的方法对不同的分布进行修正，
@@ -354,7 +341,7 @@ nerveX系统中buffer的实现结构可见下图：
    
    有关于Double、Dueling DQN和prioritized replay DQN的算法实现可以参考Github上的 `RL-Adventure <https://github.com/higgsfield/RL-Adventure>`_， 该repo上的各种DQN实现较全，尽管torch版本较低，但不失作为参考。
 
-   DQN算法在nervex框架中的入口可以参考 `nervx框架下的DQN实现 <http://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/blob/master/nervex/rl_utils/algorithms/sumo_dqn_main.py>`_。
+   DQN算法在nervex框架中的入口可以参考 `nervx框架下的DQN实现 <http://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/blob/master/nervex/app_zoo/cartpole/entry/cartpole_dqn_main.py>`_。
 
 
 
@@ -414,9 +401,11 @@ Policy Gradient公式及其推导过程:
 :math:`R(\tau) - b \rightarrow \sum_{t' =t}^{T_n} (r_{t'}^{n} - b) \rightarrow \sum_{t' = t}^{T_n} (\gamma^{t' - t}r_{t'}^{n} - b)` ， 
 这一项可以称为advantage。
 
-优点：对于连续的策略参数化，动作选择的概率会平滑的变化；而基于动作价值函数的方法会随Q值变化而导致动作选择的概率有很大变化。因此，基于policy gradient的方法能比基于动作价值函数的方法有更好的收敛性保证。
+.. note::
 
-缺点：在没有自举的时候，方差相对较高，学习相对较慢。因此引入了advantage。
+    优点：对于连续的策略参数化，动作选择的概率会平滑的变化；而基于动作价值函数的方法会随Q值变化而导致动作选择的概率有很大变化。因此，基于policy gradient的方法能比基于动作价值函数的方法有更好的收敛性保证。
+
+    缺点：在没有自举的时候，方差相对较高，学习相对较慢。因此引入了advantage。
 
 
 Actor Critic
@@ -492,7 +481,8 @@ PPO利用一个期望上的等同，使得可以使用旧策略下的概率分�
 这样梯度下降的公式就可以转换为：
 
 :math:`J^{\theta'}(\theta) = E_{(s_t, a_t)~\pi_{\theta'}} [\frac{p_{\theta}(a_t | s_t)}{p_{\theta'}(a_t | s_t)} A^{\theta'}(s_t, a_t)]`
- 其中 :math:`A^{\theta'}(s_t, a_t)` 即为 :math:`\theta'` 策略下的advantage
+ 
+其中 :math:`A^{\theta'}(s_t, a_t)` 即为 :math:`\theta'` 策略下的advantage
 
 该公式虽然在大样本量的情况下没有偏差，但是在sample样本过小的时候，若两个策略的概率分布 :math:`\theta ~ p(x)` 与 :math:`\theta' ~ q(x)` 相差过大，则会产生很大的方差，导致训练结果不稳定难以收敛。
 
@@ -504,7 +494,8 @@ PPO利用一个期望上的等同，使得可以使用旧策略下的概率分�
 TRPO在梯度推导时大致就是：
 
 :math:`J_{TRPO}^{\theta'}(\theta) = J^{\theta'}(\theta) | KL(\theta, \theta') < \delta` 
- 其中 :math:`J^{\theta'}(\theta) = E_{(s_t, a_t)~\pi_{\theta'}} [\frac{p_{\theta}(a_t | s_t)}{p_{\theta'}(a_t | s_t)} A^{\theta'}(s_t, a_t)]` 
+ 
+其中 :math:`J^{\theta'}(\theta) = E_{(s_t, a_t)~\pi_{\theta'}} [\frac{p_{\theta}(a_t | s_t)}{p_{\theta'}(a_t | s_t)} A^{\theta'}(s_t, a_t)]` 
 
 而目前的PPO则是有两个种实现方式，PPO1和PPO2。
 
@@ -650,25 +641,34 @@ c图所示即为IMPALA，完全把actor和learner分开异步进行，这样acto
 首先我们定义learner上的策略为 :math:`\mu` ，这是要更新的策略，也是当前最新的策略；并定义某个actor上的策略为 :math:`\pi` ，这是用于采样的策略，它可能落后于 :math:`\mu`。
 算法中需要根据采样到的样本来学习一个状态价值函数 :math:`V(x)` ，V-trace的目的是根据采样得到的 :math:`\{x_t, a_t, r_t, \mu(a_t|x_t)\}`
 和当前的 :math:`V(x)` 来为当前状态价值给出一个修正后的估计 :math:`v_s` ，它定义为：
- :math:`v_s \overset{def}{=} V(x_s) + \sum_{t=s}^{s+n-1}\gamma^{t-s}(\prod_{i=s}^{t-1}c_i)\delta_tV` ，
-其中
- :math:`\delta_tV \overset{def}{=} \rho_t(r_t+\gamma V(x_{t+1})-V(x_t))` ，
- :math:`\rho_t \overset{def}{=} min(\bar{\rho}, \frac{\pi(a_i|x_i)}{\mu(a_i|x_i)})` ,
- :math:`c_i \overset{def}{=} min(\bar{c}, \frac{\pi(a_i|x_i)}{\mu(a_i|x_i)}), \prod_{i=s}^{t-1}ci=1 \space for \space s=t` ，
+
+:math:`v_s \overset{def}{=} V(x_s) + \sum_{t=s}^{s+n-1}\gamma^{t-s}(\prod_{i=s}^{t-1}c_i)\delta_tV` ，
+ 
+:math:`\delta_tV \overset{def}{=} \rho_t(r_t+\gamma V(x_{t+1})-V(x_t))` ，
+ 
+:math:`\rho_t \overset{def}{=} min(\bar{\rho}, \frac{\pi(a_i|x_i)}{\mu(a_i|x_i)})` ,
+ 
+:math:`c_i \overset{def}{=} min(\bar{c}, \frac{\pi(a_i|x_i)}{\mu(a_i|x_i)}), \prod_{i=s}^{t-1}ci=1 \space for \space s=t` ，
+
 并且我们假定 :math:`\bar{\rho}>\bar{c}` 。
 
 在论文 `Safe and Efficient Off-Policy Reinforcement Learning <https://arxiv.org/abs/1606.02647>`_ 中提出的
-Retrace方法是针对off-policy Q-learning进行修正，IMPALA将其扩展到了off-policy actor-critic算法中。Retrace中提出的return-based off-policy算法的通用表达式为：
- :math:`\mathcal{R}Q(x,a) \overset{def}{=} Q(x,a) + \mathbb{E}_\mu[\sum_{t\geq0}\gamma^t(\prod_{s=1}^tc_s)(r_t+\gamma \mathbb{E}_\pi Q(x_{t+1, \cdot})-Q(x_t,a_t))]` ，
-可以看出来，二者十分相似。
+Retrace方法是针对off-policy Q-learning进行修正，IMPALA将其扩展到了off-policy actor-critic算法中。Retrace中提出的return-based off-policy算法的通用表达式为： 
 
+:math:`\mathcal{R}Q(x,a) \overset{def}{=} Q(x,a) + \mathbb{E}_\mu[\sum_{t\geq0}\gamma^t(\prod_{s=1}^tc_s)(r_t+\gamma \mathbb{E}_\pi Q(x_{t+1, \cdot})-Q(x_t,a_t))]` ，
+
+可以看出来，二者十分相似。
 当 :math:`\pi = \mu` 时，这个问题便回归到了on-policy，如果我们假定 :math:`\bar{c} \geq 1`，那么我们可以重写
- :math:`v_s = V(x_s) + \sum_{t=s}^{s+n-1}\gamma^{t-s}(r_t+\gamma V(x_{t+1})-V(x_t)) = \sum_{t=s}^{s+n-1}\gamma^{t-s}r_t + \gamma^nV(x_{s+n})` ，
+
+:math:`v_s = V(x_s) + \sum_{t=s}^{s+n-1}\gamma^{t-s}(r_t+\gamma V(x_{t+1})-V(x_t)) = \sum_{t=s}^{s+n-1}\gamma^{t-s}r_t + \gamma^nV(x_{s+n})` ，
+
 这就是on-policy n-step的Bellman target。这个特性是Retrace所不具备的。
 
 我们的目标是让当前的状态价值函数 :math:`V(x)` 能尽可能地接近 :math:`v_s` ，最终它会收敛到介于 :math:`V^{\pi}` 和 :math:`V^{\mu}` 之间的某个价值函数，
 我们记该价值函数为 :math:`V^{\pi_{\bar{\rho}}}` ，该价值函数对应的策略如下：
- :math:`\pi_{\bar{\rho}}  \overset{def}{=} \frac{min(\bar{\rho}\mu(a|x), \pi(a|x))}{\sum_{b \in A}min(\bar{\rho}\mu(b|x), \pi(b|x)) }` ，
+
+:math:`\pi_{\bar{\rho}}  \overset{def}{=} \frac{min(\bar{\rho}\mu(a|x), \pi(a|x))}{\sum_{b \in A}min(\bar{\rho}\mu(b|x), \pi(b|x)) }` ，
+
 该结论可由计算V-trace算子的不动点证明得到。
 当 :math:`\bar{\rho}` 是正无穷（即不对 :math:`\rho_t` 进行截断）时，我们可以得到 :math:`V^{\pi}` ；
 当 :math:`\bar{\rho}` 是0（即 :math:`\rho_t` 恒为最大值0）时，我们可以得到 :math:`V^{\mu}` 。
@@ -686,7 +686,8 @@ IMPALA中需要维护两个网络，一个是策略神经网络（actor），一
 前面讲到的V-trace技术就是根据采样到的 :math:`\{x_t, a_t, r_t, \mu(a_t|x_t)\}`
 和原始的 :math:`V_\theta (x)` 状态价值函数来对当前的状态给出一个更好的估计 :math:`v_s` 。
 Critic的更新方式为最小化 :math:`V_\theta (x)` 相对于 :math:`v_s` 的均方误差，即为
- :math:`(v_s-V_\theta (x))\nabla_\theta V_\theta (x)`
+ 
+:math:`(v_s-V_\theta (x))\nabla_\theta V_\theta (x)`
 
 Actor的参数 :math:`\omega` 需要朝着off-policy policy gradient给出的梯度方向更新，即
 :math:`\mathbb{E}[\frac{\pi(a_i|x_i)}{\mu(a_i|x_i)} \nabla log \pi Q^\pi(x_s,a_s)]` ，其中：
@@ -695,10 +696,12 @@ Actor的参数 :math:`\omega` 需要朝着off-policy policy gradient给出的梯
  - 用 :math:`Q^{\pi_{\bar{\rho}}} = r_s + \gamma v_{s+1}` 代替无法估计的 :math:`Q^\pi` ，并减去一个baseline :math:`V_\theta (x_s)` 来减小误差。
 
 最终，actor的更新方向是：
- :math:`\rho_s \nabla_\omega log\pi_\omega(a_s|x_s)(r_s+\gamma v_{s+1}-V_\theta(x_s))`
+ 
+:math:`\rho_s \nabla_\omega log\pi_\omega(a_s|x_s)(r_s+\gamma v_{s+1}-V_\theta(x_s))`
 
 除了前两项之外，为了防止网络的过早收敛，需要再加上一项对于熵的激励：
- :math:`-\nabla_\omega \sum_a \pi_\omega(a|x_s)log\pi_\omega(a|x_s)`
+ 
+:math:`-\nabla_\omega \sum_a \pi_\omega(a|x_s)log\pi_\omega(a|x_s)`
 
 将这三项以合适的比例（超参数）加和，就得到了整体的更新方向。
 
@@ -708,7 +711,7 @@ SEED RL
 SEED RL是Google Research 在2020年发布的分布式深度学习框架。此前在2018年中提出的IMPALA架构虽然在强化学习领域取得很多突破，但是依然存在一系列的缺点，如资源利用率相对低下、无法进行大规模扩展等等。
 针对这些问题，Google Research 在ICML2020的oral论文 `SEED RL: Scalable and Efficient Deep-RL with Accelerated Central Inference <https://arxiv.org/pdf/1910.06591.pdf>`_ 中提出了SEED RL框架。
 
-SEED RL支持扩展到数千台机器，该架构能以 **每秒百万帧的速度进行训练** ，且相比于其他方法可以 **降低训练的开销** ，使得计算效率大幅度提高。 Google Research 也已经在github放出了对应的 `代码 <https://github.com/google-research/seed_rl>`_ ，支持单机训练和基于google AI cloud Platform的多机训练。
+SEED RL支持扩展到数千台机器，该架构能以 **每秒百万帧的速度进行训练** ，且相比于其他方法可以 **降低训练的开销** ，使得计算效率大幅度提高。 Google Research 也已经在github放出了对应的 `seed rl code <https://github.com/google-research/seed_rl>`_ ，支持单机训练和基于google AI cloud Platform的多机训练。
 
 
 框架结构改进
@@ -847,6 +850,7 @@ Dataset在actor和learner component之间。 Dataset可以有多种不同设置�
 通过实现adder，我们可以在将数据从actor取出加入dataset之前进行一些预处理和聚合。我们所使用的 `collate <http://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/blob/master/nervex/data/collate_fn.py>`_ 从某种意义上就是在干adder的活。 ACME框架中Adder将数据聚合送入replay buffer中，并且对数据进行一定程度的reduction/transformation。
 
 Adder根据agent需要什么样的数据进行相应操作，可能的数据要求包括：
+
  - sampling transitions
  - n-step transitions（有时agent需要n-步的转换数据）
  - sequences（有时agent需要序列形式的数据）
@@ -866,6 +870,7 @@ reverb的结构如下图，此处以DQN中为例：
 
 
 reverb中实现的功能大致分为：
+
  - Tables（存放items，每个item是一个或多个数据元素的reference），有以下实现：
 
   - Uniform Experience Replay
@@ -904,12 +909,7 @@ RL中，很多算法都是持有一个actor和一个learner，但是也有很多
 
 Deepmind ACME框架实现的算法baseline
 """"""""""""""""""""""""""""""""""""
-
  - DQN
-
-  - Rainbow DQN 包含（Double Q-learning， prioritized experient replay, duelling networks）
-  - Apex DQN (目前还未开源)
-
  - Recurrent DQN
  - Actor Critic
  - IMPALA ( `Importance Weighted Actor-Learner Architecture <https://arxiv.org/abs/1802.01561>`_)
@@ -962,15 +962,6 @@ Paper List
 Q&A
 ^^^
 
-Large Scale RL Training
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Paper List
-^^^^^^^^^^
-
-Q&A
-^^^^^^^
-
 
     .. |img| image:: https://bkimg.cdn.bcebos.com/formula/6b72394d178730e1676d40f3824c2f46.svg
 
@@ -979,63 +970,14 @@ Q&A
 附录/Appendix
 --------------------
 
-RL Algorithm
-~~~~~~~~~~~~~~~~~~~
 
-Paper List
-^^^^^^^^^^^^^
-1. DQN
-2. Dueling DQN
-3. Prioritized Replay Buffer
-4. A2C
-5. PPO
-6. GAE
-7. DDPG
-8. SAC
+Blog List:
 
-
-
-Blog List
-^^^^^^^^^^^^
 1. `强化学习入门简述 <https://zhuanlan.zhihu.com/p/64197895?utm_source=wechat_session&utm_medium=social&utm_oi=778950235199127552&utm_content=sec>`_
 2. `强化学习之遇到的一些面试问题 <https://zhuanlan.zhihu.com/p/52143798?utm_source=wechat_session&utm_medium=social&utm_oi=778950235199127552&utm_content=sec>`_
 3. `炼丹感悟：On the Generalization of RL <https://zhuanlan.zhihu.com/p/105898705?utm_source=wechat_session&utm_medium=social&utm_oi=778950235199127552&utm_content=sec>`_
 4. `Pytorch RL tutorial <https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html>`_
-
-
-MARL Algorithm
-~~~~~~~~~~~~~~~~~
-to be continued
-
-Large Scale RL Training
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-Paper List
-^^^^^^^^^^^^^^^^
-1. A3C
-2. Ape-X
-3. IMPALA
-4. Seed RL
-5. ACME
-6. AlphaGo
-7. AlphaStar
-8. OpenAI Five
-9. Rllib
-
-Blog List
-^^^^^^^^^^^^^^
-1. `最前沿：深度强化学习的强者之路 <https://zhuanlan.zhihu.com/p/161548181?utm_source=wechat_session&utm_medium=social&utm_oi=30146627108864&utm_content=first&from=singlemessage&isappinstalled=0&wechatShare=1&s_r=0>`_
-
-
-Questions(即需要理解清楚的概念和问题)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-1. async training in A3C(gradient)
-2. Actor-Learner Architecture
-3. v-trace(importance weight)
-4. MCTS(AlphaGo)
-5. League(AlphaStar)
-
+5. `最前沿：深度强化学习的强者之路 <https://zhuanlan.zhihu.com/p/161548181?utm_source=wechat_session&utm_medium=social&utm_oi=30146627108864&utm_content=first&from=singlemessage&isappinstalled=0&wechatShare=1&s_r=0>`_
 
 .. note::
     以上包含内容精读食用最佳，不宜囫囵吞枣，最好结合相关具体代码实现

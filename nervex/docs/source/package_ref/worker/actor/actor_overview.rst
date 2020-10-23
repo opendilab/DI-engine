@@ -16,7 +16,7 @@ Actor Controller(数据生成控制器)
 代码结构：
     - ``base_actor_controller`` ： actor controller基类，定义基础接口方法，主循环可参考 ``run`` 方法。actor以job为工作的基本单位，coordinator设置job内容和所需计算资源。AC得到job后，建立其和agent(模型推理)以及env_manager(环境模拟) 之间的联系，并根据job执行执行一个或多个episode。AC会会维护单独的线程定期异步地更新agent
       。对于数据，当累积的数据量满足一定要求后（例如一定长度），AC会将这部分数据进行打包发送会coordinator。当某个job全部运行完毕后，AC也会将相应信息返回给coordinator。
-    - ``comm`` 通信模块：该部分被隐式地封装，通过MetaClass机制绑定在AC上，研究员只需在配置文件中指定相应的选项即可，在AC的实现代码中只需调用具体的通信接口，而无需涉及具体的通信过程，如果对具体的通信过程感兴趣，可以详细阅读 ``comm`` 部分的相关代码
+    - ``comm`` 通信模块：该部分被隐式地封装，通过python的动态属性机制绑定在AC上，研究员只需在配置文件中指定相应的选项即可，在AC的实现代码中只需调用具体的通信接口，而无需涉及具体的通信过程，如果对具体的通信过程感兴趣，可以详细阅读 ``comm`` 部分的相关代码
 
 功能特性：
     - AC启动后就建立和coordinator之间的通信（维护一个心跳线程），但具体的agent资源(GPU)，env资源(CPU)还是由coordinator负责管理，AC根据job进行相应处理，这样支持不同job使用不同的资源。
