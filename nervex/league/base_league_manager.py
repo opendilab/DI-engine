@@ -67,7 +67,6 @@ class BaseLeagueManager(ABC):
         self.active_players = []
         self.historical_players = []
         self.payoff = create_payoff(self.cfg.payoff)
-        #SharedPayoff(self.cfg.payoff_decay, self.cfg.min_win_rate_games)
         self.max_active_player_task = self.cfg.max_active_player_task
 
         self.save_checkpoint_fn = save_checkpoint_fn
