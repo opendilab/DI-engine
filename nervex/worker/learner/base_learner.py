@@ -13,7 +13,7 @@ from easydict import EasyDict
 
 from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer, to_device
 from nervex.utils import build_logger, dist_init, EasyTimer, dist_finalize, pretty_print, merge_dicts, read_config, \
-    get_task_uid, import_module
+    get_task_uid, import_module, broadcast
 from .comm import LearnerCommHelper
 from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, LearnerHook
 
@@ -23,7 +23,7 @@ default_config = read_config(osp.join(osp.dirname(__file__), "base_learner_defau
 class BaseLearner(ABC):
     r"""
     Overview:
-        base class for model learning(SL/RL), which uses linklink for multi-GPU learning
+        base class for model learning(SL/RL), which is able to multi-GPU learning
     Interface:
         __init__, register_stats, run, close, call_hook, info, save_checkpoint
     """
@@ -49,18 +49,22 @@ class BaseLearner(ABC):
             self._logger.info("Single Machine Learner has launched")
         else:
             comm_cfg = self._cfg.learner.communication
-            comm_helper = LearnerCommHelper.enable_comm_helper(self, comm_cfg)
+            LearnerCommHelper.enable_comm_helper(self, comm_cfg)
 
     def _init(self) -> None:
-        self._learner_uid = get_task_uid()
+        self._learner_worker_uid = get_task_uid()
         self._load_path = self._cfg.common.load_path
         self._save_path = self._cfg.common.save_path
         self._use_cuda = self._cfg.learner.use_cuda
         self._use_distributed = self._cfg.learner.use_distributed
         if self._use_distributed:
             self._rank, self._world_size = dist_init()
+            rand_id = torch.randint(0, 314, size=(1, ))
+            broadcast(rand_id, 0)
+            self._learner_uid = rand_id.item()
         else:
             self._rank, self._world_size = 0, 1
+            self._learner_uid = self._learner_worker_uid
         self._default_max_iterations = self._cfg.learner.max_iterations
         self._last_iter = CountVar(init_val=0)
         self._timer = EasyTimer()
@@ -74,8 +78,9 @@ class BaseLearner(ABC):
         self._logger, self._tb_logger, self._record = build_logger(self._cfg, rank=self._rank)
         self._log_buffer = build_log_buffer()
         # checkpoint helper
-        self._checkpointer_manager = build_checkpoint_helper(self._cfg, rank=self._rank)
-        self.register_stats()
+        self._checkpointer_manager = build_checkpoint_helper(self._cfg)
+        if self._rank == 0:
+            self.register_stats()
         self.info(
             pretty_print(
                 {
@@ -164,7 +169,7 @@ class BaseLearner(ABC):
         """
         data = next(self._data_source)
         if self._use_cuda:
-            data = to_device(data, 'cuda')
+            data = to_device(data, 'cuda: {}'.format(self._rank % 8))
         return data
 
     def _train(self, data: Any) -> dict:
@@ -183,7 +188,7 @@ class BaseLearner(ABC):
             self._optimizer.zero_grad()
             loss.backward()
             if self._use_distributed:
-                self._agent.sync_gradients()
+                self._agent.model.sync_gradients()
             self._optimizer.step()
         self._log_buffer['backward_time'] = self._timer.value
         self._log_buffer.update(log_vars)
@@ -228,7 +233,7 @@ class BaseLearner(ABC):
             data = self._get_data()
             # before iter hook
             self.call_hook('before_iter')
-            log_vars = self._train(data)
+            self._train(data)
             # after iter hook
             self.call_hook('after_iter')
             self._last_iter.add(1)
@@ -239,7 +244,7 @@ class BaseLearner(ABC):
     def close(self) -> None:
         """
         Overview:
-            Close linklink if use_distributed
+            close the related resource when use_distributed
         """
         if self._use_distributed:
             dist_finalize()

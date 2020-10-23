@@ -1,8 +1,9 @@
 import numpy as np
 import pytest
+from easydict import EasyDict
 
 from nervex.league.player import Player, MainPlayer, MainExploiter, LeagueExploiter, HistoricalPlayer, ActivePlayer
-from nervex.league.shared_payoff import SharedPayoff
+from nervex.league.shared_payoff import BattleSharedPayoff
 
 STRONG = 0.7
 ONE_PHASE_STEPS = 2e3
@@ -11,7 +12,8 @@ MIN_VALID = 0.2
 
 @pytest.fixture(scope='function')
 def setup_payoff():
-    return SharedPayoff(decay=0.99)
+    cfg = EasyDict({'decay': 0.99})
+    return BattleSharedPayoff(cfg)
 
 
 @pytest.fixture(scope='function')

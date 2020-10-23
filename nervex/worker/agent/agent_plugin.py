@@ -102,16 +102,8 @@ class HiddenStateHelper(IAgentStatefulPlugin):
             if is_reset:
                 self._state[idx] = self._init_fn()
         state = [self._state[idx] for idx in state_info.keys()]
-        data['prev_state'] = self.merge_state(state)
+        data['prev_state'] = state
         return data, state_info
-
-    def merge_state(self, state):
-        if isinstance(state[0], dict):
-            return {k: self.merge_state([s[k] for s in state]) for k in state[0].keys()}
-        elif isinstance(state[0], list) or isinstance(state[0], tuple):
-            return [self.merge_state(s) for s in zip(*state)]
-        else:
-            return state
 
     def after_forward(self, h: Any, state_info: dict) -> None:
         assert len(h) == len(state_info), '{}/{}'.format(len(h), len(state_info))

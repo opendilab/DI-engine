@@ -1,9 +1,10 @@
 import numpy as np
+from easydict import EasyDict
 import pytest
 
 from nervex.league.payoff import Payoff
 from nervex.league.player import Player
-from nervex.league.shared_payoff import PayoffDict, SharedPayoff
+from nervex.league.shared_payoff import PayoffDict, BattleSharedPayoff
 
 
 @pytest.fixture(scope='function')
@@ -134,7 +135,8 @@ class TestPayoffDict:
 
 @pytest.fixture(scope='function')
 def setup_shared_payoff():
-    return SharedPayoff(decay=0.99)
+    cfg = EasyDict({"decay": 0.99})
+    return BattleSharedPayoff(cfg)
 
 
 global sp_player_count
@@ -154,7 +156,7 @@ def get_shared_payoff_player(payoff):
 
 
 @pytest.mark.unittest
-class TestSharedPayoff:
+class TestBattleSharedPayoff:
 
     def test_update(self, setup_shared_payoff, random_task_result, get_task_result_categories):
         N = 10

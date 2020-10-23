@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from threading import Thread
 
 from nervex.league.player import MainPlayer, MainExploiter, LeagueExploiter, HistoricalPlayer
-from nervex.league.shared_payoff import SharedPayoff
+from nervex.league.shared_payoff import create_payoff
 from nervex.utils import merge_dicts, read_config, LockContext, import_module
 
 default_config = read_config(osp.join(osp.dirname(__file__), "league_manager_default_config.yaml"))
@@ -66,7 +66,7 @@ class BaseLeagueManager(ABC):
         self.model_config = cfg.model
         self.active_players = []
         self.historical_players = []
-        self.payoff = SharedPayoff(self.cfg.payoff_decay, self.cfg.min_win_rate_games)
+        self.payoff = create_payoff(self.cfg.payoff)
         self.max_active_player_task = self.cfg.max_active_player_task
 
         self.save_checkpoint_fn = save_checkpoint_fn

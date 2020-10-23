@@ -9,7 +9,7 @@ import os.path as osp
 
 from nervex.data import default_collate
 from nervex.model import FCDQN
-from nervex.utils import override, merge_dicts, read_config
+from nervex.utils import override, merge_dicts, read_config, DistModule
 from nervex.worker.learner import BaseLearner, register_learner
 from app_zoo.sumo.envs.sumo_env import SumoWJ3Env
 from app_zoo.sumo.computation_graph.sumo_dqn_computation_graph import SumoDqnGraph
@@ -46,6 +46,8 @@ class SumoDqnLearner(BaseLearner):
         )
         if self._cfg.learner.use_cuda:
             model.cuda()
+        if self.use_distributed:
+            model = DistModule(model)
         self._agent = SumoDqnLearnerAgent(model, plugin_cfg={'is_double': self._cfg.learner.dqn.is_double})
         self._agent.mode(train=True)
         if self._agent.is_double:

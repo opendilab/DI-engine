@@ -137,8 +137,10 @@ class SumoWJ3Actor(BaseActor):
         job_finish_info = {
             'job_id': self._job['job_id'],
             'actor_uid': self._actor_uid,
+            'player_id': self._job['player_id'],
             'episode_num': self._job['episode_num'],
             'env_num': self._job['env_num'],
+            'launch_player': self._job['launch_player'],
             'result': self._episode_result,
         }
         self.send_finish_job(job_finish_info)

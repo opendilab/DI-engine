@@ -37,7 +37,7 @@ class TestCkptHelper:
         time.sleep(1)
         dst_model = DstModel()
         src_model = SrcModel()
-        ckpt_state_dict = {'state_dict': src_model.state_dict()}
+        ckpt_state_dict = {'model': src_model.state_dict()}
         torch.save(ckpt_state_dict, path)
 
         ckpt_helper = CheckpointHelper()

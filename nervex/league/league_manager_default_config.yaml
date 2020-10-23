@@ -16,8 +16,11 @@ league:
     pretrain_checkpoint_path:  # placeholder
         zerg: 'pretrain_checkpoint_zerg.pth'
     # ---payoff---
-    payoff_decay: 0.99
-    min_win_rate_games: 8
+    payoff:
+        type: 'solo'  # ['solo', 'battle']
+        buffer_size: 100
+        decay: 0.99
+        min_win_rate_games: 8
     # ---runner---
     max_active_player_task: 3
     #per_match_games: 8
