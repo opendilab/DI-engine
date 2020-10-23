@@ -29,8 +29,11 @@ class SubprocessEnvManager(BaseEnvManager):
         super(SubprocessEnvManager, self).__init__(*args, **kwargs)
         self._parent_remote, self._child_remote = zip(*[Pipe() for _ in range(self.env_num)])
         self._processes = [
-            Process(target=self.worker_fn, args=(parent, child, CloudpickleWrapper(env)), daemon=True)
-            for parent, child, env in zip(self._parent_remote, self._child_remote, self._envs)
+            Process(
+                target=self.worker_fn,
+                args=(parent, child, CloudpickleWrapper(env), self.method_name_list),
+                daemon=True
+            ) for parent, child, env in zip(self._parent_remote, self._child_remote, self._envs)
         ]
         for p in self._processes:
             p.start()
@@ -41,7 +44,9 @@ class SubprocessEnvManager(BaseEnvManager):
     def method_name_list(self) -> list:
         return ['reset', 'step', 'seed', 'close']
 
-    def worker_fn(self, p, c, env_wrapper) -> None:
+    # this method must be staticmethod, otherwise there will be some resource conflicts(e.g. port or file)
+    @staticmethod
+    def worker_fn(p, c, env_wrapper, method_name_list) -> None:
         env = env_wrapper.data
         p.close()
         try:
@@ -54,7 +59,7 @@ class SubprocessEnvManager(BaseEnvManager):
                 try:
                     if cmd == 'getattr':
                         ret = getattr(env, data)
-                    elif cmd in self.method_name_list:
+                    elif cmd in method_name_list:
                         if data is None:
                             ret = getattr(env, cmd)()
                         else:
