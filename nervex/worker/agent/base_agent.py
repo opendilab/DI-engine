@@ -37,6 +37,3 @@ class BaseAgent(ABC):
 
     def reset(self) -> None:
         pass
-
-    def sync_gradients(self):
-        pass

@@ -20,7 +20,7 @@ cfg = read_config(args.config)
 league_manager_port = cfg.system.league_manager_port
 
 league_manager_wrapper = LeagueManagerWrapper(cfg)
-league_manager_ip = league_manager_wrapper.get_ip()
+league_manager_ip = league_manager_wrapper.ip
 
 app = create_league_manager_app(league_manager_wrapper)
 

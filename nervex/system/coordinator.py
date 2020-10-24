@@ -353,7 +353,6 @@ class Coordinator(object):
 
     def deal_with_dead_learner(self, learner_uid, reuse=True):
         self._learner_record[learner_uid]['state'] = LearnerState.dead
-        os.system('scancel ' + learner_uid)
         self._logger.info('[kill-dead] dead learner {} was killed'.format(learner_uid))
 
     def check_learner_dead(self):

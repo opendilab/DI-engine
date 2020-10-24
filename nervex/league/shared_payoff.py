@@ -1,9 +1,9 @@
 import copy
-from collections import defaultdict
+from collections import defaultdict, deque
 
 import numpy as np
-
 from nervex.utils import LockContext, LockContextType
+
 from .player import Player
 
 
@@ -30,7 +30,7 @@ class PayoffDict(defaultdict):
         super(PayoffDict, self).__init__(init_fn)
 
 
-class SharedPayoff:
+class BattleSharedPayoff:
     """
     Overview: payoff data structure to record historical match result, this payoff is shared among all the players
     Interface: __init__, __getitem__, add_player, update, get_key
@@ -39,11 +39,11 @@ class SharedPayoff:
 
     # TODO(nyz) whether ensures the thread-safe
 
-    def __init__(self, decay, min_win_rate_games=8):
+    def __init__(self, cfg):
         """
         Overview: initialize payoff
         Arguments:
-            - decay (:obj:`float`): update step decay factor
+            - cfg (:obj:`dict`): config(contain {decay, min_win_rate_games})
         """
         # self._players is a list including the reference(shallow copy) of all the possible player
         self._players = []
@@ -51,8 +51,9 @@ class SharedPayoff:
         # self._data is a PayoffDict, whose key is the player_id of the element of self._players,
         # and whose value is a RecordDict
         self._data = PayoffDict()
-        self._decay = decay
-        self._min_win_rate_games = min_win_rate_games
+
+        self._decay = cfg.decay
+        self._min_win_rate_games = cfg.get('min_win_rate_games', 8)
         self._lock = LockContext(type_=LockContextType.THREAD_LOCK)
 
     def __getitem__(self, players):
@@ -158,3 +159,26 @@ class SharedPayoff:
         else:
             tmp = [away, home]
         return '-'.join(tmp)
+
+
+class SoloSharedPayoff:
+    """Only one player, record historical task info"""
+
+    def __init__(self, cfg):
+        self._data = deque(maxlen=cfg.buffer_size)
+
+    def update(self, task_info):
+        self._data.append(task_info)
+
+    def add_player(self, player):
+        """not add player, only one player"""
+        pass
+
+
+def create_payoff(cfg):
+    payoff_mapping = {'solo': SoloSharedPayoff, 'battle': BattleSharedPayoff}
+    payoff_type = cfg.type
+    if payoff_type not in payoff_mapping.keys():
+        raise KeyError("not support payoff type: {}".format(payoff_type))
+    else:
+        return payoff_mapping[payoff_type](cfg)
