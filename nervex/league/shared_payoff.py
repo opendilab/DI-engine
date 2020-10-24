@@ -2,8 +2,8 @@ import copy
 from collections import defaultdict, deque
 
 import numpy as np
+from nervex.utils import LockContext, LockContextType
 
-from nervex.utils import LockContext
 from .player import Player
 
 
@@ -51,9 +51,10 @@ class BattleSharedPayoff:
         # self._data is a PayoffDict, whose key is the player_id of the element of self._players,
         # and whose value is a RecordDict
         self._data = PayoffDict()
+
         self._decay = cfg.decay
         self._min_win_rate_games = cfg.get('min_win_rate_games', 8)
-        self._lock = LockContext(lock_type='thread')
+        self._lock = LockContext(type_=LockContextType.THREAD_LOCK)
 
     def __getitem__(self, players):
         """
@@ -162,6 +163,7 @@ class BattleSharedPayoff:
 
 class SoloSharedPayoff:
     """Only one player, record historical task info"""
+
     def __init__(self, cfg):
         self._data = deque(maxlen=cfg.buffer_size)
 

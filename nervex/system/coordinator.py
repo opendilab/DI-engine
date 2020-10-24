@@ -9,9 +9,8 @@ from queue import Queue
 import requests
 import torch
 from easydict import EasyDict
-
 from nervex.data.online import ReplayBuffer
-from nervex.utils import LockContext
+from nervex.utils import LockContext, LockContextType
 
 
 class JobState(enum.IntEnum):
@@ -73,7 +72,7 @@ class Coordinator(object):
         self._logger.info("[UP] check learner dead thread ")
 
         self.url_prefix_format = 'http://{}:{}/'
-        self.lock = LockContext(lock_type='process')
+        self.lock = LockContext(type_=LockContextType.PROCESS_LOCK)
         self.job_queue = Queue()
 
     def close(self):

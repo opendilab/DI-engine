@@ -11,7 +11,8 @@ from nervex.computation_graph.sumo_dqn_computation_graph import SumoDqnGraph
 from nervex.data import default_collate
 from nervex.envs.sumo.sumo_env import SumoWJ3Env
 from nervex.model import FCDQN
-from nervex.utils import override, merge_dicts, read_config, DistModule
+from nervex.utils import deep_merge_dicts
+from nervex.utils import override, read_config, DistModule
 from nervex.worker.agent.sumo_dqn_agent import SumoDqnLearnerAgent
 from nervex.worker.learner import BaseLearner, register_learner
 
@@ -22,7 +23,7 @@ class SumoDqnLearner(BaseLearner):
     _name = "SumoDqnLearner"
 
     def __init__(self, cfg: dict):
-        cfg = merge_dicts(default_config, cfg)
+        cfg = deep_merge_dicts(default_config, cfg)
         super(SumoDqnLearner, self).__init__(cfg)
 
     @override(BaseLearner)

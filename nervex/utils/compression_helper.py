@@ -1,29 +1,29 @@
 import copy
 import pickle
 import zlib
+from typing import Union, Callable, List, Optional
 
 import lz4.block
 import numpy as np
 import torch
 
 
-def list_proc(func):
+def function_listed(func: Callable[[
+        object,
+], object]) -> Callable[[
+        object,
+], Union[List[object], object]]:
 
-    def f(x):
-        if isinstance(x, list):
-            out = []
-            for item in x:
-                # assert isinstance(item, dict) or isinstance(item, bytes), 'Unknown type {}'.format(type(x))
-                out.append(func(item))
-            return out
+    def _new_func(item: object) -> Union[List[object], object]:
+        if isinstance(item, list):
+            return [func(item) for item in item]
         else:
-            # assert isinstance(x, dict) or isinstance(x, bytes), 'Unknown type {}'.format(type(x))
-            return func(x)
+            return func(item)
 
-    return f
+    return _new_func
 
 
-def compress_obs(obs):
+def compress_obs(obs: Optional[dict]) -> Optional[dict]:
     if obs is None:
         return None
     new_obs = {}
@@ -55,7 +55,7 @@ def compress_obs(obs):
     return copy.deepcopy(new_obs)
 
 
-def decompress_obs(obs):
+def decompress_obs(obs: Optional[dict]) -> Optional[dict]:
     if obs is None:
         return None
     new_obs = {}
@@ -76,20 +76,6 @@ def decompress_obs(obs):
     return copy.deepcopy(new_obs)
 
 
-def get_step_data_compressor(name):
-    if name == 'simple':
-        compressor = simple_step_data_compressor
-    elif name == 'lz4':
-        compressor = lz4_step_data_compressor
-    elif name == 'zlib':
-        compressor = zlib_step_data_compressor
-    elif name == 'none':
-        compressor = dummy_compressor
-    else:
-        raise NotImplementedError
-    return list_proc(compressor)
-
-
 def dummy_compressor(step_data):
     return copy.deepcopy(step_data)
 
@@ -106,18 +92,16 @@ def lz4_step_data_compressor(step_data):
     return lz4.block.compress(pickle.dumps({k: compress_obs(v) for k, v in step_data.items()}))
 
 
-def get_step_data_decompressor(name):
-    if name == 'simple':
-        decompressor = simple_step_data_decompressor
-    elif name == 'lz4':
-        decompressor = lz4_step_data_decompressor
-    elif name == 'zlib':
-        decompressor = zlib_step_data_decompressor
-    elif name == 'none':
-        decompressor = dummy_decompressor
-    else:
-        raise NotImplementedError
-    return list_proc(decompressor)
+_COMPRESSORS_MAP = {
+    'simple': simple_step_data_compressor,
+    'lz4': lz4_step_data_compressor,
+    'zlib': zlib_step_data_compressor,
+    'none': dummy_compressor,
+}
+
+
+def get_step_data_compressor(name: str):
+    return function_listed(_COMPRESSORS_MAP[name])
 
 
 def dummy_decompressor(step_data):
@@ -134,3 +118,15 @@ def lz4_step_data_decompressor(compressed_step_data):
 
 def zlib_step_data_decompressor(compressed_step_data):
     return {k: decompress_obs(v) for k, v in pickle.loads(zlib.decompress(compressed_step_data)).items()}
+
+
+_DECOMPRESSORS_MAP = {
+    'simple': simple_step_data_decompressor,
+    'lz4': lz4_step_data_decompressor,
+    'zlib': zlib_step_data_decompressor,
+    'none': dummy_decompressor,
+}
+
+
+def get_step_data_decompressor(name: str):
+    return function_listed(_DECOMPRESSORS_MAP[name])

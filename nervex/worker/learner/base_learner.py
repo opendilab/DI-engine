@@ -10,10 +10,11 @@ from typing import Any, Union
 
 import torch
 from easydict import EasyDict
-
 from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer, to_device
-from nervex.utils import build_logger, dist_init, EasyTimer, dist_finalize, pretty_print, merge_dicts, read_config, \
+from nervex.utils import build_logger, dist_init, EasyTimer, dist_finalize, pretty_print, read_config, \
     get_task_uid, import_module, broadcast
+from nervex.utils import deep_merge_dicts
+
 from .comm import LearnerCommHelper
 from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, LearnerHook
 
@@ -43,7 +44,7 @@ class BaseLearner(ABC):
 
             os.environ['CUDA_LAUNCH_BLOCKING'] = "1"  # for debug async CUDA
         """
-        self._cfg = merge_dicts(default_config, cfg)
+        self._cfg = deep_merge_dicts(default_config, cfg)
         self._init()
         if self._cfg.learner.communication.type == 'single_machine':
             self._logger.info("Single Machine Learner has launched")

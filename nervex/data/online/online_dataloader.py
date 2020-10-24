@@ -3,9 +3,8 @@ from collections.abc import Iterator
 
 import torch
 import torch.multiprocessing as multiprocessing
+from nervex.utils import LockContext, LockContextType
 from torch.utils.data import _utils
-
-from nervex.utils import LockContext
 
 
 class OnlineDataLoader(object):
@@ -54,7 +53,7 @@ class OnlineIteratorDataLoader:
                 'use num_workers=0 to disable multiprocessing.'
             )
 
-        self.lock = LockContext(lock_type='process')
+        self.lock = LockContext(type_=LockContextType.PROCESS_LOCK)
         if self.num_workers > 0:
             self.shared_index = torch.tensor(0)
             self.shared_index.share_memory_()

@@ -4,7 +4,7 @@ from collections import OrderedDict
 import torch
 from torch.utils.data._utils.collate import default_collate
 
-from nervex.utils import list_dict2dict_list
+from nervex.utils import lists_to_dicts
 from nervex.worker.agent import BaseAgent, add_plugin, IAgentStatelessPlugin
 
 
@@ -18,7 +18,7 @@ def as_eval_collate_fn(data):
         'prev_state': False,
         'map_size': False,
     }
-    new_data = list_dict2dict_list(data)
+    new_data = lists_to_dicts(data)
     # for the keys which are not in data_item, they'll be discarded
     for k, merge in data_item.items():
         if merge:
