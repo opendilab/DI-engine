@@ -121,7 +121,7 @@ class DistModule(torch.nn.Module):
             self._grad_accs = []
             self._register_hooks()
         self._create_grad()
-    
+
     def _extend_module_attr(self):
         # if you want to use more attributes of torch.nn.module, please extend this module
         # and overwrite this method or let the repo developer informed.

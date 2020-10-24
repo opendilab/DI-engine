@@ -60,7 +60,7 @@ class BaseLearner(ABC):
         self._use_distributed = self._cfg.learner.use_distributed
         if self._use_distributed:
             self._rank, self._world_size = dist_init()
-            rand_id = torch.randint(0, 314, size=(1,))
+            rand_id = torch.randint(0, 314, size=(1, ))
             broadcast(rand_id, 0)
             self._learner_uid = rand_id.item()
         else:
