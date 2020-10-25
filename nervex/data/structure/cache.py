@@ -2,7 +2,7 @@ import time
 from queue import Queue
 from threading import Thread
 
-from nervex.utils import LockContext
+from nervex.utils import LockContext, LockContextType
 
 
 class Cache:
@@ -32,7 +32,7 @@ class Cache:
         # two seperate receive and send queue for reducing interaction frequency and interference
         self.receive_queue = Queue(maxlen)
         self.send_queue = Queue(maxlen)
-        self.receive_lock = LockContext(lock_type='thread')
+        self.receive_lock = LockContext(type_=LockContextType.THREAD_LOCK)
         self._timeout_thread = Thread(target=self._timeout_monitor)
         # the bool flag for gracefully shutting down the timeout monitor thread
         self._timeout_thread_flag = True

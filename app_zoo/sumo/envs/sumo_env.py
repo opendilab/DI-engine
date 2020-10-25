@@ -10,7 +10,7 @@ from easydict import EasyDict
 from sumolib import checkBinary
 
 from nervex.envs.env.base_env import BaseEnv
-from nervex.utils import merge_dicts
+from nervex.utils import deep_merge_dicts
 from app_zoo.sumo.envs.action.sumo_action_runner import SumoRawActionRunner
 from app_zoo.sumo.envs.obs.sumo_obs_runner import SumoObsRunner
 from app_zoo.sumo.envs.reward.sumo_reward_runner import SumoRewardRunner
@@ -22,7 +22,7 @@ def build_config(user_config):
         cfg = yaml.safe_load(f)
     cfg = EasyDict(cfg)
     default_config = cfg.env
-    return merge_dicts(default_config, user_config)
+    return deep_merge_dicts(default_config, user_config)
 
 
 class SumoWJ3Env(BaseEnv):

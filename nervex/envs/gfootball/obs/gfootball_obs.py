@@ -133,8 +133,10 @@ class MatchObs(EnvElement):
                     'dinfo': 'boolean vector'
                 },
                 'other': 'boolean vector with 10 value',
-                'meaning': ['Left', 'TopLeft', 'Top', 'TopRight', 'Right', 'BottomRight', 'Bottom', 'BottomLeft',
-                            'Sprint', 'Dribble']  # 8 directions are one-hot
+                'meaning': [
+                    'Left', 'TopLeft', 'Top', 'TopRight', 'Right', 'BottomRight', 'Bottom', 'BottomLeft', 'Sprint',
+                    'Dribble'
+                ]  # 8 directions are one-hot
             },
             # ------Match state
             {
@@ -324,8 +326,10 @@ class PlayerObs(EnvElement):
                     'dinfo': 'one-hot'
                 },
                 'other': 'one-hot 10 values',
-                'meaning': ['GoalKeeper', 'CentreBack', 'LeftBack', 'RightBack', 'DefenceMidfield', 'CentralMidfield',
-                            'LeftMidfield', 'RightMidfield', 'AttackMidfield', 'CentralFront']
+                'meaning': [
+                    'GoalKeeper', 'CentreBack', 'LeftBack', 'RightBack', 'DefenceMidfield', 'CentralMidfield',
+                    'LeftMidfield', 'RightMidfield', 'AttackMidfield', 'CentralFront'
+                ]
             },
         ]
         self.cfg = cfg
