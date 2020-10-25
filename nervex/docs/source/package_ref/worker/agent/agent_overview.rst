@@ -47,6 +47,9 @@ Agent
                 def load_state_dict(self, state_dict: dict) -> None:
                     self._model.load_state_dict(state_dict['model'])
 
+                def reset(self) -> None:
+                    pass
+
         - 概述：
             智能体(agent)基类，和模型(model)组合构成运行时的智能体。该基类只提供通用的接口方法。
 
@@ -57,6 +60,7 @@ Agent
             4. model: 该property返回模型
             5. state_dict: 返回当前的状态信息(state_dict)，默认只返回模型的状态信息，子类可以重写该方法在字典中加入其它需要返回的信息。
             6. load_state_dict: 加载状态信息，子类也可进行重写
+            7. reset: 重置智能体相关状态
 
 
     2. IAgentPlugin (worker/agent/agent_plugin.py)

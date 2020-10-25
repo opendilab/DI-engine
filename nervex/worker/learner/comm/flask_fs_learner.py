@@ -45,7 +45,7 @@ class FlaskFileSystemLearner(BaseCommLearner):
                 self._agent_name = result['info']
                 return
             else:
-                time.sleep(3)
+                time.sleep(10)
 
     # override
     def send_agent(self, state_dict: dict) -> None:

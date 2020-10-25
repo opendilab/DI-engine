@@ -48,7 +48,7 @@ class ReplayBuffer:
             with self._meta_lock:
                 self._meta_buffer.append(data)
 
-    def push_data(self, data: Union[list, dict]):
+    def push_data(self, data: Union[list, dict]) -> None:
         """
         Overview: push data into replay buffer
         Arguments:
@@ -57,7 +57,10 @@ class ReplayBuffer:
         """
         assert (isinstance(data, list) or isinstance(data, dict))
 
-        def push(item):
+        def push(item: dict) -> None:
+            if 'data_push_length' not in item.keys():
+                self._cache.push_data(item)
+                return
             data_push_length = item['data_push_length']
             traj_len = self.traj_len if self.traj_len is not None else data_push_length
             unroll_len = self.unroll_len if self.unroll_len is not None else data_push_length
@@ -110,3 +113,10 @@ class ReplayBuffer:
         Overview: shut down the cache gracefully
         """
         self._cache.close()
+
+    @property
+    def count(self):
+        """
+        Overview: return current buffer data count
+        """
+        return self._meta_buffer.validlen

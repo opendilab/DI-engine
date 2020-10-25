@@ -37,3 +37,30 @@ class TestBaseEnvManager:
         assert all([env_manager._current_step[i] != 0 for i in [0, 2, 3]])
 
         env_manager.close()
+
+    def test_error(self, setup_manager_cfg, setup_exception):
+        env_manager = SubprocessEnvManager(**setup_manager_cfg)
+        obs = env_manager.reset(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
+        with pytest.raises(AttributeError):
+            data = env_manager.xxx
+        with pytest.raises(AttributeError):
+            data = env_manager.xxx()
+        timestep = env_manager.step([torch.randn(4) for _ in range(env_manager.env_num)])
+        assert len(timestep) == env_manager.env_num
+        with pytest.raises(TypeError):
+            env_manager.info()
+        name = env_manager._name
+        assert len(name) == env_manager.env_num
+        assert all([isinstance(n, str) for n in name])
+        name = env_manager.name
+        assert len(name) == env_manager.env_num
+        assert all([isinstance(n, str) for n in name])
+        with pytest.raises(setup_exception):
+            timestep = env_manager.step(['error' for _ in range(env_manager.env_num)])
+        assert env_manager._closed
+
+        env_manager.close()
+        with pytest.raises(AssertionError):
+            env_manager.reset([])
+        with pytest.raises(AssertionError):
+            env_manager.step([])

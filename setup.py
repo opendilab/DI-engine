@@ -47,7 +47,7 @@ setup(
     long_description=description,
     author='X-lab',
     license='Apache License, Version 2.0',
-    keywords='RL Framework',
+    keywords='DRL Framework',
     packages=[
         'nervex',
         'nervex.model',
@@ -61,6 +61,9 @@ setup(
         'nervex.system',
         'nervex.league',
         'nervex.entry',
+        # application(example)
+        'app_zoo.sumo',
+        'app_zoo.cartpole',
     ],
     install_requires=[
         'absl-py>=0.1.0',
