@@ -71,7 +71,7 @@ class MatchObs(EnvElement):
                 'op': lambda x: partial(one_hot, num=3)(x + 1),
                 'value': {
                     'min': 0,
-                    'max': 1,
+                    'max': 2,
                     'dtype': float,
                     'dinfo': 'one-hot'
                 },
@@ -85,7 +85,7 @@ class MatchObs(EnvElement):
                 'op': lambda x: partial(one_hot, num=N_PLAYER + 1)(x + N_PLAYER + 1 if x == -1 else x),
                 'value': {
                     'min': 0,
-                    'max': 1,
+                    'max': 2,
                     'dtype': float,
                     'dinfo': 'one-hot'
                 },
@@ -100,7 +100,7 @@ class MatchObs(EnvElement):
                 'op': partial(one_hot, num=N_PLAYER),
                 'value': {
                     'min': 0,
-                    'max': 1,
+                    'max': 2,
                     'dtype': float,
                     'dinfo': 'one-hot'
                 },
@@ -114,7 +114,7 @@ class MatchObs(EnvElement):
                 'op': partial(one_hot, num=N_PLAYER),
                 'value': {
                     'min': 0,
-                    'max': 1,
+                    'max': 2,
                     'dtype': float,
                     'dinfo': 'one-hot'
                 },
@@ -128,7 +128,7 @@ class MatchObs(EnvElement):
                 'op': lambda x: x,
                 'value': {
                     'min': 0,
-                    'max': 1,
+                    'max': 2,
                     'dtype': float,
                     'dinfo': 'boolean vector'
                 },
@@ -146,7 +146,7 @@ class MatchObs(EnvElement):
                 'op': score_preprocess,
                 'value': {
                     'min': 0,
-                    'max': 1,
+                    'max': 2,
                     'dtype': float,
                     'dinfo': 'one-hot'
                 },
@@ -159,7 +159,7 @@ class MatchObs(EnvElement):
                 'op': partial(div_one_hot, max_val=2999, ratio=100),
                 'value': {
                     'min': 0,
-                    'max': 1,
+                    'max': 2,
                     'dtype': float,
                     'dinfo': 'one-hot'
                 },
@@ -172,7 +172,7 @@ class MatchObs(EnvElement):
                 'op': partial(one_hot, num=7),
                 'value': {
                     'min': 0,
-                    'max': 1,
+                    'max': 2,
                     'dtype': float,
                     'dinfo': 'one-hot'
                 },
@@ -230,7 +230,7 @@ class PlayerObs(EnvElement):
                 'op': partial(one_hot, num=2),  # 0 for left, 1 for right
                 'value': {
                     'min': 0,
-                    'max': 1,
+                    'max': 2,
                     'dtype': float,
                     'dinfo': 'one-hot'
                 },
@@ -243,7 +243,7 @@ class PlayerObs(EnvElement):
                 'op': partial(one_hot, num=N_PLAYER),
                 'value': {
                     'min': 0,
-                    'max': N_PLAYER - 1,
+                    'max': N_PLAYER,
                     'dtype': float,
                     'dinfo': 'one-hot'
                 },
@@ -295,7 +295,7 @@ class PlayerObs(EnvElement):
                 'op': partial(one_hot, num=2),
                 'value': {
                     'min': 0,
-                    'max': 1,
+                    'max': 2,
                     'dtype': float,
                     'dinfo': 'one-hot'
                 },
@@ -308,7 +308,7 @@ class PlayerObs(EnvElement):
                 'op': partial(one_hot, num=2),
                 'value': {
                     'min': 0,
-                    'max': 1,
+                    'max': 2,
                     'dtype': float,
                     'dinfo': 'one-hot'
                 },
@@ -321,7 +321,7 @@ class PlayerObs(EnvElement):
                 'op': partial(one_hot, num=10),
                 'value': {
                     'min': 0,
-                    'max': 1,
+                    'max': 2,
                     'dtype': float,
                     'dinfo': 'one-hot'
                 },
