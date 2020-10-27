@@ -33,8 +33,10 @@ def grad_ignore_value(parameters, clip_value):
     clip_value = float(clip_value)
     flag = False
     for p in filter(lambda p: p.grad is not None, parameters):
-        if p.grad.data > clip_value or p.grad.data < -clip_value:
+        val = p.grad.data.abs().max()
+        if val >= clip_value:
             flag = True
+            break
     if flag:
         for p in filter(lambda p: p.grad is not None, parameters):
             p.grad.data.zero_()
