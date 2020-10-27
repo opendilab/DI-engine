@@ -105,6 +105,3 @@ class PendulumEnv(BaseEnv):
     @property
     def cum_reward(self) -> torch.tensor:
         return self._reward_helper.cum_reward
-
-
-pendulumTimestep = PendulumEnv.timestep

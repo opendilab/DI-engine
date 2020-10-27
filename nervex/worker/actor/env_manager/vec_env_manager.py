@@ -1,4 +1,5 @@
 from multiprocessing import Process, Pipe
+import traceback
 from types import MethodType
 from typing import Any, Union, List
 
@@ -52,7 +53,7 @@ class SubprocessEnvManager(BaseEnvManager):
         try:
             while True:
                 try:
-                    cmd, data = c.recv()
+                    cmd, data = c.recv().data
                 except EOFError:  # for the case when the pipe has been closed
                     c.close()
                     break
@@ -66,10 +67,16 @@ class SubprocessEnvManager(BaseEnvManager):
                             ret = getattr(env, cmd)(**data)
                     else:
                         raise KeyError("not support env cmd: {}".format(cmd))
-                    c.send(ret)
+                    c.send(CloudpickleWrapper(ret))
                 except Exception as e:
                     # when there are some errors in env, worker_fn will send the errors to env manager
-                    c.send(e)
+                    # directly raise data will lose the stack trace, so we print the related info here
+                    print(
+                        '\n{}Env Exception{}\n{}{}'.format(
+                            '=' * 40, '=' * 40, ''.join(traceback.format_tb(e.__traceback__)), '=' * 93
+                        )
+                    )
+                    c.send(CloudpickleWrapper(e))
                 if cmd == 'close':
                     c.close()
                     break
@@ -86,15 +93,15 @@ class SubprocessEnvManager(BaseEnvManager):
         real_env_id = list(range(self.env_num)) if env_id is None else env_id
         for i in range(len(real_env_id)):
             if param is None:
-                self._parent_remote[real_env_id[i]].send([fn_name, None])
+                self._parent_remote[real_env_id[i]].send(CloudpickleWrapper([fn_name, None]))
             else:
-                self._parent_remote[real_env_id[i]].send([fn_name, param[i]])
+                self._parent_remote[real_env_id[i]].send(CloudpickleWrapper([fn_name, param[i]]))
         ret = {i: self.safe_recv(self._parent_remote[i]) for i in real_env_id}
         ret = list(ret.values()) if env_id is None else ret
         return ret
 
     def safe_recv(self, p, close=False):
-        data = p.recv()
+        data = p.recv().data
         if isinstance(data, Exception):
             # when receiving env Exception, env manager will safely close and raise this Exception to caller
             if not close:
@@ -112,7 +119,7 @@ class SubprocessEnvManager(BaseEnvManager):
         if isinstance(getattr(self._envs[0], key), MethodType):
             raise TypeError("env manager getattr doesn't supports method, please override method_name_list")
         for p in self._parent_remote:
-            p.send(['getattr', key])
+            p.send(CloudpickleWrapper(['getattr', key]))
         return [self.safe_recv(p) for p in self._parent_remote]
 
     # override
@@ -121,7 +128,7 @@ class SubprocessEnvManager(BaseEnvManager):
             return
         super().close()
         for p in self._parent_remote:
-            p.send(['close', None])
+            p.send(CloudpickleWrapper(['close', None]))
         result = [self.safe_recv(p, close=True) for p in self._parent_remote]
         for p in self._processes:
             p.join()
