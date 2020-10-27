@@ -175,4 +175,4 @@ class SingleMachineRunner():
     def is_buffer_enough(self):
         bs = self.cfg.learner.batch_size
         size = int(1.2 * bs * self.train_step) // (self.cfg.learner.data.max_reuse)
-        return self.buffer.validlen >= size
+        return self.buffer.validlen >= size and self.buffer.validlen >= 2 * bs
