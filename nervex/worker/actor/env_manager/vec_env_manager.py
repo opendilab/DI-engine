@@ -70,13 +70,12 @@ class SubprocessEnvManager(BaseEnvManager):
                     c.send(CloudpickleWrapper(ret))
                 except Exception as e:
                     # when there are some errors in env, worker_fn will send the errors to env manager
-                    # directly raise data will lose the stack trace, so we print the related info here
-                    print(
-                        '\n{}Env Exception{}\n{}{}'.format(
-                            '=' * 40, '=' * 40, ''.join(traceback.format_tb(e.__traceback__)), '=' * 93
+                    # directly send error to another process will lose the stack trace, so we create a new Exception
+                    c.send(
+                        CloudpickleWrapper(
+                            e.__class__('\nEnv Process Exception:\n' + ''.join(traceback.format_tb(e.__traceback__)))
                         )
                     )
-                    c.send(CloudpickleWrapper(e))
                 if cmd == 'close':
                     c.close()
                     break
@@ -106,7 +105,7 @@ class SubprocessEnvManager(BaseEnvManager):
             # when receiving env Exception, env manager will safely close and raise this Exception to caller
             if not close:
                 self.close()
-            raise data
+                raise data
         return data
 
     # override
