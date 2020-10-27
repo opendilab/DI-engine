@@ -10,7 +10,7 @@ import requests
 import torch
 from easydict import EasyDict
 from nervex.data.online import ReplayBuffer
-from nervex.utils import LockContext, LockContextType
+from nervex.utils import LockContext, LockContextType, remove_file
 
 
 class JobState(enum.IntEnum):
@@ -70,6 +70,9 @@ class Coordinator(object):
         check_learner_dead_thread.daemon = True
         check_learner_dead_thread.start()
         self._logger.info("[UP] check learner dead thread ")
+        remove_used_data_thread = threading.Thread(target=self._remove_used_data)
+        remove_used_data_thread.daemon = True
+        remove_used_data_thread.start()
 
         self.url_prefix_format = 'http://{}:{}/'
         self.lock = LockContext(type_=LockContextType.PROCESS_LOCK)
@@ -333,6 +336,15 @@ class Coordinator(object):
     ###################################################################################
     #                                     threads                                     #
     ###################################################################################
+
+    def _remove_used_data(self):
+        while True:
+            for k, learner_record in self._learner_record.items():
+                used_data = learner_record['replay_buffer'].used_data
+                if used_data is not None and 'traj_id' in used_data.keys():
+                    remove_file(used_data['traj_id'])
+                    self._logger.info("remove traj file {}".format(used_data['traj_id']))
+            time.sleep(3)
 
     def _launch_league_manager(self):
         while True:

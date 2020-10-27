@@ -8,6 +8,7 @@ replay_buffer:
     max_reuse: 8
     min_sample_ratio: 1
     unroll_len: 1
+    enable_track_used_data: True
 learner:
     learner_type: 'sumo_dqn'
     import_names: ['app_zoo.sumo.worker.learner.sumo_dqn_learner']

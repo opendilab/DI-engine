@@ -1,9 +1,29 @@
 import copy
-from typing import Union, NoReturn
+import numbers
+from queue import Queue
+from typing import Union, NoReturn, Any
 
 import numpy as np
 
 from nervex.data.structure.segment_tree import SumSegmentTree, MinSegmentTree
+
+
+class RecordList(list):
+    def __init__(self, *args, **kwargs) -> None:
+        super(RecordList, self).__init__(*args, **kwargs)
+        self._used_data = Queue()
+
+    def __setitem__(self, idx: Union[numbers.Integral, slice], data: Any) -> None:
+        if isinstance(idx, numbers.Integral):
+            self._used_data.put(self[idx])
+        elif isinstance(idx, slice):
+            old_data = self[idx]
+            for d in old_data:
+                self._used_data.put(d)
+        else:
+            raise TypeError("not support idx type: {}".format(type(idx)))
+
+        super().__setitem__(idx, data)
 
 
 class PrioritizedBuffer:
@@ -24,7 +44,8 @@ class PrioritizedBuffer:
         max_reuse: Union[int, None] = None,
         min_sample_ratio: float = 1.,
         alpha: float = 0.,
-        beta: float = 0.
+        beta: float = 0.,
+        enable_track_used_data: bool = False,
     ):
         r"""
         Overview:
@@ -36,11 +57,16 @@ class PrioritizedBuffer:
                                                 divides sample size
             - alpha (:obj:`float`): how much prioritization is used(0: no prioritization, 1: full prioritization)
             - beta (:obj:`float`): how much correction is used(0: no correction, 1: full correction)
+            - enable_track_used_data (:obj:`bool`): whether tracking the used data
         """
         # TODO(nyz) remove elements according to priority
         # TODO(nyz) add statistics module
         self._maxlen = maxlen
-        self._data = [None for _ in range(maxlen)]
+        self._enable_track_used_data = enable_track_used_data
+        if self._enable_track_used_data:
+            self._data = RecordList([None for _ in range(maxlen)])
+        else:
+            self._data = [None for _ in range(maxlen)]
         self._reuse_count = {idx: 0 for idx in range(maxlen)}
 
         self.max_reuse = max_reuse if max_reuse is not None else np.inf
@@ -272,3 +298,13 @@ class PrioritizedBuffer:
     @beta.setter
     def beta(self, beta: float) -> NoReturn:
         self._beta = beta
+
+    @property
+    def used_data(self) -> Any:
+        if self._enable_track_used_data:
+            if not self._data._used_data.empty():
+                return self._data._used_data.get()
+            else:
+                return None
+        else:
+            return None
