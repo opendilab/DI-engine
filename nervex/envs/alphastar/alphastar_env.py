@@ -229,9 +229,6 @@ class AlphaStarEnv(BaseEnv, SC2Env):
         self._agent_action = _agent_action
 
 
-AlphaStarTimestep = AlphaStarEnv.timestep
-
-
 class FakeAlphaStarEnv(AlphaStarEnv):
 
     def __init__(self, *args, **kwargs):

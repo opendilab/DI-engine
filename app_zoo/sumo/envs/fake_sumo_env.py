@@ -47,6 +47,3 @@ class FakeSumoWJ3Env(SumoWJ3Env):
 
     def __repr__(self):
         return 'FakeSumoWJ3Env'
-
-
-SumoTimestep = FakeSumoWJ3Env.timestep

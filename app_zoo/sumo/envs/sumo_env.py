@@ -195,6 +195,3 @@ class SumoWJ3Env(BaseEnv):
     # override
     def unpack(self, action: Any) -> List[Any]:
         return [{'action': act} for act in action]
-
-
-SumoTimestep = SumoWJ3Env.timestep

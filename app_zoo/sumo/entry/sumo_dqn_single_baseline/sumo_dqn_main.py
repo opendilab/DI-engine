@@ -4,7 +4,7 @@ import copy
 from nervex.entry.base_single_machine import SingleMachineRunner
 from nervex.utils import read_config
 from nervex.worker import SubprocessEnvManager
-from app_zoo.sumo.envs.sumo_env import SumoWJ3Env
+from app_zoo.sumo.envs import SumoWJ3Env, FakeSumoWJ3Env
 from app_zoo.sumo.worker.agent.sumo_dqn_agent import SumoDqnActorAgent, SumoDqnEvaluateAgent
 from app_zoo.sumo.worker.learner.sumo_dqn_learner import SumoDqnLearner
 
