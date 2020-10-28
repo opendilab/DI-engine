@@ -30,7 +30,8 @@ class ReplayBuffer:
             max_reuse=max_reuse,
             min_sample_ratio=self.cfg.min_sample_ratio,
             alpha=self.cfg.alpha,
-            beta=self.cfg.beta
+            beta=self.cfg.beta,
+            enable_track_used_data=self.cfg.enable_track_used_data
         )
         # cache mechanism: first push data into cache, then(some conditions) put forward to meta buffer
         self._cache = Cache(maxlen=self.cfg.cache_maxlen, timeout=self.cfg.timeout)
@@ -120,3 +121,10 @@ class ReplayBuffer:
         Overview: return current buffer data count
         """
         return self._meta_buffer.validlen
+
+    @property
+    def used_data(self):
+        """
+        Overview: return the used data(which is thrown from the buffer)
+        """
+        return self._meta_buffer.used_data

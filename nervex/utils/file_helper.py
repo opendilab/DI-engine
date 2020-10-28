@@ -1,7 +1,7 @@
 import logging
 import os
 import pickle
-from typing import NoReturn
+from typing import NoReturn, Union
 
 import torch
 
@@ -89,7 +89,7 @@ def save_file_ceph(path, data):
             f.write(data)
 
 
-def read_file(path: str, fs_type=None) -> object:
+def read_file(path: str, fs_type: Union[None, str] = None) -> object:
     if fs_type is None:
         fs_type = 'ceph' if path.lower().startswith('s3') else 'normal'
     assert fs_type in ['normal', 'ceph']
@@ -100,7 +100,7 @@ def read_file(path: str, fs_type=None) -> object:
     return data
 
 
-def save_file(path: str, data: object, fs_type=None) -> NoReturn:
+def save_file(path: str, data: object, fs_type: Union[None, str] = None) -> NoReturn:
     if fs_type is None:
         fs_type = 'ceph' if path.lower().startswith('s3') else 'normal'
     assert fs_type in ['normal', 'ceph']
@@ -108,3 +108,14 @@ def save_file(path: str, data: object, fs_type=None) -> NoReturn:
         save_file_ceph(path, data)
     elif fs_type == 'normal':
         torch.save(data, path)
+
+
+def remove_file(path: str, fs_type: Union[None, str] = None) -> NoReturn:
+    if fs_type is None:
+        fs_type = 'ceph' if path.lower().startswith('s3') else 'normal'
+    assert fs_type in ['normal', 'ceph']
+    if fs_type == 'ceph':
+        pass
+        os.popen("aws s3 rm --recursive {}".format(path))
+    elif fs_type == 'normal':
+        os.popen("rm -rf {}".format(path))
