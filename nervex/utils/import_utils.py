@@ -1,5 +1,5 @@
 import importlib
-import logging
+import warnings
 from typing import List
 
 global ceph_flag, linklink_flag
@@ -18,7 +18,7 @@ def try_import_ceph():
         import ceph
     except ModuleNotFoundError as e:
         if ceph_flag:
-            logging.warning(
+            warnings.warn(
                 "You have not installed ceph package! If you are not run locally and testing, "
                 "ask coworker for help."
             )
@@ -39,7 +39,7 @@ def try_import_link():
         import linklink as link
     except ModuleNotFoundError as e:
         if linklink_flag:
-            logging.warning(
+            warnings.warn(
                 "You have not installed linklink package! If you are not run locally and testing, "
                 "ask coworker for help. We will run a fake linklink."
                 "Refer to nervex.tests.fake_linklink.py for details."
