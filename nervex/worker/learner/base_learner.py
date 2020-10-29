@@ -66,6 +66,8 @@ class BaseLearner(ABC):
         else:
             self._rank, self._world_size = 0, 1
             self._learner_uid = self._learner_worker_uid
+        if self._use_cuda:
+            self._device = 'cuda: {}'.format(self._rank % 8)
         self._default_max_iterations = self._cfg.learner.max_iterations
         self._last_iter = CountVar(init_val=0)
         self._timer = EasyTimer()
@@ -166,11 +168,9 @@ class BaseLearner(ABC):
     def _get_data(self) -> Any:
         """
         Overview:
-            get data from data_source
+            get data from data_source, if use_cuda, the acquired data are already cuda tensor
         """
         data = next(self._data_source)
-        if self._use_cuda:
-            data = to_device(data, 'cuda: {}'.format(self._rank % 8))
         return data
 
     def _train(self, data: Any) -> dict:
@@ -225,6 +225,8 @@ class BaseLearner(ABC):
             - max_iterations (:obj:`int` or :obj:`None`): the max run iteration,
                 if None then set to default_max_iterations
         """
+        if hasattr(self._data_source, 'run'):
+            self._data_source.run()
         if max_iterations is None:
             max_iterations = self._default_max_iterations
         # before run hook
@@ -249,6 +251,8 @@ class BaseLearner(ABC):
         """
         if self._use_distributed:
             dist_finalize()
+        if hasattr(self._data_source, 'close'):
+            self._data_source.close()
 
     def call_hook(self, name: str) -> None:
         """

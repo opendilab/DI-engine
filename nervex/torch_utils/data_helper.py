@@ -1,5 +1,9 @@
 import numbers
 from collections.abc import Sequence
+from typing import Iterable, Any
+import time
+from threading import Thread
+from queue import Queue
 
 import numpy as np
 import torch
@@ -190,3 +194,34 @@ def build_log_buffer():
         - log_buffer (:obj:`LogDict`): log buffer dict
     """
     return LogDict()
+
+
+class CudaFetcher(object):
+
+    def __init__(self, data_source: Iterable, device: str, queue_size: int = 4, sleep: float = 0.1) -> None:
+        self._source = data_source
+        self._queue = Queue(maxsize=queue_size)
+        self._stream = torch.cuda.Stream()
+        self._producer_thread = Thread(target=self._producer, args=())
+        self._sleep = sleep
+        self._device = device
+
+    def __next__(self) -> Any:
+        return self._queue.get()
+
+    def run(self) -> None:
+        self._end_flag = False
+        self._producer_thread.start()
+
+    def close(self) -> None:
+        self._end_flag = True
+
+    def _producer(self) -> None:
+        with torch.cuda.stream(self._stream):
+            while not self._end_flag:
+                if self._queue.full():
+                    time.sleep(self._sleep)
+                else:
+                    data = next(self._source)
+                    data = to_device(data, self._device)
+                    self._queue.put(data)
