@@ -52,7 +52,6 @@ class TestCudaFetcher:
         while True:
             with timer:
                 data = next(dataloader)
-                data = data.cuda()
                 model(data)
             print('count {}, run_time: {}'.format(count, timer.value))
             count += 1
