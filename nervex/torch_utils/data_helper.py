@@ -197,24 +197,28 @@ def build_log_buffer():
 
 
 class CudaFetcher(object):
-    def __init__(self, data_source: Iterable, device: str, queue_size: int = 2, sleep: float = 1.0) -> None:
+
+    def __init__(self, data_source: Iterable, device: str, queue_size: int = 4, sleep: float = 1.0) -> None:
         self._source = data_source
         self._queue = Queue(maxsize=queue_size)
         self._stream = torch.cuda.Stream()
         self._producer_thread = Thread(target=self._producer, args=())
-        self._producer_thread.daemon = True
         self._sleep = sleep
         self._device = device
 
-    def __call__(self) -> Any:
+    def __next__(self) -> Any:
         return self._queue.get()
 
     def run(self) -> None:
+        self._end_flag = False
         self._producer_thread.start()
+
+    def close(self) -> None:
+        self._end_flag = True
 
     def _producer(self) -> None:
         with torch.cuda.stream(self._stream):
-            while True:
+            while not self._end_flag:
                 if self._queue.full():
                     time.sleep(self._sleep)
                 else:
