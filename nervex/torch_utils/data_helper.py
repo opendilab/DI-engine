@@ -198,7 +198,7 @@ def build_log_buffer():
 
 class CudaFetcher(object):
 
-    def __init__(self, data_source: Iterable, device: str, queue_size: int = 4, sleep: float = 1.0) -> None:
+    def __init__(self, data_source: Iterable, device: str, queue_size: int = 4, sleep: float = 0.1) -> None:
         self._source = data_source
         self._queue = Queue(maxsize=queue_size)
         self._stream = torch.cuda.Stream()
