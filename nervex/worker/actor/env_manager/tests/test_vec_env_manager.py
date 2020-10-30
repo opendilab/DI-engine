@@ -6,7 +6,7 @@ import torch
 from nervex.worker.actor.env_manager.vec_env_manager import SubprocessEnvManager
 
 
-@pytest.mark.unittest
+#@pytest.mark.unittest
 class TestBaseEnvManager:
 
     def test_naive(self, setup_manager_cfg):
