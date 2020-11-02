@@ -1,11 +1,11 @@
 from multiprocessing import Process, Pipe, connection
+from collections import namedtuple
 from threading import Thread
-from queue import Queue
 import enum
 import time
 import traceback
 from types import MethodType
-from typing import Any, Union, List, Tuple, Iterable
+from typing import Any, Union, List, Tuple, Iterable, Dict
 
 import cloudpickle
 
@@ -53,15 +53,12 @@ class SubprocessEnvManager(BaseEnvManager):
             c.close()
         self._env_state = {i: EnvState.INIT for i in range(self.env_num)}
         self._waiting_env = {'step': set()}
+        self._next_obs = {i: None for i in range(self.env_num)}
         self._env_episode_count = {i: 0 for i in range(self.env_num)}
         self._setup_async_args()
 
     def _setup_async_args(self) -> None:
         self._async_args = {
-            'reset': {
-                'wait_num': 1,
-                'timeout': 10.0
-            },
             'step': {
                 'wait_num': 2,
                 'timeout': 1.0
@@ -76,12 +73,19 @@ class SubprocessEnvManager(BaseEnvManager):
     def ready_env(self) -> List[int]:
         return [i for i in self.active_env if i not in self._waiting_env['step']]
 
-    def reset(self, reset_param: Union[None, List[dict]] = None) -> list:
+    @property
+    def next_obs(self) -> Dict[int, Any]:
+        return [self._next_obs[i] for i in self.ready_env]
+
+    @property
+    def done(self) -> bool:
+        return all([s == EnvState.Done for s in self._env_state])
+
+    def launch(self, reset_param: Union[None, List[dict]] = None) -> None:
         self._check_closed()
         if reset_param is None:
             reset_param = [None for _ in range(self.env_num)]
         self._reset_param = reset_param
-        self._reset_obs_queue = Queue()
         for i in range(self.env_num):
             self._parent_remote[i].send(CloudpickleWrapper(['reset', self._reset_param[i]]))
             self._env_state[i] = EnvState.RESET
@@ -89,13 +93,14 @@ class SubprocessEnvManager(BaseEnvManager):
         self._check_data(obs)
         for i in range(self.env_num):
             self._env_state[i] = EnvState.RUN
-        return self._envs[0].pack(obs=obs)
+            self._next_obs[i] = obs[i]
 
     def _reset(self, env_id: int) -> None:
         self._parent_remote[env_id].send(CloudpickleWrapper(['reset', self._reset_param[env_id]]))
         obs = self._parent_remote[env_id].recv().data
         self._check_data([obs])
-        self._reset_obs_queue.put({env_id: obs})
+        self._env_state[env_id] = EnvState.RUN
+        self._next_obs[env_id] = obs
 
     def seed(self, seed: List[int]) -> None:
         self._check_closed()
@@ -104,11 +109,9 @@ class SubprocessEnvManager(BaseEnvManager):
         ret = [p.recv().data for p in self._parent_remote]
         self._check_data(ret)
 
-    def step(self, action: List[Any], env_id: Union[None, List[int]] = None) -> Union[list, dict]:
+    def step(self, action: List[Any], env_id: List[int]) -> Dict[int, namedtuple]:
         self._check_closed()
-        action = self._envs[0].unpack(action)
-        rest_env_id = list(range(self.env_num)) if env_id is None else env_id
-        rest_env_id = set(rest_env_id).union(self._waiting_env['step'])
+        rest_env_id = set(env_id).union(self._waiting_env['step'])
         assert all([self._env_state[idx] == EnvState.RUN
                     for idx in rest_env_id]), '{}/{}'.format(self._env_state, rest_env_id)
 
@@ -139,8 +142,10 @@ class SubprocessEnvManager(BaseEnvManager):
                     reset_thread = Thread(target=self._reset, args=(idx, ))
                     reset_thread.daemon = True
                     reset_thread.start()
+            else:
+                self._next_obs[idx] = timestep.obs
 
-        return self._envs[0].pack(timesteps=ret.values())
+        return ret
 
     @property
     def method_name_list(self) -> list:
@@ -211,7 +216,6 @@ class SubprocessEnvManager(BaseEnvManager):
     def close(self) -> None:
         if self._closed:
             return
-        super().close()
         for p in self._parent_remote:
             p.send(CloudpickleWrapper(['close', None]))
         result = [p.recv().data for p in self._parent_remote]
