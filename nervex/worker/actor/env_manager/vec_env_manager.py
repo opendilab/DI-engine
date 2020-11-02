@@ -43,9 +43,9 @@ class SubprocessEnvManager(BaseEnvManager):
         self._processes = [
             Process(
                 target=self.worker_fn,
-                args=(parent, child, CloudpickleWrapper(env), self.method_name_list),
+                args=(parent, child, CloudpickleWrapper(lambda: self._env_fn(cfg)), self.method_name_list),
                 daemon=True
-            ) for parent, child, env in zip(self._parent_remote, self._child_remote, self._envs)
+            ) for parent, child, cfg in zip(self._parent_remote, self._child_remote, self._env_cfg)
         ]
         for p in self._processes:
             p.start()
@@ -147,9 +147,11 @@ class SubprocessEnvManager(BaseEnvManager):
         return ['reset', 'step', 'seed', 'close']
 
     # this method must be staticmethod, otherwise there will be some resource conflicts(e.g. port or file)
+    # env must be created in worker, which is a trick of avoiding env pickle errors.
     @staticmethod
-    def worker_fn(p, c, env_wrapper, method_name_list) -> None:
-        env = env_wrapper.data
+    def worker_fn(p, c, env_fn_wrapper, method_name_list) -> None:
+        env_fn = env_fn_wrapper.data
+        env = env_fn()
         p.close()
         try:
             while True:

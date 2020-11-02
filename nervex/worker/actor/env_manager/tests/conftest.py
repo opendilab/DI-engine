@@ -82,6 +82,7 @@ def setup_manager_cfg(setup_env_type):
         'env_cfg': [{
             'name': 'name{}'.format(i),
         } for i in range(env_num)],
-        'env_num': env_num
+        'env_num': env_num,
+        'episode_num': 2,
     }
     return EasyDict(manager_cfg)

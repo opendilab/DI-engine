@@ -5,10 +5,12 @@ from typing import Union, Any, List, Callable, Iterable
 
 class BaseEnvManager(ABC):
 
-    def __init__(self, env_fn: Callable, env_cfg: Iterable, env_num: int) -> None:
+    def __init__(self, env_fn: Callable, env_cfg: Iterable, env_num: int, episode_num: int) -> None:
         self._env_num = env_num
-        self._envs = [env_fn(c) for c in env_cfg]
-        assert len(self._envs) == self._env_num
+        self._env_fn = env_fn
+        self._env_cfg = env_cfg
+        self._epsiode_num = episode_num
+        self._launch_flag = False
         self._closed = False
 
     def _check_closed(self):
@@ -35,6 +37,10 @@ class BaseEnvManager(ABC):
               reset_param: Union[None, List[dict]] = None,
               env_id: Union[None, List[int]] = None) -> Union[list, dict]:
         self._check_closed()
+        if not self._launch_flag:
+            self._envs = [self._env_fn(c) for c in self._env_cfg]
+            self._launch_flag = True
+        assert len(self._envs) == self._env_num
         self._env_done = {}
         for i in (env_id if env_id is not None else range(self.env_num)):
             self._env_done[i] = False
