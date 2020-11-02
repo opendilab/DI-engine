@@ -86,10 +86,10 @@ class SubprocessEnvManager(BaseEnvManager):
     def launch(self, reset_param: Union[None, List[dict]] = None) -> None:
         self._check_closed()
         if reset_param is None:
-            reset_param = [None for _ in range(self.env_num)]
+            reset_param = [[] for _ in range(self.env_num)]
         self._reset_param = reset_param
         for i in range(self.env_num):
-            self._parent_remote[i].send(CloudpickleWrapper(['reset', [self._reset_param[i]], {}]))
+            self._parent_remote[i].send(CloudpickleWrapper(['reset', self._reset_param[i], {}]))
             self._env_state[i] = EnvState.RESET
         obs = [p.recv().data for p in self._parent_remote]
         self._check_data(obs)
@@ -98,7 +98,7 @@ class SubprocessEnvManager(BaseEnvManager):
             self._next_obs[i] = obs[i]
 
     def _reset(self, env_id: int) -> None:
-        self._parent_remote[env_id].send(CloudpickleWrapper(['reset', [self._reset_param[env_id]], {}]))
+        self._parent_remote[env_id].send(CloudpickleWrapper(['reset', self._reset_param[env_id], {}]))
         obs = self._parent_remote[env_id].recv().data
         self._check_data([obs])
         self._env_state[env_id] = EnvState.RUN
