@@ -3,6 +3,7 @@ from collections import namedtuple
 from threading import Thread
 import enum
 import time
+import math
 import traceback
 from types import MethodType
 from typing import Any, Union, List, Tuple, Iterable, Dict
@@ -55,19 +56,20 @@ class SubprocessEnvManager(BaseEnvManager):
         self._waiting_env = {'step': set()}
         self._next_obs = {i: None for i in range(self.env_num)}
         self._env_episode_count = {i: 0 for i in range(self.env_num)}
+        self._env_ref = self._env_fn(self._env_cfg[0])
         self._setup_async_args()
 
     def _setup_async_args(self) -> None:
         self._async_args = {
             'step': {
                 'wait_num': 2,
-                'timeout': 1.0
+                'timeout': 1.5
             },
         }
 
     @property
     def active_env(self) -> List[int]:
-        return [i for i, s in enumerate(self._env_state) if s == EnvState.RUN]
+        return [i for i, s in self._env_state.items() if s == EnvState.RUN]
 
     @property
     def ready_env(self) -> List[int]:
@@ -75,11 +77,11 @@ class SubprocessEnvManager(BaseEnvManager):
 
     @property
     def next_obs(self) -> Dict[int, Any]:
-        return [self._next_obs[i] for i in self.ready_env]
+        return {i: self._next_obs[i] for i in self.ready_env}
 
     @property
     def done(self) -> bool:
-        return all([s == EnvState.Done for s in self._env_state])
+        return all([s == EnvState.DONE for s in self._env_state.values()])
 
     def launch(self, reset_param: Union[None, List[dict]] = None) -> None:
         self._check_closed()
@@ -87,7 +89,7 @@ class SubprocessEnvManager(BaseEnvManager):
             reset_param = [None for _ in range(self.env_num)]
         self._reset_param = reset_param
         for i in range(self.env_num):
-            self._parent_remote[i].send(CloudpickleWrapper(['reset', self._reset_param[i]]))
+            self._parent_remote[i].send(CloudpickleWrapper(['reset', [self._reset_param[i]], {}]))
             self._env_state[i] = EnvState.RESET
         obs = [p.recv().data for p in self._parent_remote]
         self._check_data(obs)
@@ -96,7 +98,7 @@ class SubprocessEnvManager(BaseEnvManager):
             self._next_obs[i] = obs[i]
 
     def _reset(self, env_id: int) -> None:
-        self._parent_remote[env_id].send(CloudpickleWrapper(['reset', self._reset_param[env_id]]))
+        self._parent_remote[env_id].send(CloudpickleWrapper(['reset', [self._reset_param[env_id]], {}]))
         obs = self._parent_remote[env_id].recv().data
         self._check_data([obs])
         self._env_state[env_id] = EnvState.RUN
@@ -105,33 +107,34 @@ class SubprocessEnvManager(BaseEnvManager):
     def seed(self, seed: List[int]) -> None:
         self._check_closed()
         for i in range(self.env_num):
-            self._parent_remote[i].send(CloudpickleWrapper(['seed', None]))
+            self._parent_remote[i].send(CloudpickleWrapper(['seed', [seed[i]], {}]))
         ret = [p.recv().data for p in self._parent_remote]
         self._check_data(ret)
 
-    def step(self, action: List[Any], env_id: List[int]) -> Dict[int, namedtuple]:
+    def step(self, action: Dict[int, Any]) -> Dict[int, namedtuple]:
         self._check_closed()
-        rest_env_id = set(env_id).union(self._waiting_env['step'])
-        assert all([self._env_state[idx] == EnvState.RUN
-                    for idx in rest_env_id]), '{}/{}'.format(self._env_state, rest_env_id)
+        env_id = list(action.keys())
+        assert all([self._env_state[idx] == EnvState.RUN for idx in env_id]), '{}/{}'.format(self._env_state, env_id)
 
-        for i in range(len(rest_env_id)):
-            self._parent_remote[rest_env_id[i]].send(CloudpickleWrapper(['step', action[i]]))
+        for i, act in action.items():
+            self._parent_remote[i].send(CloudpickleWrapper(['step', [act], {}]))
 
         handle = self._async_args['step']
-        wait_num, timeout = min(handle['wait_num'], len(rest_env_id)), handle['timeout']
+        wait_num, timeout = min(handle['wait_num'], len(env_id)), handle['timeout']
+        rest_env_id = list(set(env_id).union(self._waiting_env['step']))
         rest_conn = [self._parent_remote[i] for i in rest_env_id]
         ready_conn, ready_idx = SubprocessEnvManager.wait(rest_conn, wait_num, timeout)
         ready_env_id = [rest_env_id[idx] for idx in ready_idx]
-        ret = {i: c.get_result().data for i, c in zip(ready_env_id, rest_conn)}
+        ret = {i: c.recv().data for i, c in zip(ready_env_id, ready_conn)}
         self._check_data(ret.values())
 
         self._waiting_env['step']: set
-        for env_id in rest_env_id:
-            if env_id in ready_env_id:
-                self._waiting_env['step'].remove(env_id)
+        for i in rest_env_id:
+            if i in ready_env_id:
+                if i in self._waiting_env['step']:
+                    self._waiting_env['step'].remove(i)
             else:
-                self._waiting_env['step'].add(env_id)
+                self._waiting_env['step'].add(i)
         for idx, timestep in ret.items():
             if timestep.done:
                 self._env_episode_count[idx] += 1
@@ -161,18 +164,18 @@ class SubprocessEnvManager(BaseEnvManager):
         try:
             while True:
                 try:
-                    cmd, data = c.recv().data
+                    cmd, args, kwargs = c.recv().data
                 except EOFError:  # for the case when the pipe has been closed
                     c.close()
                     break
                 try:
                     if cmd == 'getattr':
-                        ret = getattr(env, data)
+                        ret = getattr(env, args[0])
                     elif cmd in method_name_list:
-                        if data is None:
+                        if args is None and kwargs is None:
                             ret = getattr(env, cmd)()
                         else:
-                            ret = getattr(env, cmd)(**data)
+                            ret = getattr(env, cmd)(*args, **kwargs)
                     else:
                         raise KeyError("not support env cmd: {}".format(cmd))
                     c.send(CloudpickleWrapper(ret))
@@ -195,19 +198,19 @@ class SubprocessEnvManager(BaseEnvManager):
             if isinstance(d, Exception):
                 # when receiving env Exception, env manager will safely close and raise this Exception to caller
                 self.close()
-                raise data
+                raise d
 
     # override
     def __getattr__(self, key: str) -> Any:
         self._check_closed()
         # we suppose that all the envs has the same attributes, if you need different envs, please
         # create different env managers.
-        if not hasattr(self._envs[0], key):
-            raise AttributeError("env `{}` doesn't have the attribute `{}`".format(type(self._envs[0]), key))
-        if isinstance(getattr(self._envs[0], key), MethodType):
+        if not hasattr(self._env_ref, key):
+            raise AttributeError("env `{}` doesn't have the attribute `{}`".format(type(self._env_ref), key))
+        if isinstance(getattr(self._env_ref, key), MethodType):
             raise TypeError("env manager getattr doesn't supports method, please override method_name_list")
         for p in self._parent_remote:
-            p.send(CloudpickleWrapper(['getattr', key]))
+            p.send(CloudpickleWrapper(['getattr', [key], {}]))
         ret = [p.recv().data for p in self._parent_remote]
         self._check_data(ret)
         return ret
@@ -217,12 +220,13 @@ class SubprocessEnvManager(BaseEnvManager):
         if self._closed:
             return
         for p in self._parent_remote:
-            p.send(CloudpickleWrapper(['close', None]))
+            p.send(CloudpickleWrapper(['close', None, None]))
         result = [p.recv().data for p in self._parent_remote]
         for p in self._processes:
             p.join()
         for p in self._processes:
             p.terminate()
+        self._closed = True
 
     @staticmethod
     def wait(rest_conn: list, wait_num: int, timeout: Union[None, float] = None) -> Tuple[list, list]:
@@ -232,23 +236,32 @@ class SubprocessEnvManager(BaseEnvManager):
             if timeout is None, wait_num == len(ready_conn), means sync mode;
             if timeout is not None, len(ready_conn) >= wait_num when returns;
         """
-        rest_conn = set(rest_conn)
         assert 1 <= wait_num <= len(rest_conn
                                     ), 'please indicate proper wait_num: <wait_num: {}, rest_conn_num: {}>'.format(
                                         wait_num, len(rest_conn)
                                     )
+        rest_conn_set = set(rest_conn)
         ready_conn = set()
-        ready_idx = set()
         start_time = time.time()
         rest_time = timeout
-        while len(rest_conn) > 0:
-            finish_conn = set(connection.wait(rest_conn, timeout=rest_time))
-            finish_idx = set([rest_conn.index(c) for c in finish_conn])
+        while len(rest_conn_set) > 0:
+            finish_conn = set(connection.wait(rest_conn_set, timeout=rest_time))
             ready_conn = ready_conn.union(finish_conn)
-            ready_idx = ready_idx.union(finish_idx)
-            rest_conn = rest_conn.difference(finish_conn)
+            rest_conn_set = rest_conn_set.difference(finish_conn)
             if len(ready_conn) >= wait_num and timeout:
                 rest_time = timeout - (time.time() - start_time)
                 if rest_time <= 0.0:
                     break
-        return list(ready_conn), list(ready_idx)
+        ready_idx = [rest_conn.index(c) for c in ready_conn]
+        return list(ready_conn), ready_idx
+
+
+class SyncSubprocessEnvManager(SubprocessEnvManager):
+
+    def _setup_async_args(self) -> None:
+        self._async_args = {
+            'step': {
+                'wait_num': math.inf,
+                'timeout': None,
+            },
+        }

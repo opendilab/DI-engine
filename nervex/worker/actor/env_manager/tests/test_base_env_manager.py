@@ -9,8 +9,8 @@ from nervex.worker.actor.env_manager.base_env_manager import BaseEnvManager
 @pytest.mark.unittest
 class TestBaseEnvManager:
 
-    def test_naive(self, setup_manager_cfg):
-        env_manager = BaseEnvManager(**setup_manager_cfg)
+    def test_naive(self, setup_sync_manager_cfg):
+        env_manager = BaseEnvManager(**setup_sync_manager_cfg)
         obs = env_manager.reset(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
         assert all([s == 'stat_test'] for s in env_manager._stat)
         env_manager.seed([314 for _ in range(env_manager.env_num)])

@@ -45,11 +45,11 @@ class BaseEnvManager(ABC):
         for i in (env_id if env_id is not None else range(self.env_num)):
             self._env_done[i] = False
         obs = self._execute_by_envid('reset', param=reset_param, env_id=env_id)
-        return self._envs[0].pack(obs=obs)
+        return obs
 
     def step(self, action: List[Any], env_id: Union[None, List[int]] = None) -> Union[list, dict]:
         self._check_closed()
-        param = self._envs[0].unpack(action)
+        param = [{'action': act} for act in action]
         ret = self._execute_by_envid('step', param=param, env_id=env_id)
         if isinstance(ret, list):
             for i, t in enumerate(ret):
@@ -57,7 +57,7 @@ class BaseEnvManager(ABC):
         elif isinstance(ret, dict):
             for k, v in ret.items():
                 self._env_done[k] = v.done
-        return self._envs[0].pack(timesteps=ret)
+        return ret
 
     def seed(self, seed: List[int], env_id: Union[None, List[int]] = None) -> None:
         self._check_closed()
