@@ -12,17 +12,17 @@ actor:
         path_stat: '.'
         heartbeats_freq: 30
         upstream_ip: '127.0.0.1'
-        upstream_port: 16296
+        upstream_port: 16396
 env:
     placeholder: xxx
 system:
     manager_ip: '127.0.0.1'
-    manager_port: 16296
+    manager_port: 16396
     coordinator_ip: '127.0.0.1'
-    coordinator_port: 16297
+    coordinator_port: 16397
     resume_dir: '.'
     actor_num: 1
     manager_resume_path:
     coordinator_resume_path:
     coordinator_check_dead_learner_freq: 300
-    league_manager_port: 16298
+    league_manager_port: 16398

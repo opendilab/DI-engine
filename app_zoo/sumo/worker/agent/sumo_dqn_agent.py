@@ -5,32 +5,6 @@ import torch
 from nervex.worker.agent import BaseAgent, IAgentStatelessPlugin, add_plugin
 
 
-class DataTransformHelper(IAgentStatelessPlugin):
-
-    @classmethod
-    def register(cls: type, agent: BaseAgent):
-
-        def data_wrapper(fn):
-
-            def wrapper(*args, **kwargs):
-                data = args[0]
-                ret = fn(data, **kwargs)
-                # tl_num, bs -> bs, tl_num
-                result = list()
-                for r in ret:
-                    if isinstance(r, torch.Tensor) and len(r.shape) == 1:
-                        r = [r]
-                    result.append(list(zip(*r)))
-                return result
-
-            return wrapper
-
-        agent.forward = data_wrapper(agent.forward)
-
-
-add_plugin('sumowj3_data_transform', DataTransformHelper)
-
-
 class SumoDqnLearnerAgent(BaseAgent):
 
     def __init__(self, model: torch.nn.Module, plugin_cfg: dict) -> None:
@@ -49,15 +23,12 @@ class SumoDqnLearnerAgent(BaseAgent):
 class SumoDqnActorAgent(BaseAgent):
 
     def __init__(self, model: torch.nn.Module) -> None:
-        plugin_cfg = OrderedDict(
-            {
-                'eps_greedy_sample': {},
-                'sumowj3_data_transform': {},
-                'grad': {
-                    'enable_grad': False
-                },
-            }
-        )
+        plugin_cfg = OrderedDict({
+            'eps_greedy_sample': {},
+            'grad': {
+                'enable_grad': False
+            },
+        })
         super(SumoDqnActorAgent, self).__init__(model, plugin_cfg)
 
 
@@ -66,7 +37,6 @@ class SumoDqnEvaluateAgent(BaseAgent):
     def __init__(self, model: torch.nn.Module) -> None:
         plugin_cfg = OrderedDict({
             'argmax_sample': {},
-            'sumowj3_data_transform': {},
             'grad': {
                 'enable_grad': False
             },
