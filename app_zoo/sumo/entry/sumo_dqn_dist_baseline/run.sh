@@ -6,6 +6,7 @@ CMD=("python3 -u -m nervex.system.coordinator_start" "python3 -u -m nervex.syste
      "python3 -u -m nervex.system.league_manager_start" "python3 -u -m nervex.system.learner_start" \
      "python3 -u -m nervex.system.actor_start")
 CONFIG=" --config $work_path/sumo_dqn_dist_default_config.yaml"
+#CONFIG=" --config $work_path/sumo_dqn_dist_default_local_config.yaml"  # for local test
 
 for ((i=0;i<${#CMD[@]};i++))
 do

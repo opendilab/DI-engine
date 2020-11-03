@@ -10,18 +10,17 @@ from app_zoo.sumo.worker.actor.sumowj3_actor_controller import SumoWJ3Actor
 
 class FakeSumoWJ3Actor(SumoWJ3Actor):
 
-    def _setup_agents(self):
-        super()._setup_agents()
+    def _setup_agent(self):
+        super()._setup_agent()
 
         def no_op_fn(*args, **kwargs):
             pass
 
-        for a in self._agents.values():
-            a.state_dict = lambda: {'model': 'placeholder'}
-            a.load_state_dict = no_op_fn
+        self._agent.state_dict = lambda: {'model': 'placeholder'}
+        self._agent.load_state_dict = no_op_fn
 
 
-@pytest.mark.envtest
+@pytest.mark.unittest
 class TestASActorFakeEnv:
 
     def test_naive(self, setup_config, setup_coordinator, setup_manager):

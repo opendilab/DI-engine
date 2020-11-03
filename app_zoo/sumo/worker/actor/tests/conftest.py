@@ -61,9 +61,11 @@ class FakeCoordinator(Coordinator):
             'agent_update_freq': 30,
             'data_push_length': 16,
             'compressor': 'none',
-            'eps': 0.9,
             'player_id': ['test'],
             'launch_player': ['test'],
+            'forward_kwargs': {
+                'eps': 0.9,
+            }
         }
         self.job_queue.put(fake_job)
         return super().deal_with_ask_for_job(manager_uid, actor_uid)

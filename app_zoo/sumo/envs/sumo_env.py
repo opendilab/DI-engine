@@ -178,20 +178,3 @@ class SumoWJ3Env(BaseEnv):
     @action.setter
     def action(self, _action):
         self._action = _action
-
-    # override
-    def pack(self, timesteps: List['SumoWJ3Env.timestep'] = None, obs: Any = None) -> 'SumoWJ3Env.timestep':
-        assert not (timesteps is None and obs is None)
-        assert not (timesteps is not None and obs is not None)
-        if timesteps is not None:
-            assert isinstance(timesteps, list)
-            assert isinstance(timesteps[0], tuple)
-            timestep_type = type(timesteps[0])
-            items = [[getattr(timesteps[i], item) for i in range(len(timesteps))] for item in timesteps[0]._fields]
-            return timestep_type(*items)
-        if obs is not None:
-            return obs
-
-    # override
-    def unpack(self, action: Any) -> List[Any]:
-        return [{'action': act} for act in action]

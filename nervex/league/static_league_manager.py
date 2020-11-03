@@ -13,7 +13,9 @@ class StaticLeagueManager(BaseLeagueManager):
             'data_push_length': self.cfg.task.data_push_length,
             'agent_update_freq': self.cfg.task.agent_update_freq,
             'compressor': self.cfg.task.compressor,
-            'eps': eps,
+            'forward_kwargs': {
+                'eps': eps,
+            },
             'launch_player': player.player_id,
             'player_id': [player.player_id],
             'agent': {

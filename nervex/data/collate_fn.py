@@ -45,4 +45,14 @@ def diff_shape_collate(batch):
     raise TypeError('not support element type: {}'.format(elem_type))
 
 
-default_collate_fn = default_collate
+def default_decollate(batch):
+    if isinstance(batch, torch.Tensor):
+        return list(torch.split(batch, 1, dim=0))
+    elif isinstance(batch, Sequence):
+        return list(zip(*[default_decollate(e) for e in batch]))
+    elif isinstance(batch, Mapping):
+        tmp = {k: default_decollate(v) for k, v in batch.items()}
+        B = len(list(tmp.values())[0])
+        return [{k: tmp[k][i] for k in tmp.keys()} for i in range(B)]
+
+    raise TypeError("not support batch type: {}".format(type(batch)))

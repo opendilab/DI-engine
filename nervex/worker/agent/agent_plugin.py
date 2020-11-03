@@ -126,7 +126,7 @@ class ArgmaxSampleHelper(IAgentStatelessPlugin):
                 action = [logit.argmax(dim=-1) for logit in logits]
                 if len(action) == 1:
                     action, logits = action[0], logits[0]
-                return action, logits
+                return {'action': action, 'logits': logits}
 
             return wrapper
 
@@ -155,7 +155,7 @@ class EpsGreedySampleHelper(IAgentStatelessPlugin):
                         action.append(torch.randint(0, logit.shape[-1], size=(logit.shape[0], )))
                 if len(action) == 1:
                     action, logits = action[0], logits[0]
-                return action, logits
+                return {'action': action, 'logits': logits}
 
             return wrapper
 

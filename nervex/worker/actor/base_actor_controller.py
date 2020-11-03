@@ -77,37 +77,27 @@ class BaseActor(ABC):
         self._variable_record.register_var('env_time')
         self._variable_record.register_var('timestep_size')
         self._variable_record.register_var('norm_env_time')
-        # other parts need to be implemented by subclass
 
-    @abstractmethod
-    def episode_reset(self) -> None:
-        raise NotImplementedError
+        # other parts need to be implemented by subclass
 
     def _setup_logger(self) -> None:
         path = os.path.join(self._cfg.common.save_path, 'actor-log')
         name = 'actor.{}.log'.format(self._actor_uid)
         self._logger, self._variable_record = build_logger_naive(path, name)
 
-    @abstractmethod
-    def __repr__(self) -> str:
-        raise NotImplementedError
-
     def run(self) -> None:
         self.init_service()
         while not self._end_flag:
             job = self.get_job()
             self._init_with_job(job)
-            for episode_idx in range(job['episode_num']):
-                obs = self.episode_reset()
-                while True:
-                    action = self._agent_inference(obs)
-                    timestep = self._env_step(action)
-                    self._accumulate_timestep(obs, action, timestep)
-                    obs = self._get_next_obs(timestep)
-                    self._iter_after_hook()
-                    if self.all_done:
-                        break
-                self._finish_episode(timestep)
+            while True:
+                obs = self._env_manager.next_obs
+                action = self._agent_inference(obs)
+                timestep = self._env_step(action)
+                self._process_timestep(timestep)
+                self._iter_after_hook()
+                if self._env_manager.done:
+                    break
             self._finish_job()
 
     def close(self) -> None:
@@ -124,24 +114,20 @@ class BaseActor(ABC):
             )
         self._iter_count += 1
 
-    def _get_next_obs(self, timestep: namedtuple) -> Any:
-        # some special actor will do additional operation on next obs, thus we design this interface
-        return timestep.obs
+    @abstractmethod
+    def __repr__(self) -> str:
+        raise NotImplementedError
 
     @abstractmethod
     def _agent_inference(self, obs: Any) -> Any:
         raise NotImplementedError
 
     @abstractmethod
-    def _env_step(self, action: Any) -> namedtuple:
+    def _env_step(self, action: Any) -> Any:
         raise NotImplementedError
 
     @abstractmethod
-    def _accumulate_timestep(self, obs: Any, action: Any, timestep: namedtuple) -> None:
-        raise NotImplementedError
-
-    @abstractmethod
-    def _finish_episode(self, timestep: namedtuple) -> None:
+    def _process_timestep(self, timestep: namedtuple) -> None:
         raise NotImplementedError
 
     @abstractmethod
@@ -152,10 +138,6 @@ class BaseActor(ABC):
         raise NotImplementedError
 
     def _update_agent(self) -> None:
-        raise NotImplementedError
-
-    @abstractproperty
-    def all_done(self) -> bool:
         raise NotImplementedError
 
 

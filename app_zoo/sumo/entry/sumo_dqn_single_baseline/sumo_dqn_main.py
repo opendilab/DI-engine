@@ -12,16 +12,26 @@ from app_zoo.sumo.worker.learner.sumo_dqn_learner import SumoDqnLearner
 class SumoRunner(SingleMachineRunner):
 
     def _setup_env(self):
-        env_num = self.cfg.env.env_num
-        self.env = SubprocessEnvManager(SumoWJ3Env, env_cfg=[self.cfg.env for _ in range(env_num)], env_num=env_num)
+        actor_env_num = self.cfg.actor.env_num
+        eval_env_num = self.cfg.evaluator.env_num
+        self.actor_env = SubprocessEnvManager(
+            SumoWJ3Env,
+            env_cfg=[self.cfg.env for _ in range(actor_env_num)],
+            env_num=actor_env_num,
+            episode_num=self.cfg.actor.episode_num
+        )
+        self.evaluate_env = SubprocessEnvManager(
+            SumoWJ3Env,
+            env_cfg=[self.cfg.env for _ in range(eval_env_num)],
+            env_num=eval_env_num,
+            episode_num=self.cfg.evaluator.episode_num
+        )
 
     def _setup_learner(self):
         self.learner = SumoDqnLearner(self.cfg)
 
-    def _setup_actor_agent(self):
+    def _setup_agent(self):
         self.actor_agent = SumoDqnActorAgent(copy.deepcopy(self.learner.agent.model))
-
-    def _setup_evaluate_agent(self):
         self.evaluate_agent = SumoDqnEvaluateAgent(copy.deepcopy(self.learner.agent.model))
 
 
