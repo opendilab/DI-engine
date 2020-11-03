@@ -39,3 +39,6 @@ class SumoWJ3Actor(ZerglingActor):
     # override
     def __repr__(self) -> str:
         return "SumoWJ3Actor"
+
+
+register_actor('sumowj3', SumoWJ3Actor)

@@ -11,7 +11,7 @@ from nervex.data import default_collate, default_decollate
 from nervex.torch_utils import to_device, tensor_to_list
 from nervex.utils import get_step_data_compressor
 from nervex.worker.actor import BaseActor
-from nervex.worker.actor.env_manager import SubprocessEnvManager
+from nervex.worker.actor.env_manager import SubprocessEnvManager, BaseEnvManager
 
 
 class ZerglingActor(BaseActor):

@@ -54,9 +54,6 @@ class SubprocessEnvManager(BaseEnvManager):
             c.close()
         self._env_state = {i: EnvState.INIT for i in range(self.env_num)}
         self._waiting_env = {'step': set()}
-        self._next_obs = {i: None for i in range(self.env_num)}
-        self._env_episode_count = {i: 0 for i in range(self.env_num)}
-        self._env_ref = self._env_fn(self._env_cfg[0])
         self._setup_async_args()
 
     def _setup_async_args(self) -> None:
@@ -88,6 +85,14 @@ class SubprocessEnvManager(BaseEnvManager):
         if reset_param is None:
             reset_param = [[] for _ in range(self.env_num)]
         self._reset_param = reset_param
+        # set seed
+        if hasattr(self, '_env_seed'):
+            for i in range(self.env_num):
+                self._parent_remote[i].send(CloudpickleWrapper(['seed', [self._env_seed[i]], {}]))
+            ret = [p.recv().data for p in self._parent_remote]
+            self._check_data(ret)
+
+        # launch env
         for i in range(self.env_num):
             self._parent_remote[i].send(CloudpickleWrapper(['reset', self._reset_param[i], {}]))
             self._env_state[i] = EnvState.RESET
@@ -103,13 +108,6 @@ class SubprocessEnvManager(BaseEnvManager):
         self._check_data([obs])
         self._env_state[env_id] = EnvState.RUN
         self._next_obs[env_id] = obs
-
-    def seed(self, seed: List[int]) -> None:
-        self._check_closed()
-        for i in range(self.env_num):
-            self._parent_remote[i].send(CloudpickleWrapper(['seed', [seed[i]], {}]))
-        ret = [p.recv().data for p in self._parent_remote]
-        self._check_data(ret)
 
     def step(self, action: Dict[int, Any]) -> Dict[int, namedtuple]:
         self._check_closed()
@@ -208,7 +206,7 @@ class SubprocessEnvManager(BaseEnvManager):
         if not hasattr(self._env_ref, key):
             raise AttributeError("env `{}` doesn't have the attribute `{}`".format(type(self._env_ref), key))
         if isinstance(getattr(self._env_ref, key), MethodType):
-            raise TypeError("env manager getattr doesn't supports method, please override method_name_list")
+            raise TypeError("env getattr doesn't supports method({}), please override method_name_list".format(key))
         for p in self._parent_remote:
             p.send(CloudpickleWrapper(['getattr', [key], {}]))
         ret = [p.recv().data for p in self._parent_remote]
@@ -219,6 +217,7 @@ class SubprocessEnvManager(BaseEnvManager):
     def close(self) -> None:
         if self._closed:
             return
+        self._env_ref.close()
         for p in self._parent_remote:
             p.send(CloudpickleWrapper(['close', None, None]))
         result = [p.recv().data for p in self._parent_remote]

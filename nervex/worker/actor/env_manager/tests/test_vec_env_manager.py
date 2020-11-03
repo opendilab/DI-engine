@@ -6,6 +6,7 @@ import torch
 from nervex.worker.actor.env_manager.vec_env_manager import SubprocessEnvManager, SyncSubprocessEnvManager
 
 
+@pytest.mark.unittest
 class TestBaseEnvManager:
 
     def test_naive(self, setup_async_manager_cfg, setup_model_type):
@@ -13,8 +14,8 @@ class TestBaseEnvManager:
         model = setup_model_type()
 
         env_manager.seed([314 for _ in range(env_manager.env_num)])
-        assert all([s == 314 for s in env_manager._seed])
         env_manager.launch(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
+        assert all([s == 314 for s in env_manager._seed])
         assert all([s == 'stat_test'] for s in env_manager._stat)
 
         env_count = [0 for _ in range(env_manager.env_num)]
@@ -41,7 +42,6 @@ class TestBaseEnvManager:
 
         env_manager.close()
 
-    @pytest.mark.unittest
     def test_error(self, setup_async_manager_cfg, setup_exception):
         env_manager = SyncSubprocessEnvManager(**setup_async_manager_cfg)
         obs = env_manager.launch(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])

@@ -1,6 +1,7 @@
 from abc import ABC
 from types import MethodType
-from typing import Union, Any, List, Callable, Iterable
+from typing import Union, Any, List, Callable, Iterable, Dict
+from collections import namedtuple
 
 
 class BaseEnvManager(ABC):
@@ -10,11 +11,28 @@ class BaseEnvManager(ABC):
         self._env_fn = env_fn
         self._env_cfg = env_cfg
         self._epsiode_num = episode_num
+        # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
+        self._env_ref = self._env_fn(self._env_cfg[0])
+        self._env_episode_count = {i: 0 for i in range(self.env_num)}
+        self._env_done = {i: False for i in range(self.env_num)}
+        self._next_obs = {i: None for i in range(self.env_num)}
         self._launch_flag = False
         self._closed = False
 
     def _check_closed(self):
         assert not self._closed, "env manager is closed, please use the alive env manager"
+
+    @property
+    def env_num(self) -> int:
+        return self._env_num
+
+    @property
+    def next_obs(self) -> Dict[int, Any]:
+        return {i: self._next_obs[i] for i, d in self._env_done.items() if not d}
+
+    @property
+    def done(self) -> bool:
+        return all([v == self._epsiode_num for v in self._env_episode_count.values()])
 
     def __getattr__(self, key: str) -> Any:
         """
@@ -22,76 +40,57 @@ class BaseEnvManager(ABC):
         """
         # we suppose that all the envs has the same attributes, if you need different envs, please
         # create different env managers.
-        if not hasattr(self._envs[0], key):
-            raise AttributeError("env `{}` doesn't have the attribute `{}`".format(type(self._envs[0]), key))
-        if isinstance(getattr(self._envs[0], key), MethodType):
-            raise TypeError("env manager getattr doesn't supports method, please override method_name_list")
+        if not hasattr(self._env_ref, key):
+            raise AttributeError("env `{}` doesn't have the attribute `{}`".format(type(self._env_ref), key))
+        if isinstance(getattr(self._env_ref, key), MethodType):
+            raise TypeError("env doesn't supports this method({})".format(key))
         self._check_closed()
         return [getattr(env, key) if hasattr(env, key) else None for env in self._envs]
 
-    @property
-    def env_num(self) -> int:
-        return self._env_num
-
-    def reset(self,
-              reset_param: Union[None, List[dict]] = None,
-              env_id: Union[None, List[int]] = None) -> Union[list, dict]:
+    def launch(self, reset_param: Union[None, List[dict]] = None) -> None:
         self._check_closed()
-        if not self._launch_flag:
-            self._envs = [self._env_fn(c) for c in self._env_cfg]
-            self._launch_flag = True
+        if reset_param is None:
+            reset_param = [[] for _ in range(self.env_num)]
+        self._reset_param = reset_param
+        assert not self._launch_flag, "this env manger has been launched"
+        self._envs = [self._env_fn(c) for c in self._env_cfg]
         assert len(self._envs) == self._env_num
-        self._env_done = {}
-        for i in (env_id if env_id is not None else range(self.env_num)):
-            self._env_done[i] = False
-        obs = self._execute_by_envid('reset', param=reset_param, env_id=env_id)
-        return obs
+        self._launch_flag = True
+        # set seed
+        if hasattr(self, '_env_seed'):
+            for env, s in zip(self._envs, self._env_seed):
+                env.seed(s)
+        for i in range(self.env_num):
+            self._reset(i)
 
-    def step(self, action: List[Any], env_id: Union[None, List[int]] = None) -> Union[list, dict]:
+    def _reset(self, env_id: int) -> None:
+        obs = self._envs[env_id].reset(*self._reset_param[env_id])
+        self._next_obs[env_id] = obs
+
+    def step(self, action: Dict[int, Any]) -> Dict[int, namedtuple]:
         self._check_closed()
-        param = [{'action': act} for act in action]
-        ret = self._execute_by_envid('step', param=param, env_id=env_id)
-        if isinstance(ret, list):
-            for i, t in enumerate(ret):
-                self._env_done[i] = t.done
-        elif isinstance(ret, dict):
-            for k, v in ret.items():
-                self._env_done[k] = v.done
-        return ret
+        timestep = {}
+        for env_id, act in action.items():
+            timestep[env_id] = self._envs[env_id].step(act)
+            if timestep[env_id].done:
+                self._env_done[env_id] = True
+                self._env_episode_count[env_id] += 1
+            self._next_obs[env_id] = timestep[env_id].obs
+        if not self.done and all([d for d in self._env_done.values()]):
+            for i in range(self.env_num):
+                self._reset(i)
+                self._env_done[i] = False
+        return timestep
 
-    def seed(self, seed: List[int], env_id: Union[None, List[int]] = None) -> None:
+    def seed(self, seed: List[int]) -> None:
         self._check_closed()
-        param = [{'seed': s} for s in seed]
-        return self._execute_by_envid('seed', param=param, env_id=env_id)
-
-    def _execute_by_envid(
-            self,
-            fn_name: str,
-            param: Union[None, List[dict]] = None,
-            env_id: Union[None, List[int]] = None
-    ) -> Union[list, dict]:
-        real_env_id = list(range(self.env_num)) if env_id is None else env_id
-        if param is None:
-            ret = {real_env_id[i]: getattr(self._envs[real_env_id[i]], fn_name)() for i in range(len(real_env_id))}
-        else:
-            ret = {
-                real_env_id[i]: getattr(self._envs[real_env_id[i]], fn_name)(**param[i])
-                for i in range(len(real_env_id))
-            }
-        ret = list(ret.values()) if env_id is None else ret
-        return ret
+        assert not self._launch_flag, "set seed must be called before launching env manager"
+        self._env_seed = seed
 
     def close(self) -> None:
         if self._closed:
             return
+        self._env_ref.close()
         for env in self._envs:
             env.close()
         self._closed = True
-
-    @property
-    def all_done(self) -> bool:
-        return all(self._env_done.values())
-
-    @property
-    def env_done(self) -> List[bool]:
-        return self._env_done
