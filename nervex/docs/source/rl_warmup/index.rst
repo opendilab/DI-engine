@@ -355,7 +355,7 @@ Policy Gradient公式及其推导过程:
 
 我们Policy Gradient的目的是通过gradient ascend去最大化在一个策略下的reward之和。
 我们记某个策略对应的参数为 :math:`{\theta}^{\pi}` 简写为 :math:`\theta`， 
-记从开始到结束的整个过程为 :math:`\tau`，在策略 :math:`\theta` 下整个过程为 :math:`\tau`的概率为 :math:`p_{\theta}(\tau)`。
+记从开始到结束的整个过程为 :math:`\tau`，在策略 :math:`\theta` 下整个过程为 :math:`\tau` 的概率为 :math:`p_{\theta}(\tau)`。
 
 整个过程中的reward之和记为 :math:`R(\tau) = \sum_{t=1}^{T} r_t`，某个策略下reward之和的期望记为 :math:`\bar{R_{\theta}} = \sum_{\tau} R(\tau) p_{\theta}(\tau)`。
 
@@ -525,7 +525,119 @@ PPO1直接将两个策略的 :math:`KL(\theta, \theta')` 引入到梯度计算�
 
 GAE
 ^^^^^^^^^^^^^^^
-暂略。
+
+基本思路
+''''''''''''''''
+
+GAE不是一种算法，而是一种梯度策略方法中可以采用的技术改进。GAE全称为generalized advantage estimation, 在2016年ICLR上发布，论文为 `High-dimensional continuous control using generalized advantage estimation <https://arxiv.org/pdf/1506.02438.pdf>`_ 。
+GAE是一种能够广泛适用的advantage估计方式。GAE方法的目的是为了能够有效的 \ **降低**\ 梯度策略方法中的 \ **方差**\ ，从而一定程度上解决了梯度策略方法常遇到的两个难题：
+ 1.在梯度训练方法中，收敛需要极大的样本量。
+
+ 2.在训练过程中，由于得到的样本输入不稳定，会导致训练过程中很难保证获得稳定提升。
+
+GAE方法通过减小方差解决第一个问题，使得训练能更快收敛，并且提议使用基于trust region的优化方式来解决第二个问题。现在通常用于带有trust region机制的trpo和ppo来保证训练效果能稳定提升。
+
+具体方法回顾
+''''''''''''''''''
+为了讲述GAE的实现方式，我们需要先回顾下Policy Gradient是如何实现的。
+在Policy Gradient一节中，我们将优化目标简单直接的定义为整个过程中的reward之和的期望，即对 :math:`\bar{R_{\theta}} = \sum_{\tau} R(\tau) p_{\theta}(\tau)` 即推导出的
+:math:`\nabla \bar{R_{\theta}} = \frac{1}{N} \sum_{n=1}^{N} \sum_{t = 1}^{T} R(\tau) \nabla \log{P_{\theta}(a_t^n|s_t^n)}` 进行优化。
+
+实际上，根据不同的情况，Policy Gradient可以定义为多种不同的优化目标，而不一定是整体的reward。优化目标可以定义为：
+:math:`g=E[\sum_{t=0}^{\infty}{\Psi_{t}\nabla_{\theta}log\pi_{\theta}(a_t|s_t)}]`
+
+.. note:: 
+   其中 :math:`\Psi_t` 可以定义为：
+      1. :math:`\sum_{t=0}^{\infty}r_t` : 即整个策略过程的reward和， 与我们之前在Policy Gradient一节中介绍相同。
+
+      2. :math:`\sum_{t'=0}^{\infty}r_{t'}` : 即t时刻动作 :math:`a_t` 之后跟随的reward之和。
+
+      3. :math:`\sum_{t'=0}^{\infty}r_{t'} - b(s_t)` : 即上式引入baseline。
+
+      4. :math:`Q^{\pi}(s_t, a_t)` : 即Q值，状态动作价值函数。
+
+      5. :math:`A^{\pi}(s_t, a_t)` : 即Advantage估计，某时刻选取某个动作的状态动作价值函数相比于当前状态估值的提升，即 :math:`Q^{\pi}(s_t, a_t) - V^{\pi}(s_t)` 。
+
+      6. :math:`r_t + V^{\pi}(s_{t+1}) - V^{\pi}(s_t)` : 即td值，时序差分的值。 
+
+选用不同的优化目标，Policy Gradient的效果和收敛性也会随之不同。如引入baseline后的3式在一般情况下会比2式有小的方差且更加容易收敛。
+本小节讲的是GAE即generalized advantage estimation, 从名字上我们就可以看出，算法选用了Advantage函数作为优化目标。
+
+选用Advantage函数作为优化目标的主要原因就是因为方差小。从定义上，Advantage函数表示了某个时刻，一个action是否要好于policy的默认行为。
+此外，我们的估计函数基于 :math:`\Psi_t = A^{\pi}(s_t, a_t)` ，因为这样在计算梯度时，当且仅当 :math:`A^{\pi}(s_t, a_t) > 0` 时 :math:`\pi_{theta}(a_t|s_t)` 会向上升方向优化。
+
+
+
+GAE具体公式
+''''''''''''''
+
+除了单纯的使用Advantage函数作为优化目标，GAE还引入了两个参数，分别为 :math:`\lambda,\gamma` 。
+
+其中 :math:`\gamma` 我们已经较为熟悉，即对之后的各个step使用的discount factor。 在引入 :math:`\gamma` 后的value、Q和Advantage可定义如下：
+ :math:`V^{\pi, \gamma}(s_t) = E_{s_{t+1} ~ \infty, a_{t} ~ \infty}[\sum_{l=0}^{\infty}\gamma^{l}r_{t+l}]`
+
+ :math:`Q^{\pi, \gamma}(s_t, a_t) = E_{s_{t+1} ~ \infty, a_{t+1} ~ \infty}[\sum_{l=0}^{\infty}\gamma^{l}r_{t+l}]`
+ 
+ :math:`A^{\pi, \gamma}(s_t, a_t) = Q^{\pi, \gamma}(s_t, a_t) - V^{\pi, \gamma}(s_t)`
+
+我们声明如下定义：
+ 一个估计 :math:`A` 是 :math:`\gamma -just` 的，当且仅当：
+   
+   .. image:: rjust.jpg
+
+ 因此，如果一个估计是 :math:`\gamma -just` 的，那么优化其带有discount factor即 :math:`\gamma` 的估计等同于优化其原始估计。
+
+而对于以上几个引入 :math:`\gamma` 后的估计，都有 :math:`\gamma -just` 的性质。
+
+.. note::
+   在此处我们不做有关 :math:`\gamma -just` 性质的证明，如果有兴趣请参考 `原文 <https://arxiv.org/pdf/1506.02438.pdf>`_ 附录。
+
+在明确了 :math:`\gamma` 的意义之后，我们开始介绍GAE。
+我们引入 :math:`\delta` 如下公式：
+
+.. image:: gae-delta.jpg
+
+再引入基于 :math:`\delta` 的 :math:`\hat{A_{t}^{(k)}}` 如下公式：
+
+.. image:: gae-estimation.jpg
+
+注意到，偏差值在 :math:`k \rightarrow \infty` 时，是趋向于0的。因此我们可以将 :math:`\hat{A_{t}^{(k)}}` 近似为无偏估计。
+
+
+之后，我们再引入参数 :math:`\lambda` 。
+
+参数 :math:`\lambda` 是在 :math:`\gamma` 之后的另外一个估计参数，引入即可得到GAE的公式：
+
+.. image:: gae-formula.jpg
+
+为了方便理解参数 :math:`\lambda` 的取值，我们可以将 :math:`\lambda` 的取值设置为0和1，此时可以看到：
+
+.. image:: gae-lambda.jpg
+
+可以看出，在 :math:`\lambda` 的取值为0时，若取 :math:`V = V^{\pi, \gamma}` 则该式 :math:`\gamma -just` 的，其他取值都可能有一定程度的偏差，不过其方差相对较小。
+而当 :math:`\lambda` 的取值为1时，GAE为无偏估计，但是会有相对较高的方差值。 
+
+因此，最后使用GAE方法的Policy Gradient的优化目标是： 
+
+.. image:: gae-pg.jpg
+
+当 :math:`\lambda` 的取值为1时约等号可以化为等号。
+
+Q&A
+ GAE的公式推导过程相对复杂，并且引入了 :math:`\lambda,\gamma` 两个参数， 我们该如何理解 :math:`\gamma, \lambda` 这两个参数呢？
+
+
+实验
+''''''''''''''''''
+原论文在3D机器人模拟控制环境上测试了算法的有效性。
+
+由于3D控制环境中需要对多个节点的连续动作进行控制，因此action space很大；并且由于控制环境之后最后的一个是否成功的reward，因此reward是相对稀疏的；
+这导致3D机器人模拟控制环境是一个很有挑战性的环境，需要算法能很好的探索动作空间的同时保持很好的收敛性。
+
+.. image:: 3D_motion_env.jpg
+   :alt: 3D机器人模拟控制环境 
+
+GAE在这个环境下取得了比较喜人的结果。具体训练过程可见 `视频 <https://sites.google.com/site/gaepapersupp/>`_ 。 整个训练过程换算为真实世界时间后总共为两周左右，足以证明使用GAE的梯度下降算法能很好的在探索动作空间的同时保持收敛性。
 
 
 SAC
