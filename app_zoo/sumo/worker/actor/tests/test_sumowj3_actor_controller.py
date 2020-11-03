@@ -11,7 +11,7 @@ from app_zoo.sumo.worker.actor.sumowj3_actor_controller import SumoWJ3Actor
 class FakeSumoWJ3Actor(SumoWJ3Actor):
 
     def _setup_agent(self):
-        super()._setup_agents()
+        super()._setup_agent()
 
         def no_op_fn(*args, **kwargs):
             pass

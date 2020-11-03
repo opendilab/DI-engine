@@ -14,10 +14,11 @@ class SumoWJ3Actor(ZerglingActor):
         self._env_fn = env_fn_mapping[env_cfg.env_type]
 
     # override
-    def _setup_agents(self) -> None:
+    def _setup_agent(self) -> None:
         agent_cfg = self._job['agent']
         self._agent_name = list(agent_cfg.keys())[0]
-        env_info = self._env_manager._env_ref.info()
+        sumo_env = SumoWJ3Env(self._cfg.env)
+        env_info = sumo_env.info()
         model = FCDQN(env_info.obs_space.shape, list(env_info.act_space.shape.values()))
         if self._cfg.actor.use_cuda:
             model.cuda()

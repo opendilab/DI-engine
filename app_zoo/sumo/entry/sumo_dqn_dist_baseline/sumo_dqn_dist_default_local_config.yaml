@@ -10,7 +10,7 @@ replay_buffer:
     unroll_len: 1
 learner:
     learner_type: 'sumo_dqn'
-    import_names: ['nervex.worker.learner.sumo_dqn_learner']
+    import_names: ['app_zoo.sumo.worker.learner.sumo_dqn_learner']
     use_cuda: False
     use_distributed: False
     max_iterations: 10000000
@@ -39,13 +39,13 @@ learner:
             priority: 20
             position: after_iter
             ext_args:
-                freq: 50
+                freq: 1
     communication:
         type: 'flask_fs'
         upstream_ip: '127.0.0.1'
-        upstream_port: 16297
+        upstream_port: 13297
         learner_ip: 127.0.0.1
-        learner_port: 16295
+        learner_port: 13295
         heartbeats_freq: 50
         send_agent_freq: 10
         send_train_info_freq: 10
@@ -58,17 +58,17 @@ env:
     stop_val: -2000
 actor:
     actor_type: 'sumowj3'
-    import_names: ['nervex.worker.actor.sumowj3_actor_controller']
+    import_names: ['app_zoo.sumo.worker.actor.sumowj3_actor_controller']
     use_cuda: False
-    print_freq: 20
-    episode_num: 2
+    print_freq: 100
+    episode_num: 4
     communication:
         type: flask_fs  # ['single_machine', 'flask_fs']
         path_agent: '.'
         path_traj: '.'
         heartbeats_freq: 30
         upstream_ip: '127.0.0.1'
-        upstream_port: 16296
+        upstream_port: 13296
 league:
     league_type: 'static'
     import_names: ['nervex.league.static_league_manager']
@@ -85,13 +85,13 @@ league:
         path_traj: '.'
 system:
     manager_ip: '127.0.0.1'
-    manager_port: 16296
+    manager_port: 13296
     coordinator_ip: '127.0.0.1'
-    coordinator_port: 16297
+    coordinator_port: 13297
     resume_dir: '.'
     manager_resume_path:
     coordinator_resume_path:
     coordinator_check_dead_learner_freq: 300
     league_manager_ip: '127.0.0.1'
-    league_manager_port: 16298
+    league_manager_port: 13298
     actor_num: 2

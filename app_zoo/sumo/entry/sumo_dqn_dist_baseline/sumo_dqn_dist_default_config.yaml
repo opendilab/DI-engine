@@ -59,8 +59,8 @@ actor:
     actor_type: 'sumowj3'
     import_names: ['app_zoo.sumo.worker.actor.sumowj3_actor_controller']
     use_cuda: True
-    print_freq: 20
-    episode_num: 2
+    print_freq: 100
+    episode_num: 4
     communication:
         type: flask_fs  # ['single_machine', 'flask_fs']
         path_agent: '.'

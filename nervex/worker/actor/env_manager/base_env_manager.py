@@ -15,6 +15,7 @@ class BaseEnvManager(ABC):
 
     def _create_state(self) -> None:
         # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
+        self._closed = False
         self._env_ref = self._env_fn(self._env_cfg[0])
         self._env_episode_count = {i: 0 for i in range(self.env_num)}
         self._env_done = {i: False for i in range(self.env_num)}
@@ -51,7 +52,6 @@ class BaseEnvManager(ABC):
     def launch(self, reset_param: Union[None, List[dict]] = None) -> None:
         assert self._closed, "please first close the env manager"
         self._create_state()
-        self._closed = False
         if reset_param is None:
             reset_param = [[] for _ in range(self.env_num)]
         self._reset_param = reset_param

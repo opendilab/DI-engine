@@ -1,4 +1,4 @@
-from multiprocessing import Process, Pipe, connection
+from multiprocessing import Process, Pipe, connection, get_context
 from collections import namedtuple
 from threading import Thread
 import enum
@@ -41,8 +41,9 @@ class SubprocessEnvManager(BaseEnvManager):
     def _create_state(self) -> None:
         super()._create_state()
         self._parent_remote, self._child_remote = zip(*[Pipe() for _ in range(self.env_num)])
+        ctx = get_context('fork')
         self._processes = [
-            Process(
+            ctx.Process(
                 target=self.worker_fn,
                 args=(parent, child, CloudpickleWrapper(lambda: self._env_fn(cfg)), self.method_name_list),
                 daemon=True
@@ -83,7 +84,6 @@ class SubprocessEnvManager(BaseEnvManager):
     def launch(self, reset_param: Union[None, List[dict]] = None) -> None:
         assert self._closed, "please first close the env manager"
         self._create_state()
-        self._closed = False
         if reset_param is None:
             reset_param = [[] for _ in range(self.env_num)]
         self._reset_param = reset_param
