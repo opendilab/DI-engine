@@ -141,6 +141,17 @@ class Transformer(nn.Module):
             raise TypeError("invalid type: {}".format(type(x)))
 
     def _pack_inputs(self, x):
+        r"""
+        Overview:
+            Pad shorter seq_len tensors to the length of max seq_len in this batch, in order to align all of them
+
+        Arguments:
+            - x(:obj:`list`): a list of input tensors, each element's shape should be (seq_len, embedding_size)
+
+        Returns:
+            - aligned_x (:obj:`torch.tensor`): padded and aligned input tensors
+            - valid_num (:obj:`list`): valid number before padding
+        """
         assert isinstance(x, list)
         self.max_seq_len = max([t.shape[0] for t in x])
         aligned_x = []

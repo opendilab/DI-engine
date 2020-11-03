@@ -1,0 +1,22 @@
+common:
+    name: TestGfootballIql
+    save_path: '.'
+    load_path: ''
+learner:
+    learner_type: 'gfootball_dqn'
+    import_names: ['app_zoo.gfootball.worker.learner.gfootball_iql_learner']
+    use_cuda: False
+    use_distributed: False
+    max_iterations: 10
+    batch_size: 4
+    unroll_len: 1
+    learning_rate: 0.001
+    weight_decay: 0.001
+    data:
+        buffer_length: 10000
+    dqn:
+        update_target_freq: 300
+        discount_factor: 0.99
+        is_double: True
+env:
+    placeholder: xxx

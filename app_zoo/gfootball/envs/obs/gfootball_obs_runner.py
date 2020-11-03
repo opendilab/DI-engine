@@ -5,7 +5,7 @@ import numpy as np
 from nervex.envs.common import EnvElementRunner, EnvElement
 from nervex.envs.env.base_env import BaseEnv
 from .gfootball_obs import PlayerObs, MatchObs
-from nervex.utils import merge_dicts
+from nervex.utils import deep_merge_dicts
 
 
 class GfootballObsRunner(EnvElementRunner):
@@ -22,11 +22,12 @@ class GfootballObsRunner(EnvElementRunner):
         assert isinstance(ret, dict)
         match_obs = self._obs_match._to_agent_processor(ret)
         players_obs = self._obs_player._to_agent_processor(ret)
-        return merge_dicts(match_obs, players_obs)
+        return deep_merge_dicts(match_obs, players_obs)
 
     def reset(self) -> None:
         pass
 
     # override
-    def info(self) -> 'EnvElement.info_template':
+    @property
+    def info(self):
         return [self._obs_match.info, self._obs_player.info]

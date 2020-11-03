@@ -6,9 +6,9 @@ from typing import List, Any
 
 import torch
 from nervex.envs.env.base_env import BaseEnv
-from nervex.envs.gfootball.action.gfootball_action_runner import GfootballRawActionRunner
-from nervex.envs.gfootball.obs.gfootball_obs_runner import GfootballObsRunner
-from nervex.envs.gfootball.reward.gfootball_reward_runner import GfootballRewardRunner
+from .action.gfootball_action_runner import GfootballRawActionRunner
+from .obs.gfootball_obs_runner import GfootballObsRunner
+from .reward.gfootball_reward_runner import GfootballRewardRunner
 
 
 class GfootballEnv(BaseEnv):
@@ -19,16 +19,13 @@ class GfootballEnv(BaseEnv):
 
     def __init__(self, cfg):
         self._cfg = cfg
-
         self._action_helper = GfootballRawActionRunner(cfg)
         self._reward_helper = GfootballRewardRunner(cfg)
         self._obs_helper = GfootballObsRunner(cfg)
         self._launch_env_flag = False
         self._launch_env()
-        # TODO
 
     def _launch_env(self, gui=False):
-        # TODO
         self._env = football_env.create_environment(
             env_name="11_vs_11_stochastic",
             representation='raw',
@@ -39,7 +36,6 @@ class GfootballEnv(BaseEnv):
             render=False
         )
         self._launch_env_flag = True
-        # TODO
 
     def step(self, action: torch.tensor) -> 'GfootballEnv.timestep':
         assert self._launch_env_flag
@@ -54,7 +50,7 @@ class GfootballEnv(BaseEnv):
         info = {'cum_reward': self._reward_helper.cum_reward}
         return GfootballEnv.timestep(obs=self.obs, reward=self.reward, done=self._is_done, info=info)
 
-    def reset(self):
+    def reset(self) -> dict:
         if not self._launch_env_flag:
             self._launch_env()
         self._football_obs = self._env.reset()[0]
@@ -67,10 +63,7 @@ class GfootballEnv(BaseEnv):
     def seed(self, seed: int) -> None:
         self._seed = seed
 
-    def pack(self):
-        pass
-
-    def close(self):
+    def close(self) -> None:
         self._env.close()
 
     def __repr__(self) -> str:
@@ -87,8 +80,22 @@ class GfootballEnv(BaseEnv):
         }
         return GfootballEnv.info_template(**info_data)
 
-    def unpack(self, action: Any):
-        pass
+    # override
+    def pack(self, timesteps: List['GfootballEnv.timestep'] = None, obs: Any = None) -> 'GfootballEnv.timestep':
+        assert not (timesteps is None and obs is None)
+        assert not (timesteps is not None and obs is not None)
+        if timesteps is not None:
+            assert isinstance(timesteps, list)
+            assert isinstance(timesteps[0], tuple)
+            timestep_type = type(timesteps[0])
+            items = [[getattr(timesteps[i], item) for i in range(len(timesteps))] for item in timesteps[0]._fields]
+            return timestep_type(*items)
+        if obs is not None:
+            return obs
+
+    # override
+    def unpack(self, action: Any) -> List[Any]:
+        return [{'action': act} for act in action]
 
 
 GfootballTimestep = GfootballEnv.timestep
