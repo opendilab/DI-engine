@@ -15,7 +15,6 @@ learner:
     use_cuda: False
     use_distributed: False
     max_iterations: 10000000
-    train_step: 200
     batch_size: 8
     unroll_len: 1
     learning_rate: 0.001
