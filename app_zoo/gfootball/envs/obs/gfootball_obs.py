@@ -281,8 +281,8 @@ class PlayerObs(EnvElement):
                 'dim': 1,
                 'op': lambda x: x,
                 'value': {
-                    'min': 0,
-                    'max': 1,
+                    'min': (0, ),
+                    'max': (1, ),
                     'dtype': float,
                     'dinfo': 'float'
                 },
@@ -333,8 +333,8 @@ class PlayerObs(EnvElement):
             },
         ]
         self.cfg = cfg
-        self._shape = {t['key']: t['dim'] * N_PLAYER * 2 for t in self.template}
-        self._value = {t['key']: t['value'] for t in self.template}
+        self._shape = {'players': {t['key']: t['dim'] for t in self.template}}
+        self._value = {'players': {t['key']: t['value'] for t in self.template}}
         self._to_agent_processor = self.parse
         self._from_agent_processor = None
 

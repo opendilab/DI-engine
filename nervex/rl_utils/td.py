@@ -14,13 +14,12 @@ def one_step_td_error(
         criterion: torch.nn.modules = nn.MSELoss(reduction='none')  # noqa
 ) -> torch.Tensor:
     q, next_q, act, reward, terminate = data
-    assert len(reward.shape) == 1
+    assert len(act.shape) == 1, act.shape
+    assert len(reward.shape) == 1, reward.shape
     batch_range = torch.arange(act.shape[0])
     if weights is None:
         weights = torch.ones_like(reward)
-
     q_s_a = q[batch_range, act]
-
     next_act = next_q.argmax(dim=1)
     target_q_s_a = next_q[batch_range, next_act]
     target_q_s_a = gamma * (1 - terminate) * target_q_s_a + reward

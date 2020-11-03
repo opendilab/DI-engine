@@ -7,3 +7,4 @@ from .loss import *
 from .metric import levenshtein_distance, hamming_distance
 from .network import *
 from .optimizer_util import Adam
+from .nn_test_helper import is_differentiable

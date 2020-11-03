@@ -55,6 +55,7 @@ class FlaskFileSystemLearner(BaseCommLearner):
     # override
     def get_data(self, batch_size: int) -> list:
         d = {'learner_uid': self._learner_uid, 'batch_size': batch_size}
+        sleep_count = 5
         while self._active_flag:
             result = self._flask_send(d, 'coordinator/ask_for_metadata')
             if result is not None and result['code'] == 0:
@@ -83,7 +84,8 @@ class FlaskFileSystemLearner(BaseCommLearner):
                                 s[i].update(m)
                         stepdata.append(s)
                     return stepdata
-            time.sleep(5)
+            time.sleep(sleep_count)
+            sleep_count += 5
 
     # override
     def send_train_info(self, train_info: dict) -> None:

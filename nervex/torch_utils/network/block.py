@@ -98,7 +98,7 @@ class ResFCBlock(nn.Module):
     def forward(self, x):
         r"""
         Overview:
-            return  output of  the redisual block with 2 fully connected block
+            return  output of  the residual block with 2 fully connected block
 
         Arguments:
             - x (:obj:`tensor`): the input tensor

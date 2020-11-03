@@ -64,10 +64,10 @@ setup(
         # application(example)
         'app_zoo.sumo',
         'app_zoo.cartpole',
+        'app_zoo.gfootball',
     ],
     install_requires=[
         'absl-py>=0.1.0',
-        'enum34',
         'future',
         'futures; python_version == "2.7"',
         'mock',
@@ -82,7 +82,7 @@ setup(
         'whichcraft',
         'gym',
         'atari_py',
-        'torch>=1.3.1,<1.5',  # 1.3.1+cuda90_cudnn7.6.3_lms
+        #'torch>=1.3.1,<1.5',  # 1.3.1+cuda90_cudnn7.6.3_lms
         'joblib',
         'sphinx',
         'sphinx_rtd_theme',

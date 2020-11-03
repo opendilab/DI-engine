@@ -5,3 +5,4 @@ from .normalization import build_normalization
 from .rnn import get_lstm
 from .soft_argmax import SoftArgmax
 from .transformer import Transformer
+from .scatter_connection import ScatterConnection

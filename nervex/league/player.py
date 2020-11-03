@@ -18,6 +18,7 @@ class Player:
         self._checkpoint_path = checkpoint_path
         assert isinstance(player_id, str)
         self._player_id = player_id
+        self._train_step = 0
 
     @property
     def race(self):
@@ -37,6 +38,14 @@ class Player:
     @property
     def player_id(self):
         return self._player_id
+
+    @property
+    def train_step(self) -> int:
+        return self._train_step
+
+    @train_step.setter
+    def train_step(self, _train_step: int) -> None:
+        self._train_step = _train_step
 
 
 class ActivePlayer(Player):

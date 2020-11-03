@@ -1,0 +1,99 @@
+common:
+    name: GfootballIqlDistConfig
+    time_wrapper_type: cuda
+    save_path: '.'
+    load_path: ''
+replay_buffer:
+    meta_maxlen: 10000
+    max_reuse: 16
+    min_sample_ratio: 1
+    unroll_len: 1
+learner:
+    learner_type: 'gfootball_dqn'
+    import_names: ['app_zoo.gfootball.worker.learner.gfootball_iql_learner']
+    use_cuda: True
+    use_distributed: True
+    max_iterations: 10000000
+    batch_size: 128
+    unroll_len: 1
+    learning_rate: 0.001
+    weight_decay: 0.0001
+    dqn:
+        discount_factor: 0.95
+        is_double: True
+        dueling: True
+    hook:
+        save_ckpt_after_iter:
+            name: save_ckpt_after_iter
+            type: save_ckpt
+            priority: 40
+            position: after_iter
+            ext_args:
+                freq: 500
+        log_show:
+            name: log_show
+            type: log_show
+            priority: 20
+            position: after_iter
+            ext_args:
+                freq: 1
+    communication:
+        type: 'flask_fs'
+        upstream_ip: '10.198.8.31'
+        upstream_port: 13797
+        learner_ip: 'auto'
+        learner_port: 13795
+        heartbeats_freq: 50
+        send_agent_freq: 10
+        send_train_info_freq: 10
+        path_traj: 's3://football_traj'
+        path_agent: 's3://football_agent'
+        restore: False
+env:
+    env_num: 4
+    env_type: 'normal'  # ['normal', 'fake']
+actor:
+    actor_type: 'gfootball'
+    import_names: ['app_zoo.gfootball.worker.actor.gfootball_actor_controller']
+    use_cuda: True
+    print_freq: 100
+    episode_num: 4
+    communication:
+        type: flask_fs  # ['single_machine', 'flask_fs']
+        path_traj: 's3://football_traj'
+        path_agent: 's3://football_agent'
+        heartbeats_freq: 30
+        upstream_ip: '10.198.8.31'
+        upstream_port: 13796
+league:
+    league_type: 'static'
+    import_names: ['nervex.league.static_league_manager']
+    use_pretrain_init_historical: False
+    player_category: ['main']
+    pretrain_checkpoint_path:
+        main: 'main_ckpt.pth'
+    task:
+        data_push_length: 16
+    communication:
+        type: 'flask_fs'
+        file_system_type: 'normal'  # ['normal', 'ceph']
+        path_traj: 's3://football_traj'
+        path_agent: 's3://football_agent'
+system:
+    manager_ip: '10.198.8.31'
+    manager_port: 13796
+    coordinator_ip: '10.198.8.31'
+    coordinator_port: 13797
+    resume_dir: '.'
+    manager_resume_path:
+    coordinator_resume_path:
+    coordinator_check_dead_learner_freq: 300
+    league_manager_ip: 'auto'
+    league_manager_port: 13798
+    actor_num: 2
+model:
+    encoder:
+        player:
+            encoder_type: 'transformer'
+            transformer:
+                player_num: 22
