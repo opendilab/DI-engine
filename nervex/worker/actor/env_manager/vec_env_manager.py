@@ -38,8 +38,8 @@ class CloudpickleWrapper(object):
 
 class SubprocessEnvManager(BaseEnvManager):
 
-    def __init__(self, *args, **kwargs) -> None:
-        super(SubprocessEnvManager, self).__init__(*args, **kwargs)
+    def _create_state(self) -> None:
+        super()._create_state()
         self._parent_remote, self._child_remote = zip(*[Pipe() for _ in range(self.env_num)])
         self._processes = [
             Process(
@@ -81,7 +81,9 @@ class SubprocessEnvManager(BaseEnvManager):
         return all([s == EnvState.DONE for s in self._env_state.values()])
 
     def launch(self, reset_param: Union[None, List[dict]] = None) -> None:
-        self._check_closed()
+        assert self._closed, "please first close the env manager"
+        self._create_state()
+        self._closed = False
         if reset_param is None:
             reset_param = [[] for _ in range(self.env_num)]
         self._reset_param = reset_param

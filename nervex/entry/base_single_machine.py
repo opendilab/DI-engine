@@ -1,7 +1,8 @@
 import sys
+import copy
 import time
 
-from nervex.data import PrioritizedBuffer, default_collate
+from nervex.data import PrioritizedBuffer, default_collate, default_decollate
 from nervex.rl_utils import epsilon_greedy
 from nervex.torch_utils import to_device
 from nervex.worker.learner import LearnerHook
@@ -9,20 +10,17 @@ from nervex.worker.learner import LearnerHook
 
 class ActorProducerHook(LearnerHook):
 
-    def __init__(self, runner, position, priority, freq, episode_num):
+    def __init__(self, runner, position, priority, freq):
         super().__init__(name='actor_producer', position=position, priority=priority)
         self._runner = runner
         self._freq = freq
-        self._episode_num = episode_num
 
     def __call__(self, engine):
         if engine.last_iter.val % self._freq == 0:
             # at least update buffer once
-            for _ in range(self._episode_num):
-                self._runner.collect_data()
+            self._runner.collect_data()
             while not self._runner.is_buffer_enough():
-                for _ in range(self._episode_num):
-                    self._runner.collect_data()
+                self._runner.collect_data()
 
 
 class ActorUpdateHook(LearnerHook):
@@ -35,6 +33,7 @@ class ActorUpdateHook(LearnerHook):
     def __call__(self, engine):
         if engine.last_iter.val % self._freq == 0:
             self._runner.actor_agent.load_state_dict(engine.agent.state_dict())
+        self._runner.learner_step_count = engine.last_iter.val
 
 
 class EvaluateHook(LearnerHook):
@@ -61,31 +60,27 @@ class SingleMachineRunner():
         self.bandit = epsilon_greedy(0.95, 0.05, 100000)
 
         self._setup_learner()
-        self._setup_actor_agent()
-        self._setup_evaluate_agent()
+        self._setup_agent()
         self._setup_data_source()
         self.train_step = cfg.learner.train_step
         self.learner.register_hook(ActorUpdateHook(self, 'before_run', 40, self.train_step))
-        self.learner.register_hook(
-            ActorProducerHook(self, 'before_run', 100, self.train_step, self.cfg.actor.episode_num)
-        )
+        self.learner.register_hook(ActorProducerHook(self, 'before_run', 100, self.train_step))
         self.learner.register_hook(ActorUpdateHook(self, 'after_iter', 40, self.train_step))
-        self.learner.register_hook(
-            ActorProducerHook(self, 'after_iter', 100, self.train_step, self.cfg.actor.episode_num)
-        )
-        self.learner.register_hook(EvaluateHook(self, 100, cfg.actor.eval_step))
+        self.learner.register_hook(ActorProducerHook(self, 'after_iter', 100, self.train_step))
+        self.learner.register_hook(EvaluateHook(self, 100, cfg.evaluator.eval_step))
         self.actor_step_count = 0
+        self.learner_step_count = 0
 
     def _setup_learner(self):
+        """set self.learner"""
         raise NotImplementedError
 
-    def _setup_actor_agent(self):
-        raise NotImplementedError
-
-    def _setup_evaluate_agent(self):
+    def _setup_agent(self):
+        """set self.actor_agent and self.evaluate_agent"""
         raise NotImplementedError
 
     def _setup_env(self):
+        """set self.actor_env and self.evaluate_env"""
         raise NotImplementedError
 
     def _setup_data_source(self):
@@ -102,72 +97,87 @@ class SingleMachineRunner():
         self.learner._data_source = data_iterator()
 
     def collect_data(self):
-        obs = self.env.reset()
-        alive_env = [True for _ in range(self.env.env_num)]
-        while True:
-            eps_threshold = self.bandit(self.actor_step_count)
-            agent_obs = default_collate(obs)
+        self.actor_env.launch()
+        obs_pool = {i: None for i in range(self.actor_env.env_num)}
+        act_pool = {i: None for i in range(self.actor_env.env_num)}
+        while not self.actor_env.done:
+            obs = self.actor_env.next_obs
+            for i, o in obs.items():
+                obs_pool[i] = copy.deepcopy(o)
+            env_id = obs.keys()
+            agent_obs = default_collate(list(obs.values()))
             if self.use_cuda:
                 agent_obs = to_device(agent_obs, 'cuda')
-            actions, _ = self.actor_agent.forward(agent_obs, eps=eps_threshold)
+
+            eps_threshold = self.bandit(self.learner_step_count)
+            outputs = self.actor_agent.forward(agent_obs, eps=eps_threshold)
+
             if self.use_cuda:
-                actions = to_device(actions, 'cpu')
-            timestep = self.env.step(actions)
-            dones = timestep.done
-            for i, d in enumerate(dones):
-                if not alive_env[i]:
-                    continue
-                # only append not done data
+                outputs = to_device(outputs, 'cpu')
+            outputs = default_decollate(outputs)
+            outputs = {i: o for i, o in zip(env_id, outputs)}
+            for i, o in outputs.items():
+                act_pool[i] = copy.deepcopy(o)
+
+            timestep = self.actor_env.step({k: o['action'] for k, o in outputs.items()})
+
+            for i, t in timestep.items():
                 step = {
-                    'obs': obs[i],
-                    'action': actions[i],
-                    'next_obs': timestep.obs[i],
-                    'reward': timestep.reward[i],
-                    'done': timestep.done[i],
+                    'obs': obs_pool[i],
+                    'action': act_pool[i]['action'],
+                    'next_obs': t.obs,
+                    'reward': t.reward,
+                    'done': t.done,
                 }
                 self.buffer.append(step)
-                obs[i] = timestep.obs[i]
-                if d:
-                    alive_env[i] = False
             self.actor_step_count += 1
-
-            if all(dones):
-                break
             if self.actor_step_count % 200 == 0:
                 self.learner.info(
                     'actor run step {} with replay buffer size {} with eps {:.4f}'.format(
                         self.actor_step_count, self.buffer.validlen, eps_threshold
                     )
                 )
+        self.actor_env.close()
 
     def evaluate(self):
-        obs = self.env.reset()
-        cum_rewards = [0 for _ in range(self.env.env_num)]
-        alive_env = [True for _ in range(self.env.env_num)]
-        while True:
-            agent_obs = default_collate(obs)
+        self.evaluate_env.launch()
+        episode_count = 0
+        rewards = []
+        obs_pool = {i: None for i in range(self.evaluate_env.env_num)}
+        act_pool = {i: None for i in range(self.evaluate_env.env_num)}
+        cum_rewards = [0 for _ in range(self.evaluate_env.env_num)]
+        while not self.evaluate_env.done:
+            obs = self.evaluate_env.next_obs
+            for i, o in obs.items():
+                obs_pool[i] = copy.deepcopy(o)
+            env_id = obs.keys()
+            agent_obs = default_collate(list(obs.values()))
             if self.use_cuda:
                 agent_obs = to_device(agent_obs, 'cuda')
-            actions, _ = self.evaluate_agent.forward(agent_obs)
-            if self.use_cuda:
-                actions = to_device(actions, 'cpu')
-            timestep = self.env.step(actions)
-            dones = timestep.done
-            for i, d in enumerate(dones):
-                if not alive_env[i]:
-                    continue
-                obs[i] = timestep.obs[i]
-                if d:
-                    alive_env[i] = False
-                    cum_rewards[i] = self.learner.computation_graph.get_weighted_reward(timestep.info[i]['cum_reward']
-                                                                                        ).item()
 
-            if all(dones):
-                avg_reward = sum(cum_rewards) / len(cum_rewards)
-                self.learner.info('evaluate average reward: {:.3f}\t{}'.format(avg_reward, cum_rewards))
-                if avg_reward >= self.cfg.env.stop_val:
-                    sys.exit(0)
-                break
+            outputs = self.evaluate_agent.forward(agent_obs)
+
+            if self.use_cuda:
+                outputs = to_device(outputs, 'cpu')
+            outputs = default_decollate(outputs)
+            outputs = {i: o for i, o in zip(env_id, outputs)}
+            for i, o in outputs.items():
+                act_pool[i] = copy.deepcopy(o)
+
+            timestep = self.evaluate_env.step({k: o['action'] for k, o in outputs.items()})
+
+            for i, t in timestep.items():
+                cum_rewards[i] += self.learner.computation_graph.get_weighted_reward(t.reward).item()
+                if t.done:
+                    episode_count += 1
+                    rewards.append(copy.deepcopy(cum_rewards[i]))
+                    cum_rewards[i] = 0.
+
+        self.evaluate_env.close()
+        avg_reward = sum(rewards) / len(rewards)
+        self.learner.info('evaluate average reward: {:.3f}\t{}'.format(avg_reward, rewards))
+        if avg_reward >= self.cfg.env.stop_val:
+            sys.exit(0)
 
     def run(self):
         self.learner.run()

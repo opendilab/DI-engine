@@ -11,13 +11,14 @@ class BaseEnvManager(ABC):
         self._env_fn = env_fn
         self._env_cfg = env_cfg
         self._epsiode_num = episode_num
+        self._closed = True
+
+    def _create_state(self) -> None:
         # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
         self._env_ref = self._env_fn(self._env_cfg[0])
         self._env_episode_count = {i: 0 for i in range(self.env_num)}
         self._env_done = {i: False for i in range(self.env_num)}
         self._next_obs = {i: None for i in range(self.env_num)}
-        self._launch_flag = False
-        self._closed = False
 
     def _check_closed(self):
         assert not self._closed, "env manager is closed, please use the alive env manager"
@@ -48,14 +49,14 @@ class BaseEnvManager(ABC):
         return [getattr(env, key) if hasattr(env, key) else None for env in self._envs]
 
     def launch(self, reset_param: Union[None, List[dict]] = None) -> None:
-        self._check_closed()
+        assert self._closed, "please first close the env manager"
+        self._create_state()
+        self._closed = False
         if reset_param is None:
             reset_param = [[] for _ in range(self.env_num)]
         self._reset_param = reset_param
-        assert not self._launch_flag, "this env manger has been launched"
         self._envs = [self._env_fn(c) for c in self._env_cfg]
         assert len(self._envs) == self._env_num
-        self._launch_flag = True
         # set seed
         if hasattr(self, '_env_seed'):
             for env, s in zip(self._envs, self._env_seed):
@@ -83,8 +84,7 @@ class BaseEnvManager(ABC):
         return timestep
 
     def seed(self, seed: List[int]) -> None:
-        self._check_closed()
-        assert not self._launch_flag, "set seed must be called before launching env manager"
+        assert self._closed, "set seed must be called before launching env manager"
         self._env_seed = seed
 
     def close(self) -> None:

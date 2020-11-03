@@ -36,8 +36,11 @@ learner:
             ext_args:
                 freq: 50
 env:
-    env_num: 8
-    stop_val: -2000
+    stop_val: 2000
 actor:
+    env_num: 8
+    episode_num: 1
+evaluator:
+    env_num: 4
     episode_num: 1
     eval_step: 1000
