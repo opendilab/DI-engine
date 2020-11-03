@@ -77,6 +77,7 @@ class BaseActor(ABC):
         self._variable_record.register_var('env_time')
         self._variable_record.register_var('timestep_size')
         self._variable_record.register_var('norm_env_time')
+        self._logger.info("JOB INFO:\n{}".format(job))
 
         # other parts need to be implemented by subclass
 

@@ -11,18 +11,18 @@ league:
             sp: 0.35
             verification: 0.15
         strong_win_rate: 0.7
-        one_phase_steps: 2e3
+        one_phase_step: 2e3
     main_exploiter:
         branch_probs:
             main_players: 1.0
         strong_win_rate: 0.7
-        one_phase_steps: 2e3
+        one_phase_step: 2e3
         min_valid_win_rate: 0.2
     league_exploiter:
         branch_probs:
             pfsp: 1.0
         strong_win_rate: 0.7
-        one_phase_steps: 2e3
+        one_phase_step: 2e3
     use_pretrain_init_historical: True
     pretrain_checkpoint_path:  # placeholder
         zerg: 'pretrain_checkpoint_zerg.pth'

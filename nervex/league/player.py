@@ -47,22 +47,22 @@ class ActivePlayer(Player):
     _name = "ActivePlayer"
     BRANCH = namedtuple("BRANCH", ['name', 'prob'])
 
-    def __init__(self, *args, branch_probs, strong_win_rate, one_phase_steps):
+    def __init__(self, *args, branch_probs, strong_win_rate, one_phase_step):
         """
         Overview: initialize player metadata
         Arguments:
             - branch_probs (:obj:`list`): a list contains the probabilities of selecting the different opponent branch
             - strong_win_rate (:obj:`float`): if the win rate between this player and the opponent is more than
                 this value, this player can be regarded as strong enough to the opponent
-             - one_phase_steps (:obj:`int`): one training phase steps
+             - one_phase_step (:obj:`int`): one training phase step
         """
         super(ActivePlayer, self).__init__(*args)
         assert isinstance(branch_probs, dict)
         self._branch_probs = [self.BRANCH(k, v) for k, v in branch_probs.items()]
         self._strong_win_rate = strong_win_rate
-        self._one_phase_steps = int(float(one_phase_steps))
-        self._total_agent_steps = 0
-        self._last_enough_steps = 0
+        self._one_phase_step = int(float(one_phase_step))
+        self._total_agent_step = 0
+        self._last_enough_step = 0
 
     def is_trained_enough(self, select_fn):
         """
@@ -72,11 +72,11 @@ class ActivePlayer(Player):
         Returns:
             - flag (:obj:`bool`): whether this player is trained enough
         """
-        step_passed = self._total_agent_steps - self._last_enough_steps
-        if step_passed < self._one_phase_steps:
+        step_passed = self._total_agent_step - self._last_enough_step
+        if step_passed < self._one_phase_step:
             return False
-        elif step_passed >= 2 * self._one_phase_steps:
-            self._last_enough_steps = self._total_agent_steps
+        elif step_passed >= 2 * self._one_phase_step:
+            self._last_enough_step = self._total_agent_step
             return True
         else:
             historical = self._get_players(select_fn)
@@ -84,7 +84,7 @@ class ActivePlayer(Player):
                 return False
             win_rates = self._payoff[self, historical]
             if win_rates.min() > self._strong_win_rate:
-                self._last_enough_steps = self._total_agent_steps
+                self._last_enough_step = self._total_agent_step
                 return True
             else:
                 return False
@@ -98,12 +98,12 @@ class ActivePlayer(Player):
             this method only generates a player object without saving the checkpoint, which should be completed
             by the interaction between coordinator and learner
         """
-        path = self.checkpoint_path.split('.pth')[0] + '_{}'.format(self._total_agent_steps) + '.pth'
+        path = self.checkpoint_path.split('.pth')[0] + '_{}'.format(self._total_agent_step) + '.pth'
         return HistoricalPlayer(
             self.race,
             self.payoff,
             path,
-            self.player_id + '_{}'.format(int(self._total_agent_steps)),
+            self.player_id + '_{}'.format(int(self._total_agent_step)),
             parent_id=self.player_id
         )
 
@@ -135,13 +135,18 @@ class ActivePlayer(Player):
     def _name2branch(self, s):
         return '_' + s + '_branch'
 
-    def update_agent_step(self, step):
+    @property
+    def total_agent_step(self):
+        return self._total_agent_step
+
+    @total_agent_step.setter
+    def total_agent_step(self, step):
         """
         Overview: update agent step
         Arguments:
             - step (:obj:`int`): current agent step
         """
-        self._total_agent_steps = step
+        self._total_agent_step = step
 
     def _get_players(self, select_fn):
         return [player for player in self._payoff.players if select_fn(player)]
@@ -225,7 +230,7 @@ class MainPlayer(ActivePlayer):
             lambda p: isinstance(p, HistoricalPlayer) and p.parent_id == main_opponent.player_id
         )
         win_rates = self._payoff[self, historical]
-        # TODO(nyz) whether the method `_get_players` should return players with some sequence(such as steps)
+        # TODO(nyz) whether the method `_get_players` should return players with some sequence(such as step)
         # win_rates, historical = self._remove_monotonic_suffix(win_rates, historical)
         if len(win_rates) and win_rates.min() < self._strong_win_rate:
             p = pfsp(win_rates, weighting='squared')

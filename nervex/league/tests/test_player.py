@@ -6,7 +6,7 @@ from nervex.league.player import Player, MainPlayer, MainExploiter, LeagueExploi
 from nervex.league.shared_payoff import BattleSharedPayoff
 
 STRONG = 0.7
-ONE_PHASE_STEPS = 2e3
+ONE_PHASE_STEP = 2e3
 MIN_VALID = 0.2
 
 
@@ -32,7 +32,7 @@ def setup_league(setup_payoff):
                 main_player_name,
                 branch_probs=main_player_branch,
                 strong_win_rate=STRONG,
-                one_phase_steps=ONE_PHASE_STEPS
+                one_phase_step=ONE_PHASE_STEP
             )
         )
 
@@ -45,7 +45,7 @@ def setup_league(setup_payoff):
                 main_exploiter_name,
                 branch_probs=main_exploiter_branch,
                 strong_win_rate=STRONG,
-                one_phase_steps=ONE_PHASE_STEPS,
+                one_phase_step=ONE_PHASE_STEP,
                 min_valid_win_rate=MIN_VALID
             )
         )
@@ -60,7 +60,7 @@ def setup_league(setup_payoff):
                     league_exploiter_name,
                     branch_probs=league_exploiter_branch,
                     strong_win_rate=STRONG,
-                    one_phase_steps=ONE_PHASE_STEPS
+                    one_phase_step=ONE_PHASE_STEP
                 )
             )
         # sl player is used as initial HistoricalPlayer
@@ -94,7 +94,7 @@ class TestMainPlayer:
         hp_list = []
         for p in setup_league:
             if isinstance(p, ActivePlayer):
-                p.update_agent_step(2 * ONE_PHASE_STEPS)
+                p.total_agent_step = 2 * ONE_PHASE_STEP
                 hp = p.snapshot()
                 hp_list.append(hp)
                 payoff.add_player(hp)
@@ -112,11 +112,6 @@ class TestMainPlayer:
                         else:
                             assert isinstance(opponent, HistoricalPlayer) and 'MainPlayer' in opponent.parent_id
 
-    def test_update_agent_step(self, setup_league):
-        assert setup_league[0]._total_agent_steps == 0
-        setup_league[0].update_agent_step(ONE_PHASE_STEPS)
-        assert setup_league[0]._total_agent_steps == ONE_PHASE_STEPS
-
     def test_snapshot(self, setup_league):
         N = 10
         for p in setup_league:
@@ -131,15 +126,15 @@ class TestMainPlayer:
         for p in setup_league:
             if isinstance(p, ActivePlayer):
                 assert not p.is_trained_enough()
-                assert p._last_enough_steps == 0
+                assert p._last_enough_step == 0
 
-                p.update_agent_step(ONE_PHASE_STEPS * 0.99)
+                p.total_agent_step = ONE_PHASE_STEP * 0.99
                 assert not p.is_trained_enough()
-                assert p._last_enough_steps == 0
+                assert p._last_enough_step == 0
 
-                p.update_agent_step(ONE_PHASE_STEPS + 1)
+                p.total_agent_step = ONE_PHASE_STEP + 1
                 assert not p.is_trained_enough()
-                assert p._last_enough_steps == 0
+                assert p._last_enough_step == 0
 
         payoff = setup_league[np.random.randint(0, len(setup_league))].payoff  # random select reference
         # prepare HistoricalPlayer
@@ -172,16 +167,16 @@ class TestMainPlayer:
                 result = payoff.update(match_info)
                 assert result
 
-        assert setup_league[0]._total_agent_steps > ONE_PHASE_STEPS
-        assert setup_league[0]._last_enough_steps == 0
-        assert setup_league[0]._last_enough_steps != setup_league[0]._total_agent_steps
+        assert setup_league[0]._total_agent_step > ONE_PHASE_STEP
+        assert setup_league[0]._last_enough_step == 0
+        assert setup_league[0]._last_enough_step != setup_league[0]._total_agent_step
         assert setup_league[0].is_trained_enough()
-        assert setup_league[0]._last_enough_steps == setup_league[0]._total_agent_steps
+        assert setup_league[0]._last_enough_step == setup_league[0]._total_agent_step
 
-        assert setup_league[5]._total_agent_steps > ONE_PHASE_STEPS
+        assert setup_league[5]._total_agent_step > ONE_PHASE_STEP
         assert not setup_league[5].is_trained_enough()
 
-        setup_league[5].update_agent_step(2 * ONE_PHASE_STEPS)
+        setup_league[5].total_agent_step = 2 * ONE_PHASE_STEP
         assert setup_league[5].is_trained_enough()
 
     def test_mutate(self, setup_league):
@@ -215,7 +210,7 @@ class TestMainExploiter:
         for i in range(3):
             for p in setup_league:
                 if isinstance(p, MainPlayer):
-                    p.update_agent_step((i + 1) * 2 * ONE_PHASE_STEPS)
+                    p.total_agent_step = (i + 1) * 2 * ONE_PHASE_STEP
                     hp = p.snapshot()
                     payoff.add_player(hp)
                     hp_list.append(hp)
