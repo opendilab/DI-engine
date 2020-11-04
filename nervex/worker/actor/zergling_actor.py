@@ -53,6 +53,7 @@ class ZerglingActor(BaseActor):
         self._traj_queue = queue.Queue()
         self._episode_result = {k: None for k in range(self._job['env_num'])}
 
+        self._job_finish_flag = False
         self._update_agent_thread = Thread(target=self._update_agent, args=())
         self._update_agent_thread.deamon = True
         self._update_agent_thread.start()  # keep alive in the whole job
@@ -136,16 +137,19 @@ class ZerglingActor(BaseActor):
             'avg_step_per_episode': self._step_count / episode_count,
             'result': tensor_to_list(self._job_result),
         }
+        self._job_finish_flag = True
         self._logger.info('ACTOR({}): finish job {} in {}'.format(self._actor_uid, self._job['job_id'], time.time()))
         self._logger.info('ACTOR({}): JOB FINISH INFO\n{}'.format(self._actor_uid, job_finish_info))
         self.send_finish_job(job_finish_info)
+        # sleep some time for close thread
+        time.sleep(3)
 
     # ******************************** thread **************************************
 
     # override
     def _update_agent(self) -> None:
         last = time.time()
-        while not self._end_flag:
+        while not self._job_finish_flag:
             cur = time.time()
             interval = cur - last
             if interval < self._job['agent_update_freq']:
@@ -160,20 +164,16 @@ class ZerglingActor(BaseActor):
 
     # override
     def _pack_trajectory(self) -> None:
-        while not self._end_flag:
-            try:
-                data = self._traj_queue.get()
-            except queue.Empty:
-                time.sleep(1)
-                continue
-            data, env_id = list(data.values())
+
+        def _pack(element, job):
+            data, env_id = list(element.values())
             # send metadata
-            job_id = self._job['job_id']
+            job_id = job['job_id']
             traj_id = "job_{}_env_{}".format(job_id, env_id)
             metadata = {
                 'traj_id': traj_id,
-                'learner_uid': self._job['learner_uid'][0],
-                'launch_player': self._job['launch_player'],
+                'learner_uid': job['learner_uid'][0],
+                'launch_player': job['launch_player'],
                 'env_id': env_id,
                 'actor_uid': self._actor_uid,
                 'done': data[-1]['done'],
@@ -182,14 +182,31 @@ class ZerglingActor(BaseActor):
                 'traj_finish_time': time.time(),
                 'job_id': job_id,
                 'data_push_length': len(data),
-                'compressor': self._job['compressor'],
-                'job': self._job,
+                'compressor': job['compressor'],
+                'job': job,
             }
             # save data
             data = self._compressor(data)
             self.send_traj_stepdata(traj_id, data)
             self.send_traj_metadata(metadata)
             self._logger.info('ACTOR({}): send traj({}) in {}'.format(self._actor_uid, traj_id, time.time()))
+        while not self._job_finish_flag:
+            try:
+                element = self._traj_queue.get()
+            except queue.Empty:
+                time.sleep(1)
+                continue
+            _pack(element, self._job)
+
+        if self._traj_queue.qsize() > 0:
+            traj_queue = copy.deepcopy(self._traj_queue.queue)
+            job = copy.deepcopy(self._job)
+            todo_count = len(traj_queue)
+            while len(traj_queue) > 0:
+                element = traj_queue.popleft()
+                _pack(element, job)
+                residual = len(traj_queue)
+                self._logger.info('ACTOR({}) residual traj {}/{}'.format(self._actor_uid, residual, todo_count))
 
     def _setup_env_fn(self, env_cfg: dict) -> None:
         """set self._env_fn"""
