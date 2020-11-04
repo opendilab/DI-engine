@@ -1,4 +1,5 @@
 import os.path as osp
+import uuid
 import time
 from abc import ABC, abstractmethod
 from threading import Thread
@@ -64,6 +65,7 @@ class BaseLeagueManager(ABC):
     def __init__(self, cfg, save_checkpoint_fn, load_checkpoint_fn, launch_task_fn):
         cfg = deep_merge_dicts(default_config, cfg)
         self.cfg = cfg.league
+        self.league_uid = str(uuid.uuid1())
         self.model_config = cfg.model
         self.active_players = []
         self.historical_players = []
@@ -85,7 +87,7 @@ class BaseLeagueManager(ABC):
         for r in self.cfg.player_category:
             for k, n in self.cfg.active_players.items():
                 for i in range(n):
-                    name = '{}_{}_{}'.format(k, r, i)
+                    name = '{}_{}_{}_{}'.format(k, r, i, self.league_uid)
                     ckpt_path = '{}_ckpt.pth'.format(name)
                     player = player_map[k](r, self.payoff, ckpt_path, name, **self.cfg[k])
                     self.active_players.append(player)
