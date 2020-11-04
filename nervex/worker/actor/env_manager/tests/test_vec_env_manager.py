@@ -15,6 +15,9 @@ class TestBaseEnvManager:
 
         env_manager.seed([314 for _ in range(env_manager.env_num)])
         env_manager.launch(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
+        name = env_manager._name
+        for i in range(env_manager.env_num):
+            assert name[i] == 'name{}'.format(i)
         assert all([s == 314 for s in env_manager._seed])
         assert all([s == 'stat_test'] for s in env_manager._stat)
 

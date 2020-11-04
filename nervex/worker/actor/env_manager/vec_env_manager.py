@@ -5,6 +5,7 @@ import enum
 import time
 import math
 import traceback
+from functools import partial
 from types import MethodType
 from typing import Any, Union, List, Tuple, Iterable, Dict
 
@@ -42,12 +43,15 @@ class SubprocessEnvManager(BaseEnvManager):
         super()._create_state()
         self._parent_remote, self._child_remote = zip(*[Pipe() for _ in range(self.env_num)])
         ctx = get_context('fork')
+        # due to the runtime delay of lambda expression, we use partial for the generation of different envs,
+        # otherwise, it will only use the last item cfg.
+        env_fn = [partial(self._env_fn, cfg=self._env_cfg[i]) for i in range(self.env_num)]
         self._processes = [
             ctx.Process(
                 target=self.worker_fn,
-                args=(parent, child, CloudpickleWrapper(lambda: self._env_fn(cfg)), self.method_name_list),
+                args=(parent, child, CloudpickleWrapper(fn), self.method_name_list),
                 daemon=True
-            ) for parent, child, cfg in zip(self._parent_remote, self._child_remote, self._env_cfg)
+            ) for parent, child, fn in zip(self._parent_remote, self._child_remote, env_fn)
         ]
         for p in self._processes:
             p.start()
