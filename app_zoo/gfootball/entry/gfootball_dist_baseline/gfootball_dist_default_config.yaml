@@ -51,7 +51,6 @@ learner:
         path_agent: 's3://football_agent'
         restore: False
 env:
-    env_num: 8
     env_type: 'normal'  # ['normal', 'fake']
 actor:
     actor_type: 'gfootball'
@@ -71,7 +70,8 @@ league:
     use_pretrain_init_historical: False
     player_category: ['main'] 
     task:
-        episode_num: 1
+        env_num: 12
+        episode_num: 2
         data_push_length: 64
     communication:
         type: 'flask_fs'

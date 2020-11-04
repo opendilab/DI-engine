@@ -77,12 +77,12 @@ class BaseActor(ABC):
         self._variable_record.register_var('env_time')
         self._variable_record.register_var('timestep_size')
         self._variable_record.register_var('norm_env_time')
-        self._logger.info("JOB INFO:\n{}".format(job))
+        self._logger.info("ACTOR({}): JOB INFO:\n{}".format(self._actor_uid, job))
 
         # other parts need to be implemented by subclass
 
     def _setup_logger(self) -> None:
-        path = os.path.join(self._cfg.common.save_path, 'actor-log')
+        path = os.path.join(self._cfg.common.save_path, 'log')
         name = 'actor.{}.log'.format(self._actor_uid)
         self._logger, self._variable_record = build_logger_naive(path, name)
 
@@ -109,7 +109,7 @@ class BaseActor(ABC):
         # print info
         if self._iter_count % self._cfg.actor.print_freq == 0:
             self._logger.info(
-                'actor({}):\n{}TimeStep{}{} {}'.format(
+                'ACTOR({}):\n{}TimeStep{}{} {}'.format(
                     self._actor_uid, '=' * 35, self._iter_count, '=' * 35, self._variable_record.get_vars_text()
                 )
             )

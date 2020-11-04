@@ -29,6 +29,9 @@ class ZerglingActor(BaseActor):
     def _init_with_job(self, job: dict) -> None:
         super()._init_with_job(job)
         self._job = job
+        self._logger.info('ACTOR({}): init with job {} in {}'.format(self._actor_uid, self._job['job_id'], time.time()))
+        self._start_time = time.time()
+        self._step_count = 0
         assert len(self._job['agent']) == 1
         self._setup_env_manager()
         self._setup_agent()
@@ -98,6 +101,7 @@ class ZerglingActor(BaseActor):
         for env_id, t in timestep.items():
             data = self._get_transition(self._obs_pool[env_id], self._act_pool[env_id], timestep[env_id])
             self._data_buffer[env_id].append(data)
+            self._step_count += 1
             if len(self._data_buffer[env_id]) == self._job['data_push_length']:
                 # last data copy must be in front of obs_next
                 self._last_data_buffer[env_id] = copy.deepcopy(self._data_buffer[env_id])
@@ -106,7 +110,7 @@ class ZerglingActor(BaseActor):
                 self._data_buffer[env_id] = []
             if t.done:
                 self._job_result[env_id].append(t.info)
-                self._logger.info('env{} finish episode in {}'.format(env_id, time.time()))
+                self._logger.info('ACTOR({}): env{} finish episode in {}'.format(self._actor_uid, env_id, time.time()))
                 cur_len = len(self._data_buffer[env_id])
                 miss_len = self._job['data_push_length'] - cur_len
                 if miss_len > 0:
@@ -116,6 +120,8 @@ class ZerglingActor(BaseActor):
     # override
     def _finish_job(self) -> None:
         assert all([len(r) == self._job['episode_num'] for r in self._job_result.values()])
+        episode_count = self._job['episode_num'] * self._job['env_num']
+        duration = max(time.time() - self._start_time, 1e-8)
         job_finish_info = {
             'job_id': self._job['job_id'],
             'actor_uid': self._actor_uid,
@@ -123,8 +129,15 @@ class ZerglingActor(BaseActor):
             'env_num': self._job['env_num'],
             'player_id': self._job['player_id'],
             'launch_player': self._job['launch_player'],
+            'episode_count': episode_count,
+            'step_count': self._step_count,
+            'avg_time_per_episode': duration / episode_count,
+            'avg_time_per_step': duration / self._step_count,
+            'avg_step_per_episode': self._step_count / episode_count,
             'result': tensor_to_list(self._job_result),
         }
+        self._logger.info('ACTOR({}): finish job {} in {}'.format(self._actor_uid, self._job['job_id'], time.time()))
+        self._logger.info('ACTOR({}): JOB FINISH INFO\n{}'.format(self._actor_uid, job_finish_info))
         self.send_finish_job(job_finish_info)
 
     # ******************************** thread **************************************
@@ -142,7 +155,7 @@ class ZerglingActor(BaseActor):
                 path = self._job['agent'][self._agent_name]['agent_update_path']
                 agent_update_info = self.get_agent_update_info(path)
                 self._agent.load_state_dict(agent_update_info)
-                self._logger.info('update agent in {} with path {}'.format(time.time(), path))
+                self._logger.info('ACTOR({}): update agent with {} in {}'.format(self._actor_uid, path, time.time()))
                 last = time.time()
 
     # override
@@ -151,7 +164,7 @@ class ZerglingActor(BaseActor):
             try:
                 data = self._traj_queue.get()
             except queue.Empty:
-                time.sleep(3)
+                time.sleep(1)
                 continue
             data, env_id = list(data.values())
             # send metadata
@@ -176,7 +189,7 @@ class ZerglingActor(BaseActor):
             data = self._compressor(data)
             self.send_traj_stepdata(traj_id, data)
             self.send_traj_metadata(metadata)
-            self._logger.info('send traj({}) in {}'.format(traj_id, time.time()))
+            self._logger.info('ACTOR({}): send traj({}) in {}'.format(self._actor_uid, traj_id, time.time()))
 
     def _setup_env_fn(self, env_cfg: dict) -> None:
         """set self._env_fn"""
