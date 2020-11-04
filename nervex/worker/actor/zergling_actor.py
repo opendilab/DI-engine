@@ -1,6 +1,7 @@
 import copy
 import queue
 import time
+import uuid
 from collections import namedtuple
 from threading import Thread
 from typing import List, Dict, Callable, Any
@@ -169,7 +170,7 @@ class ZerglingActor(BaseActor):
             data, env_id = list(element.values())
             # send metadata
             job_id = job['job_id']
-            traj_id = "job_{}_env_{}".format(job_id, env_id)
+            traj_id = "job_{}_env_{}_{}".format(job_id, env_id, str(uuid.uuid1()))
             metadata = {
                 'traj_id': traj_id,
                 'learner_uid': job['learner_uid'][0],
