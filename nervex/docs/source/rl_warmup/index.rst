@@ -642,7 +642,137 @@ GAE在这个环境下取得了比较喜人的结果。具体训练过程可见 `
 
 SAC
 ^^^^^^^^
-暂略。
+SAC算法即Soft Actor-Critic，该算法在2018年发表在论文 `Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor <https://arxiv.org/pdf/1801.01290.pdf>`_ 中。
+该算法集 **Actor-Critic、Off-Policy、Maximum Entropy Model** 三者于一体，着力解决Model-Free RL的两大问题：
+
+  - 采样效率低：TRPO/PPO/A3C等On-Policy方法的每一次策略更新都需要在当前策略下进行采样，而不能使用之前在旧的策略下的采样数据。
+
+  - 对超参数敏感：DDPG等Off-Policy方法虽然使用Replay Buffer解决了样本利用效率问题，但是确定性actor网络与Q函数相互耦合，性能不稳定，容易受超参的影响。
+
+SAC将异步AC与一个随机actor结合训练，并以最大熵来改进目标函数。
+在真实世界的连续的状态与动作空间的控制任务上，表现优于以前的On-Policy和Off-Policy算法，并在不同随机种子下保持了较高的稳定性。
+
+最大熵模型
+'''''''''''
+
+首先，熵被定义为信息量的期望，是一种描述随机变量的不确定性的度量，计算公式是： :math:`H(x) = - \sum_{x_i \in X}P(x_i)\log P(x_i)` 。
+
+熵描述了事件的不确定性：如果熵很大，说明事件发生的不确定性很大，很难预测；
+如果熵很小，可以比较容易的预测某个状态的发生与否。
+可以证明，当事件的各状态为均匀分布的时，事件的熵最大。
+
+因此，最大熵模型的直观理解就是：令对未知的推断为随机不确定，即各随机变量是等概率的。
+在RL算法中，我们希望策略能够尽可能的去探索环境，获得最优策略，但是如果策略输出为低熵的概率分布，则可能会贪婪采样某些值而难以广泛探索。
+最大熵模型就是用于解决这个困境的。
+
+在标准RL目标函数，即仅包含reward期望的加和的基础上，再加上一个熵的期望，就是最大熵RL模型的目标函数：
+
+ :math:`J(\pi) = \sum_{t=0}^T \mathbb{E}_{(s_t,a_t)\sim \rho_\pi}[r(s_t,a_t)+\alpha \mathcal{H}(\pi(\cdot|s_t))]`
+
+其中，:math:`\alpha` 是温度参数，定义了熵和reward之间的重要性，控制着最优策略的随机性。
+
+SAC通过最大熵鼓励策略探索，为Q值相近的动作分配相近的概率，不会给动作范围内任何一个动作分配非常高的概率，避免反复选择同一个动作而陷入次优。
+同时通过最大化奖赏，放弃明显低奖赏的策略。
+
+这个目标函数有以下几个优势：
+
+  - 熵项鼓励策略去更多地探索，reward项保证可以及时放弃一些回报较小的尝试
+
+  - 最优策略可以捕捉到多个近似最优的行为，提高鲁棒性
+
+  - 和SOTA方法相比，由于探索得更加均匀，所以可以极大地加快学习速度
+
+相比于DDPG、TD3等也都使用了Actor-Critic和Off-policy的算法，SAC算法在连续控制任务上表现更加出色的原因，可能就是引入了最大熵模型。
+
+表格型(Tabular Setting)SAC推导
+''''''''''''''''''''''''''''''''
+
+首先，在表格型（离散）的设定下论证最大熵RL模型下的soft policy iteration (policy evaluation + poloci improvement)，
+然后在下一部分再论证连续设定下的SAC。
+
+Policy Evaluation
+""""""""""""""""""
+
+对于一个固定的策略 :math:`\pi` ，其soft Q-value可以通过Bellman backup算子迭代计算得到：
+
+ :math:`\mathcal{T}^\pi Q(s_t,a_t) = r(s_t,a_t)+\gamma \mathbb{E}_{s_{t+1}\sim \pi}[V(s_{t+1})]`
+
+其中， :math:`V(s_t)=\mathbb{E}_{a_t\sim \pi}[Q(s_t.a_t)-\log \pi(a_t|s_t)]`
+
+由论文中的引理1可知：soft policy evaluation可以通过 :math:``Q^{k+1}=\mathcal{T}^\pi Q^k 进行迭代，
+若无限迭代下去，则最终Q会收敛到固定策略π下的soft Q-value。
+
+Policy Improvement
+"""""""""""""""""""
+
+与往常off-policy方法最大化Q值不同的是，在SAC中策略会向着正比于Q的指数分布的方向更新。
+即传统方法将策略分布更新为当前Q函数的的高斯分布（单峰，如下图左图所示），而SAC会更新为softmax分布（多峰，如下图右图所示)。
+
+.. image:: SAC-policy_improvement.png
+   :scale: 100 %
+
+但在实际操作中，为了方便处理，我们还是将策略输出为高斯分布，但通过最小化KL散度去最小化两个分布的差距：
+
+ :math:`\pi_{new}=\arg \min \rm D_{KL}(\pi'(\cdot|s_t)||\frac{\exp(Q^{\pi_{old}}(s_t, \cdot))}{Z^{\pi_{old}}(s_t)}`
+
+其中 :math:`Z^{\pi_{old}}` 为对Q值进行归一化分布。
+
+我们的策略被约束在参数空间中： :math:`\pi \in \Pi` 。由论文中的引理2可知：
+对于所有的 :math:`(s_t,a_t) \in S \times A` ，满足 :math:`Q^{\pi_{new}}(s_t, a_t) \ge Q^{\pi_{old}}(s_t, a_t)` ,
+即保证每次更新的新策略不差于旧策略。
+
+Soft Policy Iteration
+""""""""""""""""""""""""
+
+在Soft Policy Iteration中，Soft Policy Evaluation和Soft Policy Improvement两个过程交替迭代求解，
+通过论文中的定理1可知：最终策略 :math:`\pi` 会收敛到最优策略 :math:`\pi` ，
+使得对于所有的 :math:`\pi \in \Pi` ，以及 :math:`(s_t,a_t) \in S \times A` ，
+均满足 :math:`Q^{\pi_{new}}(s_t, a_t) \ge Q^{\pi_{old}}(s_t, a_t)` 。
+
+连续任务下的SAC
+'''''''''''''''
+
+表格型SAC保证状态动作空间是有限离散的情况下，可以获得最优策略。
+但是对于具有连续状态动作空间的控制任务来说，通常必须利用神经网络近似来找到SAC的最优策略。
+本节就重点介绍各个神经网络参数的目标函数。
+
+
+目标函数及更新方式
+""""""""""""""
+SAC用神经网络定义了状态价值函数 :math:`V_\psi(s_t)` 、soft Q-value函数 :math:`Q_\theta(s_t,a_t)` 以及策略函数 :math:`\pi_\phi(a_t|s_t)`
+
+**状态价值函数：MSE最小化残差**
+
+由公式 :math:`V(s_t)=\mathbb{E}_{a_t\sim \pi}[Q(s_t.a_t)-\log \pi(a_t|s_t)]` ，其实可以发现，V函数可以由soft Q-value函数写出。
+但作者提出，为了稳定训练，还是为V值函数涉及了目标函数：
+
+ :math:`J_V(\psi) = \mathbb{E}_{s_t\sim\mathcal{D}}[\frac{1}{2}(V_\psi(s_t)-\mathbb{E}_{a_t\sim \pi_\phi}[Q_\theta (s_t,a_t)]-\log \pi_\phi(a_t|s_t))^2]`
+
+其中D为replay buffer。
+
+**soft Q-value函数：MSE最小化软贝尔曼残差(soft Bellman residual)**
+
+ :math:`J_Q(\theta) = \mathbb{E}_{(s_t,a_t)\sim \mathcal{D}}[\frac12(Q_\theta(s_t,a_t)-\hat{Q}(s_t,a_t))^2]`
+
+其中，借鉴了DQN算法的target network，SAC中也定义了一个soft Q-value函数的target网络 :math:`\hat{Q}(s_t,a_t)` ：
+
+ :math:`\hat{Q}(s_t,a_t) = r(s_t,a_t)+\gamma\mathbb{E}_{s_{t+1}\sim p}[V_{\bar{\psi}}(s_{t+1})]`
+
+**策略函数：最小化两分布之间的KL散度**
+
+ :math:`J_\pi(\phi) =\mathbb{E}_{s_t\sim\mathcal{D}}[ \rm D_{KL}(\pi_\phi(\cdot|s_t)||\frac{\exp(Q_\theta(s_t, \cdot))}{Z_\theta(s_t)}]`
+
+三者对目标函数求梯度并进行更新，具体数学公式可见论文。
+
+算法流程
+""""""""""
+
+整个算法的流程如下所示：
+
+.. image:: SAC-algorithm.png
+   :scale: 100 %
+
+在更新（上图黄色框）的部分，先后按照V, soft Q, policy, target V的顺序对参数进行更新。
 
 
 TD3 
@@ -711,7 +841,64 @@ A3C有一个主网络，开启n个线程，每个线程里有和主网络一样�
 
 Ape-X
 ^^^^^^^^^^^
-暂略。
+
+Ape-X出自谷歌在ICLR2018上发表的论文：`Distributed Prioritized Experience Replay <https://arxiv.org/pdf/1803.00933.pdf>`_ 。
+原先的分布式方法主要致力于加速神经网络的训练，比如并行化计算梯度，更快地更新梯度等。但这篇文章更加关注分布式场景下经验数据的产生和选择。
+主要针对传统DQN/DDPG等算法，使用分布式actor获取replay memory数据并进行优先经验回放，从而使强化学习网络训练得更有效率。
+
+整体架构
+''''''''''
+
+Ape-X是对优先经验回放进行了分布式场景下的扩展，它的一些关键的调整使得分布式有限经验回放在深度强化学习中有很强的扩展性。
+
+.. imgae:: APEX-architecture.png
+
+Ape-X的整体架构如上图所示，它将整个学习过程分为actor和learner两部分，actor向一个中心化的共享的的replay memory中存储数据，
+learner从replay memory中带优先级地采样更加“有用”的数据，即更“有用”的数据的采样频率会更高。
+这里的优先级可以根据算法的不同而有不同的定义，概括来讲是根据tderror-惊奇度（估计值和实际值的区别）来决定数据的优先级大小：
+惊奇度越大，优先级越高。后文会详细介绍其中的两种：Ape-X DQN 和 Ape-X DPG。
+
+在Prioritized DQN中，样本被送入replay memory时会设置一个当前最高的优先级，以保证会快速被learner采样到，
+其真实的优先级会在learner处计算得到，但这样做会使得learner一定会采样到最新的数据，这可能会浪费一些计算资源。
+在Ape-X中，优先级会在actor处随着评估策略时顺便计算得到，这样可以在不增加计算开销的情况下直接得到更加准确的优先级。
+
+共享梯度时，梯度可能会迅速过时；但共享经验时，由于算法对off-policy数据有较强的的鲁棒性，所以可以以增加一点延迟为代价，
+极大地提升数据利用效率和吞吐率，甚至actor和learner都可以打破地理限制，运行在不同的数据中心，也不会限制训练效果。
+同时，我们还可以让不同的actor使用不同的探索策略，这样再将所有actor的数据聚合，就可以极大地提升数据多样性。
+
+Ape-X DQN
+'''''''''''
+
+DQN添加了Rainbow中的部分组件，使用target network和multi-step td error作为目标函数，
+还采用了dueling network网络模型 :math:`q(\cdot, \cdot, \theta)` 。
+
+通过 :math:`l_t(\theta)=\frac12(G_t-q(S_t,A_t,\theta))^2` 计算梯度，其中：
+
+.. image:: APEX-DQN.png
+   :scale: 60 %
+
+在这里， :math:`\theta^-` 表示target network的参数。
+
+Ape-X DPG
+'''''''''''
+
+为了检验框架的泛化性能，也在连续动作空间上基于DDPG算法进行了测试。
+
+在Ape-X DPG中，actor产生的动作直接由policy network得到，而不是像Q-learning中一样对Q值求argmax得到动作。
+policy network和Q-network两个网络的参数分别是 :math:`\phi, \psi`，也会分别进行优化。
+在这里，我们更关注Q-network的loss： :math:`l_t(\psi)=\frac12(G_t-q(S_t,A_t,\psi))^2` ，其中：
+
+.. image:: APEX-DPG.png
+   :scale: 60 %
+
+
+作者运用这个框架在Atari上进行了测试，实验结果如下：
+
+  - Ape-X DQN和Ape-X DPG表现效果和baseline(Rainbow, Gorila, DQN等)相比，有较大的提升。
+
+  - 随着增加探索参数不同的actor数量，训练速度会稳定地加快，训练结果会稳定地更优。作者认为数量更多的多样化的探索会防止网络收敛到局部最优。
+
+  - replay memory越大，最终效果更好，但影响并不大。作者认为更大的replay memory可以将高优先级的数据存储得更久。
 
 IMPALA
 ^^^^^^^^^^^
