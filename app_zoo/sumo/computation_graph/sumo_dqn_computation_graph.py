@@ -41,7 +41,7 @@ class SumoDqnGraph(BaseCompGraph):
         tl_num = len(q_value)
         loss = []
         for i in range(tl_num):
-            data = td_data(q_value[i], target_q_value[i], action[i], reward, terminate)
+            data = td_data(q_value[i], target_q_value[i], action[i].squeeze(1), reward, terminate)
             loss.append(one_step_td_error(data, self._gamma, weights))
         loss = sum(loss) / (len(loss) + 1e-8)
         if agent.is_double:

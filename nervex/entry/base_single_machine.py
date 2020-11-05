@@ -61,7 +61,7 @@ class SingleMachineRunner():
 
         self._setup_learner()
         self._setup_agent()
-        self._setup_data_source()
+        self._setup_get_data()
         self.train_step = cfg.learner.train_step
         self.learner.register_hook(ActorUpdateHook(self, 'before_run', 40, self.train_step))
         self.learner.register_hook(ActorProducerHook(self, 'before_run', 100, self.train_step))
@@ -70,6 +70,16 @@ class SingleMachineRunner():
         self.learner.register_hook(EvaluateHook(self, 100, cfg.evaluator.eval_step))
         self.actor_step_count = 0
         self.learner_step_count = 0
+
+    def _setup_get_data(self):
+
+        def fn(batch_size):
+            while True:
+                data = self.buffer.sample(batch_size)
+                if data is not None:
+                    return data
+                time.sleep(3)
+        self.learner.get_data = fn
 
     def _setup_learner(self):
         """set self.learner"""
@@ -82,19 +92,6 @@ class SingleMachineRunner():
     def _setup_env(self):
         """set self.actor_env and self.evaluate_env"""
         raise NotImplementedError
-
-    def _setup_data_source(self):
-
-        def data_iterator():
-            while True:
-                while True:
-                    data = self.buffer.sample(self.batch_size)
-                    if data is not None:
-                        break
-                    time.sleep(5)
-                yield default_collate(data)
-
-        self.learner._data_source = data_iterator()
 
     def collect_data(self):
         self.actor_env.launch()
@@ -140,6 +137,7 @@ class SingleMachineRunner():
         self.actor_env.close()
 
     def evaluate(self):
+        self.evaluate_env.seed([int(time.time()) + i for i in range(self.evaluate_env.env_num)])
         self.evaluate_env.launch()
         episode_count = 0
         rewards = []
@@ -176,7 +174,7 @@ class SingleMachineRunner():
         self.evaluate_env.close()
         avg_reward = sum(rewards) / len(rewards)
         self.learner.info('evaluate average reward: {:.3f}\t{}'.format(avg_reward, rewards))
-        if avg_reward >= self.cfg.env.stop_val:
+        if avg_reward >= self.cfg.evaluator.stop_val:
             sys.exit(0)
 
     def run(self):

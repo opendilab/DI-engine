@@ -14,7 +14,6 @@ class FCDQN(nn.Module):
         input_dim,
         action_dim,
         hidden_dim_list=[128, 128, 128],
-        device='cpu',
         dueling=True,
         a_layer_num=1,
         v_layer_num=1
@@ -38,11 +37,8 @@ class FCDQN(nn.Module):
                 self.pred.append(head_fn(in_dim, dim))
         else:
             self.pred = head_fn(in_dim, self.action_dim)
-        self.device = device
 
-    def forward(self, x, info={}):
-        if not isinstance(x, torch.Tensor):
-            x = torch.tensor(x, device=self.device, dtype=torch.float)
+    def forward(self, x):
         x = self.main(x)
         if isinstance(self.action_dim, list):
             x = [m(x) for m in self.pred]

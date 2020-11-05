@@ -23,6 +23,7 @@ class SumoWJ3Actor(ZerglingActor):
         if self._cfg.actor.use_cuda:
             model.cuda()
         self._agent = SumoDqnActorAgent(model)
+        self._agent.mode(train=False)
 
     # override
     def _get_transition(self, obs: Any, agent_output: Dict, timestep: namedtuple) -> Dict:

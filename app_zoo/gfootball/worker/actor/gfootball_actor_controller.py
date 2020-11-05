@@ -22,12 +22,11 @@ class GfootballActor(ZerglingActor):
     def _setup_agent(self) -> None:
         agent_cfg = self._job['agent']
         self._agent_name = list(agent_cfg.keys())[0]
-        env = GfootballEnv(self._cfg.env)
-        env_info = env.info()
         model = FootballIQL(agent_cfg[self._agent_name]['model'])
         if self._cfg.actor.use_cuda:
             model.cuda()
         self._agent = GfootballIqlActorAgent(model)
+        self._agent.mode(train=False)
 
     # override
     def _get_transition(self, obs: Any, agent_output: Dict, timestep: namedtuple) -> Dict:

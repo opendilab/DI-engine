@@ -4,7 +4,7 @@ common:
     save_path: '.'
     load_path: ''
 learner:
-    use_cuda: False
+    use_cuda: True
     use_distributed: False
     max_iterations: 10000000
     train_step: 200
@@ -34,9 +34,7 @@ learner:
             priority: 20
             position: after_iter
             ext_args:
-                freq: 50
-env:
-    stop_val: 2000
+                freq: 100
 actor:
     env_num: 8
     episode_num: 1
@@ -44,3 +42,6 @@ evaluator:
     env_num: 4
     episode_num: 1
     eval_step: 1000
+    stop_val: -2000
+env:
+    placeholder: 'placeholder'
