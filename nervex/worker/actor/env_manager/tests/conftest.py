@@ -33,7 +33,7 @@ class FakeEnv(object):
 
     def step(self, action):
         if isinstance(action, str) and action == 'error':
-            raise EnvException("env error")
+            raise EnvException("env error, current step {}".format(self._current_step))
         obs = torch.randn(3)
         reward = torch.randint(0, 2, size=[1])
         done = self._current_step >= self._target_step

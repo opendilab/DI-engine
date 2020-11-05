@@ -48,9 +48,7 @@ class SubprocessEnvManager(BaseEnvManager):
         env_fn = [partial(self._env_fn, cfg=self._env_cfg[i]) for i in range(self.env_num)]
         self._processes = [
             ctx.Process(
-                target=self.worker_fn,
-                args=(parent, child, CloudpickleWrapper(fn), self.method_name_list),
-                daemon=True
+                target=self.worker_fn, args=(parent, child, CloudpickleWrapper(fn), self.method_name_list), daemon=True
             ) for parent, child, fn in zip(self._parent_remote, self._child_remote, env_fn)
         ]
         for p in self._processes:
@@ -113,11 +111,17 @@ class SubprocessEnvManager(BaseEnvManager):
             self._next_obs[i] = obs[i]
 
     def _reset(self, env_id: int) -> None:
-        self._parent_remote[env_id].send(CloudpickleWrapper(['reset', self._reset_param[env_id], {}]))
-        obs = self._parent_remote[env_id].recv().data
-        self._check_data([obs])
-        self._env_state[env_id] = EnvState.RUN
-        self._next_obs[env_id] = obs
+        try:
+            self._parent_remote[env_id].send(CloudpickleWrapper(['reset', self._reset_param[env_id], {}]))
+            obs = self._parent_remote[env_id].recv().data
+            self._check_data([obs])
+            self._env_state[env_id] = EnvState.RUN
+            self._next_obs[env_id] = obs
+        except Exception as e:
+            if self._closed:  # exception cased by closing parent_remote
+                return
+            else:
+                raise e
 
     def step(self, action: Dict[int, Any]) -> Dict[int, namedtuple]:
         self._check_closed()
@@ -192,7 +196,9 @@ class SubprocessEnvManager(BaseEnvManager):
                     # directly send error to another process will lose the stack trace, so we create a new Exception
                     c.send(
                         CloudpickleWrapper(
-                            e.__class__('\nEnv Process Exception:\n' + ''.join(traceback.format_tb(e.__traceback__)))
+                            e.__class__(
+                                '\nEnv Process Exception:\n' + ''.join(traceback.format_tb(e.__traceback__)) + repr(e)
+                            )
                         )
                     )
                 if cmd == 'close':
@@ -227,15 +233,16 @@ class SubprocessEnvManager(BaseEnvManager):
     def close(self) -> None:
         if self._closed:
             return
+        self._closed = True
         self._env_ref.close()
         for p in self._parent_remote:
             p.send(CloudpickleWrapper(['close', None, None]))
-        result = [p.recv().data for p in self._parent_remote]
         for p in self._processes:
             p.join()
         for p in self._processes:
             p.terminate()
-        self._closed = True
+        for p in self._parent_remote:
+            p.close()
 
     @staticmethod
     def wait(rest_conn: list, wait_num: int, timeout: Union[None, float] = None) -> Tuple[list, list]:
