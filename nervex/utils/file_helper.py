@@ -104,7 +104,7 @@ def read_file(path: str, fs_type: Union[None, str] = None) -> object:
                 Path(path_lock).touch()
             except Exception as e:
                 pass
-        with open(path, 'r') as f:
+        with open(path_lock, 'r') as f:
             fcntl.flock(f.fileno(), fcntl.LOCK_EX)
             data = torch.load(path, map_location='cpu')
     return data
@@ -123,7 +123,7 @@ def save_file(path: str, data: object, fs_type: Union[None, str] = None) -> NoRe
                 Path(path_lock).touch()
             except Exception as e:
                 pass
-        with open(path, 'r') as f:
+        with open(path_lock, 'r') as f:
             fcntl.flock(f.fileno(), fcntl.LOCK_EX)
             torch.save(data, path)
 
