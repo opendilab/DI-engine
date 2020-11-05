@@ -79,6 +79,10 @@ class SubprocessEnvManager(BaseEnvManager):
 
     @property
     def next_obs(self) -> Dict[int, Any]:
+        no_done_env_idx = [i for i, s in self._env_state.items() if s != EnvState.DONE]
+        while all([self._env_state[i] == EnvState.RESET for i in no_done_env_idx]):
+            print('VEC_ENV_MANAGER: all the not finished envs are resetting, please wait a moment...')
+            time.sleep(5)
         return {i: self._next_obs[i] for i in self.ready_env}
 
     @property
