@@ -207,11 +207,14 @@ class SpatialEncoder(nn.Module):
         H, W = 84, 200
         for player in x:
             players.append(cat_player_attr(player))
-            player_loc = ((player['position'] + torch.Tensor([1., 0.42])) / granularity).long()
+            device = player['position'].device
+            player_loc = ((player['position'] + torch.FloatTensor([1., 0.42]).to(device)) / granularity).long()
             player_loc_yx = player_loc[:, [1, 0]]
             players_loc.append(player_loc_yx)
         players = torch.stack(players, dim=1)  # [B, M, N]
         players_loc = torch.stack(players_loc, dim=1)  # [B, M, 2]
+        players_loc[..., 0] = players_loc[..., 0].clamp(0, H - 1)
+        players_loc[..., 1] = players_loc[..., 1].clamp(0, W - 1)
         x = self.scatter(players, (H, W), players_loc)
         x = self.project(x)
         x = self.downsample(x)
