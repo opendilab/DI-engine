@@ -7,7 +7,7 @@ from app_zoo.gfootball.envs.fake_dataset import FakeGfootballDataset
 import pprint
 
 
-@pytest.mark.unittest
+@pytest.mark.envtest
 class TestModel:
 
     def test_encoder(self, setup_config):

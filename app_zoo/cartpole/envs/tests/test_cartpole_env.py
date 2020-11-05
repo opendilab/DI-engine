@@ -4,7 +4,7 @@ import torch
 from nervex.envs.gym.cartpole.cartpole_env import CartpoleEnv
 
 
-@pytest.mark.unittest
+@pytest.mark.envtest
 class TestCartpoleEnv:
 
     def get_random_action(self, min_value, max_value):

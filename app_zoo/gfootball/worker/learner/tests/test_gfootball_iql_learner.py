@@ -6,7 +6,7 @@ from app_zoo.gfootball.envs.fake_dataset import FakeGfootballDataset
 from app_zoo.gfootball.worker.learner.gfootball_iql_learner import GfootballIqlLearner
 
 
-@pytest.mark.unittest
+@pytest.mark.envtest
 class TestGfootballIqlLearner:
 
     def test_data_sample_update(self):
