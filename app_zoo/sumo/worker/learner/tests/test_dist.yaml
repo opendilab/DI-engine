@@ -1,0 +1,33 @@
+system:
+    learner_port: 18293
+    coordinator_ip: 127.0.0.1
+    coordinator_port: 18294
+    league_manager_ip: 127.0.0.1
+    league_manager_port: 18296
+    resume_dir: '.'
+    coordinator_resume_path:
+    coordinator_check_dead_learner_freq: 300
+league:
+    league_type: 'static'
+    import_names: ['nervex.league.static_league_manager']
+    communication:
+        type: 'flask_fs'
+        file_system_type: 'normal'
+        path_traj: '.'
+        path_agent: '.'
+replay_buffer:
+    unroll_len: 1
+    timeout: 0.5
+learner:
+    communication:
+        type: 'flask_fs'
+        upstream_ip: 127.0.0.1
+        upstream_port: 18294
+        learner_ip: 127.0.0.1
+        learner_port: 18293
+        heartbeats_freq: 10
+        send_agent_freq: 2
+        send_train_info_freq: 1
+        path_traj: '.'
+        path_agent: '.'
+        restore: False 

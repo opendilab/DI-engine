@@ -1,13 +1,19 @@
 import random
+import os
 
 import torch
 
 
 class FakeSumoDataset:
 
-    def __init__(self):
+    def __init__(self, use_meta=False):
         self.action_dim = [2, 2, 3]
         self.input_dim = 380
+        self.use_meta = use_meta
+        self.output_dir = './data'
+        if not os.path.exists(self.output_dir):
+            os.mkdir(self.output_dir)
+        self.count = 0
 
     def __len__(self):
         return self.batch_size
@@ -30,14 +36,30 @@ class FakeSumoDataset:
             return 1
         return 0
 
+    def __getitem__(self, idx):
+        step = {}
+        step['obs'] = self.get_random_obs()
+        step['next_obs'] = self.get_random_obs()
+        step['action'] = self.get_random_action()
+        step['done'] = self.get_random_terminals()
+        step['reward'] = self.get_random_reward()
+        if self.use_meta:
+            path = os.path.join(self.output_dir, 'data_{}.pt'.format(self.count))
+            torch.save([step], path)
+            self.count += 1
+            return {
+                'job_id': self.count - 1,
+                'traj_id': path,
+                'priority': 1.0,
+                'step_data_compressor': 'none',
+                'data_push_length': 1
+            }
+        else:
+            self.count += 1
+            return step
+
     def get_batch_sample(self, bs):
         batch = []
         for _ in range(bs):
-            step = {}
-            step['obs'] = self.get_random_obs()
-            step['next_obs'] = self.get_random_obs()
-            step['action'] = self.get_random_action()
-            step['done'] = self.get_random_terminals()
-            step['reward'] = self.get_random_reward()
-            batch.append(step)
+            batch.append(self.__getitem__(0))
         return batch
