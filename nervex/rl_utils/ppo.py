@@ -11,11 +11,11 @@ def ppo_error(
         data: namedtuple,
         gamma: float = 0.99,
         clip_ratio: float = 0.2,
-        lambda_: float = 0.97,
         use_value_clip: bool = True,
         dual_clip: Optional[float] = None
 ) -> Tuple[namedtuple, namedtuple]:
     """
+        dual_clip: if used, default value is 5.0
         Shapes:
             - logp_new (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size
             - logp_old (:obj:`torch.FloatTensor`): :math:`(B, )`
@@ -25,7 +25,10 @@ def ppo_error(
             - return_ (:obj:`torch.FloatTensor`): :math:`(B, )`
             - policy_loss (:obj:`torch.FloatTensor`): :math:`()`, 0-dim tensor
             - value_loss (:obj:`torch.FloatTensor`): :math:`()`
-        dual_clip: if used, default value is 5.0
+        Note:
+            adv is already normalized value (adv - adv.mean()) / (adv.std() + 1e-8), and there are many
+            ways to calculate this mean and std, like among data buffer or train batch, so we don't couple
+            this part into ppo_error, you can refer to our examples for different ways.
     """
     logp_new, logp_old, value_new, value_old, adv, return_ = data
     assert dual_clip is None or dual_clip > 1.0, "dual_clip value must be greater than 1.0, but get value: {}".format(

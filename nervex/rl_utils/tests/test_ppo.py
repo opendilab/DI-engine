@@ -16,7 +16,7 @@ def test_ppo(use_value_clip, dual_clip):
     logp_old = torch.randn(B) + torch.rand_like(logp_new) * 0.1
     value_new = torch.randn(B)
     value_old = torch.randn(B) + torch.rand_like(value_new) * 0.1
-    adv = torch.rand(B) * 0.5
+    adv = torch.rand(B)
     return_ = torch.randn(B) * 2
     data = ppo_data(logp_new, logp_old, value_new, value_old, adv, return_)
     loss, info = ppo_error(data, use_value_clip=use_value_clip, dual_clip=dual_clip)
