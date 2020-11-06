@@ -1,0 +1,47 @@
+common:
+    name: AtariConfig
+    time_wrapper_type: cuda
+    save_path: '.'
+    load_path: ''
+learner:
+    use_cuda: False
+    use_distributed: False
+    max_iterations: 10000000
+    train_step: 200
+    batch_size: 64
+    learning_rate: 0.001
+    weight_decay: 0.0001
+    data:
+        max_reuse: 8
+        buffer_length: 2048
+    dqn:
+        discount_factor: 0.95
+        is_double: True
+        dueling: True
+    hook:
+        save_ckpt_after_iter:
+            name: save_ckpt_after_iter
+            type: save_ckpt
+            priority: 40
+            position: after_iter
+            ext_args:
+                freq: 500
+        log_show:
+            name: log_show
+            type: log_show
+            priority: 20
+            position: after_iter
+            ext_args:
+                freq: 100
+actor:
+    env_num: 1
+    episode_num: 1
+evaluator:
+    env_num: 4
+    episode_num: 1
+    eval_step: 1000
+    stop_val: -2000
+env:
+    env_id: 'PongNoFrameskip-v4'
+    frame_stack: 4
+    is_train: True
