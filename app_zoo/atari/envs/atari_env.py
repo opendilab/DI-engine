@@ -1,6 +1,7 @@
 from typing import Any
 import torch
 from nervex.envs import BaseEnv
+from nervex.envs.common.env_element import EnvElement
 from nervex.torch_utils import to_tensor
 from .atari_wrappers import wrap_deepmind
 
@@ -33,17 +34,12 @@ class AtariEnv(BaseEnv):
 
     def info(self) -> BaseEnv.info_template:
         rew_range = self._env.reward_range
+        T = EnvElement.info_template
         return BaseEnv.info_template(
             agent_num=1,
-            obs_space={'shape': self._env.observation_space.shape},
-            act_space={'shape': self._env.action_space.n},
-            rew_space={
-                'shape': 1,
-                'value': {
-                    'min': rew_range[0],
-                    'max': rew_range[1]
-                }
-            },
+            obs_space=T(self._env.observation_space.shape, None, None, None),
+            act_space=T(self._env.action_space.n, None, None, None),
+            rew_space=T(1, {'min': rew_range[0], 'max': rew_range[1]}, None, None),
         )
 
     def __repr__(self) -> str:

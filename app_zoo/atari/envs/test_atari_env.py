@@ -15,7 +15,7 @@ class TestAtariEnv:
         pong_env.seed(0)
         obs = pong_env.reset()
         assert obs.shape == (cfg.frame_stack, 84, 84)
-        act_dim = pong_env.info().act_space['shape']
+        act_dim = pong_env.info().act_space.shape
         for i in range(10):
             random_action = torch.LongTensor([np.random.choice(range(act_dim))])
             timestep = pong_env.step(random_action)

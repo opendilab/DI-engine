@@ -128,7 +128,7 @@ class SumoWJ3Env(BaseEnv):
         info = {}
         if done:
             self.close()
-            info = {'cum_reward': self._reward_helper.cum_reward}
+            info = {'eval_reward': sum(reward.values())}
         # return obs, reward, done, info
         return SumoWJ3Env.timestep(obs, reward, done, info)
 

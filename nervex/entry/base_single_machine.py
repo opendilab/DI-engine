@@ -165,7 +165,10 @@ class SingleMachineRunner():
             timestep = self.evaluate_env.step({k: o['action'] for k, o in outputs.items()})
 
             for i, t in timestep.items():
-                cum_rewards[i] += self.learner.computation_graph.get_weighted_reward(t.reward).item()
+                if 'eval_reward' in t.info.keys():
+                    cum_rewards[i] += t.info['eval_reward']
+                else:
+                    cum_rewards[i] += t.reward.item()
                 if t.done:
                     episode_count += 1
                     rewards.append(copy.deepcopy(cum_rewards[i]))
