@@ -19,6 +19,7 @@ def one_step_td_error(
     batch_range = torch.arange(act.shape[0])
     if weights is None:
         weights = torch.ones_like(reward)
+    weights = weights.float()
     q_s_a = q[batch_range, act]
     next_act = next_q.argmax(dim=1)
     target_q_s_a = next_q[batch_range, next_act]
@@ -38,7 +39,8 @@ def one_step_td_error_a2c(
     v, next_v, reward, terminate = data
     v, next_v = v.squeeze(), next_v.squeeze()
     if weights is None:
-        weights = torch.ones_like(reward, dtype=torch.float32)
+        weights = torch.ones_like(reward)
+    weights = weights.float()
     reward = reward
     target_v = gamma * (1 - terminate) * next_v + reward
     mean_loss = (criterion(v, target_v.detach()) * weights).mean()
