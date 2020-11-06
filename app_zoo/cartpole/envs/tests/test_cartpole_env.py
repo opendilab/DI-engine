@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from nervex.envs.gym.cartpole.cartpole_env import CartpoleEnv
+from app_zoo.cartpole.envs import CartpoleEnv
 
 
 @pytest.mark.envtest

@@ -6,7 +6,7 @@ import torch
 import yaml
 from easydict import EasyDict
 
-from nervex.envs.sumo.sumo_env import SumoWJ3Env
+from app_zoo.sumo.envs import SumoWJ3Env
 
 
 @pytest.fixture(scope='function')

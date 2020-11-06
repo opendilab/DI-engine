@@ -7,7 +7,7 @@ from nervex.worker.actor.env_manager.vec_env_manager import SubprocessEnvManager
 
 
 @pytest.mark.unittest
-class TestBaseEnvManager:
+class TestVecEnvManager:
 
     def test_naive(self, setup_async_manager_cfg, setup_model_type):
         env_manager = SubprocessEnvManager(**setup_async_manager_cfg)
@@ -62,7 +62,8 @@ class TestBaseEnvManager:
         name = env_manager.name
         assert len(name) == env_manager.env_num
         assert all([isinstance(n, str) for n in name])
-        with pytest.raises(setup_exception):
+        # with pytest.raises(setup_exception):
+        with pytest.raises(Exception):
             timestep = env_manager.step({i: 'error' for i in range(env_manager.env_num)})
         assert env_manager._closed
 
