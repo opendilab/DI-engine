@@ -13,4 +13,3 @@ def setup_config():
         cfg = yaml.safe_load(f)
     cfg = EasyDict(cfg)
     return cfg
-

@@ -6,8 +6,8 @@ from nervex.entry.base_single_machine import SingleMachineRunner
 from nervex.utils import read_config
 from nervex.worker import SubprocessEnvManager
 from app_zoo.atari.envs import AtariEnv
-from app_zoo.atari.worker.atari_agent import AtariActorAgent, AtariEvaluateAgent
-from app_zoo.atari.worker.atari_dqn_learner import AtariDqnLearner
+from app_zoo.atari.worker.atari_agent import AtariDqnActorAgent, AtariDqnEvaluatorAgent, AtariPpoActorAgent, AtariPpoEvaluatorAgent
+from app_zoo.atari.worker import AtariDqnLearner, AtariPpoLearner
 
 
 class AtariRunner(SingleMachineRunner):
@@ -34,18 +34,25 @@ class AtariRunner(SingleMachineRunner):
         )
 
     def _setup_learner(self):
-        self.learner = AtariDqnLearner(self.cfg)
+        if self.algo_type == 'dqn':
+            self.learner = AtariDqnLearner(self.cfg)
+        elif self.algo_type == 'ppo':
+            self.learner = AtariPpoLearner(self.cfg)
 
     def _setup_agent(self):
-        self.actor_agent = AtariActorAgent(copy.deepcopy(self.learner.agent.model))
+        if self.algo_type == 'dqn':
+            self.actor_agent = AtariDqnActorAgent(copy.deepcopy(self.learner.agent.model))
+            self.evaluator_agent = AtariDqnEvaluatorAgent(copy.deepcopy(self.learner.agent.model))
+        elif self.algo_type == 'ppo':
+            self.actor_agent = AtariPpoActorAgent(copy.deepcopy(self.learner.agent.model))
+            self.evaluator_agent = AtariPpoEvaluatorAgent(copy.deepcopy(self.learner.agent.model))
         self.actor_agent.mode(train=False)
-        self.evaluate_agent = AtariEvaluateAgent(copy.deepcopy(self.learner.agent.model))
-        self.evaluate_agent.mode(train=False)
+        self.evaluator_agent.mode(train=False)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--config_path', default="./atari_default_config.yaml")
-    args = parser.parse_known_args()[0]
+    args = parser.parse_args()
     runner = AtariRunner(read_config(args.config_path))
     runner.run()

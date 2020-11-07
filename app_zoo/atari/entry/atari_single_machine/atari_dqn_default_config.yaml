@@ -1,29 +1,27 @@
 common:
-    name: SumoDqnConfig
+    name: AtariConfig
     time_wrapper_type: cuda
     save_path: '.'
     load_path: ''
     algo_type: 'dqn'
 learner:
-    use_cuda: True
+    use_cuda: False
     use_distributed: False
     max_iterations: 10000000
-    train_step: 200
+    train_step: 1000
     batch_size: 64
-    learning_rate: 0.001
-    weight_decay: 0.0001
+    learning_rate: 0.0001
+    weight_decay: 0.0
     eps:
-        type: 'exp'
-        start: 0.95
-        end: 0.05
+        type: 'linear'
+        start: 1.
+        end: 0.005
         decay: 100000
-    reward_weights:
-        'queue_len': 1.0
     data:
         max_reuse: 8
-        buffer_length: 2048
+        buffer_length: 100000
     dqn:
-        discount_factor: 0.95
+        discount_factor: 0.99
         is_double: True
         dueling: True
     hook:
@@ -33,22 +31,24 @@ learner:
             priority: 40
             position: after_iter
             ext_args:
-                freq: 500
+                freq: 100000
         log_show:
             name: log_show
             type: log_show
             priority: 20
             position: after_iter
             ext_args:
-                freq: 100
+                freq: 1000
 actor:
-    env_num: 8
-    episode_num: 1
-    print_freq: 500
+    env_num: 16
+    episode_num: 8
+    print_freq: 1000
 evaluator:
-    env_num: 1
+    env_num: 4
     episode_num: 1
-    eval_step: 1000
-    stop_val: -2000
+    eval_step: 10000
+    stop_val: 20  # pong: 20
 env:
-    placeholder: 'placeholder'
+    env_id: 'PongNoFrameskip-v4'
+    frame_stack: 4
+    is_train: True
