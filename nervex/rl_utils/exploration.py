@@ -14,4 +14,5 @@ def epsilon_greedy(start: float, end: float, decay: int, type_: str = 'exp') -> 
                 return end
             else:
                 return (start - x / decay) * (start - end)
+
         return eps_fn
