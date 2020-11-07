@@ -3,6 +3,7 @@ import torch.nn as nn
 
 
 class ConvEncoder(nn.Module):
+
     def __init__(self, obs_dim: tuple, embedding_dim: int) -> None:
         super(ConvEncoder, self).__init__()
         self.obs_dim = obs_dim
