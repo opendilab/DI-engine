@@ -10,19 +10,19 @@ class AtariDqnGraph(BaseCompGraph):
 
     def forward(self, data: dict, agent: BaseAgent) -> dict:
         obs = data.get('obs')
-        nextobs = data.get('next_obs')
-        reward = data.get('reward').squeeze(1)
+        next_obs = data.get('next_obs')
+        reward = data.get('reward')
         action = data.get('action')
-        terminate = data.get('done').float()
+        done = data.get('done').float()
         weights = data.get('weights', None)
 
         q_value = agent.forward(obs)
         if agent.is_double:
-            target_q_value = agent.target_forward(nextobs)
+            target_q_value = agent.target_forward(next_obs)
         else:
-            target_q_value = agent.forward(nextobs)
+            target_q_value = agent.forward(next_obs)
 
-        data = td_data(q_value, target_q_value, action, reward, terminate)
+        data = td_data(q_value, target_q_value, action, reward, done)
         loss = one_step_td_error(data, self._gamma, weights)
         if agent.is_double:
             agent.update_target_network(agent.state_dict()['model'])
