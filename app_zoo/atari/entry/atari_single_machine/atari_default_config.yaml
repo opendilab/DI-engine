@@ -4,13 +4,18 @@ common:
     save_path: '.'
     load_path: ''
 learner:
-    use_cuda: False
+    use_cuda: True
     use_distributed: False
     max_iterations: 10000000
-    train_step: 1000
+    train_step: 10000
     batch_size: 64
     learning_rate: 0.0001
-    weight_decay: 0.00001
+    weight_decay: 0.0
+    eps:
+        type: 'linear'
+        start: 1.
+        end: 0.005
+        decay: 100000
     data:
         max_reuse: 8
         buffer_length: 100000
@@ -25,21 +30,21 @@ learner:
             priority: 40
             position: after_iter
             ext_args:
-                freq: 2000
+                freq: 100000
         log_show:
             name: log_show
             type: log_show
             priority: 20
             position: after_iter
             ext_args:
-                freq: 500
+                freq: 1000
 actor:
     env_num: 16
-    episode_num: 1
+    episode_num: 8
 evaluator:
     env_num: 4
     episode_num: 1
-    eval_step: 2000
+    eval_step: 10000
     stop_val: 20  # pong: 20
 env:
     env_id: 'PongNoFrameskip-v4'

@@ -57,7 +57,8 @@ class SingleMachineRunner():
         self.batch_size = self.cfg.learner.batch_size
         self._setup_env()
         self.buffer = PrioritizedBuffer(cfg.learner.data.buffer_length, cfg.learner.data.max_reuse)
-        self.bandit = epsilon_greedy(0.95, 0.05, 100000)
+        eps_cfg = cfg.learner.eps
+        self.bandit = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
 
         self._setup_learner()
         self._setup_agent()

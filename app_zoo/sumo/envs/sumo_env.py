@@ -125,10 +125,9 @@ class SumoWJ3Env(BaseEnv):
         obs = self._obs_helper.get(self)
         reward = self._reward_helper.get(self) if not self._inference else 0.
         done = self._current_steps >= self._max_episode_steps
-        info = {}
+        info = {'eval_reward': sum(reward.values()).item()}
         if done:
             self.close()
-            info = {'eval_reward': sum(reward.values())}
         # return obs, reward, done, info
         return SumoWJ3Env.timestep(obs, reward, done, info)
 
