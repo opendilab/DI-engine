@@ -30,11 +30,11 @@ class SumoDqnGraph(BaseCompGraph):
         done = data['done'].float()
         weights = data.get('IS', None)
 
-        q_value = agent.forward(obs)
+        q_value = agent.forward(obs)['logit']
         if agent.is_double:
-            target_q_value = agent.target_forward(next_obs)
+            target_q_value = agent.target_forward(next_obs)['logit']
         else:
-            target_q_value = agent.forward(next_obs)
+            target_q_value = agent.forward(next_obs)['logit']
         if isinstance(q_value, torch.Tensor):
             q_value = [q_value]
             target_q_value = [target_q_value]

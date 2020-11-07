@@ -16,11 +16,11 @@ class AtariDqnGraph(BaseCompGraph):
         done = data.get('done').float()
         weights = data.get('weights', None)
 
-        q_value = agent.forward(obs)
+        q_value = agent.forward(obs)['logit']
         if agent.is_double:
-            target_q_value = agent.target_forward(next_obs)
+            target_q_value = agent.target_forward(next_obs)['logit']
         else:
-            target_q_value = agent.forward(next_obs)
+            target_q_value = agent.forward(next_obs)['logit']
 
         data = td_data(q_value, target_q_value, action, reward, done)
         loss = one_step_td_error(data, self._gamma, weights)

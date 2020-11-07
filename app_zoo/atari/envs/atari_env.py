@@ -39,7 +39,10 @@ class AtariEnv(BaseEnv):
             agent_num=1,
             obs_space=T(self._env.observation_space.shape, None, None, None),
             act_space=T(self._env.action_space.n, None, None, None),
-            rew_space=T(1, {'min': rew_range[0], 'max': rew_range[1]}, None, None),
+            rew_space=T(1, {
+                'min': rew_range[0],
+                'max': rew_range[1]
+            }, None, None),
         )
 
     def __repr__(self) -> str:

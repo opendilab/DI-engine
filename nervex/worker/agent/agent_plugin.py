@@ -119,14 +119,17 @@ class ArgmaxSampleHelper(IAgentStatelessPlugin):
         def sample_wrapper(forward_fn):
 
             def wrapper(*args, **kwargs):
-                logits = forward_fn(*args, **kwargs)
-                assert isinstance(logits, torch.Tensor) or isinstance(logits, list)
-                if isinstance(logits, torch.Tensor):
-                    logits = [logits]
-                action = [logit.argmax(dim=-1) for logit in logits]
+                output = forward_fn(*args, **kwargs)
+                assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
+                logit = output['logit']
+                assert isinstance(logit, torch.Tensor) or isinstance(logit, list)
+                if isinstance(logit, torch.Tensor):
+                    logit = [logit]
+                action = [l.argmax(dim=-1) for l in logit]
                 if len(action) == 1:
-                    action, logits = action[0], logits[0]
-                return {'action': action, 'logits': logits}
+                    action, logit = action[0], logit[0]
+                output['action'] = action
+                return output
 
             return wrapper
 
@@ -142,20 +145,23 @@ class EpsGreedySampleHelper(IAgentStatelessPlugin):
 
             def wrapper(*args, **kwargs):
                 eps = kwargs.pop('eps')
-                logits = forward_fn(*args, **kwargs)
-                assert isinstance(logits, torch.Tensor) or isinstance(logits, list)
-                if isinstance(logits, torch.Tensor):
-                    logits = [logits]
+                output = forward_fn(*args, **kwargs)
+                assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
+                logit = output['logit']
+                assert isinstance(logit, torch.Tensor) or isinstance(logit, list)
+                if isinstance(logit, torch.Tensor):
+                    logit = [logit]
                 action = []
-                for logit in logits:
+                for logit in logit:
                     # TODO batch-wise e-greedy exploration
                     if np.random.random() > eps:
                         action.append(logit.argmax(dim=-1))
                     else:
                         action.append(torch.randint(0, logit.shape[-1], size=(logit.shape[0], )))
                 if len(action) == 1:
-                    action, logits = action[0], logits[0]
-                return {'action': action, 'logits': logits}
+                    action, logit = action[0], logit[0]
+                output['action'] = action
+                return output
 
             return wrapper
 
