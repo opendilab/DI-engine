@@ -1,7 +1,6 @@
 from functools import partial
 from typing import Union, List
 
-import numpy as np
 import torch
 import torch.nn as nn
 
@@ -55,6 +54,7 @@ class ConvDQN(nn.Module):
     ) -> None:
         super(ConvDQN, self).__init__()
         self.act = nn.ReLU()
+        self.obs_dim = obs_dim
         self.action_dim = action_dim
         layers = []
         hidden_dim_list = [32, 64, 64]
@@ -68,7 +68,8 @@ class ConvDQN(nn.Module):
         layers.append(nn.Flatten())
         self.main = nn.Sequential(*layers)
         head_fn = partial(DuelingHead, a_layer_num=a_layer_num, v_layer_num=v_layer_num) if dueling else nn.Linear
-        input_dim = np.prod(obs_dim[1:]) // np.prod(stride) * hidden_dim_list[-1]
+        flatten_dim = self._get_flatten_dim()
+        self.mid = nn.Linear(flatten_dim, input_dim)
         if isinstance(self.action_dim, list) or isinstance(self.action_dim, tuple):
             self.pred = nn.ModuleList()
             for dim in self.action_dim:
@@ -76,8 +77,15 @@ class ConvDQN(nn.Module):
         else:
             self.pred = head_fn(input_dim, self.action_dim)
 
+    def _get_flatten_dim(self) -> int:
+        test_data = torch.randn(1, *self.obs_dim)
+        with torch.no_grad():
+            output = self.main(test_data)
+        return output.shape[1]
+
     def forward(self, x: torch.Tensor) -> Union[torch.Tensor, List[torch.Tensor]]:
         x = self.main(x)
+        x = self.mid(x)
         if isinstance(self.action_dim, list):
             x = [m(x) for m in self.pred]
         else:
