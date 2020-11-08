@@ -1,9 +1,12 @@
 import time
+import threading
+import queue
 from typing import Iterable, Callable, Optional, Any
 from collections import defaultdict
 
 import torch
 import torch.multiprocessing as multiprocessing
+from nervex.torch_utils import to_device
 from nervex.utils import LockContext, LockContextType
 from .collate_fn import default_collate
 
@@ -14,6 +17,7 @@ class AsyncDataLoader(object):
             self,
             data_source: Callable,
             batch_size: int,
+            device: str,
             chunk_size: Optional[int] = None,
             collate_fn: Optional[Callable] = None,
             num_workers: int = 0
@@ -30,21 +34,26 @@ class AsyncDataLoader(object):
             self.chunk_size = chunk_size
         assert self.batch_size % self.chunk_size == 0, '{}/{}'.format(self.batch_size, self.chunk_size)
         self.num_workers = num_workers
+        self.device = device
+        self.use_cuda = 'cuda' in self.device
+        if self.use_cuda:
+            self.stream = torch.cuda.Stream()
 
         if self.num_workers < 0:
             raise ValueError(
                 'num_workers option should be non-negative; '
                 'use num_workers=0 or 1 to disable multiprocessing.'
             )
+        queue_maxsize = max(1, self.num_workers) * 2
 
-        self.async_train_queue = multiprocessing.Queue(maxsize=self.num_workers * 2)
+        self.async_train_queue = multiprocessing.Queue(maxsize=queue_maxsize)
         self.end_flag = False
 
         if self.num_workers > 1:
             self.batch_id = 0
             self.job_result = multiprocessing.Manager().dict()
             self.job_result_lock = LockContext(type_=LockContextType.PROCESS_LOCK)
-            self.job_queue = multiprocessing.Queue(maxsize=self.num_workers * 2)
+            self.job_queue = multiprocessing.Queue(maxsize=queue_maxsize)
             self.worker = [multiprocessing.Process(target=self._worker_loop, args=()) for _ in range(self.num_workers)]
             for w in self.worker:
                 w.daemon = True
@@ -54,6 +63,12 @@ class AsyncDataLoader(object):
         self.async_process = multiprocessing.Process(target=self._async_loop, args=())
         self.async_process.daemon = True
         self.async_process.start()
+
+        if self.use_cuda:
+            self.cuda_queue = queue.Queue(maxsize=queue_maxsize)
+            self.cuda_thread = threading.Thread(target=self._cuda_loop, args=())
+            self.cuda_thread.daemon = True
+            self.cuda_thread.start()
 
     def __iter__(self) -> Iterable:
         return self
@@ -78,14 +93,20 @@ class AsyncDataLoader(object):
 
     def __next__(self) -> Any:
         while True:
-            if self.async_train_queue.empty():
-                time.sleep(0.001)
+            if self.use_cuda:
+                if self.cuda_queue.empty():
+                    time.sleep(0.01)
+                else:
+                    return self.cuda_queue.get()
             else:
-                return self.async_train_queue.get()
+                if self.async_train_queue.empty():
+                    time.sleep(0.01)
+                else:
+                    return self.async_train_queue.get()
 
     def _worker_loop(self) -> None:
         while not self.end_flag:
-            if self.async_train_queue.full() or self.job_queue.empty():
+            if self.job_queue.empty():
                 time.sleep(0.1)
                 continue
             else:
@@ -102,6 +123,16 @@ class AsyncDataLoader(object):
                         assert batch_id not in self.job_result
                         data = self.collate_fn(data)
                         self.async_train_queue.put(data)
+
+    def _cuda_loop(self) -> None:
+        with torch.cuda.stream(self.stream):
+            while not self.end_flag:
+                if self.async_train_queue.empty():
+                    time.sleep(0.1)
+                else:
+                    data = self.async_train_queue.get()
+                    data = to_device(data, self.device)
+                    self.cuda_queue.put(data)
 
     def __del__(self) -> None:
         self.end_flag = True

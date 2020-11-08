@@ -27,7 +27,6 @@ class Dataset(object):
         return [self.data, idx]
 
 
-@pytest.mark.unittest
 class TestAsyncDataLoader:
 
     def get_data_source(self):
@@ -55,12 +54,24 @@ class TestAsyncDataLoader:
 
         return Model()
 
+    @pytest.mark.unittest
     @pytest.mark.parametrize('batch_size, num_workers, chunk_size', args)
-    def test_naive(self, batch_size, num_workers, chunk_size):
+    def test_cpu(self, batch_size, num_workers, chunk_size):
+        self.entry(batch_size, num_workers, chunk_size, use_cuda=False)
+
+    @pytest.mark.cudatest
+    @pytest.mark.parametrize('batch_size, num_workers, chunk_size', args)
+    def test_gpu(self, batch_size, num_workers, chunk_size):
+        self.entry(batch_size, num_workers, chunk_size, use_cuda=True)
+
+    def entry(self, batch_size, num_workers, chunk_size, use_cuda):
         model = self.get_model()
+        if use_cuda:
+            model.cuda()
         timer = EasyTimer()
         data_source = self.get_data_source()
-        dataloader = AsyncDataLoader(data_source, batch_size, num_workers=num_workers, chunk_size=chunk_size)
+        device = 'cuda' if use_cuda else 'cpu'
+        dataloader = AsyncDataLoader(data_source, batch_size, device, num_workers=num_workers, chunk_size=chunk_size)
         count = 0
         total_data_time = 0.
         while True:
@@ -71,6 +82,8 @@ class TestAsyncDataLoader:
                 total_data_time += data_time
             with timer:
                 _, idx = model(data)
+                if use_cuda:
+                    idx = idx.cpu()
                 sorted_idx = torch.sort(idx)[0]
                 assert sorted_idx.eq(torch.arange(batch_size)).sum() == batch_size, idx
             model_time = timer.value
