@@ -9,6 +9,7 @@ from nervex.data.structure.segment_tree import SumSegmentTree, MinSegmentTree
 
 
 class RecordList(list):
+
     def __init__(self, *args, **kwargs) -> None:
         super(RecordList, self).__init__(*args, **kwargs)
         self._used_data = Queue()

@@ -9,7 +9,7 @@ from queue import Queue
 import requests
 import torch
 from easydict import EasyDict
-from nervex.data.online import ReplayBuffer
+from nervex.data import ReplayBuffer
 from nervex.utils import LockContext, LockContextType, remove_file
 
 

@@ -1,0 +1,84 @@
+import pytest
+import time
+import torch
+import torch.nn as nn
+from functools import partial
+from itertools import product
+
+from nervex.data import AsyncDataLoader
+from nervex.utils import EasyTimer
+
+batch_size_args = [3, 6]
+num_workers_args = [0, 4]
+chunk_size_args = [1, 3]
+args = [item for item in product(*[batch_size_args, num_workers_args, chunk_size_args])]
+
+
+class Dataset(object):
+
+    def __init__(self):
+        self.data = torch.randn(256, 256)
+
+    def __len__(self):
+        return 100
+
+    def __getitem__(self, idx):
+        time.sleep(0.5)
+        return [self.data, idx]
+
+
+@pytest.mark.unittest
+class TestAsyncDataLoader:
+
+    def get_data_source(self):
+        dataset = Dataset()
+
+        def data_source_fn(batch_size):
+            return [partial(dataset.__getitem__, idx=i) for i in range(batch_size)]
+
+        return data_source_fn
+
+    def get_model(self):
+
+        class Model(nn.Module):
+
+            def __init__(self):
+                super(Model, self).__init__()
+                self.main = [nn.Linear(256, 256) for _ in range(10)]
+                self.main = nn.Sequential(*self.main)
+
+            def forward(self, x):
+                idx = x[1]
+                x = self.main(x[0])
+                time.sleep(1)
+                return [x, idx]
+
+        return Model()
+
+    @pytest.mark.parametrize('batch_size, num_workers, chunk_size', args)
+    def test_naive(self, batch_size, num_workers, chunk_size):
+        model = self.get_model()
+        timer = EasyTimer()
+        data_source = self.get_data_source()
+        dataloader = AsyncDataLoader(data_source, batch_size, num_workers=num_workers, chunk_size=chunk_size)
+        count = 0
+        total_data_time = 0.
+        while True:
+            with timer:
+                data = next(dataloader)
+            data_time = timer.value
+            if count != 0:  # ignore start time
+                total_data_time += data_time
+            with timer:
+                _, idx = model(data)
+                sorted_idx = torch.sort(idx)[0]
+                assert sorted_idx.eq(torch.arange(batch_size)).sum() == batch_size, idx
+            model_time = timer.value
+            print('count {}, data_time: {}, model_time: {}'.format(count, data_time, model_time))
+            count += 1
+            if count == 10:
+                break
+        if num_workers < 1:
+            assert total_data_time <= 9 * batch_size * 0.5 + 9 * 0.005 - 9 * 1
+        else:
+            assert total_data_time <= 9 * 0.005

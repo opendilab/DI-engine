@@ -8,7 +8,7 @@ from typing import List
 import numpy as np
 import pytest
 
-from nervex.data.online import ReplayBuffer
+from nervex.data import ReplayBuffer
 from nervex.utils import read_config
 
 BATCH_SIZE = 8
@@ -18,7 +18,7 @@ CONSUMER_NUM = 4
 
 @pytest.fixture(scope="function")
 def setup_config():
-    path = os.path.join(os.path.dirname(__file__), '../online/replay_buffer_default_config.yaml')
+    path = os.path.join(os.path.dirname(__file__), '../replay_buffer_default_config.yaml')
     return read_config(path)
 
 
