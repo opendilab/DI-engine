@@ -65,7 +65,7 @@ class AtariPpoActorAgent(BaseAgent):
 
     def __init__(self, model: torch.nn.Module) -> None:
         plugin_cfg = OrderedDict({
-            'eps_greedy_sample': {},
+            'multinomial_sample': {},
             'grad': {
                 'enable_grad': False
             },

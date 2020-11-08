@@ -12,14 +12,9 @@ learner:
     batch_size: 64
     learning_rate: 0.001
     weight_decay: 0.0001
-    eps:
-        type: 'linear'
-        start: 1.
-        end: 0.005
-        decay: 100000
     data:
-        max_reuse: 8
-        buffer_length: 20000
+        max_reuse: 4
+        buffer_length: 30000
     ppo:
         gamma: 0.99
         value_weight: 0.5
@@ -42,15 +37,15 @@ learner:
             ext_args:
                 freq: 1000
 model:
-    embedding_dim: 256
+    embedding_dim: 128
 actor:
-    env_num: 8
-    episode_num: 8
+    env_num: 32
+    episode_num: 1
     print_freq: 500
 evaluator:
     env_num: 4
     episode_num: 1
-    eval_step: 10000
+    eval_step: 5000
     stop_val: 20  # pong: 20
 env:
     env_id: 'PongNoFrameskip-v4'

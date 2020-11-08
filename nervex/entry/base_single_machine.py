@@ -59,8 +59,9 @@ class SingleMachineRunner():
         self.use_cuda = self.cfg.learner.use_cuda
         self.batch_size = self.cfg.learner.batch_size
         self.buffer = PrioritizedBuffer(cfg.learner.data.buffer_length, cfg.learner.data.max_reuse)
-        eps_cfg = cfg.learner.eps
-        self.bandit = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
+        if self.algo_type == 'dqn':
+            eps_cfg = cfg.learner.eps
+            self.bandit = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
 
         self._setup_env()
         self._setup_learner()
@@ -134,6 +135,13 @@ class SingleMachineRunner():
         self.buffer.extend(data)
         self.env_buffer[idx] = []
 
+    def _get_train_kwargs(self):
+        if self.algo_type == 'dqn':
+            eps_threshold = self.bandit(self.learner_step_count)
+            return {'eps': eps_threshold}
+        elif self.algo_type == 'ppo':
+            return {}
+
     def collect_data(self):
         self.actor_env.launch()
         obs_pool = {i: None for i in range(self.actor_env.env_num)}
@@ -147,8 +155,8 @@ class SingleMachineRunner():
             if self.use_cuda:
                 agent_obs = to_device(agent_obs, 'cuda')
 
-            eps_threshold = self.bandit(self.learner_step_count)
-            outputs = self.actor_agent.forward(agent_obs, eps=eps_threshold)
+            train_kwargs = self._get_train_kwargs()
+            outputs = self.actor_agent.forward(agent_obs, **train_kwargs)
 
             if self.use_cuda:
                 outputs = to_device(outputs, 'cpu')
@@ -166,8 +174,8 @@ class SingleMachineRunner():
             self.actor_step_count += 1
             if self.actor_step_count % self.cfg.actor.print_freq == 0:
                 self.learner.info(
-                    'actor run step {} with replay buffer size {} with eps {:.4f}'.format(
-                        self.actor_step_count, self.buffer.validlen, eps_threshold
+                    'actor run step {} with replay buffer size {} with args {}'.format(
+                        self.actor_step_count, self.buffer.validlen, train_kwargs
                     )
                 )
         self.actor_env.close()
