@@ -114,6 +114,8 @@ def to_tensor(item, dtype):
             return new_data
     elif isinstance(item, np.ndarray):
         return torch.from_numpy(item).to(dtype)
+    elif np.isscalar(item):
+        return torch.as_tensor([item]).to(dtype)
     elif item is None:
         return None
     else:

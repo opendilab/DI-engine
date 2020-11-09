@@ -23,26 +23,22 @@ class GfootballIqlLearnerAgent(BaseAgent):
 class GfootballIqlActorAgent(BaseAgent):
 
     def __init__(self, model: torch.nn.Module) -> None:
-        plugin_cfg = OrderedDict(
-            {
-                'eps_greedy_sample': {},
-                'grad': {
-                    'enable_grad': False
-                },
-            }
-        )
+        plugin_cfg = OrderedDict({
+            'eps_greedy_sample': {},
+            'grad': {
+                'enable_grad': False
+            },
+        })
         super(GfootballIqlActorAgent, self).__init__(model, plugin_cfg)
 
 
 class GfootballIqlEvaluateAgent(BaseAgent):
 
     def __init__(self, model: torch.nn.Module) -> None:
-        plugin_cfg = OrderedDict(
-            {
-                'argmax_sample': {},
-                'grad': {
-                    'enable_grad': False
-                },
-            }
-        )
+        plugin_cfg = OrderedDict({
+            'argmax_sample': {},
+            'grad': {
+                'enable_grad': False
+            },
+        })
         super(GfootballIqlEvaluateAgent, self).__init__(model, plugin_cfg)

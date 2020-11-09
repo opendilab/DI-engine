@@ -33,10 +33,7 @@ class FootballIQL(nn.Module):
         scalar_dim = self.scalar_encoder.output_dim
         player_dim = self.player_encoder.output_dim
         head_input_dim = scalar_dim + player_dim
-        self.pred_head = FootballHead(
-            input_dim=head_input_dim,
-            cfg=self.cfg.policy
-        )
+        self.pred_head = FootballHead(input_dim=head_input_dim, cfg=self.cfg.policy)
 
     def forward(self, x: dict) -> torch.Tensor:
         """
@@ -93,7 +90,8 @@ def cat_player_attr(player_data: dict) -> torch.Tensor:
         attr: [B, total_attr_dim]
     '''
     fixed_player_attr_sequence = [
-        'team', 'index', 'position', 'direction', 'tired_factor', 'yellow_card', 'active', 'role']
+        'team', 'index', 'position', 'direction', 'tired_factor', 'yellow_card', 'active', 'role'
+    ]
     attr = []
     for k in fixed_player_attr_sequence:
         attr.append(player_data[k])
@@ -245,11 +243,13 @@ class FootballHead(nn.Module):
         self.pre_fc = fc_block(in_channels=input_dim, out_channels=self.hidden_dim, activation=self.act)
         res_blocks_list = []
         for i in range(self.res_num):
-            res_blocks_list.append(ResFCBlock(in_channels=self.hidden_dim,
-                                              out_channels=self.hidden_dim, activation=self.act))
+            res_blocks_list.append(
+                ResFCBlock(in_channels=self.hidden_dim, out_channels=self.hidden_dim, activation=self.act)
+            )
         self.res_blocks = nn.Sequential(*res_blocks_list)
-        head_fn = partial(DuelingHead, a_layer_num=self.a_layer_num,
-                          v_layer_num=self.v_layer_num) if self.dueling else nn.Linear
+        head_fn = partial(
+            DuelingHead, a_layer_num=self.a_layer_num, v_layer_num=self.v_layer_num
+        ) if self.dueling else nn.Linear
         self.pred = head_fn(self.hidden_dim, self.action_dim)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

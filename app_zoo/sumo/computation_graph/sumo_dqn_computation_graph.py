@@ -22,26 +22,26 @@ class SumoDqnGraph(BaseCompGraph):
         return reward
 
     def forward(self, data: dict, agent: BaseAgent) -> dict:
-        obs_batch = data.get('obs')
-        nextobs_batch = data.get('next_obs')
-        reward = self.get_weighted_reward(data['reward']).squeeze(1)
+        obs = data.get('obs')
+        next_obs = data.get('next_obs')
+        reward = self.get_weighted_reward(data['reward'])
 
         action = data['action']
-        terminate = data['done'].float()
+        done = data['done'].float()
         weights = data.get('IS', None)
 
-        q_value = agent.forward(obs_batch)
+        q_value = agent.forward(obs)['logit']
         if agent.is_double:
-            target_q_value = agent.target_forward(nextobs_batch)
+            target_q_value = agent.target_forward(next_obs)['logit']
         else:
-            target_q_value = agent.forward(nextobs_batch)
+            target_q_value = agent.forward(next_obs)['logit']
         if isinstance(q_value, torch.Tensor):
             q_value = [q_value]
             target_q_value = [target_q_value]
         tl_num = len(q_value)
         loss = []
         for i in range(tl_num):
-            data = td_data(q_value[i], target_q_value[i], action[i].squeeze(1), reward, terminate)
+            data = td_data(q_value[i], target_q_value[i], action[i], reward, done)
             loss.append(one_step_td_error(data, self._gamma, weights))
         loss = sum(loss) / (len(loss) + 1e-8)
         if agent.is_double:
