@@ -34,7 +34,7 @@ class FakeSumoWJ3Env(SumoWJ3Env):
     def close(self):
         pass
 
-    def seed(self):
+    def seed(self, seed):
         pass
 
     def step(self, action: list) -> 'FakeSumoWJ3Env.timestep':

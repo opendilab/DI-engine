@@ -1,11 +1,13 @@
 import sys
 import copy
 import time
+import numpy as np
 import torch
 
 from nervex.data import PrioritizedBuffer, default_collate, default_decollate
 from nervex.rl_utils import epsilon_greedy, Adder
 from nervex.torch_utils import to_device
+from nervex.utils import default_get
 from nervex.worker.learner import LearnerHook
 
 
@@ -209,10 +211,7 @@ class SingleMachineRunner():
             timestep = self.evaluate_env.step({k: o['action'] for k, o in outputs.items()})
 
             for i, t in timestep.items():
-                if 'eval_reward' in t.info.keys():
-                    cum_rewards[i] += t.info['eval_reward']
-                else:
-                    cum_rewards[i] += t.reward.item()
+                cum_rewards[i] += default_get(t.info, 'eval_reward', default_fn=lambda: t.reward.item(), judge_fn=np.isscalar)
                 if t.done:
                     episode_count += 1
                     rewards.append(copy.deepcopy(cum_rewards[i]))

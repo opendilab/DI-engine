@@ -1,4 +1,5 @@
-from typing import Union, Mapping, List, NamedTuple, Tuple, Callable
+from typing import Union, Mapping, List, NamedTuple, Tuple, Callable, Optional, Any
+import warnings
 
 
 def lists_to_dicts(
@@ -79,3 +80,26 @@ def squeeze(data: object) -> object:
         if len(data) == 1:
             return data.values()[0]
     return data
+
+
+default_get_set = set()
+
+
+def default_get(
+        data: dict,
+        name: str,
+        default_value: Optional[Any] = None,
+        default_fn: Optional[Callable] = None,
+        judge_fn: Optional[Callable] = None
+) -> Any:
+    if name in data:
+        return data[name]
+    else:
+        assert default_value is not None or default_fn is not None
+        value = default_fn() if default_fn is not None else default_value
+        if judge_fn:
+            assert judge_fn(value), "defalut value({}) is not accepted by judge_fn".format(type(value))
+        if name not in default_get_set:
+            warnings.warn("{} use default value {}".format(name, value))
+            default_get_set.add(name)
+        return value

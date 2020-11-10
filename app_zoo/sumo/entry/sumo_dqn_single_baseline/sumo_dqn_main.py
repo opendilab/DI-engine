@@ -33,8 +33,8 @@ class SumoRunner(SingleMachineRunner):
     def _setup_agent(self):
         self.actor_agent = SumoDqnActorAgent(copy.deepcopy(self.learner.agent.model))
         self.actor_agent.mode(train=False)
-        self.evaluate_agent = SumoDqnEvaluateAgent(copy.deepcopy(self.learner.agent.model))
-        self.evaluate_agent.mode(train=False)
+        self.evaluator_agent = SumoDqnEvaluateAgent(copy.deepcopy(self.learner.agent.model))
+        self.evaluator_agent.mode(train=False)
 
 
 if __name__ == "__main__":
