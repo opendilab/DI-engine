@@ -17,6 +17,9 @@ Package Reference
     worker/actor/actor_overview
     worker/env_manager/env_manager_overview
     worker/learner/learner
+    rl_utils/adder
+    rl_utils/gae
+    rl_utils/ppo
     torch_utils_network/network
     torch_utils/checkpoint_helper
     torch_utils/metric
