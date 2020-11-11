@@ -147,6 +147,8 @@ def tensor_to_list(item):
         return [tensor_to_list(t) for t in item]
     elif isinstance(item, dict):
         return {k: tensor_to_list(v) for k, v in item.items()}
+    elif np.isscalar(item):
+        return item
     else:
         raise TypeError("not support item type: {}".format(type(item)))
 

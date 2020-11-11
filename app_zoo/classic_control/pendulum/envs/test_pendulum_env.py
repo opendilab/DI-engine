@@ -1,6 +1,6 @@
 import pytest
 import torch
-from .pendulum_env import PendulumEnv
+from app_zoo.classic_control.pendulum.envs import PendulumEnv
 
 
 @pytest.mark.unittest

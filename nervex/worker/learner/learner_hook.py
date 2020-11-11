@@ -168,7 +168,10 @@ class SaveCkptHook(LearnerHook):
         if engine.rank == 0 and engine.last_iter.val % self._freq == 0:
             dirname = os.path.join(engine.save_path, 'ckpt')
             if not os.path.exists(dirname):
-                os.mkdir(dirname)
+                try:
+                    os.mkdir(dirname)
+                except FileExistsError:
+                    pass
             path = os.path.join(dirname, 'iteration_{}.pth.tar'.format(engine.last_iter.val))
             engine.checkpoint_manager.save(
                 path,
