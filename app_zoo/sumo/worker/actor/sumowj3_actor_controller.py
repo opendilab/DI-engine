@@ -30,7 +30,7 @@ class SumoWJ3Actor(ZerglingActor):
         data = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'q_value': agent_output['logits'],
+            'q_value': agent_output['logit'],
             'action': agent_output['action'],
             'reward': timestep.reward,
             'done': timestep.done,

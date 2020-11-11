@@ -1,20 +1,18 @@
 from typing import Any
+import gym
 import torch
 from nervex.envs import BaseEnv
 from nervex.envs.common.env_element import EnvElement
 from nervex.torch_utils import to_tensor
-from .atari_wrappers import wrap_deepmind
 
 
-class AtariEnv(BaseEnv):
+class PendulumEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
-        self._env = wrap_deepmind(
-            cfg.env_id, frame_stack=cfg.frame_stack, episode_life=cfg.is_train, clip_rewards=cfg.is_train
-        )
+        self._env = gym.make('Pendulum-v0')
 
-    def reset(self) -> torch.FloatTensor:
+    def reset(self) -> torch.Tensor:
         if hasattr(self, 'seed'):
             self._env.seed(self._seed)
         obs = self._env.reset()
@@ -39,13 +37,19 @@ class AtariEnv(BaseEnv):
         T = EnvElement.info_template
         return BaseEnv.info_template(
             agent_num=1,
-            obs_space=T(self._env.observation_space.shape, None, None, None),
-            act_space=T(self._env.action_space.n, None, None, None),
+            obs_space=T(3, {
+                'min': [-1.0, -1.0, -8.0],
+                'max': [1.0, 1.0, 8.0]
+            }, None, None),
+            act_space=T(1, {
+                'min': -2.0,
+                'max': 2.0
+            }, None, None),
             rew_space=T(1, {
-                'min': rew_range[0],
-                'max': rew_range[1]
+                'min': -1 * (3.14 * 3.14 + 0.1 * 8 * 8 + 0.001 * 2 * 2),
+                'max': -0.0
             }, None, None),
         )
 
     def __repr__(self) -> str:
-        return "nerveX Atari Env({})".format(self._cfg.env_id)
+        return "nerveX Pendulum Env({})".format(self._cfg.env_id)

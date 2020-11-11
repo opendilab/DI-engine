@@ -99,6 +99,6 @@ def setup_coordinator(setup_config):
     launch_thread = Thread(target=run, args=())
     launch_thread.daemon = True
     launch_thread.start()
-    yield launch_thread
+    yield coordinator
     # clean coordinator source
     coordinator.close()
