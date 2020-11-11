@@ -32,7 +32,9 @@ class AsyncDataLoader(object):
             self.chunk_size = 1
         else:
             self.chunk_size = chunk_size
-        assert self.batch_size % self.chunk_size == 0, '{}/{}'.format(self.batch_size, self.chunk_size)
+        assert self.batch_size >= self.chunk_size and self.batch_size % self.chunk_size == 0, '{}/{}'.format(
+            self.batch_size, self.chunk_size
+        )
         self.num_workers = num_workers
         self.device = device
         self.use_cuda = 'cuda' in self.device
@@ -75,38 +77,29 @@ class AsyncDataLoader(object):
 
     def _async_loop(self) -> None:
         while not self.end_flag:
-            if self.async_train_queue.full():
-                time.sleep(0.1)
-            else:
-                data_fn = self.data_source(self.batch_size)
-                if self.num_workers > 1:
+            if self.num_workers > 1:
+                if self.job_queue.full():
+                    time.sleep(0.1)
+                else:
+                    data_fn = self.data_source(self.batch_size)
                     chunk_num = self.batch_size // self.chunk_size
                     for i in range(chunk_num):
                         start, end = i * self.chunk_size, (i + 1) * self.chunk_size
                         self.job_queue.put({'batch_id': self.batch_id, 'job': data_fn[start:end]})
                     self.batch_id = (self.batch_id + 1) % (self.job_queue._maxsize * 2)
                     time.sleep(1.0)
+            else:
+                if self.async_train_queue.full():
+                    time.sleep(0.1)
                 else:
+                    data_fn = self.data_source(self.batch_size)
                     data = [fn() for fn in data_fn]
                     data = self.collate_fn(data)
                     self.async_train_queue.put(data)
 
-    def __next__(self) -> Any:
-        while True:
-            if self.use_cuda:
-                if self.cuda_queue.empty():
-                    time.sleep(0.01)
-                else:
-                    return self.cuda_queue.get()
-            else:
-                if self.async_train_queue.empty():
-                    time.sleep(0.01)
-                else:
-                    return self.async_train_queue.get()
-
     def _worker_loop(self) -> None:
         while not self.end_flag:
-            if self.job_queue.empty():
+            if self.job_queue.empty() or self.async_train_queue.full():
                 time.sleep(0.1)
                 continue
             else:
@@ -123,19 +116,62 @@ class AsyncDataLoader(object):
                         assert batch_id not in self.job_result
                         data = self.collate_fn(data)
                         self.async_train_queue.put(data)
+        while not self.job_queue.empty():
+            _ = self.job_queue.get()
+        self.job_queue.close()
+        self.job_queue.join()
 
     def _cuda_loop(self) -> None:
         with torch.cuda.stream(self.stream):
             while not self.end_flag:
-                if self.async_train_queue.empty():
+                if self.async_train_queue.empty() or self.cuda_queue.full():
                     time.sleep(0.1)
                 else:
                     data = self.async_train_queue.get()
                     data = to_device(data, self.device)
                     self.cuda_queue.put(data)
+        while not self.async_train_queue.empty():
+            _ = self.async_train_queue.get()
+        self.async_train_queue.close()
+        self.async_train_queue.join()
+
+    def __next__(self) -> Any:
+        while not self.end_flag:
+            if self.use_cuda:
+                if self.cuda_queue.empty():
+                    time.sleep(0.01)
+                else:
+                    return self.cuda_queue.get()
+            else:
+                if self.async_train_queue.empty():
+                    time.sleep(0.01)
+                else:
+                    return self.async_train_queue.get()
+        if self.use_cuda:
+            while not self.cuda_queue.empty():
+                _ = self.cuda_queue.get()
+            self.cuda_queue.task_done()
+            self.cuda_queue.join()
+        else:
+            while not self.async_train_queue.empty():
+                _ = self.async_train_queue.get()
+            self.async_train_queue.close()
+            self.async_train_queue.join()
+
+    def _clean_queue(self) -> None:
+        while not self.async_train_queue.empty():  # pop all the data
+            _ = self.async_train_queue.get()
+        self.async_train_queue.close()
+        self.async_train_queue.join_thread()  # let all the data in buffer written into pipe
+
+        if self.use_cuda:
+            while not self.cuda_queue.empty():
+                _ = self.cuda_queue.get()
+            self.cuda_queue.join()
 
     def __del__(self) -> None:
         self.end_flag = True
+        self._clean_queue()
         self.async_process.terminate()
         self.async_process.join()
         if self.num_workers > 1:
