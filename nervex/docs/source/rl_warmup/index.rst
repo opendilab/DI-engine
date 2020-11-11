@@ -531,9 +531,10 @@ GAE
 
 GAE不是一种算法，而是一种梯度策略方法中可以采用的技术改进。GAE全称为generalized advantage estimation, 在2016年ICLR上发布，论文为 `High-dimensional continuous control using generalized advantage estimation <https://arxiv.org/pdf/1506.02438.pdf>`_ 。
 GAE是一种能够广泛适用的advantage估计方式。GAE方法的目的是为了能够有效的 \ **降低**\ 梯度策略方法中的 \ **方差**\ ，从而一定程度上解决了梯度策略方法常遇到的两个难题：
- 1.在梯度训练方法中，收敛需要极大的样本量。
+ 
+  1.在梯度训练方法中，收敛需要极大的样本量。
 
- 2.在训练过程中，由于得到的样本输入不稳定，会导致训练过程中很难保证获得稳定提升。
+  2.在训练过程中，由于得到的样本输入不稳定，会导致训练过程中很难保证获得稳定提升。
 
 GAE方法通过减小方差解决第一个问题，使得训练能更快收敛，并且提议使用基于trust region的优化方式来解决第二个问题。现在通常用于带有trust region机制的trpo和ppo来保证训练效果能稳定提升。
 
@@ -902,7 +903,7 @@ policy network和Q-network两个网络的参数分别是 :math:`\phi, \psi`，�
 
 IMPALA
 ^^^^^^^^^^^
-IMPALA是DeepMind在2018年2月发布的分布式深度学习框架，全称是IMPortance weighted Actor-Learner Architecture， `论文 IMPALA: Scalable Distributed Deep-RL with Importance Weighted Actor-Learner Architectures <https://deepmind.com/research/publications/impala-scalable-distributed-deep-rl-importance-weighted-actor-learner-architectures>`_ ， `代码 <github.com/deepmind/scalable agent>`_。
+IMPALA是DeepMind在2018年2月发布的分布式深度学习框架，全称是IMPortance weighted Actor-Learner Architecture， `IMPALA: Scalable Distributed Deep-RL with Importance Weighted Actor-Learner Architectures <https://deepmind.com/research/publications/impala-scalable-distributed-deep-rl-importance-weighted-actor-learner-architectures>`_ ， `代码 <github.com/deepmind/scalable agent>`_。
 IMPALA主要解决了两个方面的问题：一是如何在多台机器上进行大规模训练时，依然较高的性能(high throughput)、较好的扩展性(scalability)和较高的数据效率(data efficiency)；二是如何在深度增强学习(DeepRL)技术已经在单任务中大获成功的情况下，在多任务中也能展现良好的性能。
 由于多任务的强化学习天生就需要大量的数据、计算资源和时间进行学习，所以IMPALA需要在不损失训练能力和数据利用率的情况下扩展到上千台机器上进行分布式训练。
 同为分布式强化学习框架，下图展示了  `A3C <https://arxiv.org/abs/1602.01783>`_ 和IMPALA的一些不同。
@@ -951,7 +952,7 @@ c图所示即为IMPALA，完全把actor和learner分开异步进行，这样acto
 
 并且我们假定 :math:`\bar{\rho}>\bar{c}` 。
 
-在论文 `Safe and Efficient Off-Policy Reinforcement Learning <https://arxiv.org/abs/1606.02647>`_ 中提出的
+在 `Safe and Efficient Off-Policy Reinforcement Learning <https://arxiv.org/abs/1606.02647>`_ 中提出的
 Retrace方法是针对off-policy Q-learning进行修正，IMPALA将其扩展到了off-policy actor-critic算法中。Retrace中提出的return-based off-policy算法的通用表达式为： 
 
 :math:`\mathcal{R}Q(x,a) \overset{def}{=} Q(x,a) + \mathbb{E}_\mu[\sum_{t\geq0}\gamma^t(\prod_{s=1}^tc_s)(r_t+\gamma \mathbb{E}_\pi Q(x_{t+1, \cdot})-Q(x_t,a_t))]` ，
@@ -1008,7 +1009,7 @@ Actor的参数 :math:`\omega` 需要朝着off-policy policy gradient给出的梯
 SEED RL
 ^^^^^^^^^
 SEED RL是Google Research 在2020年发布的分布式深度学习框架。此前在2018年中提出的IMPALA架构虽然在强化学习领域取得很多突破，但是依然存在一系列的缺点，如资源利用率相对低下、无法进行大规模扩展等等。
-针对这些问题，Google Research 在ICML2020的oral论文 `SEED RL: Scalable and Efficient Deep-RL with Accelerated Central Inference <https://arxiv.org/pdf/1910.06591.pdf>`_ 中提出了SEED RL框架。
+针对这些问题，Google Research 在ICML2020的 `SEED RL: Scalable and Efficient Deep-RL with Accelerated Central Inference <https://arxiv.org/pdf/1910.06591.pdf>`_ 中提出了SEED RL框架。
 
 SEED RL支持扩展到数千台机器，该架构能以 **每秒百万帧的速度进行训练** ，且相比于其他方法可以 **降低训练的开销** ，使得计算效率大幅度提高。 Google Research 也已经在github放出了对应的 `seed rl code <https://github.com/google-research/seed_rl>`_ ，支持单机训练和基于google AI cloud Platform的多机训练。
 
@@ -1261,7 +1262,7 @@ QMIX
 QMIX 是一个多智能体强化学习算法。它是一个value-based的算法：可以中心式学习，并引入全局状态信息来提高算法效果；
 然后再分解得到分布式策略，该分布式策略只需要单个智能体自己的局部观测。
 QMIX的一大特点是：联合动作值函数与每个局部值函数的单调性相同，因此对局部值函数取最大便是对联合动作值函数取最大。
-`论文链接 <https://arxiv.org/pdf/1803.11485.pdf>`_
+`QMIX <https://arxiv.org/pdf/1803.11485.pdf>`_
 
 在MARL问题中，一种常见的学习范式是：中心式训练，分布式执行（Centralised training with Decentralised Execution），在这种模式下，
 如何去表达和使用学习到的联合动作值函数（joint action-value function） 是一个十分关键的问题。
@@ -1274,17 +1275,17 @@ QMIX的一大特点是：联合动作值函数与每个局部值函数的单调�
 
 针对这个问题，现有的一些解决方法如下：
 
-**IQL（Independent Q-Learning）** `论文 <http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.55.8066>`_
+**IQL（Independent Q-Learning）** `IQL <http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.55.8066>`_
 
 直接让每个智能体都执行一个Q-Learning算法。因为环境是共享的，故会因为每个智能体的行动而发生状态改变，
 对每个智能体来说，环境是动态不稳定的，因此这个算法并不能保证收敛性。
 
-**COMA（Counterfactual Multi-Agent）** `论文 <https://arxiv.org/pdf/1705.08926.pdf>`_
+**COMA（Counterfactual Multi-Agent）** `COMA <https://arxiv.org/pdf/1705.08926.pdf>`_
 
 训练一个完全中心化的action-value函数，然后以此为指导在actor-critic框架下得到分布式策略。
 其缺点是：1）必须是on-policy算法, 采样效率低；2）智能体个数增加时，训练完全中心化的critic将变得十分困难。
 
-**VDN（Value Decomposition Networks）** `论文 <https://arxiv.org/pdf/1706.05296.pdf>`_
+**VDN（Value Decomposition Networks）** `VDN <https://arxiv.org/pdf/1706.05296.pdf>`_
 
 处于 IQL 和 COMA 之间的方法，通过将每一个智能体用自己的观测数据学习到的局部动作值函数 :math:`Q_a` 进行加和，
 就得到了全局联合动作值函数 :math:`Q_{tot}` 。
@@ -1302,7 +1303,8 @@ QMIX 便是在 VDN 上进行的一次提升。QMIX 认为，VDN这种将 :math:`
 这使得每个智能体只需要在自己的 :math:`Q_a` 上贪心地选择Q值最大的动作即可。
 
 QMIX在这个的基础上又将其做了一些调整，转化为对单调性的约束：
- :math:`\frac{\partial Q_{tot}}{\partial Q_i} \geq 0, \forall i \in {1,2,...,n}`
+ 
+:math:`\frac{\partial Q_{tot}}{\partial Q_i} \geq 0, \forall i \in {1,2,...,n}`
 
 QMIX的架构是：每个智能体均有一个自己的agent network，用于合并局部值函数的mixing network和一系列hypernetwork。架构图如下：
 
@@ -1339,7 +1341,8 @@ QMIX的架构是：每个智能体均有一个自己的agent network，用于合
 **损失函数**
 
 QMIX最终的损失函数为：
- :math:`L(\theta) = \sum_{i=1}^{b}[(y_i^{tot}-Q_{tot}(\tau,a,s;\theta))^2]`
+
+:math:`L(\theta) = \sum_{i=1}^{b}[(y_i^{tot}-Q_{tot}(\tau,a,s;\theta))^2]`
 
 其中，:math:`y_i^{tot} = r+\gamma \max_{a'}\bar{Q}(\tau',a',s';\bar{\theta})` 。
 在这里，:math:`\bar{\theta}` 表示target network的参数。

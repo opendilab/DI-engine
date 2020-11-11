@@ -15,3 +15,4 @@ sc2learner/experiments/
 experiment_config.yaml
 api-log/
 .coverage
+htmlcov

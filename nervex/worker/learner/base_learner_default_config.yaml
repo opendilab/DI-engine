@@ -2,7 +2,7 @@ common:
     save_path: '.'
     load_path: ''
 learner:
-    learner_type:  # placeholder
+    learner_type: xx  # placeholder
     import_names: []  # placeholder
     use_cuda: False
     use_distributed: False
