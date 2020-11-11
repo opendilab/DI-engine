@@ -14,6 +14,7 @@ def setup_model():
     return torch.nn.Linear(3, 6)
 
 
+@pytest.mark.unittest
 class TestBaseAgent:
 
     def test_naive(self, setup_model):
@@ -31,6 +32,7 @@ class TestBaseAgent:
         assert output.shape == (4, 6)
 
 
+@pytest.mark.unittest
 class TestAgentPlugin:
 
     def test_grad_helper(self, setup_model):

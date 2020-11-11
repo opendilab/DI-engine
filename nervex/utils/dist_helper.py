@@ -3,7 +3,7 @@ import os
 import numpy as np
 import torch
 
-from nervex.tests.fake_linklink import FakeLink
+from nervex.utils import FakeLink
 from .import_utils import try_import_link
 
 link = try_import_link()

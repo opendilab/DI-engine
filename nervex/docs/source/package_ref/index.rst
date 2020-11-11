@@ -21,6 +21,5 @@ Package Reference
     torch_utils/checkpoint_helper
     torch_utils/metric
     torch_utils/data_helper
-    torch_utils/grad_clip
     utils/time_helper
     utils/log_helper

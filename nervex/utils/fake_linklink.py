@@ -10,9 +10,6 @@ class FakeClass:
 class FakeNN:
     SyncBatchNorm2d = FakeClass
 
-    # def __getattr__(self, item):
-    #     result = getattr(torch.nn, item)
-
 
 class FakeLink:
     nn = FakeNN()
