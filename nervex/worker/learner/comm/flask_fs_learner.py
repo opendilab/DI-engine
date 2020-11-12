@@ -21,6 +21,7 @@ class FlaskFileSystemLearner(BaseCommLearner):
     Property:
         hooks4call
     """
+
     def __init__(self, cfg: 'EasyDict') -> None:  # noqa
         """
         Overview:
@@ -211,6 +212,7 @@ class SendAgentHook(LearnerHook):
     Property:
         name, priority, position
     """
+
     def __init__(self, *args, ext_args: dict = {}, **kwargs) -> None:
         """
         Overview:
@@ -247,6 +249,7 @@ class SendTrainInfoHook(LearnerHook):
     Property:
         name, priority, position
     """
+
     def __init__(self, *args, ext_args: dict, **kwargs) -> None:
         """
         Overview:

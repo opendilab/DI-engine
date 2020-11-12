@@ -29,6 +29,7 @@ class LearnerCommHelper(object):
             - instance (:obj:`BaseLearner`): the base learner which needs to register a comm
             - comm_cfg (:obj:`EasyDict`): comm config
         """
+
         def close_wrapper(close_fn: Callable) -> Callable:
 
             def wrapper(*args, **kwargs) -> Any:

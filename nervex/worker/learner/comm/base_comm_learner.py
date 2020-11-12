@@ -14,6 +14,7 @@ class BaseCommLearner(ABC):
     Property:
         hooks4call
     """
+
     def __init__(self, cfg: 'EasyDict') -> None:  # noqa
         """
         Overview:

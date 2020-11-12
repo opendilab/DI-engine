@@ -131,6 +131,7 @@ class BaseLearner(ABC):
             - fn (:obj:`Callable`): function to be time_wrapped
             - name (:obj:`str`): name to be registered in log_buffer
         """
+
         def wrapper(*args, **kwargs) -> Any:
             with self._timer:
                 ret = fn(*args, **kwargs)
