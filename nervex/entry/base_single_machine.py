@@ -211,7 +211,9 @@ class SingleMachineRunner():
             timestep = self.evaluate_env.step({k: o['action'] for k, o in outputs.items()})
 
             for i, t in timestep.items():
-                cum_rewards[i] += default_get(t.info, 'eval_reward', default_fn=lambda: t.reward.item(), judge_fn=np.isscalar)
+                cum_rewards[i] += default_get(
+                    t.info, 'eval_reward', default_fn=lambda: t.reward.item(), judge_fn=np.isscalar
+                )
                 if t.done:
                     episode_count += 1
                     rewards.append(copy.deepcopy(cum_rewards[i]))

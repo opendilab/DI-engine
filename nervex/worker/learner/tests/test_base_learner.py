@@ -70,15 +70,7 @@ class TestBaseLearner:
         path = os.path.join(os.path.dirname(__file__), './iteration_5.pth.tar')
         torch.save({'model': {}, 'last_iter': 5}, path)
         time.sleep(0.5)
-        cfg = {
-            'common': {
-                'load_path': path
-            },
-            'learner': {
-                'learner_type': 'fake',
-                'import_names': []
-            }
-        }
+        cfg = {'common': {'load_path': path}, 'learner': {'learner_type': 'fake', 'import_names': []}}
         learner = create_learner(EasyDict(cfg))
         with pytest.raises(KeyError):
             create_learner(EasyDict({'learner': {'learner_type': 'placeholder', 'import_names': []}}))

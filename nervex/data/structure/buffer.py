@@ -16,11 +16,13 @@ class RecordList(list):
 
     def __setitem__(self, idx: Union[numbers.Integral, slice], data: Any) -> None:
         if isinstance(idx, numbers.Integral):
-            self._used_data.put(self[idx])
+            if self[idx] is not None:
+                self._used_data.put(self[idx])
         elif isinstance(idx, slice):
             old_data = self[idx]
             for d in old_data:
-                self._used_data.put(d)
+                if d is not None:
+                    self._used_data.put(d)
         else:
             raise TypeError("not support idx type: {}".format(type(idx)))
 
@@ -135,6 +137,7 @@ class PrioritizedBuffer:
             assert (self._data_check(data))
         except AssertionError:
             # if data check fails, just return without any operations
+            print('illegal data {}, reject it...'.format(type(data)))
             return
         if self._data[self.pointer] is None:
             self._valid_count += 1
