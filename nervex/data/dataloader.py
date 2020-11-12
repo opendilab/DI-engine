@@ -47,22 +47,27 @@ class AsyncDataLoader(object):
                 'use num_workers=0 or 1 to disable multiprocessing.'
             )
         queue_maxsize = max(1, self.num_workers) * 2
+        self.queue_maxsize = queue_maxsize
 
-        self.async_train_queue = multiprocessing.Queue(maxsize=queue_maxsize)
+        self.mp_context = multiprocessing.get_context('fork')
+        self.manager = self.mp_context.Manager()
+        self.async_train_queue = self.mp_context.Queue(maxsize=queue_maxsize)
         self.end_flag = False
 
         if self.num_workers > 1:
-            self.batch_id = 0
-            self.job_result = multiprocessing.Manager().dict()
-            self.job_result_lock = LockContext(type_=LockContextType.PROCESS_LOCK)
-            self.job_queue = multiprocessing.Queue(maxsize=queue_maxsize)
-            self.worker = [multiprocessing.Process(target=self._worker_loop, args=()) for _ in range(self.num_workers)]
+            self.batch_id = self.mp_context.Value('i', 0)
+            self.cur_batch = self.mp_context.Value('i', 0)
+            if self.batch_size != self.chunk_size:
+                self.job_result = self.manager.dict()
+                self.job_result_lock = LockContext(type_=LockContextType.PROCESS_LOCK)
+            self.job_queue = self.mp_context.Queue(maxsize=queue_maxsize)
+            self.worker = [self.mp_context.Process(target=self._worker_loop, args=()) for _ in range(self.num_workers)]
             for w in self.worker:
                 w.daemon = True
                 w.start()
             print('using {} workers loading data'.format(self.num_workers))
 
-        self.async_process = multiprocessing.Process(target=self._async_loop, args=())
+        self.async_process = self.mp_context.Process(target=self._async_loop, args=())
         self.async_process.daemon = True
         self.async_process.start()
 
@@ -83,10 +88,11 @@ class AsyncDataLoader(object):
                 else:
                     data_fn = self.data_source(self.batch_size)
                     chunk_num = self.batch_size // self.chunk_size
-                    for i in range(chunk_num):
-                        start, end = i * self.chunk_size, (i + 1) * self.chunk_size
-                        self.job_queue.put({'batch_id': self.batch_id, 'job': data_fn[start:end]})
-                    self.batch_id = (self.batch_id + 1) % (self.job_queue._maxsize * 2)
+                    with self.batch_id.get_lock():
+                        for i in range(chunk_num):
+                            start, end = i * self.chunk_size, (i + 1) * self.chunk_size
+                            self.job_queue.put({'batch_id': self.batch_id.value, 'job': data_fn[start:end]})
+                        self.batch_id.value = (self.batch_id.value + 1) % self.queue_maxsize
                     time.sleep(1.0)
             else:
                 if self.async_train_queue.full():
@@ -106,14 +112,25 @@ class AsyncDataLoader(object):
                 element = self.job_queue.get()
                 batch_id, job = element['batch_id'], element['job']
                 data = [j() for j in job]
-                with self.job_result_lock:
-                    if batch_id not in self.job_result:
-                        self.job_result[batch_id] = data
-                    else:
-                        self.job_result[batch_id] += data
-                    if len(self.job_result[batch_id]) == self.batch_size:
-                        data = self.job_result.pop(batch_id)
-                        assert batch_id not in self.job_result
+                if len(data) == self.batch_size == self.chunk_size:
+                    while batch_id != self.cur_batch.value:
+                        time.sleep(0.05)
+                    data = self.collate_fn(data)
+                    self.async_train_queue.put(data)
+                    with self.cur_batch.get_lock():
+                        self.cur_batch.value = (self.cur_batch.value + 1) % self.queue_maxsize
+                else:
+                    finish_flag = False
+                    with self.job_result_lock:
+                        if batch_id not in self.job_result:
+                            self.job_result[batch_id] = data
+                        elif len(self.job_result[batch_id]) + len(data) == self.batch_size:
+                            data += self.job_result.pop(batch_id)
+                            assert batch_id not in self.job_result
+                            finish_flag = True
+                        else:
+                            self.job_result[batch_id] += data
+                    if finish_flag:
                         data = self.collate_fn(data)
                         self.async_train_queue.put(data)
         while not self.job_queue.empty():
