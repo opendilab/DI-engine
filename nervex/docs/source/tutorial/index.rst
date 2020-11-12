@@ -100,6 +100,19 @@ app_zoo(基于nerveX的DRL应用)
  5. alphastar(SC2)
 
 
+数据流图
+============================
+
+nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作器)，Learner(学习器)，Actor(数据生成器)，再加上用于数据通信的Middleware(中介组件)，这四个模块的详细组成及之间的数据关系如下图所示:
+
+.. image:: dataflow.png
+
+
+而上述几个核心模块之间的数据流序列关系可以参考下图:
+
+.. image:: flow_sequence.png
+
+
 算法训练入口示例(单机版本)
 ============================
 
