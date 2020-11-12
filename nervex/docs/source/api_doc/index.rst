@@ -3,19 +3,15 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Package Reference
+API Doc
 ===============================
 
 .. toctree::
     :maxdepth: 3
 
-    env/env_overview
     env/sumo_env
     data/buffer
     data/cache
-    worker/agent/agent_overview
-    worker/actor/actor_overview
-    worker/env_manager/env_manager_overview
     worker/learner/learner
     rl_utils/adder
     rl_utils/gae
