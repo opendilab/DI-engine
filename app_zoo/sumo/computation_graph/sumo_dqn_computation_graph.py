@@ -36,14 +36,15 @@ class SumoDqnGraph(BaseCompGraph):
         else:
             target_q_value = agent.forward(next_obs)['logit']
         if isinstance(q_value, torch.Tensor):
-            q_value = [q_value]
-            target_q_value = [target_q_value]
-        tl_num = len(q_value)
-        loss = []
-        for i in range(tl_num):
-            data = td_data(q_value[i], target_q_value[i], action[i], reward, done)
-            loss.append(one_step_td_error(data, self._gamma, weights))
-        loss = sum(loss) / (len(loss) + 1e-8)
+            data = td_data(q_value, target_q_value, action, reward, done)
+            loss = one_step_td_error(data, self._gamma, weights)
+        else:
+            tl_num = len(q_value)
+            loss = []
+            for i in range(tl_num):
+                data = td_data(q_value[i], target_q_value[i], action[i], reward, done)
+                loss.append(one_step_td_error(data, self._gamma, weights))
+            loss = sum(loss) / (len(loss) + 1e-8)
         if agent.is_double:
             agent.update_target_network(agent.state_dict()['model'])
         return {'total_loss': loss}

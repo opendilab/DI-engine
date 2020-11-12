@@ -36,6 +36,10 @@ class BaseEnvManager(ABC):
     def done(self) -> bool:
         return all([v == self._epsiode_num for v in self._env_episode_count.values()])
 
+    @property
+    def method_name_list(self) -> list:
+        return ['reset', 'step', 'seed', 'close']
+
     def __getattr__(self, key: str) -> Any:
         """
         Note: if a python object doesn't have the attribute named key, it will call this method
@@ -44,8 +48,8 @@ class BaseEnvManager(ABC):
         # create different env managers.
         if not hasattr(self._env_ref, key):
             raise AttributeError("env `{}` doesn't have the attribute `{}`".format(type(self._env_ref), key))
-        if isinstance(getattr(self._env_ref, key), MethodType):
-            raise TypeError("env doesn't supports this method({})".format(key))
+        if isinstance(getattr(self._env_ref, key), MethodType) and key not in self.method_name_list:
+            raise RuntimeError("env getattr doesn't supports method({}), please override method_name_list".format(key))
         self._check_closed()
         return [getattr(env, key) if hasattr(env, key) else None for env in self._envs]
 
@@ -53,7 +57,7 @@ class BaseEnvManager(ABC):
         assert self._closed, "please first close the env manager"
         self._create_state()
         if reset_param is None:
-            reset_param = [[] for _ in range(self.env_num)]
+            reset_param = [{} for _ in range(self.env_num)]
         self._reset_param = reset_param
         self._envs = [self._env_fn(c) for c in self._env_cfg]
         assert len(self._envs) == self._env_num
@@ -65,14 +69,21 @@ class BaseEnvManager(ABC):
             self._reset(i)
 
     def _reset(self, env_id: int) -> None:
-        obs = self._envs[env_id].reset(*self._reset_param[env_id])
+        obs = self._safe_run(lambda: self._envs[env_id].reset(**self._reset_param[env_id]))
         self._next_obs[env_id] = obs
+
+    def _safe_run(self, fn: Callable):
+        try:
+            return fn()
+        except Exception as e:
+            self.close()
+            raise e
 
     def step(self, action: Dict[int, Any]) -> Dict[int, namedtuple]:
         self._check_closed()
         timestep = {}
         for env_id, act in action.items():
-            timestep[env_id] = self._envs[env_id].step(act)
+            timestep[env_id] = self._safe_run(lambda: self._envs[env_id].step(act))
             if timestep[env_id].done:
                 self._env_done[env_id] = True
                 self._env_episode_count[env_id] += 1
