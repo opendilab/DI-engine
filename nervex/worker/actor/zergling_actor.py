@@ -10,7 +10,7 @@ import torch
 
 from nervex.data import default_collate, default_decollate
 from nervex.torch_utils import to_device, tensor_to_list
-from nervex.utils import get_step_data_compressor
+from nervex.utils import get_data_compressor
 from nervex.worker.actor import BaseActor
 from nervex.worker.actor.env_manager import SubprocessEnvManager, BaseEnvManager
 
@@ -36,7 +36,7 @@ class ZerglingActor(BaseActor):
         assert len(self._job['agent']) == 1
         self._setup_env_manager()
         self._setup_agent()
-        self._compressor = get_step_data_compressor(self._job['compressor'])
+        self._compressor = get_data_compressor(self._job['compressor'])
         self._job_result = {k: [] for k in range(self._job['env_num'])}
         self._collate_fn = default_collate
         self._decollate_fn = default_decollate

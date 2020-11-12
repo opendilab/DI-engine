@@ -1,4 +1,5 @@
-from .compression_helper import get_step_data_compressor, get_step_data_decompressor, compress_obs, decompress_obs
+from .compression_helper import get_data_compressor, get_data_decompressor
+from .fake_linklink import link, FakeLink
 from .config_utils import deep_merge_dicts, read_config
 from .design_helper import SingletonMetaclass
 from .dist_helper import get_rank, get_world_size, distributed_mode, DistModule, dist_init, dist_finalize, \
@@ -10,4 +11,4 @@ from .log_helper import build_logger, DistributionTimeImage, get_default_logger,
     AverageMeter, VariableRecord
 from .system_helper import get_ip, get_pid, get_task_uid, get_manager_node_ip
 from .time_helper import build_time_helper, EasyTimer
-from .utils import override, dicts_to_lists, lists_to_dicts, squeeze
+from .utils import override, dicts_to_lists, lists_to_dicts, squeeze, default_get

@@ -1,3 +1,5 @@
+from typing import Callable, Any
+
 from .base_comm_learner import BaseCommLearner
 from .flask_fs_learner import FlaskFileSystemLearner
 
@@ -5,13 +7,32 @@ comm_map = {'flask_fs': FlaskFileSystemLearner}
 
 
 class LearnerCommHelper(object):
+    """
+    Overview:
+        A helper with only one classmethod ``enable_comm_helper``, which can initialize a comm and
+        register with learner mutually to enable learner's communicating ability among multiple machines.
+    Interfaces:
+        enable_comm_helper
+    """
 
     @classmethod
-    def enable_comm_helper(cls, instance, comm_cfg):
+    def enable_comm_helper(cls, instance: 'BaseLearner', comm_cfg: 'EasyDict') -> None:  # noqa
+        """
+        Overview:
+            Enable learner comm helper.
 
-        def close_wrapper(close_fn):
+                - Init ``instance._comm`` with one comm learner in ``comm_map``.
+                - Register learner's attributes (logger, id) into comm, \
+                    and register comm's public attributes and hooks into learner.
+                - Wrap learner's ``close`` with additional comm's ``close_service``
+        Arguments:
+            - instance (:obj:`BaseLearner`): the base learner which needs to register a comm
+            - comm_cfg (:obj:`EasyDict`): comm config
+        """
 
-            def wrapper(*args, **kwargs):
+        def close_wrapper(close_fn: Callable) -> Callable:
+
+            def wrapper(*args, **kwargs) -> Any:
                 ret = close_fn(*args, **kwargs)
                 instance.close_service()
                 return ret
@@ -33,7 +54,7 @@ class LearnerCommHelper(object):
         for item in dir(instance._comm):
             if not item.startswith('_'):  # only public method and variable
                 if hasattr(instance, item):
-                    raise RuntimeError("can't set the repeat attribute({})".format(item))
+                    raise RuntimeError("can't set the repeated attribute({})".format(item))
                 setattr(instance, item, getattr(instance._comm, item))
         instance.init_service()
         for h in instance._comm.hooks4call:
@@ -42,7 +63,14 @@ class LearnerCommHelper(object):
         instance.close = close_wrapper(instance.close)
 
 
-def add_comm_learner(name, learner_type):
+def add_comm_learner(name: str, learner_type: type) -> None:
+    """
+    Overview:
+        Add a new CommLearner class with its name to dict ``comm_map``
+    Arguments:
+        - name (:obj:`str`): name of the new CommLearner
+        - learner_type (:obj:`type`): the new CommLearner class, should be subclass of BaseCommLearner
+    """
     assert isinstance(name, str)
     assert issubclass(learner_type, BaseCommLearner)
     comm_map[name] = learner_type

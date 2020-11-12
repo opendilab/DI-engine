@@ -3,6 +3,7 @@ common:
     time_wrapper_type: cuda
     save_path: '.'
     load_path: ''
+    algo_type: 'dqn'
 learner:
     use_cuda: True
     use_distributed: False
@@ -11,6 +12,11 @@ learner:
     batch_size: 64
     learning_rate: 0.001
     weight_decay: 0.0001
+    eps:
+        type: 'exp'
+        start: 0.95
+        end: 0.05
+        decay: 100000
     reward_weights:
         'queue_len': 1.0
     data:
@@ -38,8 +44,9 @@ learner:
 actor:
     env_num: 8
     episode_num: 1
+    print_freq: 500
 evaluator:
-    env_num: 4
+    env_num: 1
     episode_num: 1
     eval_step: 1000
     stop_val: -2000

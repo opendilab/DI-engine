@@ -3,8 +3,6 @@ import math
 from torch.nn.utils import clip_grad_norm_, clip_grad_value_
 from torch._six import inf
 
-from .grad_clip import GradClip, build_grad_clip
-
 
 def grad_ignore_norm(parameters, max_norm, norm_type=2):
     if isinstance(parameters, torch.Tensor):

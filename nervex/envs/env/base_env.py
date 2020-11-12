@@ -9,7 +9,7 @@ class BaseEnv(ABC):
     Interface: __init__
     Property: timestep
     """
-    timestep = namedtuple('BaseEnvTimestep', ['obs', 'act', 'reward', 'done', 'info'])
+    timestep = namedtuple('BaseEnvTimestep', ['obs', 'reward', 'done', 'info'])
     info_template = namedtuple('BaseEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space'])
 
     @abstractmethod

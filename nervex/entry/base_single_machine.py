@@ -1,10 +1,13 @@
 import sys
 import copy
 import time
+import numpy as np
+import torch
 
 from nervex.data import PrioritizedBuffer, default_collate, default_decollate
-from nervex.rl_utils import epsilon_greedy
+from nervex.rl_utils import epsilon_greedy, Adder
 from nervex.torch_utils import to_device
+from nervex.utils import default_get
 from nervex.worker.learner import LearnerHook
 
 
@@ -45,7 +48,7 @@ class EvaluateHook(LearnerHook):
 
     def __call__(self, engine):
         if engine.last_iter.val % self._freq == 0:
-            self._runner.evaluate_agent.load_state_dict(engine.agent.state_dict())
+            self._runner.evaluator_agent.load_state_dict(engine.agent.state_dict())
             self._runner.evaluate()
 
 
@@ -53,15 +56,22 @@ class SingleMachineRunner():
 
     def __init__(self, cfg):
         self.cfg = cfg
+        self.algo_type = self.cfg.common.algo_type
+        assert self.algo_type in ['dqn', 'ppo'], self.algo_type
         self.use_cuda = self.cfg.learner.use_cuda
         self.batch_size = self.cfg.learner.batch_size
-        self._setup_env()
         self.buffer = PrioritizedBuffer(cfg.learner.data.buffer_length, cfg.learner.data.max_reuse)
-        self.bandit = epsilon_greedy(0.95, 0.05, 100000)
+        if self.algo_type == 'dqn':
+            eps_cfg = cfg.learner.eps
+            self.bandit = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
 
+        self._setup_env()
         self._setup_learner()
         self._setup_agent()
         self._setup_get_data()
+
+        self.env_buffer = {i: [] for i in range(self.actor_env.env_num)}
+        self.adder = Adder(self.use_cuda)
         self.train_step = cfg.learner.train_step
         self.learner.register_hook(ActorUpdateHook(self, 'before_run', 40, self.train_step))
         self.learner.register_hook(ActorProducerHook(self, 'before_run', 100, self.train_step))
@@ -87,12 +97,52 @@ class SingleMachineRunner():
         raise NotImplementedError
 
     def _setup_agent(self):
-        """set self.actor_agent and self.evaluate_agent"""
+        """set self.actor_agent and self.evaluator_agent"""
         raise NotImplementedError
 
     def _setup_env(self):
         """set self.actor_env and self.evaluate_env"""
         raise NotImplementedError
+
+    def _accumulate_data(self, idx, obs, agent_output, timestep):
+        if self.algo_type == 'dqn':
+            step = {
+                'obs': obs,
+                'next_obs': timestep.obs,
+                'action': agent_output['action'],
+                'reward': timestep.reward,
+                'done': timestep.done,
+            }
+        elif self.algo_type == 'ppo':
+            step = {
+                'obs': obs,
+                'action': agent_output['action'],
+                'logit': agent_output['logit'],
+                'value': agent_output['value'],
+                'reward': timestep.reward,
+                'done': timestep.done,
+            }
+        self.env_buffer[idx].append(step)
+
+    def _pack_trajectory(self, idx):
+        if self.algo_type == 'dqn':
+            data = self.env_buffer[idx]
+        elif self.algo_type == 'ppo':
+            data = self.adder.get_gae(
+                self.env_buffer[idx],
+                last_value=torch.zeros(1),
+                gamma=self.cfg.learner.ppo.gamma,
+                gae_lambda=self.cfg.learner.ppo.gae_lambda
+            )
+        self.buffer.extend(data)
+        self.env_buffer[idx] = []
+
+    def _get_train_kwargs(self):
+        if self.algo_type == 'dqn':
+            eps_threshold = self.bandit(self.learner_step_count)
+            return {'eps': eps_threshold}
+        elif self.algo_type == 'ppo':
+            return {}
 
     def collect_data(self):
         self.actor_env.launch()
@@ -107,8 +157,8 @@ class SingleMachineRunner():
             if self.use_cuda:
                 agent_obs = to_device(agent_obs, 'cuda')
 
-            eps_threshold = self.bandit(self.learner_step_count)
-            outputs = self.actor_agent.forward(agent_obs, eps=eps_threshold)
+            train_kwargs = self._get_train_kwargs()
+            outputs = self.actor_agent.forward(agent_obs, **train_kwargs)
 
             if self.use_cuda:
                 outputs = to_device(outputs, 'cpu')
@@ -120,19 +170,14 @@ class SingleMachineRunner():
             timestep = self.actor_env.step({k: o['action'] for k, o in outputs.items()})
 
             for i, t in timestep.items():
-                step = {
-                    'obs': obs_pool[i],
-                    'action': act_pool[i]['action'],
-                    'next_obs': t.obs,
-                    'reward': t.reward,
-                    'done': t.done,
-                }
-                self.buffer.append(step)
+                self._accumulate_data(i, obs_pool[i], act_pool[i], t)
+                if t.done:
+                    self._pack_trajectory(i)
             self.actor_step_count += 1
-            if self.actor_step_count % 200 == 0:
+            if self.actor_step_count % self.cfg.actor.print_freq == 0:
                 self.learner.info(
-                    'actor run step {} with replay buffer size {} with eps {:.4f}'.format(
-                        self.actor_step_count, self.buffer.validlen, eps_threshold
+                    'actor run step {} with replay buffer size {} with args {}'.format(
+                        self.actor_step_count, self.buffer.validlen, train_kwargs
                     )
                 )
         self.actor_env.close()
@@ -154,7 +199,7 @@ class SingleMachineRunner():
             if self.use_cuda:
                 agent_obs = to_device(agent_obs, 'cuda')
 
-            outputs = self.evaluate_agent.forward(agent_obs)
+            outputs = self.evaluator_agent.forward(agent_obs)
 
             if self.use_cuda:
                 outputs = to_device(outputs, 'cpu')
@@ -166,7 +211,9 @@ class SingleMachineRunner():
             timestep = self.evaluate_env.step({k: o['action'] for k, o in outputs.items()})
 
             for i, t in timestep.items():
-                cum_rewards[i] += self.learner.computation_graph.get_weighted_reward(t.reward).item()
+                cum_rewards[i] += default_get(
+                    t.info, 'eval_reward', default_fn=lambda: t.reward.item(), judge_fn=np.isscalar
+                )
                 if t.done:
                     episode_count += 1
                     rewards.append(copy.deepcopy(cum_rewards[i]))

@@ -30,7 +30,7 @@ def try_import_ceph():
 def try_import_link():
     global linklink_flag
     """
-    Try import linklink module, if failed, import nervex.tests.fake_linklink instead
+    Try import linklink module, if failed, import nervex.utils.fake_linklink instead
 
     Returns:
         module: imported module (may be fake_linklink)
@@ -42,9 +42,9 @@ def try_import_link():
             warnings.warn(
                 "You have not installed linklink package! If you are not run locally and testing, "
                 "ask coworker for help. We will run a fake linklink."
-                "Refer to nervex.tests.fake_linklink.py for details."
+                "Refer to nervex.utils.fake_linklink.py for details."
             )
-        from nervex.tests.fake_linklink import link
+        from nervex.utils import link
         linklink_flag = False
     return link
 

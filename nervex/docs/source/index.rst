@@ -23,8 +23,9 @@ Online Distributed Reinforcement learning train and evaluate system
 
    installation/index
    tutorial/index
+   feature/index
+   api_doc/index
    configuration/index
    guide/index
-   package_ref/index
    faq/index
    rl_warmup/index

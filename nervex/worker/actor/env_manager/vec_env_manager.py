@@ -7,7 +7,7 @@ import math
 import traceback
 from functools import partial
 from types import MethodType
-from typing import Any, Union, List, Tuple, Iterable, Dict
+from typing import Any, Union, List, Tuple, Iterable, Dict, Callable
 
 import cloudpickle
 
@@ -35,6 +35,29 @@ class CloudpickleWrapper(object):
 
     def __setstate__(self, data: bytes) -> None:
         self.data = cloudpickle.loads(data)
+
+
+def retry_wrapper(fn: Callable, max_retry: int = 10) -> Callable:
+
+    def wrapper(*args, **kwargs):
+        exceptions = []
+        for _ in range(max_retry):
+            try:
+                ret = fn(*args, **kwargs)
+                return ret
+            except Exception as e:
+                exceptions.append(e)
+                time.sleep(0.5)
+        e_info = ''.join(
+            [
+                'Retry {} failed from:\n {}\n'.format(i, ''.join(traceback.format_tb(e.__traceback__)) + str(e))
+                for i, e in enumerate(exceptions)
+            ]
+        )
+        fn_exception = Exception("Function {} runtime error:\n{}".format(fn, e_info))
+        raise RuntimeError("Function {} has exceeded max retries({})".format(fn, max_retry)) from fn_exception
+
+    return wrapper
 
 
 class SubprocessEnvManager(BaseEnvManager):
@@ -91,7 +114,7 @@ class SubprocessEnvManager(BaseEnvManager):
         assert self._closed, "please first close the env manager"
         self._create_state()
         if reset_param is None:
-            reset_param = [[] for _ in range(self.env_num)]
+            reset_param = [{} for _ in range(self.env_num)]
         self._reset_param = reset_param
         # set seed
         if hasattr(self, '_env_seed'):
@@ -102,31 +125,36 @@ class SubprocessEnvManager(BaseEnvManager):
 
         # launch env
         for i in range(self.env_num):
-            self._parent_remote[i].send(CloudpickleWrapper(['reset', self._reset_param[i], {}]))
-            self._env_state[i] = EnvState.RESET
-        obs = [p.recv().data for p in self._parent_remote]
-        self._check_data(obs)
-        for i in range(self.env_num):
-            self._env_state[i] = EnvState.RUN
-            self._next_obs[i] = obs[i]
+            self._reset(i)
 
     def _reset(self, env_id: int) -> None:
-        try:
-            self._parent_remote[env_id].send(CloudpickleWrapper(['reset', self._reset_param[env_id], {}]))
+
+        @retry_wrapper
+        def reset_fn():
+            self._parent_remote[env_id].send(CloudpickleWrapper(['reset', [], self._reset_param[env_id]]))
+            self._env_state[env_id] = EnvState.RESET
             obs = self._parent_remote[env_id].recv().data
-            self._check_data([obs])
+            self._check_data([obs], close=False)
             self._env_state[env_id] = EnvState.RUN
             self._next_obs[env_id] = obs
+
+        try:
+            reset_fn()
         except Exception as e:
-            if self._closed:  # exception cased by closing parent_remote
+            if self._closed:  # exception cased by main thread closing parent_remote
                 return
             else:
+                self.close()
                 raise e
 
     def step(self, action: Dict[int, Any]) -> Dict[int, namedtuple]:
         self._check_closed()
         env_id = list(action.keys())
-        assert all([self._env_state[idx] == EnvState.RUN for idx in env_id]), '{}/{}'.format(self._env_state, env_id)
+        assert all([self._env_state[idx] == EnvState.RUN for idx in env_id]
+                   ), 'current env state are: {}, please check whether the requested env is in reset or done'.format(
+                       {i: self._env_state[i]
+                        for i in env_id}
+                   )
 
         for i, act in action.items():
             self._parent_remote[i].send(CloudpickleWrapper(['step', [act], {}]))
@@ -161,10 +189,6 @@ class SubprocessEnvManager(BaseEnvManager):
                 self._next_obs[idx] = timestep.obs
 
         return ret
-
-    @property
-    def method_name_list(self) -> list:
-        return ['reset', 'step', 'seed', 'close']
 
     # this method must be staticmethod, otherwise there will be some resource conflicts(e.g. port or file)
     # env must be created in worker, which is a trick of avoiding env pickle errors.
@@ -207,11 +231,12 @@ class SubprocessEnvManager(BaseEnvManager):
         except KeyboardInterrupt:
             c.close()
 
-    def _check_data(self, data: Iterable) -> None:
+    def _check_data(self, data: Iterable, close: bool = True) -> None:
         for d in data:
             if isinstance(d, Exception):
                 # when receiving env Exception, env manager will safely close and raise this Exception to caller
-                self.close()
+                if close:
+                    self.close()
                 raise d
 
     # override
@@ -221,8 +246,8 @@ class SubprocessEnvManager(BaseEnvManager):
         # create different env managers.
         if not hasattr(self._env_ref, key):
             raise AttributeError("env `{}` doesn't have the attribute `{}`".format(type(self._env_ref), key))
-        if isinstance(getattr(self._env_ref, key), MethodType):
-            raise TypeError("env getattr doesn't supports method({}), please override method_name_list".format(key))
+        if isinstance(getattr(self._env_ref, key), MethodType) and key not in self.method_name_list:
+            raise RuntimeError("env getattr doesn't supports method({}), please override method_name_list".format(key))
         for p in self._parent_remote:
             p.send(CloudpickleWrapper(['getattr', [key], {}]))
         ret = [p.recv().data for p in self._parent_remote]

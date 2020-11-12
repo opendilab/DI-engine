@@ -34,14 +34,14 @@ class FakeSumoWJ3Env(SumoWJ3Env):
     def close(self):
         pass
 
-    def seed(self):
+    def seed(self, seed):
         pass
 
     def step(self, action: list) -> 'FakeSumoWJ3Env.timestep':
         obs = torch.randn(380)
         reward = {k: -torch.rand(1) for k in ['queue_len', 'wait_time', 'delay_time']}
         done = self.count >= 200
-        info = {'cum_reward': {k: -torch.rand(1) for k in ['queue_len', 'wait_time', 'delay_time']}}
+        info = {'eval_reward': -torch.rand(1).item()}
         self.count += 1
         return FakeSumoWJ3Env.timestep(obs, reward, done, info)
 
