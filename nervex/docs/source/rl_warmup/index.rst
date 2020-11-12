@@ -700,7 +700,7 @@ Policy Evaluation
 
 其中， :math:`V(s_t)=\mathbb{E}_{a_t\sim \pi}[Q(s_t.a_t)-\log \pi(a_t|s_t)]`
 
-由论文中的引理1可知：soft policy evaluation可以通过 :math:``Q^{k+1}=\mathcal{T}^\pi Q^k 进行迭代，
+由论文中的引理1可知：soft policy evaluation可以通过 :math:``Q^{k+1}=\mathcal{T}^\pi Q^k`` 进行迭代，
 若无限迭代下去，则最终Q会收敛到固定策略π下的soft Q-value。
 
 Policy Improvement
@@ -739,7 +739,7 @@ Soft Policy Iteration
 
 
 目标函数及更新方式
-""""""""""""""
+""""""""""""""""""""""
 SAC用神经网络定义了状态价值函数 :math:`V_\psi(s_t)` 、soft Q-value函数 :math:`Q_\theta(s_t,a_t)` 以及策略函数 :math:`\pi_\phi(a_t|s_t)`
 
 **状态价值函数：MSE最小化残差**
@@ -852,7 +852,7 @@ Ape-X出自谷歌在ICLR2018上发表的论文：`Distributed Prioritized Experi
 
 Ape-X是对优先经验回放进行了分布式场景下的扩展，它的一些关键的调整使得分布式有限经验回放在深度强化学习中有很强的扩展性。
 
-.. imgae:: APEX-architecture.png
+.. image:: APEX-architecture.png
 
 Ape-X的整体架构如上图所示，它将整个学习过程分为actor和learner两部分，actor向一个中心化的共享的的replay memory中存储数据，
 learner从replay memory中带优先级地采样更加“有用”的数据，即更“有用”的数据的采样频率会更高。
