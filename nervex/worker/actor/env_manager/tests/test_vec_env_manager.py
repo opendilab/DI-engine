@@ -44,18 +44,24 @@ class TestVecEnvManager:
         print('total step time: {}'.format(end_time - start_time))
 
         env_manager.close()
+        env_manager.close()
 
     def test_error(self, setup_async_manager_cfg, setup_exception):
         env_manager = SyncSubprocessEnvManager(**setup_async_manager_cfg)
+        with pytest.raises(Exception):
+            obs = env_manager.launch(reset_param=[{'stat': 'error'} for _ in range(env_manager.env_num)])
+        assert env_manager._closed
         obs = env_manager.launch(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
+        assert not env_manager._closed
         with pytest.raises(AttributeError):
             data = env_manager.xxx
         with pytest.raises(AttributeError):
             data = env_manager.xxx()
         timestep = env_manager.step({i: torch.randn(4) for i in range(env_manager.env_num)})
         assert len(timestep) == env_manager.env_num
-        with pytest.raises(TypeError):
-            env_manager.info()
+        env_manager._env_ref.user_defined()
+        with pytest.raises(RuntimeError):
+            env_manager.user_defined()
         name = env_manager._name
         assert len(name) == env_manager.env_num
         assert all([isinstance(n, str) for n in name])
