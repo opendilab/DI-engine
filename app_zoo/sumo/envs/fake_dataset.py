@@ -51,7 +51,7 @@ class FakeSumoDataset:
                 'job_id': self.count - 1,
                 'traj_id': path,
                 'priority': 1.0,
-                'step_data_compressor': 'none',
+                'data_compressor': 'none',
                 'data_push_length': 1
             }
         else:
