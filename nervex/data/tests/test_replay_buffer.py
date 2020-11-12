@@ -19,7 +19,9 @@ CONSUMER_NUM = 4
 @pytest.fixture(scope="function")
 def setup_config():
     path = os.path.join(os.path.dirname(__file__), '../replay_buffer_default_config.yaml')
-    return read_config(path)
+    cfg = read_config(path)
+    cfg.replay_buffer.enable_track_used_data = True
+    return cfg
 
 
 def generate_data() -> dict:
@@ -105,6 +107,9 @@ class TestReplayBuffer:
             t.join()
         for t in consume_threads:
             t.join()
+        used_data = setup_replay_buffer.used_data
+        count = setup_replay_buffer.count
+        setup_replay_buffer.push_data({'data': np.random.randn(4)})
         setup_replay_buffer.close()
         time.sleep(1 + 0.5)
         assert (len(threading.enumerate()) <= 1)

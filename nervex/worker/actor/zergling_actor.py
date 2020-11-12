@@ -191,6 +191,7 @@ class ZerglingActor(BaseActor):
             self.send_traj_stepdata(traj_id, data)
             self.send_traj_metadata(metadata)
             self._logger.info('ACTOR({}): send traj({}) in {}'.format(self._actor_uid, traj_id, time.time()))
+
         while not self._job_finish_flag:
             try:
                 element = self._traj_queue.get()

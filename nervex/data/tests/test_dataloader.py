@@ -8,8 +8,8 @@ from itertools import product
 from nervex.data import AsyncDataLoader
 from nervex.utils import EasyTimer
 
-batch_size_args = [3, 6]
-num_workers_args = [0, 4]
+batch_size_args = [6]
+num_workers_args = [4]
 chunk_size_args = [1, 3]
 args = [item for item in product(*[batch_size_args, num_workers_args, chunk_size_args])]
 

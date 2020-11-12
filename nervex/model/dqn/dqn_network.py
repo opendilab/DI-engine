@@ -10,13 +10,7 @@ from nervex.utils import squeeze
 class FCDQN(nn.Module):
 
     def __init__(
-        self,
-        input_dim,
-        action_dim,
-        hidden_dim_list=[128, 128, 128],
-        dueling=True,
-        a_layer_num=1,
-        v_layer_num=1
+        self, input_dim, action_dim, hidden_dim_list=[128, 128, 128], dueling=True, a_layer_num=1, v_layer_num=1
     ):
         super(FCDQN, self).__init__()
         self.act = nn.ReLU()

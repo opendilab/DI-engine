@@ -79,6 +79,7 @@ class SingleMachineRunner():
                 if data is not None:
                     return data
                 time.sleep(3)
+
         self.learner.get_data = fn
 
     def _setup_learner(self):
