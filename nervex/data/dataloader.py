@@ -1,11 +1,11 @@
 import time
 import threading
 import queue
-from typing import Iterable, Callable, Optional, Any
+from typing import Iterable, Callable, Optional, Any, Union
 from collections import defaultdict
 
 import torch
-import torch.multiprocessing as multiprocessing
+import torch.multiprocessing as tm
 from nervex.torch_utils import to_device
 from nervex.utils import LockContext, LockContextType
 from .collate_fn import default_collate
@@ -15,7 +15,7 @@ class AsyncDataLoader(object):
 
     def __init__(
             self,
-            data_source: Callable,
+            data_source: Union[Callable, dict],
             batch_size: int,
             device: str,
             chunk_size: Optional[int] = None,
@@ -49,7 +49,7 @@ class AsyncDataLoader(object):
         queue_maxsize = max(1, self.num_workers) * 2
         self.queue_maxsize = queue_maxsize
 
-        self.mp_context = multiprocessing.get_context('fork')
+        self.mp_context = tm.get_context('fork')
         self.manager = self.mp_context.Manager()
         self.async_train_queue = self.mp_context.Queue(maxsize=queue_maxsize)
         self.end_flag = False
@@ -67,7 +67,8 @@ class AsyncDataLoader(object):
                 w.start()
             print('using {} workers loading data'.format(self.num_workers))
 
-        self.async_process = self.mp_context.Process(target=self._async_loop, args=())
+        p, c = self.mp_context.Pipe()
+        self.async_process = self.mp_context.Process(target=self._async_loop, args=(p, c))
         self.async_process.daemon = True
         self.async_process.start()
 
@@ -77,31 +78,66 @@ class AsyncDataLoader(object):
             self.cuda_thread.daemon = True
             self.cuda_thread.start()
 
+        self.get_data_thread = threading.Thread(target=self._get_data, args=(p, c))
+        self.get_data_thread.daemon = True
+        self.get_data_thread.start()
+
     def __iter__(self) -> Iterable:
         return self
 
-    def _async_loop(self) -> None:
+    def _get_data(self, p: tm.multiprocessing.connection, c: tm.multiprocessing.connection) -> None:
+        c.close()
+        while not self.end_flag:
+            if not p.poll(timeout=0.2):
+                time.sleep(0.01)
+                continue
+            try:
+                cmd = p.recv()
+            except EOFError:
+                break
+            if cmd == 'get_data':
+                data = self.data_source(self.batch_size)
+                if isinstance(data[0], dict):
+                    data = self.collate_fn(data)
+                    if self.use_cuda:
+                        self.cuda_queue.put(data)
+                    else:
+                        self.async_train_queue.put(data)
+                    p.send('pass')
+                else:
+                    p.send(data)
+        p.close()
+
+    def _async_loop(self, p: tm.multiprocessing.connection, c: tm.multiprocessing.connection) -> None:
+        p.close()
         while not self.end_flag:
             if self.num_workers > 1:
                 if self.job_queue.full():
                     time.sleep(0.1)
                 else:
-                    data_fn = self.data_source(self.batch_size)
+                    c.send('get_data')
+                    data = c.recv()
+                    if isinstance(data, str) and data == 'pass':
+                        continue
                     chunk_num = self.batch_size // self.chunk_size
                     with self.batch_id.get_lock():
                         for i in range(chunk_num):
                             start, end = i * self.chunk_size, (i + 1) * self.chunk_size
-                            self.job_queue.put({'batch_id': self.batch_id.value, 'job': data_fn[start:end]})
+                            self.job_queue.put({'batch_id': self.batch_id.value, 'job': data[start:end]})
                         self.batch_id.value = (self.batch_id.value + 1) % self.queue_maxsize
-                    time.sleep(1.0)
+                    time.sleep(0.1)
             else:
                 if self.async_train_queue.full():
-                    time.sleep(0.1)
+                    time.sleep(0.0001)
                 else:
-                    data_fn = self.data_source(self.batch_size)
-                    data = [fn() for fn in data_fn]
+                    c.send('get_data')
+                    data = c.recv()
+                    if isinstance(data, str) and data == 'pass':
+                        continue
+                    data = [fn() for fn in data]
                     data = self.collate_fn(data)
                     self.async_train_queue.put(data)
+        c.close()
 
     def _worker_loop(self) -> None:
         while not self.end_flag:
@@ -111,7 +147,10 @@ class AsyncDataLoader(object):
             else:
                 element = self.job_queue.get()
                 batch_id, job = element['batch_id'], element['job']
-                data = [j() for j in job]
+                if isinstance(job[0], dict):
+                    pass
+                else:
+                    data = [fn() for fn in job]
                 if len(data) == self.batch_size == self.chunk_size:
                     while batch_id != self.cur_batch.value:
                         time.sleep(0.05)

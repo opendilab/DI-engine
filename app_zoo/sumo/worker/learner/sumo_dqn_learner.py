@@ -7,11 +7,9 @@ Main Function:
 
 import os.path as osp
 
-from nervex.data import default_collate
 from nervex.model import FCDQN
 from nervex.utils import deep_merge_dicts
 from nervex.utils import override, read_config, DistModule
-from nervex.torch_utils import CudaFetcher
 from nervex.worker.learner import BaseLearner, register_learner
 from app_zoo.sumo.envs.sumo_env import SumoWJ3Env
 from app_zoo.sumo.computation_graph.sumo_dqn_computation_graph import SumoDqnGraph
@@ -26,20 +24,6 @@ class SumoDqnLearner(BaseLearner):
     def __init__(self, cfg: dict):
         cfg = deep_merge_dicts(default_config, cfg)
         super(SumoDqnLearner, self).__init__(cfg)
-
-    @override(BaseLearner)
-    def _setup_data_source(self):
-        self._collate_fn = default_collate
-        batch_size = self._cfg.learner.batch_size
-
-        def iterator():
-            while True:
-                data = self.get_data(batch_size)
-                yield self._collate_fn(data)
-
-        self._data_source = iterator()
-        if self._use_cuda:
-            self._data_source = CudaFetcher(self._data_source, device=self._device, sleep=0.01)
 
     @override(BaseLearner)
     def _setup_agent(self):

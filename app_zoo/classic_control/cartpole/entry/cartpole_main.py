@@ -7,8 +7,6 @@ from nervex.entry.base_single_machine import SingleMachineRunner
 from nervex.model import FCDQN
 from nervex.rl_utils import td_data, one_step_td_error
 from nervex.utils import read_config
-from nervex.data import default_collate
-from nervex.torch_utils import CudaFetcher
 from nervex.worker import BaseLearner, SubprocessEnvManager
 from nervex.worker.agent import BaseAgent
 from app_zoo.classic_control.cartpole.envs import CartPoleEnv
@@ -102,19 +100,6 @@ class CartPoleDqnLearner(BaseLearner):
 
     def _setup_computation_graph(self):
         self._computation_graph = CartPoleDqnGraph(self._cfg.learner)
-
-    def _setup_data_source(self):
-        self._collate_fn = default_collate
-        batch_size = self._cfg.learner.batch_size
-
-        def iterator():
-            while True:
-                data = self.get_data(batch_size)
-                yield self._collate_fn(data)
-
-        self._data_source = iterator()
-        if self._use_cuda:
-            self._data_source = CudaFetcher(self._data_source, device=self._device, sleep=0.01)
 
 
 class CartPoleRunner(SingleMachineRunner):
