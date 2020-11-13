@@ -1,3 +1,0 @@
-Fri Nov 13 14:52:20 2020
-ERROR: Invalid activation key
-

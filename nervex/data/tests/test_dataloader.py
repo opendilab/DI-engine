@@ -8,8 +8,8 @@ from itertools import product
 from nervex.data import AsyncDataLoader
 from nervex.utils import EasyTimer
 
-batch_size_args = [6]
-num_workers_args = [4]
+batch_size_args = [3, 6]
+num_workers_args = [0, 4]
 chunk_size_args = [1, 3]
 args = [item for item in product(*[batch_size_args, num_workers_args, chunk_size_args])]
 
@@ -94,4 +94,4 @@ class TestAsyncDataLoader:
         if num_workers < 1:
             assert total_data_time <= 9 * batch_size * 0.5 + 9 * 0.005 - 9 * 1
         else:
-            assert total_data_time <= 9 * 0.005
+            assert total_data_time <= 9 * 0.008
