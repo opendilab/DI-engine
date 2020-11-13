@@ -19,6 +19,7 @@ Python 3.6.9 |Anaconda, Inc.| (default, Jul 30 2019, 19:07:31)
 [GCC 7.3.0] on linux
 Type "help", "copyright", "credits" or "license" for more information.
 >>> import mujoco_py
+```
 
 如果不报错，那就说明安装成功
 
