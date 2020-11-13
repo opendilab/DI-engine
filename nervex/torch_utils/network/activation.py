@@ -11,10 +11,20 @@ import torch.nn as nn
 class GLU(nn.Module):
     r"""
     Overview:
-        a glu nn module
+        Gating Linear Unit (GLU):
+            Inputs: input, context, output_size
 
-        Note:
-            For beginner, you can reference <https://www.jianshu.com/p/d4793635a4c4> to learn more about it.
+            # The gate value is a learnt function of the input.
+            gate = sigmoid(linear(input.size)(context))
+
+            # Gate the input and return an output of desired size.
+            gated_input = gate * input
+            output = linear(output_size)(gated_input)
+
+            return output
+
+        This module also supports 2D convolution, in which case, the input and context must have same shape.
+
     Interface:
         __init__, forward
     """
@@ -57,18 +67,23 @@ class GLU(nn.Module):
         return x
 
 
-def build_activation(activation):
+def build_activation(activation, inplace=None):
     r"""
     Overview:
         return the activation module match the given activation descripion
 
     Arguments:
-        - actvation (:obj:`str`): the type of activation module needed, now support ['relu', 'glu']
+        - actvation (:obj:`str`): the type of activation module needed, now support ['relu', 'glu', 'prelu']
+        - inplace (:obj:'bool'): can optionally do the operation in-place in relu. Default: ``None``
 
     Returns:
         - act_func (:obj:`torch.nn.module`): the corresponding activation module
     """
-    act_func = {'relu': nn.ReLU(inplace=False), 'glu': GLU, 'prelu': nn.PReLU()}
+    if inplace is not None:
+        assert activation == 'relu', 'inplace argument is not compatible with {}'.format(activation)
+    else:
+        inplace = False
+    act_func = {'relu': nn.ReLU(inplace=inplace), 'glu': GLU, 'prelu': nn.PReLU()}
     if activation in act_func.keys():
         return act_func[activation]
     else:

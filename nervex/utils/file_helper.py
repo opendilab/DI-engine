@@ -4,7 +4,7 @@ import pickle
 from typing import NoReturn, Union
 
 import torch
-import fcntl
+# import fcntl
 from pathlib import Path
 
 from .import_utils import try_import_ceph

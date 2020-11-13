@@ -86,12 +86,19 @@ def conv1d_block(
 ):
     r"""
     Overview:
-        create a 1-dim convlution layer.
+        create a 1-dim convlution layer with activation and normalization.
 
-    Arguments:
         Note:
             Conv1d (https://pytorch.org/docs/stable/generated/torch.nn.Conv1d.html#torch.nn.Conv1d)
 
+    Arguments:
+        - in_channels (:obj:'int'): Number of channels in the input tensor
+        - out_channels (:obj:'int'): Number of channels in the output tensor
+        - kernel_size (:obj:'int'): Size of the convolving kernel
+        - stride (:obj:'int'): Stride of the convolution
+        - padding (:obj:'int'): Zero-padding added to both sides of the input
+        - dilation (:obj:'int'): Spacing between kernel elements
+        - groups (:obj:'int'): Number of blocked connections from input channels to output channels
         - init_type (:obj:`str`): the type of init to implement
         - activation (:obj:`nn.Module`): the optional activation function
         - norm_type (:obj:`str`): type of the normalization
@@ -121,20 +128,27 @@ def conv2d_block(
     dilation=1,
     groups=1,
     init_type="xavier",
-    pad_type='zero',
+    pad_type=None,
     activation=None,
     norm_type=None
 ):
     r"""
     Overview:
-        create a 2-dim convlution layer.
+        create a 2-dim convlution layer with activation and normalization.
 
-    Arguments:
         Note:
             Conv2d (https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html#torch.nn.Conv2d)
 
+    Arguments:
+        - in_channels (:obj:'int'): Number of channels in the input tensor
+        - out_channels (:obj:'int'): Number of channels in the output tensor
+        - kernel_size (:obj:'int'): Size of the convolving kernel
+        - stride (:obj:'int'): Stride of the convolution
+        - padding (:obj:'int'): Zero-padding added to both sides of the input
+        - dilation (:obj:'int'): Spacing between kernel elements
+        - groups (:obj:'int'): Number of blocked connections from input channels to output channels
         - init_type (:obj:`str`): the type of init to implement
-        - pad_type (:obj:`str`): the way to add padding, include ['zero', 'reflect', 'replicate']
+        - pad_type (:obj:`str`): the way to add padding, include ['zero', 'reflect', 'replicate'], default: None
         - activation (:obj:`nn.Moduel`): the optional activation function
         - norm_type (:obj:`str`): type of the normalization, default set to None, now support ['BN', 'IN', 'SyncBN']
 
@@ -143,7 +157,9 @@ def conv2d_block(
     """
 
     block = []
-    if pad_type == 'zero':
+    if pad_type is None:
+        pass
+    elif pad_type == 'zero':
         block.append(nn.ZeroPad2d(padding))
     elif pad_type == 'reflect':
         block.append(nn.ReflectionPad2d(padding))
@@ -151,7 +167,7 @@ def conv2d_block(
         block.append(nn.ReplicatePad2d(padding))
     else:
         raise ValueError
-    block.append(nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding=0, dilation=dilation, groups=groups))
+    block.append(nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding=padding, dilation=dilation, groups=groups))
     weight_init_(block[-1].weight, init_type, activation)
     if norm_type is None:
         pass
@@ -169,21 +185,24 @@ def deconv2d_block(
     stride=1,
     padding=0,
     output_padding=0,
-    dilation=1,
     groups=1,
     init_type="xavier",
-    pad_type='zero',
     activation=None,
     norm_type=None
 ):
     r"""
     Overview:
-        create a 2-dim transopse convlution layer.
+        create a 2-dim transopse convlution layer with activation and normalization
 
-    Arguments:
         Note:
             ConvTranspose2d (https://pytorch.org/docs/master/generated/torch.nn.ConvTranspose2d.html)
 
+    Arguments:
+        - in_channels (:obj:'int'): Number of channels in the input tensor
+        - out_channels (:obj:'int'): Number of channels in the output tensor
+        - kernel_size (:obj:'int'): Size of the convolving kernel
+        - stride (:obj:'int'): Stride of the convolution
+        - padding (:obj:'int'): Zero-padding added to both sides of the input
         - init_type (:obj:`str`): the type of init to implement
         - pad_type (:obj:`str`): the way to add padding, include ['zero', 'reflect', 'replicate']
         - activation (:obj:`nn.Moduel`): the optional activation function
@@ -226,14 +245,15 @@ def fc_block(
 ):
     r"""
     Overview:
-        create a fully-connected block
+        create a fully-connected block with activation, normalization and dropout
         optional normalization can be done to the dim 1 (across the channels)
         x -> fc -> norm -> act -> dropout -> out
-
-    Arguments:
         Note:
             nn.linear (https://pytorch.org/docs/master/generated/torch.nn.Linear.html)
 
+    Arguments:
+        - in_channels (:obj:'int'): Number of channels in the input tensor
+        - out_channels (:obj:'int'): Number of channels in the output tensor
         - init_type (:obj:`str`): the type of init to implement
         - activation (:obj:`nn.Moduel`): the optional activation function
         - norm_type (:obj:`str`): type of the normalization
