@@ -13,7 +13,7 @@ class CartPoleEnv(BaseEnv):
         self._env = gym.make('CartPole-v0')
 
     def reset(self) -> torch.Tensor:
-        if hasattr(self, 'seed'):
+        if hasattr(self, '_seed'):
             self._env.seed(self._seed)
         obs = self._env.reset()
         obs = to_tensor(obs, torch.float)
@@ -26,6 +26,8 @@ class CartPoleEnv(BaseEnv):
         self._seed = seed
 
     def step(self, action: torch.Tensor) -> BaseEnv.timestep:
+        if action.shape == (1, ):
+            action = action.squeeze()  # 0-dim tensor
         action = action.numpy()
         obs, rew, done, info = self._env.step(action)
         obs = to_tensor(obs, torch.float)
