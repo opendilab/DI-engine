@@ -1,6 +1,5 @@
 import warnings
 
-
 try:
     from .gfootball_env import GfootballEnv
 except ImportError:

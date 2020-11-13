@@ -4,15 +4,17 @@ from collections import OrderedDict
 
 from nervex.computation_graph import BaseCompGraph
 from nervex.entry.base_single_machine import SingleMachineRunner
-from nervex.envs.gym.cartpole.cartpole_env import CartpoleEnv
 from nervex.model import FCDQN
 from nervex.rl_utils import td_data, one_step_td_error
 from nervex.utils import read_config
+from nervex.data import default_collate
+from nervex.torch_utils import CudaFetcher
 from nervex.worker import BaseLearner, SubprocessEnvManager
 from nervex.worker.agent import BaseAgent
+from app_zoo.classic_control.cartpole.envs import CartPoleEnv
 
 
-class CartpoleDqnGraph(BaseCompGraph):
+class CartPoleDqnGraph(BaseCompGraph):
 
     def __init__(self, cfg):
         self._gamma = cfg.dqn.discount_factor
@@ -20,16 +22,16 @@ class CartpoleDqnGraph(BaseCompGraph):
     def forward(self, data, agent):
         obs = data.get('obs')
         nextobs = data.get('next_obs')
-        reward = data.get('reward').squeeze(1)
+        reward = data.get('reward')
         action = data.get('action')
         terminate = data.get('done').float()
         weights = data.get('weights', None)
 
-        q_value = agent.forward(obs)
+        q_value = agent.forward(obs)['logit']
         if agent.is_double:
-            target_q_value = agent.target_forward(nextobs)
+            target_q_value = agent.target_forward(nextobs)['logit']
         else:
-            target_q_value = agent.forward(nextobs)
+            target_q_value = agent.forward(nextobs)['logit']
 
         data = td_data(q_value, target_q_value, action, reward, terminate)
         loss = one_step_td_error(data, self._gamma, weights)
@@ -38,17 +40,14 @@ class CartpoleDqnGraph(BaseCompGraph):
         return {'total_loss': loss}
 
     def __repr__(self):
-        return "CartpoleDqnGraph"
+        return "CartPoleDqnGraph"
 
     def register_stats(self, recorder, tb_logger):
         recorder.register_var('total_loss')
         tb_logger.register_var('total_loss')
 
-    def get_weighted_reward(self, reward):
-        return reward
 
-
-class CartpoleDqnLearnerAgent(BaseAgent):
+class CartPoleDqnLearnerAgent(BaseAgent):
 
     def __init__(self, model, is_double=True):
         self.plugin_cfg = OrderedDict({
@@ -61,10 +60,10 @@ class CartpoleDqnLearnerAgent(BaseAgent):
             # self.plugin_cfg['target_network'] = {'update_cfg': {'type': 'momentum', 'kwargs': {'theta': 0.001}}}
             self.plugin_cfg['target_network'] = {'update_cfg': {'type': 'assign', 'kwargs': {'freq': 500}}}
         self.is_double = is_double
-        super(CartpoleDqnLearnerAgent, self).__init__(model, self.plugin_cfg)
+        super(CartPoleDqnLearnerAgent, self).__init__(model, self.plugin_cfg)
 
 
-class CartpoleDqnActorAgent(BaseAgent):
+class CartPoleDqnActorAgent(BaseAgent):
 
     def __init__(self, model):
         plugin_cfg = OrderedDict({
@@ -73,10 +72,10 @@ class CartpoleDqnActorAgent(BaseAgent):
                 'enable_grad': False
             },
         })
-        super(CartpoleDqnActorAgent, self).__init__(model, plugin_cfg)
+        super(CartPoleDqnActorAgent, self).__init__(model, plugin_cfg)
 
 
-class CartpoleDqnEvaluateAgent(BaseAgent):
+class CartPoleDqnEvaluateAgent(BaseAgent):
 
     def __init__(self, model):
         plugin_cfg = OrderedDict({
@@ -85,51 +84,73 @@ class CartpoleDqnEvaluateAgent(BaseAgent):
                 'enable_grad': False
             },
         })
-        super(CartpoleDqnEvaluateAgent, self).__init__(model, plugin_cfg)
+        super(CartPoleDqnEvaluateAgent, self).__init__(model, plugin_cfg)
 
 
-class CartpoleDqnLearner(BaseLearner):
-    _name = "CartpoleDqnLearner"
+class CartPoleDqnLearner(BaseLearner):
+    _name = "CartPoleDqnLearner"
 
     def _setup_agent(self):
-        env_info = CartpoleEnv(self._cfg.env).info()
+        env_info = CartPoleEnv(self._cfg.env).info()
         model = FCDQN(env_info.obs_space.shape, env_info.act_space.shape, dueling=self._cfg.learner.dqn.dueling)
         if self._cfg.learner.use_cuda:
             model.cuda()
-        self._agent = CartpoleDqnLearnerAgent(model, is_double=self._cfg.learner.dqn.is_double)
+        self._agent = CartPoleDqnLearnerAgent(model, is_double=self._cfg.learner.dqn.is_double)
         self._agent.mode(train=True)
         if self._agent.is_double:
             self._agent.target_mode(train=True)
 
     def _setup_computation_graph(self):
-        self._computation_graph = CartpoleDqnGraph(self._cfg.learner)
+        self._computation_graph = CartPoleDqnGraph(self._cfg.learner)
 
     def _setup_data_source(self):
-        # set in SingleMachineRunner
-        pass
+        self._collate_fn = default_collate
+        batch_size = self._cfg.learner.batch_size
+
+        def iterator():
+            while True:
+                data = self.get_data(batch_size)
+                yield self._collate_fn(data)
+
+        self._data_source = iterator()
+        if self._use_cuda:
+            self._data_source = CudaFetcher(self._data_source, device=self._device, sleep=0.01)
 
 
-class CartpoleRunner(SingleMachineRunner):
+class CartPoleRunner(SingleMachineRunner):
 
     def _setup_env(self):
-        env_num = self.cfg.env.env_num
-        self.env = SubprocessEnvManager(CartpoleEnv, env_cfg=[self.cfg.env for _ in range(env_num)], env_num=env_num)
+        actor_env_num = self.cfg.actor.env_num
+        actor_env_cfg = copy.deepcopy(self.cfg.env)
+        self.actor_env = SubprocessEnvManager(
+            CartPoleEnv,
+            env_cfg=[actor_env_cfg for _ in range(actor_env_num)],
+            env_num=actor_env_num,
+            episode_num=self.cfg.actor.episode_num
+        )
+
+        eval_env_num = self.cfg.evaluator.env_num
+        evaluate_env_cfg = copy.deepcopy(self.cfg.env)
+        self.evaluate_env = SubprocessEnvManager(
+            CartPoleEnv,
+            env_cfg=[evaluate_env_cfg for _ in range(eval_env_num)],
+            env_num=eval_env_num,
+            episode_num=self.cfg.evaluator.episode_num
+        )
 
     def _setup_learner(self):
-        self.learner = CartpoleDqnLearner(self.cfg)
+        self.learner = CartPoleDqnLearner(self.cfg)
 
-    def _setup_actor_agent(self):
-        self.actor_agent = CartpoleDqnActorAgent(copy.deepcopy(self.learner.agent.model))
+    def _setup_agent(self):
+        self.actor_agent = CartPoleDqnActorAgent(copy.deepcopy(self.learner.agent.model))
         self.actor_agent.mode(train=False)
-
-    def _setup_evaluate_agent(self):
-        self.evaluate_agent = CartpoleDqnEvaluateAgent(copy.deepcopy(self.learner.agent.model))
-        self.evaluate_agent.mode(train=False)
+        self.evaluator_agent = CartPoleDqnEvaluateAgent(copy.deepcopy(self.learner.agent.model))
+        self.evaluator_agent.mode(train=False)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--config_path', default="./cartpole_dqn_default_config.yaml")
     args = parser.parse_known_args()[0]
-    runner = CartpoleRunner(read_config(args.config_path))
+    runner = CartPoleRunner(read_config(args.config_path))
     runner.run()
