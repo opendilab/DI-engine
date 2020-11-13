@@ -1,6 +1,7 @@
 import math
 from abc import ABC, abstractmethod
 from typing import Callable, Union, Optional
+from copy import deepcopy
 
 import torch
 
@@ -8,7 +9,7 @@ import torch
 def epsilon_greedy(start: float, end: float, decay: int, type_: str = 'exp') -> Callable:
     """
     Overview:
-        generate an epsilon_greedy function with decay, which inputs current timestep and outputs current epsilon
+        Generate an epsilon_greedy function with decay, which inputs current timestep and outputs current epsilon
     Arguments:
         - start (:obj:`float`): epsilon start value, for 'linear' it should be 1.0
         - end (:obj:`float`): epsilon end value
@@ -36,15 +37,11 @@ class BaseNoise(ABC):
     r"""
     Overview:
         Base class for action noise
-    Usage:
-    ::
-
-        # init
-        self.noise = OUNoise()
-        # generate noise
-        noise = self.noise(logits.shape, eps)
     Interface:
         __init__, reset, __call__
+    Examples:
+        >>> self.noise = OUNoise()  # init one type of noise
+        >>> noise = self.noise(logits.shape, logits.device)  # generate noise
     """
 
     def __init__(self) -> None:
@@ -55,12 +52,12 @@ class BaseNoise(ABC):
         super().__init__()
 
     @abstractmethod
-    def __call__(self, shape: torch.Size, device: str) -> torch.Tensor:
+    def __call__(self, shape: tuple, device: str) -> torch.Tensor:
         """
         Overview:
             Generate noise according to action tensor's shape, device
         Arguments:
-            - shape (:obj:`torch.Size`): size of the action tensor, output noise's size should be the same
+            - shape (:obj:`tuple`): size of the action tensor, output noise's size should be the same
             - device (:obj:`str`): device of the action tensor, output noise's device should be the same as it
         Returns:
             - noise (:obj:`torch.Tensor`): generated action noise, \
@@ -77,7 +74,11 @@ class GaussianNoise(BaseNoise):
         __init__, reset, __call__
     """
 
-    def __init__(self, mu: float = 0.0, sigma: float = 1.0) -> None:
+    def __init__(
+            self,
+            mu: float = 0.0,
+            sigma: float = 1.0
+    ) -> None:
         """
         Overview:
             Initialize :math:`\mu` and :math:`\sigma` in Gaussian Distribution
@@ -90,12 +91,12 @@ class GaussianNoise(BaseNoise):
         assert sigma >= 0, "GaussianNoise's sigma should be positive."
         self._sigma = sigma
 
-    def __call__(self, shape: torch.Size, device: str) -> torch.Tensor:
+    def __call__(self, shape: tuple, device: str) -> torch.Tensor:
         """
         Overview:
             Generate gaussian noise according to action tensor's shape, device
         Arguments:
-            - shape (:obj:`torch.Size`): size of the action tensor, output noise's size should be the same
+            - shape (:obj:`tuple`): size of the action tensor, output noise's size should be the same
             - device (:obj:`str`): device of the action tensor, output noise's device should be the same as it
         Returns:
             - noise (:obj:`torch.Tensor`): generated action noise, \
@@ -134,7 +135,7 @@ class OUNoise(BaseNoise):
             - theta (:obj:`float`): how strongly the noise reacts to perturbations, \
                 greater value means stronger reaction
             - dt (:obj:`float`): derivative of time t
-            - x0 (:obj:`float`): initial action
+            - x0 (:obj:`float` or :obj:`torch.Tensor`): initial action
         """
         super().__init__()
         self._mu = mu
@@ -148,16 +149,16 @@ class OUNoise(BaseNoise):
         Overview:
             Reset ``_x`` to the initial state ``_x0``
         """
-        self._x = self._x0
+        self._x = deepcopy(self._x0)
 
-    def __call__(self, shape: torch.Size, device: str, mu: Optional[float] = None) -> torch.Tensor:
+    def __call__(self, shape: tuple, device: str, mu: Optional[float] = None) -> torch.Tensor:
         """
         Overview:
             Generate gaussian noise according to action tensor's shape, device
         Arguments:
-            - shape (:obj:`torch.Size`): size of the action tensor, output noise's size should be the same
+            - shape (:obj:`tuple`): size of the action tensor, output noise's size should be the same
             - device (:obj:`str`): device of the action tensor, output noise's device should be the same as it
-            - mu (:obj:`float`): new mean value :math:`\mu`, you can set it to `None` if don't want to use it
+            - mu (:obj:`float`): new mean value :math:`\mu`, you can set it to `None` if don't need it
         Returns:
             - noise (:obj:`torch.Tensor`): generated action noise, \
                 have the same shape and device with the input action tensor
@@ -170,4 +171,18 @@ class OUNoise(BaseNoise):
         noise = self._alpha * (mu - self._x) + self._beta * torch.randn(shape)
         self._x += noise
         return noise
+
+    @property
+    def x0(self) -> Union[float, torch.Tensor]:
+        return self._x0
+
+    @x0.setter
+    def x0(self, _x0: Union[float, torch.Tensor]) -> None:
+        """
+        Overview:
+            Set ``self._x0`` and reset ``self.x`` to ``self._x0`` as well
+        """
+        self._x0 = _x0
+        self.reset()
+
 
