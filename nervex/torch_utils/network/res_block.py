@@ -24,7 +24,6 @@ class ResBlock(nn.Module):
     Interface:
         __init__, forward
     '''
-
     def __init__(self, in_channels, activation=nn.ReLU(), norm_type='BN', res_type='basic'):
         r"""
         Overview:
@@ -82,7 +81,6 @@ class ResFCBlock(nn.Module):
     Interface:
         __init__, forward
     '''
-
     def __init__(self, in_channels, activation=nn.ReLU(), norm_type='BN'):
         r"""
         Overview:

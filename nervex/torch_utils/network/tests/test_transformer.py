@@ -9,18 +9,18 @@ from nervex.torch_utils import Transformer
 class TestTransformer:
 
     def test(self):
-        B = 4
+        batch_size = 20
+        num_entries = 50
+        C = 100
+        mask = None
         output_dim = 256
-        inputs = []
-        output_num_list = []
-        for _ in range(B):
-            N = np.random.randint(400, 600)
-            inputs.append(torch.randn(N, 340))
-            output_num_list.append(N)
-
-        model = Transformer(340, output_dim=output_dim)
-        outputs = model(inputs)
-        assert isinstance(outputs, list)
-        assert len(outputs) == B
-        for o, n in zip(outputs, output_num_list):
-            assert o.shape == (n, output_dim)
+        model = Transformer(input_dim=C,
+                            head_dim=128,
+                            hidden_dim=1024,
+                            output_dim=output_dim,
+                            head_num=2,
+                            mlp_num=2,
+                            layer_num=3,)
+        inputs = torch.rand(batch_size, num_entries, C)
+        outputs = model(inputs, mask)
+        assert outputs.shape == (batch_size, num_entries, output_dim)

@@ -11,18 +11,21 @@ import torch.nn.functional as F
 from nervex.utils import get_group, try_import_link
 
 link = try_import_link()
-
+torch.nn.SyncBatchNorm
 
 class GroupSyncBatchNorm(link.nn.SyncBatchNorm2d):
     r"""
     Overview:
-       Applies Batch Normalization over a N-Dimensional input (a mini-batch of [N-2]D inputs with additional channel
-       dimension) as described in the paper:
+        Applies Batch Normalization over a N-Dimensional input (a mini-batch of [N-2]D inputs with additional channel
+        dimension) as described in the paper:
 
-       Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift .
+        Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift .
 
         Notes:
             you can reference https://pytorch.org/docs/stable/generated/torch.nn.SyncBatchNorm.html
+
+        This class relies on linklink, you can find details on:
+            http://spring.sensetime.com/docs/linklink/api/index.html#syncbn
 
     Interface:
         __init__, __repr__
@@ -31,16 +34,21 @@ class GroupSyncBatchNorm(link.nn.SyncBatchNorm2d):
     def __init__(
         self, num_features, bn_group_size=None, momentum=0.1, sync_stats=True, var_mode=link.syncbnVarMode_t.L2
     ):
-        # TODO
         r"""
         Overview:
             Init class GroupSyncBatchNorm
 
-            Notes:
-                reference the linklink implementation <http://spring.sensetime.com/docs/linklink/api/index.html#syncbn>
         Arguments:
-            Notes:
-                reference <https://pytorch.org/docs/stable/generated/torch.nn.SyncBatchNorm.html>
+            num_features (:obj:`int`): size of input feature, C of (N, C, +)
+            bn_group_size (:obj:`int`): synchronization of stats happen within each process group
+                individually Default behavior is synchronization across the whole world
+            momentum (:obj:`float`): the value used for the running_mean and running_var
+                computation. Can be set to ``None`` for cumulative moving average
+            sync_stats (:obj:`bool`): a boolean value that when set to True, this module will
+                average the running mean and variance among all ranks; and when set to False,
+                the running mean and variance only track statistics among the group. Default: False
+            var_mode (:obj:'object'): when set to linklink.nn.syncbnVarMode_t.L1, will use L1 norm
+                mentioned in Norm matters: efficient and accurate normalization schemes in deep networks
         """
         self.group_size = bn_group_size
         super(GroupSyncBatchNorm, self).__init__(
@@ -90,10 +98,10 @@ class AdaptiveInstanceNorm2d(nn.Module):
             Init class AdaptiveInstanceNorm2d
 
         Arguments:
-            Notes:
-                reference batch_normal of <https://pytorch.org/docs/stable/nn.functional.html>
-
             - num_featurnes (:obj:`int`): the number of features
+            - eps (:obj:'float'):a value added to the denominator for numerical stability
+            momentum (:obj:`float`): the value used for the running_mean and running_var
+                computation. Can be set to ``None`` for cumulative moving average
         """
         super(AdaptiveInstanceNorm2d, self).__init__()
         self.num_features = num_features

@@ -106,7 +106,6 @@ def conv1d_block(
     Returns:
         - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 1 dim convlution layer
     """
-    # conv1d + norm + activation
     block = []
     block.append(nn.Conv1d(in_channels, out_channels, kernel_size, stride, padding, dilation, groups))
     weight_init_(block[-1].weight, init_type, activation)

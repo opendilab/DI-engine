@@ -16,6 +16,22 @@ def is_sequence(data):
     return isinstance(data, list) or isinstance(data, tuple)
 
 
+def sequence_mask(lengths, max_len=None):
+    r"""
+        Overview:
+            create a mask for a batch sequences with different lengths
+        Arguments:
+            - lengths (:obj:'tensor'): lengths in each different sequences, shape could be (n, 1) or (n)
+            - max_len (:obj:'int'): the padding size, if max_len is None, the padding size is the
+                max length of sequences
+    """
+    if len(lengths.shape) == 1:
+        lengths = lengths.unsqueeze(dim=1)
+    bz = lengths.numel()
+    max_len = max_len or lengths.max()
+    return torch.arange(0, max_len).type_as(lengths).repeat(bz, 1).lt(lengths).to(lengths.device)
+
+
 class LSTMForwardWrapper(object):
     r"""
     Overview:
@@ -30,8 +46,11 @@ class LSTMForwardWrapper(object):
             preprocess the inputs and previous states
         Arguments:
             - inputs (:obj:`tensor`): input vector of cell, tensor of size [seq_len, batch_size, input_size]
-            - prev_state (:obj:`tensor`): None or tensor of size [num_directions*num_layers, batch_size, hidden_size],
-                                          if None then prv_state will be initialized to all zeros.
+            - prev_state (:obj:`tensor` or :obj:'list'):
+                None or tensor of size [num_directions*num_layers, batch_size, hidden_size], if None then prv_state
+                will be initialized to all zeros.
+        Returns:
+            - prev_state (:obj:'tensor'): batch previous state in lstm
         """
         assert hasattr(self, 'num_layers')
         assert hasattr(self, 'hidden_size')
@@ -146,11 +165,13 @@ class LSTM(nn.Module, LSTMForwardWrapper):
         r"""
         Overview:
             Take the previous state and the input and calculate the output and the nextstate
-
         Arguments:
             - inputs (:obj:`tensor`): input vector of cell, tensor of size [seq_len, batch_size, input_size]
             - prev_state (:obj:`tensor`): None or tensor of size [num_directions*num_layers, batch_size, hidden_size]
             - list_next_state (:obj:`bool`): whether return next_state with list format, default set to False
+        Returns:
+            - x (:obj:'tensor'): output from lstm
+            - next_state (:obj:'tensor' or :obj:'list'): hidden state from lstm
         """
         seq_len, batch_size = inputs.shape[:2]
         prev_state = self._before_forward(inputs, prev_state)
@@ -199,10 +220,13 @@ class PytorchLSTM(nn.LSTM, LSTMForwardWrapper):
         r"""
         Overview:
             wrapped nn.LSTM.forward
-        Arguments
+        Arguments:
             - inputs (:obj:`tensor`): input vector of cell, tensor of size [seq_len, batch_size, input_size]
             - prev_state (:obj:`tensor`): None or tensor of size [num_directions*num_layers, batch_size, hidden_size]
             - list_next_state (:obj:`bool`): whether return next_state with list format, default set to False
+        Returns:
+            - output (:obj:'tensor'): output from lstm
+            - next_state (:obj:'tensor' or :obj:'list'): hidden state from lstm
         """
         prev_state = self._before_forward(inputs, prev_state)
         output, next_state = nn.LSTM.forward(self, inputs, prev_state)
@@ -210,6 +234,15 @@ class PytorchLSTM(nn.LSTM, LSTMForwardWrapper):
         return output, next_state
 
     def _after_forward(self, next_state, list_next_state=False):
+        r"""
+        Overview:
+            process hidden state after lstm, make it list or remains tensor
+        Arguments:
+            - nex_state (:obj:`tensor`): hidden state from lstm
+            - list_nex_state (:obj:`bool`): whether return next_state with list format, default set to False
+        Returns:
+            - next_state (:obj:'tensor' or :obj:'list'): hidden state from lstm
+        """
         if list_next_state:
             h, c = next_state
             batch_size = h.shape[1]
