@@ -36,14 +36,14 @@ def weight_init_(weight, init_type="xavier", activation=None):
         else:
             kaiming_normal_(weight, a=0)
 
-    def orthogonal_init(weight, **kwargs):
+    def orthogonal_init(weight, *args):
         orthogonal_(weight)
 
     init_type_dict = {"xavier": xavier_init, "kaiming": kaiming_init, "orthogonal": orthogonal_init}
     if init_type in init_type_dict:
         init_type_dict[init_type](weight, activation)
     else:
-        raise ValueError("Invalid Value in init type: {}".format(init_type))
+        raise KeyError("Invalid Value in init type: {}".format(init_type))
 
 
 def sequential_pack(layers):
@@ -86,12 +86,19 @@ def conv1d_block(
 ):
     r"""
     Overview:
-        create a 1-dim convlution layer.
+        create a 1-dim convlution layer with activation and normalization.
 
-    Arguments:
         Note:
             Conv1d (https://pytorch.org/docs/stable/generated/torch.nn.Conv1d.html#torch.nn.Conv1d)
 
+    Arguments:
+        - in_channels (:obj:`int`): Number of channels in the input tensor
+        - out_channels (:obj:`int`): Number of channels in the output tensor
+        - kernel_size (:obj:`int`): Size of the convolving kernel
+        - stride (:obj:`int`): Stride of the convolution
+        - padding (:obj:`int`): Zero-padding added to both sides of the input
+        - dilation (:obj:`int`): Spacing between kernel elements
+        - groups (:obj:`int`): Number of blocked connections from input channels to output channels
         - init_type (:obj:`str`): the type of init to implement
         - activation (:obj:`nn.Module`): the optional activation function
         - norm_type (:obj:`str`): type of the normalization
@@ -99,14 +106,11 @@ def conv1d_block(
     Returns:
         - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 1 dim convlution layer
     """
-    # conv1d + norm + activation
     block = []
     block.append(nn.Conv1d(in_channels, out_channels, kernel_size, stride, padding, dilation, groups))
     weight_init_(block[-1].weight, init_type, activation)
-    if norm_type is None:
-        pass
-    else:
-        block.append(build_normalization(norm_type, dims=1)(out_channels))
+    if norm_type is not None:
+        block.append(build_normalization(norm_type, dim=1)(out_channels))
     if activation is not None:
         block.append(activation)
     return sequential_pack(block)
@@ -127,14 +131,21 @@ def conv2d_block(
 ):
     r"""
     Overview:
-        create a 2-dim convlution layer.
+        create a 2-dim convlution layer with activation and normalization.
 
-    Arguments:
         Note:
             Conv2d (https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html#torch.nn.Conv2d)
 
+    Arguments:
+        - in_channels (:obj:`int`): Number of channels in the input tensor
+        - out_channels (:obj:`int`): Number of channels in the output tensor
+        - kernel_size (:obj:`int`): Size of the convolving kernel
+        - stride (:obj:`int`): Stride of the convolution
+        - padding (:obj:`int`): Zero-padding added to both sides of the input
+        - dilation (:obj:`int`): Spacing between kernel elements
+        - groups (:obj:`int`): Number of blocked connections from input channels to output channels
         - init_type (:obj:`str`): the type of init to implement
-        - pad_type (:obj:`str`): the way to add padding, include ['zero', 'reflect', 'replicate']
+        - pad_type (:obj:`str`): the way to add padding, include ['zero', 'reflect', 'replicate'], default: None
         - activation (:obj:`nn.Moduel`): the optional activation function
         - norm_type (:obj:`str`): type of the normalization, default set to None, now support ['BN', 'IN', 'SyncBN']
 
@@ -143,19 +154,20 @@ def conv2d_block(
     """
 
     block = []
+    assert pad_type in ['zero', 'reflect', 'replication'], "invalid padding type: {}".format(pad_type)
     if pad_type == 'zero':
-        block.append(nn.ZeroPad2d(padding))
+        pass
     elif pad_type == 'reflect':
         block.append(nn.ReflectionPad2d(padding))
-    elif pad_type == 'replicate':
-        block.append(nn.ReplicatePad2d(padding))
-    else:
-        raise ValueError
-    block.append(nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding=0, dilation=dilation, groups=groups))
+        padding = 0
+    elif pad_type == 'replication':
+        block.append(nn.ReplicationPad2d(padding))
+        padding = 0
+    block.append(
+        nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding=padding, dilation=dilation, groups=groups)
+    )
     weight_init_(block[-1].weight, init_type, activation)
-    if norm_type is None:
-        pass
-    else:
+    if norm_type is not None:
         block.append(build_normalization(norm_type, dim=2)(out_channels))
     if activation is not None:
         block.append(activation)
@@ -169,21 +181,24 @@ def deconv2d_block(
     stride=1,
     padding=0,
     output_padding=0,
-    dilation=1,
     groups=1,
     init_type="xavier",
-    pad_type='zero',
     activation=None,
     norm_type=None
 ):
     r"""
     Overview:
-        create a 2-dim transopse convlution layer.
+        create a 2-dim transopse convlution layer with activation and normalization
 
-    Arguments:
         Note:
             ConvTranspose2d (https://pytorch.org/docs/master/generated/torch.nn.ConvTranspose2d.html)
 
+    Arguments:
+        - in_channels (:obj:`int`): Number of channels in the input tensor
+        - out_channels (:obj:`int`): Number of channels in the output tensor
+        - kernel_size (:obj:`int`): Size of the convolving kernel
+        - stride (:obj:`int`): Stride of the convolution
+        - padding (:obj:`int`): Zero-padding added to both sides of the input
         - init_type (:obj:`str`): the type of init to implement
         - pad_type (:obj:`str`): the way to add padding, include ['zero', 'reflect', 'replicate']
         - activation (:obj:`nn.Moduel`): the optional activation function
@@ -206,9 +221,7 @@ def deconv2d_block(
         )
     )
     weight_init_(block[-1].weight, init_type, activation)
-    if norm_type is None:
-        pass
-    else:
+    if norm_type is not None:
         block.append(build_normalization(norm_type, dim=2)(out_channels))
     if activation is not None:
         block.append(activation)
@@ -226,14 +239,15 @@ def fc_block(
 ):
     r"""
     Overview:
-        create a fully-connected block
+        create a fully-connected block with activation, normalization and dropout
         optional normalization can be done to the dim 1 (across the channels)
         x -> fc -> norm -> act -> dropout -> out
-
-    Arguments:
         Note:
             nn.linear (https://pytorch.org/docs/master/generated/torch.nn.Linear.html)
 
+    Arguments:
+        - in_channels (:obj:`int`): Number of channels in the input tensor
+        - out_channels (:obj:`int`): Number of channels in the output tensor
         - init_type (:obj:`str`): the type of init to implement
         - activation (:obj:`nn.Moduel`): the optional activation function
         - norm_type (:obj:`str`): type of the normalization
@@ -246,9 +260,7 @@ def fc_block(
     block = []
     block.append(nn.Linear(in_channels, out_channels))
     weight_init_(block[-1].weight, init_type, activation)
-    if norm_type is None:
-        pass
-    else:
+    if norm_type is not None:
         block.append(build_normalization(norm_type, dim=1)(out_channels))
     if activation is not None:
         block.append(activation)
@@ -262,13 +274,11 @@ class ChannelShuffle(nn.Module):
         Overview:
             Apply channelShuffle to the input tensor
 
-        Interface:
-            __init__, forward
-
-
-        Note:
+            Note:
             You can see the original paper shuffle net in link below
             shuffleNet(https://arxiv.org/abs/1707.01083)
+        Interface:
+            __init__, forward
     """
 
     def __init__(self, group_num):
@@ -327,7 +337,7 @@ def one_hot(val, num, num_first=False):
                 [[0., 1.], [0., 0.]],
                 [[1., 0.], [0., 1.]]])
     """
-    assert (isinstance(val, torch.Tensor))
+    assert (isinstance(val, torch.LongTensor))
     assert (len(val.shape) >= 1)
     old_shape = val.shape
     val_reshape = val.reshape(-1, 1)
@@ -335,8 +345,7 @@ def one_hot(val, num, num_first=False):
     try:
         ret.scatter_(1, val_reshape, 1)
     except RuntimeError:
-        print(val_reshape, num, val_reshape.shape)
-        raise RuntimeError
+        raise RuntimeError('value: {}\nnum: {}\t:val_shape: {}\n'.format(val_reshape, num, val_reshape.shape))
     if num_first:
         return ret.permute(1, 0).reshape(num, *old_shape)
     else:
@@ -374,7 +383,7 @@ class NearestUpsample(nn.Module):
         Returns:
             - upsample(:obj:`tensor`): the upsampled input tensor
         """
-        return F.interpolate(x, self.scale_factor, mode='nearest')
+        return F.interpolate(x, scale_factor=self.scale_factor, mode='nearest')
 
 
 class BilinearUpsample(nn.Module):

@@ -16,13 +16,16 @@ link = try_import_link()
 class GroupSyncBatchNorm(link.nn.SyncBatchNorm2d):
     r"""
     Overview:
-       Applies Batch Normalization over a N-Dimensional input (a mini-batch of [N-2]D inputs with additional channel
-       dimension) as described in the paper:
+        Applies Batch Normalization over a N-Dimensional input (a mini-batch of [N-2]D inputs with additional channel
+        dimension) as described in the paper:
 
-       Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift .
+        Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift .
 
         Notes:
             you can reference https://pytorch.org/docs/stable/generated/torch.nn.SyncBatchNorm.html
+
+        This class relies on linklink, you can find details on:
+            http://spring.sensetime.com/docs/linklink/api/index.html#syncbn
 
     Interface:
         __init__, __repr__
@@ -31,16 +34,21 @@ class GroupSyncBatchNorm(link.nn.SyncBatchNorm2d):
     def __init__(
         self, num_features, bn_group_size=None, momentum=0.1, sync_stats=True, var_mode=link.syncbnVarMode_t.L2
     ):
-        # TODO
         r"""
         Overview:
             Init class GroupSyncBatchNorm
 
-            Notes:
-                reference the linklink implementation <http://spring.sensetime.com/docs/linklink/api/index.html#syncbn>
         Arguments:
-            Notes:
-                reference <https://pytorch.org/docs/stable/generated/torch.nn.SyncBatchNorm.html>
+            num_features (:obj:`int`): size of input feature, C of (N, C, +)
+            bn_group_size (:obj:`int`): synchronization of stats happen within each process group
+                individually Default behavior is synchronization across the whole world
+            momentum (:obj:`float`): the value used for the running_mean and running_var
+                computation. Can be set to ``None`` for cumulative moving average
+            sync_stats (:obj:`bool`): a boolean value that when set to True, this module will
+                average the running mean and variance among all ranks; and when set to False,
+                the running mean and variance only track statistics among the group. Default: False
+            var_mode (:obj:`object`): when set to linklink.nn.syncbnVarMode_t.L1, will use L1 norm
+                mentioned in Norm matters: efficient and accurate normalization schemes in deep networks
         """
         self.group_size = bn_group_size
         super(GroupSyncBatchNorm, self).__init__(
@@ -71,66 +79,6 @@ class GroupSyncBatchNorm(link.nn.SyncBatchNorm2d):
         )
 
 
-class AdaptiveInstanceNorm2d(nn.Module):
-    r"""
-    Overview:
-        the Adaptive Instance Normalization with 2 dimensions.
-
-        Notes:
-            you can reference <https://www.jianshu.com/p/7aeb1b41930b> or read paper <https://arxiv.org/pdf/1703.06868.pdf>  # noqa
-            to learn more about Adaptive Instance Normalization
-
-    Interface:
-        __init__, forward
-    """
-
-    def __init__(self, num_features, eps=1e-5, momentum=0.1):
-        r"""
-        Overview:
-            Init class AdaptiveInstanceNorm2d
-
-        Arguments:
-            Notes:
-                reference batch_normal of <https://pytorch.org/docs/stable/nn.functional.html>
-
-            - num_featurnes (:obj:`int`): the number of features
-        """
-        super(AdaptiveInstanceNorm2d, self).__init__()
-        self.num_features = num_features
-        self.eps = eps
-        self.momentum = momentum
-
-        self.weight = None
-        self.bias = None
-
-        self.register_buffer('running_mean', torch.zeros(num_features))
-        self.register_buffer('running_var', torch.zeros(num_features))
-
-    def forward(self, x):
-        r"""
-        Overview:
-            compute the output of AdaptiveInstanceNorm
-
-        Arguments:
-            - x (:obj:`Tensor`): the batch input tensor of AdaIN
-
-        Shapes:
-            - x (:obj:`Tensor`): :math:`(B, C, H, W)`, while B is the batch size,
-                C is number of channels , H and W stands for height and width
-        """
-        assert self.weight is not None and self.bias is not None
-        b, c, h, w = x.shape
-        running_mean = self.running_mean.repeat(b)
-        running_var = self.running_var.repeat(b)
-
-        x_reshape = x.contiguous().view(1, b * c, h, w)
-        output = F.batch_norm(
-            x_reshape, running_mean, running_var, self.weight, self.bias, True, self.momentum, self.eps
-        )
-
-        return output.view(b, c, h, w)
-
-
 def build_normalization(norm_type, dim=None):
     r"""
     Overview:
@@ -151,13 +99,12 @@ def build_normalization(norm_type, dim=None):
         if norm_type in ['BN', 'IN', 'SyncBN']:
             key = norm_type + str(dim)
         else:
-            key = norm_type
+            raise NotImplementedError("not support indicated dim when creates {}".format(norm_type))
     norm_func = {
         'BN1': nn.BatchNorm1d,
         'BN2': nn.BatchNorm2d,
         'LN': nn.LayerNorm,
         'IN2': nn.InstanceNorm2d,
-        'AdaptiveIN': AdaptiveInstanceNorm2d,
         'SyncBN2': GroupSyncBatchNorm,
     }
     if key in norm_func.keys():
