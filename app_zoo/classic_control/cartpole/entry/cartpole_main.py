@@ -8,7 +8,7 @@ from nervex.model import FCDQN
 from nervex.rl_utils import td_data, one_step_td_error
 from nervex.utils import read_config
 from nervex.worker import BaseLearner, SubprocessEnvManager
-from nervex.worker.agent import BaseAgent
+from nervex.worker.agent import BaseAgent, DqnLearnerAgent, DqnActorAgent, DiscreteEvaluatorAgent
 from app_zoo.classic_control.cartpole.envs import CartPoleEnv
 
 
@@ -40,50 +40,6 @@ class CartPoleDqnGraph(BaseCompGraph):
     def __repr__(self):
         return "CartPoleDqnGraph"
 
-    def register_stats(self, recorder, tb_logger):
-        recorder.register_var('total_loss')
-        tb_logger.register_var('total_loss')
-
-
-class CartPoleDqnLearnerAgent(BaseAgent):
-
-    def __init__(self, model, is_double=True):
-        self.plugin_cfg = OrderedDict({
-            'grad': {
-                'enable_grad': True
-            },
-        })
-        # whether use double(target) q-network plugin
-        if is_double:
-            # self.plugin_cfg['target_network'] = {'update_cfg': {'type': 'momentum', 'kwargs': {'theta': 0.001}}}
-            self.plugin_cfg['target_network'] = {'update_cfg': {'type': 'assign', 'kwargs': {'freq': 500}}}
-        self.is_double = is_double
-        super(CartPoleDqnLearnerAgent, self).__init__(model, self.plugin_cfg)
-
-
-class CartPoleDqnActorAgent(BaseAgent):
-
-    def __init__(self, model):
-        plugin_cfg = OrderedDict({
-            'eps_greedy_sample': {},
-            'grad': {
-                'enable_grad': False
-            },
-        })
-        super(CartPoleDqnActorAgent, self).__init__(model, plugin_cfg)
-
-
-class CartPoleDqnEvaluateAgent(BaseAgent):
-
-    def __init__(self, model):
-        plugin_cfg = OrderedDict({
-            'argmax_sample': {},
-            'grad': {
-                'enable_grad': False
-            },
-        })
-        super(CartPoleDqnEvaluateAgent, self).__init__(model, plugin_cfg)
-
 
 class CartPoleDqnLearner(BaseLearner):
     _name = "CartPoleDqnLearner"
@@ -93,7 +49,7 @@ class CartPoleDqnLearner(BaseLearner):
         model = FCDQN(env_info.obs_space.shape, env_info.act_space.shape, dueling=self._cfg.learner.dqn.dueling)
         if self._cfg.learner.use_cuda:
             model.cuda()
-        self._agent = CartPoleDqnLearnerAgent(model, is_double=self._cfg.learner.dqn.is_double)
+        self._agent = DqnLearnerAgent(model, is_double=self._cfg.learner.dqn.is_double)
         self._agent.mode(train=True)
         if self._agent.is_double:
             self._agent.target_mode(train=True)
@@ -127,9 +83,9 @@ class CartPoleRunner(SingleMachineRunner):
         self.learner = CartPoleDqnLearner(self.cfg)
 
     def _setup_agent(self):
-        self.actor_agent = CartPoleDqnActorAgent(copy.deepcopy(self.learner.agent.model))
+        self.actor_agent = DqnActorAgent(copy.deepcopy(self.learner.agent.model))
         self.actor_agent.mode(train=False)
-        self.evaluator_agent = CartPoleDqnEvaluateAgent(copy.deepcopy(self.learner.agent.model))
+        self.evaluator_agent = DiscreteEvaluatorAgent(copy.deepcopy(self.learner.agent.model))
         self.evaluator_agent.mode(train=False)
 
 

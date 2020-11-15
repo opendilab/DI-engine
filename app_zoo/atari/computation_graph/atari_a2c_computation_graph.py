@@ -1,16 +1,13 @@
 from nervex.computation_graph import BaseCompGraph
-from nervex.rl_utils import ppo_data, ppo_error
+from nervex.rl_utils import a2c_data, a2c_error
 from nervex.worker.agent import BaseAgent
 
 
-class AtariPpoGraph(BaseCompGraph):
+class AtariA2CGraph(BaseCompGraph):
 
     def __init__(self, cfg: dict) -> None:
-        self._lambda = cfg.ppo.gae_lambda
-        self._clip_ratio = cfg.ppo.clip_ratio
-
-        self._value_weight = cfg.ppo.value_weight
-        self._entropy_weight = cfg.ppo.entropy_weight
+        self._value_weight = cfg.a2c.value_weight
+        self._entropy_weight = cfg.a2c.entropy_weight
 
     def forward(self, data: dict, agent: BaseAgent) -> dict:
         output = agent.forward(data['obs'])
@@ -21,24 +18,20 @@ class AtariPpoGraph(BaseCompGraph):
         # norm adv in total train_batch
         mean, std = adv.mean(), adv.std()
         adv = (adv - mean) / (std + 1e-8)
-        # calculate ppo error
-        data = ppo_data(
-            output['logit'], data['logit'], data['action'], output['value'], data['value'], adv, return_, weight
-        )
-        ppo_loss, ppo_info = ppo_error(data, self._clip_ratio)
-        total_loss = ppo_loss.policy_loss + self._value_weight * ppo_loss.value_loss - self._entropy_weight * ppo_loss.entropy_loss
+        # calculate a2c error
+        data = a2c_data(output['logit'], data['action'], output['value'], adv, return_, weight)
+        a2c_loss, a2c_info = a2c_error(data)
+        total_loss = a2c_loss.policy_loss + self._value_weight * a2c_loss.value_loss - self._entropy_weight * a2c_loss.entropy_loss
 
         return {
             'total_loss': total_loss,
-            'policy_loss': ppo_loss.policy_loss.item(),
-            'value_loss': ppo_loss.value_loss.item(),
-            'entropy_loss': ppo_loss.entropy_loss.item(),
-            'approx_kl': ppo_info.approx_kl,
-            'clipfrac': ppo_info.clipfrac,
+            'policy_loss': a2c_loss.policy_loss.item(),
+            'value_loss': a2c_loss.value_loss.item(),
+            'entropy_loss': a2c_loss.entropy_loss.item(),
         }
 
     def __repr__(self) -> str:
-        return "AtariPpoGraph"
+        return "AtariA2CGraph"
 
     def register_stats(self, recorder: 'VariableRecorder', tb_logger: 'TensorBoardLogger') -> None:  # noqa
         recorder.register_var('total_loss')

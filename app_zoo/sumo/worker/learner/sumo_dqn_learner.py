@@ -11,9 +11,9 @@ from nervex.model import FCDQN
 from nervex.utils import deep_merge_dicts
 from nervex.utils import override, read_config, DistModule
 from nervex.worker.learner import BaseLearner, register_learner
+from nervex.worker.agent import DqnLearnerAgent
 from app_zoo.sumo.envs.sumo_env import SumoWJ3Env
 from app_zoo.sumo.computation_graph.sumo_dqn_computation_graph import SumoDqnGraph
-from app_zoo.sumo.worker.agent.sumo_dqn_agent import SumoDqnLearnerAgent
 
 default_config = read_config(osp.join(osp.dirname(__file__), "sumo_dqn_learner_default_config.yaml"))
 
@@ -36,7 +36,7 @@ class SumoDqnLearner(BaseLearner):
             model.cuda()
         if self.use_distributed:
             model = DistModule(model)
-        self._agent = SumoDqnLearnerAgent(model, plugin_cfg={'is_double': self._cfg.learner.dqn.is_double})
+        self._agent = DqnLearnerAgent(model, self._cfg.learner.dqn.is_double)
         self._agent.mode(train=True)
         if self._agent.is_double:
             self._agent.target_mode(train=True)

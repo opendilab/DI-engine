@@ -1,8 +1,8 @@
 from nervex.model import ConvDQN
 from nervex.worker.learner import BaseLearner
+from nervex.worker.agent import DqnLearnerAgent
 from app_zoo.atari.envs import AtariEnv
 from app_zoo.atari.computation_graph.atari_dqn_computation_graph import AtariDqnGraph
-from .atari_agent import AtariDqnLearnerAgent
 
 
 class AtariDqnLearner(BaseLearner):
@@ -13,7 +13,7 @@ class AtariDqnLearner(BaseLearner):
         model = ConvDQN(env_info.obs_space.shape, env_info.act_space.shape, dueling=self._cfg.learner.dqn.dueling)
         if self._cfg.learner.use_cuda:
             model.cuda()
-        self._agent = AtariDqnLearnerAgent(model, is_double=self._cfg.learner.dqn.is_double)
+        self._agent = DqnLearnerAgent(model, is_double=self._cfg.learner.dqn.is_double)
         self._agent.mode(train=True)
         if self._agent.is_double:
             self._agent.target_mode(train=True)

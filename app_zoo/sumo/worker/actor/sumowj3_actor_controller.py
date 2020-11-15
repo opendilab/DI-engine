@@ -3,8 +3,8 @@ from typing import List, Dict, Any
 
 from nervex.model import FCDQN
 from nervex.worker.actor import ZerglingActor, register_actor
+from nervex.worker.agent import DqnActorAgent
 from app_zoo.sumo.envs import SumoWJ3Env, FakeSumoWJ3Env
-from app_zoo.sumo.worker.agent.sumo_dqn_agent import SumoDqnActorAgent
 
 
 class SumoWJ3Actor(ZerglingActor):
@@ -22,7 +22,7 @@ class SumoWJ3Actor(ZerglingActor):
         model = FCDQN(env_info.obs_space.shape, list(env_info.act_space.shape.values()))
         if self._cfg.actor.use_cuda:
             model.cuda()
-        self._agent = SumoDqnActorAgent(model)
+        self._agent = DqnActorAgent(model)
         self._agent.mode(train=False)
 
     # override
