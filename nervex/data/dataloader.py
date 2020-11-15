@@ -229,6 +229,8 @@ class AsyncDataLoader(object):
             self.cuda_queue.join()
 
     def __del__(self) -> None:
+        if self.end_flag:
+            return
         self.end_flag = True
         self._clean_queue()
         self.async_process.terminate()

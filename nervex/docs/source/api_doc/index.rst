@@ -16,6 +16,7 @@ API Doc
     rl_utils/adder
     rl_utils/gae
     rl_utils/ppo
+    rl_utils/a2c
     torch_utils_network/network
     torch_utils/checkpoint_helper
     torch_utils/metric

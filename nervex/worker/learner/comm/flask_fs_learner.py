@@ -95,7 +95,7 @@ class FlaskFileSystemLearner(BaseCommLearner):
             s = s[begin]
             s.update(meta)
         else:
-            s = s[begin: end]
+            s = s[begin:end]
             # add metdata key-value to stepdata
             for i in range(len(s)):
                 s[i].update(meta)
@@ -119,7 +119,13 @@ class FlaskFileSystemLearner(BaseCommLearner):
                 metadata = result['info']
                 if metadata is not None:
                     assert isinstance(metadata, list)
-                    data = [partial(FlaskFileSystemLearner.load_data_fn, path=os.path.join(self._path_traj, m['traj_id']), meta=m) for m in metadata]
+                    data = [
+                        partial(
+                            FlaskFileSystemLearner.load_data_fn,
+                            path=os.path.join(self._path_traj, m['traj_id']),
+                            meta=m
+                        ) for m in metadata
+                    ]
                     return data
             time.sleep(sleep_count)
             sleep_count += 5

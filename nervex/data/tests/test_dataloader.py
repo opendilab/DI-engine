@@ -1,4 +1,5 @@
 import pytest
+import threading
 import time
 import torch
 import torch.nn as nn
@@ -95,3 +96,6 @@ class TestAsyncDataLoader:
             assert total_data_time <= 9 * batch_size * 0.5 + 9 * 0.005 - 9 * 1
         else:
             assert total_data_time <= 9 * 0.008
+        dataloader.__del__()
+        time.sleep(0.5)
+        assert len(threading.enumerate()) <= 2

@@ -13,6 +13,7 @@ from nervex.worker.learner import LearnerHook, register_learner_hook, add_learne
 
 
 class FakeLearner(BaseLearner):
+
     def get_data(self, batch_size):
         return [partial(torch.randn, 2) for _ in range(batch_size)]
 
