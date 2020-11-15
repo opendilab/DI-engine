@@ -11,7 +11,7 @@ import torch.nn.functional as F
 from nervex.utils import get_group, try_import_link
 
 link = try_import_link()
-torch.nn.SyncBatchNorm
+
 
 class GroupSyncBatchNorm(link.nn.SyncBatchNorm2d):
     r"""
@@ -47,7 +47,7 @@ class GroupSyncBatchNorm(link.nn.SyncBatchNorm2d):
             sync_stats (:obj:`bool`): a boolean value that when set to True, this module will
                 average the running mean and variance among all ranks; and when set to False,
                 the running mean and variance only track statistics among the group. Default: False
-            var_mode (:obj:'object'): when set to linklink.nn.syncbnVarMode_t.L1, will use L1 norm
+            var_mode (:obj:`object`): when set to linklink.nn.syncbnVarMode_t.L1, will use L1 norm
                 mentioned in Norm matters: efficient and accurate normalization schemes in deep networks
         """
         self.group_size = bn_group_size
@@ -99,7 +99,7 @@ class AdaptiveInstanceNorm2d(nn.Module):
 
         Arguments:
             - num_featurnes (:obj:`int`): the number of features
-            - eps (:obj:'float'):a value added to the denominator for numerical stability
+            - eps (:obj:`float`):a value added to the denominator for numerical stability
             momentum (:obj:`float`): the value used for the running_mean and running_var
                 computation. Can be set to ``None`` for cumulative moving average
         """

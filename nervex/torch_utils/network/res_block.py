@@ -30,11 +30,11 @@ class ResBlock(nn.Module):
             Init the Residual Block
 
         Arguments:
-            - in_channels (:obj:'int'): Number of channels in the input tensor
+            - in_channels (:obj:`int`): Number of channels in the input tensor
             - activation (:obj:`nn.Module`): the optional activation function
             - norm_type (:obj:`str`): type of the normalization, defalut set to batch normalization,
                                       support ['BN', 'IN', 'SyncBN', None]
-            - res_type (:obj:'str'): type of residual block, support ['basic', 'bottleneck'], see overview for details
+            - res_type (:obj:`str`): type of residual block, support ['basic', 'bottleneck'], see overview for details
         """
         super(ResBlock, self).__init__()
         self.act = activation

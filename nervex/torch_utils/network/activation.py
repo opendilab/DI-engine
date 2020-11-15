@@ -74,7 +74,7 @@ def build_activation(activation, inplace=None):
 
     Arguments:
         - actvation (:obj:`str`): the type of activation module needed, now support ['relu', 'glu', 'prelu']
-        - inplace (:obj:'bool'): can optionally do the operation in-place in relu. Default: ``None``
+        - inplace (:obj:`bool`): can optionally do the operation in-place in relu. Default: ``None``
 
     Returns:
         - act_func (:obj:`torch.nn.module`): the corresponding activation module

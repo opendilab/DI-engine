@@ -15,11 +15,11 @@ class Attention(nn.Module):
         Overview:
             Init attention
         Arguments:
-            - input_dim (:obj:'int'): dimension of input
-            - head_dim (:obj:'int'): dimension of each head
-            - output_dim (:obj:'int'): dimension of output
-            - head_num (:obj:'int'): head num for multihead attention
-            - dropout (:obj:'nn.Module'): dropout layer
+            - input_dim (:obj:`int`): dimension of input
+            - head_dim (:obj:`int`): dimension of each head
+            - output_dim (:obj:`int`): dimension of output
+            - head_num (:obj:`int`): head num for multihead attention
+            - dropout (:obj:`nn.Module`): dropout layer
         """
         super(Attention, self).__init__()
         self.head_num = head_num
@@ -33,10 +33,10 @@ class Attention(nn.Module):
         Overview:
             Split input to get multihead queries, keys, values
         Arguments:
-            - x (:obj:'tensor'): query or key or value
-            - T (:obj:'bool'): whether to transpose output
+            - x (:obj:`tensor`): query or key or value
+            - T (:obj:`bool`): whether to transpose output
         Returns:
-            - x (:obj:'list'): list of output tensors for each head
+            - x (:obj:`list`): list of output tensors for each head
         """
         B, N = x.shape[:2]
         x = x.view(B, N, self.head_num, self.head_dim)
@@ -50,10 +50,10 @@ class Attention(nn.Module):
         Overview:
            Compute attention
         Arguments:
-            - x (:obj:'tensor'): input tensor
-            - mask (:obj:'tensor'): mask out invalid entries
+            - x (:obj:`tensor`): input tensor
+            - mask (:obj:`tensor`): mask out invalid entries
         Returns:
-            - attention (:obj:'tensor'): attention tensor
+            - attention (:obj:`tensor`): attention tensor
         """
         assert (len(x.shape) == 3)
         B, N = x.shape[:2]
@@ -85,14 +85,14 @@ class TransformerLayer(nn.Module):
         Overview:
             Init transformer layer
         Arguments:
-            - input_dim (:obj:'int'): dimension of input
-            - head_dim (:obj:'int'): dimension of each head
-            - hidden_dim (:obj:'int'): dimension of hidden layer in mlp
-            - output_dim (:obj:'int'): dimension of output
-            - head_num (:obj:'int'): number of heads for multihead attention
-            - mlp_num (:obj:'int'): number of mlp layers
-            - dropout (:obj:'nn.Module'): dropout layer
-            - activation (:obj:'nn.Module'): activation function
+            - input_dim (:obj:`int`): dimension of input
+            - head_dim (:obj:`int`): dimension of each head
+            - hidden_dim (:obj:`int`): dimension of hidden layer in mlp
+            - output_dim (:obj:`int`): dimension of output
+            - head_num (:obj:`int`): number of heads for multihead attention
+            - mlp_num (:obj:`int`): number of mlp layers
+            - dropout (:obj:`nn.Module`): dropout layer
+            - activation (:obj:`nn.Module`): activation function
         """
         super(TransformerLayer, self).__init__()
         self.attention = Attention(input_dim, head_dim, output_dim, head_num, dropout)
@@ -108,12 +108,13 @@ class TransformerLayer(nn.Module):
         self.mlp = nn.Sequential(*layers)
         self.layernorm2 = build_normalization('LN')(output_dim)
 
-    def forward(self, x, mask):
+    def forward(self, inputs):
+        x, mask = inputs
         a = self.dropout(self.attention(x, mask))
         x = self.layernorm1(x + a)
         m = self.dropout(self.mlp(x))
         x = self.layernorm2(x + m)
-        return x, mask
+        return (x, mask)
 
 
 class Transformer(nn.Module):
@@ -140,15 +141,15 @@ class Transformer(nn.Module):
         Overview:
             Init transformer
         Arguments:
-            - input_dim (:obj:'int'): dimension of input
-            - head_dim (:obj:'int'): dimension of each head
-            - hidden_dim (:obj:'int'): dimension of hidden layer in mlp
-            - output_dim (:obj:'int'): dimension of output
-            - head_num (:obj:'int'): number of heads for multihead attention
-            - mlp_num (:obj:'int'): number of mlp layers
-            - layer_num (:obj:'int'): number of transformer layers
-            - dropout_ratio (:obj:'float'): dropout ratio
-            - activation (:obj:'nn.Module'): activation function
+            - input_dim (:obj:`int`): dimension of input
+            - head_dim (:obj:`int`): dimension of each head
+            - hidden_dim (:obj:`int`): dimension of hidden layer in mlp
+            - output_dim (:obj:`int`): dimension of output
+            - head_num (:obj:`int`): number of heads for multihead attention
+            - mlp_num (:obj:`int`): number of mlp layers
+            - layer_num (:obj:`int`): number of transformer layers
+            - dropout_ratio (:obj:`float`): dropout ratio
+            - activation (:obj:`nn.Module`): activation function
         """
         super(Transformer, self).__init__()
         self.embedding = fc_block(input_dim, output_dim, activation=activation)
@@ -169,16 +170,16 @@ class Transformer(nn.Module):
         Overview:
             Transformer forward
         Arguments:
-            - x (:obj:'tensor'): input tensor, shape (B, N, C), B is batch size, N is number of entries,
+            - x (:obj:`tensor`): input tensor, shape (B, N, C), B is batch size, N is number of entries,
                 C is feature dimension
-            - mask (:obj:'tensor' or :obj:'None'): bool tensor, can be used to mask out invalid entries in attention,
+            - mask (:obj:`tensor` or :obj:`None`): bool tensor, can be used to mask out invalid entries in attention,
                 shape (B, N), B is batch size, N is number of entries
         Returns:
-            - x (:obj:'tensor'): transformer output
+            - x (:obj:`tensor`): transformer output
         """
         if mask is not None:
             mask = mask.unsqueeze(dim=1).repeat(1, mask.shape[1], 1).unsqueeze(dim=1)
         x = self.embedding(x)
         x = self.dropout(x)
-        x = self.main(x, mask)
+        x, mask = self.main((x, mask))
         return x

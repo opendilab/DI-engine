@@ -21,8 +21,8 @@ def sequence_mask(lengths, max_len=None):
         Overview:
             create a mask for a batch sequences with different lengths
         Arguments:
-            - lengths (:obj:'tensor'): lengths in each different sequences, shape could be (n, 1) or (n)
-            - max_len (:obj:'int'): the padding size, if max_len is None, the padding size is the
+            - lengths (:obj:`tensor`): lengths in each different sequences, shape could be (n, 1) or (n)
+            - max_len (:obj:`int`): the padding size, if max_len is None, the padding size is the
                 max length of sequences
     """
     if len(lengths.shape) == 1:
@@ -46,11 +46,11 @@ class LSTMForwardWrapper(object):
             preprocess the inputs and previous states
         Arguments:
             - inputs (:obj:`tensor`): input vector of cell, tensor of size [seq_len, batch_size, input_size]
-            - prev_state (:obj:`tensor` or :obj:'list'):
+            - prev_state (:obj:`tensor` or :obj:`list`):
                 None or tensor of size [num_directions*num_layers, batch_size, hidden_size], if None then prv_state
                 will be initialized to all zeros.
         Returns:
-            - prev_state (:obj:'tensor'): batch previous state in lstm
+            - prev_state (:obj:`tensor`): batch previous state in lstm
         """
         assert hasattr(self, 'num_layers')
         assert hasattr(self, 'hidden_size')
@@ -137,7 +137,8 @@ class LSTM(nn.Module, LSTMForwardWrapper):
         self.num_layers = num_layers
 
         norm_func = build_normalization(norm_type)
-        self.norm = nn.ModuleList([norm_func(hidden_size) for _ in range(4 * num_layers)])
+        self.norm_A = nn.ModuleList([norm_func(hidden_size * 4) for _ in range(2 * num_layers)])
+        self.norm_B = nn.ModuleList([norm_func(hidden_size) for _ in range(1 * num_layers)])
         self.wx = nn.ParameterList()
         self.wh = nn.ParameterList()
         dims = [input_size] + [hidden_size] * num_layers
@@ -170,8 +171,8 @@ class LSTM(nn.Module, LSTMForwardWrapper):
             - prev_state (:obj:`tensor`): None or tensor of size [num_directions*num_layers, batch_size, hidden_size]
             - list_next_state (:obj:`bool`): whether return next_state with list format, default set to False
         Returns:
-            - x (:obj:'tensor'): output from lstm
-            - next_state (:obj:'tensor' or :obj:'list'): hidden state from lstm
+            - x (:obj:`tensor`): output from lstm
+            - next_state (:obj:`tensor` or :obj:`list`): hidden state from lstm
         """
         seq_len, batch_size = inputs.shape[:2]
         prev_state = self._before_forward(inputs, prev_state)
@@ -181,16 +182,12 @@ class LSTM(nn.Module, LSTMForwardWrapper):
         next_state = []
         for l in range(self.num_layers):
             h, c = H[l], C[l]
-            if self.use_dropout:  # layer input dropout
-                x = self.dropout(x)
             new_x = []
             for s in range(seq_len):
-                gate = torch.matmul(x[s], self.wx[l]) + torch.matmul(h, self.wh[l])
+                gate = self.norm_A[l * 2](torch.matmul(x[s], self.wx[l])) + self.norm_A[l * 2 + 1](torch.matmul(h, self.wh[l]))
                 if self.bias is not None:
                     gate += self.bias[l]
                 gate = list(torch.chunk(gate, 4, dim=1))
-                for i in range(4):
-                    gate[i] = self.norm[l * 4 + i](gate[i])
                 i, f, o, u = gate
                 i = torch.sigmoid(i)
                 f = torch.sigmoid(f)
@@ -201,6 +198,8 @@ class LSTM(nn.Module, LSTMForwardWrapper):
                 new_x.append(h)
             next_state.append((h, c))
             x = torch.stack(new_x, dim=0)
+            if self.use_dropout and l != self.num_layers - 1:
+                x = self.dropout(x)
 
         next_state = self._after_forward(next_state, list_next_state)
         return x, next_state
@@ -225,8 +224,8 @@ class PytorchLSTM(nn.LSTM, LSTMForwardWrapper):
             - prev_state (:obj:`tensor`): None or tensor of size [num_directions*num_layers, batch_size, hidden_size]
             - list_next_state (:obj:`bool`): whether return next_state with list format, default set to False
         Returns:
-            - output (:obj:'tensor'): output from lstm
-            - next_state (:obj:'tensor' or :obj:'list'): hidden state from lstm
+            - output (:obj:`tensor`): output from lstm
+            - next_state (:obj:`tensor` or :obj:`list`): hidden state from lstm
         """
         prev_state = self._before_forward(inputs, prev_state)
         output, next_state = nn.LSTM.forward(self, inputs, prev_state)
@@ -241,7 +240,7 @@ class PytorchLSTM(nn.LSTM, LSTMForwardWrapper):
             - nex_state (:obj:`tensor`): hidden state from lstm
             - list_nex_state (:obj:`bool`): whether return next_state with list format, default set to False
         Returns:
-            - next_state (:obj:'tensor' or :obj:'list'): hidden state from lstm
+            - next_state (:obj:`tensor` or :obj:`list`): hidden state from lstm
         """
         if list_next_state:
             h, c = next_state

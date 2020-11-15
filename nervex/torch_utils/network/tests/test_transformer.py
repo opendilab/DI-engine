@@ -1,4 +1,3 @@
-import numpy as np
 import pytest
 import torch
 
@@ -9,18 +8,24 @@ from nervex.torch_utils import Transformer
 class TestTransformer:
 
     def test(self):
-        batch_size = 20
-        num_entries = 50
-        C = 100
-        mask = None
-        output_dim = 256
-        model = Transformer(input_dim=C,
-                            head_dim=128,
-                            hidden_dim=1024,
-                            output_dim=output_dim,
-                            head_num=2,
-                            mlp_num=2,
-                            layer_num=3,)
-        inputs = torch.rand(batch_size, num_entries, C)
-        outputs = model(inputs, mask)
-        assert outputs.shape == (batch_size, num_entries, output_dim)
+        batch_size = 2
+        num_entries = 2
+        C = 2
+        masks = [None, torch.ones(batch_size, num_entries).bool()]
+        for mask in masks:
+            output_dim = 4
+            model = Transformer(input_dim=C,
+                                head_dim=2,
+                                hidden_dim=3,
+                                output_dim=output_dim,
+                                head_num=2,
+                                mlp_num=2,
+                                layer_num=2,)
+            input = torch.rand(batch_size, num_entries, C).requires_grad_(True)
+            output = model(input, mask)
+            loss = output.mean()
+            loss.backward()
+            assert isinstance(input.grad, torch.Tensor)
+            assert output.shape == (batch_size, num_entries, output_dim)
+
+
