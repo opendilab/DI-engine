@@ -10,24 +10,23 @@ replay_buffer:
     unroll_len: 1
     enable_track_used_data: True
 learner:
-    learner_type: 'sumo_dqn'
-    import_names: ['app_zoo.sumo.worker.learner.sumo_dqn_learner']
-    use_cuda: False
+    learner_type: 'atari_a2c'
+    import_names: ['app_zoo.atari.worker.atari_ac_learner']
+    use_cuda: True
     use_distributed: False
     max_iterations: 10000000
     unroll_len: 1
-    learning_rate: 0.001
+    learning_rate: 0.004
     weight_decay: 0.0001
     data:
-        batch_size: 8
-        chunk_size: 4
+        batch_size: 64
+        chunk_size: 16
         num_workers: 0
-    reward_weights:
-        'queue_len': 1.0
-    dqn:
-        discount_factor: 0.95
-        is_double: True
-        dueling: True
+    a2c:
+        gamma: 0.9
+        gae_lambda: 0.95
+        value_weight: 0.5
+        entropy_weight: 0.001
     hook:
         save_ckpt_after_iter:
             name: save_ckpt_after_iter
@@ -42,7 +41,7 @@ learner:
             priority: 20
             position: after_iter
             ext_args:
-                freq: 1
+                freq: 10
     communication:
         type: 'flask_fs'
         upstream_ip: '127.0.0.1'
@@ -55,13 +54,16 @@ learner:
         path_traj: '.'
         path_agent: '.'
         restore: False
+model:
+    embedding_dim: 128
 env:
     env_num: 2
-    env_type: 'fake'  # ['normal', 'fake']
-    stop_val: -2000
+    env_id: 'PongNoFrameskip-v4'
+    frame_stack: 4
+    is_train: True
 actor:
-    actor_type: 'sumowj3'
-    import_names: ['app_zoo.sumo.worker.actor.sumowj3_actor_controller']
+    actor_type: 'atari_ac'
+    import_names: ['app_zoo.atari.worker.atari_actor_controller']
     use_cuda: False
     print_freq: 100
     communication:
@@ -79,7 +81,11 @@ league:
     task:
         data_push_length: 64
         episode_num: 4
-        use_eps: True
+        use_eps: False
+        adder_kwargs:
+            use_gae: True
+            gamma: 0.9  # a2c.gamma
+            gae_lambda: 0.95  # a2c.gae_lambda
     communication:
         type: 'flask_fs'
         file_system_type: 'normal'  # ['normal', 'ceph']

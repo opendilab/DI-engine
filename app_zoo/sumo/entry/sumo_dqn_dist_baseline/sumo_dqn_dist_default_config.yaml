@@ -78,6 +78,7 @@ league:
     task:
         data_push_length: 64
         episode_num: 4
+        use_eps: True
     communication:
         type: 'flask_fs'
         file_system_type: 'normal'  # ['normal', 'ceph']

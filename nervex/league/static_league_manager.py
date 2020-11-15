@@ -14,7 +14,10 @@ class StaticLeagueManager(BaseLeagueManager):
     def _get_task_info(self, player):
         assert isinstance(player, ActivePlayer), player.__class__
         agent_step = player.total_agent_step
-        eps = self.exploration(agent_step)
+        forward_kwargs = {}
+        if self.cfg.task.use_eps:
+            forward_kwargs['eps'] = self.exploration(agent_step)
+        adder_kwargs = self.cfg.task.adder_kwargs
         env_num = self.cfg.task.env_num
         model_config = copy.deepcopy(self.model_config)
         task_info = {
@@ -24,9 +27,8 @@ class StaticLeagueManager(BaseLeagueManager):
             'data_push_length': self.cfg.task.data_push_length,
             'agent_update_freq': self.cfg.task.agent_update_freq,
             'compressor': self.cfg.task.compressor,
-            'forward_kwargs': {
-                'eps': eps,
-            },
+            'forward_kwargs': forward_kwargs,
+            'adder_kwargs': adder_kwargs,
             'launch_player': player.player_id,
             'player_id': [player.player_id],
             'agent': {

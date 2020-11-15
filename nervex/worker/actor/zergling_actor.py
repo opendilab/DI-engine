@@ -11,6 +11,7 @@ import torch
 from nervex.data import default_collate, default_decollate
 from nervex.torch_utils import to_device, tensor_to_list
 from nervex.utils import get_data_compressor
+from nervex.rl_utils import Adder
 from nervex.worker.actor import BaseActor
 from nervex.worker.actor.env_manager import SubprocessEnvManager, BaseEnvManager
 
@@ -36,6 +37,8 @@ class ZerglingActor(BaseActor):
         assert len(self._job['agent']) == 1
         self._setup_env_manager()
         self._setup_agent()
+        self._adder = Adder(self._cfg.actor.use_cuda)
+        self._adder_kwargs = self._job['adder_kwargs']
         self._compressor = get_data_compressor(self._job['compressor'])
         self._job_result = {k: [] for k in range(self._job['env_num'])}
         self._collate_fn = default_collate
@@ -104,12 +107,17 @@ class ZerglingActor(BaseActor):
             data = self._get_transition(self._obs_pool[env_id], self._act_pool[env_id], timestep[env_id])
             self._data_buffer[env_id].append(data)
             self._step_count += 1
-            if len(self._data_buffer[env_id]) == self._job['data_push_length']:
+            if len(self._data_buffer[env_id]) == (self._job['data_push_length'] + 1):
                 # last data copy must be in front of obs_next
                 self._last_data_buffer[env_id] = copy.deepcopy(self._data_buffer[env_id])
-                handle = self._data_buffer[env_id][-1]
+                last = self._data_buffer[env_id][-1]
+                data = self._data_buffer[env_id]
+                if self._adder_kwargs['use_gae']:
+                    gamma = self._adder_kwargs['gamma']
+                    gae_lambda = self._adder_kwargs['gae_lambda']
+                    data = self._adder.get_gae(data, last['value'], gamma, gae_lambda)
                 self._traj_queue.put({'data': self._data_buffer[env_id], 'env_id': env_id})
-                self._data_buffer[env_id] = []
+                self._data_buffer[env_id] = [self._data_buffer[env_id][-1]]
             if t.done:
                 self._job_result[env_id].append(t.info)
                 self._logger.info('ACTOR({}): env{} finish episode in {}'.format(self._actor_uid, env_id, time.time()))

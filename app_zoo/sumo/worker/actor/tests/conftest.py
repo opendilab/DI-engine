@@ -65,6 +65,9 @@ class FakeCoordinator(Coordinator):
             'launch_player': ['test'],
             'forward_kwargs': {
                 'eps': 0.9,
+            },
+            'adder_kwargs': {
+                'use_gae': False,
             }
         }
         self.job_queue.put(fake_job)

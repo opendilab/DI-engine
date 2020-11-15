@@ -20,7 +20,7 @@ class AtariA2CGraph(BaseCompGraph):
         adv = (adv - mean) / (std + 1e-8)
         # calculate a2c error
         data = a2c_data(output['logit'], data['action'], output['value'], adv, return_, weight)
-        a2c_loss, a2c_info = a2c_error(data)
+        a2c_loss = a2c_error(data)
         total_loss = a2c_loss.policy_loss + self._value_weight * a2c_loss.value_loss - self._entropy_weight * a2c_loss.entropy_loss
 
         return {
@@ -28,6 +28,7 @@ class AtariA2CGraph(BaseCompGraph):
             'policy_loss': a2c_loss.policy_loss.item(),
             'value_loss': a2c_loss.value_loss.item(),
             'entropy_loss': a2c_loss.entropy_loss.item(),
+            'adv_abs_max': adv.abs().max().item(),
         }
 
     def __repr__(self) -> str:
@@ -38,11 +39,9 @@ class AtariA2CGraph(BaseCompGraph):
         recorder.register_var('policy_loss')
         recorder.register_var('value_loss')
         recorder.register_var('entropy_loss')
-        recorder.register_var('approx_kl')
-        recorder.register_var('clipfrac')
+        recorder.register_var('adv_abs_max')
         tb_logger.register_var('total_loss')
         tb_logger.register_var('policy_loss')
         tb_logger.register_var('value_loss')
         tb_logger.register_var('entropy_loss')
-        tb_logger.register_var('approx_kl')
-        tb_logger.register_var('clipfrac')
+        tb_logger.register_var('adv_abs_max')

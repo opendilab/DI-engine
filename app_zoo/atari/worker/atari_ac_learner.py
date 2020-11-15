@@ -1,5 +1,5 @@
 from nervex.model import ConvValueAC
-from nervex.worker.learner import BaseLearner
+from nervex.worker.learner import BaseLearner, register_learner
 from nervex.worker.agent import ACLearnerAgent
 from app_zoo.atari.envs import AtariEnv
 from app_zoo.atari.computation_graph.atari_ppo_computation_graph import AtariPpoGraph
@@ -21,8 +21,12 @@ class AtariPpoLearner(BaseLearner):
         self._computation_graph = AtariPpoGraph(self._cfg.learner)
 
 
-class AtariA2CLearner(AtariPpoGraph):
+class AtariA2CLearner(AtariPpoLearner):
     _name = "AtariA2CLearner"
 
     def _setup_computation_graph(self) -> None:
-        self._computation_graph = AtariA2CLearner(self._cfg.learner)
+        self._computation_graph = AtariA2CGraph(self._cfg.learner)
+
+
+register_learner('atari_ppo', AtariPpoLearner)
+register_learner('atari_a2c', AtariA2CLearner)
