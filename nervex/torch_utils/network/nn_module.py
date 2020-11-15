@@ -242,9 +242,6 @@ def fc_block(
         create a fully-connected block with activation, normalization and dropout
         optional normalization can be done to the dim 1 (across the channels)
         x -> fc -> norm -> act -> dropout -> out
-        Note:
-            nn.linear (https://pytorch.org/docs/master/generated/torch.nn.Linear.html)
-
     Arguments:
         - in_channels (:obj:`int`): Number of channels in the input tensor
         - out_channels (:obj:`int`): Number of channels in the output tensor
@@ -253,9 +250,11 @@ def fc_block(
         - norm_type (:obj:`str`): type of the normalization
         - use_dropout (:obj:`bool`) : whether to use dropout in the fully-connected block
         - dropout_probability (:obj:`float`) : probability of an element to be zeroed in the dropout. Default: 0.5
-
     Returns:
         - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the fully-connected block
+
+    .. note::
+        you can refer to nn.linear (https://pytorch.org/docs/master/generated/torch.nn.Linear.html)
     """
     block = []
     block.append(nn.Linear(in_channels, out_channels))

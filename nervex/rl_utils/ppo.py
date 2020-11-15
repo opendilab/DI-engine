@@ -40,6 +40,7 @@ def ppo_error(
             - weight (:obj:`torch.FloatTensor` or :obj:`None`): :math:`(B, )`
             - policy_loss (:obj:`torch.FloatTensor`): :math:`()`, 0-dim tensor
             - value_loss (:obj:`torch.FloatTensor`): :math:`()`
+
         .. note::
             adv is already normalized value (adv - adv.mean()) / (adv.std() + 1e-8), and there are many
             ways to calculate this mean and std, like among data buffer or train batch, so we don't couple

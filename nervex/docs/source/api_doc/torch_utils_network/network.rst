@@ -103,13 +103,13 @@ build_activation
 
 
 
-block
+Resblock
 ---------
 
 ResBlock
 ~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.torch_utils.network.block.ResBlock
+.. autoclass:: nervex.torch_utils.network.res_block.ResBlock
     :members: __init__, forward
 
 
@@ -117,7 +117,36 @@ ResBlock
 ResFCBlock
 ~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.torch_utils.network.block.ResFCBlock
+.. autoclass:: nervex.torch_utils.network.res_block.ResFCBlock
+    :members: __init__, forward
+
+
+Transformer
+-----------------
+
+Transformer
+~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: nervex.torch_utils.network.transformer.Transformer
+    :members: __init__, forward
+
+TransformerLayer
+~~~~~~~~~~~~~~~~~
+.. autoclass:: nervex.torch_utils.network.transformer.TransformerLayer
+    :members: __init__, forward
+
+Attention
+~~~~~~~~~~~~
+.. autoclass:: nervex.torch_utils.network.transformer.Attention
+    :members: __init__, forward, split
+
+
+scatter_connection
+---------------------
+
+ScatterConnection
+~~~~~~~~~~~~~~~~~~
+.. autoclass:: nervex.torch_utils.network.scatter_connection.ScatterConnection
     :members: __init__, forward
 
 
@@ -131,12 +160,6 @@ GroupSyncBatchNorm
     :members: __init__, __repr__
 
 
-AdaptiveInstanceNorm2d
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: nervex.torch_utils.network.normalization.AdaptiveInstanceNorm2d
-    :members: __init__, forward
-
 
 build_normalization
 ~~~~~~~~~~~~~~~~~~~~
@@ -149,7 +172,7 @@ rnn
 -----------------
 
 LSTMForwardWrapper
-~~~~~~~~~~~~~~~~~~~~`
+~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: nervex.torch_utils.network.rnn.LSTMForwardWrapper
     :members: _before_forward, _after_forward

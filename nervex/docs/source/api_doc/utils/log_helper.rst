@@ -37,7 +37,7 @@ TensorBoardLogger
 ~~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: nervex.utils.log_helper.TensorBoardLogger
-    :members: __init__, add_scalar, add_text, add_scalars, add_histogram, add_figure, add_image, add_scalar_list, register_var, scalar_var_names
+    :members: __init__, add_scalar, add_text, add_scalars, add_histogram, add_figure, add_image, register_var, scalar_var_names
 
 VariableRecord
 ~~~~~~~~~~~~~~~~~

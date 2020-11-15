@@ -210,10 +210,11 @@ class PytorchLSTM(nn.LSTM, LSTMForwardWrapper):
     r"""
     Overview:
         Wrap the nn.LSTM , format the input and output
-        Notes:
-            you can reference the <https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html#torch.nn.LSTM>
     Interface:
         forward
+
+    .. note::
+        you can reference the <https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html#torch.nn.LSTM>
     """
 
     def forward(self, inputs, prev_state, list_next_state=False):

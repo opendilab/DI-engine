@@ -111,6 +111,14 @@ class TransformerLayer(nn.Module):
         self.layernorm2 = build_normalization('LN')(output_dim)
 
     def forward(self, inputs):
+        """
+        Overview:
+            transformer layer forward
+        Arguments:
+            - inputs (:obj:`tuple`): x and mask
+        Returns:
+            - output (:obj:`tuple`): x and mask
+        """
         x, mask = inputs
         a = self.dropout(self.attention(x, mask))
         x = self.layernorm1(x + a)

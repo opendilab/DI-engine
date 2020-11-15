@@ -14,7 +14,7 @@ CheckpointHelper
 ~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: nervex.torch_utils.checkpoint_helper.CheckpointHelper
-    :members: __init__, _remove_prefix, _add_prefix, save_iterations, save, save_data,save_config, _load_matched_model_state_dict, load
+    :members: __init__, _remove_prefix, _add_prefix, save, _load_matched_model_state_dict, load
 
 
 CountVar

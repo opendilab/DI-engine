@@ -28,21 +28,22 @@ class ScatterConnection(nn.Module):
             Overview:
                 scatter x into a spatial feature map
             Arguments:
-                - x (:obj:`tensor`): input tensor :math: `(B, M, N)` where `M` means the number of entity, `N` means
+                - x (:obj:`tensor`): input tensor :math: `(B, M, N)` where `M` means the number of entity, `N` means\
                   the dimension of entity attributes
                 - spatial_size (:obj:`tuple`): Tuple[H, W], the size of spatial feature x will be scattered into
                 - location (:obj:`tensor`): :math: `(B, M, 2)` torch.LongTensor, each location should be (y, x)
             Returns:
-                - output (:obj:`tensor`): :math: `(B, N, H, W)` where `H` and `W` are spatial_size, return the
+                - output (:obj:`tensor`): :math: `(B, N, H, W)` where `H` and `W` are spatial_size, return the\
                     scattered feature map
             Shapes:
-            - Input: :math: `(B, M, N)` where `M` means the number of entity, `N` means
-              the dimension of entity attributes
-            - Size: Tuple[H, W]
-            - Location: :math: `(B, M, 2)` torch.LongTensor, each location should be (y, x)
-            - Output: :math: `(B, N, H, W)` where `H` and `W` are spatial_size
+                - Input: :math: `(B, M, N)` where `M` means the number of entity, `N` means\
+                  the dimension of entity attributes
+                - Size: Tuple[H, W]
+                - Location: :math: `(B, M, 2)` torch.LongTensor, each location should be (y, x)
+                - Output: :math: `(B, N, H, W)` where `H` and `W` are spatial_size
+
             .. note::
-                when there are some overlapping in locations, `cover` mode will result in the loss of information, we
+                when there are some overlapping in locations, ``cover`` mode will result in the loss of information, we
                 use the addition as temporal substitute.
         """
         device = x.device

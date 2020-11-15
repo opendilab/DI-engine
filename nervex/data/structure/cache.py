@@ -11,7 +11,8 @@ class Cache:
         data cache for reducing concurrent pressure, with timeout and full queue eject mechanism
     Interface:
         __init__, push_data, get_cached_data_iter, run, close
-    Property: remain_data_count
+    Property:
+        remain_data_count
     """
 
     def __init__(self, maxlen, timeout, monitor_interval=1.0, _debug=False):
@@ -44,7 +45,9 @@ class Cache:
             into send queue
         Arguments:
             - data (:obj:`T`): the data need to be added into queue
-        Note: thread-safe
+
+        .. tip::
+            thread-safe
         """
         with self.receive_lock:
             # record and save the time of the data pushed into queue
