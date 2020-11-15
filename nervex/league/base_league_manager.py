@@ -4,6 +4,7 @@ import time
 from abc import ABC, abstractmethod
 from threading import Thread
 from typing import Callable
+from easydict import EasyDict
 
 from nervex.league.player import Player, ActivePlayer, HistoricalPlayer, BattleActivePlayer, SoloActivePlayer
 from nervex.league.shared_payoff import create_payoff
@@ -85,10 +86,10 @@ class BaseLeagueManager(ABC):
             - player_id (:obj:`str`)
             - train_step (:obj:`int`)
     """
-    def __init__(self, cfg: 'EasyDict', save_checkpoint_fn: Callable, load_checkpoint_fn: Callable,  #noqa
+    def __init__(self, cfg: EasyDict, save_checkpoint_fn: Callable, load_checkpoint_fn: Callable,
                  launch_job_fn: Callable) -> None:
         """
-        Overview: # todo
+        Overview:
             Initialization method
         Arguments:
             - cfg (:obj:`EasyDict`): league config
@@ -298,7 +299,7 @@ def register_league(name: str, league: type) -> None:
     league_mapping[name] = league
 
 
-def create_league(cfg: dict, *args) -> BaseLeagueManager:
+def create_league(cfg: EasyDict, *args) -> BaseLeagueManager:
     """
     Overview:
         Given the key (league_manager_type), create a new league manager instance if in league_mapping's values,

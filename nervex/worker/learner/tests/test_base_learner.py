@@ -104,4 +104,3 @@ class TestLearnerHook:
         register_learner_hook('fake', FakeHook)
         with pytest.raises(AssertionError):
             register_learner_hook('placeholder', type)
-

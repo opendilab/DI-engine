@@ -40,4 +40,3 @@ def uniform(win_rates: np.ndarray) -> np.ndarray:
         - probs (:obj:`np.ndarray`): a numpy ndarray of uniform probability, shape(N)
     """
     return np.ones_like(win_rates) / len(win_rates)
-
