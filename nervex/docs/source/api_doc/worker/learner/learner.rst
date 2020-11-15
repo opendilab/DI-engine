@@ -67,6 +67,10 @@ build_learner_hook_by_cfg
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. automodule:: nervex.worker.learner.learner_hook.build_learner_hook_by_cfg
 
+merge_hooks
+~~~~~~~~~~~~~
+.. automodule:: nervex.worker.learner.learner_hook.merge_hooks
+
 
 
 comm_learner

@@ -18,7 +18,7 @@ from nervex.utils import build_logger, dist_init, EasyTimer, dist_finalize, pret
 from nervex.utils import deep_merge_dicts
 
 from .comm import LearnerCommHelper
-from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, LearnerHook
+from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, merge_hooks, LearnerHook
 
 default_config = read_config(os.path.join(os.path.dirname(__file__), "base_learner_default_config.yaml"))
 
@@ -125,7 +125,10 @@ class BaseLearner(ABC):
             Setup hook for base_learner. Hook is the way to implement actual functions in base_learner.
             You can reference learner_hook.py
         """
-        self._hooks.update(build_learner_hook_by_cfg(self._cfg.learner.hook))
+        if hasattr(self, '_hooks'):
+            self._hooks = merge_hooks(self._hooks, build_learner_hook_by_cfg(self._cfg.learner.hook))
+        else:
+            self._hooks = build_learner_hook_by_cfg(self._cfg.learner.hook)
 
     def _setup_wrapper(self) -> None:
         """

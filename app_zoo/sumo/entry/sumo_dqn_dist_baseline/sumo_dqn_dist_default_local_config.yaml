@@ -15,10 +15,13 @@ learner:
     use_cuda: False
     use_distributed: False
     max_iterations: 10000000
-    batch_size: 8
     unroll_len: 1
     learning_rate: 0.001
     weight_decay: 0.0001
+    data:
+        batch_size: 8
+        chunk_size: 4
+        num_workers: 0
     reward_weights:
         'queue_len': 1.0
     dqn:
@@ -53,7 +56,7 @@ learner:
         path_agent: '.'
         restore: False
 env:
-    env_num: 4
+    env_num: 2
     env_type: 'fake'  # ['normal', 'fake']
     stop_val: -2000
 actor:
