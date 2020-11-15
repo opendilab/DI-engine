@@ -21,11 +21,15 @@ norm_type = 'BN'
 
 @pytest.mark.unittest
 class TestNnModule:
+
     def run_model(self, input, model):
         output = model(input)
         loss = output.mean()
         loss.backward()
-        assert isinstance(input.grad, torch.Tensor, )
+        assert isinstance(
+            input.grad,
+            torch.Tensor,
+        )
         return output
 
     def test_weight_init(self):
@@ -34,13 +38,24 @@ class TestNnModule:
             weight_init_(weight, init_type)
         for act in [torch.nn.LeakyReLU(), torch.nn.ReLU()]:
             weight_init_(weight, 'kaiming', act)
+        with pytest.raises(KeyError):
+            weight_init_(weight, 'xxx')
 
     def test_conv1d_block(self):
         length = 2
         input = torch.rand(batch_size, in_channels, length).requires_grad_(True)
-        block = conv1d_block(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
-                             stride=stride, padding=padding, dilation=dilation, groups=groups, init_type=init_type[0],
-                             activation=act, norm_type=norm_type)
+        block = conv1d_block(
+            in_channels=in_channels,
+            out_channels=out_channels,
+            kernel_size=kernel_size,
+            stride=stride,
+            padding=padding,
+            dilation=dilation,
+            groups=groups,
+            init_type=init_type[0],
+            activation=act,
+            norm_type=norm_type
+        )
         output = self.run_model(input, block)
         output_length = (length - kernel_size + 2 * padding // stride) + 1
         assert output.shape == (batch_size, out_channels, output_length)
@@ -48,9 +63,19 @@ class TestNnModule:
     def test_conv2d_block(self):
         input = torch.rand(batch_size, in_channels, H, W).requires_grad_(True)
         for pad_type in ['zero', 'reflect', 'replication']:
-            block = conv2d_block(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
-                                 stride=stride, padding=padding, dilation=dilation, groups=groups, init_type=init_type[0],
-                                 pad_type=pad_type, activation=act, norm_type=norm_type)
+            block = conv2d_block(
+                in_channels=in_channels,
+                out_channels=out_channels,
+                kernel_size=kernel_size,
+                stride=stride,
+                padding=padding,
+                dilation=dilation,
+                groups=groups,
+                init_type=init_type[0],
+                pad_type=pad_type,
+                activation=act,
+                norm_type=norm_type
+            )
             output = self.run_model(input, block)
             output_H = (H - kernel_size + 2 * padding // stride) + 1
             output_W = (W - kernel_size + 2 * padding // stride) + 1
@@ -60,17 +85,17 @@ class TestNnModule:
         input = torch.rand(batch_size, in_channels, H, W).requires_grad_(True)
         output_padding = 0
         block = deconv2d_block(
-                                in_channels,
-                                out_channels,
-                                kernel_size,
-                                stride=1,
-                                padding=0,
-                                output_padding=output_padding,
-                                groups=1,
-                                init_type="xavier",
-                                activation=act,
-                                norm_type=norm_type
-                                )
+            in_channels,
+            out_channels,
+            kernel_size,
+            stride=1,
+            padding=0,
+            output_padding=output_padding,
+            groups=1,
+            init_type="xavier",
+            activation=act,
+            norm_type=norm_type
+        )
         output = self.run_model(input, block)
         output_H = (H - 1) * stride + output_padding - 2 * padding + kernel_size
         output_W = (W - 1) * stride + output_padding - 2 * padding + kernel_size
@@ -80,14 +105,14 @@ class TestNnModule:
         input = torch.rand(batch_size, in_channels).requires_grad_(True)
         for use_dropout in [True, False]:
             block = fc_block(
-                            in_channels,
-                            out_channels,
-                            init_type=init_type[0],
-                            activation=act,
-                            norm_type=norm_type,
-                            use_dropout=use_dropout,
-                            dropout_probability=0.5
-                            )
+                in_channels,
+                out_channels,
+                init_type=init_type[0],
+                activation=act,
+                norm_type=norm_type,
+                use_dropout=use_dropout,
+                dropout_probability=0.5
+            )
             output = self.run_model(input, block)
             assert output.shape == (batch_size, out_channels)
 
@@ -109,6 +134,8 @@ class TestNnModule:
         output = one_hot(input, max_num, num_first=True)
         assert output.sum() == input.numel()
         assert output.shape == (max_num, M, N)
+        with pytest.raises(RuntimeError):
+            _ = one_hot(torch.arange(0, max_num), max_num - 1)
 
     def test_upsample(self):
         scale_factor = 2

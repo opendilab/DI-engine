@@ -2,14 +2,14 @@ import pytest
 import torch
 from nervex.torch_utils import build_normalization
 
-
 num_features = 2
 batch_size = 2
-H, W = 2,3
+H, W = 2, 3
 
 
 @pytest.mark.unittest
 class TestNormalization:
+
     def validate(self, input, norm):
         output = norm(input)
         loss = output.mean()
@@ -18,6 +18,10 @@ class TestNormalization:
         assert isinstance(input.grad, torch.Tensor)
 
     def test(self):
+        with pytest.raises(KeyError):
+            norm = build_normalization('XXXN')
+        with pytest.raises(NotImplementedError):
+            norm = build_normalization('LN', dim=2)
         input1d = torch.rand(batch_size, num_features).requires_grad_(True)
         input2d = torch.rand(batch_size, num_features, H, W).requires_grad_(True)
 

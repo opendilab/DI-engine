@@ -12,6 +12,7 @@ res_type = ['basic', 'bottleneck']
 
 @pytest.mark.unittest
 class TestResBlock:
+
     def test_res_blcok(self):
         input = torch.rand(batch_size, in_channels, 2, 3).requires_grad_(True)
         for r in res_type:

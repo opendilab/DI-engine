@@ -10,6 +10,7 @@ class Attention(nn.Module):
     Overview:
         For each entry embedding, compute individual attention across all entries, add them up to get output attention
     """
+
     def __init__(self, input_dim, head_dim, output_dim, head_num, dropout):
         r"""
         Overview:
@@ -80,6 +81,7 @@ class TransformerLayer(nn.Module):
     Overview:
         In transformer layer, first computes entries's attention and applies a feedforward layer
     """
+
     def __init__(self, input_dim, head_dim, hidden_dim, output_dim, head_num, mlp_num, dropout, activation):
         r"""
         Overview:
@@ -125,6 +127,7 @@ class Transformer(nn.Module):
         Note:
             For details refer to Attention is all you need: http://arxiv.org/abs/1706.03762
     '''
+
     def __init__(
         self,
         input_dim,
@@ -159,9 +162,7 @@ class Transformer(nn.Module):
         self.dropout = nn.Dropout(dropout_ratio)
         for i in range(layer_num):
             layers.append(
-                TransformerLayer(
-                    dims[i], head_dim, hidden_dim, dims[i + 1], head_num, mlp_num, self.dropout, self.act
-                )
+                TransformerLayer(dims[i], head_dim, hidden_dim, dims[i + 1], head_num, mlp_num, self.dropout, self.act)
             )
         self.main = nn.Sequential(*layers)
 

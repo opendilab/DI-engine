@@ -79,66 +79,6 @@ class GroupSyncBatchNorm(link.nn.SyncBatchNorm2d):
         )
 
 
-class AdaptiveInstanceNorm2d(nn.Module):
-    r"""
-    Overview:
-        the Adaptive Instance Normalization with 2 dimensions.
-
-        Notes:
-            you can reference <https://www.jianshu.com/p/7aeb1b41930b> or read paper <https://arxiv.org/pdf/1703.06868.pdf>  # noqa
-            to learn more about Adaptive Instance Normalization
-
-    Interface:
-        __init__, forward
-    """
-
-    def __init__(self, num_features, eps=1e-5, momentum=0.1):
-        r"""
-        Overview:
-            Init class AdaptiveInstanceNorm2d
-
-        Arguments:
-            - num_featurnes (:obj:`int`): the number of features
-            - eps (:obj:`float`):a value added to the denominator for numerical stability
-            momentum (:obj:`float`): the value used for the running_mean and running_var
-                computation. Can be set to ``None`` for cumulative moving average
-        """
-        super(AdaptiveInstanceNorm2d, self).__init__()
-        self.num_features = num_features
-        self.eps = eps
-        self.momentum = momentum
-
-        self.weight = None
-        self.bias = None
-
-        self.register_buffer('running_mean', torch.zeros(num_features))
-        self.register_buffer('running_var', torch.zeros(num_features))
-
-    def forward(self, x):
-        r"""
-        Overview:
-            compute the output of AdaptiveInstanceNorm
-
-        Arguments:
-            - x (:obj:`Tensor`): the batch input tensor of AdaIN
-
-        Shapes:
-            - x (:obj:`Tensor`): :math:`(B, C, H, W)`, while B is the batch size,
-                C is number of channels , H and W stands for height and width
-        """
-        assert self.weight is not None and self.bias is not None
-        b, c, h, w = x.shape
-        running_mean = self.running_mean.repeat(b)
-        running_var = self.running_var.repeat(b)
-
-        x_reshape = x.contiguous().view(1, b * c, h, w)
-        output = F.batch_norm(
-            x_reshape, running_mean, running_var, self.weight, self.bias, True, self.momentum, self.eps
-        )
-
-        return output.view(b, c, h, w)
-
-
 def build_normalization(norm_type, dim=None):
     r"""
     Overview:
@@ -159,13 +99,12 @@ def build_normalization(norm_type, dim=None):
         if norm_type in ['BN', 'IN', 'SyncBN']:
             key = norm_type + str(dim)
         else:
-            key = norm_type
+            raise NotImplementedError("not support indicated dim when creates {}".format(norm_type))
     norm_func = {
         'BN1': nn.BatchNorm1d,
         'BN2': nn.BatchNorm2d,
         'LN': nn.LayerNorm,
         'IN2': nn.InstanceNorm2d,
-        'AdaptiveIN': AdaptiveInstanceNorm2d,
         'SyncBN2': GroupSyncBatchNorm,
     }
     if key in norm_func.keys():

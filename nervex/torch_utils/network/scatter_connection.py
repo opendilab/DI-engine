@@ -10,6 +10,7 @@ class ScatterConnection(nn.Module):
             In alphastar, each entity is embedded into a tensor, these tensors are scattered into a feature map
             with map size
     """
+
     def __init__(self, scatter_type) -> None:
         r"""
             Overview:
@@ -20,6 +21,7 @@ class ScatterConnection(nn.Module):
         """
         super(ScatterConnection, self).__init__()
         self.scatter_type = scatter_type
+        assert self.scatter_type in ['cover', 'add']
 
     def forward(self, x: torch.Tensor, spatial_size: Tuple[int, int], location: torch.Tensor) -> torch.Tensor:
         """
@@ -33,6 +35,15 @@ class ScatterConnection(nn.Module):
             Returns:
                 - output (:obj:`tensor`): :math: `(B, N, H, W)` where `H` and `W` are spatial_size, return the
                     scattered feature map
+            Shapes:
+            - Input: :math: `(B, M, N)` where `M` means the number of entity, `N` means
+              the dimension of entity attributes
+            - Size: Tuple[H, W]
+            - Location: :math: `(B, M, 2)` torch.LongTensor, each location should be (y, x)
+            - Output: :math: `(B, N, H, W)` where `H` and `W` are spatial_size
+            .. note::
+                when there are some overlapping in locations, `cover` mode will result in the loss of information, we
+                use the addition as temporal substitute.
         """
         device = x.device
         B, M, N = x.shape
@@ -48,9 +59,6 @@ class ScatterConnection(nn.Module):
             output.scatter_(dim=1, index=index, src=x)
         elif self.scatter_type == 'add':
             output.scatter_add_(dim=1, index=index, src=x)
-        else:
-            raise NotImplementedError
         output = output.reshape(N, B, H, W)
-        output = output.permute(1, 0, 2, 3)
+        output = output.permute(1, 0, 2, 3).contiguous()
         return output
-

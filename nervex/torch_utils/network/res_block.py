@@ -24,6 +24,7 @@ class ResBlock(nn.Module):
     Interface:
         __init__, forward
     '''
+
     def __init__(self, in_channels, activation=nn.ReLU(), norm_type='BN', res_type='basic'):
         r"""
         Overview:
@@ -38,17 +39,15 @@ class ResBlock(nn.Module):
         """
         super(ResBlock, self).__init__()
         self.act = activation
-        assert res_type in ['basic', 'bottleneck'], 'residual type only support basic and bottleneck, not:{}'.format(
-            res_type)
+        assert res_type in ['basic',
+                            'bottleneck'], 'residual type only support basic and bottleneck, not:{}'.format(res_type)
         self.res_type = res_type
         if self.res_type == 'basic':
             self.conv1 = conv2d_block(in_channels, in_channels, 3, 1, 1, activation=self.act, norm_type=norm_type)
             self.conv2 = conv2d_block(in_channels, in_channels, 3, 1, 1, activation=None, norm_type=norm_type)
         elif self.res_type == 'bottleneck':
             self.conv1 = conv2d_block(in_channels, in_channels, 1, 1, 0, activation=self.act, norm_type=norm_type)
-            self.conv2 = conv2d_block(
-                in_channels, in_channels, 3, 1, 1, activation=self.act, norm_type=norm_type
-            )
+            self.conv2 = conv2d_block(in_channels, in_channels, 3, 1, 1, activation=self.act, norm_type=norm_type)
             self.conv3 = conv2d_block(in_channels, in_channels, 1, 1, 0, activation=None, norm_type=norm_type)
 
     def forward(self, x):
@@ -81,6 +80,7 @@ class ResFCBlock(nn.Module):
     Interface:
         __init__, forward
     '''
+
     def __init__(self, in_channels, activation=nn.ReLU(), norm_type='BN'):
         r"""
         Overview:

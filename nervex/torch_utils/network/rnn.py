@@ -24,6 +24,8 @@ def sequence_mask(lengths, max_len=None):
             - lengths (:obj:`tensor`): lengths in each different sequences, shape could be (n, 1) or (n)
             - max_len (:obj:`int`): the padding size, if max_len is None, the padding size is the
                 max length of sequences
+        Returns:
+            - masks (:obj:`torch.BoolTensor`): mask has the same device as lengths
     """
     if len(lengths.shape) == 1:
         lengths = lengths.unsqueeze(dim=1)
@@ -65,26 +67,28 @@ class LSTMForwardWrapper(object):
                 device=inputs.device
             )
             prev_state = (zeros, zeros)
-        elif is_sequence(prev_state) and len(prev_state) == 2:
-            if isinstance(prev_state[0], torch.Tensor):
+        elif is_sequence(prev_state):
+            if len(prev_state) == 2 and isinstance(prev_state[0], torch.Tensor):
                 pass
             else:
-                prev_state = [torch.cat(t, dim=1) for t in prev_state]
-        elif is_sequence(prev_state) and len(prev_state) == batch_size:
-            num_directions = 1
-            zeros = torch.zeros(
-                num_directions * self.num_layers, 1, self.hidden_size, dtype=inputs.dtype, device=inputs.device
-            )
-            state = []
-            for prev in prev_state:
-                if prev is None:
-                    state.append([zeros, zeros])
-                else:
-                    state.append(prev)
-            state = list(zip(*state))
-            prev_state = [torch.cat(t, dim=1) for t in state]
+                if len(prev_state) != batch_size:
+                    raise RuntimeError(
+                        "prev_state number is not equal to batch_size: {}/{}".format(len(prev_state), batch_size)
+                    )
+                num_directions = 1
+                zeros = torch.zeros(
+                    num_directions * self.num_layers, 1, self.hidden_size, dtype=inputs.dtype, device=inputs.device
+                )
+                state = []
+                for prev in prev_state:
+                    if prev is None:
+                        state.append([zeros, zeros])
+                    else:
+                        state.append(prev)
+                state = list(zip(*state))
+                prev_state = [torch.cat(t, dim=1) for t in state]
         else:
-            raise Exception()
+            raise TypeError("not support prev_state type: {}".format(type(prev_state)))
         return prev_state
 
     def _after_forward(self, next_state, list_next_state=False):
@@ -112,13 +116,14 @@ class LSTM(nn.Module, LSTMForwardWrapper):
     Overview:
         Implimentation of LSTM cell
 
-        Notes: for begainners, you can reference <https://zhuanlan.zhihu.com/p/32085405> to learn the basics about lstm
+        .. note::
+            for begainners, you can reference <https://zhuanlan.zhihu.com/p/32085405> to learn the basics about lstm
 
     Interface:
         __init__, forward
     """
 
-    def __init__(self, input_size, hidden_size, num_layers, norm_type=None, bias=True, dropout=0.):
+    def __init__(self, input_size, hidden_size, num_layers, norm_type=None, dropout=0.):
         r"""
         Overview:
             initializate the LSTM cell
@@ -128,7 +133,6 @@ class LSTM(nn.Module, LSTMForwardWrapper):
             - hidden_size (:obj:`int`): size of the hidden state vector
             - num_layers (:obj:`int`): number of lstm layers
             - norm_type (:obj:`str`): type of the normaliztion, (default: None)
-            - bias (:obj:`bool`): whether to use bias, default set to True
             - dropout (:obj:float):  dropout rate, default set to .0
         """
         super(LSTM, self).__init__()
@@ -137,18 +141,14 @@ class LSTM(nn.Module, LSTMForwardWrapper):
         self.num_layers = num_layers
 
         norm_func = build_normalization(norm_type)
-        self.norm_A = nn.ModuleList([norm_func(hidden_size * 4) for _ in range(2 * num_layers)])
-        self.norm_B = nn.ModuleList([norm_func(hidden_size) for _ in range(1 * num_layers)])
+        self.norm = nn.ModuleList([norm_func(hidden_size * 4) for _ in range(2 * num_layers)])
         self.wx = nn.ParameterList()
         self.wh = nn.ParameterList()
         dims = [input_size] + [hidden_size] * num_layers
         for l in range(num_layers):
             self.wx.append(nn.Parameter(torch.zeros(dims[l], dims[l + 1] * 4)))
             self.wh.append(nn.Parameter(torch.zeros(hidden_size, hidden_size * 4)))
-        if bias:
-            self.bias = nn.Parameter(torch.zeros(num_layers, hidden_size * 4))
-        else:
-            self.bias = None
+        self.bias = nn.Parameter(torch.zeros(num_layers, hidden_size * 4))
         self.use_dropout = dropout > 0.
         if self.use_dropout:
             self.dropout = nn.Dropout(dropout)
@@ -184,7 +184,8 @@ class LSTM(nn.Module, LSTMForwardWrapper):
             h, c = H[l], C[l]
             new_x = []
             for s in range(seq_len):
-                gate = self.norm_A[l * 2](torch.matmul(x[s], self.wx[l])) + self.norm_A[l * 2 + 1](torch.matmul(h, self.wh[l]))
+                gate = self.norm[l * 2](torch.matmul(x[s], self.wx[l])
+                                        ) + self.norm[l * 2 + 1](torch.matmul(h, self.wh[l]))
                 if self.bias is not None:
                     gate += self.bias[l]
                 gate = list(torch.chunk(gate, 4, dim=1))
@@ -261,7 +262,6 @@ def get_lstm(lstm_type, input_size, hidden_size, num_layers, norm_type, dropout=
         - hidden_size (:obj:`int`): size of the hidden state vector
         - num_layers (:obj:`int`): number of lstm layers
         - norm_type (:obj:`str`): type of the normaliztion, (default: None)
-        - bias (:obj:`bool`): whether to use bias, default set to True
         - dropout (:obj:float):  dropout rate, default set to .0
     Returns:
         - lstm (:obj:`LSTM` or :obj:`PytorchLSTM`): the corresponding lstm cell

@@ -43,7 +43,7 @@ def weight_init_(weight, init_type="xavier", activation=None):
     if init_type in init_type_dict:
         init_type_dict[init_type](weight, activation)
     else:
-        raise ValueError("Invalid Value in init type: {}".format(init_type))
+        raise KeyError("Invalid Value in init type: {}".format(init_type))
 
 
 def sequential_pack(layers):
@@ -109,9 +109,7 @@ def conv1d_block(
     block = []
     block.append(nn.Conv1d(in_channels, out_channels, kernel_size, stride, padding, dilation, groups))
     weight_init_(block[-1].weight, init_type, activation)
-    if norm_type is None:
-        pass
-    else:
+    if norm_type is not None:
         block.append(build_normalization(norm_type, dim=1)(out_channels))
     if activation is not None:
         block.append(activation)
@@ -156,6 +154,7 @@ def conv2d_block(
     """
 
     block = []
+    assert pad_type in ['zero', 'reflect', 'replication'], "invalid padding type: {}".format(pad_type)
     if pad_type == 'zero':
         pass
     elif pad_type == 'reflect':
@@ -164,13 +163,11 @@ def conv2d_block(
     elif pad_type == 'replication':
         block.append(nn.ReplicationPad2d(padding))
         padding = 0
-    else:
-        raise ValueError
-    block.append(nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding=padding, dilation=dilation, groups=groups))
+    block.append(
+        nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding=padding, dilation=dilation, groups=groups)
+    )
     weight_init_(block[-1].weight, init_type, activation)
-    if norm_type is None:
-        pass
-    else:
+    if norm_type is not None:
         block.append(build_normalization(norm_type, dim=2)(out_channels))
     if activation is not None:
         block.append(activation)
@@ -224,9 +221,7 @@ def deconv2d_block(
         )
     )
     weight_init_(block[-1].weight, init_type, activation)
-    if norm_type is None:
-        pass
-    else:
+    if norm_type is not None:
         block.append(build_normalization(norm_type, dim=2)(out_channels))
     if activation is not None:
         block.append(activation)
@@ -265,9 +260,7 @@ def fc_block(
     block = []
     block.append(nn.Linear(in_channels, out_channels))
     weight_init_(block[-1].weight, init_type, activation)
-    if norm_type is None:
-        pass
-    else:
+    if norm_type is not None:
         block.append(build_normalization(norm_type, dim=1)(out_channels))
     if activation is not None:
         block.append(activation)
@@ -352,8 +345,7 @@ def one_hot(val, num, num_first=False):
     try:
         ret.scatter_(1, val_reshape, 1)
     except RuntimeError:
-        print(val_reshape, num, val_reshape.shape)
-        raise RuntimeError
+        raise RuntimeError('value: {}\nnum: {}\t:val_shape: {}\n'.format(val_reshape, num, val_reshape.shape))
     if num_first:
         return ret.permute(1, 0).reshape(num, *old_shape)
     else:
