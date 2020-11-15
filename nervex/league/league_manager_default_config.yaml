@@ -25,10 +25,10 @@ league:
     exploration:
         decay_len: 10000
     # ---runner---
-    max_active_player_task: 3
+    max_active_player_job: 3
     #per_match_games: 8
     time_interval: 1
-    task:
+    job:
         env_num: 8
         episode_num: 2
         data_push_length: 128

@@ -254,8 +254,7 @@ class BaseLearner(ABC):
             Then for each iteration, learner will get training data and train.
             Learner will call hooks at four fixed positions(before_run, before_iter, after_iter, after_run).
         Arguments:
-            - max_iterations (:obj:`int` or :obj:`None`): the max run iteration,/
-                if None then set to default_max_iterations
+            - max_iterations (:obj:`int`): the max run iteration, if None then set to default_max_iterations
         """
         if hasattr(self._data_source, 'run'):
             self._data_source.run()

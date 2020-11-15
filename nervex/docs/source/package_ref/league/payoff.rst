@@ -1,0 +1,34 @@
+league.payoff
+=======================
+
+shared_payoff
+----------------------
+
+BattleRecordDict
+~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: nervex.league.shared_payoff
+    :members: __init__, __mul__
+
+SoloRecordQueue
+~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: nervex.league.shared_payoff
+    :members: __init__
+
+PayoffDict
+~~~~~~~~~~~
+.. autoclass:: nervex.league.shared_payoff
+    :members: __init__
+
+BattleSharedPayoff
+~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: nervex.league.shared_payoff
+    :members: __init__, __getitem__, add_player, update, get_key
+
+SoloSharedPayoff
+~~~~~~~~~~~~~~~~~
+.. autoclass:: nervex.league.shared_payoff
+    :members: __init__, __getitem__, add_player, update
+
+create_payoff
+~~~~~~~~~~~~~~~
+.. automodule:: nervex.league.shared_payoff

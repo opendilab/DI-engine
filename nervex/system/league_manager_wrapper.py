@@ -101,8 +101,8 @@ class LeagueManagerWrapper(object):
         self.league_manager.run()
         return True
 
-    def deal_with_finish_task(self, task_info):
-        self.league_manager.finish_task(task_info)
+    def deal_with_finish_job(self, job_info):
+        self.league_manager.finish_job(job_info)
         return True
 
     def deal_with_update_active_player(self, player_info):

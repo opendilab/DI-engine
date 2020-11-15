@@ -1,14 +1,16 @@
 import numpy as np
 
 
-def pfsp(win_rates, weighting):
+def pfsp(win_rates: np.ndarray, weighting: str) -> np.ndarray:
     """
-    Overview: prioritized fictitious self-play algorithm
+    Overview:
+        Prioritized Fictitious Self-Play algorithm.
+        Process win_rates with a weighting function to get priority, then calculate the selection probability of each.
     Arguments:
-        - win_rates (:obj:`np.array`): a numpy array of win rates for(), shape(N)
-        - weighting (:obj:`str`): pfsp weighting function type, refer to the below weighting_func
+        - win_rates (:obj:`np.ndarray`): a numpy ndarray of win rates between one player and N opponents, shape(N)
+        - weighting (:obj:`str`): pfsp weighting function type, refer to ``weighting_func`` below
     Returns:
-        - probs (:obj:`np.array`): a numpy array of the corresponding probability of each element is selected, shape(N)
+        - probs (:obj:`np.ndarray`): a numpy ndarray of probability at which one element is selected, shape(N)
     """
     weighting_func = {
         'squared': lambda x: (1 - x) ** 2,
@@ -20,9 +22,22 @@ def pfsp(win_rates, weighting):
         return KeyError("invalid weighting arg: {} in pfsp".format(weighting))
 
     assert isinstance(win_rates, np.ndarray)
-    # all zero win rates case
+    # all zero win rates case, return uniform selection prob
     if win_rates.sum() < 1e-8:
         return np.ones_like(win_rates) / len(win_rates)
     fn_win_rates = fn(win_rates)
     probs = fn_win_rates / fn_win_rates.sum()
     return probs
+
+
+def uniform(win_rates: np.ndarray) -> np.ndarray:
+    """
+    Overview:
+        Uniform opponent selection algorithm. Select an opponent uniformly, regardless of historical win rates.
+    Arguments:
+        - win_rates (:obj:`np.ndarray`): a numpy ndarray of win rates between one player and N opponents, shape(N)
+    Returns:
+        - probs (:obj:`np.ndarray`): a numpy ndarray of uniform probability, shape(N)
+    """
+    return np.ones_like(win_rates) / len(win_rates)
+

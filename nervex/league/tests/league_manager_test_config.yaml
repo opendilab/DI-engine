@@ -1,6 +1,6 @@
 league:
     # ---player----
-    player_category: ['zerg', 'terran', 'protoss']  # placeholder
+    player_category: ['zerg', 'terran', 'protoss']
     active_players: 
         main_player: 1
         main_exploiter: 1
@@ -34,8 +34,8 @@ league:
         decay: 0.99
         min_win_rate_games: 8
     # ---runner---
-    max_active_player_task: 3
+    max_active_player_job: 3
     #per_match_games: 8
     time_interval: 1
 model:
-    placeholder:  
+    placeholder: 'placeholder'
