@@ -89,6 +89,7 @@ class BaseLearner(ABC):
         self._log_buffer = build_log_buffer()
         # checkpoint helper
         self._checkpointer_manager = build_checkpoint_helper(self._cfg)
+        self._hooks = {'before_run': [], 'before_iter': [], 'after_iter': [], 'after_run': []}
 
     def launch(self) -> None:
         """
@@ -124,7 +125,7 @@ class BaseLearner(ABC):
             Setup hook for base_learner. Hook is the way to implement actual functions in base_learner.
             You can reference learner_hook.py
         """
-        self._hooks = build_learner_hook_by_cfg(self._cfg.learner.hook)
+        self._hooks.update(build_learner_hook_by_cfg(self._cfg.learner.hook))
 
     def _setup_wrapper(self) -> None:
         """

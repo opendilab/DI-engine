@@ -111,7 +111,7 @@ class TestReplayBuffer:
         count = setup_replay_buffer.count
         setup_replay_buffer.push_data({'data': np.random.randn(4)})
         setup_replay_buffer.close()
-        time.sleep(1 + 0.5)
+        time.sleep(1 + 1)
         assert (len(threading.enumerate()) <= 1)
 
     def test_push_split(self, setup_config):

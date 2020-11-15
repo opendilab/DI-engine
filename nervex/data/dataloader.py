@@ -215,8 +215,11 @@ class AsyncDataLoader(object):
             self.async_train_queue.join()
 
     def _clean_queue(self) -> None:
-        while not self.async_train_queue.empty():  # pop all the data
-            _ = self.async_train_queue.get()
+        try:
+            while not self.async_train_queue.empty():  # pop all the data
+                _ = self.async_train_queue.get()
+        except EOFError:
+            pass
         self.async_train_queue.close()
         self.async_train_queue.join_thread()  # let all the data in buffer written into pipe
 

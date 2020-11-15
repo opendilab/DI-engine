@@ -5,6 +5,7 @@ import pytest
 import torch
 from easydict import EasyDict
 from typing import Any
+from functools import partial
 
 from nervex.worker import BaseLearner
 from nervex.worker.learner import LearnerHook, register_learner_hook, add_learner_hook, \
@@ -12,15 +13,8 @@ from nervex.worker.learner import LearnerHook, register_learner_hook, add_learne
 
 
 class FakeLearner(BaseLearner):
-
-    def _setup_data_source(self):
-
-        class DataLoader:
-
-            def __next__(self):
-                return torch.randn(4, 2)
-
-        self._data_source = DataLoader()
+    def get_data(self, batch_size):
+        return [partial(torch.randn, 2) for _ in range(batch_size)]
 
     def _setup_computation_graph(self):
 
@@ -72,6 +66,7 @@ class TestBaseLearner:
         time.sleep(0.5)
         cfg = {'common': {'load_path': path}, 'learner': {'learner_type': 'fake', 'import_names': []}}
         learner = create_learner(EasyDict(cfg))
+        learner.launch()
         with pytest.raises(KeyError):
             create_learner(EasyDict({'learner': {'learner_type': 'placeholder', 'import_names': []}}))
         learner.run()
