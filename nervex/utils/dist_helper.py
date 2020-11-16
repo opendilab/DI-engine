@@ -4,48 +4,59 @@ import numpy as np
 import torch
 
 from nervex.utils import FakeLink
-from .import_utils import try_import_link
+from .import_helper import try_import_link
+from .default_helper import error_wrapper
 
 link = try_import_link()
 
 is_fake_link = isinstance(link, FakeLink)
 
 
-def error_wrapper(fn, default_ret):
-
-    def wrapper(*args, **kwargs):
-        try:
-            ret = fn(*args, **kwargs)
-        except Exception:
-            ret = default_ret
-            print(
-                '[WARNING]: call linklink error, return default_ret({}). If you are not in unittest, please check it'.
-                format(default_ret)
-            )
-        return ret
-
-    return wrapper
-
-
 def get_rank():
+    r"""
+    Overview:
+        get the rank of linklink model, return 0 if use FakeLink.
+    Notes:
+        reference import_helper.try_import_link and linklink.get_rank.
+    """
     if is_fake_link:
         return 0
     return error_wrapper(link.get_rank, 0)()
 
 
 def get_world_size():
+    r"""
+    Overview:
+        get the world_size of linklink model, return 0 if use FakeLink.
+    Notes:
+        reference import_helper.try_import_link and linklink.get_world_size.
+    """
     if is_fake_link:
         return 1
     return error_wrapper(link.get_world_size, 1)()
 
 
 def broadcast(value, rank_num):
+    r"""
+    Overview:
+        use linklink.broadcast and raise error when using FakeLink
+    Arguments:
+        - value (:obj:`obj`): the value to board cast
+        - rank_num (:obj:`int`): the rank to boardcast on
+    """
     if is_fake_link:
         raise NotImplementedError
     link.broadcast(value, rank_num)
 
 
 def allreduce(data, op='sum'):
+    r"""
+    Overview:
+        call linklink.allreduce on the data
+    Arguments:
+        - data (:obj:`obj`): the data to reduce
+        - op (:obj:`str`): the operation to perform on data, support ['sum', 'max']
+    """
     link_op_map = {'sum': link.allreduceOp_t.Sum, 'max': link.allreduceOp_t.Max}
     if op not in link_op_map.keys():
         raise KeyError("not support allreduce op type: {}".format(op))
@@ -59,6 +70,12 @@ def allreduce(data, op='sum'):
 
 
 def get_group(group_size):
+    r"""
+    Overview:
+        get the group segmentation of group_size each group
+    Arguments:
+        - group_size (:obj:`int`) the group_size
+    """
     rank = get_rank()
     world_size = get_world_size()
     if group_size is None:
@@ -68,6 +85,10 @@ def get_group(group_size):
 
 
 def distributed_mode(func):
+    r"""
+    Overview:
+        wrap the function so that in can init and finalize automatically before each call
+    """
 
     def wrapper(*args, **kwargs):
         dist_init()
@@ -78,6 +99,13 @@ def distributed_mode(func):
 
 
 def dist_init(method='slurm', device_id=0):
+    r"""
+    Overview:
+        init the distribution
+    Arguments:
+        - method (:obj:`str`): support ['slurm', 'single_node`]
+        - device_id (:obj:`int`): default device when using single_node method
+    """
     if method == 'slurm':
         proc_id = int(os.environ['SLURM_PROCID'])
         # ntasks = int(os.environ['SLURM_NTASKS'])
@@ -95,10 +123,18 @@ def dist_init(method='slurm', device_id=0):
 
 
 def dist_finalize():
+    r"""
+    Overview:
+        finalize linklink, see linklink.finalize()
+    """
     link.finalize()
 
 
 def simple_group_split(world_size, rank, num_groups):
+    r"""
+    Overview:
+        split the group according to worldsize, rank and num_groups
+    """
     groups = []
     rank_list = np.split(np.arange(world_size), num_groups)
     rank_list = [list(map(int, x)) for x in rank_list]
@@ -109,8 +145,21 @@ def simple_group_split(world_size, rank, num_groups):
 
 
 class DistModule(torch.nn.Module):
+    r"""
+    Overview:
+        Distributed module that wrapped the nn.model
+    Interface:
+        __init__, sync_gradients, broadcast_params
+    """
 
     def __init__(self, module, sync=True):
+        r"""
+        Overview:
+            init method of the DistModule
+        Arguments:
+            - module (:obj:`nn.model`): the module to be wrapped
+            - sync (:obj:`bool`): whether need syncronize
+        """
         super(DistModule, self).__init__()
         self.module = module
         self._extend_module_attr()
@@ -145,7 +194,10 @@ class DistModule(torch.nn.Module):
         return hook
 
     def sync_gradients(self):
-        """ average gradients """
+        r"""
+        Overview:
+            calculate the average gradients
+        """
         if self.sync and link.get_world_size() > 1:
             for name, param in self.named_parameters():
                 if param.requires_grad:
@@ -154,7 +206,10 @@ class DistModule(torch.nn.Module):
             link.synchronize()
 
     def broadcast_params(self):
-        """ broadcast model parameters """
+        """
+        Overview:
+            broadcast the model parameters
+        """
         for name, param in self.state_dict().items():
             link.broadcast(param, 0)
 
