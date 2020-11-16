@@ -5,7 +5,7 @@ from collections import OrderedDict
 from nervex.computation_graph import BaseCompGraph
 from nervex.entry.base_single_machine import SingleMachineRunner
 from nervex.model import FCDQN
-from nervex.rl_utils import td_data, one_step_td_error
+from nervex.rl_utils import q_1step_td_data, q_1step_td_error
 from nervex.utils import read_config
 from nervex.worker import BaseLearner, SubprocessEnvManager
 from nervex.worker.agent import BaseAgent, DqnLearnerAgent, DqnActorAgent, DiscreteEvaluatorAgent
@@ -31,8 +31,8 @@ class CartPoleDqnGraph(BaseCompGraph):
         else:
             target_q_value = agent.forward(nextobs)['logit']
 
-        data = td_data(q_value, target_q_value, action, reward, terminate)
-        loss = one_step_td_error(data, self._gamma, weights)
+        data = q_1step_td_data(q_value, target_q_value, action, reward, terminate)
+        loss = q_1step_td_error(data, self._gamma, weights)
         if agent.is_double:
             agent.update_target_network(agent.state_dict()['model'])
         return {'total_loss': loss}
