@@ -1,6 +1,7 @@
 from nervex.model import ConvValueAC
 from nervex.worker.learner import BaseLearner, register_learner
 from nervex.worker.agent import ACLearnerAgent
+from nervex.utils import DistModule
 from app_zoo.atari.envs import AtariEnv
 from app_zoo.atari.computation_graph.atari_ppo_computation_graph import AtariPpoGraph
 from app_zoo.atari.computation_graph.atari_a2c_computation_graph import AtariA2CGraph
@@ -14,6 +15,8 @@ class AtariPpoLearner(BaseLearner):
         model = ConvValueAC(env_info.obs_space.shape, env_info.act_space.shape, self._cfg.model.embedding_dim)
         if self._cfg.learner.use_cuda:
             model.cuda()
+        if self._cfg.learner.use_distributed:
+            model = DistModule(model)
         self._agent = ACLearnerAgent(model)
         self._agent.mode(train=True)
 
