@@ -19,7 +19,7 @@ def pfsp(win_rates: np.ndarray, weighting: str) -> np.ndarray:
     if weighting in weighting_func.keys():
         fn = weighting_func[weighting]
     else:
-        return KeyError("invalid weighting arg: {} in pfsp".format(weighting))
+        raise KeyError("invalid weighting arg: {} in pfsp".format(weighting))
 
     assert isinstance(win_rates, np.ndarray)
     # all zero win rates case, return uniform selection prob
@@ -39,4 +39,4 @@ def uniform(win_rates: np.ndarray) -> np.ndarray:
     Returns:
         - probs (:obj:`np.ndarray`): a numpy ndarray of uniform probability, shape(N)
     """
-    return np.ones_like(win_rates) / len(win_rates)
+    return np.full_like(win_rates, 1.0 / len(win_rates))

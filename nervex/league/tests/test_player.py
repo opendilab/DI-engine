@@ -1,14 +1,23 @@
 import numpy as np
 import pytest
 from easydict import EasyDict
+import os
+import yaml
 
 from nervex.league.player import Player, HistoricalPlayer, ActivePlayer, BattleActivePlayer, SoloActivePlayer
 from nervex.league.starcraft_player import MainPlayer, MainExploiter, LeagueExploiter
 from nervex.league.shared_payoff import BattleSharedPayoff
 
-STRONG = 0.7
+
 ONE_PHASE_STEP = 2e3
-MIN_VALID = 0.2
+
+
+@pytest.fixture(scope='function')
+def setup_config():
+    with open(os.path.join(os.path.dirname(__file__), 'league_manager_test_config.yaml')) as f:
+        cfg = yaml.safe_load(f)
+    cfg = EasyDict(cfg)
+    return cfg
 
 
 @pytest.fixture(scope='function')
@@ -18,38 +27,30 @@ def setup_payoff():
 
 
 @pytest.fixture(scope='function')
-def setup_league(setup_payoff):
+def setup_league(setup_payoff, setup_config):
     players = []
-    main_player_branch = {'pfsp': 0.5, 'sp': 0.35, 'verification': 0.15}
-    main_exploiter_branch = {'main_players': 1.0}
-    league_exploiter_branch = {'pfsp': 1.0}
     for category in ['zerg', 'terran', 'protoss']:
         main_player_name = '{}_{}'.format('MainPlayer', category)
         players.append(
             MainPlayer(
+                setup_config.league.main_player,
                 category,
                 setup_payoff,
                 'ckpt_{}.pth'.format(main_player_name),
                 main_player_name,
-                0,
-                branch_probs=main_player_branch,
-                strong_win_rate=STRONG,
-                one_phase_step=ONE_PHASE_STEP,
+                0
             )
         )
 
         main_exploiter_name = '{}_{}'.format('MainExploiter', category)
         players.append(
             MainExploiter(
+                setup_config.league.main_exploiter,
                 category,
                 setup_payoff,
                 'ckpt_{}.pth'.format(main_exploiter_name),
                 main_exploiter_name,
-                0,
-                branch_probs=main_exploiter_branch,
-                strong_win_rate=STRONG,
-                one_phase_step=ONE_PHASE_STEP,
-                min_valid_win_rate=MIN_VALID
+                0
             )
         )
 
@@ -57,20 +58,20 @@ def setup_league(setup_payoff):
         for i in range(2):
             players.append(
                 LeagueExploiter(
+                    setup_config.league.league_exploiter,
                     category,
                     setup_payoff,
                     'ckpt_{}.pth'.format(league_exploiter_name),
                     league_exploiter_name,
                     0,
-                    branch_probs=league_exploiter_branch,
-                    strong_win_rate=STRONG,
-                    one_phase_step=ONE_PHASE_STEP
                 )
             )
+
         # sl player is used as initial HistoricalPlayer
         sl_hp_name = '{}_{}_sl'.format('MainPlayer', category)
         players.append(
             HistoricalPlayer(
+                EasyDict(),
                 category,
                 setup_payoff,
                 'ckpt_sl_{}'.format(sl_hp_name),
@@ -82,7 +83,6 @@ def setup_league(setup_payoff):
 
     for p in players:
         setup_payoff.add_player(p)
-
     return players
 
 

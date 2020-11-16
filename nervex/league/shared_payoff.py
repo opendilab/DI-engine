@@ -95,7 +95,8 @@ class BattleSharedPayoff:
 
     def __init__(self, cfg: EasyDict):
         """
-        Overview: initialize battle payoff
+        Overview:
+            Initialize battle payoff
         Arguments:
             - cfg (:obj:`dict`): config(contains {decay, min_win_rate_games})
         """
@@ -146,27 +147,27 @@ class BattleSharedPayoff:
     def _win_rate(self, home: str, away: str) -> float:
         """
         Overview:
-            Get win rate of one `home player` vs one `away player`
+            Calculate win rate of one `home player` vs one `away player`
         Arguments:
             - home (:obj:`str`): home player id to access win rate
             - away (:obj:`str`): away player id to access win rate
         Returns:
             - win rate (:obj:`float`): float win rate value. \
                 Only when total games is no less than ``self._min_win_rate_games``, \
-                can the win rate be calculated according to [win, draw, loss, game], or return 0.5 by default.
+                can the win rate be calculated by (wins + draws/2) / games, or return 0.5 by default.
         """
         key = self.get_key(home, away)
         handle = self._data[key]
         # no game record case
         if handle['games'] < self._min_win_rate_games:
             return 0.5
-
         return (handle['wins'] + 0.5 * handle['draws']) / (handle['games'])
 
     @property
     def players(self):
         """
-        Overview: get all the players
+        Overview:
+            Get all the players
         Returns:
             - players (:obj:`list`): players list
         """
@@ -175,9 +176,10 @@ class BattleSharedPayoff:
 
     def add_player(self, player: Player) -> None:
         """
-        Overview: Add a player
+        Overview:
+            Add a player to the shared payoff
         Arguments:
-            - player (:obj:`Player`): the player to be added
+            - player (:obj:`Player`): the player to be added, usually a new one to the league
         """
         with self._lock:
             self._players.append(player)
@@ -227,7 +229,8 @@ class BattleSharedPayoff:
 
     def get_key(self, home: str, away: str) -> Tuple[str, bool]:
         """
-        Overview: Join home player id and away player id
+        Overview:
+            Join home player id and away player id
         Arguments:
             - home (:obj:`str`): home player id
             - away (:obj:`str`): away player id
@@ -257,7 +260,8 @@ class SoloSharedPayoff:
 
     def __init__(self, cfg: EasyDict) -> None:
         """
-        Overview: initialize solo payoff
+        Overview:
+            Initialize solo payoff
         Arguments:
             - cfg (:obj:`dict`): config(contains {buffer_size})
         """
@@ -276,7 +280,8 @@ class SoloSharedPayoff:
 
     def update(self, job_info: dict) -> bool:
         """
-        Overview: append job_info at the right end of ``self._data``
+        Overview:
+            Append job_info at the right end of ``self._data``
         Arguments:
             - job_info (:obj:`dict`): a dict containing job result information
         Returns:
@@ -288,7 +293,8 @@ class SoloSharedPayoff:
 
     def add_player(self, player: Player) -> None:
         """
-        Overview: Will not add a player, since there is only one player.
+        Overview:
+            Will not add a player, since there is only one player.
         """
         pass
 

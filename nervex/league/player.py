@@ -1,9 +1,10 @@
 from typing import Callable, Optional, List, Union, Any
 from collections import namedtuple
 import numpy as np
-from abc import abstractmethod
+from easydict import EasyDict
 
-from nervex.utils import deep_merge_dicts
+from nervex.utils import deep_merge_dicts, import_module
+from nervex.rl_utils import epsilon_greedy
 
 
 class Player:
@@ -17,19 +18,23 @@ class Player:
     """
     _name = "BasePlayer"  # override this variable for sub-class player
 
-    def __init__(self, category: str, init_payoff: Union['BattleSharedPayoff', 'SoloSharedPayoff'],  # noqa
+    def __init__(self, cfg: EasyDict, category: str,
+                 init_payoff: Union['BattleSharedPayoff', 'SoloSharedPayoff'],  # noqa
                  checkpoint_path: str, player_id: str, total_agent_step: int) -> None:
         """
-        Overview: initialize base player metadata
+        Overview:
+            Initialize base player metadata
         Arguments:
+            - cfg (:obj:`EasyDict`): player config dict
             - category (:obj:`str`): player category, depending on the game, \
                 e.g. StarCraft has 3 races ['terran', 'protoss', 'zerg']
             - init_payoff (:obj:`BattleSharedPayoff` or :obj:`SoloSharedPayoff`): payoff shared by all players
             - checkpoint_path (:obj:`str`): one training phase step
             - player_id (:obj:`str`): player id
-            - total_agent_step (:obj:`int`): 0 for active player by default, \
-                parent player's ``_total_agent_step`` for historical player
+            - total_agent_step (:obj:`int`):  for active player, it should be 0, \
+                for historical player, it should be parent player's ``_total_agent_step`` when ``snapshot``
         """
+        self._cfg = cfg
         self._category = category
         self._payoff = init_payoff
         self._checkpoint_path = checkpoint_path
@@ -54,7 +59,7 @@ class Player:
         return self._player_id
 
     @property
-    def total_agent_step(self) -> None:
+    def total_agent_step(self) -> int:
         return self._total_agent_step
 
     @total_agent_step.setter
@@ -73,7 +78,8 @@ class HistoricalPlayer(Player):
 
     def __init__(self, *args, parent_id: str) -> None:
         """
-        Overview: Initialize ``_parent_id`` additionally
+        Overview:
+            Initialize ``_parent_id`` additionally
         Arguments:
             - parent_id (:obj:`str`): id of historical player's parent, should be an active player
         """
@@ -87,7 +93,8 @@ class HistoricalPlayer(Player):
 
 class ActivePlayer(Player):
     """
-    Overview: active player class, active player can be updated
+    Overview:
+        Active player class, active player can be updated
     Interface:
         __init__, is_trained_enough, snapshot, mutate, get_job
     Property:
@@ -95,15 +102,24 @@ class ActivePlayer(Player):
     """
     _name = "ActivePlayer"
 
-    def __init__(self, *args, one_phase_step: int) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         """
-        Overview: initialize player metadata, depending on the game
-        Arguments:
+        Overview:
+            Initialize player metadata, depending on the game
+        Note:
             - one_phase_step (:obj:`int`): active player will be considered trained enough after one phase step
+            - last_enough_step (:obj:`int`): player's last step number that satisfies ``_is_trained_enough``
+            - exploration (:obj:`function`): exploration function, e.g. epsilon greedy with decay
         """
         super(ActivePlayer, self).__init__(*args)
-        self._one_phase_step = int(float(one_phase_step))  # ``one_phase_step`` is like 1e9
+        self._one_phase_step = int(float(self._cfg.one_phase_step))  # ``one_phase_step`` is like 1e9
         self._last_enough_step = 0
+        if 'exploration' in self._cfg.forward_kwargs:
+            self._exploration = epsilon_greedy(self._cfg.forward_kwargs.exploration.start,
+                                               self._cfg.forward_kwargs.exploration.end,
+                                               self._cfg.forward_kwargs.exploration.decay_len)
+        else:
+            self._exploration = None
 
     def is_trained_enough(self, *args, **kwargs) -> bool:
         """
@@ -131,6 +147,7 @@ class ActivePlayer(Player):
         """
         path = self.checkpoint_path.split('.pth')[0] + '_{}'.format(self._total_agent_step) + '.pth'
         return HistoricalPlayer(
+            self._cfg,
             self.category,
             self.payoff,
             path,
@@ -139,31 +156,58 @@ class ActivePlayer(Player):
             parent_id=self.player_id
         )
 
-    @abstractmethod
     def mutate(self, info: dict) -> Optional[str]:
         """
-        Overview: Mutate the current player
+        Overview:
+            Mutate the current player
         Arguments:
             - info (:obj:`dict`): related information for the mutation
         Returns:
             - mutation_result (:obj:`str`): if the player does the mutation operation then returns the
                 corresponding model path, otherwise returns None
         """
-        raise NotImplementedError
+        pass
 
     def get_job(self) -> dict:
         """
         Overview:
-            Get a dict containing some info about the job to be launched. For example, for solo active player,
-            this method can get epsilon value, game mode, scenario, difficulty, etc. For league active player,
-            this method can choose an opponent to play against additionally.
+            Get a dict containing some info about the job to be launched. The dict contains at least 3 keys
+            ['forward_kwargs', 'adder_kwargs', 'env_kwargs']. Calls three corresponding methods ``self._get_job_*``
+            to get value of each key.
+            Apart from those 3 keys, it can also contain keys like ['agent_update_freq', 'compressor'].
+            For battle active player, it should contain the selected opponent.
+        Returns:
+            - ret (:obj:`dict`): the returned dict, containing at least 3 keys \
+                ['forward_kwargs', 'adder_kwargs', 'env_kwargs']
+        Note:
+            - forward_kwargs: e.g. decayed epsilon value for exploration
+            - env_kwargs: e.g. game mode, scenario, difficulty
+            - adder_kwargs: e.g. whether to use gae, data push length
         """
-        return {}
+        job_dict = self._cfg.job
+        return deep_merge_dicts({
+            'forward_kwargs': self._get_job_forward(),
+            'adder_kwargs': self._get_job_adder(),
+            'env_kwargs': self._get_job_env()
+        }, job_dict)
+
+    def _get_job_forward(self) -> dict:
+        ret = {}
+        if 'exploration' in self._cfg.forward_kwargs:
+            ret['eps'] = self._exploration(self.total_agent_step)
+        return ret
+
+    def _get_job_adder(self) -> dict:
+        return self._cfg.adder_kwargs
+
+    def _get_job_env(self) -> dict:
+        return self._cfg.env_kwargs
 
 
 class BattleActivePlayer(ActivePlayer):
     """
-    Overview: active player class for battle games
+    Overview:
+        Active player class for battle games
     Interface:
         __init__, is_trained_enough, snapshot, mutate, get_job
     Property:
@@ -173,18 +217,19 @@ class BattleActivePlayer(ActivePlayer):
     BRANCH = namedtuple("BRANCH", ['name', 'prob'])
 
     # override
-    def __init__(self, *args, strong_win_rate: float, branch_probs: Optional[dict] = None, **kwargs) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         """
-        Overview: Initialize league player metadata additionally
-        Arguments:
+        Overview:
+            Initialize league player metadata additionally
+        Note:
             - strong_win_rate (:obj:`float`): if win rates between this player and all the opponents are greater than
                 this value, this player can be regarded as strong enough to these opponents, therefore trained enough
-            - branch_probs (:obj:`dict`): a dict of probabilities of selecting different opponent branch
+            - branch_probs (:obj:`namedtuple`): a namedtuple of probabilities of selecting different opponent branch
         """
         super(BattleActivePlayer, self).__init__(*args, **kwargs)
-        self._strong_win_rate = strong_win_rate
-        assert isinstance(branch_probs, dict)
-        self._branch_probs = [self.BRANCH(k, v) for k, v in branch_probs.items()]
+        self._strong_win_rate = self._cfg.strong_win_rate
+        assert isinstance(self._cfg.branch_probs, dict)
+        self._branch_probs = [self.BRANCH(k, v) for k, v in self._cfg.branch_probs.items()]
 
     # override
     def is_trained_enough(self, select_fn: Callable) -> bool:
@@ -226,7 +271,8 @@ class BattleActivePlayer(ActivePlayer):
         Returns:
             - ret_dict (:obj:`dict`): the job info dict
         """
-        ret_dict = super().get_job()
+        parent_dict = super().get_job()
+        # select an opponent
         if p is None:
             p = np.random.uniform()
         L = len(self._branch_probs)
@@ -234,7 +280,8 @@ class BattleActivePlayer(ActivePlayer):
         idx = [cum_p[i] <= p < cum_p[i + 1] for i in range(L)].index(True)
         branch_name = self._name2branch(self._branch_probs[idx].name)
         opponent = getattr(self, branch_name)()
-        return deep_merge_dicts(ret_dict, {'opponent': opponent})
+        my_dict = {'opponent': opponent}
+        return deep_merge_dicts(parent_dict, my_dict)
 
     def _name2branch(self, s: str) -> str:
         """
@@ -276,7 +323,8 @@ class BattleActivePlayer(ActivePlayer):
 
 class SoloActivePlayer(ActivePlayer):
     """
-    Overview: active player class for solo games
+    Overview:
+        Active player class for solo games
     Interface:
         __init__, is_trained_enough, snapshot, mutate, get_job
     Property:
@@ -285,19 +333,19 @@ class SoloActivePlayer(ActivePlayer):
     _name = "SoloActivePlayer"
 
     # override
-    def mutate(self, info: dict) -> Optional[str]:
+    def __init__(self, *args, **kwargs) -> None:
         """
-        Overview: Mutate the current player
+        Overview:
+            Initialize league player metadata additionally
         Arguments:
-            - info (:obj:`dict`): related information for the mutation
-        Returns:
-            - mutation_result (:obj:`str`): if the player does the mutation operation then returns the
-                corresponding model path, otherwise returns None
+            - strong_win_rate (:obj:`float`): if win rates between this player and all the opponents are greater than
+                this value, this player can be regarded as strong enough to these opponents, therefore trained enough
+            - branch_probs (:obj:`dict`): a dict of probabilities of selecting different opponent branch
         """
-        pass
+        super(SoloActivePlayer, self).__init__(*args, **kwargs)
 
     # override
-    def get_job(self, exploration_fn: Callable) -> dict:
+    def get_job(self) -> dict:
         """
         Overview:
             Get a dict containing some info about the job to be launched. For example, for solo active player,
@@ -309,5 +357,47 @@ class SoloActivePlayer(ActivePlayer):
             - ret_dict (:obj:`dict`): a dict containing job's epsilon value
         """
         ret_dict = super().get_job()
-        epsilon = exploration_fn(self.total_agent_step)
-        return deep_merge_dicts(ret_dict, {'epsilon': epsilon})
+        return ret_dict
+        # epsilon = self.exploration(self.total_agent_step)
+        # return deep_merge_dicts(ret_dict, {'epsilon': epsilon})
+
+
+player_mapping = {}
+
+
+def register_player(name: str, player: type) -> None:
+    """
+    Overview:
+        Add a new Player class with its name to dict player_mapping, any subclass derived from
+        Player must use this function to register in nervex system before instantiate.
+    Arguments:
+        - name (:obj:`str`): name of the new Player class
+        - learner (:obj:`type`): the new Player class, should be subclass of Player
+    """
+    assert isinstance(name, str)
+    assert issubclass(player, Player)
+    player_mapping[name] = player
+
+
+def create_player(cfg: EasyDict, player_type, *args, **kwargs) -> Player:
+    """
+    Overview:
+        Given the key (league_manager_type), create a new league manager instance if in league_mapping's values,
+        or raise an KeyError. In other words, a derived league manager must first register then call ``create_league``
+        to get the instance object.
+    Arguments:
+        - cfg (:obj:`EasyDict`): league manager config, necessary keys: [league.import_module]
+    Returns:
+        - league_manager (:obj:`BaseLeagueManager`): the created new league manager, should be an instance of one of \
+            league_mapping's values
+    """
+    import_module(cfg.import_names)
+    # league_type = cfg.league.league_type
+    if player_type not in player_mapping.keys():
+        raise KeyError("not support player type: {}".format(player_type))
+    else:
+        return player_mapping[player_type](*args, **kwargs)
+
+
+register_player('solo_active_player', SoloActivePlayer)
+register_player('battle_active_player', BattleActivePlayer)

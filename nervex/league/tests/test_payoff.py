@@ -20,6 +20,7 @@ fake_player_count = 0
 def get_fake_player():
     global fake_player_count
     player = Player(
+        cfg=EasyDict(),
         category='zerg',
         init_payoff=None,
         checkpoint_path='fake_ckpt_{}.pth'.format(fake_player_count),
@@ -149,6 +150,7 @@ sp_player_count = 0
 def get_shared_payoff_player(payoff):
     global sp_player_count
     player = Player(
+        cfg=EasyDict(),
         category='zerg',
         init_payoff=payoff,
         checkpoint_path='sp_ckpt_{}.pth'.format(sp_player_count),

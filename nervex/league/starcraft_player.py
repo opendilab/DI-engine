@@ -1,7 +1,7 @@
 from typing import Optional
 import numpy as np
 
-from .player import BattleActivePlayer, HistoricalPlayer
+from .player import BattleActivePlayer, HistoricalPlayer, register_player
 from .algorithm import pfsp
 
 
@@ -18,7 +18,8 @@ class MainPlayer(BattleActivePlayer):
 
     def _pfsp_branch(self) -> HistoricalPlayer:
         """
-        Overview: Select prioritized fictitious self-play opponent
+        Overview:
+            Select prioritized fictitious self-play opponent
         Returns:
             - player (:obj:`HistoricalPlayer`): the selected historical player
         """
@@ -29,7 +30,8 @@ class MainPlayer(BattleActivePlayer):
 
     def _sp_branch(self):
         """
-        Overview: Select normal self-play opponent
+        Overview:
+            Select normal self-play opponent
         """
         main_players = self._get_players(lambda p: isinstance(p, MainPlayer))
         main_opponent = self._get_opponent(main_players)
@@ -48,7 +50,8 @@ class MainPlayer(BattleActivePlayer):
 
     def _verification_branch(self):
         """
-        Overview: verify no strong main exploiter and no forgotten past main player
+        Overview:
+            Verify no strong main exploiter and no forgotten past main player
         """
         # check exploitation
         main_exploiters = self._get_players(lambda p: isinstance(p, MainExploiter))
@@ -93,7 +96,8 @@ class MainPlayer(BattleActivePlayer):
     # override
     def mutate(self, info: dict) -> None:
         """
-        Overview: MainPlayer does no mutation
+        Overview:
+            MainPlayer does not mutate
         """
         return None
 
@@ -109,19 +113,31 @@ class MainExploiter(BattleActivePlayer):
     """
     _name = "MainExploiter"
 
-    def __init__(self, *args, min_valid_win_rate=0.2, **kwargs):
+    def __init__(self, *args, **kwargs):
+        """
+        Overview:
+            Initialize ``min_valid_win_rate`` additionally
+        Note:
+            - min_valid_win_rate (:obj:`float`): only when win rate against the main player is greater than this, \
+                can the main player be regarded as able to produce valid training signals to be selected
+        """
         super(MainExploiter, self).__init__(*args, **kwargs)
-        self._min_valid_win_rate = min_valid_win_rate
+        self._min_valid_win_rate = self._cfg.min_valid_win_rate
 
     def _main_players_branch(self):
+        """
+        Overview:
+            Select main player or historical player snapshot from main player as opponent
+        Returns:
+            - player (:obj:`Player`): the selected main player (active/historical)
+        """
+        # get the main player (only one)
         main_players = self._get_players(lambda p: isinstance(p, MainPlayer))
         main_opponent = self._get_opponent(main_players)
-
         # if this main_opponent can produce valid training signals
         if self._payoff[self, main_opponent] >= self._min_valid_win_rate:
             return main_opponent
-
-        # otherwise, curriculum learning
+        # otherwise, curriculum learning, select a historical version
         historical = self._get_players(
             lambda p: isinstance(p, HistoricalPlayer) and p.parent_id == main_opponent.player_id
         )
@@ -136,7 +152,8 @@ class MainExploiter(BattleActivePlayer):
     # override
     def mutate(self, info: dict) -> str:
         """
-        Overview: main exploiter is sure to mutates(reset) to the supervised learning player
+        Overview:
+            Main exploiter is sure to mutate(reset) to the supervised learning player
         Returns:
             - ckpt_path (:obj:`str`): the pretrained model's ckpt path
         """
@@ -154,19 +171,21 @@ class LeagueExploiter(BattleActivePlayer):
     """
     _name = "LeagueExploiter"
 
-    def __init__(self, *args, mutate_prob: float = 0.25, **kwargs) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         """
-        Overview: Initialize ``mutate_prob`` additionally
-        Returns:
-            - mutate_prob (:obj:`str`): the mutation probability of league exploiter. should be in [0, 1]
+        Overview:
+            Initialize ``mutate_prob`` additionally
+        Note:
+            - mutate_prob (:obj:`float`): the mutation probability of league exploiter. should be in [0, 1]
         """
         super(LeagueExploiter, self).__init__(*args, **kwargs)
-        assert 0 <= mutate_prob <= 1
-        self.mutate_prob = mutate_prob
+        assert 0 <= self._cfg.mutate_prob <= 1
+        self.mutate_prob = self._cfg.mutate_prob
 
     def _pfsp_branch(self) -> HistoricalPlayer:
         """
-        Overview: select prioritized fictitious self-play opponent
+        Overview:
+            Select prioritized fictitious self-play opponent
         Returns:
             - player (:obj:`HistoricalPlayer`): the selected historical player
         Note:
@@ -184,12 +203,18 @@ class LeagueExploiter(BattleActivePlayer):
     # override
     def mutate(self, info) -> Optional[str]:
         """
-        Overview: League exploiter can mutate to the supervised learning player with 0.25 prob
+        Overview:
+            League exploiter can mutate to the supervised learning player with 0.25 prob
         Returns:
-            - ckpt_path (:obj:`str`): with 0.25 prob returns the pretrained model's ckpt path, \
-                with left 0.75 prob returns None, which means no mutation
+            - ckpt_path (:obj:`str`): with ``mutate_prob`` prob returns the pretrained model's ckpt path, \
+                with left 1 - ``mutate_prob`` prob returns None, which means no mutation
         """
         p = np.random.uniform()
         if p < self.mutate_prob:
             return info['pretrain_checkpoint_path']
         return None
+
+
+register_player('main_player', MainPlayer)
+register_player('main_exploiter', MainExploiter)
+register_player('league_exploiter', LeagueExploiter)

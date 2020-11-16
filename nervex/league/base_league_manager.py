@@ -6,7 +6,8 @@ from threading import Thread
 from typing import Callable
 from easydict import EasyDict
 
-from nervex.league.player import Player, ActivePlayer, HistoricalPlayer, BattleActivePlayer, SoloActivePlayer
+from nervex.league.player import ActivePlayer, HistoricalPlayer
+from nervex.league.player import create_player
 from nervex.league.shared_payoff import create_payoff
 from nervex.utils import deep_merge_dicts, LockContextType
 from nervex.utils import read_config, LockContext, import_module
@@ -123,8 +124,8 @@ class BaseLeagueManager(ABC):
         """
         # player_map = {'active_player': ActivePlayer}
         # TODO(zlx): solve this problem
-        from nervex.league.starcraft_player import MainPlayer, MainExploiter, LeagueExploiter
-        player_map = {'main_player': MainPlayer, 'main_exploiter': MainExploiter, 'league_exploiter': LeagueExploiter}
+        # from nervex.league.starcraft_player import MainPlayer, MainExploiter, LeagueExploiter
+        # player_map = {'main_player': MainPlayer, 'main_exploiter': MainExploiter, 'league_exploiter': LeagueExploiter}
 
         # add different types of active players for each player category, according to ``cfg.active_players``
         for cate in self.cfg.player_category:
@@ -132,17 +133,18 @@ class BaseLeagueManager(ABC):
                 for i in range(n):
                     name = '{}_{}_{}_{}'.format(k, cate, i, self.league_uid)
                     ckpt_path = '{}_ckpt.pth'.format(name)
-                    player = player_map[k](cate, self.payoff, ckpt_path, name, 0, **self.cfg[k])
+                    # player = player_map[k](cate, self.payoff, ckpt_path, name, 0, **self.cfg[k])
+                    player = create_player(self.cfg, k, self.cfg[k], cate, self.payoff, ckpt_path, name, 0)
                     self.active_players.append(player)
                     self.payoff.add_player(player)
 
         # add pretrain player as the initial HistoricalPlayer for each player category
         if self.cfg.use_pretrain_init_historical:
-            for r in self.cfg.player_category:
-                name = '{}_{}_0_pretrain'.format('main_player', r)
-                parent_name = '{}_{}_0'.format('main_player', r)
-                hp = HistoricalPlayer(r, self.payoff, self.cfg.pretrain_checkpoint_path[r], name, 0,
-                                      parent_id=parent_name)
+            for cate in self.cfg.player_category:
+                name = '{}_{}_0_pretrain'.format('main_player', cate)
+                parent_name = '{}_{}_0'.format('main_player', cate)
+                hp = HistoricalPlayer(self.cfg.main_player, cate, self.payoff, self.cfg.pretrain_checkpoint_path[cate],
+                                      name, 0, parent_id=parent_name)
                 self.historical_players.append(hp)
                 self.payoff.add_player(hp)
 
