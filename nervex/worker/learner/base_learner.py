@@ -7,16 +7,18 @@ Main Function:
 import os
 from abc import ABC, abstractmethod
 from typing import Any, Union, Callable
-
-import torch
+from functools import partial
 from easydict import EasyDict
+import torch
+
+from nervex.data import AsyncDataLoader, default_collate
 from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer, to_device
 from nervex.utils import build_logger, dist_init, EasyTimer, dist_finalize, pretty_print, read_config, \
     get_task_uid, import_module, broadcast
 from nervex.utils import deep_merge_dicts
 
 from .comm import LearnerCommHelper
-from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, LearnerHook
+from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, merge_hooks, LearnerHook
 
 default_config = read_config(os.path.join(os.path.dirname(__file__), "base_learner_default_config.yaml"))
 
@@ -26,7 +28,7 @@ class BaseLearner(ABC):
     Overview:
         base class for model learning(SL/RL), which is able to multi-GPU learning
     Interface:
-        __init__, register_stats, run, close, call_hook, info, save_checkpoint
+        __init__, register_stats, run, close, call_hook, info, save_checkpoint, launch
     Property:
         last_iter, optimizer, lr_scheduler, computation_graph, agent, log_buffer, record,
         load_path, save_path, checkpoint_manager, name, rank, tb_logger, use_distributed
@@ -51,16 +53,17 @@ class BaseLearner(ABC):
         self._cfg = deep_merge_dicts(default_config, cfg)
         self._init()
         if self._cfg.learner.communication.type == 'single_machine':
-            self._logger.info("Single Machine Learner has launched")
+            self._logger.info("Single machine learner has launched")
         else:
             comm_cfg = self._cfg.learner.communication
             LearnerCommHelper.enable_comm_helper(self, comm_cfg)
+            self._logger.info("Distributed learner has launched")
 
     def _init(self) -> None:
         """
         Overview:
-            Use ``self._cfg`` setting to build dataset, runtime agent, optimizer, lr_scheduler,
-            logger helper, checkpoint helper, time wrapper and learner hooks.
+            Use ``self._cfg`` setting to build common learner components, such as dataset, runtime agent,
+            optimizer, lr_scheduler, logger helper, checkpoint helper.
         """
         self._learner_worker_uid = get_task_uid()
         self._load_path = self._cfg.common.load_path
@@ -77,20 +80,29 @@ class BaseLearner(ABC):
             self._learner_uid = self._learner_worker_uid
         if self._use_cuda:
             self._device = 'cuda: {}'.format(self._rank % 8)
+        else:
+            self._device = 'cpu'
         self._default_max_iterations = self._cfg.learner.max_iterations
-        self._last_iter = CountVar(init_val=0)
         self._timer = EasyTimer()
-
-        self._setup_data_source()
-        self._setup_agent()
-        self._setup_optimizer()
-        self._setup_computation_graph()
-
         # logger
         self._logger, self._tb_logger, self._record = build_logger(self._cfg, rank=self._rank)
         self._log_buffer = build_log_buffer()
         # checkpoint helper
         self._checkpointer_manager = build_checkpoint_helper(self._cfg)
+        self._hooks = {'before_run': [], 'before_iter': [], 'after_iter': [], 'after_run': []}
+
+    def launch(self) -> None:
+        """
+        Overview:
+            launch learner runtime components, each train job means a launch operation,
+            job related dataloader, agent, computation_graph, optimizer and hook support.
+        """
+        self._setup_dataloader()
+        self._setup_agent()
+        self._setup_optimizer()
+        self._setup_computation_graph()
+
+        self._last_iter = CountVar(init_val=0)
         if self._rank == 0:
             self.register_stats()
         self.info(
@@ -113,14 +125,17 @@ class BaseLearner(ABC):
             Setup hook for base_learner. Hook is the way to implement actual functions in base_learner.
             You can reference learner_hook.py
         """
-        self._hooks = build_learner_hook_by_cfg(self._cfg.learner.hook)
+        if hasattr(self, '_hooks'):
+            self._hooks = merge_hooks(self._hooks, build_learner_hook_by_cfg(self._cfg.learner.hook))
+        else:
+            self._hooks = build_learner_hook_by_cfg(self._cfg.learner.hook)
 
     def _setup_wrapper(self) -> None:
         """
         Overview:
             Setup time_wrapper to get data_time and train_time
         """
-        self._get_data = self.time_wrapper(self._get_data, 'data_time')
+        self._get_iter_data = self.time_wrapper(self._get_iter_data, 'data_time')
         self._train = self.time_wrapper(self._train, 'train_time')
 
     def time_wrapper(self, fn: Callable, name: str):
@@ -140,13 +155,22 @@ class BaseLearner(ABC):
 
         return wrapper
 
-    @abstractmethod
-    def _setup_data_source(self) -> None:
+    def _setup_dataloader(self) -> None:
         """
         Overview:
-            Setup learner's data_source, data_source need to be iterable
+            Setup learner's dataloader, data_source need to be a generator,
+            and setup learner's collate_fn, which aggregate a listed data into a batch tensor.
         """
-        raise NotImplementedError
+        cfg = self._cfg.learner.data
+        # when single machine version, get_data is set by SingleMachineRunner
+        # when distributed version, get_data is set by comm LearnerCommHelper
+        # users don't need to know the related details if not necessary
+        self._dataloader = AsyncDataLoader(
+            self.get_data, cfg.batch_size, self._device, cfg.chunk_size, default_collate, cfg.num_workers
+        )
+
+    def _get_iter_data(self) -> Any:
+        return next(self._dataloader)
 
     @abstractmethod
     def _setup_agent(self) -> None:
@@ -180,17 +204,6 @@ class BaseLearner(ABC):
             weight_decay=self._cfg.learner.weight_decay
         )
         self._lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(self._optimizer, milestones=[], gamma=1)
-
-    def _get_data(self) -> Any:
-        """
-        Overview:
-            Get data from data_source, called in ``run``.
-
-        Note:
-            If use_cuda, the acquired data are already cuda tensor
-        """
-        data = next(self._data_source)
-        return data
 
     def _train(self, data: Any) -> None:
         """
@@ -251,22 +264,20 @@ class BaseLearner(ABC):
     def run(self, max_iterations: Union[int, None] = None) -> None:
         """
         Overview:
-            Run the learner. First start the data source in preparation for ``self._get_data``.
-            Then for each iteration, learner will get training data and train.
+            Run the learner.
+            For each iteration, learner will get training data and train.
             Learner will call hooks at four fixed positions(before_run, before_iter, after_iter, after_run).
         Arguments:
             - max_iterations (:obj:`int` or :obj:`None`): the max run iteration,/
                 if None then set to default_max_iterations
         """
-        if hasattr(self._data_source, 'run'):
-            self._data_source.run()
         if max_iterations is None:
             max_iterations = self._default_max_iterations
         # before run hook
         self.call_hook('before_run')
 
         for _ in range(max_iterations):
-            data = self._get_data()
+            data = self._get_iter_data()
             # before iter hook
             self.call_hook('before_iter')
             self._train(data)
@@ -280,12 +291,10 @@ class BaseLearner(ABC):
     def close(self) -> None:
         """
         Overview:
-            Close the related resources, such as dist_finalize when use_distributed and close data_source.
+            Close the related resources, such as dist_finalize when use_distributed
         """
         if self._use_distributed:
             dist_finalize()
-        if hasattr(self._data_source, 'close'):
-            self._data_source.close()
 
     def call_hook(self, name: str) -> None:
         """

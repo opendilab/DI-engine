@@ -1,7 +1,7 @@
 import numbers
 import os
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Dict
 
 import torch
 from easydict import EasyDict
@@ -384,3 +384,23 @@ def add_learner_hook(hooks: dict, hook: LearnerHook) -> None:
             break
     assert isinstance(hook, LearnerHook)
     hooks[position].insert(idx, hook)
+
+
+def merge_hooks(hooks1: Dict[str, list], hooks2: Dict[str, list]) -> Dict[str, list]:
+    """
+    Overview:
+        merge two hooks, which has the same keys, each value is sorted by hook priority with stable method
+    Arguments:
+        - hooks1 (:obj:`dict`): hooks1 to be merged
+        - hooks2 (:obj:`dict`): hooks2 to be merged
+    Returns:
+        - new_hooks (:obj:`dict`): merged new hooks
+
+    .. note::
+        This merge function uses stable sort method without disturbing the same priority hook
+    """
+    assert set(hooks1.keys()) == set(hooks2.keys())
+    new_hooks = {}
+    for k in hooks1.keys():
+        new_hooks[k] = sorted(hooks1[k] + hooks2[k], key=lambda x: x.priority)
+    return new_hooks

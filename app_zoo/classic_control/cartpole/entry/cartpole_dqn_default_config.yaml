@@ -9,7 +9,6 @@ learner:
     use_distributed: False
     max_iterations: 10000000
     train_step: 200
-    batch_size: 64
     learning_rate: 0.0001
     weight_decay: 0.0
     eps:
@@ -18,6 +17,7 @@ learner:
         end: 0.05
         decay: 10000
     data:
+        batch_size: 64
         max_reuse: 100
         buffer_length: 100000
     dqn:
@@ -46,7 +46,7 @@ actor:
     episode_num: 1
     print_freq: 500
 evaluator:
-    env_num: 2
-    episode_num: 5
-    eval_step: 1000
+    env_num: 10
+    episode_num: 1
+    eval_step: 1500
     stop_val: 39 # 195//5

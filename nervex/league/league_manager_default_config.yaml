@@ -34,5 +34,8 @@ league:
         data_push_length: 128
         agent_update_freq: 30  # second
         compressor: 'none'
+        use_eps: False
+        adder_kwargs:
+            use_gae: False
 model:
     placeholder: 'placeholder'

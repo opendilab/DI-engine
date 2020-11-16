@@ -16,6 +16,7 @@ class TestSumoDqnLearner:
         sumo_learner = SumoDqnLearner({})
         dataset = FakeSumoDataset()
         sumo_learner.get_data = lambda x: dataset.get_batch_sample(x)
+        sumo_learner.launch()
         sumo_learner.run()
         os.popen('rm -rf ckpt')
         os.popen('rm -rf default_*')
@@ -45,6 +46,7 @@ class TestSumoDqnLearner:
         push_data_thread = Thread(target=self.fake_push_data, args=(coordinator, learner._learner_uid))
         push_data_thread.daemon = True
         push_data_thread.start()
+        learner.launch()
         time.sleep(5)
         learner.run(5)
         assert learner.last_iter.val == 5

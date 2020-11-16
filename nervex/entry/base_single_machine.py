@@ -59,7 +59,6 @@ class SingleMachineRunner():
         self.algo_type = self.cfg.common.algo_type
         assert self.algo_type in ['dqn', 'ppo'], self.algo_type
         self.use_cuda = self.cfg.learner.use_cuda
-        self.batch_size = self.cfg.learner.batch_size
         self.buffer = PrioritizedBuffer(cfg.learner.data.buffer_length, cfg.learner.data.max_reuse)
         if self.algo_type == 'dqn':
             eps_cfg = cfg.learner.eps
@@ -67,8 +66,9 @@ class SingleMachineRunner():
 
         self._setup_env()
         self._setup_learner()
-        self._setup_agent()
         self._setup_get_data()
+        self.learner.launch()
+        self._setup_agent()
 
         self.env_buffer = {i: [] for i in range(self.actor_env.env_num)}
         self.adder = Adder(self.use_cuda)
@@ -229,6 +229,6 @@ class SingleMachineRunner():
         self.learner.run()
 
     def is_buffer_enough(self):
-        bs = self.cfg.learner.batch_size
+        bs = self.cfg.learner.data.batch_size
         size = int(1.2 * bs * self.train_step) // (self.cfg.learner.data.max_reuse)
         return self.buffer.validlen >= size and self.buffer.validlen >= 2 * bs

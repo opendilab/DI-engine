@@ -30,7 +30,3 @@ class AtariDqnGraph(BaseCompGraph):
 
     def __repr__(self) -> str:
         return "AtariDqnGraph"
-
-    def register_stats(self, recorder: 'VariableRecorder', tb_logger: 'TensorBoardLogger') -> None:  # noqa
-        recorder.register_var('total_loss')
-        tb_logger.register_var('total_loss')

@@ -49,9 +49,5 @@ class SumoDqnGraph(BaseCompGraph):
             agent.update_target_network(agent.state_dict()['model'])
         return {'total_loss': loss}
 
-    def register_stats(self, variable_record, tb_logger):
-        variable_record.register_var('total_loss')
-        tb_logger.register_var('total_loss')
-
     def __repr__(self):
         return "Double DQN for SUMOWJ# multi-traffic-light env"

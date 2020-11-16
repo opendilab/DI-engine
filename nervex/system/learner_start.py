@@ -6,6 +6,7 @@ from nervex.worker.learner import create_learner
 
 def main(cfg):
     learner = create_learner(cfg)
+    learner.launch()
     learner.run()
     learner.close()
 

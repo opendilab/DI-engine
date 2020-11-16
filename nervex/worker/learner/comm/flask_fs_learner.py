@@ -5,6 +5,7 @@ import traceback
 
 import requests
 from typing import List
+from functools import partial
 
 from nervex.utils import read_file, save_file, get_rank, get_world_size
 from .base_comm_learner import BaseCommLearner
@@ -80,6 +81,26 @@ class FlaskFileSystemLearner(BaseCommLearner):
         path = os.path.join(self._path_agent, self._agent_name)
         save_file(path, state_dict)
 
+    @staticmethod
+    def load_data_fn(path, meta):
+        # due to read-write conflict, read_file may be error, therefore we circle this procedure
+        while True:
+            try:
+                s = read_file(path)
+                break
+            except Exception as e:
+                time.sleep(0.01)
+        begin, end = meta['unroll_split_begin'], meta['unroll_split_begin'] + meta['unroll_len']
+        if meta['unroll_len'] == 1:
+            s = s[begin]
+            s.update(meta)
+        else:
+            s = s[begin:end]
+            # add metdata key-value to stepdata
+            for i in range(len(s)):
+                s[i].update(meta)
+        return s
+
     # override
     def get_data(self, batch_size: int) -> list:  # todo: doc not finished
         """
@@ -98,28 +119,14 @@ class FlaskFileSystemLearner(BaseCommLearner):
                 metadata = result['info']
                 if metadata is not None:
                     assert isinstance(metadata, list)
-                    stepdata = []
-                    for m in metadata:
-                        path = os.path.join(self._path_traj, m['traj_id'])
-                        # due to read-write conflict, read_file may be error, therefore we circle this procedure
-                        while True:
-                            try:
-                                s = read_file(path)
-                                break
-                            except Exception as e:
-                                self._logger.info('read_file error: {}({})'.format(e, path))
-                                time.sleep(0.5)
-                        begin, end = m['unroll_split_begin'], m['unroll_split_begin'] + m['unroll_len']
-                        if m['unroll_len'] == 1:
-                            s = s[begin]
-                            s.update(m)
-                        else:
-                            s = s[begin:end]
-                            # add metdata key-value to stepdata
-                            for i in range(len(s)):
-                                s[i].update(m)
-                        stepdata.append(s)
-                    return stepdata
+                    data = [
+                        partial(
+                            FlaskFileSystemLearner.load_data_fn,
+                            path=os.path.join(self._path_traj, m['traj_id']),
+                            meta=m
+                        ) for m in metadata
+                    ]
+                    return data
             time.sleep(sleep_count)
             sleep_count += 5
 

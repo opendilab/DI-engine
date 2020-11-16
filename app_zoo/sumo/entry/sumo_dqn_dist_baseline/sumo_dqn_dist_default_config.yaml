@@ -15,12 +15,15 @@ learner:
     use_cuda: True
     use_distributed: True
     max_iterations: 10000000
-    batch_size: 64
     unroll_len: 1
     learning_rate: 0.001
     weight_decay: 0.0001
     reward_weights:
         'queue_len': 1.0
+    data:
+        batch_size: 64
+        chunk_size: 16
+        num_workers: 4
     dqn:
         discount_factor: 0.95
         is_double: True
@@ -75,6 +78,7 @@ league:
     task:
         data_push_length: 64
         episode_num: 4
+        use_eps: True
     communication:
         type: 'flask_fs'
         file_system_type: 'normal'  # ['normal', 'ceph']

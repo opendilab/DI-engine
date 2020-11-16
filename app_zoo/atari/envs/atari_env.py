@@ -15,7 +15,7 @@ class AtariEnv(BaseEnv):
         )
 
     def reset(self) -> torch.FloatTensor:
-        if hasattr(self, 'seed'):
+        if hasattr(self, '_seed'):
             self._env.seed(self._seed)
         obs = self._env.reset()
         obs = to_tensor(obs, torch.float)

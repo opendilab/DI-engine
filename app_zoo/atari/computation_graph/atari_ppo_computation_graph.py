@@ -6,7 +6,6 @@ from nervex.worker.agent import BaseAgent
 class AtariPpoGraph(BaseCompGraph):
 
     def __init__(self, cfg: dict) -> None:
-        self._gamma = cfg.ppo.gamma
         self._lambda = cfg.ppo.gae_lambda
         self._clip_ratio = cfg.ppo.clip_ratio
 
@@ -26,7 +25,7 @@ class AtariPpoGraph(BaseCompGraph):
         data = ppo_data(
             output['logit'], data['logit'], data['action'], output['value'], data['value'], adv, return_, weight
         )
-        ppo_loss, ppo_info = ppo_error(data, self._gamma, self._clip_ratio)
+        ppo_loss, ppo_info = ppo_error(data, self._clip_ratio)
         total_loss = ppo_loss.policy_loss + self._value_weight * ppo_loss.value_loss - self._entropy_weight * ppo_loss.entropy_loss
 
         return {

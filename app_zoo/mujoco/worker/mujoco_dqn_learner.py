@@ -25,16 +25,3 @@ class MujocoDqnLearner(BaseLearner):
 
     def _setup_computation_graph(self) -> None:
         self._computation_graph = MujocoDqnGraph(self._cfg.learner)
-
-    def _setup_data_source(self):
-        self._collate_fn = default_collate
-        batch_size = self._cfg.learner.batch_size
-
-        def iterator():
-            while True:
-                data = self.get_data(batch_size)
-                yield self._collate_fn(data)
-
-        self._data_source = iterator()
-        if self._use_cuda:
-            self._data_source = CudaFetcher(self._data_source, device=self._device, sleep=0.01)
