@@ -9,7 +9,6 @@ API Doc
 .. toctree::
     :maxdepth: 3
 
-    env/sumo_env
     data/buffer
     data/cache
     worker/learner/learner
@@ -20,5 +19,18 @@ API Doc
     torch_utils/checkpoint_helper
     torch_utils/metric
     torch_utils/data_helper
+    torch_utils/optimizer_util
+    torch_utils/distribution
+    model/dqn
+    model/common_arch
     utils/time_helper
     utils/log_helper
+    utils/compression_helper
+    utils/config_helper
+    utils/dist_helper
+    utils/file_helper
+    utils/import_helper
+    utils/lock_helper
+    utils/system_helper
+    utils/default_helper
+    env/sumo_env

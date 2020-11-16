@@ -1,9 +1,5 @@
 """
 Copyright 2020 Sensetime X-lab. All Rights Reserved
-
-Main Function:
-    1. Levenshtein_distance and hamming_distance: Calculate the levenshtein distance and the hamming distance
-        of the given inputs.
 """
 import time
 from typing import Callable
@@ -217,31 +213,3 @@ def get_cuda_time_wrapper() -> Callable[[], 'TimeWrapper']:
             return cls.start_record.elapsed_time(cls.end_record) / 1000
 
     return TimeWrapperCuda
-
-
-if __name__ == "__main__":
-
-    class NaiveObject(object):
-        pass
-
-    cfg = NaiveObject()
-    setattr(cfg, 'common', NaiveObject())
-    setattr(cfg.common, 'time_wrapper_type', 'time')
-    time_handle = build_time_helper(cfg)
-
-    @time_handle.wrapper
-    def func1(x):
-        return x + 1
-
-    def func2(x):
-        return x + 1
-
-    # usage 1
-    ret, t = func1(3)
-    print('runtime1', t)
-
-    # usage 2
-    time_handle.start_time()
-    _ = func2(3)
-    t = time_handle.end_time()
-    print('runtime2', t)

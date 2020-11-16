@@ -39,8 +39,6 @@ def build_logger(cfg, name=None, rank=0):
         var_record_type = cfg.learner.get("var_record_type", None)
         if var_record_type is None:
             variable_record = VariableRecord(cfg.learner.log_freq)
-        elif var_record_type == 'alphastar':
-            variable_record = AlphastarVarRecord(cfg.learner.log_freq)
         else:
             raise NotImplementedError("not support var_record_type: {}".format(var_record_type))
         return logger, tb_logger, variable_record
@@ -308,7 +306,7 @@ class VariableRecord(object):
         Arguments:
             - length (:obj:`int`): the length to average across, if less than 10 then will be set to 10
         """
-        self.var_dict = {'scalar': {}, '1darray': {}}
+        self.var_dict = {'scalar': {}}
         self.length = max(length, 10)  # at least average across 10 iteration
 
     def register_var(self, name, length=None, var_type='scalar'):
@@ -318,9 +316,9 @@ class VariableRecord(object):
         Arguments:
             - name (:obj:`str`): name to add
             - length (:obj:`int` or :obj:`None`): length of iters to average, default set to self.length
-            - var_type (:obj:`str`): the type of var to add to, defalut set to 'scalar', also support '1darray'
+            - var_type (:obj:`str`): the type of var to add to, defalut set to 'scalar'
         """
-        assert (var_type in ['scalar', '1darray'])
+        assert (var_type in ['scalar'])
         lens = self.length if length is None else length
         self.var_dict[var_type][name] = AverageMeter(lens)
 
@@ -347,7 +345,7 @@ class VariableRecord(object):
         Overview:
             get the corresponding variable names of a certain var_type
         Arguments:
-            - var_type (:obj:`str`): defalut set to 'scalar', support [scalar', '1darray']
+            - var_type (:obj:`str`): defalut set to 'scalar', support [scalar']
         Returns:
             - keys (:obj:`list` of :obj:`str`): the var names of a certain var_type
         """
@@ -359,29 +357,29 @@ class VariableRecord(object):
             get the text discroption of var
         Arguments:
             - name (:obj:`str`): name of the var to query
-            - var_type(:obj:`str`): default set to scalar, support ['scalar', '1darray']
+            - var_type(:obj:`str`): default set to scalar, support ['scalar']
         Returns:
             - text(:obj:`str`): the corresponding text description
         """
-        assert (var_type in ['scalar', '1darray'])
+        assert (var_type in ['scalar'])
         if var_type == 'scalar':
             handle_var = self.var_dict[var_type][name]
             return '{}: val({:.6f})|avg({:.6f})'.format(name, handle_var.val, handle_var.avg)
-        elif var_type == '1darray':
-            return self._get_vars_text_1darray(name)
+        else:
+            raise NotImplementedError
 
     def get_vars_tb_format(self, keys, cur_step, var_type='scalar', **kwargs):
         r"""
         Overview:
             get the tb_format description of var
         Arguments:
-            - keys (:obj:`str`): keys(names) of the var to query
+            - keys (:obj:`list` of :obj:`str`): keys(names) of the var to query
             - cur_step (:obj:`int`): the current step
-            - var_type(:obj:`str`): default set to scalar, support support ['scalar', '1darray']
+            - var_type(:obj:`str`): default set to scalar, support support ['scalar']
         Returns:
             - ret (:obj:`list` of :obj:`list` of :obj:`str`): the list of tb_format info of vars queried
         """
-        assert (var_type in ['scalar', '1darray'])
+        assert (var_type in ['scalar'])
         if var_type == 'scalar':
             ret = []
             var_keys = self.get_var_names(var_type)
@@ -390,8 +388,8 @@ class VariableRecord(object):
                     v = self.var_dict[var_type][k]
                     ret.append([k, v.avg, cur_step])
             return ret
-        elif var_type == '1darray':
-            return self._get_vars_tb_format_1darray(keys, cur_step, **kwargs)
+        else:
+            raise NotImplementedError
 
     def get_vars_text(self):
         r"""
@@ -407,95 +405,6 @@ class VariableRecord(object):
             data.append([k, "{:.6f}".format(handle_var.val), "{:.6f}".format(handle_var.avg)])
         s = "\n" + tabulate(data, headers=headers, tablefmt='grid')
         return s
-
-    def _get_vars_text_1darray(self):
-        return ""
-
-    def _get_vars_tb_format_1darray(self, keys, cur_step, **kwargs):
-        raise NotImplementedError
-
-
-class AlphastarVarRecord(VariableRecord):
-    r"""
-    Overview:
-        logger that record variable for further process, support Alphastar variables
-
-    Interface:
-        register_var, _get_vars_text_1darray, _get_vars_tb_format_1darray
-    """
-
-    # overwrite
-    def register_var(self, name, length=None, var_type='scalar', var_item_keys=None):
-        r"""
-        Overview:
-            overwrite implementation of VariableRecord.register_var
-        Arguments:
-            - name (:obj:`str`): name to add
-            - length (:obj:`int` or :obj:`None`): length of iters to average, default set to self.length
-            - var_type (:obj:`str`): the type of var to add to, defalut set to 'scalar', also support '1darray'
-        """
-        assert (var_type in ['scalar', '1darray'])
-        lens = self.length if length is None else length
-        self.var_dict[var_type][name] = AverageMeter(lens)
-        if not hasattr(self, 'var_item_keys'):
-            self.var_item_keys = {}
-        self.var_item_keys[name] = var_item_keys
-
-    # overwrite
-    def _get_vars_text_1darray(self):
-        r"""
-        Overview:
-            get the text discroption of 1darray type vars
-        Returns:
-            - text(:obj:`str`): the corresponding text description of 1darray type vars
-        """
-        s = "\n"
-        for k in self.get_var_names('1darray'):
-            val = self.var_dict['1darray'][k].avg
-            if k == 'action_type':
-                s += '{}:\t'.format(k)
-                items = [[n, v] for n, v in zip(self.var_item_keys[k], val) if v > 0]
-                items = sorted(items, key=lambda x: float(x[1]), reverse=True)
-                for n, v in items:
-                    s += '{}({:.2f})  '.format(n, v)
-                s += '\n'
-            else:
-                s += '{}:\t'.format(k)
-                for n, v in zip(self.var_item_keys[k], val):
-                    s += '{}({:.2f})  '.format(n, v)
-                s += '\n'
-        return s
-
-    # overwrite
-    def _get_vars_tb_format_1darray(self, keys, cur_step, viz_type=None):
-        r"""
-        Overview:
-            get the tb_format description of 1darray type vars
-        Arguments:
-            - keys (:obj:`str`): keys(names) of the var to query
-            - cur_step (:obj:`int`): the current step
-            - viz_type(:obj:`str`): default set to scalars, support support ['scalars', 'histogram']
-        Returns:
-            - ret (:obj:`list` of :obj:`list` of :obj:`str`): the list of tb_format info of vars queried
-        """
-        assert (viz_type in ['scalars', 'histogram'])
-        if viz_type == 'scalars':
-            ret = []
-            var_keys = self.get_var_names('1darray')
-            for k in keys:
-                if k in var_keys:
-                    v = self.var_dict['1darray'][k]
-                    scalars = {k: v for k, v in zip(self.var_item_keys[k], v.avg)}
-                    ret.append([k, scalars, cur_step])
-            return ret
-        elif viz_type == 'histogram':
-            ret = []
-            var_keys = self.get_var_names('1darray')
-            for k in keys:
-                if k in var_keys:
-                    v = self.var_dict['1darray'][k]
-                    ret.append([k, v.avg, cur_step])
-            return ret
 
 
 class AverageMeter(object):

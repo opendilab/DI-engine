@@ -2,8 +2,8 @@
    :format: html latex
 
 
-RL Warmup
-===========================
+Reinforcement Learning Warmup
+================================
 
 导论/Intro
 -------------
@@ -520,6 +520,19 @@ PPO1直接将两个策略的 :math:`KL(\theta, \theta')` 引入到梯度计算�
    李宏毅老师的强化学习课程虽然没有包括所有算法，但是对于基本概念的解释很清楚，对于RL算法的理解很深刻，推荐有时间看一下。
 
 
+.. note::
+   Question：
+      PPO和TRPO是On-policy算法还是Off-policy算法？
+   Answer：
+      回答这个问题，我们要理解On-policy和Off-policy的定义。
+
+      若简单的把On-policy和Off-policy理解为是否使用当前的策略去更新策略，那么由于PPO和TRPO都采用了Importance Sampling技术，是在用之前策略产生的数据去训练被更新的策略，那么则应该算为Off-policy算法。
+      
+      但是实际上，所谓On-policy和Off-policy的区分在于采样的策略和改进的策略是不是同一个策略。
+      虽然PPO和TRPO在更新策略时中使用到了之前策略的trajectory，但只是\ **借助了之前策略的轨迹去拟合当前被更新策略的期望值**\，
+      相当于采样的策略和改进策略还是同一个策略，只是利用了Importance Sampling技术方便我们能利用过去策略去求得我们所采样策略的期望。
+      
+      因此PPO和TRPO是属于On-policy算法。
 
 
 
