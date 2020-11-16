@@ -8,8 +8,8 @@ system:
     coordinator_resume_path:
     coordinator_check_dead_learner_freq: 300
 league:
-    league_type: 'static'
-    import_names: ['nervex.league.static_league_manager']
+    league_type: 'solo'
+    import_names: ['nervex.league.solo_league_manager']
     communication:
         type: 'flask_fs'
         file_system_type: 'normal'

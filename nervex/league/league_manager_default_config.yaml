@@ -1,6 +1,6 @@
 league:
     league_type: 'solo'
-    import_names: [league]  # placeholder
+    import_names: [nervex.league]  # placeholder
     # ---player----
     player_category: ['zerg']  # placeholder
     active_players: 
