@@ -16,6 +16,24 @@ def is_sequence(data):
     return isinstance(data, list) or isinstance(data, tuple)
 
 
+def sequence_mask(lengths, max_len=None):
+    r"""
+        Overview:
+            create a mask for a batch sequences with different lengths
+        Arguments:
+            - lengths (:obj:`tensor`): lengths in each different sequences, shape could be (n, 1) or (n)
+            - max_len (:obj:`int`): the padding size, if max_len is None, the padding size is the
+                max length of sequences
+        Returns:
+            - masks (:obj:`torch.BoolTensor`): mask has the same device as lengths
+    """
+    if len(lengths.shape) == 1:
+        lengths = lengths.unsqueeze(dim=1)
+    bz = lengths.numel()
+    max_len = max_len or lengths.max()
+    return torch.arange(0, max_len).type_as(lengths).repeat(bz, 1).lt(lengths).to(lengths.device)
+
+
 class LSTMForwardWrapper(object):
     r"""
     Overview:
@@ -30,8 +48,11 @@ class LSTMForwardWrapper(object):
             preprocess the inputs and previous states
         Arguments:
             - inputs (:obj:`tensor`): input vector of cell, tensor of size [seq_len, batch_size, input_size]
-            - prev_state (:obj:`tensor`): None or tensor of size [num_directions*num_layers, batch_size, hidden_size],
-                                          if None then prv_state will be initialized to all zeros.
+            - prev_state (:obj:`tensor` or :obj:`list`):
+                None or tensor of size [num_directions*num_layers, batch_size, hidden_size], if None then prv_state
+                will be initialized to all zeros.
+        Returns:
+            - prev_state (:obj:`tensor`): batch previous state in lstm
         """
         assert hasattr(self, 'num_layers')
         assert hasattr(self, 'hidden_size')
@@ -46,26 +67,28 @@ class LSTMForwardWrapper(object):
                 device=inputs.device
             )
             prev_state = (zeros, zeros)
-        elif is_sequence(prev_state) and len(prev_state) == 2:
-            if isinstance(prev_state[0], torch.Tensor):
+        elif is_sequence(prev_state):
+            if len(prev_state) == 2 and isinstance(prev_state[0], torch.Tensor):
                 pass
             else:
-                prev_state = [torch.cat(t, dim=1) for t in prev_state]
-        elif is_sequence(prev_state) and len(prev_state) == batch_size:
-            num_directions = 1
-            zeros = torch.zeros(
-                num_directions * self.num_layers, 1, self.hidden_size, dtype=inputs.dtype, device=inputs.device
-            )
-            state = []
-            for prev in prev_state:
-                if prev is None:
-                    state.append([zeros, zeros])
-                else:
-                    state.append(prev)
-            state = list(zip(*state))
-            prev_state = [torch.cat(t, dim=1) for t in state]
+                if len(prev_state) != batch_size:
+                    raise RuntimeError(
+                        "prev_state number is not equal to batch_size: {}/{}".format(len(prev_state), batch_size)
+                    )
+                num_directions = 1
+                zeros = torch.zeros(
+                    num_directions * self.num_layers, 1, self.hidden_size, dtype=inputs.dtype, device=inputs.device
+                )
+                state = []
+                for prev in prev_state:
+                    if prev is None:
+                        state.append([zeros, zeros])
+                    else:
+                        state.append(prev)
+                state = list(zip(*state))
+                prev_state = [torch.cat(t, dim=1) for t in state]
         else:
-            raise Exception()
+            raise TypeError("not support prev_state type: {}".format(type(prev_state)))
         return prev_state
 
     def _after_forward(self, next_state, list_next_state=False):
@@ -93,13 +116,14 @@ class LSTM(nn.Module, LSTMForwardWrapper):
     Overview:
         Implimentation of LSTM cell
 
-        Notes: for begainners, you can reference <https://zhuanlan.zhihu.com/p/32085405> to learn the basics about lstm
+        .. note::
+            for begainners, you can reference <https://zhuanlan.zhihu.com/p/32085405> to learn the basics about lstm
 
     Interface:
         __init__, forward
     """
 
-    def __init__(self, input_size, hidden_size, num_layers, norm_type=None, bias=True, dropout=0.):
+    def __init__(self, input_size, hidden_size, num_layers, norm_type=None, dropout=0.):
         r"""
         Overview:
             initializate the LSTM cell
@@ -109,7 +133,6 @@ class LSTM(nn.Module, LSTMForwardWrapper):
             - hidden_size (:obj:`int`): size of the hidden state vector
             - num_layers (:obj:`int`): number of lstm layers
             - norm_type (:obj:`str`): type of the normaliztion, (default: None)
-            - bias (:obj:`bool`): whether to use bias, default set to True
             - dropout (:obj:float):  dropout rate, default set to .0
         """
         super(LSTM, self).__init__()
@@ -118,17 +141,14 @@ class LSTM(nn.Module, LSTMForwardWrapper):
         self.num_layers = num_layers
 
         norm_func = build_normalization(norm_type)
-        self.norm = nn.ModuleList([norm_func(hidden_size) for _ in range(4 * num_layers)])
+        self.norm = nn.ModuleList([norm_func(hidden_size * 4) for _ in range(2 * num_layers)])
         self.wx = nn.ParameterList()
         self.wh = nn.ParameterList()
         dims = [input_size] + [hidden_size] * num_layers
         for l in range(num_layers):
             self.wx.append(nn.Parameter(torch.zeros(dims[l], dims[l + 1] * 4)))
             self.wh.append(nn.Parameter(torch.zeros(hidden_size, hidden_size * 4)))
-        if bias:
-            self.bias = nn.Parameter(torch.zeros(num_layers, hidden_size * 4))
-        else:
-            self.bias = None
+        self.bias = nn.Parameter(torch.zeros(num_layers, hidden_size * 4))
         self.use_dropout = dropout > 0.
         if self.use_dropout:
             self.dropout = nn.Dropout(dropout)
@@ -146,11 +166,13 @@ class LSTM(nn.Module, LSTMForwardWrapper):
         r"""
         Overview:
             Take the previous state and the input and calculate the output and the nextstate
-
         Arguments:
             - inputs (:obj:`tensor`): input vector of cell, tensor of size [seq_len, batch_size, input_size]
             - prev_state (:obj:`tensor`): None or tensor of size [num_directions*num_layers, batch_size, hidden_size]
             - list_next_state (:obj:`bool`): whether return next_state with list format, default set to False
+        Returns:
+            - x (:obj:`tensor`): output from lstm
+            - next_state (:obj:`tensor` or :obj:`list`): hidden state from lstm
         """
         seq_len, batch_size = inputs.shape[:2]
         prev_state = self._before_forward(inputs, prev_state)
@@ -160,16 +182,13 @@ class LSTM(nn.Module, LSTMForwardWrapper):
         next_state = []
         for l in range(self.num_layers):
             h, c = H[l], C[l]
-            if self.use_dropout:  # layer input dropout
-                x = self.dropout(x)
             new_x = []
             for s in range(seq_len):
-                gate = torch.matmul(x[s], self.wx[l]) + torch.matmul(h, self.wh[l])
+                gate = self.norm[l * 2](torch.matmul(x[s], self.wx[l])
+                                        ) + self.norm[l * 2 + 1](torch.matmul(h, self.wh[l]))
                 if self.bias is not None:
                     gate += self.bias[l]
                 gate = list(torch.chunk(gate, 4, dim=1))
-                for i in range(4):
-                    gate[i] = self.norm[l * 4 + i](gate[i])
                 i, f, o, u = gate
                 i = torch.sigmoid(i)
                 f = torch.sigmoid(f)
@@ -180,6 +199,8 @@ class LSTM(nn.Module, LSTMForwardWrapper):
                 new_x.append(h)
             next_state.append((h, c))
             x = torch.stack(new_x, dim=0)
+            if self.use_dropout and l != self.num_layers - 1:
+                x = self.dropout(x)
 
         next_state = self._after_forward(next_state, list_next_state)
         return x, next_state
@@ -189,20 +210,24 @@ class PytorchLSTM(nn.LSTM, LSTMForwardWrapper):
     r"""
     Overview:
         Wrap the nn.LSTM , format the input and output
-        Notes:
-            you can reference the <https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html#torch.nn.LSTM>
     Interface:
         forward
+
+    .. note::
+        you can reference the <https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html#torch.nn.LSTM>
     """
 
     def forward(self, inputs, prev_state, list_next_state=False):
         r"""
         Overview:
             wrapped nn.LSTM.forward
-        Arguments
+        Arguments:
             - inputs (:obj:`tensor`): input vector of cell, tensor of size [seq_len, batch_size, input_size]
             - prev_state (:obj:`tensor`): None or tensor of size [num_directions*num_layers, batch_size, hidden_size]
             - list_next_state (:obj:`bool`): whether return next_state with list format, default set to False
+        Returns:
+            - output (:obj:`tensor`): output from lstm
+            - next_state (:obj:`tensor` or :obj:`list`): hidden state from lstm
         """
         prev_state = self._before_forward(inputs, prev_state)
         output, next_state = nn.LSTM.forward(self, inputs, prev_state)
@@ -210,6 +235,15 @@ class PytorchLSTM(nn.LSTM, LSTMForwardWrapper):
         return output, next_state
 
     def _after_forward(self, next_state, list_next_state=False):
+        r"""
+        Overview:
+            process hidden state after lstm, make it list or remains tensor
+        Arguments:
+            - nex_state (:obj:`tensor`): hidden state from lstm
+            - list_nex_state (:obj:`bool`): whether return next_state with list format, default set to False
+        Returns:
+            - next_state (:obj:`tensor` or :obj:`list`): hidden state from lstm
+        """
         if list_next_state:
             h, c = next_state
             batch_size = h.shape[1]
@@ -229,7 +263,6 @@ def get_lstm(lstm_type, input_size, hidden_size, num_layers, norm_type, dropout=
         - hidden_size (:obj:`int`): size of the hidden state vector
         - num_layers (:obj:`int`): number of lstm layers
         - norm_type (:obj:`str`): type of the normaliztion, (default: None)
-        - bias (:obj:`bool`): whether to use bias, default set to True
         - dropout (:obj:float):  dropout rate, default set to .0
     Returns:
         - lstm (:obj:`LSTM` or :obj:`PytorchLSTM`): the corresponding lstm cell

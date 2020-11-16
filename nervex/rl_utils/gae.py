@@ -20,6 +20,7 @@ def gae(data: namedtuple, gamma: float = 0.99, lambda_: float = 0.97) -> torch.F
         - value (:obj:`torch.FloatTensor`): :math:`(T+1, B)`, where T is trajectory length and B is batch size
         - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`
         - adv (:obj:`torch.FloatTensor`): :math:`(T, B)`
+
     .. note::
         value_{T+1} should be 0 if this trajectory reached a terminal state(done=True), otherwise we use value
         function, this operation is implemented in actor for packing trajectory.
