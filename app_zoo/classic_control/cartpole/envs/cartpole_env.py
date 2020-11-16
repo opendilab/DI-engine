@@ -40,17 +40,17 @@ class CartPoleEnv(BaseEnv):
         return BaseEnv.info_template(
             agent_num=1,
             obs_space=T(
-                4, {
+                (4, ), {
                     'min': [-4.8, float("-inf"), -0.42, float("-inf")],
                     'max': [4.8, float("inf"), 0.42, float("inf")],
                 }, None, None
             ),
             # [min, max)
-            act_space=T(2, {
+            act_space=T((2, ), {
                 'min': 0,
                 'max': 2
             }, None, None),
-            rew_space=T(1, {
+            rew_space=T((1, ), {
                 'min': 0.0,
                 'max': 1.0
             }, None, None),
