@@ -162,7 +162,7 @@ class LSTM(nn.Module, LSTMForwardWrapper):
             if self.bias is not None:
                 torch.nn.init.uniform_(self.bias[l], -gain, gain)
 
-    def forward(self, inputs, prev_state, list_next_state=False):
+    def forward(self, inputs, prev_state, list_next_state=True):
         r"""
         Overview:
             Take the previous state and the input and calculate the output and the nextstate
@@ -217,7 +217,7 @@ class PytorchLSTM(nn.LSTM, LSTMForwardWrapper):
         you can reference the <https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html#torch.nn.LSTM>
     """
 
-    def forward(self, inputs, prev_state, list_next_state=False):
+    def forward(self, inputs, prev_state, list_next_state=True):
         r"""
         Overview:
             wrapped nn.LSTM.forward
@@ -253,7 +253,7 @@ class PytorchLSTM(nn.LSTM, LSTMForwardWrapper):
             return next_state
 
 
-def get_lstm(lstm_type, input_size, hidden_size, num_layers, norm_type, dropout=0.):
+def get_lstm(lstm_type, input_size, hidden_size, num_layers=1, norm_type='LN', dropout=0.):
     r"""
     Overview:
         build and return the corresponding LSTM cell
