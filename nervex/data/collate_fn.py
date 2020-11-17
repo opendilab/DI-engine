@@ -15,7 +15,6 @@ default_collate_err_msg_format = (
 
 def default_collate(batch):
     r"""Puts each data field into a tensor with outer dimension batch size"""
-
     elem = batch[0]
     elem_type = type(elem)
     if isinstance(elem, torch.Tensor):
@@ -59,6 +58,22 @@ def default_collate(batch):
     raise TypeError(default_collate_err_msg_format.format(elem_type))
 
 
+def timestep_collate(batch):
+    """
+    Overview:
+        [B, dict_key: [T, elem_dim]] -> [dict_key: [T, B, elem_dim]]
+    """
+    elem = batch[0]
+    assert isinstance(elem, container_abcs.Mapping), type(elem)
+    prev_state = [b.pop('prev_state') for b in batch]
+    batch = default_collate(batch)
+    for k in batch:
+        if isinstance(batch[k], container_abcs.Sequence) and isinstance(batch[k][0], torch.Tensor):
+            batch[k] = torch.stack(batch[k])
+    batch['prev_state'] = list(zip(*prev_state))
+    return batch
+
+
 def diff_shape_collate(batch):
     r"""Puts each data field into a tensor with outer dimension batch size"""
 
@@ -99,13 +114,13 @@ def diff_shape_collate(batch):
     raise TypeError('not support element type: {}'.format(elem_type))
 
 
-def default_decollate(batch):
+def default_decollate(batch, ignore=['prev_state']):
     if isinstance(batch, torch.Tensor):
         return list(torch.split(batch, 1, dim=0))
     elif isinstance(batch, Sequence):
         return list(zip(*[default_decollate(e) for e in batch]))
     elif isinstance(batch, Mapping):
-        tmp = {k: default_decollate(v) for k, v in batch.items()}
+        tmp = {k: v if k in ignore else default_decollate(v) for k, v in batch.items()}
         B = len(list(tmp.values())[0])
         return [{k: tmp[k][i] for k in tmp.keys()} for i in range(B)]
 
