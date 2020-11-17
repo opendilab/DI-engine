@@ -1,5 +1,5 @@
 league:
-    league_type: 'solo'
+    league_type: 'fake'
     import_names: [nervex.league]  # placeholder
     # ---player----
     player_category: ['zerg', 'terran', 'protoss']
@@ -65,6 +65,19 @@ league:
                 start: 0.95
                 end: 0.05
                 decay_len: 10000
+        env_kwargs:
+            env_num: 8
+            episode_num: 2
+        adder_kwargs:
+            use_gae: False
+            data_push_length: 128
+        job:
+            agent_update_freq: 30  # second
+            compressor: 'none'
+    solo_active_player:
+        one_phase_step: 2e3
+        forward_kwargs:
+            'placeholder'
         env_kwargs:
             env_num: 8
             episode_num: 2

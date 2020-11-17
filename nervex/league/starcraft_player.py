@@ -8,7 +8,10 @@ from .algorithm import pfsp
 class MainPlayer(BattleActivePlayer):
     """
     Overview:
-        Main player in league training, default branch(0.5 pfsp, 0.35 sp, 0.15 veri)
+        Main player in league training.
+        Default branch (0.5 pfsp, 0.35 sp, 0.15 veri).
+        Default snapshot every 2e9 steps.
+        Default mutate prob = 0 (never mutate).
     Interface:
         __init__, is_trained_enough, snapshot, mutate, get_job
     Property:
@@ -19,7 +22,7 @@ class MainPlayer(BattleActivePlayer):
     def _pfsp_branch(self) -> HistoricalPlayer:
         """
         Overview:
-            Select prioritized fictitious self-play opponent
+            Select prioritized fictitious self-play opponent, should be a historical player.
         Returns:
             - player (:obj:`HistoricalPlayer`): the selected historical player
         """
@@ -37,7 +40,8 @@ class MainPlayer(BattleActivePlayer):
         main_opponent = self._get_opponent(main_players)
 
         # TODO(nyz) if only one main_player, self-play win_rates are constantly equal to 0.5
-        if self._payoff[self, main_opponent] < self._strong_win_rate:
+        # main_opponent is not too strong
+        if self._payoff[self, main_opponent] > 1 - self._strong_win_rate:
             return main_opponent
 
         # if the main_opponent is too strong, select a past alternative
@@ -51,7 +55,7 @@ class MainPlayer(BattleActivePlayer):
     def _verification_branch(self):
         """
         Overview:
-            Verify no strong main exploiter and no forgotten past main player
+            Verify no strong historical main exploiter and no forgotten historical past main player
         """
         # check exploitation
         main_exploiters = self._get_players(lambda p: isinstance(p, MainExploiter))
@@ -66,31 +70,31 @@ class MainPlayer(BattleActivePlayer):
 
         # check forgotten
         main_players = self._get_players(lambda p: isinstance(p, MainPlayer))
-        main_opponent = self._get_opponent(main_players)
-        historical = self._get_players(
+        main_opponent = self._get_opponent(main_players)  # only one main player
+        main_historical = self._get_players(
             lambda p: isinstance(p, HistoricalPlayer) and p.parent_id == main_opponent.player_id
         )
-        win_rates = self._payoff[self, historical]
+        win_rates = self._payoff[self, main_historical]
         # TODO(nyz) whether the method `_get_players` should return players with some sequence(such as step)
         # win_rates, historical = self._remove_monotonic_suffix(win_rates, historical)
         if len(win_rates) and win_rates.min() < self._strong_win_rate:
             p = pfsp(win_rates, weighting='squared')
-            return self._get_opponent(historical, p)
+            return self._get_opponent(main_historical, p)
 
+        # no forgotten main players or strong main exploiters, use self-play instead
         return self._sp_branch()
 
-    def _remove_monotonic_suffix(self, win_rates, players):
-        if not len(win_rates):
-            return win_rates, players
-
-        for i in range(len(win_rates) - 1, 0, -1):
-            if win_rates[i - 1] < win_rates[i]:
-                return win_rates[:i + 1], players[:i + 1]
-
-        return np.array([]), []
+    # def _remove_monotonic_suffix(self, win_rates, players):
+    #     if not len(win_rates):
+    #         return win_rates, players
+    #     for i in range(len(win_rates) - 1, 0, -1):
+    #         if win_rates[i - 1] < win_rates[i]:
+    #             return win_rates[:i + 1], players[:i + 1]
+    #     return np.array([]), []
 
     # override
     def is_trained_enough(self) -> bool:
+        # ``_pfsp_branch`` and ``_verification_branch`` are played against historcial player
         return super().is_trained_enough(select_fn=lambda p: isinstance(p, HistoricalPlayer))
 
     # override
@@ -105,7 +109,12 @@ class MainPlayer(BattleActivePlayer):
 class MainExploiter(BattleActivePlayer):
     """
     Overview:
-        Main exploiter in league training, default branch(1.0 main_players)
+        Main exploiter in league training. Can identify weaknesses of main agents, and consequently make them
+        more robust.
+        Default branch (1.0 main_players).
+        Default snapshot when defeating all 3 main players in the league in more than 70% of games,
+        or timeout of 4e9 steps.
+        Default mutate prob = 1 (must mutate).
     Interface:
         __init__, is_trained_enough, snapshot, mutate, get_job
     Property:
@@ -147,6 +156,7 @@ class MainExploiter(BattleActivePlayer):
 
     # override
     def is_trained_enough(self):
+        # would play against main player, or historical main player (if main player is too strong)
         return super().is_trained_enough(select_fn=lambda p: isinstance(p, MainPlayer))
 
     # override
@@ -163,7 +173,11 @@ class MainExploiter(BattleActivePlayer):
 class LeagueExploiter(BattleActivePlayer):
     """
     Overview:
-        League exploiter in league training, default branch(1.0 pfsp)
+        League exploiter in league training. Can identify global blind spots in the league (strategies that no player
+        in the league can beat, but that are not necessarily robust themselves).
+        Default branch (1.0 pfsp).
+        Default snapshot when defeating all players in the league in more than 70% of games, or timeout of 2e9 steps.
+        Default mutate prob = 0.25.
     Interface:
         __init__, is_trained_enough, snapshot, mutate, get_job
     Property:
@@ -198,6 +212,7 @@ class LeagueExploiter(BattleActivePlayer):
 
     # override
     def is_trained_enough(self) -> bool:
+        # will only player against historical player
         return super().is_trained_enough(select_fn=lambda p: isinstance(p, HistoricalPlayer))
 
     # override

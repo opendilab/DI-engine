@@ -226,7 +226,7 @@ class BaseLeagueManager(ABC):
     def _snapshot(self) -> None:
         """
         Overview:
-            Find out active players that are trained enough, then snapshot and mutate them.
+            Find out active players that are trained enough. If yes, then snapshot and mutate them.
             Will run as a thread.
         """
         time.sleep(int(0.5 * self.cfg.time_interval))
@@ -251,7 +251,7 @@ class BaseLeagueManager(ABC):
     def _mutate_player(self, player: ActivePlayer) -> None:
         """
         Overview:
-            Players have the probability to be reset to supervised learning model parameters,
+            Players have the probability to be reset to supervised learning model parameters if trained enough,
             called by ``self._snapshot``.
         Arguments:
             - player (:obj:`ActivePlayer`): the active player that may mutate
