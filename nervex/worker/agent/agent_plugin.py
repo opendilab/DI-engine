@@ -5,6 +5,7 @@ from typing import Any, Tuple, Callable, Union, Optional
 
 import numpy as np
 import torch
+from nervex.torch_utils import get_tensor_data
 
 
 class IAgentPlugin(ABC):
@@ -57,16 +58,21 @@ class HiddenStateHelper(IAgentStatefulPlugin):
     """
 
     @classmethod
-    def register(cls: type, agent: Any, state_num: int, init_fn: Callable = lambda: None) -> None:
+    def register(cls: type, agent: Any, state_num: int, save_prev_state: bool = False, init_fn: Callable = lambda: None) -> None:
         state_manager = cls(state_num, init_fn=init_fn)
         agent._state_manager = state_manager
 
         def forward_state_wrapper(forward_fn):
 
-            def wrapper(data, state_info=None, **kwargs):
+            def wrapper(data, **kwargs):
+                state_info = kwargs.pop('state_info', None)
                 data, state_info = agent._state_manager.before_forward(data, state_info)
-                output, h = forward_fn(data, **kwargs)
+                output = forward_fn(data, **kwargs)
+                h = output.pop('next_state')
                 agent._state_manager.after_forward(h, state_info)
+                if save_prev_state:
+                    prev_state = get_tensor_data(data['prev_state'])
+                    output['prev_state'] = prev_state
                 return output
 
             return wrapper
@@ -91,7 +97,7 @@ class HiddenStateHelper(IAgentStatefulPlugin):
         if state is None:
             self._state = {i: self._init_fn() for i in range(self._state_num)}
         else:
-            assert len(state) == self._state_num
+            assert len(state) == self._state_num, '{}/{}'.format(len(state), self._state_num)
             self._state = {i: k for i, k in zip(range(self._state_num), state)}
 
     def before_forward(self, data: dict, state_info: Union[None, dict] = None) -> Tuple[dict, dict]:

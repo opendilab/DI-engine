@@ -36,13 +36,13 @@ def test_1step_compatible():
     onestep_data = q_1step_td_data(q, next_q, action, reward, done)
     nstep_loss = q_nstep_td_error(nstep_data, 0.99, nstep=1)
     onestep_loss = q_1step_td_error(onestep_data, 0.99)
-    assert nstep_loss.item() == onestep_loss.item()
+    assert pytest.approx(nstep_loss.item(), onestep_loss.item())
 
 
 @pytest.mark.unittest
 def test_td_lambda():
     T, B = 8, 4
-    value = torch.randn(T+1, B).requires_grad_(True)
+    value = torch.randn(T + 1, B).requires_grad_(True)
     reward = torch.rand(T, B)
     loss = td_lambda_error(td_lambda_data(value, reward, None))
     assert loss.shape == ()
