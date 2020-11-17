@@ -1,8 +1,13 @@
 import copy
 from easydict import EasyDict
+import os.path as osp
 
 from nervex.league import BaseLeagueManager, register_league
 from nervex.league.player import ActivePlayer
+from nervex.utils import read_config, deep_merge_dicts
+
+
+solo_default_config = read_config(osp.join(osp.dirname(__file__), "solo_league_manager_default_config.yaml"))
 
 
 class SoloLeagueManager(BaseLeagueManager):
@@ -15,8 +20,10 @@ class SoloLeagueManager(BaseLeagueManager):
         __init__, run, close, finish_job, update_active_player
     """
     # override
-    def _init_league(self):
-        super(SoloLeagueManager, self)._init_league()
+    def _init_cfg(self, cfg: EasyDict) -> None:
+        cfg = deep_merge_dicts(solo_default_config, cfg)
+        self.cfg = cfg.league
+        self.model_config = cfg.model
 
     # override
     def _get_job_info(self, player: ActivePlayer) -> dict:

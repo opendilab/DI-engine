@@ -98,9 +98,7 @@ class BaseLeagueManager(ABC):
             - load_checkpoint_fn (:obj:`function`): the function used to load ckpt
             - launch_job_fn (:obj:`function`): the function used to launch job
         """
-        cfg = deep_merge_dicts(default_config, cfg)
-        self.cfg = cfg.league
-        self.model_config = cfg.model
+        self._init_cfg(cfg)
         self.league_uid = str(uuid.uuid1())
         self.active_players = []
         self.historical_players = []
@@ -117,16 +115,16 @@ class BaseLeagueManager(ABC):
 
         self._init_league()
 
+    def _init_cfg(self, cfg: EasyDict) -> None:
+        cfg = deep_merge_dicts(default_config, cfg)
+        self.cfg = cfg.league
+        self.model_config = cfg.model
+
     def _init_league(self) -> None:
         """
         Overview:
             Initialize players (active & historical) in the league.
         """
-        # player_map = {'active_player': ActivePlayer}
-        # TODO(zlx): solve this problem
-        # from nervex.league.starcraft_player import MainPlayer, MainExploiter, LeagueExploiter
-        # player_map = {'main_player': MainPlayer, 'main_exploiter': MainExploiter, 'league_exploiter': LeagueExploiter}
-
         # add different types of active players for each player category, according to ``cfg.active_players``
         for cate in self.cfg.player_category:
             for k, n in self.cfg.active_players.items():
