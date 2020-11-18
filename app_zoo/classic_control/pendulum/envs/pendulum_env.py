@@ -33,7 +33,6 @@ class PendulumEnv(BaseEnv):
         return BaseEnv.timestep(obs, rew, done, info)
 
     def info(self) -> BaseEnv.info_template:
-        rew_range = self._env.reward_range
         T = EnvElement.info_template
         return BaseEnv.info_template(
             agent_num=1,

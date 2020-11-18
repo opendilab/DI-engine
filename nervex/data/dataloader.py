@@ -110,7 +110,7 @@ class AsyncDataLoader(object):
         while not self.end_flag:
             if self.num_workers > 1:
                 if self.job_queue.full():
-                    time.sleep(0.1)
+                    time.sleep(0.001)
                 else:
                     c.send('get_data')
                     data = c.recv()
@@ -122,10 +122,10 @@ class AsyncDataLoader(object):
                             start, end = i * self.chunk_size, (i + 1) * self.chunk_size
                             self.job_queue.put({'batch_id': self.batch_id.value, 'job': data[start:end]})
                         self.batch_id.value = (self.batch_id.value + 1) % self.queue_maxsize
-                    time.sleep(0.1)
+                    time.sleep(0.001)
             else:
                 if self.async_train_queue.full():
-                    time.sleep(0.0001)
+                    time.sleep(0.001)
                 else:
                     c.send('get_data')
                     data = c.recv()
@@ -139,7 +139,7 @@ class AsyncDataLoader(object):
     def _worker_loop(self) -> None:
         while not self.end_flag:
             if self.job_queue.empty() or self.async_train_queue.full():
-                time.sleep(0.1)
+                time.sleep(0.01)
                 continue
             else:
                 element = self.job_queue.get()
@@ -150,7 +150,7 @@ class AsyncDataLoader(object):
                     data = [fn() for fn in job]
                 if len(data) == self.batch_size == self.chunk_size:
                     while batch_id != self.cur_batch.value:
-                        time.sleep(0.05)
+                        time.sleep(0.01)
                     data = self.collate_fn(data)
                     self.async_train_queue.put(data)
                     with self.cur_batch.get_lock():
@@ -178,7 +178,7 @@ class AsyncDataLoader(object):
         with torch.cuda.stream(self.stream):
             while not self.end_flag:
                 if self.async_train_queue.empty() or self.cuda_queue.full():
-                    time.sleep(0.1)
+                    time.sleep(0.01)
                 else:
                     data = self.async_train_queue.get()
                     data = to_device(data, self.device)

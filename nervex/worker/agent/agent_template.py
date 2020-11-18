@@ -14,7 +14,7 @@ def create_dqn_learner_agent(model: torch.nn.Module, is_double: bool = True) -> 
     })
     # whether use double(target) q-network plugin
     if is_double:
-        # self.plugin_cfg['target_network'] = {'update_cfg': {'type': 'momentum', 'kwargs': {'theta': 0.001}}}
+        # plugin_cfg['target'] = {'update_cfg': {'type': 'momentum', 'kwargs': {'theta': 0.001}}}
         plugin_cfg['target'] = {'update_cfg': {'type': 'assign', 'kwargs': {'freq': 500}}}
     agent = AgentAggregator(BaseAgent, model, plugin_cfg)
     agent.is_double = is_double
@@ -32,8 +32,8 @@ def create_drqn_learner_agent(model: torch.nn.Module, state_num: int, is_double:
     })
     # whether use double(target) q-network plugin
     if is_double:
-        # self.plugin_cfg['target_network'] = {'update_cfg': {'type': 'momentum', 'kwargs': {'theta': 0.001}}}
-        plugin_cfg['target'] = {'update_cfg': {'type': 'assign', 'kwargs': {'freq': 500}}}
+        plugin_cfg['target'] = {'update_cfg': {'type': 'momentum', 'kwargs': {'theta': 0.001}}}
+        #plugin_cfg['target'] = {'update_cfg': {'type': 'assign', 'kwargs': {'freq': 500}}}
     agent = AgentAggregator(BaseAgent, model, plugin_cfg)
     agent.is_double = is_double
     return agent

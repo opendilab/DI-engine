@@ -18,6 +18,7 @@ learner:
         decay: 10000
     data:
         batch_size: 64
+        chunk_size: 64
         max_reuse: 100
         buffer_length: 100000
     dqn:
