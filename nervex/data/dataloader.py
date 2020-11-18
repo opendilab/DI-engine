@@ -99,10 +99,7 @@ class AsyncDataLoader(object):
                 data = self.data_source(self.batch_size)
                 if isinstance(data[0], dict):
                     data = self.collate_fn(data)
-                    if self.use_cuda:
-                        self.cuda_queue.put(data)
-                    else:
-                        self.async_train_queue.put(data)
+                    self.async_train_queue.put(data)
                     p.send('pass')
                 else:
                     p.send(data)
