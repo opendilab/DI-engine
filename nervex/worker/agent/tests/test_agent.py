@@ -80,7 +80,8 @@ class TestAgentPlugin:
         state_num = 4
         plugin_cfg = OrderedDict({
             'hidden_state': {
-                'state_num': state_num
+                'state_num': state_num,
+                'save_prev_state': True,
             },
             'grad': {
                 'enable_grad': True
@@ -88,25 +89,27 @@ class TestAgentPlugin:
         })
         # the former plugin is registered in inner layer
         agent = BaseAgent(model, plugin_cfg)
+        agent.reset()
         data = {'f': torch.randn(2, 4, 36)}
-        state_info = {i: False for i in range(state_num)}
-        output = agent.forward(data, state_info=state_info)
+        output = agent.forward(data)
         assert output['output'].shape == (2, state_num, 32)
+        assert output['prev_state'] == [None for _ in range(4)]
         for item in agent._state_manager._state.values():
             assert isinstance(item, tuple) and len(item) == 2
             assert all(t.shape == (2, 1, 32) for t in item)
 
         data = {'f': torch.randn(2, 3, 36)}
-        state_info = {i: False for i in [0, 2, 3]}
-        output = agent.forward(data, state_info=state_info)
+        state_id = [0, 1, 3]
+        output = agent.forward(data, state_id=state_id)
         assert output['output'].shape == (2, 3, 32)
+        assert all([len(s) == 2 for s in output['prev_state']])
         for item in agent._state_manager._state.values():
             assert isinstance(item, tuple) and len(item) == 2
             assert all(t.shape == (2, 1, 32) for t in item)
 
         data = {'f': torch.randn(2, 2, 36)}
-        state_info = {i: False for i in [0, 1]}
-        output = agent.forward(data, state_info=state_info)
+        state_id = [0, 1]
+        output = agent.forward(data, state_id=state_id)
         assert output['output'].shape == (2, 2, 32)
 
         assert all([isinstance(s, tuple) and len(s) == 2 for s in agent._state_manager._state.values()])

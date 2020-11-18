@@ -158,9 +158,8 @@ class SingleMachineRunner():
             eps_threshold = self.bandit(self.learner_step_count)
             return {'eps': eps_threshold}
         elif self.algo_type == 'drqn':
-            state_info = {i: False for i in range(self.actor_env.env_num) if i in env_id}
             eps_threshold = self.bandit(self.learner_step_count)
-            return {'eps': eps_threshold, 'state_info': state_info}
+            return {'eps': eps_threshold, 'state_id': list(env_id)}
         elif self.algo_type == 'ppo':
             return {}
 
@@ -193,6 +192,8 @@ class SingleMachineRunner():
             for i, t in timestep.items():
                 self._accumulate_data(i, obs_pool[i], act_pool[i], t)
                 if t.done:
+                    if self.algo_type == 'drqn':
+                        self.actor_agent.reset(state_id=[i])
                     self._pack_trajectory(i)
             self.actor_step_count += 1
             if self.actor_step_count % self.cfg.actor.print_freq == 0:
@@ -223,7 +224,7 @@ class SingleMachineRunner():
 
             forward_kwargs = {}
             if self.algo_type == 'drqn':
-                forward_kwargs['state_info'] = {i: False for i in range(self.evaluate_env.env_num) if i in env_id}
+                forward_kwargs['state_id'] = list(env_id)
             outputs = self.evaluator_agent.forward({'obs': agent_obs}, **forward_kwargs)
 
             if self.use_cuda:
@@ -240,6 +241,8 @@ class SingleMachineRunner():
                     t.info, 'eval_reward', default_fn=lambda: t.reward.item(), judge_fn=np.isscalar
                 )
                 if t.done:
+                    if self.algo_type == 'drqn':
+                        self.evaluator_agent.reset(state_id=[i])
                     episode_count += 1
                     rewards.append(copy.deepcopy(cum_rewards[i]))
                     cum_rewards[i] = 0.

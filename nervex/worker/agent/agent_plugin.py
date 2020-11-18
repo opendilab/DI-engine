@@ -71,8 +71,8 @@ class HiddenStateHelper(IAgentStatefulPlugin):
         def forward_state_wrapper(forward_fn):
 
             def wrapper(data, **kwargs):
-                state_info = kwargs.pop('state_info', None)
-                data, state_info = agent._state_manager.before_forward(data, state_info)
+                state_id = kwargs.pop('state_id', None)
+                data, state_info = agent._state_manager.before_forward(data, state_id)
                 output = forward_fn(data, **kwargs)
                 h = output.pop('next_state')
                 agent._state_manager.after_forward(h, state_info)
@@ -85,8 +85,10 @@ class HiddenStateHelper(IAgentStatefulPlugin):
 
         def reset_state_wrapper(reset_fn):
 
-            def wrapper(*args, state=None, **kwargs):
-                agent._state_manager.reset(state)
+            def wrapper(*args, **kwargs):
+                state = kwargs.pop('state', None)
+                state_id = kwargs.pop('state_id', None)
+                agent._state_manager.reset(state, state_id)
                 return reset_fn(*args, **kwargs)
 
             return wrapper
@@ -99,22 +101,21 @@ class HiddenStateHelper(IAgentStatefulPlugin):
         self._state = {i: init_fn() for i in range(state_num)}
         self._init_fn = init_fn
 
-    def reset(self, state: Union[None, list] = None) -> None:
+    def reset(self, state: Optional[list] = None, state_id: Optional[list] = None) -> None:
+        if state_id is None:
+            state_id = [i for i in range(self._state_num)]
         if state is None:
-            self._state = {i: self._init_fn() for i in range(self._state_num)}
-        else:
-            assert len(state) == self._state_num, '{}/{}'.format(len(state), self._state_num)
-            self._state = {i: k for i, k in zip(range(self._state_num), state)}
+            state = [self._init_fn() for i in range(len(state_id))]
+        assert len(state) == len(state_id), '{}/{}'.format(len(state), len(state_id))
+        for idx, s in zip(state_id, state):
+            self._state[idx] = s
 
-    def before_forward(self, data: dict, state_info: Union[None, dict] = None) -> Tuple[dict, dict]:
-        if state_info is None:
-            state_info = {i: False for i in range(self._state_num)}
+    def before_forward(self, data: dict, state_id: Optional[list]) -> Tuple[dict, dict]:
+        if state_id is None:
+            state_id = [i for i in range(self._state_num)]
 
-        for idx, is_reset in state_info.items():
-            if is_reset:
-                self._state[idx] = self._init_fn()
-        state = [self._state[idx] for idx in state_info.keys()]
-        data['prev_state'] = state
+        state_info = {idx: self._state[idx] for idx in state_id}
+        data['prev_state'] = list(state_info.values())
         return data, state_info
 
     def after_forward(self, h: Any, state_info: dict) -> None:
