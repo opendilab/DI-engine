@@ -123,7 +123,6 @@ def create_drqn_evaluator_agent(model: torch.nn.Module, state_num: int) -> BaseA
         {
             'hidden_state': {
                 'state_num': state_num,
-                'save_prev_state': True,
             },
             'argmax_sample': {},
             'grad': {
