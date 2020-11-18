@@ -3,7 +3,8 @@ import copy
 from collections import OrderedDict
 
 from nervex.entry.base_single_machine import SingleMachineRunner
-from nervex.worker.agent import DqnActorAgent, ACActorAgent, DiscreteEvaluatorAgent, ACDiscreteEvaluatorAgent
+from nervex.worker.agent import create_dqn_actor_agent, create_dqn_evaluator_agent, create_ac_actor_agent,\
+    create_ac_evaluator_agent
 from nervex.utils import read_config
 from nervex.worker import SubprocessEnvManager
 from app_zoo.atari.envs import AtariEnv
@@ -41,11 +42,11 @@ class AtariRunner(SingleMachineRunner):
 
     def _setup_agent(self):
         if self.algo_type == 'dqn':
-            self.actor_agent = DqnActorAgent(copy.deepcopy(self.learner.agent.model))
-            self.evaluator_agent = DiscreteEvaluatorAgent(copy.deepcopy(self.learner.agent.model))
+            self.actor_agent = create_dqn_actor_agent(copy.deepcopy(self.learner.agent.model))
+            self.evaluator_agent = create_dqn_evaluator_agent(copy.deepcopy(self.learner.agent.model))
         elif self.algo_type == 'ppo':
-            self.actor_agent = ACActorAgent(copy.deepcopy(self.learner.agent.model))
-            self.evaluator_agent = ACDiscreteEvaluatorAgent(copy.deepcopy(self.learner.agent.model))
+            self.actor_agent = create_ac_actor_agent(copy.deepcopy(self.learner.agent.model))
+            self.evaluator_agent = create_ac_evaluator_agent(copy.deepcopy(self.learner.agent.model))
             print(self.evaluator_agent, self.actor_agent)
         self.actor_agent.mode(train=False)
         self.evaluator_agent.mode(train=False)

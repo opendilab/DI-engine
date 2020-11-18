@@ -58,7 +58,13 @@ class HiddenStateHelper(IAgentStatefulPlugin):
     """
 
     @classmethod
-    def register(cls: type, agent: Any, state_num: int, save_prev_state: bool = False, init_fn: Callable = lambda: None) -> None:
+    def register(
+            cls: type,
+            agent: Any,
+            state_num: int,
+            save_prev_state: bool = False,
+            init_fn: Callable = lambda: None
+    ) -> None:
         state_manager = cls(state_num, init_fn=init_fn)
         agent._state_manager = state_manager
 
@@ -205,21 +211,22 @@ class TargetNetworkHelper(IAgentStatefulPlugin):
     def register(cls: type, agent: Any, update_cfg: dict):
         target_network = cls(agent.model, update_cfg)
         agent._target_network = target_network
-        for method_name in ['update_target_network', 'target_forward', 'target_mode']:
-            setattr(agent, method_name, getattr(agent._target_network, method_name))
+        setattr(agent, 'update', getattr(agent._target_network, 'update'))
 
     def __init__(self, model: torch.nn.Module, update_cfg: dict) -> None:
-        self._model = copy.deepcopy(model)
-        self.target_mode(train=True)
+        self._model = model
         update_type = update_cfg['type']
         assert update_type in ['momentum', 'assign']
         self._update_type = update_type
         self._update_kwargs = update_cfg['kwargs']
         self._update_count = 0
 
-    def update_target_network(self, state_dict: dict, direct: bool = False) -> None:
-        if self._update_type == 'assign':
-            if direct or (self._update_count + 1) % self._update_kwargs['freq'] == 0:
+    def update(self, state_dict: dict, direct: bool = False) -> None:
+        if direct:
+            self._model.load_state_dict(state_dict, strict=True)
+            self._update_count = 0
+        elif self._update_type == 'assign':
+            if (self._update_count + 1) % self._update_kwargs['freq'] == 0:
                 self._model.load_state_dict(state_dict, strict=True)
             self._update_count += 1
         elif self._update_type == 'momentum':
@@ -228,31 +235,18 @@ class TargetNetworkHelper(IAgentStatefulPlugin):
                 # default theta = 0.001
                 p = (1 - theta) * p + theta * state_dict[name]
 
-    def target_mode(self, train: bool) -> None:
-        if train:
-            self._model.train()
-        else:
-            self._model.eval()
-
-    def target_forward(self, data: Any, param: Optional[dict] = None) -> Any:
-        with torch.no_grad():
-            if param is not None:
-                return self._model(data, **param)
-            else:
-                return self._model(data)
-
-    def reset(self, state_dict: dict) -> None:
-        self.update_target_network(state_dict)
+    def reset(self) -> None:
         self._update_count = 0
 
 
 plugin_name_map = {
     'grad': GradHelper,
     'hidden_state': HiddenStateHelper,
-    'target_network': TargetNetworkHelper,
     'argmax_sample': ArgmaxSampleHelper,
     'eps_greedy_sample': EpsGreedySampleHelper,
     'multinomial_sample': MultinomialSampleHelper,
+    # model plugin
+    'target': TargetNetworkHelper,
 }
 
 

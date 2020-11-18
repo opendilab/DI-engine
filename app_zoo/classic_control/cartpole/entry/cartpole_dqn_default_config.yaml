@@ -42,7 +42,7 @@ learner:
 env:
     placeholder: 'placeholder'
 actor:
-    env_num: 8
+    env_num: 10
     episode_num: 1
     print_freq: 500
 evaluator:

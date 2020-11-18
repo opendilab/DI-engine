@@ -25,7 +25,7 @@ class AtariDqnGraph(BaseCompGraph):
         data = q_1step_td_data(q_value, target_q_value, action, reward, done)
         loss = q_1step_td_error(data, self._gamma, weights)
         if agent.is_double:
-            agent.update_target_network(agent.state_dict()['model'])
+            agent.target_update(agent.state_dict()['model'])
         return {'total_loss': loss}
 
     def __repr__(self) -> str:

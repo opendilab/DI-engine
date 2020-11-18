@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 
 from nervex.torch_utils import get_lstm
-from nervex.worker.agent.base_agent import BaseAgent
+from nervex.worker.agent.base_agent import BaseAgent, AgentAggregator
 
 
 @pytest.fixture(scope='function')
@@ -18,7 +18,7 @@ def setup_model():
 class TestBaseAgent:
 
     def test_naive(self, setup_model):
-        agent = BaseAgent(setup_model, plugin_cfg=None)
+        agent = BaseAgent(setup_model, pipeline_plugin_cfg=None)
         agent.mode(train=False)
         assert not agent.model.training
         agent.mode(train=True)
@@ -36,8 +36,12 @@ class TestBaseAgent:
 class TestAgentPlugin:
 
     def test_grad_helper(self, setup_model):
-        agent1 = BaseAgent(copy.deepcopy(setup_model), plugin_cfg=OrderedDict({'grad': {'enable_grad': True}}))
-        agent2 = BaseAgent(copy.deepcopy(setup_model), plugin_cfg=OrderedDict({'grad': {'enable_grad': False}}))
+        agent1 = BaseAgent(copy.deepcopy(setup_model), pipeline_plugin_cfg=OrderedDict({'grad': {'enable_grad': True}}))
+        agent2 = BaseAgent(
+            copy.deepcopy(setup_model), pipeline_plugin_cfg=OrderedDict({'grad': {
+                'enable_grad': False
+            }})
+        )
 
         data = torch.randn(4, 3).requires_grad_(True)
         assert agent1.model.weight.grad is None
@@ -133,7 +137,7 @@ class TestAgentPlugin:
             'grad': {
                 'enable_grad': True
             },
-            'target_network': {
+            'target': {
                 'update_cfg': {
                     'type': 'assign',
                     'kwargs': {
@@ -143,14 +147,13 @@ class TestAgentPlugin:
             }
         }
         plugin_cfg = OrderedDict(plugin_cfg)
-        agent = BaseAgent(model, plugin_cfg)
-        assert all(
-            [hasattr(agent, n) for n in ['_target_network', 'target_mode', 'target_forward', 'update_target_network']]
-        )
-        assert agent.model.fc1.weight.eq(agent._target_network._model.fc1.weight).sum() == 12
+        agent = AgentAggregator(BaseAgent, model, plugin_cfg)
+        assert all([hasattr(agent, n) for n in ['target_reset', 'target_mode', 'target_forward', 'target_update']])
+        assert agent.model.fc1.weight.eq(agent.target_model.fc1.weight).sum() == 12
         agent.model.fc1.weight.data = torch.randn_like(agent.model.fc1.weight)
-        assert agent.model.fc1.weight.ne(agent._target_network._model.fc1.weight).sum() == 12
-        agent.update_target_network(agent.state_dict()['model'], direct=True)
+        assert agent.model.fc1.weight.ne(agent.target_model.fc1.weight).sum() == 12
+        agent.target_update(agent.state_dict()['model'], direct=True)
+        assert agent.model.fc1.weight.eq(agent.target_model.fc1.weight).sum() == 12
 
         inputs = torch.randn(2, 3)
         agent.mode(train=True)

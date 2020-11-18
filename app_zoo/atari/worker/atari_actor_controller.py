@@ -4,7 +4,7 @@ import torch
 
 from nervex.model import ConvValueAC
 from nervex.worker.actor import ZerglingActor, register_actor
-from nervex.worker.agent import ACActorAgent
+from nervex.worker.agent import create_ac_actor_agent
 from app_zoo.atari.envs import AtariEnv
 
 
@@ -22,7 +22,7 @@ class AtariActor(ZerglingActor):
         model = ConvValueAC(env_info.obs_space.shape, env_info.act_space.shape, self._job['agent'][self._agent_name]['model']['embedding_dim'])
         if self._cfg.actor.use_cuda:
             model.cuda()
-        self._agent = ACActorAgent(model)
+        self._agent = create_ac_actor_agent(model)
         self._agent.mode(train=False)
 
     # override

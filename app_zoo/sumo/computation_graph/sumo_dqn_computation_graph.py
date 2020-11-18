@@ -46,7 +46,7 @@ class SumoDqnGraph(BaseCompGraph):
                 loss.append(q_1step_td_error(data, self._gamma, weights))
             loss = sum(loss) / (len(loss) + 1e-8)
         if agent.is_double:
-            agent.update_target_network(agent.state_dict()['model'])
+            agent.target_update(agent.state_dict()['model'])
         return {'total_loss': loss}
 
     def __repr__(self):

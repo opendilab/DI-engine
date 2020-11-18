@@ -1,99 +1,155 @@
 import torch
+import copy
 from typing import Any, Optional
 from collections import OrderedDict
-from nervex.worker.agent import BaseAgent
+from nervex.worker.agent import BaseAgent, AgentAggregator
 
 
 # ######################## Learner ######################################
-class DqnLearnerAgent(BaseAgent):
+def create_dqn_learner_agent(model: torch.nn.Module, is_double: bool = True) -> BaseAgent:
+    plugin_cfg = OrderedDict({
+        'grad': {
+            'enable_grad': True
+        },
+    })
+    # whether use double(target) q-network plugin
+    if is_double:
+        # self.plugin_cfg['target_network'] = {'update_cfg': {'type': 'momentum', 'kwargs': {'theta': 0.001}}}
+        plugin_cfg['target'] = {'update_cfg': {'type': 'assign', 'kwargs': {'freq': 500}}}
+    agent = AgentAggregator(BaseAgent, model, plugin_cfg)
+    agent.is_double = is_double
+    return agent
 
-    def __init__(self, model: torch.nn.Module, is_double: bool = True) -> None:
-        self.plugin_cfg = OrderedDict({
-            'grad': {
-                'enable_grad': True
-            },
-        })
-        # whether use double(target) q-network plugin
-        if is_double:
-            # self.plugin_cfg['target_network'] = {'update_cfg': {'type': 'momentum', 'kwargs': {'theta': 0.001}}}
-            self.plugin_cfg['target_network'] = {'update_cfg': {'type': 'assign', 'kwargs': {'freq': 500}}}
-        self.is_double = is_double
-        super(DqnLearnerAgent, self).__init__(model, self.plugin_cfg)
+
+def create_drqn_learner_agent(model: torch.nn.Module, state_num: int, is_double: bool = True) -> BaseAgent:
+    plugin_cfg = OrderedDict({
+        'hidden_state': {
+            'state_num': state_num,
+        },
+        'grad': {
+            'enable_grad': True
+        },
+    })
+    # whether use double(target) q-network plugin
+    if is_double:
+        # self.plugin_cfg['target_network'] = {'update_cfg': {'type': 'momentum', 'kwargs': {'theta': 0.001}}}
+        plugin_cfg['target'] = {'update_cfg': {'type': 'assign', 'kwargs': {'freq': 500}}}
+    agent = AgentAggregator(BaseAgent, model, plugin_cfg)
+    agent.is_double = is_double
+    return agent
 
 
-class ACLearnerAgent(BaseAgent):
+class ACAgent(BaseAgent):
     """
     Overview:
-        Actor-Critic learner agent
+        Actor-Critic agent(for learner and actor)
     """
-
-    def __init__(self, model: torch.nn.Module) -> None:
-        plugin_cfg = OrderedDict({
-            'grad': {
-                'enable_grad': True
-            },
-        })
-        super(ACLearnerAgent, self).__init__(model, plugin_cfg)
 
     def forward(self, data: Any, param: Optional[dict] = None) -> dict:
         if param is None:
             param = {}
         param['mode'] = 'compute_action_value'
         return super().forward(data, param)
+
+
+def create_ac_learner_agent(model: torch.nn.Module) -> ACAgent:
+    plugin_cfg = OrderedDict({
+        'grad': {
+            'enable_grad': True
+        },
+    })
+    agent = AgentAggregator(ACAgent, model, plugin_cfg)
+    return agent
 
 
 # ######################## Actor ######################################
 
 
-class DqnActorAgent(BaseAgent):
+def create_dqn_actor_agent(model: torch.nn.Module) -> BaseAgent:
+    plugin_cfg = OrderedDict({
+        'eps_greedy_sample': {},
+        'grad': {
+            'enable_grad': False
+        },
+    })
+    agent = AgentAggregator(BaseAgent, model, plugin_cfg)
+    return agent
 
-    def __init__(self, model: torch.nn.Module) -> None:
-        plugin_cfg = OrderedDict({
+
+def create_drqn_actor_agent(model: torch.nn.Module, state_num: int) -> BaseAgent:
+    plugin_cfg = OrderedDict(
+        {
+            'hidden_state': {
+                'state_num': state_num,
+                'save_prev_state': True,
+            },
             'eps_greedy_sample': {},
             'grad': {
                 'enable_grad': False
             },
-        })
-        super(DqnActorAgent, self).__init__(model, plugin_cfg)
+        }
+    )
+    agent = AgentAggregator(BaseAgent, model, plugin_cfg)
+    return agent
 
 
-class ACActorAgent(BaseAgent):
-
-    def __init__(self, model: torch.nn.Module) -> None:
-        plugin_cfg = OrderedDict({
-            'multinomial_sample': {},
-            'grad': {
-                'enable_grad': False
-            },
-        })
-        super(ACActorAgent, self).__init__(model, plugin_cfg)
-
-    def forward(self, data: Any, param: Optional[dict] = None) -> dict:
-        if param is None:
-            param = {}
-        param['mode'] = 'compute_action_value'
-        return super().forward(data, param)
+def create_ac_actor_agent(model: torch.nn.Module) -> ACAgent:
+    plugin_cfg = OrderedDict({
+        'multinomial_sample': {},
+        'grad': {
+            'enable_grad': False,
+        },
+    })
+    agent = AgentAggregator(ACAgent, model, plugin_cfg)
+    return agent
 
 
 # ######################## Evaluator ######################################
 
 
-class DiscreteEvaluatorAgent(BaseAgent):
+def create_dqn_evaluator_agent(model: torch.nn.Module) -> BaseAgent:
+    plugin_cfg = OrderedDict({
+        'argmax_sample': {},
+        'grad': {
+            'enable_grad': False
+        },
+    })
+    agent = AgentAggregator(BaseAgent, model, plugin_cfg)
+    return agent
 
-    def __init__(self, model: torch.nn.Module) -> None:
-        plugin_cfg = OrderedDict({
+
+def create_drqn_evaluator_agent(model: torch.nn.Module, state_num: int) -> BaseAgent:
+    plugin_cfg = OrderedDict(
+        {
+            'hidden_state': {
+                'state_num': state_num,
+                'save_prev_state': True,
+            },
             'argmax_sample': {},
             'grad': {
                 'enable_grad': False
             },
-        })
-        super(DiscreteEvaluatorAgent, self).__init__(model, plugin_cfg)
+        }
+    )
+    agent = AgentAggregator(BaseAgent, model, plugin_cfg)
+    return agent
 
 
-class ACDiscreteEvaluatorAgent(DiscreteEvaluatorAgent):
+class ACEvaluatorAgent(BaseAgent):
 
     def forward(self, data: Any, param: Optional[dict] = None) -> dict:
         if param is None:
             param = {}
         param['mode'] = 'compute_action'
         return super().forward(data, param)
+
+
+def create_ac_evaluator_agent(model: torch.nn.Module) -> ACEvaluatorAgent:
+    plugin_cfg = OrderedDict({
+        'argmax_sample': {},
+        'grad': {
+            'enable_grad': False,
+        },
+    })
+    agent = AgentAggregator(ACEvaluatorAgent, model, plugin_cfg)
+    return agent

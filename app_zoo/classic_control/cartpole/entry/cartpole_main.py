@@ -8,7 +8,7 @@ from nervex.model import FCDQN
 from nervex.rl_utils import q_1step_td_data, q_1step_td_error
 from nervex.utils import read_config
 from nervex.worker import BaseLearner, SubprocessEnvManager
-from nervex.worker.agent import BaseAgent, DqnLearnerAgent, DqnActorAgent, DiscreteEvaluatorAgent
+from nervex.worker.agent import BaseAgent, create_dqn_learner_agent, create_dqn_actor_agent, create_dqn_evaluator_agent
 from app_zoo.classic_control.cartpole.envs import CartPoleEnv
 
 
@@ -34,7 +34,7 @@ class CartPoleDqnGraph(BaseCompGraph):
         data = q_1step_td_data(q_value, target_q_value, action, reward, terminate)
         loss = q_1step_td_error(data, self._gamma, weights)
         if agent.is_double:
-            agent.update_target_network(agent.state_dict()['model'])
+            agent.target_update(agent.state_dict()['model'])
         return {'total_loss': loss}
 
     def __repr__(self):
@@ -49,7 +49,7 @@ class CartPoleDqnLearner(BaseLearner):
         model = FCDQN(env_info.obs_space.shape, env_info.act_space.shape, dueling=self._cfg.learner.dqn.dueling)
         if self._cfg.learner.use_cuda:
             model.cuda()
-        self._agent = DqnLearnerAgent(model, is_double=self._cfg.learner.dqn.is_double)
+        self._agent = create_dqn_learner_agent(model, is_double=self._cfg.learner.dqn.is_double)
         self._agent.mode(train=True)
         if self._agent.is_double:
             self._agent.target_mode(train=True)
@@ -83,9 +83,9 @@ class CartPoleRunner(SingleMachineRunner):
         self.learner = CartPoleDqnLearner(self.cfg)
 
     def _setup_agent(self):
-        self.actor_agent = DqnActorAgent(copy.deepcopy(self.learner.agent.model))
+        self.actor_agent = create_dqn_actor_agent(copy.deepcopy(self.learner.agent.model))
         self.actor_agent.mode(train=False)
-        self.evaluator_agent = DiscreteEvaluatorAgent(copy.deepcopy(self.learner.agent.model))
+        self.evaluator_agent = create_dqn_evaluator_agent(copy.deepcopy(self.learner.agent.model))
         self.evaluator_agent.mode(train=False)
 
 

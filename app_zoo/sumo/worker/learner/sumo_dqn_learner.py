@@ -11,7 +11,7 @@ from nervex.model import FCDQN
 from nervex.utils import deep_merge_dicts
 from nervex.utils import override, read_config, DistModule
 from nervex.worker.learner import BaseLearner, register_learner
-from nervex.worker.agent import DqnLearnerAgent
+from nervex.worker.agent import create_dqn_learner_agent
 from app_zoo.sumo.envs.sumo_env import SumoWJ3Env
 from app_zoo.sumo.computation_graph.sumo_dqn_computation_graph import SumoDqnGraph
 
@@ -36,7 +36,7 @@ class SumoDqnLearner(BaseLearner):
             model.cuda()
         if self.use_distributed:
             model = DistModule(model)
-        self._agent = DqnLearnerAgent(model, self._cfg.learner.dqn.is_double)
+        self._agent = create_dqn_learner_agent(model, self._cfg.learner.dqn.is_double)
         self._agent.mode(train=True)
         if self._agent.is_double:
             self._agent.target_mode(train=True)

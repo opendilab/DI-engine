@@ -152,7 +152,7 @@ class TestFakeLeagueManager:
         coordinator.close()
         time.sleep(5)
         assert BEGIN_COUNT == FINISH_COUNT
-        assert (len(threading.enumerate()) <= 2), threading.enumerate()  # main thread + QueueFeederThread
+        assert (len(threading.enumerate()) <= 3), threading.enumerate()  # main thread + QueueFeederThread
 
     def test_snapshot_priority(self, random_task_result, setup_config):
         global SAVE_COUNT
