@@ -7,7 +7,7 @@ from easydict import EasyDict
 import numpy as np
 from nervex.utils import LockContext, LockContextType
 
-from .player import Player
+from .player import Player, ActivePlayer, HistoricalPlayer
 
 
 class BattleRecordDict(dict):
@@ -20,7 +20,7 @@ class BattleRecordDict(dict):
     """
     data_keys = ['wins', 'draws', 'losses', 'games']
 
-    def __init__(self, cfg: EasyDict) -> None:
+    def __init__(self) -> None:
         """
         Overview:
             Initialize four fixed keys ['wins', 'draws', 'losses', 'games'] and set value to 0
@@ -44,22 +44,6 @@ class BattleRecordDict(dict):
         return obj
 
 
-class SoloRecordQueue(deque):
-    """
-    Overview:
-        A deque used to record solo game result. Initialized with maxlen.
-    Interfaces:
-        __init__, __mul__
-    """
-
-    def __init__(self, cfg: EasyDict) -> None:
-        """
-        Overview:
-            Initialize solo game's record queue at ``maxlen`` of ``cfg.buffer_size``
-        """
-        super(SoloRecordQueue, self).__init__(maxlen=cfg.buffer_size)
-
-
 class PayoffDict(defaultdict):
     """
     Overview:
@@ -70,7 +54,7 @@ class PayoffDict(defaultdict):
         __init__, __missing__
     """
 
-    def __init__(self, init_fn: type, cfg: EasyDict):
+    def __init__(self, init_fn: type):
         """
         Overview:
             Init method, set defaultdict's default return instance type as ``init_fn``.
@@ -78,7 +62,8 @@ class PayoffDict(defaultdict):
             - init_fn (:obj:`type`): if key is missing, PayoffDict can return the instance `init_fn()`
             - cfg (:obj:`EasyDict`): for SoloRecordQueue, containing {buffer_size}
         """
-        super(PayoffDict, self).__init__(partial(init_fn, cfg=cfg))
+        # super(PayoffDict, self).__init__(partial(init_fn, cfg=cfg))
+        super(PayoffDict, self).__init__(init_fn)
 
 
 class BattleSharedPayoff:
@@ -107,7 +92,7 @@ class BattleSharedPayoff:
         self._players_ids = []
         # self._data is a PayoffDict, whose key is '[player_id]-[player_id]' string,
         # and whose value is a RecordDict
-        self._data = PayoffDict(BattleRecordDict, cfg)
+        self._data = PayoffDict(BattleRecordDict)
 
         # self._decay controls how past game info (win, draw, loss) decays
         self._decay = cfg.decay
@@ -157,12 +142,14 @@ class BattleSharedPayoff:
                 Only when total games is no less than ``self._min_win_rate_games``, \
                 can the win rate be calculated by (wins + draws/2) / games, or return 0.5 by default.
         """
-        key = self.get_key(home, away)
+        key, reverse = self.get_key(home, away)
         handle = self._data[key]
         # no game record case
         if handle['games'] < self._min_win_rate_games:
             return 0.5
-        return (handle['wins'] + 0.5 * handle['draws']) / (handle['games'])
+        # should use reverse here
+        wins = handle['wins'] if not reverse else handle['losses']
+        return (wins + 0.5 * handle['draws']) / (handle['games'])
 
     @property
     def players(self):
@@ -190,7 +177,7 @@ class BattleSharedPayoff:
         """
         Overview:
             Update payoff with job_info when a job is to be finished.
-            If update succeeds, return True; If raises an exception, return False.
+            If update succeeds, return True; If raises an exception when updating, resolve it and return False.
         Arguments:
             - job_info (:obj:`dict`): a dict containing job result information
         Returns:
@@ -225,6 +212,7 @@ class BattleSharedPayoff:
                     # all categories should decay
                     self._data[key] *= self._decay
                     self._data[key]['games'] += 1
+                    # should use reverse here
                     result = _win_loss_reverse(i, reverse)
                     self._data[key][result] += 1
             return True
@@ -267,18 +255,20 @@ class SoloSharedPayoff:
         Arguments:
             - cfg (:obj:`dict`): config(contains {buffer_size})
         """
-        self._data = PayoffDict(SoloRecordQueue, cfg)
+        self._data = PayoffDict(partial(deque, maxlen=cfg.buffer_size))
+        self._players = []
+        self._players_ids = []
 
-    def __getitem__(self, player_id: str) -> SoloRecordQueue:
+    def __getitem__(self, player: Player) -> deque:
         """
         Overview:
-            Get game result info of the player
+            Get game result info queue of the player
         Arguments:
-            - player_id (:obj:`str`): the only active player's id
+            - player (:obj:`Player`): the only active player
         Returns:
             - record (:obj:`SoloRecordQueue`): record queue with several game results
         """
-        return self._data[player_id]
+        return self._data[player.player_id]
 
     def update(self, job_info: dict) -> bool:
         """
@@ -289,16 +279,26 @@ class SoloSharedPayoff:
         Returns:
             - result (:obj:`bool`): whether update is successful
         """
-        # TODO(zlx): job_info validation
-        self._data.append(job_info)
+        # TODO(zlx): job_info validation and process
+        assert len(job_info['player_id']) == 1
+        player_id = job_info['player_id'][0]
+        self._data[player_id].append(job_info)
         return True
 
     def add_player(self, player: Player) -> None:
         """
         Overview:
-            Will not add a player, since there is only one player.
+            Add a player. Only permits one active player in queue all the time.
+            If it is historical, it is ok to add one;
+            If it is active, make sure there is no active player in the queue, otherwise raise an exception.
         """
-        pass
+        active_count = sum([1 if isinstance(player, ActivePlayer) else 0 for player in self._players])
+        if active_count == 1 and isinstance(player, ActivePlayer):
+            raise Exception('SoloSharedPayoff only supports one active player, now wants to add another active one.')
+        if active_count > 1:
+            raise Exception('SoloSharedPayoff only supports one active player, has added more than one before.')
+        self._players.append(player)
+        self._players_ids.append(player.player_id)
 
 
 def create_payoff(cfg: EasyDict) -> Union[BattleSharedPayoff, SoloSharedPayoff]:

@@ -1,8 +1,13 @@
 import copy
 from easydict import EasyDict
+import os.path as osp
 
 from nervex.league import BaseLeagueManager, register_league
 from nervex.league.player import ActivePlayer
+from nervex.utils import read_config, deep_merge_dicts
+
+
+solo_default_config = read_config(osp.join(osp.dirname(__file__), "solo_league_manager_default_config.yaml"))
 
 
 class SoloLeagueManager(BaseLeagueManager):
@@ -16,8 +21,10 @@ class SoloLeagueManager(BaseLeagueManager):
     """
 
     # override
-    def _init_league(self):
-        super(SoloLeagueManager, self)._init_league()
+    def _init_cfg(self, cfg: EasyDict) -> None:
+        cfg = deep_merge_dicts(solo_default_config, cfg)
+        self.cfg = cfg.league
+        self.model_config = cfg.get('model', EasyDict())
 
     # override
     def _get_job_info(self, player: ActivePlayer) -> dict:
@@ -32,18 +39,14 @@ class SoloLeagueManager(BaseLeagueManager):
         # env_num = self.cfg.job.env_num
         model_config = copy.deepcopy(self.model_config)
         job_info = {
-            # 'episode_num': player_job_info.env_kwargs.episode_num,  # self.cfg.job.episode_num,
-            # 'env_num': player_job_info.env_kwargs.env_num,  # env_num,
-            # 'some_env_related_info': 'placeholder',  # other env info, e.g. game mode, scenario, difficulty.
             'env_kwargs': player_job_info.env_kwargs,
             'agent_num': 1,
-            # 'data_push_length': player_job_info.adder_kwargs.data_push_length,  # self.cfg.job.data_push_length,
-            'agent_update_freq': player_job_info.agent_update_freq,  # self.cfg.job.agent_update_freq,
-            'compressor': player_job_info.compressor,  # self.cfg.job.compressor,
-            'forward_kwargs': player_job_info.forward_kwargs,  # {'eps': player_job_info['eps']},
+            'agent_update_freq': player_job_info.agent_update_freq,
+            'compressor': player_job_info.compressor,
+            'forward_kwargs': player_job_info.forward_kwargs,
             'adder_kwargs': player_job_info.adder_kwargs,
             'launch_player': player.player_id,
-            'player_id': [player.player_id],
+            'player_id': [player.player_id],  # for solo game, it is a list with only one player_id
             'agent': {
                 '0': {
                     'name': '0',

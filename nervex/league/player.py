@@ -166,7 +166,7 @@ class ActivePlayer(Player):
     def mutate(self, info: dict) -> Optional[str]:
         """
         Overview:
-            Mutate the current player
+            Mutate the current player, called in league manager's ``_mutate_player``.
         Arguments:
             - info (:obj:`dict`): related information for the mutation
         Returns:
@@ -244,7 +244,9 @@ class BattleActivePlayer(ActivePlayer):
     def is_trained_enough(self, select_fn: Callable) -> bool:
         """
         Overview:
-            Judge whether this player is trained enough for further operation
+            Judge whether this player is trained enough for further operation (e.g. snapshot, mutate...)
+            according to step passed since last trained enough timing and overall win rates against opponents.
+            If yes, set ``self._last_agent_step`` to ``self._total_agent_step`` and return True; otherwise return False.
         Arguments:
             - select_fn (:obj:`function`): function to select historical players
         Returns:
@@ -254,15 +256,17 @@ class BattleActivePlayer(ActivePlayer):
         if step_passed < self._one_phase_step:
             return False
         elif step_passed >= 2 * self._one_phase_step:
+            # ``step_passed`` is 2 times of ``self._one_phase_step``, regarded as trained enough
             self._last_enough_step = self._total_agent_step
             return True
         else:
-            # Get payoff against historical players (Different players have different type of historical players)
-            # If min win rate is large enough, then is judge trained enough
-            historical = self._get_players(select_fn)
-            if len(historical) == 0:
+            # Get payoff against specific opponents (Different players have different type of opponent players --
+            # e.g. main player: historical player; main exploiter: main player; league exploiter: historical player)
+            # If min win rate is larger than ``self._strong_win_rate``, then is judge trained enough
+            selected_players = self._get_players(select_fn)
+            if len(selected_players) == 0:  # no such player, therefore no past game
                 return False
-            win_rates = self._payoff[self, historical]
+            win_rates = self._payoff[self, selected_players]
             if win_rates.min() > self._strong_win_rate:
                 self._last_enough_step = self._total_agent_step
                 return True
@@ -274,6 +278,7 @@ class BattleActivePlayer(ActivePlayer):
         """
         Overview:
             Additionally get the following job infos:
+
                 - Choose a branch according to prob ``p``, then get an opponent according to the chosen branch.
         Arguments:
             - p (:obj:`np.ndarray`): branch selection probability
@@ -315,16 +320,16 @@ class BattleActivePlayer(ActivePlayer):
         """
         return [player for player in self._payoff.players if select_fn(player)]
 
-    def _get_opponent(self, players: list, p: Optional[list] = None) -> Player:
+    def _get_opponent(self, players: list, p: Optional[np.ndarray] = None) -> Player:
         """
         Overview:
             Get one opponent player from ``players`` according to probability ``p``.
         Arguments:
             - players (:obj:`list`): a list of players that can select opponent from
-            - p (:obj:`list`): the selection probability of each player, should have the same size as ``players``. \
-                If you don't need it and set None, it would select uniformly by default.
+            - p (:obj:`np.ndarray`): the selection probability of each player, should have the same size as \
+                ``players``. If you don't need it and set None, it would select uniformly by default.
         Returns:
-            - opponent_player (:obj:`list`): a random chosen opponent player according to probability
+            - opponent_player (:obj:`Player`): a random chosen opponent player according to probability
         """
         idx = np.random.choice(len(players), p=p)
         return players[idx]
@@ -365,10 +370,8 @@ class SoloActivePlayer(ActivePlayer):
         Returns:
             - ret_dict (:obj:`dict`): a dict containing job's epsilon value
         """
-        ret_dict = super().get_job()
-        return ret_dict
-        # epsilon = self.exploration(self.total_agent_step)
-        # return deep_merge_dicts(ret_dict, {'epsilon': epsilon})
+        parent_dict = super().get_job()
+        return parent_dict
 
 
 player_mapping = {}
@@ -381,32 +384,33 @@ def register_player(name: str, player: type) -> None:
         Player must use this function to register in nervex system before instantiate.
     Arguments:
         - name (:obj:`str`): name of the new Player class
-        - learner (:obj:`type`): the new Player class, should be subclass of Player
+        - player (:obj:`type`): the new Player class, should be subclass of Player
     """
     assert isinstance(name, str)
     assert issubclass(player, Player)
     player_mapping[name] = player
 
 
-def create_player(cfg: EasyDict, player_type, *args, **kwargs) -> Player:
+def create_player(cfg: EasyDict, player_type: str, *args, **kwargs) -> Player:
     """
     Overview:
         Given the key (league_manager_type), create a new league manager instance if in league_mapping's values,
         or raise an KeyError. In other words, a derived league manager must first register then call ``create_league``
         to get the instance object.
     Arguments:
-        - cfg (:obj:`EasyDict`): league manager config, necessary keys: [league.import_module]
+        - cfg (:obj:`EasyDict`): league manager config, necessary keys: [import_names]
+        - player_type (:obj:`str`): the type of player to be created
     Returns:
-        - league_manager (:obj:`BaseLeagueManager`): the created new league manager, should be an instance of one of \
-            league_mapping's values
+        - Player (:obj:`BaseLeagueManager`): the created new player, should be an instance of one of \
+            player_mapping's values
     """
     import_module(cfg.import_names)
-    # league_type = cfg.league.league_type
     if player_type not in player_mapping.keys():
         raise KeyError("not support player type: {}".format(player_type))
     else:
         return player_mapping[player_type](*args, **kwargs)
 
 
+register_player('historical_player', HistoricalPlayer)
 register_player('solo_active_player', SoloActivePlayer)
 register_player('battle_active_player', BattleActivePlayer)

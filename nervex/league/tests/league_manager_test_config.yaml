@@ -1,6 +1,6 @@
 league:
-    league_type: 'solo'
-    import_names: [league]  # placeholder
+    league_type: 'fake'
+    import_names: [nervex.league]  # placeholder
     # ---player----
     player_category: ['zerg', 'terran', 'protoss']
     active_players: 
@@ -74,6 +74,19 @@ league:
         job:
             agent_update_freq: 30  # second
             compressor: 'none'
+    solo_active_player:
+        one_phase_step: 2e3
+        forward_kwargs:
+            'placeholder'
+        env_kwargs:
+            env_num: 8
+            episode_num: 2
+        adder_kwargs:
+            use_gae: False
+            data_push_length: 128
+        job:
+            agent_update_freq: 30  # second
+            compressor: 'none'
     use_pretrain_init_historical: True
     pretrain_checkpoint_path:  # placeholder
         zerg: 'pretrain_checkpoint_zerg.pth'
@@ -88,5 +101,3 @@ league:
     max_active_player_job: 3
     #per_match_games: 8
     time_interval: 1
-model:
-    placeholder: 'placeholder'
