@@ -23,3 +23,6 @@ API Doc
     torch_utils/data_helper
     utils/time_helper
     utils/log_helper
+    league/league_manager
+    league/payoff
+    league/player

@@ -113,7 +113,7 @@ def list_split(data: list, step: int) -> List[list]:
     ret = []
     divide_num = len(data) // step
     for i in range(divide_num):
-        start, end = i*step, (i+1)*step
+        start, end = i * step, (i + 1) * step
         ret.append(data[start:end])
     if divide_num * step < len(data):
         ret.append(copy.deepcopy(data[-step:]))

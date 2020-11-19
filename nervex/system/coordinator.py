@@ -224,10 +224,10 @@ class Coordinator(object):
         assert job_id in self.job_record, 'job_id ({}) not in job_record'.format(job_id)
         self.job_record[job_id]['state'] = JobState.finish
         url_prefix = self.url_prefix_format.format(self._league_manager_ip, self._league_manager_port)
-        d = {'task_result': result}
+        d = {'job_result': result}
         while True:
             try:
-                response = requests.post(url_prefix + "league/finish_task", json=d).json()
+                response = requests.post(url_prefix + "league/finish_job", json=d).json()
                 if response['code'] == 0:
                     return True
             except Exception as e:

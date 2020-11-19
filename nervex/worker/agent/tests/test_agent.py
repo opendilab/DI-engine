@@ -78,15 +78,17 @@ class TestAgentPlugin:
 
         model = TempLSTM()
         state_num = 4
-        plugin_cfg = OrderedDict({
-            'hidden_state': {
-                'state_num': state_num,
-                'save_prev_state': True,
-            },
-            'grad': {
-                'enable_grad': True
-            },
-        })
+        plugin_cfg = OrderedDict(
+            {
+                'hidden_state': {
+                    'state_num': state_num,
+                    'save_prev_state': True,
+                },
+                'grad': {
+                    'enable_grad': True
+                },
+            }
+        )
         # the former plugin is registered in inner layer
         agent = BaseAgent(model, plugin_cfg)
         agent.reset()
