@@ -86,6 +86,7 @@ setup(
         'traci',
         'tabulate',
         'torchvision==0.2.1',
+        'sortedcontainers',
     ],
     classifiers=[
         'Development Status :: 4 - Beta',

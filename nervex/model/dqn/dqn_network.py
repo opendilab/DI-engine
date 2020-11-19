@@ -9,10 +9,27 @@ from nervex.utils import squeeze
 
 
 class FCDQN(nn.Module):
+    r"""
+    Overview:
+        Full Connect network used in DQN
+    Interfaces:
+        __init__, forward
+    """
 
     def __init__(
         self, obs_dim, action_dim, hidden_dim_list=[128, 128, 128], dueling=True, a_layer_num=1, v_layer_num=1
     ):
+        r"""
+        Overview:
+            init the FCDQN according to arguments.
+        Arguments:
+            - input_dim (:obj:`tuple` of :obj:`int`): the input observation's dim/shape, e.g. (84,84)
+            - action_dim (:obj:`tuple` or :obj:`list` of :obj:`int`): the input action's dim/shape, e.g. (4,) or [4, 6]
+            - hidden_dim_list (:obj:`list` of :obj:`int`): the list of hidden_dim in Module
+            - dueling (:obj:`bool`): whether use dueling network architecture
+            - a_layer_num (:obj:`int`): the num of fc_block used in the network to compute action output if use dueling
+            - v_layer_num (:obj:`int`): the num of fc_block used in the network to compute value output if use dueling
+        """
         super(FCDQN, self).__init__()
         self.act = nn.ReLU()
         layers = []
@@ -34,6 +51,13 @@ class FCDQN(nn.Module):
             self.pred = head_fn(input_dim, self.action_dim)
 
     def forward(self, x):
+        r"""
+        Overview:
+            forward method of the built network
+        Arguments:
+            - x (:obj:`torch.Tensor`): the input tensor x
+            - return (:obj:`torch.Tensor`): the output computed by network
+        """
         x = self.main(x)
         if isinstance(self.action_dim, list):
             x = [m(x) for m in self.pred]

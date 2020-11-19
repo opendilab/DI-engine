@@ -1,3 +1,6 @@
+"""
+Copyright 2020 Sensetime X-lab. All Rights Reserved
+"""
 import os
 import socket
 import time
@@ -16,6 +19,12 @@ MANAGER_NODE_TABLE = {
 
 
 def get_ip() -> str:
+    r"""
+    Overview:
+        get the ip of slurm/socket
+    Returns:
+        - ip(:obj:`str`): the corresponding ip
+    """
     if os.environ.get('SLURMD_NODENAME'):
         # expecting nodename to be like: 'SH-IDC1-10-5-36-64'
         nodename = os.environ.get('SLURMD_NODENAME', '')
@@ -29,10 +38,18 @@ def get_ip() -> str:
 
 
 def get_pid() -> int:
+    r"""
+    Overview:
+        os.getpid
+    """
     return os.getpid()
 
 
 def get_task_uid() -> str:
+    r"""
+    Overview:
+        get the slurm job_id, pid and uid
+    """
     return os.getenv('SLURM_JOB_ID', 'PID{pid}UUID{uuid}'.format(
         pid=str(get_pid()),
         uuid=str(uuid.uuid1()),
@@ -40,8 +57,9 @@ def get_task_uid() -> str:
 
 
 def get_manager_node_ip(node_ip: Optional[str] = None) -> str:
-    """
-    Look up the manager node of the slurm cluster
+    r"""
+    Overview:
+        Look up the manager node of the slurm cluster and return the node ip
     """
     if 'SLURM_JOB_ID' not in os.environ:
         import logging

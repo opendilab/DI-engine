@@ -1,3 +1,6 @@
+"""
+Copyright 2020 Sensetime X-lab. All Rights Reserved
+"""
 from typing import Union, Mapping, List, NamedTuple, Tuple, Callable, Optional, Any
 import warnings
 
@@ -5,15 +8,16 @@ import warnings
 def lists_to_dicts(
     data: Union[List[Union[dict, NamedTuple]], Tuple[Union[dict, NamedTuple]]]
 ) -> Union[Mapping[object, object], NamedTuple]:
-    """
-    Transform a list of dicts to a dict of lists.
+    r"""
+    Overview:
+        Transform a list of dicts to a dict of lists.
 
-    Args:
-        data (Union[List[Union[dict, NamedTuple]], Tuple[Union[dict, NamedTuple]]]):
+    Arguments:
+        - data (:obj:`Union[List[Union[dict, NamedTuple]], Tuple[Union[dict, NamedTuple]]]`):
             A dict of lists need to be transformed
 
     Returns:
-        Union[Mapping[object, object], NamedTuple]: A list of dicts as a result
+        - newdata (:obj:`Union[Mapping[object, object], NamedTuple]`): A list of dicts as a result
 
     Example:
         >>> from nervex.utils import *
@@ -32,14 +36,15 @@ def lists_to_dicts(
 
 
 def dicts_to_lists(data: Mapping[object, List[object]]) -> List[Mapping[object, object]]:
-    """
-    Transform a dict of lists to a list of dicts.
+    r"""
+    Overview:
+        Transform a dict of lists to a list of dicts.
 
-    Args:
-        data (Mapping[object, list]): A list of dicts need to be transformed
+    Arguments:
+        - data (:obj:`Mapping[object, list]`): A list of dicts need to be transformed
 
     Returns:
-        List[Mapping[object, object]]: A dict of lists as a result
+        - newdata (:obj:`List[Mapping[object, object]]`): A dict of lists as a result
 
     Example:
         >>> from nervex.utils import *
@@ -54,10 +59,12 @@ def dicts_to_lists(data: Mapping[object, List[object]]) -> List[Mapping[object, 
 def override(cls: type) -> Callable[[
         Callable,
 ], Callable]:
-    """Annotation for documenting method overrides.
+    """
+    Overview:
+        Annotation for documenting method overrides.
 
     Arguments:
-        cls (type): The superclass that provides the overridden method. If this
+        - cls (:obj:`type`): The superclass that provides the overridden method. If this
             cls does not actually have the method, an error is raised.
     """
 
@@ -71,14 +78,20 @@ def override(cls: type) -> Callable[[
 
 def squeeze(data: object) -> object:
     """
-    Squeeze data from tuple, list or dict to single object
+    Overview:
+        Squeeze data from tuple, list or dict to single object
+    Example:
+        >>> a = (4, )
+        >>> a = squeeze(a)
+        >>> print(a)
+        >>> 4
     """
     if isinstance(data, tuple) or isinstance(data, list):
         if len(data) == 1:
             return data[0]
     elif isinstance(data, dict):
         if len(data) == 1:
-            return data.values()[0]
+            return list(data.values())[0]
     return data
 
 
@@ -103,3 +116,25 @@ def default_get(
             warnings.warn("{} use default value {}".format(name, value))
             default_get_set.add(name)
         return value
+
+
+def error_wrapper(fn, default_ret, warning_msg="[WARNING]: call linklink error, return default_ret."):
+    r"""
+    Overview:
+        wrap the function, so that any Exception in the function will be catched and return the default_ret
+    Arguments:
+        - fn (:obj:`Callable`): the function to be wraped
+        - default_ret (:obj:`obj`): the default return when an Exception occured in the function
+    Returns:
+        - wrapper (:obj:`Callable`): the wrapped function
+    """
+
+    def wrapper(*args, **kwargs):
+        try:
+            ret = fn(*args, **kwargs)
+        except Exception:
+            ret = default_ret
+            print(warning_msg, "\ndefault_ret = {}".format(default_ret))
+        return ret
+
+    return wrapper
