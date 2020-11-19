@@ -9,8 +9,7 @@ API Doc
 .. toctree::
     :maxdepth: 3
 
-    data/buffer
-    data/cache
+    data/structure
     worker/learner/learner
     rl_utils/adder
     rl_utils/gae

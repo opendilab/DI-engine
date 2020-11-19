@@ -7,6 +7,7 @@ import pytest
 from easydict import EasyDict
 
 from nervex.utils.log_helper import AverageMeter, build_logger, build_logger_naive, pretty_print
+from nervex.utils.file_helper import remove_file
 
 cfg = EasyDict(
     {
@@ -76,3 +77,4 @@ class TestAverageMeter:
         assert isinstance(variable_record.get_var_text('fake_loss'), str)
         assert isinstance(variable_record.get_vars_tb_format(['fake_loss'], 10), list)
         assert len(variable_record.get_vars_tb_format(['fake_loss', 'fake_reward'], 10)) == 2
+        remove_file("./name")
