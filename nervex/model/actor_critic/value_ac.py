@@ -43,13 +43,20 @@ class ValueAC(ActorCriticBase):
         return self._actor(x)
 
     def compute_action_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        embedding = self._encoder(inputs['obs'])
+        # for compatible, but we recommend use dict as input format
+        if isinstance(inputs, torch.Tensor):
+            embedding = self._encoder(inputs)
+        else:
+            embedding = self._encoder(inputs['obs'])
         value = self._critic_forward(embedding)
         logit = self._actor_forward(embedding)
         return {'value': value, 'logit': logit}
 
     def compute_action(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        embedding = self._encoder(inputs['obs'])
+        if isinstance(inputs, torch.Tensor):
+            embedding = self._encoder(inputs)
+        else:
+            embedding = self._encoder(inputs['obs'])
         logit = self._actor_forward(embedding)
         return {'logit': logit}
 

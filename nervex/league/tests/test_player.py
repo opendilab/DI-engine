@@ -34,28 +34,16 @@ def setup_league(setup_payoff, setup_config):
         main_player_name = '{}_{}'.format('MainPlayer', category)
         players.append(
             create_player(
-                setup_config.league,
-                'main_player',
-                setup_config.league.main_player,
-                category,
-                setup_payoff,
-                'ckpt_{}.pth'.format(main_player_name),
-                main_player_name,
-                0
+                setup_config.league, 'main_player', setup_config.league.main_player, category, setup_payoff,
+                'ckpt_{}.pth'.format(main_player_name), main_player_name, 0
             )
         )
         # main_exloiter
         main_exploiter_name = '{}_{}'.format('MainExploiter', category)
         players.append(
             create_player(
-                setup_config.league,
-                'main_exploiter',
-                setup_config.league.main_exploiter,
-                category,
-                setup_payoff,
-                'ckpt_{}.pth'.format(main_exploiter_name),
-                main_exploiter_name,
-                0
+                setup_config.league, 'main_exploiter', setup_config.league.main_exploiter, category, setup_payoff,
+                'ckpt_{}.pth'.format(main_exploiter_name), main_exploiter_name, 0
             )
         )
         # league_exploiter
@@ -224,7 +212,8 @@ class TestMainPlayer:
             condition1 = opponent.category == 'terran' or opponent.category == 'protoss'
             # condition2 means: zerg_main_opponent is too strong, so that must choose a historical weaker one
             condition2 = opponent.category == 'zerg' and isinstance(
-                opponent, HistoricalPlayer) and opponent.parent_id == main1.player_id
+                opponent, HistoricalPlayer
+            ) and opponent.parent_id == main1.player_id
             assert condition1 or condition2, (condition1, condition2)
 
 
@@ -278,13 +267,8 @@ class TestMainExploiter:
             job_dict = setup_league[1].get_job()
             opponent = job_dict['opponent']
             # as long as main player, both active and historical are ok
-<<<<<<< HEAD
             assert (isinstance(opponent, HistoricalPlayer)
                     and 'MainPlayer' in opponent.parent_id) or isinstance(opponent, MainPlayer)
-=======
-            assert (isinstance(opponent, HistoricalPlayer) and 'MainPlayer' in opponent.parent_id) or isinstance(
-                opponent, MainPlayer)
->>>>>>> league-doc-dev
 
     def test_is_trained_enough(self, setup_league):
         # only a few differences from `is_trained_enough` of MainPlayer
@@ -338,14 +322,8 @@ class TestSoloActivePlayer:
         # solo active player
         solo_player_name = 'solo_default'
         solo = create_player(
-            solo_league_cfg.league,
-            'solo_active_player',
-            solo_league_cfg.league.solo_active_player,
-            'default',
-            solo_payoff,
-            'ckpt_{}.pth'.format(solo_player_name),
-            solo_player_name,
-            0
+            solo_league_cfg.league, 'solo_active_player', solo_league_cfg.league.solo_active_player, 'default',
+            solo_payoff, 'ckpt_{}.pth'.format(solo_player_name), solo_player_name, 0
         )
         assert not solo.is_trained_enough()
         solo._total_agent_step = ONE_PHASE_STEP - 1

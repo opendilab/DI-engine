@@ -47,7 +47,6 @@ class AtariRunner(SingleMachineRunner):
         elif self.algo_type == 'ppo':
             self.actor_agent = create_ac_actor_agent(copy.deepcopy(self.learner.agent.model))
             self.evaluator_agent = create_ac_evaluator_agent(copy.deepcopy(self.learner.agent.model))
-            print(self.evaluator_agent, self.actor_agent)
         self.actor_agent.mode(train=False)
         self.evaluator_agent.mode(train=False)
 

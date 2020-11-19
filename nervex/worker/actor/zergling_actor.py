@@ -5,6 +5,7 @@ import uuid
 from collections import namedtuple
 from threading import Thread
 from typing import List, Dict, Callable, Any
+from easydict import EasyDict
 
 import torch
 
@@ -71,7 +72,7 @@ class ZerglingActor(BaseActor):
         self._job_finish_flag = False
 
     def _setup_env_manager(self) -> None:
-        env_cfg = self._env_kwargs['env_cfg']
+        env_cfg = EasyDict(self._env_kwargs['env_cfg'])
         env_num = self._env_kwargs['env_num']
         if isinstance(env_cfg, dict):
             self._setup_env_fn(env_cfg)
@@ -168,7 +169,7 @@ class ZerglingActor(BaseActor):
     def _update_agent(self) -> None:
         last = time.time()
         while not self._end_flag:
-            if hasattr(self, '_job'):
+            if hasattr(self, '_job') and hasattr(self, '_agent'):
                 cur = time.time()
                 interval = cur - last
                 if interval < self._job['agent_update_freq']:

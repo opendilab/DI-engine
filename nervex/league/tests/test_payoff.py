@@ -296,13 +296,8 @@ class TestBattleSharedPayoff:
 
 def get_solo_active_player(config, payoff):
     return SoloActivePlayer(
-                config.league.main_player,
-                'default',
-                payoff,
-                'ckpt_{}.pth'.format('solo_default'),
-                'solo_default',
-                0
-            )
+        config.league.main_player, 'default', payoff, 'ckpt_{}.pth'.format('solo_default'), 'solo_default', 0
+    )
 
 
 @pytest.mark.unittest

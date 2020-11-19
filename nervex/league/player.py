@@ -203,7 +203,8 @@ class ActivePlayer(Player):
     def _get_job_forward(self) -> dict:
         ret = {}
         if 'exploration' in self._cfg.forward_kwargs:
-            ret['eps'] = self._exploration(self.total_agent_step)
+            if self._cfg.forward_kwargs.exploration.use_eps:
+                ret['eps'] = self._exploration(self.total_agent_step)
         return ret
 
     def _get_job_adder(self) -> dict:

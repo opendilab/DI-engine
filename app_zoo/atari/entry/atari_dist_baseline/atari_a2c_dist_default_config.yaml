@@ -44,9 +44,9 @@ learner:
                 freq: 10
     communication:
         type: 'flask_fs'
-        upstream_ip: '10.5.36.31'
+        upstream_ip: '10.198.8.31'
         upstream_port: 13297
-        learner_ip: '10.5.36.31'
+        learner_ip: '10.198.8.31'
         learner_port: 13295
         heartbeats_freq: 50
         send_agent_freq: 10
@@ -66,8 +66,12 @@ actor:
         path_agent: 's3://pong_agent'
         path_traj: 's3://pong_traj'
         heartbeats_freq: 30
-        upstream_ip: '10.5.36.31'
+        upstream_ip: '10.198.8.31'
         upstream_port: 13296
+env:
+    env_id: 'PongNoFrameskip-v4'
+    frame_stack: 4
+    is_train: True
 league:
     league_type: 'solo'
     import_names: ['nervex.league.solo_league_manager']
@@ -102,9 +106,9 @@ league:
         path_agent: 's3://pong_agent'
         path_traj: 's3://pong_traj'
 system:
-    manager_ip: '10.5.36.31'
+    manager_ip: '10.198.8.31'
     manager_port: 13296
-    coordinator_ip: '10.5.36.31'
+    coordinator_ip: '10.198.8.31'
     coordinator_port: 13297
     resume_dir: '.'
     manager_resume_path:

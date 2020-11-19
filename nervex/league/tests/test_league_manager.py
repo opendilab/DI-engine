@@ -163,11 +163,7 @@ class FakeCoordinator:
             except Empty:
                 continue
             finish_match(match_result)
-            print(
-                'match finish: player({}) {}'.format(
-                    match_result['player_id'][0], match_result['result'][0][0]
-                )
-            )
+            print('match finish: player({}) {}'.format(match_result['player_id'][0], match_result['result'][0][0]))
             FINISH_COUNT_BATTLE += 1
             time.sleep(0.1)
 
@@ -191,8 +187,8 @@ class TestFakeLeagueManager:
         assert (len(league_manager.historical_players) == 3)
         active_player_ids = [p.player_id for p in league_manager.active_players]
         coordinator = FakeCoordinator(
-            'battle', match_runner.queue, league_manager.finish_job,
-            league_manager.update_active_player, active_player_ids
+            'battle', match_runner.queue, league_manager.finish_job, league_manager.update_active_player,
+            active_player_ids
         )
 
         league_manager.run()
@@ -219,8 +215,8 @@ class TestFakeLeagueManager:
         assert (len(league_manager.historical_players) == 3)
         active_player_ids = [p.player_id for p in league_manager.active_players]
         coordinator = FakeCoordinator(
-            'battle', match_runner.queue, league_manager.finish_job,
-            league_manager.update_active_player, active_player_ids
+            'battle', match_runner.queue, league_manager.finish_job, league_manager.update_active_player,
+            active_player_ids
         )
 
         league_manager.run()
@@ -246,14 +242,15 @@ class TestSoloLeagueManager:
         with open(os.path.join(os.path.dirname(__file__), 'solo_league_manager_test_config.yaml')) as f:
             cfg = yaml.safe_load(f)
         solo_league_cfg = EasyDict(cfg)
-        league_manager = create_league(solo_league_cfg, save_checkpoint_fn, load_checkpoint_fn,
-                                       match_runner.launch_match)
+        league_manager = create_league(
+            solo_league_cfg, save_checkpoint_fn, load_checkpoint_fn, match_runner.launch_match
+        )
         assert (len(league_manager.active_players) == 1)
         # assert (len(league_manager.historical_players) == 1)
         active_player_ids = [p.player_id for p in league_manager.active_players]
         coordinator = FakeCoordinator(
-            'solo', match_runner.queue, league_manager.finish_job,
-            league_manager.update_active_player, active_player_ids
+            'solo', match_runner.queue, league_manager.finish_job, league_manager.update_active_player,
+            active_player_ids
         )
 
         league_manager.run()
