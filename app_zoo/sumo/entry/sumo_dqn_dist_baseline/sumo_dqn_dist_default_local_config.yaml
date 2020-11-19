@@ -58,7 +58,6 @@ learner:
 env:
     env_num: 2
     env_type: 'fake'  # ['normal', 'fake']
-    stop_val: -2000
 actor:
     actor_type: 'sumowj3'
     import_names: ['app_zoo.sumo.worker.actor.sumowj3_actor_controller']
@@ -72,8 +71,8 @@ actor:
         upstream_ip: '127.0.0.1'
         upstream_port: 13296
 league:
-    league_type: 'static'
-    import_names: ['nervex.league.static_league_manager']
+    league_type: 'solo'
+    import_names: ['nervex.league.solo_league_manager']
     use_pretrain_init_historical: False
     player_category: ['main']
     task:

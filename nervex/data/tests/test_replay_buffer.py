@@ -126,7 +126,7 @@ class TestReplayBuffer:
         data0 = generate_data()
         assert data0['data_push_length'] % replay_buffer.unroll_len == 0
         replay_buffer.push_data(data0)
-        time.sleep(2)
+        time.sleep(3)
         push_count = data0['data_push_length'] // replay_buffer.unroll_len
         assert replay_buffer._meta_buffer.validlen == push_count
 
