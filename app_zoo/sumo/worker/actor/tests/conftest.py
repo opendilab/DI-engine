@@ -15,7 +15,6 @@ def setup_config():
     with open(os.path.join(os.path.dirname(__file__), '../sumowj3_actor_default_config.yaml'), 'r') as f:
         cfg = yaml.safe_load(f)
     cfg = EasyDict(cfg)
-    cfg.env.env_type = 'fake'
     return cfg
 
 
@@ -47,8 +46,13 @@ class FakeCoordinator(Coordinator):
     def deal_with_ask_for_job(self, manager_uid, actor_uid):
         fake_job = {
             'job_id': str(uuid.uuid1()),
-            'episode_num': 2,
-            'env_num': 4,
+            'env_kwargs': {
+                'episode_num': 2,
+                'env_num': 4,
+                'env_cfg': {
+                    'env_type': 'fake'
+                },
+            },
             'agent_num': 1,
             'agent': {
                 '0': {
@@ -59,7 +63,6 @@ class FakeCoordinator(Coordinator):
             },
             'learner_uid': 'learner_uid_placeholder',
             'agent_update_freq': 30,
-            'data_push_length': 16,
             'compressor': 'none',
             'player_id': ['test'],
             'launch_player': ['test'],
@@ -68,6 +71,7 @@ class FakeCoordinator(Coordinator):
             },
             'adder_kwargs': {
                 'use_gae': False,
+                'data_push_length': 16,
             }
         }
         self.job_queue.put(fake_job)

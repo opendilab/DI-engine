@@ -3,8 +3,7 @@ league:
     import_names: [nervex.league]
     # ---player----
     player_category: ['solo']
-    active_players: 
-        solo_active_player: 1
+    active_players: 'placeholder' 
     use_pretrain_init_historical: False
     pretrain_checkpoint_path:
         solo: 'pretrain_checkpoint_solo.pth'

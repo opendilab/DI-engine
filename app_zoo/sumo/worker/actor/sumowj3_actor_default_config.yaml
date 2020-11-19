@@ -13,8 +13,6 @@ actor:
         heartbeats_freq: 30
         upstream_ip: '127.0.0.1'
         upstream_port: 16396
-env:
-    placeholder: xxx
 system:
     manager_ip: '127.0.0.1'
     manager_port: 16396
