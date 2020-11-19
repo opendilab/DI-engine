@@ -9,11 +9,6 @@ BattleRecordDict
 .. autoclass:: nervex.league.shared_payoff.BattleRecordDict
     :members: __init__, __mul__
 
-SoloRecordQueue
-~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.league.shared_payoff.SoloRecordQueue
-    :members: __init__
-
 PayoffDict
 ~~~~~~~~~~~
 .. autoclass:: nervex.league.shared_payoff.PayoffDict
