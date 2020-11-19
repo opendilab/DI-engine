@@ -38,6 +38,12 @@ class LockContext(object):
         """
         self.lock = _LOCK_TYPE_MAPPING[type_]()
 
+    def acquire(self):
+        self.lock.acquire()
+
+    def release(self):
+        self.lock.release()
+
     def __enter__(self):
         """
         Overview:
