@@ -37,7 +37,6 @@ class ZerglingActor(BaseActor):
         self._pack_trajectory_thread = Thread(target=self._pack_trajectory, args=())
         self._pack_trajectory_thread.deamon = True
         self._pack_trajectory_thread.start()
-        print('_pack_trajectory up')
 
     # override
     def _init_with_job(self, job: dict) -> None:
@@ -47,14 +46,16 @@ class ZerglingActor(BaseActor):
         self._start_time = time.time()
         self._step_count = 0
         assert len(self._job['agent']) == 1
-        self._setup_env_manager()
-        self._setup_agent()
         self._adder = Adder(self._cfg.actor.use_cuda)
         self._adder_kwargs = self._job['adder_kwargs']
+        self._env_kwargs = self._job['env_kwargs']
+        self._env_num = self._env_kwargs['env_num']
         self._compressor = get_data_compressor(self._job['compressor'])
-        self._job_result = {k: [] for k in range(self._job['env_num'])}
+        self._job_result = {k: [] for k in range(self._env_num)}
         self._collate_fn = default_collate
         self._decollate_fn = default_decollate
+        self._setup_env_manager()
+        self._setup_agent()
         # init agent(reset agent, load model)
         self._agent.reset()
         path = self._job['agent'][self._agent_name]['agent_update_path']
@@ -62,22 +63,26 @@ class ZerglingActor(BaseActor):
         self._agent.load_state_dict(agent_update_info)
         # init env
         self._env_manager.launch()
-        self._obs_pool = {k: None for k in range(self._job['env_num'])}
-        self._act_pool = {k: None for k in range(self._job['env_num'])}
-        self._data_buffer = {k: [] for k in range(self._job['env_num'])}
-        self._last_data_buffer = {k: [] for k in range(self._job['env_num'])}
-        self._episode_result = {k: None for k in range(self._job['env_num'])}
+        self._obs_pool = {k: None for k in range(self._env_num)}
+        self._act_pool = {k: None for k in range(self._env_num)}
+        self._data_buffer = {k: [] for k in range(self._env_num)}
+        self._last_data_buffer = {k: [] for k in range(self._env_num)}
+        self._episode_result = {k: None for k in range(self._env_num)}
         self._job_finish_flag = False
-        
+
     def _setup_env_manager(self) -> None:
-        env_cfg = self._cfg.env
-        self._setup_env_fn(env_cfg)
-        env_num = self._job['env_num']
+        env_cfg = self._env_kwargs['env_cfg']
+        env_num = self._env_kwargs['env_num']
+        if isinstance(env_cfg, dict):
+            self._setup_env_fn(env_cfg)
+            env_cfg = [env_cfg for _ in range(env_num)]
+        else:
+            raise TypeError("not support env_cfg type: {}".format(env_cfg))
         self._env_manager = SubprocessEnvManager(
             env_fn=self._env_fn,
-            env_cfg=[env_cfg for _ in range(env_num)],
+            env_cfg=env_cfg,
             env_num=env_num,
-            episode_num=self._job['episode_num']
+            episode_num=self._env_kwargs['episode_num']
         )
 
     # override
@@ -111,7 +116,7 @@ class ZerglingActor(BaseActor):
             data = self._get_transition(self._obs_pool[env_id], self._act_pool[env_id], timestep[env_id])
             self._data_buffer[env_id].append(data)
             self._step_count += 1
-            if len(self._data_buffer[env_id]) == (self._job['data_push_length'] + 1):
+            if len(self._data_buffer[env_id]) == (self._adder_kwargs['data_push_length'] + 1):
                 # last data copy must be in front of obs_next
                 self._last_data_buffer[env_id] = copy.deepcopy(self._data_buffer[env_id])
                 last = self._data_buffer[env_id][-1]
@@ -126,21 +131,21 @@ class ZerglingActor(BaseActor):
                 self._job_result[env_id].append(t.info)
                 self._logger.info('ACTOR({}): env{} finish episode in {}'.format(self._actor_uid, env_id, time.time()))
                 cur_len = len(self._data_buffer[env_id])
-                miss_len = self._job['data_push_length'] - cur_len
+                miss_len = self._adder_kwargs['data_push_length'] - cur_len
                 if miss_len > 0:
                     self._data_buffer[env_id] = self._last_data_buffer[env_id][-miss_len:] + self._data_buffer[env_id]
                 self._traj_queue.put({'data': self._data_buffer[env_id], 'env_id': env_id, 'job': copy.deepcopy(self._job)})
 
     # override
     def _finish_job(self) -> None:
-        assert all([len(r) == self._job['episode_num'] for r in self._job_result.values()])
-        episode_count = self._job['episode_num'] * self._job['env_num']
+        assert all([len(r) == self._env_kwargs['episode_num'] for r in self._job_result.values()])
+        episode_count = self._env_kwargs['episode_num'] * self._env_num
         duration = max(time.time() - self._start_time, 1e-8)
         job_finish_info = {
             'job_id': self._job['job_id'],
             'actor_uid': self._actor_uid,
-            'episode_num': self._job['episode_num'],
-            'env_num': self._job['env_num'],
+            'episode_num': self._env_kwargs['episode_num'],
+            'env_num': self._env_num,
             'player_id': self._job['player_id'],
             'launch_player': self._job['launch_player'],
             'episode_count': episode_count,

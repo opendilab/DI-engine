@@ -55,9 +55,8 @@ learner:
         path_traj: '.'
         path_agent: '.'
         restore: False
-env:
-    env_num: 4
-    env_type: 'normal'  # ['normal', 'fake']
+model:
+    placeholder: 'placeholder'
 actor:
     actor_type: 'sumowj3'
     import_names: ['app_zoo.sumo.worker.actor.sumowj3_actor_controller']
@@ -75,10 +74,28 @@ league:
     import_names: ['nervex.league.solo_league_manager']
     use_pretrain_init_historical: False
     player_category: ['main']
-    task:
-        data_push_length: 64
-        episode_num: 4
-        use_eps: True
+    active_players:
+        solo_active_player: 1
+    solo_active_player:
+        one_phase_step: 1e9
+        forward_kwargs:
+            # ---exploration---
+            exploration:
+                use_eps: True
+                start: 0.95
+                end: 0.05
+                decay_len: 10000
+        env_kwargs:
+            env_num: 2
+            episode_num: 2
+            env_cfg:
+                env_type: 'fake'  # ['normal', 'fake']
+        adder_kwargs:
+            use_gae: False
+            data_push_length: 64
+        job:
+            agent_update_freq: 30  # second
+            compressor: 'none'
     communication:
         type: 'flask_fs'
         file_system_type: 'normal'  # ['normal', 'ceph']

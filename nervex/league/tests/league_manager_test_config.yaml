@@ -1,6 +1,6 @@
 league:
     league_type: 'fake'
-    import_names: [nervex.league]  # placeholder
+    import_names: []  # placeholder
     # ---player----
     player_category: ['zerg', 'terran', 'protoss']
     active_players: 
