@@ -118,7 +118,7 @@ class BaseLeagueManager(ABC):
     def _init_cfg(self, cfg: EasyDict) -> None:
         cfg = deep_merge_dicts(default_config, cfg)
         self.cfg = cfg.league
-        self.model_config = cfg.model
+        self.model_config = cfg.get('model', EasyDict())
 
     def _init_league(self) -> None:
         """

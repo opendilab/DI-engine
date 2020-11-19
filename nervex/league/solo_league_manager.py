@@ -23,7 +23,7 @@ class SoloLeagueManager(BaseLeagueManager):
     def _init_cfg(self, cfg: EasyDict) -> None:
         cfg = deep_merge_dicts(solo_default_config, cfg)
         self.cfg = cfg.league
-        self.model_config = cfg.model
+        self.model_config = cfg.get('model', EasyDict())
 
     # override
     def _get_job_info(self, player: ActivePlayer) -> dict:

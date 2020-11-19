@@ -1,23 +1,16 @@
 league:
-    league_type: 'solo'
-    import_names: [nervex.league]  # placeholder
+    league_type: 'base'
+    import_names: [nervex.league]
     # ---player----
-    player_category: ['zerg']  # placeholder
-    active_players: 'xxx'
-    use_pretrain_init_historical: True
-    pretrain_checkpoint_path:  # placeholder
-        zerg: 'pretrain_checkpoint_zerg.pth'
+    player_category: ['solo']
+    active_players: 'xxx'  # placeholder
+    use_pretrain_init_historical: False
+    pretrain_checkpoint_path:
+        solo: 'pretrain_checkpoint_solo.pth'
     # ---payoff---
     payoff:
         type: 'solo'  # ['solo', 'battle']
         buffer_size: 100
-        decay: 0.99
-        min_win_rate_games: 8
-
     # ---runner---
     max_active_player_job: 3
-    #per_match_games: 8
     time_interval: 1
-
-model:
-    placeholder: 'placeholder'
