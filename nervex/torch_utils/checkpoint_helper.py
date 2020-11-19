@@ -339,7 +339,7 @@ def auto_checkpoint(func):
                 valid_sig.append(sig)
             except Exception:
                 invalid_sig.append(sig)
-        print('valid sig: ({})\tinvalid sig: ({})'.format(valid_sig, invalid_sig))
+        logger.info('valid sig: ({})\ninvalid sig: ({})'.format(valid_sig, invalid_sig))
 
     def wrapper(*args, **kwargs):
         handle = args[0]
@@ -347,7 +347,7 @@ def auto_checkpoint(func):
 
         def signal_handler(signal_num, frame):
             sig = signal.Signals(signal_num)
-            print("SIGNAL: {}({})".format(sig.name, sig.value))
+            logger.info("SIGNAL: {}({})".format(sig.name, sig.value))
             handle.save_checkpoint()
             sys.exit(1)
 

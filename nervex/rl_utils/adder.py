@@ -46,3 +46,14 @@ class Adder(object):
         for i in range(len(data)):
             data[i]['adv'] = adv[i]
         return data
+
+    def get_drqn(self, data: List[Dict[str, Any]], drqn_unroll_length: int):
+        #TODO
+        ret = []
+        for i in range(len(data)):
+            ret.append(data[i:i + drqn_unroll_length])
+            if i + 1 + drqn_unroll_length == len(data):
+                break
+        for r in ret:
+            assert len(r) == drqn_unroll_length
+        return ret

@@ -14,7 +14,9 @@ def setup_base_buffer():
 
 @pytest.fixture(scope="function")
 def setup_prioritized_buffer():
-    return PrioritizedBuffer(maxlen=64, max_reuse=2, min_sample_ratio=2., alpha=0.6, beta=0.6)
+    return PrioritizedBuffer(
+        maxlen=64, max_reuse=2, min_sample_ratio=2., alpha=0.6, beta=0.6, enable_track_used_data=True
+    )
 
 
 def generate_data():
@@ -136,6 +138,7 @@ class TestBaseBuffer:
         for k, v in reuse_dict.items():
             if v > setup_base_buffer.max_reuse:
                 assert setup_base_buffer._data[k] is None
+        assert setup_base_buffer.used_data is None
 
 
 @pytest.mark.unittest
@@ -187,3 +190,11 @@ class TestPrioritizedBuffer:
         assert (np.fabs(weights.sum() - setup_prioritized_buffer.sum_tree.reduce(start=0, end=36)) < 1e-6)
         weights = get_weights(data[36:64])
         assert (np.fabs(weights.sum() - setup_prioritized_buffer.sum_tree.reduce(start=36)) < 1e-6)
+
+    def test_used_data(self, setup_prioritized_buffer):
+        for _ in range(setup_prioritized_buffer._maxlen + 2):
+            setup_prioritized_buffer.append({})
+        setup_prioritized_buffer.extend([{}])
+        for _ in range(2 + 1):
+            assert setup_prioritized_buffer.used_data is not None
+        assert setup_prioritized_buffer.used_data is None

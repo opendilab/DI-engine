@@ -28,6 +28,8 @@ class FakeEnv(object):
         self._data_count = 0
 
     def reset(self, stat):
+        if isinstance(stat, str) and stat == 'error':
+            raise EnvException("reset error")
         self._current_step = 0
         self._stat = stat
 
@@ -50,12 +52,12 @@ class FakeEnv(object):
     def seed(self, seed):
         self._seed = seed
 
-    def info(self):
-        return {'name': 'FakeEnv'}
-
     @property
     def name(self):
         return self._name
+
+    def user_defined(self):
+        pass
 
 
 class FakeAsyncEnv(FakeEnv):

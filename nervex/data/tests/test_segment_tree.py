@@ -8,11 +8,8 @@ from nervex.data.structure import SumSegmentTree, MinSegmentTree
 class TestSumSegmentTree:
 
     def test_create(self):
-        try:
+        with pytest.raises(AssertionError):
             tree = SumSegmentTree(capacity=13)
-            assert (False)
-        except Exception as e:
-            assert (isinstance(e, AssertionError))
 
         tree = SumSegmentTree(capacity=16)
         assert (tree.operation is sum)
@@ -37,27 +34,18 @@ class TestSumSegmentTree:
         assert (tree.reduce(1, 2) == sum(elements[1:2]))
         assert (tree.reduce(2, 3) == sum(elements[2:3]))
 
-        try:
+        with pytest.raises(AssertionError):
             tree.reduce(2, 2)
-            assert (False)
-        except Exception as e:
-            assert (isinstance(e, AssertionError))
 
     def test_find_prefixsum_idx(self):
         tree = SumSegmentTree(capacity=8)
         elements = [0, 0.1, 0.5, 0, 0, 0.2, 0.8, 0]
         for idx, val in enumerate(elements):
             tree[idx] = val
-        try:
+        with pytest.raises(AssertionError):
             tree.find_prefixsum_idx(tree.reduce() + 1e-4, trust_caller=False)
-            assert False
-        except Exception as e:
-            assert (isinstance(e, AssertionError))
-        try:
+        with pytest.raises(AssertionError):
             tree.find_prefixsum_idx(-1e-6, trust_caller=False)
-            assert False
-        except Exception as e:
-            assert (isinstance(e, AssertionError))
 
         assert (tree.find_prefixsum_idx(0) == 1)
         assert (tree.find_prefixsum_idx(0.09) == 1)
@@ -69,6 +57,7 @@ class TestSumSegmentTree:
         assert (tree.find_prefixsum_idx(tree.reduce()) == 6)
 
 
+@pytest.mark.unittest
 class TestMinSegmentTree:
 
     def test_create(self):

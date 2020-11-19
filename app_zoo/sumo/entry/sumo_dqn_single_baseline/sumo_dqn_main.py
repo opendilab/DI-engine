@@ -4,8 +4,8 @@ import copy
 from nervex.entry.base_single_machine import SingleMachineRunner
 from nervex.utils import read_config
 from nervex.worker import SubprocessEnvManager
+from nervex.worker.agent import create_dqn_actor_agent, create_dqn_evaluator_agent
 from app_zoo.sumo.envs import SumoWJ3Env, FakeSumoWJ3Env
-from app_zoo.sumo.worker.agent.sumo_dqn_agent import SumoDqnActorAgent, SumoDqnEvaluateAgent
 from app_zoo.sumo.worker.learner.sumo_dqn_learner import SumoDqnLearner
 
 
@@ -31,9 +31,9 @@ class SumoRunner(SingleMachineRunner):
         self.learner = SumoDqnLearner(self.cfg)
 
     def _setup_agent(self):
-        self.actor_agent = SumoDqnActorAgent(copy.deepcopy(self.learner.agent.model))
+        self.actor_agent = create_dqn_actor_agent(copy.deepcopy(self.learner.agent.model))
         self.actor_agent.mode(train=False)
-        self.evaluator_agent = SumoDqnEvaluateAgent(copy.deepcopy(self.learner.agent.model))
+        self.evaluator_agent = create_dqn_evaluator_agent(copy.deepcopy(self.learner.agent.model))
         self.evaluator_agent.mode(train=False)
 
 

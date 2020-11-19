@@ -19,33 +19,15 @@ from __future__ import print_function
 
 from setuptools import setup
 
-description = """SenseStar - StarCraft II Learning Environment
+description = """nerveX: X-Lab Deep Reinforcement Learning Framework"""
 
-Part1 PySC2:
-PySC2 is DeepMind's Python component of the StarCraft II Learning Environment
-(SC2LE). It exposes Blizzard Entertainment's StarCraft II Machine Learning API
-as a Python RL Environment. This is a collaboration between DeepMind and
-Blizzard to develop StarCraft II into a rich environment for RL research. PySC2
-provides an interface for RL agents to interact with StarCraft 2, getting
-observations and sending actions.
-
-We have published an accompanying blogpost and paper
-https://deepmind.com/blog/deepmind-and-blizzard-open-starcraft-ii-ai-research-environment/
-which outlines our motivation for using StarCraft II for DeepRL research, and
-some initial research results using the environment.
-
-Read the README at https://github.com/deepmind/pysc2 for more information.
-
-Part2 TStarBot1:
-Macro-action-based StarCraft-II learning environment.
-"""
 
 setup(
     name='nerveX',
     version='0.0.1',
-    description='X-lab Reinforcement Learning Framework',
+    description='X-Lab Reinforcement Learning Framework',
     long_description=description,
-    author='X-lab',
+    author='X-Lab',
     license='Apache License, Version 2.0',
     keywords='DRL Framework',
     packages=[
@@ -63,8 +45,10 @@ setup(
         'nervex.entry',
         # application(example)
         'app_zoo.sumo',
-        'app_zoo.cartpole',
+        'app_zoo.classic_control',
+        'app_zoo.atari',
         'app_zoo.gfootball',
+        'app_zoo.alphastar',
     ],
     install_requires=[
         'absl-py>=0.1.0',

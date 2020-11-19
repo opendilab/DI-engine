@@ -5,6 +5,7 @@ from typing import Any, Tuple, Callable, Union, Optional
 
 import numpy as np
 import torch
+from nervex.torch_utils import get_tensor_data
 
 
 class IAgentPlugin(ABC):
@@ -57,24 +58,37 @@ class HiddenStateHelper(IAgentStatefulPlugin):
     """
 
     @classmethod
-    def register(cls: type, agent: Any, state_num: int, init_fn: Callable = lambda: None) -> None:
+    def register(
+            cls: type,
+            agent: Any,
+            state_num: int,
+            save_prev_state: bool = False,
+            init_fn: Callable = lambda: None
+    ) -> None:
         state_manager = cls(state_num, init_fn=init_fn)
         agent._state_manager = state_manager
 
         def forward_state_wrapper(forward_fn):
 
-            def wrapper(data, state_info=None, **kwargs):
-                data, state_info = agent._state_manager.before_forward(data, state_info)
-                output, h = forward_fn(data, **kwargs)
+            def wrapper(data, **kwargs):
+                state_id = kwargs.pop('state_id', None)
+                data, state_info = agent._state_manager.before_forward(data, state_id)
+                output = forward_fn(data, **kwargs)
+                h = output.pop('next_state')
                 agent._state_manager.after_forward(h, state_info)
+                if save_prev_state:
+                    prev_state = get_tensor_data(data['prev_state'])
+                    output['prev_state'] = prev_state
                 return output
 
             return wrapper
 
         def reset_state_wrapper(reset_fn):
 
-            def wrapper(*args, state=None, **kwargs):
-                agent._state_manager.reset(state)
+            def wrapper(*args, **kwargs):
+                state = kwargs.pop('state', None)
+                state_id = kwargs.pop('state_id', None)
+                agent._state_manager.reset(state, state_id)
                 return reset_fn(*args, **kwargs)
 
             return wrapper
@@ -87,22 +101,21 @@ class HiddenStateHelper(IAgentStatefulPlugin):
         self._state = {i: init_fn() for i in range(state_num)}
         self._init_fn = init_fn
 
-    def reset(self, state: Union[None, list] = None) -> None:
+    def reset(self, state: Optional[list] = None, state_id: Optional[list] = None) -> None:
+        if state_id is None:
+            state_id = [i for i in range(self._state_num)]
         if state is None:
-            self._state = {i: self._init_fn() for i in range(self._state_num)}
-        else:
-            assert len(state) == self._state_num
-            self._state = {i: k for i, k in zip(range(self._state_num), state)}
+            state = [self._init_fn() for i in range(len(state_id))]
+        assert len(state) == len(state_id), '{}/{}'.format(len(state), len(state_id))
+        for idx, s in zip(state_id, state):
+            self._state[idx] = s
 
-    def before_forward(self, data: dict, state_info: Union[None, dict] = None) -> Tuple[dict, dict]:
-        if state_info is None:
-            state_info = {i: False for i in range(self._state_num)}
+    def before_forward(self, data: dict, state_id: Optional[list]) -> Tuple[dict, dict]:
+        if state_id is None:
+            state_id = [i for i in range(self._state_num)]
 
-        for idx, is_reset in state_info.items():
-            if is_reset:
-                self._state[idx] = self._init_fn()
-        state = [self._state[idx] for idx in state_info.keys()]
-        data['prev_state'] = state
+        state_info = {idx: self._state[idx] for idx in state_id}
+        data['prev_state'] = list(state_info.values())
         return data, state_info
 
     def after_forward(self, h: Any, state_info: dict) -> None:
@@ -199,21 +212,22 @@ class TargetNetworkHelper(IAgentStatefulPlugin):
     def register(cls: type, agent: Any, update_cfg: dict):
         target_network = cls(agent.model, update_cfg)
         agent._target_network = target_network
-        for method_name in ['update_target_network', 'target_forward', 'target_mode']:
-            setattr(agent, method_name, getattr(agent._target_network, method_name))
+        setattr(agent, 'update', getattr(agent._target_network, 'update'))
 
     def __init__(self, model: torch.nn.Module, update_cfg: dict) -> None:
-        self._model = copy.deepcopy(model)
-        self.target_mode(train=True)
+        self._model = model
         update_type = update_cfg['type']
         assert update_type in ['momentum', 'assign']
         self._update_type = update_type
         self._update_kwargs = update_cfg['kwargs']
         self._update_count = 0
 
-    def update_target_network(self, state_dict: dict, direct: bool = False) -> None:
-        if self._update_type == 'assign':
-            if direct or (self._update_count + 1) % self._update_kwargs['freq'] == 0:
+    def update(self, state_dict: dict, direct: bool = False) -> None:
+        if direct:
+            self._model.load_state_dict(state_dict, strict=True)
+            self._update_count = 0
+        elif self._update_type == 'assign':
+            if (self._update_count + 1) % self._update_kwargs['freq'] == 0:
                 self._model.load_state_dict(state_dict, strict=True)
             self._update_count += 1
         elif self._update_type == 'momentum':
@@ -222,31 +236,18 @@ class TargetNetworkHelper(IAgentStatefulPlugin):
                 # default theta = 0.001
                 p = (1 - theta) * p + theta * state_dict[name]
 
-    def target_mode(self, train: bool) -> None:
-        if train:
-            self._model.train()
-        else:
-            self._model.eval()
-
-    def target_forward(self, data: Any, param: Optional[dict] = None) -> Any:
-        with torch.no_grad():
-            if param is not None:
-                return self._model(data, **param)
-            else:
-                return self._model(data)
-
-    def reset(self, state_dict: dict) -> None:
-        self.update_target_network(state_dict)
+    def reset(self) -> None:
         self._update_count = 0
 
 
 plugin_name_map = {
     'grad': GradHelper,
     'hidden_state': HiddenStateHelper,
-    'target_network': TargetNetworkHelper,
     'argmax_sample': ArgmaxSampleHelper,
     'eps_greedy_sample': EpsGreedySampleHelper,
     'multinomial_sample': MultinomialSampleHelper,
+    # model plugin
+    'target': TargetNetworkHelper,
 }
 
 

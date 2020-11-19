@@ -11,8 +11,9 @@
 .DS_Store
 __pycache__
 *.egg-info
-sc2learner/experiments/
 experiment_config.yaml
 api-log/
-.coverage
+log/
 htmlcov
+*.lock
+.coverage*

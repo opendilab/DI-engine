@@ -5,6 +5,7 @@ import pytest
 import torch
 from easydict import EasyDict
 from typing import Any
+from functools import partial
 
 from nervex.worker import BaseLearner
 from nervex.worker.learner import LearnerHook, register_learner_hook, add_learner_hook, \
@@ -13,14 +14,8 @@ from nervex.worker.learner import LearnerHook, register_learner_hook, add_learne
 
 class FakeLearner(BaseLearner):
 
-    def _setup_data_source(self):
-
-        class DataLoader:
-
-            def __next__(self):
-                return torch.randn(4, 2)
-
-        self._data_source = DataLoader()
+    def get_data(self, batch_size):
+        return [partial(torch.randn, 2) for _ in range(batch_size)]
 
     def _setup_computation_graph(self):
 
@@ -56,6 +51,7 @@ class FakeLearner(BaseLearner):
 
         self._agent = Agent()
         setattr(self._agent, 'model', torch.nn.Linear(2, 2))
+        setattr(self._agent.model, 'load_state_dict', lambda x, strict: 0)
 
 
 @pytest.mark.unittest
@@ -63,12 +59,15 @@ class TestBaseLearner:
 
     def test_naive(self):
         os.popen('rm -rf ckpt')
+        os.popen('rm -rf iteration_5.pth.tar*')
+        time.sleep(1.0)
         register_learner('fake', FakeLearner)
-        cfg = {
-            'common': {'load_path': os.path.join(os.path.dirname(__file__), './checkpoints/iteration_5.pth.tar.tmp')},
-            'learner': {'learner_type': 'fake', 'import_names': []}
-        }
+        path = os.path.join(os.path.dirname(__file__), './iteration_5.pth.tar')
+        torch.save({'model': {}, 'last_iter': 5}, path)
+        time.sleep(0.5)
+        cfg = {'common': {'load_path': path}, 'learner': {'learner_type': 'fake', 'import_names': []}}
         learner = create_learner(EasyDict(cfg))
+        learner.launch()
         with pytest.raises(KeyError):
             create_learner(EasyDict({'learner': {'learner_type': 'placeholder', 'import_names': []}}))
         learner.run()
@@ -83,12 +82,15 @@ class TestBaseLearner:
             assert not os.path.exists('ckpt/iteration_{}.pth.tar'.format(n))
 
         class FakeHook(LearnerHook):
+
             def __call__(self, engine: Any) -> Any:
                 pass
+
         original_hook_num = len(learner._hooks['after_run'])
         add_learner_hook(learner._hooks, FakeHook(name='fake_hook', priority=30, position='after_run'))
         assert len(learner._hooks['after_run']) == original_hook_num + 1
 
+        os.popen('rm -rf iteration_5.pth.tar*')
         os.popen('rm -rf ckpt')
         os.popen('rm -rf default_*')
 
@@ -104,4 +106,3 @@ class TestLearnerHook:
         register_learner_hook('fake', FakeHook)
         with pytest.raises(AssertionError):
             register_learner_hook('placeholder', type)
-

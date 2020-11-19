@@ -9,7 +9,7 @@ from queue import Queue
 import requests
 import torch
 from easydict import EasyDict
-from nervex.data.online import ReplayBuffer
+from nervex.data import ReplayBuffer
 from nervex.utils import LockContext, LockContextType, remove_file
 
 
@@ -224,10 +224,10 @@ class Coordinator(object):
         assert job_id in self.job_record, 'job_id ({}) not in job_record'.format(job_id)
         self.job_record[job_id]['state'] = JobState.finish
         url_prefix = self.url_prefix_format.format(self._league_manager_ip, self._league_manager_port)
-        d = {'task_result': result}
+        d = {'job_result': result}
         while True:
             try:
-                response = requests.post(url_prefix + "league/finish_task", json=d).json()
+                response = requests.post(url_prefix + "league/finish_job", json=d).json()
                 if response['code'] == 0:
                     return True
             except Exception as e:
@@ -424,7 +424,7 @@ class Coordinator(object):
                 'trajectory_path': trajectory_path,
                 'learner_uid': learner_uid,
                 'data': [[1, 2, 3], [4, 5, 6]],
-                'step_data_compressor': 'lz4'
+                'data_compressor': 'lz4'
             }
         )
         self._learner_record[learner_uid]['replay_buffer'].push_data(
@@ -433,7 +433,7 @@ class Coordinator(object):
                 'trajectory_path': trajectory_path,
                 'learner_uid': learner_uid,
                 'data': [[1, 2, 3], [4, 5, 6]],
-                'step_data_compressor': 'lz4'
+                'data_compressor': 'lz4'
             }
         )
         self._learner_record[learner_uid]['replay_buffer'].push_data(
@@ -442,7 +442,7 @@ class Coordinator(object):
                 'trajectory_path': trajectory_path,
                 'learner_uid': learner_uid,
                 'data': [[1, 2, 3], [4, 5, 6]],
-                'step_data_compressor': 'lz4'
+                'data_compressor': 'lz4'
             }
         )
         self._learner_record[learner_uid]['replay_buffer'].push_data(
@@ -451,7 +451,7 @@ class Coordinator(object):
                 'trajectory_path': trajectory_path,
                 'learner_uid': learner_uid,
                 'data': [[1, 2, 3], [4, 5, 6]],
-                'step_data_compressor': 'lz4'
+                'data_compressor': 'lz4'
             }
         )
         return True

@@ -3,7 +3,7 @@ import pytest
 
 
 @pytest.fixture(scope='session')
-def random_task_result():
+def random_job_result():
 
     def fn():
         p = np.random.uniform()
@@ -18,5 +18,5 @@ def random_task_result():
 
 
 @pytest.fixture(scope='session')
-def get_task_result_categories():
+def get_job_result_categories():
     return ["wins", 'draws', 'losses']

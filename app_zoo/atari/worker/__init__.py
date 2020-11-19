@@ -1,2 +1,2 @@
 from .atari_dqn_learner import AtariDqnLearner
-from .atari_ppo_learner import AtariPpoLearner
+from .atari_ac_learner import AtariPpoLearner, AtariA2CLearner

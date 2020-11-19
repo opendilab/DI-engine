@@ -27,11 +27,8 @@ class TestSequenceContainer:
         assert (container.keys == list(data_generation_func.keys()))
         assert (isinstance(container.value('obs'), torch.Tensor))
         assert (isinstance(container.value('reward'), list))
-        try:
+        with pytest.raises(AssertionError):
             container.value('xxx')
-            assert False
-        except AssertionError as e:
-            assert True
 
     def test_cat(self):
         N = 10

@@ -1,19 +1,23 @@
 import numpy as np
+from typing import Union
 
 from .player import Player
 
 
 class Payoff:
     """
-    Overview: payoff data structure to record historical match result, each player owns one specific payoff
-    Interface: __init__, __getitem__, add_player, update
-    Property: players
+    Overview:
+        Payoff data structure to record historical match result, each player owns one specific payoff
+    Interface:
+        __init__, __getitem__, add_player, update
+    Property:
+        players
     """
     data_keys = ['wins', 'draws', 'losses', 'games']
 
-    def __init__(self, home_id, decay, min_win_rate_games=8):
+    def __init__(self, home_id: str, decay: float, min_win_rate_games: int = 8) -> None:
         """
-        Overview: initialize payoff
+        Overview: Initialize payoff
         Arguments:
             - home_id (:obj:`str`): home player id
             - decay (:obj:`float`): update step decay factor
@@ -22,15 +26,16 @@ class Payoff:
         # self._players is a list including the reference(shallow copy) of all the possible opponent player
         self._players = []
         # self._data is a dict, whose key is the player_id of the element of self._players,
-        # and whose value is a dict about the attributes in self.data_keys
+        # and whose value is a dict with keys like `data_keys`
         self._data = {}
         self._home_id = home_id
         self._decay = decay
         self._min_win_rate_games = min_win_rate_games
 
-    def __getitem__(self, players):
+    def __getitem__(self, players: Union[list, Player]) -> np.array:
         """
-        Overview: get win rates for a players list or a player
+        Overview:
+            Get win rates for a players list or a player
         Arguments:
             - players (:obj:`list or Player`): a player or a player list to access win rates
         Returns:
@@ -42,50 +47,49 @@ class Payoff:
             players = [players]
         return np.array([self._win_rate(p) for p in players])
 
-    def _win_rate(self, player):
+    def _win_rate(self, player: Player) -> float:
         """
-        Overview: get win rate for a player
+        Overview:
+            Get win rate against an opponent player
         Arguments:
-            - player (:obj:`Player`): a player to access win rate
+            - player (:obj:`Player`): the opponent player to calculate win rate
         Returns:
-            - win rate (:obj:`float`): float win rate value
+            - win rate (:obj:`float`): float win rate value. \
+                Only when total games is no less than ``self._min_win_rate_games``, \
+                can the win rate be calculated according to [win, draw, loss, game], or return 0.5 by default.
         """
         key = player.player_id
         handle = self._data[key]
-        # no game record case
+        # not enough game record case
         if handle['games'] < self._min_win_rate_games:
             return 0.5
 
         return (handle['wins'] + 0.5 * handle['draws']) / (handle['games'])
 
     @property
-    def players(self):
-        """
-        Overview: get all the players
-        Returns:
-            - players (:obj:`list`): players list
-        """
+    def players(self) -> list:
         return self._players
 
-    def add_player(self, player):
+    def add_player(self, player: Player) -> None:
         """
-        Overview: add a player and do the corresponding initialization
+        Overview:
+            Add a player to ``self._players`` and update ``self._data`` for corresponding initialization
         Arguments:
-            - player (:obj:`Player`): a player to be added
+            - player (:obj:`Player`): the player to be added
         """
         self._players.append(player)
         key = player.player_id
         self._data[key] = {k: 0 for k in self.data_keys}
 
-    def update(self, match_info):
+    def update(self, match_info: dict) -> bool:
         """
-        Overview: update payoff with a match_info
+        Overview:
+            Update payoff with a match_info
         Arguments:
-            - match_info (:obj:`dict`): a dict contains match information
+            - match_info (:obj:`dict`): a dict contains match information,
+                owning at least 3 keys('home_id', 'away_id', 'result')
         Returns:
             - result (:obj:`bool`): whether update is successful
-        Note:
-            match_info owns at least 3 keys('home', 'away', 'result')
         """
         # check
         try:
