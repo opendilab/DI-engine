@@ -26,7 +26,12 @@ class TestMetric():
         target3 = torch.LongTensor([6, 4, 1])
         distance = levenshtein_distance(pred, target3)
         assert (distance.item() == 2)
-        print('test_levenshtein_distance pass')
+        target3 = torch.LongTensor([6, 4, 1])
+        distance = levenshtein_distance(pred, target3, pred, target3, extra_fn=lambda x, y: x + y)
+        assert distance.item() == 13
+        target4 = torch.LongTensor([1, 4, 1])
+        distance = levenshtein_distance(pred, target4, pred, target4, extra_fn=lambda x, y: x + y)
+        assert distance.item() == 14
 
     def test_hamming_distance(self):
         r'''
@@ -47,4 +52,3 @@ class TestMetric():
             distance = hamming_distance(pred, target)
             diff = len(set(pred_idx).union(set(target_idx)) - set(pred_idx).intersection(set(target_idx)))
             assert (distance.item() == diff)
-        print('test_hamming_distance pass')
