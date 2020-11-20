@@ -61,6 +61,7 @@ class SingleMachineRunner():
         assert self.algo_type in ['dqn', 'ppo', 'drqn'], self.algo_type
         self.use_cuda = self.cfg.learner.use_cuda
         self.buffer = PrioritizedBuffer(cfg.learner.data.buffer_length, cfg.learner.data.max_reuse)
+        self.batch_size = cfg.learner.data.batch_size
         assert cfg.learner.data.buffer_length >= max(
             self.batch_size, self.batch_size * cfg.learner.train_step // cfg.learner.data.max_reuse
         )

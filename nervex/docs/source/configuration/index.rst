@@ -4,27 +4,72 @@ Configuration
 .. toctree::
    :maxdepth: 2
 
+CartPole DQN Config
+~~~~~~~~~~~~~~~~~~~~~
 
-Learner Config
-~~~~~~~~~~~~~~~
+
+cartpole_dqn_default_config.yaml
+
 .. code:: yaml
 
-    data:
-        train:
-            batch_size: 128
-            dataloader_type: 'online'  # refer to data/online/online_dataloader
-    train:
-        use_cuda: True  
-        use_distributed: True  # use multi-GPU training
-        max_iterations: 1e9
-        batch_size: 128
-        trajectory_len: 16
-    logger:
-        print_freq: 5
-        save_freq: 200
-        eval_freq: 1000000
-        var_record_type: 'alphastar'  # refer to log_helper
+    common:
+        name: CartpoleDqnConfig
+        time_wrapper_type: cuda  # use torch.cuda.Event and torch.cuda.synchronize for time record
+        save_path: '.'  # save ckpt/log path
+        load_path: ''  # load ckpt path, if load_path == '', do not load anything
+        algo_type: 'dqn'  # ['dqn', 'drqn', 'ppo', 'a2c']
+    learner:
+        use_cuda: False  # whether use cuda for network training
+        use_distributed: False  # whether use distributed training(linklink)
+        max_iterations: 10000000  # max train iterations
+        train_step: 200  # train step interval, collect data -> train fixed step -> collect data
+        learning_rate: 0.0001
+        weight_decay: 0.0  # L2 norm for network weight
+        eps:
+            type: 'exp'  # ['linear', 'exp']
+            start: 0.95
+            end: 0.05
+            decay: 10000  # training iteration
+        data:
+            batch_size: 64
+            chunk_size: 64  # dataloader per worker load data number
+            num_worker: 0
+            max_reuse: 100  # max reuse number of a data sample
+            buffer_length: 100000  # replay buffer length
+        dqn:
+            discount_factor: 0.99
+            is_double: True  # whether use double dqn(target network)
+            dueling: True  # whether use dueling dqn network architecture
+        hook:  # learner function hook
+            save_ckpt_after_iter:
+                name: save_ckpt_after_iter
+                type: save_ckpt
+                priority: 40  # the lower value, the higher priority
+                position: after_iter  # ['before_run', 'before_iter', 'after_iter', 'after_run']
+                ext_args:
+                    freq: 1000
+            log_show:
+                name: log_show
+                type: log_show
+                priority: 20
+                position: after_iter
+                ext_args:
+                    freq: 100
+    env:
+        placeholder: 'placeholder'
+    actor:
+        env_num: 10
+        episode_num: 1
+        print_freq: 500
+    evaluator:
+        env_num: 10
+        episode_num: 1
+        eval_step: 1500
+        stop_val: 39 # 195//5  # if episode returns are greater than this value, training is over
 
+.. note::
+   由于单机同步版本数据生成和训练是串行执行，即生成足够数量的数据后训练一定迭代数，使用者可以调节 ``train_step``, ``batch_size``, ``max_reuse``, ``buffer_length`` 这四个量来控制
+   算法的训练数据情况，比如令 ``max_reuse=1``，``buffer_length = train_step * batch_size，train_step=1``，即可对应标准的 on-policy训练过程。
 
 League Manager Config
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~

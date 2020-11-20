@@ -24,7 +24,7 @@ description = """nerveX: X-Lab Deep Reinforcement Learning Framework"""
 
 setup(
     name='nerveX',
-    version='0.0.1',
+    version='0.0.2b0',
     description='X-Lab Reinforcement Learning Framework',
     long_description=description,
     author='X-Lab',
