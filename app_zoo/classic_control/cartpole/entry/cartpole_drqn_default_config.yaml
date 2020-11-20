@@ -28,6 +28,7 @@ learner:
         dueling: True
         nstep: 3
         burnin_step: 2
+        value_rescale: True
     hook:
         save_ckpt_after_iter:
             name: save_ckpt_after_iter

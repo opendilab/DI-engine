@@ -13,6 +13,7 @@ API Doc
     data/buffer
     data/cache
     worker/learner/learner
+    rl_utils/td
     rl_utils/adder
     rl_utils/gae
     rl_utils/ppo
