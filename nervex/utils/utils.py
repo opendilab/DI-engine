@@ -79,7 +79,7 @@ def squeeze(data: object) -> object:
             return data[0]
     elif isinstance(data, dict):
         if len(data) == 1:
-            return data.values()[0]
+            return list(data.values())[0]
     return data
 
 

@@ -27,6 +27,27 @@ def q_1step_td_error(
     return (criterion(q_s_a, target_q_s_a.detach()) * weights).mean()
 
 
+q_1step_td_data_continuous = namedtuple('td_data', ['q', 'next_q', 'act', 'reward', 'done'])
+
+
+def q_1step_td_error_continuous(
+        data: namedtuple,
+        gamma: float,
+        weights: Optional[torch.Tensor] = None,
+        criterion: torch.nn.modules = nn.MSELoss(reduction='none')  # noqa
+) -> torch.Tensor:
+    q, next_q, act, reward, done = data
+    assert len(act.shape) == 1, act.shape
+    assert len(reward.shape) == 1, reward.shape
+    batch_range = torch.arange(act.shape[0])
+    if weights is None:
+        weights = torch.ones_like(reward)
+    q_s_a = q[batch_range]
+    target_q_s_a = next_q[batch_range]
+    target_q_s_a = gamma * (1 - done) * target_q_s_a + reward
+    return (criterion(q_s_a, target_q_s_a.detach()) * weights).mean()
+
+
 q_nstep_td_data = namedtuple('q_nstep_td_data', ['q', 'next_n_q', 'action', 'reward', 'done'])
 
 
@@ -50,7 +71,7 @@ def q_nstep_td_error(
         - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
     Shapes:
         - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
-        ['q', 'next_n_q', 'action', 'reward', 'done']
+            ['q', 'next_n_q', 'action', 'reward', 'done']
         - q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
         - next_n_q (:obj:`torch.FloatTensor`): :math:`(B, N)`
         - action (:obj:`torch.LongTensor`): :math:`(B, )`

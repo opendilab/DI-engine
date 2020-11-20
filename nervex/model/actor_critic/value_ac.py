@@ -1,11 +1,11 @@
 import torch
 import torch.nn as nn
 from typing import Dict
-from ..common_arch import ActorCriticBase, ConvEncoder
+from ..common_arch import ValueActorCriticBase, ConvEncoder
 from nervex.utils import squeeze
 
 
-class ValueAC(ActorCriticBase):
+class ValueAC(ValueActorCriticBase):
 
     def __init__(self, obs_dim: tuple, action_dim: int, embedding_dim: int, head_hidden_dim: int = 128) -> None:
         super(ValueAC, self).__init__()
@@ -29,6 +29,7 @@ class ValueAC(ActorCriticBase):
         layers = []
         for _ in range(self._head_layer_num):
             layers.append(nn.Linear(input_dim, head_hidden_dim))
+            layers.append(self._act)
             input_dim = head_hidden_dim
         layers.append(nn.Linear(input_dim, 1))
         self._critic = nn.Sequential(*layers)
