@@ -229,3 +229,20 @@ class CudaFetcher(object):
                     data = next(self._source)
                     data = to_device(data, self._device)
                     self._queue.put(data)
+
+
+def get_tensor_data(data: Any) -> Any:
+    """
+    Overview:
+        get pure tensor data from the given data(avoiding disturbing grad computation graph)
+    """
+    if isinstance(data, torch.Tensor):
+        return data.data.clone()
+    elif data is None:
+        return None
+    elif isinstance(data, Sequence):
+        return [get_tensor_data(d) for d in data]
+    elif isinstance(data, dict):
+        return {k: v for k, v in data.items()}
+    else:
+        raise TypeError("not support type in get_tensor_data: {}".format(type(data)))

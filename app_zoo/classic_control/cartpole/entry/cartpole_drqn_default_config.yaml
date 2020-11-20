@@ -1,0 +1,57 @@
+common:
+    name: CartpoleDqnConfig
+    time_wrapper_type: cuda
+    save_path: '.'
+    load_path: ''
+    algo_type: 'drqn'
+learner:
+    use_cuda: False
+    use_distributed: False
+    max_iterations: 10000000
+    train_step: 200
+    learning_rate: 0.0001
+    weight_decay: 0.0
+    eps:
+        type: 'exp'
+        start: 0.95
+        end: 0.05
+        decay: 10000
+    data:
+        batch_size: 64
+        chunk_size: 64
+        num_workers: 3
+        max_reuse: 100
+        buffer_length: 100000
+    dqn:
+        discount_factor: 0.995
+        is_double: True
+        dueling: True
+        nstep: 3
+        burnin_step: 2
+        value_rescale: True
+    hook:
+        save_ckpt_after_iter:
+            name: save_ckpt_after_iter
+            type: save_ckpt
+            priority: 40
+            position: after_iter
+            ext_args:
+                freq: 1000
+        log_show:
+            name: log_show
+            type: log_show
+            priority: 20
+            position: after_iter
+            ext_args:
+                freq: 10
+env:
+    placeholder: 'placeholder'
+actor:
+    env_num: 16
+    episode_num: 2
+    print_freq: 200
+evaluator:
+    env_num: 2
+    episode_num: 2
+    eval_step: 200
+    stop_val: 39 # 195//5

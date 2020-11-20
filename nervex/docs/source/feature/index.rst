@@ -13,3 +13,4 @@ Feature
     agent_overview
     actor_overview
     env_manager_overview
+    league_overview

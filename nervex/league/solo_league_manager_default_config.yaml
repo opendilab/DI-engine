@@ -1,0 +1,36 @@
+league:
+    league_type: 'solo'
+    import_names: [nervex.league]  # placeholder
+    # ---player----
+    player_category: ['solo']
+    active_players:
+        solo_active_player: 1
+    solo_active_player:
+        one_phase_step: 2e3
+        forward_kwargs:
+            # ---exploration---
+            exploration:
+                use_eps: True
+                start: 0.95
+                end: 0.05
+                decay_len: 10000
+        env_kwargs:
+            env_num: 8
+            episode_num: 2
+        adder_kwargs:
+            use_gae: False
+            data_push_length: 128
+        job:
+            agent_update_freq: 30  # second
+            compressor: 'none'
+    use_pretrain_init_historical: False
+    pretrain_checkpoint_path:  # placeholder
+        default: 'pretrain_checkpoint_default.pth'
+    # ---payoff---
+    payoff:
+        type: 'solo'  # ['solo', 'battle']
+        buffer_size: 4
+    # ---runner---
+    max_active_player_job: 3
+    #per_match_games: 8
+    time_interval: 1

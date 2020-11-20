@@ -1,5 +1,5 @@
 from nervex.computation_graph import BaseCompGraph
-from nervex.rl_utils import td_data, one_step_td_error
+from nervex.rl_utils import q_1step_td_data, q_1step_td_error
 from nervex.worker.agent import BaseAgent
 
 
@@ -22,15 +22,11 @@ class AtariDqnGraph(BaseCompGraph):
         else:
             target_q_value = agent.forward(next_obs)['logit']
 
-        data = td_data(q_value, target_q_value, action, reward, done)
-        loss = one_step_td_error(data, self._gamma, weights)
+        data = q_1step_td_data(q_value, target_q_value, action, reward, done)
+        loss = q_1step_td_error(data, self._gamma, weights)
         if agent.is_double:
-            agent.update_target_network(agent.state_dict()['model'])
+            agent.target_update(agent.state_dict()['model'])
         return {'total_loss': loss}
 
     def __repr__(self) -> str:
         return "AtariDqnGraph"
-
-    def register_stats(self, recorder: 'VariableRecorder', tb_logger: 'TensorBoardLogger') -> None:  # noqa
-        recorder.register_var('total_loss')
-        tb_logger.register_var('total_loss')

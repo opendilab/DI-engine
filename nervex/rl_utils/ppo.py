@@ -11,7 +11,6 @@ ppo_info = namedtuple('ppo_info', ['approx_kl', 'clipfrac'])
 
 def ppo_error(
         data: namedtuple,
-        gamma: float = 0.99,
         clip_ratio: float = 0.2,
         use_value_clip: bool = True,
         dual_clip: Optional[float] = None
@@ -21,7 +20,6 @@ def ppo_error(
             Implementation of Proximal Policy Optimization (arXiv:1707.06347) with value_clip and dual_clip
         Arguments:
             - data (:obj:`namedtuple`): the ppo input data with fieids shown in ``ppo_data``
-            - gamma (:obj:`float`): the future discount factor, shoule be in [0, 1], defaults to 0.99
             - clip_ratio (:obj:`float`): the ppo clip ratio for the constraint of policy update, defaults to 0.2
             - use_value_clip (:obj:`bool`): whether to use clip in value loss with the same ratio as policy
             - dual_clip (:obj:`float`): a parameter c mentioned in arXiv:1912.09729 Equ. 5, shoule be in [1, inf),\

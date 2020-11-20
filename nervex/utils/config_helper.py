@@ -27,7 +27,7 @@ def save_config(config_: dict, path: str) -> NoReturn:
     Overview:
         save configuration to path
     Arguments:
-        - config_ (:obj:`dict`): Config data
+        - config (:obj:`dict`): Config data
         - path (:obj:`str`): Path of target yaml
     """
     config_string = json.dumps(config_)
@@ -65,10 +65,11 @@ def deep_update(
     Overview:
         Updates original dict with values from new_dict recursively.
 
-    Notes:
+    .. note::
+
         If new key is introduced in new_dict, then if new_keys_allowed is not
-    True, an error will be thrown. Further, for sub-dicts, if the key is
-    in the whitelist, then new subkeys can be introduced.
+        True, an error will be thrown. Further, for sub-dicts, if the key is
+        in the whitelist, then new subkeys can be introduced.
 
     Arguments:
         - original (:obj:`dict`): Dictionary with default values.

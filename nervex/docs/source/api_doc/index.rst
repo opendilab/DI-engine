@@ -11,17 +11,21 @@ API Doc
 
     data/structure
     worker/learner/learner
+    rl_utils/td
     rl_utils/adder
     rl_utils/gae
     rl_utils/ppo
+    rl_utils/a2c
     torch_utils_network/network
     torch_utils/checkpoint_helper
     torch_utils/metric
     torch_utils/data_helper
     torch_utils/optimizer_util
     torch_utils/distribution
-    model/dqn
     model/common_arch
+    league/league_manager
+    league/payoff
+    league/player
     utils/time_helper
     utils/log_helper
     utils/compression_helper

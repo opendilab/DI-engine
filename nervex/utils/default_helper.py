@@ -2,6 +2,7 @@
 Copyright 2020 Sensetime X-lab. All Rights Reserved
 """
 from typing import Union, Mapping, List, NamedTuple, Tuple, Callable, Optional, Any
+import copy
 import warnings
 
 
@@ -116,6 +117,20 @@ def default_get(
             warnings.warn("{} use default value {}".format(name, value))
             default_get_set.add(name)
         return value
+
+
+def list_split(data: list, step: int) -> List[list]:
+    if len(data) < step:
+        warnings.warn("list_split data real length is shorted than the given step({})".format(step))
+        return []
+    ret = []
+    divide_num = len(data) // step
+    for i in range(divide_num):
+        start, end = i * step, (i + 1) * step
+        ret.append(data[start:end])
+    if divide_num * step < len(data):
+        ret.append(copy.deepcopy(data[-step:]))
+    return ret
 
 
 def error_wrapper(fn, default_ret, warning_msg="[WARNING]: call linklink error, return default_ret."):

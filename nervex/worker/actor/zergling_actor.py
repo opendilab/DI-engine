@@ -5,12 +5,14 @@ import uuid
 from collections import namedtuple
 from threading import Thread
 from typing import List, Dict, Callable, Any
+from easydict import EasyDict
 
 import torch
 
 from nervex.data import default_collate, default_decollate
 from nervex.torch_utils import to_device, tensor_to_list
 from nervex.utils import get_data_compressor
+from nervex.rl_utils import Adder
 from nervex.worker.actor import BaseActor
 from nervex.worker.actor.env_manager import SubprocessEnvManager, BaseEnvManager
 
@@ -27,34 +29,9 @@ class ZerglingActor(BaseActor):
     """
 
     # override
-    def _init_with_job(self, job: dict) -> None:
-        super()._init_with_job(job)
-        self._job = job
-        self._logger.info('ACTOR({}): init with job {} in {}'.format(self._actor_uid, self._job['job_id'], time.time()))
-        self._start_time = time.time()
-        self._step_count = 0
-        assert len(self._job['agent']) == 1
-        self._setup_env_manager()
-        self._setup_agent()
-        self._compressor = get_data_compressor(self._job['compressor'])
-        self._job_result = {k: [] for k in range(self._job['env_num'])}
-        self._collate_fn = default_collate
-        self._decollate_fn = default_decollate
-        # init agent(reset agent, load model)
-        self._agent.reset()
-        path = self._job['agent'][self._agent_name]['agent_update_path']
-        agent_update_info = self.get_agent_update_info(path)
-        self._agent.load_state_dict(agent_update_info)
-        # init env
-        self._env_manager.launch()
-        self._obs_pool = {k: None for k in range(self._job['env_num'])}
-        self._act_pool = {k: None for k in range(self._job['env_num'])}
-        self._data_buffer = {k: [] for k in range(self._job['env_num'])}
-        self._last_data_buffer = {k: [] for k in range(self._job['env_num'])}
+    def _init(self) -> None:
+        super()._init()
         self._traj_queue = queue.Queue()
-        self._episode_result = {k: None for k in range(self._job['env_num'])}
-
-        self._job_finish_flag = False
         self._update_agent_thread = Thread(target=self._update_agent, args=())
         self._update_agent_thread.deamon = True
         self._update_agent_thread.start()  # keep alive in the whole job
@@ -62,15 +39,51 @@ class ZerglingActor(BaseActor):
         self._pack_trajectory_thread.deamon = True
         self._pack_trajectory_thread.start()
 
+    # override
+    def _init_with_job(self, job: dict) -> None:
+        super()._init_with_job(job)
+        self._job = job
+        self._logger.info('ACTOR({}): init with job {} in {}'.format(self._actor_uid, self._job['job_id'], time.time()))
+        self._start_time = time.time()
+        self._step_count = 0
+        assert len(self._job['agent']) == 1
+        self._adder = Adder(self._cfg.actor.use_cuda)
+        self._adder_kwargs = self._job['adder_kwargs']
+        self._env_kwargs = self._job['env_kwargs']
+        self._env_num = self._env_kwargs['env_num']
+        self._compressor = get_data_compressor(self._job['compressor'])
+        self._job_result = {k: [] for k in range(self._env_num)}
+        self._collate_fn = default_collate
+        self._decollate_fn = default_decollate
+        self._setup_env_manager()
+        self._setup_agent()
+        # init agent(reset agent, load model)
+        self._agent.reset()
+        path = self._job['agent'][self._agent_name]['agent_update_path']
+        agent_update_info = self.get_agent_update_info(path)
+        self._agent.load_state_dict(agent_update_info)
+        # init env
+        self._env_manager.launch()
+        self._obs_pool = {k: None for k in range(self._env_num)}
+        self._act_pool = {k: None for k in range(self._env_num)}
+        self._data_buffer = {k: [] for k in range(self._env_num)}
+        self._last_data_buffer = {k: [] for k in range(self._env_num)}
+        self._episode_result = {k: None for k in range(self._env_num)}
+        self._job_finish_flag = False
+
     def _setup_env_manager(self) -> None:
-        env_cfg = self._cfg.env
-        self._setup_env_fn(env_cfg)
-        env_num = self._job['env_num']
+        env_cfg = EasyDict(self._env_kwargs['env_cfg'])
+        env_num = self._env_kwargs['env_num']
+        if isinstance(env_cfg, dict):
+            self._setup_env_fn(env_cfg)
+            env_cfg = [env_cfg for _ in range(env_num)]
+        else:
+            raise TypeError("not support env_cfg type: {}".format(env_cfg))
         self._env_manager = SubprocessEnvManager(
             env_fn=self._env_fn,
-            env_cfg=[env_cfg for _ in range(env_num)],
+            env_cfg=env_cfg,
             env_num=env_num,
-            episode_num=self._job['episode_num']
+            episode_num=self._env_kwargs['episode_num']
         )
 
     # override
@@ -104,31 +117,43 @@ class ZerglingActor(BaseActor):
             data = self._get_transition(self._obs_pool[env_id], self._act_pool[env_id], timestep[env_id])
             self._data_buffer[env_id].append(data)
             self._step_count += 1
-            if len(self._data_buffer[env_id]) == self._job['data_push_length']:
+            if len(self._data_buffer[env_id]) == (self._adder_kwargs['data_push_length'] + 1):
                 # last data copy must be in front of obs_next
-                self._last_data_buffer[env_id] = copy.deepcopy(self._data_buffer[env_id])
-                handle = self._data_buffer[env_id][-1]
-                self._traj_queue.put({'data': self._data_buffer[env_id], 'env_id': env_id})
-                self._data_buffer[env_id] = []
+                last = self._data_buffer[env_id][-1]
+                data = self._data_buffer[env_id][:-1]
+                self._last_data_buffer[env_id].clear()
+                self._last_data_buffer[env_id] = copy.deepcopy(data)
+                if self._adder_kwargs['use_gae']:
+                    gamma = self._adder_kwargs['gamma']
+                    gae_lambda = self._adder_kwargs['gae_lambda']
+                    data = self._adder.get_gae(data, last['value'], gamma, gae_lambda)
+                self._traj_queue.put({'data': data, 'env_id': env_id, 'job': copy.deepcopy(self._job)})
+                self._data_buffer[env_id].clear()
+                self._data_buffer[env_id].append(last)
             if t.done:
                 self._job_result[env_id].append(t.info)
                 self._logger.info('ACTOR({}): env{} finish episode in {}'.format(self._actor_uid, env_id, time.time()))
                 cur_len = len(self._data_buffer[env_id])
-                miss_len = self._job['data_push_length'] - cur_len
-                if miss_len > 0:
-                    self._data_buffer[env_id] = self._last_data_buffer[env_id][-miss_len:] + self._data_buffer[env_id]
-                self._traj_queue.put({'data': self._data_buffer[env_id], 'env_id': env_id})
+                miss_len = self._adder_kwargs['data_push_length'] - cur_len
+                data = self._last_data_buffer[env_id][-miss_len:] + self._data_buffer[env_id]
+                if self._adder_kwargs['use_gae']:
+                    gamma = self._adder_kwargs['gamma']
+                    gae_lambda = self._adder_kwargs['gae_lambda']
+                    data = self._adder.get_gae(data, torch.zeros(1), gamma, gae_lambda)
+                self._traj_queue.put({'data': data, 'env_id': env_id, 'job': copy.deepcopy(self._job)})
+                self._last_data_buffer[env_id].clear()
+                self._data_buffer[env_id].clear()
 
     # override
     def _finish_job(self) -> None:
-        assert all([len(r) == self._job['episode_num'] for r in self._job_result.values()])
-        episode_count = self._job['episode_num'] * self._job['env_num']
+        assert all([len(r) == self._env_kwargs['episode_num'] for r in self._job_result.values()])
+        episode_count = self._env_kwargs['episode_num'] * self._env_num
         duration = max(time.time() - self._start_time, 1e-8)
         job_finish_info = {
             'job_id': self._job['job_id'],
             'actor_uid': self._actor_uid,
-            'episode_num': self._job['episode_num'],
-            'env_num': self._job['env_num'],
+            'episode_num': self._env_kwargs['episode_num'],
+            'env_num': self._env_num,
             'player_id': self._job['player_id'],
             'launch_player': self._job['launch_player'],
             'episode_count': episode_count,
@@ -150,24 +175,26 @@ class ZerglingActor(BaseActor):
     # override
     def _update_agent(self) -> None:
         last = time.time()
-        while not self._job_finish_flag:
-            cur = time.time()
-            interval = cur - last
-            if interval < self._job['agent_update_freq']:
-                time.sleep(self._job['agent_update_freq'] * 0.1)
-                continue
-            else:
-                path = self._job['agent'][self._agent_name]['agent_update_path']
-                agent_update_info = self.get_agent_update_info(path)
-                self._agent.load_state_dict(agent_update_info)
-                self._logger.info('ACTOR({}): update agent with {} in {}'.format(self._actor_uid, path, time.time()))
-                last = time.time()
+        while not self._end_flag:
+            if hasattr(self, '_job') and hasattr(self, '_agent'):
+                cur = time.time()
+                interval = cur - last
+                if interval < self._job['agent_update_freq']:
+                    time.sleep(self._job['agent_update_freq'] * 0.1)
+                    continue
+                else:
+                    path = self._job['agent'][self._agent_name]['agent_update_path']
+                    agent_update_info = self.get_agent_update_info(path)
+                    self._agent.load_state_dict(agent_update_info)
+                    self._logger.info('ACTOR({}): update agent with {} in {}'.format(self._actor_uid, path, time.time()))
+                    last = time.time()
+            time.sleep(0.1)
 
     # override
     def _pack_trajectory(self) -> None:
 
-        def _pack(element, job):
-            data, env_id = list(element.values())
+        def _pack(element):
+            data, env_id, job = list(element.values())
             # send metadata
             job_id = job['job_id']
             traj_id = "job_{}_env_{}_{}".format(job_id, env_id, str(uuid.uuid1()))
@@ -192,23 +219,16 @@ class ZerglingActor(BaseActor):
             self.send_traj_metadata(metadata)
             self._logger.info('ACTOR({}): send traj({}) in {}'.format(self._actor_uid, traj_id, time.time()))
 
-        while not self._job_finish_flag:
+        finished_traj_num = 0
+        while not self._end_flag:
             try:
                 element = self._traj_queue.get()
             except queue.Empty:
                 time.sleep(1)
                 continue
-            _pack(element, self._job)
-
-        if self._traj_queue.qsize() > 0:
-            traj_queue = copy.deepcopy(self._traj_queue.queue)
-            job = copy.deepcopy(self._job)
-            todo_count = len(traj_queue)
-            while len(traj_queue) > 0:
-                element = traj_queue.popleft()
-                _pack(element, job)
-                residual = len(traj_queue)
-                self._logger.info('ACTOR({}) residual traj {}/{}'.format(self._actor_uid, residual, todo_count))
+            _pack(element)
+            finished_traj_num += 1
+            self._logger.info('ACTOR({}) finished {}'.format(self._actor_uid, finished_traj_num))
 
     def _setup_env_fn(self, env_cfg: dict) -> None:
         """set self._env_fn"""

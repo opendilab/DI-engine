@@ -1394,12 +1394,9 @@ _book
 *evaluate.txt
 __pycache__
 *.egg-info
-sc2learner/experiments/
 experiment_config.yaml
 api-log/
-<<<<<<< HEAD
-/test_*
-=======
-.coverage
+log/
 htmlcov
->>>>>>> 61ee113ec178596476fc58572f4d44379a1e3d3b
+*.lock
+.coverage*

@@ -7,15 +7,13 @@ Main Function:
 
 import os.path as osp
 
-from nervex.data import default_collate
 from nervex.model import FCDQN
 from nervex.utils import deep_merge_dicts
 from nervex.utils import override, read_config, DistModule
-from nervex.torch_utils import CudaFetcher
 from nervex.worker.learner import BaseLearner, register_learner
+from nervex.worker.agent import create_dqn_learner_agent
 from app_zoo.sumo.envs.sumo_env import SumoWJ3Env
 from app_zoo.sumo.computation_graph.sumo_dqn_computation_graph import SumoDqnGraph
-from app_zoo.sumo.worker.agent.sumo_dqn_agent import SumoDqnLearnerAgent
 
 default_config = read_config(osp.join(osp.dirname(__file__), "sumo_dqn_learner_default_config.yaml"))
 
@@ -28,20 +26,6 @@ class SumoDqnLearner(BaseLearner):
         super(SumoDqnLearner, self).__init__(cfg)
 
     @override(BaseLearner)
-    def _setup_data_source(self):
-        self._collate_fn = default_collate
-        batch_size = self._cfg.learner.batch_size
-
-        def iterator():
-            while True:
-                data = self.get_data(batch_size)
-                yield self._collate_fn(data)
-
-        self._data_source = iterator()
-        if self._use_cuda:
-            self._data_source = CudaFetcher(self._data_source, device=self._device, sleep=0.01)
-
-    @override(BaseLearner)
     def _setup_agent(self):
         sumo_env = SumoWJ3Env(self._cfg.env)
         model = FCDQN(
@@ -52,7 +36,7 @@ class SumoDqnLearner(BaseLearner):
             model.cuda()
         if self.use_distributed:
             model = DistModule(model)
-        self._agent = SumoDqnLearnerAgent(model, plugin_cfg={'is_double': self._cfg.learner.dqn.is_double})
+        self._agent = create_dqn_learner_agent(model, self._cfg.learner.dqn.is_double)
         self._agent.mode(train=True)
         if self._agent.is_double:
             self._agent.target_mode(train=True)

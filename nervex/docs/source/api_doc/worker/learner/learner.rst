@@ -7,7 +7,7 @@ base_learner
 BaseLearner
 ~~~~~~~~~~~~~~~~~
 .. autoclass:: nervex.worker.learner.base_learner.BaseLearner
-    :members: __init__, _init, _setup_hook, _setup_wrapper, time_wrapper, _setup_data_source, _setup_agent, _setup_computation_graph, _setup_optimizer, _get_data, _train, register_stats, register_hook, run, close, call_hook, info, save_checkpoint
+    :members: __init__, _init, _setup_hook, _setup_wrapper, time_wrapper, _setup_dataloader, _setup_agent, _setup_computation_graph, _setup_optimizer, _train, register_stats, register_hook, run, close, call_hook, info, save_checkpoint, launch
 
 
 register_learner
@@ -66,6 +66,10 @@ register_learner_hook
 build_learner_hook_by_cfg
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. automodule:: nervex.worker.learner.learner_hook.build_learner_hook_by_cfg
+
+merge_hooks
+~~~~~~~~~~~~~
+.. automodule:: nervex.worker.learner.learner_hook.merge_hooks
 
 
 

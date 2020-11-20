@@ -2,7 +2,7 @@ import pytest
 import torch
 import torch.nn as nn
 
-from nervex.torch_utils.loss.loss import LabelSmoothCELoss, SoftFocalLoss
+from nervex.torch_utils import LabelSmoothCELoss, SoftFocalLoss
 
 
 @pytest.mark.unittest

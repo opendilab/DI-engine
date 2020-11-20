@@ -29,7 +29,7 @@ class SoftFocalLoss(torch.nn.Module):
         return self.nll_loss((1 - F.softmax(inputs, 1)) ** self.gamma * F.log_softmax(inputs, 1), targets)
 
 
-def build_criterion(cfg):
+def build_ce_criterion(cfg):
     if cfg.type == 'cross_entropy':
         return nn.CrossEntropyLoss()
     elif cfg.type == 'label_smooth_ce':

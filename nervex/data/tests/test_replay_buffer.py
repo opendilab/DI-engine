@@ -112,7 +112,7 @@ class TestReplayBuffer:
         setup_replay_buffer.push_data({'data': np.random.randn(4)})
         setup_replay_buffer.close()
         time.sleep(1 + 0.5)
-        assert (len(threading.enumerate()) <= 1)
+        assert (len(threading.enumerate()) <= 2)
 
     def test_push_split(self, setup_config):
         assert all([k not in setup_config.keys() for k in ['traj_len', 'unroll_len']])
@@ -126,7 +126,7 @@ class TestReplayBuffer:
         data0 = generate_data()
         assert data0['data_push_length'] % replay_buffer.unroll_len == 0
         replay_buffer.push_data(data0)
-        time.sleep(2)
+        time.sleep(3)
         push_count = data0['data_push_length'] // replay_buffer.unroll_len
         assert replay_buffer._meta_buffer.validlen == push_count
 
