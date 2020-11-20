@@ -22,4 +22,4 @@ class TestValueRescale:
         for _ in range(10):
             t = torch.rand((2, 3))
             diff = value_inverse_h(value_transition_h(t)) - t
-            assert diff.abs().mean().item() < 1e-5
+            assert pytest.approx(diff.abs().mean().item(), 0)
