@@ -21,7 +21,7 @@ class ActorProducerHook(LearnerHook):
     def __call__(self, engine):
         if engine.last_iter.val % self._freq == 0:
             # at least update buffer once
-            last_push_count = self._runner.buffer.data_count
+            last_push_count = self._runner.buffer.push_count
             self._runner.collect_data()
             while not self._runner.is_buffer_enough(last_push_count):
                 self._runner.collect_data()
