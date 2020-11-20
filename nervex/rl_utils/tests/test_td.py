@@ -22,6 +22,7 @@ def test_q_nstep_td():
         assert isinstance(q.grad, torch.Tensor)
         print(loss)
 
+
 @pytest.mark.unittest
 def test_q_nstep_td_with_rescale():
     batch_size = 4
@@ -39,6 +40,7 @@ def test_q_nstep_td_with_rescale():
         loss.backward()
         assert isinstance(q.grad, torch.Tensor)
         print(loss)
+
 
 @pytest.mark.unittest
 def test_1step_compatible():

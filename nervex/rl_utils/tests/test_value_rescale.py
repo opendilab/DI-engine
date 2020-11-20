@@ -1,25 +1,26 @@
 import pytest
 import torch
-from nervex.rl_utils.value_rescale import value_inverse_h, value_transition_h
+from nervex.rl_utils.value_rescale import value_inv_transform, value_transform
 
 
 @pytest.mark.unittest
 class TestValueRescale:
 
-    def test_value_transition_h(self):
+    def test_value_transform(self):
         for _ in range(10):
             t = torch.rand((2, 3))
-            assert isinstance(value_transition_h(t), torch.Tensor)
-            assert value_transition_h(t).shape == t.shape
+            assert isinstance(value_transform(t), torch.Tensor)
+            assert value_transform(t).shape == t.shape
 
-    def test_value_inverse_h(self):
+    def test_value_inv_transform(self):
         for _ in range(10):
             t = torch.rand((2, 3))
-            assert isinstance(value_inverse_h(t), torch.Tensor)
-            assert value_inverse_h(t).shape == t.shape
+            assert isinstance(value_inv_transform(t), torch.Tensor)
+            assert value_inv_transform(t).shape == t.shape
 
     def test_trans_inverse(self):
         for _ in range(10):
-            t = torch.rand((2, 3))
-            diff = value_inverse_h(value_transition_h(t)) - t
-            assert pytest.approx(diff.abs().mean().item(), 0)
+            t = torch.rand((4, 16))
+            diff = value_inv_transform(value_transform(t)) - t
+            assert pytest.approx(diff.abs().max().item(), 0)
+            assert pytest.approx(diff.abs().max().item(), 0)

@@ -4,7 +4,7 @@ from typing import Union, Optional, Callable
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from nervex.rl_utils.value_rescale import value_transition_h, value_inverse_h
+from nervex.rl_utils.value_rescale import value_transform, value_inv_transform
 
 q_1step_td_data = namedtuple('td_data', ['q', 'next_q', 'act', 'reward', 'done'])
 
@@ -78,23 +78,27 @@ def q_nstep_td_error(
 
 
 def q_nstep_td_error_with_rescale(
-        data: namedtuple,
-        gamma: float,
-        nstep: int = 1,
-        weights: Optional[torch.Tensor] = None,
-        criterion: torch.nn.modules = nn.MSELoss(reduction='none'),
-        trans_fn: callable = value_transition_h,
-        reverse_fn: callable = value_inverse_h,
+    data: namedtuple,
+    gamma: float,
+    nstep: int = 1,
+    weights: Optional[torch.Tensor] = None,
+    criterion: torch.nn.modules = nn.MSELoss(reduction='none'),
+    trans_fn: Callable = value_transform,
+    inv_trans_fn: Callable = value_inv_transform,
 ) -> torch.Tensor:
     """
     Overview:
-        Multistep (1 step or n step) td_error for q-learning based algorithm
+        Multistep (1 step or n step) td_error with value rescaling
     Arguments:
         - data (:obj:`q_nstep_td_data`): the input data, q_nstep_td_data to calculate loss
         - gamma (:obj:`float`): discount factor
+        - nstep (:obj:`int`): nstep num, default set to 1
         - weights (:obj:`torch.Tensor` or None): weights of td losses
         - criterion (:obj:`torch.nn.modules`): loss function criterion
-        - nstep (:obj:`int`): nstep num, default set to 1
+        - trans_fn (:obj:`Callable`): value transfrom function, default to value_transform\
+            (refer to rl_utils/value_rescale.py)
+        - inv_trans_fn (:obj:`Callable`): value inverse transfrom function, default to value_inv_transform\
+            (refer to rl_utils/value_rescale.py)
     Returns:
         - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
     Shapes:
@@ -121,10 +125,8 @@ def q_nstep_td_error_with_rescale(
         reward_factor[i] = gamma * reward_factor[i - 1]
     reward = torch.matmul(reward_factor, reward)
 
-    target_q_s_a = reverse_fn(target_q_s_a)
-
+    target_q_s_a = inv_trans_fn(target_q_s_a)
     target_q_s_a = reward + (gamma ** nstep) * target_q_s_a * (1 - done)
-
     target_q_s_a = trans_fn(target_q_s_a)
 
     return (criterion(q_s_a, target_q_s_a.detach()) * weights).mean()
@@ -143,7 +145,7 @@ def td_lambda_error(data: namedtuple, gamma: float = 0.9, lambda_: float = 0.8) 
     Arguments:
         - data (:obj:`namedtuple`): td_lambda input data with fields ['value', 'reward', 'weight']
         - gamma (:obj:`float`): constant discount factor gamma, should be in [0, 1], defaults to 0.9
-        - lambda_ (:obj:`float`): constant lambda, should be in [0, 1], defaults to 0.8
+        - lambda (:obj:`float`): constant lambda, should be in [0, 1], defaults to 0.8
     Returns:
         - loss (:obj:`torch.Tensor`): Computed MSE loss, averaged over the batch
     Shapes:
