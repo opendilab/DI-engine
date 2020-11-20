@@ -29,6 +29,7 @@ class ValueAC(ActorCriticBase):
         layers = []
         for _ in range(self._head_layer_num):
             layers.append(nn.Linear(input_dim, head_hidden_dim))
+            layers.append(self._act)
             input_dim = head_hidden_dim
         layers.append(nn.Linear(input_dim, 1))
         self._critic = nn.Sequential(*layers)
