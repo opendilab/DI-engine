@@ -8,7 +8,7 @@ from nervex.model import FCDQN
 from nervex.rl_utils import q_1step_td_data, q_1step_td_error
 from nervex.utils import read_config
 from nervex.worker import BaseLearner, SubprocessEnvManager
-from nervex.worker.agent import BaseAgent, create_dqn_learner_agent, create_dqn_actor_agent, create_dqn_evaluator_agent
+from nervex.worker.agent import create_dqn_learner_agent, create_dqn_actor_agent, create_dqn_evaluator_agent
 from app_zoo.classic_control.cartpole.envs import CartPoleEnv
 
 
