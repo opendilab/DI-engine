@@ -21,8 +21,9 @@ class ActorProducerHook(LearnerHook):
     def __call__(self, engine):
         if engine.last_iter.val % self._freq == 0:
             # at least update buffer once
+            last_push_count = self._runner.buffer.push_count
             self._runner.collect_data()
-            while not self._runner.is_buffer_enough():
+            while not self._runner.is_buffer_enough(last_push_count):
                 self._runner.collect_data()
 
 
@@ -60,6 +61,9 @@ class SingleMachineRunner():
         assert self.algo_type in ['dqn', 'ppo', 'drqn'], self.algo_type
         self.use_cuda = self.cfg.learner.use_cuda
         self.buffer = PrioritizedBuffer(cfg.learner.data.buffer_length, cfg.learner.data.max_reuse)
+        assert cfg.learner.data.buffer_length >= max(
+            self.batch_size, self.batch_size * cfg.learner.train_step // cfg.learner.data.max_reuse
+        )
         if self.algo_type in ['dqn', 'drqn']:
             eps_cfg = cfg.learner.eps
             self.bandit = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
@@ -256,7 +260,7 @@ class SingleMachineRunner():
     def run(self):
         self.learner.run()
 
-    def is_buffer_enough(self):
+    def is_buffer_enough(self, last_push_count):
         bs = self.cfg.learner.data.batch_size
         size = int(1.2 * bs * self.train_step) // (self.cfg.learner.data.max_reuse)
-        return self.buffer.validlen >= size and self.buffer.validlen >= 2 * bs
+        return self.buffer.push_count - last_push_count >= size and self.buffer.validlen >= 2 * bs

@@ -87,6 +87,7 @@ class PrioritizedBuffer:
         self.max_priority = 1.0
         # current valid data count
         self._valid_count = 0
+        self._push_count = 0
         self.pointer = 0
         # generate the unique id for each data
         self.latest_data_id = 0
@@ -141,6 +142,7 @@ class PrioritizedBuffer:
             return
         if self._data[self.pointer] is None:
             self._valid_count += 1
+        self._push_count += 1
         data['replay_unique_id'] = self.latest_data_id
         data['replay_buffer_idx'] = self.pointer
         self._set_weight(self.pointer, data)
@@ -167,6 +169,7 @@ class PrioritizedBuffer:
             self._set_weight((self.pointer + i) % self.maxlen, valid_data[i])
             if self._data[(self.pointer + i) % self.maxlen] is None:
                 self._valid_count += 1
+            self._push_count += 1
 
         # the two case of the relationship among pointer, data length and queue length
         if self.pointer + length <= self._maxlen:
@@ -312,3 +315,7 @@ class PrioritizedBuffer:
                 return None
         else:
             return None
+
+    @property
+    def push_count(self) -> int:
+        return self._push_count

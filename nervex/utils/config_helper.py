@@ -9,11 +9,12 @@ from easydict import EasyDict
 
 def read_config(path: str) -> EasyDict:
     """
-    Args:
-        path (str): Path of source yaml
-
+    Overview:
+        read configuration from path
+    Arguments:
+        - path (:obj:`str`): Path of source yaml
     Returns:
-        EasyDict: Config data from this file with dict type
+        - (:obj:`EasyDict`): Config data from this file with dict type
     """
     with open(path, "r") as f:
         config_ = yaml.safe_load(f)
@@ -23,9 +24,11 @@ def read_config(path: str) -> EasyDict:
 
 def save_config(config_: dict, path: str) -> NoReturn:
     """
-    Args:
-        config_ (dict): Config data
-        path (str): Path of target yaml
+    Overview:
+        save configuration to path
+    Arguments:
+        - config (:obj:`dict`): Config data
+        - path (:obj:`str`): Path of target yaml
     """
     config_string = json.dumps(config_)
     with open(path, "w") as f:
@@ -34,12 +37,13 @@ def save_config(config_: dict, path: str) -> NoReturn:
 
 def deep_merge_dicts(original: dict, new_dict: dict) -> dict:
     """
-    Args:
-        original (dict): Dict 1.
-        new_dict (dict): Dict 2.
-
+    Overview:
+        merge two dict using deep_update
+    Arguments:
+        - original (:obj:`dict`): Dict 1.
+        - new_dict (:obj:`dict`): Dict 2.
     Returns:
-         dict: A new dict that is d1 and d2 deeply merged.
+        - (:obj:`dict`): A new dict that is d1 and d2 deeply merged.
     """
     original = original or {}
     new_dict = new_dict or {}
@@ -57,31 +61,33 @@ def deep_update(
     whitelist: Optional[List[str]] = None,
     override_all_if_type_changes: Optional[List[str]] = None
 ):
-    """Updates original dict with values from new_dict recursively.
+    """
+    Overview:
+        Updates original dict with values from new_dict recursively.
 
-    pzh: It's only a function to merge new_dict into original. This is it.
+    .. note::
 
-    If new key is introduced in new_dict, then if new_keys_allowed is not
-    True, an error will be thrown. Further, for sub-dicts, if the key is
-    in the whitelist, then new subkeys can be introduced.
+        If new key is introduced in new_dict, then if new_keys_allowed is not
+        True, an error will be thrown. Further, for sub-dicts, if the key is
+        in the whitelist, then new subkeys can be introduced.
 
-    Args:
-        original (dict): Dictionary with default values.
-        new_dict (dict): Dictionary with values to be updated
-        new_keys_allowed (bool): Whether new keys are allowed.
-        whitelist (Optional[List[str]]): List of keys that correspond to dict
+    Arguments:
+        - original (:obj:`dict`): Dictionary with default values.
+        - new_dict (:obj:`dict`): Dictionary with values to be updated
+        - new_keys_allowed (:obj:`bool`): Whether new keys are allowed.
+        - whitelist (Optional[List[str]]): List of keys that correspond to dict
             values where new subkeys can be introduced. This is only at the top
             level.
-        override_all_if_type_changes(Optional[List[str]]): List of top level
+        - override_all_if_type_changes(Optional[List[str]]): List of top level
             keys with value=dict, for which we always simply override the
-            entire value (dict), if the "type" key in that value dict changes.
+            entire value (:obj:`dict`), if the "type" key in that value dict changes.
     """
     whitelist = whitelist or []
     override_all_if_type_changes = override_all_if_type_changes or []
 
     for k, value in new_dict.items():
         if k not in original and not new_keys_allowed:
-            raise Exception("Unknown config parameter `{}`. Base config have: {}.".format(k, original.keys()))
+            raise RuntimeError("Unknown config parameter `{}`. Base config have: {}.".format(k, original.keys()))
 
         # Both original value and new one are dicts.
         if isinstance(original.get(k), dict) and isinstance(value, dict):
@@ -105,6 +111,14 @@ def deep_update(
 
 def flatten_dict(data: dict, delimiter: str = "/") -> dict:
     """
+    Overview:
+        flatten the dict, see example
+    Arguments:
+        data (:obj:`dict`): Original nested dict
+        delimiter (str): Delimiter of the keys of the new dict
+    Returns:
+        - (:obj:`dict`): Flattened nested dict
+    Example:
         Flatten nested dict:
             {
                 'a': {
@@ -117,13 +131,6 @@ def flatten_dict(data: dict, delimiter: str = "/") -> dict:
                 'a/ab': data-ab,
                 'a/aa/aaa': data-aaa
             }
-
-    Args:
-        data (dict): Original nested dict
-        delimiter (str): Delimiter of the keys of the new dict
-
-    Returns:
-        dict: Flattened nested dict
     """
     data = copy.deepcopy(data)
     while any(isinstance(v, dict) for v in data.values()):
@@ -138,37 +145,3 @@ def flatten_dict(data: dict, delimiter: str = "/") -> dict:
         for k in remove:
             del data[k]
     return data
-
-
-if __name__ == '__main__':
-    import tempfile
-
-    # Test whether save and read is reversible.
-    old_config = EasyDict(
-        {
-            "aa": 1,
-            "bb": 0.0001,
-            "cc": None,
-            "dd": "string",
-            "ee": ["11", "22"],
-            "ff": {
-                "correct": 11
-            }
-        }
-    )
-    yaml_path = tempfile.mktemp(suffix=".yaml")
-    save_config(old_config, yaml_path)
-    assert os.path.exists(yaml_path)
-    config = read_config(yaml_path)
-
-    def assert_equal(item1, iterm2):
-        if isinstance(item1, list):
-            for item11, iterm22 in zip(item1, iterm2):
-                assert_equal(item11, iterm22)
-        elif isinstance(item1, dict):
-            for item11, item22 in zip(item1.values(), iterm2.values()):
-                assert_equal(item11, item22)
-        else:
-            assert item1 == iterm2
-
-    assert_equal(config, old_config)

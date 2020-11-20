@@ -24,15 +24,27 @@ def try_optim_with(tname, t, optim_t):
     net = LinearNet()
     mse_fn = nn.L1Loss()
     if tname == 'grad_clip':
-        optimizer = Adam(net.parameters(), grad_clip_type=t, clip_value=0.000001, lr=0.1, optim_type=optim_t)
+        optimizer = Adam(
+            net.parameters(),
+            grad_clip_type=t,
+            clip_value=0.000001,
+            clip_norm_type=1.2,
+            lr=0.1,
+            optim_type=optim_t,
+            clip_momentum_timestep=2,
+            ignore_momentum_timestep=2
+        )
     if tname == 'grad_ignore':
         optimizer = Adam(
             net.parameters(),
             grad_ignore_type=t,
             clip_value=0.000001,
             ignore_value=0.000001,
+            ignore_norm_type=1.2,
             lr=0.1,
-            optim_type=optim_t
+            optim_type=optim_t,
+            clip_momentum_timestep=2,
+            ignore_momentum_timestep=2,
         )
     # 网络输入和标签
     x = torch.FloatTensor([120])
@@ -40,10 +52,18 @@ def try_optim_with(tname, t, optim_t):
     target_value = torch.FloatTensor([2])
     target_value.requires_grad = True
     # loss计算
-    predict = net(x)
-    loss = mse_fn(predict, target_value)
-    loss.backward()
-    optimizer.step()
+    for _ in range(10):
+        predict = net(x)
+        loss = mse_fn(predict, target_value)
+        loss.backward()
+        optimizer.step()
+    for _ in range(10):
+        target_value = torch.FloatTensor([_ ** 2])
+        target_value.requires_grad = True
+        predict = net(x)
+        loss = mse_fn(predict, target_value)
+        loss.backward()
+        optimizer.step()
 
     if t is None:
         print("weight without optimizer clip:" + str(net.linear.weight))

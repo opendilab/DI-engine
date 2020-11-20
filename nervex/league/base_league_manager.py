@@ -60,18 +60,11 @@ class BaseLeagueManager(ABC):
     """
     Overview: league training manager
     Interface: __init__, run, close, finish_job, update_active_player
-    Note:
+
+    .. note::
         launch_job_fn:
             Arguments:
                 - job_info (:obj:`dict`)
-                    - home_id (:obj:`str`)
-                    - away_id (:obj:`str`)
-                    - home_race (:obj:`str`)
-                    - away_race (:obj:`str`)
-                    - home_checkpoint_path (:obj:`str`)
-                    - away_checkpoint_path (:obj:`str`)
-                    - home_teacher_checkpoint_path (:obj:`str`)
-                    - away_teacher_checkpoint_path (:obj:`str`)
         save_checkpoint_fn:
             Arguments:
                 - src_checkpoint (:obj:`str`): src must be a existing path
@@ -81,9 +74,7 @@ class BaseLeagueManager(ABC):
                 - player_id: (:obj:`str`)
                 - checkpoint_path: (:obj:`str`)
         job_info (:obj:`dict`)
-            - home_id (:obj:`str`)
-            - away_id (:obj:`str`)
-            - result (:obj:`str`): `wins`, `draws`, `losses`
+            - launch_player (:obj:`str`)
         player_info (:obj:`dict`)
             - player_id (:obj:`str`)
             - train_step (:obj:`int`)

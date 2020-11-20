@@ -20,7 +20,11 @@ _LOCK_TYPE_MAPPING = {
 
 class LockContext(object):
     """
-    Generate a LockContext in order to make sure the thread safety.
+    Overview:
+        Generate a LockContext in order to make sure the thread safety.
+
+    Interfaces:
+        __init__, __enter__, __exit__
 
     Example:
         >>> with LockContext() as lock:
@@ -28,16 +32,28 @@ class LockContext(object):
     """
 
     def __init__(self, type_: LockContextType = LockContextType.THREAD_LOCK):
+        r"""
+        Overview:
+            init the lock according to given type
+        """
         self.lock = _LOCK_TYPE_MAPPING[type_]()
+
+    def acquire(self):
+        self.lock.acquire()
+
+    def release(self):
+        self.lock.release()
 
     def __enter__(self):
         """
-        Entering the context
+        Overview:
+            Entering the context and acquire lock
         """
         self.lock.acquire()
 
     def __exit__(self, *args, **kwargs):
         """
-        Quiting the context
+        Overview:
+            Quiting the context and release lock
         """
         self.lock.release()

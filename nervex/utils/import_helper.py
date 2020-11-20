@@ -8,7 +8,8 @@ ceph_flag, linklink_flag = True, True
 
 def try_import_ceph():
     """
-    Try import ceph module, if failed, return None
+    Overview:
+        Try import ceph module, if failed, return None
 
     Returns:
         module: imported module, or None when ceph not found
@@ -30,7 +31,8 @@ def try_import_ceph():
 def try_import_link():
     global linklink_flag
     """
-    Try import linklink module, if failed, import nervex.utils.fake_linklink instead
+    Overview:
+        Try import linklink module, if failed, import nervex.tests.fake_linklink instead
 
     Returns:
         module: imported module (may be fake_linklink)
@@ -51,9 +53,10 @@ def try_import_link():
 
 def import_module(modules: List[str]) -> None:
     """
-    Import several module as a list
+    Overview:
+        Import several module as a list
     Args:
-        modules (list): List of module names
+        - modules (:obj:`list` of `str`): List of module names
     """
     for name in modules:
         importlib.import_module(name)

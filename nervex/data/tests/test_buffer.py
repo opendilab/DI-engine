@@ -51,12 +51,14 @@ class TestBaseBuffer:
         assert (setup_base_buffer.beta == 0.)
         assert (setup_base_buffer.alpha == 0.)
         assert (setup_base_buffer.validlen == start_vaildlen + valid_count)
+        assert (setup_base_buffer.push_count == start_vaildlen + 100)
         assert (setup_base_buffer.pointer == (start_pointer + 100) % setup_base_buffer.maxlen)
         assert (setup_base_buffer.latest_data_id == start_data_id + 100)
 
         # invalid item append test
         setup_base_buffer.append([])
         assert (setup_base_buffer.validlen == start_vaildlen + valid_count)
+        assert (setup_base_buffer.push_count == start_vaildlen + 100)
         assert (setup_base_buffer.pointer == (start_pointer + 100) % setup_base_buffer.maxlen)
         assert (setup_base_buffer.latest_data_id == start_data_id + 100)
 

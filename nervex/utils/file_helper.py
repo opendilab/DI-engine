@@ -7,14 +7,15 @@ import torch
 import fcntl
 from pathlib import Path
 
-from .import_utils import try_import_ceph
+from .import_helper import try_import_ceph
 
 ceph = try_import_ceph()
 
 
 def read_from_ceph(path: str) -> object:
     """
-    Overview: read file from ceph
+    Overview:
+        read file from ceph
     Arguments:
         - path (:obj:`str`): file path in ceph, start with "s3://"
     Returns:
@@ -30,7 +31,8 @@ def read_from_ceph(path: str) -> object:
 
 def read_from_file(path: str) -> object:
     """
-    Overview: read file from local file system
+    Overview:
+        read file from local file system
     Arguments:
         - path (:obj:`str`): file path in local file system
     Returns:
@@ -44,7 +46,8 @@ def read_from_file(path: str) -> object:
 
 def read_from_path(path: str):
     """
-    Overview: read file from ceph
+    Overview:
+        read file from ceph
     Arguments:
         - path (:obj:`str`): file path in ceph, start with "s3://", or use local file system
     Returns:
@@ -62,7 +65,8 @@ def read_from_path(path: str):
 
 def save_file_ceph(path, data):
     """
-    Overview: save pickle dumped data file to ceph
+    Overview:
+        save pickle dumped data file to ceph
     Arguments:
         - path (:obj:`str`): file path in ceph, start with "s3://", use file system when not
         - data (:obj:`anything`): could be dict, list or tensor etc.
@@ -92,6 +96,13 @@ def save_file_ceph(path, data):
 
 
 def read_file(path: str, fs_type: Union[None, str] = None) -> object:
+    r"""
+    Overview:
+        read file from path
+    Arguments:
+        - path (:obj:`str`): the path of file to read
+        - fs_type (:obj:`str` or :obj:`None`): the file system type, support 'normal' and 'ceph'
+    """
     if fs_type is None:
         fs_type = 'ceph' if path.lower().startswith('s3') else 'normal'
     assert fs_type in ['normal', 'ceph']
@@ -111,6 +122,14 @@ def read_file(path: str, fs_type: Union[None, str] = None) -> object:
 
 
 def save_file(path: str, data: object, fs_type: Union[None, str] = None) -> NoReturn:
+    r"""
+    Overview:
+        save data to file of path
+    Arguments:
+        - path (:obj:`str`): the path of file to save to
+        - data (:obj:`object`): the data to save
+        - fs_type (:obj:`str` or :obj:`None`): the file system type, support 'normal' and 'ceph'
+    """
     if fs_type is None:
         fs_type = 'ceph' if path.lower().startswith('s3') else 'normal'
     assert fs_type in ['normal', 'ceph']
@@ -129,6 +148,13 @@ def save_file(path: str, data: object, fs_type: Union[None, str] = None) -> NoRe
 
 
 def remove_file(path: str, fs_type: Union[None, str] = None) -> NoReturn:
+    r"""
+    Overview:
+        remove file
+    Arguments:
+        - path (:obj:`str`): the path of file you want to remove
+        - fs_type (:obj:`str` or :obj:`None`): the file system type, support 'normal' and 'ceph'
+    """
     if fs_type is None:
         fs_type = 'ceph' if path.lower().startswith('s3') else 'normal'
     assert fs_type in ['normal', 'ceph']
