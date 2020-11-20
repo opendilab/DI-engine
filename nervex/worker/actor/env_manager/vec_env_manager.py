@@ -4,6 +4,7 @@ from threading import Thread
 import enum
 import time
 import math
+import copy
 import traceback
 from functools import partial
 from types import MethodType
@@ -162,10 +163,22 @@ class SubprocessEnvManager(BaseEnvManager):
         handle = self._async_args['step']
         wait_num, timeout = min(handle['wait_num'], len(env_id)), handle['timeout']
         rest_env_id = list(set(env_id).union(self._waiting_env['step']))
-        rest_conn = [self._parent_remote[i] for i in rest_env_id]
-        ready_conn, ready_idx = SubprocessEnvManager.wait(rest_conn, wait_num, timeout)
-        ready_env_id = [rest_env_id[idx] for idx in ready_idx]
-        ret = {i: c.recv().data for i, c in zip(ready_env_id, ready_conn)}
+
+        ready_env_id = []
+        ret = {}
+        cur_rest_env_id = copy.deepcopy(rest_env_id)
+        while True:
+            rest_conn = [self._parent_remote[i] for i in cur_rest_env_id]
+            ready_conn, ready_idx = SubprocessEnvManager.wait(rest_conn, min(wait_num, len(rest_conn)), timeout)
+            cur_ready_env_id = [cur_rest_env_id[idx] for idx in ready_idx]
+            assert len(cur_ready_env_id) == len(ready_conn)
+            ret.update({i: c.recv().data for i, c in zip(cur_ready_env_id, ready_conn)})
+            ready_env_id += cur_ready_env_id
+            cur_rest_env_id = list(set(cur_rest_env_id).difference(set(cur_ready_env_id)))
+            # at least one no-done timestep or all the connection is ready
+            if len(ready_conn) == len(rest_conn) or any([not t.done for t in ret.values()]):
+                break
+
         self._check_data(ret.values())
 
         self._waiting_env['step']: set
