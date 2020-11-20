@@ -119,23 +119,30 @@ class ZerglingActor(BaseActor):
             self._step_count += 1
             if len(self._data_buffer[env_id]) == (self._adder_kwargs['data_push_length'] + 1):
                 # last data copy must be in front of obs_next
-                self._last_data_buffer[env_id] = copy.deepcopy(self._data_buffer[env_id])
                 last = self._data_buffer[env_id][-1]
-                data = self._data_buffer[env_id]
+                data = self._data_buffer[env_id][:-1]
+                self._last_data_buffer[env_id].clear()
+                self._last_data_buffer[env_id] = copy.deepcopy(data)
                 if self._adder_kwargs['use_gae']:
                     gamma = self._adder_kwargs['gamma']
                     gae_lambda = self._adder_kwargs['gae_lambda']
                     data = self._adder.get_gae(data, last['value'], gamma, gae_lambda)
-                self._traj_queue.put({'data': self._data_buffer[env_id], 'env_id': env_id, 'job': copy.deepcopy(self._job)})
-                self._data_buffer[env_id] = [self._data_buffer[env_id][-1]]
+                self._traj_queue.put({'data': data, 'env_id': env_id, 'job': copy.deepcopy(self._job)})
+                self._data_buffer[env_id].clear()
+                self._data_buffer[env_id].append(last)
             if t.done:
                 self._job_result[env_id].append(t.info)
                 self._logger.info('ACTOR({}): env{} finish episode in {}'.format(self._actor_uid, env_id, time.time()))
                 cur_len = len(self._data_buffer[env_id])
                 miss_len = self._adder_kwargs['data_push_length'] - cur_len
-                if miss_len > 0:
-                    self._data_buffer[env_id] = self._last_data_buffer[env_id][-miss_len:] + self._data_buffer[env_id]
-                self._traj_queue.put({'data': self._data_buffer[env_id], 'env_id': env_id, 'job': copy.deepcopy(self._job)})
+                data = self._last_data_buffer[env_id][-miss_len:] + self._data_buffer[env_id]
+                if self._adder_kwargs['use_gae']:
+                    gamma = self._adder_kwargs['gamma']
+                    gae_lambda = self._adder_kwargs['gae_lambda']
+                    data = self._adder.get_gae(data, torch.zeros(1), gamma, gae_lambda)
+                self._traj_queue.put({'data': data, 'env_id': env_id, 'job': copy.deepcopy(self._job)})
+                self._last_data_buffer[env_id].clear()
+                self._data_buffer[env_id].clear()
 
     # override
     def _finish_job(self) -> None:
