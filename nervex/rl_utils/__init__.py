@@ -6,3 +6,4 @@ from .td import q_nstep_td_data, q_nstep_td_error, q_1step_td_data, q_1step_td_e
 from .vtrace import vtrace_loss, compute_importance_weights
 from .upgo import upgo_loss
 from .adder import Adder
+from .value_rescale import value_inverse_h, value_transition_h
