@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from ..common_arch import QActorCriticBase, FCEncoder
 from nervex.utils import squeeze
@@ -60,13 +60,18 @@ class QAC(QActorCriticBase):
     def _setup_actor_encoder(self) -> torch.nn.Module:
         raise NotImplementedError
 
-    def _critic_forward(self, x: torch.Tensor) -> List[torch.Tensor]:
-        critic_ret = []
-        for i in range(self._critic_num):
-            ret = self._critic_encoder[i](x)
-            ret = self._critic[i](ret).squeeze(1)
-            critic_ret.append(ret)
-        return critic_ret
+    def _critic_forward(self, x: torch.Tensor, single: bool = False) -> Union[List[torch.Tensor], torch.Tensor]:
+        if single:
+            ret = self._critic_encoder[0](x)
+            ret = self._critic[0](ret).squeeze(1)
+            return ret
+        else:
+            critic_ret = []
+            for i in range(self._critic_num):
+                ret = self._critic_encoder[i](x)
+                ret = self._critic[i](ret).squeeze(1)
+                critic_ret.append(ret)
+            return critic_ret
 
     def _actor_forward(self, x: torch.Tensor) -> torch.Tensor:
         def scale(num, new_min, new_max):
@@ -84,21 +89,24 @@ class QAC(QActorCriticBase):
 
     def compute_action(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
-        action = self._actor_forward(state_input)
+        with torch.no_grad():
+            action = self._actor_forward(state_input)
         return {'action': action}
 
-    def optimize_actor(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, List[torch.Tensor]]:
+    def optimize_actor(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
         action = self._actor_forward(state_input)
-        # with torch.no_grad():
-        #     state_action_input = torch.cat([state_input, action], dim=1)
-        #     q = self._critic_forward(state_action_input)
         state_action_input = torch.cat([state_input, action], dim=1)
-        q = self._critic_forward(state_action_input)
-        for p in self._critic_encoder.parameters():
-            p.requires_grad = False
-        for p in self._critic.parameters():
-            p.requires_grad = False
+
+        # q = self._critic_forward(state_action_input, single=True)
+        # for p in self._critic_encoder.parameters():
+        #     p.requires_grad = False
+        # for p in self._critic.parameters():
+        #     p.requires_grad = False
+
+        with torch.no_grad():
+            q = self._critic_forward(state_action_input, single=True)
+        q.requires_grad = True
         return {'q': q}
 
 

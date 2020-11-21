@@ -1,5 +1,5 @@
 from collections import namedtuple
-from typing import Union, Optional
+from typing import Union, Optional, List
 
 import torch
 import torch.nn as nn
@@ -27,6 +27,7 @@ def q_1step_td_error(
     return (criterion(q_s_a, target_q_s_a.detach()) * weights).mean()
 
 
+# q & next_q are List[torch.Tensor]
 q_1step_td_data_continuous = namedtuple('td_data', ['q', 'next_q', 'act', 'reward', 'done'])
 
 
@@ -35,17 +36,19 @@ def q_1step_td_error_continuous(
         gamma: float,
         weights: Optional[torch.Tensor] = None,
         criterion: torch.nn.modules = nn.MSELoss(reduction='none')  # noqa
-) -> torch.Tensor:
+) -> List[torch.Tensor]:
     q, next_q, act, reward, done = data
+    assert isinstance(q, list) and isinstance(next_q, list)
     assert len(act.shape) == 1, act.shape
     assert len(reward.shape) == 1, reward.shape
     batch_range = torch.arange(act.shape[0])
     if weights is None:
         weights = torch.ones_like(reward)
-    q_s_a = q[batch_range]
-    target_q_s_a = next_q[batch_range]
+    q_s_a = [a_q[batch_range] for a_q in q]
+    target_q_s_a = [a_next_q[batch_range] for a_next_q in next_q]
+    target_q_s_a = min(target_q_s_a)
     target_q_s_a = gamma * (1 - done) * target_q_s_a + reward
-    return (criterion(q_s_a, target_q_s_a.detach()) * weights).mean()
+    return [(criterion(a_q_s_a, target_q_s_a.detach()) * weights).mean() for a_q_s_a in q_s_a]
 
 
 q_nstep_td_data = namedtuple('q_nstep_td_data', ['q', 'next_n_q', 'action', 'reward', 'done'])
