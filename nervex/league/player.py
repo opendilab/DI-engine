@@ -274,6 +274,17 @@ class BattleActivePlayer(ActivePlayer):
             else:
                 return False
 
+    def _get_opponent(self, p: Optional[np.ndarray] = None) -> Player:
+        # select an opponent
+        if p is None:
+            p = np.random.uniform()
+        L = len(self._branch_probs)
+        cum_p = [0.] + [sum([j.prob for j in self._branch_probs[:i + 1]]) for i in range(L)]
+        idx = [cum_p[i] <= p < cum_p[i + 1] for i in range(L)].index(True)
+        branch_name = self._name2branch(self._branch_probs[idx].name)
+        opponent = getattr(self, branch_name)()
+        return opponent
+
     # override
     def get_job(self, p: Optional[np.ndarray] = None) -> dict:
         """
@@ -287,15 +298,7 @@ class BattleActivePlayer(ActivePlayer):
             - ret_dict (:obj:`dict`): the job info dict
         """
         parent_dict = super().get_job()
-        # select an opponent
-        if p is None:
-            p = np.random.uniform()
-        L = len(self._branch_probs)
-        cum_p = [0.] + [sum([j.prob for j in self._branch_probs[:i + 1]]) for i in range(L)]
-        idx = [cum_p[i] <= p < cum_p[i + 1] for i in range(L)].index(True)
-        branch_name = self._name2branch(self._branch_probs[idx].name)
-        opponent = getattr(self, branch_name)()
-        my_dict = {'opponent': opponent}
+        my_dict = {'opponent': self._get_opponent(p)}
         return deep_merge_dicts(parent_dict, my_dict)
 
     def _name2branch(self, s: str) -> str:

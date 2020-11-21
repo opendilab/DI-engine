@@ -36,7 +36,6 @@ class SoloLeagueManager(BaseLeagueManager):
         """
         assert isinstance(player, ActivePlayer), player.__class__
         player_job_info = EasyDict(player.get_job())
-        # env_num = self.cfg.job.env_num
         model_config = copy.deepcopy(self.model_config)
         job_info = {
             'env_kwargs': player_job_info.env_kwargs,
