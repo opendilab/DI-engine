@@ -120,10 +120,10 @@ class ActivePlayer(Player):
         super(ActivePlayer, self).__init__(*args)
         self._one_phase_step = int(float(self._cfg.one_phase_step))  # ``one_phase_step`` is like 1e9
         self._last_enough_step = 0
-        if 'exploration' in self._cfg.forward_kwargs:
+        if 'eps' in self._cfg.forward_kwargs.exploration_type:
             self._exploration = epsilon_greedy(
-                self._cfg.forward_kwargs.exploration.start, self._cfg.forward_kwargs.exploration.end,
-                self._cfg.forward_kwargs.exploration.decay_len
+                self._cfg.forward_kwargs.eps_kwargs.start, self._cfg.forward_kwargs.eps_kwargs.end,
+                self._cfg.forward_kwargs.eps_kwargs.decay_len
             )
         else:
             self._exploration = None
@@ -202,9 +202,8 @@ class ActivePlayer(Player):
 
     def _get_job_forward(self) -> dict:
         ret = {}
-        if 'exploration' in self._cfg.forward_kwargs:
-            if self._cfg.forward_kwargs.exploration.use_eps:
-                ret['eps'] = self._exploration(self.total_agent_step)
+        if 'eps' in self._cfg.forward_kwargs.exploration_type:
+            ret['eps'] = self._exploration(self.total_agent_step)
         return ret
 
     def _get_job_adder(self) -> dict:
