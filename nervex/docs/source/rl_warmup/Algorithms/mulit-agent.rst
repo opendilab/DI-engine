@@ -1,6 +1,65 @@
 Multi Agent Reinforcement Learning
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+
+COMA
+^^^^^^^^^^^^^^
+COMA由牛津大学的实验室在2017年提出，后来论文 `Counterfactual Multi-Agent Policy Gradients <https://www.aaai.org/ocs/index.php/AAAI/AAAI18/paper/view/17193/16614>`_ 被收录在2018年的AAAI会议上。
+
+
+
+MADDPG
+^^^^^^^^^^^^
+MADDPG由OpenAI和UC Berkeley在2017年的NIPS会议上的论文 
+`Multi-Agent Actor-Critic for Mixed Cooperative-Competitive Environments  <https://papers.nips.cc/paper/2017/file/68a9750337a418a86fe06c1991a1d64c-Paper.pdf>`_ 中提出。
+
+在论文中，首先阐述了当时在MultiAgent的setting下，已有的传统independent RL方式问题。
+
+随后提出了一种基于actor-critic的改进：通过分布式的actor和中心化的critic，使得各个分布的actor能够考虑到其他actor的策略，
+并且通过实验，在一系列的需要多智能体合作的环境上获得了进展，证明了该方法可以在该setting下学习到相对复杂的多智能体协作过程。
+
+论文也提出了一系列的基于多智能体设定下的可能改进，包括让各个agent去维持对其他agent策略的一个估计，
+不断进行对应的调整，使得各个agent在选取自己的action前能够通过所维持估计去猜测其他agent所做的行动，
+一定程度上达到协作的目的，即 **Inferring Policies** 。
+同时，由于agent在其他agent策略改变的前提下，因为对之前的其他agent的策略已经产生overfitting，
+就很容易导致无法适应其他agent策略的情况，因此文章提出通过让每个agent维持并随机使用多个策略，达到降低overfitting情况的效果，
+即 **Policu Ensembles** 。
+
+该论文所使用的环境也由OpenAI开源，并且被很多MARL的论文所使用。nerveX也会迁移配置这些环境进行，方便进行实验。
+
+传统RL存在的问题
+''''''''''''''''''''''''''''
+传统的深度学习主要可以分为value based算法和policy based算法两大类。而这两种方法在MultiAgent的设定下都有其缺点：
+
+1.Value based的算法，如Q-learning等，由于其他agent的策略相对不可见，且训练过程中在不断变化，因此任意一个agent个体，
+其所看到的环境（其他agent的策略行为也可看作是本agent的环境）是在不断变化的，即 **环境不稳定** ，而这会导致算法的稳定性出现问题。
+稳定性问题会导致算法的收敛问题，更会导致 **experience replay的不可用** ，因为之前agent在当时环境下的action和对应reward对已经产生变化后的agent不再有指导意义。
+同时，由于其他agent的策略不可见，因此问题不再满足Markov假设，问题设定从MDP过程退化为了POMDP（Partially Observed Markov Decision Process），
+Q-learning不再有收敛保证，问题变得不可解。
+
+2.Policy based的算法，以Policy Gradient即策略梯度下降为例，常常收到 **过高方差** 的困扰。
+而在多智能体的设定下，这种问题会进一步变得严重： 各个agent所获得的reward会因其他agent的action产生变化，而在优化过程中agent无法考虑到其他agent的策略，因此会导致更高的方差。
+同时Policy base的算法常常用baseline的方式去缓解训练中的高方差，但是在MultiAgent的设定下则会由于先前提到的 **不稳定** 问题而变得难以使用。
+
+Multi Agent Actor-Critic (MADDPG)
+''''''''''''''''''''''''''''''''''''''
+
+
+
+对其他agent进行策略估计（Inferring Policies）
+'''''''''''''''''''''''''''''''''''''''''''
+
+
+
+维持多个策略（Policy Ensembles）
+''''''''''''''''''''''''''''''''''''
+
+
+
+实验及实验环境
+''''''''''''''''''''''''''''''''''''
+
+
 QMIX
 ^^^^^^^^^^^^^
 
