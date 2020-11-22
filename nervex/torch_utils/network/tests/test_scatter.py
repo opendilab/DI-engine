@@ -9,7 +9,7 @@ class TestScatterConnection:
     def test_naive(self):
         for scatter_type in ['add', 'cover']:
             model = ScatterConnection(scatter_type)
-            B, M, N = 2, 2, 2
+            B, M, N = 2, 24, 32
             H, W = 2, 3
             input = torch.rand(B, M, N).requires_grad_(True)
             h = torch.randint(
