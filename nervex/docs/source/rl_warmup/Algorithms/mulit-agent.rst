@@ -13,7 +13,7 @@ MADDPG
 MADDPG由OpenAI和UC Berkeley在2017年的NIPS会议上的论文 
 `Multi-Agent Actor-Critic for Mixed Cooperative-Competitive Environments  <https://papers.nips.cc/paper/2017/file/68a9750337a418a86fe06c1991a1d64c-Paper.pdf>`_ 中提出。
 
-在论文中，首先阐述了当时在MultiAgent的setting下，已有的传统independent RL方式问题。
+论文首先阐述了当时在MultiAgent的setting下，已有的传统independent RL方式问题。
 
 随后提出了一种基于actor-critic的改进：通过分布式的actor和中心化的critic，使得各个分布的actor能够考虑到其他actor的策略，
 并且通过实验，在一系列的需要多智能体合作的环境上获得了进展，证明了该方法可以在该setting下学习到相对复杂的多智能体协作过程。
@@ -43,21 +43,66 @@ Q-learning不再有收敛保证，问题变得不可解。
 
 Multi Agent Actor-Critic (MADDPG)
 ''''''''''''''''''''''''''''''''''''''
+MADDPG的使用设定中，学习到的policy在运行时只能使用自己的observation，并且没有假设任何在agent之间的特殊通信结构。在这种设定下，MADDPG算法给出了一个可广泛应用的算法。
 
+MADDPG采用了集中训练，分布执行的方式。在训练过程中，可以允许policy使用额外的信息去降低训练的难度，只要在进行执行的时候没有使用额外的信息即可。
+在这种情况下，MADDPG在actor-critic policy gradient的基础上做了一个简单的拓展，即将在训练时使用额外的关于其他agent的信息去增强critic的训练。
+
+MADDPG的模型示意图如下：
+
+    .. image:: images/MADDPG-model.jpg
+        :align: center
+
+我们从示意图就可以看出，MADDPG对于每个agent单独训练了一个critic :math:`Q_i` ，这也是MADDPG与COMA算法的一大不同。
+
+各个Agent的梯度 :math:`\nabla J_i` 可以写为下式：
+    
+    .. image:: images/MADDPG-gradient.jpg
+        :align: center
+
+其中 :math:`Q_{i}^{\pi}(\boldsymbol{x},a_1, ...,a_N)` 是中心化的action-value函数，使用所有agent的action和一些状态信息 :math:`\boldsymbol{x}` 作为输入。
+对于 :math:`\boldsymbol{x}` 来说，一种简单是实现即为 :math:`\boldsymbol{x} = (o_1, ...,o_N)` 。
+
+鉴于 :math:`Q_i^{\pi}` 是分开训练的，因此不同的agent可以有不同的reward架构，因此MADDPG也可以在competive的设定下使用。
+
+而在DDPG的设定下，也可写为下式：
+
+    .. image:: images/MADDPG-gradient-ddpg.jpg
+        :align: center
+
+其中D代表replay buffer，存放 :math:`(\boldsymbol{x}, \boldsymbol{x'}, a_1, ...,a_N, r_1, ..., r_N)` 。
+
+这时，中心化的 :math:`Q_i^{\pi}` 可以有下式更新
+
+    .. image:: images/MADDPG-update.jpg
+        :align: center
 
 
 对其他agent进行策略估计（Inferring Policies）
 '''''''''''''''''''''''''''''''''''''''''''
+为了移去中心化critic中知道其他agent policy的假设，我们让每个agent i去额外维持对其他每个agent j的policy的近似估计。
+近似估计的policy可以使用最大化agent j action log概率的方式，再加上一个entropy regularizer。
+我们可以用 :math:`\hat{\mu_i^j}` 表示agent i 对agent j的策略的近似估计，则agent i 中critic的估计价值可以改写成：
 
+    .. image:: images/MADDPG-esti.jpg
+        :align: center
 
+同时，对agent j的策略估计可以完全online进行。
 
 维持多个策略（Policy Ensembles）
 ''''''''''''''''''''''''''''''''''''
+为了一定程度上缓解agent对其他agent的policy产生over-fitting的问题，增加agent策略的鲁棒性，可以让每个agent维持K个子策略，在每个episode随机选择一个子策略进行执行。
 
+由于每个子策略在不同的episode去执行，各个子策略的训练也很简单，只需要为每个子策略维持一个buffer即可。
 
 
 实验及实验环境
 ''''''''''''''''''''''''''''''''''''
+本篇的实验是在2D的小球物理仿真模型环境中进行的，实验环境开源且很具有代表性。
+
+各个算法的实验结果可以见 `视频 <https://sites.google.com/site/multiagentac/>`_ 。
+
+OpenAI也将其 `实验环境 <https://github.com/openai/multiagent-particle-envs>`_ 开源放出，我们也会将其整合到我们的nerveX框架中。
 
 
 QMIX
