@@ -2,12 +2,6 @@ Multi Agent Reinforcement Learning
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-COMA
-^^^^^^^^^^^^^^
-COMA由牛津大学的实验室在2017年提出，后来论文 `Counterfactual Multi-Agent Policy Gradients <https://www.aaai.org/ocs/index.php/AAAI/AAAI18/paper/view/17193/16614>`_ 被收录在2018年的AAAI会议上。
-
-
-
 MADDPG
 ^^^^^^^^^^^^
 MADDPG由OpenAI和UC Berkeley在2017年的NIPS会议上的论文 
@@ -41,8 +35,8 @@ Q-learning不再有收敛保证，问题变得不可解。
 而在多智能体的设定下，这种问题会进一步变得严重： 各个agent所获得的reward会因其他agent的action产生变化，而在优化过程中agent无法考虑到其他agent的策略，因此会导致更高的方差。
 同时Policy base的算法常常用baseline的方式去缓解训练中的高方差，但是在MultiAgent的设定下则会由于先前提到的 **不稳定** 问题而变得难以使用。
 
-Multi Agent Actor-Critic (MADDPG)
-''''''''''''''''''''''''''''''''''''''
+Multi Agent Actor-Critic (MADDPG)算法
+'''''''''''''''''''''''''''''''''''''''''
 MADDPG的使用设定中，学习到的policy在运行时只能使用自己的observation，并且没有假设任何在agent之间的特殊通信结构。在这种设定下，MADDPG算法给出了一个可广泛应用的算法。
 
 MADDPG采用了集中训练，分布执行的方式。在训练过程中，可以允许policy使用额外的信息去降低训练的难度，只要在进行执行的时候没有使用额外的信息即可。
@@ -79,7 +73,7 @@ MADDPG的模型示意图如下：
 
 
 对其他agent进行策略估计（Inferring Policies）
-'''''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 为了移去中心化critic中知道其他agent policy的假设，我们让每个agent i去额外维持对其他每个agent j的policy的近似估计。
 近似估计的policy可以使用最大化agent j action log概率的方式，再加上一个entropy regularizer。
 我们可以用 :math:`\hat{\mu_i^j}` 表示agent i 对agent j的策略的近似估计，则agent i 中critic的估计价值可以改写成：
@@ -102,7 +96,87 @@ MADDPG的模型示意图如下：
 
 各个算法的实验结果可以见 `视频 <https://sites.google.com/site/multiagentac/>`_ 。
 
-OpenAI也将其 `实验环境 <https://github.com/openai/multiagent-particle-envs>`_ 开源放出，我们也会将其整合到我们的nerveX框架中。
+OpenAI也将其实验环境 `Multi-Agent_Particle_Environment <https://github.com/openai/multiagent-particle-envs>`_ 开源放出，我们也会将其整合到我们的nerveX框架中。
+
+
+COMA
+^^^^^^^^^^^^^^
+COMA由牛津大学的实验室在2017年提出，后来论文 `Counterfactual Multi-Agent Policy Gradients <https://www.aaai.org/ocs/index.php/AAAI/AAAI18/paper/view/17193/16614>`_ 被收录在2018年的AAAI会议上。
+
+COMA与DDPG同样是基于actor-critic的多智能体强化学习算法，但是与MADDPG在实现方面有许多不同。
+
+COMA不同于MADDPG，COMA的critic是将所有agent的状态和动作输入，同时计算所有agent对应的value，而MADDPG是对每个不同的agent单独训练不同的critic网络。
+COMA使用的算法适用于离散型的action space，而MADDPG则是适用于连续性的action space。
+
+COMA在一定程度上尝试解决了critic assign问题。COMA收到 `difference_rewards <https://www.researchgate.net/publication/2831330_Optimal_Payoff_Functions_for_Members_of_Collectives>`_ 的启发，
+通过构造和使用 **counterfactual baseline** ，可以对比当前agent所选动作相较于其他可选动作，是否作出该动作对整体reward产生了利益。
+
+COMA的实验在StarCraft微操环境中进行，该环境也被很多MARL选用为测试环境，有一定代表性。
+
+传统RL存在的问题
+'''''''''''''''''''
+如果使用传统的RL算法，可能存在以下问题：
+
+1. 输入的action space将会是所有agent的联合动作空间（joint action space），action space大小会随着agent数量增加而指数上升。
+
+2. 在多智能体的设定下，agent只能依照自己当前的local observation做决策，无法与其他agent进行信息共享，导致agent无法完成协作。
+
+3. 每个agent所获得的reward是所有agent action获得的共同的reward，而这样每个agent就很难知道自己这次动作应该得到多少回报。
+别的agent如果做出正确/错误的动作会导致当前agent对自己所做动作的价值判断不准确，训练过程产生 **高方差** 。
+
+COMA算法
+''''''''''''''''''''''''''''''
+COMA算法的设计思路是使用centralized的critic去对decentralised actors的policy去进行评判和估计，其结构示意图如下：
+
+    .. image:: images/COMA-model.jpg
+        :align: center
+
+而COMA的actor和critic的网络结构如下：
+
+    .. image:: images/COMA-network.jpg
+        :align: center
+
+记 :math:`Q(s, \boldsymbol{u})` 以central state :math:`s` 和joint action :math:`\boldsymbol{u}` 为输入的Q值估计，则其计算每个agent所选动作对应的advantage为：
+
+    .. image:: images/COMA-advantage.jpg
+        :align: center
+
+COMA的advantage选取巧妙的地方就在于，尽管其policy function和utility function相互递归迭代会产生自包含问题，
+但是由于advantage的作用是对梯度做选取，而advantage的期望梯度贡献值是0，因此不会由于自身的递归迭代而产生自包含问题。
+这个advantage就被称为 **counterfactual baseline** ，是COMA解决credit assign问题的solution。
+
+同时值得注意的是，COMA算法critic部分的输出的大小为 :math:`|U|` 而不是 :math:`|U|^n` ，即critic在输出的时候是分别输出每个actor的动作所对应的value值，
+因此总共的输出是 :math: `n*|U|` 而非 :math:`|U|^n` 。 COMA通过这种方式规避了joint action space随着agent数量上升指数增加的问题。
+
+COMA的具体算法如下：
+
+    .. image:: images/COMA-algo.jpg
+        :align: center
+
+.. note::
+    
+    我们可以看到COMA算法在实现过程中使用了buffer，那么这是否意味着COMA是Offline算法呢？
+
+    答案是否定的，COMA算法虽然将数据collect到了buffer里面，但是只使用了当前策略的数据去更新当前策略。
+    算法在calculate COMA和accumulate actor gradients之后其策略改变，也随之对buffer进行了清空，所以COMA算法是Online算法。
+
+实验和实验环境
+'''''''''''''''
+COMA在StarCraft环境下分别与 使用Q值的Independent Actor-Critic、使用V值的Independent Actor-Critic，COMA中心化的QV值估计，COMA中心化的V值估计 进行了对比实验，结果如下图：
+
+    .. image:: images/COMA-experiment.jpg
+        :scale: 70%
+        :align: center
+
+StarCraft的2d3z环境图：
+
+    .. image:: images/COMA-2d3z.jpg
+        :align: center
+
+
+StarCraft的实验环境是通过TorchCraft实现，该环境发布在 Torchcraft: a library for machine learning research on real- time strategy games 一文中。
+在github上也开源了 `Torchcraft代码 <https://github.com/TorchCraft/TorchCraft>`_ 
+
 
 
 QMIX
