@@ -30,7 +30,10 @@ def sequence_mask(lengths, max_len=None):
     if len(lengths.shape) == 1:
         lengths = lengths.unsqueeze(dim=1)
     bz = lengths.numel()
-    max_len = max_len or lengths.max()
+    if max_len is None:
+        max_len = lengths.max()
+    else:
+        max_len = min(max_len, lengths.max())
     return torch.arange(0, max_len).type_as(lengths).repeat(bz, 1).lt(lengths).to(lengths.device)
 
 
