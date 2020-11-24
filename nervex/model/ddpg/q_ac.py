@@ -19,6 +19,11 @@ class QAC(QActorCriticBase):
             use_twin_critic: bool = False
     ) -> None:
         super(QAC, self).__init__()
+
+        def backward_hook(module, grad_input, grad_output):
+            for p in module.parameters():
+                p.requires_grad = True
+
         self._act = nn.ReLU()
         # input info
         self._obs_dim: int = squeeze(obs_dim)
@@ -30,6 +35,7 @@ class QAC(QActorCriticBase):
         # encoder
         self._critic_num = 2 if use_twin_critic else 1
         self._critic_encoder = nn.ModuleList([self._setup_critic_encoder() for _ in range(self._critic_num)])
+        self._critic_encoder[0].register_forward_hook(backward_hook)
         self._actor_encoder = self._setup_actor_encoder()
         # head
         self._head_layer_num = 2
@@ -53,6 +59,7 @@ class QAC(QActorCriticBase):
                 critic_input_dim = head_hidden_dim
             layers.append(nn.Linear(critic_input_dim, 1))
             self._critic.append(nn.Sequential(*layers))
+        self._critic[0].register_backward_hook(backward_hook)
 
     def _setup_critic_encoder(self) -> torch.nn.Module:
         raise NotImplementedError
@@ -74,6 +81,7 @@ class QAC(QActorCriticBase):
             return critic_ret
 
     def _actor_forward(self, x: torch.Tensor) -> torch.Tensor:
+
         def scale(num, new_min, new_max):
             return (num + 1) / 2 * (new_max - new_min) + new_min
 
@@ -98,15 +106,12 @@ class QAC(QActorCriticBase):
         action = self._actor_forward(state_input)
         state_action_input = torch.cat([state_input, action], dim=1)
 
-        # q = self._critic_forward(state_action_input, single=True)
-        # for p in self._critic_encoder.parameters():
-        #     p.requires_grad = False
-        # for p in self._critic.parameters():
-        #     p.requires_grad = False
+        for p in self._critic_encoder[0].parameters():
+            p.requires_grad = False  # will set True when backward_hook called
+        for p in self._critic[0].parameters():
+            p.requires_grad = False  # will set True when backward_hook called
+        q = self._critic_forward(state_action_input, single=True)
 
-        with torch.no_grad():
-            q = self._critic_forward(state_action_input, single=True)
-        q.requires_grad = True
         return {'q': q}
 
 
