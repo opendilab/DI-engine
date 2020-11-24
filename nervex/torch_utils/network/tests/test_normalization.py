@@ -20,8 +20,6 @@ class TestNormalization:
     def test(self):
         with pytest.raises(KeyError):
             norm = build_normalization('XXXN')
-        with pytest.raises(NotImplementedError):
-            norm = build_normalization('LN', dim=2)
         input1d = torch.rand(batch_size, num_features).requires_grad_(True)
         input2d = torch.rand(batch_size, num_features, H, W).requires_grad_(True)
 

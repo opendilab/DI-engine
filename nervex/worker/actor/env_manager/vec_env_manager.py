@@ -114,6 +114,9 @@ class SubprocessEnvManager(BaseEnvManager):
     def launch(self, reset_param: Union[None, List[dict]] = None) -> None:
         assert self._closed, "please first close the env manager"
         self._create_state()
+        self.reset(reset_param)
+
+    def reset(self, reset_param: Union[None, List[dict]] = None) -> None:
         if reset_param is None:
             reset_param = [{} for _ in range(self.env_num)]
         self._reset_param = reset_param
@@ -124,7 +127,7 @@ class SubprocessEnvManager(BaseEnvManager):
             ret = [p.recv().data for p in self._parent_remote]
             self._check_data(ret)
 
-        # launch env
+        # reset env
         for i in range(self.env_num):
             self._reset(i)
 

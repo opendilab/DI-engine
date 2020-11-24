@@ -23,6 +23,7 @@ class AtariRunner(SingleMachineRunner):
             env_num=actor_env_num,
             episode_num=self.cfg.actor.episode_num
         )
+        self.actor_env.launch()
 
         eval_env_num = self.cfg.evaluator.env_num
         evaluate_env_cfg = copy.deepcopy(self.cfg.env)
@@ -33,6 +34,7 @@ class AtariRunner(SingleMachineRunner):
             env_num=eval_env_num,
             episode_num=self.cfg.evaluator.episode_num
         )
+        self.evaluate_env.launch()
 
     def _setup_learner(self):
         if self.algo_type == 'dqn':

@@ -44,10 +44,11 @@ env:
     placeholder: 'placeholder'
 actor:
     env_num: 10
-    episode_num: 1
-    print_freq: 500
+    episode_num: 'inf'
+    print_freq: 100
 evaluator:
-    env_num: 10
-    episode_num: 1
+    env_num: 5
+    episode_num: 'inf'
+    total_episode_num: 10  # total evaluate episode_num 
     eval_step: 1500
     stop_val: 39 # 195//5
