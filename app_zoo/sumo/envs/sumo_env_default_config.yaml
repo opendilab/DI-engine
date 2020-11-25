@@ -37,3 +37,5 @@ env:
     reward:
         reward_type:  [queue_len, wait_time, delay_time] # [queue_len, wait_time, delay_time]
         reduce_by_tl: True  # if True, reward will be reduced among all the traffic lights(centralized model), otherwise(multi-agent)
+        reward_weight:
+            queue_len: 1.0

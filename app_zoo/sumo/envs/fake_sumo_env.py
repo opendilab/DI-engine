@@ -39,9 +39,9 @@ class FakeSumoWJ3Env(SumoWJ3Env):
 
     def step(self, action: list) -> 'FakeSumoWJ3Env.timestep':
         obs = torch.randn(380)
-        reward = {k: -torch.rand(1) for k in ['queue_len', 'wait_time', 'delay_time']}
+        reward = -torch.randn(1)
         done = self.count >= 200
-        info = {'eval_reward': -torch.rand(1).item()}
+        info = {}
         self.count += 1
         return FakeSumoWJ3Env.timestep(obs, reward, done, info)
 

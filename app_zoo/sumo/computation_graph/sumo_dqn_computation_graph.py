@@ -14,17 +14,10 @@ class SumoDqnGraph(BaseCompGraph):
         self._gamma = cfg.dqn.discount_factor
         self._reward_weights = cfg.reward_weights
 
-    def get_weighted_reward(self, reward: dict) -> torch.Tensor:
-        if len(self._reward_weights) >= 2:
-            reward = sum(map(lambda x: reward[x] * self._reward_weights[x], self._reward_weights.keys()))
-        else:
-            reward = reward[list(self._reward_weights.keys())[0]]
-        return reward
-
     def forward(self, data: dict, agent: BaseAgent) -> dict:
         obs = data.get('obs')
         next_obs = data.get('next_obs')
-        reward = self.get_weighted_reward(data['reward'])
+        reward = data['reward']
 
         action = data['action']
         done = data['done'].float()
