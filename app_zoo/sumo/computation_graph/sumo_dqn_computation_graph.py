@@ -12,7 +12,6 @@ class SumoDqnGraph(BaseCompGraph):
 
     def __init__(self, cfg: dict) -> None:
         self._gamma = cfg.dqn.discount_factor
-        self._reward_weights = cfg.reward_weights
 
     def forward(self, data: dict, agent: BaseAgent) -> dict:
         obs = data.get('obs')
