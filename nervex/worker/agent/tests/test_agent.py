@@ -9,6 +9,35 @@ from nervex.torch_utils import get_lstm
 from nervex.worker.agent.base_agent import BaseAgent, AgentAggregator
 
 
+class TempMLP(torch.nn.Module):
+
+    def __init__(self):
+        super(TempMLP, self).__init__()
+        self.fc1 = nn.Linear(3, 4)
+        self.bn1 = nn.BatchNorm1d(4)
+        self.fc2 = nn.Linear(4, 6)
+        self.act = nn.ReLU()
+
+    def forward(self, x):
+        x = self.fc1(x)
+        x = self.bn1(x)
+        x = self.act(x)
+        x = self.fc2(x)
+        x = self.act(x)
+        return x
+
+
+class TempLSTM(torch.nn.Module):
+
+    def __init__(self):
+        super(TempLSTM, self).__init__()
+        self.model = get_lstm(lstm_type='pytorch', input_size=36, hidden_size=32, num_layers=2, norm_type=None)
+
+    def forward(self, data):
+        output, next_state = self.model(data['f'], data['prev_state'], list_next_state=True)
+        return {'output': output, 'next_state': next_state}
+
+
 @pytest.fixture(scope='function')
 def setup_model():
     return torch.nn.Linear(3, 6)
@@ -66,16 +95,6 @@ class TestAgentPlugin:
 
     def test_hidden_state_helper(self):
 
-        class TempLSTM(torch.nn.Module):
-
-            def __init__(self):
-                super(TempLSTM, self).__init__()
-                self.model = get_lstm(lstm_type='pytorch', input_size=36, hidden_size=32, num_layers=2, norm_type=None)
-
-            def forward(self, data):
-                output, next_state = self.model(data['f'], data['prev_state'], list_next_state=True)
-                return {'output': output, 'next_state': next_state}
-
         model = TempLSTM()
         state_num = 4
         plugin_cfg = OrderedDict(
@@ -120,23 +139,6 @@ class TestAgentPlugin:
 
     def test_target_network_helper(self):
 
-        class TempMLP(torch.nn.Module):
-
-            def __init__(self):
-                super(TempMLP, self).__init__()
-                self.fc1 = nn.Linear(3, 4)
-                self.bn1 = nn.BatchNorm1d(4)
-                self.fc2 = nn.Linear(4, 6)
-                self.act = nn.ReLU()
-
-            def forward(self, x):
-                x = self.fc1(x)
-                x = self.bn1(x)
-                x = self.act(x)
-                x = self.fc2(x)
-                x = self.act(x)
-                return x
-
         model = TempMLP()
         plugin_cfg = {
             'grad': {
@@ -166,3 +168,45 @@ class TestAgentPlugin:
         output = agent.forward(inputs)
         output_target = agent.target_forward(inputs)
         assert output.eq(output_target).sum() == 2 * 6
+
+    def test_teacher_network_helper(self):
+        model = TempLSTM()
+        plugin_cfg = {
+            'hidden_state': {
+                'state_num': 4,
+                'save_prev_state': True,
+            },
+            'teacher': {
+                'teacher_cfg': {},
+            },
+        }
+        plugin_cfg = OrderedDict(plugin_cfg)
+        agent = AgentAggregator(BaseAgent, model, plugin_cfg)
+        assert all([hasattr(agent, n) for n in ['teacher_reset', 'teacher_mode', 'teacher_forward', 'teacher_update']])
+        agent.mode(train=True)
+        agent.teacher_mode(train=False)
+        agent.reset()
+        agent.teacher_reset()
+        assert all([m.ne(t).sum() == 0 for m, t in zip(agent.model.parameters(), agent.teacher_model.parameters())])
+        for p in agent.model.parameters():
+            p.data = torch.randn_like(p)
+        assert all([m.eq(t).sum() == 0 for m, t in zip(agent.model.parameters(), agent.teacher_model.parameters())])
+        agent.teacher_update(agent.model.state_dict())
+        assert all([m.ne(t).sum() == 0 for m, t in zip(agent.model.parameters(), agent.teacher_model.parameters())])
+        data = {'f': torch.randn(2, 4, 36)}
+        output = agent.forward(data)
+        assert set(output.keys()) == {'output', 'prev_state'}
+        assert all([p is None for p in output['prev_state']])
+        output = agent.teacher_forward(data)
+        assert set(output.keys()) == {'output', 'prev_state'}
+        assert all([p is None for p in output['prev_state']])
+        data = {'f': torch.randn(2, 3, 36)}
+        output_main = agent.forward(data, state_id=[0, 1, 2])
+        output_teacher = agent.teacher_forward(data, state_id=[0, 1, 3])
+        for i in [0, 1]:
+            assert output_main['output'][:, i].ne(output_teacher['output'][:, i]).sum() == 0
+        assert output_main['output'][:, 2].eq(output_teacher['output'][:, 2]).sum() == 0
+        assert len(output_main['prev_state']) == 3
+        assert all([len(p) == 2 for p in output_main['prev_state']])
+        assert len(output_teacher['prev_state']) == 3
+        assert all([len(p) == 2 for p in output_teacher['prev_state']])

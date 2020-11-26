@@ -212,7 +212,17 @@ class TargetNetworkHelper(IAgentStatefulPlugin):
     def register(cls: type, agent: Any, update_cfg: dict):
         target_network = cls(agent.model, update_cfg)
         agent._target_network = target_network
+
+        def reset_wrapper(reset_fn):
+
+            def wrapper(*args, **kwargs):
+                agent._target_network.reset()
+                return reset_fn(*args, **kwargs)
+
+            return wrapper
+
         setattr(agent, 'update', getattr(agent._target_network, 'update'))
+        agent.reset = reset_wrapper(agent.reset)
 
     def __init__(self, model: torch.nn.Module, update_cfg: dict) -> None:
         self._model = model
@@ -240,6 +250,25 @@ class TargetNetworkHelper(IAgentStatefulPlugin):
         self._update_count = 0
 
 
+class TeacherNetworkHelper(IAgentStatefulPlugin):
+
+    @classmethod
+    def register(cls: type, agent: Any, teacher_cfg: dict) -> None:
+        teacher_network = cls(agent.model, teacher_cfg)
+        agent._teacher_network = teacher_network
+        setattr(agent, 'update', getattr(agent._teacher_network, 'update'))
+
+    def __init__(self, model: torch.nn.Module, teacher_cfg: dict) -> None:
+        self._model = model
+        self._cfg = teacher_cfg
+
+    def update(self, state_dict: dict) -> None:
+        self._model.load_state_dict(state_dict, strict=True)
+
+    def reset(self) -> None:
+        pass
+
+
 plugin_name_map = {
     'grad': GradHelper,
     'hidden_state': HiddenStateHelper,
@@ -248,6 +277,7 @@ plugin_name_map = {
     'multinomial_sample': MultinomialSampleHelper,
     # model plugin
     'target': TargetNetworkHelper,
+    'teacher': TeacherNetworkHelper,
 }
 
 

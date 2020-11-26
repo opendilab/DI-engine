@@ -40,7 +40,7 @@ class BaseAgent(ABC):
         pass
 
 
-model_plugin_cfg_set = set(['target'])
+model_plugin_cfg_set = set(['target', 'teacher'])
 
 
 class AgentAggregator(object):
