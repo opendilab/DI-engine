@@ -2,6 +2,7 @@ import math
 from abc import ABC, abstractmethod
 from typing import Callable, Union, Optional
 from copy import deepcopy
+from easydict import EasyDict
 
 import torch
 
@@ -40,8 +41,8 @@ class BaseNoise(ABC):
     Interface:
         __init__, reset, __call__
     Examples:
-        >>> self.noise = OUNoise()  # init one type of noise
-        >>> noise = self.noise(logits.shape, logits.device)  # generate noise
+        >>> noise_generator = OUNoise()  # init one type of noise
+        >>> noise = noise_generator(action.shape, action.device)  # generate noise
     """
 
     def __init__(self) -> None:
@@ -75,9 +76,9 @@ class GaussianNoise(BaseNoise):
     """
 
     def __init__(
-            self,
-            mu: float = 0.0,
-            sigma: float = 1.0
+        self,
+        mu: float = 0.0,
+        sigma: float = 1.0
     ) -> None:
         """
         Overview:
@@ -184,5 +185,29 @@ class OUNoise(BaseNoise):
         """
         self._x0 = _x0
         self.reset()
+
+
+noise_mapping = {
+    'gauss': GaussianNoise,
+    'ou': OUNoise
+}
+
+
+def create_noise_generator(noise_type: str, *args, **kwargs) -> BaseNoise:
+    """
+    Overview:
+        Given the key (noise_type), create a new noise generator instance if in noise_mapping's values,
+        or raise an KeyError. In other words, a derived noise generator must first register,
+        then call ``create_noise generator`` to get the instance object.
+    Arguments:
+        - noise_type (:obj:`str`): the type of noise generator to be created
+    Returns:
+        - noise (:obj:`BaseNoise`): the created new noise generator, should be an instance of one of \
+            noise_mapping's values
+    """
+    if noise_type not in noise_mapping.keys():
+        raise KeyError("not support noise type: {}".format(noise_type))
+    else:
+        return noise_mapping[noise_type](*args, **kwargs)
 
 

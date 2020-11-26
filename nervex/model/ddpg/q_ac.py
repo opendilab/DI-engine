@@ -3,7 +3,7 @@ import torch.nn as nn
 from typing import Dict, List, Union
 
 from ..common_arch import QActorCriticBase, FCEncoder
-from nervex.utils import squeeze
+from nervex.utils import squeeze, deep_merge_dicts
 
 
 class QAC(QActorCriticBase):
@@ -13,8 +13,8 @@ class QAC(QActorCriticBase):
             obs_dim: tuple,
             action_dim: int,
             action_range: dict,
-            state_action_embedding_dim: int,
-            state_embedding_dim: int,
+            state_action_embedding_dim: int = 64,
+            state_embedding_dim: int = 64,
             head_hidden_dim: int = 128,
             use_twin_critic: bool = False
     ) -> None:
@@ -33,10 +33,10 @@ class QAC(QActorCriticBase):
         self._state_action_embedding_dim = state_action_embedding_dim
         self._state_embedding_dim = state_embedding_dim
         # encoder
+        self._actor_encoder = self._setup_actor_encoder()
         self._critic_num = 2 if use_twin_critic else 1
         self._critic_encoder = nn.ModuleList([self._setup_critic_encoder() for _ in range(self._critic_num)])
-        self._critic_encoder[0].register_forward_hook(backward_hook)
-        self._actor_encoder = self._setup_actor_encoder()
+        self._critic_encoder[0].register_backward_hook(backward_hook)
         # head
         self._head_layer_num = 2
 
@@ -90,10 +90,15 @@ class QAC(QActorCriticBase):
         actor_ret = scale(torch.tanh(actor_ret), self._act_range['min'], self._act_range['max'])
         return actor_ret
 
+    def compute_action_q(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, List[torch.Tensor]]:
+        q_dict = self.compute_q(inputs)
+        action_dict = self.compute_action(inputs)
+        return deep_merge_dicts(q_dict, action_dict)
+
     def compute_q(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, List[torch.Tensor]]:
         state_action_input = torch.cat([inputs['obs'], inputs['act']], dim=1)
         q = self._critic_forward(state_action_input)
-        return {'q': q}
+        return {'q_value': q}
 
     def compute_action(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
@@ -112,7 +117,7 @@ class QAC(QActorCriticBase):
             p.requires_grad = False  # will set True when backward_hook called
         q = self._critic_forward(state_action_input, single=True)
 
-        return {'q': q}
+        return {'q_value': q}
 
 
 class FCQAC(QAC):

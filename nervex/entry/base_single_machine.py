@@ -52,12 +52,12 @@ class EvaluateHook(LearnerHook):
             self._runner.evaluate()
 
 
-class SingleMachineRunner():
+class SingleMachineRunner(object):
 
     def __init__(self, cfg):
         self.cfg = cfg
         self.algo_type = self.cfg.common.algo_type
-        assert self.algo_type in ['dqn', 'ppo', 'drqn'], self.algo_type
+        assert self.algo_type in ['dqn', 'ppo', 'drqn', 'ddpg'], self.algo_type
         self.use_cuda = self.cfg.learner.use_cuda
         self.buffer = PrioritizedBuffer(cfg.learner.data.buffer_length, cfg.learner.data.max_reuse)
         if self.algo_type in ['dqn', 'drqn']:
@@ -130,10 +130,19 @@ class SingleMachineRunner():
                 'reward': timestep.reward,
                 'done': timestep.done,
             }
+        elif self.algo_type == 'ddpg':
+            step = {
+                'obs': obs,
+                'action': agent_output['action'],
+                'q_value': agent_output['q_value'],
+                'next_obs': timestep.obs,
+                'reward': timestep.reward,
+                'done': timestep.done,
+            }
         self.env_buffer[idx].append(step)
 
     def _pack_trajectory(self, idx):
-        if self.algo_type in ['dqn', 'drqn']:
+        if self.algo_type in ['dqn', 'drqn', 'ddpg']:
             data = self.env_buffer[idx]
         elif self.algo_type == 'ppo':
             data = self.adder.get_gae(
@@ -142,7 +151,7 @@ class SingleMachineRunner():
                 gamma=self.cfg.learner.ppo.gamma,
                 gae_lambda=self.cfg.learner.ppo.gae_lambda
             )
-        if self.algo_type in ['dqn', 'ppo']:
+        if self.algo_type in ['dqn', 'ppo', 'ddpg']:
             self.buffer.extend(data)
         elif self.algo_type in ['drqn']:
             nstep = self.cfg.learner.dqn.nstep
@@ -162,6 +171,13 @@ class SingleMachineRunner():
             return {'eps': eps_threshold, 'state_id': list(env_id)}
         elif self.algo_type == 'ppo':
             return {}
+        elif self.algo_type == 'ddpg':
+            return {'noise_type': 'gauss',
+                    'noise_kwargs': {
+                        'mu': 0.0,
+                        'sigma': 1.0,
+                        'range': 2.0
+                    }}
 
     def collect_data(self):
         self.actor_env.launch()
@@ -258,5 +274,5 @@ class SingleMachineRunner():
 
     def is_buffer_enough(self):
         bs = self.cfg.learner.data.batch_size
-        size = int(1.2 * bs * self.train_step) // (self.cfg.learner.data.max_reuse)
+        size = int(1.2 * bs * self.train_step) // self.cfg.learner.data.max_reuse
         return self.buffer.validlen >= size and self.buffer.validlen >= 2 * bs

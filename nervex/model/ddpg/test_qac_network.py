@@ -47,10 +47,12 @@ class TestQAC:
             self.output_check(model._act_dim, [model._critic_encoder[0], model._critic[0]], q[0])
             if twin:
                 self.output_check(model._act_dim, [model._critic_encoder[1], model._critic[1]], q[1])
+
             # compute_action
             action = model(inputs, mode='compute_action')['action']
             assert action.shape == (B, model._act_dim)
             assert action.eq(action.clamp(-2, 2)).all()
+
             # optimize_actor
             for p in model._critic_encoder[0].parameters():
                 p.grad.zero_()
@@ -58,11 +60,14 @@ class TestQAC:
                 p.grad.zero_()
             actor_loss_pos = model(inputs, mode='optimize_actor')['q']
             assert isinstance(actor_loss_pos, torch.Tensor)
+            # actor has grad
             self.output_check(model._act_dim, [model._actor_encoder, model._actor], -actor_loss_pos[0])
+            # critic does not have grad
             for p in model._critic_encoder[0].parameters():
                 assert p.grad.eq(0).all()
             for p in model._critic[0].parameters():
                 assert p.grad.eq(0).all()
+
             # after optimize_actor
             for p in model._critic_encoder[0].parameters():
                 p.grad = None

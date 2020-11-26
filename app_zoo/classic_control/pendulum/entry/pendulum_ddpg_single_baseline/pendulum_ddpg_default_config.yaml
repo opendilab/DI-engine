@@ -1,0 +1,59 @@
+common:
+    name: PendulumDdpgConfig
+    time_wrapper_type: cuda
+    save_path: '.'
+    load_path: ''
+    algo_type: 'ddpg'
+learner:
+    learner_type: 'pendulum_ddpg'
+    import_names: ['app_zoo.classic_control.pendulum.worker.learner.pendulum_ddpg_learner']
+    use_cuda: True
+    use_distributed: False
+    max_iterations: 10000000
+    unroll_len: 1
+    learning_rate: 0.001
+    weight_decay: 0.0001
+    reward_weights:
+        'queue_len': 1.0
+#    eps:
+#        type: 'exp'
+#        start: 0.95
+#        end: 0.05
+#        decay: 100000
+    data:
+        buffer_length: 1000
+        max_reuse: 8
+        batch_size: 64
+        chunk_size: 16
+        num_workers: 4
+    ddpg:
+        discount_factor: 0.95
+        is_double: True
+        dueling: True
+        actor_update_freq: 1
+    hook:
+        save_ckpt_after_iter:
+            name: save_ckpt_after_iter
+            type: save_ckpt
+            priority: 40
+            position: after_iter
+            ext_args:
+                freq: 500
+        log_show:
+            name: log_show
+            type: log_show
+            priority: 20
+            position: after_iter
+            ext_args:
+                freq: 100
+actor:
+    env_num: 8
+    episode_num: 1
+    print_freq: 500
+evaluator:
+    env_num: 1
+    episode_num: 1
+    eval_step: 1000
+    stop_val: -2000
+env:
+    placeholder: 'placeholder'

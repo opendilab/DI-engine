@@ -10,7 +10,7 @@ from .agent_plugin import register_plugin
 
 class BaseAgent(ABC):
 
-    def __init__(self, model: torch.nn.Module, pipeline_plugin_cfg: Union[OrderedDict, None]) -> None:
+    def __init__(self, model: torch.nn.Module, pipeline_plugin_cfg: Optional[OrderedDict]) -> None:
         self._model = model
         register_plugin(self, pipeline_plugin_cfg)
 

@@ -17,28 +17,30 @@ class PendulumDdpgGraph(BaseCompGraph):
         action = data.get('action')
         done = data.get('done').float()
         weights = data.get('weights', None)
+        q_value = data.get('q_value')
 
         # q
-        q_value = agent.forward(data, mode='compute_q')['q']
+        # q_value = agent.forward(data, mode='compute_q')['q']
         # target_q
         next_data = {'obs': next_obs}
         next_action = agent.forward(next_data, mode='compute_action')
         next_data['action'] = next_action
         if agent.is_double:
-            target_q_value = agent.target_forward(next_data)['q']
+            target_q_value = agent.target_forward(next_data, mode='compute_q')['q_value']
         else:
-            target_q_value = agent.forward(next_data)['q']
+            target_q_value = agent.forward(next_data, mode='compute_q')['q_value']
         # critic_loss: q 1step td error
         data = q_1step_td_data_continuous(q_value, target_q_value, action, reward, done)
         critic_loss = q_1step_td_error_continuous(data, self._gamma, weights)
         actor_update = self._forward_cnt % self._actor_update_freq == 0
         # actor_loss: q grad ascent
         if actor_update:
-            actor_loss = -agent.forward(data, mode='optimize_actor')['q'].mean()
+            actor_loss = -agent.forward(data, mode='optimize_actor')['q_value'].mean()
 
         if agent.is_double:
             agent.update_target_network(agent.state_dict()['model'])
         self._forward_cnt += 1
+
         loss_dict = {}
         if actor_update:
             loss_dict['actor_loss'] = actor_loss

@@ -394,14 +394,14 @@ def register_player(name: str, player: type) -> None:
 def create_player(cfg: EasyDict, player_type: str, *args, **kwargs) -> Player:
     """
     Overview:
-        Given the key (league_manager_type), create a new league manager instance if in league_mapping's values,
-        or raise an KeyError. In other words, a derived league manager must first register then call ``create_league``
+        Given the key (player_type), create a new player instance if in player_mapping's values,
+        or raise an KeyError. In other words, a derived player must first register then call ``create_player``
         to get the instance object.
     Arguments:
-        - cfg (:obj:`EasyDict`): league manager config, necessary keys: [import_names]
+        - cfg (:obj:`EasyDict`): player config, necessary keys: [import_names]
         - player_type (:obj:`str`): the type of player to be created
     Returns:
-        - Player (:obj:`BaseLeagueManager`): the created new player, should be an instance of one of \
+        - player (:obj:`Player`): the created new player, should be an instance of one of \
             player_mapping's values
     """
     import_module(cfg.import_names)

@@ -27,7 +27,7 @@ def q_1step_td_error(
     return (criterion(q_s_a, target_q_s_a.detach()) * weights).mean()
 
 
-# q & next_q are List[torch.Tensor]
+# q & next_q are List[torch.Tensor], may contain 1 or 2 elements
 q_1step_td_data_continuous = namedtuple('td_data', ['q', 'next_q', 'act', 'reward', 'done'])
 
 

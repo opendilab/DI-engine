@@ -6,6 +6,7 @@ from typing import Any, Tuple, Callable, Union, Optional
 import numpy as np
 import torch
 from nervex.torch_utils import get_tensor_data
+from nervex.rl_utils import create_noise_generator
 
 
 class IAgentPlugin(ABC):
@@ -206,6 +207,38 @@ class EpsGreedySampleHelper(IAgentStatelessPlugin):
         agent.forward = sample_wrapper(agent.forward)
 
 
+global noise_generator
+noise_generator = None
+
+
+class ActionNoiseHelper(IAgentStatelessPlugin):
+
+    @classmethod
+    def register(cls: type, agent: Any) -> None:
+
+        def noise_wrapper(forward_fn: Callable) -> Callable:
+
+            def wrapper(*args, **kwargs):
+                global noise_generator
+                noise_type = kwargs.pop('noise_type')
+                noise_kwargs = kwargs.pop('noise_kwargs')
+                noise_range = noise_kwargs.pop('range')
+                if noise_generator is None:
+                    noise_generator = create_noise_generator(noise_type, noise_kwargs)
+                output = forward_fn(*args, **kwargs)
+                assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
+                action = output['action']
+                assert isinstance(action, torch.Tensor)
+                noise = noise_generator(action.shape, action.device)
+                action += noise.clamp(-noise_range, noise_range)
+                output['action'] = action
+                return output
+
+            return wrapper
+
+        agent.forward = noise_wrapper(agent.forward)
+
+
 class TargetNetworkHelper(IAgentStatefulPlugin):
 
     @classmethod
@@ -246,6 +279,7 @@ plugin_name_map = {
     'argmax_sample': ArgmaxSampleHelper,
     'eps_greedy_sample': EpsGreedySampleHelper,
     'multinomial_sample': MultinomialSampleHelper,
+    'action_noise': ActionNoiseHelper,
     # model plugin
     'target': TargetNetworkHelper,
 }
