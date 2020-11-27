@@ -296,23 +296,6 @@ class AsyncDataLoader(object):
             self.async_train_queue.close()
             self.async_train_queue.join()
 
-    def _clean_queue(self) -> None:
-        """
-        Overview:
-            Clear and close async_train_queue, and cuda_queue if use cuda. Called by ``__del__``.
-        """
-        try:
-            while not self.async_train_queue.empty():  # pop all the data
-                _ = self.async_train_queue.get()
-        except Exception:
-            pass
-        self.async_train_queue.close()
-        self.async_train_queue.join()  # let all the data in buffer written into pipe
-        if self.use_cuda:
-            while not self.cuda_queue.empty():
-                _ = self.cuda_queue.get()
-            self.cuda_queue.join()
-
     def __del__(self) -> None:
         """
         Overview:
@@ -321,7 +304,6 @@ class AsyncDataLoader(object):
         if self.end_flag:
             return
         self.end_flag = True
-        self._clean_queue()
         self.async_process.terminate()
         self.async_process.join()
         if self.num_workers > 1:
