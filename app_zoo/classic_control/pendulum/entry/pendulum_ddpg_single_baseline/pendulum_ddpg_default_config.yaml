@@ -7,8 +7,9 @@ common:
 learner:
     learner_type: 'pendulum_ddpg'
     import_names: ['app_zoo.classic_control.pendulum.worker.learner.pendulum_ddpg_learner']
-    use_cuda: True
+    use_cuda: False
     use_distributed: False
+    train_step: 200
     max_iterations: 10000000
     unroll_len: 1
     learning_rate: 0.001
@@ -30,7 +31,7 @@ learner:
         discount_factor: 0.95
         is_double: True
         dueling: True
-        actor_update_freq: 1
+        actor_update_freq: 2
     hook:
         save_ckpt_after_iter:
             name: save_ckpt_after_iter
