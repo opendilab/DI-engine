@@ -1,4 +1,5 @@
 import copy
+from copy import deepcopy
 from collections import OrderedDict
 
 import pytest
@@ -47,7 +48,7 @@ def setup_model():
 class TestBaseAgent:
 
     def test_naive(self, setup_model):
-        agent = BaseAgent(setup_model, pipeline_plugin_cfg=None)
+        agent = BaseAgent(setup_model, plugin_cfg=None)
         agent.mode(train=False)
         assert not agent.model.training
         agent.mode(train=True)
@@ -65,12 +66,8 @@ class TestBaseAgent:
 class TestAgentPlugin:
 
     def test_grad_helper(self, setup_model):
-        agent1 = BaseAgent(copy.deepcopy(setup_model), pipeline_plugin_cfg=OrderedDict({'grad': {'enable_grad': True}}))
-        agent2 = BaseAgent(
-            copy.deepcopy(setup_model), pipeline_plugin_cfg=OrderedDict({'grad': {
-                'enable_grad': False
-            }})
-        )
+        agent1 = BaseAgent(deepcopy(setup_model), plugin_cfg=OrderedDict({'grad': {'enable_grad': True}}))
+        agent2 = BaseAgent(deepcopy(setup_model), plugin_cfg=OrderedDict({'grad': {'enable_grad': False}}))
 
         data = torch.randn(4, 3).requires_grad_(True)
         assert agent1.model.weight.grad is None
@@ -101,11 +98,11 @@ class TestAgentPlugin:
             {
                 'hidden_state': {
                     'state_num': state_num,
-                    'save_prev_state': True,
+                    'save_prev_state': True
                 },
                 'grad': {
                     'enable_grad': True
-                },
+                }
             }
         )
         # the former plugin is registered in inner layer
@@ -141,19 +138,23 @@ class TestAgentPlugin:
 
         model = TempMLP()
         plugin_cfg = {
-            'grad': {
+            'main': OrderedDict({'grad': {
                 'enable_grad': True
-            },
-            'target': {
-                'update_cfg': {
-                    'type': 'assign',
-                    'kwargs': {
-                        'freq': 10
+            }}),
+            'target': OrderedDict(
+                {
+                    'target': {
+                        'update_type': 'assign',
+                        'kwargs': {
+                            'freq': 10
+                        }
                     },
+                    'grad': {
+                        'enable_grad': False
+                    }
                 }
-            }
+            )
         }
-        plugin_cfg = OrderedDict(plugin_cfg)
         agent = AgentAggregator(BaseAgent, model, plugin_cfg)
         assert all([hasattr(agent, n) for n in ['target_reset', 'target_mode', 'target_forward', 'target_update']])
         assert agent.model.fc1.weight.eq(agent.target_model.fc1.weight).sum() == 12
@@ -169,20 +170,33 @@ class TestAgentPlugin:
         output_target = agent.target_forward(inputs)
         assert output.eq(output_target).sum() == 2 * 6
 
+    @pytest.mark.u
     def test_teacher_network_helper(self):
         model = TempLSTM()
         plugin_cfg = {
-            'hidden_state': {
+            'main': OrderedDict({'hidden_state': {
                 'state_num': 4,
-                'save_prev_state': True,
-            },
-            'teacher': {
-                'teacher_cfg': {},
-            },
+                'save_prev_state': True
+            }}),
+            'teacher': OrderedDict(
+                {
+                    'hidden_state': {
+                        'state_num': 4,
+                        'save_prev_state': True
+                    },
+                    'teacher': {
+                        'teacher_cfg': {}
+                    }
+                }
+            )
         }
-        plugin_cfg = OrderedDict(plugin_cfg)
         agent = AgentAggregator(BaseAgent, model, plugin_cfg)
-        assert all([hasattr(agent, n) for n in ['teacher_reset', 'teacher_mode', 'teacher_forward', 'teacher_update']])
+        assert all(
+            [
+                hasattr(agent, n)
+                for n in ['teacher_reset', 'teacher_mode', 'teacher_forward', 'teacher_load_state_dict']
+            ]
+        )
         agent.mode(train=True)
         agent.teacher_mode(train=False)
         agent.reset()
@@ -191,7 +205,7 @@ class TestAgentPlugin:
         for p in agent.model.parameters():
             p.data = torch.randn_like(p)
         assert all([m.eq(t).sum() == 0 for m, t in zip(agent.model.parameters(), agent.teacher_model.parameters())])
-        agent.teacher_update(agent.model.state_dict())
+        agent.teacher_load_state_dict({'model': agent.model.state_dict()})
         assert all([m.ne(t).sum() == 0 for m, t in zip(agent.model.parameters(), agent.teacher_model.parameters())])
         data = {'f': torch.randn(2, 4, 36)}
         output = agent.forward(data)

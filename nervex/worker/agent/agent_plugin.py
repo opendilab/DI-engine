@@ -209,8 +209,8 @@ class EpsGreedySampleHelper(IAgentStatelessPlugin):
 class TargetNetworkHelper(IAgentStatefulPlugin):
 
     @classmethod
-    def register(cls: type, agent: Any, update_cfg: dict):
-        target_network = cls(agent.model, update_cfg)
+    def register(cls: type, agent: Any, update_type: str, kwargs: dict):
+        target_network = cls(agent.model, update_type, kwargs)
         agent._target_network = target_network
 
         def reset_wrapper(reset_fn):
@@ -224,12 +224,11 @@ class TargetNetworkHelper(IAgentStatefulPlugin):
         setattr(agent, 'update', getattr(agent._target_network, 'update'))
         agent.reset = reset_wrapper(agent.reset)
 
-    def __init__(self, model: torch.nn.Module, update_cfg: dict) -> None:
+    def __init__(self, model: torch.nn.Module, update_type: str, kwargs: dict) -> None:
         self._model = model
-        update_type = update_cfg['type']
         assert update_type in ['momentum', 'assign']
         self._update_type = update_type
-        self._update_kwargs = update_cfg['kwargs']
+        self._update_kwargs = kwargs
         self._update_count = 0
 
     def update(self, state_dict: dict, direct: bool = False) -> None:
@@ -250,23 +249,11 @@ class TargetNetworkHelper(IAgentStatefulPlugin):
         self._update_count = 0
 
 
-class TeacherNetworkHelper(IAgentStatefulPlugin):
+class TeacherNetworkHelper(IAgentStatelessPlugin):
 
     @classmethod
     def register(cls: type, agent: Any, teacher_cfg: dict) -> None:
-        teacher_network = cls(agent.model, teacher_cfg)
-        agent._teacher_network = teacher_network
-        setattr(agent, 'update', getattr(agent._teacher_network, 'update'))
-
-    def __init__(self, model: torch.nn.Module, teacher_cfg: dict) -> None:
-        self._model = model
-        self._cfg = teacher_cfg
-
-    def update(self, state_dict: dict) -> None:
-        self._model.load_state_dict(state_dict, strict=True)
-
-    def reset(self) -> None:
-        pass
+        agent._teacher_cfg = teacher_cfg
 
 
 plugin_name_map = {

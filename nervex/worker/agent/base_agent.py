@@ -1,7 +1,7 @@
 from abc import ABC
 import copy
 from collections import OrderedDict
-from typing import Any, Union, Optional
+from typing import Any, Union, Optional, Dict
 
 import torch
 
@@ -10,9 +10,9 @@ from .agent_plugin import register_plugin
 
 class BaseAgent(ABC):
 
-    def __init__(self, model: torch.nn.Module, pipeline_plugin_cfg: Union[OrderedDict, None]) -> None:
+    def __init__(self, model: torch.nn.Module, plugin_cfg: Union[OrderedDict, None]) -> None:
         self._model = model
-        register_plugin(self, pipeline_plugin_cfg)
+        register_plugin(self, plugin_cfg)
 
     def forward(self, data: Any, param: Optional[dict] = None) -> Any:
         if param is not None:
@@ -30,6 +30,10 @@ class BaseAgent(ABC):
     def model(self) -> torch.nn.Module:
         return self._model
 
+    @model.setter
+    def model(self, _model: torch.nn.Module) -> None:
+        self._model = _model
+
     def state_dict(self) -> dict:
         return {'model': self._model.state_dict()}
 
@@ -40,25 +44,21 @@ class BaseAgent(ABC):
         pass
 
 
-model_plugin_cfg_set = set(['target', 'teacher'])
+model_plugin_cfg_set = set(['main', 'target', 'teacher'])
 
 
 class AgentAggregator(object):
 
-    def __init__(self, agent_type: type, model: torch.nn.Module, plugin_cfg: OrderedDict) -> None:
+    def __init__(self, agent_type: type, model: torch.nn.Module, plugin_cfg: Dict[str, OrderedDict]) -> None:
         assert issubclass(agent_type, BaseAgent)
-        # TODO(nyz) different model and different pipeline_plugin_cfg
-        model_plugin_cfg = {}
-        for k in plugin_cfg:
-            if k in model_plugin_cfg_set:
-                model_plugin_cfg[k] = plugin_cfg.pop(k)
+        assert set(plugin_cfg.keys()
+                   ).issubset(model_plugin_cfg_set), '{}-{}'.format(set(plugin_cfg.keys()), model_plugin_cfg_set)
         self._agent = {}
-        self._agent['main'] = agent_type(model, plugin_cfg)
-        for k in model_plugin_cfg:
-            # other agent default disenable grad
-            plugin_cfg['grad'] = {'enable_grad': False}
-            self._agent[k] = agent_type(copy.deepcopy(model), plugin_cfg)
-            register_plugin(self._agent[k], OrderedDict({k: model_plugin_cfg[k]}))
+        for k in plugin_cfg:
+            if k == 'main':
+                self._agent[k] = agent_type(model, plugin_cfg[k])
+            else:
+                self._agent[k] = agent_type(copy.deepcopy(model), plugin_cfg[k])
 
     def __getattr__(self, key: str) -> Any:
         if len(self._agent) == 1:
