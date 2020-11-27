@@ -8,3 +8,4 @@ from .vtrace import vtrace_loss, compute_importance_weights
 from .upgo import upgo_loss
 from .adder import Adder
 from .value_rescale import value_transform, value_inv_transform
+from .vtrace import vtrace_data, vtrace_error
