@@ -80,10 +80,7 @@ class ZerglingActor(BaseActor):
         else:
             raise TypeError("not support env_cfg type: {}".format(env_cfg))
         self._env_manager = SubprocessEnvManager(
-            env_fn=self._env_fn,
-            env_cfg=env_cfg,
-            env_num=env_num,
-            episode_num=self._env_kwargs['episode_num']
+            env_fn=self._env_fn, env_cfg=env_cfg, env_num=env_num, episode_num=self._env_kwargs['episode_num']
         )
 
     # override
@@ -126,7 +123,13 @@ class ZerglingActor(BaseActor):
                     gamma = self._adder_kwargs['gamma']
                     gae_lambda = self._adder_kwargs['gae_lambda']
                     data = self._adder.get_gae(data, last['value'], gamma, gae_lambda)
-                self._traj_queue.put({'data': self._data_buffer[env_id], 'env_id': env_id, 'job': copy.deepcopy(self._job)})
+                self._traj_queue.put(
+                    {
+                        'data': self._data_buffer[env_id],
+                        'env_id': env_id,
+                        'job': copy.deepcopy(self._job)
+                    }
+                )
                 self._data_buffer[env_id] = [self._data_buffer[env_id][-1]]
             if t.done:
                 self._job_result[env_id].append(t.info)
@@ -135,7 +138,13 @@ class ZerglingActor(BaseActor):
                 miss_len = self._adder_kwargs['data_push_length'] - cur_len
                 if miss_len > 0:
                     self._data_buffer[env_id] = self._last_data_buffer[env_id][-miss_len:] + self._data_buffer[env_id]
-                self._traj_queue.put({'data': self._data_buffer[env_id], 'env_id': env_id, 'job': copy.deepcopy(self._job)})
+                self._traj_queue.put(
+                    {
+                        'data': self._data_buffer[env_id],
+                        'env_id': env_id,
+                        'job': copy.deepcopy(self._job)
+                    }
+                )
 
     # override
     def _finish_job(self) -> None:
@@ -179,7 +188,9 @@ class ZerglingActor(BaseActor):
                     path = self._job['agent'][self._agent_name]['agent_update_path']
                     agent_update_info = self.get_agent_update_info(path)
                     self._agent.load_state_dict(agent_update_info)
-                    self._logger.info('ACTOR({}): update agent with {} in {}'.format(self._actor_uid, path, time.time()))
+                    self._logger.info(
+                        'ACTOR({}): update agent with {} in {}'.format(self._actor_uid, path, time.time())
+                    )
                     last = time.time()
             time.sleep(0.1)
 

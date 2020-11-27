@@ -1,10 +1,12 @@
 from collections import namedtuple
 from typing import List, Dict, Any
+import copy
 
 from nervex.model import FCQAC
 from nervex.worker.actor import ZerglingActor, register_actor
 from nervex.worker.agent import create_qac_actor_agent
 from app_zoo.classic_control.pendulum.envs import PendulumEnv
+from nervex.torch_utils import to_device
 
 
 class PendulumActor(ZerglingActor):
@@ -25,6 +27,23 @@ class PendulumActor(ZerglingActor):
             model.cuda()
         self._agent = create_qac_actor_agent(model)
         self._agent.mode(train=False)
+    
+    # override
+    def _agent_inference(self, obs: Dict[int, Any]) -> Dict[int, Any]:
+        # save in obs_pool
+        for k, v in obs.items():
+            self._obs_pool[k] = copy.deepcopy(v)
+
+        env_id = obs.keys()
+        obs = self._collate_fn(list(obs.values()))
+        if self._cfg.actor.use_cuda:
+            obs = to_device(obs, 'cuda')
+        data = self._agent.forward(obs, mode='compute_action_q', **self._job['forward_kwargs'])  # add 'mode' kwarg
+        if self._cfg.actor.use_cuda:
+            data = to_device(data, 'cpu')
+        data = self._decollate_fn(data)
+        data = {i: d for i, d in zip(env_id, data)}
+        return data
 
     # override
     def _get_transition(self, obs: Any, agent_output: Dict, timestep: namedtuple) -> Dict:

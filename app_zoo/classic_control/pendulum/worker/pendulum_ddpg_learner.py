@@ -30,7 +30,7 @@ class PendulumDdpgLearner(BaseLearner):
             model.cuda()
         if self.use_distributed:
             model = DistModule(model)
-        self._agent = create_qac_learner_agent(model, self._cfg.learner.dqn.is_double)
+        self._agent = create_qac_learner_agent(model, self._cfg.learner.ddpg.is_double)
         self._agent.mode(train=True)
         if self._agent.is_double:
             self._agent.target_mode(train=True)

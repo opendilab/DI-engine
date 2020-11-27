@@ -64,10 +64,10 @@ def create_ac_learner_agent(model: torch.nn.Module) -> ACAgent:
 
 def create_qac_learner_agent(model: torch.nn.Module, is_double: bool = True) -> BaseAgent:
     plugin_cfg = OrderedDict({
+        'action_noise': {},
         'grad': {
             'enable_grad': True
         },
-        'action_noise': {}
     })
     if is_double:
         plugin_cfg['target'] = {'update_cfg': {'type': 'assign', 'kwargs': {'freq': 500}}}
@@ -91,16 +91,18 @@ def create_dqn_actor_agent(model: torch.nn.Module) -> BaseAgent:
 
 
 def create_drqn_actor_agent(model: torch.nn.Module, state_num: int) -> BaseAgent:
-    plugin_cfg = OrderedDict({
-        'hidden_state': {
-            'state_num': state_num,
-            'save_prev_state': True,
-        },
-        'eps_greedy_sample': {},
-        'grad': {
-            'enable_grad': False
-        },
-    })
+    plugin_cfg = OrderedDict(
+        {
+            'hidden_state': {
+                'state_num': state_num,
+                'save_prev_state': True,
+            },
+            'eps_greedy_sample': {},
+            'grad': {
+                'enable_grad': False
+            },
+        }
+    )
     agent = AgentAggregator(BaseAgent, model, plugin_cfg)
     return agent
 
@@ -118,10 +120,10 @@ def create_ac_actor_agent(model: torch.nn.Module) -> ACAgent:
 
 def create_qac_actor_agent(model: torch.nn.Module) -> BaseAgent:
     plugin_cfg = OrderedDict({
+        'action_noise': {},
         'grad': {
             'enable_grad': False
         },
-        'action_noise': {}
     })
     agent = AgentAggregator(BaseAgent, model, plugin_cfg)
     return agent
@@ -142,15 +144,17 @@ def create_dqn_evaluator_agent(model: torch.nn.Module) -> BaseAgent:
 
 
 def create_drqn_evaluator_agent(model: torch.nn.Module, state_num: int) -> BaseAgent:
-    plugin_cfg = OrderedDict({
-        'hidden_state': {
-            'state_num': state_num,
-        },
-        'argmax_sample': {},
-        'grad': {
-            'enable_grad': False
-        },
-    })
+    plugin_cfg = OrderedDict(
+        {
+            'hidden_state': {
+                'state_num': state_num,
+            },
+            'argmax_sample': {},
+            'grad': {
+                'enable_grad': False
+            },
+        }
+    )
     agent = AgentAggregator(BaseAgent, model, plugin_cfg)
     return agent
 
@@ -180,7 +184,6 @@ def create_qac_evaluator_agent(model: torch.nn.Module) -> BaseAgent:
         'grad': {
             'enable_grad': False,
         },
-        'action_noise': {}
     })
     agent = AgentAggregator(BaseAgent, model, plugin_cfg)
     return agent

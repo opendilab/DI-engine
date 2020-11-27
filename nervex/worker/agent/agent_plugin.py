@@ -223,14 +223,18 @@ class ActionNoiseHelper(IAgentStatelessPlugin):
                 noise_type = kwargs.pop('noise_type')
                 noise_kwargs = kwargs.pop('noise_kwargs')
                 noise_range = noise_kwargs.pop('range')
+                action_range = kwargs.pop('action_range')
                 if noise_generator is None:
                     noise_generator = create_noise_generator(noise_type, noise_kwargs)
+                print(args, kwargs)
+                # kwargs.pop('mode')
                 output = forward_fn(*args, **kwargs)
                 assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
                 action = output['action']
                 assert isinstance(action, torch.Tensor)
                 noise = noise_generator(action.shape, action.device)
-                action += noise.clamp(-noise_range, noise_range)
+                action += noise.clamp(-noise_range, noise_range)  # noise clip
+                action = action.clamp(action_range['min'], action_range['max'])  # action clip
                 output['action'] = action
                 return output
 

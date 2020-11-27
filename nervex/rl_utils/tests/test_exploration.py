@@ -36,4 +36,3 @@ def test_noise():
     ou.x0 = x0
     assert torch.equal(ou.x0, x0) and torch.equal(ou.x0, ou._x)
     o_noise3 = ou(x0.shape, x0.device)
-

@@ -32,4 +32,3 @@ def is_differentiable(loss: torch.Tensor, model: Union[torch.Tensor, List[torch.
     elif isinstance(model, torch.nn.Module):
         for k, p in model.named_parameters():
             assert isinstance(p.grad, torch.Tensor), k
-

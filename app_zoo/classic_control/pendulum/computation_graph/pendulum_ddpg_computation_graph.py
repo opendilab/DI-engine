@@ -7,7 +7,7 @@ class PendulumDdpgGraph(BaseCompGraph):
 
     def __init__(self, cfg: dict) -> None:
         self._gamma = cfg.ddpg.discount_factor
-        self._actor_update_freq = cfg.actor_update_freq
+        self._actor_update_freq = cfg.ddpg.get('actor_update_freq', 2)
         self._forward_cnt = 0
 
     def forward(self, data: dict, agent: BaseAgent) -> dict:
