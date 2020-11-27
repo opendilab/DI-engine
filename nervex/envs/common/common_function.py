@@ -76,13 +76,17 @@ def clip_one_hot(v: torch.Tensor, num: int) -> torch.Tensor:
     return one_hot(v, num)
 
 
-def reorder_one_hot(v: torch.Tensor, dictionary: Dict[int, int], num: int,
-                    transform: Optional[np.ndarray] = None) -> torch.Tensor:
+def reorder_one_hot(
+        v: torch.LongTensor,
+        dictionary: Dict[int, int],
+        num: int,
+        transform: Optional[np.ndarray] = None
+) -> torch.Tensor:
     """
     Overview:
         Reorder each value in input ``v`` according to reorder dict ``dictionary``, then make one-hot mapping
     Arguments:
-        - v (:obj:`torch.Tensor`): the original value to be processed with `reorder` and `one-hot`
+        - v (:obj:`torch.LongTensor`): the original value to be processed with `reorder` and `one-hot`
         - dictionary (:obj:`Dict[int, int]`): a reorder lookup dict, \
             map original value to new reordered index starting from 0
         - num (:obj:`int`): number of one-hot bits
@@ -102,15 +106,16 @@ def reorder_one_hot(v: torch.Tensor, dictionary: Dict[int, int], num: int,
     return one_hot(new_v, num)
 
 
-def reorder_one_hot_array(v: torch.Tensor, array: np.ndarray, num: int,
-                          transform: Optional[np.ndarray] = None) -> torch.Tensor:
+def reorder_one_hot_array(
+        v: torch.LongTensor, array: np.ndarray, num: int, transform: Optional[np.ndarray] = None
+) -> torch.Tensor:
     """
     Overview:
         Reorder each value in input ``v`` according to reorder dict ``dictionary``, then make one-hot mapping.
         The difference between this function and ``reorder_one_hot`` is
         whether the type of reorder lookup data structure is `np.ndarray` or `dict`.
     Arguments:
-        - v (:obj:`torch.Tensor`): the value to be processed with `reorder` and `one-hot`
+        - v (:obj:`torch.LongTensor`): the value to be processed with `reorder` and `one-hot`
         - array (:obj:`np.ndarray`): a reorder lookup array, map original value to new reordered index starting from 0
         - num (:obj:`int`): number of one-hot bits
         - transform (:obj:`np.ndarray`): an array to firstly transform the original action to general action
@@ -125,14 +130,18 @@ def reorder_one_hot_array(v: torch.Tensor, array: np.ndarray, num: int,
     return one_hot(torch.LongTensor(val), num)
 
 
-def reorder_boolean_vector(v: torch.Tensor, dictionary: Dict[int, int], num: int,
-                           transform: Optional[np.ndarray] = None) -> torch.Tensor:
+def reorder_boolean_vector(
+        v: torch.LongTensor,
+        dictionary: Dict[int, int],
+        num: int,
+        transform: Optional[np.ndarray] = None
+) -> torch.Tensor:
     """
     Overview:
         Reorder each value in input ``v`` to new index according to reorder dict ``dictionary``,
         then set corresponding position in return tensor to 1.
     Arguments:
-        - v (:obj:`torch.Tensor`): the value to be processed with `reorder`
+        - v (:obj:`torch.LongTensor`): the value to be processed with `reorder`
         - dictionary (:obj:`Dict[int, int]`): a reorder lookup dict, \
             map original value to new reordered index starting from 0
         - num (:obj:`int`): total number of items, should equals to max index + 1
@@ -212,14 +221,14 @@ def compute_denominator(x: torch.Tensor) -> torch.Tensor:
 POSITION_ARRAY = compute_denominator(torch.arange(0, 64, dtype=torch.float))  # d_model = 64
 
 
-def get_postion_vector(x: torch.Tensor) -> torch.Tensor:
+def get_postion_vector(x: list) -> torch.Tensor:
     """
     Overview:
         Get position embedding used in `Transformer`, even and odd :math:`\alpha` are stored in ``POSITION_ARRAY``
     Arguments:
-        - x (:obj:`torch.Tensor`): original position index
+        - x (:obj:`list`): original position index, whose length should be 32
     Returns:
-        - v (:obj:`torch.Tensor`): position embedding in 64 dims
+        - v (:obj:`torch.Tensor`): position embedding tensor in 64 dims
     """
     v = torch.zeros(64, dtype=torch.float)
     x = torch.FloatTensor(x)

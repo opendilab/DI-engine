@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Optional
 
 import torch
 import torch.nn as nn
@@ -26,8 +26,8 @@ class DuelingHead(nn.Module):
             action_dim: int,
             a_layer_num: int,
             v_layer_num: int,
-            activation: Union[None, nn.Module] = nn.ReLU(),
-            norm_type: Union[None, str] = None
+            activation: Optional[nn.Module] = nn.ReLU(),
+            norm_type: Optional[str] = None
     ) -> None:
         r"""
         Overview:

@@ -99,7 +99,7 @@ class ValueAC(ActorCriticBase):
         r"""
         Overview:
             First encode raw observation, then output logit.
-            Evaluate policy performance only using the actor part, often called by actor to generate trajectory.
+            Evaluate policy performance only using the actor part, often called by evaluator.
         Arguments:
             - x (:obj:`torch.Tensor`): embedding tensor after encoder
         Returns:
