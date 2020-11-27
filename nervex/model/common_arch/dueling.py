@@ -11,11 +11,11 @@ class DuelingHead(nn.Module):
     Overview:
         The Dueling head used in models.
     Notes:
-        Dueling head is one of the three most majoy improvements on DQN algorithm. The paper introduce \
-            this improvement Dueling Network Architectures for Deep Reinforcement Learning was published \
-                by Google in 2016. You can view the original paper <https://arxiv.org/pdf/1511.06581.pdf>
-        The other two majoy inprovements are double DQN and prioritized replay, which in our nerveX \
-            are implement though plugins and buffer.
+        Dueling head is one of the three most major improvements in DQN algorithm. The paper introducing \
+            this improvement `Dueling Network Architectures for Deep Reinforcement Learning` was published \
+            by Google in 2016. You can view the original paper on <https://arxiv.org/pdf/1511.06581.pdf>
+        The other two major improvements are double DQN and prioritized replay, which in nerveX \
+            are implemented though plugins and buffer.
     Interfaces:
         __init__, forward
     """
@@ -31,15 +31,15 @@ class DuelingHead(nn.Module):
     ) -> None:
         r"""
         Overview:
-            init the DuelingHead according to arguments.
+            Init the DuelingHead according to arguments.
         Arguments:
-            - hidden_dim (:obj:`int`): the hidden_dim used before connected to DuelingHeads
+            - hidden_dim (:obj:`int`): the hidden_dim used before connected to DuelingHead
             - action_dim (:obj:`int`): the num of actions
             - a_layer_num (:obj:`int`): the num of fc_block used in the network to compute action output
             - v_layer_num (:obj:`int`): the num of fc_block used in the network to compute value output
             - activation (:obj:`nn.Module`): the type of activation to use in the fc_block,\
                 if None then default set to nn.ReLU
-            - norm_type (:obj:`str`): the type of normaliztion to use, see nervex.torch_utils.fc_block for more details
+            - norm_type (:obj:`str`): the type of normalization to use, see nervex.torch_utils.fc_block for more details
         """
         super(DuelingHead, self).__init__()
         self.A = [
@@ -58,13 +58,12 @@ class DuelingHead(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         r"""
         Overview:
-            return the advantage and the value according to the input from hidden layers
+            Return the sum of advantage and the value according to the input from hidden layers
         Arguments:
             - x (:obj:`torch.Tensor`): the input from hidden layers
         Returns:
-            - return (:obj:`torch.Tensor`): the corresponding advantage and value
+            - return (:obj:`torch.Tensor`): the sum of advantage and value
         """
         a = self.A(x)
         v = self.V(x)
-
         return a - a.mean(dim=-1, keepdim=True) + v
