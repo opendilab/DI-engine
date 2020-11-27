@@ -197,10 +197,7 @@ class Head(nn.Module):
 
 
 FCDQN = partial(
-    DQNBase,
-    encoder_kwargs={'encoder_type': 'fc'},
-    lstm_kwargs={'lstm_type': 'none'},
-    head_kwargs={'dueling': True}
+    DQNBase, encoder_kwargs={'encoder_type': 'fc'}, lstm_kwargs={'lstm_type': 'none'}, head_kwargs={'dueling': True}
 )
 ConvDQN = partial(
     DQNBase,
@@ -209,10 +206,7 @@ ConvDQN = partial(
     head_kwargs={'dueling': True}
 )
 FCDRQN = partial(
-    DQNBase,
-    encoder_kwargs={'encoder_type': 'fc'},
-    lstm_kwargs={'lstm_type': 'normal'},
-    head_kwargs={'dueling': True}
+    DQNBase, encoder_kwargs={'encoder_type': 'fc'}, lstm_kwargs={'lstm_type': 'normal'}, head_kwargs={'dueling': True}
 )
 ConvDRQN = partial(
     DQNBase,

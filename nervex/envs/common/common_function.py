@@ -76,8 +76,9 @@ def clip_one_hot(v: torch.Tensor, num: int) -> torch.Tensor:
     return one_hot(v, num)
 
 
-def reorder_one_hot(v: torch.Tensor, dictionary: Dict[int, int], num: int,
-                    transform: Optional[np.ndarray] = None) -> torch.Tensor:
+def reorder_one_hot(
+        v: torch.Tensor, dictionary: Dict[int, int], num: int, transform: Optional[np.ndarray] = None
+) -> torch.Tensor:
     """
     Overview:
         Reorder each value in input ``v`` according to reorder dict ``dictionary``, then make one-hot mapping
@@ -102,8 +103,9 @@ def reorder_one_hot(v: torch.Tensor, dictionary: Dict[int, int], num: int,
     return one_hot(new_v, num)
 
 
-def reorder_one_hot_array(v: torch.Tensor, array: np.ndarray, num: int,
-                          transform: Optional[np.ndarray] = None) -> torch.Tensor:
+def reorder_one_hot_array(
+        v: torch.Tensor, array: np.ndarray, num: int, transform: Optional[np.ndarray] = None
+) -> torch.Tensor:
     """
     Overview:
         Reorder each value in input ``v`` according to reorder dict ``dictionary``, then make one-hot mapping.
@@ -125,8 +127,9 @@ def reorder_one_hot_array(v: torch.Tensor, array: np.ndarray, num: int,
     return one_hot(torch.LongTensor(val), num)
 
 
-def reorder_boolean_vector(v: torch.Tensor, dictionary: Dict[int, int], num: int,
-                           transform: Optional[np.ndarray] = None) -> torch.Tensor:
+def reorder_boolean_vector(
+        v: torch.Tensor, dictionary: Dict[int, int], num: int, transform: Optional[np.ndarray] = None
+) -> torch.Tensor:
     """
     Overview:
         Reorder each value in input ``v`` to new index according to reorder dict ``dictionary``,

@@ -4,8 +4,10 @@ import torch.nn as nn
 
 from nervex.torch_utils.nn_test_helper import is_differentiable
 
+
 @pytest.mark.unittest
 def test_is_differentibale():
+
     class LinearNet(nn.Module):
 
         def __init__(self, features_in=1, features_out=1):
