@@ -12,10 +12,11 @@ API Doc
     data/structure
     worker/learner/learner
     rl_utils/td
-    rl_utils/adder
     rl_utils/gae
     rl_utils/ppo
     rl_utils/a2c
+    rl_utils/vtrace
+    rl_utils/adder
     torch_utils_network/network
     torch_utils/checkpoint_helper
     torch_utils/metric
