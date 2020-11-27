@@ -263,7 +263,7 @@ class Adam(torch.optim.Adam):
                         p.grad.zero_()
         elif self._grad_ignore_type == 'ignore_momentum_norm':
             # might have multi param_group, we should calculate each group differently.
-            step = inf 
+            step = inf
             for group in self.param_groups:
                 total_norm = 0
                 total_momentum_norm = 0

@@ -1,4 +1,4 @@
-structure.data
+data.structure
 ===================
 
 buffer

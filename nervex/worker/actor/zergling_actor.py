@@ -74,10 +74,7 @@ class ZerglingActor(BaseActor):
         else:
             raise TypeError("not support env_cfg type: {}".format(env_cfg))
         env_manager = SubprocessEnvManager(
-            env_fn=env_fn,
-            env_cfg=env_cfg,
-            env_num=env_num,
-            episode_num=self._env_kwargs['episode_num']
+            env_fn=env_fn, env_cfg=env_cfg, env_num=env_num, episode_num=self._env_kwargs['episode_num']
         )
         env_manager.launch()
         return env_manager
@@ -189,7 +186,9 @@ class ZerglingActor(BaseActor):
                             self._agent.load_state_dict(agent_update_info)
                         else:
                             self._agent[i].load_state_dict(agent_update_info)
-                    self._logger.info('ACTOR({}): update agent with {} in {}'.format(self._actor_uid, path, time.time()))
+                    self._logger.info(
+                        'ACTOR({}): update agent with {} in {}'.format(self._actor_uid, path, time.time())
+                    )
                     last = time.time()
             time.sleep(0.1)
 
