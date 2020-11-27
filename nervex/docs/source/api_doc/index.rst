@@ -10,6 +10,8 @@ API Doc
     :maxdepth: 3
 
     data/structure
+    data/dataloader
+    data/collate_fn
     worker/learner/learner
     rl_utils/td
     rl_utils/adder
@@ -23,6 +25,8 @@ API Doc
     torch_utils/optimizer_util
     torch_utils/distribution
     model/common_arch
+    model/dqn
+    model/actor_critic
     league/league_manager
     league/payoff
     league/player
@@ -37,3 +41,4 @@ API Doc
     utils/system_helper
     utils/default_helper
     env/sumo_env
+    env/common

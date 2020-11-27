@@ -1,5 +1,4 @@
 from collections.abc import Sequence, Mapping
-from numbers import Integral
 from typing import List, Dict, Union, Any
 
 import torch
@@ -18,12 +17,25 @@ def default_collate(batch: Sequence) -> Union[torch.Tensor, Mapping, Sequence]:
     """
     Overview:
         Put each data field into a tensor with outer dimension batch size.
-        Examples: (list different ``batch``s and their corresponding collated result)
-
-            - a list with B tensors with shape :math:`(m, n)` -->> a tensor with shape :math:`(B, m, n)`
-            - a list with B lists, each list contains m elements -->> a list of m tensors, each with shape :math:`(B)`
-            - a list with B dicts, whose values are tensors with shape :math:`(m, n)` -->> a dict, \
-                whose values are tensors with shape :math:`(B, m, n)`
+    Example:
+        >>> # a list with B tensors shaped (m, n) -->> a tensor shaped (B, m, n)
+        >>> a = [torch.zeros(2,3) for _ in range(4)]
+        >>> default_collate(a).shape
+        torch.Size([4, 2, 3])
+        >>>
+        >>> # a list with B lists, each list contains m elements -->> a list of m tensors, each with shape (B, )
+        >>> a = [[0 for __ in range(3)] for _ in range(4)]
+        >>> default_collate(a)
+        [tensor([0, 0, 0, 0]), tensor([0, 0, 0, 0]), tensor([0, 0, 0, 0])]
+        >>>
+        >>> # a list with B dicts, whose values are tensors shaped :math:`(m, n)` -->>
+        >>> # a dict whose values are tensors with shape :math:`(B, m, n)`
+        >>> a = [{i: torch.zeros(i,i+1) for i in range(2, 4)} for _ in range(4)]
+        >>> print(a[0][2].shape, a[0][3].shape)
+        torch.Size([2, 3]) torch.Size([3, 4])
+        >>> b = default_collate(a)
+        >>> print(b[2].shape, b[3].shape)
+        torch.Size([4, 2, 3]) torch.Size([4, 3, 4])
     Arguments:
         - batch (:obj:`Sequence`): a data sequence, whose length is batch size, whose element is one piece of data
     Returns:

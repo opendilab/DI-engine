@@ -189,8 +189,8 @@ def batch_binary_encode(x: torch.Tensor, bit_num: int) -> torch.Tensor:
         - bit_num (:obj:`int`): number of bits, should satisfy :math:`2^{bit num} > max(x)`
     Example:
         >>> batch_binary_encode(torch.tensor([131,71]), 10)
-        >>> tensor([[0., 0., 1., 0., 0., 0., 0., 0., 1., 1.],
-        >>>         [0., 0., 0., 1., 0., 0., 0., 1., 1., 1.]])
+        tensor([[0., 0., 1., 0., 0., 0., 0., 0., 1., 1.],
+                [0., 0., 0., 1., 0., 0., 0., 1., 1., 1.]])
     Returns:
         - ret (:obj:`torch.Tensor`): the binary encoded tensor, containing only `0` and `1`
     """

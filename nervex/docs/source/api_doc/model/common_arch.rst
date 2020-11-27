@@ -1,4 +1,3 @@
-
 model.common_arch
 ===================
 
@@ -17,4 +16,13 @@ dueling
 DuelingHead
 ~~~~~~~~~~~~~~~~~~~
 .. autoclass:: nervex.model.common_arch.dueling.DuelingHead
+    :members: __init__, forward
+
+
+encoder
+--------------------
+
+ConvEncoder
+~~~~~~~~~~~~~~~~~~~
+.. autoclass:: nervex.model.common_arch.encoder.ConvEncoder
     :members: __init__, forward

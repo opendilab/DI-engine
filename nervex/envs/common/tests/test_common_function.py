@@ -65,7 +65,7 @@ class TestEnvCommonFunc:
         assert a_clip.max().item() == 1
         assert [j.sum().item() for i in a_clip for j in i] == [1 for _ in range(6)]
         clip_dim = 4
-        assert a_sqrt.shape == (2, 3, clip_dim)
+        assert a_clip.shape == (2, 3, clip_dim)
 
     def test_reorder(self, setup_reorder_array, setup_reorder_dict):
         a = torch.LongTensor([2, 7])  # VALUES = [2, 3, 5, 7, 11]
