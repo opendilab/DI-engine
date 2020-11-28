@@ -90,6 +90,8 @@ def squeeze(data: object) -> object:
     if isinstance(data, tuple) or isinstance(data, list):
         if len(data) == 1:
             return data[0]
+        else:
+            return tuple(data)
     elif isinstance(data, dict):
         if len(data) == 1:
             return list(data.values())[0]
