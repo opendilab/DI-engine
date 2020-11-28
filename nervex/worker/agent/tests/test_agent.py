@@ -28,6 +28,26 @@ class TempMLP(torch.nn.Module):
         return x
 
 
+class ActorMLP(torch.nn.Module):
+
+    def __init__(self):
+        super(ActorMLP, self).__init__()
+        self.fc1 = nn.Linear(3, 4)
+        self.bn1 = nn.BatchNorm1d(4)
+        self.fc2 = nn.Linear(4, 6)
+        self.act = nn.ReLU()
+        self.out = nn.Softmax()
+
+    def forward(self, x):
+        x = self.fc1(x)
+        x = self.bn1(x)
+        x = self.act(x)
+        x = self.fc2(x)
+        x = self.act(x)
+        x = self.out(x)
+        return {'logit': x}
+
+
 class TempLSTM(torch.nn.Module):
 
     def __init__(self):
@@ -170,7 +190,6 @@ class TestAgentPlugin:
         output_target = agent.target_forward(inputs)
         assert output.eq(output_target).sum() == 2 * 6
 
-    @pytest.mark.u
     def test_teacher_network_helper(self):
         model = TempLSTM()
         plugin_cfg = {
@@ -224,3 +243,12 @@ class TestAgentPlugin:
         assert all([len(p) == 2 for p in output_main['prev_state']])
         assert len(output_teacher['prev_state']) == 3
         assert all([len(p) == 2 for p in output_teacher['prev_state']])
+
+    def test_eps_greedy_helper(self):
+        model = ActorMLP()
+        plugin_cfg = {'main': OrderedDict({'eps_greedy_sample': {}, 'grad': {'enable_grad': False}})}
+        agent = AgentAggregator(BaseAgent, model, plugin_cfg)
+        agent.mode(train=False)
+        eps_threshold = 0.95
+        data = torch.randn(4, 3)
+        agent.forward(data, eps=eps_threshold)

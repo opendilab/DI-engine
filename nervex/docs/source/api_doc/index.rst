@@ -13,6 +13,7 @@ API Doc
     data/dataloader
     data/collate_fn
     worker/learner/learner
+    worker/agent/agent
     rl_utils/td
     rl_utils/gae
     rl_utils/ppo
