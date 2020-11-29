@@ -39,7 +39,7 @@ class QAC(QActorCriticBase):
         self._critic_encoder[0].register_backward_hook(backward_hook)
         # head
         self._head_layer_num = 2
-
+        # actor head
         actor_input_dim = state_embedding_dim
         layers = []
         for _ in range(self._head_layer_num):
@@ -48,7 +48,7 @@ class QAC(QActorCriticBase):
             actor_input_dim = head_hidden_dim
         layers.append(nn.Linear(actor_input_dim, self._act_dim))
         self._actor = nn.Sequential(*layers)
-
+        # (twin) critic head
         self._critic = nn.ModuleList()
         for _ in range(self._critic_num):
             critic_input_dim = state_action_embedding_dim
@@ -82,12 +82,12 @@ class QAC(QActorCriticBase):
 
     def _actor_forward(self, x: torch.Tensor) -> torch.Tensor:
 
-        def scale(num, new_min, new_max):
-            return (num + 1) / 2 * (new_max - new_min) + new_min
+        # def scale(num, new_min, new_max):
+        #     return (num + 1) / 2 * (new_max - new_min) + new_min
 
         actor_ret = self._actor_encoder(x)
         actor_ret = self._actor(actor_ret)
-        actor_ret = scale(torch.tanh(actor_ret), self._act_range['min'], self._act_range['max'])
+        # actor_ret = scale(torch.tanh(actor_ret), self._act_range['min'], self._act_range['max'])
         return actor_ret
 
     def compute_action_q(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, List[torch.Tensor]]:
@@ -102,8 +102,7 @@ class QAC(QActorCriticBase):
 
     def compute_action(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
-        with torch.no_grad():
-            action = self._actor_forward(state_input)
+        action = self._actor_forward(state_input)
         return {'action': action}
 
     def optimize_actor(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:

@@ -93,15 +93,15 @@ class SingleMachineRunner(object):
         self.learner.get_data = fn
 
     def _setup_learner(self):
-        """set self.learner"""
+        """set up self.learner"""
         raise NotImplementedError
 
     def _setup_agent(self):
-        """set self.actor_agent and self.evaluator_agent"""
+        """set up self.actor_agent and self.evaluator_agent"""
         raise NotImplementedError
 
     def _setup_env(self):
-        """set self.actor_env and self.evaluate_env"""
+        """set up self.actor_env and self.evaluate_env"""
         raise NotImplementedError
 
     def _accumulate_data(self, idx, obs, agent_output, timestep):
@@ -172,12 +172,18 @@ class SingleMachineRunner(object):
         elif self.algo_type == 'ppo':
             return {}
         elif self.algo_type == 'ddpg':
-            return {'noise_type': 'gauss',
-                    'noise_kwargs': {
-                        'mu': 0.0,
-                        'sigma': 1.0,
-                        'range': 2.0
-                    }}
+            return {
+                'noise_type': 'gauss',
+                'noise_kwargs': {
+                    'mu': 0.0,
+                    'sigma': 1.0,
+                    'range': 2.0
+                },
+                'action_range': {
+                    'min': -2.0,
+                    'max': 2.0
+                }
+            }
 
     def collect_data(self):
         self.actor_env.launch()

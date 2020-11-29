@@ -75,11 +75,7 @@ class GaussianNoise(BaseNoise):
         __init__, reset, __call__
     """
 
-    def __init__(
-        self,
-        mu: float = 0.0,
-        sigma: float = 1.0
-    ) -> None:
+    def __init__(self, mu: float = 0.0, sigma: float = 1.0) -> None:
         """
         Overview:
             Initialize :math:`\mu` and :math:`\sigma` in Gaussian Distribution
@@ -119,12 +115,12 @@ class OUNoise(BaseNoise):
     """
 
     def __init__(
-        self,
-        mu: float = 0.0,
-        sigma: float = 0.3,
-        theta: float = 0.15,
-        dt: float = 1e-2,
-        x0: Optional[Union[float, torch.Tensor]] = 0.0,
+            self,
+            mu: float = 0.0,
+            sigma: float = 0.3,
+            theta: float = 0.15,
+            dt: float = 1e-2,
+            x0: Optional[Union[float, torch.Tensor]] = 0.0,
     ) -> None:
         """
         Overview:
@@ -187,10 +183,7 @@ class OUNoise(BaseNoise):
         self.reset()
 
 
-noise_mapping = {
-    'gauss': GaussianNoise,
-    'ou': OUNoise
-}
+noise_mapping = {'gauss': GaussianNoise, 'ou': OUNoise}
 
 
 def create_noise_generator(noise_type: str, *args, **kwargs) -> BaseNoise:
@@ -209,5 +202,3 @@ def create_noise_generator(noise_type: str, *args, **kwargs) -> BaseNoise:
         raise KeyError("not support noise type: {}".format(noise_type))
     else:
         return noise_mapping[noise_type](*args, **kwargs)
-
-
