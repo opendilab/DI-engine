@@ -93,15 +93,15 @@ class SingleMachineRunner(object):
         self.learner.get_data = fn
 
     def _setup_learner(self):
-        """set up self.learner"""
+        """setup self.learner"""
         raise NotImplementedError
 
     def _setup_agent(self):
-        """set up self.actor_agent and self.evaluator_agent"""
+        """setup self.actor_agent and self.evaluator_agent"""
         raise NotImplementedError
 
     def _setup_env(self):
-        """set up self.actor_env and self.evaluate_env"""
+        """setup self.actor_env and self.evaluate_env"""
         raise NotImplementedError
 
     def _accumulate_data(self, idx, obs, agent_output, timestep):

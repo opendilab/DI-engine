@@ -81,6 +81,7 @@ class QAC(QActorCriticBase):
             return critic_ret
 
     def _actor_forward(self, x: torch.Tensor) -> torch.Tensor:
+        # clip action in NoiseHelper agent plugin, not heres
 
         # def scale(num, new_min, new_max):
         #     return (num + 1) / 2 * (new_max - new_min) + new_min
@@ -89,14 +90,13 @@ class QAC(QActorCriticBase):
         actor_ret = self._actor(actor_ret)
         # actor_ret = scale(torch.tanh(actor_ret), self._act_range['min'], self._act_range['max'])
         return actor_ret.squeeze(1)
-
-    def compute_action_q(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, List[torch.Tensor]]:
-        q_dict = self.compute_q(inputs)
-        action_dict = self.compute_action(inputs)
-        return deep_merge_dicts(q_dict, action_dict)
+        # return actor_ret
 
     def compute_q(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, List[torch.Tensor]]:
-        state_action_input = torch.cat([inputs['obs'], inputs['act']], dim=1)
+        action = inputs['action']
+        if len(action.shape) == 1:
+            action = action.unsqueeze(1)
+        state_action_input = torch.cat([inputs['obs'], action], dim=1)
         q = self._critic_forward(state_action_input)
         return {'q_value': q}
 
@@ -108,6 +108,8 @@ class QAC(QActorCriticBase):
     def optimize_actor(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
         action = self._actor_forward(state_input)
+        if len(action.shape) == 1:
+            action = action.unsqueeze(1)
         state_action_input = torch.cat([state_input, action], dim=1)
 
         for p in self._critic_encoder[0].parameters():

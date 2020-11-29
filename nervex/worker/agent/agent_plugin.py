@@ -1,7 +1,7 @@
 import copy
 from abc import ABC, abstractmethod, abstractclassmethod
 from collections import OrderedDict
-from typing import Any, Tuple, Callable, Union, Optional
+from typing import Any, Tuple, Callable, Union, Optional, Dict
 
 import numpy as np
 import torch
@@ -207,38 +207,41 @@ class EpsGreedySampleHelper(IAgentStatelessPlugin):
         agent.forward = sample_wrapper(agent.forward)
 
 
-global noise_generator
-noise_generator = None
-
-
 class ActionNoiseHelper(IAgentStatelessPlugin):
 
     @classmethod
     def register(cls: type, agent: Any) -> None:
+        noise_helper = cls()
+        agent.noise_generator = noise_helper.noise_generator
 
         def noise_wrapper(forward_fn: Callable) -> Callable:
 
             def wrapper(*args, **kwargs):
-                global noise_generator
-                noise_type = kwargs.pop('noise_type')
-                noise_kwargs = kwargs.pop('noise_kwargs')
-                noise_range = noise_kwargs.pop('range')
-                action_range = kwargs.pop('action_range')
-                if noise_generator is None:
-                    noise_generator = create_noise_generator(noise_type, noise_kwargs)
+                # print(kwargs)
+                noise_type = kwargs.pop('noise_type', None)
+                noise_kwargs = kwargs.pop('noise_kwargs', None)
+                noise_range = noise_kwargs.pop('range', 2.0) if noise_kwargs is not None else None
+                action_range = kwargs.pop('action_range', None)
+                if agent.noise_generator is None and noise_type is not None:
+                    agent.noise_generator = create_noise_generator(noise_type, noise_kwargs)
                 output = forward_fn(*args, **kwargs)
                 assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
-                action = output['action']
-                assert isinstance(action, torch.Tensor)
-                noise = noise_generator(action.shape, action.device)
-                action += noise.clamp(-noise_range, noise_range)  # noise clip
-                action = action.clamp(action_range['min'], action_range['max'])  # action clip
-                output['action'] = action
+                if 'action' in output:
+                    # print(output)
+                    action = output['action']
+                    assert isinstance(action, torch.Tensor)
+                    noise = agent.noise_generator(action.shape, action.device)
+                    action += noise.clamp(-noise_range, noise_range)  # noise clip
+                    action = action.clamp(action_range['min'], action_range['max'])  # action clip
+                    output['action'] = action
                 return output
 
             return wrapper
 
         agent.forward = noise_wrapper(agent.forward)
+
+    def __init__(self) -> None:
+        self.noise_generator = None
 
 
 class TargetNetworkHelper(IAgentStatefulPlugin):

@@ -46,7 +46,9 @@ def q_1step_td_error_continuous(
         weights = torch.ones_like(reward)
     q_s_a = [a_q[batch_range] for a_q in q]
     target_q_s_a = [a_next_q[batch_range] for a_next_q in next_q]
-    target_q_s_a = min(target_q_s_a)
+    target_q_s_a = torch.stack(target_q_s_a, dim=0)
+    target_q_s_a = target_q_s_a.min(dim=0).values
+    # target_q_s_a = min(target_q_s_a)
     target_q_s_a = gamma * (1 - done) * target_q_s_a + reward
     return [(criterion(a_q_s_a, target_q_s_a.detach()) * weights).mean() for a_q_s_a in q_s_a]
 
@@ -195,7 +197,7 @@ def multistep_forward_view(
     discounts = gammas * lambda_
     for t in reversed(range(rewards.size()[0] - 1)):
         result[t, :] = rewards[t, :] \
-                       + discounts[t, :] * result[t + 1, :] \
-                       + (gammas[t, :] - discounts[t, :]) * bootstrap_values[t, :]
+            + discounts[t, :] * result[t + 1, :] \
+            + (gammas[t, :] - discounts[t, :]) * bootstrap_values[t, :]
 
     return result

@@ -62,9 +62,6 @@ class QActorCriticBase(nn.Module):
     def compute_action(self, inputs, **kwargs):
         raise NotImplementedError
 
-    def compute_action_q(self, inputs, **kwargs):
-        raise NotImplementedError
-
     def mimic(self, inputs, **kwargs):
         raise NotImplementedError
 
