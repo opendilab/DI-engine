@@ -27,6 +27,7 @@ class BaseAgent(ABC):
             - pulgin_cfg (:obj:`Union[OrderedDict, None]`): the plugin config to register
         """
         self._model = model
+        self._plugin_cfg = plugin_cfg
         register_plugin(self, plugin_cfg)
 
     def forward(self, data: Any, param: Optional[dict] = None) -> Any:

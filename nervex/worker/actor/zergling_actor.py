@@ -89,10 +89,12 @@ class ZerglingActor(BaseActor):
         obs = self._collate_fn(list(obs.values()))
         if self._cfg.actor.use_cuda:
             obs = to_device(obs, 'cuda')
+        forward_kwargs = self._job['forward_kwargs']
+        forward_kwargs['state_id'] = list(env_id)
         if len(self._job['agent']) == 1:
-            data = self._agent.forward(obs, **self._job['forward_kwargs'])
+            data = self._agent.forward(obs, **forward_kwargs)
         else:
-            data = [agent.forward(obs[i], **self._job['forward_kwargs']) for i, agent in enumerate(self._agent)]
+            data = [agent.forward(obs[i], **forward_kwargs) for i, agent in enumerate(self._agent)]
         if self._cfg.actor.use_cuda:
             data = to_device(data, 'cpu')
         data = self._decollate_fn(data)
@@ -142,7 +144,7 @@ class ZerglingActor(BaseActor):
 
     # override
     def _finish_job(self) -> None:
-        assert all([len(r) == self._env_kwargs['episode_num'] for r in self._job_result.values()])
+        assert all([len(r) == self._env_kwargs['episode_num'] for r in self._job_result.values()]), self._job_result.values()
         episode_count = self._env_kwargs['episode_num'] * self._env_num
         duration = max(time.time() - self._start_time, 1e-8)
         job_finish_info = {

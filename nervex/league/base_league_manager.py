@@ -133,10 +133,13 @@ class BaseLeagueManager(ABC):
         # add pretrain player as the initial HistoricalPlayer for each player category
         if self.cfg.use_pretrain_init_historical:
             for cate in self.cfg.player_category:
-                name = '{}_{}_0_pretrain'.format('main_player', cate)
-                parent_name = '{}_{}_0'.format('main_player', cate)
+                main_player_name = [k for k in self.cfg.keys() if 'main_player' in k]
+                assert len(main_player_name) == 1, main_player_name
+                main_player_name = main_player_name[0]
+                name = '{}_{}_0_pretrain'.format(main_player_name, cate)
+                parent_name = '{}_{}_0'.format(main_player_name, cate)
                 hp = HistoricalPlayer(
-                    self.cfg.main_player,
+                    self.cfg.get(main_player_name),
                     cate,
                     self.payoff,
                     self.cfg.pretrain_checkpoint_path[cate],
