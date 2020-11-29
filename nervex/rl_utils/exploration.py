@@ -186,7 +186,7 @@ class OUNoise(BaseNoise):
 noise_mapping = {'gauss': GaussianNoise, 'ou': OUNoise}
 
 
-def create_noise_generator(noise_type: str, *args, **kwargs) -> BaseNoise:
+def create_noise_generator(noise_type: str, noise_kwargs: dict) -> BaseNoise:
     """
     Overview:
         Given the key (noise_type), create a new noise generator instance if in noise_mapping's values,
@@ -201,4 +201,4 @@ def create_noise_generator(noise_type: str, *args, **kwargs) -> BaseNoise:
     if noise_type not in noise_mapping.keys():
         raise KeyError("not support noise type: {}".format(noise_type))
     else:
-        return noise_mapping[noise_type](*args, **kwargs)
+        return noise_mapping[noise_type](**noise_kwargs)

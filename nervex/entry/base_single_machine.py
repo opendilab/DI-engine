@@ -134,7 +134,6 @@ class SingleMachineRunner(object):
             step = {
                 'obs': obs,
                 'action': agent_output['action'],
-                'q_value': agent_output['q_value'],
                 'next_obs': timestep.obs,
                 'reward': timestep.reward,
                 'done': timestep.done,
@@ -173,6 +172,9 @@ class SingleMachineRunner(object):
             return {}
         elif self.algo_type == 'ddpg':
             return {
+                'param': {
+                    'mode': 'compute_action'
+                },
                 'noise_type': 'gauss',
                 'noise_kwargs': {
                     'mu': 0.0,
@@ -200,8 +202,6 @@ class SingleMachineRunner(object):
                 agent_obs = to_device(agent_obs, 'cuda')
 
             train_kwargs = self._get_train_kwargs(env_id)
-            if self.algo_type == 'ddpg':
-                train_kwargs['mode'] = 'compute_action_q'
             outputs = self.actor_agent.forward({'obs': agent_obs}, **train_kwargs)
 
             if self.use_cuda:
@@ -250,7 +250,7 @@ class SingleMachineRunner(object):
             if self.algo_type == 'drqn':
                 forward_kwargs['state_id'] = list(env_id)
             elif self.algo_type == 'ddpg':
-                forward_kwargs['mode'] = 'compute_action'
+                forward_kwargs['param'] = {'mode': 'compute_action'}
             outputs = self.evaluator_agent.forward({'obs': agent_obs}, **forward_kwargs)
 
             if self.use_cuda:

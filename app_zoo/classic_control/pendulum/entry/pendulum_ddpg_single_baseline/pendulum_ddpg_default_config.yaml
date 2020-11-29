@@ -22,7 +22,7 @@ learner:
 #        end: 0.05
 #        decay: 100000
     data:
-        buffer_length: 1000
+        buffer_length: 10000
         max_reuse: 8
         batch_size: 64
         chunk_size: 16
@@ -30,7 +30,6 @@ learner:
     ddpg:
         discount_factor: 0.95
         is_double: True
-        dueling: True
         actor_update_freq: 2
     hook:
         save_ckpt_after_iter:
@@ -55,6 +54,6 @@ evaluator:
     env_num: 1
     episode_num: 1
     eval_step: 1000
-    stop_val: -2000
+    stop_val: -100
 env:
     placeholder: 'placeholder'

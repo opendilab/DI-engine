@@ -226,8 +226,6 @@ class ActionNoiseHelper(IAgentStatelessPlugin):
                 action_range = kwargs.pop('action_range')
                 if noise_generator is None:
                     noise_generator = create_noise_generator(noise_type, noise_kwargs)
-                print(args, kwargs)
-                # kwargs.pop('mode')
                 output = forward_fn(*args, **kwargs)
                 assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
                 action = output['action']

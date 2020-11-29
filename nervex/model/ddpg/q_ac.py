@@ -88,7 +88,7 @@ class QAC(QActorCriticBase):
         actor_ret = self._actor_encoder(x)
         actor_ret = self._actor(actor_ret)
         # actor_ret = scale(torch.tanh(actor_ret), self._act_range['min'], self._act_range['max'])
-        return actor_ret
+        return actor_ret.squeeze(1)
 
     def compute_action_q(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, List[torch.Tensor]]:
         q_dict = self.compute_q(inputs)

@@ -1,6 +1,6 @@
 import pytest
 import torch
-from nervex.rl_utils import epsilon_greedy, GaussianNoise, OUNoise
+from nervex.rl_utils import epsilon_greedy, create_noise_generator
 
 
 @pytest.mark.unittest
@@ -19,13 +19,13 @@ def test_eps_greedy():
 def test_noise():
     bs, dim = 4, 15
     logits = torch.Tensor(bs, dim)
-    gauss = GaussianNoise(mu=0.0, sigma=1.5)
+    gauss = create_noise_generator(noise_type='gauss', noise_kwargs={'mu': 0.0, 'sigma': 1.5})
     g_noise = gauss(logits.shape, logits.device)
     assert g_noise.shape == logits.shape
     assert g_noise.device == logits.device
 
     x0 = torch.Tensor(bs, dim)
-    ou = OUNoise(mu=0.1, sigma=1.0, theta=2.0, x0=x0)
+    ou = create_noise_generator(noise_type='ou', noise_kwargs={'mu': 0.1, 'sigma': 1.0, 'theta': 2.0, 'x0': x0})
     o_noise1 = ou((bs, dim), x0.device)
     o_noise2 = ou((bs, dim), x0.device)
     assert o_noise2.shape == x0.shape
