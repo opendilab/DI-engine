@@ -4,7 +4,6 @@ import pickle
 from typing import NoReturn, Union
 
 import torch
-import fcntl
 from pathlib import Path
 import io
 
@@ -149,15 +148,7 @@ def read_file(path: str, fs_type: Union[None, str] = None) -> object:
     if fs_type == 'ceph':
         data = read_from_path(path)
     elif fs_type == 'normal':
-        path_lock = path + '.lock'
-        if not os.path.isfile(path_lock):
-            try:
-                Path(path_lock).touch()
-            except Exception as e:
-                pass
-        with open(path_lock, 'r') as f:
-            fcntl.flock(f.fileno(), fcntl.LOCK_EX)
-            data = torch.load(path, map_location='cpu')
+        data = torch.load(path, map_location='cpu')
     elif fs_type == 'mc':
         data = read_from_mc(path)
     return data
@@ -178,15 +169,7 @@ def save_file(path: str, data: object, fs_type: Union[None, str] = None) -> NoRe
     if fs_type == 'ceph':
         save_file_ceph(path, data)
     elif fs_type == 'normal':
-        path_lock = path + '.lock'
-        if not os.path.isfile(path_lock):
-            try:
-                Path(path_lock).touch()
-            except Exception as e:
-                pass
-        with open(path_lock, 'r') as f:
-            fcntl.flock(f.fileno(), fcntl.LOCK_EX)
-            torch.save(data, path)
+        torch.save(data, path)
 
 
 def remove_file(path: str, fs_type: Union[None, str] = None) -> NoReturn:
