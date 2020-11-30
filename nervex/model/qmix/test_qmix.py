@@ -30,7 +30,7 @@ def test_qmix():
         'prev_state': [[None for _ in range(agent_num)] for _ in range(bs)],
         'action': torch.randint(0, action_dim, size=(T, bs, agent_num))
     }
-    output = qmix_model(data)
+    output = qmix_model(data, single_step=False)
     assert set(output.keys()) == set(['total_q', 'logit', 'next_state'])
     assert output['total_q'].shape == (T, bs)
     assert output['logit'].shape == (T, bs, agent_num, action_dim)
@@ -38,4 +38,4 @@ def test_qmix():
     loss = output['total_q'].sum()
     is_differentiable(loss, qmix_model)
     data.pop('action')
-    output = qmix_model(data)
+    output = qmix_model(data, single_step=False)
