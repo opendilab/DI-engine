@@ -28,7 +28,7 @@ class ActorCriticBase(nn.Module):
                 - compute_action: evaluate policy performance, only use the actor part
                 - mimic: supervised learning, learn policy/value output label
         """
-        assert (mode in ['compute_action_value', 'compute_action', 'mimic'])
+        assert (mode in ['compute_action_value', 'compute_action', 'mimic', 'mimic_single'])
         f = getattr(self, mode)
         return f(inputs, **kwargs)
 

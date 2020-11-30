@@ -11,7 +11,7 @@ import torch
 
 from nervex.data import default_collate, default_decollate
 from nervex.torch_utils import to_device, tensor_to_list
-from nervex.utils import get_data_compressor
+from nervex.utils import get_data_compressor, lists_to_dicts
 from nervex.rl_utils import Adder
 from nervex.worker.agent import BaseAgent
 from nervex.worker.actor import BaseActor
@@ -98,6 +98,7 @@ class ZerglingActor(BaseActor):
         if self._cfg.actor.use_cuda:
             data = to_device(data, 'cpu')
         data = self._decollate_fn(data)
+        data = [lists_to_dicts(d) for d in data]
         data = {i: d for i, d in zip(env_id, data)}
         return data
 
