@@ -1,6 +1,5 @@
 from multiprocessing import Process, Pipe, connection, get_context
 from collections import namedtuple
-from threading import Thread
 import enum
 import time
 import math
@@ -9,6 +8,7 @@ import traceback
 from functools import partial
 from types import MethodType
 from typing import Any, Union, List, Tuple, Iterable, Dict, Callable
+from nervex.utils import PropagatingThread
 
 import cloudpickle
 
@@ -130,7 +130,7 @@ class SubprocessEnvManager(BaseEnvManager):
         # reset env
         reset_thread_list = []
         for i in range(self.env_num):
-            reset_thread = Thread(target=self._reset, args=(i, ))
+            reset_thread = PropagatingThread(target=self._reset, args=(i, ))
             reset_thread.daemon = True
             reset_thread_list.append(reset_thread)
         for t in reset_thread_list:
@@ -205,7 +205,7 @@ class SubprocessEnvManager(BaseEnvManager):
                     self._env_state[idx] = EnvState.DONE
                 else:
                     self._env_state[idx] = EnvState.RESET
-                    reset_thread = Thread(target=self._reset, args=(idx, ))
+                    reset_thread = PropagatingThread(target=self._reset, args=(idx, ))
                     reset_thread.daemon = True
                     reset_thread.start()
             else:
