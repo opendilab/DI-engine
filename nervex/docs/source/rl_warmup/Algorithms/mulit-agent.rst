@@ -1,6 +1,68 @@
 Multi Agent Reinforcement Learning
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+MARL Concepts
+^^^^^^^^^^^^
+Based conceptL: A set of autonomous agents that share a common environment and interact with each other
+
+Difficulty in Multi-Agent Learning (MAL)
+^^^^^^^^^^^^
+1. Agents not only interact with the environment but also with each other
+
+2. If use single-agent Q learning by considering other agents as a part of the environment
+– Such a setting breaks the theoretical convergence guarantees and makes the learning unstable.
+
+Perspective from Sequential Decision Making
+^^^^^^^^^^^^
+• Markov decision processes
+– one decision maker
+– multiple states
+
+• Repeated games
+– multiple decision makers
+– one state (e.g., one normal form game)
+
+• Stochastic games (Markov games)
+– multiple decision makers
+– multiple states (e.g., multiple normal form games)
+
+**Stochastic Game**
+– Each state corresponds to a normal-form game
+– After a round, the game randomly transitions to another state
+– Transition probabilities depend on state and joint actions taken by all agents
+
+Classification of Stochastic Games
+'''''''''''''''''''''''''''''''''''''''''
+• **Zero-sum stochastic game**: all of the states must define a zero-sum matrix game
+
+• **Team stochastic game**: all of the states must define team matrix games 
+- their reward is the same for every joint action
+
+• The one that do not fall in any of these categories are generally called **general-sum stochastic games**.
+
+Problems in MARL:
+^^^^^^^^^^^^
+1. Cooperation: 如何在复杂环境下同时训练多个智能体相互协作，并且如何让这种合作更快地适应环境和其他智能体的变化。
+
+2. Decentralized and Centralized: 如何做到更有效的集中式训练与分布式执行，即如何通过中心化的训练，执行时即使控制信息的获取也能取得好的合作效果。
+
+3. Credit assignment: 在joint-reward设定下，如何分配合作团队中各个智能体的reward。
+
+4. Efficient Communication: 智能体之间信息流的交互，如何尽可能的减少交流成本的情况下进行更有价值的信息交流。
+
+5. Agents modeling agents: 智能体之间的对抗与合作模式下，对环境中其他的智能体进行建模。
+
+
+Current Solutions for above Problems:
+^^^^^^^^^^^^
+1. 智能体之间的合作问题：(CTDE框架) MADDPG, VDN, QMIX, COMA, QTRAN
+
+2. 智能体之间的交流问题：CommNet, RIAL, DIAL, BiCNet, ATOC
+
+3. 智能体之间的建模问题：MADDPG, M3DDPG, LOLA
+
+在下面的内容中，更加详细地介绍了以上列举的一部分算法。
+
 
 MADDPG
 ^^^^^^^^^^^^
