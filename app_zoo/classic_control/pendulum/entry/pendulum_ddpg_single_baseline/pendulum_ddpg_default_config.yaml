@@ -16,19 +16,14 @@ learner:
     weight_decay: 0.0001
     reward_weights:
         'queue_len': 1.0
-#    eps:
-#        type: 'exp'
-#        start: 0.95
-#        end: 0.05
-#        decay: 100000
     data:
-        buffer_length: 10000
-        max_reuse: 8
-        batch_size: 64
+        buffer_length: 20000
+        max_reuse: 2
+        batch_size: 128
         chunk_size: 16
         num_workers: 4
     ddpg:
-        discount_factor: 0.95
+        discount_factor: 0.99
         is_double: True
         actor_update_freq: 2
     hook:
@@ -46,14 +41,24 @@ learner:
             position: after_iter
             ext_args:
                 freq: 100
+    # --- noise ---
+    # noise_type: gauss
+    # noise_kwargs:
+    #     mu: 0.0
+    #     sigma: 0.05
+    #     range: 0.2
+    action_range:
+        min: -2.0
+        max: 2.0
+    # --- noise ---
 actor:
-    env_num: 8
+    env_num: 32
     episode_num: 1
     print_freq: 500
 evaluator:
     env_num: 1
     episode_num: 1
     eval_step: 1000
-    stop_val: -100
+    stop_val: -300
 env:
     placeholder: 'placeholder'

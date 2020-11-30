@@ -178,8 +178,8 @@ class SingleMachineRunner(object):
                 'noise_type': 'gauss',
                 'noise_kwargs': {
                     'mu': 0.0,
-                    'sigma': 1.0,
-                    'range': 2.0
+                    'sigma': 0.1,
+                    'range': 0.3
                 },
                 'action_range': {
                     'min': -2.0,

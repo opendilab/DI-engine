@@ -220,7 +220,9 @@ class ActionNoiseHelper(IAgentStatelessPlugin):
                 # print(kwargs)
                 noise_type = kwargs.pop('noise_type', None)
                 noise_kwargs = kwargs.pop('noise_kwargs', None)
-                noise_range = noise_kwargs.pop('range', 2.0) if noise_kwargs is not None else None
+                # print(noise_kwargs)
+                # noise_range = noise_kwargs['range'] if noise_kwargs is not None else None
+                noise_range = noise_kwargs.pop('range', 0.4) if noise_kwargs is not None else None
                 action_range = kwargs.pop('action_range', None)
                 if agent.noise_generator is None and noise_type is not None:
                     agent.noise_generator = create_noise_generator(noise_type, noise_kwargs)

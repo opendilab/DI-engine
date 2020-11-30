@@ -64,7 +64,7 @@ actor:
     use_cuda: True
     print_freq: 100
     communication:
-        type: flask_fs  # ['single_machine', 'flask_fs']
+        type: flask_fs # ['single_machine', 'flask_fs']
         path_agent: '.'
         path_traj: '.'
         heartbeats_freq: 30
@@ -81,29 +81,29 @@ league:
         one_phase_step: 1e9
         forward_kwargs:
             exploration:
-                exploration_type: ['eps', 'gauss_noise']  # ['eps', 'gauss_noise', 'ou_noise']
+                exploration_type: ['eps', 'gauss_noise'] # ['eps', 'gauss_noise', 'ou_noise']
                 eps_kwargs:
                     start: 0.95
                     end: 0.05
                     decay_len: 10000
                 noise_kwargs:
                     mu: 0.0
-                    sigma: 1.0
-                    range: 2.0
+                    sigma: 0.1
+                    range: 0.5
         env_kwargs:
             env_num: 2
             episode_num: 2
             env_cfg:
-                env_type: 'fake'  # ['normal', 'fake']
+                env_type: 'fake' # ['normal', 'fake']
         adder_kwargs:
             use_gae: False
             data_push_length: 64
         job:
-            agent_update_freq: 30  # second
+            agent_update_freq: 30 # second
             compressor: 'none'
     communication:
         type: 'flask_fs'
-        file_system_type: 'normal'  # ['normal', 'ceph']
+        file_system_type: 'normal' # ['normal', 'ceph']
         path_agent: '.'
         path_traj: '.'
 system:
