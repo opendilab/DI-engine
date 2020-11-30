@@ -23,8 +23,6 @@ class TestTimeHelper:
         time_handle = build_time_helper(cfg)
         time_handle = build_time_helper(wrapper_type='time')
 
-
-
         @time_handle.wrapper
         def func1(x):
             return x + 1
@@ -53,5 +51,3 @@ class TestTimeHelper:
         # time_lag is bigger than 1e-3
         # assert abs(t-1) < 1e-3
         assert abs(t - 1) < 1e-2
-
-

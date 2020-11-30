@@ -6,7 +6,6 @@ from nervex.league import BaseLeagueManager, register_league
 from nervex.league.player import ActivePlayer
 from nervex.utils import read_config, deep_merge_dicts
 
-
 solo_default_config = read_config(osp.join(osp.dirname(__file__), "solo_league_manager_default_config.yaml"))
 
 
