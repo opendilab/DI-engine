@@ -1,4 +1,5 @@
 import os.path as osp
+import torch
 
 from nervex.model import FCQAC
 from nervex.utils import deep_merge_dicts
@@ -38,6 +39,23 @@ class PendulumDdpgLearner(BaseLearner):
     @override(BaseLearner)
     def _setup_computation_graph(self):
         self._computation_graph = PendulumDdpgGraph(self._cfg.learner)
+
+    @override(BaseLearner)
+    def _setup_optimizer(self) -> None:
+        """
+        Overview:
+            Setup learner's optimizer and lr_scheduler. 
+            DDPG can set different learning rate for critic and actor network, so it overwrites base learner.
+        """
+        self._optimizer = torch.optim.Adam([
+            {'params': self._agent.model._critic_encoder.parameters(), 'lr': self._cfg.learner.critic_learning_rate},
+            {'params': self._agent.model._critic.parameters(), 'lr': self._cfg.learner.critic_learning_rate},
+            {'params': self._agent.model._actor_encoder.parameters(), 'lr': self._cfg.learner.actor_learning_rate},
+            {'params': self._agent.model._actor.parameters(), 'lr': self._cfg.learner.actor_learning_rate},
+        ],
+            weight_decay=self._cfg.learner.weight_decay
+        )
+        self._lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(self._optimizer, milestones=[], gamma=1)
 
 
 register_learner('pendulum_ddpg', PendulumDdpgLearner)

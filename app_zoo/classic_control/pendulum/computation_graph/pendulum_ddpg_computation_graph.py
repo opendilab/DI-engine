@@ -12,13 +12,14 @@ class PendulumDdpgGraph(BaseCompGraph):
         self._noise_type = cfg.get('noise_type', 'gauss')
         self._noise_kwargs = cfg.get('noise_kwargs', {
             'mu': 0.0,
-            'sigma': 1.0,
-            'range': 2.0
+            'sigma': 0.08,
+            'range': 0.3
         })
         self._action_range = cfg.get('action_range', {
             'min': -2.0,
             'max': 2.0
         })
+        self._cfg = cfg
 
     def forward(self, data: dict, agent: BaseAgent) -> dict:
         obs = data.get('obs')
@@ -32,6 +33,7 @@ class PendulumDdpgGraph(BaseCompGraph):
         q_value = agent.forward(data, param={'mode': 'compute_q'})['q_value']
         # target_q
         next_data = {'obs': next_obs}
+        # print('comp graph', self._noise_kwargs)
         next_action = agent.forward(
             next_data,
             param={'mode': 'compute_action'},

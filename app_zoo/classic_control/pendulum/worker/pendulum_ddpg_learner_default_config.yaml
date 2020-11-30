@@ -9,7 +9,8 @@ learner:
     use_distributed: False
     max_iterations: 10
     unroll_len: 1
-    learning_rate: 0.001
+    actor_learning_rate: 0.0003
+    critic_learning_rate: 0.001
     weight_decay: 0.001
     reward_weights:
         'queue_len': 1.0
