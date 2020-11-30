@@ -128,8 +128,15 @@ class SubprocessEnvManager(BaseEnvManager):
             self._check_data(ret)
 
         # reset env
+        reset_thread_list = []
         for i in range(self.env_num):
-            self._reset(i)
+            reset_thread = Thread(target=self._reset, args=(i, ))
+            reset_thread.daemon = True
+            reset_thread_list.append(reset_thread)
+        for t in reset_thread_list:
+            t.start()
+        for t in reset_thread_list:
+            t.join()
 
     def _reset(self, env_id: int) -> None:
 
