@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from functools import reduce
 from nervex.model import FCDRQN
-from nervex.utils import list_split
+from nervex.utils import list_split, squeeze
 
 
 class Mixer(nn.Module):
@@ -77,19 +77,22 @@ class QMix(nn.Module):
         self._act = nn.ReLU()
         self._q_network = FCDRQN(obs_dim, action_dim, embedding_dim)
         self._mixer = Mixer(agent_num, embedding_dim)
+        global_obs_dim = squeeze(global_obs_dim)
         self._global_state_encoder = self._setup_global_encoder(global_obs_dim, embedding_dim)
 
-    def forward(self, data: dict) -> dict:
+    def forward(self, data: dict, single_step: bool = True) -> dict:
         """
         Overview:
             forward computation graph of qmix network
         Arguments:
-            - data (:obj:`dict`): input data dict with keys ['agent_state', 'global_state', 'prev_state', 'action']
+            - data (:obj:`dict`): input data dict with keys ['obs', 'prev_state', 'action']
                 - agent_state (:obj:`torch.Tensor`): each agent local state(obs)
                 - global_state (:obj:`torch.Tensor`): global state(obs)
                 - prev_state (:obj:`list`): previous rnn state
                 - action (:obj:`torch.Tensor` or None): if action is None, use argmax q_value index as action to\
                     calculate ``agent_q_act``
+            - single_step (:obj:`bool`): whether single_step forward, if so, add timestep dim before forward and\
+                remove it after forward
         Return:
             - ret (:obj:`dict`): output data dict with keys ['total_q', 'logit', 'next_state']
                 - total_q (:obj:`torch.Tensor`): total q_value, which is the result of mixer network
@@ -105,10 +108,15 @@ class QMix(nn.Module):
             - agent_q (:obj:`torch.Tensor`): :math:`(T, B, A, P)`, where P is action_dim
             - next_state (:obj:`list`): math:`(B, A)`, a list of length B, and each element is a list of length A
         """
-        agent_state, global_state, prev_state = data['agent_state'], data['global_state'], data['prev_state']
+        agent_state, global_state, prev_state = data['obs']['agent_state'], data['obs']['global_state'], data[
+            'prev_state']
         action = data.get('action', None)
+        if single_step:
+            agent_state, global_state = agent_state.unsqueeze(0), global_state.unsqueeze(0)
         T, B, A = agent_state.shape[:3]
-        assert len(prev_state) == B and all([len(p) == A for p in prev_state])
+        assert len(prev_state) == B and all(
+            [len(p) == A for p in prev_state]
+        ), '{}-{}-{}-{}'.format([type(p) for p in prev_state], B, A, len(prev_state[0]))
         prev_state = reduce(lambda x, y: x + y, prev_state)
         agent_state = agent_state.reshape(T, -1, *agent_state.shape[3:])
         global_state_embedding = self._global_state_encoder(global_state)
@@ -120,6 +128,8 @@ class QMix(nn.Module):
             action = agent_q.argmax(dim=-1)
         agent_q_act = torch.gather(agent_q, dim=-1, index=action.unsqueeze(-1))
         total_q = self._mixer(agent_q_act, global_state_embedding).reshape(T, B)
+        if single_step:
+            total_q, agent_q = total_q.squeeze(0), agent_q.squeeze(0)
         return {'total_q': total_q, 'logit': agent_q, 'next_state': next_state}
 
     def _setup_global_encoder(self, global_obs_dim: int, embedding_dim: int) -> torch.nn.Module:

@@ -23,8 +23,10 @@ def test_qmix():
     embedding_dim = 32
     qmix_model = QMix(agent_num, obs_dim, global_obs_dim, action_dim, embedding_dim)
     data = {
-        'agent_state': torch.randn(T, bs, agent_num, obs_dim),
-        'global_state': torch.randn(T, bs, global_obs_dim),
+        'obs': {
+            'agent_state': torch.randn(T, bs, agent_num, obs_dim),
+            'global_state': torch.randn(T, bs, global_obs_dim),
+        },
         'prev_state': [[None for _ in range(agent_num)] for _ in range(bs)],
         'action': torch.randint(0, action_dim, size=(T, bs, agent_num))
     }
