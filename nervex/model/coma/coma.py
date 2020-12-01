@@ -55,9 +55,9 @@ class ComaCriticNetwork(nn.Module):
             data['action'].unsqueeze(0)
             t_size = 1
         else:
-            t_size = int(data['obs']['global_state'].shape[0])
-        batch_size = int(data['obs']['agent_state'].shape[1])
-        agent_num = int(data['obs']['agent_state'].shape[2])
+            t_size = data['obs']['global_state'].shape[0]
+        batch_size = data['obs']['agent_state'].shape[1]
+        agent_num = data['obs']['agent_state'].shape[2]
         agent_state, global_state = data['obs']['agent_state'], data['obs']['global_state']
         action = data['action']
         action_onehot = one_hot(action, self._act_dim)
