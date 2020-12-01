@@ -1,4 +1,5 @@
 import time
+import platform
 import threading
 import queue
 from typing import Iterable, Callable, Optional, Any, Union
@@ -67,7 +68,8 @@ class AsyncDataLoader(object):
         queue_maxsize = max(1, self.num_workers) * 2
         self.queue_maxsize = queue_maxsize
 
-        self.mp_context = tm.get_context('fork')
+        context_str = 'spawn' if platform.system().lower() == 'windows' else 'fork'
+        self.mp_context = tm.get_context(context_str)
         self.manager = self.mp_context.Manager()
         # the queue to store processed data, user will get data from it if don't use cuda
         self.async_train_queue = self.mp_context.Queue(maxsize=queue_maxsize)

@@ -1,6 +1,7 @@
 from multiprocessing import Process, Pipe, connection, get_context
 from collections import namedtuple
 import enum
+import platform
 import time
 import math
 import copy
@@ -66,7 +67,8 @@ class SubprocessEnvManager(BaseEnvManager):
     def _create_state(self) -> None:
         super()._create_state()
         self._parent_remote, self._child_remote = zip(*[Pipe() for _ in range(self.env_num)])
-        ctx = get_context('fork')
+        context_str = 'spawn' if platform.system().lower() == 'windows' else 'fork'
+        ctx = get_context(context_str)
         # due to the runtime delay of lambda expression, we use partial for the generation of different envs,
         # otherwise, it will only use the last item cfg.
         env_fn = [partial(self._env_fn, cfg=self._env_cfg[i]) for i in range(self.env_num)]
