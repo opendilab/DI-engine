@@ -22,6 +22,7 @@ def coma_error(data: namedtuple) -> namedtuple:
         - q_val (:obj:`torch.FloatTensor`): :math:`(T, B, A, N)`
         - adv (:obj:`torch.FloatTensor`): :math:`(T, B, A)`
         - return (:obj:`torch.FloatTensor`): :math:`(T-1, B, A)`
+        - mask (:obj:`torch.LongTensor`): :math:`(T, B, A)`
         - weight (:obj:`torch.FloatTensor` or :obj:`None`): :math:`(T ,B, A)`
         - policy_loss (:obj:`torch.FloatTensor`): :math:`()`, 0-dim tensor
         - value_loss (:obj:`torch.FloatTensor`): :math:`()`
@@ -37,5 +38,5 @@ def coma_error(data: namedtuple) -> namedtuple:
     q_taken = torch.sum(q_val * action_onehot, -1)
     entropy_loss = (dist.entropy() * weight).sum() / mask.sum()
     policy_loss = -(logp * adv * weight).sum() / mask.sum()
-    q_val_loss = (F.mse_loss(return_, q_taken[:-1], reduction='none') * weight).sum() / mask.sum()
+    q_val_loss = (F.mse_loss(return_, q_taken[:-1], reduction='none') * weight).sum() / mask[:-1].sum()
     return coma_loss(policy_loss, q_val_loss, entropy_loss)
