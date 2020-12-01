@@ -12,8 +12,8 @@ class RnnActorNetwork(nn.Module):
 
     def __init__(
         self,
-        obs_dim: Union[int, tuple],
-        action_dim: tuple,
+        obs_dim: int,
+        action_dim: int,
         embedding_dim: int = 64,
         rnn_type: str = 'lstm',
         # note: the gru cell is not yet implemented in nerveX.
@@ -31,7 +31,7 @@ class RnnActorNetwork(nn.Module):
         assert self._rnn_type in ['lstm', 'gru']
         self._rnn = get_lstm('normal', embedding_dim,
                              embedding_dim) if self._rnn_type == 'lstm' else nn.GRUCell(embedding_dim, embedding_dim)
-        self._fc2 = nn.Linear(embedding_dim, action_dim)
+        self._fc2 = nn.Linear(embedding_dim, squeze(action_dim))
 
     def forward(self, inputs: Dict) -> Dict:
         if isinstance(inputs, torch.Tensor):
@@ -49,7 +49,6 @@ class RnnActorNetwork(nn.Module):
             num_layers = 1
             for i in range(len(inputs['prev_state'])):
                 if inputs['prev_state'][i] is None:
-                    seq_len, batch_size = x.unsqueeze(0).shape[:2]
                     zeros = torch.zeros(
                         num_directions * num_layers,
                         self._embedding_dim,
