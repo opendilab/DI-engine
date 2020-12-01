@@ -4,6 +4,7 @@ from collections import namedtuple
 from operator import attrgetter
 
 import numpy as np
+import torch
 import pysc2.env.sc2_env as sc2_env
 from pysc2.env.sc2_env import SC2Env
 from pysc2.lib import protocol
@@ -11,7 +12,7 @@ from s2clientprotocol import common_pb2 as sc_common
 from s2clientprotocol import debug_pb2 as d_pb
 from s2clientprotocol import sc2api_pb2 as sc_pb
 
-from . import get_map_params
+from .smac_map import get_map_params
 from .smac_action import SMACAction, distance
 from .smac_reward import SMACReward
 
@@ -67,7 +68,6 @@ class SMACEnv(SC2Env):
             player1_race=map_params["a_race"],
             player2_race=map_params["b_race"]
         )
-        self.map_type = map_params["map_type"]
         self._map_name = map_name
 
         # SMAC used
@@ -303,7 +303,16 @@ class SMACEnv(SC2Env):
         if not self.two_player:
             return {'agent_state': self.get_obs(), 'global_state': self.get_state()}
 
-        return {'agent_state': {ORIGINAL_AGENT: self.get_obs(), OPPONENT_AGENT: self.get_obs(True)}, 'global_state': {ORIGINAL_AGENT: self.get_state(), OPPONENT_AGENT: self.get_state(True)}}
+        return {
+            'agent_state': {
+                ORIGINAL_AGENT: self.get_obs(),
+                OPPONENT_AGENT: self.get_obs(True)
+            },
+            'global_state': {
+                ORIGINAL_AGENT: self.get_state(),
+                OPPONENT_AGENT: self.get_state(True)
+            }
+        }
 
     def _submit_actions(self, actions):
         if self.two_player:
@@ -346,6 +355,9 @@ class SMACEnv(SC2Env):
         return new_action
 
     def step(self, actions, force_return_two_player=False):
+        if isinstance(actions, torch.Tensor):
+            assert not self.two_player
+            actions = actions.numpy()
         processed_actions = self.action_helper.get_action(actions, self)
         try:
             # print("Submitting actions: ", actions)
@@ -389,11 +401,7 @@ class SMACEnv(SC2Env):
             raise NotImplementedError
 
         return self.timestep(
-            obs=copy.deepcopy(obs),
-            reward=rewards,
-            done=terminates,
-            info=infos,
-            episode_steps=self._episode_steps
+            obs=copy.deepcopy(obs), reward=rewards, done=terminates, info=infos, episode_steps=self._episode_steps
         )
 
     def _collect_step_data(self, game_end_code, action):
@@ -406,6 +414,8 @@ class SMACEnv(SC2Env):
         terminated = False
 
         reward = self.reward_helper.get_reward(self, action, game_end_code, self.win_counted, self.defeat_counted)
+        for k in reward:
+            reward[k] = torch.FloatTensor(reward[k])
 
         info = {ORIGINAL_AGENT: {"battle_won": False}, OPPONENT_AGENT: {"battle_won": False}}
 
@@ -666,7 +676,7 @@ class SMACEnv(SC2Env):
 
         if not self.flatten_observation:
             agents_obs_list = self._flatten_obs(agents_obs_list)
-        return agents_obs_list
+        return torch.FloatTensor(agents_obs_list)
 
     def get_obs_agent(self, agent_id, is_opponent=False):
         unit = self.get_unit_by_id(agent_id, is_opponent=is_opponent)
@@ -767,6 +777,7 @@ class SMACEnv(SC2Env):
             if self.unit_type_bits > 0:
                 type_id = self.get_unit_type_id(unit, True, is_opponent)
                 own_feats[ind + type_id] = 1
+                ind += self.unit_type_bits
             if self.obs_last_action:
                 own_feats[ind:] = self.action_helper.get_last_action(is_opponent)[agent_id]
 
@@ -983,7 +994,7 @@ class SMACEnv(SC2Env):
 
         if not self.flatten_observation:
             state = self._flatten_state(state)
-        return state
+        return torch.FloatTensor(state)
 
     def unit_max_cooldown(self, unit, is_opponent=False):
         """Returns the maximal cooldown for a unit."""
@@ -1131,9 +1142,15 @@ class SMACEnv(SC2Env):
 
     def info(self, is_opponent=False):
         T = namedtuple('EnvElement', ['shape'])
+        agent_num = self.n_enemies if is_opponent else self.n_agents
         return self.info_template(
-            agent_num=self.n_enemies if is_opponent else self.n_agents,
-            obs_space=T({'agent_state': self.get_obs_size(is_opponent), 'global_state': self.get_state_size(is_opponent)}),
+            agent_num=agent_num,
+            obs_space=T(
+                {
+                    'agent_state': (agent_num, self.get_obs_size(is_opponent)),
+                    'global_state': (self.get_state_size(is_opponent), )
+                }
+            ),
             act_space=self.action_helper.info(),
             rew_space=self.reward_helper.info(),
             episode_limit=self.episode_limit,
