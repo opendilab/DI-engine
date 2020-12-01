@@ -18,7 +18,7 @@ def test_coma():
         'last_action': torch.randint(0, action_dim, size=(T, bs, agent_num))
     }
     output = coma_model(data)
-    assert set(output.keys()) == set(['agent_q'])
-    assert output['agent_q'].shape == (T, bs, agent_num, action_dim)
-    loss = output['agent_q'].sum()
+    assert set(output.keys()) == set(['total_q'])
+    assert output['total_q'].shape == (T, bs, agent_num, action_dim)
+    loss = output['total_q'].sum()
     is_differentiable(loss, coma_model)

@@ -31,7 +31,7 @@ class RnnActorNetwork(nn.Module):
         assert self._rnn_type in ['lstm', 'gru']
         self._rnn = get_lstm('normal', embedding_dim,
                              embedding_dim) if self._rnn_type == 'lstm' else nn.GRUCell(embedding_dim, embedding_dim)
-        self._fc2 = nn.Linear(embedding_dim, squeze(action_dim))
+        self._fc2 = nn.Linear(embedding_dim, squeeze(action_dim))
 
     def forward(self, inputs: Dict) -> Dict:
         if isinstance(inputs, torch.Tensor):

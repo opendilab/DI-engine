@@ -44,7 +44,7 @@ class ComaCriticNetwork(nn.Module):
         x = self._act(self._fc1(x))
         x = self._act(self._fc2(x))
         q = self._fc3(x)
-        return {'agent_q': q}
+        return {'total_q': q}
 
     def _preprocess_data(self, data):
         assert len(data['obs']['global_state'].shape) in [2, 3]
