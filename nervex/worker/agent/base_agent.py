@@ -1,7 +1,7 @@
 from abc import ABC
 import copy
 from collections import OrderedDict
-from typing import Any, Union, Optional, Dict
+from typing import Any, Union, Optional, Dict, List
 
 import torch
 
@@ -104,7 +104,7 @@ class AgentAggregator(object):
         __init__, __getattr__
     """
 
-    def __init__(self, agent_type: type, model: torch.nn.Module, plugin_cfg: Dict[str, OrderedDict]) -> None:
+    def __init__(self, agent_type: type, model: Union[torch.nn.Module, List[torch.nn.Module]], plugin_cfg: Dict[str, OrderedDict]) -> None:
         r"""
         Overview:
             __init__ of the AgentAggregator will get a class with multi agents in ._agent
@@ -117,12 +117,14 @@ class AgentAggregator(object):
         assert issubclass(agent_type, BaseAgent)
         assert set(plugin_cfg.keys()
                    ).issubset(model_plugin_cfg_set), '{}-{}'.format(set(plugin_cfg.keys()), model_plugin_cfg_set)
-        self._agent = {}
-        for k in plugin_cfg:
-            if k == 'main':
-                self._agent[k] = agent_type(model, plugin_cfg[k])
+        if isinstance(model, torch.nn.Module):
+            if len(plugin_cfg) == 1:
+                model = [model]
             else:
-                self._agent[k] = agent_type(copy.deepcopy(model), plugin_cfg[k])
+                model = [model] + [copy.deepcopy(model) for _ in range(len(plugin_cfg) - 1)]
+        self._agent = {}
+        for i, k in enumerate(plugin_cfg):
+            self._agent[k] = agent_type(model[i], plugin_cfg[k])
 
     def __getattr__(self, key: str) -> Any:
         r"""
