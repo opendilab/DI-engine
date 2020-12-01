@@ -152,3 +152,20 @@ def create_ac_evaluator_agent(model: torch.nn.Module) -> ACEvaluatorAgent:
     })
     agent = AgentAggregator(ACEvaluatorAgent, model, plugin_cfg)
     return agent
+
+
+def create_coma_actor_agent(model: torch.nn.Module, state_num: int) -> BaseAgent:
+    plugin_cfg = OrderedDict(
+        {
+            'hidden_state': {
+                'state_num': state_num,
+                'save_prev_state': True,
+            },
+            'eps_greedy_sample': {},
+            'grad': {
+                'enable_grad': False
+            },
+        }
+    )
+    agent = AgentAggregator(BaseAgent, model, plugin_cfg)
+    return agent
