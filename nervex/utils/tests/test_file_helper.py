@@ -14,11 +14,11 @@ def test_normal_file():
     with open("./f1", "wb") as f1:
         pickle.dump(data1, f1)
     data3 = read_from_file("./f1")
-    assert(data3 == data1)
+    assert (data3 == data1)
     data4 = read_from_path("./f1")
     assert (data4 == data1)
     save_file_ceph("./f2", data1)
-    assert(data1 == read_from_file("./f2"))
+    assert (data1 == read_from_file("./f2"))
     remove_file("./f")
     remove_file("./f1")
     remove_file("./f2")

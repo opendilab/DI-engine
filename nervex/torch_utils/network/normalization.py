@@ -97,6 +97,8 @@ def build_normalization(norm_type, dim=None):
     else:
         if norm_type in ['BN', 'IN', 'SyncBN']:
             key = norm_type + str(dim)
+        elif norm_type in ['LN']:
+            key = norm_type
         else:
             raise NotImplementedError("not support indicated dim when creates {}".format(norm_type))
     norm_func = {

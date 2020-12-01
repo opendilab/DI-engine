@@ -65,13 +65,20 @@ def timestep_collate(batch: List[Dict[str, Any]]) -> Dict[str, Union[torch.Tenso
     Overview:
         [B, dict_key: [T, elem_dim]] -> [dict_key: [T, B, elem_dim]]
     """
+
+    def stack(data):
+        if isinstance(data, container_abcs.Mapping):
+            return {k: stack(data[k]) for k in data}
+        elif isinstance(data, container_abcs.Sequence) and isinstance(data[0], torch.Tensor):
+            return torch.stack(data)
+        else:
+            return data
+
     elem = batch[0]
     assert isinstance(elem, container_abcs.Mapping), type(elem)
     prev_state = [b.pop('prev_state') for b in batch]
     batch = default_collate(batch)
-    for k in batch:
-        if isinstance(batch[k], container_abcs.Sequence) and isinstance(batch[k][0], torch.Tensor):
-            batch[k] = torch.stack(batch[k])
+    batch = stack(batch)
     batch['prev_state'] = list(zip(*prev_state))
     return batch
 

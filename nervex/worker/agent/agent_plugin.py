@@ -195,7 +195,7 @@ class EpsGreedySampleHelper(IAgentStatelessPlugin):
                     if np.random.random() > eps:
                         action.append(l.argmax(dim=-1))
                     else:
-                        action.append(torch.randint(0, l.shape[-1], size=(l.shape[0], )))
+                        action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
                 if len(action) == 1:
                     action, logit = action[0], logit[0]
                 output['action'] = action
@@ -209,17 +209,26 @@ class EpsGreedySampleHelper(IAgentStatelessPlugin):
 class TargetNetworkHelper(IAgentStatefulPlugin):
 
     @classmethod
-    def register(cls: type, agent: Any, update_cfg: dict):
-        target_network = cls(agent.model, update_cfg)
+    def register(cls: type, agent: Any, update_type: str, kwargs: dict):
+        target_network = cls(agent.model, update_type, kwargs)
         agent._target_network = target_network
-        setattr(agent, 'update', getattr(agent._target_network, 'update'))
 
-    def __init__(self, model: torch.nn.Module, update_cfg: dict) -> None:
+        def reset_wrapper(reset_fn):
+
+            def wrapper(*args, **kwargs):
+                agent._target_network.reset()
+                return reset_fn(*args, **kwargs)
+
+            return wrapper
+
+        setattr(agent, 'update', getattr(agent._target_network, 'update'))
+        agent.reset = reset_wrapper(agent.reset)
+
+    def __init__(self, model: torch.nn.Module, update_type: str, kwargs: dict) -> None:
         self._model = model
-        update_type = update_cfg['type']
         assert update_type in ['momentum', 'assign']
         self._update_type = update_type
-        self._update_kwargs = update_cfg['kwargs']
+        self._update_kwargs = kwargs
         self._update_count = 0
 
     def update(self, state_dict: dict, direct: bool = False) -> None:
@@ -240,6 +249,13 @@ class TargetNetworkHelper(IAgentStatefulPlugin):
         self._update_count = 0
 
 
+class TeacherNetworkHelper(IAgentStatelessPlugin):
+
+    @classmethod
+    def register(cls: type, agent: Any, teacher_cfg: dict) -> None:
+        agent._teacher_cfg = teacher_cfg
+
+
 plugin_name_map = {
     'grad': GradHelper,
     'hidden_state': HiddenStateHelper,
@@ -248,6 +264,7 @@ plugin_name_map = {
     'multinomial_sample': MultinomialSampleHelper,
     # model plugin
     'target': TargetNetworkHelper,
+    'teacher': TeacherNetworkHelper,
 }
 
 

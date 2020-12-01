@@ -50,7 +50,7 @@ class ScatterConnection(nn.Module):
         B, M, N = x.shape
         H, W = spatial_size
         index = location.view(-1, 2)
-        bias = torch.arange(M).unsqueeze(1).repeat(1, B).view(-1).to(device)
+        bias = torch.arange(B).mul_(H * W).unsqueeze(1).repeat(1, M).view(-1).to(device)
         index = index[:, 0] * W + index[:, 1]
         index += bias
         index = index.repeat(N, 1)

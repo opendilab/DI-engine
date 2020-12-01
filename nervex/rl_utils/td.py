@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from nervex.rl_utils.value_rescale import value_transform, value_inv_transform
 
-q_1step_td_data = namedtuple('td_data', ['q', 'next_q', 'act', 'reward', 'done'])
+q_1step_td_data = namedtuple('q_1step_td_data', ['q', 'next_q', 'act', 'reward', 'done'])
 
 
 def q_1step_td_error(
@@ -26,6 +26,21 @@ def q_1step_td_error(
     target_q_s_a = next_q[batch_range, next_act]
     target_q_s_a = gamma * (1 - done) * target_q_s_a + reward
     return (criterion(q_s_a, target_q_s_a.detach()) * weights).mean()
+
+
+v_1step_td_data = namedtuple('v_1step_td_data', ['v', 'next_v', 'reward', 'done', 'weight'])
+
+
+def v_1step_td_error(
+        data: namedtuple,
+        gamma: float,
+        criterion: torch.nn.modules = nn.MSELoss(reduction='none')  # noqa
+) -> torch.Tensor:
+    v, next_v, reward, done, weight = data
+    if weight is None:
+        weight = torch.ones_like(reward)
+    target_v = gamma * (1 - done) * next_v + reward
+    return criterion(v, target_v.detach() * weight).mean()
 
 
 q_nstep_td_data = namedtuple('q_nstep_td_data', ['q', 'next_n_q', 'action', 'reward', 'done'])
