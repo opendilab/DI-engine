@@ -212,6 +212,7 @@ def create_ac_evaluator_agent(model: torch.nn.Module) -> ACEvaluatorAgent:
     return agent
 
 
+# in process actor
 def create_coma_actor_agent(model: torch.nn.Module, state_num: int) -> BaseAgent:
     plugin_cfg = OrderedDict(
         {

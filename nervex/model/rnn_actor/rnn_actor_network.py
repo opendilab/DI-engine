@@ -16,17 +16,17 @@ class RnnActorNetwork(nn.Module):
         action_dim: tuple,
         embedding_dim: int = 64,
         rnn_type: str = 'lstm',
+        # note: the gru cell is not yet implemented in nerveX.
+        # we will modified the gru type rnn to use the nerveX wrapped gru later.
         **kwargs,
     ):
 
         super(RnnActorNetwork, self).__init__()
-        # rnn_kwargs = get_kwargs(kwargs)
         self._obs_dim = obs_dim
         self._act_dim = action_dim
         self._embedding_dim = embedding_dim
         self._fc1 = nn.Linear(squeeze(obs_dim), embedding_dim)
         self._act = F.relu
-        # self._rnn_type = rnn_kwargs['rnn_type']
         self._rnn_type = rnn_type
         assert self._rnn_type in ['lstm', 'gru']
         self._rnn = get_lstm('normal', embedding_dim,
@@ -62,12 +62,3 @@ class RnnActorNetwork(nn.Module):
             next_state = self._rnn(x, inputs['prev_state'])
             x = self._fc2(next_state)
             return {'logit': x, 'next_state': next_state}
-
-
-# def get_kwargs(kwargs: dict) -> Tuple[dict]:
-#     if 'rnn_kwargs' in kwargs:
-#         rnn_kwargs = kwargs['rnn_kwargs']
-#         assert rnn_kwargs['rnn_type'] in ['lstm', 'gru']
-#     else:
-#         rnn_kwargs = {'rnn_type': kwargs.get('rnn_type', 'lstm'), 'lstm_type': kwargs.get('lstm_type', 'normal')}
-#     return rnn_kwargs
