@@ -38,5 +38,5 @@ def coma_error(data: namedtuple) -> namedtuple:
     q_taken = torch.sum(q_val * action_onehot, -1)
     entropy_loss = (dist.entropy() * weight).sum() / mask.sum()
     policy_loss = -(logp * adv * weight).sum() / mask.sum()
-    q_val_loss = (F.mse_loss(return_, q_taken[:-1], reduction='none') * weight).sum() / mask[:-1].sum()
+    q_val_loss = (F.mse_loss(return_, q_taken[:-1], reduction='none') * weight[:-1]).sum() / mask[:-1].sum()
     return coma_loss(policy_loss, q_val_loss, entropy_loss)
