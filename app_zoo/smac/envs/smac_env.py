@@ -399,6 +399,7 @@ class SMACEnv(SC2Env):
             rewards, terminates, new_infos = rewards[ORIGINAL_AGENT], terminates[ORIGINAL_AGENT], infos[ORIGINAL_AGENT]
             new_infos["battle_lost"] = infos[OPPONENT_AGENT]["battle_won"]
             new_infos["draw"] = infos["draw"]
+            new_infos['eval_reward'] = infos['eval_reward']
             infos = new_infos
             obs = {'agent_state': self.get_obs(), 'global_state': self.get_state(), 'action_mask': self.get_avail_actions()}
         else:
