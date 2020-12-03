@@ -5,26 +5,27 @@ common:
     load_path: ''
     algo_type: 'qmix'
 learner:
-    use_cuda: False
+    use_cuda: True
     use_distributed: False
     max_iterations: 10000000
-    train_step: 1
-    learning_rate: 0.0001
-    weight_decay: 0.001
+    train_step: 100
+    learning_rate: 0.0005
+    weight_decay: 0.0001
     eps:
         type: 'exp'
-        start: 0.95
+        start: 1.0
         end: 0.05
-        decay: 10000
+        decay: 200000
     data:
-        batch_size: 64
-        chunk_size: 64
+        batch_size: 32
+        chunk_size: 32
         num_workers: 3
-        max_reuse: 1
-        buffer_length: 64
+        max_reuse: 2
+        buffer_length: 5000
+        sample_ratio: 1
     qmix:
-        discount_factor: 0.995
-        traj_step: 32
+        discount_factor: 0.99
+        traj_step: 16
     hook:
         save_ckpt_after_iter:
             name: save_ckpt_after_iter
@@ -32,7 +33,7 @@ learner:
             priority: 40
             position: after_iter
             ext_args:
-                freq: 1000
+                freq: 5000
         log_show:
             name: log_show
             type: log_show
@@ -41,16 +42,17 @@ learner:
             ext_args:
                 freq: 10
 model:
-    embedding_dim: 128
+    embedding_dim: 64
 env:
+    map_name: '3s5z'
     agent_num: 8
 actor:
-    env_num: 16
+    env_num: 8
     episode_num: 'inf'
-    print_freq: 200
+    print_freq: 100
 evaluator:
-    env_num: 2
+    env_num: 5
     episode_num: 'inf'
-    total_episode_num: 4
-    eval_step: 200
+    total_episode_num: 2
+    eval_step: 1000
     stop_val: 0.7

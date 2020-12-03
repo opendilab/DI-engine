@@ -4,6 +4,7 @@ from collections import namedtuple
 from operator import attrgetter
 
 import numpy as np
+import torch
 import pysc2.env.sc2_env as sc2_env
 from pysc2.env.sc2_env import SC2Env
 from pysc2.lib import protocol
@@ -11,7 +12,7 @@ from s2clientprotocol import common_pb2 as sc_common
 from s2clientprotocol import debug_pb2 as d_pb
 from s2clientprotocol import sc2api_pb2 as sc_pb
 
-from . import get_map_params
+from .smac_map import get_map_params
 from .smac_action import SMACAction, distance
 from .smac_reward import SMACReward
 
@@ -50,12 +51,14 @@ class SMACEnv(SC2Env):
     info_template = namedtuple('BaseEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space', 'episode_limit'])
 
     def __init__(
-        self, two_player=False, map_name=None, mirror_opponent=True, reward_type="original", save_replay_episodes=None
+        self, cfg=None, two_player=False, map_name='3s5z', mirror_opponent=True, reward_type="original", save_replay_episodes=None
     ):
 
         assert (save_replay_episodes is None) or isinstance(
             save_replay_episodes, int
         )  # Denote the number of replays to save
+        if cfg is not None:
+            map_name = cfg.map_name
         self.save_replay_episodes = save_replay_episodes
 
         self.two_player = two_player
@@ -67,7 +70,6 @@ class SMACEnv(SC2Env):
             player1_race=map_params["a_race"],
             player2_race=map_params["b_race"]
         )
-        self.map_type = map_params["map_type"]
         self._map_name = map_name
 
         # SMAC used
@@ -122,8 +124,8 @@ class SMACEnv(SC2Env):
         self._move_amount = 2
         self.continuing_episode = False
 
-        self._launch_env_flag = False
-        self.seed = None
+        self._launch_env_flag = True
+        self._seed = None
         self.just_force_restarts = False
 
         # Set to false if you need structured observation / state
@@ -154,10 +156,7 @@ class SMACEnv(SC2Env):
         self.reward_helper = SMACReward(self.n_agents, self.n_enemies, self.two_player, reward_type)
 
     def seed(self, seed):
-        raise NotImplementedError()
-        # self.seed = seed
-        # if self._launch_env_flag:
-        #     self._launch()  # Restart the environment
+        self._seed = seed
 
     def _create_join(self):
         if self.two_player:
@@ -203,7 +202,7 @@ class SMACEnv(SC2Env):
             game_steps_per_episode=None,
             score_index=None,
             score_multiplier=None,
-            random_seed=self.seed,
+            random_seed=self._seed,
             disable_fog=False,
             ensure_available_actions=True,
             version=None
@@ -265,9 +264,10 @@ class SMACEnv(SC2Env):
             old_unit_tags = set()
             self.just_force_restarts = False
 
-        if self._episode_count == 0:
+        if self._launch_env_flag:
             # Launch StarCraft II
             self._launch()
+            self._launch_env_flag = False
         elif (self._total_steps > self._next_reset_steps) or (self.save_replay_episodes is not None):
             # Avoid hitting the real episode limit of SC2 env
             print("We are full restarting the environment! save_replay_episodes: ", self.save_replay_episodes)
@@ -301,9 +301,22 @@ class SMACEnv(SC2Env):
         assert all(u.health > 0 for u in self.enemies.values())
 
         if not self.two_player:
-            return {'agent_state': self.get_obs(), 'global_state': self.get_state()}
+            return {'agent_state': self.get_obs(), 'global_state': self.get_state(), 'action_mask': self.get_avail_actions()}
 
-        return {'agent_state': {ORIGINAL_AGENT: self.get_obs(), OPPONENT_AGENT: self.get_obs(True)}, 'global_state': {ORIGINAL_AGENT: self.get_state(), OPPONENT_AGENT: self.get_state(True)}}
+        return {
+            'agent_state': {
+                ORIGINAL_AGENT: self.get_obs(),
+                OPPONENT_AGENT: self.get_obs(True)
+            },
+            'global_state': {
+                ORIGINAL_AGENT: self.get_state(),
+                OPPONENT_AGENT: self.get_state(True)
+            },
+            'action_mask': {
+                ORIGINAL_AGENT: self.get_avail_actions(),
+                OPPONENT_AGENT: self.get_avail_actions(True),
+            },
+        }
 
     def _submit_actions(self, actions):
         if self.two_player:
@@ -346,6 +359,9 @@ class SMACEnv(SC2Env):
         return new_action
 
     def step(self, actions, force_return_two_player=False):
+        if isinstance(actions, torch.Tensor):
+            assert not self.two_player
+            actions = actions.numpy()
         processed_actions = self.action_helper.get_action(actions, self)
         try:
             # print("Submitting actions: ", actions)
@@ -384,16 +400,12 @@ class SMACEnv(SC2Env):
             new_infos["battle_lost"] = infos[OPPONENT_AGENT]["battle_won"]
             new_infos["draw"] = infos["draw"]
             infos = new_infos
-            obs = {'agent_state': self.get_obs(), 'global_state': self.get_state()}
+            obs = {'agent_state': self.get_obs(), 'global_state': self.get_state(), 'action_mask': self.get_avail_actions()}
         else:
             raise NotImplementedError
 
         return self.timestep(
-            obs=copy.deepcopy(obs),
-            reward=rewards,
-            done=terminates,
-            info=infos,
-            episode_steps=self._episode_steps
+            obs=copy.deepcopy(obs), reward=rewards, done=terminates, info=infos, episode_steps=self._episode_steps
         )
 
     def _collect_step_data(self, game_end_code, action):
@@ -406,8 +418,10 @@ class SMACEnv(SC2Env):
         terminated = False
 
         reward = self.reward_helper.get_reward(self, action, game_end_code, self.win_counted, self.defeat_counted)
+        for k in reward:
+            reward[k] = torch.FloatTensor(reward[k])
 
-        info = {ORIGINAL_AGENT: {"battle_won": False}, OPPONENT_AGENT: {"battle_won": False}}
+        info = {ORIGINAL_AGENT: {"battle_won": False}, OPPONENT_AGENT: {"battle_won": False}, 'eval_reward': 0.}
 
         if game_end_code is not None:
             # Battle is over
@@ -419,6 +433,7 @@ class SMACEnv(SC2Env):
                 self.win_counted = True
                 info[ORIGINAL_AGENT]["battle_won"] = True
                 info[OPPONENT_AGENT]["battle_won"] = False
+                info['eval_reward'] = 1.
             elif game_end_code == -1 and not self.defeat_counted:
                 self.defeat_counted = True
                 info[ORIGINAL_AGENT]["battle_won"] = False
@@ -666,7 +681,7 @@ class SMACEnv(SC2Env):
 
         if not self.flatten_observation:
             agents_obs_list = self._flatten_obs(agents_obs_list)
-        return agents_obs_list
+        return torch.FloatTensor(agents_obs_list)
 
     def get_obs_agent(self, agent_id, is_opponent=False):
         unit = self.get_unit_by_id(agent_id, is_opponent=is_opponent)
@@ -767,11 +782,15 @@ class SMACEnv(SC2Env):
             if self.unit_type_bits > 0:
                 type_id = self.get_unit_type_id(unit, True, is_opponent)
                 own_feats[ind + type_id] = 1
+                ind += self.unit_type_bits
             if self.obs_last_action:
                 own_feats[ind:] = self.action_helper.get_last_action(is_opponent)[agent_id]
 
-        #agent_id_one_hot = np.zeros(self.n_agents)
-        #agent_id_one_hot[agent_id] = 1
+        if is_opponent:
+            agent_id_feats = np.zeros(self.n_enemies)
+        else:
+            agent_id_feats = np.zeros(self.n_agents)
+        agent_id_feats[agent_id] = 1
         # Only set to false by outside wrapper
         if self.flatten_observation:
 
@@ -781,13 +800,13 @@ class SMACEnv(SC2Env):
                     enemy_feats.flatten(),
                     ally_feats.flatten(),
                     own_feats.flatten(),
+                    agent_id_feats,
                 )
             )
-            #agent_obs = np.concatenate([agent_obs, agent_id_one_hot])
             if self.obs_timestep_number:
                 agent_obs = np.append(agent_obs, self._episode_steps / self.episode_limit)
         else:
-            agent_obs = dict(move_feats=move_feats, enemy_feats=enemy_feats, ally_feats=ally_feats, own_feats=own_feats)
+            agent_obs = dict(move_feats=move_feats, enemy_feats=enemy_feats, ally_feats=ally_feats, own_feats=own_feats, agent_id_feats=agent_id_feats)
             if self.obs_timestep_number:
                 agent_obs["obs_timestep_number"] = self._episode_steps / self.episode_limit
 
@@ -876,7 +895,11 @@ class SMACEnv(SC2Env):
         enemy_feats = n_enemies * n_enemy_feats
         ally_feats = n_allies * n_ally_feats
 
-        return move_feats + enemy_feats + ally_feats + own_feats
+        if is_opponent:
+            agent_id_feats = self.n_enemies
+        else:
+            agent_id_feats = self.n_agents
+        return move_feats + enemy_feats + ally_feats + own_feats + agent_id_feats
 
     def get_state(self, is_opponent=False):
         if self.obs_instead_of_state:
@@ -983,7 +1006,7 @@ class SMACEnv(SC2Env):
 
         if not self.flatten_observation:
             state = self._flatten_state(state)
-        return state
+        return torch.FloatTensor(state)
 
     def unit_max_cooldown(self, unit, is_opponent=False):
         """Returns the maximal cooldown for a unit."""
@@ -1100,7 +1123,7 @@ class SMACEnv(SC2Env):
     def _flatten_obs(obs):
 
         def _get_keys(agent_obs):
-            keys = ["move_feats", "enemy_feats", "ally_feats", "own_feats"]
+            keys = ["move_feats", "enemy_feats", "ally_feats", "own_feats", "agent_id_feats"]
             if "obs_timestep_number" in agent_obs:
                 keys.append("obs_timestep_number")
             return keys
@@ -1120,20 +1143,23 @@ class SMACEnv(SC2Env):
 
         return _flatten([state], _get_keys)[0]
 
-    def get_avail_actions(self):
-        if self.two_player:
-            return {
-                ORIGINAL_AGENT: self.action_helper.get_avail_actions(self, False),
-                OPPONENT_AGENT: self.action_helper.get_avail_actions(self, True),
-            }
-        else:
-            return self.action_helper.get_avail_actions(self, False)
+    def get_avail_actions(self, is_opponent=False):
+        ava_action = self.action_helper.get_avail_actions(self, is_opponent)
+        ava_action = torch.FloatTensor(ava_action)
+        return ava_action
 
     def info(self, is_opponent=False):
         T = namedtuple('EnvElement', ['shape'])
+        agent_num = self.n_enemies if is_opponent else self.n_agents
         return self.info_template(
-            agent_num=self.n_enemies if is_opponent else self.n_agents,
-            obs_space=T({'agent_state': self.get_obs_size(is_opponent), 'global_state': self.get_state_size(is_opponent)}),
+            agent_num=agent_num,
+            obs_space=T(
+                {
+                    'agent_state': (agent_num, self.get_obs_size(is_opponent)),
+                    'global_state': (self.get_state_size(is_opponent), ),
+                    'ava_action': (agent_num, *self.action_helper.info().shape),
+                }
+            ),
             act_space=self.action_helper.info(),
             rew_space=self.reward_helper.info(),
             episode_limit=self.episode_limit,

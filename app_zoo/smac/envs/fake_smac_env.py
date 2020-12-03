@@ -36,7 +36,7 @@ class FakeSMACEnv(object):
         return FakeSMACEnv.info_template(
             agent_num=self.agent_num,
             obs_space=T({
-                'agent_state': (self.obs_dim, ),
+                'agent_state': (self.agent_num, self.obs_dim),
                 'global_state': (self.global_obs_dim, )
             }, None, None, None),
             act_space=T((self.action_dim, ), None, None, None),

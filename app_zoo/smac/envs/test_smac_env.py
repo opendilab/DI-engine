@@ -1,6 +1,8 @@
+import pytest
 import numpy as np
+import torch
 
-from sc2learner.envs.smac.smac_env import SMACEnv
+from app_zoo.smac.envs import SMACEnv
 
 MOVE_EAST = 4
 MOVE_WEST = 5
@@ -73,7 +75,7 @@ def fix_policy(env, n_agents, me=0, opponent=0):
 def main(policy, map_name="3m", two_player=True):
     env = SMACEnv(two_player=two_player, map_name=map_name)
     n_agents = 8 if map_name == "3s5z" else 3
-    n_episodes = 1000
+    n_episodes = 2
     me_win = 0
     draw = 0
     op_win = 0
@@ -85,15 +87,21 @@ def main(policy, map_name="3m", two_player=True):
         episode_reward_me = 0
         episode_reward_op = 0
 
+        env_info = env.info()
         while not terminated:
-            obs = env.get_obs()
-            obs_opponent = env.get_obs(is_opponent=True)
-            state = env.get_state()
             actions = policy(env, n_agents)
             if not two_player:
                 actions = actions["me"]
             t = env.step(actions)
-            reward, terminated, infos = t.reward, t.done, t.info
+            obs, reward, terminated, infos = t.obs, t.reward, t.done, t.info
+            assert set(obs.keys()) == set(['agent_state', 'global_state', 'action_mask'])
+            assert isinstance(obs['agent_state'], torch.Tensor)
+            assert obs['agent_state'].shape == env_info.obs_space.shape['agent_state']  # n_agents, agent_state_dim
+            assert isinstance(obs['global_state'], torch.Tensor)
+            assert obs['global_state'].shape == env_info.obs_space.shape['global_state']  # global_state_dim
+            assert isinstance(reward, torch.Tensor)
+            assert reward.shape == (1, )
+            assert isinstance(terminated, bool)
             episode_reward_me += reward["me"] if two_player else reward
             episode_reward_op += reward["opponent"] if two_player else 0
             terminated = terminated["me"] if two_player else terminated
@@ -115,8 +123,10 @@ def main(policy, map_name="3m", two_player=True):
     env.close()
 
 
-if __name__ == '__main__':
-    # main(random_policy, wrap=True)
+@pytest.mark.env_test
+def test_automation():
     main(automation, map_name="3s5z", two_player=False)
-    # main(automation, wrap=True)
-    # main(lambda a, b: fix_policy(a, b, me=MOVE_WEST, opponent=MOVE_WEST), wrap=True)
+
+
+if __name__ == "__main__":
+    test_automation()

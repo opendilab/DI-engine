@@ -49,6 +49,7 @@ setup(
         'app_zoo.atari',
         'app_zoo.gfootball',
         'app_zoo.alphastar',
+        'app_zoo.smac',
     ],
     install_requires=[
         'absl-py>=0.1.0',

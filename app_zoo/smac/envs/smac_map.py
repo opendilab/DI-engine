@@ -1,8 +1,9 @@
 from pysc2.maps import lib
+import os
 
 
 class SMACMap(lib.Map):
-    directory = "SMAC_Maps"
+    directory = os.path.join(os.path.dirname(__file__), "maps/SMAC_Maps")
     download = "https://github.com/oxwhirl/smac#smac-maps"
     players = 2
     step_mul = 8
