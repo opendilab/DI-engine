@@ -1,1 +1,1 @@
-from .coma import *
+from .coma import ComaNetwork
