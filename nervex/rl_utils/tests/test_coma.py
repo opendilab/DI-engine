@@ -12,8 +12,19 @@ weight_args = [None, random_weight]
 @pytest.mark.parametrize('weight, ', weight_args)
 def test_coma(weight):
     T, B, A, N = 128, 4, 8, 32
-    logit = torch.randn(T, B, A, N,).requires_grad_(True)
-    action = torch.randint(0, N, size=(T, B, A, ))
+    logit = torch.randn(
+        T,
+        B,
+        A,
+        N,
+    ).requires_grad_(True)
+    action = torch.randint(
+        0, N, size=(
+            T,
+            B,
+            A,
+        )
+    )
     reward = torch.rand(T, B)
     q_value = torch.randn(T, B, A, N).requires_grad_(True)
     target_q_value = torch.randn(T, B, A, N).requires_grad_(True)

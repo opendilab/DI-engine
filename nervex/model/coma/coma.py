@@ -3,8 +3,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from nervex.torch_utils import to_tensor, tensor_to_list, one_hot, get_lstm
-from nervex.utils import squeeze
+from functools import reduce
+from nervex.model import FCDRQN
+from nervex.torch_utils import one_hot
+from nervex.utils import squeeze, list_split
 
 
 class ComaActorNetwork(nn.Module):
@@ -19,19 +21,27 @@ class ComaActorNetwork(nn.Module):
         self._obs_dim = squeeze(obs_dim)
         self._act_dim = action_dim
         self._embedding_dim = embedding_dim
-        self._fc1 = nn.Linear(self._obs_dim, embedding_dim)
-        self._act = nn.ReLU()
-        self._rnn = get_lstm('normal', embedding_dim, embedding_dim)
-        self._fc2 = nn.Linear(embedding_dim, squeeze(action_dim))
+        # rnn discrete network
+        self._main = FCDRQN(obs_dim, action_dim, embedding_dim)
 
     def forward(self, inputs: Dict) -> Dict:
-        x = self._fc1(inputs['obs'])
-        x = self._act(x)
-        x = x.unsqueeze(0)
-        x, next_state = self._rnn(x, inputs['prev_state'])
-        x = x.squeeze(0)
-        x = self._fc2(x)
-        return {'logit': x, 'next_state': next_state}
+        agent_state = inputs['obs']['agent_state']
+        prev_state = inputs['prev_state']
+        if len(agent_state.shape) == 3:  # B, A, N
+            agent_state = agent_state.unsqueeze(0)
+            unsqueeze_flag = True
+        else:
+            unsqueeze_flag = False
+        T, B, A = agent_state.shape[:3]
+        agent_state = agent_state.reshape(T, -1, *agent_state.shape[3:])
+        prev_state = reduce(lambda x, y: x + y, prev_state)
+        output = self._main({'obs': agent_state, 'prev_state': prev_state, 'enable_fast_timestep': True})
+        logit, next_state = output['logit'], output['next_state']
+        next_state = list_split(next_state, step=A)
+        logit = logit.reshape(T, B, A, -1)
+        if unsqueeze_flag:
+            logit = logit.squeeze(0)
+        return {'logit': logit, 'next_state': next_state, 'action_mask': inputs['obs']['action_mask']}
 
 
 class ComaCriticNetwork(nn.Module):
@@ -65,7 +75,7 @@ class ComaCriticNetwork(nn.Module):
         x = self._act(self._fc1(x))
         x = self._act(self._fc2(x))
         q = self._fc3(x)
-        return {'total_q': q}
+        return {'q_value': q}
 
     def _preprocess_data(self, data):
         t_size, batch_size, agent_num = data['obs']['agent_state'].shape[:3]
@@ -92,8 +102,8 @@ class ComaNetwork(nn.Module):
         self._critic = ComaCriticNetwork(critic_input_dim, act_dim, embedding_dim)
 
     def forward(self, data, mode=None):
-        assert mode in ['compute_action']
+        assert mode in ['compute_action', 'compute_q_value'], mode
         if mode == 'compute_action':
             return self._actor(data)
-        elif mode == 'comput_q_value':
+        elif mode == 'compute_q_value':
             return self._critic(data)

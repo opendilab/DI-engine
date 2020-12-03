@@ -9,7 +9,7 @@ from nervex.data import timestep_collate, AsyncDataLoader
 from nervex.utils import read_config
 from nervex.worker import BaseLearner, SubprocessEnvManager
 from nervex.worker.agent import create_coma_learner_agent, create_coma_actor_agent, create_coma_evaluator_agent
-from app_zoo.smac.envs import FakeSMACEnv, SMACEnv
+from app_zoo.smac.envs import SMACEnv, SMACEnv
 from app_zoo.smac.computation_graph import SMACComaGraph
 
 
@@ -19,7 +19,8 @@ class SMACComaLearner(BaseLearner):
     def _setup_agent(self):
         env_info = SMACEnv().info()
         model = ComaNetwork(
-            env_info.act_space.shape,
+            env_info.agent_num,
+            env_info.obs_space.shape,
             env_info.act_space.shape,
             embedding_dim=self._cfg.model.embedding_dim
         )
@@ -68,9 +69,9 @@ class SMACComaRunner(SingleMachineRunner):
         self.learner = SMACComaLearner(self.cfg)
 
     def _setup_agent(self):
-        self.actor_agent = create_coma_actor_agent(copy.deepcopy(self.learner.agent.model), state_num=self.cfg.actor.env_num)
+        self.actor_agent = create_coma_actor_agent(copy.deepcopy(self.learner.agent.model), state_num=self.cfg.actor.env_num, agent_num=self.cfg.env.agent_num)
         self.actor_agent.mode(train=False)
-        self.evaluator_agent = create_coma_evaluator_agent(copy.deepcopy(self.learner.agent.model), state_num=self.cfg.evaluator.env_num)
+        self.evaluator_agent = create_coma_evaluator_agent(copy.deepcopy(self.learner.agent.model), state_num=self.cfg.evaluator.env_num, agent_num=self.cfg.env.agent_num)
         self.evaluator_agent.mode(train=False)
 
 

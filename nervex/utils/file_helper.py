@@ -56,7 +56,7 @@ def _ensure_memcached():
         server_list_config_file = "/mnt/lustre/share/memcached_client/server_list.conf"
         client_config_file = "/mnt/lustre/share/memcached_client/client.conf"
         mclient = mc.MemcachedClient.GetInstance(server_list_config_file, client_config_file)
-    return 
+    return
 
 
 def read_from_mc(path: str) -> object:

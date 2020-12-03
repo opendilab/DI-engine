@@ -12,17 +12,18 @@ class SMACComaGraph(BaseCompGraph):
     def __init__(self, cfg: dict) -> None:
         self._value_weight = cfg.coma.value_weight
         self._entropy_weight = cfg.coma.entropy_weight
-        self._gamma = cfg.coma.gamma
+        self._gamma = cfg.coma.discount_factor
         self._lambda = cfg.coma.td_lambda
 
     def forward(self, data: dict, agent: BaseAgent) -> dict:
         # note: shape is (T, B,) not (B, )
         assert set(data.keys()) > set(['obs', 'action', 'reward'])
         weight = data.get('weight', None)
+        agent.reset(state=data['prev_state'][0])
         # prepare data
-        q_value = agent.forward(data, mode='compute_q_value')
-        target_q_value = agent.target_forward(data, mode='compute_q_value')
-        logit = agent.forward(data['obs'], mode='compute_action')
+        q_value = agent.forward(data, param={'mode': 'compute_q_value'})['q_value']
+        target_q_value = agent.target_forward(data, param={'mode': 'compute_q_value'})['q_value']
+        logit = agent.forward(data, param={'mode': 'compute_action'})['logit']
 
         # calculate coma error
         data = coma_data(logit, data['action'], q_value, target_q_value, data['reward'], weight)

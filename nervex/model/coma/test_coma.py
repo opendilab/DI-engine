@@ -17,26 +17,27 @@ def test_coma_critic():
         'action': torch.randint(0, action_dim, size=(T, bs, agent_num)),
     }
     output = coma_model(data)
-    assert set(output.keys()) == set(['total_q'])
-    assert output['total_q'].shape == (T, bs, agent_num, action_dim)
-    loss = output['total_q'].sum()
+    assert set(output.keys()) == set(['q_value'])
+    assert output['q_value'].shape == (T, bs, agent_num, action_dim)
+    loss = output['q_value'].sum()
     is_differentiable(loss, coma_model)
 
 
 @pytest.mark.unittest
 def test_rnn_actor_net():
-    T, B, N = 4, 8, 32
+    T, B, A, N = 4, 8, 3, 32
     embedding_dim = 64
     action_dim = (6, )
-    data = torch.randn(T, B, N)
+    data = torch.randn(T, B, A, N)
     model = ComaActorNetwork((N, ), action_dim, embedding_dim)
-    prev_state = [None for _ in range(B)]
+    prev_state = [[None for _ in range(A)] for _ in range(B)]
     for t in range(T):
-        inputs = {'obs': data[t], 'prev_state': prev_state}
+        inputs = {'obs': {'agent_state': data[t], 'action_mask': None}, 'prev_state': prev_state}
         outputs = model(inputs)
         logit, prev_state = outputs['logit'], outputs['next_state']
         assert len(prev_state) == B
-        assert all([len(o) == 2 and all([isinstance(o1, torch.Tensor) for o1 in o]) for o in prev_state])
+        assert all([len(o) == A and all([len(o1) == 2 for o1 in o]) for o in prev_state])
+        assert logit.shape == (B, A, action_dim[0])
     # test the last step can backward correctly
     loss = logit.sum()
     is_differentiable(loss, model)

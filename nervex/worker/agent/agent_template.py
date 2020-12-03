@@ -97,6 +97,8 @@ def create_ac_learner_agent(model: torch.nn.Module) -> ACAgent:
     return agent
 
 
+create_coma_learner_agent = create_qmix_learner_agent
+
 # ######################## Actor ######################################
 
 
@@ -148,6 +150,26 @@ def create_qmix_actor_agent(model: torch.nn.Module, state_num: int, agent_num: i
 def create_ac_actor_agent(model: torch.nn.Module) -> ACAgent:
     plugin_cfg = {'main': OrderedDict({'multinomial_sample': {}, 'grad': {'enable_grad': False}})}
     agent = AgentAggregator(ACAgent, model, plugin_cfg)
+    return agent
+
+
+def create_coma_actor_agent(model: torch.nn.Module, state_num: int, agent_num: int) -> BaseAgent:
+    plugin_cfg = {
+        'main': OrderedDict(
+            {
+                'hidden_state': {
+                    'state_num': state_num,
+                    'save_prev_state': True,
+                    'init_fn': lambda: [None for _ in range(agent_num)],
+                },
+                'eps_greedy_sample': {},
+                'grad': {
+                    'enable_grad': False
+                }
+            }
+        )
+    }
+    agent = AgentAggregator(ACEvaluatorAgent, model, plugin_cfg)
     return agent
 
 
@@ -212,61 +234,20 @@ def create_ac_evaluator_agent(model: torch.nn.Module) -> ACEvaluatorAgent:
     return agent
 
 
-# in process actor
-def create_coma_actor_agent(model: torch.nn.Module, state_num: int) -> BaseAgent:
-    plugin_cfg = OrderedDict(
-        {
-            'hidden_state': {
-                'state_num': state_num,
-                'save_prev_state': True,
-            },
-            'eps_greedy_sample': {},
-            'grad': {
-                'enable_grad': False
-            },
-        }
-    )
-    agent = AgentAggregator(BaseAgent, model, plugin_cfg)
-    return agent
-
-
-# in process evaluator
-def create_coma_evaluator_agent(model: torch.nn.Module, state_num: int) -> BaseAgent:
-    plugin_cfg = OrderedDict(
-        {
-            'hidden_state': {
-                'state_num': state_num,
-                'save_prev_state': True,
-            },
-            'argmax_sample': {},
-            'grad': {
-                'enable_grad': False
-            },
-        }
-    )
-    agent = AgentAggregator(BaseAgent, model, plugin_cfg)
-    return agent
-
-
-# in process learner
-def create_coma_learner_agent(model: torch.nn.Module, state_num: int, agent_num: int):
-    plugin_cfg = {'main': OrderedDict({'hidden_state': {'state_num': state_num}, 'grad': {'enable_grad': True}})}
-    plugin_cfg['target'] = OrderedDict(
-        {
-            'hidden_state': {
-                'state_num': state_num,
-                'init_fn': lambda: [None for _ in range(agent_num)],
-            },
-            'target': {
-                'update_type': 'momentum',
-                'kwargs': {
-                    'theta': 0.001
+def create_coma_evaluator_agent(model: torch.nn.Module, state_num: int, agent_num: int) -> BaseAgent:
+    plugin_cfg = {
+        'main': OrderedDict(
+            {
+                'hidden_state': {
+                    'state_num': state_num,
+                    'init_fn': lambda: [None for _ in range(agent_num)],
+                },
+                'argmax_sample': {},
+                'grad': {
+                    'enable_grad': False
                 }
-            },
-            'grad': {
-                'enable_grad': False
             }
-        }
-    )
-    agent = AgentAggregator(BaseAgent, model, plugin_cfg)
+        )
+    }
+    agent = AgentAggregator(ACEvaluatorAgent, model, plugin_cfg)
     return agent
