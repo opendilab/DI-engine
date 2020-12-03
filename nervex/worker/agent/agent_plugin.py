@@ -74,8 +74,9 @@ class HiddenStateHelper(IAgentStatefulPlugin):
                 state_id = kwargs.pop('state_id', None)
                 data, state_info = agent._state_manager.before_forward(data, state_id)
                 output = forward_fn(data, **kwargs)
-                h = output.pop('next_state')
-                agent._state_manager.after_forward(h, state_info)
+                h = output.pop('next_state', None)
+                if h:
+                    agent._state_manager.after_forward(h, state_info)
                 if save_prev_state:
                     prev_state = get_tensor_data(data['prev_state'])
                     output['prev_state'] = prev_state
@@ -129,6 +130,7 @@ def sample_action(logit=None, prob=None):
         prob = torch.softmax(logit, dim=-1)
     shape = prob.shape
     prob = prob.view(-1, shape[-1])
+    prob += 1e-8
     action = torch.multinomial(prob, 1).squeeze(-1)
     action = action.view(*shape[:-1])
     return action
@@ -222,7 +224,8 @@ class EpsGreedySampleHelper(IAgentStatelessPlugin):
                         action.append(l.argmax(dim=-1))
                     else:
                         if mask:
-                            action.append(sample_action(prob=mask[i]))
+                            prob = mask[i].float() / mask[i].float().sum()
+                            action.append(sample_action(prob=prob))
                         else:
                             action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
                 if len(action) == 1:
