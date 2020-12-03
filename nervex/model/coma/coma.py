@@ -44,12 +44,12 @@ class ComaCriticNetwork(nn.Module):
     ):
         super(ComaCriticNetwork, self).__init__()
         self._input_dim = squeeze(input_dim)
-        self._act_dim = action_dim
+        self._act_dim = squeeze(action_dim)
         self._embedding_dim = embedding_dim
         self._act = nn.ReLU()
         self._fc1 = nn.Linear(self._input_dim, embedding_dim)
         self._fc2 = nn.Linear(embedding_dim, embedding_dim)
-        self._fc3 = nn.Linear(embedding_dim, squeeze(action_dim))
+        self._fc3 = nn.Linear(embedding_dim, action_dim)
 
     def forward(self, data):
         """
@@ -68,28 +68,26 @@ class ComaCriticNetwork(nn.Module):
         return {'total_q': q}
 
     def _preprocess_data(self, data):
-        #assert len(data['obs']['global_state'].shape) in [2, 3]
-        #if len(data['obs']['global_state'].shape) == 2:
-        # (B, ) -> (T=1, B, )
-        #    data['obs']['global_state'].unsqueeze(0)
-        #    data['obs']['agent_state'].unsqueeze(0)
-        #    data['action'].unsqueeze(0)
         t_size, batch_size, agent_num = data['obs']['agent_state'].shape[:3]
         agent_state, global_state = data['obs']['agent_state'], data['obs']['global_state']
-        action_onehot = one_hot(data['action'], self._act_dim)
+        action = one_hot(data['action'], self._act_dim)  # T, B, A，N
+        action = action.reshape(t_size, batch_size, -1, agent_num * self._act_dim).repeat(1, 1, agent_num, 1)
+        action_mask = (1 - torch.eye(agent_num).to(action.device))
+        action_mask = action_mask.view(-1, 1).repeat(1, self._act_dim).view(agent_num, -1)  # A, A*N
+        action = (action_mask.unsqueeze(0).unsqueeze(0)) * action  # T, B, A, A*N
         global_state = global_state.unsqueeze(2).repeat(1, 1, agent_num, 1)
 
-        x = torch.cat([global_state, agent_state, action_onehot], -1)
+        x = torch.cat([global_state, agent_state, action], -1)
         return x
 
 
 class ComaNetwork(nn.Module):
 
-    def __init__(self, obs_dim, act_dim, embedding_dim):
+    def __init__(self, agent_num, obs_dim, act_dim, embedding_dim):
         super(ComaNetwork, self).__init__()
         act_dim = squeeze(act_dim)
         actor_input_dim = obs_dim['agent_state'][-1]
-        critic_input_dim = obs_dim['agent_state'][-1] + squeeze(obs_dim['global_state']) + act_dim
+        critic_input_dim = obs_dim['agent_state'][-1] + squeeze(obs_dim['global_state']) + agent_num * act_dim
         self._actor = ComaActorNetwork(actor_input_dim, act_dim, embedding_dim)
         self._critic = ComaCriticNetwork(critic_input_dim, act_dim, embedding_dim)
 

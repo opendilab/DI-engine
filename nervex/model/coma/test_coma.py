@@ -8,7 +8,7 @@ from .coma import ComaCriticNetwork, ComaActorNetwork
 def test_coma_critic():
     agent_num, bs, T = 4, 3, 8
     obs_dim, global_obs_dim, action_dim = 32, 32 * 4, 9
-    coma_model = ComaCriticNetwork(obs_dim + global_obs_dim + action_dim, action_dim)
+    coma_model = ComaCriticNetwork(obs_dim + global_obs_dim + action_dim * agent_num, action_dim)
     data = {
         'obs': {
             'agent_state': torch.randn(T, bs, agent_num, obs_dim),
