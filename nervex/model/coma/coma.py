@@ -61,13 +61,15 @@ class ComaCriticNetwork(nn.Module):
         agent_state, global_state = data['obs']['agent_state'], data['obs']['global_state']
         action = data['action']
         action_onehot = one_hot(action, self._act_dim)
-        last_action = data['last_action']
-        last_action_onehot = one_hot(last_action, self._act_dim)
+        last_action = data.get('last_action', None)
+        if last_action:
+            last_action_onehot = one_hot(last_action, self._act_dim)
         inputs = []
         inputs.append(global_state.repeat(1, 1, agent_num, 1).reshape(t_size, batch_size, agent_num, -1))
         inputs.append(agent_state)
         inputs.append(action_onehot)
-        inputs.append(last_action_onehot)
+        if last_action:
+            inputs.append(last_action_onehot)
         for i in range(len(inputs)):
             inp = inputs[i]
             assert len(inp.shape) == 4

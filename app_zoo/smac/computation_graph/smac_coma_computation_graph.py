@@ -16,7 +16,7 @@ class SMACComaGraph(BaseCompGraph):
         self._gamma = cfg.coma.gamma
         self._lambda_ = cfg.coma.lambda_
 
-    def forward(self, data: dict, actor_agents: List[BaseAgent], learner_agent: BaseAgent) -> dict:
+    def forward(self, data: dict, learner_agent: BaseAgent, actor_agents: List[BaseAgent], ) -> dict:
         # note: shape is (T, B,) not (B, )
         assert set(data.keys()) > set(['obs', 'action', 'last_action', 'reward'])
         outputs = [
