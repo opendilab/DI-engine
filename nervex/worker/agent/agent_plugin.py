@@ -124,6 +124,16 @@ class HiddenStateHelper(IAgentStatefulPlugin):
             self._state[idx] = h[i]
 
 
+def sample_action(logit=None, prob=None):
+    if prob is None:
+        prob = torch.softmax(logit, dim=-1)
+    shape = prob.shape
+    prob = prob.view(-1, shape[-1])
+    action = torch.multinomial(prob, 1).squeeze(-1)
+    action = action.view(*shape[:-1])
+    return action
+
+
 class ArgmaxSampleHelper(IAgentStatelessPlugin):
 
     @classmethod
@@ -138,6 +148,11 @@ class ArgmaxSampleHelper(IAgentStatelessPlugin):
                 assert isinstance(logit, torch.Tensor) or isinstance(logit, list)
                 if isinstance(logit, torch.Tensor):
                     logit = [logit]
+                if 'action_mask' in output:
+                    mask = output['action_mask']
+                    if isinstance(mask, torch.Tensor):
+                        mask = [mask]
+                    logit = [l.sub_(1e8 * (1 - m)) for l, m in zip(logit, mask)]
                 action = [l.argmax(dim=-1) for l in logit]
                 if len(action) == 1:
                     action, logit = action[0], logit[0]
@@ -163,7 +178,12 @@ class MultinomialSampleHelper(IAgentStatelessPlugin):
                 assert isinstance(logit, torch.Tensor) or isinstance(logit, list)
                 if isinstance(logit, torch.Tensor):
                     logit = [logit]
-                action = [torch.multinomial(torch.softmax(l, dim=1), 1) for l in logit]
+                if 'action_mask' in output:
+                    mask = output['action_mask']
+                    if isinstance(mask, torch.Tensor):
+                        mask = [mask]
+                    logit = [l.sub_(1e8 * (1 - m)) for l, m in zip(logit, mask)]
+                action = [sample_action(logit=l) for l in logit]
                 if len(action) == 1:
                     action, logit = action[0], logit[0]
                 output['action'] = action
@@ -189,13 +209,22 @@ class EpsGreedySampleHelper(IAgentStatelessPlugin):
                 assert isinstance(logit, torch.Tensor) or isinstance(logit, list)
                 if isinstance(logit, torch.Tensor):
                     logit = [logit]
+                if 'action_mask' in output:
+                    mask = output['action_mask']
+                    if isinstance(mask, torch.Tensor):
+                        mask = [mask]
+                    logit = [l.sub_(1e8 * (1 - m)) for l, m in zip(logit, mask)]
+                else:
+                    mask = None
                 action = []
-                for l in logit:
-                    # TODO batch-wise e-greedy exploration
+                for i, l in enumerate(logit):
                     if np.random.random() > eps:
                         action.append(l.argmax(dim=-1))
                     else:
-                        action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
+                        if mask:
+                            action.append(sample_action(prob=mask[i]))
+                        else:
+                            action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
                 if len(action) == 1:
                     action, logit = action[0], logit[0]
                 output['action'] = action
