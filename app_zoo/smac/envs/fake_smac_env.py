@@ -41,7 +41,7 @@ class FakeSMACEnv(object):
                 'global_state': (self.global_obs_dim, ),
                 'action_mask': (self.agent_num, self.action_dim)
             }, None, None, None),
-            act_space=T((self.action_dim, ), None, None, None),
+            act_space=T((self.agent_num, self.action_dim), None, None, None),
             rew_space=T((1, ), None, None, None)
         )
 

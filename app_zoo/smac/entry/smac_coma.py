@@ -9,7 +9,7 @@ from nervex.data import timestep_collate, AsyncDataLoader
 from nervex.utils import read_config
 from nervex.worker import BaseLearner, SubprocessEnvManager
 from nervex.worker.agent import create_coma_learner_agent, create_coma_actor_agent, create_coma_evaluator_agent
-from app_zoo.smac.envs import SMACEnv, SMACEnv
+from app_zoo.smac.envs import SMACEnv
 from app_zoo.smac.computation_graph import SMACComaGraph
 
 

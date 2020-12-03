@@ -95,7 +95,7 @@ class ComaNetwork(nn.Module):
 
     def __init__(self, agent_num, obs_dim, act_dim, embedding_dim):
         super(ComaNetwork, self).__init__()
-        act_dim = squeeze(act_dim)
+        act_dim = act_dim[-1]
         actor_input_dim = obs_dim['agent_state'][-1]
         critic_input_dim = obs_dim['agent_state'][-1] + squeeze(obs_dim['global_state']) + agent_num * act_dim
         self._actor = ComaActorNetwork(actor_input_dim, act_dim, embedding_dim)

@@ -224,7 +224,7 @@ class EpsGreedySampleHelper(IAgentStatelessPlugin):
                         action.append(l.argmax(dim=-1))
                     else:
                         if mask:
-                            prob = mask[i].float() / mask[i].float().sum()
+                            prob = mask[i].float() / mask[i].float().sum(dim=-1, keepdim=True)
                             action.append(sample_action(prob=prob))
                         else:
                             action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
