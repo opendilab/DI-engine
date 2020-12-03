@@ -94,7 +94,7 @@ def main(policy, map_name="3m", two_player=True):
                 actions = actions["me"]
             t = env.step(actions)
             obs, reward, terminated, infos = t.obs, t.reward, t.done, t.info
-            assert set(obs.keys()) == set(['agent_state', 'global_state'])
+            assert set(obs.keys()) == set(['agent_state', 'global_state', 'action_mask'])
             assert isinstance(obs['agent_state'], torch.Tensor)
             assert obs['agent_state'].shape == env_info.obs_space.shape['agent_state']  # n_agents, agent_state_dim
             assert isinstance(obs['global_state'], torch.Tensor)

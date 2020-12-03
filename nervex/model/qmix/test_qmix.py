@@ -26,12 +26,13 @@ def test_qmix():
         'obs': {
             'agent_state': torch.randn(T, bs, agent_num, obs_dim),
             'global_state': torch.randn(T, bs, global_obs_dim),
+            'action_mask': torch.randint(0, 2, size=(T, bs, agent_num, action_dim))
         },
         'prev_state': [[None for _ in range(agent_num)] for _ in range(bs)],
         'action': torch.randint(0, action_dim, size=(T, bs, agent_num))
     }
     output = qmix_model(data, single_step=False)
-    assert set(output.keys()) == set(['total_q', 'logit', 'next_state'])
+    assert set(output.keys()) == set(['total_q', 'logit', 'next_state', 'action_mask'])
     assert output['total_q'].shape == (T, bs)
     assert output['logit'].shape == (T, bs, agent_num, action_dim)
     assert len(output['next_state']) == bs and all([len(n) == agent_num for n in output['next_state']])
