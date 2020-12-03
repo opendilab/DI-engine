@@ -14,16 +14,16 @@ def test_coma(weight):
     T, B, A, N = 128, 4, 8, 32
     logit = torch.randn(T, B, A, N,).requires_grad_(True)
     action = torch.randint(0, N, size=(T, B, A, ))
-    q_val = torch.randn(T, B, A, N).requires_grad_(True)
-    adv = torch.rand(T, B, A)
-    return_ = torch.randn(T - 1, B, A) * 2
+    reward = torch.rand(T, B)
+    q_value = torch.randn(T, B, A, N).requires_grad_(True)
+    target_q_value = torch.randn(T, B, A, N).requires_grad_(True)
     mask = torch.randint(0, 2, (T, B, A))
-    data = coma_data(logit, action, q_val, adv, return_, weight, mask)
-    loss = coma_error(data)
+    data = coma_data(logit, action, q_value, target_q_value, reward, weight)
+    loss = coma_error(data, 0.99, 0.95)
     assert all([l.shape == tuple() for l in loss])
     assert logit.grad is None
-    assert q_val.grad is None
+    assert q_value.grad is None
     total_loss = sum(loss)
     total_loss.backward()
     assert isinstance(logit.grad, torch.Tensor)
-    assert isinstance(q_val.grad, torch.Tensor)
+    assert isinstance(q_value.grad, torch.Tensor)
