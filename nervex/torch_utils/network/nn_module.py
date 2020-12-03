@@ -336,7 +336,8 @@ def one_hot(val, num, num_first=False):
                 [[0., 1.], [0., 0.]],
                 [[1., 0.], [0., 1.]]])
     """
-    assert (isinstance(val, torch.LongTensor))
+    assert (isinstance(val, torch.Tensor)), type(val)
+    assert val.dtype == torch.long
     assert (len(val.shape) >= 1)
     old_shape = val.shape
     val_reshape = val.reshape(-1, 1)
