@@ -51,12 +51,14 @@ class SMACEnv(SC2Env):
     info_template = namedtuple('BaseEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space', 'episode_limit'])
 
     def __init__(
-        self, two_player=False, map_name=None, mirror_opponent=True, reward_type="original", save_replay_episodes=None
+        self, cfg=None, two_player=False, map_name='3s5z', mirror_opponent=True, reward_type="original", save_replay_episodes=None
     ):
 
         assert (save_replay_episodes is None) or isinstance(
             save_replay_episodes, int
         )  # Denote the number of replays to save
+        if cfg is not None:
+            map_name = cfg.map_name
         self.save_replay_episodes = save_replay_episodes
 
         self.two_player = two_player
@@ -417,7 +419,7 @@ class SMACEnv(SC2Env):
         for k in reward:
             reward[k] = torch.FloatTensor(reward[k])
 
-        info = {ORIGINAL_AGENT: {"battle_won": False}, OPPONENT_AGENT: {"battle_won": False}}
+        info = {ORIGINAL_AGENT: {"battle_won": False}, OPPONENT_AGENT: {"battle_won": False}, 'eval_reward': 0.}
 
         if game_end_code is not None:
             # Battle is over
@@ -429,6 +431,7 @@ class SMACEnv(SC2Env):
                 self.win_counted = True
                 info[ORIGINAL_AGENT]["battle_won"] = True
                 info[OPPONENT_AGENT]["battle_won"] = False
+                info['eval_reward'] = 1.
             elif game_end_code == -1 and not self.defeat_counted:
                 self.defeat_counted = True
                 info[ORIGINAL_AGENT]["battle_won"] = False

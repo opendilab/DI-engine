@@ -9,7 +9,7 @@ from nervex.data import timestep_collate, AsyncDataLoader
 from nervex.utils import read_config
 from nervex.worker import BaseLearner, SubprocessEnvManager
 from nervex.worker.agent import create_qmix_learner_agent, create_qmix_actor_agent, create_qmix_evaluator_agent
-from app_zoo.smac.envs import FakeSMACEnv
+from app_zoo.smac.envs import FakeSMACEnv, SMACEnv
 from app_zoo.smac.computation_graph import SMACQMixGraph
 
 
@@ -17,10 +17,11 @@ class SMACQMixLearner(BaseLearner):
     _name = "SMACQMixLearner"
 
     def _setup_agent(self):
-        env_info = FakeSMACEnv({}).info()
+        env_info = SMACEnv().info()
+        # dim -1 means ignore agent num
         model = QMix(
-            env_info.agent_num, env_info.obs_space.shape['agent_state'], env_info.obs_space.shape['global_state'],
-            env_info.act_space.shape, self._cfg.model.embedding_dim
+            env_info.agent_num, env_info.obs_space.shape['agent_state'][-1], env_info.obs_space.shape['global_state'],
+            env_info.act_space.shape[-1], self._cfg.model.embedding_dim
         )
         if self._cfg.learner.use_cuda:
             model.cuda()
@@ -46,7 +47,7 @@ class SMACQMixRunner(SingleMachineRunner):
         actor_env_num = self.cfg.actor.env_num
         actor_env_cfg = copy.deepcopy(self.cfg.env)
         self.actor_env = SubprocessEnvManager(
-            FakeSMACEnv,
+            SMACEnv,
             env_cfg=[actor_env_cfg for _ in range(actor_env_num)],
             env_num=actor_env_num,
             episode_num=self.cfg.actor.episode_num
@@ -56,7 +57,7 @@ class SMACQMixRunner(SingleMachineRunner):
         eval_env_num = self.cfg.evaluator.env_num
         evaluate_env_cfg = copy.deepcopy(self.cfg.env)
         self.evaluate_env = SubprocessEnvManager(
-            FakeSMACEnv,
+            SMACEnv,
             env_cfg=[evaluate_env_cfg for _ in range(eval_env_num)],
             env_num=eval_env_num,
             episode_num=self.cfg.evaluator.episode_num

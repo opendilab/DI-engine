@@ -281,4 +281,4 @@ class SingleMachineRunner():
     def is_buffer_enough(self, last_push_count):
         bs = self.cfg.learner.data.batch_size
         size = int(self.sample_ratio * bs * self.train_step) // (self.cfg.learner.data.max_reuse)
-        return self.buffer.push_count - last_push_count >= size and self.buffer.validlen >= 2 * bs
+        return self.buffer.push_count - last_push_count >= size and self.buffer.validlen >= bs
