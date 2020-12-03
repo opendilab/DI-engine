@@ -124,8 +124,8 @@ class SMACEnv(SC2Env):
         self._move_amount = 2
         self.continuing_episode = False
 
-        self._launch_env_flag = False
-        self.seed = None
+        self._launch_env_flag = True
+        self._seed = None
         self.just_force_restarts = False
 
         # Set to false if you need structured observation / state
@@ -156,10 +156,7 @@ class SMACEnv(SC2Env):
         self.reward_helper = SMACReward(self.n_agents, self.n_enemies, self.two_player, reward_type)
 
     def seed(self, seed):
-        raise NotImplementedError()
-        # self.seed = seed
-        # if self._launch_env_flag:
-        #     self._launch()  # Restart the environment
+        self._seed = seed
 
     def _create_join(self):
         if self.two_player:
@@ -205,7 +202,7 @@ class SMACEnv(SC2Env):
             game_steps_per_episode=None,
             score_index=None,
             score_multiplier=None,
-            random_seed=self.seed,
+            random_seed=self._seed,
             disable_fog=False,
             ensure_available_actions=True,
             version=None
@@ -267,9 +264,10 @@ class SMACEnv(SC2Env):
             old_unit_tags = set()
             self.just_force_restarts = False
 
-        if self._episode_count == 0:
+        if self._launch_env_flag:
             # Launch StarCraft II
             self._launch()
+            self._launch_env_flag = False
         elif (self._total_steps > self._next_reset_steps) or (self.save_replay_episodes is not None):
             # Avoid hitting the real episode limit of SC2 env
             print("We are full restarting the environment! save_replay_episodes: ", self.save_replay_episodes)
