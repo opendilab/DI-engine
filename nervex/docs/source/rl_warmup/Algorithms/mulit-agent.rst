@@ -120,7 +120,7 @@ DIAL
     
     DRU的作用是在训练过程中，对信息m进行regulization并且附加一个方差为 :math:`simga` 的噪声；在执行过程中，则是将连续的信息m转化为离散的信息。
 
-DIAL算法的模型如下图，其中黑色表示动作的选择/信息的交流，红色表示梯D的传导：
+DIAL算法的模型如下图，其中黑色表示动作的选择/信息的交流，红色表示梯度的传导：
     
     .. image:: images/DIAL-model.jpg
         :align: center 
