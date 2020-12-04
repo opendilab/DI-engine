@@ -61,7 +61,7 @@ class ComaCriticNetwork(nn.Module):
         self._fc2 = nn.Linear(embedding_dim, embedding_dim)
         self._fc3 = nn.Linear(embedding_dim, action_dim)
 
-    def forward(self, data):
+    def forward(self, data: Dict) -> Dict:
         """
         Overview:
             forward computation graph of qmix network
@@ -77,7 +77,7 @@ class ComaCriticNetwork(nn.Module):
         q = self._fc3(x)
         return {'q_value': q}
 
-    def _preprocess_data(self, data):
+    def _preprocess_data(self, data: Dict) -> torch.Tensor:
         t_size, batch_size, agent_num = data['obs']['agent_state'].shape[:3]
         agent_state, global_state = data['obs']['agent_state'], data['obs']['global_state']
         action = one_hot(data['action'], self._act_dim)  # T, B, A，N
@@ -93,7 +93,7 @@ class ComaCriticNetwork(nn.Module):
 
 class ComaNetwork(nn.Module):
 
-    def __init__(self, agent_num, obs_dim, act_dim, embedding_dim):
+    def __init__(self, agent_num: int, obs_dim: Tuple, act_dim: Tuple, embedding_dim: int):
         super(ComaNetwork, self).__init__()
         act_dim = act_dim[-1]
         actor_input_dim = obs_dim['agent_state'][-1]
@@ -101,7 +101,7 @@ class ComaNetwork(nn.Module):
         self._actor = ComaActorNetwork(actor_input_dim, act_dim, embedding_dim)
         self._critic = ComaCriticNetwork(critic_input_dim, act_dim, embedding_dim)
 
-    def forward(self, data, mode=None):
+    def forward(self, data: Dict, mode: Union[str, None] = None) -> Dict:
         assert mode in ['compute_action', 'compute_q_value'], mode
         if mode == 'compute_action':
             return self._actor(data)

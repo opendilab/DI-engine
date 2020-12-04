@@ -3,6 +3,8 @@ import copy
 import time
 import numpy as np
 import torch
+from typing import Any, Dict
+from collections import namedtuple
 
 from nervex.data import PrioritizedBuffer, default_collate, default_decollate
 from nervex.rl_utils import epsilon_greedy, Adder
@@ -13,24 +15,24 @@ from nervex.worker.learner import LearnerHook
 
 class ActorProducerHook(LearnerHook):
 
-    def __init__(self, runner, position, priority, freq):
+    def __init__(self, runner: 'SingleMachineRunner', position: str, priority: float, freq: int):
         super().__init__(name='actor_producer', position=position, priority=priority)
         self._runner = runner
         self._freq = freq
 
-    def __call__(self, engine):
+    def __call__(self, engine: Any):
         if engine.last_iter.val % self._freq == 0:
             self._runner.collect_data()
 
 
 class ActorUpdateHook(LearnerHook):
 
-    def __init__(self, runner, position, priority, freq):
+    def __init__(self, runner: 'SingleMachineRunner', position: str, priority: float, freq: int):
         super().__init__(name='actor_producer', position=position, priority=priority)
         self._runner = runner
         self._freq = freq
 
-    def __call__(self, engine):
+    def __call__(self, engine: Any):
         if engine.last_iter.val % self._freq == 0:
             self._runner.actor_agent.load_state_dict(engine.agent.state_dict())
         self._runner.learner_step_count = engine.last_iter.val
@@ -38,12 +40,12 @@ class ActorUpdateHook(LearnerHook):
 
 class EvaluateHook(LearnerHook):
 
-    def __init__(self, runner, priority, freq):
+    def __init__(self, runner: 'SingleMachineRunner', priority: float, freq: int):
         super().__init__(name='evaluate', position='after_iter', priority=priority)
         self._runner = runner
         self._freq = freq
 
-    def __call__(self, engine):
+    def __call__(self, engine: Any):
         if engine.last_iter.val % self._freq == 0:
             self._runner.evaluator_agent.load_state_dict(engine.agent.state_dict())
             self._runner.evaluate()
@@ -51,7 +53,7 @@ class EvaluateHook(LearnerHook):
 
 class SingleMachineRunner():
 
-    def __init__(self, cfg):
+    def __init__(self, cfg: Dict):
         self.cfg = cfg
         self.algo_type = self.cfg.common.algo_type
         assert self.algo_type in ['dqn', 'ppo', 'drqn', 'qmix', 'coma'], self.algo_type
@@ -108,7 +110,7 @@ class SingleMachineRunner():
         """set self.actor_env and self.evaluate_env"""
         raise NotImplementedError
 
-    def _accumulate_data(self, idx, obs, agent_output, timestep):
+    def _accumulate_data(self, idx: int, obs: Any, agent_output: Dict, timestep: namedtuple):
         if self.algo_type == 'dqn':
             step = {
                 'obs': obs,
@@ -146,7 +148,7 @@ class SingleMachineRunner():
 
         self.env_buffer[idx].append(step)
 
-    def _pack_trajectory(self, idx):
+    def _pack_trajectory(self, idx: int):
         if self.algo_type in ['dqn', 'drqn', 'qmix', 'coma']:
             data = self.env_buffer[idx]
         elif self.algo_type == 'ppo':
@@ -175,7 +177,7 @@ class SingleMachineRunner():
                 self.buffer.append(lists_to_dicts(d, recursive=True))
         self.env_buffer[idx] = []
 
-    def _get_train_kwargs(self, env_id):
+    def _get_train_kwargs(self, env_id: int):
         if self.algo_type == 'dqn':
             eps_threshold = self.bandit(self.learner_step_count)
             return {'eps': eps_threshold}
@@ -282,7 +284,7 @@ class SingleMachineRunner():
         self.actor_env.close()
         self.evaluate_env.close()
 
-    def is_buffer_enough(self, last_push_count):
+    def is_buffer_enough(self, last_push_count: int):
         bs = self.cfg.learner.data.batch_size
         size = int(self.sample_ratio * bs * self.train_step) // (self.cfg.learner.data.max_reuse)
         return self.buffer.push_count - last_push_count >= size and self.buffer.validlen >= bs
