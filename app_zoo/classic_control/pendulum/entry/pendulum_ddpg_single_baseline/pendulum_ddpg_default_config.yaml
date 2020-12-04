@@ -9,19 +9,17 @@ learner:
     import_names: ['app_zoo.classic_control.pendulum.worker.learner.pendulum_ddpg_learner']
     use_cuda: False
     use_distributed: False
-    train_step: 200
+    train_step: 2000
     max_iterations: 10000000
     unroll_len: 1
     actor_learning_rate: 0.0003
     critic_learning_rate: 0.001
     weight_decay: 0.0001
-    reward_weights:
-        'queue_len': 1.0
     data:
-        buffer_length: 30000
-        max_reuse: 8
+        buffer_length: 20000
+        max_reuse: 1024
         batch_size: 128
-        chunk_size: 16
+        chunk_size: 128
         num_workers: 4
     ddpg:
         discount_factor: 0.99
@@ -53,13 +51,14 @@ learner:
         max: 2.0
     # --- noise ---
 actor:
-    env_num: 32
-    episode_num: 1
+    env_num: 8
+    episode_num: 'inf'
     print_freq: 500
 evaluator:
-    env_num: 1
-    episode_num: 1
+    env_num: 4
+    episode_num: 'inf'
+    total_episode_num: 4
     eval_step: 1000
-    stop_val: -300
+    stop_val: -250
 env:
     placeholder: 'placeholder'

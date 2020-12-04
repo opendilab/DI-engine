@@ -20,12 +20,14 @@ class SumoRunner(SingleMachineRunner):
             env_num=actor_env_num,
             episode_num=self.cfg.actor.episode_num
         )
+        self.actor_env.launch()
         self.evaluate_env = SubprocessEnvManager(
             PendulumEnv,
             env_cfg=[self.cfg.env for _ in range(eval_env_num)],
             env_num=eval_env_num,
             episode_num=self.cfg.evaluator.episode_num
         )
+        self.evaluate_env.launch()
 
     def _setup_learner(self):
         self.learner = PendulumDdpgLearner(self.cfg)

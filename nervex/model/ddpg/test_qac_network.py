@@ -28,7 +28,7 @@ class TestQAC:
 
     def test_fcqac(self, action_dim):
         N = 32
-        inputs = {'obs': torch.randn(B, N), 'act': torch.randn(B, squeeze(action_dim))}
+        inputs = {'obs': torch.randn(B, N), 'action': torch.randn(B, squeeze(action_dim))}
         for twin in [False, True]:
             model = FCQAC(
                 obs_dim=(N, ),
@@ -43,14 +43,17 @@ class TestQAC:
                 use_twin_critic=twin
             )
             # compute_q
-            q = model(inputs, mode='compute_q')['q']
+            q = model(inputs, mode='compute_q')['q_value']
             self.output_check(model._act_dim, [model._critic_encoder[0], model._critic[0]], q[0])
             if twin:
                 self.output_check(model._act_dim, [model._critic_encoder[1], model._critic[1]], q[1])
 
             # compute_action
             action = model(inputs, mode='compute_action')['action']
-            assert action.shape == (B, model._act_dim)
+            if squeeze(action_dim) == 1:
+                assert action.shape == (B, )
+            else:
+                assert action.shape == (B, squeeze(action_dim))
             assert action.eq(action.clamp(-2, 2)).all()
 
             # optimize_actor
@@ -58,7 +61,7 @@ class TestQAC:
                 p.grad.zero_()
             for p in model._critic[0].parameters():
                 p.grad.zero_()
-            actor_loss_pos = model(inputs, mode='optimize_actor')['q']
+            actor_loss_pos = model(inputs, mode='optimize_actor')['q_value']
             assert isinstance(actor_loss_pos, torch.Tensor)
             # actor has grad
             self.output_check(model._act_dim, [model._actor_encoder, model._actor], -actor_loss_pos[0])
@@ -73,5 +76,5 @@ class TestQAC:
                 p.grad = None
             for p in model._critic[0].parameters():
                 p.grad = None
-            q = model(inputs, mode='compute_q')['q']
+            q = model(inputs, mode='compute_q')['q_value']
             self.output_check(model._act_dim, [model._critic_encoder[0], model._critic[0]], q[0])
