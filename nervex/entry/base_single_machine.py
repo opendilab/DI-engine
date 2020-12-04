@@ -54,7 +54,7 @@ class SingleMachineRunner():
     def __init__(self, cfg):
         self.cfg = cfg
         self.algo_type = self.cfg.common.algo_type
-        assert self.algo_type in ['dqn', 'ppo', 'drqn'], self.algo_type
+        assert self.algo_type in ['dqn', 'ppo', 'drqn', 'qmix'], self.algo_type
         self.use_cuda = self.cfg.learner.use_cuda
         self.buffer = PrioritizedBuffer(cfg.learner.data.buffer_length, cfg.learner.data.max_reuse)
         self.batch_size = cfg.learner.data.batch_size
@@ -62,7 +62,7 @@ class SingleMachineRunner():
         assert cfg.learner.data.buffer_length >= max(
             self.batch_size, self.batch_size * cfg.learner.train_step // cfg.learner.data.max_reuse
         )
-        if self.algo_type in ['dqn', 'drqn']:
+        if self.algo_type in ['dqn', 'drqn', 'qmix']:
             eps_cfg = cfg.learner.eps
             self.bandit = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
 
@@ -126,7 +126,7 @@ class SingleMachineRunner():
                 'reward': timestep.reward,
                 'done': timestep.done,
             }
-        elif self.algo_type == 'drqn':
+        elif self.algo_type in ['drqn']:
             step = {
                 'obs': obs,
                 'action': agent_output['action'],
@@ -134,10 +134,20 @@ class SingleMachineRunner():
                 'reward': timestep.reward,
                 'done': timestep.done,
             }
+        elif self.algo_type in ['qmix']:
+            step = {
+                'obs': obs,
+                'next_obs': timestep.obs,
+                'prev_state': agent_output['prev_state'],
+                'action': agent_output['action'],
+                'reward': timestep.reward,
+                'done': timestep.done,
+            }
+
         self.env_buffer[idx].append(step)
 
     def _pack_trajectory(self, idx):
-        if self.algo_type in ['dqn', 'drqn']:
+        if self.algo_type in ['dqn', 'drqn', 'qmix']:
             data = self.env_buffer[idx]
         elif self.algo_type == 'ppo':
             data = self.adder.get_gae(
@@ -155,13 +165,17 @@ class SingleMachineRunner():
             data = list_split(data, step=traj_step)
             for d in data:
                 self.buffer.append(lists_to_dicts(d))
+        elif self.algo_type in ['qmix']:
+            data = list_split(data, self.cfg.learner.qmix.traj_step)
+            for d in data:
+                self.buffer.append(lists_to_dicts(d, recursive=True))
         self.env_buffer[idx] = []
 
     def _get_train_kwargs(self, env_id):
         if self.algo_type == 'dqn':
             eps_threshold = self.bandit(self.learner_step_count)
             return {'eps': eps_threshold}
-        elif self.algo_type == 'drqn':
+        elif self.algo_type in ['drqn', 'qmix']:
             eps_threshold = self.bandit(self.learner_step_count)
             return {'eps': eps_threshold, 'state_id': list(env_id)}
         elif self.algo_type == 'ppo':
@@ -195,7 +209,7 @@ class SingleMachineRunner():
             for i, t in timestep.items():
                 self._accumulate_data(i, self.actor_obs_pool[i], self.actor_out_pool[i], t)
                 if t.done:
-                    if self.algo_type == 'drqn':
+                    if self.algo_type in ['drqn', 'qmix']:
                         self.actor_agent.reset(state_id=[i])
                     else:
                         self.actor_agent.reset()
@@ -226,7 +240,7 @@ class SingleMachineRunner():
                 agent_obs = to_device(agent_obs, 'cuda')
 
             forward_kwargs = {}
-            if self.algo_type == 'drqn':
+            if self.algo_type in ['drqn', 'qmix']:
                 forward_kwargs['state_id'] = list(env_id)
             outputs = self.evaluator_agent.forward({'obs': agent_obs}, **forward_kwargs)
 
@@ -244,7 +258,7 @@ class SingleMachineRunner():
                     t.info, 'eval_reward', default_fn=lambda: t.reward.item(), judge_fn=np.isscalar
                 )
                 if t.done:
-                    if self.algo_type == 'drqn':
+                    if self.algo_type in ['drqn', 'qmix']:
                         self.evaluator_agent.reset(state_id=[i])
                     else:
                         self.evaluator_agent.reset()
@@ -267,4 +281,4 @@ class SingleMachineRunner():
     def is_buffer_enough(self, last_push_count):
         bs = self.cfg.learner.data.batch_size
         size = int(self.sample_ratio * bs * self.train_step) // (self.cfg.learner.data.max_reuse)
-        return self.buffer.push_count - last_push_count >= size and self.buffer.validlen >= 2 * bs
+        return self.buffer.push_count - last_push_count >= size and self.buffer.validlen >= bs
