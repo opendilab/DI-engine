@@ -70,6 +70,7 @@ actor:
 league:
     league_type: 'solo'
     import_names: ['nervex.league.solo_league_manager']
+    use_pretrain: False
     use_pretrain_init_historical: False
     player_category: ['main']
     active_players:

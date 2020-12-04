@@ -127,7 +127,8 @@ class BaseLeagueManager(ABC):
                     ckpt_path = '{}_ckpt.pth'.format(name)
                     # player = player_map[k](cate, self.payoff, ckpt_path, name, 0, **self.cfg[k])
                     player = create_player(self.cfg, k, self.cfg[k], cate, self.payoff, ckpt_path, name, 0)
-                    self.save_checkpoint_fn(self.cfg.pretrain_checkpoint_path[cate], player.checkpoint_path)
+                    if self.cfg.use_pretrain:
+                        self.save_checkpoint_fn(self.cfg.pretrain_checkpoint_path[cate], player.checkpoint_path)
                     self.active_players.append(player)
                     self.payoff.add_player(player)
 

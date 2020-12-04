@@ -23,9 +23,10 @@ league:
         job:
             agent_update_freq: 30  # second
             compressor: 'none'
+    use_pretrain: False
     use_pretrain_init_historical: False
     pretrain_checkpoint_path:  # placeholder
-        default: 'pretrain_checkpoint_default.pth'
+        solo: 'pretrain_checkpoint_solo.pth'
     # ---payoff---
     payoff:
         type: 'solo'  # ['solo', 'battle']
