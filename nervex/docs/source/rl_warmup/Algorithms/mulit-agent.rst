@@ -64,6 +64,111 @@ Current Solutions for above Problems:
 在下面的内容中，更加详细地介绍了以上列举的一部分算法。
 
 
+DIAL & RIAL
+^^^^^^^^^^^^^^^^^^
+DIAL和RIAL两方法由2016年NIPS论文 `Learning to communicate with deep multi-agent reinforcement learning <https://proceedings.neurips.cc/paper/2016/file/c7635bfd99248a2cdef8249ef7bfbef4-Paper.pdf>`_
+提出。
+
+从论文的名字就可以看出，论文的重点在于如何利用深度学习，使得多智能体中的各个agent学会如何与其他agent进行交流。
+论文整体的motivation也是希望通过使用交流的方式，使得agent能解决partial local observation的问题。
+
+论文使用了CTDE的设定，即Centralised Training and Decentralized Execution。
+
+论文将用于沟通信道设定为了一定带宽的 **"离散的"** 信息流。
+这个设定一是由于受限于Decentralized Execution的形式，导致在执行的时候各个agent之间的带宽受限，
+另一部分上是由于论文将所传输的信号当作了action space, 而论文的模型又是基于Deep-Q-learning的，
+因此对action space的大小有一定的要求，若action space过大也会出现探索问题。
+
+论文的setting是希望得到多个agent使得他们的共有的utility最大化，因此所有agent有相同的reward，同时也不支持competive的设定。
+
+论文提出了两个算法，RIAL和DIAL。
+简单来说，RIAL就是shared parameter的DRQN的基础上增加了离散的通信，而DIAL则是在训练过程中直接将当前agent的信息输出给其他agent，并且在训练过程中允许各个agent之间的message携带梯度。
+
+论文对应的算法特点：
+
+    - 所有agent有相同的reward，不支持competive的设定
+    
+    - 所有agent的模型一样，共享参数
+
+RIAL
+''''''''''''''''''''''
+RIAL算法相对比较简单易懂：
+    
+    其各个agent是一个DRQN网络，且其Q网络对应分为两个部分 :math:`Q_u` 和 :math:`Q_m` ，分别对应与环境交互的动作u和与其他agent沟通的信息m。
+    
+    每个agent将他们输出的Q值传入action selector, action selector会根据:math:`Q_u` 和 :math:`Q_m` 分别选择与环境交互的动作u和与其他agent沟通的信息m，并且将u返回给其他环境，在下一时间段将m传给其他agent。
+    
+    action selector在训练过程中是epsilon greedy，在执行过程中是argmax。
+
+RIAL算法的模型如下图，其中黑色表示动作的选择/信息的交流，红色表示梯度的传导：
+    
+    .. image:: images/RIAL-model.jpg
+        :align: center 
+
+显然的，RIAL既可以进行centralised training也可以进行decentralised training。 不过在进行centralised training时，RIAL可以利用centralised training，通过所有agent共享网络参数的方式加快模型的训练速度。
+
+DIAL
+'''''''''''''''''''''''
+尽管RIAL可以通过shared parameter的方式获得centralised training对应的优势，但很明显RIAL并没有完全利用centralised training对应的优势，
+比如communication对应的feedback。
+因此，基于RIAL，提出了DIAL算法，使得其中的communication channel也可以传送梯度。
+在DIAL算法中：
+
+    其各个agent的网络C-Net由两个部分组成，一个部分对应与环境交互的动作u的Q值，一个部分计算与其他agent沟通的信息m，此处的m是一个实数即一个连续值。
+    
+    每个agent将他们输出的Q值传入action selector，信息值m则是绕过了action selector，通过DRU（discretise/regularise unit）然后将信息传给其他agent。
+    
+    DRU的作用是在训练过程中，对信息m进行regulization并且附加一个方差为 :math:`simga` 的噪声；在执行过程中，则是将连续的信息m转化为离散的信息。
+
+DIAL算法的模型如下图，其中黑色表示动作的选择/信息的交流，红色表示梯D的传导：
+    
+    .. image:: images/DIAL-model.jpg
+        :align: center 
+
+DIAL算法的具体伪代码如下：
+
+    .. image:: images/DIAL-code.jpg
+        :align: center
+
+
+实验及实验环境
+''''''''''''''''''''''''''
+文章使用的实验环境也十分有趣，包括switch riddle和MNIST game，都不是传统意义上的RL环境。
+
+switch riddle不同于传统RL论文使用的游戏，其本质上是一个数学问题：
+
+- 说有 100 个囚犯分别关在 100 间牢房里。牢房外有一个空荡荡的房间，房间里有一个由开关控制的灯泡。初始时，灯是关着的。看守每次随便选择一名囚犯进入房间，但保证每个囚犯都会被选中无穷多次。如果在某一时刻，有囚犯成功断定出所有人都进过这个房间了，所有囚犯都能释放。游戏开始前，所有囚犯可以聚在一起商量对策，但在此之后它们唯一可用来交流的工具就只有那个灯泡。他们应该设计一个怎样的协议呢？
+
+    .. image:: images/switch_riddle.jpg
+        :align: center
+
+在此限于篇幅原因不展开了，有兴趣可以查阅 `One Hundred Prisoners and a Lightbulb <https://www.researchgate.net/publication/225742302_One_Hundred_Prisoners_and_a_Lightbulb>`_ 。
+
+其实验结果如下：
+
+    .. image:: images/switch_riddle_result.jpg
+        :align: center
+
+分别为3个囚犯时实验效果、4个囚犯时实验效果、和3个囚犯时的协议
+    
+MNIST game则是分为两个小游戏：
+
+    Colour-Digit MNIST 游戏由两个agent执行猜测颜色和数字，而信道只有一个带块，因此agent需要约定好是沟通颜色或者是数字的奇偶性
+    
+    Multi-Step MNIST 游戏则是将之前的游戏进行多步。
+
+MNIST game 过程：
+
+    .. image:: images/MNIST_game.jpg
+        :align: center
+
+MNIST game 实验结果：
+
+    .. image:: images/MNIST_game_result.jpg
+        :align: center
+
+
+
 MADDPG
 ^^^^^^^^^^^^
 MADDPG由OpenAI和UC Berkeley在2017年的NIPS会议上的论文 
@@ -239,6 +344,9 @@ StarCraft的2d3z环境图：
 StarCraft的实验环境是通过TorchCraft实现，该环境发布在 Torchcraft: a library for machine learning research on real- time strategy games 一文中。
 在github上也开源了 `Torchcraft代码 <https://github.com/TorchCraft/TorchCraft>`_ 
 
+
+CommNet
+^^^^^^^^^^^^^^^^^^
 
 
 QMIX
