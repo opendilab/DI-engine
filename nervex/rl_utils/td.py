@@ -1,9 +1,10 @@
 from collections import namedtuple
-from typing import Union, Optional, List
+from typing import Union, Optional, Callable, List
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from nervex.rl_utils.value_rescale import value_transform, value_inv_transform
 
 q_1step_td_data = namedtuple('td_data', ['q', 'next_q', 'act', 'reward', 'done'])
 
@@ -102,6 +103,61 @@ def q_nstep_td_error(
     return (criterion(q_s_a, target_q_s_a.detach()) * weights).mean()
 
 
+def q_nstep_td_error_with_rescale(
+    data: namedtuple,
+    gamma: float,
+    nstep: int = 1,
+    weights: Optional[torch.Tensor] = None,
+    criterion: torch.nn.modules = nn.MSELoss(reduction='none'),
+    trans_fn: Callable = value_transform,
+    inv_trans_fn: Callable = value_inv_transform,
+) -> torch.Tensor:
+    """
+    Overview:
+        Multistep (1 step or n step) td_error with value rescaling
+    Arguments:
+        - data (:obj:`q_nstep_td_data`): the input data, q_nstep_td_data to calculate loss
+        - gamma (:obj:`float`): discount factor
+        - nstep (:obj:`int`): nstep num, default set to 1
+        - weights (:obj:`torch.Tensor` or None): weights of td losses
+        - criterion (:obj:`torch.nn.modules`): loss function criterion
+        - trans_fn (:obj:`Callable`): value transfrom function, default to value_transform\
+            (refer to rl_utils/value_rescale.py)
+        - inv_trans_fn (:obj:`Callable`): value inverse transfrom function, default to value_inv_transform\
+            (refer to rl_utils/value_rescale.py)
+    Returns:
+        - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
+    Shapes:
+        - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
+        ['q', 'next_n_q', 'action', 'reward', 'done']
+        - q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
+        - next_n_q (:obj:`torch.FloatTensor`): :math:`(B, N)`
+        - action (:obj:`torch.LongTensor`): :math:`(B, )`
+        - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
+        - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
+    """
+    q, next_n_q, action, reward, done = data
+    assert len(action.shape) == 1, action.shape
+    if weights is None:
+        weights = torch.ones_like(action)
+
+    batch_range = torch.arange(action.shape[0])
+    q_s_a = q[batch_range, action]
+    next_n_act = next_n_q.argmax(dim=1)
+    target_q_s_a = next_n_q[batch_range, next_n_act]
+
+    reward_factor = torch.ones(nstep)
+    for i in range(1, nstep):
+        reward_factor[i] = gamma * reward_factor[i - 1]
+    reward = torch.matmul(reward_factor, reward)
+
+    target_q_s_a = inv_trans_fn(target_q_s_a)
+    target_q_s_a = reward + (gamma ** nstep) * target_q_s_a * (1 - done)
+    target_q_s_a = trans_fn(target_q_s_a)
+
+    return (criterion(q_s_a, target_q_s_a.detach()) * weights).mean()
+
+
 td_lambda_data = namedtuple('td_lambda_data', ['value', 'reward', 'weight'])
 
 
@@ -115,7 +171,7 @@ def td_lambda_error(data: namedtuple, gamma: float = 0.9, lambda_: float = 0.8) 
     Arguments:
         - data (:obj:`namedtuple`): td_lambda input data with fields ['value', 'reward', 'weight']
         - gamma (:obj:`float`): constant discount factor gamma, should be in [0, 1], defaults to 0.9
-        - lambda_ (:obj:`float`): constant lambda, should be in [0, 1], defaults to 0.8
+        - lambda (:obj:`float`): constant lambda, should be in [0, 1], defaults to 0.8
     Returns:
         - loss (:obj:`torch.Tensor`): Computed MSE loss, averaged over the batch
     Shapes:

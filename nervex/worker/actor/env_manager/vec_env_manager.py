@@ -1,13 +1,15 @@
 from multiprocessing import Process, Pipe, connection, get_context
 from collections import namedtuple
-from threading import Thread
 import enum
+import platform
 import time
 import math
+import copy
 import traceback
 from functools import partial
 from types import MethodType
 from typing import Any, Union, List, Tuple, Iterable, Dict, Callable
+from nervex.utils import PropagatingThread
 
 import cloudpickle
 
@@ -65,7 +67,8 @@ class SubprocessEnvManager(BaseEnvManager):
     def _create_state(self) -> None:
         super()._create_state()
         self._parent_remote, self._child_remote = zip(*[Pipe() for _ in range(self.env_num)])
-        ctx = get_context('fork')
+        context_str = 'spawn' if platform.system().lower() == 'windows' else 'fork'
+        ctx = get_context(context_str)
         # due to the runtime delay of lambda expression, we use partial for the generation of different envs,
         # otherwise, it will only use the last item cfg.
         env_fn = [partial(self._env_fn, cfg=self._env_cfg[i]) for i in range(self.env_num)]
@@ -113,6 +116,9 @@ class SubprocessEnvManager(BaseEnvManager):
     def launch(self, reset_param: Union[None, List[dict]] = None) -> None:
         assert self._closed, "please first close the env manager"
         self._create_state()
+        self.reset(reset_param)
+
+    def reset(self, reset_param: Union[None, List[dict]] = None) -> None:
         if reset_param is None:
             reset_param = [{} for _ in range(self.env_num)]
         self._reset_param = reset_param
@@ -123,9 +129,16 @@ class SubprocessEnvManager(BaseEnvManager):
             ret = [p.recv().data for p in self._parent_remote]
             self._check_data(ret)
 
-        # launch env
+        # reset env
+        reset_thread_list = []
         for i in range(self.env_num):
-            self._reset(i)
+            reset_thread = PropagatingThread(target=self._reset, args=(i, ))
+            reset_thread.daemon = True
+            reset_thread_list.append(reset_thread)
+        for t in reset_thread_list:
+            t.start()
+        for t in reset_thread_list:
+            t.join()
 
     def _reset(self, env_id: int) -> None:
 
@@ -162,10 +175,22 @@ class SubprocessEnvManager(BaseEnvManager):
         handle = self._async_args['step']
         wait_num, timeout = min(handle['wait_num'], len(env_id)), handle['timeout']
         rest_env_id = list(set(env_id).union(self._waiting_env['step']))
-        rest_conn = [self._parent_remote[i] for i in rest_env_id]
-        ready_conn, ready_idx = SubprocessEnvManager.wait(rest_conn, wait_num, timeout)
-        ready_env_id = [rest_env_id[idx] for idx in ready_idx]
-        ret = {i: c.recv().data for i, c in zip(ready_env_id, ready_conn)}
+
+        ready_env_id = []
+        ret = {}
+        cur_rest_env_id = copy.deepcopy(rest_env_id)
+        while True:
+            rest_conn = [self._parent_remote[i] for i in cur_rest_env_id]
+            ready_conn, ready_idx = SubprocessEnvManager.wait(rest_conn, min(wait_num, len(rest_conn)), timeout)
+            cur_ready_env_id = [cur_rest_env_id[idx] for idx in ready_idx]
+            assert len(cur_ready_env_id) == len(ready_conn)
+            ret.update({i: c.recv().data for i, c in zip(cur_ready_env_id, ready_conn)})
+            ready_env_id += cur_ready_env_id
+            cur_rest_env_id = list(set(cur_rest_env_id).difference(set(cur_ready_env_id)))
+            # at least one no-done timestep or all the connection is ready
+            if len(ready_conn) == len(rest_conn) or any([not t.done for t in ret.values()]):
+                break
+
         self._check_data(ret.values())
 
         self._waiting_env['step']: set
@@ -182,7 +207,7 @@ class SubprocessEnvManager(BaseEnvManager):
                     self._env_state[idx] = EnvState.DONE
                 else:
                     self._env_state[idx] = EnvState.RESET
-                    reset_thread = Thread(target=self._reset, args=(idx, ))
+                    reset_thread = PropagatingThread(target=self._reset, args=(idx, ))
                     reset_thread.daemon = True
                     reset_thread.start()
             else:

@@ -20,6 +20,7 @@ class SumoRewardRunner(EnvElementRunner):
         """
         # set self._core and other state variable
         self._core = SumoReward(cfg)
+        self._reward_weight = cfg.reward_weight
         self._reward_type = self._core._reward_type
         self._last_wait_time = 0
         self._last_vehicle_info = {}
@@ -63,7 +64,10 @@ class SumoRewardRunner(EnvElementRunner):
 
         for k in self._reward_type:
             self._cum_reward[k] += reward[k]
-        return reward
+        total_reward = 0.
+        for k, w in self._reward_weight.items():
+            total_reward += reward[k] * w
+        return total_reward
 
     @property
     def cum_reward(self) -> dict:

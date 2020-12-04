@@ -20,10 +20,7 @@ class ActorProducerHook(LearnerHook):
 
     def __call__(self, engine):
         if engine.last_iter.val % self._freq == 0:
-            # at least update buffer once
             self._runner.collect_data()
-            while not self._runner.is_buffer_enough():
-                self._runner.collect_data()
 
 
 class ActorUpdateHook(LearnerHook):
@@ -60,6 +57,11 @@ class SingleMachineRunner(object):
         assert self.algo_type in ['dqn', 'ppo', 'drqn', 'ddpg'], self.algo_type
         self.use_cuda = self.cfg.learner.use_cuda
         self.buffer = PrioritizedBuffer(cfg.learner.data.buffer_length, cfg.learner.data.max_reuse)
+        self.batch_size = cfg.learner.data.batch_size
+        self.sample_ratio = cfg.learner.data.get('sample_ratio', 2)
+        assert cfg.learner.data.buffer_length >= max(
+            self.batch_size, self.batch_size * cfg.learner.train_step // cfg.learner.data.max_reuse
+        )
         if self.algo_type in ['dqn', 'drqn']:
             eps_cfg = cfg.learner.eps
             self.bandit = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
@@ -80,6 +82,8 @@ class SingleMachineRunner(object):
         self.learner.register_hook(EvaluateHook(self, 100, cfg.evaluator.eval_step))
         self.actor_step_count = 0
         self.learner_step_count = 0
+        self.actor_obs_pool = {i: None for i in range(self.actor_env.env_num)}
+        self.actor_out_pool = {i: None for i in range(self.actor_env.env_num)}
 
     def _setup_get_data(self):
 
@@ -188,14 +192,13 @@ class SingleMachineRunner(object):
             }
 
     def collect_data(self):
-        self.actor_env.launch()
-        obs_pool = {i: None for i in range(self.actor_env.env_num)}
-        act_pool = {i: None for i in range(self.actor_env.env_num)}
-        self.actor_agent.reset()
-        while not self.actor_env.done:
+        if self.actor_step_count == 0:
+            self.actor_agent.reset()
+        last_push_count = self.buffer.push_count
+        while not self.is_buffer_enough(last_push_count):
             obs = self.actor_env.next_obs
             for i, o in obs.items():
-                obs_pool[i] = copy.deepcopy(o)
+                self.actor_obs_pool[i] = copy.deepcopy(o)
             env_id = obs.keys()
             agent_obs = default_collate(list(obs.values()))
             if self.use_cuda:
@@ -209,15 +212,17 @@ class SingleMachineRunner(object):
             outputs = default_decollate(outputs)
             outputs = {i: o for i, o in zip(env_id, outputs)}
             for i, o in outputs.items():
-                act_pool[i] = copy.deepcopy(o)
+                self.actor_out_pool[i] = copy.deepcopy(o)
 
             timestep = self.actor_env.step({k: o['action'] for k, o in outputs.items()})
 
             for i, t in timestep.items():
-                self._accumulate_data(i, obs_pool[i], act_pool[i], t)
+                self._accumulate_data(i, self.actor_obs_pool[i], self.actor_out_pool[i], t)
                 if t.done:
                     if self.algo_type == 'drqn':
                         self.actor_agent.reset(state_id=[i])
+                    else:
+                        self.actor_agent.reset()
                     self._pack_trajectory(i)
             self.actor_step_count += 1
             if self.actor_step_count % self.cfg.actor.print_freq == 0:
@@ -226,18 +231,16 @@ class SingleMachineRunner(object):
                         self.actor_step_count, self.buffer.validlen, train_kwargs
                     )
                 )
-        self.actor_env.close()
 
     def evaluate(self):
         self.evaluate_env.seed([int(time.time()) + i for i in range(self.evaluate_env.env_num)])
-        self.evaluate_env.launch()
+        self.evaluate_env.reset()
         episode_count = 0
         rewards = []
         obs_pool = {i: None for i in range(self.evaluate_env.env_num)}
         act_pool = {i: None for i in range(self.evaluate_env.env_num)}
         cum_rewards = [0 for _ in range(self.evaluate_env.env_num)]
-        self.evaluator_agent.reset()
-        while not self.evaluate_env.done:
+        while episode_count < self.cfg.evaluator.total_episode_num:
             obs = self.evaluate_env.next_obs
             for i, o in obs.items():
                 obs_pool[i] = copy.deepcopy(o)
@@ -269,11 +272,12 @@ class SingleMachineRunner(object):
                 if t.done:
                     if self.algo_type == 'drqn':
                         self.evaluator_agent.reset(state_id=[i])
+                    else:
+                        self.evaluator_agent.reset()
                     episode_count += 1
                     rewards.append(copy.deepcopy(cum_rewards[i]))
                     cum_rewards[i] = 0.
 
-        self.evaluate_env.close()
         avg_reward = sum(rewards) / len(rewards)
         self.learner.info('evaluate average reward: {:.3f}\t{}'.format(avg_reward, rewards))
         if avg_reward >= self.cfg.evaluator.stop_val:
@@ -282,7 +286,11 @@ class SingleMachineRunner(object):
     def run(self):
         self.learner.run()
 
-    def is_buffer_enough(self):
+    def __del__(self):
+        self.actor_env.close()
+        self.evaluate_env.close()
+
+    def is_buffer_enough(self, last_push_count):
         bs = self.cfg.learner.data.batch_size
-        size = int(1.2 * bs * self.train_step) // self.cfg.learner.data.max_reuse
-        return self.buffer.validlen >= size and self.buffer.validlen >= 2 * bs
+        size = int(self.sample_ratio * bs * self.train_step) // (self.cfg.learner.data.max_reuse)
+        return self.buffer.push_count - last_push_count >= size and self.buffer.validlen >= 2 * bs

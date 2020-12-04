@@ -33,20 +33,17 @@ class MultiLogitsLoss(nn.Module):
         Interface: __init__, forward
     '''
 
-    def __init__(self, cfg=None, criterion=None, smooth_ratio=0.1):
+    def __init__(self, criterion=None, smooth_ratio=0.1):
         '''
             Overview: initialization method, use cross_entropy as default criterion
             Arguments:
-                - cfg (:obj:`dict`): config(type and kwargs), if cfg is not None, first use cfg
                 - criterion (:obj:`str`): criterion type
                 - smooth_ratio (:obs:`float`): smooth_ratio for label smooth
         '''
         super(MultiLogitsLoss, self).__init__()
-        if cfg is not None:
-            criterion = cfg.type
-            assert (criterion in ['cross_entropy', 'label_smooth_ce'])
-            if criterion == 'label_smooth_ce':
-                smooth_ratio = cfg.kwargs['smooth_ratio']
+        if criterion is None:
+            criterion = 'cross_entropy'
+        assert (criterion in ['cross_entropy', 'label_smooth_ce'])
         self.criterion = criterion
         if self.criterion == 'label_smooth_ce':
             self.ratio = smooth_ratio
@@ -108,7 +105,7 @@ class MultiLogitsLoss(nn.Module):
                     break
                 masked_distance_matrix = distance_matrix[:, ~visy][visx]
                 if 0 in masked_distance_matrix.shape:  # empty matrix
-                    raise Exception("match error, matrix: {}".format(matrix))
+                    raise RuntimeError("match error, matrix: {}".format(matrix))
                 else:
                     d = masked_distance_matrix.min()
                 lx[visx] -= d
@@ -123,52 +120,3 @@ class MultiLogitsLoss(nn.Module):
         for i in range(metric_matrix.shape[0]):
             loss.append(metric_matrix[index[i], i])
         return sum(loss) / len(loss)
-
-
-def test_multi_logits_loss():
-    logits = torch.randn(4, 8).cuda()
-    label = torch.LongTensor([0, 1, 3, 2]).cuda()
-    loss = MultiLogitsLoss(criterion='cross_entropy').cuda()
-    print(loss(logits, label))
-
-
-def _selected_units_loss():
-
-    def smooth_label(label, num, eps=0.1):
-        val = eps / (num - 1)
-        ret = torch.full((1, num), val)
-        ret[0, label] = 1 - eps
-        return ret
-
-    logits = torch.load('logits.pt')
-    label = torch.load('labels.pt')
-    criterion = MultiLogitsLoss(criterion='cross_entropy')
-    self_criterion = nn.CrossEntropyLoss()
-    label = [x for x in label if isinstance(x, torch.Tensor)]
-    print(len(label))
-    print(label)
-    if len(label) == 0:
-        return 0
-    loss = []
-    for b in range(len(label)):
-        lo, la = logits[b], label[b]
-        lo = torch.cat(lo, dim=0)
-        print(b, lo.shape, la.shape)
-        if lo.shape[0] != la.shape[0]:
-            assert (lo.shape[0] == 1 + la.shape[0])
-            end_flag_label = torch.LongTensor([lo.shape[1] - 1]).to(la.device)
-            # end_flag_label = smooth_label(lo.shape[1]-1, lo.shape[1]).to(la.device)
-            # end_flag_loss = F.binary_cross_entropy_with_logits(lo[-1:], end_flag_label)
-            end_flag_loss = self_criterion(lo[-1:], end_flag_label)
-            logits_loss = criterion(lo[:-1], la)
-            print(end_flag_loss, logits_loss)
-            loss.append((end_flag_loss + logits_loss) / 2)
-        else:
-            loss.append(criterion(lo, la))
-    print(sum(loss) / len(loss), len(label))
-
-
-if __name__ == "__main__":
-    for _ in range(4):
-        test_multi_logits_loss()
-    # _selected_units_loss()

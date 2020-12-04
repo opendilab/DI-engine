@@ -21,7 +21,7 @@ learner:
     data:
         batch_size: 64
         chunk_size: 16
-        num_workers: 0
+        num_workers: 4
     a2c:
         gamma: 0.9
         gae_lambda: 0.95

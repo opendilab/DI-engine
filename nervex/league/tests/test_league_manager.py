@@ -199,7 +199,6 @@ class TestFakeLeagueManager:
         coordinator.close()
         time.sleep(5)
         assert BEGIN_COUNT_BATTLE == FINISH_COUNT_BATTLE
-        assert (len(threading.enumerate()) <= 2), threading.enumerate()  # main thread + QueueFeederThread
 
     # TODO(zlx): priority lock
     def test_snapshot_priority(self, random_job_result, setup_config):
@@ -229,7 +228,6 @@ class TestFakeLeagueManager:
         time.sleep(2)
         assert BEGIN_COUNT_BATTLE == FINISH_COUNT_BATTLE
         # assert SAVE_COUNT >= valid_count // 2 * 15 + 12  # count//2 * 15(12player+3mutate) + 12(init)
-        assert (len(threading.enumerate()) <= 2), threading.enumerate()  # main thread + QueueFeederThread
 
 
 @pytest.mark.unittest
@@ -261,4 +259,3 @@ class TestSoloLeagueManager:
         coordinator.close()
         time.sleep(5)
         assert BEGIN_COUNT_SOLO == FINISH_COUNT_SOLO
-        assert (len(threading.enumerate()) <= 2), threading.enumerate()  # main thread + QueueFeederThread

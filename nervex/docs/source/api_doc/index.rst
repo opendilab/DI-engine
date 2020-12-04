@@ -9,20 +9,38 @@ API Doc
 .. toctree::
     :maxdepth: 3
 
-    env/sumo_env
-    data/buffer
-    data/cache
+    data/structure
+    data/dataloader
+    data/collate_fn
     worker/learner/learner
-    rl_utils/adder
+    worker/agent/agent
+    rl_utils/td
     rl_utils/gae
     rl_utils/ppo
     rl_utils/a2c
+    rl_utils/vtrace
+    rl_utils/adder
     torch_utils_network/network
     torch_utils/checkpoint_helper
     torch_utils/metric
     torch_utils/data_helper
-    utils/time_helper
-    utils/log_helper
+    torch_utils/optimizer_util
+    torch_utils/distribution
+    model/common_arch
+    model/dqn
+    model/actor_critic
     league/league_manager
     league/payoff
     league/player
+    utils/time_helper
+    utils/log_helper
+    utils/compression_helper
+    utils/config_helper
+    utils/dist_helper
+    utils/file_helper
+    utils/import_helper
+    utils/lock_helper
+    utils/system_helper
+    utils/default_helper
+    env/sumo_env
+    env/common

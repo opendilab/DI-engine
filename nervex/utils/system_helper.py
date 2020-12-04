@@ -1,8 +1,12 @@
+"""
+Copyright 2020 Sensetime X-lab. All Rights Reserved
+"""
 import os
 import socket
 import time
 import uuid
-from typing import Optional
+from typing import Optional, Any
+from threading import Thread
 
 MANAGER_NODE_TABLE = {
     '10.198.8': '10.198.8.31',
@@ -16,6 +20,12 @@ MANAGER_NODE_TABLE = {
 
 
 def get_ip() -> str:
+    r"""
+    Overview:
+        get the ip of slurm/socket
+    Returns:
+        - ip(:obj:`str`): the corresponding ip
+    """
     if os.environ.get('SLURMD_NODENAME'):
         # expecting nodename to be like: 'SH-IDC1-10-5-36-64'
         nodename = os.environ.get('SLURMD_NODENAME', '')
@@ -29,10 +39,18 @@ def get_ip() -> str:
 
 
 def get_pid() -> int:
+    r"""
+    Overview:
+        os.getpid
+    """
     return os.getpid()
 
 
 def get_task_uid() -> str:
+    r"""
+    Overview:
+        get the slurm job_id, pid and uid
+    """
     return os.getenv('SLURM_JOB_ID', 'PID{pid}UUID{uuid}'.format(
         pid=str(get_pid()),
         uuid=str(uuid.uuid1()),
@@ -40,8 +58,9 @@ def get_task_uid() -> str:
 
 
 def get_manager_node_ip(node_ip: Optional[str] = None) -> str:
-    """
-    Look up the manager node of the slurm cluster
+    r"""
+    Overview:
+        Look up the manager node of the slurm cluster and return the node ip
     """
     if 'SLURM_JOB_ID' not in os.environ:
         import logging
@@ -57,3 +76,28 @@ def get_manager_node_ip(node_ip: Optional[str] = None) -> str:
         return MANAGER_NODE_TABLE[learner_manager_ip_prefix]
     else:
         raise KeyError("Cluster not found, please add it to the MANAGER_NODE_TABLE in {}".format(__file__))
+
+
+class PropagatingThread(Thread):
+    """
+    Overview:
+        Subclass of Thread that propagates execution exception in the thread to the caller
+    Examples:
+        >>> def func():
+        >>>     raise Exception()
+        >>> t = PropagatingThread(target=func, args=())
+        >>> t.start()
+        >>> t.join()
+    """
+    def run(self) -> None:
+        self.exc = None
+        try:
+            self.ret = self._target(*self._args, **self._kwargs)
+        except BaseException as e:
+            self.exc = e
+
+    def join(self) -> Any:
+        super(PropagatingThread, self).join()
+        if self.exc:
+            raise RuntimeError('Exception in thread({})'.format(id(self))) from self.exc
+        return self.ret

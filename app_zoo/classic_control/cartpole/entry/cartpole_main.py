@@ -8,7 +8,7 @@ from nervex.model import FCDQN
 from nervex.rl_utils import q_1step_td_data, q_1step_td_error
 from nervex.utils import read_config
 from nervex.worker import BaseLearner, SubprocessEnvManager
-from nervex.worker.agent import BaseAgent, create_dqn_learner_agent, create_dqn_actor_agent, create_dqn_evaluator_agent
+from nervex.worker.agent import create_dqn_learner_agent, create_dqn_actor_agent, create_dqn_evaluator_agent
 from app_zoo.classic_control.cartpole.envs import CartPoleEnv
 
 
@@ -69,6 +69,7 @@ class CartPoleRunner(SingleMachineRunner):
             env_num=actor_env_num,
             episode_num=self.cfg.actor.episode_num
         )
+        self.actor_env.launch()
 
         eval_env_num = self.cfg.evaluator.env_num
         evaluate_env_cfg = copy.deepcopy(self.cfg.env)
@@ -78,6 +79,7 @@ class CartPoleRunner(SingleMachineRunner):
             env_num=eval_env_num,
             episode_num=self.cfg.evaluator.episode_num
         )
+        self.evaluate_env.launch()
 
     def _setup_learner(self):
         self.learner = CartPoleDqnLearner(self.cfg)

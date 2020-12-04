@@ -2,6 +2,7 @@ import torch
 import math
 from torch.nn.utils import clip_grad_norm_, clip_grad_value_
 from torch._six import inf
+from typing import Union, Iterable, Tuple, Callable
 
 
 def grad_ignore_norm(parameters, max_norm, norm_type=2):
@@ -41,28 +42,62 @@ def grad_ignore_value(parameters, clip_value):
 
 
 class Adam(torch.optim.Adam):
+    r"""
+    Overview:
+        Rewrited Adam optimizer to support more features.
+    Interface:
+        __init__, step
+    """
 
     def __init__(
         self,
-        params,
-        lr=1e-3,
-        betas=(0.9, 0.999),
-        eps=1e-8,
-        weight_decay=0,
-        amsgrad=False,
-        optim_type='adam',
-        grad_clip_type=None,
-        clip_value=None,
-        clip_coef=5,
-        clip_norm_type=2.0,
-        clip_momentum_timestep=100,
-        grad_norm_type=None,
-        grad_ignore_type=None,
-        ignore_value=None,
-        ignore_coef=5,
-        ignore_norm_type=2.0,
-        ignore_momentum_timestep=100,
+        params: Iterable,
+        lr: float = 1e-3,
+        betas: Tuple[float, float] = (0.9, 0.999),
+        eps: float = 1e-8,
+        weight_decay: float = 0,
+        amsgrad: bool = False,
+        optim_type: str = 'adam',
+        grad_clip_type: str = None,
+        clip_value: Union[float, None] = None,
+        clip_coef: float = 5,
+        clip_norm_type: float = 2.0,
+        clip_momentum_timestep: int = 100,
+        grad_norm_type: str = None,
+        grad_ignore_type: str = None,
+        ignore_value: Union[float, None] = None,
+        ignore_coef: float = 5,
+        ignore_norm_type: float = 2.0,
+        ignore_momentum_timestep: int = 100,
     ):
+        r"""
+        Overview:
+            init medthod of refactored Adam class
+        Arguments:
+            - params (:obj:`iterable`):  – an iterable of torch.Tensor s or dict s. \
+                Specifies what Tensors should be optimized
+            - lr (:obj:`float`): learning rate, default set to 1e-3
+            - betas (:obj:`Tuple[float, float]`): coefficients used for computing running averages of gradient and its\
+                square, default set to (0.9, 0.999))
+            - eps (:obj:`float`): term added to the denominator to improve numerical stability, default set to 1e-8
+            - weight_decay (:obj:`float`): weight decay coefficient, deault set to 1e-2
+            - amsgrad (:obj:`bool`): whether to use the AMSGrad variant of this algorithm from the paper\
+                On the Convergence of Adam and Beyond <https://arxiv.org/abs/1904.09237>
+            - optim_type (:obj:str): support ["adam", "adamw"]
+            - grad_clip_type (:obj:`str`): support [None, 'clip_momentum', 'clip_value', 'clip_norm', \
+                'clip_momentum_norm']
+            - clip_value (:obj:`float`): the value to start clipping
+            - clip_coef (:obj:`float`): the cliping coefficient
+            - clip_norm_type (:obj:`float`): 2.0 means use norm2 to clip
+            - clip_momentum_timestep (:obj:`int`): after how many step should we start the momentum clipping
+            - grad_ignore_type (:obj:`str`): support [None, 'ignore_momentum', 'ignore_value', 'ignore_norm', \
+                'ignore_momentum_norm']
+            - ignore_value (:obj:`float`): the value to start ignoring
+            - ignore_coef (:obj:`float`): the ignoreing coefficient
+            - ignore_norm_type (:obj:`float`): 2.0 means use norm2 to ignore
+            - ignore_momentum_timestep (:obj:`int`): after how many step should we start the momentum ignoring
+
+        """
 
         self._support_type = {
             'optim': ['adam', 'adamw'],
@@ -105,7 +140,7 @@ class Adam(torch.optim.Adam):
                 )
             )
 
-    def state_init(self, p, amsgrad):
+    def _state_init(self, p, amsgrad):
         state = self.state[p]
         state['thre_exp_avg_sq'] = torch.zeros_like(p.data, device=p.data.device)
         # others
@@ -119,7 +154,13 @@ class Adam(torch.optim.Adam):
             # Maintains max of all exp. moving avg. of sq. grad. values
             state['max_exp_avg_sq'] = torch.zeros_like(p.data)
 
-    def step(self, closure=None):
+    def step(self, closure: Union[Callable, None] = None):
+        r"""
+        Overview:
+            Performs a single optimization step
+        Arguments:
+            - closure (:obj:`callable`): A closure that reevaluates the model and returns the loss, default set to None
+        """
         # clipping
         new_params = [
             t for group in self.param_groups for t in group['params'] if t.requires_grad and t.grad is not None
@@ -140,7 +181,7 @@ class Adam(torch.optim.Adam):
                         continue
                     state = self.state[p]
                     if len(state) == 0:
-                        self.state_init(p, group['amsgrad'])
+                        self._state_init(p, group['amsgrad'])
                     grad = p.grad.data
                     #should we use same beta group?
                     beta1, beta2 = group['betas']
@@ -153,18 +194,18 @@ class Adam(torch.optim.Adam):
                             ((state['thre_exp_avg_sq'].sqrt() / math.sqrt(bias_correction2)) *
                              self._clip_coef).mul_(flag)
                         )
-        elif self._grad_clip_type == 'clip_norm_momentum':
+        elif self._grad_clip_type == 'clip_momentum_norm':
             # might have multi param_group, we should calculate each group differently.
             for group in self.param_groups:
                 total_norm = 0
                 total_momentum_norm = 0
-                step = 0
+                step = inf
                 for p in group['params']:
                     if p.grad is None:
                         continue
                     state = self.state[p]
                     if len(state) == 0:
-                        self.state_init(p, group['amsgrad'])
+                        self._state_init(p, group['amsgrad'])
                     grad = p.grad.data
                     #should we use same beta group?
                     beta1, beta2 = group['betas']
@@ -199,7 +240,7 @@ class Adam(torch.optim.Adam):
                         continue
                     state = self.state[p]
                     if len(state) == 0:
-                        self.state_init(p, group['amsgrad'])
+                        self._state_init(p, group['amsgrad'])
                     grad = p.grad.data
                     #should we use same beta group?
                     beta1, beta2 = group['betas']
@@ -220,9 +261,9 @@ class Adam(torch.optim.Adam):
                         if p.grad is None:
                             continue
                         p.grad.zero_()
-        elif self._grad_ignore_type == 'ignore_norm_momentum':
+        elif self._grad_ignore_type == 'ignore_momentum_norm':
             # might have multi param_group, we should calculate each group differently.
-            step = 0
+            step = inf
             for group in self.param_groups:
                 total_norm = 0
                 total_momentum_norm = 0
@@ -231,7 +272,7 @@ class Adam(torch.optim.Adam):
                         continue
                     state = self.state[p]
                     if len(state) == 0:
-                        self.state_init(p, group['amsgrad'])
+                        self._state_init(p, group['amsgrad'])
                     grad = p.grad.data
                     #should we use same beta group?
                     beta1, beta2 = group['betas']

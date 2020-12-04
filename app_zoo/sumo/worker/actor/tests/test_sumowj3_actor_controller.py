@@ -21,7 +21,7 @@ class FakeSumoWJ3Actor(SumoWJ3Actor):
         self._agent.load_state_dict = no_op_fn
 
 
-@pytest.mark.unittest
+# @pytest.mark.unittest
 class TestASActorFakeEnv:
 
     def test_naive(self, setup_config, setup_coordinator, setup_manager):

@@ -45,13 +45,6 @@ VariableRecord
 .. automodule:: nervex.utils.log_helper.VariableRecord
     :members: __init__, register_var, update_var, get_var_names, get_var_text, get_vars_tb_format, get_vars_text
 
-
-AlphastarVarRecord
-~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: nervex.utils.log_helper.AlphastarVarRecord
-    :members: register_var, _get_vars_text_1darray, _get_vars_tb_format_1darray
-
 AverageMeter
 ~~~~~~~~~~~~~
 .. automodule:: nervex.utils.log_helper.AverageMeter

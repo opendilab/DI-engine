@@ -7,7 +7,7 @@ from nervex.computation_graph import BaseCompGraph
 from nervex.entry.base_single_machine import SingleMachineRunner
 from nervex.model import FCDRQN
 from nervex.data import timestep_collate, AsyncDataLoader
-from nervex.rl_utils import q_nstep_td_data, q_nstep_td_error
+from nervex.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale
 from nervex.utils import read_config
 from nervex.worker import BaseLearner, SubprocessEnvManager
 from nervex.worker.agent import create_drqn_learner_agent, create_drqn_actor_agent, create_drqn_evaluator_agent
@@ -20,6 +20,7 @@ class CartPoleDrqnGraph(BaseCompGraph):
         self._gamma = cfg.dqn.discount_factor
         self._nstep = cfg.dqn.nstep
         self._burnin_step = cfg.dqn.burnin_step
+        self._use_value_rescale = cfg.dqn.get("value_rescale", False)
 
     def forward(self, data, agent):
         obs, reward = data['obs'], data['reward']
@@ -57,7 +58,10 @@ class CartPoleDrqnGraph(BaseCompGraph):
         loss = []
         for t in range(self._nstep):
             data = q_nstep_td_data(q_value[t], target_q_value[t], action[t], reward[t:t + self._nstep], done[t])
-            loss.append(q_nstep_td_error(data, self._gamma, self._nstep, weights))
+            if self._use_value_rescale:
+                loss.append(q_nstep_td_error_with_rescale(data, self._gamma, self._nstep, weights))
+            else:
+                loss.append(q_nstep_td_error(data, self._gamma, self._nstep, weights))
         loss = sum(loss) / (len(loss) + 1e-8)
         if agent.is_double:
             agent.target_update(agent.state_dict()['model'])
@@ -103,6 +107,7 @@ class CartPoleRunner(SingleMachineRunner):
             env_num=actor_env_num,
             episode_num=self.cfg.actor.episode_num
         )
+        self.actor_env.launch()
 
         eval_env_num = self.cfg.evaluator.env_num
         evaluate_env_cfg = copy.deepcopy(self.cfg.env)
@@ -112,6 +117,7 @@ class CartPoleRunner(SingleMachineRunner):
             env_num=eval_env_num,
             episode_num=self.cfg.evaluator.episode_num
         )
+        self.evaluate_env.launch()
 
     def _setup_learner(self):
         self.learner = CartPoleDrqnLearner(self.cfg)

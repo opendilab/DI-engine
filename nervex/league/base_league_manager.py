@@ -60,18 +60,11 @@ class BaseLeagueManager(ABC):
     """
     Overview: league training manager
     Interface: __init__, run, close, finish_job, update_active_player
-    Note:
+
+    .. note::
         launch_job_fn:
             Arguments:
                 - job_info (:obj:`dict`)
-                    - home_id (:obj:`str`)
-                    - away_id (:obj:`str`)
-                    - home_race (:obj:`str`)
-                    - away_race (:obj:`str`)
-                    - home_checkpoint_path (:obj:`str`)
-                    - away_checkpoint_path (:obj:`str`)
-                    - home_teacher_checkpoint_path (:obj:`str`)
-                    - away_teacher_checkpoint_path (:obj:`str`)
         save_checkpoint_fn:
             Arguments:
                 - src_checkpoint (:obj:`str`): src must be a existing path
@@ -81,9 +74,7 @@ class BaseLeagueManager(ABC):
                 - player_id: (:obj:`str`)
                 - checkpoint_path: (:obj:`str`)
         job_info (:obj:`dict`)
-            - home_id (:obj:`str`)
-            - away_id (:obj:`str`)
-            - result (:obj:`str`): `wins`, `draws`, `losses`
+            - launch_player (:obj:`str`)
         player_info (:obj:`dict`)
             - player_id (:obj:`str`)
             - train_step (:obj:`int`)
@@ -142,10 +133,13 @@ class BaseLeagueManager(ABC):
         # add pretrain player as the initial HistoricalPlayer for each player category
         if self.cfg.use_pretrain_init_historical:
             for cate in self.cfg.player_category:
-                name = '{}_{}_0_pretrain'.format('main_player', cate)
-                parent_name = '{}_{}_0'.format('main_player', cate)
+                main_player_name = [k for k in self.cfg.keys() if 'main_player' in k]
+                assert len(main_player_name) == 1, main_player_name
+                main_player_name = main_player_name[0]
+                name = '{}_{}_0_pretrain'.format(main_player_name, cate)
+                parent_name = '{}_{}_0'.format(main_player_name, cate)
                 hp = HistoricalPlayer(
-                    self.cfg.main_player,
+                    self.cfg.get(main_player_name),
                     cate,
                     self.payoff,
                     self.cfg.pretrain_checkpoint_path[cate],
