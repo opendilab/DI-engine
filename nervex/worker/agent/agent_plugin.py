@@ -128,7 +128,9 @@ def sample_action(logit=None, prob=None):
     if prob is None:
         prob = torch.softmax(logit, dim=-1)
     shape = prob.shape
+    prob += 1e-8
     prob = prob.view(-1, shape[-1])
+    # prob can also be treated as weight in multinomial sample
     action = torch.multinomial(prob, 1).squeeze(-1)
     action = action.view(*shape[:-1])
     return action
@@ -222,7 +224,7 @@ class EpsGreedySampleHelper(IAgentStatelessPlugin):
                         action.append(l.argmax(dim=-1))
                     else:
                         if mask:
-                            action.append(sample_action(prob=mask[i]))
+                            action.append(sample_action(prob=mask[i].float()))
                         else:
                             action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
                 if len(action) == 1:
