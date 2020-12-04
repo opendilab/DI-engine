@@ -32,14 +32,14 @@ learner:
             priority: 40
             position: after_iter
             ext_args:
-                freq: 500
+                freq: 50000
         log_show:
             name: log_show
             type: log_show
             priority: 20
             position: after_iter
             ext_args:
-                freq: 100
+                freq: 500
     # --- noise ---
     # noise_type: gauss
     # noise_kwargs:

@@ -84,6 +84,7 @@ class QAC(QActorCriticBase):
         # clip action in NoiseHelper agent plugin, not heres
         actor_ret = self._actor_encoder(x)
         actor_ret = self._actor(actor_ret)
+        actor_ret = torch.sigmoid(actor_ret) * (self._act_range['max'] - self._act_range['min']) + self._act_range['min']
         return actor_ret.squeeze(1)
 
     def compute_q(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, List[torch.Tensor]]:
