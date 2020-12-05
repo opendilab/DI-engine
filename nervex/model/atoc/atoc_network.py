@@ -55,14 +55,13 @@ class ATOCCommunicationNet(nn.Module):
         super(ATOCCommunicationNet, self).__init__()
         assert thought_dim % 2 == 0
         self._thought_dim = thought_dim
-        self._comm_hidden_size = thought_dim / 2
-
+        self._comm_hidden_size = thought_dim // 2
         self._bi_lstm = nn.LSTM(self._thought_dim, self._comm_hidden_size, bidirectional=True)
 
     def forward(self, data: Union[Dict, torch.Tensor]):
         r"""
         shape:
-            data['thoughts']: :math:`(T, B, N)`, T is the num of thoughts to integrate,\
+            data['thoughts']: :math:`(M, B, N)`, M is the num of thoughts to integrate,\
                 B is batch_size and N is thought dim
         """
         x = data
@@ -101,6 +100,7 @@ class ATOCActorNet(nn.Module):
         self._thought_dim = thought_dim
         self._act_dim = action_dim
         self._n_agent = n_agent
+        self._m_group = m_group
         if not actor_1_embedding_dim:
             actor_1_embedding_dim = self._thought_dim
         if not actor_2_embedding_dim:
@@ -116,7 +116,7 @@ class ATOCActorNet(nn.Module):
         actor_1_layer.append(nn.LayerNorm(actor_1_embedding_dim))
         actor_1_layer.append(nn.ReLU())
         actor_1_layer.append(nn.Linear(actor_1_embedding_dim, self._thought_dim))
-        actor_1_layer.append(nn.LayerNorm(actor_1_embedding_dim))
+        actor_1_layer.append(nn.LayerNorm(self._thought_dim))
 
         self._actor_1 = nn.Sequential(*actor_1_layer)
 
@@ -132,7 +132,7 @@ class ATOCActorNet(nn.Module):
         # not sure if we should layer norm here
         actor_2_layer.append(nn.LayerNorm(actor_2_embedding_dim))
         actor_2_layer.append(nn.Linear(actor_2_embedding_dim, self._act_dim))
-        actor_2_layer.append(nn.LayerNorm(actor_2_embedding_dim))
+        actor_2_layer.append(nn.LayerNorm(self._act_dim))
         actor_2_layer.append(nn.Tanh())
 
         self._actor_2 = nn.Sequential(*actor_2_layer)
@@ -141,19 +141,27 @@ class ATOCActorNet(nn.Module):
         self._channel = ATOCCommunicationNet(self._thought_dim)
         # C is the communication group
         # TODO consider batch shape
-        self._C = torch.zeros(self._n_agent, self._n_agent).bool()
+        # self._C = torch.zeros(self._n_agent, self._n_agent)
+        self._C = None
 
         # TODO consider batch shape
-        self._is_initiator = torch.zeros(self._n_agent).bool()
+        # self._is_initiator = torch.zeros(self._n_agent)
+        self._is_initiator = None
 
         self._T = T_initiate
 
         self._step_count = 0
 
     def forward(self, data: Dict):
+        #obs shape of (B, A, N)
         obs = data['obs']
         self._current_obs = obs
+        assert len(obs.shape) == 3
+        self._cur_batch_size, n_agent, obs_dim = obs.shape
+        assert n_agent == self._n_agent
+        assert obs_dim == self._obs_dim
 
+        #current_thoughts shape of (B, A, thoughts_dim)
         self._current_thougths = self._actor_1(obs)
 
         if self._step_count % self._T == 0:
@@ -167,12 +175,22 @@ class ATOCActorNet(nn.Module):
 
     # TODO
     def _get_initiate_group(self):
+        # shape of init_prob is (B, A, 1)
         init_prob = self._attention(self._current_thougths)
         # TODO consider batch shape
-        self._is_initiator = (init_prob > 0.5).bool()
+        self._is_initiator = (init_prob > 0.5)
 
         # TODO
+        # obs of shape (B, A, Obs_dim)
         # calculate relative position
+        self._curr_obs_dists = torch.zeros(self._cur_batch_size, self._n_agent, self._n_agent)
+        for b in range(self._cur_batch_size):
+            for i in range(self._n_agent):
+                for j in range(self._n_agent):
+                    self._curr_obs_dists[b][i][j] = ((self._current_obs[b][i] -
+                                                      self._current_obs[b][j]) ** 2).sum().sqrt()
+
+        self._C = torch.zeros(self._cur_batch_size, self._n_agent, self._n_agent)
 
         # TODO
         # get observable field of the initiators
@@ -188,35 +206,41 @@ class ATOCActorNet(nn.Module):
         # TODO
         # "all based on proximity"
 
+        # Right Now:
+        # roughly choose m closest as group
+        for b in range(self._cur_batch_size):
+            for i in range(self._n_agent):
+                if self._is_initiator[b][i]:
+                    index_seq = self._curr_obs_dists[b][i].argsort()
+                    index_seq = index_seq[:self._m_group]
+                    self._C[b][i][index_seq] = 1
+
     # TODO
     def _updata_current_thougts(self):
+        # shape of current_thought (B, A, N)
+        # shape of C (B, A, A)
+        # shape of initator (B, A, 1)
+        # shape of gathered index (B, G_n, M)
 
-        for i in range(self._n_agent):
-            # TODO consider batch shape
-            if self._is_initiator[i]:
-                thoughts_to_commute = []
-                for j in range(self._n_agent):
-                    # TODO consider batch shape
-                    if self._C[i][j]:
-                        # TODO consider batch shape
-                        thoughts_to_commute.append(self._current_thougths[j])
-                thoughts_to_commute = torch.stack(thoughts_to_commute)
-                integrated_thoughts = self._channel(thoughts_to_commute)
-                j_count = 0
-                for j in range(self._n_agent):
-                    # TODO consider batch shape
-                    if self._C[i][j]:
-                        # TODO consider batch shape
-                        self._current_thougths[j] = self._merge_2_thoughts(
-                            self._current_thougths[j], integrated_thoughts[j_count]
-                        )
-                        j_count += 1
+        for b in range(self._cur_batch_size):
+            for i in range(self._n_agent):
+                if self._is_initiator[b][i]:
+                    thoughts_to_commute = []
+                    for j in range(self._n_agent):
+                        if self._C[b][i][j]:
+                            thoughts_to_commute.append(self._current_thougths[b][j])
+                    # shape (M, N)
+                    thoughts_to_commute = torch.stack(thoughts_to_commute)
+                    # shape (M, N)
+                    integrated_thoughts = self._channel(thoughts_to_commute.unsqueeze(1)).squeeze(1)
+                    j_count = 0
+                    for j in range(self._n_agent):
+                        if self._C[b][i][j]:
+                            self._current_thougths[b][j] = self._merge_2_thoughts(
+                                self._current_thougths[b][j], integrated_thoughts[j_count]
+                            )
+                            j_count += 1
 
     #TODO
     def _merge_2_thoughts(self, thought1, thought2):
         return thought2
-
-    # TODO
-    # TO DISCUSS
-    def _get_attention_loss(self):
-        return torch.zeros(1).mean()
