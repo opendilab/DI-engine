@@ -62,7 +62,8 @@ class ATOCCommunicationNet(nn.Module):
     def forward(self, data: Union[Dict, torch.Tensor]):
         r"""
         shape:
-            data['thoughts']: :math:`(T, B, N)`, T is the num of thoughts to integrate, B is batch_size and N is thought dim
+            data['thoughts']: :math:`(T, B, N)`, T is the num of thoughts to integrate,\
+                B is batch_size and N is thought dim
         """
         x = data
         if isinstance(data, Dict):
