@@ -5,7 +5,8 @@ import os
 import socket
 import time
 import uuid
-from typing import Optional
+from typing import Optional, Any
+from threading import Thread
 
 MANAGER_NODE_TABLE = {
     '10.198.8': '10.198.8.31',
@@ -75,3 +76,29 @@ def get_manager_node_ip(node_ip: Optional[str] = None) -> str:
         return MANAGER_NODE_TABLE[learner_manager_ip_prefix]
     else:
         raise KeyError("Cluster not found, please add it to the MANAGER_NODE_TABLE in {}".format(__file__))
+
+
+class PropagatingThread(Thread):
+    """
+    Overview:
+        Subclass of Thread that propagates execution exception in the thread to the caller
+    Examples:
+        >>> def func():
+        >>>     raise Exception()
+        >>> t = PropagatingThread(target=func, args=())
+        >>> t.start()
+        >>> t.join()
+    """
+
+    def run(self) -> None:
+        self.exc = None
+        try:
+            self.ret = self._target(*self._args, **self._kwargs)
+        except BaseException as e:
+            self.exc = e
+
+    def join(self) -> Any:
+        super(PropagatingThread, self).join()
+        if self.exc:
+            raise RuntimeError('Exception in thread({})'.format(id(self))) from self.exc
+        return self.ret

@@ -1,5 +1,5 @@
-from .exploration import epsilon_greedy
-from .ppo import ppo_data, ppo_error
+from .exploration import epsilon_greedy, create_noise_generator
+from .ppo import ppo_data, ppo_loss, ppo_info, ppo_error
 from .gae import gae_data, gae
 from .a2c import a2c_data, a2c_error
 from .coma import coma_data, coma_error

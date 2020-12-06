@@ -7,7 +7,7 @@ import requests
 from typing import List
 from functools import partial
 
-from nervex.utils import read_file, save_file, get_rank, get_world_size
+from nervex.utils import read_file, save_file, get_rank, get_world_size, get_data_decompressor
 from .base_comm_learner import BaseCommLearner
 from ..learner_hook import LearnerHook
 
@@ -82,11 +82,12 @@ class FlaskFileSystemLearner(BaseCommLearner):
         save_file(path, state_dict)
 
     @staticmethod
-    def load_data_fn(path, meta):
+    def load_data_fn(path, meta, decompressor):
         # due to read-write conflict, read_file may be error, therefore we circle this procedure
         while True:
             try:
                 s = read_file(path)
+                s = decompressor(s)
                 break
             except Exception as e:
                 time.sleep(0.01)
@@ -119,11 +120,13 @@ class FlaskFileSystemLearner(BaseCommLearner):
                 metadata = result['info']
                 if metadata is not None:
                     assert isinstance(metadata, list)
+                    decompressor = get_data_decompressor(metadata[0].get('compressor', 'none'))
                     data = [
                         partial(
                             FlaskFileSystemLearner.load_data_fn,
                             path=os.path.join(self._path_traj, m['traj_id']),
-                            meta=m
+                            meta=m,
+                            decompressor=decompressor,
                         ) for m in metadata
                     ]
                     return data

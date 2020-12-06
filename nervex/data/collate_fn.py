@@ -1,5 +1,4 @@
 from collections.abc import Sequence, Mapping
-from numbers import Integral
 from typing import List, Dict, Union, Any
 
 import torch
@@ -15,13 +14,40 @@ default_collate_err_msg_format = (
 
 
 def default_collate(batch: Sequence) -> Union[torch.Tensor, Mapping, Sequence]:
-    r"""Puts each data field into a tensor with outer dimension batch size"""
+    """
+    Overview:
+        Put each data field into a tensor with outer dimension batch size.
+    Example:
+        >>> # a list with B tensors shaped (m, n) -->> a tensor shaped (B, m, n)
+        >>> a = [torch.zeros(2,3) for _ in range(4)]
+        >>> default_collate(a).shape
+        torch.Size([4, 2, 3])
+        >>>
+        >>> # a list with B lists, each list contains m elements -->> a list of m tensors, each with shape (B, )
+        >>> a = [[0 for __ in range(3)] for _ in range(4)]
+        >>> default_collate(a)
+        [tensor([0, 0, 0, 0]), tensor([0, 0, 0, 0]), tensor([0, 0, 0, 0])]
+        >>>
+        >>> # a list with B dicts, whose values are tensors shaped :math:`(m, n)` -->>
+        >>> # a dict whose values are tensors with shape :math:`(B, m, n)`
+        >>> a = [{i: torch.zeros(i,i+1) for i in range(2, 4)} for _ in range(4)]
+        >>> print(a[0][2].shape, a[0][3].shape)
+        torch.Size([2, 3]) torch.Size([3, 4])
+        >>> b = default_collate(a)
+        >>> print(b[2].shape, b[3].shape)
+        torch.Size([4, 2, 3]) torch.Size([4, 3, 4])
+    Arguments:
+        - batch (:obj:`Sequence`): a data sequence, whose length is batch size, whose element is one piece of data
+    Returns:
+        - ret (:obj:`Union[torch.Tensor, Mapping, Sequence]`): the collated data, with batch size into each data field.\
+            the return dtype depends on the original element dtype, can be [torch.Tensor, Mapping, Sequence].
+    """
     elem = batch[0]
     elem_type = type(elem)
     if isinstance(elem, torch.Tensor):
         out = None
         if torch.utils.data.get_worker_info() is not None:
-            # If we're in a background process, concatenate directly into a
+            # If we're in a background process, directly concatenate into a
             # shared memory tensor to avoid an extra copy
             numel = sum([x.numel() for x in batch])
             storage = elem.storage()._new_shared(numel)
@@ -33,12 +59,10 @@ def default_collate(batch: Sequence) -> Union[torch.Tensor, Mapping, Sequence]:
             return torch.stack(batch, 0, out=out)
     elif elem_type.__module__ == 'numpy' and elem_type.__name__ != 'str_' \
             and elem_type.__name__ != 'string_':
-        elem = batch[0]
         if elem_type.__name__ == 'ndarray':
             # array of string classes and object
             if np_str_obj_array_pattern.search(elem.dtype.str) is not None:
                 raise TypeError(default_collate_err_msg_format.format(elem.dtype))
-
             return default_collate([torch.as_tensor(b) for b in batch])
         elif elem.shape == ():  # scalars
             return torch.as_tensor(batch)
@@ -63,7 +87,17 @@ def default_collate(batch: Sequence) -> Union[torch.Tensor, Mapping, Sequence]:
 def timestep_collate(batch: List[Dict[str, Any]]) -> Dict[str, Union[torch.Tensor, list]]:
     """
     Overview:
-        [B, dict_key: [T, elem_dim]] -> [dict_key: [T, B, elem_dim]]
+        Put each timestepped data field into a tensor with outer dimension batch size using ``default_collate``.
+        For short, this process can be represented by:
+        [len=B, ele={dict_key: [len=T, ele=Tensor(any_dims)]}] -> {dict_key: Tensor([T, B, any_dims])}
+    Arguments:
+        - batch (:obj:`List[Dict[str, Any]]`): a list of dicts with length B, each element is {some_key: some_seq} \
+            ('prev_state' should be a key in the dict); \
+            some_seq is a sequence with length T, each element is a torch.Tensor with any shape.
+    Returns:
+        - ret (:obj:`Dict[str, Union[torch.Tensor, list]]`): the collated data, with timestep and batch size \
+            into each data field. By using ``default_collate``, timestep would come to the first dim. \
+            So the final shape is :math:`(T, B, dim1, dim2, ...)`
     """
 
     def stack(data):
@@ -77,15 +111,24 @@ def timestep_collate(batch: List[Dict[str, Any]]) -> Dict[str, Union[torch.Tenso
     elem = batch[0]
     assert isinstance(elem, container_abcs.Mapping), type(elem)
     prev_state = [b.pop('prev_state') for b in batch]
-    batch = default_collate(batch)
-    batch = stack(batch)
+    batch = default_collate(batch)  # -> {some_key: T lists}, each list is [B, some_dim]
+    batch = stack(batch)  # -> {some_key: [T, B, some_dim]}
     batch['prev_state'] = list(zip(*prev_state))
     return batch
 
 
 def diff_shape_collate(batch: Sequence) -> Union[torch.Tensor, Mapping, Sequence]:
-    r"""Puts each data field into a tensor with outer dimension batch size"""
-
+    """
+    Overview:
+        Similar to ``default_collate``, put each data field into a tensor with outer dimension batch size.
+        The main difference is that, ``diff_shape_collate`` allows tensors in the batch have `None`,
+        which is quite common StarCraft observation.
+    Arguments:
+        - batch (:obj:`Sequence`): a data sequence, whose length is batch size, whose element is one piece of data
+    Returns:
+        - ret (:obj:`Union[torch.Tensor, Mapping, Sequence]`): the collated data, with batch size into each data field.\
+            the return dtype depends on the original element dtype, can be [torch.Tensor, Mapping, Sequence].
+    """
     elem = batch[0]
     elem_type = type(elem)
     if any([isinstance(elem, type(None)) for elem in batch]):
@@ -98,9 +141,8 @@ def diff_shape_collate(batch: Sequence) -> Union[torch.Tensor, Mapping, Sequence
             return torch.stack(batch, 0)
     elif elem_type.__module__ == 'numpy' and elem_type.__name__ != 'str_' \
             and elem_type.__name__ != 'string_':
-        elem = batch[0]
         if elem_type.__name__ == 'ndarray':
-            return diff_shape_collate([torch.as_tensor(b) for b in batch])
+            return diff_shape_collate([torch.as_tensor(b) for b in batch])  # todo
         elif elem.shape == ():  # scalars
             return torch.as_tensor(batch)
     elif isinstance(elem, float):
@@ -120,11 +162,24 @@ def diff_shape_collate(batch: Sequence) -> Union[torch.Tensor, Mapping, Sequence
 
 
 def default_decollate(batch: Union[torch.Tensor, Sequence, Mapping], ignore: List[str] = ['prev_state']) -> List[Any]:
+    """
+    Overview:
+        Drag out batch_size collated data's batch size to decollate it,
+        which is the reverse operation of ``default_collate``.
+    Arguments:
+        - batch (:obj:`Union[torch.Tensor, Sequence, Mapping]`): can reference the Returns of ``default_collate``
+        - ignore(:obj:`List[str]`): a list of names to be ignored, only function if input ``batch`` is a dict. \
+            If key is in this list, its value would stay the same with no decollation.
+    Returns:
+        - ret (:obj:`List[Any]`): a list with B elements.
+    """
     if isinstance(batch, torch.Tensor):
         batch = torch.split(batch, 1, dim=0)
+        # squeeze if original batch's shape is like (B, dim1, dim2, ...);
+        # otherwise directly return the list.
         if len(batch[0].shape) > 1:
             batch = [elem.squeeze(0) for elem in batch]
-        return batch
+        return list(batch)
     elif isinstance(batch, Sequence):
         return list(zip(*[default_decollate(e) for e in batch]))
     elif isinstance(batch, Mapping):

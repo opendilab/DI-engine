@@ -5,7 +5,7 @@ import pytest
 import torch
 import torch.nn as nn
 
-from nervex.torch_utils.checkpoint_helper import CheckpointHelper
+from nervex.torch_utils.checkpoint_helper import CheckpointHelper, auto_checkpoint
 
 
 class DstModel(nn.Module):
@@ -47,4 +47,21 @@ class TestCkptHelper:
         ckpt_helper.load(path, dst_model, strict=False)
         assert torch.abs(dst_model.fc1.weight - src_model.fc1.weight).max() < 1e-6
         assert torch.abs(dst_model.fc1.bias - src_model.fc1.bias).max() < 1e-6
+        ckpt_helper.save(path, dst_model, prefix_op='remove', prefix="mo")
+        ckpt_helper.load(
+            path,
+            dst_model,
+            dataset="dataset",
+            optimizer="optimizer",
+            last_frame="last_frame",
+            last_iter="last_iter",
+            last_epoch="last_epoch"
+        )
+
         os.popen('rm -rf ' + path)
+
+    def test_auto_checkpoint(self):
+
+        @auto_checkpoint
+        def foo():
+            raise NotImplementedError

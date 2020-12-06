@@ -49,6 +49,7 @@ setup(
         'app_zoo.atari',
         'app_zoo.gfootball',
         'app_zoo.alphastar',
+        'app_zoo.multiagent_particle',
         'app_zoo.smac',
     ],
     install_requires=[
@@ -58,6 +59,7 @@ setup(
         'mock',
         'mpyq',
         'numpy>=1.10',
+        'numpy-stl',
         'portpicker>=1.2.0',
         'protobuf>=2.6',
         'requests',

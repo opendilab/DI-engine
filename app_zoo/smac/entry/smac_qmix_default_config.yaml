@@ -53,6 +53,6 @@ actor:
 evaluator:
     env_num: 5
     episode_num: 'inf'
-    total_episode_num: 2
-    eval_step: 1000
+    total_episode_num: 5
+    eval_step: 100
     stop_val: 0.7
