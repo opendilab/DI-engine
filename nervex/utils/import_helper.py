@@ -2,8 +2,8 @@ import importlib
 import warnings
 from typing import List
 
-global ceph_flag, linklink_flag
-ceph_flag, linklink_flag = True, True
+global ceph_flag, mc_flag, linklink_flag
+ceph_flag, mc_flag, linklink_flag = True, True, True
 
 
 def try_import_ceph():
@@ -26,6 +26,28 @@ def try_import_ceph():
         ceph = None
         ceph_flag = False
     return ceph
+
+
+def try_import_mc():
+    """
+    Overview:
+        Try import mc module, if failed, return None
+
+    Returns:
+        module: imported module, or None when mc not found
+    """
+    global mc_flag
+    try:
+        import mc
+    except ModuleNotFoundError as e:
+        if mc_flag:
+            warnings.warn(
+                "You have not installed mc package! If you are not run locally and testing, "
+                "ask coworker for help."
+            )
+        mc = None
+        mc_flag = False
+    return mc
 
 
 def try_import_link():

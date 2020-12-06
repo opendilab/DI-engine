@@ -130,6 +130,9 @@ def create_ac_learner_agent(model: torch.nn.Module) -> ACAgent:
     return agent
 
 
+create_coma_learner_agent = create_qmix_learner_agent
+
+
 def create_qac_learner_agent(
         model: torch.nn.Module, use_noise: bool = False, action_range: Optional[dict] = None
 ) -> BaseAgent:
@@ -249,6 +252,26 @@ def create_ac_actor_agent(model: torch.nn.Module) -> ACAgent:
     return agent
 
 
+def create_coma_actor_agent(model: torch.nn.Module, state_num: int, agent_num: int) -> BaseAgent:
+    plugin_cfg = {
+        'main': OrderedDict(
+            {
+                'hidden_state': {
+                    'state_num': state_num,
+                    'save_prev_state': True,
+                    'init_fn': lambda: [None for _ in range(agent_num)],
+                },
+                'eps_greedy_sample': {},
+                'grad': {
+                    'enable_grad': False
+                }
+            }
+        )
+    }
+    agent = AgentAggregator(ACEvaluatorAgent, model, plugin_cfg)
+    return agent
+
+
 def create_qac_actor_agent(model: torch.nn.Module, action_range: Optional[dict] = None) -> BaseAgent:
     plugin_cfg = {
         'main': OrderedDict(
@@ -359,6 +382,25 @@ def create_ac_evaluator_agent(model: torch.nn.Module) -> ACEvaluatorAgent:
         - agent (subclass of :obj:`BaseAgent`): the ac_evaluator_agent
     """
     plugin_cfg = {'main': OrderedDict({'argmax_sample': {}, 'grad': {'enable_grad': False}})}
+    agent = AgentAggregator(ACEvaluatorAgent, model, plugin_cfg)
+    return agent
+
+
+def create_coma_evaluator_agent(model: torch.nn.Module, state_num: int, agent_num: int) -> BaseAgent:
+    plugin_cfg = {
+        'main': OrderedDict(
+            {
+                'hidden_state': {
+                    'state_num': state_num,
+                    'init_fn': lambda: [None for _ in range(agent_num)],
+                },
+                'argmax_sample': {},
+                'grad': {
+                    'enable_grad': False
+                }
+            }
+        )
+    }
     agent = AgentAggregator(ACEvaluatorAgent, model, plugin_cfg)
     return agent
 

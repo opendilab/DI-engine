@@ -3,6 +3,8 @@ import copy
 import time
 import numpy as np
 import torch
+from typing import Any, Dict
+from collections import namedtuple
 
 from nervex.data import PrioritizedBuffer, default_collate, default_decollate
 from nervex.rl_utils import epsilon_greedy, Adder
@@ -13,24 +15,24 @@ from nervex.worker.learner import LearnerHook
 
 class ActorProducerHook(LearnerHook):
 
-    def __init__(self, runner, position, priority, freq):
+    def __init__(self, runner: 'SingleMachineRunner', position: str, priority: float, freq: int):
         super().__init__(name='actor_producer', position=position, priority=priority)
         self._runner = runner
         self._freq = freq
 
-    def __call__(self, engine):
+    def __call__(self, engine: Any):
         if engine.last_iter.val % self._freq == 0:
             self._runner.collect_data()
 
 
 class ActorUpdateHook(LearnerHook):
 
-    def __init__(self, runner, position, priority, freq):
+    def __init__(self, runner: 'SingleMachineRunner', position: str, priority: float, freq: int):
         super().__init__(name='actor_producer', position=position, priority=priority)
         self._runner = runner
         self._freq = freq
 
-    def __call__(self, engine):
+    def __call__(self, engine: Any):
         if engine.last_iter.val % self._freq == 0:
             self._runner.actor_agent.load_state_dict(engine.agent.state_dict())
         self._runner.learner_step_count = engine.last_iter.val
@@ -38,12 +40,12 @@ class ActorUpdateHook(LearnerHook):
 
 class EvaluateHook(LearnerHook):
 
-    def __init__(self, runner, priority, freq):
+    def __init__(self, runner: 'SingleMachineRunner', priority: float, freq: int):
         super().__init__(name='evaluate', position='after_iter', priority=priority)
         self._runner = runner
         self._freq = freq
 
-    def __call__(self, engine):
+    def __call__(self, engine: Any):
         if engine.last_iter.val % self._freq == 0:
             self._runner.evaluator_agent.load_state_dict(engine.agent.state_dict())
             self._runner.evaluate()
@@ -51,10 +53,10 @@ class EvaluateHook(LearnerHook):
 
 class SingleMachineRunner(object):
 
-    def __init__(self, cfg):
+    def __init__(self, cfg: Dict):
         self.cfg = cfg
         self.algo_type = self.cfg.common.algo_type
-        assert self.algo_type in ['dqn', 'ppo', 'drqn', 'ddpg', 'qmix'], self.algo_type
+        assert self.algo_type in ['dqn', 'ppo', 'drqn', 'ddpg', 'qmix', 'coma'], self.algo_type
         self.use_cuda = self.cfg.learner.use_cuda
         self.buffer = PrioritizedBuffer(cfg.learner.data.buffer_length, cfg.learner.data.max_reuse)
         self.batch_size = cfg.learner.data.batch_size
@@ -62,7 +64,7 @@ class SingleMachineRunner(object):
         assert cfg.learner.data.buffer_length >= max(
             self.batch_size, self.batch_size * cfg.learner.train_step // cfg.learner.data.max_reuse
         )
-        if self.algo_type in ['dqn', 'drqn', 'qmix']:
+        if self.algo_type in ['dqn', 'drqn', 'qmix', 'coma']:
             eps_cfg = cfg.learner.eps
             self.bandit = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
 
@@ -108,7 +110,7 @@ class SingleMachineRunner(object):
         """setup self.actor_env and self.evaluate_env"""
         raise NotImplementedError
 
-    def _accumulate_data(self, idx, obs, agent_output, timestep):
+    def _accumulate_data(self, idx: int, obs: Any, agent_output: Dict, timestep: namedtuple):
         if self.algo_type == 'dqn':
             step = {
                 'obs': obs,
@@ -142,7 +144,7 @@ class SingleMachineRunner(object):
                 'reward': timestep.reward,
                 'done': timestep.done,
             }
-        elif self.algo_type in ['qmix']:
+        elif self.algo_type in ['qmix', 'coma']:
             step = {
                 'obs': obs,
                 'next_obs': timestep.obs,
@@ -155,7 +157,7 @@ class SingleMachineRunner(object):
         self.env_buffer[idx].append(step)
 
     def _pack_trajectory(self, idx):
-        if self.algo_type in ['dqn', 'drqn', 'qmix', 'ddpg']:
+        if self.algo_type in ['dqn', 'drqn', 'qmix', 'ddpg', 'coma']:
             data = self.env_buffer[idx]
         elif self.algo_type == 'ppo':
             data = self.adder.get_gae(
@@ -177,13 +179,17 @@ class SingleMachineRunner(object):
             data = list_split(data, self.cfg.learner.qmix.traj_step)
             for d in data:
                 self.buffer.append(lists_to_dicts(d, recursive=True))
+        elif self.algo_type in ['coma']:
+            data = list_split(data, self.cfg.learner.coma.traj_step)
+            for d in data:
+                self.buffer.append(lists_to_dicts(d, recursive=True))
         self.env_buffer[idx] = []
 
-    def _get_train_kwargs(self, env_id):
+    def _get_train_kwargs(self, env_id: int):
         if self.algo_type == 'dqn':
             eps_threshold = self.bandit(self.learner_step_count)
             return {'eps': eps_threshold}
-        elif self.algo_type in ['drqn', 'qmix']:
+        elif self.algo_type in ['drqn', 'qmix', 'coma']:
             eps_threshold = self.bandit(self.learner_step_count)
             return {'eps': eps_threshold, 'state_id': list(env_id)}
         elif self.algo_type == 'ppo':
@@ -223,7 +229,7 @@ class SingleMachineRunner(object):
             for i, t in timestep.items():
                 self._accumulate_data(i, self.actor_obs_pool[i], self.actor_out_pool[i], t)
                 if t.done:
-                    if self.algo_type in ['drqn', 'qmix']:
+                    if self.algo_type in ['drqn', 'qmix', 'coma']:
                         self.actor_agent.reset(state_id=[i])
                     else:
                         self.actor_agent.reset()
@@ -260,7 +266,7 @@ class SingleMachineRunner(object):
                 agent_obs = to_device(agent_obs, 'cuda')
 
             forward_kwargs = {}
-            if self.algo_type in ['drqn', 'qmix']:
+            if self.algo_type in ['drqn', 'qmix', 'coma']:
                 forward_kwargs['state_id'] = list(env_id)
             elif self.algo_type == 'ddpg':
                 forward_kwargs['param'] = {'mode': 'compute_action'}
@@ -280,7 +286,7 @@ class SingleMachineRunner(object):
                     t.info, 'eval_reward', default_fn=lambda: t.reward.item(), judge_fn=np.isscalar
                 )
                 if t.done:
-                    if self.algo_type in ['drqn', 'qmix']:
+                    if self.algo_type in ['drqn', 'qmix', 'coma']:
                         self.evaluator_agent.reset(state_id=[i])
                     else:
                         self.evaluator_agent.reset()
@@ -300,7 +306,7 @@ class SingleMachineRunner(object):
         self.actor_env.close()
         self.evaluate_env.close()
 
-    def is_buffer_enough(self, last_push_count):
+    def is_buffer_enough(self, last_push_count: int):
         bs = self.cfg.learner.data.batch_size
         size = int(self.sample_ratio * bs * self.train_step)
         return self.buffer.push_count - last_push_count >= size and self.buffer.validlen >= bs

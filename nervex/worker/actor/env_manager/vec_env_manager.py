@@ -192,7 +192,6 @@ class SubprocessEnvManager(BaseEnvManager):
             if len(ready_conn) == len(rest_conn) or any([not t.done for t in ret.values()]):
                 break
 
-
         self._waiting_env['step']: set
         for i in rest_env_id:
             if i in ready_env_id:

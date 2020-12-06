@@ -136,8 +136,9 @@ class HiddenStateHelper(IAgentStatefulPlugin):
                 state_id = kwargs.pop('state_id', None)
                 data, state_info = agent._state_manager.before_forward(data, state_id)
                 output = forward_fn(data, **kwargs)
-                h = output.pop('next_state')
-                agent._state_manager.after_forward(h, state_info)
+                h = output.pop('next_state', None)
+                if h:
+                    agent._state_manager.after_forward(h, state_info)
                 if save_prev_state:
                     prev_state = get_tensor_data(data['prev_state'])
                     output['prev_state'] = prev_state
@@ -531,7 +532,7 @@ def register_plugin(agent: Any, plugin_cfg: Union[OrderedDict, None]) -> None:
             plugin_name_map[k].register(agent, **v)
 
 
-def add_plugin(name, plugin_type):
+def add_plugin(name: str, plugin_type: type):
     r"""
     Overview:
         add new plugin to plugin_name_map

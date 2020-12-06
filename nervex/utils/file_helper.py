@@ -6,10 +6,16 @@ from typing import NoReturn, Union
 import torch
 import fcntl
 from pathlib import Path
+import io
 
 from .import_helper import try_import_ceph
+from .import_helper import try_import_mc
+
+global mclient
+mclient = None
 
 ceph = try_import_ceph()
+mc = try_import_mc()
 
 
 def read_from_ceph(path: str) -> object:
@@ -42,6 +48,35 @@ def read_from_file(path: str) -> object:
         value = pickle.load(f)
 
     return value
+
+
+def _ensure_memcached():
+    global mclient
+    if mclient is None:
+        server_list_config_file = "/mnt/lustre/share/memcached_client/server_list.conf"
+        client_config_file = "/mnt/lustre/share/memcached_client/client.conf"
+        mclient = mc.MemcachedClient.GetInstance(server_list_config_file, client_config_file)
+    return
+
+
+def read_from_mc(path: str) -> object:
+    """
+    Overview:
+        read file from memcache, file must be saved by `torch.save()`
+    Arguments:
+        - path (:obj:`str`): file path in local system
+    Returns:
+        - (:obj`data`): deserialized data
+    """
+    global mclient
+    _ensure_memcached()
+    value = mc.pyvector()
+    mclient.Get(path, value)
+    value_buf = mc.ConvertBuffer(value)
+    value_str = io.BytesIO(value_buf)
+    value_str = torch.load(value_str)
+
+    return value_str
 
 
 def read_from_path(path: str):
@@ -104,8 +139,13 @@ def read_file(path: str, fs_type: Union[None, str] = None) -> object:
         - fs_type (:obj:`str` or :obj:`None`): the file system type, support 'normal' and 'ceph'
     """
     if fs_type is None:
-        fs_type = 'ceph' if path.lower().startswith('s3') else 'normal'
-    assert fs_type in ['normal', 'ceph']
+        if path.lower().startswith('s3'):
+            fs_type = 'ceph'
+        elif mc is not None:
+            fs_type = 'mc'
+        else:
+            fs_type = 'normal'
+    assert fs_type in ['normal', 'ceph', 'mc']
     if fs_type == 'ceph':
         data = read_from_path(path)
     elif fs_type == 'normal':
@@ -118,6 +158,8 @@ def read_file(path: str, fs_type: Union[None, str] = None) -> object:
         with open(path_lock, 'r') as f:
             fcntl.flock(f.fileno(), fcntl.LOCK_EX)
             data = torch.load(path, map_location='cpu')
+    elif fs_type == 'mc':
+        data = read_from_mc(path)
     return data
 
 

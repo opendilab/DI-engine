@@ -130,7 +130,12 @@ class QMix(nn.Module):
         total_q = self._mixer(agent_q_act, global_state_embedding).reshape(T, B)
         if single_step:
             total_q, agent_q = total_q.squeeze(0), agent_q.squeeze(0)
-        return {'total_q': total_q, 'logit': agent_q, 'next_state': next_state, 'action_mask': data['obs']['action_mask']}
+        return {
+            'total_q': total_q,
+            'logit': agent_q,
+            'next_state': next_state,
+            'action_mask': data['obs']['action_mask']
+        }
 
     def _setup_global_encoder(self, global_obs_dim: int, embedding_dim: int) -> torch.nn.Module:
         layers = []
