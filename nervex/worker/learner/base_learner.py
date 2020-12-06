@@ -90,6 +90,7 @@ class BaseLearner(ABC):
         # checkpoint helper
         self._checkpointer_manager = build_checkpoint_helper(self._cfg)
         self._hooks = {'before_run': [], 'before_iter': [], 'after_iter': [], 'after_run': []}
+        self._collate_fn = default_collate
 
     def launch(self) -> None:
         """
@@ -135,6 +136,7 @@ class BaseLearner(ABC):
         Overview:
             Setup time_wrapper to get data_time and train_time
         """
+        self._wrapper_timer = EasyTimer()
         self._get_iter_data = self.time_wrapper(self._get_iter_data, 'data_time')
         self._train = self.time_wrapper(self._train, 'train_time')
 
@@ -148,9 +150,9 @@ class BaseLearner(ABC):
         """
 
         def wrapper(*args, **kwargs) -> Any:
-            with self._timer:
+            with self._wrapper_timer:
                 ret = fn(*args, **kwargs)
-            self._log_buffer[name] = self._timer.value
+            self._log_buffer[name] = self._wrapper_timer.value
             return ret
 
         return wrapper
@@ -166,7 +168,7 @@ class BaseLearner(ABC):
         # when distributed version, get_data is set by comm LearnerCommHelper
         # users don't need to know the related details if not necessary
         self._dataloader = AsyncDataLoader(
-            self.get_data, cfg.batch_size, self._device, cfg.chunk_size, default_collate, cfg.num_workers
+            self.get_data, cfg.batch_size, self._device, cfg.chunk_size, self._collate_fn, cfg.num_workers
         )
 
     def _get_iter_data(self) -> Any:

@@ -6,7 +6,6 @@ from nervex.league import BaseLeagueManager, register_league
 from nervex.league.player import ActivePlayer
 from nervex.utils import read_config, deep_merge_dicts
 
-
 solo_default_config = read_config(osp.join(osp.dirname(__file__), "solo_league_manager_default_config.yaml"))
 
 
@@ -36,7 +35,6 @@ class SoloLeagueManager(BaseLeagueManager):
         """
         assert isinstance(player, ActivePlayer), player.__class__
         player_job_info = EasyDict(player.get_job())
-        # env_num = self.cfg.job.env_num
         model_config = copy.deepcopy(self.model_config)
         job_info = {
             'env_kwargs': player_job_info.env_kwargs,

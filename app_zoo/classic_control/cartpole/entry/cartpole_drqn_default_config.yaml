@@ -48,10 +48,11 @@ env:
     placeholder: 'placeholder'
 actor:
     env_num: 16
-    episode_num: 2
+    episode_num: 'inf'
     print_freq: 200
 evaluator:
     env_num: 2
-    episode_num: 2
+    episode_num: 'inf'
+    total_episode_num: 4
     eval_step: 200
     stop_val: 39 # 195//5

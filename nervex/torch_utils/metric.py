@@ -83,7 +83,8 @@ def hamming_distance(pred, target, weight=1.):
         - distance(:obj:`torch.LongTensor`): distance(scalar), the shape[1]
 
     Shapes:
-        - pred & targe (:obj:`torch.LongTensor`): shape :math:`(B, N)`, while B is the batch size and N is the dimension
+        - pred & target (:obj:`torch.LongTensor`): shape :math:`(B, N)`, \
+            while B is the batch size and N is the dimension
 
     Test:
         torch_utils/network/tests/test_metric.py

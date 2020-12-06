@@ -21,7 +21,7 @@ nervex(框架核心)
    - 通用环境类接口
    - 通用环境静态和动态元素接口
    - 通用环境处理特征工程函数
-   - Atrai环境在该接口定义下的封装示例(pong, pendulum, cartpole)
+   - Atari环境在该接口定义下的封装示例(pong, pendulum, cartpole)
    - 基于SUMO的交通信号灯控制环境在该接口定义下的封装示例
    - alphastar SC2环境再改接口定义下的封装示例
 
