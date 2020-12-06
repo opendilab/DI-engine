@@ -1,4 +1,8 @@
 image: "registry.sensetime.com/xlab/sensestar-docker:centos7"
+
+variables:
+  CI: "true"
+
 stages:
   - install
   - style
