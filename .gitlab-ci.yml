@@ -17,20 +17,17 @@ install:
 style:
   stage: style
   script:
-    - pip install yapf==0.29.0
-    - bash format.sh --test
-    - pip install flake8
-    - flake8 nervex/
+    - pip install yapf==0.29.0 flake8
+    - make format_test flake_check
 
 pages:
   stage: doc
   script:
     - pip install -e .
     - pip install sphinx sphinx_rtd_theme
-    - cd nervex/docs
-    - make html
-    - mv build/html ../../public
-    - rm -r build
+    - make docs
+    - mv nervex/docs/build/html public
+    - rm -rf nervex/docs/build
   artifacts:
     paths:
       - public
@@ -41,4 +38,4 @@ test:
   stage: test
   script:
     - pip install -e .
-    - pytest ./nervex ./app_zoo --cov-report term-missing --cov=./nervex -n 8 -sv -m unittest
+    - make test

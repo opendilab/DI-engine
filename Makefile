@@ -17,3 +17,10 @@ test:
 	pytest ${TEST_DIR} \
 		--cov-report term-missing --cov=./nervex \
 		${WORKERS_COMMAND} -sv -m unittest
+
+format:
+	bash format.sh
+format_test:
+	bash format.sh --test
+flake_check:
+	flake8 ./nervex
