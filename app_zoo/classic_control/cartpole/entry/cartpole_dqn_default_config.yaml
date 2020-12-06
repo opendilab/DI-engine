@@ -8,7 +8,7 @@ learner:
     use_cuda: False
     use_distributed: False
     max_iterations: 10000000
-    train_step: 200
+    train_step: 1
     learning_rate: 0.0001
     weight_decay: 0.0
     eps:
@@ -21,6 +21,8 @@ learner:
         chunk_size: 64
         max_reuse: 100
         buffer_length: 100000
+        sample_ratio: 0.5
+        use_mid_pack: True
     dqn:
         discount_factor: 0.99
         is_double: True
@@ -50,5 +52,5 @@ evaluator:
     env_num: 5
     episode_num: 'inf'
     total_episode_num: 10  # total evaluate episode_num 
-    eval_step: 1500
+    eval_step: 300
     stop_val: 39 # 195//5

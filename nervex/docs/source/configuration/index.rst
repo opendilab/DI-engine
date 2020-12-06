@@ -17,12 +17,12 @@ cartpole_dqn_default_config.yaml
         time_wrapper_type: cuda  # use torch.cuda.Event and torch.cuda.synchronize for time record
         save_path: '.'  # save ckpt/log path
         load_path: ''  # load ckpt path, if load_path == '', do not load anything
-        algo_type: 'dqn'  # ['dqn', 'drqn', 'ppo', 'a2c']
+        algo_type: 'dqn'  # ['dqn', 'drqn', 'ppo', 'a2c', 'ddpg', 'qmix', 'coma']
     learner:
         use_cuda: False  # whether use cuda for network training
         use_distributed: False  # whether use distributed training(linklink)
         max_iterations: 10000000  # max train iterations
-        train_step: 200  # train step interval, collect data -> train fixed step -> collect data
+        train_step: 1  # train step interval, collect data -> train fixed step -> collect data
         learning_rate: 0.0001
         weight_decay: 0.0  # L2 norm for network weight
         eps:
@@ -36,6 +36,8 @@ cartpole_dqn_default_config.yaml
             num_worker: 0
             max_reuse: 100  # max reuse number of a data sample
             buffer_length: 100000  # replay buffer length
+            sample_ratio: 0.5  # the ratio of generating new data for one train step
+            use_mid_pack: True  # whether pack data in the middle of a episode
         dqn:
             discount_factor: 0.99
             is_double: True  # whether use double dqn(target network)
@@ -47,7 +49,7 @@ cartpole_dqn_default_config.yaml
                 priority: 40  # the lower value, the higher priority
                 position: after_iter  # ['before_run', 'before_iter', 'after_iter', 'after_run']
                 ext_args:
-                    freq: 1000
+                    freq: 10000
             log_show:
                 name: log_show
                 type: log_show
@@ -59,11 +61,12 @@ cartpole_dqn_default_config.yaml
         placeholder: 'placeholder'
     actor:
         env_num: 10
-        episode_num: 1
+        episode_num: 'inf'  # inf means run resetted episode until the program is over
         print_freq: 500
     evaluator:
         env_num: 10
-        episode_num: 1
+        episode_num: 'inf'
+        total_episode_num: 10  # total evaluate episode_num
         eval_step: 1500
         stop_val: 39 # 195//5  # if episode returns are greater than this value, training is over
 

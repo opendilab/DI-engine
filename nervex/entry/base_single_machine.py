@@ -61,6 +61,7 @@ class SingleMachineRunner(object):
         self.buffer = PrioritizedBuffer(cfg.learner.data.buffer_length, cfg.learner.data.max_reuse)
         self.batch_size = cfg.learner.data.batch_size
         self.sample_ratio = cfg.learner.data.get('sample_ratio', 2)
+        self.use_mid_pack = cfg.learner.data.get('use_mid_pack', False)
         assert cfg.learner.data.buffer_length >= max(
             self.batch_size, self.batch_size * cfg.learner.train_step // cfg.learner.data.max_reuse
         )
@@ -235,7 +236,7 @@ class SingleMachineRunner(object):
                         self.actor_agent.reset()
                     self._pack_trajectory(i)
                 else:
-                    if self.algo_type != 'drqn':
+                    if self.use_mid_pack:
                         bs = self.cfg.learner.data.batch_size
                         size = bs * self.sample_ratio * self.train_step / self.cfg.actor.env_num
                         if len(self.env_buffer[i]) > size:
@@ -309,4 +310,6 @@ class SingleMachineRunner(object):
     def is_buffer_enough(self, last_push_count: int):
         bs = self.cfg.learner.data.batch_size
         size = int(self.sample_ratio * bs * self.train_step)
+        if not self.use_mid_pack:
+            size = size // self.cfg.learner.data.max_reuse
         return self.buffer.push_count - last_push_count >= size and self.buffer.validlen >= bs

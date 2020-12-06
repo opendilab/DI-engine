@@ -22,6 +22,7 @@ learner:
         chunk_size: 128
         num_workers: 4
         sample_ratio: 0.125
+        use_mid_pack: True
     ddpg:
         discount_factor: 0.99
         actor_update_freq: 2
