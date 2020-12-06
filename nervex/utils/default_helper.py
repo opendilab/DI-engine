@@ -7,7 +7,8 @@ import warnings
 
 
 def lists_to_dicts(
-    data: Union[List[Union[dict, NamedTuple]], Tuple[Union[dict, NamedTuple]]]
+        data: Union[List[Union[dict, NamedTuple]], Tuple[Union[dict, NamedTuple]]],
+        recursive: bool = False,
 ) -> Union[Mapping[object, object], NamedTuple]:
     r"""
     Overview:
@@ -16,6 +17,7 @@ def lists_to_dicts(
     Arguments:
         - data (:obj:`Union[List[Union[dict, NamedTuple]], Tuple[Union[dict, NamedTuple]]]`):
             A dict of lists need to be transformed
+        - recursive (:obj:`bool`): whether recursively deals with dict element
 
     Returns:
         - newdata (:obj:`Union[Mapping[object, object], NamedTuple]`): A list of dicts as a result
@@ -28,7 +30,16 @@ def lists_to_dicts(
     if len(data) == 0:
         raise ValueError("empty data")
     if isinstance(data[0], dict):
-        new_data = {k: [data[b][k] for b in range(len(data))] for k in data[0].keys()}
+        if recursive:
+            new_data = {}
+            for k in data[0].keys():
+                if isinstance(data[0][k], dict):
+                    tmp = [data[b][k] for b in range(len(data))]
+                    new_data[k] = lists_to_dicts(tmp)
+                else:
+                    new_data[k] = [data[b][k] for b in range(len(data))]
+        else:
+            new_data = {k: [data[b][k] for b in range(len(data))] for k in data[0].keys()}
     elif isinstance(data[0], tuple) and hasattr(data[0], '_fields'):  # namedtuple
         new_data = type(data[0])(*list(zip(*data)))
     else:
@@ -90,6 +101,8 @@ def squeeze(data: object) -> object:
     if isinstance(data, tuple) or isinstance(data, list):
         if len(data) == 1:
             return data[0]
+        else:
+            return tuple(data)
     elif isinstance(data, dict):
         if len(data) == 1:
             return list(data.values())[0]

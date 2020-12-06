@@ -78,6 +78,29 @@ def create_drqn_learner_agent(model: torch.nn.Module, state_num: int, is_double:
     return agent
 
 
+def create_qmix_learner_agent(model: torch.nn.Module, state_num: int, agent_num: int) -> BaseAgent:
+    plugin_cfg = {'main': OrderedDict({'hidden_state': {'state_num': state_num}, 'grad': {'enable_grad': True}})}
+    plugin_cfg['target'] = OrderedDict(
+        {
+            'hidden_state': {
+                'state_num': state_num,
+                'init_fn': lambda: [None for _ in range(agent_num)],
+            },
+            'target': {
+                'update_type': 'momentum',
+                'kwargs': {
+                    'theta': 0.001
+                }
+            },
+            'grad': {
+                'enable_grad': False
+            }
+        }
+    )
+    agent = AgentAggregator(BaseAgent, model, plugin_cfg)
+    return agent
+
+
 class ACAgent(BaseAgent):
     """
     Overview:
@@ -190,6 +213,26 @@ def create_drqn_actor_agent(model: torch.nn.Module, state_num: int) -> BaseAgent
     return agent
 
 
+def create_qmix_actor_agent(model: torch.nn.Module, state_num: int, agent_num: int) -> BaseAgent:
+    plugin_cfg = {
+        'main': OrderedDict(
+            {
+                'hidden_state': {
+                    'state_num': state_num,
+                    'save_prev_state': True,
+                    'init_fn': lambda: [None for _ in range(agent_num)],
+                },
+                'eps_greedy_sample': {},
+                'grad': {
+                    'enable_grad': False
+                }
+            }
+        )
+    }
+    agent = AgentAggregator(BaseAgent, model, plugin_cfg)
+    return agent
+
+
 def create_ac_actor_agent(model: torch.nn.Module) -> ACAgent:
     r"""
     Overview:
@@ -264,6 +307,25 @@ def create_drqn_evaluator_agent(model: torch.nn.Module, state_num: int) -> BaseA
             {
                 'hidden_state': {
                     'state_num': state_num
+                },
+                'argmax_sample': {},
+                'grad': {
+                    'enable_grad': False
+                }
+            }
+        )
+    }
+    agent = AgentAggregator(BaseAgent, model, plugin_cfg)
+    return agent
+
+
+def create_qmix_evaluator_agent(model: torch.nn.Module, state_num: int, agent_num: int) -> BaseAgent:
+    plugin_cfg = {
+        'main': OrderedDict(
+            {
+                'hidden_state': {
+                    'state_num': state_num,
+                    'init_fn': lambda: [None for _ in range(agent_num)],
                 },
                 'argmax_sample': {},
                 'grad': {

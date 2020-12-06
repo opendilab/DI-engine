@@ -9,6 +9,7 @@ system:
     coordinator_check_dead_learner_freq: 300
 league:
     league_type: 'solo'
+    use_pretrain: False
     import_names: ['nervex.league.solo_league_manager']
     communication:
         type: 'flask_fs'

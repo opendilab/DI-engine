@@ -136,6 +136,7 @@ class BaseLearner(ABC):
         Overview:
             Setup time_wrapper to get data_time and train_time
         """
+        self._wrapper_timer = EasyTimer()
         self._get_iter_data = self.time_wrapper(self._get_iter_data, 'data_time')
         self._train = self.time_wrapper(self._train, 'train_time')
 
@@ -149,9 +150,9 @@ class BaseLearner(ABC):
         """
 
         def wrapper(*args, **kwargs) -> Any:
-            with self._timer:
+            with self._wrapper_timer:
                 ret = fn(*args, **kwargs)
-            self._log_buffer[name] = self._timer.value
+            self._log_buffer[name] = self._wrapper_timer.value
             return ret
 
         return wrapper

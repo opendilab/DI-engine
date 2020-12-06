@@ -2,6 +2,7 @@ import random
 import os
 
 import torch
+from nervex.utils import get_data_compressor
 
 
 class FakeSumoDataset:
@@ -14,6 +15,7 @@ class FakeSumoDataset:
         if not os.path.exists(self.output_dir):
             os.mkdir(self.output_dir)
         self.count = 0
+        self.compressor = get_data_compressor('lz4')
 
     def __len__(self):
         return self.batch_size
@@ -45,13 +47,14 @@ class FakeSumoDataset:
         step['reward'] = self.get_random_reward()
         if self.use_meta:
             path = os.path.join(self.output_dir, 'data_{}.pt'.format(self.count))
-            torch.save([step], path)
+            data = self.compressor([step])
+            torch.save(data, path)
             self.count += 1
             return {
                 'job_id': self.count - 1,
                 'traj_id': path,
                 'priority': 1.0,
-                'data_compressor': 'none',
+                'compressor': 'lz4',
                 'data_push_length': 1
             }
         else:
