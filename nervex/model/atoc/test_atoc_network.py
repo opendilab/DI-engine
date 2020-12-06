@@ -23,8 +23,9 @@ class TestATOCNets:
             # maybe because the model is not end to end
             # or maybe because the model has tons of parameters without grad
 
-            # is_differentiable(loss1, model)
-            # is_differentiable(loss2, model)
+            # if _ == 0:
+            #     is_differentiable(loss1, model)
+            #     is_differentiable(loss2, model)
 
     def test_critic_net(self):
         B, A, obs_dim, act_dim, thought_dim = 6, 5, 12, 6, 14
@@ -35,4 +36,5 @@ class TestATOCNets:
             # print(out)
             assert out['q_value'].shape == (B, A, 1)
             loss = out['q_value'].sum()
-            # is_differentiable(loss, model)
+            if _ == 0:
+                is_differentiable(loss, model)
