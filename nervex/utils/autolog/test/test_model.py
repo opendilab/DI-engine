@@ -10,9 +10,8 @@ from nervex.utils.autolog import LoggedModel, LoggedValue, TickTime, NaturalTime
 # noinspection DuplicatedCode
 @pytest.mark.unittest
 class TestAutologModel:
-    # noinspection DuplicatedCode
     def __get_demo_class(self):
-
+        # noinspection DuplicatedCode
         class _TickModel(LoggedModel):
             in_time = LoggedValue('in_time', float)
             out_time = LoggedValue('out_time', float)
@@ -32,6 +31,40 @@ class TestAutologModel:
                     self.register_attribute_value('thruput', _prop_name, partial(__avg_func, _prop_name))
 
         return _TickModel
+
+    def test_getter_and_setter(self):
+        _class = self.__get_demo_class()
+
+        _time = TickTime()
+        _tick_monitor = _class(_time, expire=5)
+
+        with pytest.raises(ValueError):
+            _ = _tick_monitor.in_time
+        with pytest.raises(ValueError):
+            _ = _tick_monitor.out_time
+
+        _tick_monitor.in_time = 2.0
+        assert _tick_monitor.in_time == 2.0
+
+        with pytest.raises(TypeError):
+            _tick_monitor.in_time = None
+        assert _tick_monitor.in_time == 2.0
+
+    def test_time(self):
+        _class = self.__get_demo_class()
+
+        _time = TickTime()
+        _tick_monitor = _class(_time, expire=5)
+
+        assert _tick_monitor.time == _time.time()
+
+    def test_expire(self):
+        _class = self.__get_demo_class()
+
+        _time = TickTime()
+        _tick_monitor = _class(_time, expire=5)
+
+        assert _tick_monitor.expire == 5
 
     def test_autolog_model_with_tick_time(self):
         _class = self.__get_demo_class()
