@@ -244,3 +244,40 @@ class ATOCActorNet(nn.Module):
     #TODO
     def _merge_2_thoughts(self, thought1, thought2):
         return thought2
+
+
+class ATOCCriticNet(nn.Module):
+    r"""
+    .. note::
+
+        "ATOC paper:The critic network has two hidden layers with 512 and 256 units respectively."
+    """
+
+    # note, the critic take the action as input
+    def __init__(self, obs_dim: int, action_dim: int, embedding_dims: List[int] = [128, 64]):
+        super(ATOCCriticNet, self).__init__()
+        self._obs_dim = obs_dim
+        self._act_dim = action_dim
+        self._embedding_dims = embedding_dims
+        cur_dim = self._obs_dim + self._act_dim
+        self._main = nn.ModuleList()
+        for dim in embedding_dims:
+            self._main.append(nn.Linear(cur_dim, dim))
+            self._main.append(nn.LayerNorm(dim))
+            self._main.append(nn.ReLU())
+            cur_dim = dim
+        self._main.append(nn.Linear(cur_dim, 1))
+
+    def forward(self, data: Dict):
+        r"""
+        shapes:
+            data['obs']: :math:`(B, A, obs_dim)`
+            data['action']: :math:`(B, A, action_dim)`
+        """
+        obs = data['obs']
+        action = data['action']
+        x = torch.cat([obs, action], -1)
+        for m in self._main:
+            x = m(x)
+        data['q_value'] = x
+        return data
