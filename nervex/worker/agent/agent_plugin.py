@@ -318,34 +318,29 @@ class EpsGreedySampleHelper(IAgentStatelessPlugin):
         agent.forward = sample_wrapper(agent.forward)
 
 
-class ActionNoiseHelper(IAgentStatelessPlugin):
+class ActionNoiseHelper(IAgentStatefulPlugin):
 
     @classmethod
-    def register(cls: type, agent: Any) -> None:
+    def register(
+            cls: type,
+            agent: Any,
+            noise_type: str = 'gauss',
+            noise_kwargs: dict = {},
+            noise_range: Optional[dict] = None,
+            action_range: Optional[dict] = None
+    ) -> None:
         noise_helper = cls()
-        agent.noise_generator = noise_helper.noise_generator
+        agent._noise_helper = noise_helper
 
         def noise_wrapper(forward_fn: Callable) -> Callable:
 
             def wrapper(*args, **kwargs):
-                # print(kwargs)
-                noise_type = kwargs.pop('noise_type', None)
-                noise_kwargs = kwargs.pop('noise_kwargs', None)
-                # print(noise_kwargs)
-                # noise_range = noise_kwargs['range'] if noise_kwargs is not None else None
-                noise_range = noise_kwargs.pop('range', 0.4) if noise_kwargs is not None else None
-                action_range = kwargs.pop('action_range', None)
-                if agent.noise_generator is None and noise_type is not None:
-                    agent.noise_generator = create_noise_generator(noise_type, noise_kwargs)
                 output = forward_fn(*args, **kwargs)
                 assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
                 if 'action' in output:
-                    # print(output)
                     action = output['action']
                     assert isinstance(action, torch.Tensor)
-                    noise = agent.noise_generator(action.shape, action.device)
-                    #action += noise.clamp(-noise_range, noise_range)  # noise clip
-                    action = action.clamp(action_range['min'], action_range['max'])  # action clip
+                    action = agent._noise_helper.add_noise(action)
                     output['action'] = action
                 return output
 
@@ -353,8 +348,28 @@ class ActionNoiseHelper(IAgentStatelessPlugin):
 
         agent.forward = noise_wrapper(agent.forward)
 
-    def __init__(self) -> None:
-        self.noise_generator = None
+    def __init__(
+            self,
+            noise_type: str = 'gauss',
+            noise_kwargs: dict = {},
+            noise_range: Optional[dict] = None,
+            action_range: Optional[dict] = None
+    ) -> None:
+        self.noise_generator = create_noise_generator(noise_type, noise_kwargs)
+        self.noise_range = noise_range
+        self.action_range = action_range
+
+    def add_noise(self, action: torch.Tensor) -> torch.Tensor:
+        noise = self.noise_generator(action.shape, action.device)
+        if self.noise_range is not None:
+            noise = noise.clamp(self.noise_range['min'], self.noise_range['max'])
+        action += noise
+        if self.action_range is not None:
+            action = action.clamp(self.action_range['min'], self.action_range['max'])
+        return action
+
+    def reset(self):
+        pass
 
 
 class TargetNetworkHelper(IAgentStatefulPlugin):

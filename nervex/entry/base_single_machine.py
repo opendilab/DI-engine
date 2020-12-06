@@ -179,16 +179,6 @@ class SingleMachineRunner(object):
                 'param': {
                     'mode': 'compute_action'
                 },
-                'noise_type': 'gauss',
-                'noise_kwargs': {
-                    'mu': 0.0,
-                    'sigma': 0.1,
-                    'range': 0.5
-                },
-                'action_range': {
-                    'min': -2.0,
-                    'max': 2.0
-                }
             }
 
     def collect_data(self):
@@ -226,7 +216,8 @@ class SingleMachineRunner(object):
                     self._pack_trajectory(i)
                 else:
                     if self.algo_type != 'drqn':
-                        size = self.cfg.learner.data.batch_size * self.sample_ratio * self.train_step / self.cfg.actor.env_num
+                        bs = self.cfg.learner.data.batch_size
+                        size = bs * self.sample_ratio * self.train_step / self.cfg.actor.env_num
                         if len(self.env_buffer[i]) > size:
                             self._pack_trajectory(i)
             self.actor_step_count += 1

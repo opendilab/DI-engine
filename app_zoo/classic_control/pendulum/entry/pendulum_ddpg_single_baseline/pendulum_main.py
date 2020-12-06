@@ -33,9 +33,15 @@ class SumoRunner(SingleMachineRunner):
         self.learner = PendulumDdpgLearner(self.cfg)
 
     def _setup_agent(self):
-        self.actor_agent = create_qac_actor_agent(copy.deepcopy(self.learner.agent.model))
+        self.actor_agent = create_qac_actor_agent(
+            copy.deepcopy(self.learner.agent.model),
+            self.actor_env._env_ref.info().act_space.value
+        )
         self.actor_agent.mode(train=False)
-        self.evaluator_agent = create_qac_evaluator_agent(copy.deepcopy(self.learner.agent.model))
+        self.evaluator_agent = create_qac_evaluator_agent(
+            copy.deepcopy(self.learner.agent.model,
+                          self.actor_env._env_ref.info().act_space.value)
+        )
         self.evaluator_agent.mode(train=False)
 
 

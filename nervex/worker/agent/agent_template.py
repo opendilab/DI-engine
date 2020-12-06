@@ -107,7 +107,9 @@ def create_ac_learner_agent(model: torch.nn.Module) -> ACAgent:
     return agent
 
 
-def create_qac_learner_agent(model: torch.nn.Module, use_noise: bool = False) -> BaseAgent:
+def create_qac_learner_agent(
+        model: torch.nn.Module, use_noise: bool = False, action_range: Optional[dict] = None
+) -> BaseAgent:
     plugin_cfg = {'main': OrderedDict({'grad': {'enable_grad': True}})}
     plugin_cfg['target'] = OrderedDict(
         {
@@ -123,7 +125,18 @@ def create_qac_learner_agent(model: torch.nn.Module, use_noise: bool = False) ->
         }
     )
     if use_noise:
-        plugin_cfg['target']['action_noise'] = {}
+        plugin_cfg['target']['action_noise'] = {
+            'noise_type': 'gauss',
+            'noise_kwargs': {
+                'mu': 0.0,
+                'sigma': 0.1,
+            },
+            'noise_range': {
+                'min': -0.5,
+                'max': 0.5
+            },
+            'action_range': action_range
+        }
         plugin_cfg['target'].move_to_end('action_noise', last=False)  # move to beginning
     agent = AgentAggregator(BaseAgent, model, plugin_cfg)
     return agent
@@ -193,14 +206,24 @@ def create_ac_actor_agent(model: torch.nn.Module) -> ACAgent:
     return agent
 
 
-def create_qac_actor_agent(model: torch.nn.Module) -> BaseAgent:
+def create_qac_actor_agent(model: torch.nn.Module, action_range: Optional[dict] = None) -> BaseAgent:
     plugin_cfg = {
-        'main': OrderedDict({
-            'action_noise': {},
-            'grad': {
-                'enable_grad': False
-            },
-        })
+        'main': OrderedDict(
+            {
+                'action_noise': {
+                    'noise_type': 'gauss',
+                    'noise_kwargs': {
+                        'mu': 0.0,
+                        'sigma': 0.2,
+                    },
+                    'noise_range': None,
+                    'action_range': action_range
+                },
+                'grad': {
+                    'enable_grad': False
+                },
+            }
+        )
     }
     agent = AgentAggregator(BaseAgent, model, plugin_cfg)
     return agent

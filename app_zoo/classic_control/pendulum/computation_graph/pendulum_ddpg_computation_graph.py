@@ -1,3 +1,4 @@
+import torch
 from nervex.computation_graph import BaseCompGraph
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error
 from nervex.worker.agent import BaseAgent
@@ -28,9 +29,18 @@ class PendulumDdpgGraph(BaseCompGraph):
             next_action = agent.target_forward(next_data, param={'mode': 'compute_action'})['action']
             next_data['action'] = next_action
             target_q_value = agent.target_forward(next_data, param={'mode': 'compute_q'})['q_value']
-            data = v_1step_td_data(q_value, target_q_value, reward, None, None)
-            critic_loss = v_1step_td_error(data, self._gamma)
-            loss_dict['critic_loss'] = critic_loss
+            if self._use_twin_critic:
+                target_q_value = torch.min(target_q_value[0], target_q_value[1])
+                data = v_1step_td_data(q_value[0], target_q_value, reward, None, None)
+                critic_loss = v_1step_td_error(data, self._gamma)
+                loss_dict['critic_loss'] = critic_loss
+                data_twin = v_1step_td_data(q_value[1], target_q_value, reward, None, None)
+                critic_twin_loss = v_1step_td_error(data_twin, self._gamma)
+                loss_dict['critic_twin_loss'] = critic_twin_loss
+            else:
+                data = v_1step_td_data(q_value, target_q_value, reward, None, None)
+                critic_loss = v_1step_td_error(data, self._gamma)
+                loss_dict['critic_loss'] = critic_loss
         agent.target_update(agent.state_dict()['model'])
         loss_dict['total_loss'] = sum(loss_dict.values())
         self._forward_cnt += 1
