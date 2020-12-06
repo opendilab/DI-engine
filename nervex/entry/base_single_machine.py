@@ -224,6 +224,11 @@ class SingleMachineRunner(object):
                     else:
                         self.actor_agent.reset()
                     self._pack_trajectory(i)
+                else:
+                    if self.algo_type != 'drqn':
+                        size = self.cfg.learner.data.batch_size * self.sample_ratio * self.train_step / self.cfg.actor.env_num
+                        if len(self.env_buffer[i]) > size:
+                            self._pack_trajectory(i)
             self.actor_step_count += 1
             if self.actor_step_count % self.cfg.actor.print_freq == 0:
                 self.learner.info(
@@ -292,5 +297,5 @@ class SingleMachineRunner(object):
 
     def is_buffer_enough(self, last_push_count):
         bs = self.cfg.learner.data.batch_size
-        size = int(self.sample_ratio * bs * self.train_step) // (self.cfg.learner.data.max_reuse)
+        size = int(self.sample_ratio * bs * self.train_step)
         return self.buffer.push_count - last_push_count >= size and self.buffer.validlen >= 2 * bs

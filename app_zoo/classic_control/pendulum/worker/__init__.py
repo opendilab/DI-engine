@@ -1,2 +1,1 @@
-from .pendulum_actor_controller import PendulumActor
 from .pendulum_ddpg_learner import PendulumDdpgLearner

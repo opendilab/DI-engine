@@ -9,7 +9,7 @@ learner:
     import_names: ['app_zoo.classic_control.pendulum.worker.learner.pendulum_ddpg_learner']
     use_cuda: False
     use_distributed: False
-    train_step: 2000
+    train_step: 1
     max_iterations: 10000000
     unroll_len: 1
     actor_learning_rate: 0.0003
@@ -21,10 +21,12 @@ learner:
         batch_size: 128
         chunk_size: 128
         num_workers: 4
+        sample_ratio: 0.125
     ddpg:
         discount_factor: 0.99
-        is_double: True
         actor_update_freq: 2
+        use_twin_critic: False
+        use_noise: False
     hook:
         save_ckpt_after_iter:
             name: save_ckpt_after_iter
@@ -40,16 +42,6 @@ learner:
             position: after_iter
             ext_args:
                 freq: 500
-    # --- noise ---
-    # noise_type: gauss
-    # noise_kwargs:
-    #     mu: 0.0
-    #     sigma: 0.05
-    #     range: 0.2
-    action_range:
-        min: -2.0
-        max: 2.0
-    # --- noise ---
 actor:
     env_num: 8
     episode_num: 'inf'
@@ -58,7 +50,7 @@ evaluator:
     env_num: 4
     episode_num: 'inf'
     total_episode_num: 4
-    eval_step: 1000
+    eval_step: 500
     stop_val: -250
 env:
     placeholder: 'placeholder'

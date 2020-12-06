@@ -1,7 +1,7 @@
 import os.path as osp
 import torch
 
-from nervex.model import FCQAC
+from nervex.model import QAC
 from nervex.utils import deep_merge_dicts
 from nervex.utils import override, read_config, DistModule
 from nervex.worker.learner import BaseLearner, register_learner
@@ -23,18 +23,17 @@ class PendulumDdpgLearner(BaseLearner):
     def _setup_agent(self):
         pendulum_env = PendulumEnv(self._cfg.env)
         env_info = pendulum_env.info()
-        model = FCQAC(
+        model = QAC(
             env_info.obs_space.shape, len(env_info.act_space.shape), env_info.act_space.value,
-            use_twin_critic=True
+            use_twin_critic=self._cfg.learner.ddpg.use_twin_critic
         )
         if self._cfg.learner.use_cuda:
             model.cuda()
         if self.use_distributed:
             model = DistModule(model)
-        self._agent = create_qac_learner_agent(model, self._cfg.learner.ddpg.is_double)
+        self._agent = create_qac_learner_agent(model, self._cfg.learner.ddpg.use_noise)
         self._agent.mode(train=True)
-        if self._agent.is_double:
-            self._agent.target_mode(train=True)
+        self._agent.target_mode(train=True)
 
     @override(BaseLearner)
     def _setup_computation_graph(self):
@@ -44,13 +43,11 @@ class PendulumDdpgLearner(BaseLearner):
     def _setup_optimizer(self) -> None:
         """
         Overview:
-            Setup learner's optimizer and lr_scheduler. 
+            Setup learner's optimizer and lr_scheduler.
             DDPG can set different learning rate for critic and actor network, so it overwrites base learner.
         """
         self._optimizer = torch.optim.Adam([
-            {'params': self._agent.model._critic_encoder.parameters(), 'lr': self._cfg.learner.critic_learning_rate},
             {'params': self._agent.model._critic.parameters(), 'lr': self._cfg.learner.critic_learning_rate},
-            {'params': self._agent.model._actor_encoder.parameters(), 'lr': self._cfg.learner.actor_learning_rate},
             {'params': self._agent.model._actor.parameters(), 'lr': self._cfg.learner.actor_learning_rate},
         ],
             weight_decay=self._cfg.learner.weight_decay

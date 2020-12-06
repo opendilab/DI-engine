@@ -107,25 +107,25 @@ def create_ac_learner_agent(model: torch.nn.Module) -> ACAgent:
     return agent
 
 
-def create_qac_learner_agent(model: torch.nn.Module, is_double: bool = True) -> BaseAgent:
-    plugin_cfg = {'main': OrderedDict({'action_noise': {}, 'grad': {'enable_grad': True}})}
-    if is_double:
-        plugin_cfg['target'] = OrderedDict(
-            {
-                'action_noise': {},
-                'target': {
-                    'update_type': 'momentum',
-                    'kwargs': {
-                        'theta': 0.005
-                    }
-                },
-                'grad': {
-                    'enable_grad': False
+def create_qac_learner_agent(model: torch.nn.Module, use_noise: bool = False) -> BaseAgent:
+    plugin_cfg = {'main': OrderedDict({'grad': {'enable_grad': True}})}
+    plugin_cfg['target'] = OrderedDict(
+        {
+            'target': {
+                'update_type': 'momentum',
+                'kwargs': {
+                    'theta': 0.005
                 }
+            },
+            'grad': {
+                'enable_grad': False
             }
-        )
+        }
+    )
+    if use_noise:
+        plugin_cfg['target']['action_noise'] = {}
+        plugin_cfg['target'].move_to_end('action_noise', last=False)  # move to beginning
     agent = AgentAggregator(BaseAgent, model, plugin_cfg)
-    agent.is_double = is_double
     return agent
 
 

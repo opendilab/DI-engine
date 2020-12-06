@@ -344,7 +344,7 @@ class ActionNoiseHelper(IAgentStatelessPlugin):
                     action = output['action']
                     assert isinstance(action, torch.Tensor)
                     noise = agent.noise_generator(action.shape, action.device)
-                    action += noise.clamp(-noise_range, noise_range)  # noise clip
+                    #action += noise.clamp(-noise_range, noise_range)  # noise clip
                     action = action.clamp(action_range['min'], action_range['max'])  # action clip
                     output['action'] = action
                 return output
@@ -422,7 +422,7 @@ class TargetNetworkHelper(IAgentStatefulPlugin):
             theta = self._update_kwargs['theta']
             for name, p in self._model.named_parameters():
                 # default theta = 0.001
-                p = (1 - theta) * p + theta * state_dict[name]
+                p.data = (1 - theta) * p.data + theta * state_dict[name]
 
     def reset(self) -> None:
         r"""
