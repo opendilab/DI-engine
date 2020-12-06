@@ -171,24 +171,17 @@ class ATOCActorNet(nn.Module):
 
         acts = self._actor_2(self._current_thougths)
 
-        return {'action': acts, 'groups': self._C}
+        return {'action': acts, 'groups': self._C, 'initator': self._init_prob}
 
     # TODO
     def _get_initiate_group(self):
         # shape of init_prob is (B, A, 1)
-        init_prob = self._attention(self._current_thougths)
-        # TODO consider batch shape
-        self._is_initiator = (init_prob > 0.5)
+        self._init_prob = self._attention(self._current_thougths)
+        self._is_initiator = (self._init_prob > 0.5)
 
-        # TODO
-        # obs of shape (B, A, Obs_dim)
-        # calculate relative position
-        self._curr_obs_dists = torch.zeros(self._cur_batch_size, self._n_agent, self._n_agent)
-        for b in range(self._cur_batch_size):
-            for i in range(self._n_agent):
-                for j in range(self._n_agent):
-                    self._curr_obs_dists[b][i][j] = ((self._current_obs[b][i] -
-                                                      self._current_obs[b][j]) ** 2).sum().sqrt()
+        thoughts_pair_dot = self._current_thougths.bmm(self._current_thougths.transpose(1, 2))
+        thoughts_square = thoughts_pair_dot.diagonal(0, 1, 2)
+        self._curr_thought_dists = thoughts_square.unsqueeze(1) - 2 * thoughts_pair_dot + thoughts_square.unsqueeze(2)
 
         self._C = torch.zeros(self._cur_batch_size, self._n_agent, self._n_agent)
 
@@ -211,11 +204,11 @@ class ATOCActorNet(nn.Module):
         for b in range(self._cur_batch_size):
             for i in range(self._n_agent):
                 if self._is_initiator[b][i]:
-                    index_seq = self._curr_obs_dists[b][i].argsort()
+                    index_seq = self._curr_thought_dists[b][i].argsort()
                     index_seq = index_seq[:self._m_group]
                     self._C[b][i][index_seq] = 1
 
-    # TODO
+    # TODO find quicker implementation
     def _updata_current_thougts(self):
         # shape of current_thought (B, A, N)
         # shape of C (B, A, A)

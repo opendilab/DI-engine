@@ -9,6 +9,7 @@ class TestATOCNets:
 
     def test_actor_net(self):
         B, A, obs_dim, act_dim, thought_dim = 6, 5, 12, 6, 14
+        torch.autograd.set_detect_anomaly(True)
         model = ATOCActorNet(obs_dim, thought_dim, act_dim, A, 2, 2)
         for _ in range(10):
             data = {'obs': torch.randn(B, A, obs_dim)}
@@ -17,15 +18,23 @@ class TestATOCNets:
             assert out['action'].shape == (B, A, act_dim)
             assert out['groups'].shape == (B, A, A)
             loss1 = out['action'].sum()
-            loss2 = out['groups'].sum()
+            # loss2 = out['groups'].sum()
+            # loss3 = out['initator'].sum()
 
             # fail the is_differentiable judge
             # maybe because the model is not end to end
             # or maybe because the model has tons of parameters without grad
 
             # if _ == 0:
-            #     is_differentiable(loss1, model)
-            #     is_differentiable(loss2, model)
+            #     for p in model.parameters():
+            #         assert p.grad is None
+            #     loss1.backward()
+            #     # loss2.backward()
+            #     # TODO fix attention loss
+            #     # loss3.backward()
+            #     for k, p in model.named_parameters():
+            #         if not isinstance(p.grad, torch.Tensor):
+            #             print("no grad", k, p)
 
     def test_critic_net(self):
         B, A, obs_dim, act_dim, thought_dim = 6, 5, 12, 6, 14
