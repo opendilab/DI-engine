@@ -56,7 +56,18 @@ class TestAutologModel:
         _time = TickTime()
         _tick_monitor = _class(_time, expire=5)
 
-        assert _tick_monitor.time == _time.time()
+        assert id(_tick_monitor.time) == id(_time)
+        assert _tick_monitor.fixed_time() == 0
+        assert _tick_monitor.current_time() == 0
+
+        _tick_monitor.freeze()
+        _time.step()
+        assert _tick_monitor.fixed_time() == 0
+        assert _tick_monitor.current_time() == 1
+
+        _tick_monitor.unfreeze()
+        assert _tick_monitor.fixed_time() == 1
+        assert _tick_monitor.current_time() == 1
 
     def test_expire(self):
         _class = self.__get_demo_class()
