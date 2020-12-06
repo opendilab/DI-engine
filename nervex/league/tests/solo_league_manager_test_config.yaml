@@ -8,7 +8,7 @@ league:
     solo_active_player:
         one_phase_step: 2e3
         forward_kwargs:
-            'placeholder'
+            exploration_type: []
         env_kwargs:
             env_num: 8
             episode_num: 2

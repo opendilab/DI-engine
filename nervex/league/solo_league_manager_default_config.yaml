@@ -8,9 +8,8 @@ league:
     solo_active_player:
         one_phase_step: 2e3
         forward_kwargs:
-            # ---exploration---
-            exploration:
-                use_eps: True
+            exploration_type: ['eps']  # ['eps', 'gauss_noise', 'ou_noise']
+            eps_kwargs:
                 start: 0.95
                 end: 0.05
                 decay_len: 10000

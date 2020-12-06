@@ -15,9 +15,8 @@ league:
         strong_win_rate: 0.7
         one_phase_step: 2e3
         forward_kwargs:
-            # ---exploration---
-            exploration:
-                use_eps: True
+            exploration_type: ['eps']  # ['eps', 'gauss_noise', 'ou_noise']
+            eps_kwargs:
                 start: 0.95
                 end: 0.05
                 decay_len: 10000
@@ -37,9 +36,8 @@ league:
         one_phase_step: 2e3
         min_valid_win_rate: 0.2
         forward_kwargs:
-            # ---exploration---
-            exploration:
-                use_eps: True
+            exploration_type: ['eps']  # ['eps', 'gauss_noise', 'ou_noise']
+            eps_kwargs:
                 start: 0.95
                 end: 0.05
                 decay_len: 10000
@@ -59,9 +57,8 @@ league:
         one_phase_step: 2e3
         mutate_prob: 0.25
         forward_kwargs:
-            # ---exploration---
-            exploration:
-                use_eps: True
+            exploration_type: ['eps']  # ['eps', 'gauss_noise', 'ou_noise']
+            eps_kwargs:
                 start: 0.95
                 end: 0.05
                 decay_len: 10000
@@ -77,7 +74,7 @@ league:
     solo_active_player:
         one_phase_step: 2e3
         forward_kwargs:
-            'placeholder'
+            exploration_type: []
         env_kwargs:
             env_num: 8
             episode_num: 2

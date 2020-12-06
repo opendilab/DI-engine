@@ -1,11 +1,11 @@
 import torch
 import torch.nn as nn
 from typing import Dict
-from ..common_arch import ActorCriticBase, ConvEncoder
+from ..common_arch import ValueActorCriticBase, ConvEncoder
 from nervex.utils import squeeze
 
 
-class ValueAC(ActorCriticBase):
+class ValueAC(ValueActorCriticBase):
     r"""
     Overview:
         Actor-Critic model. Critic part outputs value of current state, and that is why it is called "ValueAC"

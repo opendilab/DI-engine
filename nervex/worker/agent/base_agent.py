@@ -24,7 +24,7 @@ class BaseAgent(ABC):
 
         Arguments:
             - model (:obj:`torch.nn.Module`): the model of the agent
-            - pulgin_cfg (:obj:`Union[OrderedDict, None]`): the plugin config to register
+            - plugin_cfg (:obj:`Union[OrderedDict, None]`): the plugin config to register
         """
         self._model = model
         self._plugin_cfg = plugin_cfg
@@ -104,7 +104,10 @@ class AgentAggregator(object):
         __init__, __getattr__
     """
 
-    def __init__(self, agent_type: type, model: Union[torch.nn.Module, List[torch.nn.Module]], plugin_cfg: Dict[str, OrderedDict]) -> None:
+    def __init__(
+            self, agent_type: type, model: Union[torch.nn.Module, List[torch.nn.Module]], plugin_cfg: Dict[str,
+                                                                                                           OrderedDict]
+    ) -> None:
         r"""
         Overview:
             __init__ of the AgentAggregator will get a class with multi agents in ._agent

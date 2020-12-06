@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 
+from nervex.torch_utils import fc_block, ResFCBlock
+
 
 class ConvEncoder(nn.Module):
     r"""
@@ -54,6 +56,21 @@ class ConvEncoder(nn.Module):
         Returns:
             - return (:obj:`torch.Tensor`): embedding tensor
         """
+        x = self.main(x)
+        x = self.mid(x)
+        return x
+
+
+class FCEncoder(nn.Module):
+
+    def __init__(self, obs_dim: int, embedding_dim: int) -> None:
+        super(FCEncoder, self).__init__()
+        self.obs_dim = obs_dim
+        self.act = nn.ReLU()
+        self.main = ResFCBlock(obs_dim, activation=self.act)
+        self.mid = nn.Linear(obs_dim, embedding_dim)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.main(x)
         x = self.mid(x)
         return x

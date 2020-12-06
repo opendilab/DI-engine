@@ -49,12 +49,12 @@ class EvaluateHook(LearnerHook):
             self._runner.evaluate()
 
 
-class SingleMachineRunner():
+class SingleMachineRunner(object):
 
     def __init__(self, cfg):
         self.cfg = cfg
         self.algo_type = self.cfg.common.algo_type
-        assert self.algo_type in ['dqn', 'ppo', 'drqn', 'qmix'], self.algo_type
+        assert self.algo_type in ['dqn', 'ppo', 'drqn', 'ddpg', 'qmix'], self.algo_type
         self.use_cuda = self.cfg.learner.use_cuda
         self.buffer = PrioritizedBuffer(cfg.learner.data.buffer_length, cfg.learner.data.max_reuse)
         self.batch_size = cfg.learner.data.batch_size
@@ -97,15 +97,15 @@ class SingleMachineRunner():
         self.learner.get_data = fn
 
     def _setup_learner(self):
-        """set self.learner"""
+        """setup self.learner"""
         raise NotImplementedError
 
     def _setup_agent(self):
-        """set self.actor_agent and self.evaluator_agent"""
+        """setup self.actor_agent and self.evaluator_agent"""
         raise NotImplementedError
 
     def _setup_env(self):
-        """set self.actor_env and self.evaluate_env"""
+        """setup self.actor_env and self.evaluate_env"""
         raise NotImplementedError
 
     def _accumulate_data(self, idx, obs, agent_output, timestep):
@@ -134,6 +134,14 @@ class SingleMachineRunner():
                 'reward': timestep.reward,
                 'done': timestep.done,
             }
+        elif self.algo_type == 'ddpg':
+            step = {
+                'obs': obs,
+                'action': agent_output['action'],
+                'next_obs': timestep.obs,
+                'reward': timestep.reward,
+                'done': timestep.done,
+            }
         elif self.algo_type in ['qmix']:
             step = {
                 'obs': obs,
@@ -147,7 +155,7 @@ class SingleMachineRunner():
         self.env_buffer[idx].append(step)
 
     def _pack_trajectory(self, idx):
-        if self.algo_type in ['dqn', 'drqn', 'qmix']:
+        if self.algo_type in ['dqn', 'drqn', 'qmix', 'ddpg']:
             data = self.env_buffer[idx]
         elif self.algo_type == 'ppo':
             data = self.adder.get_gae(
@@ -156,7 +164,7 @@ class SingleMachineRunner():
                 gamma=self.cfg.learner.ppo.gamma,
                 gae_lambda=self.cfg.learner.ppo.gae_lambda
             )
-        if self.algo_type in ['dqn', 'ppo']:
+        if self.algo_type in ['dqn', 'ppo', 'ddpg']:
             self.buffer.extend(data)
         elif self.algo_type in ['drqn']:
             nstep = self.cfg.learner.dqn.nstep
@@ -180,6 +188,12 @@ class SingleMachineRunner():
             return {'eps': eps_threshold, 'state_id': list(env_id)}
         elif self.algo_type == 'ppo':
             return {}
+        elif self.algo_type == 'ddpg':
+            return {
+                'param': {
+                    'mode': 'compute_action'
+                },
+            }
 
     def collect_data(self):
         if self.actor_step_count == 0:
@@ -214,6 +228,12 @@ class SingleMachineRunner():
                     else:
                         self.actor_agent.reset()
                     self._pack_trajectory(i)
+                else:
+                    if self.algo_type != 'drqn':
+                        bs = self.cfg.learner.data.batch_size
+                        size = bs * self.sample_ratio * self.train_step / self.cfg.actor.env_num
+                        if len(self.env_buffer[i]) > size:
+                            self._pack_trajectory(i)
             self.actor_step_count += 1
             if self.actor_step_count % self.cfg.actor.print_freq == 0:
                 self.learner.info(
@@ -242,6 +262,8 @@ class SingleMachineRunner():
             forward_kwargs = {}
             if self.algo_type in ['drqn', 'qmix']:
                 forward_kwargs['state_id'] = list(env_id)
+            elif self.algo_type == 'ddpg':
+                forward_kwargs['param'] = {'mode': 'compute_action'}
             outputs = self.evaluator_agent.forward({'obs': agent_obs}, **forward_kwargs)
 
             if self.use_cuda:
@@ -280,5 +302,5 @@ class SingleMachineRunner():
 
     def is_buffer_enough(self, last_push_count):
         bs = self.cfg.learner.data.batch_size
-        size = int(self.sample_ratio * bs * self.train_step) // (self.cfg.learner.data.max_reuse)
+        size = int(self.sample_ratio * bs * self.train_step)
         return self.buffer.push_count - last_push_count >= size and self.buffer.validlen >= bs

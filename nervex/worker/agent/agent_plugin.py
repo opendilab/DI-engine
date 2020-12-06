@@ -1,11 +1,12 @@
 import copy
 from abc import ABC, abstractmethod, abstractclassmethod
 from collections import OrderedDict
-from typing import Any, Tuple, Callable, Union, Optional
+from typing import Any, Tuple, Callable, Union, Optional, Dict
 
 import numpy as np
 import torch
 from nervex.torch_utils import get_tensor_data
+from nervex.rl_utils import create_noise_generator
 
 
 class IAgentPlugin(ABC):
@@ -348,6 +349,60 @@ class EpsGreedySampleHelper(IAgentStatelessPlugin):
         agent.forward = sample_wrapper(agent.forward)
 
 
+class ActionNoiseHelper(IAgentStatefulPlugin):
+
+    @classmethod
+    def register(
+            cls: type,
+            agent: Any,
+            noise_type: str = 'gauss',
+            noise_kwargs: dict = {},
+            noise_range: Optional[dict] = None,
+            action_range: Optional[dict] = None
+    ) -> None:
+        noise_helper = cls()
+        agent._noise_helper = noise_helper
+
+        def noise_wrapper(forward_fn: Callable) -> Callable:
+
+            def wrapper(*args, **kwargs):
+                output = forward_fn(*args, **kwargs)
+                assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
+                if 'action' in output:
+                    action = output['action']
+                    assert isinstance(action, torch.Tensor)
+                    action = agent._noise_helper.add_noise(action)
+                    output['action'] = action
+                return output
+
+            return wrapper
+
+        agent.forward = noise_wrapper(agent.forward)
+
+    def __init__(
+            self,
+            noise_type: str = 'gauss',
+            noise_kwargs: dict = {},
+            noise_range: Optional[dict] = None,
+            action_range: Optional[dict] = None
+    ) -> None:
+        self.noise_generator = create_noise_generator(noise_type, noise_kwargs)
+        self.noise_range = noise_range
+        self.action_range = action_range
+
+    def add_noise(self, action: torch.Tensor) -> torch.Tensor:
+        noise = self.noise_generator(action.shape, action.device)
+        if self.noise_range is not None:
+            noise = noise.clamp(self.noise_range['min'], self.noise_range['max'])
+        action += noise
+        if self.action_range is not None:
+            action = action.clamp(self.action_range['min'], self.action_range['max'])
+        return action
+
+    def reset(self):
+        pass
+
+
 class TargetNetworkHelper(IAgentStatefulPlugin):
     r"""
     Overview:
@@ -413,7 +468,7 @@ class TargetNetworkHelper(IAgentStatefulPlugin):
             theta = self._update_kwargs['theta']
             for name, p in self._model.named_parameters():
                 # default theta = 0.001
-                p = (1 - theta) * p + theta * state_dict[name]
+                p.data = (1 - theta) * p.data + theta * state_dict[name]
 
     def reset(self) -> None:
         r"""
@@ -450,6 +505,7 @@ plugin_name_map = {
     'argmax_sample': ArgmaxSampleHelper,
     'eps_greedy_sample': EpsGreedySampleHelper,
     'multinomial_sample': MultinomialSampleHelper,
+    'action_noise': ActionNoiseHelper,
     # model plugin
     'target': TargetNetworkHelper,
     'teacher': TeacherNetworkHelper,
