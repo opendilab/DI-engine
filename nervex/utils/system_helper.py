@@ -8,7 +8,6 @@ import uuid
 from typing import Optional
 from contextlib import closing
 
-
 MANAGER_NODE_TABLE = {
     '10.198.8': '10.198.8.31',
     '10.198.6': '10.198.6.31',
@@ -87,4 +86,3 @@ def find_free_port():
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
         s.bind(('', 0))
         return s.getsockname()[1]
-

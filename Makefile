@@ -5,7 +5,9 @@ LOCAL_DEFAULT_WORKERS :=
 WORKERS ?= $(if ${CI},${CI_DEFAULT_WORKERS},${LOCAL_DEFAULT_WORKERS})
 WORKERS_COMMAND := $(if ${WORKERS},-n ${WORKERS},)
 
-TEST_DIR ?= ./nervex ./app_zoo
+RANGE_DIR ?=
+TEST_DIR  ?= $(if ${RANGE_DIR},${RANGE_DIR},./nervex ./app_zoo)
+COV_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./nervex)
 
 info:
 	echo ${TEST_DIR}
@@ -15,7 +17,7 @@ docs:
 
 test:
 	pytest ${TEST_DIR} \
-		--cov-report term-missing --cov=./nervex \
+		--cov-report term-missing --cov=${COV_DIR} \
 		${WORKERS_COMMAND} -sv -m unittest
 
 format:
