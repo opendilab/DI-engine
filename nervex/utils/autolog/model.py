@@ -6,6 +6,9 @@ from .time_ctl import BaseTime, TimeProxy
 _TimeType = TypeVar('_TimeType', bound=Union[float, int])
 _ValueType = TypeVar('_ValueType')
 
+_LOGGED_VALUE__PROPERTY_NAME = '__property_name__'
+_LOGGED_MODEL__PROPERTIES = '__properties__'
+
 
 def _expire_value_records(value_records: List[Tuple[_TimeType, _ValueType]], start_time: _TimeType) \
         -> Tuple[Tuple[_TimeType, _ValueType], List[Tuple[_TimeType, _ValueType]]]:
