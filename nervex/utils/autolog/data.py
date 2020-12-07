@@ -2,10 +2,9 @@ import pickle
 from abc import abstractmethod, ABCMeta
 from collections import deque
 from threading import Lock
-from typing import TypeVar, Iterable
+from typing import TypeVar, Iterable, List, Tuple, Union
 
 from .time_ctl import BaseTime
-from ..collection_helper import iter_mapping
 
 _Tp = TypeVar('_Tp')
 
@@ -19,6 +18,7 @@ class RangedData(metaclass=ABCMeta):
         self.__data_items = {}
         self.__data_lock = Lock()
 
+        self.__last_item = None
         self.__queue = deque()
         self.__lock = Lock()
 
@@ -66,7 +66,11 @@ class RangedData(metaclass=ABCMeta):
                 self.__queue.appendleft((_head_time, _head_id))
                 break
             else:
-                self.__remove_data_item(_head_id)
+                if self.__last_item:
+                    _last_time, _last_id = self.__last_item
+                    self.__remove_data_item(_last_id)
+
+                self.__last_item = (_head_time, _head_id)
 
     def __append(self, time_: float, data: _Tp):
         self.__check_time(time_)
@@ -78,8 +82,30 @@ class RangedData(metaclass=ABCMeta):
             _tail_time, _tail_id = self.__queue.pop()
             self.__queue.append((_tail_time, _tail_id))
             return self.__get_data_item(_tail_id)
+        elif self.__last_item:
+            _last_time, _last_id = self.__last_item
+            return self.__get_data_item(_last_id)
         else:
             raise ValueError("This range is empty.")
+
+    def __history_yield(self):
+        _time = self._get_time()
+        _limit_time = _time - self.__expire
+        _latest_time, _latest_id = None, None
+
+        if self.__last_item:
+            _latest_time, _latest_id = _last_time, _last_id = self.__last_item
+            yield max(_last_time, _limit_time), self.__get_data_item(_last_id)
+
+        for _item_time, _item_id in self.__queue:
+            _latest_time, _latest_id = _item_time, _item_id
+            yield _item_time, self.__get_data_item(_item_id)
+
+        if _latest_time is not None and _latest_time < _time:
+            yield _time, self.__get_data_item(_latest_id)
+
+    def __history(self):
+        return list(self.__history_yield())
 
     def append(self, data: _Tp):
         with self.__lock:
@@ -96,10 +122,15 @@ class RangedData(metaclass=ABCMeta):
                 self.__append(_time, item)
             return self
 
-    def current(self):
+    def current(self) -> _Tp:
         with self.__lock:
             self.__flush_history()
             return self.__current()
+
+    def history(self) -> List[Tuple[Union[int, float], _Tp]]:
+        with self.__lock:
+            self.__flush_history()
+            return self.__history()
 
     @property
     def expire(self) -> float:
@@ -107,26 +138,10 @@ class RangedData(metaclass=ABCMeta):
             self.__flush_history()
             return self.__expire
 
-    def __len__(self):
-        with self.__lock:
-            self.__flush_history()
-            return len(self.__data_items)
-
     def __bool__(self):
         with self.__lock:
             self.__flush_history()
-            return not not self.__queue
-
-    def __iter__(self):
-        with self.__lock:
-            self.__flush_history()
-            return iter_mapping(self.__queue, lambda t: self.__get_data_item(t[1]))
-
-    def __getitem__(self, item):
-        with self.__lock:
-            self.__flush_history()
-            _, _id = self.__queue.__getitem__(item)
-            return self.__get_data_item(_id)
+            return not not (self.__queue or self.__last_item)
 
     @abstractmethod
     def _get_time(self) -> float:
