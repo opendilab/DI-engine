@@ -1401,3 +1401,5 @@ htmlcov
 .coverage*
 /test_*
 .python-version
+/name.txt
+/summary_log
