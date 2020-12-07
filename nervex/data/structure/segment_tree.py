@@ -4,7 +4,7 @@ import numpy as np
 class SegmentTree:
     """
     Overview: segment tree, implemented by the tree-like array, only the leaf nodes are real value,
-              the parents node is acquired by do some operation on left and right child
+              the parents node is acquired by doing some operation on left and right child
     Interface: __init__, reduce, __setitem__, __getitem__
     """
 
@@ -12,7 +12,7 @@ class SegmentTree:
         """
         Overview: initialize the segment tree
         Arguments:
-            - capacity (:obj:`int`): the capacity of the tree(the number of the leaf nodes)
+            - capacity (:obj:`int`): the capacity of the tree (the number of the leaf nodes), should be the power of 2
             - operation (:obj:`function`): the operation function to construct the tree
             - neutral_element (:obj:`float` or None): the value of the neutral_element
         """

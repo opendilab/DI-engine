@@ -199,7 +199,7 @@ class LoggedModel:
         >>>             return _sum / _duration
         >>>
         >>>         for _prop_name in self.__property_names:
-        >>>             self.register_attribute_value('avg', _prop_name, lambda: __avg_func(_prop_name))
+        >>>             self.register_attribute_value('avg', _prop_name, partial(__avg_func, prop_name=_prop_name))
 
         Use it like this
 
@@ -214,6 +214,12 @@ class LoggedModel:
         >>>     print(ll.range_values['value']()) # original range_values function in LoggedModel of last 10 secs
         >>>     print(ll.range_values['value'](TimeMode.ABSOLUTE))  # use absolute time
         >>>     print(ll.avg['value']())  # average value of last 10 secs
+
+    Interface:
+        __init__, fixed_time, current_time, freeze, unfreeze, register_attribute_value, __getattr__
+
+    Property:
+        time, expire
     """
 
     def __init__(self, time_: _TimeObjectType, expire: _TimeType):

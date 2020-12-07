@@ -104,7 +104,10 @@ class AgentAggregator(object):
         __init__, __getattr__
     """
 
-    def __init__(self, agent_type: type, model: Union[torch.nn.Module, List[torch.nn.Module]], plugin_cfg: Dict[str, OrderedDict]) -> None:
+    def __init__(
+            self, agent_type: type, model: Union[torch.nn.Module, List[torch.nn.Module]], plugin_cfg: Dict[str,
+                                                                                                           OrderedDict]
+    ) -> None:
         r"""
         Overview:
             __init__ of the AgentAggregator will get a class with multi agents in ._agent

@@ -145,7 +145,8 @@ class ZerglingActor(BaseActor):
 
     # override
     def _finish_job(self) -> None:
-        assert all([len(r) == self._env_kwargs['episode_num'] for r in self._job_result.values()]), self._job_result.values()
+        assert all([len(r) == self._env_kwargs['episode_num']
+                    for r in self._job_result.values()]), self._job_result.values()
         episode_count = self._env_kwargs['episode_num'] * self._env_num
         duration = max(time.time() - self._start_time, 1e-8)
         job_finish_info = {

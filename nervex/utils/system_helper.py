@@ -89,6 +89,7 @@ class PropagatingThread(Thread):
         >>> t.start()
         >>> t.join()
     """
+
     def run(self) -> None:
         self.exc = None
         try:
