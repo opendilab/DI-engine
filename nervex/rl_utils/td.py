@@ -1,12 +1,12 @@
 from collections import namedtuple
-from typing import Union, Optional, Callable
+from typing import Union, Optional, Callable, List
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from nervex.rl_utils.value_rescale import value_transform, value_inv_transform
 
-q_1step_td_data = namedtuple('td_data', ['q', 'next_q', 'act', 'reward', 'done'])
+q_1step_td_data = namedtuple('q_1step_td_data', ['q', 'next_q', 'act', 'reward', 'done'])
 
 
 def q_1step_td_error(
@@ -26,6 +26,24 @@ def q_1step_td_error(
     target_q_s_a = next_q[batch_range, next_act]
     target_q_s_a = gamma * (1 - done) * target_q_s_a + reward
     return (criterion(q_s_a, target_q_s_a.detach()) * weights).mean()
+
+
+v_1step_td_data = namedtuple('v_1step_td_data', ['v', 'next_v', 'reward', 'done', 'weight'])
+
+
+def v_1step_td_error(
+        data: namedtuple,
+        gamma: float,
+        criterion: torch.nn.modules = nn.MSELoss(reduction='none')  # noqa
+) -> torch.Tensor:
+    v, next_v, reward, done, weight = data
+    if weight is None:
+        weight = torch.ones_like(reward)
+    if done is not None:
+        target_v = gamma * (1 - done) * next_v + reward
+    else:
+        target_v = gamma * next_v + reward
+    return criterion(v, target_v.detach() * weight).mean()
 
 
 q_nstep_td_data = namedtuple('q_nstep_td_data', ['q', 'next_n_q', 'action', 'reward', 'done'])
@@ -51,7 +69,7 @@ def q_nstep_td_error(
         - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
     Shapes:
         - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
-        ['q', 'next_n_q', 'action', 'reward', 'done']
+            ['q', 'next_n_q', 'action', 'reward', 'done']
         - q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
         - next_n_q (:obj:`torch.FloatTensor`): :math:`(B, N)`
         - action (:obj:`torch.LongTensor`): :math:`(B, )`
@@ -227,7 +245,7 @@ def multistep_forward_view(
     discounts = gammas * lambda_
     for t in reversed(range(rewards.size()[0] - 1)):
         result[t, :] = rewards[t, :] \
-                       + discounts[t, :] * result[t + 1, :] \
-                       + (gammas[t, :] - discounts[t, :]) * bootstrap_values[t, :]
+            + discounts[t, :] * result[t + 1, :] \
+            + (gammas[t, :] - discounts[t, :]) * bootstrap_values[t, :]
 
     return result

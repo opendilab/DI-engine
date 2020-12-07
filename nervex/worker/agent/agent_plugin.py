@@ -1,17 +1,29 @@
 import copy
 from abc import ABC, abstractmethod, abstractclassmethod
 from collections import OrderedDict
-from typing import Any, Tuple, Callable, Union, Optional
+from typing import Any, Tuple, Callable, Union, Optional, Dict
 
 import numpy as np
 import torch
 from nervex.torch_utils import get_tensor_data
+from nervex.rl_utils import create_noise_generator
 
 
 class IAgentPlugin(ABC):
+    r"""
+    Overview:
+        the base class of Agent Plugins
+
+    Interfaces:
+        register
+    """
 
     @abstractclassmethod
     def register(cls: type, agent: Any, **kwargs) -> None:
+        r"""
+        Overview:
+            the register function that every subclass of IAgentPlugin should implement
+        """
         """inplace modify agent"""
         raise NotImplementedError
 
@@ -20,20 +32,55 @@ IAgentStatelessPlugin = IAgentPlugin
 
 
 class IAgentStatefulPlugin(IAgentPlugin):
+    r"""
+    Overview:
+        the base class of Agent Plugins that requires to store states
+    Interfaces:
+        __init__, reset
+    """
 
     @abstractmethod
     def __init__(self, *args, **kwargs) -> None:
+        r"""
+        Overview
+            the init function that the Agent Plugins with states should implement
+            used to init the stored states
+        """
         raise NotImplementedError
 
     @abstractmethod
     def reset(self) -> None:
+        r"""
+        Overview
+            the reset function that the Agent Plugins with states should implement
+            used to reset the stored states
+        """
         raise NotImplementedError
 
 
 class GradHelper(IAgentStatelessPlugin):
+    r"""
+    Overview:
+        GradHelper help the agent to enable grad or disable grad while calling forward method
+
+    Interfaces:
+        register
+
+    Examples:
+        >>> GradHelper.register(actor_agent, Flase)
+        >>> GradHelper.register(learner_agent, True)
+    """
 
     @classmethod
     def register(cls: type, agent: Any, enable_grad: bool) -> None:
+        r"""
+        Overview:
+            after register, the agent.foward method with be set to enable grad or disable grad
+
+        Arguments:
+            - agent (:obj:`Any`): the wrapped agent class, should contain forward methods
+            - enbale_grad (:obj:`bool`): whether to enable grad or disable grad while forwarding.
+        """
 
         def grad_wrapper(fn):
             context = torch.enable_grad() if enable_grad else torch.no_grad()
@@ -52,7 +99,10 @@ class HiddenStateHelper(IAgentStatefulPlugin):
     Overview:
         maintain the hidden state for RNN-base model, each sample in a batch has its own state
 
-    Note:
+    Interfaces:
+        register
+
+    .. note::
         1. this helper must deal with a actual batch with some parts of samples(e.g: 6 samples of state_num 8)
         2. this helper must deal with the single sample state reset
     """
@@ -65,6 +115,18 @@ class HiddenStateHelper(IAgentStatefulPlugin):
             save_prev_state: bool = False,
             init_fn: Callable = lambda: None
     ) -> None:
+        r"""
+        Overview:
+            init the maintain state and state function, then wrap the agent.foward nethod with auto saved data\
+                ['prev_state'] input, and create the agent.reset method the HiddenState
+
+        Arguments:
+            - agent(:obj:`Any`): the wrapped agent class, should contain forward methods
+            - state_num (:obj:`int`): the num of states to process
+            - save_prev_state (:obj:`bool`): whether to output the prev state in output['prev_state']
+            - init_fn (:obj:`Callable`): the init function to init every hidden state when init and reset,\
+                default set to return None for hidden states
+        """
         state_manager = cls(state_num, init_fn=init_fn)
         agent._state_manager = state_manager
 
@@ -74,8 +136,9 @@ class HiddenStateHelper(IAgentStatefulPlugin):
                 state_id = kwargs.pop('state_id', None)
                 data, state_info = agent._state_manager.before_forward(data, state_id)
                 output = forward_fn(data, **kwargs)
-                h = output.pop('next_state')
-                agent._state_manager.after_forward(h, state_info)
+                h = output.pop('next_state', None)
+                if h:
+                    agent._state_manager.after_forward(h, state_info)
                 if save_prev_state:
                     prev_state = get_tensor_data(data['prev_state'])
                     output['prev_state'] = prev_state
@@ -124,10 +187,39 @@ class HiddenStateHelper(IAgentStatefulPlugin):
             self._state[idx] = h[i]
 
 
+def sample_action(logit=None, prob=None):
+    if prob is None:
+        prob = torch.softmax(logit, dim=-1)
+    shape = prob.shape
+    prob += 1e-8
+    prob = prob.view(-1, shape[-1])
+    # prob can also be treated as weight in multinomial sample
+    action = torch.multinomial(prob, 1).squeeze(-1)
+    action = action.view(*shape[:-1])
+    return action
+
+
 class ArgmaxSampleHelper(IAgentStatelessPlugin):
+    r"""
+    Overview:
+        Used to help the agent to sample argmax action
+
+    Interfaces:
+        register
+
+    Examples:
+        >>> ArgmaxSampleHelper.register(actor_agent)
+    """
 
     @classmethod
     def register(cls: type, agent: Any) -> None:
+        r"""
+        Overview:
+            wrap the agent.forward method with argmax output['action']
+
+        Arguments:
+            - agent (:obj:`Any`): the wrapped agent class, should contain forward methods
+        """
 
         def sample_wrapper(forward_fn: Callable) -> Callable:
 
@@ -138,6 +230,11 @@ class ArgmaxSampleHelper(IAgentStatelessPlugin):
                 assert isinstance(logit, torch.Tensor) or isinstance(logit, list)
                 if isinstance(logit, torch.Tensor):
                     logit = [logit]
+                if 'action_mask' in output:
+                    mask = output['action_mask']
+                    if isinstance(mask, torch.Tensor):
+                        mask = [mask]
+                    logit = [l.sub_(1e8 * (1 - m)) for l, m in zip(logit, mask)]
                 action = [l.argmax(dim=-1) for l in logit]
                 if len(action) == 1:
                     action, logit = action[0], logit[0]
@@ -150,9 +247,24 @@ class ArgmaxSampleHelper(IAgentStatelessPlugin):
 
 
 class MultinomialSampleHelper(IAgentStatelessPlugin):
+    r"""
+    Overview:
+        Used to helper the agent get the corresponding action from the output['logits']
+
+    Interfaces:
+        register
+    """
 
     @classmethod
     def register(cls: type, agent: Any) -> None:
+        r"""
+        Overview:
+            auto wrap the agent.forward method and take the output['logit'] as probs of action to calculate\
+                the output['action']
+
+        Arguments:
+            - agent (:obj:`Any`): the wrapped agent class, should contain forward methods
+        """
 
         def sample_wrapper(forward_fn: Callable) -> Callable:
 
@@ -163,7 +275,12 @@ class MultinomialSampleHelper(IAgentStatelessPlugin):
                 assert isinstance(logit, torch.Tensor) or isinstance(logit, list)
                 if isinstance(logit, torch.Tensor):
                     logit = [logit]
-                action = [torch.multinomial(torch.softmax(l, dim=1), 1) for l in logit]
+                if 'action_mask' in output:
+                    mask = output['action_mask']
+                    if isinstance(mask, torch.Tensor):
+                        mask = [mask]
+                    logit = [l.sub_(1e8 * (1 - m)) for l, m in zip(logit, mask)]
+                action = [sample_action(logit=l) for l in logit]
                 if len(action) == 1:
                     action, logit = action[0], logit[0]
                 output['action'] = action
@@ -175,9 +292,27 @@ class MultinomialSampleHelper(IAgentStatelessPlugin):
 
 
 class EpsGreedySampleHelper(IAgentStatelessPlugin):
+    r"""
+    Overview:
+        the eps greedy sampler used in actor_agent to help balance exploratin and exploitation
+
+    Interfaces:
+        register
+    """
 
     @classmethod
     def register(cls: type, agent: Any) -> None:
+        r"""
+        Overview:
+            auto wrap the agent.forward method with eps prob to take a random action
+
+        Arguments:
+            - agent (:obj:`Any`): the wrapped agent class, should contain forward methods
+
+        .. note::
+            after wrapped by the EpsGreedySampleHelper, the agent.forward should take **kwargs of {'eps': float}
+
+        """
 
         def sample_wrapper(forward_fn: Callable) -> Callable:
 
@@ -189,13 +324,22 @@ class EpsGreedySampleHelper(IAgentStatelessPlugin):
                 assert isinstance(logit, torch.Tensor) or isinstance(logit, list)
                 if isinstance(logit, torch.Tensor):
                     logit = [logit]
+                if 'action_mask' in output:
+                    mask = output['action_mask']
+                    if isinstance(mask, torch.Tensor):
+                        mask = [mask]
+                    logit = [l.sub_(1e8 * (1 - m)) for l, m in zip(logit, mask)]
+                else:
+                    mask = None
                 action = []
-                for l in logit:
-                    # TODO batch-wise e-greedy exploration
+                for i, l in enumerate(logit):
                     if np.random.random() > eps:
                         action.append(l.argmax(dim=-1))
                     else:
-                        action.append(torch.randint(0, l.shape[-1], size=(l.shape[0], )))
+                        if mask:
+                            action.append(sample_action(prob=mask[i].float()))
+                        else:
+                            action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
                 if len(action) == 1:
                     action, logit = action[0], logit[0]
                 output['action'] = action
@@ -206,23 +350,114 @@ class EpsGreedySampleHelper(IAgentStatelessPlugin):
         agent.forward = sample_wrapper(agent.forward)
 
 
-class TargetNetworkHelper(IAgentStatefulPlugin):
+class ActionNoiseHelper(IAgentStatefulPlugin):
 
     @classmethod
-    def register(cls: type, agent: Any, update_cfg: dict):
-        target_network = cls(agent.model, update_cfg)
-        agent._target_network = target_network
-        setattr(agent, 'update', getattr(agent._target_network, 'update'))
+    def register(
+            cls: type,
+            agent: Any,
+            noise_type: str = 'gauss',
+            noise_kwargs: dict = {},
+            noise_range: Optional[dict] = None,
+            action_range: Optional[dict] = None
+    ) -> None:
+        noise_helper = cls()
+        agent._noise_helper = noise_helper
 
-    def __init__(self, model: torch.nn.Module, update_cfg: dict) -> None:
+        def noise_wrapper(forward_fn: Callable) -> Callable:
+
+            def wrapper(*args, **kwargs):
+                output = forward_fn(*args, **kwargs)
+                assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
+                if 'action' in output:
+                    action = output['action']
+                    assert isinstance(action, torch.Tensor)
+                    action = agent._noise_helper.add_noise(action)
+                    output['action'] = action
+                return output
+
+            return wrapper
+
+        agent.forward = noise_wrapper(agent.forward)
+
+    def __init__(
+            self,
+            noise_type: str = 'gauss',
+            noise_kwargs: dict = {},
+            noise_range: Optional[dict] = None,
+            action_range: Optional[dict] = None
+    ) -> None:
+        self.noise_generator = create_noise_generator(noise_type, noise_kwargs)
+        self.noise_range = noise_range
+        self.action_range = action_range
+
+    def add_noise(self, action: torch.Tensor) -> torch.Tensor:
+        noise = self.noise_generator(action.shape, action.device)
+        if self.noise_range is not None:
+            noise = noise.clamp(self.noise_range['min'], self.noise_range['max'])
+        action += noise
+        if self.action_range is not None:
+            action = action.clamp(self.action_range['min'], self.action_range['max'])
+        return action
+
+    def reset(self):
+        pass
+
+
+class TargetNetworkHelper(IAgentStatefulPlugin):
+    r"""
+    Overview:
+        Maintain and update the target network
+
+    Interfaces:
+        register, update, reset
+    """
+
+    @classmethod
+    def register(cls: type, agent: Any, update_type: str, kwargs: dict):
+        r"""
+        Overview:
+            help maintain the target network, including reset the target when the wrapped agent reset,\
+                create the agent.update method with the update method of cls class i.e TargetNetworkHelper\
+                    class itself
+
+        Arguments:
+            - agent (:obj:`Any`): the wrapped agent class, should contain forward methods
+            - update_type (:obj:`str`): the update_type used to update the momentum network, support \
+                ['momentum', 'assign']
+            - kwargs (:obj:`dict`): the update kwargs
+        """
+        target_network = cls(agent.model, update_type, kwargs)
+        agent._target_network = target_network
+
+        def reset_wrapper(reset_fn):
+
+            def wrapper(*args, **kwargs):
+                agent._target_network.reset()
+                return reset_fn(*args, **kwargs)
+
+            return wrapper
+
+        setattr(agent, 'update', getattr(agent._target_network, 'update'))
+        agent.reset = reset_wrapper(agent.reset)
+
+    def __init__(self, model: torch.nn.Module, update_type: str, kwargs: dict) -> None:
         self._model = model
-        update_type = update_cfg['type']
         assert update_type in ['momentum', 'assign']
         self._update_type = update_type
-        self._update_kwargs = update_cfg['kwargs']
+        self._update_kwargs = kwargs
         self._update_count = 0
 
     def update(self, state_dict: dict, direct: bool = False) -> None:
+        r"""
+        Overview:
+            update the target network state dict
+
+        Arguments:
+            - state_dict (:obj:`dict`): the state_dict from learner agent
+            - direct (:obj:`bool`): whether to update the target network directly, \
+                if ture then will simply call the load_state_dict method of the model
+        """
         if direct:
             self._model.load_state_dict(state_dict, strict=True)
             self._update_count = 0
@@ -234,10 +469,35 @@ class TargetNetworkHelper(IAgentStatefulPlugin):
             theta = self._update_kwargs['theta']
             for name, p in self._model.named_parameters():
                 # default theta = 0.001
-                p = (1 - theta) * p + theta * state_dict[name]
+                p.data = (1 - theta) * p.data + theta * state_dict[name]
 
     def reset(self) -> None:
+        r"""
+        Overview:
+            reset the update_count
+        """
         self._update_count = 0
+
+
+class TeacherNetworkHelper(IAgentStatelessPlugin):
+    r"""
+    Overview:
+        set the teacher Network
+
+    Interfaces:
+        register
+    """
+
+    @classmethod
+    def register(cls: type, agent: Any, teacher_cfg: dict) -> None:
+        r"""
+        Overview:
+            set the agent's agent.teacher_cfg to the input teacher_cfg
+
+        Arguments:
+            - agent (:obj:`Any`): the registered agent
+        """
+        agent._teacher_cfg = teacher_cfg
 
 
 plugin_name_map = {
@@ -246,12 +506,22 @@ plugin_name_map = {
     'argmax_sample': ArgmaxSampleHelper,
     'eps_greedy_sample': EpsGreedySampleHelper,
     'multinomial_sample': MultinomialSampleHelper,
+    'action_noise': ActionNoiseHelper,
     # model plugin
     'target': TargetNetworkHelper,
+    'teacher': TeacherNetworkHelper,
 }
 
 
 def register_plugin(agent: Any, plugin_cfg: Union[OrderedDict, None]) -> None:
+    r"""
+    Overview:
+        register plugins in the given config to agent
+    Arguments:
+        - agent (:obj:`Any`): the agent to register plugin to
+        - plugin_cfg (:obj:`Union[OrderedDict, None]`): the config ordered dict of plugin, the key is the plugin name\
+            and the value is the dict of arguments
+    """
     if plugin_cfg is None:
         return
     assert isinstance(plugin_cfg, OrderedDict), "plugin_cfg muse be ordered dict"
@@ -262,7 +532,14 @@ def register_plugin(agent: Any, plugin_cfg: Union[OrderedDict, None]) -> None:
             plugin_name_map[k].register(agent, **v)
 
 
-def add_plugin(name, plugin_type):
+def add_plugin(name: str, plugin_type: type):
+    r"""
+    Overview:
+        add new plugin to plugin_name_map
+    Arguments:
+        - name (:obj:`str`): the name of the plugin
+        - plugin_type (subclass of :obj:`IAgentPlugin`): the plugin class added to the plguin_name_map
+    """
     assert isinstance(name, str)
     assert issubclass(plugin_type, IAgentPlugin)
     plugin_name_map[name] = plugin_type

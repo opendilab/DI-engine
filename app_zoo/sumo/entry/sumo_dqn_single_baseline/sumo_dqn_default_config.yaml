@@ -16,8 +16,6 @@ learner:
         start: 0.95
         end: 0.05
         decay: 100000
-    reward_weights:
-        'queue_len': 1.0
     data:
         batch_size: 64
         max_reuse: 8
@@ -43,11 +41,12 @@ learner:
                 freq: 100
 actor:
     env_num: 8
-    episode_num: 1
+    episode_num: 'inf'
     print_freq: 500
 evaluator:
     env_num: 1
-    episode_num: 1
+    episode_num: 'inf'
+    total_episode_num: 1
     eval_step: 1000
     stop_val: -2000
 env:

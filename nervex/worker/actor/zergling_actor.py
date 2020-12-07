@@ -4,23 +4,24 @@ import time
 import uuid
 from collections import namedtuple
 from threading import Thread
-from typing import List, Dict, Callable, Any
-from easydict import EasyDict
+from typing import Dict, Callable, Any
 
 import torch
+from easydict import EasyDict
 
 from nervex.data import default_collate, default_decollate
-from nervex.torch_utils import to_device, tensor_to_list
-from nervex.utils import get_data_compressor
 from nervex.rl_utils import Adder
+from nervex.torch_utils import to_device, tensor_to_list
+from nervex.utils import get_data_compressor, lists_to_dicts
 from nervex.worker.actor import BaseActor
 from nervex.worker.actor.env_manager import SubprocessEnvManager, BaseEnvManager
+from nervex.worker.agent import BaseAgent
 
 
 class ZerglingActor(BaseActor):
     """
     Feature:
-      - one agent, many envs
+      - one agent/sync many agents, many envs
       - async envs(step + reset)
       - batch network eval
       - different episode length env
@@ -46,7 +47,7 @@ class ZerglingActor(BaseActor):
         self._logger.info('ACTOR({}): init with job {} in {}'.format(self._actor_uid, self._job['job_id'], time.time()))
         self._start_time = time.time()
         self._step_count = 0
-        assert len(self._job['agent']) == 1
+        assert len(self._job['agent']) >= 1
         self._adder = Adder(self._cfg.actor.use_cuda)
         self._adder_kwargs = self._job['adder_kwargs']
         self._env_kwargs = self._job['env_kwargs']
@@ -55,15 +56,8 @@ class ZerglingActor(BaseActor):
         self._job_result = {k: [] for k in range(self._env_num)}
         self._collate_fn = default_collate
         self._decollate_fn = default_decollate
-        self._setup_env_manager()
-        self._setup_agent()
-        # init agent(reset agent, load model)
-        self._agent.reset()
-        path = self._job['agent'][self._agent_name]['agent_update_path']
-        agent_update_info = self.get_agent_update_info(path)
-        self._agent.load_state_dict(agent_update_info)
-        # init env
-        self._env_manager.launch()
+        self._env_manager = self._setup_env_manager()
+        self._agent = self._setup_agent()
         self._obs_pool = {k: None for k in range(self._env_num)}
         self._act_pool = {k: None for k in range(self._env_num)}
         self._data_buffer = {k: [] for k in range(self._env_num)}
@@ -71,17 +65,19 @@ class ZerglingActor(BaseActor):
         self._episode_result = {k: None for k in range(self._env_num)}
         self._job_finish_flag = False
 
-    def _setup_env_manager(self) -> None:
+    def _setup_env_manager(self) -> BaseEnvManager:
         env_cfg = EasyDict(self._env_kwargs['env_cfg'])
         env_num = self._env_kwargs['env_num']
         if isinstance(env_cfg, dict):
-            self._setup_env_fn(env_cfg)
+            env_fn = self._setup_env_fn(env_cfg)
             env_cfg = [env_cfg for _ in range(env_num)]
         else:
             raise TypeError("not support env_cfg type: {}".format(env_cfg))
-        self._env_manager = SubprocessEnvManager(
-            env_fn=self._env_fn, env_cfg=env_cfg, env_num=env_num, episode_num=self._env_kwargs['episode_num']
+        env_manager = SubprocessEnvManager(
+            env_fn=env_fn, env_cfg=env_cfg, env_num=env_num, episode_num=self._env_kwargs['episode_num']
         )
+        env_manager.launch()
+        return env_manager
 
     # override
     def _agent_inference(self, obs: Dict[int, Any]) -> Dict[int, Any]:
@@ -93,10 +89,16 @@ class ZerglingActor(BaseActor):
         obs = self._collate_fn(list(obs.values()))
         if self._cfg.actor.use_cuda:
             obs = to_device(obs, 'cuda')
-        data = self._agent.forward(obs, **self._job['forward_kwargs'])
+        forward_kwargs = self._job['forward_kwargs']
+        forward_kwargs['state_id'] = list(env_id)
+        if len(self._job['agent']) == 1:
+            data = self._agent.forward(obs, **forward_kwargs)
+        else:
+            data = [agent.forward(obs[i], **forward_kwargs) for i, agent in enumerate(self._agent)]
         if self._cfg.actor.use_cuda:
             data = to_device(data, 'cpu')
         data = self._decollate_fn(data)
+        data = [lists_to_dicts(d) for d in data]
         data = {i: d for i, d in zip(env_id, data)}
         return data
 
@@ -124,7 +126,7 @@ class ZerglingActor(BaseActor):
                     gamma = self._adder_kwargs['gamma']
                     gae_lambda = self._adder_kwargs['gae_lambda']
                     data = self._adder.get_gae(data, last['value'], gamma, gae_lambda)
-                self._traj_queue.put({'data': data, 'env_id': env_id, 'job': copy.deepcopy(self._job)})
+                self._traj_queue.put({'data': data, 'env_id': env_id, 'agent_id': 0, 'job': copy.deepcopy(self._job)})
                 self._data_buffer[env_id].clear()
                 self._data_buffer[env_id].append(last)
             if t.done:
@@ -137,7 +139,7 @@ class ZerglingActor(BaseActor):
                     gamma = self._adder_kwargs['gamma']
                     gae_lambda = self._adder_kwargs['gae_lambda']
                     data = self._adder.get_gae(data, torch.zeros(1), gamma, gae_lambda)
-                self._traj_queue.put({'data': data, 'env_id': env_id, 'job': copy.deepcopy(self._job)})
+                self._traj_queue.put({'data': data, 'env_id': env_id, 'agent_id': 0, 'job': copy.deepcopy(self._job)})
                 self._last_data_buffer[env_id].clear()
                 self._data_buffer[env_id].clear()
 
@@ -180,9 +182,13 @@ class ZerglingActor(BaseActor):
                     time.sleep(self._job['agent_update_freq'] * 0.1)
                     continue
                 else:
-                    path = self._job['agent'][self._agent_name]['agent_update_path']
-                    agent_update_info = self.get_agent_update_info(path)
-                    self._agent.load_state_dict(agent_update_info)
+                    for i in range(len(self._job['agent'])):
+                        path = self._job['agent'][i]['agent_update_path']
+                        agent_update_info = self.get_agent_update_info(path)
+                        if len(self._job['agent']) == 1:
+                            self._agent.load_state_dict(agent_update_info)
+                        else:
+                            self._agent[i].load_state_dict(agent_update_info)
                     self._logger.info(
                         'ACTOR({}): update agent with {} in {}'.format(self._actor_uid, path, time.time())
                     )
@@ -193,15 +199,16 @@ class ZerglingActor(BaseActor):
     def _pack_trajectory(self) -> None:
 
         def _pack(element):
-            data, env_id, job = list(element.values())
+            data, env_id, agent_id, job = list(element.values())
             # send metadata
             job_id = job['job_id']
-            traj_id = "job_{}_env_{}_{}".format(job_id, env_id, str(uuid.uuid1()))
+            traj_id = "job_{}_env_{}_agent_{}_{}".format(job_id, env_id, agent_id, str(uuid.uuid1()))
             metadata = {
                 'traj_id': traj_id,
                 'learner_uid': job['learner_uid'][0],
                 'launch_player': job['launch_player'],
                 'env_id': env_id,
+                'agent_id': agent_id,
                 'actor_uid': self._actor_uid,
                 'done': data[-1]['done'],
                 # TODO(nyz) the relationship between traj priority and step priority
@@ -229,12 +236,12 @@ class ZerglingActor(BaseActor):
             finished_traj_num += 1
             self._logger.info('ACTOR({}) finished {}'.format(self._actor_uid, finished_traj_num))
 
-    def _setup_env_fn(self, env_cfg: dict) -> None:
-        """set self._env_fn"""
+    def _setup_env_fn(self, env_cfg: dict) -> Callable:
+        """set env_fn"""
         raise NotImplementedError
 
-    def _setup_agent(self) -> None:
-        """set self._agent, self._agent_name"""
+    def _setup_agent(self) -> BaseAgent:
+        """set agent, load init state_dict, reset"""
         raise NotImplementedError
 
     def _get_transition(self, obs: Any, agent_output: Dict, timestep: namedtuple) -> dict:
