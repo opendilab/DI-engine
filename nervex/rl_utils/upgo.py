@@ -79,26 +79,3 @@ def upgo_loss(target_output, rhos, action, rewards, bootstrap_values):
         assert (metric.shape == action.shape[:2])
     losses = advantages * metric
     return -losses.mean()
-
-
-def entropy(policy_logits, masked_threshold=-1e3):
-    r"""
-    Overview:
-        Computing entropy given the logits
-    Arguments:
-        - policy_logits (:obj:`torch.Tensor`): the logits computed by policy network,
-          of size [T_traj, batchsize, n_action_type]
-    Returns:
-        - entropy (:obj:`torch.Tensor`): Computed entropy, averaged over the samples, of size []
-    """
-    # mask all the masked logits in entropy computation
-    valid_flag = torch.where(
-        policy_logits > masked_threshold, torch.ones_like(policy_logits), torch.zeros_like(policy_logits)
-    )
-    entropy = -F.softmax(policy_logits, dim=-1) * F.log_softmax(policy_logits, dim=-1)
-    entropy = entropy * valid_flag
-    entropy = torch.mean(entropy)
-    # Normalize by actions available.
-    numel = reduce(lambda x, y: x * y, policy_logits.shape)
-    entropy = entropy * numel / (1e-6 + torch.sum(valid_flag))
-    return entropy

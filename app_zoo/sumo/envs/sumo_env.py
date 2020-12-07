@@ -125,7 +125,7 @@ class SumoWJ3Env(BaseEnv):
         obs = self._obs_helper.get(self)
         reward = self._reward_helper.get(self) if not self._inference else 0.
         done = self._current_steps >= self._max_episode_steps
-        info = {'eval_reward': reward['queue_len'].item()}
+        info = {}
         if done:
             self.close()
         # return obs, reward, done, info
