@@ -1,0 +1,34 @@
+2020.12。6
+ - DDPG/TD3算法实现
+ - QMIX/COMA算法实现
+ - SMAC + multiagent_particle多智能体环境
+ - 连续动作空间exploration相关方法
+ - 离散动作采样插件支持mask
+ - Q-value Actor-Critic单优化器实现
+ - 可以传递内部异常的线程实现
+ - MARL相关paper文档
+ - 修复若干bug
+
+2020.11.20(v0.0.2b0)
+ - A2C算法实现，在atari环境上的多机运行示例
+ - mujoco环境初步适配
+ - DRQN + R2D2算法实现（支持动态RNN，nstep-td, LSTM隐状态burn_in，value rescaling）
+ - 重构通用的league manager模块
+ - 分离解耦model/pipeline agent plugin
+ - 补充API文档和单元测试（单元测试代码覆盖率83%）
+ - 补充MCTS和alphago相关文档
+ - 修复若干bug
+ 
+2020.8.14-2020.11.9(v0.01)
+ - 初始版本发布 (9ec6fa8ed947c3ddd9db2ab983f4b41369226561)
+ - sumo 望京3路口环境baseline (4f63086dc6ef243aad8ab77a4ea6649acf21bd3e)
+ - sumo env learner(basic DQN) (37495a734a2381e834fc8f0a12cf9baeaab5c488)
+ - pong env环境（3117bebb391ef346f8e95557e50c3b78a11e733d）
+ - catepole/pendulum env环境 (35e779cbba713b063cf97ed848f2dc68da327ee2)
+ - RL warm up文档(RL intro，DQN系列，PG，DDPG，PPO）（dcabacc3ee4d774a90d84e4fa10835335e2f5fc5）
+ - learner重构版本 （837658b10c3f88bfe72498a93d1447ce8e1be54d）
+ - dueling DQN (e60c7694dd64b6961e2b6705c1120fe1f2d9ad37)
+ - 分离示例代码和框架主体代码，提供单机和多机示例（3b904fdfe6a4523140aec26ec83654dc06ce8527）
+ - 修复vec env manger环境报错调用栈显示问题，修复vec env manager pickle问题，从而env定义时无需定义全局变量 （b81a2594052efd2b7cea79baea8726488bb32963）
+ - 异步actor + gfootball环境及训练pipeline (519781d58ed6955af7e02a1cba1478ef06a454b5)
+ - PPO+GAE + 单机入口更新 (b4c841c296d854050ef9f196564277b1aaec66fe)
