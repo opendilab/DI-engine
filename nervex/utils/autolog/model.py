@@ -1,14 +1,30 @@
+from abc import ABCMeta
 from typing import TypeVar, Union, List, Any
 
-from .base import _LOGGED_MODEL__PROPERTIES, \
-    _LOGGED_MODEL__PROPERTY_ATTR_PREFIX, _TimeType, TimeMode
+from .base import _LOGGED_MODEL__PROPERTIES, _LOGGED_MODEL__PROPERTY_ATTR_PREFIX, _TimeType, TimeMode, \
+    _LOGGED_VALUE__PROPERTY_NAME
 from .data import TimeRangedData
 from .time_ctl import BaseTime, TimeProxy
+from .value import LoggedValue
 
 _TimeObjectType = TypeVar('_TimeObjectType', bound=BaseTime)
 
 
-class LoggedModel:
+class _LoggedModelMeta(ABCMeta):
+    def __init__(cls, name: str, bases: tuple, namespace: dict):
+
+        super().__init__(name, bases, namespace)
+
+        _properties = []
+        for k, v in namespace.items():
+            if isinstance(v, LoggedValue):
+                setattr(v, _LOGGED_VALUE__PROPERTY_NAME, k)
+                _properties.append(k)
+
+        setattr(cls, _LOGGED_MODEL__PROPERTIES, _properties)
+
+
+class LoggedModel(metaclass=_LoggedModelMeta):
     """
     Overview:
         A model with timeline (integered time, such as 1st, 2nd, 3rd, can also be modeled as a kind
@@ -68,13 +84,44 @@ class LoggedModel:
 
         self.__methods = {}
 
-        for name in self.__properties:
-            setattr(self, _LOGGED_MODEL__PROPERTY_ATTR_PREFIX + name,
-                    TimeRangedData(self.__time_proxy, expire=self.__expire))
+        self.__init_properties()
+        self.__register_default_funcs()
 
     @property
     def __properties(self) -> List[str]:
         return getattr(self, _LOGGED_MODEL__PROPERTIES)
+
+    def __get_property_ranged_data(self, name: str) -> TimeRangedData:
+        return getattr(self, _LOGGED_MODEL__PROPERTY_ATTR_PREFIX + name)
+
+    def __init_properties(self):
+        for name in self.__properties:
+            setattr(self, _LOGGED_MODEL__PROPERTY_ATTR_PREFIX + name,
+                    TimeRangedData(self.__time_proxy, expire=self.__expire))
+
+    def __get_range_values_func(self, name: str):
+        def _func(mode: TimeMode = TimeMode.RELATIVE_LIFECYCLE):
+            _current_time = self.__time_proxy.time()
+            _result = self.__get_property_ranged_data(name).history()
+
+            if mode == TimeMode.RELATIVE_LIFECYCLE:
+                _result = [(_time - self.__init_time, _data) for _time, _data in _result]
+            elif mode == TimeMode.RELATIVE_CURRENT_TIME:
+                _result = [(_time - _current_time, _data) for _time, _data in _result]
+
+            _ranges = []
+            for i in range(0, len(_result) - 1):
+                _this_time, _this_data = _result[i]
+                _next_time, _next_data = _result[i + 1]
+                _ranges.append(((_this_time, _next_time), _this_data))
+
+            return _ranges
+
+        return _func
+
+    def __register_default_funcs(self):
+        for name in self.__properties:
+            self.register_attribute_value('range_values', name, self.__get_range_values_func(name))
 
     @property
     def time(self) -> _TimeObjectType:
@@ -134,27 +181,6 @@ class LoggedModel:
             This feature can be useful when adding value replay feature (in the future)
         """
         self.__time_proxy.unfreeze()
-
-    def __get_property_ranged_data(self, name: str) -> TimeRangedData:
-        return getattr(self, _LOGGED_MODEL__PROPERTY_ATTR_PREFIX + name)
-
-    def __get_range_values_func(self, name: str):
-        def _func(mode: TimeMode):
-            _current_time = self.__time_proxy.time()
-            _result = self.__get_property_ranged_data(name).history()
-
-            if mode == TimeMode.RELATIVE_LIFECYCLE:
-                _result = [(_time - self.__init_time, _data) for _time, _data in _result]
-            elif mode == TimeMode.RELATIVE_CURRENT_TIME:
-                _result = [(_time - _current_time, _data) for _time, _data in _result]
-
-            return _result
-
-        return _func
-
-    def __register_default_funcs(self):
-        for name in self.__properties:
-            self.register_attribute_value('range_values', name, self.__get_range_values_func(name))
 
     def register_attribute_value(self, attribute_name: str, property_name: str, value: Any):
         """

@@ -13,8 +13,8 @@ class TestAutologModel:
     def __get_demo_class(self):
         # noinspection DuplicatedCode
         class _TickModel(LoggedModel):
-            in_time = LoggedValue('in_time', float)
-            out_time = LoggedValue('out_time', float)
+            in_time = LoggedValue(float)
+            out_time = LoggedValue(float)
             __thruput_property_names = ['in_time', 'out_time']
 
             def __init__(self, time_: 'BaseTime', expire: Union[int, float]):  # noqa

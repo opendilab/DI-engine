@@ -2,7 +2,6 @@ from typing import Type
 
 from .base import _LOGGED_VALUE__PROPERTY_NAME, _LOGGED_MODEL__PROPERTY_ATTR_PREFIX, _ValueType
 from .data import TimeRangedData
-from .model import LoggedModel
 
 
 class LoggedValue:
@@ -21,13 +20,13 @@ class LoggedValue:
     def __property_name(self):
         return getattr(self, _LOGGED_VALUE__PROPERTY_NAME)
 
-    def __get_ranged_data(self, instance: LoggedModel) -> TimeRangedData:
+    def __get_ranged_data(self, instance) -> TimeRangedData:
         return getattr(instance, _LOGGED_MODEL__PROPERTY_ATTR_PREFIX + self.__property_name)
 
-    def __get__(self, instance: LoggedModel, owner: Type[LoggedModel]):
+    def __get__(self, instance, owner):
         return self.__get_ranged_data(instance).current()
 
-    def __set__(self, instance: LoggedModel, value: _ValueType):
+    def __set__(self, instance, value: _ValueType):
         if isinstance(value, self.__type):
             return self.__get_ranged_data(instance).append(value)
         else:
