@@ -50,7 +50,7 @@ class ATOCTrainer:
                 delta_q = actual_q_group.mean() - q_group.mean()
                 self._D.put((thought[b][i], delta_q))
 
-    def _updata_attention_unit(self):
+    def _update_attention_unit(self):
         thought_batch = []
         delta_q_batch = []
         while not self._D.empty():
