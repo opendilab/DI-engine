@@ -30,6 +30,9 @@ class LoggedValue:
         if isinstance(value, self.__type):
             return self.__get_ranged_data(instance).append(value)
         else:
-            raise TypeError('New value should be {expect}, but {actual} found.'.format(
-                expect=self.__type.__name__, actual=type(value).__name__,
-            ))
+            raise TypeError(
+                'New value should be {expect}, but {actual} found.'.format(
+                    expect=self.__type.__name__,
+                    actual=type(value).__name__,
+                )
+            )

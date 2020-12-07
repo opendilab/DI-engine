@@ -11,6 +11,7 @@ _TimeObjectType = TypeVar('_TimeObjectType', bound=BaseTime)
 
 
 class _LoggedModelMeta(ABCMeta):
+
     def __init__(cls, name: str, bases: tuple, namespace: dict):
 
         super().__init__(name, bases, namespace)
@@ -96,10 +97,13 @@ class LoggedModel(metaclass=_LoggedModelMeta):
 
     def __init_properties(self):
         for name in self.__properties:
-            setattr(self, _LOGGED_MODEL__PROPERTY_ATTR_PREFIX + name,
-                    TimeRangedData(self.__time_proxy, expire=self.__expire))
+            setattr(
+                self, _LOGGED_MODEL__PROPERTY_ATTR_PREFIX + name,
+                TimeRangedData(self.__time_proxy, expire=self.__expire)
+            )
 
     def __get_range_values_func(self, name: str):
+
         def _func(mode: TimeMode = TimeMode.RELATIVE_LIFECYCLE):
             _current_time = self.__time_proxy.time()
             _result = self.__get_property_ranged_data(name).history()

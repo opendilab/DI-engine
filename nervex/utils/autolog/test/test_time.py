@@ -7,6 +7,7 @@ from nervex.utils.autolog import TickTime, NaturalTime, TimeProxy
 
 @pytest.mark.unittest
 class TestNaturalTime:
+
     def test_natural_time(self):
         for i in range(0, 1000):
             _time = NaturalTime()
@@ -15,6 +16,7 @@ class TestNaturalTime:
 
 @pytest.mark.unittest
 class TestTickTime:
+
     def test_tick_bare(self):
         _time = TickTime()
         assert _time.time() == 0
@@ -46,6 +48,7 @@ class TestTickTime:
 
 @pytest.mark.unittest
 class TestTimeProxy:
+
     def test_time_proxy_for_tick_time(self):
         _time = TickTime()
         _proxy = TimeProxy(_time)

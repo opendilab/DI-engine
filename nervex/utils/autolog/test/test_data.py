@@ -5,6 +5,7 @@ from nervex.utils.autolog import TimeRangedData, NaturalTime, TickTime
 
 @pytest.mark.unittest
 class TestAutologRangedData:
+
     def test_expire(self):
         data = TimeRangedData(NaturalTime(), expire=5)
         assert data.expire == 5

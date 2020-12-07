@@ -10,6 +10,7 @@ _Tp = TypeVar('_Tp')
 
 
 class RangedData(metaclass=ABCMeta):
+
     def __init__(self, expire: float):
         self.__expire = expire
         self.__check_expire()
@@ -26,10 +27,12 @@ class RangedData(metaclass=ABCMeta):
         if isinstance(self.__expire, (int, float)):
             if self.__expire <= 0:
                 raise ValueError(
-                    "Expire should be greater than 0, but {actual} found.".format(actual=repr(self.__expire)))
+                    "Expire should be greater than 0, but {actual} found.".format(actual=repr(self.__expire))
+                )
         else:
             raise TypeError(
-                'Expire should be int or float, but {actual} found.'.format(actual=type(self.__expire).__name__))
+                'Expire should be int or float, but {actual} found.'.format(actual=type(self.__expire).__name__)
+            )
 
     def __registry_data_item(self, data: _Tp) -> int:
         with self.__data_lock:
@@ -50,9 +53,11 @@ class RangedData(metaclass=ABCMeta):
         if self.__queue:
             _time, _ = self.__queue[-1]
             if time_ < _time:
-                raise ValueError("Time {time} invalid for descending from last time {last_time}".format(
-                    time=repr(time_), last_time=repr(_time)
-                ))
+                raise ValueError(
+                    "Time {time} invalid for descending from last time {last_time}".format(
+                        time=repr(time_), last_time=repr(_time)
+                    )
+                )
 
     def __append_item(self, time_: float, data: _Tp):
         self.__queue.append((time_, self.__registry_data_item(data)))
@@ -149,6 +154,7 @@ class RangedData(metaclass=ABCMeta):
 
 
 class TimeRangedData(RangedData):
+
     def __init__(self, time_: BaseTime, expire: float):
         RangedData.__init__(self, expire)
         self.__time = time_
