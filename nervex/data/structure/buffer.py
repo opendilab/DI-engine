@@ -27,7 +27,7 @@ class RecordList(list):
     def __setitem__(self, idx: Union[numbers.Integral, slice], data: Any) -> None:
         r"""
         Overview:
-            Additionally append the replaced element(if not None) to ``self._used_data`` 
+            Additionally append the replaced element(if not None) to ``self._used_data``
             to track it for further operation.
         Arguments:
             - idx (:obj:`Union[numbers.Integral, slice]`): one or many, indicating the index where \
@@ -265,7 +265,7 @@ class PrioritizedBuffer:
     def _get_indices(self, size: int) -> list:
         r"""
         Overview:
-            Get the sample index list according to the priority probability, 
+            Get the sample index list according to the priority probability,
         Arguments:
             - size (:obj:`int`): the number of the data that will be sampled
         Returns:
@@ -283,8 +283,8 @@ class PrioritizedBuffer:
     def _sample_with_indices(self, indices: List[int]) -> list:
         r"""
         Overview:
-            Sample data with ``indices``; 
-            If a data item is reused for too many times, remove it and update internal variables(sum_tree, min_tree, valid_count)
+            Sample data with ``indices``; If a data item is reused for too many times,
+            remove it and update internal variables(sum_tree, min_tree, valid_count)
         Arguments:
             - indices (:obj:`List[int]`): a list including all the sample indices
         Returns:

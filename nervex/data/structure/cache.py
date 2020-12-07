@@ -126,7 +126,7 @@ class Cache:
     def remain_data_count(self) -> int:
         r"""
         Overview:
-            Return receive queue's remain data count 
+            Return receive queue's remain data count
         Returns:
             - count (:obj:`int`) the size of the receive queue
         """

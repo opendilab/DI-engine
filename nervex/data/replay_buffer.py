@@ -48,7 +48,7 @@ class OutTickMonitor(LoggedModel):
     """
     Overview:
         OutTickMonitor is to monitor read-out indices for ``expire`` times recent read-outs.
-        Indices include: read out time; average and max of read out data items' reuse; average, max and min of 
+        Indices include: read out time; average and max of read out data items' reuse; average, max and min of
         read out data items' priority.
     Interface:
         __init__, fixed_time, current_time, freeze, unfreeze, register_attribute_value, __getattr__
