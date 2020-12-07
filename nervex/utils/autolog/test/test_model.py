@@ -136,3 +136,52 @@ class TestAutologModel:
 
             assert abs(_thin - _exp_thin) < 0.1
             assert abs(_thout - _exp_thout) < 0.1
+
+    def test_double_autolog_model_with_tick_time(self):
+        _class = self.__get_demo_class()
+
+        _time = TickTime()
+        _tick_monitor_1 = _class(_time, expire=5)
+        _tick_monitor_2 = _class(_time, expire=5)
+
+        _assert_results_1 = [
+            (0.0, 0.0),
+            (0.2, 0.4),
+            (0.6, 1.2),
+            (1.2, 2.4),
+            (2.0, 4.0),
+            (3.0, 6.0),
+            (4.2, 8.4),
+            (5.4, 10.8),
+            (6.6, 13.2),
+            (7.8, 15.6),
+        ]
+        _assert_results_2 = [
+            (0.0, 0.0),
+            (0.4, 0.8),
+            (1.2, 2.4),
+            (2.4, 4.8),
+            (4.0, 8.0),
+            (6.0, 12.0),
+            (8.4, 16.8),
+            (10.8, 21.6),
+            (13.2, 26.4),
+            (15.6, 31.2)
+        ]
+
+        for i in range(0, 10):
+            _tick_monitor_1.in_time = 1.0 * i
+            _tick_monitor_1.out_time = 2.0 * i
+            _tick_monitor_2.in_time = 2.0 * i
+            _tick_monitor_2.out_time = 4.0 * i
+
+            _time.step()
+
+            _thin_1, _thout_1 = _tick_monitor_1.thruput['in_time'](), _tick_monitor_1.thruput['out_time']()
+            _exp_thin_1, _exp_thout_1 = _assert_results_1[i]
+
+            _thin_2, _thout_2 = _tick_monitor_2.thruput['in_time'](), _tick_monitor_2.thruput['out_time']()
+            _exp_thin_2, _exp_thout_2 = _assert_results_2[i]
+
+            assert (_thin_1, _thout_1) == (_exp_thin_1, _exp_thout_1)
+            assert (_thin_2, _thout_2) == (_exp_thin_2, _exp_thout_2)
