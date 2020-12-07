@@ -34,7 +34,7 @@ setup(
         'nervex',
         'nervex.model',
         'nervex.envs',
-        'nervex.computation_graph',
+        'nervex.policy',
         'nervex.utils',
         'nervex.torch_utils',
         'nervex.worker',
