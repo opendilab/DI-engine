@@ -46,7 +46,7 @@ class TestParticleEnv:
             assert obs[i].shape == env.info().obs_space['agent' + str(i)].shape
 
         #try run randomly for 100 step
-        for _ in range(1):
+        for _ in range(100):
             random_action = []
             # print(env.info().act_space)
             for i in range(env.agent_num):

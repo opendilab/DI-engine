@@ -5,6 +5,8 @@ import torch.nn as nn
 
 from nervex.torch_utils import get_lstm
 from nervex.utils import squeeze
+from copy import deepcopy
+import queue
 
 
 class ATOCAttentionUnit(nn.Module):
@@ -135,9 +137,9 @@ class ATOCActorNet(nn.Module):
         actor_2_layer.append(nn.LayerNorm(self._act_dim))
         actor_2_layer.append(nn.Tanh())
 
-        self._actor_2 = nn.Sequential(*actor_2_layer)
+        self.actor_2 = nn.Sequential(*actor_2_layer)
         self._critic = None
-        self._attention = ATOCAttentionUnit(self._thought_dim, attention_embedding_dim)
+        self.attention = ATOCAttentionUnit(self._thought_dim, attention_embedding_dim)
         self._channel = ATOCCommunicationNet(self._thought_dim)
         # C is the communication group
         # TODO consider batch shape
@@ -169,14 +171,20 @@ class ATOCActorNet(nn.Module):
 
         self._updata_current_thougts()
 
-        acts = self._actor_2(self._current_thougths)
+        acts = self.actor_2(self._current_thougths)
 
-        return {'action': acts, 'groups': self._C, 'initator': self._init_prob}
+        return {
+            'action': acts,
+            'groups': self._C,
+            'initator': self._init_prob,
+            'thoughts': self._current_thougths,
+            'old_thoughts': self._old_thoughts_before_update
+        }
 
     # TODO
     def _get_initiate_group(self):
         # shape of init_prob is (B, A, 1)
-        self._init_prob = self._attention(self._current_thougths)
+        self._init_prob = self.attention(self._current_thougths)
         self._is_initiator = (self._init_prob > 0.5)
 
         thoughts_pair_dot = self._current_thougths.bmm(self._current_thougths.transpose(1, 2))
@@ -214,6 +222,9 @@ class ATOCActorNet(nn.Module):
         # shape of C (B, A, A)
         # shape of initator (B, A, 1)
         # shape of gathered index (B, G_n, M)
+
+        # self._old_thoughts_before_update = deepcopy(self._current_thougths)
+        self._old_thoughts_before_update = self._current_thougths.clone().detach()
 
         for b in range(self._cur_batch_size):
             for i in range(self._n_agent):
