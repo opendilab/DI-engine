@@ -351,7 +351,6 @@ CMakeCache.txt
 CMakeFiles
 CMakeScripts
 Testing
-Makefile
 cmake_install.cmake
 install_manifest.txt
 compile_commands.json
@@ -1400,3 +1399,7 @@ log/
 htmlcov
 *.lock
 .coverage*
+/test_*
+.python-version
+/name.txt
+/summary_log
