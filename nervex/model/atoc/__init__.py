@@ -1,1 +1,1 @@
-from .atoc_network import ATOCActorNet, ATOCAttentionUnit, ATOCCommunicationNet, ATOCCriticNet
+from .atoc_network import ATOCActorNet, ATOCAttentionUnit, ATOCCommunicationNet, ATOCCriticNet, ATOCQAC

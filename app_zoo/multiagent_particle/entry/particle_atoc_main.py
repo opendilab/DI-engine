@@ -17,61 +17,6 @@ class ATOCTrainer:
         # "ATOC paper: store (Qi, hi) into a queue D"
         self._D = queue.Queue()
 
-    def _cal_delta_Q(self, data):
-        obs = data['obs']
-        assert len(obs.shape) == 3
-        batch_size = obs.shape[0]
-        thought = data['thougths']
-        old_thought = data['old_thoughts']
-        C = data['groups']
-        for b in range(batch_size):
-            for i in range(self._n_agent):
-                if not C[b][i][i]:
-                    continue
-                q_group = []
-                actual_q_group = []
-                for j in range(self._n_agent):
-                    if not C[b][i][j]:
-                        continue
-                    before_update_action_j = self._actor_net.actor_2(old_thought[b][j])
-                    after_update_action_j = self._actor_net.actor_2(thought[b][j])
-                    before_update_Q_j = self._critic_net({
-                        'obs': obs[b][j],
-                        'action': before_update_action_j[b][j]
-                    })['q_value']
-                    after_update_Q_j = self._critic_net({
-                        'obs': obs[b][j],
-                        'action': after_update_action_j[b][j]
-                    })['q_value']
-                    q_group.append(before_update_Q_j)
-                    actual_q_group.append(after_update_Q_j)
-                q_group = torch.stack(q_group)
-                actual_q_group = torch.stack(actual_q_group)
-                delta_q = actual_q_group.mean() - q_group.mean()
-                self._D.put((thought[b][i], delta_q))
-
-    def _update_attention_unit(self):
-        thought_batch = []
-        delta_q_batch = []
-        while not self._D.empty():
-            thought, delta_q = self._D.get()
-            thought_batch.append(thought)
-            delta_q_batch.append(delta_q)
-
-        # shape (len, thougth_dim)
-        thought_batch = torch.stack(thought_batch)
-
-        # shape (len, 1)
-        pi = self._actor_net.attention(thought_batch)
-        # shape (len, 1)
-        delta_q_batch = torch.stack(delta_q_batch)
-
-        # When an episode ends, we perform min-max normalization on delta_Q in D and get delta_Q in [0, 1]
-        # shape (len, 1)
-        delta_Q = (delta_q_batch - delta_q_batch.min()) / (delta_q_batch.max() - delta_q_batch.min())
-
-        loss = -delta_Q * torch.log(pi) - (1.0 - delta_Q) * torch.log(1.0 - pi)
-
     def step(self, obs):
         action = self._actor_net({'obs': obs})
         return action

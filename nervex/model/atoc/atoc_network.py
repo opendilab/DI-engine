@@ -6,6 +6,7 @@ import torch.nn as nn
 from nervex.torch_utils import get_lstm
 from nervex.utils import squeeze
 from copy import deepcopy
+from nervex.model.common_arch import QActorCriticBase
 import queue
 
 
@@ -154,6 +155,9 @@ class ATOCActorNet(nn.Module):
 
         self._step_count = 0
 
+        self.default_critic = None
+        self._curr_delta_q = None
+
     def forward(self, data: Dict):
         #obs shape of (B, A, N)
         obs = data['obs']
@@ -173,18 +177,26 @@ class ATOCActorNet(nn.Module):
 
         acts = self.actor_2(self._current_thougths)
 
-        return {
+        ret = {
             'action': acts,
             'groups': self._C,
-            'initator': self._init_prob,
+            'initator_prob': self._init_prob,
+            'is_initator': self._is_initiator,
             'thoughts': self._current_thougths,
-            'old_thoughts': self._old_thoughts_before_update
+            'old_thoughts': self._old_thoughts_before_update,
         }
+
+        if self.default_critic:
+            self._cal_delta_Q()
+            ret['delta_q'] = self._curr_delta_q
+
+        return ret
 
     # TODO
     def _get_initiate_group(self):
         # shape of init_prob is (B, A, 1)
         self._init_prob = self.attention(self._current_thougths)
+        # TODO can 0.5 here to be set to other score
         self._is_initiator = (self._init_prob > 0.5)
 
         thoughts_pair_dot = self._current_thougths.bmm(self._current_thougths.transpose(1, 2))
@@ -249,6 +261,43 @@ class ATOCActorNet(nn.Module):
     def _merge_2_thoughts(self, thought1, thought2):
         return thought2
 
+    def _cal_delta_Q(self, critic_model=None):
+        if not critic_model:
+            critic_model = self.default_critic
+        if not critic_model:
+            return
+        obs = self._current_obs
+        assert len(obs.shape) == 3
+        batch_size = self._cur_batch_size
+        thought = self._current_thougths
+        old_thought = self._old_thoughts_before_update
+        C = self._C
+        self._curr_delta_q = torch.zeros(batch_size, self._n_agent, 1)
+        for b in range(batch_size):
+            for i in range(self._n_agent):
+                if not C[b][i][i]:
+                    continue
+                q_group = []
+                actual_q_group = []
+                for j in range(self._n_agent):
+                    if not C[b][i][j]:
+                        continue
+                    before_update_action_j = self.actor_2(old_thought[b][j])
+                    after_update_action_j = self.actor_2(thought[b][j])
+                    before_update_Q_j = critic_model({
+                        'obs': obs[b][j],
+                        'action': before_update_action_j
+                    })['q_value']
+                    after_update_Q_j = critic_model({
+                        'obs': obs[b][j],
+                        'action': after_update_action_j
+                    })['q_value']
+                    q_group.append(before_update_Q_j)
+                    actual_q_group.append(after_update_Q_j)
+                q_group = torch.stack(q_group)
+                actual_q_group = torch.stack(actual_q_group)
+                self._curr_delta_q[b][i] = actual_q_group.mean() - q_group.mean()
+
 
 class ATOCCriticNet(nn.Module):
     r"""
@@ -285,3 +334,61 @@ class ATOCCriticNet(nn.Module):
             x = m(x)
         data['q_value'] = x
         return data
+
+
+class ATOCQAC(QActorCriticBase):
+
+    def __init__(
+            self,
+            obs_dim: int,
+            action_dim: int,
+            thought_dim: int,
+            n_agent: int,
+            m_group: int,
+            T_initiate: int,
+    ) -> None:
+        super(ATOCQAC, self).__init__()
+
+        def backward_hook(module, grad_input, grad_output):
+            for p in module.parameters():
+                p.requires_grad = True
+
+        self._actor = ATOCActorNet(obs_dim, thought_dim, action_dim, n_agent, m_group, T_initiate)
+        self._critic = ATOCCriticNet(obs_dim, action_dim)
+        self._actor.default_critic = self._critic
+        self._critic.register_backward_hook(backward_hook)
+
+    def _critic_forward(self, x: Dict[str, torch.Tensor]) -> Union[List[torch.Tensor], torch.Tensor]:
+        return self._critic(x)
+
+    def _actor_forward(self, x: Dict[str, torch.Tensor]) -> torch.Tensor:
+        # clip action in NoiseHelper agent plugin, not heres
+        return self._actor(x)
+
+    def compute_q(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, List[torch.Tensor]]:
+        state_input = inputs['obs']
+        if not inputs.get('action'):
+            inputs['action'] = self._actor_forward(inputs)['action']
+        q = self._critic_forward(inputs)
+        return q
+
+    def compute_action(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        r'''
+        Overview:
+            use call the actor_forward function to compute action
+
+            in ATOC, not only the action is computed, but the groups, initator_prob, thoughts, delta_q, etc
+        '''
+        action = self._actor_forward(inputs)
+        return action
+
+    def optimize_actor(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        state_input = inputs['obs']
+        if not inputs.get('action'):
+            inputs['action'] = self._actor_forward(inputs)['action']
+
+        for p in self._critic.parameters():
+            p.requires_grad = False  # will set True when backward_hook called
+        q = self._critic_forward(inputs, single=True)
+
+        return q

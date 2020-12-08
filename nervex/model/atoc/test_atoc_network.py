@@ -1,4 +1,4 @@
-from nervex.model.atoc import ATOCActorNet, ATOCAttentionUnit, ATOCCommunicationNet, ATOCCriticNet
+from nervex.model.atoc import ATOCActorNet, ATOCAttentionUnit, ATOCCommunicationNet, ATOCCriticNet, ATOCQAC
 import pytest
 import torch
 from nervex.torch_utils import is_differentiable
@@ -47,3 +47,15 @@ class TestATOCNets:
             loss = out['q_value'].sum()
             if _ == 0:
                 is_differentiable(loss, model)
+
+    def test_qac_net(self):
+        B, A, obs_dim, act_dim, thought_dim = 6, 5, 12, 6, 14
+        model = ATOCQAC(obs_dim, act_dim, thought_dim, A, 2, 2)
+        inputs = {'obs': torch.randn(B, A, obs_dim)}
+        out = model(inputs, mode='compute_q')
+        assert out['q_value'].shape == (B, A, 1)
+
+        out = model(inputs, mode='compute_action')
+        assert out['initator_prob'].shape == (B, A, 1)
+        assert out['delta_q'].shape == (B, A, 1)
+        assert out['action'].shape == (B, A, act_dim)
