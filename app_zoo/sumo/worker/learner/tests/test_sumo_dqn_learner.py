@@ -12,19 +12,16 @@ from app_zoo.sumo.worker.learner.sumo_dqn_learner import SumoDqnLearner
 class TestSumoDqnLearner:
 
     def test_data_sample_update(self):
-        os.popen('rm -rf ckpt')
         sumo_learner = SumoDqnLearner({})
         dataset = FakeSumoDataset()
         sumo_learner.get_data = lambda x: dataset.get_batch_sample(x)
         sumo_learner.launch()
         sumo_learner.run()
-        os.popen('rm -rf ckpt')
-        os.popen('rm -rf default_*')
 
-    def clean_dist_train(self):
+    def clean_dist_train(self, name=''):
         os.popen("rm -rf default*")
         os.popen("rm -rf data")
-        os.popen("rm -rf ckpt")
+        os.popen("rm -rf ckpt_" + name)
         os.popen("rm -rf api-log")
         os.popen("rm -rf *.pth")
         os.popen("rm -rf *.pth.lock")
@@ -52,4 +49,4 @@ class TestSumoDqnLearner:
         assert learner.last_iter.val == 5
         learner.close()
 
-        self.clean_dist_train()
+        self.clean_dist_train(learner.name)

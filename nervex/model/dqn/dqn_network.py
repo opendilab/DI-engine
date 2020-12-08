@@ -170,7 +170,7 @@ class Head(nn.Module):
             - v_layer_num (:obj:`int`): the num of layers in ``DuelingHead`` to compute value output
         """
         super(Head, self).__init__()
-        self.action_dim = squeeze(tuple(action_dim))
+        self.action_dim = squeeze(action_dim)
         self.dueling = dueling
         head_fn = partial(DuelingHead, a_layer_num=a_layer_num, v_layer_num=v_layer_num) if dueling else nn.Linear
         if isinstance(self.action_dim, tuple):

@@ -1,170 +1,31 @@
-from enum import Enum
-from typing import TypeVar, Union, Type, List, Tuple, Any
+from abc import ABCMeta
+from typing import TypeVar, Union, List, Any
 
+from .base import _LOGGED_MODEL__PROPERTIES, _LOGGED_MODEL__PROPERTY_ATTR_PREFIX, _TimeType, TimeMode, \
+    _LOGGED_VALUE__PROPERTY_NAME
+from .data import TimeRangedData
 from .time_ctl import BaseTime, TimeProxy
-
-_TimeType = TypeVar('_TimeType', bound=Union[float, int])
-_ValueType = TypeVar('_ValueType')
-
-
-def _expire_value_records(value_records: List[Tuple[_TimeType, _ValueType]], start_time: _TimeType) \
-        -> Tuple[Tuple[_TimeType, _ValueType], List[Tuple[_TimeType, _ValueType]]]:
-    max_id = -1
-    for i, (_time, _item) in enumerate(value_records):
-        if _time >= start_time:
-            break
-        max_id = i
-
-    if max_id >= 0:
-        last_dropped_record = value_records[max_id]
-        new_value_records = value_records[max_id + 1:]
-    else:
-        last_dropped_record = None
-        new_value_records = value_records
-
-    return last_dropped_record, new_value_records
-
-
-class TimeMode(Enum):
-    """
-    Overview:
-        Mode that used to decide the format of range_values function
-
-        ABSOLUTE: use absolute time
-        RELATIVE_LIFECYCLE: use relative time based on property's lifecycle
-        RELATIVE_CURRENT_TIME: use relative time based on current time
-    """
-    ABSOLUTE = 0
-    RELATIVE_LIFECYCLE = 1
-    RELATIVE_CURRENT_TIME = 2
-
-
-class LoggedValue:
-    """
-    Overview:
-        LoggedValue can be used as property in LoggedModel, for it has __get__ and __set__ method.
-        This class's instances will be associated with their owner LoggedModel instance, all the LoggedValue
-        of one LoggedModel will shared the only one time object (defined in time_ctl), so that timeline can
-        be managed properly.
-    """
-
-    def __init__(self, name: str, type_: Type[_ValueType] = object):
-        """
-        Overview:
-            Constructor of LoggedValue
-            ATTENTION, default value is not supported and WILL NEVER be supported in constructor,
-            for LoggedValue need to bind owner LoggerModel's time object, and this binding operation
-            is processed when first time __get__ method is called.
-
-        Args:
-            name (str): name of this property
-            type_ (type, optional): type limit of this property, default is object (can be seen as no limit)
-        """
-        self.__instance = None
-        self.__life_start_time = None
-
-        self.__name = name
-        self.__type = type_
-        self.__value = None
-
-        self.__value_history = []
-        self.__last_dropped_record = None
-
-    # getter and setter
-    def __get__(self, instance: 'LoggedModel', owner: Type['LoggedModel']) -> _ValueType:
-        if self.__instance is not None:
-            return self.__value
-        else:
-            raise ValueError("Value not initialized, you should assign it an initial value.")
-
-    def __set__(self, instance: 'LoggedModel', value: _ValueType):
-        self.__register_instance(instance)
-        _original_value, self.__value = self.__value, value
-        try:
-            self.__check_value_type()
-        except Exception as err:
-            self.__value = _original_value
-            raise err
-        else:
-            self.__append_value(self.__value)
-
-    # hook functions for instance
-    def __get_range_values(self, mode: TimeMode = TimeMode.RELATIVE_LIFECYCLE) \
-            -> List[Tuple[Tuple[_TimeType, _TimeType], _ValueType]]:
-        self.__flush_history()
-        _current_time, _start_time = self.__get_time()
-
-        _result = []
-
-        def _append(begin: _TimeType, end: _TimeType, value: _ValueType):
-            _result.append(((begin, end), value))
-
-        if self.__last_dropped_record and self.__value_history:
-            _, _last_dropped_value = self.__last_dropped_record
-            _first_time, _ = self.__value_history[0]
-            _append(_start_time, _first_time, _last_dropped_value)
-
-        _length = len(self.__value_history)
-        for i, (_time, _value) in zip(range(_length), self.__value_history):
-            if i + 1 < _length:
-                _next_time, _ = self.__value_history[i + 1]
-                _append(_time, _next_time, _value)
-            else:
-                _append(_time, _current_time, _value)
-
-        if mode == TimeMode.RELATIVE_LIFECYCLE:
-            _rel_time = self.__life_start_time
-        elif mode == TimeMode.RELATIVE_CURRENT_TIME:
-            (_, _rel_time), _ = _result[-1]
-        else:
-            _rel_time = None
-
-        if _rel_time is not None:
-            _result = [((_b - _rel_time, _e - _rel_time), _v) for (_b, _e), _v in _result]
-
-        return _result
-
-    # self used private functions
-    def __register_instance(self, instance: 'LoggedModel'):
-        if self.__instance is None:
-            self.__instance = instance
-            self.__life_start_time = self.__instance.current_time()
-
-            self.__instance.register_attribute_value('range_values', self.__name, self.__get_range_values)
-
-    def __check_value_type(self):
-        if not isinstance(self.__value, self.__type):
-            raise TypeError(
-                "Type not match, {expect} expect but {actual} found.".format(
-                    expect=self.__type.__name__,
-                    actual=type(self.__value).__name__,
-                )
-            )
-
-    def __get_time(self) -> Tuple[_TimeType, _TimeType]:
-        _current_time = self.__instance.current_time()
-        _start_time = _current_time - self.__instance.expire
-
-        return _current_time, _start_time
-
-    def __append_value(self, value: _ValueType):
-        self.__value_history.append((self.__instance.current_time(), value))
-        self.__flush_history()
-
-    def __flush_history(self):
-        _current_time, _start_time = self.__get_time()
-        _last_dropped_record, _new_value_history = \
-            _expire_value_records(self.__value_history, start_time=_start_time)
-
-        if _last_dropped_record:
-            self.__last_dropped_record = _last_dropped_record
-            self.__value_history = _new_value_history
-
+from .value import LoggedValue
 
 _TimeObjectType = TypeVar('_TimeObjectType', bound=BaseTime)
 
 
-class LoggedModel:
+class _LoggedModelMeta(ABCMeta):
+
+    def __init__(cls, name: str, bases: tuple, namespace: dict):
+
+        super().__init__(name, bases, namespace)
+
+        _properties = []
+        for k, v in namespace.items():
+            if isinstance(v, LoggedValue):
+                setattr(v, _LOGGED_VALUE__PROPERTY_NAME, k)
+                _properties.append(k)
+
+        setattr(cls, _LOGGED_MODEL__PROPERTIES, _properties)
+
+
+class LoggedModel(metaclass=_LoggedModelMeta):
     """
     Overview:
         A model with timeline (integered time, such as 1st, 2nd, 3rd, can also be modeled as a kind
@@ -224,13 +85,53 @@ class LoggedModel:
 
     def __init__(self, time_: _TimeObjectType, expire: _TimeType):
         self.__time = time_
-        self.__time_proxy = TimeProxy(
-            self.__time,
-            frozen=False,
-        )
+        self.__time_proxy = TimeProxy(self.__time, frozen=False)
+        self.__init_time = self.__time_proxy.time()
         self.__expire = expire
 
         self.__methods = {}
+
+        self.__init_properties()
+        self.__register_default_funcs()
+
+    @property
+    def __properties(self) -> List[str]:
+        return getattr(self, _LOGGED_MODEL__PROPERTIES)
+
+    def __get_property_ranged_data(self, name: str) -> TimeRangedData:
+        return getattr(self, _LOGGED_MODEL__PROPERTY_ATTR_PREFIX + name)
+
+    def __init_properties(self):
+        for name in self.__properties:
+            setattr(
+                self, _LOGGED_MODEL__PROPERTY_ATTR_PREFIX + name,
+                TimeRangedData(self.__time_proxy, expire=self.__expire)
+            )
+
+    def __get_range_values_func(self, name: str):
+
+        def _func(mode: TimeMode = TimeMode.RELATIVE_LIFECYCLE):
+            _current_time = self.__time_proxy.time()
+            _result = self.__get_property_ranged_data(name).history()
+
+            if mode == TimeMode.RELATIVE_LIFECYCLE:
+                _result = [(_time - self.__init_time, _data) for _time, _data in _result]
+            elif mode == TimeMode.RELATIVE_CURRENT_TIME:
+                _result = [(_time - _current_time, _data) for _time, _data in _result]
+
+            _ranges = []
+            for i in range(0, len(_result) - 1):
+                _this_time, _this_data = _result[i]
+                _next_time, _next_data = _result[i + 1]
+                _ranges.append(((_this_time, _next_time), _this_data))
+
+            return _ranges
+
+        return _func
+
+    def __register_default_funcs(self):
+        for name in self.__properties:
+            self.register_attribute_value('range_values', name, self.__get_range_values_func(name))
 
     @property
     def time(self) -> _TimeObjectType:

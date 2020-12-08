@@ -7,6 +7,7 @@ import time
 import uuid
 from typing import Optional, Any
 from threading import Thread
+from contextlib import closing
 
 MANAGER_NODE_TABLE = {
     '10.198.8': '10.198.8.31',
@@ -102,3 +103,13 @@ class PropagatingThread(Thread):
         if self.exc:
             raise RuntimeError('Exception in thread({})'.format(id(self))) from self.exc
         return self.ret
+
+
+def find_free_port():
+    r"""
+    Overview:
+        Look up the free port list and return one
+    """
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
+        s.bind(('', 0))
+        return s.getsockname()[1]

@@ -24,7 +24,7 @@ class BaseAgent(ABC):
 
         Arguments:
             - model (:obj:`torch.nn.Module`): the model of the agent
-            - pulgin_cfg (:obj:`Union[OrderedDict, None]`): the plugin config to register
+            - plugin_cfg (:obj:`Union[OrderedDict, None]`): the plugin config to register
         """
         self._model = model
         self._plugin_cfg = plugin_cfg

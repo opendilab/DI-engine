@@ -4,18 +4,18 @@ import time
 import uuid
 from collections import namedtuple
 from threading import Thread
-from typing import List, Dict, Callable, Any, Tuple
-from easydict import EasyDict
+from typing import Dict, Callable, Any
 
 import torch
+from easydict import EasyDict
 
 from nervex.data import default_collate, default_decollate
+from nervex.rl_utils import Adder
 from nervex.torch_utils import to_device, tensor_to_list
 from nervex.utils import get_data_compressor, lists_to_dicts
-from nervex.rl_utils import Adder
-from nervex.worker.agent import BaseAgent
 from nervex.worker.actor import BaseActor
 from nervex.worker.actor.env_manager import SubprocessEnvManager, BaseEnvManager
+from nervex.worker.agent import BaseAgent
 
 
 class ZerglingActor(BaseActor):
@@ -145,8 +145,7 @@ class ZerglingActor(BaseActor):
 
     # override
     def _finish_job(self) -> None:
-        assert all([len(r) == self._env_kwargs['episode_num']
-                    for r in self._job_result.values()]), self._job_result.values()
+        assert all([len(r) == self._env_kwargs['episode_num'] for r in self._job_result.values()])
         episode_count = self._env_kwargs['episode_num'] * self._env_num
         duration = max(time.time() - self._start_time, 1e-8)
         job_finish_info = {

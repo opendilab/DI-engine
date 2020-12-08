@@ -20,7 +20,7 @@ class BaseTime(metaclass=ABCMeta):
         Returns:
             - time(:obj:`float, int`): time information
         """
-        pass
+        raise NotImplementedError
 
 
 class NaturalTime(BaseTime):

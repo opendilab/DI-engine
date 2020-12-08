@@ -58,7 +58,7 @@ class FakeLearner(BaseLearner):
 class TestBaseLearner:
 
     def test_naive(self):
-        os.popen('rm -rf ckpt')
+        os.popen('rm -rf ckpt*')
         os.popen('rm -rf iteration_5.pth.tar*')
         time.sleep(1.0)
         register_learner('fake', FakeLearner)
@@ -75,11 +75,12 @@ class TestBaseLearner:
         assert learner.last_iter.val == 10 + 5
 
         # test hook
+        dir_name = 'ckpt_{}'.format(learner.name)
         assert learner.log_buffer == {}
         for n in [5, 10, 15]:
-            assert os.path.exists('ckpt/iteration_{}.pth.tar'.format(n))
+            assert os.path.exists(dir_name + '/iteration_{}.pth.tar'.format(n))
         for n in [0, 4, 7, 12]:
-            assert not os.path.exists('ckpt/iteration_{}.pth.tar'.format(n))
+            assert not os.path.exists(dir_name + '/iteration_{}.pth.tar'.format(n))
 
         class FakeHook(LearnerHook):
 
@@ -91,8 +92,8 @@ class TestBaseLearner:
         assert len(learner._hooks['after_run']) == original_hook_num + 1
 
         os.popen('rm -rf iteration_5.pth.tar*')
-        os.popen('rm -rf ckpt')
-        os.popen('rm -rf default_*')
+        os.popen('rm -rf ' + dir_name)
+        os.popen('rm -rf learner')
 
 
 @pytest.mark.unittest

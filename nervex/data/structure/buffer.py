@@ -1,4 +1,5 @@
 import copy
+import time
 import numbers
 from queue import Queue
 from typing import Union, NoReturn, Any, Optional, List
@@ -254,8 +255,8 @@ class PrioritizedBuffer:
         """
         if self._valid_count / size < self.min_sample_ratio:
             print(
-                "no enough element for sample(expect: {}/current have: {}, min_sample_ratio: {})".format(
-                    size, self._valid_count, self.min_sample_ratio
+                "[INFO({})] no enough element for sample(expect: {}/current have: {}, min_sample_ratio: {})".format(
+                    time.time(), size, self._valid_count, self.min_sample_ratio
                 )
             )
             return False

@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod, abstractproperty
 from collections import namedtuple
 from typing import Any
 
-from nervex.utils import build_logger_naive, EasyTimer, get_task_uid, VariableRecord, import_module
+from nervex.utils import build_logger, EasyTimer, get_task_uid, VariableRecord, import_module
 from .comm.actor_comm_helper import ActorCommHelper
 
 
@@ -82,9 +82,9 @@ class BaseActor(ABC):
         # other parts need to be implemented by subclass
 
     def _setup_logger(self) -> None:
-        path = os.path.join(self._cfg.common.save_path, 'log')
+        path = os.path.join(self._cfg.common.save_path, 'actor')
         name = 'actor.{}.log'.format(self._actor_uid)
-        self._logger, self._variable_record = build_logger_naive(path, name)
+        self._logger, self._variable_record, _ = build_logger(path, name, need_var=True, need_tb=False)
 
     def run(self) -> None:
         self.init_service()

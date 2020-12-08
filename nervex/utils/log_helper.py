@@ -9,70 +9,53 @@ import json
 import logging
 import numbers
 import os
-
 import cv2
 import numpy as np
 import yaml
 from tabulate import tabulate
 from tensorboardX import SummaryWriter
+from typing import Optional, Tuple, Union
 
 
-def build_logger(cfg, name=None, rank=0):
+def build_logger(
+    path: str,
+    name: Optional[str] = None,
+    need_tb: bool = False,
+    need_var: bool = False,
+    log_freq: int = 10,
+    text_level: Union[int, str] = logging.INFO
+) -> Tuple['TextLogger', Optional['TensorBoardLogger'], Optional['VariableRecord']]:  # noqa
     r'''
     Overview:
-        use config to build checkpoint helper. Only rank == 0 can build.
+        Build TextLogger, if needed can also build VariableRecord and TensorBoardLogger.
+        TextLogger and TensorboardLogger are real log files, VariableRecord is used to store variables and often
+        outputed to TextLogger in tabular form.
     Arguments:
+        - path (:obj:`str`): logger(Textlogger & TensorBoardLogger)'s saved dir
         - name (:obj:`str`): the logger file name
-        - rank (:obj:`int`): only rank == 0 can build, else return TextLogger that only save terminal output
+        - need_tb (:obj:`bool`): whether variable record instance would be returned
+        - need_var (:obj:`bool`): whether tensorboard logger instance would be returned
+        - log_freq (:obj:`int`): used in ``VariableRecord``, the length to average across, default set to 10
+        - text_level (:obj:`int` or :obj:`str`): logging level of TextLogger, default set to ``logging.INFO``
     Returns:
-        - logger (:obj:`TextLogger`): logger that save terminal output
-        - tb_logger (:obj:`TensorBoardLogger` or :obj:`None`): logger that save output to tensorboard,
-                                                              if rank != 0 then None
-        - variable_record (:obj:`VariableRecord` or :obj:`None`): logger that record variable for further process,
-                                                              if rank != 0 then None
+        - logger (:obj:`TextLogger`): logger that displays terminal output
+        - tb_logger (:obj:`TensorBoardLogger`): logger that saves output to tensorboard, \
+            only return when ``need_tb`` is True
+        - variable_record (:obj:`VariableRecord` or :obj:`None`): logger that record variable for further process, \
+            only return when ``need_var`` is True
     '''
-    path = cfg.common.save_path
-    # Note: Only support rank0 tb_logger, variable_record
-    if rank == 0:
-        logger = TextLogger(path, name=name)
-        tb_logger = TensorBoardLogger(path, name=name)
-        var_record_type = cfg.learner.get("var_record_type", None)
-        if var_record_type is None:
-            variable_record = VariableRecord(cfg.learner.log_freq)
-        else:
-            raise NotImplementedError("not support var_record_type: {}".format(var_record_type))
-        return logger, tb_logger, variable_record
-    else:
-        logger = TextLogger(path, name=name)
-        return logger, None, None
+    logger = TextLogger(path, name=name)
+    tb_logger = TensorBoardLogger(path, name=name) if need_tb else None
+    variable_record = VariableRecord(log_freq) if need_var else None
+    return logger, tb_logger, variable_record
 
 
-def build_logger_naive(path, name, level=logging.INFO, print_freq=1):
-    r'''
-    Overview:
-        use config to build Textlogger and VariableRecord
-    Arguments:
-        - path (:obj:`str`): logger's save dir, please reference log_helper.TextLogger
-        - name (:obj:`str`): the logger file name
-        - level (:obj:`int` or :obj:`str`): Set the logging level of logger
-        - rank (:obj:`int`): only rank == 0 can build, else return TextLogger that only save terminal output
-    Returns:
-        - logger (:obj:`TextLogger`): logger that save terminal output
-        - variable_record (:obj:`VariableRecord`): logger that record variable for further process
-    '''
-    logger = TextLogger(path, name, level)
-    variable_record = VariableRecord(print_freq)
-    return logger, variable_record
-
-
-def get_default_logger(name=None):
+def get_default_logger(name: Optional[str] = None) -> logging.Logger:
     r"""
     Overview:
-        get the logger using logging.getLogger
-
+        Get the logger using logging.getLogger
     Arguments:
         - name (:obj:`str`): the name of logger, if None then get 'default_logger'
-
     Notes:
         you can reference Logger.manager.getLogger(name) in the python3 /logging/__init__.py
     """
@@ -84,9 +67,9 @@ def get_default_logger(name=None):
 class TextLogger(object):
     r"""
     Overview:
-        Logger that save terminal output to file
-
-    Interface: __init__, info
+        Logger that saves terminal output to file
+    Interface:
+        __init__, info
     """
 
     def __init__(self, path, name=None, level=logging.INFO):
@@ -107,15 +90,16 @@ class TextLogger(object):
             pass
         self.logger = self._create_logger(name, os.path.join(path, name + '.txt'), level=level)
 
-    def _create_logger(self, name, path, level=logging.INFO):
+    def _create_logger(self, name: str, path: str, level: Union[int, str] = logging.INFO) -> logging.Logger:
         r"""
         Overview:
-            create logger using logging
+            Create logger using logging
         Arguments:
             - name (:obj:`str`): logger's name
             - path (:obj:`str`): logger's save dir
+            - level (:obj:`int` or :obj:`str`): Set the logging level of logger, reference Logger class setLevel method.
         Returns:
-            - (:obj`logger`): new logger
+            - (:obj`logging.Logger`): new logging logger
         """
         logger = logging.getLogger(name)
         if not logger.handlers:
@@ -126,7 +110,7 @@ class TextLogger(object):
             logger.addHandler(fh)
         return logger
 
-    def info(self, s):
+    def info(self, s: str) -> None:
         r"""
         Overview:
             add message to logger
@@ -137,7 +121,7 @@ class TextLogger(object):
         """
         self.logger.info(s)
 
-    def bug(self, s):
+    def bug(self, s: str) -> None:
         r"""
         Overview:
             call logger.debug
@@ -148,7 +132,7 @@ class TextLogger(object):
         """
         self.logger.debug(s)
 
-    def error(self, s):
+    def error(self, s: str) -> None:
         self.logger.error(s)
 
 
@@ -171,7 +155,8 @@ class TensorBoardLogger(object):
             - name (:obj:`str`): logger name
         """
         if name is None:
-            name = 'default_tb_logger'
+            name = 'default'
+        name += '_tb_logger'
         self.logger = SummaryWriter(os.path.join(path, name))  # get summary writer
         self._var_names = {
             'scalar': [],
@@ -299,7 +284,7 @@ class VariableRecord(object):
         __init__, register_var, update_var, get_var_names, get_var_text, get_vars_tb_format, get_vars_text
     """
 
-    def __init__(self, length):
+    def __init__(self, length: int) -> None:
         r"""
         Overview:
             init the VariableRecord
@@ -509,15 +494,15 @@ class DistributionTimeImage(object):
         return np.stack([self.one_img, norm_img, norm_img], axis=0)
 
 
-def pretty_print(result, direct_print=True):
+def pretty_print(result: dict, direct_print: bool = True) -> str:
     r"""
     Overview:
-        print the result in a pretty way
+        Print a dict ``result`` in a pretty way
     Arguments:
         - result (:obj:`dict`): the result to print
         - direct_print (:obj:`bool`): whether to print directly
     Returns:
-        - string (:obj:`str`): the printed result in str format
+        - string (:obj:`str`): the pretty-printed result in str format
     """
     result = result.copy()
     out = {}

@@ -6,7 +6,7 @@ import pytest
 
 from easydict import EasyDict
 
-from nervex.utils.log_helper import AverageMeter, build_logger, build_logger_naive, pretty_print
+from nervex.utils.log_helper import AverageMeter, build_logger, pretty_print
 from nervex.utils.file_helper import remove_file
 
 cfg = EasyDict(
@@ -65,10 +65,10 @@ class TestAverageMeter:
         pretty_print(cfg)
 
     def test_logger(self):
-        logger, tb_logger, variable_record = build_logger(cfg, name="fake_test")
+        logger, tb_logger, variable_record = build_logger(
+            cfg.common.save_path, name="fake_test", need_tb=True, need_var=True)
         variable_record.register_var("fake_loss")
         variable_record.register_var("fake_reward")
-        build_logger_naive('.', 'name')
         for i in range(20):
             variable_record.update_var({"fake_loss": i + 1, "fake_reward": i - 1})
         with pytest.raises(KeyError):
@@ -77,4 +77,4 @@ class TestAverageMeter:
         assert isinstance(variable_record.get_var_text('fake_loss'), str)
         assert isinstance(variable_record.get_vars_tb_format(['fake_loss'], 10), list)
         assert len(variable_record.get_vars_tb_format(['fake_loss', 'fake_reward'], 10)) == 2
-        remove_file("./name")
+        remove_file(cfg.common.save_path)

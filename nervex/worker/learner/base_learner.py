@@ -85,7 +85,11 @@ class BaseLearner(ABC):
         self._default_max_iterations = self._cfg.learner.max_iterations
         self._timer = EasyTimer()
         # logger
-        self._logger, self._tb_logger, self._record = build_logger(self._cfg, rank=self._rank)
+        # Only rank == 0 learner needs tb_logger and var_record, else only needs text_logger to display terminal output
+        need_var, need_tb = (True, True) if self._rank == 0 else (False, False)
+        path = os.path.join(self._cfg.common.save_path, 'learner')
+        log_freq = self._cfg.learner.log_freq
+        self._logger, self._tb_logger, self._record = build_logger(path, 'learner', need_tb, need_var, log_freq)
         self._log_buffer = build_log_buffer()
         # checkpoint helper
         self._checkpointer_manager = build_checkpoint_helper(self._cfg)
@@ -136,6 +140,7 @@ class BaseLearner(ABC):
         Overview:
             Setup time_wrapper to get data_time and train_time
         """
+        self._wrapper_timer = EasyTimer()
         self._get_iter_data = self.time_wrapper(self._get_iter_data, 'data_time')
         self._train = self.time_wrapper(self._train, 'train_time')
 
@@ -149,9 +154,9 @@ class BaseLearner(ABC):
         """
 
         def wrapper(*args, **kwargs) -> Any:
-            with self._timer:
+            with self._wrapper_timer:
                 ret = fn(*args, **kwargs)
-            self._log_buffer[name] = self._timer.value
+            self._log_buffer[name] = self._wrapper_timer.value
             return ret
 
         return wrapper

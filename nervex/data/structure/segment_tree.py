@@ -3,9 +3,11 @@ import numpy as np
 
 class SegmentTree:
     """
-    Overview: segment tree, implemented by the tree-like array, only the leaf nodes are real value,
-              the parents node is acquired by doing some operation on left and right child
-    Interface: __init__, reduce, __setitem__, __getitem__
+    Overview:
+        Segment tree data structure, implemented by the tree-like array. Only the leaf nodes are real value,
+        the parent node is acquired by doing some operation on left and right child
+    Interface:
+        __init__, reduce, __setitem__, __getitem__
     """
 
     def __init__(self, capacity, operation, neutral_element=None):

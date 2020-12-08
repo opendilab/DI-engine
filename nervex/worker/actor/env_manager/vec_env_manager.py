@@ -185,13 +185,12 @@ class SubprocessEnvManager(BaseEnvManager):
             cur_ready_env_id = [cur_rest_env_id[idx] for idx in ready_idx]
             assert len(cur_ready_env_id) == len(ready_conn)
             ret.update({i: c.recv().data for i, c in zip(cur_ready_env_id, ready_conn)})
+            self._check_data(ret.values())
             ready_env_id += cur_ready_env_id
             cur_rest_env_id = list(set(cur_rest_env_id).difference(set(cur_ready_env_id)))
             # at least one no-done timestep or all the connection is ready
             if len(ready_conn) == len(rest_conn) or any([not t.done for t in ret.values()]):
                 break
-
-        self._check_data(ret.values())
 
         self._waiting_env['step']: set
         for i in rest_env_id:

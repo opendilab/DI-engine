@@ -93,6 +93,7 @@ class TestReplayBuffer:
             print('[CONSUMER] thread {} iteration {} update finish'.format(id_, iteration))
 
     def test(self, setup_config):
+        os.popen('rm -rf buffer*')
         setup_replay_buffer = ReplayBuffer(setup_config.replay_buffer)
         setup_replay_buffer._cache.debug = True
         produce_threads = [Thread(target=self.produce, args=(i, setup_replay_buffer)) for i in range(PRODUCER_NUM)]
@@ -113,28 +114,31 @@ class TestReplayBuffer:
         setup_replay_buffer.close()
         time.sleep(1 + 0.5)
         assert (len(threading.enumerate()) <= 3)
+        os.popen('rm -rf buffer*')
 
-    # def test_push_split(self, setup_config):
-    #     assert all([k not in setup_config.keys() for k in ['traj_len', 'unroll_len']])
-    #     setup_config.replay_buffer.unroll_len = 2
-    #     setup_config.replay_buffer.timeout = 1
-    #     replay_buffer = ReplayBuffer(setup_config.replay_buffer)
-    #     assert replay_buffer.traj_len is None
-    #     assert replay_buffer.unroll_len == 2
-    #     replay_buffer.run()
+    def test_push_split(self, setup_config):
+        os.popen('rm -rf buffer*')
+        assert all([k not in setup_config.keys() for k in ['traj_len', 'unroll_len']])
+        setup_config.replay_buffer.unroll_len = 2
+        setup_config.replay_buffer.timeout = 1
+        replay_buffer = ReplayBuffer(setup_config.replay_buffer)
+        assert replay_buffer.traj_len is None
+        assert replay_buffer.unroll_len == 2
+        replay_buffer.run()
 
-    #     data0 = generate_data()
-    #     assert data0['data_push_length'] % replay_buffer.unroll_len == 0
-    #     replay_buffer.push_data(data0)
-    #     time.sleep(3)
-    #     push_count = data0['data_push_length'] // replay_buffer.unroll_len
-    #     assert replay_buffer._meta_buffer.validlen == push_count
+        data0 = generate_data()
+        assert data0['data_push_length'] % replay_buffer.unroll_len == 0
+        replay_buffer.push_data(data0)
+        time.sleep(3)
+        push_count = data0['data_push_length'] // replay_buffer.unroll_len
+        assert replay_buffer._meta_buffer.validlen == push_count
 
-    #     data1 = generate_data()
-    #     data1['data_push_length'] = 3 * replay_buffer.unroll_len + 1
-    #     assert data0['data_push_length'] % replay_buffer.unroll_len == 0
-    #     replay_buffer.push_data(data1)
-    #     time.sleep(3)
-    #     assert replay_buffer._meta_buffer.validlen == 3 + push_count
+        data1 = generate_data()
+        data1['data_push_length'] = 3 * replay_buffer.unroll_len + 1
+        assert data0['data_push_length'] % replay_buffer.unroll_len == 0
+        replay_buffer.push_data(data1)
+        time.sleep(3)
+        assert replay_buffer._meta_buffer.validlen == 3 + push_count
 
-    #     replay_buffer.close()
+        replay_buffer.close()
+        os.popen('rm -rf buffer*')

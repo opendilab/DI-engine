@@ -8,7 +8,7 @@ import time
 from nervex.data.structure import PrioritizedBuffer, Cache
 from nervex.utils import LockContext, LockContextType, read_config, deep_merge_dicts, EasyTimer
 from nervex.torch_utils import build_log_buffer
-from nervex.utils import TensorBoardLogger, VariableRecord, TextLogger
+from nervex.utils import build_logger, TextLogger, TensorBoardLogger, VariableRecord
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
 
 default_config = read_config(osp.join(osp.dirname(__file__), 'replay_buffer_default_config.yaml')).replay_buffer
@@ -23,8 +23,8 @@ class NaturalMonitor(LoggedModel):
     Property:
         time, expire
     """
-    in_count = LoggedValue('in_count', int)
-    out_count = LoggedValue('out_count', int)
+    in_count = LoggedValue(int)
+    out_count = LoggedValue(int)
     __thruput_property_names = ['in_count', 'out_count']
 
     def __init__(self, time_: 'BaseTime', expire: Union[int, float]):  # noqa
@@ -55,12 +55,12 @@ class OutTickMonitor(LoggedModel):
     Property:
         time, expire
     """
-    out_time = LoggedValue('out_time', float)
-    reuse_avg = LoggedValue('reuse_avg', float)
-    reuse_max = LoggedValue('reuse_max', int)
-    priority_avg = LoggedValue('priority_avg', float)
-    priority_max = LoggedValue('priority_max', float)
-    priority_min = LoggedValue('priority_min', float)
+    out_time = LoggedValue(float)
+    reuse_avg = LoggedValue(float)
+    reuse_max = LoggedValue(int)
+    priority_avg = LoggedValue(float)
+    priority_max = LoggedValue(float)
+    priority_min = LoggedValue(float)
 
     def __init__(self, time_: 'BaseTime', expire: Union[int, float]):  # noqa
         LoggedModel.__init__(self, time_, expire)
@@ -107,7 +107,7 @@ class InTickMonitor(LoggedModel):
     Property:
         time, expire
     """
-    in_time = LoggedValue('in_time', float)
+    in_time = LoggedValue(float)
 
     def __init__(self, time_: 'BaseTime', expire: Union[int, float]):  # noqa
         LoggedModel.__init__(self, time_, expire)
@@ -140,7 +140,9 @@ class ReplayBuffer:
         """
         self.cfg = deep_merge_dicts(default_config, cfg)
         max_reuse = self.cfg.max_reuse if 'max_reuse' in self.cfg.keys() else None
+        # traj_len is actor's generating trajectory length, often equals to or greater than actual data_push_length
         self.traj_len = cfg.get('traj_len', None)
+        # unroll_len is learner's training data length, often smaller than traj_len
         self.unroll_len = cfg.get('unroll_len', None)
         # main buffer
         self._meta_buffer = PrioritizedBuffer(

@@ -50,6 +50,7 @@ setup(
         'app_zoo.gfootball',
         'app_zoo.alphastar',
         'app_zoo.multiagent_particle',
+        'app_zoo.smac',
     ],
     install_requires=[
         'absl-py>=0.1.0',

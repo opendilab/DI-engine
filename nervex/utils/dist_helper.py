@@ -3,9 +3,9 @@ import os
 import numpy as np
 import torch
 
-from nervex.utils import FakeLink
-from .import_helper import try_import_link
 from .default_helper import error_wrapper
+from .fake_linklink import FakeLink
+from .import_helper import try_import_link
 
 link = try_import_link()
 
