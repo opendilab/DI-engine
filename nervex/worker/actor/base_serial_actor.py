@@ -84,7 +84,7 @@ class BaseSerialActor(object):
                         reward = timestep.info[env_id]['final_eval_reward']
                         episode_reward.append(reward)
                         self._logger.info(
-                            "env {} finish episode, final reward: {}, current episode: {}".format(
+                            "env {} finish episode, final reward: {}, collected episode: {}".format(
                                 env_id, reward, episode_count
                             )
                         )
@@ -93,7 +93,7 @@ class BaseSerialActor(object):
                     if traj is not None:
                         return_data.extend(traj)
                         traj_count += len(traj)
-                        self._logger.info("env {} get new traj, current traj: {}".format(env_id, step_count))
+                        self._logger.info("env {} get new traj, collected traj: {}".format(env_id, traj_count))
                     step_count += 1
         duration = self._timer.value
         info = {
@@ -113,7 +113,13 @@ class BaseSerialActor(object):
 
 
 class TransitionBuffer(object):
-    pass
+    
+    def __init__(self, env_num: int):
+        self._env_num = env_num
+        self._buffer = {env_id: [] for env_id in range(env_num)}
+
+    def append(self, env_id: int, transition: dict):
+        self._buffer[env_id].append(transition)
 
 
 class CachePool(object):
