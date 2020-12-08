@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, List, Dict, Any, Tuple, Union
 from collections import namedtuple
 import torch
+from nervex.worker import TransitionBuffer
 
 
 class Policy(ABC):
@@ -110,7 +111,7 @@ class Policy(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _get_trajectory(self, transitions: List[dict], done: bool) -> Union[None, List[Any]]:
+    def _get_trajectory(self, transitions: TransitionBuffer, data_id: int, done: bool) -> Union[None, List[Any]]:
         raise NotImplementedError
 
     @abstractmethod
