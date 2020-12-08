@@ -73,27 +73,27 @@ class BaseSerialActor(object):
                 agent_output = self._policy.forward(obs)
                 agent_output = self._policy.data_postprocess(env_id, agent_output)
                 self._agent_output_pool.update(agent_output)
-                action = {i: a['action'] for i, a in agent_output.items()}
-                timestep = self._env.step(action)
-                for i, t in timestep.items():
-                    transition = self._policy.process_transition(self._obs_pool[i], self._agent_output_pool[i], t)
-                    self._transition_buffer.append(i, transition)
-                    if t.done:
+                actions = {env_id: output['action'] for env_id, output in agent_output.items()}
+                timesteps = self._env.step(actions)
+                for env_id, timestep in timesteps.items():
+                    transition = self._policy.process_transition(self._obs_pool[env_id], self._agent_output_pool[env_id], timestep)
+                    self._transition_buffer.append(env_id, transition)
+                    if timestep.done:
                         # env reset is done by env_manager automatically
-                        self._policy.callback_episode_done(i)
-                        reward = t.info[i]['final_eval_reward']
+                        self._policy.callback_episode_done(env_id)
+                        reward = timestep.info[env_id]['final_eval_reward']
                         episode_reward.append(reward)
                         self._logger.info(
                             "env {} finish episode, final reward: {}, current episode: {}".format(
-                                i, reward, episode_count
+                                env_id, reward, episode_count
                             )
                         )
                         episode_count += 1
-                    traj = self._policy.get_trajectory(self._transition_buffer, i, done=t.done)
+                    traj = self._policy.get_trajectory(self._transition_buffer, env_id, done=timestep.done)
                     if traj is not None:
                         return_data.extend(traj)
                         traj_count += len(traj)
-                        self._logger.info("env {} get new traj, current traj: {}".format(i, step_count))
+                        self._logger.info("env {} get new traj, current traj: {}".format(env_id, step_count))
                     step_count += 1
         duration = self._timer.value
         info = {
