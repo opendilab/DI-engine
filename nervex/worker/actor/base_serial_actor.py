@@ -61,6 +61,7 @@ class BaseSerialActor(object):
     def _collect(self, collect_end_fn: Callable) -> List[Any]:
         episode_count = 0
         step_count = 0
+        traj_count = 0
         episode_reward = {}
         return_data = []
         info = {}
@@ -91,14 +92,18 @@ class BaseSerialActor(object):
                     traj = self._policy.get_trajectory(self._transition_buffer, i, done=t.done)
                     if traj is not None:
                         return_data.extend(traj)
-                        step_count += len(traj)
+                        traj_count += len(traj)
                         self._logger.info("env {} get new traj, current traj: {}".format(i, step_count))
+                    step_count += 1
         duration = self._timer.value
         info = {
             'episode_count': episode_count,
             'step_count': step_count,
+            'traj_count': traj_count,
             'avg_step_per_episode': step_count / episode_count,
+            'avg_traj_per_epsiode': traj_count / episode_count,
             'avg_time_per_step': duration / step_count,
+            'avg_time_per_traj': duration / traj_count,
             'avg_time_per_episode': duration / episode_count,
             'reward_mean': np.mean(episode_reward),
             'reward_std': np.std(episode_reward)
