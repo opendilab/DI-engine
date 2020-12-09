@@ -1,12 +1,12 @@
 from abc import ABC
 from types import MethodType
-from typing import Union, Any, List, Callable, Iterable, Dict
+from typing import Union, Any, List, Callable, Iterable, Dict, Optional
 from collections import namedtuple
 
 
 class BaseEnvManager(ABC):
 
-    def __init__(self, env_fn: Callable, env_cfg: Iterable, env_num: int, episode_num: int) -> None:
+    def __init__(self, env_fn: Callable, env_cfg: Iterable, env_num: int, episode_num: Optional[int] = 'inf') -> None:
         self._env_num = env_num
         self._env_fn = env_fn
         self._env_cfg = env_cfg
@@ -14,11 +14,11 @@ class BaseEnvManager(ABC):
             episode_num = float('inf')
         self._epsiode_num = episode_num
         self._closed = True
+        # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
+        self._env_ref = self._env_fn(self._env_cfg[0])
 
     def _create_state(self) -> None:
-        # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
         self._closed = False
-        self._env_ref = self._env_fn(self._env_cfg[0])
         self._env_episode_count = {i: 0 for i in range(self.env_num)}
         self._env_done = {i: False for i in range(self.env_num)}
         self._next_obs = {i: None for i in range(self.env_num)}
@@ -109,3 +109,6 @@ class BaseEnvManager(ABC):
         for env in self._envs:
             env.close()
         self._closed = True
+
+    def env_info(self) -> namedtuple:
+        return self._env_ref.info()
