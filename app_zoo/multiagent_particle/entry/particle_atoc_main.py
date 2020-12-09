@@ -1,6 +1,6 @@
 import torch
 from nervex.model.atoc import ATOCActorNet, ATOCCriticNet
-from app_zoo.multiagent_particle.envs import ParicleEnv
+from app_zoo.multiagent_particle.envs import ParticleEnv
 import queue
 from nervex.torch_utils import to_tensor, tensor_to_list
 
@@ -23,7 +23,7 @@ class ATOCTrainer:
 
 
 def main():
-    env = ParicleEnv({'env_name': "simple_spread", 'discrete_action': True})
+    env = ParticleEnv({'env_name': "simple_spread", 'discrete_action': True})
     # init parameters according to env
 
     n_agent = env.agent_num

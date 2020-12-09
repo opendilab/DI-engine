@@ -1,1 +1,1 @@
-from .particle_env import ParicleEnv
+from .particle_env import ParticleEnv

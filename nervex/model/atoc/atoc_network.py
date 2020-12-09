@@ -284,14 +284,8 @@ class ATOCActorNet(nn.Module):
                         continue
                     before_update_action_j = self.actor_2(old_thought[b][j])
                     after_update_action_j = self.actor_2(thought[b][j])
-                    before_update_Q_j = critic_model({
-                        'obs': obs[b][j],
-                        'action': before_update_action_j
-                    })['q_value']
-                    after_update_Q_j = critic_model({
-                        'obs': obs[b][j],
-                        'action': after_update_action_j
-                    })['q_value']
+                    before_update_Q_j = critic_model({'obs': obs[b][j], 'action': before_update_action_j})['q_value']
+                    after_update_Q_j = critic_model({'obs': obs[b][j], 'action': after_update_action_j})['q_value']
                     q_group.append(before_update_Q_j)
                     actual_q_group.append(after_update_Q_j)
                 q_group = torch.stack(q_group)
@@ -353,10 +347,16 @@ class ATOCQAC(QActorCriticBase):
             for p in module.parameters():
                 p.requires_grad = True
 
+        def backward_hook2(module, grad_input, grad_output):
+            # we may need disable the grad in attention unit while training actor
+            for p in module.attention.parameters():
+                p.requires_grad = False
+
         self._actor = ATOCActorNet(obs_dim, thought_dim, action_dim, n_agent, m_group, T_initiate)
         self._critic = ATOCCriticNet(obs_dim, action_dim)
         self._actor.default_critic = self._critic
         self._critic.register_backward_hook(backward_hook)
+        self._actor.register_backward_hook(backward_hook2)
 
     def _critic_forward(self, x: Dict[str, torch.Tensor]) -> Union[List[torch.Tensor], torch.Tensor]:
         return self._critic(x)
@@ -383,7 +383,6 @@ class ATOCQAC(QActorCriticBase):
         return action
 
     def optimize_actor(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        state_input = inputs['obs']
         if not inputs.get('action'):
             inputs['action'] = self._actor_forward(inputs)['action']
 
@@ -392,3 +391,34 @@ class ATOCQAC(QActorCriticBase):
         q = self._critic_forward(inputs, single=True)
 
         return q
+
+    def optimize_actor_attention(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+
+        for p in self._actor.attention.parameters():
+            p.requires_grad = True  # will set False when the actor's backward_hook called
+
+        delta_q = inputs['delta_q'].reshape(-1)
+        init_prob = inputs['initator_prob'].reshape(-1)
+        is_init = inputs['is_initator'].reshape(-1)
+        delta_q = delta_q[is_init.nonzero()]
+        init_prob = init_prob[is_init.nonzero]
+        actor_attention_loss = -delta_q * torch.log(init_prob) - (1 - delta_q) * torch.log(1 - init_prob)
+        inputs['actor_attention_loss'] = actor_attention_loss
+        return inputs
+
+    def forward(self, inputs, mode=None, **kwargs):
+        """
+        Note:
+            mode:
+                - optimize_actor: optimize actor part, with critic part `no grad`, return q value
+                - compute_q: evaluate q value based on state and action from buffer
+                - compute_action: evaluate policy performance, only use the actor part
+                - mimic: supervised learning, learn policy/value output label
+        """
+        assert (
+            mode in [
+                'optimize_actor', 'optimize_actor_attention', 'compute_q', 'compute_action', 'compute_action_q', 'mimic'
+            ]
+        ), mode
+        f = getattr(self, mode)
+        return f(inputs, **kwargs)

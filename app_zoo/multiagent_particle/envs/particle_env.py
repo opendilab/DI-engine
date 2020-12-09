@@ -10,7 +10,7 @@ from app_zoo.multiagent_particle.envs.make_env import make_env
 from app_zoo.multiagent_particle.envs.multiagent.multi_discrete import MultiDiscrete
 
 
-class ParicleEnv(BaseEnv):
+class ParticleEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
