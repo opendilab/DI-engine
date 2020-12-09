@@ -30,9 +30,11 @@ def main(args):
     model = FCDiscreteNet(e_info.obs_space.shape, e_info.act_space.shape, cfg.model.embedding_dim)
     policy = DQNPolicy(cfg.policy, model)
     replay_buffer = ReplayBuffer(cfg.replay_buffer)
-    learner = BaseLearner(cfg)
-    actor = BaseSerialActor(cfg)
-    evaluator = BaseSerialEvaluator(cfg)
+    learner = BaseLearner(cfg.learner)
+    actor = BaseSerialActor(cfg.actor)
+    evaluator = BaseSerialEvaluator(cfg.evaluator)
+    actor.env = actor_env
+    evaluator.env = evaluator_env
     learner.policy = policy.learn
     actor.policy = policy.collect
     evaluator.policy = policy.eval
@@ -44,7 +46,7 @@ def main(args):
         learner.train(train_data)
         if evaluator.eval():
             break
-        if cfg.learner.on_policy:
+        if cfg.policy.on_policy:
             replay_buffer.clear()
 
     # close

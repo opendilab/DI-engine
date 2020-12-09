@@ -2,6 +2,7 @@ from abc import ABC
 from types import MethodType
 from typing import Union, Any, List, Callable, Iterable, Dict, Optional
 from collections import namedtuple
+import numbers
 
 
 class BaseEnvManager(ABC):
@@ -100,6 +101,8 @@ class BaseEnvManager(ABC):
         return timestep
 
     def seed(self, seed: List[int]) -> None:
+        if isinstance(seed, numbers.Integral):
+            seed = [seed for _ in range(self.env_num)]
         self._env_seed = seed
 
     def close(self) -> None:

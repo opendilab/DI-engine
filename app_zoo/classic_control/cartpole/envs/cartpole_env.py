@@ -15,6 +15,7 @@ class CartPoleEnv(BaseEnv):
     def reset(self) -> torch.Tensor:
         if hasattr(self, '_seed'):
             self._env.seed(self._seed)
+        self._final_eval_reward = 0
         obs = self._env.reset()
         obs = to_tensor(obs, torch.float)
         return obs
@@ -32,6 +33,9 @@ class CartPoleEnv(BaseEnv):
         obs, rew, done, info = self._env.step(action)
         obs = to_tensor(obs, torch.float)
         rew = to_tensor(rew, torch.float)
+        self._final_eval_reward += rew
+        if done:
+            info['final_eval_reward'] = self._final_eval_reward
         return BaseEnv.timestep(obs, rew, done, info)
 
     def info(self) -> BaseEnv.info_template:

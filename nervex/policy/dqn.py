@@ -30,7 +30,7 @@ class DQNPolicy(CommonPolicy):
         q_value = self._agent.forward(data['obs'])['logit']
         target_q_value = self._agent.target_forward(data['next_obs'])['logit']
         data = q_1step_td_data(q_value, target_q_value, data['action'], data['reward'], data['done'], data['weight'])
-        loss, info = q_1step_td_error(data, self._gamma)
+        loss = q_1step_td_error(data, self._gamma)
         # update
         self._optimizer.zero_grad()
         loss.backward()
@@ -39,7 +39,6 @@ class DQNPolicy(CommonPolicy):
         self._agent.target_update(self._agent.state_dict())
         return {
             'total_loss': loss.item(),
-            'td_error_per_data': info.td_error_per_data,
         }
 
     def _init_collect(self) -> None:

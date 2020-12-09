@@ -3,7 +3,7 @@ from collections import namedtuple
 import copy
 import numpy as np
 from .env_manager import BaseEnvManager
-from nervex.utils import build_logger, EasyTimer
+from nervex.utils import build_logger_naive, EasyTimer
 
 
 class BaseSerialActor(object):
@@ -11,7 +11,7 @@ class BaseSerialActor(object):
     def __init__(self, cfg: dict) -> None:
         self._default_n_episode = cfg.get('n_episode', None)
         self._default_n_step = cfg.get('n_step', None)
-        self._logger = build_logger()
+        self._logger, _ = build_logger_naive(path='./log', name='actor')
         self._timer = EasyTimer()
         self._cfg = cfg
 
@@ -62,14 +62,14 @@ class BaseSerialActor(object):
         episode_count = 0
         step_count = 0
         traj_count = 0
-        episode_reward = {}
+        episode_reward = []
         return_data = []
         info = {}
         with self._timer:
-            while not collect_end_fn(episode_count, step_count):
+            while not collect_end_fn(episode_count, traj_count):
                 obs = self._env.next_obs
                 self._obs_pool.update(obs)
-                obs, env_id = self._policy.data_preprocess(obs)
+                env_id, obs = self._policy.data_preprocess(obs)
                 agent_output = self._policy.forward(obs)
                 agent_output = self._policy.data_postprocess(env_id, agent_output)
                 self._agent_output_pool.update(agent_output)
@@ -81,7 +81,7 @@ class BaseSerialActor(object):
                     if timestep.done:
                         # env reset is done by env_manager automatically
                         self._policy.callback_episode_done(env_id)
-                        reward = timestep.info[env_id]['final_eval_reward']
+                        reward = timestep.info['final_eval_reward']
                         episode_reward.append(reward)
                         self._logger.info(
                             "env {} finish episode, final reward: {}, collected episode: {}".format(
@@ -100,13 +100,13 @@ class BaseSerialActor(object):
             'episode_count': episode_count,
             'step_count': step_count,
             'traj_count': traj_count,
-            'avg_step_per_episode': step_count / episode_count,
-            'avg_traj_per_epsiode': traj_count / episode_count,
-            'avg_time_per_step': duration / step_count,
-            'avg_time_per_traj': duration / traj_count,
-            'avg_time_per_episode': duration / episode_count,
-            'reward_mean': np.mean(episode_reward),
-            'reward_std': np.std(episode_reward)
+            'avg_step_per_episode': step_count / (episode_count + 1e-8),
+            'avg_traj_per_epsiode': traj_count / (episode_count + 1e-8),
+            'avg_time_per_step': duration / (step_count + 1e-8),
+            'avg_time_per_traj': duration / (traj_count + 1e-8),
+            'avg_time_per_episode': duration / (episode_count + 1e-8),
+            'reward_mean': np.mean(episode_reward) if len(episode_reward) > 0 else 0.,
+            'reward_std': np.std(episode_reward) if len(episode_reward) > 0 else 0.,
         }
         self._logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
         return return_data
@@ -120,6 +120,9 @@ class TransitionBuffer(object):
 
     def append(self, env_id: int, transition: dict):
         self._buffer[env_id].append(transition)
+
+    def __getitem__(self, env_id: int) -> List[dict]:
+        return self._buffer[env_id]
 
 
 class CachePool(object):

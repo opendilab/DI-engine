@@ -2,7 +2,7 @@ from typing import List, Dict, Any, Optional, Callable, Tuple
 from collections import namedtuple
 import copy
 import numpy as np
-from nervex.utils import build_logger, EasyTimer
+from nervex.utils import build_logger_naive, EasyTimer
 from .env_manager import BaseEnvManager
 from .base_serial_actor import CachePool
 
@@ -12,7 +12,7 @@ class BaseSerialEvaluator(object):
     def __init__(self, cfg: dict) -> None:
         self._default_n_episode = cfg.get('n_episode', None)
         self._stop_val = cfg.stop_val
-        self._logger = build_logger()
+        self._logger, _ = build_logger_naive(path='./log', name='evaluator')
         self._timer = EasyTimer()
         self._cfg = cfg
 
@@ -45,14 +45,14 @@ class BaseSerialEvaluator(object):
         assert n_episode is not None, "please indicate eval n_episode"
         episode_count = 0
         step_count = 0
-        episode_reward = {}
+        episode_reward = []
         info = {}
         self.reset()
         with self._timer:
             while episode_count < n_episode:
                 obs = self._env.next_obs
                 self._obs_pool.update(obs)
-                obs, env_id = self._policy.data_preprocess(obs)
+                env_id, obs = self._policy.data_preprocess(obs)
                 agent_output = self._policy.forward(obs)
                 agent_output = self._policy.data_postprocess(env_id, agent_output)
                 self._agent_output_pool.update(agent_output)
@@ -62,7 +62,7 @@ class BaseSerialEvaluator(object):
                     if t.done:
                         # env reset is done by env_manager automatically
                         self._policy.callback_episode_done(i)
-                        reward = t.info[i]['final_eval_reward']
+                        reward = t.info['final_eval_reward']
                         episode_reward.append(reward)
                         self._logger.info(
                             "[EVALUATOR]env {} finish episode, final reward: {}, current episode: {}".format(
