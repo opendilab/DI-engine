@@ -14,7 +14,7 @@ def test_q_nstep_td():
     for nstep in range(1, 10):
         q = torch.randn(batch_size, action_dim).requires_grad_(True)
         reward = torch.rand(nstep, batch_size)
-        data = q_nstep_td_data(q, next_q, action, reward, done)
+        data = q_nstep_td_data(q, next_q, action, reward, done, None)
         loss = q_nstep_td_error(data, 0.95, nstep=nstep)
         assert loss.shape == ()
         assert q.grad is None
@@ -33,7 +33,7 @@ def test_q_nstep_td_with_rescale():
     for nstep in range(1, 10):
         q = torch.randn(batch_size, action_dim).requires_grad_(True)
         reward = torch.rand(nstep, batch_size)
-        data = q_nstep_td_data(q, next_q, action, reward, done)
+        data = q_nstep_td_data(q, next_q, action, reward, done, None)
         loss = q_nstep_td_error_with_rescale(data, 0.95, nstep=nstep)
         assert loss.shape == ()
         assert q.grad is None
@@ -51,8 +51,8 @@ def test_1step_compatible():
     action = torch.randint(0, action_dim, size=(batch_size, ))
     q = torch.randn(batch_size, action_dim).requires_grad_(True)
     reward = torch.rand(batch_size)
-    nstep_data = q_nstep_td_data(q, next_q, action, reward.unsqueeze(0), done)
-    onestep_data = q_1step_td_data(q, next_q, action, reward, done)
+    nstep_data = q_nstep_td_data(q, next_q, action, reward.unsqueeze(0), done, None)
+    onestep_data = q_1step_td_data(q, next_q, action, reward, done, None)
     nstep_loss = q_nstep_td_error(nstep_data, 0.99, nstep=1)
     onestep_loss = q_1step_td_error(onestep_data, 0.99)
     assert pytest.approx(nstep_loss.item(), onestep_loss.item())
