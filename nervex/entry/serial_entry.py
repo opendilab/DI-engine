@@ -35,23 +35,24 @@ def main(args):
     evaluator = BaseSerialEvaluator(cfg.evaluator)
     actor.env = actor_env
     evaluator.env = evaluator_env
-    learner.policy = policy.learn
-    actor.policy = policy.collect
-    evaluator.policy = policy.eval
+    learner.policy = policy.learn_mode
+    actor.policy = policy.collect_mode
+    evaluator.policy = policy.eval_mode
+    learner.launch()
     # main loop
+    iter_count = 0
     while True:
         new_data = actor.generate_data()
         replay_buffer.push_data(new_data)
-        train_data = replay_buffer.sample(cfg.learner.data.batch_size)
+        train_data = replay_buffer.sample(cfg.policy.learn.batch_size)
         learner.train(train_data)
-        if evaluator.eval():
+        if (iter_count + 1) % cfg.evaluator.eval_freq == 0 and evaluator.eval():
             break
         if cfg.policy.on_policy:
             replay_buffer.clear()
+        iter_count += 1
 
     # close
-    actor_env.close()
-    evaluator_env.close()
     replay_buffer.close()
     learner.close()
     actor.close()

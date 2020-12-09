@@ -1,0 +1,50 @@
+common:
+    name: CartpoleDqnConfig
+    save_path: '.'
+    load_path: ''
+env:
+    import_names: ['app_zoo.classic_control.cartpole.envs.cartpole_env']
+    env_type: 'cartpole'
+    actor_env_num: 10
+    evaluator_env_num: 5
+model:
+    embedding_dim: 64
+policy:
+    use_cuda: False
+    on_policy: False
+    learn:
+        batch_size: 64
+        learning_rate: 0.0001
+        weight_decay: 0.0
+        algo:
+            target_update_freq: 10
+            discount_factor: 0.99
+            dueling: True
+    collect:
+        get_traj_length: 4
+    control:
+        eps:
+            type: 'exp'
+            start: 0.95
+            end: 0.05
+            decay: 10000
+replay_buffer:
+    meta_maxlen: 100000
+    max_reuse: 100
+    unroll_len: 1
+actor:
+    n_step: 128
+    traj_print_freq: 100
+evaluator:
+    n_episode: 5
+    eval_freq: 500
+    stop_val: 39 # 195//5
+learner:
+    hook:
+        log_show:
+            name: log_show
+            type: log_show
+            priority: 20
+            position: after_iter
+            ext_args:
+                freq: 200

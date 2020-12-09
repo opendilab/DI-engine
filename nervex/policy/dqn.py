@@ -36,14 +36,14 @@ class DQNPolicy(CommonPolicy):
         loss.backward()
         self._optimizer.step()
         # after update
-        self._agent.target_update(self._agent.state_dict())
+        self._agent.target_update(self._agent.state_dict()['model'])
         return {
             'total_loss': loss.item(),
         }
 
     def _init_collect(self) -> None:
         self._get_traj_length = self._cfg.collect.get_traj_length
-        self._eps = self._cfg.collect.get('eps', 0.05)
+        self._eps = self._cfg.collect.get('eps', 0.9)
         self._collect_agent = Agent(self._model)
         self._collect_agent.add_plugin('main', 'eps_greedy_sample')
         self._collect_agent.add_plugin('main', 'grad', enable_grad=False)

@@ -197,7 +197,10 @@ class Head(nn.Module):
 
 
 FCDiscreteNet = partial(
-    DiscreteNet, encoder_kwargs={'encoder_type': 'fc'}, lstm_kwargs={'lstm_type': 'none'}, head_kwargs={'dueling': True}
+    DiscreteNet,
+    encoder_kwargs={'encoder_type': 'fc'},
+    lstm_kwargs={'lstm_type': 'none'},
+    head_kwargs={'dueling': True}
 )
 ConvDiscreteNet = partial(
     DiscreteNet,
@@ -206,7 +209,10 @@ ConvDiscreteNet = partial(
     head_kwargs={'dueling': True}
 )
 FCRDiscreteNet = partial(
-    DiscreteNet, encoder_kwargs={'encoder_type': 'fc'}, lstm_kwargs={'lstm_type': 'normal'}, head_kwargs={'dueling': True}
+    DiscreteNet,
+    encoder_kwargs={'encoder_type': 'fc'},
+    lstm_kwargs={'lstm_type': 'normal'},
+    head_kwargs={'dueling': True}
 )
 ConvRDiscreteNet = partial(
     DiscreteNet,

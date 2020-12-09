@@ -33,7 +33,7 @@ class CartPoleEnv(BaseEnv):
         obs, rew, done, info = self._env.step(action)
         obs = to_tensor(obs, torch.float)
         rew = to_tensor(rew, torch.float)
-        self._final_eval_reward += rew
+        self._final_eval_reward += rew.item()
         if done:
             info['final_eval_reward'] = self._final_eval_reward
         return BaseEnv.timestep(obs, rew, done, info)

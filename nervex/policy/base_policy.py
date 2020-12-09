@@ -62,34 +62,29 @@ class Policy(ABC):
         raise NotImplementedError
 
     @property
-    def learn(self) -> 'Policy.learn_function':  # noqa
+    def learn_mode(self) -> 'Policy.learn_function':  # noqa
         return Policy.learn_function(self._data_preprocess_learn, self._forward_learn)
 
     @property
-    def collect(self) -> 'Policy.collect_function':  # noqa
+    def collect_mode(self) -> 'Policy.collect_function':  # noqa
         return Policy.collect_function(
             self._data_preprocess_collect, self._forward_collect, self._data_postprocess_collect,
             self._process_transition, self._get_trajectory, self._callback_episode_done_collect
         )
 
     @property
-    def eval(self) -> 'Policy.eval_function':  # noqa
+    def eval_mode(self) -> 'Policy.eval_function':  # noqa
         return Policy.eval_function(
             self._data_preprocess_collect, self._forward_eval, self._data_postprocess_collect,
             self._callback_episode_done_collect
         )
 
     @property
-    def control(self) -> 'Policy.control_function':  # noqa
+    def control_mode(self) -> 'Policy.control_function':  # noqa
         return Policy.control_function(self._get_setting_learn, self._get_setting_collect, self._get_setting_eval)
 
-    @property
-    def model(self) -> torch.nn.Module:
-        return self._model
-
-    @property
-    def optimizer(self) -> torch.optim.Optimizer:
-        return self._optimizer
+    def __repr__(self) -> str:
+        return "nerveX DRL Policy"
 
     # *************************************** learn function ************************************
     @abstractmethod

@@ -67,7 +67,6 @@ class BaseLearner(ABC):
         self._learner_worker_uid = get_task_uid()
         self._load_path = self._cfg.common.load_path
         self._save_path = self._cfg.common.save_path
-        self._use_cuda = self._cfg.learner.use_cuda
         self._use_distributed = self._cfg.learner.use_distributed
         if self._use_distributed:
             self._rank, self._world_size = dist_init()
@@ -77,10 +76,6 @@ class BaseLearner(ABC):
         else:
             self._rank, self._world_size = 0, 1
             self._learner_uid = self._learner_worker_uid
-        if self._use_cuda:
-            self._device = 'cuda: {}'.format(self._rank % 8)
-        else:
-            self._device = 'cpu'
         self._default_max_iterations = self._cfg.learner.max_iterations
         self._timer = EasyTimer()
         # logger
@@ -100,21 +95,16 @@ class BaseLearner(ABC):
             launch learner runtime components, each train job means a launch operation,
             job related dataloader, policy and hook support.
         """
-        self._setup_dataloader()
+        #self._setup_dataloader()
         assert self._check_policy(), "please set learner policy"
 
         self._last_iter = CountVar(init_val=0)
         if self._rank == 0:
             self.register_stats()
-        self.info(
-            pretty_print(
-                {
-                    "config": self._cfg,
-                    "policy": self._policy,
-                },
-                direct_print=False
-            )
-        )
+        self.info(pretty_print({
+            "config": self._cfg,
+            "policy": repr(self._policy),
+        }, direct_print=False))
 
         self._setup_wrapper()
         self._setup_hook()
@@ -137,7 +127,7 @@ class BaseLearner(ABC):
         """
         self._wrapper_timer = EasyTimer()
         self._get_iter_data = self.time_wrapper(self._get_iter_data, 'data_time')
-        self._train = self.time_wrapper(self._train, 'train_time')
+        self.train = self.time_wrapper(self.train, 'train_time')
 
     def time_wrapper(self, fn: Callable, name: str):
         """
@@ -189,6 +179,7 @@ class BaseLearner(ABC):
         log_vars = self._policy.forward(data)
         self._log_buffer.update(log_vars)
         self.call_hook('after_iter')
+        self._last_iter.add(1)
 
     def register_stats(self) -> None:
         """
@@ -199,14 +190,12 @@ class BaseLearner(ABC):
         self._record.register_var('cur_lr')
         self._record.register_var('data_time')
         self._record.register_var('train_time')
-        self._record.register_var('forward_time')
-        self._record.register_var('backward_time')
+        self._record.register_var('total_loss')
 
         self._tb_logger.register_var('cur_lr')
         self._tb_logger.register_var('data_time')
         self._tb_logger.register_var('train_time')
-        self._tb_logger.register_var('forward_time')
-        self._tb_logger.register_var('backward_time')
+        self._tb_logger.register_var('total_loss')
 
         #self._policy.register_stats(self._record, self._tb_logger)
 
@@ -237,7 +226,6 @@ class BaseLearner(ABC):
         for _ in range(max_iterations):
             data = self._get_iter_data()
             self.train(data)
-            self._last_iter.add(1)
 
         # after run hook
         self.call_hook('after_run')

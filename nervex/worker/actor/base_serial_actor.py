@@ -11,6 +11,7 @@ class BaseSerialActor(object):
     def __init__(self, cfg: dict) -> None:
         self._default_n_episode = cfg.get('n_episode', None)
         self._default_n_step = cfg.get('n_step', None)
+        self._traj_print_freq = cfg.traj_print_freq
         self._logger, _ = build_logger_naive(path='./log', name='actor')
         self._timer = EasyTimer()
         self._cfg = cfg
@@ -36,7 +37,7 @@ class BaseSerialActor(object):
 
     def reset(self) -> None:
         self._obs_pool = CachePool('obs', self._env_num)
-        self._agent_output_pool = CachePool('agent_output', self._env_num)
+        self._policy_output_pool = CachePool('policy_output', self._env_num)
         self._transition_buffer = TransitionBuffer(self._env_num)
 
     def generate_data(self, n_episode: Optional[int] = None, n_step: Optional[int] = None) -> List[Any]:
@@ -51,6 +52,9 @@ class BaseSerialActor(object):
             return self._collect_step(self._default_n_step)
         else:
             raise RuntimeError("please indicate specific n_episode or n_step(int value)")
+
+    def close(self) -> None:
+        self._env.close()
 
     def _collect_episode(self, n_episode: int) -> List[Any]:
         return self._collect(lambda x, y: x >= n_episode)
@@ -70,13 +74,15 @@ class BaseSerialActor(object):
                 obs = self._env.next_obs
                 self._obs_pool.update(obs)
                 env_id, obs = self._policy.data_preprocess(obs)
-                agent_output = self._policy.forward(obs)
-                agent_output = self._policy.data_postprocess(env_id, agent_output)
-                self._agent_output_pool.update(agent_output)
-                actions = {env_id: output['action'] for env_id, output in agent_output.items()}
+                policy_output = self._policy.forward(obs)
+                policy_output = self._policy.data_postprocess(env_id, policy_output)
+                self._policy_output_pool.update(policy_output)
+                actions = {env_id: output['action'] for env_id, output in policy_output.items()}
                 timesteps = self._env.step(actions)
                 for env_id, timestep in timesteps.items():
-                    transition = self._policy.process_transition(self._obs_pool[env_id], self._agent_output_pool[env_id], timestep)
+                    transition = self._policy.process_transition(
+                        self._obs_pool[env_id], self._policy_output_pool[env_id], timestep
+                    )
                     self._transition_buffer.append(env_id, transition)
                     if timestep.done:
                         # env reset is done by env_manager automatically
@@ -93,18 +99,19 @@ class BaseSerialActor(object):
                     if traj is not None:
                         return_data.extend(traj)
                         traj_count += len(traj)
-                        self._logger.info("env {} get new traj, collected traj: {}".format(env_id, traj_count))
+                        if (traj_count + 1) % self._traj_print_freq == 0:
+                            self._logger.info("env {} get new traj, collected traj: {}".format(env_id, traj_count))
                     step_count += 1
         duration = self._timer.value
         info = {
             'episode_count': episode_count,
             'step_count': step_count,
             'traj_count': traj_count,
-            'avg_step_per_episode': step_count / (episode_count + 1e-8),
-            'avg_traj_per_epsiode': traj_count / (episode_count + 1e-8),
+            'avg_step_per_episode': step_count / max(1, episode_count),
+            'avg_traj_per_epsiode': traj_count / max(1, episode_count),
             'avg_time_per_step': duration / (step_count + 1e-8),
             'avg_time_per_traj': duration / (traj_count + 1e-8),
-            'avg_time_per_episode': duration / (episode_count + 1e-8),
+            'avg_time_per_episode': duration / max(1, episode_count),
             'reward_mean': np.mean(episode_reward) if len(episode_reward) > 0 else 0.,
             'reward_std': np.std(episode_reward) if len(episode_reward) > 0 else 0.,
         }

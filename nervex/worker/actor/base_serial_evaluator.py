@@ -36,8 +36,11 @@ class BaseSerialEvaluator(object):
 
     def reset(self) -> None:
         self._obs_pool = CachePool('obs', self._env_num)
-        self._agent_output_pool = CachePool('agent_output', self._env_num)
+        self._policy_output_pool = CachePool('policy_output', self._env_num)
         self._env.reset()
+
+    def close(self) -> None:
+        self._env.close()
 
     def eval(self, n_episode: Optional[int] = None) -> bool:
         if n_episode is None:
@@ -53,10 +56,10 @@ class BaseSerialEvaluator(object):
                 obs = self._env.next_obs
                 self._obs_pool.update(obs)
                 env_id, obs = self._policy.data_preprocess(obs)
-                agent_output = self._policy.forward(obs)
-                agent_output = self._policy.data_postprocess(env_id, agent_output)
-                self._agent_output_pool.update(agent_output)
-                action = {i: a['action'] for i, a in agent_output.items()}
+                policy_output = self._policy.forward(obs)
+                policy_output = self._policy.data_postprocess(env_id, policy_output)
+                self._policy_output_pool.update(policy_output)
+                action = {i: a['action'] for i, a in policy_output.items()}
                 timestep = self._env.step(action)
                 for i, t in timestep.items():
                     if t.done:

@@ -16,28 +16,23 @@ learner:
         chunk_size: 2
         num_workers: 0
     hook:
-        lr_scheduler:
-            name: lr_scheduler
-            type: lr_scheduler
-            priority: 20  # lower value means higher priority
-            position: after_iter
-        load_ckpt:
-            name: load_ckpt
-            type: load_ckpt
-            priority: 20
-            position: before_run
-        save_ckpt_after_iter:
-            name: save_ckpt_after_iter
-            type: save_ckpt
-            priority: 40
-            position: after_iter
-            ext_args:
-                freq: 5
-        save_ckpt_after_run:
-            name: save_ckpt_after_run
-            type: save_ckpt
-            priority: 20
-            position: after_run
+#        load_ckpt:
+#            name: load_ckpt
+#            type: load_ckpt
+#            priority: 20
+#            position: before_run
+#        save_ckpt_after_iter:
+#            name: save_ckpt_after_iter
+#            type: save_ckpt
+#            priority: 40
+#            position: after_iter
+#            ext_args:
+#                freq: 5
+#        save_ckpt_after_run:
+#            name: save_ckpt_after_run
+#            type: save_ckpt
+#            priority: 20
+#            position: after_run
         log_show:
             name: log_show
             type: log_show
