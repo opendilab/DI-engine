@@ -2,8 +2,8 @@ from typing import List, Dict, Any, Optional, Callable, Tuple
 from collections import namedtuple
 import copy
 import numpy as np
-from nervex.worker import BaseEnvManager
 from nervex.utils import build_logger, EasyTimer
+from .env_manager import BaseEnvManager
 from .base_serial_actor import CachePool
 
 

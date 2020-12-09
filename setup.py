@@ -39,6 +39,7 @@ setup(
         'nervex.torch_utils',
         'nervex.worker',
         'nervex.rl_utils',
+        'nervex.agent',
         'nervex.data',
         'nervex.system',
         'nervex.league',

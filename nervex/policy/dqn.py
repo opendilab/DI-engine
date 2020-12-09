@@ -4,15 +4,15 @@ from collections import namedtuple
 from .base_policy import Policy
 from .common_policy import CommonPolicy
 from nervex.torch_utils import Adam
-from nervex.rl_utils import q_1step_td_data, q_1step_td_error, eps_greedy
-from nervex.worker import Agent
+from nervex.rl_utils import q_1step_td_data, q_1step_td_error, epsilon_greedy
+from nervex.agent import BaseAgent
 
 
 class DQNPolicy(CommonPolicy):
 
     def _init_learn(self) -> None:
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learner.learning_rate)
-        self._agent = Agent(self._model)
+        self._agent = BaseAgent(self._model)
         algo_cfg = self._cfg.learner.algo
         self._gamma = algo_cfg.discount_factor
 
@@ -44,8 +44,8 @@ class DQNPolicy(CommonPolicy):
     def _init_collect(self) -> None:
         self._get_traj_length = self._cfg.actor.get_traj_length
         self._eps = self._cfg.actor.algo.get('eps', 0.05)
-        self._collect_agent = Agent(self._model)
-        self._collect_agent.add_plugin('main', 'eps_greedy_sample')
+        self._collect_agent = BaseAgent(self._model)
+        self._collect_agent.add_plugin('main', 'epsilon_greedy_sample')
         self._collect_agent.add_plugin('main', 'grad', enable_grad=False)
         self._collect_agent.reset()
 
@@ -66,7 +66,7 @@ class DQNPolicy(CommonPolicy):
         return transition
 
     def _init_eval(self) -> None:
-        self._eval_agent = Agent(self._model)
+        self._eval_agent = BaseAgent(self._model)
         self._eval_agent.add_plugin('main', 'argmax_sample')
         self._eval_agent.add_plugin('main', 'grad', enable_grad=False)
         self._eval_agent.reset()
@@ -79,7 +79,7 @@ class DQNPolicy(CommonPolicy):
 
     def _init_control(self) -> None:
         eps_cfg = self._cfg.controller.algo.eps
-        self.eps_greedy = eps_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
+        self.epsilon_greedy = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
 
     def _get_setting_collect(self) -> dict:
-        return {'eps': self.eps_greedy(self.learn_step)}
+        return {'eps': self.epsilon_greedy(self.learn_step)}

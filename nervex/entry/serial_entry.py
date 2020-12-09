@@ -10,14 +10,14 @@ from nervex.utils import read_config
 from nervex.data import ReplayBuffer
 from nervex.model import FCDiscreteNet
 from nervex.policy import DQNPolicy
-from nervex.env import create_vec_env
+from nervex.envs import get_vec_env_setting
 
 
 def main(args):
     cfg = read_config(args.config_path)
-    env_fn, actor_env_cfg, evaluator_env_cfg = create_vec_env(cfg.env)
-    actor_env = SubprocessEnvManager(env_fn=env_fn, env_cfg=actor_env_cfg, env_num=cfg.actor.env_num)
-    evaluator_env = SubprocessEnvManager(env_fn, env_cfg=evaluator_env_cfg, env_num=cfg.evaluator.env_num)
+    env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
+    actor_env = SubprocessEnvManager(env_fn=env_fn, env_cfg=actor_env_cfg, env_num=len(actor_env_cfg))
+    evaluator_env = SubprocessEnvManager(env_fn, env_cfg=evaluator_env_cfg, env_num=len(evaluator_env_cfg))
     # seed
     actor_env.seed(args.seed)
     evaluator_env.seed(args.seed)
@@ -27,7 +27,7 @@ def main(args):
         torch.cuda.manual_seed(args.seed)
     # create component
     e_info = actor_env.env_info()
-    model = FCDiscreteNet(e_info.obs_space.shape, e_info.act_shape.shape, cfg.model.embedding_dim)
+    model = FCDiscreteNet(e_info.obs_space.shape, e_info.act_space.shape, cfg.model.embedding_dim)
     policy = DQNPolicy(model)
     replay_buffer = ReplayBuffer(cfg.replay_buffer)
     learner = BaseLearner(cfg)

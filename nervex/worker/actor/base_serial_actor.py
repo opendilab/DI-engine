@@ -2,7 +2,7 @@ from typing import List, Dict, Any, Optional, Callable, Tuple
 from collections import namedtuple
 import copy
 import numpy as np
-from nervex.worker import BaseEnvManager
+from .env_manager import BaseEnvManager
 from nervex.utils import build_logger, EasyTimer
 
 
@@ -113,7 +113,7 @@ class BaseSerialActor(object):
 
 
 class TransitionBuffer(object):
-    
+
     def __init__(self, env_num: int):
         self._env_num = env_num
         self._buffer = {env_id: [] for env_id in range(env_num)}
