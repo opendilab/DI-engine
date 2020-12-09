@@ -28,7 +28,7 @@ def main(args):
     # create component
     e_info = actor_env.env_info()
     model = FCDiscreteNet(e_info.obs_space.shape, e_info.act_space.shape, cfg.model.embedding_dim)
-    policy = DQNPolicy(model)
+    policy = DQNPolicy(cfg.policy, model)
     replay_buffer = ReplayBuffer(cfg.replay_buffer)
     learner = BaseLearner(cfg)
     actor = BaseSerialActor(cfg)

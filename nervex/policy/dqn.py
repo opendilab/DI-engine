@@ -1,19 +1,20 @@
 from typing import List, Dict, Any, Tuple, Union
 from collections import namedtuple
+import torch
 
-from .base_policy import Policy
-from .common_policy import CommonPolicy
 from nervex.torch_utils import Adam
 from nervex.rl_utils import q_1step_td_data, q_1step_td_error, epsilon_greedy
-from nervex.agent import BaseAgent
+from nervex.agent import Agent
+from .base_policy import Policy
+from .common_policy import CommonPolicy
 
 
 class DQNPolicy(CommonPolicy):
 
     def _init_learn(self) -> None:
-        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learner.learning_rate)
-        self._agent = BaseAgent(self._model)
-        algo_cfg = self._cfg.learner.algo
+        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
+        self._agent = Agent(self._model)
+        algo_cfg = self._cfg.learn.algo
         self._gamma = algo_cfg.discount_factor
 
         self._agent.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
@@ -42,10 +43,10 @@ class DQNPolicy(CommonPolicy):
         }
 
     def _init_collect(self) -> None:
-        self._get_traj_length = self._cfg.actor.get_traj_length
-        self._eps = self._cfg.actor.algo.get('eps', 0.05)
-        self._collect_agent = BaseAgent(self._model)
-        self._collect_agent.add_plugin('main', 'epsilon_greedy_sample')
+        self._get_traj_length = self._cfg.collect.get_traj_length
+        self._eps = self._cfg.collect.get('eps', 0.05)
+        self._collect_agent = Agent(self._model)
+        self._collect_agent.add_plugin('main', 'eps_greedy_sample')
         self._collect_agent.add_plugin('main', 'grad', enable_grad=False)
         self._collect_agent.reset()
 
@@ -66,7 +67,7 @@ class DQNPolicy(CommonPolicy):
         return transition
 
     def _init_eval(self) -> None:
-        self._eval_agent = BaseAgent(self._model)
+        self._eval_agent = Agent(self._model)
         self._eval_agent.add_plugin('main', 'argmax_sample')
         self._eval_agent.add_plugin('main', 'grad', enable_grad=False)
         self._eval_agent.reset()
@@ -78,8 +79,11 @@ class DQNPolicy(CommonPolicy):
         return output
 
     def _init_control(self) -> None:
-        eps_cfg = self._cfg.controller.algo.eps
+        eps_cfg = self._cfg.control.eps
         self.epsilon_greedy = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
 
     def _get_setting_collect(self) -> dict:
         return {'eps': self.epsilon_greedy(self.learn_step)}
+
+    def _create_model_from_cfg(self, cfg: dict) -> torch.nn.Module:
+        raise NotImplementedError

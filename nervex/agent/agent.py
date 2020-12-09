@@ -5,7 +5,7 @@ from typing import Any, Union, Optional, Dict, List
 
 import torch
 
-from .agent_plugin import register_plugin
+from .agent_plugin import add_plugin
 
 
 class BaseAgent(ABC):
@@ -14,21 +14,17 @@ class BaseAgent(ABC):
         the base agent class
 
     Interfaces:
-        __init__, forward, mode, state_dict, load_state_dict, reset
+        __init__, forward, mode, state_dict, load_state_dict, reset, add_model, add_plugin
     """
 
-    def __init__(self, model: torch.nn.Module, plugin_cfg: Union[OrderedDict, None]) -> None:
+    def __init__(self, model: torch.nn.Module) -> None:
         r"""
         Overview:
-            init the model and register plugins
-
+            init the agent with model
         Arguments:
             - model (:obj:`torch.nn.Module`): the model of the agent
-            - plugin_cfg (:obj:`Union[OrderedDict, None]`): the plugin config to register
         """
         self._model = model
-        self._plugin_cfg = plugin_cfg
-        register_plugin(self, plugin_cfg)
 
     def forward(self, data: Any, param: Optional[dict] = None) -> Any:
         r"""
@@ -95,39 +91,37 @@ class BaseAgent(ABC):
 model_plugin_cfg_set = set(['main', 'target', 'teacher'])
 
 
-class AgentAggregator(object):
+class Agent(object):
     r"""
     Overview:
-        the AgentAggregator helps to build an agent according to the given input
+        the Agent use model and plugin mechanism to implement different runtime demand for RL algorithm
 
     Interfaces:
-        __init__, __getattr__
+        __init__, __getattr_, add_model, add_plugin_
     """
 
-    def __init__(
-            self, agent_type: type, model: Union[torch.nn.Module, List[torch.nn.Module]], plugin_cfg: Dict[str,
-                                                                                                           OrderedDict]
-    ) -> None:
-        r"""
-        Overview:
-            __init__ of the AgentAggregator will get a class with multi agents in ._agent
-
-        Arguments:
-            - agent_type (:obj:`type`): the based class type of the agents in ._agent
-            - model (:obj:`torch.nn.Module`): the model of agents
-            - plugin_cfg (:obj:`Dict[str, OrderedDict])`): the plugin configs of agents
-        """
-        assert issubclass(agent_type, BaseAgent)
-        assert set(plugin_cfg.keys()
-                   ).issubset(model_plugin_cfg_set), '{}-{}'.format(set(plugin_cfg.keys()), model_plugin_cfg_set)
-        if isinstance(model, torch.nn.Module):
-            if len(plugin_cfg) == 1:
-                model = [model]
-            else:
-                model = [model] + [copy.deepcopy(model) for _ in range(len(plugin_cfg) - 1)]
+    def __init__(self, model: torch.nn.Module, agent_type: type = BaseAgent) -> None:
         self._agent = {}
-        for i, k in enumerate(plugin_cfg):
-            self._agent[k] = agent_type(model[i], plugin_cfg[k])
+        self._agent['main'] = agent_type(model)
+        self._agent_type = agent_type
+
+    def add_model(self, name: str, model: Optional[torch.nn.Module] = None, **kwargs) -> None:
+        assert name in model_plugin_cfg_set
+        if model is None:
+            model = copy.deepcopy(self._agent['main'].model)
+        self._agent[name] = self._agent_type(model)
+        self.add_plugin(name, name, **kwargs)
+
+    def remove_model(self, name: str) -> None:
+        if name not in self._agent:
+            raise KeyError("agent doesn't have model named {}".format(name))
+        self._agent.pop(name)
+
+    def add_plugin(self, agent_name: str, plugin_name: str, **kwargs) -> None:
+        add_plugin(self._agent[agent_name], plugin_name, **kwargs)
+
+    def remove_plugin(self, agent_name: str, plugin_name: str) -> None:
+        raise NotImplementedError
 
     def __getattr__(self, key: str) -> Any:
         r"""

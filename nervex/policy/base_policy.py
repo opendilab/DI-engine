@@ -25,7 +25,7 @@ class Policy(ABC):
             # create model from cfg
             model = self._create_model_from_cfg(cfg)
         self._cfg = cfg
-        self._use_cuda = cfg.common.use_cuda
+        self._use_cuda = cfg.use_cuda
         if self._use_cuda:
             model.cuda()
         self._model = model
