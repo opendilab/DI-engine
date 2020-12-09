@@ -1,7 +1,7 @@
-from typing import Any
+from typing import Any, List
 import gym
 import torch
-from nervex.envs import BaseEnv
+from nervex.envs import BaseEnv, register_env
 from nervex.envs.common.env_element import EnvElement
 from nervex.torch_utils import to_tensor
 
@@ -57,3 +57,16 @@ class CartPoleEnv(BaseEnv):
 
     def __repr__(self) -> str:
         return "nerveX CartPole Env({})".format(self._cfg.env_id)
+
+    @staticmethod
+    def create_actor_env_cfg(cfg: dict) -> List[dict]:
+        actor_env_num = cfg.pop('actor_env_num', 1)
+        return [cfg for _ in range(actor_env_num)]
+
+    @staticmethod
+    def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
+        evaluator_env_num = cfg.pop('evaluator_env_num', 1)
+        return [cfg for _ in range(evaluator_env_num)]
+
+
+register_env('cartpole', CartPoleEnv)
