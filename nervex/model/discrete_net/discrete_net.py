@@ -9,7 +9,7 @@ from nervex.torch_utils import get_lstm
 from nervex.utils import squeeze
 
 
-class DQNBase(nn.Module):
+class DiscreteNet(nn.Module):
     r"""
     Overview:
         Base class for DQN based models.
@@ -26,14 +26,14 @@ class DQNBase(nn.Module):
     ) -> None:
         r"""
         Overview:
-            Init the DQNBase according to arguments, including encoder, lstm(if needed) and head.
+            Init the DiscreteNet according to arguments, including encoder, lstm(if needed) and head.
         Arguments:
             - obs_dim (:obj:`Union[int, tuple]`): a tuple of observation dim
             - action_dim (:obj:`int`): the num of action dim, \
                 note that it can be a tuple containing more than one element
             - embedding_dim (:obj:`int`): encoder's embedding dim (output dim)
         """
-        super(DQNBase, self).__init__()
+        super(DiscreteNet, self).__init__()
         encoder_kwargs, lstm_kwargs, head_kwargs = get_kwargs(kwargs)
         self._encoder = Encoder(obs_dim, embedding_dim, **encoder_kwargs)
         if lstm_kwargs['lstm_type'] != 'none':
@@ -196,20 +196,20 @@ class Head(nn.Module):
         return x
 
 
-FCDQN = partial(
-    DQNBase, encoder_kwargs={'encoder_type': 'fc'}, lstm_kwargs={'lstm_type': 'none'}, head_kwargs={'dueling': True}
+FCDiscreteNet = partial(
+    DiscreteNet, encoder_kwargs={'encoder_type': 'fc'}, lstm_kwargs={'lstm_type': 'none'}, head_kwargs={'dueling': True}
 )
-ConvDQN = partial(
-    DQNBase,
+ConvDiscreteNet = partial(
+    DiscreteNet,
     encoder_kwargs={'encoder_type': 'conv2d'},
     lstm_kwargs={'lstm_type': 'none'},
     head_kwargs={'dueling': True}
 )
-FCDRQN = partial(
-    DQNBase, encoder_kwargs={'encoder_type': 'fc'}, lstm_kwargs={'lstm_type': 'normal'}, head_kwargs={'dueling': True}
+FCRDiscreteNet = partial(
+    DiscreteNet, encoder_kwargs={'encoder_type': 'fc'}, lstm_kwargs={'lstm_type': 'normal'}, head_kwargs={'dueling': True}
 )
-ConvDRQN = partial(
-    DQNBase,
+ConvRDiscreteNet = partial(
+    DiscreteNet,
     encoder_kwargs={'encoder_type': 'conv2d'},
     lstm_kwargs={'lstm_type': 'normal'},
     head_kwargs={'dueling': True}
@@ -220,7 +220,7 @@ def parallel_wrapper(forward_fn: Callable) -> Callable:
     r"""
     Overview:
         Process timestep T and batch_size B at the same time, in other words, treat different timestep data as
-        different trajectories in a batch. Used in ``DQNBase``'s ``fast_timestep_forward``.
+        different trajectories in a batch. Used in ``DiscreteNet``'s ``fast_timestep_forward``.
     Arguments:
         - forward_fn (:obj:`Callable`): normal nn.Module's forward function
     Returns:
