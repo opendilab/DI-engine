@@ -361,7 +361,7 @@ class ActionNoiseHelper(IAgentStatefulPlugin):
             noise_range: Optional[dict] = None,
             action_range: Optional[dict] = None
     ) -> None:
-        noise_helper = cls()
+        noise_helper = cls(noise_type, noise_kwargs, noise_range, action_range)
         agent._noise_helper = noise_helper
 
         def noise_wrapper(forward_fn: Callable) -> Callable:
@@ -398,6 +398,7 @@ class ActionNoiseHelper(IAgentStatefulPlugin):
         action += noise
         if self.action_range is not None:
             action = action.clamp(self.action_range['min'], self.action_range['max'])
+            print('clamp', self.action_range)
         return action
 
     def reset(self):
