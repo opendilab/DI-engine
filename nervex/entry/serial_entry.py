@@ -13,9 +13,12 @@ from nervex.policy import create_policy
 from nervex.envs import get_vec_env_setting
 
 
-def main(args):
+def serial_pipeline(args, env_setting=None, policy_type=None):
     cfg = read_config(args.config_path)
-    env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
+    if env_setting is None:
+        env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
+    else:
+        env_fn, actor_env_cfg, evaluator_env_cfg = env_setting
     env_manager_type = BaseEnvManager if cfg.env.env_manager_type == 'base' else SubprocessEnvManager
     actor_env = env_manager_type(env_fn=env_fn, env_cfg=actor_env_cfg, env_num=len(actor_env_cfg))
     evaluator_env = env_manager_type(env_fn, env_cfg=evaluator_env_cfg, env_num=len(evaluator_env_cfg))
@@ -27,7 +30,7 @@ def main(args):
     if torch.cuda.is_available():
         torch.cuda.manual_seed(args.seed)
     # create component
-    policy = create_policy(cfg.policy)
+    policy = create_policy(cfg.policy) if policy_type is None else policy_type(cfg.policy)
     learner = BaseLearner(cfg)
     actor = BaseSerialActor(cfg.actor)
     evaluator = BaseSerialEvaluator(cfg.evaluator)
@@ -70,4 +73,4 @@ if __name__ == "__main__":
     parser.add_argument('--config_path', default=None)
     parser.add_argument('--seed', default=0)
     args = parser.parse_known_args()[0]
-    main(args)
+    serial_pipeline(args)

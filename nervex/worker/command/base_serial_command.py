@@ -1,8 +1,12 @@
 class BaseSerialCommand(object):
 
     def __init__(
-            self, cfg: dict, learner: 'BaseLearner', actor: 'BaseSerialActor',  # noqa
-            evaluator: 'BaseSerialEvaluator', replay_buffer: 'ReplayBuffer'  # noqa
+            self,
+            cfg: dict,
+            learner: 'BaseLearner',  # noqa
+            actor: 'BaseSerialActor',  # noqa
+            evaluator: 'BaseSerialEvaluator',  # noqa
+            replay_buffer: 'ReplayBuffer'  # noqa
     ) -> None:
         self._cfg = cfg
         self._learner = learner
