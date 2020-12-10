@@ -1,6 +1,7 @@
 import sys
 import copy
 import time
+from typing import Union, Optional
 import numpy as np
 import torch
 
@@ -12,8 +13,14 @@ from nervex.policy import create_policy
 from nervex.envs import get_vec_env_setting
 
 
-def serial_pipeline(config_path, seed, env_setting=None, policy_type=None):
-    cfg = read_config(config_path)
+def serial_pipeline(
+        cfg: Union[str, dict],
+        seed: int,
+        env_setting: Optional['BaseEnv'] = None,  # noqa
+        policy_type: Optional['Policy'] = None  # noqa
+) -> None:
+    if isinstance(cfg, str):
+        cfg = read_config(cfg)
     if env_setting is None:
         env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     else:
