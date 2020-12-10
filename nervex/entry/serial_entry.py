@@ -43,14 +43,16 @@ def main(args):
     learner.launch()
     # main loop
     iter_count = 0
+    n_step = cfg.policy.learn.batch_size if iter_count == 0 else cfg.actor.n_step
     while True:
         command.step()
-        new_data = actor.generate_data()
+        new_data = actor.generate_data(n_step=n_step)
         replay_buffer.push_data(new_data)
         train_data = replay_buffer.sample(cfg.policy.learn.batch_size)
         learner.train(train_data)
         if (iter_count + 1) % cfg.evaluator.eval_freq == 0 and evaluator.eval():
             learner.save_checkpoint()
+            print("Your RL agent is converged, you can refer to 'log/evaluator.txt' for details")
             break
         if cfg.policy.on_policy:
             replay_buffer.clear()

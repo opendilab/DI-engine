@@ -3,9 +3,10 @@ common:
     save_path: '.'
     load_path: ''
 env:
+    env_manager_type: 'base'  # [base, subprocess]
     import_names: ['app_zoo.classic_control.cartpole.envs.cartpole_env']
     env_type: 'cartpole'
-    actor_env_num: 10
+    actor_env_num: 8
     evaluator_env_num: 5
 policy:
     use_cuda: False
@@ -19,30 +20,32 @@ policy:
         dueling: True
     learn:
         batch_size: 64
-        learning_rate: 0.0001
+        learning_rate: 0.001
         weight_decay: 0.0
         algo:
-            target_update_freq: 200
-            discount_factor: 0.99
+            target_update_freq: 100
+            discount_factor: 0.95
     collect:
-        get_traj_length: 4
-    control:
+        get_traj_length: 1
+    command:
         eps:
             type: 'exp'
             start: 0.95
-            end: 0.05
+            end: 0.1
             decay: 10000
 replay_buffer:
     meta_maxlen: 100000
     max_reuse: 100
     unroll_len: 1
+    min_sample_ratio: 1
 actor:
-    n_step: 128
+    n_step: 8
     traj_print_freq: 100
+    collect_print_freq: 100
 evaluator:
     n_episode: 5
     eval_freq: 200
-    stop_val: 39 # 195//5
+    stop_val: 195
 learner:
     hook:
         log_show:
@@ -51,4 +54,6 @@ learner:
             priority: 20
             position: after_iter
             ext_args:
-                freq: 200
+                freq: 100
+command:
+    placehoolder: 'placehoolder'

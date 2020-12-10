@@ -12,6 +12,7 @@ class BaseSerialActor(object):
         self._default_n_episode = cfg.get('n_episode', None)
         self._default_n_step = cfg.get('n_step', None)
         self._traj_print_freq = cfg.traj_print_freq
+        self._collect_print_freq = cfg.collect_print_freq
         self._logger, _ = build_logger_naive(path='./log', name='actor')
         self._timer = EasyTimer()
         self._cfg = cfg
@@ -39,6 +40,7 @@ class BaseSerialActor(object):
         self._obs_pool = CachePool('obs', self._env_num)
         self._policy_output_pool = CachePool('policy_output', self._env_num)
         self._transition_buffer = TransitionBuffer(self._env_num)
+        self._total_step_count = 0
 
     def generate_data(self, n_episode: Optional[int] = None, n_step: Optional[int] = None) -> List[Any]:
         assert n_episode is None or n_step is None, "n_episode and n_step can't be not None at the same time"
@@ -103,19 +105,21 @@ class BaseSerialActor(object):
                             self._logger.info("env {} get new traj, collected traj: {}".format(env_id, traj_count))
                     step_count += 1
         duration = self._timer.value
-        info = {
-            'episode_count': episode_count,
-            'step_count': step_count,
-            'traj_count': traj_count,
-            'avg_step_per_episode': step_count / max(1, episode_count),
-            'avg_traj_per_epsiode': traj_count / max(1, episode_count),
-            'avg_time_per_step': duration / (step_count + 1e-8),
-            'avg_time_per_traj': duration / (traj_count + 1e-8),
-            'avg_time_per_episode': duration / max(1, episode_count),
-            'reward_mean': np.mean(episode_reward) if len(episode_reward) > 0 else 0.,
-            'reward_std': np.std(episode_reward) if len(episode_reward) > 0 else 0.,
-        }
-        self._logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
+        if (self._total_step_count + 1) % self._collect_print_freq == 0:
+            info = {
+                'episode_count': episode_count,
+                'step_count': step_count,
+                'traj_count': traj_count,
+                'avg_step_per_episode': step_count / max(1, episode_count),
+                'avg_traj_per_epsiode': traj_count / max(1, episode_count),
+                'avg_time_per_step': duration / (step_count + 1e-8),
+                'avg_time_per_traj': duration / (traj_count + 1e-8),
+                'avg_time_per_episode': duration / max(1, episode_count),
+                'reward_mean': np.mean(episode_reward) if len(episode_reward) > 0 else 0.,
+                'reward_std': np.std(episode_reward) if len(episode_reward) > 0 else 0.,
+            }
+            self._logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
+        self._total_step_count += 1
         return return_data
 
 
