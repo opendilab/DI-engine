@@ -274,6 +274,15 @@ class BaseLearner(ABC):
         idx = names.index('save_ckpt_after_run')
         self._hooks['after_run'][idx](self)
 
+    def get_current_info(self) -> dict:
+        """
+        Overview:
+            get current info dict, which will be sent to command for some operation, such as hyper-parameter adjustment
+        Returns:
+            info (:obj:`dict`): current info dict
+        """
+        return {'learner_step': self._last_iter.val}
+
     @property
     def last_iter(self) -> CountVar:
         return self._last_iter

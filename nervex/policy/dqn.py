@@ -25,6 +25,7 @@ class DQNPolicy(CommonPolicy):
         self._agent.target_mode(train=True)
         self._agent.reset()
         self._agent.target_reset()
+        self._learn_setting_set = {}
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         # forward
@@ -45,11 +46,11 @@ class DQNPolicy(CommonPolicy):
 
     def _init_collect(self) -> None:
         self._get_traj_length = self._cfg.collect.get_traj_length
-        self._eps = self._cfg.collect.get('eps', 0.9)
         self._collect_agent = Agent(self._model)
         self._collect_agent.add_plugin('main', 'eps_greedy_sample')
         self._collect_agent.add_plugin('main', 'grad', enable_grad=False)
         self._collect_agent.reset()
+        self._collect_setting_set = {'eps'}
 
     def _forward_collect(self, data: dict) -> dict:
         self._collect_agent.mode(train=False)
@@ -72,6 +73,7 @@ class DQNPolicy(CommonPolicy):
         self._eval_agent.add_plugin('main', 'argmax_sample')
         self._eval_agent.add_plugin('main', 'grad', enable_grad=False)
         self._eval_agent.reset()
+        self._eval_setting_set = {}
 
     def _forward_eval(self, data: dict) -> dict:
         self._eval_agent.mode(train=False)
@@ -79,12 +81,13 @@ class DQNPolicy(CommonPolicy):
         self._eval_agent.mode(train=True)
         return output
 
-    def _init_control(self) -> None:
-        eps_cfg = self._cfg.control.eps
+    def _init_command(self) -> None:
+        eps_cfg = self._cfg.command.eps
         self.epsilon_greedy = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
 
-    def _get_setting_collect(self) -> dict:
-        return {'eps': self.epsilon_greedy(self.learn_step)}
+    def _get_setting_collect(self, command_info: dict) -> dict:
+        learner_step = command_info['learner_step']
+        return {'eps': self.epsilon_greedy(learner_step)}
 
     def _create_model_from_cfg(self, cfg: dict) -> torch.nn.Module:
         return FCDiscreteNet(**cfg.model)

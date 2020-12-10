@@ -26,11 +26,6 @@ learner:
 #            position: after_iter
 #            ext_args:
 #                freq: 5
-        save_ckpt_after_run:
-            name: save_ckpt_after_run
-            type: save_ckpt
-            priority: 20
-            position: after_run
         log_show:
             name: log_show
             type: log_show
@@ -38,6 +33,11 @@ learner:
             position: after_iter
             ext_args:
                 freq: 1
+        save_ckpt_after_run:
+            name: save_ckpt_after_run
+            type: save_ckpt
+            priority: 20
+            position: after_run
     communication:
         type: 'single_machine'  # ['single_machine', 'flask_fs']
         upstream_ip: 127.0.0.1

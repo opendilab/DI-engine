@@ -5,7 +5,8 @@ import argparse
 import numpy as np
 import torch
 
-from nervex.worker import SubprocessEnvManager, BaseLearner, BaseSerialActor, BaseSerialEvaluator
+from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommand
+from nervex.worker import BaseEnvManager, SubprocessEnvManager
 from nervex.utils import read_config
 from nervex.data import ReplayBuffer
 from nervex.policy import create_policy
@@ -15,8 +16,9 @@ from nervex.envs import get_vec_env_setting
 def main(args):
     cfg = read_config(args.config_path)
     env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
-    actor_env = SubprocessEnvManager(env_fn=env_fn, env_cfg=actor_env_cfg, env_num=len(actor_env_cfg))
-    evaluator_env = SubprocessEnvManager(env_fn, env_cfg=evaluator_env_cfg, env_num=len(evaluator_env_cfg))
+    env_manager_type = BaseEnvManager if cfg.env.env_manager_type == 'base' else SubprocessEnvManager
+    actor_env = env_manager_type(env_fn=env_fn, env_cfg=actor_env_cfg, env_num=len(actor_env_cfg))
+    evaluator_env = env_manager_type(env_fn, env_cfg=evaluator_env_cfg, env_num=len(evaluator_env_cfg))
     # seed
     actor_env.seed(args.seed)
     evaluator_env.seed(args.seed)
@@ -26,19 +28,23 @@ def main(args):
         torch.cuda.manual_seed(args.seed)
     # create component
     policy = create_policy(cfg.policy)
-    replay_buffer = ReplayBuffer(cfg.replay_buffer)
     learner = BaseLearner(cfg)
     actor = BaseSerialActor(cfg.actor)
     evaluator = BaseSerialEvaluator(cfg.evaluator)
+    replay_buffer = ReplayBuffer(cfg.replay_buffer)
+    command = BaseSerialCommand(cfg.command, learner, actor, evaluator, replay_buffer)
+
     actor.env = actor_env
     evaluator.env = evaluator_env
     learner.policy = policy.learn_mode
     actor.policy = policy.collect_mode
     evaluator.policy = policy.eval_mode
+    command.policy = policy.command_mode
     learner.launch()
     # main loop
     iter_count = 0
     while True:
+        command.step()
         new_data = actor.generate_data()
         replay_buffer.push_data(new_data)
         train_data = replay_buffer.sample(cfg.policy.learn.batch_size)
