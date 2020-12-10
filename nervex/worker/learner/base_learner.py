@@ -78,6 +78,7 @@ class BaseLearner(ABC):
             self._learner_uid = self._learner_worker_uid
         self._default_max_iterations = self._cfg.learner.max_iterations
         self._timer = EasyTimer()
+        self._device = 'cpu'
         # logger
         self._logger, self._tb_logger, self._record = build_logger(self._cfg, rank=self._rank)
         self._log_buffer = build_log_buffer()
@@ -95,7 +96,8 @@ class BaseLearner(ABC):
             launch learner runtime components, each train job means a launch operation,
             job related dataloader, policy and hook support.
         """
-        #self._setup_dataloader()
+        if self._cfg.learner.use_dataloader:
+            self._setup_dataloader()
         assert self._check_policy(), "please set learner policy"
 
         self._last_iter = CountVar(init_val=0)
@@ -190,11 +192,13 @@ class BaseLearner(ABC):
             register the attributes related to policy to record & tb_logger.
         """
         self._record.register_var('cur_lr')
+        self._record.register_var('data_time')
         self._record.register_var('data_preprocess_time')
         self._record.register_var('train_time')
         self._record.register_var('total_loss')
 
         self._tb_logger.register_var('cur_lr')
+        self._tb_logger.register_var('data_time')
         self._tb_logger.register_var('data_preprocess_time')
         self._tb_logger.register_var('train_time')
         self._tb_logger.register_var('total_loss')
