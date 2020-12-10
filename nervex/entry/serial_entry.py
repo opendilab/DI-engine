@@ -1,7 +1,6 @@
 import sys
 import copy
 import time
-import argparse
 import numpy as np
 import torch
 
@@ -13,8 +12,8 @@ from nervex.policy import create_policy
 from nervex.envs import get_vec_env_setting
 
 
-def serial_pipeline(args, env_setting=None, policy_type=None):
-    cfg = read_config(args.config_path)
+def serial_pipeline(config_path, seed, env_setting=None, policy_type=None):
+    cfg = read_config(config_path)
     if env_setting is None:
         env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     else:
@@ -23,12 +22,12 @@ def serial_pipeline(args, env_setting=None, policy_type=None):
     actor_env = env_manager_type(env_fn=env_fn, env_cfg=actor_env_cfg, env_num=len(actor_env_cfg))
     evaluator_env = env_manager_type(env_fn, env_cfg=evaluator_env_cfg, env_num=len(evaluator_env_cfg))
     # seed
-    actor_env.seed(args.seed)
-    evaluator_env.seed(args.seed)
-    np.random.seed(args.seed)
-    torch.manual_seed(args.seed)
+    actor_env.seed(seed)
+    evaluator_env.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
     if torch.cuda.is_available():
-        torch.cuda.manual_seed(args.seed)
+        torch.cuda.manual_seed(seed)
     # create component
     policy = create_policy(cfg.policy) if policy_type is None else policy_type(cfg.policy)
     learner = BaseLearner(cfg)
@@ -66,11 +65,3 @@ def serial_pipeline(args, env_setting=None, policy_type=None):
     learner.close()
     actor.close()
     evaluator.close()
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--config_path', default=None)
-    parser.add_argument('--seed', default=0)
-    args = parser.parse_known_args()[0]
-    serial_pipeline(args)
