@@ -37,15 +37,14 @@ class LoggedModel(metaclass=_LoggedModelMeta):
 
         >>> from nervex.utils.autolog import LoggedValue, LoggedModel
         >>> class AvgList(LoggedModel):
-        >>>     value = LoggedValue('value', float)
+        >>>     value = LoggedValue(float)
         >>>     __property_names = ['value']
         >>>
         >>>     def __init__(self, time_: BaseTime, expire: Union[int, float]):
         >>>         LoggedModel.__init__(self, time_, expire)
         >>>         # attention, original value must be set in __init__ function, or it will not
-        >>>         #be activated, the timeline of this value will also be unexpectedly effected.
+        >>>         # be activated, the timeline of this value will also be unexpectedly affected.
         >>>         self.value = 0.0
-        >>>
         >>>         self.__register()
         >>>
         >>>     def __register(self):

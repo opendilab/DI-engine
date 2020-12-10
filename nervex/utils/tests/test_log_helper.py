@@ -66,7 +66,8 @@ class TestAverageMeter:
 
     def test_logger(self):
         logger, tb_logger, variable_record = build_logger(
-            cfg.common.save_path, name="fake_test", need_tb=True, need_var=True)
+            cfg.common.save_path, name="fake_test", need_tb=True, need_var=True
+        )
         variable_record.register_var("fake_loss")
         variable_record.register_var("fake_reward")
         for i in range(20):

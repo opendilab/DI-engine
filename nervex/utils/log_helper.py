@@ -14,7 +14,7 @@ import numpy as np
 import yaml
 from tabulate import tabulate
 from tensorboardX import SummaryWriter
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple, Union, Dict, List, Any
 
 
 def build_logger(
@@ -22,7 +22,7 @@ def build_logger(
     name: Optional[str] = None,
     need_tb: bool = False,
     need_var: bool = False,
-    log_freq: int = 10,
+    var_len: int = 10,
     text_level: Union[int, str] = logging.INFO
 ) -> Tuple['TextLogger', Optional['TensorBoardLogger'], Optional['VariableRecord']]:  # noqa
     r'''
@@ -35,7 +35,8 @@ def build_logger(
         - name (:obj:`str`): the logger file name
         - need_tb (:obj:`bool`): whether variable record instance would be returned
         - need_var (:obj:`bool`): whether tensorboard logger instance would be returned
-        - log_freq (:obj:`int`): used in ``VariableRecord``, the length to average across, default set to 10
+        - var_len (:obj:`int`): used in ``VariableRecord``, the length of history record to average across, \
+            default set to 10. If use autolog, recommend setting to 1 for unnecessary redundant average smoothing.
         - text_level (:obj:`int` or :obj:`str`): logging level of TextLogger, default set to ``logging.INFO``
     Returns:
         - logger (:obj:`TextLogger`): logger that displays terminal output
@@ -46,7 +47,7 @@ def build_logger(
     '''
     logger = TextLogger(path, name=name)
     tb_logger = TensorBoardLogger(path, name=name) if need_tb else None
-    variable_record = VariableRecord(log_freq) if need_var else None
+    variable_record = VariableRecord(var_len) if need_var else None
     return logger, tb_logger, variable_record
 
 
@@ -72,17 +73,16 @@ class TextLogger(object):
         __init__, info
     """
 
-    def __init__(self, path, name=None, level=logging.INFO):
+    def __init__(self, path: str, name: str = 'default', level: Union[int, str] = logging.INFO) -> None:
         r"""
         Overview:
             initialization method, create logger.
         Arguments:
             - path (:obj:`str`): logger's save dir
-            - name (:obj:`str`): logger's name
+            - name (:obj:`str`): logger's name, default set to 'default'
             - level (:obj:`int` or :obj:`str`): Set the logging level of logger, reference Logger class setLevel method.
         """
-        if name is None:
-            name = 'default_logger'
+        name += '_logger'
         # ensure the path exists
         try:
             os.makedirs(path)
@@ -97,7 +97,8 @@ class TextLogger(object):
         Arguments:
             - name (:obj:`str`): logger's name
             - path (:obj:`str`): logger's save dir
-            - level (:obj:`int` or :obj:`str`): Set the logging level of logger, reference Logger class setLevel method.
+            - level (:obj:`int` or :obj:`str`): used to set the logging level of logger, you can reference \
+                Logger class ``setLevel`` method.
         Returns:
             - (:obj`logging.Logger`): new logging logger
         """
@@ -140,22 +141,19 @@ class TensorBoardLogger(object):
     r"""
     Overview:
         logger that save message to tensorboard
-
     Interface:
         __init__, add_scalar, add_text, add_scalars, add_histogram, add_figure, add_image, add_scalar_list,
         register_var, scalar_var_names
     """
 
-    def __init__(self, path, name=None):
+    def __init__(self, path: str, name: str = 'default') -> None:
         r"""
         Overview:
             initialization method, create logger and set var names.
         Arguments:
             - path (:obj:`str`): logger save dir
-            - name (:obj:`str`): logger name
+            - name (:obj:`str`): logger name, default set to 'default'
         """
-        if name is None:
-            name = 'default'
         name += '_tb_logger'
         self.logger = SummaryWriter(os.path.join(path, name))  # get summary writer
         self._var_names = {
@@ -167,7 +165,7 @@ class TensorBoardLogger(object):
             'image': [],
         }
 
-    def add_scalar(self, name, *args, **kwargs):
+    def add_scalar(self, name: str, *args, **kwargs) -> None:
         r"""
         Overview:
             add message to scalar
@@ -177,7 +175,7 @@ class TensorBoardLogger(object):
         assert (name in self._var_names['scalar'])
         self.logger.add_scalar(name, *args, **kwargs)
 
-    def add_text(self, name, *args, **kwargs):
+    def add_text(self, name: str, *args, **kwargs) -> None:
         r"""
         Overview:
             add message to text
@@ -187,17 +185,17 @@ class TensorBoardLogger(object):
         assert (name in self._var_names['text'])
         self.logger.add_text(name, *args, **kwargs)
 
-    def add_scalars(self, name, *args, **kwargs):
+    def add_scalars(self, name: str, *args, **kwargs) -> None:
         r"""
         Overview:
-            add message to scalars
+            add messages to scalar
         Arguments:
             - name (:obj:`str`): name to add which in self._var_names['scalars']
         """
         assert (name in self._var_names['scalars'])
         self.logger.add_scalars(name, *args, **kwargs)
 
-    def add_histogram(self, name, *args, **kwargs):
+    def add_histogram(self, name: str, *args, **kwargs) -> None:
         r"""
         Overview:
             add message to histogram
@@ -207,7 +205,7 @@ class TensorBoardLogger(object):
         assert (name in self._var_names['histogram'])
         self.logger.add_histogram(name, *args, **kwargs)
 
-    def add_figure(self, name, *args, **kwargs):
+    def add_figure(self, name: str, *args, **kwargs) -> None:
         r"""
         Overview:
             add message to figure
@@ -217,7 +215,7 @@ class TensorBoardLogger(object):
         assert (name in self._var_names['figure'])
         self.logger.add_figure(name, *args, **kwargs)
 
-    def add_image(self, name, *args, **kwargs):
+    def add_image(self, name: str, *args, **kwargs) -> None:
         r"""
         Overview:
             add message to image
@@ -227,7 +225,7 @@ class TensorBoardLogger(object):
         assert (name in self._var_names['image'])
         self.logger.add_image(name, *args, **kwargs)
 
-    def add_val_list(self, val_list, viz_type):
+    def add_val_list(self, val_list, viz_type: str):
         r"""
         Overview:
             add val_list info to tb
@@ -278,8 +276,8 @@ class TensorBoardLogger(object):
 class VariableRecord(object):
     r"""
     Overview:
-        logger that record variable for further process
-
+        A logger that records variable for further process, now supports type ['scalar'].
+        For each scalar var, use ``LoggedModel`` to record and manage.
     Interface:
         __init__, register_var, update_var, get_var_names, get_var_text, get_vars_tb_format, get_vars_text
     """
@@ -294,7 +292,7 @@ class VariableRecord(object):
         self.var_dict = {'scalar': {}}
         self.length = max(length, 10)  # at least average across 10 iteration
 
-    def register_var(self, name, length=None, var_type='scalar'):
+    def register_var(self, name: str, length: Optional[int] = None, var_type: str = 'scalar') -> None:
         r"""
         Overview:
             add var to self_var._names, calculate it's average value
@@ -305,46 +303,54 @@ class VariableRecord(object):
         """
         assert (var_type in ['scalar'])
         lens = self.length if length is None else length
-        self.var_dict[var_type][name] = AverageMeter(lens)
+        self.var_dict[var_type][name] = AverageMeter(lens)  # todo
 
-    def update_var(self, info):
+    def update_var(self, info: Dict[str, Any]) -> None:
         r"""
         Overview:
-            update vars
+            Update vars according to ``info`` dict containing var name and var new value
         Arguments:
-            - info (:obj:`dict`): key is var type and value is the corresponding variable name
+            - info (:obj:`Dict[str, Any]`): key is var name and value is the corresponding value to be updated
         """
         assert isinstance(info, dict)
         for k, v in info.items():
             var_type = self._get_var_type(k)
             self.var_dict[var_type][k].update(v)
 
-    def _get_var_type(self, k):
+    def _get_var_type(self, k: str) -> str:
+        r"""
+        Overview:
+            Find a variable's type according to its name ``k``
+        Arguments:
+            - k (:obj:`str`): a variable's name
+        Returns:
+            - var_type (:obj:`str`): the variable's type in str format
+        """
         for var_type, var_type_dict in self.var_dict.items():
             if k in var_type_dict.keys():
                 return var_type
         raise KeyError("invalid key({}) in variable record".format(k))
 
-    def get_var_names(self, var_type='scalar'):
+    def get_var_names(self, var_type: str = 'scalar') -> List[str]:
         r"""
         Overview:
-            get the corresponding variable names of a certain var_type
+            Get the corresponding variable names of a certain var_type
         Arguments:
             - var_type (:obj:`str`): defalut set to 'scalar', support [scalar']
         Returns:
-            - keys (:obj:`list` of :obj:`str`): the var names of a certain var_type
+            - keys (:obj:`List[str]`): the var name list of the certain ``var_type``
         """
         return self.var_dict[var_type].keys()
 
-    def get_var_text(self, name, var_type='scalar'):
+    def get_var_text(self, name: str, var_type='scalar') -> str:
         r"""
         Overview:
-            get the text discroption of var
+            Get the text discription of one single variable
         Arguments:
             - name (:obj:`str`): name of the var to query
-            - var_type(:obj:`str`): default set to scalar, support ['scalar']
+            - var_type (:obj:`str`): default set to scalar, support ['scalar']
         Returns:
-            - text(:obj:`str`): the corresponding text description
+            - text(:obj:`str`): the corresponding text description of the variable
         """
         assert (var_type in ['scalar'])
         if var_type == 'scalar':
@@ -353,16 +359,41 @@ class VariableRecord(object):
         else:
             raise NotImplementedError
 
-    def get_vars_tb_format(self, keys, cur_step, var_type='scalar', **kwargs):
+    def get_vars_text(self, names: Optional[List[str]] = None, var_type='scalar') -> str:
         r"""
         Overview:
-            get the tb_format description of var
+            Get the text description in tabular form of all vars
+        Arguments:
+            - names (:obj:`List[str]`): names of the vars to query. If you want to query all vars, you can omit this \
+                argument and thus ``need_print`` will be set to True all the time by default.
+            - var_type (:obj:`str`): default set to scalar, support ['scalar']
+        Returns:
+            - ret (:obj:`list` of :obj:`str`): text description in tabular form of all vars
+        """
+        headers = ["Name", "Value", "Avg"]
+        data = []
+        if var_type == 'scalar':
+            for k in self.get_var_names('scalar'):
+                need_print = True if names is None else k in names
+                if need_print:
+                    handle_var = self.var_dict['scalar'][k]
+                    data.append([k, "{:.6f}".format(handle_var.val), "{:.6f}".format(handle_var.avg)])
+            s = "\n" + tabulate(data, headers=headers, tablefmt='grid')
+            return s
+        else:
+            raise NotImplementedError
+
+    def get_vars_tb_format(self, keys: List[str], cur_step: int, var_type: str = 'scalar', **kwargs) -> List[list]:
+        r"""
+        Overview:
+            Get the tensorboard_format description of var
         Arguments:
             - keys (:obj:`list` of :obj:`str`): keys(names) of the var to query
             - cur_step (:obj:`int`): the current step
             - var_type(:obj:`str`): default set to scalar, support support ['scalar']
         Returns:
-            - ret (:obj:`list` of :obj:`list` of :obj:`str`): the list of tb_format info of vars queried
+            - ret (:obj:`List[list]`): a list containing keys length lists, each containing corresponding var's \
+                tb_format info
         """
         assert (var_type in ['scalar'])
         if var_type == 'scalar':
@@ -375,21 +406,6 @@ class VariableRecord(object):
             return ret
         else:
             raise NotImplementedError
-
-    def get_vars_text(self):
-        r"""
-        Overview:
-            get the string description of var
-        Returns:
-            - ret (:obj:`list` of :obj:`str`): the list of text description of vars queried
-        """
-        headers = ["Name", "Value", "Avg"]
-        data = []
-        for k in self.get_var_names('scalar'):
-            handle_var = self.var_dict['scalar'][k]
-            data.append([k, "{:.6f}".format(handle_var.val), "{:.6f}".format(handle_var.avg)])
-        s = "\n" + tabulate(data, headers=headers, tablefmt='grid')
-        return s
 
 
 class AverageMeter(object):
@@ -425,7 +441,7 @@ class AverageMeter(object):
         Overview:
             update AverageMeter class, append the val to the history and calculate the average
         Arguments:
-            - val (:obj:`numbers.Integral` or :obj:`list` or :obj:`numbers.Real` ) : the latest value
+            - val (:obj:`numbers.Integral` or :obj:`list` or :obj:`numbers.Real`): the latest value
         """
         assert (isinstance(val, list) or isinstance(val, numbers.Integral) or isinstance(val, numbers.Real))
         self.history.append(val)

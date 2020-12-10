@@ -7,7 +7,6 @@ import time
 
 from nervex.data.structure import PrioritizedBuffer, Cache
 from nervex.utils import LockContext, LockContextType, read_config, deep_merge_dicts, EasyTimer
-from nervex.torch_utils import build_log_buffer
 from nervex.utils import build_logger, TextLogger, TensorBoardLogger, VariableRecord
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
 
@@ -29,8 +28,6 @@ class NaturalMonitor(LoggedModel):
 
     def __init__(self, time_: 'BaseTime', expire: Union[int, float]):  # noqa
         LoggedModel.__init__(self, time_, expire)
-        self.in_count = 0
-        self.out_count = 0
         self.__register()
 
     def __register(self):
@@ -64,20 +61,14 @@ class OutTickMonitor(LoggedModel):
 
     def __init__(self, time_: 'BaseTime', expire: Union[int, float]):  # noqa
         LoggedModel.__init__(self, time_, expire)
-        self.out_time = 0.0
-        self.reuse_avg = 0.0
-        self.reuse_max = 0
-        self.priority_avg = 0.0
-        self.priority_max = 0.0
-        self.priority_min = 0.0
         self.__register()
 
     def __register(self):
 
         def __avg_func(prop_name: str) -> float:
             records = self.range_values[prop_name]()
-            _sum = sum([_value for (_begin_time, _end_time), _value in records])
-            return _sum / self.expire
+            _list = [_value for (_begin_time, _end_time), _value in records]
+            return sum(_list) / len(_list)
 
         def __max_func(prop_name: str) -> Union[float, int]:
             records = self.range_values[prop_name]()
@@ -117,8 +108,8 @@ class InTickMonitor(LoggedModel):
 
         def __avg_func(prop_name: str) -> float:
             records = self.range_values[prop_name]()
-            _sum = sum([_value for (_begin_time, _end_time), _value in records])
-            return _sum / self.expire
+            _list = [_value for (_begin_time, _end_time), _value in records]
+            return sum(_list) / len(_list)
 
         self.register_attribute_value('thruput', 'in_time', partial(__avg_func, prop_name='in_time'))
 
@@ -160,24 +151,21 @@ class ReplayBuffer:
         self._cache_thread = Thread(target=self._cache2meta)
 
         # monitor & logger
-        self._timer = EasyTimer()  # record in & out time
+        self._timer = EasyTimer()  # to record in & out time
         self._natural_monitor = NaturalMonitor(NaturalTime(), expire=self.cfg.monitor.natural_expire)
         self._out_count = 0
         self._out_tick_time = TickTime()
         self._out_tick_monitor = OutTickMonitor(self._out_tick_time, expire=self.cfg.monitor.tick_expire)
         self._in_count = 0
         self._in_tick_time = TickTime()
-        self._in_tick_monitor = InTickMonitor(self._in_tick_time, expire=10)
-        self._logger = TextLogger(self.cfg.monitor.log_path, name='buffer_logger')
-        self._tb_logger = TensorBoardLogger(self.cfg.monitor.log_path, name='buffer_logger')
-        self._in_record = VariableRecord(self.cfg.monitor.log_freq)
-        self._out_record = VariableRecord(self.cfg.monitor.log_freq)
-        for logger in [self._tb_logger, self._in_record]:
-            for var in ['in_count', 'in_time']:
-                logger.register_var(var)
-        for logger in [self._tb_logger, self._out_record]:
-            for var in ['out_count', 'out_time', 'reuse_avg', 'reuse_max', 'priority_avg', 'priority_max',
-                        'priority_min']:
+        self._in_tick_monitor = InTickMonitor(self._in_tick_time, expire=self.cfg.monitor.tick_expire)
+        self._logger, self._tb_logger, self._record = build_logger(self.cfg.monitor.log_path, 'buffer', True, True, 1)
+        self._in_vars = ['in_count', 'in_time']
+        self._out_vars = [
+            'out_count', 'out_time', 'reuse_avg', 'reuse_max', 'priority_avg', 'priority_max', 'priority_min'
+        ]
+        for logger in [self._tb_logger, self._record]:
+            for var in self._in_vars + self._out_vars:
                 logger.register_var(var)
         self._log_freq = self.cfg.monitor.log_freq
 
@@ -232,14 +220,13 @@ class ReplayBuffer:
             'in_count': self._natural_monitor.thruput['in_count'](),
             'in_time': self._in_tick_monitor.thruput['in_time']()
         }
-        self._in_record.update_var(in_dict)
+        self._record.update_var(in_dict)
         self._in_count += 1
         if self._in_count % self._log_freq == 0:
             self._logger.info("===Add In Buffer {} Times===".format(self._in_count))
-            self._logger.info(self._in_record.get_vars_text())
-            tb_keys = ['in_time', 'in_count']
+            self._logger.info(self._record.get_vars_text(self._in_vars))
             self._tb_logger.add_val_list(
-                self._in_record.get_vars_tb_format(tb_keys, self._in_count, var_type='scalar'), viz_type='scalar'
+                self._record.get_vars_tb_format(self._in_vars, self._in_count, var_type='scalar'), viz_type='scalar'
             )
 
     def sample(self, batch_size: int) -> Optional[list]:
@@ -283,16 +270,13 @@ class ReplayBuffer:
             'priority_max': self._out_tick_monitor.priority['priority_max'](),
             'priority_min': self._out_tick_monitor.priority['priority_min']()
         }
-        self._out_record.update_var(out_dict)
+        self._record.update_var(out_dict)
         self._out_count += 1
         if self._out_count % self._log_freq == 0:
             self._logger.info("===Read Buffer {} Times===".format(self._out_count))
-            self._logger.info(self._out_record.get_vars_text())
-            tb_keys = [
-                'out_count', 'out_time', 'reuse_avg', 'reuse_max', 'priority_avg', 'priority_max', 'priority_min'
-            ]
+            self._logger.info(self._record.get_vars_text(self._out_vars))
             self._tb_logger.add_val_list(
-                self._out_record.get_vars_tb_format(tb_keys, self._in_count, var_type='scalar'), viz_type='scalar'
+                self._record.get_vars_tb_format(self._out_vars, self._in_count, var_type='scalar'), viz_type='scalar'
             )
         return data
 

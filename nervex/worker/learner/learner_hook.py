@@ -234,8 +234,17 @@ class LogShowHook(LearnerHook):
         if engine.rank != 0:  # only show log at rank 0
             engine.log_buffer.clear()  # reset log buffer
             return
-        engine.record.update_var(engine.log_buffer)
+        # log_buffer -> tick_monitor
+        for k, v in engine.log_buffer.items():
+            setattr(engine.monitor, k, v)
+        engine.tick_time.step()
+        var_dict = {}
+        # tick_monitor -> var_record
+        for k in engine.log_buffer:
+            var_dict[k] = engine.monitor.default[k]()
         engine.log_buffer.clear()
+        engine.record.update_var(var_dict)
+
         iters = engine.last_iter.val
         if iters % self._freq == 0:
             engine.info("=== Training Iteration {} Result ===".format(iters))

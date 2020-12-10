@@ -19,8 +19,45 @@ from nervex.utils import deep_merge_dicts
 
 from .comm import LearnerCommHelper
 from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, merge_hooks, LearnerHook
+from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
 
 default_config = read_config(os.path.join(os.path.dirname(__file__), "base_learner_default_config.yaml"))
+
+
+class TickMonitor(LoggedModel):
+    """
+    Overview:
+        TickMonitor is to monitor related info of one training iteration.
+        Info include: cur_lr, time(data, train, forward, backward), loss(total,...)
+    Interface:
+        __init__, fixed_time, current_time, freeze, unfreeze, register_attribute_value, __getattr__
+    Property:
+        time, expire
+    """
+    cur_lr = LoggedValue(float)
+    data_time = LoggedValue(float)
+    train_time = LoggedValue(float)
+    forward_time = LoggedValue(float)
+    backward_time = LoggedValue(float)
+    total_loss = LoggedValue(float)
+
+    def __init__(self, time_: 'BaseTime', expire: Union[int, float]):  # noqa
+        LoggedModel.__init__(self, time_, expire)
+        self.__register()
+
+    def __register(self):
+
+        def __avg_func(prop_name: str) -> float:
+            records = self.range_values[prop_name]()
+            _list = [_value for (_begin_time, _end_time), _value in records]
+            return sum(_list) / len(_list)
+
+        self.register_attribute_value('default', 'cur_lr', partial(__avg_func, prop_name='cur_lr'))
+        self.register_attribute_value('default', 'data_time', partial(__avg_func, prop_name='data_time'))
+        self.register_attribute_value('default', 'train_time', partial(__avg_func, prop_name='train_time'))
+        self.register_attribute_value('default', 'forward_time', partial(__avg_func, prop_name='forward_time'))
+        self.register_attribute_value('default', 'backward_time', partial(__avg_func, prop_name='backward_time'))
+        self.register_attribute_value('default', 'total_loss', partial(__avg_func, prop_name='total_loss'))
 
 
 class BaseLearner(ABC):
@@ -84,12 +121,13 @@ class BaseLearner(ABC):
             self._device = 'cpu'
         self._default_max_iterations = self._cfg.learner.max_iterations
         self._timer = EasyTimer()
-        # logger
+        # monitor & logger
+        self._tick_time = TickTime()
+        self._monitor = TickMonitor(self._tick_time, expire=10)
         # Only rank == 0 learner needs tb_logger and var_record, else only needs text_logger to display terminal output
         need_var, need_tb = (True, True) if self._rank == 0 else (False, False)
         path = os.path.join(self._cfg.common.save_path, 'learner')
-        log_freq = self._cfg.learner.log_freq
-        self._logger, self._tb_logger, self._record = build_logger(path, 'learner', need_tb, need_var, log_freq)
+        self._logger, self._tb_logger, self._record = build_logger(path, 'learner', need_tb, need_var, 1)
         self._log_buffer = build_log_buffer()
         # checkpoint helper
         self._checkpointer_manager = build_checkpoint_helper(self._cfg)
@@ -354,6 +392,14 @@ class BaseLearner(ABC):
     @property
     def agent(self) -> 'BaseAgent':  # noqa
         return self._agent
+
+    @property
+    def tick_time(self) -> TickTime:
+        return self._tick_time
+
+    @property
+    def monitor(self) -> TickMonitor:
+        return self._monitor
 
     @property
     def log_buffer(self) -> dict:  # LogDict
