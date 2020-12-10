@@ -43,5 +43,8 @@ class CommonPolicy(Policy):
     def _get_setting_learn(self) -> dict:
         return {}
 
+    def _get_setting_collect(self) -> dict:
+        return {}
+
     def _get_setting_eval(self) -> dict:
         return {}

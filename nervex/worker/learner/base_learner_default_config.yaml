@@ -9,8 +9,6 @@ learner:
     max_iterations: 10
     unroll_len: 3
     log_freq: 1
-    learning_rate: 0.001
-    weight_decay: 0.0001
     data:
         batch_size: 2
         chunk_size: 2
@@ -28,11 +26,11 @@ learner:
 #            position: after_iter
 #            ext_args:
 #                freq: 5
-#        save_ckpt_after_run:
-#            name: save_ckpt_after_run
-#            type: save_ckpt
-#            priority: 20
-#            position: after_run
+        save_ckpt_after_run:
+            name: save_ckpt_after_run
+            type: save_ckpt
+            priority: 20
+            position: after_run
         log_show:
             name: log_show
             type: log_show

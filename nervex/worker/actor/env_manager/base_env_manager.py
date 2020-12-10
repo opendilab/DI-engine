@@ -102,7 +102,7 @@ class BaseEnvManager(ABC):
 
     def seed(self, seed: List[int]) -> None:
         if isinstance(seed, numbers.Integral):
-            seed = [seed for _ in range(self.env_num)]
+            seed = [seed + i for i in range(self.env_num)]
         self._env_seed = seed
 
     def close(self) -> None:

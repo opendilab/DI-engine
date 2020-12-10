@@ -8,8 +8,7 @@ import torch
 from nervex.worker import SubprocessEnvManager, BaseLearner, BaseSerialActor, BaseSerialEvaluator
 from nervex.utils import read_config
 from nervex.data import ReplayBuffer
-from nervex.model import FCDiscreteNet
-from nervex.policy import DQNPolicy
+from nervex.policy import create_policy
 from nervex.envs import get_vec_env_setting
 
 
@@ -26,11 +25,9 @@ def main(args):
     if torch.cuda.is_available():
         torch.cuda.manual_seed(args.seed)
     # create component
-    e_info = actor_env.env_info()
-    model = FCDiscreteNet(e_info.obs_space.shape, e_info.act_space.shape, cfg.model.embedding_dim)
-    policy = DQNPolicy(cfg.policy, model)
+    policy = create_policy(cfg.policy)
     replay_buffer = ReplayBuffer(cfg.replay_buffer)
-    learner = BaseLearner(cfg.learner)
+    learner = BaseLearner(cfg)
     actor = BaseSerialActor(cfg.actor)
     evaluator = BaseSerialEvaluator(cfg.evaluator)
     actor.env = actor_env
@@ -47,6 +44,7 @@ def main(args):
         train_data = replay_buffer.sample(cfg.policy.learn.batch_size)
         learner.train(train_data)
         if (iter_count + 1) % cfg.evaluator.eval_freq == 0 and evaluator.eval():
+            learner.save_checkpoint()
             break
         if cfg.policy.on_policy:
             replay_buffer.clear()

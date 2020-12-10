@@ -103,8 +103,8 @@ class BaseLearner(ABC):
             self.register_stats()
         self.info(pretty_print({
             "config": self._cfg,
-            "policy": repr(self._policy),
         }, direct_print=False))
+        self.info(self._policy.info())
 
         self._setup_wrapper()
         self._setup_hook()
@@ -175,8 +175,10 @@ class BaseLearner(ABC):
             - data (:obj:`Any`): data used for training
         """
         self.call_hook('before_iter')
-        data = self._policy.data_preprocess(data)
+        with self._timer:
+            data = self._policy.data_preprocess(data)
         log_vars = self._policy.forward(data)
+        log_vars['data_preprocess_time'] = self._timer.value
         self._log_buffer.update(log_vars)
         self.call_hook('after_iter')
         self._last_iter.add(1)
@@ -188,12 +190,12 @@ class BaseLearner(ABC):
             register the attributes related to policy to record & tb_logger.
         """
         self._record.register_var('cur_lr')
-        self._record.register_var('data_time')
+        self._record.register_var('data_preprocess_time')
         self._record.register_var('train_time')
         self._record.register_var('total_loss')
 
         self._tb_logger.register_var('cur_lr')
-        self._tb_logger.register_var('data_time')
+        self._tb_logger.register_var('data_preprocess_time')
         self._tb_logger.register_var('train_time')
         self._tb_logger.register_var('total_loss')
 
@@ -321,11 +323,11 @@ class BaseLearner(ABC):
         return self._use_distributed
 
     @property
-    def policy(self) -> 'BasePolicy':  # noqa
+    def policy(self) -> 'Policy':  # noqa
         return self._policy
 
     @policy.setter
-    def policy(self, _policy: 'BasePolicy') -> None:
+    def policy(self, _policy: 'Policy') -> None:  # noqa
         self._policy = _policy
 
 

@@ -4,8 +4,9 @@ import torch
 
 from nervex.torch_utils import Adam
 from nervex.rl_utils import q_1step_td_data, q_1step_td_error, epsilon_greedy
+from nervex.model import FCDiscreteNet
 from nervex.agent import Agent
-from .base_policy import Policy
+from .base_policy import Policy, register_policy
 from .common_policy import CommonPolicy
 
 
@@ -38,6 +39,7 @@ class DQNPolicy(CommonPolicy):
         # after update
         self._agent.target_update(self._agent.state_dict()['model'])
         return {
+            'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
         }
 
@@ -85,4 +87,7 @@ class DQNPolicy(CommonPolicy):
         return {'eps': self.epsilon_greedy(self.learn_step)}
 
     def _create_model_from_cfg(self, cfg: dict) -> torch.nn.Module:
-        raise NotImplementedError
+        return FCDiscreteNet(**cfg.model)
+
+
+register_policy('dqn', DQNPolicy)

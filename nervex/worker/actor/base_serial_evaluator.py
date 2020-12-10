@@ -85,6 +85,6 @@ class BaseSerialEvaluator(object):
             'reward_std': np.std(episode_reward)
         }
         self._logger.info(
-            "[EVALUATOR]collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()]))
+            "[EVALUATOR]evaluate end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()]))
         )
         return np.mean(episode_reward) >= self._stop_val

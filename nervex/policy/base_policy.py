@@ -3,10 +3,11 @@ from typing import Optional, List, Dict, Any, Tuple, Union
 from collections import namedtuple
 import torch
 from nervex.worker import TransitionBuffer
+from nervex.utils import import_module
 
 
 class Policy(ABC):
-    learn_function = namedtuple('learn_function', ['data_preprocess', 'forward'])
+    learn_function = namedtuple('learn_function', ['data_preprocess', 'forward', 'info', 'state_dict_handle'])
     collect_function = namedtuple(
         'collect_function', [
             'data_preprocess', 'forward', 'data_postprocess', 'process_transition', 'get_trajectory',
@@ -63,7 +64,9 @@ class Policy(ABC):
 
     @property
     def learn_mode(self) -> 'Policy.learn_function':  # noqa
-        return Policy.learn_function(self._data_preprocess_learn, self._forward_learn)
+        return Policy.learn_function(
+            self._data_preprocess_learn, self._forward_learn, self.__repr__, self.state_dict_handle
+        )
 
     @property
     def collect_mode(self) -> 'Policy.collect_function':  # noqa
@@ -84,7 +87,13 @@ class Policy(ABC):
         return Policy.control_function(self._get_setting_learn, self._get_setting_collect, self._get_setting_eval)
 
     def __repr__(self) -> str:
-        return "nerveX DRL Policy"
+        return "nerveX DRL Policy\n{}".format(repr(self._model))
+
+    def state_dict_handle(self) -> dict:
+        state_dict = {'model': self._model}
+        if hasattr(self, '_optimizer'):
+            state_dict['optimizer'] = self._optimizer
+        return state_dict
 
     # *************************************** learn function ************************************
     @abstractmethod
@@ -139,3 +148,20 @@ class Policy(ABC):
     @abstractmethod
     def _get_setting_eval(self) -> dict:
         raise NotImplementedError
+
+
+policy_mapping = {}
+
+
+def create_policy(cfg: dict) -> Policy:
+    import_module(cfg.import_names)
+    if cfg.policy_type not in policy_mapping:
+        raise KeyError("not support policy type: {}".format(cfg.policy_type))
+    else:
+        return policy_mapping[cfg.policy_type](cfg)
+
+
+def register_policy(name: str, policy: type) -> None:
+    assert issubclass(policy, Policy)
+    assert isinstance(name, str)
+    policy_mapping[name] = policy

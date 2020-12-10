@@ -107,10 +107,12 @@ class LoadCkptHook(LearnerHook):
         path = engine.load_path
         if path == '':  # not load
             return
+        policy_handle = engine.policy.state_dict_handle()
+        optimizer = policy_handle.get('optimizer', None)
         engine.checkpoint_manager.load(
             path,
-            model=engine.policy.model,
-            optimizer=engine.policy.optimizer,
+            model=policy_handle['model'],
+            optimizer=optimizer,
             last_iter=engine.last_iter,
             logger_prefix='({})'.format(engine.name),
         )
@@ -155,10 +157,12 @@ class SaveCkptHook(LearnerHook):
                 except FileExistsError:
                     pass
             path = os.path.join(dirname, 'iteration_{}.pth.tar'.format(engine.last_iter.val))
+            policy_handle = engine.policy.state_dict_handle()
+            optimizer = policy_handle.get('optimizer', None)
             engine.checkpoint_manager.save(
                 path,
-                model=engine.policy.model,
-                optimizer=engine.policy.optimizer,
+                model=policy_handle['model'],
+                optimizer=optimizer,
                 last_iter=engine.last_iter,
             )
             engine.info('{} save ckpt in {}'.format(engine.name, path))
