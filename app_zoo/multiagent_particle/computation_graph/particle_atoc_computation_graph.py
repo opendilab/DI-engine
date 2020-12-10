@@ -8,7 +8,7 @@ class ParticleAtocGraph(BaseCompGraph):
 
     def __init__(self, cfg: dict) -> None:
         self._gamma = cfg.atoc.discount_factor
-        self._actor_update_freq = cfg.atoc.get('actor_update_freq', 2)
+        self._actor_update_freq = cfg.atoc.get('actor_update_freq', 3)
         self._forward_cnt = 0
         self._cfg = cfg
 
@@ -17,6 +17,8 @@ class ParticleAtocGraph(BaseCompGraph):
         if (self._forward_cnt + 1) % self._actor_update_freq == 0:
             actor_loss = -agent.forward(data, param={'mode': 'optimize_actor'})['q_value'].mean()
             loss_dict['actor_loss'] = actor_loss
+
+        elif (self._forward_cnt + 2) % self._actor_update_freq == 0:
             actor_attention_loss = agent.forward(
                 data, param={'mode': 'optimize_actor_attention'}
             )['actor_attention_loss'].mean()
