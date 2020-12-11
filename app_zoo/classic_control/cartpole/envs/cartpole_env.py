@@ -1,7 +1,7 @@
-from typing import Any
+from typing import Any, List
 import gym
 import torch
-from nervex.envs import BaseEnv
+from nervex.envs import BaseEnv, register_env
 from nervex.envs.common.env_element import EnvElement
 from nervex.torch_utils import to_tensor
 
@@ -15,6 +15,7 @@ class CartPoleEnv(BaseEnv):
     def reset(self) -> torch.Tensor:
         if hasattr(self, '_seed'):
             self._env.seed(self._seed)
+        self._final_eval_reward = 0
         obs = self._env.reset()
         obs = to_tensor(obs, torch.float)
         return obs
@@ -32,6 +33,9 @@ class CartPoleEnv(BaseEnv):
         obs, rew, done, info = self._env.step(action)
         obs = to_tensor(obs, torch.float)
         rew = to_tensor(rew, torch.float)
+        self._final_eval_reward += rew.item()
+        if done:
+            info['final_eval_reward'] = self._final_eval_reward
         return BaseEnv.timestep(obs, rew, done, info)
 
     def info(self) -> BaseEnv.info_template:
@@ -57,3 +61,16 @@ class CartPoleEnv(BaseEnv):
 
     def __repr__(self) -> str:
         return "nerveX CartPole Env({})".format(self._cfg.env_id)
+
+    @staticmethod
+    def create_actor_env_cfg(cfg: dict) -> List[dict]:
+        actor_env_num = cfg.pop('actor_env_num', 1)
+        return [cfg for _ in range(actor_env_num)]
+
+    @staticmethod
+    def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
+        evaluator_env_num = cfg.pop('evaluator_env_num', 1)
+        return [cfg for _ in range(evaluator_env_num)]
+
+
+register_env('cartpole', CartPoleEnv)

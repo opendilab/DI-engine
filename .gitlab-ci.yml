@@ -37,4 +37,4 @@ test:
   stage: test
   script:
     - pip install -e .
-    - pytest ./nervex ./app_zoo --cov-report term-missing --cov=./nervex -n 8 -sv -m unittest
+    - pytest ./nervex --cov-report term-missing --cov=./nervex -n 8 -sv -m unittest

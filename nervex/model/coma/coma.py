@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from functools import reduce
-from nervex.model import FCDRQN
+from nervex.model import FCRDiscreteNet
 from nervex.torch_utils import one_hot
 from nervex.utils import squeeze, list_split
 
@@ -22,7 +22,7 @@ class ComaActorNetwork(nn.Module):
         self._act_dim = action_dim
         self._embedding_dim = embedding_dim
         # rnn discrete network
-        self._main = FCDRQN(obs_dim, action_dim, embedding_dim)
+        self._main = FCRDiscreteNet(obs_dim, action_dim, embedding_dim)
 
     def forward(self, inputs: Dict) -> Dict:
         agent_state = inputs['obs']['agent_state']

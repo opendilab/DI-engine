@@ -25,6 +25,7 @@ class ReplayBuffer:
         max_reuse = self.cfg.max_reuse if 'max_reuse' in self.cfg.keys() else None
         self.traj_len = cfg.get('traj_len', None)
         self.unroll_len = cfg.get('unroll_len', None)
+        self.use_cache = cfg.get('use_cache', False)
         self._meta_buffer = PrioritizedBuffer(
             maxlen=self.cfg.meta_maxlen,
             max_reuse=max_reuse,
@@ -60,7 +61,10 @@ class ReplayBuffer:
 
         def push(item: dict) -> None:
             if 'data_push_length' not in item.keys():
-                self._cache.push_data(item)
+                if self.use_cache:
+                    self._cache.push_data(item)
+                else:
+                    self._meta_buffer.append(item)
                 return
             data_push_length = item['data_push_length']
             traj_len = self.traj_len if self.traj_len is not None else data_push_length
@@ -71,7 +75,10 @@ class ReplayBuffer:
             for i in range(split_num):
                 split_item[i]['unroll_split_begin'] = i * unroll_len
                 split_item[i]['unroll_len'] = unroll_len
-                self._cache.push_data(split_item[i])
+                if self.use_cache:
+                    self._cache.push_data(split_item[i])
+                else:
+                    self._meta_buffer.append(split_item[i])
 
         if isinstance(data, list):
             for d in data:
@@ -106,14 +113,16 @@ class ReplayBuffer:
         """
         Overview: launch the cache and cache2meta thread
         """
-        self._cache.run()
-        self._cache_thread.start()
+        if self.use_cache:
+            self._cache.run()
+            self._cache_thread.start()
 
     def close(self):
         """
         Overview: shut down the cache gracefully
         """
-        self._cache.close()
+        if self.use_cache:
+            self._cache.close()
 
     @property
     def count(self):
