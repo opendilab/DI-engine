@@ -1,6 +1,7 @@
 from typing import List, Dict, Any, Tuple, Union
 from collections import namedtuple
 import torch
+from easydict import EasyDict
 
 from nervex.torch_utils import Adam
 from nervex.rl_utils import q_1step_td_data, q_1step_td_error, epsilon_greedy
@@ -66,7 +67,7 @@ class DQNPolicy(CommonPolicy):
             'reward': timestep.reward,
             'done': timestep.done,
         }
-        return transition
+        return EasyDict(transition)
 
     def _init_eval(self) -> None:
         self._eval_agent = Agent(self._model)

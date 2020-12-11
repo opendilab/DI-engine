@@ -3,7 +3,7 @@ from .base_policy import Policy
 from nervex.data import default_collate, default_decollate
 from nervex.torch_utils import to_device
 from nervex.worker import TransitionBuffer
-
+from easydict import EasyDict
 
 class CommonPolicy(Policy):
 
@@ -30,11 +30,8 @@ class CommonPolicy(Policy):
         data = default_decollate(data)
         return {i: d for i, d in zip(data_id, data)}
 
-    def _get_trajectory(self, transitions: TransitionBuffer, data_id: int, done: bool) -> Union[None, List[Any]]:
-        if not done and len(transitions[data_id]) < self._get_traj_length:
-            return None
-        else:
-            return transitions[data_id]
+    def _get_trajectory(self, transitions: TransitionBuffer, env_id: int) -> Union[None, List[Any]]:
+        return transitions.get_episode(env_id)
 
     def _callback_episode_done_collect(self, data_id: int) -> None:
         self._collect_agent.reset([data_id])

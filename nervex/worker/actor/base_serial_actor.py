@@ -5,7 +5,6 @@ import numpy as np
 from .env_manager import BaseEnvManager
 from nervex.utils import build_logger_naive, EasyTimer
 
-
 class BaseSerialActor(object):
 
     def __init__(self, cfg: dict) -> None:
@@ -26,6 +25,7 @@ class BaseSerialActor(object):
         self._env = _env
         self._env.launch()
         self._env_num = self._env.env_num
+        self._episode_length = self._env.episode_length
         self.reset()
 
     @property
@@ -39,7 +39,7 @@ class BaseSerialActor(object):
     def reset(self) -> None:
         self._obs_pool = CachePool('obs', self._env_num)
         self._policy_output_pool = CachePool('policy_output', self._env_num)
-        self._transition_buffer = TransitionBuffer(self._env_num)
+        self._transition_buffer = TransitionBuffer(self._env_num, self._episode_length)
         self._total_step_count = 0
 
     def generate_data(self, n_episode: Optional[int] = None, n_step: Optional[int] = None) -> List[Any]:
@@ -97,7 +97,7 @@ class BaseSerialActor(object):
                             )
                         )
                         episode_count += 1
-                    traj = self._policy.get_trajectory(self._transition_buffer, env_id, done=timestep.done)
+                    traj = self._policy.get_trajectory(self._transition_buffer, env_id)
                     if traj is not None:
                         return_data.extend(traj)
                         traj_count += len(traj)
@@ -123,43 +123,50 @@ class BaseSerialActor(object):
         return return_data
 
 
+
 class TransitionBuffer(object):
 
-    def __init__(self, env_num: int):
+    def __init__(self, env_num: int, max_episode_len: int, enforce_padding: Optional[bool] = False, null_transition: Optional[Dict] = {}):
         self._env_num = env_num
         self._buffer = {env_id: [] for env_id in range(env_num)}
-        self. null_transition = {
-                                    'obs': None,
-                                    'next_obs': None,
-                                    'action': None,
-                                    'reward': None,
-                                    'done': None,
-                                }
-    def append(self, env_id: int, transition: dict):
-        self._buffer[env_id].append(transition)
-
-    def get_traj(self, env_id, traj_length, truncate_type = 'abadon'):
-        if self._buffer[env_id][-1].done == False:
-            return None
-        if len(self._buffer[env_id]) < traj_length:
-            return self._buffer[env_id]
-        else:
-            if truncate_type == 'abandon':
-                return self._buffer[env_id]
-            elif truncate_type == 'padding':
-                for _ in range(traj_length-len(self._buffer[env_id])):
-                    self._buffer[env_id].append(self.null_transition)
-                return self._buffer[env_id]
-            elif truncate_type == 'shift':
-                pass
-        
-    def set_null_transition(self, null_transition):
+        self._left_flags = [False for env_id in range(env_num)]
+        self.max_episode_len = max_episode_len
+        self.enforce_padding = enforce_padding
         self.null_transition = null_transition
 
+    def append(self, env_id: int, transition: dict):
+        assert env_id < self._env_num
+        self._buffer[env_id].append(transition)
 
-    def __getitem__(self, env_id: int) -> List[dict]:
-        return self._buffer[env_id]
+    def get_episode(self, env_id: int) -> List[dict]:
+        stored_epi = self._buffer[env_id]
+        left_flag = self._left_flags[env_id]
+        ret_epi = None
 
+        if stored_epi[-1].done: # episode finishes
+            if left_flag: # transitions left from last time, shift the episode to pad
+                ret_epi = copy.deepcopy(stored_epi[-self.max_episode_len:])
+            else: # can't shift to pad
+                ret_epi = copy.deepcopy(stored_epi)
+                if self.enforce_padding: 
+                    ret_epi += [self.null_transition for _ in range(self.max_episode_len - len(stored_epi))]
+            self._buffer[env_id] = []
+            self._left_flags[env_id] = False
+            return ret_epi
+        elif len(stored_epi) == (1 + left_flag)*self.max_episode_len: # enough transitions
+            ret_epi = copy.deepcopy(stored_epi[-self.max_episode_len:])
+            self._buffer[env_id] = ret_epi
+            self._left_flags[env_id] = True
+            return ret_epi
+
+        return None                
+    
+    def get_buffer(self) -> Dict[int, List]:
+        return self._buffer
+
+    def clear(self) -> None:
+        self._buffer.clear()
+        self._left_flags = [False for env_id in range(self._env_num)]    
 
 class CachePool(object):
 
@@ -177,10 +184,3 @@ class CachePool(object):
 
     def __getitem__(self, idx: int) -> Any:
         return self._pool[idx]
-
-
-if __name__ == "__main__":
-    env_num = 10
-    transition_buffer = TransitionBuffer(env_num)
-    transition_buffer.append(env_id=0, transition={})
-    pass

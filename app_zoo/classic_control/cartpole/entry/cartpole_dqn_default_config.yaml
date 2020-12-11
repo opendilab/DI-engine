@@ -8,6 +8,7 @@ env:
     env_type: 'cartpole'
     actor_env_num: 8
     evaluator_env_num: 5
+    episode_length: 256
 policy:
     use_cuda: False
     policy_type: 'dqn'
