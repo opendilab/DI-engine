@@ -1,6 +1,6 @@
 import pytest
 import torch
-from app_zoo.multiagent_particle.envs import ParicleEnv
+from app_zoo.multiagent_particle.envs import ParticleEnv
 
 use_discrete = [True, False]
 
@@ -37,7 +37,7 @@ class TestParticleEnv:
         self.env_test('simple_world_comm', discrete_action, False)
 
     def env_test(self, name, discrete_action, doprint=False):
-        env = ParicleEnv({"env_name": name, "discrete_action": discrete_action})
+        env = ParticleEnv({"env_name": name, "discrete_action": discrete_action})
         if doprint:
             print(env.info())
         obs = env.reset()
