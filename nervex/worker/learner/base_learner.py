@@ -10,16 +10,16 @@ from typing import Any, Union, Callable
 from functools import partial
 from easydict import EasyDict
 import torch
+from collections import namedtuple
 
 from nervex.data import AsyncDataLoader, default_collate
 from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer, to_device
 from nervex.utils import build_logger, dist_init, EasyTimer, dist_finalize, pretty_print, read_config, \
     get_task_uid, import_module, broadcast
 from nervex.utils import deep_merge_dicts
-
+from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
 from .comm import LearnerCommHelper
 from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, merge_hooks, LearnerHook
-from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
 
 default_config = read_config(os.path.join(os.path.dirname(__file__), "base_learner_default_config.yaml"))
 
@@ -52,12 +52,12 @@ class TickMonitor(LoggedModel):
             _list = [_value for (_begin_time, _end_time), _value in records]
             return sum(_list) / len(_list)
 
-        self.register_attribute_value('default', 'cur_lr', partial(__avg_func, prop_name='cur_lr'))
-        self.register_attribute_value('default', 'data_time', partial(__avg_func, prop_name='data_time'))
-        self.register_attribute_value('default', 'train_time', partial(__avg_func, prop_name='train_time'))
-        self.register_attribute_value('default', 'forward_time', partial(__avg_func, prop_name='forward_time'))
-        self.register_attribute_value('default', 'backward_time', partial(__avg_func, prop_name='backward_time'))
-        self.register_attribute_value('default', 'total_loss', partial(__avg_func, prop_name='total_loss'))
+        self.register_attribute_value('avg', 'cur_lr', partial(__avg_func, prop_name='cur_lr'))
+        self.register_attribute_value('avg', 'data_time', partial(__avg_func, prop_name='data_time'))
+        self.register_attribute_value('avg', 'train_time', partial(__avg_func, prop_name='train_time'))
+        self.register_attribute_value('avg', 'forward_time', partial(__avg_func, prop_name='forward_time'))
+        self.register_attribute_value('avg', 'backward_time', partial(__avg_func, prop_name='backward_time'))
+        self.register_attribute_value('avg', 'total_loss', partial(__avg_func, prop_name='total_loss'))
 
 
 class BaseLearner(ABC):
@@ -122,12 +122,11 @@ class BaseLearner(ABC):
         self._default_max_iterations = self._cfg.learner.max_iterations
         self._timer = EasyTimer()
         # monitor & logger
-        self._tick_time = TickTime()
-        self._monitor = TickMonitor(self._tick_time, expire=10)
-        # Only rank == 0 learner needs tb_logger and var_record, else only needs text_logger to display terminal output
-        need_var, need_tb = (True, True) if self._rank == 0 else (False, False)
+        # Only rank == 0 learner needs monitor and tb_logger, else only needs text_logger to display terminal output
+        rank0 = True if self._rank == 0 else False
+        self._monitor = TickMonitor(TickTime(), expire=10) if rank0 else None
         path = os.path.join(self._cfg.common.save_path, 'learner')
-        self._logger, self._tb_logger, self._record = build_logger(path, 'learner', need_tb, need_var, 1)
+        self._logger, self._tb_logger = build_logger(path, 'learner', rank0)
         self._log_buffer = build_log_buffer()
         # checkpoint helper
         self._checkpointer_manager = build_checkpoint_helper(self._cfg)
@@ -179,8 +178,8 @@ class BaseLearner(ABC):
             Setup time_wrapper to get data_time and train_time
         """
         self._wrapper_timer = EasyTimer()
-        self._get_iter_data = self.time_wrapper(self._get_iter_data, 'data_time')
-        self._train = self.time_wrapper(self._train, 'train_time')
+        self._get_iter_data = self.time_wrapper(self._get_iter_data, 'data_time_avg')
+        self._train = self.time_wrapper(self._train, 'train_time_avg')
 
     def time_wrapper(self, fn: Callable, name: str):
         """
@@ -281,19 +280,12 @@ class BaseLearner(ABC):
             register some basic attributes to record & tb_logger(e.g.: cur_lr, data_time, train_time),
             register the attributes related to computation_graph to record & tb_logger.
         """
-        self._record.register_var('cur_lr')
-        self._record.register_var('data_time')
-        self._record.register_var('train_time')
-        self._record.register_var('forward_time')
-        self._record.register_var('backward_time')
-
-        self._tb_logger.register_var('cur_lr')
-        self._tb_logger.register_var('data_time')
-        self._tb_logger.register_var('train_time')
-        self._tb_logger.register_var('forward_time')
-        self._tb_logger.register_var('backward_time')
-
-        self._computation_graph.register_stats(self._record, self._tb_logger)
+        self._tb_logger.register_var('cur_lr_avg')
+        self._tb_logger.register_var('data_time_avg')
+        self._tb_logger.register_var('train_time_avg')
+        self._tb_logger.register_var('forward_time_avg')
+        self._tb_logger.register_var('backward_time_avg')
+        self._computation_graph.register_stats(self._tb_logger)
 
     def register_hook(self, hook: LearnerHook) -> None:
         """
@@ -410,8 +402,12 @@ class BaseLearner(ABC):
         self._log_buffer = _log_buffer
 
     @property
-    def record(self) -> 'VariableRecord':  # noqa
-        return self._record
+    def logger(self) -> 'TextLogger':  # noqa
+        return self._logger
+
+    @property
+    def tb_logger(self) -> 'TensorBoradLogger':  # noqa
+        return self._tb_logger
 
     @property
     def load_path(self) -> str:
@@ -436,10 +432,6 @@ class BaseLearner(ABC):
     @property
     def rank(self) -> int:
         return self._rank
-
-    @property
-    def tb_logger(self) -> 'TensorBoardLogger':  # noqa
-        return self._tb_logger
 
     @property
     def use_distributed(self) -> bool:

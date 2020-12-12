@@ -234,25 +234,23 @@ class LogShowHook(LearnerHook):
         if engine.rank != 0:  # only show log at rank 0
             engine.log_buffer.clear()  # reset log buffer
             return
-        # log_buffer -> tick_monitor
+        # log_buffer -> tick_monitor -> monitor_time.step
         for k, v in engine.log_buffer.items():
             setattr(engine.monitor, k, v)
-        engine.tick_time.step()
-        var_dict = {}
-        # tick_monitor -> var_record
-        for k in engine.log_buffer:
-            var_dict[k] = engine.monitor.default[k]()
-        engine.log_buffer.clear()
-        engine.record.update_var(var_dict)
+        engine.monitor.time.step()
 
         iters = engine.last_iter.val
         if iters % self._freq == 0:
             engine.info("=== Training Iteration {} Result ===".format(iters))
-            engine.info(engine.record.get_vars_text())
-            tb_keys = engine.tb_logger.scalar_var_names
-            engine.tb_logger.add_val_list(
-                engine.record.get_vars_tb_format(tb_keys, iters, var_type='scalar'), viz_type='scalar'
-            )
+            # tick_monitor -> var_dict
+            var_dict = {}
+            for k in engine.log_buffer:
+                for attr in engine.monitor.get_property_attribute(k):
+                    k_attr = k + '_' + attr
+                    var_dict[k_attr] = getattr(engine.monitor, attr)[k]()
+            engine.logger.print_vars(var_dict)
+            engine.tb_logger.print_vars(var_dict, iters, 'scalar')
+        engine.log_buffer.clear()
 
 
 class LogReduceHook(LearnerHook):

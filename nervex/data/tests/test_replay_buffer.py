@@ -4,9 +4,12 @@ import threading
 import time
 from threading import Thread
 from typing import List
-
 import numpy as np
 import pytest
+# import cProfile
+# import pstats
+# import io
+# from pstats import SortKey
 
 from nervex.data import ReplayBuffer
 from nervex.utils import read_config
@@ -93,6 +96,10 @@ class TestReplayBuffer:
             print('[CONSUMER] thread {} iteration {} update finish'.format(id_, iteration))
 
     def test(self, setup_config):
+        # pr = cProfile.Profile()
+        # pr.enable()
+        # # ... do something ...
+
         os.popen('rm -rf buffer*')
         setup_replay_buffer = ReplayBuffer(setup_config.replay_buffer)
         setup_replay_buffer._cache.debug = True
@@ -115,6 +122,14 @@ class TestReplayBuffer:
         time.sleep(1 + 0.5)
         assert (len(threading.enumerate()) <= 3)
         os.popen('rm -rf buffer*')
+
+        # pr.disable()
+        # s = io.StringIO()
+        # # sortby = SortKey.CUMULATIVE
+        # # ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+        # ps = pstats.Stats(pr, stream=s)
+        # ps.print_stats()
+        # print(s.getvalue())
 
     def test_push_split(self, setup_config):
         os.popen('rm -rf buffer*')

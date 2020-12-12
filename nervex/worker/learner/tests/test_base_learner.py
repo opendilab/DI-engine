@@ -26,10 +26,8 @@ class FakeLearner(BaseLearner):
                     'total_loss': agent.model(data).mean(),
                 }
 
-            def register_stats(self, record, tb_logger):
-                record.register_var('total_loss')
-
-                tb_logger.register_var('total_loss')
+            def register_stats(self, tb_logger):
+                tb_logger.register_var('total_loss_avg')
 
             def __repr__(self):
                 return 'FakeComputationGraph'

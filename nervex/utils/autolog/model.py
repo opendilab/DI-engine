@@ -128,9 +128,19 @@ class LoggedModel(metaclass=_LoggedModelMeta):
 
         return _func
 
+    def __get_latest_value_func(self, name: str):
+
+        def _func():
+            _records = self.range_values[name]()
+            if len(_records) == 0:
+                raise Exception
+            return _records[-1][1]
+        return _func
+
     def __register_default_funcs(self):
         for name in self.__properties:
             self.register_attribute_value('range_values', name, self.__get_range_values_func(name))
+            self.register_attribute_value('latest_value', name, self.__get_latest_value_func(name))
 
     @property
     def time(self) -> _TimeObjectType:
@@ -233,3 +243,11 @@ class LoggedModel(metaclass=_LoggedModelMeta):
             return _Cls()
         else:
             raise KeyError("Attribute {name} not found.".format(name=repr(attribute_name)))
+
+    def get_property_attribute(self, property_name: str) -> List[str]:
+        _attributes = self.__methods.keys()
+        _ret_attributes = []
+        for _attr, _props in self.__methods.items():
+            if _attr not in ['range_values', 'latest_value'] and property_name in _props:
+                _ret_attributes.append(_attr)
+        return _ret_attributes

@@ -7,7 +7,7 @@ import time
 
 from nervex.data.structure import PrioritizedBuffer, Cache
 from nervex.utils import LockContext, LockContextType, read_config, deep_merge_dicts, EasyTimer
-from nervex.utils import build_logger, TextLogger, TensorBoardLogger, VariableRecord
+from nervex.utils import build_logger
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
 
 default_config = read_config(osp.join(osp.dirname(__file__), 'replay_buffer_default_config.yaml')).replay_buffer
@@ -24,7 +24,8 @@ class NaturalMonitor(LoggedModel):
     """
     in_count = LoggedValue(int)
     out_count = LoggedValue(int)
-    __thruput_property_names = ['in_count', 'out_count']
+
+    # __thruput_property_names = ['in_count', 'out_count']
 
     def __init__(self, time_: 'BaseTime', expire: Union[int, float]):  # noqa
         LoggedModel.__init__(self, time_, expire)
@@ -37,8 +38,8 @@ class NaturalMonitor(LoggedModel):
             _sum = sum([_value for (_begin_time, _end_time), _value in records])
             return _sum / self.expire
 
-        for _prop_name in self.__thruput_property_names:
-            self.register_attribute_value('thruput', _prop_name, partial(__avg_func, prop_name=_prop_name))
+        self.register_attribute_value('avg', 'in_count', partial(__avg_func, prop_name='in_count'))
+        self.register_attribute_value('avg', 'out_count', partial(__avg_func, prop_name='out_count'))
 
 
 class OutTickMonitor(LoggedModel):
@@ -53,11 +54,8 @@ class OutTickMonitor(LoggedModel):
         time, expire
     """
     out_time = LoggedValue(float)
-    reuse_avg = LoggedValue(float)
-    reuse_max = LoggedValue(int)
-    priority_avg = LoggedValue(float)
-    priority_max = LoggedValue(float)
-    priority_min = LoggedValue(float)
+    reuse = LoggedValue(int)
+    priority = LoggedValue(float)
 
     def __init__(self, time_: 'BaseTime', expire: Union[int, float]):  # noqa
         LoggedModel.__init__(self, time_, expire)
@@ -80,12 +78,12 @@ class OutTickMonitor(LoggedModel):
             _list = [_value for (_begin_time, _end_time), _value in records]
             return min(_list)
 
-        self.register_attribute_value('thruput', 'out_time', partial(__avg_func, prop_name='out_time'))
-        self.register_attribute_value('reuse', 'reuse_avg', partial(__avg_func, prop_name='reuse_avg'))
-        self.register_attribute_value('reuse', 'reuse_max', partial(__max_func, prop_name='reuse_avg'))
-        self.register_attribute_value('priority', 'priority_avg', partial(__avg_func, prop_name='priority_avg'))
-        self.register_attribute_value('priority', 'priority_max', partial(__max_func, prop_name='priority_max'))
-        self.register_attribute_value('priority', 'priority_min', partial(__min_func, prop_name='priority_min'))
+        self.register_attribute_value('avg', 'out_time', partial(__avg_func, prop_name='out_time'))
+        self.register_attribute_value('avg', 'reuse', partial(__avg_func, prop_name='reuse'))
+        self.register_attribute_value('max', 'reuse', partial(__max_func, prop_name='reuse'))
+        self.register_attribute_value('avg', 'priority', partial(__avg_func, prop_name='priority'))
+        self.register_attribute_value('max', 'priority', partial(__max_func, prop_name='priority'))
+        self.register_attribute_value('min', 'priority', partial(__min_func, prop_name='priority'))
 
 
 class InTickMonitor(LoggedModel):
@@ -111,7 +109,7 @@ class InTickMonitor(LoggedModel):
             _list = [_value for (_begin_time, _end_time), _value in records]
             return sum(_list) / len(_list)
 
-        self.register_attribute_value('thruput', 'in_time', partial(__avg_func, prop_name='in_time'))
+        self.register_attribute_value('avg', 'in_time', partial(__avg_func, prop_name='in_time'))
 
 
 class ReplayBuffer:
@@ -154,19 +152,16 @@ class ReplayBuffer:
         self._timer = EasyTimer()  # to record in & out time
         self._natural_monitor = NaturalMonitor(NaturalTime(), expire=self.cfg.monitor.natural_expire)
         self._out_count = 0
-        self._out_tick_time = TickTime()
-        self._out_tick_monitor = OutTickMonitor(self._out_tick_time, expire=self.cfg.monitor.tick_expire)
+        self._out_tick_monitor = OutTickMonitor(TickTime(), expire=self.cfg.monitor.tick_expire)
         self._in_count = 0
-        self._in_tick_time = TickTime()
-        self._in_tick_monitor = InTickMonitor(self._in_tick_time, expire=self.cfg.monitor.tick_expire)
-        self._logger, self._tb_logger, self._record = build_logger(self.cfg.monitor.log_path, 'buffer', True, True, 1)
-        self._in_vars = ['in_count', 'in_time']
+        self._in_tick_monitor = InTickMonitor(TickTime(), expire=self.cfg.monitor.tick_expire)
+        self._logger, self._tb_logger = build_logger(self.cfg.monitor.log_path, 'buffer', True)
+        self._in_vars = ['in_count_avg', 'in_time_avg']
         self._out_vars = [
-            'out_count', 'out_time', 'reuse_avg', 'reuse_max', 'priority_avg', 'priority_max', 'priority_min'
+            'out_count_avg', 'out_time_avg', 'reuse_avg', 'reuse_max', 'priority_avg', 'priority_max', 'priority_min'
         ]
-        for logger in [self._tb_logger, self._record]:
-            for var in self._in_vars + self._out_vars:
-                logger.register_var(var)
+        for var in self._in_vars + self._out_vars:
+            self._tb_logger.register_var(var)
         self._log_freq = self.cfg.monitor.log_freq
 
     def _cache2meta(self):
@@ -215,19 +210,16 @@ class ReplayBuffer:
                 self._natural_monitor.in_count = 1
                 push(data)
         self._in_tick_monitor.in_time = self._timer.value
-        self._in_tick_time.step()
+        self._in_tick_monitor.time.step()
         in_dict = {
-            'in_count': self._natural_monitor.thruput['in_count'](),
-            'in_time': self._in_tick_monitor.thruput['in_time']()
+            'in_count_avg': self._natural_monitor.avg['in_count'](),
+            'in_time_avg': self._in_tick_monitor.avg['in_time']()
         }
-        self._record.update_var(in_dict)
         self._in_count += 1
         if self._in_count % self._log_freq == 0:
             self._logger.info("===Add In Buffer {} Times===".format(self._in_count))
-            self._logger.info(self._record.get_vars_text(self._in_vars))
-            self._tb_logger.add_val_list(
-                self._record.get_vars_tb_format(self._in_vars, self._in_count, var_type='scalar'), viz_type='scalar'
-            )
+            self._logger.print_vars(in_dict)
+            self._tb_logger.print_vars(in_dict, self._in_count, 'scalar')
 
     def sample(self, batch_size: int) -> Optional[list]:
         """
@@ -249,35 +241,24 @@ class ReplayBuffer:
         data_count = len(data)
         self._natural_monitor.out_count = data_count
         self._out_tick_monitor.out_time = self._timer.value
-        reuse_list = [a['reuse'] for a in data]
-        reuse_avg, reuse_max = sum(reuse_list) / len(reuse_list), max(reuse_list)
-        assert isinstance(reuse_max, int)
-        priority_list = [a['priority'] for a in data]
-        priority_avg, priority_max, priority_min = sum(priority_list) / len(priority_list), max(priority_list
-                                                                                                ), min(priority_list)
-        self._out_tick_monitor.reuse_avg = reuse_avg
-        self._out_tick_monitor.reuse_max = reuse_max
-        self._out_tick_monitor.priority_avg = priority_avg
-        self._out_tick_monitor.priority_max = priority_max
-        self._out_tick_monitor.priority_min = priority_min
-        self._out_tick_time.step()
+        for a in data:
+            self._out_tick_monitor.reuse = a['reuse']
+            self._out_tick_monitor.priority = a['priority']
+        self._out_tick_monitor.time.step()
         out_dict = {
-            'out_count': self._natural_monitor.thruput['out_count'](),
-            'out_time': self._out_tick_monitor.thruput['out_time'](),
-            'reuse_avg': self._out_tick_monitor.reuse['reuse_avg'](),
-            'reuse_max': self._out_tick_monitor.reuse['reuse_max'](),
-            'priority_avg': self._out_tick_monitor.priority['priority_avg'](),
-            'priority_max': self._out_tick_monitor.priority['priority_max'](),
-            'priority_min': self._out_tick_monitor.priority['priority_min']()
+            'out_count_avg': self._natural_monitor.avg['out_count'](),
+            'out_time_avg': self._out_tick_monitor.avg['out_time'](),
+            'reuse_avg': self._out_tick_monitor.avg['reuse'](),
+            'reuse_max': self._out_tick_monitor.max['reuse'](),
+            'priority_avg': self._out_tick_monitor.avg['priority'](),
+            'priority_max': self._out_tick_monitor.max['priority'](),
+            'priority_min': self._out_tick_monitor.min['priority'](),
         }
-        self._record.update_var(out_dict)
         self._out_count += 1
         if self._out_count % self._log_freq == 0:
             self._logger.info("===Read Buffer {} Times===".format(self._out_count))
-            self._logger.info(self._record.get_vars_text(self._out_vars))
-            self._tb_logger.add_val_list(
-                self._record.get_vars_tb_format(self._out_vars, self._in_count, var_type='scalar'), viz_type='scalar'
-            )
+            self._logger.print_vars(out_dict)
+            self._tb_logger.print_vars(out_dict, self._out_count, 'scalar')
         return data
 
     def update(self, info: dict) -> None:
