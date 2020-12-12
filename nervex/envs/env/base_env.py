@@ -43,11 +43,13 @@ class BaseEnv(ABC):
 
     @staticmethod
     def create_actor_env_cfg(cfg: dict) -> List[dict]:
-        raise NotImplementedError
+        actor_env_num = cfg.pop('actor_env_num', 1)
+        return [cfg for _ in range(actor_env_num)]
 
     @staticmethod
     def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
-        raise NotImplementedError
+        evaluator_env_num = cfg.pop('evaluator_env_num', 1)
+        return [cfg for _ in range(evaluator_env_num)]
 
 
 env_mapping = {}

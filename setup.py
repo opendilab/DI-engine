@@ -40,7 +40,7 @@ setup(
             include=('app_zoo' 'app_zoo.*')
         ),
     ],
-    package_data={package_name: ['*.yaml'] for package_name in find_packages(include=('nervex.*'))},
+    package_data={package_name: ['*.yaml', '*.xml', '*cfg'] for package_name in find_packages(include=('nervex.*'))},
     install_requires=[
         'absl-py>=0.1.0',
         'future',
