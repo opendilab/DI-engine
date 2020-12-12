@@ -29,6 +29,8 @@ class TickMonitor(LoggedModel):
     Overview:
         TickMonitor is to monitor related info of one training iteration.
         Info include: cur_lr, time(data, train, forward, backward), loss(total,...)
+        These info variables would first be recorded in ``log_buffer``, then in ``LearnerHook`` will vars in
+        in this monitor be updated by``log_buffer``, then printed to ``TextLogger`` and ``TensorBoradLogger``.
     Interface:
         __init__, fixed_time, current_time, freeze, unfreeze, register_attribute_value, __getattr__
     Property:
@@ -178,8 +180,8 @@ class BaseLearner(ABC):
             Setup time_wrapper to get data_time and train_time
         """
         self._wrapper_timer = EasyTimer()
-        self._get_iter_data = self.time_wrapper(self._get_iter_data, 'data_time_avg')
-        self._train = self.time_wrapper(self._train, 'train_time_avg')
+        self._get_iter_data = self.time_wrapper(self._get_iter_data, 'data_time')
+        self._train = self.time_wrapper(self._train, 'train_time')
 
     def time_wrapper(self, fn: Callable, name: str):
         """
@@ -277,8 +279,8 @@ class BaseLearner(ABC):
     def register_stats(self) -> None:
         """
         Overview:
-            register some basic attributes to record & tb_logger(e.g.: cur_lr, data_time, train_time),
-            register the attributes related to computation_graph to record & tb_logger.
+            Register some basic attributes to tb_logger (e.g.: cur_lr, data_time, train_time).
+            Pass tb_logger to computation_graph for more registration.
         """
         self._tb_logger.register_var('cur_lr_avg')
         self._tb_logger.register_var('data_time_avg')

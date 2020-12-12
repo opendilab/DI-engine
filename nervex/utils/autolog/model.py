@@ -89,6 +89,7 @@ class LoggedModel(metaclass=_LoggedModelMeta):
         self.__expire = expire
 
         self.__methods = {}
+        self.__prop2attr = {}  # used to find registerd attributes list according to property name
 
         self.__init_properties()
         self.__register_default_funcs()
@@ -128,19 +129,9 @@ class LoggedModel(metaclass=_LoggedModelMeta):
 
         return _func
 
-    def __get_latest_value_func(self, name: str):
-
-        def _func():
-            _records = self.range_values[name]()
-            if len(_records) == 0:
-                raise Exception
-            return _records[-1][1]
-        return _func
-
     def __register_default_funcs(self):
         for name in self.__properties:
             self.register_attribute_value('range_values', name, self.__get_range_values_func(name))
-            self.register_attribute_value('latest_value', name, self.__get_latest_value_func(name))
 
     @property
     def time(self) -> _TimeObjectType:
@@ -208,6 +199,11 @@ class LoggedModel(metaclass=_LoggedModelMeta):
         """
         self.__methods[attribute_name] = self.__methods.get(attribute_name, {})
         self.__methods[attribute_name][property_name] = value
+        if attribute_name == "range_values":
+            # "range_values" is not added to ``self.__prop2attr``
+            return
+        self.__prop2attr[property_name] = self.__prop2attr.get(property_name, [])
+        self.__prop2attr[property_name].append(attribute_name)
 
     def __getattr__(self, attribute_name: str) -> Any:
         """
@@ -245,9 +241,13 @@ class LoggedModel(metaclass=_LoggedModelMeta):
             raise KeyError("Attribute {name} not found.".format(name=repr(attribute_name)))
 
     def get_property_attribute(self, property_name: str) -> List[str]:
-        _attributes = self.__methods.keys()
-        _ret_attributes = []
-        for _attr, _props in self.__methods.items():
-            if _attr not in ['range_values', 'latest_value'] and property_name in _props:
-                _ret_attributes.append(_attr)
-        return _ret_attributes
+        """
+        Overview:
+            Find all registered attributes (except common "range_values" attribute, since "range_values" is not
+            added to ``self.__prop2attr``) of one given property.
+        Arguments:
+            - property_name (:obj:`str`): name of property to query attributes
+        Returns:
+            - attr_list (:obj:`List[str]`): the registered attributes list of the input property
+        """
+        return self.__prop2attr[property_name]

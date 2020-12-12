@@ -14,8 +14,10 @@ from .comm.actor_comm_helper import ActorCommHelper
 class TickMonitor(LoggedModel):
     """
     Overview:
-        TickMonitor is to monitor related info of one training iteration.
-        Info include: cur_lr, time(data, train, forward, backward), loss(total,...)
+        TickMonitor is to monitor related info of one interation with env.
+        Info include: agent_time, env_time, norm_env_time, timestep_size...
+        These info variables would first be recorded in ``log_buffer``, then in ``self._iter_after_hook`` will vars in
+        in this monitor be updated by``log_buffer``, then printed to ``TextLogger`` and ``TensorBoradLogger``.
     Interface:
         __init__, fixed_time, current_time, freeze, unfreeze, register_attribute_value, __getattr__
     Property:
