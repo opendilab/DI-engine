@@ -14,12 +14,11 @@ class TestATOCNets:
         for _ in range(1):
             data = {'obs': torch.randn(B, A, obs_dim)}
             out = model.forward(data)
-            # print(out)
             assert out['action'].shape == (B, A, act_dim)
-            assert out['groups'].shape == (B, A, A)
+            assert out['group'].shape == (B, A, A)
             loss1 = out['action'].sum()
             # loss2 = out['groups'].sum()
-            # loss3 = out['initator'].sum()
+            # loss3 = out['initiator'].sum()
 
             # fail the is_differentiable judge
             # maybe because the model is not end to end
@@ -43,7 +42,7 @@ class TestATOCNets:
             data = {'obs': torch.randn(B, A, obs_dim), 'action': torch.randn(B, A, act_dim)}
             out = model.forward(data)
             # print(out)
-            assert out['q_value'].shape == (B, A, 1)
+            assert out['q_value'].shape == (B, A)
             loss = out['q_value'].sum()
             if _ == 0:
                 is_differentiable(loss, model)
@@ -57,12 +56,12 @@ class TestATOCNets:
         obs = torch.randn(B, A, obs_dim)
         inputs = {'obs': obs}
         out = model(inputs, mode='compute_q')
-        assert out['q_value'].shape == (B, A, 1)
+        assert out['q_value'].shape == (B, A)
 
-        out = model(inputs, mode='compute_action')
-        assert out['initator_prob'].shape == (B, A, 1)
-        assert out['delta_q'].shape == (B, A, 1)
-        assert out['action'].shape == (B, A, act_dim)
+        out = model(inputs, mode='compute_action', get_delta_q=True)
+        assert out['delta_q'].shape == (B, A)
+        assert out['initiator_prob'].shape == (B, A)
+        assert out['is_initiator'].shape == (B, A)
 
         # test loss backwards
 
@@ -71,12 +70,7 @@ class TestATOCNets:
         weights = dict(model._actor.named_parameters())
         inputs['obs'] = obs
         q_loss = model(inputs, mode='optimize_actor')
-        print("q_loss= ", q_loss['q_value'])
-        print("group = ", q_loss['groups'])
-        print("init_prob", q_loss['initator_prob'])
-        print("is init", q_loss['is_initator'])
         loss = q_loss['q_value'].sum()
-        print(loss)
         # before_update_weights = model._actor.named_parameters()
         # # assert weights == before_update_weights
         # # optimizer.zero_grad()
