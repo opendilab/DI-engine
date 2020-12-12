@@ -1,7 +1,7 @@
 from typing import Any
 import gym
 import torch
-from nervex.envs import BaseEnv
+from nervex.envs import BaseEnv, register_env
 from nervex.envs.common.env_element import EnvElement
 from nervex.torch_utils import to_tensor
 
@@ -17,6 +17,7 @@ class PendulumEnv(BaseEnv):
             self._env.seed(self._seed)
         obs = self._env.reset()
         obs = to_tensor(obs, torch.float)
+        self._final_eval_reward = 0.
         return obs
 
     def close(self) -> None:
@@ -28,8 +29,11 @@ class PendulumEnv(BaseEnv):
     def step(self, action: torch.Tensor) -> BaseEnv.timestep:
         action = action.numpy()
         obs, rew, done, info = self._env.step(action)
+        self._final_eval_reward += rew
         obs = to_tensor(obs, torch.float)
         rew = to_tensor(rew, torch.float)
+        if done:
+            info['final_eval_reward'] = self._final_eval_reward
         return BaseEnv.timestep(obs, rew, done, info)
 
     def info(self) -> BaseEnv.info_template:
@@ -52,3 +56,6 @@ class PendulumEnv(BaseEnv):
 
     def __repr__(self) -> str:
         return "nerveX Pendulum Env({})".format(self._cfg.env_id)
+
+
+register_env('pendulum', PendulumEnv)

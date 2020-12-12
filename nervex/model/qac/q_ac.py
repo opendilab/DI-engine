@@ -110,3 +110,11 @@ class QAC(QActorCriticBase):
         q = self._critic_forward(state_action_input, single=True)
 
         return {'q_value': q}
+
+    @property
+    def actor(self) -> torch.nn.Module:
+        return self._actor
+
+    @property
+    def critic(self) -> torch.nn.Module:
+        return self._critic

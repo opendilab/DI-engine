@@ -331,7 +331,11 @@ class VariableRecord(object):
         """
         assert isinstance(info, dict)
         for k, v in info.items():
-            var_type = self._get_var_type(k)
+            try:
+                var_type = self._get_var_type(k)
+            except KeyError:
+                self.register_var(k)
+                var_type = 'scalar'
             self.var_dict[var_type][k].update(v)
 
     def _get_var_type(self, k):

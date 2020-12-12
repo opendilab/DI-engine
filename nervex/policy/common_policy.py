@@ -12,7 +12,11 @@ class CommonPolicy(Policy):
         data = default_collate(data)
         if self._use_cuda:
             data = to_device(data, 'cuda')
-        data['done'] = data['done'].float()
+        ignore_done = self._cfg.learn.get('ignore_done', False)
+        if ignore_done:
+            data['done'] = None
+        else:
+            data['done'] = data['done'].float()
         data['weight'] = data.get('weight', None)
         return data
 
@@ -40,11 +44,11 @@ class CommonPolicy(Policy):
         self._collect_agent.reset([data_id])
         return {}
 
-    def _get_setting_learn(self) -> dict:
+    def _get_setting_learn(self, *args, **kwargs) -> dict:
         return {}
 
-    def _get_setting_collect(self) -> dict:
+    def _get_setting_collect(self, *args, **kwargs) -> dict:
         return {}
 
-    def _get_setting_eval(self) -> dict:
+    def _get_setting_eval(self, *args, **kwargs) -> dict:
         return {}
