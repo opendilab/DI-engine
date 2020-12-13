@@ -7,3 +7,4 @@ replay_buffer:
     cache_maxlen: 256
     timeout: 8  # times of the seconds of per learning iteration
     enable_track_used_data: False
+    deepcopy: False

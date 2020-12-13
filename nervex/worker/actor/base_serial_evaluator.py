@@ -51,6 +51,7 @@ class BaseSerialEvaluator(object):
         episode_reward = []
         info = {}
         self.reset()
+        self._policy.reset()
         with self._timer:
             while episode_count < n_episode:
                 obs = self._env.next_obs
@@ -64,7 +65,7 @@ class BaseSerialEvaluator(object):
                 for i, t in timestep.items():
                     if t.done:
                         # env reset is done by env_manager automatically
-                        self._policy.callback_episode_done(i)
+                        self._policy.reset([i])
                         reward = t.info['final_eval_reward']
                         episode_reward.append(reward)
                         self._logger.info(

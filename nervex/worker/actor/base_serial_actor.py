@@ -71,6 +71,7 @@ class BaseSerialActor(object):
         episode_reward = []
         return_data = []
         info = {}
+        self._policy.reset()
         with self._timer:
             while not collect_end_fn(episode_count, traj_count):
                 obs = self._env.next_obs
@@ -88,7 +89,7 @@ class BaseSerialActor(object):
                     self._transition_buffer.append(env_id, transition)
                     if timestep.done:
                         # env reset is done by env_manager automatically
-                        self._policy.callback_episode_done(env_id)
+                        self._policy.reset([env_id])
                         reward = timestep.info['final_eval_reward']
                         episode_reward.append(reward)
                         self._logger.info(
@@ -135,10 +136,17 @@ class TransitionBuffer(object):
     def __getitem__(self, env_id: int) -> List[dict]:
         return self._buffer[env_id]
 
+    def clear(self, env_id: Optional[int] = None):
+        if env_id is None:
+            for k in self._buffer:
+                self._buffer[k].clear()
+        else:
+            self._buffer[env_id].clear()
+
 
 class CachePool(object):
 
-    def __init__(self, name: str, env_num: int, deepcopy: bool = True):
+    def __init__(self, name: str, env_num: int, deepcopy: bool = False):
         self._pool = [None for _ in range(env_num)]
         # TODO(nyz) whether must use deepcopy
         self._deepcopy = deepcopy
