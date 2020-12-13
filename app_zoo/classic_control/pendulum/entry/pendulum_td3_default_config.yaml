@@ -1,41 +1,69 @@
 common:
     name: PendulumDdpgConfig
-    time_wrapper_type: cuda
     save_path: '.'
     load_path: ''
-    algo_type: 'ddpg'
-learner:
-    learner_type: 'pendulum_ddpg'
-    import_names: ['app_zoo.classic_control.pendulum.worker.learner.pendulum_ddpg_learner']
+env:
+    env_manager_type: 'base'  # [base, subprocess]
+    import_names: ['app_zoo.classic_control.pendulum.envs.pendulum_env']
+    env_type: 'pendulum'
+    actor_env_num: 8
+    evaluator_env_num: 8
+policy:
     use_cuda: False
-    use_distributed: False
-    train_step: 1
-    max_iterations: 10000000
-    unroll_len: 1
-    actor_learning_rate: 0.0003
-    critic_learning_rate: 0.001
-    weight_decay: 0.0001
-    data:
-        buffer_length: 20000
-        max_reuse: 1024
-        batch_size: 128
-        chunk_size: 128
-        num_workers: 4
-        sample_ratio: 0.125
-        use_mid_pack: True
-    ddpg:
-        discount_factor: 0.99
-        actor_update_freq: 3
+    policy_type: 'ddpg'
+    import_names: ['nervex.policy.ddpg']
+    on_policy: False
+    model:
+        obs_dim: 3
+        action_dim: 1
+        action_range:
+            min: -2
+            max: 2
         use_twin_critic: True
-        use_noise: True
+    learn:
+        train_step: 1
+        batch_size: 128
+        learning_rate_actor: 0.0005
+        learning_rate_critic: 0.001
+        weight_decay: 0.0001
+        ignore_done: True
+        algo:
+            target_theta: 0.005
+            discount_factor: 0.99
+            actor_update_freq: 1
+            use_twin_critic: True
+            use_noise: True
+            noise_sigma: 0.1
+            noise_range:
+                min: -0.5
+                max: 0.5
+            action_range:
+                min: -2
+                max: 2
+    collect:
+        get_traj_length: 1
+        algo:
+            noise_sigma: 0.2
+            action_range:
+                min: -2
+                max: 2
+    command:
+        placeholder: 'placeholder'
+replay_buffer:
+    meta_maxlen: 20000
+    max_reuse: 1024
+    unroll_len: 1
+    min_sample_ratio: 1
+actor:
+    n_step: 32
+    traj_print_freq: 1000
+    collect_print_freq: 1000
+evaluator:
+    n_episode: 8
+    eval_freq: 1000
+    stop_val: -250
+learner:
     hook:
-        save_ckpt_after_iter:
-            name: save_ckpt_after_iter
-            type: save_ckpt
-            priority: 40
-            position: after_iter
-            ext_args:
-                freq: 50000
         log_show:
             name: log_show
             type: log_show
@@ -43,15 +71,5 @@ learner:
             position: after_iter
             ext_args:
                 freq: 500
-actor:
-    env_num: 8
-    episode_num: 'inf'
-    print_freq: 500
-evaluator:
-    env_num: 4
-    episode_num: 'inf'
-    total_episode_num: 4
-    eval_step: 500
-    stop_val: -250
-env:
+command:
     placeholder: 'placeholder'
