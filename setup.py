@@ -17,41 +17,30 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 description = """nerveX: X-Lab Deep Reinforcement Learning Framework"""
 
 
 setup(
     name='nerveX',
-    version='0.0.2b0',
+    version='0.0.2rc0',
     description='X-Lab Reinforcement Learning Framework',
     long_description=description,
     author='X-Lab',
     license='Apache License, Version 2.0',
     keywords='DRL Framework',
     packages=[
-        'nervex',
-        'nervex.model',
-        'nervex.envs',
-        'nervex.computation_graph',
-        'nervex.utils',
-        'nervex.torch_utils',
-        'nervex.worker',
-        'nervex.rl_utils',
-        'nervex.data',
-        'nervex.system',
-        'nervex.league',
-        'nervex.entry',
-        # application(example)
-        'app_zoo.sumo',
-        'app_zoo.classic_control',
-        'app_zoo.atari',
-        'app_zoo.gfootball',
-        'app_zoo.alphastar',
-        'app_zoo.multiagent_particle',
-        'app_zoo.smac',
+        # framework
+        *find_packages(
+            include=('nervex', "nervex.*")
+        ),
+        # application
+        *find_packages(
+            include=('app_zoo' 'app_zoo.*')
+        ),
     ],
+    package_data={package_name: ['*.yaml', '*.xml', '*cfg'] for package_name in find_packages(include=('nervex.*'))},
     install_requires=[
         'absl-py>=0.1.0',
         'future',
@@ -90,7 +79,13 @@ setup(
         'tabulate',
         'torchvision==0.2.1',
         'sortedcontainers',
+        'click'
     ],
+    entry_points={
+        'console_scripts': [
+            'nervex=nervex.entry.cli:cli'
+        ]
+    },
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',

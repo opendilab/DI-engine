@@ -13,6 +13,8 @@ from nervex.data import default_collate, default_decollate
 from nervex.rl_utils import Adder
 from nervex.torch_utils import to_device, tensor_to_list
 from nervex.utils import get_data_compressor, lists_to_dicts
+from nervex.rl_utils import Adder
+from nervex.agent import Agent
 from nervex.worker.actor import BaseActor
 from nervex.worker.actor.env_manager import SubprocessEnvManager, BaseEnvManager
 from nervex.worker.agent import BaseAgent
@@ -240,7 +242,7 @@ class ZerglingActor(BaseActor):
         """set env_fn"""
         raise NotImplementedError
 
-    def _setup_agent(self) -> BaseAgent:
+    def _setup_agent(self) -> Agent:
         """set agent, load init state_dict, reset"""
         raise NotImplementedError
 

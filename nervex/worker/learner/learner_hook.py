@@ -78,42 +78,6 @@ class LearnerHook(Hook):
         return self._position
 
 
-class LrSchedulerHook(LearnerHook):
-    """
-    Overview:
-        Hook used to set LrScheduler in learner
-    Interfaces:
-        __init__, __call__
-    Property:
-        name, priority, position
-    """
-
-    def __init__(self, *args, ext_args: EasyDict = EasyDict(), **kwargs) -> None:
-        """
-        Overview:
-            init LrSchedulerHook
-        Arguments:
-            - ext_args (:obj:`EasyDict`): extended_args, use ext_args.freq to set lr_freq
-        """
-        super().__init__(*args, **kwargs)
-        if ext_args == {}:
-            self._freq = 1
-        else:
-            self._freq = ext_args.freq
-
-    def __call__(self, engine: 'BaseLearner') -> None:  # noqa
-        """
-        Overview:
-            step the lr_scheduler to get new learning rate in learner
-        Arguments:
-            - engine (:obj:`BaseLearner`): the BaseLearner to use lr_scheduler
-        """
-        if engine.last_iter.val % self._freq == 0:
-            engine.lr_scheduler.step()
-        # for the normal case that all the parameters have the same lr
-        engine.log_buffer['cur_lr'] = engine.lr_scheduler.get_lr()[0]
-
-
 class LoadCkptHook(LearnerHook):
     """
     Overview:
@@ -143,10 +107,12 @@ class LoadCkptHook(LearnerHook):
         path = engine.load_path
         if path == '':  # not load
             return
+        policy_handle = engine.policy.state_dict_handle()
+        optimizer = policy_handle.get('optimizer', None)
         engine.checkpoint_manager.load(
             path,
-            model=engine.agent.model,
-            optimizer=engine.optimizer,
+            model=policy_handle['model'],
+            optimizer=optimizer,
             last_iter=engine.last_iter,
             logger_prefix='({})'.format(engine.name),
         )
@@ -191,10 +157,12 @@ class SaveCkptHook(LearnerHook):
                 except FileExistsError:
                     pass
             path = os.path.join(dirname, 'iteration_{}.pth.tar'.format(engine.last_iter.val))
+            policy_handle = engine.policy.state_dict_handle()
+            optimizer = policy_handle.get('optimizer', None)
             engine.checkpoint_manager.save(
                 path,
-                model=engine.agent.model,
-                optimizer=engine.optimizer,
+                model=policy_handle['model'],
+                optimizer=optimizer,
                 last_iter=engine.last_iter,
             )
             engine.info('{} save ckpt in {}'.format(engine.name, path))
@@ -303,7 +271,6 @@ class LogReduceHook(LearnerHook):
 
 
 hook_mapping = {
-    'lr_scheduler': LrSchedulerHook,
     'load_ckpt': LoadCkptHook,
     'save_ckpt': SaveCkptHook,
     'log_show': LogShowHook,

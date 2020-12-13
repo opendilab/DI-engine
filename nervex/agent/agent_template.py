@@ -2,7 +2,7 @@ import torch
 import copy
 from typing import Any, Optional
 from collections import OrderedDict
-from nervex.worker.agent import BaseAgent, AgentAggregator
+from nervex.agent import BaseAgent, AgentAggregator
 
 
 # ######################## Learner ######################################

@@ -1,0 +1,27 @@
+@startuml
+participant controller
+participant learner
+participant buffer
+participant actor
+participant evaluator
+
+loop
+  autonumber
+  controller -> learner: set_learn_setting
+  controller -> actor: set_collect_setting
+  controller -> evaluator: set_eval_setting
+  actor -> actor : generate_data(steps or episodes)
+  actor -> buffer : push_data
+  buffer -> learner : sample_data
+  learner -> learner : train_some_iteration
+  learner -> controller : update_learner_info
+  evaluator -> evaluator : eval_performance
+  alt eval_performance is ok
+    learner -> learner : save_final_model and exit
+  end
+  alt onpolicy training
+    buffer -> buffer : clear_buffer
+  end
+end
+
+@enduml
