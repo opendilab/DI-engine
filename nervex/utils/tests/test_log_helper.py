@@ -71,9 +71,8 @@ class TestAverageMeter:
         build_logger_naive('.', 'name')
         for i in range(20):
             variable_record.update_var({"fake_loss": i + 1, "fake_reward": i - 1})
-        with pytest.raises(KeyError):
-            variable_record.update_var({"fake_not_registered": 100})
-        assert set(variable_record.get_var_names()) == set(['fake_loss', 'fake_reward'])
+        variable_record.update_var({"fake_not_registered": 100})
+        assert set(variable_record.get_var_names()) == set(['fake_loss', 'fake_reward', "fake_not_registered"])
         assert isinstance(variable_record.get_var_text('fake_loss'), str)
         assert isinstance(variable_record.get_vars_tb_format(['fake_loss'], 10), list)
         assert len(variable_record.get_vars_tb_format(['fake_loss', 'fake_reward'], 10)) == 2
