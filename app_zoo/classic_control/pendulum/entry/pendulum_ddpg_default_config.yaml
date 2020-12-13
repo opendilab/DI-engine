@@ -3,11 +3,11 @@ common:
     save_path: '.'
     load_path: ''
 env:
-    env_manager_type: 'subprocess'  # [base, subprocess]
+    env_manager_type: 'base'  # [base, subprocess]
     import_names: ['app_zoo.classic_control.pendulum.envs.pendulum_env']
     env_type: 'pendulum'
     actor_env_num: 8
-    evaluator_env_num: 4
+    evaluator_env_num: 8
 policy:
     use_cuda: False
     policy_type: 'ddpg'
@@ -21,18 +21,19 @@ policy:
             max: 2
         use_twin_critic: False
     learn:
+        train_step: 1
         batch_size: 128
-        learning_rate_actor: 0.0003
+        learning_rate_actor: 0.0005
         learning_rate_critic: 0.001
         weight_decay: 0.0001
         ignore_done: True
         algo:
             target_theta: 0.005
-            discount_factor: 0.90
-            actor_update_freq: 2
+            discount_factor: 0.99
+            actor_update_freq: 1
             use_twin_critic: False
             use_noise: False
-            noise_sigma: 0.1
+            noise_sigma: 0.2
             noise_range:
                 min: -0.5
                 max: 0.5
@@ -42,28 +43,24 @@ policy:
     collect:
         get_traj_length: 1
         algo:
-            noise_sigma: 0.2
+            noise_sigma: 0.15
             action_range:
                 min: -2
                 max: 2
     command:
-        eps:
-            type: 'exp'
-            start: 0.95
-            end: 0.1
-            decay: 10000
+        placeholder: 'placeholder'
 replay_buffer:
-    meta_maxlen: 100000
-    max_reuse: 100
+    meta_maxlen: 20000
+    max_reuse: 1024
     unroll_len: 1
     min_sample_ratio: 1
 actor:
-    n_step: 8
-    traj_print_freq: 100
-    collect_print_freq: 100
+    n_step: 32
+    traj_print_freq: 1000
+    collect_print_freq: 1000
 evaluator:
-    n_episode: 4
-    eval_freq: 500
+    n_episode: 8
+    eval_freq: 1000
     stop_val: -250
 learner:
     hook:
@@ -75,4 +72,4 @@ learner:
             ext_args:
                 freq: 500
 command:
-    placehoolder: 'placehoolder'
+    placeholder: 'placeholder'

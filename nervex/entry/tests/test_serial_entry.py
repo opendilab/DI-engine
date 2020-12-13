@@ -17,7 +17,7 @@ def test_dqn():
         assert False, "pipeline fail"
 
 
-@pytest.mark.tmp
+@pytest.mark.unittest
 def test_ddpg():
     path = os.path.join(
         os.path.dirname(__file__), '../../../app_zoo/classic_control/pendulum/entry/pendulum_ddpg_default_config.yaml'

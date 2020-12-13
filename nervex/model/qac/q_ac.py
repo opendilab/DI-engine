@@ -47,7 +47,8 @@ class QAC(QActorCriticBase):
             action_range: dict,
             state_action_embedding_dim: int = 64,
             state_embedding_dim: int = 64,
-            use_twin_critic: bool = False
+            use_twin_critic: bool = False,
+            use_backward_hook: bool = False,
     ) -> None:
         super(QAC, self).__init__()
 
@@ -74,7 +75,9 @@ class QAC(QActorCriticBase):
             ]
         )
         self._use_twin_critic = use_twin_critic
-        self._critic[0].register_backward_hook(backward_hook)
+        self._use_backward_hook = use_backward_hook
+        if self._use_backward_hook:
+            self._critic[0].register_backward_hook(backward_hook)
 
     def _critic_forward(self, x: torch.Tensor, single: bool = False) -> Union[List[torch.Tensor], torch.Tensor]:
         if self._use_twin_critic and not single:
@@ -105,8 +108,9 @@ class QAC(QActorCriticBase):
             action = action.unsqueeze(1)
         state_action_input = torch.cat([state_input, action], dim=1)
 
-        for p in self._critic[0].parameters():
-            p.requires_grad = False  # will set True when backward_hook called
+        if self._use_backward_hook:
+            for p in self._critic[0].parameters():
+                p.requires_grad = False  # will set True when backward_hook called
         q = self._critic_forward(state_action_input, single=True)
 
         return {'q_value': q}

@@ -57,4 +57,4 @@ learner:
             ext_args:
                 freq: 100
 command:
-    placehoolder: 'placehoolder'
+    placeholder: 'placeholder'

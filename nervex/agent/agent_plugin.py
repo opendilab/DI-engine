@@ -398,7 +398,6 @@ class ActionNoiseHelper(IAgentStatefulPlugin):
         action += noise
         if self.action_range is not None:
             action = action.clamp(self.action_range['min'], self.action_range['max'])
-            print('clamp', self.action_range)
         return action
 
     def reset(self):

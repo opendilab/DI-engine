@@ -39,7 +39,8 @@ class TestQAC:
                 },
                 state_action_embedding_dim=embedding_dim,
                 state_embedding_dim=embedding_dim,
-                use_twin_critic=twin
+                use_twin_critic=twin,
+                use_backward_hook=True,
             )
             # compute_q
             q = model(inputs, mode='compute_q')['q_value']
