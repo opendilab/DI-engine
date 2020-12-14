@@ -3,7 +3,7 @@ from typing import Union, Optional
 import torch
 import torch.nn as nn
 
-from nervex.torch_utils import fc_block
+from nervex.torch_utils import fc_block, noise_block
 
 
 class DuelingHead(nn.Module):
@@ -27,7 +27,12 @@ class DuelingHead(nn.Module):
             a_layer_num: int,
             v_layer_num: int,
             activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None
+            norm_type: Optional[str] = None,
+            distribution: bool = False,
+            noise: bool = False,
+            v_min: float = -10,
+            v_max: float = 10,
+            num_atom: int = 51,
     ) -> None:
         r"""
         Overview:
@@ -42,15 +47,30 @@ class DuelingHead(nn.Module):
             - norm_type (:obj:`str`): the type of normalization to use, see nervex.torch_utils.fc_block for more details
         """
         super(DuelingHead, self).__init__()
+        self.noise = noise
+        self.distribution = distribution
+        self.action_dim = action_dim
+        self.num_atom = num_atom
+        if noise:
+            block = noise_block
+        else:
+            block = fc_block
         self.A = [
-            fc_block(hidden_dim, hidden_dim, activation=activation, norm_type=norm_type) for _ in range(a_layer_num)
+            block(hidden_dim, hidden_dim, activation=activation, norm_type=norm_type) for _ in range(a_layer_num)
         ]
         self.V = [
-            fc_block(hidden_dim, hidden_dim, activation=activation, norm_type=norm_type) for _ in range(v_layer_num)
+            block(hidden_dim, hidden_dim, activation=activation, norm_type=norm_type) for _ in range(v_layer_num)
         ]
 
-        self.A += fc_block(hidden_dim, action_dim, activation=None, norm_type=None)
-        self.V += fc_block(hidden_dim, 1, activation=None, norm_type=None)
+        a_out_dim = action_dim
+        v_out_dim = 1
+
+        if self.distribution:
+            a_out_dim *= num_atom
+            v_out_dim *= num_atom
+
+        self.A += block(hidden_dim, a_out_dim, activation=None, norm_type=None)
+        self.V += block(hidden_dim, v_out_dim, activation=None, norm_type=None)
 
         self.A = nn.Sequential(*self.A)
         self.V = nn.Sequential(*self.V)
@@ -66,4 +86,7 @@ class DuelingHead(nn.Module):
         """
         a = self.A(x)
         v = self.V(x)
+        if self.distribution:
+            a = a.view(-1, self.action_dim, self.num_atom)
+            v = v.view(-1, 1, self.num_atom)
         return a - a.mean(dim=-1, keepdim=True) + v

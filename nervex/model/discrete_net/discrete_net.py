@@ -36,6 +36,7 @@ class DiscreteNet(nn.Module):
         super(DiscreteNet, self).__init__()
         encoder_kwargs, lstm_kwargs, head_kwargs = get_kwargs(kwargs)
         self._encoder = Encoder(obs_dim, embedding_dim, **encoder_kwargs)
+        self._use_distribution = head_kwargs.get('distribution', False)
         if lstm_kwargs['lstm_type'] != 'none':
             lstm_kwargs['input_size'] = embedding_dim
             lstm_kwargs['hidden_size'] = embedding_dim
@@ -65,6 +66,9 @@ class DiscreteNet(nn.Module):
             x = x.squeeze(0)
             x = self._head(x)
             return {'logit': x, 'next_state': next_state}
+        # TODO do we need to process distribution here, or we just return the logits
+        # elif self._use_distribution:
+        #     distri = self._head(x)
         else:
             x = self._head(x)
             return {'logit': x}
@@ -156,7 +160,12 @@ class Head(nn.Module):
             input_dim: int,
             dueling: bool = True,
             a_layer_num: int = 1,
-            v_layer_num: int = 1
+            v_layer_num: int = 1,
+            distribution: bool = False,
+            noise: bool = False,
+            v_min: float = -10,
+            v_max: float = 10,
+            num_atom: int = 51,
     ) -> None:
         r"""
         Overview:
@@ -166,13 +175,29 @@ class Head(nn.Module):
                 note that it can be a tuple containing more than one element
             - input_dim (:obj:`int`): input tensor dim of the head
             - dueling (:obj:`bool`): whether to use ``DuelingHead`` or ``nn.Linear``
+            - distribution (:obj:`bool`): whether to return the distribution
+            - v_min (:obj:`bool`): the min clamp value
+            - v_max (:obj:`bool`): the max clamp value
+            - num_atom (:obj:`bool`): the atom_num of distribution
             - a_layer_num (:obj:`int`): the num of layers in ``DuelingHead`` to compute action output
             - v_layer_num (:obj:`int`): the num of layers in ``DuelingHead`` to compute value output
         """
         super(Head, self).__init__()
         self.action_dim = squeeze(action_dim)
         self.dueling = dueling
-        head_fn = partial(DuelingHead, a_layer_num=a_layer_num, v_layer_num=v_layer_num) if dueling else nn.Linear
+        self.distribution = distribution
+        self.num_atom = num_atom
+        self.v_min = v_min
+        self.v_max = v_max
+        head_fn = partial(
+            DuelingHead,
+            a_layer_num=a_layer_num,
+            v_layer_num=v_layer_num,
+            distribution=distribution,
+            v_min=v_min,
+            v_max=v_max,
+            num_atom=num_atom,
+        ) if dueling else nn.Linear
         if isinstance(self.action_dim, tuple):
             self.pred = nn.ModuleList()
             for dim in self.action_dim:
@@ -201,6 +226,16 @@ FCDiscreteNet = partial(
     encoder_kwargs={'encoder_type': 'fc'},
     lstm_kwargs={'lstm_type': 'none'},
     head_kwargs={'dueling': True}
+)
+NoiseDiscreteNet = partial(
+    DiscreteNet,
+    encoder_kwargs={'encoder_type': 'fc'},
+    lstm_kwargs={'lstm_type': 'none'},
+    head_kwargs={
+        'dueling': True,
+        'distribution': True,
+        'noise': True
+    }
 )
 ConvDiscreteNet = partial(
     DiscreteNet,
@@ -274,5 +309,7 @@ def get_kwargs(kwargs: Dict) -> Tuple[Dict]:
             'dueling': kwargs.get('dueling', True),
             'a_layer_num': kwargs.get('a_layer_num', 1),
             'v_layer_num': kwargs.get('v_layer_num', 1),
+            'distribution': kwargs.get('distribution', False),
+            'noise': kwargs.get('noise', False)
         }
     return encoder_kwargs, lstm_kwargs, head_kwargs
