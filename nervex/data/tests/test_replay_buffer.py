@@ -4,9 +4,12 @@ import threading
 import time
 from threading import Thread
 from typing import List
-
 import numpy as np
 import pytest
+# import cProfile
+# import pstats
+# import io
+# from pstats import SortKey
 
 from nervex.data import ReplayBuffer
 from nervex.utils import read_config
@@ -93,6 +96,11 @@ class TestReplayBuffer:
             print('[CONSUMER] thread {} iteration {} update finish'.format(id_, iteration))
 
     def test(self, setup_config):
+        # pr = cProfile.Profile()
+        # pr.enable()
+        # # ... do something ...
+
+        os.popen('rm -rf buffer*')
         setup_replay_buffer = ReplayBuffer(setup_config.replay_buffer)
         setup_replay_buffer._cache.debug = True
         produce_threads = [Thread(target=self.produce, args=(i, setup_replay_buffer)) for i in range(PRODUCER_NUM)]
@@ -112,9 +120,19 @@ class TestReplayBuffer:
         setup_replay_buffer.push_data({'data': np.random.randn(4)})
         setup_replay_buffer.close()
         time.sleep(1 + 0.5)
-        assert (len(threading.enumerate()) <= 2)
+        assert (len(threading.enumerate()) <= 3)
+        os.popen('rm -rf buffer*')
+
+        # pr.disable()
+        # s = io.StringIO()
+        # # sortby = SortKey.CUMULATIVE
+        # # ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+        # ps = pstats.Stats(pr, stream=s)
+        # ps.print_stats()
+        # print(s.getvalue())
 
     def test_push_split(self, setup_config):
+        os.popen('rm -rf buffer*')
         assert all([k not in setup_config.keys() for k in ['traj_len', 'unroll_len']])
         setup_config.replay_buffer.unroll_len = 2
         setup_config.replay_buffer.timeout = 1
@@ -138,3 +156,4 @@ class TestReplayBuffer:
         assert replay_buffer._meta_buffer.validlen == 3 + push_count
 
         replay_buffer.close()
+        os.popen('rm -rf buffer*')

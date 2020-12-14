@@ -2,13 +2,13 @@ common:
     save_path: '.'
     load_path: ''
 learner:
-    learner_type: xx  # placeholder
-    import_names: []  # placeholder
+    learner_type: xx # placeholder
+    import_names: [] # placeholder
     use_cuda: False
     use_distributed: False
     max_iterations: 10
     unroll_len: 3
-    log_freq: 1
+    # log_freq: 1
     learning_rate: 0.001
     weight_decay: 0.0001
     data:
@@ -19,7 +19,7 @@ learner:
         lr_scheduler:
             name: lr_scheduler
             type: lr_scheduler
-            priority: 20  # lower value means higher priority
+            priority: 20 # lower value means higher priority
             position: after_iter
         load_ckpt:
             name: load_ckpt
@@ -46,7 +46,7 @@ learner:
             ext_args:
                 freq: 1
     communication:
-        type: 'single_machine'  # ['single_machine', 'flask_fs']
+        type: 'single_machine' # ['single_machine', 'flask_fs']
         upstream_ip: 127.0.0.1
         upstream_port: 18296
         learner_ip: 127.0.0.1

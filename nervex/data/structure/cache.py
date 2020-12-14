@@ -1,6 +1,7 @@
 import time
 from queue import Queue
 from threading import Thread
+from typing import Any
 
 from nervex.utils import LockContext, LockContextType
 
@@ -8,17 +9,17 @@ from nervex.utils import LockContext, LockContextType
 class Cache:
     r"""
     Overview:
-        data cache for reducing concurrent pressure, with timeout and full queue eject mechanism
+        Data cache for reducing concurrent pressure, with timeout and full queue eject mechanism
     Interface:
         __init__, push_data, get_cached_data_iter, run, close
     Property:
         remain_data_count
     """
 
-    def __init__(self, maxlen, timeout, monitor_interval=1.0, _debug=False):
+    def __init__(self, maxlen: int, timeout: float, monitor_interval: float = 1.0, _debug: bool = False) -> None:
         r"""
         Overview:
-            initialize the cache object
+            Initialize the cache object
         Arguments:
             - maxlen (:obj:`int`): the maximum length of the cache queue
             - timeout (:obj:`float`): the maximum second of the data can remain in the cache
@@ -38,41 +39,41 @@ class Cache:
         # the bool flag for gracefully shutting down the timeout monitor thread
         self._timeout_thread_flag = True
 
-    def push_data(self, data):
+    def push_data(self, data: Any) -> None:
         r"""
         Overview:
-            push data into receive queue, if the receive queue is full(after push), then push all the data
-            into send queue
+            Push data into receive queue, if the receive queue is full(after push), then push all the data
+            in receive queue into send queue
         Arguments:
-            - data (:obj:`T`): the data need to be added into queue
+            - data (:obj:`Any`): the data which needs to be added into queue
 
         .. tip::
             thread-safe
         """
         with self.receive_lock:
-            # record and save the time of the data pushed into queue
+            # push the data item and current time together into queue
             self.receive_queue.put([data, time.time()])
             if self.receive_queue.full():
                 self.dprint('send total receive_queue, current len:{}'.format(self.receive_queue.qsize()))
                 while not self.receive_queue.empty():
                     self.send_queue.put(self.receive_queue.get()[0])  # only send raw data to send queue
 
-    def get_cached_data_iter(self):
+    def get_cached_data_iter(self) -> None:
         r"""
         Overview:
-            get the iterator of the send queue, once a data is pushed into send queue, it can be accessed by
-            this iterator, 'STOP' is the end flag of this iterator
+            Get the iterator of the send queue. Once a data is pushed into send queue, it can be accessed by
+            this iterator. 'STOP' is the end flag of this iterator.
         Returns:
             - iterator (:obj:`callable_iterator`) the send queue iterator
         """
         return iter(self.send_queue.get, 'STOP')
 
-    def _timeout_monitor(self):
+    def _timeout_monitor(self) -> None:
         r"""
         Overview:
             the workflow of the timeout monitor thread
         """
-        while self._timeout_thread_flag:  # loop until the flag is set
+        while self._timeout_thread_flag:  # loop until the flag is set to False
             time.sleep(self.monitor_interval)  # with a fixed check interval
             with self.receive_lock:
                 # for non-empty receive_queue, check the time from the head to the tail(only access no pop) until find
@@ -83,7 +84,7 @@ class Cache:
                     if not is_timeout:
                         break
 
-    def _warn_if_timeout(self):
+    def _warn_if_timeout(self) -> bool:
         r"""
         Overview:
             return whether is timeout
@@ -102,30 +103,30 @@ class Cache:
         else:
             return False
 
-    def run(self):
+    def run(self) -> None:
         r"""
         Overview:
-            launch the cache internal thread, e.g. timeout monitor thread
+            Launch the cache internal thread, e.g. timeout monitor thread
         """
         self._timeout_thread.start()
 
-    def close(self):
+    def close(self) -> None:
         r"""
         Overview:
-            shut down the cache internal thread and send the end flag to send queue iterator
+            Shut down the cache internal thread and send the end flag to send queue's iterator
         """
         self._timeout_thread_flag = False
         self.send_queue.put('STOP')
 
-    def dprint(self, s):
+    def dprint(self, s: str) -> None:
         if self.debug:
             print('[CACHE] ' + s)
 
     @property
-    def remain_data_count(self):
+    def remain_data_count(self) -> int:
         r"""
         Overview:
-            return the remain data count in the receive queue
+            Return receive queue's remain data count
         Returns:
             - count (:obj:`int`) the size of the receive queue
         """
