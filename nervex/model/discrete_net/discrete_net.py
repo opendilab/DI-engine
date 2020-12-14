@@ -193,6 +193,7 @@ class Head(nn.Module):
             a_layer_num=a_layer_num,
             v_layer_num=v_layer_num,
             distribution=distribution,
+            noise=noise,
             v_min=v_min,
             v_max=v_max,
             n_atom=n_atom,

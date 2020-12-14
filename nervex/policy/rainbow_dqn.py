@@ -32,6 +32,8 @@ class RainbowDQNPolicy(DQNPolicy):
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         # forward
+        self._reset_noise(self._agent.model)
+        self._reset_noise(self._agent.target_model)
         q_dist = self._agent.forward(data['obs'])['distribution']
         target_q_dist = self._agent.target_forward(data['next_obs'])['distribution']
         data = dist_1step_td_data(q_dist, target_q_dist, data['action'], data['reward'], data['done'], data['weight'])
@@ -57,6 +59,7 @@ class RainbowDQNPolicy(DQNPolicy):
         self._collect_setting_set = {}
 
     def _forward_collect(self, data: dict) -> dict:
+        self._reset_noise(self._collect_agent.model)
         return self._collect_agent.forward(data)
 
     def _init_command(self) -> None:
@@ -67,6 +70,11 @@ class RainbowDQNPolicy(DQNPolicy):
 
     def _create_model_from_cfg(self, cfg: dict) -> torch.nn.Module:
         return NoiseDistributionFCDiscreteNet(**cfg.model)
+
+    def _reset_noise(self, model: torch.nn.Module):
+        for m in model.modules():
+            if hasattr(m, 'reset_noise'):
+                m.reset_noise()
 
 
 register_policy('rainbow_dqn', RainbowDQNPolicy)
