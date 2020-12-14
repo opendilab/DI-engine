@@ -14,7 +14,7 @@ class BaseEnvManager(ABC):
         if episode_num == 'inf':
             episode_num = float('inf')
         self._epsiode_num = episode_num
-        self._episode_length = self._env_cfg[0]['episode_length']
+        self._traj_length = self._env_cfg[0]['traj_length']
         self._closed = True
         # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
         self._env_ref = self._env_fn(self._env_cfg[0])
@@ -35,8 +35,8 @@ class BaseEnvManager(ABC):
         return self._env_num
 
     @property
-    def episode_length(self) -> int:
-        return self._episode_length
+    def traj_length(self) -> int:
+        return self._traj_length
 
     @property
     def next_obs(self) -> Dict[int, Any]:

@@ -25,7 +25,7 @@ class BaseSerialActor(object):
         self._env = _env
         self._env.launch()
         self._env_num = self._env.env_num
-        self._episode_length = self._env.episode_length
+        self._traj_length = self._env.traj_length
         self.reset()
 
     @property
@@ -39,7 +39,7 @@ class BaseSerialActor(object):
     def reset(self) -> None:
         self._obs_pool = CachePool('obs', self._env_num)
         self._policy_output_pool = CachePool('policy_output', self._env_num)
-        self._transition_buffer = TransitionBuffer(self._env_num, self._episode_length)
+        self._transition_buffer = TransitionBuffer(self._env_num, self._traj_length)
         self._total_step_count = 0
 
     def generate_data(self, n_episode: Optional[int] = None, n_step: Optional[int] = None) -> List[Any]:
@@ -126,11 +126,11 @@ class BaseSerialActor(object):
 
 class TransitionBuffer(object):
 
-    def __init__(self, env_num: int, max_episode_len: int, enforce_padding: Optional[bool] = False, null_transition: Optional[Dict] = {}):
+    def __init__(self, env_num: int, max_traj_len: int, enforce_padding: Optional[bool] = False, null_transition: Optional[Dict] = {}):
         self._env_num = env_num
         self._buffer = {env_id: [] for env_id in range(env_num)}
         self._left_flags = [False for env_id in range(env_num)]
-        self.max_episode_len = max_episode_len
+        self.max_traj_len = max_traj_len
         self.enforce_padding = enforce_padding
         self.null_transition = null_transition
 
@@ -138,30 +138,31 @@ class TransitionBuffer(object):
         assert env_id < self._env_num
         self._buffer[env_id].append(transition)
 
-    def get_episode(self, env_id: int) -> List[dict]:
+    def get_traj(self, env_id: int) -> List[dict]:
         stored_epi = self._buffer[env_id]
         left_flag = self._left_flags[env_id]
         ret_epi = None
 
         if stored_epi[-1].done: # episode finishes
             if left_flag: # transitions left from last time, shift the episode to pad
-                ret_epi = copy.deepcopy(stored_epi[-self.max_episode_len:])
+                ret_epi = copy.deepcopy(stored_epi[-self.max_traj_len:])
             else: # can't shift to pad
                 ret_epi = copy.deepcopy(stored_epi)
                 if self.enforce_padding: 
-                    ret_epi += [self.null_transition for _ in range(self.max_episode_len - len(stored_epi))]
+                    ret_epi += [self.null_transition for _ in range(self.max_traj_len - len(stored_epi))]
             self._buffer[env_id] = []
             self._left_flags[env_id] = False
             return ret_epi
-        elif len(stored_epi) == (1 + left_flag)*self.max_episode_len: # enough transitions
-            ret_epi = copy.deepcopy(stored_epi[-self.max_episode_len:])
+        elif len(stored_epi) >= (1 + left_flag)*self.max_traj_len: # enough transitions
+            ret_epi = copy.deepcopy(stored_epi[-self.max_traj_len:])
             self._buffer[env_id] = ret_epi
             self._left_flags[env_id] = True
             return ret_epi
 
-        return None                
-    
-    def get_buffer(self) -> Dict[int, List]:
+        return None        
+
+    @property
+    def buffer(self) -> Dict[int, List]:
         return self._buffer
 
     def clear(self) -> None:

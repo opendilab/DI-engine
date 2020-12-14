@@ -31,7 +31,7 @@ class CommonPolicy(Policy):
         return {i: d for i, d in zip(data_id, data)}
 
     def _get_trajectory(self, transitions: TransitionBuffer, env_id: int) -> Union[None, List[Any]]:
-        return transitions.get_episode(env_id)
+        return transitions.get_traj(env_id)
 
     def _callback_episode_done_collect(self, data_id: int) -> None:
         self._collect_agent.reset([data_id])
