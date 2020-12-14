@@ -54,9 +54,11 @@ def serial_pipeline(
     iter_count = 0
     while True:
         command.step()
-        n_step = cfg.policy.learn.batch_size if iter_count == 0 else cfg.actor.n_step
-        new_data = actor.generate_data(n_step=n_step)
-        replay_buffer.push_data(new_data)
+        while True:
+            new_data = actor.generate_data()
+            replay_buffer.push_data(new_data)
+            if replay_buffer.count >= cfg.policy.learn.batch_size * cfg.replay_buffer.min_sample_ratio:
+                break
         for _ in range(cfg.policy.learn.train_step):
             train_data = replay_buffer.sample(cfg.policy.learn.batch_size)
             learner.train(train_data)

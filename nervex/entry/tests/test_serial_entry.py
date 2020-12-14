@@ -39,3 +39,15 @@ def test_td3():
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
+def test_a2c():
+    path = os.path.join(
+        os.path.dirname(__file__), '../../../app_zoo/classic_control/cartpole/entry/cartpole_a2c_default_config.yaml'
+    )
+    config = read_config(path)
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
