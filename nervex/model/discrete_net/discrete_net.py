@@ -66,9 +66,23 @@ class DiscreteNet(nn.Module):
             x = x.squeeze(0)
             x = self._head(x)
             return {'logit': x, 'next_state': next_state}
-        # TODO do we need to process distribution here, or we just return the logits
-        # elif self._use_distribution:
-        #     distri = self._head(x)
+        # do we need to process distribution here, or we just return the logits
+        elif self._use_distribution:
+            x = self._head(x)
+            action = None
+            v_min = self._head.v_min
+            v_max = self._head.v_max
+            num_atom = self._head.num_atom
+            if not isinstance(x, list):
+                dist = x * torch.linspace(v_min, v_max, num_atom)
+                action = dist.sum(2).max(1).indices
+            else:
+                action = []
+                for x_ in x:
+                    dist = x_ * torch.linspace(v_min, v_max, num_atom)
+                    act = dist.sum(2).max(1).indices
+                    action.append(act)
+            return {'logit': x, 'action': action}
         else:
             x = self._head(x)
             return {'logit': x}
