@@ -6,6 +6,7 @@ from typing import NoReturn, Union
 import torch
 from pathlib import Path
 import io
+import time
 
 from .import_helper import try_import_ceph, try_import_redis, try_import_rediscluster, try_import_mc
 from .lock_helper import get_rw_lock
@@ -118,16 +119,20 @@ def read_from_mc(path: str, flush=False) -> object:
     """
     global mclient
     _ensure_memcached()
-    value = mc.pyvector()
-    if flush:
-        mclient.Get(path, value, mc.MC_READ_THROUGH)
-    else:
-        mclient.Get(path, value)
-    value_buf = mc.ConvertBuffer(value)
-    value_str = io.BytesIO(value_buf)
-    value_str = torch.load(value_str)
-
-    return value_str
+    while True:
+        try:
+            value = mc.pyvector()
+            if flush:
+                mclient.Get(path, value, mc.MC_READ_THROUGH)
+            else:
+                mclient.Get(path, value)
+            value_buf = mc.ConvertBuffer(value)
+            value_str = io.BytesIO(value_buf)
+            value_str = torch.load(value_str)
+            return value_str
+        except:
+            print('read mc failed, retry...')
+            time.sleep(0.01)
 
 
 def read_from_path(path: str):
