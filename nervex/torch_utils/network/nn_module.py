@@ -465,11 +465,11 @@ class NoiseLinearLayer(nn.Module):
         self.weight_sigma = nn.Parameter(torch.Tensor(out_channels, in_channels))
         self.bias_mu = nn.Parameter(torch.Tensor(out_channels))
         self.bias_sigma = nn.Parameter(torch.Tensor(out_channels))
+        self.register_buffer("weight_epsilon", torch.empty(out_channels, in_channels))
+        self.register_buffer("bias_epsilon", torch.empty(out_channels))
         self.sigma0 = sigma0
         self.reset_parameters()
 
-        self.in_noise = torch.FloatTensor(in_channels)
-        self.out_noise = torch.FloatTensor(out_channels)
         self.reset_noise()
 
     def _scale_noise(self, size: Union[int, Tuple]):
@@ -478,10 +478,10 @@ class NoiseLinearLayer(nn.Module):
         return x
 
     def reset_noise(self):
-        self.in_noise = self._scale_noise(self.in_channels)
-        self.out_noise = self._scale_noise(self.out_channels)
-        self.weight_eps = self.out_noise.ger(self.in_noise) 
-        self.bias_eps = self.out_noise
+        in_noise = self._scale_noise(self.in_channels)
+        out_noise = self._scale_noise(self.out_channels)
+        self.weight_eps = out_noise.ger(in_noise)
+        self.bias_eps = out_noise
 
     def reset_parameters(self):
         stdv = 1. / math.sqrt(self.in_channels)

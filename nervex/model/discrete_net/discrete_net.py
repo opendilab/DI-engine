@@ -65,25 +65,11 @@ class DiscreteNet(nn.Module):
             x, next_state = self._lstm(x, inputs['prev_state'])
             x = x.squeeze(0)
             x = self._head(x)
-            return {'logit': x, 'next_state': next_state}
-        # do we need to process distribution here, or we just return the logits
-        elif self._use_distribution:
-            x = self._head(x)
-            v_min = self._head.v_min
-            v_max = self._head.v_max
-            num_atom = self._head.num_atom
-            if not isinstance(x, list):
-                dist = x * torch.linspace(v_min, v_max, num_atom)
-                logits = dist.sum(2)
-            else:
-                logits = []
-                for x_ in x:
-                    dist = x_ * torch.linspace(v_min, v_max, num_atom)
-                    logits.append(dist.sum(2))
-            return {'logit': logits, 'distribution': x}
+            x['next_state'] = next_state
+            return x
         else:
             x = self._head(x)
-            return {'logit': x}
+            return x
 
     def fast_timestep_forward(self, inputs: Dict) -> Dict:
         r"""
@@ -106,7 +92,8 @@ class DiscreteNet(nn.Module):
             lstm_embedding.append(output)
         x = torch.cat(lstm_embedding, 0)
         x = parallel_wrapper(self._head)(x)
-        return {'logit': x, 'next_state': prev_state}
+        x['next_state'] = prev_state
+        return x
 
 
 class Encoder(nn.Module):
@@ -177,7 +164,7 @@ class Head(nn.Module):
             noise: bool = False,
             v_min: float = -10,
             v_max: float = 10,
-            num_atom: int = 51,
+            n_atom: int = 51,
     ) -> None:
         r"""
         Overview:
@@ -190,7 +177,7 @@ class Head(nn.Module):
             - distribution (:obj:`bool`): whether to return the distribution
             - v_min (:obj:`bool`): the min clamp value
             - v_max (:obj:`bool`): the max clamp value
-            - num_atom (:obj:`bool`): the atom_num of distribution
+            - n_atom (:obj:`bool`): the atom_num of distribution
             - a_layer_num (:obj:`int`): the num of layers in ``DuelingHead`` to compute action output
             - v_layer_num (:obj:`int`): the num of layers in ``DuelingHead`` to compute value output
         """
@@ -198,7 +185,7 @@ class Head(nn.Module):
         self.action_dim = squeeze(action_dim)
         self.dueling = dueling
         self.distribution = distribution
-        self.num_atom = num_atom
+        self.n_atom = n_atom
         self.v_min = v_min
         self.v_max = v_max
         head_fn = partial(
@@ -208,7 +195,7 @@ class Head(nn.Module):
             distribution=distribution,
             v_min=v_min,
             v_max=v_max,
-            num_atom=num_atom,
+            n_atom=n_atom,
         ) if dueling else nn.Linear
         if isinstance(self.action_dim, tuple):
             self.pred = nn.ModuleList()
@@ -217,20 +204,25 @@ class Head(nn.Module):
         else:
             self.pred = head_fn(input_dim, self.action_dim)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor) -> Dict:
         r"""
         Overview:
             Use encoded tensor to predict the action.
         Arguments:
-            - x (:obj:`Dict`): encoded tensor
+            - x (:obj:`torch.Tensor`): encoded tensor
         Returns:
             - return (:obj:`Dict`): action in logits
         """
         if isinstance(self.action_dim, tuple):
             x = [m(x) for m in self.pred]
+            if self.distribution:
+                x = list(zip(*x))
         else:
             x = self.pred(x)
-        return x
+        if self.distribution:
+            return {'logit': x[0], 'distribution': x[1]}
+        else:
+            return {'logit': x}
 
 
 FCDiscreteNet = partial(
@@ -239,7 +231,7 @@ FCDiscreteNet = partial(
     lstm_kwargs={'lstm_type': 'none'},
     head_kwargs={'dueling': True}
 )
-NoiseDistributionDiscreteNet = partial(
+NoiseDistributionFCDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'fc'},
     lstm_kwargs={'lstm_type': 'none'},
@@ -249,7 +241,7 @@ NoiseDistributionDiscreteNet = partial(
         'noise': True
     }
 )
-NoiseDiscreteNet = partial(
+NoiseFCDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'fc'},
     lstm_kwargs={'lstm_type': 'none'},
@@ -291,12 +283,19 @@ def parallel_wrapper(forward_fn: Callable) -> Callable:
 
     def wrapper(x: torch.Tensor) -> Union[torch.Tensor, List[torch.Tensor]]:
         T, B = x.shape[:2]
+
+        def reshape(d):
+            if isinstance(d, list):
+                d = [reshape(t) for t in d]
+            elif isinstance(d, dict):
+                d = {k: reshape(v) for k, v in d.items()}
+            else:
+                d = d.reshape(T, B, *d.shape[1:])
+            return d
+
         x = x.reshape(T * B, *x.shape[2:])
         x = forward_fn(x)
-        if isinstance(x, list):
-            x = [t.reshape(T, B, *t.shape[1:]) for t in x]
-        else:
-            x = x.reshape(T, B, *x.shape[1:])
+        x = reshape(x)
         return x
 
     return wrapper
@@ -331,6 +330,9 @@ def get_kwargs(kwargs: Dict) -> Tuple[Dict]:
             'a_layer_num': kwargs.get('a_layer_num', 1),
             'v_layer_num': kwargs.get('v_layer_num', 1),
             'distribution': kwargs.get('distribution', False),
-            'noise': kwargs.get('noise', False)
+            'noise': kwargs.get('noise', False),
+            'v_max': kwargs.get('v_max', 10),
+            'v_min': kwargs.get('v_min', -10),
+            'n_atom': kwargs.get('n_atom', 51)
         }
     return encoder_kwargs, lstm_kwargs, head_kwargs

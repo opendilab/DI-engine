@@ -41,7 +41,6 @@ def test_dist_1step_td():
     assert dist.grad is None
     loss.backward()
     assert isinstance(dist.grad, torch.Tensor)
-    
 
 
 @pytest.mark.unittest
