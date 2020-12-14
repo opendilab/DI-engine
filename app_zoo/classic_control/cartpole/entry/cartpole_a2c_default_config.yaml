@@ -1,5 +1,5 @@
 common:
-    name: CartpoleDqnConfig
+    name: CartpoleA2CConfig
     save_path: '.'
     load_path: ''
 env:
@@ -10,42 +10,40 @@ env:
     evaluator_env_num: 5
 policy:
     use_cuda: False
-    policy_type: 'dqn'
-    import_names: ['nervex.policy.dqn']
+    policy_type: 'a2c'
+    import_names: ['nervex.policy.a2c']
     on_policy: False
     model:
         obs_dim: 4
         action_dim: 2
         embedding_dim: 64
-        dueling: True
     learn:
-        train_step: 3
+        train_step: 5
         batch_size: 64
-        learning_rate: 0.001
+        learning_rate: 0.0003
         weight_decay: 0.0
         algo:
-            target_update_freq: 100
-            discount_factor: 0.95
+            value_weight: 0.5
+            entropy_weight: 0.01
     collect:
-        get_traj_length: 1
+        get_traj_length: 'inf'
+        algo:
+            discount_factor: 0.9
+            gae_lambda: 0.95
     command:
-        eps:
-            type: 'exp'
-            start: 0.95
-            end: 0.1
-            decay: 10000
+        placeholder: 'placeholder'
 replay_buffer:
-    meta_maxlen: 100000
-    max_reuse: 100
+    meta_maxlen: 1000
+    max_reuse: 10
     unroll_len: 1
     min_sample_ratio: 1
 actor:
-    n_step: 8
+    n_episode: 16
     traj_print_freq: 100
     collect_print_freq: 100
 evaluator:
     n_episode: 5
-    eval_freq: 200
+    eval_freq: 20
     stop_val: 195
 learner:
     hook:

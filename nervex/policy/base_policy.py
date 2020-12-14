@@ -8,16 +8,16 @@ from nervex.utils import import_module
 
 class Policy(ABC):
     learn_function = namedtuple(
-        'learn_function', ['data_preprocess', 'forward', 'info', 'state_dict_handle', 'set_setting']
+        'learn_function', ['data_preprocess', 'forward', 'reset', 'info', 'state_dict_handle', 'set_setting']
     )
     collect_function = namedtuple(
         'collect_function', [
-            'data_preprocess', 'forward', 'data_postprocess', 'process_transition', 'get_trajectory',
-            'callback_episode_done', 'set_setting'
+            'data_preprocess', 'forward', 'data_postprocess', 'process_transition', 'get_trajectory', 'reset',
+            'set_setting'
         ]
     )
     eval_function = namedtuple(
-        'collect_function', ['data_preprocess', 'forward', 'data_postprocess', 'callback_episode_done', 'set_setting']
+        'collect_function', ['data_preprocess', 'forward', 'data_postprocess', 'reset', 'set_setting']
     )
     command_function = namedtuple('command_function', ['get_setting_learn', 'get_setting_collect', 'get_setting_eval'])
 
@@ -67,21 +67,22 @@ class Policy(ABC):
     @property
     def learn_mode(self) -> 'Policy.learn_function':  # noqa
         return Policy.learn_function(
-            self._data_preprocess_learn, self._forward_learn, self.__repr__, self.state_dict_handle, self.set_setting
+            self._data_preprocess_learn, self._forward_learn, self._reset_learn, self.__repr__, self.state_dict_handle,
+            self.set_setting
         )
 
     @property
     def collect_mode(self) -> 'Policy.collect_function':  # noqa
         return Policy.collect_function(
             self._data_preprocess_collect, self._forward_collect, self._data_postprocess_collect,
-            self._process_transition, self._get_trajectory, self._callback_episode_done_collect, self.set_setting
+            self._process_transition, self._get_trajectory, self._reset_collect, self.set_setting
         )
 
     @property
     def eval_mode(self) -> 'Policy.eval_function':  # noqa
         return Policy.eval_function(
-            self._data_preprocess_collect, self._forward_eval, self._data_postprocess_collect,
-            self._callback_episode_done_collect, self.set_setting
+            self._data_preprocess_collect, self._forward_eval, self._data_postprocess_collect, self._reset_collect,
+            self.set_setting
         )
 
     @property
@@ -113,6 +114,10 @@ class Policy(ABC):
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         raise NotImplementedError
 
+    @abstractmethod
+    def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
+        raise NotImplementedError
+
     # *************************************** collect function ************************************
 
     @abstractmethod
@@ -136,7 +141,7 @@ class Policy(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _callback_episode_done_collect(self, data_id: int) -> None:
+    def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
         raise NotImplementedError
 
     # *************************************** eval function ************************************

@@ -32,7 +32,8 @@ class ReplayBuffer:
             min_sample_ratio=self.cfg.min_sample_ratio,
             alpha=self.cfg.alpha,
             beta=self.cfg.beta,
-            enable_track_used_data=self.cfg.enable_track_used_data
+            enable_track_used_data=self.cfg.enable_track_used_data,
+            deepcopy=self.cfg.deepcopy,
         )
         # cache mechanism: first push data into cache, then(some conditions) put forward to meta buffer
         self._cache = Cache(maxlen=self.cfg.cache_maxlen, timeout=self.cfg.timeout)
@@ -59,13 +60,7 @@ class ReplayBuffer:
         """
         assert (isinstance(data, list) or isinstance(data, dict))
 
-        def push(item: dict) -> None:
-            if 'data_push_length' not in item.keys():
-                if self.use_cache:
-                    self._cache.push_data(item)
-                else:
-                    self._meta_buffer.append(item)
-                return
+        def split(item: dict) -> list:
             data_push_length = item['data_push_length']
             traj_len = self.traj_len if self.traj_len is not None else data_push_length
             unroll_len = self.unroll_len if self.unroll_len is not None else data_push_length
@@ -75,16 +70,21 @@ class ReplayBuffer:
             for i in range(split_num):
                 split_item[i]['unroll_split_begin'] = i * unroll_len
                 split_item[i]['unroll_len'] = unroll_len
-                if self.use_cache:
-                    self._cache.push_data(split_item[i])
-                else:
-                    self._meta_buffer.append(split_item[i])
+            return split_item
 
-        if isinstance(data, list):
+        if isinstance(data, dict):
+            data = [data]
+        if 'data_push_length' in data[0].keys():
+            split_data = []
             for d in data:
-                push(d)
-        elif isinstance(data, dict):
-            push(data)
+                split_data += split(d)
+        else:
+            split_data = data
+        if self.use_cache:
+            for d in split_data:
+                self._cache.push_data(d)
+        else:
+            self._meta_buffer.extend(split_data)
 
     def sample(self, batch_size: int) -> list:
         """

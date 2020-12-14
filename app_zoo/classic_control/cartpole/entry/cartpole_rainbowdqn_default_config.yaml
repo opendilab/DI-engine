@@ -1,5 +1,5 @@
 common:
-    name: CartpoleDqnConfig
+    name: CartpoleRainbowDqnConfig
     save_path: '.'
     load_path: ''
 env:
@@ -10,14 +10,16 @@ env:
     evaluator_env_num: 5
 policy:
     use_cuda: False
-    policy_type: 'dqn'
-    import_names: ['nervex.policy.dqn']
+    policy_type: 'rainbow_dqn'
+    import_names: ['nervex.policy.dqn', 'nervex.policy.rainbow_dqn']
     on_policy: False
     model:
         obs_dim: 4
         action_dim: 2
         embedding_dim: 64
-        dueling: True
+        v_max: 10
+        v_min: -10
+        n_atom: 51
     learn:
         train_step: 3
         batch_size: 64

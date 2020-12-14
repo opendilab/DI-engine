@@ -50,6 +50,7 @@ class PrioritizedBuffer:
         alpha: float = 0.,
         beta: float = 0.,
         enable_track_used_data: bool = False,
+        deepcopy: bool = False
     ):
         r"""
         Overview:
@@ -62,11 +63,13 @@ class PrioritizedBuffer:
             - alpha (:obj:`float`): how much prioritization is used(0: no prioritization, 1: full prioritization)
             - beta (:obj:`float`): how much correction is used(0: no correction, 1: full correction)
             - enable_track_used_data (:obj:`bool`): whether tracking the used data
+            - deepcopy (:obj:`bool`): whether deepcopy data when append/extend and sample data
         """
         # TODO(nyz) remove elements according to priority
         # TODO(nyz) add statistics module
         self._maxlen = maxlen
         self._enable_track_used_data = enable_track_used_data
+        self._deepcopy = deepcopy
         if self._enable_track_used_data:
             self._data = RecordList([None for _ in range(maxlen)])
         else:
@@ -134,7 +137,10 @@ class PrioritizedBuffer:
         Arguments:
             - ori_data (:obj:`T`): the data which will be inserted
         """
-        data = copy.deepcopy(ori_data)
+        if self._deepcopy:
+            data = copy.deepcopy(ori_data)
+        else:
+            data = ori_data
         try:
             assert (self._data_check(data))
         except AssertionError:
@@ -159,7 +165,10 @@ class PrioritizedBuffer:
         Arguments:
             - ori_data (:obj:`T`): the data list
         """
-        data = copy.deepcopy(ori_data)
+        if self._deepcopy:
+            data = copy.deepcopy(ori_data)
+        else:
+            data = ori_data
         check_result = [self._data_check(d) for d in data]
         # only keep the data pass the check
         valid_data = [d for d, flag in zip(data, check_result) if flag]
@@ -272,8 +281,11 @@ class PrioritizedBuffer:
         max_weight = (self._valid_count * p_min) ** (-self._beta)
         data = []
         for idx in indices:
-            # deepcopy data for avoiding interference
-            copy_data = copy.deepcopy(self._data[idx])
+            if self._deepcopy:
+                # deepcopy data for avoiding interference
+                copy_data = copy.deepcopy(self._data[idx])
+            else:
+                copy_data = self._data[idx]
             assert (copy_data is not None)
             # get IS(importance sampling weight for gradient step)
             p_sample = self.sum_tree[copy_data['replay_buffer_idx']] / sum_tree_root

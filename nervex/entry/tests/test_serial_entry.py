@@ -11,7 +11,55 @@ def test_dqn():
         os.path.dirname(__file__), '../../../app_zoo/classic_control/cartpole/entry/cartpole_dqn_default_config.yaml'
     )
     config = read_config(path)
-    config.evaluator.stop_val = 39
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
+def test_ddpg():
+    path = os.path.join(
+        os.path.dirname(__file__), '../../../app_zoo/classic_control/pendulum/entry/pendulum_ddpg_default_config.yaml'
+    )
+    config = read_config(path)
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
+def test_td3():
+    path = os.path.join(
+        os.path.dirname(__file__), '../../../app_zoo/classic_control/pendulum/entry/pendulum_td3_default_config.yaml'
+    )
+    config = read_config(path)
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
+def test_a2c():
+    path = os.path.join(
+        os.path.dirname(__file__), '../../../app_zoo/classic_control/cartpole/entry/cartpole_a2c_default_config.yaml'
+    )
+    config = read_config(path)
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
+def test_rainbow_dqn():
+    path = os.path.join(
+        os.path.dirname(__file__),
+        '../../../app_zoo/classic_control/cartpole/entry/cartpole_rainbowdqn_default_config.yaml'
+    )
+    config = read_config(path)
     try:
         serial_pipeline(config, seed=0)
     except Exception:
