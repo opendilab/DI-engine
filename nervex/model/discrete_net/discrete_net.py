@@ -75,14 +75,13 @@ class DiscreteNet(nn.Module):
             num_atom = self._head.num_atom
             if not isinstance(x, list):
                 dist = x * torch.linspace(v_min, v_max, num_atom)
-                action = dist.sum(2).max(1).indices
+                logits = dist
             else:
-                action = []
+                logits = []
                 for x_ in x:
                     dist = x_ * torch.linspace(v_min, v_max, num_atom)
-                    act = dist.sum(2).max(1).indices
-                    action.append(act)
-            return {'logit': x, 'action': action}
+                    logits.append(dist.sum(2))
+            return {'logit': x.sum(-1), 'distribution': x}
         else:
             x = self._head(x)
             return {'logit': x}
