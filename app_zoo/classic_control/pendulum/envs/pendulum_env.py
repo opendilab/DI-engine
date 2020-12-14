@@ -3,6 +3,7 @@ import gym
 import torch
 from nervex.envs import BaseEnv, register_env
 from nervex.envs.common.env_element import EnvElement
+from nervex.envs.common.common_function import affine_transform
 from nervex.torch_utils import to_tensor
 
 
@@ -10,6 +11,7 @@ class PendulumEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
+        self._use_act_scale = cfg.use_act_scale
         self._env = gym.make('Pendulum-v0')
 
     def reset(self) -> torch.Tensor:
@@ -28,6 +30,9 @@ class PendulumEnv(BaseEnv):
 
     def step(self, action: torch.Tensor) -> BaseEnv.timestep:
         action = action.numpy()
+        if self._use_act_scale:
+            action_range = self.info().act_space.value
+            action = affine_transform(action, min_val=action_range['min'], max_val=action_range['max'])
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
         obs = to_tensor(obs, torch.float)

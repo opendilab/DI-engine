@@ -12,13 +12,13 @@ class FCContinuousNet(nn.Module):
             self,
             input_dim: int,
             output_dim: int,
-            range_: Optional[dict] = None,
             embedding_dim: int = 64,
-            layer_num: int = 1
+            use_final_tanh: bool = False,
+            layer_num: int = 1,
     ) -> None:
         super(FCContinuousNet, self).__init__()
         self._act = nn.ReLU()
-        self._range_ = range_
+        self._use_final_tanh = use_final_tanh
         layers = []
         layers.append(nn.Linear(input_dim, embedding_dim))
         layers.append(self._act)
@@ -30,9 +30,8 @@ class FCContinuousNet(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self._main(x)
-        if self._range_ is not None:
-            max_val, min_val = self._range_['max'], self._range_['min']
-            x = torch.sigmoid(x) * (max_val - min_val) + min_val
+        if self._use_final_tanh:
+            x = torch.tanh(x)
         if x.shape[1] == 1:
             x = x.squeeze(1)
         return x
@@ -44,7 +43,6 @@ class QAC(QActorCriticBase):
             self,
             obs_dim: tuple,
             action_dim: Union[int, tuple],
-            action_range: dict,
             state_action_embedding_dim: int = 64,
             state_embedding_dim: int = 64,
             use_twin_critic: bool = False,
@@ -60,17 +58,16 @@ class QAC(QActorCriticBase):
         # input info
         self._obs_dim: int = squeeze(obs_dim)
         self._act_dim: int = squeeze(action_dim)
-        self._act_range = action_range
         # embedding_dim
         self._state_action_embedding_dim = state_action_embedding_dim
         self._state_embedding_dim = state_embedding_dim
         # network
         self._use_twin_critic = use_twin_critic
-        self._actor = FCContinuousNet(self._obs_dim, self._act_dim, self._act_range, self._state_embedding_dim)
+        self._actor = FCContinuousNet(self._obs_dim, self._act_dim, self._state_embedding_dim, use_final_tanh=True)
         critic_num = 2 if use_twin_critic else 1
         self._critic = nn.ModuleList(
             [
-                FCContinuousNet(self._obs_dim + self._act_dim, 1, None, self._state_action_embedding_dim)
+                FCContinuousNet(self._obs_dim + self._act_dim, 1, self._state_action_embedding_dim)
                 for _ in range(critic_num)
             ]
         )

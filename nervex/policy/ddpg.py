@@ -41,7 +41,6 @@ class DDPGPolicy(CommonPolicy):
                     'sigma': algo_cfg.noise_sigma
                 },
                 noise_range=algo_cfg.noise_range,
-                action_range=algo_cfg.action_range
             )
         self._agent.add_plugin('main', 'grad', enable_grad=True)
         self._agent.add_plugin('target', 'grad', enable_grad=False)
@@ -115,7 +114,6 @@ class DDPGPolicy(CommonPolicy):
                 'sigma': algo_cfg.noise_sigma
             },
             noise_range=None,
-            action_range=algo_cfg.action_range
         )
         self._collect_agent.add_plugin('main', 'grad', enable_grad=False)
         self._collect_agent.mode(train=False)
