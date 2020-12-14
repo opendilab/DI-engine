@@ -75,13 +75,13 @@ class DiscreteNet(nn.Module):
             num_atom = self._head.num_atom
             if not isinstance(x, list):
                 dist = x * torch.linspace(v_min, v_max, num_atom)
-                logits = dist
+                logits = dist.sum(2)
             else:
                 logits = []
                 for x_ in x:
                     dist = x_ * torch.linspace(v_min, v_max, num_atom)
                     logits.append(dist.sum(2))
-            return {'logit': x.sum(-1), 'distribution': x}
+            return {'logit': logits, 'distribution': x}
         else:
             x = self._head(x)
             return {'logit': x}
@@ -240,13 +240,22 @@ FCDiscreteNet = partial(
     lstm_kwargs={'lstm_type': 'none'},
     head_kwargs={'dueling': True}
 )
-NoiseDiscreteNet = partial(
+NoiseDistributionDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'fc'},
     lstm_kwargs={'lstm_type': 'none'},
     head_kwargs={
         'dueling': True,
         'distribution': True,
+        'noise': True
+    }
+)
+NoiseDiscreteNet = partial(
+    DiscreteNet,
+    encoder_kwargs={'encoder_type': 'fc'},
+    lstm_kwargs={'lstm_type': 'none'},
+    head_kwargs={
+        'dueling': True,
         'noise': True
     }
 )
