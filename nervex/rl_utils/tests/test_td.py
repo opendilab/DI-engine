@@ -1,7 +1,7 @@
 import pytest
 import torch
 from nervex.rl_utils import q_nstep_td_data, q_nstep_td_error, q_1step_td_data, q_1step_td_error, td_lambda_data,\
-    td_lambda_error, q_nstep_td_error_with_rescale
+    td_lambda_error, q_nstep_td_error_with_rescale, dist_1step_td_data, dist_1step_td_error
 
 
 @pytest.mark.unittest
@@ -21,6 +21,27 @@ def test_q_nstep_td():
         loss.backward()
         assert isinstance(q.grad, torch.Tensor)
         print(loss)
+
+
+@pytest.mark.unittest
+def test_dist_1step_td():
+    batch_size = 4
+    action_dim = 3
+    n_atom = 51
+    v_min = -10.0
+    v_max = 10.0
+    dist = torch.randn(batch_size, action_dim, n_atom).requires_grad_(True)
+    next_dist = torch.randn(batch_size, action_dim, n_atom)
+    done = torch.randn(batch_size)
+    action = torch.randint(0, action_dim, size=(batch_size, ))
+    reward = torch.randn(batch_size)
+    data = dist_1step_td_data(dist, next_dist, action, reward, done, None)
+    loss = dist_1step_td_error(data, 0.95, v_min, v_max, n_atom)
+    assert loss.shape == ()
+    assert dist.grad is None
+    loss.backward()
+    assert isinstance(dist.grad, torch.Tensor)
+    
 
 
 @pytest.mark.unittest

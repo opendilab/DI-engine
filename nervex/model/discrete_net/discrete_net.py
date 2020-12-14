@@ -69,7 +69,6 @@ class DiscreteNet(nn.Module):
         # do we need to process distribution here, or we just return the logits
         elif self._use_distribution:
             x = self._head(x)
-            action = None
             v_min = self._head.v_min
             v_max = self._head.v_max
             num_atom = self._head.num_atom

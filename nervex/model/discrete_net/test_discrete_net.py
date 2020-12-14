@@ -39,14 +39,13 @@ class TestDiscreteNet:
         model = NoiseDiscreteNet((N, ), action_dim, embedding_dim)
         outputs = model(inputs)['logit']
         self.output_check(model, outputs)
-    
+
     def test_noise_distribution_discrete_net(self, action_dim):
         N = 32
         inputs = {'obs': torch.randn(B, N)}
         model = NoiseDistributionDiscreteNet((N, ), action_dim, embedding_dim)
         outputs = model(inputs)['logit']
         self.output_check(model, outputs)
-    
 
     def test_conv_discrete_net(self, action_dim):
         dims = [3, 64, 64]
