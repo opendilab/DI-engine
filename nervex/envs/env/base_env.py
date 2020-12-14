@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import namedtuple
 from typing import Any, List, Tuple
+import warnings
 from nervex.utils import import_module
 
 
@@ -58,7 +59,7 @@ env_mapping = {}
 def register_env(name: str, env: type) -> None:
     assert issubclass(env, BaseEnv)
     if name in env_mapping:
-        raise RuntimeError("env name {} has already been registered".format(name))
+        warnings.warn("env name {} has already been registered".format(name))
     env_mapping[name] = env
 
 

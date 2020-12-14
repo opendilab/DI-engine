@@ -36,7 +36,8 @@ class A2CPolicy(CommonPolicy):
         # calculate a2c error
         data = a2c_data(output['logit'], data['action'], output['value'], adv, return_, data['weight'])
         a2c_loss = a2c_error(data)
-        total_loss = a2c_loss.policy_loss + self._value_weight * a2c_loss.value_loss - self._entropy_weight * a2c_loss.entropy_loss
+        wv, we = self._value_weight, self._entropy_weight
+        total_loss = a2c_loss.policy_loss + wv * a2c_loss.value_loss - we * a2c_loss.entropy_loss
         # update
         self._optimizer.zero_grad()
         total_loss.backward()
