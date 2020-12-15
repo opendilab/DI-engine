@@ -1,9 +1,10 @@
 from typing import List, Dict, Any, Tuple, Union
 from collections import namedtuple
 import torch
+from easydict import EasyDict
 
 from nervex.torch_utils import Adam
-from nervex.rl_utils import q_1step_td_data, q_1step_td_error, epsilon_greedy
+from nervex.rl_utils import q_1step_td_data, q_1step_td_error, epsilon_greedy, Adder
 from nervex.model import FCDiscreteNet
 from nervex.agent import Agent
 from .base_policy import Policy, register_policy
@@ -45,7 +46,9 @@ class DQNPolicy(CommonPolicy):
         }
 
     def _init_collect(self) -> None:
-        self._get_traj_length = self._cfg.collect.get_traj_length
+        self._traj_len = self._cfg.collect.traj_len
+        self._unroll_len = self._cfg.collect.unroll_len
+        self._adder = Adder(self._use_cuda, self._unroll_len)
         self._collect_agent = Agent(self._model)
         self._collect_agent.add_plugin('main', 'eps_greedy_sample')
         self._collect_agent.add_plugin('main', 'grad', enable_grad=False)
@@ -64,7 +67,7 @@ class DQNPolicy(CommonPolicy):
             'reward': timestep.reward,
             'done': timestep.done,
         }
-        return transition
+        return EasyDict(transition)
 
     def _init_eval(self) -> None:
         self._eval_agent = Agent(self._model)

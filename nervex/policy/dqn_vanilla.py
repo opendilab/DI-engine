@@ -1,58 +1,74 @@
-from typing import List, Dict, Any, Tuple, Union
-from collections import namedtuple
+from typing import List, Dict, Any, Tuple, Union, Optional
+from collections import namedtuple, deque
+import torch
+from easydict import EasyDict
+from copy import deepcopy
+import numpy as np
 
-from .base_policy import Policy
-from .common_policy import CommonPolicy
 from nervex.torch_utils import Adam
-from nervex.rl_utils import q_1step_td_data, q_1step_td_error, eps_greedy
-from nervex.worker import Agent
+from nervex.rl_utils import q_1step_td_data, q_1step_td_error, epsilon_greedy
+from nervex.model import FCDiscreteNet
+from .base_policy import Policy, register_policy
+from .common_policy import CommonPolicy
 
 
-class DQNPolicy(CommonPolicy):
+class DQNVanillaPolicy(CommonPolicy):
 
     def _init_learn(self) -> None:
-        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learner.learning_rate)
-        # self._agent = Agent(self._model)
-        algo_cfg = self._cfg.learner.algo
+        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
+        algo_cfg = self._cfg.learn.algo
         self._gamma = algo_cfg.discount_factor
+        self._target_model = deepcopy(self._model)
+        self._model.train()
+        self._target_model.train()
 
-        # self._agent.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
-        # self._agent.add_plugin('main', 'grad', enable_grad=True)
-        # self._agent.add_plugin('target', 'grad', enable_grad=False)
-        self._agent.mode(train=True)
-        self._agent.target_mode(train=True)
-        self._agent.reset()
-        self._agent.target_reset()
+        self._update_count = 0
+        self._target_update_freq = algo_cfg.target_update_freq
+        self._learn_setting_set = {}
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         # forward
-        q_value = self._agent.forward(data['obs'])['logit']
-        target_q_value = self._agent.target_forward(data['next_obs'])['logit']
+        with torch.enable_grad():
+            ret = self._model(data['obs'])
+            q_value = self._model(data['obs'])['logit']
+        target_q_value = self._target_model(data['next_obs'])['logit']
         data = q_1step_td_data(q_value, target_q_value, data['action'], data['reward'], data['done'], data['weight'])
-        loss, info = q_1step_td_error(data, self._gamma)
+        loss = q_1step_td_error(data, self._gamma)
         # update
         self._optimizer.zero_grad()
         loss.backward()
         self._optimizer.step()
+        state = self._model.state_dict()
+        target_state = self._target_model.state_dict()
         # after update
-        self._agent.target_update(self._agent.state_dict())
+        if (self._update_count + 1) % self._target_update_freq == 0:
+            self._target_model.load_state_dict(self._model.state_dict(), strict=True)
+        self._update_count += 1
+
         return {
+            'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
-            'td_error_per_data': info.td_error_per_data,
         }
 
     def _init_collect(self) -> None:
-        self._get_traj_length = self._cfg.actor.get_traj_length
-        self._eps = self._cfg.actor.algo.get('eps', 0.05)
-        self._collect_agent = Agent(self._model)
-        self._collect_agent.add_plugin('main', 'eps_greedy_sample')
-        self._collect_agent.add_plugin('main', 'grad', enable_grad=False)
-        self._collect_agent.reset()
+        self._traj_len = self._cfg.collect.traj_len
+        self._unroll_len = self._cfg.collect.unroll_len
+        self._collect_setting_set = {'eps'}
 
     def _forward_collect(self, data: dict) -> dict:
-        self._collect_agent.mode(train=False)
-        output = self._collect_agent.forward(data, eps=self._eps)
-        self._collect_agent.mode(train=True)
+        with torch.no_grad():
+            logit = self._model(data['obs'])['logit']
+        if isinstance(logit, torch.Tensor):
+            logit = [logit]
+        action = []
+        for i, l in enumerate(logit):
+            if np.random.random() > self._eps:
+                action.append(l.argmax(dim=-1))
+            else:
+                action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
+        if len(action) == 1:
+            action, logit = action[0], logit[0]
+        output = {'action': action}
         return output
 
     def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
@@ -63,23 +79,44 @@ class DQNPolicy(CommonPolicy):
             'reward': timestep.reward,
             'done': timestep.done,
         }
-        return transition
+        return EasyDict(transition)
 
     def _init_eval(self) -> None:
-        self._eval_agent = Agent(self._model)
-        self._eval_agent.add_plugin('main', 'argmax_sample')
-        self._eval_agent.add_plugin('main', 'grad', enable_grad=False)
-        self._eval_agent.reset()
+        self._eval_setting_set = {}
 
     def _forward_eval(self, data: dict) -> dict:
-        self._eval_agent.mode(train=False)
-        output = self._eval_agent.forward(data)
-        self._eval_agent.mode(train=True)
+        with torch.no_grad():
+            logit = self._model(data['obs'])['logit']
+        if isinstance(logit, torch.Tensor):
+            logit = [logit]
+        action = []
+        for i, l in enumerate(logit):
+            action.append(l.argmax(dim=-1))
+        if len(action) == 1:
+            action, logit = action[0], logit[0]
+        output = {'action': action}
         return output
 
-    def _init_control(self) -> None:
-        eps_cfg = self._cfg.controller.algo.eps
-        self.eps_greedy = eps_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
+    def _init_command(self) -> None:
+        eps_cfg = self._cfg.command.eps
+        self.epsilon_greedy = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
 
-    def _get_setting_collect(self) -> dict:
-        return {'eps': self.eps_greedy(self.learn_step)}
+    def _get_setting_collect(self, command_info: dict) -> dict:
+        learner_step = command_info['learner_step']
+        return {'eps': self.epsilon_greedy(learner_step)}
+
+    def _create_model_from_cfg(self, cfg: dict) -> torch.nn.Module:
+        return FCDiscreteNet(**cfg.model)
+
+    def _get_train_sample(self, traj_cache: deque, data_id: int) -> Union[None, List[Any]]:
+        data = [traj_cache.popleft() for _ in range(self._traj_len)]
+        return data
+
+    def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
+        self._model.train()
+
+    def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
+        self._model.eval()
+
+
+register_policy('dqn_vanilla', DQNVanillaPolicy)

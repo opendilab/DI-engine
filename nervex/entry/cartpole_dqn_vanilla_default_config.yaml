@@ -1,5 +1,5 @@
 common:
-    name: CartpoleRainbowDqnConfig
+    name: CartpoleDqnConfig
     save_path: '.'
     load_path: ''
 env:
@@ -8,20 +8,18 @@ env:
     env_type: 'cartpole'
     actor_env_num: 8
     evaluator_env_num: 5
+    traj_length: 256
 policy:
     use_cuda: False
-    policy_type: 'rainbow_dqn'
-    import_names: ['nervex.policy.dqn', 'nervex.policy.rainbow_dqn']
+    policy_type: 'dqn'
+    import_names: ['nervex.policy.dqn_vanilla']
     on_policy: False
     model:
         obs_dim: 4
         action_dim: 2
         embedding_dim: 64
-        v_max: 10
-        v_min: -10
-        n_atom: 51
+        dueling: True
     learn:
-        train_step: 3
         batch_size: 64
         learning_rate: 0.001
         weight_decay: 0.0
@@ -29,8 +27,7 @@ policy:
             target_update_freq: 100
             discount_factor: 0.95
     collect:
-        traj_len: 1
-        unroll_len: 1
+        get_traj_length: 1
     command:
         eps:
             type: 'exp'
@@ -43,8 +40,7 @@ replay_buffer:
     unroll_len: 1
     min_sample_ratio: 1
 actor:
-    n_sample: 8
-    traj_len: 1
+    n_step: 8
     traj_print_freq: 100
     collect_print_freq: 100
 evaluator:
@@ -61,4 +57,4 @@ learner:
             ext_args:
                 freq: 100
 command:
-    placeholder: 'placeholder'
+    placehoolder: 'placehoolder'

@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, List, Dict, Any, Tuple, Union
-from collections import namedtuple
+from collections import namedtuple, deque
 import torch
-from nervex.worker import TransitionBuffer
 from nervex.utils import import_module
 
 
@@ -12,7 +11,7 @@ class Policy(ABC):
     )
     collect_function = namedtuple(
         'collect_function', [
-            'data_preprocess', 'forward', 'data_postprocess', 'process_transition', 'get_trajectory', 'reset',
+            'data_preprocess', 'forward', 'data_postprocess', 'process_transition', 'get_train_sample', 'reset',
             'set_setting'
         ]
     )
@@ -75,7 +74,7 @@ class Policy(ABC):
     def collect_mode(self) -> 'Policy.collect_function':  # noqa
         return Policy.collect_function(
             self._data_preprocess_collect, self._forward_collect, self._data_postprocess_collect,
-            self._process_transition, self._get_trajectory, self._reset_collect, self.set_setting
+            self._process_transition, self._get_train_sample, self._reset_collect, self.set_setting
         )
 
     @property
@@ -137,7 +136,7 @@ class Policy(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _get_trajectory(self, transitions: TransitionBuffer, data_id: int, done: bool) -> Union[None, List[Any]]:
+    def _get_train_sample(self, traj_cache: deque, data_id: int) -> Union[None, List[Any]]:
         raise NotImplementedError
 
     @abstractmethod

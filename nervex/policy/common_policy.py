@@ -1,9 +1,10 @@
 from typing import List, Dict, Any, Tuple, Union, Optional
 import copy
+from collections import deque
 
 from nervex.data import default_collate, default_decollate
 from nervex.torch_utils import to_device
-from nervex.worker import TransitionBuffer
+from easydict import EasyDict
 from .base_policy import Policy
 
 
@@ -36,22 +37,18 @@ class CommonPolicy(Policy):
         data = default_decollate(data)
         return {i: d for i, d in zip(data_id, data)}
 
-    def _get_trajectory(self, transitions: TransitionBuffer, data_id: int, done: bool) -> Union[None, List[Any]]:
-        if not done and len(transitions[data_id]) < self._get_traj_length:
-            return None
-        else:
-            ret = list(reversed([transitions[data_id].pop() for _ in range(len(transitions[data_id]))]))
-            return ret
+    def _get_train_sample(self, traj_cache: deque, data_id: int) -> Union[None, List[Any]]:
+        # adder is defined in _init_collect
+        data = self._adder.get_traj(traj_cache, data_id, self._traj_len)
+        return self._adder.get_train_sample(data)
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
         self._collect_agent.mode(train=True)
         self._collect_agent.reset(data_id)
-        return {}
 
     def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
         self._collect_agent.mode(train=False)
         self._collect_agent.reset(data_id)
-        return {}
 
     def _get_setting_learn(self, *args, **kwargs) -> dict:
         return {}

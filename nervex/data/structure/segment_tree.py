@@ -5,7 +5,7 @@ from typing import Callable, Optional, Union, Any
 try:
     from numba import njit, jit
 except ImportError:
-    warnings.warn("please install numba first")
+    warnings.warn("If you want to use numba to speed up segment tree, please install numba first")
     njit = partial
 
 op2str = {sum: 'sum', min: 'min'}
@@ -166,10 +166,10 @@ def _reduce(tree: np.ndarray, start: int, end: int, neutral_element: float, oper
             end -= 1
             if operation == 'sum':
                 # result = np.sum([result, tree[end]])
-                result = result + tree[start]
+                result = result + tree[end]
             elif operation == 'min':
                 # result = np.min([result, tree[end]])
-                result = min([result, tree[start]])
+                result = min([result, tree[end]])
             # result = operation([result, tree[end]])
             # result = getattr(np, operation)([result, tree[end]])
 
