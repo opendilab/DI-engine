@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import namedtuple
 from typing import Any, List, Tuple
+import warnings
 from nervex.utils import import_module
 
 
@@ -43,11 +44,13 @@ class BaseEnv(ABC):
 
     @staticmethod
     def create_actor_env_cfg(cfg: dict) -> List[dict]:
-        raise NotImplementedError
+        actor_env_num = cfg.pop('actor_env_num', 1)
+        return [cfg for _ in range(actor_env_num)]
 
     @staticmethod
     def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
-        raise NotImplementedError
+        evaluator_env_num = cfg.pop('evaluator_env_num', 1)
+        return [cfg for _ in range(evaluator_env_num)]
 
 
 env_mapping = {}
@@ -56,7 +59,7 @@ env_mapping = {}
 def register_env(name: str, env: type) -> None:
     assert issubclass(env, BaseEnv)
     if name in env_mapping:
-        raise RuntimeError("env name {} has already been registered".format(name))
+        warnings.warn("env name {} has already been registered".format(name))
     env_mapping[name] = env
 
 

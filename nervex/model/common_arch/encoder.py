@@ -1,3 +1,4 @@
+from typing import Optional
 import torch
 import torch.nn as nn
 
@@ -63,14 +64,14 @@ class ConvEncoder(nn.Module):
 
 class FCEncoder(nn.Module):
 
-    def __init__(self, obs_dim: int, embedding_dim: int) -> None:
+    def __init__(self, obs_dim: int, embedding_dim: int, norm_type: Optional[str] = None) -> None:
         super(FCEncoder, self).__init__()
         self.obs_dim = obs_dim
         self.act = nn.ReLU()
-        self.main = ResFCBlock(obs_dim, activation=self.act)
-        self.mid = nn.Linear(obs_dim, embedding_dim)
+        self.init = nn.Linear(obs_dim, embedding_dim)
+        self.main = ResFCBlock(embedding_dim, activation=self.act, norm_type=norm_type)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.act(self.init(x))
         x = self.main(x)
-        x = self.mid(x)
         return x

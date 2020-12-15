@@ -1,9 +1,12 @@
-from typing import List, Dict, Any, Tuple, Union
-from .base_policy import Policy
+from typing import List, Dict, Any, Tuple, Union, Optional
+import copy
+
 from nervex.data import default_collate, default_decollate
 from nervex.torch_utils import to_device
 from nervex.worker import TransitionBuffer
 from easydict import EasyDict
+from .base_policy import Policy
+
 
 class CommonPolicy(Policy):
 
@@ -12,7 +15,11 @@ class CommonPolicy(Policy):
         data = default_collate(data)
         if self._use_cuda:
             data = to_device(data, 'cuda')
-        data['done'] = data['done'].float()
+        ignore_done = self._cfg.learn.get('ignore_done', False)
+        if ignore_done:
+            data['done'] = None
+        else:
+            data['done'] = data['done'].float()
         data['weight'] = data.get('weight', None)
         return data
 
@@ -33,15 +40,21 @@ class CommonPolicy(Policy):
     def _get_trajectory(self, transitions: TransitionBuffer, env_id: int) -> Union[None, List[Any]]:
         return transitions.get_traj(env_id)
 
-    def _callback_episode_done_collect(self, data_id: int) -> None:
-        self._collect_agent.reset([data_id])
+    def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
+        self._collect_agent.mode(train=True)
+        self._collect_agent.reset(data_id)
         return {}
 
-    def _get_setting_learn(self) -> dict:
+    def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
+        self._collect_agent.mode(train=False)
+        self._collect_agent.reset(data_id)
         return {}
 
-    def _get_setting_collect(self) -> dict:
+    def _get_setting_learn(self, *args, **kwargs) -> dict:
         return {}
 
-    def _get_setting_eval(self) -> dict:
+    def _get_setting_collect(self, *args, **kwargs) -> dict:
+        return {}
+
+    def _get_setting_eval(self, *args, **kwargs) -> dict:
         return {}

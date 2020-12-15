@@ -191,17 +191,13 @@ class BaseLearner(ABC):
             register some basic attributes to record & tb_logger(e.g.: cur_lr, data_time, train_time),
             register the attributes related to policy to record & tb_logger.
         """
-        self._record.register_var('cur_lr')
         self._record.register_var('data_time')
         self._record.register_var('data_preprocess_time')
         self._record.register_var('train_time')
-        self._record.register_var('total_loss')
 
-        self._tb_logger.register_var('cur_lr')
         self._tb_logger.register_var('data_time')
         self._tb_logger.register_var('data_preprocess_time')
         self._tb_logger.register_var('train_time')
-        self._tb_logger.register_var('total_loss')
 
         #self._policy.register_stats(self._record, self._tb_logger)
 

@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from typing import Dict
-from ..common_arch import ValueActorCriticBase, ConvEncoder
+from ..common_arch import ValueActorCriticBase, ConvEncoder, FCEncoder
 from nervex.utils import squeeze
 
 
@@ -118,7 +118,7 @@ class ConvValueAC(ValueAC):
     Overview:
         Convolution Actor-Critic model. Encode the observation with a ``ConvEncoder``
     Interface:
-        __init__, forward, set_seed, compute_action_value, compute_action
+        __init__, forward, compute_action_value, compute_action
     """
 
     def _setup_encoder(self) -> torch.nn.Module:
@@ -129,3 +129,21 @@ class ConvValueAC(ValueAC):
             - encoder (:obj:`torch.nn.Module`): ``ConvEncoder``
         """
         return ConvEncoder(self._obs_dim, self._embedding_dim)
+
+
+class FCValueAC(ValueAC):
+    r"""
+    Overview:
+        Convolution Actor-Critic model. Encode the observation with a ``FCEncoder``
+    Interface:
+        __init__, forward, compute_action_value, compute_action
+    """
+
+    def _setup_encoder(self) -> torch.nn.Module:
+        r"""
+        Overview:
+            Setup an ``ConvEncoder`` to encode 2-dim observation
+        Returns:
+            - encoder (:obj:`torch.nn.Module`): ``ConvEncoder``
+        """
+        return FCEncoder(self._obs_dim, self._embedding_dim)

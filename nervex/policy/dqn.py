@@ -50,14 +50,12 @@ class DQNPolicy(CommonPolicy):
         self._collect_agent = Agent(self._model)
         self._collect_agent.add_plugin('main', 'eps_greedy_sample')
         self._collect_agent.add_plugin('main', 'grad', enable_grad=False)
+        self._collect_agent.mode(train=False)
         self._collect_agent.reset()
         self._collect_setting_set = {'eps'}
 
     def _forward_collect(self, data: dict) -> dict:
-        self._collect_agent.mode(train=False)
-        output = self._collect_agent.forward(data, eps=self._eps)
-        self._collect_agent.mode(train=True)
-        return output
+        return self._collect_agent.forward(data, eps=self._eps)
 
     def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
         transition = {
@@ -73,14 +71,12 @@ class DQNPolicy(CommonPolicy):
         self._eval_agent = Agent(self._model)
         self._eval_agent.add_plugin('main', 'argmax_sample')
         self._eval_agent.add_plugin('main', 'grad', enable_grad=False)
+        self._eval_agent.mode(train=False)
         self._eval_agent.reset()
         self._eval_setting_set = {}
 
     def _forward_eval(self, data: dict) -> dict:
-        self._eval_agent.mode(train=False)
-        output = self._eval_agent.forward(data)
-        self._eval_agent.mode(train=True)
-        return output
+        return self._eval_agent.forward(data)
 
     def _init_command(self) -> None:
         eps_cfg = self._cfg.command.eps

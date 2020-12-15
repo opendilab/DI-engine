@@ -1,1 +1,2 @@
-from .discrete_net import FCDiscreteNet, ConvDiscreteNet, FCRDiscreteNet, ConvRDiscreteNet
+from .discrete_net import FCDiscreteNet, ConvDiscreteNet, FCRDiscreteNet, ConvRDiscreteNet, \
+    DiscreteNet, NoiseFCDiscreteNet, NoiseDistributionFCDiscreteNet
