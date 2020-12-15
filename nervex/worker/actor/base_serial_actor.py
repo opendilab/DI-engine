@@ -39,7 +39,7 @@ class BaseSerialActor(object):
     def reset(self) -> None:
         self._obs_pool = CachePool('obs', self._env_num)
         self._policy_output_pool = CachePool('policy_output', self._env_num)
-        self._transition_buffer = TransitionBuffer(self._env_num, self._traj_length)
+        self._transition_buffer = TransitionBuffer(self._env_num, self._policy.__get_traj_length)
         self._total_step_count = 0
 
     def generate_data(self, n_episode: Optional[int] = None, n_step: Optional[int] = None) -> List[Any]:
