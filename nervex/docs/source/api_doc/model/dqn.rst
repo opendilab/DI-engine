@@ -1,7 +1,7 @@
 model.dqn
 ===================
 
-dqn network
+dqn_network
 -----------------
 
 DQNBase

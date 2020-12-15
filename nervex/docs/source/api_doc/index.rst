@@ -29,6 +29,7 @@ API Doc
     model/common_arch
     model/dqn
     model/actor_critic
+    model/atoc
     league/league_manager
     league/payoff
     league/player
