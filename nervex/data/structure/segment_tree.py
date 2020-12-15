@@ -1,6 +1,12 @@
 import numpy as np
-from numba import njit, jit
+import warnings
+from functools import partial
 from typing import Callable, Optional, Union, Any
+try:
+    from numba import njit, jit
+except ImportError:
+    warnings.warn("please install numba first")
+    njit = partial
 
 op2str = {sum: 'sum', min: 'min'}
 

@@ -80,7 +80,7 @@ setup(
         'torchvision==0.2.1',
         'sortedcontainers',
         'click',
-        'numba',
+        #'numba',
     ],
     entry_points={
         'console_scripts': [
