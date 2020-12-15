@@ -1,8 +1,3 @@
-'''
-Author: Yongyuan Liang
-Date: 2020-12-15 16:27:50
-LastEditTime: 2020-12-15 17:22:19
-'''
 from .exploration import epsilon_greedy, create_noise_generator
 from .ppo import ppo_data, ppo_loss, ppo_info, ppo_error
 from .gae import gae_data, gae
