@@ -8,6 +8,7 @@ env:
     env_type: 'pendulum'
     actor_env_num: 8
     evaluator_env_num: 8
+    use_act_scale: True
 policy:
     use_cuda: False
     policy_type: 'ddpg'
@@ -16,9 +17,6 @@ policy:
     model:
         obs_dim: 3
         action_dim: 1
-        action_range:
-            min: -2
-            max: 2
         use_twin_critic: True
     learn:
         train_step: 1
@@ -33,20 +31,14 @@ policy:
             actor_update_freq: 1
             use_twin_critic: True
             use_noise: True
-            noise_sigma: 0.1
+            noise_sigma: 0.05
             noise_range:
                 min: -0.5
                 max: 0.5
-            action_range:
-                min: -2
-                max: 2
     collect:
         get_traj_length: 1
         algo:
-            noise_sigma: 0.2
-            action_range:
-                min: -2
-                max: 2
+            noise_sigma: 0.1
     command:
         placeholder: 'placeholder'
 replay_buffer:
@@ -55,7 +47,7 @@ replay_buffer:
     unroll_len: 1
     min_sample_ratio: 1
 actor:
-    n_step: 32
+    n_step: 24
     traj_print_freq: 1000
     collect_print_freq: 1000
 evaluator:

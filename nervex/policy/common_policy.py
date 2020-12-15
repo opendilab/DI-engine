@@ -40,7 +40,7 @@ class CommonPolicy(Policy):
         if not done and len(transitions[data_id]) < self._get_traj_length:
             return None
         else:
-            ret = [transitions[data_id].pop() for _ in range(len(transitions[data_id]))]
+            ret = list(reversed([transitions[data_id].pop() for _ in range(len(transitions[data_id]))]))
             return ret
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:

@@ -36,6 +36,7 @@ class DiscreteNet(nn.Module):
         super(DiscreteNet, self).__init__()
         encoder_kwargs, lstm_kwargs, head_kwargs = get_kwargs(kwargs)
         self._encoder = Encoder(obs_dim, embedding_dim, **encoder_kwargs)
+        self._use_distribution = head_kwargs.get('distribution', False)
         if lstm_kwargs['lstm_type'] != 'none':
             lstm_kwargs['input_size'] = embedding_dim
             lstm_kwargs['hidden_size'] = embedding_dim
@@ -64,10 +65,11 @@ class DiscreteNet(nn.Module):
             x, next_state = self._lstm(x, inputs['prev_state'])
             x = x.squeeze(0)
             x = self._head(x)
-            return {'logit': x, 'next_state': next_state}
+            x['next_state'] = next_state
+            return x
         else:
             x = self._head(x)
-            return {'logit': x}
+            return x
 
     def fast_timestep_forward(self, inputs: Dict) -> Dict:
         r"""
@@ -90,7 +92,8 @@ class DiscreteNet(nn.Module):
             lstm_embedding.append(output)
         x = torch.cat(lstm_embedding, 0)
         x = parallel_wrapper(self._head)(x)
-        return {'logit': x, 'next_state': prev_state}
+        x['next_state'] = prev_state
+        return x
 
 
 class Encoder(nn.Module):
@@ -156,7 +159,12 @@ class Head(nn.Module):
             input_dim: int,
             dueling: bool = True,
             a_layer_num: int = 1,
-            v_layer_num: int = 1
+            v_layer_num: int = 1,
+            distribution: bool = False,
+            noise: bool = False,
+            v_min: float = -10,
+            v_max: float = 10,
+            n_atom: int = 51,
     ) -> None:
         r"""
         Overview:
@@ -166,13 +174,30 @@ class Head(nn.Module):
                 note that it can be a tuple containing more than one element
             - input_dim (:obj:`int`): input tensor dim of the head
             - dueling (:obj:`bool`): whether to use ``DuelingHead`` or ``nn.Linear``
+            - distribution (:obj:`bool`): whether to return the distribution
+            - v_min (:obj:`bool`): the min clamp value
+            - v_max (:obj:`bool`): the max clamp value
+            - n_atom (:obj:`bool`): the atom_num of distribution
             - a_layer_num (:obj:`int`): the num of layers in ``DuelingHead`` to compute action output
             - v_layer_num (:obj:`int`): the num of layers in ``DuelingHead`` to compute value output
         """
         super(Head, self).__init__()
         self.action_dim = squeeze(action_dim)
         self.dueling = dueling
-        head_fn = partial(DuelingHead, a_layer_num=a_layer_num, v_layer_num=v_layer_num) if dueling else nn.Linear
+        self.distribution = distribution
+        self.n_atom = n_atom
+        self.v_min = v_min
+        self.v_max = v_max
+        head_fn = partial(
+            DuelingHead,
+            a_layer_num=a_layer_num,
+            v_layer_num=v_layer_num,
+            distribution=distribution,
+            noise=noise,
+            v_min=v_min,
+            v_max=v_max,
+            n_atom=n_atom,
+        ) if dueling else nn.Linear
         if isinstance(self.action_dim, tuple):
             self.pred = nn.ModuleList()
             for dim in self.action_dim:
@@ -180,20 +205,25 @@ class Head(nn.Module):
         else:
             self.pred = head_fn(input_dim, self.action_dim)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor) -> Dict:
         r"""
         Overview:
             Use encoded tensor to predict the action.
         Arguments:
-            - x (:obj:`Dict`): encoded tensor
+            - x (:obj:`torch.Tensor`): encoded tensor
         Returns:
             - return (:obj:`Dict`): action in logits
         """
         if isinstance(self.action_dim, tuple):
             x = [m(x) for m in self.pred]
+            if self.distribution:
+                x = list(zip(*x))
         else:
             x = self.pred(x)
-        return x
+        if self.distribution:
+            return {'logit': x[0], 'distribution': x[1]}
+        else:
+            return {'logit': x}
 
 
 FCDiscreteNet = partial(
@@ -201,6 +231,25 @@ FCDiscreteNet = partial(
     encoder_kwargs={'encoder_type': 'fc'},
     lstm_kwargs={'lstm_type': 'none'},
     head_kwargs={'dueling': True}
+)
+NoiseDistributionFCDiscreteNet = partial(
+    DiscreteNet,
+    encoder_kwargs={'encoder_type': 'fc'},
+    lstm_kwargs={'lstm_type': 'none'},
+    head_kwargs={
+        'dueling': True,
+        'distribution': True,
+        'noise': True
+    }
+)
+NoiseFCDiscreteNet = partial(
+    DiscreteNet,
+    encoder_kwargs={'encoder_type': 'fc'},
+    lstm_kwargs={'lstm_type': 'none'},
+    head_kwargs={
+        'dueling': True,
+        'noise': True
+    }
 )
 ConvDiscreteNet = partial(
     DiscreteNet,
@@ -235,12 +284,19 @@ def parallel_wrapper(forward_fn: Callable) -> Callable:
 
     def wrapper(x: torch.Tensor) -> Union[torch.Tensor, List[torch.Tensor]]:
         T, B = x.shape[:2]
+
+        def reshape(d):
+            if isinstance(d, list):
+                d = [reshape(t) for t in d]
+            elif isinstance(d, dict):
+                d = {k: reshape(v) for k, v in d.items()}
+            else:
+                d = d.reshape(T, B, *d.shape[1:])
+            return d
+
         x = x.reshape(T * B, *x.shape[2:])
         x = forward_fn(x)
-        if isinstance(x, list):
-            x = [t.reshape(T, B, *t.shape[1:]) for t in x]
-        else:
-            x = x.reshape(T, B, *x.shape[1:])
+        x = reshape(x)
         return x
 
     return wrapper
@@ -274,5 +330,10 @@ def get_kwargs(kwargs: Dict) -> Tuple[Dict]:
             'dueling': kwargs.get('dueling', True),
             'a_layer_num': kwargs.get('a_layer_num', 1),
             'v_layer_num': kwargs.get('v_layer_num', 1),
+            'distribution': kwargs.get('distribution', False),
+            'noise': kwargs.get('noise', False),
+            'v_max': kwargs.get('v_max', 10),
+            'v_min': kwargs.get('v_min', -10),
+            'n_atom': kwargs.get('n_atom', 51)
         }
     return encoder_kwargs, lstm_kwargs, head_kwargs

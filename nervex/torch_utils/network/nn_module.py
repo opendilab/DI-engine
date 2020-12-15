@@ -12,6 +12,7 @@ import torch.nn.functional as F
 from torch.nn.init import xavier_normal_, kaiming_normal_, orthogonal_
 
 from .normalization import build_normalization
+from typing import Union, Tuple
 
 
 def weight_init_(weight, init_type="xavier", activation=None):
@@ -38,6 +39,9 @@ def weight_init_(weight, init_type="xavier", activation=None):
 
     def orthogonal_init(weight, *args):
         orthogonal_(weight)
+
+    if init_type is None:
+        return
 
     init_type_dict = {"xavier": xavier_init, "kaiming": kaiming_init, "orthogonal": orthogonal_init}
     if init_type in init_type_dict:
@@ -449,3 +453,93 @@ def binary_encode(y, max_val):
         x -= bit * num
         binary.append(bit)
     return torch.stack(binary, dim=1)
+
+
+class NoiseLinearLayer(nn.Module):
+
+    def __init__(self, in_channels: int, out_channels: int, sigma0: int = 0.4):
+        super(NoiseLinearLayer, self).__init__()
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.weight_mu = nn.Parameter(torch.Tensor(out_channels, in_channels))
+        self.weight_sigma = nn.Parameter(torch.Tensor(out_channels, in_channels))
+        self.bias_mu = nn.Parameter(torch.Tensor(out_channels))
+        self.bias_sigma = nn.Parameter(torch.Tensor(out_channels))
+        self.register_buffer("weight_epsilon", torch.empty(out_channels, in_channels))
+        self.register_buffer("bias_epsilon", torch.empty(out_channels))
+        self.sigma0 = sigma0
+        self.reset_parameters()
+
+        self.reset_noise()
+
+    def _scale_noise(self, size: Union[int, Tuple]):
+        x = torch.randn(size)
+        x = x.sign().mul(x.abs().sqrt())
+        return x
+
+    def reset_noise(self):
+        in_noise = self._scale_noise(self.in_channels)
+        out_noise = self._scale_noise(self.out_channels)
+        self.weight_eps = out_noise.ger(in_noise)
+        self.bias_eps = out_noise
+
+    def reset_parameters(self):
+        stdv = 1. / math.sqrt(self.in_channels)
+        self.weight_mu.data.uniform_(-stdv, stdv)
+        self.bias_mu.data.uniform_(-stdv, stdv)
+
+        std_weight = self.sigma0 / math.sqrt(self.in_channels)
+        self.weight_sigma.data.fill_(std_weight)
+        std_bias = self.sigma0 / math.sqrt(self.out_channels)
+        self.bias_sigma.data.fill_(std_bias)
+
+    def forward(self, x: torch.Tensor):
+        if self.training:
+            return F.linear(
+                x,
+                self.weight_mu + self.weight_sigma * self.weight_eps,
+                self.bias_mu + self.bias_sigma * self.bias_eps,
+            )
+        else:
+            return F.linear(x, self.weight_mu, self.bias_mu)
+
+
+def noise_block(
+    in_channels: int,
+    out_channels: int,
+    init_type=None,
+    activation=None,
+    norm_type=None,
+    use_dropout=False,
+    dropout_probability=0.5,
+    sigma0=0.4
+):
+    r"""
+    Overview:
+        create a fully-connected block with activation, normalization and dropout
+        optional normalization can be done to the dim 1 (across the channels)
+        x -> fc -> norm -> act -> dropout -> out
+    Arguments:
+        - in_channels (:obj:`int`): Number of channels in the input tensor
+        - out_channels (:obj:`int`): Number of channels in the output tensor
+        - init_type (:obj:`str`): the type of init to implement, no need for extra init here
+        - activation (:obj:`str`): the optional activation function
+        - norm_type (:obj:`str`): type of the normalization
+        - use_dropout (:obj:`bool`) : whether to use dropout in the fully-connected block
+        - dropout_probability (:obj:`float`) : probability of an element to be zeroed in the dropout. Default: 0.5
+        - simga0 (:obj:`float`): the sigma0 is the defalut noise volumn when init NoiseLinearLayer
+    Returns:
+        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the fully-connected block
+
+    .. note::
+        you can refer to nn.linear (https://pytorch.org/docs/master/generated/torch.nn.Linear.html)
+    """
+    block = []
+    block.append(NoiseLinearLayer(in_channels, out_channels, sigma0=sigma0))
+    if norm_type is not None:
+        block.append(build_normalization(norm_type, dim=1)(out_channels))
+    if activation is not None:
+        block.append(activation)
+    if use_dropout:
+        block.append(nn.Dropout(dropout_probability))
+    return sequential_pack(block)

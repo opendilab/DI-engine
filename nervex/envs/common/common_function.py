@@ -1,6 +1,6 @@
 import math
 from functools import partial, lru_cache
-from typing import Optional, Dict
+from typing import Optional, Dict, Any
 
 import numpy as np
 import torch
@@ -235,3 +235,33 @@ def get_postion_vector(x: list) -> torch.Tensor:
     v[0::2] = torch.sin(x * POSITION_ARRAY[0::2])  # even
     v[1::2] = torch.cos(x * POSITION_ARRAY[1::2])  # odd
     return v
+
+
+def affine_transform(
+        data: Any,
+        alpha: Optional[float] = None,
+        beta: Optional[float] = None,
+        min_val: Optional[float] = None,
+        max_val: Optional[float] = None
+) -> Any:
+    """
+    Overview:
+        do affine transform for data in range [-1, 1], :math:`\alpha \times data + \beta`
+    Arguments:
+        - data (:obj:`Any`): the input data
+        - alpha (:obj:`float`): affine transform weight
+        - beta (:obj:`float`): affine transform bias
+        - min_val (:obj:`float`): min value, if `min_val` and `max_val` are indicated, scale input data\
+            to [min_val, max_val]
+        - max_val (:obj:`float`): max value
+    Returns:
+        - transformed_data (:obj:`Any`): affine transformed data
+    """
+    assert data.min() >= -1 and data.max() <= 1
+    if min_val is not None:
+        assert max_val is not None
+        alpha = (max_val - min_val) / 2
+        beta = (max_val + min_val) / 2
+    assert alpha is not None
+    beta = beta if beta is not None else 0.
+    return data * alpha + beta

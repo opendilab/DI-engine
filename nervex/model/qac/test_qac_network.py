@@ -33,10 +33,6 @@ class TestQAC:
             model = QAC(
                 obs_dim=(N, ),
                 action_dim=action_dim,
-                action_range={
-                    'min': -2,
-                    'max': 2
-                },
                 state_action_embedding_dim=embedding_dim,
                 state_embedding_dim=embedding_dim,
                 use_twin_critic=twin,
@@ -56,7 +52,7 @@ class TestQAC:
                 assert action.shape == (B, )
             else:
                 assert action.shape == (B, squeeze(action_dim))
-            assert action.eq(action.clamp(-2, 2)).all()
+            assert action.eq(action.clamp(-1, 1)).all()
 
             # optimize_actor
             for p in model._critic.parameters():

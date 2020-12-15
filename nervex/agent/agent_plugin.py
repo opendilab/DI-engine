@@ -359,7 +359,10 @@ class ActionNoiseHelper(IAgentStatefulPlugin):
             noise_type: str = 'gauss',
             noise_kwargs: dict = {},
             noise_range: Optional[dict] = None,
-            action_range: Optional[dict] = None
+            action_range: Optional[dict] = {
+                'min': -1,
+                'max': 1
+            }
     ) -> None:
         noise_helper = cls(noise_type, noise_kwargs, noise_range, action_range)
         agent._noise_helper = noise_helper
@@ -385,7 +388,10 @@ class ActionNoiseHelper(IAgentStatefulPlugin):
             noise_type: str = 'gauss',
             noise_kwargs: dict = {},
             noise_range: Optional[dict] = None,
-            action_range: Optional[dict] = None
+            action_range: Optional[dict] = {
+                'min': -1,
+                'max': 1
+            },
     ) -> None:
         self.noise_generator = create_noise_generator(noise_type, noise_kwargs)
         self.noise_range = noise_range
