@@ -8,7 +8,6 @@ env:
     env_type: 'cartpole'
     actor_env_num: 8
     evaluator_env_num: 5
-    traj_length: 256
 policy:
     use_cuda: False
     policy_type: 'dqn'
@@ -28,7 +27,8 @@ policy:
             target_update_freq: 100
             discount_factor: 0.95
     collect:
-        get_traj_length: 1
+        traj_len: 1
+        unroll_len: 1
     command:
         eps:
             type: 'exp'
@@ -41,7 +41,8 @@ replay_buffer:
     unroll_len: 1
     min_sample_ratio: 1
 actor:
-    n_step: 8
+    n_sample: 8
+    traj_len: 1
     traj_print_freq: 100
     collect_print_freq: 100
 evaluator:

@@ -36,7 +36,8 @@ policy:
                 min: -0.5
                 max: 0.5
     collect:
-        get_traj_length: 1
+        traj_len: 1
+        unroll_len: 1
         algo:
             noise_sigma: 0.1
     command:
@@ -47,7 +48,8 @@ replay_buffer:
     unroll_len: 1
     min_sample_ratio: 1
 actor:
-    n_step: 24
+    n_sample: 24
+    traj_len: 1
     traj_print_freq: 1000
     collect_print_freq: 1000
 evaluator:

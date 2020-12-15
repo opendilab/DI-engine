@@ -26,7 +26,8 @@ policy:
             value_weight: 0.5
             entropy_weight: 0.01
     collect:
-        get_traj_length: 'inf'
+        traj_len: 'inf'
+        unroll_len: 1
         algo:
             discount_factor: 0.9
             gae_lambda: 0.95
@@ -39,6 +40,7 @@ replay_buffer:
     min_sample_ratio: 1
 actor:
     n_episode: 16
+    traj_len: 200  # cartpole max episode len
     traj_print_freq: 100
     collect_print_freq: 100
 evaluator:

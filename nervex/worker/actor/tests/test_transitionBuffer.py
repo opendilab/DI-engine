@@ -5,6 +5,8 @@ import numpy as np
 from easydict import EasyDict
 import pytest
 
+TransitionBuffer = None
+
 
 class TestTransitionBuffer(object):
 
