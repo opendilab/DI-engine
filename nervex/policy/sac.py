@@ -12,6 +12,7 @@ from nervex.agent import Agent
 from nervex.policy.base_policy import Policy, register_policy
 from nervex.policy.common_policy import CommonPolicy
 
+
 class SACPolicy(CommonPolicy):
 
     def _init_learn(self) -> None:
@@ -63,24 +64,24 @@ class SACPolicy(CommonPolicy):
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         loss_dict = {}
-        
-        obs      = data.get('obs')
+
+        obs = data.get('obs')
         next_obs = data.get('next_obs')
-        reward   = data.get('reward')
-        action   = data.get('action')
-        done     = data.get('done').float()
+        reward = data.get('reward')
+        action = data.get('action')
+        done = data.get('done').float()
 
         # evaluate
         eval_data = self._agent.forward(data, param={'mode': 'evaluate'})
 
-        mean       = eval_data["mean"]
-        log_std    = eval_data["log_std"]
+        mean = eval_data["mean"]
+        log_std = eval_data["log_std"]
         new_action = eval_data["action"]
-        log_prob   = eval_data["log_prob"]
+        log_prob = eval_data["log_prob"]
 
         # predict q_value and v_value
         q_value = self._agent.forward(data, param={'mode': 'compute_q'})['q_value']
-        v_value   = self._agent.forward(data, param={'mode': 'compute_value'})['v_value']
+        v_value = self._agent.forward(data, param={'mode': 'compute_value'})['v_value']
 
         # compute q loss
         next_data = {'obs': next_obs}
@@ -100,14 +101,12 @@ class SACPolicy(CommonPolicy):
         # compute policy loss
         if not self._reparameterization:
             target_log_policy = new_q_value - v_value
-            policy_loss = (
-                log_prob * (log_prob - target_log_policy).detach()
-            ).mean()
+            policy_loss = (log_prob * (log_prob - target_log_policy).detach()).mean()
         else:
             policy_loss = (log_prob - new_q_value).mean()
 
-        std_reg_loss = self._policy_std_reg_weight * (log_std**2).mean()
-        mean_reg_loss = self._policy_mean_reg_weight * (mean**2).mean()
+        std_reg_loss = self._policy_std_reg_weight * (log_std ** 2).mean()
+        mean_reg_loss = self._policy_mean_reg_weight * (mean ** 2).mean()
 
         policy_loss += std_reg_loss + mean_reg_loss
         loss_dict['policy_loss'] = policy_loss

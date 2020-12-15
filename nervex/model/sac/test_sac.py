@@ -14,19 +14,17 @@ action_dim = 6
 
 input = {'obs': torch.randn(4, 32), 'action': torch.randn(4, squeeze(action_dim))}
 
+
 def output_check(action_dim, model, output):
     if isinstance(action_dim, tuple):
         loss = sum([t.sum() for t in output])
     elif np.isscalar(action_dim):
         loss = output.sum()
     is_differentiable(loss, model)
-        
+
+
 def test_sac(input, obs_dim, action_dim):
-    model = SAC(
-        obs_dim, 
-        action_dim,
-        use_twin_q = False
-        )
+    model = SAC(obs_dim, action_dim, use_twin_q=False)
     # compute_q
     q_value = model(input, mode='compute_q')['q_value']
     print("q_value: ", q_value)
@@ -40,7 +38,7 @@ def test_sac(input, obs_dim, action_dim):
     # evaluate
     eval_data = model(input, mode='evaluate')
     print("evaluate: ", eval_data)
-    
+
     # compute_action
     action = model(input, mode='compute_action')['action']
     if squeeze(action_dim) == 1:
@@ -49,5 +47,6 @@ def test_sac(input, obs_dim, action_dim):
         assert action.shape == (4, squeeze(action_dim))
     assert action.eq(action.clamp(-1, 1)).all()
     print("action: ", action)
+
 
 test_sac(input, obs_dim, action_dim)

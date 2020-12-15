@@ -90,7 +90,7 @@ class QActorCriticBase(nn.Module):
 
     def _critic_forward(self, inputs, **kwargs):
         raise NotImplementedError
-    
+
 
 class SoftActorCriticBase(nn.Module):
 
@@ -134,4 +134,3 @@ class SoftActorCriticBase(nn.Module):
 
     def _policy_net_forward(self, inputs, **kwargs):
         raise NotImplementedError
-
