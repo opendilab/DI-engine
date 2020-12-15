@@ -129,7 +129,13 @@ class TransitionBuffer(object):
     def __init__(self, env_num: int):
         self._env_num = env_num
         self._buffer = {env_id: [] for env_id in range(env_num)}
-
+        self. null_transition = {
+                                    'obs': None,
+                                    'next_obs': None,
+                                    'action': None,
+                                    'reward': None,
+                                    'done': None,
+                                }
     def append(self, env_id: int, transition: dict):
         self._buffer[env_id].append(transition)
 
@@ -160,3 +166,10 @@ class CachePool(object):
 
     def __getitem__(self, idx: int) -> Any:
         return self._pool[idx]
+
+
+if __name__ == "__main__":
+    env_num = 10
+    transition_buffer = TransitionBuffer(env_num)
+    transition_buffer.append(env_id=0, transition={})
+    pass
