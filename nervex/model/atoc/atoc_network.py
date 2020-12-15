@@ -12,15 +12,27 @@ import queue
 
 class ATOCAttentionUnit(nn.Module):
     r"""
+    Overview:
+        the attention unit of the atoc network. We now implement it as two-layer MLP, same as the original paper
+
+    Interface:
+        __init__, forward
 
     .. note::
 
         "ATOC paper: We use two-layer MLP to implement the attention unit but it is also can be realized by RNN."
 
-    We now implement it as two-layer MLP same as the original paper
     """
 
     def __init__(self, thought_dim: int, embedding_dim: int) -> None:
+        r"""
+        Overview:
+            init the attention unit according to dims
+
+        Arguments:
+            - thought_dim (:obj:`int`): the dim of input thought
+            - embedding_dim (:obj:`int`): the dim of hidden layers
+        """
         super(ATOCAttentionUnit, self).__init__()
         self._thought_dim = thought_dim
         self._hidden_dim = embedding_dim
@@ -32,6 +44,16 @@ class ATOCAttentionUnit(nn.Module):
         self._act2 = nn.Sigmoid()
 
     def forward(self, data: Union[Dict, torch.Tensor]) -> torch.Tensor:
+        r"""
+        Overview:
+            forward method take the thought of agents as input and output the prob of these agent\
+                being initiator
+
+        Arguments:
+            - x (:obj:`Union[Dict, torch.Tensor`): the input tensor or dict contain the thoughts tensor
+            - ret (:obj:`torch.Tensor`): the output initiator prob
+
+        """
         x = data
         if isinstance(data, Dict):
             x = data['thought']
@@ -48,23 +70,40 @@ class ATOCAttentionUnit(nn.Module):
 class ATOCCommunicationNet(nn.Module):
     r"""
     Overview:
-        bi-direction LSTM
+        atoc commnication net is a bi-direction LSTM, so it can integrate all the thoughts in the group
+
+    Interface:
+        __init__, forward
     """
 
     def __init__(self, thought_dim: int) -> None:
         r"""
-        communication hidden size should be half of the actor_hidden_size because of the bi-direction lstm
+        Overview:
+            init method of the commnunication network
+
+        Arguments:
+            - thought_dim (:obj:`int`): the dim of input thought
+
+        .. note::
+
+            communication hidden size should be half of the actor_hidden_size because of the bi-direction lstm
         """
         super(ATOCCommunicationNet, self).__init__()
         assert thought_dim % 2 == 0
         self._thought_dim = thought_dim
         self._comm_hidden_size = thought_dim // 2
-        self._bi_lstm = nn.LSTM(self._thought_dim, self._comm_hidden_size, bidirectional=True)
+        self._bi_lstm = nn.LSTM(
+            self._thought_dim, self._comm_hidden_size, bidirectional=True)
 
     def forward(self, data: Union[Dict, torch.Tensor]):
         r"""
-        shape:
-            data['thoughts']: :math:`(M, B, N)`, M is the num of thoughts to integrate,\
+        Overview:
+            the forward method that integrate thoughts
+        Arguments:
+            - x (:obj:`Union[Dict, torch.Tensor`): the input tensor or dict contain the thoughts tensor
+            - out (:obj:`torch.Tensor`): the integrated thoughts
+        Shapes:
+            - data['thoughts']: :math:`(M, B, N)`, M is the num of thoughts to integrate,\
                 B is batch_size and N is thought dim
         """
         x = data
@@ -78,7 +117,10 @@ class ATOCCommunicationNet(nn.Module):
 class ATOCActorNet(nn.Module):
     r"""
     Overview:
-        the overall integrated ATOC actor network
+        the overall ATOC actor network
+
+    Interface:
+        __init__, forward
 
         .. note::
             "ATOC paper: The neural networks use ReLU and batch normalization for some hidden layers."
@@ -92,11 +134,29 @@ class ATOCActorNet(nn.Module):
         n_agent: int,
         m_group: int,
         T_initiate: int,
-        initiator_threshold: float = 0.4,
+        initiator_threshold: float = 0.5,
         attention_embedding_dim: int = 64,
         actor_1_embedding_dim: Union[int, None] = None,
         actor_2_embedding_dim: Union[int, None] = None,
     ):
+        r"""
+        Overview:
+            the init method of atoc actor network
+
+        Arguments:
+            - obs_dim(:obj:`Union[Tuple, int]`): the observation dim
+            - thought_dim (:obj:`int`): the dim of thoughts
+            - action_dim (:obj:`int`): the action dim
+            - n_agent (:obj:`int`): the num of agents
+            - m_group (:obj:`int`): the num of agent in each group
+            - T_initiate (:obj:`int`): the time between group initiate
+            - initiator_threshold (:obj:`float`): the threshold of becoming an initiator, default set to 0.5
+            - attention_embedding_dim (obj:`int`): the embedding dim of attention unit, default set to 64
+            - actor_1_embedding_dim (:obj:`Union[int, None]`): the size of embedding dim of actor network part1, \
+                if None, then default set to thought dim
+            - actor_2_embedding_dim (:obj:`Union[int, None]`): the size of embedding dim of actor network part2, \
+                if None, then default set to thought dim
+        """
         super(ATOCActorNet, self).__init__()
         # now only support obs_dim of shape (O_dim, )
         self._obs_dim = squeeze(obs_dim)
@@ -119,7 +179,8 @@ class ATOCActorNet(nn.Module):
         actor_1_layer.append(nn.Linear(self._obs_dim, actor_1_embedding_dim))
         actor_1_layer.append(nn.LayerNorm(actor_1_embedding_dim))
         actor_1_layer.append(nn.ReLU())
-        actor_1_layer.append(nn.Linear(actor_1_embedding_dim, self._thought_dim))
+        actor_1_layer.append(
+            nn.Linear(actor_1_embedding_dim, self._thought_dim))
         actor_1_layer.append(nn.LayerNorm(self._thought_dim))
 
         self._actor_1 = nn.Sequential(*actor_1_layer)
@@ -130,7 +191,8 @@ class ATOCActorNet(nn.Module):
 
         # note that there might not be integrated thought for some agent, so we should think of a way to
         # update the thoughts
-        actor_2_layer.append(nn.Linear(self._thought_dim * 2, actor_2_embedding_dim))
+        actor_2_layer.append(
+            nn.Linear(self._thought_dim * 2, actor_2_embedding_dim))
         # actor_2_layer.append(nn.Linear(self._thought_dim * 2, actor_2_embedding_dim))
 
         # not sure if we should layer norm here
@@ -141,13 +203,24 @@ class ATOCActorNet(nn.Module):
         self.actor_2 = nn.Sequential(*actor_2_layer)
 
         # Communication
-        self._attention = ATOCAttentionUnit(self._thought_dim, attention_embedding_dim)
+        self._attention = ATOCAttentionUnit(
+            self._thought_dim, attention_embedding_dim)
         self._comm_net = ATOCCommunicationNet(self._thought_dim)
 
         self._get_group_freq = T_initiate
         self._step_count = 0
 
     def forward(self, data: Dict):
+        r"""
+        Overview:
+            the forward method of actor network, take the input obs, and calculate the corresponding action, group, \
+                initiator_prob, thoughts, etc...
+
+        Arguments:
+            - data (:obj:`Dict`): the input data containing the observation
+            - ret (:obj:`Dict`): the returned output, including action, group, initiator_prob, is_initiator, \
+                new_thoughts and old_thoughts
+        """
         obs = data['obs']
         assert len(obs.shape) == 3
         self._cur_batch_size, n_agent, obs_dim = obs.shape
@@ -158,12 +231,15 @@ class ATOCActorNet(nn.Module):
         current_thoughts = self._actor_1(obs)  # B, A, thoughts_dim
 
         if self._step_count % self._get_group_freq == 0:
-            init_prob, is_initiator, group = self._get_initiate_group(current_thoughts)
+            init_prob, is_initiator, group = self._get_initiate_group(
+                current_thoughts)
 
         old_thoughts = current_thoughts.clone().detach()
-        new_thoughts = self._update_current_thoughts(current_thoughts, group, is_initiator)
+        new_thoughts = self._update_current_thoughts(
+            current_thoughts, group, is_initiator)
 
-        action = self.actor_2(torch.cat([current_thoughts, new_thoughts], dim=-1))
+        action = self.actor_2(
+            torch.cat([current_thoughts, new_thoughts], dim=-1))
 
         return {
             'action': action,
@@ -179,9 +255,11 @@ class ATOCActorNet(nn.Module):
         is_initiator = (init_prob > self._initiator_threshold)
         B, A = init_prob.shape[:2]
 
-        thoughts_pair_dot = current_thoughts.bmm(current_thoughts.transpose(1, 2))
+        thoughts_pair_dot = current_thoughts.bmm(
+            current_thoughts.transpose(1, 2))
         thoughts_square = thoughts_pair_dot.diagonal(0, 1, 2)
-        curr_thought_dists = thoughts_square.unsqueeze(1) - 2 * thoughts_pair_dot + thoughts_square.unsqueeze(2)
+        curr_thought_dists = thoughts_square.unsqueeze(
+            1) - 2 * thoughts_pair_dot + thoughts_square.unsqueeze(2)
 
         group = torch.zeros(B, A, A).to(init_prob.device)
 
@@ -223,7 +301,8 @@ class ATOCActorNet(nn.Module):
                         if group[b][i][j]:
                             thoughts_to_commute.append(new_thoughts[b][j])
                     thoughts_to_commute = torch.stack(thoughts_to_commute)
-                    integrated_thoughts = self._comm_net(thoughts_to_commute.unsqueeze(1)).squeeze(1)
+                    integrated_thoughts = self._comm_net(
+                        thoughts_to_commute.unsqueeze(1)).squeeze(1)
                     j_count = 0
                     for j in range(A):
                         if group[b][i][j]:
@@ -234,6 +313,12 @@ class ATOCActorNet(nn.Module):
 
 class ATOCCriticNet(nn.Module):
     r"""
+    Overview:
+        the critic part network of atoc
+
+    Interface:
+        __init__, forward
+
     .. note::
 
         "ATOC paper:The critic network has two hidden layers with 512 and 256 units respectively."
@@ -241,6 +326,15 @@ class ATOCCriticNet(nn.Module):
 
     # note, the critic take the action as input
     def __init__(self, obs_dim: int, action_dim: int, embedding_dims: List[int] = [128, 64]):
+        r"""
+        Overview:
+            the init method of atoc critic net work
+
+        Arguments:
+            - obs_dim(:obj:`Union[Tuple, int]`): the observation dim
+            - action_dim (:obj:`int`): the action dim
+            - embedding_dims (:obj:`list` of :obj:`int`): the hidden layer's dim
+        """
         super(ATOCCriticNet, self).__init__()
         self._obs_dim = obs_dim
         self._act_dim = action_dim
@@ -256,9 +350,12 @@ class ATOCCriticNet(nn.Module):
 
     def forward(self, data: Dict) -> Dict:
         r"""
-        shapes:
-            data['obs']: :math:`(B, A, obs_dim + act_dim)`
-            data['action']: :math:`(B, A)`
+        Overview:
+            take the input obs and action, calculate the corresponding q_value
+
+        Arguments:
+            - data (:obj:`Dict`): the input data containing obs and action
+            - data['q_value'] : the calculated q_value is added to the input data dict
         """
         obs = data['obs']
         action = data['action']
@@ -270,6 +367,13 @@ class ATOCCriticNet(nn.Module):
 
 
 class ATOCQAC(QActorCriticBase):
+    r"""
+    Overview:
+        the QAC network of atoc
+
+    Interface:
+        __init__, forward, compute_q, compute_action, optimize_actor, optimize_actor_attention
+    """
 
     def __init__(
             self,
@@ -280,13 +384,26 @@ class ATOCQAC(QActorCriticBase):
             m_group: int,
             T_initiate: int,
     ) -> None:
+        r"""
+        Overview:
+            init the atoc QAC network
+
+        Arguments:
+            - obs_dim(:obj:`Union[Tuple, int]`): the observation dim
+            - thought_dim (:obj:`int`): the dim of thoughts
+            - action_dim (:obj:`int`): the action dim
+            - n_agent (:obj:`int`): the num of agents
+            - m_group (:obj:`int`): the num of agent in each group
+            - T_initiate (:obj:`int`): the time between group initiate
+        """
         super(ATOCQAC, self).__init__()
 
         def backward_hook(module, grad_input, grad_output):
             for p in module.parameters():
                 p.requires_grad = True
 
-        self._actor = ATOCActorNet(obs_dim, thought_dim, action_dim, n_agent, m_group, T_initiate)
+        self._actor = ATOCActorNet(
+            obs_dim, thought_dim, action_dim, n_agent, m_group, T_initiate)
         self._critic = ATOCCriticNet(obs_dim, action_dim)
         self._critic.register_backward_hook(backward_hook)
 
@@ -297,6 +414,15 @@ class ATOCQAC(QActorCriticBase):
         return self._actor(x)
 
     def compute_q(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, List[torch.Tensor]]:
+        r"""
+        Overview:
+            compute the q value of the given obs (or obs and action)
+
+        Arguments:
+            - inputs (:obj:`Dict`): the inputs contain obs and action, if action is None then the network will \
+                calculate the action according to the observation
+            - q (:obj:`Dict`): the output of ciritic network
+        """
         if inputs.get('action') is None:
             inputs['action'] = self._actor_forward(inputs)['action']
         q = self._critic_forward(inputs)
@@ -305,7 +431,14 @@ class ATOCQAC(QActorCriticBase):
     def compute_action(self, inputs: Dict[str, torch.Tensor], get_delta_q: bool = False) -> Dict[str, torch.Tensor]:
         r'''
         Overview:
-            use call the actor_forward function to compute action
+            compute the action according to inputs, call the _compute_delta_q function to compute delta_q
+
+        Arguments:
+            - inputs (:obj:`Dict`): the inputs containing the observation
+            - get_delta_q (:obj:`bool`) : whether need to get delta_q
+            - outputs (:obj:`Dict`): the output of actor network and delta_q
+
+        .. note::
 
             in ATOC, not only the action is computed, but the groups, initiator_prob, thoughts, delta_q, etc
         '''
@@ -316,6 +449,14 @@ class ATOCQAC(QActorCriticBase):
         return outputs
 
     def optimize_actor(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        r"""
+        Overview:
+            return the q value which can used to optimize the actor part of atoc network (without attentin unit)
+
+        Arguments:
+            - inputs (:obj:`Dict`): the inputs containing the observation
+            - q (:obj:`Dict`): the output of ciritic network, without critic grad
+        """
         for p in self._critic.parameters():
             p.requires_grad = False  # will set True when backward_hook called
         for p in self._actor.parameters():
@@ -328,6 +469,14 @@ class ATOCQAC(QActorCriticBase):
         return q
 
     def optimize_actor_attention(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        r"""
+        Overview:
+            return the actor attention loss
+
+        Arguments:
+            - inputs (:obj:`Dict`): the inputs contain the delta_q, initiator_prob, and is_initiator
+            - actor_attention_loss (:obj:`Dict`): the loss of actor attention unit
+        """
         # TODO(nyz) multi optimizer
         delta_q = inputs['delta_q'].reshape(-1)
         init_prob = inputs['initiator_prob'].reshape(-1)
@@ -335,7 +484,8 @@ class ATOCQAC(QActorCriticBase):
         delta_q = delta_q[is_init.nonzero()]
         init_prob = init_prob[is_init.nonzero()]
 
-        actor_attention_loss = -delta_q * torch.log(init_prob) - (1 - delta_q) * torch.log(1 - init_prob)
+        actor_attention_loss = -delta_q * \
+            torch.log(init_prob) - (1 - delta_q) * torch.log(1 - init_prob)
         return {'actor_attention_loss': actor_attention_loss}
 
     def _compute_delta_q(self, obs: torch.Tensor, actor_outputs: dict) -> torch.Tensor:
@@ -355,10 +505,12 @@ class ATOCQAC(QActorCriticBase):
                         if not group[b][i][j]:
                             continue
                         before_update_action_j = self._actor.actor_2(
-                            torch.cat([old_thoughts[b][j], old_thoughts[b][j]], dim=-1)
+                            torch.cat(
+                                [old_thoughts[b][j], old_thoughts[b][j]], dim=-1)
                         )
                         after_update_action_j = self._actor.actor_2(
-                            torch.cat([old_thoughts[b][j], new_thoughts[b][j]], dim=-1)
+                            torch.cat(
+                                [old_thoughts[b][j], new_thoughts[b][j]], dim=-1)
                         )
                         before_update_Q_j = self._critic_forward({
                             'obs': obs[b][j],
@@ -376,6 +528,14 @@ class ATOCQAC(QActorCriticBase):
         return curr_delta_q
 
     def forward(self, inputs, mode=None, **kwargs):
+        r"""
+        Overview:
+            override forward method of QActorCriticBase, so it can enable compute_delta_q and optimize_actor_attention
+
+        Arguments:
+            - inputs (:obj:`Dict`): the inputs
+            - mode (:obj:`str`): the mode of forward determine which method to call
+        """
         assert (
             mode in [
                 'optimize_actor', 'optimize_actor_attention', 'compute_q', 'compute_action', 'compute_action_q',
