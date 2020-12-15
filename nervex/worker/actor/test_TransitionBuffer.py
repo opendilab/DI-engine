@@ -69,7 +69,7 @@ if __name__ == "__main__":
         if (idx+1)%max_traj_len == 0: 
             assert len(tb.get_traj(env_id)) == max_traj_len
         else:
-            assert tb.get_traj(env_id) == None
+            assert tb.get_traj(env_id) is None
     # Test 2: done and return
     tb.clear()
     tb.append(env_id, middle_transition)
