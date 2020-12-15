@@ -1,15 +1,18 @@
 from typing import List, Dict, Any, Optional, Callable, Tuple
-from collections import namedtuple
+from collections import namedtuple, deque
 import copy
 import numpy as np
 from .env_manager import BaseEnvManager
 from nervex.utils import build_logger_naive, EasyTimer
 
+
 class BaseSerialActor(object):
 
     def __init__(self, cfg: dict) -> None:
         self._default_n_episode = cfg.get('n_episode', None)
-        self._default_n_step = cfg.get('n_step', None)
+        self._default_n_sample = cfg.get('n_sample', None)
+        self._traj_len = cfg.traj_len
+        self._traj_cache_length = self._traj_len
         self._traj_print_freq = cfg.traj_print_freq
         self._collect_print_freq = cfg.collect_print_freq
         self._logger, _ = build_logger_naive(path='./log', name='actor')
@@ -25,7 +28,6 @@ class BaseSerialActor(object):
         self._env = _env
         self._env.launch()
         self._env_num = self._env.env_num
-        self._traj_length = self._env.traj_length
         self.reset()
 
     @property
@@ -39,21 +41,21 @@ class BaseSerialActor(object):
     def reset(self) -> None:
         self._obs_pool = CachePool('obs', self._env_num)
         self._policy_output_pool = CachePool('policy_output', self._env_num)
-        self._transition_buffer = TransitionBuffer(self._env_num, self._policy.__get_traj_length)
+        self._traj_cache = {env_id: deque(maxlen=self._traj_cache_length) for env_id in range(self._env_num)}
         self._total_step_count = 0
 
-    def generate_data(self, n_episode: Optional[int] = None, n_step: Optional[int] = None) -> List[Any]:
-        assert n_episode is None or n_step is None, "n_episode and n_step can't be not None at the same time"
+    def generate_data(self, n_episode: Optional[int] = None, n_sample: Optional[int] = None) -> List[Any]:
+        assert n_episode is None or n_sample is None, "n_episode and n_sample can't be not None at the same time"
         if n_episode is not None:
             return self._collect_episode(n_episode)
-        elif n_step is not None:
-            return self._collect_step(n_step)
+        elif n_sample is not None:
+            return self._collect_sample(n_sample)
         elif self._default_n_episode is not None:
             return self._collect_episode(self._default_n_episode)
-        elif self._default_n_step is not None:
-            return self._collect_step(self._default_n_step)
+        elif self._default_n_sample is not None:
+            return self._collect_sample(self._default_n_sample)
         else:
-            raise RuntimeError("please indicate specific n_episode or n_step(int value)")
+            raise RuntimeError("please indicate specific n_episode or n_sample(int value)")
 
     def close(self) -> None:
         self._env.close()
@@ -61,19 +63,19 @@ class BaseSerialActor(object):
     def _collect_episode(self, n_episode: int) -> List[Any]:
         return self._collect(lambda x, y: x >= n_episode)
 
-    def _collect_step(self, n_step: int) -> List[Any]:
-        return self._collect(lambda x, y: y >= n_step)
+    def _collect_sample(self, n_sample: int) -> List[Any]:
+        return self._collect(lambda x, y: y >= n_sample)
 
     def _collect(self, collect_end_fn: Callable) -> List[Any]:
         episode_count = 0
         step_count = 0
-        traj_count = 0
+        train_sample_count = 0
         episode_reward = []
         return_data = []
         info = {}
         self._policy.reset()
         with self._timer:
-            while not collect_end_fn(episode_count, traj_count):
+            while not collect_end_fn(episode_count, train_sample_count):
                 obs = self._env.next_obs
                 self._obs_pool.update(obs)
                 env_id, obs = self._policy.data_preprocess(obs)
@@ -86,9 +88,20 @@ class BaseSerialActor(object):
                     transition = self._policy.process_transition(
                         self._obs_pool[env_id], self._policy_output_pool[env_id], timestep
                     )
-                    self._transition_buffer.append(env_id, transition)
+                    self._traj_cache[env_id].append(transition)
+                    if timestep.done or len(self._traj_cache[env_id]) == self._traj_len:
+                        train_sample = self._policy.get_train_sample(self._traj_cache[env_id], env_id)
+                        return_data.extend(train_sample)
+                        train_sample_count += len(train_sample)
+                        if (train_sample_count + 1) % self._traj_print_freq == 0:
+                            self._logger.info(
+                                "env {} get new traj, collected traj: {}".format(env_id, train_sample_count)
+                            )
                     if timestep.done:
                         # env reset is done by env_manager automatically
+                        self._traj_cache[env_id].clear()
+                        self._obs_pool.reset(env_id)
+                        self._policy_output_pool.reset(env_id)
                         self._policy.reset([env_id])
                         reward = timestep.info['final_eval_reward']
                         episode_reward.append(reward)
@@ -98,23 +111,17 @@ class BaseSerialActor(object):
                             )
                         )
                         episode_count += 1
-                    traj = self._policy.get_trajectory(self._transition_buffer, env_id)
-                    if traj is not None:
-                        return_data.extend(traj)
-                        traj_count += len(traj)
-                        if (traj_count + 1) % self._traj_print_freq == 0:
-                            self._logger.info("env {} get new traj, collected traj: {}".format(env_id, traj_count))
                     step_count += 1
         duration = self._timer.value
         if (self._total_step_count + 1) % self._collect_print_freq == 0:
             info = {
                 'episode_count': episode_count,
                 'step_count': step_count,
-                'traj_count': traj_count,
+                'train_sample_count': train_sample_count,
                 'avg_step_per_episode': step_count / max(1, episode_count),
-                'avg_traj_per_epsiode': traj_count / max(1, episode_count),
+                'avg_traj_per_epsiode': train_sample_count / max(1, episode_count),
                 'avg_time_per_step': duration / (step_count + 1e-8),
-                'avg_time_per_traj': duration / (traj_count + 1e-8),
+                'avg_time_per_train_sample': duration / (train_sample_count + 1e-8),
                 'avg_time_per_episode': duration / max(1, episode_count),
                 'reward_mean': np.mean(episode_reward) if len(episode_reward) > 0 else 0.,
                 'reward_std': np.std(episode_reward) if len(episode_reward) > 0 else 0.,
@@ -122,59 +129,6 @@ class BaseSerialActor(object):
             self._logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
         self._total_step_count += 1
         return return_data
-
-
-
-class TransitionBuffer(object):
-
-    def __init__(self, env_num: int, max_traj_len: int, enforce_padding: Optional[bool] = False, null_transition: Optional[Dict] = None):
-        self._env_num = env_num
-        self._buffer = {env_id: [] for env_id in range(env_num)}
-        self._left_flags = [False for env_id in range(env_num)]
-        self._max_traj_len = max_traj_len
-        self._enforce_padding = enforce_padding
-        self._null_transition = null_transition
-
-    def append(self, env_id: int, transition: dict):
-        assert env_id < self._env_num
-        self._buffer[env_id].append(transition)
-
-    def get_traj(self, env_id: int) -> List[dict]:
-        stored_epi = self._buffer[env_id]
-        left_flag = self._left_flags[env_id]
-        ret_epi = None
-
-        if stored_epi[-1].done: # episode finishes
-            if left_flag: # transitions left from last time, shift the episode to pad
-                ret_epi = copy.deepcopy(stored_epi[-self.max_traj_len:])
-            else: # can't shift to pad
-                ret_epi = copy.deepcopy(stored_epi)
-                if self.enforce_padding:
-                    ret_epi += [self.null_transition for _ in range(self.max_traj_len - len(stored_epi))]
-            self._buffer[env_id] = []
-            self._left_flags[env_id] = False
-            return ret_epi
-        elif len(stored_epi) >= (1 + left_flag)*self.max_traj_len: # enough transitions
-            ret_epi = copy.deepcopy(stored_epi[-self.max_traj_len:])
-            self._buffer[env_id] = ret_epi
-            self._left_flags[env_id] = True
-            return ret_epi
-
-        return None
-
-    @property
-    def buffer(self) -> Dict[int, List]:
-        return self._buffer
-
-    def __getitem__(self, env_id: int) -> List[dict]:
-        return self._buffer[env_id]
-
-    def clear(self, env_id: Optional[int] = None):
-        if env_id is None:
-            for k in self._buffer:
-                self._buffer[k].clear()
-        else:
-            self._buffer[env_id].clear()
 
 
 class CachePool(object):
@@ -193,3 +147,6 @@ class CachePool(object):
 
     def __getitem__(self, idx: int) -> Any:
         return self._pool[idx]
+
+    def reset(self, idx: int) -> None:
+        self._pool[idx] = None

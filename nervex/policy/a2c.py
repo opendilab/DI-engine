@@ -1,12 +1,11 @@
 from typing import List, Dict, Any, Tuple, Union
-from collections import namedtuple
+from collections import namedtuple, deque
 import torch
 
 from nervex.torch_utils import Adam
 from nervex.rl_utils import a2c_data, a2c_error, Adder
 from nervex.model import FCValueAC
 from nervex.agent import Agent
-from nervex.worker import TransitionBuffer
 from .base_policy import Policy, register_policy
 from .common_policy import CommonPolicy
 
@@ -52,16 +51,17 @@ class A2CPolicy(CommonPolicy):
         }
 
     def _init_collect(self) -> None:
-        self._get_traj_length = self._cfg.collect.get_traj_length
-        if self._get_traj_length == 'inf':
-            self._get_traj_length = float('inf')
+        self._traj_len = self._cfg.collect.traj_len
+        self._unroll_len = self._cfg.collect.unroll_len
+        if self._traj_len == 'inf':
+            self._traj_len = float('inf')
         self._collect_agent = Agent(self._model)
         self._collect_agent.add_plugin('main', 'multinomial_sample')
         self._collect_agent.add_plugin('main', 'grad', enable_grad=False)
         self._collect_agent.mode(train=False)
         self._collect_agent.reset()
         self._collect_setting_set = {}
-        self._adder = Adder(self._use_cuda)
+        self._adder = Adder(self._use_cuda, self._unroll_len)
         algo_cfg = self._cfg.collect.algo
         self._gamma = algo_cfg.discount_factor
         self._gae_lambda = algo_cfg.gae_lambda
@@ -80,24 +80,14 @@ class A2CPolicy(CommonPolicy):
         }
         return transition
 
-    def _get_trajectory(self, transitions: TransitionBuffer, data_id: int, done: bool) -> Union[None, List[Any]]:
-        if not done and len(transitions[data_id]) < self._get_traj_length + 1:
-            return None
-        else:
-            ret = list(reversed([transitions[data_id].pop() for _ in range(len(transitions[data_id]))]))
-            # get adv
-            if self._get_traj_length == float('inf'):
-                assert ret[-1]['done'], "episode must be terminated by done=True"
-            if done:
-                ret = self._adder.get_gae(
-                    ret, last_value=torch.zeros(1), gamma=self._gamma, gae_lambda=self._gae_lambda
-                )
-            else:
-                ret = self._adder.get_gae(
-                    ret[:-1], last_value=ret[-1]['value'], gamma=self._gamma, gae_lambda=self._gae_lambda
-                )
-                transitions.append(data_id, ret[-1])
-            return ret
+    def _get_train_sample(self, traj_cache: deque, data_id: int) -> Union[None, List[Any]]:
+        data = self._adder.get_traj(traj_cache, data_id, self._traj_len, return_num=1)
+        if self._traj_len == float('inf'):
+            assert data[-1]['done'], "episode must be terminated by done=True"
+        data = self._adder.get_gae_with_default_last_value(
+            data, data[-1]['done'], gamma=self._gamma, gae_lambda=self._gae_lambda
+        )
+        return self._adder.get_train_sample(data)
 
     def _init_eval(self) -> None:
         self._eval_agent = Agent(self._model)

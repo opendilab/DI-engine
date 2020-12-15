@@ -5,7 +5,7 @@ from typing import Callable, Optional, Union, Any
 try:
     from numba import njit, jit
 except ImportError:
-    warnings.warn("please install numba first")
+    warnings.warn("If you want to use numba to speed up segment tree, please install numba first")
     njit = partial
 
 op2str = {sum: 'sum', min: 'min'}

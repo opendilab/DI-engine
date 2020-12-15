@@ -3,7 +3,7 @@ from collections import namedtuple
 import torch
 
 from nervex.torch_utils import Adam
-from nervex.rl_utils import v_1step_td_data, v_1step_td_error
+from nervex.rl_utils import v_1step_td_data, v_1step_td_error, Adder
 from nervex.model import QAC
 from nervex.agent import Agent
 from .base_policy import Policy, register_policy
@@ -102,7 +102,9 @@ class DDPGPolicy(CommonPolicy):
         }
 
     def _init_collect(self) -> None:
-        self._get_traj_length = self._cfg.collect.get_traj_length
+        self._traj_len = self._cfg.collect.traj_len
+        self._unroll_len = self._cfg.collect.unroll_len
+        self._adder = Adder(self._use_cuda, self._unroll_len)
         self._collect_agent = Agent(self._model)
         algo_cfg = self._cfg.collect.algo
         self._collect_agent.add_plugin(

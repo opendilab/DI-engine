@@ -1,14 +1,13 @@
-
 from typing import List, Dict, Any, Optional, Callable, Tuple
 from collections import namedtuple
 import copy
 import numpy as np
 from easydict import EasyDict
 import pytest
-from nervex.worker.actor import TransitionBuffer
 
-@pytest.mark.unittest
+
 class TestTransitionBuffer(object):
+
     def test_naive(self):
         middle_transition = EasyDict({'done': False})
         last_transition = EasyDict({'done': True})
@@ -20,7 +19,7 @@ class TestTransitionBuffer(object):
         # Test 1: achive max len and return traj
         for idx in range(9):
             tb.append(env_id, middle_transition)
-            if (idx+1)%max_traj_len == 0: 
+            if (idx + 1) % max_traj_len == 0:
                 assert len(tb.get_traj(env_id)) == max_traj_len
             else:
                 assert tb.get_traj(env_id) is None

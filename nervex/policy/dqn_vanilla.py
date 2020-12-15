@@ -1,5 +1,5 @@
-from typing import List, Dict, Any, Tuple, Union
-from collections import namedtuple
+from typing import List, Dict, Any, Tuple, Union, Optional
+from collections import namedtuple, deque
 import torch
 from easydict import EasyDict
 from copy import deepcopy
@@ -8,12 +8,11 @@ import numpy as np
 from nervex.torch_utils import Adam
 from nervex.rl_utils import q_1step_td_data, q_1step_td_error, epsilon_greedy
 from nervex.model import FCDiscreteNet
-from nervex.agent import Agent
 from .base_policy import Policy, register_policy
 from .common_policy import CommonPolicy
 
 
-class DQNPolicy(CommonPolicy):
+class DQNVanillaPolicy(CommonPolicy):
 
     def _init_learn(self) -> None:
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
@@ -52,7 +51,8 @@ class DQNPolicy(CommonPolicy):
         }
 
     def _init_collect(self) -> None:
-        self._get_traj_length = self._cfg.collect.get_traj_length
+        self._traj_len = self._cfg.collect.traj_len
+        self._unroll_len = self._cfg.collect.unroll_len
         self._collect_setting_set = {'eps'}
 
     def _forward_collect(self, data: dict) -> dict:
@@ -68,7 +68,7 @@ class DQNPolicy(CommonPolicy):
                 action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
         if len(action) == 1:
             action, logit = action[0], logit[0]
-        output ={'action': action}
+        output = {'action': action}
         return output
 
     def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
@@ -94,7 +94,7 @@ class DQNPolicy(CommonPolicy):
             action.append(l.argmax(dim=-1))
         if len(action) == 1:
             action, logit = action[0], logit[0]
-        output ={'action': action}
+        output = {'action': action}
         return output
 
     def _init_command(self) -> None:
@@ -108,7 +108,15 @@ class DQNPolicy(CommonPolicy):
     def _create_model_from_cfg(self, cfg: dict) -> torch.nn.Module:
         return FCDiscreteNet(**cfg.model)
 
-    def _callback_episode_done_collect(self, data_id: int) -> None:
-        return {}
+    def _get_train_sample(self, traj_cache: deque, data_id: int) -> Union[None, List[Any]]:
+        data = [traj_cache.popleft() for _ in range(self._traj_len)]
+        return data
 
-register_policy('dqn', DQNPolicy)
+    def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
+        self._model.train()
+
+    def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
+        self._model.eval()
+
+
+register_policy('dqn_vanilla', DQNVanillaPolicy)
