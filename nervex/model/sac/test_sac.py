@@ -10,8 +10,12 @@ from nervex.model import SAC
 from nervex.torch_utils import is_differentiable
 from nervex.utils import squeeze
 
-obs_dim = [32, ]
-action_dim = [6, ]
+obs_dim = [
+    32,
+]
+action_dim = [
+    6,
+]
 
 input = [{'obs': torch.randn(4, 32), 'action': torch.randn(4, squeeze(action_dim))}]
 args = [item for item in product(*[input, obs_dim, action_dim])]

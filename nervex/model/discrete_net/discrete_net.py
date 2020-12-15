@@ -311,6 +311,7 @@ def get_kwargs(kwargs: Dict) -> Tuple[Dict]:
     Returns:
         - ret (:obj:`Tuple[Dict]`): (encoder kwargs, lstm kwargs, head kwargs)
     """
+    head_kwargs_keys = ['v_max', 'v_min', 'n_atom']
     if 'encoder_kwargs' in kwargs:
         encoder_kwargs = kwargs['encoder_kwargs']
     else:
@@ -325,6 +326,9 @@ def get_kwargs(kwargs: Dict) -> Tuple[Dict]:
         }
     if 'head_kwargs' in kwargs:
         head_kwargs = kwargs['head_kwargs']
+        for k in kwargs:
+            if k in head_kwargs_keys:
+                head_kwargs[k] = kwargs[k]
     else:
         head_kwargs = {
             'dueling': kwargs.get('dueling', True),

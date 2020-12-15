@@ -465,8 +465,8 @@ class NoiseLinearLayer(nn.Module):
         self.weight_sigma = nn.Parameter(torch.Tensor(out_channels, in_channels))
         self.bias_mu = nn.Parameter(torch.Tensor(out_channels))
         self.bias_sigma = nn.Parameter(torch.Tensor(out_channels))
-        self.register_buffer("weight_epsilon", torch.empty(out_channels, in_channels))
-        self.register_buffer("bias_epsilon", torch.empty(out_channels))
+        self.register_buffer("weight_eps", torch.empty(out_channels, in_channels))
+        self.register_buffer("bias_eps", torch.empty(out_channels))
         self.sigma0 = sigma0
         self.reset_parameters()
 

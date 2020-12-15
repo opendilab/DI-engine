@@ -47,6 +47,8 @@ class DQNPolicy(CommonPolicy):
 
     def _init_collect(self) -> None:
         self._traj_len = self._cfg.collect.traj_len
+        if self._traj_len == "inf":
+            self._traj_len == float("inf")
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
         self._collect_agent = Agent(self._model)

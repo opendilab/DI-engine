@@ -85,6 +85,16 @@ class Adder(object):
             data = data[:-1]
         return self.get_gae(data, last_value, gamma, gae_lambda)
 
+    def get_nstep_return(self, data: List[Dict[str, Any]], nstep: int, traj_len: int) -> List[Dict[str, Any]]:
+        if traj_len == float('inf') or len(data) < traj_len:
+            fake_data = {'obs': data[-1]['obs'].clone(), 'reward': torch.zeros(1), 'done': True}
+            data += [fake_data for _ in range(nstep)]
+        for i in range(len(data) - nstep):
+            data[i]['next_obs'] = copy.deepcopy(data[i + nstep]['obs'])
+            data[i]['reward'] = torch.cat([data[i + j]['reward'] for j in range(nstep)])
+            data[i]['done'] = data[i + nstep - 1]['done']
+        return data[:-nstep]
+
     def get_train_sample(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         if self._unroll_len == 1:
             return data
