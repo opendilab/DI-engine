@@ -48,6 +48,7 @@ class SegmentTree:
         # for each parent node with index i, left child is value[2*i] while right child is value[2*i+1]
         self.value = np.full([capacity * 2], neutral_element)
         # self.value = [neutral_element for _ in range(capacity * 2)]
+        self._compile()
 
     def reduce(self, start: int = 0, end: Optional[int] = None) -> float:
         """
@@ -94,6 +95,15 @@ class SegmentTree:
         assert (0 <= idx < self.capacity)
         return self.value[idx + self.capacity]
 
+    def _compile(self) -> None:
+        f64 = np.array([0, 1], dtype=np.float64)
+        f32 = np.array([0, 1], dtype=np.float32)
+        i64 = np.array([0, 1], dtype=np.int64)
+        for d in [f64, f32, i64]:
+            _setitem(d, 0, 3.0, 'sum')
+            _reduce(d, 0, 1, 0.0, 'min')
+            _find_prefixsum_idx(d, 1, 0.5, 0.0)
+
 
 class SumSegmentTree(SegmentTree):
 
@@ -125,7 +135,6 @@ class MinSegmentTree(SegmentTree):
 
 @njit
 def _setitem(tree: np.ndarray, idx: int, val: float, operation: str) -> None:
-    # def _setitem(tree: list, idx: int, val: float, operation: Callable) -> None:
     """Numba version, 4x faster: 0.1 -> 0.024."""
     tree[idx] = val
     # update from specified node to the root
@@ -134,10 +143,10 @@ def _setitem(tree: np.ndarray, idx: int, val: float, operation: str) -> None:
         left, right = tree[2 * idx], tree[2 * idx + 1]
         # print('----setitem----', left, type(left), right, type(right))
         if operation == 'sum':
-            # tree[idx] = np.sum([left, right])
+            # tree[idx] = np.sum([left.item(), right.item()], dtype=np.float64)
             tree[idx] = left + right
         elif operation == 'min':
-            # tree[idx] = np.min([left, right])
+            # tree[idx] = np.min([left.item(), right.item()], dtype=np.float64)
             tree[idx] = min([left, right])
         # tree[idx] = operation([tree[2 * idx], tree[2 * idx + 1]])
         # tree[idx] = getattr(np, operation)([tree[2 * idx], tree[2 * idx + 1]])
@@ -145,7 +154,6 @@ def _setitem(tree: np.ndarray, idx: int, val: float, operation: str) -> None:
 
 @njit
 def _reduce(tree: np.ndarray, start: int, end: int, neutral_element: float, operation: str) -> float:
-    # def _reduce(tree: list, start: int, end: int, neutral_element: float, operation: Callable) -> float:
     """Numba version, 2x faster: 0.009 -> 0.005."""
     # nodes in (start, end) should be aggregated
     result = neutral_element
@@ -203,6 +211,6 @@ def _find_prefixsum_idx(tree: np.ndarray, capacity: int, prefixsum: float, neutr
         if tmp != capacity:
             idx = tmp
         else:
-            raise ValueError("all element in tree are the neutral_element(0), can't find non-zero element")
+            raise ValueError("all elements in tree are the neutral_element(0), can't find non-zero element")
     assert (tree[idx] != neutral_element)
     return idx - capacity
