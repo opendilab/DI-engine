@@ -91,7 +91,7 @@ def dist_nstep_td_error(
     Overview:
         Multistep (1 step or n step) td_error for distributed q-learning based algorithm
     Arguments:
-        - data (:obj:`q_nstep_td_data`): the input data, dist_nstep_td_data to calculate loss
+        - data (:obj:`dist_nstep_td_data`): the input data, dist_nstep_td_data to calculate loss
         - gamma (:obj:`float`): discount factor
         - nstep (:obj:`int`): nstep num, default set to 1
     Returns:
