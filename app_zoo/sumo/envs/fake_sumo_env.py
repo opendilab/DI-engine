@@ -5,6 +5,7 @@ import torch
 import yaml
 from easydict import EasyDict
 
+from nervex.envs import register_env
 from nervex.utils import deep_merge_dicts
 from .sumo_env import SumoWJ3Env
 
@@ -42,8 +43,13 @@ class FakeSumoWJ3Env(SumoWJ3Env):
         reward = -torch.randn(1)
         done = self.count >= 200
         info = {}
+        if done:
+            info['final_eval_reward'] = -torch.randn(1).item()
         self.count += 1
         return FakeSumoWJ3Env.timestep(obs, reward, done, info)
 
     def __repr__(self):
         return 'FakeSumoWJ3Env'
+
+
+register_env('sumo_wj3_fake', FakeSumoWJ3Env)

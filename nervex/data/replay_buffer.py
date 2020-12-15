@@ -25,13 +25,15 @@ class ReplayBuffer:
         max_reuse = self.cfg.max_reuse if 'max_reuse' in self.cfg.keys() else None
         self.traj_len = cfg.get('traj_len', None)
         self.unroll_len = cfg.get('unroll_len', None)
+        self.use_cache = cfg.get('use_cache', False)
         self._meta_buffer = PrioritizedBuffer(
             maxlen=self.cfg.meta_maxlen,
             max_reuse=max_reuse,
             min_sample_ratio=self.cfg.min_sample_ratio,
             alpha=self.cfg.alpha,
             beta=self.cfg.beta,
-            enable_track_used_data=self.cfg.enable_track_used_data
+            enable_track_used_data=self.cfg.enable_track_used_data,
+            deepcopy=self.cfg.deepcopy,
         )
         # cache mechanism: first push data into cache, then(some conditions) put forward to meta buffer
         self._cache = Cache(maxlen=self.cfg.cache_maxlen, timeout=self.cfg.timeout)
@@ -58,10 +60,7 @@ class ReplayBuffer:
         """
         assert (isinstance(data, list) or isinstance(data, dict))
 
-        def push(item: dict) -> None:
-            if 'data_push_length' not in item.keys():
-                self._cache.push_data(item)
-                return
+        def split(item: dict) -> list:
             data_push_length = item['data_push_length']
             traj_len = self.traj_len if self.traj_len is not None else data_push_length
             unroll_len = self.unroll_len if self.unroll_len is not None else data_push_length
@@ -71,13 +70,21 @@ class ReplayBuffer:
             for i in range(split_num):
                 split_item[i]['unroll_split_begin'] = i * unroll_len
                 split_item[i]['unroll_len'] = unroll_len
-                self._cache.push_data(split_item[i])
+            return split_item
 
-        if isinstance(data, list):
+        if isinstance(data, dict):
+            data = [data]
+        if 'data_push_length' in data[0].keys():
+            split_data = []
             for d in data:
-                push(d)
-        elif isinstance(data, dict):
-            push(data)
+                split_data += split(d)
+        else:
+            split_data = data
+        if self.use_cache:
+            for d in split_data:
+                self._cache.push_data(d)
+        else:
+            self._meta_buffer.extend(split_data)
 
     def sample(self, batch_size: int) -> list:
         """
@@ -106,14 +113,16 @@ class ReplayBuffer:
         """
         Overview: launch the cache and cache2meta thread
         """
-        self._cache.run()
-        self._cache_thread.start()
+        if self.use_cache:
+            self._cache.run()
+            self._cache_thread.start()
 
     def close(self):
         """
         Overview: shut down the cache gracefully
         """
-        self._cache.close()
+        if self.use_cache:
+            self._cache.close()
 
     @property
     def count(self):

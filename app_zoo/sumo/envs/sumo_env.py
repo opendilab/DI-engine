@@ -9,7 +9,7 @@ import yaml
 from easydict import EasyDict
 from sumolib import checkBinary
 
-from nervex.envs.env.base_env import BaseEnv
+from nervex.envs.env import BaseEnv, register_env
 from nervex.utils import deep_merge_dicts
 from app_zoo.sumo.envs.action.sumo_action_runner import SumoRawActionRunner
 from app_zoo.sumo.envs.obs.sumo_obs_runner import SumoObsRunner
@@ -127,6 +127,7 @@ class SumoWJ3Env(BaseEnv):
         done = self._current_steps >= self._max_episode_steps
         info = {}
         if done:
+            info['final_eval_reward'] = self._reward_helper._final_eval_reward
             self.close()
         # return obs, reward, done, info
         return SumoWJ3Env.timestep(obs, reward, done, info)
@@ -177,3 +178,6 @@ class SumoWJ3Env(BaseEnv):
     @action.setter
     def action(self, _action):
         self._action = _action
+
+
+register_env('sumo_wj3', SumoWJ3Env)

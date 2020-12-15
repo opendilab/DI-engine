@@ -359,9 +359,12 @@ class ActionNoiseHelper(IAgentStatefulPlugin):
             noise_type: str = 'gauss',
             noise_kwargs: dict = {},
             noise_range: Optional[dict] = None,
-            action_range: Optional[dict] = None
+            action_range: Optional[dict] = {
+                'min': -1,
+                'max': 1
+            }
     ) -> None:
-        noise_helper = cls()
+        noise_helper = cls(noise_type, noise_kwargs, noise_range, action_range)
         agent._noise_helper = noise_helper
 
         def noise_wrapper(forward_fn: Callable) -> Callable:
@@ -385,7 +388,10 @@ class ActionNoiseHelper(IAgentStatefulPlugin):
             noise_type: str = 'gauss',
             noise_kwargs: dict = {},
             noise_range: Optional[dict] = None,
-            action_range: Optional[dict] = None
+            action_range: Optional[dict] = {
+                'min': -1,
+                'max': 1
+            },
     ) -> None:
         self.noise_generator = create_noise_generator(noise_type, noise_kwargs)
         self.noise_range = noise_range
@@ -414,7 +420,7 @@ class TargetNetworkHelper(IAgentStatefulPlugin):
     """
 
     @classmethod
-    def register(cls: type, agent: Any, update_type: str, kwargs: dict):
+    def register(cls: type, agent: Any, update_type: str, update_kwargs: dict):
         r"""
         Overview:
             help maintain the target network, including reset the target when the wrapped agent reset,\
@@ -425,9 +431,9 @@ class TargetNetworkHelper(IAgentStatefulPlugin):
             - agent (:obj:`Any`): the wrapped agent class, should contain forward methods
             - update_type (:obj:`str`): the update_type used to update the momentum network, support \
                 ['momentum', 'assign']
-            - kwargs (:obj:`dict`): the update kwargs
+            - update_kwargs (:obj:`dict`): the update kwargs
         """
-        target_network = cls(agent.model, update_type, kwargs)
+        target_network = cls(agent.model, update_type, update_kwargs)
         agent._target_network = target_network
 
         def reset_wrapper(reset_fn):
@@ -513,29 +519,24 @@ plugin_name_map = {
 }
 
 
-def register_plugin(agent: Any, plugin_cfg: Union[OrderedDict, None]) -> None:
+def add_plugin(agent: 'BaseAgent', plugin_name: str, **kwargs) -> None:  # noqa
     r"""
     Overview:
-        register plugins in the given config to agent
+        add plugin with plugin_name and kwargs to agent
     Arguments:
         - agent (:obj:`Any`): the agent to register plugin to
-        - plugin_cfg (:obj:`Union[OrderedDict, None]`): the config ordered dict of plugin, the key is the plugin name\
-            and the value is the dict of arguments
+        - plugin_name (:obj:`str`): agent plugin name, which must be in plugin_name_map
     """
-    if plugin_cfg is None:
-        return
-    assert isinstance(plugin_cfg, OrderedDict), "plugin_cfg muse be ordered dict"
-    for k, v in plugin_cfg.items():
-        if k not in plugin_name_map.keys():
-            raise KeyError("invalid agent plugin name: {}".format(k))
-        else:
-            plugin_name_map[k].register(agent, **v)
+    if plugin_name not in plugin_name_map:
+        raise KeyError("invalid agent plugin name: {}".format(plugin_name))
+    else:
+        plugin_name_map[plugin_name].register(agent, **kwargs)
 
 
-def add_plugin(name: str, plugin_type: type):
+def register_plugin(name: str, plugin_type: type):
     r"""
     Overview:
-        add new plugin to plugin_name_map
+        register new plugin to plugin_name_map
     Arguments:
         - name (:obj:`str`): the name of the plugin
         - plugin_type (subclass of :obj:`IAgentPlugin`): the plugin class added to the plguin_name_map

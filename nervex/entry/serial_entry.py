@@ -1,64 +1,77 @@
 import sys
 import copy
 import time
-import argparse
+from typing import Union, Optional
 import numpy as np
 import torch
 
-from nervex.worker import SubprocessEnvManager, BaseLearner, BaseSerialActor, BaseSerialEvaluator
+from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommand
+from nervex.worker import BaseEnvManager, SubprocessEnvManager
 from nervex.utils import read_config
 from nervex.data import ReplayBuffer
-from nervex.model import FCDiscreteNet
-from nervex.policy import DQNPolicy
-from nervex.env import create_vec_env
+from nervex.policy import create_policy
+from nervex.envs import get_vec_env_setting
 
 
-def main(args):
-    cfg = read_config(args.config_path)
-    env_fn, actor_env_cfg, evaluator_env_cfg = create_vec_env(cfg.env)
-    actor_env = SubprocessEnvManager(env_fn=env_fn, env_cfg=actor_env_cfg, env_num=cfg.actor.env_num)
-    evaluator_env = SubprocessEnvManager(env_fn, env_cfg=evaluator_env_cfg, env_num=cfg.evaluator.env_num)
+def serial_pipeline(
+        cfg: Union[str, dict],
+        seed: int,
+        env_setting: Optional['BaseEnv'] = None,  # noqa
+        policy_type: Optional['Policy'] = None  # noqa
+) -> None:
+    if isinstance(cfg, str):
+        cfg = read_config(cfg)
+    if env_setting is None:
+        env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
+    else:
+        env_fn, actor_env_cfg, evaluator_env_cfg = env_setting
+    env_manager_type = BaseEnvManager if cfg.env.env_manager_type == 'base' else SubprocessEnvManager
+    actor_env = env_manager_type(env_fn=env_fn, env_cfg=actor_env_cfg, env_num=len(actor_env_cfg))
+    evaluator_env = env_manager_type(env_fn, env_cfg=evaluator_env_cfg, env_num=len(evaluator_env_cfg))
     # seed
-    actor_env.seed(args.seed)
-    evaluator_env.seed(args.seed)
-    np.random.seed(args.seed)
-    torch.manual_seed(args.seed)
+    actor_env.seed(seed)
+    evaluator_env.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
     if torch.cuda.is_available():
-        torch.cuda.manual_seed(args.seed)
+        torch.cuda.manual_seed(seed)
     # create component
-    e_info = actor_env.env_info()
-    model = FCDiscreteNet(e_info.obs_space.shape, e_info.act_shape.shape, cfg.model.embedding_dim)
-    policy = DQNPolicy(model)
-    replay_buffer = ReplayBuffer(cfg.replay_buffer)
+    policy = create_policy(cfg.policy) if policy_type is None else policy_type(cfg.policy)
     learner = BaseLearner(cfg)
-    actor = BaseSerialActor(cfg)
-    evaluator = BaseSerialEvaluator(cfg)
-    learner.policy = policy.learn
-    actor.policy = policy.collect
-    evaluator.policy = policy.eval
+    actor = BaseSerialActor(cfg.actor)
+    evaluator = BaseSerialEvaluator(cfg.evaluator)
+    replay_buffer = ReplayBuffer(cfg.replay_buffer)
+    command = BaseSerialCommand(cfg.command, learner, actor, evaluator, replay_buffer)
+
+    actor.env = actor_env
+    evaluator.env = evaluator_env
+    learner.policy = policy.learn_mode
+    actor.policy = policy.collect_mode
+    evaluator.policy = policy.eval_mode
+    command.policy = policy.command_mode
+    learner.launch()
     # main loop
+    iter_count = 0
     while True:
-        new_data = actor.generate_data()
-        replay_buffer.push_data(new_data)
-        train_data = replay_buffer.sample(cfg.learner.data.batch_size)
-        learner.train(train_data)
-        if evaluator.eval():
+        command.step()
+        while True:
+            new_data = actor.generate_data()
+            replay_buffer.push_data(new_data)
+            if replay_buffer.count >= cfg.policy.learn.batch_size * cfg.replay_buffer.min_sample_ratio:
+                break
+        for _ in range(cfg.policy.learn.train_step):
+            train_data = replay_buffer.sample(cfg.policy.learn.batch_size)
+            learner.train(train_data)
+        if iter_count % cfg.evaluator.eval_freq == 0 and evaluator.eval():
+            learner.save_checkpoint()
+            print("Your RL agent is converged, you can refer to 'log/evaluator.txt' for details")
             break
-        if cfg.learner.on_policy:
+        if cfg.policy.on_policy:
             replay_buffer.clear()
+        iter_count += 1
 
     # close
-    actor_env.close()
-    evaluator_env.close()
     replay_buffer.close()
     learner.close()
     actor.close()
     evaluator.close()
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--config_path', default=None)
-    parser.add_argument('--seed', default=0)
-    args = parser.parse_known_args()[0]
-    main(args)

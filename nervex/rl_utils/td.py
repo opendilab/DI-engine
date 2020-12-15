@@ -6,26 +6,68 @@ import torch.nn as nn
 import torch.nn.functional as F
 from nervex.rl_utils.value_rescale import value_transform, value_inv_transform
 
-q_1step_td_data = namedtuple('q_1step_td_data', ['q', 'next_q', 'act', 'reward', 'done'])
+q_1step_td_data = namedtuple('q_1step_td_data', ['q', 'next_q', 'act', 'reward', 'done', 'weight'])
 
 
 def q_1step_td_error(
         data: namedtuple,
         gamma: float,
-        weights: Optional[torch.Tensor] = None,
         criterion: torch.nn.modules = nn.MSELoss(reduction='none')  # noqa
 ) -> torch.Tensor:
-    q, next_q, act, reward, done = data
+    q, next_q, act, reward, done, weight = data
     assert len(act.shape) == 1, act.shape
     assert len(reward.shape) == 1, reward.shape
     batch_range = torch.arange(act.shape[0])
-    if weights is None:
-        weights = torch.ones_like(reward)
+    if weight is None:
+        weight = torch.ones_like(reward)
     q_s_a = q[batch_range, act]
     next_act = next_q.argmax(dim=1)
     target_q_s_a = next_q[batch_range, next_act]
     target_q_s_a = gamma * (1 - done) * target_q_s_a + reward
-    return (criterion(q_s_a, target_q_s_a.detach()) * weights).mean()
+    return (criterion(q_s_a, target_q_s_a.detach()) * weight).mean()
+
+
+dist_1step_td_data = namedtuple('dist_1step_td_data', ['dist', 'next_dist', 'act', 'reward', 'done', 'weight'])
+
+
+def dist_1step_td_error(
+        data: namedtuple,
+        gamma: float,
+        v_min: float,
+        v_max: float,
+        n_atom: int,
+) -> torch.Tensor:
+    dist, next_dist, act, reward, done, weight = data
+    assert len(act.shape) == 1, act.shape
+    assert len(reward.shape) == 1, reward.shape
+    reward = reward.reshape(-1, 1)
+    done = done.reshape(-1, 1)
+    support = torch.linspace(v_min, v_max, n_atom)
+    delta_z = (v_max - v_min) / (n_atom - 1)
+    batch_size = act.shape[0]
+    batch_range = torch.arange(batch_size)
+    if weight is None:
+        weight = torch.ones_like(reward)
+
+    next_act = next_dist.sum(-1).argmax(-1)
+    next_dist = next_dist[batch_range, next_act]
+
+    target_z = reward + (1 - done) * gamma * support
+    target_z = target_z.clamp(min=v_min, max=v_max)
+    b = (target_z - v_min) / delta_z
+    l = b.floor().long()
+    u = b.ceil().long()
+
+    proj_dist = torch.zeros_like(next_dist)
+    offset = torch.linspace(0, (batch_size - 1) * n_atom, batch_size).unsqueeze(1).expand(batch_size, n_atom).long()
+    proj_dist.view(-1).index_add_(0, (l + offset).view(-1), (next_dist * (u.float() - b)).view(-1))
+    proj_dist.view(-1).index_add_(0, (u + offset).view(-1), (next_dist * (b - l.float())).view(-1))
+
+    log_p = torch.log(dist[batch_range, act])
+
+    loss = -(log_p * proj_dist).sum(-1).mean()
+
+    return loss
 
 
 v_1step_td_data = namedtuple('v_1step_td_data', ['v', 'next_v', 'reward', 'done', 'weight'])
@@ -46,14 +88,13 @@ def v_1step_td_error(
     return criterion(v, target_v.detach() * weight).mean()
 
 
-q_nstep_td_data = namedtuple('q_nstep_td_data', ['q', 'next_n_q', 'action', 'reward', 'done'])
+q_nstep_td_data = namedtuple('q_nstep_td_data', ['q', 'next_n_q', 'action', 'reward', 'done', 'weight'])
 
 
 def q_nstep_td_error(
         data: namedtuple,
         gamma: float,
         nstep: int = 1,
-        weights: Optional[torch.Tensor] = None,
         criterion: torch.nn.modules = nn.MSELoss(reduction='none'),
 ) -> torch.Tensor:
     """
@@ -62,7 +103,6 @@ def q_nstep_td_error(
     Arguments:
         - data (:obj:`q_nstep_td_data`): the input data, q_nstep_td_data to calculate loss
         - gamma (:obj:`float`): discount factor
-        - weights (:obj:`torch.Tensor` or None): weights of td losses
         - criterion (:obj:`torch.nn.modules`): loss function criterion
         - nstep (:obj:`int`): nstep num, default set to 1
     Returns:
@@ -76,10 +116,10 @@ def q_nstep_td_error(
         - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
         - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
     """
-    q, next_n_q, action, reward, done = data
+    q, next_n_q, action, reward, done, weight = data
     assert len(action.shape) == 1, action.shape
-    if weights is None:
-        weights = torch.ones_like(action)
+    if weight is None:
+        weight = torch.ones_like(action)
 
     batch_range = torch.arange(action.shape[0])
     q_s_a = q[batch_range, action]
@@ -92,14 +132,13 @@ def q_nstep_td_error(
     reward = torch.matmul(reward_factor, reward)
 
     target_q_s_a = reward + (gamma ** nstep) * target_q_s_a * (1 - done)
-    return (criterion(q_s_a, target_q_s_a.detach()) * weights).mean()
+    return (criterion(q_s_a, target_q_s_a.detach()) * weight).mean()
 
 
 def q_nstep_td_error_with_rescale(
     data: namedtuple,
     gamma: float,
     nstep: int = 1,
-    weights: Optional[torch.Tensor] = None,
     criterion: torch.nn.modules = nn.MSELoss(reduction='none'),
     trans_fn: Callable = value_transform,
     inv_trans_fn: Callable = value_inv_transform,
@@ -111,7 +150,6 @@ def q_nstep_td_error_with_rescale(
         - data (:obj:`q_nstep_td_data`): the input data, q_nstep_td_data to calculate loss
         - gamma (:obj:`float`): discount factor
         - nstep (:obj:`int`): nstep num, default set to 1
-        - weights (:obj:`torch.Tensor` or None): weights of td losses
         - criterion (:obj:`torch.nn.modules`): loss function criterion
         - trans_fn (:obj:`Callable`): value transfrom function, default to value_transform\
             (refer to rl_utils/value_rescale.py)
@@ -128,10 +166,10 @@ def q_nstep_td_error_with_rescale(
         - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
         - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
     """
-    q, next_n_q, action, reward, done = data
+    q, next_n_q, action, reward, done, weight = data
     assert len(action.shape) == 1, action.shape
-    if weights is None:
-        weights = torch.ones_like(action)
+    if weight is None:
+        weight = torch.ones_like(action)
 
     batch_range = torch.arange(action.shape[0])
     q_s_a = q[batch_range, action]
@@ -147,7 +185,7 @@ def q_nstep_td_error_with_rescale(
     target_q_s_a = reward + (gamma ** nstep) * target_q_s_a * (1 - done)
     target_q_s_a = trans_fn(target_q_s_a)
 
-    return (criterion(q_s_a, target_q_s_a.detach()) * weights).mean()
+    return (criterion(q_s_a, target_q_s_a.detach()) * weight).mean()
 
 
 td_lambda_data = namedtuple('td_lambda_data', ['value', 'reward', 'weight'])

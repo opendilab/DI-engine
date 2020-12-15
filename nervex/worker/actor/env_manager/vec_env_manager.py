@@ -65,7 +65,11 @@ def retry_wrapper(fn: Callable, max_retry: int = 10) -> Callable:
 class SubprocessEnvManager(BaseEnvManager):
 
     def _create_state(self) -> None:
-        super()._create_state()
+        self._closed = False
+        self._env_episode_count = {i: 0 for i in range(self.env_num)}
+        self._env_done = {i: False for i in range(self.env_num)}
+        self._next_obs = {i: None for i in range(self.env_num)}
+
         self._parent_remote, self._child_remote = zip(*[Pipe() for _ in range(self.env_num)])
         context_str = 'spawn' if platform.system().lower() == 'windows' else 'fork'
         ctx = get_context(context_str)
