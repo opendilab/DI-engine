@@ -3,3 +3,4 @@ from .common_policy import CommonPolicy
 from .dqn import DQNPolicy
 from .ddpg import DDPGPolicy
 from .a2c import A2CPolicy
+from .sac import SACPolicy
