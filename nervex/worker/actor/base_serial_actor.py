@@ -127,13 +127,13 @@ class BaseSerialActor(object):
 
 class TransitionBuffer(object):
 
-    def __init__(self, env_num: int, max_traj_len: int, enforce_padding: Optional[bool] = False, null_transition: Optional[Dict] = {}):
+    def __init__(self, env_num: int, max_traj_len: int, enforce_padding: Optional[bool] = False, null_transition: Optional[Dict] = None):
         self._env_num = env_num
         self._buffer = {env_id: [] for env_id in range(env_num)}
         self._left_flags = [False for env_id in range(env_num)]
-        self.max_traj_len = max_traj_len
-        self.enforce_padding = enforce_padding
-        self.null_transition = null_transition
+        self._max_traj_len = max_traj_len
+        self._enforce_padding = enforce_padding
+        self._null_transition = null_transition
 
     def append(self, env_id: int, transition: dict):
         assert env_id < self._env_num
@@ -149,7 +149,7 @@ class TransitionBuffer(object):
                 ret_epi = copy.deepcopy(stored_epi[-self.max_traj_len:])
             else: # can't shift to pad
                 ret_epi = copy.deepcopy(stored_epi)
-                if self.enforce_padding: 
+                if self.enforce_padding:
                     ret_epi += [self.null_transition for _ in range(self.max_traj_len - len(stored_epi))]
             self._buffer[env_id] = []
             self._left_flags[env_id] = False
@@ -160,11 +160,14 @@ class TransitionBuffer(object):
             self._left_flags[env_id] = True
             return ret_epi
 
-        return None        
+        return None
 
     @property
     def buffer(self) -> Dict[int, List]:
         return self._buffer
+
+    def __getitem__(self, env_id: int) -> List[dict]:
+        return self._buffer[env_id]
 
     def clear(self, env_id: Optional[int] = None):
         if env_id is None:
