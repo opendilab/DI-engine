@@ -166,10 +166,10 @@ def _reduce(tree: np.ndarray, start: int, end: int, neutral_element: float, oper
             end -= 1
             if operation == 'sum':
                 # result = np.sum([result, tree[end]])
-                result = result + tree[start]
+                result = result + tree[end]
             elif operation == 'min':
                 # result = np.min([result, tree[end]])
-                result = min([result, tree[start]])
+                result = min([result, tree[end]])
             # result = operation([result, tree[end]])
             # result = getattr(np, operation)([result, tree[end]])
 

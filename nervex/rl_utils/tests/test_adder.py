@@ -11,7 +11,7 @@ class TestAdder:
         return {'value': torch.randn(1), 'reward': torch.rand(1), 'other': np.random.randint(0, 10, size=(4, ))}
 
     def test_get_gae(self):
-        adder = Adder(use_cuda=False)
+        adder = Adder(use_cuda=False, unroll_len=1)
 
         transitions = [self.get_transition() for _ in range(10)]
         last_value = torch.randn(1)
