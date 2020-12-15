@@ -6,7 +6,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from nervex.rl_utils.value_rescale import value_transform, value_inv_transform
 
-q_1step_td_data = namedtuple('q_1step_td_data', ['q', 'next_q', 'act', 'reward', 'done', 'weight'])
+q_1step_td_data = namedtuple(
+    'q_1step_td_data', ['q', 'next_q', 'act', 'reward', 'done', 'weight'])
 
 
 def q_1step_td_error(
@@ -27,7 +28,8 @@ def q_1step_td_error(
     return (criterion(q_s_a, target_q_s_a.detach()) * weight).mean()
 
 
-dist_1step_td_data = namedtuple('dist_1step_td_data', ['dist', 'next_dist', 'act', 'reward', 'done', 'weight'])
+dist_1step_td_data = namedtuple(
+    'dist_1step_td_data', ['dist', 'next_dist', 'act', 'reward', 'done', 'weight'])
 
 
 def dist_1step_td_error(
@@ -40,8 +42,8 @@ def dist_1step_td_error(
     dist, next_dist, act, reward, done, weight = data
     assert len(act.shape) == 1, act.shape
     assert len(reward.shape) == 1, reward.shape
-    reward = reward.reshape(-1, 1)
-    done = done.reshape(-1, 1)
+    reward = reward.unsqueeze(-1)
+    done = done.unsqueeze(-1)
     support = torch.linspace(v_min, v_max, n_atom)
     delta_z = (v_max - v_min) / (n_atom - 1)
     batch_size = act.shape[0]
@@ -59,18 +61,91 @@ def dist_1step_td_error(
     u = b.ceil().long()
 
     proj_dist = torch.zeros_like(next_dist)
-    offset = torch.linspace(0, (batch_size - 1) * n_atom, batch_size).unsqueeze(1).expand(batch_size, n_atom).long()
-    proj_dist.view(-1).index_add_(0, (l + offset).view(-1), (next_dist * (u.float() - b)).view(-1))
-    proj_dist.view(-1).index_add_(0, (u + offset).view(-1), (next_dist * (b - l.float())).view(-1))
+    offset = torch.linspace(0, (batch_size - 1) * n_atom,
+                            batch_size).unsqueeze(1).expand(batch_size, n_atom).long()
+    proj_dist.view(-1).index_add_(0, (l + offset).view(-1),
+                                  (next_dist * (u.float() - b)).view(-1))
+    proj_dist.view(-1).index_add_(0, (u + offset).view(-1),
+                                  (next_dist * (b - l.float())).view(-1))
 
     log_p = torch.log(dist[batch_range, act])
 
-    loss = -(log_p * proj_dist).sum(-1).mean()
+    loss = -(log_p * proj_dist * weight).sum(-1).mean()
 
     return loss
 
 
-v_1step_td_data = namedtuple('v_1step_td_data', ['v', 'next_v', 'reward', 'done', 'weight'])
+dist_nstep_td_data = namedtuple('dist_1step_td_data', [
+                                'dist', 'next_n_dist', 'act', 'reward', 'done', 'weight'])
+
+
+def dist_nstep_td_error(
+        data: namedtuple,
+        gamma: float,
+        v_min: float,
+        v_max: float,
+        n_atom: int,
+        nstep: int = 1,
+) -> torch.Tensor:
+    r"""
+    Overview:
+        Multistep (1 step or n step) td_error for distributed q-learning based algorithm
+    Arguments:
+        - data (:obj:`dist_nstep_td_data`): the input data, dist_nstep_td_data to calculate loss
+        - gamma (:obj:`float`): discount factor
+        - nstep (:obj:`int`): nstep num, default set to 1
+    Returns:
+        - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
+    Shapes:
+        - data (:obj:`dist_nstep_td_data`): the dist_nstep_td_data containing\
+            ['dist', 'next_n_dist', 'act', 'reward', 'done', 'weight']
+        - dist (:obj:`torch.FloatTensor`): :math:`(B, N, n_atom)` i.e. [batch_size, action_dim, n_atom]
+        - next_n_dist (:obj:`torch.FloatTensor`): :math:`(B, N, n_atom)`
+        - action (:obj:`torch.LongTensor`): :math:`(B, )`
+        - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
+        - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
+    """
+    dist, next_n_dist, act, reward, done, weight = data
+    assert len(act.shape) == 1, act.shape
+    reward_factor = torch.ones(nstep)
+    for i in range(1, nstep):
+        reward_factor[i] = gamma * reward_factor[i - 1]
+    reward = torch.matmul(reward_factor, reward)
+    reward = reward.unsqueeze(-1)
+    done = done.unsqueeze(-1)
+    support = torch.linspace(v_min, v_max, n_atom)
+    delta_z = (v_max - v_min) / (n_atom - 1)
+    batch_size = act.shape[0]
+    batch_range = torch.arange(batch_size)
+    if weight is None:
+        weight = torch.ones_like(reward)
+
+    next_n_act = next_n_dist.sum(-1).argmax(-1)
+    next_n_dist = next_n_dist[batch_range, next_n_act]
+
+    target_z = reward + (1 - done) * (gamma ** nstep) * support
+    target_z = target_z.clamp(min=v_min, max=v_max)
+    b = (target_z - v_min) / delta_z
+    l = b.floor().long()
+    u = b.ceil().long()
+
+    proj_dist = torch.zeros_like(next_n_dist)
+    offset = torch.linspace(0, (batch_size - 1) * n_atom,
+                            batch_size).unsqueeze(1).expand(batch_size, n_atom).long()
+    proj_dist.view(-1).index_add_(0, (l + offset).view(-1),
+                                  (next_n_dist * (u.float() - b)).view(-1))
+    proj_dist.view(-1).index_add_(0, (u + offset).view(-1),
+                                  (next_n_dist * (b - l.float())).view(-1))
+
+    log_p = torch.log(dist[batch_range, act])
+
+    loss = -(log_p * proj_dist * weight.unsqueeze(1)).sum(-1).mean()
+
+    return loss
+
+
+v_1step_td_data = namedtuple(
+    'v_1step_td_data', ['v', 'next_v', 'reward', 'done', 'weight'])
 
 
 def v_1step_td_error(
@@ -88,7 +163,8 @@ def v_1step_td_error(
     return criterion(v, target_v.detach() * weight).mean()
 
 
-q_nstep_td_data = namedtuple('q_nstep_td_data', ['q', 'next_n_q', 'action', 'reward', 'done', 'weight'])
+q_nstep_td_data = namedtuple(
+    'q_nstep_td_data', ['q', 'next_n_q', 'action', 'reward', 'done', 'weight'])
 
 
 def q_nstep_td_error(
@@ -217,7 +293,8 @@ def td_lambda_error(data: namedtuple, gamma: float = 0.9, lambda_: float = 0.8) 
     with torch.no_grad():
         return_ = generalized_lambda_returns(value, reward, gamma, lambda_)
     # discard the value at T as it should be considered in the next slice
-    loss = 0.5 * (F.mse_loss(return_, value[:-1], reduction='none') * weight).mean()
+    loss = 0.5 * \
+        (F.mse_loss(return_, value[:-1], reduction='none') * weight).mean()
     return loss
 
 

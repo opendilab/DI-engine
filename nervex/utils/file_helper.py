@@ -58,7 +58,7 @@ def _ensure_memcached():
     return
 
 
-def read_from_mc(path: str) -> object:
+def read_from_mc(path: str, flush=False) -> object:
     """
     Overview:
         read file from memcache, file must be saved by `torch.save()`
@@ -70,7 +70,10 @@ def read_from_mc(path: str) -> object:
     global mclient
     _ensure_memcached()
     value = mc.pyvector()
-    mclient.Get(path, value)
+    if flush:
+        mclient.Get(path, value, mc.MC_READ_THROUGH)
+    else:
+        mclient.Get(path, value)
     value_buf = mc.ConvertBuffer(value)
     value_str = io.BytesIO(value_buf)
     value_str = torch.load(value_str)
@@ -164,12 +167,20 @@ def save_file(path: str, data: object, fs_type: Union[None, str] = None) -> NoRe
         - fs_type (:obj:`str` or :obj:`None`): the file system type, support 'normal' and 'ceph'
     """
     if fs_type is None:
-        fs_type = 'ceph' if path.lower().startswith('s3') else 'normal'
-    assert fs_type in ['normal', 'ceph']
+        if path.lower().startswith('s3'):
+            fs_type = 'ceph'
+        elif mc is not None:
+            fs_type = 'mc'
+        else:
+            fs_type = 'normal'
+    assert fs_type in ['normal', 'ceph', 'mc']
     if fs_type == 'ceph':
         save_file_ceph(path, data)
     elif fs_type == 'normal':
         torch.save(data, path)
+    elif fs_type == 'mc':
+        torch.save(data, path)
+        read_from_mc(path, flush=True)
 
 
 def remove_file(path: str, fs_type: Union[None, str] = None) -> NoReturn:

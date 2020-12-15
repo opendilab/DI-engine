@@ -68,7 +68,7 @@ def try_import_link():
                 "ask coworker for help. We will run a fake linklink."
                 "Refer to nervex.utils.fake_linklink.py for details."
             )
-        from nervex.utils import link
+        from .fake_linklink import link
         linklink_flag = False
     return link
 
