@@ -77,3 +77,15 @@ def test_dqn_vanilla():
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
+def test_ppo():
+    path = os.path.join(
+        os.path.dirname(__file__), '../../../app_zoo/classic_control/cartpole/entry/cartpole_ppo_default_config.yaml'
+    )
+    config = read_config(path)
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"

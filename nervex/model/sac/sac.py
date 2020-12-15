@@ -181,9 +181,6 @@ class SAC(SoftActorCriticBase):
 
         return {'action': action}
 
-
-# use tanh action
-
     def evaluate(self, inputs: Dict[str, torch.Tensor], epsilon=1e-6) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
         mean, log_std = self._policy_net_forward(state_input)
