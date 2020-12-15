@@ -79,7 +79,8 @@ setup(
         'tabulate',
         'torchvision==0.2.1',
         'sortedcontainers',
-        'click'
+        'click',
+        #'numba',
     ],
     entry_points={
         'console_scripts': [

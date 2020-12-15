@@ -1,12 +1,14 @@
 import numpy as np
-from numba import njit, jit
+import warnings
+from functools import partial
 from typing import Callable, Optional, Union, Any
+try:
+    from numba import njit, jit
+except ImportError:
+    warnings.warn("please install numba first")
+    njit = partial
 
-
-op2str = {
-    sum: 'sum',
-    min: 'min'
-}
+op2str = {sum: 'sum', min: 'min'}
 
 
 class SegmentTree:
@@ -67,7 +69,6 @@ class SegmentTree:
         return _reduce(self.value, start, end, self.neutral_element, op2str[self.operation])
         # return _reduce(self.value, start, end, self.neutral_element, self.operation)
 
-
     def __setitem__(self, idx: int, val: float) -> None:
         """
         Overview:
@@ -80,7 +81,6 @@ class SegmentTree:
         idx += self.capacity
         _setitem(self.value, idx, val, op2str[self.operation])
         # _setitem(self.value, idx, val, self.operation)
-
 
     def __getitem__(self, idx: int) -> float:
         """
@@ -124,9 +124,8 @@ class MinSegmentTree(SegmentTree):
 
 
 @njit
-# @jit
 def _setitem(tree: np.ndarray, idx: int, val: float, operation: str) -> None:
-# def _setitem(tree: list, idx: int, val: float, operation: Callable) -> None:
+    # def _setitem(tree: list, idx: int, val: float, operation: Callable) -> None:
     """Numba version, 4x faster: 0.1 -> 0.024."""
     tree[idx] = val
     # update from specified node to the root
@@ -145,9 +144,8 @@ def _setitem(tree: np.ndarray, idx: int, val: float, operation: str) -> None:
 
 
 @njit
-# @jit
 def _reduce(tree: np.ndarray, start: int, end: int, neutral_element: float, operation: str) -> float:
-# def _reduce(tree: list, start: int, end: int, neutral_element: float, operation: Callable) -> float:
+    # def _reduce(tree: list, start: int, end: int, neutral_element: float, operation: Callable) -> float:
     """Numba version, 2x faster: 0.009 -> 0.005."""
     # nodes in (start, end) should be aggregated
     result = neutral_element
@@ -182,7 +180,6 @@ def _reduce(tree: np.ndarray, start: int, end: int, neutral_element: float, oper
 
 
 @njit
-# @jit
 def _find_prefixsum_idx(tree: np.ndarray, capacity: int, prefixsum: float, neutral_element: float) -> int:
     """Numba version (v0.51), 5x speed up with size=100000 and bsz=64.
 

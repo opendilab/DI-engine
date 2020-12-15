@@ -101,10 +101,8 @@ class TestReplayBuffer:
         os.popen('rm -rf buffer*')
         setup_replay_buffer = ReplayBuffer(setup_config.replay_buffer)
         setup_replay_buffer._cache.debug = True
-        produce_threads = [Thread(target=self.produce, args=(i, setup_replay_buffer, 20))
-                           for i in range(PRODUCER_NUM)]
-        consume_threads = [Thread(target=self.consume, args=(i, setup_replay_buffer, 20))
-                           for i in range(CONSUMER_NUM)]
+        produce_threads = [Thread(target=self.produce, args=(i, setup_replay_buffer, 20)) for i in range(PRODUCER_NUM)]
+        consume_threads = [Thread(target=self.consume, args=(i, setup_replay_buffer, 20)) for i in range(CONSUMER_NUM)]
         for t in produce_threads:
             t.start()
         setup_replay_buffer.run()
@@ -157,8 +155,10 @@ class TestReplayBuffer:
                     # print('[PRODUCER] produce a list of {} data'.format(data_count))
                     replay_buffer.push_data(generate_data_list(data_count))
                     produce_count += data_count
-            print('[PRODUCER] produce {} data, using {} seconds'.format(
-                produce_count, time.time() - produce_begin_time))
+            print(
+                '[PRODUCER] produce {} data, using {} seconds'.format(produce_count,
+                                                                      time.time() - produce_begin_time)
+            )
             total_produce_count += produce_count
             # consume
             consume_count = 0
@@ -178,8 +178,12 @@ class TestReplayBuffer:
                     info['replay_unique_id'].append(d['replay_unique_id'])
                     info['replay_buffer_idx'].append(d['replay_buffer_idx'])
                 replay_buffer.update(info)
-            print('[CONSUMER] iteration {} training finish, sampling {} data, using {} seconds'.format(
-                iteration, consume_count, time.time() - consume_begin_time))
+            print(
+                '[CONSUMER] iteration {} training finish, sampling {} data, using {} seconds'.format(
+                    iteration, consume_count,
+                    time.time() - consume_begin_time
+                )
+            )
             total_consume_count += consume_count
         print('[PRODUCER] finish job, total produce {} data'.format(total_produce_count))
         print('[CONSUMER] finish job, total consume {} data'.format(total_consume_count))
