@@ -189,10 +189,13 @@ class SAC(SoftActorCriticBase):
         dist = Normal(mean, std)
         z = dist.rsample()  # for reparameterization trick (mean + std * N(0,1))
         action = torch.tanh(z)
+        log_prob = dist.log_prob(z)
         if action.shape[1] == 1:
             action = action.squeeze(1)
+            log_prob = log_prob.squeeze(1)
+            mean = mean.squeeze(1)
+            log_std = log_std.squeeze(1)
 
-        log_prob = dist.log_prob(z)
         # enforcing action bound
         log_prob -= torch.log(1 - action.pow(2) + epsilon)
         log_prob = log_prob.sum(-1, keepdim=True)

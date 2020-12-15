@@ -11,7 +11,10 @@ soft_q_data = namedtuple('soft_q_data', ['target_v_value', 'reward', 'done', 'q_
 
 def soft_q_error(data: namedtuple, discount) -> torch.Tensor:
     target_v_value, reward, done, q_value = data
-    target_q_value = reward + (1. - done) * discount * target_v_value
+    if done is None:
+        target_q_value = reward + discount * target_v_value
+    else:
+        target_q_value = reward + (1. - done) * discount * target_v_value
     q_loss = F.mse_loss(q_value, target_q_value.detach())
     return q_loss
 

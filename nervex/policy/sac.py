@@ -6,7 +6,7 @@ from collections import namedtuple
 import torch
 
 from nervex.torch_utils import Adam
-from nervex.rl_utils import value_data, soft_q_data, soft_q_error, value_error
+from nervex.rl_utils import value_data, soft_q_data, soft_q_error, value_error, Adder
 from nervex.model import SAC
 from nervex.agent import Agent
 from nervex.policy.base_policy import Policy, register_policy
@@ -69,7 +69,7 @@ class SACPolicy(CommonPolicy):
         next_obs = data.get('next_obs')
         reward = data.get('reward')
         action = data.get('action')
-        done = data.get('done').float()
+        done = data.get('done')
 
         # evaluate
         eval_data = self._agent.forward(data, param={'mode': 'evaluate'})
@@ -95,7 +95,7 @@ class SACPolicy(CommonPolicy):
         new_q_value = self._agent.forward(eval_data, param={'mode': 'compute_q'})['q_value']
         next_v_value = new_q_value - log_prob
         v_data = value_data(v_value, next_v_value)
-        value_loss = value_error(value_data)
+        value_loss = value_error(v_data)
         loss_dict['value_loss'] = value_loss
 
         # compute policy loss
@@ -136,7 +136,9 @@ class SACPolicy(CommonPolicy):
         }
 
     def _init_collect(self) -> None:
-        self._get_traj_length = self._cfg.collect.get_traj_length
+        self._traj_len = self._cfg.collect.traj_len
+        self._unroll_len = self._cfg.collect.unroll_len
+        self._adder = Adder(self._use_cuda, self._unroll_len)
         self._collect_agent = Agent(self._model)
         algo_cfg = self._cfg.collect.algo
         self._collect_agent.add_plugin(

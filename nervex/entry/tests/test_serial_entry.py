@@ -89,3 +89,18 @@ def test_ppo():
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
+
+
+def test_sac():
+    path = os.path.join(
+        os.path.dirname(__file__), '../../../app_zoo/classic_control/pendulum/entry/pendulum_sac_default_config.yaml'
+    )
+    config = read_config(path)
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+if __name__ == "__main__":
+    test_sac()
