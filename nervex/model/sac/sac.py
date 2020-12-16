@@ -21,7 +21,7 @@ class SoftQNet(nn.Module):
         self._act = nn.ReLU()
         input_dim = squeeze(obs_dim + action_dim)
         hidden_dim = soft_q_hidden_dim
-        hidden_dim_list = [128, 128] + [hidden_dim] + [1]
+        hidden_dim_list = [128, 128] + [hidden_dim]
 
         layers = []
         for dim in hidden_dim_list:
@@ -43,7 +43,7 @@ class ValueNet(nn.Module):
         self._act = nn.ReLU()
         input_dim = squeeze(obs_dim)
         hidden_dim = value_hidden_dim
-        hidden_dim_list = [128, 128] + [hidden_dim] + [1]
+        hidden_dim_list = [128, 128] + [hidden_dim]
 
         layers = []
         for dim in hidden_dim_list:
@@ -152,6 +152,7 @@ class SAC(SoftActorCriticBase):
         return self._policy_net(x)
 
     def compute_q(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        print(inputs)
         action = inputs['action']
         if len(action.shape) == 1:
             action = action.unsqueeze(1)

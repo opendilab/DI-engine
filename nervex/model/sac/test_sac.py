@@ -55,3 +55,4 @@ def test_sac(input, obs_dim, action_dim):
         assert action.shape == (4, squeeze(action_dim))
     assert action.eq(action.clamp(-1, 1)).all()
     print("action: ", action)
+
