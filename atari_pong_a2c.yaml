@@ -1,0 +1,78 @@
+common:
+   name: AtariConfig
+   save_path: '.'
+   load_path: ''
+env:
+   env_manager_type: 'subprocess'  # [base, subprocess]
+   import_names: [ 'app_zoo.atari.envs.atari_env' ]
+   env_type: 'atari'
+   env_id: 'PongNoFrameskip-v4'
+   frame_stack: 4
+   is_train: True
+   actor_env_num: 16
+   evaluator_env_num: 5
+policy:
+   use_cuda: True
+   policy_type: 'a2c'
+   import_names: [ 'nervex.policy.a2c' ]
+
+   on_policy: False
+   model:
+       obs_dim: [ 4, 84, 84 ]
+       action_dim: 6
+       embedding_dim: 64
+   learn:
+       train_step: 1
+       batch_size: 32
+       learning_rate: 0.0001
+       weight_decay: 0.0
+       algo:
+#           target_update_freq: 100
+           discount_factor: 0.99
+           value_weight : 0
+           entropy_weight: 0.02
+   collect:
+       traj_len: 1
+       unroll_len: 1
+       algo:
+           discount_factor: 0.99
+           gae_lambda: 0.95
+   command:
+       placeholder: 'placeholder'
+#       eps:
+#           type: 'linear'
+#           start: 1.
+#           end: 0.005
+#           decay: 100000
+replay_buffer:
+   meta_maxlen: 100000
+   max_reuse: 10
+   unroll_len: 1
+   min_sample_ratio: 1
+actor:
+   n_sample: 16
+   traj_len: 200
+   traj_print_freq: 100
+   collect_print_freq: 100
+evaluator:
+   n_episode: 5
+   eval_freq: 1000
+   stop_val: 20 # pong
+learner:
+   hook:
+       log_show:
+           name: log_show
+           type: log_show
+           priority: 20
+           position: after_iter
+           ext_args:
+               freq: 100
+command:
+   placeholder: 'placeholder'
+
+
+
+
+
+
+
