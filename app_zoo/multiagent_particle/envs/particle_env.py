@@ -10,14 +10,15 @@ from app_zoo.multiagent_particle.envs.make_env import make_env
 from app_zoo.multiagent_particle.envs.multiagent.multi_discrete import MultiDiscrete
 
 
-class ParicleEnv(BaseEnv):
+class ParticleEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._env_name = cfg.get("env_name", "simple")
         self._env = make_env(self._env_name)
-        # TODO(zwh) discrete action definition optimization, not all the input action is discrete
-        self._env.discrete_action_input = True
+        self._env.discrete_action_input = cfg.get('discrete_action', True)
+        # self._env.discrete_action_input = True
+        self._env.force_discrete_action = True
         self.agent_num = self._env.n
 
     def reset(self) -> torch.Tensor:
@@ -36,6 +37,8 @@ class ParicleEnv(BaseEnv):
         self._seed = seed
 
     def _process_action(self, action: list):
+        # print("action in env = ", action)
+        # print('ret = ', tensor_to_list(action))
         return tensor_to_list(action)
 
     def step(self, action: list) -> BaseEnv.timestep:

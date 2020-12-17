@@ -11,10 +11,9 @@ class BaseCompGraph(ABC):
     def forward(self, data: Any, agent: Any) -> dict:
         raise NotImplementedError
 
-    def register_stats(self, variable_record: 'VariableRecord', tb_logger: 'TensorBoardLogger'):  # noqa
+    def register_stats(self, tb_logger: 'TensorBoardLogger'):  # noqa
         """Input variable record and tensorboard logger. Return nothing."""
-        variable_record.register_var('total_loss')
-        tb_logger.register_var('total_loss')
+        tb_logger.register_var('total_loss_avg')
         # subclass can override this method to extend its own statistics value.
 
     @abstractmethod

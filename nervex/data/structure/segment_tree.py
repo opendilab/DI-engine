@@ -1,20 +1,23 @@
 import numpy as np
+from typing import Callable, Optional, Union, Any
 
 
 class SegmentTree:
     """
-    Overview: segment tree, implemented by the tree-like array, only the leaf nodes are real value,
-              the parents node is acquired by do some operation on left and right child
-    Interface: __init__, reduce, __setitem__, __getitem__
+    Overview:
+        Segment tree data structure, implemented by the tree-like array. Only the leaf nodes are real value,
+        the parent node is acquired by doing some operation on left and right child
+    Interface:
+        __init__, reduce, __setitem__, __getitem__
     """
 
-    def __init__(self, capacity, operation, neutral_element=None):
+    def __init__(self, capacity: int, operation: Callable, neutral_element: Optional[float] = None) -> None:
         """
         Overview: initialize the segment tree
         Arguments:
-            - capacity (:obj:`int`): the capacity of the tree(the number of the leaf nodes)
+            - capacity (:obj:`int`): the capacity of the tree (the number of the leaf nodes), should be the power of 2
             - operation (:obj:`function`): the operation function to construct the tree
-            - neutral_element (:obj:`float` or None): the value of the neutral_element
+            - neutral_element (:obj:`float` or :obj:`None`): the value of the neutral_element
         """
         assert capacity > 0 and capacity & (capacity - 1) == 0
         self.capacity = capacity
@@ -34,14 +37,15 @@ class SegmentTree:
         # for each parent node with index i, left child is value[2*i] while right child is value[2*i+1]
         self.value = [self.neutral_element for _ in range(2 * capacity)]
 
-    def reduce(self, start=0, end=None):
+    def reduce(self, start: int = 0, end: Optional[int] = None) -> Any:
         """
-        Overview: reduce the tree in range [start, end)
+        Overview:
+            Reduce the tree in range [start, end)
         Arguments:
             - start (:obj:`int`): start index(relative index, the first leaf node is 0)
-            - end (:obj:`int` or None): end index(relative index)
+            - end (:obj:`int` or :obj:`None`): end index(relative index)
         Returns:
-            - reduce_result (:obj:`T`): the reduce result value, which is dependent on data type and operation
+            - reduce_result (:obj:`Any`): the reduce result value, which is dependent on data type and operation
         """
         # TODO(nyz) check if directly reduce from the array(value) can be faster
         if end is None:
@@ -60,17 +64,17 @@ class SegmentTree:
             if end & 1:
                 end -= 1
                 result = self.operation([result, self.value[end]])
-
             start = start >> 1
             end = end >> 1
         return result
 
-    def __setitem__(self, idx, val):
+    def __setitem__(self, idx: int, val: Any) -> None:
         """
-        Overview: set leaf[idx] = val and update the related nodes
+        Overview:
+            Set leaf[idx] = val and update the related nodes
         Arguments:
             - idx (:obj:`int`): leaf node index
-            - val (:obj:`T`): the value that will be assigned to leaf[idx]
+            - val (:obj:`Any`): the value that will be assigned to leaf[idx]
         """
         assert (0 <= idx < self.capacity)
         idx += self.capacity
@@ -82,13 +86,14 @@ class SegmentTree:
             self.value[idx] = self.operation([self.value[child_base], self.value[child_base + 1]])
             idx = idx >> 1
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int) -> Any:
         """
-        Overview: get leaf[idx]
+        Overview:
+            Get leaf[idx]
         Arguments:
             - idx (:obj:`int`): leaf node index
         Returns:
-            - val (:obj:`T`): the value of leaf[idx]
+            - val (:obj:`Any`): the value of leaf[idx]
         """
         assert (0 <= idx < self.capacity)
         return self.value[idx + self.capacity]
@@ -96,15 +101,16 @@ class SegmentTree:
 
 class SumSegmentTree(SegmentTree):
 
-    def __init__(self, capacity):
+    def __init__(self, capacity: int) -> None:
         super(SumSegmentTree, self).__init__(capacity, operation=sum)
 
-    def find_prefixsum_idx(self, prefixsum, trust_caller=True):
+    def find_prefixsum_idx(self, prefixsum: Any, trust_caller: bool = True) -> int:
         """
-        Overview: find the highest non-zero index i, which for j in 0 <= j < i, sum_{j}leaf[j] <= prefixsum
+        Overview:
+            Find the highest non-zero index i, which for j in 0 <= j < i, sum_{j}leaf[j] <= prefixsum
         Arguments:
-            - prefixsum (:obj:`T`): the target prefixsum
-            - trust_caller (:obj:`bool`): whether to trust caller without check about prefixsum
+            - prefixsum (:obj:`Any`): the target prefixsum
+            - trust_caller (:obj:`bool`): whether to trust caller without check about prefixsum, default set to True
         Returns:
             - idx (:obj:`int`): eligible index
         """
@@ -133,5 +139,5 @@ class SumSegmentTree(SegmentTree):
 
 class MinSegmentTree(SegmentTree):
 
-    def __init__(self, capacity):
+    def __init__(self, capacity: int) -> None:
         super(MinSegmentTree, self).__init__(capacity, operation=min)

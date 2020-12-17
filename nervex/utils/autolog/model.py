@@ -37,15 +37,14 @@ class LoggedModel(metaclass=_LoggedModelMeta):
 
         >>> from nervex.utils.autolog import LoggedValue, LoggedModel
         >>> class AvgList(LoggedModel):
-        >>>     value = LoggedValue('value', float)
+        >>>     value = LoggedValue(float)
         >>>     __property_names = ['value']
         >>>
         >>>     def __init__(self, time_: BaseTime, expire: Union[int, float]):
         >>>         LoggedModel.__init__(self, time_, expire)
         >>>         # attention, original value must be set in __init__ function, or it will not
-        >>>         #be activated, the timeline of this value will also be unexpectedly effected.
+        >>>         # be activated, the timeline of this value will also be unexpectedly affected.
         >>>         self.value = 0.0
-        >>>
         >>>         self.__register()
         >>>
         >>>     def __register(self):
@@ -60,7 +59,7 @@ class LoggedModel(metaclass=_LoggedModelMeta):
         >>>             return _sum / _duration
         >>>
         >>>         for _prop_name in self.__property_names:
-        >>>             self.register_attribute_value('avg', _prop_name, lambda: __avg_func(_prop_name))
+        >>>             self.register_attribute_value('avg', _prop_name, partial(__avg_func, prop_name=_prop_name))
 
         Use it like this
 
@@ -75,6 +74,12 @@ class LoggedModel(metaclass=_LoggedModelMeta):
         >>>     print(ll.range_values['value']()) # original range_values function in LoggedModel of last 10 secs
         >>>     print(ll.range_values['value'](TimeMode.ABSOLUTE))  # use absolute time
         >>>     print(ll.avg['value']())  # average value of last 10 secs
+
+    Interface:
+        __init__, fixed_time, current_time, freeze, unfreeze, register_attribute_value, __getattr__
+
+    Property:
+        time, expire
     """
 
     def __init__(self, time_: _TimeObjectType, expire: _TimeType):
@@ -84,6 +89,7 @@ class LoggedModel(metaclass=_LoggedModelMeta):
         self.__expire = expire
 
         self.__methods = {}
+        self.__prop2attr = {}  # used to find registerd attributes list according to property name
 
         self.__init_properties()
         self.__register_default_funcs()
@@ -193,6 +199,11 @@ class LoggedModel(metaclass=_LoggedModelMeta):
         """
         self.__methods[attribute_name] = self.__methods.get(attribute_name, {})
         self.__methods[attribute_name][property_name] = value
+        if attribute_name == "range_values":
+            # "range_values" is not added to ``self.__prop2attr``
+            return
+        self.__prop2attr[property_name] = self.__prop2attr.get(property_name, [])
+        self.__prop2attr[property_name].append(attribute_name)
 
     def __getattr__(self, attribute_name: str) -> Any:
         """
@@ -228,3 +239,15 @@ class LoggedModel(metaclass=_LoggedModelMeta):
             return _Cls()
         else:
             raise KeyError("Attribute {name} not found.".format(name=repr(attribute_name)))
+
+    def get_property_attribute(self, property_name: str) -> List[str]:
+        """
+        Overview:
+            Find all registered attributes (except common "range_values" attribute, since "range_values" is not
+            added to ``self.__prop2attr``) of one given property.
+        Arguments:
+            - property_name (:obj:`str`): name of property to query attributes
+        Returns:
+            - attr_list (:obj:`List[str]`): the registered attributes list of the input property
+        """
+        return self.__prop2attr[property_name]
