@@ -17,7 +17,7 @@ action_dim = [
     6,
 ]
 
-input = [{'obs': torch.randn(4, 32), 'action': torch.randn(4, squeeze(action_dim))}]
+input = {'obs': torch.randn(4, 32), 'action': torch.randn(4, squeeze(action_dim))}
 args = [item for item in product(*[input, obs_dim, action_dim])]
 
 
@@ -27,7 +27,6 @@ def output_check(action_dim, model, output):
     elif np.isscalar(action_dim):
         loss = output.sum()
     is_differentiable(loss, model)
-
 
 @pytest.mark.unittest
 @pytest.mark.parametrize('input, obs_dim, action_dim', args)
@@ -59,3 +58,5 @@ def test_sac(input, obs_dim, action_dim):
         assert action.shape == (4, squeeze(action_dim))
     assert action.eq(action.clamp(-1, 1)).all()
     print("action: ", action)
+
+
