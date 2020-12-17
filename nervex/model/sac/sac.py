@@ -28,7 +28,7 @@ class SoftQNet(nn.Module):
             layers.append(nn.Linear(input_dim, dim))
             layers.append(self._act)
             input_dim = dim
-        
+
         output_layer = nn.Linear(input_dim, 1)
         output_layer.weight.data.uniform_(-init_w, init_w)
         output_layer.bias.data.uniform_(-init_w, init_w)
@@ -55,7 +55,7 @@ class ValueNet(nn.Module):
             layers.append(nn.Linear(input_dim, dim))
             layers.append(self._act)
             input_dim = dim
-            
+
         output_layer = nn.Linear(input_dim, 1)
         output_layer.weight.data.uniform_(-init_w, init_w)
         output_layer.bias.data.uniform_(-init_w, init_w)
@@ -73,7 +73,7 @@ class PolicyNet(nn.Module):
     def __init__(
         self,
         obs_dim,
-        action_dim, 
+        action_dim,
         policy_hidden_dim: int,
         log_std_min: int = -20,
         log_std_max: int = 2,
@@ -86,7 +86,7 @@ class PolicyNet(nn.Module):
         hidden_dim = policy_hidden_dim
         input_dim = squeeze(obs_dim)
         output_dim = squeeze(action_dim)
-        hidden_dim_list = [256]+ [hidden_dim]
+        hidden_dim_list = [256] + [hidden_dim]
 
         layers = []
         for dim in hidden_dim_list:

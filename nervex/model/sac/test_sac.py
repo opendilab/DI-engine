@@ -28,6 +28,7 @@ def output_check(action_dim, model, output):
         loss = output.sum()
     is_differentiable(loss, model)
 
+
 @pytest.mark.unittest
 @pytest.mark.parametrize('input, obs_dim, action_dim', args)
 def test_sac(input, obs_dim, action_dim):
@@ -58,5 +59,3 @@ def test_sac(input, obs_dim, action_dim):
         assert action.shape == (4, squeeze(action_dim))
     assert action.eq(action.clamp(-1, 1)).all()
     print("action: ", action)
-
-
