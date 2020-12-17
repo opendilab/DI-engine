@@ -18,9 +18,7 @@ def test_dqn():
 
 
 def test_pong_dqn():
-    path = os.path.join(
-        os.path.dirname(__file__), '../../../app_zoo/atari/entry/pong_dqn_default_config.yaml'
-    )
+    path = os.path.join(os.path.dirname(__file__), '../../../app_zoo/atari/entry/pong_dqn_default_config.yaml')
     config = read_config(path)
     try:
         serial_pipeline(config, seed=0)
