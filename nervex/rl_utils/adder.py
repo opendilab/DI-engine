@@ -29,6 +29,7 @@ class Adder(object):
         Arguments:
             - use_cuda (:obj:`bool`): whether use cuda in all the operations
             - unroll_len (:obj:`int`): learn training unroll length
+            - last_fn_type (:obj:`str`): the method type for dealing with last data in a traj
         """
         self._use_cuda = use_cuda
         self._unroll_len = unroll_len
