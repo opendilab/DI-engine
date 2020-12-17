@@ -1,3 +1,9 @@
+# Here, I use conv for a2c model. so in the original code for a2c, should be 
+
+# def _create_model_from_cfg(self, cfg: dict) -> torch.nn.Module:
+        # from nervex.model import ConvValueAC
+        # return ConvValueAC(**cfg.model)
+
 common:
    name: AtariConfig
    save_path: '.'
