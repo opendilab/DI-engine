@@ -111,5 +111,13 @@ def test_sac():
         assert False, "pipeline fail"
 
 
-if __name__ == "__main__":
-    test_pong_dqn()
+@pytest.mark.unittest
+def test_r2d2():
+    path = os.path.join(
+        os.path.dirname(__file__), '../../../app_zoo/classic_control/cartpole/entry/cartpole_r2d2_default_config.yaml'
+    )
+    config = read_config(path)
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
