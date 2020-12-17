@@ -1,5 +1,5 @@
 common:
-    name: CartpoleRainbowDqnConfig
+    name: CartpoleR2D2Config
     save_path: '.'
     load_path: ''
 env:
@@ -10,44 +10,47 @@ env:
     evaluator_env_num: 5
 policy:
     use_cuda: False
-    policy_type: 'rainbow_dqn'
-    import_names: ['nervex.policy.dqn', 'nervex.policy.rainbow_dqn']
+    policy_type: 'r2d2'
+    import_names: ['nervex.policy.r2d2']
     on_policy: False
     model:
         obs_dim: 4
         action_dim: 2
-        embedding_dim: 64
-        v_max: 10
-        v_min: -10
-        n_atom: 51
+        embedding_dim: 48
     learn:
-        train_step: 5
+        train_step: 1
         batch_size: 64
         learning_rate: 0.001
-        weight_decay: 0.0001
+        weight_decay: 0.0
         algo:
-            target_update_freq: 100
+            target_update_freq: 200
             discount_factor: 0.95
-            nstep: 3
+            burnin_step: 2
+            nstep: 2
+            use_value_rescale: True
     collect:
-        traj_len: 11  # (8 + nstep)
-        unroll_len: 1
+        traj_len: 14  # (2*unroll_len + nstep)
+        unroll_len: 6  # (2*nstep + burnin_step)
+        env_num: 8  # actor_env_num
         algo:
-            nstep: 3
+            burnin_step: 2
+            nstep: 2
+    eval:
+        env_num: 5  # evaluator_env_num
     command:
         eps:
             type: 'exp'
-            start: 0.5
+            start: 0.95
             end: 0.05
             decay: 10000
 replay_buffer:
     meta_maxlen: 10000
     max_reuse: 100
-    unroll_len: 1
+    unroll_len: 6
     min_sample_ratio: 1
 actor:
-    n_sample: 80
-    traj_len: 11  #  (8 + nstep)
+    n_sample: 16
+    traj_len: 14
     traj_print_freq: 100
     collect_print_freq: 100
 evaluator:

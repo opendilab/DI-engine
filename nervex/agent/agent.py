@@ -84,7 +84,7 @@ class BaseAgent(ABC):
         """
         self._model.load_state_dict(state_dict['model'])
 
-    def reset(self, data_id_list: List[int] = None) -> None:
+    def reset(self, data_id: List[int] = None) -> None:
         pass
 
 

@@ -122,7 +122,7 @@ class DDPGPolicy(CommonPolicy):
         self._collect_agent.reset()
         self._collect_setting_set = {}
 
-    def _forward_collect(self, data: dict) -> dict:
+    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
         output = self._collect_agent.forward(data, param={'mode': 'compute_action'})
         return output
 
@@ -143,7 +143,7 @@ class DDPGPolicy(CommonPolicy):
         self._eval_agent.reset()
         self._eval_setting_set = {}
 
-    def _forward_eval(self, data: dict) -> dict:
+    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
         output = self._eval_agent.forward(data, param={'mode': 'compute_action'})
         return output
 

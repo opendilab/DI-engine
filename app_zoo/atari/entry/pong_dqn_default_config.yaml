@@ -1,59 +1,58 @@
 common:
-    name: CartpoleRainbowDqnConfig
+    name: PongDqnConfig
     save_path: '.'
     load_path: ''
 env:
     env_manager_type: 'base'  # [base, subprocess]
-    import_names: ['app_zoo.classic_control.cartpole.envs.cartpole_env']
-    env_type: 'cartpole'
+    import_names: ['app_zoo.atari.envs.atari_env']
+    env_type: 'atari'
     actor_env_num: 8
-    evaluator_env_num: 5
+    evaluator_env_num: 3
+    env_id: 'PongNoFrameskip-v4'
+    frame_stack: 4
+    is_train: True
 policy:
     use_cuda: False
-    policy_type: 'rainbow_dqn'
-    import_names: ['nervex.policy.dqn', 'nervex.policy.rainbow_dqn']
+    policy_type: 'dqn'
+    import_names: ['nervex.policy.dqn']
     on_policy: False
     model:
-        obs_dim: 4
-        action_dim: 2
+        encode_type: 'conv2d'
+        obs_dim: [4, 84, 84]
+        action_dim: 6
         embedding_dim: 64
-        v_max: 10
-        v_min: -10
-        n_atom: 51
+        dueling: True
     learn:
-        train_step: 5
+        train_step: 3
         batch_size: 64
         learning_rate: 0.001
-        weight_decay: 0.0001
+        weight_decay: 0.0
         algo:
             target_update_freq: 100
-            discount_factor: 0.95
-            nstep: 3
+            discount_factor: 0.97
     collect:
-        traj_len: 11  # (8 + nstep)
+        traj_len: 1
         unroll_len: 1
-        algo:
-            nstep: 3
     command:
         eps:
             type: 'exp'
-            start: 0.5
-            end: 0.05
+            start: 0.95
+            end: 0.1
             decay: 10000
 replay_buffer:
-    meta_maxlen: 10000
+    meta_maxlen: 100000
     max_reuse: 100
     unroll_len: 1
     min_sample_ratio: 1
 actor:
-    n_sample: 80
-    traj_len: 11  #  (8 + nstep)
+    n_sample: 8
+    traj_len: 1
     traj_print_freq: 100
     collect_print_freq: 100
 evaluator:
     n_episode: 5
     eval_freq: 200
-    stop_val: 195
+    stop_val: 20
 learner:
     hook:
         log_show:

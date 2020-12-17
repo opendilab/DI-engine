@@ -20,15 +20,15 @@ policy:
     learn:
         train_step: 1
         batch_size: 128
-        learning_rate_q: 0.001
-        learning_rate_value: 0.001
-        learning_rate_policy: 0.0003
-        weight_decay: 0.00001
+        learning_rate_q: 0.003
+        learning_rate_value: 0.003
+        learning_rate_policy: 0.003
+        weight_decay: 0.0001
         ignore_done: True
         algo:
             target_theta: 0.005
             discount_factor: 0.99
-            use_twin_q: True
+            use_twin_q: False
             reparameterization: True
             policy_std_reg_weight: 0.001
             policy_mean_reg_weight: 0.001
@@ -45,7 +45,7 @@ policy:
     command:
         placeholder: 'placeholder'
 replay_buffer:
-    meta_maxlen: 20000
+    meta_maxlen: 30000
     max_reuse: 1024
     unroll_len: 1
     min_sample_ratio: 1

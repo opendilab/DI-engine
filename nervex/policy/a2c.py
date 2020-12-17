@@ -66,7 +66,7 @@ class A2CPolicy(CommonPolicy):
         self._gamma = algo_cfg.discount_factor
         self._gae_lambda = algo_cfg.gae_lambda
 
-    def _forward_collect(self, data: dict) -> dict:
+    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
         return self._collect_agent.forward(data, param={'mode': 'compute_action_value'})
 
     def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
@@ -80,8 +80,8 @@ class A2CPolicy(CommonPolicy):
         }
         return transition
 
-    def _get_train_sample(self, traj_cache: deque, data_id: int) -> Union[None, List[Any]]:
-        data = self._adder.get_traj(traj_cache, data_id, self._traj_len, return_num=1)
+    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
+        data = self._adder.get_traj(traj_cache, self._traj_len, return_num=1)
         if self._traj_len == float('inf'):
             assert data[-1]['done'], "episode must be terminated by done=True"
         data = self._adder.get_gae_with_default_last_value(
@@ -97,7 +97,7 @@ class A2CPolicy(CommonPolicy):
         self._eval_agent.reset()
         self._eval_setting_set = {}
 
-    def _forward_eval(self, data: dict) -> dict:
+    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
         return self._eval_agent.forward(data, param={'mode': 'compute_action'})
 
     def _init_command(self) -> None:

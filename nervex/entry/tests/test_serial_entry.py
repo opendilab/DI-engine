@@ -17,6 +17,15 @@ def test_dqn():
         assert False, "pipeline fail"
 
 
+def test_pong_dqn():
+    path = os.path.join(os.path.dirname(__file__), '../../../app_zoo/atari/entry/pong_dqn_default_config.yaml')
+    config = read_config(path)
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+
+
 @pytest.mark.unittest
 def test_ddpg():
     path = os.path.join(
@@ -115,5 +124,13 @@ def test_sac():
         assert False, "pipeline fail"
 
 
-if __name__ == "__main__":
-    test_sac()
+@pytest.mark.unittest
+def test_r2d2():
+    path = os.path.join(
+        os.path.dirname(__file__), '../../../app_zoo/classic_control/cartpole/entry/cartpole_r2d2_default_config.yaml'
+    )
+    config = read_config(path)
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"

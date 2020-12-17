@@ -55,7 +55,7 @@ class DQNVanillaPolicy(CommonPolicy):
         self._unroll_len = self._cfg.collect.unroll_len
         self._collect_setting_set = {'eps'}
 
-    def _forward_collect(self, data: dict) -> dict:
+    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
         with torch.no_grad():
             logit = self._model(data['obs'])['logit']
         if isinstance(logit, torch.Tensor):
@@ -84,7 +84,7 @@ class DQNVanillaPolicy(CommonPolicy):
     def _init_eval(self) -> None:
         self._eval_setting_set = {}
 
-    def _forward_eval(self, data: dict) -> dict:
+    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
         with torch.no_grad():
             logit = self._model(data['obs'])['logit']
         if isinstance(logit, torch.Tensor):
@@ -108,7 +108,7 @@ class DQNVanillaPolicy(CommonPolicy):
     def _create_model_from_cfg(self, cfg: dict) -> torch.nn.Module:
         return FCDiscreteNet(**cfg.model)
 
-    def _get_train_sample(self, traj_cache: deque, data_id: int) -> Union[None, List[Any]]:
+    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
         data = [traj_cache.popleft() for _ in range(self._traj_len)]
         return data
 

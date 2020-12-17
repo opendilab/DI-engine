@@ -5,7 +5,7 @@ from easydict import EasyDict
 
 from nervex.torch_utils import Adam
 from nervex.rl_utils import q_1step_td_data, q_1step_td_error, epsilon_greedy, Adder
-from nervex.model import FCDiscreteNet
+from nervex.model import FCDiscreteNet, ConvDiscreteNet
 from nervex.agent import Agent
 from .base_policy import Policy, register_policy
 from .common_policy import CommonPolicy
@@ -58,7 +58,7 @@ class DQNPolicy(CommonPolicy):
         self._collect_agent.reset()
         self._collect_setting_set = {'eps'}
 
-    def _forward_collect(self, data: dict) -> dict:
+    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
         return self._collect_agent.forward(data, eps=self._eps)
 
     def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
@@ -79,7 +79,7 @@ class DQNPolicy(CommonPolicy):
         self._eval_agent.reset()
         self._eval_setting_set = {}
 
-    def _forward_eval(self, data: dict) -> dict:
+    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
         return self._eval_agent.forward(data)
 
     def _init_command(self) -> None:
@@ -91,7 +91,10 @@ class DQNPolicy(CommonPolicy):
         return {'eps': self.epsilon_greedy(learner_step)}
 
     def _create_model_from_cfg(self, cfg: dict) -> torch.nn.Module:
-        return FCDiscreteNet(**cfg.model)
+        if cfg.model.get('encode_type', 'fc') == 'conv2d':
+            return ConvDiscreteNet(**cfg.model)
+        else:
+            return FCDiscreteNet(**cfg.model)
 
 
 register_policy('dqn', DQNPolicy)
