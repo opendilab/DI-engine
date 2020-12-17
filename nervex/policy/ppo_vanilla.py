@@ -25,7 +25,7 @@ class PPOPolicy(CommonPolicy):
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         # forward
-        output = self._model(data['obs'], mode="compute_action_value")        
+        output = self._model(data['obs'], mode="compute_action_value")
         adv = data['adv']
         # norm adv in total train_batch
         adv = (adv - adv.mean()) / (adv.std() + 1e-8)
@@ -57,7 +57,7 @@ class PPOPolicy(CommonPolicy):
         self._traj_len = self._cfg.collect.traj_len
         self._unroll_len = self._cfg.collect.unroll_len
         if self._traj_len == 'inf':
-            self._traj_len = float('inf')    
+            self._traj_len = float('inf')
         self._collect_setting_set = {'eps'}
         self._adder = Adder(self._use_cuda, self._unroll_len)
         algo_cfg = self._cfg.collect.algo
@@ -69,7 +69,7 @@ class PPOPolicy(CommonPolicy):
             ret = self._model(data['obs'], mode="compute_action_value")
             logit, value = ret['logit'], ret['value']
         if isinstance(logit, torch.Tensor):
-            logit, value  = [logit], [value]
+            logit, value = [logit], [value]
         action = []
         for i, l in enumerate(logit):
             if np.random.random() > self._eps:
@@ -92,16 +92,6 @@ class PPOPolicy(CommonPolicy):
         }
         return EasyDict(transition)
 
-    # def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
-    #     transition = {
-    #         'obs': obs,
-    #         'next_obs': timestep.obs,
-    #         'action': agent_output['action'],
-    #         'reward': timestep.reward,
-    #         'done': timestep.done,
-    #     }
-    #     return EasyDict(transition)
-    
     def _get_train_sample(self, traj_cache: deque, data_id: int) -> Union[None, List[Any]]:
         data = self._adder.get_traj(traj_cache, data_id, self._traj_len, return_num=1)
         if self._traj_len == float('inf'):
@@ -112,7 +102,6 @@ class PPOPolicy(CommonPolicy):
         return self._adder.get_train_sample(data)
 
     def _init_eval(self) -> None:
-
         self._eval_setting_set = {}
 
     def _forward_eval(self, data: dict) -> dict:
@@ -120,7 +109,7 @@ class PPOPolicy(CommonPolicy):
             ret = self._model(data['obs'], mode="compute_action_value")
             logit, value = ret['logit'], ret['value']
         if isinstance(logit, torch.Tensor):
-            logit, value  = [logit], [value]
+            logit, value = [logit], [value]
         action = []
         for i, l in enumerate(logit):
             action.append(l.argmax(dim=-1))
