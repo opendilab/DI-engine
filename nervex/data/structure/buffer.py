@@ -128,7 +128,19 @@ class PrioritizedBuffer:
         if not self._sample_check(size):
             return None
         indices = self._get_indices(size)
-        return self._sample_with_indices(indices)
+        result = self._sample_with_indices(indices)
+        # deepcopy same indice data
+        for i in range(size):
+            tmp = []
+            for j in range(i, size):
+                if indices[i] == indices[j]:
+                    tmp.append(j)
+                else:
+                    break
+            for j in tmp:
+                result[j] = copy.deepcopy(result[j])
+        return result
+
 
     def append(self, ori_data):
         r"""
