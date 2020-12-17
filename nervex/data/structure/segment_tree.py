@@ -75,7 +75,7 @@ class SegmentTree:
             - idx (:obj:`int`): leaf node index(relative index), should add ``capacity`` and change to absolute index
             - val (:obj:`float`): the value that will be assigned to leaf[idx]
         """
-        assert (0 <= idx < self.capacity)
+        assert (0 <= idx < self.capacity), idx
         idx += self.capacity
         _setitem(self.value, idx, val, self.operation)
 

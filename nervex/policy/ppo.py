@@ -58,10 +58,10 @@ class PPOPolicy(CommonPolicy):
     def _init_collect(self) -> None:
         self._traj_len = self._cfg.collect.traj_len
         self._unroll_len = self._cfg.collect.unroll_len
-        # because gae calculation need v_t+1
-        assert self._traj_len > 1, "ppo traj len should be greater than 1"
         if self._traj_len == 'inf':
             self._traj_len = float('inf')
+        # because gae calculation need v_t+1
+        assert self._traj_len > 1, "ppo traj len should be greater than 1"
         self._collect_agent = Agent(self._model)
         self._collect_agent.add_plugin('main', 'multinomial_sample')
         self._collect_agent.add_plugin('main', 'grad', enable_grad=False)

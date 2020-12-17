@@ -198,14 +198,20 @@ class PrioritizedBuffer:
             for idx in range(self.pointer, self.pointer + length):
                 self._reuse_count[idx] = 0
         else:
-            mid = self._maxlen - self.pointer
-            self._data[self.pointer:self.pointer + mid] = valid_data[:mid]
-            self._data[:length - mid] = valid_data[mid:]
-            assert self.pointer + mid == self._maxlen
-            for idx in range(self.pointer, self.pointer + mid):
-                self._reuse_count[idx] = 0
-            for idx in range(length - mid):
-                self._reuse_count[idx] = 0
+            data_start = self.pointer
+            valid_data_start = 0
+            residual_num = len(valid_data)
+            while True:
+                space = self._maxlen - data_start
+                L = min(space, residual_num)
+                self._data[data_start:data_start + L] = valid_data[valid_data_start:valid_data_start + L]
+                residual_num -= L
+                for i in range(data_start, data_start + L):
+                    self._reuse_count[i] = 0
+                if residual_num <= 0:
+                    break
+                else:
+                    data_start = 0
 
         self.pointer = (self.pointer + length) % self._maxlen
         self.latest_data_id += length
@@ -313,6 +319,19 @@ class PrioritizedBuffer:
                 self.min_tree[idx] = self.min_tree.neutral_element
                 self._valid_count -= 1
         return data
+
+    def clear(self) -> None:
+        """
+        Overview: clear all the data and reset the related variable
+        """
+        for i in range(len(self._data)):
+            self._data[i] = None
+            self.sum_tree[i] = self.sum_tree.neutral_element
+            self.min_tree[i] = self.min_tree.neutral_element
+            self._reuse_count[i] = 0
+        self._valid_count = 0
+        self.pointer = 0
+        self.max_priority = 1.0
 
     @property
     def maxlen(self) -> int:
