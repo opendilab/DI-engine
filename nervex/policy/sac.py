@@ -89,6 +89,7 @@ class SACPolicy(CommonPolicy):
         q_data = soft_q_data(target_v_value, reward, done, q_value)
         q_loss = soft_q_error(q_data, self._gamma)
         loss_dict['q_loss'] = q_loss
+        print('q_loss', q_loss)
 
         # compute value loss
         eval_data['obs'] = obs
@@ -97,18 +98,20 @@ class SACPolicy(CommonPolicy):
         v_data = value_data(v_value, next_v_value)
         value_loss = value_error(v_data)
         loss_dict['value_loss'] = value_loss
+        print('v_loss', value_loss)
 
         # compute policy loss
         if not self._reparameterization:
             target_log_policy = new_q_value - v_value
             policy_loss = (log_prob * (log_prob - target_log_policy).detach()).mean()
         else:
-            policy_loss = (log_prob - new_q_value).mean()
+            policy_loss = (log_prob - new_q_value.detach()).mean()
 
         std_reg_loss = self._policy_std_reg_weight * (log_std ** 2).mean()
         mean_reg_loss = self._policy_mean_reg_weight * (mean ** 2).mean()
 
         policy_loss += std_reg_loss + mean_reg_loss
+        print('p_loss', policy_loss)
         loss_dict['policy_loss'] = policy_loss
         loss_dict['total_loss'] = sum(loss_dict.values())
 

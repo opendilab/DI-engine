@@ -16,19 +16,24 @@ from nervex.utils import squeeze
 
 class SoftQNet(nn.Module):
 
-    def __init__(self, obs_dim, action_dim, soft_q_hidden_dim: int):
+    def __init__(self, obs_dim, action_dim, soft_q_hidden_dim: int, init_w: float = 3e-3):
         super(SoftQNet, self).__init__()
         self._act = nn.ReLU()
         input_dim = squeeze(obs_dim + action_dim)
         hidden_dim = soft_q_hidden_dim
-        hidden_dim_list = [128, 128] + [hidden_dim]
+        hidden_dim_list = [256] + [hidden_dim]
 
         layers = []
         for dim in hidden_dim_list:
             layers.append(nn.Linear(input_dim, dim))
             layers.append(self._act)
             input_dim = dim
-        layers.append(nn.Linear(input_dim, 1))
+        
+        output_layer = nn.Linear(input_dim, 1)
+        output_layer.weight.data.uniform_(-init_w, init_w)
+        output_layer.bias.data.uniform_(-init_w, init_w)
+        layers.append(output_layer)
+
         self._main = nn.Sequential(*layers)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -38,19 +43,24 @@ class SoftQNet(nn.Module):
 
 class ValueNet(nn.Module):
 
-    def __init__(self, obs_dim, value_hidden_dim: int):
+    def __init__(self, obs_dim, value_hidden_dim: int, init_w: float = 3e-3):
         super(ValueNet, self).__init__()
         self._act = nn.ReLU()
         input_dim = squeeze(obs_dim)
         hidden_dim = value_hidden_dim
-        hidden_dim_list = [128, 128] + [hidden_dim]
+        hidden_dim_list = [256] + [hidden_dim]
 
         layers = []
         for dim in hidden_dim_list:
             layers.append(nn.Linear(input_dim, dim))
             layers.append(self._act)
             input_dim = dim
-        layers.append(nn.Linear(input_dim, 1))
+            
+        output_layer = nn.Linear(input_dim, 1)
+        output_layer.weight.data.uniform_(-init_w, init_w)
+        output_layer.bias.data.uniform_(-init_w, init_w)
+        layers.append(output_layer)
+
         self._main = nn.Sequential(*layers)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -63,7 +73,7 @@ class PolicyNet(nn.Module):
     def __init__(
         self,
         obs_dim,
-        action_dim: int,
+        action_dim, 
         policy_hidden_dim: int,
         log_std_min: int = -20,
         log_std_max: int = 2,
@@ -75,7 +85,8 @@ class PolicyNet(nn.Module):
         self._act = nn.ReLU()
         hidden_dim = policy_hidden_dim
         input_dim = squeeze(obs_dim)
-        hidden_dim_list = [128, 128] + [hidden_dim]
+        output_dim = squeeze(action_dim)
+        hidden_dim_list = [256]+ [hidden_dim]
 
         layers = []
         for dim in hidden_dim_list:
@@ -84,11 +95,11 @@ class PolicyNet(nn.Module):
             input_dim = dim
         self._main = nn.Sequential(*layers)
 
-        self._mean_layer = nn.Linear(hidden_dim, action_dim)
+        self._mean_layer = nn.Linear(dim, output_dim)
         self._mean_layer.weight.data.uniform_(-init_w, init_w)
         self._mean_layer.bias.data.uniform_(-init_w, init_w)
 
-        self._log_std_layer = nn.Linear(hidden_dim, action_dim)
+        self._log_std_layer = nn.Linear(dim, output_dim)
         self._log_std_layer.weight.data.uniform_(-init_w, init_w)
         self._log_std_layer.bias.data.uniform_(-init_w, init_w)
 
@@ -107,9 +118,9 @@ class SAC(SoftActorCriticBase):
             self,
             obs_dim: tuple,
             action_dim: Union[int, tuple],
-            policy_embedding_dim: int = 64,
-            value_embedding_dim: int = 64,
-            soft_q_embedding_dim: int = 64,
+            policy_embedding_dim: int = 256,
+            value_embedding_dim: int = 256,
+            soft_q_embedding_dim: int = 256,
             use_twin_q: bool = False
     ) -> None:
         super(SAC, self).__init__()
@@ -152,7 +163,6 @@ class SAC(SoftActorCriticBase):
         return self._policy_net(x)
 
     def compute_q(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        print(inputs)
         action = inputs['action']
         if len(action.shape) == 1:
             action = action.unsqueeze(1)
@@ -175,7 +185,8 @@ class SAC(SoftActorCriticBase):
 
         dist = Normal(mean, std)
         z = dist.sample()
-        action = torch.tanh(z)
+        action = torch.tanh(z).detach()
+        # action = torch.tanh(mean).detach().cpu()
 
         if action.shape[1] == 1:
             action = action.squeeze(1)
@@ -199,7 +210,7 @@ class SAC(SoftActorCriticBase):
 
         # enforcing action bound
         log_prob -= torch.log(1 - action.pow(2) + epsilon)
-        log_prob = log_prob.sum(-1, keepdim=True)
+        # log_prob = log_prob.sum(-1, keepdim=True)
 
         return {'mean': mean, 'log_std': log_std, 'action': action, 'log_prob': log_prob}
 
