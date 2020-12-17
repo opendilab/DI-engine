@@ -92,15 +92,6 @@ class PPOPolicy(CommonPolicy):
         }
         return EasyDict(transition)
 
-    def _get_train_sample(self, traj_cache: deque, data_id: int) -> Union[None, List[Any]]:
-        data = self._adder.get_traj(traj_cache, data_id, self._traj_len, return_num=1)
-        if self._traj_len == float('inf'):
-            assert data[-1]['done'], "episode must be terminated by done=True"
-        data = self._adder.get_gae_with_default_last_value(
-            data, data[-1]['done'], gamma=self._gamma, gae_lambda=self._gae_lambda
-        )
-        return self._adder.get_train_sample(data)
-
     def _init_eval(self) -> None:
         self._eval_setting_set = {}
 
