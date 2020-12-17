@@ -12,7 +12,7 @@ class TestSumSegmentTree:
             tree = SumSegmentTree(capacity=13)
 
         tree = SumSegmentTree(capacity=16)
-        assert (tree.operation is sum)
+        assert (tree.operation == 'sum')
         assert (tree.neutral_element == 0.)
         assert (max(tree.value) == 0.)
         assert (min(tree.value) == 0.)
@@ -62,7 +62,7 @@ class TestMinSegmentTree:
 
     def test_create(self):
         tree = MinSegmentTree(capacity=16)
-        assert (tree.operation is min)
+        assert (tree.operation == 'min')
         assert (tree.neutral_element == np.inf)
         assert (max(tree.value) == np.inf)
         assert (min(tree.value) == np.inf)

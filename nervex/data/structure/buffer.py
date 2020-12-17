@@ -253,7 +253,7 @@ class PrioritizedBuffer:
         intervals = np.array([i * 1.0 / size for i in range(size)])
         # uniform sample in each interval
         mass = intervals + np.random.uniform(size=(size, )) * 1. / size
-        # rescale to [0, S), which S is the sum of the total sum_tree
+        # rescale to [0, S), where S is the sum of the total sum_tree
         mass *= self.sum_tree.reduce()
         # find prefix sum index to approximate sample with probability
         return [self.sum_tree.find_prefixsum_idx(m) for m in mass]
