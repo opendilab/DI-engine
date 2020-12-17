@@ -7,7 +7,7 @@ env:
     import_names: ['app_zoo.atari.envs.atari_env']
     env_type: 'atari'
     actor_env_num: 8
-    evaluator_env_num: 5
+    evaluator_env_num: 3
     env_id: 'PongNoFrameskip-v4'
     frame_stack: 4
     is_train: True
@@ -29,7 +29,7 @@ policy:
         weight_decay: 0.0
         algo:
             target_update_freq: 100
-            discount_factor: 0.95
+            discount_factor: 0.97
     collect:
         traj_len: 1
         unroll_len: 1
@@ -52,7 +52,7 @@ actor:
 evaluator:
     n_episode: 5
     eval_freq: 200
-    stop_val: 195
+    stop_val: 20
 learner:
     hook:
         log_show:

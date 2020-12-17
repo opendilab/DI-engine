@@ -103,7 +103,7 @@ class SACPolicy(CommonPolicy):
             target_log_policy = new_q_value - v_value
             policy_loss = (log_prob * (log_prob - target_log_policy).detach()).mean()
         else:
-            policy_loss = (log_prob - new_q_value).mean()
+            policy_loss = (log_prob - new_q_value.detach()).mean()
 
         std_reg_loss = self._policy_std_reg_weight * (log_std ** 2).mean()
         mean_reg_loss = self._policy_mean_reg_weight * (mean ** 2).mean()
@@ -156,7 +156,7 @@ class SACPolicy(CommonPolicy):
         self._collect_agent.reset()
         self._collect_setting_set = {}
 
-    def _forward_collect(self, data: dict) -> dict:
+    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
         output = self._collect_agent.forward(data, param={'mode': 'compute_action'})
         return output
 
@@ -177,7 +177,7 @@ class SACPolicy(CommonPolicy):
         self._eval_agent.reset()
         self._eval_setting_set = {}
 
-    def _forward_eval(self, data: dict) -> dict:
+    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
         output = self._eval_agent.forward(data, param={'mode': 'compute_action'})
         return output
 

@@ -69,7 +69,8 @@ def vtrace_error(
         cs = torch.clamp(IS, max=c_clip_ratio)
         return_ = vtrace_nstep_return(rhos, cs, reward, value, gamma, lambda_)
         pg_rhos = torch.clamp(IS, max=rho_pg_clip_ratio)
-        adv = vtrace_advantage(pg_rhos, reward, return_, value[:-1], gamma)
+        return_t_plus_1 = torch.cat([return_[1:], value[-1:]], 0)
+        adv = vtrace_advantage(pg_rhos, reward, return_t_plus_1, value[:-1], gamma)
 
     if weight is None:
         weight = torch.ones_like(reward)

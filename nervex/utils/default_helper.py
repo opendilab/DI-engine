@@ -134,16 +134,17 @@ def default_get(
 
 def list_split(data: list, step: int) -> List[list]:
     if len(data) < step:
-        warnings.warn("list_split data real length is shorted than the given step({})".format(step))
-        return []
+        return [], data
     ret = []
     divide_num = len(data) // step
     for i in range(divide_num):
         start, end = i * step, (i + 1) * step
         ret.append(data[start:end])
     if divide_num * step < len(data):
-        ret.append(copy.deepcopy(data[-step:]))
-    return ret
+        residual = data[divide_num * step:]
+    else:
+        residual = None
+    return ret, residual
 
 
 def error_wrapper(fn, default_ret, warning_msg="[WARNING]: call linklink error, return default_ret."):

@@ -122,7 +122,7 @@ class QMix(nn.Module):
         global_state_embedding = self._global_state_encoder(global_state)
         output = self._q_network({'obs': agent_state, 'prev_state': prev_state, 'enable_fast_timestep': True})
         agent_q, next_state = output['logit'], output['next_state']
-        next_state = list_split(next_state, step=A)
+        next_state, _ = list_split(next_state, step=A)
         agent_q = agent_q.reshape(T, B, A, -1)
         if action is None:
             action = agent_q.argmax(dim=-1)

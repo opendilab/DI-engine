@@ -58,7 +58,7 @@ class DQNPolicy(CommonPolicy):
         self._collect_agent.reset()
         self._collect_setting_set = {'eps'}
 
-    def _forward_collect(self, data: dict) -> dict:
+    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
         return self._collect_agent.forward(data, eps=self._eps)
 
     def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
@@ -79,7 +79,7 @@ class DQNPolicy(CommonPolicy):
         self._eval_agent.reset()
         self._eval_setting_set = {}
 
-    def _forward_eval(self, data: dict) -> dict:
+    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
         return self._eval_agent.forward(data)
 
     def _init_command(self) -> None:

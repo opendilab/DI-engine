@@ -124,7 +124,7 @@ class Policy(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _forward_collect(self, data: dict) -> dict:
+    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
         raise NotImplementedError
 
     @abstractmethod
@@ -136,7 +136,7 @@ class Policy(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _get_train_sample(self, traj_cache: deque, data_id: int) -> Union[None, List[Any]]:
+    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
         raise NotImplementedError
 
     @abstractmethod
@@ -146,7 +146,7 @@ class Policy(ABC):
     # *************************************** eval function ************************************
 
     @abstractmethod
-    def _forward_eval(self, data: dict) -> Dict[str, Any]:
+    def _forward_eval(self, data_id: List[int], data: dict) -> Dict[str, Any]:
         raise NotImplementedError
 
     # *************************************** command function ************************************
