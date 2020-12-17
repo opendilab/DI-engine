@@ -1,0 +1,66 @@
+common:
+    name: PongDqnConfig
+    save_path: '.'
+    load_path: ''
+env:
+    env_manager_type: 'base'  # [base, subprocess]
+    import_names: ['app_zoo.atari.envs.atari_env']
+    env_type: 'atari'
+    actor_env_num: 8
+    evaluator_env_num: 5
+    env_id: 'PongNoFrameskip-v4'
+    frame_stack: 4
+    is_train: True
+policy:
+    use_cuda: False
+    policy_type: 'dqn'
+    import_names: ['nervex.policy.dqn']
+    on_policy: False
+    model:
+        encode_type: 'conv2d'
+        obs_dim: [4, 84, 84]
+        action_dim: 6
+        embedding_dim: 64
+        dueling: True
+    learn:
+        train_step: 3
+        batch_size: 64
+        learning_rate: 0.001
+        weight_decay: 0.0
+        algo:
+            target_update_freq: 100
+            discount_factor: 0.95
+    collect:
+        traj_len: 1
+        unroll_len: 1
+    command:
+        eps:
+            type: 'exp'
+            start: 0.95
+            end: 0.1
+            decay: 10000
+replay_buffer:
+    meta_maxlen: 100000
+    max_reuse: 100
+    unroll_len: 1
+    min_sample_ratio: 1
+actor:
+    n_sample: 8
+    traj_len: 1
+    traj_print_freq: 100
+    collect_print_freq: 100
+evaluator:
+    n_episode: 5
+    eval_freq: 200
+    stop_val: 195
+learner:
+    hook:
+        log_show:
+            name: log_show
+            type: log_show
+            priority: 20
+            position: after_iter
+            ext_args:
+                freq: 100
+command:
+    placeholder: 'placeholder'

@@ -17,6 +17,17 @@ def test_dqn():
         assert False, "pipeline fail"
 
 
+def test_pong_dqn():
+    path = os.path.join(
+        os.path.dirname(__file__), '../../../app_zoo/atari/entry/pong_dqn_default_config.yaml'
+    )
+    config = read_config(path)
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+
+
 @pytest.mark.unittest
 def test_ddpg():
     path = os.path.join(
@@ -103,4 +114,4 @@ def test_sac():
 
 
 if __name__ == "__main__":
-    test_sac()
+    test_pong_dqn()
