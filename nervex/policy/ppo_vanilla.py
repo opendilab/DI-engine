@@ -148,7 +148,6 @@ class PPOPolicy(CommonPolicy):
             data, data[-1]['done'], gamma=self._gamma, gae_lambda=self._gae_lambda
         )
         return self._adder.get_train_sample(data)
-        return data
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
         self._model.train()
