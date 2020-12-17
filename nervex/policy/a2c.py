@@ -53,6 +53,8 @@ class A2CPolicy(CommonPolicy):
     def _init_collect(self) -> None:
         self._traj_len = self._cfg.collect.traj_len
         self._unroll_len = self._cfg.collect.unroll_len
+        # because gae calculation need v_t+1
+        assert self._traj_len > 1, "a2c traj len should be greater than 1"
         if self._traj_len == 'inf':
             self._traj_len = float('inf')
         self._collect_agent = Agent(self._model)
