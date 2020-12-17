@@ -3,7 +3,7 @@ from collections import namedtuple, deque
 import torch
 from easydict import EasyDict
 
-from nervex.torch_utils import Adam
+from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, epsilon_greedy, Adder
 from nervex.model import FCRDiscreteNet
 from nervex.agent import Agent

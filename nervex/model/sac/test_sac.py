@@ -17,7 +17,7 @@ action_dim = [
     6,
 ]
 
-input = {'obs': torch.randn(4, 32), 'action': torch.randn(4, squeeze(action_dim))}
+input = [{'obs': torch.randn(4, 32), 'action': torch.randn(4, squeeze(action_dim))}]
 args = [item for item in product(*[input, obs_dim, action_dim])]
 
 

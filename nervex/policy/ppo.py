@@ -85,8 +85,8 @@ class PPOPolicy(CommonPolicy):
         }
         return transition
 
-    def _get_train_sample(self, traj_cache: deque, data_id: int) -> Union[None, List[Any]]:
-        data = self._adder.get_traj(traj_cache, data_id, self._traj_len, return_num=1)
+    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
+        data = self._adder.get_traj(traj_cache, self._traj_len, return_num=1)
         if self._traj_len == float('inf'):
             assert data[-1]['done'], "episode must be terminated by done=True"
         data = self._adder.get_gae_with_default_last_value(

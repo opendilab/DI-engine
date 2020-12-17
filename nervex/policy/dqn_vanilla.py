@@ -108,7 +108,7 @@ class DQNVanillaPolicy(CommonPolicy):
     def _create_model_from_cfg(self, cfg: dict) -> torch.nn.Module:
         return FCDiscreteNet(**cfg.model)
 
-    def _get_train_sample(self, traj_cache: deque, data_id: int) -> Union[None, List[Any]]:
+    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
         data = [traj_cache.popleft() for _ in range(self._traj_len)]
         return data
 
