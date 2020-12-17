@@ -141,7 +141,6 @@ class PrioritizedBuffer:
                 result[j] = copy.deepcopy(result[j])
         return result
 
-
     def append(self, ori_data):
         r"""
         Overview:

@@ -57,7 +57,7 @@ class BaseSerialEvaluator(object):
                 obs = self._env.next_obs
                 self._obs_pool.update(obs)
                 env_id, obs = self._policy.data_preprocess(obs)
-                policy_output = self._policy.forward(obs)
+                policy_output = self._policy.forward(env_id, obs)
                 policy_output = self._policy.data_postprocess(env_id, policy_output)
                 self._policy_output_pool.update(policy_output)
                 action = {i: a['action'] for i, a in policy_output.items()}

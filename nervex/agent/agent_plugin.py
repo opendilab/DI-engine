@@ -133,7 +133,7 @@ class HiddenStateHelper(IAgentStatefulPlugin):
         def forward_state_wrapper(forward_fn):
 
             def wrapper(data, **kwargs):
-                state_id = kwargs.pop('state_id', None)
+                state_id = kwargs.pop('data_id', None)
                 data, state_info = agent._state_manager.before_forward(data, state_id)
                 output = forward_fn(data, **kwargs)
                 h = output.pop('next_state', None)
@@ -150,7 +150,7 @@ class HiddenStateHelper(IAgentStatefulPlugin):
 
             def wrapper(*args, **kwargs):
                 state = kwargs.pop('state', None)
-                state_id = kwargs.pop('state_id', None)
+                state_id = kwargs.get('data_id', None)
                 agent._state_manager.reset(state, state_id)
                 return reset_fn(*args, **kwargs)
 

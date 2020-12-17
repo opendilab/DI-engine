@@ -55,7 +55,7 @@ class DQNVanillaPolicy(CommonPolicy):
         self._unroll_len = self._cfg.collect.unroll_len
         self._collect_setting_set = {'eps'}
 
-    def _forward_collect(self, data: dict) -> dict:
+    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
         with torch.no_grad():
             logit = self._model(data['obs'])['logit']
         if isinstance(logit, torch.Tensor):
@@ -84,7 +84,7 @@ class DQNVanillaPolicy(CommonPolicy):
     def _init_eval(self) -> None:
         self._eval_setting_set = {}
 
-    def _forward_eval(self, data: dict) -> dict:
+    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
         with torch.no_grad():
             logit = self._model(data['obs'])['logit']
         if isinstance(logit, torch.Tensor):

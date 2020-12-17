@@ -79,7 +79,7 @@ class BaseSerialActor(object):
                 obs = self._env.next_obs
                 self._obs_pool.update(obs)
                 env_id, obs = self._policy.data_preprocess(obs)
-                policy_output = self._policy.forward(obs)
+                policy_output = self._policy.forward(env_id, obs)
                 policy_output = self._policy.data_postprocess(env_id, policy_output)
                 self._policy_output_pool.update(policy_output)
                 actions = {env_id: output['action'] for env_id, output in policy_output.items()}
@@ -90,7 +90,7 @@ class BaseSerialActor(object):
                     )
                     self._traj_cache[env_id].append(transition)
                     if timestep.done or len(self._traj_cache[env_id]) == self._traj_len:
-                        train_sample = self._policy.get_train_sample(self._traj_cache[env_id], env_id)
+                        train_sample = self._policy.get_train_sample(self._traj_cache[env_id])
                         return_data.extend(train_sample)
                         train_sample_count += len(train_sample)
                         if (train_sample_count + 1) % self._traj_print_freq == 0:

@@ -71,7 +71,7 @@ class PPOPolicy(CommonPolicy):
         self._gamma = algo_cfg.discount_factor
         self._gae_lambda = algo_cfg.gae_lambda
 
-    def _forward_collect(self, data: dict) -> dict:
+    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
         return self._collect_agent.forward(data, param={'mode': 'compute_action_value'})
 
     def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
@@ -102,7 +102,7 @@ class PPOPolicy(CommonPolicy):
         self._eval_agent.reset()
         self._eval_setting_set = {}
 
-    def _forward_eval(self, data: dict) -> dict:
+    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
         return self._eval_agent.forward(data, param={'mode': 'compute_action'})
 
     def _init_command(self) -> None:
