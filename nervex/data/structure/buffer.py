@@ -132,7 +132,7 @@ class PrioritizedBuffer:
         # deepcopy same indice data
         for i in range(size):
             tmp = []
-            for j in range(i, size):
+            for j in range(i + 1, size):
                 if indices[i] == indices[j]:
                     tmp.append(j)
                 else:
