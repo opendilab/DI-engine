@@ -139,6 +139,9 @@ class PrioritizedBuffer:
                     break
             for j in tmp:
                 result[j] = copy.deepcopy(result[j])
+        # circle loop
+        if id(result[-1]) == id(result[0]):
+            result[-1] = copy.deepcopy(result[-1])
         return result
 
     def append(self, ori_data):

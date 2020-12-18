@@ -117,6 +117,7 @@ def test_r2d2():
         os.path.dirname(__file__), '../../../app_zoo/classic_control/cartpole/entry/cartpole_r2d2_default_config.yaml'
     )
     config = read_config(path)
+    config.evaluator.stop_val = 40  # for save time
     try:
         serial_pipeline(config, seed=0)
     except Exception:
