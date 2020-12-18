@@ -7,14 +7,17 @@ import torch
 from pathlib import Path
 import io
 
-from .import_helper import try_import_ceph
-from .import_helper import try_import_mc
+from .import_helper import try_import_ceph, try_import_redis, try_import_rediscluster, try_import_mc
 
-global mclient
+global r, rc, mclient
 mclient = None
+r = None
+rc = None
 
 ceph = try_import_ceph()
 mc = try_import_mc()
+redis = try_import_redis()
+rediscluster = try_import_rediscluster()
 
 
 def read_from_ceph(path: str) -> object:
@@ -32,6 +35,50 @@ def read_from_ceph(path: str) -> object:
         raise FileNotFoundError("File({}) doesn't exist in ceph".format(path))
 
     return pickle.loads(value)
+
+
+def _ensure_redis(host='localhost', port=6379):
+    global r
+    if r is None:
+        r = redis.StrictRedis(host=host, port=port, db=0)
+    return
+
+
+def read_from_redis(path: str) -> object:
+    """
+    Overview: read file from redis
+    Arguments:
+        - path (:obj:`str`): file path in redis, could be a string key
+    Returns:
+        - (:obj`data`): deserialized data
+    """
+    global r
+    _ensure_redis()
+    value_bytes = r.get(path)
+    value = pickle.loads(value_bytes)
+    return value
+
+
+def _ensure_rediscluster(startup_nodes=[{"host": "127.0.0.1", "port": "7000"}]):
+    global rc
+    if rc is None:
+        rc = rediscluster.RedisCluster(startup_nodes=startup_nodes, decode_responses=False)
+    return
+
+
+def read_from_rediscluster(path: str) -> object:
+    """
+    Overview: read file from rediscluster
+    Arguments:
+        - path (:obj:`str`): file path in rediscluster, could be a string key
+    Returns:
+        - (:obj`data`): deserialized data
+    """
+    global rc
+    _ensure_rediscluster()
+    value_bytes = rc.get(path)
+    value = pickle.loads(value_bytes)
+    return value
 
 
 def read_from_file(path: str) -> object:
@@ -130,6 +177,34 @@ def save_file_ceph(path, data):
                 " If you are not testing locally, something is wrong!"
             )
             f.write(data)
+
+
+def save_file_redis(path, data):
+    """
+    Overview: save pickle dumped data file to redis
+    Arguments:
+        - path (:obj:`str`): file path (could be a string key) in redis
+        - data (:obj:`anything`): could be dict, list or tensor etc.
+    """
+    global r
+    _ensure_redis()
+    data = pickle.dumps(data)
+    r.set(path, data)
+    return
+
+
+def save_file_rediscluster(path, data):
+    """
+    Overview: save pickle dumped data file to rediscluster
+    Arguments:
+        - path (:obj:`str`): file path (could be a string key) in redis
+        - data (:obj:`anything`): could be dict, list or tensor etc.
+    """
+    global rc
+    _ensure_rediscluster()
+    data = pickle.dumps(data)
+    rc.set(path, data)
+    return
 
 
 def read_file(path: str, fs_type: Union[None, str] = None) -> object:
