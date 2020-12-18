@@ -9,7 +9,9 @@
 * 下载环境 `wget https://www.roboti.us/download/mujoco200_linux.zip`，解压并将里面的东西放到 `~/.mujoco/mujoco200` 下
 * 通过 `pip install --user mujoco_py==2.0.2.8` 安装模块
 
-**注意，`mjkey.txt` 是和运行节点绑定的。比如说你要在 SH-IDC1-10-198-8-66 上面运行 mujoco，那么你需要在这台机器上面 `srun -p x_cerebra -w SH-IDC1-10-198-8-66 ./getid_Linux` 获取到对应这个机器的密文。addition 目录下面有集群管理节点和 SH-IDC1-10-198-8-66 对应的 `mjkey.txt`，这俩通行证有效期到 2020.12.12**
+**注意，`mjkey.txt` 是和运行节点绑定的。比如说你要在 SH-IDC1-10-198-8-236 上面运行 mujoco，那么你需要在这台机器上面 `srun -p vi_x_cerebra_meta -w SH-IDC1-10-198-8-236 ./getid_linux` 获取到对应这个机器的密文。（由于srun有缓存机制，需要按一下enter退出后正在运行的二进制文件 `getid_linux` 后，才会显示机器密文）**
+
+**./addition 目录下面有 SH-IDC1-10-198-8-236 对应的 `mjkey.txt`，有效期到 2020.1.17**
 
 ## 测试 
 ```
