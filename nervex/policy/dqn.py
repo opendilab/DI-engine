@@ -20,6 +20,7 @@ class DQNPolicy(CommonPolicy):
         self._gamma = algo_cfg.discount_factor
 
         self._agent.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
+        self._agent.add_plugin('main', 'argmax_sample')
         self._agent.add_plugin('main', 'grad', enable_grad=True)
         self._agent.add_plugin('target', 'grad', enable_grad=False)
         self._agent.mode(train=True)
@@ -32,7 +33,10 @@ class DQNPolicy(CommonPolicy):
         # forward
         q_value = self._agent.forward(data['obs'])['logit']
         target_q_value = self._agent.target_forward(data['next_obs'])['logit']
-        data = q_1step_td_data(q_value, target_q_value, data['action'], data['reward'], data['done'], data['weight'])
+        target_q_action = self._agent.forward(data['next_obs'])['action']
+        data = q_1step_td_data(
+            q_value, target_q_value, data['action'], target_q_action, data['reward'], data['done'], data['weight']
+        )
         loss = q_1step_td_error(data, self._gamma)
         # update
         self._optimizer.zero_grad()
