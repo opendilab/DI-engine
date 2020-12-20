@@ -109,6 +109,13 @@ class ReplayBuffer:
         with self._meta_lock:
             self._meta_buffer.update(info)
 
+    def clear(self) -> None:
+        """
+        Overview: clear replay buffer, exclude all the data(including cache)
+        """
+        # TODO(nyz) clear cache data
+        self._meta_buffer.clear()
+
     def run(self):
         """
         Overview: launch the cache and cache2meta thread

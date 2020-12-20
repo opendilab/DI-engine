@@ -2,7 +2,7 @@ from typing import List, Dict, Any, Optional, Callable, Tuple
 from collections import namedtuple
 import copy
 import numpy as np
-from nervex.utils import build_logger_naive, EasyTimer
+from nervex.utils import build_logger_naive, EasyTimer, TensorBoardLogger
 from .env_manager import BaseEnvManager
 from .base_serial_actor import CachePool
 
@@ -13,6 +13,10 @@ class BaseSerialEvaluator(object):
         self._default_n_episode = cfg.get('n_episode', None)
         self._stop_val = cfg.stop_val
         self._logger, _ = build_logger_naive(path='./log', name='evaluator')
+        self._tb_logger = TensorBoardLogger(path='./', name='evaluator_tb_logger')
+        for var in ['episode_count', 'step_count', 'avg_step_per_episode', 'avg_time_per_step', 'avg_time_per_episode',
+                    'reward_mean', 'reward_std']:
+            self._tb_logger.register_var(var)
         self._timer = EasyTimer()
         self._cfg = cfg
 
@@ -42,7 +46,7 @@ class BaseSerialEvaluator(object):
     def close(self) -> None:
         self._env.close()
 
-    def eval(self, n_episode: Optional[int] = None) -> bool:
+    def eval(self, train_iter: int, n_episode: Optional[int] = None) -> bool:
         if n_episode is None:
             n_episode = self._default_n_episode
         assert n_episode is not None, "please indicate eval n_episode"
@@ -88,4 +92,6 @@ class BaseSerialEvaluator(object):
         self._logger.info(
             "[EVALUATOR]evaluate end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()]))
         )
+        tb_vars = [[k, v, train_iter] for k, v in info.items()]
+        self._tb_logger.add_val_list(tb_vars, viz_type='scalar')
         return np.mean(episode_reward) >= self._stop_val

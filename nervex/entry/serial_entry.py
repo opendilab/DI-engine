@@ -62,7 +62,7 @@ def serial_pipeline(
         for _ in range(cfg.policy.learn.train_step):
             train_data = replay_buffer.sample(cfg.policy.learn.batch_size)
             learner.train(train_data)
-        if iter_count % cfg.evaluator.eval_freq == 0 and evaluator.eval():
+        if iter_count % cfg.evaluator.eval_freq == 0 and evaluator.eval(iter_count):
             learner.save_checkpoint()
             print("Your RL agent is converged, you can refer to 'log/evaluator.txt' for details")
             break

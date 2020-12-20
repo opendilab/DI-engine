@@ -77,3 +77,4 @@ class TestAverageMeter:
         assert isinstance(variable_record.get_vars_tb_format(['fake_loss'], 10), list)
         assert len(variable_record.get_vars_tb_format(['fake_loss', 'fake_reward'], 10)) == 2
         remove_file("./name")
+        remove_file("summary_log*")

@@ -137,8 +137,8 @@ class TestAgentPlugin:
             assert all(t.shape == (2, 1, 32) for t in item)
 
         data = {'f': torch.randn(2, 3, 36)}
-        state_id = [0, 1, 3]
-        output = agent.forward(data, state_id=state_id)
+        data_id = [0, 1, 3]
+        output = agent.forward(data, data_id=data_id)
         assert output['output'].shape == (2, 3, 32)
         assert all([len(s) == 2 for s in output['prev_state']])
         for item in agent._state_manager._state.values():
@@ -146,8 +146,8 @@ class TestAgentPlugin:
             assert all(t.shape == (2, 1, 32) for t in item)
 
         data = {'f': torch.randn(2, 2, 36)}
-        state_id = [0, 1]
-        output = agent.forward(data, state_id=state_id)
+        data_id = [0, 1]
+        output = agent.forward(data, data_id=data_id)
         assert output['output'].shape == (2, 2, 32)
 
         assert all([isinstance(s, tuple) and len(s) == 2 for s in agent._state_manager._state.values()])
@@ -235,8 +235,8 @@ class TestAgentPlugin:
         assert set(output.keys()) == {'output', 'prev_state'}
         assert all([p is None for p in output['prev_state']])
         data = {'f': torch.randn(2, 3, 36)}
-        output_main = agent.forward(data, state_id=[0, 1, 2])
-        output_teacher = agent.teacher_forward(data, state_id=[0, 1, 3])
+        output_main = agent.forward(data, data_id=[0, 1, 2])
+        output_teacher = agent.teacher_forward(data, data_id=[0, 1, 3])
         for i in [0, 1]:
             assert output_main['output'][:, i].ne(output_teacher['output'][:, i]).sum() == 0
         assert output_main['output'][:, 2].eq(output_teacher['output'][:, 2]).sum() == 0
