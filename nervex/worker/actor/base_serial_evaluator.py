@@ -14,8 +14,8 @@ class BaseSerialEvaluator(object):
         self._stop_val = cfg.stop_val
         self._logger, _ = build_logger_naive(path='./log', name='evaluator')
         self._tb_logger = TensorBoardLogger(path='./', name='evaluator_tb_logger')
-        for var in ['episode_count', 'step_count', 'avg_step_per_episode', 'avg_time_per_step',
-                    'avg_time_per_episode', 'reward_mean', 'reward_std']:
+        for var in ['episode_count', 'step_count', 'avg_step_per_episode', 'avg_time_per_step', 'avg_time_per_episode',
+                    'reward_mean', 'reward_std']:
             self._tb_logger.register_var(var)
         self._timer = EasyTimer()
         self._cfg = cfg

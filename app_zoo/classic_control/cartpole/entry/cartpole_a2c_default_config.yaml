@@ -12,7 +12,7 @@ policy:
     use_cuda: False
     policy_type: 'a2c'
     import_names: ['nervex.policy.a2c']
-    on_policy: False
+    on_policy: True
     model:
         obs_dim: 4
         action_dim: 2
@@ -39,7 +39,7 @@ replay_buffer:
     unroll_len: 1
     min_sample_ratio: 1
 actor:
-    n_episode: 16
+    n_episode: 8
     traj_len: 200  # cartpole max episode len
     traj_print_freq: 100
     collect_print_freq: 100

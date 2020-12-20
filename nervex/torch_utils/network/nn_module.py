@@ -478,8 +478,9 @@ class NoiseLinearLayer(nn.Module):
         return x
 
     def reset_noise(self):
-        in_noise = self._scale_noise(self.in_channels)
-        out_noise = self._scale_noise(self.out_channels)
+        is_cuda = self.weight_mu.is_cuda
+        in_noise = self._scale_noise(self.in_channels).to(torch.device("cuda" if is_cuda else "cpu"))
+        out_noise = self._scale_noise(self.out_channels).to(torch.device("cuda" if is_cuda else "cpu"))
         self.weight_eps = out_noise.ger(in_noise)
         self.bias_eps = out_noise
 
