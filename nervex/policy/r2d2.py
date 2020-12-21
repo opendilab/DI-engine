@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Tuple, Union
+from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple, deque
 import torch
 from easydict import EasyDict
@@ -147,8 +147,11 @@ class R2D2Policy(CommonPolicy):
         learner_step = command_info['learner_step']
         return {'eps': self.epsilon_greedy(learner_step)}
 
-    def _create_model_from_cfg(self, cfg: dict) -> torch.nn.Module:
-        return FCRDiscreteNet(**cfg.model)
+    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
+        if model_type is None:
+            return FCRDiscreteNet(**cfg.model)
+        else:
+            return model_type(**cfg.model)
 
 
 register_policy('r2d2', R2D2Policy)

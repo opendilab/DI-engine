@@ -21,11 +21,15 @@ class Policy(ABC):
     command_function = namedtuple('command_function', ['get_setting_learn', 'get_setting_collect', 'get_setting_eval'])
 
     def __init__(
-            self, cfg: dict, model: Optional[torch.nn.Module] = None, enable_field: Optional[List[str]] = None
+            self,
+            cfg: dict,
+            model: Optional[torch.nn.Module] = None,
+            model_type: Optional[type] = None,
+            enable_field: Optional[List[str]] = None
     ) -> None:
         if model is None:
             # create model from cfg
-            model = self._create_model_from_cfg(cfg)
+            model = self._create_model_from_cfg(cfg, model_type)
         self._cfg = cfg
         self._use_cuda = cfg.use_cuda
         if self._use_cuda:
@@ -44,7 +48,7 @@ class Policy(ABC):
                 getattr(self, '_init_' + field)()
 
     @abstractmethod
-    def _create_model_from_cfg(self, cfg: dict) -> torch.nn.Module:
+    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
         raise NotImplementedError
 
     @abstractmethod
@@ -166,12 +170,12 @@ class Policy(ABC):
 policy_mapping = {}
 
 
-def create_policy(cfg: dict) -> Policy:
+def create_policy(cfg: dict, model_type: Optional[type] = None) -> Policy:
     import_module(cfg.import_names)
     if cfg.policy_type not in policy_mapping:
         raise KeyError("not support policy type: {}".format(cfg.policy_type))
     else:
-        return policy_mapping[cfg.policy_type](cfg)
+        return policy_mapping[cfg.policy_type](cfg, model_type)
 
 
 def register_policy(name: str, policy: type) -> None:

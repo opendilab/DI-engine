@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Tuple, Union
+from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple, deque
 import torch
 
@@ -81,8 +81,11 @@ class RainbowDQNPolicy(DQNPolicy):
         data = self._adder.get_nstep_return_data(data, self._nstep, self._traj_len)
         return self._adder.get_train_sample(data)
 
-    def _create_model_from_cfg(self, cfg: dict) -> torch.nn.Module:
-        return NoiseDistributionFCDiscreteNet(**cfg.model)
+    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
+        if model_type is None:
+            return NoiseDistributionFCDiscreteNet(**cfg.model)
+        else:
+            return model_type(**cfg.model)
 
     def _reset_noise(self, model: torch.nn.Module):
         for m in model.modules():

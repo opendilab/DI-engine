@@ -1,7 +1,7 @@
 import sys
 import copy
 import time
-from typing import Union, Optional
+from typing import Union, Optional, List, Any
 import numpy as np
 import torch
 
@@ -16,8 +16,9 @@ from nervex.envs import get_vec_env_setting
 def serial_pipeline(
         cfg: Union[str, dict],
         seed: int,
-        env_setting: Optional['BaseEnv'] = None,  # noqa
-        policy_type: Optional['Policy'] = None  # noqa
+        env_setting: Optional[Any] = None,  # subclass of BaseEnv, and config dict
+        policy_type: Optional[type] = None,  # subclass of Policy
+        model_type: Optional[type] = None,  # subclass of torch.nn.Module
 ) -> None:
     if isinstance(cfg, str):
         cfg = read_config(cfg)
@@ -36,7 +37,8 @@ def serial_pipeline(
     if torch.cuda.is_available():
         torch.cuda.manual_seed(seed)
     # create component
-    policy = create_policy(cfg.policy) if policy_type is None else policy_type(cfg.policy)
+    policy_fn = create_policy if policy_type is None else policy_type
+    policy = policy_fn(cfg.policy, model_type)
     learner = BaseLearner(cfg)
     actor = BaseSerialActor(cfg.actor)
     evaluator = BaseSerialEvaluator(cfg.evaluator)

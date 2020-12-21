@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Tuple, Union
+from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple
 import torch
 
@@ -150,8 +150,11 @@ class DDPGPolicy(CommonPolicy):
     def _init_command(self) -> None:
         pass
 
-    def _create_model_from_cfg(self, cfg: dict) -> torch.nn.Module:
-        return QAC(**cfg.model)
+    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
+        if model_type is None:
+            return QAC(**cfg.model)
+        else:
+            return model_type(**cfg.model)
 
 
 register_policy('ddpg', DDPGPolicy)

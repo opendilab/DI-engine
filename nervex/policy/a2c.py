@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Tuple, Union
+from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple, deque
 import torch
 
@@ -105,8 +105,11 @@ class A2CPolicy(CommonPolicy):
     def _init_command(self) -> None:
         pass
 
-    def _create_model_from_cfg(self, cfg: dict) -> torch.nn.Module:
-        return FCValueAC(**cfg.model)
+    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
+        if model_type is None:
+            return FCValueAC(**cfg.model)
+        else:
+            return model_type(**cfg.model)
 
 
 register_policy('a2c', A2CPolicy)
