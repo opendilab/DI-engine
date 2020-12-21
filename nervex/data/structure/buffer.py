@@ -133,15 +133,10 @@ class PrioritizedBuffer:
         for i in range(size):
             tmp = []
             for j in range(i + 1, size):
-                if indices[i] == indices[j]:
+                if id(result[i]) == id(result[j]):
                     tmp.append(j)
-                else:
-                    break
             for j in tmp:
                 result[j] = copy.deepcopy(result[j])
-        # circle loop
-        if id(result[-1]) == id(result[0]):
-            result[-1] = copy.deepcopy(result[-1])
         return result
 
     def append(self, ori_data):
