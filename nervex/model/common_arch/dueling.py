@@ -94,7 +94,8 @@ class DuelingHead(nn.Module):
             v = v.view(*v.shape[:-1], 1, self.n_atom)
             dist = a - a.mean(dim=-2, keepdim=True) + v
             dist = torch.softmax(dist, dim=-1)
-            q = dist * torch.linspace(self.v_min, self.v_max, self.n_atom)
+            q = dist * torch.linspace(self.v_min, self.v_max,
+                                      self.n_atom).to(torch.device("cuda" if dist.is_cuda else "cpu"))
             q = q.sum(-1)
             return q, dist
         else:

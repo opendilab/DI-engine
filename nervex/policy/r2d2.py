@@ -72,7 +72,9 @@ class R2D2Policy(CommonPolicy):
         reward = reward.permute(0, 2, 1).contiguous()  # T, B, nstep -> T, nstep, B
         loss = []
         for t in range(self._nstep):
-            td_data = q_nstep_td_data(q_value[t], target_q_value[t], action[t], target_q_action[t], reward[t], done[t], weight[t])
+            td_data = q_nstep_td_data(
+                q_value[t], target_q_value[t], action[t], target_q_action[t], reward[t], done[t], weight[t]
+            )
             if self._use_value_rescale:
                 loss.append(q_nstep_td_error_with_rescale(td_data, self._gamma, self._nstep))
             else:
