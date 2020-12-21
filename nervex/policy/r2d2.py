@@ -26,6 +26,7 @@ class R2D2Policy(CommonPolicy):
         self._agent.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
         self._agent.add_plugin('main', 'hidden_state', state_num=self._cfg.learn.batch_size)
         self._agent.add_plugin('target', 'hidden_state', state_num=self._cfg.learn.batch_size)
+        self._agent.add_plugin('main', 'argmax_sample')
         self._agent.add_plugin('main', 'grad', enable_grad=True)
         self._agent.add_plugin('target', 'grad', enable_grad=False)
         self._agent.mode(train=True)
@@ -65,12 +66,15 @@ class R2D2Policy(CommonPolicy):
         q_value = self._agent.forward(inputs)['logit']
         next_inputs = {'obs': data['target_obs'], 'enable_fast_timestep': True}
         target_q_value = self._agent.target_forward(next_inputs)['logit']
+        target_q_action = self._agent.forward(next_inputs)['action']
 
         action, reward, done, weight = data['action'], data['reward'], data['done'], data['weight']
         reward = reward.permute(0, 2, 1).contiguous()  # T, B, nstep -> T, nstep, B
         loss = []
         for t in range(self._nstep):
-            td_data = q_nstep_td_data(q_value[t], target_q_value[t], action[t], reward[t], done[t], weight[t])
+            td_data = q_nstep_td_data(
+                q_value[t], target_q_value[t], action[t], target_q_action[t], reward[t], done[t], weight[t]
+            )
             if self._use_value_rescale:
                 loss.append(q_nstep_td_error_with_rescale(td_data, self._gamma, self._nstep))
             else:

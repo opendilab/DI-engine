@@ -6,8 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from nervex.rl_utils.value_rescale import value_transform, value_inv_transform
 
-q_1step_td_data = namedtuple(
-    'q_1step_td_data', ['q', 'next_q', 'act', 'reward', 'done', 'weight'])
+q_1step_td_data = namedtuple('q_1step_td_data', ['q', 'next_q', 'act', 'next_act', 'reward', 'done', 'weight'])
 
 
 def q_1step_td_error(
@@ -15,21 +14,21 @@ def q_1step_td_error(
         gamma: float,
         criterion: torch.nn.modules = nn.MSELoss(reduction='none')  # noqa
 ) -> torch.Tensor:
-    q, next_q, act, reward, done, weight = data
+    q, next_q, act, next_act, reward, done, weight = data
     assert len(act.shape) == 1, act.shape
     assert len(reward.shape) == 1, reward.shape
     batch_range = torch.arange(act.shape[0])
     if weight is None:
         weight = torch.ones_like(reward)
     q_s_a = q[batch_range, act]
-    next_act = next_q.argmax(dim=1)
     target_q_s_a = next_q[batch_range, next_act]
     target_q_s_a = gamma * (1 - done) * target_q_s_a + reward
     return (criterion(q_s_a, target_q_s_a.detach()) * weight).mean()
 
 
 dist_1step_td_data = namedtuple(
-    'dist_1step_td_data', ['dist', 'next_dist', 'act', 'reward', 'done', 'weight'])
+    'dist_1step_td_data', ['dist', 'next_dist', 'act', 'next_act', 'reward', 'done', 'weight']
+)
 
 
 def dist_1step_td_error(
@@ -39,7 +38,7 @@ def dist_1step_td_error(
         v_max: float,
         n_atom: int,
 ) -> torch.Tensor:
-    dist, next_dist, act, reward, done, weight = data
+    dist, next_dist, act, next_act, reward, done, weight = data
     device = torch.device("cuda" if reward.is_cuda else "cpu")
     assert len(act.shape) == 1, act.shape
     assert len(reward.shape) == 1, reward.shape
@@ -52,8 +51,7 @@ def dist_1step_td_error(
     if weight is None:
         weight = torch.ones_like(reward)
 
-    next_act = next_dist.sum(-1).argmax(-1)
-    next_dist = next_dist[batch_range, next_act]
+    next_dist = next_dist[batch_range, next_act].detach()
 
     target_z = reward + (1 - done) * gamma * support
     target_z = target_z.clamp(min=v_min, max=v_max)
@@ -62,12 +60,10 @@ def dist_1step_td_error(
     u = b.ceil().long()
 
     proj_dist = torch.zeros_like(next_dist)
-    offset = torch.linspace(0, (batch_size - 1) * n_atom, batch_size).unsqueeze(
-        1).expand(batch_size, n_atom).long().to(device)
-    proj_dist.view(-1).index_add_(0, (l + offset).view(-1),
-                                  (next_dist * (u.float() - b)).view(-1))
-    proj_dist.view(-1).index_add_(0, (u + offset).view(-1),
-                                  (next_dist * (b - l.float())).view(-1))
+    offset = torch.linspace(0, (batch_size - 1) * n_atom, batch_size).unsqueeze(1).expand(batch_size,
+                                                                                          n_atom).long().to(device)
+    proj_dist.view(-1).index_add_(0, (l + offset).view(-1), (next_dist * (u.float() - b)).view(-1))
+    proj_dist.view(-1).index_add_(0, (u + offset).view(-1), (next_dist * (b - l.float())).view(-1))
 
     log_p = torch.log(dist[batch_range, act])
 
@@ -76,8 +72,9 @@ def dist_1step_td_error(
     return loss
 
 
-dist_nstep_td_data = namedtuple('dist_1step_td_data', [
-                                'dist', 'next_n_dist', 'act', 'reward', 'done', 'weight'])
+dist_nstep_td_data = namedtuple(
+    'dist_1step_td_data', ['dist', 'next_n_dist', 'act', 'next_n_act', 'reward', 'done', 'weight']
+)
 
 
 def dist_nstep_td_error(
@@ -102,11 +99,12 @@ def dist_nstep_td_error(
             ['dist', 'next_n_dist', 'act', 'reward', 'done', 'weight']
         - dist (:obj:`torch.FloatTensor`): :math:`(B, N, n_atom)` i.e. [batch_size, action_dim, n_atom]
         - next_n_dist (:obj:`torch.FloatTensor`): :math:`(B, N, n_atom)`
-        - action (:obj:`torch.LongTensor`): :math:`(B, )`
+        - act (:obj:`torch.LongTensor`): :math:`(B, )`
+        - next_n_act (:obj:`torch.LongTensor`): :math:`(B, )`
         - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
         - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
     """
-    dist, next_n_dist, act, reward, done, weight = data
+    dist, next_n_dist, act, next_n_act, reward, done, weight = data
     device = torch.device("cuda" if reward.is_cuda else "cpu")
     assert len(act.shape) == 1, act.shape
     reward_factor = torch.ones(nstep).to(device)
@@ -122,8 +120,7 @@ def dist_nstep_td_error(
     if weight is None:
         weight = torch.ones_like(reward)
 
-    next_n_act = next_n_dist.sum(-1).argmax(-1)
-    next_n_dist = next_n_dist[batch_range, next_n_act]
+    next_n_dist = next_n_dist[batch_range, next_n_act].detach()
 
     target_z = reward + (1 - done) * (gamma ** nstep) * support
     target_z = target_z.clamp(min=v_min, max=v_max)
@@ -132,12 +129,10 @@ def dist_nstep_td_error(
     u = b.ceil().long()
 
     proj_dist = torch.zeros_like(next_n_dist)
-    offset = torch.linspace(0, (batch_size - 1) * n_atom,
-                            batch_size).unsqueeze(1).expand(batch_size, n_atom).long().to(device)
-    proj_dist.view(-1).index_add_(0, (l + offset).view(-1),
-                                  (next_n_dist * (u.float() - b)).view(-1))
-    proj_dist.view(-1).index_add_(0, (u + offset).view(-1),
-                                  (next_n_dist * (b - l.float())).view(-1))
+    offset = torch.linspace(0, (batch_size - 1) * n_atom, batch_size).unsqueeze(1).expand(batch_size,
+                                                                                          n_atom).long().to(device)
+    proj_dist.view(-1).index_add_(0, (l + offset).view(-1), (next_n_dist * (u.float() - b)).view(-1))
+    proj_dist.view(-1).index_add_(0, (u + offset).view(-1), (next_n_dist * (b - l.float())).view(-1))
 
     log_p = torch.log(dist[batch_range, act])
 
@@ -146,8 +141,7 @@ def dist_nstep_td_error(
     return loss
 
 
-v_1step_td_data = namedtuple(
-    'v_1step_td_data', ['v', 'next_v', 'reward', 'done', 'weight'])
+v_1step_td_data = namedtuple('v_1step_td_data', ['v', 'next_v', 'reward', 'done', 'weight'])
 
 
 def v_1step_td_error(
@@ -166,7 +160,8 @@ def v_1step_td_error(
 
 
 q_nstep_td_data = namedtuple(
-    'q_nstep_td_data', ['q', 'next_n_q', 'action', 'reward', 'done', 'weight'])
+    'q_nstep_td_data', ['q', 'next_n_q', 'action', 'next_n_action', 'reward', 'done', 'weight']
+)
 
 
 def q_nstep_td_error(
@@ -191,10 +186,11 @@ def q_nstep_td_error(
         - q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
         - next_n_q (:obj:`torch.FloatTensor`): :math:`(B, N)`
         - action (:obj:`torch.LongTensor`): :math:`(B, )`
+        - next_n_action (:obj:`torch.LongTensor`): :math:`(B, )`
         - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
         - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
     """
-    q, next_n_q, action, reward, done, weight = data
+    q, next_n_q, action, next_n_action, reward, done, weight = data
     device = torch.device("cuda" if reward.is_cuda else "cpu")
     assert len(action.shape) == 1, action.shape
     if weight is None:
@@ -202,8 +198,7 @@ def q_nstep_td_error(
 
     batch_range = torch.arange(action.shape[0])
     q_s_a = q[batch_range, action]
-    next_n_act = next_n_q.argmax(dim=1)
-    target_q_s_a = next_n_q[batch_range, next_n_act]
+    target_q_s_a = next_n_q[batch_range, next_n_action]
 
     reward_factor = torch.ones(nstep).to(device)
     for i in range(1, nstep):
@@ -242,10 +237,11 @@ def q_nstep_td_error_with_rescale(
         - q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
         - next_n_q (:obj:`torch.FloatTensor`): :math:`(B, N)`
         - action (:obj:`torch.LongTensor`): :math:`(B, )`
+        - next_n_action (:obj:`torch.LongTensor`): :math:`(B, )`
         - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
         - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
     """
-    q, next_n_q, action, reward, done, weight = data
+    q, next_n_q, action, next_n_action, reward, done, weight = data
     device = torch.device("cuda" if reward.is_cuda else "cpu")
     assert len(action.shape) == 1, action.shape
     if weight is None:
@@ -253,8 +249,7 @@ def q_nstep_td_error_with_rescale(
 
     batch_range = torch.arange(action.shape[0])
     q_s_a = q[batch_range, action]
-    next_n_act = next_n_q.argmax(dim=1)
-    target_q_s_a = next_n_q[batch_range, next_n_act]
+    target_q_s_a = next_n_q[batch_range, next_n_action]
 
     reward_factor = torch.ones(nstep).to(device)
     for i in range(1, nstep):

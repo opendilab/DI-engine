@@ -23,6 +23,7 @@ class RainbowDQNPolicy(DQNPolicy):
         self._n_atom = self._cfg.model.n_atom
 
         self._agent.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
+        self._agent.add_plugin('main', 'argmax_sample')
         self._agent.add_plugin('main', 'grad', enable_grad=True)
         self._agent.add_plugin('target', 'grad', enable_grad=False)
         self._agent.mode(train=True)
@@ -42,7 +43,10 @@ class RainbowDQNPolicy(DQNPolicy):
         self._reset_noise(self._agent.target_model)
         q_dist = self._agent.forward(data['obs'])['distribution']
         target_q_dist = self._agent.target_forward(data['next_obs'])['distribution']
-        data = dist_nstep_td_data(q_dist, target_q_dist, data['action'], reward, data['done'], data['weight'])
+        target_q_action = self._agent.forward(data['next_obs'])['action']
+        data = dist_nstep_td_data(
+            q_dist, target_q_dist, data['action'], target_q_action, reward, data['done'], data['weight']
+        )
         loss = dist_nstep_td_error(data, self._gamma, self._v_min, self._v_max, self._n_atom, nstep=self._nstep)
         # update
         self._optimizer.zero_grad()

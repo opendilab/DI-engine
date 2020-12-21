@@ -31,8 +31,12 @@ class DQNVanillaPolicy(CommonPolicy):
         with torch.enable_grad():
             ret = self._model(data['obs'])
             q_value = self._model(data['obs'])['logit']
-        target_q_value = self._target_model(data['next_obs'])['logit']
-        data = q_1step_td_data(q_value, target_q_value, data['action'], data['reward'], data['done'], data['weight'])
+        with torch.no_grad():
+            target_q_value = self._target_model(data['next_obs'])['logit']
+            target_q_action = self._model(data['next_obs'])['logit'].argmax(dim=-1)
+        data = q_1step_td_data(
+            q_value, target_q_value, data['action'], target_q_action, data['reward'], data['done'], data['weight']
+        )
         loss = q_1step_td_error(data, self._gamma)
         # update
         self._optimizer.zero_grad()

@@ -111,10 +111,13 @@ def timestep_collate(batch: List[Dict[str, Any]]) -> Dict[str, Union[torch.Tenso
     elem = batch[0]
     assert isinstance(elem, container_abcs.Mapping), type(elem)
     prev_state = [b.pop('prev_state') for b in batch]
-    batch = default_collate(batch)  # -> {some_key: T lists}, each list is [B, some_dim]
-    batch = stack(batch)  # -> {some_key: [T, B, some_dim]}
-    batch['prev_state'] = list(zip(*prev_state))
-    return batch
+    batch_data = default_collate(batch)  # -> {some_key: T lists}, each list is [B, some_dim]
+    batch_data = stack(batch_data)  # -> {some_key: [T, B, some_dim]}
+    batch_data['prev_state'] = list(zip(*prev_state))
+    # append back prev_state, avoiding multi batch share the same data bug
+    for i in range(len(batch)):
+        batch[i]['prev_state'] = prev_state[i]
+    return batch_data
 
 
 def diff_shape_collate(batch: Sequence) -> Union[torch.Tensor, Mapping, Sequence]:
