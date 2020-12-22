@@ -18,7 +18,9 @@ def test_dqn():
 
 
 def test_pong_dqn():
-    path = os.path.join(os.path.dirname(__file__), '../../../app_zoo/atari/entry/atari_serial_baseline/pong_dqn_default_config.yaml')
+    path = os.path.join(
+        os.path.dirname(__file__), '../../../app_zoo/atari/entry/atari_serial_baseline/pong_dqn_default_config.yaml'
+    )
     config = read_config(path)
     try:
         serial_pipeline(config, seed=0)
@@ -142,6 +144,23 @@ def test_coma():
     config = read_config(path)
     config.env.env_type = 'fake_smac'
     config.env.import_names = ['app_zoo.smac.envs.fake_smac_env']
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
+def test_a2c_with_nstep_return():
+    path = os.path.join(
+        os.path.dirname(__file__), '../../../app_zoo/classic_control/cartpole/entry/cartpole_a2c_default_config.yaml'
+    )
+    config = read_config(path)
+    config.policy.learn.algo.use_nstep_return = True
+    config.policy.learn.algo.discount_factor = config.policy.collect.algo.discount_factor
+    config.policy.learn.algo.nstep = 3
+    config.policy.collect.algo.use_nstep_return = config.policy.learn.algo.use_nstep_return
+    config.policy.collect.algo.nstep = config.policy.learn.algo.nstep
     try:
         serial_pipeline(config, seed=0)
     except Exception:
