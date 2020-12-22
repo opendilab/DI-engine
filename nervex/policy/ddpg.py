@@ -13,8 +13,8 @@ from .common_policy import CommonPolicy
 class DDPGPolicy(CommonPolicy):
     r"""
     Overview:
-        Policy class of DDPG and TD3 alogorithm. Since DDPG and TD3 share many common things, this Policy supports
-        both algorithums. You can change ``_actor_update_freq``, ``_use_twin_critic`` and noise in agent plugin to
+        Policy class of DDPG and TD3 algorithm. Since DDPG and TD3 share many common things, this Policy supports
+        both algorithms. You can change ``_actor_update_freq``, ``_use_twin_critic`` and noise in agent plugin to
         switch algorithm.
     Interface:
         __init__, set_setting, __repr__, state_dict_handle
@@ -25,7 +25,7 @@ class DDPGPolicy(CommonPolicy):
     def _init_learn(self) -> None:
         r"""
         Overview:
-            Learn mode init moethod. Called by ``self.__init__``.
+            Learn mode init method. Called by ``self.__init__``.
             Init actor and critic optimizers, algorithm config, main and target agents.
         """
         # actor and critic optimizer
@@ -44,7 +44,7 @@ class DDPGPolicy(CommonPolicy):
         self._algo_cfg_learn = algo_cfg
         self._gamma = algo_cfg.discount_factor
         self._actor_update_freq = algo_cfg.actor_update_freq
-        self._use_twin_critic = algo_cfg.use_twin_critic  # True for TD3, Flase for DDPG
+        self._use_twin_critic = algo_cfg.use_twin_critic  # True for TD3, False for DDPG
         # main and target agents
         self._agent = Agent(self._model)
         self._agent.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_theta})
@@ -141,7 +141,7 @@ class DDPGPolicy(CommonPolicy):
     def _init_collect(self) -> None:
         r"""
         Overview:
-            Collect mode init moethod. Called by ``self.__init__``.
+            Collect mode init method. Called by ``self.__init__``.
             Init traj and unroll length, adder, collect agent.
         """
         self._traj_len = self._cfg.collect.traj_len
@@ -202,7 +202,7 @@ class DDPGPolicy(CommonPolicy):
     def _init_eval(self) -> None:
         r"""
         Overview:
-            Evaluate mode init moethod. Called by ``self.__init__``.
+            Evaluate mode init method. Called by ``self.__init__``.
             Init eval agent. Unlick learn and collect agent, eval agent does not need noise.
         """
         self._eval_agent = Agent(self._model)
@@ -227,7 +227,7 @@ class DDPGPolicy(CommonPolicy):
     def _init_command(self) -> None:
         r"""
         Overview:
-            Command mode init moethod. Called by ``self.__init__``.
+            Command mode init method. Called by ``self.__init__``.
         """
         pass
 
@@ -241,7 +241,7 @@ class DDPGPolicy(CommonPolicy):
             - model_type (:obj:`Optional[type]`): If this is not None, this function will create \
                 an instance of this.
         Returns:
-            - model (:obj:`torch.nn.Module`): Generted model.
+            - model (:obj:`torch.nn.Module`): Generated model.
         """
         if model_type is None:
             return QAC(**cfg.model)
