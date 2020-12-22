@@ -11,9 +11,38 @@ from .dqn import DQNPolicy
 
 
 class RainbowDQNPolicy(DQNPolicy):
+    r"""
+    Overview:
+        Rainbow DQN contain several improvements upon DQN, including:
+            - target network
+            - dueling architectur
+            - prioritized experience replay
+            - n_step return
+            - noise net
+            - distribution net
+
+        Therefore, the RainbowDQNPolicy class inherit upon DQNPolicy class
+    """
 
     def _init_learn(self) -> None:
-        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
+        r"""
+        Overview:
+            init the learner agent of RainbowDQNPolicy
+
+        Arguments:
+            .. note::
+
+                the _init_learn method takes the argument from the self._cfg.learn in the config file
+
+            - learning_rate (:obj:`float`): the learning rate fo the optimizer
+            - gamma (:obj:`float`): the discount factor
+            - nstep (:obj:`int`): the num of n step return
+            - v_min (:obj:`float`): value distribution minimum value
+            - v_max (:obj:`float`): value distribution maximum value
+            - n_atom (:obj:`int`): the number of atom sample point
+        """
+        self._optimizer = Adam(self._model.parameters(),
+                               lr=self._cfg.learn.learning_rate)
         self._agent = Agent(self._model)
         algo_cfg = self._cfg.learn.algo
         self._gamma = algo_cfg.discount_factor
@@ -22,7 +51,8 @@ class RainbowDQNPolicy(DQNPolicy):
         self._v_min = self._cfg.model.v_min
         self._n_atom = self._cfg.model.n_atom
 
-        self._agent.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
+        self._agent.add_model('target', update_type='assign', update_kwargs={
+                              'freq': algo_cfg.target_update_freq})
         self._agent.add_plugin('main', 'argmax_sample')
         self._agent.add_plugin('main', 'grad', enable_grad=True)
         self._agent.add_plugin('target', 'grad', enable_grad=False)
@@ -33,21 +63,35 @@ class RainbowDQNPolicy(DQNPolicy):
         self._learn_setting_set = {}
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
+        r"""
+        Overview:
+            acquire the data and calculate the loss and optimize learner model
+
+        Arguments:
+            - data (:obj:`dict`): input data dict with keys ['obs', 'next+obs', 'reward', 'action']
+
+        Returns:
+            - cur_lr (:obj:`float`): current learning rate
+            - total_loss (:obj:`float`): the calculated loss
+        """
         # forward
         reward = data['reward']
         if len(reward.shape) == 1:
             reward = reward.unsqueeze(1)
-        assert reward.shape == (self._cfg.learn.batch_size, self._nstep), reward.shape
+        assert reward.shape == (
+            self._cfg.learn.batch_size, self._nstep), reward.shape
         reward = reward.permute(1, 0).contiguous()
         self._reset_noise(self._agent.model)
         self._reset_noise(self._agent.target_model)
         q_dist = self._agent.forward(data['obs'])['distribution']
-        target_q_dist = self._agent.target_forward(data['next_obs'])['distribution']
+        target_q_dist = self._agent.target_forward(data['next_obs'])[
+            'distribution']
         target_q_action = self._agent.forward(data['next_obs'])['action']
         data = dist_nstep_td_data(
             q_dist, target_q_dist, data['action'], target_q_action, reward, data['done'], data['weight']
         )
-        loss = dist_nstep_td_error(data, self._gamma, self._v_min, self._v_max, self._n_atom, nstep=self._nstep)
+        loss = dist_nstep_td_error(
+            data, self._gamma, self._v_min, self._v_max, self._n_atom, nstep=self._nstep)
         # update
         self._optimizer.zero_grad()
         loss.backward()
@@ -60,6 +104,14 @@ class RainbowDQNPolicy(DQNPolicy):
         }
 
     def _init_collect(self) -> None:
+        r"""
+        Overview:
+            init the collector, self._collect_agent
+
+            .. note::
+                the rainbow dqn enable the eps_greedy_sample, but might not need to use it, \
+                    as the noise_net contain noise that can help exploration
+        """
         self._traj_len = self._cfg.collect.traj_len
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
@@ -72,25 +124,67 @@ class RainbowDQNPolicy(DQNPolicy):
         self._collect_setting_set = {'eps'}
 
     def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+        r"""
+        Overview:
+            reset the noise from noise net and collect output according to eps_greedy plugin
+
+        Arguments:
+            - data_id (:obj:`List` of :obj:`int`): not used, set in arguments for consistency
+            - data (:obj:`dict`): the input data the collect_agent take
+
+        Returns:
+            - data (:obj:`dict`): the collected data
+        """
         self._reset_noise(self._collect_agent.model)
         return self._collect_agent.forward(data, eps=self._eps)
 
     def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
+        r"""
+        Overview:
+            get the trajectory and the n step return data, then sample from the n_step return data
+
+        Arguments:
+            - traj_cache (:obj:`deque`): trajactory's cache
+
+        Returns:
+            - samples (:obj:`dict`): the training samples generated
+        """
         # adder is defined in _init_collect
-        data = self._adder.get_traj(traj_cache, self._traj_len, return_num=self._collect_nstep)
-        data = self._adder.get_nstep_return_data(data, self._collect_nstep, self._traj_len)
+        data = self._adder.get_traj(
+            traj_cache, self._traj_len, return_num=self._collect_nstep)
+        data = self._adder.get_nstep_return_data(
+            data, self._collect_nstep, self._traj_len)
         return self._adder.get_train_sample(data)
 
     def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
+        r"""
+        Overview:
+            create the model from cfg, defalut use NoiseDistributionFCDiscreteNet for 1 dim obs
+
+        Arguments:
+            - cfg (:obj:`dict`): the config contain model parameters
+            - model_type (:obj:`type` or None): the type of the model
+
+        Returns:
+            - model (:obj:`torch.nn.Module`): the model created
+        """
         if model_type is None:
             return NoiseDistributionFCDiscreteNet(**cfg.model)
         else:
             return model_type(**cfg.model)
 
     def _reset_noise(self, model: torch.nn.Module):
+        r"""
+        Overview:
+            reset the noise of model
+
+        Arguments:
+            - model (:obj:`torch.nn.Module`): the model to reset, must contain reset_noise method
+        """
         for m in model.modules():
             if hasattr(m, 'reset_noise'):
                 m.reset_noise()
 
 
+# regist rainbow_dqn policy in the policy maps
 register_policy('rainbow_dqn', RainbowDQNPolicy)
