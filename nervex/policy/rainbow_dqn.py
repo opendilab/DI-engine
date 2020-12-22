@@ -65,14 +65,15 @@ class RainbowDQNPolicy(DQNPolicy):
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""
         Overview:
-            acquire the data and calculate the loss and optimize learner model
+            Forward and backward function of learn mode, acquire the data and calculate the loss and optimize learner model
 
         Arguments:
-            - data (:obj:`dict`): input data dict with keys ['obs', 'next+obs', 'reward', 'action']
+            - data (:obj:`dict`): Dict type data, including at least ['obs', 'next_obs', 'reward', 'action']
 
         Returns:
-            - cur_lr (:obj:`float`): current learning rate
-            - total_loss (:obj:`float`): the calculated loss
+            - info_dict (:obj:`Dict[str, Any]`): Including cur_lr and total_loss
+                - cur_lr (:obj:`float`): current learning rate
+                - total_loss (:obj:`float`): the calculated loss
         """
         # forward
         reward = data['reward']
@@ -106,7 +107,8 @@ class RainbowDQNPolicy(DQNPolicy):
     def _init_collect(self) -> None:
         r"""
         Overview:
-            init the collector, self._collect_agent
+            Collect mode init moethod. Called by ``self.__init__``.
+            Init traj and unroll length, adder, collect agent.
 
             .. note::
                 the rainbow dqn enable the eps_greedy_sample, but might not need to use it, \
@@ -129,11 +131,11 @@ class RainbowDQNPolicy(DQNPolicy):
             reset the noise from noise net and collect output according to eps_greedy plugin
 
         Arguments:
-            - data_id (:obj:`List` of :obj:`int`): not used, set in arguments for consistency
-            - data (:obj:`dict`): the input data the collect_agent take
+            - data_id (:obj:`List` of :obj:`int`): Not used, set in arguments for consistency
+            - data (:obj:`dict`): Dict type data, including at least ['obs'].
 
         Returns:
-            - data (:obj:`dict`): the collected data
+            - data (:obj:`dict`): The collected data
         """
         self._reset_noise(self._collect_agent.model)
         return self._collect_agent.forward(data, eps=self._eps)
@@ -144,10 +146,10 @@ class RainbowDQNPolicy(DQNPolicy):
             get the trajectory and the n step return data, then sample from the n_step return data
 
         Arguments:
-            - traj_cache (:obj:`deque`): trajactory's cache
+            - traj_cache (:obj:`deque`): The trajactory's cache
 
         Returns:
-            - samples (:obj:`dict`): the training samples generated
+            - samples (:obj:`dict`): The training samples generated
         """
         # adder is defined in _init_collect
         data = self._adder.get_traj(
@@ -159,14 +161,15 @@ class RainbowDQNPolicy(DQNPolicy):
     def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
         r"""
         Overview:
-            create the model from cfg, defalut use NoiseDistributionFCDiscreteNet for 1 dim obs
+            Create a model according to input config. Defalut use NoiseDistributionFCDiscreteNet for 1 dim obs
 
         Arguments:
-            - cfg (:obj:`dict`): the config contain model parameters
-            - model_type (:obj:`type` or None): the type of the model
+            - cfg (:obj:`dict`): Config, including the config contain model parameters
+            - model_type (:obj:`type` or None): The type of the model to create, if this is not None, this function will create \
+                an instance of the model_type.
 
         Returns:
-            - model (:obj:`torch.nn.Module`): the model created
+            - model (:obj:`torch.nn.Module`): Generted model.
         """
         if model_type is None:
             return NoiseDistributionFCDiscreteNet(**cfg.model)
