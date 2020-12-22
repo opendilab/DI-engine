@@ -1,10 +1,10 @@
 from typing import List, Dict, Any, Tuple, Union, Optional
-from collections import namedtuple
+from collections import namedtuple, deque
 import torch
 from easydict import EasyDict
 
 from nervex.torch_utils import Adam
-from nervex.rl_utils import q_1step_td_data, q_1step_td_error, epsilon_greedy, Adder
+from nervex.rl_utils import q_1step_td_data, q_1step_td_error, q_nstep_td_data, q_nstep_td_error, epsilon_greedy, Adder
 from nervex.model import FCDiscreteNet, ConvDiscreteNet
 from nervex.agent import Agent
 from .base_policy import Policy, register_policy
@@ -17,6 +17,7 @@ class DQNPolicy(CommonPolicy):
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._agent = Agent(self._model)
         algo_cfg = self._cfg.learn.algo
+        self._nstep = algo_cfg.nstep
         self._gamma = algo_cfg.discount_factor
 
         self._agent.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
@@ -31,13 +32,18 @@ class DQNPolicy(CommonPolicy):
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         # forward
+        reward = data['reward']
+        if len(reward.shape) == 1:
+            reward = reward.unsqueeze(1)
+        assert reward.shape == (self._cfg.learn.batch_size, self._nstep), reward.shape
+        reward = reward.permute(1, 0).contiguous()
         q_value = self._agent.forward(data['obs'])['logit']
         target_q_value = self._agent.target_forward(data['next_obs'])['logit']
         target_q_action = self._agent.forward(data['next_obs'])['action']
-        data = q_1step_td_data(
-            q_value, target_q_value, data['action'], target_q_action, data['reward'], data['done'], data['weight']
+        data_n = q_nstep_td_data(
+            q_value, target_q_value, data['action'], target_q_action, reward, data['done'], data['weight']
         )
-        loss = q_1step_td_error(data, self._gamma)
+        loss = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep)
         # update
         self._optimizer.zero_grad()
         loss.backward()
@@ -55,6 +61,7 @@ class DQNPolicy(CommonPolicy):
             self._traj_len == float("inf")
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
+        self._collect_nstep = self._cfg.collect.algo.nstep
         self._collect_agent = Agent(self._model)
         self._collect_agent.add_plugin('main', 'eps_greedy_sample')
         self._collect_agent.add_plugin('main', 'grad', enable_grad=False)
@@ -64,6 +71,12 @@ class DQNPolicy(CommonPolicy):
 
     def _forward_collect(self, data_id: List[int], data: dict) -> dict:
         return self._collect_agent.forward(data, eps=self._eps)
+
+    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
+        # adder is defined in _init_collect
+        data = self._adder.get_traj(traj_cache, self._traj_len, return_num=self._nstep)
+        data = self._adder.get_nstep_return_data(data, self._nstep, self._traj_len)
+        return self._adder.get_train_sample(data)
 
     def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
         transition = {

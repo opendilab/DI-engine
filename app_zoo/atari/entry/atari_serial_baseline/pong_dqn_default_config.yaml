@@ -10,7 +10,7 @@ env:
     frame_stack: 4
     is_train: True
     actor_env_num: 16
-    evaluator_env_num: 5
+    evaluator_env_num: 3
 policy:
     use_cuda: True
     policy_type: 'dqn'
@@ -32,9 +32,12 @@ policy:
         algo:
             target_update_freq: 500
             discount_factor: 0.99
+            nstep: 3
     collect:
-        traj_len: 1
+        traj_len: 11
         unroll_len: 1
+        algo:
+            nstep: 3
     command:
         eps:
             type: 'linear'
@@ -42,18 +45,18 @@ policy:
             end: 0.005
             decay: 100000
 replay_buffer:
-    meta_maxlen: 100000
+    meta_maxlen: 10000
     max_reuse: 100
     unroll_len: 1
     min_sample_ratio: 1
 actor:
     n_sample: 10
-    traj_len: 1
+    traj_len: 11
     traj_print_freq: 100
     collect_print_freq: 100
 evaluator:
     n_episode: 1
-    eval_freq: 10000
+    eval_freq: 2000
     stop_val: 20 # pong
 learner:
     hook:
