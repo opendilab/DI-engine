@@ -134,3 +134,15 @@ def test_qmix():
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
+def test_coma():
+    path = os.path.join(os.path.dirname(__file__), '../../../app_zoo/smac/entry/smac_coma_default_config.yaml')
+    config = read_config(path)
+    config.env.env_type = 'fake_smac'
+    config.env.import_names = ['app_zoo.smac.envs.fake_smac_env']
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"

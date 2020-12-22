@@ -93,7 +93,7 @@ class ComaCriticNetwork(nn.Module):
 
 class ComaNetwork(nn.Module):
 
-    def __init__(self, agent_num: int, obs_dim: Tuple, act_dim: Tuple, embedding_dim: int):
+    def __init__(self, agent_num: int, obs_dim: dict, act_dim: Tuple, embedding_dim: int):
         super(ComaNetwork, self).__init__()
         act_dim = act_dim[-1]
         actor_input_dim = obs_dim['agent_state'][-1]
