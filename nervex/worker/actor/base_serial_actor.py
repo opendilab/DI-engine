@@ -12,6 +12,11 @@ class BaseSerialActor(object):
         self._default_n_episode = cfg.get('n_episode', None)
         self._default_n_sample = cfg.get('n_sample', None)
         self._traj_len = cfg.traj_len
+        if self._traj_len == "inf":
+            raise ValueError(
+                "Serial Actor must indicate finite traj_len, if you want to use the total episode,\
+                please set this argument as the maximum length of the env episode"
+            )
         self._traj_cache_length = self._traj_len
         self._traj_print_freq = cfg.traj_print_freq
         self._collect_print_freq = cfg.collect_print_freq

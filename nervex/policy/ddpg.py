@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Tuple, Union
+from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple
 import torch
 
@@ -13,9 +13,11 @@ from .common_policy import CommonPolicy
 class DDPGPolicy(CommonPolicy):
     r"""
     Overview:
-        Policy class of DDPG and TD3 alogorithm. Since DDPG and TD3 share many common things, 
+        Policy class of DDPG and TD3 alogorithm. Since DDPG and TD3 share many common things, this Policy supports
+        both algorithums. You can change ``_actor_update_freq``, ``_use_twin_critic`` and noise in agent plugin to
+        switch algorithm.
     Interface:
-        __init__, set_setting, __repr__, state_dict_handle, 
+        __init__, set_setting, __repr__, state_dict_handle
     Property:
         learn_mode, collect_mode, eval_mode, command_mode
     """
@@ -229,17 +231,22 @@ class DDPGPolicy(CommonPolicy):
         """
         pass
 
-    def _create_model_from_cfg(self, cfg: dict) -> torch.nn.Module:
+    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
         r"""
         Overview:
-            Create a model according to input config. This policy will adopt actor-critic framework, 
-            where critic predicts q value.
+            Create a model according to input config. This policy will adopt actor-critic framework,
+            where critic network predicts q value.
         Arguments:
             - cfg (:obj:`dict`): Config.
+            - model_type (:obj:`Optional[type]`): If this is not None, this function will create \
+                an instance of this.
         Returns:
             - model (:obj:`torch.nn.Module`): Generted model.
         """
-        return QAC(**cfg.model)
+        if model_type is None:
+            return QAC(**cfg.model)
+        else:
+            return model_type(**cfg.model)
 
 
 register_policy('ddpg', DDPGPolicy)

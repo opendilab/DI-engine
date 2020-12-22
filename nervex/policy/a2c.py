@@ -1,9 +1,9 @@
-from typing import List, Dict, Any, Tuple, Union
+from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple, deque
 import torch
 
 from nervex.torch_utils import Adam
-from nervex.rl_utils import a2c_data, a2c_error, Adder
+from nervex.rl_utils import a2c_data, a2c_error, Adder, nstep_return_data, nstep_return
 from nervex.model import FCValueAC
 from nervex.agent import Agent
 from .base_policy import Policy, register_policy
@@ -18,6 +18,9 @@ class A2CPolicy(CommonPolicy):
         algo_cfg = self._cfg.learn.algo
         self._value_weight = algo_cfg.value_weight
         self._entropy_weight = algo_cfg.entropy_weight
+        self._learn_use_nstep_return = algo_cfg.get('use_nstep_return', False)
+        self._learn_gamma = algo_cfg.get('discount_factor', 0.99)
+        self._learn_nstep = algo_cfg.get('nstep', 1)
 
         self._agent.add_plugin('main', 'grad', enable_grad=True)
         self._agent.mode(train=True)
@@ -30,8 +33,14 @@ class A2CPolicy(CommonPolicy):
         adv = data['adv']
         # norm adv in total train_batch
         adv = (adv - adv.mean()) / (adv.std() + 1e-8)
-        # return = value + adv
-        return_ = data['value'] + adv
+        if self._learn_use_nstep_return:
+            next_value = self._agent.forward(data['next_obs'], param={'mode': 'compute_action_value'})['value']
+            reward = data['reward'].permute(1, 0).contiguous()
+            nstep_data = nstep_return_data(reward, next_value, data['done'])
+            return_ = nstep_return(nstep_data, self._learn_gamma, self._learn_nstep).detach()
+        else:
+            # return = value + adv
+            return_ = data['value'] + adv
         # calculate a2c error
         data = a2c_data(output['logit'], data['action'], output['value'], adv, return_, data['weight'])
         a2c_loss = a2c_error(data)
@@ -67,6 +76,8 @@ class A2CPolicy(CommonPolicy):
         algo_cfg = self._cfg.collect.algo
         self._gamma = algo_cfg.discount_factor
         self._gae_lambda = algo_cfg.gae_lambda
+        self._collect_use_nstep_return = algo_cfg.get('use_nstep_return', False)
+        self._collect_nstep = algo_cfg.get('nstep', 1)
 
     def _forward_collect(self, data_id: List[int], data: dict) -> dict:
         return self._collect_agent.forward(data, param={'mode': 'compute_action_value'})
@@ -83,12 +94,15 @@ class A2CPolicy(CommonPolicy):
         return transition
 
     def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
-        data = self._adder.get_traj(traj_cache, self._traj_len, return_num=1)
+        return_num = 1 if not self._collect_use_nstep_return else self._collect_nstep
+        data = self._adder.get_traj(traj_cache, self._traj_len, return_num=return_num)
         if self._traj_len == float('inf'):
             assert data[-1]['done'], "episode must be terminated by done=True"
         data = self._adder.get_gae_with_default_last_value(
             data, data[-1]['done'], gamma=self._gamma, gae_lambda=self._gae_lambda
         )
+        if self._collect_use_nstep_return:
+            data = self._adder.get_nstep_return_data(data, self._collect_nstep, self._traj_len)
         return self._adder.get_train_sample(data)
 
     def _init_eval(self) -> None:
@@ -105,8 +119,11 @@ class A2CPolicy(CommonPolicy):
     def _init_command(self) -> None:
         pass
 
-    def _create_model_from_cfg(self, cfg: dict) -> torch.nn.Module:
-        return FCValueAC(**cfg.model)
+    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
+        if model_type is None:
+            return FCValueAC(**cfg.model)
+        else:
+            return model_type(**cfg.model)
 
 
 register_policy('a2c', A2CPolicy)

@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Tuple, Union
+from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple, deque
 import torch
 from easydict import EasyDict
@@ -26,6 +26,7 @@ class R2D2Policy(CommonPolicy):
         self._agent.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
         self._agent.add_plugin('main', 'hidden_state', state_num=self._cfg.learn.batch_size)
         self._agent.add_plugin('target', 'hidden_state', state_num=self._cfg.learn.batch_size)
+        self._agent.add_plugin('main', 'argmax_sample')
         self._agent.add_plugin('main', 'grad', enable_grad=True)
         self._agent.add_plugin('target', 'grad', enable_grad=False)
         self._agent.mode(train=True)
@@ -65,12 +66,15 @@ class R2D2Policy(CommonPolicy):
         q_value = self._agent.forward(inputs)['logit']
         next_inputs = {'obs': data['target_obs'], 'enable_fast_timestep': True}
         target_q_value = self._agent.target_forward(next_inputs)['logit']
+        target_q_action = self._agent.forward(next_inputs)['action']
 
         action, reward, done, weight = data['action'], data['reward'], data['done'], data['weight']
         reward = reward.permute(0, 2, 1).contiguous()  # T, B, nstep -> T, nstep, B
         loss = []
         for t in range(self._nstep):
-            td_data = q_nstep_td_data(q_value[t], target_q_value[t], action[t], reward[t], done[t], weight[t])
+            td_data = q_nstep_td_data(
+                q_value[t], target_q_value[t], action[t], target_q_action[t], reward[t], done[t], weight[t]
+            )
             if self._use_value_rescale:
                 loss.append(q_nstep_td_error_with_rescale(td_data, self._gamma, self._nstep))
             else:
@@ -120,7 +124,7 @@ class R2D2Policy(CommonPolicy):
 
     def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
         data = self._adder.get_traj(traj_cache, self._traj_len, return_num=self._collect_burnin_step)
-        data = self._adder.get_nstep_return_data(data, self._nstep, self._traj_len)
+        data = self._adder.get_nstep_return_data(data, self._collect_nstep, self._traj_len)
         return self._adder.get_train_sample(data)
 
     def _init_eval(self) -> None:
@@ -143,8 +147,11 @@ class R2D2Policy(CommonPolicy):
         learner_step = command_info['learner_step']
         return {'eps': self.epsilon_greedy(learner_step)}
 
-    def _create_model_from_cfg(self, cfg: dict) -> torch.nn.Module:
-        return FCRDiscreteNet(**cfg.model)
+    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
+        if model_type is None:
+            return FCRDiscreteNet(**cfg.model)
+        else:
+            return model_type(**cfg.model)
 
 
 register_policy('r2d2', R2D2Policy)

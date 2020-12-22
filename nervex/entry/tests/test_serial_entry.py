@@ -18,7 +18,9 @@ def test_dqn():
 
 
 def test_pong_dqn():
-    path = os.path.join(os.path.dirname(__file__), '../../../app_zoo/atari/entry/pong_dqn_default_config.yaml')
+    path = os.path.join(
+        os.path.dirname(__file__), '../../../app_zoo/atari/entry/atari_serial_baseline/pong_dqn_default_config.yaml'
+    )
     config = read_config(path)
     try:
         serial_pipeline(config, seed=0)
@@ -111,12 +113,54 @@ def test_sac():
         assert False, "pipeline fail"
 
 
-# @pytest.mark.unittest
+@pytest.mark.unittest
 def test_r2d2():
     path = os.path.join(
         os.path.dirname(__file__), '../../../app_zoo/classic_control/cartpole/entry/cartpole_r2d2_default_config.yaml'
     )
     config = read_config(path)
+    config.evaluator.stop_val = 30  # for save time
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
+def test_qmix():
+    path = os.path.join(os.path.dirname(__file__), '../../../app_zoo/smac/entry/smac_qmix_default_config.yaml')
+    config = read_config(path)
+    config.env.env_type = 'fake_smac'
+    config.env.import_names = ['app_zoo.smac.envs.fake_smac_env']
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
+def test_coma():
+    path = os.path.join(os.path.dirname(__file__), '../../../app_zoo/smac/entry/smac_coma_default_config.yaml')
+    config = read_config(path)
+    config.env.env_type = 'fake_smac'
+    config.env.import_names = ['app_zoo.smac.envs.fake_smac_env']
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
+def test_a2c_with_nstep_return():
+    path = os.path.join(
+        os.path.dirname(__file__), '../../../app_zoo/classic_control/cartpole/entry/cartpole_a2c_default_config.yaml'
+    )
+    config = read_config(path)
+    config.policy.learn.algo.use_nstep_return = True
+    config.policy.learn.algo.discount_factor = config.policy.collect.algo.discount_factor
+    config.policy.learn.algo.nstep = 3
+    config.policy.collect.algo.use_nstep_return = config.policy.learn.algo.use_nstep_return
+    config.policy.collect.algo.nstep = config.policy.learn.algo.nstep
     try:
         serial_pipeline(config, seed=0)
     except Exception:

@@ -132,11 +132,9 @@ class PrioritizedBuffer:
         # deepcopy same indice data
         for i in range(size):
             tmp = []
-            for j in range(i, size):
-                if indices[i] == indices[j]:
+            for j in range(i + 1, size):
+                if id(result[i]) == id(result[j]):
                     tmp.append(j)
-                else:
-                    break
             for j in tmp:
                 result[j] = copy.deepcopy(result[j])
         return result
