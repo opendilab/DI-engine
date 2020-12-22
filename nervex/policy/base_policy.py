@@ -16,7 +16,7 @@ class Policy(ABC):
         ]
     )
     eval_function = namedtuple(
-        'collect_function', ['data_preprocess', 'forward', 'data_postprocess', 'reset', 'set_setting']
+        'eval_function', ['data_preprocess', 'forward', 'data_postprocess', 'reset', 'set_setting']
     )
     command_function = namedtuple('command_function', ['get_setting_learn', 'get_setting_collect', 'get_setting_eval'])
 
@@ -65,6 +65,7 @@ class Policy(ABC):
 
     @property
     def learn_mode(self) -> 'Policy.learn_function':  # noqa
+        # ['data_preprocess', 'forward', 'reset', 'info', 'state_dict_handle', 'set_setting']
         return Policy.learn_function(
             self._data_preprocess_learn, self._forward_learn, self._reset_learn, self.__repr__, self.state_dict_handle,
             self.set_setting

@@ -1,20 +1,26 @@
 common:
-    name: MujocoDdpgConfig
+    name: MujocoTd3Config
     save_path: '.'
     load_path: ''
 env:
-    env_id: 'HalfCheetah-v1'
+    env_id: 'HalfCheetah-v2'  # ['HalfCheetah-v1', 'Hopper-v1', 'Walker2d-v1']  # stop_val: 10500, 3700, 5300
     frame_stack: 4
     is_train: True
+    env_manager_type: 'subprocess'  # [base, subprocess]
+    import_names: ['app_zoo.mujoco.envs.mujoco_env']
+    env_type: 'mujoco'
+    actor_env_num: 8
+    evaluator_env_num: 8
+    # use_act_scale: True
 policy:
     use_cuda: False
     policy_type: 'ddpg'
     import_names: ['nervex.policy.ddpg']
     on_policy: False
     model:
-        obs_dim: 3
-        action_dim: 1
-        use_twin_critic: False
+        obs_dim: 17
+        action_dim: 6
+        use_twin_critic: True
     learn:
         train_step: 1
         batch_size: 128
@@ -26,7 +32,7 @@ policy:
             target_theta: 0.005
             discount_factor: 0.99
             actor_update_freq: 1
-            use_twin_critic: False
+            use_twin_critic: True
             use_noise: False
             noise_sigma: 0.05
             noise_range:
@@ -51,8 +57,10 @@ actor:
     collect_print_freq: 1000
 evaluator:
     n_episode: 8
+    env_num: 4
+    episode_num: 1
     eval_freq: 1000
-    stop_val: -250
+    stop_val: 10500
 learner:
     hook:
         log_show:
