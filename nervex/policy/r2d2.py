@@ -124,7 +124,7 @@ class R2D2Policy(CommonPolicy):
 
     def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
         data = self._adder.get_traj(traj_cache, self._traj_len, return_num=self._collect_burnin_step)
-        data = self._adder.get_nstep_return_data(data, self._nstep, self._traj_len)
+        data = self._adder.get_nstep_return_data(data, self._collect_nstep, self._traj_len)
         return self._adder.get_train_sample(data)
 
     def _init_eval(self) -> None:

@@ -86,6 +86,8 @@ class Adder(object):
         return self.get_gae(data, last_value, gamma, gae_lambda)
 
     def get_nstep_return_data(self, data: List[Dict[str, Any]], nstep: int, traj_len: int) -> List[Dict[str, Any]]:
+        if nstep == 1:
+            return data
         if traj_len == float('inf') or len(data) < traj_len:
             # episode done case
             fake_data = {'obs': data[-1]['obs'].clone(), 'reward': torch.zeros(1), 'done': True}

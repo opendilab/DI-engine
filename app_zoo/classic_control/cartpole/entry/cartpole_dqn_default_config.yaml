@@ -26,9 +26,12 @@ policy:
         algo:
             target_update_freq: 100
             discount_factor: 0.95
+            nstep: 1
     collect:
         traj_len: 1
         unroll_len: 1
+        algo:
+            nstep: 1
     command:
         eps:
             type: 'exp'

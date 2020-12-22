@@ -74,8 +74,9 @@ class DQNPolicy(CommonPolicy):
 
     def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
         # adder is defined in _init_collect
-        data = self._adder.get_traj(traj_cache, self._traj_len, return_num=self._nstep)
-        data = self._adder.get_nstep_return_data(data, self._nstep, self._traj_len)
+        return_num = 0 if self._collect_nstep == 1 else self._collect_nstep
+        data = self._adder.get_traj(traj_cache, self._traj_len, return_num=return_num)
+        data = self._adder.get_nstep_return_data(data, self._collect_nstep, self._traj_len)
         return self._adder.get_train_sample(data)
 
     def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
