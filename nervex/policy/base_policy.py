@@ -16,7 +16,7 @@ class Policy(ABC):
         ]
     )
     eval_function = namedtuple(
-        'collect_function', ['data_preprocess', 'forward', 'data_postprocess', 'reset', 'set_setting']
+        'eval_function', ['data_preprocess', 'forward', 'data_postprocess', 'reset', 'set_setting']
     )
     command_function = namedtuple('command_function', ['get_setting_learn', 'get_setting_collect', 'get_setting_eval'])
 

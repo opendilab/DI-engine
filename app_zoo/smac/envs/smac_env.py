@@ -11,6 +11,7 @@ from pysc2.lib import protocol
 from s2clientprotocol import common_pb2 as sc_common
 from s2clientprotocol import debug_pb2 as d_pb
 from s2clientprotocol import sc2api_pb2 as sc_pb
+from nervex.envs import BaseEnv, register_env
 
 from .smac_map import get_map_params
 from .smac_action import SMACAction, distance
@@ -41,7 +42,7 @@ class Direction(enum.IntEnum):
     WEST = 3
 
 
-class SMACEnv(SC2Env):
+class SMACEnv(SC2Env, BaseEnv):
     """
     This environment provides the interface for both single agent and multiple agents (two players) in
     SC2 environment.
@@ -1174,3 +1175,6 @@ def _flatten(obs, get_keys):
         new_agent_obs = np.concatenate([agent_obs[feat_key].flatten() for feat_key in keys])
         new_obs.append(new_agent_obs)
     return new_obs
+
+
+register_env('smac', SMACEnv)

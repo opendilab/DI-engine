@@ -124,5 +124,5 @@ class Adder(object):
                     null_data = null_padding()
                     split_data.append(residual + null_data)
             if len(split_data) > 0:
-                split_data = [lists_to_dicts(d) for d in split_data]
+                split_data = [lists_to_dicts(d, recursive=True) for d in split_data]
             return split_data
