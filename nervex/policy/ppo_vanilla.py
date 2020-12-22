@@ -3,6 +3,7 @@ from collections import namedtuple, deque
 import torch
 import numpy as np
 from easydict import EasyDict
+import copy
 
 from nervex.torch_utils import Adam
 from nervex.rl_utils import ppo_data, ppo_error, epsilon_greedy
