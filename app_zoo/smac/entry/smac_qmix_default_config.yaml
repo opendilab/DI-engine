@@ -11,14 +11,14 @@ env:
     actor_env_num: 8
     evaluator_env_num: 5
 policy:
-    use_cuda: False
+    use_cuda: True
     policy_type: 'qmix'
     import_names: ['nervex.policy.qmix']
-    on_policy: False
+    on_policy: True
     model:
         agent_num: 8
-        obs_dim: 32
-        global_obs_dim: 512
+        obs_dim: 248
+        global_obs_dim: 216
         action_dim: 14
         embedding_dim: 64
     learn:
@@ -46,7 +46,7 @@ policy:
             decay: 100000
 replay_buffer:
     meta_maxlen: 5000
-    max_reuse: 100
+    max_reuse: 10
     unroll_len: 16
     min_sample_ratio: 1
 actor:

@@ -153,7 +153,7 @@ class SubprocessEnvManager(BaseEnvManager):
             obs = self._parent_remote[env_id].recv().data
             self._check_data([obs], close=False)
             self._env_state[env_id] = EnvState.RUN
-            self._next_obs[env_id] = obs
+            self._next_obs[env_id] = self._transform(obs)
 
         try:
             reset_fn()
@@ -174,6 +174,7 @@ class SubprocessEnvManager(BaseEnvManager):
                    )
 
         for i, act in action.items():
+            act = self._inv_transform(act)
             self._parent_remote[i].send(CloudpickleWrapper(['step', [act], {}]))
 
         handle = self._async_args['step']
@@ -204,6 +205,7 @@ class SubprocessEnvManager(BaseEnvManager):
             else:
                 self._waiting_env['step'].add(i)
         for idx, timestep in ret.items():
+            timestep = self._transform(timestep)
             if timestep.done:
                 self._env_episode_count[idx] += 1
                 if self._env_episode_count[idx] >= self._epsiode_num:

@@ -400,7 +400,7 @@ class SMACEnv(SC2Env, BaseEnv):
             rewards, terminates, new_infos = rewards[ORIGINAL_AGENT], terminates[ORIGINAL_AGENT], infos[ORIGINAL_AGENT]
             new_infos["battle_lost"] = infos[OPPONENT_AGENT]["battle_won"]
             new_infos["draw"] = infos["draw"]
-            new_infos['eval_reward'] = infos['eval_reward']
+            new_infos['final_eval_reward'] = infos['final_eval_reward']
             infos = new_infos
             obs = {'agent_state': self.get_obs(), 'global_state': self.get_state(), 'action_mask': self.get_avail_actions()}
         else:
@@ -423,7 +423,7 @@ class SMACEnv(SC2Env, BaseEnv):
         for k in reward:
             reward[k] = torch.FloatTensor(reward[k])
 
-        info = {ORIGINAL_AGENT: {"battle_won": False}, OPPONENT_AGENT: {"battle_won": False}, 'eval_reward': 0.}
+        info = {ORIGINAL_AGENT: {"battle_won": False}, OPPONENT_AGENT: {"battle_won": False}, 'final_eval_reward': 0.}
 
         if game_end_code is not None:
             # Battle is over
@@ -435,7 +435,7 @@ class SMACEnv(SC2Env, BaseEnv):
                 self.win_counted = True
                 info[ORIGINAL_AGENT]["battle_won"] = True
                 info[OPPONENT_AGENT]["battle_won"] = False
-                info['eval_reward'] = 1.
+                info['final_eval_reward'] = 1.
             elif game_end_code == -1 and not self.defeat_counted:
                 self.defeat_counted = True
                 info[ORIGINAL_AGENT]["battle_won"] = False
@@ -1166,6 +1166,9 @@ class SMACEnv(SC2Env, BaseEnv):
             rew_space=self.reward_helper.info(),
             episode_limit=self.episode_limit,
         )
+
+    def __repr__(self):
+        return "nervex SMAC Env"
 
 
 def _flatten(obs, get_keys):

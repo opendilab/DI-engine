@@ -47,9 +47,13 @@ class BaseSerialActor(object):
         self._obs_pool = CachePool('obs', self._env_num)
         self._policy_output_pool = CachePool('policy_output', self._env_num)
         self._traj_cache = {env_id: deque(maxlen=self._traj_cache_length) for env_id in range(self._env_num)}
-        self._total_step_count = 0
+        self._total_collect_step = 0
+        self._total_step = 0
+        self._total_episode = 0
+        self._total_sample = 0
+        self._total_duration = 0
 
-    def generate_data(self, n_episode: Optional[int] = None, n_sample: Optional[int] = None) -> List[Any]:
+    def generate_data(self, n_episode: Optional[int] = None, n_sample: Optional[int] = None) -> Tuple[List[Any], dict]:
         assert n_episode is None or n_sample is None, "n_episode and n_sample can't be not None at the same time"
         if n_episode is not None:
             return self._collect_episode(n_episode)
@@ -65,13 +69,13 @@ class BaseSerialActor(object):
     def close(self) -> None:
         self._env.close()
 
-    def _collect_episode(self, n_episode: int) -> List[Any]:
+    def _collect_episode(self, n_episode: int) -> Tuple[List[Any], dict]:
         return self._collect(lambda x, y: x >= n_episode)
 
-    def _collect_sample(self, n_sample: int) -> List[Any]:
+    def _collect_sample(self, n_sample: int) -> Tuple[List[Any], dict]:
         return self._collect(lambda x, y: y >= n_sample)
 
-    def _collect(self, collect_end_fn: Callable) -> List[Any]:
+    def _collect(self, collect_end_fn: Callable) -> Tuple[List[Any], dict]:
         episode_count = 0
         step_count = 0
         train_sample_count = 0
@@ -98,6 +102,7 @@ class BaseSerialActor(object):
                         train_sample = self._policy.get_train_sample(self._traj_cache[env_id])
                         return_data.extend(train_sample)
                         train_sample_count += len(train_sample)
+                        self._total_sample += len(train_sample)
                         if (train_sample_count + 1) % self._traj_print_freq == 0:
                             self._logger.info(
                                 "env {} get new traj, collected traj: {}".format(env_id, train_sample_count)
@@ -116,9 +121,11 @@ class BaseSerialActor(object):
                             )
                         )
                         episode_count += 1
+                        self._total_episode += 1
                     step_count += 1
+                    self._total_step += 1
         duration = self._timer.value
-        if (self._total_step_count + 1) % self._collect_print_freq == 0:
+        if (self._total_collect_step + 1) % self._collect_print_freq == 0:
             info = {
                 'episode_count': episode_count,
                 'step_count': step_count,
@@ -132,8 +139,16 @@ class BaseSerialActor(object):
                 'reward_std': np.std(episode_reward) if len(episode_reward) > 0 else 0.,
             }
             self._logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
-        self._total_step_count += 1
-        return return_data
+        self._total_collect_step += 1
+        self._total_duration += duration
+        collect_info = {
+            'total_collect_step': self._total_collect_step,
+            'total_step': self._total_step,
+            'total_sample': self._total_sample,
+            'total_episode': self._total_episode,
+            'total_duration': self._total_duration,
+        }
+        return return_data, collect_info
 
 
 class CachePool(object):

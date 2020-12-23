@@ -78,7 +78,7 @@ def to_dtype(item, dtype):
         raise TypeError("not support item type: {}".format(type(item)))
 
 
-def to_tensor(item, dtype):
+def to_tensor(item, dtype=None):
     r"""
     Overview:
         transfer data to certain dtype tensor
@@ -95,7 +95,10 @@ def to_tensor(item, dtype):
     """
 
     def transform(d):
-        return torch.tensor(d, dtype=dtype)
+        if dtype is None:
+            torch.as_tensor(d)
+        else:
+            return torch.tensor(d, dtype=dtype)
 
     if isinstance(item, dict):
         new_data = {}
@@ -107,6 +110,8 @@ def to_tensor(item, dtype):
             return None
         elif isinstance(item[0], numbers.Integral) or isinstance(item[0], numbers.Real):
             return transform(item)
+        elif hasattr(item, '_fields'):  # namedtuple
+            return type(item)(*[to_tensor(t, dtype) for t in item])
         else:
             new_data = []
             for t in item:
@@ -114,10 +119,17 @@ def to_tensor(item, dtype):
             return new_data
     elif isinstance(item, np.ndarray):
         return torch.from_numpy(item).to(dtype)
+    elif isinstance(item, bool) or isinstance(item, str):
+        return item
     elif np.isscalar(item):
         return torch.as_tensor([item]).to(dtype)
     elif item is None:
         return None
+    elif isinstance(item, torch.Tensor):
+        if dtype is not None:
+            return item.to(dtype)
+        else:
+            return item
     else:
         raise TypeError("not support item type: {}".format(type(item)))
 

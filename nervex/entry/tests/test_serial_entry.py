@@ -102,6 +102,19 @@ def test_ppo():
         assert False, "pipeline fail"
 
 
+@pytest.mark.unittest
+def test_ppo_vanilla():
+    path = os.path.join(
+        os.path.dirname(__file__),
+        '../../../app_zoo/classic_control/cartpole/entry/cartpole_ppovanilla_default_config.yaml'
+    )
+    config = read_config(path)
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+
+
 def test_sac():
     path = os.path.join(
         os.path.dirname(__file__), '../../../app_zoo/classic_control/pendulum/entry/pendulum_sac_default_config.yaml'
@@ -132,6 +145,7 @@ def test_qmix():
     config = read_config(path)
     config.env.env_type = 'fake_smac'
     config.env.import_names = ['app_zoo.smac.envs.fake_smac_env']
+    config.policy.use_cuda = False
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -144,6 +158,7 @@ def test_coma():
     config = read_config(path)
     config.env.env_type = 'fake_smac'
     config.env.import_names = ['app_zoo.smac.envs.fake_smac_env']
+    config.policy.use_cuda = False
     try:
         serial_pipeline(config, seed=0)
     except Exception:

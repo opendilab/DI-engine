@@ -374,6 +374,6 @@ class SMACAction:
         return a
 
     def info(self):
-        shape = (self.n_agents, self.n_actions)
+        shape = (self.n_actions, )
         value = {'min': 0, 'max': 1}
         return SMACAction.info_template(shape, value, None, None)
