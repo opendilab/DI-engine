@@ -11,11 +11,6 @@ build_logger
 .. automodule:: nervex.utils.log_helper.build_logger
 
 
-build_logger_naive
-~~~~~~~~~~~~~~~~~~~
-.. automodule:: nervex.utils.log_helper.build_logger_naive
-
-
 
 get_default_logger
 ~~~~~~~~~~~~~~~~~~~
@@ -39,16 +34,6 @@ TensorBoardLogger
 .. automodule:: nervex.utils.log_helper.TensorBoardLogger
     :members: __init__, add_scalar, add_text, add_scalars, add_histogram, add_figure, add_image, register_var, scalar_var_names
 
-VariableRecord
-~~~~~~~~~~~~~~~~~
-
-.. automodule:: nervex.utils.log_helper.VariableRecord
-    :members: __init__, register_var, update_var, get_var_names, get_var_text, get_vars_tb_format, get_vars_text
-
-AverageMeter
-~~~~~~~~~~~~~
-.. automodule:: nervex.utils.log_helper.AverageMeter
-    :members: __init__, reset, update
 
 DistributionTimeImage
 ~~~~~~~~~~~~~~~~~~~~~~

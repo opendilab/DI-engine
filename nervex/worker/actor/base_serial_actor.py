@@ -3,7 +3,7 @@ from collections import namedtuple, deque
 import copy
 import numpy as np
 from .env_manager import BaseEnvManager
-from nervex.utils import build_logger_naive, EasyTimer
+from nervex.utils import build_logger, EasyTimer
 
 
 class BaseSerialActor(object):
@@ -20,7 +20,7 @@ class BaseSerialActor(object):
         self._traj_cache_length = self._traj_len
         self._traj_print_freq = cfg.traj_print_freq
         self._collect_print_freq = cfg.collect_print_freq
-        self._logger, _ = build_logger_naive(path='./log', name='actor')
+        self._logger, _ = build_logger(path='./log', name='actor')
         self._timer = EasyTimer()
         self._cfg = cfg
 

@@ -5,9 +5,9 @@ import torch.nn as nn
 class ValueActorCriticBase(nn.Module):
     r"""
     Overview:
-        Abstract class for Actor-Critic based models
+        Abstract class for Value based Actor-Critic based models
     Interface:
-        forward, set_seed, step, value, evaluate, mimic
+        forward, seed, compute_action_value, compute_action, mimic
     """
 
     def forward(self, inputs, mode=None, **kwargs):
@@ -56,10 +56,26 @@ class ValueActorCriticBase(nn.Module):
 
 
 class QActorCriticBase(nn.Module):
+    r"""
+    Overview:
+        Abstract class for Q_value based Actor-Critic based models
+    Interface:
+        forward, seed, optimize_actor, compute_q, compute_action, mimic
+    """
 
     def forward(self, inputs, mode=None, **kwargs):
         """
-        Note:
+        Overview:
+            Forward methods inherit from nn.Modules, used in different mode.
+            Return the corresponding result according to the given mode arguments.
+        Arguments:
+            - inputs (:obj:`dict` or other :obj:`obj`): the input.
+            - mode (:obj:`str`): the current mode to use in forward, support\
+                ['compute_q, 'compute_action', 'optimize_acto', 'mimic']
+        Returns:
+            - return (:obj:`dict` or other :obj:`obj`): the correspond output.
+
+        .. note::
             mode:
                 - optimize_actor: optimize actor part, with critic part `no grad`, return q value
                 - compute_q: evaluate q value based on state and action from buffer

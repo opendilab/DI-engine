@@ -2,7 +2,7 @@ from typing import List, Dict, Any, Optional, Callable, Tuple
 from collections import namedtuple
 import copy
 import numpy as np
-from nervex.utils import build_logger_naive, EasyTimer, TensorBoardLogger
+from nervex.utils import build_logger, EasyTimer, TensorBoardLogger
 from .env_manager import BaseEnvManager
 from .base_serial_actor import CachePool
 
@@ -12,7 +12,7 @@ class BaseSerialEvaluator(object):
     def __init__(self, cfg: dict) -> None:
         self._default_n_episode = cfg.get('n_episode', None)
         self._stop_val = cfg.stop_val
-        self._logger, _ = build_logger_naive(path='./log', name='evaluator')
+        self._logger, _ = build_logger(path='./log', name='evaluator')
         self._tb_logger = TensorBoardLogger(path='./', name='evaluator_tb_logger')
         for var in ['episode_count', 'step_count', 'avg_step_per_episode', 'avg_time_per_step', 'avg_time_per_episode',
                     'reward_mean', 'reward_std']:

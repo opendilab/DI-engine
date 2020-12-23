@@ -77,7 +77,7 @@ class TestBaseLearner:
 
         os.popen('rm -rf iteration_5.pth.tar*')
         os.popen('rm -rf ' + dir_name)
-        os.popen('rm -rf default_*')
+        os.popen('rm -rf learner')
 
 
 @pytest.mark.unittest

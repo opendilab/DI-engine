@@ -10,17 +10,54 @@ from typing import Any, Union, Callable
 from functools import partial
 from easydict import EasyDict
 import torch
+from collections import namedtuple
 
 from nervex.data import AsyncDataLoader, default_collate
 from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer, to_device
 from nervex.utils import build_logger, dist_init, EasyTimer, dist_finalize, pretty_print, read_config, \
     get_task_uid, import_module, broadcast
 from nervex.utils import deep_merge_dicts
-
+from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
 from .comm import LearnerCommHelper
 from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, merge_hooks, LearnerHook
 
 default_config = read_config(os.path.join(os.path.dirname(__file__), "base_learner_default_config.yaml"))
+
+
+class TickMonitor(LoggedModel):
+    """
+    Overview:
+        TickMonitor is to monitor related info of one training iteration.
+        Info include: cur_lr, time(data, train, forward, backward), loss(total,...)
+        These info variables would first be recorded in ``log_buffer``, then in ``LearnerHook`` will vars in
+        in this monitor be updated by``log_buffer``, then printed to ``TextLogger`` and ``TensorBoradLogger``.
+    Interface:
+        __init__, fixed_time, current_time, freeze, unfreeze, register_attribute_value, __getattr__
+    Property:
+        time, expire
+    """
+    cur_lr = LoggedValue(float)
+    data_time = LoggedValue(float)
+    data_preprocess_time = LoggedValue(float)
+    train_time = LoggedValue(float)
+    total_loss = LoggedValue(float)
+
+    def __init__(self, time_: 'BaseTime', expire: Union[int, float]):  # noqa
+        LoggedModel.__init__(self, time_, expire)
+        self.__register()
+
+    def __register(self):
+
+        def __avg_func(prop_name: str) -> float:
+            records = self.range_values[prop_name]()
+            _list = [_value for (_begin_time, _end_time), _value in records]
+            return sum(_list) / len(_list)
+
+        self.register_attribute_value('avg', 'cur_lr', partial(__avg_func, prop_name='cur_lr'))
+        self.register_attribute_value('avg', 'data_time', partial(__avg_func, prop_name='data_time'))
+        self.register_attribute_value('avg', 'data_preprocess_time', partial(__avg_func, prop_name='data_preprocess_time'))
+        self.register_attribute_value('avg', 'train_time', partial(__avg_func, prop_name='train_time'))
+        self.register_attribute_value('avg', 'total_loss', partial(__avg_func, prop_name='total_loss'))
 
 
 class BaseLearner(ABC):
@@ -28,7 +65,7 @@ class BaseLearner(ABC):
     Overview:
         base class for model learning(SL/RL), which is able to multi-GPU learning
     Interface:
-        __init__, register_stats, run, close, call_hook, info, save_checkpoint, launch
+        __init__, run, close, call_hook, info, save_checkpoint, launch
     Property:
         last_iter, policy, log_buffer, record,
         load_path, save_path, checkpoint_manager, name, rank, tb_logger, use_distributed
@@ -79,8 +116,12 @@ class BaseLearner(ABC):
         self._default_max_iterations = self._cfg.learner.max_iterations
         self._timer = EasyTimer()
         self._device = 'cpu'
-        # logger
-        self._logger, self._tb_logger, self._record = build_logger(self._cfg, name='learner', rank=self._rank)
+        # monitor & logger
+        # Only rank == 0 learner needs monitor and tb_logger, else only needs text_logger to display terminal output
+        rank0 = True if self._rank == 0 else False
+        self._monitor = TickMonitor(TickTime(), expire=10) if rank0 else None
+        path = os.path.join(self._cfg.common.save_path, 'learner')
+        self._logger, self._tb_logger = build_logger(path, 'learner', rank0)
         self._log_buffer = build_log_buffer()
         # checkpoint helper
         self._checkpointer_manager = build_checkpoint_helper(self._cfg)
@@ -102,8 +143,6 @@ class BaseLearner(ABC):
         assert self._check_policy(), "please set learner policy"
 
         self._last_iter = CountVar(init_val=0)
-        if self._rank == 0:
-            self.register_stats()
         self.info(pretty_print({
             "config": self._cfg,
         }, direct_print=False))
@@ -186,22 +225,6 @@ class BaseLearner(ABC):
         self._log_buffer.update(log_vars)
         self.call_hook('after_iter')
         self._last_iter.add(1)
-
-    def register_stats(self) -> None:
-        """
-        Overview:
-            register some basic attributes to record & tb_logger(e.g.: cur_lr, data_time, train_time),
-            register the attributes related to policy to record & tb_logger.
-        """
-        self._record.register_var('data_time')
-        self._record.register_var('data_preprocess_time')
-        self._record.register_var('train_time')
-
-        self._tb_logger.register_var('data_time')
-        self._tb_logger.register_var('data_preprocess_time')
-        self._tb_logger.register_var('train_time')
-
-        #self._policy.register_stats(self._record, self._tb_logger)
 
     def register_hook(self, hook: LearnerHook) -> None:
         """
@@ -290,6 +313,14 @@ class BaseLearner(ABC):
         return self._last_iter
 
     @property
+    def tick_time(self) -> TickTime:
+        return self._tick_time
+
+    @property
+    def monitor(self) -> TickMonitor:
+        return self._monitor
+
+    @property
     def log_buffer(self) -> dict:  # LogDict
         return self._log_buffer
 
@@ -298,8 +329,12 @@ class BaseLearner(ABC):
         self._log_buffer = _log_buffer
 
     @property
-    def record(self) -> 'VariableRecord':  # noqa
-        return self._record
+    def logger(self) -> 'TextLogger':  # noqa
+        return self._logger
+
+    @property
+    def tb_logger(self) -> 'TensorBoradLogger':  # noqa
+        return self._tb_logger
 
     @property
     def load_path(self) -> str:
@@ -324,10 +359,6 @@ class BaseLearner(ABC):
     @property
     def rank(self) -> int:
         return self._rank
-
-    @property
-    def tb_logger(self) -> 'TensorBoardLogger':  # noqa
-        return self._tb_logger
 
     @property
     def use_distributed(self) -> bool:

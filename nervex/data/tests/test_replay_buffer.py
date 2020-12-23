@@ -4,12 +4,12 @@ import threading
 import time
 from threading import Thread
 from typing import List
-
 import numpy as np
 import pytest
-import cProfile
-import pstats
-import io
+# import cProfile
+# import pstats
+# import io
+# from pstats import SortKey
 
 from nervex.data import ReplayBuffer
 from nervex.utils import read_config
@@ -193,6 +193,7 @@ class TestReplayBuffer:
 
     @pytest.mark.unittest
     def test_push_split(self, setup_config):
+        os.popen('rm -rf buffer*')
         assert all([k not in setup_config.keys() for k in ['traj_len', 'unroll_len']])
         setup_config.replay_buffer.unroll_len = 2
         setup_config.replay_buffer.timeout = 1
@@ -216,3 +217,4 @@ class TestReplayBuffer:
         assert replay_buffer._meta_buffer.validlen == 3 + push_count
 
         replay_buffer.close()
+        os.popen('rm -rf buffer*')

@@ -7,6 +7,7 @@ Based concept: A set of autonomous agents that share a common environment and in
 
 Difficulty in Multi-Agent Learning (MAL)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 1. Agents not only interact with the environment but also with each other
 
 2. If use single-agent Q learning by considering other agents as a part of the environment
@@ -38,6 +39,7 @@ Perspective from Sequential Decision Making
 
 Classification of Stochastic Games
 '''''''''''''''''''''''''''''''''''''''''
+
 • **Zero-sum stochastic game**: all of the states must define a zero-sum matrix game
 
 • **Team stochastic game**: all of the states must define team matrix games 

@@ -310,8 +310,7 @@ class EpsGreedySampleHelper(IAgentStatelessPlugin):
             - agent (:obj:`Any`): the wrapped agent class, should contain forward methods
 
         .. note::
-            after wrapped by the EpsGreedySampleHelper, the agent.forward should take **kwargs of {'eps': float}
-
+            after wrapped by the EpsGreedySampleHelper, the agent.forward should take kwargs of {'eps': float}
         """
 
         def sample_wrapper(forward_fn: Callable) -> Callable:
