@@ -27,27 +27,43 @@ nervex(框架核心)
 
  3. model: 强化学习神经网络接口
 
-   - DQN: FCDQN, ConvDQN, FCDRQN, ConvDRQN
+   - discrete_net: FCDQN, ConvDQN, FCDRQN, ConvDRQN
    - Actor-Critic: ValueAC
+   - qac: QValueAC
+   - qmix
+   - coma
+   - ATOC
 
- 4. rl_utils: 强化学习算法库
+ 4. policy: 强化学习策略库
+   
+ - DQN(double+dueling+nstep)
+   - RainbowDQN
+   - PPO(GAE)
+   - A2C(GAE)
+   - DDPG
+   - TD3
+   - SAC
+   - R2D2
+   - IMPALA
+   - QMIX
+   - COMA
+   - ATOC
 
-   - Double Dueling DQN
-   - R2D2(DRQN)
-   - PPO
-   - GAE
-   - A2C
-   - td-lambda
-   - vtrace(IMPALA)
+ 5. rl_utils: 强化学习工具库
+
+   - td(q_nstep, v_nstep, dist_nstep, td-lambda, q_nstep_rescale)
+   - ppo
+   - a2c
+   - gae
+   - vtrace
+   - qmix
+   - coma
    - UPGO
-   - (TODO) TD3/DDPG
-   - (TODO) SAC
-   - (TODO) QMIX
-   - (TODO) COMA
-   - (TODO) ATOC
+   - exploration
+   - adder
    - (TODO) MCTS
 
- 5. torch_utils: PyTorch相关工具库
+ 6. torch_utils: PyTorch相关工具库
 
    - 神经网络库
    - 损失函数库
@@ -56,7 +72,7 @@ nervex(框架核心)
    - 优化器和梯度操作库
    - 距离度量库
 
- 6. utils: 通用模块库
+ 7. utils: 通用模块库
 
    - 计时函数
    - 数据压缩 (lz4, zllib)
@@ -68,7 +84,7 @@ nervex(框架核心)
    - 单元测试工具
    - 代码设计工具
 
- 7. league: 全局训练决策调度模块
+ 8. league: 全局训练决策调度模块
 
    - league manager(player manager)
    - player
@@ -78,22 +94,25 @@ nervex(框架核心)
      - uniform self-play
      - PFSP(prioritized fictitious self-play)
 
- 8. worker: 系统运行模块
+ 9. agent 模型运行时容器
+
+ 10. worker: 系统运行模块
 
    - 训练学习器(learner)
-   - 计算图(computation_graph)
    - 数据生成器(actor)
-   - 模型运行时容器(agent)
    - 向量化环境(env_manager)
+   - command
 
- 9. system: 系统控制模块
+ 11. system: 系统控制模块
 
    - 运行信息管理(coordinator)
    - 跨集群通信(manager)
 
- 10. entry: 启动入口模块
+ 12. entry: 启动入口模块
 
- 11. docs: 文档
+   - serial_entry
+
+ 13. docs: 文档
 
 app_zoo(基于nerveX的DRL应用)
 -----------------------------
@@ -140,13 +159,12 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
         except Exception:
             assert False, "pipeline fail"
 
-    如以上代码，就是读取了 ``app_zoo`` 中的 ``cartpole_dqn_default_config.yaml`` 配置文件，并传入``serial_pipeline``开始训练。
+    如以上代码，就是读取了 ``app_zoo`` 中的 ``cartpole_dqn_default_config.yaml`` 配置文件，并传入``serial_pipeline`` 开始训练。
 
     根据不同的需求，可以修改配置文件并自定义相关的启动脚本，配置文件中可能修改的地方主要有如下几处：
 
       - policy.use_cuda: 是否使用cuda，主要取决于使用者的机器上是否有GPU
-      - env.env_type: 如要更改所使用的环境，首先修改env.env_type，并对应修改env.import_names，atari及mujuco还需修改env.env_id，不同环境的evaluator.stop_val可能不同也需要修改。
-            需注意环境的observation是图像还是向量，并检查是否需要对应修改policy.model中的encoder。
+      - env.env_type: 如要更改所使用的环境，首先修改env.env_type，并对应修改env.import_names，atari及mujuco还需修改env.env_id，不同环境的evaluator.stop_val可能不同也需要修改。需注意环境的observation是图像还是向量，并检查是否需要对应修改policy.model中的encoder。
       - policy: 若要更改所使用的算法/策略，首先修改policy.policy_type，并对应修改policy.import_names, policy.on_policy, policy.model等。
 
     想要进行一组实验时，应 **创建单独的实验文件夹，复制相应的执行脚本（如有必要，也需一同复制配置文件）到实验文件夹下** ，然后启动执行脚本即可。
