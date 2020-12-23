@@ -101,7 +101,7 @@ class COMAPolicy(CommonPolicy):
         self._collect_setting_set = {'eps'}
 
     def _forward_collect(self, data_id: List[int], data: dict) -> dict:
-        return self._collect_agent.forward(data, eps=self._eps, param={'mode': 'compute_action'})
+        return self._collect_agent.forward(data, eps=self._eps, data_id=data_id, param={'mode': 'compute_action'})
 
     def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
         transition = {
@@ -130,7 +130,7 @@ class COMAPolicy(CommonPolicy):
         self._eval_setting_set = {}
 
     def _forward_eval(self, data_id: List[int], data: dict) -> dict:
-        return self._eval_agent.forward(data, param={'mode': 'compute_action'})
+        return self._eval_agent.forward(data, data_id=data_id, param={'mode': 'compute_action'})
 
     def _init_command(self) -> None:
         eps_cfg = self._cfg.command.eps

@@ -37,8 +37,7 @@ class R2D2Policy(CommonPolicy):
             - use_value_rescale (:obj:`bool`): Whether to use value rescaled loss in algorithm
             - burnin_step (:obj:`int`): The num of step of burnin
         """
-        self._optimizer = Adam(self._model.parameters(),
-                               lr=self._cfg.learn.learning_rate)
+        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._agent = Agent(self._model)
         algo_cfg = self._cfg.learn.algo
         self._gamma = algo_cfg.discount_factor
@@ -46,12 +45,9 @@ class R2D2Policy(CommonPolicy):
         self._use_value_rescale = algo_cfg.use_value_rescale
         self._burnin_step = algo_cfg.burnin_step
 
-        self._agent.add_model('target', update_type='assign', update_kwargs={
-                              'freq': algo_cfg.target_update_freq})
-        self._agent.add_plugin('main', 'hidden_state',
-                               state_num=self._cfg.learn.batch_size)
-        self._agent.add_plugin('target', 'hidden_state',
-                               state_num=self._cfg.learn.batch_size)
+        self._agent.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
+        self._agent.add_plugin('main', 'hidden_state', state_num=self._cfg.learn.batch_size)
+        self._agent.add_plugin('target', 'hidden_state', state_num=self._cfg.learn.batch_size)
         self._agent.add_plugin('main', 'argmax_sample')
         self._agent.add_plugin('main', 'grad', enable_grad=True)
         self._agent.add_plugin('target', 'grad', enable_grad=False)
@@ -111,8 +107,7 @@ class R2D2Policy(CommonPolicy):
         self._agent.target_reset(data_id=None, state=data['prev_state'][0])
         if len(data['burnin_obs']) != 0:
             with torch.no_grad():
-                inputs = {'obs': data['burnin_obs'],
-                          'enable_fast_timestep': True}
+                inputs = {'obs': data['burnin_obs'], 'enable_fast_timestep': True}
                 _ = self._agent.forward(inputs)
                 _ = self._agent.target_forward(inputs)
         inputs = {'obs': data['main_obs'], 'enable_fast_timestep': True}
@@ -130,11 +125,9 @@ class R2D2Policy(CommonPolicy):
                 q_value[t], target_q_value[t], action[t], target_q_action[t], reward[t], done[t], weight[t]
             )
             if self._use_value_rescale:
-                loss.append(q_nstep_td_error_with_rescale(
-                    td_data, self._gamma, self._nstep))
+                loss.append(q_nstep_td_error_with_rescale(td_data, self._gamma, self._nstep))
             else:
-                loss.append(q_nstep_td_error(
-                    td_data, self._gamma, self._nstep))
+                loss.append(q_nstep_td_error(td_data, self._gamma, self._nstep))
         loss = sum(loss) / (len(loss) + 1e-8)
         # update
         self._optimizer.zero_grad()
@@ -216,10 +209,8 @@ class R2D2Policy(CommonPolicy):
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
-        data = self._adder.get_traj(
-            traj_cache, self._traj_len, return_num=self._collect_burnin_step)
-        data = self._adder.get_nstep_return_data(
-            data, self._collect_nstep, self._traj_len)
+        data = self._adder.get_traj(traj_cache, self._traj_len, return_num=self._collect_burnin_step)
+        data = self._adder.get_nstep_return_data(data, self._collect_nstep, self._traj_len)
         return self._adder.get_train_sample(data)
 
     def _init_eval(self) -> None:
@@ -229,8 +220,7 @@ class R2D2Policy(CommonPolicy):
             Init eval agent with argmax strategy.
         """
         self._eval_agent = Agent(self._model)
-        self._eval_agent.add_plugin(
-            'main', 'hidden_state', state_num=self._cfg.eval.env_num)
+        self._eval_agent.add_plugin('main', 'hidden_state', state_num=self._cfg.eval.env_num)
         self._eval_agent.add_plugin('main', 'argmax_sample')
         self._eval_agent.add_plugin('main', 'grad', enable_grad=False)
         self._eval_agent.mode(train=False)
@@ -258,8 +248,7 @@ class R2D2Policy(CommonPolicy):
             Init the self.epsilon_greedy according to eps config
         """
         eps_cfg = self._cfg.command.eps
-        self.epsilon_greedy = epsilon_greedy(
-            eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
+        self.epsilon_greedy = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
 
     def _get_setting_collect(self, command_info: dict) -> dict:
         r"""

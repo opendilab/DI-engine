@@ -11,15 +11,15 @@ env:
     actor_env_num: 4
     evaluator_env_num: 3
 policy:
-    use_cuda: False
+    use_cuda: True
     policy_type: 'coma'
     import_names: ['nervex.policy.coma']
     on_policy: True
     model:
         agent_num: 8
         obs_dim:
-            agent_state: [8, 32]
-            global_state: 512
+            agent_state: [8, 248]
+            global_state: 216
         act_dim: [14, ]
         embedding_dim: 64
     learn:

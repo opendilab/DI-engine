@@ -145,6 +145,7 @@ def test_qmix():
     config = read_config(path)
     config.env.env_type = 'fake_smac'
     config.env.import_names = ['app_zoo.smac.envs.fake_smac_env']
+    config.policy.use_cuda = False
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -157,6 +158,7 @@ def test_coma():
     config = read_config(path)
     config.env.env_type = 'fake_smac'
     config.env.import_names = ['app_zoo.smac.envs.fake_smac_env']
+    config.policy.use_cuda = False
     try:
         serial_pipeline(config, seed=0)
     except Exception:

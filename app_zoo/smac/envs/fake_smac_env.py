@@ -11,8 +11,8 @@ class FakeSMACEnv(BaseEnv):
     def __init__(self, cfg=None):
         self.agent_num = 8
         self.action_dim = 6 + self.agent_num
-        self.obs_dim = 32
-        self.global_obs_dim = self.obs_dim * self.agent_num * 2
+        self.obs_dim = 248
+        self.global_obs_dim = 216
 
     def reset(self):
         self.step_count = 0

@@ -51,6 +51,7 @@ class BaseSerialActor(object):
         self._total_step = 0
         self._total_episode = 0
         self._total_sample = 0
+        self._total_duration = 0
 
     def generate_data(self, n_episode: Optional[int] = None, n_sample: Optional[int] = None) -> Tuple[List[Any], dict]:
         assert n_episode is None or n_sample is None, "n_episode and n_sample can't be not None at the same time"
@@ -121,8 +122,8 @@ class BaseSerialActor(object):
                         )
                         episode_count += 1
                         self._total_episode += 1
-                    step_count += len(timestep)
-                    self._total_step += len(timestep)
+                    step_count += 1
+                    self._total_step += 1
         duration = self._timer.value
         if (self._total_collect_step + 1) % self._collect_print_freq == 0:
             info = {
@@ -139,11 +140,13 @@ class BaseSerialActor(object):
             }
             self._logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
         self._total_collect_step += 1
+        self._total_duration += duration
         collect_info = {
             'total_collect_step': self._total_collect_step,
             'total_step': self._total_step,
             'total_sample': self._total_sample,
-            'total_episode': self._total_episode
+            'total_episode': self._total_episode,
+            'total_duration': self._total_duration,
         }
         return return_data, collect_info
 

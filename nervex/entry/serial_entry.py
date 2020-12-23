@@ -54,16 +54,20 @@ def serial_pipeline(
     learner.launch()
     # main loop
     iter_count = 0
+    enough_data_count = cfg.policy.learn.batch_size * max(
+        cfg.replay_buffer.min_sample_ratio, cfg.policy.learn.train_step // cfg.replay_buffer.max_reuse
+    )
     while True:
         command.step()
         while True:
             new_data, collect_info = actor.generate_data()
             replay_buffer.push_data(new_data)
-            if replay_buffer.count >= cfg.policy.learn.batch_size * cfg.replay_buffer.min_sample_ratio:
+            if replay_buffer.count >= enough_data_count:
                 break
         learner.collect_info = collect_info
         for _ in range(cfg.policy.learn.train_step):
             train_data = replay_buffer.sample(cfg.policy.learn.batch_size)
+            assert train_data is not None, "please modify your data collect config, increase n_sample/n_episode"
             learner.train(train_data)
         if iter_count % cfg.evaluator.eval_freq == 0 and evaluator.eval(iter_count * cfg.policy.learn.train_step):
             learner.save_checkpoint()
