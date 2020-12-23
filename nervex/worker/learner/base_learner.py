@@ -86,6 +86,7 @@ class BaseLearner(ABC):
         self._checkpointer_manager = build_checkpoint_helper(self._cfg)
         self._hooks = {'before_run': [], 'before_iter': [], 'after_iter': [], 'after_run': []}
         self._collate_fn = default_collate
+        self._collect_info = {}
 
     def _check_policy(self) -> bool:
         return hasattr(self, '_policy')
