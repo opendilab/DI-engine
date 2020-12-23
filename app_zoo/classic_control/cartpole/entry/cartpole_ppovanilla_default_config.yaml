@@ -1,0 +1,65 @@
+common:
+    name: CartpolePPOConfig
+    save_path: '.'
+    load_path: ''
+env:
+    env_manager_type: 'base'  # [base, subprocess]
+    import_names: ['app_zoo.classic_control.cartpole.envs.cartpole_env']
+    env_type: 'cartpole'
+    actor_env_num: 8
+    evaluator_env_num: 5
+policy:
+    use_cuda: False
+    policy_type: 'ppo_vanilla'
+    import_names: ['nervex.policy.ppo_vanilla']
+    on_policy: False
+    model:
+        obs_dim: 4
+        action_dim: 2
+        embedding_dim: 64
+    learn:
+        train_step: 5
+        batch_size: 64
+        learning_rate: 0.001
+        weight_decay: 0.0001
+        algo:
+            value_weight: 0.5
+            entropy_weight: 0.01
+            clip_ratio: 0.2 
+    collect:
+        traj_len: 'inf'
+        unroll_len: 1
+        algo:
+            discount_factor: 0.9
+            gae_lambda: 0.95
+    command:
+        eps:
+            type: 'exp'
+            start: 0.95
+            end: 0.1
+            decay: 10000
+replay_buffer:
+    meta_maxlen: 1000
+    max_reuse: 4
+    unroll_len: 1
+    min_sample_ratio: 1
+actor:
+    n_episode: 16
+    traj_len: 200  # cartpole max episode len
+    traj_print_freq: 100
+    collect_print_freq: 100
+evaluator:
+    n_episode: 5
+    eval_freq: 20
+    stop_val: 195
+learner:
+    hook:
+        log_show:
+            name: log_show
+            type: log_show
+            priority: 20
+            position: after_iter
+            ext_args:
+                freq: 100
+command:
+    placeholder: 'placeholder'
