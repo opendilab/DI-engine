@@ -1,0 +1,76 @@
+common:
+    name: PongRainbowDqnConfig
+    save_path: '.'
+    load_path: ''
+env:
+    env_manager_type: 'base'  # [base, subprocess]
+    import_names: ['app_zoo.atari.envs.atari_env']
+    env_type: 'atari'
+    actor_env_num: 16
+    evaluator_env_num: 3
+    env_id: 'PongNoFrameskip-v4'
+    frame_stack: 4
+    is_train: True
+policy:
+    use_cuda: True
+    policy_type: 'rainbow_dqn'
+    import_names: ['nervex.policy.dqn', 'nervex.policy.rainbow_dqn']
+    on_policy: False
+    model:
+        encoder_kwargs:
+            encoder_type: 'conv2d'
+        head_kwargs:
+            dueling: True
+            distribution: True
+            noise: True
+        obs_dim: [4, 84, 84]
+        action_dim: 6
+        embedding_dim: 256
+        v_max: 10
+        v_min: -10
+        n_atom: 51
+    learn:
+        train_step: 20
+        batch_size: 32
+        learning_rate: 0.0001
+        weight_decay: 0.0
+        algo:
+            target_update_freq: 500
+            discount_factor: 0.99
+            nstep: 5
+    collect:
+        traj_len: 13 # (8 + nstep)
+        unroll_len: 1
+        algo:
+            nstep: 5
+    command:
+        eps:
+            type: 'exp'
+            start: 0.95
+            end: 0.05
+            decay: 50000
+replay_buffer:
+    meta_maxlen: 100000
+    max_reuse: 100
+    unroll_len: 1
+    min_sample_ratio: 1
+actor:
+    n_sample: 400
+    traj_len: 13 # (8 + nstep)
+    traj_print_freq: 100
+    collect_print_freq: 100
+evaluator:
+    n_episode: 3
+    eval_freq: 1000
+    stop_val: 20
+learner:
+    hook:
+        log_show:
+            name: log_show
+            type: log_show
+            priority: 20
+            position: after_iter
+            ext_args:
+                freq: 100
+command:
+    placeholder: 'placeholder'

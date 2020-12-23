@@ -20,8 +20,11 @@ Installation
      # actiavte environment in server cluster
      source r0.3.2
 
-     # install for development
+     # install for use(if you only want to use nervex)
      # Note: use `--user` option to install the related packages in the user own directory(e.g.: ~/.local)
+     pip install . --user
+     
+     # install for development(if you want to modify and use nervex)
      pip install -e . --user
 
 .. note:: 

@@ -11,8 +11,9 @@ _Tp = TypeVar('_Tp')
 
 class RangedData(metaclass=ABCMeta):
 
-    def __init__(self, expire: float):
+    def __init__(self, expire: float, use_pickle: bool = False):
         self.__expire = expire
+        self.__use_pickle = use_pickle
         self.__check_expire()
 
         self.__data_max_id = 0
@@ -37,13 +38,19 @@ class RangedData(metaclass=ABCMeta):
     def __registry_data_item(self, data: _Tp) -> int:
         with self.__data_lock:
             self.__data_max_id += 1
-            self.__data_items[self.__data_max_id] = pickle.dumps(data)
+            if self.__use_pickle:
+                self.__data_items[self.__data_max_id] = pickle.dumps(data)
+            else:
+                self.__data_items[self.__data_max_id] = data
 
             return self.__data_max_id
 
     def __get_data_item(self, data_id: int) -> _Tp:
         with self.__data_lock:
-            return pickle.loads(self.__data_items[data_id])
+            if self.__use_pickle:
+                return pickle.loads(self.__data_items[data_id])
+            else:
+                return self.__data_items[data_id]
 
     def __remove_data_item(self, data_id: int):
         with self.__data_lock:

@@ -14,42 +14,59 @@ cartpole_dqn_default_config.yaml
 
     common:
         name: CartpoleDqnConfig
-        time_wrapper_type: cuda  # use torch.cuda.Event and torch.cuda.synchronize for time record
-        save_path: '.'  # save ckpt/log path
+        save_path: '.'  # save ckpt/log path, defaults to the current directory '.'
         load_path: ''  # load ckpt path, if load_path == '', do not load anything
-        algo_type: 'dqn'  # ['dqn', 'drqn', 'ppo', 'a2c', 'ddpg', 'qmix', 'coma']
-    learner:
-        use_cuda: False  # whether use cuda for network training
-        use_distributed: False  # whether use distributed training(linklink)
-        max_iterations: 10000000  # max train iterations
-        train_step: 1  # train step interval, collect data -> train fixed step -> collect data
-        learning_rate: 0.0001
-        weight_decay: 0.0  # L2 norm for network weight
-        eps:
-            type: 'exp'  # ['linear', 'exp']
-            start: 0.95
-            end: 0.05
-            decay: 10000  # training iteration
-        data:
+    env:
+        # env manager type, base is pseudo parallel and subprocess is subprocess parallel, the former is used for some light env(e.g.: cartpole),
+        # which env step time is much shorter than IPC time, and the latter is used for more complicated env(e.g.: pong)
+        env_manager_type: 'base'  # [base, subprocess]
+        import_names: ['app_zoo.classic_control.cartpole.envs.cartpole_env']  # the user must indicate the absolute path of env
+        env_type: 'cartpole'  # env register name
+        actor_env_num: 8  # the number of env used in actor for data collect
+        evaluator_env_num: 5  # the number of env used in evaluator for performance metric
+    policy:
+        use_cuda: False  # whether use cuda for network
+        policy_type: 'dqn'  # RL policy register name
+        import_names: ['nervex.policy.dqn']  # the user must indicate the absolute path of policy
+        on_policy: False  # whether is a on-policy RL algorithm, which means some specific operation in training loop, such as reset buffer when each training iteration ends
+        model:  # model arguments, which is directly used for creating model
+            obs_dim: 4
+            action_dim: 2
+            embedding_dim: 64
+            dueling: True  # whether use dueling head
+        learn:
+            train_step: 3  # train step, collect data -> train fixed step -> collect data
             batch_size: 64
-            chunk_size: 64  # dataloader per worker load data number
-            num_worker: 0
-            max_reuse: 100  # max reuse number of a data sample
-            buffer_length: 100000  # replay buffer length
-            sample_ratio: 0.5  # the ratio of generating new data for one train step
-            use_mid_pack: True  # whether pack data in the middle of a episode
-        dqn:
-            discount_factor: 0.99
-            is_double: True  # whether use double dqn(target network)
-            dueling: True  # whether use dueling dqn network architecture
-        hook:  # learner function hook
-            save_ckpt_after_iter:
-                name: save_ckpt_after_iter
-                type: save_ckpt
-                priority: 40  # the lower value, the higher priority
-                position: after_iter  # ['before_run', 'before_iter', 'after_iter', 'after_run']
-                ext_args:
-                    freq: 10000
+            learning_rate: 0.001
+            weight_decay: 0.0  # L2 norm weight for network parameters
+            algo:
+                target_update_freq: 100  # the update iteration frequency of target Q network
+                discount_factor: 0.95  # the future discount factor, usually named gamma
+        collect:
+            traj_len: 1  # the length of trajectory, the basic length of actor data
+            unroll_len: 1  # the length of unroll, the basic length of learner training data
+        command:  # command is the component for the communication between modules
+            eps:
+                type: 'exp'  # ['exp', 'linear']
+                start: 0.95
+                end: 0.1
+                decay: 10000  # training iteration
+    replay_buffer:
+        meta_maxlen: 100000  # replay buffer max length
+        max_reuse: 100  # max reuse number of a data sample
+        unroll_len: 1  # policy.collect.unroll_len
+        min_sample_ratio: 1  # minimum sample number->(batch_size * sample_ratio)
+    actor:
+        n_sample: 8  # the sample number of a execution of actor collect, a sample can include many steps 
+        traj_len: 1  # policy.collect.traj_len
+        traj_print_freq: 100
+        collect_print_freq: 100
+    evaluator:
+        n_episode: 5  # the episode number of eval
+        eval_freq: 200  # training iteration
+        stop_val: 195  # if final_eval_reward is greater than this value, the training is converged
+    learner:
+        hook:
             log_show:
                 name: log_show
                 type: log_show
@@ -57,18 +74,9 @@ cartpole_dqn_default_config.yaml
                 position: after_iter
                 ext_args:
                     freq: 100
-    env:
+    command:
         placeholder: 'placeholder'
-    actor:
-        env_num: 10
-        episode_num: 'inf'  # inf means run resetted episode until the program is over
-        print_freq: 500
-    evaluator:
-        env_num: 10
-        episode_num: 'inf'
-        total_episode_num: 10  # total evaluate episode_num
-        eval_step: 1500
-        stop_val: 39 # 195//5  # if episode returns are greater than this value, training is over
+
 
 .. note::
    由于单机同步版本数据生成和训练是串行执行，即生成足够数量的数据后训练一定迭代数，使用者可以调节 ``train_step``, ``batch_size``, ``max_reuse``, ``buffer_length`` 这四个量来控制

@@ -13,7 +13,9 @@ API Doc
     data/dataloader
     data/collate_fn
     worker/learner/learner
-    worker/agent/agent
+    agent/agent
+    policy/dqn
+    policy/ddpg
     rl_utils/td
     rl_utils/gae
     rl_utils/ppo
@@ -27,7 +29,7 @@ API Doc
     torch_utils/optimizer_util
     torch_utils/distribution
     model/common_arch
-    model/dqn
+    model/discrete_net
     model/actor_critic
     model/atoc
     league/league_manager
@@ -44,4 +46,3 @@ API Doc
     utils/system_helper
     utils/default_helper
     env/sumo_env
-    env/common

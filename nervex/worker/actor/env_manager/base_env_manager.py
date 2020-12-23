@@ -1,24 +1,37 @@
 from abc import ABC
 from types import MethodType
-from typing import Union, Any, List, Callable, Iterable, Dict
+from typing import Union, Any, List, Callable, Iterable, Dict, Optional
+from functools import partial
 from collections import namedtuple
+import numbers
+from nervex.torch_utils import to_tensor, tensor_to_list
 
 
 class BaseEnvManager(ABC):
 
-    def __init__(self, env_fn: Callable, env_cfg: Iterable, env_num: int, episode_num: int) -> None:
+    def __init__(
+            self,
+            env_fn: Callable,
+            env_cfg: Iterable,
+            env_num: int,
+            episode_num: Optional[int] = 'inf',
+            tensor_transform: bool = False
+    ) -> None:
         self._env_num = env_num
         self._env_fn = env_fn
         self._env_cfg = env_cfg
         if episode_num == 'inf':
             episode_num = float('inf')
         self._epsiode_num = episode_num
+        self._tensor_transform = tensor_transform
+        self._transform = partial(to_tensor) if self._tensor_transform else lambda x: x
+        self._inv_transform = partial(tensor_to_list) if self._tensor_transform else lambda x: x
         self._closed = True
+        # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
+        self._env_ref = self._env_fn(self._env_cfg[0])
 
     def _create_state(self) -> None:
-        # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
         self._closed = False
-        self._env_ref = self._env_fn(self._env_cfg[0])
         self._env_episode_count = {i: 0 for i in range(self.env_num)}
         self._env_done = {i: False for i in range(self.env_num)}
         self._next_obs = {i: None for i in range(self.env_num)}
@@ -75,7 +88,7 @@ class BaseEnvManager(ABC):
 
     def _reset(self, env_id: int) -> None:
         obs = self._safe_run(lambda: self._envs[env_id].reset(**self._reset_param[env_id]))
-        self._next_obs[env_id] = obs
+        self._next_obs[env_id] = self._transform(obs)
 
     def _safe_run(self, fn: Callable):
         try:
@@ -88,7 +101,9 @@ class BaseEnvManager(ABC):
         self._check_closed()
         timestep = {}
         for env_id, act in action.items():
+            act = self._inv_transform(act)
             timestep[env_id] = self._safe_run(lambda: self._envs[env_id].step(act))
+            timestep = self._transform(timestep)
             if timestep[env_id].done:
                 self._env_done[env_id] = True
                 self._env_episode_count[env_id] += 1
@@ -100,6 +115,8 @@ class BaseEnvManager(ABC):
         return timestep
 
     def seed(self, seed: List[int]) -> None:
+        if isinstance(seed, numbers.Integral):
+            seed = [seed + i for i in range(self.env_num)]
         self._env_seed = seed
 
     def close(self) -> None:
@@ -109,3 +126,6 @@ class BaseEnvManager(ABC):
         for env in self._envs:
             env.close()
         self._closed = True
+
+    def env_info(self) -> namedtuple:
+        return self._env_ref.info()

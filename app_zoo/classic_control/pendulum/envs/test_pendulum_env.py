@@ -1,5 +1,6 @@
 import pytest
 import torch
+from easydict import EasyDict
 from app_zoo.classic_control.pendulum.envs import PendulumEnv
 
 
@@ -7,15 +8,13 @@ from app_zoo.classic_control.pendulum.envs import PendulumEnv
 class TestPendulumEnv:
 
     def test_naive(self):
-        env = PendulumEnv({})
+        env = PendulumEnv(EasyDict({'use_act_scale': True}))
         env.seed(314)
         assert env._seed == 314
         obs = env.reset()
         assert obs.shape == (3, )
-        act_val = env.info().act_space.value
-        min_val, max_val = act_val['min'], act_val['max']
         for i in range(10):
-            random_action = torch.rand(1) * (max_val - min_val) + min_val
+            random_action = torch.tanh(torch.rand(1))
             timestep = env.step(random_action)
             assert timestep.obs.shape == (3, )
             assert timestep.reward.shape == (1, )

@@ -37,7 +37,7 @@ class FakeEnv(object):
         if isinstance(action, str) and action == 'error':
             raise EnvException("env error, current step {}".format(self._current_step))
         obs = torch.randn(3)
-        reward = torch.randint(0, 2, size=[1])
+        reward = torch.randint(0, 2, size=[1]).numpy()
         done = self._current_step >= self._target_step
         simulation_time = random.uniform(0.5, 1.5)
         info = {'name': self._name, 'time': simulation_time, 'tgt': self._target_step, 'cur': self._current_step}
@@ -93,6 +93,7 @@ def get_manager_cfg():
         } for i in range(env_num)],
         'env_num': env_num,
         'episode_num': 2,
+        'tensor_transform': True,
     }
     return EasyDict(manager_cfg)
 

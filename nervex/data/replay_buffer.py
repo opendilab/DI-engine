@@ -133,6 +133,7 @@ class ReplayBuffer:
         self.traj_len = cfg.get('traj_len', None)
         # unroll_len is learner's training data length, often smaller than traj_len
         self.unroll_len = cfg.get('unroll_len', None)
+        self.use_cache = cfg.get('use_cache', False)
         # main buffer
         self._meta_buffer = PrioritizedBuffer(
             maxlen=self.cfg.meta_maxlen,
@@ -140,7 +141,8 @@ class ReplayBuffer:
             min_sample_ratio=self.cfg.min_sample_ratio,
             alpha=self.cfg.alpha,
             beta=self.cfg.beta,
-            enable_track_used_data=self.cfg.enable_track_used_data
+            enable_track_used_data=self.cfg.enable_track_used_data,
+            deepcopy=self.cfg.deepcopy,
         )
         self._meta_lock = LockContext(type_=LockContextType.THREAD_LOCK)
 
@@ -155,7 +157,7 @@ class ReplayBuffer:
         self._out_tick_monitor = OutTickMonitor(TickTime(), expire=self.cfg.monitor.tick_expire)
         self._in_count = 0
         self._in_tick_monitor = InTickMonitor(TickTime(), expire=self.cfg.monitor.tick_expire)
-        self._logger, self._tb_logger = build_logger(self.cfg.monitor.log_path, 'buffer', True)
+        self._logger, self._tb_logger = build_logger(self.cfg.monitor.log_path, './log/buffer', True)
         self._in_vars = ['in_count_avg', 'in_time_avg']
         self._out_vars = [
             'out_count_avg', 'out_time_avg', 'reuse_avg', 'reuse_max', 'priority_avg', 'priority_max', 'priority_min'
@@ -185,11 +187,7 @@ class ReplayBuffer:
         """
         assert (isinstance(data, list) or isinstance(data, dict))
 
-        def push(item: dict) -> None:
-            # push one single data item into ``self._cache``
-            if 'data_push_length' not in item.keys():
-                self._cache.push_data(item)
-                return
+        def split(item: dict) -> list:
             data_push_length = item['data_push_length']
             traj_len = self.traj_len if self.traj_len is not None else data_push_length
             unroll_len = self.unroll_len if self.unroll_len is not None else data_push_length
@@ -199,16 +197,22 @@ class ReplayBuffer:
             for i in range(split_num):
                 split_item[i]['unroll_split_begin'] = i * unroll_len
                 split_item[i]['unroll_len'] = unroll_len
-                self._cache.push_data(split_item[i])
+            return split_item
 
         with self._timer:
-            if isinstance(data, list):
-                self._natural_monitor.in_count = len(data)
+            if isinstance(data, dict):
+                data = [data]
+            if 'data_push_length' in data[0].keys():
+                split_data = []
                 for d in data:
-                    push(d)
-            elif isinstance(data, dict):
-                self._natural_monitor.in_count = 1
-                push(data)
+                    split_data += split(d)
+            else:
+                split_data = data
+            if self.use_cache:
+                for d in split_data:
+                    self._cache.push_data(d)
+            else:
+                self._meta_buffer.extend(split_data)
         self._in_tick_monitor.in_time = self._timer.value
         self._in_tick_monitor.time.step()
         in_dict = {
@@ -241,9 +245,10 @@ class ReplayBuffer:
         data_count = len(data)
         self._natural_monitor.out_count = data_count
         self._out_tick_monitor.out_time = self._timer.value
-        for a in data:
-            self._out_tick_monitor.reuse = a['reuse']
-            self._out_tick_monitor.priority = a['priority']
+        reuse = sum([d['reuse'] for d in data]) / batch_size
+        priority = sum([d['priority'] for d in data]) / batch_size
+        self._out_tick_monitor.reuse = int(reuse)
+        self._out_tick_monitor.priority = priority
         self._out_tick_monitor.time.step()
         out_dict = {
             'out_count_avg': self._natural_monitor.avg['out_count'](),
@@ -273,20 +278,29 @@ class ReplayBuffer:
         with self._meta_lock:
             self._meta_buffer.update(info)
 
+    def clear(self) -> None:
+        """
+        Overview: clear replay buffer, exclude all the data(including cache)
+        """
+        # TODO(nyz) clear cache data
+        self._meta_buffer.clear()
+
     def run(self) -> None:
         """
         Overview:
             Launch ``Cache`` thread and ``_cache2meta`` thread
         """
-        self._cache.run()
-        self._cache_thread.start()
+        if self.use_cache:
+            self._cache.run()
+            self._cache_thread.start()
 
     def close(self) -> None:
         """
         Overview:
             Shut down the cache gracefully
         """
-        self._cache.close()
+        if self.use_cache:
+            self._cache.close()
 
     @property
     def count(self) -> None:

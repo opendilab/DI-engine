@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from functools import reduce
-from nervex.model import FCDRQN
+from nervex.model import FCRDiscreteNet
 from nervex.torch_utils import one_hot
 from nervex.utils import squeeze, list_split
 
@@ -22,7 +22,7 @@ class ComaActorNetwork(nn.Module):
         self._act_dim = action_dim
         self._embedding_dim = embedding_dim
         # rnn discrete network
-        self._main = FCDRQN(obs_dim, action_dim, embedding_dim)
+        self._main = FCRDiscreteNet(obs_dim, action_dim, embedding_dim)
 
     def forward(self, inputs: Dict) -> Dict:
         agent_state = inputs['obs']['agent_state']
@@ -37,7 +37,7 @@ class ComaActorNetwork(nn.Module):
         prev_state = reduce(lambda x, y: x + y, prev_state)
         output = self._main({'obs': agent_state, 'prev_state': prev_state, 'enable_fast_timestep': True})
         logit, next_state = output['logit'], output['next_state']
-        next_state = list_split(next_state, step=A)
+        next_state, _ = list_split(next_state, step=A)
         logit = logit.reshape(T, B, A, -1)
         if unsqueeze_flag:
             logit = logit.squeeze(0)
@@ -93,7 +93,7 @@ class ComaCriticNetwork(nn.Module):
 
 class ComaNetwork(nn.Module):
 
-    def __init__(self, agent_num: int, obs_dim: Tuple, act_dim: Tuple, embedding_dim: int):
+    def __init__(self, agent_num: int, obs_dim: dict, act_dim: Tuple, embedding_dim: int):
         super(ComaNetwork, self).__init__()
         act_dim = act_dim[-1]
         actor_input_dim = obs_dim['agent_state'][-1]

@@ -65,7 +65,11 @@ def retry_wrapper(fn: Callable, max_retry: int = 10) -> Callable:
 class SubprocessEnvManager(BaseEnvManager):
 
     def _create_state(self) -> None:
-        super()._create_state()
+        self._closed = False
+        self._env_episode_count = {i: 0 for i in range(self.env_num)}
+        self._env_done = {i: False for i in range(self.env_num)}
+        self._next_obs = {i: None for i in range(self.env_num)}
+
         self._parent_remote, self._child_remote = zip(*[Pipe() for _ in range(self.env_num)])
         context_str = 'spawn' if platform.system().lower() == 'windows' else 'fork'
         ctx = get_context(context_str)
@@ -149,7 +153,7 @@ class SubprocessEnvManager(BaseEnvManager):
             obs = self._parent_remote[env_id].recv().data
             self._check_data([obs], close=False)
             self._env_state[env_id] = EnvState.RUN
-            self._next_obs[env_id] = obs
+            self._next_obs[env_id] = self._transform(obs)
 
         try:
             reset_fn()
@@ -170,6 +174,7 @@ class SubprocessEnvManager(BaseEnvManager):
                    )
 
         for i, act in action.items():
+            act = self._inv_transform(act)
             self._parent_remote[i].send(CloudpickleWrapper(['step', [act], {}]))
 
         handle = self._async_args['step']
@@ -200,6 +205,7 @@ class SubprocessEnvManager(BaseEnvManager):
             else:
                 self._waiting_env['step'].add(i)
         for idx, timestep in ret.items():
+            timestep = self._transform(timestep)
             if timestep.done:
                 self._env_episode_count[idx] += 1
                 if self._env_episode_count[idx] >= self._epsiode_num:

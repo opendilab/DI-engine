@@ -1,0 +1,74 @@
+common:
+    name: MujocoDdpgConfig
+    save_path: '.'
+    load_path: ''
+env:
+    env_id: 'Walker-v2'  # ['HalfCheetah-v1', 'Hopper-v1', 'Walker2d-v1']  # stop_val: 10500, 3700, 5300
+    frame_stack: 4
+    is_train: True
+    env_manager_type: 'subprocess'  # [base, subprocess]
+    import_names: ['app_zoo.mujoco.envs.mujoco_env']
+    env_type: 'mujoco'
+    actor_env_num: 8
+    evaluator_env_num: 8
+    # use_act_scale: True
+policy:
+    use_cuda: False
+    policy_type: 'ddpg'
+    import_names: ['nervex.policy.ddpg']
+    on_policy: False
+    model:
+        obs_dim: 17
+        action_dim: 6
+        use_twin_critic: True
+    learn:
+        train_step: 1
+        batch_size: 128
+        learning_rate_actor: 0.0005
+        learning_rate_critic: 0.001
+        weight_decay: 0.0001
+        ignore_done: True
+        algo:
+            target_theta: 0.005
+            discount_factor: 0.99
+            actor_update_freq: 2
+            use_twin_critic: True
+            use_noise: False
+            noise_sigma: 0.05
+            noise_range:
+                min: -0.5
+                max: 0.5
+    collect:
+        traj_len: 1
+        unroll_len: 1
+        algo:
+            noise_sigma: 0.1
+    command:
+        placeholder: 'placeholder'
+replay_buffer:
+    meta_maxlen: 20000
+    max_reuse: 1024
+    unroll_len: 1
+    min_sample_ratio: 1
+actor:
+    n_sample: 24
+    traj_len: 1
+    traj_print_freq: 1000
+    collect_print_freq: 1000
+evaluator:
+    n_episode: 8
+    env_num: 4
+    episode_num: 1
+    eval_freq: 1000
+    stop_val: 5300
+learner:
+    hook:
+        log_show:
+            name: log_show
+            type: log_show
+            priority: 20
+            position: after_iter
+            ext_args:
+                freq: 500
+command:
+    placeholder: 'placeholder'

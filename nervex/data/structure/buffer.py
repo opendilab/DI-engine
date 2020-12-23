@@ -68,6 +68,7 @@ class PrioritizedBuffer:
         alpha: float = 0.,
         beta: float = 0.,
         enable_track_used_data: bool = False,
+        deepcopy: bool = False
     ):
         r"""
         Overview:
@@ -80,11 +81,13 @@ class PrioritizedBuffer:
             - alpha (:obj:`float`): how much prioritization is used (0: no prioritization, 1: full prioritization)
             - beta (:obj:`float`): how much correction is used (0: no correction, 1: full correction)
             - enable_track_used_data (:obj:`bool`): whether tracking the used data
+            - deepcopy (:obj:`bool`): whether deepcopy data when append/extend and sample data
         """
         # TODO(nyz) remove elements according to priority
         # TODO(nyz) add statistics module
         self._maxlen = maxlen
         self._enable_track_used_data = enable_track_used_data
+        self._deepcopy = deepcopy
         # use RecordList if needs to track used data; otherwise use normal list
         if self._enable_track_used_data:
             self._data = RecordList([None for _ in range(maxlen)])
@@ -144,7 +147,16 @@ class PrioritizedBuffer:
         if not self._sample_check(size):
             return None
         indices = self._get_indices(size)
-        return self._sample_with_indices(indices)
+        result = self._sample_with_indices(indices)
+        # deepcopy same indice data
+        for i in range(size):
+            tmp = []
+            for j in range(i + 1, size):
+                if id(result[i]) == id(result[j]):
+                    tmp.append(j)
+            for j in tmp:
+                result[j] = copy.deepcopy(result[j])
+        return result
 
     def append(self, ori_data: Any) -> None:
         r"""
@@ -157,7 +169,10 @@ class PrioritizedBuffer:
         Arguments:
             - ori_data (:obj:`Any`): the data which will be inserted
         """
-        data = copy.deepcopy(ori_data)
+        if self._deepcopy:
+            data = copy.deepcopy(ori_data)
+        else:
+            data = ori_data
         try:
             assert (self._data_check(data))
         except AssertionError:
@@ -182,7 +197,10 @@ class PrioritizedBuffer:
         Arguments:
             - ori_data (:obj:`T`): the data list
         """
-        data = copy.deepcopy(ori_data)
+        if self._deepcopy:
+            data = copy.deepcopy(ori_data)
+        else:
+            data = ori_data
         check_result = [self._data_check(d) for d in data]
         # only keep data items that pass data_check
         valid_data = [d for d, flag in zip(data, check_result) if flag]
@@ -202,14 +220,21 @@ class PrioritizedBuffer:
             for idx in range(self.pointer, self.pointer + length):
                 self._reuse_count[idx] = 0
         else:
-            mid = self._maxlen - self.pointer  # the position in the data list
-            self._data[self.pointer:self.pointer + mid] = valid_data[:mid]
-            self._data[:length - mid] = valid_data[mid:]
-            assert self.pointer + mid == self._maxlen
-            for idx in range(self.pointer, self.pointer + mid):
-                self._reuse_count[idx] = 0
-            for idx in range(length - mid):
-                self._reuse_count[idx] = 0
+            data_start = self.pointer
+            valid_data_start = 0
+            residual_num = len(valid_data)
+            while True:
+                space = self._maxlen - data_start
+                L = min(space, residual_num)
+                self._data[data_start:data_start + L] = valid_data[valid_data_start:valid_data_start + L]
+                residual_num -= L
+                for i in range(data_start, data_start + L):
+                    self._reuse_count[i] = 0
+                if residual_num <= 0:
+                    break
+                else:
+                    data_start = 0
+
         # update ``pointer`` and ``latest_data_id`` after the whole list is inserted
         self.pointer = (self.pointer + length) % self._maxlen
         self.latest_data_id += length
@@ -297,8 +322,11 @@ class PrioritizedBuffer:
         max_weight = (self._valid_count * p_min) ** (-self._beta)
         data = []
         for idx in indices:
-            # deepcopy data for avoiding interference
-            copy_data = copy.deepcopy(self._data[idx])
+            if self._deepcopy:
+                # deepcopy data for avoiding interference
+                copy_data = copy.deepcopy(self._data[idx])
+            else:
+                copy_data = self._data[idx]
             assert (copy_data is not None)
             # store reuse for outer monitor
             copy_data['reuse'] = self._reuse_count[idx]
@@ -316,6 +344,19 @@ class PrioritizedBuffer:
                 self.min_tree[idx] = self.min_tree.neutral_element
                 self._valid_count -= 1
         return data
+
+    def clear(self) -> None:
+        """
+        Overview: clear all the data and reset the related variable
+        """
+        for i in range(len(self._data)):
+            self._data[i] = None
+            self.sum_tree[i] = self.sum_tree.neutral_element
+            self.min_tree[i] = self.min_tree.neutral_element
+            self._reuse_count[i] = 0
+        self._valid_count = 0
+        self.pointer = 0
+        self.max_priority = 1.0
 
     @property
     def maxlen(self) -> int:

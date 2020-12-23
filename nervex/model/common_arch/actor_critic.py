@@ -74,6 +74,7 @@ class QActorCriticBase(nn.Module):
                 ['compute_q, 'compute_action', 'optimize_acto', 'mimic']
         Returns:
             - return (:obj:`dict` or other :obj:`obj`): the correspond output.
+
         .. note::
             mode:
                 - optimize_actor: optimize actor part, with critic part `no grad`, return q value
@@ -104,4 +105,48 @@ class QActorCriticBase(nn.Module):
         raise NotImplementedError
 
     def _critic_forward(self, inputs, **kwargs):
+        raise NotImplementedError
+
+
+class SoftActorCriticBase(nn.Module):
+
+    def forward(self, inputs, mode=None, **kwargs):
+        """
+        Note:
+            mode:
+                - evaluate: use re-parameterization tick
+                - compute_q: compute q value using the soft q network
+                - compute_value: compute value using the value network
+                - compute_action: compute action useing the policy network
+                - mimic: supervised learning, learn policy/value output label
+        """
+        assert (mode in ['evaluate', 'compute_value', 'compute_q', 'compute_action', 'mimic'])
+        f = getattr(self, mode)
+        return f(inputs, **kwargs)
+
+    def seed(self, seed):
+        torch.manual_seed(seed)
+
+    def evaluate(self, inputs):
+        raise NotImplementedError
+
+    def compute_action(self, inputs, **kwargs):
+        raise NotImplementedError
+
+    def compute_q(self, inputs, **kwargs):
+        raise NotImplementedError
+
+    def compute_value(self, inputs, **kwargs):
+        raise NotImplementedError
+
+    def mimic(self, inputs, **kwargs):
+        raise NotImplementedError
+
+    def _value_net_forward(self, inputs, **kwargs):
+        raise NotImplementedError
+
+    def _soft_q_net_forward(self, inputs, **kwargs):
+        raise NotImplementedError
+
+    def _policy_net_forward(self, inputs, **kwargs):
         raise NotImplementedError

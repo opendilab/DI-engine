@@ -166,6 +166,8 @@ class TensorBoardLogger:
             - path (:obj:`str`): logger save dir
             - name (:obj:`str`): logger name, default set to 'default'
         """
+        if name is None:
+            name = 'default'
         name += '_tb_logger'
         self.logger = SummaryWriter(os.path.join(path, name))  # get summary writer
         self._var_names = {
@@ -197,6 +199,8 @@ class TensorBoardLogger:
         }
         ret = []
         for k, v in vars.items():
+            if k not in self._var_names[viz_type]:
+                self.register_var(k, viz_type)
             func_dict[viz_type](k, v, cur_step)
 
     def add_scalar(self, name: str, *args, **kwargs) -> None:

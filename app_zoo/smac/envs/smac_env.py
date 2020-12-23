@@ -11,6 +11,7 @@ from pysc2.lib import protocol
 from s2clientprotocol import common_pb2 as sc_common
 from s2clientprotocol import debug_pb2 as d_pb
 from s2clientprotocol import sc2api_pb2 as sc_pb
+from nervex.envs import BaseEnv, register_env
 
 from .smac_map import get_map_params
 from .smac_action import SMACAction, distance
@@ -41,7 +42,7 @@ class Direction(enum.IntEnum):
     WEST = 3
 
 
-class SMACEnv(SC2Env):
+class SMACEnv(SC2Env, BaseEnv):
     """
     This environment provides the interface for both single agent and multiple agents (two players) in
     SC2 environment.
@@ -399,7 +400,7 @@ class SMACEnv(SC2Env):
             rewards, terminates, new_infos = rewards[ORIGINAL_AGENT], terminates[ORIGINAL_AGENT], infos[ORIGINAL_AGENT]
             new_infos["battle_lost"] = infos[OPPONENT_AGENT]["battle_won"]
             new_infos["draw"] = infos["draw"]
-            new_infos['eval_reward'] = infos['eval_reward']
+            new_infos['final_eval_reward'] = infos['final_eval_reward']
             infos = new_infos
             obs = {'agent_state': self.get_obs(), 'global_state': self.get_state(), 'action_mask': self.get_avail_actions()}
         else:
@@ -422,7 +423,7 @@ class SMACEnv(SC2Env):
         for k in reward:
             reward[k] = torch.FloatTensor(reward[k])
 
-        info = {ORIGINAL_AGENT: {"battle_won": False}, OPPONENT_AGENT: {"battle_won": False}, 'eval_reward': 0.}
+        info = {ORIGINAL_AGENT: {"battle_won": False}, OPPONENT_AGENT: {"battle_won": False}, 'final_eval_reward': 0.}
 
         if game_end_code is not None:
             # Battle is over
@@ -434,7 +435,7 @@ class SMACEnv(SC2Env):
                 self.win_counted = True
                 info[ORIGINAL_AGENT]["battle_won"] = True
                 info[OPPONENT_AGENT]["battle_won"] = False
-                info['eval_reward'] = 1.
+                info['final_eval_reward'] = 1.
             elif game_end_code == -1 and not self.defeat_counted:
                 self.defeat_counted = True
                 info[ORIGINAL_AGENT]["battle_won"] = False
@@ -1166,6 +1167,9 @@ class SMACEnv(SC2Env):
             episode_limit=self.episode_limit,
         )
 
+    def __repr__(self):
+        return "nervex SMAC Env"
+
 
 def _flatten(obs, get_keys):
     new_obs = list()
@@ -1174,3 +1178,6 @@ def _flatten(obs, get_keys):
         new_agent_obs = np.concatenate([agent_obs[feat_key].flatten() for feat_key in keys])
         new_obs.append(new_agent_obs)
     return new_obs
+
+
+register_env('smac', SMACEnv)

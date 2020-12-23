@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from functools import reduce
-from nervex.model import FCDRQN
+from nervex.model import FCRDiscreteNet
 from nervex.utils import list_split, squeeze
 
 
@@ -75,7 +75,7 @@ class QMix(nn.Module):
     def __init__(self, agent_num: int, obs_dim: int, global_obs_dim: int, action_dim: int, embedding_dim: int) -> None:
         super(QMix, self).__init__()
         self._act = nn.ReLU()
-        self._q_network = FCDRQN(obs_dim, action_dim, embedding_dim)
+        self._q_network = FCRDiscreteNet(obs_dim, action_dim, embedding_dim)
         self._mixer = Mixer(agent_num, embedding_dim)
         global_obs_dim = squeeze(global_obs_dim)
         self._global_state_encoder = self._setup_global_encoder(global_obs_dim, embedding_dim)
@@ -122,7 +122,7 @@ class QMix(nn.Module):
         global_state_embedding = self._global_state_encoder(global_state)
         output = self._q_network({'obs': agent_state, 'prev_state': prev_state, 'enable_fast_timestep': True})
         agent_q, next_state = output['logit'], output['next_state']
-        next_state = list_split(next_state, step=A)
+        next_state, _ = list_split(next_state, step=A)
         agent_q = agent_q.reshape(T, B, A, -1)
         if action is None:
             action = agent_q.argmax(dim=-1)

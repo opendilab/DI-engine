@@ -6,7 +6,8 @@ import torch
 
 from nervex.envs.common.common_function import num_first_one_hot, sqrt_one_hot, div_one_hot, div_func, clip_one_hot, \
     reorder_one_hot, reorder_one_hot_array, reorder_boolean_vector, \
-    get_to_and, batch_binary_encode, compute_denominator, get_postion_vector
+    get_to_and, batch_binary_encode, compute_denominator, get_postion_vector, \
+    affine_transform
 
 VALUES = [2, 3, 5, 7, 11]
 
@@ -98,3 +99,17 @@ class TestEnvCommonFunc:
         a = [random.randint(0, 5000) for _ in range(32)]
         a_position = get_postion_vector(a)
         assert a_position.shape == (64, )
+
+    def test_affine_transform(self):
+        a = torch.rand(4, 3)
+        a = (a - a.min()) / (a.max() - a.min())
+        a = a * 2 - 1
+        ans = affine_transform(a, min_val=-2, max_val=2)
+        assert ans.shape == (4, 3)
+        assert ans.min() == -2 and ans.max() == 2
+        a = np.random.rand(3, 5)
+        a = (a - a.min()) / (a.max() - a.min())
+        a = a * 2 - 1
+        ans = affine_transform(a, alpha=4, beta=1)
+        assert ans.shape == (3, 5)
+        assert ans.min() == -3 and ans.max() == 5

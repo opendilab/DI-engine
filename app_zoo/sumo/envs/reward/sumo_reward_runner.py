@@ -25,11 +25,13 @@ class SumoRewardRunner(EnvElementRunner):
         self._last_wait_time = 0
         self._last_vehicle_info = {}
         self._cum_reward = {k: 0 for k in self._reward_type}
+        self._final_eval_reward = 0
 
     def reset(self) -> None:
         self._last_wait_time = 0
         self._last_vehicle_info = {}
         self._cum_reward = {k: 0 for k in self._reward_type}
+        self._final_eval_reward = 0
 
     def get(self, engine: BaseEnv) -> float:
         r"""
@@ -67,6 +69,7 @@ class SumoRewardRunner(EnvElementRunner):
         total_reward = 0.
         for k, w in self._reward_weight.items():
             total_reward += reward[k] * w
+        self._final_eval_reward += total_reward
         return total_reward
 
     @property

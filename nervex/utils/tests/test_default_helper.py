@@ -1,8 +1,10 @@
 import pytest
 import numpy as np
+import torch
 from collections import namedtuple
 
-from nervex.utils.default_helper import lists_to_dicts, dicts_to_lists, squeeze, default_get, override, error_wrapper
+from nervex.utils.default_helper import lists_to_dicts, dicts_to_lists, squeeze, default_get, override, error_wrapper,\
+    list_split
 
 
 @pytest.mark.unittest
@@ -19,6 +21,11 @@ class TestDefaultHelper():
         output = lists_to_dicts(data)
         assert isinstance(output, T) and output.__class__ == T
         assert len(output.location) == 3
+        data = [{'value': torch.randn(1), 'obs': {'scalar': torch.randn(4)}} for _ in range(3)]
+        output = lists_to_dicts(data, recursive=True)
+        assert isinstance(output, dict)
+        assert len(output['value']) == 3
+        assert len(output['obs']['scalar']) == 3
 
     def test_dicts_to_lists(self):
         assert dicts_to_lists({1: [1, 2], 10: [3, 4]}) == [{1: 1, 10: 3}, {1: 2, 10: 4}]
@@ -26,6 +33,7 @@ class TestDefaultHelper():
     def test_squeeze(self):
         assert squeeze((4, )) == 4
         assert squeeze({'a': 4}) == 4
+        assert squeeze([1, 3]) == (1, 3)
         data = np.random.randn(3)
         output = squeeze(data)
         assert (output == data).all()
@@ -75,3 +83,14 @@ class TestDefaultHelper():
 
         wrap_bad_ret = error_wrapper(bad_ret, 0)
         assert wrap_bad_ret(1) == 0
+
+    def test_list_split(self):
+        data = [i for i in range(10)]
+        output, residual = list_split(data, step=4)
+        assert len(output) == 2
+        assert output[1] == [4, 5, 6, 7]
+        assert residual == [8, 9]
+        output, residual = list_split(data, step=5)
+        assert len(output) == 2
+        assert output[1] == [5, 6, 7, 8, 9]
+        assert residual is None

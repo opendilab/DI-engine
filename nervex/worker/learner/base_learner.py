@@ -36,12 +36,14 @@ class TickMonitor(LoggedModel):
     Property:
         time, expire
     """
-    cur_lr = LoggedValue(float)
     data_time = LoggedValue(float)
+    data_preprocess_time = LoggedValue(float)
     train_time = LoggedValue(float)
-    forward_time = LoggedValue(float)
-    backward_time = LoggedValue(float)
-    total_loss = LoggedValue(float)
+    total_collect_step = LoggedValue(float)
+    total_step = LoggedValue(float)
+    total_episode = LoggedValue(float)
+    total_sample = LoggedValue(float)
+    total_duration = LoggedValue(float)
 
     def __init__(self, time_: 'BaseTime', expire: Union[int, float]):  # noqa
         LoggedModel.__init__(self, time_, expire)
@@ -54,12 +56,27 @@ class TickMonitor(LoggedModel):
             _list = [_value for (_begin_time, _end_time), _value in records]
             return sum(_list) / len(_list)
 
-        self.register_attribute_value('avg', 'cur_lr', partial(__avg_func, prop_name='cur_lr'))
-        self.register_attribute_value('avg', 'data_time', partial(__avg_func, prop_name='data_time'))
-        self.register_attribute_value('avg', 'train_time', partial(__avg_func, prop_name='train_time'))
-        self.register_attribute_value('avg', 'forward_time', partial(__avg_func, prop_name='forward_time'))
-        self.register_attribute_value('avg', 'backward_time', partial(__avg_func, prop_name='backward_time'))
-        self.register_attribute_value('avg', 'total_loss', partial(__avg_func, prop_name='total_loss'))
+        def __val_func(prop_name: str) -> float:
+            records = self.range_values[prop_name]()
+            return records[-1][1]
+
+        for k in getattr(self, '_LoggedModel__properties'):
+            self.register_attribute_value('avg', k, partial(__avg_func, prop_name=k))
+            self.register_attribute_value('val', k, partial(__val_func, prop_name=k))
+
+
+def get_simple_monitor_type(properties: list = []):
+    if len(properties) == 0:
+        return TickMonitor
+    else:
+        attrs = {}
+        properties = [
+            'data_time', 'data_preprocess_time', 'train_time', 'total_collect_step', 'total_step', 'total_sample',
+            'total_episode', 'total_duration'
+        ] + properties
+        for p_name in properties:
+            attrs[p_name] = LoggedValue(float)
+        return type('SimpleTickMonitor', (TickMonitor, ), attrs)
 
 
 class BaseLearner(ABC):
@@ -67,9 +84,9 @@ class BaseLearner(ABC):
     Overview:
         base class for model learning(SL/RL), which is able to multi-GPU learning
     Interface:
-        __init__, register_stats, run, close, call_hook, info, save_checkpoint, launch
+        __init__, run, close, call_hook, info, save_checkpoint, launch
     Property:
-        last_iter, optimizer, lr_scheduler, computation_graph, agent, log_buffer, record,
+        last_iter, policy, log_buffer, record,
         load_path, save_path, checkpoint_manager, name, rank, tb_logger, use_distributed
     """
 
@@ -101,13 +118,11 @@ class BaseLearner(ABC):
     def _init(self) -> None:
         """
         Overview:
-            Use ``self._cfg`` setting to build common learner components, such as dataset, runtime agent,
-            optimizer, lr_scheduler, logger helper, checkpoint helper.
+            Use ``self._cfg`` setting to build common learner components, such as logger helper, checkpoint helper.
         """
         self._learner_worker_uid = get_task_uid()
         self._load_path = self._cfg.common.load_path
         self._save_path = self._cfg.common.save_path
-        self._use_cuda = self._cfg.learner.use_cuda
         self._use_distributed = self._cfg.learner.use_distributed
         if self._use_distributed:
             self._rank, self._world_size = dist_init()
@@ -117,16 +132,12 @@ class BaseLearner(ABC):
         else:
             self._rank, self._world_size = 0, 1
             self._learner_uid = self._learner_worker_uid
-        if self._use_cuda:
-            self._device = 'cuda: {}'.format(self._rank % 8)
-        else:
-            self._device = 'cpu'
         self._default_max_iterations = self._cfg.learner.max_iterations
         self._timer = EasyTimer()
+        self._device = 'cpu'
         # monitor & logger
         # Only rank == 0 learner needs monitor and tb_logger, else only needs text_logger to display terminal output
         rank0 = True if self._rank == 0 else False
-        self._monitor = TickMonitor(TickTime(), expire=10) if rank0 else None
         path = os.path.join(self._cfg.common.save_path, 'learner')
         self._logger, self._tb_logger = build_logger(path, 'learner', rank0)
         self._log_buffer = build_log_buffer()
@@ -134,31 +145,28 @@ class BaseLearner(ABC):
         self._checkpointer_manager = build_checkpoint_helper(self._cfg)
         self._hooks = {'before_run': [], 'before_iter': [], 'after_iter': [], 'after_run': []}
         self._collate_fn = default_collate
+        self._collect_info = {}
+
+    def _check_policy(self) -> bool:
+        return hasattr(self, '_policy')
 
     def launch(self) -> None:
         """
         Overview:
             launch learner runtime components, each train job means a launch operation,
-            job related dataloader, agent, computation_graph, optimizer and hook support.
+            job related dataloader, policy and hook support.
         """
-        self._setup_dataloader()
-        self._setup_agent()
-        self._setup_optimizer()
-        self._setup_computation_graph()
+        if self._cfg.learner.use_dataloader:
+            self._setup_dataloader()
+        assert self._check_policy(), "please set learner policy"
 
-        self._last_iter = CountVar(init_val=0)
         if self._rank == 0:
-            self.register_stats()
-        self.info(
-            pretty_print(
-                {
-                    "config": self._cfg,
-                    "agent": repr(self._agent),
-                    "computation_graph": repr(self._computation_graph)
-                },
-                direct_print=False
-            )
-        )
+            self._monitor = get_simple_monitor_type(self.policy.monitor_vars())(TickTime(), expire=10)
+        self._last_iter = CountVar(init_val=0)
+        self.info(pretty_print({
+            "config": self._cfg,
+        }, direct_print=False))
+        self.info(self._policy.info())
 
         self._setup_wrapper()
         self._setup_hook()
@@ -181,7 +189,7 @@ class BaseLearner(ABC):
         """
         self._wrapper_timer = EasyTimer()
         self._get_iter_data = self.time_wrapper(self._get_iter_data, 'data_time')
-        self._train = self.time_wrapper(self._train, 'train_time')
+        self.train = self.time_wrapper(self.train, 'train_time')
 
     def time_wrapper(self, fn: Callable, name: str):
         """
@@ -217,44 +225,10 @@ class BaseLearner(ABC):
     def _get_iter_data(self) -> Any:
         return next(self._dataloader)
 
-    @abstractmethod
-    def _setup_agent(self) -> None:
-        """
-        Overview:
-            Setup learner's runtime agent, agent is the subclass instance of `BaseAgent`.
-            There may be more than one agent.
-        Note:
-            `agent` is the wrapped `model`, it can be wrapped with different plugins to satisfy
-            different runtime usages (e.g. actor and learner would use the model differently)
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def _setup_computation_graph(self) -> None:
-        """
-        Overview:
-            Setup computation_graph, which uses procssed data and agent to get an optimization
-            computation graph.
-        """
-        raise NotImplementedError
-
-    def _setup_optimizer(self) -> None:
-        """
-        Overview:
-            Setup learner's optimizer and lr_scheduler
-        """
-        self._optimizer = torch.optim.Adam(
-            self._agent.model.parameters(),
-            lr=self._cfg.learner.learning_rate,
-            weight_decay=self._cfg.learner.weight_decay
-        )
-        self._lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(self._optimizer, milestones=[], gamma=1)
-
-    def _train(self, data: Any) -> None:
+    def train(self, data: Any) -> None:
         """
         Overview:
             Train the input data for 1 iteration, called in ``run`` which involves:
-
                 - forward
                 - backward
                 - sync grad (if in distributed mode)
@@ -262,32 +236,15 @@ class BaseLearner(ABC):
         Arguments:
             - data (:obj:`Any`): data used for training
         """
+        self.call_hook('before_iter')
         with self._timer:
-            log_vars = self._computation_graph.forward(data, self._agent)
-            loss = log_vars['total_loss']
-        self._log_buffer['forward_time'] = self._timer.value
-
-        with self._timer:
-            self._optimizer.zero_grad()
-            loss.backward()
-            if self._use_distributed:
-                self._agent.model.sync_gradients()
-            self._optimizer.step()
-        self._log_buffer['backward_time'] = self._timer.value
+            data = self._policy.data_preprocess(data)
+        log_vars = self._policy.forward(data)
+        log_vars['data_preprocess_time'] = self._timer.value
+        log_vars.update(self.collect_info)
         self._log_buffer.update(log_vars)
-
-    def register_stats(self) -> None:
-        """
-        Overview:
-            Register some basic attributes to tb_logger (e.g.: cur_lr, data_time, train_time).
-            Pass tb_logger to computation_graph for more registration.
-        """
-        self._tb_logger.register_var('cur_lr_avg')
-        self._tb_logger.register_var('data_time_avg')
-        self._tb_logger.register_var('train_time_avg')
-        self._tb_logger.register_var('forward_time_avg')
-        self._tb_logger.register_var('backward_time_avg')
-        self._computation_graph.register_stats(self._tb_logger)
+        self.call_hook('after_iter')
+        self._last_iter.add(1)
 
     def register_hook(self, hook: LearnerHook) -> None:
         """
@@ -315,12 +272,7 @@ class BaseLearner(ABC):
 
         for _ in range(max_iterations):
             data = self._get_iter_data()
-            # before iter hook
-            self.call_hook('before_iter')
-            self._train(data)
-            # after iter hook
-            self.call_hook('after_iter')
-            self._last_iter.add(1)
+            self.train(data)
 
         # after run hook
         self.call_hook('after_run')
@@ -367,25 +319,18 @@ class BaseLearner(ABC):
         idx = names.index('save_ckpt_after_run')
         self._hooks['after_run'][idx](self)
 
+    def get_current_info(self) -> dict:
+        """
+        Overview:
+            get current info dict, which will be sent to command for some operation, such as hyper-parameter adjustment
+        Returns:
+            info (:obj:`dict`): current info dict
+        """
+        return {'learner_step': self._last_iter.val}
+
     @property
     def last_iter(self) -> CountVar:
         return self._last_iter
-
-    @property
-    def optimizer(self) -> torch.optim.Optimizer:
-        return self._optimizer
-
-    @property
-    def lr_scheduler(self) -> torch.optim.lr_scheduler._LRScheduler:
-        return self._lr_scheduler
-
-    @property
-    def computation_graph(self) -> Any:
-        return self._computation_graph
-
-    @property
-    def agent(self) -> 'BaseAgent':  # noqa
-        return self._agent
 
     @property
     def tick_time(self) -> TickTime:
@@ -438,6 +383,22 @@ class BaseLearner(ABC):
     @property
     def use_distributed(self) -> bool:
         return self._use_distributed
+
+    @property
+    def policy(self) -> 'Policy':  # noqa
+        return self._policy
+
+    @policy.setter
+    def policy(self, _policy: 'Policy') -> None:  # noqa
+        self._policy = _policy
+
+    @property
+    def collect_info(self) -> dict:
+        return self._collect_info
+
+    @collect_info.setter
+    def collect_info(self, collect_info: dict) -> None:
+        self._collect_info = {k: float(v) for k, v in collect_info.items()}
 
 
 learner_mapping = {}

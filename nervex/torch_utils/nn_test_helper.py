@@ -22,7 +22,6 @@ def is_differentiable(loss: torch.Tensor, model: Union[torch.Tensor, List[torch.
             assert p.grad is None, k
     else:
         raise TypeError('model must be list or nn.Module')
-
     loss.backward()
 
     if isinstance(model, list):

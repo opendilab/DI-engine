@@ -1,0 +1,19 @@
+common:
+    load_path: ''
+learner:
+    learner_type: 'fake'
+    import_names: []  # placeholder
+    use_dataloader: True
+    hook:
+        load_ckpt:
+            name: load_ckpt
+            type: load_ckpt
+            priority: 20
+            position: before_run
+        save_ckpt_after_iter:
+            name: save_ckpt_after_iter
+            type: save_ckpt
+            priority: 40
+            position: after_iter
+            ext_args:
+                freq: 5
