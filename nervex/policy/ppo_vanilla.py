@@ -63,7 +63,6 @@ class PPOPolicy(CommonPolicy):
         if self._traj_len == 'inf':
             self._traj_len = float('inf')
         self._collect_setting_set = {'eps'}
-        # self._adder = Adder(self._use_cuda, self._unroll_len)
         algo_cfg = self._cfg.collect.algo
         self._gamma = algo_cfg.discount_factor
         self._gae_lambda = algo_cfg.gae_lambda
@@ -113,8 +112,11 @@ class PPOPolicy(CommonPolicy):
         output = {'action': action, 'logit': logit, 'value': value}
         return output
 
-    def _create_model_from_cfg(self, cfg: dict) -> torch.nn.Module:
-        return FCValueAC(**cfg.model)
+    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
+        if model_type is None:
+            return FCValueAC(**cfg.model)
+        else:
+            return model_type(**cfg.model)
 
     def _init_command(self) -> None:
         eps_cfg = self._cfg.command.eps
