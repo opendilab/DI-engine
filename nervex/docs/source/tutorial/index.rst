@@ -127,29 +127,41 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
 算法训练入口示例(单机同步版本)
 =================================
 
-    完成安装之后，进入 ``app_zoo/classic_control/cartpole/entry/cartpole_single_machine`` 目录，找到 ``cartpole_main.py`` 文件,
-    即为在CartPole环境上运行的单机同步版本算法训练入口示例，加载不同的配置文件即可使用不同的RL算法进行训练，如使用 ``cartpole_dqn_default_config.yaml`` 即运行DQN算法进行训练。
+    完成安装之后，可以仿照 ``nervex/entry/tests/test_serial_entry.py`` 文件，仿照单元测试的写法，创建一个训练脚本并命名为 ``cartpole_dqn.py``：
 
-    根据不同的使用环境，可以修改配置文件并自定义相关的启动脚本，其中可能修改的地方主要有如下几处：
+    .. code:: python
 
-      - use_cuda: 是否使用cuda，主要取决于使用者的机器上是否有GPU，注意这时的启动脚本要指定cuda device相关
-      - use_distributed: 是否开启learner部分多机多卡数据并行训练，主要取决于使用者是否安装了linklink，以及是否要开启多机多卡训练，注意这时的启动脚本中要指定 ``mpi`` 相关
+        path = os.path.join(
+            os.path.dirname(__file__), '../../../app_zoo/classic_control/cartpole/entry/cartpole_dqn_default_config.yaml'
+        )
+        config = read_config(path)
+        try:
+            serial_pipeline(config, seed=0)
+        except Exception:
+            assert False, "pipeline fail"
 
-    想要进行一组实验时，应创建单独的实验文件夹，复制相应的执行脚本和配置文件到实验文件夹下，修改配置文件中的参数，满足实验要求，然后启动执行脚本即可。
+    如以上代码，就是读取了 ``app_zoo`` 中的 ``cartpole_dqn_default_config.yaml`` 配置文件，并传入``serial_pipeline``开始训练。
+
+    根据不同的需求，可以修改配置文件并自定义相关的启动脚本，配置文件中可能修改的地方主要有如下几处：
+
+      - policy.use_cuda: 是否使用cuda，主要取决于使用者的机器上是否有GPU
+      - env.env_type: 如要更改所使用的环境，首先修改env.env_type，并对应修改env.import_names，atari及mujuco还需修改env.env_id，不同环境的evaluator.stop_val可能不同也需要修改。
+            需注意环境的observation是图像还是向量，并检查是否需要对应修改policy.model中的encoder。
+      - policy: 若要更改所使用的算法/策略，首先修改policy.policy_type，并对应修改policy.import_names, policy.on_policy, policy.model等。
+
+    想要进行一组实验时，应 **创建单独的实验文件夹，复制相应的执行脚本（如有必要，也需一同复制配置文件）到实验文件夹下** ，然后启动执行脚本即可。
 
     下面所示为一般本地测试时的启动脚本
 
     .. code:: bash
 
-        python3 -u cartpole_main.py  --config_path cartpole_dqn_default_config.yaml 
+        python3 -u cartpole_dqn.py
 
     下面所示为在slurm集群上的启动脚本，其中 `$1` 是相应的集群分区名。
 
     .. code:: bash
 
-        work_path=$(dirname $0)
-        srun -p $1 --gres=gpu:1 python3 -u ../cartpole_main.py\
-            --config_path $work_path/cartpole_dqn_default_config.yaml 
+        srun -p $1 --gres=gpu:1 python3 -u cartpole_dqn.py 
 
 
 算法训练入口示例(多机异步版本)

@@ -1,9 +1,9 @@
 common:
-    name: MujocoTd3Config
+    name: MujocoDdpgConfig
     save_path: '.'
     load_path: ''
 env:
-    env_id: 'HalfCheetah-v2'  # ['HalfCheetah-v1', 'Hopper-v1', 'Walker2d-v1']  # stop_val: 10500, 3700, 5300
+    env_id: 'Walker-v2'  # ['HalfCheetah-v1', 'Hopper-v1', 'Walker2d-v1']  # stop_val: 10500, 3700, 5300
     frame_stack: 4
     is_train: True
     env_manager_type: 'subprocess'  # [base, subprocess]
@@ -57,10 +57,10 @@ actor:
     collect_print_freq: 1000
 evaluator:
     n_episode: 8
-    # env_num: 4
-    # episode_num: 1
+    env_num: 4
+    episode_num: 1
     eval_freq: 1000
-    stop_val: 10500
+    stop_val: 5300
 learner:
     hook:
         log_show:

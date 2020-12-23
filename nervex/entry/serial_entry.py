@@ -57,14 +57,17 @@ def serial_pipeline(
     while True:
         command.step()
         while True:
+            # actor keep generating data until replay buffer has enough to sample one batch
             new_data = actor.generate_data()
             replay_buffer.push_data(new_data)
             if replay_buffer.count >= cfg.policy.learn.batch_size * cfg.replay_buffer.min_sample_ratio:
                 break
         for _ in range(cfg.policy.learn.train_step):
+            # learner will train ``train_step`` times in one iteration
             train_data = replay_buffer.sample(cfg.policy.learn.batch_size)
             learner.train(train_data)
         if iter_count % cfg.evaluator.eval_freq == 0 and evaluator.eval(iter_count * cfg.policy.learn.train_step):
+            # evaluator's mean episode reward reaches the expected ``stop_val``
             learner.save_checkpoint()
             print("Your RL agent is converged, you can refer to 'log/evaluator.txt' for details")
             break
