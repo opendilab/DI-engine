@@ -1,4 +1,6 @@
 import pytest
+from collections import namedtuple
+import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -114,3 +116,12 @@ class TestDataFunc:
         assert dt['i'].item() == i
         with pytest.raises(TypeError):
             _ = to_tensor({1, 2}, torch.int)
+
+        data_type = namedtuple('data_type', ['x', 'y'])
+        inputs = data_type(np.random.random(3), 4)
+        outputs = to_tensor(inputs, torch.float32)
+        assert type(outputs) == data_type
+        assert isinstance(outputs.x, torch.Tensor)
+        assert isinstance(outputs.y, torch.Tensor)
+        assert outputs.x.dtype == torch.float32
+        assert outputs.y.dtype == torch.float32
