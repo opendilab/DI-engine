@@ -7,7 +7,7 @@ base_learner
 BaseLearner
 ~~~~~~~~~~~~~~~~~
 .. autoclass:: nervex.worker.learner.base_learner.BaseLearner
-    :members: __init__, _init, _setup_hook, _setup_wrapper, time_wrapper, _setup_dataloader, _setup_agent, _setup_computation_graph, _setup_optimizer, _train, register_stats, register_hook, run, close, call_hook, info, save_checkpoint, launch
+    :members: __init__, _init, _setup_hook, _setup_wrapper, time_wrapper, _setup_dataloader, train, register_stats, register_hook, run, close, call_hook, info, save_checkpoint, launch
 
 
 register_learner
@@ -32,11 +32,6 @@ LearnerHook
 ~~~~~~~~~~~~~~~~~~
 .. autoclass:: nervex.worker.learner.learner_hook.LearnerHook
     :members: __init__
-
-LrSchedulerHook
-~~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.worker.learner.learner_hook.LrSchedulerHook
-    :members: __init__, __call__
 
 LoadCkptHook
 ~~~~~~~~~~~~~~~~~~

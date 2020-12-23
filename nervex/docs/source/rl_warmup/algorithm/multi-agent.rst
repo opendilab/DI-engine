@@ -2,46 +2,52 @@ Multi Agent Reinforcement Learning
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 MARL Concepts
-^^^^^^^^^^^^
-Based conceptL: A set of autonomous agents that share a common environment and interact with each other
+^^^^^^^^^^^^^^
+Based concept: A set of autonomous agents that share a common environment and interact with each other
 
 Difficulty in Multi-Agent Learning (MAL)
-^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 1. Agents not only interact with the environment but also with each other
 
 2. If use single-agent Q learning by considering other agents as a part of the environment
-– Such a setting breaks the theoretical convergence guarantees and makes the learning unstable.
+
+   – Such a setting breaks the theoretical convergence guarantees and makes the learning unstable.
 
 Perspective from Sequential Decision Making
-^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 • Markov decision processes
-– one decision maker
-– multiple states
+  
+  1. one decision maker
+  2. multiple states
 
 • Repeated games
-– multiple decision makers
-– one state (e.g., one normal form game)
+
+  1. multiple decision makers
+  2. one state (e.g., one normal form game)
 
 • Stochastic games (Markov games)
-– multiple decision makers
-– multiple states (e.g., multiple normal form games)
+
+  1. multiple decision makers
+  2. multiple states (e.g., multiple normal form games)
 
 **Stochastic Game**
-– Each state corresponds to a normal-form game
-– After a round, the game randomly transitions to another state
-– Transition probabilities depend on state and joint actions taken by all agents
+
+  1. Each state corresponds to a normal-form game
+  2. After a round, the game randomly transitions to another state
+  3. Transition probabilities depend on state and joint actions taken by all agents
 
 Classification of Stochastic Games
 '''''''''''''''''''''''''''''''''''''''''
 • **Zero-sum stochastic game**: all of the states must define a zero-sum matrix game
 
 • **Team stochastic game**: all of the states must define team matrix games 
+
 - their reward is the same for every joint action
 
 • The one that do not fall in any of these categories are generally called **general-sum stochastic games**.
 
-Problems in MARL:
-^^^^^^^^^^^^
+Problems in MARL
+^^^^^^^^^^^^^^^^^
 1. Cooperation: 如何在复杂环境下同时训练多个智能体相互协作，并且如何让这种合作更快地适应环境和其他智能体的变化。
 
 2. Decentralized and Centralized: 如何做到更有效的集中式训练与分布式执行，即如何通过中心化的训练，执行时即使控制信息的获取也能取得好的合作效果。
@@ -53,8 +59,8 @@ Problems in MARL:
 5. Agents modeling agents: 智能体之间的对抗与合作模式下，对环境中其他的智能体进行建模。
 
 
-Current Solutions for above Problems:
-^^^^^^^^^^^^
+Current Solutions for above Problems
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 1. 智能体之间的合作问题：(CTDE框架) MADDPG, VDN, QMIX, COMA, QTRAN
 
 2. 智能体之间的交流问题：CommNet, RIAL, DIAL, BiCNet, ATOC
@@ -440,9 +446,6 @@ QMIX最终的损失函数为：
 其中，:math:`y_i^{tot} = r+\gamma \max_{a'}\bar{Q}(\tau',a',s';\bar{\theta})` 。
 在这里，:math:`\bar{\theta}` 表示target network的参数。
 
-
-Paper List
-^^^^^^^^^^
 
 Q&A
 ^^^

@@ -6,4 +6,4 @@
 
      rl-algo
      large-scale-rl
-     mulit-agent
+     multi-agent

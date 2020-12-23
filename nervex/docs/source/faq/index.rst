@@ -4,4 +4,6 @@ FAQ
 .. toctree::
    :maxdepth: 2
 
-to be continue
+Q1: 如何使用串行版本入口
+
+A1: No

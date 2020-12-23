@@ -10,6 +10,6 @@ Reinforcement Learning Warmup
 
      intro
      basic
-     Algorithms/index
+     algorithm/index
      appendix
 

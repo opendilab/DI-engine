@@ -490,7 +490,7 @@ AlphaGoZero的网络输入没有其余的feature，只有棋盘中黑白棋的�
 
 AlphaGoZero是如何做到这一点的呢？
 
-AlphaGoZero相对于AlphaGo的改进其实很简单，即 **从两个方面修改了网络结构**a
+AlphaGoZero相对于AlphaGo的改进其实很简单，即 **从两个方面修改了网络结构**
 
    1.不再分开“value network”和“policy network”， 而是使用了带有dueling head的“dueling network” （sep/dual）。
 
@@ -525,18 +525,10 @@ OpenAI Five
 ^^^^^^^^^^^^^
 暂略。
 
-Rllib
-^^^^^^^^^^^^^
-暂略。
-
-
 
 .. note::
     一个部分论文的链接: `传送门 <https://zhuanlan.zhihu.com/p/23600620>`_
 ..
-
-Paper List
-^^^^^^^^^^
 
 Q&A
 ^^^^^
