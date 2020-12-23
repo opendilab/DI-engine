@@ -181,6 +181,7 @@ class BaseLearner(ABC):
             data = self._policy.data_preprocess(data)
         log_vars = self._policy.forward(data)
         log_vars['data_preprocess_time'] = self._timer.value
+        log_vars.update(self.collect_info)
         self._log_buffer.update(log_vars)
         self.call_hook('after_iter')
         self._last_iter.add(1)
@@ -338,6 +339,14 @@ class BaseLearner(ABC):
     @policy.setter
     def policy(self, _policy: 'Policy') -> None:  # noqa
         self._policy = _policy
+
+    @property
+    def collect_info(self) -> dict:
+        return self._collect_info
+
+    @collect_info.setter
+    def collect_info(self, collect_info: dict) -> None:
+        self._collect_info = collect_info
 
 
 learner_mapping = {}
