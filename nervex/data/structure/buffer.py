@@ -269,24 +269,6 @@ class PrioritizedBuffer:
         # only the data passes all the check functions, would the check return True
         return all([fn(d) for fn in self.check_list])
 
-    def _get_indices(self, size: int) -> list:
-        r"""
-        Overview:
-            according to the priority probability, get the sample index
-        Arguments:
-            - size (:obj:`int`): the number of the data will be sampled
-        Returns:
-            - index_list (:obj:`list`): a list including all the sample index
-        """
-        # average divide size intervals and sample from them
-        intervals = np.array([i * 1.0 / size for i in range(size)])
-        # uniform sample in each interval
-        mass = intervals + np.random.uniform(size=(size, )) * 1. / size
-        # rescale to [0, S), where S is the sum of the total sum_tree
-        mass *= self.sum_tree.reduce()
-        # find prefix sum index to approximate sample with probability
-        return [self.sum_tree.find_prefixsum_idx(m) for m in mass]
-
     def _sample_check(self, size: int) -> bool:
         r"""
         Overview:

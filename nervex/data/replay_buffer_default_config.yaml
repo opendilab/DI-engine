@@ -11,5 +11,5 @@ replay_buffer:
     monitor:
         log_freq: 10
         log_path: .
-        natural_expire: 20
-        tick_expire: 20
+        natural_expire: 10
+        tick_expire: 10

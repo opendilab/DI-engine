@@ -245,9 +245,10 @@ class ReplayBuffer:
         data_count = len(data)
         self._natural_monitor.out_count = data_count
         self._out_tick_monitor.out_time = self._timer.value
-        for a in data:
-            self._out_tick_monitor.reuse = a['reuse']
-            self._out_tick_monitor.priority = a['priority']
+        reuse = sum([d['reuse'] for d in data]) / batch_size
+        priority = sum([d['priority'] for d in data]) / batch_size
+        self._out_tick_monitor.reuse = int(reuse)
+        self._out_tick_monitor.priority = priority
         self._out_tick_monitor.time.step()
         out_dict = {
             'out_count_avg': self._natural_monitor.avg['out_count'](),
