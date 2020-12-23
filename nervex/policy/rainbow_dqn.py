@@ -27,7 +27,7 @@ class RainbowDQNPolicy(DQNPolicy):
     def _init_learn(self) -> None:
         r"""
         Overview:
-            init the learner agent of RainbowDQNPolicy
+            Init the learner agent of RainbowDQNPolicy
 
         Arguments:
             .. note::
@@ -124,7 +124,7 @@ class RainbowDQNPolicy(DQNPolicy):
     def _forward_collect(self, data_id: List[int], data: dict) -> dict:
         r"""
         Overview:
-            reset the noise from noise net and collect output according to eps_greedy plugin
+            Reset the noise from noise net and collect output according to eps_greedy plugin
 
         Arguments:
             - data_id (:obj:`List` of :obj:`int`): Not used, set in arguments for consistency
@@ -139,7 +139,7 @@ class RainbowDQNPolicy(DQNPolicy):
     def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
         r"""
         Overview:
-            get the trajectory and the n step return data, then sample from the n_step return data
+            Get the trajectory and the n step return data, then sample from the n_step return data
 
         Arguments:
             - traj_cache (:obj:`deque`): The trajactory's cache
@@ -173,7 +173,7 @@ class RainbowDQNPolicy(DQNPolicy):
     def _reset_noise(self, model: torch.nn.Module):
         r"""
         Overview:
-            reset the noise of model
+            Reset the noise of model
 
         Arguments:
             - model (:obj:`torch.nn.Module`): the model to reset, must contain reset_noise method
