@@ -102,6 +102,19 @@ def test_ppo():
         assert False, "pipeline fail"
 
 
+@pytest.mark.unittest
+def test_ppo_vanilla():
+    path = os.path.join(
+        os.path.dirname(__file__),
+        '../../../app_zoo/classic_control/cartpole/entry/cartpole_ppovanilla_default_config.yaml'
+    )
+    config = read_config(path)
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+
+
 def test_sac():
     path = os.path.join(
         os.path.dirname(__file__), '../../../app_zoo/classic_control/pendulum/entry/pendulum_sac_default_config.yaml'
