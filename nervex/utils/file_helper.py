@@ -23,6 +23,7 @@ redis = try_import_redis()
 rediscluster = try_import_rediscluster()
 
 
+
 def read_from_ceph(path: str) -> object:
     """
     Overview:
@@ -32,8 +33,7 @@ def read_from_ceph(path: str) -> object:
     Returns:
         - (:obj`data`): deserialized data
     """
-    s3client = ceph.S3Client()
-    value = s3client.Get(path)
+    value = ceph.Get(path)
     if not value:
         raise FileNotFoundError("File({}) doesn't exist in ceph".format(path))
 
@@ -166,8 +166,12 @@ def save_file_ceph(path, data):
     save_path = os.path.dirname(path)
     file_name = os.path.basename(path)
     if ceph is not None:
-        s3client = ceph.S3Client()
-        s3client.save_from_string(save_path, file_name, data)
+        if hasattr(ceph, 'save_from_string'):
+            ceph.save_from_string(save_path, file_name, data)
+        elif hasattr(ceph, 'put'):
+            ceph.put(os.path.join(save_path, file_name), data)
+        else:
+            raise RuntimeError('ceph can not save file, check your ceph installation')
     else:
         import logging
         size = len(data)
