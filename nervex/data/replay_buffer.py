@@ -157,7 +157,7 @@ class ReplayBuffer:
         self._out_tick_monitor = OutTickMonitor(TickTime(), expire=self.cfg.monitor.tick_expire)
         self._in_count = 0
         self._in_tick_monitor = InTickMonitor(TickTime(), expire=self.cfg.monitor.tick_expire)
-        self._logger, self._tb_logger = build_logger(self.cfg.monitor.log_path, 'buffer', True)
+        self._logger, self._tb_logger = build_logger(self.cfg.monitor.log_path, './log/buffer', True)
         self._in_vars = ['in_count_avg', 'in_time_avg']
         self._out_vars = [
             'out_count_avg', 'out_time_avg', 'reuse_avg', 'reuse_max', 'priority_avg', 'priority_max', 'priority_min'
