@@ -22,6 +22,7 @@ class PPOPolicy(CommonPolicy):
         self._clip_ratio = algo_cfg.clip_ratio
         self._model.train()
         self._learn_setting_set = {}
+        self._continous = self._cfg.policy.continous
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         # forward

@@ -75,3 +75,11 @@ def serial_pipeline(
     learner.close()
     actor.close()
     evaluator.close()
+
+
+if __name__ == "__main__":
+
+    config = read_config(
+        "/home/SENSETIME/maze/project/nerveX/app_zoo/classic_control/pendulum/entry/pendulum_ppo_default_config.yaml"
+    )
+    serial_pipeline(config, seed=0)
