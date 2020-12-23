@@ -7,7 +7,8 @@ from nervex.utils import import_module
 
 class Policy(ABC):
     learn_function = namedtuple(
-        'learn_function', ['data_preprocess', 'forward', 'reset', 'info', 'state_dict_handle', 'set_setting']
+        'learn_function',
+        ['data_preprocess', 'forward', 'reset', 'info', 'state_dict_handle', 'set_setting', 'monitor_vars']
     )
     collect_function = namedtuple(
         'collect_function', [
@@ -71,8 +72,13 @@ class Policy(ABC):
     def learn_mode(self) -> 'Policy.learn_function':  # noqa
         # ['data_preprocess', 'forward', 'reset', 'info', 'state_dict_handle', 'set_setting']
         return Policy.learn_function(
-            self._data_preprocess_learn, self._forward_learn, self._reset_learn, self.__repr__, self.state_dict_handle,
-            self.set_setting
+            self._data_preprocess_learn,
+            self._forward_learn,
+            self._reset_learn,
+            self.__repr__,
+            self.state_dict_handle,
+            self.set_setting,
+            self._monitor_vars_learn,
         )
 
     @property
@@ -108,6 +114,9 @@ class Policy(ABC):
         if hasattr(self, '_optimizer'):
             state_dict['optimizer'] = self._optimizer
         return state_dict
+
+    def _monitor_vars_learn(self) -> List[str]:
+        return ['cur_lr', 'total_loss']
 
     # *************************************** learn function ************************************
     @abstractmethod

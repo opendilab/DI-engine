@@ -150,5 +150,8 @@ class COMAPolicy(CommonPolicy):
         else:
             return model_type(**cfg.model)
 
+    def _monitor_vars_learn(self) -> List[str]:
+        return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss']
+
 
 register_policy('coma', COMAPolicy)

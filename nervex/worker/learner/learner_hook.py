@@ -213,12 +213,9 @@ class LogShowHook(LearnerHook):
             # tick_monitor -> var_dict
             var_dict = {}
             for k in engine.log_buffer:
-                try:
-                    for attr in engine.monitor.get_property_attribute(k):
-                        k_attr = k + '_' + attr
-                        var_dict[k_attr] = getattr(engine.monitor, attr)[k]()
-                except Exception as e:
-                    pass
+                for attr in engine.monitor.get_property_attribute(k):
+                    k_attr = k + '_' + attr
+                    var_dict[k_attr] = getattr(engine.monitor, attr)[k]()
             engine.logger.print_vars(var_dict)
             engine.tb_logger.print_vars(var_dict, iters, 'scalar')
         engine.log_buffer.clear()

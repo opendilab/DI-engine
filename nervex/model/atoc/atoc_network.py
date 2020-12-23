@@ -92,8 +92,7 @@ class ATOCCommunicationNet(nn.Module):
         assert thought_dim % 2 == 0
         self._thought_dim = thought_dim
         self._comm_hidden_size = thought_dim // 2
-        self._bi_lstm = nn.LSTM(
-            self._thought_dim, self._comm_hidden_size, bidirectional=True)
+        self._bi_lstm = nn.LSTM(self._thought_dim, self._comm_hidden_size, bidirectional=True)
 
     def forward(self, data: Union[Dict, torch.Tensor]):
         r"""
@@ -179,8 +178,7 @@ class ATOCActorNet(nn.Module):
         actor_1_layer.append(nn.Linear(self._obs_dim, actor_1_embedding_dim))
         actor_1_layer.append(nn.LayerNorm(actor_1_embedding_dim))
         actor_1_layer.append(nn.ReLU())
-        actor_1_layer.append(
-            nn.Linear(actor_1_embedding_dim, self._thought_dim))
+        actor_1_layer.append(nn.Linear(actor_1_embedding_dim, self._thought_dim))
         actor_1_layer.append(nn.LayerNorm(self._thought_dim))
 
         self._actor_1 = nn.Sequential(*actor_1_layer)
@@ -191,8 +189,7 @@ class ATOCActorNet(nn.Module):
 
         # note that there might not be integrated thought for some agent, so we should think of a way to
         # update the thoughts
-        actor_2_layer.append(
-            nn.Linear(self._thought_dim * 2, actor_2_embedding_dim))
+        actor_2_layer.append(nn.Linear(self._thought_dim * 2, actor_2_embedding_dim))
         # actor_2_layer.append(nn.Linear(self._thought_dim * 2, actor_2_embedding_dim))
 
         # not sure if we should layer norm here
@@ -203,8 +200,7 @@ class ATOCActorNet(nn.Module):
         self.actor_2 = nn.Sequential(*actor_2_layer)
 
         # Communication
-        self._attention = ATOCAttentionUnit(
-            self._thought_dim, attention_embedding_dim)
+        self._attention = ATOCAttentionUnit(self._thought_dim, attention_embedding_dim)
         self._comm_net = ATOCCommunicationNet(self._thought_dim)
 
         self._get_group_freq = T_initiate
@@ -231,15 +227,12 @@ class ATOCActorNet(nn.Module):
         current_thoughts = self._actor_1(obs)  # B, A, thoughts_dim
 
         if self._step_count % self._get_group_freq == 0:
-            init_prob, is_initiator, group = self._get_initiate_group(
-                current_thoughts)
+            init_prob, is_initiator, group = self._get_initiate_group(current_thoughts)
 
         old_thoughts = current_thoughts.clone().detach()
-        new_thoughts = self._update_current_thoughts(
-            current_thoughts, group, is_initiator)
+        new_thoughts = self._update_current_thoughts(current_thoughts, group, is_initiator)
 
-        action = self.actor_2(
-            torch.cat([current_thoughts, new_thoughts], dim=-1))
+        action = self.actor_2(torch.cat([current_thoughts, new_thoughts], dim=-1))
 
         return {
             'action': action,
@@ -255,11 +248,9 @@ class ATOCActorNet(nn.Module):
         is_initiator = (init_prob > self._initiator_threshold)
         B, A = init_prob.shape[:2]
 
-        thoughts_pair_dot = current_thoughts.bmm(
-            current_thoughts.transpose(1, 2))
+        thoughts_pair_dot = current_thoughts.bmm(current_thoughts.transpose(1, 2))
         thoughts_square = thoughts_pair_dot.diagonal(0, 1, 2)
-        curr_thought_dists = thoughts_square.unsqueeze(
-            1) - 2 * thoughts_pair_dot + thoughts_square.unsqueeze(2)
+        curr_thought_dists = thoughts_square.unsqueeze(1) - 2 * thoughts_pair_dot + thoughts_square.unsqueeze(2)
 
         group = torch.zeros(B, A, A).to(init_prob.device)
 
@@ -301,8 +292,7 @@ class ATOCActorNet(nn.Module):
                         if group[b][i][j]:
                             thoughts_to_commute.append(new_thoughts[b][j])
                     thoughts_to_commute = torch.stack(thoughts_to_commute)
-                    integrated_thoughts = self._comm_net(
-                        thoughts_to_commute.unsqueeze(1)).squeeze(1)
+                    integrated_thoughts = self._comm_net(thoughts_to_commute.unsqueeze(1)).squeeze(1)
                     j_count = 0
                     for j in range(A):
                         if group[b][i][j]:
@@ -402,8 +392,7 @@ class ATOCQAC(QActorCriticBase):
             for p in module.parameters():
                 p.requires_grad = True
 
-        self._actor = ATOCActorNet(
-            obs_dim, thought_dim, action_dim, n_agent, m_group, T_initiate)
+        self._actor = ATOCActorNet(obs_dim, thought_dim, action_dim, n_agent, m_group, T_initiate)
         self._critic = ATOCCriticNet(obs_dim, action_dim)
         self._critic.register_backward_hook(backward_hook)
 
@@ -505,12 +494,10 @@ class ATOCQAC(QActorCriticBase):
                         if not group[b][i][j]:
                             continue
                         before_update_action_j = self._actor.actor_2(
-                            torch.cat(
-                                [old_thoughts[b][j], old_thoughts[b][j]], dim=-1)
+                            torch.cat([old_thoughts[b][j], old_thoughts[b][j]], dim=-1)
                         )
                         after_update_action_j = self._actor.actor_2(
-                            torch.cat(
-                                [old_thoughts[b][j], new_thoughts[b][j]], dim=-1)
+                            torch.cat([old_thoughts[b][j], new_thoughts[b][j]], dim=-1)
                         )
                         before_update_Q_j = self._critic_forward({
                             'obs': obs[b][j],

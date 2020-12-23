@@ -248,5 +248,11 @@ class DDPGPolicy(CommonPolicy):
         else:
             return model_type(**cfg.model)
 
+    def _monitor_vars_learn(self) -> List[str]:
+        ret = ['cur_lr_actor', 'cur_lr_critic', 'critic_loss', 'actor_loss', 'total_loss']
+        if self._use_twin_critic:
+            ret += ['critic_twin_loss']
+        return ret
+
 
 register_policy('ddpg', DDPGPolicy)

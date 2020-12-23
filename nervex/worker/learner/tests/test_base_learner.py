@@ -36,6 +36,9 @@ class FakePolicy:
     def info(self):
         return 'FakePolicy'
 
+    def monitor_vars(self):
+        return ['total_loss', 'cur_lr']
+
 
 @pytest.mark.unittest
 class TestBaseLearner:

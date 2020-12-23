@@ -36,11 +36,14 @@ class TickMonitor(LoggedModel):
     Property:
         time, expire
     """
-    cur_lr = LoggedValue(float)
     data_time = LoggedValue(float)
     data_preprocess_time = LoggedValue(float)
     train_time = LoggedValue(float)
-    total_loss = LoggedValue(float)
+    total_collect_step = LoggedValue(float)
+    total_step = LoggedValue(float)
+    total_episode = LoggedValue(float)
+    total_sample = LoggedValue(float)
+    total_duration = LoggedValue(float)
 
     def __init__(self, time_: 'BaseTime', expire: Union[int, float]):  # noqa
         LoggedModel.__init__(self, time_, expire)
@@ -53,11 +56,27 @@ class TickMonitor(LoggedModel):
             _list = [_value for (_begin_time, _end_time), _value in records]
             return sum(_list) / len(_list)
 
-        self.register_attribute_value('avg', 'cur_lr', partial(__avg_func, prop_name='cur_lr'))
-        self.register_attribute_value('avg', 'data_time', partial(__avg_func, prop_name='data_time'))
-        self.register_attribute_value('avg', 'data_preprocess_time', partial(__avg_func, prop_name='data_preprocess_time'))
-        self.register_attribute_value('avg', 'train_time', partial(__avg_func, prop_name='train_time'))
-        self.register_attribute_value('avg', 'total_loss', partial(__avg_func, prop_name='total_loss'))
+        def __val_func(prop_name: str) -> float:
+            records = self.range_values[prop_name]()
+            return records[-1][1]
+
+        for k in getattr(self, '_LoggedModel__properties'):
+            self.register_attribute_value('avg', k, partial(__avg_func, prop_name=k))
+            self.register_attribute_value('val', k, partial(__val_func, prop_name=k))
+
+
+def get_simple_monitor_type(properties: list = []):
+    if len(properties) == 0:
+        return TickMonitor
+    else:
+        attrs = {}
+        properties = [
+            'data_time', 'data_preprocess_time', 'train_time', 'total_collect_step', 'total_step', 'total_sample',
+            'total_episode', 'total_duration'
+        ] + properties
+        for p_name in properties:
+            attrs[p_name] = LoggedValue(float)
+        return type('SimpleTickMonitor', (TickMonitor, ), attrs)
 
 
 class BaseLearner(ABC):
@@ -119,7 +138,6 @@ class BaseLearner(ABC):
         # monitor & logger
         # Only rank == 0 learner needs monitor and tb_logger, else only needs text_logger to display terminal output
         rank0 = True if self._rank == 0 else False
-        self._monitor = TickMonitor(TickTime(), expire=10) if rank0 else None
         path = os.path.join(self._cfg.common.save_path, 'learner')
         self._logger, self._tb_logger = build_logger(path, 'learner', rank0)
         self._log_buffer = build_log_buffer()
@@ -142,6 +160,8 @@ class BaseLearner(ABC):
             self._setup_dataloader()
         assert self._check_policy(), "please set learner policy"
 
+        if self._rank == 0:
+            self._monitor = get_simple_monitor_type(self.policy.monitor_vars())(TickTime(), expire=10)
         self._last_iter = CountVar(init_val=0)
         self.info(pretty_print({
             "config": self._cfg,
@@ -378,7 +398,7 @@ class BaseLearner(ABC):
 
     @collect_info.setter
     def collect_info(self, collect_info: dict) -> None:
-        self._collect_info = collect_info
+        self._collect_info = {k: float(v) for k, v in collect_info.items()}
 
 
 learner_mapping = {}
