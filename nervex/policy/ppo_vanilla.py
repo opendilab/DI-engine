@@ -4,9 +4,10 @@ import torch
 import numpy as np
 from easydict import EasyDict
 import copy
+from torch.distributions import Independent, Normal
 
 from nervex.torch_utils import Adam
-from nervex.rl_utils import ppo_data, ppo_error, epsilon_greedy
+from nervex.rl_utils import ppo_data, ppo_error, ppo_error_continous, epsilon_greedy
 from nervex.model import FCValueAC
 from nervex.agent import Agent
 from .base_policy import Policy, register_policy
@@ -24,8 +25,8 @@ class PPOPolicy(CommonPolicy):
         self._clip_ratio = algo_cfg.clip_ratio
         self._model.train()
         self._learn_setting_set = {}
-        self._continous = self._cfg.policy.continous
-
+        self._continous = self._cfg.model.get("continous", False)
+        
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         # forward
         output = self._model(data['obs'], mode="compute_action_value")
@@ -38,7 +39,10 @@ class PPOPolicy(CommonPolicy):
         data = ppo_data(
             output['logit'], data['logit'], data['action'], output['value'], data['value'], adv, return_, data['weight']
         )
-        ppo_loss, ppo_info = ppo_error(data, self._clip_ratio)
+        if self._continous:
+            ppo_loss, ppo_info = ppo_error_continous(data, self._clip_ratio)
+        else:   
+            ppo_loss, ppo_info = ppo_error(data, self._clip_ratio)
         wv, we = self._value_weight, self._entropy_weight
         total_loss = ppo_loss.policy_loss + wv * \
             ppo_loss.value_loss - we * ppo_loss.entropy_loss
@@ -73,14 +77,25 @@ class PPOPolicy(CommonPolicy):
         with torch.no_grad():
             ret = self._model(data['obs'], mode="compute_action_value")
             logit, value = ret['logit'], ret['value']
-        if isinstance(logit, torch.Tensor):
-            logit, value = [logit], [value]
-        action = []
-        for i, l in enumerate(logit):
-            if np.random.random() > self._eps:
-                action.append(l.argmax(dim=-1))
-            else:
-                action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
+        if self._continous:
+            mu, sigma = logit
+            if isinstance(mu, torch.Tensor):
+                mu_list, sigma_list, value, logit = [mu], [sigma], [value], [logit]
+            action = []
+            for mu, sigma in zip(mu_list, sigma_list):
+                dist = Independent(Normal(mu, sigma), 1)
+                act = torch.clamp(dist.sample(), min=-1, max=1)
+                action.append(act)
+        else:
+            if isinstance(logit, torch.Tensor):
+                logit, value = [logit], [value]
+            action = []
+            for i, l in enumerate(logit):
+                if np.random.random() > self._eps:
+                    action.append(l.argmax(dim=-1))
+                else:
+                    action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
+
         if len(action) == 1:
             action, logit, value = action[0], logit[0], value[0]
         output = {'action': action, 'logit': logit, 'value': value}
@@ -104,17 +119,27 @@ class PPOPolicy(CommonPolicy):
         with torch.no_grad():
             ret = self._model(data['obs'], mode="compute_action_value")
             logit, value = ret['logit'], ret['value']
-        if isinstance(logit, torch.Tensor):
-            logit, value = [logit], [value]
-        action = []
-        for i, l in enumerate(logit):
-            action.append(l.argmax(dim=-1))
+        if self._continous:
+            mu, sigma = logit
+            if isinstance(mu, torch.Tensor):
+                mu_list, sigma_list, value, logit = [mu], [sigma], [value], [logit]
+            action = []
+            for mu, sigma in zip(mu_list, sigma_list):
+                act = torch.clamp(mu, min=-1, max=1)
+                action.append(act)
+        else:
+            if isinstance(logit, torch.Tensor):
+                logit, value = [logit], [value]
+            action = []
+            for i, l in enumerate(logit):
+                action.append(l.argmax(dim=-1))
+
         if len(action) == 1:
             action, logit, value = action[0], logit[0], value[0]
         output = {'action': action, 'logit': logit, 'value': value}
         return output
 
-    def _create_model_from_cfg(self, cfg: dict) -> torch.nn.Module:
+    def _create_model_from_cfg(self, cfg: dict) -> torch.nn.Module:            
         return FCValueAC(**cfg.model)
 
     def _init_command(self) -> None:

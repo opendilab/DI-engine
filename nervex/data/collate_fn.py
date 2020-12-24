@@ -54,7 +54,8 @@ def default_collate(batch: Sequence) -> Union[torch.Tensor, Mapping, Sequence]:
             out = elem.new(storage)
         if elem.shape == (1, ):
             # reshape (B, 1) -> (B)
-            return torch.cat(batch, 0, out=out)
+            # return torch.cat(batch, 0, out=out)
+            return torch.stack(batch, 0, out=out)
         else:
             return torch.stack(batch, 0, out=out)
     elif elem_type.__module__ == 'numpy' and elem_type.__name__ != 'str_' \
@@ -167,7 +168,7 @@ def default_decollate(batch: Union[torch.Tensor, Sequence, Mapping], ignore: Lis
         Drag out batch_size collated data's batch size to decollate it,
         which is the reverse operation of ``default_collate``.
     Arguments:
-        - batch (:obj:`Union[torch.Tensor, Sequence, Mapping]`): can reference the Returns of ``default_collate``
+        - batch (:obj:`Union[torch.Tensor, Sequence, Mapping]`): can refer to the Returns of ``default_collate``
         - ignore(:obj:`List[str]`): a list of names to be ignored, only function if input ``batch`` is a dict. \
             If key is in this list, its value would stay the same with no decollation.
     Returns:

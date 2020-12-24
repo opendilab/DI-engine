@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from typing import Dict
 from ..common_arch import ValueActorCriticBase, ConvEncoder, FCEncoder
 from nervex.utils import squeeze
@@ -22,7 +23,6 @@ class ValueAC(ValueActorCriticBase):
             embedding_dim: int,
             head_hidden_dim: int = 128,
             continous=False,
-            act_limit=1.0
     ) -> None:
         r"""
         Overview:
@@ -41,7 +41,6 @@ class ValueAC(ValueActorCriticBase):
         self._encoder = self._setup_encoder()
         self._head_layer_num = 2
         self.continous = continous
-        self.act_limit = act_limit
         # actor head
         input_dim = embedding_dim
         layers = []
@@ -60,7 +59,7 @@ class ValueAC(ValueActorCriticBase):
                 layers.append(self._act)
                 input_dim = head_hidden_dim
             layers.append(nn.Linear(input_dim, self._act_dim))
-            self._sigma = nn.Sequential(*layers)
+            self._log_sigma = nn.Sequential(*layers)
         # critic head
         input_dim = embedding_dim
         layers = []
@@ -115,9 +114,13 @@ class ValueAC(ValueActorCriticBase):
         value = self._critic_forward(embedding)
         logit = self._actor_forward(embedding)
         if self.continous:
-            mu = self.act_limit * torch.tanh(logit)
-            sigma = self._sigma(embedding)
+            mu = torch.tanh(logit)
+            log_sigma = self._log_sigma(embedding)
+            # sigma = F.elu(log_sigma) + 1
+            sigma = 0.1*torch.ones_like(mu)
             logit = (mu, sigma)
+            
+            
         return {'value': value, 'logit': logit}
 
     def compute_action(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
@@ -136,7 +139,12 @@ class ValueAC(ValueActorCriticBase):
             embedding = self._encoder(inputs['obs'])
         logit = self._actor_forward(embedding)
         if self.continous:
-            logit = self.act_limit * torch.tanh(logit)
+            mu = torch.tanh(logit)
+            log_sigma = self._log_sigma(embedding)
+            # sigma = F.elu(log_sigma) + 1
+            sigma = 0.1*torch.ones_like(mu)
+            logit = (mu, sigma)
+
         return {'logit': logit}
 
 

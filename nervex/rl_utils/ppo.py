@@ -80,7 +80,7 @@ def ppo_error(
     return ppo_loss(policy_loss, value_loss, entropy_loss), ppo_info(approx_kl, clipfrac)
 
 
-def ppo_error_coninuous(
+def ppo_error_continous(
         data: namedtuple,
         clip_ratio: float = 0.2,
         use_value_clip: bool = True,
@@ -118,13 +118,18 @@ def ppo_error_coninuous(
     assert dual_clip is None or dual_clip > 1.0, "dual_clip value must be greater than 1.0, but get value: {}".format(
         dual_clip
     )
-    logit_new, logit_old, action, value_new, value_old, adv, return_, weight = data
+    mu_sigma_new, mu_sigma_old, action, value_new, value_old, adv, return_, weight = data
     if weight is None:
         weight = torch.ones_like(adv)
-    dist_new = Independent(Normal(*logit_new), 1)
-    dist_old = Independent(Normal(*logit_old), 1)
-    logp_new = dist_new.log_prob(action)
-    logp_old = dist_old.log_prob(action)
+    new_mu, _ = mu_sigma_new
+    old_mu, _ = mu_sigma_old
+    sigma = 0.5*torch.ones_like(new_mu)
+    # dist_new = Independent(Normal(*mu_sigma_new), 1)
+    # dist_old = Independent(Normal(*mu_sigma_old), 1)
+    dist_new = Independent(Normal(new_mu, sigma), 1)
+    dist_old = Independent(Normal(old_mu, sigma), 1)
+    logp_new = dist_new.log_prob(action)[...,None]
+    logp_old = dist_old.log_prob(action)[...,None]
     entropy_loss = (dist_new.entropy() * weight).mean()
     # policy_loss
     ratio = torch.exp(logp_new - logp_old)
