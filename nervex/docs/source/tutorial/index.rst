@@ -434,3 +434,416 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
 
 以上指南简述了如何基于nerveX搭建一个最简单的DRL训练pipeline，完整可运行的示例代码可以参见 ``app_zoo/classic_control/cartpole/entry/cartpole_single_machine/cartpole_main.py`` ，训练配置文件各个字段
 的具体含义则可以参见 `cartpole_dqn_cfg <../configuration/index.html#cartpole-dqn-config>`_。
+
+
+DQN Policy
+==========
+
+在撰写DQN Policy之前，我们先 ``import`` 需要的模块
+
+
+.. code:: python
+
+    #引入typing类规范格式
+    from typing import List, Dict, Any, Tuple, Union, Optional
+
+.. code:: python
+
+    #我们的模型框架基于torch
+    import torch
+
+.. code:: python
+
+    #我们的环境返回的timestep基于nametuple，训练过程中的trajectory则是放在deque中
+    from collections import namedtuple, deque
+    
+    #我们的transition data是EasyDict格式
+    from easydict import EasyDict
+
+.. code:: python
+
+    #继承了torch.optim类的optimizer，也可以自由选用其他优化器
+    from nervex.torch_utils import Adam
+
+.. code:: python
+
+    #DQN是q value相关的算法，因此引入q值相关的loss计算函数
+    from nervex.rl_utils import q_1step_td_data, q_1step_td_error, q_nstep_td_data, q_nstep_td_error
+    
+    #epsilon_greedy
+    from nervex.rl_utils import epsilon_greedy
+    
+    #Adder用于获取训练数据
+    from nervex.rl_utils import Adder
+
+.. code:: python
+
+    #算法的Agent，通常包括用于更新策略的learner部分和用于collect数据的actor部分
+    from nervex.agent import Agent
+
+.. code:: python
+
+    #算法使用的model，通常为神经网络
+    from nervex.model import FCDiscreteNet, ConvDiscreteNet
+
+.. code:: python
+
+    #引入Policy基类
+    from .base_policy import Policy, register_policy
+    from .common_policy import CommonPolicy
+
+下面以DQN Policy为例讲解如何构建一个新的Policy类 DQN
+Policy中只需实现与具体算法策略相关的内容，其编写需要实现几个部分：
+
+ - 算法使用的 ``model``，通常为神经网络， 即 ``self._model``
+ - 算法的 ``Agent`` ，通常包括用于更新策略的learner部分和用于collect数据的actor部分
+ - 算法 ``loss`` 的计算方式，相当于计算图
+ - 优化器 ``Optimizer`` 即 ``self._optimizer``
+
+而算法的其他结构，如：
+
+ - ``Replay Buffer``
+ - ``Env``
+
+则由入口类serial_pipeline创建完成，不需要在Policy类中再进行实现
+
+所有Policy需要继承 ``Common Policy`` 、 ``Policy`` 类
+
+.. code:: python
+
+    #所有Policy需要继承Common Policy、Policy类
+    class DQNPolicy(CommonPolicy):
+        r"""
+        Overview:
+            Policy class of DQN algorithm.
+        """
+
+我们需要对learn部分的agent进行初始化，包括：
+
+- 初始化learn的optimizer， 即 ``self._optimizer`` 
+- 初始化算法的相关参数 
+- 初始化的模型传入 learner agent ，即 ``self._agent``
+- 初始化agent的相关plugin 
+
+  - 如learner使用 ``argmax`` 进行sample 
+
+  - 对于double dqn，learner包括target network
+
+为此我们实现 ``_init_learn`` 方法
+
+.. code:: python
+
+        
+        def _init_learn(self) -> None:
+            r"""
+            Overview:
+                Learn mode init method. Called by ``self.__init__``.
+                Init the optimizer, algorithm config, main and target agents.
+            """
+            # Optimizer
+            # 初始化learn的optimizer
+            self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
+    
+            # Algorithm config
+            # 初始化算法的相关参数
+            algo_cfg = self._cfg.learn.algo
+            self._nstep = algo_cfg.nstep
+            self._gamma = algo_cfg.discount_factor
+        
+            # Main and target agents
+            # 初始化的模型传入agent
+            self._agent = Agent(self._model)
+            
+            # 初始化agent的相关plugin
+            self._agent.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
+            self._agent.add_plugin('main', 'argmax_sample')
+            self._agent.add_plugin('main', 'grad', enable_grad=True)
+            self._agent.add_plugin('target', 'grad', enable_grad=False)
+            
+            #常规初始化
+            self._agent.mode(train=True)
+            self._agent.target_mode(train=True)
+            
+            self._agent.reset()
+            self._agent.target_reset()
+            self._learn_setting_set = {}
+
+我们的learner需要知道如何计算loss，才能进行进行模型的更新
+相当于之前的computation graph (计算图)
+
+为此我们实现 ``_forward_learn`` 方法
+
+.. code:: python
+
+    
+        def _forward_learn(self, data: dict) -> Dict[str, Any]:
+            r"""
+            Overview:
+                Forward and backward function of learn mode.
+            Arguments:
+                - data (:obj:`dict`): Dict type data, including at least ['obs', 'action', 'reward', 'next_obs']
+            Returns:
+                - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
+            """
+    
+            # ====================
+            # Q-learning forward
+            # ====================
+            # Reward reshaping for n-step
+            reward = data['reward']
+            if len(reward.shape) == 1:
+                reward = reward.unsqueeze(1)
+            assert reward.shape == (self._cfg.learn.batch_size, self._nstep), reward.shape
+            reward = reward.permute(1, 0).contiguous()
+            # Current q value (main agent)
+            q_value = self._agent.forward(data['obs'])['logit']
+            # Target q value
+            target_q_value = self._agent.target_forward(data['next_obs'])['logit']
+            # Max q value action (main agent)
+            target_q_action = self._agent.forward(data['next_obs'])['action']
+    
+            data_n = q_nstep_td_data(
+                q_value, target_q_value, data['action'], target_q_action, reward, data['done'], data['weight']
+            )
+            loss = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep)
+    
+            # ====================
+            # Q-learning update
+            # ====================
+            self._optimizer.zero_grad()
+            loss.backward()
+            self._optimizer.step()
+    
+            # =============
+            # after update
+            # =============
+            self._agent.target_update(self._agent.state_dict()['model'])
+            return {
+                'cur_lr': self._optimizer.defaults['lr'],
+                'total_loss': loss.item(),
+            }
+
+我们先需要对actor部分的agent进行初始化，包括： 
+
+- actor数据的收集方式， 包括 ``self._adder`` 等
+- 初始化的模型传入actor agent， 即 ``self._collect_agent`` 
+- 初始化agent的相关plugin 
+
+  - 如actor使用 ``eps_greedy`` 进行sample
+
+为此我们实现 ``_init_collect`` 方法
+
+.. code:: python
+
+      def _init_collect(self) -> None:
+            r"""
+            Overview:
+                Collect mode init method. Called by ``self.__init__``.
+                Init traj and unroll length, adder, collect agent.
+                Enable the eps_greedy_sample
+            """
+            # actor数据的收集方式
+            self._traj_len = self._cfg.collect.traj_len
+            if self._traj_len == "inf":
+                self._traj_len == float("inf")
+            self._unroll_len = self._cfg.collect.unroll_len
+            self._adder = Adder(self._use_cuda, self._unroll_len)
+            self._collect_nstep = self._cfg.collect.algo.nstep
+            
+            # 初始化的模型传入actor agent
+            self._collect_agent = Agent(self._model)
+            
+            # 初始化agent的相关plugin
+            self._collect_agent.add_plugin('main', 'eps_greedy_sample')
+            self._collect_agent.add_plugin('main', 'grad', enable_grad=False)
+            
+            # 常规初始化
+            self._collect_agent.mode(train=False)
+            self._collect_agent.reset()
+            self._collect_setting_set = {'eps'}
+
+我们的actor需要根据环境返回的observation获取相关动作数据
+
+为此我们实现 ``_forward_collect`` 方法
+
+.. code:: python
+
+    
+        def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+            r"""
+            Overview:
+                Forward function for collect mode with eps_greedy
+            Arguments:
+                - data_id (:obj:`List` of :obj:`int`): Not used, set in arguments for consistency
+                - data (:obj:`dict`): Dict type data, including at least ['obs'].
+            Returns:
+                - data (:obj:`dict`): The collected data
+            """
+            return self._collect_agent.forward(data, eps=self._eps)
+
+我们需要从trajectory中获取需要的训练数据
+
+为此我们实现 ``_get_train_sample`` 方法
+
+.. code:: python
+
+    
+        def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
+            r"""
+            Overview:
+                Get the trajectory and the n step return data, then sample from the n_step return data
+            Arguments:
+                - traj_cache (:obj:`deque`): The trajectory's cache
+            Returns:
+                - samples (:obj:`dict`): The training samples generated
+            """
+            # adder is defined in _init_collect
+            return_num = 0 if self._collect_nstep == 1 else self._collect_nstep
+            data = self._adder.get_traj(traj_cache, self._traj_len, return_num=return_num)
+            data = self._adder.get_nstep_return_data(data, self._collect_nstep, self._traj_len)
+            return self._adder.get_train_sample(data)
+
+
+我们需要将对应的数据加入transition，即在 ``BaseSerialActor`` 中实现的：
+
+.. code:: python
+
+    transition = self._policy.process_transition( self._obs_pool[env_id],
+    self._policy_output_pool[env_id], timestep )
+
+
+
+为此我们实现 ``_process_transition`` 方法
+
+.. code:: python
+
+    
+        def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
+            r"""
+           Overview:
+               Generate dict type transition data from inputs.
+           Arguments:
+               - obs (:obj:`Any`): Env observation
+               - agent_output (:obj:`dict`): Output of collect agent, including at least ['action']
+               - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
+                   (here 'obs' indicates obs after env step).
+           Returns:
+               - transition (:obj:`dict`): Dict type transition data.
+           """
+            transition = {
+                'obs': obs,
+                'next_obs': timestep.obs,
+                'action': agent_output['action'],
+                'reward': timestep.reward,
+                'done': timestep.done,
+            }
+            return EasyDict(transition)
+
+
+我们需要对evaluator部分的agent进行初始化，包括：
+
+-  初始化的模型传入 eval agent， 即 ``self._eval_agent``
+-  初始化agent的相关plugin
+
+   -  如使用 ``argmax`` 进行sample
+
+为此我们实现 ``_init_eval`` 方法
+
+我们的evaluator需要根据环境返回的observation获取相关动作数据
+
+为此我们实现 ``_forward_eval`` 方法
+
+.. code:: python
+
+    
+    
+        def _init_eval(self) -> None:
+            r"""
+            Overview:
+                Evaluate mode init method. Called by ``self.__init__``.
+                Init eval agent with argmax strategy.
+            """
+            self._eval_agent = Agent(self._model)
+            self._eval_agent.add_plugin('main', 'argmax_sample')
+            self._eval_agent.add_plugin('main', 'grad', enable_grad=False)
+            self._eval_agent.mode(train=False)
+            self._eval_agent.reset()
+            self._eval_setting_set = {}
+    
+        def _forward_eval(self, data_id: List[int], data: dict) -> dict:
+            r"""
+            Overview:
+                Forward function for eval mode, similar to ``self._forward_collect``.
+            Arguments:
+                - data_id (:obj:`List[int]`): Not used in this policy.
+                - data (:obj:`dict`): Dict type data, including at least ['obs'].
+            Returns:
+                - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
+            """
+            return self._eval_agent.forward(data)
+
+在 ``_init_command`` 方法中，我们对需要使用的一些命令进行初始化
+
+在 ``_get_setting_collect`` 方法中，我们需要注册好需使用的其他command
+
+.. code:: python
+
+    
+        def _init_command(self) -> None:
+            r"""
+            Overview:
+                Command mode init method. Called by ``self.__init__``.
+                Set the eps_greedy rule according to the config for command
+            """
+            eps_cfg = self._cfg.command.eps
+            self.epsilon_greedy = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
+    
+        def _get_setting_collect(self, command_info: dict) -> dict:
+            r"""
+            Overview:
+                Collect mode setting information including eps
+            Arguments:
+                - command_info (:obj:`dict`): Dict type, including at least ['learner_step']
+            Returns:
+               - collect_setting (:obj:`dict`): Including eps in collect mode.
+            """
+            learner_step = command_info['learner_step']
+            return {'eps': self.epsilon_greedy(learner_step)}
+        
+        
+
+我们需要根据config初始化我们的模型，传给 ``self._model``
+
+为此我们实现 ``_create_model_from_cfg`` 方法
+
+.. code:: python
+
+    
+        def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
+            r"""
+           Overview:
+               Create a model according to input config. This policy will adopt DiscreteNet.
+           Arguments:
+               - cfg (:obj:`dict`): Config.
+               - model_type (:obj:`Optional[type]`): If this is not None, this function will create \
+                   an instance of this.
+           Returns:
+               - model (:obj:`torch.nn.Module`): Generated model.
+           """
+            if model_type is None:
+                return FCDiscreteNet(**cfg.model)
+            else:
+                return model_type(**cfg.model)
+    
+    
+
+
+在实现了Policy class之后，我们需要对该Policy class进行注册，这样 ``serial_pipeline`` 才能知道此policy的存在
+
+.. code:: python
+
+    # 注册dqn policy
+    register_policy('dqn', DQNPolicy)
+
+
+这样，我们就完成了 ``DQNPolicy`` 类的撰写
