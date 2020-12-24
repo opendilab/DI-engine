@@ -17,7 +17,13 @@ from .common_policy import CommonPolicy
 class PPOPolicy(CommonPolicy):
 
     def _init_learn(self) -> None:
-        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
+        # self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
+        self._optimizer = Adam(
+            self._model.parameters(),
+            grad_clip_type="clip_value",
+            clip_value=0.5,
+            lr=self._cfg.learn.learning_rate,
+        )
         algo_cfg = self._cfg.learn.algo
         self._value_weight = algo_cfg.value_weight
         self._entropy_weight = algo_cfg.entropy_weight

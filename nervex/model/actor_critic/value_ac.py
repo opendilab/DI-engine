@@ -116,7 +116,7 @@ class ValueAC(ValueActorCriticBase):
         if self.continous:
             mu = torch.tanh(logit)
             log_sigma = self._log_sigma(embedding)
-            # sigma = F.elu(log_sigma) + 1
+            # sigma = torch.clamp_max(log_sigma, max=2).exp()
             sigma = 0.3 * torch.ones_like(mu)  # fix gamma to debug
             logit = (mu, sigma)
 
@@ -140,7 +140,7 @@ class ValueAC(ValueActorCriticBase):
         if self.continous:
             mu = torch.tanh(logit)
             log_sigma = self._log_sigma(embedding)
-            # sigma = F.elu(log_sigma) + 1
+            # sigma = torch.clamp_max(log_sigma, max=2).exp()
             sigma = 0.3 * torch.ones_like(mu)  # fix gamma to debug
             logit = (mu, sigma)
 

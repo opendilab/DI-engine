@@ -13,7 +13,7 @@ policy:
     use_cuda: False
     policy_type: 'ppo_vanilla'
     import_names: ['nervex.policy.ppo_vanilla']
-    on_policy: False
+    on_policy: True
     model:
         continous: True
         obs_dim: 3
@@ -26,7 +26,7 @@ policy:
         weight_decay: 0.0001
         algo:
             value_weight: 0.5
-            entropy_weight: 0.01
+            entropy_weight: 0.0001
             clip_ratio: 0.2 
     collect:
         traj_len: 'inf'
@@ -53,7 +53,7 @@ actor:
 evaluator:
     n_episode: 5
     eval_freq: 20
-    stop_val: 195
+    stop_val: -250
 learner:
     hook:
         log_show:
