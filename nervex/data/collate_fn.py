@@ -54,8 +54,8 @@ def default_collate(batch: Sequence) -> Union[torch.Tensor, Mapping, Sequence]:
             out = elem.new(storage)
         if elem.shape == (1, ):
             # reshape (B, 1) -> (B)
-            # return torch.cat(batch, 0, out=out)
-            return torch.stack(batch, 0, out=out)
+            return torch.cat(batch, 0, out=out)
+            # return torch.stack(batch, 0, out=out)
         else:
             return torch.stack(batch, 0, out=out)
     elif elem_type.__module__ == 'numpy' and elem_type.__name__ != 'str_' \

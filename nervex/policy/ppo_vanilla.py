@@ -84,7 +84,7 @@ class PPOPolicy(CommonPolicy):
             action = []
             for mu, sigma in zip(mu_list, sigma_list):
                 dist = Independent(Normal(mu, sigma), 1)
-                act = torch.clamp(dist.sample(), min=-1, max=1)
+                act = torch.clamp(dist.sample(), min=-1, max=1).squeeze()
                 action.append(act)
         else:
             if isinstance(logit, torch.Tensor):

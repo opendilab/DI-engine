@@ -117,7 +117,7 @@ class ValueAC(ValueActorCriticBase):
             mu = torch.tanh(logit)
             log_sigma = self._log_sigma(embedding)
             # sigma = F.elu(log_sigma) + 1
-            sigma = 0.5*torch.ones_like(mu) # fix gamma to debug
+            sigma = 0.3*torch.ones_like(mu) # fix gamma to debug
             logit = (mu, sigma)
             
             
@@ -142,7 +142,7 @@ class ValueAC(ValueActorCriticBase):
             mu = torch.tanh(logit)
             log_sigma = self._log_sigma(embedding)
             # sigma = F.elu(log_sigma) + 1
-            sigma = 0.5*torch.ones_like(mu) # fix gamma to debug
+            sigma = 0.3*torch.ones_like(mu) # fix gamma to debug
             logit = (mu, sigma)
 
         return {'logit': logit}
