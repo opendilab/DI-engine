@@ -45,7 +45,7 @@ class TestInteractionSimple:
 
         return MyMaster('0.0.0.0', port, channel=channel)
 
-    @pytest.mark.execution_timeout(10.0)
+    @pytest.mark.execution_timeout(10.0, method='thread')
     def test_slave_launch(self):
         _slave_port, _channel = random_port(), random_channel()
         slave_thread, open_slave_event, close_slave_event = self.__slave_endpoint(_slave_port, _channel)
@@ -56,7 +56,7 @@ class TestInteractionSimple:
         close_slave_event.set()
         slave_thread.join()
 
-    @pytest.mark.execution_timeout(20.0)
+    @pytest.mark.execution_timeout(20.0, method='thread')
     def test_slave_simple_connection(self):
         _slave_port, _channel = random_port(), random_channel()
         slave_thread, open_slave_event, close_slave_event = self.__slave_endpoint(_slave_port, _channel)

@@ -272,7 +272,7 @@ td_lambda_data = namedtuple('td_lambda_data', ['value', 'reward', 'weight'])
 def td_lambda_error(data: namedtuple, gamma: float = 0.9, lambda_: float = 0.8) -> torch.Tensor:
     """
     Overview:
-        Computing TD($\lambda$) loss given constant gamma and lambda.
+        Computing TD(lambda) loss given constant gamma and lambda.
         There is no special handling for terminal state value,
         if some state has reached the terminal, just fill in zeros for values and rewards beyond terminal
         (*including the terminal state*, values[terminal] should also be 0)
