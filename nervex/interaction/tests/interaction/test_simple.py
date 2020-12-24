@@ -10,7 +10,7 @@ from ...master.task import TaskStatus
 from ...slave import Slave, TaskFail
 
 
-# @pytest.mark.unittest
+@pytest.mark.unittest
 class TestInteractionSimple:
     # noinspection PyMethodMayBeStatic
     def __slave_endpoint(self, port: int, channel: int, silence: bool = True):
