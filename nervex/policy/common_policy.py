@@ -43,8 +43,8 @@ class CommonPolicy(Policy):
         return self._adder.get_train_sample(data)
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
-        self._collect_agent.mode(train=True)
-        self._collect_agent.reset(data_id=data_id)
+        self._agent.mode(train=True)
+        self._agent.reset(data_id=data_id)
 
     def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
         self._collect_agent.mode(train=False)
