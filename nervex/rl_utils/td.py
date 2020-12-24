@@ -6,8 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from nervex.rl_utils.value_rescale import value_transform, value_inv_transform
 
-q_1step_td_data = namedtuple(
-    'q_1step_td_data', ['q', 'next_q', 'act', 'reward', 'done', 'weight'])
+q_1step_td_data = namedtuple('q_1step_td_data', ['q', 'next_q', 'act', 'reward', 'done', 'weight'])
 
 
 def q_1step_td_error(
@@ -28,8 +27,7 @@ def q_1step_td_error(
     return (criterion(q_s_a, target_q_s_a.detach()) * weight).mean()
 
 
-dist_1step_td_data = namedtuple(
-    'dist_1step_td_data', ['dist', 'next_dist', 'act', 'reward', 'done', 'weight'])
+dist_1step_td_data = namedtuple('dist_1step_td_data', ['dist', 'next_dist', 'act', 'reward', 'done', 'weight'])
 
 
 def dist_1step_td_error(
@@ -62,12 +60,10 @@ def dist_1step_td_error(
     u = b.ceil().long()
 
     proj_dist = torch.zeros_like(next_dist)
-    offset = torch.linspace(0, (batch_size - 1) * n_atom, batch_size).unsqueeze(
-        1).expand(batch_size, n_atom).long().to(device)
-    proj_dist.view(-1).index_add_(0, (l + offset).view(-1),
-                                  (next_dist * (u.float() - b)).view(-1))
-    proj_dist.view(-1).index_add_(0, (u + offset).view(-1),
-                                  (next_dist * (b - l.float())).view(-1))
+    offset = torch.linspace(0, (batch_size - 1) * n_atom, batch_size).unsqueeze(1).expand(batch_size,
+                                                                                          n_atom).long().to(device)
+    proj_dist.view(-1).index_add_(0, (l + offset).view(-1), (next_dist * (u.float() - b)).view(-1))
+    proj_dist.view(-1).index_add_(0, (u + offset).view(-1), (next_dist * (b - l.float())).view(-1))
 
     log_p = torch.log(dist[batch_range, act])
 
@@ -76,8 +72,7 @@ def dist_1step_td_error(
     return loss
 
 
-dist_nstep_td_data = namedtuple('dist_1step_td_data', [
-                                'dist', 'next_n_dist', 'act', 'reward', 'done', 'weight'])
+dist_nstep_td_data = namedtuple('dist_1step_td_data', ['dist', 'next_n_dist', 'act', 'reward', 'done', 'weight'])
 
 
 def dist_nstep_td_error(
@@ -132,12 +127,10 @@ def dist_nstep_td_error(
     u = b.ceil().long()
 
     proj_dist = torch.zeros_like(next_n_dist)
-    offset = torch.linspace(0, (batch_size - 1) * n_atom,
-                            batch_size).unsqueeze(1).expand(batch_size, n_atom).long().to(device)
-    proj_dist.view(-1).index_add_(0, (l + offset).view(-1),
-                                  (next_n_dist * (u.float() - b)).view(-1))
-    proj_dist.view(-1).index_add_(0, (u + offset).view(-1),
-                                  (next_n_dist * (b - l.float())).view(-1))
+    offset = torch.linspace(0, (batch_size - 1) * n_atom, batch_size).unsqueeze(1).expand(batch_size,
+                                                                                          n_atom).long().to(device)
+    proj_dist.view(-1).index_add_(0, (l + offset).view(-1), (next_n_dist * (u.float() - b)).view(-1))
+    proj_dist.view(-1).index_add_(0, (u + offset).view(-1), (next_n_dist * (b - l.float())).view(-1))
 
     log_p = torch.log(dist[batch_range, act])
 
@@ -146,8 +139,7 @@ def dist_nstep_td_error(
     return loss
 
 
-v_1step_td_data = namedtuple(
-    'v_1step_td_data', ['v', 'next_v', 'reward', 'done', 'weight'])
+v_1step_td_data = namedtuple('v_1step_td_data', ['v', 'next_v', 'reward', 'done', 'weight'])
 
 
 def v_1step_td_error(
@@ -165,8 +157,7 @@ def v_1step_td_error(
     return criterion(v, target_v.detach() * weight).mean()
 
 
-q_nstep_td_data = namedtuple(
-    'q_nstep_td_data', ['q', 'next_n_q', 'action', 'reward', 'done', 'weight'])
+q_nstep_td_data = namedtuple('q_nstep_td_data', ['q', 'next_n_q', 'action', 'reward', 'done', 'weight'])
 
 
 def q_nstep_td_error(

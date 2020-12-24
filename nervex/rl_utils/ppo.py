@@ -121,13 +121,12 @@ def ppo_error_continous(
     mu_sigma_new, mu_sigma_old, action, value_new, value_old, adv, return_, weight = data
     if weight is None:
         weight = torch.ones_like(adv)
-    
+
     dist_new = Normal(mu_sigma_new[0].squeeze(), mu_sigma_new[1].squeeze())
     # dist_old = Independent(Normal(*mu_sigma_old), 1)
     dist_old = Normal(*mu_sigma_old)
     logp_new = dist_new.log_prob(action)
     logp_old = dist_old.log_prob(action)
-    entropy = dist_new.entropy()
     entropy_loss = (dist_new.entropy() * weight).mean()
     # policy_loss
     ratio = torch.exp(logp_new - logp_old)

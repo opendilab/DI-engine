@@ -17,8 +17,7 @@ from .common_policy import CommonPolicy
 class PPOPolicy(CommonPolicy):
 
     def _init_learn(self) -> None:
-        self._optimizer = Adam(self._model.parameters(),
-                               lr=self._cfg.learn.learning_rate)
+        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         algo_cfg = self._cfg.learn.algo
         self._value_weight = algo_cfg.value_weight
         self._entropy_weight = algo_cfg.entropy_weight
@@ -26,7 +25,7 @@ class PPOPolicy(CommonPolicy):
         self._model.train()
         self._learn_setting_set = {}
         self._continous = self._cfg.model.get("continous", False)
-        
+
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         # forward
         output = self._model(data['obs'], mode="compute_action_value")
@@ -41,7 +40,7 @@ class PPOPolicy(CommonPolicy):
         )
         if self._continous:
             ppo_loss, ppo_info = ppo_error_continous(data, self._clip_ratio)
-        else:   
+        else:
             ppo_loss, ppo_info = ppo_error(data, self._clip_ratio)
         wv, we = self._value_weight, self._entropy_weight
         total_loss = ppo_loss.policy_loss + wv * \
@@ -64,7 +63,7 @@ class PPOPolicy(CommonPolicy):
     def _init_collect(self) -> None:
         self._traj_len = self._cfg.collect.traj_len
         self._unroll_len = self._cfg.collect.unroll_len
-        assert(self._unroll_len == 1)
+        assert (self._unroll_len == 1)
         if self._traj_len == 'inf':
             self._traj_len = float('inf')
         self._collect_setting_set = {'eps'}
@@ -139,13 +138,12 @@ class PPOPolicy(CommonPolicy):
         output = {'action': action, 'logit': logit, 'value': value}
         return output
 
-    def _create_model_from_cfg(self, cfg: dict) -> torch.nn.Module:            
+    def _create_model_from_cfg(self, cfg: dict) -> torch.nn.Module:
         return FCValueAC(**cfg.model)
 
     def _init_command(self) -> None:
         eps_cfg = self._cfg.command.eps
-        self.epsilon_greedy = epsilon_greedy(
-            eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
+        self.epsilon_greedy = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
 
     def _get_setting_collect(self, command_info: dict) -> dict:
         learner_step = command_info['learner_step']
@@ -155,9 +153,7 @@ class PPOPolicy(CommonPolicy):
         data = self._get_traj(traj_cache, self._traj_len, return_num=1)
         if self._traj_len == float('inf'):
             assert data[-1]['done'], "episode must be terminated by done=True"
-        data = self._gae(
-            data, gamma=self._gamma, gae_lambda=self._gae_lambda
-        )
+        data = self._gae(data, gamma=self._gamma, gae_lambda=self._gae_lambda)
         return data
 
     def _get_traj(self, data: deque, traj_len: int, return_num: int = 0) -> list:
@@ -167,8 +163,7 @@ class PPOPolicy(CommonPolicy):
             data.appendleft(copy.deepcopy(traj[-(i + 1)]))
         return traj
 
-    def _gae(self, data: List[Dict[str, Any]], gamma: float = 0.99,
-             gae_lambda: float = 0.97) -> List[Dict[str, Any]]:
+    def _gae(self, data: List[Dict[str, Any]], gamma: float = 0.99, gae_lambda: float = 0.97) -> List[Dict[str, Any]]:
         if data[-1]['done']:
             last_value = torch.zeros(1)
         else:
