@@ -9,6 +9,7 @@ from ...slave import SlaveErrorCode
 
 @pytest.mark.unittest
 class TestInteractionErrors(_TestInteractionBase):
+
     @pytest.mark.execution_timeout(20.0, method='thread')
     def test_slave_simple_connection(self):
         _slave_port, _slave_channel = self._random_slave_channel_and_port()

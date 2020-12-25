@@ -8,6 +8,7 @@ from ...master.task import TaskStatus
 
 @pytest.mark.unittest
 class TestInteractionSimple(_TestInteractionBase):
+
     @pytest.mark.execution_timeout(10.0, method='thread')
     def test_slave_launch(self):
         _slave_port, _channel = self._random_slave_channel_and_port()
