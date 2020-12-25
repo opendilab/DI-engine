@@ -16,16 +16,17 @@ class TestNaturalTime:
     def test_natural_time_with_mad_system(self):
         _time_func, time.time = time.time, Mock(side_effect=[1.5, 1.8, 2.0, 2.0, 1.75, 1.9, 2.2])
 
-        _time = NaturalTime()
-        assert _time.time() == 1.5
-        assert _time.time() == 1.8
-        assert _time.time() == 2.0
-        assert _time.time() == 2.0
-        assert _time.time() == 2.0
-        assert _time.time() == 2.0
-        assert _time.time() == 2.2
-
-        time.time = _time_func
+        try:
+            _time = NaturalTime()
+            assert _time.time() == 1.5
+            assert _time.time() == 1.8
+            assert _time.time() == 2.0
+            assert _time.time() == 2.0
+            assert _time.time() == 2.0
+            assert _time.time() == 2.0
+            assert _time.time() == 2.2
+        finally:
+            time.time = _time_func
 
 
 @pytest.mark.unittest
