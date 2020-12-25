@@ -129,6 +129,8 @@ app_zoo(基于nerveX的DRL应用)
 
  6. alphastar(SC2)
 
+ 7. multiagent-particle
+
 
 数据流图
 ============================
@@ -227,7 +229,7 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
             sleep 2s
         done
 
-DRL快速上手指南(单机同步版本)
+DRL快速上手指南(串行版本)
 ==============================
 深度强化学习(DRL)在很多问题场景中展现出了媲美甚至超越人类的性能，本指南将从DRL的启明星——DQN开始，逐步介绍如何使用nerveX框架在Cartpole游戏环境上训练一个DQN智能体，主要将分为如下几个部分：
 
@@ -238,9 +240,11 @@ DRL快速上手指南(单机同步版本)
  - 策略(Policy)相关
  - 其他功能拓展
 
+完整的入口文件可以参见 ``nervex/entry/serial_entry.py``
+
 .. note::
 
-    注意一个深度强化学习算法可能包括神经网络模型，运行计算图(训练/数据生成)，优化目标(损失函数)，优化器等多个部分，nerveX在实现上将各个模块进行了解耦设计，所以相关代码可能较为分散，但一般的代码组织体系为：model（神经网络模型），agent（神经网络模型在训练/数据生成/测试时的不同动态行为，例如RNN隐状态的维护，Double DQN算法中target network的维护），rl_utils（具体的强化学习优化目标），以及将上述各个模块组织起来，得到最后的DQNPolicy模块。
+    注意一个深度强化学习算法可能包括神经网络模型，运行计算图(训练/数据生成)，优化目标(损失函数)，优化器等多个部分，nerveX在实现上将各个模块进行了解耦设计，所以相关代码可能较为分散，但一般的代码组织体系为：model（神经网络模型），rl_utils（具体的强化学习优化目标函数），以及两种可选功能组件Agent（神经网络模型在训练/数据生成/测试时的不同动态行为，例如RNN隐状态的维护，Double DQN算法中target network的维护），Adder（将收集到的数据帧整合成训练所需的状态），以及将上述各个模块组织串联起来，完整的强化学习策略定义，Policy模块（例如DQNPolicy）。
 
 环境相关
 -----------
@@ -254,7 +258,7 @@ RL不同于传统的监督学习，数据一般是离线准备完成，RL需要�
 
     env = CartPoleEnv(cfg={})  # use default env config
 
-而在 ``serial_pipeline`` 中，我们通过了env_setting的方式通过 ``config`` 对算法自动进行了创建：
+而在 ``serial_pipeline`` 中，我们有两种创建环境的方式，第一种是通过 ``cfg.env`` ，即配置文件中 ``env`` 相关字段进行自动创建，第二种是通过 ``env_setting`` 参数直接从调用者处得到环境类，actor部分的环境配置，以及evaluator部分的环境配置，具体的代码如下：
 
 .. code::python
 
@@ -278,8 +282,8 @@ RL不同于传统的监督学习，数据一般是离线准备完成，RL需要�
     evaluator_env_cfg = env_fn.create_evaluator_env_cfg(cfg)
     return env_fn, actor_env_cfg, evaluator_env_cfg
 
-注意到我们对 ``actor_env_cfg`` , ``evaluator_env_cfg`` 进行了分开处理，这是考虑到训练过程中为了取得更好的训练效果，我们会使用 ``Wrapper``
-对环境做不同的处理，而 ``Wrapper`` 处理后的 ``evaluator_env`` 其实并不能很好的衡量算法的效果。
+注意到我们对 ``actor_env_cfg`` , ``evaluator_env_cfg`` 进行了分开处理，这是考虑到训练过程中为了取得更好的训练效果，例如在Atari环境中经常会使用 ``Wrapper``
+对环境做不同的处理，而 ``Wrapper`` 处理后的 ``evaluator_env`` 其实并不能很好的衡量算法的效果，所以需要区别对待。
 
 为了加快生成数据的效率，nerveX提供了向量化环境运行的机制，即一次运行多个同类环境进行交互生成训练数据，并由 ``Env Manager`` （环境管理器） 模块负责维护相关功能，每次运行批量启动多个环境交互生成数据。环境管理器与环境本身内容完全解耦，无需了解任何环境具体的数据信息，环境本身可以使用任意数据类型，但经过环境管理器处理之后，进入nervex一律为PyTorch Tensor相关数据格式。系统提供了多种实现方式的环境管理器，最常用的子进程环境管理器的实例代码如下：
 
@@ -288,7 +292,7 @@ RL不同于传统的监督学习，数据一般是离线准备完成，RL需要�
     from nervex.worker.actor.env_manager import SubprocessEnvManager
 
     # create 4 CartPoleEnv env with default config(set `env_cfg=[{} for _ in range(4)]`)
-    env_manager = SubprocessEnvManager(env_fn=CartPoleEnv, env_cfg=[{} for _ in range(4)], env_num=4, episode_num=2)
+    env_manager = SubprocessEnvManager(env_fn=CartPoleEnv, env_cfg=[{} for _ in range(4)], env_num=4)
 
 我们在 ``serial_pipeline`` 中，通过 ``config`` 文件中对应的 ``cfg.env.env_manager_type`` 控制使用 ``SubprocessEnvManager`` 
 还是 ``BaseEnvManager`` 。
@@ -300,7 +304,7 @@ RL不同于传统的监督学习，数据一般是离线准备完成，RL需要�
 神经网络模型相关
 --------------------
 
-nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，支持用户自定义各式各样的神经网络，不过，nerveX也根据RL等决策算法的需要，构建了一些抽象层次和API，主要分为 ``model`` （模型）和 ``agent`` （智能体）两部分。
+nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，支持用户自定义各式各样的神经网络，不过，nerveX也根据RL等决策算法的需要，构建了一些抽象层次和API，主要分为 ``model`` （模型）和 ``agent`` （智能体）两部分，若已有的Agent组件无法满足需求，使用者也可以完全自定义相关的代码段，其和训练主体代码并无耦合。
 
 模型部分是对一些经典算法的抽象，比如对于Actor-Critic系列算法和Dueling DQN算法，nerveX为其实现了相关的模型基类，并且进行了多层的模块化的封装，详见 
 ``nervex/model/discrete_net/discrete_net.py`` 和其对应的测试文件 ``nervex/model/discrete_net/test_discrete_net.py`` 。
@@ -366,7 +370,7 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
 
 .. note::
 
-   如果使用者想要定义自己的agent，请参考 `Agent Overview <../feature/agent_overview.html>`_ 中相关内容。
+   如果使用者想要定义自己的agent，请参考 `Agent Overview <../feature/agent_overview.html>`_ 中相关内容。如果使用者觉得Agent的现有设计和实现无法满足需求，也可以自定义完成相应的功能，nerveX并不强制要求使用Agent。
 
 优化目标(损失函数)相关
 -------------------------
@@ -428,14 +432,16 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
 
 .. code:: python
 
-    from nervex.data import PrioritizedBuffer 
+    from nervex.data import ReplayBuffer
 
 
-    buffer_ = PrioritizedBuffer(maxlen=10000)
+    # you can refer to `nervex/data/replay_buffer_default_config.yaml` for the detailed configuration 
+    cfg = {'meta_maxlen': 10}
+    buffer_ = ReplayBuffer(cfg)
 
     # add 10 data
     for _ in range(10):
-        buffer_.append({'data': 'placeholder'})
+        buffer_.push_data({'data': 'placeholder'})
     data = buffer_.sample(4)  # sample 4 data
 
 而在 ``serial_pipeline`` 中，我们通过 ``cfg.replay_buffer`` 对 ``replay_buffer`` 自动进行了创建：
@@ -444,6 +450,15 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
 
     replay_buffer = ReplayBuffer(cfg.replay_buffer)
 
+创建策略
+--------
+nerveX已经实现了诸多DRL常用算法，使用者可在配置文件中指定需要使用的RL算法名以及相应的模块名，创建policy的代码如下：
+
+.. code:: python
+
+    policy = create_policy(cfg.policy)
+
+如果使用者想要自定义策略，可以参见文档QA中的说明进行实现，并指定 ``serial_pipeline`` 的 ``policy_fn`` 参数传入该自定义类
 
 DRL Policy Example(DQN)
 --------------------------------------------------
@@ -868,4 +883,4 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
     此外，使用者还可以重写修改其他方法实现自定义功能。
 
 以上指南简述了如何基于nerveX搭建一个最简单的DRL训练pipeline，训练配置文件各个字段
-的具体含义则可以参见 `cartpole_dqn_cfg <../configuration/index.html#cartpole-dqn-config>`_。
+的具体含义则可以参见 `cartpole_dqn_cfg <../configuration/index.html#cartpole-dqn-config>`_，有其他的使用问题也可以参考文档的QA部分。
