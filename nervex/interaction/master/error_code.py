@@ -1,0 +1,22 @@
+from enum import unique, IntEnum
+
+
+@unique
+class MasterErrorCode(IntEnum):
+    SUCCESS = 0
+
+    SYSTEM_SHUTTING_DOWN = 101
+
+    CHANNEL_NOT_GIVEN = 201
+    CHANNEL_INVALID = 202
+
+    MASTER_TOKEN_NOT_GIVEN = 301
+    MASTER_TOKEN_INVALID = 302
+
+    SELF_TOKEN_NOT_GIVEN = 401
+    SELF_TOKEN_INVALID = 402
+
+    SLAVE_TOKEN_NOT_GIVEN = 501
+    SLAVE_TOKEN_INVALID = 502
+
+    TASK_DATA_INVALID = 601
