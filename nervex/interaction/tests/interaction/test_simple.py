@@ -64,7 +64,7 @@ class TestInteractionSimple(_TestInteractionBase):
             close_slave_event.set()
             slave_thread.join()
 
-    @pytest.mark.execution_timeout(20.0)
+    @pytest.mark.execution_timeout(20.0, method='thread')
     def test_slave_simple_task(self):
         _slave_port, _channel = self._random_slave_channel_and_port()
         slave_thread, open_slave_event, close_slave_event = self._slave_endpoint(_slave_port, _channel)
