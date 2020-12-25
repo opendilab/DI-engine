@@ -4,6 +4,7 @@ from app_zoo.multiagent_particle.envs.multiagent.scenario import BaseScenario
 
 
 class Scenario(BaseScenario):
+
     def make_world(self):
         world = World()
         # set any world properties first
@@ -35,7 +36,6 @@ class Scenario(BaseScenario):
         self.reset_world(world)
         return world
 
-
     def reset_world(self, world):
         # random properties for agents
         for i, agent in enumerate(world.agents):
@@ -53,7 +53,6 @@ class Scenario(BaseScenario):
                 landmark.state.p_pos = np.random.uniform(-0.9, +0.9, world.dim_p)
                 landmark.state.p_vel = np.zeros(world.dim_p)
 
-
     def benchmark_data(self, agent, world):
         # returns data for benchmarking purposes
         if agent.adversary:
@@ -64,7 +63,6 @@ class Scenario(BaseScenario):
             return collisions
         else:
             return 0
-
 
     def is_collision(self, agent1, agent2):
         delta_pos = agent1.state.p_pos - agent2.state.p_pos
@@ -79,7 +77,6 @@ class Scenario(BaseScenario):
     # return all adversarial agents
     def adversaries(self, world):
         return [agent for agent in world.agents if agent.adversary]
-
 
     def reward(self, agent, world):
         # Agents are rewarded based on minimum agent distance to each landmark
@@ -106,6 +103,7 @@ class Scenario(BaseScenario):
             if x < 1.0:
                 return (x - 0.9) * 10
             return min(np.exp(2 * x - 2), 10)
+
         for p in range(world.dim_p):
             x = abs(agent.state.p_pos[p])
             rew -= bound(x)
@@ -139,7 +137,8 @@ class Scenario(BaseScenario):
         other_pos = []
         other_vel = []
         for other in world.agents:
-            if other is agent: continue
+            if other is agent:
+                continue
             comm.append(other.state.c)
             other_pos.append(other.state.p_pos - agent.state.p_pos)
             if not other.adversary:
