@@ -143,7 +143,7 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
 .. image:: flow_sequence.png
 
 
-算法训练入口示例(单机同步版本)
+算法训练入口示例(串行版本)
 =================================
 
     完成安装之后，可以仿照 ``nervex/entry/tests/test_serial_entry.py`` 文件，仿照单元测试的写法，创建一个训练脚本并命名为 ``cartpole_dqn.py``：
@@ -154,10 +154,7 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
             os.path.dirname(__file__), '../../../app_zoo/classic_control/cartpole/entry/cartpole_dqn_default_config.yaml'
         )
         config = read_config(path)
-        try:
-            serial_pipeline(config, seed=0)
-        except Exception:
-            assert False, "pipeline fail"
+        serial_pipeline(config, seed=0)
 
     如以上代码，就是读取了 ``app_zoo`` 中的 ``cartpole_dqn_default_config.yaml`` 配置文件，并传入 ``serial_pipeline`` 开始训练。
 
@@ -182,7 +179,7 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
         srun -p $1 --gres=gpu:1 python3 -u cartpole_dqn.py 
 
 
-算法训练入口示例(多机异步版本)
+算法训练入口示例(并行版本)
 =================================
 
     完成安装之后，进入 ``app_zoo/atari/entry/atari_dist_baseline`` 目录，找到 ``run.sh`` 文件,
@@ -436,8 +433,8 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
 的具体含义则可以参见 `cartpole_dqn_cfg <../configuration/index.html#cartpole-dqn-config>`_。
 
 
-DQN Policy
-==========
+DRL Policy Example(DQN)
+===========================
 
 在撰写DQN Policy之前，我们先 ``import`` 需要的模块
 
@@ -449,7 +446,7 @@ DQN Policy
 
 .. code:: python
 
-    #我们的模型框架基于torch
+    #我们的模型框架基于PyTorch
     import torch
 
 .. code:: python
@@ -462,7 +459,7 @@ DQN Policy
 
 .. code:: python
 
-    #继承了torch.optim类的optimizer，也可以自由选用其他优化器
+    #默认继承和扩展了torch.optim类的optimizer（集成各种梯度处理操作），也可以自由选用其他优化器
     from nervex.torch_utils import Adam
 
 .. code:: python
@@ -470,15 +467,17 @@ DQN Policy
     #DQN是q value相关的算法，因此引入q值相关的loss计算函数
     from nervex.rl_utils import q_1step_td_data, q_1step_td_error, q_nstep_td_data, q_nstep_td_error
     
-    #epsilon_greedy
+    #epsilon_greedy for exploration
     from nervex.rl_utils import epsilon_greedy
     
-    #Adder用于获取训练数据
+    #Adder用于处理actor产生的数据，生成训练所需的数据内容（Adder是可选使用模块，使用者也可自定义相应的处理模块）
     from nervex.rl_utils import Adder
 
 .. code:: python
 
-    #算法的Agent，通常包括用于更新策略的learner部分和用于collect数据的actor部分
+    #Agent模块，神经网络的运行时容器，为神经网络在不同使用场景下提供相应功能，包括用于更新策略的learner部分和用于collect数据的actor部分以及用于eval的evaluator部分
+    #(Agent是可选使用模块，使用者也可自定义相应的处理模块)
+    #Agent具体的使用方式可以参照下面代码中的实例
     from nervex.agent import Agent
 
 .. code:: python
@@ -496,9 +495,10 @@ DQN Policy
 Policy中只需实现与具体算法策略相关的内容，其编写需要实现几个部分：
 
  - 算法使用的 ``model``，通常为神经网络， 即 ``self._model``
- - 算法的 ``Agent`` ，通常包括用于更新策略的learner部分和用于collect数据的actor部分
- - 算法 ``loss`` 的计算方式，相当于计算图
- - 优化器 ``Optimizer`` 即 ``self._optimizer``
+ - 算法进行神经网络优化的部分(learn)，通常包括优化器，即 ``self._optimizer`` ，训练优化前的数据处理，训练优化的整个计算图(forward)，包括前向传播计算得到损失函数，梯度反向传播进行参数更新，其他信息的更新
+ - 算法准备训练数据的部分(collect)，通常包括模型前向推理生成数据的计算图(forward)，前后的数据处理，如何得到某个时间步的一个数据帧(transition)，如何把收集到的诸多数据帧组织成训练所用的样本(get_train_sample)
+ - 算法进行模型性能评测的部分(eval)，通常包括模型前向推理进行评测的计算图(forward)，前后的数据处理
+ - 算法在上述三个模块之间传递信息，控制和指挥三个模块的部分(command)，比如DQN中epsilon_greedy需要根据训练的迭代数来确定探索所用的epsilon值，并把这个值交给数据收集部分
 
 而算法的其他结构，如：
 
@@ -507,27 +507,27 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
 
 则由入口类serial_pipeline创建完成，不需要在Policy类中再进行实现
 
-所有Policy需要继承 ``Common Policy`` 、 ``Policy`` 类
+所有Policy需要继承 ``Policy`` 类，一些常用的方法实现被封装在 ``CommonPolicy`` 类中，如果不需要定制化也可以直接继承它
 
 .. code:: python
 
-    #所有Policy需要继承Common Policy、Policy类
+    #所有Policy需要继承Policy类
     class DQNPolicy(CommonPolicy):
         r"""
         Overview:
             Policy class of DQN algorithm.
         """
 
-我们需要对learn部分的agent进行初始化，包括：
+我们需要对learn部分进行初始化，包括：
 
 - 初始化learn的optimizer， 即 ``self._optimizer`` 
 - 初始化算法的相关参数 
-- 初始化的模型传入 learner agent ，即 ``self._agent``
-- 初始化agent的相关plugin 
+- 初始化learn所用的运行时模块learner agent ，即 ``self._agent``
+- 初始化agent的相关model和plugin 
 
-  - 如learner使用 ``argmax`` 进行sample 
+  - 如初始化target network(double dqn中的设计)
 
-  - 对于double dqn，learner包括target network
+  - 如在训练时使用 ``argmax`` 进行sample 
 
 为此我们实现 ``_init_learn`` 方法
 
@@ -554,8 +554,9 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             # 初始化的模型传入agent
             self._agent = Agent(self._model)
             
-            # 初始化agent的相关plugin
+            # 初始化agent的相关model
             self._agent.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
+            # 初始化agent的相关plugin
             self._agent.add_plugin('main', 'argmax_sample')
             self._agent.add_plugin('main', 'grad', enable_grad=True)
             self._agent.add_plugin('target', 'grad', enable_grad=False)
@@ -568,8 +569,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             self._agent.target_reset()
             self._learn_setting_set = {}
 
-我们的learner需要知道如何计算loss，才能进行进行模型的更新
-相当于之前的computation graph (计算图)
+我们的learner需要知道如何计算loss，并进行模型的更新等操作
 
 为此我们实现 ``_forward_learn`` 方法
 
@@ -623,7 +623,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
                 'total_loss': loss.item(),
             }
 
-我们先需要对actor部分的agent进行初始化，包括： 
+我们也需要对actor部分进行初始化，包括： 
 
 - actor数据的收集方式， 包括 ``self._adder`` 等
 - 初始化的模型传入actor agent， 即 ``self._collect_agent`` 
@@ -681,7 +681,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             """
             return self._collect_agent.forward(data, eps=self._eps)
 
-我们需要从trajectory中获取需要的训练数据
+我们需要从trajectory（一组数据帧(transition)）中获取需要的训练样本
 
 为此我们实现 ``_get_train_sample`` 方法
 
@@ -708,12 +708,11 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
 
 .. code:: python
 
-    transition = self._policy.process_transition( self._obs_pool[env_id],
-    self._policy_output_pool[env_id], timestep )
+    transition = self._policy.process_transition(self._obs_pool[env_id], self._policy_output_pool[env_id], timestep)
 
 
 
-为此我们实现 ``_process_transition`` 方法
+为此我们实现 ``_process_transition`` 方法，即获取一个时间步的数据帧(transition)
 
 .. code:: python
 
@@ -740,7 +739,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             return EasyDict(transition)
 
 
-我们需要对evaluator部分的agent进行初始化，包括：
+我们需要对evaluator部分进行初始化，包括：
 
 -  初始化的模型传入 eval agent， 即 ``self._eval_agent``
 -  初始化agent的相关plugin
@@ -782,9 +781,9 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             """
             return self._eval_agent.forward(data)
 
-在 ``_init_command`` 方法中，我们对需要使用的一些命令进行初始化
+在 ``_init_command`` 方法中，我们需要对相关控制模块进行初始化，比如epsilon_greedy的计算模块，使用者无需考虑信息在learner和actor之间如何传递，只需要考虑拿到信息后做怎样的数据处理即可
 
-在 ``_get_setting_collect`` 方法中，我们需要注册好需使用的其他command
+在 ``_get_setting_collect`` 方法中，我们使用command中的组件，根据相关信息（比如训练迭代数），来为collect部分设置下一次工作的相关配置
 
 .. code:: python
 
@@ -814,7 +813,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
 
 我们需要根据config初始化我们的模型，传给 ``self._model``
 
-为此我们实现 ``_create_model_from_cfg`` 方法
+为此我们实现 ``_create_model_from_cfg`` 方法，该方法中会使用默认的神经网络模型，如果用户需要定制自己的神经网络，可通过 ``model_type`` 参数来处理。
 
 .. code:: python
 
