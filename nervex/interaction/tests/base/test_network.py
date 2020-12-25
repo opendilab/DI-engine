@@ -18,7 +18,7 @@ from ...base import get_host_ip, success_response, get_values_from_response, spl
 @pytest.mark.unittest
 class TestInteractionBaseNetwork:
 
-    @pytest.mark.execution_timeout(5.0)
+    @pytest.mark.execution_timeout(5.0, method='thread')
     def test_get_host_ip(self):
         app = Flask('_test_get_host_ip')
 
