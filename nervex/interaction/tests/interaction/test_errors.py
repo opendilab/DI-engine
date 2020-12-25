@@ -30,13 +30,11 @@ class TestInteractionErrors(_TestInteractionBase):
 
                 err = ei.value
                 _status_code, _success, _code, _, _ = get_values_from_response(err.response)
-                assert _status_code == 401
+                assert _status_code == 403
                 assert not _success
                 assert _code == SlaveErrorCode.CHANNEL_INVALID
 
-                assert not conn.is_connected
                 assert 'conn' not in master
-
         finally:
             close_slave_event.set()
             slave_thread.join()
