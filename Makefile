@@ -6,7 +6,7 @@ WORKERS ?= $(if ${CI},${CI_DEFAULT_WORKERS},${LOCAL_DEFAULT_WORKERS})
 WORKERS_COMMAND := $(if ${WORKERS},-n ${WORKERS},)
 
 RANGE_DIR ?=
-TEST_DIR  ?= $(if ${RANGE_DIR},${RANGE_DIR},./nervex ./app_zoo)
+TEST_DIR  ?= $(if ${RANGE_DIR},${RANGE_DIR},./nervex)
 COV_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./nervex)
 
 info:
