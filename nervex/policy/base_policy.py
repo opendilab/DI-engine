@@ -24,13 +24,10 @@ class Policy(ABC):
     def __init__(
             self,
             cfg: dict,
-            model: Optional[torch.nn.Module] = None,
             model_type: Optional[type] = None,
             enable_field: Optional[List[str]] = None
     ) -> None:
-        if model is None:
-            # create model from cfg
-            model = self._create_model_from_cfg(cfg, model_type)
+        model = self._create_model_from_cfg(cfg, model_type)
         self._cfg = cfg
         self._use_cuda = cfg.use_cuda
         if self._use_cuda:
