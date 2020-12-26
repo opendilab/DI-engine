@@ -72,7 +72,7 @@ class DQNPolicy(CommonPolicy):
         data_n = q_nstep_td_data(
             q_value, target_q_value, data['action'], target_q_action, reward, data['done'], data['weight']
         )
-        loss = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep)
+        loss, td_error_per_sample = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep)
 
         # ====================
         # Q-learning update
@@ -88,6 +88,7 @@ class DQNPolicy(CommonPolicy):
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
+            'priority': td_error_per_sample.tolist(),
         }
 
     def _init_collect(self) -> None:
