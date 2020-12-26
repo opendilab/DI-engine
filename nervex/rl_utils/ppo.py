@@ -99,8 +99,8 @@ def ppo_error_continous(
             - ppo_loss (:obj:`namedtuple`): the ppo loss item, all of them are the differentiable 0-dim tensor
             - ppo_info (:obj:`namedtuple`): the ppo optim information for monitoring, all of them are Python scalar
         Shapes:
-            - logit_new (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is action dim
-            - logit_old (:obj:`torch.FloatTensor`): :math:`(B, N)`
+            - mu_sigma_new (:obj:`tuple`): :math:`((B, N), (B, N))`, where B is batch size and N is action dim
+            - mu_sigma_old (:obj:`tuple`): :math:`((B, N), (B, N))`, where B is batch size and N is action dim
             - action (:obj:`torch.LongTensor`): :math:`(B, )`
             - value_new (:obj:`torch.FloatTensor`): :math:`(B, )`
             - value_old (:obj:`torch.FloatTensor`): :math:`(B, )`
@@ -123,8 +123,7 @@ def ppo_error_continous(
         weight = torch.ones_like(adv)
 
     dist_new = Normal(mu_sigma_new[0].squeeze(), mu_sigma_new[1].squeeze())
-    # dist_old = Independent(Normal(*mu_sigma_old), 1)
-    dist_old = Normal(*mu_sigma_old)
+    dist_old = Normal(mu_sigma_old[0].squeeze(), mu_sigma_old[1].squeeze())
     logp_new = dist_new.log_prob(action)
     logp_old = dist_old.log_prob(action)
     entropy_loss = (dist_new.entropy() * weight).mean()
