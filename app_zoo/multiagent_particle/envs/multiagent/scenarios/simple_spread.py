@@ -4,6 +4,7 @@ from app_zoo.multiagent_particle.envs.multiagent.scenario import BaseScenario
 
 
 class Scenario(BaseScenario):
+
     def make_world(self):
         world = World()
         # set any world properties first
@@ -62,7 +63,6 @@ class Scenario(BaseScenario):
                     collisions += 1
         return (rew, collisions, min_dists, occupied_landmarks)
 
-
     def is_collision(self, agent1, agent2):
         delta_pos = agent1.state.p_pos - agent2.state.p_pos
         dist = np.sqrt(np.sum(np.square(delta_pos)))
@@ -94,7 +94,8 @@ class Scenario(BaseScenario):
         comm = []
         other_pos = []
         for other in world.agents:
-            if other is agent: continue
+            if other is agent:
+                continue
             comm.append(other.state.c)
             other_pos.append(other.state.p_pos - agent.state.p_pos)
         return np.concatenate([agent.state.p_vel] + [agent.state.p_pos] + entity_pos + other_pos + comm)

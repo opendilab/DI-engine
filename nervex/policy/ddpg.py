@@ -158,7 +158,7 @@ class DDPGPolicy(CommonPolicy):
                 'mu': 0.0,
                 'sigma': algo_cfg.noise_sigma
             },
-            noise_range=None,
+            noise_range=None,  # no noise clip in actor
         )
         self._collect_agent.add_plugin('main', 'grad', enable_grad=False)
         self._collect_agent.mode(train=False)

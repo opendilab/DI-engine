@@ -1,4 +1,5 @@
 from typing import Any
+import copy
 import torch
 from nervex.envs import BaseEnv, register_env
 from nervex.envs.common.env_element import EnvElement
@@ -53,6 +54,20 @@ class AtariEnv(BaseEnv):
 
     def __repr__(self) -> str:
         return "nerveX Atari Env({})".format(self._cfg.env_id)
+
+    @staticmethod
+    def create_actor_env_cfg(cfg: dict) -> List[dict]:
+        actor_env_num = cfg.pop('actor_env_num', 1)
+        cfg = copy.deepcopy(cfg)
+        cfg.is_train = True
+        return [cfg for _ in range(actor_env_num)]
+
+    @staticmethod
+    def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
+        evaluator_env_num = cfg.pop('evaluator_env_num', 1)
+        cfg = copy.deepcopy(cfg)
+        cfg.is_train = False
+        return [cfg for _ in range(evaluator_env_num)]
 
 
 register_env('atari', AtariEnv)

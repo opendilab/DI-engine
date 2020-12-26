@@ -36,7 +36,7 @@ nervex(框架核心)
 
  4. policy: 强化学习策略库
    
- - DQN(double+dueling+nstep)
+   - DQN(double+dueling+nstep)
    - RainbowDQN
    - PPO(GAE)
    - A2C(GAE)
@@ -129,6 +129,8 @@ app_zoo(基于nerveX的DRL应用)
 
  6. alphastar(SC2)
 
+ 7. multiagent-particle
+
 
 数据流图
 ============================
@@ -143,7 +145,7 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
 .. image:: flow_sequence.png
 
 
-算法训练入口示例(单机同步版本)
+算法训练入口示例(串行版本)
 =================================
 
     完成安装之后，可以仿照 ``nervex/entry/tests/test_serial_entry.py`` 文件，仿照单元测试的写法，创建一个训练脚本并命名为 ``cartpole_dqn.py``：
@@ -154,12 +156,9 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
             os.path.dirname(__file__), '../../../app_zoo/classic_control/cartpole/entry/cartpole_dqn_default_config.yaml'
         )
         config = read_config(path)
-        try:
-            serial_pipeline(config, seed=0)
-        except Exception:
-            assert False, "pipeline fail"
+        serial_pipeline(config, seed=0)
 
-    如以上代码，就是读取了 ``app_zoo`` 中的 ``cartpole_dqn_default_config.yaml`` 配置文件，并传入``serial_pipeline`` 开始训练。
+    如以上代码，就是读取了 ``app_zoo`` 中的 ``cartpole_dqn_default_config.yaml`` 配置文件，并传入 ``serial_pipeline`` 开始训练。
 
     根据不同的需求，可以修改配置文件并自定义相关的启动脚本，配置文件中可能修改的地方主要有如下几处：
 
@@ -182,7 +181,7 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
         srun -p $1 --gres=gpu:1 python3 -u cartpole_dqn.py 
 
 
-算法训练入口示例(多机异步版本)
+算法训练入口示例(并行版本)
 =================================
 
     完成安装之后，进入 ``app_zoo/atari/entry/atari_dist_baseline`` 目录，找到 ``run.sh`` 文件,
@@ -230,23 +229,24 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
             sleep 2s
         done
 
-DRL快速上手指南(单机同步版本)
+DRL快速上手指南(串行版本)
 ==============================
 深度强化学习(DRL)在很多问题场景中展现出了媲美甚至超越人类的性能，本指南将从DRL的启明星——DQN开始，逐步介绍如何使用nerveX框架在Cartpole游戏环境上训练一个DQN智能体，主要将分为如下几个部分：
 
- - 创建环境
- - 搭建神经网络
- - 搭建强化学习训练策略
- - 搭建数据队列
+ - 环境相关
+ - 神经网络模型相关
+ - 优化目标(损失函数)相关
+ - 数据队列相关
+ - 策略(Policy)相关
  - 其他功能拓展
+
+完整的入口文件可以参见 ``nervex/entry/serial_entry.py``
 
 .. note::
 
-    注意一个深度强化学习算法可能包括神经网络，运行计算图(训练/数据生成)，优化目标(损失函数)，优化器等多个部分，nerveX在实现上将各个模块进行了解耦设计，所以相关代码可能较为分散，但一般的代码组织
-    体系为：model（神经网络模型），agent（神经网络模型在训练/数据生成/测试时的不同动态行为，例如RNN隐状态的维护，Double DQN算法中target network的维护），rl_utils（具体的强化学习优化目标），以及
-    将上述各个模块组织起来，输入处理好的训练数据得到损失函数进行训练的computation_graph（计算图）模块。
+    注意一个深度强化学习算法可能包括神经网络模型，运行计算图(训练/数据生成)，优化目标(损失函数)，优化器等多个部分，nerveX在实现上将各个模块进行了解耦设计，所以相关代码可能较为分散，但一般的代码组织体系为：model（神经网络模型），rl_utils（具体的强化学习优化目标函数），以及两种可选功能组件Agent（神经网络模型在训练/数据生成/测试时的不同动态行为，例如RNN隐状态的维护，Double DQN算法中target network的维护），Adder（将收集到的数据帧整合成训练所需的状态），以及将上述各个模块组织串联起来，完整的强化学习策略定义，Policy模块（例如DQNPolicy）。
 
-创建环境
+环境相关
 -----------
 
 RL不同于传统的监督学习，数据一般是离线准备完成，RL需要实时让智能体和问题环境进行交互，产生数据帧用于训练。nerveX为了处理实际问题场景中复杂的环境结构定义，抽象了环境及其基本元素相关模块（`Env Overview
@@ -258,6 +258,33 @@ RL不同于传统的监督学习，数据一般是离线准备完成，RL需要�
 
     env = CartPoleEnv(cfg={})  # use default env config
 
+而在 ``serial_pipeline`` 中，我们有两种创建环境的方式，第一种是通过 ``cfg.env`` ，即配置文件中 ``env`` 相关字段进行自动创建，第二种是通过 ``env_setting`` 参数直接从调用者处得到环境类，actor部分的环境配置，以及evaluator部分的环境配置，具体的代码如下：
+
+.. code::python
+
+    if env_setting is None:
+        env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
+    else:
+        env_fn, actor_env_cfg, evaluator_env_cfg = env_setting
+    env_manager_type = BaseEnvManager if cfg.env.env_manager_type == 'base' else SubprocessEnvManager
+
+其中从config中获取env_setting的方式为 ``get_vec_env_setting`` 函数：
+
+.. code::python
+    
+    def get_vec_env_setting(cfg: dict) -> Tuple[type, List[dict], List[dict]]:
+    import_module(cfg.pop('import_names', []))
+    if cfg.env_type in env_mapping:
+        env_fn = env_mapping[cfg.env_type]
+    else:
+        raise KeyError("invalid env type: {}".format(cfg.env_type))
+    actor_env_cfg = env_fn.create_actor_env_cfg(cfg)
+    evaluator_env_cfg = env_fn.create_evaluator_env_cfg(cfg)
+    return env_fn, actor_env_cfg, evaluator_env_cfg
+
+注意到我们对 ``actor_env_cfg`` , ``evaluator_env_cfg`` 进行了分开处理，这是考虑到训练过程中为了取得更好的训练效果，例如在Atari环境中经常会使用 ``Wrapper``
+对环境做不同的处理，而 ``Wrapper`` 处理后的 ``evaluator_env`` 其实并不能很好的衡量算法的效果，所以需要区别对待。
+
 为了加快生成数据的效率，nerveX提供了向量化环境运行的机制，即一次运行多个同类环境进行交互生成训练数据，并由 ``Env Manager`` （环境管理器） 模块负责维护相关功能，每次运行批量启动多个环境交互生成数据。环境管理器与环境本身内容完全解耦，无需了解任何环境具体的数据信息，环境本身可以使用任意数据类型，但经过环境管理器处理之后，进入nervex一律为PyTorch Tensor相关数据格式。系统提供了多种实现方式的环境管理器，最常用的子进程环境管理器的实例代码如下：
 
 .. code:: python
@@ -265,19 +292,24 @@ RL不同于传统的监督学习，数据一般是离线准备完成，RL需要�
     from nervex.worker.actor.env_manager import SubprocessEnvManager
 
     # create 4 CartPoleEnv env with default config(set `env_cfg=[{} for _ in range(4)]`)
-    env_manager = SubprocessEnvManager(env_fn=CartPoleEnv, env_cfg=[{} for _ in range(4)], env_num=4, episode_num=2)
+    env_manager = SubprocessEnvManager(env_fn=CartPoleEnv, env_cfg=[{} for _ in range(4)], env_num=4)
 
+我们在 ``serial_pipeline`` 中，通过 ``config`` 文件中对应的 ``cfg.env.env_manager_type`` 控制使用 ``SubprocessEnvManager`` 
+还是 ``BaseEnvManager`` 。
 
 .. note::
 
     向量化环境目前支持用不同的配置创建同类环境（例如地图不同的多个SC2环境），不支持向量化环境中存在不同类模型，如果有此类需求请创建多个环境管理器
 
-搭建神经网络
---------------
+神经网络模型相关
+--------------------
 
-nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，支持用户自定义各式各样的神经网络，不过，nerveX也根据RL等决策算法的需要，构建了一些抽象层次和API，主要分为 ``model`` （模型）和 ``agent`` （智能体）两部分。
+nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，支持用户自定义各式各样的神经网络，不过，nerveX也根据RL等决策算法的需要，构建了一些抽象层次和API，主要分为 ``model`` （模型）和 ``agent`` （智能体）两部分，若已有的Agent组件无法满足需求，使用者也可以完全自定义相关的代码段，其和训练主体代码并无耦合。
 
-模型部分是对一些经典算法的抽象，比如对于Actor-Critic系列算法和Dueling DQN算法，nerveX为其实现了相关的模型基类，其他部分均可由用户根据自己的需要自定义实现。对于在CartPole上最简单版本的DQN，示例代码如下：
+模型部分是对一些经典算法的抽象，比如对于Actor-Critic系列算法和Dueling DQN算法，nerveX为其实现了相关的模型基类，并且进行了多层的模块化的封装，详见 
+``nervex/model/discrete_net/discrete_net.py`` 和其对应的测试文件 ``nervex/model/discrete_net/test_discrete_net.py`` 。
+
+用户也可根据自己的需要自定义实现，示例代码如下：
 
 .. code:: python
 
@@ -312,14 +344,21 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
     act_shape = env_info.act_shape.shape
     model = FCDQN(obs_shape, act_shape)
 
+.. note::
+
+    此处实现的 ``FCDQN`` 示例网络其实相当于 ``nervex/model/discrete_net/discrete_net.py`` 中的 ``FCDiscreteNet``。
+
 
 .. note::
 
-    注意由于Atari是一个离散动作空间环境，神经网络的输出并不是具体的动作值，而是对于整个动作空间选取动作的logits，其将会在其他模块中完成采样操作转化成具体的动作
+    注意由于Atari是一个离散动作空间环境，神经网络的输出并不是具体的动作值，而是对于整个动作空间选取动作的logits，其将会在其他模块中完成采样操作转化成具体的动作。
 
 .. note::
 
-    nerveX的model模块中实现更为复杂的DQN（支持不同Encoder和使用LSTM），使用者可使用内置版本或自定义所用的神经网络。
+    nerveX的model模块中实现更为复杂的DQN（支持不同 ``Encoder和使用 ``LSTM``），使用者可使用自定义所用的神经网络，或内置版本的神经网络。
+    内置版本的神经网络中，以 ``FC`` 开头表示使用接受 ``1-dim`` 的obs输入 ``Encoder`` ，以 ``Conv`` 开头表示使用接受 ``[Channel, Hight, Width]`` 的输入的 ``Encoder`` ，
+    包含 ``R`` 的表示带有含 ``LSTM`` 的Recurrent Network。
+
 
 .. tip::
 
@@ -328,82 +367,64 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
 
 智能体部分是对模型运行时行为的抽象（例如根据eps-greedy方法对logits进行采样，对于使用RNN的神经网络维护其隐状态等），具体的设计可以参考 `Agent Overview <../feature/agent_overview.html>`_ 。由于一个神经网络模型可能在多个系统组件内通过不同的方式使用（训练/数据生成/测试），nerveX使用 ``Agent Plugin`` （智能体插件）的定义不同的功能，并为各个组件内的模型添加相应的插件，完成定制化。对于CartPole DQN，使用系统预设的默认DQN智能体代码即可，示例如下， 其中Learner和Actor分别代码训练端和数据生成端：
 
-.. code:: python
-
-    # refer to https://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/tree/master/nervex/worker/agent/agent_template.py for details
-    from nervex.worker.agent import create_dqn_learner_agent, create_dqn_actor_agent, create_dqn_evaluator_agent
-    
-    learner_agent = create_dqn_learner_agent(model, is_double=cfg.learner.dqn.is_double)
-    actor_agent = create_dqn_actor_agent(model)
-    evaluator_agent = create_dqn_evaluator_agent(model)
 
 .. note::
 
-   如果使用者想要定义自己的agent，请参考 `Agent Overview <../feature/agent_overview.html>`_ 中相关内容。
+   如果使用者想要定义自己的agent，请参考 `Agent Overview <../feature/agent_overview.html>`_ 中相关内容。如果使用者觉得Agent的现有设计和实现无法满足需求，也可以自定义完成相应的功能，nerveX并不强制要求使用Agent。
 
-搭建强化学习训练策略
+优化目标(损失函数)相关
 -------------------------
-在nerveX中，构建算法训练主要需要使用者完成个人定制化的 ``computation graph`` (计算图)和 ``learner`` (学习器) 两部分。
+在nerveX中，构建算法训练需要执行相应前向计算过程得到优化目标（loss）的模块，负责将预处理好后的数据合理地送入模型进行处理，之后使用模型输出结果计算该次迭代的优化目标，返回相关结果。
 
-计算图是在给定数据和模型（智能体）之后，执行相应前向计算过程得到优化目标（loss）的模块，负责将预处理好后的数据合理地送入模型进行处理，之后使用模型输出结果计算该次迭代的优化目标，返回相关结果。
-
-.. note::
-
-    注意 **一个模型** 在训练时可能会选择 **多种不同的计算图** 进行优化（比如各种RL算法或是加上监督学习SL）。 **多个模型** 也可能执行 **同一个计算图** （比如多种网络结构的模型都执行TD-error（时序差分）RL算法进行更新）。故一般相关的状态变量都在模型的运行时抽象——智能体（Agent）中维护。下面是使用CartPole Double DQN方法的计算图：
+优化目标(损失函数)相关的内容在 ``nervex/rl_utils`` 中可以找到，如DQN算法就需要使用基于Q值的td error， 如 ``nervex/rl_utils/td.py`` 中的函数：
 
 .. code:: python
 
-        from nervex.computation_graph import BaseCompGraph
-        from nervex.rl_utils import q_1step_td_data, q_1step_td_error
-
-
-        class CartPoleDqnGraph(BaseCompGraph):
-
-            def __init__(self, cfg):
-                self._gamma = cfg.dqn.discount_factor
-
-            def forward(self, data, agent):
-                obs = data.get('obs')
-                nextobs = data.get('next_obs')
-                reward = data.get('reward')
-                action = data.get('action')
-                terminate = data.get('done').float()
-                weights = data.get('weights', None)
-
-                q_value = agent.forward(obs)['logit']
-                if agent.is_double:
-                    target_q_value = agent.target_forward(nextobs)['logit']
-                else:
-                    target_q_value = agent.forward(nextobs)['logit']
-
-                data = q_1step_td_data(q_value, target_q_value, action, reward, terminate)
-                loss = q_1step_td_error(data, self._gamma, weights)
-                if agent.is_double:
-                    agent.target_update(agent.state_dict()['model'])
-                return {'total_loss': loss}
-
-学习器维护整个训练pipeline，根据当前设定的数据源，模型，计算图完成训练迭代，输出即时的训练日志信息和其他结果。同时，作为整个系统的一种功能模块，和其他模块进行通信交互，传递当前算法训练的相关信息。一般来说，使用者首先应该关注训练迭代过程，关于学习器和数据生成器等其他模块的交互，将在之后复杂多机分布式版本的指南中介绍。CartPole DQN的学习器示例如下：
+    q_nstep_td_data = namedtuple(
+        'q_nstep_td_data', ['q', 'next_n_q', 'action', 'next_n_action', 'reward', 'done', 'weight']
+    )
 
 .. code:: python
 
-    from nervex.worker import BaseLearner
+    def q_nstep_td_error(
+            data: namedtuple,
+            gamma: float,
+            nstep: int = 1,
+            criterion: torch.nn.modules = nn.MSELoss(reduction='none'),
+    ) -> torch.Tensor:
+        r"""
+        Overview:
+            Multistep (1 step or n step) td_error for q-learning based algorithm
+        Arguments:
+            - data (:obj:`q_nstep_td_data`): the input data, q_nstep_td_data to calculate loss
+            - gamma (:obj:`float`): discount factor
+            - criterion (:obj:`torch.nn.modules`): loss function criterion
+            - nstep (:obj:`int`): nstep num, default set to 1
+        Returns:
+            - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
+        Shapes:
+            - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
+                ['q', 'next_n_q', 'action', 'reward', 'done']
+            - q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
+            - next_n_q (:obj:`torch.FloatTensor`): :math:`(B, N)`
+            - action (:obj:`torch.LongTensor`): :math:`(B, )`
+            - next_n_action (:obj:`torch.LongTensor`): :math:`(B, )`
+            - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
+            - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
+        """
+        q, next_n_q, action, next_n_action, reward, done, weight = data
+        assert len(action.shape) == 1, action.shape
+        if weight is None:
+            weight = torch.ones_like(action)
 
+        batch_range = torch.arange(action.shape[0])
+        q_s_a = q[batch_range, action]
+        target_q_s_a = next_n_q[batch_range, next_n_action]
 
-    class CartPoleDqnLearner(BaseLearner):
-        _name = "CartPoleDqnLearner"
+        target_q_s_a = nstep_return(nstep_return_data(reward, target_q_s_a, done), gamma, nstep)
+        return (criterion(q_s_a, target_q_s_a.detach()) * weight).mean()
 
-        def _setup_agent(self):
-            env_info = CartPoleEnv(self._cfg.env).info()
-            model = FCDQN(env_info.obs_space.shape, env_info.act_space.shape, dueling=self._cfg.learner.dqn.dueling)
-            if self._cfg.learner.use_cuda:
-                model.cuda()
-            self._agent = create_dqn_learner_agent(model, is_double=self._cfg.learner.dqn.is_double)
-            self._agent.mode(train=True)
-            if self._agent.is_double:
-                self._agent.target_mode(train=True)
-
-        def _setup_computation_graph(self):
-            self._computation_graph = CartPoleDqnGraph(self._cfg.learner)
+所有 ``loss`` 相关的算法都是使用某种 ``namedtuple`` 作为计算的输入格式。
 
 搭建数据队列
 -------------
@@ -411,26 +432,455 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
 
 .. code:: python
 
-    from nervex.data import PrioritizedBuffer 
+    from nervex.data import ReplayBuffer
 
 
-    buffer_ = PrioritizedBuffer(maxlen=10000)
+    # you can refer to `nervex/data/replay_buffer_default_config.yaml` for the detailed configuration 
+    cfg = {'meta_maxlen': 10}
+    buffer_ = ReplayBuffer(cfg)
 
     # add 10 data
     for _ in range(10):
-        buffer_.append({'data': 'placeholder'})
+        buffer_.push_data({'data': 'placeholder'})
     data = buffer_.sample(4)  # sample 4 data
+
+而在 ``serial_pipeline`` 中，我们通过 ``cfg.replay_buffer`` 对 ``replay_buffer`` 自动进行了创建：
+
+.. code:: python
+
+    replay_buffer = ReplayBuffer(cfg.replay_buffer)
+
+创建策略
+--------
+nerveX已经实现了诸多DRL常用算法，使用者可在配置文件中指定需要使用的RL算法名以及相应的模块名，创建policy的代码如下：
+
+.. code:: python
+
+    policy = create_policy(cfg.policy)
+
+如果使用者想要自定义策略，可以参见文档QA中的说明进行实现，并指定 ``serial_pipeline`` 的 ``policy_fn`` 参数传入该自定义类
+
+DRL Policy Example(DQN)
+--------------------------------------------------
+
+在撰写DQN Policy之前，我们先 ``import`` 需要的模块
+
+
+.. code:: python
+
+    #引入typing类规范格式
+    from typing import List, Dict, Any, Tuple, Union, Optional
+
+.. code:: python
+
+    #我们的模型框架基于PyTorch
+    import torch
+
+.. code:: python
+
+    #我们的环境返回的timestep基于nametuple，训练过程中的trajectory则是放在deque中
+    from collections import namedtuple, deque
+    
+    #我们的transition data是EasyDict格式
+    from easydict import EasyDict
+
+.. code:: python
+
+    #默认继承和扩展了torch.optim类的optimizer（集成各种梯度处理操作），也可以自由选用其他优化器
+    from nervex.torch_utils import Adam
+
+.. code:: python
+
+    #DQN是q value相关的算法，因此引入q值相关的loss计算函数
+    from nervex.rl_utils import q_1step_td_data, q_1step_td_error, q_nstep_td_data, q_nstep_td_error
+    
+    #epsilon_greedy for exploration
+    from nervex.rl_utils import epsilon_greedy
+    
+    #Adder用于处理actor产生的数据，生成训练所需的数据内容（Adder是可选使用模块，使用者也可自定义相应的处理模块）
+    from nervex.rl_utils import Adder
+
+.. code:: python
+
+    #Agent模块，神经网络的运行时容器，为神经网络在不同使用场景下提供相应功能，包括用于更新策略的learner部分和用于collect数据的actor部分以及用于eval的evaluator部分
+    #(Agent是可选使用模块，使用者也可自定义相应的处理模块)
+    #Agent具体的使用方式可以参照下面代码中的实例
+    from nervex.agent import Agent
+
+.. code:: python
+
+    #算法使用的model，通常为神经网络
+    from nervex.model import FCDiscreteNet, ConvDiscreteNet
+
+.. code:: python
+
+    #引入Policy基类
+    from .base_policy import Policy, register_policy
+    from .common_policy import CommonPolicy
+
+下面以DQN Policy为例讲解如何构建一个新的Policy类 DQN
+Policy中只需实现与具体算法策略相关的内容，其编写需要实现几个部分：
+
+ - 算法使用的 ``model``，通常为神经网络， 即 ``self._model``
+ - 算法进行神经网络优化的部分(learn)，通常包括优化器，即 ``self._optimizer`` ，训练优化前的数据处理，训练优化的整个计算图(forward)，包括前向传播计算得到损失函数，梯度反向传播进行参数更新，其他信息的更新
+ - 算法准备训练数据的部分(collect)，通常包括模型前向推理生成数据的计算图(forward)，前后的数据处理，如何得到某个时间步的一个数据帧(transition)，如何把收集到的诸多数据帧组织成训练所用的样本(get_train_sample)
+ - 算法进行模型性能评测的部分(eval)，通常包括模型前向推理进行评测的计算图(forward)，前后的数据处理
+ - 算法在上述三个模块之间传递信息，控制和指挥三个模块的部分(command)，比如DQN中epsilon_greedy需要根据训练的迭代数来确定探索所用的epsilon值，并把这个值交给数据收集部分
+
+而算法的其他结构，如：
+
+ - ``Replay Buffer``
+ - ``Env``
+
+则由入口类serial_pipeline创建完成，不需要在Policy类中再进行实现
+
+所有Policy需要继承 ``Policy`` 类，一些常用的方法实现被封装在 ``CommonPolicy`` 类中，如果不需要定制化也可以直接继承它
+
+.. code:: python
+
+    #所有Policy需要继承Policy类
+    class DQNPolicy(CommonPolicy):
+        r"""
+        Overview:
+            Policy class of DQN algorithm.
+        """
+
+我们需要对learn部分进行初始化，包括：
+
+- 初始化learn的optimizer， 即 ``self._optimizer`` 
+- 初始化算法的相关参数 
+- 初始化learn所用的运行时模块learner agent ，即 ``self._agent``
+- 初始化agent的相关model和plugin 
+
+  - 如初始化target network(double dqn中的设计)
+
+  - 如在训练时使用 ``argmax`` 进行sample 
+
+为此我们实现 ``_init_learn`` 方法
+
+.. code:: python
+
+        
+        def _init_learn(self) -> None:
+            r"""
+            Overview:
+                Learn mode init method. Called by ``self.__init__``.
+                Init the optimizer, algorithm config, main and target agents.
+            """
+            # Optimizer
+            # 初始化learn的optimizer
+            self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
+    
+            # Algorithm config
+            # 初始化算法的相关参数
+            algo_cfg = self._cfg.learn.algo
+            self._nstep = algo_cfg.nstep
+            self._gamma = algo_cfg.discount_factor
+        
+            # Main and target agents
+            # 初始化的模型传入agent
+            self._agent = Agent(self._model)
+            
+            # 初始化agent的相关model
+            self._agent.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
+            # 初始化agent的相关plugin
+            self._agent.add_plugin('main', 'argmax_sample')
+            self._agent.add_plugin('main', 'grad', enable_grad=True)
+            self._agent.add_plugin('target', 'grad', enable_grad=False)
+            
+            #常规初始化
+            self._agent.mode(train=True)
+            self._agent.target_mode(train=True)
+            
+            self._agent.reset()
+            self._agent.target_reset()
+            self._learn_setting_set = {}
+
+我们的learner需要知道如何计算loss，并进行模型的更新等操作
+
+为此我们实现 ``_forward_learn`` 方法
+
+.. code:: python
+
+    
+        def _forward_learn(self, data: dict) -> Dict[str, Any]:
+            r"""
+            Overview:
+                Forward and backward function of learn mode.
+            Arguments:
+                - data (:obj:`dict`): Dict type data, including at least ['obs', 'action', 'reward', 'next_obs']
+            Returns:
+                - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
+            """
+    
+            # ====================
+            # Q-learning forward
+            # ====================
+            # Reward reshaping for n-step
+            reward = data['reward']
+            if len(reward.shape) == 1:
+                reward = reward.unsqueeze(1)
+            assert reward.shape == (self._cfg.learn.batch_size, self._nstep), reward.shape
+            reward = reward.permute(1, 0).contiguous()
+            # Current q value (main agent)
+            q_value = self._agent.forward(data['obs'])['logit']
+            # Target q value
+            target_q_value = self._agent.target_forward(data['next_obs'])['logit']
+            # Max q value action (main agent)
+            target_q_action = self._agent.forward(data['next_obs'])['action']
+    
+            data_n = q_nstep_td_data(
+                q_value, target_q_value, data['action'], target_q_action, reward, data['done'], data['weight']
+            )
+            loss = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep)
+    
+            # ====================
+            # Q-learning update
+            # ====================
+            self._optimizer.zero_grad()
+            loss.backward()
+            self._optimizer.step()
+    
+            # =============
+            # after update
+            # =============
+            self._agent.target_update(self._agent.state_dict()['model'])
+            return {
+                'cur_lr': self._optimizer.defaults['lr'],
+                'total_loss': loss.item(),
+            }
+
+我们也需要对actor部分进行初始化，包括： 
+
+- actor数据的收集方式， 包括 ``self._adder`` 等
+- 初始化的模型传入actor agent， 即 ``self._collect_agent`` 
+- 初始化agent的相关plugin 
+
+  - 如actor使用 ``eps_greedy`` 进行sample
+
+为此我们实现 ``_init_collect`` 方法
+
+.. code:: python
+
+      def _init_collect(self) -> None:
+            r"""
+            Overview:
+                Collect mode init method. Called by ``self.__init__``.
+                Init traj and unroll length, adder, collect agent.
+                Enable the eps_greedy_sample
+            """
+            # actor数据的收集方式
+            self._traj_len = self._cfg.collect.traj_len
+            if self._traj_len == "inf":
+                self._traj_len == float("inf")
+            self._unroll_len = self._cfg.collect.unroll_len
+            self._adder = Adder(self._use_cuda, self._unroll_len)
+            self._collect_nstep = self._cfg.collect.algo.nstep
+            
+            # 初始化的模型传入actor agent
+            self._collect_agent = Agent(self._model)
+            
+            # 初始化agent的相关plugin
+            self._collect_agent.add_plugin('main', 'eps_greedy_sample')
+            self._collect_agent.add_plugin('main', 'grad', enable_grad=False)
+            
+            # 常规初始化
+            self._collect_agent.mode(train=False)
+            self._collect_agent.reset()
+            self._collect_setting_set = {'eps'}
+
+我们的actor需要根据环境返回的observation获取相关动作数据
+
+为此我们实现 ``_forward_collect`` 方法
+
+.. code:: python
+
+    
+        def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+            r"""
+            Overview:
+                Forward function for collect mode with eps_greedy
+            Arguments:
+                - data_id (:obj:`List` of :obj:`int`): Not used, set in arguments for consistency
+                - data (:obj:`dict`): Dict type data, including at least ['obs'].
+            Returns:
+                - data (:obj:`dict`): The collected data
+            """
+            return self._collect_agent.forward(data, eps=self._eps)
+
+我们需要从trajectory（一组数据帧(transition)）中获取需要的训练样本
+
+为此我们实现 ``_get_train_sample`` 方法
+
+.. code:: python
+
+    
+        def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
+            r"""
+            Overview:
+                Get the trajectory and the n step return data, then sample from the n_step return data
+            Arguments:
+                - traj_cache (:obj:`deque`): The trajectory's cache
+            Returns:
+                - samples (:obj:`dict`): The training samples generated
+            """
+            # adder is defined in _init_collect
+            return_num = 0 if self._collect_nstep == 1 else self._collect_nstep
+            data = self._adder.get_traj(traj_cache, self._traj_len, return_num=return_num)
+            data = self._adder.get_nstep_return_data(data, self._collect_nstep, self._traj_len)
+            return self._adder.get_train_sample(data)
+
+
+我们需要将对应的数据加入transition，即在 ``BaseSerialActor`` 中实现的：
+
+.. code:: python
+
+    transition = self._policy.process_transition(self._obs_pool[env_id], self._policy_output_pool[env_id], timestep)
+
+
+
+为此我们实现 ``_process_transition`` 方法，即获取一个时间步的数据帧(transition)
+
+.. code:: python
+
+    
+        def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
+            r"""
+           Overview:
+               Generate dict type transition data from inputs.
+           Arguments:
+               - obs (:obj:`Any`): Env observation
+               - agent_output (:obj:`dict`): Output of collect agent, including at least ['action']
+               - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
+                   (here 'obs' indicates obs after env step).
+           Returns:
+               - transition (:obj:`dict`): Dict type transition data.
+           """
+            transition = {
+                'obs': obs,
+                'next_obs': timestep.obs,
+                'action': agent_output['action'],
+                'reward': timestep.reward,
+                'done': timestep.done,
+            }
+            return EasyDict(transition)
+
+
+我们需要对evaluator部分进行初始化，包括：
+
+-  初始化的模型传入 eval agent， 即 ``self._eval_agent``
+-  初始化agent的相关plugin
+
+   -  如使用 ``argmax`` 进行sample
+
+为此我们实现 ``_init_eval`` 方法
+
+我们的evaluator需要根据环境返回的observation获取相关动作数据
+
+为此我们实现 ``_forward_eval`` 方法
+
+.. code:: python
+
+    
+    
+        def _init_eval(self) -> None:
+            r"""
+            Overview:
+                Evaluate mode init method. Called by ``self.__init__``.
+                Init eval agent with argmax strategy.
+            """
+            self._eval_agent = Agent(self._model)
+            self._eval_agent.add_plugin('main', 'argmax_sample')
+            self._eval_agent.add_plugin('main', 'grad', enable_grad=False)
+            self._eval_agent.mode(train=False)
+            self._eval_agent.reset()
+            self._eval_setting_set = {}
+    
+        def _forward_eval(self, data_id: List[int], data: dict) -> dict:
+            r"""
+            Overview:
+                Forward function for eval mode, similar to ``self._forward_collect``.
+            Arguments:
+                - data_id (:obj:`List[int]`): Not used in this policy.
+                - data (:obj:`dict`): Dict type data, including at least ['obs'].
+            Returns:
+                - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
+            """
+            return self._eval_agent.forward(data)
+
+在 ``_init_command`` 方法中，我们需要对相关控制模块进行初始化，比如epsilon_greedy的计算模块，使用者无需考虑信息在learner和actor之间如何传递，只需要考虑拿到信息后做怎样的数据处理即可
+
+在 ``_get_setting_collect`` 方法中，我们使用command中的组件，根据相关信息（比如训练迭代数），来为collect部分设置下一次工作的相关配置
+
+.. code:: python
+
+    
+        def _init_command(self) -> None:
+            r"""
+            Overview:
+                Command mode init method. Called by ``self.__init__``.
+                Set the eps_greedy rule according to the config for command
+            """
+            eps_cfg = self._cfg.command.eps
+            self.epsilon_greedy = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
+    
+        def _get_setting_collect(self, command_info: dict) -> dict:
+            r"""
+            Overview:
+                Collect mode setting information including eps
+            Arguments:
+                - command_info (:obj:`dict`): Dict type, including at least ['learner_step']
+            Returns:
+               - collect_setting (:obj:`dict`): Including eps in collect mode.
+            """
+            learner_step = command_info['learner_step']
+            return {'eps': self.epsilon_greedy(learner_step)}
+        
+        
+
+我们需要根据config初始化我们的模型，传给 ``self._model``
+
+为此我们实现 ``_create_model_from_cfg`` 方法，该方法中会使用默认的神经网络模型，如果用户需要定制自己的神经网络，可通过 ``model_type`` 参数来处理。
+
+.. code:: python
+
+    
+        def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
+            r"""
+           Overview:
+               Create a model according to input config. This policy will adopt DiscreteNet.
+           Arguments:
+               - cfg (:obj:`dict`): Config.
+               - model_type (:obj:`Optional[type]`): If this is not None, this function will create \
+                   an instance of this.
+           Returns:
+               - model (:obj:`torch.nn.Module`): Generated model.
+           """
+            if model_type is None:
+                return FCDiscreteNet(**cfg.model)
+            else:
+                return model_type(**cfg.model)
+    
+    
+
+
+在实现了Policy class之后，我们需要对该Policy class进行注册，这样 ``serial_pipeline`` 才能知道此policy的存在
+
+.. code:: python
+
+    # 注册dqn policy
+    register_policy('dqn', DQNPolicy)
+
+
+这样，我们就完成了 ``DQNPolicy`` 类的撰写
+
 
 .. note::
 
-    将上述各个模块组装起来构成完整的训练代码，nerveX提供了简易的 ``SingleMachineRunner`` ，可以参见 ``nervex/entry/base_single_machine.py`` ，使用者
-    需要重写该类中的部分方法来完成自己的训练入口，具体是:
-      
-      - _setup_env: 设置数据生成和测试用的环境
-      - _setup_learner: 将用户定义的学习器传递给runner
-      - _setup_agent: 设置数据生成和测试用的智能体
+    将上述各个模块组装起来构成完整的训练代码，nerveX提供了简易的 ``serial_pipeline`` ，可以参见 ``nervex/entry/serial_entry.py`` ，使用者
+    需要编写 ``config`` 文件来完成自己的训练入口，具体可以参考 ``nervex/entry/tests/test_serial_entry.py`` 中的使用方式。
     
     此外，使用者还可以重写修改其他方法实现自定义功能。
 
-以上指南简述了如何基于nerveX搭建一个最简单的DRL训练pipeline，完整可运行的示例代码可以参见 ``app_zoo/classic_control/cartpole/entry/cartpole_single_machine/cartpole_main.py`` ，训练配置文件各个字段
-的具体含义则可以参见 `cartpole_dqn_cfg <../configuration/index.html#cartpole-dqn-config>`_。
+以上指南简述了如何基于nerveX搭建一个最简单的DRL训练pipeline，训练配置文件各个字段
+的具体含义则可以参见 `cartpole_dqn_cfg <../configuration/index.html#cartpole-dqn-config>`_，有其他的使用问题也可以参考文档的QA部分。
