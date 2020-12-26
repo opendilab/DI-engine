@@ -36,7 +36,7 @@ policy:
         eps:
             type: 'exp'
             start: 0.95
-            end: 0.1
+            end: 0.2
             decay: 10000
 replay_buffer:
     meta_maxlen: 1000

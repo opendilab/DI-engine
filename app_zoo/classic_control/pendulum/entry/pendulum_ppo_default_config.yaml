@@ -13,10 +13,10 @@ policy:
     use_cuda: False
     policy_type: 'ppo_vanilla'
     import_names: ['nervex.policy.ppo_vanilla']
-    on_policy: True
+    on_policy: False
     model:
         continous: True
-        fixed_sigma_value: 0.3
+        fixed_sigma_value: 0.2
         obs_dim: 3
         action_dim: 1
         embedding_dim: 64
@@ -48,7 +48,7 @@ replay_buffer:
     min_sample_ratio: 1
 actor:
     n_episode: 16
-    traj_len: 200  # cartpole max episode len
+    traj_len: 200  
     traj_print_freq: 100
     collect_print_freq: 100
 evaluator:
