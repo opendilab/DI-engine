@@ -23,6 +23,7 @@ class ValueAC(ValueActorCriticBase):
             embedding_dim: int,
             head_hidden_dim: int = 128,
             continous=False,
+            fixed_sigma_value=None,
     ) -> None:
         r"""
         Overview:
@@ -41,6 +42,7 @@ class ValueAC(ValueActorCriticBase):
         self._encoder = self._setup_encoder()
         self._head_layer_num = 2
         self.continous = continous
+        self.fixed_sigma_value = fixed_sigma_value
         # actor head
         input_dim = embedding_dim
         layers = []
@@ -51,7 +53,7 @@ class ValueAC(ValueActorCriticBase):
         layers.append(nn.Linear(input_dim, self._act_dim))
         self._actor = nn.Sequential(*layers)
         # sigma head
-        if continous:
+        if continous and self.fixed_sigma_value is None:
             input_dim = embedding_dim
             layers = []
             for _ in range(self._head_layer_num):
@@ -115,9 +117,10 @@ class ValueAC(ValueActorCriticBase):
         logit = self._actor_forward(embedding)
         if self.continous:
             mu = torch.tanh(logit)
-            log_sigma = self._log_sigma(embedding)
-            # sigma = torch.clamp_max(log_sigma, max=2).exp()
-            sigma = 0.3 * torch.ones_like(mu)  # fix gamma to debug
+            sigma = torch.clamp_max(
+                self._log_sigma(embedding), max=2
+            ).exp(
+            ) if self.fixed_sigma_value is None else self.fixed_sigma_value * torch.ones_like(mu)  # fix gamma to debug
             logit = (mu, sigma)
 
         return {'value': value, 'logit': logit}
@@ -139,9 +142,10 @@ class ValueAC(ValueActorCriticBase):
         logit = self._actor_forward(embedding)
         if self.continous:
             mu = torch.tanh(logit)
-            log_sigma = self._log_sigma(embedding)
-            # sigma = torch.clamp_max(log_sigma, max=2).exp()
-            sigma = 0.3 * torch.ones_like(mu)  # fix gamma to debug
+            sigma = torch.clamp_max(
+                self._log_sigma(embedding), max=2
+            ).exp(
+            ) if self.fixed_sigma_value is None else self.fixed_sigma_value * torch.ones_like(mu)  # fix gamma to debug
             logit = (mu, sigma)
 
         return {'logit': logit}

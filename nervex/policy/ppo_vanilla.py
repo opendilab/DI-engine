@@ -17,7 +17,6 @@ from .common_policy import CommonPolicy
 class PPOPolicy(CommonPolicy):
 
     def _init_learn(self) -> None:
-        # self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._optimizer = Adam(
             self._model.parameters(),
             grad_clip_type="clip_value",

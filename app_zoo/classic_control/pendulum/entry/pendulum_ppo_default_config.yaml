@@ -16,6 +16,7 @@ policy:
     on_policy: True
     model:
         continous: True
+        fixed_sigma_value: 0.3
         obs_dim: 3
         action_dim: 1
         embedding_dim: 64
