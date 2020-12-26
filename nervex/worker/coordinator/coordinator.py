@@ -257,10 +257,10 @@ class Coordinator(object):
         pass
 
     def info(self, s: str) -> None:
-        self._logger.info('[Coordinator()]: {}'.format(self._coordinator_uid, s))
+        self._logger.info('[Coordinator({})]: {}'.format(self._coordinator_uid, s))
 
     def error(self, s: str) -> None:
-        self._logger.error('[Coordinator()]: {}'.format(self._coordinator_uid, s))
+        self._logger.error('[Coordinator({})]: {}'.format(self._coordinator_uid, s))
 
     def _record_task(self, task: dict):
         self._task_state[task['task_id']] = TaskState(task['task_id'])
