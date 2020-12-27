@@ -118,8 +118,9 @@ class TestBaseBuffer:
         assert (setup_base_buffer.max_priority != max(info['priority']))
         for i in range(2):
             assert (origin_data[selected_idx[i]]['priority'] == setup_base_buffer._data[selected_idx[i]]['priority'])
+        eps = setup_base_buffer._eps
         for i in range(2, 5):
-            assert (info['priority'][i] == setup_base_buffer._data[selected_idx[i]]['priority'])
+            assert (info['priority'][i] + eps == setup_base_buffer._data[selected_idx[i]]['priority'])
 
     def test_sample(self, setup_base_buffer):
         for _ in range(64):

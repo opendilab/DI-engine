@@ -88,7 +88,7 @@ class DQNPolicy(CommonPolicy):
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
-            'priority': td_error_per_sample.tolist(),
+            'priority': td_error_per_sample.abs().tolist(),
         }
 
     def _init_collect(self) -> None:

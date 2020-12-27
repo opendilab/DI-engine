@@ -3,7 +3,8 @@ replay_buffer:
     max_reuse: 16
     min_sample_ratio: 2
     alpha: 0.6
-    beta: 0.5
+    beta: 0.4
+    anneal_step: 0  # 0 means no annealing, 20000 for atari env
     cache_maxlen: 256
     timeout: 8 # times of the seconds of per learning iteration
     enable_track_used_data: False
