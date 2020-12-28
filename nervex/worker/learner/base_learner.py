@@ -144,7 +144,7 @@ class BaseLearner(ABC):
         # checkpoint helper
         self._checkpointer_manager = build_checkpoint_helper(self._cfg)
         self._hooks = {'before_run': [], 'before_iter': [], 'after_iter': [], 'after_run': []}
-        self._collate_fn = default_collate
+        self._collate_fn = lambda x: x
         self._collect_info = {}
 
     def _check_policy(self) -> bool:
@@ -237,8 +237,8 @@ class BaseLearner(ABC):
             - data (:obj:`Any`): data used for training
         """
         self.call_hook('before_iter')
-        replay_buffer_idx = [d.get('replay_buffer_idx') for d in data]
-        replay_unique_id = [d.get('replay_unique_id') for d in data]
+        replay_buffer_idx = [d.get('replay_buffer_idx', None) for d in data]
+        replay_unique_id = [d.get('replay_unique_id', None) for d in data]
         with self._timer:
             data = self._policy.data_preprocess(data)
         log_vars = self._policy.forward(data)
