@@ -53,7 +53,7 @@ class IMPALAPolicy(CommonPolicy):
             'entropy_loss': vtrace_loss.entropy_loss.item(),
         }
 
-    def _reshape_data(self, output, data, use_softmax=True):
+    def _reshape_data(self, output: dict, data: dict) -> tuple:
         target_logit = output['logit'].reshape(self._unroll_len + 1, -1, output['logit'].shape[-1])[:-1]
         behaviour_logit = torch.cat(data['logit'], dim=0).reshape(self._unroll_len, -1, output['logit'].shape[-1])
         actions = torch.cat(data['action'], dim=0).reshape(self._unroll_len, -1)

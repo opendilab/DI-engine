@@ -9,7 +9,7 @@ env:
     actor_env_num: 8
     evaluator_env_num: 5
 policy:
-    use_cuda: True
+    use_cuda: False
     policy_type: 'impala'
     import_names: ['nervex.policy.impala']
     on_policy: False
