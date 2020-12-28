@@ -195,6 +195,7 @@ def q_nstep_td_error(
         - nstep (:obj:`int`): nstep num, default set to 1
     Returns:
         - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
+        - td_error_per_sample (:obj:`torch.Tensor`): nstep td error, 1-dim tensor
     Shapes:
         - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
             ['q', 'next_n_q', 'action', 'reward', 'done']
@@ -204,6 +205,7 @@ def q_nstep_td_error(
         - next_n_action (:obj:`torch.LongTensor`): :math:`(B, )`
         - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
         - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
+        - td_error_per_sample (:obj:`torch.FloatTensor`): :math:`(B, )`
     """
     q, next_n_q, action, next_n_action, reward, done, weight = data
     assert len(action.shape) == 1, action.shape
@@ -215,7 +217,8 @@ def q_nstep_td_error(
     target_q_s_a = next_n_q[batch_range, next_n_action]
 
     target_q_s_a = nstep_return(nstep_return_data(reward, target_q_s_a, done), gamma, nstep)
-    return (criterion(q_s_a, target_q_s_a.detach()) * weight).mean()
+    td_error_per_sample = criterion(q_s_a, target_q_s_a.detach())
+    return (td_error_per_sample * weight).mean(), td_error_per_sample
 
 
 def q_nstep_td_error_with_rescale(

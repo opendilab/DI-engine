@@ -144,7 +144,7 @@ class BaseLearner(ABC):
         # checkpoint helper
         self._checkpointer_manager = build_checkpoint_helper(self._cfg)
         self._hooks = {'before_run': [], 'before_iter': [], 'after_iter': [], 'after_run': []}
-        self._collate_fn = default_collate
+        self._collate_fn = lambda x: x
         self._collect_info = {}
 
     def _check_policy(self) -> bool:
@@ -237,9 +237,13 @@ class BaseLearner(ABC):
             - data (:obj:`Any`): data used for training
         """
         self.call_hook('before_iter')
+        replay_buffer_idx = [d.get('replay_buffer_idx', None) for d in data]
+        replay_unique_id = [d.get('replay_unique_id', None) for d in data]
         with self._timer:
             data = self._policy.data_preprocess(data)
         log_vars = self._policy.forward(data)
+        priority = log_vars.pop('priority', None)
+        self.priority_info = {'replay_buffer_idx': replay_buffer_idx, 'replay_unique_id': replay_unique_id, 'priority': priority}
         log_vars['data_preprocess_time'] = self._timer.value
         log_vars.update(self.collect_info)
         self._log_buffer.update(log_vars)
@@ -399,6 +403,14 @@ class BaseLearner(ABC):
     @collect_info.setter
     def collect_info(self, collect_info: dict) -> None:
         self._collect_info = {k: float(v) for k, v in collect_info.items()}
+
+    @property
+    def priority_info(self) -> dict:
+        return self._priority_info
+
+    @priority_info.setter
+    def priority_info(self, _priority_info: dict) -> None:
+        self._priority_info = _priority_info
 
 
 learner_mapping = {}
