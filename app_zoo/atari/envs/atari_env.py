@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, List
 import copy
 import torch
 from nervex.envs import BaseEnv, register_env
