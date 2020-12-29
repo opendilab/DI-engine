@@ -34,8 +34,29 @@ pages:
   only:
     - master
 
-test:
+test_unittest:
   stage: test
+  variables:
+    WORKERS: 8 # if you need to change to concurrency, just change here
+  #    RANGE_DIR: ./nervex/xxxx # if you need to test some of the dirs, just change here
   script:
     - pip install -e .
-    - pytest ./nervex --cov-report term-missing --cov=./nervex -n 8 -sv -m unittest
+    - make unittest
+
+test_algotest:
+  stage: test
+  variables:
+    DURATIONS: 10 # the count of durations
+  #    RANGE_DIR: ./nervex/xxxx # if you need to test some of the dirs, just change here
+  script:
+    - pip install -e .
+    - make algotest
+
+test_benchmark:
+  stage: test
+  variables:
+    WORKERS: 8 # if you need to change to concurrency, just change here
+  #    RANGE_DIR: ./nervex/xxxx # if you need to test some of the dirs, just change here
+  script:
+    - pip install -e .
+    - make benchmark

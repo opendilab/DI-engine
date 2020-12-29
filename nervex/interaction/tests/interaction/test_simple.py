@@ -1,54 +1,18 @@
-from multiprocessing import Event, Process
-from typing import Mapping, Any
-
 import pytest
 from requests import HTTPError
 
-from ..test_utils import silence_function, random_port, random_channel
-from ...master import Master
+from .bases import _TestInteractionBase
+from ..test_utils import random_port
 from ...master.task import TaskStatus
-from ...slave import Slave, TaskFail
 
 
 @pytest.mark.unittest
-class TestInteractionSimple:
-    # noinspection PyMethodMayBeStatic
-    def __slave_endpoint(self, port: int, channel: int, silence: bool = True):
-        open_slave_event = Event()
-        close_slave_event = Event()
-
-        class MySlave(Slave):
-
-            def _process_task(self, task: Mapping[str, Any]):
-                if 'a' in task.keys() and 'b' in task.keys():
-                    return {'sum': task['a'] + task['b']}
-                else:
-                    raise TaskFail(result={'message': 'ab not found'}, message='A or B not found in task data.')
-
-        def _run_slave():
-            with MySlave('0.0.0.0', port, channel=channel):
-                open_slave_event.set()
-                close_slave_event.wait()
-
-        if silence:
-            _run_slave = silence_function()(_run_slave)
-
-        slave_process = Process(target=_run_slave)
-
-        return slave_process, open_slave_event, close_slave_event
-
-    # noinspection PyMethodMayBeStatic
-    def __get_master_endpoint(self, port: int, channel: int):
-
-        class MyMaster(Master):
-            pass
-
-        return MyMaster('0.0.0.0', port, channel=channel)
+class TestInteractionSimple(_TestInteractionBase):
 
     @pytest.mark.execution_timeout(10.0, method='thread')
     def test_slave_launch(self):
-        _slave_port, _channel = random_port(), random_channel()
-        slave_thread, open_slave_event, close_slave_event = self.__slave_endpoint(_slave_port, _channel)
+        _slave_port, _channel = self._random_slave_channel_and_port()
+        slave_thread, open_slave_event, close_slave_event = self._slave_endpoint(_slave_port, _channel)
 
         slave_thread.start()
         open_slave_event.wait()
@@ -58,15 +22,15 @@ class TestInteractionSimple:
 
     @pytest.mark.execution_timeout(20.0, method='thread')
     def test_slave_simple_connection(self):
-        _slave_port, _channel = random_port(), random_channel()
-        slave_thread, open_slave_event, close_slave_event = self.__slave_endpoint(_slave_port, _channel)
+        _slave_port, _channel = self._random_slave_channel_and_port()
+        slave_thread, open_slave_event, close_slave_event = self._slave_endpoint(_slave_port, _channel)
 
         slave_thread.start()
         open_slave_event.wait()
 
         try:
             _master_port = random_port()
-            master = self.__get_master_endpoint(_master_port, _channel)
+            master = self._get_master_endpoint(_master_port, _channel)
             with master:
                 assert master.ping()
 
@@ -102,15 +66,15 @@ class TestInteractionSimple:
 
     @pytest.mark.execution_timeout(20.0, method='thread')
     def test_slave_simple_task(self):
-        _slave_port, _channel = random_port(), random_channel()
-        slave_thread, open_slave_event, close_slave_event = self.__slave_endpoint(_slave_port, _channel)
+        _slave_port, _channel = self._random_slave_channel_and_port()
+        slave_thread, open_slave_event, close_slave_event = self._slave_endpoint(_slave_port, _channel)
 
         slave_thread.start()
         open_slave_event.wait()
 
         try:
             _master_port = random_port()
-            master = self.__get_master_endpoint(_master_port, _channel)
+            master = self._get_master_endpoint(_master_port, _channel)
             with master:
                 with master.new_connection('conn', '127.0.0.1', _slave_port) as conn:
                     task = conn.new_task({'a': 2, 'b': 3})
