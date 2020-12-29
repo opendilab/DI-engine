@@ -1,7 +1,7 @@
 import time
+from unittest.mock import Mock
 
 import pytest
-
 from nervex.utils.autolog import TickTime, NaturalTime, TimeProxy
 
 
@@ -12,6 +12,21 @@ class TestNaturalTime:
         for i in range(0, 1000):
             _time = NaturalTime()
             assert abs(_time.time() - time.time()) < 0.2
+
+    def test_natural_time_with_mad_system(self):
+        _time_func, time.time = time.time, Mock(side_effect=[1.5, 1.8, 2.0, 2.0, 1.75, 1.9, 2.2])
+
+        try:
+            _time = NaturalTime()
+            assert _time.time() == 1.5
+            assert _time.time() == 1.8
+            assert _time.time() == 2.0
+            assert _time.time() == 2.0
+            assert _time.time() == 2.0
+            assert _time.time() == 2.0
+            assert _time.time() == 2.2
+        finally:
+            time.time = _time_func
 
 
 @pytest.mark.unittest
