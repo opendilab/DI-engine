@@ -25,8 +25,9 @@ algotest:
 		${DURATIONS_COMMAND} \
 		-sv -m algotest
 
-cudatest:  # do not use this yet, TODO: complete this part
-	echo "this is empty cuda test"
+cudatest:
+	pytest ${TEST_DIR} \
+		-sv -m cudatest
 
 benchmark:
 	pytest ${TEST_DIR} \

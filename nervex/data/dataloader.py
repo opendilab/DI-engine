@@ -206,7 +206,10 @@ class AsyncDataLoader(object):
                 time.sleep(0.01)
                 continue
             else:
-                element = self.job_queue.get()
+                try:
+                    element = self.job_queue.get()
+                except (ConnectionResetError, ConnectionRefusedError) as e:
+                    break
                 batch_id, job = element['batch_id'], element['job']
                 data = [fn() for fn in job]  # only function-type job will arrive here, dict-type will not
                 if len(data) == self.batch_size == self.chunk_size:
@@ -243,9 +246,12 @@ class AsyncDataLoader(object):
                             self.cur_batch.value = (self.cur_batch.value + 1) % self.queue_maxsize
         # self.end_flag is True, clear and close job_queue
         while not self.job_queue.empty():
-            _ = self.job_queue.get()
+            try:
+                _ = self.job_queue.get()
+            except Exception as e:
+                break
         self.job_queue.close()
-        self.job_queue.join()
+        self.job_queue.join_thread()
 
     def _cuda_loop(self) -> None:
         """
@@ -265,7 +271,7 @@ class AsyncDataLoader(object):
         while not self.async_train_queue.empty():
             _ = self.async_train_queue.get()
         self.async_train_queue.close()
-        self.async_train_queue.join()
+        self.async_train_queue.join_thread()
 
     def __next__(self) -> Any:
         """
@@ -296,7 +302,7 @@ class AsyncDataLoader(object):
             while not self.async_train_queue.empty():
                 _ = self.async_train_queue.get()
             self.async_train_queue.close()
-            self.async_train_queue.join()
+            self.async_train_queue.join_thread()
 
     def __del__(self) -> None:
         """

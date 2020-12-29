@@ -65,3 +65,11 @@ test_benchmark:
   script:
     - pip install -e .
     - make benchmark
+
+test_cudatest:
+  stage: test
+  image: "registry.sensetime.com/xlab/sensestar-docker:cuda9-centos7"
+  script:
+    - yum -y install gcc automake autoconf libtool libsm6 make
+    - pip install -e .
+    - make cudatest
