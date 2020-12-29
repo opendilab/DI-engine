@@ -15,10 +15,29 @@ info:
 docs:
 	$(MAKE) -C ./nervex/docs html
 
-test:
+unittest:
 	pytest ${TEST_DIR} \
 		--cov-report term-missing --cov=${COV_DIR} \
 		${WORKERS_COMMAND} -sv -m unittest
+
+algotest:
+	pytest ${TEST_DIR} \
+		--durations=10 \
+		${WORKERS_COMMAND} -sv -m algotest
+
+cudatest:  # do not use this yet, TODO: complete this part
+	echo "this is empty cuda test"
+
+benchmark:
+	pytest ${TEST_DIR} \
+		--durations=0 \
+		-sv -m benchmark
+
+test: unittest  # just for compatibility, can be changed later
+
+cpu_test: unittest algotest benchmark
+
+all_test: unittest algotest cudatest benchmark
 
 format:
 	bash format.sh
