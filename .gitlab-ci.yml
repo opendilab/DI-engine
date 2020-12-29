@@ -33,6 +33,7 @@ pages:
       - public
   only:
     - master
+    - /^doc/.*$/
 
 test:
   stage: test
