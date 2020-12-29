@@ -4,5 +4,8 @@ coordinator:
     interaction:
         host: '0.0.0.0'
         port: 12345
+        learner:
+            test0: ['test0', '0.0.0.0', 11110]
         actor:
-            test: ['test', '0.0.0.0', 11112]
+            test1: ['test1', '0.0.0.0', 11111]
+            test2: ['test2', '0.0.0.0', 11112]
