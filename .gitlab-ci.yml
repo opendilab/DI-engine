@@ -51,6 +51,11 @@ test_algotest:
   script:
     - pip install -e .
     - make algotest
+  only:
+    changes:
+      - nervex/policy/*
+      - nervex/model/*
+      - nervex/rl_utils/*
 
 test_benchmark:
   stage: test
