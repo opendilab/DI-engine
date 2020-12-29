@@ -46,7 +46,6 @@ test_unittest:
 test_algotest:
   stage: test
   variables:
-    WORKERS: 8 # if you need to change to concurrency, just change here
     DURATIONS: 10 # the count of durations
   #    RANGE_DIR: ./nervex/xxxx # if you need to test some of the dirs, just change here
   script:

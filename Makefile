@@ -23,7 +23,6 @@ unittest:
 algotest:
 	pytest ${TEST_DIR} \
 		${DURATIONS_COMMAND} \
-		${WORKERS_COMMAND} \
 		-sv -m algotest
 
 cudatest:  # do not use this yet, TODO: complete this part
