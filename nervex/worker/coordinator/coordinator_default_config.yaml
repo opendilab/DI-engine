@@ -1,5 +1,6 @@
 coordinator:
     actor_task_timeout: 30
+    learner_task_timeout: 600
     interaction:
         host: '0.0.0.0'
         port: 12345

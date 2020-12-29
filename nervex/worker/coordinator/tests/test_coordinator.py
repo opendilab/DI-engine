@@ -27,7 +27,7 @@ class Actor(Slave):
         elif task_name == 'actor_data_task':
             time.sleep(0.1)
             self.count += 1
-            data = {'metadata': 'test_field1'}
+            data = {'metadata': 'test_field1', 'data_id': 'data_{}'.format(self.count)}
             data['task_id'] = self.task_info['task_id']
             with open('./{}_{}'.format(DATA_PREFIX, self.count), 'w') as f:
                 f.writelines(data)
