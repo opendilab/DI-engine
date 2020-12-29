@@ -4,7 +4,7 @@ WORKERS         ?=
 WORKERS_COMMAND := $(if ${WORKERS},-n ${WORKERS},)
 
 DURATIONS         ?= 10
-DURATIONS_COMMAND := $(if ${DURATIONS},--duration=${DURATIONS},)
+DURATIONS_COMMAND := $(if ${DURATIONS},--durations=${DURATIONS},)
 
 RANGE_DIR ?=
 TEST_DIR  ?= $(if ${RANGE_DIR},${RANGE_DIR},./nervex)
