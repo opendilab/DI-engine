@@ -9,11 +9,11 @@ env:
     env_manager_type: 'subprocess'  # [base, subprocess]
     import_names: ['app_zoo.mujoco.envs.mujoco_env']
     env_type: 'mujoco'
-    actor_env_num: 8
-    evaluator_env_num: 8
-    # use_act_scale: True
+    actor_env_num: 20
+    evaluator_env_num: 10
+    use_act_scale: True
 policy:
-    use_cuda: False
+    use_cuda: True
     policy_type: 'ddpg'
     import_names: ['nervex.policy.ddpg']
     on_policy: False
@@ -22,9 +22,9 @@ policy:
         action_dim: 6
         use_twin_critic: True
     learn:
-        train_step: 1
-        batch_size: 128
-        learning_rate_actor: 0.0005
+        train_step: 10
+        batch_size: 100
+        learning_rate_actor: 0.001
         learning_rate_critic: 0.001
         weight_decay: 0.0001
         ignore_done: True
@@ -33,8 +33,8 @@ policy:
             discount_factor: 0.99
             actor_update_freq: 2
             use_twin_critic: True
-            use_noise: False
-            noise_sigma: 0.05
+            use_noise: True
+            noise_sigma: 0.2
             noise_range:
                 min: -0.5
                 max: 0.5
@@ -57,9 +57,7 @@ actor:
     collect_print_freq: 1000
 evaluator:
     n_episode: 8
-    # env_num: 4
-    # episode_num: 1
-    eval_freq: 1000
+    eval_freq: 5000
     stop_val: 10500
 learner:
     hook:
