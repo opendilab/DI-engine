@@ -1,4 +1,5 @@
 import time
+import traceback
 from typing import Dict, Callable
 from queue import Queue
 from threading import Thread
@@ -10,31 +11,43 @@ from nervex.interaction.master.task import TaskStatus
 
 class CoordinatorInteraction(object):
 
-    def __init__(self, cfg: dict, callback_fn: Dict[str, Callable]) -> None:
+    def __init__(self, cfg: dict, callback_fn: Dict[str, Callable], logger: 'TextLogger') -> None:  # noqa
         self._cfg = cfg
         self._callback_fn = callback_fn
         self._callback_fn_lock = LockContext(LockContextType.THREAD_LOCK)
+        self._logger = logger
         self._interaction = Master(cfg.host, cfg.port)
         self._connection_actor = {}
+        self._end_flag = True
 
     def start(self) -> None:
         self._end_flag = False
-        self._interaction.start()
-        self._interaction.ping()
-        for _, (actor_id, actor_host, actor_port) in self._cfg.actor.items():
-            conn = self._interaction.new_connection(actor_id, actor_host, actor_port)
-            conn.connect()
-            self._connection_actor[actor_id] = conn
-            assert conn.is_connected
+        try:
+            self._interaction.start()
+            self._interaction.ping()
+            for _, (actor_id, actor_host, actor_port) in self._cfg.actor.items():
+                conn = self._interaction.new_connection(actor_id, actor_host, actor_port)
+                conn.connect()
+                self._connection_actor[actor_id] = conn
+                assert conn.is_connected
+        except Exception as e:
+            self.close()
+            self._logger.error("connection start error:\n" + ''.join(traceback.format_tb(e.__traceback__)) + repr(e))
 
     def close(self) -> None:
+        if self._end_flag:
+            return
         self._end_flag = True
         for actor_id, conn in self._connection_actor.items():
             conn.disconnect()
             assert not conn.is_connected
         self._interaction.close()
 
+    def __del__(self) -> None:
+        self.close()
+
     def send_actor_task(self, actor_task: dict) -> bool:
+        assert not self._end_flag, "please start interaction first"
         actor_id = actor_task['actor_id']
         start_task = self._connection_actor[actor_id].new_task({'name': 'actor_start_task', 'task_info': actor_task})
         start_task.start().join()
@@ -117,10 +130,10 @@ class Coordinator(object):
             'deal_with_actor_send_data': self.deal_with_actor_send_data,
             'deal_with_actor_finish_task': self.deal_with_actor_finish_task,
         }
-        self._interaction = CoordinatorInteraction(cfg.coordinator.interaction, callback_fn=self._callback)
+        self._logger, _ = build_logger(path='./log', name='coordinator')
+        self._interaction = CoordinatorInteraction(cfg.coordinator.interaction, self._callback, self._logger)
         self._learner_task_queue = Queue()
         self._actor_task_queue = Queue()
-        self._logger, _ = build_logger(path='./log', name='coordinator')
         self._commander = Commander()
         self._commander_lock = LockContext(LockContextType.THREAD_LOCK)
         self._resource_manager = ResourceManager()

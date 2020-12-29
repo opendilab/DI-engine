@@ -68,4 +68,4 @@ class TestCoordinator:
             actor_thread.close()
         for i in range(1, 11):
             assert os.path.exists('{}_{}'.format(DATA_PREFIX, i))
-        #os.popen('rm -rf {}*'.format(DATA_PREFIX))
+        os.popen('rm -rf {}*'.format(DATA_PREFIX))
