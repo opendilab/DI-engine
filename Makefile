@@ -1,29 +1,30 @@
 CI := $(shell echo ${CI})
 
-CI_DEFAULT_WORKERS := 8
-LOCAL_DEFAULT_WORKERS :=
-WORKERS ?= $(if ${CI},${CI_DEFAULT_WORKERS},${LOCAL_DEFAULT_WORKERS})
+WORKERS         ?=
 WORKERS_COMMAND := $(if ${WORKERS},-n ${WORKERS},)
+
+DURATIONS         ?= 10
+DURATIONS_COMMAND := $(if ${DURATIONS},--duration=${DURATIONS},)
 
 RANGE_DIR ?=
 TEST_DIR  ?= $(if ${RANGE_DIR},${RANGE_DIR},./nervex)
 COV_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./nervex)
-
-info:
-	echo ${TEST_DIR}
 
 docs:
 	$(MAKE) -C ./nervex/docs html
 
 unittest:
 	pytest ${TEST_DIR} \
-		--cov-report term-missing --cov=${COV_DIR} \
-		${WORKERS_COMMAND} -sv -m unittest
+		--cov-report term-missing \
+		--cov=${COV_DIR} \
+		${WORKERS_COMMAND} \
+		-sv -m unittest
 
 algotest:
 	pytest ${TEST_DIR} \
-		--durations=10 \
-		${WORKERS_COMMAND} -sv -m algotest
+		${DURATIONS_COMMAND} \
+		${WORKERS_COMMAND} \
+		-sv -m algotest
 
 cudatest:  # do not use this yet, TODO: complete this part
 	echo "this is empty cuda test"
