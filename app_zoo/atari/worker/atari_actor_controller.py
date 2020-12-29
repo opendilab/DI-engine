@@ -19,7 +19,10 @@ class AtariActor(ZerglingActor):
         self._agent_name = list(agent_cfg.keys())[0]
         sumo_env = AtariEnv(self._cfg.env)
         env_info = sumo_env.info()
-        model = ConvValueAC(env_info.obs_space.shape, env_info.act_space.shape, self._job['agent'][self._agent_name]['model']['embedding_dim'])
+        model = ConvValueAC(
+            env_info.obs_space.shape, env_info.act_space.shape,
+            self._job['agent'][self._agent_name]['model']['embedding_dim']
+        )
         if self._cfg.actor.use_cuda:
             model.cuda()
         self._agent = create_ac_actor_agent(model)

@@ -9,7 +9,7 @@ from ...base import DblEvent
 @pytest.mark.unittest
 class TestInteractionBaseThreading:
     # noinspection DuplicatedCode
-    @pytest.mark.execution_timeout(5.0)
+    @pytest.mark.execution_timeout(5.0, method='thread')
     def test_dbl_event_open(self):
         event = DblEvent()
         assert event.is_close()
@@ -86,7 +86,7 @@ class TestInteractionBaseThreading:
         assert not event.is_open()
 
     # noinspection DuplicatedCode
-    @pytest.mark.execution_timeout(5.0)
+    @pytest.mark.execution_timeout(5.0, method='thread')
     def test_dbl_event_close(self):
         event = DblEvent(True)
         assert not event.is_close()

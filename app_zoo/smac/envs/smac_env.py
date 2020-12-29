@@ -52,7 +52,13 @@ class SMACEnv(SC2Env, BaseEnv):
     info_template = namedtuple('BaseEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space', 'episode_limit'])
 
     def __init__(
-        self, cfg=None, two_player=False, map_name='3s5z', mirror_opponent=True, reward_type="original", save_replay_episodes=None
+        self,
+        cfg=None,
+        two_player=False,
+        map_name='3s5z',
+        mirror_opponent=True,
+        reward_type="original",
+        save_replay_episodes=None
     ):
 
         assert (save_replay_episodes is None) or isinstance(
@@ -302,7 +308,11 @@ class SMACEnv(SC2Env, BaseEnv):
         assert all(u.health > 0 for u in self.enemies.values())
 
         if not self.two_player:
-            return {'agent_state': self.get_obs(), 'global_state': self.get_state(), 'action_mask': self.get_avail_actions()}
+            return {
+                'agent_state': self.get_obs(),
+                'global_state': self.get_state(),
+                'action_mask': self.get_avail_actions()
+            }
 
         return {
             'agent_state': {
@@ -402,7 +412,11 @@ class SMACEnv(SC2Env, BaseEnv):
             new_infos["draw"] = infos["draw"]
             new_infos['final_eval_reward'] = infos['final_eval_reward']
             infos = new_infos
-            obs = {'agent_state': self.get_obs(), 'global_state': self.get_state(), 'action_mask': self.get_avail_actions()}
+            obs = {
+                'agent_state': self.get_obs(),
+                'global_state': self.get_state(),
+                'action_mask': self.get_avail_actions()
+            }
         else:
             raise NotImplementedError
 
@@ -808,7 +822,13 @@ class SMACEnv(SC2Env, BaseEnv):
             if self.obs_timestep_number:
                 agent_obs = np.append(agent_obs, self._episode_steps / self.episode_limit)
         else:
-            agent_obs = dict(move_feats=move_feats, enemy_feats=enemy_feats, ally_feats=ally_feats, own_feats=own_feats, agent_id_feats=agent_id_feats)
+            agent_obs = dict(
+                move_feats=move_feats,
+                enemy_feats=enemy_feats,
+                ally_feats=ally_feats,
+                own_feats=own_feats,
+                agent_id_feats=agent_id_feats
+            )
             if self.obs_timestep_number:
                 agent_obs["obs_timestep_number"] = self._episode_steps / self.episode_limit
 

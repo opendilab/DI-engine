@@ -33,6 +33,9 @@ class NaturalTime(BaseTime):
         >>> time_ = NaturalTime()
     """
 
+    def __init__(self):
+        self.__last_time = None
+
     def time(self) -> float:
         """
         Overview:
@@ -47,7 +50,12 @@ class NaturalTime(BaseTime):
             >>> time_.time()
             1603896383.8811457
         """
-        return time.time()
+        _current_time = time.time()
+        if self.__last_time is not None:
+            _current_time = max(_current_time, self.__last_time)
+
+        self.__last_time = _current_time
+        return _current_time
 
 
 class TickTime(BaseTime):

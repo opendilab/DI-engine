@@ -58,7 +58,7 @@ class TestParticleEnv:
                         if discrete_action:
                             random_action.append(torch.randint(min_val, max_val, act_sp.shape))
                         else:
-                            random_action.append(torch.rand(max_val+1 - min_val, ))
+                            random_action.append(torch.rand(max_val + 1 - min_val, ))
                     else:
                         # print(act_sp.shape)
                         if discrete_action:
@@ -74,7 +74,7 @@ class TestParticleEnv:
                             # print([torch.rand(max_val[t]+1 - min_val[t], ) for t in range(act_sp.shape[0])])
                             random_action.append(
                                 # torch.stack([torch.rand(max_val[t]+1 - min_val[t], ) for t in range(act_sp.shape[0])])
-                                [torch.rand(max_val[t]+1 - min_val[t], ) for t in range(act_sp.shape[0])]
+                                [torch.rand(max_val[t] + 1 - min_val[t], ) for t in range(act_sp.shape[0])]
                             )
             # print('randon_action = ', random_action)
             timestep = env.step(random_action)

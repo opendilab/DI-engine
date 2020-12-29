@@ -40,11 +40,13 @@ class FakeSMACEnv(BaseEnv):
         T = EnvElement.info_template
         return FakeSMACEnv.info_template(
             agent_num=self.agent_num,
-            obs_space=T({
-                'agent_state': (self.agent_num, self.obs_dim),
-                'global_state': (self.global_obs_dim, ),
-                'action_mask': (self.agent_num, self.action_dim)
-            }, None, None, None),
+            obs_space=T(
+                {
+                    'agent_state': (self.agent_num, self.obs_dim),
+                    'global_state': (self.global_obs_dim, ),
+                    'action_mask': (self.agent_num, self.action_dim)
+                }, None, None, None
+            ),
             act_space=T((self.agent_num, self.action_dim), None, None, None),
             rew_space=T((1, ), None, None, None)
         )

@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 from typing import Dict, List, Union, Optional
 
-from ..common_arch import QActorCriticBase, FCEncoder
-from nervex.utils import squeeze, deep_merge_dicts
+from nervex.model.common_arch import QActorCriticBase
+from nervex.utils import squeeze
 
 
 class FCContinuousNet(nn.Module):
@@ -12,20 +12,20 @@ class FCContinuousNet(nn.Module):
             self,
             input_dim: int,
             output_dim: int,
-            embedding_dim: int = 64,
+            hidden_dim: List[int] = [400, 300],
             use_final_tanh: bool = False,
-            layer_num: int = 1,
     ) -> None:
         super(FCContinuousNet, self).__init__()
         self._act = nn.ReLU()
         self._use_final_tanh = use_final_tanh
         layers = []
-        layers.append(nn.Linear(input_dim, embedding_dim))
+        layers.append(nn.Linear(input_dim, hidden_dim[0]))
         layers.append(self._act)
-        for _ in range(layer_num):
-            layers.append(nn.Linear(embedding_dim, embedding_dim))
-            layers.append(self._act)
-        layers.append(nn.Linear(embedding_dim, output_dim))
+        if len(hidden_dim) > 1:
+            for hid1, hid2 in zip(hidden_dim, hidden_dim[1:]):
+                layers.append(nn.Linear(hid1, hid2))
+                layers.append(self._act)
+        layers.append(nn.Linear(hidden_dim[-1], output_dim))
         self._main = nn.Sequential(*layers)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -37,18 +37,16 @@ class FCContinuousNet(nn.Module):
         return x
 
 
-class QAC(QActorCriticBase):
+class QAC_td3paper(QActorCriticBase):
 
     def __init__(
             self,
             obs_dim: tuple,
             action_dim: Union[int, tuple],
-            state_action_embedding_dim: int = 64,
-            state_embedding_dim: int = 64,
             use_twin_critic: bool = False,
             use_backward_hook: bool = False,
     ) -> None:
-        super(QAC, self).__init__()
+        super(QAC_td3paper, self).__init__()
 
         def backward_hook(module, grad_input, grad_output):
             for p in module.parameters():
@@ -58,18 +56,17 @@ class QAC(QActorCriticBase):
         # input info
         self._obs_dim: int = squeeze(obs_dim)
         self._act_dim: int = squeeze(action_dim)
-        # embedding_dim
-        self._state_action_embedding_dim = state_action_embedding_dim
-        self._state_embedding_dim = state_embedding_dim
+        # hidden_dim
+        # Original QAC in nervex/model has hidden layers with same hidden nodes,
+        # while TD3 paper proposed 2 hidden layers with hidden nodes [400, 300].
+        # That is why we implement a new version of QAC and FCContinuousNet here.
+        self._hidden_dim = [400, 300]
         # network
         self._use_twin_critic = use_twin_critic
-        self._actor = FCContinuousNet(self._obs_dim, self._act_dim, self._state_embedding_dim, use_final_tanh=True)
+        self._actor = FCContinuousNet(self._obs_dim, self._act_dim, self._hidden_dim, use_final_tanh=True)
         critic_num = 2 if use_twin_critic else 1
         self._critic = nn.ModuleList(
-            [
-                FCContinuousNet(self._obs_dim + self._act_dim, 1, self._state_action_embedding_dim)
-                for _ in range(critic_num)
-            ]
+            [FCContinuousNet(self._obs_dim + self._act_dim, 1, self._hidden_dim) for _ in range(critic_num)]
         )
         self._use_twin_critic = use_twin_critic
         self._use_backward_hook = use_backward_hook

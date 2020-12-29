@@ -7,7 +7,6 @@ import pytest
 from app_zoo.sumo.envs import FakeSumoDataset
 from app_zoo.sumo.worker.learner.sumo_dqn_learner import SumoDqnLearner
 
-
 # @pytest.mark.unittest
 # class TestSumoDqnLearner:
 
