@@ -17,7 +17,7 @@ class BaseSerialCommand(object):
 
     def step(self) -> None:
         # update info
-        learner_info = self._learner.get_current_info()
+        learner_info = self._learner.learn_info
         self._info.update(learner_info)
         # update setting
         collect_setting = self._policy.get_setting_collect(self._info)

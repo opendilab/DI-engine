@@ -260,7 +260,7 @@ class Coordinator(object):
         if buffer_id not in self._replay_buffer:
             self.error("learner task({}) send info doesn't have proper buffer_id({})".format(task_id, buffer_id))
             return
-        self._replay_buffer[buffer_id].update(info)
+        self._replay_buffer[buffer_id].update(info['priority_info'])
         with self._commander_lock:
             self._commander.get_learner_info(task_id, info)
         self.info("learner task({}) send info".format(task_id))

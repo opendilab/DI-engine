@@ -5,7 +5,6 @@ Main Function:
     1. base class for model learning
 """
 import os
-from abc import ABC, abstractmethod
 from typing import Any, Union, Callable
 from functools import partial
 from easydict import EasyDict
@@ -18,7 +17,6 @@ from nervex.utils import build_logger, dist_init, EasyTimer, dist_finalize, pret
     get_task_uid, import_module, broadcast
 from nervex.utils import deep_merge_dicts
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
-from .comm import LearnerCommHelper
 from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, merge_hooks, LearnerHook
 
 default_config = read_config(os.path.join(os.path.dirname(__file__), "base_learner_default_config.yaml"))
@@ -79,7 +77,7 @@ def get_simple_monitor_type(properties: list = []):
         return type('SimpleTickMonitor', (TickMonitor, ), attrs)
 
 
-class BaseLearner(ABC):
+class BaseLearner(object):
     r"""
     Overview:
         base class for model learning(SL/RL), which is able to multi-GPU learning
@@ -97,6 +95,9 @@ class BaseLearner(ABC):
         Overview:
             initialization method, load config setting and call ``_init`` for actual initialization,
             set the communication mode to `single_machine` or `flask_fs`.
+            Use ``self._cfg`` setting to build common learner components, such as logger helper, checkpoint helper.
+            launch learner runtime components, each train job means a launch operation,
+            job related dataloader, policy and hook support.
         Arguments:
             - cfg (:obj:`EasyDict`): learner config, you can view `cfg <../../../configuration/index.html>`_ for ref.
         Notes:
@@ -107,22 +108,11 @@ class BaseLearner(ABC):
                 os.environ['CUDA_LAUNCH_BLOCKING'] = "1"  # for debug async CUDA
         """
         self._cfg = deep_merge_dicts(default_config, cfg)
-        self._init()
-        if self._cfg.learner.communication.type == 'single_machine':
-            self._logger.info("Single machine learner has launched")
-        else:
-            comm_cfg = self._cfg.learner.communication
-            LearnerCommHelper.enable_comm_helper(self, comm_cfg)
-            self._logger.info("Distributed learner has launched")
 
-    def _init(self) -> None:
-        """
-        Overview:
-            Use ``self._cfg`` setting to build common learner components, such as logger helper, checkpoint helper.
-        """
         self._learner_worker_uid = get_task_uid()
         self._load_path = self._cfg.common.load_path
         self._save_path = self._cfg.common.save_path
+        self._use_cuda = self._cfg.learner.get('use_cuda', False)
         self._use_distributed = self._cfg.learner.use_distributed
         if self._use_distributed:
             self._rank, self._world_size = dist_init()
@@ -132,9 +122,8 @@ class BaseLearner(ABC):
         else:
             self._rank, self._world_size = 0, 1
             self._learner_uid = self._learner_worker_uid
-        self._default_max_iterations = self._cfg.learner.max_iterations
         self._timer = EasyTimer()
-        self._device = 'cpu'
+        self._device = 'cuda:{}'.format(self._rank % 8) if self._use_cuda else 'cpu'
         # monitor & logger
         # Only rank == 0 learner needs monitor and tb_logger, else only needs text_logger to display terminal output
         rank0 = True if self._rank == 0 else False
@@ -144,30 +133,14 @@ class BaseLearner(ABC):
         # checkpoint helper
         self._checkpointer_manager = build_checkpoint_helper(self._cfg)
         self._hooks = {'before_run': [], 'before_iter': [], 'after_iter': [], 'after_run': []}
-        self._collate_fn = lambda x: x
         self._collect_info = {}
-
-    def _check_policy(self) -> bool:
-        return hasattr(self, '_policy')
-
-    def launch(self) -> None:
-        """
-        Overview:
-            launch learner runtime components, each train job means a launch operation,
-            job related dataloader, policy and hook support.
-        """
-        if self._cfg.learner.use_dataloader:
-            self._setup_dataloader()
-        assert self._check_policy(), "please set learner policy"
-
-        if self._rank == 0:
-            self._monitor = get_simple_monitor_type(self.policy.monitor_vars())(TickTime(), expire=10)
+        self._priority_info = None
         self._last_iter = CountVar(init_val=0)
         self.info(pretty_print({
             "config": self._cfg,
         }, direct_print=False))
-        self.info(self._policy.info())
 
+        # wrapper and hook
         self._setup_wrapper()
         self._setup_hook()
 
@@ -188,7 +161,6 @@ class BaseLearner(ABC):
             Setup time_wrapper to get data_time and train_time
         """
         self._wrapper_timer = EasyTimer()
-        self._get_iter_data = self.time_wrapper(self._get_iter_data, 'data_time')
         self.train = self.time_wrapper(self.train, 'train_time')
 
     def time_wrapper(self, fn: Callable, name: str):
@@ -208,34 +180,19 @@ class BaseLearner(ABC):
 
         return wrapper
 
-    def _setup_dataloader(self) -> None:
+    @auto_checkpoint
+    def train(self, data: dict) -> None:
         """
         Overview:
-            Setup learner's dataloader, data_source need to be a generator,
-            and setup learner's collate_fn, which aggregate a listed data into a batch tensor.
-        """
-        cfg = self._cfg.learner.data
-        # when single machine version, get_data is set by SingleMachineRunner
-        # when distributed version, get_data is set by comm LearnerCommHelper
-        # users don't need to know the related details if not necessary
-        self._dataloader = AsyncDataLoader(
-            self.get_data, cfg.batch_size, self._device, cfg.chunk_size, self._collate_fn, cfg.num_workers
-        )
-
-    def _get_iter_data(self) -> Any:
-        return next(self._dataloader)
-
-    def train(self, data: Any) -> None:
-        """
-        Overview:
-            Train the input data for 1 iteration, called in ``run`` which involves:
+            Train the input data for 1 iteration, called in ``start`` which involves:
                 - forward
                 - backward
                 - sync grad (if in distributed mode)
                 - parameter update
         Arguments:
-            - data (:obj:`Any`): data used for training
+            - data (:obj:`dict`): data used for training
         """
+        assert hasattr(self, '_policy'), "please set learner policy"
         self.call_hook('before_iter')
         replay_buffer_idx = [d.get('replay_buffer_idx', None) for d in data]
         replay_unique_id = [d.get('replay_unique_id', None) for d in data]
@@ -243,7 +200,11 @@ class BaseLearner(ABC):
             data = self._policy.data_preprocess(data)
         log_vars = self._policy.forward(data)
         priority = log_vars.pop('priority', None)
-        self.priority_info = {'replay_buffer_idx': replay_buffer_idx, 'replay_unique_id': replay_unique_id, 'priority': priority}
+        self._priority_info = {
+            'replay_buffer_idx': replay_buffer_idx,
+            'replay_unique_id': replay_unique_id,
+            'priority': priority
+        }
         log_vars['data_preprocess_time'] = self._timer.value
         log_vars.update(self.collect_info)
         self._log_buffer.update(log_vars)
@@ -259,27 +220,47 @@ class BaseLearner(ABC):
         """
         add_learner_hook(self._hooks, hook)
 
-    @auto_checkpoint
-    def run(self, max_iterations: Union[int, None] = None) -> None:
+    def start(self) -> None:
         """
         Overview:
-            Run the learner.
+            Start to run the learner.
             For each iteration, learner will get training data and train.
             Learner will call hooks at four fixed positions(before_run, before_iter, after_iter, after_run).
-        Arguments:
-            - max_iterations (:obj:`int`): the max run iteration, if None then set to default_max_iterations
         """
-        if max_iterations is None:
-            max_iterations = self._default_max_iterations
         # before run hook
+        max_iterations = self._cfg.learner.max_iterations
         self.call_hook('before_run')
 
         for _ in range(max_iterations):
-            data = self._get_iter_data()
+            data = self._next_data()
             self.train(data)
 
         # after run hook
         self.call_hook('after_run')
+
+    def setup_dataloader(self) -> None:
+        """
+        Overview:
+            Setup learner's dataloader, data_source need to be a generator,
+            and setup learner's collate_fn, which aggregate a listed data into a batch tensor.
+        """
+        # only in parallel version we use get_data and dataloader, instead in serial version,
+        # main entry directly uses `train` method.
+        # when parallel version, get_data is set by comm LearnerCommHelper
+        # users don't need to know the related details if not necessary
+        cfg = self._cfg.learner.dataloader
+        self._dataloader = AsyncDataLoader(
+            self.data_source,
+            cfg.batch_size,
+            self._device,
+            cfg.chunk_size,
+            collate_fn=lambda x: x,
+            num_workers=cfg.num_workers
+        )
+        self._next_data = self.time_wrapper(self._next_data, 'data_time')
+
+    def _next_data(self) -> Any:
+        return next(self._dataloader)
 
     def close(self) -> None:
         """
@@ -323,14 +304,15 @@ class BaseLearner(ABC):
         idx = names.index('save_ckpt_after_run')
         self._hooks['after_run'][idx](self)
 
-    def get_current_info(self) -> dict:
+    @property
+    def learn_info(self) -> dict:
         """
         Overview:
-            get current info dict, which will be sent to command for some operation, such as hyper-parameter adjustment
+            get learn info dict, which will be sent to commander for some operation, such as hyper-parameter adjustment
         Returns:
             info (:obj:`dict`): current info dict
         """
-        return {'learner_step': self._last_iter.val}
+        return {'learner_step': self._last_iter.val, 'priority_info': self._priority_info}
 
     @property
     def last_iter(self) -> CountVar:
@@ -385,24 +367,15 @@ class BaseLearner(ABC):
         return self._rank
 
     @property
-    def use_distributed(self) -> bool:
-        return self._use_distributed
-
-    @property
     def policy(self) -> 'Policy':  # noqa
         return self._policy
 
     @policy.setter
     def policy(self, _policy: 'Policy') -> None:  # noqa
         self._policy = _policy
-
-    @property
-    def collect_info(self) -> dict:
-        return self._collect_info
-
-    @collect_info.setter
-    def collect_info(self, collect_info: dict) -> None:
-        self._collect_info = {k: float(v) for k, v in collect_info.items()}
+        if self._rank == 0:
+            self._monitor = get_simple_monitor_type(self._policy.monitor_vars())(TickTime(), expire=10)
+        self.info(self._policy.info())
 
     @property
     def priority_info(self) -> dict:
@@ -411,6 +384,15 @@ class BaseLearner(ABC):
     @priority_info.setter
     def priority_info(self, _priority_info: dict) -> None:
         self._priority_info = _priority_info
+
+    # ##################### only serial ###########################
+    @property
+    def collect_info(self) -> dict:
+        return self._collect_info
+
+    @collect_info.setter
+    def collect_info(self, collect_info: dict) -> None:
+        self._collect_info = {k: float(v) for k, v in collect_info.items()}
 
 
 learner_mapping = {}

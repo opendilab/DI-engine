@@ -1,1 +1,1 @@
-from .learner_comm_helper import LearnerCommHelper, add_comm_learner
+from .base_comm_learner import BaseCommLearner, register_comm_learner

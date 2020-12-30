@@ -1,7 +1,10 @@
 import threading
 from abc import ABC, abstractmethod, abstractproperty
+from easydict import EasyDict
 
 from nervex.utils import EasyTimer
+from nervex.policy import create_policy
+from ..base_learner import BaseLearner
 
 
 class BaseCommLearner(ABC):
@@ -9,7 +12,7 @@ class BaseCommLearner(ABC):
     Overview:
         Abstract baseclass for CommLearner.
     Interfaces:
-        __init__, register_learner, send_agent, get_data, send_train_info, start_heartbeats_thread
+        __init__, send_agent, get_data, send_learn_info
         init_service, close_service,
     Property:
         hooks4call
@@ -26,14 +29,6 @@ class BaseCommLearner(ABC):
         self._learner_uid = None  # str(os.environ.get('SLURM_JOB_ID'))
         self._active_flag = False
         self._timer = EasyTimer()
-
-    @abstractmethod
-    def register_learner(self) -> None:
-        """
-        Overview:
-            Register learner's info in coordinator, called by ``self.init_service``.
-        """
-        raise NotImplementedError
 
     @abstractmethod
     def send_agent(self, state_dict: dict) -> None:
@@ -58,25 +53,14 @@ class BaseCommLearner(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def send_train_info(self, train_info: dict) -> None:
+    def send_learn_info(self, learn_info: dict) -> None:
         """
         Overview:
-            Send train info to coordinator.
+            Send learn info to coordinator.
         Arguments:
-            - train info (:obj:`dict`): train info in `dict` type
+            - learn info (:obj:`dict`): learn info in `dict` type
         """
         raise NotImplementedError
-
-    def start_heartbeats_thread(self) -> None:
-        """
-        Overview:
-            Start ``_send_learner_heartbeats`` as a daemon thread to continuously send learner heartbeats,
-            called by ``self.init_service``
-        """
-        check_send_learner_heartbeats_thread = threading.Thread(target=self._send_learner_heartbeats)
-        check_send_learner_heartbeats_thread.daemon = True
-        check_send_learner_heartbeats_thread.start()
-        self._logger.info("Learner({}) send heartbeat thread start...".format(self._learner_uid))
 
     def init_service(self) -> None:
         """
@@ -84,9 +68,7 @@ class BaseCommLearner(ABC):
             Initialize comm service, including ``register_learner``, setting ``_active_flag`` to True, and
             ``start_heartbeats_thread``
         """
-        self.register_learner()
         self._active_flag = True
-        self.start_heartbeats_thread()
 
     def close_service(self) -> None:
         """
@@ -94,15 +76,6 @@ class BaseCommLearner(ABC):
             Close comm service, including setting ``_active_flag`` to False
         """
         self._active_flag = False
-
-    # ************************** thread *********************************
-    @abstractmethod
-    def _send_learner_heartbeats(self) -> None:
-        """
-        Overview:
-            Send learner's heartbeats to coordinator, will start as a thread in ``self.start_heartbeats_thread``
-        """
-        raise NotImplementedError
 
     @abstractproperty
     def hooks4call(self) -> list:
@@ -112,17 +85,27 @@ class BaseCommLearner(ABC):
         """
         raise NotImplementedError
 
+    def _create_learner(self, task_info: dict) -> 'BaseLearner':  # noqa
+        learner_cfg = EasyDict(task_info['learner_cfg'])
+        learner = BaseLearner(learner_cfg)
+        for item in ['get_data', 'send_agent', 'send_learn_info']:
+            setattr(learner, item, getattr(self, item))
+        learner.setup_dataloader()
+        learner.policy = create_policy(task_info['policy'], enable_field='learn').learn_mode
+        return learner
 
-class BaseCommSelfPlayLearner(object):
 
-    def __init__(self):
-        self._reset_ckpt_path = None
+comm_map = {}
 
-    def deal_with_reset_learner(self, ckpt_path: str) -> None:
-        self._reset_ckpt_path = ckpt_path
 
-    @property
-    def reset_ckpt_path(self) -> str:
-        ret = self._reset_ckpt_path
-        self._reset_ckpt_path = None  # once reset_ckpt_path is used will it be set to None
-        return ret
+def register_comm_learner(name: str, learner_type: type) -> None:
+    """
+    Overview:
+        register a new CommLearner class with its name to dict ``comm_map``
+    Arguments:
+        - name (:obj:`str`): name of the new CommLearner
+        - learner_type (:obj:`type`): the new CommLearner class, should be subclass of BaseCommLearner
+    """
+    assert isinstance(name, str)
+    assert issubclass(learner_type, BaseCommLearner)
+    comm_map[name] = learner_type

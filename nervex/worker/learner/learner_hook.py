@@ -247,7 +247,6 @@ class LogReduceHook(LearnerHook):
         Arguments:
             - engine (:obj:`BaseLearner`): the BaseLearner
         """
-        assert engine.use_distributed
 
         def aggregate(data):
             r"""

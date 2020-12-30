@@ -55,7 +55,6 @@ def serial_pipeline(
     actor.policy = policy.collect_mode
     evaluator.policy = policy.eval_mode
     command.policy = policy.command_mode
-    learner.launch()
     # main loop
     iter_count = 0
     enough_data_count = cfg.policy.learn.batch_size * max(

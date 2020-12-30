@@ -76,8 +76,7 @@ class Learner(Slave):
                 'task_id': self.task_info['task_id'],
                 'buffer_id': self.task_info['buffer_id']
             }
-            for k in priority_keys:
-                ret['info'][k] = data[k]
+            ret['info']['priority_info'] = {k: data[k] for k in priority_keys}
             if self.count == 5:
                 ret['finished_task'] = {'finish': True, 'buffer_id': self.task_info['buffer_id']}
                 os.popen('touch {}_final_model.pth'.format(DATA_PREFIX))
