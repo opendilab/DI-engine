@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from typing import Dict
 from ..common_arch import ValueActorCriticBase, ConvEncoder, FCEncoder
 from nervex.utils import squeeze
@@ -15,7 +16,15 @@ class ValueAC(ValueActorCriticBase):
         __init__, forward, set_seed, compute_action_value, compute_action
     """
 
-    def __init__(self, obs_dim: tuple, action_dim: int, embedding_dim: int, head_hidden_dim: int = 128) -> None:
+    def __init__(
+            self,
+            obs_dim: tuple,
+            action_dim: int,
+            embedding_dim: int,
+            head_hidden_dim: int = 128,
+            continous=False,
+            fixed_sigma_value=None,
+    ) -> None:
         r"""
         Overview:
             Init the ValueAC according to arguments.
@@ -32,6 +41,8 @@ class ValueAC(ValueActorCriticBase):
         self._embedding_dim = embedding_dim
         self._encoder = self._setup_encoder()
         self._head_layer_num = 2
+        self.continous = continous
+        self.fixed_sigma_value = fixed_sigma_value
         # actor head
         input_dim = embedding_dim
         layers = []
@@ -41,6 +52,16 @@ class ValueAC(ValueActorCriticBase):
             input_dim = head_hidden_dim
         layers.append(nn.Linear(input_dim, self._act_dim))
         self._actor = nn.Sequential(*layers)
+        # sigma head
+        if continous and self.fixed_sigma_value is None:
+            input_dim = embedding_dim
+            layers = []
+            for _ in range(self._head_layer_num):
+                layers.append(nn.Linear(input_dim, head_hidden_dim))
+                layers.append(self._act)
+                input_dim = head_hidden_dim
+            layers.append(nn.Linear(input_dim, self._act_dim))
+            self._log_sigma = nn.Sequential(*layers)
         # critic head
         input_dim = embedding_dim
         layers = []
@@ -49,6 +70,7 @@ class ValueAC(ValueActorCriticBase):
             layers.append(self._act)
             input_dim = head_hidden_dim
         layers.append(nn.Linear(input_dim, 1))
+
         self._critic = nn.Sequential(*layers)
 
     def _setup_encoder(self) -> torch.nn.Module:
@@ -93,6 +115,14 @@ class ValueAC(ValueActorCriticBase):
             embedding = self._encoder(inputs['obs'])
         value = self._critic_forward(embedding)
         logit = self._actor_forward(embedding)
+        if self.continous:
+            mu = torch.tanh(logit)
+            sigma = torch.clamp_max(
+                self._log_sigma(embedding), max=2
+            ).exp(
+            ) if self.fixed_sigma_value is None else self.fixed_sigma_value * torch.ones_like(mu)  # fix gamma to debug
+            logit = (mu, sigma)
+
         return {'value': value, 'logit': logit}
 
     def compute_action(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
@@ -110,6 +140,14 @@ class ValueAC(ValueActorCriticBase):
         else:
             embedding = self._encoder(inputs['obs'])
         logit = self._actor_forward(embedding)
+        if self.continous:
+            mu = torch.tanh(logit)
+            sigma = torch.clamp_max(
+                self._log_sigma(embedding), max=2
+            ).exp(
+            ) if self.fixed_sigma_value is None else self.fixed_sigma_value * torch.ones_like(mu)  # fix gamma to debug
+            logit = (mu, sigma)
+
         return {'logit': logit}
 
 

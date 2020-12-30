@@ -3,7 +3,6 @@ import torch
 
 from app_zoo.gfootball.envs.obs.gfootball_obs import PlayerObs, MatchObs
 from nervex.data import default_collate
-import random
 
 
 def generate_data(player_obs: dict) -> torch.Tensor:

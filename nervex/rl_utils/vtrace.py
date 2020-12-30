@@ -26,7 +26,7 @@ vtrace_loss = namedtuple('vtrace_loss', ['policy_loss', 'value_loss', 'entropy_l
 def vtrace_error(
     data: namedtuple,
     gamma: float = 0.99,
-    lambda_: float = 1.9,
+    lambda_: float = 0.95,
     rho_clip_ratio: float = 1.0,
     c_clip_ratio: float = 1.0,
     rho_pg_clip_ratio: float = 1.0

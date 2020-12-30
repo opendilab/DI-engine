@@ -1,4 +1,5 @@
 import copy
+import math
 import time
 import numbers
 from queue import Queue
@@ -67,6 +68,8 @@ class PrioritizedBuffer:
         min_sample_ratio: float = 1.,
         alpha: float = 0.,
         beta: float = 0.,
+        anneal_step: int = 0,
+        eps: float = 0.01,
         enable_track_used_data: bool = False,
         deepcopy: bool = False
     ):
@@ -80,6 +83,8 @@ class PrioritizedBuffer:
                 "current element number in buffer divided by sample size" is greater than this, can start sampling
             - alpha (:obj:`float`): how much prioritization is used (0: no prioritization, 1: full prioritization)
             - beta (:obj:`float`): how much correction is used (0: no correction, 1: full correction)
+            - anneal_step (:obj:`int`): anneal step for beta(beta -> 1)
+            - eps (:obj:`float`): small positive number for avoiding edge-case
             - enable_track_used_data (:obj:`bool`): whether tracking the used data
             - deepcopy (:obj:`bool`): whether deepcopy data when append/extend and sample data
         """
@@ -102,6 +107,10 @@ class PrioritizedBuffer:
         self.alpha = alpha
         assert (0 <= beta <= 1)
         self._beta = beta
+        self._anneal_step = anneal_step
+        if self._anneal_step != 0:
+            self._beta_anneal_step = (1 - self._beta) / self._anneal_step
+        self._eps = eps
         # capacity needs to be the power of 2
         capacity = int(np.power(2, np.ceil(np.log2(self.maxlen))))
         self.sum_tree = SumSegmentTree(capacity)
@@ -252,7 +261,7 @@ class PrioritizedBuffer:
             if self._data[idx] is not None \
                     and self._data[idx]['replay_unique_id'] == id_:  # confirm the same transition(data)
                 assert priority > 0
-                self._data[idx]['priority'] = priority
+                self._data[idx]['priority'] = priority + self._eps
                 self._set_weight(idx, self._data[idx])
                 # update max priority
                 self.max_priority = max(self.max_priority, priority)
@@ -343,6 +352,9 @@ class PrioritizedBuffer:
                 self.sum_tree[idx] = self.sum_tree.neutral_element
                 self.min_tree[idx] = self.min_tree.neutral_element
                 self._valid_count -= 1
+        # anneal update beta
+        if self._anneal_step != 0:
+            self._beta += self._beta_anneal_step
         return data
 
     def clear(self) -> None:

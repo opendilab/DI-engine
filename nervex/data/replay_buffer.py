@@ -141,6 +141,7 @@ class ReplayBuffer:
             min_sample_ratio=self.cfg.min_sample_ratio,
             alpha=self.cfg.alpha,
             beta=self.cfg.beta,
+            anneal_step=self.cfg.anneal_step,
             enable_track_used_data=self.cfg.enable_track_used_data,
             deepcopy=self.cfg.deepcopy,
         )
