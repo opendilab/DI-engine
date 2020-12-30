@@ -13,7 +13,19 @@ Autolog Overview
 
 
 Time
-------------
+-------------
+
+概述：
+	时间系统是Autolog系统的关键要素。其用来支撑一个日志模型的记录方式。
+
+	具体来说，Time分为以下两类，均继承自BaseTime类：
+
+		- NaturalTime：自然时间。即系统时间，实型，单位为秒。
+		- TickTime：步进时间。即以次数为单位的时间，整型，单位为次。
+
+	BaseTime均提供time()方法以获取时间对象内的时间。
+
+	此外，如有需要，可以自己定义Time类，只需要继承BaseTime并实现time()方法即可用于LoggedModel。
 
 
 LoggedModel
