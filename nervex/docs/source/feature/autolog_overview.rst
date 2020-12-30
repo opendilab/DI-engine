@@ -37,6 +37,7 @@ LoggedModel
     一个简单的demo：
 
     .. code:: python
+
         from nervex.utils.autolog import LoggedValue, LoggedModel
         class AvgList(LoggedModel):
             value = LoggedValue(float)
@@ -69,6 +70,7 @@ LoggedModel
     以下是上述日志模型的调用例子
 
     .. code:: python
+
         from nervex.utils.autolog import NaturalTime, TimeMode
 
         if __name__ == "__main__":
