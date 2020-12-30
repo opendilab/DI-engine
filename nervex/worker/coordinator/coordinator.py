@@ -38,6 +38,12 @@ class Commander(object):
         pass
 
     def finish_learner_task(self, task_id: str, finished_task: dict) -> None:
+        return finished_task['buffer_id']
+
+    def notify_fail_actor_task(self, task: dict) -> None:
+        pass
+
+    def notify_fail_learner_task(self, task: dict) -> None:
         pass
 
     def get_learner_info(self, task_id: str, info: dict) -> None:
@@ -93,6 +99,8 @@ class Coordinator(object):
                 continue
             else:
                 actor_task, put_time = self._actor_task_queue.get()
+                start_retry_time = time.time()
+                max_retry_time = 0.3 * self._actor_task_timeout
                 while True:
                     # timeout or assigned to actor
                     get_time = time.time()
@@ -102,14 +110,20 @@ class Coordinator(object):
                                 actor_task['task_id'], get_time, put_time, get_time - put_time, self._actor_task_timeout
                             )
                         )
+                        with self._commander_lock:
+                            self._commander.notify_fail_actor_task(actor_task)
                         break
                     buffer_id = actor_task['buffer_id']
-                    if buffer_id not in self._replay_buffer:
-                        time.sleep(0.01)
-                        continue
-                    if self._interaction.send_actor_task(actor_task):
-                        self._record_task(actor_task)
-                        break
+                    if buffer_id in self._replay_buffer:
+                        if self._interaction.send_actor_task(actor_task):
+                            self._record_task(actor_task)
+                            send_task_flag = True
+                            break
+                    if time.time() - start_retry_time >= max_retry_time:
+                        # reput into queue
+                        self._actor_task_queue.put([actor_task, put_time])
+                        self.info("actor task({}) reput info queue".format(actor_task['task_id']))
+                    time.sleep(0.1)
 
     def _assign_learner_task(self) -> None:
         while not self._end_flag:
@@ -118,6 +132,8 @@ class Coordinator(object):
                 continue
             else:
                 learner_task, put_time = self._learner_task_queue.get()
+                start_retry_time = time.time()
+                max_retry_time = 0.1 * self._learner_task_timeout
                 while True:
                     # timeout or assigned to learner
                     get_time = time.time()
@@ -128,6 +144,8 @@ class Coordinator(object):
                                 self._learner_task_timeout
                             )
                         )
+                        with self._commander_lock:
+                            self._commander.notify_fail_learner_task(learner_task)
                         break
                     if self._interaction.send_learner_task(learner_task):
                         self._record_task(learner_task)
@@ -139,6 +157,11 @@ class Coordinator(object):
                             self._replay_buffer[buffer_id].run()
                             self.info("replay_buffer({}) is created".format(buffer_id))
                         break
+                    if time.time() - start_retry_time >= max_retry_time:
+                        # reput into queue
+                        self._learner_task_queue.put([learner_task, put_time])
+                        self.info("learner task({}) reput info queue".format(learner_task['task_id']))
+                    time.sleep(0.1)
 
     def _produce_actor_task(self) -> None:
         while not self._end_flag:
@@ -147,6 +170,7 @@ class Coordinator(object):
                 actor_task = self._commander.get_actor_task()
                 if actor_task is None:
                     continue
+            self.info("actor task({}) put info queue".format(actor_task['task_id']))
             self._actor_task_queue.put([actor_task, time.time()])
 
     def _produce_learner_task(self) -> None:
@@ -156,6 +180,7 @@ class Coordinator(object):
                 learner_task = self._commander.get_learner_task()
                 if learner_task is None:
                     continue
+            self.info("learner task({}) put info queue".format(learner_task['task_id']))
             self._learner_task_queue.put([learner_task, time.time()])
 
     def state_dict(self) -> dict:

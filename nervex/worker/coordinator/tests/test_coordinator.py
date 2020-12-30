@@ -79,7 +79,7 @@ class Learner(Slave):
             for k in priority_keys:
                 ret['info'][k] = data[k]
             if self.count == 5:
-                ret['finished_task'] = {'finish': True}
+                ret['finished_task'] = {'finish': True, 'buffer_id': self.task_info['buffer_id']}
                 os.popen('touch {}_final_model.pth'.format(DATA_PREFIX))
             else:
                 ret['finished_task'] = None
@@ -133,6 +133,7 @@ class TestCoordinator:
             for t in actor_task_ids:
                 assert os.path.exists('{}_{}_{}'.format(DATA_PREFIX, t, i))
         assert os.path.exists('{}_final_model.pth'.format(DATA_PREFIX))
+        assert len(coordinator._replay_buffer) == 0
         learner_task_ids = [i for i in coordinator._historical_task if 'learner' in i]
         for i in learner_task_ids:
             assert len(coordinator._commander._learner_info[i]) == 5
