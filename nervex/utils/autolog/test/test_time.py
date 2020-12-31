@@ -2,17 +2,24 @@ import time
 from unittest.mock import Mock
 
 import pytest
+
 from nervex.utils.autolog import TickTime, NaturalTime, TimeProxy
 
 
-@pytest.mark.unittest
 class TestNaturalTime:
 
+    @pytest.mark.unittest
     def test_natural_time(self):
-        for i in range(0, 1000):
+        _time = NaturalTime()
+        assert abs(_time.time() - time.time()) < 0.2
+
+    @pytest.mark.benchmark
+    def test_natural_time_for_100k_times(self):
+        for i in range(0, 100000):
             _time = NaturalTime()
             assert abs(_time.time() - time.time()) < 0.2
 
+    @pytest.mark.unittest
     def test_natural_time_with_mad_system(self):
         _time_func, time.time = time.time, Mock(side_effect=[1.5, 1.8, 2.0, 2.0, 1.75, 1.9, 2.2])
 
@@ -29,9 +36,9 @@ class TestNaturalTime:
             time.time = _time_func
 
 
-@pytest.mark.unittest
 class TestTickTime:
 
+    @pytest.mark.unittest
     def test_tick_bare(self):
         _time = TickTime()
         assert _time.time() == 0
@@ -46,6 +53,7 @@ class TestTickTime:
         with pytest.raises(ValueError):
             _time.step(0)
 
+    @pytest.mark.unittest
     def test_tick_init(self):
         _time = TickTime(3)
         assert _time.time() == 3
@@ -61,9 +69,9 @@ class TestTickTime:
             _time.step(0)
 
 
-@pytest.mark.unittest
 class TestTimeProxy:
 
+    @pytest.mark.unittest
     def test_time_proxy_for_tick_time(self):
         _time = TickTime()
         _proxy = TimeProxy(_time)
@@ -93,6 +101,7 @@ class TestTimeProxy:
         assert _proxy.current_time() == 4
         assert not _proxy.is_frozen
 
+    @pytest.mark.unittest
     def test_time_proxy_frozen_for_tick_time(self):
         _time = TickTime()
         _proxy = TimeProxy(_time, frozen=True)

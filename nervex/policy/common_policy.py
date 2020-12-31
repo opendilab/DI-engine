@@ -20,7 +20,11 @@ class CommonPolicy(Policy):
             data['done'] = None
         else:
             data['done'] = data['done'].float()
-        data['weight'] = data.get('weight', None)
+        use_priority = self._cfg.get('use_priority', False)
+        if use_priority:
+            data['weight'] = data['IS']
+        else:
+            data['weight'] = data.get('weight', None)
         return data
 
     def _data_preprocess_collect(self, data: Dict[int, Any]) -> Tuple[List[int], dict]:

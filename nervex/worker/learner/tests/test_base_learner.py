@@ -14,9 +14,16 @@ from nervex.worker.learner import LearnerHook, register_learner_hook, add_learne
 
 
 class FakeLearner(BaseLearner):
+    @staticmethod
+    def random_data():
+        return {
+            'obs': torch.randn(2),
+            'replay_buffer_idx': 0,
+            'replay_unique_id': 0,
+        }
 
     def get_data(self, batch_size):
-        return [partial(torch.randn, 2) for _ in range(batch_size)]
+        return [self.random_data for _ in range(batch_size)]
 
 
 class FakePolicy:

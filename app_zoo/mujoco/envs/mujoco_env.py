@@ -50,14 +50,18 @@ class MujocoEnv(BaseEnv):
         T = EnvElement.info_template
         return BaseEnv.info_template(
             agent_num=1,
-            obs_space=T(observation_space.shape, {
-                'min': observation_space.low.max(),
-                'max': observation_space.high.min()
-            }, None, None),
-            act_space=T(action_space.shape, {
-                'min': action_space.low.max(),
-                'max': action_space.high.min()
-            }, None, None),
+            obs_space=T(
+                observation_space.shape, {
+                    'min': observation_space.low.max(),
+                    'max': observation_space.high.min()
+                }, None, None
+            ),
+            act_space=T(
+                action_space.shape, {
+                    'min': action_space.low.max(),
+                    'max': action_space.high.min()
+                }, None, None
+            ),
             rew_space=T(1, {
                 'min': reward_range[0],
                 'max': reward_range[1]

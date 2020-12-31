@@ -61,6 +61,7 @@ def serial_pipeline(
     enough_data_count = cfg.policy.learn.batch_size * max(
         cfg.replay_buffer.min_sample_ratio, cfg.policy.learn.train_step // cfg.replay_buffer.max_reuse
     )
+    use_priority = cfg.policy.get('use_priority', False)
     while True:
         command.step()
         while True:
@@ -75,6 +76,8 @@ def serial_pipeline(
             train_data = replay_buffer.sample(cfg.policy.learn.batch_size)
             assert train_data is not None, "please modify your data collect config, increase n_sample/n_episode"
             learner.train(train_data)
+            if use_priority:
+                replay_buffer.update(learner.priority_info)
         if iter_count % cfg.evaluator.eval_freq == 0 and evaluator.eval(iter_count * cfg.policy.learn.train_step):
             # evaluator's mean episode reward reaches the expected ``stop_val``
             learner.save_checkpoint()
@@ -89,3 +92,11 @@ def serial_pipeline(
     learner.close()
     actor.close()
     evaluator.close()
+
+
+if __name__ == "__main__":
+
+    config = read_config(
+        "/home/SENSETIME/maze/project/nerveX/app_zoo/classic_control/pendulum/entry/pendulum_ppo_default_config.yaml"
+    )
+    serial_pipeline(config, seed=0)
