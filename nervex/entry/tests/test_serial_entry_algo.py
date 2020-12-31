@@ -166,23 +166,6 @@ def test_coma():
 
 
 @pytest.mark.algotest
-def test_a2c_with_nstep_return():
-    path = os.path.join(
-        os.path.dirname(__file__), '../../../app_zoo/classic_control/cartpole/entry/cartpole_a2c_default_config.yaml'
-    )
-    config = read_config(path)
-    config.policy.learn.algo.use_nstep_return = True
-    config.policy.learn.algo.discount_factor = config.policy.collect.algo.discount_factor
-    config.policy.learn.algo.nstep = 3
-    config.policy.collect.algo.use_nstep_return = config.policy.learn.algo.use_nstep_return
-    config.policy.collect.algo.nstep = config.policy.learn.algo.nstep
-    try:
-        serial_pipeline(config, seed=0)
-    except Exception:
-        assert False, "pipeline fail"
-
-
-@pytest.mark.algotest
 def test_ppo_vanilla_continous():
     path = os.path.join(
         os.path.dirname(__file__), '../../../app_zoo/classic_control/pendulum/entry/pendulum_ppo_default_config.yaml'

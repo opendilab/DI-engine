@@ -3,7 +3,8 @@ from collections import namedtuple, deque
 import torch
 
 from nervex.rl_utils import a2c_data, a2c_error, Adder, nstep_return_data, nstep_return
-from nervex.model import FCValueAC,ConvValueAC
+from nervex.torch_utils import Adam
+from nervex.model import FCValueAC, ConvValueAC
 from nervex.agent import Agent
 from .base_policy import Policy, register_policy
 from .common_policy import CommonPolicy
@@ -22,8 +23,9 @@ class A2CPolicy(CommonPolicy):
             Init the optimizer, algorithm config, main and target agents.
         """
         # Optimizer
-        # self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
-        self._optimizer = torch.optim.RMSprop(self._model.parameters(), lr=self._cfg.learn.learning_rate)
+        self._optimizer = Adam(
+            self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self._cfg.learn.weight_decay
+        )
 
         # Algorithm config
         algo_cfg = self._cfg.learn.algo
@@ -76,7 +78,6 @@ class A2CPolicy(CommonPolicy):
         # =============
         # after update
         # =============
-        # print(self._optimizer.param_groups[0]['lr'])
         return {
             'cur_lr': self._optimizer.param_groups[0]['lr'],
             'total_loss': total_loss.item(),
@@ -159,8 +160,8 @@ class A2CPolicy(CommonPolicy):
         if self._traj_len == float('inf'):
             assert data[-1]['done'], "episode must be terminated by done=True"
         data = self._adder.get_gae_with_default_last_value(
-                data, data[-1]['done'], gamma=self._gamma, gae_lambda=self._gae_lambda
-            )
+            data, data[-1]['done'], gamma=self._gamma, gae_lambda=self._gae_lambda
+        )
         return self._adder.get_train_sample(data)
 
     def _init_eval(self) -> None:
@@ -203,9 +204,7 @@ class A2CPolicy(CommonPolicy):
         Returns:
             - model (:obj:`torch.nn.Module`): Generated model.
         """
-        if cfg.model_type  == 'ConvValueAC':
-            return ConvValueAC(**cfg.model)
-        if cfg.model_type == 'FCValueAC':
+        if model_type is None:
             return FCValueAC(**cfg.model)
         else:
             return model_type(**cfg.model)
