@@ -64,6 +64,7 @@ class TestAsyncDataLoader:
     @pytest.mark.parametrize('batch_size, num_workers, chunk_size', args)
     def test_gpu(self, batch_size, num_workers, chunk_size):
         self.entry(batch_size, num_workers, chunk_size, use_cuda=True)
+        torch.cuda.empty_cache()
 
     def entry(self, batch_size, num_workers, chunk_size, use_cuda):
         model = self.get_model()
@@ -79,7 +80,7 @@ class TestAsyncDataLoader:
             with timer:
                 data = next(dataloader)
             data_time = timer.value
-            if count != 0:  # ignore start time
+            if count > 2:  # ignore start-3 time
                 total_data_time += data_time
             with timer:
                 _, idx = model(data)
@@ -93,9 +94,9 @@ class TestAsyncDataLoader:
             if count == 10:
                 break
         if num_workers < 1:
-            assert total_data_time <= 9 * batch_size * 0.5 + 9 * 0.005 - 9 * 1
+            assert total_data_time <= 7 * batch_size * 0.5 + 7 * 0.005 - 7 * 1
         else:
-            assert total_data_time <= 9 * 0.008
+            assert total_data_time <= 7 * 0.008
         dataloader.__del__()
         time.sleep(0.5)
         assert len(threading.enumerate()) <= 2
