@@ -17,11 +17,10 @@ r = None
 rc = None
 
 ceph = try_import_ceph()
-#mc = try_import_mc()
+# mc = try_import_mc()
 mc = None
 redis = try_import_redis()
 rediscluster = try_import_rediscluster()
-
 
 
 def read_from_ceph(path: str) -> object:
@@ -128,7 +127,7 @@ def read_from_mc(path: str, flush=False) -> object:
                 mclient.Get(path, value)
             value_buf = mc.ConvertBuffer(value)
             value_str = io.BytesIO(value_buf)
-            value_str = torch.load(value_str)
+            value_str = torch.load(value_str, map_location='cpu')
             return value_str
         except:
             print('read mc failed, retry...')
