@@ -30,7 +30,14 @@ class Commander(object):
     def get_learner_task(self) -> dict:
         if self.learner_task_count < self.learner_task_space:
             self.learner_task_count += 1
-            return {'task_id': 'learner_task_id{}'.format(self.learner_task_count), 'buffer_id': 'test'}
+            learner_cfg = self._cfg.learner_cfg
+            learner_cfg.max_iterations = int(1e8)
+            return {
+                'task_id': 'learner_task_id{}'.format(self.learner_task_count),
+                'buffer_id': 'test',
+                'learner_cfg': learner_cfg,
+                'policy': self._cfg.policy
+            }
         else:
             return None
 
@@ -62,8 +69,8 @@ class Coordinator(object):
     def __init__(self, cfg: dict) -> None:
         self._coordinator_uid = get_task_uid()
         self._cfg = cfg
-        self._actor_task_timeout = cfg.coordinator.actor_task_timeout
-        self._learner_task_timeout = cfg.coordinator.learner_task_timeout
+        self._actor_task_timeout = cfg.actor_task_timeout
+        self._learner_task_timeout = cfg.learner_task_timeout
 
         self._callback = {
             'deal_with_actor_send_data': self.deal_with_actor_send_data,
@@ -73,10 +80,10 @@ class Coordinator(object):
             'deal_with_learner_finish_task': self.deal_with_learner_finish_task,
         }
         self._logger, _ = build_logger(path='./log', name='coordinator')
-        self._interaction = CoordinatorInteraction(cfg.coordinator.interaction, self._callback, self._logger)
+        self._interaction = CoordinatorInteraction(cfg.interaction, self._callback, self._logger)
         self._learner_task_queue = Queue()
         self._actor_task_queue = Queue()
-        self._commander = Commander(cfg.coordinator)
+        self._commander = Commander(cfg)
         self._commander_lock = LockContext(LockContextType.THREAD_LOCK)
         # ############## Thread #####################
         self._assign_actor_thread = Thread(target=self._assign_actor_task, args=())

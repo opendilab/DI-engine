@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, List, Dict, Any, Tuple, Union
 from collections import namedtuple, deque
+from easydict import EasyDict
 import torch
 
 from nervex.utils import import_module
@@ -173,12 +174,13 @@ class Policy(ABC):
 policy_mapping = {}
 
 
-def create_policy(cfg: dict, model_type: Optional[type] = None) -> Policy:
+def create_policy(cfg: dict, **kwargs) -> Policy:
+    cfg = EasyDict(cfg)
     import_module(cfg.import_names)
     if cfg.policy_type not in policy_mapping:
         raise KeyError("not support policy type: {}".format(cfg.policy_type))
     else:
-        return policy_mapping[cfg.policy_type](cfg, model_type)
+        return policy_mapping[cfg.policy_type](cfg, **kwargs)
 
 
 def register_policy(name: str, policy: type) -> None:

@@ -2,7 +2,7 @@ import threading
 from abc import ABC, abstractmethod, abstractproperty
 from easydict import EasyDict
 
-from nervex.utils import EasyTimer
+from nervex.utils import EasyTimer, import_module
 from nervex.policy import create_policy
 from ..base_learner import BaseLearner
 
@@ -91,7 +91,7 @@ class BaseCommLearner(ABC):
         for item in ['get_data', 'send_agent', 'send_learn_info']:
             setattr(learner, item, getattr(self, item))
         learner.setup_dataloader()
-        learner.policy = create_policy(task_info['policy'], enable_field='learn').learn_mode
+        learner.policy = create_policy(task_info['policy'], enable_field=['learn']).learn_mode
         return learner
 
 
@@ -109,3 +109,12 @@ def register_comm_learner(name: str, learner_type: type) -> None:
     assert isinstance(name, str)
     assert issubclass(learner_type, BaseCommLearner)
     comm_map[name] = learner_type
+
+
+def create_comm_learner(cfg: dict) -> BaseCommLearner:
+    import_module(cfg.learner.import_names)
+    comm_learner_type = cfg.learner.comm_learner_type
+    if comm_learner_type not in comm_map.keys():
+        raise KeyError("not support comm learner type: {}".format(comm_learner_type))
+    else:
+        return comm_map[comm_learner_type](cfg.learner)

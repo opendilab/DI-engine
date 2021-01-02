@@ -12,14 +12,13 @@ import torch
 from collections import namedtuple
 
 from nervex.data import AsyncDataLoader, default_collate
+from nervex.config import base_learner_default_config
 from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer, to_device
 from nervex.utils import build_logger, dist_init, EasyTimer, dist_finalize, pretty_print, read_config, \
     get_task_uid, import_module, broadcast
 from nervex.utils import deep_merge_dicts
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
 from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, merge_hooks, LearnerHook
-
-default_config = read_config(os.path.join(os.path.dirname(__file__), "base_learner_default_config.yaml"))
 
 
 class TickMonitor(LoggedModel):
@@ -107,13 +106,13 @@ class BaseLearner(object):
 
                 os.environ['CUDA_LAUNCH_BLOCKING'] = "1"  # for debug async CUDA
         """
-        self._cfg = deep_merge_dicts(default_config, cfg)
+        self._cfg = deep_merge_dicts(base_learner_default_config, cfg)
 
         self._learner_worker_uid = get_task_uid()
-        self._load_path = self._cfg.common.load_path
-        self._save_path = self._cfg.common.save_path
-        self._use_cuda = self._cfg.learner.get('use_cuda', False)
-        self._use_distributed = self._cfg.learner.use_distributed
+        self._load_path = self._cfg.load_path
+        self._save_path = self._cfg.save_path
+        self._use_cuda = self._cfg.get('use_cuda', False)
+        self._use_distributed = self._cfg.use_distributed
         if self._use_distributed:
             self._rank, self._world_size = dist_init()
             rand_id = torch.randint(0, 314, size=(1, ))
@@ -127,7 +126,7 @@ class BaseLearner(object):
         # monitor & logger
         # Only rank == 0 learner needs monitor and tb_logger, else only needs text_logger to display terminal output
         rank0 = True if self._rank == 0 else False
-        path = os.path.join(self._cfg.common.save_path, 'learner')
+        path = os.path.join(self._cfg.save_path, 'learner')
         self._logger, self._tb_logger = build_logger(path, 'learner', rank0)
         self._log_buffer = build_log_buffer()
         # checkpoint helper
@@ -151,9 +150,9 @@ class BaseLearner(object):
             You can reference learner_hook.py
         """
         if hasattr(self, '_hooks'):
-            self._hooks = merge_hooks(self._hooks, build_learner_hook_by_cfg(self._cfg.learner.hook))
+            self._hooks = merge_hooks(self._hooks, build_learner_hook_by_cfg(self._cfg.hook))
         else:
-            self._hooks = build_learner_hook_by_cfg(self._cfg.learner.hook)
+            self._hooks = build_learner_hook_by_cfg(self._cfg.hook)
 
     def _setup_wrapper(self) -> None:
         """
@@ -228,7 +227,7 @@ class BaseLearner(object):
             Learner will call hooks at four fixed positions(before_run, before_iter, after_iter, after_run).
         """
         # before run hook
-        max_iterations = self._cfg.learner.max_iterations
+        max_iterations = self._cfg.max_iterations
         self.call_hook('before_run')
 
         for _ in range(max_iterations):
@@ -241,16 +240,16 @@ class BaseLearner(object):
     def setup_dataloader(self) -> None:
         """
         Overview:
-            Setup learner's dataloader, data_source need to be a generator,
+            Setup learner's dataloader, get_data need to be a callable,
             and setup learner's collate_fn, which aggregate a listed data into a batch tensor.
         """
         # only in parallel version we use get_data and dataloader, instead in serial version,
         # main entry directly uses `train` method.
         # when parallel version, get_data is set by comm LearnerCommHelper
         # users don't need to know the related details if not necessary
-        cfg = self._cfg.learner.dataloader
+        cfg = self._cfg.dataloader
         self._dataloader = AsyncDataLoader(
-            self.data_source,
+            self.get_data,
             cfg.batch_size,
             self._device,
             cfg.chunk_size,
@@ -429,4 +428,4 @@ def create_learner(cfg: EasyDict) -> BaseLearner:
     if learner_type not in learner_mapping.keys():
         raise KeyError("not support learner type: {}".format(learner_type))
     else:
-        return learner_mapping[learner_type](cfg)
+        return learner_mapping[learner_type](cfg.learner)

@@ -4,15 +4,16 @@ import time
 from threading import Thread
 from multiprocessing import Process
 from nervex.worker import Coordinator
-from nervex.utils import read_config, lists_to_dicts
+from nervex.utils import lists_to_dicts
 from nervex.interaction.slave import Slave, TaskFail
+from nervex.config import coordinator_default_config
 
 DATA_PREFIX = 'SLAVE_ACTOR_DATA'
 
 
 @pytest.fixture(scope='function')
 def setup_config():
-    return read_config(os.path.join(os.path.dirname(__file__), '../coordinator_default_config.yaml'))
+    return coordinator_default_config
 
 
 class Actor(Slave):
@@ -89,7 +90,7 @@ class Learner(Slave):
 
 @pytest.fixture(scope='function')
 def setup_actor(setup_config):
-    cfg = setup_config.coordinator.interaction.actor
+    cfg = setup_config.interaction.actor
     actor = {}
     for _, (name, host, port) in cfg.items():
         actor[name] = Actor(host, port)
@@ -101,7 +102,7 @@ def setup_actor(setup_config):
 
 @pytest.fixture(scope='function')
 def setup_learner(setup_config):
-    cfg = setup_config.coordinator.interaction.learner
+    cfg = setup_config.interaction.learner
     learner = {}
     for _, (name, host, port) in cfg.items():
         learner[name] = Learner(host, port)
@@ -116,8 +117,8 @@ class TestCoordinator:
 
     def test_naive(self, setup_config, setup_actor, setup_learner):
         os.popen('rm -rf {}*'.format(DATA_PREFIX))
-        assert len(setup_actor) == len(setup_config.coordinator.interaction.actor)
-        assert len(setup_learner) == len(setup_config.coordinator.interaction.learner)
+        assert len(setup_actor) == len(setup_config.interaction.actor)
+        assert len(setup_learner) == len(setup_config.interaction.learner)
         try:
             coordinator = Coordinator(setup_config)
             coordinator.start()
