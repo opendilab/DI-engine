@@ -226,6 +226,7 @@ class BaseLearner(object):
             For each iteration, learner will get training data and train.
             Learner will call hooks at four fixed positions(before_run, before_iter, after_iter, after_run).
         """
+        self._finished_task = None
         # before run hook
         max_iterations = self._cfg.max_iterations
         self.call_hook('before_run')
@@ -234,6 +235,7 @@ class BaseLearner(object):
             data = self._next_data()
             self.train(data)
 
+        self._finished_task = {'finish': True}
         # after run hook
         self.call_hook('after_run')
 
@@ -268,6 +270,8 @@ class BaseLearner(object):
         """
         if self._use_distributed:
             dist_finalize()
+        if hasattr(self, '_dataloader'):
+            del self._dataloader
 
     def call_hook(self, name: str) -> None:
         """
@@ -311,7 +315,10 @@ class BaseLearner(object):
         Returns:
             info (:obj:`dict`): current info dict
         """
-        return {'learner_step': self._last_iter.val, 'priority_info': self._priority_info}
+        ret = {'learner_step': self._last_iter.val, 'priority_info': self._priority_info}
+        if hasattr(self, '_finished_task') and self._finished_task is not None:
+            ret['finished_task'] = self._finished_task
+        return ret
 
     @property
     def last_iter(self) -> CountVar:

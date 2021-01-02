@@ -59,6 +59,8 @@ class FlaskFileSystemLearner(BaseCommLearner, Slave):
         elif task_name == 'learner_start_task':
             self._current_task_info = task['task_info']
             self._learner = self._create_learner(self._current_task_info)
+            for h in self.hooks4call:
+                self._learner.register_hook(h)
             self._learner_thread = Thread(target=run_learner, args=(), daemon=True)
             self._learner_thread.start()
             return {'message': 'learner task has started'}
@@ -110,7 +112,7 @@ class FlaskFileSystemLearner(BaseCommLearner, Slave):
         Arguments:
             - state_dict (:obj:`dict`): state dict of the runtime agent
         """
-        path = os.path.join(self._path_agent, self._agent_name)
+        path = os.path.join(self._path_agent, self._current_task_info['agent_id'])
         save_file(path, state_dict)
 
     @staticmethod
@@ -123,11 +125,13 @@ class FlaskFileSystemLearner(BaseCommLearner, Slave):
                 break
             except Exception as e:
                 time.sleep(0.01)
-        begin, end = meta['unroll_split_begin'], meta['unroll_split_begin'] + meta['unroll_len']
-        if meta['unroll_len'] == 1:
+        unroll_len = meta.get('unroll_len', 1)
+        begin = meta.get('unroll_split_begin', 0)
+        if unroll_len == 1:
             s = s[begin]
             s.update(meta)
         else:
+            end = begin + unroll_len
             s = s[begin:end]
             # add metdata key-value to stepdata
             for i in range(len(s)):
@@ -145,14 +149,8 @@ class FlaskFileSystemLearner(BaseCommLearner, Slave):
             - data (:obj:`list`): a list of train data, each element is one traj
         """
         assert self._data_demand_queue.qsize() == 0
-        sleep_count = 1
-        while True:
-            self._data_demand_queue.put(batch_size)
-            data = self._data_result_queue.get()
-            if data is not None:
-                break
-            time.sleep(sleep_count)
-            sleep_count += 5
+        self._data_demand_queue.put(batch_size)
+        data = self._data_result_queue.get()
         assert isinstance(data, list)
         assert len(data) == batch_size, '{}/{}'.format(len(data), batch_size)
         decompressor = get_data_decompressor(data[0].get('compressor', 'none'))
@@ -198,6 +196,12 @@ class FlaskFileSystemLearner(BaseCommLearner, Slave):
                 position='after_iter',
                 ext_args={'freq': 10},
             ),
+            SendLearnInfoHook(
+                'send_learn_info',
+                100,
+                position='after_run',
+                ext_args={'freq': 1},
+            ),
         ]
 
 
@@ -233,7 +237,7 @@ class SendAgentHook(LearnerHook):
         """
         last_iter = engine.last_iter.val
         if engine.rank == 0 and last_iter % self._freq == 0:
-            state_dict = {'model': engine.agent.model.state_dict(), 'iter': last_iter}
+            state_dict = {'model': engine.policy.state_dict_handle()['model'].state_dict(), 'iter': last_iter}
             engine.send_agent(state_dict)
             engine.info('{} save iter{} agent'.format(engine.name, last_iter))
 

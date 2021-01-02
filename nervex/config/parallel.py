@@ -11,7 +11,7 @@ policy_default_config = dict(
         action_dim=2,
     ),
     learn=dict(
-        batch_size=4,
+        batch_size=2,
         learning_rate=0.001,
         weight_decay=0.,
         algo=dict(
@@ -36,6 +36,7 @@ coordinator_default_config = dict(
     ),
     learner_cfg=base_learner_default_config,
     policy=policy_default_config,
+    max_iterations=10,
 )
 coordinator_default_config = EasyDict(coordinator_default_config)
 

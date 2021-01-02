@@ -158,9 +158,6 @@ class CoordinatorInteraction(object):
             if learn_task.status != TaskStatus.COMPLETED:
                 continue
             result = learn_task.result
-            # update info
-            buffer_id, info = result['buffer_id'], result['info']
-            self._callback_fn['deal_with_learner_send_info'](task_id, buffer_id, info)
             task_id, finished_task = result['task_id'], result['finished_task']
             # finish task and update resource
             if finished_task:
@@ -169,3 +166,7 @@ class CoordinatorInteraction(object):
                 if resource_task == TaskStatus.COMPLETED:
                     self._resource_manager.update('learner', learner_id, resource_task.result)
                 break
+            else:
+                # update info
+                buffer_id, info = result['buffer_id'], result['info']
+                self._callback_fn['deal_with_learner_send_info'](task_id, buffer_id, info)

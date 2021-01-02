@@ -238,11 +238,14 @@ class ReplayBuffer:
             thread-safe
         """
         with self._timer:
-            with self._meta_lock:
-                data = self._meta_buffer.sample(batch_size)
-        if data is None:
-            # no enough element for sampling
-            return None
+            sleep_count = 1
+            while True:
+                with self._meta_lock:
+                    data = self._meta_buffer.sample(batch_size)
+                if data is not None:
+                    break
+                time.sleep(sleep_count)
+                sleep_count += 5
         data_count = len(data)
         self._natural_monitor.out_count = data_count
         self._out_tick_monitor.out_time = self._timer.value

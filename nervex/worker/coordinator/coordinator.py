@@ -19,6 +19,7 @@ class Commander(object):
         self.actor_task_count = 0
         self.learner_task_count = 0
         self._learner_info = defaultdict(list)
+        self._learner_task_finish_count = 0
 
     def get_actor_task(self) -> dict:
         if self.actor_task_count < self.actor_task_space:
@@ -31,9 +32,10 @@ class Commander(object):
         if self.learner_task_count < self.learner_task_space:
             self.learner_task_count += 1
             learner_cfg = self._cfg.learner_cfg
-            learner_cfg.max_iterations = int(1e8)
+            learner_cfg.max_iterations = self._cfg.max_iterations
             return {
                 'task_id': 'learner_task_id{}'.format(self.learner_task_count),
+                'agent_id': 'test',
                 'buffer_id': 'test',
                 'learner_cfg': learner_cfg,
                 'policy': self._cfg.policy
@@ -45,6 +47,7 @@ class Commander(object):
         pass
 
     def finish_learner_task(self, task_id: str, finished_task: dict) -> None:
+        self._learner_task_finish_count += 1
         return finished_task['buffer_id']
 
     def notify_fail_actor_task(self, task: dict) -> None:
