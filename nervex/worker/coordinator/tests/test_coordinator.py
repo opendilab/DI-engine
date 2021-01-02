@@ -78,7 +78,7 @@ class Learner(Slave):
                 'buffer_id': self.task_info['buffer_id']
             }
             ret['info']['priority_info'] = {k: data[k] for k in priority_keys}
-            if self.count == 5:
+            if self.count > 5:
                 ret['finished_task'] = {'finish': True, 'buffer_id': self.task_info['buffer_id']}
                 os.popen('touch {}_final_model.pth'.format(DATA_PREFIX))
             else:
@@ -122,7 +122,10 @@ class TestCoordinator:
         try:
             coordinator = Coordinator(setup_config)
             coordinator.start()
-            time.sleep(5)
+            while True:
+                if coordinator._commander._learner_task_finish_count == 1:
+                    break
+                time.sleep(0.5)
             coordinator.close()
         except Exception as e:
             os.popen('rm -rf {}*'.format(DATA_PREFIX))
