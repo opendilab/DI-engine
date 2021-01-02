@@ -13,7 +13,13 @@ DATA_PREFIX = 'SLAVE_ACTOR_DATA'
 
 @pytest.fixture(scope='function')
 def setup_config():
-    return coordinator_default_config
+    cfg = coordinator_default_config
+    cfg.interaction.port += 100
+    for k in cfg.interaction.actor:
+        cfg.interaction.actor[k][2] += 100
+    for k in cfg.interaction.learner:
+        cfg.interaction.learner[k][2] += 100
+    return cfg
 
 
 class Actor(Slave):
