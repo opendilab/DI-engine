@@ -1,2 +1,1 @@
-from .actor_comm_helper import add_comm_actor, ActorCommHelper
-from .flask_fs_actor import FlaskFileSystemActor
+from .base_comm_actor import BaseCommActor, register_comm_actor, create_comm_actor

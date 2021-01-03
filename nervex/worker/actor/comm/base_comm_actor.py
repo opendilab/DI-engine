@@ -1,6 +1,11 @@
 import threading
 from abc import ABC, abstractmethod
 from typing import Any
+from easydict import EasyDict
+
+from nervex.policy import create_policy
+from nervex.utils import get_task_uid
+from ..base_actor import create_actor, BaseActor
 
 
 class BaseCommActor(ABC):
@@ -8,45 +13,26 @@ class BaseCommActor(ABC):
     def __init__(self, cfg):
         self._cfg = cfg
         self._active_flag = False
-        # Note: the following variable will be set by the outside caller
-        self._logger = None
-        self._actor_uid = None
-
-    @abstractmethod
-    def register_actor(self) -> None:
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_job(self) -> Any:
-        raise NotImplementedError
+        self._actor_uid = get_task_uid()
 
     @abstractmethod
     def get_agent_update_info(self, path: str) -> Any:
         raise NotImplementedError
 
     @abstractmethod
-    def send_traj_metadata(self, metadata: Any) -> None:
+    def send_metadata(self, metadata: Any) -> None:
         raise NotImplementedError
 
     @abstractmethod
-    def send_traj_stepdata(self, stepdata: Any) -> None:
+    def send_stepdata(self, stepdata: Any) -> None:
         raise NotImplementedError
 
     @abstractmethod
     def send_finish_job(self, path: str, finish_info: Any) -> None:
         raise NotImplementedError
 
-    def start_heartbeats_thread(self) -> None:
-        # start sending heartbeats thread
-        check_send_actor_heartbeats_thread = threading.Thread(target=self._send_actor_heartbeats)
-        check_send_actor_heartbeats_thread.daemon = True
-        check_send_actor_heartbeats_thread.start()
-        self._logger.info("Actor({}) send heartbeat thread start...".format(self._actor_uid))
-
     def init_service(self) -> None:
-        self.register_actor()
         self._active_flag = True
-        self.start_heartbeats_thread()
 
     def close_service(self) -> None:
         self._active_flag = False
@@ -55,24 +41,28 @@ class BaseCommActor(ABC):
     def actor_uid(self) -> str:
         return self._actor_uid
 
-    @actor_uid.setter
-    def actor_uid(self, _actor_uid: str) -> None:
-        self._actor_uid = _actor_uid
-
-    @property
-    def logger(self) -> Any:
-        return self._logger
-
-    @logger.setter
-    def logger(self, _logger: Any) -> None:
-        self._logger = _logger
-
-    # ************************** thread *********************************
-    @abstractmethod
-    def _send_actor_heartbeats(self) -> None:
-        raise NotImplementedError
+    def _create_actor(self, task_info: dict) -> BaseActor:
+        actor_cfg = EasyDict(task_info['actor_cfg'])
+        actor = create_actor(actor_cfg)
+        for item in ['send_metadata', 'send_stepdata', 'get_agent_update_info', 'send_finish_job']:
+            setattr(actor, item, getattr(self, item))
+        actor.policy = create_policy(task_info['policy'], enable_field=['collect']).collect_mode
+        return actor
 
 
-class SingleMachineActor(ABC):
-    # TODO single matchine actor for some micro envs
-    pass
+comm_map = {}
+
+
+def register_comm_actor(name: str, actor_type: type) -> None:
+    assert isinstance(name, str)
+    assert issubclass(actor_type, BaseCommActor)
+    comm_map[name] = actor_type
+
+
+def create_comm_actor(cfg: dict) -> BaseCommActor:
+    cfg = EasyDict(cfg)
+    comm_actor_type = cfg.actor.comm_actor_type
+    if comm_actor_type not in comm_map.keys():
+        raise KeyError("not support comm actor type: {}".format(comm_actor_type))
+    else:
+        return comm_map[comm_actor_type](cfg.actor)
