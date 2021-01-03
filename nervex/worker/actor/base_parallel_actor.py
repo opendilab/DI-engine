@@ -2,20 +2,20 @@ import os
 import sys
 from abc import ABC, abstractmethod, abstractproperty
 from collections import namedtuple
-from typing import Any, Union
+from typing import Any, Union, Tuple
 from functools import partial
 
+from nervex.policy import Policy
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
 from nervex.utils import build_logger, EasyTimer, get_task_uid, import_module
 from nervex.torch_utils import build_log_buffer
-from .comm.actor_comm_helper import ActorCommHelper
 
 
 class TickMonitor(LoggedModel):
     """
     Overview:
         TickMonitor is to monitor related info of one interation with env.
-        Info include: agent_time, env_time, norm_env_time, timestep_size...
+        Info include: policy_time, env_time, norm_env_time, timestep_size...
         These info variables would first be recorded in ``log_buffer``, then in ``self._iter_after_hook`` will vars in
         in this monitor be updated by``log_buffer``, then printed to ``TextLogger`` and ``TensorBoradLogger``.
     Interface:
@@ -23,9 +23,9 @@ class TickMonitor(LoggedModel):
     Property:
         time, expire
     """
-    agent_time = LoggedValue(float)
+    policy_time = LoggedValue(float)
     env_time = LoggedValue(float)
-    timestep_size = LoggedValue(int)
+    timestep_size = LoggedValue(float)
     norm_env_time = LoggedValue(float)
 
     def __init__(self, time_: 'BaseTime', expire: Union[int, float]):  # noqa
@@ -39,7 +39,7 @@ class TickMonitor(LoggedModel):
             _list = [_value for (_begin_time, _end_time), _value in records]
             return sum(_list) / len(_list)
 
-        self.register_attribute_value('avg', 'agent_time', partial(__avg_func, prop_name='agent_time'))
+        self.register_attribute_value('avg', 'policy_time', partial(__avg_func, prop_name='policy_time'))
         self.register_attribute_value('avg', 'env_time', partial(__avg_func, prop_name='env_time'))
         self.register_attribute_value('avg', 'timestep_size', partial(__avg_func, prop_name='timestep_size'))
         self.register_attribute_value('avg', 'norm_env_time', partial(__avg_func, prop_name='norm_env_time'))
@@ -49,30 +49,28 @@ class BaseActor(ABC):
 
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
-        self._init()
-        if self._cfg.actor.communication.type == 'single_machine':
-            self._logger.info('[WARNING]: use default single machine communication strategy')
-            # TODO single machine actor
-            raise NotImplementedError
-        else:
-            comm_cfg = self._cfg.actor.communication
-            ActorCommHelper.enable_comm_helper(self, comm_cfg)
-
-    def _init(self) -> None:
         self._actor_uid = get_task_uid()
-        self._setup_logger()
+        self._logger, self._monitor, self._log_buffer = self._setup_logger()
         self._end_flag = False
         self._setup_timer()
+        self._iter_count = 0
+        self.info("CFG INFO:\n{}".format(cfg))
 
-    def _setup_timer(self):
+    def info(self, s: str) -> None:
+        self._logger.info("[ACTOR({})]: {}".format(self._actor_uid, s))
+
+    def error(self, s: str) -> None:
+        self._logger.error("[ACTOR({})]: {}".format(self._actor_uid, s))
+
+    def _setup_timer(self) -> None:
         self._timer = EasyTimer()
 
-        def agent_wrapper(fn):
+        def policy_wrapper(fn):
 
             def wrapper(*args, **kwargs):
                 with self._timer:
                     ret = fn(*args, **kwargs)
-                self._log_buffer['agent_time'] = self._timer.value
+                self._log_buffer['policy_time'] = self._timer.value
                 return ret
 
             return wrapper
@@ -90,49 +88,31 @@ class BaseActor(ABC):
 
             return wrapper
 
-        self._agent_inference = agent_wrapper(self._agent_inference)
+        self._policy_inference = policy_wrapper(self._policy_inference)
         self._env_step = env_wrapper(self._env_step)
 
-    def _check(self) -> None:
-        assert hasattr(self, 'init_service')
-        assert hasattr(self, 'close_service')
-        assert hasattr(self, 'get_job')
-        assert hasattr(self, 'get_agent_update_info')
-        assert hasattr(self, 'send_traj_metadata')
-        assert hasattr(self, 'send_traj_stepdata')
-        assert hasattr(self, 'send_finish_job')
-
-    def _init_with_job(self, job: dict) -> None:
-        # update iter_count and varibale_record for each job
-        self._iter_count = 0
-        self._logger.info("ACTOR({}): JOB INFO:\n{}".format(self._actor_uid, job))
-
-        # other parts need to be implemented by subclass
-
-    def _setup_logger(self) -> None:
-        path = os.path.join(self._cfg.common.save_path, 'actor')
+    def _setup_logger(self) -> Tuple:
+        path = os.path.join(self._cfg.save_path, 'log')
         name = 'actor.{}.log'.format(self._actor_uid)
-        self._logger, _ = build_logger(path, name, False)
-        self._monitor = TickMonitor(TickTime(), expire=self._cfg.actor.print_freq * 2)
-        self._log_buffer = build_log_buffer()
+        logger, _ = build_logger(path, name, False)
+        monitor = TickMonitor(TickTime(), expire=self._cfg.print_freq * 2)
+        log_buffer = build_log_buffer()
+        return logger, monitor, log_buffer
 
-    def run(self) -> None:
-        self.init_service()
-        while not self._end_flag:
-            job = self.get_job()
-            self._init_with_job(job)
-            while True:
-                obs = self._env_manager.next_obs
-                action = self._agent_inference(obs)
-                timestep = self._env_step(action)
-                self._process_timestep(timestep)
-                self._iter_after_hook()
-                if self._env_manager.done:
-                    break
-            self._finish_job()
+    def start(self) -> None:
+        self._update_policy()
+        self._start_thread()
+        while True:
+            obs = self._env_manager.next_obs
+            action = self._policy_inference(obs)
+            timestep = self._env_step(action)
+            self._process_timestep(timestep)
+            self._iter_after_hook()
+            if self._env_manager.done:
+                self._finish_task()
+                break
 
     def close(self) -> None:
-        self.close_service()
         self._end_flag = True
 
     def _iter_after_hook(self):
@@ -142,10 +122,8 @@ class BaseActor(ABC):
         self._monitor.time.step()
 
         # print info
-        if self._iter_count % self._cfg.actor.print_freq == 0:
-            self._logger.info(
-                'ACTOR({}):\n{}TimeStep{}{}'.format(self._actor_uid, '=' * 35, self._iter_count, '=' * 35)
-            )
+        if self._iter_count % self._cfg.print_freq == 0:
+            self.info('{}TimeStep{}{}'.format('=' * 35, self._iter_count, '=' * 35))
             # tick_monitor -> var_dict
             var_dict = {}
             for k in self._log_buffer:
@@ -161,7 +139,7 @@ class BaseActor(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _agent_inference(self, obs: Any) -> Any:
+    def _policy_inference(self, obs: Any) -> Any:
         raise NotImplementedError
 
     @abstractmethod
@@ -173,14 +151,24 @@ class BaseActor(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _finish_job(self) -> None:
+    def _finish_task(self) -> None:
         raise NotImplementedError
 
-    def _pack_trajectory(self) -> None:
+    @abstractmethod
+    def _update_policy(self) -> None:
         raise NotImplementedError
 
-    def _update_agent(self) -> None:
-        raise NotImplementedError
+    def _start_thread(self) -> None:
+        pass
+
+    @property
+    def policy(self) -> Policy:
+        return self._policy
+
+    @policy.setter
+    def policy(self, _policy: Policy) -> None:
+        self._policy = _policy
+        self._policy.set_setting('collect', self._cfg.collect_setting)
 
 
 actor_mapping = {}
@@ -193,8 +181,9 @@ def register_actor(name: str, actor: BaseActor) -> None:
 
 
 def create_actor(cfg: dict) -> BaseActor:
-    import_module(cfg.actor.import_names)
-    if cfg.actor.actor_type not in actor_mapping.keys():
-        raise KeyError("not support actor type: {}".format(cfg.actor.actor_type))
+    import_module(cfg.import_names)
+    actor_type = cfg.actor_type
+    if actor_type not in actor_mapping.keys():
+        raise KeyError("not support actor type: {}".format(actor_type))
     else:
-        return actor_mapping[cfg.actor.actor_type](cfg)
+        return actor_mapping[actor_type](cfg)

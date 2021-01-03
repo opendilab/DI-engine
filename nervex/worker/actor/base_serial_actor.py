@@ -131,7 +131,7 @@ class BaseSerialActor(object):
                 'step_count': step_count,
                 'train_sample_count': train_sample_count,
                 'avg_step_per_episode': step_count / max(1, episode_count),
-                'avg_traj_per_epsiode': train_sample_count / max(1, episode_count),
+                'avg_sample_per_epsiode': train_sample_count / max(1, episode_count),
                 'avg_time_per_step': duration / (step_count + 1e-8),
                 'avg_time_per_train_sample': duration / (train_sample_count + 1e-8),
                 'avg_time_per_episode': duration / max(1, episode_count),

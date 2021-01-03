@@ -15,7 +15,7 @@ class Policy(ABC):
     collect_function = namedtuple(
         'collect_function', [
             'data_preprocess', 'forward', 'data_postprocess', 'process_transition', 'get_train_sample', 'reset',
-            'set_setting'
+            'set_setting', 'state_dict_handle'
         ]
     )
     eval_function = namedtuple(
@@ -78,8 +78,14 @@ class Policy(ABC):
     @property
     def collect_mode(self) -> 'Policy.collect_function':  # noqa
         return Policy.collect_function(
-            self._data_preprocess_collect, self._forward_collect, self._data_postprocess_collect,
-            self._process_transition, self._get_train_sample, self._reset_collect, self.set_setting
+            self._data_preprocess_collect,
+            self._forward_collect,
+            self._data_postprocess_collect,
+            self._process_transition,
+            self._get_train_sample,
+            self._reset_collect,
+            self.set_setting,
+            self.state_dict_handle,
         )
 
     @property

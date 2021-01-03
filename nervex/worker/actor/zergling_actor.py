@@ -1,249 +1,184 @@
 import copy
-import queue
 import time
 import uuid
-from collections import namedtuple
+from collections import namedtuple, deque
 from threading import Thread
-from typing import Dict, Callable, Any
+from typing import Dict, Callable, Any, List
 
+import numpy as np
 import torch
 from easydict import EasyDict
 
-from nervex.data import default_collate, default_decollate
+from nervex.envs import get_vec_env_setting
 from nervex.torch_utils import to_device, tensor_to_list
 from nervex.utils import get_data_compressor, lists_to_dicts
-from nervex.rl_utils import Adder
-from nervex.agent import Agent
-from nervex.worker.actor import BaseActor
-from nervex.worker.actor.env_manager import SubprocessEnvManager, BaseEnvManager
+from .env_manager import SubprocessEnvManager, BaseEnvManager
+from .base_parallel_actor import BaseActor, register_actor
+from .base_serial_actor import CachePool
 
 
 class ZerglingActor(BaseActor):
     """
     Feature:
-      - one agent/sync many agents, many envs
+      - one policy, many envs
       - async envs(step + reset)
       - batch network eval
       - different episode length env
-      - periodic agent update
+      - periodic policy update
       - metadata + stepdata
     """
 
     # override
-    def _init(self) -> None:
-        super()._init()
-        self._traj_queue = queue.Queue()
-        self._update_agent_thread = Thread(target=self._update_agent, args=())
-        self._update_agent_thread.deamon = True
-        self._update_agent_thread.start()  # keep alive in the whole job
-        self._pack_trajectory_thread = Thread(target=self._pack_trajectory, args=())
-        self._pack_trajectory_thread.deamon = True
-        self._pack_trajectory_thread.start()
+    def __init__(self, cfg: dict) -> None:
+        super().__init__(cfg)
+        self._update_policy_thread = Thread(target=self._update_policy_periodically, args=())
+        self._update_policy_thread.deamon = True
 
-    # override
-    def _init_with_job(self, job: dict) -> None:
-        super()._init_with_job(job)
-        self._job = job
-        self._logger.info('ACTOR({}): init with job {} in {}'.format(self._actor_uid, self._job['job_id'], time.time()))
         self._start_time = time.time()
-        self._step_count = 0
-        assert len(self._job['agent']) >= 1
-        self._adder = Adder(self._cfg.actor.use_cuda)
-        self._adder_kwargs = self._job['adder_kwargs']
-        self._env_kwargs = self._job['env_kwargs']
-        self._env_num = self._env_kwargs['env_num']
-        self._compressor = get_data_compressor(self._job['compressor'])
-        self._job_result = {k: [] for k in range(self._env_num)}
-        self._collate_fn = default_collate
-        self._decollate_fn = default_decollate
+        self._traj_len = self._cfg.traj_len
+        self._traj_cache_length = self._traj_len
+        self._env_kwargs = self._cfg.env_kwargs
+        self._compressor = get_data_compressor(self._cfg.compressor)
         self._env_manager = self._setup_env_manager()
-        self._agent = self._setup_agent()
-        self._obs_pool = {k: None for k in range(self._env_num)}
-        self._act_pool = {k: None for k in range(self._env_num)}
-        self._data_buffer = {k: [] for k in range(self._env_num)}
-        self._last_data_buffer = {k: [] for k in range(self._env_num)}
-        self._episode_result = {k: None for k in range(self._env_num)}
-        self._job_finish_flag = False
+        self._env_num = self._env_manager.env_num
+
+        self._episode_result = [[] for k in range(self._env_num)]
+        self._obs_pool = CachePool('obs', self._env_num)
+        self._policy_output_pool = CachePool('policy_output', self._env_num)
+        self._traj_cache = {env_id: deque(maxlen=self._traj_cache_length) for env_id in range(self._env_num)}
+        self._total_step = 0
+        self._total_sample = 0
+        self._total_episode = 0
 
     def _setup_env_manager(self) -> BaseEnvManager:
-        env_cfg = EasyDict(self._env_kwargs['env_cfg'])
-        env_num = self._env_kwargs['env_num']
-        if isinstance(env_cfg, dict):
-            env_fn = self._setup_env_fn(env_cfg)
-            env_cfg = [env_cfg for _ in range(env_num)]
-        else:
-            raise TypeError("not support env_cfg type: {}".format(env_cfg))
+        env_fn, env_cfg, _ = get_vec_env_setting(self._env_kwargs)
         env_manager = SubprocessEnvManager(
-            env_fn=env_fn, env_cfg=env_cfg, env_num=env_num, episode_num=self._env_kwargs['episode_num']
+            env_fn=env_fn, env_cfg=env_cfg, env_num=len(env_cfg), episode_num=self._env_kwargs.episode_num
         )
         env_manager.launch()
         return env_manager
 
-    # override
-    def _agent_inference(self, obs: Dict[int, Any]) -> Dict[int, Any]:
-        # save in obs_pool
-        for k, v in obs.items():
-            self._obs_pool[k] = copy.deepcopy(v)
-
-        env_id = obs.keys()
-        obs = self._collate_fn(list(obs.values()))
-        if self._cfg.actor.use_cuda:
-            obs = to_device(obs, 'cuda')
-        forward_kwargs = self._job['forward_kwargs']
-        forward_kwargs['state_id'] = list(env_id)
-        if len(self._job['agent']) == 1:
-            data = self._agent.forward(obs, **forward_kwargs)
-        else:
-            data = [agent.forward(obs[i], **forward_kwargs) for i, agent in enumerate(self._agent)]
-        if self._cfg.actor.use_cuda:
-            data = to_device(data, 'cpu')
-        data = self._decollate_fn(data)
-        data = [lists_to_dicts(d) for d in data]
-        data = {i: d for i, d in zip(env_id, data)}
-        return data
+    def _start_thread(self) -> None:
+        self._update_policy_thread.start()
 
     # override
-    def _env_step(self, agent_output: Dict[int, Dict]) -> Dict[int, Any]:
-        # save in act_pool
-        for k, v in agent_output.items():
-            self._act_pool[k] = copy.deepcopy(v)
-        action = {k: v['action'] for k, v in agent_output.items()}
-        return self._env_manager.step(action)
+    def _policy_inference(self, obs: Dict[int, Any]) -> Dict[int, Any]:
+        self._obs_pool.update(obs)
+        env_id, obs = self._policy.data_preprocess(obs)
+        policy_output = self._policy.forward(env_id, obs)
+        policy_output = self._policy.data_postprocess(env_id, policy_output)
+        self._policy_output_pool.update(policy_output)
+        actions = {env_id: output['action'] for env_id, output in policy_output.items()}
+        return actions
+
+    # override
+    def _env_step(self, actions: Dict[int, Any]) -> Dict[int, Any]:
+        return self._env_manager.step(actions)
 
     # override
     def _process_timestep(self, timestep: Dict[int, namedtuple]) -> None:
         for env_id, t in timestep.items():
-            data = self._get_transition(self._obs_pool[env_id], self._act_pool[env_id], timestep[env_id])
-            self._data_buffer[env_id].append(data)
-            self._step_count += 1
-            if len(self._data_buffer[env_id]) == (self._adder_kwargs['data_push_length'] + 1):
-                # last data copy must be in front of obs_next
-                last = self._data_buffer[env_id][-1]
-                data = self._data_buffer[env_id][:-1]
-                self._last_data_buffer[env_id].clear()
-                self._last_data_buffer[env_id] = copy.deepcopy(data)
-                if self._adder_kwargs['use_gae']:
-                    gamma = self._adder_kwargs['gamma']
-                    gae_lambda = self._adder_kwargs['gae_lambda']
-                    data = self._adder.get_gae(data, last['value'], gamma, gae_lambda)
-                self._traj_queue.put({'data': data, 'env_id': env_id, 'agent_id': 0, 'job': copy.deepcopy(self._job)})
-                self._data_buffer[env_id].clear()
-                self._data_buffer[env_id].append(last)
+            transition = self._policy.process_transition(self._obs_pool[env_id], self._policy_output_pool[env_id], t)
+            self._traj_cache[env_id].append(transition)
+            if t.done or len(self._traj_cache[env_id]) == self._traj_len:
+                train_sample = self._policy.get_train_sample(self._traj_cache[env_id])
+                for s in train_sample:
+                    s = self._compressor(s)
+                    metadata = self._get_metadata(s, env_id)
+                    self.send_stepdata(metadata['data_id'], s)
+                    self.send_metadata(metadata)
+                self._total_sample += len(train_sample)
             if t.done:
-                self._job_result[env_id].append(t.info)
-                self._logger.info('ACTOR({}): env{} finish episode in {}'.format(self._actor_uid, env_id, time.time()))
-                cur_len = len(self._data_buffer[env_id])
-                miss_len = self._adder_kwargs['data_push_length'] - cur_len
-                data = self._last_data_buffer[env_id][-miss_len:] + self._data_buffer[env_id]
-                if self._adder_kwargs['use_gae']:
-                    gamma = self._adder_kwargs['gamma']
-                    gae_lambda = self._adder_kwargs['gae_lambda']
-                    data = self._adder.get_gae(data, torch.zeros(1), gamma, gae_lambda)
-                self._traj_queue.put({'data': data, 'env_id': env_id, 'agent_id': 0, 'job': copy.deepcopy(self._job)})
-                self._last_data_buffer[env_id].clear()
-                self._data_buffer[env_id].clear()
+                # env reset is done by env_manager automatically
+                self._traj_cache[env_id].clear()
+                self._obs_pool.reset(env_id)
+                self._policy_output_pool.reset(env_id)
+                self._policy.reset([env_id])
+                reward = t.info['final_eval_reward']
+                self._episode_result[env_id].append(reward)
+                self.info(
+                    "env {} finish episode, final reward: {}, collected episode {}".format(
+                        env_id, reward, len(self._episode_result[env_id])
+                    )
+                )
+                self._total_episode += 1
+            self._total_step += 1
 
     # override
-    def _finish_job(self) -> None:
-        assert all([len(r) == self._env_kwargs['episode_num'] for r in self._job_result.values()])
-        episode_count = self._env_kwargs['episode_num'] * self._env_num
+    def _finish_task(self) -> None:
+        episode_count = self._env_kwargs.episode_num * self._env_num
         duration = max(time.time() - self._start_time, 1e-8)
-        job_finish_info = {
-            'job_id': self._job['job_id'],
-            'actor_uid': self._actor_uid,
-            'episode_num': self._env_kwargs['episode_num'],
+        finish_info = {
+            'finished_task': True,  # flag
+            'episode_num': self._env_kwargs.episode_num,
             'env_num': self._env_num,
-            'player_id': self._job['player_id'],
-            'launch_player': self._job['launch_player'],
-            'episode_count': episode_count,
-            'step_count': self._step_count,
-            'avg_time_per_episode': duration / episode_count,
-            'avg_time_per_step': duration / self._step_count,
-            'avg_step_per_episode': self._step_count / episode_count,
-            'result': tensor_to_list(self._job_result),
+            'duration': duration,
+            'target_episode_count': episode_count,
+            'real_episode_count': self._total_episode,
+            'step_count': self._total_step,
+            'sample_count': self._total_sample,
+            'avg_time_per_episode': duration / self._total_episode,
+            'avg_time_per_step': duration / self._total_step,
+            'avg_time_per_train_sample': duration / self._total_sample,
+            'avg_step_per_episode': self._total_step / self._total_episode,
+            'avg_sample_per_episode': self._total_sample / self._total_episode,
+            'reward_mean': np.mean(self._episode_result),
+            'reward_std': np.std(self._episode_result),
+            'reward_raw': self._episode_result,
+            'finish_time': time.time()
         }
-        self._job_finish_flag = True
-        self._logger.info('ACTOR({}): finish job {} in {}'.format(self._actor_uid, self._job['job_id'], time.time()))
-        self._logger.info('ACTOR({}): JOB FINISH INFO\n{}'.format(self._actor_uid, job_finish_info))
-        self.send_finish_job(job_finish_info)
+        self._logger.info('FINISH INFO\n{}'.format(finish_info))
+        self.send_finish_info(finish_info)
         # sleep some time for close thread
         time.sleep(3)
 
+    # override
+    def _update_policy(self) -> None:
+        path = self._cfg.policy_update_path
+        while True:
+            try:
+                policy_update_info = self.get_policy_update_info(path)
+                break
+            except Exception as e:
+                self.error('update agent error: {}'.format(e))
+                time.sleep(1)
+
+        handle = self._policy.state_dict_handle()
+        handle['model'].load_state_dict(policy_update_info['model'])
+        self._policy_iter = policy_update_info['iter']
+        self.info('update policy with {}(iter{}) in {}'.format(path, self._policy_iter, time.time()))
+
     # ******************************** thread **************************************
 
-    # override
-    def _update_agent(self) -> None:
+    def _update_policy_periodically(self) -> None:
         last = time.time()
         while not self._end_flag:
-            if hasattr(self, '_job') and hasattr(self, '_agent'):
-                cur = time.time()
-                interval = cur - last
-                if interval < self._job['agent_update_freq']:
-                    time.sleep(self._job['agent_update_freq'] * 0.1)
-                    continue
-                else:
-                    for i in range(len(self._job['agent'])):
-                        path = self._job['agent'][i]['agent_update_path']
-                        agent_update_info = self.get_agent_update_info(path)
-                        if len(self._job['agent']) == 1:
-                            self._agent.load_state_dict(agent_update_info)
-                        else:
-                            self._agent[i].load_state_dict(agent_update_info)
-                    self._logger.info(
-                        'ACTOR({}): update agent with {} in {}'.format(self._actor_uid, path, time.time())
-                    )
-                    last = time.time()
+            cur = time.time()
+            interval = cur - last
+            if interval < self._cfg.policy_update_freq:
+                time.sleep(self._cfg.policy_update_freq * 0.1)
+                continue
+            else:
+                self._update_policy()
+                last = time.time()
             time.sleep(0.1)
 
-    # override
-    def _pack_trajectory(self) -> None:
+    def _get_metadata(self, stepdata: List, env_id: int) -> dict:
+        data_id = "env_{}_{}".format(env_id, str(uuid.uuid1()))
+        metadata = {
+            'data_id': data_id,
+            'env_id': env_id,
+            'policy_iter': self._policy_iter,
+            'unroll_len': len(stepdata),
+            'compressor': self._cfg.compressor,
+            'get_data_time': time.time(),
+            # TODO(nyz) the relationship between traj priority and step priority
+            'priority': 1.0,
+        }
+        return metadata
 
-        def _pack(element):
-            data, env_id, agent_id, job = list(element.values())
-            # send metadata
-            job_id = job['job_id']
-            traj_id = "job_{}_env_{}_agent_{}_{}".format(job_id, env_id, agent_id, str(uuid.uuid1()))
-            metadata = {
-                'traj_id': traj_id,
-                'learner_uid': job['learner_uid'][0],
-                'launch_player': job['launch_player'],
-                'env_id': env_id,
-                'agent_id': agent_id,
-                'actor_uid': self._actor_uid,
-                'done': data[-1]['done'],
-                # TODO(nyz) the relationship between traj priority and step priority
-                'priority': 1.0,
-                'traj_finish_time': time.time(),
-                'job_id': job_id,
-                'data_push_length': len(data),
-                'compressor': job['compressor'],
-                'job': job,
-            }
-            # save data
-            data = self._compressor(data)
-            self.send_traj_stepdata(traj_id, data)
-            self.send_traj_metadata(metadata)
-            self._logger.info('ACTOR({}): send traj({}) in {}'.format(self._actor_uid, traj_id, time.time()))
+    def __repr__(self) -> str:
+        return "ZerglingActor"
 
-        finished_traj_num = 0
-        while not self._end_flag:
-            try:
-                element = self._traj_queue.get()
-            except queue.Empty:
-                time.sleep(1)
-                continue
-            _pack(element)
-            finished_traj_num += 1
-            self._logger.info('ACTOR({}) finished {}'.format(self._actor_uid, finished_traj_num))
 
-    def _setup_env_fn(self, env_cfg: dict) -> Callable:
-        """set env_fn"""
-        raise NotImplementedError
-
-    def _setup_agent(self) -> Agent:
-        """set agent, load init state_dict, reset"""
-        raise NotImplementedError
-
-    def _get_transition(self, obs: Any, agent_output: Dict, timestep: namedtuple) -> dict:
-        """get one step transition"""
-        raise NotImplementedError
+register_actor('zergling', ZerglingActor)

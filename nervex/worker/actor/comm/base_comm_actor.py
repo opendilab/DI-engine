@@ -4,8 +4,8 @@ from typing import Any
 from easydict import EasyDict
 
 from nervex.policy import create_policy
-from nervex.utils import get_task_uid
-from ..base_actor import create_actor, BaseActor
+from nervex.utils import get_task_uid, import_module
+from ..base_parallel_actor import create_actor, BaseActor
 
 
 class BaseCommActor(ABC):
@@ -16,7 +16,7 @@ class BaseCommActor(ABC):
         self._actor_uid = get_task_uid()
 
     @abstractmethod
-    def get_agent_update_info(self, path: str) -> Any:
+    def get_policy_update_info(self, path: str) -> Any:
         raise NotImplementedError
 
     @abstractmethod
@@ -28,7 +28,7 @@ class BaseCommActor(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def send_finish_job(self, path: str, finish_info: Any) -> None:
+    def send_finish_info(self, path: str, finish_info: Any) -> None:
         raise NotImplementedError
 
     def init_service(self) -> None:
@@ -44,7 +44,7 @@ class BaseCommActor(ABC):
     def _create_actor(self, task_info: dict) -> BaseActor:
         actor_cfg = EasyDict(task_info['actor_cfg'])
         actor = create_actor(actor_cfg)
-        for item in ['send_metadata', 'send_stepdata', 'get_agent_update_info', 'send_finish_job']:
+        for item in ['send_metadata', 'send_stepdata', 'get_policy_update_info', 'send_finish_info']:
             setattr(actor, item, getattr(self, item))
         actor.policy = create_policy(task_info['policy'], enable_field=['collect']).collect_mode
         return actor
@@ -61,8 +61,9 @@ def register_comm_actor(name: str, actor_type: type) -> None:
 
 def create_comm_actor(cfg: dict) -> BaseCommActor:
     cfg = EasyDict(cfg)
-    comm_actor_type = cfg.actor.comm_actor_type
+    import_module(cfg.import_names)
+    comm_actor_type = cfg.comm_actor_type
     if comm_actor_type not in comm_map.keys():
         raise KeyError("not support comm actor type: {}".format(comm_actor_type))
     else:
-        return comm_map[comm_actor_type](cfg.actor)
+        return comm_map[comm_actor_type](cfg)
