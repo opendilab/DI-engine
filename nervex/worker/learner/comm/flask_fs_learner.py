@@ -20,7 +20,7 @@ class FlaskFileSystemLearner(BaseCommLearner, Slave):
     Overview:
         An implementation of CommLearner, using flask as the file system.
     Interfaces:
-        __init__, send_agent, get_data, send_learn_info, init_service, close_service,
+        __init__, send_policy, get_data, send_learn_info, init_service, close_service,
     Property:
         hooks4call
     """
@@ -28,7 +28,7 @@ class FlaskFileSystemLearner(BaseCommLearner, Slave):
     def __init__(self, cfg: 'EasyDict') -> None:  # noqa
         """
         Overview:
-            Initialize file path(url, path of traj & agent), comm frequency, dist learner info according to cfg.
+            Initialize file path(url, path of data & policy), comm frequency, dist learner info according to cfg.
         Arguments:
             - cfg (:obj:`EasyDict`): config dict
         """
@@ -36,9 +36,9 @@ class FlaskFileSystemLearner(BaseCommLearner, Slave):
         host, port = cfg.host, cfg.port
         Slave.__init__(self, host, port)
 
-        self._path_traj = cfg.path_traj
-        self._path_agent = cfg.path_agent
-        self._send_agent_freq = cfg.send_agent_freq
+        self._path_data = cfg.path_data
+        self._path_policy = cfg.path_policy
+        self._send_policy_freq = cfg.send_policy_freq
         self._rank = get_rank()
         self._world_size = get_world_size()
 
@@ -105,14 +105,14 @@ class FlaskFileSystemLearner(BaseCommLearner, Slave):
         Slave.close(self)
 
     # override
-    def send_agent(self, state_dict: dict) -> None:
+    def send_policy(self, state_dict: dict) -> None:
         """
         Overview:
-            Save learner's agent in corresponding path, called by ``SendAgentHook``.
+            Save learner's policy in corresponding path, called by ``SendpolicyHook``.
         Arguments:
-            - state_dict (:obj:`dict`): state dict of the runtime agent
+            - state_dict (:obj:`dict`): state dict of the runtime policy
         """
-        path = os.path.join(self._path_agent, self._current_task_info['agent_id'])
+        path = os.path.join(self._path_policy, self._current_task_info['policy_id'])
         save_file(path, state_dict)
 
     @staticmethod
@@ -146,7 +146,7 @@ class FlaskFileSystemLearner(BaseCommLearner, Slave):
         Arguments:
             - batch_size (:obj:`int`): size of one batch
         Returns:
-            - data (:obj:`list`): a list of train data, each element is one traj
+            - data (:obj:`list`): a list of train data, each element is one data
         """
         assert self._data_demand_queue.qsize() == 0
         self._data_demand_queue.put(batch_size)
@@ -157,7 +157,7 @@ class FlaskFileSystemLearner(BaseCommLearner, Slave):
         data = [
             partial(
                 FlaskFileSystemLearner.load_data_fn,
-                path=os.path.join(self._path_traj, m['data_id']),
+                path=os.path.join(self._path_data, m['data_id']),
                 meta=m,
                 decompressor=decompressor,
             ) for m in data
@@ -186,9 +186,9 @@ class FlaskFileSystemLearner(BaseCommLearner, Slave):
             - hooks (:obj:`list`): the hooks which comm learner have, will be registered in learner as well.
         """
         return [
-            SendAgentHook('send_agent', 100, position='before_run', ext_args={}),
-            SendAgentHook(
-                'send_agent', 100, position='after_iter', ext_args={'send_agent_freq': self._send_agent_freq}
+            SendPolicyHook('send_policy', 100, position='before_run', ext_args={}),
+            SendPolicyHook(
+                'send_policy', 100, position='after_iter', ext_args={'send_policy_freq': self._send_policy_freq}
             ),
             SendLearnInfoHook(
                 'send_learn_info',
@@ -205,10 +205,10 @@ class FlaskFileSystemLearner(BaseCommLearner, Slave):
         ]
 
 
-class SendAgentHook(LearnerHook):
+class SendPolicyHook(LearnerHook):
     """
     Overview:
-        Hook to send agent
+        Hook to send policy
     Interfaces:
         __init__, __call__
     Property:
@@ -218,28 +218,28 @@ class SendAgentHook(LearnerHook):
     def __init__(self, *args, ext_args: dict = {}, **kwargs) -> None:
         """
         Overview:
-            init SendAgentHook
+            init SendpolicyHook
         Arguments:
-            - ext_args (:obj:`dict`): extended_args, use ext_args.freq to set send_agent_freq
+            - ext_args (:obj:`dict`): extended_args, use ext_args.freq to set send_policy_freq
         """
         super().__init__(*args, **kwargs)
-        if 'send_agent_freq' in ext_args:
-            self._freq = ext_args['send_agent_freq']
+        if 'send_policy_freq' in ext_args:
+            self._freq = ext_args['send_policy_freq']
         else:
             self._freq = 1
 
     def __call__(self, engine: 'BaseLearner') -> None:  # noqa
         """
         Overview:
-            Save learner's agent in corresponding path at interval iterations, including model_state_dict, last_iter
+            Save learner's policy in corresponding path at interval iterations, including model_state_dict, last_iter
         Arguments:
             - engine (:obj:`BaseLearner`): the BaseLearner
         """
         last_iter = engine.last_iter.val
         if engine.rank == 0 and last_iter % self._freq == 0:
             state_dict = {'model': engine.policy.state_dict_handle()['model'].state_dict(), 'iter': last_iter}
-            engine.send_agent(state_dict)
-            engine.info('{} save iter{} agent'.format(engine.name, last_iter))
+            engine.send_policy(state_dict)
+            engine.info('{} save iter{} policy'.format(engine.name, last_iter))
 
 
 class SendLearnInfoHook(LearnerHook):

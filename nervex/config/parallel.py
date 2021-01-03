@@ -20,6 +20,29 @@ policy_default_config = dict(
             nstep=1,
         ),
     ),
+    collect=dict(
+        traj_len=1,
+        unroll_len=1,
+        algo=dict(nstep=1),
+    ),
+)
+
+zergling_actor_default_config = dict(
+    save_path='.',
+    actor_type='zergling',
+    import_names=['nervex.worker.actor.zergling_actor'],
+    print_freq=10,
+    traj_len=1,
+    compressor='lz4',
+    policy_update_freq=3,
+    policy_update_path='test.pth',
+    env_kwargs=dict(
+        import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
+        env_type='cartpole',
+        actor_env_num=8,
+        evaluator_env_num=5,
+        episode_num=2,
+    ),
 )
 
 coordinator_default_config = dict(
@@ -35,6 +58,7 @@ coordinator_default_config = dict(
         ),
     ),
     learner_cfg=base_learner_default_config,
+    actor_cfg=zergling_actor_default_config,
     policy=policy_default_config,
     max_iterations=10,
 )
@@ -45,11 +69,29 @@ parallel_local_default_config = dict(
     learner=dict(
         import_names=['nervex.worker.learner.comm.flask_fs_learner'],
         comm_learner_type='flask_fs',
-        host=coordinator_default_config.interaction.learner.learner0[1],
+        host='0.0.0.0',
         port=coordinator_default_config.interaction.learner.learner0[2],
-        path_traj='.',
-        path_agent='.',
-        send_agent_freq=1,
+        path_data='.',
+        path_policy='.',
+        send_policy_freq=1,
+    ),
+    actor0=dict(
+        import_names=['nervex.worker.actor.comm.flask_fs_actor'],
+        comm_actor_type='flask_fs',
+        host='0.0.0.0',
+        port=coordinator_default_config.interaction.actor.actor0[2],
+        path_data='.',
+        path_policy='.',
+        queue_maxsize=8,
+    ),
+    actor1=dict(
+        import_names=['nervex.worker.actor.comm.flask_fs_actor'],
+        comm_actor_type='flask_fs',
+        host='0.0.0.0',
+        port=coordinator_default_config.interaction.actor.actor1[2],
+        path_data='.',
+        path_policy='.',
+        queue_maxsize=8,
     ),
 )
 parallel_local_default_config = EasyDict(parallel_local_default_config)

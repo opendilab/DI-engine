@@ -20,11 +20,19 @@ class Commander(object):
         self.learner_task_count = 0
         self._learner_info = defaultdict(list)
         self._learner_task_finish_count = 0
+        self._actor_task_finish_count = 0
 
     def get_actor_task(self) -> dict:
         if self.actor_task_count < self.actor_task_space:
             self.actor_task_count += 1
-            return {'task_id': 'actor_task_id{}'.format(self.actor_task_count), 'buffer_id': 'test'}
+            actor_cfg = self._cfg.actor_cfg
+            actor_cfg.collect_setting = {'eps': 0.9}
+            return {
+                'task_id': 'actor_task_id{}'.format(self.actor_task_count),
+                'buffer_id': 'test',
+                'actor_cfg': actor_cfg,
+                'policy': self._cfg.policy
+            }
         else:
             return None
 
@@ -35,7 +43,7 @@ class Commander(object):
             learner_cfg.max_iterations = self._cfg.max_iterations
             return {
                 'task_id': 'learner_task_id{}'.format(self.learner_task_count),
-                'agent_id': 'test',
+                'policy_id': 'test.pth',
                 'buffer_id': 'test',
                 'learner_cfg': learner_cfg,
                 'policy': self._cfg.policy
@@ -44,7 +52,7 @@ class Commander(object):
             return None
 
     def finish_actor_task(self, task_id: str, finished_task: dict) -> None:
-        pass
+        self._actor_task_finish_count += 1
 
     def finish_learner_task(self, task_id: str, finished_task: dict) -> None:
         self._learner_task_finish_count += 1

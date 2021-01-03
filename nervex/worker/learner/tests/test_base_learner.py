@@ -58,7 +58,9 @@ class TestBaseLearner:
         cfg.learner.import_names = []
         cfg.learner.learner_type = 'fake'
         cfg.learner.max_iterations = 10
-        cfg.learner.hook.save_ckpt_after_iter = dict(name='save_ckpt_after_iter', type='save_ckpt', priority=40, position='after_iter', ext_args={'freq': 5})
+        cfg.learner.hook.save_ckpt_after_iter = dict(
+            name='save_ckpt_after_iter', type='save_ckpt', priority=40, position='after_iter', ext_args={'freq': 5}
+        )
         return cfg
 
     def test_naive(self):

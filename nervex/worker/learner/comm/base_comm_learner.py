@@ -12,7 +12,7 @@ class BaseCommLearner(ABC):
     Overview:
         Abstract baseclass for CommLearner.
     Interfaces:
-        __init__, send_agent, get_data, send_learn_info
+        __init__, send_policy, get_data, send_learn_info
         init_service, close_service,
     Property:
         hooks4call
@@ -31,12 +31,12 @@ class BaseCommLearner(ABC):
         self._timer = EasyTimer()
 
     @abstractmethod
-    def send_agent(self, state_dict: dict) -> None:
+    def send_policy(self, state_dict: dict) -> None:
         """
         Overview:
-            Save learner's agent in corresponding path.
+            Save learner's policy in corresponding path.
         Arguments:
-            - state_dict (:obj:`dict`): state dict of the runtime agent
+            - state_dict (:obj:`dict`): state dict of the runtime policy
         """
         raise NotImplementedError
 
@@ -88,7 +88,7 @@ class BaseCommLearner(ABC):
     def _create_learner(self, task_info: dict) -> 'BaseLearner':  # noqa
         learner_cfg = EasyDict(task_info['learner_cfg'])
         learner = BaseLearner(learner_cfg)
-        for item in ['get_data', 'send_agent', 'send_learn_info']:
+        for item in ['get_data', 'send_policy', 'send_learn_info']:
             setattr(learner, item, getattr(self, item))
         learner.setup_dataloader()
         learner.policy = create_policy(task_info['policy'], enable_field=['learn']).learn_mode
