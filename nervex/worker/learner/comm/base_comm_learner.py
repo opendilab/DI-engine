@@ -112,9 +112,9 @@ def register_comm_learner(name: str, learner_type: type) -> None:
 
 
 def create_comm_learner(cfg: dict) -> BaseCommLearner:
-    import_module(cfg.learner.import_names)
-    comm_learner_type = cfg.learner.comm_learner_type
+    import_module(cfg.import_names)
+    comm_learner_type = cfg.comm_learner_type
     if comm_learner_type not in comm_map.keys():
         raise KeyError("not support comm learner type: {}".format(comm_learner_type))
     else:
-        return comm_map[comm_learner_type](cfg.learner)
+        return comm_map[comm_learner_type](cfg)

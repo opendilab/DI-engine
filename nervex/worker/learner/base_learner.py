@@ -430,9 +430,9 @@ def create_learner(cfg: EasyDict) -> BaseLearner:
         - learner (:obj:`BaseLearner`): the created new learner, should be an instance of one of\
             learner_mapping's values
     """
-    import_module(cfg.learner.import_names)
-    learner_type = cfg.learner.learner_type
+    import_module(cfg.import_names)
+    learner_type = cfg.learner_type
     if learner_type not in learner_mapping.keys():
         raise KeyError("not support learner type: {}".format(learner_type))
     else:
-        return learner_mapping[learner_type](cfg.learner)
+        return learner_mapping[learner_type](cfg)

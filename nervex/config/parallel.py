@@ -66,7 +66,7 @@ coordinator_default_config = EasyDict(coordinator_default_config)
 
 parallel_local_default_config = dict(
     coordinator=coordinator_default_config,
-    learner=dict(
+    learner0=dict(
         import_names=['nervex.worker.learner.comm.flask_fs_learner'],
         comm_learner_type='flask_fs',
         host='0.0.0.0',
