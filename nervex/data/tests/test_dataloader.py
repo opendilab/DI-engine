@@ -83,7 +83,8 @@ class TestAsyncDataLoader:
             if count > 2:  # ignore start-3 time
                 total_data_time += data_time
             with timer:
-                _, idx = model(data)
+                with torch.no_grad():
+                    _, idx = model(data)
                 if use_cuda:
                     idx = idx.cpu()
                 sorted_idx = torch.sort(idx)[0]
