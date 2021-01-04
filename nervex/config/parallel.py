@@ -57,10 +57,16 @@ coordinator_default_config = dict(
             actor1=['actor1', '0.0.0.0', 11112],
         ),
     ),
-    learner_cfg=base_learner_default_config,
-    actor_cfg=zergling_actor_default_config,
-    policy=policy_default_config,
-    max_iterations=10,
+    commander=dict(
+        parallel_commander_type='naive',
+        import_names=[],
+        actor_task_space=2,
+        learner_task_space=1,
+        learner_cfg=base_learner_default_config,
+        actor_cfg=zergling_actor_default_config,
+        policy=policy_default_config,
+        max_iterations=10,
+    ),
 )
 coordinator_default_config = EasyDict(coordinator_default_config)
 

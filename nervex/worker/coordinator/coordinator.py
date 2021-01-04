@@ -8,64 +8,7 @@ from collections import defaultdict
 from nervex.utils import build_logger, LockContext, LockContextType, get_task_uid
 from nervex.data import ReplayBuffer
 from .coordinator_interaction import CoordinatorInteraction
-
-
-class Commander(object):
-
-    def __init__(self, cfg: dict) -> None:
-        self._cfg = cfg
-        self.actor_task_space = len(cfg.interaction.actor)
-        self.learner_task_space = len(cfg.interaction.learner)
-        self.actor_task_count = 0
-        self.learner_task_count = 0
-        self._learner_info = defaultdict(list)
-        self._learner_task_finish_count = 0
-        self._actor_task_finish_count = 0
-
-    def get_actor_task(self) -> dict:
-        if self.actor_task_count < self.actor_task_space:
-            self.actor_task_count += 1
-            actor_cfg = self._cfg.actor_cfg
-            actor_cfg.collect_setting = {'eps': 0.9}
-            return {
-                'task_id': 'actor_task_id{}'.format(self.actor_task_count),
-                'buffer_id': 'test',
-                'actor_cfg': actor_cfg,
-                'policy': self._cfg.policy
-            }
-        else:
-            return None
-
-    def get_learner_task(self) -> dict:
-        if self.learner_task_count < self.learner_task_space:
-            self.learner_task_count += 1
-            learner_cfg = self._cfg.learner_cfg
-            learner_cfg.max_iterations = self._cfg.max_iterations
-            return {
-                'task_id': 'learner_task_id{}'.format(self.learner_task_count),
-                'policy_id': 'test.pth',
-                'buffer_id': 'test',
-                'learner_cfg': learner_cfg,
-                'policy': self._cfg.policy
-            }
-        else:
-            return None
-
-    def finish_actor_task(self, task_id: str, finished_task: dict) -> None:
-        self._actor_task_finish_count += 1
-
-    def finish_learner_task(self, task_id: str, finished_task: dict) -> None:
-        self._learner_task_finish_count += 1
-        return finished_task['buffer_id']
-
-    def notify_fail_actor_task(self, task: dict) -> None:
-        pass
-
-    def notify_fail_learner_task(self, task: dict) -> None:
-        pass
-
-    def get_learner_info(self, task_id: str, info: dict) -> None:
-        self._learner_info[task_id].append(info)
+from .base_parallel_commander import create_parallel_commander
 
 
 class TaskState(object):
@@ -94,7 +37,7 @@ class Coordinator(object):
         self._interaction = CoordinatorInteraction(cfg.interaction, self._callback, self._logger)
         self._learner_task_queue = Queue()
         self._actor_task_queue = Queue()
-        self._commander = Commander(cfg)
+        self._commander = create_parallel_commander(cfg.commander)
         self._commander_lock = LockContext(LockContextType.THREAD_LOCK)
         # ############## Thread #####################
         self._assign_actor_thread = Thread(target=self._assign_actor_task, args=())

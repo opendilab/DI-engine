@@ -67,5 +67,5 @@ class TestLearnerWithCoordinator:
         assert len(coordinator._replay_buffer) == 0
         learner_task_ids = [i for i in coordinator._historical_task if 'learner' in i]
         for i in learner_task_ids:
-            assert len(coordinator._commander._learner_info[i]) == setup_config.coordinator.max_iterations
+            assert len(coordinator._commander._learner_info[i]) == setup_config.coordinator.commander.max_iterations
         os.popen('rm -rf {}*'.format(DATA_PREFIX))
