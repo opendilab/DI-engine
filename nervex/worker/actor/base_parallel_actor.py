@@ -49,6 +49,8 @@ class BaseActor(ABC):
 
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
+        self._eval_flag = cfg.eval_flag
+        self._prefix = 'EVALUTATOR' if self._eval_flag else 'ACTOR'
         self._actor_uid = get_task_uid()
         self._logger, self._monitor, self._log_buffer = self._setup_logger()
         self._end_flag = False
@@ -57,10 +59,10 @@ class BaseActor(ABC):
         self.info("CFG INFO:\n{}".format(cfg))
 
     def info(self, s: str) -> None:
-        self._logger.info("[ACTOR({})]: {}".format(self._actor_uid, s))
+        self._logger.info("[{}({})]: {}".format(self._prefix, self._actor_uid, s))
 
     def error(self, s: str) -> None:
-        self._logger.error("[ACTOR({})]: {}".format(self._actor_uid, s))
+        self._logger.error("[{}({})]: {}".format(self._prefix, self._actor_uid, s))
 
     def _setup_timer(self) -> None:
         self._timer = EasyTimer()
@@ -93,7 +95,7 @@ class BaseActor(ABC):
 
     def _setup_logger(self) -> Tuple:
         path = os.path.join(self._cfg.save_path, 'log')
-        name = 'actor.{}.log'.format(self._actor_uid)
+        name = '{}.{}.log'.format(self._prefix, self._actor_uid)
         logger, _ = build_logger(path, name, False)
         monitor = TickMonitor(TickTime(), expire=self._cfg.print_freq * 2)
         log_buffer = build_log_buffer()
@@ -168,7 +170,8 @@ class BaseActor(ABC):
     @policy.setter
     def policy(self, _policy: Policy) -> None:
         self._policy = _policy
-        self._policy.set_setting('collect', self._cfg.collect_setting)
+        if not self._eval_flag:
+            self._policy.set_setting('collect', self._cfg.collect_setting)
 
 
 actor_mapping = {}

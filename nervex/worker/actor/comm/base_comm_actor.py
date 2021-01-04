@@ -46,7 +46,11 @@ class BaseCommActor(ABC):
         actor = create_actor(actor_cfg)
         for item in ['send_metadata', 'send_stepdata', 'get_policy_update_info', 'send_finish_info']:
             setattr(actor, item, getattr(self, item))
-        actor.policy = create_policy(task_info['policy'], enable_field=['collect']).collect_mode
+        eval_flag = actor_cfg.eval_flag
+        if eval_flag:
+            actor.policy = create_policy(task_info['policy'], enable_field=['eval']).eval_mode
+        else:
+            actor.policy = create_policy(task_info['policy'], enable_field=['collect']).collect_mode
         return actor
 
 

@@ -41,7 +41,9 @@ zergling_actor_default_config = dict(
         env_type='cartpole',
         actor_env_num=8,
         evaluator_env_num=5,
-        episode_num=2,
+        actor_episode_num=2,
+        evaluator_episode_num=1,
+        eval_stop_val=1e9
     ),
 )
 
@@ -64,6 +66,7 @@ coordinator_default_config = dict(
         learner_task_space=1,
         learner_cfg=base_learner_default_config,
         actor_cfg=zergling_actor_default_config,
+        replay_buffer_cfg=dict(),
         policy=policy_default_config,
         max_iterations=10,
     ),

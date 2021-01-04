@@ -24,6 +24,14 @@ __policy_default_config = dict(
         unroll_len=1,
         algo=dict(nstep=1),
     ),
+    command=dict(
+        eps=dict(
+            type='exp',
+            start=0.95,
+            end=0.1,
+            decay=10000,
+        ),
+    ),
 )
 
 __base_learner_default_config = dict(
@@ -72,8 +80,10 @@ __zergling_actor_default_config = dict(
         import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
         env_type='cartpole',
         actor_env_num=8,
+        actor_episode_num=2,
         evaluator_env_num=5,
-        episode_num=2,
+        evaluator_episode_num=1,
+        eval_stop_val=195,
     ),
 )
 
@@ -96,8 +106,15 @@ __coordinator_default_config = dict(
         learner_task_space=1,
         learner_cfg=__base_learner_default_config,
         actor_cfg=__zergling_actor_default_config,
+        replay_buffer_cfg=dict(
+            meta_maxlen=100000,
+            max_reuse=1100,
+            unroll_len=1,
+            min_sample_ratio=1,
+        ),
         policy=__policy_default_config,
         max_iterations=int(1e9),
+        eval_interval=10,
     ),
 )
 __coordinator_default_config = EasyDict(__coordinator_default_config)
@@ -118,7 +135,7 @@ main_config = dict(
         comm_actor_type='flask_fs',
         host='0.0.0.0',
         port=__coordinator_default_config.interaction.actor.actor0[2],
-        path_data='.',
+        path_data='./data',
         path_policy='.',
         queue_maxsize=8,
     ),

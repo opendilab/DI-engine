@@ -54,6 +54,10 @@ class CommonPolicy(Policy):
         self._collect_agent.mode(train=False)
         self._collect_agent.reset(data_id=data_id)
 
+    def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
+        self._eval_agent.mode(train=False)
+        self._eval_agent.reset(data_id=data_id)
+
     def _get_setting_learn(self, *args, **kwargs) -> dict:
         return {}
 

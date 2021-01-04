@@ -28,11 +28,12 @@ class NaiveCommander(BaseCommander):
             self.actor_task_count += 1
             actor_cfg = self._cfg.actor_cfg
             actor_cfg.collect_setting = {'eps': 0.9}
+            actor_cfg.eval_flag = False
             return {
                 'task_id': 'actor_task_id{}'.format(self.actor_task_count),
                 'buffer_id': 'test',
                 'actor_cfg': actor_cfg,
-                'policy': self._cfg.policy
+                'policy': self._cfg.policy,
             }
         else:
             return None
@@ -47,6 +48,7 @@ class NaiveCommander(BaseCommander):
                 'policy_id': 'test.pth',
                 'buffer_id': 'test',
                 'learner_cfg': learner_cfg,
+                'replay_buffer_cfg': self._cfg.replay_buffer_cfg,
                 'policy': self._cfg.policy
             }
         else:

@@ -51,9 +51,16 @@ class ZerglingActor(BaseActor):
         self._total_episode = 0
 
     def _setup_env_manager(self) -> BaseEnvManager:
-        env_fn, env_cfg, _ = get_vec_env_setting(self._env_kwargs)
+        env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(self._env_kwargs)
+        if self._eval_flag:
+            env_cfg = evaluator_env_cfg
+            episode_num = self._env_kwargs.evaluator_episode_num
+        else:
+            env_cfg = actor_env_cfg
+            episode_num = self._env_kwargs.actor_episode_num
+        self._episode_num = episode_num
         env_manager = SubprocessEnvManager(
-            env_fn=env_fn, env_cfg=env_cfg, env_num=len(env_cfg), episode_num=self._env_kwargs.episode_num
+            env_fn=env_fn, env_cfg=env_cfg, env_num=len(env_cfg), episode_num=episode_num
         )
         env_manager.launch()
         return env_manager
@@ -78,9 +85,12 @@ class ZerglingActor(BaseActor):
     # override
     def _process_timestep(self, timestep: Dict[int, namedtuple]) -> None:
         for env_id, t in timestep.items():
-            transition = self._policy.process_transition(self._obs_pool[env_id], self._policy_output_pool[env_id], t)
-            self._traj_cache[env_id].append(transition)
-            if t.done or len(self._traj_cache[env_id]) == self._traj_len:
+            if not self._eval_flag:
+                transition = self._policy.process_transition(
+                    self._obs_pool[env_id], self._policy_output_pool[env_id], t
+                )
+                self._traj_cache[env_id].append(transition)
+            if (not self._eval_flag) and (t.done or len(self._traj_cache[env_id]) == self._traj_len):
                 train_sample = self._policy.get_train_sample(self._traj_cache[env_id])
                 for s in train_sample:
                     s = self._compressor(s)
@@ -106,11 +116,12 @@ class ZerglingActor(BaseActor):
 
     # override
     def _finish_task(self) -> None:
-        episode_count = self._env_kwargs.episode_num * self._env_num
+        episode_count = self._episode_num * self._env_num
         duration = max(time.time() - self._start_time, 1e-8)
         finish_info = {
             'finished_task': True,  # flag
-            'episode_num': self._env_kwargs.episode_num,
+            'eval_flag': self._eval_flag,
+            'episode_num': self._episode_num,
             'env_num': self._env_num,
             'duration': duration,
             'target_episode_count': episode_count,
@@ -119,7 +130,7 @@ class ZerglingActor(BaseActor):
             'sample_count': self._total_sample,
             'avg_time_per_episode': duration / self._total_episode,
             'avg_time_per_step': duration / self._total_step,
-            'avg_time_per_train_sample': duration / self._total_sample,
+            'avg_time_per_train_sample': duration / max(1, self._total_sample),
             'avg_step_per_episode': self._total_step / self._total_episode,
             'avg_sample_per_episode': self._total_sample / self._total_episode,
             'reward_mean': np.mean(self._episode_result),
@@ -127,6 +138,8 @@ class ZerglingActor(BaseActor):
             'reward_raw': self._episode_result,
             'finish_time': time.time()
         }
+        if not self._eval_flag:
+            finish_info['collect_setting'] = self._cfg.collect_setting
         self._logger.info('FINISH INFO\n{}'.format(finish_info))
         self.send_finish_info(finish_info)
         # sleep some time for close thread

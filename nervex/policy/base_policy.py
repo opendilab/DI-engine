@@ -19,7 +19,8 @@ class Policy(ABC):
         ]
     )
     eval_function = namedtuple(
-        'eval_function', ['data_preprocess', 'forward', 'data_postprocess', 'reset', 'set_setting']
+        'eval_function',
+        ['data_preprocess', 'forward', 'data_postprocess', 'reset', 'set_setting', 'state_dict_handle']
     )
     command_function = namedtuple('command_function', ['get_setting_learn', 'get_setting_collect', 'get_setting_eval'])
 
@@ -91,8 +92,12 @@ class Policy(ABC):
     @property
     def eval_mode(self) -> 'Policy.eval_function':  # noqa
         return Policy.eval_function(
-            self._data_preprocess_collect, self._forward_eval, self._data_postprocess_collect, self._reset_collect,
-            self.set_setting
+            self._data_preprocess_collect,
+            self._forward_eval,
+            self._data_postprocess_collect,
+            self._reset_eval,
+            self.set_setting,
+            self.state_dict_handle,
         )
 
     @property
@@ -161,6 +166,10 @@ class Policy(ABC):
 
     @abstractmethod
     def _forward_eval(self, data_id: List[int], data: dict) -> Dict[str, Any]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
         raise NotImplementedError
 
     # *************************************** command function ************************************
