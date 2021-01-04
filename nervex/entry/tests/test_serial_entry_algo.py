@@ -102,7 +102,7 @@ def test_ppo():
         assert False, "pipeline fail"
 
 
-@pytest.mark.algotest
+# @pytest.mark.algotest
 def test_ppo_vanilla():
     path = os.path.join(
         os.path.dirname(__file__),
@@ -182,7 +182,7 @@ def test_a2c_with_nstep_return():
         assert False, "pipeline fail"
 
 
-@pytest.mark.algotest
+# @pytest.mark.algotest
 def test_ppo_vanilla_continous():
     path = os.path.join(
         os.path.dirname(__file__), '../../../app_zoo/classic_control/pendulum/entry/pendulum_ppo_default_config.yaml'
