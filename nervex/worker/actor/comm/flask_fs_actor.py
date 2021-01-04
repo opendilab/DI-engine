@@ -21,6 +21,11 @@ class FlaskFileSystemActor(BaseCommActor, Slave):
 
         self._path_policy = cfg.path_policy
         self._path_data = cfg.path_data
+        if not os.path.exists(self._path_data):
+            try:
+                os.mkdir(self._path_data)
+            except Exception as e:
+                pass
         self._metadata_queue = Queue(cfg.queue_maxsize)
         self._finish_queue = Queue(cfg.queue_maxsize)
 

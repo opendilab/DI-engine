@@ -167,3 +167,56 @@ def error_wrapper(fn, default_ret, warning_msg="[WARNING]: call linklink error, 
         return ret
 
     return wrapper
+
+
+class LimitedSpaceContainer:
+    r"""
+    Overview:
+        A space simulator.
+    Interface:
+        __init__, get_residual_space, release_space
+    """
+
+    def __init__(self, min_val: int, max_val: int) -> None:
+        """
+        Overview:
+            Set ``min_val`` and ``max_val`` of the container, also set ``cur`` to ``min_val`` for init
+        Arguments:
+            - min_val (:obj:`int`): min value of the container, usually 0
+            - max_val (:obj:`int`): max value of the container
+        """
+        self.min_val = min_val
+        self.max_val = max_val
+        assert (max_val > min_val)
+        self.cur = self.min_val
+
+    def get_residual_space(self) -> int:
+        """
+        Overview:
+            Get all residual space. Set ``cur`` to ``max_val``
+        Arguments:
+            - ret (:obj:`int`): residual space calculated by ``max_val`` - ``cur``
+        """
+        ret = self.max_val - self.cur
+        self.cur = self.max_val
+        return ret
+
+    def acquire_space(self) -> bool:
+        """
+        Overview:
+            Try to get space, if there is some residual space, return True, otherwise, return False
+        Returns:
+            - flag (:obj:`bool`): whether there is some residual space
+        """
+        if self.cur < self.max_val:
+            self.cur += 1
+            return True
+        else:
+            return False
+
+    def release_space(self) -> None:
+        """
+        Overview:
+            Release only one piece of space. Decrease ``cur`` by 1, but ensure it won't be negative.
+        """
+        self.cur = max(self.min_val, self.cur - 1)

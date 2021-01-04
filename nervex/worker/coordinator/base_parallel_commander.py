@@ -5,7 +5,10 @@ from nervex.utils import import_module
 
 
 class BaseCommander(ABC):
-    pass
+
+    @abstractmethod
+    def get_actor_task(self) -> dict:
+        raise NotImplementedError
 
 
 class NaiveCommander(BaseCommander):
@@ -72,7 +75,7 @@ commander_map = {'naive': NaiveCommander}
 def register_parallel_commander(name: str, commander: type) -> None:
     assert isinstance(name, str)
     assert issubclass(commander, BaseCommander)
-    commander_map[name] = BaseCommander
+    commander_map[name] = commander
 
 
 def create_parallel_commander(cfg: dict) -> BaseCommander:

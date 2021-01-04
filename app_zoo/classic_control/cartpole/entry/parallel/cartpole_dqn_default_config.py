@@ -89,10 +89,16 @@ __coordinator_default_config = dict(
             actor1=['actor1', '0.0.0.0', 11112],
         ),
     ),
-    learner_cfg=__base_learner_default_config,
-    actor_cfg=__zergling_actor_default_config,
-    policy=__policy_default_config,
-    max_iterations=10,
+    commander=dict(
+        parallel_commander_type='solo',
+        import_names=['nervex.worker.coordinator.solo_parallel_commander'],
+        actor_task_space=2,
+        learner_task_space=1,
+        learner_cfg=__base_learner_default_config,
+        actor_cfg=__zergling_actor_default_config,
+        policy=__policy_default_config,
+        max_iterations=int(1e9),
+    ),
 )
 __coordinator_default_config = EasyDict(__coordinator_default_config)
 
@@ -103,7 +109,7 @@ main_config = dict(
         comm_learner_type='flask_fs',
         host='0.0.0.0',
         port=__coordinator_default_config.interaction.learner.learner0[2],
-        path_data='.',
+        path_data='./data',
         path_policy='.',
         send_policy_freq=1,
     ),
@@ -121,7 +127,7 @@ main_config = dict(
         comm_actor_type='flask_fs',
         host='0.0.0.0',
         port=__coordinator_default_config.interaction.actor.actor1[2],
-        path_data='.',
+        path_data='./data',
         path_policy='.',
         queue_maxsize=8,
     ),
