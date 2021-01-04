@@ -53,20 +53,20 @@ setup(
         'protobuf>=2.6',
         'requests~=2.24.0',
         'six',
-        'sk-video',
+        'sk-video',  # pypy
         'websocket-client',
         'whichcraft',
-        'gym',
+        'gym',  # pypy
         'atari_py',
-        'torch>=1.3.1,<1.5',  # 1.3.1+cuda90_cudnn7.6.3_lms
+#        #'torch>=1.3.1,<1.5',  # 1.3.1+cuda90_cudnn7.6.3_lms
         'joblib',
         'sphinx>=2.2.1',
         'sphinx_rtd_theme',
         'pyyaml',
         'easydict',
-        'opencv-python',
+        'opencv-python',  # pypy
         'tensorboardX',
-        'matplotlib',
+        'matplotlib',  # pypy
         'yapf==0.29.0',
         'pytest==5.1.1',
         'pytest-xdist==1.31.0',
@@ -82,7 +82,7 @@ setup(
         'sumolib',
         'traci',
         'tabulate',
-        'torchvision==0.2.1',
+        'torchvision==0.2.1',  # pypy
         'sortedcontainers',
         'click',
         #'numba',

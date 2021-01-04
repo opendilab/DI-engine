@@ -1,6 +1,7 @@
 import click
 from click.core import Context, Option
 from .serial_entry import serial_pipeline
+from .parallel_entry import parallel_pipeline
 
 
 def print_version(ctx: Context, param: Option, value: bool) -> None:
@@ -24,6 +25,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
     is_eager=True,
     help="Show package's version information."
 )
+@click.option('-m', '--mode', type=str, help='serial or parallel')
 @click.option('-c', '--config', type=str, help='Path to DRL experiment config')
 @click.option(
     '-s',
@@ -32,5 +34,9 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
     default=0,
     help='random generator seed(for all the possible package: random, numpy, torch and user env)'
 )
-def cli(config: str, seed: int):
-    serial_pipeline(config, seed)
+def cli(mode: str, config: str, seed: int):
+    assert mode in ['serial', 'parallel'], "nervex pipeline mode must in [serial, parallel]"
+    if mode == 'serial':
+        serial_pipeline(config, seed)
+    elif mode == 'parallel':
+        parallel_pipeline(config, seed)
