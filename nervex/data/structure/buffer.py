@@ -260,7 +260,7 @@ class PrioritizedBuffer:
             # if the data still exists in the queue, then do the update operation
             if self._data[idx] is not None \
                     and self._data[idx]['replay_unique_id'] == id_:  # confirm the same transition(data)
-                assert priority > 0, priority
+                assert priority >= 0, priority
                 self._data[idx]['priority'] = priority + self._eps
                 self._set_weight(idx, self._data[idx])
                 # update max priority
