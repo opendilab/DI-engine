@@ -151,9 +151,14 @@ def dist_nstep_td_error(
 
     log_p = torch.log(dist[batch_range, act])
 
-    loss = -(log_p * proj_dist * weight.unsqueeze(1)).sum(-1).mean()
+    if len(weight.shape) == 1:
+        weight = weight.unsqueeze(-1)
 
-    return loss
+    td_error_per_sample = -(log_p * proj_dist).sum(-1)
+
+    loss = -(log_p * proj_dist * weight).sum(-1).mean()
+
+    return loss, td_error_per_sample
 
 
 v_1step_td_data = namedtuple('v_1step_td_data', ['v', 'next_v', 'reward', 'done', 'weight'])

@@ -88,7 +88,7 @@ class RainbowDQNPolicy(DQNPolicy):
         data = dist_nstep_td_data(
             q_dist, target_q_dist, data['action'], target_q_action, reward, data['done'], data['weight']
         )
-        loss = dist_nstep_td_error(data, self._gamma, self._v_min, self._v_max, self._n_atom, nstep=self._nstep)
+        loss, td_error_per_sample = dist_nstep_td_error(data, self._gamma, self._v_min, self._v_max, self._n_atom, nstep=self._nstep)
         # update
         self._optimizer.zero_grad()
         loss.backward()
@@ -98,6 +98,7 @@ class RainbowDQNPolicy(DQNPolicy):
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
+            'priority': td_error_per_sample.abs().tolist(),
         }
 
     def _init_collect(self) -> None:
