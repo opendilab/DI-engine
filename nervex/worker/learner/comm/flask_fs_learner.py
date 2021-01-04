@@ -102,7 +102,6 @@ class FlaskFileSystemLearner(BaseCommLearner, Slave):
             return
         if hasattr(self, '_learner_thread'):
             self._learner_thread.join()
-            self._learner.close()
         Slave.close(self)
         BaseCommLearner.close(self)
 
@@ -131,16 +130,19 @@ class FlaskFileSystemLearner(BaseCommLearner, Slave):
             except Exception as e:
                 time.sleep(0.01)
         unroll_len = meta.get('unroll_len', 1)
-        begin = meta.get('unroll_split_begin', 0)
-        if unroll_len == 1:
-            s = s[begin]
-            s.update(meta)
+        if 'unroll_split_begin' in meta:
+            begin = meta['unroll_split_begin']
+            if unroll_len == 1:
+                s = s[begin]
+                s.update(meta)
+            else:
+                end = begin + unroll_len
+                s = s[begin:end]
+                # add metdata key-value to stepdata
+                for i in range(len(s)):
+                    s[i].update(meta)
         else:
-            end = begin + unroll_len
-            s = s[begin:end]
-            # add metdata key-value to stepdata
-            for i in range(len(s)):
-                s[i].update(meta)
+            s.update(meta)
         return s
 
     # override

@@ -95,7 +95,7 @@ class TestAsyncDataLoader:
             if count == 10:
                 break
         if num_workers < 1:
-            assert total_data_time <= 7 * batch_size * 0.5 + 7 * 0.005 - 7 * 1
+            assert total_data_time <= 7 * batch_size * 0.5 + 7 * 0.01 - 7 * 1
         else:
             assert total_data_time <= 7 * 0.008
         dataloader.__del__()

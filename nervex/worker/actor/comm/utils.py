@@ -18,7 +18,7 @@ class NaiveActor(Slave):
             self.count += 1
             data_id = './{}_{}_{}'.format(DATA_PREFIX, self.task_info['task_id'], self.count)
             torch.save(self._get_timestep(), data_id)
-            data = {'data_id': data_id, 'buffer_id': self.task_info['buffer_id']}
+            data = {'data_id': data_id, 'buffer_id': self.task_info['buffer_id'], 'unroll_split_begin': 0}
             data['task_id'] = self.task_info['task_id']
             if self.count == 20:
                 data['finished_task'] = {'finish': True}
