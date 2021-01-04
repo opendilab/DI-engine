@@ -62,7 +62,7 @@ def test_dist_nstep_td():
     next_action = torch.randint(0, action_dim, size=(batch_size, ))
     reward = torch.randn(nstep, batch_size)
     data = dist_nstep_td_data(dist, next_n_dist, action, next_action, reward, done, None)
-    loss = dist_nstep_td_error(data, 0.95, v_min, v_max, n_atom, nstep)
+    loss, _ = dist_nstep_td_error(data, 0.95, v_min, v_max, n_atom, nstep)
     assert loss.shape == ()
     assert dist.grad is None
     loss.backward()
@@ -122,7 +122,7 @@ def test_dist_1step_compatible():
     onestep_data = dist_1step_td_data(dist, next_dist, action, next_action, reward, done, None)
     nstep_data = dist_nstep_td_data(dist, next_dist, action, next_action, reward.unsqueeze(0), done, None)
     onestep_loss = dist_1step_td_error(onestep_data, 0.95, v_min, v_max, n_atom)
-    nstep_loss = dist_nstep_td_error(nstep_data, 0.95, v_min, v_max, n_atom, nstep=1)
+    nstep_loss, _ = dist_nstep_td_error(nstep_data, 0.95, v_min, v_max, n_atom, nstep=1)
     assert pytest.approx(nstep_loss.item(), onestep_loss.item())
 
 

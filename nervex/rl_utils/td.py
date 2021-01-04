@@ -149,12 +149,17 @@ def dist_nstep_td_error(
     proj_dist.view(-1).index_add_(0, (l + offset).view(-1), (next_n_dist * (u.float() - b)).view(-1))
     proj_dist.view(-1).index_add_(0, (u + offset).view(-1), (next_n_dist * (b - l.float())).view(-1))
 
+    print("dist_value", dist[batch_range, act])
+
     log_p = torch.log(dist[batch_range, act])
 
     if len(weight.shape) == 1:
         weight = weight.unsqueeze(-1)
+    print("log_p = ", log_p)
+    print("proj_dist =", proj_dist)
 
     td_error_per_sample = -(log_p * proj_dist).sum(-1)
+    print("td error sample nan", torch.isnan(td_error_per_sample))
 
     loss = -(log_p * proj_dist * weight).sum(-1).mean()
 
