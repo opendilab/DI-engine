@@ -2,7 +2,7 @@ import threading
 from abc import ABC, abstractmethod, abstractproperty
 from easydict import EasyDict
 
-from nervex.utils import EasyTimer, import_module
+from nervex.utils import EasyTimer, import_module, get_task_uid
 from nervex.policy import create_policy
 from ..base_learner import BaseLearner
 
@@ -13,7 +13,7 @@ class BaseCommLearner(ABC):
         Abstract baseclass for CommLearner.
     Interfaces:
         __init__, send_policy, get_data, send_learn_info
-        init_service, close_service,
+        start, close
     Property:
         hooks4call
     """
@@ -26,9 +26,9 @@ class BaseCommLearner(ABC):
             - cfg (:obj:`EasyDict`): config dict
         """
         self._cfg = cfg
-        self._learner_uid = None  # str(os.environ.get('SLURM_JOB_ID'))
-        self._active_flag = False
+        self._learner_uid = get_task_uid()
         self._timer = EasyTimer()
+        self._end_flag = True
 
     @abstractmethod
     def send_policy(self, state_dict: dict) -> None:
@@ -62,20 +62,19 @@ class BaseCommLearner(ABC):
         """
         raise NotImplementedError
 
-    def init_service(self) -> None:
+    def start(self) -> None:
         """
         Overview:
-            Initialize comm service, including ``register_learner``, setting ``_active_flag`` to True, and
-            ``start_heartbeats_thread``
+            start comm learner
         """
-        self._active_flag = True
+        self._end_flag = False
 
-    def close_service(self) -> None:
+    def close(self) -> None:
         """
         Overview:
-            Close comm service, including setting ``_active_flag`` to False
+            Close comm learner
         """
-        self._active_flag = False
+        self._end_flag = True
 
     @abstractproperty
     def hooks4call(self) -> list:

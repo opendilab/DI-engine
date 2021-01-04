@@ -53,12 +53,12 @@ class FakePolicy:
 class TestBaseLearner:
 
     def _get_cfg(self, path):
-        cfg = EasyDict({'learner': base_learner_default_config})
-        cfg.learner.load_path = path
-        cfg.learner.import_names = []
-        cfg.learner.learner_type = 'fake'
-        cfg.learner.max_iterations = 10
-        cfg.learner.hook.save_ckpt_after_iter = dict(
+        cfg = EasyDict({'learner': base_learner_default_config}).learner
+        cfg.load_path = path
+        cfg.import_names = []
+        cfg.learner_type = 'fake'
+        cfg.max_iterations = 10
+        cfg.hook.save_ckpt_after_iter = dict(
             name='save_ckpt_after_iter', type='save_ckpt', priority=40, position='after_iter', ext_args={'freq': 5}
         )
         return cfg
@@ -76,7 +76,7 @@ class TestBaseLearner:
         learner.setup_dataloader()
         learner.policy = FakePolicy()
         with pytest.raises(KeyError):
-            create_learner(EasyDict({'learner': {'learner_type': 'placeholder', 'import_names': []}}))
+            create_learner(EasyDict({'learner_type': 'placeholder', 'import_names': []}))
         learner.start()
         time.sleep(2)
         assert learner.last_iter.val == 10 + 5

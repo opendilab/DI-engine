@@ -12,7 +12,7 @@ class BaseCommActor(ABC):
 
     def __init__(self, cfg):
         self._cfg = cfg
-        self._active_flag = False
+        self._end_flag = True
         self._actor_uid = get_task_uid()
 
     @abstractmethod
@@ -31,11 +31,11 @@ class BaseCommActor(ABC):
     def send_finish_info(self, path: str, finish_info: Any) -> None:
         raise NotImplementedError
 
-    def init_service(self) -> None:
-        self._active_flag = True
+    def start(self) -> None:
+        self._end_flag = False
 
-    def close_service(self) -> None:
-        self._active_flag = False
+    def close(self) -> None:
+        self._end_flag = True
 
     @property
     def actor_uid(self) -> str:

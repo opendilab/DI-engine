@@ -20,7 +20,7 @@ class FlaskFileSystemLearner(BaseCommLearner, Slave):
     Overview:
         An implementation of CommLearner, using flask as the file system.
     Interfaces:
-        __init__, send_policy, get_data, send_learn_info, init_service, close_service,
+        __init__, send_policy, get_data, send_learn_info, start, close
     Property:
         hooks4call
     """
@@ -93,16 +93,21 @@ class FlaskFileSystemLearner(BaseCommLearner, Slave):
         else:
             raise TaskFail(result={'message': 'task name error'}, message='illegal actor task <{}>'.format(task_name))
 
-    def init_service(self):
-        BaseCommLearner.init_service(self)
+    def start(self) -> None:
+        BaseCommLearner.start(self)
         Slave.start(self)
 
-    def close_service(self):
+    def close(self) -> None:
+        if self._end_flag:
+            return
         if hasattr(self, '_learner_thread'):
             self._learner_thread.join()
             self._learner.close()
-        BaseCommLearner.close_service(self)
         Slave.close(self)
+        BaseCommLearner.close(self)
+
+    def __del__(self) -> None:
+        self.close()
 
     # override
     def send_policy(self, state_dict: dict) -> None:

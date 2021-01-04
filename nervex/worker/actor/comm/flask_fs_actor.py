@@ -89,5 +89,18 @@ class FlaskFileSystemActor(BaseCommActor, Slave):
             else:
                 time.sleep(0.1)
 
+    def start(self) -> None:
+        BaseCommActor.start(self)
+        Slave.start(self)
+
+    def close(self) -> None:
+        if self._end_flag:
+            return
+        Slave.close(self)
+        BaseCommActor.close(self)
+
+    def __del__(self) -> None:
+        self.close()
+
 
 register_comm_actor('flask_fs', FlaskFileSystemActor)
