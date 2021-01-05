@@ -161,6 +161,7 @@ class Head(nn.Module):
             a_layer_num: int = 1,
             v_layer_num: int = 1,
             distribution: bool = False,
+            quantile: bool = False,
             noise: bool = False,
             v_min: float = -10,
             v_max: float = 10,
@@ -184,6 +185,7 @@ class Head(nn.Module):
         super(Head, self).__init__()
         self.action_dim = squeeze(action_dim)
         self.dueling = dueling
+        self.quantile = quantile
         self.distribution = distribution
         self.n_atom = n_atom
         self.v_min = v_min
@@ -193,6 +195,7 @@ class Head(nn.Module):
             a_layer_num=a_layer_num,
             v_layer_num=v_layer_num,
             distribution=distribution,
+            quantile=quantile,
             noise=noise,
             v_min=v_min,
             v_max=v_max,
@@ -216,12 +219,14 @@ class Head(nn.Module):
         """
         if isinstance(self.action_dim, tuple):
             x = [m(x) for m in self.pred]
-            if self.distribution:
+            if self.distribution or self.quantile:
                 x = list(zip(*x))
         else:
             x = self.pred(x)
         if self.distribution:
             return {'logit': x[0], 'distribution': x[1]}
+        elif self.quantile:
+            return {'logit': x[0], 'quantiles': x[1]}
         else:
             return {'logit': x}
 
@@ -268,6 +273,16 @@ ConvRDiscreteNet = partial(
     encoder_kwargs={'encoder_type': 'conv2d'},
     lstm_kwargs={'lstm_type': 'normal'},
     head_kwargs={'dueling': True}
+)
+NoiseQuantileFCDiscreteNet = partial(
+    DiscreteNet, 
+    encoder_kwargs={'encoder_type': 'fc'},
+    lstm_kwargs={'lstm_type': 'none'},
+    head_kwargs={
+        'dueling': True,
+        'quantile': True,
+        'noise': True
+    }
 )
 
 
