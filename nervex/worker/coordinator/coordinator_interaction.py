@@ -107,7 +107,7 @@ class CoordinatorInteraction(object):
                     task_id = result.get('task_id', None)
                     self._callback_fn['deal_with_actor_finish_task'](task_id, result)
                     resource_task = self._get_resource(self._connection_actor[actor_id])
-                    if resource_task == TaskStatus.COMPLETED:
+                    if resource_task.status == TaskStatus.COMPLETED:
                         self._resource_manager.update('actor', actor_id, resource_task.result)
                     break
                 else:
@@ -165,7 +165,7 @@ class CoordinatorInteraction(object):
                 # result['finished_task'] is a flag
                 self._callback_fn['deal_with_learner_finish_task'](task_id, result)
                 resource_task = self._get_resource(self._connection_learner[learner_id])
-                if resource_task == TaskStatus.COMPLETED:
+                if resource_task.status == TaskStatus.COMPLETED:
                     self._resource_manager.update('learner', learner_id, resource_task.result)
                 break
             else:
