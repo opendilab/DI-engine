@@ -1,0 +1,73 @@
+common:
+    name: AtariConfig
+    save_path: '.'
+    load_path: ''
+env:
+    env_manager_type: 'subprocess'  # [base, subprocess]
+    import_names: [ 'app_zoo.atari.envs.atari_env' ]
+    env_type: 'atari'
+    env_id: 'SpaceInvadersNoFrameskip-v4'
+    frame_stack: 4
+    is_train: True
+    actor_env_num: 16
+    evaluator_env_num: 4
+policy:
+    use_cuda: True
+    policy_type: 'dqn'
+    import_names: [ 'nervex.policy.dqn' ]
+    on_policy: False
+    model:
+        encoder_kwargs:
+            encoder_type: 'conv2d'
+        obs_dim: [ 4, 84, 84 ]
+        action_dim: 6
+        embedding_dim: 512
+        head_kwargs:
+            dueling: False
+    learn:
+        train_step: 50
+        batch_size: 32
+        learning_rate: 0.0001
+        weight_decay: 0.0001
+        algo:
+            target_update_freq: 500
+            discount_factor: 0.99
+            nstep: 3
+            eval_eps: 0.005
+    collect:
+        traj_len: 11
+        unroll_len: 1
+        algo:
+            nstep: 3
+    command:
+        eps:
+            type: 'linear'
+            start: 1.
+            end: 0.05
+            decay: 1000000
+replay_buffer:
+    meta_maxlen: 50000
+    max_reuse: 100
+    unroll_len: 1
+    min_sample_ratio: 1
+actor:
+    n_sample: 200
+    traj_len: 11
+    traj_print_freq: 100
+    collect_print_freq: 100
+evaluator:
+    n_episode: 4
+    eval_freq: 200
+    stop_val: 800
+learner:
+    hook:
+        log_show:
+            name: log_show
+            type: log_show
+            priority: 20
+            position: after_iter
+            ext_args:
+                freq: 100
+command:
+    placeholder: 'placeholder'
+
