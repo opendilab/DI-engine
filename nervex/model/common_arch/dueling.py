@@ -123,9 +123,10 @@ class DuelingHead(nn.Module):
             x = x.repeat(num_quantiles, 1)
 
             x = x * quantile_net
-            
+        
         a = self.A(x)
         v = self.V(x)
+
         if self.distribution:
             a = a.view(*a.shape[:-1], self.action_dim, self.n_atom)
             v = v.view(*v.shape[:-1], 1, self.n_atom)
@@ -138,7 +139,7 @@ class DuelingHead(nn.Module):
         elif self.quantile:
             q = a - a.mean(dim=-1, keepdim=True) + v
             q = q.reshape(num_quantiles, batch_size, -1)
-            q = q.mean(0)
-            return q, quantiles
+            logit = q.mean(0)
+            return logit, q, quantiles
         else:
             return a - a.mean(dim=-1, keepdim=True) + v

@@ -43,7 +43,7 @@ class DiscreteNet(nn.Module):
             self._lstm = get_lstm(**lstm_kwargs)
         self._head = Head(action_dim, embedding_dim, **head_kwargs)
 
-    def forward(self, inputs: Dict) -> Dict:
+    def forward(self, inputs: Dict, num_quantiles: Union[None, int] = None) -> Dict:
         r"""
         Overview:
             Normal forward. Would use lstm between encoder and head if needed
@@ -208,7 +208,7 @@ class Head(nn.Module):
         else:
             self.pred = head_fn(input_dim, self.action_dim)
 
-    def forward(self, x: torch.Tensor) -> Dict:
+    def forward(self, x: torch.Tensor, num_quantiles: Union[None, int]=None) -> Dict:
         r"""
         Overview:
             Use encoded tensor to predict the action.
@@ -218,15 +218,15 @@ class Head(nn.Module):
             - return (:obj:`Dict`): action in logits
         """
         if isinstance(self.action_dim, tuple):
-            x = [m(x) for m in self.pred]
+            x = [m(x, num_quantiles=num_quantiles) for m in self.pred]
             if self.distribution or self.quantile:
                 x = list(zip(*x))
         else:
-            x = self.pred(x)
+            x = self.pred(x, num_quantiles=num_quantiles)
         if self.distribution:
             return {'logit': x[0], 'distribution': x[1]}
         elif self.quantile:
-            return {'logit': x[0], 'quantiles': x[1]}
+            return {'logit': x[0], 'q': x[1], 'quantiles': x[2]}
         else:
             return {'logit': x}
 
@@ -275,7 +275,7 @@ ConvRDiscreteNet = partial(
     head_kwargs={'dueling': True}
 )
 NoiseQuantileFCDiscreteNet = partial(
-    DiscreteNet, 
+    DiscreteNet,
     encoder_kwargs={'encoder_type': 'fc'},
     lstm_kwargs={'lstm_type': 'none'},
     head_kwargs={

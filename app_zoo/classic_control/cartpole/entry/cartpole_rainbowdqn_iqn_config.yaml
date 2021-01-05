@@ -1,0 +1,70 @@
+common:
+    name: CartpoleRainbowDqnConfig
+    save_path: '.'
+    load_path: ''
+env:
+    env_manager_type: 'base'  # [base, subprocess]
+    import_names: ['app_zoo.classic_control.cartpole.envs.cartpole_env']
+    env_type: 'cartpole'
+    actor_env_num: 8
+    evaluator_env_num: 5
+policy:
+    use_cuda: False
+    policy_type: 'rainbow_dqn'
+    import_names: ['nervex.policy.dqn', 'nervex.policy.rainbow_dqn']
+    on_policy: False
+    use_priority: False
+    model:
+        obs_dim: 4
+        action_dim: 2
+        embedding_dim: 64
+    learn:
+        train_step: 5
+        batch_size: 64
+        learning_rate: 0.001
+        weight_decay: 0.0001
+        algo:
+            use_iqn: True
+            kappa: 1.0
+            tau_num: 8
+            tau_prim_num: 8
+            quantile_num: 8
+            target_update_freq: 100
+            discount_factor: 0.95
+            nstep: 3
+    collect:
+        traj_len: 11  # (8 + nstep)
+        unroll_len: 1
+        algo:
+            nstep: 3
+    command:
+        eps:
+            type: 'exp'
+            start: 0.5
+            end: 0.05
+            decay: 10000
+replay_buffer:
+    meta_maxlen: 1000
+    max_reuse: 100
+    unroll_len: 1
+    min_sample_ratio: 1
+actor:
+    n_sample: 80
+    traj_len: 11  #  (8 + nstep)
+    traj_print_freq: 100
+    collect_print_freq: 100
+evaluator:
+    n_episode: 5
+    eval_freq: 200
+    stop_val: 195
+learner:
+    hook:
+        log_show:
+            name: log_show
+            type: log_show
+            priority: 20
+            position: after_iter
+            ext_args:
+                freq: 100
+command:
+    placeholder: 'placeholder'
