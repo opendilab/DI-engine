@@ -212,7 +212,7 @@ class RainbowDQNPolicy(DQNPolicy):
             - model (:obj:`torch.nn.Module`): Generted model.
         """
         if model_type is None:
-            if True:
+            if cfg.learn.algo.get('use_iqn'):
                 return NoiseQuantileFCDiscreteNet(**cfg.model)
             else:
                 return NoiseDistributionFCDiscreteNet(**cfg.model)

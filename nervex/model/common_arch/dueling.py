@@ -6,7 +6,8 @@ import torch.nn.functional as F
 import math
 
 from nervex.torch_utils import fc_block, noise_block
-
+from typing import Callable
+from .beta_function import beta_function_map
 
 class DuelingHead(nn.Module):
     r"""
@@ -38,6 +39,7 @@ class DuelingHead(nn.Module):
         n_atom: int = 51,
         num_quantiles: int = 8,
         quantile_embedding_dim: int = 64,
+        beta_function_type: str='uniform',
     ) -> None:
         r"""
         Overview:
@@ -68,6 +70,7 @@ class DuelingHead(nn.Module):
         self.n_atom = n_atom
         if self.quantile:
             self.iqn_fc = nn.Linear(self.quantile_embedding_dim, hidden_dim)
+            self.beta_function = beta_function_map[beta_function_type]
         if noise:
             block = noise_block
         else:
@@ -106,6 +109,8 @@ class DuelingHead(nn.Module):
             else:
                 quantiles = torch.FloatTensor(num_quantiles * batch_size, 1).uniform_(0, 1)
             
+            quantiles = self.beta_function(quantiles)
+
             quantile_net = quantiles.repeat([1, self.quantile_embedding_dim])
 
             quantile_net = torch.cos(

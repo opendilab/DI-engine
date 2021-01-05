@@ -166,6 +166,7 @@ class Head(nn.Module):
             v_min: float = -10,
             v_max: float = 10,
             n_atom: int = 51,
+            beta_function_type: str = 'uniform',
     ) -> None:
         r"""
         Overview:
@@ -190,6 +191,7 @@ class Head(nn.Module):
         self.n_atom = n_atom
         self.v_min = v_min
         self.v_max = v_max
+        self.beta_function_type = beta_function_type
         head_fn = partial(
             DuelingHead,
             a_layer_num=a_layer_num,
@@ -200,6 +202,7 @@ class Head(nn.Module):
             v_min=v_min,
             v_max=v_max,
             n_atom=n_atom,
+            beta_function_type=beta_function_type,
         ) if dueling else nn.Linear
         if isinstance(self.action_dim, tuple):
             self.pred = nn.ModuleList()
@@ -208,7 +211,7 @@ class Head(nn.Module):
         else:
             self.pred = head_fn(input_dim, self.action_dim)
 
-    def forward(self, x: torch.Tensor, num_quantiles: Union[None, int]=None) -> Dict:
+    def forward(self, x: torch.Tensor, num_quantiles: Union[None, int] = None) -> Dict:
         r"""
         Overview:
             Use encoded tensor to predict the action.
@@ -281,7 +284,7 @@ NoiseQuantileFCDiscreteNet = partial(
     head_kwargs={
         'dueling': True,
         'quantile': True,
-        'noise': True
+        'noise': True,
     }
 )
 
@@ -326,7 +329,7 @@ def get_kwargs(kwargs: Dict) -> Tuple[Dict]:
     Returns:
         - ret (:obj:`Tuple[Dict]`): (encoder kwargs, lstm kwargs, head kwargs)
     """
-    head_kwargs_keys = ['v_max', 'v_min', 'n_atom']
+    head_kwargs_keys = ['v_max', 'v_min', 'n_atom', 'beta_function_type']
     if 'encoder_kwargs' in kwargs:
         encoder_kwargs = kwargs['encoder_kwargs']
     else:
@@ -350,9 +353,11 @@ def get_kwargs(kwargs: Dict) -> Tuple[Dict]:
             'a_layer_num': kwargs.get('a_layer_num', 1),
             'v_layer_num': kwargs.get('v_layer_num', 1),
             'distribution': kwargs.get('distribution', False),
+            'quantile': kwargs.get('quantile', False),
             'noise': kwargs.get('noise', False),
             'v_max': kwargs.get('v_max', 10),
             'v_min': kwargs.get('v_min', -10),
-            'n_atom': kwargs.get('n_atom', 51)
+            'n_atom': kwargs.get('n_atom', 51),
+            'beta_function_type': kwargs.get('beta_function_type', 'uniform')
         }
     return encoder_kwargs, lstm_kwargs, head_kwargs
