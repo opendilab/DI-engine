@@ -10,7 +10,7 @@ __policy_default_config = dict(
         action_dim=2,
     ),
     learn=dict(
-        batch_size=2,
+        batch_size=32,
         learning_rate=0.001,
         weight_decay=0.,
         algo=dict(
@@ -40,8 +40,8 @@ __base_learner_default_config = dict(
     use_cuda=False,
     use_distributed=False,
     dataloader=dict(
-        batch_size=2,
-        chunk_size=2,
+        batch_size=32,
+        chunk_size=32,
         num_workers=0,
     ),
     hook=dict(
@@ -56,7 +56,7 @@ __base_learner_default_config = dict(
             type='log_show',
             priority=20,
             position='after_iter',
-            ext_args=dict(freq=10),
+            ext_args=dict(freq=50),
         ),
         save_ckpt_after_run=dict(
             name='save_ckpt_after_run',

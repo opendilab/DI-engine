@@ -18,7 +18,7 @@ unittest:
 		--cov-report term-missing \
 		--cov=${COV_DIR} \
 		${WORKERS_COMMAND} \
-		-sv -m unittest
+		-sv -m unittest --dist=loadscope
 
 algotest:
 	pytest ${TEST_DIR} \

@@ -28,6 +28,7 @@ class FlaskFileSystemActor(BaseCommActor, Slave):
                 pass
         self._metadata_queue = Queue(cfg.queue_maxsize)
         self._finish_queue = Queue(cfg.queue_maxsize)
+        self._actor = None
 
     # override Slave
     def _process_task(self, task: dict) -> Union[dict, TaskFail]:
@@ -101,6 +102,8 @@ class FlaskFileSystemActor(BaseCommActor, Slave):
     def close(self) -> None:
         if self._end_flag:
             return
+        if self._actor is not None:
+            self._actor.close()
         Slave.close(self)
         BaseCommActor.close(self)
 

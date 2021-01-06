@@ -46,6 +46,7 @@ class FlaskFileSystemLearner(BaseCommLearner, Slave):
         self._data_demand_queue = Queue(maxsize=1)
         self._data_result_queue = Queue(maxsize=1)
         self._learn_info_queue = Queue(maxsize=1)
+        self._learner = None
 
     # override Slave
     def _process_task(self, task: dict) -> Union[dict, TaskFail]:
@@ -102,6 +103,8 @@ class FlaskFileSystemLearner(BaseCommLearner, Slave):
             return
         if hasattr(self, '_learner_thread'):
             self._learner_thread.join()
+        if self._learner is not None:
+            self._learner.close()
         Slave.close(self)
         BaseCommLearner.close(self)
 

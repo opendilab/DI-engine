@@ -57,13 +57,15 @@ class SoloCommander(BaseCommander):
         else:
             return None
 
-    def finish_actor_task(self, task_id: str, finished_task: dict) -> None:
+    def finish_actor_task(self, task_id: str, finished_task: dict) -> bool:
         self._actor_task_space.release_space()
         if finished_task['eval_flag']:
             self._last_eval_time = time.time()
-        self._evaluator_info.append(finished_task)
-        if finished_task['reward_mean'] >= self._cfg.actor_cfg.env_kwargs.eval_stop_val:
-            sys.exit(0)
+            self._evaluator_info.append(finished_task)
+            eval_stop_val = self._cfg.actor_cfg.env_kwargs.eval_stop_val
+            if eval_stop_val is not None and finished_task['reward_mean'] >= eval_stop_val:
+                return True
+        return False
 
     def finish_learner_task(self, task_id: str, finished_task: dict) -> str:
         self._learner_task_space.release_space()

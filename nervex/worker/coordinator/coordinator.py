@@ -169,8 +169,11 @@ class Coordinator(object):
         self._assign_learner_thread.join()
         self._interaction.close()
         # close replay buffer
-        for k, v in self._replay_buffer.items():
+        replay_buffer_keys = list(self._replay_buffer.keys())
+        for k in replay_buffer_keys:
+            v = self._replay_buffer.pop(k)
             v.close()
+        self.info('coordinator is closed')
 
     def __del__(self) -> None:
         self.close()
@@ -191,10 +194,14 @@ class Coordinator(object):
             return
         # finish_task
         with self._commander_lock:
-            self._commander.finish_actor_task(task_id, finished_task)
+            system_shutdown_flag = self._commander.finish_actor_task(task_id, finished_task)
         self._task_state.pop(task_id)
         self._historical_task.append(task_id)
         self.info('actor task({}) is finished'.format(task_id))
+        if system_shutdown_flag:
+            self.info('coordinator will be closed')
+            close_thread = Thread(target=self.close, args=())
+            close_thread.start()
 
     def deal_with_learner_get_data(self, task_id: str, buffer_id: str, batch_size: int) -> List[dict]:
         if task_id not in self._task_state:

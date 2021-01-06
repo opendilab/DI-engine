@@ -64,7 +64,7 @@ class TestActorWithCoordinator:
             coordinator = Coordinator(setup_config.coordinator)
             coordinator.start()
             while True:
-                if hasattr(setup_actor['actor0'], '_actor'):
+                if setup_actor['actor0']._actor is not None:
                     break
                 time.sleep(0.5)
             torch.save(
