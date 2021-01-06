@@ -9,6 +9,7 @@ from nervex.torch_utils import fc_block, noise_block
 from typing import Callable
 from .beta_function import beta_function_map
 
+
 class DuelingHead(nn.Module):
     r"""
     Overview:
@@ -39,7 +40,7 @@ class DuelingHead(nn.Module):
         n_atom: int = 51,
         num_quantiles: int = 32,
         quantile_embedding_dim: int = 128,
-        beta_function_type: str='uniform',
+        beta_function_type: str = 'uniform',
     ) -> None:
         r"""
         Overview:
@@ -91,7 +92,9 @@ class DuelingHead(nn.Module):
         self.A = nn.Sequential(*self.A)
         self.V = nn.Sequential(*self.V)
 
-    def forward(self, x: torch.Tensor, num_quantiles: Union[int, None] = None) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+    def forward(self,
+                x: torch.Tensor,
+                num_quantiles: Union[int, None] = None) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
         r"""
         Overview:
             Return the sum of advantage and the value according to the input from hidden layers
@@ -101,34 +104,33 @@ class DuelingHead(nn.Module):
             - return (:obj:`torch.Tensor`): the sum of advantage and value
         """
         batch_size = x.shape[0]
+        device = 'cpu'
         if self.quantile:
             if not num_quantiles:
                 num_quantiles = self.num_quantiles
             if list(self.iqn_fc.parameters())[0].is_cuda:
+                device = 'cuda'
                 quantiles = torch.cuda.FloatTensor(num_quantiles * batch_size, 1).uniform_(0, 1)
             else:
                 quantiles = torch.FloatTensor(num_quantiles * batch_size, 1).uniform_(0, 1)
-            
+
             quantiles = self.beta_function(quantiles)
 
             quantile_net = quantiles.repeat([1, self.quantile_embedding_dim])
 
             quantile_net = torch.cos(
-                torch.arange(
-                    1, self.quantile_embedding_dim + 1, 1 , dtype=torch.float32
-                )
-                * math.pi
-                * quantile_net
+                torch.arange(1, self.quantile_embedding_dim + 1, 1, device=device, dtype=torch.float32) * math.pi *
+                quantile_net
             )
 
             quantile_net = self.iqn_fc(quantile_net)
-            
+
             quantile_net = F.relu(quantile_net)
 
             x = x.repeat(num_quantiles, 1)
 
             x = x * quantile_net
-        
+
         a = self.A(x)
         v = self.V(x)
 
