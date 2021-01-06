@@ -281,15 +281,16 @@ iqn_nstep_td_data = namedtuple(
 
 
 def iqn_nstep_td_error(
-    data: namedtuple,
-    gamma: float,
-    nstep: int = 1,
-    kappa: float = 1.0,
-    # beta_function: Callable = lambda x: x,
+        data: namedtuple,
+        gamma: float,
+        nstep: int = 1,
+        kappa: float = 1.0,
 ) -> torch.Tensor:
     """
     Overview:
-        Multistep (1 step or n step) td_error with in IQN
+        Multistep (1 step or n step) td_error with in IQN, \
+            referenced paper Implicit Quantile Networks for Distributional Reinforcement Learning \
+            <https://arxiv.org/pdf/1806.06923.pdf>
     Arguments:
         - data (:obj:`iqn_nstep_td_data`): the input data, iqn_nstep_td_data to calculate loss
         - gamma (:obj:`float`): discount factor
@@ -301,8 +302,8 @@ def iqn_nstep_td_error(
     Shapes:
         - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
         ['q', 'next_n_q', 'action', 'reward', 'done']
-        - q (:obj:`torch.FloatTensor`): :math:`(tau x B, N)` i.e. [tau x batch_size, action_dim]
-        - next_n_q (:obj:`torch.FloatTensor`): :math:`(tau' x B, N)`
+        - q (:obj:`torch.FloatTensor`): :math:`(tau, B, N)` i.e. [tau x batch_size, action_dim]
+        - next_n_q (:obj:`torch.FloatTensor`): :math:`(tau', B, N)`
         - action (:obj:`torch.LongTensor`): :math:`(B, )`
         - next_n_action (:obj:`torch.LongTensor`): :math:`(B, )`
         - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
@@ -327,11 +328,6 @@ def iqn_nstep_td_error(
     action = action.repeat([tau, 1]).unsqueeze(-1)
     next_n_action = next_n_action.repeat([tau_prime, 1]).unsqueeze(-1)
 
-    # # shape: tau x batch_size x a
-    # q = q.reshape(tau, batch_size, -1)
-    # # shape: tau_prim x batch_size x 1
-    # next_n_q = next_n_q.reshape(tau_prime, batch_size, -1)
-
     # shape: batch_size x tau x a
     q_s_a = torch.gather(q, -1, action).permute([1, 0, 2])
     # shape: batch_size x tau_prim x 1
@@ -350,11 +346,9 @@ def iqn_nstep_td_error(
     bellman_errors = (target_q_s_a[:, :, None, :] - q_s_a[:, None, :, :])
 
     # The huber loss (see Section 2.3 of the paper) is defined via two cases:
-    # case_one: |bellman_errors| <= kappa
-    # case_two: |bellman_errors| > kappa
-    huber_loss_case_one = ((bellman_errors.abs() <= kappa).float() * 0.5 * bellman_errors ** 2)
-    huber_loss_case_two = ((bellman_errors.abs() > kappa).float() * kappa * (bellman_errors.abs() - 0.5 * kappa))
-    huber_loss = huber_loss_case_one + huber_loss_case_two
+    huber_loss = torch.where(
+        bellman_errors.abs() <= kappa, 0.5 * bellman_errors ** 2, kappa * (bellman_errors.abs() - 0.5 * kappa)
+    )
 
     # Reshape replay_quantiles to batch_size x num_tau_samples x 1
     replay_quantiles = replay_quantiles.reshape([tau, batch_size, 1]).permute([1, 0, 2])

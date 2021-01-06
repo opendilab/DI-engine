@@ -7,7 +7,7 @@ import math
 
 from nervex.torch_utils import fc_block, noise_block
 from typing import Callable
-from .beta_function import beta_function_map
+from nervex.rl_utils import beta_function_map
 
 
 class DuelingHead(nn.Module):
@@ -104,15 +104,12 @@ class DuelingHead(nn.Module):
             - return (:obj:`torch.Tensor`): the sum of advantage and value
         """
         batch_size = x.shape[0]
-        device = 'cpu'
+        device = torch.device("cuda" if x.is_cuda else "cpu")
         if self.quantile:
             if not num_quantiles:
                 num_quantiles = self.num_quantiles
-            if list(self.iqn_fc.parameters())[0].is_cuda:
-                device = 'cuda'
-                quantiles = torch.cuda.FloatTensor(num_quantiles * batch_size, 1).uniform_(0, 1)
-            else:
-                quantiles = torch.FloatTensor(num_quantiles * batch_size, 1).uniform_(0, 1)
+           
+            quantiles = torch.FloatTensor(num_quantiles * batch_size, 1).uniform_(0, 1).to(device)
 
             quantiles = self.beta_function(quantiles)
 

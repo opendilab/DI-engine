@@ -13,3 +13,4 @@ from .upgo import upgo_loss
 from .adder import Adder
 from .value_rescale import value_transform, value_inv_transform
 from .vtrace import vtrace_data, vtrace_error
+from .beta_function import beta_function_map
