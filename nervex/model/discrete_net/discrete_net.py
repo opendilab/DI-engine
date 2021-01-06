@@ -43,7 +43,7 @@ class DiscreteNet(nn.Module):
             self._lstm = get_lstm(**lstm_kwargs)
         self._head = Head(action_dim, embedding_dim, **head_kwargs)
 
-    def forward(self, inputs: Dict) -> Dict:
+    def forward(self, inputs: Dict, num_quantiles: Union[None, int] = None) -> Dict:
         r"""
         Overview:
             Normal forward. Would use lstm between encoder and head if needed
@@ -161,10 +161,14 @@ class Head(nn.Module):
             a_layer_num: int = 1,
             v_layer_num: int = 1,
             distribution: bool = False,
+            quantile: bool = False,
             noise: bool = False,
             v_min: float = -10,
             v_max: float = 10,
             n_atom: int = 51,
+            num_quantiles: int = 32,
+            quantile_embedding_dim: int = 128,
+            beta_function_type: str = 'uniform',
     ) -> None:
         r"""
         Overview:
@@ -184,19 +188,25 @@ class Head(nn.Module):
         super(Head, self).__init__()
         self.action_dim = squeeze(action_dim)
         self.dueling = dueling
+        self.quantile = quantile
         self.distribution = distribution
         self.n_atom = n_atom
         self.v_min = v_min
         self.v_max = v_max
+        self.beta_function_type = beta_function_type
         head_fn = partial(
             DuelingHead,
             a_layer_num=a_layer_num,
             v_layer_num=v_layer_num,
             distribution=distribution,
+            quantile=quantile,
             noise=noise,
             v_min=v_min,
             v_max=v_max,
             n_atom=n_atom,
+            num_quantiles=num_quantiles,
+            quantile_embedding_dim=quantile_embedding_dim,
+            beta_function_type=beta_function_type,
         ) if dueling else nn.Linear
         if isinstance(self.action_dim, tuple):
             self.pred = nn.ModuleList()
@@ -205,7 +215,7 @@ class Head(nn.Module):
         else:
             self.pred = head_fn(input_dim, self.action_dim)
 
-    def forward(self, x: torch.Tensor) -> Dict:
+    def forward(self, x: torch.Tensor, num_quantiles: Union[None, int] = None) -> Dict:
         r"""
         Overview:
             Use encoded tensor to predict the action.
@@ -215,13 +225,15 @@ class Head(nn.Module):
             - return (:obj:`Dict`): action in logits
         """
         if isinstance(self.action_dim, tuple):
-            x = [m(x) for m in self.pred]
-            if self.distribution:
+            x = [m(x, num_quantiles=num_quantiles) for m in self.pred]
+            if self.distribution or self.quantile:
                 x = list(zip(*x))
         else:
-            x = self.pred(x)
+            x = self.pred(x, num_quantiles=num_quantiles)
         if self.distribution:
             return {'logit': x[0], 'distribution': x[1]}
+        elif self.quantile:
+            return {'logit': x[0], 'q': x[1], 'quantiles': x[2]}
         else:
             return {'logit': x}
 
@@ -269,6 +281,16 @@ ConvRDiscreteNet = partial(
     lstm_kwargs={'lstm_type': 'normal'},
     head_kwargs={'dueling': True}
 )
+NoiseQuantileFCDiscreteNet = partial(
+    DiscreteNet,
+    encoder_kwargs={'encoder_type': 'fc'},
+    lstm_kwargs={'lstm_type': 'none'},
+    head_kwargs={
+        'dueling': True,
+        'quantile': True,
+        'noise': True,
+    }
+)
 
 
 def parallel_wrapper(forward_fn: Callable) -> Callable:
@@ -311,7 +333,7 @@ def get_kwargs(kwargs: Dict) -> Tuple[Dict]:
     Returns:
         - ret (:obj:`Tuple[Dict]`): (encoder kwargs, lstm kwargs, head kwargs)
     """
-    head_kwargs_keys = ['v_max', 'v_min', 'n_atom']
+    head_kwargs_keys = ['v_max', 'v_min', 'n_atom', 'beta_function_type', 'num_quantiles', 'quantile_embedding_dim']
     if 'encoder_kwargs' in kwargs:
         encoder_kwargs = kwargs['encoder_kwargs']
     else:
@@ -335,9 +357,13 @@ def get_kwargs(kwargs: Dict) -> Tuple[Dict]:
             'a_layer_num': kwargs.get('a_layer_num', 1),
             'v_layer_num': kwargs.get('v_layer_num', 1),
             'distribution': kwargs.get('distribution', False),
+            'quantile': kwargs.get('quantile', False),
             'noise': kwargs.get('noise', False),
             'v_max': kwargs.get('v_max', 10),
             'v_min': kwargs.get('v_min', -10),
-            'n_atom': kwargs.get('n_atom', 51)
+            'n_atom': kwargs.get('n_atom', 51),
+            'beta_function_type': kwargs.get('beta_function_type', 'uniform'),
+            'num_quantiles': kwargs.get('num_quantiles', 32),
+            'quantile_embedding_dim': kwargs.get('quantile_embedding_dim', 128),
         }
     return encoder_kwargs, lstm_kwargs, head_kwargs
