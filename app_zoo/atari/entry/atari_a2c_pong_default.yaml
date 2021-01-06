@@ -3,7 +3,7 @@ common:
     save_path: '.'
     load_path: ''
 env:
-    env_manager_type: 'base'  # [base, subprocess]
+    env_manager_type: 'subprocess'  # [base, subprocess]
     import_names: [ 'app_zoo.atari.envs.atari_env' ]
     env_type: 'atari'
     env_id: 'PongNoFrameskip-v4'

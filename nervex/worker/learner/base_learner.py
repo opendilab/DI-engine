@@ -243,7 +243,11 @@ class BaseLearner(ABC):
             data = self._policy.data_preprocess(data)
         log_vars = self._policy.forward(data)
         priority = log_vars.pop('priority', None)
-        self.priority_info = {'replay_buffer_idx': replay_buffer_idx, 'replay_unique_id': replay_unique_id, 'priority': priority}
+        self.priority_info = {
+            'replay_buffer_idx': replay_buffer_idx,
+            'replay_unique_id': replay_unique_id,
+            'priority': priority
+        }
         log_vars['data_preprocess_time'] = self._timer.value
         log_vars.update(self.collect_info)
         self._log_buffer.update(log_vars)
