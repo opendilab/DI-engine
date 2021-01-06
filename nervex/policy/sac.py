@@ -189,5 +189,10 @@ class SACPolicy(CommonPolicy):
         else:
             return model_type(**cfg.model)
 
+    def _monitor_vars_learn(self) -> List[str]:
+        return super()._monitor_vars_learn() + [
+            'policy_loss', 'value_loss', 'q_loss', 'cur_lr_q', 'cur_lr_v', 'cur_lr_p'
+        ]
+
 
 register_policy('sac', SACPolicy)
