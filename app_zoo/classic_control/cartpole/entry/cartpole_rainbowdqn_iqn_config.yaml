@@ -19,6 +19,8 @@ policy:
         action_dim: 2
         embedding_dim: 64
         beta_function_type: 'CPW'
+        num_quantiles: 32
+        quantile_embedding_dim: 128
     learn:
         train_step: 5
         batch_size: 64

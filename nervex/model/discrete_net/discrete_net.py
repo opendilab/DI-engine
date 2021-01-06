@@ -166,6 +166,8 @@ class Head(nn.Module):
             v_min: float = -10,
             v_max: float = 10,
             n_atom: int = 51,
+            num_quantiles: int = 32,
+            quantile_embedding_dim: int = 128,
             beta_function_type: str = 'uniform',
     ) -> None:
         r"""
@@ -202,6 +204,8 @@ class Head(nn.Module):
             v_min=v_min,
             v_max=v_max,
             n_atom=n_atom,
+            num_quantiles=num_quantiles,
+            quantile_embedding_dim=quantile_embedding_dim,
             beta_function_type=beta_function_type,
         ) if dueling else nn.Linear
         if isinstance(self.action_dim, tuple):
@@ -329,7 +333,7 @@ def get_kwargs(kwargs: Dict) -> Tuple[Dict]:
     Returns:
         - ret (:obj:`Tuple[Dict]`): (encoder kwargs, lstm kwargs, head kwargs)
     """
-    head_kwargs_keys = ['v_max', 'v_min', 'n_atom', 'beta_function_type']
+    head_kwargs_keys = ['v_max', 'v_min', 'n_atom', 'beta_function_type', 'num_quantiles', 'quantile_embedding_dim']
     if 'encoder_kwargs' in kwargs:
         encoder_kwargs = kwargs['encoder_kwargs']
     else:
@@ -358,6 +362,8 @@ def get_kwargs(kwargs: Dict) -> Tuple[Dict]:
             'v_max': kwargs.get('v_max', 10),
             'v_min': kwargs.get('v_min', -10),
             'n_atom': kwargs.get('n_atom', 51),
-            'beta_function_type': kwargs.get('beta_function_type', 'uniform')
+            'beta_function_type': kwargs.get('beta_function_type', 'uniform'),
+            'num_quantiles': kwargs.get('num_quantiles', 32),
+            'quantile_embedding_dim': kwargs.get('quantile_embedding_dim', 128),
         }
     return encoder_kwargs, lstm_kwargs, head_kwargs

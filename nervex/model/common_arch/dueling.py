@@ -37,8 +37,8 @@ class DuelingHead(nn.Module):
         v_min: float = -10,
         v_max: float = 10,
         n_atom: int = 51,
-        num_quantiles: int = 8,
-        quantile_embedding_dim: int = 64,
+        num_quantiles: int = 32,
+        quantile_embedding_dim: int = 128,
         beta_function_type: str='uniform',
     ) -> None:
         r"""

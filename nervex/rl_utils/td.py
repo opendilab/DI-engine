@@ -149,6 +149,7 @@ def dist_nstep_td_error(
     proj_dist.view(-1).index_add_(0, (l + offset).view(-1), (next_n_dist * (u.float() - b)).view(-1))
     proj_dist.view(-1).index_add_(0, (u + offset).view(-1), (next_n_dist * (b - l.float())).view(-1))
 
+    assert (dist[batch_range, act] > 0.0).all(), ("dist act", dist[batch_range, act], "dist:", dist)
     log_p = torch.log(dist[batch_range, act])
 
     if len(weight.shape) == 1:
