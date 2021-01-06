@@ -33,8 +33,8 @@ def test_dist_1step_td():
     n_atom = 51
     v_min = -10.0
     v_max = 10.0
-    dist = torch.randn(batch_size, action_dim, n_atom).requires_grad_(True)
-    next_dist = torch.randn(batch_size, action_dim, n_atom)
+    dist = torch.randn(batch_size, action_dim, n_atom).abs().requires_grad_(True)
+    next_dist = torch.randn(batch_size, action_dim, n_atom).abs()
     done = torch.randn(batch_size)
     action = torch.randint(0, action_dim, size=(batch_size, ))
     next_action = torch.randint(0, action_dim, size=(batch_size, ))
@@ -55,8 +55,8 @@ def test_dist_nstep_td():
     v_min = -10.0
     v_max = 10.0
     nstep = 5
-    dist = torch.randn(batch_size, action_dim, n_atom).requires_grad_(True)
-    next_n_dist = torch.randn(batch_size, action_dim, n_atom)
+    dist = torch.randn(batch_size, action_dim, n_atom).abs().requires_grad_(True)
+    next_n_dist = torch.randn(batch_size, action_dim, n_atom).abs()
     done = torch.randn(batch_size)
     action = torch.randint(0, action_dim, size=(batch_size, ))
     next_action = torch.randint(0, action_dim, size=(batch_size, ))
@@ -113,8 +113,8 @@ def test_dist_1step_compatible():
     n_atom = 51
     v_min = -10.0
     v_max = 10.0
-    dist = torch.randn(batch_size, action_dim, n_atom).requires_grad_(True)
-    next_dist = torch.randn(batch_size, action_dim, n_atom)
+    dist = torch.randn(batch_size, action_dim, n_atom).abs().requires_grad_(True)
+    next_dist = torch.randn(batch_size, action_dim, n_atom).abs()
     done = torch.randn(batch_size)
     action = torch.randint(0, action_dim, size=(batch_size, ))
     next_action = torch.randint(0, action_dim, size=(batch_size, ))
