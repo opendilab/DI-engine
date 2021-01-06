@@ -3,8 +3,8 @@ from collections import namedtuple, deque
 import torch
 
 from nervex.torch_utils import Adam
-from nervex.rl_utils import dist_nstep_td_data, dist_nstep_td_error, Adder
-from nervex.model import NoiseDistributionFCDiscreteNet
+from nervex.rl_utils import dist_nstep_td_data, dist_nstep_td_error, Adder, iqn_nstep_td_data, iqn_nstep_td_error
+from nervex.model import NoiseDistributionFCDiscreteNet, NoiseQuantileFCDiscreteNet
 from nervex.agent import Agent
 from .base_policy import register_policy
 from .dqn import DQNPolicy
@@ -44,11 +44,19 @@ class RainbowDQNPolicy(DQNPolicy):
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._agent = Agent(self._model)
         algo_cfg = self._cfg.learn.algo
+        self._use_iqn = algo_cfg.get('use_iqn', False)
         self._gamma = algo_cfg.discount_factor
         self._nstep = algo_cfg.nstep
-        self._v_max = self._cfg.model.v_max
-        self._v_min = self._cfg.model.v_min
-        self._n_atom = self._cfg.model.n_atom
+        if self._use_iqn:
+            self._kappa = algo_cfg.kappa
+            self._tau = algo_cfg.tau_num
+            self._tau_prim = algo_cfg.tau_prim_num
+            self._num_quantiles = algo_cfg.quantile_num
+
+        else:
+            self._v_max = self._cfg.model.v_max
+            self._v_min = self._cfg.model.v_min
+            self._n_atom = self._cfg.model.n_atom
 
         self._agent.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
         self._agent.add_plugin('main', 'argmax_sample')
@@ -74,31 +82,69 @@ class RainbowDQNPolicy(DQNPolicy):
                 - cur_lr (:obj:`float`): current learning rate
                 - total_loss (:obj:`float`): the calculated loss
         """
-        # forward
-        reward = data['reward']
-        if len(reward.shape) == 1:
-            reward = reward.unsqueeze(1)
-        assert reward.shape == (self._cfg.learn.batch_size, self._nstep), reward.shape
-        reward = reward.permute(1, 0).contiguous()
-        self._reset_noise(self._agent.model)
-        self._reset_noise(self._agent.target_model)
-        q_dist = self._agent.forward(data['obs'])['distribution']
-        target_q_dist = self._agent.target_forward(data['next_obs'])['distribution']
-        target_q_action = self._agent.forward(data['next_obs'])['action']
-        data = dist_nstep_td_data(
-            q_dist, target_q_dist, data['action'], target_q_action, reward, data['done'], data['weight']
-        )
-        loss = dist_nstep_td_error(data, self._gamma, self._v_min, self._v_max, self._n_atom, nstep=self._nstep)
-        # update
-        self._optimizer.zero_grad()
-        loss.backward()
-        self._optimizer.step()
-        # after update
-        self._agent.target_update(self._agent.state_dict()['model'])
-        return {
-            'cur_lr': self._optimizer.defaults['lr'],
-            'total_loss': loss.item(),
-        }
+        if self._use_iqn:
+            # iqn forward
+            reward = data['reward']
+            if len(reward.shape) == 1:
+                reward = reward.unsqueeze(1)
+            assert reward.shape == (self._cfg.learn.batch_size, self._nstep), reward.shape
+            reward = reward.permute(1, 0).contiguous()
+            self._reset_noise(self._agent.model)
+            self._reset_noise(self._agent.target_model)
+            ret = self._agent.forward(data['obs'], param={'num_quantiles': self._tau})
+            q = ret['q']
+            replay_quantiles = ret['quantiles']
+            target_q = self._agent.target_forward(data['next_obs'], param={'num_quantiles': self._tau_prim})['q']
+            self._reset_noise(self._agent.target_model)
+            target_q_action = self._agent.forward(
+                data['next_obs'], param={'num_quantiles': self._num_quantiles}
+            )['action']
+            data = iqn_nstep_td_data(
+                q, target_q, data['action'], target_q_action, reward, data['done'], replay_quantiles, data['weight']
+            )
+            loss, td_error_per_sample = iqn_nstep_td_error(data, self._gamma, nstep=self._nstep, kappa=self._kappa)
+            # update
+            self._optimizer.zero_grad()
+            loss.backward()
+            self._optimizer.step()
+            # after update
+            self._agent.target_update(self._agent.state_dict()['model'])
+            return {
+                'cur_lr': self._optimizer.defaults['lr'],
+                'total_loss': loss.item(),
+                'priority': td_error_per_sample.abs().tolist(),
+            }
+
+        else:
+            # rainbow forward
+            reward = data['reward']
+            if len(reward.shape) == 1:
+                reward = reward.unsqueeze(1)
+            assert reward.shape == (self._cfg.learn.batch_size, self._nstep), reward.shape
+            reward = reward.permute(1, 0).contiguous()
+            self._reset_noise(self._agent.model)
+            self._reset_noise(self._agent.target_model)
+            q_dist = self._agent.forward(data['obs'])['distribution']
+            target_q_dist = self._agent.target_forward(data['next_obs'])['distribution']
+            self._reset_noise(self._agent.target_model)
+            target_q_action = self._agent.forward(data['next_obs'])['action']
+            data = dist_nstep_td_data(
+                q_dist, target_q_dist, data['action'], target_q_action, reward, data['done'], data['weight']
+            )
+            loss, td_error_per_sample = dist_nstep_td_error(
+                data, self._gamma, self._v_min, self._v_max, self._n_atom, nstep=self._nstep
+            )
+            # update
+            self._optimizer.zero_grad()
+            loss.backward()
+            self._optimizer.step()
+            # after update
+            self._agent.target_update(self._agent.state_dict()['model'])
+            return {
+                'cur_lr': self._optimizer.defaults['lr'],
+                'total_loss': loss.item(),
+                'priority': td_error_per_sample.abs().tolist(),
+            }
 
     def _init_collect(self) -> None:
         r"""
@@ -166,7 +212,10 @@ class RainbowDQNPolicy(DQNPolicy):
             - model (:obj:`torch.nn.Module`): Generted model.
         """
         if model_type is None:
-            return NoiseDistributionFCDiscreteNet(**cfg.model)
+            if cfg.learn.algo.get('use_iqn'):
+                return NoiseQuantileFCDiscreteNet(**cfg.model)
+            else:
+                return NoiseDistributionFCDiscreteNet(**cfg.model)
         else:
             return model_type(**cfg.model)
 

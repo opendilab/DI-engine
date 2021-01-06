@@ -18,15 +18,20 @@ policy:
         obs_dim: 4
         action_dim: 2
         embedding_dim: 64
-        v_max: 10
-        v_min: -10
-        n_atom: 51
+        beta_function_type: 'CPW'
+        num_quantiles: 32
+        quantile_embedding_dim: 128
     learn:
         train_step: 5
         batch_size: 64
         learning_rate: 0.001
         weight_decay: 0.0001
         algo:
+            use_iqn: True
+            kappa: 1.0
+            tau_num: 8
+            tau_prim_num: 8
+            quantile_num: 8
             target_update_freq: 100
             discount_factor: 0.95
             nstep: 3
