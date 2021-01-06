@@ -204,3 +204,15 @@ def test_impala():
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
+
+
+@pytest.mark.algotest
+def test_iqn():
+    path = os.path.join(
+        os.path.dirname(__file__), '../../../app_zoo/classic_control/cartpole/entry/cartpole_rainbowdqn_iqn_config.yaml'
+    )
+    config = read_config(path)
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
