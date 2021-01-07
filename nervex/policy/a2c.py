@@ -32,6 +32,7 @@ class A2CPolicy(CommonPolicy):
         self._learn_use_nstep_return = algo_cfg.get('use_nstep_return', False)
         self._learn_gamma = algo_cfg.get('discount_factor', 0.99)
         self._learn_nstep = algo_cfg.get('nstep', 1)
+        self._use_adv_norm = algo_cfg.get('use_adv_norm', False)
 
         # Main and target agents
         self._agent = Agent(self._model)
@@ -52,9 +53,10 @@ class A2CPolicy(CommonPolicy):
         # forward
         output = self._agent.forward(data['obs'], param={'mode': 'compute_action_value'})
 
-        # norm adv in total train_batch
         adv = data['adv']
-        adv = (adv - adv.mean()) / (adv.std() + 1e-8)
+        if self._use_adv_norm:
+            # norm adv in total train_batch
+            adv = (adv - adv.mean()) / (adv.std() + 1e-8)
 
         if self._learn_use_nstep_return:
             # use nstep return

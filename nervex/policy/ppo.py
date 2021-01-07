@@ -19,6 +19,7 @@ class PPOPolicy(CommonPolicy):
         self._value_weight = algo_cfg.value_weight
         self._entropy_weight = algo_cfg.entropy_weight
         self._clip_ratio = algo_cfg.clip_ratio
+        self._use_adv_norm = algo_cfg.get('use_adv_norm', False)
 
         self._agent.add_plugin('main', 'grad', enable_grad=True)
         self._agent.mode(train=True)
@@ -29,8 +30,9 @@ class PPOPolicy(CommonPolicy):
         # forward
         output = self._agent.forward(data['obs'], param={'mode': 'compute_action_value'})
         adv = data['adv']
-        # norm adv in total train_batch
-        adv = (adv - adv.mean()) / (adv.std() + 1e-8)
+        if self._use_adv_norm:
+            # norm adv in total train_batch
+            adv = (adv - adv.mean()) / (adv.std() + 1e-8)
         # return = value + adv
         return_ = data['value'] + adv
         # calculate ppo error
