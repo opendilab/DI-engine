@@ -81,7 +81,7 @@ def test_q_nstep_td_with_rescale():
         q = torch.randn(batch_size, action_dim).requires_grad_(True)
         reward = torch.rand(nstep, batch_size)
         data = q_nstep_td_data(q, next_q, action, next_action, reward, done, None)
-        loss = q_nstep_td_error_with_rescale(data, 0.95, nstep=nstep)
+        loss, _ = q_nstep_td_error_with_rescale(data, 0.95, nstep=nstep)
         assert loss.shape == ()
         assert q.grad is None
         loss.backward()

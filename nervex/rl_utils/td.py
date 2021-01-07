@@ -272,7 +272,8 @@ def q_nstep_td_error_with_rescale(
     target_q_s_a = nstep_return(nstep_return_data(reward, target_q_s_a, done), gamma, nstep)
     target_q_s_a = trans_fn(target_q_s_a)
 
-    return (criterion(q_s_a, target_q_s_a.detach()) * weight).mean()
+    td_error_per_sample = criterion(q_s_a, target_q_s_a.detach())
+    return (td_error_per_sample * weight).mean(), td_error_per_sample
 
 
 iqn_nstep_td_data = namedtuple(
