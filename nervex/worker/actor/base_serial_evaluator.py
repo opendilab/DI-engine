@@ -44,6 +44,7 @@ class BaseSerialEvaluator(object):
         self._env.reset()
 
     def close(self) -> None:
+        self._tb_logger.close()
         self._env.close()
 
     def eval(self, train_iter: int, n_episode: Optional[int] = None) -> bool:

@@ -104,6 +104,10 @@ class SegmentTree:
 class SumSegmentTree(SegmentTree):
 
     def __init__(self, capacity: int) -> None:
+        """
+        Overview:
+            Init sum segment tree by passing ``operation='sum'``
+        """
         super(SumSegmentTree, self).__init__(capacity, operation='sum')
 
     def find_prefixsum_idx(self, prefixsum: float, trust_caller: bool = True) -> int:
@@ -126,6 +130,10 @@ class SumSegmentTree(SegmentTree):
 class MinSegmentTree(SegmentTree):
 
     def __init__(self, capacity: int) -> None:
+        """
+        Overview:
+            Init sum segment tree by passing ``operation='min'``
+        """
         super(MinSegmentTree, self).__init__(capacity, operation='min')
 
 

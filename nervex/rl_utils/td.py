@@ -413,10 +413,10 @@ def generalized_lambda_returns(
         - rewards (:obj:`torch.Tensor`): the returns from 0 to T-1, of size [T_traj, batchsize]
         - gammas (:obj:`torch.Tensor` or :obj:`float`):
           discount factor for each step (from 0 to T-1), of size [T_traj, batchsize]
-        - lambda_ (:obj:`torch.Tensor` or :obj:`float`): determining the mix of bootstrapping
+        - lambda (:obj:`torch.Tensor` or :obj:`float`): determining the mix of bootstrapping
           vs further accumulation of multistep returns at each timestep, of size [T_traj, batchsize]
     Returns:
-        - return_ (:obj:`torch.Tensor`): Computed lambda return value
+        - return (:obj:`torch.Tensor`): Computed lambda return value
           for each state from 0 to T-1, of size [T_traj, batchsize]
     """
     if not isinstance(gammas, torch.Tensor):
@@ -434,11 +434,13 @@ def multistep_forward_view(
     Overview:
         Same as trfl.sequence_ops.multistep_forward_view
         Implementing (12.18) in Sutton & Barto
+
         ```
         result[T-1] = rewards[T-1] + gammas[T-1] * bootstrap_values[T]
         for t in 0...T-2 :
         result[t] = rewards[t] + gammas[t]*(lambdas[t]*result[t+1] + (1-lambdas[t])*bootstrap_values[t+1])
         ```
+
         Assuming the first dim of input tensors correspond to the index in batch
         There is no special handling for terminal state value,
         if some state has reached the terminal, just fill in zeros for values and rewards beyond terminal
@@ -447,13 +449,12 @@ def multistep_forward_view(
         - bootstrap_values (:obj:`torch.Tensor`): estimation of the value at *step 1 to T*, of size [T_traj, batchsize]
         - rewards (:obj:`torch.Tensor`): the returns from 0 to T-1, of size [T_traj, batchsize]
         - gammas (:obj:`torch.Tensor`): discount factor for each step (from 0 to T-1), of size [T_traj, batchsize]
-        - lambda_ (:obj:`torch.Tensor`): determining the mix of bootstrapping
-        vs further accumulation of multistep returns at each timestep of size [T_traj, batchsize],
-        the element for T-1 is ignored and effectively set to 0,
-        as there is no information about future rewards.
+        - lambda (:obj:`torch.Tensor`): determining the mix of bootstrapping vs further accumulation of \
+            multistep returns at each timestep of size [T_traj, batchsize], the element for T-1 is ignored \
+            and effectively set to 0, as there is no information about future rewards.
     Returns:
-        - ret (:obj:`torch.Tensor`): Computed lambda return value
-         for each state from 0 to T-1, of size [T_traj, batchsize]
+        - ret (:obj:`torch.Tensor`): Computed lambda return value \
+            for each state from 0 to T-1, of size [T_traj, batchsize]
     """
     result = torch.empty_like(rewards)
     # Forced cutoff at the last one

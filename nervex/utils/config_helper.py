@@ -112,21 +112,21 @@ def deep_update(
 def flatten_dict(data: dict, delimiter: str = "/") -> dict:
     """
     Overview:
-        flatten the dict, see example
+        Flatten the dict, see example
     Arguments:
-        data (:obj:`dict`): Original nested dict
-        delimiter (str): Delimiter of the keys of the new dict
+        - data (:obj:`dict`): Original nested dict
+        - delimiter (str): Delimiter of the keys of the new dict
     Returns:
-        - (:obj:`dict`): Flattened nested dict
+        - data (:obj:`dict`): Flattened nested dict
     Example:
-        Flatten nested dict:
+        Flatten nested dict
             {
                 'a': {
                     'aa': {'aaa': data-aaa},
                     'ab': data-ab
                 }
             }
-        to:
+        to
             {
                 'a/ab': data-ab,
                 'a/aa/aaa': data-aaa

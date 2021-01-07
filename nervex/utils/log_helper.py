@@ -155,7 +155,7 @@ class TensorBoardLogger:
         Logger that saves message to tensorboard
     Interface:
         __init__, add_scalar, add_text, add_scalars, add_histogram, add_figure, add_image, add_scalar_list,
-        register_var, scalar_var_names
+        register_var, scalar_var_names, close
     """
 
     def __init__(self, path: str, name: str = 'default') -> None:
@@ -305,6 +305,13 @@ class TensorBoardLogger:
         assert (var_type in self._var_names.keys())
         assert (self._no_contain_name(name))
         self._var_names[var_type].append(name)
+
+    def close(self) -> None:
+        r"""
+        Overview:
+            Close the tensorboard. Should be called when you finish recording, or the last value will be missed.
+        """
+        self.logger.close()
 
     @property
     def scalar_var_names(self) -> List[str]:

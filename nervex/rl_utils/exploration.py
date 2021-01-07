@@ -39,7 +39,7 @@ class BaseNoise(ABC):
     Overview:
         Base class for action noise
     Interface:
-        __init__, reset, __call__
+        __init__, __call__
     Examples:
         >>> noise_generator = OUNoise()  # init one type of noise
         >>> noise = noise_generator(action.shape, action.device)  # generate noise
@@ -72,7 +72,7 @@ class GaussianNoise(BaseNoise):
     Overview:
         Derived class for generating gaussian noise, which satisfies :math:`X \sim N(\mu, \sigma^2)`
     Interface:
-        __init__, reset, __call__
+        __init__, __call__
     """
 
     def __init__(self, mu: float = 0.0, sigma: float = 1.0) -> None:

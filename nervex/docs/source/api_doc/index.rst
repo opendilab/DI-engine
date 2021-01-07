@@ -9,40 +9,55 @@ API Doc
 .. toctree::
     :maxdepth: 3
 
+    agent/agent
     data/structure
     data/dataloader
     data/collate_fn
-    worker/learner/learner
-    agent/agent
-    policy/dqn
-    policy/ddpg
-    rl_utils/td
-    rl_utils/gae
-    rl_utils/ppo
-    rl_utils/a2c
-    rl_utils/vtrace
-    rl_utils/adder
-    torch_utils_network/network
-    torch_utils/checkpoint_helper
-    torch_utils/metric
-    torch_utils/data_helper
-    torch_utils/optimizer_util
-    torch_utils/distribution
-    model/common_arch
-    model/discrete_net
-    model/actor_critic
-    model/atoc
+    data/replay_buffer
+    env/sumo_env
     league/league_manager
     league/payoff
     league/player
-    utils/time_helper
-    utils/log_helper
+    model/actor_critic
+    model/atoc
+    model/common_arch
+    model/discrete_net
+    model/qac
+    model/qmix
+    policy/a2c
+    policy/coma
+    policy/ddpg
+    policy/dqn
+    policy/r2d2
+    policy/rainbow_dqn
+    rl_utils/a2c
+    rl_utils/adder
+    rl_utils/coma
+    rl_utils/exploration
+    rl_utils/gae
+    rl_utils/isw
+    rl_utils/ppo
+    rl_utils/td
+    rl_utils/upgo
+    rl_utils/value_rescale
+    rl_utils/vtrace
+    torch_utils/checkpoint_helper
+    torch_utils/data_helper
+    torch_utils/distribution
+    torch_utils/metric
+    torch_utils/nn_test_helper
+    torch_utils/optimizer_util
+    torch_utils_network/network
     utils/compression_helper
     utils/config_helper
+    utils/default_helper
     utils/dist_helper
     utils/file_helper
     utils/import_helper
     utils/lock_helper
+    utils/log_helper
     utils/system_helper
-    utils/default_helper
-    env/sumo_env
+    utils/time_helper
+    worker/learner/base_learner
+    worker/learner/learner_comm
+    worker/learner/learner_hook

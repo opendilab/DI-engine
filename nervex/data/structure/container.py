@@ -11,16 +11,21 @@ import torch
 
 class SequenceContainer:
     """
-    Overview: Basic container that saves the data sequencely
-    Interface: __init__, __len__, value, cat, __getitem__
-    Property: name, keys
+    Overview:
+        Basic container that saves the data sequencely
+    Interface:
+        __init__, __len__, value, cat, __getitem__, __eq__
+    Property:
+        name, keys
     """
     _name = 'SequenceContainer'
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         """
-        Overview: init the container with input data(dict-style), and add the additional first dim for easy management
-        Note: only supoort value type: torch.Tensor, Sequence
+        Overview:
+            Init the container with input data(dict-style), and add the additional first dim for easy management
+        Note:
+            Only supoort value type: torch.Tensor, Sequence
         """
         for k in kwargs.keys():
             if isinstance(kwargs[k], torch.Tensor):
@@ -33,28 +38,32 @@ class SequenceContainer:
         self.__dict__.update(kwargs)
         self._length = 1
 
-    def __len__(self):
+    def __len__(self) -> int:
         """
-        Overview: return the current length of the container
+        Overview:
+            Return the current length of the container
         Returns:
             - length (:obj:`int`): the value of the member variable _length
         """
         return self._length
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
-        Overview: return the container class name
+        Overview:
+            Return the container class name
         Returns:
             - name (:obj:`str`): the value of the class variable _name
-        Note: the subclass need to override the value of _name
+        Note:
+            The subclass needs to override ``_name``
         """
         return self._name
 
     @property
-    def keys(self):
+    def keys(self) -> list:
         """
-        Overview: return the data keys
+        Overview:
+            Return the data keys
         Returns:
             - keys (:obj:`list`): the list including all the keys of the data
         """
@@ -62,20 +71,22 @@ class SequenceContainer:
         keys.remove('_length')
         return keys
 
-    def value(self, k):
+    def value(self, k: str) -> Any:
         """
-        Overview: get one of the value of all the elements in the container, according to input k
+        Overview:
+            Get one of the values of all the elements in the container, according to input k
         Arguments:
             - k (:obj:`str`): the key to look up, must be in self.keys
         Returns:
-            - value (:obj:`T`): one of the value, value type is specified by data
+            - value (:obj:`Any`): one of the value, value type is specified by data
         """
         assert (k in self.keys)
         return self.__dict__[k]
 
-    def cat(self, data):
+    def cat(self, data: 'SequenceContainer') -> None:  # noqa
         """
-        Overview: concatenate the same class container object, inplace, each value does cat operation seperately
+        Overview:
+            Concatenate the same class container object, inplace, each value does cat operation seperately
         Arguments:
             - data (:obj:`SequenceContainer`): the object need to be cat
         """
@@ -97,7 +108,7 @@ class SequenceContainer:
                 raise TypeError("not support type in class {}: {}".format(self._name, type(data_val)))
         self._length += len(data)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int) -> 'SequenceContainer':  # noqa
         # TODO(nyz) raw data interface
         """
         Overview: get data by the index, return the SequenceContainer object rather than raw data
@@ -109,11 +120,12 @@ class SequenceContainer:
         data = {k: copy.deepcopy(self.__dict__[k][idx]) for k in self.keys}
         return SequenceContainer(**data)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         """
-        Overview: judge whether the other object is equal to self
+        Overview:
+            Judge whether the other object is equal to self
         Arguments:
-            - other (:obj:`object`) the object need to be compared
+            - other (:obj:`object`) the object that needs to be compared
         Returns:
             - eq_result (:obj:`bool`) whether the other object is equal to self
         """

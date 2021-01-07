@@ -281,7 +281,8 @@ class ReplayBuffer:
 
     def clear(self) -> None:
         """
-        Overview: clear replay buffer, exclude all the data(including cache)
+        Overview:
+            Clear meta replay buffer, exclude all the data(including cache)
         """
         # TODO(nyz) clear cache data
         self._meta_buffer.clear()
