@@ -118,9 +118,9 @@ class SAC(SoftActorCriticBase):
             self,
             obs_dim: tuple,
             action_dim: Union[int, tuple],
-            policy_embedding_dim: int = 256,
-            value_embedding_dim: int = 256,
-            soft_q_embedding_dim: int = 256,
+            policy_embedding_dim: int = 128,
+            value_embedding_dim: int = 128,
+            soft_q_embedding_dim: int = 128,
             use_twin_q: bool = False
     ) -> None:
         super(SAC, self).__init__()
@@ -178,15 +178,17 @@ class SAC(SoftActorCriticBase):
         v_value = self._value_net_forward(state_input)
         return {'v_value': v_value}
 
-    def compute_action(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+    def compute_action(self, inputs: Dict[str, torch.Tensor], deterministic_eval: bool = False) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
         mean, log_std = self._policy_net_forward(state_input)
         std = log_std.exp()
 
         dist = Normal(mean, std)
-        z = dist.sample()
+        if deterministic_eval:
+            z = mean
+        else:
+            z = dist.sample()
         action = torch.tanh(z).detach()
-        # action = torch.tanh(mean).detach().cpu()
 
         if action.shape[1] == 1:
             action = action.squeeze(1)
@@ -210,7 +212,6 @@ class SAC(SoftActorCriticBase):
 
         # enforcing action bound
         log_prob -= torch.log(1 - action.pow(2) + epsilon)
-        # log_prob = log_prob.sum(-1, keepdim=True)
 
         return {'mean': mean, 'log_std': log_std, 'action': action, 'log_prob': log_prob}
 

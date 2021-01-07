@@ -115,6 +115,7 @@ def test_ppo_vanilla():
         assert False, "pipeline fail"
 
 
+@pytest.mark.algotest
 def test_sac():
     path = os.path.join(
         os.path.dirname(__file__), '../../../app_zoo/classic_control/pendulum/entry/pendulum_sac_default_config.yaml'

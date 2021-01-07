@@ -29,14 +29,10 @@ policy:
             target_theta: 0.005
             discount_factor: 0.99
             use_twin_q: False
+            alpha: 0.2
             reparameterization: True
             policy_std_reg_weight: 0.001
             policy_mean_reg_weight: 0.001
-            use_noise: True
-            noise_sigma: 0.05
-            noise_range:
-                min: -0.5
-                max: 0.5
     collect:
         traj_len: 1
         unroll_len: 1
@@ -50,7 +46,7 @@ replay_buffer:
     unroll_len: 1
     min_sample_ratio: 1
 actor:
-    n_sample: 24
+    n_sample: 8
     traj_len: 1
     traj_print_freq: 1000
     collect_print_freq: 1000

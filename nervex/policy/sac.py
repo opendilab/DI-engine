@@ -34,6 +34,7 @@ class SACPolicy(CommonPolicy):
         algo_cfg = self._cfg.learn.algo
         self._algo_cfg_learn = algo_cfg
         self._gamma = algo_cfg.discount_factor
+        self._alpha = algo_cfg.alpha
         self._reparameterization = algo_cfg.reparameterization
         self._policy_std_reg_weight = algo_cfg.policy_std_reg_weight
         self._policy_mean_reg_weight = algo_cfg.policy_mean_reg_weight
@@ -41,17 +42,6 @@ class SACPolicy(CommonPolicy):
         self._use_twin_q = algo_cfg.use_twin_q
 
         self._agent.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_theta})
-        if algo_cfg.use_noise:
-            self._agent.add_plugin(
-                'target',
-                'action_noise',
-                noise_type='gauss',
-                noise_kwargs={
-                    'mu': 0.0,
-                    'sigma': algo_cfg.noise_sigma
-                },
-                noise_range=algo_cfg.noise_range,
-            )
         self._agent.add_plugin('main', 'grad', enable_grad=True)
         self._agent.add_plugin('target', 'grad', enable_grad=False)
         self._agent.mode(train=True)
@@ -92,7 +82,7 @@ class SACPolicy(CommonPolicy):
         # compute value loss
         eval_data['obs'] = obs
         new_q_value = self._agent.forward(eval_data, param={'mode': 'compute_q'})['q_value']
-        next_v_value = new_q_value - log_prob
+        next_v_value = new_q_value - self._alpha * log_prob
         v_data = value_data(v_value, next_v_value)
         value_loss = value_error(v_data)
         loss_dict['value_loss'] = value_loss
@@ -102,7 +92,7 @@ class SACPolicy(CommonPolicy):
             target_log_policy = new_q_value - v_value
             policy_loss = (log_prob * (log_prob - target_log_policy).detach()).mean()
         else:
-            policy_loss = (log_prob - new_q_value.detach()).mean()
+            policy_loss = (self._alpha * log_prob - new_q_value).mean()
 
         std_reg_loss = self._policy_std_reg_weight * (log_std ** 2).mean()
         mean_reg_loss = self._policy_mean_reg_weight * (mean ** 2).mean()
@@ -177,7 +167,7 @@ class SACPolicy(CommonPolicy):
         self._eval_setting_set = {}
 
     def _forward_eval(self, data_id: List[int], data: dict) -> dict:
-        output = self._eval_agent.forward(data, param={'mode': 'compute_action'})
+        output = self._eval_agent.forward(data, param={'mode': 'compute_action', 'deterministic_eval': True})
         return output
 
     def _init_command(self) -> None:
