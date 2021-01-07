@@ -47,11 +47,7 @@ class IMPALAPolicy(CommonPolicy):
         data = default_collate(data)
         if self._use_cuda:
             data = to_device(data, 'cuda')
-        ignore_done = self._cfg.learn.get('ignore_done', False)
-        if ignore_done:
-            data['done'] = None
-        else:
-            data['done'] = data['done'].float()
+        data['done'] = torch.cat(data['done'], dim=0).reshape(self._unroll_len, -1).float()
         use_priority = self._cfg.get('use_priority', False)
         if use_priority:
             data['weight'] = data['IS']
@@ -92,7 +88,9 @@ class IMPALAPolicy(CommonPolicy):
         behaviour_logit = data['logit']
         actions = data['action']
         rewards = data['reward']
-        weights = data['weight']
+        weights = 1 - data['done']
+        values[1:] = values[1:] * weights
+        rewards = rewards * weights
         return target_logit, behaviour_logit, actions, values, rewards, weights
 
     def _init_collect(self) -> None:
