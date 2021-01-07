@@ -17,6 +17,7 @@ policy:
     model:
         obs_dim: 3
         action_dim: 1
+        use_twin_q: True
     learn:
         train_step: 1
         batch_size: 128
@@ -28,7 +29,7 @@ policy:
         algo:
             target_theta: 0.005
             discount_factor: 0.99
-            use_twin_q: False
+            use_twin_q: True
             alpha: 0.2
             reparameterization: True
             policy_std_reg_weight: 0.001
@@ -52,7 +53,7 @@ actor:
     collect_print_freq: 1000
 evaluator:
     n_episode: 8
-    eval_freq: 1000
+    eval_freq: 500
     stop_val: -250
 learner:
     hook:

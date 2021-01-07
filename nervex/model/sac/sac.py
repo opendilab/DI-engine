@@ -145,18 +145,18 @@ class SAC(SoftActorCriticBase):
         else:
             self._soft_q_net = nn.ModuleList()
             for i in range(2):
-                self._soft_q_net[i] = SoftQNet(self._obs_dim, self._act_dim, self._soft_q_embedding_dim)
+                self._soft_q_net.append(SoftQNet(self._obs_dim, self._act_dim, self._soft_q_embedding_dim))
 
     def _value_net_forward(self, x: torch.Tensor) -> torch.Tensor:
         return self._value_net(x).squeeze(1)
 
-    def _soft_q_net_forward(self, x: torch.Tensor) -> torch.Tensor:
+    def _soft_q_net_forward(self, x: torch.Tensor) -> Union[torch.Tensor, List[torch.Tensor]]:
         if not self._use_twin_q:
             return self._soft_q_net(x).squeeze(1)
         else:
             q_value = []
             for i in range(2):
-                q_value.append(self._soft_q_net[i](x))
+                q_value.append(self._soft_q_net[i](x).squeeze(1))
             return q_value
 
     def _policy_net_forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -168,17 +168,16 @@ class SAC(SoftActorCriticBase):
             action = action.unsqueeze(1)
         state_action_input = torch.cat([inputs['obs'], action], dim=1)
         q_value = self._soft_q_net_forward(state_action_input)
-        if self._use_twin_q:
-            return {'q_value': min(q_value)}
-        else:
-            return {'q_value': q_value}
+        return {'q_value': q_value}
 
     def compute_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
         v_value = self._value_net_forward(state_input)
         return {'v_value': v_value}
 
-    def compute_action(self, inputs: Dict[str, torch.Tensor], deterministic_eval: bool = False) -> Dict[str, torch.Tensor]:
+    def compute_action(self,
+                       inputs: Dict[str, torch.Tensor],
+                       deterministic_eval: bool = False) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
         mean, log_std = self._policy_net_forward(state_input)
         std = log_std.exp()

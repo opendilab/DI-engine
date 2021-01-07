@@ -3,9 +3,10 @@ from collections import namedtuple
 import sys
 import os
 import torch
+import torch.nn.functional as F
 
 from nervex.torch_utils import Adam
-from nervex.rl_utils import value_data, soft_q_data, soft_q_error, value_error, Adder
+from nervex.rl_utils import v_1step_td_data, v_1step_td_error, Adder
 from nervex.model import SAC
 from nervex.agent import Agent
 from nervex.policy.base_policy import Policy, register_policy
@@ -75,22 +76,27 @@ class SACPolicy(CommonPolicy):
         # compute q loss
         next_data = {'obs': next_obs}
         target_v_value = self._agent.target_forward(next_data, param={'mode': 'compute_value'})['v_value']
-        q_data = soft_q_data(target_v_value, reward, done, q_value)
-        q_loss = soft_q_error(q_data, self._gamma)
-        loss_dict['q_loss'] = q_loss
+        if self._use_twin_q:
+            q_data = v_1step_td_data(q_value[0], target_v_value, reward, done, data['weight'])
+            loss_dict['q_loss'] = v_1step_td_error(q_data, self._gamma)
+            q_data = v_1step_td_data(q_value[1], target_v_value, reward, done, data['weight'])
+            loss_dict['q_twin_loss'] = v_1step_td_error(q_data, self._gamma)
+        else:
+            q_data = v_1step_td_data(q_value, target_v_value, reward, done, data['weight'])
+            loss_dict['q_loss'] = v_1step_td_error(q_data, self._gamma)
 
         # compute value loss
         eval_data['obs'] = obs
         new_q_value = self._agent.forward(eval_data, param={'mode': 'compute_q'})['q_value']
+        if self._use_twin_q:
+            new_q_value = torch.min(new_q_value[0], new_q_value[1])
         next_v_value = new_q_value - self._alpha * log_prob
-        v_data = value_data(v_value, next_v_value)
-        value_loss = value_error(v_data)
-        loss_dict['value_loss'] = value_loss
+        loss_dict['value_loss'] = F.mse_loss(v_value, next_v_value.detach())
 
         # compute policy loss
         if not self._reparameterization:
             target_log_policy = new_q_value - v_value
-            policy_loss = (log_prob * (log_prob - target_log_policy).detach()).mean()
+            policy_loss = (log_prob * (log_prob - target_log_policy)).mean()
         else:
             policy_loss = (self._alpha * log_prob - new_q_value).mean()
 
@@ -103,11 +109,11 @@ class SACPolicy(CommonPolicy):
 
         # update
         self._optimizer_q.zero_grad()
-        q_loss.backward()
+        loss_dict['q_loss'].backward()
         self._optimizer_q.step()
 
         self._optimizer_value.zero_grad()
-        value_loss.backward()
+        loss_dict['value_loss'].backward()
         self._optimizer_value.step()
 
         self._optimizer_policy.zero_grad()
@@ -180,9 +186,10 @@ class SACPolicy(CommonPolicy):
             return model_type(**cfg.model)
 
     def _monitor_vars_learn(self) -> List[str]:
+        q_twin = ['q_twin_loss'] if self._use_twin_q else []
         return super()._monitor_vars_learn() + [
             'policy_loss', 'value_loss', 'q_loss', 'cur_lr_q', 'cur_lr_v', 'cur_lr_p'
-        ]
+        ] + q_twin
 
 
 register_policy('sac', SACPolicy)
