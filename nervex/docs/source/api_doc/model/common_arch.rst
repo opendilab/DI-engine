@@ -15,6 +15,11 @@ QActorCriticBase
 .. autoclass:: nervex.model.common_arch.actor_critic.QActorCriticBase
     :members: forward, seed, optimize_actor, compute_action, compute_q, mimic
 
+SoftActorCriticBase
+~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: nervex.model.common_arch.actor_critic.SoftActorCriticBase
+    :members: forward, seed, evaluate, compute_action, compute_q, compute_value, mimic
+
 
 
 dueling
@@ -32,4 +37,9 @@ encoder
 ConvEncoder
 ~~~~~~~~~~~~~~~~~~~
 .. autoclass:: nervex.model.common_arch.encoder.ConvEncoder
+    :members: __init__, forward
+
+FCEncoder
+~~~~~~~~~~~~~~~~~~~
+.. autoclass:: nervex.model.common_arch.encoder.FCEncoder
     :members: __init__, forward

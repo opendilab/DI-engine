@@ -15,10 +15,10 @@ from .common_policy import CommonPolicy
 class R2D2Policy(CommonPolicy):
     r"""
     Overview:
-        Policy class of R2D2, from paper Recurrent Experience Replay in Distributed Reinforcement Learning.
+        Policy class of R2D2, from paper `Recurrent Experience Replay in Distributed Reinforcement Learning` .
 
-        R2D2 proposed that several trick should be used to improve upon DRQN, \
-            namely some recurrent experience replay trick such as burnin.
+        R2D2 proposed that several tricks should be used to improve upon DRQN,
+        namely some recurrent experience replay trick such as burn-in.
     """
 
     def _init_learn(self) -> None:
@@ -64,15 +64,14 @@ class R2D2Policy(CommonPolicy):
             - data (:obj:`List[Dict[str, Any]]`): the data collected from collect function
 
         Returns:
-            - data (:obj:`Dict[str, Any]`): the processed data, ncluding at least \
+            - data (:obj:`Dict[str, Any]`): the processed data, including at least \
                 ['main_obs', 'target_obs', 'burnin_obs', 'action', 'reward', 'done', 'weight']
         """
         # data preprocess
         data = timestep_collate(data)
         if self._use_cuda:
             data = to_device(data, 'cuda')
-        assert len(data['obs']) == 2 * self._nstep + \
-            self._burnin_step, data['obs'].shape
+        assert len(data['obs']) == 2 * self._nstep + self._burnin_step, data['obs'].shape  # todo: why 2*a+b
         bs = self._burnin_step
         data['weight'] = data.get('weight', [None for _ in range(self._nstep)])
         ignore_done = self._cfg.learn.get('ignore_done', False)
@@ -82,6 +81,7 @@ class R2D2Policy(CommonPolicy):
             data['done'] = data['done'][bs:bs + self._nstep].float()
         data['action'] = data['action'][bs:bs + self._nstep]
         data['reward'] = data['reward'][bs:]
+        # split obs into three parts ['burnn_obs'(0~bs), 'main_obs'(bs~bs+nstep), 'target_obs'(bs+nstep~bss+2nstep)]
         data['burnin_obs'] = data['obs'][:bs]
         data['main_obs'] = data['obs'][bs:bs + self._nstep]
         data['target_obs'] = data['obs'][bs + self._nstep:]
@@ -90,8 +90,8 @@ class R2D2Policy(CommonPolicy):
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""
         Overview:
-            Forward and backward function of learn mode, acquire the data and calculate the loss and\
-            optimize learner model
+            Forward and backward function of learn mode.
+            Acquire the data, calculate the loss and optimize learner model.
 
         Arguments:
             - data (:obj:`dict`): Dict type data, including at least \
@@ -275,7 +275,7 @@ class R2D2Policy(CommonPolicy):
                 function will create an instance of the model_type.
 
         Returns:
-            - model (:obj:`torch.nn.Module`): Generted model.
+            - model (:obj:`torch.nn.Module`): Generated model.
         """
         if model_type is None:
             return FCRDiscreteNet(**cfg.model)

@@ -22,12 +22,7 @@ class Policy(ABC):
     )
     command_function = namedtuple('command_function', ['get_setting_learn', 'get_setting_collect', 'get_setting_eval'])
 
-    def __init__(
-            self,
-            cfg: dict,
-            model_type: Optional[type] = None,
-            enable_field: Optional[List[str]] = None
-    ) -> None:
+    def __init__(self, cfg: dict, model_type: Optional[type] = None, enable_field: Optional[List[str]] = None) -> None:
         model = self._create_model_from_cfg(cfg, model_type)
         self._cfg = cfg
         self._use_cuda = cfg.use_cuda

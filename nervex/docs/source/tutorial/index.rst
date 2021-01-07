@@ -159,7 +159,7 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
         except Exception:
             assert False, "pipeline fail"
 
-    如以上代码，就是读取了 ``app_zoo`` 中的 ``cartpole_dqn_default_config.yaml`` 配置文件，并传入``serial_pipeline`` 开始训练。
+    如以上代码，就是读取了 ``app_zoo`` 中的 ``cartpole_dqn_default_config.yaml`` 配置文件，并传入 ``serial_pipeline`` 开始训练。
 
     根据不同的需求，可以修改配置文件并自定义相关的启动脚本，配置文件中可能修改的地方主要有如下几处：
 
