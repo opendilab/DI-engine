@@ -88,7 +88,9 @@ class IMPALAPolicy(CommonPolicy):
         behaviour_logit = data['logit']
         actions = data['action']
         rewards = data['reward']
-        weights = 1 - data['done']
+        weights_ = 1 - data['done']
+        weights = torch.ones_like(rewards)
+        weights[1:] = weights_[:-1]
         values[1:] = values[1:] * weights
         rewards = rewards * weights
         return target_logit, behaviour_logit, actions, values, rewards, weights
