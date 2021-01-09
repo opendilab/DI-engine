@@ -146,3 +146,165 @@ class QMix(nn.Module):
             layers.append(nn.Linear(embedding_dim, embedding_dim))
             layers.append(self._act)
         return nn.Sequential(*layers)
+
+
+class CollaQ(nn.Module):
+
+    def __init__(
+            self, agent_num: int, obs_dim: int, obs_alone_dim: int, global_obs_dim: int, action_dim: int,
+            embedding_dim: int, enable_attention: bool=False, attention_dim: int=32,
+    ) -> None:
+        super(CollaQ, self).__init__()
+        self.enable_attention = enable_attention
+        self.attention_dim = attention_dim
+        self._act = nn.ReLU()
+        if not self.enable_attention:
+            self._q_network = FCRDiscreteNet(obs_dim, action_dim, embedding_dim)
+        else:
+            #TODO change the obs_dim_TODO here to enable attention collaQ
+            obs_dim_TODO = obs_dim # + 3 * attent_dim
+            self._q_network = FCRDiscreteNet(obs_dim_TODO, action_dim, embedding_dim)
+            #TODO set the attention layer correctly here
+            self._self_attention = lambda x: x
+        self._q_alone_network = FCRDiscreteNet(obs_alone_dim, action_dim, embedding_dim)
+        self._mixer = Mixer(agent_num, embedding_dim)
+        global_obs_dim = squeeze(global_obs_dim)
+        self._global_state_encoder = self._setup_global_encoder(global_obs_dim, embedding_dim)
+
+    def forward(self, data: dict, single_step: bool = True) -> dict:
+        """
+        Overview:
+            forward computation graph of collaQ network
+        Arguments:
+            - data (:obj:`dict`): input data dict with keys ['obs', 'prev_state', 'action']
+                - agent_state (:obj:`torch.Tensor`): each agent local state(obs)
+                - agent_alone_state (:obj:`torch.Tensor`): each agent's local state alone, \
+                    in smac setting is without ally feature(obs_along)
+                - global_state (:obj:`torch.Tensor`): global state(obs)
+                - prev_state (:obj:`list`): previous rnn state, should include 3 parts: \
+                    one hidden state of q_network, and two hidden state if q_alone_network for obs and obs_alone inputs
+                - action (:obj:`torch.Tensor` or None): if action is None, use argmax q_value index as action to\
+                    calculate ``agent_q_act``
+            - single_step (:obj:`bool`): whether single_step forward, if so, add timestep dim before forward and\
+                remove it after forward
+        Return:
+            - ret (:obj:`dict`): output data dict with keys ['total_q', 'logit', 'next_state']
+                - total_q (:obj:`torch.Tensor`): total q_value, which is the result of mixer network
+                - agent_q (:obj:`torch.Tensor`): each agent q_value
+                - next_state (:obj:`list`): next rnn state
+        Shapes:
+            - agent_state (:obj:`torch.Tensor`): :math:`(T, B, A, N)`, where T is timestep, B is batch_size\
+                A is agent_num, N is obs_dim
+            - global_state (:obj:`torch.Tensor`): :math:`(T, B, M)`, where M is global_obs_dim
+            - prev_state (:obj:`list`): math:`(B, A)`, a list of length B, and each element is a list of length A
+            - action (:obj:`torch.Tensor`): :math:`(T, B, A)`
+            - total_q (:obj:`torch.Tensor`): :math:`(T, B)`
+            - agent_q (:obj:`torch.Tensor`): :math:`(T, B, A, P)`, where P is action_dim
+            - next_state (:obj:`list`): math:`(B, A)`, a list of length B, and each element is a list of length A
+        """
+        agent_state, agent_alone_state, agent_alone_padding_state, global_state, prev_state = data['obs'][
+            'agent_state'], data['obs']['agent_alone_state'], data['obs']['agent_alone_padding_state'], data['obs'][
+                'global_state'], data['prev_state']
+
+        # TODO find a better way to implement agent_along_padding_state
+
+
+
+        action = data.get('action', None)
+        if single_step:
+            agent_state, agent_alone_state, global_state = agent_state.unsqueeze(0), agent_alone_state.unsqueeze(
+                0
+            ), global_state.unsqueeze(0)
+        T, B, A = agent_state.shape[:3]
+
+
+        if self.enable_attention:
+            agent_state = self._self_attention(agent_state)
+            agent_alone_padding_state = self._self_attention(agent_alone_padding_state)
+
+        # prev state should be of size (B, 3, A) hidden_size)
+        """
+        Note: to achieve such work, we should change the init_fn of hidden_state plugin in collaQ policy
+        """
+        assert len(prev_state) == B and all([len(p) == 3 for p in prev_state]) and all(
+            [len(q) == A] for p in prev_state for q in p
+        ), '{}-{}-{}-{}'.format([type(p) for p in prev_state], B, A, len(prev_state[0]))
+
+        alone_prev_state = prev_state[:][0][:]
+        colla_prev_state = prev_state[:][1][:]
+        colla_alone_prev_state = prev_state[:][2][:]
+
+        alone_prev_state = reduce(lambda x, y: x + y, alone_prev_state)
+        colla_prev_state = reduce(lambda x, y: x + y, colla_prev_state)
+        colla_alone_prev_state = reduce(lambda x, y: x + y, colla_alone_prev_state)
+
+        agent_state = agent_state.reshape(T, -1, *agent_state.shape[3:])
+        agent_alone_state = agent_alone_state.reshape(T, -1, *agent_alone_state.shape[3:])
+        agent_alone_padding_state = agent_alone_padding_state.reshape(T, -1, *agent_alone_padding_state.shape[3:])
+
+        global_state_embedding = self._global_state_encoder(global_state)
+
+        colla_output = self._q_network(
+            {
+                'obs': agent_state,
+                'prev_state': colla_prev_state,
+                'enable_fast_timestep': True
+            }
+        )
+        colla_alone_output = self._q_network(
+            {
+                'obs': agent_alone_padding_state,
+                'prev_state': colla_alone_prev_state,
+                'enable_fast_timestep': True
+            }
+        )
+        alone_output = self._q_alone_network(
+            {
+                'obs': agent_alone_state,
+                'prev_state': alone_prev_state,
+                'enable_fast_timestep': True
+            }
+        )
+
+        agent_alone_q, alone_next_state = alone_output['logit'], alone_output['next_state']
+        agent_colla_alone_q, colla_alone_next_state = colla_alone_output['logit'], colla_alone_output['next_state']
+        agent_colla_q, colla_next_state = colla_output['logit'], colla_output['next_state']
+
+        colla_next_state, _ = list_split(colla_next_state, step=A)
+        alone_next_state, _ = list_split(alone_next_state, step=A)
+        colla_alone_next_state, _ = list_split(colla_alone_next_state, step=A)
+
+        next_state = list(
+            map(lambda x: [x[0], x[1], x[2]], zip(alone_next_state, colla_next_state, colla_alone_next_state))
+        )
+
+        agent_alone_q = agent_alone_q.reshape(T, B, A, -1)
+        agent_colla_alone_q = agent_colla_alone_q.reshape(T, B, A, -1)
+        agent_colla_q = agent_colla_q.reshape(T, B, A, -1)
+
+        total_q_before_mix = agent_alone_q + agent_alone_q - agent_colla_alone_q
+        agent_q = total_q_before_mix
+
+        if action is None:
+            action = total_q_before_mix.argmax(dim=-1)
+        agent_q_act = torch.gather(total_q_before_mix, dim=-1, index=action.unsqueeze(-1))
+        total_q = self._mixer(agent_q_act, global_state_embedding).reshape(T, B)
+        if single_step:
+            total_q, agent_q = total_q.squeeze(0), agent_q.squeeze(0)
+        return {
+            'total_q': total_q,
+            'logit': agent_q,
+            'agent_colla_alone_q': agent_colla_alone_q, # might need to be passed out for regulization
+            'next_state': next_state,
+            'action_mask': data['obs']['action_mask']
+        }
+
+    def _setup_global_encoder(self, global_obs_dim: int, embedding_dim: int) -> torch.nn.Module:
+        layers = []
+        layer_num = 1
+        layers.append(nn.Linear(global_obs_dim, embedding_dim))
+        layers.append(self._act)
+        for _ in range(layer_num):
+            layers.append(nn.Linear(embedding_dim, embedding_dim))
+            layers.append(self._act)
+        return nn.Sequential(*layers)
