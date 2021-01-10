@@ -1,5 +1,6 @@
 from easydict import EasyDict
 from .serial import base_learner_default_config
+from .utils import set_learner_interaction_for_coordinator
 
 policy_default_config = dict(
     use_cuda=False,
@@ -53,7 +54,6 @@ coordinator_default_config = dict(
     interaction=dict(
         host='0.0.0.0',
         port=12345,
-        learner=dict(learner0=['learner0', '0.0.0.0', 11110]),
         actor=dict(
             actor0=['actor0', '0.0.0.0', 11111],
             actor1=['actor1', '0.0.0.0', 11112],
@@ -79,7 +79,7 @@ parallel_local_default_config = dict(
         import_names=['nervex.worker.learner.comm.flask_fs_learner'],
         comm_learner_type='flask_fs',
         host='0.0.0.0',
-        port=coordinator_default_config.interaction.learner.learner0[2],
+        port=11110,
         path_data='.',
         path_policy='.',
         send_policy_freq=1,
@@ -103,4 +103,12 @@ parallel_local_default_config = dict(
         queue_maxsize=8,
     ),
 )
-parallel_local_default_config = EasyDict(parallel_local_default_config)
+
+
+def parallel_transform(cfg):
+    cfg = EasyDict(cfg)
+    cfg = set_learner_interaction_for_coordinator(cfg)
+    return cfg
+
+
+parallel_local_default_config = parallel_transform(parallel_local_default_config)
