@@ -19,6 +19,7 @@ class FCContinuousNet(nn.Module):
         self._act = nn.ReLU()
         self._use_final_tanh = use_final_tanh
         layers = []
+        # layers.append(nn.BatchNorm1d(input_dim))
         layers.append(nn.Linear(input_dim, hidden_dim[0]))
         layers.append(self._act)
         if len(hidden_dim) > 1:
@@ -37,7 +38,7 @@ class FCContinuousNet(nn.Module):
         return x
 
 
-class QAC_td3paper(QActorCriticBase):
+class QAC_Td3paper(QActorCriticBase):
 
     def __init__(
             self,
@@ -46,7 +47,7 @@ class QAC_td3paper(QActorCriticBase):
             use_twin_critic: bool = False,
             use_backward_hook: bool = False,
     ) -> None:
-        super(QAC_td3paper, self).__init__()
+        super(QAC_Td3paper, self).__init__()
 
         def backward_hook(module, grad_input, grad_output):
             for p in module.parameters():

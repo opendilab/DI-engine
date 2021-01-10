@@ -3,7 +3,7 @@ common:
     save_path: '.'
     load_path: ''
 env:
-    env_id: 'HalfCheetah-v2'  # ['HalfCheetah-v1', 'Hopper-v1', 'Walker2d-v1']  # stop_val: 10500, 3700, 5300
+    env_id: 'HalfCheetah-v3'  # ['HalfCheetah-v1', 'Hopper-v1', 'Walker2d-v1']  # stop_val: 10500, 3700, 5300
     frame_stack: 4
     is_train: True
     env_manager_type: 'subprocess'  # [base, subprocess]
@@ -13,7 +13,7 @@ env:
     evaluator_env_num: 10
     use_act_scale: True
 policy:
-    use_cuda: True
+    use_cuda: False
     policy_type: 'ddpg'
     import_names: ['nervex.policy.ddpg']
     on_policy: False
@@ -57,7 +57,7 @@ actor:
     collect_print_freq: 1000
 evaluator:
     n_episode: 8
-    eval_freq: 5000
+    eval_freq: 1000
     stop_val: 10500
 learner:
     hook:
