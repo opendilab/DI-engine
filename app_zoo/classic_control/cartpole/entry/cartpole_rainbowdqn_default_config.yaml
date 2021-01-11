@@ -13,6 +13,7 @@ policy:
     policy_type: 'rainbow_dqn'
     import_names: ['nervex.policy.dqn', 'nervex.policy.rainbow_dqn']
     on_policy: False
+    use_priority: True
     model:
         obs_dim: 4
         action_dim: 2

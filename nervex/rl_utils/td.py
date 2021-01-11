@@ -149,11 +149,17 @@ def dist_nstep_td_error(
     proj_dist.view(-1).index_add_(0, (l + offset).view(-1), (next_n_dist * (u.float() - b)).view(-1))
     proj_dist.view(-1).index_add_(0, (u + offset).view(-1), (next_n_dist * (b - l.float())).view(-1))
 
+    assert (dist[batch_range, act] > 0.0).all(), ("dist act", dist[batch_range, act], "dist:", dist)
     log_p = torch.log(dist[batch_range, act])
 
-    loss = -(log_p * proj_dist * weight.unsqueeze(1)).sum(-1).mean()
+    if len(weight.shape) == 1:
+        weight = weight.unsqueeze(-1)
 
-    return loss
+    td_error_per_sample = -(log_p * proj_dist).sum(-1)
+
+    loss = -(log_p * proj_dist * weight).sum(-1).mean()
+
+    return loss, td_error_per_sample
 
 
 v_1step_td_data = namedtuple('v_1step_td_data', ['v', 'next_v', 'reward', 'done', 'weight'])
@@ -269,6 +275,96 @@ def q_nstep_td_error_with_rescale(
     return (criterion(q_s_a, target_q_s_a.detach()) * weight).mean()
 
 
+iqn_nstep_td_data = namedtuple(
+    'iqn_nstep_td_data', ['q', 'next_n_q', 'action', 'next_n_action', 'reward', 'done', 'replay_quantiles', 'weight']
+)
+
+
+def iqn_nstep_td_error(
+        data: namedtuple,
+        gamma: float,
+        nstep: int = 1,
+        kappa: float = 1.0,
+) -> torch.Tensor:
+    """
+    Overview:
+        Multistep (1 step or n step) td_error with in IQN, \
+            referenced paper Implicit Quantile Networks for Distributional Reinforcement Learning \
+            <https://arxiv.org/pdf/1806.06923.pdf>
+    Arguments:
+        - data (:obj:`iqn_nstep_td_data`): the input data, iqn_nstep_td_data to calculate loss
+        - gamma (:obj:`float`): discount factor
+        - nstep (:obj:`int`): nstep num, default set to 1
+        - criterion (:obj:`torch.nn.modules`): loss function criterion
+        - beta_function (:obj:`Callable`): the risk function
+    Returns:
+        - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
+    Shapes:
+        - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
+        ['q', 'next_n_q', 'action', 'reward', 'done']
+        - q (:obj:`torch.FloatTensor`): :math:`(tau, B, N)` i.e. [tau x batch_size, action_dim]
+        - next_n_q (:obj:`torch.FloatTensor`): :math:`(tau', B, N)`
+        - action (:obj:`torch.LongTensor`): :math:`(B, )`
+        - next_n_action (:obj:`torch.LongTensor`): :math:`(B, )`
+        - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
+        - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
+    """
+    q, next_n_q, action, next_n_action, reward, done, replay_quantiles, weight = data
+
+    assert len(action.shape) == 1, action.shape
+    assert len(next_n_action.shape) == 1, next_n_action.shape
+    assert len(done.shape) == 1, done.shape
+    assert len(q.shape) == 3, q.shape
+    assert len(next_n_q.shape) == 3, next_n_q.shape
+    assert len(reward.shape) == 2, reward.shape
+
+    if weight is None:
+        weight = torch.ones_like(action)
+
+    batch_size = done.shape[0]
+    tau = q.shape[0]
+    tau_prime = next_n_q.shape[0]
+
+    action = action.repeat([tau, 1]).unsqueeze(-1)
+    next_n_action = next_n_action.repeat([tau_prime, 1]).unsqueeze(-1)
+
+    # shape: batch_size x tau x a
+    q_s_a = torch.gather(q, -1, action).permute([1, 0, 2])
+    # shape: batch_size x tau_prim x 1
+    target_q_s_a = torch.gather(next_n_q, -1, next_n_action).permute([1, 0, 2])
+
+    assert reward.shape[0] == nstep
+    device = torch.device("cuda" if reward.is_cuda else "cpu")
+    reward_factor = torch.ones(nstep).to(device)
+    for i in range(1, nstep):
+        reward_factor[i] = gamma * reward_factor[i - 1]
+    reward = torch.matmul(reward_factor, reward)
+    target_q_s_a = reward.unsqueeze(-1) + (gamma ** nstep) * target_q_s_a.squeeze(-1) * (1 - done).unsqueeze(-1)
+    target_q_s_a = target_q_s_a.unsqueeze(-1)
+
+    # shape: batch_size x tau' x tau x 1.
+    bellman_errors = (target_q_s_a[:, :, None, :] - q_s_a[:, None, :, :])
+
+    # The huber loss (see Section 2.3 of the paper) is defined via two cases:
+    huber_loss = torch.where(
+        bellman_errors.abs() <= kappa, 0.5 * bellman_errors ** 2, kappa * (bellman_errors.abs() - 0.5 * kappa)
+    )
+
+    # Reshape replay_quantiles to batch_size x num_tau_samples x 1
+    replay_quantiles = replay_quantiles.reshape([tau, batch_size, 1]).permute([1, 0, 2])
+
+    # shape: batch_size x num_tau_prime_samples x num_tau_samples x 1.
+    replay_quantiles = replay_quantiles[:, None, :, :].repeat([1, tau_prime, 1, 1])
+
+    # shape: batch_size x tau_prime x tau x 1.
+    quantile_huber_loss = (torch.abs(replay_quantiles - ((bellman_errors < 0).float()).detach()) * huber_loss) / kappa
+
+    # shape: batch_size
+    loss = quantile_huber_loss.sum(dim=2).mean(dim=1)[:, 0]
+
+    return (loss * weight).mean(), loss
+
+
 td_lambda_data = namedtuple('td_lambda_data', ['value', 'reward', 'weight'])
 
 
@@ -317,10 +413,10 @@ def generalized_lambda_returns(
         - rewards (:obj:`torch.Tensor`): the returns from 0 to T-1, of size [T_traj, batchsize]
         - gammas (:obj:`torch.Tensor` or :obj:`float`):
           discount factor for each step (from 0 to T-1), of size [T_traj, batchsize]
-        - lambda_ (:obj:`torch.Tensor` or :obj:`float`): determining the mix of bootstrapping
+        - lambda (:obj:`torch.Tensor` or :obj:`float`): determining the mix of bootstrapping
           vs further accumulation of multistep returns at each timestep, of size [T_traj, batchsize]
     Returns:
-        - return_ (:obj:`torch.Tensor`): Computed lambda return value
+        - return (:obj:`torch.Tensor`): Computed lambda return value
           for each state from 0 to T-1, of size [T_traj, batchsize]
     """
     if not isinstance(gammas, torch.Tensor):
@@ -338,11 +434,13 @@ def multistep_forward_view(
     Overview:
         Same as trfl.sequence_ops.multistep_forward_view
         Implementing (12.18) in Sutton & Barto
+
         ```
         result[T-1] = rewards[T-1] + gammas[T-1] * bootstrap_values[T]
         for t in 0...T-2 :
         result[t] = rewards[t] + gammas[t]*(lambdas[t]*result[t+1] + (1-lambdas[t])*bootstrap_values[t+1])
         ```
+
         Assuming the first dim of input tensors correspond to the index in batch
         There is no special handling for terminal state value,
         if some state has reached the terminal, just fill in zeros for values and rewards beyond terminal
@@ -351,13 +449,12 @@ def multistep_forward_view(
         - bootstrap_values (:obj:`torch.Tensor`): estimation of the value at *step 1 to T*, of size [T_traj, batchsize]
         - rewards (:obj:`torch.Tensor`): the returns from 0 to T-1, of size [T_traj, batchsize]
         - gammas (:obj:`torch.Tensor`): discount factor for each step (from 0 to T-1), of size [T_traj, batchsize]
-        - lambda_ (:obj:`torch.Tensor`): determining the mix of bootstrapping
-        vs further accumulation of multistep returns at each timestep of size [T_traj, batchsize],
-        the element for T-1 is ignored and effectively set to 0,
-        as there is no information about future rewards.
+        - lambda (:obj:`torch.Tensor`): determining the mix of bootstrapping vs further accumulation of \
+            multistep returns at each timestep of size [T_traj, batchsize], the element for T-1 is ignored \
+            and effectively set to 0, as there is no information about future rewards.
     Returns:
-        - ret (:obj:`torch.Tensor`): Computed lambda return value
-         for each state from 0 to T-1, of size [T_traj, batchsize]
+        - ret (:obj:`torch.Tensor`): Computed lambda return value \
+            for each state from 0 to T-1, of size [T_traj, batchsize]
     """
     result = torch.empty_like(rewards)
     # Forced cutoff at the last one

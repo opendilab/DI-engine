@@ -45,7 +45,7 @@ class Cache:
             Push data into receive queue, if the receive queue is full(after push), then push all the data
             in receive queue into send queue
         Arguments:
-            - data (:obj:`Any`): the data which needs to be added into queue
+            - data (:obj:`Any`): the data which needs to be added into receive queue
 
         .. tip::
             thread-safe
@@ -58,7 +58,7 @@ class Cache:
                 while not self.receive_queue.empty():
                     self.send_queue.put(self.receive_queue.get()[0])  # only send raw data to send queue
 
-    def get_cached_data_iter(self) -> None:
+    def get_cached_data_iter(self) -> 'callable_iterator':  # noqa
         r"""
         Overview:
             Get the iterator of the send queue. Once a data is pushed into send queue, it can be accessed by
@@ -71,7 +71,7 @@ class Cache:
     def _timeout_monitor(self) -> None:
         r"""
         Overview:
-            the workflow of the timeout monitor thread
+            The workflow of the timeout monitor thread
         """
         while self._timeout_thread_flag:  # loop until the flag is set to False
             time.sleep(self.monitor_interval)  # with a fixed check interval
@@ -87,7 +87,7 @@ class Cache:
     def _warn_if_timeout(self) -> bool:
         r"""
         Overview:
-            return whether is timeout
+            Return whether is timeout
         Returns
             - result: (:obj:`bool`) whether is timeout
         """
@@ -128,6 +128,6 @@ class Cache:
         Overview:
             Return receive queue's remain data count
         Returns:
-            - count (:obj:`int`) the size of the receive queue
+            - count (:obj:`int`): the size of the receive queue
         """
         return self.receive_queue.qsize()

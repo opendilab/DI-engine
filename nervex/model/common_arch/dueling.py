@@ -2,8 +2,12 @@ from typing import Union, Optional, Tuple
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
+import math
 
 from nervex.torch_utils import fc_block, noise_block
+from typing import Callable
+from nervex.rl_utils import beta_function_map
 
 
 class DuelingHead(nn.Module):
@@ -29,10 +33,14 @@ class DuelingHead(nn.Module):
         activation: Optional[nn.Module] = nn.ReLU(),
         norm_type: Optional[str] = None,
         distribution: bool = False,
+        quantile: bool = False,
         noise: bool = False,
         v_min: float = -10,
         v_max: float = 10,
         n_atom: int = 51,
+        num_quantiles: int = 32,
+        quantile_embedding_dim: int = 128,
+        beta_function_type: str = 'uniform',
     ) -> None:
         r"""
         Overview:
@@ -54,10 +62,16 @@ class DuelingHead(nn.Module):
         super(DuelingHead, self).__init__()
         self.noise = noise
         self.distribution = distribution
+        self.quantile = quantile
+        self.num_quantiles = num_quantiles
+        self.quantile_embedding_dim = quantile_embedding_dim
         self.action_dim = action_dim
         self.v_min = v_min
         self.v_max = v_max
         self.n_atom = n_atom
+        if self.quantile:
+            self.iqn_fc = nn.Linear(self.quantile_embedding_dim, hidden_dim)
+            self.beta_function = beta_function_map[beta_function_type]
         if noise:
             block = noise_block
         else:
@@ -78,7 +92,9 @@ class DuelingHead(nn.Module):
         self.A = nn.Sequential(*self.A)
         self.V = nn.Sequential(*self.V)
 
-    def forward(self, x: torch.Tensor) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+    def forward(self,
+                x: torch.Tensor,
+                num_quantiles: Union[int, None] = None) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
         r"""
         Overview:
             Return the sum of advantage and the value according to the input from hidden layers
@@ -87,8 +103,34 @@ class DuelingHead(nn.Module):
         Returns:
             - return (:obj:`torch.Tensor`): the sum of advantage and value
         """
+        batch_size = x.shape[0]
+        device = torch.device("cuda" if x.is_cuda else "cpu")
+        if self.quantile:
+            if not num_quantiles:
+                num_quantiles = self.num_quantiles
+
+            quantiles = torch.FloatTensor(num_quantiles * batch_size, 1).uniform_(0, 1).to(device)
+
+            quantiles = self.beta_function(quantiles)
+
+            quantile_net = quantiles.repeat([1, self.quantile_embedding_dim])
+
+            quantile_net = torch.cos(
+                torch.arange(1, self.quantile_embedding_dim + 1, 1, device=device, dtype=torch.float32) * math.pi *
+                quantile_net
+            )
+
+            quantile_net = self.iqn_fc(quantile_net)
+
+            quantile_net = F.relu(quantile_net)
+
+            x = x.repeat(num_quantiles, 1)
+
+            x = x * quantile_net
+
         a = self.A(x)
         v = self.V(x)
+
         if self.distribution:
             a = a.view(*a.shape[:-1], self.action_dim, self.n_atom)
             v = v.view(*v.shape[:-1], 1, self.n_atom)
@@ -98,5 +140,10 @@ class DuelingHead(nn.Module):
                                       self.n_atom).to(torch.device("cuda" if dist.is_cuda else "cpu"))
             q = q.sum(-1)
             return q, dist
+        elif self.quantile:
+            q = a - a.mean(dim=-1, keepdim=True) + v
+            q = q.reshape(num_quantiles, batch_size, -1)
+            logit = q.mean(0)
+            return logit, q, quantiles
         else:
             return a - a.mean(dim=-1, keepdim=True) + v

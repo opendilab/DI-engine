@@ -71,6 +71,12 @@ class Mixer(nn.Module):
 
 
 class QMix(nn.Module):
+    """
+    Overview:
+        QMIX network
+    Interface:
+        __init__, forward
+    """
 
     def __init__(self, agent_num: int, obs_dim: int, global_obs_dim: int, action_dim: int, embedding_dim: int) -> None:
         super(QMix, self).__init__()

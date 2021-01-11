@@ -350,6 +350,12 @@ class EpsGreedySampleHelper(IAgentStatelessPlugin):
 
 
 class ActionNoiseHelper(IAgentStatefulPlugin):
+    r"""
+    Overview:
+        Add noise to actor's action output, do clip on generated noise and action after adding noise.
+    Interfaces:
+        register, __init__, add_noise, reset
+    """
 
     @classmethod
     def register(
@@ -363,6 +369,16 @@ class ActionNoiseHelper(IAgentStatefulPlugin):
                 'max': 1
             }
     ) -> None:
+        r"""
+        Overview:
+            Add a ``noise_helper`` to agent for further noise generation.
+        Arguments:
+            - agent (:obj:`Any`): the wrapped agent class, should contain forward method
+            - noise_type (:obj:`str`): the type of noise that should be generated, support ['gauss', 'ou']
+            - noise_kwargs (:obj:`dict`): kwargs that should be used in noise init, depends on ``noise_type``
+            - noise_range (:obj:`Optional[dict]`): range of noise, used for clip
+            - action_range (:obj:`Optional[dict]`): range of action + noise, used for clip, default clip to [-1, 1]
+        """
         noise_helper = cls(noise_type, noise_kwargs, noise_range, action_range)
         agent._noise_helper = noise_helper
 
@@ -392,11 +408,28 @@ class ActionNoiseHelper(IAgentStatefulPlugin):
                 'max': 1
             },
     ) -> None:
+        r"""
+        Overview:
+            Init noise generator, set noise range and action range.
+        Arguments:
+            - noise_type (:obj:`str`): the type of noise that should be generated, support ['gauss', 'ou']
+            - noise_kwargs (:obj:`dict`): kwargs that should be used in noise init, depends on ``noise_type``
+            - noise_range (:obj:`Optional[dict]`): range of noise, used for clip
+            - action_range (:obj:`Optional[dict]`): range of action + noise, used for clip, default clip to [-1, 1]
+        """
         self.noise_generator = create_noise_generator(noise_type, noise_kwargs)
         self.noise_range = noise_range
         self.action_range = action_range
 
     def add_noise(self, action: torch.Tensor) -> torch.Tensor:
+        r"""
+        Overview:
+            Generate noise and clip noise if needed. Add noise to action and clip action if needed.
+        Arguments:
+            - action (:obj:`torch.Tensor`): agent's action output
+        Returns:
+            - noised_action (:obj:`torch.Tensor`): action processed after adding noise and clipping
+        """
         noise = self.noise_generator(action.shape, action.device)
         if self.noise_range is not None:
             noise = noise.clamp(self.noise_range['min'], self.noise_range['max'])
@@ -405,7 +438,11 @@ class ActionNoiseHelper(IAgentStatefulPlugin):
             action = action.clamp(self.action_range['min'], self.action_range['max'])
         return action
 
-    def reset(self):
+    def reset(self) -> None:
+        r"""
+        Overview:
+            Reset noise generator
+        """
         pass
 
 
@@ -419,12 +456,11 @@ class TargetNetworkHelper(IAgentStatefulPlugin):
     """
 
     @classmethod
-    def register(cls: type, agent: Any, update_type: str, update_kwargs: dict):
+    def register(cls: type, agent: Any, update_type: str, update_kwargs: dict) -> None:
         r"""
         Overview:
-            help maintain the target network, including reset the target when the wrapped agent reset,\
-                create the agent.update method with the update method of cls class i.e TargetNetworkHelper\
-                    class itself
+            Help maintain the target network, including reset the target when the wrapped agent reset, set the
+            ``agent.update`` method with the update method of ``cls`` class, i.e TargetNetworkHelper class itself
 
         Arguments:
             - agent (:obj:`Any`): the wrapped agent class, should contain forward methods
@@ -456,7 +492,7 @@ class TargetNetworkHelper(IAgentStatefulPlugin):
     def update(self, state_dict: dict, direct: bool = False) -> None:
         r"""
         Overview:
-            update the target network state dict
+            Update the target network state dict
 
         Arguments:
             - state_dict (:obj:`dict`): the state_dict from learner agent
@@ -479,7 +515,7 @@ class TargetNetworkHelper(IAgentStatefulPlugin):
     def reset(self) -> None:
         r"""
         Overview:
-            reset the update_count
+            Reset the update_count
         """
         self._update_count = 0
 
@@ -487,7 +523,7 @@ class TargetNetworkHelper(IAgentStatefulPlugin):
 class TeacherNetworkHelper(IAgentStatelessPlugin):
     r"""
     Overview:
-        set the teacher Network
+        Set the teacher Network
 
     Interfaces:
         register
@@ -497,7 +533,7 @@ class TeacherNetworkHelper(IAgentStatelessPlugin):
     def register(cls: type, agent: Any, teacher_cfg: dict) -> None:
         r"""
         Overview:
-            set the agent's agent.teacher_cfg to the input teacher_cfg
+            Set the agent's agent.teacher_cfg to the input teacher_cfg
 
         Arguments:
             - agent (:obj:`Any`): the registered agent
@@ -521,7 +557,7 @@ plugin_name_map = {
 def add_plugin(agent: 'BaseAgent', plugin_name: str, **kwargs) -> None:  # noqa
     r"""
     Overview:
-        add plugin with plugin_name and kwargs to agent
+        Add plugin with plugin_name and kwargs to agent
     Arguments:
         - agent (:obj:`Any`): the agent to register plugin to
         - plugin_name (:obj:`str`): agent plugin name, which must be in plugin_name_map
@@ -535,7 +571,7 @@ def add_plugin(agent: 'BaseAgent', plugin_name: str, **kwargs) -> None:  # noqa
 def register_plugin(name: str, plugin_type: type):
     r"""
     Overview:
-        register new plugin to plugin_name_map
+        Register new plugin to plugin_name_map
     Arguments:
         - name (:obj:`str`): the name of the plugin
         - plugin_type (subclass of :obj:`IAgentPlugin`): the plugin class added to the plguin_name_map
