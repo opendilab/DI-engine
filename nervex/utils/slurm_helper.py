@@ -1,4 +1,4 @@
-from typing import Optional, Dict
+from typing import Optional, Dict, Tuple
 import subprocess
 import os
 
@@ -58,3 +58,28 @@ def get_cls_info() -> Dict[str, list]:
             ret_dict[partition].append(node)
 
     return ret_dict
+
+
+def node_to_partition(target_node: str) -> Tuple[str, str]:
+    info = subprocess.getoutput('sinfo -Nh').split('\n')
+    for line in info:
+        line = line.strip().split()
+        if len(line) != 4:
+            continue
+        node, _, partition, state = line
+        if node == target_node:
+            return partition
+    raise RuntimeError("not found target_node: {}".format(target_node))
+
+
+def node_to_host(node: str) -> str:
+    return '.'.join(node.split('-')[-4:])
+
+
+def find_free_port_slurm(node: str) -> int:
+    os.popen('echo "from nervex.utils import find_free_port\nprint(find_free_port(0))" > tmp.py')
+    partition = node_to_partition(node)
+    handle = os.popen('srun -p {} -w {} python -u tmp.py'.format(partition, node))
+    port = int(handle.read())
+    os.popen('rm -rf tmp.py')
+    return port

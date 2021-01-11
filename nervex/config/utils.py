@@ -1,6 +1,6 @@
 from typing import Optional, List
 from easydict import EasyDict
-from nervex.utils import find_free_port
+from nervex.utils import find_free_port, find_free_port_slurm, node_to_partition, node_to_host
 
 default_host = '0.0.0.0'
 
@@ -34,6 +34,37 @@ def set_host_port(cfg: EasyDict, coordinator_host: str, learner_host: str, actor
                     raise TypeError("not support actor_host type: {}".format(actor_host))
             if cfg[k].port == 'auto':
                 cfg[k].port = find_free_port(cfg[k].host)
+    return cfg
+
+
+def set_host_port_slurm(cfg: EasyDict, coordinator_host: str, learner_node: list, actor_node: list) -> EasyDict:
+    cfg.coordinator.interaction.host = coordinator_host
+    if cfg.coordinator.interaction.port == 'auto':
+        cfg.coordinator.interaction.port = find_free_port(coordinator_host)
+    if isinstance(learner_node, str):
+        learner_node = [learner_node]
+    if isinstance(actor_node, str):
+        actor_node = [actor_node]
+    learner_count, actor_count = 0, 0
+    for k in cfg.keys():
+        if learner_node is not None and k.startswith('learner'):
+            node = learner_node[learner_count % len(learner_node)]
+            cfg[k].node = node
+            cfg[k].partition = node_to_partition(node)
+            if cfg[k].host != 'auto':
+                cfg[k].host = node_to_host(node)
+            if cfg[k].port != 'auto':
+                cfg[k].port = find_free_port_slurm(node)
+            learner_count += 1
+        if actor_node is not None and k.startswith('actor'):
+            node = actor_node[actor_count % len(actor_node)]
+            cfg[k].node = node
+            cfg[k].partition = node_to_partition(node)
+            if cfg[k].host != 'auto':
+                cfg[k].host = node_to_host(node)
+            if cfg[k].port != 'auto':
+                cfg[k].port = find_free_port_slurm(node)
+            actor_count += 1
     return cfg
 
 
@@ -98,6 +129,19 @@ def parallel_transform(
     learner_host = default_host if learner_host is None else learner_host
     cfg = EasyDict(cfg)
     cfg = set_host_port(cfg, coordinator_host, learner_host, actor_host)
+    cfg = set_learner_interaction_for_coordinator(cfg)
+    cfg = set_actor_interaction_for_coordinator(cfg)
+    return cfg
+
+
+def parallel_transform_slurm(
+        cfg: dict,
+        coordinator_host: Optional[str] = None,
+        learner_node: Optional[List[str]] = None,
+        actor_node: Optional[List[str]] = None
+) -> None:
+    cfg = EasyDict(cfg)
+    cfg = set_host_port_slurm(cfg, coordinator_host, learner_node, actor_node)
     cfg = set_learner_interaction_for_coordinator(cfg)
     cfg = set_actor_interaction_for_coordinator(cfg)
     return cfg
