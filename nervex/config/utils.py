@@ -46,15 +46,22 @@ def set_host_port_slurm(cfg: EasyDict, coordinator_host: str, learner_node: list
     if isinstance(actor_node, str):
         actor_node = [actor_node]
     learner_count, actor_count = 0, 0
+    learner_multi = {}
     for k in cfg.keys():
         if learner_node is not None and k.startswith('learner'):
             node = learner_node[learner_count % len(learner_node)]
             cfg[k].node = node
             cfg[k].partition = node_to_partition(node)
+            repeat_num = cfg[k].get('repeat_num', 1)
             if cfg[k].host != 'auto':
                 cfg[k].host = node_to_host(node)
             if cfg[k].port != 'auto':
-                cfg[k].port = find_free_port_slurm(node)
+                if repeat_num == 1:
+                    cfg[k].port = find_free_port_slurm(node)
+                    learner_multi[k] = False
+                else:
+                    cfg[k].port = [find_free_port_slurm(node) for _ in range(repeat_num)]
+                    learner_multi[k] = True
             learner_count += 1
         if actor_node is not None and k.startswith('actor'):
             node = actor_node[actor_count % len(actor_node)]
@@ -65,48 +72,37 @@ def set_host_port_slurm(cfg: EasyDict, coordinator_host: str, learner_node: list
             if cfg[k].port != 'auto':
                 cfg[k].port = find_free_port_slurm(node)
             actor_count += 1
-    return cfg
-
-
-def set_learner_aggregator_config(cfg: EasyDict) -> EasyDict:
-    learner_names = []
-    for k in cfg.keys():
-        if k.startswith('learner'):
-            learner_names.append(k[7:])
-    aggregator_cfgs = {}
-    for n in learner_names:
-        if isinstance(list, cfg['learner' + n].port):
-            host = 'auto'
-            learner_host = cfg['learner' + n].host
-            learner_port = cfg['learner' + n].port
-            assert len(learner_host) == len(learner_port)
-            learner_interaction_cfg = {i: [i, h, p] for i, (h, p) in enumerate(zip(learner_host, learner_port))}
+    for k, flag in learner_multi.items():
+        if flag:
+            host = cfg[k].host
+            learner_interaction_cfg = {i: [i, host, p] for i, p in enumerate(cfg[k].port)}
             aggregator_cfg = dict(
                 master=dict(
                     host=host,
-                    port=find_free_port(),
+                    port=find_free_port_slurm(cfg[k].node),
                 ),
                 slave=dict(
                     host=host,
-                    port=find_free_port(),
+                    port=find_free_port_slurm(cfg[k].node),
                 ),
                 learner=learner_interaction_cfg,
+                node=cfg[k].node,
+                partition=cfg[k].partition,
             )
-            aggregator_cfgs[n] = aggregator_cfg
-
-    for n, c in aggregator_cfgs.items():
-        cfg['aggregator' + n] = c
+            cfg[k].use_aggregator = True
+            cfg['aggregator' + k[7:]] = aggregator_cfg
+        else:
+            cfg[k].use_aggregator = False
     return cfg
 
 
 def set_learner_interaction_for_coordinator(cfg: EasyDict) -> EasyDict:
-    use_aggregator = cfg.get('use_aggregator', False)
-    keyword = 'aggregator' if use_aggregator else 'learner'
     cfg.coordinator.interaction.learner = {}
     for k in cfg.keys():
-        if k.startswith(keyword):
-            n = k[len(keyword):]
-            cfg.coordinator.interaction.learner['learner' + n] = ['learner' + n, cfg[k].host, cfg[k].port]
+        if k.startswith('learner'):
+            keyword = 'aggregator' if cfg[k].get('use_aggregator', False) else 'learner'
+            dst_k = keyword + k[7:]
+            cfg.coordinator.interaction.learner[k] = [k, cfg[dst_k].host, cfg[dst_k].port]
     return cfg
 
 

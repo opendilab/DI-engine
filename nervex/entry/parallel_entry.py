@@ -34,16 +34,24 @@ def parallel_pipeline(
         for k, v in config.items():
             if 'learner' in k:
                 subprocess.Popen(
-                    "srun -p {} -w {} --gres=gpu:1 python -c \
+                    "srun -p {} -w {} --gres=gpu:1 --job-name=learner python -c \
                     \"import nervex.entry.parallel_entry as pe; pe.launch_learner(filename='{}', name='{}')\"".format(
                         v.partition, v.node, real_filename, k
                     ),
                     stderr=subprocess.STDOUT,
                     shell=True,
                 )
+                if v.get('use_aggregator', False):
+                    aggregator_k = 'aggregator' + k[7:]
+                    aggregator_cfg = config[aggregator_k]
+                    subprocess.Popen(
+                        "srun -p {} -w {} --job-name=learner_aggregator python -c \
+                        \"import nervex.entry.parallel_entry as pe; pe.launch_learner_aggregator(filename='{}', name='{}'\""
+                        .format(aggregator_cfg.partition, aggregator_cfg.node, real_filename, aggregator_k)
+                    )
             elif 'actor' in k:
                 subprocess.Popen(
-                    "srun -p {} -w {} --gres=gpu:1 python -c \
+                    "srun -p {} -w {} --gres=gpu:1 --job-name=actor python -c \
                     \"import nervex.entry.parallel_entry as pe; pe.launch_actor(filename='{}', name='{}')\"".format(
                         v.partition, v.node, real_filename, k
                     ),
