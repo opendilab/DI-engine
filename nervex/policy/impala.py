@@ -18,12 +18,21 @@ class IMPALAPolicy(CommonPolicy):
     def _init_learn(self) -> None:
         grad_clip_type = self._cfg.learn.get("grad_clip_type", None)
         clip_value = self._cfg.learn.get("clip_value", None)
-        self._optimizer = Adam(
-            self._model.parameters(),
-            grad_clip_type=grad_clip_type,
-            clip_value=clip_value,
-            lr=self._cfg.learn.learning_rate
-        )
+        optim_type = self._cfg.learn.get("optim", "adam")
+        if optim_type == 'rmsprop':
+            self._optimizer = torch.optim.RMSprop(
+                self._model.parameters(),
+                lr=self._cfg.learn.learning_rate
+            )
+        elif optim_type == 'adam':
+            self._optimizer = Adam(
+                self._model.parameters(),
+                grad_clip_type=grad_clip_type,
+                clip_value=clip_value,
+                lr=self._cfg.learn.learning_rate
+            )
+        else:
+            raise NotImplementedError
         self._agent = Agent(self._model)
 
         self._action_dim = self._cfg.model.action_dim

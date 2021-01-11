@@ -1,5 +1,5 @@
 common:
-    name: AtariConfig
+    name: PongDQNConfig
     save_path: '.'
     load_path: ''
 env:
@@ -21,11 +21,11 @@ policy:
             encoder_type: 'conv2d'
         obs_dim: [ 4, 84, 84 ]
         action_dim: 6
-        embedding_dim: 64
+        embedding_dim: 512
         head_kwargs:
             dueling: False
     learn:
-        train_step: 1
+        train_step: 20
         batch_size: 32
         learning_rate: 0.0001
         weight_decay: 0.0
@@ -42,21 +42,21 @@ policy:
         eps:
             type: 'linear'
             start: 1.
-            end: 0.005
-            decay: 100000
+            end: 0.05
+            decay: 200000
 replay_buffer:
     meta_maxlen: 10000
     max_reuse: 100
     unroll_len: 1
     min_sample_ratio: 1
 actor:
-    n_sample: 10
+    n_sample: 100
     traj_len: 11
     traj_print_freq: 100
     collect_print_freq: 100
 evaluator:
-    n_episode: 1
-    eval_freq: 2000
+    n_episode: 4
+    eval_freq: 5000
     stop_val: 20 # pong
 learner:
     hook:

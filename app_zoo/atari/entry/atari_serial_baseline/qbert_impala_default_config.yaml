@@ -1,63 +1,63 @@
 common:
-    name: AtariConfig
+    name: QbertIMPALAConfig
     save_path: '.'
     load_path: ''
 env:
     env_manager_type: 'subprocess'  # [base, subprocess]
     import_names: [ 'app_zoo.atari.envs.atari_env' ]
     env_type: 'atari'
-    env_id: 'SpaceInvadersNoFrameskip-v4'
+    env_id: 'QbertNoFrameskip-v4'
     frame_stack: 4
     is_train: True
     actor_env_num: 16
     evaluator_env_num: 4
 policy:
     use_cuda: True
-    policy_type: 'dqn'
-    import_names: [ 'nervex.policy.dqn' ]
-    on_policy: False
+    policy_type: 'impala'
+    import_names: ['nervex.policy.impala']
+    on_policy: True
     model:
-        encoder_kwargs:
-            encoder_type: 'conv2d'
         obs_dim: [ 4, 84, 84 ]
         action_dim: 6
         embedding_dim: 512
-        head_kwargs:
-            dueling: False
     learn:
-        train_step: 50
-        batch_size: 32
-        learning_rate: 0.0001
-        weight_decay: 0.0001
+        train_step: 32
+        batch_size: 4
+        learning_rate: 0.0003
+        weight_decay: 0.0
+        optim: rmsprop
+        grad_clip_type: 'clip_norm'
+        clip_value: 0.5
         algo:
-            target_update_freq: 500
+            value_weight: 0.5
+            entropy_weight: 0.01
             discount_factor: 0.99
-            nstep: 3
+            lambda_: 0.95
+            rho_clip_ratio: 1.0
+            c_clip_ratio: 1.0
+            rho_pg_clip_ratio: 1.0
+        ignore_done: True
     collect:
-        traj_len: 32
-        unroll_len: 1
+        traj_len: 'inf'
+        unroll_len: 64
         algo:
-            nstep: 3
+            discount_factor: 0.99
     command:
-        eps:
-            type: 'linear'
-            start: 1.
-            end: 0.05
-            decay: 1000000
+        placeholder: 'placeholder'
 replay_buffer:
-    meta_maxlen: 100000
+    meta_maxlen: 10000
     max_reuse: 100
-    unroll_len: 1
+    unroll_len: 64
     min_sample_ratio: 1
 actor:
-    n_sample: 100
-    traj_len: 32
+    n_sample: 16
+    traj_len: 128
     traj_print_freq: 100
     collect_print_freq: 100
 evaluator:
-    n_episode: 4
-    eval_freq: 200
-    stop_val: 800 # SpaceInvaders
+    n_episode: 5
+    eval_freq: 100
+    stop_val: 10000
 learner:
     hook:
         log_show:
@@ -69,4 +69,3 @@ learner:
                 freq: 100
 command:
     placeholder: 'placeholder'
-

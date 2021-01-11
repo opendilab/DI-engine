@@ -6,7 +6,7 @@ env:
     env_manager_type: 'subprocess'  # [base, subprocess]
     import_names: [ 'app_zoo.atari.envs.atari_env' ]
     env_type: 'atari'
-    env_id: 'SpaceInvadersNoFrameskip-v4'
+    env_id: 'QbertNoFrameskip-v4'
     frame_stack: 4
     is_train: True
     actor_env_num: 16
@@ -57,7 +57,7 @@ actor:
 evaluator:
     n_episode: 4
     eval_freq: 200
-    stop_val: 800 # SpaceInvaders
+    stop_val: 8000 # Qbert
 learner:
     hook:
         log_show:

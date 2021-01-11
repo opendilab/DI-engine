@@ -6,11 +6,11 @@ env:
     env_manager_type: 'subprocess'  # [base, subprocess]
     import_names: [ 'app_zoo.atari.envs.atari_env' ]
     env_type: 'atari'
-    env_id: 'PongNoFrameskip-v4'
+    env_id: 'QbertNoFrameskip-v4'
     frame_stack: 4
     is_train: True
-    actor_env_num: 16
-    evaluator_env_num: 5
+    actor_env_num: 4
+    evaluator_env_num: 4
 policy:
     use_cuda: True
     policy_type: 'impala'
@@ -21,10 +21,12 @@ policy:
         action_dim: 6
         embedding_dim: 512
     learn:
-        train_step: 10
-        batch_size: 32
+        train_step: 32
+        batch_size: 4
         learning_rate: 0.0001
         weight_decay: 0.0001
+        grad_clip_type: 'clip_norm'
+        clip_value: 0.5
         algo:
             value_weight: 0.5
             entropy_weight: 0.01
@@ -36,7 +38,7 @@ policy:
         ignore_done: True
     collect:
         traj_len: 'inf'
-        unroll_len: 32
+        unroll_len: 64
         algo:
             discount_factor: 0.9
     command:
@@ -44,17 +46,17 @@ policy:
 replay_buffer:
     meta_maxlen: 10000
     max_reuse: 100
-    unroll_len: 32
+    unroll_len: 64
     min_sample_ratio: 1
 actor:
-    n_sample: 64
+    n_sample: 8
     traj_len: 64
     traj_print_freq: 100
     collect_print_freq: 100
 evaluator:
     n_episode: 5
     eval_freq: 100
-    stop_val: 20
+    stop_val: 10000
 learner:
     hook:
         log_show:
