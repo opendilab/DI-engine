@@ -30,10 +30,7 @@ class IMPALAPolicy(CommonPolicy):
         clip_value = self._cfg.learn.get("clip_value", None)
         optim_type = self._cfg.learn.get("optim", "adam")
         if optim_type == 'rmsprop':
-            self._optimizer = torch.optim.RMSprop(
-                self._model.parameters(),
-                lr=self._cfg.learn.learning_rate
-            )
+            self._optimizer = torch.optim.RMSprop(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         elif optim_type == 'adam':
             self._optimizer = Adam(
                 self._model.parameters(),
@@ -175,17 +172,17 @@ class IMPALAPolicy(CommonPolicy):
         return self._collect_agent.forward(data, param={'mode': 'compute_action_value'})
 
     def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
-        r"""
-	    Overview:
-		   Generate dict type transition data from inputs.
-	    Arguments:
-		    - obs (:obj:`Any`): Env observation
-		    - agent_output (:obj:`dict`): Output of collect agent, including at least ['action']
-		    - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
-	 		   (here 'obs' indicates obs after env step).
-	    Returns:
- 		   - transition (:obj:`dict`): Dict type transition data.
- 	    """
+        """
+            Overview:
+                   Generate dict type transition data from inputs.
+            Arguments:
+                    - obs (:obj:`Any`): Env observation
+                    - agent_output (:obj:`dict`): Output of collect agent, including at least ['action']
+                    - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done']\
+                           (here 'obs' indicates obs after env step).
+            Returns:
+                   - transition (:obj:`dict`): Dict type transition data.
+            """
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
