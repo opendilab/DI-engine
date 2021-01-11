@@ -1,6 +1,6 @@
 import pytest
 
-from nervex.utils.system_helper import get_ip, get_pid, get_manager_node_ip, get_task_uid
+from nervex.utils.system_helper import get_ip, get_pid, get_task_uid
 
 
 @pytest.mark.unittest
@@ -13,4 +13,3 @@ class TestSystemHelper():
             pass
         assert isinstance(get_pid(), int)
         assert isinstance(get_task_uid(), str)
-        assert isinstance(get_manager_node_ip(), str)
