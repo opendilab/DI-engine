@@ -140,16 +140,16 @@ class DQNPolicy(CommonPolicy):
 
     def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
         r"""
-       Overview:
-           Generate dict type transition data from inputs.
-       Arguments:
-           - obs (:obj:`Any`): Env observation
-           - agent_output (:obj:`dict`): Output of collect agent, including at least ['action']
-           - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
-               (here 'obs' indicates obs after env step).
-       Returns:
-           - transition (:obj:`dict`): Dict type transition data.
-       """
+        Overview:
+            Generate dict type transition data from inputs.
+        Arguments:
+            - obs (:obj:`Any`): Env observation
+            - agent_output (:obj:`dict`): Output of collect agent, including at least ['action']
+            - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
+                (here 'obs' indicates obs after env step).
+        Returns:
+            - transition (:obj:`dict`): Dict type transition data.
+        """
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
@@ -207,15 +207,15 @@ class DQNPolicy(CommonPolicy):
 
     def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
         r"""
-       Overview:
-           Create a model according to input config. This policy will adopt DiscreteNet.
-       Arguments:
-           - cfg (:obj:`dict`): Config.
-           - model_type (:obj:`Optional[type]`): If this is not None, this function will create \
-               an instance of this.
-       Returns:
-           - model (:obj:`torch.nn.Module`): Generated model.
-       """
+        Overview:
+            Create a model according to input config. This policy will adopt DiscreteNet.
+        Arguments:
+            - cfg (:obj:`dict`): Config.
+            - model_type (:obj:`Optional[type]`): If this is not None, this function will create \
+                an instance of this.
+        Returns:
+            - model (:obj:`torch.nn.Module`): Generated model.
+        """
         if model_type is None:
             return FCDiscreteNet(**cfg.model)
         else:
