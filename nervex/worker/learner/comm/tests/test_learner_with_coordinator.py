@@ -1,21 +1,19 @@
 import pytest
 import os
 import time
-from threading import Thread
 from multiprocessing import Process
-import torch
 
 from nervex.worker import Coordinator, create_comm_learner
 from nervex.worker.actor.comm import NaiveActor
 from nervex.utils import read_config, lists_to_dicts
-from nervex.config import parallel_local_default_config
+from nervex.config import parallel_local_default_config, parallel_transform
 
 DATA_PREFIX = 'SLAVE_ACTOR_DATA'
 
 
 @pytest.fixture(scope='function')
 def setup_config():
-    return parallel_local_default_config
+    return parallel_transform(parallel_local_default_config)
 
 
 @pytest.fixture(scope='function')

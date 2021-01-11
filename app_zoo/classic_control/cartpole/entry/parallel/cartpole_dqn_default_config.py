@@ -1,4 +1,5 @@
 from easydict import EasyDict
+from nervex.config import parallel_transform
 
 __policy_default_config = dict(
     use_cuda=False,
@@ -91,13 +92,8 @@ __coordinator_default_config = dict(
     actor_task_timeout=30,
     learner_task_timeout=600,
     interaction=dict(
-        host='0.0.0.0',
-        port=12345,
-        learner=dict(learner0=['learner0', '0.0.0.0', 11110]),
-        actor=dict(
-            actor0=['actor0', '0.0.0.0', 11111],
-            actor1=['actor1', '0.0.0.0', 11112],
-        ),
+        host='auto',
+        port='auto',
     ),
     commander=dict(
         parallel_commander_type='solo',
@@ -124,8 +120,8 @@ main_config = dict(
     learner0=dict(
         import_names=['nervex.worker.learner.comm.flask_fs_learner'],
         comm_learner_type='flask_fs',
-        host='0.0.0.0',
-        port=__coordinator_default_config.interaction.learner.learner0[2],
+        host='auto',
+        port='auto',
         path_data='./data',
         path_policy='.',
         send_policy_freq=1,
@@ -133,8 +129,8 @@ main_config = dict(
     actor0=dict(
         import_names=['nervex.worker.actor.comm.flask_fs_actor'],
         comm_actor_type='flask_fs',
-        host='0.0.0.0',
-        port=__coordinator_default_config.interaction.actor.actor0[2],
+        host='auto',
+        port='auto',
         path_data='./data',
         path_policy='.',
         queue_maxsize=8,
@@ -142,11 +138,11 @@ main_config = dict(
     actor1=dict(
         import_names=['nervex.worker.actor.comm.flask_fs_actor'],
         comm_actor_type='flask_fs',
-        host='0.0.0.0',
-        port=__coordinator_default_config.interaction.actor.actor1[2],
+        host='auto',
+        port='auto',
         path_data='./data',
         path_policy='.',
         queue_maxsize=8,
     ),
 )
-main_config = EasyDict(main_config)
+main_config = parallel_transform(main_config)

@@ -1,11 +1,19 @@
+from typing import Optional, List
 from easydict import EasyDict
 from nervex.worker import create_comm_learner, create_comm_actor, Coordinator
-from nervex.config import Config
+from nervex.config import Config, parallel_transform
 
 
-def parallel_pipeline(filename: str, seed: int):
+def parallel_pipeline(
+        filename: str,
+        seed: int,
+        coordinator_host: Optional[str] = None,
+        learner_host: Optional[List[str]] = None,
+        actor_host: Optional[List[str]] = None
+) -> None:
     cfg = Config.file_to_dict(filename).cfg_dict
     main_config = cfg['main_config']
+    main_config = parallel_transform(main_config, coordinator_host, learner_host, actor_host)
     for k, v in main_config.items():
         if 'learner' in k:
             launch_learner(v)

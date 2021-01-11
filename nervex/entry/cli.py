@@ -34,6 +34,8 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
     default=0,
     help='random generator seed(for all the possible package: random, numpy, torch and user env)'
 )
+@click.option('-p', '--platform', type=str, help='local or slurm or k8s', default='local')
+# @click.option('-ch', '--coordinator_host', type=str, help='coordinator host')
 def cli(mode: str, config: str, seed: int):
     assert mode in ['serial', 'parallel'], "nervex pipeline mode must in [serial, parallel]"
     if mode == 'serial':

@@ -1,6 +1,6 @@
 from easydict import EasyDict
 from .serial import base_learner_default_config
-from .utils import set_learner_interaction_for_coordinator
+from .utils import set_learner_interaction_for_coordinator, set_actor_interaction_for_coordinator
 
 policy_default_config = dict(
     use_cuda=False,
@@ -52,12 +52,8 @@ coordinator_default_config = dict(
     actor_task_timeout=30,
     learner_task_timeout=600,
     interaction=dict(
-        host='0.0.0.0',
-        port=12345,
-        actor=dict(
-            actor0=['actor0', '0.0.0.0', 11111],
-            actor1=['actor1', '0.0.0.0', 11112],
-        ),
+        host='auto',
+        port='auto',
     ),
     commander=dict(
         parallel_commander_type='naive',
@@ -78,8 +74,8 @@ parallel_local_default_config = dict(
     learner0=dict(
         import_names=['nervex.worker.learner.comm.flask_fs_learner'],
         comm_learner_type='flask_fs',
-        host='0.0.0.0',
-        port=11110,
+        host='auto',
+        port='auto',
         path_data='.',
         path_policy='.',
         send_policy_freq=1,
@@ -87,8 +83,8 @@ parallel_local_default_config = dict(
     actor0=dict(
         import_names=['nervex.worker.actor.comm.flask_fs_actor'],
         comm_actor_type='flask_fs',
-        host='0.0.0.0',
-        port=coordinator_default_config.interaction.actor.actor0[2],
+        host='auto',
+        port='auto',
         path_data='.',
         path_policy='.',
         queue_maxsize=8,
@@ -96,19 +92,10 @@ parallel_local_default_config = dict(
     actor1=dict(
         import_names=['nervex.worker.actor.comm.flask_fs_actor'],
         comm_actor_type='flask_fs',
-        host='0.0.0.0',
-        port=coordinator_default_config.interaction.actor.actor1[2],
+        host='auto',
+        port='auto',
         path_data='.',
         path_policy='.',
         queue_maxsize=8,
     ),
 )
-
-
-def parallel_transform(cfg):
-    cfg = EasyDict(cfg)
-    cfg = set_learner_interaction_for_coordinator(cfg)
-    return cfg
-
-
-parallel_local_default_config = parallel_transform(parallel_local_default_config)

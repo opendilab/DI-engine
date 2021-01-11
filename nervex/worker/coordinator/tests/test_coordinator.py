@@ -1,26 +1,24 @@
 import pytest
 import os
 import time
-from threading import Thread
-from multiprocessing import Process
 from nervex.worker import Coordinator
 from nervex.worker.learner.comm import NaiveLearner
 from nervex.worker.actor.comm import NaiveActor
-from nervex.utils import lists_to_dicts
-from nervex.interaction.slave import Slave, TaskFail
-from nervex.config import coordinator_default_config
+from nervex.utils import find_free_port
+from nervex.config import coordinator_default_config, parallel_transform
+from nervex.config.utils import default_host
 
 DATA_PREFIX = 'SLAVE_ACTOR_DATA'
 
 
 @pytest.fixture(scope='function')
 def setup_config():
-    cfg = coordinator_default_config
-    cfg.interaction.port += 100
-    for k in cfg.interaction.actor:
-        cfg.interaction.actor[k][2] += 100
-    for k in cfg.interaction.learner:
-        cfg.interaction.learner[k][2] += 100
+    cfg = parallel_transform({'coordinator': coordinator_default_config}).coordinator
+    cfg.interaction.learner = dict(learner0=('learner0', default_host, find_free_port(default_host)))
+    cfg.interaction.actor = dict(
+        actor0=('actor0', default_host, find_free_port(default_host)),
+        actor1=('actor1', default_host, find_free_port(default_host))
+    )
     return cfg
 
 

@@ -129,5 +129,4 @@ class DQNVanillaPolicy(CommonPolicy):
         self._model.eval()
 
 
-
 register_policy('dqn_vanilla', DQNVanillaPolicy)

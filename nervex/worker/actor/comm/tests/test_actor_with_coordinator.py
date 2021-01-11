@@ -9,7 +9,7 @@ from nervex.worker import Coordinator, create_comm_actor
 from nervex.worker.learner.comm import NaiveLearner
 from nervex.utils import read_config, lists_to_dicts
 from nervex.interaction.slave import Slave, TaskFail
-from nervex.config import parallel_local_default_config
+from nervex.config import parallel_local_default_config, parallel_transform
 
 DATA_PREFIX = 'SLAVE_ACTOR_DATA'
 
@@ -17,14 +17,7 @@ DATA_PREFIX = 'SLAVE_ACTOR_DATA'
 @pytest.fixture(scope='function')
 def setup_config():
     cfg = parallel_local_default_config
-    cfg.coordinator.interaction.port += 200
-    for k in cfg.coordinator.interaction.actor:
-        cfg.coordinator.interaction.actor[k][2] += 200
-    for k in cfg.coordinator.interaction.learner:
-        cfg.coordinator.interaction.learner[k][2] += 200
-    cfg.learner0.port += 200
-    cfg.actor0.port += 200
-    cfg.actor1.port += 200
+    cfg = parallel_transform(cfg)
     return cfg
 
 
