@@ -6,7 +6,6 @@ from typing import Mapping, Any, Type, Optional, Tuple, Union, Iterable, Callabl
 import flask
 import requests
 from flask import jsonify
-from requests.exceptions import HTTPError
 
 
 @unique
@@ -99,39 +98,3 @@ def responsible(classes: Iterable[Type[ResponsibleException]] = None):
         return _func
 
     return _decorator
-
-
-class ResponseError(Exception):
-    def __init__(self, error: HTTPError):
-        self._error = error
-        self._status_code, self._success, self._code, self._message, self._data = \
-            get_values_from_response(error.response)
-        Exception.__init__(self, self._message)
-
-    @property
-    def status_code(self) -> int:
-        return self._status_code
-
-    @property
-    def success(self) -> bool:
-        return self._success
-
-    @property
-    def code(self) -> int:
-        return self._code
-
-    @property
-    def message(self) -> str:
-        return self._message
-
-    @property
-    def data(self) -> Mapping[str, Any]:
-        return self._data
-
-
-_TR = ResponseError
-
-
-# noinspection PyTypeChecker
-def get_request_error(class_name: str, err_type: Type[_TR]) -> Type[_TR]:
-    return type(class_name, (err_type,), {})
