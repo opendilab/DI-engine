@@ -1,6 +1,7 @@
 from typing import Optional, List
 import subprocess
 from easydict import EasyDict
+import time
 import pickle
 from nervex.worker import create_comm_learner, create_comm_actor, Coordinator
 from nervex.config import Config, parallel_transform, parallel_transform_slurm
@@ -58,6 +59,7 @@ def parallel_pipeline(
                     stderr=subprocess.STDOUT,
                     shell=True,
                 )
+        time.sleep(10)
         # coordinator run in manager node
         subprocess.run(
             "python -c \"import nervex.entry.parallel_entry as pe; pe.launch_coordinator(filename='{}')\"".

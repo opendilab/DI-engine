@@ -52,6 +52,7 @@ class SoloCommander(BaseCommander):
                 'policy_id': self._init_policy_id(),
                 'buffer_id': self._init_buffer_id(),
                 'learner_cfg': learner_cfg,
+                'replay_buffer_cfg': self._cfg.replay_buffer_cfg,
                 'policy': self._cfg.policy,
             }
         else:
