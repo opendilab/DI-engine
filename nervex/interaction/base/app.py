@@ -1,11 +1,12 @@
 import json
 from enum import IntEnum, unique
 from functools import wraps
-from typing import Optional, Any, Mapping, Tuple, Union, Iterable, Type, Callable
+from typing import Mapping, Any, Type, Optional, Tuple, Union, Iterable, Callable
 
 import flask
 import requests
 from flask import jsonify
+from requests.exceptions import HTTPError
 
 
 @unique
@@ -15,7 +16,8 @@ class CommonErrorCode(IntEnum):
 
 
 def flask_response(
-    success: bool, data: Optional[Mapping[str, Any]] = None, message: Optional[str] = None, code: Optional[int] = None
+        success: bool, data: Optional[Mapping[str, Any]] = None,
+        message: Optional[str] = None, code: Optional[int] = None,
 ):
     return jsonify(
         {
@@ -37,7 +39,7 @@ def success_response(data: Optional[Mapping[str, Any]] = None, message: Optional
 
 
 def failure_response(
-    code: Optional[int] = None, message: Optional[str] = None, data: Optional[Mapping[str, Any]] = None
+        code: Optional[int] = None, message: Optional[str] = None, data: Optional[Mapping[str, Any]] = None
 ):
     return flask_response(
         success=False,
@@ -63,11 +65,11 @@ def get_values_from_response(response: Union[requests.Response, flask.Response])
 class ResponsibleException(Exception):
 
     def __init__(
-        self,
-        code: int = CommonErrorCode.COMMON_FAILURE,
-        message: Optional[str] = None,
-        data: Optional[Mapping[str, Any]] = None,
-        status_code: int = 400
+            self,
+            code: int = CommonErrorCode.COMMON_FAILURE,
+            message: Optional[str] = None,
+            data: Optional[Mapping[str, Any]] = None,
+            status_code: int = 400
     ):
         Exception.__init__(self, message)
         self.__code = code
@@ -81,7 +83,7 @@ class ResponsibleException(Exception):
 
 def responsible(classes: Iterable[Type[ResponsibleException]] = None):
     if classes is None:
-        classes = (ResponsibleException, )
+        classes = (ResponsibleException,)
 
     def _decorator(func: Callable[..., Any]) -> Callable[..., Any]:
 
@@ -97,3 +99,39 @@ def responsible(classes: Iterable[Type[ResponsibleException]] = None):
         return _func
 
     return _decorator
+
+
+class ResponseError(Exception):
+    def __init__(self, error: HTTPError):
+        self._error = error
+        self._status_code, self._success, self._code, self._message, self._data = \
+            get_values_from_response(error.response)
+        Exception.__init__(self, self._message)
+
+    @property
+    def status_code(self) -> int:
+        return self._status_code
+
+    @property
+    def success(self) -> bool:
+        return self._success
+
+    @property
+    def code(self) -> int:
+        return self._code
+
+    @property
+    def message(self) -> str:
+        return self._message
+
+    @property
+    def data(self) -> Mapping[str, Any]:
+        return self._data
+
+
+_TR = ResponseError
+
+
+# noinspection PyTypeChecker
+def get_request_error(class_name: str, err_type: Type[_TR]) -> Type[_TR]:
+    return type(class_name, (err_type,), {})
