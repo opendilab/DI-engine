@@ -347,7 +347,11 @@ class PrioritizedBuffer:
         data = []
         for idx in indices:
             # calculate staleness, if too stale, remove it and do not add it to the return data
-            staleness = cur_learner_iter - self._data[idx].get('collect_iter', cur_learner_iter)
+            collect_iter = self._data[idx].get('collect_iter', cur_learner_iter)
+            if isinstance(collect_iter, list):
+                # timestep transition's collect_iter is a list
+                collect_iter = min(collect_iter)
+            staleness = cur_learner_iter - collect_iter
             if staleness >= self.max_staleness:
                 self._remove(idx)
                 continue

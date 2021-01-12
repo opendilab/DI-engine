@@ -98,11 +98,12 @@ class BaseSerialActor(object):
                 actions = {env_id: output['action'] for env_id, output in policy_output.items()}
                 timesteps = self._env.step(actions)
                 for env_id, timestep in timesteps.items():
-                    # parameter ``iter_count`` which is passed in from ``serial_entry`` indicates
-                    # current collecting model iteration, should be used to process transition
                     transition = self._policy.process_transition(
-                        self._obs_pool[env_id], self._policy_output_pool[env_id], timestep, iter_count
+                        self._obs_pool[env_id], self._policy_output_pool[env_id], timestep
                     )
+                    # parameter ``iter_count``, which is passed in from ``serial_entry``, indicates current
+                    # collecting model's iteration
+                    transition['collect_iter'] = iter_count
                     self._traj_cache[env_id].append(transition)
                     if timestep.done or len(self._traj_cache[env_id]) == self._traj_len:
                         train_sample = self._policy.get_train_sample(self._traj_cache[env_id])

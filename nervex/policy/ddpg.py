@@ -190,8 +190,7 @@ class DDPGPolicy(CommonPolicy):
         output = self._collect_agent.forward(data, param={'mode': 'compute_action'})
         return output
 
-    def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple,
-                            collect_iter: int) -> Dict[str, Any]:
+    def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> Dict[str, Any]:
         r"""
         Overview:
             Generate dict type transition data from inputs.
@@ -200,8 +199,6 @@ class DDPGPolicy(CommonPolicy):
             - agent_output (:obj:`dict`): Output of collect agent, including at least ['action']
             - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
                 (here 'obs' indicates obs after env step, i.e. next_obs).
-            - collect_iter (:obj:`int`): Model's iteration count, which is recorded in learner after training, \
-                passed to actor and finally stored in replay buffer to calculate data staleness.
         Return:
             - transition (:obj:`Dict[str, Any]`): Dict type transition data.
         """
@@ -211,7 +208,6 @@ class DDPGPolicy(CommonPolicy):
             'action': agent_output['action'],
             'reward': timestep.reward,
             'done': timestep.done,
-            'collect_iter': collect_iter,
         }
         return transition
 
