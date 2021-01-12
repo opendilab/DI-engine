@@ -282,7 +282,7 @@ class CollaQ(nn.Module):
         agent_colla_alone_q = agent_colla_alone_q.reshape(T, B, A, -1)
         agent_colla_q = agent_colla_q.reshape(T, B, A, -1)
 
-        total_q_before_mix = agent_alone_q + agent_alone_q - agent_colla_alone_q
+        total_q_before_mix = agent_alone_q + agent_colla_q - agent_colla_alone_q
         agent_q = total_q_before_mix
 
         if action is None:
