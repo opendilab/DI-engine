@@ -40,6 +40,7 @@ class DDPGPolicy(CommonPolicy):
             lr=self._cfg.learn.learning_rate_critic,
             weight_decay=self._cfg.learn.weight_decay
         )
+        self._use_reward_batch_norm = self._cfg.get('use_reward_batch_norm', True)
         # algorithm config
         algo_cfg = self._cfg.learn.algo
         self._algo_cfg_learn = algo_cfg
@@ -84,7 +85,8 @@ class DDPGPolicy(CommonPolicy):
         # ====================
         next_obs = data.get('next_obs')
         reward = data.get('reward')
-        # reward = (reward - reward.mean()) / (reward.std() + 1e-8)  # todo: why scale reward here
+        if self._use_reward_batch_norm:
+            reward = (reward - reward.mean()) / (reward.std() + 1e-8)
         # current q value
         q_value = self._agent.forward(data, param={'mode': 'compute_q'})['q_value']
         q_value_dict = {}

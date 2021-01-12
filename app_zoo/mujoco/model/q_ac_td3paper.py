@@ -19,7 +19,6 @@ class FCContinuousNet(nn.Module):
         self._act = nn.ReLU()
         self._use_final_tanh = use_final_tanh
         layers = []
-        # layers.append(nn.BatchNorm1d(input_dim))
         layers.append(nn.Linear(input_dim, hidden_dim[0]))
         layers.append(self._act)
         if len(hidden_dim) > 1:

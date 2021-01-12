@@ -156,11 +156,12 @@ class ScaledFloatFrame(gym.ObservationWrapper):
 
 
 class RunningMeanStd(object):
-    # https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Parallel_algorithm
+    # Refer to https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Parallel_algorithm
+
     def __init__(self, epsilon=1e-4, shape=()):
-        self._mean = np.zeros(shape, 'float32')
-        self._var = np.ones(shape, 'float32')
-        self._count = epsilon
+        self._epsilon = epsilon
+        self._shape = shape
+        self.reset()
 
     def update(self, x):
         batch_mean = np.mean(x, axis=0)
@@ -179,16 +180,21 @@ class RunningMeanStd(object):
         self._var = new_var
         self._count = new_count
     
+    def reset(self):
+        self._mean = np.zeros(self._shape, 'float32')
+        self._var = np.ones(self._shape, 'float32')
+        self._count = self._epsilon
+
     @property
     def mean(self) -> np.ndarray:
         return self._mean
     
     @property
     def std(self) -> np.ndarray:
-        return np.sqrt(self._var)
+        return np.sqrt(self._var) + self._episilon
 
 
-class ScaleObsEnv(gym.ObservationWrapper):
+class ObsNormEnv(gym.ObservationWrapper):
     """Normalize observations according to running mean and std.
 
     :param gym.Env env: the environment to wrap.
@@ -211,6 +217,41 @@ class ScaleObsEnv(gym.ObservationWrapper):
             return np.clip((observation - self.rms.mean) / self.rms.std, self.clip_range[0], self.clip_range[1])
         else:
             return observation
+    
+    def reset(self, **kwargs):
+        self.rms.reset()
+        self.data_count = 0
+        observation = self.env.reset(**kwargs)
+        return self.observation(observation)
+
+
+class RewardNormEnv(gym.RewardWrapper):
+    """Normalize observations according to running mean and std.
+
+    :param gym.Env env: the environment to wrap.
+    """
+
+    def __init__(self, env):
+        super().__init__(env)
+        self.data_count = 0
+        self.rms = RunningMeanStd(shape=env.reward_space.shape)
+
+    def step(self, action):
+        self.data_count += 1
+        observation, reward, done, info = self.env.step(action)
+        self.rms.update(reward)
+        return observation, self.reward(reward), done, info
+
+    def reward(self, reward):
+        if self.data_count > 5000:
+            return np.clip(reward / self.rms.std)
+        else:
+            return observation
+    
+    def reset(self, **kwargs):
+        self.data_count = 0
+        self.rms.reset()
+        return self.env.reset(**kwargs)
 
 
 class ClipRewardEnv(gym.RewardWrapper):
@@ -264,7 +305,7 @@ class FrameStack(gym.Wrapper):
         return np.stack(self.frames, axis=0)
 
 
-def wrap_deepmind(env_id, episode_life=True, clip_rewards=True, frame_stack=4, scale=False, warp_frame=True, norm_obs=True):
+def wrap_deepmind(env_id, episode_life=True, clip_rewards=True, frame_stack=4, scale=False, warp_frame=True, norm_obs=True, norm_rew=True):
     """Configure environment for DeepMind-style Atari. The observation is
     channel-first: (c, h, w) instead of (h, w, c).
 
@@ -293,5 +334,7 @@ def wrap_deepmind(env_id, episode_life=True, clip_rewards=True, frame_stack=4, s
     # if frame_stack:
     #     env = FrameStack(env, frame_stack)
     if norm_obs:
-        env = ScaleObsEnv(env)
+        env = ObsNormEnv(env)
+    if norm_rew:
+        env = RewardNormEnv(env)
     return env

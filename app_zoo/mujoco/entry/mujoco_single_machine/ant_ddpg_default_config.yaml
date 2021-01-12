@@ -17,11 +17,12 @@ env:
     evaluator_env_num: 10
     use_act_scale: True
 policy:
-    use_cuda: True
+    use_cuda: False
     policy_type: 'ddpg'
     import_names: ['nervex.policy.ddpg']
     on_policy: False
     use_priority: True
+    use_reward_batch_norm: True
     model:
         obs_dim: 111
         action_dim: 8
