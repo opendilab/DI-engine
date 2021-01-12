@@ -9,14 +9,15 @@ env:
     env_manager_type: 'subprocess'  # [base, subprocess]
     import_names: ['app_zoo.mujoco.envs.mujoco_env']
     env_type: 'mujoco'
-    actor_env_num: 20
-    evaluator_env_num: 10
+    actor_env_num: 16
+    evaluator_env_num: 8
     use_act_scale: True
 policy:
-    use_cuda: False
+    use_cuda: True
     policy_type: 'ddpg'
     import_names: ['nervex.policy.ddpg']
     on_policy: False
+    use_priority: True
     model:
         obs_dim: 17
         action_dim: 6
@@ -58,7 +59,7 @@ actor:
 evaluator:
     n_episode: 8
     eval_freq: 1000
-    stop_val: 10500
+    stop_val: 12000
 learner:
     hook:
         log_show:

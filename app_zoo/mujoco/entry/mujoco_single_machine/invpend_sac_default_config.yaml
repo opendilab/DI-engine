@@ -13,14 +13,15 @@ env:
     env_manager_type: 'subprocess'  # [base, subprocess]
     import_names: ['app_zoo.mujoco.envs.mujoco_env']
     env_type: 'mujoco'
-    actor_env_num: 20
-    evaluator_env_num: 10
+    actor_env_num: 16
+    evaluator_env_num: 8
     use_act_scale: True
 policy:
-    use_cuda: True
+    use_cuda: False
     policy_type: 'sac'
     import_names: ['nervex.policy.sac']
     on_policy: False
+    use_priority: True
     model:
         obs_dim: 4
         action_dim: 1

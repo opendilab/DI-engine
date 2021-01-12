@@ -21,6 +21,7 @@ policy:
     policy_type: 'ddpg'
     import_names: ['nervex.policy.ddpg']
     on_policy: False
+    use_priority: True
     model:
         obs_dim: 4
         action_dim: 1

@@ -4,7 +4,7 @@ import argparse
 
 from nervex.entry import serial_pipeline
 from nervex.utils import read_config
-from app_zoo.mujoco.model.q_ac_td3paper import QAC_td3paper
+from app_zoo.mujoco.model.q_ac_td3paper import QAC_Td3paper
 
 
 def test(prefix):
@@ -14,7 +14,7 @@ def test(prefix):
     )
     config = read_config(path)
     try:
-        serial_pipeline(config, seed=0, model_type=QAC_td3paper)
+        serial_pipeline(config, seed=0, model_type=QAC_Td3paper)
     except Exception:
         assert False, "pipeline fail"
 

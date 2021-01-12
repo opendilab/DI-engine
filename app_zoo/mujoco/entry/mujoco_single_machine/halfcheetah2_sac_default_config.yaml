@@ -17,6 +17,7 @@ policy:
     policy_type: 'sac'
     import_names: ['nervex.policy.sac']
     on_policy: False
+    use_priority: True
     model:
         obs_dim: 17
         action_dim: 6
@@ -57,7 +58,7 @@ actor:
 evaluator:
     n_episode: 8
     eval_freq: 1000
-    stop_val: 10500
+    stop_val: 14000
 learner:
     hook:
         log_show:

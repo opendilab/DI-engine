@@ -1,6 +1,7 @@
 from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple
 import torch
+import numpy as np
 
 from nervex.torch_utils import Adam
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, Adder
@@ -83,9 +84,15 @@ class DDPGPolicy(CommonPolicy):
         # ====================
         next_obs = data.get('next_obs')
         reward = data.get('reward')
-        reward = (reward - reward.mean()) / (reward.std() + 1e-8)
+        # reward = (reward - reward.mean()) / (reward.std() + 1e-8)  # todo: why scale reward here
         # current q value
         q_value = self._agent.forward(data, param={'mode': 'compute_q'})['q_value']
+        q_value_dict = {}
+        if self._use_twin_critic:
+            q_value_dict['q_value'] = q_value[0].mean()
+            q_value_dict['q_value_twin'] = q_value[1].mean()
+        else:
+            q_value_dict['q_value'] = q_value.mean()
         # target q value. SARSA: first predict next action, then calculate next q value
         next_data = {'obs': next_obs}
         next_action = self._agent.target_forward(next_data, param={'mode': 'compute_action'})['action']
@@ -96,16 +103,17 @@ class DDPGPolicy(CommonPolicy):
             target_q_value = torch.min(target_q_value[0], target_q_value[1])  # find min one as target q value
             # network1
             td_data = v_1step_td_data(q_value[0], target_q_value, reward, data['done'], data['weight'])
-            critic_loss = v_1step_td_error(td_data, self._gamma)
+            critic_loss, td_error_per_sample1 = v_1step_td_error(td_data, self._gamma)
             loss_dict['critic_loss'] = critic_loss
-            # network2(twin)
+            # network2(twin network)
             td_data_twin = v_1step_td_data(q_value[1], target_q_value, reward, data['done'], data['weight'])
-            critic_twin_loss = v_1step_td_error(td_data_twin, self._gamma)
+            critic_twin_loss, td_error_per_sample2 = v_1step_td_error(td_data_twin, self._gamma)
             loss_dict['critic_twin_loss'] = critic_twin_loss
+            td_error_per_sample = (td_error_per_sample1 + td_error_per_sample2) / 2
         else:
             # DDPG: single critic network
             td_data = v_1step_td_data(q_value, target_q_value, reward, data['done'], data['weight'])
-            critic_loss = v_1step_td_error(td_data, self._gamma)
+            critic_loss, td_error_per_sample = v_1step_td_error(td_data, self._gamma)
             loss_dict['critic_loss'] = critic_loss
         # ================
         # critic update
@@ -135,7 +143,11 @@ class DDPGPolicy(CommonPolicy):
         return {
             'cur_lr_actor': self._optimizer_actor.defaults['lr'],
             'cur_lr_critic': self._optimizer_critic.defaults['lr'],
-            **loss_dict
+            # 'q_value': np.array(q_value).mean(),
+            'action': data.get('action').mean(),
+            'priority': td_error_per_sample.abs().tolist(),
+            **loss_dict,
+            **q_value_dict,
         }
 
     def _init_collect(self) -> None:
@@ -178,7 +190,8 @@ class DDPGPolicy(CommonPolicy):
         output = self._collect_agent.forward(data, param={'mode': 'compute_action'})
         return output
 
-    def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple,
+                            collect_iter: int) -> Dict[str, Any]:
         r"""
         Overview:
             Generate dict type transition data from inputs.
@@ -186,9 +199,11 @@ class DDPGPolicy(CommonPolicy):
             - obs (:obj:`Any`): Env observation
             - agent_output (:obj:`dict`): Output of collect agent, including at least ['action']
             - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
-                (here 'obs' indicates obs after env step).
-        Returns:
-            - transition (:obj:`dict`): Dict type transition data.
+                (here 'obs' indicates obs after env step, i.e. next_obs).
+            - collect_iter (:obj:`int`): Model's iteration count, which is recorded in learner after training, \
+                passed to actor and finally stored in replay buffer to calculate data staleness.
+        Return:
+            - transition (:obj:`Dict[str, Any]`): Dict type transition data.
         """
         transition = {
             'obs': obs,
@@ -196,6 +211,7 @@ class DDPGPolicy(CommonPolicy):
             'action': agent_output['action'],
             'reward': timestep.reward,
             'done': timestep.done,
+            'collect_iter': collect_iter,
         }
         return transition
 
@@ -249,7 +265,10 @@ class DDPGPolicy(CommonPolicy):
             return model_type(**cfg.model)
 
     def _monitor_vars_learn(self) -> List[str]:
-        ret = ['cur_lr_actor', 'cur_lr_critic', 'critic_loss', 'actor_loss', 'total_loss']
+        ret = [
+            'cur_lr_actor', 'cur_lr_critic', 'critic_loss', 'actor_loss', 'total_loss', 'q_value', 'q_value_twin',
+            'action'
+        ]
         if self._use_twin_critic:
             ret += ['critic_twin_loss']
         return ret

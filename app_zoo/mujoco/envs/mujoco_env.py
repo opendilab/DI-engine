@@ -1,5 +1,8 @@
-from typing import Any
+from typing import Any, List
 import torch
+import copy
+import numpy as np
+
 from nervex.envs import BaseEnv, register_env
 from nervex.envs.common.env_element import EnvElement
 from nervex.envs.common.common_function import affine_transform
@@ -13,7 +16,7 @@ class MujocoEnv(BaseEnv):
         self._cfg = cfg
         self._use_act_scale = cfg.use_act_scale
         self._env = wrap_deepmind(
-            cfg.env_id, frame_stack=cfg.frame_stack, episode_life=cfg.is_train, clip_rewards=cfg.is_train
+            cfg.env_id, frame_stack=cfg.frame_stack, episode_life=cfg.is_train, clip_rewards=cfg.is_train, norm_obs=cfg.is_train
         )
 
     def reset(self) -> torch.FloatTensor:
@@ -70,6 +73,20 @@ class MujocoEnv(BaseEnv):
 
     def __repr__(self) -> str:
         return "nerveX Mujoco Env({})".format(self._cfg.env_id)
+    
+    @staticmethod
+    def create_actor_env_cfg(cfg: dict) -> List[dict]:
+        actor_env_num = cfg.pop('actor_env_num', 1)
+        actor_cfg = copy.deepcopy(cfg)
+        actor_cfg.is_train = True
+        return [cfg for _ in range(actor_env_num)]
+
+    @staticmethod
+    def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
+        evaluator_env_num = cfg.pop('evaluator_env_num', 1)
+        actor_cfg = copy.deepcopy(cfg)
+        actor_cfg.is_train = False
+        return [cfg for _ in range(evaluator_env_num)]
 
 
 register_env('mujoco', MujocoEnv)

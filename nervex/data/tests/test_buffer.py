@@ -127,7 +127,7 @@ class TestBaseBuffer:
             setup_base_buffer.append(generate_data())
         reuse_dict = defaultdict(int)
         while True:
-            batch = setup_base_buffer.sample(32)
+            batch = setup_base_buffer.sample(32, 0)
             if batch is None:
                 break
             assert (len(batch) == 32)
