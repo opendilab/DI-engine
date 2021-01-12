@@ -169,7 +169,7 @@ class RunningMeanStd(object):
 
         new_count = batch_count + self._count
         mean_delta = batch_mean - self._mean
-        new_mean = self._mean + mean_delta * batch_count / tot_count
+        new_mean = self._mean + mean_delta * batch_count / new_count
         # this method for calculating new variable might be numerically unstable
         m_a = self._var * self._count
         m_b = batch_var * batch_count
@@ -182,10 +182,6 @@ class RunningMeanStd(object):
     @property
     def mean(self) -> np.ndarray:
         return self._mean
-    
-    @mean.setter
-    def mean(self, _mean: np.ndarray) -> None:
-        self._mean = _mean
     
     @property
     def std(self) -> np.ndarray:
@@ -206,7 +202,9 @@ class ScaleObsEnv(gym.ObservationWrapper):
 
     def step(self, action):
         self.data_count += 1
-        return super(ScaleObsEnv, self).step(action)
+        observation, reward, done, info = self.env.step(action)
+        self.rms.update(observation)
+        return self.observation(observation), reward, done, info
 
     def observation(self, observation):
         if self.data_count > 5000:
