@@ -2,6 +2,7 @@ from typing import List, Dict, Any, Optional, Callable, Tuple
 from collections import namedtuple, deque
 import copy
 import numpy as np
+
 from .env_manager import BaseEnvManager
 from nervex.utils import build_logger, EasyTimer
 
@@ -53,29 +54,32 @@ class BaseSerialActor(object):
         self._total_sample = 0
         self._total_duration = 0
 
-    def generate_data(self, n_episode: Optional[int] = None, n_sample: Optional[int] = None) -> Tuple[List[Any], dict]:
+    def generate_data(self,
+                      iter_count: int,
+                      n_episode: Optional[int] = None,
+                      n_sample: Optional[int] = None) -> Tuple[List[Any], dict]:
         assert n_episode is None or n_sample is None, "n_episode and n_sample can't be not None at the same time"
         if n_episode is not None:
-            return self._collect_episode(n_episode)
+            return self._collect_episode(iter_count, n_episode)
         elif n_sample is not None:
-            return self._collect_sample(n_sample)
+            return self._collect_sample(iter_count, n_sample)
         elif self._default_n_episode is not None:
-            return self._collect_episode(self._default_n_episode)
+            return self._collect_episode(iter_count, self._default_n_episode)
         elif self._default_n_sample is not None:
-            return self._collect_sample(self._default_n_sample)
+            return self._collect_sample(iter_count, self._default_n_sample)
         else:
-            raise RuntimeError("please indicate specific n_episode or n_sample(int value)")
+            raise RuntimeError("please clarify specific n_episode or n_sample(int value) in config yaml or outer call")
 
     def close(self) -> None:
         self._env.close()
 
-    def _collect_episode(self, n_episode: int) -> Tuple[List[Any], dict]:
-        return self._collect(lambda x, y: x >= n_episode)
+    def _collect_episode(self, iter_count: int, n_episode: int) -> Tuple[List[Any], dict]:
+        return self._collect(iter_count, lambda x, y: x >= n_episode)
 
-    def _collect_sample(self, n_sample: int) -> Tuple[List[Any], dict]:
-        return self._collect(lambda x, y: y >= n_sample)
+    def _collect_sample(self, iter_count: int, n_sample: int) -> Tuple[List[Any], dict]:
+        return self._collect(iter_count, lambda x, y: y >= n_sample)
 
-    def _collect(self, collect_end_fn: Callable) -> Tuple[List[Any], dict]:
+    def _collect(self, iter_count: int, collect_end_fn: Callable) -> Tuple[List[Any], dict]:
         episode_count = 0
         step_count = 0
         train_sample_count = 0
@@ -97,6 +101,9 @@ class BaseSerialActor(object):
                     transition = self._policy.process_transition(
                         self._obs_pool[env_id], self._policy_output_pool[env_id], timestep
                     )
+                    # parameter ``iter_count``, which is passed in from ``serial_entry``, indicates current
+                    # collecting model's iteration
+                    transition['collect_iter'] = iter_count
                     self._traj_cache[env_id].append(transition)
                     if timestep.done or len(self._traj_cache[env_id]) == self._traj_len:
                         train_sample = self._policy.get_train_sample(self._traj_cache[env_id])
@@ -115,11 +122,11 @@ class BaseSerialActor(object):
                         self._policy.reset([env_id])
                         reward = timestep.info['final_eval_reward']
                         episode_reward.append(reward)
-                        self._logger.info(
-                            "env {} finish episode, final reward: {}, collected episode: {}".format(
-                                env_id, reward, episode_count
-                            )
-                        )
+                        # self._logger.info(
+                        #     "env {} finish episode, final reward: {}, collected episode: {}".format(
+                        #         env_id, reward, episode_count
+                        #     )
+                        # )
                         episode_count += 1
                         self._total_episode += 1
                     step_count += 1

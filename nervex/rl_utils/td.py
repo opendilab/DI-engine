@@ -170,6 +170,7 @@ def v_1step_td_error(
         gamma: float,
         criterion: torch.nn.modules = nn.MSELoss(reduction='none')  # noqa
 ) -> torch.Tensor:
+    # debug = False
     v, next_v, reward, done, weight = data
     if weight is None:
         weight = torch.ones_like(reward)
@@ -177,7 +178,8 @@ def v_1step_td_error(
         target_v = gamma * (1 - done) * next_v + reward
     else:
         target_v = gamma * next_v + reward
-    return criterion(v, target_v.detach() * weight).mean()
+    td_error_per_sample = criterion(v, target_v.detach())
+    return (td_error_per_sample * weight).mean(), td_error_per_sample
 
 
 q_nstep_td_data = namedtuple(

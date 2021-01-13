@@ -78,12 +78,13 @@ class SACPolicy(CommonPolicy):
         target_v_value = self._agent.target_forward(next_data, param={'mode': 'compute_value'})['v_value']
         if self._use_twin_q:
             q_data = v_1step_td_data(q_value[0], target_v_value, reward, done, data['weight'])
-            loss_dict['q_loss'] = v_1step_td_error(q_data, self._gamma)
+            loss_dict['q_loss'], td_error_per_sample1 = v_1step_td_error(q_data, self._gamma)
             q_data = v_1step_td_data(q_value[1], target_v_value, reward, done, data['weight'])
-            loss_dict['q_twin_loss'] = v_1step_td_error(q_data, self._gamma)
+            loss_dict['q_twin_loss'], td_error_per_sample2 = v_1step_td_error(q_data, self._gamma)
+            td_error_per_sample = (td_error_per_sample1 + td_error_per_sample2) / 2
         else:
             q_data = v_1step_td_data(q_value, target_v_value, reward, done, data['weight'])
-            loss_dict['q_loss'] = v_1step_td_error(q_data, self._gamma)
+            loss_dict['q_loss'], td_error_per_sample = v_1step_td_error(q_data, self._gamma)
 
         # compute value loss
         eval_data['obs'] = obs
@@ -127,6 +128,7 @@ class SACPolicy(CommonPolicy):
             'cur_lr_q': self._optimizer_q.defaults['lr'],
             'cur_lr_v': self._optimizer_value.defaults['lr'],
             'cur_lr_p': self._optimizer_policy.defaults['lr'],
+            'priority': td_error_per_sample.abs().tolist(),
             **loss_dict
         }
 

@@ -37,7 +37,7 @@ class FCContinuousNet(nn.Module):
         return x
 
 
-class QAC_td3paper(QActorCriticBase):
+class QAC_Td3paper(QActorCriticBase):
 
     def __init__(
             self,
@@ -46,7 +46,7 @@ class QAC_td3paper(QActorCriticBase):
             use_twin_critic: bool = False,
             use_backward_hook: bool = False,
     ) -> None:
-        super(QAC_td3paper, self).__init__()
+        super(QAC_Td3paper, self).__init__()
 
         def backward_hook(module, grad_input, grad_output):
             for p in module.parameters():

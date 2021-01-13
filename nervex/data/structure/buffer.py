@@ -65,6 +65,7 @@ class PrioritizedBuffer:
         self,
         maxlen: int,
         max_reuse: Union[int, None] = None,
+        max_staleness: Union[int, None] = None,
         min_sample_ratio: float = 1.,
         alpha: float = 0.,
         beta: float = 0.,
@@ -101,6 +102,7 @@ class PrioritizedBuffer:
         self._reuse_count = {idx: 0 for idx in range(maxlen)}  # {position_idx: reuse_count}
 
         self.max_reuse = max_reuse if max_reuse is not None else np.inf
+        self.max_staleness = max_staleness if max_staleness is not None else np.inf
         assert (min_sample_ratio >= 1)
         self.min_sample_ratio = min_sample_ratio
         assert (0 <= alpha <= 1)
@@ -143,21 +145,27 @@ class PrioritizedBuffer:
         self.sum_tree[idx] = weight
         self.min_tree[idx] = weight
 
-    def sample(self, size: int) -> Optional[list]:
+    def sample(self, size: int, cur_learner_iter: int) -> Optional[list]:
         r"""
         Overview:
             Sample data with length ``size``
         Arguments:
             - size (:obj:`int`): the number of the data that will be sampled
+            - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness
         Returns:
             - sample_data (:obj:`list`): If check fails returns None; Otherwise returns a list with length ``size``, \
                 and each data owns keys: original keys + ['IS', 'priority', 'replay_unique_id', 'replay_buffer_idx']
         """
-        if not self._sample_check(size):
-            return None
-        indices = self._get_indices(size)
-        result = self._sample_with_indices(indices)
-        # deepcopy same indice data
+        # todo: while loop here, to do from here
+        left_to_sample = size
+        result = []
+        while left_to_sample:
+            if not self._sample_check(left_to_sample):
+                return None
+            indices = self._get_indices(left_to_sample)
+            result += self._sample_with_indices(indices, cur_learner_iter, len(result) == 0)
+            left_to_sample = size - len(result)
+        # Deepcopy ``result``'s same indice data in case ``self._get_indices`` may get datas with the same indices.
         for i in range(size):
             tmp = []
             for j in range(i + 1, size):
@@ -281,11 +289,11 @@ class PrioritizedBuffer:
     def _sample_check(self, size: int) -> bool:
         r"""
         Overview:
-            Check whether the buffer satisfies the sample condition (current element number is enough for sampling)
+            Check whether the buffer satisfies the sample condition (current elements are enough for sampling)
         Arguments:
-            - size (:obj:`int`): the number of the data that will be sampled
+            - size (:obj:`int`): The number of the data that will be sampled
         Returns:
-            - result (:obj:`bool`): whether the buffer can sample
+            - result (:obj:`bool`): Whether the buffer can sample
         """
         if self._valid_count / size < self.min_sample_ratio:
             print(
@@ -302,9 +310,9 @@ class PrioritizedBuffer:
         Overview:
             Get the sample index list according to the priority probability,
         Arguments:
-            - size (:obj:`int`): the number of the data that will be sampled
+            - size (:obj:`int`): The number of the data that will be sampled
         Returns:
-            - index_list (:obj:`list`): a list including all the sample indices
+            - index_list (:obj:`list`): A list including all the sample indices
         """
         # average divide size intervals and sample from them
         intervals = np.array([i * 1.0 / size for i in range(size)])
@@ -315,15 +323,22 @@ class PrioritizedBuffer:
         # find prefix sum index to approximate sample with probability
         return [self.sum_tree.find_prefixsum_idx(m) for m in mass]
 
-    def _sample_with_indices(self, indices: List[int]) -> list:
+    def _remove(self, idx: int) -> None:
+        self._data[idx] = None
+        self.sum_tree[idx] = self.sum_tree.neutral_element
+        self.min_tree[idx] = self.min_tree.neutral_element
+        self._valid_count -= 1
+
+    def _sample_with_indices(self, indices: List[int], cur_learner_iter: int, first_sample: bool = True) -> list:
         r"""
         Overview:
             Sample data with ``indices``; If a data item is reused for too many times,
             remove it and update internal variables(sum_tree, min_tree, valid_count)
         Arguments:
-            - indices (:obj:`List[int]`): a list including all the sample indices
+            - indices (:obj:`List[int]`): A list including all the sample indices
+            - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness
         Returns:
-            - data (:obj:`list`) sampled data
+            - data (:obj:`list`) Sampled data
         """
         # calculate max weight for normalizing IS
         sum_tree_root = self.sum_tree.reduce()
@@ -331,12 +346,22 @@ class PrioritizedBuffer:
         max_weight = (self._valid_count * p_min) ** (-self._beta)
         data = []
         for idx in indices:
+            # calculate staleness, if too stale, remove it and do not add it to the return data
+            collect_iter = self._data[idx].get('collect_iter', cur_learner_iter)
+            if isinstance(collect_iter, list):
+                # timestep transition's collect_iter is a list
+                collect_iter = min(collect_iter)
+            staleness = cur_learner_iter - collect_iter
+            if staleness >= self.max_staleness:
+                self._remove(idx)
+                continue
             if self._deepcopy:
                 # deepcopy data for avoiding interference
                 copy_data = copy.deepcopy(self._data[idx])
             else:
                 copy_data = self._data[idx]
             assert (copy_data is not None)
+            copy_data['staleness'] = staleness
             # store reuse for outer monitor
             copy_data['reuse'] = self._reuse_count[idx]
             # get IS(importance sampling weight for gradient step)
@@ -348,23 +373,20 @@ class PrioritizedBuffer:
         # remove the item whose "reuse count" is greater than max_reuse
         for idx in indices:
             if self._reuse_count[idx] > self.max_reuse:
-                self._data[idx] = None
-                self.sum_tree[idx] = self.sum_tree.neutral_element
-                self.min_tree[idx] = self.min_tree.neutral_element
-                self._valid_count -= 1
-        # anneal update beta
-        if self._anneal_step != 0:
+                self._remove(idx)
+        # anneal update beta, only the first sample will update, later samples caused by staleness will not update
+        # because they are together belong to one actual sample
+        if first_sample and self._anneal_step != 0:
             self._beta += self._beta_anneal_step
         return data
 
     def clear(self) -> None:
         """
-        Overview: clear all the data and reset the related variable
+        Overview:
+            Clear all the data and reset the related variable
         """
         for i in range(len(self._data)):
-            self._data[i] = None
-            self.sum_tree[i] = self.sum_tree.neutral_element
-            self.min_tree[i] = self.min_tree.neutral_element
+            self._remove(i)
             self._reuse_count[i] = 0
         self._valid_count = 0
         self.pointer = 0

@@ -146,10 +146,10 @@ def test_v_1step_td():
     reward = torch.rand(batch_size)
     done = torch.zeros(batch_size)
     data = v_1step_td_data(v, next_v, reward, done, None)
-    loss = v_1step_td_error(data, 0.99)
+    loss, td_error_per_sample = v_1step_td_error(data, 0.99)
     assert loss.shape == ()
     assert v.grad is None
     loss.backward()
     assert isinstance(v.grad, torch.Tensor)
     data = v_1step_td_data(v, next_v, reward, None, None)
-    loss = v_1step_td_error(data, 0.99)
+    loss, td_error_per_sample = v_1step_td_error(data, 0.99)
