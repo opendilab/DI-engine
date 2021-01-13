@@ -5,7 +5,12 @@ common:
 env:
     env_id: 'HalfCheetah-v3'  # ['HalfCheetah-v1', 'Hopper-v1', 'Walker2d-v1']  # stop_val: 10500, 3700, 5300
     frame_stack: 4
-    is_train: True
+    is_train: False
+    norm_obs: 
+        use_norm: True
+    norm_reward: 
+        use_norm: True
+        reward_discount: 0.98
     env_manager_type: 'subprocess'  # [base, subprocess]
     import_names: ['app_zoo.mujoco.envs.mujoco_env']
     env_type: 'mujoco'
@@ -13,11 +18,12 @@ env:
     evaluator_env_num: 8
     use_act_scale: True
 policy:
-    use_cuda: True
+    use_cuda: False
     policy_type: 'ddpg'
     import_names: ['nervex.policy.ddpg']
     on_policy: False
     use_priority: True
+    use_reward_batch_norm: False
     model:
         obs_dim: 17
         action_dim: 6

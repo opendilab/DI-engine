@@ -1,8 +1,10 @@
 import copy
 from collections import defaultdict
-
 import numpy as np
 import pytest
+from easydict import EasyDict
+import os
+import pickle
 
 from nervex.data import PrioritizedBuffer
 
@@ -19,10 +21,27 @@ def setup_prioritized_buffer():
     )
 
 
+@pytest.fixture(scope="function")
+def setup_demo_buffer():
+    demo_data_list = [generate_data() for _ in range(10)]
+    with open("test_demo_data.pkl", "wb") as f:
+        pickle.dump(demo_data_list, f)
+    demo_cfg = EasyDict(
+        {
+            'use_demo': False,
+            'load_path': './test_demo_data.pkl',
+            'alpha': 0.6,
+            'beta': 0.4,
+            'demo_ratio': 0.5,
+        }
+    )
+    demo_buffer = PrioritizedBuffer(is_demonstration=True, demonstration_cfg=demo_cfg)
+    os.popen("rm -rf test_demo_data.pkl")
+    return demo_buffer
+
+
 def generate_data():
-    ret = {
-        'obs': np.random.randn(4),
-    }
+    ret = {'obs': np.random.randn(4)}
     p_weight = np.random.uniform()
     if p_weight < 1. / 3:
         pass  # no key 'priority'
@@ -30,7 +49,6 @@ def generate_data():
         ret['priority'] = None
     else:
         ret['priority'] = np.random.uniform()
-
     return ret
 
 
@@ -201,3 +219,25 @@ class TestPrioritizedBuffer:
         for _ in range(2 + 1):
             assert setup_prioritized_buffer.used_data is not None
         assert setup_prioritized_buffer.used_data is None
+
+
+@pytest.mark.unittest
+class TestDemonstrationBuffer:
+
+    def test_naive(self, setup_demo_buffer):
+        assert setup_demo_buffer.validlen == setup_demo_buffer.maxlen  # assert full buffer
+        with pytest.raises(Exception):
+            setup_demo_buffer.append(generate_data())
+            setup_demo_buffer.extend([])
+        samples = setup_demo_buffer.sample(3, 0)
+        assert 'staleness' in samples[0]
+        assert samples[1]['staleness'] == -1
+        assert len(samples) == 3
+        update_info = {'replay_unique_id': [0, 2], 'replay_buffer_idx': [0, 2], 'priority': [1.33, 1.44]}
+        setup_demo_buffer.update(update_info)
+        samples = setup_demo_buffer.sample(10, 0)
+        for sample in samples:
+            if sample['replay_unique_id'] == 0:
+                assert abs(sample['priority'] - 1.33) <= 0.01 + 1e-5, sample
+            if sample['replay_unique_id'] == 2:
+                assert abs(sample['priority'] - 1.44) <= 0.02 + 1e-5, sample

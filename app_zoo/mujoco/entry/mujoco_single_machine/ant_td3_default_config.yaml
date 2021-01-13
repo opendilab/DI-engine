@@ -13,8 +13,8 @@ env:
     env_manager_type: 'subprocess'  # [base, subprocess]
     import_names: ['app_zoo.mujoco.envs.mujoco_env']
     env_type: 'mujoco'
-    actor_env_num: 20
-    evaluator_env_num: 10
+    actor_env_num: 16
+    evaluator_env_num: 8
     use_act_scale: True
 policy:
     use_cuda: False

@@ -16,7 +16,12 @@ class MujocoEnv(BaseEnv):
         self._cfg = cfg
         self._use_act_scale = cfg.use_act_scale
         self._env = wrap_deepmind(
-            cfg.env_id, frame_stack=cfg.frame_stack, episode_life=cfg.is_train, clip_rewards=cfg.is_train, norm_obs=cfg.is_train, norm_rew=False
+            cfg.env_id,
+            frame_stack=cfg.frame_stack,
+            episode_life=cfg.is_train,
+            clip_rewards=cfg.is_train,
+            norm_obs=cfg.get('norm_obs', None),
+            norm_reward=cfg.get('norm_reward', None),
         )
 
     def reset(self) -> torch.FloatTensor:

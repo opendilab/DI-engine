@@ -10,6 +10,13 @@ replay_buffer:
     timeout: 8  # times of the seconds of per learning iteration
     enable_track_used_data: False
     deepcopy: False
+    demonstration_buffer:
+        use_demo: False
+        load_path: './demonstration_data.pkl'
+        alpha: 0.6
+        beta: 0.4
+        demo_ratio: 0.00390625  # 1/256
+        deepcopy: False
     monitor:
         log_freq: 2000
         log_path: .

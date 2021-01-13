@@ -4,6 +4,7 @@ from threading import Thread
 from typing import Union, Optional
 from functools import partial
 import time
+import numpy as np
 
 from nervex.data.structure import PrioritizedBuffer, Cache
 from nervex.utils import LockContext, LockContextType, read_config, deep_merge_dicts, EasyTimer
@@ -23,7 +24,8 @@ class NaturalMonitor(LoggedModel):
         time, expire
     """
     in_count = LoggedValue(int)
-    out_count = LoggedValue(int)
+    agent_out_count = LoggedValue(int)
+    demo_out_count = LoggedValue(int)
 
     # __thruput_property_names = ['in_count', 'out_count']
 
@@ -39,7 +41,8 @@ class NaturalMonitor(LoggedModel):
             return _sum / self.expire
 
         self.register_attribute_value('avg', 'in_count', partial(__avg_func, prop_name='in_count'))
-        self.register_attribute_value('avg', 'out_count', partial(__avg_func, prop_name='out_count'))
+        self.register_attribute_value('avg', 'agent_out_count', partial(__avg_func, prop_name='agent_out_count'))
+        self.register_attribute_value('avg', 'demo_out_count', partial(__avg_func, prop_name='demo_out_count'))
 
 
 class OutTickMonitor(LoggedModel):
@@ -118,7 +121,7 @@ class InTickMonitor(LoggedModel):
 class ReplayBuffer:
     """
     Overview:
-        Reinforcement Learning replay buffer, with priority sampling, data cache
+        Reinforcement Learning replay buffer, with prioritized sampling and data cache.
     Interface:
         __init__, push_data, sample, update, run, close
     """
@@ -137,7 +140,22 @@ class ReplayBuffer:
         self.traj_len = cfg.get('traj_len', None)
         # unroll_len is learner's training data length, often smaller than traj_len
         self.unroll_len = cfg.get('unroll_len', None)
+
+        # demonstration buffer
+        demo_cfg = self.cfg.demonstration_buffer
+        self.use_demo = demo_cfg.get('use_demo', False)
+        if self.use_demo:
+            self._demo_ratio = demo_cfg.get('demo_ratio', 1. / 256)
+            self._demo_buffer = PrioritizedBuffer(
+                is_demonstration=True,
+                demonstration_cfg=demo_cfg,
+            )
+            self._demo_lock = LockContext(type_=LockContextType.THREAD_LOCK)
+
         # main buffer
+        # unique_id is used to init meta buffer's latest_data_id,
+        # if use demonstration, this value would depends on demo buffer's last data; otherwise would be 0
+        start_unique_id = self._demo_buffer.latest_data_id if self.use_demo else 0
         self._meta_buffer = PrioritizedBuffer(
             maxlen=self.cfg.meta_maxlen,
             max_reuse=max_reuse,
@@ -148,6 +166,7 @@ class ReplayBuffer:
             anneal_step=self.cfg.anneal_step,
             enable_track_used_data=self.cfg.enable_track_used_data,
             deepcopy=self.cfg.deepcopy,
+            start_unique_id=start_unique_id,
         )
         self._meta_lock = LockContext(type_=LockContextType.THREAD_LOCK)
 
@@ -234,33 +253,69 @@ class ReplayBuffer:
     def sample(self, batch_size: int, cur_learner_iter: int) -> Optional[list]:
         """
         Overview:
-            Sample data from replay buffer
+            Sample data from replay buffer. If using demonstration buffer, should decide how many will be sampled from
+            agent one and demonstration one.
         Arguments:
             - batch_size (:obj:`int`): Batch size of the data that will be sampled
-            - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness
+            - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness \
+                (not functional in demonstration buffer)
         Returns:
             - data (:obj:`list` ): Sampled data batch
         Note:
             thread-safe
         """
-        with self._timer:
-            with self._meta_lock:
-                data = self._meta_buffer.sample(batch_size, cur_learner_iter)
-        if data is None:
-            # no enough element for sampling
-            return None
-        data_count = len(data)
-        self._natural_monitor.out_count = data_count
+        if self.use_demo:
+            # sample from agent buffer and demo buffer respectively
+            prob = np.random.rand(batch_size)
+            data_source = (prob > self._demo_ratio)  # True for agent buffer, False for demo buffer
+            agent_size = data_source.sum()
+            demo_size = batch_size - agent_size
+            with self._timer:
+                with self._meta_lock:
+                    agent_data = self._meta_buffer.sample(agent_size, cur_learner_iter)
+                with self._demo_lock:
+                    demo_data = self._demo_buffer.sample(demo_size, cur_learner_iter)
+            if agent_data is None:
+                return None
+            if demo_data is None:
+                self.use_demo = False
+                return None
+            data = [None for _ in range(batch_size)]
+            # fill ``data`` with datas from agent buffer and demo buffer according to ``data_source``
+            agent_ptr, demo_ptr = 0, 0
+            for idx, i in enumerate(data_source):
+                if i:  # True, agent buffer
+                    data[idx] = agent_data[agent_ptr]
+                    agent_ptr += 1
+                else:  # False, demo buffer
+                    data[idx] = demo_data[demo_ptr]
+                    demo_ptr += 1
+            # stop sampling from demo buffer once demo buffer is empty
+            if self._demo_buffer.validlen == 0:
+                self.use_demo = False
+        else:
+            # only sample from agent buffer (meta buffer)
+            agent_size = batch_size
+            with self._timer:
+                with self._meta_lock:
+                    agent_data = self._meta_buffer.sample(agent_size, cur_learner_iter)
+            if agent_data is None:
+                return None
+            data = agent_data
+        self._natural_monitor.agent_out_count = agent_size
+        if self.use_demo:
+            self._natural_monitor.demo_out_count = demo_size
         self._out_tick_monitor.out_time = self._timer.value
-        reuse = sum([d['reuse'] for d in data]) / batch_size
-        priority = sum([d['priority'] for d in data]) / batch_size
-        staleness = sum([d['staleness'] for d in data]) / batch_size
+        # todo: only monitor agent data's reuse priority staleness, demo data?
+        reuse = sum([d['reuse'] for d in agent_data]) / agent_size
+        priority = sum([d['priority'] for d in agent_data]) / agent_size
+        staleness = sum([d['staleness'] for d in agent_data]) / agent_size
         self._out_tick_monitor.reuse = int(reuse)
         self._out_tick_monitor.priority = priority
         self._out_tick_monitor.staleness = staleness
         self._out_tick_monitor.time.step()
         out_dict = {
-            'out_count_avg': self._natural_monitor.avg['out_count'](),
+            'agent_out_count_avg': self._natural_monitor.avg['agent_out_count'](),
             'out_time_avg': self._out_tick_monitor.avg['out_time'](),
             'reuse_avg': self._out_tick_monitor.avg['reuse'](),
             'reuse_max': self._out_tick_monitor.max['reuse'](),
@@ -270,6 +325,8 @@ class ReplayBuffer:
             'staleness_avg': self._out_tick_monitor.avg['staleness'](),
             'staleness_max': self._out_tick_monitor.max['staleness'](),
         }
+        if self.use_demo:
+            out_dict['demo_out_count_avg'] = self._natural_monitor.avg['demo_out_count']()
         self._out_count += 1
         if self._out_count % self._log_freq == 0:
             self._logger.info("===Read Buffer {} Times===".format(self._out_count))
@@ -288,6 +345,9 @@ class ReplayBuffer:
         """
         with self._meta_lock:
             self._meta_buffer.update(info)
+        if self.use_demo:
+            with self._demo_lock:
+                self._demo_buffer.update(info)
 
     def clear(self) -> None:
         """
