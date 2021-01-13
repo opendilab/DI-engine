@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from nervex.torch_utils.optimizer_util import Adam
+from nervex.torch_utils.optimizer_util import Adam, RMSProp
 import pytest
 import time
 
@@ -24,28 +24,51 @@ def try_optim_with(tname, t, optim_t):
     net = LinearNet()
     mse_fn = nn.L1Loss()
     if tname == 'grad_clip':
-        optimizer = Adam(
-            net.parameters(),
-            grad_clip_type=t,
-            clip_value=0.000001,
-            clip_norm_type=1.2,
-            lr=0.1,
-            optim_type=optim_t,
-            clip_momentum_timestep=2,
-            ignore_momentum_timestep=2
-        )
+        if optim_t == 'rmsprop':
+            optimizer = RMSProp(
+                net.parameters(),
+                grad_clip_type=t,
+                clip_value=0.000001,
+                clip_norm_type=1.2,
+                lr=0.1,
+                clip_momentum_timestep=2,
+                ignore_momentum_timestep=2
+            )
+        else:
+            optimizer = Adam(
+                net.parameters(),
+                grad_clip_type=t,
+                clip_value=0.000001,
+                clip_norm_type=1.2,
+                lr=0.1,
+                optim_type=optim_t,
+                clip_momentum_timestep=2,
+                ignore_momentum_timestep=2
+            )
     if tname == 'grad_ignore':
-        optimizer = Adam(
-            net.parameters(),
-            grad_ignore_type=t,
-            clip_value=0.000001,
-            ignore_value=0.000001,
-            ignore_norm_type=1.2,
-            lr=0.1,
-            optim_type=optim_t,
-            clip_momentum_timestep=2,
-            ignore_momentum_timestep=2,
-        )
+        if optim_t == 'rmsprop':
+            optimizer = RMSProp(
+                net.parameters(),
+                grad_ignore_type=t,
+                clip_value=0.000001,
+                ignore_value=0.000001,
+                ignore_norm_type=1.2,
+                lr=0.1,
+                clip_momentum_timestep=2,
+                ignore_momentum_timestep=2,
+            )
+        else:
+            optimizer = Adam(
+                net.parameters(),
+                grad_ignore_type=t,
+                clip_value=0.000001,
+                ignore_value=0.000001,
+                ignore_norm_type=1.2,
+                lr=0.1,
+                optim_type=optim_t,
+                clip_momentum_timestep=2,
+                ignore_momentum_timestep=2,
+            )
     # 网络输入和标签
     x = torch.FloatTensor([120])
     x.requires_grad = True
@@ -89,3 +112,18 @@ class TestAdam:
             for tname in ['grad_clip', 'grad_ignore']:
                 for t in support_type[tname]:
                     try_optim_with(tname=tname, t=t, optim_t=optim_t)
+
+
+@pytest.mark.unittest
+class TestRMSProp:
+
+    def test_naive(self):
+        support_type = {
+            'grad_clip': [None, 'clip_momentum', 'clip_value', 'clip_norm', 'clip_momentum_norm'],
+            'grad_norm': [None],
+            'grad_ignore': [None, 'ignore_momentum', 'ignore_value', 'ignore_norm', 'ignore_momentum_norm'],
+        }
+
+        for tname in ['grad_clip', 'grad_ignore']:
+            for t in support_type[tname]:
+                try_optim_with(tname=tname, t=t, optim_t='rmsprop')
