@@ -45,10 +45,15 @@ def test_qmix():
 
 @pytest.mark.unittest
 def test_collaQ():
-    agent_num, bs, T = 4, 3, 8
+    agent_num, bs, T = 4, 6, 8
     obs_dim, obs_alone_dim, global_obs_dim, action_dim = 32, 24, 32 * 4, 9
+    self_feature_range = [8, 10]
+    allay_feature_range = [10, 16]
     embedding_dim = 32
-    collaQ_model = CollaQ(agent_num, obs_dim, obs_alone_dim, global_obs_dim, action_dim, embedding_dim)
+    collaQ_model = CollaQ(
+        agent_num, obs_dim, obs_alone_dim, global_obs_dim, action_dim, embedding_dim, True, self_feature_range,
+        allay_feature_range, 32
+    )
     data = {
         'obs': {
             'agent_state': torch.randn(T, bs, agent_num, obs_dim),
@@ -68,6 +73,7 @@ def test_collaQ():
         [len(q) == agent_num for n in output['next_state'] for q in n]
     )
     print(output['next_state'][0][0][0][0].shape)
+    # data['prev_state'] = output['next_state']
     loss = output['total_q'].sum()
     is_differentiable(loss, collaQ_model)
     data.pop('action')

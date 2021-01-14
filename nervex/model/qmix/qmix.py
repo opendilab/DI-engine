@@ -1,9 +1,14 @@
 import torch
+import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 from functools import reduce
 from nervex.model import FCRDiscreteNet
 from nervex.utils import list_split, squeeze
+from typing import Union, List
+from nervex.torch_utils.network.nn_module import fc_block
+from nervex.torch_utils.network.transformer import ScaledDotProductAttention
+from nervex.torch_utils import to_tensor, tensor_to_list
 
 
 class Mixer(nn.Module):
@@ -148,11 +153,105 @@ class QMix(nn.Module):
         return nn.Sequential(*layers)
 
 
+class CollaQMultiHeadAttention(nn.Module):
+
+    def __init__(self, n_head: int, d_model: int, d_k: int, d_v: int, d_out: int, dropout=0.):
+        super(CollaQMultiHeadAttention, self).__init__()
+
+        self.act = nn.ReLU()
+
+        self.n_head = n_head
+        self.d_k = d_k
+        self.d_v = d_v
+
+        self.w_qs = nn.Linear(d_model, n_head * d_k)
+        self.w_ks = nn.Linear(d_model, n_head * d_k)
+        self.w_vs = nn.Linear(d_model, n_head * d_v)
+
+        self.fc1 = fc_block(n_head * d_v, n_head * d_v, activation=self.act)
+        self.fc2 = fc_block(n_head * d_v, d_out)
+
+        self.attention = ScaledDotProductAttention(d_k=d_k)
+        self.layer_norm_q = nn.LayerNorm(n_head * d_k, eps=1e-6)
+        self.layer_norm_k = nn.LayerNorm(n_head * d_k, eps=1e-6)
+        self.layer_norm_v = nn.LayerNorm(n_head * d_v, eps=1e-6)
+
+    def forward(self, q, k, v, mask=None):
+        d_k, d_v, n_head = self.d_k, self.d_v, self.n_head
+        batch_size, len_q, len_k, len_v = q.size(0), q.size(1), k.size(1), v.size(1)
+
+        # Pass through the pre-attention projection: batch_size x len_q x (n_head * d_v)
+        # Separate different heads: batch_size x len_q x n_head x d_v
+        q = self.w_qs(q).view(batch_size, len_q, n_head, d_k)
+        k = self.w_ks(k).view(batch_size, len_k, n_head, d_k)
+        v = self.w_vs(v).view(batch_size, len_v, n_head, d_v)
+        residual = q
+
+        # Transpose for attention dot product: batch_size x n_head x len_q x d_v
+        q, k, v = self.layer_norm_q(q).transpose(1, 2), self.layer_norm_k(k).transpose(
+            1, 2
+        ), self.layer_norm_v(v).transpose(1, 2)
+        # Unsqueeze the mask tensor for head axis broadcasting
+        if mask is not None:
+            mask = mask.unsqueeze(1)
+        q = self.attention(q, k, v, mask=mask)
+
+        # Transpose to move the head dimension back: batch_size x len_q x n_head x d_v
+        # Combine the last two dimensions to concatenate all the heads together: batch_size x len_q x (n*dv)
+        q = q.transpose(1, 2).contiguous().view(batch_size, len_q, -1)
+        q = self.fc2(self.fc1(q))
+        return q, residual
+
+
+class CollaQSMACAttentionModule(nn.Module):
+
+    def __init__(self, each_dim, self_feature_range, allay_feature_range, attention_dim):
+        super(CollaQSMACAttentionModule, self).__init__()
+        self.each_dim = each_dim
+        self.self_feature_range = self_feature_range
+        self.allay_feature_range = allay_feature_range
+        self.attention_layer = CollaQMultiHeadAttention(1, self.each_dim, attention_dim, attention_dim, attention_dim)
+
+    def _cut_obs(self, obs):
+        # obs shape = (T, B, A, obs_dim)
+        self_features = obs[:, :, :, self.self_feature_range[0]:self.self_feature_range[1]]
+        allay_features = obs[:, :, :, self.allay_feature_range[0]:self.allay_feature_range[1]]
+        return self_features, allay_features
+
+    def forward(self, inputs):
+        obs = inputs
+        self_features, allay_features = self._cut_obs(obs)
+        T, B, A, _ = self_features.shape
+        self_features = self_features.reshape(T * B * A, 1, -1)
+        allay_features = allay_features.reshape(T * B * A, A - 1, -1)
+        self_features, allay_features = self.attention_layer(self_features, allay_features, allay_features)
+        self_features = self_features.reshape(T, B, A, -1)
+        allay_features = allay_features.reshape(T, B, A, -1)
+        # note: we assume self_feature is near the allay_feature here so we can do this concat
+        obs = torch.cat(
+            [
+                obs[:, :, :, :self.self_feature_range[0]], self_features, allay_features,
+                obs[:, :, :, self.allay_feature_range[1]:]
+            ],
+            dim=-1
+        )
+        return obs
+
+
 class CollaQ(nn.Module):
 
     def __init__(
-            self, agent_num: int, obs_dim: int, obs_alone_dim: int, global_obs_dim: int, action_dim: int,
-            embedding_dim: int, enable_attention: bool=False, attention_dim: int=32,
+            self,
+            agent_num: int,
+            obs_dim: int,
+            obs_alone_dim: int,
+            global_obs_dim: int,
+            action_dim: int,
+            embedding_dim: int,
+            enable_attention: bool = False,
+            self_feature_range: Union[List[int], None] = None,
+            allay_feature_range: Union[List[int], None] = None,
+            attention_dim: int = 32,
     ) -> None:
         super(CollaQ, self).__init__()
         self.enable_attention = enable_attention
@@ -161,11 +260,18 @@ class CollaQ(nn.Module):
         if not self.enable_attention:
             self._q_network = FCRDiscreteNet(obs_dim, action_dim, embedding_dim)
         else:
-            #TODO change the obs_dim_TODO here to enable attention collaQ
-            obs_dim_TODO = obs_dim # + 3 * attent_dim
-            self._q_network = FCRDiscreteNet(obs_dim_TODO, action_dim, embedding_dim)
-            #TODO set the attention layer correctly here
-            self._self_attention = lambda x: x
+            #TODO set the attention layer here beautifully
+            self._self_attention = CollaQSMACAttentionModule(
+                self_feature_range[1] - self_feature_range[0], self_feature_range, allay_feature_range, attention_dim
+            )
+            #TODO get the obs_dim_after_attention here beautifully
+            obs_dim_after_attention = self._self_attention(
+                torch.randn(
+                    1, 1, (allay_feature_range[1] - allay_feature_range[0]) //
+                    (self_feature_range[1] - self_feature_range[0]) + 1, obs_dim
+                )
+            ).shape[-1]
+            self._q_network = FCRDiscreteNet(obs_dim_after_attention, action_dim, embedding_dim)
         self._q_alone_network = FCRDiscreteNet(obs_alone_dim, action_dim, embedding_dim)
         self._mixer = Mixer(agent_num, embedding_dim)
         global_obs_dim = squeeze(global_obs_dim)
@@ -208,15 +314,12 @@ class CollaQ(nn.Module):
 
         # TODO find a better way to implement agent_along_padding_state
 
-
-
         action = data.get('action', None)
         if single_step:
-            agent_state, agent_alone_state, global_state = agent_state.unsqueeze(0), agent_alone_state.unsqueeze(
+            agent_state, agent_alone_state, agent_alone_padding_state, global_state = agent_state.unsqueeze(
                 0
-            ), global_state.unsqueeze(0)
+            ), agent_alone_state.unsqueeze(0), agent_alone_padding_state.unsqueeze(0), global_state.unsqueeze(0)
         T, B, A = agent_state.shape[:3]
-
 
         if self.enable_attention:
             agent_state = self._self_attention(agent_state)
@@ -230,9 +333,34 @@ class CollaQ(nn.Module):
             [len(q) == A] for p in prev_state for q in p
         ), '{}-{}-{}-{}'.format([type(p) for p in prev_state], B, A, len(prev_state[0]))
 
-        alone_prev_state = prev_state[:][0][:]
-        colla_prev_state = prev_state[:][1][:]
-        colla_alone_prev_state = prev_state[:][2][:]
+        alone_prev_state = [[None for _ in range(A)] for _ in range(B)]
+        colla_prev_state = [[None for _ in range(A)] for _ in range(B)]
+        colla_alone_prev_state = [[None for _ in range(A)] for _ in range(B)]
+
+        for i in range(B):
+            for j in range(3):
+                for k in range(A):
+                    if j == 0:
+                        alone_prev_state[i][k] = prev_state[i][j][k]
+                    elif j == 1:
+                        colla_prev_state[i][k] = prev_state[i][j][k]
+                    elif j == 2:
+                        colla_alone_prev_state[i][k] = prev_state[i][j][k]
+
+        # if not prev_state[0][0][0]:
+
+        #     prev_state = np.array(prev_state)
+        #     alone_prev_state = prev_state[:, 0, :].tolist()
+        #     colla_prev_state = prev_state[:, 1, :].tolist()
+        #     colla_alone_prev_state = prev_state[:, 2, :].tolist()
+        # else:
+        #     prev_state = to_tensor(prev_state, torch.float)
+        #     print(prev_state)
+        #     alone_prev_state = prev_state[:, 0, :]
+        #     colla_prev_state = prev_state[:, 1, :]
+        #     colla_alone_prev_state = prev_state[:, 2, :]
+
+        # print("before reduce","B", len(alone_prev_state), "A", len(alone_prev_state[0]) )
 
         alone_prev_state = reduce(lambda x, y: x + y, alone_prev_state)
         colla_prev_state = reduce(lambda x, y: x + y, colla_prev_state)
@@ -243,6 +371,10 @@ class CollaQ(nn.Module):
         agent_alone_padding_state = agent_alone_padding_state.reshape(T, -1, *agent_alone_padding_state.shape[3:])
 
         global_state_embedding = self._global_state_encoder(global_state)
+
+        # alone_prev_state = [None for _ in range(agent_state.shape[1])]
+        # colla_prev_state = [None for _ in range(agent_state.shape[1])]
+        # colla_alone_prev_state = [None for _ in range(agent_state.shape[1])]
 
         colla_output = self._q_network(
             {
@@ -290,11 +422,13 @@ class CollaQ(nn.Module):
         agent_q_act = torch.gather(total_q_before_mix, dim=-1, index=action.unsqueeze(-1))
         total_q = self._mixer(agent_q_act, global_state_embedding).reshape(T, B)
         if single_step:
-            total_q, agent_q = total_q.squeeze(0), agent_q.squeeze(0)
+            total_q, agent_q, agent_colla_alone_q = total_q.squeeze(0), agent_q.squeeze(0), agent_colla_alone_q.squeeze(
+                0
+            )
         return {
             'total_q': total_q,
-            'logit': agent_q,
-            'agent_colla_alone_q': agent_colla_alone_q, # might need to be passed out for regulization
+            'logit': agent_colla_alone_q,
+            'agent_colla_alone_q': agent_colla_alone_q * data['obs']['action_mask'],
             'next_state': next_state,
             'action_mask': data['obs']['action_mask']
         }

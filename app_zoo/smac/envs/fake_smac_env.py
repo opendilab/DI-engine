@@ -12,6 +12,7 @@ class FakeSMACEnv(BaseEnv):
         self.agent_num = 8
         self.action_dim = 6 + self.agent_num
         self.obs_dim = 248
+        self.obs_alone_dim = 216
         self.global_obs_dim = 216
 
     def reset(self):
@@ -21,6 +22,8 @@ class FakeSMACEnv(BaseEnv):
     def _get_obs(self):
         return {
             'agent_state': torch.randn(self.agent_num, self.obs_dim),
+            'agent_alone_state': torch.randn(self.agent_num, self.obs_alone_dim),
+            'agent_alone_padding_state': torch.randn(self.agent_num, self.obs_dim),
             'global_state': torch.randn(self.global_obs_dim),
             'action_mask': torch.randint(0, 2, size=(self.agent_num, self.action_dim)),
         }
@@ -43,6 +46,8 @@ class FakeSMACEnv(BaseEnv):
             obs_space=T(
                 {
                     'agent_state': (self.agent_num, self.obs_dim),
+                    'agent_alone_state': (self.agent_num, self.obs_alone_dim),
+                    'agent_alone_padding_state': (self.agent_num, self.obs_dim),
                     'global_state': (self.global_obs_dim, ),
                     'action_mask': (self.agent_num, self.action_dim)
                 }, None, None, None

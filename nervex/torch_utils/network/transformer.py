@@ -192,3 +192,20 @@ class Transformer(nn.Module):
         x = self.dropout(x)
         x, mask = self.main((x, mask))
         return x
+
+
+class ScaledDotProductAttention(nn.Module):
+
+    def __init__(self, d_k: int, dropout=0.0):
+        super(ScaledDotProductAttention, self).__init__()
+        self.d_k = d_k
+        self.dropout = nn.Dropout(dropout)
+
+    def forward(self, q, k, v, mask=None):
+        attn = torch.matmul(q / (self.d_k ** 0.5), k.transpose(2, 3))
+        if mask is not None:
+            attn = attn.masked_fill(~mask, -1e9)
+
+        attn = self.dropout(F.softmax(attn, dim=-1))
+        output = torch.matmul(attn, v)
+        return output
