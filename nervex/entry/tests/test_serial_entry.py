@@ -191,6 +191,21 @@ def test_qmix():
 
 
 @pytest.mark.unittest
+def test_collaQ():
+    path = os.path.join(os.path.dirname(__file__), '../../../app_zoo/smac/entry/smac_collaQ_default_config.yaml')
+    config = read_config(path)
+    config.env.env_type = 'fake_smac'
+    config.env.import_names = ['app_zoo.smac.envs.fake_smac_env']
+    config.policy.use_cuda = False
+    config.policy.learn.train_step = 1
+    config.evaluator.stop_val = -float("inf")
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
 def test_coma():
     path = os.path.join(os.path.dirname(__file__), '../../../app_zoo/smac/entry/smac_coma_default_config.yaml')
     config = read_config(path)
