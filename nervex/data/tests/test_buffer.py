@@ -8,16 +8,34 @@ import pickle
 
 from nervex.data import PrioritizedBuffer
 
+monitor_cfg = EasyDict(
+    {
+        'log_freq': 2000,
+        'log_path': './log/buffer/a_buffer/',
+        'natural_expire': 100,
+        'tick_expire': 100,
+    }
+)
+
 
 @pytest.fixture(scope="function")
 def setup_base_buffer():
-    return PrioritizedBuffer(maxlen=64, max_reuse=2, min_sample_ratio=2., alpha=0., beta=0.)
+    return PrioritizedBuffer(
+        name="agent", maxlen=64, max_reuse=2, min_sample_ratio=2., alpha=0., beta=0., monitor_cfg=monitor_cfg
+    )
 
 
 @pytest.fixture(scope="function")
 def setup_prioritized_buffer():
     return PrioritizedBuffer(
-        maxlen=64, max_reuse=2, min_sample_ratio=2., alpha=0.6, beta=0.6, enable_track_used_data=True
+        name="agent",
+        maxlen=64,
+        max_reuse=2,
+        min_sample_ratio=2.,
+        alpha=0.6,
+        beta=0.6,
+        enable_track_used_data=True,
+        monitor_cfg=monitor_cfg
     )
 
 
@@ -26,16 +44,17 @@ def setup_demo_buffer():
     demo_data_list = [generate_data() for _ in range(10)]
     with open("test_demo_data.pkl", "wb") as f:
         pickle.dump(demo_data_list, f)
-    demo_cfg = EasyDict(
-        {
-            'use_demo': False,
-            'load_path': './test_demo_data.pkl',
-            'alpha': 0.6,
-            'beta': 0.4,
-            'demo_ratio': 0.5,
-        }
+    demo_buffer = PrioritizedBuffer(
+        name="demo",
+        load_path="test_demo_data.pkl",
+        maxlen=64,
+        max_reuse=2,
+        min_sample_ratio=1.,
+        alpha=0.6,
+        beta=0.6,
+        enable_track_used_data=True,
+        monitor_cfg=monitor_cfg
     )
-    demo_buffer = PrioritizedBuffer(is_demonstration=True, demonstration_cfg=demo_cfg)
     os.popen("rm -rf test_demo_data.pkl")
     return demo_buffer
 
@@ -58,7 +77,7 @@ class TestBaseBuffer:
     def test_append(self, setup_base_buffer):
         start_pointer = setup_base_buffer.pointer
         start_vaildlen = setup_base_buffer.validlen
-        start_data_id = setup_base_buffer.latest_data_id
+        start_data_id = setup_base_buffer.next_unique_id
         valid_count = 0
         for _ in range(100):
             if setup_base_buffer._data[setup_base_buffer.pointer] is None:
@@ -71,24 +90,26 @@ class TestBaseBuffer:
         assert (setup_base_buffer.validlen == start_vaildlen + valid_count)
         assert (setup_base_buffer.push_count == start_vaildlen + 100)
         assert (setup_base_buffer.pointer == (start_pointer + 100) % setup_base_buffer.maxlen)
-        assert (setup_base_buffer.latest_data_id == start_data_id + 100)
+        assert (setup_base_buffer.next_unique_id == start_data_id + 100)
 
         # invalid item append test
         setup_base_buffer.append([])
         assert (setup_base_buffer.validlen == start_vaildlen + valid_count)
         assert (setup_base_buffer.push_count == start_vaildlen + 100)
         assert (setup_base_buffer.pointer == (start_pointer + 100) % setup_base_buffer.maxlen)
-        assert (setup_base_buffer.latest_data_id == start_data_id + 100)
+        assert (setup_base_buffer.next_unique_id == start_data_id + 100)
+
+        os.popen('rm -rf log*')
 
     def test_extend(self, setup_base_buffer):
         start_pointer = setup_base_buffer.pointer
-        start_data_id = setup_base_buffer.latest_data_id
+        start_data_id = setup_base_buffer.next_unique_id
 
         init_num = int(0.2 * setup_base_buffer.maxlen)
         data = [generate_data() for _ in range(init_num)]
         setup_base_buffer.extend(data)
         assert setup_base_buffer.pointer == start_pointer + init_num
-        assert setup_base_buffer.latest_data_id == start_data_id + init_num
+        assert setup_base_buffer.next_unique_id == start_data_id + init_num
         start_pointer += init_num
         start_data_id += init_num
 
@@ -103,18 +124,21 @@ class TestBaseBuffer:
         setup_base_buffer.extend(data)
         valid_data_num = enlarged_length - int(0.1 * enlarged_length)
         assert setup_base_buffer.pointer == (start_pointer + valid_data_num) % setup_base_buffer.maxlen
-        assert setup_base_buffer.latest_data_id == start_data_id + valid_data_num
+        assert setup_base_buffer.next_unique_id == start_data_id + valid_data_num
 
         data = [None for _ in range(10)]
         setup_base_buffer.extend(data)
         assert setup_base_buffer.pointer == (start_pointer + valid_data_num) % setup_base_buffer.maxlen
-        assert setup_base_buffer.latest_data_id == start_data_id + valid_data_num
+        assert setup_base_buffer.next_unique_id == start_data_id + valid_data_num
         assert sum(setup_base_buffer._reuse_count.values()) == 0, sum(setup_base_buffer._reuse_count)
+
+        os.popen('rm -rf log*')
 
     def test_beta(self, setup_base_buffer):
         assert (setup_base_buffer.beta == 0.)
         setup_base_buffer.beta = 1.
         assert (setup_base_buffer.beta == 1.)
+        os.popen('rm -rf log*')
 
     def test_update(self, setup_base_buffer):
         for _ in range(64):
@@ -140,6 +164,8 @@ class TestBaseBuffer:
         for i in range(2, 5):
             assert (info['priority'][i] + eps == setup_base_buffer._data[selected_idx[i]]['priority'])
 
+        os.popen('rm -rf log*')
+
     def test_sample(self, setup_base_buffer):
         for _ in range(64):
             setup_base_buffer.append(generate_data())
@@ -160,6 +186,8 @@ class TestBaseBuffer:
             if v > setup_base_buffer.max_reuse:
                 assert setup_base_buffer._data[k] is None
         assert setup_base_buffer.used_data is None
+
+        os.popen('rm -rf log*')
 
 
 @pytest.mark.unittest
@@ -203,7 +231,7 @@ class TestPrioritizedBuffer:
             data.append(tmp)
             setup_prioritized_buffer.append(tmp)
         assert (setup_prioritized_buffer.validlen == 64)
-        assert (setup_prioritized_buffer.latest_data_id == 20 + 80)
+        assert (setup_prioritized_buffer.next_unique_id == 20 + 80)
         assert (setup_prioritized_buffer.pointer == (20 + 80) % 64)
         weights = get_weights(data[-64:])
         assert (np.fabs(weights.sum() - setup_prioritized_buffer.sum_tree.reduce()) < 1e-6)
@@ -212,6 +240,8 @@ class TestPrioritizedBuffer:
         weights = get_weights(data[36:64])
         assert (np.fabs(weights.sum() - setup_prioritized_buffer.sum_tree.reduce(start=36)) < 1e-6)
 
+        os.popen('rm -rf log*')
+
     def test_used_data(self, setup_prioritized_buffer):
         for _ in range(setup_prioritized_buffer._maxlen + 2):
             setup_prioritized_buffer.append({})
@@ -219,16 +249,14 @@ class TestPrioritizedBuffer:
         for _ in range(2 + 1):
             assert setup_prioritized_buffer.used_data is not None
         assert setup_prioritized_buffer.used_data is None
+        os.popen('rm -rf log*')
 
 
 @pytest.mark.unittest
 class TestDemonstrationBuffer:
 
     def test_naive(self, setup_demo_buffer):
-        assert setup_demo_buffer.validlen == setup_demo_buffer.maxlen  # assert full buffer
-        with pytest.raises(Exception):
-            setup_demo_buffer.append(generate_data())
-            setup_demo_buffer.extend([])
+        assert setup_demo_buffer.validlen != 0  # assert buffer not empty
         samples = setup_demo_buffer.sample(3, 0)
         assert 'staleness' in samples[0]
         assert samples[1]['staleness'] == -1
@@ -241,3 +269,4 @@ class TestDemonstrationBuffer:
                 assert abs(sample['priority'] - 1.33) <= 0.01 + 1e-5, sample
             if sample['replay_unique_id'] == 2:
                 assert abs(sample['priority'] - 1.44) <= 0.02 + 1e-5, sample
+        os.popen('rm -rf log*')

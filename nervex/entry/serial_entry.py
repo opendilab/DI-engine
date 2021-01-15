@@ -4,6 +4,7 @@ import time
 from typing import Union, Optional, List, Any
 import numpy as np
 import torch
+import math
 
 from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommand
 from nervex.worker import BaseEnvManager, SubprocessEnvManager
@@ -60,22 +61,22 @@ def serial_pipeline(
     iter_count = 0
     learner_train_step = cfg.policy.learn.train_step
     enough_data_count = cfg.policy.learn.batch_size * max(
-        cfg.replay_buffer.min_sample_ratio, cfg.policy.learn.train_step // cfg.replay_buffer.max_reuse
+        cfg.replay_buffer.min_sample_ratio, math.ceil(cfg.policy.learn.train_step / cfg.replay_buffer.max_reuse)
     )
     use_priority = cfg.policy.get('use_priority', False)
     while True:
         command.step()
         while True:
-            # actor keep generating data until replay buffer has enough to sample one batch
+            # actor keeps generating data until replay buffer has enough to sample one batch
             new_data, collect_info = actor.generate_data(iter_count)
             replay_buffer.push_data(new_data)
-            if replay_buffer.count >= enough_data_count:
+            if replay_buffer.count() >= enough_data_count:
                 break
         learner.collect_info = collect_info
         for _ in range(cfg.policy.learn.train_step):
             # learner will train ``train_step`` times in one iteration
             train_data = replay_buffer.sample(cfg.policy.learn.batch_size, iter_count)
-            assert train_data is not None, "please modify your data collect config, increase n_sample/n_episode"
+            assert train_data is not None, "please modify your data collect config, increase n_sample or n_episode"
             learner.train(train_data)
             if use_priority:
                 replay_buffer.update(learner.priority_info)

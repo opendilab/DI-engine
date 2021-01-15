@@ -3,7 +3,7 @@ common:
     save_path: '.'
     load_path: ''
 env:
-    env_id: 'Reacher-v3'  # ['HalfCheetah-v1', 'Hopper-v1', 'Walker2d-v1']  # stop_val: 10500, 3700, 5300
+    env_id: 'Reacher-v2'  # ['HalfCheetah-v1', 'Hopper-v1', 'Walker2d-v1']  # stop_val: 10500, 3700, 5300
     # 'Ant-v2': 5400
     # 'Reacher-v2': -3.1
     # 'InvPendulum-v2': 1000
@@ -17,7 +17,7 @@ env:
     evaluator_env_num: 8
     use_act_scale: True
 policy:
-    use_cuda: False
+    use_cuda: True
     policy_type: 'ddpg'
     import_names: ['nervex.policy.ddpg']
     on_policy: False
