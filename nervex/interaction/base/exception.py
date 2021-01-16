@@ -1,5 +1,5 @@
 from abc import ABCMeta
-from typing import Mapping, Any, Type, Optional
+from typing import Mapping, Any, Type, Optional, TypeVar
 
 from requests.exceptions import HTTPError
 
@@ -55,7 +55,7 @@ class ResponseError(Exception, _IResponseInformation, metaclass=ABCMeta):
         return self.__data
 
 
-_TR = ResponseError
+_TR = TypeVar('_TR', bound=ResponseError)
 
 
 # noinspection PyTypeChecker
