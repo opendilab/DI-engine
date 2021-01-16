@@ -1,3 +1,6 @@
-from .base import ResponseError, get_response_error, RequestException
-from .master import MasterErrorCode
+from .base import ResponseException, RequestException
+from .master import MasterErrorCode, get_exception_by_error, MasterResponseException, MasterSuccess, \
+    MasterChannelInvalid, MasterChannelNotFound, MasterMasterTokenInvalid, MasterMasterTokenNotGiven, \
+    MasterSelfTokenInvalid, MasterSelfTokenNotGiven, MasterSlaveTokenInvalid, MasterSlaveTokenNotGiven, \
+    MasterSystemShuttingDown, MasterTaskDataInvalid
 from .slave import SlaveErrorCode
