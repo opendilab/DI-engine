@@ -3,7 +3,7 @@ from typing import Mapping, Any, Type, Optional, TypeVar
 
 from requests.exceptions import HTTPError
 
-from .app import get_values_from_response, CommonErrorCode, success_response, failure_response
+from ..base import get_values_from_response, CommonErrorCode, success_response, failure_response
 
 
 class _IResponseInformation(metaclass=ABCMeta):
@@ -60,18 +60,18 @@ _TR = TypeVar('_TR', bound=ResponseError)
 
 # noinspection PyTypeChecker
 def get_response_error(class_name: str, err_type: Type[_TR]) -> Type[_TR]:
-    return type(class_name, (err_type, ), {})
+    return type(class_name, (err_type,), {})
 
 
 # exception class for processing request
 class RequestException(Exception, _IResponseInformation, metaclass=ABCMeta):
 
     def __init__(
-        self,
-        success: bool,
-        code: Optional[int] = None,
-        message: Optional[str] = None,
-        data: Optional[Mapping[str, Any]] = None
+            self,
+            success: bool,
+            code: Optional[int] = None,
+            message: Optional[str] = None,
+            data: Optional[Mapping[str, Any]] = None
     ):
         self.__success = not not success
         self.__code = CommonErrorCode.SUCCESS if self.__success else (code or CommonErrorCode.COMMON_FAILURE)
@@ -110,6 +110,6 @@ class RequestSuccess(RequestException, metaclass=ABCMeta):
 class RequestFail(RequestException, metaclass=ABCMeta):
 
     def __init__(
-        self, code: Optional[int] = None, message: Optional[str] = None, data: Optional[Mapping[str, Any]] = None
+            self, code: Optional[int] = None, message: Optional[str] = None, data: Optional[Mapping[str, Any]] = None
     ):
         RequestException.__init__(self, False, code, message, data)
