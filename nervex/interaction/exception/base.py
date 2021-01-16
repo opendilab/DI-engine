@@ -60,18 +60,18 @@ _TR = TypeVar('_TR', bound=ResponseError)
 
 # noinspection PyTypeChecker
 def get_response_error(class_name: str, err_type: Type[_TR]) -> Type[_TR]:
-    return type(class_name, (err_type,), {})
+    return type(class_name, (err_type, ), {})
 
 
 # exception class for processing request
 class RequestException(Exception, _IResponseInformation, metaclass=ABCMeta):
 
     def __init__(
-            self,
-            success: bool,
-            code: Optional[int] = None,
-            message: Optional[str] = None,
-            data: Optional[Mapping[str, Any]] = None
+        self,
+        success: bool,
+        code: Optional[int] = None,
+        message: Optional[str] = None,
+        data: Optional[Mapping[str, Any]] = None
     ):
         self.__success = not not success
         self.__code = CommonErrorCode.SUCCESS if self.__success else (code or CommonErrorCode.COMMON_FAILURE)
@@ -99,17 +99,3 @@ class RequestException(Exception, _IResponseInformation, metaclass=ABCMeta):
             return success_response(self.__data, self.__message)
         else:
             return failure_response(self.__code, self.__message, self.__data)
-
-
-class RequestSuccess(RequestException, metaclass=ABCMeta):
-
-    def __init__(self, data: Optional[Mapping[str, Any]] = None, message: Optional[str] = None):
-        RequestException.__init__(self, True, CommonErrorCode.SUCCESS, message, data)
-
-
-class RequestFail(RequestException, metaclass=ABCMeta):
-
-    def __init__(
-            self, code: Optional[int] = None, message: Optional[str] = None, data: Optional[Mapping[str, Any]] = None
-    ):
-        RequestException.__init__(self, False, code, message, data)
