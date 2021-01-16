@@ -3,6 +3,7 @@ import socket
 from typing import Optional, Any, Mapping, Callable, Type, Tuple
 
 import requests
+from requests import HTTPError
 from urlobject import URLObject
 from urlobject.path import URLPath
 
@@ -86,8 +87,11 @@ class HttpEngine:
 
 
 def get_http_engine_class(
-    headers: Mapping[str, Callable[..., Any]],
-    data_processor: Optional[Callable[[Mapping[str, Any]], Mapping[str, Any]]] = None
+        headers: Mapping[str, Callable[..., Any]],
+        data_processor: Optional[Callable[[Mapping[str, Any]], Mapping[str, Any]]] = None,
+        http_error_gene: Optional[Callable[[
+            HTTPError,
+        ], None]] = None,
 ) -> Callable[..., Type[HttpEngine]]:
 
     def _func(*args, **kwargs) -> Type[HttpEngine]:
@@ -101,7 +105,10 @@ def get_http_engine_class(
                 return translate_dict_func(headers)(*args, **kwargs)
 
             def _error_handler(self, err: Exception):
-                raise err
+                if http_error_gene is not None and isinstance(err, HTTPError):
+                    raise http_error_gene
+                else:
+                    raise err
 
         return _HttpEngine
 
