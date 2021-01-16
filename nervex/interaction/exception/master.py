@@ -43,7 +43,7 @@ class MasterSystemShuttingDown(MasterResponseException):
     pass
 
 
-class MasterChannelNotFound(MasterResponseException):
+class MasterChannelNotGiven(MasterResponseException):
     pass
 
 
@@ -79,8 +79,11 @@ class MasterTaskDataInvalid(MasterResponseException):
     pass
 
 
+_PREFIX = ['master']
+
+
 def get_exception_class_by_error_code(error_code: MasterErrorCode) -> Type[MasterResponseException]:
-    class_name = ''.join([word.lower().capitalize() for word in error_code.name.split('_')])
+    class_name = ''.join([word.lower().capitalize() for word in (_PREFIX + error_code.name.split('_'))])
     return eval(class_name)
 
 
