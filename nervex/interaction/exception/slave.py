@@ -1,4 +1,9 @@
+from abc import ABCMeta
 from enum import unique, IntEnum
+
+from requests import HTTPError
+
+from .base import ResponseException
 
 
 @unique
@@ -23,3 +28,9 @@ class SlaveErrorCode(IntEnum):
 
     TASK_ALREADY_EXIST = 601
     TASK_REFUSED = 602
+
+
+class SlaveResponseException(ResponseException, metaclass=ABCMeta):
+
+    def __init__(self, error: HTTPError):
+        ResponseException.__init__(self, error)
