@@ -89,9 +89,7 @@ class HttpEngine:
 def get_http_engine_class(
         headers: Mapping[str, Callable[..., Any]],
         data_processor: Optional[Callable[[Mapping[str, Any]], Mapping[str, Any]]] = None,
-        http_error_gene: Optional[Callable[[
-            HTTPError,
-        ], None]] = None,
+        http_error_gene: Optional[Callable[[HTTPError], Exception]] = None,
 ) -> Callable[..., Type[HttpEngine]]:
 
     def _func(*args, **kwargs) -> Type[HttpEngine]:
@@ -106,7 +104,7 @@ def get_http_engine_class(
 
             def _error_handler(self, err: Exception):
                 if http_error_gene is not None and isinstance(err, HTTPError):
-                    raise http_error_gene
+                    raise http_error_gene(err)
                 else:
                     raise err
 

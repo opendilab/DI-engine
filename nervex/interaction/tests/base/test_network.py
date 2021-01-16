@@ -152,6 +152,7 @@ class TestInteractionBaseHttpEngine:
                 data_processor=(lambda d: {
                     'data': json.dumps(d)
                 }),
+                http_error_gene=lambda err: RuntimeError('This is {status}'.format(status=err.response.status_code))
             )()
             engine = _http_engine_class(host='example.com', port=7777, path='/this/is')
 
@@ -160,3 +161,9 @@ class TestInteractionBaseHttpEngine:
             assert json.loads(response.content.decode()) == {"success": True}
             assert response.request.headers['Token'] == '233'
             assert json.loads(response.request.body) == {'data': json.dumps({'a': 'skdjgflksdj'})}
+
+            with pytest.raises(RuntimeError) as ei:
+                engine.request('GET', '404', {'a': 'skdjgflksdj'})
+
+            err = ei.value
+            assert 'This is 404' in str(err)
