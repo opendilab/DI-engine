@@ -1,3 +1,4 @@
+from typing import Union, List
 import torch
 import numpy as np
 import torch.nn as nn
@@ -5,7 +6,6 @@ import torch.nn.functional as F
 from functools import reduce
 from nervex.model import FCRDiscreteNet
 from nervex.utils import list_split, squeeze
-from typing import Union, List
 from nervex.torch_utils.network.nn_module import fc_block
 from nervex.torch_utils.network.transformer import ScaledDotProductAttention
 from nervex.torch_utils import to_tensor, tensor_to_list
