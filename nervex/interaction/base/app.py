@@ -15,8 +15,10 @@ class CommonErrorCode(IntEnum):
 
 
 def flask_response(
-        success: bool, data: Optional[Mapping[str, Any]] = None,
-        message: Optional[str] = None, code: Optional[int] = None,
+    success: bool,
+    data: Optional[Mapping[str, Any]] = None,
+    message: Optional[str] = None,
+    code: Optional[int] = None,
 ):
     return jsonify(
         {
@@ -38,7 +40,7 @@ def success_response(data: Optional[Mapping[str, Any]] = None, message: Optional
 
 
 def failure_response(
-        code: Optional[int] = None, message: Optional[str] = None, data: Optional[Mapping[str, Any]] = None
+    code: Optional[int] = None, message: Optional[str] = None, data: Optional[Mapping[str, Any]] = None
 ):
     return flask_response(
         success=False,
@@ -64,11 +66,11 @@ def get_values_from_response(response: Union[requests.Response, flask.Response])
 class ResponsibleException(Exception):
 
     def __init__(
-            self,
-            code: int = CommonErrorCode.COMMON_FAILURE,
-            message: Optional[str] = None,
-            data: Optional[Mapping[str, Any]] = None,
-            status_code: int = 400
+        self,
+        code: int = CommonErrorCode.COMMON_FAILURE,
+        message: Optional[str] = None,
+        data: Optional[Mapping[str, Any]] = None,
+        status_code: int = 400
     ):
         Exception.__init__(self, message)
         self.__code = code
@@ -82,7 +84,7 @@ class ResponsibleException(Exception):
 
 def responsible(classes: Iterable[Type[ResponsibleException]] = None):
     if classes is None:
-        classes = (ResponsibleException,)
+        classes = (ResponsibleException, )
 
     def _decorator(func: Callable[..., Any]) -> Callable[..., Any]:
 

@@ -86,10 +86,12 @@ class HttpEngine:
 
 
 def get_http_engine_class(
-        headers: Mapping[str, Callable[..., Any]],
-        data_processor: Optional[Callable[[Mapping[str, Any]], Mapping[str, Any]]] = None
+    headers: Mapping[str, Callable[..., Any]],
+    data_processor: Optional[Callable[[Mapping[str, Any]], Mapping[str, Any]]] = None
 ) -> Callable[..., Type[HttpEngine]]:
+
     def _func(*args, **kwargs) -> Type[HttpEngine]:
+
         class _HttpEngine(HttpEngine):
 
             def _data_process(self, data: Optional[Mapping[str, Any]] = None) -> Mapping[str, Any]:
