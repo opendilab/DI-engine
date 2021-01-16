@@ -4,7 +4,7 @@ from requests import HTTPError
 from .bases import _TestInteractionBase
 from ..test_utils import random_port, random_channel
 from ...base import get_values_from_response
-from ...slave import SlaveErrorCode
+from ...error import SlaveErrorCode
 
 
 @pytest.mark.unittest

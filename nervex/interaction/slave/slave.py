@@ -12,10 +12,10 @@ import requests
 from flask import Flask, request
 
 from .action import ConnectionRefuse, DisconnectionRefuse, TaskRefuse, TaskFail
-from .error_code import SlaveErrorCode
 from ..base import random_token, ControllableService, get_http_engine_class, split_http_address, success_response, \
     failure_response, DblEvent
 from ..config import DEFAULT_SLAVE_PORT, DEFAULT_CHANNEL, GLOBAL_HOST, DEFAULT_HEARTBEAT_SPAN, MIN_HEARTBEAT_SPAN
+from ..error import SlaveErrorCode
 
 
 class Slave(ControllableService):
