@@ -18,20 +18,20 @@ from ..base import random_token, ControllableService, failure_response, success_
     get_http_engine_class
 from ..config import GLOBAL_HOST, DEFAULT_MASTER_PORT, DEFAULT_CHANNEL, MIN_HEARTBEAT_SPAN, DEFAULT_HEARTBEAT_SPAN, \
     DEFAULT_HEARTBEAT_TOLERANCE, MIN_HEARTBEAT_CHECK_SPAN, DEFAULT_HEARTBEAT_CHECK_SPAN
-from ..error import MasterErrorCode
+from ..exception import MasterErrorCode
 
 
 class Master(ControllableService):
 
     def __init__(
-        self,
-        host: Optional[str] = None,
-        port: Optional[int] = None,
-        heartbeat_span: Optional[float] = None,
-        heartbeat_tolerance: Optional[float] = None,
-        heartbeat_check_span: Optional[float] = None,
-        channel: Optional[int] = None,
-        my_address: Optional[str] = None
+            self,
+            host: Optional[str] = None,
+            port: Optional[int] = None,
+            heartbeat_span: Optional[float] = None,
+            heartbeat_tolerance: Optional[float] = None,
+            heartbeat_check_span: Optional[float] = None,
+            channel: Optional[int] = None,
+            my_address: Optional[str] = None
     ):
         # server part
         self.__host = host or GLOBAL_HOST

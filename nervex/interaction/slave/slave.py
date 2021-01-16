@@ -15,17 +15,17 @@ from .action import ConnectionRefuse, DisconnectionRefuse, TaskRefuse, TaskFail
 from ..base import random_token, ControllableService, get_http_engine_class, split_http_address, success_response, \
     failure_response, DblEvent
 from ..config import DEFAULT_SLAVE_PORT, DEFAULT_CHANNEL, GLOBAL_HOST, DEFAULT_HEARTBEAT_SPAN, MIN_HEARTBEAT_SPAN
-from ..error import SlaveErrorCode
+from ..exception import SlaveErrorCode
 
 
 class Slave(ControllableService):
 
     def __init__(
-        self,
-        host: Optional[str] = None,
-        port: Optional[int] = None,
-        heartbeat_span: Optional[float] = None,
-        channel: Optional[int] = None
+            self,
+            host: Optional[str] = None,
+            port: Optional[int] = None,
+            heartbeat_span: Optional[float] = None,
+            channel: Optional[int] = None
     ):
         # server part
         self.__host = host or GLOBAL_HOST

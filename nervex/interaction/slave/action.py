@@ -1,7 +1,7 @@
 from typing import Optional, Any, Mapping
 
 from ..base import ResponsibleException
-from ..error import SlaveErrorCode
+from ..exception import SlaveErrorCode
 
 
 class ConnectionRefuse(ResponsibleException):

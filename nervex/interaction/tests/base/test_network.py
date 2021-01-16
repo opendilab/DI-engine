@@ -92,7 +92,7 @@ class TestInteractionBaseHttpEngine:
             **{
                 'method': responses.GET,
                 'url': 'http://example.com:7777/this/is/404',
-                'body': json.dumps({"error": "reason"}),
+                'body': json.dumps({"exception": "reason"}),
                 'status': 404,
                 'content_type': 'application/json',
             }
@@ -125,7 +125,7 @@ class TestInteractionBaseHttpEngine:
 
             err = ei.value
             assert err.response.status_code == 404
-            assert json.loads(err.response.content.decode()) == {'error': 'reason'}
+            assert json.loads(err.response.content.decode()) == {'exception': 'reason'}
 
     @responses.activate
     def test_http_engine_with_path(self):
@@ -140,7 +140,7 @@ class TestInteractionBaseHttpEngine:
 
             err = ei.value
             assert err.response.status_code == 404
-            assert json.loads(err.response.content.decode()) == {'error': 'reason'}
+            assert json.loads(err.response.content.decode()) == {'exception': 'reason'}
 
     @responses.activate
     def test_get_http_engine_class(self):
