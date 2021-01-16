@@ -51,6 +51,9 @@ class HttpEngine:
     def _base_headers(self) -> Mapping[str, None]:
         return {}
 
+    def _error_handler(self, err: Exception):
+        raise err
+
     def get_url(self, path: str = None):
         original_segments = self.__base_url.path.segments
         path_segments = URLPath().add(path or '').segments
@@ -67,25 +70,26 @@ class HttpEngine:
         _headers = dict(self._base_headers())
         _headers.update(headers or {})
 
-        response = self.__session.request(
-            method=method,
-            url=self.get_url(path),
-            data=json.dumps(self._data_process(data) or {}),
-            headers=_headers or {},
-        )
-        if raise_for_status:
-            response.raise_for_status()
-
-        return response
+        try:
+            response = self.__session.request(
+                method=method,
+                url=self.get_url(path),
+                data=json.dumps(self._data_process(data) or {}),
+                headers=_headers or {},
+            )
+            if raise_for_status:
+                response.raise_for_status()
+        except Exception as e:
+            self._error_handler(e)
+        else:
+            return response
 
 
 def get_http_engine_class(
-    headers: Mapping[str, Callable[..., Any]],
-    data_processor: Optional[Callable[[Mapping[str, Any]], Mapping[str, Any]]] = None
+        headers: Mapping[str, Callable[..., Any]],
+        data_processor: Optional[Callable[[Mapping[str, Any]], Mapping[str, Any]]] = None
 ) -> Callable[..., Type[HttpEngine]]:
-
     def _func(*args, **kwargs) -> Type[HttpEngine]:
-
         class _HttpEngine(HttpEngine):
 
             def _data_process(self, data: Optional[Mapping[str, Any]] = None) -> Mapping[str, Any]:
@@ -93,6 +97,9 @@ def get_http_engine_class(
 
             def _base_headers(self) -> Mapping[str, None]:
                 return translate_dict_func(headers)(*args, **kwargs)
+
+            def _error_handler(self, err: Exception):
+                raise err
 
         return _HttpEngine
 
