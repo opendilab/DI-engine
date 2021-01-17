@@ -1,15 +1,11 @@
 import os
-import sys
 import time
-import traceback
-
-import requests
 from typing import List, Union
 from functools import partial
 from queue import Queue
 from threading import Thread
 
-from nervex.utils import read_file, save_file, get_rank, get_world_size, get_data_decompressor
+from nervex.utils import read_file, save_file, get_data_decompressor
 from nervex.interaction import Slave, TaskFail
 from .base_comm_learner import BaseCommLearner, register_comm_learner
 from ..learner_hook import LearnerHook
@@ -34,13 +30,13 @@ class FlaskFileSystemLearner(BaseCommLearner, Slave):
         """
         BaseCommLearner.__init__(self, cfg)
         host, port = cfg.host, cfg.port
+        if isinstance(port, list):
+            port = port[self._rank]
         Slave.__init__(self, host, port)
 
         self._path_data = cfg.path_data
         self._path_policy = cfg.path_policy
         self._send_policy_freq = cfg.send_policy_freq
-        self._rank = get_rank()
-        self._world_size = get_world_size()
 
         self._current_task_info = None
         self._data_demand_queue = Queue(maxsize=1)
@@ -130,7 +126,7 @@ class FlaskFileSystemLearner(BaseCommLearner, Slave):
                 s = read_file(path)
                 s = decompressor(s)
                 break
-            except Exception as e:
+            except Exception:
                 time.sleep(0.01)
         unroll_len = meta.get('unroll_len', 1)
         if 'unroll_split_begin' in meta:

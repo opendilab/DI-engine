@@ -79,6 +79,8 @@ class DQNPolicy(CommonPolicy):
         # ====================
         self._optimizer.zero_grad()
         loss.backward()
+        if self._use_distributed:
+            self.sync_gradients(self._agent.model)
         self._optimizer.step()
 
         # =============

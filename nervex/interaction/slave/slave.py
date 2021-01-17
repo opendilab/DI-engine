@@ -47,7 +47,7 @@ class Slave(ControllableService):
         # self-connection part
         self.__self_http_engine = get_http_engine_class(headers={
             'Token': lambda: self.__self_token,
-        })()('localhost', self.__port, False)
+        })()(self.__host, self.__port, False)
         self.__self_token = random_token()
 
         # master-connection part

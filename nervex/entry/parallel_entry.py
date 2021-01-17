@@ -1,9 +1,8 @@
 from typing import Optional, List
 import subprocess
 from easydict import EasyDict
-import time
 import pickle
-from nervex.worker import create_comm_learner, create_comm_actor, Coordinator
+from nervex.worker import create_comm_learner, create_comm_actor, Coordinator, LearnerAggregator
 from nervex.config import Config, parallel_transform, parallel_transform_slurm
 
 
@@ -34,21 +33,30 @@ def parallel_pipeline(
             pickle.dump(config, f)
         for k, v in config.items():
             if 'learner' in k:
+                use_aggregator = v.get('use_aggregator', False)
+                num = v.get('repeat_num', 1)
+                if use_aggregator:
+                    srun_args = "srun --mpi=pmi2 -p {} -w {} -n{} --gres=gpu:{}".format(v.partition, v.node, num, num)
+                else:
+                    srun_args = "srun -p {} -w {} --gres=gpu:1".format(v.partition, v.node)
                 subprocess.Popen(
-                    "srun -p {} -w {} --gres=gpu:1 --job-name=learner python -c \
+                    "{} --job-name=learner python -c \
                     \"import nervex.entry.parallel_entry as pe; pe.launch_learner(filename='{}', name='{}')\"".format(
-                        v.partition, v.node, real_filename, k
+                        srun_args, real_filename, k
                     ),
+                    stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     shell=True,
                 )
-                if v.get('use_aggregator', False):
+                if use_aggregator:
                     aggregator_k = 'aggregator' + k[7:]
                     aggregator_cfg = config[aggregator_k]
                     subprocess.Popen(
                         "srun -p {} -w {} --job-name=learner_aggregator python -c \
-                        \"import nervex.entry.parallel_entry as pe; pe.launch_learner_aggregator(filename='{}', name='{}'\""
-                        .format(aggregator_cfg.partition, aggregator_cfg.node, real_filename, aggregator_k)
+                        \"import nervex.entry.parallel_entry as pe; pe.launch_learner_aggregator(filename='{}', name='{}')\""
+                        .format(aggregator_cfg.partition, aggregator_cfg.node, real_filename, aggregator_k),
+                        stderr=subprocess.STDOUT,
+                        shell=True,
                     )
             elif 'actor' in k:
                 subprocess.Popen(
@@ -59,7 +67,6 @@ def parallel_pipeline(
                     stderr=subprocess.STDOUT,
                     shell=True,
                 )
-        time.sleep(10)
         # coordinator run in manager node
         subprocess.run(
             "python -c \"import nervex.entry.parallel_entry as pe; pe.launch_coordinator(filename='{}')\"".
@@ -77,6 +84,13 @@ def launch_learner(config: Optional[dict] = None, filename: Optional[str] = None
             config = pickle.load(f)[name]
     learner = create_comm_learner(config)
     learner.start()
+
+
+def launch_learner_aggregator(filename: Optional[str] = None, name: Optional[str] = None) -> None:
+    with open(filename, 'rb') as f:
+        config = pickle.load(f)[name]
+    aggregator = LearnerAggregator(config)
+    aggregator.start()
 
 
 def launch_actor(config: Optional[dict] = None, filename: Optional[str] = None, name: Optional[str] = None) -> None:

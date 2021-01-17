@@ -2,9 +2,11 @@ from typing import Union, Optional
 import traceback
 import numbers
 import copy
+import time
 from functools import reduce
 from nervex.interaction import Master, Slave, TaskFail
 from nervex.interaction.master.task import TaskStatus
+from nervex.utils import build_logger
 
 
 class LearnerAggregatorSlave(Slave):
@@ -32,34 +34,55 @@ class LearnerAggregator(object):
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         callback_fn = {
-            'resource': self.deal_with_get_resource,
-            'learner_start_task': self.deal_with_learner_start,
-            'learner_get_data_task': self.deal_with_get_data,
-            'learner_learn_task': self.deal_with_learn,
+            'deal_with_get_resource': self.deal_with_get_resource,
+            'deal_with_learner_start': self.deal_with_learner_start,
+            'deal_with_get_data': self.deal_with_get_data,
+            'deal_with_learn': self.deal_with_learn,
         }
         host, port = cfg.slave.host, cfg.slave.port
-        self._slave = LearnerAggregatorSlave(host, port, callback_fn)
-        host, port = cfg.master.host, cfg.master.port
-        self._master = Master(host, port)
+        self._slave = LearnerAggregatorSlave(host, port, callback_fn=callback_fn)
+        self._logger, _ = build_logger(path='./log', name='learner_aggregator')
 
         self._world_size = 0
         self._learner_connection = {}
 
     def start(self) -> None:
         try:
-            self._master.start()
-            self._master.ping()
-            self._world_size = 0
-            for _, (learner_id, learner_host, learner_port) in self._cfg.learner.items():
-                conn = self._interaction.new_connection(learner_id, learner_host, learner_port)
-                conn.connect()
-                assert conn.is_connected
-                self._learner_connection[learner_id] = conn
-                self._world_size += 1
             self._slave.start()
         except Exception as e:
-            self.close()
-            self._logger.error("connection start error:\n" + ''.join(traceback.format_tb(e.__traceback__)) + repr(e))
+            self._logger.error("learner_aggregator slave start error:\n" + ''.join(traceback.format_tb(e.__traceback__)) + repr(e))
+            return
+        max_retry_time = 60
+        start_time = time.time()
+        while time.time() - start_time <= max_retry_time:
+            try:
+                self._master = Master(self._cfg.master.host, self._cfg.master.port)
+                self._master.start()
+                self._master.ping()
+                self._world_size = 0
+                for _, (learner_id, learner_host, learner_port) in self._cfg.learner.items():
+                    conn = self._master.new_connection(learner_id, learner_host, learner_port)
+                    conn.connect()
+                    assert conn.is_connected
+                    self._logger.info("learner {} is connected".format(learner_id))
+                    self._learner_connection[learner_id] = conn
+                    self._world_size += 1
+                self._logger.info("learner aggregator is started")
+                break
+            except Exception as e:
+                # retry not close slave
+                try:
+                    for _, conn in self._learner_connection.items():
+                        conn.disconnect()
+                        assert not conn.is_connected
+                    self._learner_connection.clear()
+                    self._master.close()
+                except Exception:
+                    pass
+                self._logger.error("learner_aggregator master start error:\n" + ''.join(traceback.format_tb(e.__traceback__)) + repr(e))
+                time.sleep(5)
+        if len(self._learner_connection) == 0:
+            self._logger.error("learner_aggregator master max retries failed")
 
     def close(self) -> None:
         try:
@@ -68,7 +91,7 @@ class LearnerAggregator(object):
                 conn.disconnect()
                 assert not conn.is_connected
             self._master.close()
-        except:  # ignore close exception
+        except Exception:  # ignore close exception
             pass
 
     def deal_with_get_resource(self) -> dict:
@@ -76,7 +99,7 @@ class LearnerAggregator(object):
 
     def deal_with_learner_start(self, task: dict) -> dict:
         if len(self._learner_connection) == 0:
-            raise TaskFail(message='no connected learner')
+            raise TaskFail(message='no connected learner', result={'message': 'no connected learner'})
         name = task['name']
         start_task = {}
         for k, v in self._learner_connection.items():
@@ -87,7 +110,8 @@ class LearnerAggregator(object):
         task_status = [v.status for v in start_task.values()]
         if any([s != TaskStatus.COMPLETED for s in task_status]):
             # TODO(nyz) dynamic learner gpu add/remove
-            raise TaskFail(message="one of learner can't start task")
+            message = "one of learner can't start_task"
+            raise TaskFail(message=message, result={'message': message})
         return {'message': 'learner task has started'}
 
     def deal_with_get_data(self, task: dict) -> dict:
@@ -115,7 +139,7 @@ class LearnerAggregator(object):
             start = end
         for (k, v), d in zip(self._learner_connection.items(), split_data):
             learn_task[k] = v.new_task({'name': task['name'], 'data': d})
-            learn_task.start()
+            learn_task[k].start()
         for k, v in learn_task.items():
             v.join()
         # TODO deal with task fail
@@ -137,7 +161,7 @@ class LearnerAggregator(object):
             else:
                 raise TypeError("not support type: {}".format(type(elem)))
 
-        homogeneous_keys = ['learner_step', 'finished_task']
+        homogeneous_keys = ['learner_step', 'finished_task', 'buffer_id', 'task_id']
         elem = info_list[0]
         merged_info = {}
         for k in elem.keys():

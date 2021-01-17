@@ -11,8 +11,8 @@ class NaiveResourceManager(object):
         available_actor = list(self._resource_info['actor'].keys())
         if len(available_actor) > 0:
             selected_actor = random.sample(available_actor, 1)[0]
-            self._resource_info['actor'].pop(selected_actor)
-            return {'actor_id': selected_actor}
+            info = self._resource_info['actor'].pop(selected_actor)
+            return {'actor_id': selected_actor, 'resource_info': info}
         else:
             return None
 
@@ -20,8 +20,8 @@ class NaiveResourceManager(object):
         available_learner = list(self._resource_info['learner'].keys())
         if len(available_learner) > 0:
             selected_learner = random.sample(available_learner, 1)[0]
-            self._resource_info['learner'].pop(selected_learner)
-            return {'learner_id': selected_learner}
+            info = self._resource_info['learner'].pop(selected_learner)
+            return {'learner_id': selected_learner, 'resource_info': info}
         else:
             return None
 

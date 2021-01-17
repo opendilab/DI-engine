@@ -4,7 +4,7 @@ from collections import namedtuple, deque
 from easydict import EasyDict
 import torch
 
-from nervex.utils import import_module
+from nervex.utils import import_module, allreduce, broadcast
 
 
 class Policy(ABC):
@@ -30,6 +30,7 @@ class Policy(ABC):
         self._use_cuda = cfg.use_cuda
         if self._use_cuda:
             model.cuda()
+        self._use_distributed = cfg.get('use_distributed', False)
         self._model = model
         self._enable_field = enable_field
         self._total_field = set(['learn', 'collect', 'eval', 'command'])
@@ -42,6 +43,16 @@ class Policy(ABC):
             assert set(self._enable_field).issubset(self._total_field), self._enable_field
             for field in self._enable_field:
                 getattr(self, '_init_' + field)()
+        if self._use_distributed:
+            if self._enable_field is None or self._enable_field == ['learn']:
+                agent = self._agent
+            else:
+                agent = getattr(self, '_{}_agent'.format(self._enable_field[0]))
+            for name, param in agent.model.state_dict().items():
+                assert isinstance(param.data, torch.Tensor), type(param.data)
+                broadcast(param.data, 0)
+            for name, param in agent.model.named_parameters():
+                setattr(param, 'grad', torch.zeros_like(param))
 
     @abstractmethod
     def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
@@ -122,6 +133,11 @@ class Policy(ABC):
 
     def _monitor_vars_learn(self) -> List[str]:
         return ['cur_lr', 'total_loss']
+
+    def sync_gradients(self, model: torch.nn.Module) -> None:
+        for name, param in self.named_parameters():
+            if param.requires_grad:
+                allreduce(param.grad.data)
 
     # *************************************** learn function ************************************
     @abstractmethod

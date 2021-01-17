@@ -1,6 +1,6 @@
 from typing import Optional, List
 from easydict import EasyDict
-from nervex.utils import find_free_port, find_free_port_slurm, node_to_partition, node_to_host
+from nervex.utils import find_free_port, find_free_port_slurm, node_to_partition, node_to_host, pretty_print
 
 default_host = '0.0.0.0'
 
@@ -75,7 +75,7 @@ def set_host_port_slurm(cfg: EasyDict, coordinator_host: str, learner_node: list
     for k, flag in learner_multi.items():
         if flag:
             host = cfg[k].host
-            learner_interaction_cfg = {i: [i, host, p] for i, p in enumerate(cfg[k].port)}
+            learner_interaction_cfg = {str(i): [str(i), host, p] for i, p in enumerate(cfg[k].port)}
             aggregator_cfg = dict(
                 master=dict(
                     host=host,
@@ -100,9 +100,12 @@ def set_learner_interaction_for_coordinator(cfg: EasyDict) -> EasyDict:
     cfg.coordinator.interaction.learner = {}
     for k in cfg.keys():
         if k.startswith('learner'):
-            keyword = 'aggregator' if cfg[k].get('use_aggregator', False) else 'learner'
-            dst_k = keyword + k[7:]
-            cfg.coordinator.interaction.learner[k] = [k, cfg[dst_k].host, cfg[dst_k].port]
+            if cfg[k].get('use_aggregator', False):
+                dst_k = 'aggregator' + k[7:]
+                cfg.coordinator.interaction.learner[k] = [k, cfg[dst_k].slave.host, cfg[dst_k].slave.port]
+            else:
+                dst_k = k
+                cfg.coordinator.interaction.learner[k] = [k, cfg[dst_k].host, cfg[dst_k].port]
     return cfg
 
 
@@ -140,4 +143,5 @@ def parallel_transform_slurm(
     cfg = set_host_port_slurm(cfg, coordinator_host, learner_node, actor_node)
     cfg = set_learner_interaction_for_coordinator(cfg)
     cfg = set_actor_interaction_for_coordinator(cfg)
+    pretty_print(cfg)
     return cfg

@@ -161,9 +161,9 @@ def error_wrapper(fn, default_ret, warning_msg="[WARNING]: call linklink error, 
     def wrapper(*args, **kwargs):
         try:
             ret = fn(*args, **kwargs)
-        except Exception:
+        except Exception as e:
             ret = default_ret
-            print(warning_msg, "\ndefault_ret = {}".format(default_ret))
+            print(warning_msg, "\ndefault_ret = {}\terror = {}".format(default_ret, e))
         return ret
 
     return wrapper

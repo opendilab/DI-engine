@@ -77,9 +77,10 @@ def node_to_host(node: str) -> str:
 
 
 def find_free_port_slurm(node: str) -> int:
-    os.popen('echo "from nervex.utils import find_free_port\nprint(find_free_port(0))" > tmp.py')
     partition = node_to_partition(node)
-    handle = os.popen('srun -p {} -w {} python -u tmp.py'.format(partition, node))
-    port = int(handle.read())
-    os.popen('rm -rf tmp.py')
-    return port
+    port = subprocess.getoutput(
+        "srun -p {} -w {} python -c \"from nervex.utils import find_free_port; print(find_free_port(0))\"".format(
+            partition, node
+        )
+    )
+    return int(port)

@@ -1,8 +1,7 @@
-import threading
 from abc import ABC, abstractmethod, abstractproperty
 from easydict import EasyDict
 
-from nervex.utils import EasyTimer, import_module, get_task_uid
+from nervex.utils import EasyTimer, import_module, get_task_uid, dist_init, dist_finalize
 from nervex.policy import create_policy
 from ..base_learner import BaseLearner
 
@@ -28,6 +27,11 @@ class BaseCommLearner(ABC):
         self._cfg = cfg
         self._learner_uid = get_task_uid()
         self._timer = EasyTimer()
+        if cfg.use_distributed:
+            self._rank, self._world_size = dist_init()
+        else:
+            self._rank, self._world_size = 0, 1
+        self._use_distributed = cfg.use_distributed
         self._end_flag = True
 
     @abstractmethod
@@ -75,6 +79,8 @@ class BaseCommLearner(ABC):
             Close comm learner
         """
         self._end_flag = True
+        if self._use_distributed:
+            dist_finalize()
 
     @abstractproperty
     def hooks4call(self) -> list:
@@ -86,11 +92,14 @@ class BaseCommLearner(ABC):
 
     def _create_learner(self, task_info: dict) -> 'BaseLearner':  # noqa
         learner_cfg = EasyDict(task_info['learner_cfg'])
+        learner_cfg['use_distributed'] = self._use_distributed
         learner = BaseLearner(learner_cfg)
         for item in ['get_data', 'send_policy', 'send_learn_info']:
             setattr(learner, item, getattr(self, item))
         learner.setup_dataloader()
-        learner.policy = create_policy(task_info['policy'], enable_field=['learn']).learn_mode
+        policy_cfg = task_info['policy']
+        policy_cfg['use_distributed'] = self._use_distributed
+        learner.policy = create_policy(policy_cfg, enable_field=['learn']).learn_mode
         return learner
 
 

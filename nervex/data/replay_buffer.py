@@ -220,11 +220,11 @@ class ReplayBuffer:
             'in_count_avg': self._natural_monitor.avg['in_count'](),
             'in_time_avg': self._in_tick_monitor.avg['in_time']()
         }
-        self._in_count += 1
         if self._in_count % self._log_freq == 0:
             self._logger.info("===Add In Buffer {} Times===".format(self._in_count))
             self._logger.print_vars(in_dict)
             self._tb_logger.print_vars(in_dict, self._in_count, 'scalar')
+        self._in_count += 1
 
     def sample(self, batch_size: int) -> Optional[list]:
         """
@@ -260,11 +260,11 @@ class ReplayBuffer:
             'priority_max': self._out_tick_monitor.max['priority'](),
             'priority_min': self._out_tick_monitor.min['priority'](),
         }
-        self._out_count += 1
         if self._out_count % self._log_freq == 0:
             self._logger.info("===Read Buffer {} Times===".format(self._out_count))
             self._logger.print_vars(out_dict)
             self._tb_logger.print_vars(out_dict, self._out_count, 'scalar')
+        self._out_count += 1
         return data
 
     def update(self, info: dict) -> None:

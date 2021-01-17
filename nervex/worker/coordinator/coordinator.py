@@ -78,13 +78,17 @@ class Coordinator(object):
                     if buffer_id in self._replay_buffer:
                         if self._interaction.send_actor_task(actor_task):
                             self._record_task(actor_task)
-                            send_task_flag = True
+                            self.info("actor_task({}) is successful to be assigned".format(actor_task['task_id']))
                             break
+                        else:
+                            self.info("actor_task({}) is failed to be assigned".format(actor_task['task_id']))
                     if time.time() - start_retry_time >= max_retry_time:
                         # reput into queue
                         self._actor_task_queue.put([actor_task, put_time])
+                        start_retry_time = time.time()
                         self.info("actor task({}) reput info queue".format(actor_task['task_id']))
-                    time.sleep(0.1)
+                        break
+                    time.sleep(3)
 
     def _assign_learner_task(self) -> None:
         while not self._end_flag:
@@ -117,12 +121,17 @@ class Coordinator(object):
                             self._replay_buffer[buffer_id] = ReplayBuffer(replay_buffer_cfg)
                             self._replay_buffer[buffer_id].run()
                             self.info("replay_buffer({}) is created".format(buffer_id))
+                        self.info("learner_task({}) is successful to be assigned".format(learner_task['task_id']))
                         break
+                    else:
+                        self.info("learner_task({}) is failed to be assigned".format(learner_task['task_id']))
                     if time.time() - start_retry_time >= max_retry_time:
                         # reput into queue
                         self._learner_task_queue.put([learner_task, put_time])
+                        start_retry_time = time.time()
                         self.info("learner task({}) reput info queue".format(learner_task['task_id']))
-                    time.sleep(0.1)
+                        break
+                    time.sleep(3)
 
     def _produce_actor_task(self) -> None:
         while not self._end_flag:

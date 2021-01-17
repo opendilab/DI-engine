@@ -14,9 +14,8 @@ from collections import namedtuple
 from nervex.data import AsyncDataLoader, default_collate
 from nervex.config import base_learner_default_config
 from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer, to_device
-from nervex.utils import build_logger, dist_init, EasyTimer, dist_finalize, pretty_print, read_config, \
-    get_task_uid, import_module, broadcast
-from nervex.utils import deep_merge_dicts
+from nervex.utils import build_logger, EasyTimer, pretty_print, read_config, get_task_uid, import_module
+from nervex.utils import deep_merge_dicts, get_rank
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
 from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, merge_hooks, LearnerHook
 
@@ -108,19 +107,12 @@ class BaseLearner(object):
         """
         self._cfg = deep_merge_dicts(base_learner_default_config, cfg)
 
-        self._learner_worker_uid = get_task_uid()
+        self._learner_uid = get_task_uid()
         self._load_path = self._cfg.load_path
         self._save_path = self._cfg.save_path
         self._use_cuda = self._cfg.get('use_cuda', False)
         self._use_distributed = self._cfg.use_distributed
-        if self._use_distributed:
-            self._rank, self._world_size = dist_init()
-            rand_id = torch.randint(0, 314, size=(1, ))
-            broadcast(rand_id, 0)
-            self._learner_uid = rand_id.item()
-        else:
-            self._rank, self._world_size = 0, 1
-            self._learner_uid = self._learner_worker_uid
+        self._rank = get_rank()
         self._timer = EasyTimer()
         self._device = 'cuda:{}'.format(self._rank % 8) if self._use_cuda else 'cpu'
         # monitor & logger
@@ -266,10 +258,8 @@ class BaseLearner(object):
     def close(self) -> None:
         """
         Overview:
-            Close the related resources, such as dist_finalize when use_distributed
+            Close the related resources, such as dataloader
         """
-        if self._use_distributed:
-            dist_finalize()
         if hasattr(self, '_dataloader'):
             del self._dataloader
 

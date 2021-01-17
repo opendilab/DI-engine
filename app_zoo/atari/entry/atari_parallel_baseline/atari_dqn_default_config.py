@@ -41,7 +41,6 @@ __base_learner_default_config = dict(
     save_path='.',
     load_path='',
     use_cuda=True,
-    use_distributed=False,
     dataloader=dict(
         batch_size=32,
         chunk_size=32,
@@ -129,7 +128,8 @@ main_config = dict(
         path_data='./data',
         path_policy='.',
         send_policy_freq=1,
-        repeat_num=1,
+        use_distributed=True,
+        repeat_num=2,
     ),
     actor0=dict(
         import_names=['nervex.worker.actor.comm.flask_fs_actor'],

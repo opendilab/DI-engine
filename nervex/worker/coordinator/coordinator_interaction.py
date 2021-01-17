@@ -1,5 +1,6 @@
 import traceback
 import time
+import sys
 import requests
 from typing import Dict, Callable
 from threading import Thread
@@ -16,7 +17,6 @@ class CoordinatorInteraction(object):
         self._cfg = cfg
         self._callback_fn = callback_fn
         self._logger = logger
-        self._interaction = Master(cfg.host, cfg.port)
         self._connection_actor = {}
         self._connection_learner = {}
         self._resource_manager = NaiveResourceManager()
@@ -26,35 +26,44 @@ class CoordinatorInteraction(object):
         self._remain_learner_task = set()
 
     def start(self) -> None:
-        self._end_flag = False
-        try:
-            self._interaction.start()
-            self._interaction.ping()
-            for _, (learner_id, learner_host, learner_port) in self._cfg.learner.items():
-                conn = self._interaction.new_connection(learner_id, learner_host, learner_port)
-                conn.connect()
-                assert conn.is_connected
-                resource_task = self._get_resource(conn)
-                if resource_task.status != TaskStatus.COMPLETED:
-                    self._logger.error("can't acquire resource for learner({})".format(learner_id))
-                    continue
-                else:
-                    self._resource_manager.update('learner', learner_id, resource_task.result)
-                    self._connection_learner[learner_id] = conn
-            for _, (actor_id, actor_host, actor_port) in self._cfg.actor.items():
-                conn = self._interaction.new_connection(actor_id, actor_host, actor_port)
-                conn.connect()
-                assert conn.is_connected
-                resource_task = self._get_resource(conn)
-                if resource_task.status != TaskStatus.COMPLETED:
-                    self._logger.error("can't acquire resource for actor({})".format(actor_id))
-                    continue
-                else:
-                    self._resource_manager.update('actor', actor_id, resource_task.result)
-                    self._connection_actor[actor_id] = conn
-        except Exception as e:
-            self.close()
-            self._logger.error("connection start error:\n" + ''.join(traceback.format_tb(e.__traceback__)) + repr(e))
+        max_retry_time = 120
+        start_time = time.time()
+        while time.time() - start_time <= max_retry_time:
+            self._end_flag = False
+            self._interaction = Master(self._cfg.host, self._cfg.port)
+            try:
+                self._interaction.start()
+                self._interaction.ping()
+                for _, (learner_id, learner_host, learner_port) in self._cfg.learner.items():
+                    conn = self._interaction.new_connection(learner_id, learner_host, learner_port)
+                    conn.connect()
+                    assert conn.is_connected
+                    resource_task = self._get_resource(conn)
+                    if resource_task.status != TaskStatus.COMPLETED:
+                        self._logger.error("can't acquire resource for learner({})".format(learner_id))
+                        continue
+                    else:
+                        self._resource_manager.update('learner', learner_id, resource_task.result)
+                        self._connection_learner[learner_id] = conn
+                for _, (actor_id, actor_host, actor_port) in self._cfg.actor.items():
+                    conn = self._interaction.new_connection(actor_id, actor_host, actor_port)
+                    conn.connect()
+                    assert conn.is_connected
+                    resource_task = self._get_resource(conn)
+                    if resource_task.status != TaskStatus.COMPLETED:
+                        self._logger.error("can't acquire resource for actor({})".format(actor_id))
+                        continue
+                    else:
+                        self._resource_manager.update('actor', actor_id, resource_task.result)
+                        self._connection_actor[actor_id] = conn
+                break
+            except Exception as e:
+                self.close()
+                self._logger.error("connection start error:\n" + ''.join(traceback.format_tb(e.__traceback__)) + repr(e) + '\nAuto Retry...')
+                time.sleep(5)
+        if self._end_flag:
+            self._logger.error("connection max retries failed")
+            sys.exit(1)
 
     def close(self) -> None:
         if self._end_flag:
@@ -97,6 +106,8 @@ class CoordinatorInteraction(object):
         start_task = self._connection_actor[actor_id].new_task({'name': 'actor_start_task', 'task_info': actor_task})
         start_task.start().join()
         if start_task.status != TaskStatus.COMPLETED:
+            self._resource_manager.update('actor', assigned_actor['actor_id'], assigned_actor['resource_info'])
+            self._logger.error('actor_task({}) start failed: {}'.format(task_id, start_task.result))
             return False
         else:
             self._logger.info('actor task({}) is assigned to actor({})'.format(task_id, actor_id))
@@ -114,6 +125,7 @@ class CoordinatorInteraction(object):
                 data_task.start().join()
                 if data_task.status != TaskStatus.COMPLETED:
                     # ignore and retry
+                    self._logger.error('actor data task is failed')
                     continue
                 else:
                     result = data_task.result
@@ -158,6 +170,8 @@ class CoordinatorInteraction(object):
         )
         start_task.start().join()
         if start_task.status != TaskStatus.COMPLETED:
+            self._resource_manager.update('learner', assigned_learner['learner_id'], assigned_learner['resource_info'])
+            self._logger.info('learner_task({}) start failed: {}'.format(task_id, start_task.result))
             return False
         else:
             self._logger.info('learner task({}) is assigned to learner({})'.format(task_id, learner_id))
@@ -175,6 +189,7 @@ class CoordinatorInteraction(object):
                 get_data_task = self._connection_learner[learner_id].new_task({'name': 'learner_get_data_task'})
                 get_data_task.start().join()
                 if get_data_task.status != TaskStatus.COMPLETED:
+                    self._logger.error('learner get_data_task failed: {}'.format(get_data_task.result))
                     continue
                 result = get_data_task.result
                 task_id, buffer_id, batch_size = result['task_id'], result['buffer_id'], result['batch_size']
@@ -182,8 +197,10 @@ class CoordinatorInteraction(object):
                 while True:
                     data = self._callback_fn['deal_with_learner_get_data'](task_id, buffer_id, batch_size)
                     if self._end_flag or data is not None:
+                        self._logger.info('sample result is ok')
                         break
                     else:
+                        self._logger.info('sample result is None')
                         time.sleep(sleep_count)
                         sleep_count += 2
                 if self._end_flag:
@@ -193,6 +210,7 @@ class CoordinatorInteraction(object):
                 learn_task = self._connection_learner[learner_id].new_task({'name': 'learner_learn_task', 'data': data})
                 learn_task.start().join()
                 if learn_task.status != TaskStatus.COMPLETED:
+                    self._logger.error('learner learn_task failed: {}'.format(learn_task.result))
                     continue
                 result = learn_task.result
                 task_id, finished_task = result['task_id'], result['finished_task']
