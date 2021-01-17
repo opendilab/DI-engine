@@ -19,6 +19,7 @@ class CollaQPolicy(CommonPolicy):
         self._agent = Agent(self._model)
         algo_cfg = self._cfg.learn.algo
         self._gamma = algo_cfg.discount_factor
+        self._alpha = algo_cfg.get("collaQ_loss_factor", 1.0)
 
         self._agent.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_update_theta})
         self._agent.add_plugin(
@@ -53,23 +54,21 @@ class CollaQPolicy(CommonPolicy):
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         # forward
         self._agent.reset(state=data['prev_state'][0])
+        self._agent.target_reset(state=data['prev_state'][0])
         inputs = {'obs': data['obs'], 'action': data['action']}
+        ret = self._agent.forward(inputs, param={'single_step': False})
+        total_q = ret['total_q']
+        agent_colla_alone_q = ret['agent_colla_alone_q'].sum(-1).sum(-1)
         total_q = self._agent.forward(inputs, param={'single_step': False})['total_q']
         next_inputs = {'obs': data['next_obs']}
         target_total_q = self._agent.target_forward(next_inputs, param={'single_step': False})['total_q']
-
+        #td_loss
         td_data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
         td_loss = v_1step_td_error(td_data, self._gamma)
-
         #collaQ loss
-        colla_data = v_1step_td_data(
-            data['agent_colla_alone_q'].sum(-1).sum(-1), torch.zeros_like(total_q),
-            torch.zeros_like(data['reward']), None, None
-        )
-        colla_loss = v_1step_td_error(colla_data, 0)
+        colla_loss = (agent_colla_alone_q ** 2).mean()
 
-        loss = colla_loss + td_loss
-
+        loss = colla_loss * self._alpha + td_loss
         # update
         self._optimizer.zero_grad()
         loss.backward()
@@ -111,7 +110,6 @@ class CollaQPolicy(CommonPolicy):
             'prev_state': agent_output['prev_state'],
             'action': agent_output['action'],
             'agent_colla_alone_q': agent_output['agent_colla_alone_q'],
-            # TODO: add colla alone Q
             'reward': timestep.reward,
             'done': timestep.done,
         }

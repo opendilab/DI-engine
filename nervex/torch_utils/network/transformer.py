@@ -196,7 +196,7 @@ class Transformer(nn.Module):
 
 class ScaledDotProductAttention(nn.Module):
 
-    def __init__(self, d_k: int, dropout=0.0):
+    def __init__(self, d_k: int, dropout:float=0.0):
         super(ScaledDotProductAttention, self).__init__()
         self.d_k = d_k
         self.dropout = nn.Dropout(dropout)

@@ -155,7 +155,7 @@ class QMix(nn.Module):
 
 class CollaQMultiHeadAttention(nn.Module):
 
-    def __init__(self, n_head: int, d_model: int, d_k: int, d_v: int, d_out: int, dropout=0.):
+    def __init__(self, n_head: int, d_model: int, d_k: int, d_v: int, d_out: int, dropout: float = 0.):
         super(CollaQMultiHeadAttention, self).__init__()
 
         self.act = nn.ReLU()
@@ -205,33 +205,34 @@ class CollaQMultiHeadAttention(nn.Module):
 
 class CollaQSMACAttentionModule(nn.Module):
 
-    def __init__(self, each_dim, self_feature_range, allay_feature_range, attention_dim):
+    def __init__(self, each_dim: int, self_feature_range: List[int], ally_feature_range: List[int], attention_dim: int):
         super(CollaQSMACAttentionModule, self).__init__()
         self.each_dim = each_dim
         self.self_feature_range = self_feature_range
-        self.allay_feature_range = allay_feature_range
+        self.ally_feature_range = ally_feature_range
         self.attention_layer = CollaQMultiHeadAttention(1, self.each_dim, attention_dim, attention_dim, attention_dim)
 
-    def _cut_obs(self, obs):
+    def _cut_obs(self, obs: torch.Tensor):
         # obs shape = (T, B, A, obs_dim)
         self_features = obs[:, :, :, self.self_feature_range[0]:self.self_feature_range[1]]
-        allay_features = obs[:, :, :, self.allay_feature_range[0]:self.allay_feature_range[1]]
-        return self_features, allay_features
+        ally_features = obs[:, :, :, self.ally_feature_range[0]:self.ally_feature_range[1]]
+        return self_features, ally_features
 
-    def forward(self, inputs):
+    def forward(self, inputs: torch.Tensor):
+        # obs shape = (T, B ,A, obs_dim)
         obs = inputs
-        self_features, allay_features = self._cut_obs(obs)
+        self_features, ally_features = self._cut_obs(obs)
         T, B, A, _ = self_features.shape
         self_features = self_features.reshape(T * B * A, 1, -1)
-        allay_features = allay_features.reshape(T * B * A, A - 1, -1)
-        self_features, allay_features = self.attention_layer(self_features, allay_features, allay_features)
+        ally_features = ally_features.reshape(T * B * A, A - 1, -1)
+        self_features, ally_features = self.attention_layer(self_features, ally_features, ally_features)
         self_features = self_features.reshape(T, B, A, -1)
-        allay_features = allay_features.reshape(T, B, A, -1)
-        # note: we assume self_feature is near the allay_feature here so we can do this concat
+        ally_features = ally_features.reshape(T, B, A, -1)
+        # note: we assume self_feature is near the ally_feature here so we can do this concat
         obs = torch.cat(
             [
-                obs[:, :, :, :self.self_feature_range[0]], self_features, allay_features,
-                obs[:, :, :, self.allay_feature_range[1]:]
+                obs[:, :, :, :self.self_feature_range[0]], self_features, ally_features,
+                obs[:, :, :, self.ally_feature_range[1]:]
             ],
             dim=-1
         )
@@ -250,7 +251,7 @@ class CollaQ(nn.Module):
             embedding_dim: int,
             enable_attention: bool = False,
             self_feature_range: Union[List[int], None] = None,
-            allay_feature_range: Union[List[int], None] = None,
+            ally_feature_range: Union[List[int], None] = None,
             attention_dim: int = 32,
     ) -> None:
         super(CollaQ, self).__init__()
@@ -262,12 +263,12 @@ class CollaQ(nn.Module):
         else:
             #TODO set the attention layer here beautifully
             self._self_attention = CollaQSMACAttentionModule(
-                self_feature_range[1] - self_feature_range[0], self_feature_range, allay_feature_range, attention_dim
+                self_feature_range[1] - self_feature_range[0], self_feature_range, ally_feature_range, attention_dim
             )
             #TODO get the obs_dim_after_attention here beautifully
             obs_dim_after_attention = self._self_attention(
                 torch.randn(
-                    1, 1, (allay_feature_range[1] - allay_feature_range[0]) //
+                    1, 1, (ally_feature_range[1] - ally_feature_range[0]) //
                     (self_feature_range[1] - self_feature_range[0]) + 1, obs_dim
                 )
             ).shape[-1]
@@ -372,10 +373,6 @@ class CollaQ(nn.Module):
 
         global_state_embedding = self._global_state_encoder(global_state)
 
-        # alone_prev_state = [None for _ in range(agent_state.shape[1])]
-        # colla_prev_state = [None for _ in range(agent_state.shape[1])]
-        # colla_alone_prev_state = [None for _ in range(agent_state.shape[1])]
-
         colla_output = self._q_network(
             {
                 'obs': agent_state,
@@ -427,7 +424,7 @@ class CollaQ(nn.Module):
             )
         return {
             'total_q': total_q,
-            'logit': agent_colla_alone_q,
+            'logit': agent_q,
             'agent_colla_alone_q': agent_colla_alone_q * data['obs']['action_mask'],
             'next_state': next_state,
             'action_mask': data['obs']['action_mask']

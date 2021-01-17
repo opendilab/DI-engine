@@ -26,7 +26,7 @@ class TestTimestepCollate:
             'obs': [torch.randn(4) for _ in range(T)],
             'reward': [torch.FloatTensor([0]) for _ in range(T)],
             'done': [False for _ in range(T)],
-            'prev_state': [[(torch.randn(3), torch.randn(3)) for _ in range(3) ]for _ in range(T)],
+            'prev_state': [[(torch.randn(3), torch.randn(5)), (torch.randn(4), ), (torch.randn(5), torch.randn(6))]for _ in range(T)],
             'action': [[torch.randn(3), torch.randn(5)] for _ in range(T)],
         }
         return data 
@@ -44,6 +44,7 @@ class TestTimestepCollate:
         assert batch['action'][0][0].shape == (B, 3)
         assert batch['action'][0][1].shape == (B, 5)
 
+        # hidden_state might contain multi prev_states with different shapes 
         batch = timestep_collate([self.get_multi_shape_state_data() for _ in range(B)])
         assert isinstance(batch, dict)
         assert set(batch.keys()) == set(['obs', 'reward', 'done', 'prev_state', 'action'])

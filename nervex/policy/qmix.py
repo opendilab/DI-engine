@@ -53,6 +53,7 @@ class QMIXPolicy(CommonPolicy):
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         # forward
         self._agent.reset(state=data['prev_state'][0])
+        self._agent.target_reset(state=data['prev_state'][0])
         inputs = {'obs': data['obs'], 'action': data['action']}
         total_q = self._agent.forward(inputs, param={'single_step': False})['total_q']
         next_inputs = {'obs': data['next_obs']}
