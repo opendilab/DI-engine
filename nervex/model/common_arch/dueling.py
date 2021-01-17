@@ -108,7 +108,7 @@ class DuelingHead(nn.Module):
         if self.quantile:
             if not num_quantiles:
                 num_quantiles = self.num_quantiles
-           
+
             quantiles = torch.FloatTensor(num_quantiles * batch_size, 1).uniform_(0, 1).to(device)
 
             quantiles = self.beta_function(quantiles)

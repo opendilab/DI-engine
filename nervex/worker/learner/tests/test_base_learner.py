@@ -14,6 +14,7 @@ from nervex.worker.learner import LearnerHook, register_learner_hook, add_learne
 
 
 class FakeLearner(BaseLearner):
+
     @staticmethod
     def random_data():
         return {

@@ -46,7 +46,7 @@ class TestDiscreteNet:
         model = NoiseDistributionFCDiscreteNet((N, ), action_dim, embedding_dim)
         outputs = model(inputs)['logit']
         self.output_check(model, outputs)
-    
+
     def test_noise_quantile_fc_discrete_net(self, action_dim):
         N = 32
         inputs = {'obs': torch.randn(B, N)}
