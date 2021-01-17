@@ -29,6 +29,7 @@ class MasterErrorCode(IntEnum):
     TASK_DATA_INVALID = 601
 
 
+# noinspection DuplicatedCode
 class MasterResponseException(ResponseException, metaclass=ABCMeta):
 
     def __init__(self, error: HTTPError):

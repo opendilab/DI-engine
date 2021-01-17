@@ -32,6 +32,7 @@ class SlaveErrorCode(IntEnum):
     TASK_REFUSED = 602
 
 
+# noinspection DuplicatedCode
 class SlaveResponseException(ResponseException, metaclass=ABCMeta):
 
     def __init__(self, error: HTTPError):
