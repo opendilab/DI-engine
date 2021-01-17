@@ -88,29 +88,27 @@ class TestInteractionBaseHttpEngine:
 
     @contextmanager
     def __yield_http_engine(self):
-        responses.add(
-            **{
-                'method': responses.GET,
-                'url': 'http://example.com:7777/this/is/404',
-                'body': json.dumps({"exception": "reason"}),
-                'status': 404,
-                'content_type': 'application/json',
-            }
-        )
+        with responses.RequestsMock(assert_all_requests_are_fired=False) as rsp:
+            rsp.add(
+                **{
+                    'method': responses.GET,
+                    'url': 'http://example.com:7777/this/is/404',
+                    'body': json.dumps({"exception": "reason"}),
+                    'status': 404,
+                    'content_type': 'application/json',
+                }
+            )
+            rsp.add(
+                **{
+                    'method': responses.GET,
+                    'url': 'http://example.com:7777/this/is/200',
+                    'body': json.dumps({"success": True}),
+                    'status': 200,
+                    'content_type': 'application/json',
+                }
+            )
 
-        responses.add(
-            **{
-                'method': responses.GET,
-                'url': 'http://example.com:7777/this/is/200',
-                'body': json.dumps({"success": True}),
-                'status': 200,
-                'content_type': 'application/json',
-            }
-        )
-
-        yield
-
-        responses.reset()
+            yield
 
     @responses.activate
     def test_http_engine_basic(self):
@@ -152,7 +150,7 @@ class TestInteractionBaseHttpEngine:
                 data_processor=(lambda d: {
                     'data': json.dumps(d)
                 }),
-                http_error_gene=lambda err: RuntimeError('This is {status}'.format(status=err.response.status_code))
+                http_error_gene=lambda e: RuntimeError('This is {status}'.format(status=e.response.status_code))
             )()
             engine = _http_engine_class(host='example.com', port=7777, path='/this/is')
 

@@ -34,11 +34,8 @@ class _HTTPErrorGenerator:
                         'content_type': 'application/json',
                     }
                 )
-                rsp.start()
 
                 yield
-
-                rsp.stop()
 
         @responses.activate
         def _get_exception():
