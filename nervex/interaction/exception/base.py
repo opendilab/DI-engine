@@ -1,9 +1,9 @@
 from abc import ABCMeta
-from typing import Mapping, Any, Optional, TypeVar
+from typing import Mapping, Any
 
 from requests.exceptions import HTTPError
 
-from ..base import get_values_from_response, CommonErrorCode, success_response, failure_response
+from ..base import get_values_from_response
 
 
 class _IResponseInformation(metaclass=ABCMeta):
@@ -53,44 +53,3 @@ class ResponseException(Exception, _IResponseInformation, metaclass=ABCMeta):
     @property
     def data(self) -> Mapping[str, Any]:
         return self.__data
-
-
-_TR = TypeVar('_TR', bound=ResponseException)
-
-
-# exception class for processing request
-class RequestException(Exception, _IResponseInformation, metaclass=ABCMeta):
-
-    def __init__(
-        self,
-        success: bool,
-        code: Optional[int] = None,
-        message: Optional[str] = None,
-        data: Optional[Mapping[str, Any]] = None
-    ):
-        self.__success = not not success
-        self.__code = CommonErrorCode.SUCCESS if self.__success else (code or CommonErrorCode.COMMON_FAILURE)
-        self.__message = str(message)
-        self.__data = data or {}
-
-    @property
-    def success(self) -> bool:
-        return self.__success
-
-    @property
-    def code(self) -> int:
-        return self.__code
-
-    @property
-    def message(self) -> str:
-        return self.__message
-
-    @property
-    def data(self) -> Mapping[str, Any]:
-        return self.__data
-
-    def response(self):
-        if self.__success:
-            return success_response(self.__data, self.__message)
-        else:
-            return failure_response(self.__code, self.__message, self.__data)

@@ -82,12 +82,12 @@ class MasterTaskDataInvalid(MasterResponseException):
 _PREFIX = ['master']
 
 
-def get_exception_class_by_error_code(error_code: MasterErrorCode) -> Type[MasterResponseException]:
+def get_master_exception_class_by_error_code(error_code: MasterErrorCode) -> Type[MasterResponseException]:
     class_name = ''.join([word.lower().capitalize() for word in (_PREFIX + error_code.name.split('_'))])
     return eval(class_name)
 
 
-def get_exception_by_error(error: HTTPError) -> MasterResponseException:
+def get_master_exception_by_error(error: HTTPError) -> MasterResponseException:
     _, _, code, _, _ = get_values_from_response(error.response)
     error_code = {v.value: v for k, v in MasterErrorCode.__members__.items()}[code]
-    return get_exception_class_by_error_code(error_code)(error)
+    return get_master_exception_class_by_error_code(error_code)(error)
