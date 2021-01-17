@@ -92,11 +92,12 @@ class Policy(ABC):
         return Policy.command_function(self._get_setting_learn, self._get_setting_collect, self._get_setting_eval)
 
     def set_setting(self, mode_name: str, setting: dict) -> None:
+        # this function is used in both collect and learn modes
         assert mode_name in ['learn', 'collect', 'eval'], mode_name
         for k, v in setting.items():
-            # this attribute is set in _init_{mode} method
-            if k in getattr(self, '_' + mode_name + '_setting_set'):
-                setattr(self, '_' + k, v)
+            # this attribute should be set in _init_{mode} method as a list
+            assert k in getattr(self, '_' + mode_name + '_setting_set')
+            setattr(self, '_' + k, v)
 
     def __repr__(self) -> str:
         return "nerveX DRL Policy\n{}".format(repr(self._model))

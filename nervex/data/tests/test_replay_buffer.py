@@ -75,7 +75,7 @@ class TestReplayBuffer:
         iteration = 0
         while time.time() - begin_time < lasting_time:
             while True:
-                data = replay_buffer.sample(BATCH_SIZE)
+                data = replay_buffer.sample(BATCH_SIZE, 0)
                 if data is not None:
                     assert (len(data) == BATCH_SIZE)
                     break
@@ -161,7 +161,7 @@ class TestReplayBuffer:
             consume_count = 0
             consume_begin_time = time.time()
             while consume_count < 3000:
-                data = replay_buffer.sample(BATCH_SIZE)
+                data = replay_buffer.sample(BATCH_SIZE, 0)
                 if data is None:
                     break
                 assert (len(data) == BATCH_SIZE)

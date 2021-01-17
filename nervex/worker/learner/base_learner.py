@@ -330,9 +330,10 @@ class BaseLearner(ABC):
     def get_current_info(self) -> dict:
         """
         Overview:
-            get current info dict, which will be sent to command for some operation, such as hyper-parameter adjustment
+            Get current info dict, which will be sent to command for coordination,
+            e.g. hyper-parameter adjustment.
         Returns:
-            info (:obj:`dict`): current info dict
+            - info (:obj:`dict`): current info dict, including ['learner_step']
         """
         return {'learner_step': self._last_iter.val}
 

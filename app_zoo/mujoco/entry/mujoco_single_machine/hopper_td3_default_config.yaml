@@ -3,28 +3,29 @@ common:
     save_path: '.'
     load_path: ''
 env:
-    env_id: 'Hopper-v2'  # ['HalfCheetah-v1', 'Hopper-v1', 'Walker2d-v1']  # stop_val: 10500, 3700, 5300
+    env_id: 'Hopper-v3'  # ['HalfCheetah-v1', 'Hopper-v1', 'Walker2d-v1']  # stop_val: 10500, 3700, 5300
     frame_stack: 4
     is_train: True
     env_manager_type: 'subprocess'  # [base, subprocess]
     import_names: ['app_zoo.mujoco.envs.mujoco_env']
     env_type: 'mujoco'
-    actor_env_num: 20
-    evaluator_env_num: 10
+    actor_env_num: 16
+    evaluator_env_num: 8
     use_act_scale: True
 policy:
     use_cuda: True
     policy_type: 'ddpg'
     import_names: ['nervex.policy.ddpg']
     on_policy: False
+    use_priority: True
     model:
         obs_dim: 11
         action_dim: 3
         use_twin_critic: True
     learn:
-        train_step: 10
-        batch_size: 100
-        learning_rate_actor: 0.001
+        train_step: 4
+        batch_size: 128
+        learning_rate_actor: 0.0005
         learning_rate_critic: 0.001
         weight_decay: 0.0001
         ignore_done: True
@@ -47,17 +48,17 @@ policy:
         placeholder: 'placeholder'
 replay_buffer:
     meta_maxlen: 20000
-    max_reuse: 1024
+    max_reuse: 16
     unroll_len: 1
     min_sample_ratio: 1
 actor:
-    n_sample: 24
+    n_sample: 48
     traj_len: 1
     traj_print_freq: 1000
     collect_print_freq: 1000
 evaluator:
     n_episode: 8
-    eval_freq: 5000
+    eval_freq: 1000
     stop_val: 3700
 learner:
     hook:
@@ -67,6 +68,6 @@ learner:
             priority: 20
             position: after_iter
             ext_args:
-                freq: 500
+                freq: 1000
 command:
     placeholder: 'placeholder'
