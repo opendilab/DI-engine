@@ -1,10 +1,8 @@
 import pytest
-from requests import HTTPError
 
 from .bases import _TestInteractionBase
 from ..test_utils import random_port, random_channel
-from ...base import get_values_from_response
-from ...exception import SlaveErrorCode
+from ...exception import SlaveErrorCode, SlaveChannelInvalid
 
 
 @pytest.mark.unittest
@@ -25,15 +23,14 @@ class TestInteractionErrors(_TestInteractionBase):
             with master:
                 assert master.ping()
 
-                with pytest.raises(HTTPError) as ei:
-                    with master.new_connection('conn', '127.0.0.1', _slave_port) as conn:
+                with pytest.raises(SlaveChannelInvalid) as ei:
+                    with master.new_connection('conn', '127.0.0.1', _slave_port):
                         pytest.fail('Should not reach here!')
 
                 err = ei.value
-                _status_code, _success, _code, _, _ = get_values_from_response(err.response)
-                assert _status_code == 403
-                assert not _success
-                assert _code == SlaveErrorCode.CHANNEL_INVALID
+                assert not err.success
+                assert err.status_code == 403
+                assert err.code == SlaveErrorCode.CHANNEL_INVALID
 
                 assert 'conn' not in master
         finally:
