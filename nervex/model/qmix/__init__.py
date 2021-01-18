@@ -1,1 +1,1 @@
-from .qmix import QMix
+from .qmix import QMix, CollaQ

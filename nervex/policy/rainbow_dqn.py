@@ -82,15 +82,14 @@ class RainbowDQNPolicy(DQNPolicy):
                 - cur_lr (:obj:`float`): current learning rate
                 - total_loss (:obj:`float`): the calculated loss
         """
+        reward = data['reward']
+        if len(reward.shape) == 1:
+            reward = reward.unsqueeze(1)
+        assert reward.shape == (self._cfg.learn.batch_size, self._nstep), reward.shape
+        reward = reward.permute(1, 0).contiguous()
+        self._reset_noise(self._agent.model)
+        self._reset_noise(self._agent.target_model)
         if self._use_iqn:
-            # iqn forward
-            reward = data['reward']
-            if len(reward.shape) == 1:
-                reward = reward.unsqueeze(1)
-            assert reward.shape == (self._cfg.learn.batch_size, self._nstep), reward.shape
-            reward = reward.permute(1, 0).contiguous()
-            self._reset_noise(self._agent.model)
-            self._reset_noise(self._agent.target_model)
             ret = self._agent.forward(data['obs'], param={'num_quantiles': self._tau})
             q = ret['q']
             replay_quantiles = ret['quantiles']
@@ -103,27 +102,7 @@ class RainbowDQNPolicy(DQNPolicy):
                 q, target_q, data['action'], target_q_action, reward, data['done'], replay_quantiles, data['weight']
             )
             loss, td_error_per_sample = iqn_nstep_td_error(data, self._gamma, nstep=self._nstep, kappa=self._kappa)
-            # update
-            self._optimizer.zero_grad()
-            loss.backward()
-            self._optimizer.step()
-            # after update
-            self._agent.target_update(self._agent.state_dict()['model'])
-            return {
-                'cur_lr': self._optimizer.defaults['lr'],
-                'total_loss': loss.item(),
-                'priority': td_error_per_sample.abs().tolist(),
-            }
-
         else:
-            # rainbow forward
-            reward = data['reward']
-            if len(reward.shape) == 1:
-                reward = reward.unsqueeze(1)
-            assert reward.shape == (self._cfg.learn.batch_size, self._nstep), reward.shape
-            reward = reward.permute(1, 0).contiguous()
-            self._reset_noise(self._agent.model)
-            self._reset_noise(self._agent.target_model)
             q_dist = self._agent.forward(data['obs'])['distribution']
             target_q_dist = self._agent.target_forward(data['next_obs'])['distribution']
             self._reset_noise(self._agent.target_model)
@@ -134,17 +113,17 @@ class RainbowDQNPolicy(DQNPolicy):
             loss, td_error_per_sample = dist_nstep_td_error(
                 data, self._gamma, self._v_min, self._v_max, self._n_atom, nstep=self._nstep
             )
-            # update
-            self._optimizer.zero_grad()
-            loss.backward()
-            self._optimizer.step()
-            # after update
-            self._agent.target_update(self._agent.state_dict()['model'])
-            return {
-                'cur_lr': self._optimizer.defaults['lr'],
-                'total_loss': loss.item(),
-                'priority': td_error_per_sample.abs().tolist(),
-            }
+        # update
+        self._optimizer.zero_grad()
+        loss.backward()
+        self._optimizer.step()
+        # after update
+        self._agent.target_update(self._agent.state_dict()['model'])
+        return {
+            'cur_lr': self._optimizer.defaults['lr'],
+            'total_loss': loss.item(),
+            'priority': td_error_per_sample.abs().tolist(),
+        }
 
     def _init_collect(self) -> None:
         r"""
