@@ -1,9 +1,10 @@
-from typing import Any, List
+from typing import Any, List, Union, Sequence
 import copy
 import torch
-from nervex.envs import BaseEnv, register_env
-from nervex.envs.common.env_element import EnvElement
-from nervex.torch_utils import to_tensor
+import numpy as np
+from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo 
+from nervex.envs.common.env_element import EnvElement, EnvElementInfo
+from nervex.torch_utils import to_tensor, to_ndarray, to_list
 from .atari_wrappers import wrap_deepmind
 
 
@@ -15,11 +16,11 @@ class AtariEnv(BaseEnv):
             cfg.env_id, frame_stack=cfg.frame_stack, episode_life=cfg.is_train, clip_rewards=cfg.is_train
         )
 
-    def reset(self) -> torch.FloatTensor:
+    def reset(self) -> Sequence:
         if hasattr(self, '_seed'):
             self._env.seed(self._seed)
         obs = self._env.reset()
-        obs = to_tensor(obs, torch.float)
+        obs = to_ndarray(obs)
         self._final_eval_reward = 0.
         return obs
 
@@ -29,26 +30,27 @@ class AtariEnv(BaseEnv):
     def seed(self, seed: int) -> None:
         self._seed = seed
 
-    def step(self, action: torch.Tensor) -> BaseEnv.timestep:
-        action = action.numpy()
+    def step(self, action: np.ndarray) -> BaseEnvTimestep:
+        assert isinstance(action, np.ndarray), type(action)
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
-        obs = to_tensor(obs, torch.float)
-        rew = to_tensor(rew, torch.float)
+        obs = to_ndarray(obs)
+        rew = to_ndarray([rew]) # wrapped to be transfered to a Tensor with shape (1,)
         if done:
             info['final_eval_reward'] = self._final_eval_reward
-        return BaseEnv.timestep(obs, rew, done, info)
+        return BaseEnvTimestep(obs, rew, done, info)
 
-    def info(self) -> BaseEnv.info_template:
+    def info(self) -> BaseEnvInfo:
         rew_range = self._env.reward_range
-        T = EnvElement.info_template
-        return BaseEnv.info_template(
+        T = EnvElementInfo
+        return BaseEnvInfo(
             agent_num=1,
-            obs_space=T(self._env.observation_space.shape, None, None, None),
-            act_space=T((self._env.action_space.n, ), None, None, None),
+            obs_space=T(self._env.observation_space.shape, {'dtype': np.float32}, None, None),
+            act_space=T((self._env.action_space.n, ), {'dtype': np.float32}, None, None),
             rew_space=T(1, {
                 'min': rew_range[0],
-                'max': rew_range[1]
+                'max': rew_range[1],
+                'dtype': np.float32
             }, None, None),
         )
 

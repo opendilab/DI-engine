@@ -1,14 +1,12 @@
-from typing import Any, List
+from typing import Any, Union, List
 import torch
-import copy
 import numpy as np
-
-from nervex.envs import BaseEnv, register_env
-from nervex.envs.common.env_element import EnvElement
+from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo 
+from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.envs.common.common_function import affine_transform
-from nervex.torch_utils import to_tensor
+from nervex.torch_utils import to_tensor, to_ndarray, to_list
 from .mujoco_wrappers import wrap_deepmind
-
+import copy
 
 class MujocoEnv(BaseEnv):
 
@@ -23,7 +21,7 @@ class MujocoEnv(BaseEnv):
         if hasattr(self, '_seed'):
             self._env.seed(self._seed)
         obs = self._env.reset()
-        obs = to_tensor(obs, torch.float)
+        obs = to_ndarray(obs)
         self._final_eval_reward = 0.
         return obs
 
@@ -33,30 +31,31 @@ class MujocoEnv(BaseEnv):
     def seed(self, seed: int) -> None:
         self._seed = seed
 
-    def step(self, action: Any) -> BaseEnv.timestep:
-        action = action.numpy()
+    def step(self, action: Union[torch.Tensor, np.ndarray, list]) -> BaseEnvTimestep:
+        action = to_ndarray(action)
         if self._use_act_scale:
             action_range = self.info().act_space.value
             action = affine_transform(action, min_val=action_range['min'], max_val=action_range['max'])
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
-        obs = to_tensor(obs, torch.float)
-        rew = to_tensor(rew, torch.float)
+        obs = to_ndarray(obs)
+        rew = to_ndarray([rew]) # wrapped to be transfered to a Tensor with shape (1,)
         if done:
             info['final_eval_reward'] = self._final_eval_reward
-        return BaseEnv.timestep(obs, rew, done, info)
+        return BaseEnvTimestep(obs, rew, done, info)
 
-    def info(self) -> BaseEnv.info_template:
+    def info(self) -> BaseEnvInfo:
         reward_range = self._env.reward_range
         observation_space = self._env.observation_space
         action_space = self._env.action_space
-        T = EnvElement.info_template
-        return BaseEnv.info_template(
+        T = EnvElementInfo
+        return BaseEnvInfo(
             agent_num=1,
             obs_space=T(
                 observation_space.shape, {
                     'min': observation_space.low.max(),
-                    'max': observation_space.high.min()
+                    'max': observation_space.high.min(),
+                    'dtype': np.float32
                 }, None, None
             ),
             act_space=T(

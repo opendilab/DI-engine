@@ -4,7 +4,7 @@ import torch
 
 from nervex.torch_utils import Adam
 from nervex.rl_utils import ppo_data, ppo_error, Adder
-from nervex.model import FCValueAC
+from nervex.model import FCValueAC, ConvValueAC
 from nervex.agent import Agent
 from .base_policy import Policy, register_policy
 from .common_policy import CommonPolicy
@@ -114,7 +114,10 @@ class PPOPolicy(CommonPolicy):
 
     def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
         if model_type is None:
-            return FCValueAC(**cfg.model)
+            if cfg.get("encode_type", None) == "conv2d":
+                return ConvValueAC(**cfg.model)
+            else:
+                return FCValueAC(**cfg.model)
         else:
             return model_type(**cfg.model)
 
