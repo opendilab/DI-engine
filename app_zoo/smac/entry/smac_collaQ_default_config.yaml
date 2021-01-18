@@ -23,8 +23,8 @@ policy:
         action_dim: 14
         embedding_dim: 64
         enable_attention: True
-        self_feature_range: [128, 136] # fake smac env 测试所以乱写的，修改了smac env后记得改正
-        ally_feature_range: [136, 192] # 同上
+        self_feature_range: [128, 136] # placeholder
+        ally_feature_range: [136, 192] # placeholder
         attention_dim: 32
     learn:
         train_step: 100
