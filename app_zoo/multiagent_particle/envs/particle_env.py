@@ -3,9 +3,9 @@ import torch
 import numpy as np
 from gym import spaces
 from typing import Any
-from nervex.envs import BaseEnv
-from nervex.envs.common.env_element import EnvElement
-from nervex.torch_utils import to_tensor, tensor_to_list
+from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo 
+from nervex.envs.common.env_element import EnvElement, EnvElementInfo
+from nervex.torch_utils import to_tensor, to_ndarray, to_list
 from app_zoo.multiagent_particle.envs.make_env import make_env
 from app_zoo.multiagent_particle.envs.multiagent.multi_discrete import MultiDiscrete
 
@@ -39,17 +39,17 @@ class ParticleEnv(BaseEnv):
     def _process_action(self, action: list):
         # print("action in env = ", action)
         # print('ret = ', tensor_to_list(action))
-        return tensor_to_list(action)
+        return to_list(action)
 
-    def step(self, action: list) -> BaseEnv.timestep:
+    def step(self, action: list) -> BaseEnvTimestep:
         action = self._process_action(action)
         obs_n, rew_n, done_n, info_n = self._env.step(action)
         obs_n = [to_tensor(obs, torch.float) for obs in obs_n]
         rew_n = [to_tensor(rew, torch.float) for rew in rew_n]
-        return BaseEnv.timestep(obs_n, rew_n, done_n, info_n)
+        return BaseEnvTimestep(obs_n, rew_n, done_n, info_n)
 
-    def info(self) -> BaseEnv.info_template:
-        T = EnvElement.info_template
+    def info(self) -> BaseEnvInfo:
+        T = EnvElementInfo
         act_space = {}
         obs_space = {}
         rew_space = {}
@@ -83,7 +83,7 @@ class ParticleEnv(BaseEnv):
                               'max': act.high,
                               'dtype': act.dtype
                           }, None, None)
-        return BaseEnv.info_template(
+        return BaseEnvInfo(
             agent_num=self.agent_num,
             obs_space=obs_space,
             act_space=act_space,

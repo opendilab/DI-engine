@@ -4,6 +4,9 @@ from typing import Any, List, Tuple
 import warnings
 from nervex.utils import import_module
 
+BaseEnvTimestep = namedtuple('BaseEnvTimestep', ['obs', 'reward', 'done', 'info'])
+BaseEnvInfo = namedtuple('BaseEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space'])
+
 
 class BaseEnv(ABC):
     """
@@ -11,8 +14,6 @@ class BaseEnv(ABC):
     Interface: __init__
     Property: timestep
     """
-    timestep = namedtuple('BaseEnvTimestep', ['obs', 'reward', 'done', 'info'])
-    info_template = namedtuple('BaseEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space'])
 
     @abstractmethod
     def __init__(self, cfg: dict) -> None:

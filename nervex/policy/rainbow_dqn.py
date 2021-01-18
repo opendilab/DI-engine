@@ -161,19 +161,19 @@ class RainbowDQNPolicy(DQNPolicy):
         self._reset_noise(self._collect_agent.model)
         return self._collect_agent.forward(data, eps=self._eps)
 
-    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, traj: deque) -> Union[None, List[Any]]:
         r"""
         Overview:
             Get the trajectory and the n step return data, then sample from the n_step return data
 
         Arguments:
-            - traj_cache (:obj:`deque`): The trajactory's cache
+            - traj (:obj:`deque`): The trajactory's cache
 
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
         # adder is defined in _init_collect
-        data = self._adder.get_traj(traj_cache, self._traj_len, return_num=self._collect_nstep)
+        data = self._adder.get_traj(traj, self._traj_len, return_num=self._collect_nstep)
         data = self._adder.get_nstep_return_data(data, self._collect_nstep, self._traj_len)
         return self._adder.get_train_sample(data)
 

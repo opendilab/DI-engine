@@ -1,12 +1,11 @@
 from collections import namedtuple
 import torch
-from nervex.envs import BaseEnv, register_env
-from nervex.envs.common.env_element import EnvElement
+from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo 
 
+FakeSMACEnvTimestep = namedtuple('FakeSMACEnvTimestep', ['obs', 'reward', 'done', 'info'])
+FakeSMACEnvInfo = namedtuple('FakeSMACEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space'])
 
 class FakeSMACEnv(BaseEnv):
-    timestep = namedtuple('FakeSMACEnvTimestep', ['obs', 'reward', 'done', 'info'])
-    info_template = namedtuple('FakeSMACEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space'])
 
     def __init__(self, cfg=None):
         self.agent_num = 8
@@ -37,11 +36,11 @@ class FakeSMACEnv(BaseEnv):
         if done:
             info['final_eval_reward'] = 0.71
         self.step_count += 1
-        return FakeSMACEnv.timestep(obs, reward, done, info)
+        return FakeSMACEnvTimestep(obs, reward, done, info)
 
     def info(self):
-        T = EnvElement.info_template
-        return FakeSMACEnv.info_template(
+        T = FakeSMACEnvInfo
+        return FakeSMACEnvInfo(
             agent_num=self.agent_num,
             obs_space=T(
                 {
