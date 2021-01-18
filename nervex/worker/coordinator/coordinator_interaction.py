@@ -197,9 +197,12 @@ class CoordinatorInteraction(object):
                     continue
                 result = get_data_task.result
                 task_id, buffer_id, batch_size = result['task_id'], result['buffer_id'], result['batch_size']
+                cur_learner_iter = result['cur_learner_iter']
                 sleep_count = 1
                 while True:
-                    data = self._callback_fn['deal_with_learner_get_data'](task_id, buffer_id, batch_size)
+                    data = self._callback_fn['deal_with_learner_get_data'](
+                        task_id, buffer_id, batch_size, cur_learner_iter
+                    )
                     if self._end_flag or data is not None:
                         self._logger.info('sample result is ok')
                         break

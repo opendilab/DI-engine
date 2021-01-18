@@ -27,11 +27,12 @@ class LearnerSlave(Slave):
             return {'message': 'learner task has started'}
         elif task_name == 'learner_get_data_task':
             data_demand = self._callback_fn['deal_with_get_data']()
-            return {
+            ret = {
                 'task_id': self._current_task_info['task_id'],
                 'buffer_id': self._current_task_info['buffer_id'],
-                'batch_size': data_demand
             }
+            ret.update(data_demand)
+            return ret
         elif task_name == 'learner_learn_task':
             learn_info = self._callback_fn['deal_with_learner_learn'](task['data'])
             ret = {
@@ -180,8 +181,10 @@ class FlaskFileSystemLearner(BaseCommLearner):
         Returns:
             - data (:obj:`list`): a list of train data, each element is one data
         """
+        while self._learner is None:
+            time.sleep(1)
         assert self._data_demand_queue.qsize() == 0
-        self._data_demand_queue.put(batch_size)
+        self._data_demand_queue.put({'batch_size': batch_size, 'cur_learner_iter': self._learner.last_iter.val})
         data = self._data_result_queue.get()
         assert isinstance(data, list)
         assert len(data) == batch_size, '{}/{}'.format(len(data), batch_size)

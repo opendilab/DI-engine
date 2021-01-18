@@ -210,7 +210,8 @@ class Coordinator(object):
         self._historical_task.append(task_id)
         self.info('actor task({}) is finished'.format(task_id))
 
-    def deal_with_learner_get_data(self, task_id: str, buffer_id: str, batch_size: int) -> List[dict]:
+    def deal_with_learner_get_data(self, task_id: str, buffer_id: str, batch_size: int,
+                                   cur_learner_iter: int) -> List[dict]:
         if task_id not in self._task_state:
             self.error("learner task({}) get data doesn't have proper task_id".format(task_id))
             raise RuntimeError(
@@ -222,7 +223,7 @@ class Coordinator(object):
             self.error("learner task({}) get data doesn't have proper buffer_id({})".format(task_id, buffer_id))
             return
         self.info("learner task({}) get data".format(task_id))
-        return self._replay_buffer[buffer_id].sample(batch_size)
+        return self._replay_buffer[buffer_id].sample(batch_size, cur_learner_iter)
 
     def deal_with_learner_send_info(self, task_id: str, buffer_id: str, info: dict) -> None:
         if task_id not in self._task_state:

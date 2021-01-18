@@ -2,6 +2,7 @@ from typing import List, Dict, Any, Optional, Callable, Tuple
 from collections import namedtuple, deque
 import copy
 import numpy as np
+import torch
 
 from .env_manager import BaseEnvManager
 from nervex.utils import build_logger, EasyTimer
@@ -123,6 +124,8 @@ class BaseSerialActor(object):
                         self._policy_output_pool.reset(env_id)
                         self._policy.reset([env_id])
                         reward = timestep.info['final_eval_reward']
+                        if isinstance(reward, torch.Tensor):
+                            reward = reward.item()
                         episode_reward.append(reward)
                         # self._logger.info(
                         #     "env {} finish episode, final reward: {}, collected episode: {}".format(
