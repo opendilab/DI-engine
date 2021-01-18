@@ -13,8 +13,6 @@ class CommonPolicy(Policy):
     def _data_preprocess_learn(self, data: List[Any]) -> dict:
         # data preprocess
         data = default_collate(data)
-        if self._use_cuda:
-            data = to_device(data, 'cuda')
         ignore_done = self._cfg.learn.get('ignore_done', False)
         if ignore_done:
             data['done'] = None
@@ -25,6 +23,8 @@ class CommonPolicy(Policy):
             data['weight'] = data['IS']
         else:
             data['weight'] = data.get('weight', None)
+        if self._use_cuda:
+            data = to_device(data, 'cuda:{}'.format(self._rank % 8))
         return data
 
     def _data_preprocess_collect(self, data: Dict[int, Any]) -> Tuple[List[int], dict]:

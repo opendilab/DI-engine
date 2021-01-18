@@ -106,18 +106,18 @@ def dist_init(method='slurm', device_id=0):
         - method (:obj:`str`): support ['slurm', 'single_node`]
         - device_id (:obj:`int`): default device when using single_node method
     """
-    if method == 'slurm':
-        proc_id = int(os.environ['SLURM_PROCID'])
-        # ntasks = int(os.environ['SLURM_NTASKS'])
-        # node_list = os.environ['SLURM_NODELIST']
-        num_gpus = torch.cuda.device_count()
-        torch.cuda.set_device(proc_id % num_gpus)
-    elif method == 'single_node':
-        torch.cuda.set_device(device_id)
-
     link.initialize()
     world_size = link.get_world_size()
     rank = link.get_rank()
+
+    if method == 'slurm':
+        # proc_id = int(os.environ['SLURM_PROCID'])
+        # ntasks = int(os.environ['SLURM_NTASKS'])
+        # node_list = os.environ['SLURM_NODELIST']
+        num_gpus = torch.cuda.device_count()
+        torch.cuda.set_device(rank % num_gpus)
+    elif method == 'single_node':
+        torch.cuda.set_device(device_id)
 
     return rank, world_size
 
@@ -142,77 +142,3 @@ def simple_group_split(world_size, rank, num_groups):
         groups.append(link.new_group(rank_list[i]))
     group_size = world_size // num_groups
     return groups[rank // group_size]
-
-
-class DistModule(torch.nn.Module):
-    r"""
-    Overview:
-        Distributed module that wrapped the nn.model
-    Interface:
-        __init__, sync_gradients, broadcast_params
-    """
-
-    def __init__(self, module, sync=True):
-        r"""
-        Overview:
-            init method of the DistModule
-        Arguments:
-            - module (:obj:`nn.model`): the module to be wrapped
-            - sync (:obj:`bool`): whether need syncronize
-        """
-        super(DistModule, self).__init__()
-        self.module = module
-        self._extend_module_attr()
-        self.broadcast_params()
-
-        self.sync = sync
-        if not sync:
-            self._grad_accs = []
-            self._register_hooks()
-        self._create_grad()
-
-    def _extend_module_attr(self):
-        # if you want to use more attributes of torch.nn.module, please extend this module
-        # and overwrite this method or let the repo developer informed.
-        attributes = ['forward', 'state_dict', 'load_state_dict', 'named_parameters']
-        for attr in attributes:
-            setattr(self, attr, getattr(self.module, attr))
-
-    def _register_hooks(self):
-        for i, (name, p) in enumerate(self.named_parameters()):
-            if p.requires_grad:
-                p_tmp = p.expand_as(p)
-                grad_acc = p_tmp.grad_fn.next_functions[0][0]
-                grad_acc.register_hook(self._make_hook(name, p, i))
-                self._grad_accs.append(grad_acc)
-
-    def _make_hook(self, name, p, i):
-
-        def hook(*ignore):
-            link.allreduce_async(name, p.grad.data)
-
-        return hook
-
-    def sync_gradients(self):
-        r"""
-        Overview:
-            calculate the average gradients
-        """
-        if self.sync and link.get_world_size() > 1:
-            for name, param in self.named_parameters():
-                if param.requires_grad:
-                    allreduce(param.grad.data)
-        else:
-            link.synchronize()
-
-    def broadcast_params(self):
-        """
-        Overview:
-            broadcast the model parameters
-        """
-        for name, param in self.state_dict().items():
-            link.broadcast(param, 0)
-
-    def _create_grad(self):
-        for name, param in self.named_parameters():
-            setattr(param, 'grad', torch.zeros_like(param))

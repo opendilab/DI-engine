@@ -4,7 +4,7 @@ from collections import namedtuple, deque
 from easydict import EasyDict
 import torch
 
-from nervex.utils import import_module, allreduce, broadcast
+from nervex.utils import import_module, allreduce, broadcast, get_rank
 
 
 class Policy(ABC):
@@ -28,9 +28,11 @@ class Policy(ABC):
         model = self._create_model_from_cfg(cfg, model_type)
         self._cfg = cfg
         self._use_cuda = cfg.use_cuda
+        self._use_distributed = cfg.get('use_distributed', False)
+        self._rank = get_rank() if self._use_distributed else 0
+        torch.cuda.set_device(self._rank)
         if self._use_cuda:
             model.cuda()
-        self._use_distributed = cfg.get('use_distributed', False)
         self._model = model
         self._enable_field = enable_field
         self._total_field = set(['learn', 'collect', 'eval', 'command'])
@@ -135,7 +137,7 @@ class Policy(ABC):
         return ['cur_lr', 'total_loss']
 
     def sync_gradients(self, model: torch.nn.Module) -> None:
-        for name, param in self.named_parameters():
+        for name, param in model.named_parameters():
             if param.requires_grad:
                 allreduce(param.grad.data)
 

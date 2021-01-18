@@ -59,7 +59,10 @@ class CoordinatorInteraction(object):
                 break
             except Exception as e:
                 self.close()
-                self._logger.error("connection start error:\n" + ''.join(traceback.format_tb(e.__traceback__)) + repr(e) + '\nAuto Retry...')
+                self._logger.error(
+                    "connection start error:\n" + ''.join(traceback.format_tb(e.__traceback__)) + repr(e) +
+                    '\nAuto Retry...'
+                )
                 time.sleep(5)
         if self._end_flag:
             self._logger.error("connection max retries failed")

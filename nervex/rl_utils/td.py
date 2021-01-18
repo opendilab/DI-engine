@@ -32,7 +32,7 @@ nstep_return_data = namedtuple('nstep_return_data', ['reward', 'next_value', 'do
 def nstep_return(data: namedtuple, gamma: float, nstep: int):
     reward, next_value, done = data
     assert reward.shape[0] == nstep
-    device = torch.device("cuda" if reward.is_cuda else "cpu")
+    device = reward.device
     reward_factor = torch.ones(nstep).to(device)
     for i in range(1, nstep):
         reward_factor[i] = gamma * reward_factor[i - 1]
@@ -54,7 +54,7 @@ def dist_1step_td_error(
         n_atom: int,
 ) -> torch.Tensor:
     dist, next_dist, act, next_act, reward, done, weight = data
-    device = torch.device("cuda" if reward.is_cuda else "cpu")
+    device = reward.device
     assert len(act.shape) == 1, act.shape
     assert len(reward.shape) == 1, reward.shape
     reward = reward.unsqueeze(-1)
@@ -120,7 +120,7 @@ def dist_nstep_td_error(
         - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
     """
     dist, next_n_dist, act, next_n_act, reward, done, weight = data
-    device = torch.device("cuda" if reward.is_cuda else "cpu")
+    device = reward.device
     assert len(act.shape) == 1, act.shape
     reward_factor = torch.ones(nstep).to(device)
     for i in range(1, nstep):

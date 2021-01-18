@@ -50,7 +50,9 @@ class LearnerAggregator(object):
         try:
             self._slave.start()
         except Exception as e:
-            self._logger.error("learner_aggregator slave start error:\n" + ''.join(traceback.format_tb(e.__traceback__)) + repr(e))
+            self._logger.error(
+                "learner_aggregator slave start error:\n" + ''.join(traceback.format_tb(e.__traceback__)) + repr(e)
+            )
             return
         max_retry_time = 60
         start_time = time.time()
@@ -79,7 +81,10 @@ class LearnerAggregator(object):
                     self._master.close()
                 except Exception:
                     pass
-                self._logger.error("learner_aggregator master start error:\n" + ''.join(traceback.format_tb(e.__traceback__)) + repr(e))
+                self._logger.error(
+                    "learner_aggregator master start error:\n" + ''.join(traceback.format_tb(e.__traceback__)) +
+                    repr(e)
+                )
                 time.sleep(5)
         if len(self._learner_connection) == 0:
             self._logger.error("learner_aggregator master max retries failed")

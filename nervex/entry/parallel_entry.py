@@ -53,8 +53,10 @@ def parallel_pipeline(
                     aggregator_cfg = config[aggregator_k]
                     subprocess.Popen(
                         "srun -p {} -w {} --job-name=learner_aggregator python -c \
-                        \"import nervex.entry.parallel_entry as pe; pe.launch_learner_aggregator(filename='{}', name='{}')\""
-                        .format(aggregator_cfg.partition, aggregator_cfg.node, real_filename, aggregator_k),
+                        \"import nervex.entry.parallel_entry as pe; pe.launch_learner_aggregator(filename='{}', \
+                        name='{}')\"".format(
+                            aggregator_cfg.partition, aggregator_cfg.node, real_filename, aggregator_k
+                        ),
                         stderr=subprocess.STDOUT,
                         shell=True,
                     )

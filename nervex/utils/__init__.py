@@ -4,7 +4,7 @@ from .config_helper import deep_merge_dicts, read_config
 from .default_helper import override, dicts_to_lists, lists_to_dicts, squeeze, default_get, error_wrapper, list_split,\
     LimitedSpaceContainer
 from .design_helper import SingletonMetaclass
-from .dist_helper import get_rank, get_world_size, distributed_mode, DistModule, dist_init, dist_finalize, \
+from .dist_helper import get_rank, get_world_size, distributed_mode, dist_init, dist_finalize, \
     allreduce, get_group, broadcast
 from .fake_linklink import link, FakeLink
 from .file_helper import read_file, save_file, remove_file
