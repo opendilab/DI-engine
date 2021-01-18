@@ -157,7 +157,8 @@ class PrioritizedBuffer:
     r"""
     Overview:
         Prioritized buffer, can store and sample data.
-        This buffer refers to multi-thread/multi-process and guarantees thread-safe.
+        This buffer refers to multi-thread/multi-process and guarantees thread-safe, which means that functions like
+        ``sample_check``, ``sample``, ``append``, ``extend``, ``clear`` are all mutual to each other.
     Interface:
         __init__, append, extend, sample, update
     Property:
@@ -201,30 +202,31 @@ class PrioritizedBuffer:
             - eps (:obj:`float`): A small positive number to avoid edge case
         """
         # TODO(nyz) remove elements according to priority
-        # ``_data`` is the core data structure to store data (or data's reference/file path)
-        # use RecordList if needs to track used data; otherwise use normal list
+        # ``_data`` is a circular queue to store data (or data's reference/file path)
+        # Will use RecordList if needs to track used data; Otherwise will use normal list.
         self._enable_track_used_data = enable_track_used_data
         if self._enable_track_used_data:
             self._data = RecordList([None for _ in range(maxlen)])
         else:
             self._data = [None for _ in range(maxlen)]
-        # current valid data count, indicating how many elements in ``self._data`` is valid.
+        # Current valid data count, indicating how many elements in ``self._data`` is valid.
         self._valid_count = 0
-        # how many pieces of data have been pushed into this buffer, should be no less than ``_valid_count``
+        # How many pieces of data have been pushed into this buffer, should be no less than ``_valid_count``
         self._push_count = 0
-        # point to the position where next data can be inserted, i.e. last data's next position
+        # Point to the position where next data can be inserted, i.e. latest inserted data's next position.
+        # This position also means the stalest(oldest) data in this buffer as well.
         self.pointer = 0
-        # used to generate a unique id for each data: if a new data is inserted, its unique id will be this
+        # Is used to generate a unique id for each data: If a new data is inserted, its unique id will be this.
         self.next_unique_id = 0
         # {position_idx/pointer_idx: reuse_count}
         self._reuse_count = {idx: 0 for idx in range(maxlen)}
-        # max priority till now, used to initizalize a data's priority if "priority" is not passed in with the data
+        # Max priority till now. Is used to initizalize a data's priority if "priority" is not passed in with the data
         self.max_priority = 1.0
-        # small positive number to avoid edge-case, e.g. avoid "priority" to be 0
+        # A small positive number to avoid edge-case, e.g. avoid "priority" to be 0
         self._eps = eps
-        # data check function list, used in ``append`` and ``extend``
+        # Data check function list, used in ``append`` and ``extend``. This buffer requires data to be dict
         self.check_list = [lambda x: isinstance(x, dict)]
-        # lock to guarantee thread safe
+        # Lock to guarantee thread safe
         self._lock = LockContext(type_=LockContextType.THREAD_LOCK)
 
         self.name = name
@@ -243,19 +245,19 @@ class PrioritizedBuffer:
             self._beta_anneal_step = (1 - self._beta) / self._anneal_step
         self._deepcopy = deepcopy
 
-        # ``sum segtree and min segtree are used for prioritized sample``
-        # capacity needs to be the power of 2
+        # Prioritized sample
+        # Capacity needs to be the power of 2
         capacity = int(np.power(2, np.ceil(np.log2(self.maxlen))))
-        # sum segtree and min segtree are used to sample data according to priority
+        # Sum segtree and min segtree are used to sample data according to priority
         self.sum_tree = SumSegmentTree(capacity)
         self.min_tree = MinSegmentTree(capacity)
 
-        # monitor & logger
+        # Monitor & Logger
         if monitor_cfg is None:
             monitor_cfg = EasyDict(
                 {
                     'log_freq': 2000,
-                    'log_path': './log/buffer/',
+                    'log_path': './log/buffer/default',
                     'natural_expire': 100,
                     'tick_expire': 100,
                 }
@@ -278,47 +280,74 @@ class PrioritizedBuffer:
             self._tb_logger.register_var(var)
         self._log_freq = self.monitor_cfg.log_freq
 
-        # load data from file if asked to do so
+        # Load data from file if load_path in config is not None
         if self.load_path is not None:
             with open(self.load_path, "rb+") as f:
                 _demo_data = pickle.load(f)
             self.extend(_demo_data)
 
-    def _set_weight(self, idx: int, data: Any) -> None:
+    def sample_check(self, size: int, cur_learner_iter: int) -> bool:
         r"""
         Overview:
-            Set the priority and tree weight of the input data
+            Do preparations for sampling and check whther data is enough for sampling
+            Preparation includes removing stale transition in ``self._data``.
+            Check includes judging whether this buffer satisfies the sample condition:
+            current elements count / planning sample count >= min_sample_ratio.
         Arguments:
-            - idx (:obj:`int`): the index of the list where the data will be inserted
-            - data (:obj:`Any`): the data which will be inserted
+            - size (:obj:`int`): The number of the data that will be sampled
+            - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness
+        Returns:
+            - can_sample (:obj:`bool`): Whether this buffer can sample enough data
+        Note:
+            This function must be called exactly before calling ``sample``.
         """
-        if 'priority' not in data.keys() or data['priority'] is None:
-            data['priority'] = self.max_priority
-        weight = data['priority'] ** self.alpha
-        self.sum_tree[idx] = weight
-        self.min_tree[idx] = weight
+        if size == 0:
+            return True
+        # with self._lock:
+        p = self.pointer
+        while True:
+            if self._data[p] is not None:
+                staleness = self._calculate_staleness(p, cur_learner_iter)
+                if staleness >= self.max_staleness:
+                    self._remove(p)
+                    continue
+                else:
+                    # Since the circular queue ``self._data`` guarantees that data's staleness is decreasing from
+                    # index self.pointer to index self.pointer - 1, we can jump out of the loop as soon as
+                    # meeting a fresh enough data
+                    break
+            else:
+                continue
+            self.pointer = (self.pointer + 1) % self._maxlen
+        if self._valid_count / size < self.min_sample_ratio:
+            self._logger.info(
+                "No enough elements for sampling (expect: {}/current have: {}, min_sample_ratio: {})".format(
+                    size, self._valid_count, self.min_sample_ratio
+                )
+            )
+            return False
+        else:
+            return True
 
     def sample(self, size: int, cur_learner_iter: int) -> Optional[list]:
         r"""
         Overview:
-            Sample data with length ``size``
+            Sample data with length ``size``.
         Arguments:
-            - size (:obj:`int`): the number of the data that will be sampled
+            - size (:obj:`int`): The number of the data that will be sampled
             - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness
         Returns:
             - sample_data (:obj:`list`): If check fails returns None; Otherwise returns a list with length ``size``, \
                 and each data owns keys: original keys + ['IS', 'priority', 'replay_unique_id', 'replay_buffer_idx']
+        Note:
+            Before calling this function, ``sample_check`` must be called.
         """
+        if size == 0:
+            return []
         with self._lock:
             with self._timer:
-                left_to_sample = size
-                result = []
-                while left_to_sample:
-                    if not self._sample_check(left_to_sample):
-                        return None
-                    indices = self._get_indices(left_to_sample)
-                    result += self._sample_with_indices(indices, cur_learner_iter, len(result) == 0)
-                    left_to_sample = size - len(result)
+                indices = self._get_indices(size)
+                result = self._sample_with_indices(indices, cur_learner_iter)
                 # Deepcopy ``result``'s same indice datas in case ``self._get_indices`` may get datas with
                 # the same indices, i.e. the same datas would be sampled afterwards.
                 for i in range(size):
@@ -354,7 +383,7 @@ class PrioritizedBuffer:
                     assert (self._data_check(data))
                 except AssertionError:
                     # if data check fails, return without any operations
-                    print('illegal data {}, reject it...'.format(type(data)))
+                    self._logger.info('Illegal data type [{}], reject it...'.format(type(data)))
                     return
                 if self._data[self.pointer] is None:
                     self._valid_count += 1
@@ -422,6 +451,136 @@ class PrioritizedBuffer:
 
             self._monitor_update_of_push(length, self._timer.value)
 
+    def update(self, info: dict) -> None:
+        r"""
+        Overview:
+            Update priority according to the id and idx
+        Arguments:
+            - info (:obj:`dict`): info dict containing all necessary keys for priority update
+        """
+        with self._lock:
+            data = [info['replay_unique_id'], info['replay_buffer_idx'], info['priority']]
+            for id_, idx, priority in zip(*data):
+                # if the data still exists in the queue, then do the update operation
+                if self._data[idx] is not None \
+                        and self._data[idx]['replay_unique_id'] == id_:  # confirm the same transition(data)
+                    assert priority >= 0, priority
+                    self._data[idx]['priority'] = priority + self._eps
+                    self._set_weight(idx, self._data[idx])
+                    # update max priority
+                    self.max_priority = max(self.max_priority, priority)
+
+    def clear(self) -> None:
+        """
+        Overview:
+            Clear all the data and reset the related variable
+        """
+        with self._lock:
+            for i in range(len(self._data)):
+                self._remove(i)
+                self._reuse_count[i] = 0
+            self._valid_count = 0
+            self.pointer = 0
+            self.max_priority = 1.0
+
+    def _set_weight(self, idx: int, data: Any) -> None:
+        r"""
+        Overview:
+            Set the priority and tree weight of the input data
+        Arguments:
+            - idx (:obj:`int`): the index of the list where the data will be inserted
+            - data (:obj:`Any`): the data which will be inserted
+        """
+        if 'priority' not in data.keys() or data['priority'] is None:
+            data['priority'] = self.max_priority
+        weight = data['priority'] ** self.alpha
+        self.sum_tree[idx] = weight
+        self.min_tree[idx] = weight
+
+    def _data_check(self, d) -> bool:
+        r"""
+        Overview:
+            Data legality check, using rules in ``self.check_list``
+        Arguments:
+            - d (:obj:`T`): the data which needs to be checked
+        Returns:
+            - result (:obj:`bool`): whether the data passes the check
+        """
+        # only the data passes all the check functions, would the check return True
+        return all([fn(d) for fn in self.check_list])
+
+    def _get_indices(self, size: int) -> list:
+        r"""
+        Overview:
+            Get the sample index list according to the priority probability,
+        Arguments:
+            - size (:obj:`int`): The number of the data that will be sampled
+        Returns:
+            - index_list (:obj:`list`): A list including all the sample indices
+        """
+        # divide size intervals on average and sample with each interval
+        intervals = np.array([i * 1.0 / size for i in range(size)])
+        # uniformly sample in each interval
+        mass = intervals + np.random.uniform(size=(size, )) * 1. / size
+        # rescale to [0, S), where S is the sum of the total sum_tree
+        mass *= self.sum_tree.reduce()
+        # find prefix sum index to sample with probability
+        return [self.sum_tree.find_prefixsum_idx(m) for m in mass]
+
+    def _remove(self, idx: int) -> None:
+        r"""
+        Overview:
+            Remove a data(set its value in the list to ``None``) and
+            update corresponding variables, e.g. sum_tree, min_tree, valid_count.
+        Arguments:
+            - idx (:obj:`int`): Data at this position will be removed
+        """
+        self._data[idx] = None
+        self.sum_tree[idx] = self.sum_tree.neutral_element
+        self.min_tree[idx] = self.min_tree.neutral_element
+        self._valid_count -= 1
+
+    def _sample_with_indices(self, indices: List[int], cur_learner_iter: int) -> list:
+        r"""
+        Overview:
+            Sample data with ``indices``; Remove it a data item if it is reused for too many times.
+        Arguments:
+            - indices (:obj:`List[int]`): A list including all the sample indices
+            - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness
+        Returns:
+            - data (:obj:`list`) Sampled data
+        """
+        # Calculate max weight for normalizing IS
+        sum_tree_root = self.sum_tree.reduce()
+        p_min = self.min_tree.reduce() / sum_tree_root
+        max_weight = (self._valid_count * p_min) ** (-self._beta)
+        data = []
+        for idx in indices:
+            if self._deepcopy:
+                # deepcopy data for avoiding interference
+                copy_data = copy.deepcopy(self._data[idx])
+            else:
+                copy_data = self._data[idx]
+            assert (copy_data is not None)
+            # store staleness, reuse and IS(importance sampling weight for gradient step) for monitor and outer use
+            copy_data['staleness'] = self._calculate_staleness(idx, cur_learner_iter)
+            copy_data['reuse'] = self._reuse_count[idx]
+            p_sample = self.sum_tree[copy_data['replay_buffer_idx']] / sum_tree_root
+            # print('weight:', self._valid_count, p_sample, -self.beta)
+            weight = (self._valid_count * p_sample) ** (-self._beta)
+            # print('weight/max_weight:', weight, max_weight)
+            copy_data['IS'] = weight / max_weight
+            data.append(copy_data)
+            self._reuse_count[idx] += 1
+        # remove datas whose "reuse count" is greater than ``max_reuse```
+        for idx in indices:
+            if self._reuse_count[idx] > self.max_reuse:
+                self._remove(idx)
+        # anneal update beta
+        if self._anneal_step != 0:
+            self._beta += self._beta_anneal_step
+        return data
+
     def _monitor_update_of_push(self, add_count: int, add_time: float) -> None:
         self._natural_monitor.in_count = add_count
         self._in_tick_monitor.in_time = add_time
@@ -463,152 +622,38 @@ class PrioritizedBuffer:
             self._logger.print_vars(out_dict)
             self._tb_logger.print_vars(out_dict, self._out_count, 'scalar')
 
-    def update(self, info: dict) -> None:
+    def _calculate_staleness(self, pos_index: int, cur_learner_iter: int) -> Optional[int]:
         r"""
         Overview:
-            Update priority according to the id and idx
+            Calculate a data's staleness according to its own attribute ``collect_iter``
+            and input parameter ``cur_learner_iter``.
         Arguments:
-            - info (:obj:`dict`): info dict containing all necessary keys for priority update
-        """
-        with self._lock:
-            data = [info['replay_unique_id'], info['replay_buffer_idx'], info['priority']]
-            for id_, idx, priority in zip(*data):
-                # if the data still exists in the queue, then do the update operation
-                if self._data[idx] is not None \
-                        and self._data[idx]['replay_unique_id'] == id_:  # confirm the same transition(data)
-                    assert priority >= 0, priority
-                    self._data[idx]['priority'] = priority + self._eps
-                    self._set_weight(idx, self._data[idx])
-                    # update max priority
-                    self.max_priority = max(self.max_priority, priority)
-
-    def _data_check(self, d) -> bool:
-        r"""
-        Overview:
-            Data legality check, using rules in ``self.check_list``
-        Arguments:
-            - d (:obj:`T`): the data which needs to be checked
-        Returns:
-            - result (:obj:`bool`): whether the data passes the check
-        """
-        # only the data passes all the check functions, would the check return True
-        return all([fn(d) for fn in self.check_list])
-
-    def _sample_check(self, size: int) -> bool:
-        r"""
-        Overview:
-            Check whether the buffer satisfies the sample condition:
-            current elements count / planning sample count >= min_sample_ratio, i.e. whether buffer is enough to sample.
-        Arguments:
-            - size (:obj:`int`): The number of the data that will be sampled
-        Returns:
-            - result (:obj:`bool`): Whether the buffer can sample
-        """
-        if self._valid_count / size < self.min_sample_ratio:
-            print(
-                "[INFO({})] no enough element for sample(expect: {}/current have: {}, min_sample_ratio: {})".format(
-                    time.time(), size, self._valid_count, self.min_sample_ratio
-                )
-            )
-            return False
-        else:
-            return True
-
-    def _get_indices(self, size: int) -> list:
-        r"""
-        Overview:
-            Get the sample index list according to the priority probability,
-        Arguments:
-            - size (:obj:`int`): The number of the data that will be sampled
-        Returns:
-            - index_list (:obj:`list`): A list including all the sample indices
-        """
-        # average divide size intervals and sample from them
-        intervals = np.array([i * 1.0 / size for i in range(size)])
-        # uniform sample in each interval
-        mass = intervals + np.random.uniform(size=(size, )) * 1. / size
-        # rescale to [0, S), where S is the sum of the total sum_tree
-        mass *= self.sum_tree.reduce()
-        # find prefix sum index to approximate sample with probability
-        return [self.sum_tree.find_prefixsum_idx(m) for m in mass]
-
-    def _remove(self, idx: int) -> None:
-        self._data[idx] = None
-        self.sum_tree[idx] = self.sum_tree.neutral_element
-        self.min_tree[idx] = self.min_tree.neutral_element
-        self._valid_count -= 1
-
-    def _sample_with_indices(self, indices: List[int], cur_learner_iter: int, first_sample: bool = True) -> list:
-        r"""
-        Overview:
-            Sample data with ``indices``; If a data item is reused for too many times,
-            remove it and update internal variables(sum_tree, min_tree, valid_count)
-        Arguments:
-            - indices (:obj:`List[int]`): A list including all the sample indices
+            - pos_index (:obj:`int`): The position index, intended to calculate staleness of th data at this index
             - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness
         Returns:
-            - data (:obj:`list`) Sampled data
+            - staleness (:obj:`int`): Whether this buffer can sample enough data
+        Note:
+            Caller should guarantee that data at ``pos_index`` is not None, otherwise this function may raise an error.
         """
-        # calculate max weight for normalizing IS
-        sum_tree_root = self.sum_tree.reduce()
-        p_min = self.min_tree.reduce() / sum_tree_root
-        max_weight = (self._valid_count * p_min) ** (-self._beta)
-        data = []
-        for idx in indices:
-            # calculate staleness, if too stale, remove it and do not add it to the return data
-            collect_iter = self._data[idx].get('collect_iter', cur_learner_iter + 1)
+        if self._data[pos_index] is None:
+            raise ValueError("Prioritized's data at index {} is None".format(pos_index))
+        else:
+            # calculate staleness, remove it if too stale
+            collect_iter = self._data[pos_index].get('collect_iter', cur_learner_iter + 1)
             if isinstance(collect_iter, list):
                 # timestep transition's collect_iter is a list
                 collect_iter = min(collect_iter)
-            # ``staleness`` might be -1, means invalid,
-            # e.g. actor does not report collecting model iter, it is demo buffer(data not generated by actor) etc.
+            # ``staleness`` might be -1, means invalid, e.g. actor does not report collecting model iter,
+            # or it is a demonstration buffer(which means data is not generated by actor) etc.
             staleness = cur_learner_iter - collect_iter
-            if staleness >= self.max_staleness:
-                self._remove(idx)
-                continue
-            if self._deepcopy:
-                # deepcopy data for avoiding interference
-                copy_data = copy.deepcopy(self._data[idx])
-            else:
-                copy_data = self._data[idx]
-            assert (copy_data is not None)
-            copy_data['staleness'] = staleness
-            # store reuse for outer monitor
-            copy_data['reuse'] = self._reuse_count[idx]
-            # get IS(importance sampling weight for gradient step)
-            p_sample = self.sum_tree[copy_data['replay_buffer_idx']] / sum_tree_root
-            weight = (self._valid_count * p_sample) ** (-self._beta)
-            copy_data['IS'] = weight / max_weight
-            data.append(copy_data)
-            self._reuse_count[idx] += 1
-        # remove the item whose "reuse count" is greater than max_reuse
-        for idx in indices:
-            if self._reuse_count[idx] > self.max_reuse:
-                self._remove(idx)
-        # anneal update beta, only the first sample will update, later samples caused by staleness will not update
-        # because they are together belong to one actual sample
-        if first_sample and self._anneal_step != 0:
-            self._beta += self._beta_anneal_step
-        return data
-
-    def clear(self) -> None:
-        """
-        Overview:
-            Clear all the data and reset the related variable
-        """
-        for i in range(len(self._data)):
-            self._remove(i)
-            self._reuse_count[i] = 0
-        self._valid_count = 0
-        self.pointer = 0
-        self.max_priority = 1.0
+            return staleness
 
     def _generate_id(self, data_id: int) -> str:
         """
         Overview:
             Use ``self.name`` and input ``id`` to generate a unique id for next data to be inserted.
         """
-        return self.name + str(data_id)
+        return "{}_{}".format(self.name, str(data_id))
 
     @property
     def maxlen(self) -> int:

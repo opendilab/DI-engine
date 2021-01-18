@@ -2,7 +2,7 @@ replay_buffer:
     buffer_name: ['agent']
     agent:
         maxlen: 4096
-        max_reuse: 16
+        max_reuse: 32
         max_staleness: 1000000
         min_sample_ratio: 1
         alpha: 0.6

@@ -171,11 +171,12 @@ class TestBaseBuffer:
             setup_base_buffer.append(generate_data())
         reuse_dict = defaultdict(int)
         while True:
-            batch = setup_base_buffer.sample(32, 0)
-            if batch is None:
+            can_sample = setup_base_buffer.sample_check(32, 0)
+            if not can_sample:
                 break
+            batch = setup_base_buffer.sample(32, 0)
             assert (len(batch) == 32)
-            assert (all([b['IS'] == 1.0 for b in batch]))
+            assert (all([b['IS'] == 1.0 for b in batch]))  # because priority is not updated
             idx = [b['replay_buffer_idx'] for b in batch]
             for i in idx:
                 reuse_dict[i] += 1

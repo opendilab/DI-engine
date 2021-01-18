@@ -18,7 +18,8 @@ from nervex.utils import read_config
 BATCH_SIZE = 8
 PRODUCER_NUM = 16
 CONSUMER_NUM = 4
-np.random.seed(413)
+LASTING_TIME = 5
+np.random.seed(1)
 
 
 @pytest.fixture(scope="function")
@@ -66,7 +67,7 @@ class TestReplayBuffer:
             replay_buffer,
             buffer_name: list = ['agent', 'agent'],
             pressure: int = 1,
-            lasting_time: int = 20
+            lasting_time: int = LASTING_TIME
     ) -> None:
         time.sleep(1)
         begin_time = time.time()
@@ -75,7 +76,7 @@ class TestReplayBuffer:
             duration = np.random.randint(1, 4) / pressure
             time.sleep(duration)
             if np.random.randint(0, 100) > 50:
-                print('[PRODUCER] thread {} use {} second to produce a data'.format(id_, duration))
+                print('[PRODUCER] thread {} use {} second to produce 1 data'.format(id_, duration))
                 replay_buffer.push_data(generate_data(), buffer_name[0])
                 count += 1
             else:
@@ -88,15 +89,16 @@ class TestReplayBuffer:
         print('[PRODUCER] thread {} finish job, total produce {} data'.format(id_, count))
         self.produce_count += count
 
-    def consume(self, id_, replay_buffer, pressure: int = 1, lasting_time: int = 25) -> None:
+    def consume(self, id_, replay_buffer, pressure: int = 1, lasting_time: int = LASTING_TIME + 5) -> None:
         time.sleep(1)
         begin_time = time.time()
         iteration = 0
         while time.time() - begin_time < lasting_time:
             while True:
+                print('consumer wait for sampling...')
                 data = replay_buffer.sample(BATCH_SIZE, 0)
                 if data is not None:
-                    assert len(data) <= BATCH_SIZE
+                    assert len(data) == BATCH_SIZE
                     self.global_data += data
                     break
                 else:
@@ -129,15 +131,20 @@ class TestReplayBuffer:
         setup_replay_buffer.run()
         for t in consume_threads:
             t.start()
+        print('=====start')
 
         for t in produce_threads:
+            print(t, 'produce join')
             t.join()
         for t in consume_threads:
+            print(t, 'consume join')
             t.join()
+        print('=====join')
         used_data = setup_replay_buffer.used_data()
         count = setup_replay_buffer.count()
         setup_replay_buffer.push_data({'data': np.random.randn(4)})
         setup_replay_buffer.close()
+        print('=====close')
         time.sleep(1 + 0.5)
         assert (len(threading.enumerate()) <= 3)
         os.popen('rm -rf log*')
@@ -185,7 +192,7 @@ class TestReplayBuffer:
         setup_replay_buffer.push_data({'data': np.random.randn(4)}, 'agent')
         setup_replay_buffer.close()
         time.sleep(1 + 0.5)
-        assert (len(threading.enumerate()) <= 4)
+        assert (len(threading.enumerate()) <= 4), threading.enumerate()
 
         agent_count, demo_count = 0, 0
         for data in self.global_data:

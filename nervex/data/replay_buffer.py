@@ -57,13 +57,6 @@ class ReplayBuffer:
         self._cache = Cache(maxlen=self.cfg.get('cache_maxlen', 256), timeout=self.cfg.get('timeout', 8))
         self._cache_thread = Thread(target=self._cache2meta)
 
-    def _transform_sample_ratio(self, sample_ratio: dict) -> List[Tuple[str, float]]:
-        # transform cfg.sample_ratio to a list, and calculate the prefix sum for sampling
-        sample_ratio = [(name, ratio) for name, ratio in sample_ratio.items()]
-        for idx in range(1, len(sample_ratio)):
-            sample_ratio[idx][1] += sample_ratio[idx - 1][1]
-        return sample_ratio
-
     def _cache2meta(self):
         """
         Overview:
@@ -94,69 +87,76 @@ class ReplayBuffer:
     def sample(self,
                batch_size: int,
                cur_learner_iter: int,
-               sample_ratio: Optional[Dict[str, int]] = None) -> Optional[list]:
+               sample_ratio: Optional[Dict[str, float]] = None) -> Optional[list]:
         """
         Overview:
             Sample data from prioritized buffers according to sample ratio.
         Arguments:
             - batch_size (:obj:`int`): Batch size of the data that will be sampled.
             - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
-            - sample_ratio (:obj:`Optional[Dict[str, int]]`): How to sample from multiple buffers. Caller can pass \
+            - sample_ratio (:obj:`Optional[Dict[str, float]]`): How to sample from multiple buffers. Caller can pass \
                 this argument; If not, replay buffer will use its own attribute ``self.sample_ratio``.
         Returns:
-            - data (:obj:`list` ): Sampled data batch
-        Note:
-            thread-safe
+            - data (:obj:`list` ): Sampled data batch.
         """
         if sample_ratio is not None:
             for idx, name in enumerate(self.buffer_name):
                 self.sample_tree[idx] = sample_ratio[name]
-            assert self.sample_tree.reduce() == 1
+            assert self.sample_tree.reduce() == 1  # assert sum of all buffer's sample ratio is 1
 
-        # average divide size intervals and sample from them
+        # randomly choosing buffer to sample from is similar to randomly choosing transition to sample in one buffer,
+        # you can refer to PrioritizedBuffer's _get_indices
         intervals = np.array([i * 1.0 / batch_size for i in range(batch_size)])
-        # uniform sample in each interval
         mass = intervals + np.random.uniform(size=(batch_size, )) * 1. / batch_size
-        # find prefix sum index to approximate sample with probability
         buffer_choice = [self.sample_tree.find_prefixsum_idx(m) for m in mass]
 
-        # buffer_data is ``List[List[dict]]``, a list containing ``buffer_num`` lists which contains datas sampled from
-        # this corresponding buffer.
-        buffer_data = []
+        # Different buffers' sample check and sample
+        buffer_sample_count = []
+        # buffer_sample_data is ``List[List[dict]]``, a list containing ``buffer_num`` lists which
+        # contains datas sampled from corresponding buffer.
+        buffer_sample_data = []
         buffer_num = len(self.buffer_name)
         for buffer_idx in range(buffer_num):
             size = buffer_choice.count(buffer_idx)
-            data = self.buffer[self.buffer_name[buffer_idx]].sample(size, cur_learner_iter)
-            if data is None:
-                buffer_choice = [i if i != buffer_idx else -1 for i in buffer_choice]
-            buffer_data.append(data)
-        if not any(buffer_data):
-            # all elements in buffer is None
-            print('all elements in buffer is None')
-            return None
-        # todo: what if any(not all) buffer data is None
+            buffer_sample_count.append(size)
+            if not self.buffer[self.buffer_name[buffer_idx]].sample_check(size, cur_learner_iter):
+                return None
+        for buffer_idx in range(buffer_num):
+            data = self.buffer[self.buffer_name[buffer_idx]].sample(buffer_sample_count[buffer_idx], cur_learner_iter)
+            buffer_sample_data.append(data)
 
+        # fill ``data`` with sampled datas from different buffers according to ``buffer_choice`` and return
         data = [None for _ in range(batch_size)]
-        # fill ``data`` with datas from agent buffer and demo buffer according to ``data_source``
         for data_idx, buffer_idx in enumerate(buffer_choice):
-            if buffer_idx == -1:
-                continue
-            data[data_idx] = buffer_data[buffer_idx].pop()
-        data = [d for d in data if d is not None]
-        assert len(data) != 0
-
+            data[data_idx] = buffer_sample_data[buffer_idx].pop()
+        assert len(data) == batch_size
         return data
 
-    def update(self, info: Dict[str, Any]) -> None:
+    def update(self, info: Dict[str, list]) -> None:
         """
         Overview:
             Update prioritized buffers with outside info. Current info includes transition's priority update.
         Arguments:
-            - info (:obj:`Dict[str, Any]`): Info dict. Currently contains keys \
-                ['replay_unique_id', 'replay_buffer_idx', 'priority']
+            - info (:obj:`Dict[str, list]`): Info dict. Currently contains keys \
+                ['replay_unique_id', 'replay_buffer_idx', 'priority']. \
+                "repaly_unique_id" format is "{buffer name}_{count in this buffer}"
         """
-        for name, buffer in self.buffer.items():
-            buffer.update(info)
+        buffer_info = {
+            name: {
+                'replay_unique_id': [],
+                'replay_buffer_idx': [],
+                'priority': []
+            }
+            for name in self.buffer_name
+        }
+        data = [info['replay_unique_id'], info['replay_buffer_idx'], info['priority']]
+        for unique_id, position_idx, priority in zip(*data):
+            buffer_name = unique_id.split('_')[0]
+            buffer_info[buffer_name]['replay_unique_id'].append(unique_id)
+            buffer_info[buffer_name]['replay_buffer_idx'].append(position_idx)
+            buffer_info[buffer_name]['priority'].append(priority)
+        for name, info in buffer_info.items():
+            self.buffer[name].update(info)
 
     def clear(self, buffer_name: Optional[List[str]] = None) -> None:
         """

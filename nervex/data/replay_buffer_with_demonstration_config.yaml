@@ -8,8 +8,6 @@ replay_buffer:
         alpha: 0.6
         beta: 0.4
         anneal_step: 0  # 0 means no annealing, 20000 for atari env
-        # cache_maxlen: 256
-        timeout: 8  # how many seconds to wait per learning iteration
         enable_track_used_data: False
         deepcopy: False
         monitor:
@@ -26,7 +24,6 @@ replay_buffer:
         alpha: 0.6
         beta: 0.4
         anneal_step: 0
-        timeout: 8
         enable_track_used_data: False
         deepcopy: False
         monitor:
