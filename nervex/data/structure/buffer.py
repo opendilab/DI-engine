@@ -489,6 +489,12 @@ class PrioritizedBuffer:
             self.pointer = 0
             self.max_priority = 1.0
 
+    def close(self) -> None:
+        self._tb_logger.close()
+
+    def __del__(self) -> None:
+        self.close()
+
     def _set_weight(self, idx: int, data: Any) -> None:
         r"""
         Overview:

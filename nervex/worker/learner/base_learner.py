@@ -292,6 +292,7 @@ class BaseLearner(ABC):
         """
         if self._use_distributed:
             dist_finalize()
+        self._tb_logger.close()
 
     def call_hook(self, name: str) -> None:
         """
