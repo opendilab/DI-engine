@@ -30,8 +30,8 @@ class Policy(ABC):
         self._use_cuda = cfg.use_cuda
         self._use_distributed = cfg.get('use_distributed', False)
         self._rank = get_rank() if self._use_distributed else 0
-        torch.cuda.set_device(self._rank)
         if self._use_cuda:
+            torch.cuda.set_device(self._rank)
             model.cuda()
         self._model = model
         self._enable_field = enable_field

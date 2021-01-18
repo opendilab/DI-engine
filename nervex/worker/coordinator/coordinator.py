@@ -51,6 +51,7 @@ class Coordinator(object):
         # TODO remove used data
         # TODO load/save state_dict
         self._end_flag = True
+        self._system_shutdown_flag = False
 
     def _assign_actor_task(self) -> None:
         while not self._end_flag:
@@ -203,14 +204,11 @@ class Coordinator(object):
             return
         # finish_task
         with self._commander_lock:
-            system_shutdown_flag = self._commander.finish_actor_task(task_id, finished_task)
+            # commander will judge whether the whole system is converged and shoule be shutdowned
+            self._system_shutdown_flag = self._commander.finish_actor_task(task_id, finished_task)
         self._task_state.pop(task_id)
         self._historical_task.append(task_id)
         self.info('actor task({}) is finished'.format(task_id))
-        if system_shutdown_flag:
-            self.info('coordinator will be closed')
-            close_thread = Thread(target=self.close, args=())
-            close_thread.start()
 
     def deal_with_learner_get_data(self, task_id: str, buffer_id: str, batch_size: int) -> List[dict]:
         if task_id not in self._task_state:
@@ -269,3 +267,7 @@ class Coordinator(object):
 
     def _record_task(self, task: dict):
         self._task_state[task['task_id']] = TaskState(task['task_id'])
+
+    @property
+    def system_shutdown_flag(self) -> bool:
+        return self._system_shutdown_flag

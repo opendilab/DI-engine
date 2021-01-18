@@ -1,7 +1,9 @@
 from typing import Optional, List
 import subprocess
-from easydict import EasyDict
+import time
 import pickle
+from threading import Thread
+from easydict import EasyDict
 from nervex.worker import create_comm_learner, create_comm_actor, Coordinator, LearnerAggregator
 from nervex.config import Config, parallel_transform, parallel_transform_slurm
 
@@ -109,3 +111,14 @@ def launch_coordinator(config: Optional[EasyDict] = None, filename: Optional[str
             config = pickle.load(f).coordinator
     coordinator = Coordinator(config)
     coordinator.start()
+
+    # monitor thread
+    def shutdown_monitor():
+        while True:
+            time.sleep(3)
+            if coordinator.system_shutdown_flag:
+                coordinator.close()
+                break
+
+    shutdown_monitor_thread = Thread(target=shutdown_monitor, args=(), daemon=True)
+    shutdown_monitor_thread.start()

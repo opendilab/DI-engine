@@ -79,6 +79,8 @@ parallel_local_default_config = dict(
         path_data='.',
         path_policy='.',
         send_policy_freq=1,
+        repeat_num=1,
+        use_distributed=False,
     ),
     actor0=dict(
         import_names=['nervex.worker.actor.comm.flask_fs_actor'],

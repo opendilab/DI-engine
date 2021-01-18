@@ -37,10 +37,7 @@ def get_task_uid() -> str:
     Overview:
         get the slurm job_id, pid and uid
     """
-    return os.getenv('SLURM_JOB_ID', 'PID{pid}UUID{uuid}'.format(
-        pid=str(get_pid()),
-        uuid=str(uuid.uuid1()),
-    )) + '_' + str(time.time())
+    return '{}_{}'.format(str(uuid.uuid4()), str(time.time())[-6:])
 
 
 class PropagatingThread(Thread):

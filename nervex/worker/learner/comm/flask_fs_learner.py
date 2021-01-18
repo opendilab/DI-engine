@@ -1,6 +1,6 @@
 import os
 import time
-from typing import List, Union
+from typing import List, Union, Dict, Callable, Any
 from functools import partial
 from queue import Queue
 from threading import Thread
@@ -11,10 +11,51 @@ from .base_comm_learner import BaseCommLearner, register_comm_learner
 from ..learner_hook import LearnerHook
 
 
-class FlaskFileSystemLearner(BaseCommLearner, Slave):
+class LearnerSlave(Slave):
+
+    def __init__(self, *args, callback_fn: Dict[str, Callable], **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._callback_fn = callback_fn
+
+    def _process_task(self, task: dict) -> Union[dict, TaskFail]:
+        task_name = task['name']
+        if task_name == 'resource':
+            return self._callback_fn['deal_with_resource']()
+        elif task_name == 'learner_start_task':
+            self._current_task_info = task['task_info']
+            self._callback_fn['deal_with_learner_start'](self._current_task_info)
+            return {'message': 'learner task has started'}
+        elif task_name == 'learner_get_data_task':
+            data_demand = self._callback_fn['deal_with_get_data']()
+            return {
+                'task_id': self._current_task_info['task_id'],
+                'buffer_id': self._current_task_info['buffer_id'],
+                'batch_size': data_demand
+            }
+        elif task_name == 'learner_learn_task':
+            learn_info = self._callback_fn['deal_with_learner_learn'](task['data'])
+            ret = {
+                'info': learn_info,
+                'task_id': self._current_task_info['task_id'],
+                'buffer_id': self._current_task_info['buffer_id']
+            }
+            ret['finished_task'] = learn_info.get('finished_task', None)
+            finished_task = learn_info.get('finished_task', None)
+            if finished_task is not None:
+                finished_task['buffer_id'] = self._current_task_info['buffer_id']
+                self._current_task_info = None
+                ret['finished_task'] = finished_task
+            else:
+                ret['finished_task'] = None
+            return ret
+        else:
+            raise TaskFail(result={'message': 'task name error'}, message='illegal actor task <{}>'.format(task_name))
+
+
+class FlaskFileSystemLearner(BaseCommLearner):
     """
     Overview:
-        An implementation of CommLearner, using flask as the file system.
+        An implementation of CommLearner, using flask and the file system.
     Interfaces:
         __init__, send_policy, get_data, send_learn_info, start, close
     Property:
@@ -32,67 +73,27 @@ class FlaskFileSystemLearner(BaseCommLearner, Slave):
         host, port = cfg.host, cfg.port
         if isinstance(port, list):
             port = port[self._rank]
-        Slave.__init__(self, host, port)
+        self._callback_fn = {
+            'deal_with_resource': self.deal_with_resource,
+            'deal_with_learner_start': self.deal_with_learner_start,
+            'deal_with_get_data': self.deal_with_get_data,
+            'deal_with_learner_learn': self.deal_with_learner_learn,
+        }
+        self._slave = LearnerSlave(host, port, callback_fn=self._callback_fn)
 
         self._path_data = cfg.path_data
         self._path_policy = cfg.path_policy
         self._send_policy_freq = cfg.send_policy_freq
 
-        self._current_task_info = None
         self._data_demand_queue = Queue(maxsize=1)
         self._data_result_queue = Queue(maxsize=1)
         self._learn_info_queue = Queue(maxsize=1)
         self._learner = None
-
-    # override Slave
-    def _process_task(self, task: dict) -> Union[dict, TaskFail]:
-
-        def run_learner():
-            self._learner.start()
-
-        task_name = task['name']
-        if task_name == 'resource':
-            return {'gpu': self._world_size}
-        elif task_name == 'learner_start_task':
-            self._current_task_info = task['task_info']
-            self._learner = self._create_learner(self._current_task_info)
-            for h in self.hooks4call:
-                self._learner.register_hook(h)
-            self._learner_thread = Thread(target=run_learner, args=(), daemon=True)
-            self._learner_thread.start()
-            return {'message': 'learner task has started'}
-        elif task_name == 'learner_get_data_task':
-            data_demand = self._data_demand_queue.get()
-            return {
-                'task_id': self._current_task_info['task_id'],
-                'buffer_id': self._current_task_info['buffer_id'],
-                'batch_size': data_demand
-            }
-        elif task_name == 'learner_learn_task':
-            data = task['data']
-            self._data_result_queue.put(data)
-            learn_info = self._learn_info_queue.get()
-            ret = {
-                'info': learn_info,
-                'task_id': self._current_task_info['task_id'],
-                'buffer_id': self._current_task_info['buffer_id']
-            }
-            finished_task = learn_info.get('finished_task', None)
-            if finished_task is not None:
-                finished_task['buffer_id'] = self._current_task_info['buffer_id']
-                self._current_task_info = None
-                ret['finished_task'] = finished_task
-                self._learner.close()
-                self._learner = None
-            else:
-                ret['finished_task'] = None
-            return ret
-        else:
-            raise TaskFail(result={'message': 'task name error'}, message='illegal actor task <{}>'.format(task_name))
+        self._policy_id = None
 
     def start(self) -> None:
         BaseCommLearner.start(self)
-        Slave.start(self)
+        self._slave.start()
 
     def close(self) -> None:
         if self._end_flag:
@@ -101,11 +102,36 @@ class FlaskFileSystemLearner(BaseCommLearner, Slave):
             self._learner_thread.join()
         if self._learner is not None:
             self._learner.close()
-        Slave.close(self)
+        self._slave.close()
         BaseCommLearner.close(self)
 
     def __del__(self) -> None:
         self.close()
+
+    def deal_with_resource(self) -> dict:
+        return {'gpu': self._world_size}
+
+    def deal_with_learner_start(self, task_info: dict) -> None:
+        self._policy_id = task_info['policy_id']
+        self._learner = self._create_learner(task_info)
+        for h in self.hooks4call:
+            self._learner.register_hook(h)
+        self._learner_thread = Thread(target=self._learner.start, args=(), daemon=True)
+        self._learner_thread.start()
+
+    def deal_with_get_data(self) -> Any:
+        data_demand = self._data_demand_queue.get()
+        return data_demand
+
+    def deal_with_learner_learn(self, data: dict) -> dict:
+        self._data_result_queue.put(data)
+        learn_info = self._learn_info_queue.get()
+        finished_task = learn_info.get('finished_task', None)
+        if finished_task is not None:
+            self._learner.close()
+            self._learner = None
+            self._policy_id = None
+        return learn_info
 
     # override
     def send_policy(self, state_dict: dict) -> None:
@@ -115,7 +141,7 @@ class FlaskFileSystemLearner(BaseCommLearner, Slave):
         Arguments:
             - state_dict (:obj:`dict`): state dict of the runtime policy
         """
-        path = os.path.join(self._path_policy, self._current_task_info['policy_id'])
+        path = os.path.join(self._path_policy, self._policy_id)
         save_file(path, state_dict)
 
     @staticmethod

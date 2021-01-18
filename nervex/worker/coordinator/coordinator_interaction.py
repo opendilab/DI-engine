@@ -30,12 +30,12 @@ class CoordinatorInteraction(object):
         start_time = time.time()
         while time.time() - start_time <= max_retry_time:
             self._end_flag = False
-            self._interaction = Master(self._cfg.host, self._cfg.port)
+            self._master = Master(self._cfg.host, self._cfg.port)
             try:
-                self._interaction.start()
-                self._interaction.ping()
+                self._master.start()
+                self._master.ping()
                 for _, (learner_id, learner_host, learner_port) in self._cfg.learner.items():
-                    conn = self._interaction.new_connection(learner_id, learner_host, learner_port)
+                    conn = self._master.new_connection(learner_id, learner_host, learner_port)
                     conn.connect()
                     assert conn.is_connected
                     resource_task = self._get_resource(conn)
@@ -46,7 +46,7 @@ class CoordinatorInteraction(object):
                         self._resource_manager.update('learner', learner_id, resource_task.result)
                         self._connection_learner[learner_id] = conn
                 for _, (actor_id, actor_host, actor_port) in self._cfg.actor.items():
-                    conn = self._interaction.new_connection(actor_id, actor_host, actor_port)
+                    conn = self._master.new_connection(actor_id, actor_host, actor_port)
                     conn.connect()
                     assert conn.is_connected
                     resource_task = self._get_resource(conn)
@@ -85,7 +85,7 @@ class CoordinatorInteraction(object):
         for learner_id, conn in self._connection_learner.items():
             conn.disconnect()
             assert not conn.is_connected
-        self._interaction.close()
+        self._master.close()
 
     def __del__(self) -> None:
         self.close()
@@ -127,7 +127,7 @@ class CoordinatorInteraction(object):
                 data_task = self._connection_actor[actor_id].new_task({'name': 'actor_data_task'})
                 data_task.start().join()
                 if data_task.status != TaskStatus.COMPLETED:
-                    # ignore and retry
+                    # TODO(deal with fail task)
                     self._logger.error('actor data task is failed')
                     continue
                 else:
@@ -192,6 +192,7 @@ class CoordinatorInteraction(object):
                 get_data_task = self._connection_learner[learner_id].new_task({'name': 'learner_get_data_task'})
                 get_data_task.start().join()
                 if get_data_task.status != TaskStatus.COMPLETED:
+                    # TODO(deal with fail task)
                     self._logger.error('learner get_data_task failed: {}'.format(get_data_task.result))
                     continue
                 result = get_data_task.result
@@ -213,6 +214,7 @@ class CoordinatorInteraction(object):
                 learn_task = self._connection_learner[learner_id].new_task({'name': 'learner_learn_task', 'data': data})
                 learn_task.start().join()
                 if learn_task.status != TaskStatus.COMPLETED:
+                    # TODO(deal with fail task)
                     self._logger.error('learner learn_task failed: {}'.format(learn_task.result))
                     continue
                 result = learn_task.result

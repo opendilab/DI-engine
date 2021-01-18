@@ -2,7 +2,7 @@ import os
 import sys
 import time
 import traceback
-from typing import Union
+from typing import Union, Dict, Callable
 from queue import Queue
 from threading import Thread
 
@@ -11,13 +11,41 @@ from nervex.interaction import Slave, TaskFail
 from .base_comm_actor import BaseCommActor, register_comm_actor
 
 
-class FlaskFileSystemActor(BaseCommActor, Slave):
+class ActorSlave(Slave):
+
+    def __init__(self, *args, callback_fn: Dict[str, Callable], **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._callback_fn = callback_fn
+        self._current_task_info = None
+
+    def _process_task(self, task: dict) -> Union[dict, TaskFail]:
+        task_name = task['name']
+        if task_name == 'resource':
+            return self._callback_fn['deal_with_resource']()
+        elif task_name == 'actor_start_task':
+            self._current_task_info = task['task_info']
+            self._callback_fn['deal_with_actor_start'](self._current_task_info)
+            return {'message': 'actor task has started'}
+        elif task_name == 'actor_data_task':
+            data = self._callback_fn['deal_with_actor_data']()
+            data['buffer_id'] = self._current_task_info['buffer_id']
+            data['task_id'] = self._current_task_info['task_id']
+            return data
+        else:
+            raise TaskFail(result={'message': 'task name error'}, message='illegal actor task <{}>'.format(task_name))
+
+
+class FlaskFileSystemActor(BaseCommActor):
 
     def __init__(self, cfg: dict) -> None:
         BaseCommActor.__init__(self, cfg)
         host, port = cfg.host, cfg.port
-        Slave.__init__(self, host, port)
-        self._job_request_id = 0
+        self._callback_fn = {
+            'deal_with_resource': self.deal_with_resource,
+            'deal_with_actor_start': self.deal_with_actor_start,
+            'deal_with_actor_data': self.deal_with_actor_data,
+        }
+        self._slave = ActorSlave(host, port, callback_fn=self._callback_fn)
 
         self._path_policy = cfg.path_policy
         self._path_data = cfg.path_data
@@ -30,38 +58,27 @@ class FlaskFileSystemActor(BaseCommActor, Slave):
         self._finish_queue = Queue(cfg.queue_maxsize)
         self._actor = None
 
-    # override Slave
-    def _process_task(self, task: dict) -> Union[dict, TaskFail]:
+    def deal_with_resource(self) -> dict:
+        return {'gpu': 1, 'cpu': 20}
 
-        def run_actor():
-            self._actor.start()
+    def deal_with_actor_start(self, task_info: dict) -> None:
+        self._actor = self._create_actor(task_info)
+        self._actor_thread = Thread(target=self._actor.start, args=(), daemon=True)
+        self._actor_thread.start()
 
-        task_name = task['name']
-        if task_name == 'resource':
-            return {'gpu': 1, 'cpu': 20}
-        elif task_name == 'actor_start_task':
-            self._current_task_info = task['task_info']
-            self._actor = self._create_actor(self._current_task_info)
-            self._actor_thread = Thread(target=run_actor, args=(), daemon=True)
-            self._actor_thread.start()
-            return {'message': 'actor task has started'}
-        elif task_name == 'actor_data_task':
-            while True:
-                if not self._metadata_queue.empty():
-                    data = self._metadata_queue.get()
-                    break
-                elif not self._finish_queue.empty():
-                    data = self._finish_queue.get()
-                    self._actor.close()
-                    self._actor = None
-                    break
-                else:
-                    time.sleep(0.1)
-            data['buffer_id'] = self._current_task_info['buffer_id']
-            data['task_id'] = self._current_task_info['task_id']
-            return data
-        else:
-            raise TaskFail(result={'message': 'task name error'}, message='illegal actor task <{}>'.format(task_name))
+    def deal_with_actor_data(self) -> dict:
+        while True:
+            if not self._metadata_queue.empty():
+                data = self._metadata_queue.get()
+                break
+            elif not self._finish_queue.empty():
+                data = self._finish_queue.get()
+                self._actor.close()
+                self._actor = None
+                break
+            else:
+                time.sleep(0.1)
+        return data
 
     # override
     def get_policy_update_info(self, path: str) -> dict:
@@ -97,14 +114,14 @@ class FlaskFileSystemActor(BaseCommActor, Slave):
 
     def start(self) -> None:
         BaseCommActor.start(self)
-        Slave.start(self)
+        self._slave.start()
 
     def close(self) -> None:
         if self._end_flag:
             return
         if self._actor is not None:
             self._actor.close()
-        Slave.close(self)
+        self._slave.close()
         BaseCommActor.close(self)
 
     def __del__(self) -> None:
