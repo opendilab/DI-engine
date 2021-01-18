@@ -12,10 +12,10 @@ import requests
 from flask import Flask, request
 
 from .action import ConnectionRefuse, DisconnectionRefuse, TaskRefuse, TaskFail
-from .error_code import SlaveErrorCode
 from ..base import random_token, ControllableService, get_http_engine_class, split_http_address, success_response, \
     failure_response, DblEvent
 from ..config import DEFAULT_SLAVE_PORT, DEFAULT_CHANNEL, GLOBAL_HOST, DEFAULT_HEARTBEAT_SPAN, MIN_HEARTBEAT_SPAN
+from ..exception import SlaveErrorCode, get_slave_exception_by_error, get_master_exception_by_error
 
 
 class Slave(ControllableService):
@@ -45,9 +45,12 @@ class Slave(ControllableService):
         self.__task_thread = Thread(target=self.__task)
 
         # self-connection part
-        self.__self_http_engine = get_http_engine_class(headers={
-            'Token': lambda: self.__self_token,
-        })()('localhost', self.__port, False)
+        self.__self_http_engine = get_http_engine_class(
+            headers={
+                'Token': lambda: self.__self_token,
+            },
+            http_error_gene=get_slave_exception_by_error,
+        )()('localhost', self.__port, False)
         self.__self_token = random_token()
 
         # master-connection part
@@ -69,7 +72,8 @@ class Slave(ControllableService):
             headers={
                 'Channel': lambda: str(self.__channel),
                 'Token': lambda: self.__master_token,
-            }
+            },
+            http_error_gene=get_master_exception_by_error,
         )()(*split_http_address(self.__master_address))
 
     def __unregister_master(self):

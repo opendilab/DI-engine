@@ -13,12 +13,12 @@ from urlobject import URLObject
 
 from .connection import SlaveConnectionProxy, SlaveConnection, _ISlaveConnection, _get_connection_class, \
     _slave_task_complete, _slave_task_fail
-from .error_code import MasterErrorCode
 from .task import TaskResultType
 from ..base import random_token, ControllableService, failure_response, success_response, get_host_ip, \
     get_http_engine_class
 from ..config import GLOBAL_HOST, DEFAULT_MASTER_PORT, DEFAULT_CHANNEL, MIN_HEARTBEAT_SPAN, DEFAULT_HEARTBEAT_SPAN, \
     DEFAULT_HEARTBEAT_TOLERANCE, MIN_HEARTBEAT_CHECK_SPAN, DEFAULT_HEARTBEAT_CHECK_SPAN
+from ..exception import MasterErrorCode, get_master_exception_by_error
 
 
 class Master(ControllableService):
@@ -48,9 +48,12 @@ class Master(ControllableService):
         self.__heartbeat_check_thread = Thread(target=self.__heartbeat_check)
 
         # self-connection part
-        self.__self_http_engine = get_http_engine_class(headers={
-            'Token': lambda: self.__self_token,
-        })()('localhost', self.__port, False)
+        self.__self_http_engine = get_http_engine_class(
+            headers={
+                'Token': lambda: self.__self_token,
+            },
+            http_error_gene=get_master_exception_by_error,
+        )()('localhost', self.__port, False)
         self.__self_token = random_token()
 
         # slave-connection part
