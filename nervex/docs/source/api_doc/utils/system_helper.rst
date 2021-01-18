@@ -21,11 +21,3 @@ get_task_uid
 ~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: nervex.utils.system_helper.get_task_uid
-
-
-get_manager_node_ip
-~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: nervex.utils.system_helper.get_manager_node_ip
-
-

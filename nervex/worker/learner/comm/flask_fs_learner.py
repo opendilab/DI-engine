@@ -203,8 +203,8 @@ class FlaskFileSystemLearner(BaseCommLearner):
             Send learn info to coordinator, called by ``SendLearnInfoHook``.
             Sending will repeat until succeeds or ``_active_flag`` is set to False.
         Arguments:
-            - learn info (:obj:`dict`): learn info in `dict` type, \
-                including keys `learn_info`(e.g. last iter, priority info)
+            - learn info (:obj:`dict`): learn info in `dict` type, including keys `learn_info`\
+                (e.g. last iter, priority info)
         """
         assert self._learn_info_queue.qsize() == 0
         self._learn_info_queue.put(learn_info)
