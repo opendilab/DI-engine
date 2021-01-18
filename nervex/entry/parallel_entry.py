@@ -2,6 +2,7 @@ from typing import Optional, List
 import subprocess
 import time
 import pickle
+import logging
 from threading import Thread
 from easydict import EasyDict
 from nervex.worker import create_comm_learner, create_comm_actor, Coordinator, LearnerAggregator
@@ -16,6 +17,9 @@ def parallel_pipeline(
         learner_host: Optional[List[str]] = None,
         actor_host: Optional[List[str]] = None
 ) -> None:
+    # disable flask logger
+    log = logging.getLogger('werkzeug')
+    log.disabled = True
     if platform == 'local':
         cfg = Config.file_to_dict(filename).cfg_dict
         config = cfg['main_config']
