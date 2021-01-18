@@ -49,10 +49,11 @@ policy:
             end: 0.01
             decay: 100000
 replay_buffer:
-    meta_maxlen: 64
-    max_reuse: 100
-    unroll_len: 16
-    min_sample_ratio: 1
+    buffer_name: ['agent']
+    agent:
+        meta_maxlen: 64
+        max_reuse: 100
+        min_sample_ratio: 1
 actor:
     n_episode: 4
     traj_len: 1000  # smac_episode_max_length

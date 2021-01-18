@@ -216,6 +216,11 @@ class PrioritizedBuffer:
         # Point to the position where next data can be inserted, i.e. latest inserted data's next position.
         # This position also means the stalest(oldest) data in this buffer as well.
         self.pointer = 0
+        # Point to the true head of the circular queue. The true head data is the stalest(oldest) data in this queue.
+        # Because buffer would remove data due to staleness or reuse times, and at the beginning when queue is not
+        # filled with data true head would always be 0, so ``true_head`` may be not equal to ``pointer``;
+        # Otherwise, they two should be the same. True head is used to optimize staleness check in ``sample_check``
+        self.true_head = 0
         # Is used to generate a unique id for each data: If a new data is inserted, its unique id will be this.
         self.next_unique_id = 0
         # {position_idx/pointer_idx: reuse_count}
@@ -304,7 +309,7 @@ class PrioritizedBuffer:
         if size == 0:
             return True
         with self._lock:
-            p = self.pointer
+            p = self.true_head
             while True:
                 if self._data[p] is not None:
                     staleness = self._calculate_staleness(p, cur_learner_iter)
@@ -314,9 +319,9 @@ class PrioritizedBuffer:
                         # Since the circular queue ``self._data`` guarantees that data's staleness is decreasing from
                         # index self.pointer to index self.pointer - 1, we can jump out of the loop as soon as
                         # meeting a fresh enough data
+                        self.true_head = p
                         break
                 p = (p + 1) % self._maxlen
-                # TODO(zlx): optimize staleness check
                 if p == self.pointer:
                     # Traverse a circle and go back to the start pointer, which means can stop staleness checking now
                     break
@@ -489,8 +494,8 @@ class PrioritizedBuffer:
         Overview:
             Set the priority and tree weight of the input data
         Arguments:
-            - idx (:obj:`int`): the index of the list where the data will be inserted
-            - data (:obj:`Any`): the data which will be inserted
+            - idx (:obj:`int`): The index of the list where the data's priority(sample weight) will be set.
+            - data (:obj:`Any`): The data which will be inserted
         """
         if 'priority' not in data.keys() or data['priority'] is None:
             data['priority'] = self.max_priority
@@ -498,14 +503,14 @@ class PrioritizedBuffer:
         self.sum_tree[idx] = weight
         self.min_tree[idx] = weight
 
-    def _data_check(self, d) -> bool:
+    def _data_check(self, d: Any) -> bool:
         r"""
         Overview:
-            Data legality check, using rules in ``self.check_list``
+            Data legality check, using rules(functions) in ``self.check_list``.
         Arguments:
-            - d (:obj:`T`): the data which needs to be checked
+            - d (:obj:`Any`): The data which needs to be checked
         Returns:
-            - result (:obj:`bool`): whether the data passes the check
+            - result (:obj:`bool`): Whether the data passes the check
         """
         # only the data passes all the check functions, would the check return True
         return all([fn(d) for fn in self.check_list])

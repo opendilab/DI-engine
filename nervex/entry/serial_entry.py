@@ -60,8 +60,10 @@ def serial_pipeline(
     # main loop
     iter_count = 0
     learner_train_step = cfg.policy.learn.train_step
+    # Here we assume serial entry mainly focuses on agent buffer
     enough_data_count = cfg.policy.learn.batch_size * max(
-        cfg.replay_buffer.min_sample_ratio, math.ceil(cfg.policy.learn.train_step / cfg.replay_buffer.max_reuse)
+        cfg.replay_buffer.agent.min_sample_ratio,
+        math.ceil(cfg.policy.learn.train_step / cfg.replay_buffer.agent.max_reuse)
     )
     use_priority = cfg.policy.get('use_priority', False)
     while True:
