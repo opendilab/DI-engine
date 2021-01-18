@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import Any
 
-from .env_element import EnvElement, IEnvElement
+from .env_element import EnvElement, IEnvElement, EnvElementInfo
 from ..env.base_env import BaseEnv
 
 
@@ -35,5 +35,5 @@ class EnvElementRunner(IEnvElementRunner):
         return repr(self._core)
 
     @property
-    def info(self) -> 'EnvElement.info_template':
+    def info(self) -> 'EnvElementInfo':
         return self._core.info

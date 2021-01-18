@@ -11,6 +11,7 @@ from .base import _BEFORE_HOOK_TYPE, _AFTER_HOOK_TYPE, _ERROR_HOOK_TYPE
 from .task import Task, _task_complete, _task_fail
 from ..base import random_token, ControllableContext, get_http_engine_class, get_values_from_response
 from ..config import DEFAULT_CHANNEL, DEFAULT_SLAVE_PORT
+from ..exception import get_slave_exception_by_error
 
 _COMPLETE_TRIGGER_NAME = '__TASK_COMPLETE__'
 _FAIL_TRIGGER_NAME = '__TASK_FAIL__'
@@ -58,7 +59,8 @@ class SlaveConnection(_ISlaveConnection, metaclass=ABCMeta):
             headers={
                 'Channel': lambda: str(self.__channel),
                 'Token': lambda: self.__token,
-            }
+            },
+            http_error_gene=get_slave_exception_by_error,
         )()(host, port or DEFAULT_SLAVE_PORT, https)
 
         # threading part

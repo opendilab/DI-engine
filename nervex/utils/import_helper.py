@@ -2,8 +2,8 @@ import importlib
 import warnings
 from typing import List
 
-global ceph_flag, mc_flag, linklink_flag
-ceph_flag, mc_flag, linklink_flag = True, True, True
+global ceph_flag, redis_flag, rediscluster_flag, linklink_flag, mc_flag
+ceph_flag, redis_flag, rediscluster_flag, linklink_flag, mc_flag = True, True, True, True, True
 
 
 def try_import_ceph():
@@ -48,6 +48,50 @@ def try_import_mc():
         mc = None
         mc_flag = False
     return mc
+
+
+def try_import_redis():
+    """
+    Overview:
+        Try import redis module, if failed, return None
+
+    Returns:
+        module: imported module, or None when redis not found
+    """
+    global redis_flag
+    try:
+        import redis
+    except ModuleNotFoundError as e:
+        if redis_flag:
+            warnings.warn(
+                "You have not installed redis package! If you are not run locally and testing, "
+                "ask coworker for help."
+            )
+        redis = None
+        redis_flag = False
+    return redis
+
+
+def try_import_rediscluster():
+    """
+    Overview:
+        Try import rediscluster module, if failed, return None
+
+    Returns:
+        module: imported module, or None when rediscluster not found
+    """
+    global rediscluster_flag
+    try:
+        import rediscluster
+    except ModuleNotFoundError as e:
+        if rediscluster_flag:
+            warnings.warn(
+                "You have not installed rediscluster package! If you are not run locally and testing, "
+                "ask coworker for help."
+            )
+        rediscluster = None
+        rediscluster_flag = False
+    return rediscluster
 
 
 def try_import_link():

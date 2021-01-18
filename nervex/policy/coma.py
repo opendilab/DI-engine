@@ -105,6 +105,7 @@ class COMAPolicy(CommonPolicy):
         """
         # forward
         self._agent.reset(state=data['prev_state'][0])
+        self._agent.target_reset(state=data['prev_state'][0])
         q_value = self._agent.forward(data, param={'mode': 'compute_q_value'})['q_value']
         target_q_value = self._agent.target_forward(data, param={'mode': 'compute_q_value'})['q_value']
         logit = self._agent.forward(data, param={'mode': 'compute_action'})['logit']

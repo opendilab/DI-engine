@@ -1,9 +1,10 @@
-from typing import Any, List
+from typing import Any, List, Union
 import gym
 import torch
-from nervex.envs import BaseEnv, register_env
-from nervex.envs.common.env_element import EnvElement
-from nervex.torch_utils import to_tensor
+import numpy as np
+from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo 
+from nervex.envs.common.env_element import EnvElement, EnvElementInfo
+from nervex.torch_utils import to_tensor, to_ndarray, to_list
 
 
 class CartPoleEnv(BaseEnv):
@@ -17,7 +18,7 @@ class CartPoleEnv(BaseEnv):
             self._env.seed(self._seed)
         self._final_eval_reward = 0
         obs = self._env.reset()
-        obs = to_tensor(obs, torch.float)
+        obs = to_ndarray(obs)
         return obs
 
     def close(self) -> None:
@@ -26,26 +27,27 @@ class CartPoleEnv(BaseEnv):
     def seed(self, seed: int) -> None:
         self._seed = seed
 
-    def step(self, action: torch.Tensor) -> BaseEnv.timestep:
+    def step(self, action: np.ndarray) -> BaseEnvTimestep:
+        assert isinstance(action, np.ndarray), type(action)
         if action.shape == (1, ):
             action = action.squeeze()  # 0-dim tensor
-        action = action.numpy()
         obs, rew, done, info = self._env.step(action)
-        obs = to_tensor(obs, torch.float)
-        rew = to_tensor(rew, torch.float)
-        self._final_eval_reward += rew.item()
+        self._final_eval_reward += rew
         if done:
             info['final_eval_reward'] = self._final_eval_reward
-        return BaseEnv.timestep(obs, rew, done, info)
+        obs = to_ndarray(obs)
+        rew = to_ndarray([rew]) # wrapped to be transfered to a Tensor with shape (1,)
+        return BaseEnvTimestep(obs, rew, done, info)
 
-    def info(self) -> BaseEnv.info_template:
-        T = EnvElement.info_template
-        return BaseEnv.info_template(
+    def info(self) -> BaseEnvInfo:
+        T = EnvElementInfo
+        return BaseEnvInfo(
             agent_num=1,
             obs_space=T(
                 (4, ), {
                     'min': [-4.8, float("-inf"), -0.42, float("-inf")],
                     'max': [4.8, float("inf"), 0.42, float("inf")],
+                    'dtype': float,
                 }, None, None
             ),
             # [min, max)

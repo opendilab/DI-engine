@@ -23,6 +23,7 @@ policy:
         learning_rate: 0.0003
         weight_decay: 0.0
         algo:
+            use_adv_norm: True
             value_weight: 0.5
             entropy_weight: 0.01
     collect:

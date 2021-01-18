@@ -160,6 +160,18 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
 
     如以上代码，就是读取了 ``app_zoo`` 中的 ``cartpole_dqn_default_config.yaml`` 配置文件，并传入 ``serial_pipeline`` 开始训练。
 
+    .. note::
+
+        ``serial_pipeline`` 入口函数还支持指定自定义的 **环境**, **策略**, **神经网络模型**, 具体使用方式可以参见QA部分或是直接查看相关代码。
+
+    .. note::
+
+        如果是使用 ``pip install .`` 命令安装，即未指定-e，还可以通过命令行调用串行训练入口：
+
+        .. code:: bash
+
+            nervex -c config.yaml -s 0
+
     根据不同的需求，可以修改配置文件并自定义相关的启动脚本，配置文件中可能修改的地方主要有如下几处：
 
       - policy.use_cuda: 是否使用cuda，主要取决于使用者的机器上是否有GPU

@@ -54,10 +54,15 @@ EpsGreedySampleHelper
 .. autoclass:: nervex.agent.agent_plugin.EpsGreedySampleHelper
     :members: register
 
+ActionNoiseHelper
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: nervex.agent.agent_plugin.ActionNoiseHelper
+    :members: register, __init__, add_noise, reset
+
 TargetNetworkHelper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: nervex.agent.agent_plugin.TargetNetworkHelper
-    :members: register, update, reset
+    :members: register, __init__, update, reset
 
 TeacherNetworkHelper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

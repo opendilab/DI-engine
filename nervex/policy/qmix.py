@@ -53,13 +53,14 @@ class QMIXPolicy(CommonPolicy):
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         # forward
         self._agent.reset(state=data['prev_state'][0])
+        self._agent.target_reset(state=data['prev_state'][0])
         inputs = {'obs': data['obs'], 'action': data['action']}
         total_q = self._agent.forward(inputs, param={'single_step': False})['total_q']
         next_inputs = {'obs': data['next_obs']}
         target_total_q = self._agent.target_forward(next_inputs, param={'single_step': False})['total_q']
 
         data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
-        loss = v_1step_td_error(data, self._gamma)
+        loss, td_error_per_sample = v_1step_td_error(data, self._gamma)
 
         # update
         self._optimizer.zero_grad()

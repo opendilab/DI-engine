@@ -9,7 +9,7 @@ def vtrace_nstep_return(clipped_rhos, clipped_cs, reward, bootstrap_values, gamm
     factor = gamma * lambda_
     result = bootstrap_values[:-1].clone()
     vtrace_item = 0.
-    for t in reversed(range(reward.size()[0] - 1)):
+    for t in reversed(range(reward.size()[0])):
         vtrace_item = deltas[t] + factor * clipped_cs[t] * vtrace_item
         result[t] += vtrace_item
     return result

@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 
 from nervex.model import FCDiscreteNet, ConvDiscreteNet, FCRDiscreteNet, ConvRDiscreteNet, NoiseFCDiscreteNet, \
-    NoiseDistributionFCDiscreteNet
+    NoiseDistributionFCDiscreteNet, NoiseQuantileFCDiscreteNet
 from nervex.torch_utils import is_differentiable
 
 B = 4
@@ -44,6 +44,13 @@ class TestDiscreteNet:
         N = 32
         inputs = {'obs': torch.randn(B, N)}
         model = NoiseDistributionFCDiscreteNet((N, ), action_dim, embedding_dim)
+        outputs = model(inputs)['logit']
+        self.output_check(model, outputs)
+
+    def test_noise_quantile_fc_discrete_net(self, action_dim):
+        N = 32
+        inputs = {'obs': torch.randn(B, N)}
+        model = NoiseQuantileFCDiscreteNet((N, ), action_dim, embedding_dim)
         outputs = model(inputs)['logit']
         self.output_check(model, outputs)
 

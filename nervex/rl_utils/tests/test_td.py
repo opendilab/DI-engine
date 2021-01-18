@@ -33,8 +33,8 @@ def test_dist_1step_td():
     n_atom = 51
     v_min = -10.0
     v_max = 10.0
-    dist = torch.randn(batch_size, action_dim, n_atom).requires_grad_(True)
-    next_dist = torch.randn(batch_size, action_dim, n_atom)
+    dist = torch.randn(batch_size, action_dim, n_atom).abs().requires_grad_(True)
+    next_dist = torch.randn(batch_size, action_dim, n_atom).abs()
     done = torch.randn(batch_size)
     action = torch.randint(0, action_dim, size=(batch_size, ))
     next_action = torch.randint(0, action_dim, size=(batch_size, ))
@@ -55,14 +55,14 @@ def test_dist_nstep_td():
     v_min = -10.0
     v_max = 10.0
     nstep = 5
-    dist = torch.randn(batch_size, action_dim, n_atom).requires_grad_(True)
-    next_n_dist = torch.randn(batch_size, action_dim, n_atom)
+    dist = torch.randn(batch_size, action_dim, n_atom).abs().requires_grad_(True)
+    next_n_dist = torch.randn(batch_size, action_dim, n_atom).abs()
     done = torch.randn(batch_size)
     action = torch.randint(0, action_dim, size=(batch_size, ))
     next_action = torch.randint(0, action_dim, size=(batch_size, ))
     reward = torch.randn(nstep, batch_size)
     data = dist_nstep_td_data(dist, next_n_dist, action, next_action, reward, done, None)
-    loss = dist_nstep_td_error(data, 0.95, v_min, v_max, n_atom, nstep)
+    loss, _ = dist_nstep_td_error(data, 0.95, v_min, v_max, n_atom, nstep)
     assert loss.shape == ()
     assert dist.grad is None
     loss.backward()
@@ -81,7 +81,7 @@ def test_q_nstep_td_with_rescale():
         q = torch.randn(batch_size, action_dim).requires_grad_(True)
         reward = torch.rand(nstep, batch_size)
         data = q_nstep_td_data(q, next_q, action, next_action, reward, done, None)
-        loss = q_nstep_td_error_with_rescale(data, 0.95, nstep=nstep)
+        loss, _ = q_nstep_td_error_with_rescale(data, 0.95, nstep=nstep)
         assert loss.shape == ()
         assert q.grad is None
         loss.backward()
@@ -113,8 +113,8 @@ def test_dist_1step_compatible():
     n_atom = 51
     v_min = -10.0
     v_max = 10.0
-    dist = torch.randn(batch_size, action_dim, n_atom).requires_grad_(True)
-    next_dist = torch.randn(batch_size, action_dim, n_atom)
+    dist = torch.randn(batch_size, action_dim, n_atom).abs().requires_grad_(True)
+    next_dist = torch.randn(batch_size, action_dim, n_atom).abs()
     done = torch.randn(batch_size)
     action = torch.randint(0, action_dim, size=(batch_size, ))
     next_action = torch.randint(0, action_dim, size=(batch_size, ))
@@ -122,7 +122,7 @@ def test_dist_1step_compatible():
     onestep_data = dist_1step_td_data(dist, next_dist, action, next_action, reward, done, None)
     nstep_data = dist_nstep_td_data(dist, next_dist, action, next_action, reward.unsqueeze(0), done, None)
     onestep_loss = dist_1step_td_error(onestep_data, 0.95, v_min, v_max, n_atom)
-    nstep_loss = dist_nstep_td_error(nstep_data, 0.95, v_min, v_max, n_atom, nstep=1)
+    nstep_loss, _ = dist_nstep_td_error(nstep_data, 0.95, v_min, v_max, n_atom, nstep=1)
     assert pytest.approx(nstep_loss.item(), onestep_loss.item())
 
 
@@ -146,10 +146,10 @@ def test_v_1step_td():
     reward = torch.rand(batch_size)
     done = torch.zeros(batch_size)
     data = v_1step_td_data(v, next_v, reward, done, None)
-    loss = v_1step_td_error(data, 0.99)
+    loss, td_error_per_sample = v_1step_td_error(data, 0.99)
     assert loss.shape == ()
     assert v.grad is None
     loss.backward()
     assert isinstance(v.grad, torch.Tensor)
     data = v_1step_td_data(v, next_v, reward, None, None)
-    loss = v_1step_td_error(data, 0.99)
+    loss, td_error_per_sample = v_1step_td_error(data, 0.99)

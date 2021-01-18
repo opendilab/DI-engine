@@ -32,6 +32,8 @@ class A2CPolicy(CommonPolicy):
         self._value_weight = algo_cfg.value_weight
         self._entropy_weight = algo_cfg.entropy_weight
         self._learn_gamma = algo_cfg.get('discount_factor', 0.99)
+        self._learn_nstep = algo_cfg.get('nstep', 1)
+        self._use_adv_norm = algo_cfg.get('use_adv_norm', False)
 
         # Main and target agents
         self._agent = Agent(self._model)
@@ -51,7 +53,21 @@ class A2CPolicy(CommonPolicy):
         """
         # forward
         output = self._agent.forward(data['obs'], param={'mode': 'compute_action_value'})
+
         adv = data['adv']
+        if self._use_adv_norm:
+            # norm adv in total train_batch
+            adv = (adv - adv.mean()) / (adv.std() + 1e-8)
+
+        if self._learn_use_nstep_return:
+            # use nstep return
+            next_value = self._agent.forward(data['next_obs'], param={'mode': 'compute_action_value'})['value']
+            reward = data['reward'].permute(1, 0).contiguous()
+            nstep_data = nstep_return_data(reward, next_value, data['done'])
+            return_ = nstep_return(nstep_data, self._learn_gamma, self._learn_nstep).detach()
+        else:
+            # Return = value + adv
+            return_ = data['value'] + adv
 
         # return = value + adv
         return_ = data['value'] + adv
@@ -146,17 +162,17 @@ class A2CPolicy(CommonPolicy):
         }
         return transition
 
-    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, traj: deque) -> Union[None, List[Any]]:
         r"""
         Overview:
             Get the trajectory and the n step return data, then sample from the n_step return data
         Arguments:
-            - traj_cache (:obj:`deque`): The trajectory's cache
+            - traj (:obj:`deque`): The trajectory's cache
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
         # adder is defined in _init_collect
-        data = self._adder.get_traj(traj_cache, self._traj_len, return_num=1)
+        data = self._adder.get_traj(traj, self._traj_len, return_num=1)
         if self._traj_len == float('inf'):
             assert data[-1]['done'], "episode must be terminated by done=True"
         data = self._adder.get_gae_with_default_last_value(

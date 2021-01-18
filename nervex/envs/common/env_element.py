@@ -4,6 +4,8 @@ from typing import Any
 
 from nervex.utils import SingletonMetaclass
 
+EnvElementInfo = namedtuple('EnvElementInfo', ['shape', 'value', 'to_agent_processor', 'from_agent_processor'])
+
 
 class IEnvElement(ABC):
 
@@ -18,7 +20,6 @@ class IEnvElement(ABC):
 
 
 class EnvElement(IEnvElement, metaclass=SingletonMetaclass):
-    info_template = namedtuple('EnvElementInfo', ['shape', 'value', 'to_agent_processor', 'from_agent_processor'])
     _instance = None
     _name = 'EnvElement'
 
@@ -52,8 +53,8 @@ class EnvElement(IEnvElement, metaclass=SingletonMetaclass):
         assert all(flag), 'this class {} is not a legal subclass of EnvElement({})'.format(self.__class__, flag)
 
     @property
-    def info(self) -> 'EnvElement.info_template':
-        return self.info_template(
+    def info(self) -> 'EnvElementInfo':
+        return EnvElementInfo(
             shape=self._shape,
             value=self._value,
             to_agent_processor=self._to_agent_processor,

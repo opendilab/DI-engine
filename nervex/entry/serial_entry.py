@@ -57,6 +57,7 @@ def serial_pipeline(
     command.policy = policy.command_mode
     # main loop
     iter_count = 0
+    learner_train_step = cfg.policy.learn.train_step
     enough_data_count = cfg.policy.learn.batch_size * max(
         cfg.replay_buffer.min_sample_ratio, cfg.policy.learn.train_step // cfg.replay_buffer.max_reuse
     )
@@ -65,26 +66,26 @@ def serial_pipeline(
         command.step()
         while True:
             # actor keep generating data until replay buffer has enough to sample one batch
-            new_data, collect_info = actor.generate_data()
+            new_data, collect_info = actor.generate_data(iter_count)
             replay_buffer.push_data(new_data)
             if replay_buffer.count >= enough_data_count:
                 break
         learner.collect_info = collect_info
         for _ in range(cfg.policy.learn.train_step):
             # learner will train ``train_step`` times in one iteration
-            train_data = replay_buffer.sample(cfg.policy.learn.batch_size)
+            train_data = replay_buffer.sample(cfg.policy.learn.batch_size, iter_count)
             assert train_data is not None, "please modify your data collect config, increase n_sample/n_episode"
             learner.train(train_data)
             if use_priority:
                 replay_buffer.update(learner.priority_info)
-        if iter_count % cfg.evaluator.eval_freq == 0 and evaluator.eval(iter_count * cfg.policy.learn.train_step):
+        if iter_count % cfg.evaluator.eval_freq == 0 and evaluator.eval(iter_count):
             # evaluator's mean episode reward reaches the expected ``stop_val``
             learner.save_checkpoint()
-            print("Your RL agent is converged, you can refer to 'log/evaluator.txt' for details")
+            print("Your RL agent is converged, you can refer to 'log/evaluator_logger.txt' for details")
             break
         if cfg.policy.on_policy:
             replay_buffer.clear()
-        iter_count += 1
+        iter_count += learner_train_step
 
     # close
     replay_buffer.close()

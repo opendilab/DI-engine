@@ -85,10 +85,12 @@ setup(
         'torchvision==0.2.1',  # pypy
         'sortedcontainers',
         'click',
-        #'numba',
+        'numba',
         'enum34~=1.1.10',
         'URLObject~=2.4.3',
         'urllib3==1.25.10',
+        'redis==3.5.3',
+        'redis-py-cluster==2.1.0',
     ],
     entry_points={
         'console_scripts': [

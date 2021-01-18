@@ -54,7 +54,7 @@ Environment
                     raise NotImplementedError
 
                 @abstractmethod
-                def step(self, action: Any) -> 'BaseEnv.timestep':
+                def step(self, action: Any) -> 'BaseEnvTimestep':
                     raise NotImplementedError
 
                 @abstractmethod
@@ -70,7 +70,7 @@ Environment
                     raise NotImplementedError
 
                 @abstractmethod
-                def pack(self, timesteps: List['BaseEnv.timestep'] = None, obs: Any = None) -> 'BaseEnv.timestep':
+                def pack(self, timesteps: List['BaseEnvTimestep'] = None, obs: Any = None) -> 'BaseEnvTimestep':
                     raise NotImplementedError
 
                 @abstractmethod
@@ -156,7 +156,7 @@ Environment
                     assert all(flag), 'this class {} is not a legal subclass of EnvElement({})'.format(self.__class__, flag)
 
                 @property
-                def info(self) -> 'EnvElement.info_template':
+                def info(self) -> 'EnvElementInfo':
                     return self.info_template(
                         shape=self._shape,
                         value=self._value,
@@ -218,7 +218,7 @@ Environment
                     return repr(self._core)
 
                 @property
-                def info(self) -> 'EnvElement.info_template':
+                def info(self) -> 'EnvElementInfo':
                     return self._core.info
 
         - 概述：

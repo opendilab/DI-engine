@@ -1,0 +1,70 @@
+common:
+    name: PongIMPALAConfig
+    save_path: '.'
+    load_path: ''
+env:
+    env_manager_type: 'subprocess'  # [base, subprocess]
+    import_names: [ 'app_zoo.atari.envs.atari_env' ]
+    env_type: 'atari'
+    env_id: 'QbertNoFrameskip-v4'
+    frame_stack: 4
+    is_train: True
+    actor_env_num: 4
+    evaluator_env_num: 4
+policy:
+    use_cuda: True
+    policy_type: 'impala'
+    import_names: ['nervex.policy.impala']
+    on_policy: False
+    model:
+        obs_dim: [ 4, 84, 84 ]
+        action_dim: 6
+        embedding_dim: 512
+    learn:
+        train_step: 32
+        batch_size: 4
+        learning_rate: 0.0001
+        weight_decay: 0.0001
+        grad_clip_type: 'clip_norm'
+        clip_value: 0.5
+        algo:
+            value_weight: 0.5
+            entropy_weight: 0.01
+            discount_factor: 0.9
+            lambda_: 0.95
+            rho_clip_ratio: 1.0
+            c_clip_ratio: 1.0
+            rho_pg_clip_ratio: 1.0
+        ignore_done: True
+    collect:
+        traj_len: 'inf'
+        unroll_len: 64
+        algo:
+            discount_factor: 0.9
+    command:
+        placeholder: 'placeholder'
+replay_buffer:
+    meta_maxlen: 10000
+    max_reuse: 100
+    unroll_len: 64
+    min_sample_ratio: 1
+actor:
+    n_sample: 8
+    traj_len: 64
+    traj_print_freq: 100
+    collect_print_freq: 100
+evaluator:
+    n_episode: 5
+    eval_freq: 100
+    stop_val: 10000
+learner:
+    hook:
+        log_show:
+            name: log_show
+            type: log_show
+            priority: 20
+            position: after_iter
+            ext_args:
+                freq: 100
+command:
+    placeholder: 'placeholder'

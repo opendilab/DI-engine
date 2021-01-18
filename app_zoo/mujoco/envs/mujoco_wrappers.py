@@ -155,6 +155,105 @@ class ScaledFloatFrame(gym.ObservationWrapper):
         return (observation - self.bias) / self.scale
 
 
+class RunningMeanStd(object):
+    # Refer to https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Parallel_algorithm
+
+    def __init__(self, epsilon=1e-4, shape=()):
+        self._epsilon = epsilon
+        self._shape = shape
+        self.reset()
+
+    def update(self, x):
+        batch_mean = np.mean(x, axis=0)
+        batch_var = np.var(x, axis=0)
+        batch_count = x.shape[0]
+
+        new_count = batch_count + self._count
+        mean_delta = batch_mean - self._mean
+        new_mean = self._mean + mean_delta * batch_count / new_count
+        # this method for calculating new variable might be numerically unstable
+        m_a = self._var * self._count
+        m_b = batch_var * batch_count
+        m2 = m_a + m_b + np.square(mean_delta) * self._count * batch_count / new_count
+        new_var = m2 / new_count
+        self._mean = new_mean
+        self._var = new_var
+        self._count = new_count
+    
+    def reset(self):
+        self._mean = np.zeros(self._shape, 'float32')
+        self._var = np.ones(self._shape, 'float32')
+        self._count = self._epsilon
+
+    @property
+    def mean(self) -> np.ndarray:
+        return self._mean
+    
+    @property
+    def std(self) -> np.ndarray:
+        return np.sqrt(self._var) + self._episilon
+
+
+class ObsNormEnv(gym.ObservationWrapper):
+    """Normalize observations according to running mean and std.
+
+    :param gym.Env env: the environment to wrap.
+    """
+
+    def __init__(self, env):
+        super().__init__(env)
+        self.data_count = 0
+        self.clip_range = (-3, 3)
+        self.rms = RunningMeanStd(shape=env.observation_space.shape)
+
+    def step(self, action):
+        self.data_count += 1
+        observation, reward, done, info = self.env.step(action)
+        self.rms.update(observation)
+        return self.observation(observation), reward, done, info
+
+    def observation(self, observation):
+        if self.data_count > 5000:
+            return np.clip((observation - self.rms.mean) / self.rms.std, self.clip_range[0], self.clip_range[1])
+        else:
+            return observation
+    
+    def reset(self, **kwargs):
+        self.rms.reset()
+        self.data_count = 0
+        observation = self.env.reset(**kwargs)
+        return self.observation(observation)
+
+
+class RewardNormEnv(gym.RewardWrapper):
+    """Normalize observations according to running mean and std.
+
+    :param gym.Env env: the environment to wrap.
+    """
+
+    def __init__(self, env):
+        super().__init__(env)
+        self.data_count = 0
+        self.rms = RunningMeanStd(shape=env.reward_space.shape)
+
+    def step(self, action):
+        self.data_count += 1
+        observation, reward, done, info = self.env.step(action)
+        self.rms.update(reward)
+        return observation, self.reward(reward), done, info
+
+    def reward(self, reward):
+        if self.data_count > 5000:
+            return np.clip(reward / self.rms.std)
+        else:
+            return observation
+    
+    def reset(self, **kwargs):
+        self.data_count = 0
+        self.rms.reset()
+        return self.env.reset(**kwargs)
+
+
 class ClipRewardEnv(gym.RewardWrapper):
     """clips the reward to {+1, 0, -1} by its sign.
 
@@ -206,7 +305,7 @@ class FrameStack(gym.Wrapper):
         return np.stack(self.frames, axis=0)
 
 
-def wrap_deepmind(env_id, episode_life=True, clip_rewards=True, frame_stack=4, scale=False, warp_frame=True):
+def wrap_deepmind(env_id, episode_life=True, clip_rewards=True, frame_stack=4, scale=False, warp_frame=True, norm_obs=True, norm_rew=True):
     """Configure environment for DeepMind-style Atari. The observation is
     channel-first: (c, h, w) instead of (h, w, c).
 
@@ -234,4 +333,8 @@ def wrap_deepmind(env_id, episode_life=True, clip_rewards=True, frame_stack=4, s
     #     env = ClipRewardEnv(env)
     # if frame_stack:
     #     env = FrameStack(env, frame_stack)
+    if norm_obs:
+        env = ObsNormEnv(env)
+    if norm_rew:
+        env = RewardNormEnv(env)
     return env

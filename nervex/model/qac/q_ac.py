@@ -7,6 +7,14 @@ from nervex.utils import squeeze, deep_merge_dicts
 
 
 class FCContinuousNet(nn.Module):
+    """
+    Overview:
+        FC continuous network which is used in ``QAC``.
+        A main feature is that it uses ``_use_final_tanh`` to control whether
+        add a tanh layer to scale the output to (-1, 1).
+    Interface:
+        __init__, forward
+    """
 
     def __init__(
             self,
@@ -38,6 +46,12 @@ class FCContinuousNet(nn.Module):
 
 
 class QAC(QActorCriticBase):
+    """
+    Overview:
+        QAC network. Use ``FCContinuousNet`` as subnetworks for actor and critic(s).
+    Interface:
+        __init__, forward, seed, optimize_actor, compute_q, compute_action, mimic
+    """
 
     def __init__(
             self,
@@ -48,6 +62,20 @@ class QAC(QActorCriticBase):
             use_twin_critic: bool = False,
             use_backward_hook: bool = False,
     ) -> None:
+        """
+        Overview:
+            Init actor network and critic network(s).
+        Arguments:
+            - obs_dim (:obj:`tuple`): tuple type observation dim
+            - action_dim (:obj:`Union[int, tuple]`): int or tuple type action dim
+            - state_action_embedding_dim (:obj:`int`): the dim of state + action that will be embedded into, \
+                i.e. hidden dim
+            - state_embedding_dim (:obj:`int`): the dim of state that will be embedded into, i.e. hidden dim
+            - use_twin_critic (:obj:`bool`): whether to use a pair of critic networks. If True, it is TD3 model; \
+                Otherwise, it is DDPG model.
+            - use_backward_hook (:obj:`bool`): whether to use backward_hook. Now is only used in unit test, \
+                since in Policy we use two optimizers to avoid using backward_hook.
+        """
         super(QAC, self).__init__()
 
         def backward_hook(module, grad_input, grad_output):

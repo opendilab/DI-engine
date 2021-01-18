@@ -1,7 +1,7 @@
 import json
 from enum import IntEnum, unique
 from functools import wraps
-from typing import Optional, Any, Mapping, Tuple, Union, Iterable, Type, Callable
+from typing import Mapping, Any, Type, Optional, Tuple, Union, Iterable, Callable
 
 import flask
 import requests
@@ -15,7 +15,10 @@ class CommonErrorCode(IntEnum):
 
 
 def flask_response(
-    success: bool, data: Optional[Mapping[str, Any]] = None, message: Optional[str] = None, code: Optional[int] = None
+    success: bool,
+    data: Optional[Mapping[str, Any]] = None,
+    message: Optional[str] = None,
+    code: Optional[int] = None,
 ):
     return jsonify(
         {

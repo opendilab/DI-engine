@@ -56,6 +56,7 @@ class OutTickMonitor(LoggedModel):
     out_time = LoggedValue(float)
     reuse = LoggedValue(int)
     priority = LoggedValue(float)
+    staleness = LoggedValue(float)
 
     def __init__(self, time_: 'BaseTime', expire: Union[int, float]):  # noqa
         LoggedModel.__init__(self, time_, expire)
@@ -84,6 +85,8 @@ class OutTickMonitor(LoggedModel):
         self.register_attribute_value('avg', 'priority', partial(__avg_func, prop_name='priority'))
         self.register_attribute_value('max', 'priority', partial(__max_func, prop_name='priority'))
         self.register_attribute_value('min', 'priority', partial(__min_func, prop_name='priority'))
+        self.register_attribute_value('avg', 'staleness', partial(__avg_func, prop_name='staleness'))
+        self.register_attribute_value('max', 'staleness', partial(__max_func, prop_name='staleness'))
 
 
 class InTickMonitor(LoggedModel):
@@ -128,16 +131,17 @@ class ReplayBuffer:
             - cfg (:obj:`dict`): config dict
         """
         self.cfg = deep_merge_dicts(default_config, cfg)
-        max_reuse = self.cfg.max_reuse if 'max_reuse' in self.cfg.keys() else None
+        max_reuse = self.cfg.get('reuse', None)
+        max_staleness = self.cfg.get('max_staleness', None)
         # traj_len is actor's generating trajectory length, often equals to or greater than actual data_push_length
         self.traj_len = cfg.get('traj_len', None)
         # unroll_len is learner's training data length, often smaller than traj_len
         self.unroll_len = cfg.get('unroll_len', None)
-        self.use_cache = cfg.get('use_cache', False)
         # main buffer
         self._meta_buffer = PrioritizedBuffer(
             maxlen=self.cfg.meta_maxlen,
             max_reuse=max_reuse,
+            max_staleness=max_staleness,
             min_sample_ratio=self.cfg.min_sample_ratio,
             alpha=self.cfg.alpha,
             beta=self.cfg.beta,
@@ -148,6 +152,7 @@ class ReplayBuffer:
         self._meta_lock = LockContext(type_=LockContextType.THREAD_LOCK)
 
         # cache mechanism: first push data into cache, then(some conditions) put forward to meta buffer
+        self.use_cache = cfg.get('use_cache', False)
         self._cache = Cache(maxlen=self.cfg.cache_maxlen, timeout=self.cfg.timeout)
         self._cache_thread = Thread(target=self._cache2meta)
 
@@ -226,20 +231,21 @@ class ReplayBuffer:
             self._tb_logger.print_vars(in_dict, self._in_count, 'scalar')
         self._in_count += 1
 
-    def sample(self, batch_size: int) -> Optional[list]:
+    def sample(self, batch_size: int, cur_learner_iter: int) -> Optional[list]:
         """
         Overview:
             Sample data from replay buffer
         Arguments:
-            - batch_size (:obj:`int`): the batch size of the data that will be sampled
+            - batch_size (:obj:`int`): Batch size of the data that will be sampled
+            - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness
         Returns:
-            - data (:obj:`list` ): sampled data batch
+            - data (:obj:`list` ): Sampled data batch
         Note:
             thread-safe
         """
         with self._timer:
             with self._meta_lock:
-                data = self._meta_buffer.sample(batch_size)
+                data = self._meta_buffer.sample(batch_size, cur_learner_iter)
         if data is None:
             # directly return and will be processed by the caller
             return data
@@ -248,8 +254,10 @@ class ReplayBuffer:
         self._out_tick_monitor.out_time = self._timer.value
         reuse = sum([d['reuse'] for d in data]) / batch_size
         priority = sum([d['priority'] for d in data]) / batch_size
+        staleness = sum([d['staleness'] for d in data]) / batch_size
         self._out_tick_monitor.reuse = int(reuse)
         self._out_tick_monitor.priority = priority
+        self._out_tick_monitor.staleness = staleness
         self._out_tick_monitor.time.step()
         out_dict = {
             'out_count_avg': self._natural_monitor.avg['out_count'](),
@@ -259,6 +267,8 @@ class ReplayBuffer:
             'priority_avg': self._out_tick_monitor.avg['priority'](),
             'priority_max': self._out_tick_monitor.max['priority'](),
             'priority_min': self._out_tick_monitor.min['priority'](),
+            'staleness_avg': self._out_tick_monitor.avg['staleness'](),
+            'staleness_max': self._out_tick_monitor.max['staleness'](),
         }
         if self._out_count % self._log_freq == 0:
             self._logger.info("===Read Buffer {} Times===".format(self._out_count))
@@ -281,7 +291,8 @@ class ReplayBuffer:
 
     def clear(self) -> None:
         """
-        Overview: clear replay buffer, exclude all the data(including cache)
+        Overview:
+            Clear meta replay buffer, exclude all the data(including cache)
         """
         # TODO(nyz) clear cache data
         self._meta_buffer.clear()
