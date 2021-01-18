@@ -1,124 +1,18 @@
-import copy
 import os.path as osp
 from threading import Thread
-from typing import Union, Optional
-from functools import partial
-import time
+from typing import Union, Optional, Dict, Any, List, Tuple
+import numpy as np
 
-from nervex.data.structure import PrioritizedBuffer, Cache
-from nervex.utils import LockContext, LockContextType, read_config, deep_merge_dicts, EasyTimer
-from nervex.utils import build_logger
-from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
+from nervex.data.structure import PrioritizedBuffer, Cache, SumSegmentTree
+from nervex.utils import read_config, deep_merge_dicts
 
 default_config = read_config(osp.join(osp.dirname(__file__), 'replay_buffer_default_config.yaml')).replay_buffer
-
-
-class NaturalMonitor(LoggedModel):
-    """
-    Overview:
-        NaturalMonitor is to monitor how many pieces of data are added to and read from buffer per second.
-    Interface:
-        __init__, fixed_time, current_time, freeze, unfreeze, register_attribute_value, __getattr__
-    Property:
-        time, expire
-    """
-    in_count = LoggedValue(int)
-    out_count = LoggedValue(int)
-
-    # __thruput_property_names = ['in_count', 'out_count']
-
-    def __init__(self, time_: 'BaseTime', expire: Union[int, float]):  # noqa
-        LoggedModel.__init__(self, time_, expire)
-        self.__register()
-
-    def __register(self):
-
-        def __avg_func(prop_name: str) -> float:
-            records = self.range_values[prop_name]()
-            _sum = sum([_value for (_begin_time, _end_time), _value in records])
-            return _sum / self.expire
-
-        self.register_attribute_value('avg', 'in_count', partial(__avg_func, prop_name='in_count'))
-        self.register_attribute_value('avg', 'out_count', partial(__avg_func, prop_name='out_count'))
-
-
-class OutTickMonitor(LoggedModel):
-    """
-    Overview:
-        OutTickMonitor is to monitor read-out indices for ``expire`` times recent read-outs.
-        Indices include: read out time; average and max of read out data items' reuse; average, max and min of
-        read out data items' priority.
-    Interface:
-        __init__, fixed_time, current_time, freeze, unfreeze, register_attribute_value, __getattr__
-    Property:
-        time, expire
-    """
-    out_time = LoggedValue(float)
-    reuse = LoggedValue(int)
-    priority = LoggedValue(float)
-    staleness = LoggedValue(float)
-
-    def __init__(self, time_: 'BaseTime', expire: Union[int, float]):  # noqa
-        LoggedModel.__init__(self, time_, expire)
-        self.__register()
-
-    def __register(self):
-
-        def __avg_func(prop_name: str) -> float:
-            records = self.range_values[prop_name]()
-            _list = [_value for (_begin_time, _end_time), _value in records]
-            return sum(_list) / len(_list)
-
-        def __max_func(prop_name: str) -> Union[float, int]:
-            records = self.range_values[prop_name]()
-            _list = [_value for (_begin_time, _end_time), _value in records]
-            return max(_list)
-
-        def __min_func(prop_name: str) -> Union[float, int]:
-            records = self.range_values[prop_name]()
-            _list = [_value for (_begin_time, _end_time), _value in records]
-            return min(_list)
-
-        self.register_attribute_value('avg', 'out_time', partial(__avg_func, prop_name='out_time'))
-        self.register_attribute_value('avg', 'reuse', partial(__avg_func, prop_name='reuse'))
-        self.register_attribute_value('max', 'reuse', partial(__max_func, prop_name='reuse'))
-        self.register_attribute_value('avg', 'priority', partial(__avg_func, prop_name='priority'))
-        self.register_attribute_value('max', 'priority', partial(__max_func, prop_name='priority'))
-        self.register_attribute_value('min', 'priority', partial(__min_func, prop_name='priority'))
-        self.register_attribute_value('avg', 'staleness', partial(__avg_func, prop_name='staleness'))
-        self.register_attribute_value('max', 'staleness', partial(__max_func, prop_name='staleness'))
-
-
-class InTickMonitor(LoggedModel):
-    """
-    Overview:
-        InTickMonitor is to monitor add-in indices for ``expire`` times recent add-ins.
-        Indices include: add in time.
-    Interface:
-        __init__, fixed_time, current_time, freeze, unfreeze, register_attribute_value, __getattr__
-    Property:
-        time, expire
-    """
-    in_time = LoggedValue(float)
-
-    def __init__(self, time_: 'BaseTime', expire: Union[int, float]):  # noqa
-        LoggedModel.__init__(self, time_, expire)
-        self.__register()
-
-    def __register(self):
-
-        def __avg_func(prop_name: str) -> float:
-            records = self.range_values[prop_name]()
-            _list = [_value for (_begin_time, _end_time), _value in records]
-            return sum(_list) / len(_list)
-
-        self.register_attribute_value('avg', 'in_time', partial(__avg_func, prop_name='in_time'))
 
 
 class ReplayBuffer:
     """
     Overview:
-        Reinforcement Learning replay buffer, with priority sampling, data cache
+        Reinforcement Learning replay buffer, with prioritized sampling and data cache.
     Interface:
         __init__, push_data, sample, update, run, close
     """
@@ -131,46 +25,37 @@ class ReplayBuffer:
             - cfg (:obj:`dict`): config dict
         """
         self.cfg = deep_merge_dicts(default_config, cfg)
-        max_reuse = self.cfg.get('reuse', None)
-        max_staleness = self.cfg.get('max_staleness', None)
-        # traj_len is actor's generating trajectory length, often equals to or greater than actual data_push_length
-        self.traj_len = cfg.get('traj_len', None)
-        # unroll_len is learner's training data length, often smaller than traj_len
-        self.unroll_len = cfg.get('unroll_len', None)
-        # main buffer
-        self._meta_buffer = PrioritizedBuffer(
-            maxlen=self.cfg.meta_maxlen,
-            max_reuse=max_reuse,
-            max_staleness=max_staleness,
-            min_sample_ratio=self.cfg.min_sample_ratio,
-            alpha=self.cfg.alpha,
-            beta=self.cfg.beta,
-            anneal_step=self.cfg.anneal_step,
-            enable_track_used_data=self.cfg.enable_track_used_data,
-            deepcopy=self.cfg.deepcopy,
-        )
-        self._meta_lock = LockContext(type_=LockContextType.THREAD_LOCK)
+        # ``buffer_name``` is a list containing all buffers' names
+        self.buffer_name = self.cfg.buffer_name
+        # ``buffer`` is a dict {buffer_name: prioritized_buffer}, where prioritized_buffer guarantees thread safety
+        self.buffer = {}
+        for name in self.buffer_name:
+            buffer_cfg = self.cfg[name]
+            self.buffer[name] = PrioritizedBuffer(
+                name=name,
+                load_path=buffer_cfg.get('load_path', None),
+                maxlen=buffer_cfg.get('maxlen', 10000),
+                max_reuse=buffer_cfg.get('max_reuse', None),
+                max_staleness=buffer_cfg.get('max_staleness', None),
+                min_sample_ratio=buffer_cfg.get('min_sample_ratio', 1.),
+                alpha=buffer_cfg.get('alpha', 0.),
+                beta=buffer_cfg.get('beta', 0.),
+                anneal_step=buffer_cfg.get('anneal_step', 0),
+                enable_track_used_data=buffer_cfg.get('enable_track_used_data', False),
+                deepcopy=buffer_cfg.get('deepcopy', False),
+                monitor_cfg=buffer_cfg.get('monitor', None),
+            )
+
+        self.sample_tree = SumSegmentTree(len(self.buffer_name))
+        for idx, name in enumerate(self.buffer_name):
+            self.sample_tree[idx] = self.cfg.sample_ratio[name]
+        assert self.sample_tree.reduce() == 1
 
         # cache mechanism: first push data into cache, then(some conditions) put forward to meta buffer
-        self.use_cache = cfg.get('use_cache', False)
-        self._cache = Cache(maxlen=self.cfg.cache_maxlen, timeout=self.cfg.timeout)
+        # self.use_cache = cfg.get('use_cache', False)
+        self.use_cache = False
+        self._cache = Cache(maxlen=self.cfg.get('cache_maxlen', 256), timeout=self.cfg.get('timeout', 8))
         self._cache_thread = Thread(target=self._cache2meta)
-
-        # monitor & logger
-        self._timer = EasyTimer()  # to record in & out time
-        self._natural_monitor = NaturalMonitor(NaturalTime(), expire=self.cfg.monitor.natural_expire)
-        self._out_count = 0
-        self._out_tick_monitor = OutTickMonitor(TickTime(), expire=self.cfg.monitor.tick_expire)
-        self._in_count = 0
-        self._in_tick_monitor = InTickMonitor(TickTime(), expire=self.cfg.monitor.tick_expire)
-        self._logger, self._tb_logger = build_logger(self.cfg.monitor.log_path, './log/buffer', True)
-        self._in_vars = ['in_count_avg', 'in_time_avg']
-        self._out_vars = [
-            'out_count_avg', 'out_time_avg', 'reuse_avg', 'reuse_max', 'priority_avg', 'priority_max', 'priority_min'
-        ]
-        for var in self._in_vars + self._out_vars:
-            self._tb_logger.register_var(var)
-        self._log_freq = self.cfg.monitor.log_freq
 
     def _cache2meta(self):
         """
@@ -182,120 +67,107 @@ class ReplayBuffer:
             with self._meta_lock:
                 self._meta_buffer.append(data)
 
-    def push_data(self, data: Union[list, dict]) -> None:
+    def push_data(self, data: Union[list, dict], buffer_name: str = "agent") -> None:
         """
         Overview:
-            Push ``data`` into ``self._cache``
+            Push ``data`` into appointed buffer.
         Arguments:
-            - data (:obj:`list` or `dict`): data list or data item (dict type)
-        Note:
-            thread-safe, because cache itself is thread-safe
+            - data (:obj:`list` or `dict`): Data list or data item (dict type).
+            - buffer_name (:obj:`str`): The buffer to push data into, default set to "agent".
         """
         assert (isinstance(data, list) or isinstance(data, dict))
+        if isinstance(data, dict):
+            data = [data]
+        if self.use_cache:
+            for d in data:
+                self._cache.push_data(d)
+        else:
+            self.buffer[buffer_name].extend(data)
 
-        def split(item: dict) -> list:
-            data_push_length = item['data_push_length']
-            traj_len = self.traj_len if self.traj_len is not None else data_push_length
-            unroll_len = self.unroll_len if self.unroll_len is not None else data_push_length
-            assert data_push_length == traj_len
-            split_num = traj_len // unroll_len
-            split_item = [copy.deepcopy(item) for _ in range(split_num)]
-            for i in range(split_num):
-                split_item[i]['unroll_split_begin'] = i * unroll_len
-                split_item[i]['unroll_len'] = unroll_len
-            return split_item
-
-        with self._timer:
-            if isinstance(data, dict):
-                data = [data]
-            if 'data_push_length' in data[0].keys():
-                split_data = []
-                for d in data:
-                    split_data += split(d)
-            else:
-                split_data = data
-            if self.use_cache:
-                for d in split_data:
-                    self._cache.push_data(d)
-            else:
-                self._meta_buffer.extend(split_data)
-        self._in_tick_monitor.in_time = self._timer.value
-        self._in_tick_monitor.time.step()
-        in_dict = {
-            'in_count_avg': self._natural_monitor.avg['in_count'](),
-            'in_time_avg': self._in_tick_monitor.avg['in_time']()
-        }
-        self._in_count += 1
-        if self._in_count % self._log_freq == 0:
-            self._logger.info("===Add In Buffer {} Times===".format(self._in_count))
-            self._logger.print_vars(in_dict)
-            self._tb_logger.print_vars(in_dict, self._in_count, 'scalar')
-
-    def sample(self, batch_size: int, cur_learner_iter: int) -> Optional[list]:
+    def sample(self,
+               batch_size: int,
+               cur_learner_iter: int,
+               sample_ratio: Optional[Dict[str, float]] = None) -> Optional[list]:
         """
         Overview:
-            Sample data from replay buffer
+            Sample data from prioritized buffers according to sample ratio.
         Arguments:
-            - batch_size (:obj:`int`): Batch size of the data that will be sampled
-            - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness
+            - batch_size (:obj:`int`): Batch size of the data that will be sampled.
+            - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
+            - sample_ratio (:obj:`Optional[Dict[str, float]]`): How to sample from multiple buffers. Caller can pass \
+                this argument; If not, replay buffer will use its own attribute ``self.sample_ratio``.
         Returns:
-            - data (:obj:`list` ): Sampled data batch
-        Note:
-            thread-safe
+            - data (:obj:`list` ): Sampled data batch.
         """
-        with self._timer:
-            with self._meta_lock:
-                data = self._meta_buffer.sample(batch_size, cur_learner_iter)
-        if data is None:
-            # no enough element for sampling
-            return None
-        data_count = len(data)
-        self._natural_monitor.out_count = data_count
-        self._out_tick_monitor.out_time = self._timer.value
-        reuse = sum([d['reuse'] for d in data]) / batch_size
-        priority = sum([d['priority'] for d in data]) / batch_size
-        staleness = sum([d['staleness'] for d in data]) / batch_size
-        self._out_tick_monitor.reuse = int(reuse)
-        self._out_tick_monitor.priority = priority
-        self._out_tick_monitor.staleness = staleness
-        self._out_tick_monitor.time.step()
-        out_dict = {
-            'out_count_avg': self._natural_monitor.avg['out_count'](),
-            'out_time_avg': self._out_tick_monitor.avg['out_time'](),
-            'reuse_avg': self._out_tick_monitor.avg['reuse'](),
-            'reuse_max': self._out_tick_monitor.max['reuse'](),
-            'priority_avg': self._out_tick_monitor.avg['priority'](),
-            'priority_max': self._out_tick_monitor.max['priority'](),
-            'priority_min': self._out_tick_monitor.min['priority'](),
-            'staleness_avg': self._out_tick_monitor.avg['staleness'](),
-            'staleness_max': self._out_tick_monitor.max['staleness'](),
-        }
-        self._out_count += 1
-        if self._out_count % self._log_freq == 0:
-            self._logger.info("===Read Buffer {} Times===".format(self._out_count))
-            self._logger.print_vars(out_dict)
-            self._tb_logger.print_vars(out_dict, self._out_count, 'scalar')
+        if sample_ratio is not None:
+            for idx, name in enumerate(self.buffer_name):
+                self.sample_tree[idx] = sample_ratio[name]
+            assert self.sample_tree.reduce() == 1  # assert sum of all buffer's sample ratio is 1
+
+        # randomly choosing buffer to sample from is similar to randomly choosing transition to sample in one buffer,
+        # you can refer to PrioritizedBuffer's _get_indices
+        intervals = np.array([i * 1.0 / batch_size for i in range(batch_size)])
+        mass = intervals + np.random.uniform(size=(batch_size, )) * 1. / batch_size
+        buffer_choice = [self.sample_tree.find_prefixsum_idx(m) for m in mass]
+
+        # Different buffers' sample check and sample
+        buffer_sample_count = []
+        # buffer_sample_data is ``List[List[dict]]``, a list containing ``buffer_num`` lists which
+        # contains datas sampled from corresponding buffer.
+        buffer_sample_data = []
+        buffer_num = len(self.buffer_name)
+        for buffer_idx in range(buffer_num):
+            size = buffer_choice.count(buffer_idx)
+            buffer_sample_count.append(size)
+            if not self.buffer[self.buffer_name[buffer_idx]].sample_check(size, cur_learner_iter):
+                return None
+        for buffer_idx in range(buffer_num):
+            data = self.buffer[self.buffer_name[buffer_idx]].sample(buffer_sample_count[buffer_idx], cur_learner_iter)
+            buffer_sample_data.append(data)
+
+        # fill ``data`` with sampled datas from different buffers according to ``buffer_choice`` and return
+        data = [None for _ in range(batch_size)]
+        for data_idx, buffer_idx in enumerate(buffer_choice):
+            data[data_idx] = buffer_sample_data[buffer_idx].pop()
+        assert len(data) == batch_size
         return data
 
-    def update(self, info: dict) -> None:
+    def update(self, info: Dict[str, list]) -> None:
         """
         Overview:
-            Update meta buffer with outside info
+            Update prioritized buffers with outside info. Current info includes transition's priority update.
         Arguments:
-            - info (:obj:`dict`): info dict
-        Note:
-            thread-safe
+            - info (:obj:`Dict[str, list]`): Info dict. Currently contains keys \
+                ['replay_unique_id', 'replay_buffer_idx', 'priority']. \
+                "repaly_unique_id" format is "{buffer name}_{count in this buffer}"
         """
-        with self._meta_lock:
-            self._meta_buffer.update(info)
+        buffer_info = {
+            name: {
+                'replay_unique_id': [],
+                'replay_buffer_idx': [],
+                'priority': []
+            }
+            for name in self.buffer_name
+        }
+        data = [info['replay_unique_id'], info['replay_buffer_idx'], info['priority']]
+        for unique_id, position_idx, priority in zip(*data):
+            buffer_name = unique_id.split('_')[0]
+            buffer_info[buffer_name]['replay_unique_id'].append(unique_id)
+            buffer_info[buffer_name]['replay_buffer_idx'].append(position_idx)
+            buffer_info[buffer_name]['priority'].append(priority)
+        for name, info in buffer_info.items():
+            self.buffer[name].update(info)
 
-    def clear(self) -> None:
+    def clear(self, buffer_name: Optional[List[str]] = None) -> None:
         """
         Overview:
-            Clear meta replay buffer, exclude all the data(including cache)
+            Clear prioritized buffer, exclude all data(including cache)
         """
         # TODO(nyz) clear cache data
-        self._meta_buffer.clear()
+        if buffer_name is None:
+            buffer_name = self.buffer_name
+        for name in buffer_name:
+            self.buffer[name].clear()
 
     def run(self) -> None:
         """
@@ -314,18 +186,24 @@ class ReplayBuffer:
         if self.use_cache:
             self._cache.close()
 
-    @property
-    def count(self) -> None:
+    def count(self, buffer_name: str = "agent") -> int:
         """
         Overview:
-            Return buffer's current data count
+            Return chosen buffer's current data count.
+        Arguments:
+            - buffer_name (:obj:`str`): Chosen buffer's name, default set to "agent"
+        Returns:
+            - count (:obj:`int`): Chosen buffer's data count
         """
-        return self._meta_buffer.validlen
+        return self.buffer[buffer_name].validlen
 
-    @property
-    def used_data(self) -> 'Queue':  # noqa
+    def used_data(self, buffer_name: str = "agent") -> 'queue.Queue':  # noqa
         """
         Overview:
-            Return the used data (used data means it was once in the buffer, but was replaced and discarded afterwards)
+            Return chosen buffer's "used data", which was once in the buffer, but was replaced and discarded afterwards
+        Arguments:
+            - buffer_name (:obj:`str`): Chosen buffer's name, default set to "agent"
+        Returns:
+            - queue (:obj:`queue.Queue`): Chosen buffer's record list
         """
-        return self._meta_buffer.used_data
+        return self.buffer[buffer_name].used_data

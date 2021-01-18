@@ -1,0 +1,36 @@
+replay_buffer:
+    buffer_name: ['agent', 'demo']
+    agent:
+        meta_maxlen: 4096
+        max_reuse: 16
+        max_staleness: 1000000
+        min_sample_ratio: 1
+        alpha: 0.6
+        beta: 0.4
+        anneal_step: 0  # 0 means no annealing, 20000 for atari env
+        enable_track_used_data: False
+        deepcopy: False
+        monitor:
+            log_freq: 2000
+            log_path: './log/buffer/agent_buffer/'
+            natural_expire: 100
+            tick_expire: 100
+    demo:
+        load_path: './demonstration_data.pkl'
+        meta_maxlen: 4096
+        max_reuse: 16
+        max_staleness: 1000000
+        min_sample_ratio: 1
+        alpha: 0.6
+        beta: 0.4
+        anneal_step: 0
+        enable_track_used_data: False
+        deepcopy: False
+        monitor:
+            log_freq: 2000
+            log_path: './log/buffer/demo_buffer/'
+            natural_expire: 100
+            tick_expire: 100
+    sample_ratio:
+        agent: 0.99609375  # 255/256
+        demo: 0.00390625   # 1/256

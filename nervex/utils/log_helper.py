@@ -311,6 +311,7 @@ class TensorBoardLogger:
         Overview:
             Close the tensorboard. Should be called when you finish recording, or the last value will be missed.
         """
+        self.logger.flush()
         self.logger.close()
 
     @property

@@ -15,8 +15,8 @@ class BaseSerialActor(object):
         self._traj_len = cfg.traj_len
         if self._traj_len == "inf":
             raise ValueError(
-                "Serial Actor must indicate finite traj_len, if you want to use the total episode,\
-                please set this argument as the maximum length of the env episode"
+                "Serial Actor must indicate finite traj_len, if you want to use the total episode, \
+                please set it equal to the maximum length of the env's episode"
             )
         self._traj_cache_length = self._traj_len
         self._traj_print_freq = cfg.traj_print_freq
@@ -47,6 +47,7 @@ class BaseSerialActor(object):
     def reset(self) -> None:
         self._obs_pool = CachePool('obs', self._env_num)
         self._policy_output_pool = CachePool('policy_output', self._env_num)
+        # _traj_cache = {env_id: deque}, used to store traj_len pieces of transitions
         self._traj_cache = {env_id: deque(maxlen=self._traj_cache_length) for env_id in range(self._env_num)}
         self._total_collect_step = 0
         self._total_step = 0
@@ -106,6 +107,7 @@ class BaseSerialActor(object):
                     transition['collect_iter'] = iter_count
                     self._traj_cache[env_id].append(transition)
                     if timestep.done or len(self._traj_cache[env_id]) == self._traj_len:
+                        # episode is done or traj_cache(maxlen=traj_len) is full
                         train_sample = self._policy.get_train_sample(self._traj_cache[env_id])
                         return_data.extend(train_sample)
                         train_sample_count += len(train_sample)

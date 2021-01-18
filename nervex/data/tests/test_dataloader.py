@@ -98,4 +98,4 @@ class TestAsyncDataLoader:
             assert total_data_time <= 9 * 0.008
         dataloader.__del__()
         time.sleep(0.5)
-        assert len(threading.enumerate()) <= 2
+        assert len(threading.enumerate()) <= 2, threading.enumerate()

@@ -39,10 +39,11 @@ policy:
             end: 0.1
             decay: 10000
 replay_buffer:
-    meta_maxlen: 1000
-    max_reuse: 4
-    unroll_len: 1
-    min_sample_ratio: 1
+    buffer_name: ['agent']
+    agent:
+        meta_maxlen: 1000
+        max_reuse: 4
+        min_sample_ratio: 1
 actor:
     n_episode: 16
     traj_len: 200  # cartpole max episode len
