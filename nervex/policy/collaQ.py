@@ -64,7 +64,7 @@ class CollaQPolicy(CommonPolicy):
         target_total_q = self._agent.target_forward(next_inputs, param={'single_step': False})['total_q']
         #td_loss
         td_data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
-        td_loss = v_1step_td_error(td_data, self._gamma)
+        td_loss, _ = v_1step_td_error(td_data, self._gamma)
         #collaQ loss
         colla_loss = (agent_colla_alone_q ** 2).mean()
 
