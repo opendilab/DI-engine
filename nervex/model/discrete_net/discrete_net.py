@@ -225,11 +225,17 @@ class Head(nn.Module):
             - return (:obj:`Dict`): action in logits
         """
         if isinstance(self.action_dim, tuple):
-            x = [m(x, num_quantiles=num_quantiles) for m in self.pred]
+            if self.dueling:
+                x = [m(x, num_quantiles=num_quantiles) for m in self.pred]
+            else:
+                x = [m(x) for m in self.pred]
             if self.distribution or self.quantile:
                 x = list(zip(*x))
         else:
-            x = self.pred(x, num_quantiles=num_quantiles)
+            if self.dueling:
+                x = self.pred(x, num_quantiles=num_quantiles)
+            else:
+                x = self.pred(x)
         if self.distribution:
             return {'logit': x[0], 'distribution': x[1]}
         elif self.quantile:
