@@ -6,9 +6,10 @@ WORKERS_COMMAND := $(if ${WORKERS},-n ${WORKERS},)
 DURATIONS         ?= 10
 DURATIONS_COMMAND := $(if ${DURATIONS},--durations=${DURATIONS},)
 
-RANGE_DIR ?=
-TEST_DIR  ?= $(if ${RANGE_DIR},${RANGE_DIR},./nervex)
-COV_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./nervex)
+RANGE_DIR  ?=
+TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./nervex)
+COV_DIR    ?= $(if ${RANGE_DIR},${RANGE_DIR},./nervex)
+FORMAT_DIR ?= $(if ${RANGE_DIR},${RANGE_DIR},./nervex)
 
 docs:
 	$(MAKE) -C ./nervex/docs html
@@ -41,7 +42,7 @@ cpu_test: unittest algotest benchmark
 all_test: unittest algotest cudatest benchmark
 
 format:
-	bash format.sh
+	yapf --in-place --recursive -p --verbose --style .style.yapf ${FORMAT_DIR}
 format_test:
 	bash format.sh --test
 flake_check:

@@ -88,29 +88,27 @@ class TestInteractionBaseHttpEngine:
 
     @contextmanager
     def __yield_http_engine(self):
-        responses.add(
-            **{
-                'method': responses.GET,
-                'url': 'http://example.com:7777/this/is/404',
-                'body': json.dumps({"error": "reason"}),
-                'status': 404,
-                'content_type': 'application/json',
-            }
-        )
+        with responses.RequestsMock(assert_all_requests_are_fired=False) as rsp:
+            rsp.add(
+                **{
+                    'method': responses.GET,
+                    'url': 'http://example.com:7777/this/is/404',
+                    'body': json.dumps({"exception": "reason"}),
+                    'status': 404,
+                    'content_type': 'application/json',
+                }
+            )
+            rsp.add(
+                **{
+                    'method': responses.GET,
+                    'url': 'http://example.com:7777/this/is/200',
+                    'body': json.dumps({"success": True}),
+                    'status': 200,
+                    'content_type': 'application/json',
+                }
+            )
 
-        responses.add(
-            **{
-                'method': responses.GET,
-                'url': 'http://example.com:7777/this/is/200',
-                'body': json.dumps({"success": True}),
-                'status': 200,
-                'content_type': 'application/json',
-            }
-        )
-
-        yield
-
-        responses.reset()
+            yield
 
     @responses.activate
     def test_http_engine_basic(self):
@@ -125,7 +123,7 @@ class TestInteractionBaseHttpEngine:
 
             err = ei.value
             assert err.response.status_code == 404
-            assert json.loads(err.response.content.decode()) == {'error': 'reason'}
+            assert json.loads(err.response.content.decode()) == {'exception': 'reason'}
 
     @responses.activate
     def test_http_engine_with_path(self):
@@ -140,7 +138,7 @@ class TestInteractionBaseHttpEngine:
 
             err = ei.value
             assert err.response.status_code == 404
-            assert json.loads(err.response.content.decode()) == {'error': 'reason'}
+            assert json.loads(err.response.content.decode()) == {'exception': 'reason'}
 
     @responses.activate
     def test_get_http_engine_class(self):
@@ -152,6 +150,7 @@ class TestInteractionBaseHttpEngine:
                 data_processor=(lambda d: {
                     'data': json.dumps(d)
                 }),
+                http_error_gene=lambda e: RuntimeError('This is {status}'.format(status=e.response.status_code))
             )()
             engine = _http_engine_class(host='example.com', port=7777, path='/this/is')
 
@@ -160,3 +159,9 @@ class TestInteractionBaseHttpEngine:
             assert json.loads(response.content.decode()) == {"success": True}
             assert response.request.headers['Token'] == '233'
             assert json.loads(response.request.body) == {'data': json.dumps({'a': 'skdjgflksdj'})}
+
+            with pytest.raises(RuntimeError) as ei:
+                engine.request('GET', '404', {'a': 'skdjgflksdj'})
+
+            err = ei.value
+            assert 'This is 404' in str(err)
