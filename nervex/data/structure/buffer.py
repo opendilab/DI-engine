@@ -303,31 +303,32 @@ class PrioritizedBuffer:
         """
         if size == 0:
             return True
-        # with self._lock:
-        p = self.pointer
-        while True:
-            if self._data[p] is not None:
-                staleness = self._calculate_staleness(p, cur_learner_iter)
-                if staleness >= self.max_staleness:
-                    self._remove(p)
-                    continue
-                else:
-                    # Since the circular queue ``self._data`` guarantees that data's staleness is decreasing from
-                    # index self.pointer to index self.pointer - 1, we can jump out of the loop as soon as
-                    # meeting a fresh enough data
+        with self._lock:
+            p = self.pointer
+            while True:
+                if self._data[p] is not None:
+                    staleness = self._calculate_staleness(p, cur_learner_iter)
+                    if staleness >= self.max_staleness:
+                        self._remove(p)
+                    else:
+                        # Since the circular queue ``self._data`` guarantees that data's staleness is decreasing from
+                        # index self.pointer to index self.pointer - 1, we can jump out of the loop as soon as
+                        # meeting a fresh enough data
+                        break
+                p = (p + 1) % self._maxlen
+                # TODO(zlx): optimize staleness check
+                if p == self.pointer:
+                    # Traverse a circle and go back to the start pointer, which means can stop staleness checking now
                     break
-            else:
-                continue
-            self.pointer = (self.pointer + 1) % self._maxlen
-        if self._valid_count / size < self.min_sample_ratio:
-            self._logger.info(
-                "No enough elements for sampling (expect: {}/current have: {}, min_sample_ratio: {})".format(
-                    size, self._valid_count, self.min_sample_ratio
+            if self._valid_count / size < self.min_sample_ratio:
+                self._logger.info(
+                    "No enough elements for sampling (expect: {}/current have: {}, min_sample_ratio: {})".format(
+                        size, self._valid_count, self.min_sample_ratio
+                    )
                 )
-            )
-            return False
-        else:
-            return True
+                return False
+            else:
+                return True
 
     def sample(self, size: int, cur_learner_iter: int) -> Optional[list]:
         r"""
