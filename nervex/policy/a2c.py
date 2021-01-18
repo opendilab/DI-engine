@@ -31,6 +31,7 @@ class A2CPolicy(CommonPolicy):
         algo_cfg = self._cfg.learn.algo
         self._value_weight = algo_cfg.value_weight
         self._entropy_weight = algo_cfg.entropy_weight
+        self._learn_use_nstep_return = algo_cfg.get('use_nstep_return', False)
         self._learn_gamma = algo_cfg.get('discount_factor', 0.99)
         self._learn_nstep = algo_cfg.get('nstep', 1)
         self._use_adv_norm = algo_cfg.get('use_adv_norm', False)
@@ -126,6 +127,8 @@ class A2CPolicy(CommonPolicy):
         algo_cfg = self._cfg.collect.algo
         self._gamma = algo_cfg.discount_factor
         self._gae_lambda = algo_cfg.gae_lambda
+        self._collect_use_nstep_return = algo_cfg.get('use_nstep_return', False)
+        self._collect_nstep = algo_cfg.get('nstep', 1)
 
     def _forward_collect(self, data_id: List[int], data: dict) -> dict:
         r"""
@@ -178,6 +181,8 @@ class A2CPolicy(CommonPolicy):
         data = self._adder.get_gae_with_default_last_value(
             data, data[-1]['done'], gamma=self._gamma, gae_lambda=self._gae_lambda
         )
+        if self._collect_use_nstep_return:
+            data = self._adder.get_nstep_return_data(data, self._collect_nstep, self._traj_len)
         return self._adder.get_train_sample(data)
 
     def _init_eval(self) -> None:

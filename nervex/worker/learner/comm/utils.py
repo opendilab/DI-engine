@@ -19,7 +19,12 @@ class NaiveLearner(Slave):
             return {'message': 'learner task has started'}
         elif task_name == 'learner_get_data_task':
             time.sleep(0.01)
-            return {'task_id': self.task_info['task_id'], 'buffer_id': self.task_info['buffer_id'], 'batch_size': 2}
+            return {
+                'task_id': self.task_info['task_id'],
+                'buffer_id': self.task_info['buffer_id'],
+                'batch_size': 2,
+                'cur_learner_iter': 1
+            }
         elif task_name == 'learner_learn_task':
             data = task['data']
             if data is None:
