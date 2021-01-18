@@ -3,7 +3,7 @@ import torch
 import numpy as np
 from gym import spaces
 from typing import Any
-from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo 
+from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
 from app_zoo.multiagent_particle.envs.make_env import make_env
