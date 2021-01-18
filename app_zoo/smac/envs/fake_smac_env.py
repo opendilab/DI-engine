@@ -1,9 +1,11 @@
 from collections import namedtuple
-import torch
-from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo 
+import numpy as np
+from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo
+from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 
 FakeSMACEnvTimestep = namedtuple('FakeSMACEnvTimestep', ['obs', 'reward', 'done', 'info'])
 FakeSMACEnvInfo = namedtuple('FakeSMACEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space'])
+
 
 class FakeSMACEnv(BaseEnv):
 
@@ -20,17 +22,17 @@ class FakeSMACEnv(BaseEnv):
 
     def _get_obs(self):
         return {
-            'agent_state': torch.randn(self.agent_num, self.obs_dim),
-            'agent_alone_state': torch.randn(self.agent_num, self.obs_alone_dim),
-            'agent_alone_padding_state': torch.randn(self.agent_num, self.obs_dim),
-            'global_state': torch.randn(self.global_obs_dim),
-            'action_mask': torch.randint(0, 2, size=(self.agent_num, self.action_dim)),
+            'agent_state': np.random.random((self.agent_num, self.obs_dim)),
+            'agent_alone_state': np.random.random((self.agent_num, self.obs_alone_dim)),
+            'agent_alone_padding_state': np.random.random((self.agent_num, self.obs_dim)),
+            'global_state': np.random.random((self.global_obs_dim)),
+            'action_mask': np.random.randint(0, 2, size=(self.agent_num, self.action_dim)),
         }
 
     def step(self, action):
         assert action.shape == (self.agent_num, ), action.shape
         obs = self._get_obs()
-        reward = torch.randint(0, 10, size=(1, ))
+        reward = np.random.randint(0, 10, size=(1, ))
         done = self.step_count >= 314
         info = {}
         if done:
@@ -39,7 +41,7 @@ class FakeSMACEnv(BaseEnv):
         return FakeSMACEnvTimestep(obs, reward, done, info)
 
     def info(self):
-        T = FakeSMACEnvInfo
+        T = EnvElementInfo
         return FakeSMACEnvInfo(
             agent_num=self.agent_num,
             obs_space=T(

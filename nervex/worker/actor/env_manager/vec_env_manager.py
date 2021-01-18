@@ -45,16 +45,12 @@ class EnvState(enum.IntEnum):
 class ShmBuffer():
 
     def __init__(self, dtype: np.generic, shape: Tuple[int]) -> None:
-        # assert isinstance(dtype, [torch.dtype, np.generic])
-        # if isinstance(dtype, torch.dtype):
-        #     self.buffer = Array(_TTYPE_TO_CTYPE[dtype], int(np.prod(shape)))
-        # else:
         self.buffer = Array(_NTYPE_TO_CTYPE[dtype.type], int(np.prod(shape)))
         self.dtype = dtype
         self.shape = shape
 
     def fill(self, src_arr: Union[np.ndarray]) -> None:
-        assert isinstance(src_arr, np.ndarray)
+        assert isinstance(src_arr, np.ndarray), type(src_arr)
         dst_arr = np.frombuffer(self.buffer.get_obj(), dtype=self.dtype).reshape(self.shape)
         with self.buffer.get_lock():
             np.copyto(dst_arr, src_arr)
@@ -65,6 +61,31 @@ class ShmBuffer():
         """
         arr = np.frombuffer(self.buffer.get_obj(), dtype=self.dtype).reshape(self.shape)
         return arr.copy()
+
+
+class ShmBufferContainer(object):
+
+    def __init__(self, dtype: np.generic, shape: Union[dict, tuple]) -> None:
+        if isinstance(shape, dict):
+            self._data = {k: ShmBufferContainer(dtype, v) for k, v in shape.items()}
+        elif isinstance(shape, (tuple, list)):
+            self._data = ShmBuffer(dtype, shape)
+        else:
+            raise RuntimeError("not support shape: {}".format(shape))
+        self._shape = shape
+
+    def fill(self, src_arr: Union[dict, np.ndarray]) -> None:
+        if isinstance(self._shape, dict):
+            for k in self._shape.keys():
+                self._data[k].fill(src_arr[k])
+        elif isinstance(self._shape, (tuple, list)):
+            self._data.fill(src_arr)
+
+    def get(self) -> Union[dict, np.ndarray]:
+        if isinstance(self._shape, dict):
+            return {k: self._data[k].get() for k in self._shape.keys()}
+        elif isinstance(self._shape, (tuple, list)):
+            return self._data.get()
 
 
 class CloudpickleWrapper(object):
@@ -120,7 +141,7 @@ class SubprocessEnvManager(BaseEnvManager):
             env_cfg: Iterable,
             env_num: int,
             episode_num: Optional[int] = 'inf',
-            timeout : Optional[float] = 0.01,
+            timeout: Optional[float] = 0.01,
             wait_num: Optional[int] = 2,
     ) -> None:
         super().__init__(env_fn, env_cfg, env_num, episode_num)
@@ -141,7 +162,7 @@ class SubprocessEnvManager(BaseEnvManager):
             obs_space = self._env_ref.info().obs_space
             shape = obs_space.shape
             dtype = np.dtype(obs_space.value['dtype']) if obs_space.value is not None else np.dtype(np.float32)
-            self._obs_buffers = {env_id: ShmBuffer(dtype, shape) for env_id in range(self.env_num)}
+            self._obs_buffers = {env_id: ShmBufferContainer(dtype, shape) for env_id in range(self.env_num)}
         else:
             self._obs_buffers = {env_id: None for env_id in range(self.env_num)}
         self._parent_remote, self._child_remote = zip(*[Pipe() for _ in range(self.env_num)])
@@ -333,14 +354,12 @@ class SubprocessEnvManager(BaseEnvManager):
                         if cmd == 'step':
                             timestep = env.step(*args, **kwargs)
                             if obs_buffer is not None:
-                                assert isinstance(timestep.obs, np.ndarray), type(ret)
                                 obs_buffer.fill(timestep.obs)
                                 timestep = timestep._replace(obs=None)
                             ret = timestep
                         elif cmd == 'reset':
                             ret = env.reset(*args, **kwargs)  # obs
                             if obs_buffer is not None:
-                                assert isinstance(ret, np.ndarray), type(ret)
                                 obs_buffer.fill(ret)
                                 ret = None
                         elif args is None and kwargs is None:
