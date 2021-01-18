@@ -10,6 +10,7 @@ env:
     agent_num: 8
     actor_env_num: 4
     evaluator_env_num: 3
+    shared_memory: False
 policy:
     use_cuda: True
     policy_type: 'coma'

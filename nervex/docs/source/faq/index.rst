@@ -33,7 +33,7 @@ Q2: 如何自定义环境
 
 :A2:
    - 需要继承 ``nervex/envs/env/base_env.py`` 中的BaseEnv类，按照基类的相关说明和示例实现相应的方法。
-   - 注意环境中只是推荐使用tensor作为输入输出的数据类型，用户也可使用numpy数组或是python内置类型，在接入各类训练pipeline时，可以通过指定EnvManager实例创建时的tensor_transformer参数为真，让其自动完成环境数据到tensor的转换。nervex系统中除环境之外的部分，一律使用tensor作为基本数据类型，其他类型会导致运行错误。
+   - 环境推荐使用numpy.ndarray作为array的数据类型，用户也可使用tensor或是list。可以通过指定BaseEnvManager实例创建时的self._transform和self._inv_transform函数为to_list，to_ndarray或to_tensor，让其选择合适的自动完成环境数据与外部数据类型之间的转换。self._transform从外部数据类型往环境数据转换类型，self_inv_transform从环境数据类型往外部数据类型转换。nervex系统中除环境之外的部分，一律使用tensor作为基本数据类型，其他类型会导致运行错误。
    - 环境step方法返回的info **必须** 为dict，且当一个episode结束时，info中 **必须** 包括 ``final_eval_reward`` 这个键，其将作为评价整个episode性能的指标，要求 ``final_eval_reward`` 的取值为python内置数据类型(int, float)
    - (optional)如果想要在nervex中通过配置文件使用自定义的环境，需要在自定义环境文件中全局范围调用 ``register_env`` 方法进行注册，并在配置文件中指定环境名(env_type)，以及加载的模块名(import_names)
    - (optional)BaseEnv的info方法返回环境相关的参数信息，但其并不会和系统其他模块强耦合，只是作为 **可选** 的一个方法，使用者也可自定义相关格式，以及在系统中最终的用法

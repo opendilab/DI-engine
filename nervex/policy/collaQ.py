@@ -5,33 +5,34 @@ from easydict import EasyDict
 
 from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, epsilon_greedy, Adder
-from nervex.model import QMix
+from nervex.model import CollaQ
 from nervex.agent import Agent
 from nervex.data import timestep_collate
 from .base_policy import Policy, register_policy
 from .common_policy import CommonPolicy
 
 
-class QMIXPolicy(CommonPolicy):
+class CollaQPolicy(CommonPolicy):
 
     def _init_learn(self) -> None:
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._agent = Agent(self._model)
         algo_cfg = self._cfg.learn.algo
         self._gamma = algo_cfg.discount_factor
+        self._alpha = algo_cfg.get("collaQ_loss_factor", 1.0)
 
         self._agent.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_update_theta})
         self._agent.add_plugin(
             'main',
             'hidden_state',
             state_num=self._cfg.learn.batch_size,
-            init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
+            init_fn=lambda: [[None for _ in range(self._cfg.learn.agent_num)] for _ in range(3)]
         )
         self._agent.add_plugin(
             'target',
             'hidden_state',
             state_num=self._cfg.learn.batch_size,
-            init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
+            init_fn=lambda: [[None for _ in range(self._cfg.learn.agent_num)] for _ in range(3)]
         )
         self._agent.add_plugin('main', 'grad', enable_grad=True)
         self._agent.add_plugin('target', 'grad', enable_grad=False)
@@ -55,13 +56,19 @@ class QMIXPolicy(CommonPolicy):
         self._agent.reset(state=data['prev_state'][0])
         self._agent.target_reset(state=data['prev_state'][0])
         inputs = {'obs': data['obs'], 'action': data['action']}
+        ret = self._agent.forward(inputs, param={'single_step': False})
+        total_q = ret['total_q']
+        agent_colla_alone_q = ret['agent_colla_alone_q'].sum(-1).sum(-1)
         total_q = self._agent.forward(inputs, param={'single_step': False})['total_q']
         next_inputs = {'obs': data['next_obs']}
         target_total_q = self._agent.target_forward(next_inputs, param={'single_step': False})['total_q']
+        #td_loss
+        td_data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
+        td_loss, _ = v_1step_td_error(td_data, self._gamma)
+        #collaQ loss
+        colla_loss = (agent_colla_alone_q ** 2).mean()
 
-        data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
-        loss, td_error_per_sample = v_1step_td_error(data, self._gamma)
-
+        loss = colla_loss * self._alpha + td_loss
         # update
         self._optimizer.zero_grad()
         loss.backward()
@@ -85,7 +92,7 @@ class QMIXPolicy(CommonPolicy):
             'hidden_state',
             state_num=self._cfg.collect.env_num,
             save_prev_state=True,
-            init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
+            init_fn=lambda: [[None for _ in range(self._cfg.learn.agent_num)] for _ in range(3)]
         )
         self._collect_agent.add_plugin('main', 'eps_greedy_sample')
         self._collect_agent.add_plugin('main', 'grad', enable_grad=False)
@@ -102,6 +109,7 @@ class QMIXPolicy(CommonPolicy):
             'next_obs': timestep.obs,
             'prev_state': agent_output['prev_state'],
             'action': agent_output['action'],
+            'agent_colla_alone_q': agent_output['agent_colla_alone_q'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -114,7 +122,7 @@ class QMIXPolicy(CommonPolicy):
             'hidden_state',
             state_num=self._cfg.eval.env_num,
             save_prev_state=True,
-            init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
+            init_fn=lambda: [[None for _ in range(self._cfg.learn.agent_num)] for _ in range(3)]
         )
         self._eval_agent.add_plugin('main', 'argmax_sample')
         self._eval_agent.add_plugin('main', 'grad', enable_grad=False)
@@ -139,9 +147,9 @@ class QMIXPolicy(CommonPolicy):
 
     def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
         if model_type is None:
-            return QMix(**cfg.model)
+            return CollaQ(**cfg.model)
         else:
             return model_type(**cfg.model)
 
 
-register_policy('qmix', QMIXPolicy)
+register_policy('collaQ', CollaQPolicy)
