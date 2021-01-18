@@ -43,8 +43,8 @@ def serial_pipeline(
         torch.cuda.manual_seed(seed)
     # create component
     policy_fn = create_policy if policy_type is None else policy_type
-    policy = policy_fn(cfg.policy, model_type)
-    learner = BaseLearner(cfg)
+    policy = policy_fn(cfg.policy, model_type=model_type)
+    learner = BaseLearner(cfg.learner)
     actor = BaseSerialActor(cfg.actor)
     evaluator = BaseSerialEvaluator(cfg.evaluator)
     replay_buffer = ReplayBuffer(cfg.replay_buffer)
@@ -56,7 +56,6 @@ def serial_pipeline(
     actor.policy = policy.collect_mode
     evaluator.policy = policy.eval_mode
     command.policy = policy.command_mode
-    learner.launch()
     # main loop
     iter_count = 0
     learner_train_step = cfg.policy.learn.train_step

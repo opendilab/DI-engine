@@ -9,51 +9,10 @@ from easydict import EasyDict
 from nervex.league.player import ActivePlayer, HistoricalPlayer
 from nervex.league.player import create_player
 from nervex.league.shared_payoff import create_payoff
-from nervex.utils import deep_merge_dicts, LockContextType
+from nervex.utils import deep_merge_dicts, LockContextType, LimitedSpaceContainer
 from nervex.utils import read_config, LockContext, import_module
 
 default_config = read_config(osp.join(osp.dirname(__file__), "league_manager_default_config.yaml"))
-
-
-class LimitedSpaceContainer:
-    r"""
-    Overview:
-        A space simulator.
-        Used in BaseLeagueManager, used to set up an active player's ``launch_count`` to simulate job counter.
-    Interface:
-        __init__, get_residual_space, release_space
-    """
-
-    def __init__(self, min_val: int, max_val: int) -> None:
-        """
-        Overview:
-            Set ``min_val`` and ``max_val`` of the container, also set ``cur`` to ``min_val`` for init
-        Arguments:
-            - min_val (:obj:`int`): min value of the container, usually 0
-            - max_val (:obj:`int`): max value of the container
-        """
-        self.min_val = min_val
-        self.max_val = max_val
-        assert (max_val > min_val)
-        self.cur = self.min_val
-
-    def get_residual_space(self) -> int:
-        """
-        Overview:
-            Get all residual space. Set ``cur`` to ``max_val``
-        Arguments:
-            - ret (:obj:`int`): residual space calculated by ``max_val`` - ``cur``
-        """
-        ret = self.max_val - self.cur
-        self.cur = self.max_val
-        return ret
-
-    def release_space(self):
-        """
-        Overview:
-            Release only one piece of space. Decrease ``cur`` by 1, but ensure it won't be negative.
-        """
-        self.cur = max(self.min_val, self.cur - 1)
 
 
 class BaseLeagueManager(ABC):

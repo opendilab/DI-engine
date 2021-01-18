@@ -13,17 +13,14 @@ nervex(框架核心)
 
  1. data: 数据加载
 
-   - 对于离线数据：使用类似PyTorch的 `dataset` + `dataloader` + `sampler` + `collate_fn` 模式
-   - 对于在线数据：提供强化版的Priortized Replay Buffer + AsyncDataLoader，支持更多的数据评估和采样机制
+   - ReplayBuffer（内部支持多种buffer，在线生成数据的agent buffer和使用专家数据的demo buffer）
+   - AsyncDataLoader （异步数据加载器）
 
  2. envs: 强化学习环境接口
 
    - 通用环境类接口
    - 通用环境静态和动态元素接口
    - 通用环境处理特征工程函数
-   - Atari环境在该接口定义下的封装示例(pong, pendulum, cartpole)
-   - 基于SUMO的交通信号灯控制环境在该接口定义下的封装示例
-   - alphastar SC2环境再改接口定义下的封装示例
 
  3. model: 强化学习神经网络接口
 
@@ -38,6 +35,7 @@ nervex(框架核心)
    
    - DQN(double+dueling+nstep)
    - RainbowDQN
+   - IQN
    - PPO(GAE)
    - A2C(GAE)
    - DDPG
@@ -48,6 +46,9 @@ nervex(框架核心)
    - QMIX
    - COMA
    - ATOC
+   - COLLAQ
+   - (TODO) HER
+   - (TODO) Muzero
 
  5. rl_utils: 强化学习工具库
 
@@ -84,7 +85,7 @@ nervex(框架核心)
    - 单元测试工具
    - 代码设计工具
 
- 8. league: 全局训练决策调度模块
+ 8. league: 联盟训练决策调度模块
 
    - league manager(player manager)
    - player
@@ -99,14 +100,11 @@ nervex(框架核心)
  10. worker: 系统运行模块
 
    - 训练学习器(learner)
-   - 数据生成器(actor)
-   - 向量化环境(env_manager)
-   - command
+   - 数据生成器(actor)，其中包含环境管理器(env_manager)
+   - 协作器(coordinator)
+   - 适配器(adapter)
 
- 11. system: 系统控制模块
-
-   - 运行信息管理(coordinator)
-   - 跨集群通信(manager)
+ 11. interaction: 通信交互模块
 
  12. entry: 启动入口模块
 
@@ -130,6 +128,8 @@ app_zoo(基于nerveX的DRL应用)
  6. alphastar(SC2)
 
  7. multiagent-particle
+
+ 8. board
 
 
 数据流图
@@ -170,7 +170,7 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
 
         .. code:: bash
 
-            nervex -c config.yaml -s 0
+            nervex -m serial -c config.yaml -s 0
 
     根据不同的需求，可以修改配置文件并自定义相关的启动脚本，配置文件中可能修改的地方主要有如下几处：
 
@@ -196,50 +196,25 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
 算法训练入口示例(并行版本)
 =================================
 
-    完成安装之后，进入 ``app_zoo/atari/entry/atari_dist_baseline`` 目录，找到 ``run.sh`` 文件,
-    即为在Atari环境上运行的多机异步版本算法训练入口示例，加载不同的配置文件即可使用不同的RL算法进行训练，如使用 ``atari_a2c_dist_default_config.yaml`` 即运行A2C算法进行训练。
-    
-    根据不同的使用环境，可以修改配置文件并自定义相关的启动脚本，其中可能修改的地方主要有如下几处：
+    完成安装之后，进入 ``app_zoo/classic_control/cartpole/entry/parallel`` 目录，找到 ``cartpole_dqn_default_config.py`` 文件,
+    即为在Cartpole环境上运行的并行训练配置文件，根据不同的使用环境，可以相应修改配置文件，其中可能修改的地方主要有如下几处：
 
       - use_cuda: 是否使用cuda，主要取决于使用者的机器上是否有GPU，注意这时的启动脚本要指定cuda device相关
       - use_distributed: 是否使用多机多卡训练，主要取决于使用者是否安装了linklink，以及是否要开启多机多卡训练，注意这时的启动脚本中要指定 `mpi` 相关
+      - repeat_num: learner端参与训练的GPU卡数，目前仅支持单机，最大值为一台机器上空闲的GPU数目
       - path_agent等: 这些字段是多机版本训练进行数据通信的相关路径，默认使用当前目录，即通过文件系统进行通信，在集群上一般使用ceph，需要进行相关配置并对应更改这些字段
-      - ip, port等: 这些字段是各个模块组件进行通信的ip地址和端口，需要手动设置并满足相应的对应关系
 
     下面所示为一般本地测试时的启动脚本
 
     .. code:: bash
-        
-        work_path=$(dirname $0)
-        RES_PREFIX=("" "" "" "" "")
-        CMD=("python3 -u -m nervex.system.coordinator_start" "python3 -u -m nervex.system.manager_start" \
-             "python3 -u -m nervex.system.league_manager_start" "python3 -u -m nervex.system.learner_start" \
-             "python3 -u -m nervex.system.actor_start")
-        CONFIG=" --config $work_path/atari_a2c_dist_default_local_config.yaml"
 
-        for ((i=0;i<${#CMD[@]};i++))
-        do
-            ${RES_PREFIX[$i]}${CMD[$i]}$CONFIG &
-            sleep 2s
-        done
+        nervex -m parallel -c cartpole_dqn_default_config.py -s 0
         
-    下面所示为在slurm集群上的启动脚本，其中 `$1` 是相应的集群分区名。
+    下面所示为在slurm集群上的启动脚本，其中需要指定actor和learner相应的计算节点IP，Coordinator默认运行在管理节点上。
     
     .. code:: bash
-        
-        work_path=$(dirname $0)
-        #RES_PREFIX=("" "" "srun -p $1 --job-name=league " "srun -p $1 --gres=gpu:1 --job-name=learner " "srun -p $1 --gres=gpu:8 --job-name=actor ")  # for slurm lustre single gpu
-        RES_PREFIX=("" "" "srun -p $1 --job-name=league " "srun --mpi=pmi2 -p $1 -n 2 --gres=gpu:2 --job-name=learner " "srun -p $1 --gres=gpu:8 --job-name=actor ")  # for slurm lustre multi gpu
-        CMD=("python3 -u -m nervex.system.coordinator_start" "python3 -u -m nervex.system.manager_start" \
-             "python3 -u -m nervex.system.league_manager_start" "python3 -u -m nervex.system.learner_start" \
-             "python3 -u -m nervex.system.actor_start")
-        CONFIG=" --config $work_path/atari_a2c_dist_default_config.yaml"
 
-        for ((i=0;i<${#CMD[@]};i++))
-        do
-            ${RES_PREFIX[$i]}${CMD[$i]}$CONFIG &
-            sleep 2s
-        done
+        nervex -m parallel -p slurm -c cartpole_dqn_default_config.py -s 0 --actor_host SH-IDC1-10-5-37-37 --learner_host SH-IDC1-10-5-37-37
 
 DRL快速上手指南(串行版本)
 ==============================

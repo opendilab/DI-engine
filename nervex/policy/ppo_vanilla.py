@@ -198,6 +198,9 @@ class PPOPolicy(CommonPolicy):
     def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
         self._model.eval()
 
+    def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
+        self._model.eval()
+
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + [
             'policy_loss', 'value_loss', 'entropy_loss', 'adv_abs_max', 'approx_kl', 'clipfrac'

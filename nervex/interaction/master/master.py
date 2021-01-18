@@ -53,7 +53,7 @@ class Master(ControllableService):
                 'Token': lambda: self.__self_token,
             },
             http_error_gene=get_master_exception_by_error,
-        )()('localhost', self.__port, False)
+        )()(self.__host, self.__port, False)
         self.__self_token = random_token()
 
         # slave-connection part

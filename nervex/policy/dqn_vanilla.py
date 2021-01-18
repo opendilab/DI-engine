@@ -125,5 +125,8 @@ class DQNVanillaPolicy(CommonPolicy):
     def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
         self._model.eval()
 
+    def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
+        self._model.eval()
+
 
 register_policy('dqn_vanilla', DQNVanillaPolicy)

@@ -57,8 +57,3 @@ simple_group_split
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: nervex.utils.dist_helper.simple_group_split
-
-DistModule
-~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.utils.dist_helper.DistModule
-    :members: __init__, sync_gradients, broadcast_params
