@@ -84,7 +84,7 @@ class SACPolicy(CommonPolicy):
         action = data.get('action')
         done = data.get('done')
 
-        # evaluate to get distribution of action
+        # evaluate to get action distribution 
         eval_data = self._agent.forward(data, param={'mode': 'evaluate'})
         mean = eval_data["mean"]
         log_std = eval_data["log_std"]
@@ -143,7 +143,7 @@ class SACPolicy(CommonPolicy):
         self._optimizer_value.step()
 
         self._optimizer_policy.zero_grad()
-        policy_loss.backward()
+        loss_dict['policy_loss'].backward()
         self._optimizer_policy.step()
 
         # =============
