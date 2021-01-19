@@ -1,0 +1,72 @@
+common:
+    name: BitFlipHerConfig
+    save_path: '.'
+    load_path: ''
+env:
+    env_manager_type: 'subprocess'  # [base, subprocess]
+    import_names: ['app_zoo.classic_control.bitflip.envs.bitflip_env']
+    env_type: 'bitflip'
+    actor_env_num: 8
+    evaluator_env_num: 8
+    n_bits: 10
+policy:
+    use_cuda: False
+    policy_type: 'her'
+    import_names: ['nervex.policy.her']
+    on_policy: False
+    base_policy_type: 'dqn'
+    model:
+        obs_dim: 20
+        action_dim: 10
+        embedding_dim: 128
+        dueling: False
+        state_size: 20
+        goal_size: 10
+    learn:
+        train_step: 4
+        batch_size: 128
+        learning_rate: 0.0001
+        weight_decay: 0.0
+        algo:
+            nstep: 1
+            target_update_freq: 100
+            discount_factor: 0.9
+    collect:
+        traj_len: 50
+        unroll_len: 1
+        algo:
+            nstep: 1
+            replay_strategy: 'future'
+            replay_k: 4
+    command:
+        eps:
+            type: 'exp'
+            start: 0.95
+            end: 0.05
+            decay: 10000
+replay_buffer:
+    meta_maxlen: 5000
+    unroll_len: 1
+    agent:
+        min_sample_ratio: 1
+        max_reuse: 100
+actor:
+    n_episode: 8
+    traj_len: 50
+    traj_print_freq: 10
+    collect_print_freq: 10
+evaluator:
+    n_episode: 8
+    eval_freq: 100
+    stop_val: 1
+learner:
+    hook:
+        log_show:
+            name: log_show
+            type: log_show
+            priority: 20
+            position: after_iter
+            ext_args:
+                freq: 100
+command:
+    placeholder: 'placeholder'
