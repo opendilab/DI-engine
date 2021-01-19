@@ -19,12 +19,12 @@ class Cache:
     def __init__(self, maxlen: int, timeout: float, monitor_interval: float = 1.0, _debug: bool = False) -> None:
         r"""
         Overview:
-            Initialize the cache object
+            Initialize the cache object.
         Arguments:
-            - maxlen (:obj:`int`): the maximum length of the cache queue
-            - timeout (:obj:`float`): the maximum second of the data can remain in the cache
-            - monitor_interval (:obj:`float`): the interval of the timeout monitor thread checks the time
-            - _debug (:obj:`bool`): whether to use debug mode, which enables some debug print info
+            - maxlen (:obj:`int`): Maximum length of the cache queue.
+            - timeout (:obj:`float`): Maximum second of the data can remain in the cache.
+            - monitor_interval (:obj:`float`): Interval of the timeout monitor thread checks the time.
+            - _debug (:obj:`bool`): Whether to use debug mode or not, which enables debug print info.
         """
         assert maxlen > 0
         self.maxlen = maxlen
@@ -43,20 +43,21 @@ class Cache:
         r"""
         Overview:
             Push data into receive queue, if the receive queue is full(after push), then push all the data
-            in receive queue into send queue
+            in receive queue into send queue.
         Arguments:
-            - data (:obj:`Any`): the data which needs to be added into receive queue
+            - data (:obj:`Any`): The data which needs to be added into receive queue
 
         .. tip::
             thread-safe
         """
         with self.receive_lock:
-            # push the data item and current time together into queue
+            # Push the data item and current time together into queue
             self.receive_queue.put([data, time.time()])
             if self.receive_queue.full():
                 self.dprint('send total receive_queue, current len:{}'.format(self.receive_queue.qsize()))
                 while not self.receive_queue.empty():
-                    self.send_queue.put(self.receive_queue.get()[0])  # only send raw data to send queue
+                    # Only send raw data to send queue
+                    self.send_queue.put(self.receive_queue.get()[0])
 
     def get_cached_data_iter(self) -> 'callable_iterator':  # noqa
         r"""
@@ -64,22 +65,24 @@ class Cache:
             Get the iterator of the send queue. Once a data is pushed into send queue, it can be accessed by
             this iterator. 'STOP' is the end flag of this iterator.
         Returns:
-            - iterator (:obj:`callable_iterator`) the send queue iterator
+            - iterator (:obj:`callable_iterator`) The send queue iterator.
         """
         return iter(self.send_queue.get, 'STOP')
 
     def _timeout_monitor(self) -> None:
         r"""
         Overview:
-            The workflow of the timeout monitor thread
+            The workflow of the timeout monitor thread.
         """
-        while self._timeout_thread_flag:  # loop until the flag is set to False
-            time.sleep(self.monitor_interval)  # with a fixed check interval
+        # Loop until the flag is set to False
+        while self._timeout_thread_flag:
+            # A fixed check interval
+            time.sleep(self.monitor_interval)
             with self.receive_lock:
-                # for non-empty receive_queue, check the time from the head to the tail(only access no pop) until find
-                # the first not timeout data
+                # For non-empty receive_queue, check the time from head to tail(only access no pop) until finding
+                # the first data which is not timeout
                 while not self.receive_queue.empty():
-                    # check the time of the data remains in the receive_queue, if excesses the timeout then returns True
+                    # Check the time of the data remains in the receive_queue, if excesses the timeout then returns True
                     is_timeout = self._warn_if_timeout()
                     if not is_timeout:
                         break
@@ -87,9 +90,9 @@ class Cache:
     def _warn_if_timeout(self) -> bool:
         r"""
         Overview:
-            Return whether is timeout
+            Return whether is timeout.
         Returns
-            - result: (:obj:`bool`) whether is timeout
+            - result: (:obj:`bool`) Whether is timeout.
         """
         wait_time = time.time() - self.receive_queue.queue[0][1]
         if wait_time >= self.timeout:
@@ -106,19 +109,25 @@ class Cache:
     def run(self) -> None:
         r"""
         Overview:
-            Launch the cache internal thread, e.g. timeout monitor thread
+            Launch the cache internal thread, e.g. timeout monitor thread.
         """
         self._timeout_thread.start()
 
     def close(self) -> None:
         r"""
         Overview:
-            Shut down the cache internal thread and send the end flag to send queue's iterator
+            Shut down the cache internal thread and send the end flag to send queue's iterator.
         """
         self._timeout_thread_flag = False
         self.send_queue.put('STOP')
 
     def dprint(self, s: str) -> None:
+        r"""
+        Overview:
+            In debug mode, print debug str.
+        Arguments:
+            - s (:obj:`str`): Debug info to be printed.
+        """
         if self.debug:
             print('[CACHE] ' + s)
 
@@ -128,6 +137,6 @@ class Cache:
         Overview:
             Return receive queue's remain data count
         Returns:
-            - count (:obj:`int`): the size of the receive queue
+            - count (:obj:`int`): The size of the receive queue.
         """
         return self.receive_queue.qsize()

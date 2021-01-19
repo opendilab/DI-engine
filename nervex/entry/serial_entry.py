@@ -9,7 +9,7 @@ import math
 from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommand
 from nervex.worker import BaseEnvManager, SubprocessEnvManager
 from nervex.utils import read_config
-from nervex.data import ReplayBuffer
+from nervex.data import BufferManager
 from nervex.policy import create_policy
 from nervex.envs import get_vec_env_setting
 
@@ -47,7 +47,7 @@ def serial_pipeline(
     learner = BaseLearner(cfg.learner)
     actor = BaseSerialActor(cfg.actor)
     evaluator = BaseSerialEvaluator(cfg.evaluator)
-    replay_buffer = ReplayBuffer(cfg.replay_buffer)
+    replay_buffer = BufferManager(cfg.replay_buffer)
     command = BaseSerialCommand(cfg.command, learner, actor, evaluator, replay_buffer)
 
     actor.env = actor_env

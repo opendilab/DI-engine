@@ -14,4 +14,5 @@ Feature
     actor_overview
     env_manager_overview
     league_overview
+    replay_buffer_overview
     autolog_overview

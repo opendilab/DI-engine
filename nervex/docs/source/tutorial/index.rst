@@ -13,7 +13,7 @@ nervex(框架核心)
 
  1. data: 数据加载
 
-   - ReplayBuffer（内部支持多种buffer，在线生成数据的agent buffer和使用专家数据的demo buffer）
+   - BufferManager（内部支持多种buffer，在线生成数据的agent buffer和使用专家数据的demo buffer）
    - AsyncDataLoader （异步数据加载器）
 
  2. envs: 强化学习环境接口
@@ -419,12 +419,12 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
 
 .. code:: python
 
-    from nervex.data import ReplayBuffer
+    from nervex.data import BufferManager
 
 
     # you can refer to `nervex/data/replay_buffer_default_config.yaml` for the detailed configuration 
     cfg = {'meta_maxlen': 10}
-    buffer_ = ReplayBuffer(cfg)
+    buffer_ = BufferManager(cfg)
 
     # add 10 data
     for _ in range(10):
@@ -435,7 +435,7 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
 
 .. code:: python
 
-    replay_buffer = ReplayBuffer(cfg.replay_buffer)
+    replay_buffer = BufferManager(cfg.replay_buffer)
 
 创建策略
 --------
