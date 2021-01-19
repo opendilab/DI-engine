@@ -113,15 +113,16 @@ class SACPolicy(CommonPolicy):
         new_q_value = self._agent.forward(eval_data, param={'mode': 'compute_q'})['q_value']
         if self._use_twin_q:
             new_q_value = torch.min(new_q_value[0], new_q_value[1])
-        next_v_value = new_q_value - self._alpha * log_prob
+        # new_q_value: (bs, ), log_prob: (bs, act_dim) -> next_v_value: (bs, )
+        next_v_value = (new_q_value.unsqueeze(-1) - self._alpha * log_prob).mean(dim=-1)
         loss_dict['value_loss'] = F.mse_loss(v_value, next_v_value.detach())
 
         # compute policy loss
         if not self._reparameterization:
             target_log_policy = new_q_value - v_value
-            policy_loss = (log_prob * (log_prob - target_log_policy)).mean()
+            policy_loss = (log_prob * (log_prob - target_log_policy.unsqueeze(-1))).mean()
         else:
-            policy_loss = (self._alpha * log_prob - new_q_value).mean()
+            policy_loss = (self._alpha * log_prob - new_q_value.unsqueeze(-1)).mean()
 
         std_reg_loss = self._policy_std_reg_weight * (log_std ** 2).mean()
         mean_reg_loss = self._policy_mean_reg_weight * (mean ** 2).mean()
