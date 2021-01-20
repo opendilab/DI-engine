@@ -15,7 +15,7 @@ from .common_policy import CommonPolicy
 class COMAPolicy(CommonPolicy):
 
     def _init_learn(self) -> None:
-        r"""
+        """
         Overview:
             Init the learner agent of COMAPolicy
 
@@ -26,8 +26,8 @@ class COMAPolicy(CommonPolicy):
 
             - learning_rate (:obj:`float`): The learning rate fo the optimizer
             - gamma (:obj:`float`): The discount factor
-            - lambda (:obj:`float`): The lambda factor, determining the mix of bootstrapping
-          vs further accumulation of multistep returns at each timestep,
+            - lambda (:obj:`float`): The lambda factor, determining the mix of bootstrapping\
+                vs further accumulation of multistep returns at each timestep,
             - value_wight(:obj:`float`): The weight of value loss in total loss
             - entropy_weight(:obj:`float`): The weight of entropy loss in total loss
             - agent_num (:obj:`int`): Since this is a multi-agent algorithm, \

@@ -64,3 +64,11 @@ Q5: 配置文件中的traj_len, unroll_len概念
   - traj_len是actor部分一个trajectory的长度，一个trajectory是一次数据发送的基本单元，一般大于等于unroll_len。在不考虑数据吞吐效率的情况下，尽可能设置大一点，如果设置为字符串 ``inf`` ，那么就是以一个完整的episode来发送数据，trajectory越长，某些操作（比如GAE）可以传递的reward值就越远，有利于训练收敛。为了平衡效率，一般设置为unroll_len的整数倍。
   - 如果使用nstep return，traj_len = n * unroll_len + nstep，其中n = 1, 2, 3, ... , 从而保证traj最后几帧数据也能有效利用。
   - 如果使用GAE，traj_len > 1
+
+Q6: 如何加载/保存模型
+**********************
+
+:A6:
+ - 加载模型：只需指定配置文件中的 ``load_path`` 字段即可，该字段默认为 ``''`` ，即为不加载模型，如需要加载指定具体的绝对路径即可。
+ - 保存模型：对于串行版本，系统默认有两种保存模型的情形，一是当前 ``eval_reward`` 大于等于训练目标 ``stop_val`` ，保存最终的模型并关闭整个训练模块，二是当前 ``eval_reward`` 大于之前最高的reward，则会保存当前的模型。使用者也可以在配置文件中添加相应的 ``save_ckpt`` hook，即每隔一定迭代数保存模型。对于并行版本，默认保存最新的模型用于通信，使用者也可类似添加hook。
+ - 具体添加 ``load_path`` 和 ``save_ckpt`` hook可以参见 ``app_zoo/classic_control/cartpole/entry/cartpole_dqn_default_config.yaml``

@@ -3,16 +3,16 @@ from threading import Thread
 from typing import Union, Optional, Dict, Any, List, Tuple
 import numpy as np
 
-from nervex.data.structure import PrioritizedBuffer, Cache, SumSegmentTree
+from nervex.data.structure import ReplayBuffer, Cache, SumSegmentTree
 from nervex.utils import read_config, deep_merge_dicts
 
-default_config = read_config(osp.join(osp.dirname(__file__), 'replay_buffer_default_config.yaml')).replay_buffer
+default_config = read_config(osp.join(osp.dirname(__file__), 'buffer_manager_default_config.yaml')).replay_buffer
 
 
-class ReplayBuffer:
+class BufferManager:
     """
     Overview:
-        Reinforcement Learning replay buffer, with prioritized sampling and data cache.
+        Reinforcement Learning replay buffer's manager. Manage one or many buffers.
     Interface:
         __init__, push_data, sample, update, run, close
     """
@@ -31,7 +31,7 @@ class ReplayBuffer:
         self.buffer = {}
         for name in self.buffer_name:
             buffer_cfg = self.cfg[name]
-            self.buffer[name] = PrioritizedBuffer(
+            self.buffer[name] = ReplayBuffer(
                 name=name,
                 load_path=buffer_cfg.get('load_path', None),
                 maxlen=buffer_cfg.get('maxlen', 10000),
@@ -105,7 +105,7 @@ class ReplayBuffer:
             assert self.sample_tree.reduce() == 1  # assert sum of all buffer's sample ratio is 1
 
         # randomly choosing buffer to sample from is similar to randomly choosing transition to sample in one buffer,
-        # you can refer to PrioritizedBuffer's _get_indices
+        # you can refer to ReplayBuffer's _get_indices
         intervals = np.array([i * 1.0 / batch_size for i in range(batch_size)])
         mass = intervals + np.random.uniform(size=(batch_size, )) * 1. / batch_size
         buffer_choice = [self.sample_tree.find_prefixsum_idx(m) for m in mass]
@@ -125,7 +125,7 @@ class ReplayBuffer:
             data = self.buffer[self.buffer_name[buffer_idx]].sample(buffer_sample_count[buffer_idx], cur_learner_iter)
             buffer_sample_data.append(data)
 
-        # fill ``data`` with sampled datas from different buffers according to ``buffer_choice`` and return
+        # Fill ``data`` with sampled datas from different buffers according to ``buffer_choice`` and return
         data = [None for _ in range(batch_size)]
         for data_idx, buffer_idx in enumerate(buffer_choice):
             data[data_idx] = buffer_sample_data[buffer_idx].pop()
@@ -181,10 +181,12 @@ class ReplayBuffer:
     def close(self) -> None:
         """
         Overview:
-            Shut down the cache gracefully
+            Shut down the cache gracefully, as well as each buffer's tensorboard logger.
         """
         if self.use_cache:
             self._cache.close()
+        for buffer in self.buffer.values():
+            buffer.close()
 
     def count(self, buffer_name: str = "agent") -> int:
         """

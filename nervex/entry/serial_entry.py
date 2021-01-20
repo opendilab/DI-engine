@@ -9,7 +9,7 @@ import math
 from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommand
 from nervex.worker import BaseEnvManager, SubprocessEnvManager
 from nervex.utils import read_config
-from nervex.data import ReplayBuffer
+from nervex.data import BufferManager
 from nervex.policy import create_policy
 from nervex.envs import get_vec_env_setting
 
@@ -47,7 +47,7 @@ def serial_pipeline(
     learner = BaseLearner(cfg.learner)
     actor = BaseSerialActor(cfg.actor)
     evaluator = BaseSerialEvaluator(cfg.evaluator)
-    replay_buffer = ReplayBuffer(cfg.replay_buffer)
+    replay_buffer = BufferManager(cfg.replay_buffer)
     command = BaseSerialCommand(cfg.command, learner, actor, evaluator, replay_buffer)
 
     actor.env = actor_env
@@ -58,6 +58,7 @@ def serial_pipeline(
     command.policy = policy.command_mode
     # main loop
     iter_count = 0
+    max_eval_reward = float("-inf")
     learner_train_step = cfg.policy.learn.train_step
     # Here we assume serial entry mainly focuses on agent buffer
     enough_data_count = cfg.policy.learn.batch_size * max(
@@ -65,6 +66,7 @@ def serial_pipeline(
         math.ceil(cfg.policy.learn.train_step / cfg.replay_buffer.agent.max_reuse)
     )
     use_priority = cfg.policy.get('use_priority', False)
+    learner.call_hook('before_run')
     while True:
         command.step()
         while True:
@@ -81,14 +83,21 @@ def serial_pipeline(
             learner.train(train_data)
             if use_priority:
                 replay_buffer.update(learner.priority_info)
-        if iter_count % cfg.evaluator.eval_freq == 0 and evaluator.eval(iter_count):
-            # evaluator's mean episode reward reaches the expected ``stop_val``
-            learner.save_checkpoint()
-            print("Your RL agent is converged, you can refer to 'log/evaluator_logger.txt' for details")
-            break
+        if iter_count % cfg.evaluator.eval_freq == 0:
+            stop_flag, eval_reward = evaluator.eval(iter_count)
+            if stop_flag:
+                # evaluator's mean episode reward reaches the expected ``stop_val``
+                learner.save_checkpoint()
+                print("Your RL agent is converged, you can refer to 'log/evaluator_logger.txt' for details")
+                break
+            else:
+                if eval_reward > max_eval_reward:
+                    learner.save_checkpoint()
+                    max_eval_reward = eval_reward
         if cfg.policy.on_policy:
             replay_buffer.clear()
         iter_count += learner_train_step
+    learner.call_hook('after_run')
 
     # close
     replay_buffer.close()

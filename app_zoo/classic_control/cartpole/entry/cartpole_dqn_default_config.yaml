@@ -25,7 +25,7 @@ policy:
         weight_decay: 0.0
         algo:
             target_update_freq: 100
-            discount_factor: 0.95
+            discount_factor: 0.97
             nstep: 1
     collect:
         traj_len: 1
@@ -54,7 +54,15 @@ evaluator:
     eval_freq: 200
     stop_val: 195
 learner:
+    load_path: ''  # '' means no load
     hook:
+        save_ckpt_after_iter:
+            name: save_ckpt_after_iter
+            type: save_ckpt
+            priority: 20
+            position: after_iter
+            ext_args:
+                freq: 100
         log_show:
             name: log_show
             type: log_show

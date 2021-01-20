@@ -3,7 +3,7 @@ import math
 import time
 import numbers
 from queue import Queue
-from typing import Union, NoReturn, Any, Optional, List
+from typing import Union, NoReturn, Any, Optional, List, Dict
 import pickle
 import numpy as np
 from functools import partial
@@ -136,9 +136,9 @@ class RecordList(list):
             Additionally append the replaced element(if not None) at the back of ``self._used_data``
             to track it for further operation.
         Arguments:
-            - idx (:obj:`Union[numbers.Integral, slice]`): one or many, indicating the index where \
-                    the element will be replaced by a new one
-            - data (:obj:`Any`): one/many(depending on ``idx``) pieces of data to be inserted to the list
+            - idx (:obj:`Union[numbers.Integral, slice]`): One or many, indicating the index/indices where \
+                the element(s) will be replaced.
+            - data (:obj:`Any`): One or many(depending on ``idx``) pieces of data to be inserted to the list.
         """
         if isinstance(idx, numbers.Integral):
             if self[idx] is not None:
@@ -153,10 +153,10 @@ class RecordList(list):
         super().__setitem__(idx, data)
 
 
-class PrioritizedBuffer:
+class ReplayBuffer:
     r"""
     Overview:
-        Prioritized buffer, can store and sample data.
+        Prioritized replay buffer, can store and sample data.
         This buffer refers to multi-thread/multi-process and guarantees thread-safe, which means that functions like
         ``sample_check``, ``sample``, ``append``, ``extend``, ``clear`` are all mutual to each other.
     Interface:
@@ -190,16 +190,16 @@ class PrioritizedBuffer:
                 ``self._data``. ``None`` means not to load data at the beginning.
             - maxlen (:obj:`int`): The maximum value of the buffer length. If ``load_path`` is not ``None``, it is \
                 highly recommended to set ``maxlen`` no fewer than demonstration data's length.
-            - max_reuse (:obj:`int` or None): The maximum reuse times of each element in buffer
+            - max_reuse (:obj:`int` or None): The maximum reuse times of each element in buffer.
             - min_sample_ratio (:obj:`float`): The minimum ratio restriction for sampling, only when \
-                "current element number in buffer / sample size" is greater than this, can start sampling
-            - alpha (:obj:`float`): How much prioritization is used (0: no prioritization, 1: full prioritization)
-            - beta (:obj:`float`): How much correction is used (0: no correction, 1: full correction)
-            - anneal_step (:obj:`int`): Anneal step for beta(beta -> 1)
-            - enable_track_used_data (:obj:`bool`): Whether to track the used data or not
-            - deepcopy (:obj:`bool`): Whether to deepcopy data when append/extend and sample data
-            - monitor_cfg (:obj:`EasyDict`): Monitor's dict config
-            - eps (:obj:`float`): A small positive number to avoid edge case
+                "current element number in buffer / sample size" is greater than this, can start sampling.
+            - alpha (:obj:`float`): How much prioritization is used (0: no prioritization, 1: full prioritization).
+            - beta (:obj:`float`): How much correction is used (0: no correction, 1: full correction).
+            - anneal_step (:obj:`int`): Anneal step for beta(beta -> 1).
+            - enable_track_used_data (:obj:`bool`): Whether to track the used data or not.
+            - deepcopy (:obj:`bool`): Whether to deepcopy data when append/extend and sample data.
+            - monitor_cfg (:obj:`EasyDict`): Monitor's dict config.
+            - eps (:obj:`float`): A small positive number to avoid edge case.
         """
         # TODO(nyz) remove elements according to priority
         # ``_data`` is a circular queue to store data (or data's reference/file path)
@@ -211,7 +211,7 @@ class PrioritizedBuffer:
             self._data = [None for _ in range(maxlen)]
         # Current valid data count, indicating how many elements in ``self._data`` is valid.
         self._valid_count = 0
-        # How many pieces of data have been pushed into this buffer, should be no less than ``_valid_count``
+        # How many pieces of data have been pushed into this buffer, should be no less than ``_valid_count``.
         self._push_count = 0
         # Point to the position where next data can be inserted, i.e. latest inserted data's next position.
         # This position also means the stalest(oldest) data in this buffer as well.
@@ -219,17 +219,17 @@ class PrioritizedBuffer:
         # Point to the true head of the circular queue. The true head data is the stalest(oldest) data in this queue.
         # Because buffer would remove data due to staleness or reuse times, and at the beginning when queue is not
         # filled with data true head would always be 0, so ``true_head`` may be not equal to ``pointer``;
-        # Otherwise, they two should be the same. True head is used to optimize staleness check in ``sample_check``
+        # Otherwise, they two should be the same. True head is used to optimize staleness check in ``sample_check``.
         self.true_head = 0
         # Is used to generate a unique id for each data: If a new data is inserted, its unique id will be this.
         self.next_unique_id = 0
         # {position_idx/pointer_idx: reuse_count}
         self._reuse_count = {idx: 0 for idx in range(maxlen)}
-        # Max priority till now. Is used to initizalize a data's priority if "priority" is not passed in with the data
+        # Max priority till now. Is used to initizalize a data's priority if "priority" is not passed in with the data.
         self.max_priority = 1.0
-        # A small positive number to avoid edge-case, e.g. avoid "priority" to be 0
+        # A small positive number to avoid edge-case, e.g. "priority" == 0.
         self._eps = eps
-        # Data check function list, used in ``append`` and ``extend``. This buffer requires data to be dict
+        # Data check function list, used in ``append`` and ``extend``. This buffer requires data to be dict.
         self.check_list = [lambda x: isinstance(x, dict)]
         # Lock to guarantee thread safe
         self._lock = LockContext(type_=LockContextType.THREAD_LOCK)
@@ -250,10 +250,10 @@ class PrioritizedBuffer:
             self._beta_anneal_step = (1 - self._beta) / self._anneal_step
         self._deepcopy = deepcopy
 
-        # Prioritized sample
-        # Capacity needs to be the power of 2
+        # Prioritized sample.
+        # Capacity needs to be the power of 2.
         capacity = int(np.power(2, np.ceil(np.log2(self.maxlen))))
-        # Sum segtree and min segtree are used to sample data according to priority
+        # Sum segtree and min segtree are used to sample data according to priority.
         self.sum_tree = SumSegmentTree(capacity)
         self.min_tree = MinSegmentTree(capacity)
 
@@ -268,11 +268,14 @@ class PrioritizedBuffer:
                 }
             )
         self.monitor_cfg = monitor_cfg
-        self._timer = EasyTimer()  # to record in & out time
+        # To record in & out time.
+        self._timer = EasyTimer()
         self._natural_monitor = NaturalMonitor(NaturalTime(), expire=self.monitor_cfg.natural_expire)
-        self._out_count = 0  # sample out operation count
+        # Sample out operation count.
+        self._out_count = 0
         self._out_tick_monitor = OutTickMonitor(TickTime(), expire=self.monitor_cfg.tick_expire)
-        self._in_count = 0  # push in operation count
+        # Add in operation count.
+        self._in_count = 0
         self._in_tick_monitor = InTickMonitor(TickTime(), expire=self.monitor_cfg.tick_expire)
         self._logger, self._tb_logger = build_logger(self.monitor_cfg.log_path, self.name, True)
         self._in_vars = ['in_count_avg', 'in_time_avg']
@@ -285,7 +288,7 @@ class PrioritizedBuffer:
             self._tb_logger.register_var(var)
         self._log_freq = self.monitor_cfg.log_freq
 
-        # Load data from file if load_path in config is not None
+        # Load data from file if load_path in config is not None.
         if self.load_path is not None:
             with open(self.load_path, "rb+") as f:
                 _demo_data = pickle.load(f)
@@ -299,10 +302,10 @@ class PrioritizedBuffer:
             Check includes judging whether this buffer satisfies the sample condition:
             current elements count / planning sample count >= min_sample_ratio.
         Arguments:
-            - size (:obj:`int`): The number of the data that will be sampled
-            - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness
+            - size (:obj:`int`): The number of the data that will be sampled.
+            - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
         Returns:
-            - can_sample (:obj:`bool`): Whether this buffer can sample enough data
+            - can_sample (:obj:`bool`): Whether this buffer can sample enough data.
         Note:
             This function must be called exactly before calling ``sample``.
         """
@@ -340,11 +343,11 @@ class PrioritizedBuffer:
         Overview:
             Sample data with length ``size``.
         Arguments:
-            - size (:obj:`int`): The number of the data that will be sampled
-            - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness
+            - size (:obj:`int`): The number of the data that will be sampled.
+            - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
         Returns:
             - sample_data (:obj:`list`): If check fails returns None; Otherwise returns a list with length ``size``, \
-                and each data owns keys: original keys + ['IS', 'priority', 'replay_unique_id', 'replay_buffer_idx']
+                and each data owns keys: original keys + ['IS', 'priority', 'replay_unique_id', 'replay_buffer_idx'].
         Note:
             Before calling this function, ``sample_check`` must be called.
         """
@@ -370,14 +373,14 @@ class PrioritizedBuffer:
     def append(self, ori_data: Any) -> None:
         r"""
         Overview:
-            Append a data item into queue. It is forbidden for demonstration buffer to call this function.
+            Append a data item into queue.
             Add two keys in data:
 
-                - replay_unique_id: the data item's unique id, using ``self.next_unique_id`` to generate it
-                - replay_buffer_idx: the data item's position index in the queue, this position may had an \
-                    old element but wass replaced by this input new one. using ``self.pointer`` to generate it
+                - replay_unique_id: The data item's unique id, using ``self._generate_id`` to generate it.
+                - replay_buffer_idx: The data item's position index in the queue, this position may already have an \
+                    old element, then it would be replaced by this new input one. using ``self.pointer`` to locate.
         Arguments:
-            - ori_data (:obj:`Any`): the data which will be inserted
+            - ori_data (:obj:`Any`): The data which will be inserted.
         """
         with self._lock:
             with self._timer:
@@ -388,7 +391,7 @@ class PrioritizedBuffer:
                 try:
                     assert (self._data_check(data))
                 except AssertionError:
-                    # if data check fails, return without any operations
+                    # If data check fails, log it and return without any operations.
                     self._logger.info('Illegal data type [{}], reject it...'.format(type(data)))
                     return
                 if self._data[self.pointer] is None:
@@ -396,7 +399,7 @@ class PrioritizedBuffer:
                 self._push_count += 1
                 data['replay_unique_id'] = self._generate_id(self.next_unique_id)
                 data['replay_buffer_idx'] = self.pointer
-                self._set_weight(self.pointer, data)
+                self._set_weight(data)
                 self._data[self.pointer] = data
                 self._reuse_count[self.pointer] = 0
                 self.pointer = (self.pointer + 1) % self._maxlen
@@ -407,10 +410,10 @@ class PrioritizedBuffer:
     def extend(self, ori_data: List[Any]) -> None:
         r"""
         Overview:
-            Extend a data list into queue. It is forbidden for demonstration buffer to call this function.
-            Add two keys in each data item, you can reference ``append`` for details.
+            Extend a data list into queue.
+            Add two keys in each data item, you can refer to ``append`` for details.
         Arguments:
-            - ori_data (:obj:`T`): the data list
+            - ori_data (:obj:`List[Any]`): The data list.
         """
         with self._lock:
             with self._timer:
@@ -419,19 +422,19 @@ class PrioritizedBuffer:
                 else:
                     data = ori_data
                 check_result = [self._data_check(d) for d in data]
-                # only keep data items that pass data_check
+                # Only keep data items that pass ``_data_check`.
                 valid_data = [d for d, flag in zip(data, check_result) if flag]
                 length = len(valid_data)
                 for i in range(length):
                     valid_data[i]['replay_unique_id'] = self._generate_id(self.next_unique_id + i)
                     valid_data[i]['replay_buffer_idx'] = (self.pointer + i) % self.maxlen
-                    self._set_weight((self.pointer + i) % self.maxlen, valid_data[i])
+                    self._set_weight(valid_data[i])
                     if self._data[(self.pointer + i) % self.maxlen] is None:
                         self._valid_count += 1
                     self._push_count += 1
-                # when updating ``_data`` and ``_reuse_count``, should consider two cases
-                # regarding the relationship between "pointer + data length" and "queue max length" to check whether
-                # data will exceed beyond queue's max length limitation
+                # When updating ``_data`` and ``_reuse_count``, should consider two cases regarding
+                # the relationship between "pointer + data length" and "queue max length" to check whether
+                # data will exceed beyond queue's max length limitation.
                 if self.pointer + length <= self._maxlen:
                     self._data[self.pointer:self.pointer + length] = valid_data
                     for idx in range(self.pointer, self.pointer + length):
@@ -451,7 +454,7 @@ class PrioritizedBuffer:
                             break
                         else:
                             data_start = 0
-                # update ``pointer`` and ``next_unique_id`` after the whole list is pushed into
+                # Update ``pointer`` and ``next_unique_id`` after the whole list is pushed into buffer.
                 self.pointer = (self.pointer + length) % self._maxlen
                 self.next_unique_id += length
 
@@ -460,26 +463,27 @@ class PrioritizedBuffer:
     def update(self, info: dict) -> None:
         r"""
         Overview:
-            Update priority according to the id and idx
+            Update a data's priority. Use "repaly_buffer_idx" to locate and "replay_unique_id" to verify.
         Arguments:
-            - info (:obj:`dict`): info dict containing all necessary keys for priority update
+            - info (:obj:`dict`): Info dict containing all necessary keys for priority update.
         """
         with self._lock:
             data = [info['replay_unique_id'], info['replay_buffer_idx'], info['priority']]
             for id_, idx, priority in zip(*data):
-                # if the data still exists in the queue, then do the update operation
+                # Only if the data still exists in the queue, will the update operation be done.
                 if self._data[idx] is not None \
-                        and self._data[idx]['replay_unique_id'] == id_:  # confirm the same transition(data)
+                        and self._data[idx]['replay_unique_id'] == id_:  # Verify the same transition(data)
                     assert priority >= 0, priority
-                    self._data[idx]['priority'] = priority + self._eps
-                    self._set_weight(idx, self._data[idx])
-                    # update max priority
+                    assert self._data[idx]['replay_buffer_idx'] == idx
+                    self._data[idx]['priority'] = priority + self._eps  # Add epsilon to avoid priority == 0
+                    self._set_weight(self._data[idx])
+                    # Update max priority
                     self.max_priority = max(self.max_priority, priority)
 
     def clear(self) -> None:
         """
         Overview:
-            Clear all the data and reset the related variable
+            Clear all the data and reset the related variables.
         """
         with self._lock:
             for i in range(len(self._data)):
@@ -490,22 +494,31 @@ class PrioritizedBuffer:
             self.max_priority = 1.0
 
     def close(self) -> None:
+        """
+        Overview:
+            Close the tensorboard logger.
+        """
         self._tb_logger.close()
 
     def __del__(self) -> None:
+        """
+        Overview:
+            Call ``close`` to delete the object.
+        """
         self.close()
 
-    def _set_weight(self, idx: int, data: Any) -> None:
+    def _set_weight(self, data: Dict) -> None:
         r"""
         Overview:
-            Set the priority and tree weight of the input data
+            Set sumtree and mintree's weight of the input data according to its priority.
+            If input data does not have key "priority", it would set to ``self.max_priority`` instead.
         Arguments:
-            - idx (:obj:`int`): The index of the list where the data's priority(sample weight) will be set.
-            - data (:obj:`Any`): The data which will be inserted
+            - data (:obj:`Dict`): The data whose priority(weight) in segement tree should be set/updated.
         """
         if 'priority' not in data.keys() or data['priority'] is None:
             data['priority'] = self.max_priority
         weight = data['priority'] ** self.alpha
+        idx = data['replay_buffer_idx']
         self.sum_tree[idx] = weight
         self.min_tree[idx] = weight
 
@@ -514,9 +527,9 @@ class PrioritizedBuffer:
         Overview:
             Data legality check, using rules(functions) in ``self.check_list``.
         Arguments:
-            - d (:obj:`Any`): The data which needs to be checked
+            - d (:obj:`Any`): The data which needs to be checked.
         Returns:
-            - result (:obj:`bool`): Whether the data passes the check
+            - result (:obj:`bool`): Whether the data passes the check.
         """
         # only the data passes all the check functions, would the check return True
         return all([fn(d) for fn in self.check_list])
@@ -524,17 +537,17 @@ class PrioritizedBuffer:
     def _get_indices(self, size: int) -> list:
         r"""
         Overview:
-            Get the sample index list according to the priority probability,
+            Get the sample index list according to the priority probability.
         Arguments:
             - size (:obj:`int`): The number of the data that will be sampled
         Returns:
-            - index_list (:obj:`list`): A list including all the sample indices
+            - index_list (:obj:`list`): A list including all the sample indices, whose length should equal to ``size``.
         """
-        # divide size intervals on average and sample with each interval
+        # Divide [0, 1) into size intervals on average
         intervals = np.array([i * 1.0 / size for i in range(size)])
-        # uniformly sample in each interval
+        # uniformly sample within each interval
         mass = intervals + np.random.uniform(size=(size, )) * 1. / size
-        # rescale to [0, S), where S is the sum of the total sum_tree
+        # rescale to [0, S), where S is the sum of all datas' priority (root value of sum tree)
         mass *= self.sum_tree.reduce()
         # find prefix sum index to sample with probability
         return [self.sum_tree.find_prefixsum_idx(m) for m in mass]
@@ -542,10 +555,10 @@ class PrioritizedBuffer:
     def _remove(self, idx: int) -> None:
         r"""
         Overview:
-            Remove a data(set its value in the list to ``None``) and
+            Remove a data(set the element in the list to ``None``) and
             update corresponding variables, e.g. sum_tree, min_tree, valid_count.
         Arguments:
-            - idx (:obj:`int`): Data at this position will be removed
+            - idx (:obj:`int`): Data at this position will be removed.
         """
         self._data[idx] = None
         self.sum_tree[idx] = self.sum_tree.neutral_element
@@ -555,12 +568,12 @@ class PrioritizedBuffer:
     def _sample_with_indices(self, indices: List[int], cur_learner_iter: int) -> list:
         r"""
         Overview:
-            Sample data with ``indices``; Remove it a data item if it is reused for too many times.
+            Sample data with ``indices``; Remove a data item if it is reused for too many times.
         Arguments:
-            - indices (:obj:`List[int]`): A list including all the sample indices
-            - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness
+            - indices (:obj:`List[int]`): A list including all the sample indices.
+            - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
         Returns:
-            - data (:obj:`list`) Sampled data
+            - data (:obj:`list`) Sampled data.
         """
         # Calculate max weight for normalizing IS
         sum_tree_root = self.sum_tree.reduce()
@@ -569,31 +582,37 @@ class PrioritizedBuffer:
         data = []
         for idx in indices:
             if self._deepcopy:
-                # deepcopy data for avoiding interference
+                # Deepcopy data for avoiding interference
                 copy_data = copy.deepcopy(self._data[idx])
             else:
                 copy_data = self._data[idx]
             assert (copy_data is not None)
-            # store staleness, reuse and IS(importance sampling weight for gradient step) for monitor and outer use
+            # Store staleness, reuse and IS(importance sampling weight for gradient step) for monitor and outer use
             copy_data['staleness'] = self._calculate_staleness(idx, cur_learner_iter)
             copy_data['reuse'] = self._reuse_count[idx]
             p_sample = self.sum_tree[copy_data['replay_buffer_idx']] / sum_tree_root
-            # print('weight:', self._valid_count, p_sample, -self.beta)
             weight = (self._valid_count * p_sample) ** (-self._beta)
-            # print('weight/max_weight:', weight, max_weight)
             copy_data['IS'] = weight / max_weight
             data.append(copy_data)
             self._reuse_count[idx] += 1
-        # remove datas whose "reuse count" is greater than ``max_reuse```
+        # Remove datas whose "reuse count" is greater than ``max_reuse``
         for idx in indices:
             if self._reuse_count[idx] > self.max_reuse:
                 self._remove(idx)
-        # anneal update beta
+        # Anneal update beta
         if self._anneal_step != 0:
             self._beta += self._beta_anneal_step
         return data
 
     def _monitor_update_of_push(self, add_count: int, add_time: float) -> None:
+        r"""
+        Overview:
+            Update values in monitor, then update text logger and tensorboard logger.
+            Called in ``append`` and ``extend``.
+        Arguments:
+            - add_count (:obj:`int`): How many datas are added into buffer.
+            - add_time (:obj:`float`): How long does it take to add in such datas.
+        """
         self._natural_monitor.in_count = add_count
         self._in_tick_monitor.in_time = add_time
         self._in_tick_monitor.time.step()
@@ -607,7 +626,16 @@ class PrioritizedBuffer:
             self._logger.print_vars(in_dict)
             self._tb_logger.print_vars(in_dict, self._in_count, 'scalar')
 
-    def _monitor_update_of_sample(self, sample_data: int, sample_time: float) -> None:
+    def _monitor_update_of_sample(self, sample_data: list, sample_time: float) -> None:
+        r"""
+        Overview:
+            Update values in monitor, then update text logger and tensorboard logger.
+            Called in ``sample``.
+        Arguments:
+            - sample_data (:obj:`list`): Sampled data. Used to get sample length and data's attributes, \
+                e.g. reuse, priority, staleness, etc.
+            - sample_time (:obj:`float`): How long does it take to sample such datas.
+        """
         self._natural_monitor.out_count = len(sample_data)
         self._out_tick_monitor.out_time = sample_time
         reuse = sum([d['reuse'] for d in sample_data]) / len(sample_data)
@@ -640,20 +668,20 @@ class PrioritizedBuffer:
             Calculate a data's staleness according to its own attribute ``collect_iter``
             and input parameter ``cur_learner_iter``.
         Arguments:
-            - pos_index (:obj:`int`): The position index, intended to calculate staleness of th data at this index
-            - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness
+            - pos_index (:obj:`int`): The position index. Staleness of the data at this index will be calculated.
+            - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
         Returns:
-            - staleness (:obj:`int`): Whether this buffer can sample enough data
+            - staleness (:obj:`int`): Staleness of data at position ``pos_index``.
         Note:
             Caller should guarantee that data at ``pos_index`` is not None, otherwise this function may raise an error.
         """
         if self._data[pos_index] is None:
             raise ValueError("Prioritized's data at index {} is None".format(pos_index))
         else:
-            # calculate staleness, remove it if too stale
+            # Calculate staleness, remove it if too stale
             collect_iter = self._data[pos_index].get('collect_iter', cur_learner_iter + 1)
             if isinstance(collect_iter, list):
-                # timestep transition's collect_iter is a list
+                # Timestep transition's collect_iter is a list
                 collect_iter = min(collect_iter)
             # ``staleness`` might be -1, means invalid, e.g. actor does not report collecting model iter,
             # or it is a demonstration buffer(which means data is not generated by actor) etc.
@@ -664,6 +692,10 @@ class PrioritizedBuffer:
         """
         Overview:
             Use ``self.name`` and input ``id`` to generate a unique id for next data to be inserted.
+        Arguments:
+            - data_id (:obj:`int`): Current unique id.
+        Returns:
+            - id (:obj:`str`): Id in format "BufferName_DataId".
         """
         return "{}_{}".format(self.name, str(data_id))
 

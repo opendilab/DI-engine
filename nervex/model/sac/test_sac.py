@@ -13,12 +13,9 @@ from nervex.utils import squeeze
 obs_dim = [
     32,
 ]
-action_dim = [
-    6,
-]
+action_dim = [6, 1]
 
-input = [{'obs': torch.randn(4, 32), 'action': torch.randn(4, squeeze(action_dim))}]
-args = [item for item in product(*[input, obs_dim, action_dim])]
+args = [item for item in product(*[obs_dim, action_dim])]
 
 
 def output_check(action_dim, model, output):
@@ -30,8 +27,9 @@ def output_check(action_dim, model, output):
 
 
 @pytest.mark.unittest
-@pytest.mark.parametrize('input, obs_dim, action_dim', args)
-def test_sac(input, obs_dim, action_dim):
+@pytest.mark.parametrize('obs_dim, action_dim', args)
+def test_sac(obs_dim, action_dim):
+    input = {'obs': torch.randn(4, obs_dim), 'action': torch.randn(4, squeeze(action_dim))}
     model = SAC(obs_dim, action_dim, use_twin_q=False)
     # compute_q
     q_value = model(input, mode='compute_q')['q_value']
@@ -53,9 +51,6 @@ def test_sac(input, obs_dim, action_dim):
 
     # compute_action
     action = model(input, mode='compute_action')['action']
-    if squeeze(action_dim) == 1:
-        assert action.shape == (4, )
-    else:
-        assert action.shape == (4, squeeze(action_dim))
+    assert action.shape == (4, squeeze(action_dim))
     assert action.eq(action.clamp(-1, 1)).all()
     print("action: ", action)

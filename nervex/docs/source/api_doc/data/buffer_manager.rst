@@ -1,11 +1,11 @@
-data.replay_buffer
+data.buffer_manager
 ===================
 
-replay_buffer
+buffer_manager
 -------------------
 
-ReplayBuffer
+BufferManager
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.data.replay_buffer.ReplayBuffer
+.. autoclass:: nervex.data.replay_buffer.BufferManager
     :members: __init__, push_data, sample, update, run, close
