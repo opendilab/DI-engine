@@ -1,6 +1,5 @@
 import pytest
 import numpy as np
-import torch
 from easydict import EasyDict
 from app_zoo.atari.envs import AtariEnv
 
@@ -17,7 +16,7 @@ class TestAtariEnv:
         assert obs.shape == (cfg.frame_stack, 84, 84)
         act_dim = pong_env.info().act_space.shape[0]
         while True:
-            random_action = torch.LongTensor([np.random.choice(range(act_dim))])
+            random_action = np.random.choice(range(act_dim), size=(1, ))
             timestep = pong_env.step(random_action)
             assert timestep.obs.shape == (cfg.frame_stack, 84, 84)
             assert timestep.reward.shape == (1, )

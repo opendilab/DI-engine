@@ -12,15 +12,14 @@ Env Manager
 
         1. base_env_manager: base_env_manager通过循环串行（伪并行）来维护多个环境实例，提供与env相似的接口。
         2. vec_env_manager: 继承base_env_manager的接口，通过子进程向量化的方式，即调用multiprocessing，通过子进程进程间通信的方式对环境进行管理和运行。
-
+        3. BaseEnvInfo: 环境信息template，作为info的返回值，提供agent数量, observation空间, action空间 , reward空间的信息。
+        4. EnvElementInfo: 空间信息template，定义observation等空间的shape、 value极大值和极小值, to_agent_processor和from_agent_processor。
+        5. BaseEnvTimestep: 环境产出数据的template，作为step函数的返回值，为policy提供obs、reward、done和info信息。注意rew需要作为一个shape为(1，)的numpy数组返回。
 基类定义：
     1. BaseEnvManager (nervex/worker/actor/env_manager/base_env_manager.py)
 
         .. code:: python
-
-            class BaseEnvManager(ABC):
-
-                def __init__(
+env
                         self,
                         env_fn: Callable,
                         env_cfg: Iterable,
@@ -428,11 +427,11 @@ Env Manager
         - 类接口方法：
            使用时，同BaseEnvManager基本相同。此外，
             1. wait_num 指定每次产出数据至少包含的环境数量， timeout指定最少等待时间。用户可以根据环境运行速度的快慢来调整这些参数。
-            2. shared_memory 可以加速传递环境返回的大向量，对于环境返回的obs等变量大小超过100kB的时候，推荐设置为True。
-            3. worker_fn 作为子进程的执行函数，创建env，并接受来自父进程中env_manager的指令。
-            4. wait 等待环境返回。
-            5. 每次调用需先通过 next_obs 函数得到可获得的env id和obs，再调用step 函数传入env id对应的action
-
+            2. shared_memory 可以加速传递环境返回的大向量，对于环境返回的obs等变量大小超过100kB的时候，推荐设置为True。使用shared_memory时，需要在环境info函数中，用BaseEnvInfo和EnvElementInfo template来指定对应obs、act和rew的shape和value的dtype。
+            4. worker_fn 作为子进程的执行函数，创建env，并接受来自父进程中env_manager的指令。
+            5. wait 等待环境返回。
+            6. 每次调用需先通过 next_obs 函数得到可获得的env id和obs，再调用step 函数传入env id对应的action。
+            
            使用时可以参考如下代码:
 
         .. code:: python

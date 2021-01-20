@@ -143,7 +143,7 @@ class SubprocessEnvManager(BaseEnvManager):
             episode_num: Optional[int] = 'inf',
             timeout: Optional[float] = 0.01,
             wait_num: Optional[int] = 2,
-            shared_memory: Optional[bool] = True,
+            shared_memory: Optional[bool] = False,
     ) -> None:
         super().__init__(env_fn, env_cfg, env_num, episode_num)
         self.shared_memory = shared_memory
