@@ -22,7 +22,7 @@ Buffer Manager
 代码结构：
     相关的类有两个：
 
-        1. BufferManager(nervex/data/buffer_manager.py): repaly buffer主体。
+        1. BufferManager(nervex/data/buffer_manager.py): replay buffer主体。
         2. SumSegmentTree(nervex/data/structure/segment_tree.py): 用于各个buffer的采样个数确认。
 
 接口说明：
