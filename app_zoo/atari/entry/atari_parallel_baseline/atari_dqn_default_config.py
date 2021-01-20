@@ -27,14 +27,12 @@ __policy_default_config = dict(
         unroll_len=1,
         algo=dict(nstep=3),
     ),
-    command=dict(
-        eps=dict(
-            type='linear',
-            start=1.,
-            end=0.005,
-            decay=100000,
-        ),
-    ),
+    command=dict(eps=dict(
+        type='linear',
+        start=1.,
+        end=0.005,
+        decay=100000,
+    ), ),
 )
 
 __base_learner_default_config = dict(

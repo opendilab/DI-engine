@@ -48,7 +48,7 @@ class BaseSerialEvaluator(object):
         self._tb_logger.close()
         self._env.close()
 
-    def eval(self, train_iter: int, n_episode: Optional[int] = None) -> bool:
+    def eval(self, train_iter: int, n_episode: Optional[int] = None) -> Tuple[bool, float]:
         if n_episode is None:
             n_episode = self._default_n_episode
         assert n_episode is not None, "please indicate eval n_episode"
@@ -98,4 +98,5 @@ class BaseSerialEvaluator(object):
         )
         tb_vars = [[k, v, train_iter] for k, v in info.items()]
         self._tb_logger.add_val_list(tb_vars, viz_type='scalar')
-        return np.mean(episode_reward) >= self._stop_val
+        eval_reward = np.mean(episode_reward)
+        return eval_reward >= self._stop_val, eval_reward

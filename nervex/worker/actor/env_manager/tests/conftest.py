@@ -125,7 +125,8 @@ def get_manager_cfg(shared_memory: bool):
 def pytest_generate_tests(metafunc):
     if "setup_async_manager_cfg" in metafunc.fixturenames:
         manager_cfgs = []
-        for b in [True, False]:
+        # for b in [True, False]:
+        for b in [False]:
             manager_cfg = get_manager_cfg(b)
             manager_cfg['env_fn'] = FakeAsyncEnv
             manager_cfgs.append(manager_cfg)

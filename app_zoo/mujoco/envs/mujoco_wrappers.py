@@ -26,7 +26,7 @@ class RunningMeanStd(object):
         self._mean = new_mean
         self._var = new_var
         self._count = new_count
-    
+
     def reset(self):
         self._mean = np.zeros(self._shape, 'float64')
         self._var = np.ones(self._shape, 'float64')
@@ -35,7 +35,7 @@ class RunningMeanStd(object):
     @property
     def mean(self) -> np.ndarray:
         return self._mean
-    
+
     @property
     def std(self) -> np.ndarray:
         return np.sqrt(self._var) + self._epsilon
@@ -64,7 +64,7 @@ class ObsNormEnv(gym.ObservationWrapper):
             return np.clip((observation - self.rms.mean) / self.rms.std, self.clip_range[0], self.clip_range[1])
         else:
             return observation
-    
+
     def reset(self, **kwargs):
         self.data_count = 0
         self.rms.reset()
@@ -80,10 +80,10 @@ class RewardNormEnv(gym.RewardWrapper):
 
     def __init__(self, env, reward_discount):
         super().__init__(env)
-        self.cum_reward = np.zeros((1,), 'float64')
+        self.cum_reward = np.zeros((1, ), 'float64')
         self.reward_discount = reward_discount
         self.data_count = 0
-        self.rms = RunningMeanStd(shape=(1,))
+        self.rms = RunningMeanStd(shape=(1, ))
 
     def step(self, action):
         self.data_count += 1
@@ -98,7 +98,7 @@ class RewardNormEnv(gym.RewardWrapper):
             return float(reward / self.rms.std)
         else:
             return float(reward)
-    
+
     def reset(self, **kwargs):
         self.cum_reward = 0.
         self.data_count = 0

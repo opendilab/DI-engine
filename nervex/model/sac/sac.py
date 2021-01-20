@@ -189,9 +189,6 @@ class SAC(SoftActorCriticBase):
             z = dist.sample()
         action = torch.tanh(z).detach()
 
-        if action.shape[1] == 1:
-            action = action.squeeze(1)
-
         return {'action': action}
 
     def evaluate(self, inputs: Dict[str, torch.Tensor], epsilon=1e-6) -> Dict[str, torch.Tensor]:
@@ -203,11 +200,6 @@ class SAC(SoftActorCriticBase):
         z = dist.rsample()  # for reparameterization trick (mean + std * N(0,1))
         action = torch.tanh(z)
         log_prob = dist.log_prob(z)
-        if action.shape[1] == 1:
-            action = action.squeeze(1)
-            log_prob = log_prob.squeeze(1)
-            mean = mean.squeeze(1)
-            log_std = log_std.squeeze(1)
 
         # enforcing action bound
         log_prob -= torch.log(1 - action.pow(2) + epsilon)

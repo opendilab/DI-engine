@@ -10,7 +10,7 @@ def test_rms():
     array = np.concatenate(test_list)
     static_mean = array.mean()
     static_std = array.std()
-    rms = RunningMeanStd(shape=(1,))
+    rms = RunningMeanStd(shape=(1, ))
     for i in test_list:
         rms.update(i)
     rms_mean = rms.mean
