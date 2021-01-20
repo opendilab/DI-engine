@@ -162,7 +162,7 @@ class IMPALAPolicy(CommonPolicy):
     def _forward_collect(self, data_id: List[int], data: dict) -> dict:
         r"""
         Overview:
-            Forward function for collect mode with eps_greedy
+            Forward function for collect mode
         Arguments:
             - data_id (:obj:`List` of :obj:`int`): Not used, set in arguments for consistency
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
@@ -173,16 +173,16 @@ class IMPALAPolicy(CommonPolicy):
 
     def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
         """
-            Overview:
-                   Generate dict type transition data from inputs.
-            Arguments:
-                    - obs (:obj:`Any`): Env observation
-                    - agent_output (:obj:`dict`): Output of collect agent, including at least ['action']
-                    - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done']\
-                           (here 'obs' indicates obs after env step).
-            Returns:
-                   - transition (:obj:`dict`): Dict type transition data.
-            """
+        Overview:
+               Generate dict type transition data from inputs.
+        Arguments:
+                - obs (:obj:`Any`): Env observation
+                - agent_output (:obj:`dict`): Output of collect agent, including at least ['action']
+                - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done']\
+                       (here 'obs' indicates obs after env step).
+        Returns:
+               - transition (:obj:`dict`): Dict type transition data.
+        """
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
