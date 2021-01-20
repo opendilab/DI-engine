@@ -84,7 +84,7 @@ class SACPolicy(CommonPolicy):
         action = data.get('action')
         done = data.get('done')
 
-        # evaluate to get action distribution 
+        # evaluate to get action distribution
         eval_data = self._agent.forward(data, param={'mode': 'evaluate'})
         mean = eval_data["mean"]
         log_std = eval_data["log_std"]
