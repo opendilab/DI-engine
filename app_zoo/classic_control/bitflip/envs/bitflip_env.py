@@ -1,14 +1,11 @@
-import gym
+import copy
 import numpy as np
 
 from collections import OrderedDict, namedtuple
 from typing import Any, Dict, Optional, Union, List
 
-from nervex.envs import BaseEnv, register_env, BaseEnvInfo
+from nervex.envs import BaseEnv, register_env, BaseEnvInfo, BaseEnvTimestep
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
-
-
-GoalEnvTimestep = namedtuple('GoalEnvTimestep', ['obs', 'goal', 'reward', 'done', 'info'])
 
 
 class BitFlipEnv(BaseEnv):
@@ -44,7 +41,7 @@ class BitFlipEnv(BaseEnv):
         self._seed = seed
         np.random.seed(self._seed)
 
-    def step(self, action: np.ndarray) -> GoalEnvTimestep:
+    def step(self, action: np.ndarray) -> BaseEnvTimestep:
         self._curr_step += 1
         self._state[action] = 1 - self._state[action]
         if self.check_success(self._state, self._goal):
@@ -59,17 +56,16 @@ class BitFlipEnv(BaseEnv):
         info = {}
         if done:
             info['final_eval_reward'] = self._final_eval_reward
-
         obs = np.concatenate([self._state, self._goal], axis=0)
 
-        return GoalEnvTimestep(obs, self._goal, rew, done, info)
+        return BaseEnvTimestep(obs, rew, done, info)
 
     def info(self) -> BaseEnvInfo:
         T = EnvElementInfo
         return BaseEnvInfo(
             agent_num=1,
             obs_space=T(
-                (4, ), {
+                (2 * self._n_bits, ), {
                     'min': [-4.8, float("-inf"), -0.42, float("-inf")],
                     'max': [4.8, float("inf"), 0.42, float("inf")],
                     'dtype': float,

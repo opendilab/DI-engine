@@ -7,4 +7,3 @@ from .a2c import A2CPolicy
 from .ppo import PPOPolicy
 from .sac import SACPolicy
 from .impala import IMPALAPolicy
-from .her import HERPolicy

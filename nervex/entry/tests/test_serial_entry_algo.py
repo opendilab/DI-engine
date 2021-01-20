@@ -207,3 +207,15 @@ def test_iqn():
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
+
+
+@pytest.mark.algotest
+def test_her_dqn():
+    path = os.path.join(
+        os.path.dirname(__file__), '../../../app_zoo/classic_control/bitflip/entry/bitflip_dqn_default_config.yaml'
+    )
+    config = read_config(path)
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"

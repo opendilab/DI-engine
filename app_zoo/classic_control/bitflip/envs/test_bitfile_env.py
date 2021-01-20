@@ -16,5 +16,4 @@ def test_bitfilp_env():
         action = np.random.randint(0, n_bits, size=(1, ))
         timestep = env.step(action)
         assert timestep.obs.shape == (2 * n_bits, )
-        assert timestep.goal.shape == (n_bits, )
         assert timestep.reward.shape == (1, )
