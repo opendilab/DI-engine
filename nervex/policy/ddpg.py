@@ -40,13 +40,15 @@ class DDPGPolicy(CommonPolicy):
             lr=self._cfg.learn.learning_rate_critic,
             weight_decay=self._cfg.learn.weight_decay
         )
-        self._use_reward_batch_norm = self._cfg.get('use_reward_batch_norm', True)
+        self._use_reward_batch_norm = self._cfg.get('use_reward_batch_norm', False)
+
         # algorithm config
         algo_cfg = self._cfg.learn.algo
         self._algo_cfg_learn = algo_cfg
         self._gamma = algo_cfg.discount_factor
         self._actor_update_freq = algo_cfg.actor_update_freq
         self._use_twin_critic = algo_cfg.use_twin_critic  # True for TD3, False for DDPG
+
         # main and target agents
         self._agent = Agent(self._model)
         self._agent.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_theta})
@@ -67,6 +69,7 @@ class DDPGPolicy(CommonPolicy):
         self._agent.target_mode(train=True)
         self._agent.reset()
         self._agent.target_reset()
+
         self._learn_setting_set = {}
         self._forward_learn_cnt = 0  # count iterations
 
@@ -217,7 +220,7 @@ class DDPGPolicy(CommonPolicy):
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
-            Init eval agent. Unlick learn and collect agent, eval agent does not need noise.
+            Init eval agent. Unlike learn and collect agent, eval agent does not need noise.
         """
         self._eval_agent = Agent(self._model)
         self._eval_agent.add_plugin('main', 'grad', enable_grad=False)
@@ -263,6 +266,12 @@ class DDPGPolicy(CommonPolicy):
             return model_type(**cfg.model)
 
     def _monitor_vars_learn(self) -> List[str]:
+        r"""
+        Overview:
+            Return variables' name if variables are to used in monitor.
+        Returns:
+            - vars (:obj:`List[str]`): Variables' name list.
+        """
         ret = [
             'cur_lr_actor', 'cur_lr_critic', 'critic_loss', 'actor_loss', 'total_loss', 'q_value', 'q_value_twin',
             'action'

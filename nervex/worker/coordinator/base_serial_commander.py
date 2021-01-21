@@ -6,7 +6,7 @@ class BaseSerialCommand(object):
             learner: 'BaseLearner',  # noqa
             actor: 'BaseSerialActor',  # noqa
             evaluator: 'BaseSerialEvaluator',  # noqa
-            replay_buffer: 'ReplayBuffer'  # noqa
+            replay_buffer: 'BufferManager'  # noqa
     ) -> None:
         self._cfg = cfg
         self._learner = learner

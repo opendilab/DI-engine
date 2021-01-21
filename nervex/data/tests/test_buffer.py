@@ -6,7 +6,7 @@ from easydict import EasyDict
 import os
 import pickle
 
-from nervex.data import PrioritizedBuffer
+from nervex.data import ReplayBuffer
 
 monitor_cfg = EasyDict(
     {
@@ -20,14 +20,14 @@ monitor_cfg = EasyDict(
 
 @pytest.fixture(scope="function")
 def setup_base_buffer():
-    return PrioritizedBuffer(
+    return ReplayBuffer(
         name="agent", maxlen=64, max_reuse=2, min_sample_ratio=2., alpha=0., beta=0., monitor_cfg=monitor_cfg
     )
 
 
 @pytest.fixture(scope="function")
 def setup_prioritized_buffer():
-    return PrioritizedBuffer(
+    return ReplayBuffer(
         name="agent",
         maxlen=64,
         max_reuse=2,
@@ -44,7 +44,7 @@ def setup_demo_buffer():
     demo_data_list = [generate_data() for _ in range(10)]
     with open("test_demo_data.pkl", "wb") as f:
         pickle.dump(demo_data_list, f)
-    demo_buffer = PrioritizedBuffer(
+    demo_buffer = ReplayBuffer(
         name="demo",
         load_path="test_demo_data.pkl",
         maxlen=64,
@@ -99,8 +99,6 @@ class TestBaseBuffer:
         assert (setup_base_buffer.pointer == (start_pointer + 100) % setup_base_buffer.maxlen)
         assert (setup_base_buffer.next_unique_id == start_data_id + 100)
 
-        os.popen('rm -rf log*')
-
     def test_extend(self, setup_base_buffer):
         start_pointer = setup_base_buffer.pointer
         start_data_id = setup_base_buffer.next_unique_id
@@ -132,13 +130,10 @@ class TestBaseBuffer:
         assert setup_base_buffer.next_unique_id == start_data_id + valid_data_num
         assert sum(setup_base_buffer._reuse_count.values()) == 0, sum(setup_base_buffer._reuse_count)
 
-        os.popen('rm -rf log*')
-
     def test_beta(self, setup_base_buffer):
         assert (setup_base_buffer.beta == 0.)
         setup_base_buffer.beta = 1.
         assert (setup_base_buffer.beta == 1.)
-        os.popen('rm -rf log*')
 
     def test_update(self, setup_base_buffer):
         for _ in range(64):
@@ -164,8 +159,6 @@ class TestBaseBuffer:
         for i in range(2, 5):
             assert (info['priority'][i] + eps == setup_base_buffer._data[selected_idx[i]]['priority'])
 
-        os.popen('rm -rf log*')
-
     def test_sample(self, setup_base_buffer):
         for _ in range(64):
             setup_base_buffer.append(generate_data())
@@ -181,18 +174,16 @@ class TestBaseBuffer:
             for i in idx:
                 reuse_dict[i] += 1
         assert sum(
-            map(lambda x: x[1] > setup_base_buffer.max_reuse, reuse_dict.items())
+            map(lambda x: x[1] >= setup_base_buffer.max_reuse, reuse_dict.items())
         ) == setup_base_buffer.maxlen - setup_base_buffer.validlen
         for k, v in reuse_dict.items():
             if v > setup_base_buffer.max_reuse:
                 assert setup_base_buffer._data[k] is None
         assert setup_base_buffer.used_data is None
 
-        os.popen('rm -rf log*')
-
 
 @pytest.mark.unittest
-class TestPrioritizedBuffer:
+class TestReplayBuffer:
 
     def test_append(self, setup_prioritized_buffer):
         assert (setup_prioritized_buffer.validlen == 0)  # assert empty buffer
@@ -241,8 +232,6 @@ class TestPrioritizedBuffer:
         weights = get_weights(data[36:64])
         assert (np.fabs(weights.sum() - setup_prioritized_buffer.sum_tree.reduce(start=36)) < 1e-6)
 
-        os.popen('rm -rf log*')
-
     def test_used_data(self, setup_prioritized_buffer):
         for _ in range(setup_prioritized_buffer._maxlen + 2):
             setup_prioritized_buffer.append({})
@@ -250,7 +239,6 @@ class TestPrioritizedBuffer:
         for _ in range(2 + 1):
             assert setup_prioritized_buffer.used_data is not None
         assert setup_prioritized_buffer.used_data is None
-        os.popen('rm -rf log*')
 
 
 @pytest.mark.unittest
@@ -270,4 +258,5 @@ class TestDemonstrationBuffer:
                 assert abs(sample['priority'] - 1.33) <= 0.01 + 1e-5, sample
             if sample['replay_unique_id'] == 2:
                 assert abs(sample['priority'] - 1.44) <= 0.02 + 1e-5, sample
-        os.popen('rm -rf log*')
+
+        os.popen('rm -rf log')

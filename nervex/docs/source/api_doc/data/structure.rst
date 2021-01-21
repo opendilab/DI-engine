@@ -7,11 +7,11 @@ buffer
 
 Please Reference nervex/data/tests/test_buffer.py for usage
 
-PrioritizedBuffer
+ReplayBuffer
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.data.structure.buffer.PrioritizedBuffer
-    :members: __init__, append, extend, sample, update
+.. autoclass:: nervex.data.structure.buffer.ReplayBuffer
+    :members: __init__, append, extend, sample, sample_check, update, clear, close
 
 
 
