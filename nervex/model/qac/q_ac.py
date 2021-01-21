@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 from typing import Dict, List, Union, Optional
 
-from ..common_arch import QActorCriticBase, FCEncoder
 from nervex.utils import squeeze, deep_merge_dicts
+from ..common import QActorCriticBase, FCEncoder, register_model
 
 
 class FCContinuousNet(nn.Module):
@@ -146,3 +146,6 @@ class QAC(QActorCriticBase):
     @property
     def critic(self) -> torch.nn.Module:
         return self._critic
+
+
+register_model('qac', QAC)

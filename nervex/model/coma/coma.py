@@ -7,6 +7,7 @@ from functools import reduce
 from nervex.model import FCRDiscreteNet
 from nervex.torch_utils import one_hot
 from nervex.utils import squeeze, list_split
+from ..common import register_model
 
 
 class ComaActorNetwork(nn.Module):
@@ -107,3 +108,6 @@ class ComaNetwork(nn.Module):
             return self._actor(data)
         elif mode == 'compute_q_value':
             return self._critic(data)
+
+
+register_model('coma', ComaNetwork)

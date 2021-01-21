@@ -207,21 +207,8 @@ class DQNPolicy(CommonPolicy):
         learner_step = command_info['learner_step']
         return {'eps': self.epsilon_greedy(learner_step)}
 
-    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
-        r"""
-        Overview:
-            Create a model according to input config. This policy will adopt DiscreteNet.
-        Arguments:
-            - cfg (:obj:`dict`): Config.
-            - model_type (:obj:`Optional[type]`): If this is not None, this function will create \
-                an instance of this.
-        Returns:
-            - model (:obj:`torch.nn.Module`): Generated model.
-        """
-        if model_type is None:
-            return FCDiscreteNet(**cfg.model)
-        else:
-            return model_type(**cfg.model)
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'fc_discrete_net', ['nervex.model.discrete_net.discrete_net']
 
 
 register_policy('dqn', DQNPolicy)

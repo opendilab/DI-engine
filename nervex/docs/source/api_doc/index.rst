@@ -20,7 +20,7 @@ API Doc
     league/player
     model/actor_critic
     model/atoc
-    model/common_arch
+    model/common
     model/discrete_net
     model/qac
     model/qmix

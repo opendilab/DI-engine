@@ -145,11 +145,8 @@ class CollaQPolicy(CommonPolicy):
         data = self._adder.get_traj(traj_cache, self._traj_len, return_num=0)
         return self._adder.get_train_sample(data)
 
-    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
-        if model_type is None:
-            return CollaQ(**cfg.model)
-        else:
-            return model_type(**cfg.model)
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'collaq', ['nervex.model.qmix.qmix']
 
 
 register_policy('collaQ', CollaQPolicy)

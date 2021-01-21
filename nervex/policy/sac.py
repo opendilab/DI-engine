@@ -7,7 +7,6 @@ import torch.nn.functional as F
 
 from nervex.torch_utils import Adam
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, Adder
-from nervex.model import SAC
 from nervex.agent import Agent
 from nervex.policy.base_policy import Policy, register_policy
 from nervex.policy.common_policy import CommonPolicy
@@ -84,7 +83,7 @@ class SACPolicy(CommonPolicy):
         action = data.get('action')
         done = data.get('done')
 
-        # evaluate to get action distribution 
+        # evaluate to get action distribution
         eval_data = self._agent.forward(data, param={'mode': 'evaluate'})
         mean = eval_data["mean"]
         log_std = eval_data["log_std"]
@@ -253,21 +252,8 @@ class SACPolicy(CommonPolicy):
         """
         pass
 
-    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
-        r"""
-        Overview:
-            Create a model according to input config. This policy will adopt DiscreteNet.
-        Arguments:
-            - cfg (:obj:`dict`): Config.
-            - model_type (:obj:`Optional[type]`): If this is not None, this function will create \
-                an instance of this.
-        Returns:
-            - model (:obj:`torch.nn.Module`): Generated model.
-        """
-        if model_type is None:
-            return SAC(**cfg.model)
-        else:
-            return model_type(**cfg.model)
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'sac', ['nervex.model.sac']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

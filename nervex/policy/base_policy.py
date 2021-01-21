@@ -4,6 +4,7 @@ from collections import namedtuple, deque
 from easydict import EasyDict
 import torch
 
+from nervex.model import create_model
 from nervex.utils import import_module, allreduce, broadcast, get_rank
 
 
@@ -24,9 +25,14 @@ class Policy(ABC):
     )
     command_function = namedtuple('command_function', ['get_setting_learn', 'get_setting_collect', 'get_setting_eval'])
 
-    def __init__(self, cfg: dict, model_type: Optional[type] = None, enable_field: Optional[List[str]] = None) -> None:
-        model = self._create_model_from_cfg(cfg, model_type)
+    def __init__(
+            self,
+            cfg: dict,
+            model: Optional[Union[type, torch.nn.Module]] = None,
+            enable_field: Optional[List[str]] = None
+    ) -> None:
         self._cfg = cfg
+        model = self._create_model(cfg, model)
         self._use_cuda = cfg.use_cuda
         self._use_distributed = cfg.get('use_distributed', False)
         self._rank = get_rank() if self._use_distributed else 0
@@ -56,9 +62,21 @@ class Policy(ABC):
             for name, param in agent.model.named_parameters():
                 setattr(param, 'grad', torch.zeros_like(param))
 
-    @abstractmethod
-    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
-        raise NotImplementedError
+    def _create_model(self, cfg: dict, model: Optional[Union[type, torch.nn.Module]] = None) -> torch.nn.Module:
+        model_cfg = cfg.model
+        if model is None:
+            if 'model_type' not in model_cfg:
+                model_type, import_names = self.default_model()
+                model_cfg.model_type = model_type
+                model_cfg.import_names = import_names
+            return create_model(model_cfg)
+        else:
+            if isinstance(model, type):
+                return model(**model_cfg)
+            elif isinstance(model, torch.nn.Module):
+                return model
+            else:
+                raise RuntimeError("invalid model: {}".format(type(model)))
 
     @abstractmethod
     def _init_learn(self) -> None:
@@ -140,6 +158,10 @@ class Policy(ABC):
         for name, param in model.named_parameters():
             if param.requires_grad:
                 allreduce(param.grad.data)
+
+    @abstractmethod
+    def default_model(self) -> Tuple[str, List[str]]:
+        raise NotImplementedError
 
     # *************************************** learn function ************************************
     @abstractmethod

@@ -19,7 +19,7 @@ def serial_pipeline(
         seed: int,
         env_setting: Optional[Any] = None,  # subclass of BaseEnv, and config dict
         policy_type: Optional[type] = None,  # subclass of Policy
-        model_type: Optional[type] = None,  # subclass of torch.nn.Module
+        model: Optional[Union[type, torch.nn.Module]] = None,  # instance or subclass of torch.nn.Module
 ) -> None:
     if isinstance(cfg, str):
         cfg = read_config(cfg)
@@ -43,7 +43,7 @@ def serial_pipeline(
         torch.cuda.manual_seed(seed)
     # create component
     policy_fn = create_policy if policy_type is None else policy_type
-    policy = policy_fn(cfg.policy, model_type=model_type)
+    policy = policy_fn(cfg.policy, model=model)
     learner = BaseLearner(cfg.learner)
     actor = BaseSerialActor(cfg.actor)
     evaluator = BaseSerialEvaluator(cfg.evaluator)

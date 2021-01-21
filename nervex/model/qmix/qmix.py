@@ -9,6 +9,7 @@ from nervex.utils import list_split, squeeze
 from nervex.torch_utils.network.nn_module import fc_block
 from nervex.torch_utils.network.transformer import ScaledDotProductAttention
 from nervex.torch_utils import to_tensor, tensor_to_list
+from ..common import register_model
 
 
 class Mixer(nn.Module):
@@ -354,21 +355,6 @@ class CollaQ(nn.Module):
                     elif j == 2:
                         colla_alone_prev_state[i][k] = prev_state[i][j][k]
 
-        # if not prev_state[0][0][0]:
-
-        #     prev_state = np.array(prev_state)
-        #     alone_prev_state = prev_state[:, 0, :].tolist()
-        #     colla_prev_state = prev_state[:, 1, :].tolist()
-        #     colla_alone_prev_state = prev_state[:, 2, :].tolist()
-        # else:
-        #     prev_state = to_tensor(prev_state, torch.float)
-        #     print(prev_state)
-        #     alone_prev_state = prev_state[:, 0, :]
-        #     colla_prev_state = prev_state[:, 1, :]
-        #     colla_alone_prev_state = prev_state[:, 2, :]
-
-        # print("before reduce","B", len(alone_prev_state), "A", len(alone_prev_state[0]) )
-
         alone_prev_state = reduce(lambda x, y: x + y, alone_prev_state)
         colla_prev_state = reduce(lambda x, y: x + y, colla_prev_state)
         colla_alone_prev_state = reduce(lambda x, y: x + y, colla_alone_prev_state)
@@ -445,3 +431,7 @@ class CollaQ(nn.Module):
             layers.append(nn.Linear(embedding_dim, embedding_dim))
             layers.append(self._act)
         return nn.Sequential(*layers)
+
+
+register_model('qmix', QMix)
+register_model('collaq', CollaQ)

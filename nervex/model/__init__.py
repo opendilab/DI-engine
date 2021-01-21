@@ -1,4 +1,4 @@
-from .common_arch import *
+from .common import *
 from .discrete_net import *
 from .actor_critic import *
 from .qac import *

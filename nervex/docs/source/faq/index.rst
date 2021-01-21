@@ -17,7 +17,7 @@ Q1: 如何使用串行版本入口
             seed: int,
             env_setting: Optional[Any] = None,  # subclass of BaseEnv, and config dict
             policy_type: Optional[type] = None,  # subclass of Policy
-            model_type: Optional[type] = None,  # subclass of torch.nn.Module
+            model: Optional[Union[type, torch.nn.Module]] = None,  # instance or subclass of torch.nn.Module
     ) -> None:
         pass
 
@@ -26,7 +26,7 @@ Q1: 如何使用串行版本入口
 - seed: 该参数是随机种子，为一个int值，会设置各类外部库的随机种子，以及环境的随机种子，注意多个环境跟根据环境序号再加上相应数字作为种子，以保证不同环境种子不同
 - env_setting(optional): 该参数用来设置环境，一般为None，即从全局配置文件中创建环境，否则是一个list，其中有三个元素，第一个元素是环境类，第二第三个参数分别是环境的配置dict的list，各自的长度等于需要创建的环境个数。
 - policy_type(optional): 该参数用来设置Policy，一般为None，即从全局配置文件中创建策略，当用户实现了自己的policy时，可以通过相应的注册机制注册进入nervex，从而可以通过配置文件方式调用，也可以通过该参数直接将新定义的策略类传进来。
-- model_type(optional): 该参数用来设置神经网络模型，一般为None，nervex已实现的策略使用的默认的神经网络，用户可以通过该参数传入自己定义的神经网络。
+- model(optional): 该参数用来设置神经网络模型，一般为None，nervex已实现的策略使用的默认的神经网络，用户可以通过该参数传入自己定义的神经网络(支持直接传入模型实例或是传入模型类型，再通过配置文件中的model字段完成创建)。
 
 Q2: 如何自定义环境
 ********************

@@ -177,26 +177,11 @@ class RainbowDQNPolicy(DQNPolicy):
         data = self._adder.get_nstep_return_data(data, self._collect_nstep, self._traj_len)
         return self._adder.get_train_sample(data)
 
-    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
-        """
-        Overview:
-            Create a model according to input config. Defalut use NoiseDistributionFCDiscreteNet for 1 dim obs
-
-        Arguments:
-            - cfg (:obj:`dict`): Config, including the config contain model parameters
-            - model_type (:obj:`type` or None): The type of the model to create, if this is not None, this\
-                function will create an instance of the model_type.
-
-        Returns:
-            - model (:obj:`torch.nn.Module`): Generted model.
-        """
-        if model_type is None:
-            if cfg.learn.algo.get('use_iqn'):
-                return NoiseQuantileFCDiscreteNet(**cfg.model)
-            else:
-                return NoiseDistributionFCDiscreteNet(**cfg.model)
+    def default_model(self) -> Tuple[str, List[str]]:
+        if self._cfg.learn.algo.get('use_iqn'):
+            return 'noise_quantile_fc', ['nervex.model.discrete_net.discrete_net']
         else:
-            return model_type(**cfg.model)
+            return 'noise_dist_fc', ['nervex.model.discrete_net.discrete_net']
 
     def _reset_noise(self, model: torch.nn.Module):
         r"""
