@@ -42,7 +42,6 @@ class BitFlipEnv(BaseEnv):
         np.random.seed(self._seed)
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
-        self._curr_step += 1
         self._state[action] = 1 - self._state[action]
         if self.check_success(self._state, self._goal):
             rew = np.array([1]).astype(np.float32)
@@ -51,11 +50,12 @@ class BitFlipEnv(BaseEnv):
             rew = np.array([0]).astype(np.float32)
             done = False
         self._final_eval_reward += rew
-        if self._curr_step > self._maxsize:
+        if self._curr_step >= self._maxsize - 1:
             done = True
         info = {}
         if done:
             info['final_eval_reward'] = self._final_eval_reward
+        self._curr_step += 1
         obs = np.concatenate([self._state, self._goal], axis=0)
 
         return BaseEnvTimestep(obs, rew, done, info)
@@ -66,8 +66,8 @@ class BitFlipEnv(BaseEnv):
             agent_num=1,
             obs_space=T(
                 (2 * self._n_bits, ), {
-                    'min': [-4.8, float("-inf"), -0.42, float("-inf")],
-                    'max': [4.8, float("inf"), 0.42, float("inf")],
+                    'min': [0 for _ in range(self._n_bits)],
+                    'max': [1 for _ in range(self._n_bits)],
                     'dtype': float,
                 }, None, None
             ),
