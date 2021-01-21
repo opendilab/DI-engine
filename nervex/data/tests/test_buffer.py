@@ -174,14 +174,12 @@ class TestBaseBuffer:
             for i in idx:
                 reuse_dict[i] += 1
         assert sum(
-            map(lambda x: x[1] > setup_base_buffer.max_reuse, reuse_dict.items())
+            map(lambda x: x[1] >= setup_base_buffer.max_reuse, reuse_dict.items())
         ) == setup_base_buffer.maxlen - setup_base_buffer.validlen
         for k, v in reuse_dict.items():
             if v > setup_base_buffer.max_reuse:
                 assert setup_base_buffer._data[k] is None
         assert setup_base_buffer.used_data is None
-
-        os.popen('rm -rf log')
 
 
 @pytest.mark.unittest
@@ -241,7 +239,6 @@ class TestReplayBuffer:
         for _ in range(2 + 1):
             assert setup_prioritized_buffer.used_data is not None
         assert setup_prioritized_buffer.used_data is None
-        os.popen('rm -rf log')
 
 
 @pytest.mark.unittest
@@ -261,4 +258,5 @@ class TestDemonstrationBuffer:
                 assert abs(sample['priority'] - 1.33) <= 0.01 + 1e-5, sample
             if sample['replay_unique_id'] == 2:
                 assert abs(sample['priority'] - 1.44) <= 0.02 + 1e-5, sample
+
         os.popen('rm -rf log')
