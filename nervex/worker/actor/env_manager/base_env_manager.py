@@ -16,6 +16,7 @@ class BaseEnvManager(ABC):
             env_cfg: Iterable,
             env_num: int,
             episode_num: Optional[int] = 'inf',
+            manager_cfg: Optional[dict] = {},
     ) -> None:
         self._env_num = env_num
         self._env_fn = env_fn

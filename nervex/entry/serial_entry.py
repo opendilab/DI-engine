@@ -27,13 +27,18 @@ def serial_pipeline(
     # if you want to indicate different cfg for different env, please refer to `get_vec_env_setting`.
     # usually, user defined env must be registered in nervex so that it can be created with config string,
     # and you can also directly pass env_fn argument, in some dynamic env class cases.
+    manager_cfg = cfg.env.pop('manager', {})
     if env_setting is None:
         env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     else:
         env_fn, actor_env_cfg, evaluator_env_cfg = env_setting
     env_manager_type = BaseEnvManager if cfg.env.env_manager_type == 'base' else SubprocessEnvManager
-    actor_env = env_manager_type(env_fn=env_fn, env_cfg=actor_env_cfg, env_num=len(actor_env_cfg))
-    evaluator_env = env_manager_type(env_fn, env_cfg=evaluator_env_cfg, env_num=len(evaluator_env_cfg))
+    actor_env = env_manager_type(
+        env_fn=env_fn, env_cfg=actor_env_cfg, env_num=len(actor_env_cfg), manager_cfg=manager_cfg
+    )
+    evaluator_env = env_manager_type(
+        env_fn, env_cfg=evaluator_env_cfg, env_num=len(evaluator_env_cfg), manager_cfg=manager_cfg
+    )
     # seed
     actor_env.seed(seed)
     evaluator_env.seed(seed)

@@ -141,14 +141,12 @@ class SubprocessEnvManager(BaseEnvManager):
             env_cfg: Iterable,
             env_num: int,
             episode_num: Optional[int] = 'inf',
-            timeout: Optional[float] = 0.01,
-            wait_num: Optional[int] = 2,
-            shared_memory: Optional[bool] = False,
+            manager_cfg: Optional[dict] = {},
     ) -> None:
         super().__init__(env_fn, env_cfg, env_num, episode_num)
-        self.shared_memory = shared_memory
-        self.timeout = timeout
-        self.wait_num = wait_num
+        self.shared_memory = manager_cfg.get('shared_memory', True)
+        self.timeout = manager_cfg.get('timeout', 0.01)
+        self.wait_num = manager_cfg.get('wait_num', 2)
 
     def _create_state(self) -> None:
         r"""
