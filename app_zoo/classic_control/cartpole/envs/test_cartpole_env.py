@@ -18,6 +18,8 @@ class TestCartPoleEnv:
             random_action = np.random.randint(min_val, max_val, size=(1, ))
             timestep = env.step(random_action)
             print(timestep)
+            assert isinstance(timestep.obs, np.ndarray)
+            assert isinstance(timestep.done, bool)
             assert timestep.obs.shape == (4, )
             assert timestep.reward.shape == (1, )
             assert timestep.reward >= env.info().rew_space.value['min']

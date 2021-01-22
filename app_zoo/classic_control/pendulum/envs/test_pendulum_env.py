@@ -1,5 +1,5 @@
 import pytest
-import torch
+import numpy as np
 from easydict import EasyDict
 from app_zoo.classic_control.pendulum.envs import PendulumEnv
 
@@ -14,7 +14,7 @@ class TestPendulumEnv:
         obs = env.reset()
         assert obs.shape == (3, )
         for i in range(10):
-            random_action = torch.tanh(torch.rand(1))
+            random_action = np.tanh(np.random.random(1))
             timestep = env.step(random_action)
             assert timestep.obs.shape == (3, )
             assert timestep.reward.shape == (1, )
