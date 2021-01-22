@@ -22,7 +22,7 @@ class BaseSerialActor(object):
         self._traj_cache_length = self._traj_len
         self._traj_print_freq = cfg.traj_print_freq
         self._collect_print_freq = cfg.collect_print_freq
-        self._logger, _ = build_logger(path='./log', name='actor')
+        self._logger, _ = build_logger(path='./log/actor', name='actor')
         self._timer = EasyTimer()
         self._cfg = cfg
 

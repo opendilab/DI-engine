@@ -83,7 +83,7 @@ class BaseLearner(object):
         __init__, run, close, call_hook, info, save_checkpoint, launch
     Property:
         last_iter, policy, log_buffer, record,
-        load_path, save_path, checkpoint_manager, name, rank, tb_logger, use_distributed
+        load_path, checkpoint_manager, name, rank, tb_logger, use_distributed
     """
 
     _name = "BaseLearner"  # override this variable for sub-class learner
@@ -109,7 +109,6 @@ class BaseLearner(object):
 
         self._learner_uid = get_task_uid()
         self._load_path = self._cfg.load_path
-        self._save_path = self._cfg.save_path
         self._use_cuda = self._cfg.get('use_cuda', False)
         self._use_distributed = self._cfg.use_distributed
         self._rank = get_rank()
@@ -118,8 +117,7 @@ class BaseLearner(object):
         # monitor & logger
         # Only rank == 0 learner needs monitor and tb_logger, else only needs text_logger to display terminal output
         rank0 = True if self._rank == 0 else False
-        path = os.path.join(self._cfg.save_path, 'learner')
-        self._logger, self._tb_logger = build_logger(path, 'learner', rank0)
+        self._logger, self._tb_logger = build_logger('./log/learner', 'learner', rank0)
         self._log_buffer = build_log_buffer()
         # checkpoint helper
         self._checkpointer_manager = build_checkpoint_helper(self._cfg)
@@ -347,10 +345,6 @@ class BaseLearner(object):
     @load_path.setter
     def load_path(self, _load_path: str) -> None:
         self._load_path = _load_path
-
-    @property
-    def save_path(self) -> str:
-        return self._save_path
 
     @property
     def checkpoint_manager(self) -> Any:
