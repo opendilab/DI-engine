@@ -298,7 +298,7 @@ class Master(ControllableService):
                     self.__connection_close(name, connection)
 
             _last_time += self.__heartbeat_check_span
-            time.sleep(_last_time - time.time())
+            time.sleep(max(_last_time - time.time(), 0))
 
     # task process part
     def __task_result_process(self):

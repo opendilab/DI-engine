@@ -33,7 +33,7 @@ class Policy(ABC):
     ) -> None:
         self._cfg = cfg
         model = self._create_model(cfg, model)
-        self._use_cuda = cfg.use_cuda
+        self._use_cuda = cfg.use_cuda and torch.cuda.is_available()
         self._use_distributed = cfg.get('use_distributed', False)
         self._rank = get_rank() if self._use_distributed else 0
         if self._use_cuda:
