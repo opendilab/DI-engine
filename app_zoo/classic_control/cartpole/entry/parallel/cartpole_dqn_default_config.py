@@ -34,7 +34,6 @@ __policy_default_config = dict(
 )
 
 __base_learner_default_config = dict(
-    save_path='.',
     load_path='',
     use_cuda=False,
     dataloader=dict(
@@ -66,7 +65,6 @@ __base_learner_default_config = dict(
 )
 
 __zergling_actor_default_config = dict(
-    save_path='.',
     actor_type='zergling',
     import_names=['nervex.worker.actor.zergling_actor'],
     print_freq=10,

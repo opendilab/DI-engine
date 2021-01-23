@@ -27,7 +27,7 @@ def serial_pipeline(
     # if you want to indicate different cfg for different env, please refer to `get_vec_env_setting`.
     # usually, user defined env must be registered in nervex so that it can be created with config string,
     # and you can also directly pass env_fn argument, in some dynamic env class cases.
-    manager_cfg = cfg.env.pop('manager', {})
+    manager_cfg = cfg.env.get('manager', {})
     if env_setting is None:
         env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     else:
