@@ -33,7 +33,7 @@ class AsyncDataLoader(object):
         Overview:
             Init dataloader with input parameters.
         Arguments:
-            - data_source (:obj:`Union[Callable, dict]`): the data source, e.g. file, replay buffer...
+            - data_source (:obj:`Union[Callable, dict]`): the data source, e.g. file, replay buffer's real data, etc.
             - batch_size (:obj:`int`): batch size
             - device (:obj:`str`): device
             - chunk_size (:obj:`int`): the size of chunked one in a batch, should exactly divide ``batch_size``, \

@@ -11,6 +11,7 @@ from nervex.utils import read_config
 from nervex.worker import BaseLearner
 from nervex.worker.learner import LearnerHook, register_learner_hook, add_learner_hook, \
     register_learner, create_learner
+from nervex.config import base_learner_default_config
 
 
 class FakeLearner(BaseLearner):
@@ -51,6 +52,17 @@ class FakePolicy:
 @pytest.mark.unittest
 class TestBaseLearner:
 
+    def _get_cfg(self, path):
+        cfg = EasyDict({'learner': base_learner_default_config}).learner
+        cfg.load_path = path
+        cfg.import_names = []
+        cfg.learner_type = 'fake'
+        cfg.max_iterations = 10
+        cfg.hook.save_ckpt_after_iter = dict(
+            name='save_ckpt_after_iter', type='save_ckpt', priority=40, position='after_iter', ext_args={'freq': 5}
+        )
+        return cfg
+
     def test_naive(self):
         os.popen('rm -rf ckpt*')
         os.popen('rm -rf iteration_5.pth.tar*')
@@ -59,19 +71,18 @@ class TestBaseLearner:
         path = os.path.join(os.path.dirname(__file__), './iteration_5.pth.tar')
         torch.save({'model': {}, 'last_iter': 5}, path)
         time.sleep(0.5)
-        cfg = read_config(os.path.join(os.path.dirname(__file__), 'test_learner.yaml'))
-        cfg.common.load_path = path
-        learner = create_learner(EasyDict(cfg))
+        cfg = self._get_cfg(path)
+        learner = create_learner(cfg)
+        learner.setup_dataloader()
         learner.policy = FakePolicy()
-        learner.launch()
         with pytest.raises(KeyError):
-            create_learner(EasyDict({'learner': {'learner_type': 'placeholder', 'import_names': []}}))
-        learner.run()
+            create_learner(EasyDict({'learner_type': 'placeholder', 'import_names': []}))
+        learner.start()
         time.sleep(2)
         assert learner.last_iter.val == 10 + 5
 
         # test hook
-        dir_name = 'ckpt_{}'.format(learner.name)
+        dir_name = 'ckpt{}'.format(learner.name)
         for n in [5, 10, 15]:
             assert os.path.exists(dir_name + '/iteration_{}.pth.tar'.format(n))
         for n in [0, 4, 7, 12]:

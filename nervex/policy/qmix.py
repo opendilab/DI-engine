@@ -53,6 +53,7 @@ class QMIXPolicy(CommonPolicy):
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         # forward
         self._agent.reset(state=data['prev_state'][0])
+        self._agent.target_reset(state=data['prev_state'][0])
         inputs = {'obs': data['obs'], 'action': data['action']}
         total_q = self._agent.forward(inputs, param={'single_step': False})['total_q']
         next_inputs = {'obs': data['next_obs']}
@@ -136,11 +137,8 @@ class QMIXPolicy(CommonPolicy):
         data = self._adder.get_traj(traj_cache, self._traj_len, return_num=0)
         return self._adder.get_train_sample(data)
 
-    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
-        if model_type is None:
-            return QMix(**cfg.model)
-        else:
-            return model_type(**cfg.model)
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'qmix', ['nervex.model.qmix.qmix']
 
 
 register_policy('qmix', QMIXPolicy)

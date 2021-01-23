@@ -81,7 +81,7 @@ def to_dtype(item, dtype):
 def to_tensor(item, dtype=None):
     r"""
     Overview:
-        transfer data to certain dtype tensor
+        transfer numpy.ndarray, list of scalars to torch.Tensor, keep other data types unchanged
 
     Arguments:
         Note:
@@ -96,7 +96,7 @@ def to_tensor(item, dtype=None):
 
     def transform(d):
         if dtype is None:
-            torch.as_tensor(d)
+            return torch.as_tensor(d)
         else:
             return torch.tensor(d, dtype=dtype)
 
@@ -118,18 +118,114 @@ def to_tensor(item, dtype=None):
                 new_data.append(to_tensor(t, dtype))
             return new_data
     elif isinstance(item, np.ndarray):
-        return torch.from_numpy(item).to(dtype)
+        if dtype is None:
+            return torch.from_numpy(item)
+        else:
+            return torch.from_numpy(item).to(dtype)
     elif isinstance(item, bool) or isinstance(item, str):
         return item
     elif np.isscalar(item):
-        return torch.as_tensor([item]).to(dtype)
+        if dtype is None:
+            return torch.as_tensor(item)
+        else:
+            return torch.as_tensor(item).to(dtype)
     elif item is None:
         return None
     elif isinstance(item, torch.Tensor):
-        if dtype is not None:
-            return item.to(dtype)
-        else:
+        if dtype is None:
             return item
+        else:
+            return item.to(dtype)
+    else:
+        raise TypeError("not support item type: {}".format(type(item)))
+
+
+def to_ndarray(item, dtype=None):
+    r"""
+    Overview:
+        transfer torch.Tensor, list of scalars to ndarray, keep other data types unchanged
+
+    Arguments:
+        Note:
+            Now supported item type: :obj:`torch.Tensor`, :obj:`dict`, :obj:`list`, :obj:`tuple` and :obj:`None`
+
+        - item (:obj:`object`): the item to be transfered
+        - dtype (:obj:`type`): the type of wanted tensor
+
+    Returns:
+        - item (:obj:`object`): the transfered item
+    """
+
+    def transform(d):
+        if dtype is None:
+            return np.array(d)
+        else:
+            return np.array(d, dtype=dtype)
+
+    if isinstance(item, dict):
+        new_data = {}
+        for k, v in item.items():
+            new_data[k] = to_ndarray(v, dtype)
+        return new_data
+    elif isinstance(item, list) or isinstance(item, tuple):
+        if len(item) == 0:
+            return None
+        elif isinstance(item[0], numbers.Integral) or isinstance(item[0], numbers.Real):
+            return transform(item)
+        elif hasattr(item, '_fields'):  # namedtuple
+            return type(item)(*[to_ndarray(t, dtype) for t in item])
+        else:
+            new_data = []
+            for t in item:
+                new_data.append(to_ndarray(t, dtype))
+            return new_data
+    elif isinstance(item, torch.Tensor):
+        if dtype is None:
+            return item.numpy()
+        else:
+            return item.numpy().astype(dtype)
+    elif isinstance(item, np.ndarray):
+        if dtype is None:
+            return item
+        else:
+            return item.astype(dtype)
+    elif isinstance(item, bool) or isinstance(item, str):
+        return item
+    elif np.isscalar(item):
+        return np.array(item)
+    elif item is None:
+        return None
+    else:
+        raise TypeError("not support item type: {}".format(type(item)))
+
+
+def to_list(item):
+    r"""
+    Overview:
+        transfer torch.Tensor, numpy.ndarray to list, keep other data types unchanged
+
+    Arguments:
+        Note:
+            Now supported item type: :obj:`torch.Tensor`,:obj:`numpy.ndarray`, :obj:`dict`, :obj:`list`,
+            :obj:`tuple` and :obj:`None`
+
+        - item (:obj:`object`): the item to be transfered
+
+    Returns:
+        - item (:obj:`list`): the transfered list
+    """
+    if item is None:
+        return item
+    elif isinstance(item, torch.Tensor):
+        return item.tolist()
+    elif isinstance(item, np.ndarray):
+        return item.tolist()
+    elif isinstance(item, list) or isinstance(item, tuple):
+        return [to_list(t) for t in item]
+    elif isinstance(item, dict):
+        return {k: to_list(v) for k, v in item.items()}
+    elif np.isscalar(item):
+        return item
     else:
         raise TypeError("not support item type: {}".format(type(item)))
 
@@ -151,10 +247,7 @@ def tensor_to_list(item):
     if item is None:
         return item
     elif isinstance(item, torch.Tensor):
-        if item.shape == (1, ):
-            return item.item()
-        else:
-            return item.tolist()
+        return item.tolist()
     elif isinstance(item, list) or isinstance(item, tuple):
         return [tensor_to_list(t) for t in item]
     elif isinstance(item, dict):
@@ -185,10 +278,7 @@ class LogDict(dict):
 
     def _transform(self, data):
         if isinstance(data, torch.Tensor):
-            if data.shape == (1, ) or data.shape == ():
-                new_data = data.item()
-            else:
-                new_data = data.tolist()
+            new_data = data.tolist()
         else:
             new_data = data
         return new_data

@@ -13,14 +13,14 @@ API Doc
     data/structure
     data/dataloader
     data/collate_fn
-    data/replay_buffer
+    data/buffer_manager
     env/sumo_env
     league/league_manager
     league/payoff
     league/player
     model/actor_critic
     model/atoc
-    model/common_arch
+    model/common
     model/discrete_net
     model/qac
     model/qmix

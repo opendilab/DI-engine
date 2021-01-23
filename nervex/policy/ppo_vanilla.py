@@ -8,7 +8,7 @@ from torch.distributions import Independent, Normal
 
 from nervex.torch_utils import Adam
 from nervex.rl_utils import ppo_data, ppo_error, ppo_error_continous, epsilon_greedy
-from nervex.model import FCValueAC
+from nervex.model import FCValueAC, ConvValueAC
 from nervex.agent import Agent
 from .base_policy import Policy, register_policy
 from .common_policy import CommonPolicy
@@ -87,7 +87,7 @@ class PPOPolicy(CommonPolicy):
             action = []
             for mu, sigma in zip(mu_list, sigma_list):
                 dist = Independent(Normal(mu, sigma), 1)
-                act = torch.clamp(dist.sample(), min=-1, max=1).squeeze()
+                act = torch.clamp(dist.sample(), min=-1, max=1)
                 action.append(act)
         else:
             if isinstance(logit, torch.Tensor):
@@ -142,11 +142,8 @@ class PPOPolicy(CommonPolicy):
         output = {'action': action, 'logit': logit, 'value': value}
         return output
 
-    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
-        if model_type is None:
-            return FCValueAC(**cfg.model)
-        else:
-            return model_type(**cfg.model)
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'fc_vac', ['nervex.model.actor_critic.value_ac']
 
     def _init_command(self) -> None:
         eps_cfg = self._cfg.command.eps
@@ -193,6 +190,9 @@ class PPOPolicy(CommonPolicy):
         self._model.train()
 
     def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
+        self._model.eval()
+
+    def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
         self._model.eval()
 
     def _monitor_vars_learn(self) -> List[str]:

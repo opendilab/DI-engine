@@ -79,6 +79,8 @@ class DQNPolicy(CommonPolicy):
         # ====================
         self._optimizer.zero_grad()
         loss.backward()
+        if self._use_distributed:
+            self.sync_gradients(self._agent.model)
         self._optimizer.step()
 
         # =============
@@ -102,7 +104,13 @@ class DQNPolicy(CommonPolicy):
         if self._traj_len == "inf":
             self._traj_len == float("inf")
         self._unroll_len = self._cfg.collect.unroll_len
-        self._adder = Adder(self._use_cuda, self._unroll_len)
+        self._use_her = self._cfg.collect.algo.get('use_her', False)
+        if self._use_her:
+            her_strategy = self._cfg.collect.algo.get('her_strategy', 'future')
+            her_replay_k = self._cfg.collect.algo.get('her_replay_k', 1)
+            self._adder = Adder(self._use_cuda, self._unroll_len, her_strategy=her_strategy, her_replay_k=her_replay_k)
+        else:
+            self._adder = Adder(self._use_cuda, self._unroll_len)
         self._collect_nstep = self._cfg.collect.algo.nstep
         self._collect_agent = Agent(self._model)
         self._collect_agent.add_plugin('main', 'eps_greedy_sample')
@@ -136,6 +144,8 @@ class DQNPolicy(CommonPolicy):
         return_num = 0 if self._collect_nstep == 1 else self._collect_nstep
         data = self._adder.get_traj(traj_cache, self._traj_len, return_num=return_num)
         data = self._adder.get_nstep_return_data(data, self._collect_nstep, self._traj_len)
+        if self._use_her:
+            data = self._adder.get_her(data)
         return self._adder.get_train_sample(data)
 
     def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
@@ -205,21 +215,8 @@ class DQNPolicy(CommonPolicy):
         learner_step = command_info['learner_step']
         return {'eps': self.epsilon_greedy(learner_step)}
 
-    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
-        r"""
-        Overview:
-            Create a model according to input config. This policy will adopt DiscreteNet.
-        Arguments:
-            - cfg (:obj:`dict`): Config.
-            - model_type (:obj:`Optional[type]`): If this is not None, this function will create \
-                an instance of this.
-        Returns:
-            - model (:obj:`torch.nn.Module`): Generated model.
-        """
-        if model_type is None:
-            return FCDiscreteNet(**cfg.model)
-        else:
-            return model_type(**cfg.model)
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'fc_discrete_net', ['nervex.model.discrete_net.discrete_net']
 
 
 register_policy('dqn', DQNPolicy)

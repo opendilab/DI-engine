@@ -4,7 +4,8 @@ from typing import Union, Any, List, Callable, Iterable, Dict, Optional
 from functools import partial
 from collections import namedtuple
 import numbers
-from nervex.torch_utils import to_tensor, tensor_to_list
+import torch
+from nervex.torch_utils import to_tensor, to_ndarray, to_list
 
 
 class BaseEnvManager(ABC):
@@ -15,7 +16,7 @@ class BaseEnvManager(ABC):
             env_cfg: Iterable,
             env_num: int,
             episode_num: Optional[int] = 'inf',
-            tensor_transform: bool = False
+            manager_cfg: Optional[dict] = {},
     ) -> None:
         self._env_num = env_num
         self._env_fn = env_fn
@@ -23,9 +24,8 @@ class BaseEnvManager(ABC):
         if episode_num == 'inf':
             episode_num = float('inf')
         self._epsiode_num = episode_num
-        self._tensor_transform = tensor_transform
-        self._transform = partial(to_tensor) if self._tensor_transform else lambda x: x
-        self._inv_transform = partial(tensor_to_list) if self._tensor_transform else lambda x: x
+        self._transform = partial(to_ndarray)
+        self._inv_transform = partial(to_tensor, dtype=torch.float32)
         self._closed = True
         # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
         self._env_ref = self._env_fn(self._env_cfg[0])
@@ -47,7 +47,7 @@ class BaseEnvManager(ABC):
 
     @property
     def next_obs(self) -> Dict[int, Any]:
-        return {i: self._next_obs[i] for i, d in self._env_done.items() if not d}
+        return self._inv_transform({i: self._next_obs[i] for i, d in self._env_done.items() if not d})
 
     @property
     def done(self) -> bool:
@@ -88,7 +88,7 @@ class BaseEnvManager(ABC):
 
     def _reset(self, env_id: int) -> None:
         obs = self._safe_run(lambda: self._envs[env_id].reset(**self._reset_param[env_id]))
-        self._next_obs[env_id] = self._transform(obs)
+        self._next_obs[env_id] = obs
 
     def _safe_run(self, fn: Callable):
         try:
@@ -99,20 +99,19 @@ class BaseEnvManager(ABC):
 
     def step(self, action: Dict[int, Any]) -> Dict[int, namedtuple]:
         self._check_closed()
-        timestep = {}
+        timesteps = {}
         for env_id, act in action.items():
-            act = self._inv_transform(act)
-            timestep[env_id] = self._safe_run(lambda: self._envs[env_id].step(act))
-            timestep = self._transform(timestep)
-            if timestep[env_id].done:
+            act = self._transform(act)
+            timesteps[env_id] = self._safe_run(lambda: self._envs[env_id].step(act))
+            if timesteps[env_id].done:
                 self._env_done[env_id] = True
                 self._env_episode_count[env_id] += 1
-            self._next_obs[env_id] = timestep[env_id].obs
+            self._next_obs[env_id] = timesteps[env_id].obs
         if not self.done and all([d for d in self._env_done.values()]):
             for i in range(self.env_num):
                 self._reset(i)
                 self._env_done[i] = False
-        return timestep
+        return self._inv_transform(timesteps)
 
     def seed(self, seed: List[int]) -> None:
         if isinstance(seed, numbers.Integral):

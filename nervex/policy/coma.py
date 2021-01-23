@@ -15,7 +15,7 @@ from .common_policy import CommonPolicy
 class COMAPolicy(CommonPolicy):
 
     def _init_learn(self) -> None:
-        r"""
+        """
         Overview:
             Init the learner agent of COMAPolicy
 
@@ -26,8 +26,8 @@ class COMAPolicy(CommonPolicy):
 
             - learning_rate (:obj:`float`): The learning rate fo the optimizer
             - gamma (:obj:`float`): The discount factor
-            - lambda (:obj:`float`): The lambda factor, determining the mix of bootstrapping
-          vs further accumulation of multistep returns at each timestep,
+            - lambda (:obj:`float`): The lambda factor, determining the mix of bootstrapping\
+                vs further accumulation of multistep returns at each timestep,
             - value_wight(:obj:`float`): The weight of value loss in total loss
             - entropy_weight(:obj:`float`): The weight of entropy loss in total loss
             - agent_num (:obj:`int`): Since this is a multi-agent algorithm, \
@@ -105,6 +105,7 @@ class COMAPolicy(CommonPolicy):
         """
         # forward
         self._agent.reset(state=data['prev_state'][0])
+        self._agent.target_reset(state=data['prev_state'][0])
         q_value = self._agent.forward(data, param={'mode': 'compute_q_value'})['q_value']
         target_q_value = self._agent.target_forward(data, param={'mode': 'compute_q_value'})['q_value']
         logit = self._agent.forward(data, param={'mode': 'compute_action'})['logit']
@@ -261,23 +262,8 @@ class COMAPolicy(CommonPolicy):
         data = self._adder.get_traj(traj_cache, self._traj_len, return_num=0)
         return self._adder.get_train_sample(data)
 
-    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
-        r"""
-        Overview:
-            Create a model according to input config. Defalut use ComaNetwork
-
-        Arguments:
-            - cfg (:obj:`dict`): Config, including the config contain model parameters
-            - model_type (:obj:`type` or None): The type of the model to create, if this is not None, this\
-                function will create an instance of the model_type.
-
-        Returns:
-            - model (:obj:`torch.nn.Module`): Generted model.
-        """
-        if model_type is None:
-            return ComaNetwork(**cfg.model)
-        else:
-            return model_type(**cfg.model)
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'coma', ['nervex.model.coma.coma']
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss']

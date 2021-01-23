@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
 from typing import Optional, List, Dict, Any, Tuple, Union
 from collections import namedtuple, deque
+from easydict import EasyDict
 import torch
 
-from nervex.utils import import_module
+from nervex.model import create_model
+from nervex.utils import import_module, allreduce, broadcast, get_rank
 
 
 class Policy(ABC):
@@ -14,19 +16,28 @@ class Policy(ABC):
     collect_function = namedtuple(
         'collect_function', [
             'data_preprocess', 'forward', 'data_postprocess', 'process_transition', 'get_train_sample', 'reset',
-            'set_setting'
+            'set_setting', 'state_dict_handle'
         ]
     )
     eval_function = namedtuple(
-        'eval_function', ['data_preprocess', 'forward', 'data_postprocess', 'reset', 'set_setting']
+        'eval_function',
+        ['data_preprocess', 'forward', 'data_postprocess', 'reset', 'set_setting', 'state_dict_handle']
     )
     command_function = namedtuple('command_function', ['get_setting_learn', 'get_setting_collect', 'get_setting_eval'])
 
-    def __init__(self, cfg: dict, model_type: Optional[type] = None, enable_field: Optional[List[str]] = None) -> None:
-        model = self._create_model_from_cfg(cfg, model_type)
+    def __init__(
+            self,
+            cfg: dict,
+            model: Optional[Union[type, torch.nn.Module]] = None,
+            enable_field: Optional[List[str]] = None
+    ) -> None:
         self._cfg = cfg
+        model = self._create_model(cfg, model)
         self._use_cuda = cfg.use_cuda
+        self._use_distributed = cfg.get('use_distributed', False)
+        self._rank = get_rank() if self._use_distributed else 0
         if self._use_cuda:
+            torch.cuda.set_device(self._rank)
             model.cuda()
         self._model = model
         self._enable_field = enable_field
@@ -40,10 +51,32 @@ class Policy(ABC):
             assert set(self._enable_field).issubset(self._total_field), self._enable_field
             for field in self._enable_field:
                 getattr(self, '_init_' + field)()
+        if self._use_distributed:
+            if self._enable_field is None or self._enable_field == ['learn']:
+                agent = self._agent
+            else:
+                agent = getattr(self, '_{}_agent'.format(self._enable_field[0]))
+            for name, param in agent.model.state_dict().items():
+                assert isinstance(param.data, torch.Tensor), type(param.data)
+                broadcast(param.data, 0)
+            for name, param in agent.model.named_parameters():
+                setattr(param, 'grad', torch.zeros_like(param))
 
-    @abstractmethod
-    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
-        raise NotImplementedError
+    def _create_model(self, cfg: dict, model: Optional[Union[type, torch.nn.Module]] = None) -> torch.nn.Module:
+        model_cfg = cfg.model
+        if model is None:
+            if 'model_type' not in model_cfg:
+                model_type, import_names = self.default_model()
+                model_cfg.model_type = model_type
+                model_cfg.import_names = import_names
+            return create_model(model_cfg)
+        else:
+            if isinstance(model, type):
+                return model(**model_cfg)
+            elif isinstance(model, torch.nn.Module):
+                return model
+            else:
+                raise RuntimeError("invalid model: {}".format(type(model)))
 
     @abstractmethod
     def _init_learn(self) -> None:
@@ -76,15 +109,25 @@ class Policy(ABC):
     @property
     def collect_mode(self) -> 'Policy.collect_function':  # noqa
         return Policy.collect_function(
-            self._data_preprocess_collect, self._forward_collect, self._data_postprocess_collect,
-            self._process_transition, self._get_train_sample, self._reset_collect, self.set_setting
+            self._data_preprocess_collect,
+            self._forward_collect,
+            self._data_postprocess_collect,
+            self._process_transition,
+            self._get_train_sample,
+            self._reset_collect,
+            self.set_setting,
+            self.state_dict_handle,
         )
 
     @property
     def eval_mode(self) -> 'Policy.eval_function':  # noqa
         return Policy.eval_function(
-            self._data_preprocess_collect, self._forward_eval, self._data_postprocess_collect, self._reset_collect,
-            self.set_setting
+            self._data_preprocess_collect,
+            self._forward_eval,
+            self._data_postprocess_collect,
+            self._reset_eval,
+            self.set_setting,
+            self.state_dict_handle,
         )
 
     @property
@@ -110,6 +153,15 @@ class Policy(ABC):
 
     def _monitor_vars_learn(self) -> List[str]:
         return ['cur_lr', 'total_loss']
+
+    def sync_gradients(self, model: torch.nn.Module) -> None:
+        for name, param in model.named_parameters():
+            if param.requires_grad:
+                allreduce(param.grad.data)
+
+    @abstractmethod
+    def default_model(self) -> Tuple[str, List[str]]:
+        raise NotImplementedError
 
     # *************************************** learn function ************************************
     @abstractmethod
@@ -156,6 +208,10 @@ class Policy(ABC):
     def _forward_eval(self, data_id: List[int], data: dict) -> Dict[str, Any]:
         raise NotImplementedError
 
+    @abstractmethod
+    def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
+        raise NotImplementedError
+
     # *************************************** command function ************************************
     @abstractmethod
     def _get_setting_learn(self) -> dict:
@@ -173,12 +229,13 @@ class Policy(ABC):
 policy_mapping = {}
 
 
-def create_policy(cfg: dict, model_type: Optional[type] = None) -> Policy:
+def create_policy(cfg: dict, **kwargs) -> Policy:
+    cfg = EasyDict(cfg)
     import_module(cfg.import_names)
     if cfg.policy_type not in policy_mapping:
         raise KeyError("not support policy type: {}".format(cfg.policy_type))
     else:
-        return policy_mapping[cfg.policy_type](cfg, model_type)
+        return policy_mapping[cfg.policy_type](cfg, **kwargs)
 
 
 def register_policy(name: str, policy: type) -> None:

@@ -25,7 +25,7 @@ policy:
         weight_decay: 0.0
         algo:
             target_update_freq: 100
-            discount_factor: 0.95
+            discount_factor: 0.97
     collect:
         traj_len: 1
         unroll_len: 1
@@ -36,10 +36,11 @@ policy:
             end: 0.1
             decay: 10000
 replay_buffer:
-    meta_maxlen: 100000
-    max_reuse: 100
-    unroll_len: 1
-    min_sample_ratio: 1
+    buffer_name: ['agent']
+    agent:
+        meta_maxlen: 100000
+        max_reuse: 100
+        min_sample_ratio: 1
 actor:
     n_sample: 8
     traj_len: 1

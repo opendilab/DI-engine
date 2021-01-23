@@ -13,7 +13,7 @@ class SegmentTree:
     """
     Overview:
         Segment tree data structure, implemented by the tree-like array. Only the leaf nodes are real value,
-        the parent node is acquired by doing some operation on left and right child
+        non-leaf nodes are to do some operations on its left and right child.
     Interface:
         __init__, reduce, __setitem__, __getitem__
     """
@@ -21,12 +21,12 @@ class SegmentTree:
     def __init__(self, capacity: int, operation: Callable, neutral_element: Optional[float] = None) -> None:
         """
         Overview:
-            Initialize the segment tree
+            Initialize the segment tree.
         Arguments:
-            - capacity (:obj:`int`): the capacity of the tree (the number of the leaf nodes), should be the power of 2
-            - operation (:obj:`function`): the operation function to construct the tree, e.g. sum, max, min
-            - neutral_element (:obj:`float` or :obj:`None`): the value of the neutral element, which is used to init \
-                all nodes value in the tree
+            - capacity (:obj:`int`): Capacity of the tree (the number of the leaf nodes), should be the power of 2.
+            - operation (:obj:`function`): The operation function to construct the tree, e.g. sum, max, min, etc.
+            - neutral_element (:obj:`float` or :obj:`None`): The value of the neutral element, which is used to init \
+                all nodes value in the tree.
         """
         assert capacity > 0 and capacity & (capacity - 1) == 0
         self.capacity = capacity
@@ -177,7 +177,8 @@ def _reduce(tree: np.ndarray, start: int, end: int, neutral_element: float, oper
 
 @njit
 def _find_prefixsum_idx(tree: np.ndarray, capacity: int, prefixsum: float, neutral_element: float) -> int:
-    # find a non-leaf node's index which satisfies self.value[idx] > original prefixsum
+    # find a non-leaf node's index which satisfies
+    # self.value[idx] > input prefixsum and self.value[idx + 1] <= input prefixsum
     idx = 1  # start from root node
     while idx < capacity:
         child_base = 2 * idx

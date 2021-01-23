@@ -5,7 +5,6 @@ from easydict import EasyDict
 
 from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, epsilon_greedy, Adder
-from nervex.model import FCRDiscreteNet
 from nervex.agent import Agent
 from nervex.data import timestep_collate
 from .base_policy import Policy, register_policy
@@ -120,15 +119,21 @@ class R2D2Policy(CommonPolicy):
         # T, B, nstep -> T, nstep, B
         reward = reward.permute(0, 2, 1).contiguous()
         loss = []
+        td_error = []
         for t in range(self._nstep):
             td_data = q_nstep_td_data(
                 q_value[t], target_q_value[t], action[t], target_q_action[t], reward[t], done[t], weight[t]
             )
             if self._use_value_rescale:
-                loss.append(q_nstep_td_error_with_rescale(td_data, self._gamma, self._nstep))
+                l, e = q_nstep_td_error_with_rescale(td_data, self._gamma, self._nstep)
+                loss.append(l)
+                td_error.append(e.abs())
             else:
-                loss.append(q_nstep_td_error(td_data, self._gamma, self._nstep))
+                l, e = q_nstep_td_error(td_data, self._gamma, self._nstep)
+                loss.append(l)
+                td_error.append(e.abs())
         loss = sum(loss) / (len(loss) + 1e-8)
+        td_error_per_sample = sum(td_error) / (len(td_error) + 1e-8)
         # update
         self._optimizer.zero_grad()
         loss.backward()
@@ -138,6 +143,7 @@ class R2D2Policy(CommonPolicy):
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
+            'priority': td_error_per_sample.abs().tolist(),
         }
 
     def _init_collect(self) -> None:
@@ -264,23 +270,8 @@ class R2D2Policy(CommonPolicy):
         learner_step = command_info['learner_step']
         return {'eps': self.epsilon_greedy(learner_step)}
 
-    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
-        r"""
-        Overview:
-            Create a model according to input config. Defalut use FCRDiscreteNet for 1 dim obs
-
-        Arguments:
-            - cfg (:obj:`dict`): Config, including the config contain model parameters
-            - model_type (:obj:`type` or None): The type of the model to create, if this is not None, this\
-                function will create an instance of the model_type.
-
-        Returns:
-            - model (:obj:`torch.nn.Module`): Generated model.
-        """
-        if model_type is None:
-            return FCRDiscreteNet(**cfg.model)
-        else:
-            return model_type(**cfg.model)
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'fcr_discrete_net', ['nervex.model.discrete_net.discrete_net']
 
 
 # regist r2d2 policy in the policy maps

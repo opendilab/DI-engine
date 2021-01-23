@@ -1,0 +1,21 @@
+replay_buffer:
+    buffer_name: ['agent']
+    agent:
+        maxlen: 4096
+        max_reuse: 32
+        max_staleness: 1000000
+        min_sample_ratio: 1
+        alpha: 0.6
+        beta: 0.4
+        anneal_step: 0  # 0 means no annealing, 20000 for atari env
+        enable_track_used_data: False
+        deepcopy: False
+        monitor:
+            log_freq: 2000
+            log_path: './log/buffer/agent_buffer/'
+            natural_expire: 100
+            tick_expire: 100
+    sample_ratio:
+        agent: 1
+
+    

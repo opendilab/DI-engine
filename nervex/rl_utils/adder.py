@@ -1,6 +1,7 @@
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Callable, Tuple
 from collections import deque
 import copy
+import numpy as np
 import torch
 
 from nervex.utils import list_split, lists_to_dicts
@@ -21,7 +22,9 @@ class Adder(object):
             use_cuda: bool,
             unroll_len: int,
             last_fn_type: str = 'last',
-            null_transition: Optional[dict] = None
+            null_transition: Optional[dict] = None,
+            her_strategy: str = 'future',
+            her_replay_k: int = 1,
     ) -> None:
         """
         Overview:
@@ -34,10 +37,14 @@ class Adder(object):
             - null_transition (:obj:`Optional[dict]`): dict type null transition, used in ``null_padding``
         """
         self._use_cuda = use_cuda
+        self._device = 'cuda' if self._use_cuda else 'cpu'
         self._unroll_len = unroll_len
         self._last_fn_type = last_fn_type
         assert self._last_fn_type in ['last', 'drop', 'null_padding']
         self._null_transition = null_transition
+        self._her_strategy = her_strategy
+        assert self._her_strategy in ['final', 'future', 'episode']
+        self._her_replay_k = her_replay_k
 
     def _get_null_transition(self, template: dict) -> dict:
         """
@@ -195,3 +202,59 @@ class Adder(object):
             if len(split_data) > 0:
                 split_data = [lists_to_dicts(d, recursive=True) for d in split_data]
             return split_data
+
+    def get_her(
+            self,
+            data: List[Dict[str, Any]],
+            merge_func: Optional[Callable] = None,
+            split_func: Optional[Callable] = None,
+            goal_reward_func: Optional[Callable] = None
+    ) -> List[Dict[str, Any]]:
+        # TODO(nyz) nstep with her
+        # TODO(nyz) unroll_len > 1 with her
+        if merge_func is None:
+            merge_func = Adder.__her_default_merge_func
+        if split_func is None:
+            split_func = Adder.__her_default_split_func
+        if goal_reward_func is None:
+            goal_reward_func = Adder.__her_default_goal_reward_func
+
+        new_data = []
+        for idx in range(len(data)):
+            obs, _, _ = split_func(data[idx]['obs'])
+            next_obs, _, achieved_goal = split_func(data[idx]['next_obs'])
+            for k in range(self._her_replay_k):
+                if self._her_strategy == 'final':
+                    p_idx = -1
+                elif self._her_strategy == 'episode':
+                    p_idx = np.random.randint(0, len(data))
+                elif self._her_strategy == 'future':
+                    p_idx = np.random.randint(idx, len(data))
+                _, _, new_desired_goal = split_func(data[p_idx]['next_obs'])
+                timestep = {k: copy.deepcopy(v) for k, v in data[idx].items() if k not in ['obs', 'next_obs', 'reward']}
+                timestep['obs'] = merge_func(obs, new_desired_goal)
+                timestep['next_obs'] = merge_func(next_obs, new_desired_goal)
+                timestep['reward'] = goal_reward_func(achieved_goal, new_desired_goal).to(self._device)
+                new_data.append(timestep)
+
+        return new_data
+
+    @staticmethod
+    def __her_default_merge_func(x: Any, y: Any) -> Any:
+        # TODO(nyz) dict/list merge_func
+        return torch.cat([x, y], dim=0)
+
+    @staticmethod
+    def __her_default_split_func(x: Any) -> Tuple[Any, Any, Any]:
+        # TODO(nyz) dict/list split_func
+        # achieved_goal = f(obs), default: f == identical function
+        obs, desired_goal = torch.chunk(x, 2)
+        achieved_goal = obs
+        return obs, desired_goal, achieved_goal
+
+    @staticmethod
+    def __her_default_goal_reward_func(achieved_goal: torch.Tensor, desired_goal: torch.Tensor) -> torch.Tensor:
+        if (achieved_goal == desired_goal).all():
+            return torch.FloatTensor([1])
+        else:
+            return torch.FloatTensor([0])

@@ -2,6 +2,7 @@ from typing import List, Dict, Any, Optional, Callable, Tuple
 from collections import namedtuple, deque
 import copy
 import numpy as np
+import torch
 
 from .env_manager import BaseEnvManager
 from nervex.utils import build_logger, EasyTimer
@@ -15,13 +16,13 @@ class BaseSerialActor(object):
         self._traj_len = cfg.traj_len
         if self._traj_len == "inf":
             raise ValueError(
-                "Serial Actor must indicate finite traj_len, if you want to use the total episode,\
-                please set this argument as the maximum length of the env episode"
+                "Serial Actor must indicate finite traj_len, if you want to use the total episode, \
+                please set it equal to the maximum length of the env's episode"
             )
         self._traj_cache_length = self._traj_len
         self._traj_print_freq = cfg.traj_print_freq
         self._collect_print_freq = cfg.collect_print_freq
-        self._logger, _ = build_logger(path='./log', name='actor')
+        self._logger, _ = build_logger(path='./log/actor', name='actor')
         self._timer = EasyTimer()
         self._cfg = cfg
 
@@ -47,6 +48,7 @@ class BaseSerialActor(object):
     def reset(self) -> None:
         self._obs_pool = CachePool('obs', self._env_num)
         self._policy_output_pool = CachePool('policy_output', self._env_num)
+        # _traj_cache = {env_id: deque}, used to store traj_len pieces of transitions
         self._traj_cache = {env_id: deque(maxlen=self._traj_cache_length) for env_id in range(self._env_num)}
         self._total_collect_step = 0
         self._total_step = 0
@@ -106,6 +108,7 @@ class BaseSerialActor(object):
                     transition['collect_iter'] = iter_count
                     self._traj_cache[env_id].append(transition)
                     if timestep.done or len(self._traj_cache[env_id]) == self._traj_len:
+                        # episode is done or traj_cache(maxlen=traj_len) is full
                         train_sample = self._policy.get_train_sample(self._traj_cache[env_id])
                         return_data.extend(train_sample)
                         train_sample_count += len(train_sample)
@@ -121,6 +124,8 @@ class BaseSerialActor(object):
                         self._policy_output_pool.reset(env_id)
                         self._policy.reset([env_id])
                         reward = timestep.info['final_eval_reward']
+                        if isinstance(reward, torch.Tensor):
+                            reward = reward.item()
                         episode_reward.append(reward)
                         # self._logger.info(
                         #     "env {} finish episode, final reward: {}, collected episode: {}".format(
@@ -138,7 +143,7 @@ class BaseSerialActor(object):
                 'step_count': step_count,
                 'train_sample_count': train_sample_count,
                 'avg_step_per_episode': step_count / max(1, episode_count),
-                'avg_traj_per_epsiode': train_sample_count / max(1, episode_count),
+                'avg_sample_per_epsiode': train_sample_count / max(1, episode_count),
                 'avg_time_per_step': duration / (step_count + 1e-8),
                 'avg_time_per_train_sample': duration / (train_sample_count + 1e-8),
                 'avg_time_per_episode': duration / max(1, episode_count),

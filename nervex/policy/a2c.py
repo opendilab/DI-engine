@@ -2,9 +2,9 @@ from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple, deque
 import torch
 
-from nervex.torch_utils import Adam
 from nervex.rl_utils import a2c_data, a2c_error, Adder, nstep_return_data, nstep_return
-from nervex.model import FCValueAC
+from nervex.torch_utils import Adam
+from nervex.model import FCValueAC, ConvValueAC
 from nervex.agent import Agent
 from .base_policy import Policy, register_policy
 from .common_policy import CommonPolicy
@@ -23,7 +23,9 @@ class A2CPolicy(CommonPolicy):
             Init the optimizer, algorithm config, main and target agents.
         """
         # Optimizer
-        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
+        self._optimizer = Adam(
+            self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self._cfg.learn.weight_decay
+        )
 
         # Algorithm config
         algo_cfg = self._cfg.learn.algo
@@ -68,8 +70,11 @@ class A2CPolicy(CommonPolicy):
             # Return = value + adv
             return_ = data['value'] + adv
 
-        # Calculate A2C loss
+        # return = value + adv
+        return_ = data['value'] + adv
         data = a2c_data(output['logit'], data['action'], output['value'], adv, return_, data['weight'])
+
+        # Calculate A2C loss
         a2c_loss = a2c_error(data)
         wv, we = self._value_weight, self._entropy_weight
         total_loss = a2c_loss.policy_loss + wv * a2c_loss.value_loss - we * a2c_loss.entropy_loss
@@ -80,13 +85,18 @@ class A2CPolicy(CommonPolicy):
 
         self._optimizer.zero_grad()
         total_loss.backward()
+
+        torch.nn.utils.clip_grad_norm_(
+            list(self._model.parameters()),
+            max_norm=0.5,
+        )
         self._optimizer.step()
 
         # =============
         # after update
         # =============
         return {
-            'cur_lr': self._optimizer.defaults['lr'],
+            'cur_lr': self._optimizer.param_groups[0]['lr'],
             'total_loss': total_loss.item(),
             'policy_loss': a2c_loss.policy_loss.item(),
             'value_loss': a2c_loss.value_loss.item(),
@@ -155,17 +165,17 @@ class A2CPolicy(CommonPolicy):
         }
         return transition
 
-    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, traj: deque) -> Union[None, List[Any]]:
         r"""
         Overview:
             Get the trajectory and the n step return data, then sample from the n_step return data
         Arguments:
-            - traj_cache (:obj:`deque`): The trajectory's cache
+            - traj (:obj:`deque`): The trajectory's cache
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
         # adder is defined in _init_collect
-        data = self._adder.get_traj(traj_cache, self._traj_len, return_num=1)
+        data = self._adder.get_traj(traj, self._traj_len, return_num=1)
         if self._traj_len == float('inf'):
             assert data[-1]['done'], "episode must be terminated by done=True"
         data = self._adder.get_gae_with_default_last_value(
@@ -204,21 +214,8 @@ class A2CPolicy(CommonPolicy):
     def _init_command(self) -> None:
         pass
 
-    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
-        r"""
-        Overview:
-            Create a model according to input config. This policy will adopt DiscreteNet.
-        Arguments:
-            - cfg (:obj:`dict`): Config.
-            - model_type (:obj:`Optional[type]`): If this is not None, this function will create \
-                an instance of this.
-        Returns:
-            - model (:obj:`torch.nn.Module`): Generated model.
-        """
-        if model_type is None:
-            return FCValueAC(**cfg.model)
-        else:
-            return model_type(**cfg.model)
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'fc_vac', ['nervex.model.actor_critic.value_ac']
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss', 'adv_abs_max']

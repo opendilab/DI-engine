@@ -58,3 +58,4 @@ class TestLogger:
             tb_logger.print_vars(vars, i, 'scalar')
         assert tb_logger.scalar_var_names == list(vars.keys())
         remove_file(cfg.common.save_path)
+        tb_logger.close()

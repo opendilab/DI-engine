@@ -17,7 +17,7 @@ Q1: 如何使用串行版本入口
             seed: int,
             env_setting: Optional[Any] = None,  # subclass of BaseEnv, and config dict
             policy_type: Optional[type] = None,  # subclass of Policy
-            model_type: Optional[type] = None,  # subclass of torch.nn.Module
+            model: Optional[Union[type, torch.nn.Module]] = None,  # instance or subclass of torch.nn.Module
     ) -> None:
         pass
 
@@ -26,14 +26,14 @@ Q1: 如何使用串行版本入口
 - seed: 该参数是随机种子，为一个int值，会设置各类外部库的随机种子，以及环境的随机种子，注意多个环境跟根据环境序号再加上相应数字作为种子，以保证不同环境种子不同
 - env_setting(optional): 该参数用来设置环境，一般为None，即从全局配置文件中创建环境，否则是一个list，其中有三个元素，第一个元素是环境类，第二第三个参数分别是环境的配置dict的list，各自的长度等于需要创建的环境个数。
 - policy_type(optional): 该参数用来设置Policy，一般为None，即从全局配置文件中创建策略，当用户实现了自己的policy时，可以通过相应的注册机制注册进入nervex，从而可以通过配置文件方式调用，也可以通过该参数直接将新定义的策略类传进来。
-- model_type(optional): 该参数用来设置神经网络模型，一般为None，nervex已实现的策略使用的默认的神经网络，用户可以通过该参数传入自己定义的神经网络。
+- model(optional): 该参数用来设置神经网络模型，一般为None，nervex已实现的策略使用的默认的神经网络，用户可以通过该参数传入自己定义的神经网络(支持直接传入模型实例或是传入模型类型，再通过配置文件中的model字段完成创建)。
 
 Q2: 如何自定义环境
 ********************
 
 :A2:
    - 需要继承 ``nervex/envs/env/base_env.py`` 中的BaseEnv类，按照基类的相关说明和示例实现相应的方法。
-   - 注意环境中只是推荐使用tensor作为输入输出的数据类型，用户也可使用numpy数组或是python内置类型，在接入各类训练pipeline时，可以通过指定EnvManager实例创建时的tensor_transformer参数为真，让其自动完成环境数据到tensor的转换。nervex系统中除环境之外的部分，一律使用tensor作为基本数据类型，其他类型会导致运行错误。
+   - 环境推荐使用numpy.ndarray作为array的数据类型，用户也可使用tensor或是list。可以通过指定BaseEnvManager实例创建时的self._transform和self._inv_transform函数为to_list，to_ndarray或to_tensor，让其选择合适的自动完成环境数据与外部数据类型之间的转换。self._transform从外部数据类型往环境数据转换类型，self_inv_transform从环境数据类型往外部数据类型转换。nervex系统中除环境之外的部分，一律使用tensor作为基本数据类型，其他类型会导致运行错误。
    - 环境step方法返回的info **必须** 为dict，且当一个episode结束时，info中 **必须** 包括 ``final_eval_reward`` 这个键，其将作为评价整个episode性能的指标，要求 ``final_eval_reward`` 的取值为python内置数据类型(int, float)
    - (optional)如果想要在nervex中通过配置文件使用自定义的环境，需要在自定义环境文件中全局范围调用 ``register_env`` 方法进行注册，并在配置文件中指定环境名(env_type)，以及加载的模块名(import_names)
    - (optional)BaseEnv的info方法返回环境相关的参数信息，但其并不会和系统其他模块强耦合，只是作为 **可选** 的一个方法，使用者也可自定义相关格式，以及在系统中最终的用法
@@ -64,3 +64,11 @@ Q5: 配置文件中的traj_len, unroll_len概念
   - traj_len是actor部分一个trajectory的长度，一个trajectory是一次数据发送的基本单元，一般大于等于unroll_len。在不考虑数据吞吐效率的情况下，尽可能设置大一点，如果设置为字符串 ``inf`` ，那么就是以一个完整的episode来发送数据，trajectory越长，某些操作（比如GAE）可以传递的reward值就越远，有利于训练收敛。为了平衡效率，一般设置为unroll_len的整数倍。
   - 如果使用nstep return，traj_len = n * unroll_len + nstep，其中n = 1, 2, 3, ... , 从而保证traj最后几帧数据也能有效利用。
   - 如果使用GAE，traj_len > 1
+
+Q6: 如何加载/保存模型
+**********************
+
+:A6:
+ - 加载模型：只需指定配置文件中的 ``load_path`` 字段即可，该字段默认为 ``''`` ，即为不加载模型，如需要加载指定具体的绝对路径即可。
+ - 保存模型：对于串行版本，系统默认有两种保存模型的情形，一是当前 ``eval_reward`` 大于等于训练目标 ``stop_val`` ，保存最终的模型并关闭整个训练模块，二是当前 ``eval_reward`` 大于之前最高的reward，则会保存当前的模型。使用者也可以在配置文件中添加相应的 ``save_ckpt`` hook，即每隔一定迭代数保存模型。对于并行版本，默认保存最新的模型用于通信，使用者也可类似添加hook。
+ - 具体添加 ``load_path`` 和 ``save_ckpt`` hook可以参见 ``app_zoo/classic_control/cartpole/entry/cartpole_dqn_default_config.yaml``

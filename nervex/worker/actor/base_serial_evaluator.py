@@ -2,6 +2,7 @@ from typing import List, Dict, Any, Optional, Callable, Tuple
 from collections import namedtuple
 import copy
 import numpy as np
+import torch
 from nervex.utils import build_logger, EasyTimer, TensorBoardLogger
 from .env_manager import BaseEnvManager
 from .base_serial_actor import CachePool
@@ -12,8 +13,8 @@ class BaseSerialEvaluator(object):
     def __init__(self, cfg: dict) -> None:
         self._default_n_episode = cfg.get('n_episode', None)
         self._stop_val = cfg.stop_val
-        self._logger, _ = build_logger(path='./log', name='evaluator')
-        self._tb_logger = TensorBoardLogger(path='./log', name='evaluator')
+        self._logger, _ = build_logger(path='./log/evaluator', name='evaluator')
+        self._tb_logger = TensorBoardLogger(path='./log/evaluator', name='evaluator')
         for var in ['episode_count', 'step_count', 'avg_step_per_episode', 'avg_time_per_step', 'avg_time_per_episode',
                     'reward_mean', 'reward_std']:
             self._tb_logger.register_var(var)
@@ -47,7 +48,7 @@ class BaseSerialEvaluator(object):
         self._tb_logger.close()
         self._env.close()
 
-    def eval(self, train_iter: int, n_episode: Optional[int] = None) -> bool:
+    def eval(self, train_iter: int, n_episode: Optional[int] = None) -> Tuple[bool, float]:
         if n_episode is None:
             n_episode = self._default_n_episode
         assert n_episode is not None, "please indicate eval n_episode"
@@ -72,6 +73,8 @@ class BaseSerialEvaluator(object):
                         # env reset is done by env_manager automatically
                         self._policy.reset([i])
                         reward = t.info['final_eval_reward']
+                        if isinstance(reward, torch.Tensor):
+                            reward = reward.item()
                         episode_reward.append(reward)
                         self._logger.info(
                             "[EVALUATOR]env {} finish episode, final reward: {}, current episode: {}".format(
@@ -95,4 +98,5 @@ class BaseSerialEvaluator(object):
         )
         tb_vars = [[k, v, train_iter] for k, v in info.items()]
         self._tb_logger.add_val_list(tb_vars, viz_type='scalar')
-        return np.mean(episode_reward) >= self._stop_val
+        eval_reward = np.mean(episode_reward)
+        return eval_reward >= self._stop_val, eval_reward

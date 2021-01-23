@@ -1,3 +1,8 @@
+2021.1.19(v0.1.0b0)
+ - 异步训练版本
+ - multi replay buffer
+ - shm vec env manager
+
 2020.12.6(v0.0.2b1)
  - DDPG/TD3算法实现
  - QMIX/COMA算法实现

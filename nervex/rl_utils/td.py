@@ -32,7 +32,7 @@ nstep_return_data = namedtuple('nstep_return_data', ['reward', 'next_value', 'do
 def nstep_return(data: namedtuple, gamma: float, nstep: int):
     reward, next_value, done = data
     assert reward.shape[0] == nstep
-    device = torch.device("cuda" if reward.is_cuda else "cpu")
+    device = reward.device
     reward_factor = torch.ones(nstep).to(device)
     for i in range(1, nstep):
         reward_factor[i] = gamma * reward_factor[i - 1]
@@ -54,7 +54,7 @@ def dist_1step_td_error(
         n_atom: int,
 ) -> torch.Tensor:
     dist, next_dist, act, next_act, reward, done, weight = data
-    device = torch.device("cuda" if reward.is_cuda else "cpu")
+    device = reward.device
     assert len(act.shape) == 1, act.shape
     assert len(reward.shape) == 1, reward.shape
     reward = reward.unsqueeze(-1)
@@ -120,7 +120,7 @@ def dist_nstep_td_error(
         - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
     """
     dist, next_n_dist, act, next_n_act, reward, done, weight = data
-    device = torch.device("cuda" if reward.is_cuda else "cpu")
+    device = reward.device
     assert len(act.shape) == 1, act.shape
     reward_factor = torch.ones(nstep).to(device)
     for i in range(1, nstep):
@@ -170,7 +170,6 @@ def v_1step_td_error(
         gamma: float,
         criterion: torch.nn.modules = nn.MSELoss(reduction='none')  # noqa
 ) -> torch.Tensor:
-    # debug = False
     v, next_v, reward, done, weight = data
     if weight is None:
         weight = torch.ones_like(reward)
@@ -274,7 +273,8 @@ def q_nstep_td_error_with_rescale(
     target_q_s_a = nstep_return(nstep_return_data(reward, target_q_s_a, done), gamma, nstep)
     target_q_s_a = trans_fn(target_q_s_a)
 
-    return (criterion(q_s_a, target_q_s_a.detach()) * weight).mean()
+    td_error_per_sample = criterion(q_s_a, target_q_s_a.detach())
+    return (td_error_per_sample * weight).mean(), td_error_per_sample
 
 
 iqn_nstep_td_data = namedtuple(

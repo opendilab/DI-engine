@@ -21,11 +21,11 @@ from ..exception import SlaveErrorCode, get_slave_exception_by_error, get_master
 class Slave(ControllableService):
 
     def __init__(
-        self,
-        host: Optional[str] = None,
-        port: Optional[int] = None,
-        heartbeat_span: Optional[float] = None,
-        channel: Optional[int] = None
+            self,
+            host: Optional[str] = None,
+            port: Optional[int] = None,
+            heartbeat_span: Optional[float] = None,
+            channel: Optional[int] = None
     ):
         # server part
         self.__host = host or GLOBAL_HOST
@@ -51,6 +51,7 @@ class Slave(ControllableService):
             },
             http_error_gene=get_slave_exception_by_error,
         )()('localhost', self.__port, False)
+        # )()(self.__host, self.__port, False)  # TODO: Confirm how to ping itself
         self.__self_token = random_token()
 
         # master-connection part
@@ -276,7 +277,7 @@ class Slave(ControllableService):
                     traceback.print_exception(*sys.exc_info(), file=sys.stderr)
 
             _last_time += self.__heartbeat_span
-            time.sleep(_last_time - time.time())
+            time.sleep(max(_last_time - time.time(), 0))
 
     # task part
     def __task(self):

@@ -82,15 +82,14 @@ class RainbowDQNPolicy(DQNPolicy):
                 - cur_lr (:obj:`float`): current learning rate
                 - total_loss (:obj:`float`): the calculated loss
         """
+        reward = data['reward']
+        if len(reward.shape) == 1:
+            reward = reward.unsqueeze(1)
+        assert reward.shape == (self._cfg.learn.batch_size, self._nstep), reward.shape
+        reward = reward.permute(1, 0).contiguous()
+        self._reset_noise(self._agent.model)
+        self._reset_noise(self._agent.target_model)
         if self._use_iqn:
-            # iqn forward
-            reward = data['reward']
-            if len(reward.shape) == 1:
-                reward = reward.unsqueeze(1)
-            assert reward.shape == (self._cfg.learn.batch_size, self._nstep), reward.shape
-            reward = reward.permute(1, 0).contiguous()
-            self._reset_noise(self._agent.model)
-            self._reset_noise(self._agent.target_model)
             ret = self._agent.forward(data['obs'], param={'num_quantiles': self._tau})
             q = ret['q']
             replay_quantiles = ret['quantiles']
@@ -103,27 +102,7 @@ class RainbowDQNPolicy(DQNPolicy):
                 q, target_q, data['action'], target_q_action, reward, data['done'], replay_quantiles, data['weight']
             )
             loss, td_error_per_sample = iqn_nstep_td_error(data, self._gamma, nstep=self._nstep, kappa=self._kappa)
-            # update
-            self._optimizer.zero_grad()
-            loss.backward()
-            self._optimizer.step()
-            # after update
-            self._agent.target_update(self._agent.state_dict()['model'])
-            return {
-                'cur_lr': self._optimizer.defaults['lr'],
-                'total_loss': loss.item(),
-                'priority': td_error_per_sample.abs().tolist(),
-            }
-
         else:
-            # rainbow forward
-            reward = data['reward']
-            if len(reward.shape) == 1:
-                reward = reward.unsqueeze(1)
-            assert reward.shape == (self._cfg.learn.batch_size, self._nstep), reward.shape
-            reward = reward.permute(1, 0).contiguous()
-            self._reset_noise(self._agent.model)
-            self._reset_noise(self._agent.target_model)
             q_dist = self._agent.forward(data['obs'])['distribution']
             target_q_dist = self._agent.target_forward(data['next_obs'])['distribution']
             self._reset_noise(self._agent.target_model)
@@ -134,17 +113,17 @@ class RainbowDQNPolicy(DQNPolicy):
             loss, td_error_per_sample = dist_nstep_td_error(
                 data, self._gamma, self._v_min, self._v_max, self._n_atom, nstep=self._nstep
             )
-            # update
-            self._optimizer.zero_grad()
-            loss.backward()
-            self._optimizer.step()
-            # after update
-            self._agent.target_update(self._agent.state_dict()['model'])
-            return {
-                'cur_lr': self._optimizer.defaults['lr'],
-                'total_loss': loss.item(),
-                'priority': td_error_per_sample.abs().tolist(),
-            }
+        # update
+        self._optimizer.zero_grad()
+        loss.backward()
+        self._optimizer.step()
+        # after update
+        self._agent.target_update(self._agent.state_dict()['model'])
+        return {
+            'cur_lr': self._optimizer.defaults['lr'],
+            'total_loss': loss.item(),
+            'priority': td_error_per_sample.abs().tolist(),
+        }
 
     def _init_collect(self) -> None:
         r"""
@@ -182,42 +161,27 @@ class RainbowDQNPolicy(DQNPolicy):
         self._reset_noise(self._collect_agent.model)
         return self._collect_agent.forward(data, eps=self._eps)
 
-    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, traj: deque) -> Union[None, List[Any]]:
         r"""
         Overview:
             Get the trajectory and the n step return data, then sample from the n_step return data
 
         Arguments:
-            - traj_cache (:obj:`deque`): The trajactory's cache
+            - traj (:obj:`deque`): The trajactory's cache
 
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
         # adder is defined in _init_collect
-        data = self._adder.get_traj(traj_cache, self._traj_len, return_num=self._collect_nstep)
+        data = self._adder.get_traj(traj, self._traj_len, return_num=self._collect_nstep)
         data = self._adder.get_nstep_return_data(data, self._collect_nstep, self._traj_len)
         return self._adder.get_train_sample(data)
 
-    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
-        """
-        Overview:
-            Create a model according to input config. Defalut use NoiseDistributionFCDiscreteNet for 1 dim obs
-
-        Arguments:
-            - cfg (:obj:`dict`): Config, including the config contain model parameters
-            - model_type (:obj:`type` or None): The type of the model to create, if this is not None, this\
-                function will create an instance of the model_type.
-
-        Returns:
-            - model (:obj:`torch.nn.Module`): Generted model.
-        """
-        if model_type is None:
-            if cfg.learn.algo.get('use_iqn'):
-                return NoiseQuantileFCDiscreteNet(**cfg.model)
-            else:
-                return NoiseDistributionFCDiscreteNet(**cfg.model)
+    def default_model(self) -> Tuple[str, List[str]]:
+        if self._cfg.learn.algo.get('use_iqn'):
+            return 'noise_quantile_fc', ['nervex.model.discrete_net.discrete_net']
         else:
-            return model_type(**cfg.model)
+            return 'noise_dist_fc', ['nervex.model.discrete_net.discrete_net']
 
     def _reset_noise(self, model: torch.nn.Module):
         r"""

@@ -15,7 +15,8 @@
 `srun -p vi_x_cerebra_meta -w SH-IDC1-10-198-8-236 ./getid_linux` 获取到对应这个机器的密文。
 （由于srun有缓存机制，需要按一下enter退出后正在运行的二进制文件 `getid_linux` 后，才会显示机器密文）**
 
-**./addition 目录下面有 SH-IDC1-10-198-8-236 对应的 `mjkey.txt`，有效期到 2020.1.17**
+**[Gitlab](https://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/snippets)有 SH-IDC1-10-198-8-237, SH-IDC1-10-198-8-237 对应的 `mjkey.txt`，有效期到 2020.2.3**
+
 
 ## 管理节点测试
 ```
