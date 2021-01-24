@@ -82,11 +82,15 @@ class RainbowDQNPolicy(DQNPolicy):
                 - cur_lr (:obj:`float`): current learning rate
                 - total_loss (:obj:`float`): the calculated loss
         """
+        # ====================
+        # Rainbow forward
+        # ====================
         reward = data['reward']
         if len(reward.shape) == 1:
             reward = reward.unsqueeze(1)
         assert reward.shape == (self._cfg.learn.batch_size, self._nstep), reward.shape
         reward = reward.permute(1, 0).contiguous()
+        # reset noise of noisenet for both main agent and target agent
         self._reset_noise(self._agent.model)
         self._reset_noise(self._agent.target_model)
         if self._use_iqn:
@@ -113,11 +117,15 @@ class RainbowDQNPolicy(DQNPolicy):
             loss, td_error_per_sample = dist_nstep_td_error(
                 data, self._gamma, self._v_min, self._v_max, self._n_atom, nstep=self._nstep
             )
-        # update
+        # ====================
+        # Rainbow update
+        # ====================
         self._optimizer.zero_grad()
         loss.backward()
         self._optimizer.step()
+        # =============
         # after update
+        # =============
         self._agent.target_update(self._agent.state_dict()['model'])
         return {
             'cur_lr': self._optimizer.defaults['lr'],
