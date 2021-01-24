@@ -175,9 +175,10 @@ class SubprocessEnvManager(BaseEnvManager):
             ctx.Process(
                 target=self.worker_fn,
                 args=(parent, child, CloudpickleWrapper(fn), obs_buffer, self.method_name_list),
-                daemon=True
-            ) for parent, child, fn, obs_buffer in
-            zip(self._parent_remote, self._child_remote, env_fn, self._obs_buffers.values())
+                daemon=True,
+                name='vec_env_manager{}_{}'.format(idx, time.time())
+            ) for idx, (parent, child, fn, obs_buffer) in
+            enumerate(zip(self._parent_remote, self._child_remote, env_fn, self._obs_buffers.values()))
         ]
         for p in self._processes:
             p.start()
@@ -222,11 +223,6 @@ class SubprocessEnvManager(BaseEnvManager):
     @property
     def done(self) -> bool:
         return all([s == EnvState.DONE for s in self._env_state.values()])
-
-    def launch(self, reset_param: Union[None, List[dict]] = None) -> None:
-        assert self._closed, "please first close the env manager"
-        self._create_state()
-        self.reset(reset_param)
 
     def reset(self, reset_param: Union[None, List[dict]] = None) -> None:
         self._check_closed()

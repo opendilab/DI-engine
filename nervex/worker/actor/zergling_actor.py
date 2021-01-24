@@ -69,6 +69,12 @@ class ZerglingActor(BaseActor):
         self._update_policy_thread.start()
 
     # override
+    def close(self) -> None:
+        super().close()
+        if hasattr(self, '_env_manager'):
+            self._env_manager.close()
+
+    # override
     def _policy_inference(self, obs: Dict[int, Any]) -> Dict[int, Any]:
         self._obs_pool.update(obs)
         env_id, obs = self._policy.data_preprocess(obs)
