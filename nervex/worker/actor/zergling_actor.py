@@ -85,6 +85,13 @@ class ZerglingActor(BaseActor):
     # override
     def _process_timestep(self, timestep: Dict[int, namedtuple]) -> None:
         for env_id, t in timestep.items():
+            if t.info.get('abnormal', False):
+                # if there is a abnormal timestep, reset all the related variable, also this env has been reset
+                self._traj_cache[env_id].clear()
+                self._obs_pool.reset(env_id)
+                self._policy_output_pool.reset(env_id)
+                self._policy.reset([env_id])
+                continue
             if not self._eval_flag:
                 transition = self._policy.process_transition(
                     self._obs_pool[env_id], self._policy_output_pool[env_id], t

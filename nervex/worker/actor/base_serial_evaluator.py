@@ -69,6 +69,10 @@ class BaseSerialEvaluator(object):
                 action = {i: a['action'] for i, a in policy_output.items()}
                 timestep = self._env.step(action)
                 for i, t in timestep.items():
+                    if t.info.get('abnormal', False):
+                        # if there is a abnormal timestep, reset all the related variable, also this env has been reset
+                        self._policy.reset([i])
+                        continue
                     if t.done:
                         # env reset is done by env_manager automatically
                         self._policy.reset([i])

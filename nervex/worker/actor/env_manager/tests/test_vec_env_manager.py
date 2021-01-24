@@ -68,6 +68,19 @@ class TestVecEnvManager:
         name = env_manager.name
         assert len(name) == env_manager.env_num
         assert all([isinstance(n, str) for n in name])
+        action = {i: torch.randn(4) for i in range(env_manager.env_num)}
+        action[0] = 'catched_error'
+        timestep = env_manager.step(action)
+        assert len(name) == env_manager.env_num
+        assert timestep[0].info['abnormal']
+        assert all(['abnormal' not in timestep[i].info for i in range(1, env_manager.env_num)])
+        assert env_manager._env_state[0] == 3  # reset
+        assert len(env_manager.next_obs) == 3
+        # wait for reset
+        while not len(env_manager.next_obs) == env_manager.env_num:
+            time.sleep(0.1)
+        assert env_manager._env_state[0] == 2  # run
+        assert len(env_manager.next_obs) == 4
         # with pytest.raises(setup_exception):
         with pytest.raises(Exception):
             timestep = env_manager.step({i: 'error' for i in range(env_manager.env_num)})

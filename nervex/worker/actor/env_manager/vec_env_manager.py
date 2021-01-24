@@ -320,9 +320,15 @@ class SubprocessEnvManager(BaseEnvManager):
                 self._waiting_env['step'].add(env_id)
 
         for env_id, timestep in ret.items():
+            if timestep.info.get('abnormal', False):
+                self._env_state[env_id] = EnvState.RESET
+                reset_thread = PropagatingThread(target=self._reset, args=(env_id, ))
+                reset_thread.daemon = True
+                reset_thread.start()
+                continue
             if self.shared_memory:
                 timestep = timestep._replace(obs=self._obs_buffers[env_id].get())
-            ret[env_id] = timestep
+                ret[env_id] = timestep
             if timestep.done:
                 self._env_episode_count[env_id] += 1
                 if self._env_episode_count[env_id] >= self._epsiode_num:
@@ -357,10 +363,13 @@ class SubprocessEnvManager(BaseEnvManager):
                     elif cmd in method_name_list:
                         if cmd == 'step':
                             timestep = env.step(*args, **kwargs)
-                            if obs_buffer is not None:
-                                obs_buffer.fill(timestep.obs)
-                                timestep = timestep._replace(obs=None)
-                            ret = timestep
+                            if timestep.info.get('abnormal', False):
+                                ret = timestep
+                            else:
+                                if obs_buffer is not None:
+                                    obs_buffer.fill(timestep.obs)
+                                    timestep = timestep._replace(obs=None)
+                                ret = timestep
                         elif cmd == 'reset':
                             ret = env.reset(*args, **kwargs)  # obs
                             if obs_buffer is not None:
