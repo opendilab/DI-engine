@@ -230,6 +230,12 @@ class SubprocessEnvManager(BaseEnvManager):
         self.reset(reset_param)
 
     def reset(self, reset_param: Union[None, List[dict]] = None) -> None:
+        self._check_closed()
+        # clear previous info
+        for env_id in self._waiting_env['step']:
+            self._parent_remote[env_id].recv()
+        self._waiting_env['step'].clear()
+
         if reset_param is None:
             reset_param = [{} for _ in range(self.env_num)]
         self._reset_param = reset_param
