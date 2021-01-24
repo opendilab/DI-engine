@@ -54,10 +54,11 @@ policy:
     command:
         placeholder: 'placeholder'
 replay_buffer:
-    meta_maxlen: 20000
-    max_reuse: 1024
-    unroll_len: 1
-    min_sample_ratio: 1
+    buffer_name: ['agent']
+    agent:
+        meta_maxlen: 20000
+        max_reuse: 1024
+        min_sample_ratio: 1
 actor:
     n_sample: 24
     traj_len: 1

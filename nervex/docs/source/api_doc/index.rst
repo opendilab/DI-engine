@@ -13,7 +13,7 @@ API Doc
     data/structure
     data/dataloader
     data/collate_fn
-    data/replay_buffer
+    data/buffer_manager
     env/sumo_env
     league/league_manager
     league/payoff

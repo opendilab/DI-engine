@@ -12,7 +12,7 @@ import pickle
 # import io
 # from pstats import SortKey
 
-from nervex.data import ReplayBuffer
+from nervex.data import BufferManager
 from nervex.utils import read_config
 
 BATCH_SIZE = 8
@@ -24,7 +24,7 @@ np.random.seed(1)
 
 @pytest.fixture(scope="function")
 def setup_config():
-    path = os.path.join(os.path.dirname(__file__), '../replay_buffer_default_config.yaml')
+    path = os.path.join(os.path.dirname(__file__), '../buffer_manager_default_config.yaml')
     cfg = read_config(path)
     cfg.replay_buffer.agent.enable_track_used_data = True
     return cfg
@@ -32,7 +32,7 @@ def setup_config():
 
 @pytest.fixture(scope="function")
 def setup_demo_config():
-    path = os.path.join(os.path.dirname(__file__), '../replay_buffer_with_demonstration_config.yaml')
+    path = os.path.join(os.path.dirname(__file__), '../buffer_manager_with_demonstration_config.yaml')
     cfg = read_config(path)
     cfg.replay_buffer.agent.enable_track_used_data = True
     cfg.replay_buffer.demo.enable_track_used_data = True
@@ -57,7 +57,7 @@ def generate_data_list(count: int) -> List[dict]:
     return [generate_data() for _ in range(0, count)]
 
 
-class TestReplayBuffer:
+class TestBufferManager:
     produce_count = 0
     global_data = []
 
@@ -121,7 +121,7 @@ class TestReplayBuffer:
 
         self.global_data = []
         os.popen('rm -rf log*')
-        setup_replay_buffer = ReplayBuffer(setup_config.replay_buffer)
+        setup_replay_buffer = BufferManager(setup_config.replay_buffer)
         setup_replay_buffer._cache.debug = True
         produce_threads = [Thread(target=self.produce, args=(i, setup_replay_buffer)) for i in range(PRODUCER_NUM)]
         consume_threads = [Thread(target=self.consume, args=(i, setup_replay_buffer)) for i in range(CONSUMER_NUM)]
@@ -161,7 +161,7 @@ class TestReplayBuffer:
         demo_data_list = generate_data_list(50)
         with open("demonstration_data.pkl", "wb") as f:
             pickle.dump(demo_data_list, f)
-        setup_replay_buffer = ReplayBuffer(setup_demo_config.replay_buffer)
+        setup_replay_buffer = BufferManager(setup_demo_config.replay_buffer)
         setup_replay_buffer._cache.debug = True
         os.popen("rm -rf demonstration_data.pkl")
 
@@ -211,7 +211,7 @@ class TestReplayBuffer:
         # pr.enable()
 
         os.popen('rm -rf log*')
-        replay_buffer = ReplayBuffer(setup_config.replay_buffer)
+        replay_buffer = BufferManager(setup_config.replay_buffer)
         replay_buffer._cache.debug = True
 
         begin_time = time.time()
@@ -261,6 +261,7 @@ class TestReplayBuffer:
         print('[PRODUCER] finish job, total produce {} data'.format(total_produce_count))
         print('[CONSUMER] finish job, total consume {} data'.format(total_consume_count))
 
+        replay_buffer.close()
         os.popen('rm -rf log*')
 
         # pr.disable()

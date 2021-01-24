@@ -171,7 +171,6 @@ class BaseLearner(object):
 
         return wrapper
 
-    @auto_checkpoint
     def train(self, data: dict) -> None:
         """
         Overview:
@@ -211,6 +210,7 @@ class BaseLearner(object):
         """
         add_learner_hook(self._hooks, hook)
 
+    @auto_checkpoint
     def start(self) -> None:
         """
         Overview:

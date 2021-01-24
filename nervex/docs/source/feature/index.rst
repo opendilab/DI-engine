@@ -10,8 +10,9 @@ Feature
     :maxdepth: 3
 
     env_overview
+    env_manager_overview
     agent_overview
     actor_overview
-    env_manager_overview
     league_overview
+    replay_buffer_overview
     autolog_overview
