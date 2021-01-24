@@ -30,6 +30,8 @@ API Doc
     policy/dqn
     policy/r2d2
     policy/rainbow_dqn
+    policy/qmix
+    policy/collaQ
     rl_utils/a2c
     rl_utils/adder
     rl_utils/coma

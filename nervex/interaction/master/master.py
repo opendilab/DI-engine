@@ -24,14 +24,14 @@ from ..exception import MasterErrorCode, get_master_exception_by_error
 class Master(ControllableService):
 
     def __init__(
-            self,
-            host: Optional[str] = None,
-            port: Optional[int] = None,
-            heartbeat_span: Optional[float] = None,
-            heartbeat_tolerance: Optional[float] = None,
-            heartbeat_check_span: Optional[float] = None,
-            channel: Optional[int] = None,
-            my_address: Optional[str] = None
+        self,
+        host: Optional[str] = None,
+        port: Optional[int] = None,
+        heartbeat_span: Optional[float] = None,
+        heartbeat_tolerance: Optional[float] = None,
+        heartbeat_check_span: Optional[float] = None,
+        channel: Optional[int] = None,
+        my_address: Optional[str] = None
     ):
         # server part
         self.__host = host or GLOBAL_HOST

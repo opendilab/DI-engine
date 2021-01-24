@@ -16,7 +16,7 @@ from functools import partial
 from types import MethodType
 from typing import Any, Union, List, Tuple, Iterable, Dict, Callable, Optional
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
-from nervex.utils import PropagatingThread
+from nervex.utils import PropagatingThread, LockContextType, LockContext
 from .base_env_manager import BaseEnvManager
 
 _NTYPE_TO_CTYPE = {
@@ -147,6 +147,7 @@ class SubprocessEnvManager(BaseEnvManager):
         self.shared_memory = manager_cfg.get('shared_memory', True)
         self.timeout = manager_cfg.get('timeout', 0.01)
         self.wait_num = manager_cfg.get('wait_num', 2)
+        self._lock = LockContext(LockContextType.THREAD_LOCK)
 
     def _create_state(self) -> None:
         r"""
@@ -228,6 +229,12 @@ class SubprocessEnvManager(BaseEnvManager):
         self.reset(reset_param)
 
     def reset(self, reset_param: Union[None, List[dict]] = None) -> None:
+        self._check_closed()
+        # clear previous info
+        for env_id in self._waiting_env['step']:
+            self._parent_remote[env_id].recv()
+        self._waiting_env['step'].clear()
+
         if reset_param is None:
             reset_param = [{} for _ in range(self.env_num)]
         self._reset_param = reset_param
@@ -239,10 +246,9 @@ class SubprocessEnvManager(BaseEnvManager):
             self._check_data(ret)
 
         # reset env
-        lock = threading.Lock()
         reset_thread_list = []
         for env_id in range(self.env_num):
-            reset_thread = PropagatingThread(target=self._reset, args=(env_id, lock))
+            reset_thread = PropagatingThread(target=self._reset, args=(env_id, ))
             reset_thread.daemon = True
             reset_thread_list.append(reset_thread)
         for t in reset_thread_list:
@@ -250,7 +256,7 @@ class SubprocessEnvManager(BaseEnvManager):
         for t in reset_thread_list:
             t.join()
 
-    def _reset(self, env_id: int, lock: Any) -> None:
+    def _reset(self, env_id: int) -> None:
 
         @retry_wrapper
         def reset_fn():
@@ -259,7 +265,7 @@ class SubprocessEnvManager(BaseEnvManager):
             self._check_data([obs], close=False)
             if self.shared_memory:
                 obs = self._obs_buffers[env_id].get()
-            with lock:
+            with self._lock:
                 self._env_state[env_id] = EnvState.RUN
                 self._next_obs[env_id] = obs
 
@@ -313,7 +319,6 @@ class SubprocessEnvManager(BaseEnvManager):
             else:
                 self._waiting_env['step'].add(env_id)
 
-        lock = threading.Lock()
         for env_id, timestep in ret.items():
             if self.shared_memory:
                 timestep = timestep._replace(obs=self._obs_buffers[env_id].get())
@@ -324,7 +329,7 @@ class SubprocessEnvManager(BaseEnvManager):
                     self._env_state[env_id] = EnvState.DONE
                 else:
                     self._env_state[env_id] = EnvState.RESET
-                    reset_thread = PropagatingThread(target=self._reset, args=(env_id, lock))
+                    reset_thread = PropagatingThread(target=self._reset, args=(env_id, ))
                     reset_thread.daemon = True
                     reset_thread.start()
             else:

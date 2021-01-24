@@ -78,3 +78,14 @@ class TestVecEnvManager:
             env_manager.reset([])
         with pytest.raises(AssertionError):
             env_manager.step([])
+
+    def test_reset(self, setup_async_manager_cfg):
+        env_manager = SubprocessEnvManager(**setup_async_manager_cfg)
+        with pytest.raises(AssertionError):
+            env_manager.reset(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
+        obs = env_manager.launch(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
+        timestep = env_manager.step({i: torch.randn(4) for i in range(env_manager.env_num)})
+        assert len(timestep) <= env_manager.env_num
+        env_manager.reset(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
+        timestep = env_manager.step({i: torch.randn(4) for i in range(env_manager.env_num)})
+        assert len(timestep) <= env_manager.env_num

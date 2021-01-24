@@ -5,6 +5,7 @@ from typing import Union, Optional, List, Any
 import numpy as np
 import torch
 import math
+import warnings
 
 from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommand
 from nervex.worker import BaseEnvManager, SubprocessEnvManager
@@ -65,7 +66,9 @@ def serial_pipeline(
     iter_count = 0
     max_eval_reward = float("-inf")
     learner_train_step = cfg.policy.learn.train_step
-    # Here we assume serial entry mainly focuses on agent buffer
+    # Here we assume serial entry mainly focuses on agent buffer.
+    # ``enough_data_count``` is just a lower bound estimation. It is possible that replay buffer's data count is
+    # greater than this value, but still has no enough data to train ``train_step`` times.
     enough_data_count = cfg.policy.learn.batch_size * max(
         cfg.replay_buffer.agent.min_sample_ratio,
         math.ceil(cfg.policy.learn.train_step / cfg.replay_buffer.agent.max_reuse)
@@ -81,10 +84,16 @@ def serial_pipeline(
             if replay_buffer.count() >= enough_data_count:
                 break
         learner.collect_info = collect_info
-        for _ in range(cfg.policy.learn.train_step):
-            # learner will train ``train_step`` times in one iteration
+        for i in range(learner_train_step):
+            # Learner will train ``train_step`` times in one iteration.
+            # But if replay buffer does not have enough data, program will break and warn.
             train_data = replay_buffer.sample(cfg.policy.learn.batch_size, iter_count)
-            assert train_data is not None, "please modify your data collect config, increase n_sample or n_episode"
+            if train_data is None:
+                warnings.warn(
+                    "Replay buffer's data can only train for {} steps. ".format(i) +
+                    "You can modify data collect config, e.g. increasing n_sample, n_episode or min_sample_ratio."
+                )
+                break
             learner.train(train_data)
             if use_priority:
                 replay_buffer.update(learner.priority_info)

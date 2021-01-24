@@ -113,10 +113,10 @@ class BaseSerialActor(object):
                         return_data.extend(train_sample)
                         train_sample_count += len(train_sample)
                         self._total_sample += len(train_sample)
-                        if (train_sample_count + 1) % self._traj_print_freq == 0:
-                            self._logger.info(
-                                "env {} get new traj, collected traj: {}".format(env_id, train_sample_count)
-                            )
+                        # if (train_sample_count + 1) % self._traj_print_freq == 0:
+                        #     self._logger.info(
+                        #         "env {} get new traj, collected traj: {}".format(env_id, train_sample_count)
+                        #     )
                     if timestep.done:
                         # env reset is done by env_manager automatically
                         self._traj_cache[env_id].clear()
@@ -149,6 +149,7 @@ class BaseSerialActor(object):
                 'avg_time_per_episode': duration / max(1, episode_count),
                 'reward_mean': np.mean(episode_reward) if len(episode_reward) > 0 else 0.,
                 'reward_std': np.std(episode_reward) if len(episode_reward) > 0 else 0.,
+                'each_reward': episode_reward,
             }
             self._logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
         self._total_collect_step += 1

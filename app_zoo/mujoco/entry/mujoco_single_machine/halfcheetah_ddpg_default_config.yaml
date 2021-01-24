@@ -22,7 +22,6 @@ policy:
     import_names: ['nervex.policy.ddpg']
     on_policy: False
     use_priority: True
-    use_reward_batch_norm: False
     model:
         obs_dim: 17
         action_dim: 6
@@ -52,10 +51,11 @@ policy:
     command:
         placeholder: 'placeholder'
 replay_buffer:
-    meta_maxlen: 20000
-    max_reuse: 1024
-    unroll_len: 1
-    min_sample_ratio: 1
+    buffer_name: ['agent']
+    agent:
+        meta_maxlen: 20000
+        max_reuse: 1024
+        min_sample_ratio: 1
 actor:
     n_sample: 24
     traj_len: 1

@@ -190,7 +190,8 @@ class ReplayBuffer:
                 ``self._data``. ``None`` means not to load data at the beginning.
             - maxlen (:obj:`int`): The maximum value of the buffer length. If ``load_path`` is not ``None``, it is \
                 highly recommended to set ``maxlen`` no fewer than demonstration data's length.
-            - max_reuse (:obj:`int` or None): The maximum reuse times of each element in buffer.
+            - max_reuse (:obj:`int` or None): The maximum reuse times of each element in buffer. Once a data is \
+                sampled(used) ``max_reuse`` times, it would be removed out of buffer.
             - min_sample_ratio (:obj:`float`): The minimum ratio restriction for sampling, only when \
                 "current element number in buffer / sample size" is greater than this, can start sampling.
             - alpha (:obj:`float`): How much prioritization is used (0: no prioritization, 1: full prioritization).
@@ -454,6 +455,7 @@ class ReplayBuffer:
                             break
                         else:
                             data_start = 0
+                            valid_data_start += L
                 # Update ``pointer`` and ``next_unique_id`` after the whole list is pushed into buffer.
                 self.pointer = (self.pointer + length) % self._maxlen
                 self.next_unique_id += length
@@ -581,23 +583,23 @@ class ReplayBuffer:
         max_weight = (self._valid_count * p_min) ** (-self._beta)
         data = []
         for idx in indices:
+            assert self._data[idx] is not None
+            assert self._data[idx]['replay_buffer_idx'] == idx, (self._data[idx]['replay_buffer_idx'], idx)
             if self._deepcopy:
-                # Deepcopy data for avoiding interference
                 copy_data = copy.deepcopy(self._data[idx])
             else:
                 copy_data = self._data[idx]
-            assert (copy_data is not None)
             # Store staleness, reuse and IS(importance sampling weight for gradient step) for monitor and outer use
             copy_data['staleness'] = self._calculate_staleness(idx, cur_learner_iter)
             copy_data['reuse'] = self._reuse_count[idx]
-            p_sample = self.sum_tree[copy_data['replay_buffer_idx']] / sum_tree_root
+            p_sample = self.sum_tree[idx] / sum_tree_root
             weight = (self._valid_count * p_sample) ** (-self._beta)
             copy_data['IS'] = weight / max_weight
             data.append(copy_data)
             self._reuse_count[idx] += 1
         # Remove datas whose "reuse count" is greater than ``max_reuse``
         for idx in indices:
-            if self._reuse_count[idx] > self.max_reuse:
+            if self._reuse_count[idx] >= self.max_reuse:
                 self._remove(idx)
         # Anneal update beta
         if self._anneal_step != 0:
