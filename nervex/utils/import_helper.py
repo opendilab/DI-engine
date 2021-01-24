@@ -20,8 +20,8 @@ def try_import_ceph():
     except ModuleNotFoundError as e:
         if ceph_flag:
             warnings.warn(
-                "You have not installed ceph package! If you are not run locally and testing, "
-                "ask coworker for help."
+                "You have not installed ceph package! nervex has changed to some alternatives.\
+                 If you want to use it, please ask the nervex development for help."
             )
         ceph = None
         ceph_flag = False
@@ -42,8 +42,8 @@ def try_import_mc():
     except ModuleNotFoundError as e:
         if mc_flag:
             warnings.warn(
-                "You have not installed mc package! If you are not run locally and testing, "
-                "ask coworker for help."
+                "You have not installed memcache package! nervex has changed to some alternatives.\
+                 If you want to use it, please ask the nervex development for help."
             )
         mc = None
         mc_flag = False
@@ -64,8 +64,8 @@ def try_import_redis():
     except ModuleNotFoundError as e:
         if redis_flag:
             warnings.warn(
-                "You have not installed redis package! If you are not run locally and testing, "
-                "ask coworker for help."
+                "You have not installed redis package! nervex has changed to some alternatives.\
+                 If you want to use it, please ask the nervex development for help."
             )
         redis = None
         redis_flag = False
@@ -86,8 +86,8 @@ def try_import_rediscluster():
     except ModuleNotFoundError as e:
         if rediscluster_flag:
             warnings.warn(
-                "You have not installed rediscluster package! If you are not run locally and testing, "
-                "ask coworker for help."
+                "You have not installed rediscluster package! nervex has changed to some alternatives.\
+                 If you want to use it, please ask the nervex development for help."
             )
         rediscluster = None
         rediscluster_flag = False
@@ -108,9 +108,8 @@ def try_import_link():
     except ModuleNotFoundError as e:
         if linklink_flag:
             warnings.warn(
-                "You have not installed linklink package! If you are not run locally and testing, "
-                "ask coworker for help. We will run a fake linklink."
-                "Refer to nervex.utils.fake_linklink.py for details."
+                "You have not installed linklink package! nervex has changed to some alternatives.\
+                 If you want to use it, please ask the nervex development for help."
             )
         from .fake_linklink import link
         linklink_flag = False

@@ -79,7 +79,7 @@ class TestVecEnvManager:
         with pytest.raises(AssertionError):
             env_manager.step([])
 
-    def test_reset(self, setup_async_manager_cfg, setup_exception):
+    def test_reset(self, setup_async_manager_cfg):
         env_manager = SubprocessEnvManager(**setup_async_manager_cfg)
         with pytest.raises(AssertionError):
             env_manager.reset(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
