@@ -1403,3 +1403,5 @@ htmlcov
 .python-version
 /name.txt
 /summary_log
+policy_*
+/data
