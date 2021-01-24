@@ -322,7 +322,7 @@ class SubprocessEnvManager(BaseEnvManager):
         for env_id, timestep in ret.items():
             if timestep.info.get('abnormal', False):
                 self._env_state[env_id] = EnvState.RESET
-                reset_thread = PropagatingThread(target=self._reset, args=(env_id, ))
+                reset_thread = PropagatingThread(target=self._reset, args=(env_id, ), name='abnormal_reset')
                 reset_thread.daemon = True
                 reset_thread.start()
                 continue
@@ -335,7 +335,7 @@ class SubprocessEnvManager(BaseEnvManager):
                     self._env_state[env_id] = EnvState.DONE
                 else:
                     self._env_state[env_id] = EnvState.RESET
-                    reset_thread = PropagatingThread(target=self._reset, args=(env_id, ))
+                    reset_thread = PropagatingThread(target=self._reset, args=(env_id, ), name='regular_reset')
                     reset_thread.daemon = True
                     reset_thread.start()
             else:

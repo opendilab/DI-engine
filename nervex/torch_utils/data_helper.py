@@ -308,7 +308,7 @@ class CudaFetcher(object):
         self._source = data_source
         self._queue = Queue(maxsize=queue_size)
         self._stream = torch.cuda.Stream()
-        self._producer_thread = Thread(target=self._producer, args=())
+        self._producer_thread = Thread(target=self._producer, args=(), name='cuda_fetcher_producer')
         self._sleep = sleep
         self._device = device
 

@@ -99,12 +99,12 @@ class AsyncDataLoader(object):
         if self.use_cuda:
             # the queue to store processed cuda data, user will get data from it if use cuda
             self.cuda_queue = queue.Queue(maxsize=queue_maxsize)
-            self.cuda_thread = threading.Thread(target=self._cuda_loop, args=())
+            self.cuda_thread = threading.Thread(target=self._cuda_loop, args=(), name='dataloader_cuda')
             self.cuda_thread.daemon = True
             self.cuda_thread.start()
 
         # get data thread, coordinate with async process
-        self.get_data_thread = threading.Thread(target=self._get_data, args=(p, c))
+        self.get_data_thread = threading.Thread(target=self._get_data, args=(p, c), name='dataloader_get_data')
         self.get_data_thread.daemon = True
         self.get_data_thread.start()
 

@@ -40,10 +40,14 @@ class Coordinator(object):
         self._commander = create_parallel_commander(cfg.commander)
         self._commander_lock = LockContext(LockContextType.THREAD_LOCK)
         # ############## Thread #####################
-        self._assign_actor_thread = Thread(target=self._assign_actor_task, args=())
-        self._assign_learner_thread = Thread(target=self._assign_learner_task, args=())
-        self._produce_actor_thread = Thread(target=self._produce_actor_task, args=())
-        self._produce_learner_thread = Thread(target=self._produce_learner_task, args=())
+        self._assign_actor_thread = Thread(target=self._assign_actor_task, args=(), name='coordinator_assign_actor')
+        self._assign_learner_thread = Thread(
+            target=self._assign_learner_task, args=(), name='coordinator_assign_learner'
+        )
+        self._produce_actor_thread = Thread(target=self._produce_actor_task, args=(), name='coordinator_produce_actor')
+        self._produce_learner_thread = Thread(
+            target=self._produce_learner_task, args=(), name='coordinator_produce_learner'
+        )
 
         self._replay_buffer = {}
         self._task_state = {}  # str -> TaskState
