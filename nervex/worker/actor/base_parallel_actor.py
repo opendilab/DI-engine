@@ -94,8 +94,8 @@ class BaseActor(ABC):
         self._env_step = env_wrapper(self._env_step)
 
     def _setup_logger(self) -> Tuple:
-        path = './log'
-        name = '{}.{}.log'.format(self._prefix, self._actor_uid)
+        path = './log/{}'.format(self._prefix.tolower())
+        name = '{}'.format(self._actor_uid)
         logger, _ = build_logger(path, name, False)
         monitor = TickMonitor(TickTime(), expire=self._cfg.print_freq * 2)
         log_buffer = build_log_buffer()
