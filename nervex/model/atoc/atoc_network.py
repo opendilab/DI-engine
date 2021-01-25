@@ -1,13 +1,13 @@
 from typing import Union, List, Dict, Optional, Tuple, Callable
+from copy import deepcopy
 
+import queue
 import torch
 import torch.nn as nn
 
 from nervex.torch_utils import get_lstm
 from nervex.utils import squeeze
-from copy import deepcopy
-from nervex.model.common_arch import QActorCriticBase
-import queue
+from ..common import QActorCriticBase, register_model
 
 
 class ATOCAttentionUnit(nn.Module):
@@ -531,3 +531,6 @@ class ATOCQAC(QActorCriticBase):
         ), mode
         f = getattr(self, mode)
         return f(inputs, **kwargs)
+
+
+register_model('atoc', ATOCQAC)

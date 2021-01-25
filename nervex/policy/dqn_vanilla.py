@@ -109,11 +109,8 @@ class DQNVanillaPolicy(CommonPolicy):
         learner_step = command_info['learner_step']
         return {'eps': self.epsilon_greedy(learner_step)}
 
-    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
-        if model_type is None:
-            return FCDiscreteNet(**cfg.model)
-        else:
-            return model_type(**cfg.model)
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'fc_discrete_net', ['nervex.model.discrete_net.discrete_net']
 
     def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
         data = [traj_cache.popleft() for _ in range(self._traj_len)]

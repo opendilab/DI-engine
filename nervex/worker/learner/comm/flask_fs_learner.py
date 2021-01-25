@@ -117,7 +117,7 @@ class FlaskFileSystemLearner(BaseCommLearner):
         self._learner = self._create_learner(task_info)
         for h in self.hooks4call:
             self._learner.register_hook(h)
-        self._learner_thread = Thread(target=self._learner.start, args=(), daemon=True)
+        self._learner_thread = Thread(target=self._learner.start, args=(), daemon=True, name='learner_start')
         self._learner_thread.start()
 
     def deal_with_get_data(self) -> Any:

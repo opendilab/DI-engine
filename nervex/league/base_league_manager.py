@@ -62,8 +62,8 @@ class BaseLeagueManager(ABC):
         self.load_checkpoint_fn = load_checkpoint_fn
         self.launch_job_fn = launch_job_fn
         self._active_players_lock = LockContext(type_=LockContextType.THREAD_LOCK)
-        self._launch_job_thread = Thread(target=self._launch_job)
-        self._snapshot_thread = Thread(target=self._snapshot)
+        self._launch_job_thread = Thread(target=self._launch_job, name='league_launch_job')
+        self._snapshot_thread = Thread(target=self._snapshot, name='league_snapshot')
         self._end_flag = False
 
         self._init_league()

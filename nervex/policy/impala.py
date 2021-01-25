@@ -162,7 +162,7 @@ class IMPALAPolicy(CommonPolicy):
     def _forward_collect(self, data_id: List[int], data: dict) -> dict:
         r"""
         Overview:
-            Forward function for collect mode with eps_greedy
+            Forward function for collect mode
         Arguments:
             - data_id (:obj:`List` of :obj:`int`): Not used, set in arguments for consistency
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
@@ -173,16 +173,16 @@ class IMPALAPolicy(CommonPolicy):
 
     def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
         """
-            Overview:
-                   Generate dict type transition data from inputs.
-            Arguments:
-                    - obs (:obj:`Any`): Env observation
-                    - agent_output (:obj:`dict`): Output of collect agent, including at least ['action']
-                    - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done']\
-                           (here 'obs' indicates obs after env step).
-            Returns:
-                   - transition (:obj:`dict`): Dict type transition data.
-            """
+        Overview:
+               Generate dict type transition data from inputs.
+        Arguments:
+                - obs (:obj:`Any`): Env observation
+                - agent_output (:obj:`dict`): Output of collect agent, including at least ['action']
+                - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done']\
+                       (here 'obs' indicates obs after env step).
+        Returns:
+               - transition (:obj:`dict`): Dict type transition data.
+        """
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
@@ -222,25 +222,8 @@ class IMPALAPolicy(CommonPolicy):
     def _init_command(self) -> None:
         pass
 
-    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
-        r"""
-        Overview:
-            Create a model according to input config.
-            For single dim obs is FC model while for multiple dim obs is conv model.
-        Arguments:
-            - cfg (:obj:`dict`): Config.
-            - model_type (:obj:`Optional[type]`): If this is not None, this function will create \
-                an instance of this.
-        Returns:
-            - model (:obj:`torch.nn.Module`): Generated model.
-        """
-        if model_type is None:
-            if isinstance(cfg.model.obs_dim, List):
-                return ConvValueAC(**cfg.model)
-            else:
-                return FCValueAC(**cfg.model)
-        else:
-            return model_type(**cfg.model)
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'fc_vac', ['nervex.model.actor_critic.value_ac']
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss']

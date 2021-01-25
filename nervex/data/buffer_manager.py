@@ -55,7 +55,7 @@ class BufferManager:
         # self.use_cache = cfg.get('use_cache', False)
         self.use_cache = False
         self._cache = Cache(maxlen=self.cfg.get('cache_maxlen', 256), timeout=self.cfg.get('timeout', 8))
-        self._cache_thread = Thread(target=self._cache2meta)
+        self._cache_thread = Thread(target=self._cache2meta, name='buffer_cache')
 
     def _cache2meta(self):
         """

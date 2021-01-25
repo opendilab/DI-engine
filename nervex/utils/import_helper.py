@@ -21,7 +21,7 @@ def try_import_ceph():
         if ceph_flag:
             warnings.warn(
                 "You have not installed ceph package! nervex has changed to some alternatives.\
-                 If you want to use it, please ask the nervex development for help."
+                 If you want to use it, please ask the nervex developer for help."
             )
         ceph = None
         ceph_flag = False
@@ -43,7 +43,7 @@ def try_import_mc():
         if mc_flag:
             warnings.warn(
                 "You have not installed memcache package! nervex has changed to some alternatives.\
-                 If you want to use it, please ask the nervex development for help."
+                 If you want to use it, please ask the nervex developer for help."
             )
         mc = None
         mc_flag = False
@@ -65,7 +65,7 @@ def try_import_redis():
         if redis_flag:
             warnings.warn(
                 "You have not installed redis package! nervex has changed to some alternatives.\
-                 If you want to use it, please ask the nervex development for help."
+                 If you want to use it, please ask the nervex developer for help."
             )
         redis = None
         redis_flag = False
@@ -87,7 +87,7 @@ def try_import_rediscluster():
         if rediscluster_flag:
             warnings.warn(
                 "You have not installed rediscluster package! nervex has changed to some alternatives.\
-                 If you want to use it, please ask the nervex development for help."
+                 If you want to use it, please ask the nervex developer for help."
             )
         rediscluster = None
         rediscluster_flag = False
@@ -109,7 +109,7 @@ def try_import_link():
         if linklink_flag:
             warnings.warn(
                 "You have not installed linklink package! nervex has changed to some alternatives.\
-                 If you want to use it, please ask the nervex development for help."
+                 If you want to use it, please ask the nervex developer for help."
             )
         from .fake_linklink import link
         linklink_flag = False

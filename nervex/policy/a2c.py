@@ -214,21 +214,8 @@ class A2CPolicy(CommonPolicy):
     def _init_command(self) -> None:
         pass
 
-    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
-        r"""
-        Overview:
-            Create a model according to input config. This policy will adopt DiscreteNet.
-        Arguments:
-            - cfg (:obj:`dict`): Config.
-            - model_type (:obj:`Optional[type]`): If this is not None, this function will create \
-                an instance of this.
-        Returns:
-            - model (:obj:`torch.nn.Module`): Generated model.
-        """
-        if model_type is None:
-            return FCValueAC(**cfg.model)
-        else:
-            return model_type(**cfg.model)
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'fc_vac', ['nervex.model.actor_critic.value_ac']
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss', 'adv_abs_max']

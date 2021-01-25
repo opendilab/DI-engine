@@ -20,7 +20,7 @@ def serial_pipeline(
         seed: int,
         env_setting: Optional[Any] = None,  # subclass of BaseEnv, and config dict
         policy_type: Optional[type] = None,  # subclass of Policy
-        model_type: Optional[type] = None,  # subclass of torch.nn.Module
+        model: Optional[Union[type, torch.nn.Module]] = None,  # instance or subclass of torch.nn.Module
 ) -> None:
     if isinstance(cfg, str):
         cfg = read_config(cfg)
@@ -28,13 +28,18 @@ def serial_pipeline(
     # if you want to indicate different cfg for different env, please refer to `get_vec_env_setting`.
     # usually, user defined env must be registered in nervex so that it can be created with config string,
     # and you can also directly pass env_fn argument, in some dynamic env class cases.
+    manager_cfg = cfg.env.get('manager', {})
     if env_setting is None:
         env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     else:
         env_fn, actor_env_cfg, evaluator_env_cfg = env_setting
     env_manager_type = BaseEnvManager if cfg.env.env_manager_type == 'base' else SubprocessEnvManager
-    actor_env = env_manager_type(env_fn=env_fn, env_cfg=actor_env_cfg, env_num=len(actor_env_cfg))
-    evaluator_env = env_manager_type(env_fn, env_cfg=evaluator_env_cfg, env_num=len(evaluator_env_cfg))
+    actor_env = env_manager_type(
+        env_fn=env_fn, env_cfg=actor_env_cfg, env_num=len(actor_env_cfg), manager_cfg=manager_cfg
+    )
+    evaluator_env = env_manager_type(
+        env_fn, env_cfg=evaluator_env_cfg, env_num=len(evaluator_env_cfg), manager_cfg=manager_cfg
+    )
     # seed
     actor_env.seed(seed)
     evaluator_env.seed(seed)
@@ -44,7 +49,7 @@ def serial_pipeline(
         torch.cuda.manual_seed(seed)
     # create component
     policy_fn = create_policy if policy_type is None else policy_type
-    policy = policy_fn(cfg.policy, model_type=model_type)
+    policy = policy_fn(cfg.policy, model=model)
     learner = BaseLearner(cfg.learner)
     actor = BaseSerialActor(cfg.actor)
     evaluator = BaseSerialEvaluator(cfg.evaluator)

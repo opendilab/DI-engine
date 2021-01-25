@@ -13,8 +13,8 @@ class BaseSerialEvaluator(object):
     def __init__(self, cfg: dict) -> None:
         self._default_n_episode = cfg.get('n_episode', None)
         self._stop_val = cfg.stop_val
-        self._logger, _ = build_logger(path='./log', name='evaluator')
-        self._tb_logger = TensorBoardLogger(path='./log', name='evaluator')
+        self._logger, _ = build_logger(path='./log/evaluator', name='evaluator')
+        self._tb_logger = TensorBoardLogger(path='./log/evaluator', name='evaluator')
         for var in ['episode_count', 'step_count', 'avg_step_per_episode', 'avg_time_per_step', 'avg_time_per_episode',
                     'reward_mean', 'reward_std']:
             self._tb_logger.register_var(var)
@@ -69,6 +69,10 @@ class BaseSerialEvaluator(object):
                 action = {i: a['action'] for i, a in policy_output.items()}
                 timestep = self._env.step(action)
                 for i, t in timestep.items():
+                    if t.info.get('abnormal', False):
+                        # if there is a abnormal timestep, reset all the related variable, also this env has been reset
+                        self._policy.reset([i])
+                        continue
                     if t.done:
                         # env reset is done by env_manager automatically
                         self._policy.reset([i])

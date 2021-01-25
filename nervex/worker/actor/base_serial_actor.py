@@ -22,7 +22,7 @@ class BaseSerialActor(object):
         self._traj_cache_length = self._traj_len
         self._traj_print_freq = cfg.traj_print_freq
         self._collect_print_freq = cfg.collect_print_freq
-        self._logger, _ = build_logger(path='./log', name='actor')
+        self._logger, _ = build_logger(path='./log/actor', name='actor')
         self._timer = EasyTimer()
         self._cfg = cfg
 
@@ -100,6 +100,14 @@ class BaseSerialActor(object):
                 actions = {env_id: output['action'] for env_id, output in policy_output.items()}
                 timesteps = self._env.step(actions)
                 for env_id, timestep in timesteps.items():
+                    if timestep.info.get('abnormal', False):
+                        # if there is a abnormal timestep, reset all the related variable, also this env has been reset
+                        self._traj_cache[env_id].clear()
+                        self._obs_pool.reset(env_id)
+                        self._policy_output_pool.reset(env_id)
+                        self._policy.reset([env_id])
+                        print('env_id abnormal step', env_id, timestep.info)
+                        continue
                     transition = self._policy.process_transition(
                         self._obs_pool[env_id], self._policy_output_pool[env_id], timestep
                     )

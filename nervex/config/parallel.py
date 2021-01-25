@@ -29,7 +29,6 @@ policy_default_config = dict(
 )
 
 zergling_actor_default_config = dict(
-    save_path='.',
     actor_type='zergling',
     import_names=['nervex.worker.actor.zergling_actor'],
     print_freq=10,

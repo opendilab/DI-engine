@@ -141,14 +141,12 @@ class SubprocessEnvManager(BaseEnvManager):
             env_cfg: Iterable,
             env_num: int,
             episode_num: Optional[int] = 'inf',
-            timeout: Optional[float] = 0.01,
-            wait_num: Optional[int] = 2,
-            shared_memory: Optional[bool] = True,
+            manager_cfg: Optional[dict] = {},
     ) -> None:
         super().__init__(env_fn, env_cfg, env_num, episode_num)
-        self.shared_memory = shared_memory
-        self.timeout = timeout
-        self.wait_num = wait_num
+        self.shared_memory = manager_cfg.get('shared_memory', True)
+        self.timeout = manager_cfg.get('timeout', 0.01)
+        self.wait_num = manager_cfg.get('wait_num', 2)
         self._lock = LockContext(LockContextType.THREAD_LOCK)
 
     def _create_state(self) -> None:
@@ -177,9 +175,10 @@ class SubprocessEnvManager(BaseEnvManager):
             ctx.Process(
                 target=self.worker_fn,
                 args=(parent, child, CloudpickleWrapper(fn), obs_buffer, self.method_name_list),
-                daemon=True
-            ) for parent, child, fn, obs_buffer in
-            zip(self._parent_remote, self._child_remote, env_fn, self._obs_buffers.values())
+                daemon=True,
+                name='vec_env_manager{}_{}'.format(idx, time.time())
+            ) for idx, (parent, child, fn, obs_buffer) in
+            enumerate(zip(self._parent_remote, self._child_remote, env_fn, self._obs_buffers.values()))
         ]
         for p in self._processes:
             p.start()
@@ -224,11 +223,6 @@ class SubprocessEnvManager(BaseEnvManager):
     @property
     def done(self) -> bool:
         return all([s == EnvState.DONE for s in self._env_state.values()])
-
-    def launch(self, reset_param: Union[None, List[dict]] = None) -> None:
-        assert self._closed, "please first close the env manager"
-        self._create_state()
-        self.reset(reset_param)
 
     def reset(self, reset_param: Union[None, List[dict]] = None) -> None:
         self._check_closed()
@@ -322,16 +316,22 @@ class SubprocessEnvManager(BaseEnvManager):
                 self._waiting_env['step'].add(env_id)
 
         for env_id, timestep in ret.items():
+            if timestep.info.get('abnormal', False):
+                self._env_state[env_id] = EnvState.RESET
+                reset_thread = PropagatingThread(target=self._reset, args=(env_id, ), name='abnormal_reset')
+                reset_thread.daemon = True
+                reset_thread.start()
+                continue
             if self.shared_memory:
                 timestep = timestep._replace(obs=self._obs_buffers[env_id].get())
-            ret[env_id] = timestep
+                ret[env_id] = timestep
             if timestep.done:
                 self._env_episode_count[env_id] += 1
                 if self._env_episode_count[env_id] >= self._epsiode_num:
                     self._env_state[env_id] = EnvState.DONE
                 else:
                     self._env_state[env_id] = EnvState.RESET
-                    reset_thread = PropagatingThread(target=self._reset, args=(env_id, ))
+                    reset_thread = PropagatingThread(target=self._reset, args=(env_id, ), name='regular_reset')
                     reset_thread.daemon = True
                     reset_thread.start()
             else:
@@ -359,10 +359,13 @@ class SubprocessEnvManager(BaseEnvManager):
                     elif cmd in method_name_list:
                         if cmd == 'step':
                             timestep = env.step(*args, **kwargs)
-                            if obs_buffer is not None:
-                                obs_buffer.fill(timestep.obs)
-                                timestep = timestep._replace(obs=None)
-                            ret = timestep
+                            if timestep.info.get('abnormal', False):
+                                ret = timestep
+                            else:
+                                if obs_buffer is not None:
+                                    obs_buffer.fill(timestep.obs)
+                                    timestep = timestep._replace(obs=None)
+                                ret = timestep
                         elif cmd == 'reset':
                             ret = env.reset(*args, **kwargs)  # obs
                             if obs_buffer is not None:

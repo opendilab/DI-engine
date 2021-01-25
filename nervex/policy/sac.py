@@ -7,7 +7,6 @@ import torch.nn.functional as F
 
 from nervex.torch_utils import Adam
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, Adder
-from nervex.model import SAC
 from nervex.agent import Agent
 from nervex.policy.base_policy import Policy, register_policy
 from nervex.policy.common_policy import CommonPolicy
@@ -99,14 +98,20 @@ class SACPolicy(CommonPolicy):
         next_data = {'obs': next_obs}
         target_v_value = self._agent.target_forward(next_data, param={'mode': 'compute_value'})['v_value']
         if self._use_twin_q:
-            q_data = v_1step_td_data(q_value[0], target_v_value, reward, done, data['weight'])
-            loss_dict['q_loss'], td_error_per_sample1 = v_1step_td_error(q_data, self._gamma)
-            q_data = v_1step_td_data(q_value[1], target_v_value, reward, done, data['weight'])
-            loss_dict['q_twin_loss'], td_error_per_sample2 = v_1step_td_error(q_data, self._gamma)
+            q_data0 = v_1step_td_data(q_value[0], target_v_value, reward, done, data['weight'])
+            loss_dict['q_loss'], td_error_per_sample1 = v_1step_td_error(q_data0, self._gamma)
+            q_data1 = v_1step_td_data(q_value[1], target_v_value, reward, done, data['weight'])
+            loss_dict['q_twin_loss'], td_error_per_sample2 = v_1step_td_error(q_data1, self._gamma)
             td_error_per_sample = (td_error_per_sample1 + td_error_per_sample2) / 2
         else:
             q_data = v_1step_td_data(q_value, target_v_value, reward, done, data['weight'])
             loss_dict['q_loss'], td_error_per_sample = v_1step_td_error(q_data, self._gamma)
+
+        self._optimizer_q.zero_grad()
+        loss_dict['q_loss'].backward()
+        if self._use_twin_q:
+            loss_dict['q_twin_loss'].backward()
+        self._optimizer_q.step()
 
         # compute value loss
         eval_data['obs'] = obs
@@ -116,6 +121,10 @@ class SACPolicy(CommonPolicy):
         # new_q_value: (bs, ), log_prob: (bs, act_dim) -> next_v_value: (bs, )
         next_v_value = (new_q_value.unsqueeze(-1) - self._alpha * log_prob).mean(dim=-1)
         loss_dict['value_loss'] = F.mse_loss(v_value, next_v_value.detach())
+
+        self._optimizer_value.zero_grad()
+        loss_dict['value_loss'].backward()
+        self._optimizer_value.step()
 
         # compute policy loss
         if not self._reparameterization:
@@ -130,17 +139,6 @@ class SACPolicy(CommonPolicy):
         policy_loss += std_reg_loss + mean_reg_loss
         loss_dict['policy_loss'] = policy_loss
         loss_dict['total_loss'] = sum(loss_dict.values())
-
-        # ======================
-        # update of 3 networks
-        # ======================
-        self._optimizer_q.zero_grad()
-        loss_dict['q_loss'].backward()
-        self._optimizer_q.step()
-
-        self._optimizer_value.zero_grad()
-        loss_dict['value_loss'].backward()
-        self._optimizer_value.step()
 
         self._optimizer_policy.zero_grad()
         loss_dict['policy_loss'].backward()
@@ -253,21 +251,8 @@ class SACPolicy(CommonPolicy):
         """
         pass
 
-    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
-        r"""
-        Overview:
-            Create a model according to input config. This policy will adopt DiscreteNet.
-        Arguments:
-            - cfg (:obj:`dict`): Config.
-            - model_type (:obj:`Optional[type]`): If this is not None, this function will create \
-                an instance of this.
-        Returns:
-            - model (:obj:`torch.nn.Module`): Generated model.
-        """
-        if model_type is None:
-            return SAC(**cfg.model)
-        else:
-            return model_type(**cfg.model)
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'sac', ['nervex.model.sac']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

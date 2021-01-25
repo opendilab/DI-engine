@@ -262,23 +262,8 @@ class COMAPolicy(CommonPolicy):
         data = self._adder.get_traj(traj_cache, self._traj_len, return_num=0)
         return self._adder.get_train_sample(data)
 
-    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
-        r"""
-        Overview:
-            Create a model according to input config. Defalut use ComaNetwork
-
-        Arguments:
-            - cfg (:obj:`dict`): Config, including the config contain model parameters
-            - model_type (:obj:`type` or None): The type of the model to create, if this is not None, this\
-                function will create an instance of the model_type.
-
-        Returns:
-            - model (:obj:`torch.nn.Module`): Generted model.
-        """
-        if model_type is None:
-            return ComaNetwork(**cfg.model)
-        else:
-            return model_type(**cfg.model)
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'coma', ['nervex.model.coma.coma']
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss']
