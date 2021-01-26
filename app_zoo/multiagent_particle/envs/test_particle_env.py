@@ -1,6 +1,6 @@
 import pytest
 import torch
-from app_zoo.multiagent_particle.envs import ParticleEnv
+from app_zoo.multiagent_particle.envs import ParticleEnv, CooperativeNavigation
 
 use_discrete = [True, False]
 
@@ -38,6 +38,7 @@ class TestParticleEnv:
 
     def env_test(self, name, discrete_action, doprint=False):
         env = ParticleEnv({"env_name": name, "discrete_action": discrete_action})
+        # print(env.info())
         if doprint:
             print(env.info())
         obs = env.reset()
@@ -46,7 +47,7 @@ class TestParticleEnv:
             assert obs[i].shape == env.info().obs_space['agent' + str(i)].shape
 
         #try run randomly for 100 step
-        for _ in range(100):
+        for _ in range(1):
             random_action = []
             # print(env.info().act_space)
             for i in range(env.agent_num):
@@ -81,7 +82,25 @@ class TestParticleEnv:
             if doprint:
                 print(timestep)
             for i in range(env.agent_num):
-                assert timestep.obs[i].size() == env.info().obs_space['agent' + str(i)].shape
-                assert timestep.reward[i].size() == env.info().rew_space['agent' + str(i)].shape
+                assert timestep.obs[i].shape == env.info().obs_space['agent' + str(i)].shape
+                # assert timestep.reward[i].shape == env.info().rew_space['agent' + str(i)].shape
             assert isinstance(timestep, tuple)
         env.close()
+
+@pytest.mark.unittest
+class TestCooperativeNavigation:
+
+    def test_naive(self):
+        num_agent, num_landmark = 5, 6
+        env = CooperativeNavigation({'num_agents':num_agent, 'num_landmarks':num_landmark})
+        print(env.info())
+        obs = env.reset()
+        for k, v in obs.items():
+            assert v.shape == env.info().obs_space.shape[k]
+        for _ in range(100):
+            action = torch.randint(0, 3, (num_agent,))
+            timestep = env.step(action)
+            obs = timestep.obs
+            for k, v in obs.items():
+                assert v.shape == env.info().obs_space.shape[k]
+            assert isinstance(timestep, tuple), timestep

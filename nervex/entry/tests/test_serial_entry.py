@@ -264,3 +264,39 @@ def test_her_dqn():
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
+
+@pytest.mark.unittest
+def test_collaQ_particle():
+    path = os.path.join(os.path.dirname(__file__), '../../../app_zoo/multiagent_particle/entry/cooperative_navigation_collaQ_default_config.yaml')
+    config = read_config(path)
+    config.policy.use_cuda = False
+    config.policy.learn.train_step = 1
+    config.evaluator.stop_val = -float("inf")
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+
+@pytest.mark.unittest
+def test_coma_particle():
+    path = os.path.join(os.path.dirname(__file__), '../../../app_zoo/multiagent_particle/entry/cooperative_navigation_coma_default_config.yaml')
+    config = read_config(path)
+    config.policy.use_cuda = False
+    config.policy.learn.train_step = 1
+    config.evaluator.stop_val = -float("inf")
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+
+@pytest.mark.unittest
+def test_qmix_particle():
+    path = os.path.join(os.path.dirname(__file__), '../../../app_zoo/multiagent_particle/entry/cooperative_navigation_qmix_default_config.yaml')
+    config = read_config(path)
+    config.policy.use_cuda = False
+    config.policy.learn.train_step = 1
+    config.evaluator.stop_val = -float("inf")
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
