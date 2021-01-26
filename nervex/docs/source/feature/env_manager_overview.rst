@@ -19,12 +19,16 @@ Env Manager
     1. BaseEnvManager (nervex/worker/actor/env_manager/base_env_manager.py)
 
         .. code:: python
-env
+
+            class BaseEnvManager(ABC):
+
+                def __init__(
                         self,
                         env_fn: Callable,
                         env_cfg: Iterable,
                         env_num: int,
                         episode_num: Optional[int] = 'inf',
+                        manager_cfg: Optional[dict] = {},
                 ) -> None:
                     self._env_num = env_num
                     self._env_fn = env_fn

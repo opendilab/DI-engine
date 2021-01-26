@@ -27,11 +27,11 @@ class BaseEnvManager(ABC):
     ) -> None:
         """
         Arguments:
-        - env_fn (:obj:`function`): the function to create environment
-        - env_cfg (:obj:`list`): the list of environemnt configs
-        - env_num (:obj:`int`): number of environments to create, equal to len(env_cfg)
-        - episode_num (:obj:`int`): maximum episodes to collect in one environment
-        - manager_cfg (:obj:`dict`): config for env manager
+            - env_fn (:obj:`function`): the function to create environment
+            - env_cfg (:obj:`list`): the list of environemnt configs
+            - env_num (:obj:`int`): number of environments to create, equal to len(env_cfg)
+            - episode_num (:obj:`int`): maximum episodes to collect in one environment
+            - manager_cfg (:obj:`dict`): config for env manager
         """
         self._env_num = env_num
         self._env_fn = env_fn

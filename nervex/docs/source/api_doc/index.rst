@@ -63,3 +63,5 @@ API Doc
     worker/learner/base_learner
     worker/learner/learner_comm
     worker/learner/learner_hook
+    worker/actor/env_manager/vec_env_manager
+    worker/actor/env_manager/base_env_manager
