@@ -50,9 +50,11 @@ class ShmBuffer():
 
     def __init__(self, dtype: np.generic, shape: Tuple[int]) -> None:
         """
+        Overview:
+            Initialize the buffer.
         Arguments:
             - dtype (:obj:`np.generic`): dtype of the data to limit the size of the buffer.
-            - dtype (:obj:`Tuple`): shape of the data to limit the size of the buffer.
+            - shape (:obj:`Tuple`): shape of the data to limit the size of the buffer.
         """
         self.buffer = Array(_NTYPE_TO_CTYPE[dtype.type], int(np.prod(shape)))
         self.dtype = dtype
@@ -60,7 +62,10 @@ class ShmBuffer():
 
     def fill(self, src_arr: np.ndarray) -> None:
         """
-        Fill the shared memory buffer with a numpy array.
+        Overview:
+            Fill the shared memory buffer with a numpy array.
+        Arguments:
+            - src_arr (:obj:`np.ndarray`): array to fill the buffer.
         """
         assert isinstance(src_arr, np.ndarray), type(src_arr)
         dst_arr = np.frombuffer(self.buffer.get_obj(), dtype=self.dtype).reshape(self.shape)
@@ -69,6 +74,8 @@ class ShmBuffer():
 
     def get(self) -> np.ndarray:
         """
+        Overview:
+            Get the array stored in the buffer.
         Return:
             A copy of the data stored in the buffer.
         """
@@ -172,12 +179,14 @@ class SubprocessEnvManager(BaseEnvManager):
             manager_cfg: Optional[dict] = {},
     ) -> None:
         """
+        Overview:
+            Initialize the SubprocessEnvManager.
         Arguments:
-        - env_fn (:obj:`function`): the function to create environment
-        - env_cfg (:obj:`list`): the list of environemnt configs
-        - env_num (:obj:`int`): number of environments to create, equal to len(env_cfg)
-        - episode_num (:obj:`int`): maximum episodes to collect in one environment
-        - manager_cfg (:obj:`dict`): config for env manager
+            - env_fn (:obj:`function`): the function to create environment
+            - env_cfg (:obj:`list`): the list of environemnt configs
+            - env_num (:obj:`int`): number of environments to create, equal to len(env_cfg)
+            - episode_num (:obj:`int`): maximum episodes to collect in one environment
+            - manager_cfg (:obj:`dict`): config for env manager
         """
         super().__init__(env_fn, env_cfg, env_num, episode_num)
         self.shared_memory = manager_cfg.get('shared_memory', True)
@@ -251,7 +260,11 @@ class SubprocessEnvManager(BaseEnvManager):
     def next_obs(self) -> Dict[int, Any]:
         """
         Overview:
-            Get the next observations and corresponding env id.
+            Get the next observations.
+        Return:
+            A dictionary with observations and their environment IDs.
+        Note:
+            The observations are returned in torch.Tensor.
         Example:
             >>>     obs_dict = env_manager.next_obs
             >>>     action_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
@@ -268,19 +281,23 @@ class SubprocessEnvManager(BaseEnvManager):
     def done(self) -> bool:
         return all([s == EnvState.DONE for s in self._env_state.values()])
 
-    def launch(self, reset_param: Union[None, List[dict]] = None) -> None:
+    def launch(self, reset_param: Optional[List[dict]] = None) -> None:
         """
         Overview:
-            Set up the environments and hypter-params.
+            Set up the environments and hyper-params.
+        Arguments:
+            - reset_param (:obj:`List`): list of reset parameters for each environment.
         """
         assert self._closed, "please first close the env manager"
         self._create_state()
         self.reset(reset_param)
 
-    def reset(self, reset_param: Union[None, List[dict]] = None) -> None:
+    def reset(self, reset_param: Optional[List[dict]] = None) -> None:
         """
         Overview:
-            Reset the environments and hypter-params.
+            Reset the environments and hyper-params.
+        Arguments:
+            - reset_param (:obj:`List`): list of reset parameters for each environment.
         Note:
             Create separate thread to reset each environment to avoid blocking.
         """
@@ -335,12 +352,20 @@ class SubprocessEnvManager(BaseEnvManager):
 
     def step(self, action: Dict[int, Any]) -> Dict[int, namedtuple]:
         """
+        Overview:
+            Wrapper of step function in the environment.
         Arguments:
             - action (:obj:`Dict`): a dictionary, {env_id: action}, which includes actions and their env ids.
         Return:
-            - timsteps (:obj:`Dict`): a dictionary, {env_id: timestep}, which includes each env's timestep.
+            - timesteps (:obj:`Dict`): a dictionary, {env_id: timestep}, which includes each env's timestep.
         Note:
-            The env_id that appears in action will also be returned in timesteps.
+            - The env_id that appears in action will also be returned in timesteps.
+            - Each environment is run by a subprocess seperately. Once an environment is done, it is reset immediately.
+        Example:
+            >>>     action_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
+            >>>     timesteps = env_manager.step(action_dict):
+            >>>     for env_id, timestep in timesteps.items():
+            >>>         pass
         """
         self._check_closed()
         env_ids = list(action.keys())

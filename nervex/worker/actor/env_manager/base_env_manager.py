@@ -26,6 +26,8 @@ class BaseEnvManager(ABC):
             manager_cfg: Optional[dict] = {},
     ) -> None:
         """
+        Overview:
+            Initialize the BaseEnvManager.
         Arguments:
             - env_fn (:obj:`function`): the function to create environment
             - env_cfg (:obj:`list`): the list of environemnt configs
@@ -65,6 +67,10 @@ class BaseEnvManager(ABC):
         """
         Overview:
             Get the next observations and corresponding env id.
+        Return:
+            A dictionary with observations and their environment IDs.
+        Note:
+            The observations are returned in torch.Tensor.
         Example:
             >>>     obs_dict = env_manager.next_obs
             >>>     action_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
@@ -95,7 +101,9 @@ class BaseEnvManager(ABC):
     def launch(self, reset_param: Union[None, List[dict]] = None) -> None:
         """
         Overview:
-            Set up the environments and hypter-params.
+            Set up the environments and hyper-params.
+        Arguments:
+            - reset_param (:obj:`List`): list of reset parameters for each environment.
         """
         assert self._closed, "please first close the env manager"
         self._create_state()
@@ -104,7 +112,9 @@ class BaseEnvManager(ABC):
     def reset(self, reset_param: Union[None, List[dict]] = None) -> None:
         """
         Overview:
-            Reset the environments and hypter-params.
+            Reset the environments and hyper-params.
+        Arguments:
+            - reset_param (:obj:`List`): list of reset parameters for each environment.
         """
         if reset_param is None:
             reset_param = [{} for _ in range(self.env_num)]
@@ -129,12 +139,21 @@ class BaseEnvManager(ABC):
 
     def step(self, action: Dict[int, Any]) -> Dict[int, namedtuple]:
         """
+        Overview:
+            Wrapper of step function in the environment.
         Arguments:
             - action (:obj:`Dict`): a dictionary, {env_id: action}, which includes actions and their env ids.
         Return:
-            - timsteps (:obj:`Dict`): a dictionary, {env_id: timestep}, which includes each env's timestep.
+            - timesteps (:obj:`Dict`): a dictionary, {env_id: timestep}, which includes each environment's timestep.
         Note:
-            The env_id that appears in action will also be returned in timesteps.
+            - The env_id that appears in action will also be returned in timesteps.
+            - It will wait until all environments are done to reset. If episodes in different environments \
+                vary significantly, it is suggested to use vec_env_manager.
+        Example:
+            >>>     action_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
+            >>>     timesteps = env_manager.step(action_dict):
+            >>>     for env_id, timestep in timesteps.items():
+            >>>         pass
         """
         self._check_closed()
         timesteps = {}
@@ -155,6 +174,9 @@ class BaseEnvManager(ABC):
         """
         Overview:
             Set the seed for each environment.
+        Arguments:
+            - seed (:obj:`List or int`): list of seeds for each environment, \
+                or one seed for the first environment and other seeds are generated automatically.
         """
         if isinstance(seed, numbers.Integral):
             seed = [seed + i for i in range(self.env_num)]
