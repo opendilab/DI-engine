@@ -6,7 +6,7 @@ import torch
 from nervex.worker.actor.env_manager.vec_env_manager import SubprocessEnvManager, SyncSubprocessEnvManager
 
 
-@pytest.mark.unittest
+@pytest.mark.unittest(rerun=5)
 class TestVecEnvManager:
 
     def test_naive(self, setup_async_manager_cfg, setup_model_type):

@@ -7,7 +7,7 @@ from .parallel_entry import parallel_pipeline
 def print_version(ctx: Context, param: Option, value: bool) -> None:
     if not value or ctx.resilient_parsing:
         return
-    click.echo('{title}, version {version}.'.format(title='nerveX', version='v0.0.2rc0'))
+    click.echo('{title}, version {version}.'.format(title='nerveX', version='v0.1.0b0'))
     click.echo('Developed by {author}, {email}.'.format(author='niuyazhe', email='niuyazhe@sensetime.com'))
     ctx.exit()
 

@@ -22,7 +22,7 @@ Env Manager
 
             class BaseEnvManager(ABC):
 
-                def __init__(
+                    def __init__(
                         self,
                         env_fn: Callable,
                         env_cfg: Iterable,
@@ -430,11 +430,16 @@ Env Manager
 
         - 类接口方法：
            使用时，同BaseEnvManager基本相同。此外，
+            
             1. wait_num 指定每次产出数据至少包含的环境数量， timeout指定最少等待时间。用户可以根据环境运行速度的快慢来调整这些参数。
+
             2. shared_memory 可以加速传递环境返回的大向量，对于环境返回的obs等变量大小超过100kB的时候，推荐设置为True。使用shared_memory时，需要在环境info函数中，用BaseEnvInfo和EnvElementInfo template来指定对应obs、act和rew的shape和value的dtype。
-            4. worker_fn 作为子进程的执行函数，创建env，并接受来自父进程中env_manager的指令。
-            5. wait 等待环境返回。
-            6. 每次调用需先通过 next_obs 函数得到可获得的env id和obs，再调用step 函数传入env id对应的action。
+
+            3. worker_fn 作为子进程的执行函数，创建env，并接受来自父进程中env_manager的指令。
+
+            4. wait 等待环境返回。
+
+            5. 每次调用需先通过 next_obs 函数得到可获得的env id和obs，再调用step 函数传入env id对应的action。
             
            使用时可以参考如下代码:
 
