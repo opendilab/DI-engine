@@ -6,6 +6,7 @@ from ...validate.collection import collection, contains, length_is, length
 
 @pytest.mark.unittest
 class TestConfigValidateCollection:
+
     def test_collection(self):
         _validator = collection(Validator(int) | str)
         assert _validator([1])
@@ -64,7 +65,7 @@ class TestConfigValidateCollection:
         _validator = contains('item') & list & collection(str)
         assert _validator(['item'])
         assert _validator(['item', 'string_1', 'string_2'])
-        assert not _validator(('item',))
+        assert not _validator(('item', ))
         assert not _validator(('item', 'string_1', 'string_2'))
         assert not _validator(['item', 1])
         assert not _validator(['itemx'])

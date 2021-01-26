@@ -5,6 +5,7 @@ from ...validate.base import Validator
 
 @pytest.mark.unittest
 class TestConfigValidateBase:
+
     def test_validator(self):
         assert Validator(int).validate(1) is None
         with pytest.raises(TypeError):

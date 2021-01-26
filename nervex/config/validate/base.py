@@ -12,6 +12,7 @@ _ExceptionMaker = Callable[[_ValueType], _EXCEPTIONS_TYPING]
 
 
 def _check_to_validate(check: _Checker, exception_maker: _ExceptionMaker) -> _Validator:
+
     @wraps(check)
     def _func(value: _ValueType):
         if not check(value):
@@ -21,6 +22,7 @@ def _check_to_validate(check: _Checker, exception_maker: _ExceptionMaker) -> _Va
 
 
 def _validate_to_check(validate: _Validator) -> _Checker:
+
     @wraps(validate)
     def _func(value: _ValueType):
         try:
@@ -47,8 +49,11 @@ def _to_validator(validator) -> '_IValidator':
         return _to_validator((lambda v: validator, lambda v: ValueError('assertion false')))
     elif validator is None:
         return _to_validator(
-            (lambda v: v is None,
-             lambda v: TypeError('none expected but {value} found'.format(value=repr(v.__class__.__name__)))))
+            (
+                lambda v: v is None,
+                lambda v: TypeError('none expected but {value} found'.format(value=repr(v.__class__.__name__)))
+            )
+        )
     elif isinstance(validator, type):
         return _to_validator(
             (
@@ -59,6 +64,7 @@ def _to_validator(validator) -> '_IValidator':
             )
         )
     elif hasattr(validator, '__call__'):
+
         class _FuncValidator(_IValidator):
 
             def _validate(self, value) -> None:

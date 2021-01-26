@@ -4,10 +4,12 @@ from typing import Union, Callable
 
 from .base import Validator, _reset_validate, _IValidator
 
-number = _reset_validate(Validator(int) | float,
-                         lambda v: TypeError('{int} or {float} expected but {actual} found'.format(
-                             int=repr(int.__name__), float=repr(float.__name__), actual=repr(v.__class__.__name__)
-                         )))
+number = _reset_validate(
+    Validator(int) | float, lambda v: TypeError(
+        '{int} or {float} expected but {actual} found'.
+        format(int=repr(int.__name__), float=repr(float.__name__), actual=repr(v.__class__.__name__))
+    )
+)
 
 string = Validator(str)
 
@@ -15,10 +17,12 @@ STRING_PROCESSOR = Callable[[str], str]
 
 
 def enum(*items, case_sensitive: bool = True) -> _IValidator:
+
     def _case_sensitive(func: STRING_PROCESSOR) -> STRING_PROCESSOR:
         if case_sensitive:
             return func
         else:
+
             @wraps(func)
             def _new_func(value: str) -> str:
                 return func(value).lower()
@@ -69,7 +73,10 @@ def numeric(int_ok: bool = True, float_ok: bool = True, inf_ok: bool = True, str
             if math.isinf(value) and not inf_ok:
                 raise ValueError('inf is not allowed but {actual} found'.format(actual=repr(value)))
         else:
-            raise TypeError('numeric value should be either int, float or str, but {actual} found'.format(
-                actual=repr(type(value).__name__)))
+            raise TypeError(
+                'numeric value should be either int, float or str, but {actual} found'.format(
+                    actual=repr(type(value).__name__)
+                )
+            )
 
     return Validator(_validate)

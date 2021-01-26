@@ -7,6 +7,7 @@ from ...validate.types import number, numeric, enum
 
 @pytest.mark.unittest
 class TestConfigValidateTypes:
+
     def test_number(self):
         assert number.validate(1) is None
         assert number.validate(1.0) is None
