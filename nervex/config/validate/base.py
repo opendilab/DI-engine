@@ -40,6 +40,15 @@ def _reset_validate(validate, exception_maker: _ExceptionMaker) -> '_IValidator'
 def _to_validator(validator) -> '_IValidator':
     if isinstance(validator, _IValidator):
         return validator
+    elif isinstance(validator, tuple):
+        _func, _message = validator
+        return _to_validator(_check_to_validate(_func, _message))
+    elif isinstance(validator, bool):
+        return _to_validator((lambda v: validator, lambda v: ValueError('assertion false')))
+    elif validator is None:
+        return _to_validator(
+            (lambda v: v is None,
+             lambda v: TypeError('none expected but {value} found'.format(value=repr(v.__class__.__name__)))))
     elif isinstance(validator, type):
         return _to_validator(
             (
@@ -50,18 +59,12 @@ def _to_validator(validator) -> '_IValidator':
             )
         )
     elif hasattr(validator, '__call__'):
-
         class _FuncValidator(_IValidator):
 
             def _validate(self, value) -> None:
                 validator(value)
 
         return _FuncValidator()
-    elif isinstance(validator, tuple):
-        _func, _message = validator
-        return _to_validator(_check_to_validate(_func, _message))
-    elif isinstance(validator, bool):
-        return _to_validator((lambda v: validator, lambda v: ValueError('assertion false')))
     else:
         raise TypeError('Unknown type for validator generation.')
 
@@ -101,7 +104,7 @@ class _IValidator:
         return _to_validator(_validation)
 
     def __rand__(self, other) -> '_IValidator':
-        return _to_validator(other) and self
+        return _to_validator(other) & self
 
     def __or__(self, other) -> '_IValidator':
 
@@ -114,7 +117,7 @@ class _IValidator:
         return _to_validator(_validation)
 
     def __ror__(self, other) -> '_IValidator':
-        return _to_validator(other) or self
+        return _to_validator(other) | self
 
 
 Validator = _to_validator

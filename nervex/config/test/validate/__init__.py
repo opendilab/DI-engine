@@ -1,1 +1,2 @@
-from .base import TestConfigValidate
+from .test_base import TestConfigValidateBase
+from .test_types import TestConfigValidateTypes
