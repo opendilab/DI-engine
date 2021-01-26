@@ -42,8 +42,6 @@ class ParticleEnv(BaseEnv):
         self._seed = seed
 
     def _process_action(self, action: list):
-        # print("action in env = ", action)
-        # print('ret = ', tensor_to_list(action))
         return to_list(action)
 
     def step(self, action: list) -> BaseEnvTimestep:
@@ -69,7 +67,6 @@ class ParticleEnv(BaseEnv):
                 }, None, None
             )
             rew_space['agent' + str(i)] = T((1, ), {'min': -np.inf, 'max': +np.inf, 'dtype': float}, None, None)
-            # print("action_space is ", self._env.action_space)
             act = self._env.action_space[i]
             if isinstance(act, MultiDiscrete):
                 act_space['agent' + str(i)] = T(
@@ -141,20 +138,13 @@ class CooperativeNavigation(BaseEnv):
         self._seed = seed
 
     def _process_action(self, action: list):
-        # print("action in env = ", action)
-        # print('ret = ', tensor_to_list(action))
         return to_list(action)
 
     def process_obs(self, obs: list):
         ret = {}
-        # print(obs)
         obs = np.array(obs)
-        # obs = np.concatenate(obs)
-        # print(obs)
         ret['agent_state'] = obs
-        # print(obs.shape)
         ret['global_state'] = obs[0, 2:]
-        # print("entiry shape:", obs[:, -self._num_landmarks * 2:].shape)
         ret['agent_alone_state'] = np.concatenate([obs[:, 0:4], obs[:, -self._num_landmarks * 2:]], 1)
         ret['agent_alone_padding_state'] = np.concatenate(
             [

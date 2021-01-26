@@ -84,7 +84,6 @@ class Scenario(BaseScenario):
         entity_pos = []
         for entity in world.landmarks:  # world.entities:
             entity_pos.append(entity.state.p_pos - agent.state.p_pos)
-        # print("entity pos = ", entity_pos)
         # entity colors
         entity_color = []
         for entity in world.landmarks:  # world.entities:
@@ -97,14 +96,6 @@ class Scenario(BaseScenario):
                 continue
             comm.append(other.state.c)
             other_pos.append(other.state.p_pos - agent.state.p_pos)
-        # print("self obs shape:", np.concatenate([agent.state.p_vel] + [agent.state.p_pos]).shape)
-        # print(
-        #     "obs_dim:",
-        #     np.concatenate([agent.state.p_vel] + [agent.state.p_pos] + entity_pos + other_pos + comm).shape
-        # )
-        # print("global_dim:", np.concatenate([agent.state.p_pos] + other_pos + entity_pos + comm).shape)
-        # print("other_dim:", np.concatenate(other_pos).shape)
-        # print("ent_dim:", np.concatenate(entity_pos).shape)
-        # print("comm", comm)
-        # print("comm_dim", np.concatenate(comm).shape)
+
+        # return np.concatenate([agent.state.p_vel] + [agent.state.p_pos] + other_pos + entity_pos + comm)
         return np.concatenate([agent.state.p_vel] + [agent.state.p_pos] + other_pos + entity_pos)
