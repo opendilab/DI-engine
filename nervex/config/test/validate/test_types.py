@@ -1,6 +1,8 @@
+import math
+
 import pytest
 
-from ...validate.types import number
+from ...validate.types import number, numeric
 
 
 @pytest.mark.unittest
@@ -13,7 +15,106 @@ class TestConfigValidateTypes:
         with pytest.raises(TypeError):
             number.validate('string')
 
-        assert number.check(1)
-        assert number.check(1.0)
-        assert not number.check(None)
-        assert not number.check('string')
+        assert number(1)
+        assert number(1.0)
+        assert not number(None)
+        assert not number('string')
+
+    def test_enum(self):
+        pass
+
+    # noinspection DuplicatedCode
+    def test_numeric(self):
+        _validator = numeric()
+
+        assert _validator(1)
+        assert _validator(1.0)
+        assert _validator('1')
+        assert _validator('-1.0')
+        assert _validator(math.inf)
+        assert _validator('inf')
+        assert _validator('-inf')
+        assert not _validator(math.nan)
+        assert not _validator('nan')
+        assert not _validator(None)
+        assert not _validator('styring')
+        assert not _validator('-abcdef12345')
+        assert not _validator('i n  f')
+
+        _validator = numeric(int_ok=False)
+        assert not _validator(1)
+        assert _validator(1.0)
+        assert _validator('1')
+        assert _validator('-1.0')
+        assert _validator(math.inf)
+        assert _validator('inf')
+        assert _validator('-inf')
+        assert not _validator(math.nan)
+        assert not _validator('nan')
+        assert not _validator(None)
+        assert not _validator('styring')
+        assert not _validator('-abcdef12345')
+        assert not _validator('i n  f')
+
+        _validator = numeric(float_ok=False)
+        assert _validator(1)
+        assert not _validator(1.0)
+        assert _validator('1')
+        assert not _validator('-1.0')
+        assert not _validator(math.inf)
+        assert not _validator('inf')
+        assert not _validator('-inf')
+        assert not _validator(math.nan)
+        assert not _validator('nan')
+        assert not _validator(None)
+        assert not _validator('styring')
+        assert not _validator('-abcdef12345')
+        assert not _validator('i n  f')
+
+        with pytest.raises(ValueError):
+            numeric(int_ok=False, float_ok=False)
+
+        _validator = numeric(inf_ok=False)
+        assert _validator(1)
+        assert _validator(1.0)
+        assert _validator('1')
+        assert _validator('-1.0')
+        assert not _validator(math.inf)
+        assert not _validator('inf')
+        assert not _validator('-inf')
+        assert not _validator(math.nan)
+        assert not _validator('nan')
+        assert not _validator(None)
+        assert not _validator('styring')
+        assert not _validator('-abcdef12345')
+        assert not _validator('i n  f')
+
+        _validator = numeric(str_ok=False)
+        assert _validator(1)
+        assert _validator(1.0)
+        assert not _validator('1')
+        assert not _validator('-1.0')
+        assert _validator(math.inf)
+        assert not _validator('inf')
+        assert not _validator('-inf')
+        assert not _validator(math.nan)
+        assert not _validator('nan')
+        assert not _validator(None)
+        assert not _validator('styring')
+        assert not _validator('-abcdef12345')
+        assert not _validator('i n  f')
+
+        _validator = numeric(str_ok=False, inf_ok=False)
+        assert _validator(1)
+        assert _validator(1.0)
+        assert not _validator('1')
+        assert not _validator('-1.0')
+        assert not _validator(math.inf)
+        assert not _validator('inf')
+        assert not _validator('-inf')
+        assert not _validator(math.nan)
+        assert not _validator('nan')
+        assert not _validator(None)
+        assert not _validator('styring')
+        assert not _validator('-abcdef12345')
+        assert not _validator('i n  f')

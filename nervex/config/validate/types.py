@@ -46,29 +46,33 @@ def enum(*items, case_sensitive: bool = True, strip: bool = True) -> _IValidator
     return Validator(_validate)
 
 
-def numeric(int_ok: bool = True, float_ok: bool = True, inf_ok: bool = True) -> _IValidator:
+def numeric(int_ok: bool = True, float_ok: bool = True, inf_ok: bool = True, str_ok: bool = True) -> _IValidator:
     if not int_ok and not float_ok:
         raise ValueError('Either int or float should be allowed.')
 
     def _validate(value: Union[int, float, str]):
-        if math.isnan(value):
-            raise ValueError('nan is not numeric value')
-        elif isinstance(value, str):
-            try:
-                if int_ok and float_ok:
-                    try:
+        print(int_ok, float_ok, repr(value))
+        if isinstance(value, str):
+            if str_ok:
+                try:
+                    if int_ok and float_ok:
+                        try:
+                            _value = int(value)
+                        except (ValueError, TypeError):
+                            _value = float(value)
+                    elif int_ok:
                         _value = int(value)
-                    except TypeError:
+                    else:  # float_ok
                         _value = float(value)
-                elif int_ok:
-                    _value = int(value)
-                else:  # float_ok
-                    _value = float(value)
-            except TypeError:
-                raise ValueError('str numeric value should be a valid 10 based int or float')
+                except (ValueError, TypeError):
+                    raise ValueError('str numeric value should be a valid 10 based int or float')
 
-            _validate(_value)
+                _validate(_value)
+            else:
+                raise TypeError('str not allowed in this numeric validator')
         elif isinstance(value, (int, float)):
+            if math.isnan(value):
+                raise ValueError('nan is not numeric value')
             if isinstance(value, int) and not int_ok:
                 raise TypeError('int is not allowed but {actual} found'.format(actual=repr(value)))
             if isinstance(value, float) and not float_ok:
