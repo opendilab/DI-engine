@@ -1,3 +1,3 @@
 from .base import Validator
-from .collection import length, length_is, contains
+from .collection import length, length_is, contains, collection
 from .types import number, enum, numeric
