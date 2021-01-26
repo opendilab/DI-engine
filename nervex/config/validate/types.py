@@ -14,7 +14,7 @@ string = Validator(str)
 STRING_PROCESSOR = Callable[[str], str]
 
 
-def enum(*items, case_sensitive: bool = True, strip: bool = True) -> _IValidator:
+def enum(*items, case_sensitive: bool = True) -> _IValidator:
     def _case_sensitive(func: STRING_PROCESSOR) -> STRING_PROCESSOR:
         if case_sensitive:
             return func
@@ -25,17 +25,7 @@ def enum(*items, case_sensitive: bool = True, strip: bool = True) -> _IValidator
 
             return _new_func
 
-    def _strip(func: STRING_PROCESSOR) -> STRING_PROCESSOR:
-        if strip:
-            return func
-        else:
-            @wraps(func)
-            def _new_func(value: str) -> str:
-                return func(value).strip()
-
-            return _new_func
-
-    _item_process = _case_sensitive(_strip(lambda x: x))
+    _item_process = _case_sensitive(lambda x: str(x))
     item_set = set([_item_process(item) for item in items])
 
     def _validate(value: str):
@@ -51,7 +41,6 @@ def numeric(int_ok: bool = True, float_ok: bool = True, inf_ok: bool = True, str
         raise ValueError('Either int or float should be allowed.')
 
     def _validate(value: Union[int, float, str]):
-        print(int_ok, float_ok, repr(value))
         if isinstance(value, str):
             if str_ok:
                 try:

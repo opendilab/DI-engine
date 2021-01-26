@@ -2,7 +2,7 @@ import math
 
 import pytest
 
-from ...validate.types import number, numeric
+from ...validate.types import number, numeric, enum
 
 
 @pytest.mark.unittest
@@ -20,8 +20,29 @@ class TestConfigValidateTypes:
         assert not number(None)
         assert not number('string')
 
-    def test_enum(self):
-        pass
+    def test_enum_plain(self):
+        _validator = enum('red', 'green', 'blue', 'yellow')
+        assert _validator('red')
+        assert _validator('green')
+        assert _validator('blue')
+        assert _validator('yellow')
+        assert not _validator(int)
+        assert not _validator('Red')
+        assert not _validator('YELLOW')
+        assert not _validator(1)
+        assert not _validator(None)
+
+    def test_enum_case_insensitive(self):
+        _validator = enum('red', 'green', 'blue', 'yellow', case_sensitive=False)
+        assert _validator('red')
+        assert _validator('green')
+        assert _validator('blue')
+        assert _validator('yellow')
+        assert not _validator(int)
+        assert _validator('Red')
+        assert _validator('YELLOW')
+        assert not _validator(1)
+        assert not _validator(None)
 
     # noinspection DuplicatedCode
     def test_numeric_plain(self):
