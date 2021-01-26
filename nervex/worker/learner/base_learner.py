@@ -315,6 +315,10 @@ class BaseLearner(object):
         return self._last_iter
 
     @property
+    def train_iter(self) -> int:
+        return self._last_iter.val
+
+    @property
     def tick_time(self) -> TickTime:
         return self._tick_time
 

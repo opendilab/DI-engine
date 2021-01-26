@@ -89,6 +89,8 @@ class BaseSerialEvaluator(object):
                     step_count += 1
         duration = self._timer.value
         info = {
+            'train_iter': train_iter,
+            'ckpt_name': 'iteration_{}.pth.tar'.format(train_iter),
             'episode_count': episode_count,
             'step_count': step_count,
             'avg_step_per_episode': step_count / episode_count,
@@ -100,7 +102,7 @@ class BaseSerialEvaluator(object):
         self._logger.info(
             "[EVALUATOR]evaluate end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()]))
         )
-        tb_vars = [[k, v, train_iter] for k, v in info.items()]
+        tb_vars = [[k, v, train_iter] for k, v in info.items() if k not in ['train_iter', 'ckpt_name']]
         self._tb_logger.add_val_list(tb_vars, viz_type='scalar')
         eval_reward = np.mean(episode_reward)
         return eval_reward >= self._stop_val, eval_reward

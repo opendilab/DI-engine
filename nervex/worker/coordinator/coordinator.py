@@ -88,7 +88,9 @@ class Coordinator(object):
                         else:
                             self.info("actor_task({}) is failed to be assigned".format(actor_task['task_id']))
                     else:
-                        self.info("actor_task({}) can't find proper buffer_id({})".format(actor_task['task_id'], buffer_id))
+                        self.info(
+                            "actor_task({}) can't find proper buffer_id({})".format(actor_task['task_id'], buffer_id)
+                        )
                     if time.time() - start_retry_time >= max_retry_time:
                         # reput into queue
                         self._actor_task_queue.put([actor_task, put_time])

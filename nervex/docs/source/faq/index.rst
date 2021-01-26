@@ -77,4 +77,16 @@ Q7: 关于使用时出现的warning
 ****************************
 
 :A7:
+
 对于运行nervex时命令行中显示的import linlink, ceph, memcache, redis的相关warning，一般使用者忽略即可，nervex会在import时自动进行寻找相应的替代库。
+
+
+Q8: 训练完成后如何评测模型的性能
+*********************************
+
+:A8:
+
+在训练完成之后，可在 ``log/evaluator/evalautor_logger.txt`` 中看到训练过程中的评测结果及对应保存的checkpoint名称(``ckpt_name``)，nervex也提供了简单的接口进行评测，流程如下：
+ - 准备一个待评测的checkpoint，一般为 ``torch.save`` 保存的文件，内部结构为一个dict，其中 ``model`` 键所指的为神经网络模型权重
+ - 准备一个评测用的配置文件，大部分内容和训练配置文件相同，只需添加 ``learner.load_path`` 字段为checkpoint的绝对路径
+ - 在shell脚本中运行 ``nervex -m eval -c <config_path> -s <seed>`` 即可，如需指定其他参数，可以调用 ``nervex.entry.serial_entry`` 中的eval函数。
