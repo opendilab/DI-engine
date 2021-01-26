@@ -9,6 +9,13 @@ from nervex.torch_utils import to_tensor, to_ndarray, to_list
 
 
 class BaseEnvManager(ABC):
+    """
+    Overview:
+        Create a BaseEnvManager to manage multiple environments.
+
+    Interfaces:
+        seed, launch, next_obs, step, reset, env_info
+    """
 
     def __init__(
             self,
@@ -18,6 +25,16 @@ class BaseEnvManager(ABC):
             episode_num: Optional[int] = 'inf',
             manager_cfg: Optional[dict] = {},
     ) -> None:
+        """
+        Overview:
+            Initialize the BaseEnvManager.
+        Arguments:
+            - env_fn (:obj:`function`): the function to create environment
+            - env_cfg (:obj:`list`): the list of environemnt configs
+            - env_num (:obj:`int`): number of environments to create, equal to len(env_cfg)
+            - episode_num (:obj:`int`): maximum episodes to collect in one environment
+            - manager_cfg (:obj:`dict`): config for env manager
+        """
         self._env_num = env_num
         self._env_fn = env_fn
         self._env_cfg = env_cfg
@@ -47,6 +64,17 @@ class BaseEnvManager(ABC):
 
     @property
     def next_obs(self) -> Dict[int, Any]:
+        """
+        Overview:
+            Get the next observations and corresponding env id.
+        Return:
+            A dictionary with observations and their environment IDs.
+        Note:
+            The observations are returned in torch.Tensor.
+        Example:
+            >>>     obs_dict = env_manager.next_obs
+            >>>     action_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
+        """
         return self._inv_transform({i: self._next_obs[i] for i, d in self._env_done.items() if not d})
 
     @property
@@ -71,11 +99,23 @@ class BaseEnvManager(ABC):
         return [getattr(env, key) if hasattr(env, key) else None for env in self._envs]
 
     def launch(self, reset_param: Union[None, List[dict]] = None) -> None:
+        """
+        Overview:
+            Set up the environments and hyper-params.
+        Arguments:
+            - reset_param (:obj:`List`): list of reset parameters for each environment.
+        """
         assert self._closed, "please first close the env manager"
         self._create_state()
         self.reset(reset_param)
 
     def reset(self, reset_param: Union[None, List[dict]] = None) -> None:
+        """
+        Overview:
+            Reset the environments and hyper-params.
+        Arguments:
+            - reset_param (:obj:`List`): list of reset parameters for each environment.
+        """
         if reset_param is None:
             reset_param = [{} for _ in range(self.env_num)]
         self._reset_param = reset_param
@@ -98,6 +138,23 @@ class BaseEnvManager(ABC):
             raise e
 
     def step(self, action: Dict[int, Any]) -> Dict[int, namedtuple]:
+        """
+        Overview:
+            Wrapper of step function in the environment.
+        Arguments:
+            - action (:obj:`Dict`): a dictionary, {env_id: action}, which includes actions and their env ids.
+        Return:
+            - timesteps (:obj:`Dict`): a dictionary, {env_id: timestep}, which includes each environment's timestep.
+        Note:
+            - The env_id that appears in action will also be returned in timesteps.
+            - It will wait until all environments are done to reset. If episodes in different environments \
+                vary significantly, it is suggested to use vec_env_manager.
+        Example:
+            >>>     action_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
+            >>>     timesteps = env_manager.step(action_dict):
+            >>>     for env_id, timestep in timesteps.items():
+            >>>         pass
+        """
         self._check_closed()
         timesteps = {}
         for env_id, act in action.items():
@@ -113,12 +170,26 @@ class BaseEnvManager(ABC):
                 self._env_done[i] = False
         return self._inv_transform(timesteps)
 
-    def seed(self, seed: List[int]) -> None:
+    def seed(self, seed: Union[List[int], int]) -> None:
+        """
+        Overview:
+            Set the seed for each environment.
+        Arguments:
+            - seed (:obj:`List or int`): list of seeds for each environment, \
+                or one seed for the first environment and other seeds are generated automatically.
+        """
         if isinstance(seed, numbers.Integral):
             seed = [seed + i for i in range(self.env_num)]
+        elif isinstance(seed, list):
+            assert len(seed) == self._env_num, "len(seed) {:d} != env_num {:d}".format(len(seed), self._env_num)
+            seed = seed
         self._env_seed = seed
 
     def close(self) -> None:
+        """
+        Overview:
+            Release the environment resources.
+        """
         if self._closed:
             return
         self._env_ref.close()
