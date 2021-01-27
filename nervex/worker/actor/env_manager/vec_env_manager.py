@@ -190,6 +190,8 @@ class SubprocessEnvManager(BaseEnvManager):
         """
         super().__init__(env_fn, env_cfg, env_num, episode_num)
         self.shared_memory = manager_cfg.get('shared_memory', True)
+        default_context_str = 'spawn' if platform.system().lower() == 'windows' else 'fork'
+        self.context_str = manager_cfg.get('context', default_context_str)
         self.timeout = manager_cfg.get('timeout', 0.01)
         self.wait_num = manager_cfg.get('wait_num', 2)
         self._lock = LockContext(LockContextType.THREAD_LOCK)
@@ -211,8 +213,7 @@ class SubprocessEnvManager(BaseEnvManager):
         else:
             self._obs_buffers = {env_id: None for env_id in range(self.env_num)}
         self._parent_remote, self._child_remote = zip(*[Pipe() for _ in range(self.env_num)])
-        context_str = 'spawn' if platform.system().lower() == 'windows' else 'fork'
-        ctx = get_context(context_str)
+        ctx = get_context(self.context_str)
         # due to the runtime delay of lambda expression, we use partial for the generation of different envs,
         # otherwise, it will only use the last item cfg.
         env_fn = [partial(self._env_fn, cfg=self._env_cfg[env_id]) for env_id in range(self.env_num)]
