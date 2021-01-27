@@ -15,4 +15,6 @@ Feature
     actor_overview
     league_overview
     replay_buffer_overview
+    dataloader_overview
+    learner_overview
     autolog_overview

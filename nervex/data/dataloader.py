@@ -79,7 +79,8 @@ class AsyncDataLoader(object):
                 '"num_workers" should be non-negative; '
                 'Use num_workers = 0 or 1 to disable multiprocessing.'
             )
-        # Up to "2 * num_workers" pieces of data will be stored in dataloader. 
+        # Up to "2 * num_workers" pieces of data will be stored in dataloader, waiting for learner to get.
+        # Up to "2 * num_workers" jobs will be stored in dataloader, waiting for slave process to get and accomplish.
         queue_maxsize = max(1, self.num_workers) * 2
         self.queue_maxsize = queue_maxsize
 
