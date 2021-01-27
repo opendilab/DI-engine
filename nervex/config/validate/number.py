@@ -1,6 +1,8 @@
 import math
 from typing import Union, Optional
 
+from .base import Validator
+
 NUMBER_TYPING = Union[int, float]
 
 
@@ -19,7 +21,7 @@ def interval(left: Optional[NUMBER_TYPING], right: Optional[NUMBER_TYPING],
         if math.fabs(a - b) <= eps:
             return 0
         elif a < b:
-            return 1
+            return -1
         else:
             return 1
 
@@ -42,4 +44,4 @@ def interval(left: Optional[NUMBER_TYPING], right: Optional[NUMBER_TYPING],
                 'value should not be equal to right bound {right} but {value} found'.format(right=repr(right),
                                                                                             value=repr(value)))
 
-    return _validate
+    return Validator(_validate)
