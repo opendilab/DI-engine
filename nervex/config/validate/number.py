@@ -6,7 +6,7 @@ from .base import Validator
 NUMBER_TYPING = Union[int, float]
 
 
-def interval(left: Optional[NUMBER_TYPING], right: Optional[NUMBER_TYPING],
+def interval(left: Optional[NUMBER_TYPING] = None, right: Optional[NUMBER_TYPING] = None,
              left_ok: bool = True, right_ok: bool = True, eps: NUMBER_TYPING = 0.0):
     if left is None:
         left = -math.inf
