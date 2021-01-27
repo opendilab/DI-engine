@@ -45,7 +45,7 @@ class Scenario(BaseScenario):
 
     def benchmark_data(self, agent, world):
         rew = 0
-        collisions = 0
+        collisions = -1
         occupied_landmarks = 0
         min_dists = 0
         for l in world.landmarks:
@@ -74,6 +74,7 @@ class Scenario(BaseScenario):
             dists = [np.sqrt(np.sum(np.square(a.state.p_pos - l.state.p_pos))) for a in world.agents]
             rew -= min(dists)
         if agent.collide:
+            rew += 1
             for a in world.agents:
                 if self.is_collision(a, agent):
                     rew -= 1

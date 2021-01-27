@@ -87,20 +87,22 @@ class TestParticleEnv:
             assert isinstance(timestep, tuple)
         env.close()
 
+
 @pytest.mark.unittest
 class TestCooperativeNavigation:
 
     def test_naive(self):
-        num_agent, num_landmark = 5, 6
-        env = CooperativeNavigation({'num_agents':num_agent, 'num_landmarks':num_landmark})
+        num_agent, num_landmark = 5, 5
+        env = CooperativeNavigation({'num_agents': num_agent, 'num_landmarks': num_landmark, 'max_step': 100})
         print(env.info())
         obs = env.reset()
         for k, v in obs.items():
             assert v.shape == env.info().obs_space.shape[k]
-        for _ in range(100):
-            action = torch.randint(0, 3, (num_agent,))
+        for _ in range(env._max_step):
+            action = torch.randint(0, 5, (num_agent, ))
             timestep = env.step(action)
             obs = timestep.obs
             for k, v in obs.items():
                 assert v.shape == env.info().obs_space.shape[k]
             assert isinstance(timestep, tuple), timestep
+        assert timestep.done

@@ -110,14 +110,15 @@ class CooperativeNavigation(BaseEnv):
         self._env_name = 'simple_spread'
         self.agent_num = cfg.get("num_agents", 3)
         self._num_landmarks = cfg.get("num_landmarks", 3)
-        self._env = make_env(self._env_name, self.agent_num, self._num_landmarks)
+        self._env = make_env(self._env_name, self.agent_num, self._num_landmarks, True)
         self._env.discrete_action_input = cfg.get('discrete_action', True)
-        self._max_step = cfg.get('max_step', 100)
+        self._max_step = cfg.get('max_step', 1000)
+        self._collide_penalty = cfg.get('collide_penal', self.agent_num)
         self._env.force_discrete_action = True
-        self.action_dim = 4
+        self.action_dim = 5
         # obs = np.concatenate([agent.state.p_vel] + [agent.state.p_pos] + other_pos + entity_pos)
         self.obs_dim = 2 + 2 + (self.agent_num - 1) * 2 + self._num_landmarks * 2
-        self.global_obs_dim = self.agent_num * 2 + self._num_landmarks * 2
+        self.global_obs_dim = self.agent_num * 2 + self._num_landmarks * 2 + self.agent_num * 2
         self.obs_alone_dim = 2 + 2 + (self._num_landmarks) * 2
 
     def reset(self) -> torch.Tensor:
@@ -144,7 +145,7 @@ class CooperativeNavigation(BaseEnv):
         ret = {}
         obs = np.array(obs)
         ret['agent_state'] = obs
-        ret['global_state'] = obs[0, 2:]
+        ret['global_state'] = np.concatenate((obs[0, 2:], obs[:, 0:2].flatten()))
         ret['agent_alone_state'] = np.concatenate([obs[:, 0:4], obs[:, -self._num_landmarks * 2:]], 1)
         ret['agent_alone_padding_state'] = np.concatenate(
             [
@@ -152,22 +153,30 @@ class CooperativeNavigation(BaseEnv):
                 np.zeros((self.agent_num, (self.agent_num - 1) * 2), float), obs[:, -self._num_landmarks * 2:]
             ], 1
         )
-
         ret['action_mask'] = np.zeros((self.agent_num, self.action_dim))
         return ret
 
+    # note: the reward is shared between all the agents
+    # (see app_zoo/multiagent_particle/envs/multiagent/scenarios/simple_spread.py)
+    # If you need to make the reward different to each agent, change the code there
     def step(self, action: list) -> BaseEnvTimestep:
         self._step_count += 1
         action = self._process_action(action)
         obs_n, rew_n, _, info_n = self._env.step(action)
         obs_n = self.process_obs(obs_n)
-        rew_n = np.array([rew_n[0]])
+        rew_n = np.array([sum(rew_n)])
+        info = info_n
+
+        collide_sum = 0
+        for i in range(self.agent_num):
+            collide_sum += info['n'][i][1]
+        rew_n += collide_sum * (1.0 - self._collide_penalty)
         self._sum_reward += rew_n
-        if self._step_count >= self._max_step:
+        occupied_landmarks = info['n'][0][3]
+        if self._step_count >= self._max_step or occupied_landmarks >= self.agent_num or occupied_landmarks >= self._num_landmarks:
             done_n = True
         else:
             done_n = False
-        info = {}
         if done_n:
             info['final_eval_reward'] = self._sum_reward
         return CNEnvTimestep(obs_n, rew_n, done_n, info)

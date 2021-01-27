@@ -7,7 +7,7 @@ env:
     import_names: ['app_zoo.multiagent_particle.envs.particle_env']
     env_type: 'cooperative_navigation'
     num_agents: 5
-    num_landmarks: 6
+    num_landmarks: 5
     agent_num: 5
     actor_env_num: 8
     evaluator_env_num: 3
@@ -20,9 +20,9 @@ policy:
     model:
         agent_num: 5
         obs_dim:
-            agent_state: [5, 24]
-            global_state: 22
-        act_dim: [4, ]
+            agent_state: [5, 22]
+            global_state: 30
+        act_dim: [5, ]
         embedding_dim: 64
     learn:
         train_step: 1
