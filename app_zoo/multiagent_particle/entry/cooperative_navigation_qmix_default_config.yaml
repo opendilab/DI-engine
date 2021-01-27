@@ -60,7 +60,7 @@ actor:
 evaluator:
     n_episode: 5
     eval_freq: 50
-    stop_val: 0.7
+    stop_val: 0
 learner:
     hook:
         log_show:
