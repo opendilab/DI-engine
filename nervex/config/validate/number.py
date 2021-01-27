@@ -1,13 +1,13 @@
 import math
 from typing import Union, Optional
 
-from .base import Validator
+from .base import Validator, _IValidator
 
 NUMBER_TYPING = Union[int, float]
 
 
 def interval(left: Optional[NUMBER_TYPING] = None, right: Optional[NUMBER_TYPING] = None,
-             left_ok: bool = True, right_ok: bool = True, eps: NUMBER_TYPING = 0.0):
+             left_ok: bool = True, right_ok: bool = True, eps: NUMBER_TYPING = 0.0) -> _IValidator:
     if left is None:
         left = -math.inf
     if right is None:
