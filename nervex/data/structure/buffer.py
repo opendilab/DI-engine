@@ -286,7 +286,7 @@ class ReplayBuffer:
         ]
         self._out_vars = [self.name + var for var in self._out_vars]
         for var in self._in_vars + self._out_vars:
-            self._tb_logger.register_var(var)
+            self._tb_logger.register_var('buffer_{}/'.format(self.name) + var)
         self._log_freq = self.monitor_cfg.log_freq
 
         # Load data from file if load_path in config is not None.
@@ -622,11 +622,12 @@ class ReplayBuffer:
             'in_count_avg': self._natural_monitor.avg['in_count'](),
             'in_time_avg': self._in_tick_monitor.avg['in_time']()
         }
-        self._in_count += 1
         if self._in_count % self._log_freq == 0:
             self._logger.info("===Add In Buffer {} Times===".format(self._in_count))
             self._logger.print_vars(in_dict)
+            in_dict = {'buffer_{}/'.format(self.name) + k: v for k, v in in_dict.items()}
             self._tb_logger.print_vars(in_dict, self._in_count, 'scalar')
+        self._in_count += 1
 
     def _monitor_update_of_sample(self, sample_data: list, sample_time: float) -> None:
         r"""
@@ -658,11 +659,12 @@ class ReplayBuffer:
             'staleness_avg': self._out_tick_monitor.avg['staleness'](),
             'staleness_max': self._out_tick_monitor.max['staleness'](),
         }
-        self._out_count += 1
         if self._out_count % self._log_freq == 0:
             self._logger.info("===Read Buffer {} Times===".format(self._out_count))
             self._logger.print_vars(out_dict)
+            out_dict = {'buffer_{}/'.format(self.name) + k: v for k, v in out_dict.items()}
             self._tb_logger.print_vars(out_dict, self._out_count, 'scalar')
+        self._out_count += 1
 
     def _calculate_staleness(self, pos_index: int, cur_learner_iter: int) -> Optional[int]:
         r"""

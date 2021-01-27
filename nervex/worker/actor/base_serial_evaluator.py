@@ -17,7 +17,7 @@ class BaseSerialEvaluator(object):
         self._tb_logger = TensorBoardLogger(path='./log/evaluator', name='evaluator')
         for var in ['episode_count', 'step_count', 'avg_step_per_episode', 'avg_time_per_step', 'avg_time_per_episode',
                     'reward_mean', 'reward_std']:
-            self._tb_logger.register_var(var)
+            self._tb_logger.register_var('evaluator/' + var)
         self._timer = EasyTimer()
         self._cfg = cfg
 
@@ -102,7 +102,7 @@ class BaseSerialEvaluator(object):
         self._logger.info(
             "[EVALUATOR]evaluate end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()]))
         )
-        tb_vars = [[k, v, train_iter] for k, v in info.items() if k not in ['train_iter', 'ckpt_name']]
+        tb_vars = [['evaluator/' + k, v, train_iter] for k, v in info.items() if k not in ['train_iter', 'ckpt_name']]
         self._tb_logger.add_val_list(tb_vars, viz_type='scalar')
         eval_reward = np.mean(episode_reward)
         return eval_reward >= self._stop_val, eval_reward
