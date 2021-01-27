@@ -41,7 +41,7 @@ class AsyncDataLoader(object):
                 - ``num_workers`` >  1: Main worker will divide a job into several pieces, push every job into \
                     ``job_queue``; Then slave workers get jobs and implement; Finally they will push procesed data \
                     into ``async_train_queue``.
-            
+
             At the last step, if ``device`` contains "cuda", data in ``async_train_queue`` will be transferred to
             ``cuda_queue`` for uer to access.
         Arguments:
@@ -121,7 +121,7 @@ class AsyncDataLoader(object):
         self.get_data_thread.daemon = True
         self.get_data_thread.start()
 
-        # Cuda thread: If use cuda, data in ``async_train_queue`` will be transferred to ``cuda_queue``; 
+        # Cuda thread: If use cuda, data in ``async_train_queue`` will be transferred to ``cuda_queue``;
         # Then user will access data from ``cuda_queue``.
         if self.use_cuda:
             self.cuda_queue = queue.Queue(maxsize=queue_maxsize)
@@ -158,10 +158,10 @@ class AsyncDataLoader(object):
             if cmd == 'get_data':
                 # Main worker asks for data.
                 data = self.data_source(self.batch_size)
-                # ``data`` can be callable, e.g. a function to read data from file, therefore we can divide 
+                # ``data`` can be callable, e.g. a function to read data from file, therefore we can divide
                 # this job to pieces, assign to every slave worker and accomplish jobs asynchronously.
-                # But if we get a list of dicts, which means the data has already been processed and 
-                # can be used directly, we can put it directly in async_train_queue and wait it 
+                # But if we get a list of dicts, which means the data has already been processed and
+                # can be used directly, we can put it directly in async_train_queue and wait it
                 # to be accessed by a user, e.g. learner.
                 if isinstance(data[0], dict):
                     data = self.collate_fn(data)
