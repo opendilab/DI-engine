@@ -2,24 +2,11 @@ import math
 
 import pytest
 
-from ...loader.types import number, numeric, enum
+from ...loader.types import numeric, enum
 
 
 @pytest.mark.unittest
 class TestConfigValidateTypes:
-
-    def test_number(self):
-        assert number.load(1) is None
-        assert number.load(1.0) is None
-        with pytest.raises(TypeError):
-            number.load(None)
-        with pytest.raises(TypeError):
-            number.load('string')
-
-        assert number(1)
-        assert number(1.0)
-        assert not number(None)
-        assert not number('string')
 
     def test_enum_plain(self):
         _validator = enum('red', 'green', 'blue', 'yellow')
