@@ -1,14 +1,14 @@
 import pytest
 
-from ...validate.base import Validator
-from ...validate.collection import collection, contains, length_is, length
+from ...loader.base import Loader
+from ...loader.collection import collection, contains, length_is, length
 
 
 @pytest.mark.unittest
 class TestConfigValidateCollection:
 
     def test_collection(self):
-        _validator = collection(Validator(int) | str)
+        _validator = collection(Loader(int) | str)
         assert _validator([1])
         assert _validator([1, 'string'])
         assert _validator({1, 'string'})

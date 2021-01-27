@@ -2,19 +2,19 @@ import math
 
 import pytest
 
-from ...validate.types import number, numeric, enum
+from ...loader.types import number, numeric, enum
 
 
 @pytest.mark.unittest
 class TestConfigValidateTypes:
 
     def test_number(self):
-        assert number.validate(1) is None
-        assert number.validate(1.0) is None
+        assert number.load(1) is None
+        assert number.load(1.0) is None
         with pytest.raises(TypeError):
-            number.validate(None)
+            number.load(None)
         with pytest.raises(TypeError):
-            number.validate('string')
+            number.load('string')
 
         assert number(1)
         assert number(1.0)

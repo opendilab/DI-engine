@@ -1,6 +1,6 @@
 import pytest
 
-from ...validate.number import interval
+from ...loader.number import interval
 
 
 @pytest.mark.unittest
