@@ -68,3 +68,55 @@ class TestConfigValidateNumber:
         assert _validator(1.5)
         assert _validator(3.5)
         assert _validator(4.0)
+
+    def test_interval_right_open(self):
+        _validator = interval(right=3.5, right_ok=False)
+        assert _validator(0.5)
+        assert _validator(1.0)
+        assert _validator(1.5)
+        assert _validator(3.4)
+        assert _validator(3.499)
+        assert not _validator(3.5)
+        assert not _validator(3.501)
+        assert not _validator(3.6)
+        assert not _validator(4.0)
+
+    def test_interval_right_open_eps(self):
+        _validator = interval(right=3.5, right_ok=False, eps=0.01)
+        assert _validator(0.5)
+        assert _validator(1.0)
+        assert _validator(1.5)
+        assert _validator(3.4)
+        assert not _validator(3.499)
+        assert not _validator(3.5)
+        assert not _validator(3.501)
+        assert not _validator(3.6)
+        assert not _validator(4.0)
+
+    def test_interval_right_close(self):
+        _validator = interval(right=3.5)
+        assert _validator(0.5)
+        assert _validator(1.0)
+        assert _validator(1.5)
+        assert _validator(3.4)
+        assert _validator(3.499)
+        assert _validator(3.5)
+        assert not _validator(3.501)
+        assert not _validator(3.6)
+        assert not _validator(4.0)
+
+    def test_interval_right_close_eps(self):
+        _validator = interval(right=3.5, eps=0.01)
+        assert _validator(0.5)
+        assert _validator(1.0)
+        assert _validator(1.5)
+        assert _validator(3.4)
+        assert _validator(3.499)
+        assert _validator(3.5)
+        assert _validator(3.501)
+        assert not _validator(3.6)
+        assert not _validator(4.0)
+
+    def test_interval_invalid(self):
+        with pytest.raises(ValueError):
+            interval(1.0, 0.9)
