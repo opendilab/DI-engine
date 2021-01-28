@@ -35,6 +35,7 @@ def mapping(key_loader, value_loader, type_back: bool = True) -> ILoaderClass:
 
 
 def length(min_length: Optional[int] = None, max_length: Optional[int] = None) -> ILoaderClass:
+
     def _load(value):
         if hasattr(value, '__len__'):
             _length = len(value)
@@ -63,6 +64,7 @@ def length_is(length_: int) -> ILoaderClass:
 
 
 def contains(content) -> ILoaderClass:
+
     def _load(value):
         if hasattr(value, '__contains__'):
             if content not in value:

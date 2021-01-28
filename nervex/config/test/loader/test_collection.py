@@ -90,7 +90,7 @@ class TestConfigLoaderCollection:
         assert _loader(['item']) == ['item']
         assert _loader(['item', 'string_1', 'string_2']) == ['item', 'string_1', 'string_2']
         with pytest.raises(TypeError):
-            _loader(('item',))
+            _loader(('item', ))
         with pytest.raises(TypeError):
             _loader(('item', 'string_1', 'string_2'))
         with pytest.raises(TypeError):

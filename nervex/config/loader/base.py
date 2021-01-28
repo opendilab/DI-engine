@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import TypeVar, Callable, Any
 
-CAPTURE_EXCEPTIONS = (Exception,)
+CAPTURE_EXCEPTIONS = (Exception, )
 _ValueType = TypeVar('_ValueType')
 
 
@@ -13,8 +13,11 @@ def _to_exception(exception) -> Callable[[Any], Exception]:
     elif isinstance(exception, str):
         return lambda v: ValueError(exception)
     else:
-        raise TypeError('Unknown type of exception, func, exception or str expected but {actual} found.'.format(
-            actual=repr(type(exception).__name__)))
+        raise TypeError(
+            'Unknown type of exception, func, exception or str expected but {actual} found.'.format(
+                actual=repr(type(exception).__name__)
+            )
+        )
 
 
 def _to_loader(value) -> 'ILoaderClass':
@@ -41,21 +44,27 @@ def _to_loader(value) -> 'ILoaderClass':
 
         return _to_loader(_load_tuple)
     elif isinstance(value, type):
+
         def _load_type(value_):
             if not isinstance(value_, value):
                 raise TypeError(
-                    'type not match, {expect} expected but {actual} found'.format(expect=repr(value.__name__),
-                                                                                  actual=repr(type(value_).__name__)))
+                    'type not match, {expect} expected but {actual} found'.format(
+                        expect=repr(value.__name__), actual=repr(type(value_).__name__)
+                    )
+                )
             return value_
 
         return _to_loader(_load_type)
     elif hasattr(value, '__call__'):
+
         class _Loader(ILoaderClass):
+
             def _load(self, value_):
                 return value(value_)
 
         return _Loader()
     elif isinstance(value, bool):
+
         def _load_bool(value_):
             if not value:
                 raise ValueError('assertion false')
@@ -63,10 +72,12 @@ def _to_loader(value) -> 'ILoaderClass':
 
         return _to_loader(_load_bool)
     elif value is None:
+
         def _load_none(value_):
             if value_ is not None:
                 raise TypeError(
-                    'type not match, none expected but {actual} found'.format(actual=repr(type(value_).__name__)))
+                    'type not match, none expected but {actual} found'.format(actual=repr(type(value_).__name__))
+                )
             return value_
 
         return _to_loader(_load_none)
@@ -78,6 +89,7 @@ Loader = _to_loader
 
 
 class ILoaderClass:
+
     @abstractmethod
     def _load(self, value: _ValueType) -> _ValueType:
         raise NotImplementedError
@@ -127,6 +139,7 @@ class ILoaderClass:
         return Loader(other) | self
 
     def __rshift__(self, other) -> 'ILoaderClass':
+
         def _load(value: _ValueType) -> _ValueType:
             _return_value = self.load(value)
             return _to_loader(other).load(_return_value)

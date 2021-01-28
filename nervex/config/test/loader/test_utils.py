@@ -7,6 +7,7 @@ from ...loader.utils import keep, to_type, optional, check_only
 
 @pytest.mark.unittest
 class TestConfigLoaderUtils:
+
     def test_keep(self):
         _loader = keep()
         assert _loader(1) == 1
@@ -48,7 +49,8 @@ class TestConfigLoaderUtils:
     def test_complex_case_1(self):
         tonumber = to_type(int) | to_type(float)
         _loader = tonumber >> check_only(
-            ((lambda x: x + 1) >> interval(1, 2)) | ((lambda x: x - 1) >> interval(-2, -1)))
+            ((lambda x: x + 1) >> interval(1, 2)) | ((lambda x: x - 1) >> interval(-2, -1))
+        )
         assert _loader(1) == 1
         assert _loader(-1) == -1
         with pytest.raises(ValueError):

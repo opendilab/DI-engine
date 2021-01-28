@@ -9,10 +9,12 @@ STRING_PROCESSOR = Callable[[str], str]
 
 
 def enum(*items, case_sensitive: bool = True) -> ILoaderClass:
+
     def _case_sensitive(func: STRING_PROCESSOR) -> STRING_PROCESSOR:
         if case_sensitive:
             return func
         else:
+
             @wraps(func)
             def _new_func(value: str) -> str:
                 return func(value).lower()
@@ -42,7 +44,8 @@ def _to_regexp(regexp) -> re.Pattern:
         return re.compile(regexp)
     else:
         raise TypeError(
-            'Regexp should be either str or re.Pattern but {actual} found.'.format(actual=repr(type(regexp).__name__)))
+            'Regexp should be either str or re.Pattern but {actual} found.'.format(actual=repr(type(regexp).__name__))
+        )
 
 
 def rematch(regexp: Union[str, re.Pattern]) -> ILoaderClass:
@@ -50,10 +53,12 @@ def rematch(regexp: Union[str, re.Pattern]) -> ILoaderClass:
 
     def _load(value: str):
         if not regexp.fullmatch(value):
-            raise ValueError('fully match with regexp {pattern} expected but {actual} found'.format(
-                pattern=repr(regexp.pattern),
-                actual=repr(value),
-            ))
+            raise ValueError(
+                'fully match with regexp {pattern} expected but {actual} found'.format(
+                    pattern=repr(regexp.pattern),
+                    actual=repr(value),
+                )
+            )
 
         return value
 
@@ -68,9 +73,11 @@ def regrep(regexp: Union[str, re.Pattern], group: int = 0) -> ILoaderClass:
         if results:
             return results[0][group]
         else:
-            raise ValueError('fully match with regexp {pattern} expected but {actual} found'.format(
-                pattern=repr(regexp.pattern),
-                actual=repr(value),
-            ))
+            raise ValueError(
+                'fully match with regexp {pattern} expected but {actual} found'.format(
+                    pattern=repr(regexp.pattern),
+                    actual=repr(value),
+                )
+            )
 
     return Loader(_load)
