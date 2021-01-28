@@ -96,63 +96,63 @@ def entry(env, read_infer_ratio, use_cuda):
     timer = EasyTimer()
 
     # ### Our DataLoader ####
-    total_sum_time_list = []
-    total_data_time_list = []
-    total_infer_time_list = []
-    for _ in range(exp_times):
-        print('\t----- Our DataLoader -----')
-        dataset = MyDataset(file_time, process_time, batch_size, data_name)
-        data_source = get_data_source(dataset)
-        device = 'cuda' if use_cuda else 'cpu'
-        our_dataloader = AsyncDataLoader(
-            data_source, batch_size, device, num_workers=num_workers, chunk_size=chunk_size
-        )
-        iter = 0
-        total_data_time = 0.
-        total_infer_time = 0.
-        total_sum_time = 0.
-        while True:
-            with timer:
-                data = next(our_dataloader)
-            data_time = timer.value
-            with timer:
-                with torch.no_grad():
-                    _, idx = model(data)
-            infer_time = timer.value
-            sum_time = data_time + infer_time
-            if iter > 5:  # ignore start-5-iter time
-                total_data_time += data_time
-                total_infer_time += infer_time
-            print(
-                '\t\titer {:0>2d}, sum_time: {:.4f}, data_time: {:.4f}, infer_time: {:.4f}'.format(
-                    iter, sum_time, data_time, infer_time
-                )
-            )
-            iter += 1
-            if iter == max_iter:
-                break
-        total_sum_time = total_data_time + total_infer_time
-        out_str = '\ttotal_sum_time: {:.4f}, total_data_time: {:.4f}, \
-            total_infer_time: {:.4f}, data/sum: {:.4f}'.format(
-            total_sum_time, total_data_time, total_infer_time, total_data_time / total_sum_time
-        )
-        # out_str_list.append(out_str)
-        print(out_str)
-        our_dataloader.__del__()
-        torch.cuda.empty_cache()
+    # total_sum_time_list = []
+    # total_data_time_list = []
+    # total_infer_time_list = []
+    # for _ in range(exp_times):
+    #     print('\t----- Our DataLoader -----')
+    #     dataset = MyDataset(file_time, process_time, batch_size, data_name)
+    #     data_source = get_data_source(dataset)
+    #     device = 'cuda' if use_cuda else 'cpu'
+    #     our_dataloader = AsyncDataLoader(
+    #         data_source, batch_size, device, num_workers=num_workers, chunk_size=chunk_size
+    #     )
+    #     iter = 0
+    #     total_data_time = 0.
+    #     total_infer_time = 0.
+    #     total_sum_time = 0.
+    #     while True:
+    #         with timer:
+    #             data = next(our_dataloader)
+    #         data_time = timer.value
+    #         with timer:
+    #             with torch.no_grad():
+    #                 _, idx = model(data)
+    #         infer_time = timer.value
+    #         sum_time = data_time + infer_time
+    #         if iter > 5:  # ignore start-5-iter time
+    #             total_data_time += data_time
+    #             total_infer_time += infer_time
+    #         print(
+    #             '\t\titer {:0>2d}, sum_time: {:.4f}, data_time: {:.4f}, infer_time: {:.4f}'.format(
+    #                 iter, sum_time, data_time, infer_time
+    #             )
+    #         )
+    #         iter += 1
+    #         if iter == max_iter:
+    #             break
+    #     total_sum_time = total_data_time + total_infer_time
+    #     out_str = '\ttotal_sum_time: {:.4f}, total_data_time: {:.4f}, \
+    #         total_infer_time: {:.4f}, data/sum: {:.4f}'.format(
+    #         total_sum_time, total_data_time, total_infer_time, total_data_time / total_sum_time
+    #     )
+    #     # out_str_list.append(out_str)
+    #     print(out_str)
+    #     our_dataloader.__del__()
+    #     torch.cuda.empty_cache()
 
-        total_sum_time_list.append(total_sum_time)
-        total_data_time_list.append(total_data_time)
-        total_infer_time_list.append(total_infer_time)
-    total_sum_time = sum(total_sum_time_list) / len(total_sum_time_list)
-    total_data_time = sum(total_data_time_list) / len(total_data_time_list)
-    total_infer_time = sum(total_infer_time_list) / len(total_infer_time_list)
-    out_str = '\t(Our DataLoader {} average) total_sum_time: {:.4f}, \
-        total_data_time: {:.4f}, total_infer_time: {:.4f}, data/sum: {:.4f}'.format(
-        exp_times, total_sum_time, total_data_time, total_infer_time, total_data_time / total_sum_time
-    )
-    out_str_list.append(out_str)
-    print(out_str)
+    #     total_sum_time_list.append(total_sum_time)
+    #     total_data_time_list.append(total_data_time)
+    #     total_infer_time_list.append(total_infer_time)
+    # total_sum_time = sum(total_sum_time_list) / len(total_sum_time_list)
+    # total_data_time = sum(total_data_time_list) / len(total_data_time_list)
+    # total_infer_time = sum(total_infer_time_list) / len(total_infer_time_list)
+    # out_str = '\t(Our DataLoader {} average) total_sum_time: {:.4f}, \
+    #     total_data_time: {:.4f}, total_infer_time: {:.4f}, data/sum: {:.4f}'.format(
+    #     exp_times, total_sum_time, total_data_time, total_infer_time, total_data_time / total_sum_time
+    # )
+    # out_str_list.append(out_str)
+    # print(out_str)
 
     # ### PyTorch DataLoader ####
     for real_num_workers in [0]:
@@ -205,7 +205,7 @@ def entry(env, read_infer_ratio, use_cuda):
         total_sum_time = sum(total_sum_time_list) / len(total_sum_time_list)
         total_data_time = sum(total_data_time_list) / len(total_data_time_list)
         total_infer_time = sum(total_infer_time_list) / len(total_infer_time_list)
-        out_str = '\t(PyTorch DataLoader {} average) total_sum_time: {:.4f}, \
+        out_str = '\t(PyTorch DataLoader baseline {} average) total_sum_time: {:.4f}, \
             total_data_time: {:.4f}, total_infer_time: {:.4f}, data/sum: {:.4f}'.format(
             exp_times, total_sum_time, total_data_time, total_infer_time, total_data_time / total_sum_time
         )
