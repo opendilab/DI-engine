@@ -4,7 +4,7 @@ from ...loader.base import Loader
 
 
 @pytest.mark.unittest
-class TestConfigValidateBase:
+class TestConfigLoaderBase:
 
     def test_load(self):
         _loader = Loader(int)

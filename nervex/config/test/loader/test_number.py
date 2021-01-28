@@ -6,7 +6,7 @@ from ...loader.number import numeric, interval
 
 
 @pytest.mark.unittest
-class TestConfigValidateNumber:
+class TestConfigLoaderNumber:
     # noinspection DuplicatedCode
     def test_numeric_plain(self):
         _loader = numeric()

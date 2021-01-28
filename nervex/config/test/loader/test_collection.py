@@ -5,7 +5,7 @@ from ...loader.collection import collection, contains, length_is, length
 
 
 @pytest.mark.unittest
-class TestConfigValidateCollection:
+class TestConfigLoaderCollection:
 
     def test_collection(self):
         _loader = collection(Loader(int) | str)
