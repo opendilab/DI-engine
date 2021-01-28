@@ -13,7 +13,7 @@ def collection(loader, type_back: bool = True) -> ILoaderClass:
                 _result = type(value)(_result)
             return _result
         else:
-            raise TypeError('type {type} not support __iter__'.format(type=repr(value.__class__.__name__)))
+            raise TypeError('type {type} not support __iter__'.format(type=repr(type(value).__name__)))
 
     return Loader(_load)
 
@@ -29,13 +29,19 @@ def mapping(key_loader, value_loader, type_back: bool = True) -> ILoaderClass:
                 _result = type(value)(_result)
             return _result
         else:
-            raise TypeError()
+            raise TypeError('type {type} not support items'.format(type=repr(type(value).__name__)))
 
     return Loader(_load)
 
 
-def length(min_length: Optional[int] = None, max_length: Optional[int] = None) -> ILoaderClass:
+def tuple_(*loaders) -> ILoaderClass:
+    def _load(value: tuple):
+        return tuple([loader(item) for loader, item in zip(loaders, value)])
 
+    return tuple & length_is(len(loaders)) & Loader(_load)
+
+
+def length(min_length: Optional[int] = None, max_length: Optional[int] = None) -> ILoaderClass:
     def _load(value):
         if hasattr(value, '__len__'):
             _length = len(value)
@@ -64,7 +70,6 @@ def length_is(length_: int) -> ILoaderClass:
 
 
 def contains(content) -> ILoaderClass:
-
     def _load(value):
         if hasattr(value, '__contains__'):
             if content not in value:
