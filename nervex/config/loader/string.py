@@ -1,5 +1,6 @@
 import re
 from functools import wraps
+from itertools import islice
 from typing import Callable, Union
 
 from .base import Loader, ILoaderClass
@@ -44,23 +45,32 @@ def _to_regexp(regexp) -> re.Pattern:
             'Regexp should be either str or re.Pattern but {actual} found.'.format(actual=repr(type(regexp).__name__)))
 
 
-def rematch(regexp: Union[str, re.Pattern], full_match: bool = True):
+def rematch(regexp: Union[str, re.Pattern]) -> ILoaderClass:
     regexp = _to_regexp(regexp)
 
     def _load(value: str):
-        if full_match:
-            if not regexp.fullmatch(value):
-                raise ValueError('fully match with regexp {pattern} expected but {actual} found'.format(
-                    pattern=repr(regexp.pattern),
-                    actual=repr(value),
-                ))
-        else:
-            if not regexp.match(value):
-                raise ValueError('match with regexp {pattern} expected but {actual} found'.format(
-                    pattern=repr(regexp.pattern),
-                    actual=repr(value),
-                ))
+        if not regexp.fullmatch(value):
+            raise ValueError('fully match with regexp {pattern} expected but {actual} found'.format(
+                pattern=repr(regexp.pattern),
+                actual=repr(value),
+            ))
 
         return value
+
+    return Loader(_load)
+
+
+def regrep(regexp: Union[str, re.Pattern], group: int = 0) -> ILoaderClass:
+    regexp = _to_regexp(regexp)
+
+    def _load(value: str):
+        results = list(islice(regexp.finditer(value), 1))
+        if results:
+            return results[0][group]
+        else:
+            raise ValueError('fully match with regexp {pattern} expected but {actual} found'.format(
+                pattern=repr(regexp.pattern),
+                actual=repr(value),
+            ))
 
     return Loader(_load)
