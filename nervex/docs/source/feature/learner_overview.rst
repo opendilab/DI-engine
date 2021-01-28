@@ -178,9 +178,9 @@ Learner
 
             .. note::
 
-                在**串行pipeline**中，learner与actor交替工作（同步），故 ``train`` 方法是从外界传入训练数据，由learner训练一个迭代。
+                在 **串行pipeline** 中，learner与actor交替工作（同步），故 ``train`` 方法是从外界传入训练数据，由learner训练一个迭代。
                 
-                而在**并行pipeline**中，learner与actor同一时刻都在工作（异步），故 ``start`` 方法可作为一个线程启动，自行从dataloader获取数据（所以dataloader是并行pipeline特有的，串行没有），根据预先设定的最大迭代数及evaluate收敛情况，训练多个迭代。其中每一个迭代在获取数据后，都调用 ``train`` 进行当前迭代的训练。
+                而在 **并行pipeline** 中，learner与actor同一时刻都在工作（异步），故 ``start`` 方法可作为一个线程启动，自行从dataloader获取数据（所以dataloader是并行pipeline特有的，串行没有），根据预先设定的最大迭代数及evaluate收敛情况，训练多个迭代。其中每一个迭代在获取数据后，都调用 ``train`` 进行当前迭代的训练。
 
 
     2. Hook 与 LearnerHook (worker/learner/learner_hook.py)
@@ -292,9 +292,9 @@ Learner
 
             .. note::
 
-                故串行pipeline可以实例化base learner并直接对其操作；但在并行pipeline中应当实例化comm learner，再由comm learner通过 ``_create_learner``创建base learner。
+                故串行pipeline可以实例化base learner并直接对其操作；但在并行pipeline中应当实例化comm learner，再由comm learner通过 ``_create_learner`` 创建base learner。
 
-            在并行训练模式中，learner需要自己发出数据请求、定时将当前策略及训练信息发送出去，这些操作将以hook的方式完成，而comm learner的一个重要工作就是将这些hook及执行hook时所需要的函数注册至learner中，即在``hooks4call``中返回上述hook，并实现``get_data``,``send_policy``, ``send_learn_info``三个方法hook中需要用到的方法。
+            在并行训练模式中，learner需要自己发出数据请求、定时将当前策略及训练信息发送出去，这些操作将以hook的方式完成，而comm learner的一个重要工作就是将这些hook及执行hook时所需要的函数注册至learner中，即在 ``hooks4call`` 中返回上述hook，并实现 ``get_data`` , ``send_policy`` ,  ``send_learn_info`` 三个方法hook中需要用到的方法。
         
         - 类变量：
             无
@@ -312,44 +312,50 @@ Learner
 
 
 并行模式中的训练流程解析：
+    相对于简单直接的串行模式，并行模式由于涉及到异步运行的learner actor之间的通信问题，更加晦涩难懂。故在这一部分以我们实现的 **FlaskFileSystemLearner(worker/learner/comm/flask_fs_learner.py)** ——这一使用flask及文件系统进行通信的comm learner——为例，来介绍并行模式中从启动comm learner，为其分配一次或多次任务，到最终关闭comm learner的流程。
 
-相对于简单直接的串行模式，并行模式由于涉及到异步运行的learner actor之间的通信问题，更加晦涩难懂。故在这一部分以我们实现的**FlaskFileSystemLearner(worker/learner/comm/flask_fs_learner.py)**——这一使用flask及文件系统进行通信的comm learner——为例，来介绍并行模式中从启动comm learner，为其分配一次或多次任务，到最终关闭comm learner的流程。
+    在介绍FlaskFileSystemLearner前，还有必要介绍一下LearnerSlave，这一真正负责和coordinator进行通信的类。LearnerSlave继承自Slave，其master为coordinator中的变量master，负责和coordinator通信，处理master发来的task，并利用FlaskFileSystemLearner传来的回调函数响应相应的task。其本质是利用master-slave机制帮助FlaskFileSystemLearner完成与coordinator的通信工作。
 
-在介绍FlaskFileSystemLearner前，还有必要介绍一下LearnerSlave，这一真正负责和coordinator进行通信的类。LearnerSlave继承自Slave，其master为coordinator中的变量master，负责和coordinator通信，处理master发来的task，并利用FlaskFileSystemLearner传来的回调函数响应相应的task。其本质是利用master-slave机制帮助FlaskFileSystemLearner完成与coordinator的通信工作。
+    BaseCommLearner, FlaskFileSystemLearner, BaseLearner, LearnerSlave这几个类之间的关系可见类图所示(本类图并不完整，仅包含为理解后述工作流程所必须的部分)：
 
-然后我们开始介绍并行模式下的FlaskFileSystemLearner这一comm learner的工作流程。
+        .. image:: comm_learner_class.png
 
-1. comm learner的创建
-    并行pipeline会创建comm learner。
-    
-    comm learner中先是实例化一个learner slave，将自己的四个函数作为回调函数传给learner slave（至于什么是回调函数及回调函数是用来做什么的，我们在后边的流程中再解释），learner slave会通过预先商定的ip地址与端口号与coordinator建立连接。
-    
-    此外，comm learner创建几个长度为1的队列，用于存放一些和通信相关的消息字典。并行pipeline中还会调用start方法以启动comm learner服务。
+    然后我们开始介绍并行模式下的FlaskFileSystemLearner这一comm learner的工作流程。可以参考以下顺序图帮助理解。
 
-2. learner的创建
-    在coordinator发来任务之前，comm learner及learner slave一直都处于待命状态。一旦coordinator发来任务，learner slave的``_process_task``就会接收到该任务。
-    
-    coordinator知道comm learner的工作流程为：首先建立learner，然后重复获取数据、利用数据训练这一过程直到训练结束。故此时的任务应当为"learner_start_task"，此外还传来建立learner必须的信息。
-    
-    这些信息都传到了learner slave处，但learner的创建是在comm learner中完成的，这就用到了我们刚刚提到的回调函数。回调函数由comm learner实现，但作为参数传递给learner slave，故learner slave可以调用这些函数。
-    
-    对于"learner_start_task"，learner slave调用comm learner的``deal_with_learner_start``方法，完成建立learner的工作。完成后，learner slave向coordinator返回成功的信息。
+        .. image:: comm_learner_sequence.png
 
-3. learner get data
-    learner在建立后，dataloader便会调用comm learner中实现的``get_data``方法试图读取数据，``get_data``中会在comm learner的``_data_demand_queue``放入这一数据请求，然后试图从``_data_result_queue``中取出数据，若其为空，就被阻塞在了这里。
-    
-    视线回到coordinator，当coordinator收到流程2中最后"learner_start_task"成功执行的信息后，发送任务"learner_get_data_task"，learner slave调用comm learner中的``deal_with_get_data``，从``_data_demand_queue``中取出数据请求，并返回给coordinator。
 
-4. learner learn
-    coordinator在收到learner的数据请求后，会发送"learner_learn_task"给learner slave，其中就包含了learner请求的数据。learner slave收到后调用comm learner的``deal_with_learner_learn``方法，将收到的数据信息放入``_data_result_queue``中，并等待learner结束训练，可以从``_learn_info_queue``中获取训练信息。
+    1. comm learner的创建
+        并行pipeline会创建comm learner，并调用 ``start`` 方法以启动comm learner服务
+        
+        comm learner中先是实例化一个 **learner slave** ，将自己的四个函数作为回调函数传给learner slave（至于什么是回调函数及回调函数是用来做什么的，我们在后边的流程中再解释），learner slave会通过预先商定的ip地址与端口号与coordinator建立连接。
+        
+        此外，comm learner创建几个 **长度为1的队列** ，用于存放一些和通信相关的消息字典。
 
-    视线回到learner，learner是因为dataloader无法获得数据而被阻塞住的，现在``_data_result_queue``中有了数据信息，dataloader可以将其取出，处理成learner需要的格式，交由learner训练一个迭代。训练完成后，learner将训练信息存放在``_learn_info_queue``当中。
+    2. learner的创建
+        在coordinator发来任务之前，comm learner及learner slave一直都处于待命状态。一旦coordinator发来任务，learner slave的 ``_process_task`` 就会接收到该任务。
+        
+        coordinator知道comm learner的工作流程为： **首先建立learner，然后重复执行获取数据、利用数据训练这一过程，直到训练结束** 。故此时的任务应当为 ``learner_start_task`` ，此外还传来建立learner必须的信息。
+        
+        这些信息都传到了learner slave处，但learner的创建是在comm learner中完成的，这就用到了我们刚刚提到的 **回调函数** 。回调函数由comm learner实现，但作为参数传递给learner slave，故learner slave可以调用这些函数。
+        
+        对于 ``learner_start_task`` ，learner slave调用comm learner的 ``deal_with_learner_start`` 方法，完成建立learner的工作。完成后，learner slave向coordinator返回成功的信息。
 
-    视线回到comm learner的``deal_with_learner_learn``方法，它从``_learn_info_queue``取出训练信息，并将其通过learner slave返回给coordinator。对于该信息的内容有两种情况：
+    3. learner get data
+        learner在建立后，dataloader便会调用comm learner中实现的 ``get_data`` 方法 **试图获取数据** ， ``get_data`` 中会在comm learner的 ``_data_demand_queue`` 放入这一数据请求，然后试图从 ``_data_result_queue`` 中取出数据，若其为空，就被 **阻塞** 在了这里。
+        
+        视线回到coordinator，当coordinator收到流程2中最后 ``learner_start_task`` 成功执行的信息后，发送任务 ``learner_get_data_task`` ，learner slave调用comm learner中的 ``deal_with_get_data`` ，从 ``_data_demand_queue`` 中取出数据请求，并返回给coordinator。
 
-        - learner没有完成训练，需要继续迭代：此时dataloader又会调用get_data，coordinator也会在收到该信息后继续发送任务"learner_get_data_task"，便回到了流程3。
+    4. learner learn
+        coordinator在收到learner的数据请求后，会发送 ``learner_learn_task`` 给learner slave，其中就包含了learner请求的 **数据** （或元数据） 。learner slave收到后调用comm learner的 ``deal_with_learner_learn`` 方法，将收到的数据信息放入 ``_data_result_queue`` 中，并等待learner结束训练，可以从 ``_learn_info_queue`` 中获取训练信息。
 
-        - learner完成训练：comm learner中会将learner关闭，等待coordinator再次分配新的任务"learner_start_task"，完成新的训练工作，便回到了流程2。
+        视线回到learner，learner是因为dataloader无法获得数据而被阻塞住的，现在 ``_data_result_queue`` 中有了数据信息，dataloader可以将其取出，处理成learner需要的格式，交由learner **训练一个迭代** 。训练完成后，learner将训练信息存放在 ``_learn_info_queue`` 当中。
 
-5. comm learner close
-    可以通过输入命令的方式手动关闭comm learner，否则comm learner将常驻，等待coordinator分配任务，执行后返回结果。
+        视线回到comm learner的 ``deal_with_learner_learn`` 方法，它从 ``_learn_info_queue`` 取出训练信息，并将其通过learner slave返回给coordinator。对于该信息的内容有 **两种情况** ：
+
+            - learner没有完成训练，需要继续迭代：此时dataloader又会调用 ``get_data`` ，coordinator也会在收到该信息后继续发送任务 ``learner_get_data_task`` ，便回到了流程3。
+
+            - learner完成训练：comm learner中会将learner关闭，等待coordinator再次分配新的任务 ``learner_start_task`` ，完成新的训练工作，便回到了流程2。
+
+    5. comm learner close
+        可以通过输入命令的方式手动关闭comm learner；否则comm learner将 **常驻** ，等待coordinator分配新的任务，执行后返回结果。
