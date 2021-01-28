@@ -19,7 +19,7 @@ class BaseCommLearner(ABC):
     def __init__(self, cfg: 'EasyDict') -> None:  # noqa
         """
         Overview:
-            Initialization method。
+            Initialization method.
         Arguments:
             - cfg (:obj:`EasyDict`): Config dict
         """

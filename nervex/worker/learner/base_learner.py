@@ -2,7 +2,7 @@
 Copyright 2020 Sensetime X-lab. All Rights Reserved
 
 Main Function:
-    1. base class for model learning
+    1. Base learner class for both serial and parallel training pipeline.
 """
 import os
 from typing import Any, Union, Callable, List
@@ -169,13 +169,15 @@ class BaseLearner(object):
         self._wrapper_timer = EasyTimer()
         self.train = self._time_wrapper(self.train, 'train_time')
 
-    def _time_wrapper(self, fn: Callable, name: str):
+    def _time_wrapper(self, fn: Callable, name: str) -> Callable:
         """
         Overview:
             Wrap a function and measure the time it used.
         Arguments:
             - fn (:obj:`Callable`): Function to be time_wrapped.
             - name (:obj:`str`): Name to be registered in ``_log_buffer``.
+        Returns:
+             - wrapper (:obj:`Callable`): The wrapper to acquire a function's time.
         """
 
         def wrapper(*args, **kwargs) -> Any:
