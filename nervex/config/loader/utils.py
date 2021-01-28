@@ -11,3 +11,7 @@ def to_type(type_: type) -> ILoaderClass:
 
 def optional(loader) -> ILoaderClass:
     return Loader(loader) | None
+
+
+def check_only(loader) -> ILoaderClass:
+    return Loader(loader) & keep()
