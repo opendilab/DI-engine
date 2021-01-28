@@ -82,6 +82,51 @@ class TestConfigLoaderBase:
         assert not _loader.check(-1)
         assert not _loader.check(-1.0)
 
+    def test_tuple_2(self):
+        _loader = Loader((lambda x: x > 0, 'value error'))
+        assert _loader(1) == 1
+        with pytest.raises(ValueError):
+            assert _loader(0)
+
+        _loader = Loader((lambda x: x > 0, RuntimeError('runtime error')))
+        assert _loader(1) == 1
+        with pytest.raises(RuntimeError):
+            assert _loader(0)
+
+        _loader = Loader((lambda x: x > 0, lambda x: SystemError('system error, value is {v}'.format(v=repr(x)))))
+        assert _loader(1) == 1
+        with pytest.raises(SystemError):
+            assert _loader(0)
+
+    def test_tuple_3(self):
+        _loader = Loader((lambda x: x > 0, lambda x: x + 1, 'value error'))
+        assert _loader(1) == 2
+        assert _loader(0.5) == 1.5
+        with pytest.raises(ValueError):
+            assert _loader(0)
+
+        _loader = Loader((lambda x: x > 0, lambda x: -x, RuntimeError('runtime error')))
+        assert _loader(1) == -1
+        assert _loader(0.5) == -0.5
+        with pytest.raises(RuntimeError):
+            assert _loader(0)
+
+        _loader = Loader(
+            (lambda x: x > 0, lambda x: x ** 2, lambda x: SystemError('system error, value is {v}'.format(v=repr(x))))
+        )
+        assert _loader(1) == 1
+        assert _loader(0.5) == 0.25
+        with pytest.raises(SystemError):
+            assert _loader(0)
+
+    def test_tuple_invalid(self):
+        with pytest.raises(ValueError):
+            Loader(())
+        with pytest.raises(ValueError):
+            Loader((lambda x: x > 0, ))
+        with pytest.raises(ValueError):
+            Loader((lambda x: x > 0, lambda x: x + 1, 'value error', None))
+
     def test_bool(self):
         _loader = Loader(int) & True
         assert _loader(1) == 1

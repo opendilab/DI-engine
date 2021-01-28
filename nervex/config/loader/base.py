@@ -24,15 +24,13 @@ def _to_loader(value) -> 'ILoaderClass':
     if isinstance(value, ILoaderClass):
         return value
     elif isinstance(value, tuple):
-        if len(value) == 1:
-            return _to_loader(value[0])
-        elif len(value) == 2:
+        if len(value) == 2:
             _predict, _exception = value
             _load = None
         elif len(value) == 3:
             _predict, _load, _exception = value
         else:
-            raise ValueError('Tuple\'s length should be in 1 ~ 3, but {actual} found.'.format(actual=repr(len(value))))
+            raise ValueError('Tuple\'s length should be 2 or 3, but {actual} found.'.format(actual=repr(len(value))))
 
         _exception = _to_exception(_exception)
 
@@ -64,23 +62,14 @@ def _to_loader(value) -> 'ILoaderClass':
 
         return _Loader()
     elif isinstance(value, bool):
-
-        def _load_bool(value_):
-            if not value:
-                raise ValueError('assertion false')
-            return value_
-
-        return _to_loader(_load_bool)
+        return _to_loader((lambda v: value, ValueError('assertion false')))
     elif value is None:
-
-        def _load_none(value_):
-            if value_ is not None:
-                raise TypeError(
-                    'type not match, none expected but {actual} found'.format(actual=repr(type(value_).__name__))
-                )
-            return value_
-
-        return _to_loader(_load_none)
+        return _to_loader(
+            (
+                lambda v: v is None, lambda v:
+                TypeError('type not match, none expected but {actual} found'.format(actual=repr(type(v).__name__)))
+            )
+        )
     else:
         raise TypeError('Unknown type for loader.')
 
