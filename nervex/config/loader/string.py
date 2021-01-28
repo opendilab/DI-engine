@@ -1,5 +1,6 @@
+import re
 from functools import wraps
-from typing import Callable
+from typing import Callable, Union
 
 from .base import Loader, ILoaderClass
 
@@ -29,5 +30,37 @@ def enum(*items, case_sensitive: bool = True) -> ILoaderClass:
             raise ValueError('unknown enum value {value}'.format(value=repr(value)))
 
         return real_value
+
+    return Loader(_load)
+
+
+def _to_regexp(regexp) -> re.Pattern:
+    if isinstance(regexp, re.Pattern):
+        return regexp
+    elif isinstance(regexp, str):
+        return re.compile(regexp)
+    else:
+        raise TypeError(
+            'Regexp should be either str or re.Pattern but {actual} found.'.format(actual=repr(type(regexp).__name__)))
+
+
+def rematch(regexp: Union[str, re.Pattern], full_match: bool = True):
+    regexp = _to_regexp(regexp)
+
+    def _load(value: str):
+        if full_match:
+            if not regexp.fullmatch(value):
+                raise ValueError('fully match with regexp {pattern} expected but {actual} found'.format(
+                    pattern=repr(regexp.pattern),
+                    actual=repr(value),
+                ))
+        else:
+            if not regexp.match(value):
+                raise ValueError('match with regexp {pattern} expected but {actual} found'.format(
+                    pattern=repr(regexp.pattern),
+                    actual=repr(value),
+                ))
+
+        return value
 
     return Loader(_load)
