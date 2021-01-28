@@ -17,7 +17,10 @@ def enum(*items, case_sensitive: bool = True) -> ILoaderClass:
 
             return _new_func
 
-    _item_process = _case_sensitive(lambda x: str(x))
+    @_case_sensitive
+    def _item_process(value):
+        return str(value)
+
     item_set = set([_item_process(item) for item in items])
 
     def _load(value: str):

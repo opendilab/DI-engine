@@ -6,133 +6,126 @@ from ...loader.base import Loader
 @pytest.mark.unittest
 class TestConfigValidateBase:
 
-    def test_validator(self):
-        assert Loader(int).load(1) is None
+    def test_load(self):
+        _loader = Loader(int)
+        assert _loader.load(1) == 1
         with pytest.raises(TypeError):
-            Loader(int).load('string')
+            _loader.load('string')
 
-        assert Loader(int).check(1)
-        assert not Loader(int).check('string')
+    def test_check(self):
+        _loader = Loader(int)
+        assert _loader.check(1)
+        assert not _loader.check('string')
 
-        assert Loader(int)(1)
-        assert not Loader(int)('string')
-
-        assert Loader(str).load('string') is None
+    def test_call(self):
+        _loader = Loader(int)
+        assert _loader(1) == 1
         with pytest.raises(TypeError):
-            Loader(str).load(1)
-
-        assert Loader(str).check('string')
-        assert not Loader(str).check(1)
-
-        assert Loader(str)('string')
-        assert not Loader(str)(1)
+            _loader('string')
 
     def test_or(self):
-        _validator = Loader(int) | str
-        assert _validator.load(1) is None
-        assert _validator.load('string') is None
+        _loader = Loader(int) | str
+        assert _loader(1) == 1
+        assert _loader('string') == 'string'
         with pytest.raises(TypeError):
-            _validator.load([])
+            _loader([])
 
-        assert _validator(1)
-        assert _validator('string')
-        assert not _validator([])
+        assert _loader.check(1)
+        assert _loader.check('string')
+        assert not _loader.check([])
 
     def test_ror(self):
-        negative_validator = (lambda x: x < 0, lambda v: ValueError('negative number required'))
-        _validator = negative_validator | Loader(int)
+        _loader = (lambda v: v < 0, 'Negative number expected.') | Loader(int)
 
-        assert _validator.load(-1) is None
-        assert _validator.load(1) is None
-        assert _validator.load(-1.0) is None
+        assert _loader(-1) == -1
+        assert _loader(1) == 1
+        assert _loader(-1.0) - 1.0
         with pytest.raises(TypeError):
-            _validator.load(1.0)
+            _loader(1.0)
 
-        assert _validator(-1)
-        assert _validator(1)
-        assert _validator(-1.0)
-        assert not _validator(1.0)
+        assert _loader.check(-1)
+        assert _loader.check(1)
+        assert _loader.check(-1.0)
+        assert not _loader.check(1.0)
 
     # noinspection DuplicatedCode
     def test_and(self):
-        positive_validator = (lambda x: x >= 0, lambda v: ValueError('non-negative number required'))
-        _validator = Loader(int) & positive_validator
+        _loader = Loader(int) & (lambda x: x >= 0, 'non-negative number required')
 
-        assert _validator.load(1) is None
+        assert _loader(1) == 1
         with pytest.raises(TypeError):
-            _validator.load(1.0)
+            _loader(1.0)
         with pytest.raises(ValueError):
-            _validator.load(-1)
+            _loader(-1)
         with pytest.raises(TypeError):
-            _validator.load(-1.0)
+            _loader(-1.0)
 
-        assert _validator(1)
-        assert not _validator(1.0)
-        assert not _validator(-1)
-        assert not _validator(-1.0)
+        assert _loader.check(1)
+        assert not _loader.check(1.0)
+        assert not _loader.check(-1)
+        assert not _loader.check(-1.0)
 
     # noinspection DuplicatedCode
     def test_rand(self):
-        positive_validator = (lambda x: x >= 0, lambda v: ValueError('non-negative number required'))
-        _validator = positive_validator & Loader(int)
+        _loader = (lambda x: x >= 0, 'non-negative number required') & Loader(int)
 
-        assert _validator.load(1) is None
+        assert _loader(1) == 1
         with pytest.raises(TypeError):
-            _validator.load(1.0)
+            _loader(1.0)
         with pytest.raises(ValueError):
-            _validator.load(-1)
+            _loader(-1)
         with pytest.raises(ValueError):
-            _validator.load(-1.0)
+            _loader(-1.0)
 
-        assert _validator(1)
-        assert not _validator(1.0)
-        assert not _validator(-1)
-        assert not _validator(-1.0)
+        assert _loader.check(1)
+        assert not _loader.check(1.0)
+        assert not _loader.check(-1)
+        assert not _loader.check(-1.0)
 
     def test_bool(self):
-        _validator = Loader(int) & True
-        assert _validator.load(1) is None
+        _loader = Loader(int) & True
+        assert _loader(1) == 1
         with pytest.raises(TypeError):
-            _validator.load(None)
+            _loader(None)
 
-        assert _validator(1)
-        assert not _validator(None)
+        assert _loader.check(1)
+        assert not _loader.check(None)
 
-        _validator = Loader(int) & False
+        _loader = Loader(int) & False
         with pytest.raises(ValueError):
-            _validator.load(1)
+            _loader(1)
         with pytest.raises(TypeError):
-            _validator.load(None)
+            _loader(None)
 
-        assert not _validator(1)
-        assert not _validator(None)
+        assert not _loader.check(1)
+        assert not _loader.check(None)
 
-        _validator = Loader(int) | True
-        assert _validator.load(1) is None
-        assert _validator.load(None) is None
+        _loader = Loader(int) | True
+        assert _loader(1) == 1
+        assert _loader(None) is None
 
-        assert _validator(1)
-        assert _validator(None)
+        assert _loader.check(1)
+        assert _loader.check(None)
 
-        _validator = Loader(int) | False
-        assert _validator.load(1) is None
+        _loader = Loader(int) | False
+        assert _loader(1) == 1
         with pytest.raises(ValueError):
-            _validator.load(None)
+            _loader(None)
 
-        assert _validator(1)
-        assert not _validator(None)
+        assert _loader.check(1)
+        assert not _loader.check(None)
 
     def test_none(self):
-        _validator = Loader(int) | None
-        assert _validator.load(1) is None
-        assert _validator.load(None) is None
+        _loader = Loader(int) | None
+        assert _loader(1) == 1
+        assert _loader(None) is None
         with pytest.raises(TypeError):
-            raise _validator.load('string')
+            _loader('string')
 
-        assert _validator(1)
-        assert _validator(None)
-        assert not _validator('string')
+        assert _loader.check(1)
+        assert _loader.check(None)
+        assert not _loader.check('string')
 
-    def test_unknown_validator(self):
+    def test_unknown_loader(self):
         with pytest.raises(TypeError):
             Loader([1, 2, 3])

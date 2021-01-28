@@ -1,13 +1,45 @@
 from abc import abstractmethod
-from typing import TypeVar
+from typing import TypeVar, Callable, Any
 
 CAPTURE_EXCEPTIONS = (Exception,)
 _ValueType = TypeVar('_ValueType')
 
 
+def _to_exception(exception) -> Callable[[Any], Exception]:
+    if hasattr(exception, '__call__'):
+        return exception
+    elif isinstance(exception, Exception):
+        return lambda v: exception
+    elif isinstance(exception, str):
+        return lambda v: ValueError(exception)
+    else:
+        raise TypeError('Unknown type of exception, func, exception or str expected but {actual} found.'.format(
+            actual=repr(type(exception).__name__)))
+
+
 def _to_loader(value) -> 'ILoaderClass':
     if isinstance(value, ILoaderClass):
         return value
+    elif isinstance(value, tuple):
+        if len(value) == 1:
+            return _to_loader(value[0])
+        elif len(value) == 2:
+            _predict, _exception = value
+            _load = None
+        elif len(value) == 3:
+            _predict, _load, _exception = value
+        else:
+            raise ValueError('Tuple\'s length should be in 1 ~ 3, but {actual} found.'.format(actual=repr(len(value))))
+
+        _exception = _to_exception(_exception)
+
+        def _load_tuple(value_):
+            if not _predict(value_):
+                raise _exception(value_)
+
+            return (_load or (lambda v: v))(value_)
+
+        return _to_loader(_load_tuple)
     elif isinstance(value, type):
         def _load_type(value_):
             if not isinstance(value_, value):
@@ -33,8 +65,8 @@ def _to_loader(value) -> 'ILoaderClass':
     elif value is None:
         def _load_none(value_):
             if value_ is not None:
-                raise ValueError(
-                    'type not match, none expected but {actual} found'.format(actual=repr(value_).__name__))
+                raise TypeError(
+                    'type not match, none expected but {actual} found'.format(actual=repr(type(value_).__name__)))
             return value_
 
         return _to_loader(_load_none)

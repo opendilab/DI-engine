@@ -1,16 +1,36 @@
 from typing import Optional
 
 from .base import ILoaderClass, Loader
+from .utils import keep
 
 
-def collection(validator) -> ILoaderClass:
-    validator = Loader(validator)
+def collection(loader, type_back: bool = True) -> ILoaderClass:
+    loader = Loader(loader)
 
     def _load(value):
         if hasattr(value, '__iter__'):
-            return [validator.load(item) for item in value]
+            _result = [loader.load(item) for item in value]
+            if type_back:
+                _result = type(value)(_result)
+            return _result
         else:
             raise TypeError('type {type} not support __iter__'.format(type=repr(value.__class__.__name__)))
+
+    return Loader(_load)
+
+
+def mapping(key_loader, value_loader, type_back: bool = True) -> ILoaderClass:
+    key_loader = Loader(key_loader or keep())
+    value_loader = Loader(value_loader or keep())
+
+    def _load(value):
+        if hasattr(value, 'items'):
+            _result = {key_loader(key_): value_loader(value_) for key_, value_ in value.items()}
+            if type_back:
+                _result = type(value)(_result)
+            return _result
+        else:
+            raise TypeError()
 
     return Loader(_load)
 
