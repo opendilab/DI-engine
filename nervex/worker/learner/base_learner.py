@@ -64,9 +64,9 @@ class TickMonitor(LoggedModel):
 def get_simple_monitor_type(properties: List[str] = []) -> TickMonitor:
     """
     Overview:
-        Besides basic training variables provided in ``TickMonitor``, many policies have their own customized 
-        ones to record and monitor. This function can return a customized tick monitor. 
-        Compared with ``TickMonitor``, ``SimpleTickMonitor`` can record extra ``properties`` passed in by a policy. 
+        Besides basic training variables provided in ``TickMonitor``, many policies have their own customized
+        ones to record and monitor. This function can return a customized tick monitor.
+        Compared with ``TickMonitor``, ``SimpleTickMonitor`` can record extra ``properties`` passed in by a policy.
     Argumenst:
          - properties (:obj:`List[str]`): Customized properties to monitor.
     Returns:
@@ -151,7 +151,7 @@ class BaseLearner(object):
     def _setup_hook(self) -> None:
         """
         Overview:
-            Setup hook for base_learner. Hook is the way to implement some functions at specific time point 
+            Setup hook for base_learner. Hook is the way to implement some functions at specific time point
             in base_learner. You can refer to ``learner_hook.py``.
         """
         if hasattr(self, '_hooks'):
@@ -205,7 +205,7 @@ class BaseLearner(object):
             - data (:obj:`dict`): Training data which is retrieved from repaly buffer.
         Note:
             ``_policy`` must be set before calling this method.
-            ``_policy.forward`` method contains: forward, backward, grad sync(if in distributed mode) and 
+            ``_policy.forward`` method contains: forward, backward, grad sync(if in distributed mode) and
             parameter update.
         """
         assert hasattr(self, '_policy'), "please set learner policy"
@@ -321,7 +321,7 @@ class BaseLearner(object):
         Note:
             Must guarantee that "save_ckpt_after_run" is registered in "after_run" hook.
             This method is called in:
-                
+
                 - ``auto_checkpoint``(``torch_utils/checkpoint_helper.py``), which is designed for \
                     saving checkpoint whenever an exception raises.
                 - ``serial_pipeline``(``entry/serial_entry.py``). Used to save checkpoint after convergence or \

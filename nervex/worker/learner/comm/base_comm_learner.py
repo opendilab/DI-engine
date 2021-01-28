@@ -142,7 +142,7 @@ def create_comm_learner(cfg: dict) -> BaseCommLearner:
     """
     Overview:
         Given the key(comm_learner_name), create a new comm learner instance if in comm_map's values,
-        or raise an KeyError. In other words, a derived comm learner must first register, 
+        or raise an KeyError. In other words, a derived comm learner must first register,
         then can call ``create_comm_learner`` to get the instance.
     Arguments:
         - cfg (:obj:`dict`): Learner config. Necessary keys: [import_names, comm_learner_type].
