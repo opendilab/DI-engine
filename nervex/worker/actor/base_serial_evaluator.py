@@ -13,11 +13,11 @@ class BaseSerialEvaluator(object):
     def __init__(self, cfg: dict) -> None:
         self._default_n_episode = cfg.get('n_episode', None)
         self._stop_val = cfg.stop_val
-        self._logger, _ = build_logger(path='./log', name='evaluator')
-        self._tb_logger = TensorBoardLogger(path='./log', name='evaluator')
+        self._logger, _ = build_logger(path='./log/evaluator', name='evaluator')
+        self._tb_logger = TensorBoardLogger(path='./log/evaluator', name='evaluator')
         for var in ['episode_count', 'step_count', 'avg_step_per_episode', 'avg_time_per_step', 'avg_time_per_episode',
                     'reward_mean', 'reward_std']:
-            self._tb_logger.register_var(var)
+            self._tb_logger.register_var('evaluator/' + var)
         self._timer = EasyTimer()
         self._cfg = cfg
 
@@ -69,6 +69,10 @@ class BaseSerialEvaluator(object):
                 action = {i: a['action'] for i, a in policy_output.items()}
                 timestep = self._env.step(action)
                 for i, t in timestep.items():
+                    if t.info.get('abnormal', False):
+                        # if there is a abnormal timestep, reset all the related variable, also this env has been reset
+                        self._policy.reset([i])
+                        continue
                     if t.done:
                         # env reset is done by env_manager automatically
                         self._policy.reset([i])
@@ -85,6 +89,8 @@ class BaseSerialEvaluator(object):
                     step_count += 1
         duration = self._timer.value
         info = {
+            'train_iter': train_iter,
+            'ckpt_name': 'iteration_{}.pth.tar'.format(train_iter),
             'episode_count': episode_count,
             'step_count': step_count,
             'avg_step_per_episode': step_count / episode_count,
@@ -96,7 +102,7 @@ class BaseSerialEvaluator(object):
         self._logger.info(
             "[EVALUATOR]evaluate end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()]))
         )
-        tb_vars = [[k, v, train_iter] for k, v in info.items()]
+        tb_vars = [['evaluator/' + k, v, train_iter] for k, v in info.items() if k not in ['train_iter', 'ckpt_name']]
         self._tb_logger.add_val_list(tb_vars, viz_type='scalar')
         eval_reward = np.mean(episode_reward)
         return eval_reward >= self._stop_val, eval_reward

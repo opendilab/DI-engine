@@ -31,18 +31,18 @@ class Slave(ControllableService):
         self.__host = host or GLOBAL_HOST
         self.__port = port or DEFAULT_SLAVE_PORT
         self.__flask_app_value = None
-        self.__run_app_thread = Thread(target=self.__run_app)
+        self.__run_app_thread = Thread(target=self.__run_app, name='slave_run_app')
 
         # heartbeat part
         self.__heartbeat_span = max(heartbeat_span or DEFAULT_HEARTBEAT_SPAN, MIN_HEARTBEAT_SPAN)
-        self.__heartbeat_thread = Thread(target=self.__heartbeat)
+        self.__heartbeat_thread = Thread(target=self.__heartbeat, name='slave_heartbeat')
 
         # task part
         self.__has_task = DblEvent()
         self.__task_lock = Lock()
         self.__task_id = None
         self.__task_data = None
-        self.__task_thread = Thread(target=self.__task)
+        self.__task_thread = Thread(target=self.__task, name='slave_task')
 
         # self-connection part
         self.__self_http_engine = get_http_engine_class(
@@ -50,7 +50,8 @@ class Slave(ControllableService):
                 'Token': lambda: self.__self_token,
             },
             http_error_gene=get_slave_exception_by_error,
-        )()(self.__host, self.__port, False)
+        )()('localhost', self.__port, False)
+        # )()(self.__host, self.__port, False)  # TODO: Confirm how to ping itself
         self.__self_token = random_token()
 
         # master-connection part

@@ -19,7 +19,7 @@ class CryptoAgent(Agent):
 
 class Scenario(BaseScenario):
 
-    def make_world(self):
+    def make_world(self, num_agents=3, num_landmarks=2):
         world = World()
         # set any world properties first
         num_agents = 3

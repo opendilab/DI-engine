@@ -142,14 +142,8 @@ class PPOPolicy(CommonPolicy):
         output = {'action': action, 'logit': logit, 'value': value}
         return output
 
-    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
-        if model_type is None:
-            if cfg.get("encode_type", None) == "conv2d":
-                return ConvValueAC(**cfg.model)
-            else:
-                return FCValueAC(**cfg.model)
-        else:
-            return model_type(**cfg.model)
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'fc_vac', ['nervex.model.actor_critic.value_ac']
 
     def _init_command(self) -> None:
         eps_cfg = self._cfg.command.eps

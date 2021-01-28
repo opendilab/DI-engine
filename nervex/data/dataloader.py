@@ -102,7 +102,11 @@ class AsyncDataLoader(object):
                 self.job_result = self.manager.dict()
                 self.job_result_lock = LockContext(type_=LockContextType.PROCESS_LOCK)
             self.job_queue = self.mp_context.Queue(maxsize=queue_maxsize)
-            self.worker = [self.mp_context.Process(target=self._worker_loop, args=()) for _ in range(self.num_workers)]
+            self.worker = [
+                self.mp_context.Process(
+                    target=self._worker_loop, args=(), name='dataloader_worker{}_{}'.format(i, time.time())
+                ) for i in range(self.num_workers)
+            ]
             for w in self.worker:
                 w.daemon = True
                 w.start()
@@ -125,7 +129,7 @@ class AsyncDataLoader(object):
         # Then user will access data from ``cuda_queue``.
         if self.use_cuda:
             self.cuda_queue = queue.Queue(maxsize=queue_maxsize)
-            self.cuda_thread = threading.Thread(target=self._cuda_loop, args=())
+            self.cuda_thread = threading.Thread(target=self._cuda_loop, args=(), name='dataloader_cuda')
             self.cuda_thread.daemon = True
             self.cuda_thread.start()
 

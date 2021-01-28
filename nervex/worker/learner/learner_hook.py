@@ -150,7 +150,7 @@ class SaveCkptHook(LearnerHook):
             - engine (:obj:`BaseLearner`): the BaseLearner which needs to save checkpoint
         """
         if engine.rank == 0 and engine.last_iter.val % self._freq == 0:
-            dirname = os.path.join(engine.save_path, 'ckpt_{}'.format(engine.name))
+            dirname = './ckpt{}'.format(engine.name)
             if not os.path.exists(dirname):
                 try:
                     os.mkdir(dirname)
@@ -214,7 +214,7 @@ class LogShowHook(LearnerHook):
             var_dict = {}
             for k in engine.log_buffer:
                 for attr in engine.monitor.get_property_attribute(k):
-                    k_attr = k + '_' + attr
+                    k_attr = 'learner/' + k + '_' + attr
                     var_dict[k_attr] = getattr(engine.monitor, attr)[k]()
             engine.logger.print_vars(var_dict)
             engine.tb_logger.print_vars(var_dict, iters, 'scalar')

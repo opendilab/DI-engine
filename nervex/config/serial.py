@@ -1,7 +1,6 @@
 from easydict import EasyDict
 
 base_learner_default_config = dict(
-    save_path='.',
     load_path='',
     use_cuda=False,
     use_distributed=False,

@@ -255,21 +255,8 @@ class CollaQPolicy(CommonPolicy):
         data = self._adder.get_traj(traj_cache, self._traj_len, return_num=0)
         return self._adder.get_train_sample(data)
 
-    def _create_model_from_cfg(self, cfg: dict, model_type: Optional[type] = None) -> torch.nn.Module:
-        r"""
-        Overview:
-            Create a model according to input config. This policy will adopt CollaQ network.
-        Arguments:
-            - cfg (:obj:`dict`): Config.
-            - model_type (:obj:`Optional[type]`): If this is not None, this function will create \
-                an instance of this.
-        Returns:
-            - model (:obj:`torch.nn.Module`): Generated model.
-        """
-        if model_type is None:
-            return CollaQ(**cfg.model)
-        else:
-            return model_type(**cfg.model)
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'collaq', ['nervex.model.qmix.qmix']
 
 
 register_policy('collaQ', CollaQPolicy)

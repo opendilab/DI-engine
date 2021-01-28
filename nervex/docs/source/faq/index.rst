@@ -17,7 +17,7 @@ Q1: 如何使用串行版本入口
             seed: int,
             env_setting: Optional[Any] = None,  # subclass of BaseEnv, and config dict
             policy_type: Optional[type] = None,  # subclass of Policy
-            model_type: Optional[type] = None,  # subclass of torch.nn.Module
+            model: Optional[Union[type, torch.nn.Module]] = None,  # instance or subclass of torch.nn.Module
     ) -> None:
         pass
 
@@ -26,7 +26,7 @@ Q1: 如何使用串行版本入口
 - seed: 该参数是随机种子，为一个int值，会设置各类外部库的随机种子，以及环境的随机种子，注意多个环境跟根据环境序号再加上相应数字作为种子，以保证不同环境种子不同
 - env_setting(optional): 该参数用来设置环境，一般为None，即从全局配置文件中创建环境，否则是一个list，其中有三个元素，第一个元素是环境类，第二第三个参数分别是环境的配置dict的list，各自的长度等于需要创建的环境个数。
 - policy_type(optional): 该参数用来设置Policy，一般为None，即从全局配置文件中创建策略，当用户实现了自己的policy时，可以通过相应的注册机制注册进入nervex，从而可以通过配置文件方式调用，也可以通过该参数直接将新定义的策略类传进来。
-- model_type(optional): 该参数用来设置神经网络模型，一般为None，nervex已实现的策略使用的默认的神经网络，用户可以通过该参数传入自己定义的神经网络。
+- model(optional): 该参数用来设置神经网络模型，一般为None，nervex已实现的策略使用的默认的神经网络，用户可以通过该参数传入自己定义的神经网络(支持直接传入模型实例或是传入模型类型，再通过配置文件中的model字段完成创建)。
 
 Q2: 如何自定义环境
 ********************
@@ -72,3 +72,21 @@ Q6: 如何加载/保存模型
  - 加载模型：只需指定配置文件中的 ``load_path`` 字段即可，该字段默认为 ``''`` ，即为不加载模型，如需要加载指定具体的绝对路径即可。
  - 保存模型：对于串行版本，系统默认有两种保存模型的情形，一是当前 ``eval_reward`` 大于等于训练目标 ``stop_val`` ，保存最终的模型并关闭整个训练模块，二是当前 ``eval_reward`` 大于之前最高的reward，则会保存当前的模型。使用者也可以在配置文件中添加相应的 ``save_ckpt`` hook，即每隔一定迭代数保存模型。对于并行版本，默认保存最新的模型用于通信，使用者也可类似添加hook。
  - 具体添加 ``load_path`` 和 ``save_ckpt`` hook可以参见 ``app_zoo/classic_control/cartpole/entry/cartpole_dqn_default_config.yaml``
+
+Q7: 关于使用时出现的warning
+****************************
+
+:A7:
+
+对于运行nervex时命令行中显示的import linlink, ceph, memcache, redis的相关warning，一般使用者忽略即可，nervex会在import时自动进行寻找相应的替代库。
+
+
+Q8: 训练完成后如何评测模型的性能
+*********************************
+
+:A8:
+
+在训练完成之后，可在 ``log/evaluator/evalautor_logger.txt`` 中看到训练过程中的评测结果及对应保存的checkpoint名称(``ckpt_name``)，nervex也提供了简单的接口进行评测，流程如下：
+ - 准备一个待评测的checkpoint，一般为 ``torch.save`` 保存的文件，内部结构为一个dict，其中 ``model`` 键所指的为神经网络模型权重
+ - 准备一个评测用的配置文件，大部分内容和训练配置文件相同，只需添加 ``learner.load_path`` 字段为checkpoint的绝对路径
+ - 在shell脚本中运行 ``nervex -m eval -c <config_path> -s <seed>`` 即可，如需指定其他参数，可以调用 ``nervex.entry.serial_entry`` 中的eval函数。

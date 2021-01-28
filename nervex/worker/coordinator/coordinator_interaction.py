@@ -116,7 +116,9 @@ class CoordinatorInteraction(object):
             self._logger.info('actor task({}) is assigned to actor({})'.format(task_id, actor_id))
             with self._remain_lock:
                 self._remain_actor_task.add(task_id)
-            actor_task_thread = Thread(target=self._execute_actor_task, args=(actor_task, ))
+            actor_task_thread = Thread(
+                target=self._execute_actor_task, args=(actor_task, ), name='coordinator_actor_task'
+            )
             actor_task_thread.start()
             return True
 
@@ -180,7 +182,9 @@ class CoordinatorInteraction(object):
             self._logger.info('learner task({}) is assigned to learner({})'.format(task_id, learner_id))
             with self._remain_lock:
                 self._remain_learner_task.add(task_id)
-            learner_task_thread = Thread(target=self._execute_learner_task, args=(learner_task, ))
+            learner_task_thread = Thread(
+                target=self._execute_learner_task, args=(learner_task, ), name='coordinator_learner_task'
+            )
             learner_task_thread.start()
             return True
 

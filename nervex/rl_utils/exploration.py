@@ -23,13 +23,12 @@ def epsilon_greedy(start: float, end: float, decay: int, type_: str = 'exp') -> 
     if type_ == 'exp':
         return lambda x: (start - end) * math.exp(-1 * x / decay) + end
     elif type_ == 'linear':
-        assert start == 1.0, start
 
         def eps_fn(x):
             if x >= decay:
                 return end
             else:
-                return (start - end) * (start - x / decay) + end
+                return (start - end) * (start - (x / decay) * start) + end
 
         return eps_fn
 

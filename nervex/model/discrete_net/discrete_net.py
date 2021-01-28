@@ -7,6 +7,7 @@ import torch.nn as nn
 from nervex.model import DuelingHead, ConvEncoder
 from nervex.torch_utils import get_lstm
 from nervex.utils import squeeze
+from ..common import register_model
 
 
 class DiscreteNet(nn.Module):
@@ -94,6 +95,9 @@ class DiscreteNet(nn.Module):
         x = parallel_wrapper(self._head)(x)
         x['next_state'] = prev_state
         return x
+
+
+register_model('discrete_net', DiscreteNet)
 
 
 class Encoder(nn.Module):
@@ -250,6 +254,7 @@ FCDiscreteNet = partial(
     lstm_kwargs={'lstm_type': 'none'},
     head_kwargs={'dueling': True}
 )
+register_model('fc_discrete_net', FCDiscreteNet)
 NoiseDistributionFCDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'fc'},
@@ -269,6 +274,7 @@ NoiseFCDiscreteNet = partial(
         'noise': True
     }
 )
+register_model('noise_dist_fc', NoiseDistributionFCDiscreteNet)
 ConvDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'conv2d'},
@@ -281,12 +287,14 @@ FCRDiscreteNet = partial(
     lstm_kwargs={'lstm_type': 'normal'},
     head_kwargs={'dueling': True}
 )
+register_model('fcr_discrete_net', FCRDiscreteNet)
 ConvRDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'conv2d'},
     lstm_kwargs={'lstm_type': 'normal'},
     head_kwargs={'dueling': True}
 )
+register_model('convr_discrete_net', ConvRDiscreteNet)
 NoiseQuantileFCDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'fc'},
@@ -297,6 +305,7 @@ NoiseQuantileFCDiscreteNet = partial(
         'noise': True,
     }
 )
+register_model('noise_quantile_fc', NoiseQuantileFCDiscreteNet)
 
 
 def parallel_wrapper(forward_fn: Callable) -> Callable:

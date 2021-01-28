@@ -5,16 +5,16 @@ from app_zoo.multiagent_particle.envs.multiagent.scenario import BaseScenario
 
 class Scenario(BaseScenario):
 
-    def make_world(self):
+    def make_world(self, num_agents=1, num_landmarks=1):
         world = World()
         # add agents
-        world.agents = [Agent() for i in range(1)]
+        world.agents = [Agent() for i in range(num_agents)]
         for i, agent in enumerate(world.agents):
             agent.name = 'agent %d' % i
             agent.collide = False
             agent.silent = True
         # add landmarks
-        world.landmarks = [Landmark() for i in range(1)]
+        world.landmarks = [Landmark() for i in range(num_landmarks)]
         for i, landmark in enumerate(world.landmarks):
             landmark.name = 'landmark %d' % i
             landmark.collide = False
