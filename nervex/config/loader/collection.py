@@ -1,7 +1,6 @@
 from typing import Optional
 
 from .base import ILoaderClass, Loader
-from .utils import keep
 
 
 def collection(loader, type_back: bool = True) -> ILoaderClass:
@@ -20,8 +19,8 @@ def collection(loader, type_back: bool = True) -> ILoaderClass:
 
 
 def mapping(key_loader, value_loader, type_back: bool = True) -> ILoaderClass:
-    key_loader = Loader(key_loader or keep())
-    value_loader = Loader(value_loader or keep())
+    key_loader = Loader(key_loader)
+    value_loader = Loader(value_loader)
 
     def _load(value):
         if hasattr(value, 'items'):
