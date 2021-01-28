@@ -1,7 +1,7 @@
 import re
 from functools import wraps
 from itertools import islice
-from typing import Callable, Union
+from typing import Callable, Union, Pattern
 
 from .base import Loader, ILoaderClass
 
@@ -37,8 +37,8 @@ def enum(*items, case_sensitive: bool = True) -> ILoaderClass:
     return Loader(_load)
 
 
-def _to_regexp(regexp) -> re.Pattern:
-    if isinstance(regexp, re.Pattern):
+def _to_regexp(regexp) -> Pattern:
+    if isinstance(regexp, Pattern):
         return regexp
     elif isinstance(regexp, str):
         return re.compile(regexp)
@@ -48,7 +48,7 @@ def _to_regexp(regexp) -> re.Pattern:
         )
 
 
-def rematch(regexp: Union[str, re.Pattern]) -> ILoaderClass:
+def rematch(regexp: Union[str, Pattern]) -> ILoaderClass:
     regexp = _to_regexp(regexp)
 
     def _load(value: str):
@@ -65,7 +65,7 @@ def rematch(regexp: Union[str, re.Pattern]) -> ILoaderClass:
     return Loader(_load)
 
 
-def regrep(regexp: Union[str, re.Pattern], group: int = 0) -> ILoaderClass:
+def regrep(regexp: Union[str, Pattern], group: int = 0) -> ILoaderClass:
     regexp = _to_regexp(regexp)
 
     def _load(value: str):
