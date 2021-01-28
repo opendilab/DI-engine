@@ -35,6 +35,8 @@ def mapping(key_loader, value_loader, type_back: bool = True) -> ILoaderClass:
 
 
 def tuple_(*loaders) -> ILoaderClass:
+    loaders = [Loader(loader) for loader in loaders]
+
     def _load(value: tuple):
         return tuple([loader(item) for loader, item in zip(loaders, value)])
 

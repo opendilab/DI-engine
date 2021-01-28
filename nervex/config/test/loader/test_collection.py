@@ -1,7 +1,9 @@
 import pytest
 
 from ...loader.base import Loader
-from ...loader.collection import collection, contains, length_is, length
+from ...loader.collection import collection, contains, length_is, length, tuple_
+from ...loader.number import plus, minus, interval
+from ...loader.utils import optional
 
 
 @pytest.mark.unittest
@@ -19,6 +21,15 @@ class TestConfigLoaderCollection:
             _loader(None)
         with pytest.raises(TypeError):
             _loader([None, 1, 'string'])
+
+    def test_tuple(self):
+        _loader = tuple_(int, optional(float), plus(1) >> interval(2, 3), minus(1) >> interval(-4, -3))
+        assert _loader((1, 2.3, 1.2, -2.5)) == (1, 2.3, 2.2, -3.5)
+        assert _loader((10, None, 2, -3)) == (10, None, 3, -4)
+        with pytest.raises(TypeError):
+            _loader((10.1, 9238.2, 1.2, -2.5))
+        with pytest.raises(ValueError):
+            _loader((10, 9238.2, 4.2, -2.5))
 
     # noinspection DuplicatedCode
     def test_length_min_length(self):
@@ -90,7 +101,7 @@ class TestConfigLoaderCollection:
         assert _loader(['item']) == ['item']
         assert _loader(['item', 'string_1', 'string_2']) == ['item', 'string_1', 'string_2']
         with pytest.raises(TypeError):
-            _loader(('item', ))
+            _loader(('item',))
         with pytest.raises(TypeError):
             _loader(('item', 'string_1', 'string_2'))
         with pytest.raises(TypeError):

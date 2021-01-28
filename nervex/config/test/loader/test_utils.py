@@ -2,7 +2,7 @@ import pytest
 
 from ...loader.base import Loader
 from ...loader.number import interval
-from ...loader.utils import keep, to_type, optional, check_only
+from ...loader.utils import keep, is_type, to_type, optional, check_only
 
 
 @pytest.mark.unittest
@@ -13,6 +13,17 @@ class TestConfigLoaderUtils:
         assert _loader(1) == 1
         assert _loader(2) == 2
         assert _loader(None) is None
+
+    def test_is_type(self):
+        _loader = is_type(float) | is_type(int)
+        assert _loader(1) == 1
+        assert _loader(2.5) == 2.5
+        with pytest.raises(TypeError):
+            _loader(None)
+
+    def test_is_type_invalid(self):
+        with pytest.raises(TypeError):
+            is_type(lambda x: x + 1)
 
     def test_to_type_float(self):
         _loader = keep() >> to_type(float)

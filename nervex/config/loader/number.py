@@ -88,3 +88,39 @@ def interval(
         return value
 
     return Loader(_load)
+
+
+def negative() -> ILoaderClass:
+    return Loader(lambda x: -x)
+
+
+def plus(addend: NUMBER_TYPING) -> ILoaderClass:
+    return Loader(lambda x: x + addend)
+
+
+def minus(subtrahend: NUMBER_TYPING) -> ILoaderClass:
+    return Loader(lambda x: x - subtrahend)
+
+
+def minus_with(minuend: NUMBER_TYPING) -> ILoaderClass:
+    return Loader(lambda x: minuend - x)
+
+
+def multi(multiplier: NUMBER_TYPING) -> ILoaderClass:
+    return Loader(lambda x: x * multiplier)
+
+
+def divide(divisor: NUMBER_TYPING) -> ILoaderClass:
+    return Loader(lambda x: x / divisor)
+
+
+def divide_with(dividend: NUMBER_TYPING) -> ILoaderClass:
+    return Loader(lambda x: dividend / x)
+
+
+def power(index: NUMBER_TYPING) -> ILoaderClass:
+    return Loader(lambda x: x ** index)
+
+
+def power_with(base: NUMBER_TYPING) -> ILoaderClass:
+    return Loader(lambda x: base ** x)
