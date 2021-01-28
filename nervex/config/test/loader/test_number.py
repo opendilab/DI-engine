@@ -2,7 +2,8 @@ import math
 
 import pytest
 
-from ...loader.number import numeric, interval
+from ...loader.number import numeric, interval, negative, plus, minus, minus_with, multi, divide, divide_with, power, \
+    power_with
 
 
 @pytest.mark.unittest
@@ -148,6 +149,7 @@ class TestConfigLoaderNumber:
         assert _loader(3.5) == 3.5
         assert _loader(4.0) == 4.0
 
+    # noinspection DuplicatedCode
     def test_interval_left_open(self):
         _loader = interval(1.0, left_ok=False)
         with pytest.raises(ValueError):
@@ -164,6 +166,7 @@ class TestConfigLoaderNumber:
         assert _loader(3.5) == 3.5
         assert _loader(4.0) == 4.0
 
+    # noinspection DuplicatedCode
     def test_interval_left_open_eps(self):
         _loader = interval(1.0, left_ok=False, eps=0.01)
         with pytest.raises(ValueError):
@@ -181,6 +184,7 @@ class TestConfigLoaderNumber:
         assert _loader(3.5) == 3.5
         assert _loader(4.0) == 4.0
 
+    # noinspection DuplicatedCode
     def test_interval_left_close(self):
         _loader = interval(1.0)
         with pytest.raises(ValueError):
@@ -196,6 +200,7 @@ class TestConfigLoaderNumber:
         assert _loader(3.5) == 3.5
         assert _loader(4.0) == 4.0
 
+    # noinspection DuplicatedCode
     def test_interval_left_close_eps(self):
         _loader = interval(1.0, eps=0.01)
         with pytest.raises(ValueError):
@@ -226,6 +231,7 @@ class TestConfigLoaderNumber:
         with pytest.raises(ValueError):
             _loader(4.0)
 
+    # noinspection DuplicatedCode
     def test_interval_right_open_eps(self):
         _loader = interval(right=3.5, right_ok=False, eps=0.01)
         assert _loader(0.5) == 0.5
@@ -324,6 +330,7 @@ class TestConfigLoaderNumber:
         with pytest.raises(ValueError):
             _loader(4.0)
 
+    # noinspection DuplicatedCode
     def test_interval_both_open_close(self):
         _loader = interval(1.0, 3.5, left_ok=False)
         with pytest.raises(ValueError):
@@ -347,6 +354,7 @@ class TestConfigLoaderNumber:
         with pytest.raises(ValueError):
             _loader(4.0)
 
+    # noinspection DuplicatedCode
     def test_interval_both_open_close_eps(self):
         _loader = interval(1.0, 3.5, left_ok=False, eps=0.01)
         with pytest.raises(ValueError):
@@ -393,6 +401,7 @@ class TestConfigLoaderNumber:
         with pytest.raises(ValueError):
             _loader(4.0)
 
+    # noinspection DuplicatedCode
     def test_interval_both_close_open_eps(self):
         _loader = interval(1.0, 3.5, right_ok=False, eps=0.01)
         with pytest.raises(ValueError):
@@ -439,6 +448,7 @@ class TestConfigLoaderNumber:
         with pytest.raises(ValueError):
             _loader(4.0)
 
+    # noinspection DuplicatedCode
     def test_interval_both_close_close_eps(self):
         _loader = interval(1.0, 3.5, eps=0.01)
         with pytest.raises(ValueError):
@@ -493,3 +503,48 @@ class TestConfigLoaderNumber:
             _loader(None)
         with pytest.raises(TypeError):
             _loader('string')
+
+    def test_negative(self):
+        _loader = negative()
+        assert _loader(1) == -1
+        assert _loader(-2) == 2
+
+    def test_plus(self):
+        _loader = plus(1)
+        assert _loader(1) == 2
+        assert _loader(-2) == -1
+
+    def test_minus(self):
+        _loader = minus(2)
+        assert _loader(1) == -1
+        assert _loader(-2) == -4
+
+    def test_minus_with(self):
+        _loader = minus_with(2)
+        assert _loader(1) == 1
+        assert _loader(-2) == 4
+
+    def test_multi(self):
+        _loader = multi(2)
+        assert _loader(1) == 2
+        assert _loader(-2) == -4
+
+    def test_divide(self):
+        _loader = divide(2)
+        assert _loader(1) == 0.5
+        assert _loader(-2) == -1
+
+    def test_divide_with(self):
+        _loader = divide_with(2)
+        assert _loader(1) == 2
+        assert _loader(-2) == -1
+
+    def test_power(self):
+        _loader = power(2)
+        assert _loader(1) == 1
+        assert _loader(-2) == 4
+
+    def test_power_with(self):
+        _loader = power_with(2)
+        assert _loader(1) == 2
+        assert _loader(-2) == 0.25
