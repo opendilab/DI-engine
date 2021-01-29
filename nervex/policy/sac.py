@@ -2,6 +2,7 @@ from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple
 import sys
 import os
+import numpy as np
 import torch
 import torch.nn.functional as F
 
@@ -45,7 +46,18 @@ class SACPolicy(CommonPolicy):
         algo_cfg = self._cfg.learn.algo
         self._algo_cfg_learn = algo_cfg
         self._gamma = algo_cfg.discount_factor
-        self._alpha = algo_cfg.alpha
+        # Init auto alpha
+        if algo_cfg.get('is_auto_alpha', None):
+            self._target_entropy = -np.prod(self._cfg.model.action_dim)
+            self._log_alpha = torch.log(torch.tensor([algo_cfg.alpha])).requires_grad_()
+            self._log_alpha = self._log_alpha.to(device='cuda' if self._use_cuda else 'cpu')
+            self._alpha_optim = torch.optim.Adam([self._log_alpha], lr=self._cfg.learn.learning_rate_alpha)
+            self._is_auto_alpha = True
+            assert self._log_alpha.shape == torch.Size([1]) and self._log_alpha.requires_grad
+            self._alpha = self._log_alpha.detach().exp()
+        else:
+            self._alpha = algo_cfg.alpha
+            self._is_auto_alpha = False
         self._reparameterization = algo_cfg.reparameterization
         self._policy_std_reg_weight = algo_cfg.policy_std_reg_weight
         self._policy_mean_reg_weight = algo_cfg.policy_mean_reg_weight
@@ -146,12 +158,23 @@ class SACPolicy(CommonPolicy):
 
         policy_loss += std_reg_loss + mean_reg_loss
         loss_dict['policy_loss'] = policy_loss
-        loss_dict['total_loss'] = sum(loss_dict.values())
 
         # update policy network
         self._optimizer_policy.zero_grad()
         loss_dict['policy_loss'].backward()
         self._optimizer_policy.step()
+
+        #  compute alpha loss
+        if self._is_auto_alpha:
+            log_prob = log_prob.detach() + self._target_entropy
+            loss_dict['alpha_loss'] = -(self._log_alpha * log_prob).mean()
+
+            self._alpha_optim.zero_grad()
+            loss_dict['alpha_loss'].backward()
+            self._alpha_optim.step()
+            self._alpha = self._log_alpha.detach().exp()
+
+        loss_dict['total_loss'] = sum(loss_dict.values())
 
         # =============
         # after update
@@ -271,9 +294,14 @@ class SACPolicy(CommonPolicy):
             - vars (:obj:`List[str]`): Variables' name list.
         """
         q_twin = ['q_twin_loss'] if self._use_twin_q else []
-        return super()._monitor_vars_learn() + [
-            'policy_loss', 'value_loss', 'q_loss', 'cur_lr_q', 'cur_lr_v', 'cur_lr_p'
-        ] + q_twin
+        if self._is_auto_alpha:
+            return super()._monitor_vars_learn() + [
+                'alpha_loss', 'policy_loss', 'value_loss', 'q_loss', 'cur_lr_q', 'cur_lr_v', 'cur_lr_p'
+            ] + q_twin
+        else:
+            return super()._monitor_vars_learn() + [
+                'policy_loss', 'value_loss', 'q_loss', 'cur_lr_q', 'cur_lr_v', 'cur_lr_p'
+            ] + q_twin
 
 
 register_policy('sac', SACPolicy)
