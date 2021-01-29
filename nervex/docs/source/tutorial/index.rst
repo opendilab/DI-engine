@@ -247,7 +247,7 @@ RL不同于传统的监督学习，数据一般是离线准备完成，RL需要�
 
 而在 ``serial_pipeline`` 中，我们有两种创建环境的方式，第一种是通过 ``cfg.env`` ，即配置文件中 ``env`` 相关字段进行自动创建，第二种是通过 ``env_setting`` 参数直接从调用者处得到环境类，actor部分的环境配置，以及evaluator部分的环境配置，具体的代码如下：
 
-.. code::python
+.. code:: python
 
     if env_setting is None:
         env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
@@ -257,17 +257,17 @@ RL不同于传统的监督学习，数据一般是离线准备完成，RL需要�
 
 其中从config中获取env_setting的方式为 ``get_vec_env_setting`` 函数：
 
-.. code::python
+.. code:: python
     
     def get_vec_env_setting(cfg: dict) -> Tuple[type, List[dict], List[dict]]:
-    import_module(cfg.pop('import_names', []))
-    if cfg.env_type in env_mapping:
-        env_fn = env_mapping[cfg.env_type]
-    else:
-        raise KeyError("invalid env type: {}".format(cfg.env_type))
-    actor_env_cfg = env_fn.create_actor_env_cfg(cfg)
-    evaluator_env_cfg = env_fn.create_evaluator_env_cfg(cfg)
-    return env_fn, actor_env_cfg, evaluator_env_cfg
+        import_module(cfg.pop('import_names', []))
+        if cfg.env_type in env_mapping:
+            env_fn = env_mapping[cfg.env_type]
+        else:
+            raise KeyError("invalid env type: {}".format(cfg.env_type))
+        actor_env_cfg = env_fn.create_actor_env_cfg(cfg)
+        evaluator_env_cfg = env_fn.create_evaluator_env_cfg(cfg)
+        return env_fn, actor_env_cfg, evaluator_env_cfg
 
 注意到我们对 ``actor_env_cfg`` , ``evaluator_env_cfg`` 进行了分开处理，这是考虑到训练过程中为了取得更好的训练效果，例如在Atari环境中经常会使用 ``Wrapper``
 对环境做不同的处理，而 ``Wrapper`` 处理后的 ``evaluator_env`` 其实并不能很好的衡量算法的效果，所以需要区别对待。
@@ -327,8 +327,8 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
 
     # create network
     env_info = env.info()
-    obs_shape = env_info.obs_shape.shape
-    act_shape = env_info.act_shape.shape
+    obs_shape = env_info.obs_space.shape
+    act_shape = env_info.act_space.shape
     model = FCDQN(obs_shape, act_shape)
 
 .. note::

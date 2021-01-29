@@ -24,7 +24,7 @@ Q1: 如何使用串行版本入口
 
 - cfg: 该参数可以是一个字符串，即配置文件的路径（绝对路径相对路径均可），或是一个dict，即已经加载处理完成的配置dict
 - seed: 该参数是随机种子，为一个int值，会设置各类外部库的随机种子，以及环境的随机种子，注意多个环境跟根据环境序号再加上相应数字作为种子，以保证不同环境种子不同
-- env_setting(optional): 该参数用来设置环境，一般为None，即从全局配置文件中创建环境，否则是一个list，其中有三个元素，第一个元素是环境类，第二第三个参数分别是环境的配置dict的list，各自的长度等于需要创建的环境个数。
+- env_setting(optional): 该参数用来设置环境，一般为None，即从全局配置文件中创建环境，否则是一个list，其中有三个元素，第一个元素是环境类型，第二个参数是一个list，其中元素的值是某个进行数据收集的环境的配置dict，list的总长度是进行数据收集的环境综述，第三个参数类似第二个参数，只是环境的功能变为评测性能。
 - policy_type(optional): 该参数用来设置Policy，一般为None，即从全局配置文件中创建策略，当用户实现了自己的policy时，可以通过相应的注册机制注册进入nervex，从而可以通过配置文件方式调用，也可以通过该参数直接将新定义的策略类传进来。
 - model(optional): 该参数用来设置神经网络模型，一般为None，nervex已实现的策略使用的默认的神经网络，用户可以通过该参数传入自己定义的神经网络(支持直接传入模型实例或是传入模型类型，再通过配置文件中的model字段完成创建)。
 
@@ -33,7 +33,8 @@ Q2: 如何自定义环境
 
 :A2:
    - 需要继承 ``nervex/envs/env/base_env.py`` 中的BaseEnv类，按照基类的相关说明和示例实现相应的方法。
-   - 环境推荐使用numpy.ndarray作为array的数据类型，用户也可使用tensor或是list。可以通过指定BaseEnvManager实例创建时的self._transform和self._inv_transform函数为to_list，to_ndarray或to_tensor，让其选择合适的自动完成环境数据与外部数据类型之间的转换。self._transform从外部数据类型往环境数据转换类型，self_inv_transform从环境数据类型往外部数据类型转换。nervex系统中除环境之外的部分，一律使用tensor作为基本数据类型，其他类型会导致运行错误。
+   - 环境推荐使用numpy.ndarray作为array的数据类型，即环境反馈给外界，外界输入环境的数据都以np数组为基本类型。在环境管理器中，这些np数据通过BaseEnvManager实例中的变换函数self._transform和self._inv_transform变换为nervex内部使用的数据，默认为PyTorch Tensor。
+     self._transform从外部数据类型往环境数据转换类型，self_inv_transform从环境数据类型往外部数据类型转换。nervex系统中除环境之外的部分，一律使用tensor作为基本数据类型，其他类型会导致运行错误。
    - 环境step方法返回的info **必须** 为dict，且当一个episode结束时，info中 **必须** 包括 ``final_eval_reward`` 这个键，其将作为评价整个episode性能的指标，要求 ``final_eval_reward`` 的取值为python内置数据类型(int, float)
    - (optional)如果想要在nervex中通过配置文件使用自定义的环境，需要在自定义环境文件中全局范围调用 ``register_env`` 方法进行注册，并在配置文件中指定环境名(env_type)，以及加载的模块名(import_names)
    - (optional)BaseEnv的info方法返回环境相关的参数信息，但其并不会和系统其他模块强耦合，只是作为 **可选** 的一个方法，使用者也可自定义相关格式，以及在系统中最终的用法

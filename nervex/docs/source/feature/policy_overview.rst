@@ -9,7 +9,7 @@ Policy
     算法策略模块是所实现的强化学习算法的核心内容，对应的功能包括：控制算法训练过程、算法数据的部分预处理、算法使用的神经网络的建立等等。
     Policy包含了以下四个子mode：
     
-    1. ``learn_mode``: learner执行过程中需要 ``Policy`` 定义的函数，如learner step的``forward``函数即为``learn_mode.forward``，在learner中的调用为:
+    1. ``learn_mode``: learner执行过程中需要 ``Policy`` 定义的函数，如learner step的 ``forward`` 函数即为 ``learn_mode.forward`` ，在learner中的调用为:
 
 
         .. code:: python
@@ -18,7 +18,7 @@ Policy
             log_vars = self._policy.forward(data)。
 
 
-    2. ``collect_mode``: actor执行过程中需要 ``Policy`` 定义的函数，如actor step的forward函数即为``collect_mode.forward``， trainsition的处理为``collect_mode.process_transition``, 在actor中的调用为:
+    2. ``collect_mode``: actor执行过程中需要 ``Policy`` 定义的函数，如actor step的forward函数即为 ``collect_mode.forward`` ， trainsition的处理为 ``collect_mode.process_transition`` , 在actor中的调用为:
 
         .. code:: python
 
@@ -26,7 +26,7 @@ Policy
                 self._obs_pool[env_id], self._policy_output_pool[env_id], timestep
             )
 
-    3. ``eval_mode``: evaluator执行过程中需要 ``Policy`` 定义的函数，如evaluator  step的forward函数即为``collect_mode.forward``。
+    3. ``eval_mode``: evaluator执行过程中需要 ``Policy`` 定义的函数，如evaluator  step的forward函数即为 ``collect_mode.forward`` 。
     4. ``command_mode``: 我们通过command来控制一些参数，比如command中实现了eps-greedy控制信息从learn step到具体collect eps使用值的信息传递：
 
         .. code:: python
@@ -428,7 +428,7 @@ Policy
         - 子类需继承重写方法：
             该子类需要重写``Policy``中接口方法被提及的所有未被``CommonPolicy``实现的方法
 
-    3. ``policy_mapping``及``Policy的使用``(policy/base_policy.py)
+    3. ``policy_mapping`` 及 ``Policy`` 的使用(policy/base_policy.py)
 
         .. code:: python
 
@@ -456,5 +456,4 @@ Policy
         
     .. tip::
 
-        写完 ``Policy`` 类后不要忘记 ``regist_policy`` 。
-
+        写完 ``Policy`` 类后不要忘记 ``register_policy`` 。
