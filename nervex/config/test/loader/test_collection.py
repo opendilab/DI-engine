@@ -1,9 +1,9 @@
 import pytest
 
 from ...loader.base import Loader
-from ...loader.collection import collection, contains, length_is, length, tuple_
-from ...loader.number import plus, minus, interval
-from ...loader.utils import optional
+from ...loader.collection import collection, contains, length_is, length, tuple_, CollectionError
+from ...loader.number import plus, minus, interval, negative
+from ...loader.utils import optional, to_type
 
 
 @pytest.mark.unittest
@@ -19,8 +19,19 @@ class TestConfigLoaderCollection:
             _loader(1)
         with pytest.raises(TypeError):
             _loader(None)
-        with pytest.raises(TypeError):
-            _loader([None, 1, 'string'])
+        with pytest.raises(CollectionError) as ei:
+            _loader([None, 1, 'string', 290384.23])
+
+        err = ei.value
+        assert len(err.errors) == 2
+        assert [index for index, _ in err.errors] == [0, 3]
+        assert [type(item) for _, item in err.errors] == [TypeError, TypeError]
+
+    def test_collection_map(self):
+        _loader = collection(
+            ((Loader(int) | float) >> plus(1) >> negative()) | (str >> (to_type(int) | to_type(float))))
+        assert _loader([1, 2, -3.0, '1', '2.0']) == [-2, -3, 2.0, 1, 2.0]
+        assert [type(item) for item in _loader([1, 2, -3.0, '1', '2.0'])] == [int, int, float, int, float]
 
     def test_tuple(self):
         _loader = tuple_(int, optional(float), plus(1) >> interval(2, 3), minus(1) >> interval(-4, -3))
@@ -101,11 +112,16 @@ class TestConfigLoaderCollection:
         assert _loader(['item']) == ['item']
         assert _loader(['item', 'string_1', 'string_2']) == ['item', 'string_1', 'string_2']
         with pytest.raises(TypeError):
-            _loader(('item', ))
+            _loader(('item',))
         with pytest.raises(TypeError):
             _loader(('item', 'string_1', 'string_2'))
-        with pytest.raises(TypeError):
-            _loader(['item', 1])
+        with pytest.raises(CollectionError) as ei:
+            _loader(['item', 1, [1, 2]])
+        err = ei.value
+        assert len(err.errors) == 2
+        assert [index for index, _ in err.errors] == [1, 2]
+        assert [type(item) for _, item in err.errors] == [TypeError, TypeError]
+
         with pytest.raises(ValueError):
             _loader(['itemx'])
         with pytest.raises(TypeError):

@@ -1,6 +1,21 @@
-from typing import Optional
+from typing import Optional, List, Tuple
 
-from .base import ILoaderClass, Loader
+from .base import ILoaderClass, Loader, CAPTURE_EXCEPTIONS
+from .exception import CompositeStructureError
+
+COLLECTION_ERROR_ITEM = Tuple[int, Exception]
+COLLECTION_ERRORS = List[COLLECTION_ERROR_ITEM]
+
+
+class CollectionError(CompositeStructureError):
+    def __init__(self, errors: COLLECTION_ERRORS):
+        self.__errors = list(errors or [])
+        CompositeStructureError.__init__(self, '{count} error(s) found in collection.'.format(
+            count=repr(list(self.__errors))))
+
+    @property
+    def errors(self) -> COLLECTION_ERRORS:
+        return self.__errors
 
 
 def collection(loader, type_back: bool = True) -> ILoaderClass:
@@ -8,7 +23,20 @@ def collection(loader, type_back: bool = True) -> ILoaderClass:
 
     def _load(value):
         if hasattr(value, '__iter__'):
-            _result = [loader.load(item) for item in value]
+            _result = []
+            _errors = []
+
+            for index, item in enumerate(value):
+                try:
+                    _return = loader.load(item)
+                except CAPTURE_EXCEPTIONS as err:
+                    _errors.append((index, err))
+                else:
+                    _result.append(_return)
+
+            if _errors:
+                raise CollectionError(_errors)
+
             if type_back:
                 _result = type(value)(_result)
             return _result
@@ -16,6 +44,10 @@ def collection(loader, type_back: bool = True) -> ILoaderClass:
             raise TypeError('type {type} not support __iter__'.format(type=repr(type(value).__name__)))
 
     return Loader(_load)
+
+
+class MappingError(CompositeStructureError):
+    pass
 
 
 def mapping(key_loader, value_loader, type_back: bool = True) -> ILoaderClass:
@@ -44,7 +76,6 @@ def tuple_(*loaders) -> ILoaderClass:
 
 
 def length(min_length: Optional[int] = None, max_length: Optional[int] = None) -> ILoaderClass:
-
     def _load(value):
         if hasattr(value, '__len__'):
             _length = len(value)
@@ -73,7 +104,6 @@ def length_is(length_: int) -> ILoaderClass:
 
 
 def contains(content) -> ILoaderClass:
-
     def _load(value):
         if hasattr(value, '__contains__'):
             if content not in value:
