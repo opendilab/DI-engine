@@ -10,7 +10,7 @@ COLLECTION_ERRORS = List[COLLECTION_ERROR_ITEM]
 class CollectionError(CompositeStructureError):
 
     def __init__(self, errors: COLLECTION_ERRORS):
-        self.__errors = sorted(list(errors or []))
+        self.__errors = list(errors or [])
         CompositeStructureError.__init__(
             self, '{count} error(s) found in collection.'.format(count=repr(list(self.__errors)))
         )
@@ -55,9 +55,9 @@ MAPPING_ERRORS = List[MAPPING_ERROR_ITEM]
 class MappingError(CompositeStructureError):
 
     def __init__(self, key_errors: MAPPING_ERRORS, value_errors: MAPPING_ERRORS):
-        self.__key_errors = sorted(list(key_errors or []))
-        self.__value_errors = sorted(list(value_errors or []))
-        self.__errors = sorted(self.__key_errors + self.__value_errors)
+        self.__key_errors = list(key_errors or [])
+        self.__value_errors = list(value_errors or [])
+        self.__errors = self.__key_errors + self.__value_errors
 
     def key_errors(self) -> MAPPING_ERRORS:
         return self.__key_errors
@@ -96,9 +96,9 @@ def mapping(key_loader, value_loader, type_back: bool = True) -> ILoaderClass:
                     _result[key_result] = value_result
                 else:
                     if key_error:
-                        _key_errors.append(key_error)
+                        _key_errors.append((key_, key_error))
                     if value_error:
-                        _value_errors.append(value_error)
+                        _value_errors.append((key_, value_error))
 
             if not _key_errors and not _value_errors:
                 if type_back:

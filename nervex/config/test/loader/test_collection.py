@@ -1,9 +1,9 @@
 import pytest
 
 from ...loader.base import Loader
-from ...loader.collection import collection, contains, length_is, length, tuple_, CollectionError
+from ...loader.collection import collection, contains, length_is, length, tuple_, CollectionError, mapping, MappingError
 from ...loader.number import plus, minus, interval, negative
-from ...loader.utils import optional, to_type
+from ...loader.utils import optional, to_type, is_type
 
 
 @pytest.mark.unittest
@@ -33,6 +33,24 @@ class TestConfigLoaderCollection:
         )
         assert _loader([1, 2, -3.0, '1', '2.0']) == [-2, -3, 2.0, 1, 2.0]
         assert [type(item) for item in _loader([1, 2, -3.0, '1', '2.0'])] == [int, int, float, int, float]
+
+    def test_mapping(self):
+        _loader = mapping(str, optional(is_type(int) | float))
+        assert _loader({'sdfjk': 1}) == {'sdfjk': 1}
+        assert _loader({'a': 1, 'b': 2.4, 'c': None}) == {'a': 1, 'b': 2.4, 'c': None}
+        with pytest.raises(MappingError) as ei:
+            _loader({'a': 1, 345: 'sdjfhk', 'b': [], None: 389450})
+        err = ei.value
+        assert len(err.key_errors()) == 2
+        assert len(err.value_errors()) == 2
+        assert len(err.errors()) == 4
+        assert {key for key, _ in err.key_errors()} == {345, None}
+        assert {key for key, _ in err.value_errors()} == {345, 'b'}
+
+        with pytest.raises(TypeError):
+            _loader(1)
+        with pytest.raises(TypeError):
+            _loader([])
 
     def test_tuple(self):
         _loader = tuple_(int, optional(float), plus(1) >> interval(2, 3), minus(1) >> interval(-4, -3))
