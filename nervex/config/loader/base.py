@@ -137,3 +137,17 @@ class ILoaderClass:
 
     def __rrshift__(self, other) -> 'ILoaderClass':
         return Loader(other) >> self
+
+
+VALUE_CHECK = Callable[[Any], None]
+
+
+def _func_check_gene(func_name: str) -> VALUE_CHECK:
+
+    def _check(value) -> None:
+        if not hasattr(value, func_name):
+            raise TypeError(
+                'type {type} not support {func}'.format(type=repr(type(value).__name__), func=repr(func_name))
+            )
+
+    return _check
