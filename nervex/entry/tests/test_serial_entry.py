@@ -163,6 +163,20 @@ def test_sac():
 
 
 @pytest.mark.unittest
+def test_sac_auto_alpha():
+    path = os.path.join(
+        os.path.dirname(__file__), '../../../app_zoo/classic_control/pendulum/entry/pendulum_sac_auto_alpha_config.yaml'
+    )
+    config = read_config(path)
+    config.policy.learn.train_step = 1
+    config.evaluator.stop_val = -float("inf")
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
 def test_r2d2():
     path = os.path.join(
         os.path.dirname(__file__), '../../../app_zoo/classic_control/cartpole/entry/cartpole_r2d2_default_config.yaml'

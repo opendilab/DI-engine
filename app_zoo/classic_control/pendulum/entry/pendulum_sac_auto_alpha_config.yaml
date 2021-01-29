@@ -35,7 +35,7 @@ policy:
             reparameterization: True
             policy_std_reg_weight: 0.001
             policy_mean_reg_weight: 0.001
-            is_auto_alpha: False
+            is_auto_alpha: True
     collect:
         traj_len: 1
         unroll_len: 1
