@@ -91,6 +91,7 @@ setup(
         'urllib3==1.25.10',
         'redis==3.5.3',
         'redis-py-cluster==2.1.0',
+        'cmake>=3.18.4'
     ],
     entry_points={
         'console_scripts': [
