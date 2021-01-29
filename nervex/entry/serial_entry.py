@@ -45,7 +45,7 @@ def serial_pipeline(
     evaluator_env.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    if torch.cuda.is_available():
+    if cfg.policy.use_cuda and torch.cuda.is_available():
         torch.cuda.manual_seed(seed)
     # create component
     policy_fn = create_policy if policy_type is None else policy_type
@@ -140,7 +140,7 @@ def eval(
     evaluator_env.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    if torch.cuda.is_available():
+    if cfg.policy.use_cuda and torch.cuda.is_available():
         torch.cuda.manual_seed(seed)
     # create component
     policy_fn = create_policy if policy_type is None else policy_type

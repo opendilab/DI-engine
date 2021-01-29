@@ -65,7 +65,7 @@ setup(
         'pyyaml',
         'easydict',
         'opencv-python',  # pypy
-        'tensorboardX',
+        'tensorboardX>=2.1',
         'matplotlib',  # pypy
         'yapf==0.29.0',
         'pytest==5.1.1',
