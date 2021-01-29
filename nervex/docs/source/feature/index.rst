@@ -10,6 +10,7 @@ Feature
     :maxdepth: 3
 
     env_overview
+    policy_overview
     env_manager_overview
     agent_overview
     actor_overview
