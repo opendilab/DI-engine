@@ -72,9 +72,6 @@ class SACPolicy(CommonPolicy):
         Returns:
             - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
-        # =======================
-        # forward of 3 networks
-        # =======================
         loss_dict = {}
 
         obs = data.get('obs')
@@ -94,25 +91,32 @@ class SACPolicy(CommonPolicy):
         q_value = self._agent.forward(data, param={'mode': 'compute_q'})['q_value']
         v_value = self._agent.forward(data, param={'mode': 'compute_value'})['v_value']
 
+        # =================
+        # q network
+        # =================
         # compute q loss
         next_data = {'obs': next_obs}
         target_v_value = self._agent.target_forward(next_data, param={'mode': 'compute_value'})['v_value']
         if self._use_twin_q:
             q_data0 = v_1step_td_data(q_value[0], target_v_value, reward, done, data['weight'])
-            loss_dict['q_loss'], td_error_per_sample1 = v_1step_td_error(q_data0, self._gamma)
+            loss_dict['q_loss'], td_error_per_sample0 = v_1step_td_error(q_data0, self._gamma)
             q_data1 = v_1step_td_data(q_value[1], target_v_value, reward, done, data['weight'])
-            loss_dict['q_twin_loss'], td_error_per_sample2 = v_1step_td_error(q_data1, self._gamma)
-            td_error_per_sample = (td_error_per_sample1 + td_error_per_sample2) / 2
+            loss_dict['q_twin_loss'], td_error_per_sample1 = v_1step_td_error(q_data1, self._gamma)
+            td_error_per_sample = (td_error_per_sample0 + td_error_per_sample1) / 2
         else:
             q_data = v_1step_td_data(q_value, target_v_value, reward, done, data['weight'])
             loss_dict['q_loss'], td_error_per_sample = v_1step_td_error(q_data, self._gamma)
 
+        # update q network
         self._optimizer_q.zero_grad()
         loss_dict['q_loss'].backward()
         if self._use_twin_q:
             loss_dict['q_twin_loss'].backward()
         self._optimizer_q.step()
 
+        # =================
+        # value network
+        # =================
         # compute value loss
         eval_data['obs'] = obs
         new_q_value = self._agent.forward(eval_data, param={'mode': 'compute_q'})['q_value']
@@ -122,10 +126,14 @@ class SACPolicy(CommonPolicy):
         next_v_value = (new_q_value.unsqueeze(-1) - self._alpha * log_prob).mean(dim=-1)
         loss_dict['value_loss'] = F.mse_loss(v_value, next_v_value.detach())
 
+        # update value network
         self._optimizer_value.zero_grad()
         loss_dict['value_loss'].backward()
         self._optimizer_value.step()
 
+        # =================
+        # policy network
+        # =================
         # compute policy loss
         if not self._reparameterization:
             target_log_policy = new_q_value - v_value
@@ -140,6 +148,7 @@ class SACPolicy(CommonPolicy):
         loss_dict['policy_loss'] = policy_loss
         loss_dict['total_loss'] = sum(loss_dict.values())
 
+        # update policy network
         self._optimizer_policy.zero_grad()
         loss_dict['policy_loss'].backward()
         self._optimizer_policy.step()

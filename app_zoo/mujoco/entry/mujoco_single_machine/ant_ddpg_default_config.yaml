@@ -12,7 +12,7 @@ env:
     norm_obs: 
         use_norm: True
     norm_reward: 
-        use_norm: True
+        use_norm: False
         reward_discount: 0.98
     env_manager_type: 'subprocess'  # [base, subprocess]
     import_names: ['app_zoo.mujoco.envs.mujoco_env']

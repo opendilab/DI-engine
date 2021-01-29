@@ -14,5 +14,6 @@ Feature
     agent_overview
     actor_overview
     league_overview
+    dataloader_overview
     buffer_manager_overview
     autolog_overview

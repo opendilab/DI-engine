@@ -8,7 +8,7 @@ env:
     norm_obs: 
         use_norm: True
     norm_reward: 
-        use_norm: True
+        use_norm: False
         reward_discount: 0.98
     env_manager_type: 'subprocess'  # [base, subprocess]
     import_names: ['app_zoo.mujoco.envs.mujoco_env']
@@ -17,7 +17,7 @@ env:
     evaluator_env_num: 8
     use_act_scale: True
 policy:
-    use_cuda: False
+    use_cuda: True
     policy_type: 'ddpg'
     import_names: ['nervex.policy.ddpg']
     on_policy: False
