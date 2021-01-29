@@ -8,10 +8,12 @@ COLLECTION_ERRORS = List[COLLECTION_ERROR_ITEM]
 
 
 class CollectionError(CompositeStructureError):
+
     def __init__(self, errors: COLLECTION_ERRORS):
         self.__errors = list(errors or [])
-        CompositeStructureError.__init__(self, '{count} error(s) found in collection.'.format(
-            count=repr(list(self.__errors))))
+        CompositeStructureError.__init__(
+            self, '{count} error(s) found in collection.'.format(count=repr(list(self.__errors)))
+        )
 
     @property
     def errors(self) -> COLLECTION_ERRORS:
@@ -76,6 +78,7 @@ def tuple_(*loaders) -> ILoaderClass:
 
 
 def length(min_length: Optional[int] = None, max_length: Optional[int] = None) -> ILoaderClass:
+
     def _load(value):
         if hasattr(value, '__len__'):
             _length = len(value)
@@ -104,6 +107,7 @@ def length_is(length_: int) -> ILoaderClass:
 
 
 def contains(content) -> ILoaderClass:
+
     def _load(value):
         if hasattr(value, '__contains__'):
             if content not in value:

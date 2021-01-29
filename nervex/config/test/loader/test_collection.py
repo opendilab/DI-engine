@@ -29,7 +29,8 @@ class TestConfigLoaderCollection:
 
     def test_collection_map(self):
         _loader = collection(
-            ((Loader(int) | float) >> plus(1) >> negative()) | (str >> (to_type(int) | to_type(float))))
+            ((Loader(int) | float) >> plus(1) >> negative()) | (str >> (to_type(int) | to_type(float)))
+        )
         assert _loader([1, 2, -3.0, '1', '2.0']) == [-2, -3, 2.0, 1, 2.0]
         assert [type(item) for item in _loader([1, 2, -3.0, '1', '2.0'])] == [int, int, float, int, float]
 
@@ -112,7 +113,7 @@ class TestConfigLoaderCollection:
         assert _loader(['item']) == ['item']
         assert _loader(['item', 'string_1', 'string_2']) == ['item', 'string_1', 'string_2']
         with pytest.raises(TypeError):
-            _loader(('item',))
+            _loader(('item', ))
         with pytest.raises(TypeError):
             _loader(('item', 'string_1', 'string_2'))
         with pytest.raises(CollectionError) as ei:
