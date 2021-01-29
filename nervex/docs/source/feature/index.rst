@@ -10,10 +10,12 @@ Feature
     :maxdepth: 3
 
     env_overview
+    policy_overview
     env_manager_overview
     agent_overview
     actor_overview
     league_overview
     dataloader_overview
     buffer_manager_overview
+    learner_overview
     autolog_overview
