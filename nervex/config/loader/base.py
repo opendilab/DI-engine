@@ -100,7 +100,7 @@ class ILoaderClass:
     def check(self, value: _ValueType) -> bool:
         return self.__check(value)
 
-    def __call__(self, value: _ValueType) -> bool:
+    def __call__(self, value: _ValueType) -> _ValueType:
         return self.__load(value)
 
     def __and__(self, other) -> 'ILoaderClass':
