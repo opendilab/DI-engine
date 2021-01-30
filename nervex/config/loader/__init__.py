@@ -1,3 +1,4 @@
+from .attr import hasprop, prop
 from .base import Loader
 from .collection import collection, CollectionError, length, length_is, contains, tuple_
 from .exception import CompositeStructureError

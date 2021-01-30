@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Callable, Any
 
 from .base import ILoaderClass, Loader, CAPTURE_EXCEPTIONS, _func_check_gene
 from .exception import CompositeStructureError
@@ -7,6 +7,8 @@ MAPPING_ERROR_ITEM = Tuple[str, Exception]
 MAPPING_ERRORS = List[MAPPING_ERROR_ITEM]
 
 _check_items = _func_check_gene('items')
+_check_keys = _func_check_gene('keys')
+_check_values = _func_check_gene('values')
 
 
 class MappingError(CompositeStructureError):
@@ -64,5 +66,50 @@ def mapping(key_loader, value_loader, type_back: bool = True) -> ILoaderClass:
             return _result
         else:
             raise MappingError(_key_errors, _value_errors)
+
+    return Loader(_load)
+
+
+def mpfilter(check: Callable[[Any, Any], bool], type_back: bool = True):
+
+    def _load(value):
+        _check_items(value)
+        _result = {key_: value_ for key_, value_ in value.items() if check(key_, value_)}
+
+        if type_back:
+            _result = type(value)(_result)
+        return _result
+
+    return Loader(_load)
+
+
+def keys():
+
+    def _load(value):
+        _check_items(value)
+        _check_keys(value)
+
+        return set(value.keys())
+
+    return Loader(_load)
+
+
+def values():
+
+    def _load(value):
+        _check_items(value)
+        _check_keys(value)
+
+        return set(value.values())
+
+    return Loader(_load)
+
+
+def items():
+
+    def _load(value):
+        _check_items(value)
+
+        return set([(key, value) for key, value in value.items()])
 
     return Loader(_load)

@@ -101,7 +101,8 @@ def contains(content) -> ILoaderClass:
 def cofilter(checker: Callable[[Any], bool], type_back: bool = True):
 
     def _load(value):
-        _result = None
+        _check_iter(value)
+        _result = [item for item in value]
         if type_back:
             _result = type(value)(_result)
         return _result
@@ -109,7 +110,7 @@ def cofilter(checker: Callable[[Any], bool], type_back: bool = True):
     return Loader(_load)
 
 
-def tpfilter(*indices):
+def tpselector(*indices):
 
     def _load(value: tuple):
         return (value[index] for index in indices)
