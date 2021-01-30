@@ -1,6 +1,6 @@
 import pytest
 
-from ...loader.mapping import mapping, MappingError
+from ...loader.mapping import mapping, MappingError, mpfilter, keys, values, items
 from ...loader.types import is_type
 from ...loader.utils import optional
 
@@ -25,3 +25,19 @@ class TestConfigLoaderCollection:
             _loader(1)
         with pytest.raises(TypeError):
             _loader([])
+
+    def test_mpfilter(self):
+        _loader = mpfilter(lambda k, v: k in {'a', 'b', 'sum'})
+        assert _loader({'a': 1, 'b': 2, 'sum': 3, 'sdk': 4}) == {'a': 1, 'b': 2, 'sum': 3}
+
+    def test_keys(self):
+        _loader = keys()
+        assert _loader({'a': 1, 'b': 2, 'sum': 3, 'sdk': 4}) == {'a', 'b', 'sum', 'sdk'}
+
+    def test_values(self):
+        _loader = values()
+        assert _loader({'a': 1, 'b': 2, 'sum': 3, 'sdk': 4}) == {1, 2, 3, 4}
+
+    def test_items(self):
+        _loader = items()
+        assert _loader({'a': 1, 'b': 2, 'sum': 3, 'sdk': 4}) == {('a', 1), ('b', 2), ('sum', 3), ('sdk', 4)}
