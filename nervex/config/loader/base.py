@@ -77,6 +77,18 @@ def _to_loader(value) -> 'ILoaderClass':
 Loader = _to_loader
 
 
+def _reset_exception(loader, eg: Callable[[Any, Exception], Exception]):
+    loader = Loader(loader)
+
+    def _load(value):
+        try:
+            return loader(value)
+        except CAPTURE_EXCEPTIONS as err:
+            raise eg(value, err)
+
+    return Loader(_load)
+
+
 class ILoaderClass:
 
     @abstractmethod
@@ -137,25 +149,3 @@ class ILoaderClass:
 
     def __rrshift__(self, other) -> 'ILoaderClass':
         return Loader(other) >> self
-
-
-VALUE_CHECK = Callable[[Any], None]
-
-
-def _func_check_gene(func_name: str) -> VALUE_CHECK:
-
-    def _check(value) -> None:
-        if hasattr(value, func_name):
-            func = getattr(value, func_name)
-            if not hasattr(func, '__call__'):
-                raise TypeError(
-                    'function {func} should be callable but {type} found'.format(
-                        func=repr(func_name), type=repr(type(func).__name__)
-                    )
-                )
-        else:
-            raise TypeError(
-                'type {type} not support {func}'.format(type=repr(type(value).__name__), func=repr(func_name))
-            )
-
-    return _check

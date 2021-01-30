@@ -1,7 +1,8 @@
 from typing import Optional, List, Tuple, Callable, Any
 
-from .base import ILoaderClass, Loader, CAPTURE_EXCEPTIONS, _func_check_gene
+from .base import ILoaderClass, Loader, CAPTURE_EXCEPTIONS
 from .exception import CompositeStructureError
+from .types import func
 
 COLLECTION_ERROR_ITEM = Tuple[int, Exception]
 COLLECTION_ERRORS = List[COLLECTION_ERROR_ITEM]
@@ -20,17 +21,10 @@ class CollectionError(CompositeStructureError):
         return self.__errors
 
 
-_check_iter = _func_check_gene('__iter__')
-_check_len = _func_check_gene('__len__')
-_check_contains = _func_check_gene('__contains__')
-
-
 def collection(loader, type_back: bool = True) -> ILoaderClass:
     loader = Loader(loader)
 
     def _load(value):
-        _check_iter(value)
-
         _result = []
         _errors = []
 
@@ -49,7 +43,7 @@ def collection(loader, type_back: bool = True) -> ILoaderClass:
             _result = type(value)(_result)
         return _result
 
-    return Loader(_load)
+    return func('__iter__') & Loader(_load)
 
 
 def tuple_(*loaders) -> ILoaderClass:
@@ -64,8 +58,6 @@ def tuple_(*loaders) -> ILoaderClass:
 def length(min_length: Optional[int] = None, max_length: Optional[int] = None) -> ILoaderClass:
 
     def _load(value):
-        _check_len(value)
-
         _length = len(value)
         if min_length is not None and _length < min_length:
             raise ValueError(
@@ -78,7 +70,7 @@ def length(min_length: Optional[int] = None, max_length: Optional[int] = None) -
 
         return value
 
-    return Loader(_load)
+    return func('__len__') & Loader(_load)
 
 
 def length_is(length_: int) -> ILoaderClass:
@@ -88,26 +80,23 @@ def length_is(length_: int) -> ILoaderClass:
 def contains(content) -> ILoaderClass:
 
     def _load(value):
-        _check_contains(value)
-
         if content not in value:
             raise ValueError('{content} not found in value'.format(content=repr(content)))
 
         return value
 
-    return Loader(_load)
+    return func('__contains__') & Loader(_load)
 
 
 def cofilter(checker: Callable[[Any], bool], type_back: bool = True):
 
     def _load(value):
-        _check_iter(value)
         _result = [item for item in value]
         if type_back:
             _result = type(value)(_result)
         return _result
 
-    return Loader(_load)
+    return func('__iter__') & Loader(_load)
 
 
 def tpselector(*indices):
