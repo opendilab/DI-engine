@@ -1,4 +1,7 @@
+from functools import partial
+
 from .base import Loader, ILoaderClass, _reset_exception
+from .utils import check_only
 
 
 def is_type(type_: type) -> ILoaderClass:
@@ -12,6 +15,13 @@ def to_type(type_: type) -> ILoaderClass:
     return Loader(lambda v: type_(v))
 
 
+def is_callable() -> ILoaderClass:
+    return _reset_exception(
+        check_only(prop('__call__')),
+        lambda v, e: TypeError('callable expected but {func} not found'.format(func=repr('__call__')))
+    )
+
+
 def prop(attr_name: str) -> ILoaderClass:
     return Loader(
         (
@@ -23,6 +33,14 @@ def prop(attr_name: str) -> ILoaderClass:
 
 def func(func_name: str) -> ILoaderClass:
     return _reset_exception(
-        prop(func_name) >> prop('__call__'), lambda v, e:
+        prop(func_name) >> is_callable(), lambda v, e:
         TypeError('type {type} not support function {func}'.format(type=repr(type(v).__name__), func=repr('__iter__')))
     )
+
+
+def func_call(*args, **kwargs) -> ILoaderClass:
+    return Loader(lambda v: v(*args, **kwargs))
+
+
+def func_partial(*args, **kwargs) -> ILoaderClass:
+    return Loader(lambda v: partial(v, *args, **kwargs))
