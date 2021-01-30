@@ -84,13 +84,23 @@ class QMix(nn.Module):
         __init__, forward
     """
 
-    def __init__(self, agent_num: int, obs_dim: int, global_obs_dim: int, action_dim: int, embedding_dim: int) -> None:
+    def __init__(
+            self,
+            agent_num: int,
+            obs_dim: int,
+            global_obs_dim: int,
+            action_dim: int,
+            embedding_dim: int,
+            use_mixer: bool = True
+    ) -> None:
         super(QMix, self).__init__()
         self._act = nn.ReLU()
         self._q_network = FCRDiscreteNet(obs_dim, action_dim, embedding_dim)
-        self._mixer = Mixer(agent_num, embedding_dim)
-        global_obs_dim = squeeze(global_obs_dim)
-        self._global_state_encoder = self._setup_global_encoder(global_obs_dim, embedding_dim)
+        self.use_mixer = use_mixer
+        if self.use_mixer:
+            self._mixer = Mixer(agent_num, embedding_dim)
+            global_obs_dim = squeeze(global_obs_dim)
+            self._global_state_encoder = self._setup_global_encoder(global_obs_dim, embedding_dim)
 
     def forward(self, data: dict, single_step: bool = True) -> dict:
         """
@@ -131,7 +141,6 @@ class QMix(nn.Module):
         ), '{}-{}-{}-{}'.format([type(p) for p in prev_state], B, A, len(prev_state[0]))
         prev_state = reduce(lambda x, y: x + y, prev_state)
         agent_state = agent_state.reshape(T, -1, *agent_state.shape[3:])
-        global_state_embedding = self._global_state_encoder(global_state)
         output = self._q_network({'obs': agent_state, 'prev_state': prev_state, 'enable_fast_timestep': True})
         agent_q, next_state = output['logit'], output['next_state']
         next_state, _ = list_split(next_state, step=A)
@@ -139,7 +148,11 @@ class QMix(nn.Module):
         if action is None:
             action = agent_q.argmax(dim=-1)
         agent_q_act = torch.gather(agent_q, dim=-1, index=action.unsqueeze(-1))
-        total_q = self._mixer(agent_q_act, global_state_embedding).reshape(T, B)
+        if self.use_mixer:
+            global_state_embedding = self._global_state_encoder(global_state)
+            total_q = self._mixer(agent_q_act, global_state_embedding).reshape(T, B)
+        else:
+            total_q = agent_q_act.reshape(T, B, A).sum(-1)
         if single_step:
             total_q, agent_q = total_q.squeeze(0), agent_q.squeeze(0)
         return {
@@ -260,11 +273,13 @@ class CollaQ(nn.Module):
             self_feature_range: Union[List[int], None] = None,
             ally_feature_range: Union[List[int], None] = None,
             attention_dim: int = 32,
+            use_mixer: bool = True
     ) -> None:
         super(CollaQ, self).__init__()
         self.enable_attention = enable_attention
         self.attention_dim = attention_dim
         self._act = nn.ReLU()
+        self.use_mixer = use_mixer
         if not self.enable_attention:
             self._q_network = FCRDiscreteNet(obs_dim, action_dim, embedding_dim)
         else:
@@ -281,9 +296,10 @@ class CollaQ(nn.Module):
             ).shape[-1]
             self._q_network = FCRDiscreteNet(obs_dim_after_attention, action_dim, embedding_dim)
         self._q_alone_network = FCRDiscreteNet(obs_alone_dim, action_dim, embedding_dim)
-        self._mixer = Mixer(agent_num, embedding_dim)
-        global_obs_dim = squeeze(global_obs_dim)
-        self._global_state_encoder = self._setup_global_encoder(global_obs_dim, embedding_dim)
+        if self.use_mixer:
+            self._mixer = Mixer(agent_num, embedding_dim)
+            global_obs_dim = squeeze(global_obs_dim)
+            self._global_state_encoder = self._setup_global_encoder(global_obs_dim, embedding_dim)
 
     def forward(self, data: dict, single_step: bool = True) -> dict:
         """
@@ -363,8 +379,6 @@ class CollaQ(nn.Module):
         agent_alone_state = agent_alone_state.reshape(T, -1, *agent_alone_state.shape[3:])
         agent_alone_padding_state = agent_alone_padding_state.reshape(T, -1, *agent_alone_padding_state.shape[3:])
 
-        global_state_embedding = self._global_state_encoder(global_state)
-
         colla_output = self._q_network(
             {
                 'obs': agent_state,
@@ -409,7 +423,11 @@ class CollaQ(nn.Module):
         if action is None:
             action = total_q_before_mix.argmax(dim=-1)
         agent_q_act = torch.gather(total_q_before_mix, dim=-1, index=action.unsqueeze(-1))
-        total_q = self._mixer(agent_q_act, global_state_embedding).reshape(T, B)
+        if self.use_mixer:
+            global_state_embedding = self._global_state_encoder(global_state)
+            total_q = self._mixer(agent_q_act, global_state_embedding).reshape(T, B)
+        else:
+            total_q = agent_q_act.reshape(T, B, A).sum(-1)
         if single_step:
             total_q, agent_q, agent_colla_alone_q = total_q.squeeze(0), agent_q.squeeze(0), agent_colla_alone_q.squeeze(
                 0
