@@ -56,7 +56,6 @@ def tuple_(*loaders) -> ILoaderClass:
 
 
 def length(min_length: Optional[int] = None, max_length: Optional[int] = None) -> ILoaderClass:
-
     def _load(value):
         _length = len(value)
         if min_length is not None and _length < min_length:
@@ -78,7 +77,6 @@ def length_is(length_: int) -> ILoaderClass:
 
 
 def contains(content) -> ILoaderClass:
-
     def _load(value):
         if content not in value:
             raise ValueError('{content} not found in value'.format(content=repr(content)))
@@ -89,9 +87,8 @@ def contains(content) -> ILoaderClass:
 
 
 def cofilter(checker: Callable[[Any], bool], type_back: bool = True):
-
     def _load(value):
-        _result = [item for item in value]
+        _result = [item for item in value if checker(item)]
         if type_back:
             _result = type(value)(_result)
         return _result
@@ -100,7 +97,6 @@ def cofilter(checker: Callable[[Any], bool], type_back: bool = True):
 
 
 def tpselector(*indices):
-
     def _load(value: tuple):
         return (value[index] for index in indices)
 
