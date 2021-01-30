@@ -1,7 +1,8 @@
 import pytest
 
 from ...loader.mapping import mapping, MappingError
-from ...loader.utils import optional, is_type
+from ...loader.types import is_type
+from ...loader.utils import optional
 
 
 @pytest.mark.unittest

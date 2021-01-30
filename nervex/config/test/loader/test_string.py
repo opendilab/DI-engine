@@ -3,7 +3,7 @@ import re
 import pytest
 
 from ...loader.string import enum, rematch, regrep
-from ...loader.utils import to_type
+from ...loader.types import to_type
 
 
 @pytest.mark.unittest

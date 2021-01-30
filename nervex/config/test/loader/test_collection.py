@@ -3,7 +3,8 @@ import pytest
 from ...loader.base import Loader
 from ...loader.collection import collection, contains, length_is, length, tuple_, CollectionError
 from ...loader.number import plus, minus, interval, negative
-from ...loader.utils import optional, to_type
+from ...loader.types import to_type
+from ...loader.utils import optional
 
 
 @pytest.mark.unittest
