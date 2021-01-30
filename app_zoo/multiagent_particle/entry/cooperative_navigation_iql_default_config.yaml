@@ -60,7 +60,7 @@ actor:
     collect_print_freq: 100
 evaluator:
     n_episode: 5
-    eval_freq: 50
+    eval_freq: 5
     stop_val: 0
 learner:
     hook:
