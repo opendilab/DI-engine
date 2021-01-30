@@ -112,7 +112,7 @@ class CooperativeNavigation(BaseEnv):
         self._num_landmarks = cfg.get("num_landmarks", 3)
         self._env = make_env(self._env_name, self.agent_num, self._num_landmarks, True)
         self._env.discrete_action_input = cfg.get('discrete_action', True)
-        self._max_step = cfg.get('max_step', 1000)
+        self._max_step = cfg.get('max_step', 100)
         self._collide_penalty = cfg.get('collide_penal', self.agent_num)
         self._env.force_discrete_action = True
         self.action_dim = 5
