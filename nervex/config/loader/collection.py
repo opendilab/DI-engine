@@ -2,7 +2,7 @@ from typing import Optional, List, Tuple, Callable, Any
 
 from .base import ILoaderClass, Loader, CAPTURE_EXCEPTIONS
 from .exception import CompositeStructureError
-from .types import func
+from .types import method
 
 COLLECTION_ERROR_ITEM = Tuple[int, Exception]
 COLLECTION_ERRORS = List[COLLECTION_ERROR_ITEM]
@@ -43,7 +43,7 @@ def collection(loader, type_back: bool = True) -> ILoaderClass:
             _result = type(value)(_result)
         return _result
 
-    return func('__iter__') & Loader(_load)
+    return method('__iter__') & Loader(_load)
 
 
 def tuple_(*loaders) -> ILoaderClass:
@@ -70,7 +70,7 @@ def length(min_length: Optional[int] = None, max_length: Optional[int] = None) -
 
         return value
 
-    return func('__len__') & Loader(_load)
+    return method('__len__') & Loader(_load)
 
 
 def length_is(length_: int) -> ILoaderClass:
@@ -85,7 +85,7 @@ def contains(content) -> ILoaderClass:
 
         return value
 
-    return func('__contains__') & Loader(_load)
+    return method('__contains__') & Loader(_load)
 
 
 def cofilter(checker: Callable[[Any], bool], type_back: bool = True):
@@ -96,7 +96,7 @@ def cofilter(checker: Callable[[Any], bool], type_back: bool = True):
             _result = type(value)(_result)
         return _result
 
-    return func('__iter__') & Loader(_load)
+    return method('__iter__') & Loader(_load)
 
 
 def tpselector(*indices):

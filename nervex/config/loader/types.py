@@ -31,16 +31,16 @@ def prop(attr_name: str) -> ILoaderClass:
     )
 
 
-def func(func_name: str) -> ILoaderClass:
+def method(method_name: str) -> ILoaderClass:
     return _reset_exception(
-        prop(func_name) >> is_callable(), lambda v, e:
+        prop(method_name) >> is_callable(), lambda v, e:
         TypeError('type {type} not support function {func}'.format(type=repr(type(v).__name__), func=repr('__iter__')))
     )
 
 
-def func_call(*args, **kwargs) -> ILoaderClass:
+def fcall(*args, **kwargs) -> ILoaderClass:
     return Loader(lambda v: v(*args, **kwargs))
 
 
-def func_partial(*args, **kwargs) -> ILoaderClass:
+def fpartial(*args, **kwargs) -> ILoaderClass:
     return Loader(lambda v: partial(v, *args, **kwargs))

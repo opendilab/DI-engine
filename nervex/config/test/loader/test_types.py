@@ -2,7 +2,7 @@ import pytest
 from easydict import EasyDict
 
 from ...loader.number import interval, negative
-from ...loader.types import is_type, to_type, prop, func, func_call, is_callable, func_partial
+from ...loader.types import is_type, to_type, prop, method, fcall, is_callable, fpartial
 from ...loader.utils import keep
 
 
@@ -66,25 +66,25 @@ class TestConfigLoaderTypes:
         assert _loader(t2) == 'str'
         assert _loader(t3) == 'sss'
 
-    def test_func(self):
+    def test_method(self):
         t1 = 'STRING'
         t2 = 2
         t3 = EasyDict({'lower': 1})
 
-        _loader = func('lower')
+        _loader = method('lower')
         assert _loader(t1)() == 'string'
         with pytest.raises(TypeError):
             _loader(t2)
         with pytest.raises(TypeError):
             _loader(t3)
 
-    def test_func_call(self):
-        _loader = func_call('STRING')
+    def test_fcall(self):
+        _loader = fcall('STRING')
         assert _loader(lambda x: len(x)) == 6
         assert _loader(str.lower) == 'string'
 
-    def test_func_partial(self):
-        _loader = func_partial(x=2)
+    def test_fpartial(self):
+        _loader = fpartial(x=2)
 
         def _func_1(x, y):
             return x + y
@@ -96,9 +96,7 @@ class TestConfigLoaderTypes:
         assert _loader(_func_2)(y=6) == 12
 
     def test_func_complex_case_1(self):
-        _loader = func_partial(
-            x=1
-        ) >> ((func_call(y=1) >> interval(0, None)) | (func_call(y=2) >> interval(None, 0) >> negative()))
+        _loader = fpartial(x=1) >> ((fcall(y=1) >> interval(0, None)) | (fcall(y=2) >> interval(None, 0) >> negative()))
 
         def _func_1(x, y):
             return x + y

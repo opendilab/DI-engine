@@ -2,7 +2,7 @@ from typing import List, Tuple, Callable, Any
 
 from .base import ILoaderClass, Loader, CAPTURE_EXCEPTIONS
 from .exception import CompositeStructureError
-from .types import func
+from .types import method
 
 MAPPING_ERROR_ITEM = Tuple[str, Exception]
 MAPPING_ERRORS = List[MAPPING_ERROR_ITEM]
@@ -62,7 +62,7 @@ def mapping(key_loader, value_loader, type_back: bool = True) -> ILoaderClass:
         else:
             raise MappingError(_key_errors, _value_errors)
 
-    return func('items') & Loader(_load)
+    return method('items') & Loader(_load)
 
 
 def mpfilter(check: Callable[[Any, Any], bool], type_back: bool = True):
@@ -74,16 +74,16 @@ def mpfilter(check: Callable[[Any, Any], bool], type_back: bool = True):
             _result = type(value)(_result)
         return _result
 
-    return func('items') & Loader(_load)
+    return method('items') & Loader(_load)
 
 
 def keys():
-    return func('items') & func('keys') & Loader(lambda v: set(v.keys()))
+    return method('items') & method('keys') & Loader(lambda v: set(v.keys()))
 
 
 def values():
-    return func('items') & func('values') & Loader(lambda v: set(v.values()))
+    return method('items') & method('values') & Loader(lambda v: set(v.values()))
 
 
 def items():
-    return func('items') & Loader(lambda v: set([(key, value) for key, value in v.items()]))
+    return method('items') & Loader(lambda v: set([(key, value) for key, value in v.items()]))
