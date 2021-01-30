@@ -65,7 +65,7 @@ def mapping(key_loader, value_loader, type_back: bool = True) -> ILoaderClass:
     return method('items') & Loader(_load)
 
 
-def mpfilter(check: Callable[[Any, Any], bool], type_back: bool = True):
+def mpfilter(check: Callable[[Any, Any], bool], type_back: bool = True) -> ILoaderClass:
 
     def _load(value):
         _result = {key_: value_ for key_, value_ in value.items() if check(key_, value_)}
@@ -77,13 +77,19 @@ def mpfilter(check: Callable[[Any, Any], bool], type_back: bool = True):
     return method('items') & Loader(_load)
 
 
-def keys():
+def keys() -> ILoaderClass:
     return method('items') & method('keys') & Loader(lambda v: set(v.keys()))
 
 
-def values():
+def values() -> ILoaderClass:
     return method('items') & method('values') & Loader(lambda v: set(v.values()))
 
 
-def items():
+def items() -> ILoaderClass:
     return method('items') & Loader(lambda v: set([(key, value) for key, value in v.items()]))
+
+
+def index(key) -> ILoaderClass:
+    return method('__getitem__') & method('keys') & Loader(
+        (lambda v: key in v.keys(), lambda v: v[key], KeyError('key {key} not found'.format(key=repr(key))))
+    )

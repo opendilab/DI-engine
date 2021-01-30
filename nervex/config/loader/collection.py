@@ -88,7 +88,7 @@ def contains(content) -> ILoaderClass:
     return method('__contains__') & Loader(_load)
 
 
-def cofilter(checker: Callable[[Any], bool], type_back: bool = True):
+def cofilter(checker: Callable[[Any], bool], type_back: bool = True) -> ILoaderClass:
 
     def _load(value):
         _result = [item for item in value if checker(item)]
@@ -99,7 +99,7 @@ def cofilter(checker: Callable[[Any], bool], type_back: bool = True):
     return method('__iter__') & Loader(_load)
 
 
-def tpselector(*indices):
+def tpselector(*indices) -> ILoaderClass:
 
     def _load(value: tuple):
         return tuple([value[index] for index in indices])

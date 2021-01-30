@@ -1,6 +1,6 @@
 import pytest
 
-from ...loader.mapping import mapping, MappingError, mpfilter, keys, values, items
+from ...loader.mapping import mapping, MappingError, mpfilter, keys, values, items, index
 from ...loader.types import is_type
 from ...loader.utils import optional
 
@@ -41,3 +41,9 @@ class TestConfigLoaderCollection:
     def test_items(self):
         _loader = items()
         assert _loader({'a': 1, 'b': 2, 'sum': 3, 'sdk': 4}) == {('a', 1), ('b', 2), ('sum', 3), ('sdk', 4)}
+
+    def test_index(self):
+        _loader = index('a') | index('b')
+        assert _loader({'a': 1}) == 1
+        assert _loader({'b': 2}) == 2
+        assert _loader({'a': 3, 'b': -2}) == 3
