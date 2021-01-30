@@ -1,10 +1,10 @@
 import pytest
 
 from ...loader.base import Loader
-from ...loader.collection import collection, contains, length_is, length, tuple_, CollectionError
+from ...loader.collection import collection, contains, length_is, length, tuple_, CollectionError, cofilter, tpselector
 from ...loader.number import plus, minus, interval, negative
 from ...loader.types import to_type
-from ...loader.utils import optional
+from ...loader.utils import optional, check_only
 
 
 @pytest.mark.unittest
@@ -128,3 +128,26 @@ class TestConfigLoaderCollection:
             _loader(['itemx'])
         with pytest.raises(TypeError):
             _loader(1)
+
+    def test_cofilter(self):
+        _loader = cofilter(lambda x: x > 0)
+
+        assert _loader([1, 2, -1, 3, -2]) == [1, 2, 3]
+        assert _loader((1, 2, -1, 3, -2)) == (1, 2, 3)
+        assert _loader({1, 2, -1, 3, -2}) == {1, 2, 3}
+
+    def test_cofilter_complex_case_1(self):
+        _loader = list & check_only(
+            (cofilter(lambda x: x == 1) >> length_is(5)) & (cofilter(lambda x: x == 0) >> length_is(5))
+        )
+
+        assert _loader([1, 0, 0, 1, 0, 1, 0, 0, 1, 1]) == [1, 0, 0, 1, 0, 1, 0, 0, 1, 1]
+        assert _loader([1, 2, -3, 0, 0, 1, 0, 1, 0, 0, 1, 1]) == [1, 2, -3, 0, 0, 1, 0, 1, 0, 0, 1, 1]
+        with pytest.raises(ValueError):
+            _loader([1, 0, 0, 1, 0, 1, 0, 0, 1, -1])
+
+    def test_tpselector(self):
+        _loader = tpselector(0, 2)
+
+        assert _loader((1, 2, 3)) == (1, 3)
+        assert _loader((int, None, {}, 4)) == (int, {})
