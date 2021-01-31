@@ -153,7 +153,7 @@ class CooperativeNavigation(BaseEnv):
                 np.zeros((self.agent_num, (self.agent_num - 1) * 2), float), obs[:, -self._num_landmarks * 2:]
             ], 1
         )
-        ret['action_mask'] = np.zeros((self.agent_num, self.action_dim))
+        ret['action_mask'] = np.ones((self.agent_num, self.action_dim))
         return ret
 
     # note: the reward is shared between all the agents

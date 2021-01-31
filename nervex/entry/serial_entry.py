@@ -76,6 +76,17 @@ def serial_pipeline(
     learner.call_hook('before_run')
     while True:
         command.step()
+        if learner.train_iter % cfg.evaluator.eval_freq == 0:
+            stop_flag, eval_reward = evaluator.eval(learner.train_iter)
+            if stop_flag:
+                # evaluator's mean episode reward reaches the expected ``stop_val``
+                learner.save_checkpoint()
+                print("Your RL agent is converged, you can refer to 'log/evaluator/evaluator_logger.txt' for details")
+                break
+            else:
+                if eval_reward > max_eval_reward:
+                    learner.save_checkpoint()
+                    max_eval_reward = eval_reward
         while True:
             # actor keeps generating data until replay buffer has enough to sample one batch
             new_data, collect_info = actor.generate_data(learner.train_iter)
@@ -96,17 +107,6 @@ def serial_pipeline(
             learner.train(train_data)
             if use_priority:
                 replay_buffer.update(learner.priority_info)
-        if (learner.train_iter - 1) % cfg.evaluator.eval_freq == 0:
-            stop_flag, eval_reward = evaluator.eval(learner.train_iter)
-            if stop_flag:
-                # evaluator's mean episode reward reaches the expected ``stop_val``
-                learner.save_checkpoint()
-                print("Your RL agent is converged, you can refer to 'log/evaluator/evaluator_logger.txt' for details")
-                break
-            else:
-                if eval_reward > max_eval_reward:
-                    learner.save_checkpoint()
-                    max_eval_reward = eval_reward
         if cfg.policy.on_policy:
             replay_buffer.clear()
     learner.call_hook('after_run')
