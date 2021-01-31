@@ -27,7 +27,7 @@ class Mixer(nn.Module):
         Arguments:
             - agent_num (:obj:`int`): the number of agent
             - embedding_dim (:obj:`int`): the dimension of state emdedding
-            - w_layers (;obj:`int`): the number of fully-connected layers of mixer weight
+            - w_layers (:obj:`int`): the number of fully-connected layers of mixer weight
         """
         super(Mixer, self).__init__()
         self._agent_num = agent_num
