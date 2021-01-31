@@ -3,22 +3,11 @@ import warnings
 import pytest
 
 from ...loader.mapping import index
-from ...loader.norm import norm, lin, lis, lisnot, lsum, lcmp
+from ...loader.norm import norm, lin, lis, lisnot, lsum, lcmp, normfunc
 
 
 @pytest.mark.unittest
 class TestConfigLoaderNorm:
-
-    def test_norm_general(self):
-        _norm = norm(index('a')) * (norm(index('b')) - norm(index('c'))) * 2 == norm(index('result') | index('sum'))
-
-        assert not _norm({'a': 2, 'b': 10, 'c': -2, 'result': 1})
-        assert _norm({'a': 2, 'b': 10, 'c': -2, 'result': 48})
-        with pytest.raises(KeyError):
-            _norm({'a': 2, 'b': 10, 'cc': -2, 'result': 24})
-
-        assert not _norm({'a': 2, 'b': 10, 'c': -2, 'sum': 1})
-        assert _norm({'a': 2, 'b': 10, 'c': -2, 'result_': 23, 'sum': 48})
 
     def test_add(self):
         _norm = norm(index('a')) + 2
@@ -332,3 +321,23 @@ class TestConfigLoaderNorm:
         _norm = lcmp(2, '<', norm(index('a')), "<=")
         with pytest.raises(ValueError):
             _norm({'a': 2})
+
+    def test_norm_complex_case_1(self):
+        _norm = norm(index('a')) * (norm(index('b')) - norm(index('c'))) * 2 == norm(index('result') | index('sum'))
+
+        assert not _norm({'a': 2, 'b': 10, 'c': -2, 'result': 1})
+        assert _norm({'a': 2, 'b': 10, 'c': -2, 'result': 48})
+        with pytest.raises(KeyError):
+            _norm({'a': 2, 'b': 10, 'cc': -2, 'result': 24})
+
+        assert not _norm({'a': 2, 'b': 10, 'c': -2, 'sum': 1})
+        assert _norm({'a': 2, 'b': 10, 'c': -2, 'result_': 23, 'sum': 48})
+
+    def test_norm_complex_case_2(self):
+
+        def _check(a, b, s):
+            return (a + b == s) and (a * b == s)
+
+        _norm = normfunc(_check)(norm(index('a')), norm(index('b')), norm(index('sum')))
+        assert not _norm({'a': 1, 'b': 2, 'sum': 3})
+        assert _norm({'a': 2, 'b': 2, 'sum': 4})
