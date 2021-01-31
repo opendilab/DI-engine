@@ -3,7 +3,7 @@ import warnings
 import pytest
 
 from ...loader.mapping import index
-from ...loader.norm import norm, lin, lis, lisnot
+from ...loader.norm import norm, lin, lis, lisnot, lsum, lcmp
 
 
 @pytest.mark.unittest
@@ -180,6 +180,96 @@ class TestConfigLoaderNorm:
         assert _norm({'a': 15}) == -15
         assert _norm({'a': -2348}) == 2348
 
+    def test_eq(self):
+        _norm = norm(index('a')) == 2
+        assert _norm({'a': 2})
+        assert not _norm({'a': 3})
+
+        _norm = 2 == norm(index('a'))
+        assert _norm({'a': 2})
+        assert not _norm({'a': 3})
+
+        _norm = norm(index('a')) == norm(index('b'))
+        assert _norm({'a': 2, 'b': 2})
+        assert not _norm({'a': 2, 'b': 3})
+
+    def test_ne(self):
+        _norm = norm(index('a')) != 2
+        assert not _norm({'a': 2})
+        assert _norm({'a': 3})
+
+        _norm = 2 != norm(index('a'))
+        assert not _norm({'a': 2})
+        assert _norm({'a': 3})
+
+        _norm = norm(index('a')) != norm(index('b'))
+        assert not _norm({'a': 2, 'b': 2})
+        assert _norm({'a': 2, 'b': 3})
+
+    def test_lt(self):
+        _norm = norm(index('a')) < 2
+        assert _norm({'a': 1})
+        assert not _norm({'a': 2})
+        assert not _norm({'a': 3})
+
+        _norm = 2 < norm(index('a'))
+        assert not _norm({'a': 1})
+        assert not _norm({'a': 2})
+        assert _norm({'a': 3})
+
+        _norm = norm(index('a')) < norm(index('b'))
+        assert _norm({'a': 1, 'b': 2})
+        assert not _norm({'a': 2, 'b': 2})
+        assert not _norm({'a': 3, 'b': 2})
+
+    def test_le(self):
+        _norm = norm(index('a')) <= 2
+        assert _norm({'a': 1})
+        assert _norm({'a': 2})
+        assert not _norm({'a': 3})
+
+        _norm = 2 <= norm(index('a'))
+        assert not _norm({'a': 1})
+        assert _norm({'a': 2})
+        assert _norm({'a': 3})
+
+        _norm = norm(index('a')) <= norm(index('b'))
+        assert _norm({'a': 1, 'b': 2})
+        assert _norm({'a': 2, 'b': 2})
+        assert not _norm({'a': 3, 'b': 2})
+
+    def test_gt(self):
+        _norm = norm(index('a')) > 2
+        assert not _norm({'a': 1})
+        assert not _norm({'a': 2})
+        assert _norm({'a': 3})
+
+        _norm = 2 > norm(index('a'))
+        assert _norm({'a': 1})
+        assert not _norm({'a': 2})
+        assert not _norm({'a': 3})
+
+        _norm = norm(index('a')) > norm(index('b'))
+        assert not _norm({'a': 1, 'b': 2})
+        assert not _norm({'a': 2, 'b': 2})
+        assert _norm({'a': 3, 'b': 2})
+
+    def test_ge(self):
+        _norm = norm(index('a')) >= 2
+        assert not _norm({'a': 1})
+        assert _norm({'a': 2})
+        assert _norm({'a': 3})
+
+        _norm = 2 >= norm(index('a'))
+        assert _norm({'a': 1})
+        assert _norm({'a': 2})
+        assert not _norm({'a': 3})
+
+        _norm = norm(index('a')) >= norm(index('b'))
+        assert not _norm({'a': 1, 'b': 2})
+        assert _norm({'a': 2, 'b': 2})
+        assert _norm({'a': 3, 'b': 2})
+
     def test_lin(self):
         _norm = lin(norm(index('a')), 'string')
         assert _norm({'a': ['string', 1, 2]})
@@ -218,3 +308,27 @@ class TestConfigLoaderNorm:
         _norm = lisnot(norm(index('a')), norm(index('b')))
         assert not _norm({'a': 1, 'b': 1})
         assert _norm({'a': [1, 2], 'b': 3})
+
+    def test_lsum(self):
+        _norm = lsum(1, 2, norm(index('a') | index('b')), norm(index('c')))
+        assert _norm({'a': 1, 'c': 10}) == 14
+        assert _norm({'b': 20, 'c': 100}) == 123
+        assert _norm({'b': 20, 'a': 30, 'c': -1}) == 32
+
+    def test_lcmp(self):
+        _norm = lcmp(2, '<', norm(index('a')), "<=", 5)
+        assert not _norm({'a': 1})
+        assert not _norm({'a': 2})
+        assert _norm({'a': 3})
+        assert _norm({'a': 4})
+        assert _norm({'a': 5})
+        assert not _norm({'a': 6})
+
+    def test_lcmp_invalid(self):
+        _norm = lcmp(2, '<', norm(index('a')), "<x", 5)
+        with pytest.raises(KeyError):
+            _norm({'a': 2})
+
+        _norm = lcmp(2, '<', norm(index('a')), "<=")
+        with pytest.raises(ValueError):
+            _norm({'a': 2})

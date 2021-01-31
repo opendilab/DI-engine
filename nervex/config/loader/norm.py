@@ -1,11 +1,13 @@
 import operator
 from abc import abstractmethod
+from functools import wraps
 from typing import Callable, Any
 
 from .base import ILoaderClass
 
 
 def _callable_to_norm(func: Callable[[Any], Any]) -> 'INormClass':
+
     class _Norm(INormClass):
 
         def _call(self, value):
@@ -23,12 +25,45 @@ def norm(value) -> 'INormClass':
         return _callable_to_norm(lambda v: value)
 
 
-def _unary(a: 'INormClass', func: Callable[[Any], Any]) -> 'INormClass':
+def normfunc(func):
+
+    @wraps(func)
+    def _new_func(*args_norm, **kwargs_norm):
+        args_norm = [norm(item) for item in args_norm]
+        kwargs_norm = [(norm(key), norm(value)) for key, value in kwargs_norm.items()]
+
+        def _callable(v):
+            args = [item(v) for item in args_norm]
+            kwargs = {key(v): value(v) for key, value in kwargs_norm}
+            return func(*args, **kwargs)
+
+        return _callable_to_norm(_callable)
+
+    return _new_func
+
+
+UNARY_FUNC = Callable[[Any], Any]
+BINARY_FUNC = Callable[[Any, Any], Any]
+
+
+def _unary(a: 'INormClass', func: UNARY_FUNC) -> 'INormClass':
     return _callable_to_norm(lambda v: func(a(v)))
 
 
-def _binary(a: 'INormClass', b: 'INormClass', func: Callable[[Any, Any], Any]) -> 'INormClass':
+def _binary(a: 'INormClass', b: 'INormClass', func: BINARY_FUNC) -> 'INormClass':
     return _callable_to_norm(lambda v: func(a(v), b(v)))
+
+
+def _binary_reducing(func: BINARY_FUNC, zero):
+
+    @wraps(func)
+    def _new_func(*args) -> 'INormClass':
+        _sum = norm(zero)
+        for item in args:
+            _sum = _binary(_sum, norm(item), func)
+        return _sum
+
+    return _new_func
 
 
 class INormClass:
@@ -127,6 +162,7 @@ class INormClass:
     def __neg__(self):
         return _unary(self, operator.__neg__)
 
+    # Attention: DO NOT USE LINKING COMPARE OPERATORS, IT WILL CAUSE ERROR.
     def __eq__(self, other):
         return _binary(self, norm(other), operator.__eq__)
 
@@ -145,62 +181,41 @@ class INormClass:
     def __ge__(self, other):
         return _binary(self, norm(other), operator.__ge__)
 
-    def __abs__(self):
-        return _unary(self, operator.__abs__)
 
-    def __int__(self):
-        return _unary(self, lambda x: int(x))
+lnot = normfunc(lambda x: not x)
+land = _binary_reducing(lambda x, y: x and y, True)
+lor = _binary_reducing(lambda x, y: x or y, True)
 
-    def __float__(self):
-        return _unary(self, lambda x: float(x))
+lin = normfunc(operator.__contains__)
+lis = normfunc(operator.is_)
+lisnot = normfunc(operator.is_not)
 
-    def __bool__(self):
-        return _unary(self, lambda x: not not x)
+lsum = _binary_reducing(lambda x, y: x + y, 0)
 
-
-def lnot(a) -> INormClass:
-    return _unary(norm(a), lambda x: not x)
-
-
-def _reducing(func: Callable[[Any, Any], Any]):
-    def _new_func(a, b, *cs):
-        _result = func(a, b)
-        for c in cs:
-            _result = func(_result, c)
-        return _result
-
-    return _new_func
+COMPARE_OPERATORS = {
+    '!=': operator.__ne__,
+    '==': operator.__eq__,
+    '<': operator.__lt__,
+    '<=': operator.__le__,
+    '>': operator.__gt__,
+    '>=': operator.__ge__,
+}
 
 
-@_reducing
-def land(a, b) -> INormClass:
-    return _binary(norm(a), norm(b), lambda x, y: x and y)
+@normfunc
+def lcmp(first, *items):
+    if len(items) % 2 == 1:
+        raise ValueError('Count of items should be odd number but {number} found.'.format(number=len(items) + 1))
 
+    ops, items = items[0::2], items[1::2]
+    for op in ops:
+        if op not in COMPARE_OPERATORS.keys():
+            raise KeyError('Invalid compare operator - {op}.'.format(op=repr(op)))
 
-@_reducing
-def lor(a, b) -> INormClass:
-    return _binary(norm(a), norm(b), lambda x, y: x or y)
+    _last = first
+    for op, item in zip(ops, items):
+        if not COMPARE_OPERATORS[op](_last, item):
+            return False
+        _last = item
 
-
-def lfunc(func, *args, **kwargs) -> INormClass:
-    args = [norm(item) for item in args]
-    kwargs = [(norm(key), norm(value)) for key, value in kwargs.items()]
-
-    def _call(v):
-        _args = [item(v) for item in args]
-        _kwargs = {key(v): value(v) for key, value in kwargs}
-        return func(*_args, **_kwargs)
-
-    return _callable_to_norm(_call)
-
-
-def lin(a, b) -> INormClass:
-    return _binary(norm(a), norm(b), operator.__contains__)
-
-
-def lis(a, b) -> INormClass:
-    return _binary(norm(a), norm(b), operator.is_)
-
-
-def lisnot(a, b) -> INormClass:
-    return _binary(norm(a), norm(b), operator.is_not)
+    return True
