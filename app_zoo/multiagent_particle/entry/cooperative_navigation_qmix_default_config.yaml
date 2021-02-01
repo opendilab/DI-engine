@@ -26,7 +26,7 @@ policy:
         train_step: 100
         batch_size: 32
         agent_num: 5
-        learning_rate: 0.0005
+        learning_rate: 0.0001
         weight_decay: 0.0001
         algo:
             target_update_theta: 0.001

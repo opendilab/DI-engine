@@ -134,7 +134,11 @@ def eval(
         env_fn, _, evaluator_env_cfg = env_setting
     env_manager_type = BaseEnvManager if cfg.env.env_manager_type == 'base' else SubprocessEnvManager
     evaluator_env = env_manager_type(
-        env_fn, env_cfg=evaluator_env_cfg, env_num=len(evaluator_env_cfg), manager_cfg=manager_cfg, episode_num=manager_cfg.get('episode_num', len(evaluator_env_cfg))
+        env_fn,
+        env_cfg=evaluator_env_cfg,
+        env_num=len(evaluator_env_cfg),
+        manager_cfg=manager_cfg,
+        episode_num=manager_cfg.get('episode_num', len(evaluator_env_cfg))
     )
     if evaluator_env_cfg[0].get('replay_path', None):
         evaluator_env.enable_save_replay([c['replay_path'] for c in evaluator_env_cfg])
