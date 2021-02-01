@@ -25,4 +25,4 @@ system:
     manager_resume_path:
     coordinator_resume_path:
     coordinator_check_dead_learner_freq: 300
-    league_manager_port: 16298
+    league_port: 16298

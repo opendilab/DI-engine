@@ -14,7 +14,7 @@ ONE_PHASE_STEP = 2e3
 
 @pytest.fixture(scope='function')
 def setup_config():
-    with open(os.path.join(os.path.dirname(__file__), 'league_manager_test_config.yaml')) as f:
+    with open(os.path.join(os.path.dirname(__file__), 'league_test_config.yaml')) as f:
         cfg = yaml.safe_load(f)
     cfg = EasyDict(cfg)
     return cfg
@@ -316,7 +316,7 @@ class TestSoloActivePlayer:
         payoff_cfg = EasyDict({'type': 'solo', 'buffer_size': 3})
         solo_payoff = create_payoff(payoff_cfg)
         # solo league config
-        with open(os.path.join(os.path.dirname(__file__), 'solo_league_manager_test_config.yaml')) as f:
+        with open(os.path.join(os.path.dirname(__file__), 'solo_league_test_config.yaml')) as f:
             cfg = yaml.safe_load(f)
         solo_league_cfg = EasyDict(cfg)
         # solo active player
