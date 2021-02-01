@@ -15,7 +15,7 @@ API Doc
     data/collate_fn
     data/buffer_manager
     env/sumo_env
-    league/league_manager
+    league/league
     league/payoff
     league/player
     model/actor_critic

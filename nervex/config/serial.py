@@ -2,6 +2,7 @@ from easydict import EasyDict
 
 base_learner_default_config = dict(
     load_path='',
+    # Whether to use GPU for model inference.
     use_cuda=False,
     use_distributed=False,
     dataloader=dict(
@@ -9,6 +10,7 @@ base_learner_default_config = dict(
         chunk_size=2,
         num_workers=0,
     ),
+    # --- Hooks ---
     hook=dict(
         load_ckpt=dict(
             name='load_ckpt',

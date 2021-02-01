@@ -87,7 +87,7 @@ nervex(框架核心)
 
  8. league: 联盟训练决策调度模块
 
-   - league manager(player manager)
+   - league(player manager)
    - player
    - payoff
    - self-play算法

@@ -84,6 +84,7 @@ league:
         job:
             agent_update_freq: 30  # second
             compressor: 'none'
+    use_pretrain: True
     use_pretrain_init_historical: True
     pretrain_checkpoint_path:  # placeholder
         zerg: 'pretrain_checkpoint_zerg.pth'

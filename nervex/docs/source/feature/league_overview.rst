@@ -1,8 +1,8 @@
-League Manager Overview
+League Overview
 ========================
 
 概述：
-    league这一概念原本来自于AlphaStar。在AlphaStar中存在一个league，league中有很多player，每个player持有一个具有
+    League这一概念原本来自于AlphaStar。在AlphaStar中存在一个league，league中有很多player，每个player持有一个具有
     特定参数的网络，不同player之间可以互相交战，不断升级，即用league中多种player之间组合丰富的交战，代替了简单的self-play。
 
     StarCraft这种1v1的游戏模式，我们称为 **Battle**。
@@ -19,11 +19,11 @@ League Manager Overview
 
     而针对类似AlphaStar这种架构，便在众多信息的基础上，再添加一个分配的对手。
 
-    我们的league manager分为三个部分：
+    我们的league分为三个部分：
 
         - player：league中的player，分为active（参数可更新）和historical（参数不可更新）两类，是分配工作、执行工作的单位。
         - payoff：用于记录league中player的以往记录，通常为所有player所共享，用于未来工作的分配。
-        - league manager：持有全部player及他们的payoff记录，负责为根据payoff为每个player分配工作。
+        - league：持有全部player及他们的payoff记录，负责为根据payoff为每个player分配工作。
 
 
 Player
@@ -203,20 +203,20 @@ Payoff
         4. SoloSharedPayoff: 用于solo环境，可更新对战结果。
 
 
-League Manager
+League
 ----------------
 
 概述：
-    league manager是管理player及他们之间关系（使用payoff），可统筹为player分配工作的类。
+    league是管理player及他们之间关系（使用payoff），可统筹为player分配工作的类。
     是一个向量化的环境管理器，其中同时运行多个相同类型不同配置的环境，实际实现方式包含子进程向量化和伪向量化（循环串行）两种模式
 
 基类定义：
-    1. BaseLeagueManager (nervex/league/base_league_manager.py)
+    1. BaseLeague (nervex/league/base_league.py)
 
         .. code:: python
 
 
-            class BaseLeagueManager(ABC):
+            class BaseLeague(ABC):
 
                 def __init__(self, cfg: EasyDict, save_checkpoint_fn: Callable, load_checkpoint_fn: Callable,
                         launch_job_fn: Callable) -> None:
@@ -348,7 +348,7 @@ League Manager
             在job结束时，``finish_job`` 和 ``update_active_player`` 会被调用以更新信息。
 
         - 类接口方法：
-            1. __init__: 初始化，在最前会调用 ``_init_cfg``，读取当前league manager的config；最后会调用 ``_init_league`` ，初始化league中的player。
+            1. __init__: 初始化，在最前会调用 ``_init_cfg``，读取当前league的config；最后会调用 ``_init_league`` ，初始化league中的player。
             2. finish_job: 为某个结束工作的player释放job空间，并更新shared payoff
             3. run: 开启上述两个线程
             4. close: 将end flag设为True，使两个线程不再工作
@@ -358,5 +358,5 @@ League Manager
 
             _get_job_info(被_launch_job调用)，_mutate_player(被_snapshot调用)，
             _update_player(被update_active_player调用)三个方法没有实现，
-            具体的实现方法可以参考测试文件 nervex/league/tests/test_league_manager.py中的 ``FakeLeagueManager``
+            具体的实现方法可以参考测试文件 nervex/league/tests/test_league.py中的 ``FakeLeague``
 

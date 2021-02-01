@@ -1,35 +1,35 @@
-league.league_manager
+league.league
 =======================
 
-base_league_manager
+base_league
 ----------------------
 
 LimitedSpaceContainer
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.league.base_league_manager.LimitedSpaceContainer
+.. autoclass:: nervex.league.base_league.LimitedSpaceContainer
     :members: __init__, get_residual_space, release_space
 
-BaseLeagueManager
+BaseLeague
 ~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.league.base_league_manager.BaseLeagueManager
+.. autoclass:: nervex.league.base_league.BaseLeague
     :members: __init__, run, close, finish_job, update_active_player
 
 register_league
 ~~~~~~~~~~~~~~~~~~~~~~~
-.. automodule:: nervex.league.base_league_manager.register_league
+.. automodule:: nervex.league.base_league.register_league
 
 create_league
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. automodule:: nervex.league.base_league_manager.create_league
+.. automodule:: nervex.league.base_league.create_league
 
 
 
-solo_league_manager
+solo_league
 -----------------------
 
-SoloLeagueManager
+SoloLeague
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.league.solo_league_manager.SoloLeagueManager
+.. autoclass:: nervex.league.solo_league.SoloLeague
     :members: __init__, run, close, finish_job, update_active_player
 
 
