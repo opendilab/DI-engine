@@ -10,7 +10,8 @@ import pytest
 import yaml
 from easydict import EasyDict
 
-from nervex.league import BaseLeagueManager, register_league, create_league, ActivePlayer
+from nervex.league import BaseLeague, register_league, create_league, ActivePlayer
+from nervex.utils import deep_merge_dicts
 
 global BEGIN_COUNT_BATTLE, BEGIN_COUNT_SOLO, FINISH_COUNT_BATTLE, FINISH_COUNT_SOLO
 BEGIN_COUNT_BATTLE = 0
@@ -20,8 +21,31 @@ FINISH_COUNT_SOLO = 0
 SAVE_COUNT = 0
 
 
-class FakeLeagueManager(BaseLeagueManager):
+class FakeLeague(BaseLeague):
 
+    def _init_cfg(self, cfg: EasyDict) -> None:
+        default_config = dict(
+            league_type='base',
+            import_names=['nervex.league'],
+            player_category=['cateA'],
+            active_players='placeholder',
+            use_pretrain=False,
+            use_pretrain_init_historical=False,
+            pretrain_checkpoint_path=dict(
+                cateA='pretrain_checkpoint_solo.pth',
+            ),
+            payoff=dict(
+                type='solo',
+                buffer_size=100,
+            ),
+            max_active_player_job=3,
+            time_interval=1,
+        )
+        default_config = EasyDict(default_config)
+        cfg = deep_merge_dicts(default_config, cfg)
+        self.cfg = cfg.league
+        self.model_config = cfg.get('model', EasyDict())
+    
     def _get_job_info(self, player):
         return {
             'launch_player': player.player_id,
@@ -42,7 +66,7 @@ class FakeLeagueManager(BaseLeagueManager):
 
 @pytest.fixture(scope='function')
 def setup_config():
-    with open(os.path.join(os.path.dirname(__file__), 'league_manager_test_config.yaml')) as f:
+    with open(os.path.join(os.path.dirname(__file__), 'league_test_config.yaml')) as f:
         cfg = yaml.safe_load(f)
     cfg = EasyDict(cfg)
     return cfg
@@ -176,26 +200,26 @@ class FakeCoordinator:
                 update_agent_step({'player_id': player_id, 'train_step': self.update_count * self.one_phase_steps})
 
 
-class TestFakeLeagueManager:
+class TestFakeLeague:
 
     @pytest.mark.unittest
     def test_naive(self, random_job_result, setup_config):
         match_runner = FakeBattleMatchRunner(random_job_result)
-        register_league('fake', FakeLeagueManager)
-        league_manager = create_league(setup_config, save_checkpoint_fn, load_checkpoint_fn, match_runner.launch_match)
-        assert (len(league_manager.active_players) == 12)
-        assert (len(league_manager.historical_players) == 3)
-        active_player_ids = [p.player_id for p in league_manager.active_players]
+        register_league('fake', FakeLeague)
+        league = create_league(setup_config, save_checkpoint_fn, load_checkpoint_fn, match_runner.launch_match)
+        assert (len(league.active_players) == 12)
+        assert (len(league.historical_players) == 3)
+        active_player_ids = [p.player_id for p in league.active_players]
         coordinator = FakeCoordinator(
-            'battle', match_runner.queue, league_manager.finish_job, league_manager.update_active_player,
+            'battle', match_runner.queue, league.finish_job, league.update_active_player,
             active_player_ids
         )
 
-        league_manager.run()
+        league.run()
         coordinator.run()
         time.sleep(15)
-        league_manager.close()
-        time.sleep(league_manager.cfg.time_interval + 5)  # time_interval + simulate_match + receive_match time
+        league.close()
+        time.sleep(league.cfg.time_interval + 5)  # time_interval + simulate_match + receive_match time
         coordinator.close()
         time.sleep(5)
         assert BEGIN_COUNT_BATTLE == FINISH_COUNT_BATTLE
@@ -205,25 +229,25 @@ class TestFakeLeagueManager:
         global SAVE_COUNT
         SAVE_COUNT = 0
         match_runner = FakeBattleMatchRunner(random_job_result)
-        league_manager = create_league(setup_config, save_checkpoint_fn, load_checkpoint_fn, match_runner.launch_match)
+        league = create_league(setup_config, save_checkpoint_fn, load_checkpoint_fn, match_runner.launch_match)
         # fix mutate
-        for p in league_manager.active_players:
+        for p in league.active_players:
             if hasattr(p, 'mutate_prob'):
                 p.mutate_prob = 0.
-        assert (len(league_manager.active_players) == 12)
-        assert (len(league_manager.historical_players) == 3)
-        active_player_ids = [p.player_id for p in league_manager.active_players]
+        assert (len(league.active_players) == 12)
+        assert (len(league.historical_players) == 3)
+        active_player_ids = [p.player_id for p in league.active_players]
         coordinator = FakeCoordinator(
-            'battle', match_runner.queue, league_manager.finish_job, league_manager.update_active_player,
+            'battle', match_runner.queue, league.finish_job, league.update_active_player,
             active_player_ids
         )
 
-        league_manager.run()
+        league.run()
         coordinator.run()
         time.sleep(12.5)
-        league_manager.close()
+        league.close()
         valid_count = coordinator.update_count
-        time.sleep(league_manager.cfg.time_interval + 5)  # time_interval + simulate_match + receive_match time
+        time.sleep(league.cfg.time_interval + 5)  # time_interval + simulate_match + receive_match time
         coordinator.close()
         time.sleep(2)
         assert BEGIN_COUNT_BATTLE == FINISH_COUNT_BATTLE
@@ -231,31 +255,31 @@ class TestFakeLeagueManager:
 
 
 @pytest.mark.unittest
-class TestSoloLeagueManager:
+class TestSoloLeague:
 
     @pytest.mark.unittest
     def test_naive(self, random_job_result):
         match_runner = FakeSoloMatchRunner(random_job_result)
         # solo league config
-        with open(os.path.join(os.path.dirname(__file__), 'solo_league_manager_test_config.yaml')) as f:
+        with open(os.path.join(os.path.dirname(__file__), 'solo_league_test_config.yaml')) as f:
             cfg = yaml.safe_load(f)
         solo_league_cfg = EasyDict(cfg)
-        league_manager = create_league(
+        league = create_league(
             solo_league_cfg, save_checkpoint_fn, load_checkpoint_fn, match_runner.launch_match
         )
-        assert (len(league_manager.active_players) == 1)
-        # assert (len(league_manager.historical_players) == 1)
-        active_player_ids = [p.player_id for p in league_manager.active_players]
+        assert (len(league.active_players) == 1)
+        # assert (len(league.historical_players) == 1)
+        active_player_ids = [p.player_id for p in league.active_players]
         coordinator = FakeCoordinator(
-            'solo', match_runner.queue, league_manager.finish_job, league_manager.update_active_player,
+            'solo', match_runner.queue, league.finish_job, league.update_active_player,
             active_player_ids
         )
 
-        league_manager.run()
+        league.run()
         coordinator.run()
         time.sleep(15)
-        league_manager.close()
-        time.sleep(league_manager.cfg.time_interval + 5)  # time_interval + simulate_match + receive_match time
+        league.close()
+        time.sleep(league.cfg.time_interval + 5)  # time_interval + simulate_match + receive_match time
         coordinator.close()
         time.sleep(5)
         assert BEGIN_COUNT_SOLO == FINISH_COUNT_SOLO

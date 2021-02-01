@@ -1,4 +1,4 @@
-class BaseSerialCommand(object):
+class BaseSerialCommander(object):
 
     def __init__(
             self,

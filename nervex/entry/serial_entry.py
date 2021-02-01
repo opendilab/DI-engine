@@ -7,7 +7,7 @@ import torch
 import math
 import warnings
 
-from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommand
+from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommander
 from nervex.worker import BaseEnvManager, SubprocessEnvManager
 from nervex.utils import read_config
 from nervex.data import BufferManager
@@ -54,14 +54,14 @@ def serial_pipeline(
     actor = BaseSerialActor(cfg.actor)
     evaluator = BaseSerialEvaluator(cfg.evaluator)
     replay_buffer = BufferManager(cfg.replay_buffer)
-    command = BaseSerialCommand(cfg.command, learner, actor, evaluator, replay_buffer)
+    commander = BaseSerialCommander(cfg.commander, learner, actor, evaluator, replay_buffer)
 
     actor.env = actor_env
     evaluator.env = evaluator_env
     learner.policy = policy.learn_mode
     actor.policy = policy.collect_mode
     evaluator.policy = policy.eval_mode
-    command.policy = policy.command_mode
+    commander.policy = policy.command_mode
     # main loop
     max_eval_reward = float("-inf")
     learner_train_step = cfg.policy.learn.train_step
@@ -75,7 +75,7 @@ def serial_pipeline(
     use_priority = cfg.policy.get('use_priority', False)
     learner.call_hook('before_run')
     while True:
-        command.step()
+        commander.step()
         if learner.train_iter % cfg.evaluator.eval_freq == 0:
             stop_flag, eval_reward = evaluator.eval(learner.train_iter)
             if stop_flag:

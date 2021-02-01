@@ -66,7 +66,7 @@ actor:
         upstream_port: 14796
 league:
     league_type: 'static'
-    import_names: ['nervex.league.static_league_manager']
+    import_names: ['nervex.league.static_league']
     use_pretrain_init_historical: False
     player_category: ['main'] 
     task:
@@ -87,8 +87,8 @@ system:
     manager_resume_path:
     coordinator_resume_path:
     coordinator_check_dead_learner_freq: 300
-    league_manager_ip: 'auto'
-    league_manager_port: 14798
+    league_ip: 'auto'
+    league_port: 14798
     actor_num: 2
 model:
     encoder:
