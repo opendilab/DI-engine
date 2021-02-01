@@ -1,5 +1,5 @@
 import math
-from typing import Optional, Union
+from typing import Optional, Union, Callable, Any
 
 from .base import Loader, ILoaderClass
 
@@ -11,7 +11,7 @@ def numeric(int_ok: bool = True, float_ok: bool = True, inf_ok: bool = True) -> 
     if not int_ok and not float_ok:
         raise ValueError('Either int or float should be allowed.')
 
-    def _load(value: NUMBER_TYPING) -> NUMBER_TYPING:
+    def _load(value) -> NUMBER_TYPING:
         if isinstance(value, NUMBER_TYPES):
             if math.isnan(value):
                 raise ValueError('nan is not numeric value')
@@ -38,7 +38,7 @@ def interval(
         right: Optional[NUMBER_TYPING] = None,
         left_ok: bool = True,
         right_ok: bool = True,
-        eps: NUMBER_TYPING = 0.0
+        eps=0.0
 ) -> ILoaderClass:
     if left is None:
         left = -math.inf
@@ -52,7 +52,7 @@ def interval(
         )
     eps = math.fabs(eps)
 
-    def _value_compare_with_eps(a: NUMBER_TYPING, b: NUMBER_TYPING) -> int:
+    def _value_compare_with_eps(a, b) -> int:
         if math.fabs(a - b) <= eps:
             return 0
         elif a < b:
@@ -60,7 +60,7 @@ def interval(
         else:
             return 1
 
-    def _load(value: NUMBER_TYPING) -> NUMBER_TYPING:
+    def _load(value) -> NUMBER_TYPING:
         _left_check = _value_compare_with_eps(value, left)
         if _left_check < 0:
             raise ValueError(
@@ -94,33 +94,41 @@ def negative() -> ILoaderClass:
     return Loader(lambda x: -x)
 
 
-def plus(addend: NUMBER_TYPING) -> ILoaderClass:
-    return Loader(lambda x: x + addend)
+def positive() -> ILoaderClass:
+    return Loader(lambda x: +x)
 
 
-def minus(subtrahend: NUMBER_TYPING) -> ILoaderClass:
-    return Loader(lambda x: x - subtrahend)
+def _math_binary(func: Callable[[Any, Any], Any], attachment) -> ILoaderClass:
+    return Loader(lambda x: func(x, Loader(attachment)(x)))
 
 
-def minus_with(minuend: NUMBER_TYPING) -> ILoaderClass:
-    return Loader(lambda x: minuend - x)
+def plus(addend) -> ILoaderClass:
+    return _math_binary(lambda x, y: x + y, addend)
 
 
-def multi(multiplier: NUMBER_TYPING) -> ILoaderClass:
-    return Loader(lambda x: x * multiplier)
+def minus(subtrahend) -> ILoaderClass:
+    return _math_binary(lambda x, y: x - y, subtrahend)
 
 
-def divide(divisor: NUMBER_TYPING) -> ILoaderClass:
-    return Loader(lambda x: x / divisor)
+def minus_with(minuend) -> ILoaderClass:
+    return _math_binary(lambda x, y: y - x, minuend)
 
 
-def divide_with(dividend: NUMBER_TYPING) -> ILoaderClass:
-    return Loader(lambda x: dividend / x)
+def multi(multiplier) -> ILoaderClass:
+    return _math_binary(lambda x, y: x * y, multiplier)
 
 
-def power(index: NUMBER_TYPING) -> ILoaderClass:
-    return Loader(lambda x: x ** index)
+def divide(divisor) -> ILoaderClass:
+    return _math_binary(lambda x, y: x / y, divisor)
 
 
-def power_with(base: NUMBER_TYPING) -> ILoaderClass:
-    return Loader(lambda x: base ** x)
+def divide_with(dividend) -> ILoaderClass:
+    return _math_binary(lambda x, y: y / x, dividend)
+
+
+def power(index) -> ILoaderClass:
+    return _math_binary(lambda x, y: x ** y, index)
+
+
+def power_with(base) -> ILoaderClass:
+    return _math_binary(lambda x, y: y ** x, base)

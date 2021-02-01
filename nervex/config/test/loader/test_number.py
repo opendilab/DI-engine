@@ -3,7 +3,8 @@ import math
 import pytest
 
 from ...loader.number import numeric, interval, negative, plus, minus, minus_with, multi, divide, divide_with, power, \
-    power_with
+    power_with, positive
+from ...loader.utils import keep
 
 
 @pytest.mark.unittest
@@ -509,14 +510,28 @@ class TestConfigLoaderNumber:
         assert _loader(1) == -1
         assert _loader(-2) == 2
 
+    def test_positive(self):
+        _loader = positive()
+        assert _loader(1) == 1
+        assert _loader(0) == 0
+        assert _loader(-1) == -1
+
     def test_plus(self):
         _loader = plus(1)
         assert _loader(1) == 2
         assert _loader(-2) == -1
 
+        _loader = plus(negative())
+        assert _loader(1) == 0
+        assert _loader(-2) == 0
+
     def test_minus(self):
         _loader = minus(2)
         assert _loader(1) == -1
+        assert _loader(-2) == -4
+
+        _loader = minus(negative())
+        assert _loader(1) == 2
         assert _loader(-2) == -4
 
     def test_minus_with(self):
@@ -524,14 +539,27 @@ class TestConfigLoaderNumber:
         assert _loader(1) == 1
         assert _loader(-2) == 4
 
+        _loader = minus_with(negative())
+        assert _loader(1) == -2
+        assert _loader(-2) == 4
+
     def test_multi(self):
         _loader = multi(2)
         assert _loader(1) == 2
         assert _loader(-2) == -4
 
+        _loader = multi(keep())
+        assert _loader(1) == 1
+        assert _loader(-2) == 4
+        assert _loader(-3) == 9
+
     def test_divide(self):
         _loader = divide(2)
         assert _loader(1) == 0.5
+        assert _loader(-2) == -1
+
+        _loader = divide(negative())
+        assert _loader(1) == -1
         assert _loader(-2) == -1
 
     def test_divide_with(self):
@@ -539,12 +567,26 @@ class TestConfigLoaderNumber:
         assert _loader(1) == 2
         assert _loader(-2) == -1
 
+        _loader = divide_with(negative())
+        assert _loader(1) == -1
+        assert _loader(-2) == -1
+
     def test_power(self):
         _loader = power(2)
         assert _loader(1) == 1
         assert _loader(-2) == 4
 
+        _loader = power(keep()) >> power(keep())
+        assert _loader(2) == 256
+        assert _loader(3) == 443426488243037769948249630619149892803
+
     def test_power_with(self):
         _loader = power_with(2)
         assert _loader(1) == 2
         assert _loader(-2) == 0.25
+
+        _loader = power_with(minus(1)) >> power_with(minus(1))
+        assert _loader(3) == 5764801
+        assert _loader(
+            4
+        ) == 14134776518227074636666380005943348126619871175004951664972849610340958208000000000000000000000000000000000000000000000000000000000000000000000000000000000
