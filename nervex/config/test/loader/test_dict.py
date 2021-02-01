@@ -4,6 +4,7 @@ from ...loader.dict import dict_, DictError
 from ...loader.mapping import item
 from ...loader.norm import norm
 from ...loader.number import msum
+from ...loader.utils import keep
 
 
 @pytest.mark.unittest
@@ -24,7 +25,10 @@ class TestConfigLoaderDict:
         _loader = dict_(
             real=msum(item('a'), item('b')),
             result=item('sum') | item('result'),
-            correct=norm(msum(item('a'), item('b'))) == norm(item('sum') | item('result')),
+        ) >> dict_(
+            real=item('real') >> keep(),
+            result=item('result') >> keep(),
+            correct=norm(item('real')) == norm(item('result')),
         )
         assert _loader({'a': 1, 'b': 2, 'result': 3}) == {'real': 3, 'result': 3, 'correct': True}
         assert _loader({'a': 2, 'b': 2, 'sum': 3}) == {'real': 4, 'result': 3, 'correct': False}
