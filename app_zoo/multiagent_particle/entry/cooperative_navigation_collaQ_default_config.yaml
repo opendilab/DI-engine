@@ -9,9 +9,8 @@ env:
     num_agents: 5
     num_landmarks: 5
     agent_num: 5
-    actor_env_num: 8
-    evaluator_env_num: 5
-    shared_memory: False
+    actor_env_num: 4
+    evaluator_env_num: 2
 policy:
     use_cuda: True
     policy_type: 'collaQ'
@@ -32,7 +31,7 @@ policy:
         train_step: 100
         batch_size: 32
         agent_num: 5
-        learning_rate: 0.0005
+        learning_rate: 0.0001
         weight_decay: 0.0001
         algo:
             target_update_theta: 0.001
@@ -41,10 +40,10 @@ policy:
         traj_len: 'inf'
         unroll_len: 16
         agent_num: 5
-        env_num: 8  # actor_env_num
+        env_num: 4  # actor_env_num
     eval:
         agent_num: 5
-        env_num: 5  # evaluator_env_num
+        env_num: 2  # evaluator_env_num
     command:
         eps:
             type: 'exp'
@@ -59,12 +58,12 @@ replay_buffer:
         min_sample_ratio: 1
 actor:
     n_episode: 4
-    traj_len: 1000  # smac_episode_max_length
+    traj_len: 100  # cooperative_navigation_episode_max_length
     traj_print_freq: 100
-    collect_print_freq: 100
+    collect_print_freq: 4
 evaluator:
-    n_episode: 5
-    eval_freq: 5
+    n_episode: 2
+    eval_freq: 200
     stop_val: 0 # we don't have a stop_val yet, the stop_val here is unreachable
 learner:
     hook:
