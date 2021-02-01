@@ -234,6 +234,11 @@ class SubprocessEnvManager(BaseEnvManager):
         self._env_state = {env_id: EnvState.INIT for env_id in range(self.env_num)}
         self._waiting_env = {'step': set()}
         self._setup_async_args()
+        if hasattr(self, '_env_replay_path'):
+            for p, s in zip(self._parent_remote, self._env_replay_path):
+                p.send(CloudpickleWrapper(['enable_save_replay', [s], {}]))
+            for p in self._parent_remote:
+                p.recv()
 
     def _setup_async_args(self) -> None:
         r"""
@@ -513,6 +518,12 @@ class SubprocessEnvManager(BaseEnvManager):
         ret = [p.recv().data for p in self._parent_remote]
         self._check_data(ret)
         return ret
+
+    # override
+    def enable_save_replay(self, replay_path: Union[List[str], str]) -> None:
+        if isinstance(replay_path, str):
+            replay_path = [replay_path] * self.env_num
+        self._env_replay_path = replay_path
 
     # override
     def close(self) -> None:

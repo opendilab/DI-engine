@@ -42,7 +42,6 @@ class BaseSerialEvaluator(object):
     def reset(self) -> None:
         self._obs_pool = CachePool('obs', self._env_num)
         self._policy_output_pool = CachePool('policy_output', self._env_num)
-        self._env.reset()
 
     def close(self) -> None:
         self._tb_logger.close()

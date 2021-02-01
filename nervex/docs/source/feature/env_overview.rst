@@ -78,6 +78,10 @@ Environment
                     evaluator_env_num = cfg.pop('evaluator_env_num', 1)
                     return [cfg for _ in range(evaluator_env_num)]
 
+                # optional method
+                def enable_save_replay(self, replay_path: str) -> None:
+                    raise NotImplementedError
+
 
         - 概述：
             环境基类，用于和外部策略进行交互
@@ -101,6 +105,7 @@ Environment
             7. __repr__: 返回环境类状态说明的字符串
             8. create_actor_env_cfg: 为数据收集创建相应的环境配置文件，与 ``create_evaluator_env_cfg`` 互相独立，便于使用者对数据收集和性能评测设置不同的环境参数，根据传入的初始配置为每个具体的环境生成相应的配置文件，默认情况会获取配置文件中的环境个数，然后将默认环境配置复制相应份数返回
             9. create_evaluator_env_cfg: 为性能评测创建相应的环境配置文件，功能同上说明
+            10. enable_save_replay: 使环境可以保存运行过程为视频文件，便于调试和可视化，一般在环境开始实际运行前调用，功能上代替常见环境中的render方法。（该方法可选实现）
 
             .. note::
 

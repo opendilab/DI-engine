@@ -54,6 +54,9 @@ class BaseEnvManager(ABC):
         self._next_obs = {i: None for i in range(self.env_num)}
         self._envs = [self._env_fn(c) for c in self._env_cfg]
         assert len(self._envs) == self._env_num
+        if hasattr(self, '_env_replay_path'):
+            for e, s in zip(self._envs, self._env_replay_path):
+                e.enable_save_replay(s)
 
     def _check_closed(self):
         assert not self._closed, "env manager is closed, please use the alive env manager"
@@ -83,7 +86,7 @@ class BaseEnvManager(ABC):
 
     @property
     def method_name_list(self) -> list:
-        return ['reset', 'step', 'seed', 'close']
+        return ['reset', 'step', 'seed', 'close', 'enable_save_replay']
 
     def __getattr__(self, key: str) -> Any:
         """
@@ -184,6 +187,11 @@ class BaseEnvManager(ABC):
             assert len(seed) == self._env_num, "len(seed) {:d} != env_num {:d}".format(len(seed), self._env_num)
             seed = seed
         self._env_seed = seed
+
+    def enable_save_replay(self, replay_path: Union[List[str], str]) -> None:
+        if isinstance(replay_path, str):
+            replay_path = [replay_path] * self.env_num
+        self._env_replay_path = replay_path
 
     def close(self) -> None:
         """

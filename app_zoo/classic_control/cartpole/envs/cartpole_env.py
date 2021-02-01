@@ -1,5 +1,6 @@
-from typing import Any, List, Union
+from typing import Any, List, Union, Optional
 import gym
+import time
 import torch
 import numpy as np
 from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo
@@ -62,7 +63,16 @@ class CartPoleEnv(BaseEnv):
         )
 
     def __repr__(self) -> str:
-        return "nerveX CartPole Env({})".format(self._cfg.env_id)
+        return "nerveX CartPole Env"
+
+    def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
+        if replay_path is None:
+            replay_path = './video'
+        self._replay_path = replay_path
+        self._env = gym.wrappers.Monitor(self._env, self._replay_path, video_callable=lambda episode_id: True, force=True)
+        # close window when created
+        # self._env.render()
+        # self._env.env.viewer.window.close()
 
 
 register_env('cartpole', CartPoleEnv)
