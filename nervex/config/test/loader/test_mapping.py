@@ -6,7 +6,7 @@ from ...loader.utils import optional
 
 
 @pytest.mark.unittest
-class TestConfigLoaderCollection:
+class TestConfigLoaderMapping:
 
     def test_mapping(self):
         _loader = mapping(str, optional(is_type(int) | float))

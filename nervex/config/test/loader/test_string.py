@@ -7,7 +7,7 @@ from ...loader.types import to_type
 
 
 @pytest.mark.unittest
-class TestConfigLoaderTypes:
+class TestConfigLoaderString:
 
     def test_enum_plain(self):
         _loader = enum('red', 'green', 'blue', 'yellow')
