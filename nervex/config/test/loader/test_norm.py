@@ -2,8 +2,10 @@ import warnings
 
 import pytest
 
+from ...loader.base import Loader
 from ...loader.mapping import index
 from ...loader.norm import norm, lin, lis, lisnot, lsum, lcmp, normfunc
+from ...loader.number import interval
 
 
 @pytest.mark.unittest
@@ -353,3 +355,14 @@ class TestConfigLoaderNorm:
         _norm = normfunc(_check)(norm(index('a')), norm(index('b')), norm(index('sum')))
         assert not _norm({'a': 1, 'b': 2, 'sum': 3})
         assert _norm({'a': 2, 'b': 2, 'sum': 4})
+
+    def test_norm_back_to_loader(self):
+        _loader = Loader(norm(index('a')) + norm(index('b'))) >> interval(1, 3)
+        assert _loader({'a': 2, 'b': -1}) == 1
+        assert _loader({'a': 1, 'b': 1}) == 2
+        with pytest.raises(ValueError):
+            _loader({'a': 0, 'b': 0})
+        with pytest.raises(ValueError):
+            _loader({'a': 0, 'b': 10})
+        with pytest.raises(KeyError):
+            _loader({'a': 0, 'bb': 2})
