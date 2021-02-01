@@ -313,6 +313,18 @@ class TestConfigLoaderNorm:
         assert _norm({'a': 5})
         assert not _norm({'a': 6})
 
+        _norm = lcmp(2, '>=', norm(index('b')), '>', -1)
+        assert not _norm({'b': -2})
+        assert not _norm({'b': -1})
+        assert _norm({'b': 0})
+        assert _norm({'b': 1})
+        assert _norm({'b': 2})
+        assert not _norm({'b': 3})
+
+        _norm = lcmp(2, '!=', norm(index('c')), '==', 1)
+        assert _norm({'c': 1})
+        assert not _norm({'c': 2})
+
     def test_lcmp_invalid(self):
         _norm = lcmp(2, '<', norm(index('a')), "<x", 5)
         with pytest.raises(KeyError):
