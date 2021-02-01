@@ -72,6 +72,8 @@ def serial_pipeline(
         cfg.replay_buffer.agent.min_sample_ratio,
         math.ceil(cfg.policy.learn.train_step / cfg.replay_buffer.agent.max_reuse)
     )
+    # accumulate plenty of data in the beginning of training
+    init_data_count = cfg.policy.learn.get('init_data_count', enough_data_count)
     use_priority = cfg.policy.get('use_priority', False)
     learner.call_hook('before_run')
     while True:
@@ -91,7 +93,8 @@ def serial_pipeline(
             # actor keeps generating data until replay buffer has enough to sample one batch
             new_data, collect_info = actor.generate_data(learner.train_iter)
             replay_buffer.push_data(new_data)
-            if replay_buffer.count() >= enough_data_count:
+            target_count = init_data_count if learner.train_iter == 0 else enough_data_count
+            if replay_buffer.count() >= target_count:
                 break
         learner.collect_info = collect_info
         for i in range(learner_train_step):
