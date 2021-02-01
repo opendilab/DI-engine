@@ -11,6 +11,7 @@ Feature
 
     env_overview
     policy_overview
+    adder_overview
     env_manager_overview
     agent_overview
     actor_overview
