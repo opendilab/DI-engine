@@ -30,11 +30,11 @@ def normfunc(func):
     @wraps(func)
     def _new_func(*args_norm, **kwargs_norm):
         args_norm = [norm(item) for item in args_norm]
-        kwargs_norm = [(norm(key), norm(value)) for key, value in kwargs_norm.items()]
+        kwargs_norm = {key: norm(value) for key, value in kwargs_norm.items()}
 
         def _callable(v):
             args = [item(v) for item in args_norm]
-            kwargs = {key(v): value(v) for key, value in kwargs_norm}
+            kwargs = {key: value(v) for key, value in kwargs_norm.items()}
             return func(*args, **kwargs)
 
         return _callable_to_norm(_callable)

@@ -1,5 +1,6 @@
 from .base import Loader
 from .collection import collection, CollectionError, length, length_is, contains, tuple_, cofilter, tpselector
+from .dict import DictError, dict_
 from .exception import CompositeStructureError
 from .mapping import mapping, MappingError, mpfilter, keys, values, items, index
 from .norm import norm, normfunc, lnot, land, lor, lin, lis, lisnot, lsum, lcmp
