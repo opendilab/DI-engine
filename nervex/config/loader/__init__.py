@@ -2,7 +2,7 @@ from .base import Loader
 from .collection import collection, CollectionError, length, length_is, contains, tuple_, cofilter, tpselector
 from .dict import DictError, dict_
 from .exception import CompositeStructureError
-from .mapping import mapping, MappingError, mpfilter, keys, values, items, index, index_or
+from .mapping import mapping, MappingError, mpfilter, mpkeys, mpvalues, mpitems, item, item_or
 from .norm import norm, normfunc, lnot, land, lor, lin, lis, lisnot, lsum, lcmp
 from .number import interval, numeric, negative, plus, minus, minus_with, multi, divide, divide_with, power, power_with
 from .string import enum, rematch, regrep

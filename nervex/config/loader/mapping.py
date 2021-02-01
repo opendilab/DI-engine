@@ -78,26 +78,26 @@ def mpfilter(check: Callable[[Any, Any], bool], type_back: bool = True) -> ILoad
     return method('items') & Loader(_load)
 
 
-def keys() -> ILoaderClass:
+def mpkeys() -> ILoaderClass:
     return method('items') & method('keys') & Loader(lambda v: set(v.keys()))
 
 
-def values() -> ILoaderClass:
+def mpvalues() -> ILoaderClass:
     return method('items') & method('values') & Loader(lambda v: set(v.values()))
 
 
-def items() -> ILoaderClass:
+def mpitems() -> ILoaderClass:
     return method('items') & Loader(lambda v: set([(key, value) for key, value in v.items()]))
 
 
 _INDEX_PRECHECK = method('__getitem__')
 
 
-def index(key) -> ILoaderClass:
+def item(key) -> ILoaderClass:
     return _INDEX_PRECHECK & Loader(
         (lambda v: key in v.keys(), lambda v: v[key], KeyError('key {key} not found'.format(key=repr(key))))
     )
 
 
-def index_or(key, default) -> ILoaderClass:
-    return _INDEX_PRECHECK & (index(key) | raw(default))
+def item_or(key, default) -> ILoaderClass:
+    return _INDEX_PRECHECK & (item(key) | raw(default))

@@ -71,7 +71,7 @@ def _to_loader(value) -> 'ILoaderClass':
             )
         )
     else:
-        raise TypeError('Unknown type for loader.')
+        return _to_loader(lambda v: value)
 
 
 Loader = _to_loader

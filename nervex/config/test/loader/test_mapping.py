@@ -1,6 +1,6 @@
 import pytest
 
-from ...loader.mapping import mapping, MappingError, mpfilter, keys, values, items, index, index_or
+from ...loader.mapping import mapping, MappingError, mpfilter, mpkeys, mpvalues, mpitems, item, item_or
 from ...loader.types import is_type
 from ...loader.utils import optional
 
@@ -30,25 +30,25 @@ class TestConfigLoaderCollection:
         _loader = mpfilter(lambda k, v: k in {'a', 'b', 'sum'})
         assert _loader({'a': 1, 'b': 2, 'sum': 3, 'sdk': 4}) == {'a': 1, 'b': 2, 'sum': 3}
 
-    def test_keys(self):
-        _loader = keys()
+    def test_mpkeys(self):
+        _loader = mpkeys()
         assert _loader({'a': 1, 'b': 2, 'sum': 3, 'sdk': 4}) == {'a', 'b', 'sum', 'sdk'}
 
-    def test_values(self):
-        _loader = values()
+    def test_mpvalues(self):
+        _loader = mpvalues()
         assert _loader({'a': 1, 'b': 2, 'sum': 3, 'sdk': 4}) == {1, 2, 3, 4}
 
-    def test_items(self):
-        _loader = items()
+    def test_mpitems(self):
+        _loader = mpitems()
         assert _loader({'a': 1, 'b': 2, 'sum': 3, 'sdk': 4}) == {('a', 1), ('b', 2), ('sum', 3), ('sdk', 4)}
 
-    def test_index(self):
-        _loader = index('a') | index('b')
+    def test_item(self):
+        _loader = item('a') | item('b')
         assert _loader({'a': 1}) == 1
         assert _loader({'b': 2}) == 2
         assert _loader({'a': 3, 'b': -2}) == 3
 
-    def test_index_or(self):
-        _loader = index_or('a', 0)
+    def test_item_or(self):
+        _loader = item_or('a', 0)
         assert _loader({'a': 1}) == 1
         assert _loader({'b': 2}) == 0

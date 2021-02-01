@@ -1,14 +1,14 @@
 import pytest
 
 from ...loader.dict import dict_, DictError
-from ...loader.mapping import index
+from ...loader.mapping import item
 
 
 @pytest.mark.unittest
 class TestConfigLoaderDict:
 
     def test_dict(self):
-        _loader = dict_(b=index('a'), a=index('b'))
+        _loader = dict_(b=item('a'), a=item('b'))
         assert _loader({'a': 1, 'b': 2}) == {'a': 2, 'b': 1}
         assert _loader({'a': 4, 'b': [1, 2]}) == {'a': [1, 2], 'b': 4}
 

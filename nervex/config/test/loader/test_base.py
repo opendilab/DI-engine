@@ -171,6 +171,6 @@ class TestConfigLoaderBase:
         assert _loader.check(None)
         assert not _loader.check('string')
 
-    def test_unknown_loader(self):
-        with pytest.raises(TypeError):
-            Loader([1, 2, 3])
+    def test_raw_loader(self):
+        _loader = Loader([1, 2, 3])
+        assert _loader(None) == [1, 2, 3]
