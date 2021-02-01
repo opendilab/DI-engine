@@ -20,7 +20,7 @@ def setup_payoff():
 
 @pytest.fixture(scope='function')
 def setup_config():
-    with open(os.path.join(os.path.dirname(__file__), 'league_manager_test_config.yaml')) as f:
+    with open(os.path.join(os.path.dirname(__file__), 'league_test_config.yaml')) as f:
         cfg = yaml.safe_load(f)
     cfg = EasyDict(cfg)
     return cfg

@@ -2,26 +2,26 @@ import copy
 from easydict import EasyDict
 import os.path as osp
 
-from nervex.league import BaseLeagueManager, register_league
+from nervex.league import BaseLeague, register_league
 from nervex.league.player import ActivePlayer
 from nervex.utils import read_config, deep_merge_dicts
+from nervex.config import solo_league_default_config
 
-solo_default_config = read_config(osp.join(osp.dirname(__file__), "solo_league_manager_default_config.yaml"))
 
-
-class SoloLeagueManager(BaseLeagueManager):
+class SoloLeague(BaseLeague):
     """
     Overview:
-        Solo game league manager, has only one active player and it only interacts with the game env.
-        Unlike ``BattleLeagueManager`` would decide who the player will play against,
-        ``SoloLeagueManager`` only focus on how the player will interact with the game env, not another player.
+        Solo game league. Solo game means only one player is permitted to interact with the game env,
+        rather than two players fighting against each other.
+        Unlike ``BattleLeague`` would decide which two players will play against,
+        ``SoloLeague`` only focuses on how the player will interact with the game env, not another player.
     Interface:
         __init__, run, close, finish_job, update_active_player
     """
 
     # override
     def _init_cfg(self, cfg: EasyDict) -> None:
-        cfg = deep_merge_dicts(solo_default_config, cfg)
+        cfg = deep_merge_dicts(solo_league_default_config, cfg)
         self.cfg = cfg.league
         self.model_config = cfg.get('model', EasyDict())
 
@@ -41,8 +41,8 @@ class SoloLeagueManager(BaseLeagueManager):
             'agent_num': 1,
             'agent_update_freq': player_job_info.agent_update_freq,
             'compressor': player_job_info.compressor,
-            'forward_kwargs': player_job_info.forward_kwargs,
-            'adder_kwargs': player_job_info.adder_kwargs,
+            # 'forward_kwargs': player_job_info.forward_kwargs,
+            # 'adder_kwargs': player_job_info.adder_kwargs,
             'launch_player': player.player_id,
             'player_id': [player.player_id],  # for solo game, it is a list with only one player_id
             'agent': {
@@ -79,4 +79,4 @@ class SoloLeagueManager(BaseLeagueManager):
             player.total_agent_step = train_step
 
 
-register_league('solo', SoloLeagueManager)
+register_league('solo', SoloLeague)

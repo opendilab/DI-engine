@@ -65,7 +65,7 @@ setup(
         'pyyaml',
         'easydict',
         'opencv-python',  # pypy
-        'tensorboardX',
+        'tensorboardX>=2.1',
         'matplotlib',  # pypy
         'yapf==0.29.0',
         'pytest==5.1.1',
@@ -91,6 +91,7 @@ setup(
         'urllib3==1.25.10',
         'redis==3.5.3',
         'redis-py-cluster==2.1.0',
+        'cmake>=3.18.4'
     ],
     entry_points={
         'console_scripts': [

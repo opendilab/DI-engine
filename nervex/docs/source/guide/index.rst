@@ -7,4 +7,4 @@ Developer Guide
 
    git_guide
    doc_contribution
-   code_review
+   code_comment

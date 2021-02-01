@@ -15,7 +15,7 @@ API Doc
     data/collate_fn
     data/buffer_manager
     env/sumo_env
-    league/league_manager
+    league/league
     league/payoff
     league/player
     model/actor_critic
@@ -63,3 +63,5 @@ API Doc
     worker/learner/base_learner
     worker/learner/learner_comm
     worker/learner/learner_hook
+    worker/actor/env_manager/vec_env_manager
+    worker/actor/env_manager/base_env_manager

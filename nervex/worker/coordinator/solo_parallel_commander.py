@@ -24,6 +24,7 @@ class SoloCommander(BaseCommander):
     def get_actor_task(self) -> Union[None, dict]:
         if self._actor_task_space.acquire_space():
             if self._current_buffer_id is None or self._current_policy_id is None:
+                self._actor_task_space.release_space()
                 return None
             cur_time = time.time()
             if cur_time - self._last_eval_time > self._cfg.eval_interval:

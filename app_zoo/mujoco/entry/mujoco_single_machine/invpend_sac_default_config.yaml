@@ -12,7 +12,7 @@ env:
     norm_obs: 
         use_norm: True
     norm_reward: 
-        use_norm: True
+        use_norm: False
         reward_discount: 0.98
     env_manager_type: 'subprocess'  # [base, subprocess]
     import_names: ['app_zoo.mujoco.envs.mujoco_env']
@@ -21,7 +21,7 @@ env:
     evaluator_env_num: 8
     use_act_scale: True
 policy:
-    use_cuda: False
+    use_cuda: True
     policy_type: 'sac'
     import_names: ['nervex.policy.sac']
     on_policy: False
@@ -31,8 +31,8 @@ policy:
         action_dim: 1
         use_twin_q: True
     learn:
-        train_step: 1
-        batch_size: 128
+        train_step: 2
+        batch_size: 256
         learning_rate_q: 0.003
         learning_rate_value: 0.003
         learning_rate_policy: 0.003
@@ -56,11 +56,11 @@ policy:
 replay_buffer:
     buffer_name: ['agent']
     agent:
-        meta_maxlen: 20000
-        max_reuse: 1024
+        meta_maxlen: 100000
+        max_reuse: 2400000
         min_sample_ratio: 1
 actor:
-    n_sample: 24
+    n_sample: 64
     traj_len: 1
     traj_print_freq: 1000
     collect_print_freq: 1000

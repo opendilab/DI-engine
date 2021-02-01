@@ -5,15 +5,12 @@ from app_zoo.multiagent_particle.envs.multiagent.scenario import BaseScenario
 
 class Scenario(BaseScenario):
 
-    def make_world(self):
+    def make_world(self, num_agents=6, num_landmarks=1, num_good_agents=2):
         world = World()
         # set any world properties first
         world.dim_c = 4
         #world.damping = 1
-        num_good_agents = 2
-        num_adversaries = 4
-        num_agents = num_adversaries + num_good_agents
-        num_landmarks = 1
+        num_adversaries = num_agents - num_good_agents
         num_food = 2
         num_forests = 2
         # add agents
