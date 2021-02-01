@@ -25,7 +25,7 @@ policy:
         weight_decay: 0.0
         algo:
             target_update_freq: 100
-            discount_factor: 0.97
+            discount_factor: 0.99
     collect:
         traj_len: 1
         unroll_len: 1

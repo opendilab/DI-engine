@@ -1,3 +1,13 @@
+2021.2.1(v0.1.0b2)
+ - 文档补充 (env_manager, dataloader, learner, policy, adder)
+ - dataloader speed test
+ - 单独eval入口
+ - tensorboard优化
+ - SAC auto alpha
+ - install check in doc
+ - render demo(enable_save_replay)
+ - transfer to python-config
+
 2021.1.25(v0.1.0b1)
  - 添加HER算法
  - 修改register model机制，改变现在的神经网络创建方式
