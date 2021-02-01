@@ -2,8 +2,9 @@ import math
 
 import pytest
 
+from ...loader.mapping import item, item_or
 from ...loader.number import numeric, interval, negative, plus, minus, minus_with, multi, divide, divide_with, power, \
-    power_with, positive
+    power_with, positive, msum, mmulti
 from ...loader.utils import keep
 
 
@@ -590,3 +591,13 @@ class TestConfigLoaderNumber:
         assert _loader(
             4
         ) == 14134776518227074636666380005943348126619871175004951664972849610340958208000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+    def test_msum(self):
+        _loader = msum(item('a'), item('b'), item_or('c', 0))
+        assert _loader({'a': 1, 'b': 3}) == 4
+        assert _loader({'a': -2, 'b': 5, 'c': 20}) == 23
+
+    def test_mmulti(self):
+        _loader = mmulti(item('a'), item('b'), item_or('c', 1))
+        assert _loader({'a': 1, 'b': 3}) == 3
+        assert _loader({'a': -2, 'b': 5, 'c': 3}) == -30

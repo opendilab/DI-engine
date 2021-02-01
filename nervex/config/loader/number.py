@@ -132,3 +132,22 @@ def power(index) -> ILoaderClass:
 
 def power_with(base) -> ILoaderClass:
     return _math_binary(lambda x, y: y ** x, base)
+
+
+def msum(*items) -> ILoaderClass:
+
+    def _load(value):
+        return sum([item(value) for item in items])
+
+    return Loader(_load)
+
+
+def mmulti(*items) -> ILoaderClass:
+
+    def _load(value):
+        _result = 1
+        for item in items:
+            _result *= item(value)
+        return _result
+
+    return Loader(_load)

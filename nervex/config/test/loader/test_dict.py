@@ -2,6 +2,8 @@ import pytest
 
 from ...loader.dict import dict_, DictError
 from ...loader.mapping import item
+from ...loader.norm import norm
+from ...loader.number import msum
 
 
 @pytest.mark.unittest
@@ -17,3 +19,12 @@ class TestConfigLoaderDict:
         err = ei.value
         assert set(err.errors.keys()) == {'a'}
         assert isinstance(err.errors['a'], KeyError)
+
+    def test_dict_complex_case_1(self):
+        _loader = dict_(
+            real=msum(item('a'), item('b')),
+            result=item('sum') | item('result'),
+            correct=norm(msum(item('a'), item('b'))) == norm(item('sum') | item('result')),
+        )
+        assert _loader({'a': 1, 'b': 2, 'result': 3}) == {'real': 3, 'result': 3, 'correct': True}
+        assert _loader({'a': 2, 'b': 2, 'sum': 3}) == {'real': 4, 'result': 3, 'correct': False}

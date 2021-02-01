@@ -192,7 +192,7 @@ lisnot = normfunc(operator.is_not)
 
 lsum = _binary_reducing(lambda x, y: x + y, 0)
 
-COMPARE_OPERATORS = {
+_COMPARE_OPERATORS = {
     '!=': operator.__ne__,
     '==': operator.__eq__,
     '<': operator.__lt__,
@@ -209,12 +209,12 @@ def lcmp(first, *items):
 
     ops, items = items[0::2], items[1::2]
     for op in ops:
-        if op not in COMPARE_OPERATORS.keys():
+        if op not in _COMPARE_OPERATORS.keys():
             raise KeyError('Invalid compare operator - {op}.'.format(op=repr(op)))
 
     _last = first
     for op, item in zip(ops, items):
-        if not COMPARE_OPERATORS[op](_last, item):
+        if not _COMPARE_OPERATORS[op](_last, item):
             return False
         _last = item
 
