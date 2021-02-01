@@ -5,6 +5,10 @@ def keep() -> ILoaderClass:
     return Loader(lambda v: v)
 
 
+def raw(value) -> ILoaderClass:
+    return Loader(lambda v: value)
+
+
 def optional(loader) -> ILoaderClass:
     return Loader(loader) | None
 

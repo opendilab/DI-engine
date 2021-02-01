@@ -3,6 +3,7 @@ from typing import List, Tuple, Callable, Any
 from .base import ILoaderClass, Loader, CAPTURE_EXCEPTIONS
 from .exception import CompositeStructureError
 from .types import method
+from .utils import raw
 
 MAPPING_ERROR_ITEM = Tuple[str, Exception]
 MAPPING_ERRORS = List[MAPPING_ERROR_ITEM]
@@ -89,7 +90,14 @@ def items() -> ILoaderClass:
     return method('items') & Loader(lambda v: set([(key, value) for key, value in v.items()]))
 
 
+_INDEX_PRECHECK = method('__getitem__')
+
+
 def index(key) -> ILoaderClass:
-    return method('__getitem__') & method('keys') & Loader(
+    return _INDEX_PRECHECK & Loader(
         (lambda v: key in v.keys(), lambda v: v[key], KeyError('key {key} not found'.format(key=repr(key))))
     )
+
+
+def index_or(key, default) -> ILoaderClass:
+    return _INDEX_PRECHECK & (index(key) | raw(default))

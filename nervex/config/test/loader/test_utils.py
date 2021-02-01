@@ -3,7 +3,7 @@ import pytest
 from ...loader.base import Loader
 from ...loader.number import interval
 from ...loader.types import to_type
-from ...loader.utils import keep, optional, check_only
+from ...loader.utils import keep, optional, check_only, raw
 
 
 @pytest.mark.unittest
@@ -14,6 +14,11 @@ class TestConfigLoaderUtils:
         assert _loader(1) == 1
         assert _loader(2) == 2
         assert _loader(None) is None
+
+    def test_raw(self):
+        _loader = raw(233)
+        assert _loader(1) == 233
+        assert _loader(2) == 233
 
     def test_optional(self):
         _loader = optional(Loader(int) | float)

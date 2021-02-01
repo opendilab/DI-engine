@@ -1,6 +1,6 @@
 import pytest
 
-from ...loader.mapping import mapping, MappingError, mpfilter, keys, values, items, index
+from ...loader.mapping import mapping, MappingError, mpfilter, keys, values, items, index, index_or
 from ...loader.types import is_type
 from ...loader.utils import optional
 
@@ -47,3 +47,8 @@ class TestConfigLoaderCollection:
         assert _loader({'a': 1}) == 1
         assert _loader({'b': 2}) == 2
         assert _loader({'a': 3, 'b': -2}) == 3
+
+    def test_index_or(self):
+        _loader = index_or('a', 0)
+        assert _loader({'a': 1}) == 1
+        assert _loader({'b': 2}) == 0
