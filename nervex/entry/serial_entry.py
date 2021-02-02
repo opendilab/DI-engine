@@ -64,6 +64,8 @@ def serial_pipeline(
     commander.policy = policy.command_mode
     # main loop
     max_eval_reward = float("-inf")
+    # eval in the beginning of training
+    eval_interval = cfg.evaluator.eval_freq
     learner_train_step = cfg.policy.learn.train_step
     # Here we assume serial entry mainly focuses on agent buffer.
     # ``enough_data_count``` is just a lower bound estimation. It is possible that replay buffer's data count is
@@ -78,8 +80,9 @@ def serial_pipeline(
     learner.call_hook('before_run')
     while True:
         commander.step()
-        if learner.train_iter % cfg.evaluator.eval_freq == 0:
+        if eval_interval >= cfg.evaluator.eval_freq:
             stop_flag, eval_reward = evaluator.eval(learner.train_iter)
+            eval_interval = 0
             if stop_flag:
                 # evaluator's mean episode reward reaches the expected ``stop_val``
                 learner.save_checkpoint()
@@ -108,6 +111,7 @@ def serial_pipeline(
                 )
                 break
             learner.train(train_data)
+            eval_interval += 1
             if use_priority:
                 replay_buffer.update(learner.priority_info)
         if cfg.policy.on_policy:
