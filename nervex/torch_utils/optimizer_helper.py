@@ -308,10 +308,10 @@ class Adam(torch.optim.Adam):
             return super().step(closure=closure)
 
 
-class RMSProp(torch.optim.RMSprop):
+class RMSprop(torch.optim.RMSprop):
     r"""
     Overview:
-        Rewrited RMSProp optimizer to support more features.
+        Rewrited RMSprop optimizer to support more features.
     Interface:
         __init__, step
     """
@@ -347,7 +347,7 @@ class RMSProp(torch.optim.RMSprop):
             - alpha (:obj:`float`): smoothing constant, default set to 0.99
             - eps (:obj:`float`): term added to the denominator to improve numerical stability, default set to 1e-8
             - weight_decay (:obj:`float`): weight decay coefficient, deault set to 1e-2
-            - centred (:obj:`bool`): if True, compute the centered RMSProp, \
+            - centred (:obj:`bool`): if True, compute the centered RMSprop, \
                 the gradient is normalized by an estimation of its variance
             - grad_clip_type (:obj:`str`): support [None, 'clip_momentum', 'clip_value', 'clip_norm', \
                 'clip_momentum_norm']
@@ -389,7 +389,7 @@ class RMSProp(torch.optim.RMSprop):
         self._clip_momentum_timestep = clip_momentum_timestep
         self._ignore_momentum_timestep = ignore_momentum_timestep
 
-        super(RMSProp, self).__init__(
+        super(RMSprop, self).__init__(
             params, lr=lr, alpha=alpha, eps=eps, weight_decay=weight_decay, momentum=momentum, centered=centered
         )
 

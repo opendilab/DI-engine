@@ -37,7 +37,7 @@ class Player:
             - init_payoff (:obj:`Union[BattleSharedPayoff, SoloSharedPayoff]`): Payoff shared by all players.
             - checkpoint_path (:obj:`str`): The path to load and save player checkpoint.
             - player_id (:obj:`str`): Player id in string format.
-             - total_agent_step (:obj:`int`): For active player, it should be 0; \
+            - total_agent_step (:obj:`int`): For active player, it should be 0; \
                 For historical player, it should be parent player's ``_total_agent_step`` when ``snapshot``.
         """
         self._cfg = cfg
