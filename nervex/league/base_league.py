@@ -44,7 +44,6 @@ class BaseLeague(ABC):
                 Arguments:
                     - player_id: (:obj:`str`)
                     - checkpoint_path: (:obj:`str`)
-            todo
             job_info (:obj:`dict`)
                 - launch_player (:obj:`str`)
             player_info (:obj:`dict`)

@@ -48,7 +48,7 @@ API Doc
     torch_utils/distribution
     torch_utils/metric
     torch_utils/nn_test_helper
-    torch_utils/optimizer_util
+    torch_utils/optimizer_helper
     torch_utils_network/network
     utils/compression_helper
     utils/config_helper
