@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 from nervex.data import default_collate, default_decollate
 from nervex.torch_utils import to_device
-from nervex.torch_utils import Adam
+from nervex.torch_utils import Adam, RMSprop
 from nervex.rl_utils import Adder, vtrace_data, vtrace_error
 from nervex.model import FCValueAC, ConvValueAC
 from nervex.agent import Agent
@@ -30,7 +30,7 @@ class IMPALAPolicy(CommonPolicy):
         clip_value = self._cfg.learn.get("clip_value", None)
         optim_type = self._cfg.learn.get("optim", "adam")
         if optim_type == 'rmsprop':
-            self._optimizer = torch.optim.RMSprop(self._model.parameters(), lr=self._cfg.learn.learning_rate)
+            self._optimizer = RMSprop(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         elif optim_type == 'adam':
             self._optimizer = Adam(
                 self._model.parameters(),

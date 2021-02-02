@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from nervex.torch_utils.optimizer_util import Adam, RMSProp
+from nervex.torch_utils.optimizer_helper import Adam, RMSprop
 import pytest
 import time
 
@@ -25,7 +25,7 @@ def try_optim_with(tname, t, optim_t):
     mse_fn = nn.L1Loss()
     if tname == 'grad_clip':
         if optim_t == 'rmsprop':
-            optimizer = RMSProp(
+            optimizer = RMSprop(
                 net.parameters(),
                 grad_clip_type=t,
                 clip_value=0.000001,
@@ -47,7 +47,7 @@ def try_optim_with(tname, t, optim_t):
             )
     if tname == 'grad_ignore':
         if optim_t == 'rmsprop':
-            optimizer = RMSProp(
+            optimizer = RMSprop(
                 net.parameters(),
                 grad_ignore_type=t,
                 clip_value=0.000001,
@@ -115,7 +115,7 @@ class TestAdam:
 
 
 @pytest.mark.unittest
-class TestRMSProp:
+class TestRMSprop:
 
     def test_naive(self):
         support_type = {
