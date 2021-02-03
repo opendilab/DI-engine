@@ -148,7 +148,7 @@ class Adder(object):
             return data
         if traj_len == float('inf') or len(data) < traj_len:
             # episode done case, append nstep fake datas
-            fake_data = {'obs': copy.deepcopy(data[-1]['obs']), 'reward': torch.zeros(1), 'done': torch.ones(1).squeeze()}
+            fake_data = {'obs': copy.deepcopy(data[-1]['obs']), 'reward': torch.zeros(1), 'done': True}
             data += [fake_data for _ in range(nstep)]
         for i in range(len(data) - nstep):
             # update keys ['next_obs', 'reward', 'done'] with their n-step value
