@@ -104,4 +104,10 @@ class BaseSerialEvaluator(object):
         tb_vars = [['evaluator/' + k, v, train_iter] for k, v in info.items() if k not in ['train_iter', 'ckpt_name']]
         self._tb_logger.add_val_list(tb_vars, viz_type='scalar')
         eval_reward = np.mean(episode_reward)
-        return eval_reward >= self._stop_val, eval_reward
+        stop_flag = eval_reward >= self._stop_val
+        if stop_flag:
+            self._logger.info(
+                "[EVALUATOR] current eval_reward: {} is greater than the stop_val: {}, so the training program is over."
+                .format(eval_reward, self._stop_val)
+            )
+        return stop_flag, eval_reward

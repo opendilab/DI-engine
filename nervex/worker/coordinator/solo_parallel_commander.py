@@ -66,6 +66,11 @@ class SoloCommander(BaseCommander):
             self._evaluator_info.append(finished_task)
             eval_stop_val = self._cfg.actor_cfg.env_kwargs.eval_stop_val
             if eval_stop_val is not None and finished_task['reward_mean'] >= eval_stop_val:
+                print(
+                    "[nerveX parallel pipeline] current eval_reward: {} is greater than the stop_val: {}, so the total \
+                    training program is over.\nPress CTRL+C to quit"
+                    .format(finished_task['reward_mean'], eval_stop_val)
+                )
                 return True
         return False
 

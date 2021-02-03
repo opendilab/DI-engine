@@ -168,3 +168,4 @@ def eval(
     # eval
     _, eval_reward = evaluator.eval(0)
     print('Eval is over! The performance of your RL policy is {}'.format(eval_reward))
+    evaluator.close()
