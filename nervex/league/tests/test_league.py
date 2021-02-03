@@ -31,9 +31,7 @@ class FakeLeague(BaseLeague):
             active_players='placeholder',
             use_pretrain=False,
             use_pretrain_init_historical=False,
-            pretrain_checkpoint_path=dict(
-                cateA='pretrain_checkpoint_solo.pth',
-            ),
+            pretrain_checkpoint_path=dict(cateA='pretrain_checkpoint_solo.pth', ),
             payoff=dict(
                 type='solo',
                 buffer_size=100,
@@ -45,7 +43,7 @@ class FakeLeague(BaseLeague):
         cfg = deep_merge_dicts(default_config, cfg)
         self.cfg = cfg.league
         self.model_config = cfg.get('model', EasyDict())
-    
+
     def _get_job_info(self, player):
         return {
             'launch_player': player.player_id,
@@ -211,8 +209,7 @@ class TestFakeLeague:
         assert (len(league.historical_players) == 3)
         active_player_ids = [p.player_id for p in league.active_players]
         coordinator = FakeCoordinator(
-            'battle', match_runner.queue, league.finish_job, league.update_active_player,
-            active_player_ids
+            'battle', match_runner.queue, league.finish_job, league.update_active_player, active_player_ids
         )
 
         league.run()
@@ -238,8 +235,7 @@ class TestFakeLeague:
         assert (len(league.historical_players) == 3)
         active_player_ids = [p.player_id for p in league.active_players]
         coordinator = FakeCoordinator(
-            'battle', match_runner.queue, league.finish_job, league.update_active_player,
-            active_player_ids
+            'battle', match_runner.queue, league.finish_job, league.update_active_player, active_player_ids
         )
 
         league.run()
@@ -264,15 +260,12 @@ class TestSoloLeague:
         with open(os.path.join(os.path.dirname(__file__), 'solo_league_test_config.yaml')) as f:
             cfg = yaml.safe_load(f)
         solo_league_cfg = EasyDict(cfg)
-        league = create_league(
-            solo_league_cfg, save_checkpoint_fn, load_checkpoint_fn, match_runner.launch_match
-        )
+        league = create_league(solo_league_cfg, save_checkpoint_fn, load_checkpoint_fn, match_runner.launch_match)
         assert (len(league.active_players) == 1)
         # assert (len(league.historical_players) == 1)
         active_player_ids = [p.player_id for p in league.active_players]
         coordinator = FakeCoordinator(
-            'solo', match_runner.queue, league.finish_job, league.update_active_player,
-            active_player_ids
+            'solo', match_runner.queue, league.finish_job, league.update_active_player, active_player_ids
         )
 
         league.run()

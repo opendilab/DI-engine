@@ -91,3 +91,21 @@ Q8: 训练完成后如何评测模型的性能
  - 准备一个待评测的checkpoint，一般为 ``torch.save`` 保存的文件，内部结构为一个dict，其中 ``model`` 键所指的为神经网络模型权重
  - 准备一个评测用的配置文件，大部分内容和训练配置文件相同，只需添加 ``learner.load_path`` 字段为checkpoint的绝对路径
  - 在shell脚本中运行 ``nervex -m eval -c <config_path> -s <seed>`` 即可，如需指定其他参数，可以调用 ``nervex.entry.serial_entry`` 中的eval函数。
+ - 如果需要把环境评测的过程保存成视频文件，需要环境实现 ``enable_save_replay`` 接口，并指定配置文件中 ``env.replay_path`` 字段，会将视频文件存储在 ``replay_path`` 目录下
+
+
+Q9: 如何设置subprocess_env_manager的相关运行参数
+**************************************************
+
+:A9:
+
+在配置文件的env字段添加manager字段，可以指定是否使用shared_memory，多进程multiprocessing启动的上下文，具体示例可参考cartpole相关配置文件
+
+
+Q10: 安装之后无法使用nervex命令行工具(CLI)
+********************************************
+
+:A10:
+
+- 部分环境使用pip安装时指定 ``-e`` 选项会导致无法使用CLI，一般非开发者无需指定该选项，去掉该选项重新安装即可
+- 部分环境会将CLI安装在用户目录下，需要验证CLI的安装目录是否在使用者的环境变量中
