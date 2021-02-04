@@ -8,10 +8,13 @@ class SumoDQNPolicy(DQNPolicy):
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         q_value = self._agent.forward(data['obs'])['logit']
-        target_q_value = self._agent.target_forward(data['next_obs'])['logit']
+        # target_q_value = self._agent.target_forward(data['next_obs'])['logit']
+        target = self._agent.forward(data['next_obs'])
+        target_q_value = target['logit']
+        next_act = target['action']
         if isinstance(q_value, torch.Tensor):
-            td_data = q_1step_td_data(
-                q_value, target_q_value, data['action'], data['reward'], data['done'], data['weight']
+            td_data = q_1step_td_data(  # 'q', 'next_q', 'act', 'next_act', 'reward', 'done', 'weight'
+                q_value, target_q_value, data['action'][0], next_act, data['reward'], data['done'], data['weight']
             )
             loss = q_1step_td_error(td_data, self._gamma)
         else:
@@ -19,7 +22,7 @@ class SumoDQNPolicy(DQNPolicy):
             loss = []
             for i in range(tl_num):
                 td_data = q_1step_td_data(
-                    q_value[i], target_q_value[i], data['action'][i], data['reward'], data['done'], data['weight']
+                    q_value[i], target_q_value[i], data['action'][i], next_act[i], data['reward'], data['done'], data['weight']
                 )
                 loss.append(q_1step_td_error(td_data, self._gamma))
             loss = sum(loss) / (len(loss) + 1e-8)
