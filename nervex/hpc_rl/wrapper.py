@@ -2,8 +2,9 @@ import importlib
 from functools import wraps
 import nervex
 
-
 hpc_fns = {}
+
+
 def register_runtime_fn(fn_name, runtime_name, shape):
     fn_name_mapping = {
         'gae': ['hpc_rl.loss.gae', 'HPCGAE'],
@@ -16,7 +17,9 @@ def register_runtime_fn(fn_name, runtime_name, shape):
 
 
 def hpc_wrapper(shape_fn=None, namedtuple_data=False):
+
     def decorate(fn):
+
         @wraps(fn)
         def wrapper(*args, **kwargs):
             if nervex.enable_hpc_rl:
@@ -34,5 +37,7 @@ def hpc_wrapper(shape_fn=None, namedtuple_data=False):
                     return hpc_fn(*args, **kwargs)
             else:
                 return fn(*args, **kwargs)
+
         return wrapper
+
     return decorate
