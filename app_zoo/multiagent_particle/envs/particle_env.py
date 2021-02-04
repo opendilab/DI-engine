@@ -1,14 +1,14 @@
 from collections import namedtuple
-import gym
+from typing import Any, Optional
 import torch
 import numpy as np
-from gym import spaces
-from typing import Any
 from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
 from app_zoo.multiagent_particle.envs.make_env import make_env
 from app_zoo.multiagent_particle.envs.multiagent.multi_discrete import MultiDiscrete
+import gym
+from gym import wrappers
 
 
 class ParticleEnv(BaseEnv):
@@ -75,12 +75,12 @@ class ParticleEnv(BaseEnv):
                         'max': [int(h) for h in list(act.high)]
                     }, None, None
                 )
-            elif isinstance(act, spaces.Tuple):
+            elif isinstance(act, gym.spaces.Tuple):
                 #are not used in our environment yet
-                act_space['agent' + str(i)] = T((len(act.spaces), ), {'space': act.spaces}, None, None)
-            elif isinstance(act, spaces.Discrete):
+                act_space['agent' + str(i)] = T((len(act.gym.spaces), ), {'space': act.gym.spaces}, None, None)
+            elif isinstance(act, gym.spaces.Discrete):
                 act_space['agent' + str(i)] = T((1, ), {'min': 0, 'max': act.n - 1, 'dtype': int}, None, None)
-            elif isinstance(act, spaces.Box):
+            elif isinstance(act, gym.spaces.Box):
                 act_space['agent' +
                           str(i)] = T(act.shape, {
                               'min': act.low,
@@ -96,6 +96,21 @@ class ParticleEnv(BaseEnv):
 
     def __repr__(self) -> str:
         return "nervex wrapped Multiagent particle Env({})".format(self._cfg.env_id)
+
+
+def disable_gym_view_window():
+    from gym.envs.classic_control import rendering
+    import pyglet
+
+    def get_window(width, height, display):
+        screen = display.get_screens()
+        config = screen[0].get_best_config()
+        context = config.create_context(None)
+        return pyglet.window.Window(
+            width=width, height=height, display=display, config=config, context=context, visible=True
+        )
+
+    rendering.get_window = get_window
 
 
 CNEnvTimestep = namedtuple('CNEnvTimestep', ['obs', 'reward', 'done', 'info'])
@@ -200,6 +215,13 @@ class CooperativeNavigation(BaseEnv):
 
     def __repr__(self) -> str:
         return "nervex wrapped Multiagent particle Env: CooperativeNavigation({})".format(self._cfg.env_id)
+
+    def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
+        if replay_path is None:
+            replay_path = './video'
+        self._replay_path = replay_path
+        disable_gym_view_window()
+        self._env = wrappers.Monitor(self._env, self._replay_path, video_callable=lambda episode_id: True, force=True)
 
 
 register_env('cooperative_navigation', CooperativeNavigation)
