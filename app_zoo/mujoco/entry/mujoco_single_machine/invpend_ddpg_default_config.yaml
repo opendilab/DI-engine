@@ -78,5 +78,5 @@ learner:
             position: after_iter
             ext_args:
                 freq: 500
-command:
+commander:
     placeholder: 'placeholder'

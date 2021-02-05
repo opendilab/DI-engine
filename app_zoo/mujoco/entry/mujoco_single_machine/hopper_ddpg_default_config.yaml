@@ -43,6 +43,7 @@ policy:
             noise_range:
                 min: -0.5
                 max: 0.5
+        init_data_count: 5000
     collect:
         traj_len: 1
         unroll_len: 1
@@ -74,5 +75,5 @@ learner:
             position: after_iter
             ext_args:
                 freq: 1000
-command:
+commander:
     placeholder: 'placeholder'
