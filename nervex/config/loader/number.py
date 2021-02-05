@@ -1,7 +1,9 @@
 import math
+import operator
 from typing import Optional, Union, Callable, Any
 
 from .base import Loader, ILoaderClass
+from .utils import keep, check_only
 
 NUMBER_TYPES = (int, float)
 NUMBER_TYPING = Union[int, float]
@@ -151,3 +153,46 @@ def mmulti(*items) -> ILoaderClass:
         return _result
 
     return Loader(_load)
+
+
+_COMPARE_OPERATORS = {
+    '!=': operator.__ne__,
+    '==': operator.__eq__,
+    '<': operator.__lt__,
+    '<=': operator.__le__,
+    '>': operator.__gt__,
+    '>=': operator.__ge__,
+}
+
+
+def _msinglecmp(first, op, second) -> ILoaderClass:
+    first = Loader(first)
+    second = Loader(second)
+
+    if op in _COMPARE_OPERATORS.keys():
+        return Loader(
+            (
+                lambda x: _COMPARE_OPERATORS[op](first(x), second(x)), lambda x: ValueError(
+                    'comparison failed for {first} {op} {second}'.format(
+                        first=repr(first(x)),
+                        second=repr(second(x)),
+                        op=op,
+                    )
+                )
+            )
+        )
+    else:
+        raise KeyError('Invalid compare operator - {op}.'.format(op=repr(op)))
+
+
+def mcmp(first, *items) -> ILoaderClass:
+    if len(items) % 2 == 1:
+        raise ValueError('Count of items should be odd number but {number} found.'.format(number=len(items) + 1))
+
+    ops, items = items[0::2], items[1::2]
+
+    _result = keep()
+    for first, op, second in zip((first, ) + items[:-1], ops, items):
+        _result &= _msinglecmp(first, op, second)
+
+    return check_only(_result)

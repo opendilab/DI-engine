@@ -4,7 +4,7 @@ import pytest
 
 from ...loader.mapping import item, item_or
 from ...loader.number import numeric, interval, negative, plus, minus, minus_with, multi, divide, divide_with, power, \
-    power_with, positive, msum, mmulti
+    power_with, positive, msum, mmulti, mcmp
 from ...loader.utils import keep
 
 
@@ -602,3 +602,33 @@ class TestConfigLoaderNumber:
         _loader = mmulti(item('a'), item('b'), item_or('c', 1))
         assert _loader({'a': 1, 'b': 3}) == 3
         assert _loader({'a': -2, 'b': 5, 'c': 3}) == -30
+
+    def test_mcmp(self):
+        _loader = mcmp(1)
+        assert _loader(1) == 1
+
+        _loader = mcmp(1, '<', item('a'), '>=', item('b'))
+        assert _loader({'a': 2, 'b': 1}) == {'a': 2, 'b': 1}
+        assert _loader({'a': 2, 'b': 2}) == {'a': 2, 'b': 2}
+        with pytest.raises(ValueError):
+            _loader({'a': 2, 'b': 3})
+        with pytest.raises(ValueError):
+            _loader({'a': 1, 'b': 0})
+
+        _loader = mcmp(1, '==', keep())
+        assert _loader(1) == 1
+        with pytest.raises(ValueError):
+            _loader(2)
+
+        _loader = mcmp(1, '!=', keep())
+        assert _loader(2) == 2
+        with pytest.raises(ValueError):
+            _loader(1)
+
+        _loader = mcmp(1, '>', item('a'), '<=', item('b'))
+        assert _loader({'a': 0, 'b': 1}) == {'a': 0, 'b': 1}
+        assert _loader({'a': 0, 'b': 0}) == {'a': 0, 'b': 0}
+        with pytest.raises(ValueError):
+            _loader({'a': 0, 'b': -1})
+        with pytest.raises(ValueError):
+            _loader({'a': 1, 'b': 2})

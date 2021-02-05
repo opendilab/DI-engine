@@ -15,3 +15,7 @@ def optional(loader) -> ILoaderClass:
 
 def check_only(loader) -> ILoaderClass:
     return Loader(loader) & keep()
+
+
+def check(loader) -> ILoaderClass:
+    return Loader(lambda x: Loader(loader).check(x))

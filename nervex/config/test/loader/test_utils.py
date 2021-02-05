@@ -2,8 +2,8 @@ import pytest
 
 from ...loader.base import Loader
 from ...loader.number import interval
-from ...loader.types import to_type
-from ...loader.utils import keep, optional, check_only, raw
+from ...loader.types import to_type, is_type
+from ...loader.utils import keep, optional, check_only, raw, check
 
 
 @pytest.mark.unittest
@@ -31,6 +31,12 @@ class TestConfigLoaderUtils:
     def test_check_only(self):
         tonumber = to_type(int) | to_type(float)
         _loader = tonumber >> (((lambda x: x + 1) >> interval(1, 2)) | ((lambda x: x - 1) >> interval(-2, -1)))
+
+    def test_check(self):
+        _loader = check(is_type(int) | is_type(float))
+        assert _loader(1)
+        assert _loader(1.2)
+        assert not _loader('sjhkj')
 
     def test_complex_case_1(self):
         tonumber = to_type(int) | to_type(float)
