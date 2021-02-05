@@ -180,10 +180,10 @@ class LimitedSpaceContainer:
     def __init__(self, min_val: int, max_val: int) -> None:
         """
         Overview:
-            Set ``min_val`` and ``max_val`` of the container, also set ``cur`` to ``min_val`` for init
+            Set ``min_val`` and ``max_val`` of the container, also set ``cur`` to ``min_val`` for initialization.
         Arguments:
-            - min_val (:obj:`int`): min value of the container, usually 0
-            - max_val (:obj:`int`): max value of the container
+            - min_val (:obj:`int`): Min volume of the container, usually 0.
+            - max_val (:obj:`int`): Max volume of the container.
         """
         self.min_val = min_val
         self.max_val = max_val
@@ -193,9 +193,9 @@ class LimitedSpaceContainer:
     def get_residual_space(self) -> int:
         """
         Overview:
-            Get all residual space. Set ``cur`` to ``max_val``
+            Get all residual pieces of space. Set ``cur`` to ``max_val``
         Arguments:
-            - ret (:obj:`int`): residual space calculated by ``max_val`` - ``cur``
+            - ret (:obj:`int`): Residual space, calculated by ``max_val`` - ``cur``.
         """
         ret = self.max_val - self.cur
         self.cur = self.max_val
@@ -204,9 +204,9 @@ class LimitedSpaceContainer:
     def acquire_space(self) -> bool:
         """
         Overview:
-            Try to get space, if there is some residual space, return True, otherwise, return False
+            Try to get one pice of space. If there is one, return True; Otherwise return False.
         Returns:
-            - flag (:obj:`bool`): whether there is some residual space
+            - flag (:obj:`bool`): Whether there is any piece of residual space.
         """
         if self.cur < self.max_val:
             self.cur += 1
@@ -217,6 +217,6 @@ class LimitedSpaceContainer:
     def release_space(self) -> None:
         """
         Overview:
-            Release only one piece of space. Decrease ``cur`` by 1, but ensure it won't be negative.
+            Release only one piece of space. Decrement ``cur``, but ensure it won't be negative.
         """
         self.cur = max(self.min_val, self.cur - 1)

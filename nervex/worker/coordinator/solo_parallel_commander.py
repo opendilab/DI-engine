@@ -68,8 +68,9 @@ class SoloCommander(BaseCommander):
             if eval_stop_val is not None and finished_task['reward_mean'] >= eval_stop_val:
                 print(
                     "[nerveX parallel pipeline] current eval_reward: {} is greater than the stop_val: {}, so the total \
-                    training program is over.\nPress CTRL+C to quit"
-                    .format(finished_task['reward_mean'], eval_stop_val)
+                    training program is over.\nPress CTRL+C to quit".format(
+                        finished_task['reward_mean'], eval_stop_val
+                    )
                 )
                 return True
         return False
