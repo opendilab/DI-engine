@@ -92,6 +92,26 @@ def interval(
     return Loader(_load)
 
 
+def is_negative() -> ILoaderClass:
+    return Loader((lambda x: x < 0, lambda x: ValueError('negative required but {value} found'.format(value=repr(x)))))
+
+
+def is_positive() -> ILoaderClass:
+    return Loader((lambda x: x > 0, lambda x: ValueError('positive required but {value} found'.format(value=repr(x)))))
+
+
+def non_negative() -> ILoaderClass:
+    return Loader(
+        (lambda x: x >= 0, lambda x: ValueError('non-negative required but {value} found'.format(value=repr(x))))
+    )
+
+
+def non_positive() -> ILoaderClass:
+    return Loader(
+        (lambda x: x <= 0, lambda x: ValueError('non-positive required but {value} found'.format(value=repr(x))))
+    )
+
+
 def negative() -> ILoaderClass:
     return Loader(lambda x: -x)
 

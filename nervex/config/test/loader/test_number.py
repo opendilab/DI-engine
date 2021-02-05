@@ -4,7 +4,7 @@ import pytest
 
 from ...loader.mapping import item, item_or
 from ...loader.number import numeric, interval, negative, plus, minus, minus_with, multi, divide, divide_with, power, \
-    power_with, positive, msum, mmulti, mcmp
+    power_with, positive, msum, mmulti, mcmp, is_positive, is_negative, non_positive, non_negative
 from ...loader.utils import keep
 
 
@@ -638,3 +638,33 @@ class TestConfigLoaderNumber:
             mcmp(1, '>', item('a'), '<=', item('b'), '==')
         with pytest.raises(KeyError):
             mcmp(1, '>', item('a'), '*=', item('b'))
+
+    def test_is_positive(self):
+        _loader = is_positive()
+        assert _loader(1) == 1
+        with pytest.raises(ValueError):
+            _loader(0)
+        with pytest.raises(ValueError):
+            _loader(-1)
+
+    def test_is_negative(self):
+        _loader = is_negative()
+        with pytest.raises(ValueError):
+            _loader(1)
+        with pytest.raises(ValueError):
+            _loader(0)
+        assert _loader(-1) == -1
+
+    def test_non_positive(self):
+        _loader = non_positive()
+        with pytest.raises(ValueError):
+            _loader(1)
+        assert _loader(0) == 0
+        assert _loader(-1) == -1
+
+    def test_non_negative(self):
+        _loader = non_negative()
+        assert _loader(1) == 1
+        assert _loader(0) == 0
+        with pytest.raises(ValueError):
+            _loader(-1)
