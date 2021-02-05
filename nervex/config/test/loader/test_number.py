@@ -632,3 +632,9 @@ class TestConfigLoaderNumber:
             _loader({'a': 0, 'b': -1})
         with pytest.raises(ValueError):
             _loader({'a': 1, 'b': 2})
+
+    def test_mcmp_invalid(self):
+        with pytest.raises(ValueError):
+            mcmp(1, '>', item('a'), '<=', item('b'), '==')
+        with pytest.raises(KeyError):
+            mcmp(1, '>', item('a'), '*=', item('b'))
