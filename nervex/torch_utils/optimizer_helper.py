@@ -1,5 +1,6 @@
 import torch
 import math
+from functools import reduce
 from torch.nn.utils import clip_grad_norm_, clip_grad_value_
 from torch._six import inf
 from typing import Union, Iterable, Tuple, Callable
@@ -306,6 +307,16 @@ class Adam(torch.optim.Adam):
             return super().step(closure=closure)
         elif self._optim_type == 'adam':
             return super().step(closure=closure)
+
+    def get_grad(self) -> float:
+        total_norm = 0.
+        params = [
+            t for group in self.param_groups for t in group['params'] if t.requires_grad and t.grad is not None
+        ]
+        for p in params:
+            param_norm = p.grad.data.norm(self._clip_norm_type)
+            total_norm += param_norm.item() ** self._clip_norm_type
+        return total_norm
 
 
 class RMSprop(torch.optim.RMSprop):
