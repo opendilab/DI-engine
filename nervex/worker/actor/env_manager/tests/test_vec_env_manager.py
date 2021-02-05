@@ -26,7 +26,7 @@ class TestVecEnvManager:
         start_time = time.time()
         while not env_manager.done:
             obs = env_manager.next_obs
-            print('obs', obs.keys(), env_manager._env_state)
+            print('obs', obs.keys(), env_manager._env_states)
             action = model.forward(obs)
             assert 1 <= len(action) <= len(obs)
             print('act', action.keys())
@@ -74,12 +74,12 @@ class TestVecEnvManager:
         assert len(name) == env_manager.env_num
         assert timestep[0].info['abnormal']
         assert all(['abnormal' not in timestep[i].info for i in range(1, env_manager.env_num)])
-        assert env_manager._env_state[0] == 3  # reset
+        assert env_manager._env_states[0] == 3  # reset
         assert len(env_manager.next_obs) == 3
         # wait for reset
         while not len(env_manager.next_obs) == env_manager.env_num:
             time.sleep(0.1)
-        assert env_manager._env_state[0] == 2  # run
+        assert env_manager._env_states[0] == 2  # run
         assert len(env_manager.next_obs) == 4
         # with pytest.raises(setup_exception):
         with pytest.raises(Exception):
@@ -95,10 +95,10 @@ class TestVecEnvManager:
     def test_reset(self, setup_async_manager_cfg):
         env_manager = SubprocessEnvManager(**setup_async_manager_cfg)
         with pytest.raises(AssertionError):
-            env_manager.reset(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
-        obs = env_manager.launch(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
+            env_manager.reset(reset_params=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
+        obs = env_manager.launch(reset_params=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
         timestep = env_manager.step({i: torch.randn(4) for i in range(env_manager.env_num)})
         assert len(timestep) <= env_manager.env_num
-        env_manager.reset(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
+        env_manager.reset(reset_params=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
         timestep = env_manager.step({i: torch.randn(4) for i in range(env_manager.env_num)})
         assert len(timestep) <= env_manager.env_num
