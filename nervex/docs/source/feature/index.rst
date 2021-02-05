@@ -9,14 +9,15 @@ Feature
 .. toctree::
     :maxdepth: 3
 
-    env_overview
     policy_overview
     adder_overview
+    env_overview
     env_manager_overview
+    buffer_manager_overview
+    hpc_rl_overview
     agent_overview
+    learner_overview
     actor_overview
     league_overview
     dataloader_overview
-    buffer_manager_overview
-    learner_overview
     autolog_overview

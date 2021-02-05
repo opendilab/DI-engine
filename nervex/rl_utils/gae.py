@@ -1,9 +1,11 @@
 from collections import namedtuple
 import torch
+from nervex.hpc_rl import hpc_wrapper
 
 gae_data = namedtuple('gae_data', ['value', 'reward'])
 
 
+@hpc_wrapper(shape_fn=lambda args: args[0].reward.shape, namedtuple_data=True)
 def gae(data: namedtuple, gamma: float = 0.99, lambda_: float = 0.97) -> torch.FloatTensor:
     """
     Overview:
