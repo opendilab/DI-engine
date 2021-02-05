@@ -6,22 +6,24 @@ Environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 概述：
-    环境模块从功能上有两种类别，一是通用的基类接口和公共函数，二是每一个具体问题环境的相关实现。
+    环境模块从功能上由两部分组成，一是通用的环境基类接口，二是环境中的元素基类和公共函数。具体的环境实例可以参见 ``app_zoo`` 中相关的环境。
 
 代码结构：
     主要分为如下几个子模块：
 
         1. env: 环境基类和具体的环境类（用于和智能体交互）, **唯一外部接口类和外部接口函数定义**
         2. common: 通用环境元素基类，公共函数（负责各种前后处理，与环境相关的数据转换，例：独热编码）
-        3. 具体的问题环境实例(即一个问题用同一个文件夹管理)，实例中可能包括如下内容：
+
+    .. note::
+
+        对于具体的问题环境实例，一个环境用同一个文件夹管理，实例中可能包括如下内容：
 
             1. observation: 具体环境观察类
             2. action: 具体环境动作类
             3. reward: 具体环境奖励类
-            4. stat: 具体统计信息类（负责环境中各种统计信息的记录和使用，比如alphastar中的人类统计量z）
-            5. config: 具体的配置文件
-            6. other: 其他模块（一般存放不属于上述内容的模块，例如alphastar中的地图信息模块）
-            7. tests: 单元测试
+            4. config: 具体的配置文件
+            5. other: 其他模块（一般存放不属于上述内容的模块，例如alphastar中的地图信息模块）
+            6. tests: 单元测试
 
                 示例如下：
 
@@ -32,14 +34,11 @@ Environment
 
         .. code:: python
 
+            BaseEnvTimestep = namedtuple('BaseEnvTimestep', ['obs', 'reward', 'done', 'info'])
+            BaseEnvInfo = namedtuple('BaseEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space'])
+
+
             class BaseEnv(ABC):
-                """
-                Overview: basic environment class
-                Interface: __init__
-                Property: timestep
-                """
-                timestep = namedtuple('BaseEnvTimestep', ['obs', 'act', 'reward', 'done', 'info'])
-                info_template = namedtuple('BaseEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space'])
 
                 @abstractmethod
                 def __init__(self, cfg: dict) -> None:
@@ -54,7 +53,7 @@ Environment
                     raise NotImplementedError
 
                 @abstractmethod
-                def step(self, action: Any) -> 'BaseEnvTimestep':
+                def step(self, action: Any) -> 'BaseEnv.timestep':
                     raise NotImplementedError
 
                 @abstractmethod
@@ -69,23 +68,34 @@ Environment
                 def __repr__(self) -> str:
                     raise NotImplementedError
 
-                @abstractmethod
-                def pack(self, timesteps: List['BaseEnvTimestep'] = None, obs: Any = None) -> 'BaseEnvTimestep':
+                @staticmethod
+                def create_actor_env_cfg(cfg: dict) -> List[dict]:
+                    actor_env_num = cfg.pop('actor_env_num', 1)
+                    return [cfg for _ in range(actor_env_num)]
+
+                @staticmethod
+                def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
+                    evaluator_env_num = cfg.pop('evaluator_env_num', 1)
+                    return [cfg for _ in range(evaluator_env_num)]
+
+                # optional method
+                def enable_save_replay(self, replay_path: str) -> None:
                     raise NotImplementedError
 
-                @abstractmethod
-                def unpack(self, action: Any) -> List[Any]:
-                    raise NotImplementedError
 
         - 概述：
-            环境基类，用于和外部智能体进行交互
+            环境基类，用于和外部策略进行交互
 
-        - 类变量：
-            1. timestep(namedtuple): 定义了环境每运行一步返回的时间步内容，一般包括'obs', 'act', 'reward', 'done', 'info'五部分，子类可以重写自己的该变量。
-            2. info(namedtuple): 定义了环境的基本信息，例如环境中智能体的数量，观察空间的维度等等，可用于神经网络创建的输入参数等等，子类可以重写自己的该变量。
+        - 全局变量（也可定义为类变量）：
+            1. BaseEnvTimestep(namedtuple): 定义了环境每运行一步返回的内容，一般包括'obs', 'act', 'reward', 'done', 'info'五部分，子类可以自定义自己的该变量，但注意必须包含上述五个字段。
+            2. BaseEnvInfo(namedtuple): 定义了环境的基本信息，例如环境中智能体的数量，观察空间的维度等等，可用于神经网络创建的输入参数等等，一般包括'agent_num', 'obs_space', 'act_space', 'rew_space'四部分，其中 ``xxx_space`` 必须使用 ``envs/common/env_element.py`` 中的 ``EnvElementInfo`` 进行创建，子类可以自定义自己的该变量，为其增加新的字段。
+
+            .. note::
+
+                此外， ``obs_space`` 和 ``vec_env_manager`` 中 ``shared_memory`` 的相关使用存在强依赖，如要使用则必须按照 ``EnvElementInfo`` 来实现。
 
 
-        - 类接口方法：
+        - 接口方法：
             1. __init__: 初始化
             2. reset: 重启环境(reset方法在子类的实现中可能会存在输入参数，比如一个episode结束重启时需要外部指定一些参数)
             3. close: 关闭环境，释放资源
@@ -93,14 +103,34 @@ Environment
             5. seed: 设置环境随机种子
             6. info: 返回环境基本信息，包含智能体数目，观察空间维度信息等
             7. __repr__: 返回环境类状态说明的字符串
-            8. pack: (env->agent) 对多个环境的timestep或obs进行组装打包，外界可以按照原有的属性进行访问。例如timestep.reward就可获得所有环境的reward
-            9. unpack: (agent->env) 对组装好的action进行拆分，拆解成可以直接传给各个环境的形式。
+            8. create_actor_env_cfg: 为数据收集创建相应的环境配置文件，与 ``create_evaluator_env_cfg`` 互相独立，便于使用者对数据收集和性能评测设置不同的环境参数，根据传入的初始配置为每个具体的环境生成相应的配置文件，默认情况会获取配置文件中的环境个数，然后将默认环境配置复制相应份数返回
+            9. create_evaluator_env_cfg: 为性能评测创建相应的环境配置文件，功能同上说明
+            10. enable_save_replay: 使环境可以保存运行过程为视频文件，便于调试和可视化，一般在环境开始实际运行前调用，功能上代替常见环境中的render方法。（该方法可选实现）
 
             .. note::
 
-                具体问题的运行环境创建不应该在 `__init__` 方法中实现，因为存在创建模型实例但不运行的使用场景（比如获取环境observation的维度等信息），推荐在reset方法中\
-                判断运行环境是否已创建，如果没有则进行创建再reset，如果有则直接reset已有环境。
+                对于一个环境的具体创建（例如打开其他模拟器客户端），该行为不应该在 ``__init__`` 方法中实现，因为存在创建模型实例但不运行的使用场景（比如获取环境observation的维度等信息），推荐在 ``reset`` 方法中实现，即判断运行环境是否已创建，如果没有则进行创建再reset，如果有则直接reset已有环境。如果使用者依然想要在 ``__init__`` 方法中完成该功能，请自行确认不会有资源浪费或冲突的情况发生。
 
+            .. note::
+
+                关于BaseEnvInfo和BaseEnvTimestep，如无特殊需求可以直接调用nervex提供的默认定义，即：
+
+                .. code:: python
+
+                    from nervex.envs import BaseEnvTimestep, BaseEnvInfo
+
+                如果需要自定义，按照上文的要求使用 ``namedtuple`` 实现即可。
+
+            .. tip::
+
+                ``seed`` 方法的调用一般在 ``__init__`` 方法之后，``reset`` 方法之前。如果将模型的创建放在 ``reset`` 方法中，则 ``seed`` 方法只需要记录下这个值，在 ``reset`` 方法执行时设置随机种子即可。
+
+            .. warning::
+
+                nervex对于环境返回的 ``info`` 字段有一些依赖关系, ``info`` 是一个dict，其中某些键值对会有相关依赖要求：
+                
+                1. `final_eval_reward`: 环境一个episode结束时（done=True）必须包含该键值，值为float类型，表示环境跑完一个episode性能的度量
+                2. `abnormal`: 环境每个时间步都可包含该键值，该键值非必须，是可选键值，值为bool类型，表示环境运行该步是是否发生了错误，如果为真nervex的相关模块会进行相应处理（比如将相关数据移除）。
 
 
     2. EnvElement (common/env_element.py)
@@ -247,4 +277,4 @@ Environment
 
     1. 所有代码实现中命名一律使用名词单数，约定为习惯
     2. 所有代码实现秉承 **自身对外界输入质疑，自身对外界输出负责** 的思想，对输入参数做必要的check，对输出（返回值）明确规定其格式
-    3. 环境元素的键值如果为空时，一律使用 `None`, 从重构版本开始废除 `'none'` 的用法。
+    3. 环境元素的键值如果为空时，一律使用 ``None``

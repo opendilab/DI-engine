@@ -40,10 +40,14 @@ class Coordinator(object):
         self._commander = create_parallel_commander(cfg.commander)
         self._commander_lock = LockContext(LockContextType.THREAD_LOCK)
         # ############## Thread #####################
-        self._assign_actor_thread = Thread(target=self._assign_actor_task, args=())
-        self._assign_learner_thread = Thread(target=self._assign_learner_task, args=())
-        self._produce_actor_thread = Thread(target=self._produce_actor_task, args=())
-        self._produce_learner_thread = Thread(target=self._produce_learner_task, args=())
+        self._assign_actor_thread = Thread(target=self._assign_actor_task, args=(), name='coordinator_assign_actor')
+        self._assign_learner_thread = Thread(
+            target=self._assign_learner_task, args=(), name='coordinator_assign_learner'
+        )
+        self._produce_actor_thread = Thread(target=self._produce_actor_task, args=(), name='coordinator_produce_actor')
+        self._produce_learner_thread = Thread(
+            target=self._produce_learner_task, args=(), name='coordinator_produce_learner'
+        )
 
         self._replay_buffer = {}
         self._task_state = {}  # str -> TaskState
@@ -83,11 +87,15 @@ class Coordinator(object):
                             break
                         else:
                             self.info("actor_task({}) is failed to be assigned".format(actor_task['task_id']))
+                    else:
+                        self.info(
+                            "actor_task({}) can't find proper buffer_id({})".format(actor_task['task_id'], buffer_id)
+                        )
                     if time.time() - start_retry_time >= max_retry_time:
                         # reput into queue
                         self._actor_task_queue.put([actor_task, put_time])
                         start_retry_time = time.time()
-                        self.info("actor task({}) reput info queue".format(actor_task['task_id']))
+                        self.info("actor task({}) reput into queue".format(actor_task['task_id']))
                         break
                     time.sleep(3)
 
@@ -130,7 +138,7 @@ class Coordinator(object):
                         # reput into queue
                         self._learner_task_queue.put([learner_task, put_time])
                         start_retry_time = time.time()
-                        self.info("learner task({}) reput info queue".format(learner_task['task_id']))
+                        self.info("learner task({}) reput into queue".format(learner_task['task_id']))
                         break
                     time.sleep(3)
 
@@ -141,7 +149,7 @@ class Coordinator(object):
                 actor_task = self._commander.get_actor_task()
                 if actor_task is None:
                     continue
-            self.info("actor task({}) put info queue".format(actor_task['task_id']))
+            self.info("actor task({}) put into queue".format(actor_task['task_id']))
             self._actor_task_queue.put([actor_task, time.time()])
 
     def _produce_learner_task(self) -> None:
@@ -151,7 +159,7 @@ class Coordinator(object):
                 learner_task = self._commander.get_learner_task()
                 if learner_task is None:
                     continue
-            self.info("learner task({}) put info queue".format(learner_task['task_id']))
+            self.info("learner task({}) put into queue".format(learner_task['task_id']))
             self._learner_task_queue.put([learner_task, time.time()])
 
     def state_dict(self) -> dict:

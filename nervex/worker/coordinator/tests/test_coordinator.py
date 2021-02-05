@@ -46,7 +46,7 @@ def setup_learner(setup_config):
         l.close()
 
 
-@pytest.mark.unittest
+@pytest.mark.unittest(rerun=5)
 class TestCoordinator:
 
     def test_naive(self, setup_config, setup_actor, setup_learner):

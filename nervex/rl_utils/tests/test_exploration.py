@@ -11,8 +11,9 @@ def test_eps_greedy():
     lin_eps1 = epsilon_greedy(start=1.0, end=0.1, decay=90, type_='linear')
     assert lin_eps1(9) == 0.91
     assert lin_eps1(100) == 0.1
-    with pytest.raises(Exception):
-        lin_eps2 = epsilon_greedy(start=0.9, end=0.1, decay=20, type_='linear')
+    lin_eps2 = epsilon_greedy(start=0.9, end=0.3, decay=20, type_='linear')
+    assert pytest.approx(lin_eps2(9), 0.63)
+    assert lin_eps2(100) == 0.3
 
 
 @pytest.mark.unittest

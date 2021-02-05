@@ -294,6 +294,7 @@ ConvRDiscreteNet = partial(
     lstm_kwargs={'lstm_type': 'normal'},
     head_kwargs={'dueling': True}
 )
+register_model('convr_discrete_net', ConvRDiscreteNet)
 NoiseQuantileFCDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'fc'},

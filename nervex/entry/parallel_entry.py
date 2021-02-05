@@ -124,5 +124,5 @@ def launch_coordinator(config: Optional[EasyDict] = None, filename: Optional[str
                 coordinator.close()
                 break
 
-    shutdown_monitor_thread = Thread(target=shutdown_monitor, args=(), daemon=True)
+    shutdown_monitor_thread = Thread(target=shutdown_monitor, args=(), daemon=True, name='shutdown_monitor')
     shutdown_monitor_thread.start()

@@ -378,24 +378,8 @@ class SMACEnv(SC2Env, BaseEnv):
         except (protocol.ProtocolError, protocol.ConnectionError, ValueError) as e:
             print("Error happen in step! Error: ", e)
             self.full_restart()
-
-            # Return fake timestep information and terminate this episode
-            if self.two_player or force_return_two_player:
-                infos = {ORIGINAL_AGENT: {"battle_won": False}, OPPONENT_AGENT: {"battle_won": False}}
-                rewards = {
-                    ORIGINAL_AGENT: np.zeros([self.n_agents]),
-                    OPPONENT_AGENT: np.zeros([self.n_enemies]),
-                }
-                terminates = {ORIGINAL_AGENT: True, OPPONENT_AGENT: True, "__all__": True}
-            else:
-                infos = dict(battle_won=False, battle_lost=False)
-                rewards = np.zeros([self.n_agents])
-                terminates = True
-            infos["draw"] = True
-
-            return self.SMACTimestep(
-                obs=None, reward=rewards, done=terminates, info=infos, episode_steps=self._episode_steps
-            )
+            info = {'abnormal': True}
+            return self.SMACTimestep(obs=None, reward=None, done=True, info=info, episode_steps=self._episode_steps)
 
         # Update units
         game_end_code = self.update_units()

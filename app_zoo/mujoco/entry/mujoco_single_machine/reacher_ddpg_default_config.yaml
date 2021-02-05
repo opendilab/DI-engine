@@ -21,7 +21,7 @@ env:
     evaluator_env_num: 8
     use_act_scale: True
 policy:
-    use_cuda: True
+    use_cuda: False
     policy_type: 'ddpg'
     import_names: ['nervex.policy.ddpg']
     on_policy: False
@@ -55,10 +55,11 @@ policy:
     command:
         placeholder: 'placeholder'
 replay_buffer:
-    meta_maxlen: 20000
-    max_reuse: 1024
-    unroll_len: 1
-    min_sample_ratio: 1
+    buffer_name: ['agent']
+    agent:
+        meta_maxlen: 20000
+        max_reuse: 1024
+        min_sample_ratio: 1
 actor:
     n_sample: 24
     traj_len: 1

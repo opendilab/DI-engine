@@ -41,6 +41,8 @@ class FakeEnv(object):
     def step(self, action):
         if isinstance(action, str) and action == 'error':
             raise EnvException("env error, current step {}".format(self._current_step))
+        if isinstance(action, str) and action == 'catched_error':
+            return BaseEnvTimestep(None, None, True, {'abnormal': True})
         obs = to_ndarray(torch.randn(3))
         reward = to_ndarray(torch.randint(0, 2, size=[1]).numpy())
         done = self._current_step >= self._target_step
