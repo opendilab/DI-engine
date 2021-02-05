@@ -100,6 +100,14 @@ class BaseSerialActor(object):
                 actions = {env_id: output['action'] for env_id, output in policy_output.items()}
                 timesteps = self._env.step(actions)
                 for env_id, timestep in timesteps.items():
+                    if timestep.info.get('abnormal', False):
+                        # if there is a abnormal timestep, reset all the related variable, also this env has been reset
+                        self._traj_cache[env_id].clear()
+                        self._obs_pool.reset(env_id)
+                        self._policy_output_pool.reset(env_id)
+                        self._policy.reset([env_id])
+                        print('env_id abnormal step', env_id, timestep.info)
+                        continue
                     transition = self._policy.process_transition(
                         self._obs_pool[env_id], self._policy_output_pool[env_id], timestep
                     )
@@ -113,10 +121,10 @@ class BaseSerialActor(object):
                         return_data.extend(train_sample)
                         train_sample_count += len(train_sample)
                         self._total_sample += len(train_sample)
-                        if (train_sample_count + 1) % self._traj_print_freq == 0:
-                            self._logger.info(
-                                "env {} get new traj, collected traj: {}".format(env_id, train_sample_count)
-                            )
+                        # if (train_sample_count + 1) % self._traj_print_freq == 0:
+                        #     self._logger.info(
+                        #         "env {} get new traj, collected traj: {}".format(env_id, train_sample_count)
+                        #     )
                     if timestep.done:
                         # env reset is done by env_manager automatically
                         self._traj_cache[env_id].clear()
@@ -149,6 +157,7 @@ class BaseSerialActor(object):
                 'avg_time_per_episode': duration / max(1, episode_count),
                 'reward_mean': np.mean(episode_reward) if len(episode_reward) > 0 else 0.,
                 'reward_std': np.std(episode_reward) if len(episode_reward) > 0 else 0.,
+                'each_reward': episode_reward,
             }
             self._logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
         self._total_collect_step += 1

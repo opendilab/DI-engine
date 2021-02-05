@@ -63,7 +63,7 @@ class FlaskFileSystemActor(BaseCommActor):
 
     def deal_with_actor_start(self, task_info: dict) -> None:
         self._actor = self._create_actor(task_info)
-        self._actor_thread = Thread(target=self._actor.start, args=(), daemon=True)
+        self._actor_thread = Thread(target=self._actor.start, args=(), daemon=True, name='actor_start')
         self._actor_thread.start()
 
     def deal_with_actor_data(self) -> dict:

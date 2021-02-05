@@ -5,12 +5,10 @@ from app_zoo.multiagent_particle.envs.multiagent.scenario import BaseScenario
 
 class Scenario(BaseScenario):
 
-    def make_world(self):
+    def make_world(self, num_agents=3, num_landmarks=3):
         world = World()
         # set any world properties first
         world.dim_c = 2
-        num_agents = 3
-        num_landmarks = 3
         world.collaborative = True
         # add agents
         world.agents = [Agent() for i in range(num_agents)]
@@ -47,7 +45,7 @@ class Scenario(BaseScenario):
 
     def benchmark_data(self, agent, world):
         rew = 0
-        collisions = 0
+        collisions = -1
         occupied_landmarks = 0
         min_dists = 0
         for l in world.landmarks:
@@ -76,6 +74,7 @@ class Scenario(BaseScenario):
             dists = [np.sqrt(np.sum(np.square(a.state.p_pos - l.state.p_pos))) for a in world.agents]
             rew -= min(dists)
         if agent.collide:
+            rew += 1
             for a in world.agents:
                 if self.is_collision(a, agent):
                     rew -= 1
@@ -98,4 +97,6 @@ class Scenario(BaseScenario):
                 continue
             comm.append(other.state.c)
             other_pos.append(other.state.p_pos - agent.state.p_pos)
-        return np.concatenate([agent.state.p_vel] + [agent.state.p_pos] + entity_pos + other_pos + comm)
+
+        # return np.concatenate([agent.state.p_vel] + [agent.state.p_pos] + other_pos + entity_pos + comm)
+        return np.concatenate([agent.state.p_vel] + [agent.state.p_pos] + other_pos + entity_pos)

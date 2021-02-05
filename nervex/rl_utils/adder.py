@@ -14,7 +14,7 @@ class Adder(object):
         Adder is a component that handles different transformations and calculations for transitions
         in Actor Module(data generation and processing), such as GAE, n-step return, transition sampling etc.
     Interface:
-        __init__, get_traj, get_gae, get_gae_with_default_last_value, get_nstep_return_data, get_train_sample
+        __init__, get_traj, get_gae, get_gae_with_default_last_value, get_nstep_return_data, get_train_sample, get_her
     """
 
     def __init__(
@@ -35,6 +35,8 @@ class Adder(object):
             - last_fn_type (:obj:`str`): the method type name for dealing with last residual data in a traj \
                 after splitting, should be in ['last', 'drop', 'null_padding']
             - null_transition (:obj:`Optional[dict]`): dict type null transition, used in ``null_padding``
+            - her_strategu (:obj:`str`): the kind of strategy her use, should be in ['final', 'future', 'episode']
+            - her_replay_k (:obj:`int`): the num of new timestep generated for a single timestep
         """
         self._use_cuda = use_cuda
         self._device = 'cuda' if self._use_cuda else 'cpu'
@@ -146,7 +148,7 @@ class Adder(object):
             return data
         if traj_len == float('inf') or len(data) < traj_len:
             # episode done case, append nstep fake datas
-            fake_data = {'obs': data[-1]['obs'].clone(), 'reward': torch.zeros(1), 'done': True}
+            fake_data = {'obs': copy.deepcopy(data[-1]['obs']), 'reward': torch.zeros(1), 'done': True}
             data += [fake_data for _ in range(nstep)]
         for i in range(len(data) - nstep):
             # update keys ['next_obs', 'reward', 'done'] with their n-step value
@@ -210,6 +212,20 @@ class Adder(object):
             split_func: Optional[Callable] = None,
             goal_reward_func: Optional[Callable] = None
     ) -> List[Dict[str, Any]]:
+        r"""
+        Overview:
+            Get HER processed transitions from stacked transitions
+        Arguments:
+            - data (:obj:`List[Dict[str, Any]]`): transitions list, each element is a transition dict
+            - merge_func (:obj:`Callable`): the merge function to use, default set to None. If None, \
+                then use ``__her_default_merge_func``
+            - split_func (:obj:`Callable`): the split function to use, default set to None. If None, \
+                then use ``__her_default_split_func``
+            - goal_reward_func (:obj:`Callable`): the goal_reward function to use, default set to None. If None, \
+                then use ``__her_default_goal_reward_func``
+        Returns:
+            - new_data (:obj:`List[Dict[str, Any]]`): the processed transitions
+        """
         # TODO(nyz) nstep with her
         # TODO(nyz) unroll_len > 1 with her
         if merge_func is None:
@@ -241,11 +257,30 @@ class Adder(object):
 
     @staticmethod
     def __her_default_merge_func(x: Any, y: Any) -> Any:
+        r"""
+        Overview:
+            The function to merge obs in HER timestep
+        Arguments:
+            - x (:obj:`Any`): one of the timestep obs to merge
+            - y (:obj:`Any`): another timestep obs to merge
+        Returns:
+            - ret (:obj:`Any`): the merge obs
+        """
         # TODO(nyz) dict/list merge_func
         return torch.cat([x, y], dim=0)
 
     @staticmethod
     def __her_default_split_func(x: Any) -> Tuple[Any, Any, Any]:
+        r"""
+        Overview:
+            Split the the obs, achieved goal, desired goal
+        Arguments:
+            - x (:obj:`Any`): the obs to split
+        Returns:
+            - obs (:obj:`torch.Tensor`): the split obs
+            - desired_goal (:obj:`torch.Tensor`): the split desired_goal
+            - achieved_goal (:obj:`torch.Tensor`): the achieved_goal
+        """
         # TODO(nyz) dict/list split_func
         # achieved_goal = f(obs), default: f == identical function
         obs, desired_goal = torch.chunk(x, 2)
@@ -254,6 +289,16 @@ class Adder(object):
 
     @staticmethod
     def __her_default_goal_reward_func(achieved_goal: torch.Tensor, desired_goal: torch.Tensor) -> torch.Tensor:
+        r"""
+        Overview:
+            Get the corresponding merge reward according to whether the achieved_goal fit the desired_goal
+        Arguments:
+            - achieved_goal (:obj:`torch.Tensor`): the achieved goal
+            - desired_goal (:obj:`torch.Tensor`): the desired_goal
+        Returns:
+            - goal_reward (:obj:`torch.Tensor`): the goal reward according to \
+            whether the achieved_goal fit the disired_goal
+        """
         if (achieved_goal == desired_goal).all():
             return torch.FloatTensor([1])
         else:

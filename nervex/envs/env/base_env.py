@@ -53,6 +53,10 @@ class BaseEnv(ABC):
         evaluator_env_num = cfg.pop('evaluator_env_num', 1)
         return [cfg for _ in range(evaluator_env_num)]
 
+    # optional method
+    def enable_save_replay(self, replay_path: str) -> None:
+        raise NotImplementedError
+
 
 env_mapping = {}
 

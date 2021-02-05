@@ -190,7 +190,8 @@ class ReplayBuffer:
                 ``self._data``. ``None`` means not to load data at the beginning.
             - maxlen (:obj:`int`): The maximum value of the buffer length. If ``load_path`` is not ``None``, it is \
                 highly recommended to set ``maxlen`` no fewer than demonstration data's length.
-            - max_reuse (:obj:`int` or None): The maximum reuse times of each element in buffer.
+            - max_reuse (:obj:`int` or None): The maximum reuse times of each element in buffer. Once a data is \
+                sampled(used) ``max_reuse`` times, it would be removed out of buffer.
             - min_sample_ratio (:obj:`float`): The minimum ratio restriction for sampling, only when \
                 "current element number in buffer / sample size" is greater than this, can start sampling.
             - alpha (:obj:`float`): How much prioritization is used (0: no prioritization, 1: full prioritization).
@@ -285,7 +286,7 @@ class ReplayBuffer:
         ]
         self._out_vars = [self.name + var for var in self._out_vars]
         for var in self._in_vars + self._out_vars:
-            self._tb_logger.register_var(var)
+            self._tb_logger.register_var('buffer_{}/'.format(self.name) + var)
         self._log_freq = self.monitor_cfg.log_freq
 
         # Load data from file if load_path in config is not None.
@@ -454,6 +455,7 @@ class ReplayBuffer:
                             break
                         else:
                             data_start = 0
+                            valid_data_start += L
                 # Update ``pointer`` and ``next_unique_id`` after the whole list is pushed into buffer.
                 self.pointer = (self.pointer + length) % self._maxlen
                 self.next_unique_id += length
@@ -581,23 +583,23 @@ class ReplayBuffer:
         max_weight = (self._valid_count * p_min) ** (-self._beta)
         data = []
         for idx in indices:
+            assert self._data[idx] is not None
+            assert self._data[idx]['replay_buffer_idx'] == idx, (self._data[idx]['replay_buffer_idx'], idx)
             if self._deepcopy:
-                # Deepcopy data for avoiding interference
                 copy_data = copy.deepcopy(self._data[idx])
             else:
                 copy_data = self._data[idx]
-            assert (copy_data is not None)
             # Store staleness, reuse and IS(importance sampling weight for gradient step) for monitor and outer use
             copy_data['staleness'] = self._calculate_staleness(idx, cur_learner_iter)
             copy_data['reuse'] = self._reuse_count[idx]
-            p_sample = self.sum_tree[copy_data['replay_buffer_idx']] / sum_tree_root
+            p_sample = self.sum_tree[idx] / sum_tree_root
             weight = (self._valid_count * p_sample) ** (-self._beta)
             copy_data['IS'] = weight / max_weight
             data.append(copy_data)
             self._reuse_count[idx] += 1
         # Remove datas whose "reuse count" is greater than ``max_reuse``
         for idx in indices:
-            if self._reuse_count[idx] > self.max_reuse:
+            if self._reuse_count[idx] >= self.max_reuse:
                 self._remove(idx)
         # Anneal update beta
         if self._anneal_step != 0:
@@ -620,11 +622,12 @@ class ReplayBuffer:
             'in_count_avg': self._natural_monitor.avg['in_count'](),
             'in_time_avg': self._in_tick_monitor.avg['in_time']()
         }
-        self._in_count += 1
         if self._in_count % self._log_freq == 0:
             self._logger.info("===Add In Buffer {} Times===".format(self._in_count))
             self._logger.print_vars(in_dict)
+            in_dict = {'buffer_{}/'.format(self.name) + k: v for k, v in in_dict.items()}
             self._tb_logger.print_vars(in_dict, self._in_count, 'scalar')
+        self._in_count += 1
 
     def _monitor_update_of_sample(self, sample_data: list, sample_time: float) -> None:
         r"""
@@ -656,11 +659,12 @@ class ReplayBuffer:
             'staleness_avg': self._out_tick_monitor.avg['staleness'](),
             'staleness_max': self._out_tick_monitor.max['staleness'](),
         }
-        self._out_count += 1
         if self._out_count % self._log_freq == 0:
             self._logger.info("===Read Buffer {} Times===".format(self._out_count))
             self._logger.print_vars(out_dict)
+            out_dict = {'buffer_{}/'.format(self.name) + k: v for k, v in out_dict.items()}
             self._tb_logger.print_vars(out_dict, self._out_count, 'scalar')
+        self._out_count += 1
 
     def _calculate_staleness(self, pos_index: int, cur_learner_iter: int) -> Optional[int]:
         r"""

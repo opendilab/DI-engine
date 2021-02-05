@@ -16,7 +16,7 @@ from functools import partial
 from types import MethodType
 from typing import Any, Union, List, Tuple, Iterable, Dict, Callable, Optional
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
-from nervex.utils import PropagatingThread
+from nervex.utils import PropagatingThread, LockContextType, LockContext
 from .base_env_manager import BaseEnvManager
 
 _NTYPE_TO_CTYPE = {
@@ -43,13 +43,30 @@ class EnvState(enum.IntEnum):
 
 
 class ShmBuffer():
+    """
+    Overview:
+        Shared Memory Buffer
+    """
 
     def __init__(self, dtype: np.generic, shape: Tuple[int]) -> None:
+        """
+        Overview:
+            Initialize the buffer.
+        Arguments:
+            - dtype (:obj:`np.generic`): dtype of the data to limit the size of the buffer.
+            - shape (:obj:`Tuple`): shape of the data to limit the size of the buffer.
+        """
         self.buffer = Array(_NTYPE_TO_CTYPE[dtype.type], int(np.prod(shape)))
         self.dtype = dtype
         self.shape = shape
 
-    def fill(self, src_arr: Union[np.ndarray]) -> None:
+    def fill(self, src_arr: np.ndarray) -> None:
+        """
+        Overview:
+            Fill the shared memory buffer with a numpy array.
+        Arguments:
+            - src_arr (:obj:`np.ndarray`): array to fill the buffer.
+        """
         assert isinstance(src_arr, np.ndarray), type(src_arr)
         dst_arr = np.frombuffer(self.buffer.get_obj(), dtype=self.dtype).reshape(self.shape)
         with self.buffer.get_lock():
@@ -57,13 +74,20 @@ class ShmBuffer():
 
     def get(self) -> np.ndarray:
         """
-        return a copy of the data
+        Overview:
+            Get the array stored in the buffer.
+        Return:
+            A copy of the data stored in the buffer.
         """
         arr = np.frombuffer(self.buffer.get_obj(), dtype=self.dtype).reshape(self.shape)
         return arr.copy()
 
 
 class ShmBufferContainer(object):
+    """
+    Overview:
+        Support dictionary of shared memory buffer.
+    """
 
     def __init__(self, dtype: np.generic, shape: Union[dict, tuple]) -> None:
         if isinstance(shape, dict):
@@ -111,6 +135,10 @@ class CloudpickleWrapper(object):
 
 
 def retry_wrapper(fn: Callable, max_retry: int = 10) -> Callable:
+    """
+    Overview:
+        Retry the function until exceeding the maximum times.
+    """
 
     def wrapper(*args, **kwargs):
         exceptions = []
@@ -134,6 +162,13 @@ def retry_wrapper(fn: Callable, max_retry: int = 10) -> Callable:
 
 
 class SubprocessEnvManager(BaseEnvManager):
+    """
+    Overview:
+        Create a SubprocessEnvManager to manage multiple environments. Each Environment is run by a seperate subprocess.
+
+    Interfaces:
+        seed, launch, next_obs, step, reset, env_info
+    """
 
     def __init__(
             self,
@@ -143,10 +178,23 @@ class SubprocessEnvManager(BaseEnvManager):
             episode_num: Optional[int] = 'inf',
             manager_cfg: Optional[dict] = {},
     ) -> None:
+        """
+        Overview:
+            Initialize the SubprocessEnvManager.
+        Arguments:
+            - env_fn (:obj:`function`): the function to create environment
+            - env_cfg (:obj:`list`): the list of environemnt configs
+            - env_num (:obj:`int`): number of environments to create, equal to len(env_cfg)
+            - episode_num (:obj:`int`): maximum episodes to collect in one environment
+            - manager_cfg (:obj:`dict`): config for env manager
+        """
         super().__init__(env_fn, env_cfg, env_num, episode_num)
         self.shared_memory = manager_cfg.get('shared_memory', True)
+        default_context_str = 'spawn' if platform.system().lower() == 'windows' else 'fork'
+        self.context_str = manager_cfg.get('context', default_context_str)
         self.timeout = manager_cfg.get('timeout', 0.01)
         self.wait_num = manager_cfg.get('wait_num', 2)
+        self._lock = LockContext(LockContextType.THREAD_LOCK)
 
     def _create_state(self) -> None:
         r"""
@@ -165,8 +213,7 @@ class SubprocessEnvManager(BaseEnvManager):
         else:
             self._obs_buffers = {env_id: None for env_id in range(self.env_num)}
         self._parent_remote, self._child_remote = zip(*[Pipe() for _ in range(self.env_num)])
-        context_str = 'spawn' if platform.system().lower() == 'windows' else 'fork'
-        ctx = get_context(context_str)
+        ctx = get_context(self.context_str)
         # due to the runtime delay of lambda expression, we use partial for the generation of different envs,
         # otherwise, it will only use the last item cfg.
         env_fn = [partial(self._env_fn, cfg=self._env_cfg[env_id]) for env_id in range(self.env_num)]
@@ -174,9 +221,11 @@ class SubprocessEnvManager(BaseEnvManager):
             ctx.Process(
                 target=self.worker_fn,
                 args=(parent, child, CloudpickleWrapper(fn), obs_buffer, self.method_name_list),
-                daemon=True
-            ) for parent, child, fn, obs_buffer in
-            zip(self._parent_remote, self._child_remote, env_fn, self._obs_buffers.values())
+                daemon=True,
+                name='vec_env_manager{}_{}'.format(idx, time.time())
+            )
+            for idx, (parent, child, fn, obs_buffer
+                      ) in enumerate(zip(self._parent_remote, self._child_remote, env_fn, self._obs_buffers.values()))
         ]
         for p in self._processes:
             p.start()
@@ -185,6 +234,11 @@ class SubprocessEnvManager(BaseEnvManager):
         self._env_state = {env_id: EnvState.INIT for env_id in range(self.env_num)}
         self._waiting_env = {'step': set()}
         self._setup_async_args()
+        if hasattr(self, '_env_replay_path'):
+            for p, s in zip(self._parent_remote, self._env_replay_path):
+                p.send(CloudpickleWrapper(['enable_save_replay', [s], {}]))
+            for p in self._parent_remote:
+                p.recv()
 
     def _setup_async_args(self) -> None:
         r"""
@@ -210,6 +264,17 @@ class SubprocessEnvManager(BaseEnvManager):
 
     @property
     def next_obs(self) -> Dict[int, Any]:
+        """
+        Overview:
+            Get the next observations.
+        Return:
+            A dictionary with observations and their environment IDs.
+        Note:
+            The observations are returned in torch.Tensor.
+        Example:
+            >>>     obs_dict = env_manager.next_obs
+            >>>     action_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
+        """
         no_done_env_idx = [i for i, s in self._env_state.items() if s != EnvState.DONE]
         sleep_count = 0
         while all([self._env_state[i] == EnvState.RESET for i in no_done_env_idx]):
@@ -222,12 +287,32 @@ class SubprocessEnvManager(BaseEnvManager):
     def done(self) -> bool:
         return all([s == EnvState.DONE for s in self._env_state.values()])
 
-    def launch(self, reset_param: Union[None, List[dict]] = None) -> None:
+    def launch(self, reset_param: Optional[List[dict]] = None) -> None:
+        """
+        Overview:
+            Set up the environments and hyper-params.
+        Arguments:
+            - reset_param (:obj:`List`): list of reset parameters for each environment.
+        """
         assert self._closed, "please first close the env manager"
         self._create_state()
         self.reset(reset_param)
 
-    def reset(self, reset_param: Union[None, List[dict]] = None) -> None:
+    def reset(self, reset_param: Optional[List[dict]] = None) -> None:
+        """
+        Overview:
+            Reset the environments and hyper-params.
+        Arguments:
+            - reset_param (:obj:`List`): list of reset parameters for each environment.
+        Note:
+            Create separate thread to reset each environment to avoid blocking.
+        """
+        self._check_closed()
+        # clear previous info
+        for env_id in self._waiting_env['step']:
+            self._parent_remote[env_id].recv()
+        self._waiting_env['step'].clear()
+
         if reset_param is None:
             reset_param = [{} for _ in range(self.env_num)]
         self._reset_param = reset_param
@@ -239,10 +324,9 @@ class SubprocessEnvManager(BaseEnvManager):
             self._check_data(ret)
 
         # reset env
-        lock = threading.Lock()
         reset_thread_list = []
         for env_id in range(self.env_num):
-            reset_thread = PropagatingThread(target=self._reset, args=(env_id, lock))
+            reset_thread = PropagatingThread(target=self._reset, args=(env_id, ))
             reset_thread.daemon = True
             reset_thread_list.append(reset_thread)
         for t in reset_thread_list:
@@ -250,7 +334,7 @@ class SubprocessEnvManager(BaseEnvManager):
         for t in reset_thread_list:
             t.join()
 
-    def _reset(self, env_id: int, lock: Any) -> None:
+    def _reset(self, env_id: int) -> None:
 
         @retry_wrapper
         def reset_fn():
@@ -259,7 +343,7 @@ class SubprocessEnvManager(BaseEnvManager):
             self._check_data([obs], close=False)
             if self.shared_memory:
                 obs = self._obs_buffers[env_id].get()
-            with lock:
+            with self._lock:
                 self._env_state[env_id] = EnvState.RUN
                 self._next_obs[env_id] = obs
 
@@ -273,6 +357,22 @@ class SubprocessEnvManager(BaseEnvManager):
                 raise e
 
     def step(self, action: Dict[int, Any]) -> Dict[int, namedtuple]:
+        """
+        Overview:
+            Wrapper of step function in the environment.
+        Arguments:
+            - action (:obj:`Dict`): a dictionary, {env_id: action}, which includes actions and their env ids.
+        Return:
+            - timesteps (:obj:`Dict`): a dictionary, {env_id: timestep}, which includes each env's timestep.
+        Note:
+            - The env_id that appears in action will also be returned in timesteps.
+            - Each environment is run by a subprocess seperately. Once an environment is done, it is reset immediately.
+        Example:
+            >>>     action_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
+            >>>     timesteps = env_manager.step(action_dict):
+            >>>     for env_id, timestep in timesteps.items():
+            >>>         pass
+        """
         self._check_closed()
         env_ids = list(action.keys())
         assert all([self._env_state[env_id] == EnvState.RUN for env_id in env_ids]
@@ -290,19 +390,19 @@ class SubprocessEnvManager(BaseEnvManager):
         rest_env_ids = list(set(env_ids).union(self._waiting_env['step']))
 
         ready_env_ids = []
-        ret = {}
+        timesteps = {}
         cur_rest_env_ids = copy.deepcopy(rest_env_ids)
         while True:
             rest_conn = [self._parent_remote[env_id] for env_id in cur_rest_env_ids]
             ready_conn, ready_ids = SubprocessEnvManager.wait(rest_conn, min(wait_num, len(rest_conn)), timeout)
             cur_ready_env_ids = [cur_rest_env_ids[env_id] for env_id in ready_ids]
             assert len(cur_ready_env_ids) == len(ready_conn)
-            ret.update({env_id: p.recv().data for env_id, p in zip(cur_ready_env_ids, ready_conn)})
-            self._check_data(ret.values())
+            timesteps.update({env_id: p.recv().data for env_id, p in zip(cur_ready_env_ids, ready_conn)})
+            self._check_data(timesteps.values())
             ready_env_ids += cur_ready_env_ids
             cur_rest_env_ids = list(set(cur_rest_env_ids).difference(set(cur_ready_env_ids)))
             # at least one not done timestep or all the connection is ready
-            if any([not t.done for t in ret.values()]) or len(ready_conn) == len(rest_conn):
+            if any([not t.done for t in timesteps.values()]) or len(ready_conn) == len(rest_conn):
                 break
 
         self._waiting_env['step']: set
@@ -313,29 +413,38 @@ class SubprocessEnvManager(BaseEnvManager):
             else:
                 self._waiting_env['step'].add(env_id)
 
-        lock = threading.Lock()
-        for env_id, timestep in ret.items():
+        for env_id, timestep in timesteps.items():
+            if timestep.info.get('abnormal', False):
+                self._env_state[env_id] = EnvState.RESET
+                reset_thread = PropagatingThread(target=self._reset, args=(env_id, ), name='abnormal_reset')
+                reset_thread.daemon = True
+                reset_thread.start()
+                continue
             if self.shared_memory:
                 timestep = timestep._replace(obs=self._obs_buffers[env_id].get())
-            ret[env_id] = timestep
+            timesteps[env_id] = timestep
             if timestep.done:
                 self._env_episode_count[env_id] += 1
                 if self._env_episode_count[env_id] >= self._epsiode_num:
                     self._env_state[env_id] = EnvState.DONE
                 else:
                     self._env_state[env_id] = EnvState.RESET
-                    reset_thread = PropagatingThread(target=self._reset, args=(env_id, lock))
+                    reset_thread = PropagatingThread(target=self._reset, args=(env_id, ), name='regular_reset')
                     reset_thread.daemon = True
                     reset_thread.start()
             else:
                 self._next_obs[env_id] = timestep.obs
 
-        return self._inv_transform(ret)
+        return self._inv_transform(timesteps)
 
     # this method must be staticmethod, otherwise there will be some resource conflicts(e.g. port or file)
     # env must be created in worker, which is a trick of avoiding env pickle errors.
     @staticmethod
     def worker_fn(p, c, env_fn_wrapper, obs_buffer, method_name_list) -> None:
+        """
+        Overview:
+            Subprocess's target function to run.
+        """
         env_fn = env_fn_wrapper.data
         env = env_fn()
         p.close()
@@ -352,10 +461,13 @@ class SubprocessEnvManager(BaseEnvManager):
                     elif cmd in method_name_list:
                         if cmd == 'step':
                             timestep = env.step(*args, **kwargs)
-                            if obs_buffer is not None:
-                                obs_buffer.fill(timestep.obs)
-                                timestep = timestep._replace(obs=None)
-                            ret = timestep
+                            if timestep.info.get('abnormal', False):
+                                ret = timestep
+                            else:
+                                if obs_buffer is not None:
+                                    obs_buffer.fill(timestep.obs)
+                                    timestep = timestep._replace(obs=None)
+                                ret = timestep
                         elif cmd == 'reset':
                             ret = env.reset(*args, **kwargs)  # obs
                             if obs_buffer is not None:
@@ -406,6 +518,12 @@ class SubprocessEnvManager(BaseEnvManager):
         ret = [p.recv().data for p in self._parent_remote]
         self._check_data(ret)
         return ret
+
+    # override
+    def enable_save_replay(self, replay_path: Union[List[str], str]) -> None:
+        if isinstance(replay_path, str):
+            replay_path = [replay_path] * self.env_num
+        self._env_replay_path = replay_path
 
     # override
     def close(self) -> None:

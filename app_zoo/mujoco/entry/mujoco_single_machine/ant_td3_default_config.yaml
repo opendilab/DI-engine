@@ -12,7 +12,7 @@ env:
     norm_obs: 
         use_norm: True
     norm_reward: 
-        use_norm: True
+        use_norm: False
         reward_discount: 0.98
     env_manager_type: 'subprocess'  # [base, subprocess]
     import_names: ['app_zoo.mujoco.envs.mujoco_env']
@@ -55,10 +55,11 @@ policy:
     command:
         placeholder: 'placeholder'
 replay_buffer:
-    meta_maxlen: 20000
-    max_reuse: 16
-    unroll_len: 1
-    min_sample_ratio: 1
+    buffer_name: ['agent']
+    agent:
+        meta_maxlen: 20000
+        max_reuse: 16
+        min_sample_ratio: 1
 actor:
     n_sample: 48
     traj_len: 1

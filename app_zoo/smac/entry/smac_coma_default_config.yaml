@@ -8,7 +8,7 @@ env:
     env_type: 'smac'
     map_name: '3s5z'
     agent_num: 8
-    actor_env_num: 4
+    actor_env_num: 8
     evaluator_env_num: 3
     shared_memory: False
 policy:
@@ -39,7 +39,7 @@ policy:
         traj_len: 'inf'
         unroll_len: 16
         agent_num: 8
-        env_num: 4  # actor_env_num
+        env_num: 8  # actor_env_num
     eval:
         agent_num: 8
         env_num: 3  # evaluator_env_num
@@ -73,5 +73,5 @@ learner:
             position: after_iter
             ext_args:
                 freq: 100
-command:
+commander:
     placeholder: 'placeholder'

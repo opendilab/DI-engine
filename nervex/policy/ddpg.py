@@ -40,7 +40,7 @@ class DDPGPolicy(CommonPolicy):
             lr=self._cfg.learn.learning_rate_critic,
             weight_decay=self._cfg.learn.weight_decay
         )
-        self._use_reward_batch_norm = self._cfg.get('use_reward_batch_norm', True)
+        self._use_reward_batch_norm = self._cfg.get('use_reward_batch_norm', False)
 
         # algorithm config
         algo_cfg = self._cfg.learn.algo
