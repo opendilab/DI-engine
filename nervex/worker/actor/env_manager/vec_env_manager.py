@@ -203,7 +203,7 @@ class SubprocessEnvManager(BaseEnvManager):
         """
         self._closed = False
         self._env_episode_count = {env_id: 0 for env_id in range(self.env_num)}
-        self._env_done = {env_id: False for env_id in range(self.env_num)}
+        self._env_dones = {env_id: False for env_id in range(self.env_num)}
         self._next_obs = {env_id: None for env_id in range(self.env_num)}
         if self.shared_memory:
             obs_space = self._env_ref.info().obs_space
@@ -212,12 +212,12 @@ class SubprocessEnvManager(BaseEnvManager):
             self._obs_buffers = {env_id: ShmBufferContainer(dtype, shape) for env_id in range(self.env_num)}
         else:
             self._obs_buffers = {env_id: None for env_id in range(self.env_num)}
-        self._parent_remote, self._child_remote = zip(*[Pipe() for _ in range(self.env_num)])
+        self._pipe_parents, self._pipe_children = zip(*[Pipe() for _ in range(self.env_num)])
         ctx = get_context(self.context_str)
         # due to the runtime delay of lambda expression, we use partial for the generation of different envs,
         # otherwise, it will only use the last item cfg.
         env_fn = [partial(self._env_fn, cfg=self._env_cfg[env_id]) for env_id in range(self.env_num)]
-        self._processes = [
+        self._subprocesses = [
             ctx.Process(
                 target=self.worker_fn,
                 args=(parent, child, CloudpickleWrapper(fn), obs_buffer, self.method_name_list),
@@ -225,19 +225,19 @@ class SubprocessEnvManager(BaseEnvManager):
                 name='vec_env_manager{}_{}'.format(idx, time.time())
             )
             for idx, (parent, child, fn, obs_buffer
-                      ) in enumerate(zip(self._parent_remote, self._child_remote, env_fn, self._obs_buffers.values()))
+                      ) in enumerate(zip(self._pipe_parents, self._pipe_children, env_fn, self._obs_buffers.values()))
         ]
-        for p in self._processes:
+        for p in self._subprocesses:
             p.start()
-        for c in self._child_remote:
+        for c in self._pipe_children:
             c.close()
-        self._env_state = {env_id: EnvState.INIT for env_id in range(self.env_num)}
+        self._env_states = {env_id: EnvState.INIT for env_id in range(self.env_num)}
         self._waiting_env = {'step': set()}
         self._setup_async_args()
         if hasattr(self, '_env_replay_path'):
-            for p, s in zip(self._parent_remote, self._env_replay_path):
+            for p, s in zip(self._pipe_parents, self._env_replay_path):
                 p.send(CloudpickleWrapper(['enable_save_replay', [s], {}]))
-            for p in self._parent_remote:
+            for p in self._pipe_parents:
                 p.recv()
 
     def _setup_async_args(self) -> None:
@@ -256,7 +256,7 @@ class SubprocessEnvManager(BaseEnvManager):
 
     @property
     def active_env(self) -> List[int]:
-        return [i for i, s in self._env_state.items() if s == EnvState.RUN]
+        return [i for i, s in self._env_states.items() if s == EnvState.RUN]
 
     @property
     def ready_env(self) -> List[int]:
@@ -273,11 +273,11 @@ class SubprocessEnvManager(BaseEnvManager):
             The observations are returned in torch.Tensor.
         Example:
             >>>     obs_dict = env_manager.next_obs
-            >>>     action_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
+            >>>     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
         """
-        no_done_env_idx = [i for i, s in self._env_state.items() if s != EnvState.DONE]
+        no_done_env_idx = [i for i, s in self._env_states.items() if s != EnvState.DONE]
         sleep_count = 0
-        while all([self._env_state[i] == EnvState.RESET for i in no_done_env_idx]):
+        while all([self._env_states[i] == EnvState.RESET for i in no_done_env_idx]):
             print('VEC_ENV_MANAGER: all the not done envs are resetting, sleep {} times'.format(sleep_count))
             time.sleep(1)
             sleep_count += 1
@@ -285,7 +285,7 @@ class SubprocessEnvManager(BaseEnvManager):
 
     @property
     def done(self) -> bool:
-        return all([s == EnvState.DONE for s in self._env_state.values()])
+        return all([s == EnvState.DONE for s in self._env_states.values()])
 
     def launch(self, reset_param: Optional[List[dict]] = None) -> None:
         """
@@ -310,7 +310,7 @@ class SubprocessEnvManager(BaseEnvManager):
         self._check_closed()
         # clear previous info
         for env_id in self._waiting_env['step']:
-            self._parent_remote[env_id].recv()
+            self._pipe_parents[env_id].recv()
         self._waiting_env['step'].clear()
 
         if reset_param is None:
@@ -319,8 +319,8 @@ class SubprocessEnvManager(BaseEnvManager):
         # set seed
         if hasattr(self, '_env_seed'):
             for i in range(self.env_num):
-                self._parent_remote[i].send(CloudpickleWrapper(['seed', [self._env_seed[i]], {}]))
-            ret = [p.recv().data for p in self._parent_remote]
+                self._pipe_parents[i].send(CloudpickleWrapper(['seed', [self._env_seed[i]], {}]))
+            ret = [p.recv().data for p in self._pipe_parents]
             self._check_data(ret)
 
         # reset env
@@ -338,13 +338,13 @@ class SubprocessEnvManager(BaseEnvManager):
 
         @retry_wrapper
         def reset_fn():
-            self._parent_remote[env_id].send(CloudpickleWrapper(['reset', [], self._reset_param[env_id]]))
-            obs = self._parent_remote[env_id].recv().data
+            self._pipe_parents[env_id].send(CloudpickleWrapper(['reset', [], self._reset_param[env_id]]))
+            obs = self._pipe_parents[env_id].recv().data
             self._check_data([obs], close=False)
             if self.shared_memory:
                 obs = self._obs_buffers[env_id].get()
             with self._lock:
-                self._env_state[env_id] = EnvState.RUN
+                self._env_states[env_id] = EnvState.RUN
                 self._next_obs[env_id] = obs
 
         try:
@@ -356,44 +356,44 @@ class SubprocessEnvManager(BaseEnvManager):
                 self.close()
                 raise e
 
-    def step(self, action: Dict[int, Any]) -> Dict[int, namedtuple]:
+    def step(self, actions: Dict[int, Any]) -> Dict[int, namedtuple]:
         """
         Overview:
             Wrapper of step function in the environment.
         Arguments:
-            - action (:obj:`Dict`): a dictionary, {env_id: action}, which includes actions and their env ids.
+            - actions (:obj:`Dict`): a dictionary, {env_id: action}, which includes actions and their env ids.
         Return:
             - timesteps (:obj:`Dict`): a dictionary, {env_id: timestep}, which includes each env's timestep.
         Note:
-            - The env_id that appears in action will also be returned in timesteps.
+            - The env_id that appears in actions will also be returned in timesteps.
             - Each environment is run by a subprocess seperately. Once an environment is done, it is reset immediately.
         Example:
-            >>>     action_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
-            >>>     timesteps = env_manager.step(action_dict):
+            >>>     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
+            >>>     timesteps = env_manager.step(actions_dict):
             >>>     for env_id, timestep in timesteps.items():
             >>>         pass
         """
         self._check_closed()
-        env_ids = list(action.keys())
-        assert all([self._env_state[env_id] == EnvState.RUN for env_id in env_ids]
+        env_ids = list(actions.keys())
+        assert all([self._env_states[env_id] == EnvState.RUN for env_id in env_ids]
                    ), 'current env state are: {}, please check whether the requested env is in reset or done'.format(
-                       {env_id: self._env_state[env_id]
+                       {env_id: self._env_states[env_id]
                         for env_id in env_ids}
                    )
 
-        for env_id, act in action.items():
+        for env_id, act in actions.items():
             act = self._transform(act)
-            self._parent_remote[env_id].send(CloudpickleWrapper(['step', [act], {}]))
+            self._pipe_parents[env_id].send(CloudpickleWrapper(['step', [act], {}]))
 
-        handle = self._async_args['step']
-        wait_num, timeout = min(handle['wait_num'], len(env_ids)), handle['timeout']
+        step_args = self._async_args['step']
+        wait_num, timeout = min(step_args['wait_num'], len(env_ids)), step_args['timeout']
         rest_env_ids = list(set(env_ids).union(self._waiting_env['step']))
 
         ready_env_ids = []
         timesteps = {}
         cur_rest_env_ids = copy.deepcopy(rest_env_ids)
         while True:
-            rest_conn = [self._parent_remote[env_id] for env_id in cur_rest_env_ids]
+            rest_conn = [self._pipe_parents[env_id] for env_id in cur_rest_env_ids]
             ready_conn, ready_ids = SubprocessEnvManager.wait(rest_conn, min(wait_num, len(rest_conn)), timeout)
             cur_ready_env_ids = [cur_rest_env_ids[env_id] for env_id in ready_ids]
             assert len(cur_ready_env_ids) == len(ready_conn)
@@ -415,7 +415,7 @@ class SubprocessEnvManager(BaseEnvManager):
 
         for env_id, timestep in timesteps.items():
             if timestep.info.get('abnormal', False):
-                self._env_state[env_id] = EnvState.RESET
+                self._env_states[env_id] = EnvState.RESET
                 reset_thread = PropagatingThread(target=self._reset, args=(env_id, ), name='abnormal_reset')
                 reset_thread.daemon = True
                 reset_thread.start()
@@ -426,9 +426,9 @@ class SubprocessEnvManager(BaseEnvManager):
             if timestep.done:
                 self._env_episode_count[env_id] += 1
                 if self._env_episode_count[env_id] >= self._epsiode_num:
-                    self._env_state[env_id] = EnvState.DONE
+                    self._env_states[env_id] = EnvState.DONE
                 else:
-                    self._env_state[env_id] = EnvState.RESET
+                    self._env_states[env_id] = EnvState.RESET
                     reset_thread = PropagatingThread(target=self._reset, args=(env_id, ), name='regular_reset')
                     reset_thread.daemon = True
                     reset_thread.start()
@@ -513,9 +513,9 @@ class SubprocessEnvManager(BaseEnvManager):
             raise AttributeError("env `{}` doesn't have the attribute `{}`".format(type(self._env_ref), key))
         if isinstance(getattr(self._env_ref, key), MethodType) and key not in self.method_name_list:
             raise RuntimeError("env getattr doesn't supports method({}), please override method_name_list".format(key))
-        for p in self._parent_remote:
+        for p in self._pipe_parents:
             p.send(CloudpickleWrapper(['getattr', [key], {}]))
-        ret = [p.recv().data for p in self._parent_remote]
+        ret = [p.recv().data for p in self._pipe_parents]
         self._check_data(ret)
         return ret
 
@@ -531,13 +531,13 @@ class SubprocessEnvManager(BaseEnvManager):
             return
         self._closed = True
         self._env_ref.close()
-        for p in self._parent_remote:
+        for p in self._pipe_parents:
             p.send(CloudpickleWrapper(['close', None, None]))
-        for p in self._processes:
+        for p in self._subprocesses:
             p.join()
-        for p in self._processes:
+        for p in self._subprocesses:
             p.terminate()
-        for p in self._parent_remote:
+        for p in self._pipe_parents:
             p.close()
 
     @staticmethod
