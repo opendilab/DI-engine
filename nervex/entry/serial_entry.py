@@ -73,8 +73,7 @@ def serial_pipeline(
         math.ceil(cfg.policy.learn.train_step / cfg.replay_buffer.agent.max_reuse)
     )
     # accumulate plenty of data in the beginning of training
-    # init_data_count = cfg.policy.learn.get('init_data_count', enough_data_count)
-    init_data_count = cfg.policy.learn.get('init_data_count')
+    init_data_count = cfg.policy.learn.get('init_data_count', enough_data_count)
     use_priority = cfg.policy.get('use_priority', False)
     learner.call_hook('before_run')
     while True:

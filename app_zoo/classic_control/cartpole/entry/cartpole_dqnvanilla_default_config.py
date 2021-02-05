@@ -34,7 +34,7 @@ cartpole_dqnvanilla_default_config = dict(
             traj_len=traj_len,
             unroll_len=1,
             algo=dict(
-                nstep=nstep,
+                nstep=1,
             ),
         ),
         command=dict(

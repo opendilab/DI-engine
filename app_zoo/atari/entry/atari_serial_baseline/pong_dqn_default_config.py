@@ -1,75 +1,82 @@
 from easydict import EasyDict
 
-bitflip_dqn_default_config = dict(
+traj_len = 11
+nstep = 3
+pong_dqn_default_config = dict(
     env=dict(
-        env_manager_type='base',
-        import_names=['app_zoo.classic_control.bitflip.envs.bitflip_env'],
-        env_type='bitflip',
-        actor_env_num=1,
+        env_manager_type='subprocess',
+        import_names=['app_zoo.atari.envs.atari_env'],
+        env_type='atari',
+        env_id='PongNoFrameskip-v4',
+        frame_stack=4,
+        is_train=True,
+        actor_env_num=16,
         evaluator_env_num=8,
-        n_bits=5,
     ),
     policy=dict(
-        use_cuda=False,
+        use_cuda=True,
         policy_type='dqn',
         import_names=['nervex.policy.dqn'],
         on_policy=False,
         model=dict(
-            obs_dim=10,
-            action_dim=5,
-            embedding_dim=64,
-            dueling=False,
+            encoder_kwargs=dict(
+                encoder_type='conv2d',
+            ),
+            obs_dim=[4, 84, 84],
+            action_dim=6,
+            embedding_dim=512,
+            head_kwargs=dict(
+                dueling=False,
+            ),
         ),
         learn=dict(
-            train_step=1,
+            train_step=20,
             batch_size=32,
             learning_rate=0.0001,
-            weight_decay=0,
+            weight_decay=0.0,
             algo=dict(
-                nstep=1,
                 target_update_freq=500,
-                discount_factor=0.9,
+                discount_factor=0.99,
+                nstep=nstep,
             ),
         ),
         collect=dict(
-            traj_len=50,
+            traj_len=traj_len,
             unroll_len=1,
             algo=dict(
-                nstep=1,
-                use_her=True,
-                her_strategy='final',
-                her_replay_k=1,
+                nstep=nstep,
             ),
         ),
         command=dict(
             eps=dict(
                 type='exp',
-                start=0.95,
-                end=0.02,
-                decay=10000,
+                start=1.,
+                end=0.05,
+                decay=200000,
             ),
         ),
     ),
     replay_buffer=dict(
         buffer_name=['agent'],
         agent=dict(
-            meta_maxlen=5000,
-            min_sample_ratio=5,
+            meta_maxlen=10000,
             max_reuse=100,
+            min_sample_ratio=1,
         ),
     ),
     actor=dict(
-        n_episode=1,
-        traj_len=50,
+        n_sample=100,
+        traj_len=traj_len,
         traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(
-        n_episode=16,
-        eval_freq=100,
-        stop_val=0.9,
+        n_episode=4,
+        eval_freq=5000,
+        stop_val=20,
     ),
     learner=dict(
+        load_path='',
         hook=dict(
             log_show=dict(
                 name='log_show',
@@ -84,4 +91,4 @@ bitflip_dqn_default_config = dict(
     ),
     commander=dict(),
 )
-bitflip_dqn_default_config = EasyDict(bitflip_dqn_default_config)
+pong_dqn_default_config = EasyDict(pong_dqn_default_config)

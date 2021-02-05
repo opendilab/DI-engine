@@ -81,11 +81,7 @@ class LeagueWrapper(object):
         self.league = create_league(self.cfg, save_checkpoint_fn, load_checkpoint_fn, launch_match_fn)
 
     def _register_league(self):
-        d = {
-            'league_ip': self.league_ip,
-            'player_ids': self.player_ids,
-            'player_ckpts': self.player_ckpts
-        }
+        d = {'league_ip': self.league_ip, 'player_ids': self.player_ids, 'player_ckpts': self.player_ckpts}
         while True:
             try:
                 response = requests.post(self.url_prefix + "coordinator/register_league", json=d).json()

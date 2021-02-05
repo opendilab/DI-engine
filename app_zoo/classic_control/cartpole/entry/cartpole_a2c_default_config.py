@@ -1,7 +1,6 @@
 from easydict import EasyDict
 
-nstep = 3
-cartpole_rainbowdqn_default_config = dict(
+cartpole_a2c_default_config = dict(
     env=dict(
         env_manager_type='base',
         import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
@@ -11,44 +10,34 @@ cartpole_rainbowdqn_default_config = dict(
     ),
     policy=dict(
         use_cuda=False,
-        policy_type='rainbow_dqn',
-        import_names=['nervex.policy.dqn', 'nervex.policy.rainbow_dqn'],
-        on_policy=False,
-        use_priority=True,
+        policy_type='a2c',
+        import_names=['nervex.policy.a2c'],
+        on_policy=True,
         model=dict(
             obs_dim=4,
             action_dim=2,
             embedding_dim=64,
-            v_max=10,
-            v_min=-10,
-            n_atom=51,
         ),
         learn=dict(
-            train_step=3,
+            train_step=5,
             batch_size=64,
-            learning_rate=0.001,
-            weight_decay=0.0001,
+            learning_rate=0.0003,
+            weight_decay=0.0,
             algo=dict(
-                target_update_freq=100,
-                discount_factor=0.97,
-                nstep=nstep,
+                use_adv_norm=True,
+                value_weight=0.5,
+                entropy_weight=0.01,
             ),
         ),
         collect=dict(
-            traj_len=(8 + nstep),
+            traj_len='inf',
             unroll_len=1,
             algo=dict(
-                nstep=nstep,
+                discount_factor=0.9,
+                gae_lambda=0.95,
             ),
         ),
-        command=dict(
-            eps=dict(
-                type='exp',
-                start=0.95,
-                end=0.1,
-                decay=10000,
-            ),
-        ),
+        command=dict(),
     ),
     replay_buffer=dict(
         buffer_name=['agent'],
@@ -59,8 +48,8 @@ cartpole_rainbowdqn_default_config = dict(
         ),
     ),
     actor=dict(
-        n_sample=80,
-        traj_len=(8 + nstep),
+        n_sample=8,
+        traj_len=200,  # cartpole max episode len
         traj_print_freq=100,
         collect_print_freq=100,
     ),
@@ -85,4 +74,4 @@ cartpole_rainbowdqn_default_config = dict(
     ),
     commander=dict(),
 )
-cartpole_rainbowdqn_default_config = EasyDict(cartpole_rainbowdqn_default_config)
+cartpole_a2c_default_config = EasyDict(cartpole_a2c_default_config)

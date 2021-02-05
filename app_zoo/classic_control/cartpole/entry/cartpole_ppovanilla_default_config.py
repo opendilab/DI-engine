@@ -37,7 +37,14 @@ cartpole_ppovanilla_default_config = dict(
                 gae_lambda=0.95,
             ),
         ),
-        command=dict(),
+        command=dict(
+            eps=dict(
+                type='exp',
+                start=0.95,
+                end=0.1,
+                decay=10000,
+            ),
+        ),
     ),
     replay_buffer=dict(
         buffer_name=['agent'],

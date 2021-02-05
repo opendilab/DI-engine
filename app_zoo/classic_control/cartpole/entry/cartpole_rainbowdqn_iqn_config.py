@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-traj_len = 1
+nstep = 3
 cartpole_rainbowdqn_iqn_config = dict(
     env=dict(
         env_manager_type='base',
@@ -36,7 +36,7 @@ cartpole_rainbowdqn_iqn_config = dict(
                 quantile_num=8,
                 target_update_freq=100,
                 discount_factor=0.97,
-                nste=nstep,
+                nstep=nstep,
             ),
         ),
         collect=dict(

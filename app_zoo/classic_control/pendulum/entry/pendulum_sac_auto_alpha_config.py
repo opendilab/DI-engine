@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 use_twin_q = True
-pendulum_sac_default_config = dict( 
+pendulum_sac_auto_alpha_config = dict(
     env=dict(
         norm_obs=dict(
             use_norm=False,
@@ -9,9 +9,9 @@ pendulum_sac_default_config = dict(
         norm_reward=dict( 
             use_norm=False,
         ),
-        env_manager_type='base'，
-        import_names=['app_zoo.classic_control.pendulum.envs.pendulum_env']，
-        env_type='pendulum'，
+        env_manager_type='base',
+        import_names=['app_zoo.classic_control.pendulum.envs.pendulum_env'],
+        env_type='pendulum',
         actor_env_num=8,
         evaluator_env_num=8,
         use_act_scale=True,
@@ -34,7 +34,7 @@ pendulum_sac_default_config = dict(
             learning_rate_value=0.0003,
             learning_rate_policy=0.0003,
             learning_rate_alpha=0.003,
-            weight_deca=0.0001,
+            weight_decay=0.0001,
             ignore_done=True,
             algo=dict(
                 target_theta=0.005,
@@ -90,4 +90,4 @@ pendulum_sac_default_config = dict(
     ),
     commander=dict(),
 )
-pendulum_sac_default_config = EasyDict(pendulum_sac_default_config)
+pendulum_sac_auto_alpha_config = EasyDict(pendulum_sac_auto_alpha_config)
