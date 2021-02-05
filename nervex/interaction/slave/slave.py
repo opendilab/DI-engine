@@ -21,11 +21,11 @@ from ..exception import SlaveErrorCode, get_slave_exception_by_error, get_master
 class Slave(ControllableService):
 
     def __init__(
-            self,
-            host: Optional[str] = None,
-            port: Optional[int] = None,
-            heartbeat_span: Optional[float] = None,
-            channel: Optional[int] = None
+        self,
+        host: Optional[str] = None,
+        port: Optional[int] = None,
+        heartbeat_span: Optional[float] = None,
+        channel: Optional[int] = None
     ):
         # server part
         self.__host = host or GLOBAL_HOST
