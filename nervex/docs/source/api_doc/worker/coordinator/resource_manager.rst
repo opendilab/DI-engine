@@ -1,6 +1,6 @@
 
 
-resource_manager
+worker.coordinator.resource_manager
 --------------------------
 
 
