@@ -65,3 +65,9 @@ API Doc
     worker/learner/learner_hook
     worker/actor/env_manager/vec_env_manager
     worker/actor/env_manager/base_env_manager
+    worker/coordinator/base_parallel_commander
+    worker/coordinator/base_serial_commander
+    worker/coordinator/coordinator_interaction
+    worker/coordinator/coordinator
+    worker/coordinator/resource_manager
+    worker/coordinator/solo_parallel_commander
