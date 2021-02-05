@@ -131,8 +131,6 @@ class FlaskFileSystemLearner(BaseCommLearner):
         """
         if self._end_flag:
             return
-        if hasattr(self, '_learner_thread'):
-            self._learner_thread.join()
         if self._learner is not None:
             self._learner.close()
         self._slave.close()
