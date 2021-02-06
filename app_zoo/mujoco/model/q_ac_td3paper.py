@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from typing import Dict, List, Union, Optional
 
-from nervex.model.common_arch import QActorCriticBase
+from nervex.model.common import QActorCriticBase
 from nervex.utils import squeeze
 
 
