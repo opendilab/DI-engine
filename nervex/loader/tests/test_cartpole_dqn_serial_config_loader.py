@@ -3,8 +3,7 @@ import math
 import pytest
 
 from app_zoo.classic_control.cartpole.entry.cartpole_dqn_default_config import cartpole_dqn_default_config
-from nervex.loader import dict_, is_type, to_type, collection, interval, is_positive, mcmp, enum, item, keep, raw, \
-    Loader
+from nervex.loader import dict_, is_type, to_type, collection, interval, is_positive, mcmp, enum, item, raw, check_only
 from nervex.utils import pretty_print
 
 
@@ -81,19 +80,17 @@ def test_real_loader():
     policy_traj_len = item('policy') >> item('collect') >> item('traj_len')
     policy_unroll_len = item('policy') >> item('collect') >> item('unroll_len')
     actor_traj_len = item('actor') >> item('traj_len')
-    relation_loader = dict_(
-        nstep_check=mcmp(learn_nstep, "==", collect_nstep),
-        unroll_len_check=mcmp(policy_unroll_len, "<=", policy_traj_len),
-        eps_check=item('policy') >> item('command') >> item('eps') >> mcmp(item('start'), ">=", item('end')),
-        traj_len_check=mcmp(policy_traj_len, "==", actor_traj_len),
-    ) & keep()
+    relation_loader = check_only(
+        dict_(
+            nstep_check=mcmp(learn_nstep, "==", collect_nstep),
+            unroll_len_check=mcmp(policy_unroll_len, "<=", policy_traj_len),
+            eps_check=item('policy') >> item('command') >> item('eps') >> mcmp(item('start'), ">=", item('end')),
+            traj_len_check=mcmp(policy_traj_len, "==", actor_traj_len),
+        )
+    )
     cartpole_dqn_loader = element_loader >> relation_loader
 
-    try:
-        assert 'context' not in cartpole_dqn_default_config['env']['manager']
-        output = cartpole_dqn_loader(cartpole_dqn_default_config)
-        pretty_print(output, direct_print=True)
-        assert output['env']['manager']['context'] == 'fork'
-    except Exception as e:
-        raise e
-        assert False, "loader error"
+    assert 'context' not in cartpole_dqn_default_config['env']['manager']
+    output = cartpole_dqn_loader(cartpole_dqn_default_config)
+    pretty_print(output, direct_print=True)
+    assert output['env']['manager']['context'] == 'fork'
