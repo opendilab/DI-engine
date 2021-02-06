@@ -1,19 +1,36 @@
 @startuml serial_evaluator
+header Serial Pipeline
+title Serial Evaluator
+
+|#green|serial_controller|
+|#pink|env_manager|
+|#orange|policy|
+|evaluator|
+
+|#green|serial_controller|
 start
-#orange:serial_controller init, set env_manager and eval_mode policy;
-#pink:env reset;
+:init evaluator, set its \nenv_manager and \neval_mode policy;
+|#pink|env_manager|
+:env reset;
 repeat
-  #orange:policy data_preprocess;
-  #orange:policy forward_with_obs;
-  #orange:policy data_postprocess;
-  #pink:env step_with_action;
+  |#orange|policy|
+  :policy data_preprocess;
+  :policy forward with obs;
+  :policy data_postprocess;
+  |#pink|env_manager|
+  :env step with action;
+  |evaluator|
   if (for every env: env i is done?) then (yes)
-    #pink:env reset_i;
-    #orange:policy eval_mode_reset;
-    :evaluator log_episode_result;
+    |#pink|env_manager|
+    :env i reset;
+    |#orange|policy|
+    :policy eval_mode reset;
+    |evaluator|
+    :evaluator log episode_eval_info;
   endif
-  :evaluator log_statistics_data;
+  :evaluator log statistics;
 repeat while (eval episodes are not enough?)
-:evaluator get_average_episode_result;
+|evaluator|
+:evaluator return eval_reward\n(episode-averaged);
 stop
 @enduml

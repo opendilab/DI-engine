@@ -1,4 +1,7 @@
 @startuml serial_main
+header Serial Pipeline
+title Serial Main
+
 participant controller
 participant env_manager
 participant policy
