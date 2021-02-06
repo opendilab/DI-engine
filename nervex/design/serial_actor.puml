@@ -14,7 +14,7 @@ repeat
     :actor save_traj_for_return;
     if (env i is done?) then (yes)
       #pink:env reset_i;
-      #orange:policy callback_env_done_i;
+      #orange:policy collect_mode_reset;
       :actor log_episode_result;
     endif
   endif

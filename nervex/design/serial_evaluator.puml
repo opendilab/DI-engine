@@ -9,7 +9,7 @@ repeat
   #pink:env step_with_action;
   if (for every env: env i is done?) then (yes)
     #pink:env reset_i;
-    #orange:policy callback_env_done_i;
+    #orange:policy eval_mode_reset;
     :evaluator log_episode_result;
   endif
   :evaluator log_statistics_data;
