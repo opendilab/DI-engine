@@ -9,7 +9,7 @@ import numpy as np
 import torch
 from easydict import EasyDict
 
-from nervex.envs import get_subprocess_env_setting
+from nervex.envs import get_vec_env_setting
 from nervex.torch_utils import to_device, tensor_to_list
 from nervex.utils import get_data_compressor, lists_to_dicts
 from .env_manager import SubprocessEnvManager, BaseEnvManager
@@ -51,7 +51,7 @@ class ZerglingActor(BaseActor):
         self._total_episode = 0
 
     def _setup_env_manager(self) -> BaseEnvManager:
-        env_fn, actor_env_cfg, evaluator_env_cfg = get_subprocess_env_setting(self._env_kwargs)
+        env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(self._env_kwargs)
         if self._eval_flag:
             env_cfg = evaluator_env_cfg
             episode_num = self._env_kwargs.evaluator_episode_num

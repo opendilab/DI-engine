@@ -10,9 +10,10 @@ import warnings
 from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommander
 from nervex.worker import BaseEnvManager, SubprocessEnvManager
 from nervex.utils import read_config
+from nervex.config import Config
 from nervex.data import BufferManager
 from nervex.policy import create_policy
-from nervex.envs import get_subprocess_env_setting
+from nervex.envs import get_vec_env_setting
 
 
 def serial_pipeline(
@@ -33,14 +34,21 @@ def serial_pipeline(
         - model (:obj:`Optional[Union[type, torch.nn.Module]]`): Instance or subclass of torch.nn.Module.
     """
     if isinstance(cfg, str):
-        cfg = read_config(cfg)
+        suffix = cfg.split('.')[-1]
+        if suffix == 'yaml':
+            cfg = read_config(cfg)
+        elif suffix == 'py':
+            cfg = Config.file_to_dict(cfg).cfg_dict
+            cfg = cfg['main_config']
+        else:
+            raise KeyError("invalid config file suffix: {}".format(suffix))
     # Default case: Create env_num envs with copies of env cfg.
-    # If you want to indicate different cfg for different env, please refer to ``get_subprocess_env_setting``.
+    # If you want to indicate different cfg for different env, please refer to ``get_vec_env_setting``.
     # Usually, user-defined env must be registered in nervex so that it can be created with config string;
     # Or you can also directly pass in env_fn argument, in some dynamic env class cases.
     manager_cfg = cfg.env.get('manager', {})
     if env_setting is None:
-        env_fn, actor_env_cfg, evaluator_env_cfg = get_subprocess_env_setting(cfg.env)
+        env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     else:
         env_fn, actor_env_cfg, evaluator_env_cfg = env_setting
     env_manager_type = BaseEnvManager if cfg.env.env_manager_type == 'base' else SubprocessEnvManager
@@ -103,7 +111,6 @@ def serial_pipeline(
             eval_interval = 0
             if stop_flag:
                 # Evaluator's mean episode reward reaches the expected ``stop_val``.
-                learner.save_checkpoint()
                 print("Your RL agent is converged, you can refer to 'log/evaluator/evaluator_logger.txt' for details")
                 break
             else:
