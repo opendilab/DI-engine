@@ -5,7 +5,7 @@ from typing import Union, Optional, List, Any
 import numpy as np
 import torch
 import math
-import warnings
+import logging
 
 from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommander
 from nervex.worker import BaseEnvManager, SubprocessEnvManager
@@ -22,6 +22,7 @@ def serial_pipeline(
         env_setting: Optional[Any] = None,
         policy_type: Optional[type] = None,
         model: Optional[Union[type, torch.nn.Module]] = None,
+        enable_total_log: Optional[bool] = False,
 ) -> None:
     r"""
     Overview:
@@ -32,7 +33,12 @@ def serial_pipeline(
         - env_setting (:obj:`Optional[Any]`): Subclass of ``BaseEnv``, and config dict.
         - policy_type (:obj:`Optional[type]`): Subclass of ``Policy``.
         - model (:obj:`Optional[Union[type, torch.nn.Module]]`): Instance or subclass of torch.nn.Module.
+        - enable_total_log (:obj:`Optional[bool]`): whether enable total nervex system log
     """
+    # Disable some parts nervex system log
+    if not enable_total_log:
+        actor_log = logging.getLogger('actor_logger')
+        actor_log.disabled = True
     if isinstance(cfg, str):
         suffix = cfg.split('.')[-1]
         if suffix == 'yaml':
@@ -132,7 +138,7 @@ def serial_pipeline(
             if train_data is None:
                 # As noted above: It is possible that replay buffer's data count is
                 # greater than ``target_count```, but still has no enough data to train ``train_step`` times.
-                warnings.warn(
+                logging.warning(
                     "Replay buffer's data can only train for {} steps. ".format(i) +
                     "You can modify data collect config, e.g. increasing n_sample, n_episode or min_sample_ratio."
                 )

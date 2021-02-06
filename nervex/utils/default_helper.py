@@ -3,7 +3,7 @@ Copyright 2020 Sensetime X-lab. All Rights Reserved
 """
 from typing import Union, Mapping, List, NamedTuple, Tuple, Callable, Optional, Any
 import copy
-import warnings
+import logging
 
 
 def lists_to_dicts(
@@ -127,7 +127,7 @@ def default_get(
         if judge_fn:
             assert judge_fn(value), "defalut value({}) is not accepted by judge_fn".format(type(value))
         if name not in default_get_set:
-            warnings.warn("{} use default value {}".format(name, value))
+            logging.warning("{} use default value {}".format(name, value))
             default_get_set.add(name)
         return value
 
