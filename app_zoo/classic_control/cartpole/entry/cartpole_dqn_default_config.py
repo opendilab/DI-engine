@@ -3,13 +3,6 @@ from easydict import EasyDict
 nstep = 1
 traj_len = 1
 cartpole_dqn_default_config = dict(
-    common=dict(
-        name='CartpoleDqnConfig',
-        # Path for saving, e.g. loggers, checkpoint, etc.'
-        save_path='.',
-        # Path for loading, e.g. loading checkpoint. If "load_path" == '', do not load anything.
-        load_path='',
-    ),
     env=dict(
         # Support ['base', 'subprocess']. 'base' is pseudo parallel and 'subprocess' is subprocess parallel.
         # 'base' is used for some light env(e.g. cartpole), whose env step time is much shorter than IPC time.
