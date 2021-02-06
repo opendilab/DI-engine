@@ -12,6 +12,7 @@ class NaiveActor(Slave):
     Interfaces:
         _process_task, _get_timestep
     """
+
     def _process_task(self, task):
         """
         Overview:
