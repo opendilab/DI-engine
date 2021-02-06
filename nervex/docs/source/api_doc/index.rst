@@ -15,7 +15,7 @@ API Doc
     data/collate_fn
     data/buffer_manager
     env/sumo_env
-    league/league_manager
+    league/league
     league/payoff
     league/player
     model/actor_critic
@@ -30,6 +30,8 @@ API Doc
     policy/dqn
     policy/r2d2
     policy/rainbow_dqn
+    policy/qmix
+    policy/collaQ
     rl_utils/a2c
     rl_utils/adder
     rl_utils/coma
@@ -46,7 +48,7 @@ API Doc
     torch_utils/distribution
     torch_utils/metric
     torch_utils/nn_test_helper
-    torch_utils/optimizer_util
+    torch_utils/optimizer_helper
     torch_utils_network/network
     utils/compression_helper
     utils/config_helper
@@ -61,3 +63,5 @@ API Doc
     worker/learner/base_learner
     worker/learner/learner_comm
     worker/learner/learner_hook
+    worker/actor/env_manager/vec_env_manager
+    worker/actor/env_manager/base_env_manager

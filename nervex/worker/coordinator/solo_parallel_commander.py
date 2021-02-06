@@ -24,6 +24,7 @@ class SoloCommander(BaseCommander):
     def get_actor_task(self) -> Union[None, dict]:
         if self._actor_task_space.acquire_space():
             if self._current_buffer_id is None or self._current_policy_id is None:
+                self._actor_task_space.release_space()
                 return None
             cur_time = time.time()
             if cur_time - self._last_eval_time > self._cfg.eval_interval:
@@ -65,6 +66,10 @@ class SoloCommander(BaseCommander):
             self._evaluator_info.append(finished_task)
             eval_stop_val = self._cfg.actor_cfg.env_kwargs.eval_stop_val
             if eval_stop_val is not None and finished_task['reward_mean'] >= eval_stop_val:
+                print(
+                    "[nerveX parallel pipeline] current eval_reward: {} is greater than the stop_val: {}".
+                    format(finished_task['reward_mean'], eval_stop_val) + ", so the total training program is over."
+                )
                 return True
         return False
 

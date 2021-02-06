@@ -5,14 +5,13 @@ from app_zoo.multiagent_particle.envs.multiagent.scenario import BaseScenario
 
 class Scenario(BaseScenario):
 
-    def make_world(self):
+    def make_world(self, num_agents=2, num_landmarks=3):
         world = World()
         # set any world properties first
         world.dim_c = 3
-        num_landmarks = 3
         world.collaborative = True
         # add agents
-        world.agents = [Agent() for i in range(2)]
+        world.agents = [Agent() for i in range(num_agents)]
         for i, agent in enumerate(world.agents):
             agent.name = 'agent %d' % i
             agent.collide = False
@@ -60,7 +59,7 @@ class Scenario(BaseScenario):
 
     def benchmark_data(self, agent, world):
         # returns data for benchmarking purposes
-        return self.reward(agent, reward)
+        return self.reward(agent, world)
 
     def reward(self, agent, world):
         # squared distance from listener to landmark

@@ -3,7 +3,7 @@ import subprocess
 import time
 import pickle
 import logging
-from threading import Thread
+from threading import Thread, Event
 from easydict import EasyDict
 from nervex.worker import create_comm_learner, create_comm_actor, Coordinator, LearnerAggregator
 from nervex.config import Config, parallel_transform, parallel_transform_slurm
@@ -24,12 +24,14 @@ def parallel_pipeline(
         cfg = Config.file_to_dict(filename).cfg_dict
         config = cfg['main_config']
         config = parallel_transform(config, coordinator_host, learner_host, actor_host)
+        learner_handle = []
+        actor_handle = []
         for k, v in config.items():
             if 'learner' in k:
-                launch_learner(v)
+                learner_handle.append(launch_learner(v))
             elif 'actor' in k:
-                launch_actor(v)
-        launch_coordinator(config.coordinator)
+                actor_handle.append(launch_actor(v))
+        launch_coordinator(config.coordinator, learner_handle=learner_handle, actor_handle=actor_handle)
     elif platform == 'slurm':
         cfg = Config.file_to_dict(filename).cfg_dict
         config = cfg['main_config']
@@ -86,12 +88,23 @@ def parallel_pipeline(
         raise NotImplementedError
 
 
-def launch_learner(config: Optional[dict] = None, filename: Optional[str] = None, name: Optional[str] = None) -> None:
+def launch_learner(config: Optional[dict] = None, filename: Optional[str] = None, name: Optional[str] = None) -> list:
     if config is None:
         with open(filename, 'rb') as f:
             config = pickle.load(f)[name]
-    learner = create_comm_learner(config)
-    learner.start()
+    start_learner_event = Event()
+    close_learner_event = Event()
+
+    def run_learner():
+        learner = create_comm_learner(config)
+        learner.start()
+        start_learner_event.set()
+        close_learner_event.wait()
+        learner.close()
+
+    learner_thread = Thread(target=run_learner, args=(), name='learner_entry_thread')
+    learner_thread.start()
+    return learner_thread, start_learner_event, close_learner_event
 
 
 def launch_learner_aggregator(filename: Optional[str] = None, name: Optional[str] = None) -> None:
@@ -101,19 +114,39 @@ def launch_learner_aggregator(filename: Optional[str] = None, name: Optional[str
     aggregator.start()
 
 
-def launch_actor(config: Optional[dict] = None, filename: Optional[str] = None, name: Optional[str] = None) -> None:
+def launch_actor(config: Optional[dict] = None, filename: Optional[str] = None, name: Optional[str] = None) -> list:
     if config is None:
         with open(filename, 'rb') as f:
             config = pickle.load(f)[name]
-    actor = create_comm_actor(config)
-    actor.start()
+    start_actor_event = Event()
+    close_actor_event = Event()
+
+    def run_actor():
+        actor = create_comm_actor(config)
+        actor.start()
+        start_actor_event.set()
+        close_actor_event.wait()
+        actor.close()
+
+    actor_thread = Thread(target=run_actor, args=(), name='actor_entry_thread')
+    actor_thread.start()
+    return actor_thread, start_actor_event, close_actor_event
 
 
-def launch_coordinator(config: Optional[EasyDict] = None, filename: Optional[str] = None) -> None:
+def launch_coordinator(
+        config: Optional[EasyDict] = None,
+        filename: Optional[str] = None,
+        learner_handle: Optional[list] = None,
+        actor_handle: Optional[list] = None
+) -> None:
     if config is None:
         with open(filename, 'rb') as f:
             config = pickle.load(f).coordinator
     coordinator = Coordinator(config)
+    for _, start_event, _ in learner_handle:
+        start_event.wait()
+    for _, start_event, _ in actor_handle:
+        start_event.wait()
     coordinator.start()
 
     # monitor thread
@@ -122,7 +155,11 @@ def launch_coordinator(config: Optional[EasyDict] = None, filename: Optional[str
             time.sleep(3)
             if coordinator.system_shutdown_flag:
                 coordinator.close()
+                for _, _, close_event in learner_handle:
+                    close_event.set()
+                for _, _, close_event in actor_handle:
+                    close_event.set()
                 break
 
-    shutdown_monitor_thread = Thread(target=shutdown_monitor, args=(), daemon=True)
+    shutdown_monitor_thread = Thread(target=shutdown_monitor, args=(), daemon=True, name='shutdown_monitor')
     shutdown_monitor_thread.start()

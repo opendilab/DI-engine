@@ -15,7 +15,7 @@ def epsilon_greedy(start: float, end: float, decay: int, type_: str = 'exp') -> 
         - start (:obj:`float`): epsilon start value, for 'linear' it should be 1.0
         - end (:obj:`float`): epsilon end value
         - decay (:obj:`int`): controls the speed that epsilon decreases from ``start`` to ``end``
-        - type_ (:obj:`str`): how epsilon decays, now supports ['linear', 'exp'(exponential)]
+        - type (:obj:`str`): how epsilon decays, now supports ['linear', 'exp'(exponential)]
     Returns:
         - eps_fn (:obj:`function`): the epsilon greedy function with decay
     """
@@ -23,13 +23,12 @@ def epsilon_greedy(start: float, end: float, decay: int, type_: str = 'exp') -> 
     if type_ == 'exp':
         return lambda x: (start - end) * math.exp(-1 * x / decay) + end
     elif type_ == 'linear':
-        assert start == 1.0, start
 
         def eps_fn(x):
             if x >= decay:
                 return end
             else:
-                return (start - end) * (start - x / decay) + end
+                return (start - end) * (1 - x / decay) + end
 
         return eps_fn
 

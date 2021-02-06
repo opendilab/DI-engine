@@ -153,25 +153,20 @@ class LearnerAggregator(object):
         return merged_info
 
     @staticmethod
-    def merge_info(info_list: list) -> dict:
-
-        def merge(data):
-            elem = data[0]
-            if isinstance(elem, numbers.Integral) or isinstance(elem, str) or isinstance(elem, float):
-                return data
-            elif isinstance(elem, list) or isinstance(elem, tuple):
-                return list(reduce(lambda x, y: x + y, data))
-            elif isinstance(elem, dict):
-                return {k: merge([e[k] for e in data]) for k in elem.keys()}
-            else:
-                raise TypeError("not support type: {}".format(type(elem)))
-
+    def merge_info(info: list) -> dict:
         homogeneous_keys = ['learner_step', 'finished_task', 'buffer_id', 'task_id']
-        elem = info_list[0]
-        merged_info = {}
-        for k in elem.keys():
-            if k in homogeneous_keys:
-                merged_info[k] = elem[k]
-            else:
-                merged_info[k] = merge([e[k] for e in info_list])
-        return merged_info
+        elem = info[0]
+        if isinstance(elem, numbers.Integral) or isinstance(elem, str) or isinstance(elem, float):
+            return info
+        elif isinstance(elem, list) or isinstance(elem, tuple):
+            return list(reduce(lambda x, y: x + y, info))
+        elif isinstance(elem, dict):
+            ret = {}
+            for k in elem.keys():
+                if k in homogeneous_keys:
+                    ret[k] = elem[k]
+                else:
+                    ret[k] = LearnerAggregator.merge_info([e[k] for e in info])
+            return ret
+        else:
+            raise TypeError("not support type: {}".format(type(elem)))

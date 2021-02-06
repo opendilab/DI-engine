@@ -37,7 +37,7 @@ class Master(ControllableService):
         self.__host = host or GLOBAL_HOST
         self.__port = port or DEFAULT_MASTER_PORT
         self.__flask_app_value = None
-        self.__run_app_thread = Thread(target=self.__run_app)
+        self.__run_app_thread = Thread(target=self.__run_app, name='master_run_app')
 
         # heartbeat part
         self.__heartbeat_span = max(heartbeat_span or DEFAULT_HEARTBEAT_SPAN, MIN_HEARTBEAT_SPAN)
@@ -45,7 +45,7 @@ class Master(ControllableService):
         self.__heartbeat_check_span = max(
             heartbeat_check_span or DEFAULT_HEARTBEAT_CHECK_SPAN, MIN_HEARTBEAT_CHECK_SPAN
         )
-        self.__heartbeat_check_thread = Thread(target=self.__heartbeat_check)
+        self.__heartbeat_check_thread = Thread(target=self.__heartbeat_check, name='master_heartbeat')
 
         # self-connection part
         self.__self_http_engine = get_http_engine_class(
@@ -71,7 +71,7 @@ class Master(ControllableService):
 
         # task part
         self.__task_result_queue = Queue()
-        self.__task_result_process_thread = Thread(target=self.__task_result_process)
+        self.__task_result_process_thread = Thread(target=self.__task_result_process, name='master_task_result')
 
         # global part
         self.__shutdown_event = Event()

@@ -1,3 +1,20 @@
+2021.2.1(v0.1.0b2)
+ - 文档补充 (env_manager, dataloader, learner, policy, adder)
+ - dataloader speed test
+ - 单独eval入口
+ - tensorboard优化
+ - SAC auto alpha
+ - install check in doc
+ - render demo(enable_save_replay)
+ - transfer to python-config
+
+2021.1.25(v0.1.0b1)
+ - 添加HER算法
+ - 修改register model机制，改变现在的神经网络创建方式
+ - 修复线程和进程管理相关bug
+ - 若干易用性调整
+ - 优化SAC算法效率
+
 2021.1.19(v0.1.0b0)
  - 异步训练版本
  - multi replay buffer
@@ -18,7 +35,7 @@
  - A2C算法实现，在atari环境上的多机运行示例
  - mujoco环境初步适配
  - DRQN + R2D2算法实现（支持动态RNN，nstep-td, LSTM隐状态burn_in，value rescaling）
- - 重构通用的league manager模块
+ - 重构通用的league模块
  - 分离解耦model/pipeline agent plugin
  - 补充API文档和单元测试（单元测试代码覆盖率83%）
  - 补充MCTS和alphago相关文档

@@ -22,6 +22,7 @@ policy:
         batch_size: 32
         learning_rate: 0.001
         weight_decay: 0.0001
+        init_data_count: 600
         algo:
             value_weight: 0.5
             entropy_weight: 0.01
@@ -62,5 +63,5 @@ learner:
             position: after_iter
             ext_args:
                 freq: 100
-command:
+commander:
     placeholder: 'placeholder'

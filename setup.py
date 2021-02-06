@@ -24,7 +24,7 @@ description = """nerveX: X-Lab Deep Reinforcement Learning Framework"""
 
 setup(
     name='nerveX',
-    version='0.1.0b0',
+    version='0.1.0b2',
     description='X-Lab Reinforcement Learning Framework',
     long_description=description,
     author='X-Lab',
@@ -65,7 +65,7 @@ setup(
         'pyyaml',
         'easydict',
         'opencv-python',  # pypy
-        'tensorboardX',
+        'tensorboardX>=2.1',
         'matplotlib',  # pypy
         'yapf==0.29.0',
         'pytest==5.1.1',
@@ -91,6 +91,7 @@ setup(
         'urllib3==1.25.10',
         'redis==3.5.3',
         'redis-py-cluster==2.1.0',
+        'cmake>=3.18.4'
     ],
     entry_points={
         'console_scripts': [

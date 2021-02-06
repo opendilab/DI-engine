@@ -2,6 +2,7 @@ from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple
 import sys
 import os
+import numpy as np
 import torch
 import torch.nn.functional as F
 
@@ -45,7 +46,18 @@ class SACPolicy(CommonPolicy):
         algo_cfg = self._cfg.learn.algo
         self._algo_cfg_learn = algo_cfg
         self._gamma = algo_cfg.discount_factor
-        self._alpha = algo_cfg.alpha
+        # Init auto alpha
+        if algo_cfg.get('is_auto_alpha', None):
+            self._target_entropy = -np.prod(self._cfg.model.action_dim)
+            self._log_alpha = torch.log(torch.tensor([algo_cfg.alpha])).requires_grad_()
+            self._log_alpha = self._log_alpha.to(device='cuda' if self._use_cuda else 'cpu')
+            self._alpha_optim = torch.optim.Adam([self._log_alpha], lr=self._cfg.learn.learning_rate_alpha)
+            self._is_auto_alpha = True
+            assert self._log_alpha.shape == torch.Size([1]) and self._log_alpha.requires_grad
+            self._alpha = self._log_alpha.detach().exp()
+        else:
+            self._alpha = algo_cfg.alpha
+            self._is_auto_alpha = False
         self._reparameterization = algo_cfg.reparameterization
         self._policy_std_reg_weight = algo_cfg.policy_std_reg_weight
         self._policy_mean_reg_weight = algo_cfg.policy_mean_reg_weight
@@ -72,9 +84,6 @@ class SACPolicy(CommonPolicy):
         Returns:
             - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
-        # =======================
-        # forward of 3 networks
-        # =======================
         loss_dict = {}
 
         obs = data.get('obs')
@@ -94,19 +103,32 @@ class SACPolicy(CommonPolicy):
         q_value = self._agent.forward(data, param={'mode': 'compute_q'})['q_value']
         v_value = self._agent.forward(data, param={'mode': 'compute_value'})['v_value']
 
+        # =================
+        # q network
+        # =================
         # compute q loss
         next_data = {'obs': next_obs}
         target_v_value = self._agent.target_forward(next_data, param={'mode': 'compute_value'})['v_value']
         if self._use_twin_q:
-            q_data = v_1step_td_data(q_value[0], target_v_value, reward, done, data['weight'])
-            loss_dict['q_loss'], td_error_per_sample1 = v_1step_td_error(q_data, self._gamma)
-            q_data = v_1step_td_data(q_value[1], target_v_value, reward, done, data['weight'])
-            loss_dict['q_twin_loss'], td_error_per_sample2 = v_1step_td_error(q_data, self._gamma)
-            td_error_per_sample = (td_error_per_sample1 + td_error_per_sample2) / 2
+            q_data0 = v_1step_td_data(q_value[0], target_v_value, reward, done, data['weight'])
+            loss_dict['q_loss'], td_error_per_sample0 = v_1step_td_error(q_data0, self._gamma)
+            q_data1 = v_1step_td_data(q_value[1], target_v_value, reward, done, data['weight'])
+            loss_dict['q_twin_loss'], td_error_per_sample1 = v_1step_td_error(q_data1, self._gamma)
+            td_error_per_sample = (td_error_per_sample0 + td_error_per_sample1) / 2
         else:
             q_data = v_1step_td_data(q_value, target_v_value, reward, done, data['weight'])
             loss_dict['q_loss'], td_error_per_sample = v_1step_td_error(q_data, self._gamma)
 
+        # update q network
+        self._optimizer_q.zero_grad()
+        loss_dict['q_loss'].backward()
+        if self._use_twin_q:
+            loss_dict['q_twin_loss'].backward()
+        self._optimizer_q.step()
+
+        # =================
+        # value network
+        # =================
         # compute value loss
         eval_data['obs'] = obs
         new_q_value = self._agent.forward(eval_data, param={'mode': 'compute_q'})['q_value']
@@ -116,6 +138,14 @@ class SACPolicy(CommonPolicy):
         next_v_value = (new_q_value.unsqueeze(-1) - self._alpha * log_prob).mean(dim=-1)
         loss_dict['value_loss'] = F.mse_loss(v_value, next_v_value.detach())
 
+        # update value network
+        self._optimizer_value.zero_grad()
+        loss_dict['value_loss'].backward()
+        self._optimizer_value.step()
+
+        # =================
+        # policy network
+        # =================
         # compute policy loss
         if not self._reparameterization:
             target_log_policy = new_q_value - v_value
@@ -128,22 +158,23 @@ class SACPolicy(CommonPolicy):
 
         policy_loss += std_reg_loss + mean_reg_loss
         loss_dict['policy_loss'] = policy_loss
-        loss_dict['total_loss'] = sum(loss_dict.values())
 
-        # ======================
-        # update of 3 networks
-        # ======================
-        self._optimizer_q.zero_grad()
-        loss_dict['q_loss'].backward()
-        self._optimizer_q.step()
-
-        self._optimizer_value.zero_grad()
-        loss_dict['value_loss'].backward()
-        self._optimizer_value.step()
-
+        # update policy network
         self._optimizer_policy.zero_grad()
         loss_dict['policy_loss'].backward()
         self._optimizer_policy.step()
+
+        #  compute alpha loss
+        if self._is_auto_alpha:
+            log_prob = log_prob.detach() + self._target_entropy
+            loss_dict['alpha_loss'] = -(self._log_alpha * log_prob).mean()
+
+            self._alpha_optim.zero_grad()
+            loss_dict['alpha_loss'].backward()
+            self._alpha_optim.step()
+            self._alpha = self._log_alpha.detach().exp()
+
+        loss_dict['total_loss'] = sum(loss_dict.values())
 
         # =============
         # after update
@@ -263,9 +294,14 @@ class SACPolicy(CommonPolicy):
             - vars (:obj:`List[str]`): Variables' name list.
         """
         q_twin = ['q_twin_loss'] if self._use_twin_q else []
-        return super()._monitor_vars_learn() + [
-            'policy_loss', 'value_loss', 'q_loss', 'cur_lr_q', 'cur_lr_v', 'cur_lr_p'
-        ] + q_twin
+        if self._is_auto_alpha:
+            return super()._monitor_vars_learn() + [
+                'alpha_loss', 'policy_loss', 'value_loss', 'q_loss', 'cur_lr_q', 'cur_lr_v', 'cur_lr_p'
+            ] + q_twin
+        else:
+            return super()._monitor_vars_learn() + [
+                'policy_loss', 'value_loss', 'q_loss', 'cur_lr_q', 'cur_lr_v', 'cur_lr_p'
+            ] + q_twin
 
 
 register_policy('sac', SACPolicy)
