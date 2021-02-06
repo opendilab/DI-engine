@@ -5,8 +5,23 @@ DATA_PREFIX = 'SLAVE_ACTOR_DATA'
 
 
 class NaiveActor(Slave):
-
+    """
+    Overview:
+        A slave, whose master is coordinator.
+        Used to pass message between comm actor and coordinator.
+    Interfaces:
+        _process_task, _get_timestep
+    """
     def _process_task(self, task):
+        """
+        Overview:
+            Process a task according to input task info dict, which is passed in by master coordinator.
+            For each type of task, you can refer to corresponding callback function in comm actor for details.
+        Arguments:
+            - cfg (:obj:`EasyDict`): Task dict. Must contain key "name".
+        Returns:
+            - result (:obj:`Union[dict, TaskFail]`): Task result dict, or task fail exception.
+        """
         task_name = task['name']
         if task_name == 'resource':
             return {'cpu': '20', 'gpu': '1'}
