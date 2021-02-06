@@ -250,16 +250,16 @@ RL不同于传统的监督学习，数据一般是离线准备完成，RL需要�
 .. code:: python
 
     if env_setting is None:
-        env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
+        env_fn, actor_env_cfg, evaluator_env_cfg = get_subprocess_env_setting(cfg.env)
     else:
         env_fn, actor_env_cfg, evaluator_env_cfg = env_setting
     env_manager_type = BaseEnvManager if cfg.env.env_manager_type == 'base' else SubprocessEnvManager
 
-其中从config中获取env_setting的方式为 ``get_vec_env_setting`` 函数：
+其中从config中获取env_setting的方式为 ``get_subprocess_env_setting`` 函数：
 
 .. code:: python
     
-    def get_vec_env_setting(cfg: dict) -> Tuple[type, List[dict], List[dict]]:
+    def get_subprocess_env_setting(cfg: dict) -> Tuple[type, List[dict], List[dict]]:
         import_module(cfg.pop('import_names', []))
         if cfg.env_type in env_mapping:
             env_fn = env_mapping[cfg.env_type]

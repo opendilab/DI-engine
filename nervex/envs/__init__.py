@@ -1,1 +1,1 @@
-from .env import BaseEnv, register_env, get_vec_env_setting, BaseEnvTimestep, BaseEnvInfo
+from .env import BaseEnv, register_env, get_subprocess_env_setting, BaseEnvTimestep, BaseEnvInfo
