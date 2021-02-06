@@ -50,7 +50,7 @@ class BaseEnvManager(ABC):
     def _create_state(self) -> None:
         self._closed = False
         self._env_episode_count = {i: 0 for i in range(self.env_num)}
-        self._env_dones = {i: False for i in range(self.env_num)}
+        self._env_done = {i: False for i in range(self.env_num)}
         self._next_obs = {i: None for i in range(self.env_num)}
         self._envs = [self._env_fn(c) for c in self._env_cfg]
         assert len(self._envs) == self._env_num
@@ -76,9 +76,9 @@ class BaseEnvManager(ABC):
             The observations are returned in torch.Tensor.
         Example:
             >>>     obs_dict = env_manager.next_obs
-            >>>     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
+            >>>     action_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
         """
-        return self._inv_transform({i: self._next_obs[i] for i, d in self._env_dones.items() if not d})
+        return self._inv_transform({i: self._next_obs[i] for i, d in self._env_done.items() if not d})
 
     @property
     def done(self) -> bool:
@@ -101,7 +101,7 @@ class BaseEnvManager(ABC):
         self._check_closed()
         return [getattr(env, key) if hasattr(env, key) else None for env in self._envs]
 
-    def launch(self, reset_param: List[dict] = None) -> None:
+    def launch(self, reset_param: Union[None, List[dict]] = None) -> None:
         """
         Overview:
             Set up the environments and hyper-params.
@@ -112,7 +112,7 @@ class BaseEnvManager(ABC):
         self._create_state()
         self.reset(reset_param)
 
-    def reset(self, reset_param: List[dict] = None) -> None:
+    def reset(self, reset_param: Union[None, List[dict]] = None) -> None:
         """
         Overview:
             Reset the environments and hyper-params.
@@ -140,37 +140,37 @@ class BaseEnvManager(ABC):
             self.close()
             raise e
 
-    def step(self, actions: Dict[int, Any]) -> Dict[int, namedtuple]:
+    def step(self, action: Dict[int, Any]) -> Dict[int, namedtuple]:
         """
         Overview:
             Wrapper of step function in the environment.
         Arguments:
-            - actions (:obj:`Dict`): a dictionary, {env_id: action}, which includes actions and their env ids.
+            - action (:obj:`Dict`): a dictionary, {env_id: action}, which includes actions and their env ids.
         Return:
             - timesteps (:obj:`Dict`): a dictionary, {env_id: timestep}, which includes each environment's timestep.
         Note:
-            - The env_id that appears in actions will also be returned in timesteps.
+            - The env_id that appears in action will also be returned in timesteps.
             - It will wait until all environments are done to reset. If episodes in different environments \
                 vary significantly, it is suggested to use vec_env_manager.
         Example:
-            >>>     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
-            >>>     timesteps = env_manager.step(actions_dict):
+            >>>     action_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
+            >>>     timesteps = env_manager.step(action_dict):
             >>>     for env_id, timestep in timesteps.items():
             >>>         pass
         """
         self._check_closed()
         timesteps = {}
-        for env_id, act in actions.items():
+        for env_id, act in action.items():
             act = self._transform(act)
             timesteps[env_id] = self._safe_run(lambda: self._envs[env_id].step(act))
             if timesteps[env_id].done:
-                self._env_dones[env_id] = True
+                self._env_done[env_id] = True
                 self._env_episode_count[env_id] += 1
             self._next_obs[env_id] = timesteps[env_id].obs
-        if not self.done and all([d for d in self._env_dones.values()]):
+        if not self.done and all([d for d in self._env_done.values()]):
             for i in range(self.env_num):
                 self._reset(i)
-                self._env_dones[i] = False
+                self._env_done[i] = False
         return self._inv_transform(timesteps)
 
     def seed(self, seed: Union[List[int], int]) -> None:
