@@ -75,16 +75,16 @@ class BaseSerialActor(object):
                       n_episode: Optional[int] = None,
                       n_sample: Optional[int] = None) -> Tuple[List[Any], dict]:
         """
-       Overview:
+        Overview:
            Generate data. ``n_episode`` and ``n_sample`` can't be not None at the same time.
-       Arguments:
+        Arguments:
            - iter_count (:obj:`int`): count of iteration
            - n_episode (:obj:`int`): number of episode
            - n_sample (:obj:`int`): number of sample
-       Returns:
+        Returns:
            - return_data (:obj:`List`): A list containing training samples.
            - collect_info (:obj:`dict`): A dict containing sample collection information.
-       """
+        """
         assert n_episode is None or n_sample is None, "n_episode and n_sample can't be not None at the same time"
         if n_episode is not None:
             return self._collect_episode(iter_count, n_episode)

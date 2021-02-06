@@ -1,7 +1,7 @@
 
 
 worker.coordinator.resource_manager
---------------------------
+-------------------------------------
 
 
 NaiveResourceManager

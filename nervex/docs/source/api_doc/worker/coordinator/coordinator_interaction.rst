@@ -1,7 +1,7 @@
 
 
-coordinator_interaction
---------------------------
+worker.coordinator_interaction.coordinator_interaction
+-------------------------------------------------------
 
 
 CoordinatorInteraction
