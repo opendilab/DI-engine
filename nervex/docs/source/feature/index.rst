@@ -16,3 +16,4 @@ Feature
     league_overview
     buffer_manager_overview
     autolog_overview
+    interaction_overview
