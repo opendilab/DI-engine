@@ -65,3 +65,9 @@ API Doc
     worker/actor/env_manager
     worker/actor/comm
     worker/actor/actor
+    worker/coordinator/base_parallel_commander
+    worker/coordinator/base_serial_commander
+    worker/coordinator/coordinator_interaction
+    worker/coordinator/coordinator
+    worker/coordinator/resource_manager
+    worker/coordinator/solo_parallel_commander
