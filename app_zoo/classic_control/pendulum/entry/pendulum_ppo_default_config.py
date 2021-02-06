@@ -5,7 +5,7 @@ pendulum_ppo_default_config = dict(
         norm_obs=dict(
             use_norm=False,
         ),
-        norm_reward=dict( 
+        norm_reward=dict(
             use_norm=False,
         ),
         env_manager_type='base',
@@ -20,7 +20,7 @@ pendulum_ppo_default_config = dict(
         policy_type='ppo_vanilla',
         import_names=['nervex.policy.ppo_vanilla'],
         on_policy=False,
-        use_priority=True,
+        use_priority=False,
         model=dict(
             continous=True,
             fixed_sigma_value=0.2,

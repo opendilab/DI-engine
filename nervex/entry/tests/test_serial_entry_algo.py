@@ -80,7 +80,7 @@ def test_ppo():
         assert False, "pipeline fail"
 
 
-# @pytest.mark.algotest
+@pytest.mark.algotest
 def test_ppo_vanilla():
     config = deepcopy(cartpole_ppovanilla_default_config)
     try:
