@@ -1,6 +1,6 @@
 from easydict import EasyDict
+
 from .serial import base_learner_default_config
-from .utils import set_learner_interaction_for_coordinator, set_actor_interaction_for_coordinator
 
 traj_len = 1
 
