@@ -91,3 +91,4 @@ smac_qmix_default_config = dict(
     commander=dict(),
 )
 smac_qmix_default_config = EasyDict(smac_qmix_default_config)
+main_config = smac_qmix_default_config

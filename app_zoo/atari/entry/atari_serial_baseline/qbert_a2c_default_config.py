@@ -80,3 +80,4 @@ qbert_a2c_default_config = dict(
     commander=dict(),
 )
 qbert_a2c_default_config = EasyDict(qbert_a2c_default_config)
+main_config = qbert_a2c_default_config

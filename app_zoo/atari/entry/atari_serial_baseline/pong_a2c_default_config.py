@@ -80,3 +80,4 @@ pong_a2c_default_config = dict(
     commander=dict(),
 )
 pong_a2c_default_config = EasyDict(pong_a2c_default_config)
+main_config = pong_a2c_default_config

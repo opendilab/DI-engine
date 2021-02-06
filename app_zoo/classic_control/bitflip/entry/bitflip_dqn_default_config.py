@@ -85,3 +85,4 @@ bitflip_dqn_default_config = dict(
     commander=dict(),
 )
 bitflip_dqn_default_config = EasyDict(bitflip_dqn_default_config)
+main_config = bitflip_dqn_default_config

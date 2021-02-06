@@ -94,3 +94,4 @@ ant_sac_default_config = dict(
     commander=dict(),
 )
 ant_sac_default_config = EasyDict(ant_sac_default_config)
+main_config = ant_sac_default_config

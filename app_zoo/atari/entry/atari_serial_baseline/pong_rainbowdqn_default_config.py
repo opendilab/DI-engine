@@ -97,3 +97,4 @@ pong_rainbowdqn_default_config = dict(
     commander=dict(),
 )
 pong_rainbowdqn_default_config = EasyDict(pong_rainbowdqn_default_config)
+main_config = pong_rainbowdqn_default_config

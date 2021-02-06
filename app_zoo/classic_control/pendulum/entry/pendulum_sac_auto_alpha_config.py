@@ -91,3 +91,4 @@ pendulum_sac_auto_alpha_config = dict(
     commander=dict(),
 )
 pendulum_sac_auto_alpha_config = EasyDict(pendulum_sac_auto_alpha_config)
+main_config = pendulum_sac_auto_alpha_config

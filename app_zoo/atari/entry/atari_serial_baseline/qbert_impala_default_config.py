@@ -88,3 +88,4 @@ qbert_impala_default_config = dict(
     commander=dict(),
 )
 qbert_impala_default_config = EasyDict(qbert_impala_default_config)
+main_config = qbert_impala_default_config

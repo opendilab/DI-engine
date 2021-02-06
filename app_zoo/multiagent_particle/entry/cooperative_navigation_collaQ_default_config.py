@@ -96,3 +96,4 @@ cooperative_navigation_collaQ_default_config = dict(
     commander=dict(),
 )
 cooperative_navigation_collaQ_default_config = EasyDict(cooperative_navigation_collaQ_default_config)
+main_config = cooperative_navigation_collaQ_default_config

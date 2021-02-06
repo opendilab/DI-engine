@@ -82,3 +82,4 @@ cartpole_dqnvanilla_default_config = dict(
     commander=dict(),
 )
 cartpole_dqnvanilla_default_config = EasyDict(cartpole_dqnvanilla_default_config)
+main_config = cartpole_dqnvanilla_default_config

@@ -93,3 +93,4 @@ cartpole_r2d2_default_config = dict(
     commander=dict(),
 )
 cartpole_r2d2_default_config = EasyDict(cartpole_r2d2_default_config)
+main_config = cartpole_r2d2_default_config

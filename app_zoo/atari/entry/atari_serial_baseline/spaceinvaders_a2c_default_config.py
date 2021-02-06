@@ -80,3 +80,4 @@ spaceinvaders_a2c_default_config = dict(
     commander=dict(),
 )
 spaceinvaders_a2c_default_config = EasyDict(spaceinvaders_a2c_default_config)
+main_config = spaceinvaders_a2c_default_config

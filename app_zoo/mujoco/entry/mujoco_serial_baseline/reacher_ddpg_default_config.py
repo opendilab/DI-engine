@@ -94,3 +94,4 @@ reacher_ddpg_default_config = dict(
     commander=dict(),
 )
 reacher_ddpg_default_config = EasyDict(reacher_ddpg_default_config)
+main_config = reacher_ddpg_default_config

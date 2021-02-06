@@ -94,3 +94,5 @@ halfcheetah_td3_default_config = dict(
     commander=dict(),
 )
 halfcheetah_td3_default_config = EasyDict(halfcheetah_td3_default_config)
+main_config = halfcheetah_td3_default_config
+

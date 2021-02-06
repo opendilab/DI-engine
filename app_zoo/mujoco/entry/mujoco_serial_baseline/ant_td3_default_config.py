@@ -94,3 +94,4 @@ ant_td3_default_config = dict(
     commander=dict(),
 )
 ant_td3_default_config = EasyDict(ant_td3_default_config)
+main_config = ant_td3_default_config

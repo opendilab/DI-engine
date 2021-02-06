@@ -175,7 +175,7 @@ def eval(
     # Env init.
     manager_cfg = cfg.env.get('manager', {})
     if env_setting is None:
-        env_fn, _, evaluator_env_cfg = get_subprocess_env_setting(cfg.env)
+        env_fn, _, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     else:
         env_fn, _, evaluator_env_cfg = env_setting
     env_manager_type = BaseEnvManager if cfg.env.env_manager_type == 'base' else SubprocessEnvManager

@@ -94,3 +94,4 @@ ant_ddpg_default_config = dict(
     commander=dict(),
 )
 ant_ddpg_default_config = EasyDict(ant_ddpg_default_config)
+main_config = ant_ddpg_default_config

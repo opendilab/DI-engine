@@ -80,3 +80,4 @@ cartpole_impala_default_config = dict(
     commander=dict(),
 )
 cartpole_impala_default_config = EasyDict(cartpole_impala_default_config)
+main_config = cartpole_impala_default_config

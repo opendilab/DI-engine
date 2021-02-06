@@ -92,3 +92,4 @@ pong_dqn_default_config = dict(
     commander=dict(),
 )
 pong_dqn_default_config = EasyDict(pong_dqn_default_config)
+main_config = pong_dqn_default_config
