@@ -21,3 +21,4 @@ Feature
     league_overview
     dataloader_overview
     autolog_overview
+    loader_overview
