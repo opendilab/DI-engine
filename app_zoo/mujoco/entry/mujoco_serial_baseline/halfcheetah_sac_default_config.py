@@ -1,12 +1,10 @@
 from easydict import EasyDict
 
-halfcheetah_sac_default_config = dict( 
+halfcheetah_sac_default_config = dict(
     env=dict(
         env_id='HalfCheetah-v3',
-        norm_obs=dict(
-            use_norm=True,
-        ),
-        norm_reward=dict( 
+        norm_obs=dict(use_norm=True, ),
+        norm_reward=dict(
             use_norm=False,
             reward_discount=0.98,
         ),
@@ -52,9 +50,7 @@ halfcheetah_sac_default_config = dict(
         collect=dict(
             traj_len=1,
             unroll_len=1,
-            algo=dict(
-                noise_sigma=0.1,
-            ),
+            algo=dict(noise_sigma=0.1, ),
         ),
         command=dict(),
     ),
@@ -84,9 +80,7 @@ halfcheetah_sac_default_config = dict(
                 type='log_show',
                 priority=20,
                 position='after_iter',
-                ext_args=dict(
-                    freq=500,
-                ),
+                ext_args=dict(freq=500, ),
             ),
         ),
     ),
@@ -94,4 +88,3 @@ halfcheetah_sac_default_config = dict(
 )
 halfcheetah_sac_default_config = EasyDict(halfcheetah_sac_default_config)
 main_config = halfcheetah_sac_default_config
-

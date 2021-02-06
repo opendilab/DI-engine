@@ -3,12 +3,8 @@ from easydict import EasyDict
 use_twin_critic = False
 pendulum_ddpg_default_config = dict(
     env=dict(
-        norm_obs=dict(
-            use_norm=False,
-        ),
-        norm_reward=dict( 
-            use_norm=False,
-        ),
+        norm_obs=dict(use_norm=False, ),
+        norm_reward=dict(use_norm=False, ),
         env_manager_type='base',
         import_names=['app_zoo.classic_control.pendulum.envs.pendulum_env'],
         env_type='pendulum',
@@ -50,9 +46,7 @@ pendulum_ddpg_default_config = dict(
         collect=dict(
             traj_len=1,
             unroll_len=1,
-            algo=dict(
-                noise_sigma=0.1,
-            ),
+            algo=dict(noise_sigma=0.1, ),
         ),
         command=dict(),
     ),
@@ -82,9 +76,7 @@ pendulum_ddpg_default_config = dict(
                 type='log_show',
                 priority=20,
                 position='after_iter',
-                ext_args=dict(
-                    freq=500,
-                ),
+                ext_args=dict(freq=500, ),
             ),
         ),
     ),

@@ -19,15 +19,11 @@ spaceinvaders_dqn_default_config = dict(
         import_names=['nervex.policy.dqn'],
         on_policy=False,
         model=dict(
-            encoder_kwargs=dict(
-                encoder_type='conv2d',
-            ),
+            encoder_kwargs=dict(encoder_type='conv2d', ),
             obs_dim=[4, 84, 84],
             action_dim=6,
             embedding_dim=512,
-            head_kwargs=dict(
-                dueling=False,
-            ),
+            head_kwargs=dict(dueling=False, ),
         ),
         learn=dict(
             train_step=50,
@@ -43,18 +39,14 @@ spaceinvaders_dqn_default_config = dict(
         collect=dict(
             traj_len=traj_len,
             unroll_len=1,
-            algo=dict(
-                nstep=nstep,
-            ),
+            algo=dict(nstep=nstep, ),
         ),
-        command=dict(
-            eps=dict(
-                type='linear',
-                start=1.,
-                end=0.05,
-                decay=1000000,
-            ),
-        ),
+        command=dict(eps=dict(
+            type='linear',
+            start=1.,
+            end=0.05,
+            decay=1000000,
+        ), ),
     ),
     replay_buffer=dict(
         buffer_name=['agent'],
@@ -83,9 +75,7 @@ spaceinvaders_dqn_default_config = dict(
                 type='log_show',
                 priority=20,
                 position='after_iter',
-                ext_args=dict(
-                    freq=100,
-                ),
+                ext_args=dict(freq=100, ),
             ),
         ),
     ),

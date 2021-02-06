@@ -125,7 +125,7 @@ def test_ppo_vanilla():
         assert False, "pipeline fail"
 
 
-@pytest.mark.u#nittest
+@pytest.mark.unittest
 def test_ppo_vanilla_continous():
     config = deepcopy(pendulum_ppo_default_config)
     config.policy.learn.train_step = 1

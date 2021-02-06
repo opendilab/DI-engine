@@ -65,7 +65,7 @@ class BaseActor(ABC):
         """
         self._cfg = cfg
         self._eval_flag = cfg.eval_flag
-        self._prefix = 'EVALUTATOR' if self._eval_flag else 'ACTOR'
+        self._prefix = 'EVALUATOR' if self._eval_flag else 'ACTOR'
         self._actor_uid = get_task_uid()
         self._logger, self._monitor, self._log_buffer = self._setup_logger()
         self._end_flag = False

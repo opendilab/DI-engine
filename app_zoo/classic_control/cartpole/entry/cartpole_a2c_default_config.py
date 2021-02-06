@@ -66,9 +66,7 @@ cartpole_a2c_default_config = dict(
                 type='log_show',
                 priority=20,
                 position='after_iter',
-                ext_args=dict(
-                    freq=100,
-                ),
+                ext_args=dict(freq=100, ),
             ),
         ),
     ),

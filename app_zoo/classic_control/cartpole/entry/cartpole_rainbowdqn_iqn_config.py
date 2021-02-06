@@ -42,18 +42,14 @@ cartpole_rainbowdqn_iqn_config = dict(
         collect=dict(
             traj_len=(8 + nstep),
             unroll_len=1,
-            algo=dict(
-                nstep=nstep,
-            ),
+            algo=dict(nstep=nstep, ),
         ),
-        command=dict(
-            eps=dict(
-                type='exp',
-                start=0.5,
-                end=0.05,
-                decay=10000,
-            ),
-        ),
+        command=dict(eps=dict(
+            type='exp',
+            start=0.5,
+            end=0.05,
+            decay=10000,
+        ), ),
     ),
     replay_buffer=dict(
         buffer_name=['agent'],
@@ -82,9 +78,7 @@ cartpole_rainbowdqn_iqn_config = dict(
                 type='log_show',
                 priority=20,
                 position='after_iter',
-                ext_args=dict(
-                    freq=100,
-                ),
+                ext_args=dict(freq=100, ),
             ),
         ),
     ),

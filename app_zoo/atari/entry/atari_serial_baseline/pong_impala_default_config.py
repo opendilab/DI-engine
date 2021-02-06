@@ -45,9 +45,7 @@ pong_impala_default_config = dict(
         collect=dict(
             traj_len='inf',
             unroll_len=64,
-            algo=dict(
-                discount_factor=discount_factor,
-            ),
+            algo=dict(discount_factor=discount_factor, ),
         ),
         command=dict(),
     ),
@@ -78,9 +76,7 @@ pong_impala_default_config = dict(
                 type='log_show',
                 priority=20,
                 position='after_iter',
-                ext_args=dict(
-                    freq=100,
-                ),
+                ext_args=dict(freq=100, ),
             ),
         ),
     ),

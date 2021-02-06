@@ -38,9 +38,7 @@ cartpole_impala_default_config = dict(
         collect=dict(
             traj_len='inf',
             unroll_len=64,
-            algo=dict(
-                discount_factor=0.9,
-            ),
+            algo=dict(discount_factor=0.9, ),
         ),
         command=dict(),
     ),
@@ -71,9 +69,7 @@ cartpole_impala_default_config = dict(
                 type='log_show',
                 priority=20,
                 position='after_iter',
-                ext_args=dict(
-                    freq=100,
-                ),
+                ext_args=dict(freq=100, ),
             ),
         ),
     ),

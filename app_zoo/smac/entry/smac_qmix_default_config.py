@@ -47,14 +47,12 @@ smac_qmix_default_config = dict(
             agent_num=agent_num,
             env_num=evaluator_env_num,
         ),
-        command=dict(
-            eps=dict(
-                type='exp',
-                start=1.0,
-                end=0.05,
-                decay=100000,
-            ),
-        ),
+        command=dict(eps=dict(
+            type='exp',
+            start=1.0,
+            end=0.05,
+            decay=100000,
+        ), ),
     ),
     replay_buffer=dict(
         buffer_name=['agent'],
@@ -73,7 +71,7 @@ smac_qmix_default_config = dict(
     evaluator=dict(
         n_episode=5,
         eval_freq=50,
-        stop_val= 0.7,
+        stop_val=0.7,
     ),
     learner=dict(
         hook=dict(
@@ -82,9 +80,7 @@ smac_qmix_default_config = dict(
                 type='log_show',
                 priority=20,
                 position='after_iter',
-                ext_args=dict(
-                    freq=500,
-                ),
+                ext_args=dict(freq=500, ),
             ),
         ),
     ),
