@@ -91,3 +91,4 @@ pendulum_td3_default_config = dict(
     commander=dict(),
 )
 pendulum_td3_default_config = EasyDict(pendulum_td3_default_config)
+main_config = pendulum_td3_default_config

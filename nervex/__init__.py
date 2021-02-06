@@ -1,2 +1,7 @@
-__version__ = 'v0.1.0'
+__TITLE__ = 'nerveX'
+__VERSION__ = 'v0.1.0-release'
+__DESCRIPTION__ = 'X-Lab DRL Framework'
+__AUTHOR__ = "X-Lab"
+__AUTHOR_EMAIL__ = "niuyazhe@sensetime.com"
+
 enable_hpc_rl = False

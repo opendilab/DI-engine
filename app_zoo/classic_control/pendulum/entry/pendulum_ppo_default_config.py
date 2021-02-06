@@ -91,3 +91,4 @@ pendulum_ppo_default_config = dict(
     commander=dict(),
 )
 pendulum_ppo_default_config = EasyDict(pendulum_ppo_default_config)
+main_config = pendulum_ppo_default_config

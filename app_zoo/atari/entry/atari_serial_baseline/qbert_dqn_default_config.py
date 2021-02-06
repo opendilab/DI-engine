@@ -92,3 +92,4 @@ qbert_dqn_default_config = dict(
     commander=dict(),
 )
 qbert_dqn_default_config = EasyDict(qbert_dqn_default_config)
+main_config = qbert_dqn_default_config

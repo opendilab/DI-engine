@@ -96,3 +96,4 @@ smac_coma_default_config = dict(
     commander=dict(),
 )
 smac_coma_default_config = EasyDict(smac_coma_default_config)
+main_config = smac_coma_default_config

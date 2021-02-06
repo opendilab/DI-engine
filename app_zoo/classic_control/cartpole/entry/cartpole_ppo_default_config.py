@@ -75,3 +75,4 @@ cartpole_ppo_default_config = dict(
     commander=dict(),
 )
 cartpole_ppo_default_config = EasyDict(cartpole_ppo_default_config)
+main_config = cartpole_ppo_default_config

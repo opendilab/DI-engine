@@ -93,3 +93,4 @@ reacher_sac_default_config = dict(
     commander=dict(),
 )
 reacher_sac_default_config = EasyDict(reacher_sac_default_config)
+main_config = reacher_sac_default_config

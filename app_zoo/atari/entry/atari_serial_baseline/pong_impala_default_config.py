@@ -87,3 +87,4 @@ pong_impala_default_config = dict(
     commander=dict(),
 )
 pong_impala_default_config = EasyDict(pong_impala_default_config)
+main_config = pong_impala_default_config

@@ -86,3 +86,4 @@ cartpole_rainbowdqn_default_config = dict(
     commander=dict(),
 )
 cartpole_rainbowdqn_default_config = EasyDict(cartpole_rainbowdqn_default_config)
+main_config = cartpole_rainbowdqn_default_config

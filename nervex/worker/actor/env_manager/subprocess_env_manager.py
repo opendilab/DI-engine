@@ -222,7 +222,7 @@ class SubprocessEnvManager(BaseEnvManager):
                 target=self.worker_fn,
                 args=(parent, child, CloudpickleWrapper(fn), obs_buffer, self.method_name_list),
                 daemon=True,
-                name='vec_env_manager{}_{}'.format(idx, time.time())
+                name='subprocess_env_manager{}_{}'.format(idx, time.time())
             )
             for idx, (parent, child, fn, obs_buffer
                       ) in enumerate(zip(self._parent_remote, self._child_remote, env_fn, self._obs_buffers.values()))

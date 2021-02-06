@@ -88,4 +88,4 @@ spaceinvaders_impala_default_config = dict(
     commander=dict(),
 )
 spaceinvaders_impala_default_config = EasyDict(spaceinvaders_impala_default_config)
-
+main_config = spaceinvaders_impala_default_config
