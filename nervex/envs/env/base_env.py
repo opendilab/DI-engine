@@ -68,7 +68,7 @@ def register_env(name: str, env: type) -> None:
     env_mapping[name] = env
 
 
-def get_vec_env_setting(cfg: dict) -> Tuple[type, List[dict], List[dict]]:
+def get_subprocess_env_setting(cfg: dict) -> Tuple[type, List[dict], List[dict]]:
     import_module(cfg.pop('import_names', []))
     if cfg.env_type in env_mapping:
         env_fn = env_mapping[cfg.env_type]

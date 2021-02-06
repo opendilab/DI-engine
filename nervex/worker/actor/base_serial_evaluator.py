@@ -9,8 +9,25 @@ from .base_serial_actor import CachePool
 
 
 class BaseSerialEvaluator(object):
+    """
+        Overview:
+            Base class for serial evaluator.
+
+        Interfaces:
+            __init__, reset, close, eval
+        Property:
+            env, policy
+    """
 
     def __init__(self, cfg: dict) -> None:
+        """
+        Overview:
+            Init method. Load config and use ``self._cfg`` setting to build common serial evaluator components,
+            e.g. logger helper, timer.
+            Policy is not initialized here, but set afterwards through policy setter.
+        Arguments:
+            - cfg (:obj:`EasyDict`)
+        """
         self._default_n_episode = cfg.get('n_episode', None)
         self._stop_val = cfg.stop_val
         self._logger, _ = build_logger(path='./log/evaluator', name='evaluator')
@@ -48,6 +65,17 @@ class BaseSerialEvaluator(object):
         self._env.close()
 
     def eval(self, train_iter: int, n_episode: Optional[int] = None) -> Tuple[bool, float]:
+        '''
+        Overview:
+            Evaluate policy.
+        Args:
+            train_iter (:obj:`int`): number of training iteration.
+            n_episode (:obj:`int`): number of episode.
+
+        Returns:
+            stop_flag (:obj:`bool`): whether this training program is over.
+            eval_reward (:obj:`float`): current eval_reward.
+        '''
         if n_episode is None:
             n_episode = self._default_n_episode
         assert n_episode is not None, "please indicate eval n_episode"

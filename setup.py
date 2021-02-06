@@ -18,16 +18,20 @@ from __future__ import division
 from __future__ import print_function
 
 from setuptools import setup, find_packages
+import os
 
-description = """nerveX: X-Lab Deep Reinforcement Learning Framework"""
+
+here = os.path.abspath(os.path.dirname(__file__))
+meta = {}
+with open(os.path.join(here, 'nervex', '__init__.py'), 'r') as f:
+    exec(f.read(), meta)
 
 
 setup(
-    name='nerveX',
-    version='0.1.0b2',
-    description='X-Lab Reinforcement Learning Framework',
-    long_description=description,
-    author='X-Lab',
+    name=meta['__TITLE__'],
+    version=meta['__VERSION__'],
+    description=['__DESCRIPTION__'],
+    author=['__AUTHOR__'],
     license='Apache License, Version 2.0',
     keywords='DRL Framework',
     packages=[
@@ -41,6 +45,7 @@ setup(
         ),
     ],
     package_data={package_name: ['*.yaml', '*.xml', '*cfg'] for package_name in find_packages(include=('nervex.*'))},
+    python_requires=">=3.6",
     install_requires=[
         'absl-py>=0.1.0',
         'future',
@@ -99,14 +104,15 @@ setup(
         ]
     },
     classifiers=[
-        'Development Status :: 4 - Beta',
-        'Environment :: Console',
-        'Intended Audience :: Science/Research',
+        'Development Status :: 5 - Production/Stable',
+        'Intended Audience :: Science/Research/Developers',
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: POSIX :: Linux',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: MacOS :: MacOS X',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
     ],
 )

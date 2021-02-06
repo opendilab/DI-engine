@@ -12,8 +12,22 @@ from .resource_manager import NaiveResourceManager
 
 
 class CoordinatorInteraction(object):
+    r"""
+    Overview:
+        the coordinator interactor
+    Interface:
+        __init__ , start, close, __del__, send_actor_task, send_learner_task
+    """
 
     def __init__(self, cfg: dict, callback_fn: Dict[str, Callable], logger: 'TextLogger') -> None:  # noqa
+        r"""
+        Overview:
+            init the interactor of coordinator
+        Arguments:
+            - cfg (:obj:`dict`): the config file of coordinator interactor
+            - callback_fn (:obj:`Dict[str, Callable]`): the callback functions given by coordinator
+            - logger (:obj:`TextLogger`): the logger
+        """
         self._cfg = cfg
         self._callback_fn = callback_fn
         self._logger = logger
@@ -26,6 +40,10 @@ class CoordinatorInteraction(object):
         self._remain_learner_task = set()
 
     def start(self) -> None:
+        r"""
+        Overview:
+            start the coordinator interactor and manage resources and connections
+        """
         max_retry_time = 120
         start_time = time.time()
         while time.time() - start_time <= max_retry_time:
@@ -69,6 +87,10 @@ class CoordinatorInteraction(object):
             sys.exit(1)
 
     def close(self) -> None:
+        r"""
+        Overview:
+            close the coordinator interactor
+        """
         if self._end_flag:
             return
         self._end_flag = True
@@ -88,14 +110,30 @@ class CoordinatorInteraction(object):
         self._master.close()
 
     def __del__(self) -> None:
+        r"""
+        Overview:
+            __del__ method will close the coordinator interactor
+        """
         self.close()
 
     def _get_resource(self, conn: 'Connection') -> 'TaskResult':  # noqa
+        r"""
+        Overview:
+            get the resources according to connection
+        Arguments:
+            - conn (:obj:`Connection`): the connection to get resource_task
+        """
         resource_task = conn.new_task({'name': 'resource'})
         resource_task.start().join()
         return resource_task
 
     def send_actor_task(self, actor_task: dict) -> bool:
+        r"""
+        Overview:
+            send the actor_task to actor_task threads and execute
+        Arguments:
+            - actor_task (:obj:`dict`): the actor_task to send
+        """
         # assert not self._end_flag, "please start interaction first"
         task_id = actor_task['task_id']
         # according to resource info, assign task to a specific actor and adapt task
@@ -123,6 +161,12 @@ class CoordinatorInteraction(object):
             return True
 
     def _execute_actor_task(self, actor_task: dict) -> None:
+        r"""
+        Overview:
+            execute the actor task
+        Arguments:
+            - actor_task (:obj:`dict`): the actor task to execute
+        """
         actor_id = actor_task['actor_id']
         while not self._end_flag:
             try:
@@ -158,6 +202,12 @@ class CoordinatorInteraction(object):
             self._remain_actor_task.remove(task_id)
 
     def send_learner_task(self, learner_task: dict) -> bool:
+        r"""
+        Overview:
+            send the learner_task to learner_task threads and execute
+        Arguments:
+            - learner_task (:obj:`dict`): the learner_task to send
+        """
         # assert not self._end_flag, "please start interaction first"
         task_id = learner_task['task_id']
         assigned_learner = self._resource_manager.assign_learner(learner_task)
@@ -189,6 +239,12 @@ class CoordinatorInteraction(object):
             return True
 
     def _execute_learner_task(self, learner_task: dict) -> None:
+        r"""
+        Overview:
+            execute the learner task
+        Arguments:
+            - learner_task (:obj:`dict`): the learner task to execute
+        """
         learner_id = learner_task['learner_id']
         while not self._end_flag:
             try:

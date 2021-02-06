@@ -49,8 +49,8 @@ class SACPolicy(CommonPolicy):
         # Init auto alpha
         if algo_cfg.get('is_auto_alpha', None):
             self._target_entropy = -np.prod(self._cfg.model.action_dim)
-            self._log_alpha = torch.log(torch.tensor([algo_cfg.alpha])).requires_grad_()
-            self._log_alpha = self._log_alpha.to(device='cuda' if self._use_cuda else 'cpu')
+            self._log_alpha = torch.log(torch.tensor([algo_cfg.alpha]))
+            self._log_alpha = self._log_alpha.to(device='cuda' if self._use_cuda else 'cpu').requires_grad_()
             self._alpha_optim = torch.optim.Adam([self._log_alpha], lr=self._cfg.learn.learning_rate_alpha)
             self._is_auto_alpha = True
             assert self._log_alpha.shape == torch.Size([1]) and self._log_alpha.requires_grad

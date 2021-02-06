@@ -4,7 +4,7 @@ import torch
 from collections import namedtuple
 
 from nervex.utils.default_helper import lists_to_dicts, dicts_to_lists, squeeze, default_get, override, error_wrapper,\
-    list_split
+    list_split, LimitedSpaceContainer
 
 
 @pytest.mark.unittest
@@ -94,3 +94,19 @@ class TestDefaultHelper():
         assert len(output) == 2
         assert output[1] == [5, 6, 7, 8, 9]
         assert residual is None
+
+
+@pytest.mark.unittest
+class TestLimitedSpaceContainer():
+
+    def test_container(self):
+        container = LimitedSpaceContainer(0, 5)
+        first = container.acquire_space()
+        assert first
+        assert container.cur == 1
+        left = container.get_residual_space()
+        assert left == 4
+        assert container.cur == container.max_val == 5
+        for i in range(5):
+            container.release_space()
+            assert container.cur == 4 - i
