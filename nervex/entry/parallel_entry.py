@@ -10,7 +10,7 @@ from nervex.config import Config, parallel_transform, parallel_transform_slurm
 
 
 def parallel_pipeline(
-        filename: str,
+        config: str,
         seed: int,
         enable_total_log: Optional[bool] = False,
         disable_flask_log: Optional[bool] = True,
@@ -19,7 +19,7 @@ def parallel_pipeline(
     Overview:
         Parallel pipeline entry.
     Arguments:
-        - filename (:obj:`str`): Config file path.
+        - config (:obj:`str`): Config file path.
         - seed (:obj:`int`): Random seed.
         - enable_total_log (:obj:`Optional[bool]`): whether enable total nervex system log
         - disable_flask_log (:obj:`Optional[bool]`): whether disable flask log
@@ -33,8 +33,13 @@ def parallel_pipeline(
         log = logging.getLogger('werkzeug')
         log.disabled = True
     # Parallel job launch.
-    cfg = Config.file_to_dict(filename).cfg_dict
-    config = cfg['main_config']
+    if isinstance(config, str):
+        cfg = Config.file_to_dict(config).cfg_dict
+        config = cfg['main_config']
+    elif isinstance(config, dict):
+        config = config
+    else:
+        raise TypeError("invalid config type: {}".format(config))
     config = parallel_transform(config)
     learner_handle = []
     actor_handle = []
@@ -102,6 +107,7 @@ def launch_coordinator(
     for _, start_event, _ in actor_handle:
         start_event.wait()
     coordinator.start()
+    system_shutdown_event = Event()
 
     # Monitor thread: Coordinator will remain running until its ``system_shutdown_flag`` is set to False.
     def shutdown_monitor():
@@ -113,10 +119,12 @@ def launch_coordinator(
                     close_event.set()
                 for _, _, close_event in actor_handle:
                     close_event.set()
+                system_shutdown_event.set()
                 break
 
     shutdown_monitor_thread = Thread(target=shutdown_monitor, args=(), daemon=True, name='shutdown_monitor')
     shutdown_monitor_thread.start()
+    system_shutdown_event.wait()
 
 
 def launch_learner_aggregator(filename: Optional[str] = None, name: Optional[str] = None) -> None:
