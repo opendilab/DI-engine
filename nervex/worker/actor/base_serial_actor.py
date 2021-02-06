@@ -9,8 +9,22 @@ from nervex.utils import build_logger, EasyTimer
 
 
 class BaseSerialActor(object):
+    """
+    Overview:
+        Abstract baseclass for serial actor.
+    Interfaces:
+        __init__, reset, generate_data, close, _collect_episode, _collect_sample, _collect
+    Property:
+        env, policy,
+    """
 
     def __init__(self, cfg: dict) -> None:
+        """
+        Overview:
+            Initialization method.
+        Arguments:
+            - cfg (:obj:`EasyDict`): Config dict
+        """
         self._default_n_episode = cfg.get('n_episode', None)
         self._default_n_sample = cfg.get('n_sample', None)
         self._traj_len = cfg.traj_len
@@ -60,6 +74,17 @@ class BaseSerialActor(object):
                       iter_count: int,
                       n_episode: Optional[int] = None,
                       n_sample: Optional[int] = None) -> Tuple[List[Any], dict]:
+        """
+        Overview:
+           Generate data. ``n_episode`` and ``n_sample`` can't be not None at the same time.
+        Arguments:
+           - iter_count (:obj:`int`): count of iteration
+           - n_episode (:obj:`int`): number of episode
+           - n_sample (:obj:`int`): number of sample
+        Returns:
+           - return_data (:obj:`List`): A list containing training samples.
+           - collect_info (:obj:`dict`): A dict containing sample collection information.
+        """
         assert n_episode is None or n_sample is None, "n_episode and n_sample can't be not None at the same time"
         if n_episode is not None:
             return self._collect_episode(iter_count, n_episode)
@@ -82,6 +107,16 @@ class BaseSerialActor(object):
         return self._collect(iter_count, lambda x, y: y >= n_sample)
 
     def _collect(self, iter_count: int, collect_end_fn: Callable) -> Tuple[List[Any], dict]:
+        """
+        Overview:
+            Collect function for generate data. Called by ``self._collect_episode`` and ``self._collect_sample``.
+        Arguments:
+            - iter_count (:obj:`int`): count of iteration
+            - collect_end_fn (:obj:`Callable`): end of collect
+        Returns:
+            - return_data (:obj:`List`): A list containing training samples.
+            - collect_info (:obj:`dict`): A dict containing sample collection information.
+        """
         episode_count = 0
         step_count = 0
         train_sample_count = 0
@@ -173,8 +208,22 @@ class BaseSerialActor(object):
 
 
 class CachePool(object):
+    """
+    Overview:
+       CachePool is the repository of cache items.
+    Interfaces:
+        __init__, update, __getitem__, reset
+    """
 
     def __init__(self, name: str, env_num: int, deepcopy: bool = False):
+        """
+        Overview:
+            Initialization method.
+        Arguments:
+            - name (:obj:`str`): name of cache
+            - env_num (:obj:`int`): number of environments
+            - deepcopy (:obj:`bool`): whether to deepcopy data
+        """
         self._pool = [None for _ in range(env_num)]
         # TODO(nyz) whether must use deepcopy
         self._deepcopy = deepcopy

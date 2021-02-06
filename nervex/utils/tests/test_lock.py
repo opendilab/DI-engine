@@ -15,3 +15,10 @@ def test_usage():
     with lock:
         output = queue.popleft()
     assert (output == data).all()
+    lock.acquire()
+    queue.append(np.copy(data))
+    lock.release()
+    lock.acquire()
+    output = queue.popleft()
+    lock.release()
+    assert (output == data).all()

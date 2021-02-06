@@ -92,7 +92,7 @@ Environment
 
             .. note::
 
-                此外， ``obs_space`` 和 ``vec_env_manager`` 中 ``shared_memory`` 的相关使用存在强依赖，如要使用则必须按照 ``EnvElementInfo`` 来实现。
+                此外， ``obs_space`` 和 ``subprocess_env_manager`` 中 ``shared_memory`` 的相关使用存在强依赖，如要使用则必须按照 ``EnvElementInfo`` 来实现。
 
 
         - 接口方法：

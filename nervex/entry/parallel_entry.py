@@ -17,9 +17,21 @@ def parallel_pipeline(
         learner_host: Optional[List[str]] = None,
         actor_host: Optional[List[str]] = None
 ) -> None:
-    # disable flask logger
+    r"""
+    Overview:
+        Parallel pipeline entry.
+    Arguments:
+        - filename (:obj:`str`): Config file path.
+        - seed (:obj:`int`): Random seed.
+        - platform (:obj:`str`): The Platform to launch job. Now supports ["local", "slurm"].
+        - coordinator_host (:obj:`Optional[str]`): Coordinator host.
+        - learner_host (:obj:`Optional[str]`): Learner host.
+        - actor_host (:obj:`Optional[str]`): Actor host.
+    """
+    # Disable flask logger.
     log = logging.getLogger('werkzeug')
     log.disabled = True
+    # Parallel job launch.
     if platform == 'local':
         cfg = Config.file_to_dict(filename).cfg_dict
         config = cfg['main_config']
@@ -36,13 +48,16 @@ def parallel_pipeline(
         cfg = Config.file_to_dict(filename).cfg_dict
         config = cfg['main_config']
         config = parallel_transform_slurm(config, coordinator_host, learner_host, actor_host)
+        # Pickle dump config to disk for later use.
         real_filename = filename + '.pkl'
         with open(real_filename, 'wb') as f:
             pickle.dump(config, f)
         for k, v in config.items():
             if 'learner' in k:
+                # Learner launch will be different whether to use learner aggregator or not.
                 use_aggregator = v.get('use_aggregator', False)
                 num = v.get('repeat_num', 1)
+                # Learner launch.
                 if use_aggregator:
                     srun_args = "srun --mpi=pmi2 -p {} -w {} -n{} --gres=gpu:{}".format(v.partition, v.node, num, num)
                 else:
@@ -56,6 +71,7 @@ def parallel_pipeline(
                     stderr=subprocess.STDOUT,
                     shell=True,
                 )
+                # Additional learner aggregator launch.
                 if use_aggregator:
                     aggregator_k = 'aggregator' + k[7:]
                     aggregator_cfg = config[aggregator_k]
@@ -77,7 +93,7 @@ def parallel_pipeline(
                     stderr=subprocess.STDOUT,
                     shell=True,
                 )
-        # coordinator run in manager node
+        # Coordinator run in manager node.
         subprocess.run(
             "python -c \"import nervex.entry.parallel_entry as pe; pe.launch_coordinator(filename='{}')\"".
             format(real_filename),
@@ -88,6 +104,9 @@ def parallel_pipeline(
         raise NotImplementedError
 
 
+# Following functions are used to launch different components(learner, learner aggregator, actor, coordinator).
+# Argument ``config`` is the dict type config. If it is None, then ``filename`` and ``name`` must be passed,
+# for they can be used to read correponding config from file.
 def launch_learner(config: Optional[dict] = None, filename: Optional[str] = None, name: Optional[str] = None) -> list:
     if config is None:
         with open(filename, 'rb') as f:
@@ -149,7 +168,7 @@ def launch_coordinator(
         start_event.wait()
     coordinator.start()
 
-    # monitor thread
+    # Monitor thread: Coordinator will remain running until its ``system_shutdown_flag`` is set to False.
     def shutdown_monitor():
         while True:
             time.sleep(3)

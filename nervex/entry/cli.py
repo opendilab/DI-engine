@@ -1,5 +1,6 @@
 import click
 from click.core import Context, Option
+from nervex import __TITLE__, __VERSION__, __AUTHOR__, __AUTHOR_EMAIL__
 from .serial_entry import serial_pipeline, eval
 from .parallel_entry import parallel_pipeline
 
@@ -7,8 +8,8 @@ from .parallel_entry import parallel_pipeline
 def print_version(ctx: Context, param: Option, value: bool) -> None:
     if not value or ctx.resilient_parsing:
         return
-    click.echo('{title}, version {version}.'.format(title='nerveX', version='v0.1.0b2'))
-    click.echo('Developed by {author}, {email}.'.format(author='niuyazhe', email='niuyazhe@sensetime.com'))
+    click.echo('{title}, version {version}.'.format(title=__TITLE__, version=__VERSION__))
+    click.echo('Developed by {author}, {email}.'.format(author=__AUTHOR__, email=__AUTHOR_EMAIL__))
     ctx.exit()
 
 
