@@ -15,8 +15,8 @@ def test_real_loader():
             env_manager_type=item('env_manager_type') >> enum('base', 'subprocess'),
             import_names=item('import_names') >> collection(str),
             env_type=item('env_type') >> is_type(str),
-            actor_env_num=item('actor_env_num') >> interval(1, 32),
-            evaluator_env_num=item('evaluator_env_num') >> interval(1, 32),
+            actor_env_num=item('actor_env_num') >> is_type(int) >> interval(1, 32),
+            evaluator_env_num=item('evaluator_env_num') >> is_type(int) >> interval(1, 32),
             manager=item('manager') >> dict_(
                 shared_memory=item('shared_memory') >> is_type(bool),
                 context=item('context') >> enum('fork', 'spawn', 'forkserver') | raw('fork')
@@ -42,8 +42,8 @@ def test_real_loader():
                 ),
             ),
             collect=item('collect') >> dict_(
-                traj_len=item('traj_len') >> (interval(1, 200) | to_type(float)),
-                unroll_len=item('unroll_len') >> interval(1, 200),
+                traj_len=item('traj_len') >> ((is_type(int) >> interval(1, 200)) | (enum("inf") >> to_type(float))),
+                unroll_len=item('unroll_len') >> is_type(int) >> interval(1, 200),
                 algo=item('algo') >> dict_(nstep=item('nstep') >> (is_type(int) & interval(1, 10))),
             ),
             command=item('command') >> dict_(
@@ -58,42 +58,42 @@ def test_real_loader():
         replay_buffer=item('replay_buffer') >> dict_(
             buffer_name=item('buffer_name') >> collection(str),
             agent=item('agent') >> dict_(
-                meta_maxlen=item('meta_maxlen') >> interval(1, math.inf),
-                max_reuse=item('max_reuse') >> interval(1, math.inf),
+                meta_maxlen=item('meta_maxlen') >> is_type(int) >> interval(1, math.inf),
+                max_reuse=item('max_reuse') >> is_type(int) >> interval(1, math.inf),
                 min_sample_ratio=item('min_sample_ratio') >> interval(1.0, 10.0)
             ),
         ),
         learner=item('learner') >> dict_(load_path=item('load_path') >> is_type(str)),
         commander=item('commander') | raw({}),
         actor=item('actor') >> dict_(
-            n_sample=item('n_sample') >> interval(8, 128),
-            traj_len=item('traj_len') >> (interval(1, 200) | to_type(float)),
-            traj_print_freq=item('traj_print_freq') >> interval(1, 1000),
-            collect_print_freq=item('traj_print_freq') >> interval(1, 1000),
+            n_sample=item('n_sample') >> is_type(int) >> interval(8, 128),
+            traj_len=item('traj_len') >> ((is_type(int) >> interval(1, 200)) | (enum("inf") >> to_type(float))),
+            traj_print_freq=item('traj_print_freq') >> is_type(int) >> interval(1, 1000),
+            collect_print_freq=item('traj_print_freq') >> is_type(int) >> interval(1, 1000),
         ),
         evaluator=item('evaluator') >> dict_(
-            n_episode=item('n_episode') >> interval(2, 10),
-            eval_freq=item('eval_freq') >> interval(100, 500),
+            n_episode=item('n_episode') >> is_type(int) >> interval(2, 10),
+            eval_freq=item('eval_freq') >> is_type(int) >> interval(100, 500),
         ),
     )
-    error_loader = Loader((lambda x: x > 0, lambda x: ValueError('value is {x}'.format(x=x))))
+    learn_nstep = item('policy') >> item('learn') >> item('algo') >> item('nstep')
+    collect_nstep = item('policy') >> item('collect') >> item('algo') >> item('nstep')
+    policy_traj_len = item('policy') >> item('collect') >> item('traj_len')
+    policy_unroll_len = item('policy') >> item('collect') >> item('unroll_len')
+    actor_traj_len = item('actor') >> item('traj_len')
     relation_loader = dict_(
-        nstep_check=mcmp(
-            item('policy') >> item('learn') >> item('algo') >> item('nstep'), "==",
-            item('policy') >> item('collect') >> item('algo') >> item('nstep')
-        ),
-        unroll_len_check=item('policy') >> item('collect') >> mcmp(item('unroll_len'), "<=", item('traj_len')),
+        nstep_check=mcmp(learn_nstep, "==", collect_nstep),
+        unroll_len_check=mcmp(policy_unroll_len, "<=", policy_traj_len),
         eps_check=item('policy') >> item('command') >> item('eps') >> mcmp(item('start'), ">=", item('end')),
-        traj_len_check=mcmp(
-            item('policy') >> item('collect') >> item('traj_len'), '==',
-            item('actor') >> item('traj_len')
-        )
+        traj_len_check=mcmp(policy_traj_len, "==", actor_traj_len),
     ) & keep()
     cartpole_dqn_loader = element_loader >> relation_loader
 
     try:
+        assert 'context' not in cartpole_dqn_default_config['env']['manager']
         output = cartpole_dqn_loader(cartpole_dqn_default_config)
         pretty_print(output, direct_print=True)
+        assert output['env']['manager']['context'] == 'fork'
     except Exception as e:
         raise e
         assert False, "loader error"
