@@ -5,7 +5,7 @@ from typing import Union, Optional, List, Any
 import numpy as np
 import torch
 import math
-import warnings
+import logging
 
 from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommander
 from nervex.worker import BaseEnvManager, SubprocessEnvManager
@@ -132,7 +132,7 @@ def serial_pipeline(
             if train_data is None:
                 # As noted above: It is possible that replay buffer's data count is
                 # greater than ``target_count```, but still has no enough data to train ``train_step`` times.
-                warnings.warn(
+                logging.warning(
                     "Replay buffer's data can only train for {} steps. ".format(i) +
                     "You can modify data collect config, e.g. increasing n_sample, n_episode or min_sample_ratio."
                 )
