@@ -1,27 +1,50 @@
-@startuml
+@startuml serial_main
 participant controller
+participant env_manager
+participant policy
 participant learner
-participant buffer
+participant replay_buffer
 participant actor
 participant evaluator
+participant commander
+autonumber
 
+controller -> env_manager: init actor and evaluator env_manager; set seed
+controller -> policy: init policy
+controller -> learner: init learner; set learn_mode policy
+controller -> actor: init actor; set collect_mode policy; set env_manager
+controller -> evaluator: init evaluator; set eval_mode policy; set env_manager
+controller -> commander: init commander; set command_mode policy
+controller -> replay_buffer: init replay_buffer
+learner -> learner: call before_run hook
 loop
-  autonumber
-  controller -> learner: set_learn_setting
-  controller -> actor: set_collect_setting
-  controller -> evaluator: set_eval_setting
-  actor -> actor : generate_data(steps or episodes)
-  actor -> buffer : push_data
-  buffer -> learner : sample_data
-  learner -> learner : train_some_iteration
-  learner -> controller : update_learner_info
-  evaluator -> evaluator : eval_performance
-  alt eval_performance is ok
-    learner -> learner : save_final_model and exit
+  commander -> commander: step
+  alt this iteration needs evaluation
+    evaluator -> evaluator: eval_performance
+    alt reach eval stop_val
+      learner -> learner: save checkpoint and exit
+    else eval_reward is new highest
+      learner -> learner: save checkpoint
+    end
   end
-  alt onpolicy training
-    buffer -> buffer : clear_buffer
+  loop until replay_buffer's data_count is big enough
+    actor -> actor: generate data (steps or episodes)
+    actor -> replay_buffer: push_data
+  end
+  loop learner_train_step times
+    replay_buffer -> learner: sample_data
+    learner -> learner: train
+    alt replay replay_buffer use prioritization
+      learner -> replay_buffer: update with priority_info
+    end
+  end
+  alt on_policy training
+    replay_buffer -> replay_buffer: clear
   end
 end
-
+learner -> learner: call after_run hook
+controller -> replay_buffer: close replay_buffer
+controller -> learner: close learner
+controller -> actor: close actor
+controller -> evaluator: close evaluator
 @enduml

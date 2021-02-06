@@ -1,6 +1,6 @@
-@startuml
+@startuml serial_actor
 start
-#orange:policy init_setting_from_cfg;
+#orange:serial_controller init, set env_manager and collect_mode policy;
 #pink:env reset;
 repeat
   #orange:policy data_preprocess;
@@ -8,20 +8,18 @@ repeat
   #orange:policy data_postprocess;
   #pink:env step_with_action;
   #orange:policy process_transition;
-  :actor save_transition_temporally;
-  if (env i is done?) then (yes)
-    #pink:env reset_i;
-    #orange:polcy callback_env_done_i;
-    :actor log_episode_result;
-    #orange:policy get_trajectory_with_transition;
-    :actor save_traj_to_buffer;
+  :actor save_transition_temporally_in_cache;
+  if (for every env: \n env i is done? OR \n cache length is not smaller than traj_len?) then (yes)
+    #orange:policy get_train_sample_from_cache;
+    :actor save_traj_for_return;
+    if (env i is done?) then (yes)
+      #pink:env reset_i;
+      #orange:policy callback_env_done_i;
+      :actor log_episode_result;
+    endif
   endif
-  if (transition number is enought) then (yes)
-    #orange:policy get_trajectory_with_transition;
-    :actor save_traj_to_buffer;
-  endif
-  :actor log_statistics_data;
 repeat while (generated traj data is not enough?)
-
+:actor log_statistics_data;
+:actor return collect_data and collect_info;
 stop
 @enduml

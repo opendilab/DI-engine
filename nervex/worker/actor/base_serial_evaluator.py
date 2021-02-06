@@ -10,13 +10,12 @@ from .base_serial_actor import CachePool
 
 class BaseSerialEvaluator(object):
     """
-        Overview:
-            Base class for serial evaluator.
-
-        Interfaces:
-            __init__, reset, close, eval
-        Property:
-            env, policy
+    Overview:
+        Base class for serial evaluator.
+    Interfaces:
+        __init__, reset, close, eval
+    Property:
+        env, policy
     """
 
     def __init__(self, cfg: dict) -> None:
@@ -68,13 +67,12 @@ class BaseSerialEvaluator(object):
         '''
         Overview:
             Evaluate policy.
-        Args:
-            train_iter (:obj:`int`): number of training iteration.
-            n_episode (:obj:`int`): number of episode.
-
+        Arguments:
+            - train_iter (:obj:`int`): Current training iteration.
+            - n_episode (:obj:`int`): Number of evaluation episodes.
         Returns:
-            stop_flag (:obj:`bool`): whether this training program is over.
-            eval_reward (:obj:`float`): current eval_reward.
+            - stop_flag (:obj:`bool`): Whether this training program can be ended.
+            - eval_reward (:obj:`float`): Current eval_reward.
         '''
         if n_episode is None:
             n_episode = self._default_n_episode
@@ -97,11 +95,11 @@ class BaseSerialEvaluator(object):
                 timestep = self._env.step(action)
                 for i, t in timestep.items():
                     if t.info.get('abnormal', False):
-                        # if there is a abnormal timestep, reset all the related variable, also this env has been reset
+                        # If there is an abnormal timestep, reset all the related variables(including this env).
                         self._policy.reset([i])
                         continue
                     if t.done:
-                        # env reset is done by env_manager automatically
+                        # Env reset is done by env_manager automatically.
                         self._policy.reset([i])
                         reward = t.info['final_eval_reward']
                         if isinstance(reward, torch.Tensor):

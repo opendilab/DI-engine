@@ -1,19 +1,19 @@
-@startuml
+@startuml serial_evaluator
 start
-#orange:policy init_setting_from_cfg;
+#orange:serial_controller init, set env_manager and eval_mode policy;
 #pink:env reset;
 repeat
   #orange:policy data_preprocess;
   #orange:policy forward_with_obs;
   #orange:policy data_postprocess;
   #pink:env step_with_action;
-  if (env i is done?) then (yes)
+  if (for every env: env i is done?) then (yes)
     #pink:env reset_i;
-    #orange:polcy callback_env_done_i;
+    #orange:policy callback_env_done_i;
     :evaluator log_episode_result;
   endif
   :evaluator log_statistics_data;
-repeat while (eval episode is not enough?)
+repeat while (eval episodes are not enough?)
 :evaluator get_average_episode_result;
 stop
 @enduml
