@@ -1,8 +1,6 @@
 import pytest
 
-from ...loader.mapping import mapping, MappingError, mpfilter, mpkeys, mpvalues, mpitems, item, item_or
-from ...loader.types import is_type
-from ...loader.utils import optional
+from nervex.loader import mapping, MappingError, mpfilter, mpkeys, mpvalues, mpitems, item, item_or, is_type, optional
 
 
 @pytest.mark.unittest

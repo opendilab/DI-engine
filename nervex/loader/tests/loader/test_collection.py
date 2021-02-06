@@ -1,10 +1,7 @@
 import pytest
 
-from ...loader.base import Loader
-from ...loader.collection import collection, contains, length_is, length, tuple_, CollectionError, cofilter, tpselector
-from ...loader.number import plus, minus, interval, negative
-from ...loader.types import to_type
-from ...loader.utils import optional, check_only
+from nervex.loader import Loader, collection, contains, length_is, length, tuple_, CollectionError, cofilter, \
+    tpselector, plus, minus, interval, negative, to_type, optional, check_only
 
 
 @pytest.mark.unittest

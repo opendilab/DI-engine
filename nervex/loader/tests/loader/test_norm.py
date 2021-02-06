@@ -2,10 +2,7 @@ import warnings
 
 import pytest
 
-from ...loader.base import Loader
-from ...loader.mapping import item
-from ...loader.norm import norm, lin, lis, lisnot, lsum, lcmp, normfunc
-from ...loader.number import interval
+from nervex.loader import Loader, interval, item, norm, lin, lis, lisnot, lsum, lcmp, normfunc
 
 
 @pytest.mark.unittest

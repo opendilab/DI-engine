@@ -2,10 +2,9 @@ import math
 
 import pytest
 
-from ...loader.mapping import item, item_or
-from ...loader.number import numeric, interval, negative, plus, minus, minus_with, multi, divide, divide_with, power, \
-    power_with, positive, msum, mmulti, mcmp, is_positive, is_negative, non_positive, non_negative
-from ...loader.utils import keep
+from nervex.loader import item, item_or, numeric, interval, negative, plus, minus, minus_with, multi, divide, \
+    divide_with, power, power_with, positive, msum, mmulti, mcmp, is_positive, is_negative, non_positive, non_negative, \
+    keep
 
 
 @pytest.mark.unittest

@@ -1,9 +1,6 @@
 import pytest
 
-from ...loader.base import Loader
-from ...loader.number import interval
-from ...loader.types import to_type, is_type
-from ...loader.utils import keep, optional, check_only, raw, check
+from nervex.loader import Loader, interval, to_type, is_type, keep, optional, check_only, raw, check
 
 
 @pytest.mark.unittest

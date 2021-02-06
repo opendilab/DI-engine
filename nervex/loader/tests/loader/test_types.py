@@ -1,9 +1,7 @@
 import pytest
 from easydict import EasyDict
 
-from ...loader.number import interval, negative
-from ...loader.types import is_type, to_type, prop, method, fcall, is_callable, fpartial
-from ...loader.utils import keep
+from nervex.loader import interval, negative, is_type, to_type, prop, method, fcall, is_callable, fpartial, keep
 
 
 @pytest.mark.unittest

@@ -1,17 +1,11 @@
 import math
+
 import pytest
 
-from nervex.config.loader.dict import dict_
-from nervex.config.loader.types import is_type, to_type
-from nervex.config.loader.collection import collection
-from nervex.config.loader.number import interval, is_positive, mcmp
-from nervex.config.loader.string import enum
-from nervex.config.loader.mapping import item
-from nervex.config.loader.utils import keep, optional, raw
-from nervex.config.loader.norm import norm
-from nervex.config.loader.base import Loader
-from nervex.utils import pretty_print
 from app_zoo.classic_control.cartpole.entry.cartpole_dqn_default_config import cartpole_dqn_default_config
+from nervex.loader import dict_, is_type, to_type, collection, interval, is_positive, mcmp, enum, item, keep, raw, \
+    Loader
+from nervex.utils import pretty_print
 
 
 @pytest.mark.unittest

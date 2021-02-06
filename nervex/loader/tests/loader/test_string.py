@@ -2,8 +2,7 @@ import re
 
 import pytest
 
-from ...loader.string import enum, rematch, regrep
-from ...loader.types import to_type
+from nervex.loader import enum, rematch, regrep, to_type
 
 
 @pytest.mark.unittest

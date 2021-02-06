@@ -1,10 +1,6 @@
 import pytest
 
-from ...loader.dict import dict_, DictError
-from ...loader.mapping import item
-from ...loader.norm import norm
-from ...loader.number import msum
-from ...loader.utils import keep
+from nervex.loader import dict_, DictError, item, norm, msum, keep
 
 
 @pytest.mark.unittest
