@@ -1,9 +1,9 @@
-from typing import Optional, Tuple
-import sys
 import os.path as osp
-import tempfile
 import shutil
+import sys
+import tempfile
 from importlib import import_module
+from typing import Optional, Tuple
 
 
 class Config(object):

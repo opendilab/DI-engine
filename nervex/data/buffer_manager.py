@@ -52,7 +52,7 @@ class BufferManager:
             self.sample_tree[idx] = self.cfg.sample_ratio[name]
         assert self.sample_tree.reduce() == 1
 
-        # cache mechanism: first push data into cache, then(some conditions) put forward to meta buffer
+        # Cache mechanism: First push data into cache, then(on some conditions) put forward to meta buffer.
         # self.use_cache = cfg.get('use_cache', False)
         self.use_cache = False
         self._cache = Cache(maxlen=self.cfg.get('cache_maxlen', 256), timeout=self.cfg.get('timeout', 8))

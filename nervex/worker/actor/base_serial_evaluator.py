@@ -9,8 +9,25 @@ from .base_serial_actor import CachePool
 
 
 class BaseSerialEvaluator(object):
+    """
+        Overview:
+            Base class for serial evaluator.
+
+        Interfaces:
+            __init__, reset, close, eval
+        Property:
+            env, policy
+    """
 
     def __init__(self, cfg: dict) -> None:
+        """
+        Overview:
+            Init method. Load config and use ``self._cfg`` setting to build common serial evaluator components,
+            e.g. logger helper, timer.
+            Policy is not initialized here, but set afterwards through policy setter.
+        Arguments:
+            - cfg (:obj:`EasyDict`)
+        """
         self._default_n_episode = cfg.get('n_episode', None)
         self._stop_val = cfg.stop_val
         self._logger, _ = build_logger(path='./log/evaluator', name='evaluator')
@@ -23,13 +40,13 @@ class BaseSerialEvaluator(object):
 
     @property
     def env(self) -> BaseEnvManager:
-        return self._env
+        return self._env_manager
 
     @env.setter
-    def env(self, _env: BaseEnvManager) -> None:
-        self._env = _env
-        self._env.launch()
-        self._env_num = self._env.env_num
+    def env(self, _env_manager: BaseEnvManager) -> None:
+        self._env_manager = _env_manager
+        self._env_manager.launch()
+        self._env_num = self._env_manager.env_num
 
     @property
     def policy(self) -> namedtuple:
@@ -45,9 +62,20 @@ class BaseSerialEvaluator(object):
 
     def close(self) -> None:
         self._tb_logger.close()
-        self._env.close()
+        self._env_manager.close()
 
     def eval(self, train_iter: int, n_episode: Optional[int] = None) -> Tuple[bool, float]:
+        '''
+        Overview:
+            Evaluate policy.
+        Args:
+            train_iter (:obj:`int`): number of training iteration.
+            n_episode (:obj:`int`): number of episode.
+
+        Returns:
+            stop_flag (:obj:`bool`): whether this training program is over.
+            eval_reward (:obj:`float`): current eval_reward.
+        '''
         if n_episode is None:
             n_episode = self._default_n_episode
         assert n_episode is not None, "please indicate eval n_episode"
@@ -59,15 +87,15 @@ class BaseSerialEvaluator(object):
         self._policy.reset()
         with self._timer:
             while episode_count < n_episode:
-                obs = self._env.next_obs
+                obs = self._env_manager.next_obs
                 self._obs_pool.update(obs)
                 env_id, obs = self._policy.data_preprocess(obs)
                 policy_output = self._policy.forward(env_id, obs)
                 policy_output = self._policy.data_postprocess(env_id, policy_output)
                 self._policy_output_pool.update(policy_output)
-                action = {i: a['action'] for i, a in policy_output.items()}
-                timestep = self._env.step(action)
-                for i, t in timestep.items():
+                actions = {i: a['action'] for i, a in policy_output.items()}
+                timesteps = self._env_manager.step(actions)
+                for i, t in timesteps.items():
                     if t.info.get('abnormal', False):
                         # if there is a abnormal timestep, reset all the related variable, also this env has been reset
                         self._policy.reset([i])

@@ -92,7 +92,7 @@ Environment
 
             .. note::
 
-                此外， ``obs_space`` 和 ``vec_env_manager`` 中 ``shared_memory`` 的相关使用存在强依赖，如要使用则必须按照 ``EnvElementInfo`` 来实现。
+                此外， ``obs_space`` 和 ``subprocess_env_manager`` 中 ``shared_memory`` 的相关使用存在强依赖，如要使用则必须按照 ``EnvElementInfo`` 来实现。
 
 
         - 接口方法：
@@ -275,6 +275,6 @@ Environment
 
 .. note::
 
-    1. 所有代码实现中命名一律使用名词单数，约定为习惯
+    1. 所有代码实现中命名建议一般情况使用单数，但如果使用复数可以使某局部代码块逻辑更清晰，该部分也可自由选择。
     2. 所有代码实现秉承 **自身对外界输入质疑，自身对外界输出负责** 的思想，对输入参数做必要的check，对输出（返回值）明确规定其格式
     3. 环境元素的键值如果为空时，一律使用 ``None``

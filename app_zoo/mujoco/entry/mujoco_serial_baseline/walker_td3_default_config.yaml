@@ -1,0 +1,79 @@
+common:
+    name: WalkerTd3Config
+    save_path: '.'
+    load_path: ''
+env:
+    env_id: 'Walker2d-v3'  # ['HalfCheetah-v1', 'Hopper-v1', 'Walker2d-v1']  # stop_val: 10500, 3700, 5300
+    # frame_stack: 4
+    norm_obs: 
+        use_norm: True
+    norm_reward: 
+        use_norm: False
+        reward_discount: 0.98
+    env_manager_type: 'subprocess'  # [base, subprocess]
+    import_names: ['app_zoo.mujoco.envs.mujoco_env']
+    env_type: 'mujoco'
+    actor_env_num: 16
+    evaluator_env_num: 8
+    use_act_scale: True
+policy:
+    use_cuda: True
+    policy_type: 'ddpg'
+    import_names: ['nervex.policy.ddpg']
+    on_policy: False
+    use_priority: True
+    model:
+        obs_dim: 17
+        action_dim: 6
+        use_twin_critic: True
+    learn:
+        train_step: 4
+        batch_size: 128
+        learning_rate_actor: 0.0005
+        learning_rate_critic: 0.001
+        weight_decay: 0.0001
+        ignore_done: True
+        algo:
+            target_theta: 0.005
+            discount_factor: 0.99
+            actor_update_freq: 2
+            use_twin_critic: True
+            use_noise: True
+            noise_sigma: 0.2
+            noise_range:
+                min: -0.5
+                max: 0.5
+        init_data_count: 5000
+    collect:
+        traj_len: 1
+        unroll_len: 1
+        algo:
+            noise_sigma: 0.1
+    command:
+        placeholder: 'placeholder'
+replay_buffer:
+    buffer_name: ['agent']
+    agent:
+        meta_maxlen: 20000
+        max_reuse: 16
+        min_sample_ratio: 1
+actor:
+    n_sample: 48
+    traj_len: 1
+    traj_print_freq: 1000
+    collect_print_freq: 1000
+evaluator:
+    n_episode: 8
+    eval_freq: 1000
+    stop_val: 5300
+learner:
+    hook:
+        log_show:
+            name: log_show
+            type: log_show
+            priority: 20
+            position: after_iter
+            ext_args:
+                freq: 500
+commander:
+    placeholder: 'placeholder'
