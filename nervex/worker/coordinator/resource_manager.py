@@ -24,9 +24,9 @@ class NaiveResourceManager(object):
         Arguments:
             - actor_task (:obj:`dict`): the actor task to assign
         """
-        available_actor = list(self._resource_info['actor'].keys())
-        if len(available_actor) > 0:
-            selected_actor = random.sample(available_actor, 1)[0]
+        available_actor_list = list(self._resource_info['actor'].keys())
+        if len(available_actor_list) > 0:
+            selected_actor = random.sample(available_actor_list, 1)[0]
             info = self._resource_info['actor'].pop(selected_actor)
             return {'actor_id': selected_actor, 'resource_info': info}
         else:
@@ -39,9 +39,9 @@ class NaiveResourceManager(object):
         Arguments:
             - learner_task (:obj:`dict`): the learner task to assign
         """
-        available_learner = list(self._resource_info['learner'].keys())
-        if len(available_learner) > 0:
-            selected_learner = random.sample(available_learner, 1)[0]
+        available_learner_list = list(self._resource_info['learner'].keys())
+        if len(available_learner_list) > 0:
+            selected_learner = random.sample(available_learner_list, 1)[0]
             info = self._resource_info['learner'].pop(selected_learner)
             return {'learner_id': selected_learner, 'resource_info': info}
         else:
