@@ -33,10 +33,11 @@ class Coordinator(object):
     Overview:
         the coordinator will manage parallel tasks and data
     Interface:
-        __init__, start, close, __del__, state_dict, load_state_dict, deal_with_actor_send_data, \
-            deal_with_actor_finish_task, \
-            deal_with_learner_get_data, deal_with_learner_send_info, deal_with_learner_finish_task, info, error, \
-            system_shutdown_flag
+        __init__, start, close, __del__, state_dict, load_state_dict,
+        deal_with_actor_send_data, deal_with_actor_finish_task,
+        deal_with_learner_get_data, deal_with_learner_send_info, deal_with_learner_finish_task,
+    Property:
+        system_shutdown_flag
     """
 
     def __init__(self, cfg: dict) -> None:

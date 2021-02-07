@@ -2,12 +2,8 @@ from easydict import EasyDict
 
 pendulum_ppo_default_config = dict(
     env=dict(
-        norm_obs=dict(
-            use_norm=False,
-        ),
-        norm_reward=dict( 
-            use_norm=False,
-        ),
+        norm_obs=dict(use_norm=False, ),
+        norm_reward=dict(use_norm=False, ),
         env_manager_type='base',
         import_names=['app_zoo.classic_control.pendulum.envs.pendulum_env'],
         env_type='pendulum',
@@ -20,7 +16,7 @@ pendulum_ppo_default_config = dict(
         policy_type='ppo_vanilla',
         import_names=['nervex.policy.ppo_vanilla'],
         on_policy=False,
-        use_priority=True,
+        use_priority=False,
         model=dict(
             continous=True,
             fixed_sigma_value=0.2,
@@ -47,14 +43,12 @@ pendulum_ppo_default_config = dict(
                 gae_lambda=0.95,
             ),
         ),
-        command=dict(
-            eps=dict(
-                type='exp',
-                start=0.95,
-                end=0.1,
-                decay=10000,
-            ),
-        ),
+        command=dict(eps=dict(
+            type='exp',
+            start=0.95,
+            end=0.1,
+            decay=10000,
+        ), ),
     ),
     replay_buffer=dict(
         buffer_name=['agent'],
@@ -82,12 +76,11 @@ pendulum_ppo_default_config = dict(
                 type='log_show',
                 priority=20,
                 position='after_iter',
-                ext_args=dict(
-                    freq=500,
-                ),
+                ext_args=dict(freq=500, ),
             ),
         ),
     ),
     commander=dict(),
 )
 pendulum_ppo_default_config = EasyDict(pendulum_ppo_default_config)
+main_config = pendulum_ppo_default_config

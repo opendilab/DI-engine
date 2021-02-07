@@ -1,28 +1,28 @@
 import time
 import sys
-from typing import Union
+from typing import Optional, Union
 from collections import defaultdict
 
 from nervex.policy import create_policy
-from nervex.utils import LimitedSpaceContainer, get_task_uid
+from nervex.utils import LimitedSpaceContainer, get_task_uid, build_logger
 from .base_parallel_commander import register_parallel_commander, BaseCommander
 
 
 class SoloCommander(BaseCommander):
     r"""
     Overview:
-        the solo type commander
+        Parallel commander for solo games.
     Interface:
-        __init__, get_actor_task, get_learner_task, finish_actor_task, finish_learner_task, \
-            notify_fail_actor_task, notify_fail_learner_task, get_learner_info
+        __init__, get_actor_task, get_learner_task, finish_actor_task, finish_learner_task,
+        notify_fail_actor_task, notify_fail_learner_task, get_learner_info
     """
 
     def __init__(self, cfg: dict) -> None:
         r"""
         Overview:
-            init the solo commander according to config
+            Init the solo commander according to config.
         Arguments:
-            - cfg (:obj:`dict`): the config file of solo commander
+            - cfg (:obj:`dict`): Dict type config file.
         """
         self._cfg = cfg
         self._actor_task_space = LimitedSpaceContainer(0, cfg.actor_task_space)
@@ -33,13 +33,18 @@ class SoloCommander(BaseCommander):
         self._current_policy_id = None
         self._last_eval_time = 0
         self._policy = create_policy(self._cfg.policy, enable_field=['command']).command_mode
+        self._logger, self._tb_logger = build_logger("./log/commander", "commander", need_tb = True)
+        for tb_var in ['episode_count', 'step_count', 'avg_step_per_episode', 'avg_time_per_step',
+            'avg_time_per_episode', 'reward_mean', 'reward_std', ]:
+            self._tb_logger.register_var('evaluator/' + tb_var)
+        self._eval_step = -1
 
-    def get_actor_task(self) -> Union[None, dict]:
+    def get_actor_task(self) -> Optional[dict]:
         r"""
         Overview:
-            Get the new actor task when there is space
+            Return the new actor task when there is residual task space; Otherwise return None.
         Return:
-            - task (:obj:`dict`): the new actor task
+            - task (:obj:`Optional[dict]`): New actor task.
         """
         if self._actor_task_space.acquire_space():
             if self._current_buffer_id is None or self._current_policy_id is None:
@@ -63,12 +68,12 @@ class SoloCommander(BaseCommander):
         else:
             return None
 
-    def get_learner_task(self) -> Union[None, dict]:
+    def get_learner_task(self) -> Optional[dict]:
         r"""
         Overview:
-            Get the new learner task when there is space
+            Return the new learner task when there is residual task  space; Otherwise return None.
         Return:
-            - task (:obj:`dict`): the new learner task
+            - task (:obj:`Optional[dict]`): New learner task.
         """
         if self._learner_task_space.acquire_space():
             learner_cfg = self._cfg.learner_cfg
@@ -87,20 +92,40 @@ class SoloCommander(BaseCommander):
     def finish_actor_task(self, task_id: str, finished_task: dict) -> bool:
         r"""
         Overview:
-            finish the actor task and release space
+            Get actor's finish_task_info and release actor_task_space.
+            If actor's task is evaluation, judge the convergence and return it.
         Arguments:
             - task_id (:obj:`str`): the actor task_id
             - finished_task (:obj:`dict`): the finished task
         Returns:
-            - converge (:obj:`bool`): whether the stop val is reached and the algorithm is converged
+            - convergence (:obj:`bool`): Whether the stop val is reached and the algorithm is converged. \
+                If True, the pipeline can be finished.
         """
         self._actor_task_space.release_space()
         if finished_task['eval_flag']:
+            self._eval_step += 1
             self._last_eval_time = time.time()
             self._evaluator_info.append(finished_task)
+            # TODO real train_iter from evaluator
+            train_iter = self._eval_step
+            info = {
+                'train_iter': train_iter,
+                'episode_count': finished_task['real_episode_count'],
+                'step_count': finished_task['step_count'],
+                'avg_step_per_episode': finished_task['avg_time_per_episode'],
+                'avg_time_per_step': finished_task['avg_time_per_step'],
+                'avg_time_per_episode': finished_task['avg_step_per_episode'],
+                'reward_mean': finished_task['reward_mean'],
+                'reward_std': finished_task['reward_std'],
+            }
+            self._logger.info(
+                "[EVALUATOR]evaluate end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()]))
+            )
+            tb_vars = [['evaluator/' + k, v, train_iter] for k, v in info.items() if k not in ['train_iter']]
+            self._tb_logger.add_val_list(tb_vars, viz_type='scalar')
             eval_stop_val = self._cfg.actor_cfg.env_kwargs.eval_stop_val
             if eval_stop_val is not None and finished_task['reward_mean'] >= eval_stop_val:
-                print(
+                self._logger.info(
                     "[nerveX parallel pipeline] current eval_reward: {} is greater than the stop_val: {}".
                     format(finished_task['reward_mean'], eval_stop_val) + ", so the total training program is over."
                 )
@@ -110,12 +135,12 @@ class SoloCommander(BaseCommander):
     def finish_learner_task(self, task_id: str, finished_task: dict) -> str:
         r"""
         Overview:
-            finish the learner task and release space
+            Get learner's finish_task_info, release learner_task_space, reset corresponding variables.
         Arguments:
-            - task_id (:obj:`str`): the learner task_id
-            - finished_task (:obj:`dict`): the finished task
+            - task_id (:obj:`str`): Learner task_id
+            - finished_task (:obj:`dict`): Learner's finish_learn_info.
         Returns:
-            - buffer_id (:obj:`str`): the buffer_id of the finished learner
+            - buffer_id (:obj:`str`): Buffer id of the finished learner.
         """
         self._learner_task_space.release_space()
         buffer_id = finished_task['buffer_id']
@@ -129,33 +154,33 @@ class SoloCommander(BaseCommander):
     def notify_fail_actor_task(self, task: dict) -> None:
         r"""
         Overview:
-            release space when actor task failed
+            Release task space when actor task fails.
         """
         self._actor_task_space.release_space()
 
     def notify_fail_learner_task(self, task: dict) -> None:
         r"""
         Overview:
-            release space when learner task failed
+            Release task space when learner task fails.
         """
         self._learner_task_space.release_space()
 
     def get_learner_info(self, task_id: str, info: dict) -> None:
         r"""
         Overview:
-            append the info to learner:
+            Append the info to learner_info:
         Arguments:
-            - task_id (:obj:`str`): the learner task_id
-            - info (:obj:`dict`): the info to append to learner
+            - task_id (:obj:`str`): Learner task_id
+            - info (:obj:`dict`): Dict type learner info.
         """
         self._learner_info.append(info)
 
     def _init_policy_id(self) -> str:
         r"""
         Overview:
-            init the policy id
+            Init the policy id and return it.
         Returns:
-            - policy_id (:obj:`str`): the policy id uesd
+            - policy_id (:obj:`str`): New initialized policy id.
         """
         policy_id = 'policy_{}'.format(get_task_uid())
         self._current_policy_id = policy_id
@@ -164,9 +189,9 @@ class SoloCommander(BaseCommander):
     def _init_buffer_id(self) -> str:
         r"""
         Overview:
-            init the buffer id
+            Init the buffer id and return it.
         Returns:
-            - buffer_id (:obj:`str`): the buffer id uesd
+            - buffer_id (:obj:`str`): New initialized buffer id.
         """
         buffer_id = 'buffer_{}'.format(get_task_uid())
         self._current_buffer_id = buffer_id
