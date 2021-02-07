@@ -210,7 +210,7 @@ class FlaskFileSystemLearner(BaseCommLearner):
             - state_dict (:obj:`dict`): State dict of the policy.
         """
         path = os.path.join(self._path_policy, self._policy_id)
-        save_file(path, state_dict)
+        save_file(path, state_dict, use_lock=True)
 
     @staticmethod
     def load_data_fn(path, meta: Dict[str, Any], decompressor: Callable) -> Any:
@@ -226,7 +226,7 @@ class FlaskFileSystemLearner(BaseCommLearner):
         # Due to read-write conflict, read_file raise an error, therefore we set a while loop.
         while True:
             try:
-                s = read_file(path)
+                s = read_file(path, use_lock=False)
                 s = decompressor(s)
                 break
             except Exception:
