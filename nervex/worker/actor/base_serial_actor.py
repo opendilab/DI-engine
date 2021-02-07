@@ -62,7 +62,10 @@ class BaseSerialActor(object):
     def reset(self) -> None:
         self._obs_pool = CachePool('obs', self._env_num)
         self._policy_output_pool = CachePool('policy_output', self._env_num)
-        self._traj_cache = {env_id: deque(maxlen=self._traj_cache_length) for env_id in range(self._env_num)} # _traj_cache = {env_id: deque}, used to store traj_len pieces of transitions
+        self._traj_cache = {
+            env_id: deque(maxlen=self._traj_cache_length)
+            for env_id in range(self._env_num)
+        }  # _traj_cache = {env_id: deque}, used to store traj_len pieces of transitions
         self._total_collect_step_count = 0
         self._total_step_count = 0
         self._total_episode_count = 0
