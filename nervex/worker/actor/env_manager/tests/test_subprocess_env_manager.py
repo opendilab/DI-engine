@@ -3,7 +3,7 @@ import time
 import pytest
 import torch
 
-from nervex.worker.actor.env_manager.vec_env_manager import SubprocessEnvManager, SyncSubprocessEnvManager
+from nervex.worker.actor.env_manager.subprocess_env_manager import SubprocessEnvManager, SyncSubprocessEnvManager
 
 
 @pytest.mark.unittest(rerun=5)
