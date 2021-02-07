@@ -59,7 +59,7 @@ class Coordinator(object):
             'deal_with_learner_send_info': self.deal_with_learner_send_info,
             'deal_with_learner_finish_task': self.deal_with_learner_finish_task,
         }
-        self._logger, _ = build_logger(path='./log', name='coordinator')
+        self._logger, _ = build_logger(path='./log', name='coordinator', need_tb=False)
         self._interaction = CoordinatorInteraction(cfg.interaction, self._callback, self._logger)
         self._learner_task_queue = Queue()
         self._actor_task_queue = Queue()

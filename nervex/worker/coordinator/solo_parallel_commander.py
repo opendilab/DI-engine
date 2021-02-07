@@ -33,7 +33,7 @@ class SoloCommander(BaseCommander):
         self._current_policy_id = None
         self._last_eval_time = 0
         self._policy = create_policy(self._cfg.policy, enable_field=['command']).command_mode
-        self._logger, self._tb_logger = build_logger("./log/commander", "commander", need_tb = True)
+        self._logger, self._tb_logger = build_logger("./log/commander", "commander", need_tb=True)
         for tb_var in ['episode_count', 'step_count', 'avg_step_per_episode', 'avg_time_per_step',
             'avg_time_per_episode', 'reward_mean', 'reward_std', ]:
             self._tb_logger.register_var('evaluator/' + tb_var)

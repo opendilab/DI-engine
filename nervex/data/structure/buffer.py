@@ -278,7 +278,7 @@ class ReplayBuffer:
         # Add in operation count.
         self._in_count = 0
         self._in_tick_monitor = InTickMonitor(TickTime(), expire=self.monitor_cfg.tick_expire)
-        self._logger, self._tb_logger = build_logger(self.monitor_cfg.log_path, self.name, True)
+        self._logger, self._tb_logger = build_logger(self.monitor_cfg.log_path, self.name, need_tb=True)
         self._in_vars = ['in_count_avg', 'in_time_avg']
         self._in_vars = [self.name + var for var in self._in_vars]
         self._out_vars = [
