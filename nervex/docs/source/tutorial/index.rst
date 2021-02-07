@@ -358,8 +358,10 @@ DRL快速上手指南(串行版本)
 环境相关
 -----------
 
-RL不同于传统的监督学习，数据一般是离线准备完成，RL需要实时让智能体和问题环境进行交互，产生数据帧用于训练。nerveX为了处理实际问题场景中复杂的环境结构定义，抽象了环境及其基本元素相关模块（`Env Overview
-<../feature/env_overview.html>`_），该抽象定义了环境和外界交互的相关接口，数据帧中每个元素的格式和取值范围等基本信息。对于CartPole环境，nerveX已经完成实现，可以通过如下的代码直接调用：
+RL不同于传统的监督学习中可以离线准备数据，RL需要 **实时** 让智能体和问题环境进行交互，产生数据帧用于训练。
+nerveX为了处理实际问题场景中复杂的环境结构定义，抽象了环境及其基本元素相关模块（`Env Overview <../feature/env_overview.html>`_）。
+该抽象定义了环境和外界交互的相关接口，数据帧中每个元素的格式和取值范围等基本信息。
+对于CartPole环境，nerveX已经完成实现，可以通过如下的代码直接调用：
 
 .. code:: python
 
@@ -413,7 +415,7 @@ RL不同于传统的监督学习，数据一般是离线准备完成，RL需要�
 神经网络模型相关
 --------------------
 
-nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，支持用户自定义各式各样的神经网络，不过，nerveX也根据RL等决策算法的需要，构建了一些抽象层次和API，主要分为 ``model`` （模型）和 ``armor`` （智能体）两部分，若已有的Armor组件无法满足需求，使用者也可以完全自定义相关的代码段，其和训练主体代码并无耦合。
+nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，支持用户自定义各式各样的神经网络，不过，nerveX也根据RL等决策算法的需要，构建了一些抽象层次和API，主要分为 ``Model`` （模型）和 ``Armor`` （运行时模型）两部分，若已有的Armor组件无法满足需求，使用者也可以完全自定义相关的代码段，其和训练主体代码并无耦合。
 
 模型部分是对一些经典算法的抽象，比如对于Actor-Critic系列算法和Dueling DQN算法，nerveX为其实现了相关的模型基类，并且进行了多层的模块化的封装，详见 
 ``nervex/model/discrete_net/discrete_net.py`` 和其对应的测试文件 ``nervex/model/discrete_net/test_discrete_net.py`` 。
@@ -424,7 +426,7 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
 
     import torch
     import torch.nn as nn
-    
+
 
     # network definition
     class FCDQN(nn.Module):
@@ -457,14 +459,13 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
 
     此处实现的 ``FCDQN`` 示例网络其实相当于 ``nervex/model/discrete_net/discrete_net.py`` 中的 ``FCDiscreteNet``。
 
-
 .. note::
 
     注意由于Atari是一个离散动作空间环境，神经网络的输出并不是具体的动作值，而是对于整个动作空间选取动作的logits，其将会在其他模块中完成采样操作转化成具体的动作。
 
 .. note::
 
-    nerveX的model模块中实现更为复杂的DQN（支持不同 ``Encoder和使用 ``LSTM``），使用者可使用自定义所用的神经网络，或内置版本的神经网络。
+    nerveX的model模块中实现更为复杂的DQN（支持不同 ``Encoder`` 和使用 ``LSTM`` ），使用者可使用自定义所用的神经网络，或内置版本的神经网络。
     内置版本的神经网络中，以 ``FC`` 开头表示使用接受 ``1-dim`` 的obs输入 ``Encoder`` ，以 ``Conv`` 开头表示使用接受 ``[Channel, Hight, Width]`` 的输入的 ``Encoder`` ，
     包含 ``R`` 的表示带有含 ``LSTM`` 的Recurrent Network。
 
@@ -474,7 +475,7 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
     为了便于和其他模块的对接，nerveX限制神经网络的输入输出为dict形式，即键为字符串值为Tensor或一组Tensor。但dict确实存在无法明晰输入输出数据具体内容的问题，故建议使用者为自己的神经网络准备
     相应的单元测试，并在forward方法中注明输入和输出的数据键及值的Tensor维度，格式可参考 `https://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/blob/master/nervex/rl_utils/ppo.py#L32`。
 
-智能体部分是对模型运行时行为的抽象（例如根据eps-greedy方法对logits进行采样，对于使用RNN的神经网络维护其隐状态等），具体的设计可以参考 `Armor Overview <../feature/armor_overview.html>`_ 。由于一个神经网络模型可能在多个系统组件内通过不同的方式使用（训练/数据生成/测试），nerveX使用 ``Armor Plugin`` （智能体插件）的定义不同的功能，并为各个组件内的模型添加相应的插件，完成定制化。对于CartPole DQN，使用系统预设的默认DQN智能体代码即可，示例如下， 其中Learner和Actor分别代码训练端和数据生成端：
+Armor 部分是对模型运行时行为的抽象（例如根据eps-greedy方法对logits进行采样，对于使用RNN的神经网络维护其隐状态等），具体的设计可以参考 `Armor Overview <../feature/armor_overview.html>`_ 。由于一个神经网络模型可能在多个系统组件内通过不同的方式使用（训练/数据生成/测试），nerveX使用 ``Armor Plugin`` （插件）的定义不同的功能，并为各个组件内的模型添加相应的插件，完成定制化。对于CartPole DQN，使用系统预设的默认DQN Armor即可，示例如下， 其中Learner和Actor分别代码训练端和数据生成端：
 
 
 .. note::

@@ -4,8 +4,9 @@ Actor Overview
     Actor是为训练学习端提供足够数量和质量数据的模块，但Evaluator也作为一种不存储和传递时间步数据的特殊Actor存在。主要包括三大模块:
 
         - Actor Controller(数据生成控制器)
+        - Communication Actor(通信模块)
         - Env Manager(环境管理器)
-        - Armor(智能体)
+        - Armor(可理解为模型)
 
 
 Actor Controller(数据生成控制器)
@@ -30,7 +31,7 @@ Actor Controller(数据生成控制器)
     - 整个Actor部分一般运行在单机上，各个组件之间一般使用IPC进行通信，之后会研究如果利用单机共享内存来避免多余的数据拷贝(TODO)，即AC中只获得共享内存中数据的引用来进行管理。
 
 
-Communication Actor(数据生成器通信模块)
+Communication Actor(通信模块)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 概述：
     数据通信主要包含三类需求：
@@ -49,8 +50,9 @@ Env Manager(环境管理器)
 概述：
     env manager是一个向量化的环境管理器，其中同时运行多个相同类型不同配置的环境，实际实现方式包含子进程向量化和伪向量化（循环串行）两种模式，具体可参考 `env_manager_overview <../env_manager/env_manager_overview.html>`_ 。
 
-Armor(智能体)
+Armor(模型)
 ~~~~~~~~~~~~~~
 
 概述：
-    armor作为runtime的算法模型，支持运行时的各种动态功能，具体可参考 `armor_overview <../armor/armor_overview.html>`_。当其作为actor的一部分时，主要支持batch inference和指定样本id的inference。
+    armor作为runtime的算法模型，支持运行时的各种动态功能，具体可参考 `Armor Overview <./armor_overview.html>`_。
+    当其作为actor的一部分时，主要支持batch inference和指定样本id的inference。
