@@ -1,5 +1,4 @@
 import os
-import sys
 import time
 import traceback
 from typing import Union, Dict, Callable
@@ -147,7 +146,7 @@ class FlaskFileSystemActor(BaseCommActor):
             - path (:obj:`str`): path to policy update information.
         """
         path = os.path.join(self._path_policy, path)
-        return read_file(path)
+        return read_file(path, use_lock=True)
 
     # override
     def send_stepdata(self, path: str, stepdata: list) -> None:
@@ -159,7 +158,7 @@ class FlaskFileSystemActor(BaseCommActor):
             - stepdata (:obj:`Any`): step data.
         """
         name = os.path.join(self._path_data, path)
-        save_file(name, stepdata)
+        save_file(name, stepdata, use_lock=False)
 
     # override
     def send_metadata(self, metadata: dict) -> None:

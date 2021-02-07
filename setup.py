@@ -63,7 +63,7 @@ setup(
         'whichcraft',
         'gym',  # pypy
         'atari_py',
-#        #'torch>=1.3.1,<1.5',  # 1.3.1+cuda90_cudnn7.6.3_lms
+        #'torch>=1.3.1,<1.5',  # 1.3.1+cuda90_cudnn7.6.3_lms
         'joblib',
         'sphinx>=2.2.1',
         'sphinx_rtd_theme',
@@ -90,13 +90,14 @@ setup(
         'torchvision==0.2.1',  # pypy
         'sortedcontainers',
         'click',
-        'numba',
         'enum34~=1.1.10',
         'URLObject~=2.4.3',
         'urllib3==1.25.10',
-        'redis==3.5.3',
-        'redis-py-cluster==2.1.0',
-        'cmake>=3.18.4'
+        #'numba',
+        #'redis==3.5.3',
+        #'redis-py-cluster==2.1.0',
+        'cmake>=3.18.4',
+        'readerwriterlock',
     ],
     entry_points={
         'console_scripts': [

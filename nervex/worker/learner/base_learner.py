@@ -127,7 +127,7 @@ class BaseLearner(object):
         # Only rank == 0 learner needs monitor and tb_logger, others only need text_logger to display terminal output.
         self._timer = EasyTimer()
         rank0 = True if self._rank == 0 else False
-        self._logger, self._tb_logger = build_logger('./log/learner', 'learner', rank0)
+        self._logger, self._tb_logger = build_logger('./log/learner', 'learner', need_tb=rank0)
         self._log_buffer = build_log_buffer()
 
         # Checkpoint helper. Used to save model checkpoint.

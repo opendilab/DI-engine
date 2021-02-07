@@ -37,14 +37,12 @@ cartpole_ppovanilla_default_config = dict(
                 gae_lambda=0.95,
             ),
         ),
-        command=dict(
-            eps=dict(
-                type='exp',
-                start=0.95,
-                end=0.1,
-                decay=10000,
-            ),
-        ),
+        command=dict(eps=dict(
+            type='exp',
+            start=0.95,
+            end=0.1,
+            decay=10000,
+        ), ),
     ),
     replay_buffer=dict(
         buffer_name=['agent'],
@@ -73,12 +71,11 @@ cartpole_ppovanilla_default_config = dict(
                 type='log_show',
                 priority=20,
                 position='after_iter',
-                ext_args=dict(
-                    freq=100,
-                ),
+                ext_args=dict(freq=100, ),
             ),
         ),
     ),
     commander=dict(),
 )
 cartpole_ppovanilla_default_config = EasyDict(cartpole_ppovanilla_default_config)
+main_config = cartpole_ppovanilla_default_config

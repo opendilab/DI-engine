@@ -37,25 +37,21 @@ cartpole_r2d2_default_config = dict(
             ),
         ),
         collect=dict(
-            traj_len=(2*unroll_len + nstep),
-            unroll_len=(2*nstep + burnin_step),
+            traj_len=(2 * unroll_len + nstep),
+            unroll_len=(2 * nstep + burnin_step),
             env_num=actor_env_num,
             algo=dict(
                 burnin_step=2,
                 nstep=nstep,
             ),
         ),
-        eval=dict(
-            env_num=evaluator_env_num,
-        ),
-        command=dict(
-            eps=dict(
-                type='exp',
-                start=0.95,
-                end=0.05,
-                decay=10000,
-            ),
-        ),
+        eval=dict(env_num=evaluator_env_num, ),
+        command=dict(eps=dict(
+            type='exp',
+            start=0.95,
+            end=0.05,
+            decay=10000,
+        ), ),
     ),
     replay_buffer=dict(
         buffer_name=['agent'],
@@ -84,12 +80,11 @@ cartpole_r2d2_default_config = dict(
                 type='log_show',
                 priority=20,
                 position='after_iter',
-                ext_args=dict(
-                    freq=100,
-                ),
+                ext_args=dict(freq=100, ),
             ),
         ),
     ),
     commander=dict(),
 )
 cartpole_r2d2_default_config = EasyDict(cartpole_r2d2_default_config)
+main_config = cartpole_r2d2_default_config

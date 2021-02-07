@@ -22,7 +22,8 @@ class SumoDQNPolicy(DQNPolicy):
             loss = []
             for i in range(tl_num):
                 td_data = q_1step_td_data(
-                    q_value[i], target_q_value[i], data['action'][i], next_act[i], data['reward'], data['done'], data['weight']
+                    q_value[i], target_q_value[i], data['action'][i], next_act[i], data['reward'], data['done'],
+                    data['weight']
                 )
                 loss.append(q_1step_td_error(td_data, self._gamma))
             loss = sum(loss) / (len(loss) + 1e-8)

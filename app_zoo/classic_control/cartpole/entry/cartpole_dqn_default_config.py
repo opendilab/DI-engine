@@ -9,9 +9,7 @@ cartpole_dqn_default_config = dict(
         # 'subprocess' is used for more complicated env(e.g. pong and larger than pong), which is more recommended to use in practice.
         env_manager_type='base',
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
-        manager=dict(
-            shared_memory=True,
-        ),
+        manager=dict(shared_memory=True, ),
         # Must use the absolute path. All the following "import_names" should obey this too.
         import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
         # Env register name (refer to function "register_env").
@@ -60,9 +58,7 @@ cartpole_dqn_default_config = dict(
             traj_len=traj_len,
             # Cut trajectories into pieces with length "unrol_len".
             unroll_len=1,
-            algo=dict(
-                nstep=nstep,
-            ),
+            algo=dict(nstep=nstep, ),
         ),
         # command_mode config
         command=dict(
@@ -99,7 +95,7 @@ cartpole_dqn_default_config = dict(
         # Episode number for evaluation.
         n_episode=5,
         # Evaluate every "eval_freq" training steps.
-        eval_freq=200,
+        eval_freq=10,
         # Once evaluation reward reaches "stop_val", which means the policy converges, then the whole training can end.
         stop_val=195,
     ),
@@ -112,18 +108,14 @@ cartpole_dqn_default_config = dict(
                 type='save_ckpt',
                 priority=20,
                 position='after_iter',
-                ext_args=dict(
-                    freq=100,
-                ),
+                ext_args=dict(freq=100, ),
             ),
             log_show=dict(
                 name='log_show',
                 type='log_show',
                 priority=20,
                 position='after_iter',
-                ext_args=dict(
-                    freq=100,
-                ),
+                ext_args=dict(freq=100, ),
             ),
         ),
     ),

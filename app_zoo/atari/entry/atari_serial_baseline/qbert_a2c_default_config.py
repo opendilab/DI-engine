@@ -71,12 +71,11 @@ qbert_a2c_default_config = dict(
                 type='log_show',
                 priority=20,
                 position='after_iter',
-                ext_args=dict(
-                    freq=100,
-                ),
+                ext_args=dict(freq=100, ),
             ),
         ),
     ),
     commander=dict(),
 )
 qbert_a2c_default_config = EasyDict(qbert_a2c_default_config)
+main_config = qbert_a2c_default_config

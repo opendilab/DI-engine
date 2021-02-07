@@ -22,6 +22,7 @@ def test_dqn():
     config = deepcopy(cartpole_dqn_default_config)
     config.policy.learn.train_step = 1
     config.evaluator.stop_val = -float("inf")
+    config.evaluator.eval_freq = 1
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -33,6 +34,7 @@ def test_ddpg():
     config = deepcopy(pendulum_ddpg_default_config)
     config.policy.learn.train_step = 1
     config.evaluator.stop_val = -float("inf")
+    config.evaluator.eval_freq = 1
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -44,6 +46,7 @@ def test_td3():
     config = deepcopy(pendulum_td3_default_config)
     config.policy.learn.train_step = 1
     config.evaluator.stop_val = -float("inf")
+    config.evaluator.eval_freq = 1
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -55,6 +58,7 @@ def test_a2c():
     config = deepcopy(cartpole_a2c_default_config)
     config.policy.learn.train_step = 1
     config.evaluator.stop_val = -float("inf")
+    config.evaluator.eval_freq = 1
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -66,6 +70,7 @@ def test_rainbow_dqn():
     config = deepcopy(cartpole_rainbowdqn_default_config)
     config.policy.learn.train_step = 1
     config.evaluator.stop_val = -float("inf")
+    config.evaluator.eval_freq = 1
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -77,6 +82,7 @@ def test_iqn():
     config = deepcopy(cartpole_rainbowdqn_iqn_config)
     config.policy.learn.train_step = 1
     config.evaluator.stop_val = -float("inf")
+    config.evaluator.eval_freq = 1
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -88,6 +94,7 @@ def test_dqn_vanilla():
     config = deepcopy(cartpole_dqnvanilla_default_config)
     config.policy.learn.train_step = 1
     config.evaluator.stop_val = -float("inf")
+    config.evaluator.eval_freq = 1
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -99,6 +106,7 @@ def test_ppo():
     config = deepcopy(cartpole_ppo_default_config)
     config.policy.learn.train_step = 1
     config.evaluator.stop_val = -float("inf")
+    config.evaluator.eval_freq = 1
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -110,6 +118,7 @@ def test_ppo_vanilla():
     config = deepcopy(cartpole_ppovanilla_default_config)
     config.policy.learn.train_step = 1
     config.evaluator.stop_val = -float("inf")
+    config.evaluator.eval_freq = 1
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -121,6 +130,7 @@ def test_ppo_vanilla_continous():
     config = deepcopy(pendulum_ppo_default_config)
     config.policy.learn.train_step = 1
     config.evaluator.stop_val = -float("inf")
+    config.evaluator.eval_freq = 1
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -132,6 +142,7 @@ def test_sac():
     config = deepcopy(pendulum_sac_default_config)
     config.policy.learn.train_step = 1
     config.evaluator.stop_val = -float("inf")
+    config.evaluator.eval_freq = 1
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -143,6 +154,7 @@ def test_sac_auto_alpha():
     config = deepcopy(pendulum_sac_auto_alpha_config)
     config.policy.learn.train_step = 1
     config.evaluator.stop_val = -float("inf")
+    config.evaluator.eval_freq = 1
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -154,6 +166,7 @@ def test_r2d2():
     config = deepcopy(cartpole_r2d2_default_config)
     config.policy.learn.train_step = 1
     config.evaluator.stop_val = -float("inf")
+    config.evaluator.eval_freq = 1
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -168,6 +181,7 @@ def test_qmix():
     config.policy.use_cuda = False
     config.policy.learn.train_step = 1
     config.evaluator.stop_val = -float("inf")
+    config.evaluator.eval_freq = 1
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -182,6 +196,7 @@ def test_collaQ():
     config.policy.use_cuda = False
     config.policy.learn.train_step = 1
     config.evaluator.stop_val = -float("inf")
+    config.evaluator.eval_freq = 1
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -196,6 +211,7 @@ def test_coma():
     config.policy.use_cuda = False
     config.policy.learn.train_step = 1
     config.evaluator.stop_val = -float("inf")
+    config.evaluator.eval_freq = 1
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -210,6 +226,7 @@ def test_a2c_with_nstep_return():
     config.policy.learn.algo.nstep = 3
     config.policy.collect.algo.use_nstep_return = config.policy.learn.algo.use_nstep_return
     config.policy.collect.algo.nstep = config.policy.learn.algo.nstep
+    config.evaluator.eval_freq = 1
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -221,6 +238,7 @@ def test_impala():
     config = deepcopy(cartpole_impala_default_config)
     config.policy.learn.train_step = 1
     config.evaluator.stop_val = -float("inf")
+    config.evaluator.eval_freq = 1
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -232,6 +250,7 @@ def test_her_dqn():
     config = deepcopy(bitflip_dqn_default_config)
     config.policy.learn.train_step = 1
     config.evaluator.stop_val = -float("inf")
+    config.evaluator.eval_freq = 1
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -244,6 +263,7 @@ def test_collaQ_particle():
     config.policy.use_cuda = False
     config.policy.learn.train_step = 1
     config.evaluator.stop_val = -float("inf")
+    config.evaluator.eval_freq = 1
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -256,6 +276,7 @@ def test_coma_particle():
     config.policy.use_cuda = False
     config.policy.learn.train_step = 1
     config.evaluator.stop_val = -float("inf")
+    config.evaluator.eval_freq = 1
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -268,6 +289,7 @@ def test_qmix_particle():
     config.policy.use_cuda = False
     config.policy.learn.train_step = 1
     config.evaluator.stop_val = -float("inf")
+    config.evaluator.eval_freq = 1
     try:
         serial_pipeline(config, seed=0)
     except Exception:

@@ -65,7 +65,7 @@ class BaseActor(ABC):
         """
         self._cfg = cfg
         self._eval_flag = cfg.eval_flag
-        self._prefix = 'EVALUTATOR' if self._eval_flag else 'ACTOR'
+        self._prefix = 'EVALUATOR' if self._eval_flag else 'ACTOR'
         self._actor_uid = get_task_uid()
         self._logger, self._monitor, self._log_buffer = self._setup_logger()
         self._end_flag = False
@@ -129,7 +129,7 @@ class BaseActor(ABC):
         """
         path = './log/{}'.format(self._prefix.lower())
         name = '{}'.format(self._actor_uid)
-        logger, _ = build_logger(path, name, False)
+        logger, _ = build_logger(path, name, need_tb=False)
         monitor = TickMonitor(TickTime(), expire=self._cfg.print_freq * 2)
         log_buffer = build_log_buffer()
         return logger, monitor, log_buffer

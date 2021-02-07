@@ -1,6 +1,7 @@
 import multiprocessing
 import threading
 from enum import Enum, unique
+from readerwriterlock import rwlock
 
 
 @unique
@@ -57,3 +58,17 @@ class LockContext(object):
             Quiting the context and release lock
         """
         self.lock.release()
+
+
+rw_lock_mapping = {}
+
+
+def get_rw_lock(name: str, op: str):
+    assert op in ['read', 'write']
+    if name not in rw_lock_mapping:
+        rw_lock_mapping[name] = rwlock.RWLockFairD()
+    lock = rw_lock_mapping[name]
+    if op == 'read':
+        return lock.gen_rlock()
+    elif op == 'write':
+        return lock.gen_wlock()
