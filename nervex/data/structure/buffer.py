@@ -1,4 +1,5 @@
 import copy
+import logging
 import math
 import time
 import numbers
@@ -278,7 +279,7 @@ class ReplayBuffer:
         # Add in operation count.
         self._in_count = 0
         self._in_tick_monitor = InTickMonitor(TickTime(), expire=self.monitor_cfg.tick_expire)
-        self._logger, self._tb_logger = build_logger(self.monitor_cfg.log_path, self.name, True)
+        self._logger, self._tb_logger = build_logger(self.monitor_cfg.log_path, self.name + '_buffer', True)
         self._in_vars = ['in_count_avg', 'in_time_avg']
         self._in_vars = [self.name + var for var in self._in_vars]
         self._out_vars = [
@@ -623,8 +624,8 @@ class ReplayBuffer:
             'in_time_avg': self._in_tick_monitor.avg['in_time']()
         }
         if self._in_count % self._log_freq == 0:
-            self._logger.info("===Add In Buffer {} Times===".format(self._in_count))
-            self._logger.print_vars(in_dict)
+            self._logger.debug("===Add In Buffer {} Times===".format(self._in_count))
+            self._logger.print_vars(in_dict, level=logging.DEBUG)
             in_dict = {'buffer_{}/'.format(self.name) + k: v for k, v in in_dict.items()}
             self._tb_logger.print_vars(in_dict, self._in_count, 'scalar')
         self._in_count += 1
@@ -660,8 +661,8 @@ class ReplayBuffer:
             'staleness_max': self._out_tick_monitor.max['staleness'](),
         }
         if self._out_count % self._log_freq == 0:
-            self._logger.info("===Read Buffer {} Times===".format(self._out_count))
-            self._logger.print_vars(out_dict)
+            self._logger.debug("===Read Buffer {} Times===".format(self._out_count))
+            self._logger.print_vars(out_dict, level=logging.DEBUG)
             out_dict = {'buffer_{}/'.format(self.name) + k: v for k, v in out_dict.items()}
             self._tb_logger.print_vars(out_dict, self._out_count, 'scalar')
         self._out_count += 1

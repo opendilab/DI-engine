@@ -323,6 +323,9 @@ class BaseLearner(object):
         """
         self._logger.info(s)
 
+    def debug(self, s: str) -> None:
+        self._logger.debug(s)
+
     def save_checkpoint(self) -> None:
         """
         Overview:

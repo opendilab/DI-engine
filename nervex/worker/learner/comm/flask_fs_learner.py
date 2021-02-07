@@ -356,7 +356,7 @@ class SendPolicyHook(LearnerHook):
         if engine.rank == 0 and last_iter % self._freq == 0:
             state_dict = {'model': engine.policy.state_dict_handle()['model'].state_dict(), 'iter': last_iter}
             engine.send_policy(state_dict)
-            engine.info('{} save iter{} policy'.format(engine.name, last_iter))
+            engine.debug('{} save iter{} policy'.format(engine.name, last_iter))
 
 
 class SendLearnInfoHook(LearnerHook):
@@ -389,7 +389,7 @@ class SendLearnInfoHook(LearnerHook):
         last_iter = engine.last_iter.val
         engine.send_learn_info(engine.learn_info)
         if last_iter % self._freq == 0:
-            engine.info('{} save iter{} learn_info'.format(engine.name, last_iter))
+            engine.debug('{} save iter{} learn_info'.format(engine.name, last_iter))
 
 
 register_comm_learner('flask_fs', FlaskFileSystemLearner)

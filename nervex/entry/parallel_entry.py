@@ -125,6 +125,7 @@ def launch_coordinator(
     shutdown_monitor_thread = Thread(target=shutdown_monitor, args=(), daemon=True, name='shutdown_monitor')
     shutdown_monitor_thread.start()
     system_shutdown_event.wait()
+    print("[nerveX parallel pipeline]Your RL agent is converged, you can refer to 'log' and 'tensorboard' for details")
 
 
 def launch_learner_aggregator(filename: Optional[str] = None, name: Optional[str] = None) -> None:

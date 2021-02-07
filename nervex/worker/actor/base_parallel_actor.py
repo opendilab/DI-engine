@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 from abc import ABC, abstractmethod, abstractproperty
 from collections import namedtuple
 from typing import Any, Union, Tuple
@@ -7,7 +8,7 @@ from functools import partial
 
 from nervex.policy import Policy
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
-from nervex.utils import build_logger, EasyTimer, get_task_uid, import_module
+from nervex.utils import build_logger, EasyTimer, get_task_uid, import_module, pretty_print
 from nervex.torch_utils import build_log_buffer
 
 
@@ -51,7 +52,7 @@ class BaseActor(ABC):
         Abstract baseclass for actor.
     Interfaces:
         __init__, info, error, _setup_timer, _setup_logger, start, close, _iter_after_hook, _policy_inference
-        _env_step, _process_timestep, _finish_task, _update_policy, _start_thread
+        _env_step, _process_timestep, _finish_task, _update_policy, _start_thread, debug
     Property:
         policy
     """
@@ -71,10 +72,13 @@ class BaseActor(ABC):
         self._end_flag = False
         self._setup_timer()
         self._iter_count = 0
-        self.info("CFG INFO:\n{}".format(cfg))
+        self.info("\nCFG INFO:\n{}".format(pretty_print(cfg, direct_print=False)))
 
     def info(self, s: str) -> None:
         self._logger.info("[{}({})]: {}".format(self._prefix, self._actor_uid, s))
+
+    def debug(self, s: str) -> None:
+        self._logger.debug("[{}({})]: {}".format(self._prefix, self._actor_uid, s))
 
     def error(self, s: str) -> None:
         self._logger.error("[{}({})]: {}".format(self._prefix, self._actor_uid, s))
@@ -161,14 +165,14 @@ class BaseActor(ABC):
 
         # print info
         if self._iter_count % self._cfg.print_freq == 0:
-            self.info('{}TimeStep{}{}'.format('=' * 35, self._iter_count, '=' * 35))
+            self.debug('{}TimeStep{}{}'.format('=' * 35, self._iter_count, '=' * 35))
             # tick_monitor -> var_dict
             var_dict = {}
             for k in self._log_buffer:
                 for attr in self._monitor.get_property_attribute(k):
                     k_attr = k + '_' + attr
                     var_dict[k_attr] = getattr(self._monitor, attr)[k]()
-            self._logger.print_vars(var_dict)
+            self._logger.print_vars(var_dict, level=logging.DEBUG)
         self._log_buffer.clear()
         self._iter_count += 1
 

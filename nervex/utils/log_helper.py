@@ -62,7 +62,7 @@ class TextLogger(object):
     Overview:
         Logger that saves terminal output to file
     Interface:
-        __init__, info
+        __init__, info, debug
     """
 
     def __init__(self, path: str, name: str = 'default', level: Union[int, str] = logging.INFO) -> None:
@@ -103,7 +103,7 @@ class TextLogger(object):
             logger.addHandler(fh)
         return logger
 
-    def print_vars(self, vars: Dict[str, Any]) -> None:
+    def print_vars(self, vars: Dict[str, Any], level: int = logging.INFO) -> None:
         r"""
         Overview:
             Get the text description in tabular form of all vars
@@ -111,6 +111,7 @@ class TextLogger(object):
             - names (:obj:`List[str]`): names of the vars to query. If you want to query all vars, you can omit this \
                 argument and thus ``need_print`` will be set to True all the time by default.
             - var_type (:obj:`str`): default set to scalar, support ['scalar']
+            - level (:obj:`int`): log level
         Returns:
             - ret (:obj:`list` of :obj:`str`): text description in tabular form of all vars
         """
@@ -119,7 +120,8 @@ class TextLogger(object):
         for k, v in vars.items():
             data.append([k, "{:.6f}".format(v)])
         s = "\n" + tabulate(data, headers=headers, tablefmt='grid')
-        self.info(s)
+        if level >= logging.INFO:
+            self.info(s)
 
     def info(self, s: str) -> None:
         r"""
@@ -132,7 +134,7 @@ class TextLogger(object):
         """
         self.logger.info(s)
 
-    def bug(self, s: str) -> None:
+    def debug(self, s: str) -> None:
         r"""
         Overview:
             call logger.debug
@@ -145,6 +147,10 @@ class TextLogger(object):
 
     def error(self, s: str) -> None:
         self.logger.error(s)
+
+    @property
+    def level(self) -> int:
+        return self.logger.level
 
 
 class TensorBoardLogger:
