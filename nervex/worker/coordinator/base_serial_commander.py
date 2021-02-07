@@ -37,8 +37,8 @@ class BaseSerialCommander(object):
             step the commander
         """
         # update info
-        learner_info = self._learner.learn_info
-        self._info.update(learner_info)
+        learn_info = self._learner.learn_info
+        self._info.update(learn_info)
         # update setting
         collect_setting = self._policy.get_setting_collect(self._info)
         # set setting

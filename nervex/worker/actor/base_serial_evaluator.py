@@ -38,13 +38,13 @@ class BaseSerialEvaluator(object):
 
     @property
     def env(self) -> BaseEnvManager:
-        return self._env
+        return self._env_manager
 
     @env.setter
-    def env(self, _env: BaseEnvManager) -> None:
-        self._env = _env
-        self._env.launch()
-        self._env_num = self._env.env_num
+    def env(self, _env_manager: BaseEnvManager) -> None:
+        self._env_manager = _env_manager
+        self._env_manager.launch()
+        self._env_num = self._env_manager.env_num
 
     @property
     def policy(self) -> namedtuple:
@@ -60,7 +60,7 @@ class BaseSerialEvaluator(object):
 
     def close(self) -> None:
         self._tb_logger.close()
-        self._env.close()
+        self._env_manager.close()
 
     def eval(self, train_iter: int, n_episode: Optional[int] = None) -> Tuple[bool, float]:
         '''
@@ -84,15 +84,15 @@ class BaseSerialEvaluator(object):
         self._policy.reset()
         with self._timer:
             while episode_count < n_episode:
-                obs = self._env.next_obs
+                obs = self._env_manager.next_obs
                 self._obs_pool.update(obs)
                 env_id, obs = self._policy.data_preprocess(obs)
                 policy_output = self._policy.forward(env_id, obs)
                 policy_output = self._policy.data_postprocess(env_id, policy_output)
                 self._policy_output_pool.update(policy_output)
-                action = {i: a['action'] for i, a in policy_output.items()}
-                timestep = self._env.step(action)
-                for i, t in timestep.items():
+                actions = {i: a['action'] for i, a in policy_output.items()}
+                timesteps = self._env_manager.step(actions)
+                for i, t in timesteps.items():
                     if t.info.get('abnormal', False):
                         # If there is an abnormal timestep, reset all the related variables(including this env).
                         self._policy.reset([i])

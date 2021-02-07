@@ -47,7 +47,7 @@ class TestLogger:
         vars = {'aa': 3.0, 'bb': 4, 'cc': 3e4}
         # text logger
         logger.info("I'm an info")
-        logger.bug("I'm a bug")
+        logger.debug("I'm a bug")
         logger.error("I'm an error")
         logger.print_vars(vars)
         # tensorboard logger
