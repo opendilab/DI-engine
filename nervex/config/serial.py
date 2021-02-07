@@ -6,8 +6,8 @@ base_learner_default_config = dict(
     use_cuda=False,
     use_distributed=False,
     dataloader=dict(
-        batch_size=32,
-        chunk_size=32,
+        batch_size=2,
+        chunk_size=2,
         num_workers=0,
     ),
     # --- Hooks ---

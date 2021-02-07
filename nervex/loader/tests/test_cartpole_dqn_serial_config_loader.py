@@ -72,7 +72,7 @@ def test_real_loader():
         ),
         evaluator=item('evaluator') >> dict_(
             n_episode=item('n_episode') >> is_type(int) >> interval(2, 10),
-            eval_freq=item('eval_freq') >> is_type(int) >> interval(100, 500),
+            eval_freq=item('eval_freq') >> is_type(int) >> interval(1, 500),
         ),
     )
     learn_nstep = item('policy') >> item('learn') >> item('algo') >> item('nstep')
