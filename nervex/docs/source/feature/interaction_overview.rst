@@ -54,7 +54,7 @@ Slave端的任务是从Master端接收任务信息，通过重写\ ``_process_ta
        # when this line is reached, all the initialization process has been completed
        run_until_ctrl_c()  # just block here
 
-   print("slave has been stopped")  # after quit the with block, all the resourced will be automatically released, and wait until slave completely stopped
+   print("slave has been stopped")  # after quit the slave with block, all the resources will be automatically released, and wait until slave completely stopped
 
 通过上述调用后，在\ ``master``\ 端连接\ ``slave``\ 的8080端口，选择频道\ ``233``\ 即可完成连接。
 
@@ -87,7 +87,7 @@ Master端的主要任务是对Slave端进行连接，并通过建立的连接对
 
    # do something here
 
-   master.shutdown()  # shutdown the master (ATTENTION: master will not be stopped immediately after this)
+   master.shutdown()  # shutdown the master (ATTENTION: master will not be stopped immediately)
    master.join()  # wait until the master completely stopped
 
    print("master has been stopped")
@@ -100,7 +100,7 @@ Master端的主要任务是对Slave端进行连接，并通过建立的连接对
        # when this line is reached, all the initialization process has been completed
        # do anything you like here
 
-   print("master has been stopped")  # after quit the with block, all the resourced will be automatically released, and wait until master completely stopped
+   print("master has been stopped")  # after quit the master with block, all the resources will be automatically released, and wait until master completely stopped
 
 基于\ ``with``\ 的使用，我们可以通过一下方式进行任务的下达、管理以及结果的获取。结合上文中Slave的例子，举例如下：
 
@@ -206,3 +206,7 @@ Q：如何正确将Master和Slave整合进现有业务服务中？
 A：比较推荐的一种方式——**将Master/Slave作为类的一个私有属性，整合进类内部**\ ，并且\ **建议类本身也对生命周期进行妥善管理**\ （例如设立start、shutdown、join等生命周期管理方法），且建议实现\ ``__enter__``\ 、\ ``__exit__``\ 方法，使得类可以通过\ ``with``\ 进行快速创建和资源回收。
 
 此处\ **强烈不建议直接对Master和Slave类进行二次继承**\ ，因为这会导致Master/Slave本身的结构和生命周期受到干扰，并且影响其内部的逻辑与数据约束，从而造成不可预期的结果。
+
+.. tip::
+
+  这里说的二次继承是指: MyMaster --> Master, Controller --> MyMaster. Controller作为业务逻辑相关的类应和MyMaster是组合关系，切忌滥用继承。如果要为Master做更多功能拓展的话，也可定义相应的功能类，然后MyMaster多重继承Master和新的功能类。
