@@ -13,7 +13,7 @@ from nervex.utils import read_config
 from nervex.config import Config
 from nervex.data import BufferManager
 from nervex.policy import create_policy
-from nervex.envs import get_subprocess_env_setting
+from nervex.envs import get_vec_env_setting
 
 
 def serial_pipeline(
@@ -43,12 +43,12 @@ def serial_pipeline(
         else:
             raise KeyError("invalid config file suffix: {}".format(suffix))
     # Default case: Create env_num envs with copies of env cfg.
-    # If you want to indicate different cfg for different env, please refer to ``get_subprocess_env_setting``.
+    # If you want to indicate different cfg for different env, please refer to ``get_vec_env_setting``.
     # Usually, user-defined env must be registered in nervex so that it can be created with config string;
     # Or you can also directly pass in env_fn argument, in some dynamic env class cases.
     manager_cfg = cfg.env.get('manager', {})
     if env_setting is None:
-        env_fn, actor_env_cfg, evaluator_env_cfg = get_subprocess_env_setting(cfg.env)
+        env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     else:
         env_fn, actor_env_cfg, evaluator_env_cfg = env_setting
     env_manager_type = BaseEnvManager if cfg.env.env_manager_type == 'base' else SubprocessEnvManager
@@ -175,7 +175,7 @@ def eval(
     # Env init.
     manager_cfg = cfg.env.get('manager', {})
     if env_setting is None:
-        env_fn, _, evaluator_env_cfg = get_subprocess_env_setting(cfg.env)
+        env_fn, _, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     else:
         env_fn, _, evaluator_env_cfg = env_setting
     env_manager_type = BaseEnvManager if cfg.env.env_manager_type == 'base' else SubprocessEnvManager
