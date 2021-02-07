@@ -149,7 +149,7 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
 =================================
 
 训练脚本及其启动
----------------
+------------------------------
     
     完成安装之后，可以仿照 ``nervex/entry/tests/test_serial_entry.py`` 文件中单元测试的写法，创建一个训练脚本并命名为 ``cartpole_dqn.py``：
 
@@ -201,34 +201,56 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
 
     .. note::
 
-    无论是串行还是并行版本的 config 文件，若是 py 格式，且希望通过命令行的方式启动脚本，请务必在文件中声明 ``main_config`` 变量，
-    令其等于真实的 ``EasyDict`` 类型的配置变量，如下：
+        无论是串行还是并行版本的 config 文件，若是 py 格式，且希望通过命令行的方式启动脚本，请务必在文件中声明 ``main_config`` 变量，
+        令其等于真实的 ``EasyDict`` 类型的配置变量，如下：
 
-    .. code:: python
+        .. code:: python
 
-        cartpole_dqn_default_config = dict(
-            # ...
-        )
-        cartpole_dqn_default_config = EasyDict(cartpole_dqn_default_config)
-        main_config = cartpole_dqn_default_config
+            cartpole_dqn_default_config = dict(
+                # ...
+            )
+            cartpole_dqn_default_config = EasyDict(cartpole_dqn_default_config)
+            main_config = cartpole_dqn_default_config
 
 运行后产生的文件
 ---------------------
 
     串行版本运行起来后会在当前目录产生 ``ckptBaseLearner*`` 及 ``log`` 两个文件夹，分别存放 checkpoint 及 log 文件，文件树如下：
 
-    .. image:: serial_log_tree.png
+    .. code:: bash
+        
+        ./
+        ├── cartpole_a2c_default_config.py
+        ├── ckptBaseLearner140403751719992
+        │   ├── iteration_0.pth.tar
+        │   └── iteration_200.pth.tar
+        └── log
+            ├── actor
+            │   └── actor_logger.txt
+            ├── buffer
+            │   └── agent_buffer
+            │       ├── agent_logger.txt
+            │       └── agent_tb_logger
+            ├── evaluator
+            │   ├── evaluator_logger.txt
+            │   └── evaluator_tb_logger
+            └── learner
+                ├── learner_logger.txt
+                └── learner_tb_logger
 
-    对于 ``ckptBaseLearner*`` ，一般来说，iteration最大的文件保存有 evaluate 阶段 reward 最高的模型， iteration 从小至大的 eval_reward 也应当是从小至大的。
+    对于 ``ckptBaseLearner*`` ，一般来说，iteration 最大的文件保存有 evaluate 阶段 reward 最高的模型， iteration 从小至大的 eval_reward 也应当是从小至大的。
 
-    对于 ``log`` ，其下包括 ``actor``, ``evaluator``, ``learner``, ``buffer``四个文件夹，除了 ``actor`` 外，均既有 tensorboard logger 又有 text logger，
+    ``log`` 下包括 ``actor``, ``evaluator``, ``learner``, ``buffer`` 四个文件夹，除了 ``actor`` 外，均既有 tensorboard logger 又有 text logger，
     而 ``actor`` 仅有 text logger。这些 logger 均按照各自的 log_freq 在一定的时间/步数间隔下进行记录。
+
+    ``actor`` 记录与环境交互的信息， ``learner`` 记录根据数据进行策略更新的信息， ``evaluator`` 记录对于当前最新策略的评估信息，
+    ``buffer`` 记录数据被塞入与采样出的各种统计量。
 
 算法训练入口示例(并行版本)
 =================================
 
 训练脚本及其启动
----------------
+------------------
 
     进入 ``app_zoo/classic_control/cartpole/entry/parallel`` 目录，找到 ``cartpole_dqn_default_config.py`` 文件,
     即为在Cartpole环境上运行的并行训练配置文件。
@@ -245,19 +267,17 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
 
         nervex -m parallel -p slurm -c cartpole_dqn_default_config.py -s 0 --actor_host SH-IDC1-10-198-8-66 --learner_host SH-IDC1-10-198-8-66
     
-    .. note::
-
     nervex 命令参数选项:
-        -v, --version                     Show package's version information.
-        -m, --mode [serial|parallel|eval] serial or parallel or eval
-        -c, --config TEXT                 Path to DRL experiment config
-        -s, --seed INTEGER                random generator seed(for all the possible 
-                                          package: random, numpy, torch and user env)
-        -p, --platform [local|slurm|k8s]  local or slurm or k8s
-        -ch, --coordinator_host TEXT      coordinator host
-        -lh, --learner_host TEXT          learner host
-        -ah, --actor_host TEXT            actor host
-        -h, --help                        Show this message and exit.
+
+        - **\-v, --version** : Show package's version information.
+        - **\-m, --mode [serial|parallel|eval]** : serial or parallel or eval
+        - **\-c, --config TEXT** : Path to DRL experiment config
+        - **\-s, --seed INTEGER** : random generator seed(for all the possible package: random, numpy, torch and user env)
+        - **\-p, --platform [local|slurm|k8s]** : local or slurm or k8s
+        - **\-ch, --coordinator_host TEXT** : coordinator host
+        - **\-lh, --learner_host TEXT** : learner host
+        - **\-ah, --actor_host TEXT** : actor host
+        - **\-h, --help** : Show this message and exit.
 
 配置文件
 --------
@@ -272,15 +292,50 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
 运行后产生的文件
 ---------------------
     
-    串行版本运行起来后会在当前目录产生 ``ckptBaseLearner*`` 及 ``log`` 两个文件夹，分别存放 checkpoint 及 log 文件，文件树如下：
+    并行版本运行起来后会在当前目录产生 ``log`` 和 ``data`` 两个文件夹，以及 ``policy_*`` 文件，文件树如下：
 
-    .. image:: serial_log_tree.png
+    .. code:: bash
 
-    对于 ``ckptBaseLearner*`` ，一般来说，iteration最大的文件保存有 evaluate 阶段 reward 最高的模型， iteration 从小至大的 eval_reward 也应当是从小至大的。
+        ./
+        ├── __init__.py
+        ├── cartpole_dqn_default_config.py
+        ├── data
+        │   ├── env_0_1f03b27a-68f3-11eb-9a9b-29face2f0d06
+        │   ├── env_1_2c996e0a-68f3-11eb-9a9b-29face2f0d06
+        │   ├── ....
+        │   └── env_7_4939d342-68f3-11eb-9a9b-29face2f0d06
+        ├── log
+        │   ├── actor
+        │   │   ├── 011f43e3-6d93-4e6d-ab6a-f124b1719050_476275_logger.txt
+        │   │   ├── 34bc401b-ae5b-4a0c-816c-1db81738ae8c_606251_logger.txt
+        │   │   ├── ....
+        │   │   └── d8b1ce8f-f6ce-4d20-8085-7f2d9ce5bea8_476962_logger.txt
+        │   ├── buffer
+        │   │   └── agent_buffer
+        │   │       ├── agent_logger.txt
+        │   │       └── agent_tb_logger
+        │   ├── commander
+        │   │   ├── commander_logger.txt
+        │   │   └── commander_tb_logger
+        │   ├── coordinator_logger.txt
+        │   ├── evaluator
+        │   │   ├── 099d882b-ac35-4e77-a85b-0ec4924ce45a_160479_logger.txt
+        │   │   ├── 0c11e0e2-6b5b-417d-968c-ddc205a819c0_297009_logger.txt
+        │   │   ├── ....
+        │   │   └── fef38c77-1fa6-4d62-a0a3-5a904753e931_695838_logger.txt
+        │   └── learner
+        │       ├── learner_logger.txt
+        │       └── learner_tb_logger
+        └── policy_587ffbea-31bc-4aac-8d60-70ba68f5c5a7_611148
 
-    对于 ``log`` ，其下包括 ``actor``, ``evaluator``, ``learner``, ``buffer``四个文件夹，除了 ``actor`` 外，均既有 tensorboard logger 又有 text logger，
-    而 ``actor`` 仅有 text logger。这些 logger 均按照各自的 log_freq 在一定的时间/步数间隔下进行记录。
+    ``policy_*`` 是由 learner 存储，由 actor 读入以更新策略用的。
 
+    ``data`` 下存储的是 replay buffer 中的 trajectory（replay buffer仅存储这些 trajectory 的路径，而不实际存储数据）。
+
+    ``log`` ，其下包括 ``actor``, ``evaluator``, ``learner``, ``buffer``, ``commander`` 五个文件夹，以及 ``coordinator_logger.txt`` 文件。
+    其中， ``actor``, ``evaluator`` 会按照不同的 task 生成多个 txt 文件； ``learner`` 部分与串行版本类似，多个 task 的文字记录均在同一 txt 文件中，
+    但 tensorboard 会分 task 记录。 ``buffer`` 与串行版本相同。 ``commander`` 中将 evaluator 中的信息进行了整合，方便用户查看当前策略训练情况。
+    ``coordinator_logger.txt`` 则记录了和并行模式下通信相关的各种信息。
 
 
 DRL快速上手指南(串行版本)

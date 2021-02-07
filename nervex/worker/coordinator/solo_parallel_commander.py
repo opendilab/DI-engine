@@ -1,10 +1,10 @@
 import time
 import sys
-from typing import Union
+from typing import Optional, Union
 from collections import defaultdict
 
 from nervex.policy import create_policy
-from nervex.utils import LimitedSpaceContainer, get_task_uid
+from nervex.utils import LimitedSpaceContainer, get_task_uid, build_logger
 from .base_parallel_commander import register_parallel_commander, BaseCommander
 
 
@@ -33,13 +33,18 @@ class SoloCommander(BaseCommander):
         self._current_policy_id = None
         self._last_eval_time = 0
         self._policy = create_policy(self._cfg.policy, enable_field=['command']).command_mode
+        self._logger, self._tb_logger = build_logger("./log/commander", "commander", need_tb = True)
+        for tb_var in ['episode_count', 'step_count', 'avg_step_per_episode', 'avg_time_per_step',
+            'avg_time_per_episode', 'reward_mean', 'reward_std', ]:
+            self._tb_logger.register_var('evaluator/' + tb_var)
+        self._eval_step = -1
 
-    def get_actor_task(self) -> Union[None, dict]:
+    def get_actor_task(self) -> Optional[dict]:
         r"""
         Overview:
             Return the new actor task when there is residual task space; Otherwise return None.
         Return:
-            - task (:obj:`dict`): New actor task.
+            - task (:obj:`Optional[dict]`): New actor task.
         """
         if self._actor_task_space.acquire_space():
             if self._current_buffer_id is None or self._current_policy_id is None:
@@ -63,12 +68,12 @@ class SoloCommander(BaseCommander):
         else:
             return None
 
-    def get_learner_task(self) -> Union[None, dict]:
+    def get_learner_task(self) -> Optional[dict]:
         r"""
         Overview:
             Return the new learner task when there is residual task  space; Otherwise return None.
         Return:
-            - task (:obj:`Union[None, dict]`): New learner task.
+            - task (:obj:`Optional[dict]`): New learner task.
         """
         if self._learner_task_space.acquire_space():
             learner_cfg = self._cfg.learner_cfg
@@ -93,16 +98,34 @@ class SoloCommander(BaseCommander):
             - task_id (:obj:`str`): the actor task_id
             - finished_task (:obj:`dict`): the finished task
         Returns:
-            - converge (:obj:`bool`): Whether the stop val is reached and the algorithm is converged. \
+            - convergence (:obj:`bool`): Whether the stop val is reached and the algorithm is converged. \
                 If True, the pipeline can be finished.
         """
         self._actor_task_space.release_space()
         if finished_task['eval_flag']:
+            self._eval_step += 1
             self._last_eval_time = time.time()
             self._evaluator_info.append(finished_task)
+            # TODO real train_iter from evaluator
+            train_iter = self._eval_step
+            info = {
+                'train_iter': train_iter,
+                'episode_count': finished_task['real_episode_count'],
+                'step_count': finished_task['step_count'],
+                'avg_step_per_episode': finished_task['avg_time_per_episode'],
+                'avg_time_per_step': finished_task['avg_time_per_step'],
+                'avg_time_per_episode': finished_task['avg_step_per_episode'],
+                'reward_mean': finished_task['reward_mean'],
+                'reward_std': finished_task['reward_std'],
+            }
+            self._logger.info(
+                "[EVALUATOR]evaluate end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()]))
+            )
+            tb_vars = [['evaluator/' + k, v, train_iter] for k, v in info.items() if k not in ['train_iter']]
+            self._tb_logger.add_val_list(tb_vars, viz_type='scalar')
             eval_stop_val = self._cfg.actor_cfg.env_kwargs.eval_stop_val
             if eval_stop_val is not None and finished_task['reward_mean'] >= eval_stop_val:
-                print(
+                self._logger.info(
                     "[nerveX parallel pipeline] current eval_reward: {} is greater than the stop_val: {}".
                     format(finished_task['reward_mean'], eval_stop_val) + ", so the total training program is over."
                 )
