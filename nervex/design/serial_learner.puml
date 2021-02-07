@@ -1,13 +1,23 @@
-@startuml
-start
-#orange:policy init_setting_from_cfg;
-repeat :learner get_sampled_batch_data
-  #orange:policy data_preprocess;
-  #orange:policy forward(including backward and grad update);
-  :learner log_data;
-  :learner save_ckpt;
-  :learner update_info_to_controller;
+@startuml serial_learner
+header Serial Pipeline
+title Serial Learner
 
+|#green|serial_controller|
+|#orange|policy|
+|learner|
+
+|#green|serial_controller|
+start
+:init learner, \nset its learn_mode policy;
+repeat
+  |learner|
+  :learner call before_iter hook;
+  |#orange|policy|
+  :policy data_preprocess;
+  :policy forward (including \nbackward and grad update);
+  |learner|
+  :learner update log_buffer_info and priority_info;
+  :learner update learn_info;
 repeat while (train iteration is not enough?)
 stop
 @enduml

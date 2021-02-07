@@ -1,27 +1,46 @@
-@startuml
-start
-#orange:policy init_setting_from_cfg;
-#pink:env reset;
-repeat
-  #orange:policy data_preprocess;
-  #orange:policy forward_with_obs;
-  #orange:policy data_postprocess;
-  #pink:env step_with_action;
-  #orange:policy process_transition;
-  :actor save_transition_temporally;
-  if (env i is done?) then (yes)
-    #pink:env reset_i;
-    #orange:polcy callback_env_done_i;
-    :actor log_episode_result;
-    #orange:policy get_trajectory_with_transition;
-    :actor save_traj_to_buffer;
-  endif
-  if (transition number is enought) then (yes)
-    #orange:policy get_trajectory_with_transition;
-    :actor save_traj_to_buffer;
-  endif
-  :actor log_statistics_data;
-repeat while (generated traj data is not enough?)
+@startuml serial_actor
+header Serial Pipeline
+title Serial Actor
 
+|#green|serial_controller|
+|#pink|env_manager|
+|#orange|policy|
+|actor|
+
+|#green|serial_controller|
+start
+:init actor, set its \nenv_manager and \ncollect_mode policy;
+|#pink|env_manager|
+:env reset;
+repeat
+  |#orange|policy|
+  :policy data_preprocess;
+  :policy forward with obs;
+  :policy data_postprocess;
+  |#pink|env_manager|
+  :env step with action;
+  |#orange|policy|
+  :policy process_transition;
+  |actor|
+  :actor save transition in cache;
+  if (for every env: \n - env i is done? <b>OR</b> \n - cache length is not smaller than traj_len?) then (yes)
+    |#orange|policy|
+    :policy get_train_sample from cache;
+    |actor|
+    :actor save train_sample for return;
+    if (env i is done?) then (yes)
+      |#pink|env_manager|
+      :env i reset;
+      |#orange|policy|
+      :policy collect_mode reset;
+      |actor|
+      :actor log episode_collect_info;
+    endif
+  endif
+repeat while (generated traj data is not enough?)
+|actor|
+:actor log statistics;
+:actor return collect_data and collect_info;
 stop
+
 @enduml
