@@ -170,7 +170,7 @@ class ZerglingActor(BaseActor):
                 policy_update_info = self.get_policy_update_info(path)
                 break
             except Exception as e:
-                self.error('update agent error: {}'.format(e))
+                self.error('update armor error: {}'.format(e))
                 time.sleep(1)
 
         handle = self._policy.state_dict_handle()

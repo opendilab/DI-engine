@@ -9,7 +9,7 @@ API Doc
 .. toctree::
     :maxdepth: 3
 
-    agent/agent
+    armor/armor
     data/structure
     data/dataloader
     data/collate_fn

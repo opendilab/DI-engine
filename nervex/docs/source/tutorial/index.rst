@@ -13,7 +13,7 @@ nervex(框架核心)
 
  1. data: 数据加载
 
-   - BufferManager（内部支持多种buffer，在线生成数据的agent buffer和使用专家数据的demo buffer）
+   - BufferManager（内部支持多种buffer，在线生成数据的armor buffer和使用专家数据的demo buffer）
    - AsyncDataLoader （异步数据加载器）
 
  2. envs: 强化学习环境接口
@@ -95,7 +95,7 @@ nervex(框架核心)
      - uniform self-play
      - PFSP(prioritized fictitious self-play)
 
- 9. agent 模型运行时容器
+ 9. armor 模型运行时容器
 
  10. worker: 系统运行模块
 
@@ -123,11 +123,11 @@ app_zoo(基于nerveX的DRL应用)
 
  4. sumo(traffic light control)
 
- 5. gfootball(multi-agent football)
+ 5. gfootball(multi-armor football)
 
  6. alphastar(SC2)
 
- 7. multiagent-particle
+ 7. multiarmor-particle
 
  8. board
 
@@ -228,9 +228,9 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
             ├── actor
             │   └── actor_logger.txt
             ├── buffer
-            │   └── agent_buffer
-            │       ├── agent_logger.txt
-            │       └── agent_tb_logger
+            │   └── armor_buffer
+            │       ├── armor_logger.txt
+            │       └── armor_tb_logger
             ├── evaluator
             │   ├── evaluator_logger.txt
             │   └── evaluator_tb_logger
@@ -287,7 +287,7 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
       - use_cuda: 是否使用cuda，主要取决于使用者的机器上是否有GPU，注意这时的启动脚本要指定cuda device相关
       - use_distributed: 是否使用多机多卡训练，主要取决于使用者是否安装了linklink，以及是否要开启多机多卡训练，注意这时的启动脚本中要指定 `mpi` 相关
       - repeat_num: learner端参与训练的GPU卡数，目前仅支持单机，最大值为一台机器上空闲的GPU数目
-      - path_agent等: 这些字段是多机版本训练进行数据通信的相关路径，默认使用当前目录，即通过文件系统进行通信，在集群上一般使用ceph，需要进行相关配置并对应更改这些字段
+      - path_armor等: 这些字段是多机版本训练进行数据通信的相关路径，默认使用当前目录，即通过文件系统进行通信，在集群上一般使用ceph，需要进行相关配置并对应更改这些字段
 
 运行后产生的文件
 ---------------------
@@ -311,9 +311,9 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
         │   │   ├── ....
         │   │   └── d8b1ce8f-f6ce-4d20-8085-7f2d9ce5bea8_476962_logger.txt
         │   ├── buffer
-        │   │   └── agent_buffer
-        │   │       ├── agent_logger.txt
-        │   │       └── agent_tb_logger
+        │   │   └── armor_buffer
+        │   │       ├── armor_logger.txt
+        │   │       └── armor_tb_logger
         │   ├── commander
         │   │   ├── commander_logger.txt
         │   │   └── commander_tb_logger
@@ -353,13 +353,15 @@ DRL快速上手指南(串行版本)
 
 .. note::
 
-    注意一个深度强化学习算法可能包括神经网络模型，运行计算图(训练/数据生成)，优化目标(损失函数)，优化器等多个部分，nerveX在实现上将各个模块进行了解耦设计，所以相关代码可能较为分散，但一般的代码组织体系为：model（神经网络模型），rl_utils（具体的强化学习优化目标函数），以及两种可选功能组件Agent（神经网络模型在训练/数据生成/测试时的不同动态行为，例如RNN隐状态的维护，Double DQN算法中target network的维护），Adder（将收集到的数据帧整合成训练所需的状态），以及将上述各个模块组织串联起来，完整的强化学习策略定义，Policy模块（例如DQNPolicy）。
+    注意一个深度强化学习算法可能包括神经网络模型，运行计算图(训练/数据生成)，优化目标(损失函数)，优化器等多个部分，nerveX在实现上将各个模块进行了解耦设计，所以相关代码可能较为分散，但一般的代码组织体系为：model（神经网络模型），rl_utils（具体的强化学习优化目标函数），以及两种可选功能组件Armor（神经网络模型在训练/数据生成/测试时的不同动态行为，例如RNN隐状态的维护，Double DQN算法中target network的维护），Adder（将收集到的数据帧整合成训练所需的状态），以及将上述各个模块组织串联起来，完整的强化学习策略定义，Policy模块（例如DQNPolicy）。
 
 环境相关
 -----------
 
-RL不同于传统的监督学习，数据一般是离线准备完成，RL需要实时让智能体和问题环境进行交互，产生数据帧用于训练。nerveX为了处理实际问题场景中复杂的环境结构定义，抽象了环境及其基本元素相关模块（`Env Overview
-<../feature/env_overview.html>`_），该抽象定义了环境和外界交互的相关接口，数据帧中每个元素的格式和取值范围等基本信息。对于CartPole环境，nerveX已经完成实现，可以通过如下的代码直接调用：
+RL不同于传统的监督学习中可以离线准备数据，RL需要 **实时** 让智能体和问题环境进行交互，产生数据帧用于训练。
+nerveX为了处理实际问题场景中复杂的环境结构定义，抽象了环境及其基本元素相关模块（`Env Overview <../feature/env_overview.html>`_）。
+该抽象定义了环境和外界交互的相关接口，数据帧中每个元素的格式和取值范围等基本信息。
+对于CartPole环境，nerveX已经完成实现，可以通过如下的代码直接调用：
 
 .. code:: python
 
@@ -413,7 +415,7 @@ RL不同于传统的监督学习，数据一般是离线准备完成，RL需要�
 神经网络模型相关
 --------------------
 
-nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，支持用户自定义各式各样的神经网络，不过，nerveX也根据RL等决策算法的需要，构建了一些抽象层次和API，主要分为 ``model`` （模型）和 ``agent`` （智能体）两部分，若已有的Agent组件无法满足需求，使用者也可以完全自定义相关的代码段，其和训练主体代码并无耦合。
+nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，支持用户自定义各式各样的神经网络，不过，nerveX也根据RL等决策算法的需要，构建了一些抽象层次和API，主要分为 ``Model`` （模型）和 ``Armor`` （运行时模型）两部分，若已有的Armor组件无法满足需求，使用者也可以完全自定义相关的代码段，其和训练主体代码并无耦合。
 
 模型部分是对一些经典算法的抽象，比如对于Actor-Critic系列算法和Dueling DQN算法，nerveX为其实现了相关的模型基类，并且进行了多层的模块化的封装，详见 
 ``nervex/model/discrete_net/discrete_net.py`` 和其对应的测试文件 ``nervex/model/discrete_net/test_discrete_net.py`` 。
@@ -424,7 +426,7 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
 
     import torch
     import torch.nn as nn
-    
+
 
     # network definition
     class FCDQN(nn.Module):
@@ -457,14 +459,13 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
 
     此处实现的 ``FCDQN`` 示例网络其实相当于 ``nervex/model/discrete_net/discrete_net.py`` 中的 ``FCDiscreteNet``。
 
-
 .. note::
 
     注意由于Atari是一个离散动作空间环境，神经网络的输出并不是具体的动作值，而是对于整个动作空间选取动作的logits，其将会在其他模块中完成采样操作转化成具体的动作。
 
 .. note::
 
-    nerveX的model模块中实现更为复杂的DQN（支持不同 ``Encoder和使用 ``LSTM``），使用者可使用自定义所用的神经网络，或内置版本的神经网络。
+    nerveX的model模块中实现更为复杂的DQN（支持不同 ``Encoder`` 和使用 ``LSTM`` ），使用者可使用自定义所用的神经网络，或内置版本的神经网络。
     内置版本的神经网络中，以 ``FC`` 开头表示使用接受 ``1-dim`` 的obs输入 ``Encoder`` ，以 ``Conv`` 开头表示使用接受 ``[Channel, Hight, Width]`` 的输入的 ``Encoder`` ，
     包含 ``R`` 的表示带有含 ``LSTM`` 的Recurrent Network。
 
@@ -474,12 +475,12 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
     为了便于和其他模块的对接，nerveX限制神经网络的输入输出为dict形式，即键为字符串值为Tensor或一组Tensor。但dict确实存在无法明晰输入输出数据具体内容的问题，故建议使用者为自己的神经网络准备
     相应的单元测试，并在forward方法中注明输入和输出的数据键及值的Tensor维度，格式可参考 `https://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/blob/master/nervex/rl_utils/ppo.py#L32`。
 
-智能体部分是对模型运行时行为的抽象（例如根据eps-greedy方法对logits进行采样，对于使用RNN的神经网络维护其隐状态等），具体的设计可以参考 `Agent Overview <../feature/agent_overview.html>`_ 。由于一个神经网络模型可能在多个系统组件内通过不同的方式使用（训练/数据生成/测试），nerveX使用 ``Agent Plugin`` （智能体插件）的定义不同的功能，并为各个组件内的模型添加相应的插件，完成定制化。对于CartPole DQN，使用系统预设的默认DQN智能体代码即可，示例如下， 其中Learner和Actor分别代码训练端和数据生成端：
+Armor 部分是对模型运行时行为的抽象（例如根据eps-greedy方法对logits进行采样，对于使用RNN的神经网络维护其隐状态等），具体的设计可以参考 `Armor Overview <../feature/armor_overview.html>`_ 。由于一个神经网络模型可能在多个系统组件内通过不同的方式使用（训练/数据生成/测试），nerveX使用 ``Armor Plugin`` （插件）的定义不同的功能，并为各个组件内的模型添加相应的插件，完成定制化。对于CartPole DQN，使用系统预设的默认DQN Armor即可，示例如下， 其中Learner和Actor分别代码训练端和数据生成端：
 
 
 .. note::
 
-   如果使用者想要定义自己的agent，请参考 `Agent Overview <../feature/agent_overview.html>`_ 中相关内容。如果使用者觉得Agent的现有设计和实现无法满足需求，也可以自定义完成相应的功能，nerveX并不强制要求使用Agent。
+   如果使用者想要定义自己的armor，请参考 `Armor Overview <../feature/armor_overview.html>`_ 中相关内容。如果使用者觉得Armor的现有设计和实现无法满足需求，也可以自定义完成相应的功能，nerveX并不强制要求使用Armor。
 
 优化目标(损失函数)相关
 -------------------------
@@ -611,10 +612,10 @@ DRL Policy Example(DQN)
 
 .. code:: python
 
-    #Agent模块，神经网络的运行时容器，为神经网络在不同使用场景下提供相应功能，包括用于更新策略的learner部分和用于collect数据的actor部分以及用于eval的evaluator部分
-    #(Agent是可选使用模块，使用者也可自定义相应的处理模块)
-    #Agent具体的使用方式可以参照下面代码中的实例
-    from nervex.agent import Agent
+    #Armor模块，神经网络的运行时容器，为神经网络在不同使用场景下提供相应功能，包括用于更新策略的learner部分和用于collect数据的actor部分以及用于eval的evaluator部分
+    #(Armor是可选使用模块，使用者也可自定义相应的处理模块)
+    #Armor具体的使用方式可以参照下面代码中的实例
+    from nervex.armor import Armor
 
 .. code:: python
 
@@ -658,8 +659,8 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
 
 - 初始化learn的optimizer， 即 ``self._optimizer`` 
 - 初始化算法的相关参数 
-- 初始化learn所用的运行时模块learner agent ，即 ``self._agent``
-- 初始化agent的相关model和plugin 
+- 初始化learn所用的运行时模块learner armor ，即 ``self._armor``
+- 初始化armor的相关model和plugin 
 
   - 如初始化target network(double dqn中的设计)
 
@@ -674,7 +675,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             r"""
             Overview:
                 Learn mode init method. Called by ``self.__init__``.
-                Init the optimizer, algorithm config, main and target agents.
+                Init the optimizer, algorithm config, main and target armors.
             """
             # Optimizer
             # 初始化learn的optimizer
@@ -686,23 +687,23 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             self._nstep = algo_cfg.nstep
             self._gamma = algo_cfg.discount_factor
         
-            # Main and target agents
-            # 初始化的模型传入agent
-            self._agent = Agent(self._model)
+            # Main and target armors
+            # 初始化的模型传入armor
+            self._armor = Armor(self._model)
             
-            # 初始化agent的相关model
-            self._agent.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
-            # 初始化agent的相关plugin
-            self._agent.add_plugin('main', 'argmax_sample')
-            self._agent.add_plugin('main', 'grad', enable_grad=True)
-            self._agent.add_plugin('target', 'grad', enable_grad=False)
+            # 初始化armor的相关model
+            self._armor.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
+            # 初始化armor的相关plugin
+            self._armor.add_plugin('main', 'argmax_sample')
+            self._armor.add_plugin('main', 'grad', enable_grad=True)
+            self._armor.add_plugin('target', 'grad', enable_grad=False)
             
             #常规初始化
-            self._agent.mode(train=True)
-            self._agent.target_mode(train=True)
+            self._armor.mode(train=True)
+            self._armor.target_mode(train=True)
             
-            self._agent.reset()
-            self._agent.target_reset()
+            self._armor.reset()
+            self._armor.target_reset()
             self._learn_setting_set = {}
 
 我们的learner需要知道如何计算loss，并进行模型的更新等操作
@@ -731,12 +732,12 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
                 reward = reward.unsqueeze(1)
             assert reward.shape == (self._cfg.learn.batch_size, self._nstep), reward.shape
             reward = reward.permute(1, 0).contiguous()
-            # Current q value (main agent)
-            q_value = self._agent.forward(data['obs'])['logit']
+            # Current q value (main armor)
+            q_value = self._armor.forward(data['obs'])['logit']
             # Target q value
-            target_q_value = self._agent.target_forward(data['next_obs'])['logit']
-            # Max q value action (main agent)
-            target_q_action = self._agent.forward(data['next_obs'])['action']
+            target_q_value = self._armor.target_forward(data['next_obs'])['logit']
+            # Max q value action (main armor)
+            target_q_action = self._armor.forward(data['next_obs'])['action']
     
             data_n = q_nstep_td_data(
                 q_value, target_q_value, data['action'], target_q_action, reward, data['done'], data['weight']
@@ -753,7 +754,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             # =============
             # after update
             # =============
-            self._agent.target_update(self._agent.state_dict()['model'])
+            self._armor.target_update(self._armor.state_dict()['model'])
             return {
                 'cur_lr': self._optimizer.defaults['lr'],
                 'total_loss': loss.item(),
@@ -762,8 +763,8 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
 我们也需要对actor部分进行初始化，包括： 
 
 - actor数据的收集方式， 包括 ``self._adder`` 等
-- 初始化的模型传入actor agent， 即 ``self._collect_agent`` 
-- 初始化agent的相关plugin 
+- 初始化的模型传入actor armor， 即 ``self._collect_armor`` 
+- 初始化armor的相关plugin 
 
   - 如actor使用 ``eps_greedy`` 进行sample
 
@@ -775,7 +776,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             r"""
             Overview:
                 Collect mode init method. Called by ``self.__init__``.
-                Init traj and unroll length, adder, collect agent.
+                Init traj and unroll length, adder, collect armor.
                 Enable the eps_greedy_sample
             """
             # actor数据的收集方式
@@ -786,16 +787,16 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             self._adder = Adder(self._use_cuda, self._unroll_len)
             self._collect_nstep = self._cfg.collect.algo.nstep
             
-            # 初始化的模型传入actor agent
-            self._collect_agent = Agent(self._model)
+            # 初始化的模型传入actor armor
+            self._collect_armor = Armor(self._model)
             
-            # 初始化agent的相关plugin
-            self._collect_agent.add_plugin('main', 'eps_greedy_sample')
-            self._collect_agent.add_plugin('main', 'grad', enable_grad=False)
+            # 初始化armor的相关plugin
+            self._collect_armor.add_plugin('main', 'eps_greedy_sample')
+            self._collect_armor.add_plugin('main', 'grad', enable_grad=False)
             
             # 常规初始化
-            self._collect_agent.mode(train=False)
-            self._collect_agent.reset()
+            self._collect_armor.mode(train=False)
+            self._collect_armor.reset()
             self._collect_setting_set = {'eps'}
 
 我们的actor需要根据环境返回的observation获取相关动作数据
@@ -815,7 +816,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             Returns:
                 - data (:obj:`dict`): The collected data
             """
-            return self._collect_agent.forward(data, eps=self._eps)
+            return self._collect_armor.forward(data, eps=self._eps)
 
 我们需要从trajectory（一组数据帧(transition)）中获取需要的训练样本
 
@@ -853,13 +854,13 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
 .. code:: python
 
     
-        def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
+        def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
             r"""
            Overview:
                Generate dict type transition data from inputs.
            Arguments:
                - obs (:obj:`Any`): Env observation
-               - agent_output (:obj:`dict`): Output of collect agent, including at least ['action']
+               - armor_output (:obj:`dict`): Output of collect armor, including at least ['action']
                - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
                    (here 'obs' indicates obs after env step).
            Returns:
@@ -868,7 +869,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             transition = {
                 'obs': obs,
                 'next_obs': timestep.obs,
-                'action': agent_output['action'],
+                'action': armor_output['action'],
                 'reward': timestep.reward,
                 'done': timestep.done,
             }
@@ -877,8 +878,8 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
 
 我们需要对evaluator部分进行初始化，包括：
 
--  初始化的模型传入 eval agent， 即 ``self._eval_agent``
--  初始化agent的相关plugin
+-  初始化的模型传入 eval armor， 即 ``self._eval_armor``
+-  初始化armor的相关plugin
 
    -  如使用 ``argmax`` 进行sample
 
@@ -896,13 +897,13 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             r"""
             Overview:
                 Evaluate mode init method. Called by ``self.__init__``.
-                Init eval agent with argmax strategy.
+                Init eval armor with argmax strategy.
             """
-            self._eval_agent = Agent(self._model)
-            self._eval_agent.add_plugin('main', 'argmax_sample')
-            self._eval_agent.add_plugin('main', 'grad', enable_grad=False)
-            self._eval_agent.mode(train=False)
-            self._eval_agent.reset()
+            self._eval_armor = Armor(self._model)
+            self._eval_armor.add_plugin('main', 'argmax_sample')
+            self._eval_armor.add_plugin('main', 'grad', enable_grad=False)
+            self._eval_armor.mode(train=False)
+            self._eval_armor.reset()
             self._eval_setting_set = {}
     
         def _forward_eval(self, data_id: List[int], data: dict) -> dict:
@@ -915,7 +916,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             Returns:
                 - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
             """
-            return self._eval_agent.forward(data)
+            return self._eval_armor.forward(data)
 
 在 ``_init_command`` 方法中，我们需要对相关控制模块进行初始化，比如epsilon_greedy的计算模块，使用者无需考虑信息在learner和actor之间如何传递，只需要考虑拿到信息后做怎样的数据处理即可
 

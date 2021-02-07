@@ -1,80 +1,80 @@
-agent
+armor
 ===================
 
-agent
+armor
 -----------------
 
-BaseAgent
+BaseArmor
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.agent.agent.BaseAgent
+.. autoclass:: nervex.armor.armor.BaseArmor
     :members: __init__, forward, mode, state_dict, load_state_dict, reset
 
-Agent
+Armor
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.agent.agent.Agent
+.. autoclass:: nervex.armor.armor.Armor
     :members: __init__, __getattr__
 
 
-agent_plugin
+armor_plugin
 ----------------------
 
-IAgentPlugin
+IArmorPlugin
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.agent.agent_plugin.IAgentPlugin
+.. autoclass:: nervex.armor.armor_plugin.IArmorPlugin
     :members: register
 
 
-IAgentStatefulPlugin
+IArmorStatefulPlugin
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.agent.agent_plugin.IAgentStatefulPlugin
+.. autoclass:: nervex.armor.armor_plugin.IArmorStatefulPlugin
     :members: __init__, reset
 
 GradHelper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.agent.agent_plugin.GradHelper
+.. autoclass:: nervex.armor.armor_plugin.GradHelper
     :members: register
 
 HiddenStateHelper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.agent.agent_plugin.HiddenStateHelper
+.. autoclass:: nervex.armor.armor_plugin.HiddenStateHelper
     :members: register
 
 ArgmaxSampleHelper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.agent.agent_plugin.ArgmaxSampleHelper
+.. autoclass:: nervex.armor.armor_plugin.ArgmaxSampleHelper
     :members: register
 
 MultinomialSampleHelper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.agent.agent_plugin.MultinomialSampleHelper
+.. autoclass:: nervex.armor.armor_plugin.MultinomialSampleHelper
     :members: register
 
 EpsGreedySampleHelper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.agent.agent_plugin.EpsGreedySampleHelper
+.. autoclass:: nervex.armor.armor_plugin.EpsGreedySampleHelper
     :members: register
 
 ActionNoiseHelper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.agent.agent_plugin.ActionNoiseHelper
+.. autoclass:: nervex.armor.armor_plugin.ActionNoiseHelper
     :members: register, __init__, add_noise, reset
 
 TargetNetworkHelper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.agent.agent_plugin.TargetNetworkHelper
+.. autoclass:: nervex.armor.armor_plugin.TargetNetworkHelper
     :members: register, __init__, update, reset
 
 TeacherNetworkHelper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.agent.agent_plugin.TeacherNetworkHelper
+.. autoclass:: nervex.armor.armor_plugin.TeacherNetworkHelper
     :members: register
 
 
 register_plugin
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. automodule:: nervex.agent.agent_plugin.register_plugin
+.. automodule:: nervex.armor.armor_plugin.register_plugin
 
 
 add_plugin
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. automodule:: nervex.agent.agent_plugin.add_plugin
+.. automodule:: nervex.armor.armor_plugin.add_plugin
