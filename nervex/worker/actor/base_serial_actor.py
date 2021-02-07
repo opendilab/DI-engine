@@ -36,7 +36,7 @@ class BaseSerialActor(object):
         self._traj_cache_length = self._traj_len
         self._traj_print_freq = cfg.traj_print_freq
         self._collect_print_freq = cfg.collect_print_freq
-        self._logger, _ = build_logger(path='./log/actor', name='actor')
+        self._logger, _ = build_logger(path='./log/actor', name='actor', need_tb=False)
         self._timer = EasyTimer()
         self._cfg = cfg
 
@@ -136,7 +136,7 @@ class BaseSerialActor(object):
                 timesteps = self._env.step(actions)
                 for env_id, timestep in timesteps.items():
                     if timestep.info.get('abnormal', False):
-                        # if there is a abnormal timestep, reset all the related variable, also this env has been reset
+                        # If there is an abnormal timestep, reset all the related variables(including this env).
                         self._traj_cache[env_id].clear()
                         self._obs_pool.reset(env_id)
                         self._policy_output_pool.reset(env_id)
@@ -146,12 +146,12 @@ class BaseSerialActor(object):
                     transition = self._policy.process_transition(
                         self._obs_pool[env_id], self._policy_output_pool[env_id], timestep
                     )
-                    # parameter ``iter_count``, which is passed in from ``serial_entry``, indicates current
+                    # Parameter ``iter_count``, which is passed in from ``serial_entry``, indicates current
                     # collecting model's iteration
                     transition['collect_iter'] = iter_count
                     self._traj_cache[env_id].append(transition)
                     if timestep.done or len(self._traj_cache[env_id]) == self._traj_len:
-                        # episode is done or traj_cache(maxlen=traj_len) is full
+                        # Episode is done or traj_cache(maxlen=traj_len) is full.
                         train_sample = self._policy.get_train_sample(self._traj_cache[env_id])
                         return_data.extend(train_sample)
                         train_sample_count += len(train_sample)
