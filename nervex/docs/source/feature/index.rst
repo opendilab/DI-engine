@@ -15,7 +15,7 @@ Feature
     env_manager_overview
     buffer_manager_overview
     hpc_rl_overview
-    agent_overview
+    armor_overview
     learner_overview
     actor_overview
     league_overview

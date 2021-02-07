@@ -6,7 +6,7 @@ from easydict import EasyDict
 from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, epsilon_greedy, Adder
 from nervex.model import QMix
-from nervex.agent import Agent
+from nervex.agent import Armor
 from nervex.data import timestep_collate
 from .base_policy import Policy, register_policy
 from .common_policy import CommonPolicy
@@ -36,7 +36,7 @@ class QMIXPolicy(CommonPolicy):
             - batch_size (:obj:`int`): Need batch size info to init hidden_state plugins
         """
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
-        self._agent = Agent(self._model)
+        self._agent = Armor(self._model)
         algo_cfg = self._cfg.learn.algo
         self._gamma = algo_cfg.discount_factor
 
@@ -131,7 +131,7 @@ class QMIXPolicy(CommonPolicy):
             self._traj_len = float("inf")
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
-        self._collect_agent = Agent(self._model)
+        self._collect_agent = Armor(self._model)
         self._collect_agent.add_plugin(
             'main',
             'hidden_state',
@@ -185,7 +185,7 @@ class QMIXPolicy(CommonPolicy):
             Evaluate mode init method. Called by ``self.__init__``.
             Init eval agent with argmax strategy and the hidden_state plugin.
         """
-        self._eval_agent = Agent(self._model)
+        self._eval_agent = Armor(self._model)
         self._eval_agent.add_plugin(
             'main',
             'hidden_state',

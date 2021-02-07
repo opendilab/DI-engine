@@ -9,7 +9,7 @@ from torch.distributions import Independent, Normal
 from nervex.torch_utils import Adam
 from nervex.rl_utils import ppo_data, ppo_error, ppo_error_continous, epsilon_greedy
 from nervex.model import FCValueAC, ConvValueAC
-from nervex.agent import Agent
+from nervex.armor import Armor
 from .base_policy import Policy, register_policy
 from .common_policy import CommonPolicy
 

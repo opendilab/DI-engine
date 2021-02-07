@@ -8,7 +8,7 @@ import torch.nn.functional as F
 
 from nervex.torch_utils import Adam
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, Adder
-from nervex.agent import Agent
+from nervex.armor import Armor
 from nervex.policy.base_policy import Policy, register_policy
 from nervex.policy.common_policy import CommonPolicy
 
@@ -23,7 +23,7 @@ class SACPolicy(CommonPolicy):
         r"""
         Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init q, value and policy's optimizers, algorithm config, main and target agents.
+            Init q, value and policy's optimizers, algorithm config, main and target armors.
         """
         # Optimizers
         self._optimizer_q = Adam(
@@ -63,15 +63,15 @@ class SACPolicy(CommonPolicy):
         self._policy_mean_reg_weight = algo_cfg.policy_mean_reg_weight
         self._use_twin_q = algo_cfg.use_twin_q
 
-        # Main and target agents
-        self._agent = Agent(self._model)
-        self._agent.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_theta})
-        self._agent.add_plugin('main', 'grad', enable_grad=True)
-        self._agent.add_plugin('target', 'grad', enable_grad=False)
-        self._agent.mode(train=True)
-        self._agent.target_mode(train=True)
-        self._agent.reset()
-        self._agent.target_reset()
+        # Main and target armors
+        self._armor = Armor(self._model)
+        self._armor.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_theta})
+        self._armor.add_plugin('main', 'grad', enable_grad=True)
+        self._armor.add_plugin('target', 'grad', enable_grad=False)
+        self._armor.mode(train=True)
+        self._armor.target_mode(train=True)
+        self._armor.reset()
+        self._armor.target_reset()
         self._learn_setting_set = {}
         self._forward_learn_cnt = 0
 
@@ -93,22 +93,22 @@ class SACPolicy(CommonPolicy):
         done = data.get('done')
 
         # evaluate to get action distribution
-        eval_data = self._agent.forward(data, param={'mode': 'evaluate'})
+        eval_data = self._armor.forward(data, param={'mode': 'evaluate'})
         mean = eval_data["mean"]
         log_std = eval_data["log_std"]
         new_action = eval_data["action"]
         log_prob = eval_data["log_prob"]
 
         # predict q value and v value
-        q_value = self._agent.forward(data, param={'mode': 'compute_q'})['q_value']
-        v_value = self._agent.forward(data, param={'mode': 'compute_value'})['v_value']
+        q_value = self._armor.forward(data, param={'mode': 'compute_q'})['q_value']
+        v_value = self._armor.forward(data, param={'mode': 'compute_value'})['v_value']
 
         # =================
         # q network
         # =================
         # compute q loss
         next_data = {'obs': next_obs}
-        target_v_value = self._agent.target_forward(next_data, param={'mode': 'compute_value'})['v_value']
+        target_v_value = self._armor.target_forward(next_data, param={'mode': 'compute_value'})['v_value']
         if self._use_twin_q:
             q_data0 = v_1step_td_data(q_value[0], target_v_value, reward, done, data['weight'])
             loss_dict['q_loss'], td_error_per_sample0 = v_1step_td_error(q_data0, self._gamma)
@@ -131,7 +131,7 @@ class SACPolicy(CommonPolicy):
         # =================
         # compute value loss
         eval_data['obs'] = obs
-        new_q_value = self._agent.forward(eval_data, param={'mode': 'compute_q'})['q_value']
+        new_q_value = self._armor.forward(eval_data, param={'mode': 'compute_q'})['q_value']
         if self._use_twin_q:
             new_q_value = torch.min(new_q_value[0], new_q_value[1])
         # new_q_value: (bs, ), log_prob: (bs, act_dim) -> next_v_value: (bs, )
@@ -181,7 +181,7 @@ class SACPolicy(CommonPolicy):
         # =============
         self._forward_learn_cnt += 1
         # target update
-        self._agent.target_update(self._agent.state_dict()['model'])
+        self._armor.target_update(self._armor.state_dict()['model'])
         return {
             'cur_lr_q': self._optimizer_q.defaults['lr'],
             'cur_lr_v': self._optimizer_value.defaults['lr'],
@@ -194,15 +194,15 @@ class SACPolicy(CommonPolicy):
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect agent.
+            Init traj and unroll length, adder, collect armor.
             Use action noise for exploration.
         """
         self._traj_len = self._cfg.collect.traj_len
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
-        self._collect_agent = Agent(self._model)
+        self._collect_armor = Armor(self._model)
         algo_cfg = self._cfg.collect.algo
-        self._collect_agent.add_plugin(
+        self._collect_armor.add_plugin(
             'main',
             'action_noise',
             noise_type='gauss',
@@ -212,9 +212,9 @@ class SACPolicy(CommonPolicy):
             },
             noise_range=None,
         )
-        self._collect_agent.add_plugin('main', 'grad', enable_grad=False)
-        self._collect_agent.mode(train=False)
-        self._collect_agent.reset()
+        self._collect_armor.add_plugin('main', 'grad', enable_grad=False)
+        self._collect_armor.mode(train=False)
+        self._collect_armor.reset()
         self._collect_setting_set = {}
 
     def _forward_collect(self, data_id: List[int], data: dict) -> dict:
@@ -227,16 +227,16 @@ class SACPolicy(CommonPolicy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        output = self._collect_agent.forward(data, param={'mode': 'compute_action'})
+        output = self._collect_armor.forward(data, param={'mode': 'compute_action'})
         return output
 
-    def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         r"""
         Overview:
             Generate dict type transition data from inputs.
         Arguments:
             - obs (:obj:`Any`): Env observation
-            - agent_output (:obj:`dict`): Output of collect agent, including at least ['action']
+            - armor_output (:obj:`dict`): Output of collect armor, including at least ['action']
             - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
                 (here 'obs' indicates obs after env step, i.e. next_obs).
         Return:
@@ -245,7 +245,7 @@ class SACPolicy(CommonPolicy):
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'action': agent_output['action'],
+            'action': armor_output['action'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -255,12 +255,12 @@ class SACPolicy(CommonPolicy):
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
-            Init eval agent. Unlike learn and collect agent, eval agent does not need noise.
+            Init eval armor. Unlike learn and collect armor, eval armor does not need noise.
         """
-        self._eval_agent = Agent(self._model)
-        self._eval_agent.add_plugin('main', 'grad', enable_grad=False)
-        self._eval_agent.mode(train=False)
-        self._eval_agent.reset()
+        self._eval_armor = Armor(self._model)
+        self._eval_armor.add_plugin('main', 'grad', enable_grad=False)
+        self._eval_armor.mode(train=False)
+        self._eval_armor.reset()
         self._eval_setting_set = {}
 
     def _forward_eval(self, data_id: List[int], data: dict) -> dict:
@@ -273,7 +273,7 @@ class SACPolicy(CommonPolicy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        output = self._eval_agent.forward(data, param={'mode': 'compute_action', 'deterministic_eval': True})
+        output = self._eval_armor.forward(data, param={'mode': 'compute_action', 'deterministic_eval': True})
         return output
 
     def _init_command(self) -> None:

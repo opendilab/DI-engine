@@ -6,7 +6,7 @@ import numpy as np
 from nervex.torch_utils import Adam
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, Adder
 from nervex.model import QAC
-from nervex.agent import Agent
+from nervex.armor import Armor
 from .base_policy import Policy, register_policy
 from .common_policy import CommonPolicy
 
@@ -15,7 +15,7 @@ class DDPGPolicy(CommonPolicy):
     r"""
     Overview:
         Policy class of DDPG and TD3 algorithm. Since DDPG and TD3 share many common things, this Policy supports
-        both algorithms. You can change ``_actor_update_freq``, ``_use_twin_critic`` and noise in agent plugin to
+        both algorithms. You can change ``_actor_update_freq``, ``_use_twin_critic`` and noise in armor plugin to
         switch algorithm.
     Interface:
         __init__, set_setting, __repr__, state_dict_handle
@@ -27,7 +27,7 @@ class DDPGPolicy(CommonPolicy):
         r"""
         Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init actor and critic optimizers, algorithm config, main and target agents.
+            Init actor and critic optimizers, algorithm config, main and target armors.
         """
         # actor and critic optimizer
         self._optimizer_actor = Adam(
@@ -49,11 +49,11 @@ class DDPGPolicy(CommonPolicy):
         self._actor_update_freq = algo_cfg.actor_update_freq
         self._use_twin_critic = algo_cfg.use_twin_critic  # True for TD3, False for DDPG
 
-        # main and target agents
-        self._agent = Agent(self._model)
-        self._agent.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_theta})
+        # main and target armors
+        self._armor = Armor(self._model)
+        self._armor.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_theta})
         if algo_cfg.use_noise:
-            self._agent.add_plugin(
+            self._armor.add_plugin(
                 'target',
                 'action_noise',
                 noise_type='gauss',
@@ -63,12 +63,12 @@ class DDPGPolicy(CommonPolicy):
                 },
                 noise_range=algo_cfg.noise_range,
             )
-        self._agent.add_plugin('main', 'grad', enable_grad=True)
-        self._agent.add_plugin('target', 'grad', enable_grad=False)
-        self._agent.mode(train=True)
-        self._agent.target_mode(train=True)
-        self._agent.reset()
-        self._agent.target_reset()
+        self._armor.add_plugin('main', 'grad', enable_grad=True)
+        self._armor.add_plugin('target', 'grad', enable_grad=False)
+        self._armor.mode(train=True)
+        self._armor.target_mode(train=True)
+        self._armor.reset()
+        self._armor.target_reset()
 
         self._learn_setting_set = {}
         self._forward_learn_cnt = 0  # count iterations
@@ -91,7 +91,7 @@ class DDPGPolicy(CommonPolicy):
         if self._use_reward_batch_norm:
             reward = (reward - reward.mean()) / (reward.std() + 1e-8)
         # current q value
-        q_value = self._agent.forward(data, param={'mode': 'compute_q'})['q_value']
+        q_value = self._armor.forward(data, param={'mode': 'compute_q'})['q_value']
         q_value_dict = {}
         if self._use_twin_critic:
             q_value_dict['q_value'] = q_value[0].mean()
@@ -100,9 +100,9 @@ class DDPGPolicy(CommonPolicy):
             q_value_dict['q_value'] = q_value.mean()
         # target q value. SARSA: first predict next action, then calculate next q value
         next_data = {'obs': next_obs}
-        next_action = self._agent.target_forward(next_data, param={'mode': 'compute_action'})['action']
+        next_action = self._armor.target_forward(next_data, param={'mode': 'compute_action'})['action']
         next_data['action'] = next_action
-        target_q_value = self._agent.target_forward(next_data, param={'mode': 'compute_q'})['q_value']
+        target_q_value = self._armor.target_forward(next_data, param={'mode': 'compute_q'})['q_value']
         if self._use_twin_critic:
             # TD3: two critic networks
             target_q_value = torch.min(target_q_value[0], target_q_value[1])  # find min one as target q value
@@ -133,7 +133,7 @@ class DDPGPolicy(CommonPolicy):
         # ===============================
         # actor updates every ``self._actor_update_freq`` iters
         if (self._forward_learn_cnt + 1) % self._actor_update_freq == 0:
-            actor_loss = -self._agent.forward(data, param={'mode': 'optimize_actor'})['q_value'].mean()
+            actor_loss = -self._armor.forward(data, param={'mode': 'optimize_actor'})['q_value'].mean()
             loss_dict['actor_loss'] = actor_loss
             # actor update
             self._optimizer_actor.zero_grad()
@@ -144,7 +144,7 @@ class DDPGPolicy(CommonPolicy):
         # =============
         loss_dict['total_loss'] = sum(loss_dict.values())
         self._forward_learn_cnt += 1
-        self._agent.target_update(self._agent.state_dict()['model'])
+        self._armor.target_update(self._armor.state_dict()['model'])
         return {
             'cur_lr_actor': self._optimizer_actor.defaults['lr'],
             'cur_lr_critic': self._optimizer_critic.defaults['lr'],
@@ -159,15 +159,15 @@ class DDPGPolicy(CommonPolicy):
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect agent.
+            Init traj and unroll length, adder, collect armor.
         """
         self._traj_len = self._cfg.collect.traj_len
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
-        # collect agent
-        self._collect_agent = Agent(self._model)
+        # collect armor
+        self._collect_armor = Armor(self._model)
         algo_cfg = self._cfg.collect.algo
-        self._collect_agent.add_plugin(
+        self._collect_armor.add_plugin(
             'main',
             'action_noise',
             noise_type='gauss',
@@ -177,9 +177,9 @@ class DDPGPolicy(CommonPolicy):
             },
             noise_range=None,  # no noise clip in actor
         )
-        self._collect_agent.add_plugin('main', 'grad', enable_grad=False)
-        self._collect_agent.mode(train=False)
-        self._collect_agent.reset()
+        self._collect_armor.add_plugin('main', 'grad', enable_grad=False)
+        self._collect_armor.mode(train=False)
+        self._collect_armor.reset()
         self._collect_setting_set = {}
 
     def _forward_collect(self, data_id: List[int], data: dict) -> dict:
@@ -192,16 +192,16 @@ class DDPGPolicy(CommonPolicy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        output = self._collect_agent.forward(data, param={'mode': 'compute_action'})
+        output = self._collect_armor.forward(data, param={'mode': 'compute_action'})
         return output
 
-    def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> Dict[str, Any]:
+    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> Dict[str, Any]:
         r"""
         Overview:
             Generate dict type transition data from inputs.
         Arguments:
             - obs (:obj:`Any`): Env observation
-            - agent_output (:obj:`dict`): Output of collect agent, including at least ['action']
+            - armor_output (:obj:`dict`): Output of collect armor, including at least ['action']
             - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
                 (here 'obs' indicates obs after env step, i.e. next_obs).
         Return:
@@ -210,7 +210,7 @@ class DDPGPolicy(CommonPolicy):
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'action': agent_output['action'],
+            'action': armor_output['action'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -220,12 +220,12 @@ class DDPGPolicy(CommonPolicy):
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
-            Init eval agent. Unlike learn and collect agent, eval agent does not need noise.
+            Init eval armor. Unlike learn and collect armor, eval armor does not need noise.
         """
-        self._eval_agent = Agent(self._model)
-        self._eval_agent.add_plugin('main', 'grad', enable_grad=False)
-        self._eval_agent.mode(train=False)
-        self._eval_agent.reset()
+        self._eval_armor = Armor(self._model)
+        self._eval_armor.add_plugin('main', 'grad', enable_grad=False)
+        self._eval_armor.mode(train=False)
+        self._eval_armor.reset()
         self._eval_setting_set = {}
 
     def _forward_eval(self, data_id: List[int], data: dict) -> dict:
@@ -238,7 +238,7 @@ class DDPGPolicy(CommonPolicy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        output = self._eval_agent.forward(data, param={'mode': 'compute_action'})
+        output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
         return output
 
     def _init_command(self) -> None:

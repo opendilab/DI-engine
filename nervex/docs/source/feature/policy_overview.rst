@@ -105,13 +105,13 @@ Policy
                             getattr(self, '_init_' + field)()
                     if self._use_distributed:
                         if self._enable_field is None or self._enable_field == ['learn']:
-                            agent = self._agent
+                            armor = self._armor
                         else:
-                            agent = getattr(self, '_{}_agent'.format(self._enable_field[0]))
-                        for name, param in agent.model.state_dict().items():
+                            armor = getattr(self, '_{}_armor'.format(self._enable_field[0]))
+                        for name, param in armor.model.state_dict().items():
                             assert isinstance(param.data, torch.Tensor), type(param.data)
                             broadcast(param.data, 0)
-                        for name, param in agent.model.named_parameters():
+                        for name, param in armor.model.named_parameters():
                             setattr(param, 'grad', torch.zeros_like(param))
 
                 def _create_model(self, cfg: dict, model: Optional[Union[type, torch.nn.Module]] = None) -> torch.nn.Module:
@@ -243,7 +243,7 @@ Policy
                     raise NotImplementedError
 
                 @abstractmethod
-                def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
+                def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
                     raise NotImplementedError
 
                 @abstractmethod
@@ -305,7 +305,7 @@ Policy
                 - ``forward``： 由 ``self._forward_collect`` 实现，根据对应的输入采集action，如epsilon greedy的参数需要传入。
                 - ``reset``：由``self._reset_collec`` 实现，通常包括模型状态的reset，和模型是否需要梯度的设置等(is_train = False)。
                 - ``data_postprocess``：由 ``self._data_postprocess_collect`` 实现，处理forward之后传入buffer之前的数据。
-                - ``process_transition``：由 ``self._process_transition`` 实现, 根据obs、agent的输出，环境的timestep处理得到数据帧。
+                - ``process_transition``：由 ``self._process_transition`` 实现, 根据obs、armor的输出，环境的timestep处理得到数据帧。
                 - ``get_train_sample``：由 ``self._get_train_sample`` 实现, 从trajectory中选取合适的数据所为训练样本，通常使用adder。
                 - ``set_setting``：由 ``self.set_setting`` 实现，设置learn和collect中需要用到的相关参数，如epsilon greedy的参数等。
                 - ``state_dict_handle``： 由 ``self.state_dict_handle`` 实现，返回当前模型及优化器的参数。
@@ -314,7 +314,7 @@ Policy
                 - ``forward``： 由 ``self._forward_eval`` 实现，根据对应的输入采集action。
                 - ``reset``：由 ``self._reset_eval`` 实现，通常包括模型状态的reset，和模型是否需要梯度的设置等(is_train = False)。
                 - ``data_postprocess``：由 ``self._data_postprocess_collect`` 实现，处理forwrad之后传入buffer之前的数据，与collect相同。
-                - ``process_transition``：由 ``self._process_transition`` 实现, 根据obs、agent的输出，环境的timestep处理得到数据帧。
+                - ``process_transition``：由 ``self._process_transition`` 实现, 根据obs、armor的输出，环境的timestep处理得到数据帧。
                 - ``set_setting``：由 ``self.set_setting`` 实现，设置learn和collect中需要用到的相关参数。
                 - ``state_dict_handle``： 由 ``self.state_dict_handle`` 实现，返回当前模型及优化器的参数。 
             5. ``command_mode``: 对应的learn，collect，eval的相关setting参数
@@ -388,16 +388,16 @@ Policy
                     return self._adder.get_train_sample(data)
 
                 def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
-                    self._agent.mode(train=True)
-                    self._agent.reset(data_id=data_id)
+                    self._armor.mode(train=True)
+                    self._armor.reset(data_id=data_id)
 
                 def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
-                    self._collect_agent.mode(train=False)
-                    self._collect_agent.reset(data_id=data_id)
+                    self._collect_armor.mode(train=False)
+                    self._collect_armor.reset(data_id=data_id)
 
                 def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
-                    self._eval_agent.mode(train=False)
-                    self._eval_agent.reset(data_id=data_id)
+                    self._eval_armor.mode(train=False)
+                    self._eval_armor.reset(data_id=data_id)
 
                 def _get_setting_learn(self, *args, **kwargs) -> dict:
                     return {}

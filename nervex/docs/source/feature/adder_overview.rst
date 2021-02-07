@@ -149,7 +149,7 @@ Adder
                         r"""
                         Overview:
                             Collect mode init moethod. Called by ``self.__init__``.
-                            Init traj and unroll length, adder, collect agent.
+                            Init traj and unroll length, adder, collect armor.
                         """
                         # ...
                         self._adder = Adder(self._use_cuda, self._unroll_len)

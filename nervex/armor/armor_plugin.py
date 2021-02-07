@@ -9,32 +9,31 @@ from nervex.torch_utils import get_tensor_data
 from nervex.rl_utils import create_noise_generator
 
 
-class IAgentPlugin(ABC):
+class IArmorPlugin(ABC):
     r"""
     Overview:
-        the base class of Agent Plugins
-
+        the base class of Armor Plugins
     Interfaces:
         register
     """
 
     @abstractclassmethod
-    def register(cls: type, agent: Any, **kwargs) -> None:
+    def register(cls: type, armor: Any, **kwargs) -> None:
         r"""
         Overview:
-            the register function that every subclass of IAgentPlugin should implement
+            the register function that every subclass of IArmorPlugin should implement
         """
-        """inplace modify agent"""
+        """inplace modify armor"""
         raise NotImplementedError
 
 
-IAgentStatelessPlugin = IAgentPlugin
+IArmorStatelessPlugin = IArmorPlugin
 
 
-class IAgentStatefulPlugin(IAgentPlugin):
+class IArmorStatefulPlugin(IArmorPlugin):
     r"""
     Overview:
-        the base class of Agent Plugins that requires to store states
+        the base class of Armor Plugins that requires to store states
     Interfaces:
         __init__, reset
     """
@@ -43,7 +42,7 @@ class IAgentStatefulPlugin(IAgentPlugin):
     def __init__(self, *args, **kwargs) -> None:
         r"""
         Overview
-            the init function that the Agent Plugins with states should implement
+            the init function that the Armor Plugins with states should implement
             used to init the stored states
         """
         raise NotImplementedError
@@ -52,34 +51,31 @@ class IAgentStatefulPlugin(IAgentPlugin):
     def reset(self) -> None:
         r"""
         Overview
-            the reset function that the Agent Plugins with states should implement
+            the reset function that the Armor Plugins with states should implement
             used to reset the stored states
         """
         raise NotImplementedError
 
 
-class GradHelper(IAgentStatelessPlugin):
+class GradHelper(IArmorStatelessPlugin):
     r"""
     Overview:
-        GradHelper help the agent to enable grad or disable grad while calling forward method
-
+        GradHelper help the armor to enable grad or disable grad while calling forward method
     Interfaces:
         register
-
     Examples:
-        >>> GradHelper.register(actor_agent, Flase)
-        >>> GradHelper.register(learner_agent, True)
+        >>> GradHelper.register(actor_armor, Flase)
+        >>> GradHelper.register(learner_armor, True)
     """
 
     @classmethod
-    def register(cls: type, agent: Any, enable_grad: bool) -> None:
+    def register(cls: type, armor: Any, enable_grad: bool) -> None:
         r"""
         Overview:
-            after register, the agent.foward method with be set to enable grad or disable grad
-
+            After register, method ``armor.foward`` will be set to enable grad or disable grad.
         Arguments:
-            - agent (:obj:`Any`): the wrapped agent class, should contain forward methods
-            - enbale_grad (:obj:`bool`): whether to enable grad or disable grad while forwarding.
+            - armor (:obj:`Any`): Wrapped armor class. Should contain ``forward`` method.
+            - enbale_grad (:obj:`bool`): Whether to enable grad or disable grad during ``forward``.
         """
 
         def grad_wrapper(fn):
@@ -91,54 +87,51 @@ class GradHelper(IAgentStatelessPlugin):
 
             return wrapper
 
-        agent.forward = grad_wrapper(agent.forward)
+        armor.forward = grad_wrapper(armor.forward)
 
 
-class HiddenStateHelper(IAgentStatefulPlugin):
+class HiddenStateHelper(IArmorStatefulPlugin):
     """
     Overview:
-        maintain the hidden state for RNN-base model, each sample in a batch has its own state
-
+        Maintain the hidden state for RNN-base model. Each sample in a batch has its own state.
     Interfaces:
         register
-
     .. note::
-        1. this helper must deal with a actual batch with some parts of samples(e.g: 6 samples of state_num 8)
-        2. this helper must deal with the single sample state reset
+        1. This helper must deal with an actual batch with some parts of samples, e.g: 6 samples of state_num 8.
+        2. This helper must deal with the single sample state reset.
     """
 
     @classmethod
     def register(
             cls: type,
-            agent: Any,
+            armor: Any,
             state_num: int,
             save_prev_state: bool = False,
             init_fn: Callable = lambda: None
     ) -> None:
         r"""
         Overview:
-            init the maintain state and state function, then wrap the agent.foward nethod with auto saved data\
-                ['prev_state'] input, and create the agent.reset method the HiddenState
-
+            Init the maintain state and state function; Then wrap the ``armor.foward`` method with auto saved data
+            ['prev_state'] input, and create the ``armor.reset`` method.
         Arguments:
-            - agent(:obj:`Any`): the wrapped agent class, should contain forward methods
-            - state_num (:obj:`int`): the num of states to process
-            - save_prev_state (:obj:`bool`): whether to output the prev state in output['prev_state']
-            - init_fn (:obj:`Callable`): the init function to init every hidden state when init and reset,\
-                default set to return None for hidden states
+            - armor(:obj:`Any`): Wrapped armor class, should contain forward method.
+            - state_num (:obj:`int`): Number of states to process.
+            - save_prev_state (:obj:`bool`): Whether to output the prev state in output['prev_state'].
+            - init_fn (:obj:`Callable`): The function which is used to init every hidden state when init and reset. \
+                Default return None for hidden states.
         """
         state_manager = cls(state_num, init_fn=init_fn)
-        agent._state_manager = state_manager
+        armor._state_manager = state_manager
 
         def forward_state_wrapper(forward_fn):
 
             def wrapper(data, **kwargs):
                 state_id = kwargs.pop('data_id', None)
-                data, state_info = agent._state_manager.before_forward(data, state_id)
+                data, state_info = armor._state_manager.before_forward(data, state_id)
                 output = forward_fn(data, **kwargs)
                 h = output.pop('next_state', None)
                 if h:
-                    agent._state_manager.after_forward(h, state_info)
+                    armor._state_manager.after_forward(h, state_info)
                 if save_prev_state:
                     prev_state = get_tensor_data(data['prev_state'])
                     output['prev_state'] = prev_state
@@ -151,13 +144,13 @@ class HiddenStateHelper(IAgentStatefulPlugin):
             def wrapper(*args, **kwargs):
                 state = kwargs.pop('state', None)
                 state_id = kwargs.get('data_id', None)
-                agent._state_manager.reset(state, state_id)
+                armor._state_manager.reset(state, state_id)
                 return reset_fn(*args, **kwargs)
 
             return wrapper
 
-        agent.forward = forward_state_wrapper(agent.forward)
-        agent.reset = reset_state_wrapper(agent.reset)
+        armor.forward = forward_state_wrapper(armor.forward)
+        armor.reset = reset_state_wrapper(armor.reset)
 
     def __init__(self, state_num: int, init_fn: Callable) -> None:
         self._state_num = state_num
@@ -199,26 +192,23 @@ def sample_action(logit=None, prob=None):
     return action
 
 
-class ArgmaxSampleHelper(IAgentStatelessPlugin):
+class ArgmaxSampleHelper(IArmorStatelessPlugin):
     r"""
     Overview:
-        Used to help the agent to sample argmax action
-
+        Used to help the armor to sample argmax action
     Interfaces:
         register
-
     Examples:
-        >>> ArgmaxSampleHelper.register(actor_agent)
+        >>> ArgmaxSampleHelper.register(actor_armor)
     """
 
     @classmethod
-    def register(cls: type, agent: Any) -> None:
+    def register(cls: type, armor: Any) -> None:
         r"""
         Overview:
-            wrap the agent.forward method with argmax output['action']
-
+            Wrap the ``armor.forward`` method with argmax output['action'].
         Arguments:
-            - agent (:obj:`Any`): the wrapped agent class, should contain forward methods
+            - armor (:obj:`Any`): Wrapped armor class, should contain ``forward`` method.
         """
 
         def sample_wrapper(forward_fn: Callable) -> Callable:
@@ -243,27 +233,25 @@ class ArgmaxSampleHelper(IAgentStatelessPlugin):
 
             return wrapper
 
-        agent.forward = sample_wrapper(agent.forward)
+        armor.forward = sample_wrapper(armor.forward)
 
 
-class MultinomialSampleHelper(IAgentStatelessPlugin):
+class MultinomialSampleHelper(IArmorStatelessPlugin):
     r"""
     Overview:
-        Used to helper the agent get the corresponding action from the output['logits']
-
+        Used to helper the armor get the corresponding action from the output['logits']
     Interfaces:
         register
     """
 
     @classmethod
-    def register(cls: type, agent: Any) -> None:
+    def register(cls: type, armor: Any) -> None:
         r"""
         Overview:
-            auto wrap the agent.forward method and take the output['logit'] as probs of action to calculate\
-                the output['action']
-
+            Auto wrap the ``armor.forward`` method and take the output['logit'] as probs of action to calculate
+            the output['action'].
         Arguments:
-            - agent (:obj:`Any`): the wrapped agent class, should contain forward methods
+            - armor (:obj:`Any`): Wrapped armor class, should contain ``forward`` method.
         """
 
         def sample_wrapper(forward_fn: Callable) -> Callable:
@@ -288,29 +276,26 @@ class MultinomialSampleHelper(IAgentStatelessPlugin):
 
             return wrapper
 
-        agent.forward = sample_wrapper(agent.forward)
+        armor.forward = sample_wrapper(armor.forward)
 
 
-class EpsGreedySampleHelper(IAgentStatelessPlugin):
+class EpsGreedySampleHelper(IArmorStatelessPlugin):
     r"""
     Overview:
-        the eps greedy sampler used in actor_agent to help balance exploratin and exploitation
-
+        Epsilon greedy sampler used in actor_armor to help balance exploratin and exploitation.
     Interfaces:
         register
     """
 
     @classmethod
-    def register(cls: type, agent: Any) -> None:
+    def register(cls: type, armor: Any) -> None:
         r"""
         Overview:
-            auto wrap the agent.forward method with eps prob to take a random action
-
+            Auto wrap the ``armor.forward`` method with eps prob to take a random action.
         Arguments:
-            - agent (:obj:`Any`): the wrapped agent class, should contain forward methods
-
+            - armor (:obj:`Any`): Wrapped armor class, should contain ``forward`` method.
         .. note::
-            after wrapped by the EpsGreedySampleHelper, the agent.forward should take kwargs of {'eps': float}
+            After wrapped by the EpsGreedySampleHelper, ``armor.forward`` should take kwargs of {'eps': float}.
         """
 
         def sample_wrapper(forward_fn: Callable) -> Callable:
@@ -346,13 +331,13 @@ class EpsGreedySampleHelper(IAgentStatelessPlugin):
 
             return wrapper
 
-        agent.forward = sample_wrapper(agent.forward)
+        armor.forward = sample_wrapper(armor.forward)
 
 
-class ActionNoiseHelper(IAgentStatefulPlugin):
+class ActionNoiseHelper(IArmorStatefulPlugin):
     r"""
     Overview:
-        Add noise to actor's action output, do clip on generated noise and action after adding noise.
+        Add noise to actor's action output; Do clips on both generated noise and action after adding noise.
     Interfaces:
         register, __init__, add_noise, reset
     """
@@ -360,7 +345,7 @@ class ActionNoiseHelper(IAgentStatefulPlugin):
     @classmethod
     def register(
             cls: type,
-            agent: Any,
+            armor: Any,
             noise_type: str = 'gauss',
             noise_kwargs: dict = {},
             noise_range: Optional[dict] = None,
@@ -371,16 +356,16 @@ class ActionNoiseHelper(IAgentStatefulPlugin):
     ) -> None:
         r"""
         Overview:
-            Add a ``noise_helper`` to agent for further noise generation.
+            Add a ``noise_helper`` to armor for further noise generation.
         Arguments:
-            - agent (:obj:`Any`): the wrapped agent class, should contain forward method
-            - noise_type (:obj:`str`): the type of noise that should be generated, support ['gauss', 'ou']
-            - noise_kwargs (:obj:`dict`): kwargs that should be used in noise init, depends on ``noise_type``
-            - noise_range (:obj:`Optional[dict]`): range of noise, used for clip
-            - action_range (:obj:`Optional[dict]`): range of action + noise, used for clip, default clip to [-1, 1]
+            - armor (:obj:`Any`): Wrapped armor class. Should contain ``forward`` method.
+            - noise_type (:obj:`str`): The type of noise that should be generated, support ['gauss', 'ou'].
+            - noise_kwargs (:obj:`dict`): Keyword args that should be used in noise init. Depends on ``noise_type``.
+            - noise_range (:obj:`Optional[dict]`): Range of noise, used for clipping.
+            - action_range (:obj:`Optional[dict]`): Range of action + noise, used for clip, default clip to [-1, 1].
         """
         noise_helper = cls(noise_type, noise_kwargs, noise_range, action_range)
-        agent._noise_helper = noise_helper
+        armor._noise_helper = noise_helper
 
         def noise_wrapper(forward_fn: Callable) -> Callable:
 
@@ -390,13 +375,13 @@ class ActionNoiseHelper(IAgentStatefulPlugin):
                 if 'action' in output:
                     action = output['action']
                     assert isinstance(action, torch.Tensor)
-                    action = agent._noise_helper.add_noise(action)
+                    action = armor._noise_helper.add_noise(action)
                     output['action'] = action
                 return output
 
             return wrapper
 
-        agent.forward = noise_wrapper(agent.forward)
+        armor.forward = noise_wrapper(armor.forward)
 
     def __init__(
             self,
@@ -412,10 +397,10 @@ class ActionNoiseHelper(IAgentStatefulPlugin):
         Overview:
             Init noise generator, set noise range and action range.
         Arguments:
-            - noise_type (:obj:`str`): the type of noise that should be generated, support ['gauss', 'ou']
-            - noise_kwargs (:obj:`dict`): kwargs that should be used in noise init, depends on ``noise_type``
-            - noise_range (:obj:`Optional[dict]`): range of noise, used for clip
-            - action_range (:obj:`Optional[dict]`): range of action + noise, used for clip, default clip to [-1, 1]
+            - noise_type (:obj:`str`): The type of noise that should be generated, support ['gauss', 'ou'].
+            - noise_kwargs (:obj:`dict`): Keyword args that should be used in noise init. Depends on ``noise_type``.
+            - noise_range (:obj:`Optional[dict]`): Range of noise, used for clipping.
+            - action_range (:obj:`Optional[dict]`): Range of action + noise, used for clip, default clip to [-1, 1].
         """
         self.noise_generator = create_noise_generator(noise_type, noise_kwargs)
         self.noise_range = noise_range
@@ -426,9 +411,9 @@ class ActionNoiseHelper(IAgentStatefulPlugin):
         Overview:
             Generate noise and clip noise if needed. Add noise to action and clip action if needed.
         Arguments:
-            - action (:obj:`torch.Tensor`): agent's action output
+            - action (:obj:`torch.Tensor`): Armor's action output.
         Returns:
-            - noised_action (:obj:`torch.Tensor`): action processed after adding noise and clipping
+            - noised_action (:obj:`torch.Tensor`): Action processed after adding noise and clipping.
         """
         noise = self.noise_generator(action.shape, action.device)
         if self.noise_range is not None:
@@ -441,46 +426,44 @@ class ActionNoiseHelper(IAgentStatefulPlugin):
     def reset(self) -> None:
         r"""
         Overview:
-            Reset noise generator
+            Reset noise generator.
         """
         pass
 
 
-class TargetNetworkHelper(IAgentStatefulPlugin):
+class TargetNetworkHelper(IArmorStatefulPlugin):
     r"""
     Overview:
         Maintain and update the target network
-
     Interfaces:
         register, update, reset
     """
 
     @classmethod
-    def register(cls: type, agent: Any, update_type: str, update_kwargs: dict) -> None:
+    def register(cls: type, armor: Any, update_type: str, update_kwargs: dict) -> None:
         r"""
         Overview:
-            Help maintain the target network, including reset the target when the wrapped agent reset, set the
-            ``agent.update`` method with the update method of ``cls`` class, i.e TargetNetworkHelper class itself
-
+            Help maintain the target network, including reset the target when the wrapped armor reset, set the
+            ``armor.update`` method with the update method of ``cls`` class, i.e TargetNetworkHelper class itself
         Arguments:
-            - agent (:obj:`Any`): the wrapped agent class, should contain forward methods
+            - armor (:obj:`Any`): Wrapped armor class. Should contain ``forward`` method.s
             - update_type (:obj:`str`): the update_type used to update the momentum network, support \
                 ['momentum', 'assign']
             - update_kwargs (:obj:`dict`): the update kwargs
         """
-        target_network = cls(agent.model, update_type, update_kwargs)
-        agent._target_network = target_network
+        target_network = cls(armor.model, update_type, update_kwargs)
+        armor._target_network = target_network
 
         def reset_wrapper(reset_fn):
 
             def wrapper(*args, **kwargs):
-                agent._target_network.reset()
+                armor._target_network.reset()
                 return reset_fn(*args, **kwargs)
 
             return wrapper
 
-        setattr(agent, 'update', getattr(agent._target_network, 'update'))
-        agent.reset = reset_wrapper(agent.reset)
+        setattr(armor, 'update', getattr(armor._target_network, 'update'))
+        armor.reset = reset_wrapper(armor.reset)
 
     def __init__(self, model: torch.nn.Module, update_type: str, kwargs: dict) -> None:
         self._model = model
@@ -495,7 +478,7 @@ class TargetNetworkHelper(IAgentStatefulPlugin):
             Update the target network state dict
 
         Arguments:
-            - state_dict (:obj:`dict`): the state_dict from learner agent
+            - state_dict (:obj:`dict`): the state_dict from learner armor
             - direct (:obj:`bool`): whether to update the target network directly, \
                 if ture then will simply call the load_state_dict method of the model
         """
@@ -520,7 +503,7 @@ class TargetNetworkHelper(IAgentStatefulPlugin):
         self._update_count = 0
 
 
-class TeacherNetworkHelper(IAgentStatelessPlugin):
+class TeacherNetworkHelper(IArmorStatelessPlugin):
     r"""
     Overview:
         Set the teacher Network
@@ -530,15 +513,15 @@ class TeacherNetworkHelper(IAgentStatelessPlugin):
     """
 
     @classmethod
-    def register(cls: type, agent: Any, teacher_cfg: dict) -> None:
+    def register(cls: type, armor: Any, teacher_cfg: dict) -> None:
         r"""
         Overview:
-            Set the agent's agent.teacher_cfg to the input teacher_cfg
+            Set the armor's armor.teacher_cfg to the input teacher_cfg
 
         Arguments:
-            - agent (:obj:`Any`): the registered agent
+            - armor (:obj:`Any`): the registered armor
         """
-        agent._teacher_cfg = teacher_cfg
+        armor._teacher_cfg = teacher_cfg
 
 
 plugin_name_map = {
@@ -554,18 +537,18 @@ plugin_name_map = {
 }
 
 
-def add_plugin(agent: 'BaseAgent', plugin_name: str, **kwargs) -> None:  # noqa
+def add_plugin(armor: 'BaseArmor', plugin_name: str, **kwargs) -> None:  # noqa
     r"""
     Overview:
-        Add plugin with plugin_name and kwargs to agent
+        Add plugin with plugin_name and kwargs to armor
     Arguments:
-        - agent (:obj:`Any`): the agent to register plugin to
-        - plugin_name (:obj:`str`): agent plugin name, which must be in plugin_name_map
+        - armor (:obj:`Any`): the armor to register plugin to
+        - plugin_name (:obj:`str`): armor plugin name, which must be in plugin_name_map
     """
     if plugin_name not in plugin_name_map:
-        raise KeyError("invalid agent plugin name: {}".format(plugin_name))
+        raise KeyError("invalid armor plugin name: {}".format(plugin_name))
     else:
-        plugin_name_map[plugin_name].register(agent, **kwargs)
+        plugin_name_map[plugin_name].register(armor, **kwargs)
 
 
 def register_plugin(name: str, plugin_type: type):
@@ -574,8 +557,8 @@ def register_plugin(name: str, plugin_type: type):
         Register new plugin to plugin_name_map
     Arguments:
         - name (:obj:`str`): the name of the plugin
-        - plugin_type (subclass of :obj:`IAgentPlugin`): the plugin class added to the plguin_name_map
+        - plugin_type (subclass of :obj:`IArmorPlugin`): the plugin class added to the plguin_name_map
     """
     assert isinstance(name, str)
-    assert issubclass(plugin_type, IAgentPlugin)
+    assert issubclass(plugin_type, IArmorPlugin)
     plugin_name_map[name] = plugin_type
