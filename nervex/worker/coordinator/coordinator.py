@@ -12,15 +12,41 @@ from .base_parallel_commander import create_parallel_commander
 
 
 class TaskState(object):
+    r"""
+    Overview:
+        the state recorder of the task, including task_id and start_time
+    Interface:
+        __init__
+    """
 
     def __init__(self, task_id: str) -> None:
+        r"""
+        Overview:
+            init the task tate according to task_id and the init time
+        """
         self.task_id = task_id
         self.start_time = time.time()
 
 
 class Coordinator(object):
+    r"""
+    Overview:
+        the coordinator will manage parallel tasks and data
+    Interface:
+        __init__, start, close, __del__, state_dict, load_state_dict,
+        deal_with_actor_send_data, deal_with_actor_finish_task,
+        deal_with_learner_get_data, deal_with_learner_send_info, deal_with_learner_finish_task,
+    Property:
+        system_shutdown_flag
+    """
 
     def __init__(self, cfg: dict) -> None:
+        r"""
+        Overview:
+            init method of the coordinator
+        Arguments:
+            - cfg (:obj:`dict`): the config file to init the coordinator
+        """
         self._coordinator_uid = get_task_uid()
         self._cfg = cfg
         self._actor_task_timeout = cfg.actor_task_timeout
@@ -58,6 +84,11 @@ class Coordinator(object):
         self._system_shutdown_flag = False
 
     def _assign_actor_task(self) -> None:
+        r"""
+        Overview:
+            The function to be called in the assign_actor_task thread.
+            Will take a actor task from actor_task_queue and assign the task.
+        """
         while not self._end_flag:
             time.sleep(0.01)
             # get valid task, abandon timeout task
@@ -100,6 +131,11 @@ class Coordinator(object):
                     time.sleep(3)
 
     def _assign_learner_task(self) -> None:
+        r"""
+        Overview:
+            The function to be called in the assign_learner_task thread.
+            Will take a learner task from learner_task_queue and assign the task.
+        """
         while not self._end_flag:
             time.sleep(0.01)
             if self._learner_task_queue.empty():
@@ -143,6 +179,11 @@ class Coordinator(object):
                     time.sleep(3)
 
     def _produce_actor_task(self) -> None:
+        r"""
+        Overview:
+            The function to be called in the produce_actor_task thread.
+            Will produce a actor task and put it into the actor_task_queue.
+        """
         while not self._end_flag:
             time.sleep(0.01)
             with self._commander_lock:
@@ -153,6 +194,11 @@ class Coordinator(object):
             self._actor_task_queue.put([actor_task, time.time()])
 
     def _produce_learner_task(self) -> None:
+        r"""
+        Overview:
+            The function to be called in the produce_learner_task thread.
+            Will produce a learner task and put it into the learner_task_queue.
+        """
         while not self._end_flag:
             time.sleep(0.01)
             with self._commander_lock:
@@ -163,12 +209,24 @@ class Coordinator(object):
             self._learner_task_queue.put([learner_task, time.time()])
 
     def state_dict(self) -> dict:
+        r"""
+        Overview:
+            Return empty state_dict.
+        """
         return {}
 
     def load_state_dict(self, state_dict: dict) -> None:
+        r"""
+        Overview:
+            Pass when load state_dict.
+        """
         pass
 
     def start(self) -> None:
+        r"""
+        Overview:
+            Start the coordinator, including lunching the interaction thread and the actor learner threads.
+        """
         self._end_flag = False
         self._interaction.start()
         self._produce_actor_thread.start()
@@ -177,6 +235,11 @@ class Coordinator(object):
         self._assign_learner_thread.start()
 
     def close(self) -> None:
+        r"""
+        Overview:
+            Close the coordinator, including closing the interaction thread, the actor learner threads and the \
+                buffers.
+        """
         if self._end_flag:
             return
         self._end_flag = True
@@ -194,9 +257,22 @@ class Coordinator(object):
         self.info('coordinator is closed')
 
     def __del__(self) -> None:
+        r"""
+        Overview:
+            __del__ method will close the coordinator.
+        """
         self.close()
 
     def deal_with_actor_send_data(self, task_id: str, buffer_id: str, data_id: str, data: dict) -> None:
+        r"""
+        Overview:
+            deal with the data send from actor
+        Arguments:
+            - task_id (:obj:`str`): the actor task_id
+            - buffer_id (:obj:`str`): the buffer_id
+            - data_id (:obj:`str`): the data_id
+            - data (:obj:`str`): the data to dealt with
+        """
         if task_id not in self._task_state:
             self.error('actor task({}) not in self._task_state when send data, throw it'.format(task_id))
             return
@@ -207,6 +283,13 @@ class Coordinator(object):
         self.info('actor task({}) send data({})'.format(task_id, data_id))
 
     def deal_with_actor_finish_task(self, task_id: str, finished_task: dict) -> None:
+        r"""
+        Overview:
+            finish the actor task
+        Arguments:
+            - task_id (:obj:`str`): the actor task_id
+            - finished_task (:obj:`dict`): the finished_task
+        """
         if task_id not in self._task_state:
             self.error('actor task({}) not in self._task_state when finish, throw it'.format(task_id))
             return
@@ -220,6 +303,15 @@ class Coordinator(object):
 
     def deal_with_learner_get_data(self, task_id: str, buffer_id: str, batch_size: int,
                                    cur_learner_iter: int) -> List[dict]:
+        r"""
+        Overview:
+            learner get the data from buffer
+        Arguments:
+            - task_id (:obj:`str`): the learner task_id
+            - buffer_id (:obj:`str`): the buffer_id
+            - batch_size (:obj:`int`): the batch_size to sample
+            - cur_learn_iter (:obj:`int`): the current learner iter num
+        """
         if task_id not in self._task_state:
             self.error("learner task({}) get data doesn't have proper task_id".format(task_id))
             raise RuntimeError(
@@ -234,6 +326,14 @@ class Coordinator(object):
         return self._replay_buffer[buffer_id].sample(batch_size, cur_learner_iter)
 
     def deal_with_learner_send_info(self, task_id: str, buffer_id: str, info: dict) -> None:
+        r"""
+        Overview:
+            the learner send the info and update the priority in buffer
+        Arguments:
+            - task_id (:obj:`str`): the learner task id
+            - buffer_id (:obj:`str`): the buffer_id of buffer to add info to
+            - info (:obj:`dict`): the info to add
+        """
         if task_id not in self._task_state:
             self.error("learner task({}) send info doesn't have proper task_id".format(task_id))
             raise RuntimeError(
@@ -250,6 +350,13 @@ class Coordinator(object):
         self.info("learner task({}) send info".format(task_id))
 
     def deal_with_learner_finish_task(self, task_id: str, finished_task: dict) -> None:
+        r"""
+        Overview:
+            finish the learner task, close the corresponding buffer
+        Arguments:
+            - task_id (:obj:`str`): the learner task_id
+            - finished_task (:obj:`dict`): the dict of task to finish
+        """
         if task_id not in self._task_state:
             self.error("learner task({}) finish task doesn't have proper task_id".format(task_id))
             raise RuntimeError(
@@ -269,14 +376,38 @@ class Coordinator(object):
             self.info('replay_buffer({}) is closed'.format(buffer_id))
 
     def info(self, s: str) -> None:
+        r"""
+        Overview:
+            Return the info
+        Arguments:
+            - s (:obj:`str`): the string to print in info
+        """
         self._logger.info('[Coordinator({})]: {}'.format(self._coordinator_uid, s))
 
     def error(self, s: str) -> None:
+        r"""
+        Overview:
+            Return the error
+        Arguments:
+            - s (:obj:`str`): the error info to print
+        """
         self._logger.error('[Coordinator({})]: {}'.format(self._coordinator_uid, s))
 
     def _record_task(self, task: dict):
+        r"""
+        Overview:
+            Create task state to record task
+        Arguments:
+            - task (:obj:`dict`): the task dict
+        """
         self._task_state[task['task_id']] = TaskState(task['task_id'])
 
     @property
     def system_shutdown_flag(self) -> bool:
+        r"""
+        Overview:
+            Return whether the system is shutdown
+        Returns:
+            - system_shutdown_flag (:obj:`bool`): whether the system is shutdown
+        """
         return self._system_shutdown_flag

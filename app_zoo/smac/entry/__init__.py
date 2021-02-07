@@ -1,0 +1,3 @@
+from .smac_collaQ_default_config import smac_collaQ_default_config
+from .smac_coma_default_config import smac_coma_default_config
+from .smac_qmix_default_config import smac_qmix_default_config

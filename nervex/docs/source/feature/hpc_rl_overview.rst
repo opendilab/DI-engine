@@ -93,3 +93,8 @@ HPC_RL组件是一个加速算子组件，针对强化学习算法中较通用�
 
 1. 为了提升性能，HPC_RL在内部默认会预先分配算子所需要的内存，因此需要知道数据的具体尺寸，nervex的相关wrapper会自动根据数据尺寸进行调整，但要注意，如果是可变输入尺寸，反复重新分配内存会造成一定的时间损耗，从而降低加速比。
 2. 对于部分算子，例如当映射关系有重叠时，GPU上并行执行，映射结果是不确定的，会存在一定的数值精度波动，但基本不影响常规训练。
+3. 对于部分算子，HPC_RL只支持其中某些常见的参数组合，具体如下：
+
+  - q_value n-step TD 的 criterion 仅支持MSE
+  - q_value n-step TD with rescale 的 criterion 仅支持MSE，trans_fn, inv_trans_fn仅支持R2D2中的相关变换形式
+  - LSTM中的normalization仅支持LN

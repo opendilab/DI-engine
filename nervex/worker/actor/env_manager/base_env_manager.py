@@ -151,7 +151,7 @@ class BaseEnvManager(ABC):
         Note:
             - The env_id that appears in actions will also be returned in timesteps.
             - It will wait until all environments are done to reset. If episodes in different environments \
-                vary significantly, it is suggested to use vec_env_manager.
+                vary significantly, it is suggested to use subprocess_env_manager.
         Example:
             >>>     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
             >>>     timesteps = env_manager.step(actions_dict):

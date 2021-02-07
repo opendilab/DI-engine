@@ -41,7 +41,7 @@ class LearnerAggregator(object):
         }
         host, port = cfg.slave.host, cfg.slave.port
         self._slave = LearnerAggregatorSlave(host, port, callback_fn=callback_fn)
-        self._logger, _ = build_logger(path='./log', name='learner_aggregator')
+        self._logger, _ = build_logger(path='./log', name='learner_aggregator', need_tb=False)
 
         self._world_size = 0
         self._learner_connection = {}

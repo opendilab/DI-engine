@@ -8,6 +8,7 @@ from pathlib import Path
 import io
 
 from .import_helper import try_import_ceph, try_import_redis, try_import_rediscluster, try_import_mc
+from .lock_helper import get_rw_lock
 
 global r, rc, mclient
 mclient = None
@@ -15,7 +16,8 @@ r = None
 rc = None
 
 ceph = try_import_ceph()
-mc = try_import_mc()
+#mc = try_import_mc()
+mc = None
 redis = try_import_redis()
 rediscluster = try_import_rediscluster()
 
@@ -207,13 +209,14 @@ def save_file_rediscluster(path, data):
     return
 
 
-def read_file(path: str, fs_type: Union[None, str] = None) -> object:
+def read_file(path: str, fs_type: Union[None, str] = None, use_lock: bool = False) -> object:
     r"""
     Overview:
         read file from path
     Arguments:
         - path (:obj:`str`): the path of file to read
         - fs_type (:obj:`str` or :obj:`None`): the file system type, support 'normal' and 'ceph'
+        - use_lock (:obj:`bool`): whether use_lock in local normal file system
     """
     if fs_type is None:
         if path.lower().startswith('s3'):
@@ -226,13 +229,17 @@ def read_file(path: str, fs_type: Union[None, str] = None) -> object:
     if fs_type == 'ceph':
         data = read_from_path(path)
     elif fs_type == 'normal':
-        data = torch.load(path, map_location='cpu')
+        if use_lock:
+            with get_rw_lock(path, 'read'):
+                data = torch.load(path, map_location='cpu')
+        else:
+            data = torch.load(path, map_location='cpu')
     elif fs_type == 'mc':
         data = read_from_mc(path)
     return data
 
 
-def save_file(path: str, data: object, fs_type: Union[None, str] = None) -> NoReturn:
+def save_file(path: str, data: object, fs_type: Union[None, str] = None, use_lock: bool = False) -> NoReturn:
     r"""
     Overview:
         save data to file of path
@@ -240,6 +247,7 @@ def save_file(path: str, data: object, fs_type: Union[None, str] = None) -> NoRe
         - path (:obj:`str`): the path of file to save to
         - data (:obj:`object`): the data to save
         - fs_type (:obj:`str` or :obj:`None`): the file system type, support 'normal' and 'ceph'
+        - use_lock (:obj:`bool`): whether use_lock in local normal file system
     """
     if fs_type is None:
         if path.lower().startswith('s3'):
@@ -252,7 +260,11 @@ def save_file(path: str, data: object, fs_type: Union[None, str] = None) -> NoRe
     if fs_type == 'ceph':
         save_file_ceph(path, data)
     elif fs_type == 'normal':
-        torch.save(data, path)
+        if use_lock:
+            with get_rw_lock(path, 'write'):
+                torch.save(data, path)
+        else:
+            torch.save(data, path)
     elif fs_type == 'mc':
         torch.save(data, path)
         read_from_mc(path, flush=True)

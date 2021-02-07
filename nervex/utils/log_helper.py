@@ -45,17 +45,15 @@ def build_logger(
     return logger, tb_logger
 
 
-def get_default_logger(name: Optional[str] = None) -> logging.Logger:
+def get_default_logger(name: str = 'default_logger') -> logging.Logger:
     r"""
     Overview:
-        Get the logger using logging.getLogger
+        Get the logger using ``logging.getLogger``.
     Arguments:
-        - name (:obj:`str`): the name of logger, if None then get 'default_logger'
+        - name (:obj:`str`): The name of logger, if None then get 'default_logger'
     Notes:
         you can reference Logger.manager.getLogger(name) in the python3 /logging/__init__.py
     """
-    if name is None:
-        name = 'default_logger'
     return logging.getLogger(name)
 
 
@@ -166,8 +164,6 @@ class TensorBoardLogger:
             - path (:obj:`str`): logger save dir
             - name (:obj:`str`): logger name, default set to 'default'
         """
-        if name is None:
-            name = 'default'
         name += '_tb_logger'
         self.logger = SummaryWriter(os.path.join(path, name))  # get summary writer
         self._var_names = {

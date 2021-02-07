@@ -60,8 +60,12 @@ API Doc
     utils/log_helper
     utils/system_helper
     utils/time_helper
-    worker/learner/base_learner
+    worker/learner/learner
     worker/learner/learner_comm
-    worker/learner/learner_hook
-    worker/actor/env_manager/vec_env_manager
-    worker/actor/env_manager/base_env_manager
+    worker/actor/env_manager
+    worker/actor/comm
+    worker/actor/actor
+    worker/coordinator/coordinator_interaction
+    worker/coordinator/coordinator
+    worker/coordinator/resource_manager
+    worker/coordinator/commander

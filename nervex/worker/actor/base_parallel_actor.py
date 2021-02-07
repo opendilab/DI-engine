@@ -46,11 +46,26 @@ class TickMonitor(LoggedModel):
 
 
 class BaseActor(ABC):
+    """
+    Overview:
+        Abstract baseclass for actor.
+    Interfaces:
+        __init__, info, error, _setup_timer, _setup_logger, start, close, _iter_after_hook, _policy_inference
+        _env_step, _process_timestep, _finish_task, _update_policy, _start_thread
+    Property:
+        policy
+    """
 
     def __init__(self, cfg: dict) -> None:
+        """
+        Overview:
+            Initialization method.
+        Arguments:
+            - cfg (:obj:`EasyDict`): Config dict
+        """
         self._cfg = cfg
         self._eval_flag = cfg.eval_flag
-        self._prefix = 'EVALUTATOR' if self._eval_flag else 'ACTOR'
+        self._prefix = 'EVALUATOR' if self._eval_flag else 'ACTOR'
         self._actor_uid = get_task_uid()
         self._logger, self._monitor, self._log_buffer = self._setup_logger()
         self._end_flag = False
@@ -65,6 +80,15 @@ class BaseActor(ABC):
         self._logger.error("[{}({})]: {}".format(self._prefix, self._actor_uid, s))
 
     def _setup_timer(self) -> None:
+        """
+        Overview:
+            Setup TimeWrapper for base_actor. TimeWrapper is a decent timer wrapper that can be used easily.
+            You can refer to ``nervex/utils/time_helper.py``.
+
+        Note:
+            - _policy_inference (:obj:`Callable`): The wrapper to acquire a policy's time.
+            - _env_step (:obj:`Callable`): The wrapper to acquire a environment's time.
+        """
         self._timer = EasyTimer()
 
         def policy_wrapper(fn):
@@ -94,9 +118,18 @@ class BaseActor(ABC):
         self._env_step = env_wrapper(self._env_step)
 
     def _setup_logger(self) -> Tuple:
+        """
+        Overview:
+            Setup logger for base_actor. Logger includes logger, monitor and log buffer dict.
+
+        Returns:
+            - logger (:obj:`TextLogger`): logger that displays terminal output
+            - monitor (:obj:`TickMonitor`): monitor that is related info of one interation with env
+            - log_buffer (:obj:`LogDict`): log buffer dict
+        """
         path = './log/{}'.format(self._prefix.lower())
         name = '{}'.format(self._actor_uid)
-        logger, _ = build_logger(path, name, False)
+        logger, _ = build_logger(path, name, need_tb=False)
         monitor = TickMonitor(TickTime(), expire=self._cfg.print_freq * 2)
         log_buffer = build_log_buffer()
         return logger, monitor, log_buffer
