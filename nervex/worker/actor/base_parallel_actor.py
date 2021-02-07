@@ -135,9 +135,10 @@ class BaseActor(ABC):
         return logger, monitor, log_buffer
 
     def start(self) -> None:
+        self._end_flag = False
         self._update_policy()
         self._start_thread()
-        while True:
+        while not self._end_flag:
             obs = self._env_manager.next_obs
             action = self._policy_inference(obs)
             timestep = self._env_step(action)
@@ -148,6 +149,8 @@ class BaseActor(ABC):
                 break
 
     def close(self) -> None:
+        if self._end_flag:
+            return
         self._end_flag = True
 
     def _iter_after_hook(self):

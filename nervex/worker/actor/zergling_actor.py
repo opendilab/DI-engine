@@ -70,7 +70,9 @@ class ZerglingActor(BaseActor):
 
     # override
     def close(self) -> None:
-        super().close()
+        if self._end_flag:
+            return
+        self._end_flag = True
         if hasattr(self, '_env_manager'):
             self._env_manager.close()
 

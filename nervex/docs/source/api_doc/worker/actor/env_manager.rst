@@ -14,7 +14,7 @@ BaseEnvManager
     :members: __init__, next_obs, launch, step, seed, close
 
 subprocess_env_manager
------------------
+----------------------
 
 Please Reference nervex/worker/actor/env_manager/subprocess_env_manager.py for usage
 

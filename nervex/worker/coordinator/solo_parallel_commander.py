@@ -38,6 +38,7 @@ class SoloCommander(BaseCommander):
             'avg_time_per_episode', 'reward_mean', 'reward_std', ]:
             self._tb_logger.register_var('evaluator/' + tb_var)
         self._eval_step = -1
+        self._end_flag = False
 
     def get_actor_task(self) -> Optional[dict]:
         r"""
@@ -46,6 +47,8 @@ class SoloCommander(BaseCommander):
         Return:
             - task (:obj:`Optional[dict]`): New actor task.
         """
+        if self._end_flag:
+            return None
         if self._actor_task_space.acquire_space():
             if self._current_buffer_id is None or self._current_policy_id is None:
                 self._actor_task_space.release_space()
@@ -75,6 +78,8 @@ class SoloCommander(BaseCommander):
         Return:
             - task (:obj:`Optional[dict]`): New learner task.
         """
+        if self._end_flag:
+            return None
         if self._learner_task_space.acquire_space():
             learner_cfg = self._cfg.learner_cfg
             learner_cfg.max_iterations = self._cfg.max_iterations
@@ -129,6 +134,7 @@ class SoloCommander(BaseCommander):
                     "[nerveX parallel pipeline] current eval_reward: {} is greater than the stop_val: {}".
                     format(finished_task['reward_mean'], eval_stop_val) + ", so the total training program is over."
                 )
+                self._end_flag = True
                 return True
         return False
 

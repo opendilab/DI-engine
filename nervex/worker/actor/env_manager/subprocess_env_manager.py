@@ -1,6 +1,7 @@
 from multiprocessing import Process, Pipe, connection, get_context, Array
 from collections import namedtuple
 import enum
+import logging
 import platform
 import time
 import math
@@ -278,7 +279,7 @@ class SubprocessEnvManager(BaseEnvManager):
         no_done_env_idx = [i for i, s in self._env_state.items() if s != EnvState.DONE]
         sleep_count = 0
         while all([self._env_state[i] == EnvState.RESET for i in no_done_env_idx]):
-            print('VEC_ENV_MANAGER: all the not done envs are resetting, sleep {} times'.format(sleep_count))
+            logging.warning('VEC_ENV_MANAGER: all the not done envs are resetting, sleep {} times'.format(sleep_count))
             time.sleep(1)
             sleep_count += 1
         return self._inv_transform({i: self._next_obs[i] for i in self.ready_env})
@@ -533,8 +534,11 @@ class SubprocessEnvManager(BaseEnvManager):
         self._env_ref.close()
         for p in self._parent_remote:
             p.send(CloudpickleWrapper(['close', None, None]))
-        for p in self._processes:
-            p.join()
+        for p in self._parent_remote:
+            p.recv()
+        # disable process join for avoiding hang
+        # for p in self._processes:
+        #     p.join()
         for p in self._processes:
             p.terminate()
         for p in self._parent_remote:
