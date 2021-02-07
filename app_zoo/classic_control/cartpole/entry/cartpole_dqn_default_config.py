@@ -95,7 +95,7 @@ cartpole_dqn_default_config = dict(
         # Episode number for evaluation.
         n_episode=5,
         # Evaluate every "eval_freq" training steps.
-        eval_freq=200,
+        eval_freq=10,
         # Once evaluation reward reaches "stop_val", which means the policy converges, then the whole training can end.
         stop_val=195,
     ),
