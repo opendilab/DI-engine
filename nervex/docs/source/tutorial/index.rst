@@ -148,36 +148,23 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
 算法训练入口示例(串行版本)
 =================================
 
-    完成安装之后，可以仿照 ``nervex/entry/tests/test_serial_entry.py`` 文件，仿照单元测试的写法，创建一个训练脚本并命名为 ``cartpole_dqn.py``：
+训练脚本及其启动
+---------------
+    
+    完成安装之后，可以仿照 ``nervex/entry/tests/test_serial_entry.py`` 文件中单元测试的写法，创建一个训练脚本并命名为 ``cartpole_dqn.py``：
 
     .. code:: python
 
-        path = os.path.join(
-            os.path.dirname(__file__), '../../../app_zoo/classic_control/cartpole/entry/cartpole_dqn_default_config.yaml'
-        )
-        config = read_config(path)
+        from app_zoo.classic_control.cartpole.entry import cartpole_dqn_default_config
+        config = deepcopy(cartpole_dqn_default_config)
         serial_pipeline(config, seed=0)
 
-    如以上代码，就是读取了 ``app_zoo`` 中的 ``cartpole_dqn_default_config.yaml`` 配置文件，并传入 ``serial_pipeline`` 开始训练。
+    如以上代码，就是读取了 ``app_zoo`` 中的 ``cartpole_dqn_default_config.py`` 配置文件，并传入 ``serial_pipeline`` 开始训练。
 
     .. note::
 
-        ``serial_pipeline`` 入口函数还支持指定自定义的 **环境**, **策略**, **神经网络模型**, 具体使用方式可以参见QA部分或是直接查看相关代码。
-
-    .. note::
-
-        如果是使用 ``pip install .`` 命令安装，即未指定-e，还可以通过命令行调用串行训练入口：
-
-        .. code:: bash
-
-            nervex -m serial -c config.yaml -s 0
-
-    根据不同的需求，可以修改配置文件并自定义相关的启动脚本，配置文件中可能修改的地方主要有如下几处：
-
-      - policy.use_cuda: 是否使用cuda，主要取决于使用者的机器上是否有GPU
-      - env.env_type: 如要更改所使用的环境，首先修改env.env_type，并对应修改env.import_names，atari及mujuco还需修改env.env_id，不同环境的evaluator.stop_val可能不同也需要修改。需注意环境的observation是图像还是向量，并检查是否需要对应修改policy.model中的encoder。
-      - policy: 若要更改所使用的算法/策略，首先修改policy.policy_type，并对应修改policy.import_names, policy.on_policy, policy.model等。
-
+        入口函数 ``serial_pipeline`` 还支持指定自定义的 **环境**, **策略**, **神经网络模型**, 具体使用方式可以参见QA部分或是直接查看相关代码。
+    
     想要进行一组实验时，应 **创建单独的实验文件夹，复制相应的执行脚本（如有必要，也需一同复制配置文件）到实验文件夹下** ，然后启动执行脚本即可。
 
     下面所示为一般本地测试时的启动脚本
@@ -190,31 +177,111 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
 
     .. code:: bash
 
-        srun -p $1 --gres=gpu:1 python3 -u cartpole_dqn.py 
+        srun -p $1 --gres=gpu:1 python3 -u cartpole_dqn.py
 
+    .. note::
+
+        如果是使用 ``pip install .`` 命令安装，即未指定-e，还可以通过命令行调用串行训练入口：
+
+        .. code:: bash
+
+            nervex -m serial -c config.yaml -s 0
+            nervex -m serial -c config.py -s 0
+        
+        此处 config 文件支持 yaml 或是 py 格式，但若为 py 格式，需要声明 ``main_config`` 变量，具体说明请见下一节 **配置文件** 。
+
+配置文件
+--------
+
+    根据不同的需求，可以修改配置文件并自定义相关的启动脚本，配置文件中可能修改的地方主要有如下几处：
+
+      - policy.use_cuda: 是否使用cuda，主要取决于使用者的机器上是否有GPU
+      - env.env_type: 如要更改所使用的环境，首先修改env.env_type，并对应修改env.import_names，atari及mujuco还需修改env.env_id，不同环境的evaluator.stop_val可能不同也需要修改。需注意环境的observation是图像还是向量，并检查是否需要对应修改policy.model中的encoder。
+      - policy: 若要更改所使用的算法/策略，首先修改policy.policy_type，并对应修改policy.import_names, policy.on_policy, policy.model等。
+
+    .. note::
+
+    无论是串行还是并行版本的 config 文件，若是 py 格式，且希望通过命令行的方式启动脚本，请务必在文件中声明 ``main_config`` 变量，
+    令其等于真实的 ``EasyDict`` 类型的配置变量，如下：
+
+    .. code:: python
+
+        cartpole_dqn_default_config = dict(
+            # ...
+        )
+        cartpole_dqn_default_config = EasyDict(cartpole_dqn_default_config)
+        main_config = cartpole_dqn_default_config
+
+运行后产生的文件
+---------------------
+
+    串行版本运行起来后会在当前目录产生 ``ckptBaseLearner*`` 及 ``log`` 两个文件夹，分别存放 checkpoint 及 log 文件，文件树如下：
+
+    .. image:: serial_log_tree.png
+
+    对于 ``ckptBaseLearner*`` ，一般来说，iteration最大的文件保存有 evaluate 阶段 reward 最高的模型， iteration 从小至大的 eval_reward 也应当是从小至大的。
+
+    对于 ``log`` ，其下包括 ``actor``, ``evaluator``, ``learner``, ``buffer``四个文件夹，除了 ``actor`` 外，均既有 tensorboard logger 又有 text logger，
+    而 ``actor`` 仅有 text logger。这些 logger 均按照各自的 log_freq 在一定的时间/步数间隔下进行记录。
 
 算法训练入口示例(并行版本)
 =================================
 
-    完成安装之后，进入 ``app_zoo/classic_control/cartpole/entry/parallel`` 目录，找到 ``cartpole_dqn_default_config.py`` 文件,
-    即为在Cartpole环境上运行的并行训练配置文件，根据不同的使用环境，可以相应修改配置文件，其中可能修改的地方主要有如下几处：
+训练脚本及其启动
+---------------
 
-      - use_cuda: 是否使用cuda，主要取决于使用者的机器上是否有GPU，注意这时的启动脚本要指定cuda device相关
-      - use_distributed: 是否使用多机多卡训练，主要取决于使用者是否安装了linklink，以及是否要开启多机多卡训练，注意这时的启动脚本中要指定 `mpi` 相关
-      - repeat_num: learner端参与训练的GPU卡数，目前仅支持单机，最大值为一台机器上空闲的GPU数目
-      - path_agent等: 这些字段是多机版本训练进行数据通信的相关路径，默认使用当前目录，即通过文件系统进行通信，在集群上一般使用ceph，需要进行相关配置并对应更改这些字段
+    进入 ``app_zoo/classic_control/cartpole/entry/parallel`` 目录，找到 ``cartpole_dqn_default_config.py`` 文件,
+    即为在Cartpole环境上运行的并行训练配置文件。
 
     下面所示为一般本地测试时的启动脚本
 
     .. code:: bash
 
         nervex -m parallel -c cartpole_dqn_default_config.py -s 0
-        
+    
     下面所示为在slurm集群上的启动脚本，其中需要指定actor和learner相应的计算节点IP，Coordinator默认运行在管理节点上。
     
     .. code:: bash
 
-        nervex -m parallel -p slurm -c cartpole_dqn_default_config.py -s 0 --actor_host SH-IDC1-10-5-37-37 --learner_host SH-IDC1-10-5-37-37
+        nervex -m parallel -p slurm -c cartpole_dqn_default_config.py -s 0 --actor_host SH-IDC1-10-198-8-66 --learner_host SH-IDC1-10-198-8-66
+    
+    .. note::
+
+    nervex 命令参数选项:
+        -v, --version                     Show package's version information.
+        -m, --mode [serial|parallel|eval] serial or parallel or eval
+        -c, --config TEXT                 Path to DRL experiment config
+        -s, --seed INTEGER                random generator seed(for all the possible 
+                                          package: random, numpy, torch and user env)
+        -p, --platform [local|slurm|k8s]  local or slurm or k8s
+        -ch, --coordinator_host TEXT      coordinator host
+        -lh, --learner_host TEXT          learner host
+        -ah, --actor_host TEXT            actor host
+        -h, --help                        Show this message and exit.
+
+配置文件
+--------
+    
+    根据不同的使用环境，可以相应修改配置文件，其中可能修改的地方主要有如下几处：
+
+      - use_cuda: 是否使用cuda，主要取决于使用者的机器上是否有GPU，注意这时的启动脚本要指定cuda device相关
+      - use_distributed: 是否使用多机多卡训练，主要取决于使用者是否安装了linklink，以及是否要开启多机多卡训练，注意这时的启动脚本中要指定 `mpi` 相关
+      - repeat_num: learner端参与训练的GPU卡数，目前仅支持单机，最大值为一台机器上空闲的GPU数目
+      - path_agent等: 这些字段是多机版本训练进行数据通信的相关路径，默认使用当前目录，即通过文件系统进行通信，在集群上一般使用ceph，需要进行相关配置并对应更改这些字段
+
+运行后产生的文件
+---------------------
+    
+    串行版本运行起来后会在当前目录产生 ``ckptBaseLearner*`` 及 ``log`` 两个文件夹，分别存放 checkpoint 及 log 文件，文件树如下：
+
+    .. image:: serial_log_tree.png
+
+    对于 ``ckptBaseLearner*`` ，一般来说，iteration最大的文件保存有 evaluate 阶段 reward 最高的模型， iteration 从小至大的 eval_reward 也应当是从小至大的。
+
+    对于 ``log`` ，其下包括 ``actor``, ``evaluator``, ``learner``, ``buffer``四个文件夹，除了 ``actor`` 外，均既有 tensorboard logger 又有 text logger，
+    而 ``actor`` 仅有 text logger。这些 logger 均按照各自的 log_freq 在一定的时间/步数间隔下进行记录。
+
+
 
 DRL快速上手指南(串行版本)
 ==============================
