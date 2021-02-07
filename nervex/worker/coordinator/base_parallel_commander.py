@@ -5,6 +5,12 @@ from nervex.utils import import_module
 
 
 class BaseCommander(ABC):
+    r"""
+    Overview:
+        the base command abstract class
+    Interface:
+        get_actor_task
+    """
 
     @abstractmethod
     def get_actor_task(self) -> dict:
@@ -12,8 +18,21 @@ class BaseCommander(ABC):
 
 
 class NaiveCommander(BaseCommander):
+    r"""
+    Overview:
+        the naive commander
+    Interface:
+        __init__, get_actor_task, get_learner_task, finsh_actor_task, finish_learner_task, notify_fail_actor_task, \
+            notify_fail_learner_task, get_learner_info
+    """
 
     def __init__(self, cfg: dict) -> None:
+        r"""
+        Overview:
+            init the naive commander according to config
+        Arguments:
+            - cfg (:obj:`dict`): the config to init commander, should include actor_task_space and learner_task_space
+        """
         self._cfg = cfg
         self.actor_task_space = cfg.actor_task_space
         self.learner_task_space = cfg.learner_task_space
@@ -24,6 +43,12 @@ class NaiveCommander(BaseCommander):
         self._actor_task_finish_count = 0
 
     def get_actor_task(self) -> dict:
+        r"""
+        Overview:
+            Get the new actor task when task_count is less than task_space
+        Return:
+            - task (:obj:`dict`): the new actor task
+        """
         if self.actor_task_count < self.actor_task_space:
             self.actor_task_count += 1
             actor_cfg = self._cfg.actor_cfg
@@ -39,6 +64,12 @@ class NaiveCommander(BaseCommander):
             return None
 
     def get_learner_task(self) -> dict:
+        r"""
+        Overview:
+            Get the new learner task when task_count is less than task_space
+        Return:
+            - task (:obj:`dict`): the new learner task
+        """
         if self.learner_task_count < self.learner_task_space:
             self.learner_task_count += 1
             learner_cfg = self._cfg.learner_cfg
@@ -55,19 +86,44 @@ class NaiveCommander(BaseCommander):
             return None
 
     def finish_actor_task(self, task_id: str, finished_task: dict) -> None:
+        r"""
+        Overview:
+            finish actor task will add the actor_task_finish_count
+        """
         self._actor_task_finish_count += 1
 
-    def finish_learner_task(self, task_id: str, finished_task: dict) -> None:
+    def finish_learner_task(self, task_id: str, finished_task: dict) -> str:
+        r"""
+        Overview:
+            finish learner task will add the learner_task_finish_count and get the buffer_id of task to close the buffer
+        Return:
+            the finished_task buffer_id
+        """
         self._learner_task_finish_count += 1
         return finished_task['buffer_id']
 
     def notify_fail_actor_task(self, task: dict) -> None:
+        r"""
+        Overview:
+            naive coordinator will pass when need to notify_fail_actor_task
+        """
         pass
 
     def notify_fail_learner_task(self, task: dict) -> None:
+        r"""
+        Overview:
+            naive coordinator will pass when need to notify_fail_learner_task
+        """
         pass
 
     def get_learner_info(self, task_id: str, info: dict) -> None:
+        r"""
+        Overview:
+            append the info to learner:
+        Arguments:
+            - task_id (:obj:`str`): the learner task_id
+            - info (:obj:`dict`): the info to append to learner
+        """
         self._learner_info[task_id].append(info)
 
 
@@ -75,12 +131,25 @@ commander_map = {'naive': NaiveCommander}
 
 
 def register_parallel_commander(name: str, commander: type) -> None:
+    r"""
+    Overview:
+        register the commander to commander_map
+    Arguments:
+        - name (:obj:`str`): the name of commander
+        - commander (:obj:`type`): the commander class to register
+    """
     assert isinstance(name, str)
     assert issubclass(commander, BaseCommander)
     commander_map[name] = commander
 
 
 def create_parallel_commander(cfg: dict) -> BaseCommander:
+    r"""
+    Overview:
+        create the commander according to cfg
+    Arguments:
+        - cfg (:obj:`dict`): the commander cfg to create, should include import_names and parallel_commander_type
+    """
     cfg = EasyDict(cfg)
     import_module(cfg.import_names)
     commander_type = cfg.parallel_commander_type

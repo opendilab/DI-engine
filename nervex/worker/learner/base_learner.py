@@ -127,7 +127,7 @@ class BaseLearner(object):
         # Only rank == 0 learner needs monitor and tb_logger, others only need text_logger to display terminal output.
         self._timer = EasyTimer()
         rank0 = True if self._rank == 0 else False
-        self._logger, self._tb_logger = build_logger('./log/learner', 'learner', rank0)
+        self._logger, self._tb_logger = build_logger('./log/learner', 'learner', need_tb=rank0)
         self._log_buffer = build_log_buffer()
 
         # Checkpoint helper. Used to save model checkpoint.
@@ -143,6 +143,7 @@ class BaseLearner(object):
         self.info(pretty_print({
             "config": self._cfg,
         }, direct_print=False))
+        self._end_flag = False
 
         # Setup wrapper and hook.
         self._setup_wrapper()
@@ -242,6 +243,7 @@ class BaseLearner(object):
             For each iteration, learner will get data through ``_next_data`` and call ``train`` to train.
             Besides "before_iter" and "after_iter", "before_run" and "after_run" hooks are called once each.
         """
+        self._end_flag = False
         self._finished_task = None
         # before run hook
         self.call_hook('before_run')
@@ -250,6 +252,8 @@ class BaseLearner(object):
         for _ in range(max_iterations):
             data = self._next_data()
             self.train(data)
+            if self._end_flag:
+                break
 
         self._finished_task = {'finish': True}
         # after run hook
@@ -292,6 +296,9 @@ class BaseLearner(object):
         Overview:
             Close the related resources, e.g. dataloader, tensorboard logger, etc.
         """
+        if self._end_flag:
+            return
+        self._end_flag = True
         if hasattr(self, '_dataloader'):
             del self._dataloader
         self._tb_logger.close()
@@ -315,6 +322,9 @@ class BaseLearner(object):
             - s (:obj:`str`): The message to add into the logger.
         """
         self._logger.info(s)
+
+    def debug(self, s: str) -> None:
+        self._logger.debug(s)
 
     def save_checkpoint(self) -> None:
         """

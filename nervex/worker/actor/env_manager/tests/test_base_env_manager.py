@@ -32,7 +32,7 @@ class TestBaseEnvManager:
             count += 1
         end_time = time.time()
         print('total step time: {}'.format(end_time - start_time))
-        assert all(env_manager._env_done.values())
+        assert all(env_manager._env_dones.values())
         assert all([c == setup_sync_manager_cfg.episode_num for c in env_manager._env_episode_count.values()])
 
         env_manager.close()

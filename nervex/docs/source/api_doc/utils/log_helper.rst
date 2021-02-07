@@ -17,7 +17,7 @@ get_default_logger
 TextLogger
 ~~~~~~~~~~~~~~~~~~~~~~
 .. automodule:: nervex.utils.log_helper.TextLogger
-    :members: __init__, _create_logger, info, bug
+    :members: __init__, _create_logger, info, debug
 
 
 TensorBoardLogger
