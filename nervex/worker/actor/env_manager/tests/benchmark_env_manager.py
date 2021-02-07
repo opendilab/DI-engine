@@ -7,7 +7,7 @@ import sys
 from easydict import EasyDict
 from nervex.worker.actor.env_manager.vec_env_manager import SubprocessEnvManager, SyncSubprocessEnvManager
 from nervex.worker.actor.env_manager.base_env_manager import BaseEnvManager
-from nervex.envs import get_vec_env_setting
+from nervex.envs import get_subprocess_env_setting
 import cloudpickle
 from nervex.model.actor_critic.value_ac import ValueAC, ConvValueAC
 
@@ -214,7 +214,7 @@ if __name__ == "__main__":
     MAX_TEST_TIME = 1e5
     TEST_SEED = 2021
 
-    env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(env_cfg)
+    env_fn, actor_env_cfg, evaluator_env_cfg = get_subprocess_env_setting(env_cfg)
     benchmark = BenchmarkEnvManager(
         env_fn=env_fn, env_cfg=actor_env_cfg, env_num=len(actor_env_cfg), test_max_sample=MAX_TEST_TIME, seed=TEST_SEED
     )
