@@ -235,7 +235,7 @@ class SubprocessEnvManager(BaseEnvManager):
         self._env_states = {env_id: EnvState.INIT for env_id in range(self.env_num)}
         self._waiting_env = {'step': set()}
         self._setup_async_args()
-        if hasattr(self, '_env_replay_path'):
+        if self._env_replay_path is not None:
             for p, s in zip(self._pipe_parents, self._env_replay_path):
                 p.send(CloudpickleWrapper(['enable_save_replay', [s], {}]))
             for p in self._pipe_parents:

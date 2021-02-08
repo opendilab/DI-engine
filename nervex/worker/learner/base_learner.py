@@ -144,6 +144,7 @@ class BaseLearner(object):
             "config": self._cfg,
         }, direct_print=False))
         self._end_flag = False
+        self._finished_task = None
 
         # Setup wrapper and hook.
         self._setup_wrapper()
