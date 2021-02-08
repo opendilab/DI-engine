@@ -101,7 +101,8 @@ class BaseCommLearner(ABC):
                 {"learner_cfg": xxx, "policy": xxx}.
         Returns:
             - learner (:obj:`BaseLearner`): Created base learner.
-        Note:
+
+        .. note::
             Three methods('get_data', 'send_policy', 'send_learn_info'), dataloader and policy are set.
             The reason why they are set here rather than base learner is that, they highly depend on the specific task.
             Only after task info is passed from coordinator to comm learner through learner slave, can they be

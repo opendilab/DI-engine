@@ -96,6 +96,7 @@ class HiddenStateHelper(IArmorStatefulPlugin):
         Maintain the hidden state for RNN-base model. Each sample in a batch has its own state.
     Interfaces:
         register
+
     .. note::
         1. This helper must deal with an actual batch with some parts of samples, e.g: 6 samples of state_num 8.
         2. This helper must deal with the single sample state reset.
@@ -294,6 +295,7 @@ class EpsGreedySampleHelper(IArmorStatelessPlugin):
             Auto wrap the ``armor.forward`` method with eps prob to take a random action.
         Arguments:
             - armor (:obj:`Any`): Wrapped armor class, should contain ``forward`` method.
+
         .. note::
             After wrapped by the EpsGreedySampleHelper, ``armor.forward`` should take kwargs of {'eps': float}.
         """

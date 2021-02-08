@@ -24,7 +24,8 @@ class SequenceContainer:
         """
         Overview:
             Init the container with input data(dict-style), and add the additional first dim for easy management
-        Note:
+
+        .. note::
             Only supoort value type: torch.Tensor, Sequence
         """
         for k in kwargs.keys():
@@ -54,7 +55,8 @@ class SequenceContainer:
             Return the container class name
         Returns:
             - name (:obj:`str`): the value of the class variable _name
-        Note:
+
+        .. note::
             The subclass needs to override ``_name``
         """
         return self._name
