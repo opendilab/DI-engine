@@ -14,7 +14,7 @@ from collections import namedtuple
 from nervex.data import AsyncDataLoader, default_collate
 from nervex.config import base_learner_default_config
 from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer, to_device
-from nervex.utils import build_logger, EasyTimer, pretty_print, read_config, get_task_uid, import_module
+from nervex.utils import build_logger, EasyTimer, pretty_print, get_task_uid, import_module
 from nervex.utils import deep_merge_dicts, get_rank
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
 from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, merge_hooks, LearnerHook

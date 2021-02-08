@@ -84,7 +84,8 @@ class CartPoleEnv(BaseEnv):
         if replay_path is None:
             replay_path = './video'
         self._replay_path = replay_path
-        disable_gym_view_window()
+        # this function can lead to the meaningless result
+        # disable_gym_view_window()
         self._env = gym.wrappers.Monitor(
             self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
         )

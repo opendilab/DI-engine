@@ -4,7 +4,7 @@ from typing import Union, Optional, Dict, Any, List, Tuple
 import numpy as np
 
 from nervex.data.structure import ReplayBuffer, Cache, SumSegmentTree
-from nervex.utils import read_config, deep_merge_dicts
+from nervex.utils import deep_merge_dicts
 from nervex.config import buffer_manager_default_config
 
 default_config = buffer_manager_default_config.replay_buffer

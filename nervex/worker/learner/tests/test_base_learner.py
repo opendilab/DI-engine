@@ -7,7 +7,6 @@ from easydict import EasyDict
 from typing import Any
 from functools import partial
 
-from nervex.utils import read_config
 from nervex.worker import BaseLearner
 from nervex.worker.learner import LearnerHook, register_learner_hook, add_learner_hook, \
     register_learner, create_learner

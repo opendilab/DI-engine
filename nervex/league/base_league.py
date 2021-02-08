@@ -10,7 +10,7 @@ from nervex.league.player import ActivePlayer, HistoricalPlayer
 from nervex.league.player import create_player
 from nervex.league.shared_payoff import create_payoff
 from nervex.utils import deep_merge_dicts, LockContextType, LimitedSpaceContainer
-from nervex.utils import read_config, LockContext, import_module
+from nervex.utils import LockContext, import_module
 
 
 class BaseLeague(ABC):

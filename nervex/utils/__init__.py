@@ -1,8 +1,7 @@
 from .collection_helper import iter_mapping
 from .compression_helper import get_data_compressor, get_data_decompressor
-from .config_helper import deep_merge_dicts, read_config
 from .default_helper import override, dicts_to_lists, lists_to_dicts, squeeze, default_get, error_wrapper, list_split,\
-    LimitedSpaceContainer
+    LimitedSpaceContainer, deep_merge_dicts
 from .design_helper import SingletonMetaclass
 from .dist_helper import get_rank, get_world_size, distributed_mode, dist_init, dist_finalize, \
     allreduce, get_group, broadcast
