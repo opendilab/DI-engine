@@ -302,6 +302,9 @@ class BaseLearner(object):
         if hasattr(self, '_dataloader'):
             del self._dataloader
         self._tb_logger.close()
+        # if the learner is interrupted by force
+        if self._finished_task is None:
+            self.save_checkpoint()
 
     def call_hook(self, name: str) -> None:
         """
