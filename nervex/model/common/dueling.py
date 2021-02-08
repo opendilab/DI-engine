@@ -14,14 +14,15 @@ class DuelingHead(nn.Module):
     r"""
     Overview:
         The Dueling head used in models.
-    Notes:
+    Interfaces:
+        __init__, forward
+
+    .. note::
         Dueling head is one of the three most major improvements in DQN algorithm. The paper introducing \
             this improvement `Dueling Network Architectures for Deep Reinforcement Learning` was published \
             by Google in 2016. You can view the original paper on <https://arxiv.org/pdf/1511.06581.pdf>
         The other two major improvements are double DQN and prioritized replay, which in nerveX \
             are implemented though plugins and buffer.
-    Interfaces:
-        __init__, forward
     """
 
     def __init__(

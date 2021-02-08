@@ -308,7 +308,8 @@ class ReplayBuffer:
             - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
         Returns:
             - can_sample (:obj:`bool`): Whether this buffer can sample enough data.
-        Note:
+
+        .. note::
             This function must be called exactly before calling ``sample``.
         """
         if size == 0:
@@ -350,7 +351,8 @@ class ReplayBuffer:
         Returns:
             - sample_data (:obj:`list`): If check fails returns None; Otherwise returns a list with length ``size``, \
                 and each data owns keys: original keys + ['IS', 'priority', 'replay_unique_id', 'replay_buffer_idx'].
-        Note:
+
+        .. note::
             Before calling this function, ``sample_check`` must be called.
         """
         if size == 0:
@@ -677,8 +679,9 @@ class ReplayBuffer:
             - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
         Returns:
             - staleness (:obj:`int`): Staleness of data at position ``pos_index``.
-        Note:
-            Caller should guarantee that data at ``pos_index`` is not None, otherwise this function may raise an error.
+
+        .. note::
+            Caller should guarantee that data at ``pos_index`` is not None; Otherwise this function may raise an error.
         """
         if self._data[pos_index] is None:
             raise ValueError("Prioritized's data at index {} is None".format(pos_index))

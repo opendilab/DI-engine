@@ -206,7 +206,8 @@ class BaseLearner(object):
             "before_iter" and "after_iter" hooks are called once each.
         Arguments:
             - data (:obj:`dict`): Training data which is retrieved from repaly buffer.
-        Note:
+
+        .. note::
             ``_policy`` must be set before calling this method.
             ``_policy.forward`` method contains: forward, backward, grad sync(if in distributed mode) and
             parameter update.
@@ -263,7 +264,8 @@ class BaseLearner(object):
         """
         Overview:
             Setup learner's dataloader.
-        Note:
+
+        .. note::
             Only in parallel version will we use ``get_data`` and ``_dataloader``(AsyncDataLoader);
             Instead in serial version, we can sample data from replay buffer directly.
             In parallel version, ``get_data`` is set by comm LearnerCommHelper, and should be callable.
@@ -286,7 +288,8 @@ class BaseLearner(object):
             Call ``_dataloader``'s ``__next__`` method to return next training data.
         Returns:
             - data (:obj:`Any`): Next training data from dataloader.
-        Note:
+
+        .. note::
             Only in parallel version will this method be called.
         """
         return next(self._dataloader)

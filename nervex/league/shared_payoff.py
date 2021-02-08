@@ -182,10 +182,11 @@ class BattleSharedPayoff:
             - job_info (:obj:`dict`): a dict containing job result information
         Returns:
             - result (:obj:`bool`): whether update is successful
-        Note:
-            job_info owns at least 5 keys('launch_player', 'player_id', 'env_num', 'episode_num', 'result')
-            player_id's value is a tuple (home_id, away_id)
-            result's value is a two-layer list with the length of (episode_num, env_num)
+
+        .. note::
+            job_info owns at least 5 keys('launch_player', 'player_id', 'env_num', 'episode_num', 'result').
+            player_id's value is a tuple (home_id, away_id).
+            result's value is a two-layer list with the length of (episode_num, env_num).
         """
 
         def _win_loss_reverse(result_: str, reverse_: bool) -> str:

@@ -148,7 +148,8 @@ class ActivePlayer(Player):
             Generate a snapshot historical player from the current player, called in league's ``_snapshot``.
         Returns:
             - snapshot_player (:obj:`HistoricalPlayer`): new instantiated historical player
-        Note:
+
+        .. note::
             This method only generates a historical player object without saving the checkpoint, which should be
             completed by the interaction between coordinator and learner.
         """

@@ -155,9 +155,9 @@ class CategoricalPd(Pd):
 class CategoricalPdPytorch(torch.distributions.Categorical):
     r"""
     Overview:
-        wrapped torch.distributions.Categorical
+        Wrapped torch.distributions.Categorical
     Notes:
-        please reference torch.distributions.Categorical doc: \
+        Please refer to torch.distributions.Categorical doc: \
             https://pytorch.org/docs/stable/distributions.html?highlight=torch%20distributions#module-torch.distributions\
                 Categorical
     Interface:

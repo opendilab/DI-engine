@@ -158,7 +158,8 @@ class FlaskFileSystemLearner(BaseCommLearner):
             Callback function. Create a learner and help register its hooks. Start a learner thread of the created one.
         Arguments:
             - task_info (:obj:`dict`): Task info dict.
-        Note:
+
+        .. note::
             In ``_create_learner`` method in base class ``BaseCommLearner``, 3 methods
             ('get_data', 'send_policy', 'send_learn_info'), dataloader and policy are set.
             You can refer to it for details.
@@ -349,8 +350,9 @@ class SendPolicyHook(LearnerHook):
             Saved file includes model_state_dict, learner_last_iter.
         Arguments:
             - engine (:obj:`BaseLearner`): The BaseLearner.
-        Note:
-            Only rank == 0 learner will save it.
+
+        .. note::
+            Only rank == 0 learner will save policy.
         """
         last_iter = engine.last_iter.val
         if engine.rank == 0 and last_iter % self._freq == 0:

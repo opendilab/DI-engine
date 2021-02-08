@@ -120,11 +120,12 @@ class Armor(object):
     def __getattr__(self, key: str) -> Any:
         r"""
         Overview:
-            Get the attrbute in armor(model)
+            Get the attrbute in armor(model).
         Arguments:
             - key (:obj:`str`): The key to query.
         Returns:
             - ret (:obj:`Any`): The queried attribute.
+
         .. note::
             If you want to get the attribute ``attr`` in ``armor[k]``, you should query "{k}_{attr}".
         """
