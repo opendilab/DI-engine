@@ -4,7 +4,7 @@ import os.path as osp
 
 from nervex.league import BaseLeague, register_league
 from nervex.league.player import ActivePlayer
-from nervex.utils import read_config, deep_merge_dicts
+from nervex.utils import deep_merge_dicts
 from nervex.config import solo_league_default_config
 
 

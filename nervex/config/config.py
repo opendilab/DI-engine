@@ -2,8 +2,11 @@ import os.path as osp
 import shutil
 import sys
 import tempfile
+import yaml
+import json
 from importlib import import_module
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union, NoReturn
+from easydict import EasyDict
 
 
 class Config(object):
@@ -63,3 +66,49 @@ class Config(object):
     @property
     def cfg_dict(self) -> dict:
         return self._cfg_dict
+
+
+def read_config_yaml(path: str) -> EasyDict:
+    """
+    Overview:
+        read configuration from path
+    Arguments:
+        - path (:obj:`str`): Path of source yaml
+    Returns:
+        - (:obj:`EasyDict`): Config data from this file with dict type
+    """
+    with open(path, "r") as f:
+        config_ = yaml.safe_load(f)
+
+    return EasyDict(config_)
+
+
+def save_config_yaml(config_: dict, path: str) -> NoReturn:
+    """
+    Overview:
+        save configuration to path
+    Arguments:
+        - config (:obj:`dict`): Config data
+        - path (:obj:`str`): Path of target yaml
+    """
+    config_string = json.dumps(config_)
+    with open(path, "w") as f:
+        yaml.safe_dump(json.loads(config_string), f)
+
+
+def read_config(cfg: str) -> dict:
+    suffix = cfg.split('.')[-1]
+    if suffix == 'yaml':
+        cfg = read_config_yaml(cfg)
+    elif suffix == 'py':
+        cfg = Config.file_to_dict(cfg).cfg_dict
+        cfg = cfg['main_config']
+    else:
+        raise KeyError("invalid config file suffix: {}".format(suffix))
+    return cfg
+
+
+def save_config(config_: dict, path: str, type_: str = 'yaml') -> NoReturn:
+    assert type_ in ['yaml'], type_
+    if type_ == 'yaml':
+        save_config_yaml(config_, path)

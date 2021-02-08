@@ -44,6 +44,7 @@ class BaseEnvManager(ABC):
         self._transform = partial(to_ndarray)
         self._inv_transform = partial(to_tensor, dtype=torch.float32)
         self._closed = True
+        self._env_replay_path = None
         # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
         self._env_ref = self._env_fn(self._env_cfg[0])
 
@@ -54,7 +55,7 @@ class BaseEnvManager(ABC):
         self._next_obs = {i: None for i in range(self.env_num)}
         self._envs = [self._env_fn(c) for c in self._env_cfg]
         assert len(self._envs) == self._env_num
-        if hasattr(self, '_env_replay_path'):
+        if self._env_replay_path is not None:
             for e, s in zip(self._envs, self._env_replay_path):
                 e.enable_save_replay(s)
 

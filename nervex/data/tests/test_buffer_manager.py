@@ -14,7 +14,6 @@ from copy import deepcopy
 # from pstats import SortKey
 
 from nervex.data import BufferManager
-from nervex.utils import read_config
 from nervex.config import buffer_manager_default_config
 
 BATCH_SIZE = 8

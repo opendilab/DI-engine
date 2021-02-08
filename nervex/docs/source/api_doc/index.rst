@@ -51,7 +51,6 @@ API Doc
     torch_utils/optimizer_helper
     torch_utils_network/network
     utils/compression_helper
-    utils/config_helper
     utils/default_helper
     utils/dist_helper
     utils/file_helper

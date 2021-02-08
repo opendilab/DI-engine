@@ -9,8 +9,7 @@ import logging
 
 from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommander
 from nervex.worker import BaseEnvManager, SubprocessEnvManager
-from nervex.utils import read_config
-from nervex.config import Config
+from nervex.config import read_config
 from nervex.data import BufferManager
 from nervex.policy import create_policy
 from nervex.envs import get_vec_env_setting
@@ -28,7 +27,7 @@ def serial_pipeline(
     Overview:
         Serial pipeline entry.
     Arguments:
-        - cfg (:obj:`Union[str, dict]`): Config in dict type. ``Str`` type means config file path.
+        - cfg (:obj:`Union[str, dict]`): Config in dict type. ``str`` type means config file path.
         - seed (:obj:`int`): Random seed.
         - env_setting (:obj:`Optional[Any]`): Subclass of ``BaseEnv``, and config dict.
         - policy_type (:obj:`Optional[type]`): Subclass of ``Policy``.
@@ -40,14 +39,7 @@ def serial_pipeline(
         actor_log = logging.getLogger('actor_logger')
         actor_log.disabled = True
     if isinstance(cfg, str):
-        suffix = cfg.split('.')[-1]
-        if suffix == 'yaml':
-            cfg = read_config(cfg)
-        elif suffix == 'py':
-            cfg = Config.file_to_dict(cfg).cfg_dict
-            cfg = cfg['main_config']
-        else:
-            raise KeyError("invalid config file suffix: {}".format(suffix))
+        cfg = read_config(cfg)
     # Default case: Create env_num envs with copies of env cfg.
     # If you want to indicate different cfg for different env, please refer to ``get_vec_env_setting``.
     # Usually, user-defined env must be registered in nervex so that it can be created with config string;

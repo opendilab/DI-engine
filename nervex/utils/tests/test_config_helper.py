@@ -3,7 +3,8 @@ import os
 import copy
 from easydict import EasyDict
 
-from nervex.utils.config_helper import read_config, save_config, deep_merge_dicts, flatten_dict, deep_update
+from nervex.config import read_config, save_config
+from nervex.utils.default_helper import deep_merge_dicts, flatten_dict, deep_update
 
 
 @pytest.mark.unittest

@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Union
 import subprocess
 import time
 import pickle
@@ -6,11 +6,11 @@ import logging
 from threading import Thread, Event
 from easydict import EasyDict
 from nervex.worker import create_comm_learner, create_comm_actor, Coordinator, LearnerAggregator
-from nervex.config import Config, parallel_transform, parallel_transform_slurm
+from nervex.config import read_config, parallel_transform, parallel_transform_slurm
 
 
 def parallel_pipeline(
-        config: str,
+        config: Union[str, dict],
         seed: int,
         enable_total_log: Optional[bool] = False,
         disable_flask_log: Optional[bool] = True,
@@ -19,7 +19,7 @@ def parallel_pipeline(
     Overview:
         Parallel pipeline entry.
     Arguments:
-        - config (:obj:`str`): Config file path.
+        - config (:obj:`Union[str, dict]`): Config file path.
         - seed (:obj:`int`): Random seed.
         - enable_total_log (:obj:`Optional[bool]`): whether enable total nervex system log
         - disable_flask_log (:obj:`Optional[bool]`): whether disable flask log
@@ -34,8 +34,7 @@ def parallel_pipeline(
         log.disabled = True
     # Parallel job launch.
     if isinstance(config, str):
-        cfg = Config.file_to_dict(config).cfg_dict
-        config = cfg['main_config']
+        config = read_config(config)
     elif isinstance(config, dict):
         config = config
     else:
@@ -169,8 +168,7 @@ def dist_pipeline(
     if platform == 'local':
         raise NotImplementedError
     elif platform == 'slurm':
-        cfg = Config.file_to_dict(filename).cfg_dict
-        config = cfg['main_config']
+        config = read_config(filename)
         config = parallel_transform_slurm(config, coordinator_host, learner_host, actor_host)
         # Pickle dump config to disk for later use.
         real_filename = filename + '.pkl'
