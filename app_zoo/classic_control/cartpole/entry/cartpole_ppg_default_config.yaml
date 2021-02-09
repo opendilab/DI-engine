@@ -25,7 +25,9 @@ policy:
         algo:
             value_weight: 0.5
             entropy_weight: 0.01
-            clip_ratio: 0.2 
+            clip_ratio: 0.2
+            epochs_aux: 6
+            beta_weight: 1
     collect:
         traj_len: 'inf'
         unroll_len: 1
