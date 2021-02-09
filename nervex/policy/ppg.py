@@ -82,14 +82,14 @@ class ValueNet(nn.Module):
 
     def forward(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         r"""
-                Overview:
-                    First encode raw observation, then output value and logit.
-                    Normal reinforcement learning training, often called by learner.rst to optimize both critic and actor.
-                Arguments:
-                    - inputs (:obj:`Dict[str, torch.Tensor]`): embedding tensor after encoder
-                Returns:
-                    - ret (:obj:`Dict[str, torch.Tensor]`): a dict containing value and logit
-                """
+        Overview:
+            First encode raw observation, then output value and logit.
+            Normal reinforcement learning training, often called by learner.rst to optimize both critic and actor.
+        Arguments:
+            - inputs (:obj:`Dict[str, torch.Tensor]`): embedding tensor after encoder
+        Returns:
+            - ret (:obj:`Dict[str, torch.Tensor]`): a dict containing value and logit
+        """
         # for compatible, but we recommend use dict as input format
         if isinstance(inputs, torch.Tensor):
             embedding = self._encoder(inputs)
@@ -353,7 +353,8 @@ class PPGPolicy(CommonPolicy):
         dl = create_shuffled_dataloader(data, self._cfg.learn.batch_size)
 
         # the proposed auxiliary phase training
-        # where the value is distilled into the policy network, while making sure the policy network does not change the action predictions (kl div loss)
+        # where the value is distilled into the policy network,
+        # while making sure the policy network does not change the action predictions (kl div loss)
         # TODO(zym) replace sample
         for epoch in range(self._epochs_aux):
             for data in dl:
