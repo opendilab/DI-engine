@@ -7,7 +7,7 @@ from nervex.worker.actor.env_manager.subprocess_env_manager import SubprocessEnv
 
 
 @pytest.mark.unittest(rerun=5)
-class TestVecEnvManager:
+class TestSubprocessEnvManager:
 
     def test_naive(self, setup_async_manager_cfg, setup_model_type):
         env_manager = SubprocessEnvManager(**setup_async_manager_cfg)

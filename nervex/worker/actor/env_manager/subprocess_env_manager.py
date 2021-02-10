@@ -149,7 +149,7 @@ def retry_wrapper(fn: Callable, max_retry: int = 10) -> Callable:
                 return ret
             except Exception as e:
                 exceptions.append(e)
-                time.sleep(0.5)
+                time.sleep(0.1)
         e_info = ''.join(
             [
                 'Retry {} failed from:\n {}\n'.format(i, ''.join(traceback.format_tb(e.__traceback__)) + str(e))
@@ -202,7 +202,6 @@ class SubprocessEnvManager(BaseEnvManager):
         Overview:
             Fork/spawn sub-processes and create pipes to convey the data.
         """
-        self._closed = False
         self._env_episode_count = {env_id: 0 for env_id in range(self.env_num)}
         self._env_dones = {env_id: False for env_id in range(self.env_num)}
         self._next_obs = {env_id: None for env_id in range(self.env_num)}
@@ -232,6 +231,7 @@ class SubprocessEnvManager(BaseEnvManager):
             p.start()
         for c in self._pipe_children:
             c.close()
+        self._closed = False
         self._env_states = {env_id: EnvState.INIT for env_id in range(self.env_num)}
         self._waiting_env = {'step': set()}
         self._setup_async_args()
