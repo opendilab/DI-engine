@@ -471,7 +471,7 @@ class ATOCQAC(QActorCriticBase):
         r"""
         Overview:
             calculate the delta_q according to obs and actor_outputs
-        
+
         Arguments:
             - obs (:obj:`torch.Tensor`): the observations
             - actor_outputs (:obj:`dict`): the output of actors

@@ -14,7 +14,7 @@ from .common_policy import CommonPolicy
 class ATOCPolicy(CommonPolicy):
     r"""
     Overview:
-        Policy class of ATOC algorithm. 
+        Policy class of ATOC algorithm.
     Interface:
         __init__, set_setting, __repr__, state_dict_handle
     Property:
