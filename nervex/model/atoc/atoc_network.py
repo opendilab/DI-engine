@@ -93,6 +93,7 @@ class ATOCCommunicationNet(nn.Module):
         self._thought_dim = thought_dim
         self._comm_hidden_size = thought_dim // 2
         self._bi_lstm = nn.LSTM(self._thought_dim, self._comm_hidden_size, bidirectional=True)
+        self._bi_lstm.flatten_parameters()
 
     def forward(self, data: Union[Dict, torch.Tensor]):
         r"""
