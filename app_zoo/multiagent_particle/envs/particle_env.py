@@ -129,6 +129,7 @@ class CooperativeNavigation(BaseEnv):
         self._env.discrete_action_input = cfg.get('discrete_action', True)
         self._max_step = cfg.get('max_step', 100)
         self._collide_penalty = cfg.get('collide_penal', self.agent_num)
+        self._agent_obs_only = cfg.get('agent_obs_only', False)
         self._env.force_discrete_action = True
         self.action_dim = 5
         # obs = np.concatenate([agent.state.p_vel] + [agent.state.p_pos] + other_pos + entity_pos)
@@ -159,6 +160,8 @@ class CooperativeNavigation(BaseEnv):
     def process_obs(self, obs: list):
         ret = {}
         obs = np.array(obs)
+        if self._agent_obs_only:
+            return obs
         ret['agent_state'] = obs
         ret['global_state'] = np.concatenate((obs[0, 2:], obs[:, 0:2].flatten()))
         ret['agent_alone_state'] = np.concatenate([obs[:, 0:4], obs[:, -self._num_landmarks * 2:]], 1)
@@ -198,6 +201,13 @@ class CooperativeNavigation(BaseEnv):
 
     def info(self):
         T = EnvElementInfo
+        if self._agent_obs_only:
+            return CNEnvInfo(
+                agent_num=self.agent_num,
+                obs_space=T((self.agent_num, self.obs_dim), None, None, None),
+                act_space=T((self.agent_num, self.action_dim), None, None, None),
+                rew_space=T((1, ), None, None, None)
+            )
         return CNEnvInfo(
             agent_num=self.agent_num,
             obs_space=T(
