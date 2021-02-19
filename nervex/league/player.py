@@ -31,14 +31,14 @@ class Player:
         Overview:
             Initialize base player metadata
         Arguments:
-            - cfg (:obj:`EasyDict`): player config dict
-            - category (:obj:`str`): player category, depending on the game, \
-                e.g. StarCraft has 3 races ['terran', 'protoss', 'zerg']
-            - init_payoff (:obj:`BattleSharedPayoff` or :obj:`SoloSharedPayoff`): payoff shared by all players
-            - checkpoint_path (:obj:`str`): one training phase step
-            - player_id (:obj:`str`): player id
-            - total_agent_step (:obj:`int`):  for active player, it should be 0, \
-                for historical player, it should be parent player's ``_total_agent_step`` when ``snapshot``
+            - cfg (:obj:`EasyDict`): Player config dict.
+            - category (:obj:`str`): Player category, depending on the game, \
+                e.g. StarCraft has 3 races ['terran', 'protoss', 'zerg'].
+            - init_payoff (:obj:`Union[BattleSharedPayoff, SoloSharedPayoff]`): Payoff shared by all players.
+            - checkpoint_path (:obj:`str`): The path to load and save player checkpoint.
+            - player_id (:obj:`str`): Player id in string format.
+            - total_agent_step (:obj:`int`): For active player, it should be 0; \
+                For historical player, it should be parent player's ``_total_agent_step`` when ``snapshot``.
         """
         self._cfg = cfg
         self._category = category
@@ -145,10 +145,11 @@ class ActivePlayer(Player):
     def snapshot(self) -> HistoricalPlayer:
         """
         Overview:
-            Generate a snapshot historical player from the current player, called in league manager's ``_snapshot``.
+            Generate a snapshot historical player from the current player, called in league's ``_snapshot``.
         Returns:
             - snapshot_player (:obj:`HistoricalPlayer`): new instantiated historical player
-        Note:
+
+        .. note::
             This method only generates a historical player object without saving the checkpoint, which should be
             completed by the interaction between coordinator and learner.
         """
@@ -166,7 +167,7 @@ class ActivePlayer(Player):
     def mutate(self, info: dict) -> Optional[str]:
         """
         Overview:
-            Mutate the current player, called in league manager's ``_mutate_player``.
+            Mutate the current player, called in league's ``_mutate_player``.
         Arguments:
             - info (:obj:`dict`): related information for the mutation
         Returns:

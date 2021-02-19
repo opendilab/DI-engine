@@ -75,11 +75,11 @@ class DQNVanillaPolicy(CommonPolicy):
         output = {'action': action}
         return output
 
-    def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'action': agent_output['action'],
+            'action': armor_output['action'],
             'reward': timestep.reward,
             'done': timestep.done,
         }

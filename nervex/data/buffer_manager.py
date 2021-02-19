@@ -4,9 +4,10 @@ from typing import Union, Optional, Dict, Any, List, Tuple
 import numpy as np
 
 from nervex.data.structure import ReplayBuffer, Cache, SumSegmentTree
-from nervex.utils import read_config, deep_merge_dicts
+from nervex.utils import deep_merge_dicts
+from nervex.config import buffer_manager_default_config
 
-default_config = read_config(osp.join(osp.dirname(__file__), 'buffer_manager_default_config.yaml')).replay_buffer
+default_config = buffer_manager_default_config.replay_buffer
 
 
 class BufferManager:
@@ -51,7 +52,7 @@ class BufferManager:
             self.sample_tree[idx] = self.cfg.sample_ratio[name]
         assert self.sample_tree.reduce() == 1
 
-        # cache mechanism: first push data into cache, then(some conditions) put forward to meta buffer
+        # Cache mechanism: First push data into cache, then(on some conditions) put forward to meta buffer.
         # self.use_cache = cfg.get('use_cache', False)
         self.use_cache = False
         self._cache = Cache(maxlen=self.cfg.get('cache_maxlen', 256), timeout=self.cfg.get('timeout', 8))

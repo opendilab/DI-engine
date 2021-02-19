@@ -1,0 +1,100 @@
+HPC_RL Overview
+===================
+
+
+
+概述
+*****
+HPC_RL组件是一个加速算子组件，针对强化学习算法中较通用的算法模块，例如 ``GAE`` ，``n-step TD`` 以及 ``LSTM`` 等，主要是针对nervex rl_utils，torch_utils/network, torch_utils/loss下的算子进行优化，算子支持前向+反向传播，训练，数据收集，测试模块中均可使用，对于各类算子，在不同输入尺寸下均有10-100倍的速度提升。
+
+如何使用
+*********
+    1. 安装
+
+        HPC_RL 目前支持的环境版本是：
+          
+          - 系统：linux
+          - CUDA：CUDA9.2
+          - Python：py3.6
+
+        由于HPC_RL目前依赖于特定的环境版本，所以我们现在会单独提供对应版本下HPC_RL组件打包好的whl文件，可通过 ``pip install <whl_name>`` 安装。
+
+        安装成功后，在python终端中如果可以成功 ``import hpc_rl`` ，则说明安装成功
+
+        .. tip::
+
+            使用新版本时，可能会出现某些不匹配问题，建议删除老版本后重新安装新版本，如安装目录在 ``~/.local/lib/python3.6/site-packages`` 下，则执行如下的命令即可删除：
+
+            .. code:: bash
+
+                rm ~/.local/lib/python3.6/site-packages/hpc_*.so
+                rm ~/.local/lib/python3.6/site-packages/hpc_rl* -rf
+    2. 验证
+
+       当安装成功后，使用者可以通过nervex/hpc_rl/tests下的单元测试来验证精度和效率，这些测试会运行原始版本基于pytorch api的实现+ HPC_RL优化后的实现，例如运行该目录下的test_gae.py，在 ``Tesla V100 32G`` 上的运行结果如下：
+
+       .. code:: bash
+
+            target problem: T = 1024, B = 64
+            gae mean_relative_error: -1.0645836e-07
+            ================run gae performance test================
+            epoch: 0, original gae cost time: 0.06686019897460938
+            epoch: 1, original gae cost time: 0.06580924987792969
+            epoch: 2, original gae cost time: 0.0658106803894043
+            epoch: 3, original gae cost time: 0.06581401824951172
+            epoch: 4, original gae cost time: 0.06805300712585449
+            epoch: 5, original gae cost time: 0.06583261489868164
+            epoch: 0, hpc gae cost time: 0.0024187564849853516
+            epoch: 1, hpc gae cost time: 0.0024328231811523438
+            epoch: 2, hpc gae cost time: 0.0034339427947998047
+            epoch: 3, hpc gae cost time: 0.0014312267303466797
+            epoch: 4, hpc gae cost time: 0.0024368762969970703
+            epoch: 5, hpc gae cost time: 0.002432107925415039
+
+    3. 使用
+
+        nervex中默认关闭HPC_RL的使用（因为目前仅支持部分运行环境），若成功安装后，可在入口程序最开始处加上一行代码 ``nervex.enable_hpc_rl = True`` ，即会自动启用HPC_RL相关算子，demo如下：
+
+        .. code:: python
+
+            import nervex
+            from nervex.entry import serial_pipeline
+            from nervex.utils import read_config
+
+
+            if __name__ == "__main__":
+                config_path = 'cartpole_a2c_default_config.yaml'
+                nervex.enable_hpc_rl = True
+                cfg = read_config(config_path)
+                cfg.policy.use_cuda= True
+                serial_pipeline(cfg, 0)
+
+目前支持的算子
+****************
+   ``rl_utils`` : GAE, PPO, q_value n-step TD, dist n_step TD(C51), q_value n-step TD with rescale(R2D2)，TD-lambda, vtrace, UPGO
+
+   ``torch_utils/network`` : LSTM，scatter_connection
+
+性能对比
+********
+
++------------------------+-----------------+------------------+-----------------+-----------------+
+|         算子名         |     数据维度    |     测试环境     |     pytorch     |      HPC_RL     |
++========================+=================+==================+=================+=================+
+|       TD-lambda        |    T=16, B=16   | 32GV100, CUDA9.2 |      900us      |       95us      |
++------------------------+-----------------+------------------+-----------------+-----------------+
+|       TD-lambda        |    T=256, B=64  | 32GV100, CUDA9.2 |      13.1ms     |      105us      |
++------------------------+-----------------+------------------+-----------------+-----------------+
+|       TD-lambda        |    T=256, B=512 | 32GV100, CUDA9.2 |      18.8ms     |      130us      |
++------------------------+-----------------+------------------+-----------------+-----------------+
+
+其他
+*********
+
+1. 为了提升性能，HPC_RL在内部默认会预先分配算子所需要的内存，因此需要知道数据的具体尺寸，nervex的相关wrapper会自动根据数据尺寸进行调整，但要注意，如果是可变输入尺寸，反复重新分配内存会造成一定的时间损耗，从而降低加速比。
+2. 对于部分算子，例如当映射关系有重叠时，GPU上并行执行，映射结果是不确定的，会存在一定的数值精度波动，但基本不影响常规训练。
+3. 对于部分算子，HPC_RL只支持其中某些常见的参数组合，具体如下：
+
+  - q_value n-step TD 的 criterion 仅支持MSE
+  - q_value n-step TD with rescale 的 criterion 仅支持MSE，trans_fn, inv_trans_fn仅支持R2D2中的相关变换形式
+  - LSTM中的normalization仅支持LN

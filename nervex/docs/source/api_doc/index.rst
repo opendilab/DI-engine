@@ -9,13 +9,13 @@ API Doc
 .. toctree::
     :maxdepth: 3
 
-    agent/agent
+    armor/armor
     data/structure
     data/dataloader
     data/collate_fn
     data/buffer_manager
     env/sumo_env
-    league/league_manager
+    league/league
     league/payoff
     league/player
     model/actor_critic
@@ -48,10 +48,9 @@ API Doc
     torch_utils/distribution
     torch_utils/metric
     torch_utils/nn_test_helper
-    torch_utils/optimizer_util
+    torch_utils/optimizer_helper
     torch_utils_network/network
     utils/compression_helper
-    utils/config_helper
     utils/default_helper
     utils/dist_helper
     utils/file_helper
@@ -60,6 +59,12 @@ API Doc
     utils/log_helper
     utils/system_helper
     utils/time_helper
-    worker/learner/base_learner
+    worker/learner/learner
     worker/learner/learner_comm
-    worker/learner/learner_hook
+    worker/actor/env_manager
+    worker/actor/comm
+    worker/actor/actor
+    worker/coordinator/coordinator_interaction
+    worker/coordinator/coordinator
+    worker/coordinator/resource_manager
+    worker/coordinator/commander

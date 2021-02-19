@@ -6,7 +6,7 @@ from easydict import EasyDict
 from nervex.torch_utils import Adam
 from nervex.rl_utils import q_1step_td_data, q_1step_td_error, q_nstep_td_data, q_nstep_td_error, epsilon_greedy, Adder
 from nervex.model import FCDiscreteNet, ConvDiscreteNet
-from nervex.agent import Agent
+from nervex.armor import Armor
 from .base_policy import Policy, register_policy
 from .common_policy import CommonPolicy
 
@@ -21,7 +21,7 @@ class DQNPolicy(CommonPolicy):
         r"""
         Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init the optimizer, algorithm config, main and target agents.
+            Init the optimizer, algorithm config, main and target armors.
         """
         # Optimizer
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
@@ -31,16 +31,16 @@ class DQNPolicy(CommonPolicy):
         self._nstep = algo_cfg.nstep
         self._gamma = algo_cfg.discount_factor
 
-        # Main and target agents
-        self._agent = Agent(self._model)
-        self._agent.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
-        self._agent.add_plugin('main', 'argmax_sample')
-        self._agent.add_plugin('main', 'grad', enable_grad=True)
-        self._agent.add_plugin('target', 'grad', enable_grad=False)
-        self._agent.mode(train=True)
-        self._agent.target_mode(train=True)
-        self._agent.reset()
-        self._agent.target_reset()
+        # Main and target armors
+        self._armor = Armor(self._model)
+        self._armor.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
+        self._armor.add_plugin('main', 'argmax_sample')
+        self._armor.add_plugin('main', 'grad', enable_grad=True)
+        self._armor.add_plugin('target', 'grad', enable_grad=False)
+        self._armor.mode(train=True)
+        self._armor.target_mode(train=True)
+        self._armor.reset()
+        self._armor.target_reset()
         self._learn_setting_set = {}
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
@@ -62,12 +62,12 @@ class DQNPolicy(CommonPolicy):
             reward = reward.unsqueeze(1)
         assert reward.shape == (self._cfg.learn.batch_size, self._nstep), reward.shape
         reward = reward.permute(1, 0).contiguous()
-        # Current q value (main agent)
-        q_value = self._agent.forward(data['obs'])['logit']
+        # Current q value (main armor)
+        q_value = self._armor.forward(data['obs'])['logit']
         # Target q value
-        target_q_value = self._agent.target_forward(data['next_obs'])['logit']
-        # Max q value action (main agent)
-        target_q_action = self._agent.forward(data['next_obs'])['action']
+        target_q_value = self._armor.target_forward(data['next_obs'])['logit']
+        # Max q value action (main armor)
+        target_q_action = self._armor.forward(data['next_obs'])['action']
 
         data_n = q_nstep_td_data(
             q_value, target_q_value, data['action'], target_q_action, reward, data['done'], data['weight']
@@ -80,13 +80,13 @@ class DQNPolicy(CommonPolicy):
         self._optimizer.zero_grad()
         loss.backward()
         if self._use_distributed:
-            self.sync_gradients(self._agent.model)
+            self.sync_gradients(self._armor.model)
         self._optimizer.step()
 
         # =============
         # after update
         # =============
-        self._agent.target_update(self._agent.state_dict()['model'])
+        self._armor.target_update(self._armor.state_dict()['model'])
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
@@ -97,7 +97,7 @@ class DQNPolicy(CommonPolicy):
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect agent.
+            Init traj and unroll length, adder, collect armor.
             Enable the eps_greedy_sample
         """
         self._traj_len = self._cfg.collect.traj_len
@@ -112,11 +112,11 @@ class DQNPolicy(CommonPolicy):
         else:
             self._adder = Adder(self._use_cuda, self._unroll_len)
         self._collect_nstep = self._cfg.collect.algo.nstep
-        self._collect_agent = Agent(self._model)
-        self._collect_agent.add_plugin('main', 'eps_greedy_sample')
-        self._collect_agent.add_plugin('main', 'grad', enable_grad=False)
-        self._collect_agent.mode(train=False)
-        self._collect_agent.reset()
+        self._collect_armor = Armor(self._model)
+        self._collect_armor.add_plugin('main', 'eps_greedy_sample')
+        self._collect_armor.add_plugin('main', 'grad', enable_grad=False)
+        self._collect_armor.mode(train=False)
+        self._collect_armor.reset()
         self._collect_setting_set = {'eps'}
 
     def _forward_collect(self, data_id: List[int], data: dict) -> dict:
@@ -129,7 +129,7 @@ class DQNPolicy(CommonPolicy):
         Returns:
             - data (:obj:`dict`): The collected data
         """
-        return self._collect_agent.forward(data, eps=self._eps)
+        return self._collect_armor.forward(data, eps=self._eps)
 
     def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
         r"""
@@ -148,13 +148,13 @@ class DQNPolicy(CommonPolicy):
             data = self._adder.get_her(data)
         return self._adder.get_train_sample(data)
 
-    def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         r"""
         Overview:
             Generate dict type transition data from inputs.
         Arguments:
             - obs (:obj:`Any`): Env observation
-            - agent_output (:obj:`dict`): Output of collect agent, including at least ['action']
+            - armor_output (:obj:`dict`): Output of collect armor, including at least ['action']
             - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
                 (here 'obs' indicates obs after env step).
         Returns:
@@ -163,7 +163,7 @@ class DQNPolicy(CommonPolicy):
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'action': agent_output['action'],
+            'action': armor_output['action'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -173,13 +173,13 @@ class DQNPolicy(CommonPolicy):
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
-            Init eval agent with argmax strategy.
+            Init eval armor with argmax strategy.
         """
-        self._eval_agent = Agent(self._model)
-        self._eval_agent.add_plugin('main', 'argmax_sample')
-        self._eval_agent.add_plugin('main', 'grad', enable_grad=False)
-        self._eval_agent.mode(train=False)
-        self._eval_agent.reset()
+        self._eval_armor = Armor(self._model)
+        self._eval_armor.add_plugin('main', 'argmax_sample')
+        self._eval_armor.add_plugin('main', 'grad', enable_grad=False)
+        self._eval_armor.mode(train=False)
+        self._eval_armor.reset()
         self._eval_setting_set = {}
 
     def _forward_eval(self, data_id: List[int], data: dict) -> dict:
@@ -192,7 +192,7 @@ class DQNPolicy(CommonPolicy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        return self._eval_agent.forward(data)
+        return self._eval_armor.forward(data)
 
     def _init_command(self) -> None:
         r"""

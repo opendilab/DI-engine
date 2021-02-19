@@ -1,7 +1,7 @@
 import numbers
 import os
 from abc import ABC, abstractmethod
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import torch
 from easydict import EasyDict
@@ -12,9 +12,9 @@ from nervex.utils import allreduce
 class Hook(ABC):
     """
     Overview:
-        Abstract class for hooks
+        Abstract class for hooks.
     Interfaces:
-        __init__
+        __init__, __call__
     Property:
         name, priority
     """
@@ -22,10 +22,11 @@ class Hook(ABC):
     def __init__(self, name: str, priority: float, **kwargs) -> None:
         """
         Overview:
-            super.init method for hooks, set name and priority
+            Init method for hooks. Set name and priority.
         Arguments:
-            - name (:obj:`str`): the name of hook
-            - priority (:obj:`float`): the priority in call_hook, lower value means higher priority
+            - name (:obj:`str`): The name of hook
+            - priority (:obj:`float`): The priority used in ``call_hook``'s calling sequence. \
+                Lower value means higher priority.
         """
         self._name = name
         assert priority >= 0, "invalid priority value: {}".format(priority)
@@ -45,7 +46,7 @@ class Hook(ABC):
         Overview:
             Should be overwritten by subclass.
         Arguments:
-            - engine (:obj:`Any`): For LearnerHook, it should be BaseLearner.
+            - engine (:obj:`Any`): For LearnerHook, it should be ``BaseLearner`` or its subclass.
         """
         raise NotImplementedError
 
@@ -53,21 +54,24 @@ class Hook(ABC):
 class LearnerHook(Hook):
     """
     Overview:
-        Abstract class for hooks used in Learner. (``self.__call__`` should be implemented by subclass)
+        Abstract class for hooks used in Learner.
     Interfaces:
         __init__
     Property:
         name, priority, position
+
+    .. note::
+        Subclass should implement ``self.__call__``.
     """
     positions = ['before_run', 'after_run', 'before_iter', 'after_iter']
 
     def __init__(self, *args, position: str, **kwargs) -> None:
         """
         Overview:
-            init LearnerHook
+            Init LearnerHook.
         Arguments:
-            - position (:obj:`str`): the position to call hook in learner,\
-            must be in ['before_run', 'after_run', 'before_iter', 'after_iter']
+            - position (:obj:`str`): The position to call hook in learner. \
+                Must be in ['before_run', 'after_run', 'before_iter', 'after_iter'].
         """
         super().__init__(*args, **kwargs)
         assert position in self.positions
@@ -91,18 +95,18 @@ class LoadCkptHook(LearnerHook):
     def __init__(self, *args, ext_args: EasyDict = EasyDict(), **kwargs) -> None:
         """
         Overview:
-            init LoadCkptHook
+            Init LoadCkptHook.
         Arguments:
-            - ext_args (:obj:`EasyDict`): extended_args, use ext_args.freq to set load_ckpt_freq
+            - ext_args (:obj:`EasyDict`): Extended arguments. Use ``ext_args.freq`` to set ``load_ckpt_freq``.
         """
         super().__init__(*args, **kwargs)
 
     def __call__(self, engine: 'BaseLearner') -> None:  # noqa
         """
         Overview:
-            Load check point
+            Load checkpoint to learner.
         Arguments:
-            - engine (:obj:`BaseLearner`): the BaseLearner to load checkpoint to
+            - engine (:obj:`BaseLearner`): The BaseLearner to load checkpoint to.
         """
         path = engine.load_path
         if path == '':  # not load
@@ -214,7 +218,7 @@ class LogShowHook(LearnerHook):
             var_dict = {}
             for k in engine.log_buffer:
                 for attr in engine.monitor.get_property_attribute(k):
-                    k_attr = k + '_' + attr
+                    k_attr = 'learner/' + k + '_' + attr
                     var_dict[k_attr] = getattr(engine.monitor, attr)[k]()
             engine.logger.print_vars(var_dict)
             engine.tb_logger.print_vars(var_dict, iters, 'scalar')
@@ -253,7 +257,7 @@ class LogReduceHook(LearnerHook):
             Overview:
                 aggregate the information from all ranks(usually use sync allreduce)
             Arguments:
-                - data (:obj:`dict`): data needs to be reduced.\
+                - data (:obj:`dict`): Data that needs to be reduced. \
                     Could be dict, torch.Tensor, numbers.Integral or numbers.Real.
             Returns:
                 - new_data (:obj:`dict`): data after reduce
@@ -311,19 +315,19 @@ def register_learner_hook(name: str, hook_type: type) -> None:
     hook_mapping[name] = hook_type
 
 
-def build_learner_hook_by_cfg(cfg: EasyDict) -> dict:
+def build_learner_hook_by_cfg(cfg: EasyDict) -> Dict[str, List[Hook]]:
     """
     Overview:
         Build the learner hooks in hook_mapping by config.
-        This function is often used to initialize `hooks` according to cfg,
+        This function is often used to initialize ``hooks`` according to cfg,
         while add_learner_hook() is often used to add an existing LearnerHook to `hooks`.
     Arguments:
-        - cfg (:obj:`EasyDict`): the config dict wrapped by EasyDict, should be {'hook': [xxx, xxx]}
+        - cfg (:obj:`EasyDict`): Config dict. Should be like {'hook': xxx}.
     Returns:
-        - hooks (:obj:`dict`): key should be in ['before_run', 'after_run', 'before_iter', 'after_iter'],\
-            value should be a list containing all hooks in this position.
+        - hooks (:obj:`Dict[str, List[Hook]`): Keys should be in ['before_run', 'after_run', 'before_iter', \
+            'after_iter'], each value should be a list containing all hooks in this position.
     Note:
-        lower value means higher priority
+        Lower value means higher priority.
     """
     hooks = {k: [] for k in LearnerHook.positions}
     for item in cfg.values():
@@ -340,13 +344,13 @@ def build_learner_hook_by_cfg(cfg: EasyDict) -> dict:
     return hooks
 
 
-def add_learner_hook(hooks: dict, hook: LearnerHook) -> None:
+def add_learner_hook(hooks: Dict[str, List[Hook]], hook: LearnerHook) -> None:
     """
     Overview:
-        add a learner hook to hooks
+        Add a learner hook(:obj:`LearnerHook`) to hooks(:obj:`Dict[str, List[Hook]`)
     Arguments:
-        - hooks (:obj:`dict`): you can reference build_learner_hook_by_cfg()'s return `hooks`.
-        - hook (:obj:`LearnerHook`): the LearnerHook which will be added to `hooks`
+        - hooks (:obj:`Dict[str, List[Hook]`): You can refer to ``build_learner_hook_by_cfg``'s return ``hooks``.
+        - hook (:obj:`LearnerHook`): The LearnerHook which will be added to ``hooks``.
     """
     position = hook.position
     priority = hook.priority
@@ -359,18 +363,17 @@ def add_learner_hook(hooks: dict, hook: LearnerHook) -> None:
     hooks[position].insert(idx, hook)
 
 
-def merge_hooks(hooks1: Dict[str, list], hooks2: Dict[str, list]) -> Dict[str, list]:
+def merge_hooks(hooks1: Dict[str, List[Hook]], hooks2: Dict[str, List[Hook]]) -> Dict[str, List[Hook]]:
     """
     Overview:
-        merge two hooks, which has the same keys, each value is sorted by hook priority with stable method
+        Merge two hooks dict, which have the same keys, and each value is sorted by hook priority with stable method.
     Arguments:
-        - hooks1 (:obj:`dict`): hooks1 to be merged
-        - hooks2 (:obj:`dict`): hooks2 to be merged
+        - hooks1 (:obj:`Dict[str, List[Hook]`): hooks1 to be merged.
+        - hooks2 (:obj:`Dict[str, List[Hook]`): hooks2 to be merged.
     Returns:
-        - new_hooks (:obj:`dict`): merged new hooks
-
-    .. note::
-        This merge function uses stable sort method without disturbing the same priority hook
+        - new_hooks (:obj:`Dict[str, List[Hook]`): New merged hooks dict.
+    Note:
+        This merge function uses stable sort method without disturbing the same priority hook.
     """
     assert set(hooks1.keys()) == set(hooks2.keys())
     new_hooks = {}

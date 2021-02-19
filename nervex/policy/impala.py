@@ -5,10 +5,10 @@ import torch.nn.functional as F
 
 from nervex.data import default_collate, default_decollate
 from nervex.torch_utils import to_device
-from nervex.torch_utils import Adam
+from nervex.torch_utils import Adam, RMSprop
 from nervex.rl_utils import Adder, vtrace_data, vtrace_error
 from nervex.model import FCValueAC, ConvValueAC
-from nervex.agent import Agent
+from nervex.armor import Armor
 from .base_policy import Policy, register_policy
 from .common_policy import CommonPolicy
 
@@ -23,14 +23,14 @@ class IMPALAPolicy(CommonPolicy):
         r"""
         Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init the optimizer, algorithm config and the main agent.
+            Init the optimizer, algorithm config and the main armor.
         """
         # Optimizer
         grad_clip_type = self._cfg.learn.get("grad_clip_type", None)
         clip_value = self._cfg.learn.get("clip_value", None)
         optim_type = self._cfg.learn.get("optim", "adam")
         if optim_type == 'rmsprop':
-            self._optimizer = torch.optim.RMSprop(self._model.parameters(), lr=self._cfg.learn.learning_rate)
+            self._optimizer = RMSprop(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         elif optim_type == 'adam':
             self._optimizer = Adam(
                 self._model.parameters(),
@@ -40,7 +40,7 @@ class IMPALAPolicy(CommonPolicy):
             )
         else:
             raise NotImplementedError
-        self._agent = Agent(self._model)
+        self._armor = Armor(self._model)
 
         self._action_dim = self._cfg.model.action_dim
 
@@ -54,10 +54,10 @@ class IMPALAPolicy(CommonPolicy):
         self._c_clip_ratio = algo_cfg.c_clip_ratio
         self._rho_pg_clip_ratio = algo_cfg.rho_pg_clip_ratio
 
-        # Main agent
-        self._agent.add_plugin('main', 'grad', enable_grad=True)
-        self._agent.mode(train=True)
-        self._agent.reset()
+        # Main armor
+        self._armor.add_plugin('main', 'grad', enable_grad=True)
+        self._armor.mode(train=True)
+        self._armor.reset()
         self._learn_setting_set = {}
 
     def _data_preprocess_learn(self, data: List[Dict[str, Any]]) -> dict:
@@ -99,7 +99,7 @@ class IMPALAPolicy(CommonPolicy):
         # ====================
         # IMPALA forward
         # ====================
-        output = self._agent.forward(data['obs_plus_1'], param={'mode': 'compute_action_value'})
+        output = self._armor.forward(data['obs_plus_1'], param={'mode': 'compute_action_value'})
         target_logit, behaviour_logit, actions, values, rewards, weights = self._reshape_data(output, data)
         # Calculate vtrace error
         data = vtrace_data(target_logit, behaviour_logit, actions, values, rewards, weights)
@@ -143,7 +143,7 @@ class IMPALAPolicy(CommonPolicy):
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect agent.
+            Init traj and unroll length, adder, collect armor.
         """
         self._traj_len = self._cfg.collect.traj_len
         self._unroll_len = self._cfg.collect.unroll_len
@@ -151,11 +151,11 @@ class IMPALAPolicy(CommonPolicy):
             self._traj_len = float('inf')
         # v_trace need v_t+1
         assert self._traj_len > 1, "IMPALA traj len should be greater than 1"
-        self._collect_agent = Agent(self._model)
-        self._collect_agent.add_plugin('main', 'multinomial_sample')
-        self._collect_agent.add_plugin('main', 'grad', enable_grad=False)
-        self._collect_agent.mode(train=False)
-        self._collect_agent.reset()
+        self._collect_armor = Armor(self._model)
+        self._collect_armor.add_plugin('main', 'multinomial_sample')
+        self._collect_armor.add_plugin('main', 'grad', enable_grad=False)
+        self._collect_armor.mode(train=False)
+        self._collect_armor.reset()
         self._collect_setting_set = {}
         self._adder = Adder(self._use_cuda, self._unroll_len)
 
@@ -169,15 +169,15 @@ class IMPALAPolicy(CommonPolicy):
         Returns:
             - data (:obj:`dict`): The collected data
         """
-        return self._collect_agent.forward(data, param={'mode': 'compute_action_value'})
+        return self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
 
-    def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         """
         Overview:
                Generate dict type transition data from inputs.
         Arguments:
                 - obs (:obj:`Any`): Env observation
-                - agent_output (:obj:`dict`): Output of collect agent, including at least ['action']
+                - armor_output (:obj:`dict`): Output of collect armor, including at least ['action']
                 - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done']\
                        (here 'obs' indicates obs after env step).
         Returns:
@@ -186,9 +186,9 @@ class IMPALAPolicy(CommonPolicy):
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'logit': agent_output['logit'],
-            'action': agent_output['action'],
-            'value': agent_output['value'],
+            'logit': armor_output['logit'],
+            'action': armor_output['action'],
+            'value': armor_output['value'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -198,13 +198,13 @@ class IMPALAPolicy(CommonPolicy):
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
-            Init eval agent with argmax strategy.
+            Init eval armor with argmax strategy.
         """
-        self._eval_agent = Agent(self._model)
-        self._eval_agent.add_plugin('main', 'argmax_sample')
-        self._eval_agent.add_plugin('main', 'grad', enable_grad=False)
-        self._eval_agent.mode(train=False)
-        self._eval_agent.reset()
+        self._eval_armor = Armor(self._model)
+        self._eval_armor.add_plugin('main', 'argmax_sample')
+        self._eval_armor.add_plugin('main', 'grad', enable_grad=False)
+        self._eval_armor.mode(train=False)
+        self._eval_armor.reset()
         self._eval_setting_set = {}
 
     def _forward_eval(self, data_id: List[int], data: dict) -> dict:
@@ -217,7 +217,7 @@ class IMPALAPolicy(CommonPolicy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        return self._eval_agent.forward(data, param={'mode': 'compute_action'})
+        return self._eval_armor.forward(data, param={'mode': 'compute_action'})
 
     def _init_command(self) -> None:
         pass

@@ -1,4 +1,5 @@
 import copy
+import logging
 import math
 import time
 import numbers
@@ -278,7 +279,7 @@ class ReplayBuffer:
         # Add in operation count.
         self._in_count = 0
         self._in_tick_monitor = InTickMonitor(TickTime(), expire=self.monitor_cfg.tick_expire)
-        self._logger, self._tb_logger = build_logger(self.monitor_cfg.log_path, self.name, True)
+        self._logger, self._tb_logger = build_logger(self.monitor_cfg.log_path, self.name + '_buffer', True)
         self._in_vars = ['in_count_avg', 'in_time_avg']
         self._in_vars = [self.name + var for var in self._in_vars]
         self._out_vars = [
@@ -286,7 +287,7 @@ class ReplayBuffer:
         ]
         self._out_vars = [self.name + var for var in self._out_vars]
         for var in self._in_vars + self._out_vars:
-            self._tb_logger.register_var(var)
+            self._tb_logger.register_var('buffer_{}/'.format(self.name) + var)
         self._log_freq = self.monitor_cfg.log_freq
 
         # Load data from file if load_path in config is not None.
@@ -307,7 +308,8 @@ class ReplayBuffer:
             - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
         Returns:
             - can_sample (:obj:`bool`): Whether this buffer can sample enough data.
-        Note:
+
+        .. note::
             This function must be called exactly before calling ``sample``.
         """
         if size == 0:
@@ -349,7 +351,8 @@ class ReplayBuffer:
         Returns:
             - sample_data (:obj:`list`): If check fails returns None; Otherwise returns a list with length ``size``, \
                 and each data owns keys: original keys + ['IS', 'priority', 'replay_unique_id', 'replay_buffer_idx'].
-        Note:
+
+        .. note::
             Before calling this function, ``sample_check`` must be called.
         """
         if size == 0:
@@ -622,11 +625,12 @@ class ReplayBuffer:
             'in_count_avg': self._natural_monitor.avg['in_count'](),
             'in_time_avg': self._in_tick_monitor.avg['in_time']()
         }
-        self._in_count += 1
         if self._in_count % self._log_freq == 0:
-            self._logger.info("===Add In Buffer {} Times===".format(self._in_count))
-            self._logger.print_vars(in_dict)
+            self._logger.debug("===Add In Buffer {} Times===".format(self._in_count))
+            self._logger.print_vars(in_dict, level=logging.DEBUG)
+            in_dict = {'buffer_{}/'.format(self.name) + k: v for k, v in in_dict.items()}
             self._tb_logger.print_vars(in_dict, self._in_count, 'scalar')
+        self._in_count += 1
 
     def _monitor_update_of_sample(self, sample_data: list, sample_time: float) -> None:
         r"""
@@ -658,11 +662,12 @@ class ReplayBuffer:
             'staleness_avg': self._out_tick_monitor.avg['staleness'](),
             'staleness_max': self._out_tick_monitor.max['staleness'](),
         }
-        self._out_count += 1
         if self._out_count % self._log_freq == 0:
-            self._logger.info("===Read Buffer {} Times===".format(self._out_count))
-            self._logger.print_vars(out_dict)
+            self._logger.debug("===Read Buffer {} Times===".format(self._out_count))
+            self._logger.print_vars(out_dict, level=logging.DEBUG)
+            out_dict = {'buffer_{}/'.format(self.name) + k: v for k, v in out_dict.items()}
             self._tb_logger.print_vars(out_dict, self._out_count, 'scalar')
+        self._out_count += 1
 
     def _calculate_staleness(self, pos_index: int, cur_learner_iter: int) -> Optional[int]:
         r"""
@@ -674,8 +679,9 @@ class ReplayBuffer:
             - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
         Returns:
             - staleness (:obj:`int`): Staleness of data at position ``pos_index``.
-        Note:
-            Caller should guarantee that data at ``pos_index`` is not None, otherwise this function may raise an error.
+
+        .. note::
+            Caller should guarantee that data at ``pos_index`` is not None; Otherwise this function may raise an error.
         """
         if self._data[pos_index] is None:
             raise ValueError("Prioritized's data at index {} is None".format(pos_index))

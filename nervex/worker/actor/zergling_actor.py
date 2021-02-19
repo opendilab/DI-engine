@@ -11,7 +11,7 @@ from easydict import EasyDict
 
 from nervex.envs import get_vec_env_setting
 from nervex.torch_utils import to_device, tensor_to_list
-from nervex.utils import get_data_compressor, lists_to_dicts
+from nervex.utils import get_data_compressor, lists_to_dicts, pretty_print
 from .env_manager import SubprocessEnvManager, BaseEnvManager
 from .base_parallel_actor import BaseActor, register_actor
 from .base_serial_actor import CachePool
@@ -70,7 +70,9 @@ class ZerglingActor(BaseActor):
 
     # override
     def close(self) -> None:
-        super().close()
+        if self._end_flag:
+            return
+        self._end_flag = True
         if hasattr(self, '_env_manager'):
             self._env_manager.close()
 
@@ -121,7 +123,7 @@ class ZerglingActor(BaseActor):
                 if isinstance(reward, torch.Tensor):
                     reward = reward.item()
                 self._episode_result[env_id].append(reward)
-                self.info(
+                self.debug(
                     "env {} finish episode, final reward: {}, collected episode {}".format(
                         env_id, reward, len(self._episode_result[env_id])
                     )
@@ -155,7 +157,7 @@ class ZerglingActor(BaseActor):
         }
         if not self._eval_flag:
             finish_info['collect_setting'] = self._cfg.collect_setting
-        self._logger.info('FINISH INFO\n{}'.format(finish_info))
+        self._logger.info('\nFINISH INFO\n{}'.format(pretty_print(finish_info, direct_print=False)))
         self.send_finish_info(finish_info)
         # sleep some time for close thread
         time.sleep(3)
@@ -168,13 +170,13 @@ class ZerglingActor(BaseActor):
                 policy_update_info = self.get_policy_update_info(path)
                 break
             except Exception as e:
-                self.error('update agent error: {}'.format(e))
+                self.error('update armor error: {}'.format(e))
                 time.sleep(1)
 
         handle = self._policy.state_dict_handle()
         handle['model'].load_state_dict(policy_update_info['model'])
         self._policy_iter = policy_update_info['iter']
-        self.info('update policy with {}(iter{}) in {}'.format(path, self._policy_iter, time.time()))
+        self.debug('update policy with {}(iter{}) in {}'.format(path, self._policy_iter, time.time()))
 
     # ******************************** thread **************************************
 

@@ -53,13 +53,13 @@ class Policy(ABC):
                 getattr(self, '_init_' + field)()
         if self._use_distributed:
             if self._enable_field is None or self._enable_field == ['learn']:
-                agent = self._agent
+                armor = self._armor
             else:
-                agent = getattr(self, '_{}_agent'.format(self._enable_field[0]))
-            for name, param in agent.model.state_dict().items():
+                armor = getattr(self, '_{}_armor'.format(self._enable_field[0]))
+            for name, param in armor.model.state_dict().items():
                 assert isinstance(param.data, torch.Tensor), type(param.data)
                 broadcast(param.data, 0)
-            for name, param in agent.model.named_parameters():
+            for name, param in armor.model.named_parameters():
                 setattr(param, 'grad', torch.zeros_like(param))
 
     def _create_model(self, cfg: dict, model: Optional[Union[type, torch.nn.Module]] = None) -> torch.nn.Module:
@@ -191,7 +191,7 @@ class Policy(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         raise NotImplementedError
 
     @abstractmethod

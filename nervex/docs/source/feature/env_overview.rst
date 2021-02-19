@@ -78,6 +78,10 @@ Environment
                     evaluator_env_num = cfg.pop('evaluator_env_num', 1)
                     return [cfg for _ in range(evaluator_env_num)]
 
+                # optional method
+                def enable_save_replay(self, replay_path: str) -> None:
+                    raise NotImplementedError
+
 
         - 概述：
             环境基类，用于和外部策略进行交互
@@ -88,7 +92,7 @@ Environment
 
             .. note::
 
-                此外， ``obs_space`` 和 ``vec_env_manager`` 中 ``shared_memory`` 的相关使用存在强依赖，如要使用则必须按照 ``EnvElementInfo`` 来实现。
+                此外， ``obs_space`` 和 ``subprocess_env_manager`` 中 ``shared_memory`` 的相关使用存在强依赖，如要使用则必须按照 ``EnvElementInfo`` 来实现。
 
 
         - 接口方法：
@@ -101,6 +105,7 @@ Environment
             7. __repr__: 返回环境类状态说明的字符串
             8. create_actor_env_cfg: 为数据收集创建相应的环境配置文件，与 ``create_evaluator_env_cfg`` 互相独立，便于使用者对数据收集和性能评测设置不同的环境参数，根据传入的初始配置为每个具体的环境生成相应的配置文件，默认情况会获取配置文件中的环境个数，然后将默认环境配置复制相应份数返回
             9. create_evaluator_env_cfg: 为性能评测创建相应的环境配置文件，功能同上说明
+            10. enable_save_replay: 使环境可以保存运行过程为视频文件，便于调试和可视化，一般在环境开始实际运行前调用，功能上代替常见环境中的render方法。（该方法可选实现）
 
             .. note::
 
@@ -270,6 +275,6 @@ Environment
 
 .. note::
 
-    1. 所有代码实现中命名一律使用名词单数，约定为习惯
+    1. 所有代码实现中命名建议一般情况使用单数，但如果使用复数可以使某局部代码块逻辑更清晰，该部分也可自由选择。
     2. 所有代码实现秉承 **自身对外界输入质疑，自身对外界输出负责** 的思想，对输入参数做必要的check，对输出（返回值）明确规定其格式
     3. 环境元素的键值如果为空时，一律使用 ``None``

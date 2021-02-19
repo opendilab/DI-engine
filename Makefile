@@ -1,7 +1,7 @@
 CI := $(shell echo ${CI})
 
 WORKERS         ?=
-WORKERS_COMMAND := $(if ${WORKERS},-n ${WORKERS},)
+WORKERS_COMMAND := $(if ${WORKERS},-n ${WORKERS} --dist=loadscope,)
 
 DURATIONS         ?= 10
 DURATIONS_COMMAND := $(if ${DURATIONS},--durations=${DURATIONS},)
@@ -19,7 +19,7 @@ unittest:
 		--cov-report term-missing \
 		--cov=${COV_DIR} \
 		${WORKERS_COMMAND} \
-		-sv -m unittest --dist=loadscope
+		-sv -m unittest
 
 algotest:
 	pytest ${TEST_DIR} \

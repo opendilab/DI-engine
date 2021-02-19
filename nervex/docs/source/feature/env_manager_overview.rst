@@ -11,7 +11,7 @@ Env Manager
     主要分为如下几个子模块：
 
         1. base_env_manager: base_env_manager通过循环串行（伪并行）来维护多个环境实例，提供与env相似的接口。
-        2. vec_env_manager: 继承base_env_manager的接口，通过子进程向量化的方式，即调用multiprocessing，通过子进程进程间通信的方式对环境进行管理和运行。
+        2. subprocess_env_manager: 继承base_env_manager的接口，通过子进程向量化的方式，即调用multiprocessing，通过子进程进程间通信的方式对环境进行管理和运行。
         3. BaseEnvInfo: 环境信息template，作为info的返回值，提供agent数量, observation空间, action空间 , reward空间的信息。
         4. EnvElementInfo: 空间信息template，定义observation等空间的shape、 value极大值和极小值, to_agent_processor和from_agent_processor。
         5. BaseEnvTimestep: 环境产出数据的template，作为step函数的返回值，为policy提供obs、reward、done和info信息。注意rew需要作为一个shape为(1，)的numpy数组返回。
@@ -28,6 +28,7 @@ Env Manager
                         env_cfg: Iterable,
                         env_num: int,
                         episode_num: Optional[int] = 'inf',
+                        manager_cfg: Optional[dict] = {},
                 ) -> None:
                     self._env_num = env_num
                     self._env_fn = env_fn
@@ -141,7 +142,7 @@ Env Manager
 
             具体的使用可以参考测试文件 nervex/worker/actor/env_manager/tests/test_base_env_manager.py, 或者直接参考SubprocessEnvManager的使用方式（两者使用相同的接口）
 
-    2. SubprocessEnvManager (nervex/worker/actor/env_manager/vec_env_manager.py)
+    2. SubprocessEnvManager (nervex/worker/actor/env_manager/subprocess_env_manager.py)
 
         .. code:: python
 
@@ -450,4 +451,4 @@ Env Manager
 
 
 .. note::
-    BaseEnvManager和SubprocessEnvManager相关插件的测试可以参见 `nervex/worker/actor/env_manager/tests/test_base_env_manager.py` 和 `nervex/worker/actor/env_manager/tests/test_vec_env_manager.py`。
+    BaseEnvManager和SubprocessEnvManager相关插件的测试可以参见 `nervex/worker/actor/env_manager/tests/test_base_env_manager.py` 和 `nervex/worker/actor/env_manager/tests/test_subprocess_env_manager.py`。

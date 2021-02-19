@@ -8,128 +8,158 @@ Tutorial
 代码结构概述
 ===============
 
-nervex(框架核心)
+nervex (框架核心)
 -----------------
 
- 1. data: 数据加载
+    .. code:: bash
 
-   - BufferManager（内部支持多种buffer，在线生成数据的agent buffer和使用专家数据的demo buffer）
-   - AsyncDataLoader （异步数据加载器）
+        nervex
+        ├── armor (模型运行时容器)
+        │   ├── armor.py (BaseArmor及Armor类)
+        │   └── armor_plugin.py (armor插件)
+        ├── config (配置文件及其工具)
+        │   ├── buffer_manager.py (buffer manager配置文件)
+        │   ├── config.py (Config类)
+        │   ├── league.py (league配置文件)
+        │   ├── parallel.py (并行配置文件)
+        │   ├── serial.py (串行配置文件)
+        │   └── utils.py (配置文件工具)
+        ├── data (数据加载)
+        │   ├── buffer_manager.py (多buffer管理)
+        │   ├── collate_fn.py (数据处理函数)
+        │   ├── dataloader.py (异步数据加载器)
+        │   └── structure (所需数据结构)
+        ├── design (设计图)
+        ├── docs (文档)
+        ├── entry (启动入口)
+        │   ├── cli.py (命令行)
+        │   ├── parallel_entry.py (并行入口)
+        │   └── serial_entry.py (串行入口)
+        ├── envs (强化学习环境接口)
+        │   ├── common (通用环境元素基类)
+        │   └── env (环境基类和具体的环境类)
+        ├── hpc_rl (加速算子组件)
+        │   ├── hpc_rll-0.0.1-cp36-cp36m-linux_x86_64.whl (环境库打包whl文件)
+        │   └── wrapper.py
+        ├── interaction (独立于业务的交互式服务框架)
+        │   ├── base
+        │   ├── config
+        │   ├── exception
+        │   ├── master
+        │   └── slave
+        ├── league (联盟训练决策调度模块)
+        │   ├── algorithm.py
+        │   ├── base_league.py
+        │   ├── league_wrapper.py
+        │   ├── payoff.py
+        │   ├── player.py
+        │   ├── shared_payoff.py
+        │   ├── solo_league.py
+        │   └── starcraft_player.py
+        ├── loader (数据组合框架组件)
+        │   ├── base.py
+        │   ├── collection.py
+        │   ├── dict.py
+        │   ├── exception.py
+        │   ├── mapping.py
+        │   ├── norm.py
+        │   ├── number.py
+        │   ├── string.py
+        │   ├── tests
+        │   ├── types.py
+        │   └── utils.py
+        ├── model (强化学习神经网络接口)
+        │   ├── actor_critic
+        │   ├── atoc
+        │   ├── coma
+        │   ├── common
+        │   ├── common_arch
+        │   ├── discrete_net
+        │   ├── qac
+        │   ├── qmix
+        │   └── sac
+        ├── policy (强化学习策略库)
+        │   ├── a2c.py
+        │   ├── base_policy.py
+        │   ├── collaQ.py
+        │   ├── coma.py
+        │   ├── common_policy.py
+        │   ├── ddpg.py
+        │   ├── dqn.py
+        │   ├── dqn_vanilla.py
+        │   ├── impala.py
+        │   ├── ppo.py
+        │   ├── ppo_vanilla.py
+        │   ├── qmix.py
+        │   ├── r2d2.py
+        │   ├── rainbow_dqn.py
+        │   └── sac.py
+        ├── rl_utils (强化学习工具库)
+        │   ├── a2c.py
+        │   ├── adder.py
+        │   ├── beta_function.py
+        │   ├── coma.py
+        │   ├── exploration.py
+        │   ├── gae.py
+        │   ├── isw.py
+        │   ├── ppo.py
+        │   ├── td.py
+        │   ├── tests
+        │   ├── upgo.py
+        │   ├── value_rescale.py
+        │   └── vtrace.py
+        ├── scripts (命令行脚本)
+        │   ├── local_parallel.sh
+        │   ├── local_serial.sh
+        │   └── slurm_parallel.sh
+        ├── torch_utils (PyTorch相关工具库)
+        │   ├── checkpoint_helper.py (训练现场保存和加载)
+        │   ├── data_helper.py (Tensor数据转换库)
+        │   ├── distribution.py (概率分布库)
+        │   ├── loss (损失函数库)
+        │   ├── metric.py (距离度量库)
+        │   ├── network (神经网络库)
+        │   ├── nn_test_helper.py (神经网络测试库)
+        │   └── optimizer_helper.py (优化器和梯度操作库)
+        ├── utils
+        │   ├── autolog (变量追踪工具)
+        │   ├── collection_helper.py
+        │   ├── compression_helper.py (数据压缩)
+        │   ├── config_helper.py (配置文件读取与合并)
+        │   ├── default_helper.py (数据变换函数)
+        │   ├── design_helper.py (代码设计工具)
+        │   ├── dist_helper.py (多卡训练)
+        │   ├── fake_linklink.py (伪linklink)
+        │   ├── file_helper.py （文件系统）
+        │   ├── import_helper.py (库导入)
+        │   ├── lock_helper.py (同步和互斥锁)
+        │   ├── log_helper.py (日志和可视化)
+        │   ├── slurm_helper.py (slurm工具)
+        │   ├── system_helper.py (系统工具)
+        │   └── time_helper.py （计时函数）
+        └── worker
+            ├── actor (数据生成器)
+            ├── adapter (适配器)
+            ├── coordinator (协作器)
+            └── learner (训练学习器)
 
- 2. envs: 强化学习环境接口
-
-   - 通用环境类接口
-   - 通用环境静态和动态元素接口
-   - 通用环境处理特征工程函数
-
- 3. model: 强化学习神经网络接口
-
-   - discrete_net: FCDQN, ConvDQN, FCDRQN, ConvDRQN
-   - Actor-Critic: ValueAC
-   - qac: QValueAC
-   - qmix
-   - coma
-   - ATOC
-
- 4. policy: 强化学习策略库
-   
-   - DQN(double+dueling+nstep)
-   - RainbowDQN
-   - IQN
-   - PPO(GAE)
-   - A2C(GAE)
-   - DDPG
-   - TD3
-   - SAC
-   - R2D2
-   - IMPALA
-   - QMIX
-   - COMA
-   - ATOC
-   - COLLAQ
-   - (TODO) HER
-   - (TODO) Muzero
-
- 5. rl_utils: 强化学习工具库
-
-   - td(q_nstep, v_nstep, dist_nstep, td-lambda, q_nstep_rescale)
-   - ppo
-   - a2c
-   - gae
-   - vtrace
-   - qmix
-   - coma
-   - UPGO
-   - exploration
-   - adder
-   - (TODO) MCTS
-
- 6. torch_utils: PyTorch相关工具库
-
-   - 神经网络库
-   - 损失函数库
-   - PyTorch Tensor数据转换库
-   - 训练现场保存和加载(checkpoint)
-   - 优化器和梯度操作库
-   - 距离度量库
-
- 7. utils: 通用模块库
-
-   - 计时函数
-   - 数据压缩 (lz4, zllib)
-   - 多卡训练（封装linklink）
-   - 文件系统（封装ceph）
-   - 同步和互斥锁
-   - 日志和可视化
-   - 数据变换函数
-   - 单元测试工具
-   - 代码设计工具
-
- 8. league: 联盟训练决策调度模块
-
-   - league manager(player manager)
-   - player
-   - payoff
-   - self-play算法
-
-     - uniform self-play
-     - PFSP(prioritized fictitious self-play)
-
- 9. agent 模型运行时容器
-
- 10. worker: 系统运行模块
-
-   - 训练学习器(learner)
-   - 数据生成器(actor)，其中包含环境管理器(env_manager)
-   - 协作器(coordinator)
-   - 适配器(adapter)
-
- 11. interaction: 通信交互模块
-
- 12. entry: 启动入口模块
-
-   - serial_entry
-
- 13. docs: 文档
-
-app_zoo(基于nerveX的DRL应用)
+app_zoo (基于nerveX的DRL应用)
 -----------------------------
 
- 1. Atari
+    .. code:: bash
 
- 2. classic_control(cartpole, pendulum)
-
- 3. mujoco
-
- 4. sumo(traffic light control)
-
- 5. gfootball(multi-agent football)
-
- 6. alphastar(SC2)
-
- 7. multiagent-particle
-
- 8. board
+        app_zoo
+        ├── alphastar (SC2)
+        ├── atari
+        ├── classic_control
+        │   ├── bitflip
+        │   ├── cartpole
+        │   └── pendulum
+        ├── gfootball (multi-agent football)
+        ├── mujoco
+        ├── multiagent_particle
+        ├── smac
+        └── sumo (traffic light control)
 
 
 数据流图
@@ -148,36 +178,23 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
 算法训练入口示例(串行版本)
 =================================
 
-    完成安装之后，可以仿照 ``nervex/entry/tests/test_serial_entry.py`` 文件，仿照单元测试的写法，创建一个训练脚本并命名为 ``cartpole_dqn.py``：
+训练脚本及其启动
+------------------------------
+    
+    完成安装之后，可以仿照 ``nervex/entry/tests/test_serial_entry.py`` 文件中单元测试的写法，创建一个训练脚本并命名为 ``cartpole_dqn.py``：
 
     .. code:: python
 
-        path = os.path.join(
-            os.path.dirname(__file__), '../../../app_zoo/classic_control/cartpole/entry/cartpole_dqn_default_config.yaml'
-        )
-        config = read_config(path)
+        from app_zoo.classic_control.cartpole.entry import cartpole_dqn_default_config
+        config = deepcopy(cartpole_dqn_default_config)
         serial_pipeline(config, seed=0)
 
-    如以上代码，就是读取了 ``app_zoo`` 中的 ``cartpole_dqn_default_config.yaml`` 配置文件，并传入 ``serial_pipeline`` 开始训练。
+    如以上代码，就是读取了 ``app_zoo`` 中的 ``cartpole_dqn_default_config.py`` 配置文件，并传入 ``serial_pipeline`` 开始训练。
 
     .. note::
 
-        ``serial_pipeline`` 入口函数还支持指定自定义的 **环境**, **策略**, **神经网络模型**, 具体使用方式可以参见QA部分或是直接查看相关代码。
-
-    .. note::
-
-        如果是使用 ``pip install .`` 命令安装，即未指定-e，还可以通过命令行调用串行训练入口：
-
-        .. code:: bash
-
-            nervex -m serial -c config.yaml -s 0
-
-    根据不同的需求，可以修改配置文件并自定义相关的启动脚本，配置文件中可能修改的地方主要有如下几处：
-
-      - policy.use_cuda: 是否使用cuda，主要取决于使用者的机器上是否有GPU
-      - env.env_type: 如要更改所使用的环境，首先修改env.env_type，并对应修改env.import_names，atari及mujuco还需修改env.env_id，不同环境的evaluator.stop_val可能不同也需要修改。需注意环境的observation是图像还是向量，并检查是否需要对应修改policy.model中的encoder。
-      - policy: 若要更改所使用的算法/策略，首先修改policy.policy_type，并对应修改policy.import_names, policy.on_policy, policy.model等。
-
+        入口函数 ``serial_pipeline`` 还支持指定自定义的 **环境**, **策略**, **神经网络模型**, 具体使用方式可以参见QA部分或是直接查看相关代码。
+    
     想要进行一组实验时，应 **创建单独的实验文件夹，复制相应的执行脚本（如有必要，也需一同复制配置文件）到实验文件夹下** ，然后启动执行脚本即可。
 
     下面所示为一般本地测试时的启动脚本
@@ -190,31 +207,166 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
 
     .. code:: bash
 
-        srun -p $1 --gres=gpu:1 python3 -u cartpole_dqn.py 
+        srun -p $1 --gres=gpu:1 python3 -u cartpole_dqn.py
 
+    .. note::
+
+        如果是使用 ``pip install .`` 命令安装，即未指定-e，还可以通过命令行调用串行训练入口：
+
+        .. code:: bash
+
+            nervex -m serial -c config.yaml -s 0
+            nervex -m serial -c config.py -s 0
+        
+        此处 config 文件支持 yaml 或是 py 格式，但若为 py 格式，需要声明 ``main_config`` 变量，具体说明请见下一节 **配置文件** 。
+
+配置文件
+--------
+
+    根据不同的需求，可以修改配置文件并自定义相关的启动脚本，配置文件中可能修改的地方主要有如下几处：
+
+      - policy.use_cuda: 是否使用cuda，主要取决于使用者的机器上是否有GPU
+      - env.env_type: 如要更改所使用的环境，首先修改env.env_type，并对应修改env.import_names，atari及mujuco还需修改env.env_id，不同环境的evaluator.stop_val可能不同也需要修改。需注意环境的observation是图像还是向量，并检查是否需要对应修改policy.model中的encoder。
+      - policy: 若要更改所使用的算法/策略，首先修改policy.policy_type，并对应修改policy.import_names, policy.on_policy, policy.model等。
+
+    .. note::
+
+        无论是串行还是并行版本的 config 文件，若是 py 格式，且希望通过命令行的方式启动脚本，请务必在文件中声明 ``main_config`` 变量，
+        令其等于真实的 ``EasyDict`` 类型的配置变量，如下：
+
+        .. code:: python
+
+            cartpole_dqn_default_config = dict(
+                # ...
+            )
+            cartpole_dqn_default_config = EasyDict(cartpole_dqn_default_config)
+            main_config = cartpole_dqn_default_config
+
+运行后产生的文件
+---------------------
+
+    串行版本运行起来后会在当前目录产生 ``ckptBaseLearner*`` 及 ``log`` 两个文件夹，分别存放 checkpoint 及 log 文件，文件树如下：
+
+    .. code:: bash
+        
+        ./
+        ├── cartpole_a2c_default_config.py
+        ├── ckptBaseLearner140403751719992
+        │   ├── iteration_0.pth.tar
+        │   └── iteration_200.pth.tar
+        └── log
+            ├── actor
+            │   └── actor_logger.txt
+            ├── buffer
+            │   └── armor_buffer
+            │       ├── armor_logger.txt
+            │       └── armor_tb_logger
+            ├── evaluator
+            │   ├── evaluator_logger.txt
+            │   └── evaluator_tb_logger
+            └── learner
+                ├── learner_logger.txt
+                └── learner_tb_logger
+
+    对于 ``ckptBaseLearner*`` ，一般来说，iteration 最大的文件保存有 evaluate 阶段 reward 最高的模型， iteration 从小至大的 eval_reward 也应当是从小至大的。
+
+    ``log`` 下包括 ``actor``, ``evaluator``, ``learner``, ``buffer`` 四个文件夹，除了 ``actor`` 外，均既有 tensorboard logger 又有 text logger，
+    而 ``actor`` 仅有 text logger。这些 logger 均按照各自的 log_freq 在一定的时间/步数间隔下进行记录。
+
+    ``actor`` 记录与环境交互的信息， ``learner`` 记录根据数据进行策略更新的信息， ``evaluator`` 记录对于当前最新策略的评估信息，
+    ``buffer`` 记录数据被塞入与采样出的各种统计量。
 
 算法训练入口示例(并行版本)
 =================================
 
-    完成安装之后，进入 ``app_zoo/classic_control/cartpole/entry/parallel`` 目录，找到 ``cartpole_dqn_default_config.py`` 文件,
-    即为在Cartpole环境上运行的并行训练配置文件，根据不同的使用环境，可以相应修改配置文件，其中可能修改的地方主要有如下几处：
+训练脚本及其启动
+------------------
 
-      - use_cuda: 是否使用cuda，主要取决于使用者的机器上是否有GPU，注意这时的启动脚本要指定cuda device相关
-      - use_distributed: 是否使用多机多卡训练，主要取决于使用者是否安装了linklink，以及是否要开启多机多卡训练，注意这时的启动脚本中要指定 `mpi` 相关
-      - repeat_num: learner端参与训练的GPU卡数，目前仅支持单机，最大值为一台机器上空闲的GPU数目
-      - path_agent等: 这些字段是多机版本训练进行数据通信的相关路径，默认使用当前目录，即通过文件系统进行通信，在集群上一般使用ceph，需要进行相关配置并对应更改这些字段
+    进入 ``app_zoo/classic_control/cartpole/entry/parallel`` 目录，找到 ``cartpole_dqn_default_config.py`` 文件,
+    即为在Cartpole环境上运行的并行训练配置文件。
 
     下面所示为一般本地测试时的启动脚本
 
     .. code:: bash
 
         nervex -m parallel -c cartpole_dqn_default_config.py -s 0
-        
+    
     下面所示为在slurm集群上的启动脚本，其中需要指定actor和learner相应的计算节点IP，Coordinator默认运行在管理节点上。
     
     .. code:: bash
 
-        nervex -m parallel -p slurm -c cartpole_dqn_default_config.py -s 0 --actor_host SH-IDC1-10-5-37-37 --learner_host SH-IDC1-10-5-37-37
+        nervex -m parallel -p slurm -c cartpole_dqn_default_config.py -s 0 --actor_host SH-IDC1-10-198-8-66 --learner_host SH-IDC1-10-198-8-66
+    
+    nervex 命令参数选项:
+
+        - **\-v, --version** : Show package's version information.
+        - **\-m, --mode [serial|parallel|eval]** : serial or parallel or eval
+        - **\-c, --config TEXT** : Path to DRL experiment config
+        - **\-s, --seed INTEGER** : random generator seed(for all the possible package: random, numpy, torch and user env)
+        - **\-p, --platform [local|slurm|k8s]** : local or slurm or k8s
+        - **\-ch, --coordinator_host TEXT** : coordinator host
+        - **\-lh, --learner_host TEXT** : learner host
+        - **\-ah, --actor_host TEXT** : actor host
+        - **\-h, --help** : Show this message and exit.
+
+配置文件
+--------
+    
+    根据不同的使用环境，可以相应修改配置文件，其中可能修改的地方主要有如下几处：
+
+      - use_cuda: 是否使用cuda，主要取决于使用者的机器上是否有GPU，注意这时的启动脚本要指定cuda device相关
+      - use_distributed: 是否使用多机多卡训练，主要取决于使用者是否安装了linklink，以及是否要开启多机多卡训练，注意这时的启动脚本中要指定 `mpi` 相关
+      - repeat_num: learner端参与训练的GPU卡数，目前仅支持单机，最大值为一台机器上空闲的GPU数目
+      - path_armor等: 这些字段是多机版本训练进行数据通信的相关路径，默认使用当前目录，即通过文件系统进行通信，在集群上一般使用ceph，需要进行相关配置并对应更改这些字段
+
+运行后产生的文件
+---------------------
+    
+    并行版本运行起来后会在当前目录产生 ``log`` 和 ``data`` 两个文件夹，以及 ``policy_*`` 文件，文件树如下：
+
+    .. code:: bash
+
+        ./
+        ├── __init__.py
+        ├── cartpole_dqn_default_config.py
+        ├── data
+        │   ├── env_0_1f03b27a-68f3-11eb-9a9b-29face2f0d06
+        │   ├── env_1_2c996e0a-68f3-11eb-9a9b-29face2f0d06
+        │   ├── ....
+        │   └── env_7_4939d342-68f3-11eb-9a9b-29face2f0d06
+        ├── log
+        │   ├── actor
+        │   │   ├── 011f43e3-6d93-4e6d-ab6a-f124b1719050_476275_logger.txt
+        │   │   ├── 34bc401b-ae5b-4a0c-816c-1db81738ae8c_606251_logger.txt
+        │   │   ├── ....
+        │   │   └── d8b1ce8f-f6ce-4d20-8085-7f2d9ce5bea8_476962_logger.txt
+        │   ├── buffer
+        │   │   └── armor_buffer
+        │   │       ├── armor_logger.txt
+        │   │       └── armor_tb_logger
+        │   ├── commander
+        │   │   ├── commander_logger.txt
+        │   │   └── commander_tb_logger
+        │   ├── coordinator_logger.txt
+        │   ├── evaluator
+        │   │   ├── 099d882b-ac35-4e77-a85b-0ec4924ce45a_160479_logger.txt
+        │   │   ├── 0c11e0e2-6b5b-417d-968c-ddc205a819c0_297009_logger.txt
+        │   │   ├── ....
+        │   │   └── fef38c77-1fa6-4d62-a0a3-5a904753e931_695838_logger.txt
+        │   └── learner
+        │       ├── learner_logger.txt
+        │       └── learner_tb_logger
+        └── policy_587ffbea-31bc-4aac-8d60-70ba68f5c5a7_611148
+
+    ``policy_*`` 是由 learner 存储，由 actor 读入以更新策略用的。
+
+    ``data`` 下存储的是 replay buffer 中的 trajectory（replay buffer仅存储这些 trajectory 的路径，而不实际存储数据）。
+
+    ``log`` ，其下包括 ``actor``, ``evaluator``, ``learner``, ``buffer``, ``commander`` 五个文件夹，以及 ``coordinator_logger.txt`` 文件。
+    其中， ``actor``, ``evaluator`` 会按照不同的 task 生成多个 txt 文件； ``learner`` 部分与串行版本类似，多个 task 的文字记录均在同一 txt 文件中，
+    但 tensorboard 会分 task 记录。 ``buffer`` 与串行版本相同。 ``commander`` 中将 evaluator 中的信息进行了整合，方便用户查看当前策略训练情况。
+    ``coordinator_logger.txt`` 则记录了和并行模式下通信相关的各种信息。
+
 
 DRL快速上手指南(串行版本)
 ==============================
@@ -231,13 +383,15 @@ DRL快速上手指南(串行版本)
 
 .. note::
 
-    注意一个深度强化学习算法可能包括神经网络模型，运行计算图(训练/数据生成)，优化目标(损失函数)，优化器等多个部分，nerveX在实现上将各个模块进行了解耦设计，所以相关代码可能较为分散，但一般的代码组织体系为：model（神经网络模型），rl_utils（具体的强化学习优化目标函数），以及两种可选功能组件Agent（神经网络模型在训练/数据生成/测试时的不同动态行为，例如RNN隐状态的维护，Double DQN算法中target network的维护），Adder（将收集到的数据帧整合成训练所需的状态），以及将上述各个模块组织串联起来，完整的强化学习策略定义，Policy模块（例如DQNPolicy）。
+    注意一个深度强化学习算法可能包括神经网络模型，运行计算图(训练/数据生成)，优化目标(损失函数)，优化器等多个部分，nerveX在实现上将各个模块进行了解耦设计，所以相关代码可能较为分散，但一般的代码组织体系为：model（神经网络模型），rl_utils（具体的强化学习优化目标函数），以及两种可选功能组件Armor（神经网络模型在训练/数据生成/测试时的不同动态行为，例如RNN隐状态的维护，Double DQN算法中target network的维护），Adder（将收集到的数据帧整合成训练所需的状态），以及将上述各个模块组织串联起来，完整的强化学习策略定义，Policy模块（例如DQNPolicy）。
 
 环境相关
 -----------
 
-RL不同于传统的监督学习，数据一般是离线准备完成，RL需要实时让智能体和问题环境进行交互，产生数据帧用于训练。nerveX为了处理实际问题场景中复杂的环境结构定义，抽象了环境及其基本元素相关模块（`Env Overview
-<../feature/env_overview.html>`_），该抽象定义了环境和外界交互的相关接口，数据帧中每个元素的格式和取值范围等基本信息。对于CartPole环境，nerveX已经完成实现，可以通过如下的代码直接调用：
+RL不同于传统的监督学习中可以离线准备数据，RL需要 **实时** 让智能体和问题环境进行交互，产生数据帧用于训练。
+nerveX为了处理实际问题场景中复杂的环境结构定义，抽象了环境及其基本元素相关模块（`Env Overview <../feature/env_overview.html>`_）。
+该抽象定义了环境和外界交互的相关接口，数据帧中每个元素的格式和取值范围等基本信息。
+对于CartPole环境，nerveX已经完成实现，可以通过如下的代码直接调用：
 
 .. code:: python
 
@@ -247,7 +401,7 @@ RL不同于传统的监督学习，数据一般是离线准备完成，RL需要�
 
 而在 ``serial_pipeline`` 中，我们有两种创建环境的方式，第一种是通过 ``cfg.env`` ，即配置文件中 ``env`` 相关字段进行自动创建，第二种是通过 ``env_setting`` 参数直接从调用者处得到环境类，actor部分的环境配置，以及evaluator部分的环境配置，具体的代码如下：
 
-.. code::python
+.. code:: python
 
     if env_setting is None:
         env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
@@ -257,17 +411,17 @@ RL不同于传统的监督学习，数据一般是离线准备完成，RL需要�
 
 其中从config中获取env_setting的方式为 ``get_vec_env_setting`` 函数：
 
-.. code::python
+.. code:: python
     
     def get_vec_env_setting(cfg: dict) -> Tuple[type, List[dict], List[dict]]:
-    import_module(cfg.pop('import_names', []))
-    if cfg.env_type in env_mapping:
-        env_fn = env_mapping[cfg.env_type]
-    else:
-        raise KeyError("invalid env type: {}".format(cfg.env_type))
-    actor_env_cfg = env_fn.create_actor_env_cfg(cfg)
-    evaluator_env_cfg = env_fn.create_evaluator_env_cfg(cfg)
-    return env_fn, actor_env_cfg, evaluator_env_cfg
+        import_module(cfg.pop('import_names', []))
+        if cfg.env_type in env_mapping:
+            env_fn = env_mapping[cfg.env_type]
+        else:
+            raise KeyError("invalid env type: {}".format(cfg.env_type))
+        actor_env_cfg = env_fn.create_actor_env_cfg(cfg)
+        evaluator_env_cfg = env_fn.create_evaluator_env_cfg(cfg)
+        return env_fn, actor_env_cfg, evaluator_env_cfg
 
 注意到我们对 ``actor_env_cfg`` , ``evaluator_env_cfg`` 进行了分开处理，这是考虑到训练过程中为了取得更好的训练效果，例如在Atari环境中经常会使用 ``Wrapper``
 对环境做不同的处理，而 ``Wrapper`` 处理后的 ``evaluator_env`` 其实并不能很好的衡量算法的效果，所以需要区别对待。
@@ -291,7 +445,7 @@ RL不同于传统的监督学习，数据一般是离线准备完成，RL需要�
 神经网络模型相关
 --------------------
 
-nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，支持用户自定义各式各样的神经网络，不过，nerveX也根据RL等决策算法的需要，构建了一些抽象层次和API，主要分为 ``model`` （模型）和 ``agent`` （智能体）两部分，若已有的Agent组件无法满足需求，使用者也可以完全自定义相关的代码段，其和训练主体代码并无耦合。
+nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，支持用户自定义各式各样的神经网络，不过，nerveX也根据RL等决策算法的需要，构建了一些抽象层次和API，主要分为 ``Model`` （模型）和 ``Armor`` （运行时模型）两部分，若已有的Armor组件无法满足需求，使用者也可以完全自定义相关的代码段，其和训练主体代码并无耦合。
 
 模型部分是对一些经典算法的抽象，比如对于Actor-Critic系列算法和Dueling DQN算法，nerveX为其实现了相关的模型基类，并且进行了多层的模块化的封装，详见 
 ``nervex/model/discrete_net/discrete_net.py`` 和其对应的测试文件 ``nervex/model/discrete_net/test_discrete_net.py`` 。
@@ -302,7 +456,7 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
 
     import torch
     import torch.nn as nn
-    
+
 
     # network definition
     class FCDQN(nn.Module):
@@ -327,14 +481,13 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
 
     # create network
     env_info = env.info()
-    obs_shape = env_info.obs_shape.shape
-    act_shape = env_info.act_shape.shape
+    obs_shape = env_info.obs_space.shape
+    act_shape = env_info.act_space.shape
     model = FCDQN(obs_shape, act_shape)
 
 .. note::
 
     此处实现的 ``FCDQN`` 示例网络其实相当于 ``nervex/model/discrete_net/discrete_net.py`` 中的 ``FCDiscreteNet``。
-
 
 .. note::
 
@@ -342,7 +495,7 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
 
 .. note::
 
-    nerveX的model模块中实现更为复杂的DQN（支持不同 ``Encoder和使用 ``LSTM``），使用者可使用自定义所用的神经网络，或内置版本的神经网络。
+    nerveX的model模块中实现更为复杂的DQN（支持不同 ``Encoder`` 和使用 ``LSTM`` ），使用者可使用自定义所用的神经网络，或内置版本的神经网络。
     内置版本的神经网络中，以 ``FC`` 开头表示使用接受 ``1-dim`` 的obs输入 ``Encoder`` ，以 ``Conv`` 开头表示使用接受 ``[Channel, Hight, Width]`` 的输入的 ``Encoder`` ，
     包含 ``R`` 的表示带有含 ``LSTM`` 的Recurrent Network。
 
@@ -352,12 +505,12 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
     为了便于和其他模块的对接，nerveX限制神经网络的输入输出为dict形式，即键为字符串值为Tensor或一组Tensor。但dict确实存在无法明晰输入输出数据具体内容的问题，故建议使用者为自己的神经网络准备
     相应的单元测试，并在forward方法中注明输入和输出的数据键及值的Tensor维度，格式可参考 `https://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/blob/master/nervex/rl_utils/ppo.py#L32`。
 
-智能体部分是对模型运行时行为的抽象（例如根据eps-greedy方法对logits进行采样，对于使用RNN的神经网络维护其隐状态等），具体的设计可以参考 `Agent Overview <../feature/agent_overview.html>`_ 。由于一个神经网络模型可能在多个系统组件内通过不同的方式使用（训练/数据生成/测试），nerveX使用 ``Agent Plugin`` （智能体插件）的定义不同的功能，并为各个组件内的模型添加相应的插件，完成定制化。对于CartPole DQN，使用系统预设的默认DQN智能体代码即可，示例如下， 其中Learner和Actor分别代码训练端和数据生成端：
+Armor 部分是对模型运行时行为的抽象（例如根据eps-greedy方法对logits进行采样，对于使用RNN的神经网络维护其隐状态等），具体的设计可以参考 `Armor Overview <../feature/armor_overview.html>`_ 。由于一个神经网络模型可能在多个系统组件内通过不同的方式使用（训练/数据生成/测试），nerveX使用 ``Armor Plugin`` （插件）的定义不同的功能，并为各个组件内的模型添加相应的插件，完成定制化。对于CartPole DQN，使用系统预设的默认DQN Armor即可，示例如下， 其中Learner和Actor分别代码训练端和数据生成端：
 
 
 .. note::
 
-   如果使用者想要定义自己的agent，请参考 `Agent Overview <../feature/agent_overview.html>`_ 中相关内容。如果使用者觉得Agent的现有设计和实现无法满足需求，也可以自定义完成相应的功能，nerveX并不强制要求使用Agent。
+   如果使用者想要定义自己的armor，请参考 `Armor Overview <../feature/armor_overview.html>`_ 中相关内容。如果使用者觉得Armor的现有设计和实现无法满足需求，也可以自定义完成相应的功能，nerveX并不强制要求使用Armor。
 
 优化目标(损失函数)相关
 -------------------------
@@ -489,10 +642,10 @@ DRL Policy Example(DQN)
 
 .. code:: python
 
-    #Agent模块，神经网络的运行时容器，为神经网络在不同使用场景下提供相应功能，包括用于更新策略的learner部分和用于collect数据的actor部分以及用于eval的evaluator部分
-    #(Agent是可选使用模块，使用者也可自定义相应的处理模块)
-    #Agent具体的使用方式可以参照下面代码中的实例
-    from nervex.agent import Agent
+    #Armor模块，神经网络的运行时容器，为神经网络在不同使用场景下提供相应功能，包括用于更新策略的learner部分和用于collect数据的actor部分以及用于eval的evaluator部分
+    #(Armor是可选使用模块，使用者也可自定义相应的处理模块)
+    #Armor具体的使用方式可以参照下面代码中的实例
+    from nervex.armor import Armor
 
 .. code:: python
 
@@ -536,8 +689,8 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
 
 - 初始化learn的optimizer， 即 ``self._optimizer`` 
 - 初始化算法的相关参数 
-- 初始化learn所用的运行时模块learner agent ，即 ``self._agent``
-- 初始化agent的相关model和plugin 
+- 初始化learn所用的运行时模块learner armor ，即 ``self._armor``
+- 初始化armor的相关model和plugin 
 
   - 如初始化target network(double dqn中的设计)
 
@@ -552,7 +705,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             r"""
             Overview:
                 Learn mode init method. Called by ``self.__init__``.
-                Init the optimizer, algorithm config, main and target agents.
+                Init the optimizer, algorithm config, main and target armors.
             """
             # Optimizer
             # 初始化learn的optimizer
@@ -564,23 +717,23 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             self._nstep = algo_cfg.nstep
             self._gamma = algo_cfg.discount_factor
         
-            # Main and target agents
-            # 初始化的模型传入agent
-            self._agent = Agent(self._model)
+            # Main and target armors
+            # 初始化的模型传入armor
+            self._armor = Armor(self._model)
             
-            # 初始化agent的相关model
-            self._agent.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
-            # 初始化agent的相关plugin
-            self._agent.add_plugin('main', 'argmax_sample')
-            self._agent.add_plugin('main', 'grad', enable_grad=True)
-            self._agent.add_plugin('target', 'grad', enable_grad=False)
+            # 初始化armor的相关model
+            self._armor.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
+            # 初始化armor的相关plugin
+            self._armor.add_plugin('main', 'argmax_sample')
+            self._armor.add_plugin('main', 'grad', enable_grad=True)
+            self._armor.add_plugin('target', 'grad', enable_grad=False)
             
             #常规初始化
-            self._agent.mode(train=True)
-            self._agent.target_mode(train=True)
+            self._armor.mode(train=True)
+            self._armor.target_mode(train=True)
             
-            self._agent.reset()
-            self._agent.target_reset()
+            self._armor.reset()
+            self._armor.target_reset()
             self._learn_setting_set = {}
 
 我们的learner需要知道如何计算loss，并进行模型的更新等操作
@@ -609,12 +762,12 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
                 reward = reward.unsqueeze(1)
             assert reward.shape == (self._cfg.learn.batch_size, self._nstep), reward.shape
             reward = reward.permute(1, 0).contiguous()
-            # Current q value (main agent)
-            q_value = self._agent.forward(data['obs'])['logit']
+            # Current q value (main armor)
+            q_value = self._armor.forward(data['obs'])['logit']
             # Target q value
-            target_q_value = self._agent.target_forward(data['next_obs'])['logit']
-            # Max q value action (main agent)
-            target_q_action = self._agent.forward(data['next_obs'])['action']
+            target_q_value = self._armor.target_forward(data['next_obs'])['logit']
+            # Max q value action (main armor)
+            target_q_action = self._armor.forward(data['next_obs'])['action']
     
             data_n = q_nstep_td_data(
                 q_value, target_q_value, data['action'], target_q_action, reward, data['done'], data['weight']
@@ -631,7 +784,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             # =============
             # after update
             # =============
-            self._agent.target_update(self._agent.state_dict()['model'])
+            self._armor.target_update(self._armor.state_dict()['model'])
             return {
                 'cur_lr': self._optimizer.defaults['lr'],
                 'total_loss': loss.item(),
@@ -640,8 +793,8 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
 我们也需要对actor部分进行初始化，包括： 
 
 - actor数据的收集方式， 包括 ``self._adder`` 等
-- 初始化的模型传入actor agent， 即 ``self._collect_agent`` 
-- 初始化agent的相关plugin 
+- 初始化的模型传入actor armor， 即 ``self._collect_armor`` 
+- 初始化armor的相关plugin 
 
   - 如actor使用 ``eps_greedy`` 进行sample
 
@@ -653,7 +806,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             r"""
             Overview:
                 Collect mode init method. Called by ``self.__init__``.
-                Init traj and unroll length, adder, collect agent.
+                Init traj and unroll length, adder, collect armor.
                 Enable the eps_greedy_sample
             """
             # actor数据的收集方式
@@ -664,16 +817,16 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             self._adder = Adder(self._use_cuda, self._unroll_len)
             self._collect_nstep = self._cfg.collect.algo.nstep
             
-            # 初始化的模型传入actor agent
-            self._collect_agent = Agent(self._model)
+            # 初始化的模型传入actor armor
+            self._collect_armor = Armor(self._model)
             
-            # 初始化agent的相关plugin
-            self._collect_agent.add_plugin('main', 'eps_greedy_sample')
-            self._collect_agent.add_plugin('main', 'grad', enable_grad=False)
+            # 初始化armor的相关plugin
+            self._collect_armor.add_plugin('main', 'eps_greedy_sample')
+            self._collect_armor.add_plugin('main', 'grad', enable_grad=False)
             
             # 常规初始化
-            self._collect_agent.mode(train=False)
-            self._collect_agent.reset()
+            self._collect_armor.mode(train=False)
+            self._collect_armor.reset()
             self._collect_setting_set = {'eps'}
 
 我们的actor需要根据环境返回的observation获取相关动作数据
@@ -693,7 +846,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             Returns:
                 - data (:obj:`dict`): The collected data
             """
-            return self._collect_agent.forward(data, eps=self._eps)
+            return self._collect_armor.forward(data, eps=self._eps)
 
 我们需要从trajectory（一组数据帧(transition)）中获取需要的训练样本
 
@@ -731,13 +884,13 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
 .. code:: python
 
     
-        def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
+        def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
             r"""
            Overview:
                Generate dict type transition data from inputs.
            Arguments:
                - obs (:obj:`Any`): Env observation
-               - agent_output (:obj:`dict`): Output of collect agent, including at least ['action']
+               - armor_output (:obj:`dict`): Output of collect armor, including at least ['action']
                - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
                    (here 'obs' indicates obs after env step).
            Returns:
@@ -746,7 +899,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             transition = {
                 'obs': obs,
                 'next_obs': timestep.obs,
-                'action': agent_output['action'],
+                'action': armor_output['action'],
                 'reward': timestep.reward,
                 'done': timestep.done,
             }
@@ -755,8 +908,8 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
 
 我们需要对evaluator部分进行初始化，包括：
 
--  初始化的模型传入 eval agent， 即 ``self._eval_agent``
--  初始化agent的相关plugin
+-  初始化的模型传入 eval armor， 即 ``self._eval_armor``
+-  初始化armor的相关plugin
 
    -  如使用 ``argmax`` 进行sample
 
@@ -774,13 +927,13 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             r"""
             Overview:
                 Evaluate mode init method. Called by ``self.__init__``.
-                Init eval agent with argmax strategy.
+                Init eval armor with argmax strategy.
             """
-            self._eval_agent = Agent(self._model)
-            self._eval_agent.add_plugin('main', 'argmax_sample')
-            self._eval_agent.add_plugin('main', 'grad', enable_grad=False)
-            self._eval_agent.mode(train=False)
-            self._eval_agent.reset()
+            self._eval_armor = Armor(self._model)
+            self._eval_armor.add_plugin('main', 'argmax_sample')
+            self._eval_armor.add_plugin('main', 'grad', enable_grad=False)
+            self._eval_armor.mode(train=False)
+            self._eval_armor.reset()
             self._eval_setting_set = {}
     
         def _forward_eval(self, data_id: List[int], data: dict) -> dict:
@@ -793,7 +946,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             Returns:
                 - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
             """
-            return self._eval_agent.forward(data)
+            return self._eval_armor.forward(data)
 
 在 ``_init_command`` 方法中，我们需要对相关控制模块进行初始化，比如epsilon_greedy的计算模块，使用者无需考虑信息在learner和actor之间如何传递，只需要考虑拿到信息后做怎样的数据处理即可
 

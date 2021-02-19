@@ -7,13 +7,14 @@ from typing import List
 import numpy as np
 import pytest
 import pickle
+from copy import deepcopy
 # import cProfile
 # import pstats
 # import io
 # from pstats import SortKey
 
 from nervex.data import BufferManager
-from nervex.utils import read_config
+from nervex.config import buffer_manager_default_config
 
 BATCH_SIZE = 8
 PRODUCER_NUM = 16
@@ -24,20 +25,21 @@ np.random.seed(1)
 
 @pytest.fixture(scope="function")
 def setup_config():
-    path = os.path.join(os.path.dirname(__file__), '../buffer_manager_default_config.yaml')
-    cfg = read_config(path)
+    cfg = deepcopy(buffer_manager_default_config)
     cfg.replay_buffer.agent.enable_track_used_data = True
     return cfg
 
 
 @pytest.fixture(scope="function")
 def setup_demo_config():
-    path = os.path.join(os.path.dirname(__file__), '../buffer_manager_with_demonstration_config.yaml')
-    cfg = read_config(path)
+    cfg = deepcopy(buffer_manager_default_config)
+    cfg.replay_buffer.buffer_name.append('demo')
     cfg.replay_buffer.agent.enable_track_used_data = True
-    cfg.replay_buffer.demo.enable_track_used_data = True
+    cfg.replay_buffer.demo = cfg.replay_buffer.agent
+    cfg.replay_buffer.demo.monitor.log_path = './log/buffer/demo_buffer/'
     cfg.replay_buffer.sample_ratio.agent = 0.5
     cfg.replay_buffer.sample_ratio.demo = 0.5
+    print(cfg)
     return cfg
 
 

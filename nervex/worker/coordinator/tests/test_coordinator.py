@@ -8,7 +8,7 @@ from nervex.utils import find_free_port
 from nervex.config import coordinator_default_config, parallel_transform
 from nervex.config.utils import default_host
 
-DATA_PREFIX = 'SLAVE_ACTOR_DATA'
+DATA_PREFIX = 'SLAVE_ACTOR_DATA_COORDINATOR_TEST'
 
 
 @pytest.fixture(scope='function')

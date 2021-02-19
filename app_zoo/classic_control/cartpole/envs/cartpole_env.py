@@ -1,10 +1,26 @@
-from typing import Any, List, Union
+from typing import Any, List, Union, Optional
+import time
 import gym
 import torch
 import numpy as np
 from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
+
+
+def disable_gym_view_window():
+    from gym.envs.classic_control import rendering
+    import pyglet
+
+    def get_window(width, height, display):
+        screen = display.get_screens()
+        config = screen[0].get_best_config()
+        context = config.create_context(None)
+        return pyglet.window.Window(
+            width=width, height=height, display=display, config=config, context=context, visible=False
+        )
+
+    rendering.get_window = get_window
 
 
 class CartPoleEnv(BaseEnv):
@@ -62,7 +78,17 @@ class CartPoleEnv(BaseEnv):
         )
 
     def __repr__(self) -> str:
-        return "nerveX CartPole Env({})".format(self._cfg.env_id)
+        return "nerveX CartPole Env"
+
+    def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
+        if replay_path is None:
+            replay_path = './video'
+        self._replay_path = replay_path
+        # this function can lead to the meaningless result
+        # disable_gym_view_window()
+        self._env = gym.wrappers.Monitor(
+            self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
+        )
 
 
 register_env('cartpole', CartPoleEnv)

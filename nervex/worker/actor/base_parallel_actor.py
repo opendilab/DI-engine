@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 from abc import ABC, abstractmethod, abstractproperty
 from collections import namedtuple
 from typing import Any, Union, Tuple
@@ -7,7 +8,7 @@ from functools import partial
 
 from nervex.policy import Policy
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
-from nervex.utils import build_logger, EasyTimer, get_task_uid, import_module
+from nervex.utils import build_logger, EasyTimer, get_task_uid, import_module, pretty_print
 from nervex.torch_utils import build_log_buffer
 
 
@@ -46,25 +47,52 @@ class TickMonitor(LoggedModel):
 
 
 class BaseActor(ABC):
+    """
+    Overview:
+        Abstract baseclass for actor.
+    Interfaces:
+        __init__, info, error, _setup_timer, _setup_logger, start, close, _iter_after_hook, _policy_inference
+        _env_step, _process_timestep, _finish_task, _update_policy, _start_thread, debug
+    Property:
+        policy
+    """
 
     def __init__(self, cfg: dict) -> None:
+        """
+        Overview:
+            Initialization method.
+        Arguments:
+            - cfg (:obj:`EasyDict`): Config dict
+        """
         self._cfg = cfg
         self._eval_flag = cfg.eval_flag
-        self._prefix = 'EVALUTATOR' if self._eval_flag else 'ACTOR'
+        self._prefix = 'EVALUATOR' if self._eval_flag else 'ACTOR'
         self._actor_uid = get_task_uid()
         self._logger, self._monitor, self._log_buffer = self._setup_logger()
         self._end_flag = False
         self._setup_timer()
         self._iter_count = 0
-        self.info("CFG INFO:\n{}".format(cfg))
+        self.info("\nCFG INFO:\n{}".format(pretty_print(cfg, direct_print=False)))
 
     def info(self, s: str) -> None:
         self._logger.info("[{}({})]: {}".format(self._prefix, self._actor_uid, s))
+
+    def debug(self, s: str) -> None:
+        self._logger.debug("[{}({})]: {}".format(self._prefix, self._actor_uid, s))
 
     def error(self, s: str) -> None:
         self._logger.error("[{}({})]: {}".format(self._prefix, self._actor_uid, s))
 
     def _setup_timer(self) -> None:
+        """
+        Overview:
+            Setup TimeWrapper for base_actor. TimeWrapper is a decent timer wrapper that can be used easily.
+            You can refer to ``nervex/utils/time_helper.py``.
+
+        Note:
+            - _policy_inference (:obj:`Callable`): The wrapper to acquire a policy's time.
+            - _env_step (:obj:`Callable`): The wrapper to acquire a environment's time.
+        """
         self._timer = EasyTimer()
 
         def policy_wrapper(fn):
@@ -94,17 +122,27 @@ class BaseActor(ABC):
         self._env_step = env_wrapper(self._env_step)
 
     def _setup_logger(self) -> Tuple:
+        """
+        Overview:
+            Setup logger for base_actor. Logger includes logger, monitor and log buffer dict.
+
+        Returns:
+            - logger (:obj:`TextLogger`): logger that displays terminal output
+            - monitor (:obj:`TickMonitor`): monitor that is related info of one interation with env
+            - log_buffer (:obj:`LogDict`): log buffer dict
+        """
         path = './log/{}'.format(self._prefix.lower())
         name = '{}'.format(self._actor_uid)
-        logger, _ = build_logger(path, name, False)
+        logger, _ = build_logger(path, name, need_tb=False)
         monitor = TickMonitor(TickTime(), expire=self._cfg.print_freq * 2)
         log_buffer = build_log_buffer()
         return logger, monitor, log_buffer
 
     def start(self) -> None:
+        self._end_flag = False
         self._update_policy()
         self._start_thread()
-        while True:
+        while not self._end_flag:
             obs = self._env_manager.next_obs
             action = self._policy_inference(obs)
             timestep = self._env_step(action)
@@ -115,6 +153,8 @@ class BaseActor(ABC):
                 break
 
     def close(self) -> None:
+        if self._end_flag:
+            return
         self._end_flag = True
 
     def _iter_after_hook(self):
@@ -125,14 +165,14 @@ class BaseActor(ABC):
 
         # print info
         if self._iter_count % self._cfg.print_freq == 0:
-            self.info('{}TimeStep{}{}'.format('=' * 35, self._iter_count, '=' * 35))
+            self.debug('{}TimeStep{}{}'.format('=' * 35, self._iter_count, '=' * 35))
             # tick_monitor -> var_dict
             var_dict = {}
             for k in self._log_buffer:
                 for attr in self._monitor.get_property_attribute(k):
                     k_attr = k + '_' + attr
                     var_dict[k_attr] = getattr(self._monitor, attr)[k]()
-            self._logger.print_vars(var_dict)
+            self._logger.print_vars(var_dict, level=logging.DEBUG)
         self._log_buffer.clear()
         self._iter_count += 1
 
