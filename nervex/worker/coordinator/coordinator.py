@@ -7,7 +7,7 @@ from collections import defaultdict
 
 from nervex.utils import build_logger, LockContext, LockContextType, get_task_uid
 from nervex.data import BufferManager
-from .comm_coordinator import CoordinatorInteraction
+from .comm_coordinator import CommCoordinator
 from .base_parallel_commander import create_parallel_commander
 
 
@@ -61,7 +61,7 @@ class Coordinator(object):
             'deal_with_learner_finish_task': self.deal_with_learner_finish_task,
         }
         self._logger, _ = build_logger(path='./log', name='coordinator', need_tb=False)
-        self._interaction = CoordinatorInteraction(cfg.interaction, self._callback, self._logger)
+        self._interaction = CommCoordinator(cfg.interaction, self._callback, self._logger)
         self._learner_task_queue = Queue()
         self._actor_task_queue = Queue()
         self._commander = create_parallel_commander(cfg.commander)

@@ -106,7 +106,7 @@ class ZerglingActor(BaseActor):
                 self._policy.reset([env_id])
                 continue
             self._total_step += 1
-            if t.done:  #  must be executed before send_metadata
+            if t.done:  # must be executed before send_metadata
                 self._total_episode += 1
             if not self._eval_flag:
                 transition = self._policy.process_transition(

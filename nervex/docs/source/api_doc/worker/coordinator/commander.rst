@@ -1,5 +1,5 @@
-worker.commander
-===================
+worker.coordinator.commander
+=============================
 
 base_serial_commander
 --------------------------
