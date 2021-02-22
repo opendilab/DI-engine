@@ -58,15 +58,19 @@ class ZerglingActor(BaseActor):
         else:
             env_cfg = actor_env_cfg
             episode_num = self._env_kwargs.actor_episode_num
-        self._episode_num = episode_num
         env_manager = SubprocessEnvManager(
             env_fn=env_fn, env_cfg=env_cfg, env_num=len(env_cfg), episode_num=episode_num
         )
         env_manager.launch()
+        self._predefined_episode_count = episode_num * len(env_cfg)
         return env_manager
 
     def _start_thread(self) -> None:
         self._update_policy_thread.start()
+
+    def _join_thread(self) -> None:
+        self._update_policy_thread.join()
+        del self._update_policy_thread
 
     # override
     def close(self) -> None:
@@ -75,6 +79,7 @@ class ZerglingActor(BaseActor):
         self._end_flag = True
         if hasattr(self, '_env_manager'):
             self._env_manager.close()
+        self._join_thread()
 
     # override
     def _policy_inference(self, obs: Dict[int, Any]) -> Dict[int, Any]:
@@ -100,6 +105,9 @@ class ZerglingActor(BaseActor):
                 self._policy_output_pool.reset(env_id)
                 self._policy.reset([env_id])
                 continue
+            self._total_step += 1
+            if t.done:  #  must be executed before send_metadata
+                self._total_episode += 1
             if not self._eval_flag:
                 transition = self._policy.process_transition(
                     self._obs_pool[env_id], self._policy_output_pool[env_id], t
@@ -109,10 +117,10 @@ class ZerglingActor(BaseActor):
                 train_sample = self._policy.get_train_sample(self._traj_cache[env_id])
                 for s in train_sample:
                     s = self._compressor(s)
+                    self._total_sample += 1
                     metadata = self._get_metadata(s, env_id)
                     self.send_stepdata(metadata['data_id'], s)
                     self.send_metadata(metadata)
-                self._total_sample += len(train_sample)
             if t.done:
                 # env reset is done by env_manager automatically
                 self._traj_cache[env_id].clear()
@@ -128,20 +136,20 @@ class ZerglingActor(BaseActor):
                         env_id, reward, len(self._episode_result[env_id])
                     )
                 )
-                self._total_episode += 1
-            self._total_step += 1
+        dones = [t.done for t in timestep.values()]
+        if any(dones):
+            actor_info = self._get_actor_info()
+            self.send_metadata(actor_info)
 
     # override
-    def _finish_task(self) -> None:
-        episode_count = self._episode_num * self._env_num
+    def get_finish_info(self) -> dict:
         duration = max(time.time() - self._start_time, 1e-8)
         finish_info = {
-            'finished_task': True,  # flag
             'eval_flag': self._eval_flag,
-            'episode_num': self._episode_num,
             'env_num': self._env_num,
             'duration': duration,
-            'target_episode_count': episode_count,
+            'actor_done': self._env_manager.done,
+            'predefined_episode_count': self._predefined_episode_count,
             'real_episode_count': self._total_episode,
             'step_count': self._total_step,
             'sample_count': self._total_sample,
@@ -158,9 +166,7 @@ class ZerglingActor(BaseActor):
         if not self._eval_flag:
             finish_info['collect_setting'] = self._cfg.collect_setting
         self._logger.info('\nFINISH INFO\n{}'.format(pretty_print(finish_info, direct_print=False)))
-        self.send_finish_info(finish_info)
-        # sleep some time for close thread
-        time.sleep(3)
+        return finish_info
 
     # override
     def _update_policy(self) -> None:
@@ -196,6 +202,7 @@ class ZerglingActor(BaseActor):
     def _get_metadata(self, stepdata: List, env_id: int) -> dict:
         data_id = "env_{}_{}".format(env_id, str(uuid.uuid1()))
         metadata = {
+            'eval_flag': self._eval_flag,
             'data_id': data_id,
             'env_id': env_id,
             'policy_iter': self._policy_iter,
@@ -204,8 +211,21 @@ class ZerglingActor(BaseActor):
             'get_data_time': time.time(),
             # TODO(nyz) the relationship between traj priority and step priority
             'priority': 1.0,
+            'cur_episode': self._total_episode,
+            'cur_sample': self._total_sample,
+            'cur_step': self._total_step,
         }
         return metadata
+
+    def _get_actor_info(self) -> dict:
+        return {
+            'eval_flag': self._eval_flag,
+            'get_info_time': time.time(),
+            'actor_done': self._env_manager.done,
+            'cur_episode': self._total_episode,
+            'cur_sample': self._total_sample,
+            'cur_step': self._total_step,
+        }
 
     def __repr__(self) -> str:
         return "ZerglingActor"

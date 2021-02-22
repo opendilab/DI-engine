@@ -7,7 +7,7 @@ from collections import defaultdict
 
 from nervex.utils import build_logger, LockContext, LockContextType, get_task_uid
 from nervex.data import BufferManager
-from .coordinator_interaction import CoordinatorInteraction
+from .comm_coordinator import CoordinatorInteraction
 from .base_parallel_commander import create_parallel_commander
 
 
@@ -54,6 +54,7 @@ class Coordinator(object):
 
         self._callback = {
             'deal_with_actor_send_data': self.deal_with_actor_send_data,
+            'deal_with_actor_judge_finish': self.deal_with_actor_judge_finish,
             'deal_with_actor_finish_task': self.deal_with_actor_finish_task,
             'deal_with_learner_get_data': self.deal_with_learner_get_data,
             'deal_with_learner_send_info': self.deal_with_learner_send_info,
@@ -281,6 +282,16 @@ class Coordinator(object):
             return
         self._replay_buffer[buffer_id].push_data(data)
         self.info('actor task({}) send data({})'.format(task_id, data_id))
+
+    def deal_with_actor_judge_finish(self, task_id: str, data: dict) -> bool:
+        if task_id not in self._task_state:
+            self.error('actor task({}) not in self._task_state when send data, throw it'.format(task_id))
+            return False
+        with self._commander_lock:
+            actor_finish_flag = self._commander.judge_actor_finish(task_id, data)
+        if actor_finish_flag:
+            self.info('actor task({}) is finished'.format(task_id))
+        return actor_finish_flag
 
     def deal_with_actor_finish_task(self, task_id: str, finished_task: dict) -> None:
         r"""

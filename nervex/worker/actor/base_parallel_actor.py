@@ -51,8 +51,8 @@ class BaseActor(ABC):
     Overview:
         Abstract baseclass for actor.
     Interfaces:
-        __init__, info, error, _setup_timer, _setup_logger, start, close, _iter_after_hook, _policy_inference
-        _env_step, _process_timestep, _finish_task, _update_policy, _start_thread, debug
+        __init__, info, error, debug, get_finish_info, start, close, _setup_timer, _setup_logger, _iter_after_hook,
+        _policy_inference, _env_step, _process_timestep, _finish_task, _update_policy, _start_thread, _join_thread
     Property:
         policy
     """
@@ -149,13 +149,13 @@ class BaseActor(ABC):
             self._process_timestep(timestep)
             self._iter_after_hook()
             if self._env_manager.done:
-                self._finish_task()
                 break
 
     def close(self) -> None:
         if self._end_flag:
             return
         self._end_flag = True
+        self._join_thread()
 
     def _iter_after_hook(self):
         # log_buffer -> tick_monitor -> monitor.step
@@ -177,6 +177,10 @@ class BaseActor(ABC):
         self._iter_count += 1
 
     @abstractmethod
+    def get_finish_info(self) -> dict:
+        raise NotImplementedError
+
+    @abstractmethod
     def __repr__(self) -> str:
         raise NotImplementedError
 
@@ -193,14 +197,13 @@ class BaseActor(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _finish_task(self) -> None:
-        raise NotImplementedError
-
-    @abstractmethod
     def _update_policy(self) -> None:
         raise NotImplementedError
 
     def _start_thread(self) -> None:
+        pass
+
+    def _join_thread(self) -> None:
         pass
 
     @property
