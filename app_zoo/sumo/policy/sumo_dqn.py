@@ -7,9 +7,9 @@ from nervex.policy import DQNPolicy, register_policy
 class SumoDQNPolicy(DQNPolicy):
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
-        q_value = self._agent.forward(data['obs'])['logit']
-        # target_q_value = self._agent.target_forward(data['next_obs'])['logit']
-        target = self._agent.forward(data['next_obs'])
+        q_value = self._armor.forward(data['obs'])['logit']
+        # target_q_value = self._armor.target_forward(data['next_obs'])['logit']
+        target = self._armor.forward(data['next_obs'])
         target_q_value = target['logit']
         next_act = target['action']
         if isinstance(q_value, torch.Tensor):
@@ -30,7 +30,7 @@ class SumoDQNPolicy(DQNPolicy):
         self._optimizer.zero_grad()
         loss.backward()
         self._optimizer.step()
-        self._agent.target_update(self._agent.state_dict()['model'])
+        self._armor.target_update(self._armor.state_dict()['model'])
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
