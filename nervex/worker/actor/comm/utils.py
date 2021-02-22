@@ -39,10 +39,15 @@ class NaiveActor(Slave):
             data = {'data_id': data_id, 'buffer_id': self.task_info['buffer_id'], 'unroll_split_begin': 0}
             data['task_id'] = self.task_info['task_id']
             if self.count == 20:
-                data['finished_task'] = {'finish': True}
+                return {
+                    'task_id': self.task_info['task_id'],
+                    'actor_done': True,
+                    'cur_episode': 1,
+                    'cur_step': 314,
+                    'cur_sample': 314,
+                }
             else:
-                data['finished_task'] = None
-            return data
+                return data
         else:
             raise TaskFail(result={'message': 'task name error'}, message='illegal actor task <{}>'.format(task_name))
 
