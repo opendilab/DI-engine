@@ -11,10 +11,10 @@ from nervex.interaction.master.task import TaskStatus
 from .resource_manager import NaiveResourceManager
 
 
-class CoordinatorInteraction(object):
+class CommCoordinator(object):
     r"""
     Overview:
-        the coordinator interactor
+        the communication part of coordinator(coordinator interactor)
     Interface:
         __init__ , start, close, __del__, send_actor_task, send_learner_task
     """
