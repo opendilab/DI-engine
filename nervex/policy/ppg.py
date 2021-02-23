@@ -7,7 +7,8 @@ from torch.utils.data import Dataset, DataLoader
 
 from nervex.utils import squeeze
 from nervex.torch_utils import Adam
-from nervex.rl_utils import ppo_data, ppo_error, Adder, ppg_data, ppg_joint_error, value_error, ppg_aux_data, ppg_aux_loss
+from nervex.rl_utils import \
+    ppo_data, ppo_error, Adder, ppg_data, ppg_joint_error, value_error, ppg_aux_data, ppg_aux_loss
 from nervex.model import FCValueAC, ConvValueAC
 from nervex.armor import Armor
 from .base_policy import Policy, register_policy
@@ -291,7 +292,6 @@ class PPGPolicy(CommonPolicy):
         data['weight'] = torch.cat(weights)
         data['logit_old'] = torch.cat(logit_old)
 
-
         # prepared dataloader for auxiliary phase training
         dl = create_shuffled_dataloader(data, self._cfg.learn.batch_size)
 
@@ -346,11 +346,10 @@ class PPGPolicy(CommonPolicy):
                 value_loss_ += value_loss.item()
                 i += 1
 
-
         self._train_step = 0
         self._aux_memories = []
 
-        return ppg_aux_loss(auxiliary_loss_/i, behavioral_cloning_loss_/i, value_loss_/i)
+        return ppg_aux_loss(auxiliary_loss_ / i, behavioral_cloning_loss_ / i, value_loss_ / i)
 
 
 register_policy('ppg', PPGPolicy)
