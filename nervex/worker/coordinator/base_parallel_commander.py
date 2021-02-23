@@ -24,6 +24,13 @@ class BaseCommander(ABC):
             return True
         return False
 
+    def judge_learner_finish(self, task_id: str, info: dict) -> bool:
+        learner_done = info.get('learner_done', False)
+        cur_step = info['learner_step']
+        if learner_done:
+            return True
+        return False
+
 
 class NaiveCommander(BaseCommander):
     r"""

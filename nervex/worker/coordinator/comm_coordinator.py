@@ -287,7 +287,7 @@ class CommCoordinator(object):
                 if self._end_flag:
                     break
 
-                # learn
+                # learn task
                 learn_task = self._connection_learner[learner_id].new_task({'name': 'learner_learn_task', 'data': data})
                 learn_task.start().join()
                 if learn_task.status != TaskStatus.COMPLETED:
@@ -295,10 +295,17 @@ class CommCoordinator(object):
                     self._logger.error('learner learn_task failed: {}'.format(learn_task.result))
                     continue
                 result = learn_task.result
-                task_id, finished_task = result['task_id'], result['finished_task']
-                # finish task and update resource
-                if finished_task:
-                    # result['finished_task'] is a flag
+                task_id, info = result['task_id'], result['info']
+                is_finished = self._callback_fn['deal_with_learner_judge_finish'](task_id, info)
+                if is_finished:
+                    # close task and update resource
+                    close_task = self._connection_learner[learner_id].new_task({'name': 'learner_close_task'})
+                    close_task.start().join()
+                    if close_task.status != TaskStatus.COMPLETED:
+                        self._logger.error('learner close_task failed: {}'.format(close_task.result))
+                        break
+                    result = close_task.result
+                    task_id = result.get('task_id', None)
                     self._callback_fn['deal_with_learner_finish_task'](task_id, result)
                     resource_task = self._get_resource(self._connection_learner[learner_id])
                     if resource_task.status == TaskStatus.COMPLETED:
@@ -306,7 +313,7 @@ class CommCoordinator(object):
                     break
                 else:
                     # update info
-                    buffer_id, info = result['buffer_id'], result['info']
+                    buffer_id = result['buffer_id']
                     self._callback_fn['deal_with_learner_send_info'](task_id, buffer_id, info)
             except requests.exceptions.HTTPError as e:
                 if self._end_flag:
