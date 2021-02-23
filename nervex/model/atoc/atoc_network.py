@@ -458,6 +458,7 @@ class ATOCQAC(QActorCriticBase):
         is_init = inputs['is_initiator'].reshape(-1)
         delta_q = delta_q[is_init.nonzero()]
         init_prob = init_prob[is_init.nonzero()]
+        init_prob = 0.9 * init_prob + 0.05
 
         # judge to avoid nan
         if init_prob.shape == (0, 1):
