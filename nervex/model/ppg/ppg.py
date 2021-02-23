@@ -284,7 +284,6 @@ class PPG(PhasicPolicyGradientBase):
         self._policy_net = PolicyNet(self._obs_dim, self._act_dim, self._policy_embedding_dim)
         self._value_net = ValueNet(self._obs_dim, self._value_embedding_dim)
 
-
     def _value_net_forward(self, x: torch.Tensor) -> torch.Tensor:
         return self._value_net(x)
 

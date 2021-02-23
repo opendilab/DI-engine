@@ -9,6 +9,7 @@ ppg_aux_data = namedtuple('ppg_aux_data', ['value_new', 'value_old', 'return_', 
 ppg_joint_loss = namedtuple('ppg_joint_loss', ['auxiliary_loss', 'behavioral_cloning_loss'])
 ppg_aux_loss = namedtuple('ppg_aux_loss', ['auxiliary_loss', 'behavioral_cloning_loss', 'value_loss'])
 
+
 def ppg_joint_error(
         data: namedtuple,
         clip_ratio: float = 0.2,
