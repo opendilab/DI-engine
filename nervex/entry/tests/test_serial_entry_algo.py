@@ -8,7 +8,8 @@ from app_zoo.classic_control.bitflip.entry import bitflip_dqn_default_config
 from app_zoo.classic_control.cartpole.entry import \
     cartpole_a2c_default_config, cartpole_dqn_default_config, cartpole_dqnvanilla_default_config, \
     cartpole_impala_default_config, cartpole_ppo_default_config, cartpole_ppovanilla_default_config, \
-    cartpole_r2d2_default_config, cartpole_rainbowdqn_default_config, cartpole_rainbowdqn_iqn_config
+    cartpole_r2d2_default_config, cartpole_rainbowdqn_default_config, cartpole_rainbowdqn_iqn_config, \
+    cartpole_ppg_default_config
 from app_zoo.classic_control.pendulum.entry import pendulum_ddpg_default_config, pendulum_ppo_default_config, \
     pendulum_sac_auto_alpha_config, pendulum_sac_default_config, pendulum_td3_default_config
 from app_zoo.smac.entry import smac_collaQ_default_config, smac_coma_default_config, smac_qmix_default_config
@@ -194,10 +195,7 @@ def test_her_dqn():
 
 # @pytest.mark.algotest
 def test_ppg():
-    path = os.path.join(
-        os.path.dirname(__file__), '../../../app_zoo/classic_control/cartpole/entry/cartpole_ppg_default_config.yaml'
-    )
-    config = read_config(path)
+    config = deepcopy(cartpole_ppg_default_config)
     try:
         serial_pipeline(config, seed=0)
     except Exception:

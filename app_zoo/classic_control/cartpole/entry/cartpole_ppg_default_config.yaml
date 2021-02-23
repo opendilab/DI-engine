@@ -1,5 +1,5 @@
 common:
-    name: CartpolePPOConfig
+    name: CartpolePPGConfig
     save_path: '.'
     load_path: ''
 env:
