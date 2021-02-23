@@ -19,6 +19,7 @@ class AtariEnv(BaseEnv):
     def reset(self) -> Sequence:
         if hasattr(self, '_seed'):
             self._env.seed(self._seed)
+            np.random.seed(self._seed)
         obs = self._env.reset()
         obs = to_ndarray(obs)
         self._final_eval_reward = 0.
