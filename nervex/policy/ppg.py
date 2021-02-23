@@ -114,10 +114,13 @@ class PPGPolicy(CommonPolicy):
         value_network_loss.backward()
         self._optimizer_value.step()
 
+        # record data for auxiliary head
+        data['logit_old'] = output['logit'].data
         for key in data.keys():
             if isinstance(data[key], torch.Tensor):
                 data[key] = data[key].detach()
         self._aux_memories.append(copy.deepcopy(data))
+
         if self._train_step < self._cfg.learn.train_step - 1:
             self._train_step += 1
             return {
@@ -267,12 +270,14 @@ class PPGPolicy(CommonPolicy):
         return_ = []
         old_values = []
         weights = []
+        logit_old = []
         for memory in aux_memories:
             # for memory in memories:
             states.append(memory['obs'].clone().detach())
             actions.append(memory['action'].clone().detach())
             return_.append(memory['value'].clone().detach() + memory['adv'].clone().detach())
             old_values.append(memory['value'].clone().detach())
+            logit_old.append(memory['logit_old'].clone().detach())
             if memory['weight'] is None:
                 weight = torch.ones_like(memory['action'].clone().detach())
             else:
@@ -284,12 +289,8 @@ class PPGPolicy(CommonPolicy):
         data['return_'] = torch.cat(return_)
         data['value'] = torch.cat(old_values)
         data['weight'] = torch.cat(weights)
+        data['logit_old'] = torch.cat(logit_old)
 
-        # get old action predictions for minimizing kl divergence and clipping respectively
-        policy_output = self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
-        logit_old = policy_output['logit'].detach()
-        action = policy_output['action'].detach()
-        data['logit_old'] = logit_old
 
         # prepared dataloader for auxiliary phase training
         dl = create_shuffled_dataloader(data, self._cfg.learn.batch_size)
