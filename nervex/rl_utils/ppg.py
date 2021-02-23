@@ -7,7 +7,7 @@ from torch.distributions import Independent, Normal
 ppg_data = namedtuple('ppg_data', ['logit_new', 'logit_old', 'action', 'value_new', 'value_old', 'return_', 'weight'])
 ppg_aux_data = namedtuple('ppg_aux_data', ['value_new', 'value_old', 'return_', 'weight'])
 ppg_joint_loss = namedtuple('ppg_joint_loss', ['auxiliary_loss', 'behavioral_cloning_loss'])
-
+ppg_aux_loss = namedtuple('ppg_aux_loss', ['auxiliary_loss', 'behavioral_cloning_loss', 'value_loss'])
 
 def ppg_joint_error(
         data: namedtuple,

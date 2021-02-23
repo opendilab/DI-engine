@@ -7,12 +7,11 @@ from torch.utils.data import Dataset, DataLoader
 
 from nervex.utils import squeeze
 from nervex.torch_utils import Adam
-from nervex.rl_utils import ppo_data, ppo_error, Adder, ppg_data, ppg_joint_error, value_error, ppg_aux_data
+from nervex.rl_utils import ppo_data, ppo_error, Adder, ppg_data, ppg_joint_error, value_error, ppg_aux_data, ppg_aux_loss
 from nervex.model import FCValueAC, ConvValueAC
-from nervex.agent import Agent
+from nervex.armor import Armor
 from .base_policy import Policy, register_policy
 from .common_policy import CommonPolicy
-from ..model.common import FCEncoder
 
 
 class ExperienceDataset(Dataset):
@@ -36,70 +35,6 @@ def create_shuffled_dataloader(data, batch_size):
     return DataLoader(ds, batch_size=batch_size, shuffle=True)
 
 
-class ValueNet(nn.Module):
-
-    def __init__(
-            self,
-            obs_dim: tuple,
-            embedding_dim: int,
-            head_hidden_dim: int = 128,
-    ) -> None:
-        super(ValueNet, self).__init__()
-        self._act = nn.ReLU()
-        self._obs_dim = squeeze(obs_dim)
-        self._embedding_dim = embedding_dim
-        self._encoder = self._setup_encoder()
-        self._head_layer_num = 2
-
-        # critic head
-        input_dim = embedding_dim
-        layers = []
-        for _ in range(self._head_layer_num):
-            layers.append(nn.Linear(input_dim, head_hidden_dim))
-            layers.append(self._act)
-            input_dim = head_hidden_dim
-        layers.append(nn.Linear(input_dim, 1))
-
-        self._critic = nn.Sequential(*layers)
-
-    def _setup_encoder(self) -> torch.nn.Module:
-        r"""
-        Overview:
-            Setup an ``ConvEncoder`` to encode 2-dim observation
-        Returns:
-            - encoder (:obj:`torch.nn.Module`): ``ConvEncoder``
-        """
-        return FCEncoder(self._obs_dim, self._embedding_dim)
-
-    def _critic_forward(self, x: torch.Tensor) -> torch.Tensor:
-        r"""
-        Overview:
-            Use critic head to output value of current state.
-        Arguments:
-            - x (:obj:`torch.Tensor`): embedding tensor after encoder
-        """
-        return self._critic(x).squeeze(1)
-
-    def forward(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        r"""
-        Overview:
-            First encode raw observation, then output value and logit.
-            Normal reinforcement learning training, often called by learner.rst to optimize both critic and actor.
-        Arguments:
-            - inputs (:obj:`Dict[str, torch.Tensor]`): embedding tensor after encoder
-        Returns:
-            - ret (:obj:`Dict[str, torch.Tensor]`): a dict containing value and logit
-        """
-        # for compatible, but we recommend use dict as input format
-        if isinstance(inputs, torch.Tensor):
-            embedding = self._encoder(inputs)
-        else:
-            embedding = self._encoder(inputs['obs'])
-        value = self._critic_forward(embedding)
-
-        return {'value': value}
-
-
 class PPGPolicy(CommonPolicy):
     r"""
     Overview:
@@ -110,13 +45,13 @@ class PPGPolicy(CommonPolicy):
         r"""
         Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init the optimizer, algorithm config and the main agent.
+            Init the optimizer, algorithm config and the main armor.
         """
         # Optimizer
-        self._optimizer_policy = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
-        self._agent = Agent(self._model)
-        self._critic = ValueNet(self._cfg.model.obs_dim, self._cfg.model.embedding_dim)
-        self._optimizer_value = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
+        self._optimizer_policy = Adam(self._model._policy_net.parameters(), lr=self._cfg.learn.learning_rate)
+        # self._critic = ValueNet(self._cfg.model.obs_dim, self._cfg.model.embedding_dim)
+        self._optimizer_value = Adam(self._model._value_net.parameters(), lr=self._cfg.learn.learning_rate)
+        self._armor = Armor(self._model)
 
         # Algorithm config
         algo_cfg = self._cfg.learn.algo
@@ -125,10 +60,10 @@ class PPGPolicy(CommonPolicy):
         self._clip_ratio = algo_cfg.clip_ratio
         self._use_adv_norm = algo_cfg.get('use_adv_norm', False)
 
-        # Main agent
-        self._agent.add_plugin('main', 'grad', enable_grad=True)
-        self._agent.mode(train=True)
-        self._agent.reset()
+        # Main armor
+        self._armor.add_plugin('main', 'grad', enable_grad=True)
+        self._armor.mode(train=True)
+        self._armor.reset()
         self._learn_setting_set = {}
 
         # Auxiliary memories
@@ -151,8 +86,7 @@ class PPGPolicy(CommonPolicy):
         # ====================
         # PPG forward
         # ====================
-        policy_output = self._agent.forward(data['obs'], param={'mode': 'compute_action_value'})
-        value_output = self._critic.forward(data['obs'])
+        output = self._armor.forward(data, param={'mode': 'compute_action_value'})
         adv = data['adv']
         if self._use_adv_norm:
             # Normalize advantage in a total train_batch
@@ -160,21 +94,24 @@ class PPGPolicy(CommonPolicy):
         return_ = data['value'] + adv
         # Calculate ppg error
         data_ = ppo_data(
-            policy_output['logit'], data['logit'], data['action'], value_output['value'], data['value'], adv, return_,
-            data['weight']
+            output['logit'], data['logit'], data['action'], output['value'], data['value'], adv, return_, data['weight']
         )
         ppg_loss, ppg_info = ppo_error(data_, self._clip_ratio)
         wv, we = self._value_weight, self._entropy_weight
-        total_loss = ppg_loss.policy_loss + wv * ppg_loss.value_loss - we * ppg_loss.entropy_loss
+        policy_network_loss = ppg_loss.policy_loss - we * ppg_loss.entropy_loss
+        value_network_loss = wv * ppg_loss.value_loss
+        total_loss = policy_network_loss + value_network_loss
         # ====================
         # PP update TODO(zym) update optimizer
         # TODO(zym) calculate value loss for update value network
         # use aux loss after iterations and reset aux_memories
         # ====================
         self._optimizer_policy.zero_grad()
-        self._optimizer_value.zero_grad()
-        total_loss.backward(retain_graph=True)
+        policy_network_loss.backward()
         self._optimizer_policy.step()
+
+        self._optimizer_value.zero_grad()
+        value_network_loss.backward()
         self._optimizer_value.step()
 
         for key in data.keys():
@@ -183,24 +120,37 @@ class PPGPolicy(CommonPolicy):
         self._aux_memories.append(copy.deepcopy(data))
         if self._train_step < self._cfg.learn.train_step - 1:
             self._train_step += 1
+            return {
+                'cur_lr': self._optimizer_policy.defaults['lr'],
+                'total_loss': total_loss.item(),
+                'policy_loss': ppg_loss.policy_loss.item(),
+                'value_loss': ppg_loss.value_loss.item(),
+                'entropy_loss': ppg_loss.entropy_loss.item(),
+                'adv_abs_max': adv.abs().max().item(),
+                'approx_kl': ppg_info.approx_kl,
+                'clipfrac': ppg_info.clipfrac,
+            }
         else:
-            self.learn_aux()
-        return {
-            'cur_lr': self._optimizer_policy.defaults['lr'],
-            'total_loss': total_loss.item(),
-            'policy_loss': ppg_loss.policy_loss.item(),
-            'value_loss': ppg_loss.value_loss.item(),
-            'entropy_loss': ppg_loss.entropy_loss.item(),
-            'adv_abs_max': adv.abs().max().item(),
-            'approx_kl': ppg_info.approx_kl,
-            'clipfrac': ppg_info.clipfrac,
-        }
+            aux_loss = self.learn_aux()
+            return {
+                'cur_lr': self._optimizer_policy.defaults['lr'],
+                'total_loss': total_loss.item(),
+                'policy_loss': ppg_loss.policy_loss.item(),
+                'value_loss': ppg_loss.value_loss.item(),
+                'entropy_loss': ppg_loss.entropy_loss.item(),
+                'adv_abs_max': adv.abs().max().item(),
+                'approx_kl': ppg_info.approx_kl,
+                'clipfrac': ppg_info.clipfrac,
+                'aux_value_loss': aux_loss.value_loss,
+                'auxiliary_loss': aux_loss.auxiliary_loss,
+                'behavioral_cloning_loss': aux_loss.behavioral_cloning_loss,
+            }
 
     def _init_collect(self) -> None:
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect agent.
+            Init traj and unroll length, adder, collect armor.
         """
         self._traj_len = self._cfg.collect.traj_len
         self._unroll_len = self._cfg.collect.unroll_len
@@ -208,11 +158,11 @@ class PPGPolicy(CommonPolicy):
             self._traj_len = float('inf')
         # GAE calculation needs v_t+1
         assert self._traj_len > 1, "ppg traj len should be greater than 1"
-        self._collect_agent = Agent(self._model)
-        self._collect_agent.add_plugin('main', 'multinomial_sample')
-        self._collect_agent.add_plugin('main', 'grad', enable_grad=False)
-        self._collect_agent.mode(train=False)
-        self._collect_agent.reset()
+        self._collect_armor = Armor(self._model)
+        self._collect_armor.add_plugin('main', 'multinomial_sample')
+        self._collect_armor.add_plugin('main', 'grad', enable_grad=False)
+        self._collect_armor.mode(train=False)
+        self._collect_armor.reset()
         self._collect_setting_set = {}
         self._adder = Adder(self._use_cuda, self._unroll_len)
         algo_cfg = self._cfg.collect.algo
@@ -229,20 +179,15 @@ class PPGPolicy(CommonPolicy):
         Returns:
             - data (:obj:`dict`): The collected data
         """
-        policy_output = self._collect_agent.forward(data, param={'mode': 'compute_action'})
-        value_output = self._critic.forward(data)
-        policy_output['value'] = value_output['value']
-        for key in policy_output.keys():
-            policy_output[key] = policy_output[key].detach()
-        return policy_output
+        return self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
 
-    def _process_transition(self, obs: Any, agent_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         """
         Overview:
                Generate dict type transition data from inputs.
         Arguments:
                 - obs (:obj:`Any`): Env observation
-                - agent_output (:obj:`dict`): Output of collect agent, including at least ['action']
+                - armor_output (:obj:`dict`): Output of collect armor, including at least ['action']
                 - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done']\
                        (here 'obs' indicates obs after env step).
         Returns:
@@ -250,9 +195,9 @@ class PPGPolicy(CommonPolicy):
         """
         transition = {
             'obs': obs,
-            'logit': agent_output['logit'],
-            'action': agent_output['action'],
-            'value': agent_output['value'],
+            'logit': armor_output['logit'],
+            'action': armor_output['action'],
+            'value': armor_output['value'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -280,15 +225,14 @@ class PPGPolicy(CommonPolicy):
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
-            Init eval agent with argmax strategy.
+            Init eval armor with argmax strategy.
         """
-        self._eval_agent = Agent(self._model)
-        self._eval_agent.add_plugin('main', 'argmax_sample')
-        self._eval_agent.add_plugin('main', 'grad', enable_grad=False)
-        self._eval_agent.mode(train=False)
-        self._eval_agent.reset()
+        self._eval_armor = Armor(self._model)
+        self._eval_armor.add_plugin('main', 'argmax_sample')
+        self._eval_armor.add_plugin('main', 'grad', enable_grad=False)
+        self._eval_armor.mode(train=False)
+        self._eval_armor.reset()
         self._eval_setting_set = {}
-        self._eval_critic = self._critic
 
     def _forward_eval(self, data_id: List[int], data: dict) -> dict:
         r"""
@@ -300,16 +244,14 @@ class PPGPolicy(CommonPolicy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        policy_output = self._eval_agent.forward(data, param={'mode': 'compute_action'})
-        value_output = self._critic.forward(data)
-        policy_output['value'] = value_output['value']
-        return policy_output
+        return self._eval_armor.forward(data, param={'mode': 'compute_action'})
 
     def _init_command(self) -> None:
         pass
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'fc_vac', ['nervex.model.actor_critic.value_ac']
+        # return 'fc_vac', ['nervex.model.actor_critic.value_ac']
+        return 'ppg', ['nervex.model.ppg']
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + [
@@ -344,7 +286,7 @@ class PPGPolicy(CommonPolicy):
         data['weight'] = torch.cat(weights)
 
         # get old action predictions for minimizing kl divergence and clipping respectively
-        policy_output = self._collect_agent.forward(data, param={'mode': 'compute_action_value'})
+        policy_output = self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
         logit_old = policy_output['logit'].detach()
         action = policy_output['action'].detach()
         data['logit_old'] = logit_old
@@ -356,18 +298,26 @@ class PPGPolicy(CommonPolicy):
         # where the value is distilled into the policy network,
         # while making sure the policy network does not change the action predictions (kl div loss)
         # TODO(zym) replace sample
+
+        i = 0
+        auxiliary_loss_ = 0
+        behavioral_cloning_loss_ = 0
+        value_loss_ = 0
+
         for epoch in range(self._epochs_aux):
             for data in dl:
-                policy_output = self._agent.forward(data['obs'], param={'mode': 'compute_action_value'})
+                # policy_output = self._armor.forward(data, param={'mode': 'compute_action_value'})
+                policy_logit = self._armor.forward(data, param={'mode': 'compute_action'})
+                policy_value = self._armor.forward(data, param={'mode': 'compute_policy_value'})
 
                 # Calculate ppg error 'logit_new', 'logit_old', 'action', 'value_new', 'value_old', 'return_', 'weight'
                 data_ppg = ppg_data(
-                    policy_output['logit'], data['logit_old'], data['action'], policy_output['value'], data['value'],
+                    policy_logit['logit'], data['logit_old'], data['action'], policy_value['value'], data['value'],
                     data['return_'], data['weight']
                 )
-                ppg_loss = ppg_joint_error(data_ppg, self._clip_ratio)
+                ppg_joint_loss = ppg_joint_error(data_ppg, self._clip_ratio)
                 wb = self._beta_weight
-                total_loss = ppg_loss.auxiliary_loss + wb * ppg_loss.behavioral_cloning_loss
+                total_loss = ppg_joint_loss.auxiliary_loss + wb * ppg_joint_loss.behavioral_cloning_loss
 
                 # # policy network loss copmoses of both the kl div loss as well as the auxiliary loss
                 # aux_loss = clipped_value_loss(policy_values, rewards, old_values, self.value_clip)
@@ -381,7 +331,7 @@ class PPGPolicy(CommonPolicy):
                 # paper says it is important to train the value network extra during the auxiliary phase
                 # TODO(zym) calculate value loss for update value network
                 # Calculate ppg error 'logit_new', 'logit_old', 'action', 'value_new', 'value_old', 'return_', 'weight'
-                values = self._critic(data['obs'])['value']
+                values = self._armor.forward(data, param={'mode': 'compute_value'})['value']
                 data_aux = ppg_aux_data(values, data['value'], data['return_'], data['weight'])
 
                 value_loss = value_error(data_aux, self._clip_ratio)['value_loss']
@@ -389,8 +339,17 @@ class PPGPolicy(CommonPolicy):
                 self._optimizer_value.zero_grad()
                 value_loss.backward()
                 self._optimizer_value.step()
+
+                auxiliary_loss_ += ppg_joint_loss.auxiliary_loss.item()
+                behavioral_cloning_loss_ += ppg_joint_loss.behavioral_cloning_loss.item()
+                value_loss_ += value_loss.item()
+                i += 1
+
+
         self._train_step = 0
         self._aux_memories = []
+
+        return ppg_aux_loss(auxiliary_loss_/i, behavioral_cloning_loss_/i, value_loss_/i)
 
 
 register_policy('ppg', PPGPolicy)
