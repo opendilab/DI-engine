@@ -27,7 +27,7 @@ def setup_actor(setup_config):
     cfg = setup_config.interaction.actor
     actor = {}
     for _, (name, host, port) in cfg.items():
-        actor[name] = NaiveActor(host, port)
+        actor[name] = NaiveActor(host, port, prefix=DATA_PREFIX)
         actor[name].start()
     yield actor
     for a in actor.values():
@@ -39,7 +39,7 @@ def setup_learner(setup_config):
     cfg = setup_config.interaction.learner
     learner = {}
     for _, (name, host, port) in cfg.items():
-        learner[name] = NaiveLearner(host, port)
+        learner[name] = NaiveLearner(host, port, prefix=DATA_PREFIX)
         learner[name].start()
     yield learner
     for l in learner.values():

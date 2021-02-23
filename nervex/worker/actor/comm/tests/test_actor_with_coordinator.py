@@ -38,7 +38,7 @@ def setup_learner(setup_config):
     cfg = setup_config.coordinator.interaction.learner
     learner = {}
     for _, (name, host, port) in cfg.items():
-        learner[name] = NaiveLearner(host, port)
+        learner[name] = NaiveLearner(host, port, prefix=DATA_PREFIX)
         learner[name].start()
     yield learner
     for l in learner.values():
