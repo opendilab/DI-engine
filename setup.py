@@ -30,8 +30,8 @@ with open(os.path.join(here, 'nervex', '__init__.py'), 'r') as f:
 setup(
     name=meta['__TITLE__'],
     version=meta['__VERSION__'],
-    description=['__DESCRIPTION__'],
-    author=['__AUTHOR__'],
+    description=meta['__DESCRIPTION__'],
+    author=meta['__AUTHOR__'],
     license='Apache License, Version 2.0',
     keywords='DRL Framework',
     packages=[
