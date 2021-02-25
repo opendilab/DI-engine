@@ -70,9 +70,12 @@ def serial_pipeline(
     actor = BaseSerialActor(cfg.actor)
     evaluator = BaseSerialEvaluator(cfg.evaluator)
     replay_buffer = BufferManager(cfg.replay_buffer)
+    # 这个commander是什么意思呢？
     commander = BaseSerialCommander(cfg.commander, learner, actor, evaluator, replay_buffer)
     # Set corresponding env and policy mode.
+    # 这里需要做一定的更改，在IRL方法中，我们需要做的就是对actor_env需要传递一个奖励评估模型
     actor.env = actor_env
+    # 这个 env需要有一个update的方法， update的方法主要是通过传递一个奖励函数来的
     evaluator.env = evaluator_env
     learner.policy = policy.learn_mode
     actor.policy = policy.collect_mode
@@ -108,7 +111,7 @@ def serial_pipeline(
             stop_flag, eval_reward = evaluator.eval(learner.train_iter)
             eval_interval = 0
             if stop_flag and learner.train_iter > 0:
-                # Evaluator's mean episode reward reaches the expected ``stop_val``.
+                # Evaluator's mean episode reward reaches the expected ``stop_val``. 学习成功了
                 print(
                     "[nerveX serial pipeline] Your RL agent is converged, you can refer to " +
                     "'log/evaluator/evaluator_logger.txt' for details"
@@ -121,6 +124,7 @@ def serial_pipeline(
         while True:
             # Actor keeps generating data until replay buffer has enough to sample one batch.
             new_data, collect_info = actor.generate_data(learner.train_iter)
+            # 把这里的new_data 改了就行
             replay_buffer.push_data(new_data)
             target_count = init_data_count if learner.train_iter == 0 else enough_data_count
             if replay_buffer.count() >= target_count:
@@ -138,7 +142,10 @@ def serial_pipeline(
                     "You can modify data collect config, e.g. increasing n_sample, n_episode or min_sample_ratio."
                 )
                 break
+            # learner 收集了这一部分data, 我们的reward也可以利用这一部分的data进行train
+            # 或者说我们觉得这部分data不够，我们还可以再收集一部分data， 这里可以商量一下
             learner.train(train_data)
+            # reward need to train also
             eval_interval += 1
             if use_priority:
                 replay_buffer.update(learner.priority_info)
