@@ -8,9 +8,8 @@ import os
 import yaml
 
 from nervex.league.payoff import Payoff
-from nervex.league.player import Player, SoloActivePlayer
-from nervex.league.shared_payoff import BattleRecordDict, PayoffDict, \
-    BattleSharedPayoff, SoloSharedPayoff, create_payoff
+from nervex.league.player import Player
+from nervex.league.shared_payoff import BattleRecordDict, PayoffDict, BattleSharedPayoff, create_payoff
 
 
 @pytest.fixture(scope='function')
@@ -162,12 +161,6 @@ def setup_battle_shared_payoff():
     return create_payoff(cfg)
 
 
-@pytest.fixture(scope='function')
-def setup_solo_shared_payoff():
-    cfg = EasyDict({'type': 'solo', 'buffer_size': 3})
-    return create_payoff(cfg)
-
-
 global sp_player_count
 sp_player_count = 0
 
@@ -292,63 +285,3 @@ class TestBattleSharedPayoff:
         # test shared payoff
         for p in player_list:
             assert id(p.payoff) == id(setup_battle_shared_payoff)
-
-
-def get_solo_active_player(config, payoff):
-    return SoloActivePlayer(
-        config.league.main_player, 'default', payoff, 'ckpt_{}.pth'.format('solo_default'), 'solo_default', 0
-    )
-
-
-@pytest.mark.unittest
-class TestSoloSharedPayoff:
-
-    def test_update(self, setup_solo_shared_payoff, random_job_result, get_job_result_categories, setup_config):
-        games_per_player = 4
-        player_list = [get_solo_active_player(setup_config, setup_solo_shared_payoff)]
-        for p in player_list:
-            setup_solo_shared_payoff.add_player(p)
-        with pytest.raises(Exception):
-            setup_solo_shared_payoff.add_player(player_list[0])
-
-        for player in player_list:
-            for i in range(games_per_player):
-                episode_num = 2
-                env_num = 4
-                job_result = [[random_job_result() for _ in range(env_num)] for _ in range(episode_num)]
-                job_info = {
-                    'player_id': [player.player_id],
-                    'episode_num': episode_num,
-                    'env_num': env_num,
-                    'result': job_result
-                }
-                key = player.player_id
-                print('old:', setup_solo_shared_payoff._data[key])
-                old = setup_solo_shared_payoff._data[key].copy()
-                # old = setup_solo_shared_payoff._data[key]
-                assert setup_solo_shared_payoff.update(job_info)
-
-                old.append(job_info)
-                assert old == setup_solo_shared_payoff._data[key]
-
-        # test shared payoff
-        for p in player_list:
-            assert id(p.payoff) == id(setup_solo_shared_payoff)
-
-    def test_getitem(self, setup_solo_shared_payoff, random_job_result, setup_config):
-        games_per_player = 4
-        player_list = [get_solo_active_player(setup_config, setup_solo_shared_payoff)]
-        for p in player_list:
-            setup_solo_shared_payoff.add_player(p)
-
-        # test key not in setup_solo_shared_payoff._data
-        player = player_list[0]
-        key = player.player_id
-        assert key not in setup_solo_shared_payoff._data.keys()
-        result_queue = setup_solo_shared_payoff[player]
-        assert key in setup_solo_shared_payoff._data.keys()
-        assert len(result_queue) == 0
-
-        # test shared payoff
-        for p in player_list:
-            assert id(p.payoff) == id(setup_solo_shared_payoff)

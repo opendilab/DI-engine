@@ -7,7 +7,7 @@ from nervex.utils import import_module
 class BaseCommander(ABC):
     r"""
     Overview:
-        the base command abstract class
+        Base parallel commander abstract class.
     Interface:
         get_actor_task
     """
@@ -20,18 +20,19 @@ class BaseCommander(ABC):
 class NaiveCommander(BaseCommander):
     r"""
     Overview:
-        the naive commander
+        A naive implementation of parallel commander.
     Interface:
-        __init__, get_actor_task, get_learner_task, finsh_actor_task, finish_learner_task, notify_fail_actor_task, \
-            notify_fail_learner_task, get_learner_info
+        __init__, get_actor_task, get_learner_task, finsh_actor_task, finish_learner_task,
+        notify_fail_actor_task, notify_fail_learner_task, get_learner_info
     """
 
     def __init__(self, cfg: dict) -> None:
         r"""
         Overview:
-            init the naive commander according to config
+            Init the naive commander according to config
         Arguments:
-            - cfg (:obj:`dict`): the config to init commander, should include actor_task_space and learner_task_space
+            - cfg (:obj:`dict`): The config to init commander. Should include \
+                "actor_task_space" and "learner_task_space".
         """
         self._cfg = cfg
         self.actor_task_space = cfg.actor_task_space
@@ -45,9 +46,9 @@ class NaiveCommander(BaseCommander):
     def get_actor_task(self) -> dict:
         r"""
         Overview:
-            Get the new actor task when task_count is less than task_space
+            Get a new actor task when ``actor_task_count`` is smaller than ``actor_task_space``.
         Return:
-            - task (:obj:`dict`): the new actor task
+            - task (:obj:`dict`): New actor task.
         """
         if self.actor_task_count < self.actor_task_space:
             self.actor_task_count += 1

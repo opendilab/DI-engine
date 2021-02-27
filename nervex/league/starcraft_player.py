@@ -1,11 +1,11 @@
 from typing import Optional
 import numpy as np
 
-from .player import BattleActivePlayer, HistoricalPlayer, register_player
+from .player import ActivePlayer, HistoricalPlayer, register_player
 from .algorithm import pfsp
 
 
-class MainPlayer(BattleActivePlayer):
+class MainPlayer(ActivePlayer):
     """
     Overview:
         Main player in league training.
@@ -106,7 +106,7 @@ class MainPlayer(BattleActivePlayer):
         return None
 
 
-class MainExploiter(BattleActivePlayer):
+class MainExploiter(ActivePlayer):
     """
     Overview:
         Main exploiter in league training. Can identify weaknesses of main agents, and consequently make them
@@ -170,7 +170,7 @@ class MainExploiter(BattleActivePlayer):
         return info['pretrain_checkpoint_path']
 
 
-class LeagueExploiter(BattleActivePlayer):
+class LeagueExploiter(ActivePlayer):
     """
     Overview:
         League exploiter in league training. Can identify global blind spots in the league (strategies that no player
@@ -230,6 +230,6 @@ class LeagueExploiter(BattleActivePlayer):
         return None
 
 
-register_player('main_player', MainPlayer)
-register_player('main_exploiter', MainExploiter)
-register_player('league_exploiter', LeagueExploiter)
+# register_player('main_player', MainPlayer)
+# register_player('main_exploiter', MainExploiter)
+# register_player('league_exploiter', LeagueExploiter)

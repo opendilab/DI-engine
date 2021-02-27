@@ -11,7 +11,6 @@ from .base_policy import Policy
 class CommonPolicy(Policy):
 
     def _data_preprocess_learn(self, data: List[Any]) -> dict:
-        # data preprocess
         data = default_collate(data)
         ignore_done = self._cfg.learn.get('ignore_done', False)
         if ignore_done:

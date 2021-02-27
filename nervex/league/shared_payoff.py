@@ -1,19 +1,18 @@
 import copy
 from collections import defaultdict, deque
-from typing import Union, Tuple
+from typing import Union, Tuple, Optional
 from functools import partial
 from easydict import EasyDict
-
 import numpy as np
-from nervex.utils import LockContext, LockContextType
 
+from nervex.utils import LockContext, LockContextType
 from .player import Player, ActivePlayer, HistoricalPlayer
 
 
 class BattleRecordDict(dict):
     """
     Overview:
-        A dict used to record battle game result.
+        A dict which is used to record battle game result.
         Initialized with four fixed keys: ['wins', 'draws', 'losses', 'games'] with value 0
     Interfaces:
         __init__, __mul__
@@ -29,29 +28,27 @@ class BattleRecordDict(dict):
         for k in self.data_keys:
             self[k] = 0
 
-    def __mul__(self, val: float) -> dict:
+    def __mul__(self, decay: float) -> dict:
         """
         Overview:
-            Multiply each key's value with the input multiplier `val`
+            Multiply each key's value with the input multiplier ``decay``
         Arguments:
-            - val (:obj:`float`): the multiplier
+            - decay (:obj:`float`): The multiplier.
         Returns:
-            - obj (:obj:`dict`): a deepcopied RecordDict after multiplication
+            - obj (:obj:`dict`): A deepcopied RecordDict after multiplication decay.
         """
         obj = copy.deepcopy(self)
         for k in obj.keys():
-            obj[k] *= val
+            obj[k] *= decay
         return obj
 
 
 class PayoffDict(defaultdict):
     """
     Overview:
-        Payoff defaultdict.
-        If key doesn't exist, return a data structure instance
-        (now supports ``BattleRecordDict``, ``SoloRecordQueue``) set in advance.
+        Payoff defaultdict. If key doesn't exist, return an instance of some data structure.
     Interfaces:
-        __init__, __missing__
+        __init__
     """
 
     def __init__(self, init_fn: type):
@@ -59,10 +56,8 @@ class PayoffDict(defaultdict):
         Overview:
             Init method, set defaultdict's default return instance type as ``init_fn``.
         Arguments:
-            - init_fn (:obj:`type`): if key is missing, PayoffDict can return the instance `init_fn()`
-            - cfg (:obj:`EasyDict`): for SoloRecordQueue, containing {buffer_size}
+            - init_fn (:obj:`type`): If key is missing, PayoffDict can return the instance ``init_fn()``.
         """
-        # super(PayoffDict, self).__init__(partial(init_fn, cfg=cfg))
         super(PayoffDict, self).__init__(init_fn)
 
 
@@ -86,41 +81,40 @@ class BattleSharedPayoff:
         Arguments:
             - cfg (:obj:`dict`): config(contains {decay, min_win_rate_games})
         """
-        # self._players is a list including the reference(shallow copy) of all players,
-        # while self._players_ids is a list of string
+        # ``_players``` is a list containing the references(shallow copy) of all players,
+        # while ``_players_ids``` is a list of strings.
         self._players = []
         self._players_ids = []
-        # self._data is a PayoffDict, whose key is '[player_id]-[player_id]' string,
-        # and whose value is a RecordDict
-        self._data = PayoffDict(BattleRecordDict)
-
-        # self._decay controls how past game info (win, draw, loss) decays
+        # ``_data``` is a defaultdict. If a key doesn't exist, return an instance of BattleRecordDict class.
+        # Key is '[player_id]-[player_id]' string, value is the payoff of the two players.
+        self._data = defaultdict(BattleRecordDict)
+        # ``_decay``` controls how past game info (win, draw, loss) decays.
         self._decay = cfg.decay
-        # self._min_win_rate_games is used in self._win_rate's calculating win_rate
+        # ``_min_win_rate_games``` is used in ``self._win_rate`` method for calculating win rate between two players.
         self._min_win_rate_games = cfg.get('min_win_rate_games', 8)
+        # Thread lock.
         self._lock = LockContext(type_=LockContextType.THREAD_LOCK)
 
-    def __getitem__(self, players: tuple) -> np.array:
+    def __getitem__(self, players: tuple) -> np.ndarray:
         """
         Overview:
             Get win rates between home players and away players one by one
         Arguments:
-            - players (:obj:`tuple`): a tuple(home, away), each one is a player or a players list
+            - players (:obj:`tuple`): A tuple of (home, away), each one is a player or a player list.
         Returns:
-            - win_rates (:obj:`np.array`): win rate (squeezed, see Shape for more details) \
-                between each player from home and each player from away
+            - win_rates (:obj:`np.ndarray`): Win rate (squeezed, see Shape for more details) \
+                between each player from home and each player from away.
         Shape:
-            - win_rates: Assume there are m home players and n away players.
+            - win_rates: Assume there are m home players and n away players.(m,n > 0)
 
-                - m != 0 and n != 0: shape is (m, n)
-                - m == 0: shape is (n)
-                - n == 0: shape is (m)
+                - m != 1 and n != 1: shape is (m, n)
+                - m == 1: shape is (n)
+                - n == 1: shape is (m)
         """
         with self._lock:
             home, away = players
             assert isinstance(home, list) or isinstance(home, Player)
             assert isinstance(away, list) or isinstance(away, Player)
-            # single player case
             if isinstance(home, Player):
                 home = [home]
             if isinstance(away, Player):
@@ -144,7 +138,7 @@ class BattleSharedPayoff:
         """
         key, reverse = self.get_key(home, away)
         handle = self._data[key]
-        # no game record case
+        # No enough game records.
         if handle['games'] < self._min_win_rate_games:
             return 0.5
         # should use reverse here
@@ -165,9 +159,9 @@ class BattleSharedPayoff:
     def add_player(self, player: Player) -> None:
         """
         Overview:
-            Add a player to the shared payoff
+            Add a player to the shared payoff.
         Arguments:
-            - player (:obj:`Player`): the player to be added, usually a new one to the league
+            - player (:obj:`Player`): The player to be added. Usually is a new one to the league as well.
         """
         with self._lock:
             self._players.append(player)
@@ -179,14 +173,14 @@ class BattleSharedPayoff:
             Update payoff with job_info when a job is to be finished.
             If update succeeds, return True; If raises an exception when updating, resolve it and return False.
         Arguments:
-            - job_info (:obj:`dict`): a dict containing job result information
+            - job_info (:obj:`dict`): A dict containing job result information.
         Returns:
-            - result (:obj:`bool`): whether update is successful
+            - result (:obj:`bool`): Whether update is successful.
 
         .. note::
-            job_info owns at least 5 keys('launch_player', 'player_id', 'env_num', 'episode_num', 'result').
-            player_id's value is a tuple (home_id, away_id).
-            result's value is a two-layer list with the length of (episode_num, env_num).
+            job_info has at least 5 keys ['launch_player', 'player_id', 'env_num', 'episode_num', 'result'].
+            Key ``player_id`` 's value is a tuple of (home_id, away_id).
+            Key ``result`` 's value is a two-layer list with the length of (episode_num, env_num).
         """
 
         def _win_loss_reverse(result_: str, reverse_: bool) -> str:
@@ -195,25 +189,24 @@ class BattleSharedPayoff:
             reverse_dict = {'wins': 'losses', 'losses': 'wins'}
             return reverse_dict[result_]
 
-        # check
         with self._lock:
             home_id, away_id = job_info['player_id']
             try:
                 assert home_id in self._players_ids
                 assert away_id in self._players_ids
+                # Assert all results are in ['win', 'loss', 'draw']
                 assert all([i in BattleRecordDict.data_keys[:3] for j in job_info['result'] for i in j])
             except Exception as e:
                 print("[ERROR] invalid job_info: {}".format(job_info))
                 print(e)
                 return False
             key, reverse = self.get_key(home_id, away_id)
-            # update (including decay)
+            # Update with decay
             for j in job_info['result']:
                 for i in j:
-                    # all categories should decay
+                    # All categories should decay
                     self._data[key] *= self._decay
                     self._data[key]['games'] += 1
-                    # should use reverse here
                     result = _win_loss_reverse(i, reverse)
                     self._data[key][result] += 1
             return True
@@ -221,12 +214,13 @@ class BattleSharedPayoff:
     def get_key(self, home: str, away: str) -> Tuple[str, bool]:
         """
         Overview:
-            Join home player id and away player id
+            Join home player id and away player id in alphabetival order.
         Arguments:
-            - home (:obj:`str`): home player id
-            - away (:obj:`str`): away player id
+            - home (:obj:`str`): Home player id
+            - away (:obj:`str`): Away player id
         Returns:
-            - key (:obj:`str`): tow ids sorted in alphabetical order, and joined by '-'
+            - key (:obj:`str`): Tow ids sorted in alphabetical order, and joined by '-'.
+            - reverse (:obj:`bool`): Whether the two player ids are reordered.
         """
         assert isinstance(home, str)
         assert isinstance(away, str)
@@ -239,70 +233,7 @@ class BattleSharedPayoff:
         return '-'.join(tmp), reverse
 
 
-class SoloSharedPayoff:
-    """
-    Overview:
-        Payoff data structure to record historical match result.
-        Unlike BattleSharedPayoff record battle game results between players,
-        SoloSharedPayoff record solo game results only of one player.
-    Interface:
-        __init__, add_player, update
-    """
-
-    def __init__(self, cfg: EasyDict) -> None:
-        """
-        Overview:
-            Initialize solo payoff
-        Arguments:
-            - cfg (:obj:`dict`): config(contains {buffer_size})
-        """
-        self._data = PayoffDict(partial(deque, maxlen=cfg.buffer_size))
-        self._players = []
-        self._players_ids = []
-
-    def __getitem__(self, player: Player) -> deque:
-        """
-        Overview:
-            Get game result info queue of the player
-        Arguments:
-            - player (:obj:`Player`): the only active player
-        Returns:
-            - record (:obj:`SoloRecordQueue`): record queue with several game results
-        """
-        return self._data[player.player_id]
-
-    def update(self, job_info: dict) -> bool:
-        """
-        Overview:
-            Append job_info at the right end of ``self._data``
-        Arguments:
-            - job_info (:obj:`dict`): a dict containing job result information
-        Returns:
-            - result (:obj:`bool`): whether update is successful
-        """
-        # TODO(zlx): job_info validation and process
-        assert len(job_info['player_id']) == 1
-        player_id = job_info['player_id'][0]
-        self._data[player_id].append(job_info)
-        return True
-
-    def add_player(self, player: Player) -> None:
-        """
-        Overview:
-            Add a player. Only permits one active player in queue all the time.
-            If it is historical, it is ok to add one;
-            If it is active, make sure there is no active player in the queue, otherwise raise an exception.
-        """
-        active_count = sum([1 if isinstance(player, ActivePlayer) else 0 for player in self._players])
-        if active_count == 1 and isinstance(player, ActivePlayer):
-            raise Exception('SoloSharedPayoff only supports one active player, now wants to add another active one.')
-        if active_count > 1:
-            raise Exception('SoloSharedPayoff only supports one active player, has added more than one before.')
-        self._players.append(player)
-        self._players_ids.append(player.player_id)
-
-
-def create_payoff(cfg: EasyDict) -> Union[BattleSharedPayoff, SoloSharedPayoff]:
+def create_payoff(cfg: EasyDict) -> Optional[BattleSharedPayoff]:
     """
     Overview:
         Given the key (payoff type), now supports keys ['solo', 'battle'],
@@ -313,7 +244,7 @@ def create_payoff(cfg: EasyDict) -> Union[BattleSharedPayoff, SoloSharedPayoff]:
         - payoff (:obj:`BattleSharedPayoff` or :obj:`SoloSharedPayoff`): the created new payoff, \
             should be an instance of one of payoff_mapping's values
     """
-    payoff_mapping = {'solo': SoloSharedPayoff, 'battle': BattleSharedPayoff}
+    payoff_mapping = {'battle': BattleSharedPayoff}
     payoff_type = cfg.type
     if payoff_type not in payoff_mapping.keys():
         raise KeyError("not support payoff type: {}".format(payoff_type))

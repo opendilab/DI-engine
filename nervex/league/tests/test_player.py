@@ -4,8 +4,7 @@ from easydict import EasyDict
 import os
 import yaml
 
-from nervex.league.player import Player, HistoricalPlayer, ActivePlayer, BattleActivePlayer, SoloActivePlayer, \
-    register_player, create_player
+from nervex.league.player import Player, HistoricalPlayer, ActivePlayer, register_player, create_player
 from nervex.league.starcraft_player import MainPlayer, MainExploiter, LeagueExploiter
 from nervex.league.shared_payoff import create_payoff
 
@@ -306,33 +305,3 @@ class TestLeagueExploiter:
             results.append(setup_league[2].mutate(info))
         freq = len([t for t in results if t]) * 1.0 / len(results)
         assert 0.2 <= freq <= 0.3  # approximate
-
-
-@pytest.mark.unittest
-class TestSoloActivePlayer:
-
-    def test_naive(self):
-        # solo payoff
-        payoff_cfg = EasyDict({'type': 'solo', 'buffer_size': 3})
-        solo_payoff = create_payoff(payoff_cfg)
-        # solo league config
-        with open(os.path.join(os.path.dirname(__file__), 'solo_league_test_config.yaml')) as f:
-            cfg = yaml.safe_load(f)
-        solo_league_cfg = EasyDict(cfg)
-        # solo active player
-        solo_player_name = 'solo_default'
-        solo = create_player(
-            solo_league_cfg.league, 'solo_active_player', solo_league_cfg.league.solo_active_player, 'default',
-            solo_payoff, 'ckpt_{}.pth'.format(solo_player_name), solo_player_name, 0
-        )
-        assert not solo.is_trained_enough()
-        solo._total_agent_step = ONE_PHASE_STEP - 1
-        assert not solo.is_trained_enough()
-        solo._total_agent_step += 1
-        assert solo.is_trained_enough()
-        job_dict = solo.get_job()
-        assert isinstance(job_dict, dict)
-        assert 'opponent' not in job_dict
-        for k in ['forward_kwargs', 'env_kwargs', 'adder_kwargs', 'agent_update_freq', 'compressor']:
-            assert k in job_dict
-        assert solo._exploration is None

@@ -363,6 +363,9 @@ class BaseLearner(object):
         ret = {'learner_step': self._last_iter.val, 'priority_info': self._priority_info}
         if hasattr(self, '_finished_task') and self._finished_task is not None:
             ret['finished_task'] = self._finished_task
+        # latest_policy_path is only used in parallel pipeline.
+        if hasattr(self, '_latest_policy_path'):
+            ret['latest_policy_path'] = self._latest_policy_path
         return ret
 
     @property

@@ -10,12 +10,31 @@ from nervex.utils import build_logger
 
 
 class LearnerAggregatorSlave(Slave):
+    """
+    Overview:
+        A slave, whose master is coordinator.
+    """
 
     def __init__(self, *args, callback_fn: Optional[dict] = None, **kwargs) -> None:
+        """
+        Overview:
+            Init callback functions additionally. Callback functions are methods in ``LearnerAggregator``.
+            As for callback mechanisim, you can refer to ``worker/learner/comm/flask_fs_learner.py`` for help.
+        """
         super().__init__(*args, **kwargs)
         self._callback_fn = callback_fn
 
     def _process_task(self, task: dict) -> Union[dict, TaskFail]:
+        """
+        Overview:
+            Process a task according to input task info dict, which is passed in by coordinator's master.
+            For each type of task, you can refer to corresponding callback function in
+            ``LearnerAggregator`` for details.
+        Arguments:
+            - cfg (:obj:`EasyDict`): Task dict. Must contain key "name".
+        Returns:
+            - result (:obj:`Union[dict, TaskFail]`): Task result dict, or task fail exception.
+        """
         task_name = task['name']
         if task_name == 'resource':
             return self._callback_fn['deal_with_get_resource']()
@@ -30,8 +49,20 @@ class LearnerAggregatorSlave(Slave):
 
 
 class LearnerAggregator(object):
+    """
+    Overview:
+        Aggregate todo duojiduoka danjiduoka
+    Interfaces:
+        __init__, start, close, merge_info
+    """
 
     def __init__(self, cfg: dict) -> None:
+        """
+        Overview:
+            Init method.
+        Arguments:
+            - cfg (:obj:`EasyDict`): Config dict.
+        """
         self._cfg = cfg
         callback_fn = {
             'deal_with_get_resource': self.deal_with_get_resource,
@@ -43,10 +74,16 @@ class LearnerAggregator(object):
         self._slave = LearnerAggregatorSlave(host, port, callback_fn=callback_fn)
         self._logger, _ = build_logger(path='./log', name='learner_aggregator', need_tb=False)
 
+        # ``_world_size`` indicates how many learners are connected;
+        # And ``_learner_connection`` lists those connections in dict type.
         self._world_size = 0
         self._learner_connection = {}
 
     def start(self) -> None:
+        """
+        Overview:
+            Start the aggregator. Set up a master and build connections with all learners within max retry time.
+        """
         try:
             self._slave.start()
         except Exception as e:
@@ -86,17 +123,22 @@ class LearnerAggregator(object):
                     repr(e)
                 )
                 time.sleep(5)
+        # Exceeds max retry time and no learner connection found.
         if len(self._learner_connection) == 0:
             self._logger.error("learner_aggregator master max retries failed")
 
     def close(self) -> None:
+        """
+        Overview:
+            Close aggregator slave, connections with learners, and master.
+        """
         try:
             self._slave.close()
             for _, conn in self._learner_connection.items():
                 conn.disconnect()
                 assert not conn.is_connected
             self._master.close()
-        except Exception:  # ignore close exception
+        except Exception:  # Ignore close exception.
             pass
 
     def deal_with_get_resource(self) -> dict:
@@ -129,6 +171,7 @@ class LearnerAggregator(object):
         # TODO deal with task fail
         self._data_demand = {k: v.result for k, v in data_task.items()}
         demand_list = list(self._data_demand.values())
+        # Merge data demand info by adding up all learners' demand batch size.
         merged_demand = copy.deepcopy(demand_list[0])
         merged_demand['batch_size'] = sum([d['batch_size'] for d in demand_list])
         return merged_demand
@@ -136,6 +179,7 @@ class LearnerAggregator(object):
     def deal_with_learn(self, task: dict) -> dict:
         learn_task = {}
         merged_data = task['data']
+        # Split training data for each learner according to ``self._data_demand``.
         split_data = []
         start = 0
         for item in self._data_demand.values():
@@ -149,6 +193,7 @@ class LearnerAggregator(object):
             v.join()
         # TODO deal with task fail
         info_list = [v.result for v in learn_task.values()]
+        # Merge learn info through ``merge_info`` method.
         merged_info = self.merge_info(info_list)
         return merged_info
 

@@ -14,18 +14,18 @@ league:
             verification: 0.15
         strong_win_rate: 0.7
         one_phase_step: 2e3
-        forward_kwargs:
-            exploration_type: ['eps']  # ['eps', 'gauss_noise', 'ou_noise']
-            eps_kwargs:
-                start: 0.95
-                end: 0.05
-                decay_len: 10000
+        # forward_kwargs:
+        #     exploration_type: ['eps']  # ['eps', 'gauss_noise', 'ou_noise']
+        #     eps_kwargs:
+        #         start: 0.95
+        #         end: 0.05
+        #         decay_len: 10000
         env_kwargs:
             env_num: 8
             episode_num: 2
-        adder_kwargs:
-            use_gae: False
-            data_push_length: 128
+        # adder_kwargs:
+        #     use_gae: False
+        #     data_push_length: 128
         job:
             agent_update_freq: 30  # second
             compressor: 'none'
@@ -86,7 +86,7 @@ league:
             compressor: 'none'
     use_pretrain: True
     use_pretrain_init_historical: True
-    pretrain_checkpoint_path:  # placeholder
+    pretrain_checkpoint_path:
         zerg: 'pretrain_checkpoint_zerg.pth'
         terran: 'pretrain_checkpoint_terran.pth'
         protoss: 'pretrain_checkpoint_protoss.pth'
@@ -97,5 +97,4 @@ league:
         min_win_rate_games: 8
     # ---runner---
     max_active_player_job: 3
-    #per_match_games: 8
     time_interval: 1
