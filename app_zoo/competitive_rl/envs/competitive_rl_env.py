@@ -33,7 +33,6 @@ class CompetitiveRlEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
-        # self._use_act_scale = cfg.use_act_scale
         self._env_id = self._cfg.env_id
 
         # opponent_type is used to control builtin opponent agent, which is useful in evaluator.
@@ -44,25 +43,19 @@ class CompetitiveRlEnv(BaseEnv):
         self._builtin_wrap = self._env_id == "cPongDouble-v0" and is_evaluator and opponent_type == "builtin"
         opponent = self._cfg.get('eval_opponent', 'RULE_BASED')
 
-        self._env = wrap_env(self._env_id, self._builtin_wrap, opponent)  # issue
-
-        # if self._env_id == "cPongDouble-v0" and is_evaluator and opponent_type == "builtin":
-        #     self._env = BuiltinOpponentWrapper(self._env)
-        #     opponent = self._cfg.get('eval_opponent', 'RULE_BASED')
-        #     self._env.reset_opponent(opponent)
+        self._env = wrap_env(self._env_id, self._builtin_wrap, opponent)
 
     def reset(self) -> np.ndarray:
         if hasattr(self, '_seed'):
             self._env.seed(self._seed)
         obs = self._env.reset()
-
         obs = to_ndarray(obs)
-        # print("!! obs(reset)", type(obs))
-
-        assert not isinstance(obs, list)
         obs = self.process_obs(obs)  # process
 
-        self._final_eval_reward = 0.
+        if self._builtin_wrap:
+            self._final_eval_reward = np.array([0.])
+        else:
+            self._final_eval_reward = np.array([0., 0.])
         return obs
 
     def close(self) -> None:
@@ -73,28 +66,21 @@ class CompetitiveRlEnv(BaseEnv):
 
     def step(self, action: Union[torch.Tensor, np.ndarray, list]) -> BaseEnvTimestep:
         action = to_ndarray(action)
-        # if self._use_act_scale:
-        #     action_range = self.info().act_space.value
-        #     action = affine_transform(action, min_val=action_range['min'], max_val=action_range['max'])
-        
         action = self.process_action(action)  # process
 
         obs, rew, done, info = self._env.step(action)
 
-        if self._env_id == "cPongDouble-v0" and not self._builtin_wrap:
-            rew = rew[0]  # Left player's reward  todo car race double env?
-
+        if not isinstance(rew, tuple):
+            rew = [rew]
+        rew = np.array(rew)
         self._final_eval_reward += rew
         
         obs = to_ndarray(obs)
-        # print("!! obs(step)", type(obs))
-
-        assert not isinstance(obs, list)
         obs = self.process_obs(obs)  # process
 
-        rew = to_ndarray([rew])  # Wrapped to be transformed to an ndarray with shape (1,)
         if done:
             info['final_eval_reward'] = self._final_eval_reward
+        
         return BaseEnvTimestep(obs, rew, done, info)
 
     def info(self) -> BaseEnvInfo:
@@ -154,8 +140,6 @@ class CompetitiveRlEnv(BaseEnv):
         # Copy observation for car racing double agent env, in case to be in alignment with pong double agent env.
         if self._env_id == "cCarRacingDouble-v0":
             obs = np.stack([obs, copy.deepcopy(obs)])
-        # if isinstance(obs, tuple):
-        #     obs = np.stack(obs)
         return obs
 
 register_env('competitive_rl', CompetitiveRlEnv)

@@ -53,21 +53,12 @@ class BuiltinOpponentWrapper(gym.Wrapper):
         self.action_space = env.action_space[0]
         self.num_envs = num_envs
 
-    def get_agent_names(self):
-        return self.agent_names
-
     def reset_opponent(self, agent_name: str) -> None:
-        assert agent_name in self.agent_names
+        assert agent_name in self.agent_names, (agent_name, self.agent_names)
         self.current_opponent_name = agent_name
         self.current_opponent = self.agents[self.current_opponent_name]
 
     def step(self, action):
-        # tuple_action = np.stack([
-        #     np.asarray(action).reshape(-1),
-        #     np.asarray(self.current_opponent(self.prev_opponent_obs)).reshape(-1)
-        # ], axis=1)
-        # print("!! builtin opp action", type(self.current_opponent(self.prev_opponent_obs)), type(np.asarray(self.current_opponent(self.prev_opponent_obs))))
-        # print("!! in action", type(action), np.asarray(action))
         tuple_action = (
             action.item(),
             self.current_opponent(self.prev_opponent_obs)
@@ -204,9 +195,6 @@ def wrap_env(env_id, builtin_wrap, opponent, frame_stack=0, warp_frame=False):
     if builtin_wrap:
         env = BuiltinOpponentWrapper(env)
         env.reset_opponent(opponent)
-        print("!!! builtin single env")
-    else:
-        print("!!! double env")
     env = ObsTransposeWrapper(env)
 
     if warp_frame:

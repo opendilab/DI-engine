@@ -47,6 +47,7 @@ class Player:
         self._checkpoint_path = checkpoint_path
         assert isinstance(player_id, str)
         self._player_id = player_id
+        assert isinstance(total_agent_step, int)
         self._total_agent_step = total_agent_step
 
     @property
@@ -130,10 +131,11 @@ class ActivePlayer(Player):
         self._strong_win_rate = self._cfg.strong_win_rate
         assert isinstance(self._cfg.branch_probs, dict)
         self._branch_probs = [self.BRANCH(k, v) for k, v in self._cfg.branch_probs.items()]
-        self._eval_opponent_difficulty = ["WEAK", "MEDIUM", "STRONG"]
-        self._eval_oppoentn_index = 0
+        # self._eval_opponent_difficulty = ["WEAK", "MEDIUM", "STRONG"]
+        self._eval_opponent_difficulty = ["RULE_BASED"]
+        self._eval_opponent_index = 0
 
-    def is_trained_enough(self, select_fn: Callable) -> bool:
+    def is_trained_enough(self, select_fn: Optional[Callable] = None) -> bool:
         """
         Overview:
             Judge whether this player is trained enough for further operations(e.g. snapshot, mutate...)
@@ -144,6 +146,8 @@ class ActivePlayer(Player):
         Returns:
             - flag (:obj:`bool`): Whether this player is trained enough
         """
+        if select_fn is None:
+            select_fn = lambda x: isinstance(x, HistoricalPlayer)
         step_passed = self._total_agent_step - self._last_enough_step
         if step_passed < self._one_phase_step:
             return False
@@ -153,7 +157,7 @@ class ActivePlayer(Player):
             return True
         else:
             # Get payoff against specific opponents (Different players have different type of opponent players)
-            # If min win rate is larger than ``self._strong_win_rate``, then is judge trained enough
+            # If min win rate is larger than ``self._strong_win_rate``, then is judged trained enough
             selected_players = self._get_players(select_fn)
             if len(selected_players) == 0:  # No such player, therefore no past game
                 return False
@@ -198,37 +202,26 @@ class ActivePlayer(Player):
         """
         pass
 
-    def get_job(self, p: Optional[np.ndarray] = None, eval_flag: bool = False) -> dict:
+    def get_job(self, eval_flag: bool = False) -> dict:
         """
         Overview:
-            Get a dict containing some info about the job to be launched. The dict should contain key 'env_kwargs'.
-            Can also contain keys like ['agent_update_freq', 'compressor'].
-            For battle active player, it should contain the selected opponent.
+            Get a dict containing some info about the job to be launched, e.g. the selected opponent.
         Arguments:
-            - p (:obj:`np.ndarray`): Branch selection probability
+            - eval_flag (:obj:`bool`): Whether to select an opponent for evaluator task.
         Returns:
-            - ret (:obj:`dict`): The returned dict. Should contain key ['env_kwargs', 'opponent'].
+            - ret (:obj:`dict`): The returned dict. Should contain key ['opponent'].
         """
-        # cfg_job_dict = self._cfg.job
-        # new_job_dict = {
-        #     'env_kwargs': self._get_job_env(),
-        #     'opponent': self._get_job_opponent(p),
-        # }
-        # return deep_merge_dicts(cfg_job_dict, new_job_dict)
         if eval_flag:
-            opponent = self._eval_opponent_difficulty[self._eval_oppoentn_index]
+            # eval opponent is a str.
+            opponent = self._eval_opponent_difficulty[self._eval_opponent_index]
         else:
-            opponent = self._get_job_opponent(p)
+            # collect opponent is a Player.
+            opponent = self._get_collect_opponent()
         return {
-            # 'env_kwargs': self._get_job_env(),
             'opponent': opponent,
         }
 
-    # def _get_job_env(self) -> dict:
-    #     # E.g. game mode, scenario, difficulty
-    #     return self._cfg.env_kwargs
-
-    def _get_job_opponent(self, p: Optional[np.ndarray] = None) -> Player:
+    def _get_collect_opponent(self) -> Player:
         """
         Overview:
             Select an opponent.
@@ -237,10 +230,10 @@ class ActivePlayer(Player):
         Returns:
             - opponent (:obj:`Player`): Selected opponent.
         """
-        if p is None:
-            p = np.random.uniform()
+        p = np.random.uniform()
         L = len(self._branch_probs)
         cum_p = [0.] + [sum([j.prob for j in self._branch_probs[:i + 1]]) for i in range(L)]
+        print("!!", p, cum_p)
         idx = [cum_p[i] <= p < cum_p[i + 1] for i in range(L)].index(True)
         branch_name = '_{}_branch'.format(self._branch_probs[idx].name)
         opponent = getattr(self, branch_name)()
@@ -311,21 +304,6 @@ class MainPlayer(ActivePlayer):
             Select normal self-play opponent
         """
         return self
-        # main_players = self._get_players(lambda p: isinstance(p, MainPlayer))
-        # main_opponent = self._get_opponent(main_players)
-
-        # # TODO(nyz) if only one main_player, self-play win_rates are constantly equal to 0.5
-        # # main_opponent is not too strong
-        # if self._payoff[self, main_opponent] > 1 - self._strong_win_rate:
-        #     return main_opponent
-
-        # # if the main_opponent is too strong, select a past alternative
-        # historical = self._get_players(
-        #     lambda p: isinstance(p, HistoricalPlayer) and p.parent_id == main_opponent.player_id
-        # )
-        # win_rates = self._payoff[self, historical]
-        # p = pfsp(win_rates, weighting='variance')
-        # return self._get_opponent(historical, p)
 
 
 player_mapping = {}

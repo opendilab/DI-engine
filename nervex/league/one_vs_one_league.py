@@ -32,20 +32,19 @@ class OneVsOneLeague(BaseLeague):
             - player (:obj:`ActivePlayer`): The active player that will be assigned a job.
         """
         assert isinstance(player, ActivePlayer), player.__class__
+        player_job_info = EasyDict(player.get_job(eval_flag))
         # model_config = copy.deepcopy(self.model_config)
         if eval_flag:
             return {
-                # 'env_kwargs': player_job_info.env_kwargs,
                 'agent_num': 1,
                 'launch_player': player.player_id,
                 'player_id': [player.player_id],
                 'checkpoint_path': [player.checkpoint_path],
                 'player_active_flag': [isinstance(player, ActivePlayer)],
+                'eval_opponent': player_job_info.opponent,
             }
         else:
-            player_job_info = EasyDict(player.get_job(eval_flag))
             return {
-                # 'env_kwargs': player_job_info.env_kwargs,
                 'agent_num': 2,
                 'launch_player': player.player_id,
                 'player_id': [player.player_id, player_job_info.opponent.player_id],
@@ -72,12 +71,13 @@ class OneVsOneLeague(BaseLeague):
             - player (:obj:`ActivePlayer`): The active player that will be updated.
             - player_info (:obj:`dict`): An info dict of the active player which is to be updated.
         """
-        if isinstance(player, ActivePlayer):
-            if 'train_step' in player_info:
-                player.total_agent_step = player_info['train_step']
-                player.checkpoint_path = player_info['checkpoint_path']
-            elif 'eval_win' in player_info and player_info['eval_win']:
-                increment_eval_difficulty = player.increment_eval_difficulty()
+        assert isinstance(player, ActivePlayer)
+        if 'train_step' in player_info:
+            # Update info from learner
+            player.total_agent_step = player_info['train_step']
+        elif 'eval_win' in player_info and player_info['eval_win']:
+            # Update info from evaluator
+            increment_eval_difficulty = player.increment_eval_difficulty()
 
 
 register_league('one_vs_one', OneVsOneLeague)

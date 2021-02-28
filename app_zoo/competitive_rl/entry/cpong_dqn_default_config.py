@@ -86,7 +86,6 @@ __one_vs_one_actor_default_config = dict(
         evaluator_episode_num=1,
         eval_stop_val=20,
         opponent_type="builtin",  # opponent_type is only used in evaluator
-        all_opponent_difficulty=["WEAK", "MEDIUM", "STRONG"],
         env_id='cPongDouble-v0',
     ),
 )
@@ -114,7 +113,7 @@ __coordinator_default_config = dict(
         ),
         policy=__policy_default_config,
         max_iterations=int(1e9),
-        eval_interval=300,
+        eval_interval=50,
         league=dict(
             league_type="one_vs_one",
             import_names=['nervex.league.one_vs_one_league'],

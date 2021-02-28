@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Optional, Callable, Tuple
+from typing import List, Dict, Any, Optional, Callable, Tuple, Union
 from collections import namedtuple, deque
 import copy
 import numpy as np
@@ -226,7 +226,7 @@ class CachePool(object):
         # TODO(nyz) whether must use deepcopy
         self._deepcopy = deepcopy
 
-    def update(self, data: Dict[int, Any]) -> None:
+    def update(self, data: Union[Dict[int, Any], list]) -> None:
         """
         Overview:
             Update elements in cache pool.

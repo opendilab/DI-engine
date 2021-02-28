@@ -4,7 +4,6 @@ import uuid
 from collections import namedtuple, deque
 from threading import Thread
 from typing import Dict, Callable, Any, List
-
 import numpy as np
 import torch
 from easydict import EasyDict
@@ -12,6 +11,7 @@ from easydict import EasyDict
 from nervex.envs import get_vec_env_setting
 from nervex.torch_utils import to_device, tensor_to_list
 from nervex.utils import get_data_compressor, lists_to_dicts, pretty_print
+from nervex.envs import BaseEnvTimestep
 from .env_manager import SubprocessEnvManager, BaseEnvManager
 from .base_parallel_actor import BaseActor, register_actor
 from .base_serial_actor import CachePool
@@ -52,6 +52,8 @@ class OneVsOneActor(BaseActor):
         self._total_sample = 0
         self._total_episode = 0
 
+        self._first_update_policy = True
+
     def _setup_env_manager(self) -> BaseEnvManager:
         env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(self._env_kwargs)
         if self._eval_flag:
@@ -80,27 +82,23 @@ class OneVsOneActor(BaseActor):
 
     # override
     def _policy_inference(self, obs: Dict[int, Any]) -> Dict[int, Any]:
-        # issue
-        self._obs_pool.update(obs)
         data_id = list(obs.keys())
         if len(self._policy) > 1:
             obs = [{id: obs[id][i] for id in data_id} for i in range(len(self._policy))]
         else:
             obs = [obs]
+        assert obs[0][data_id[0]].shape == (3, 210, 160)
+        self._obs_pool.update(obs)
         policy_outputs = []
         for i in range(len(self._policy)):
-            env_id, policy_obs = self._policy[i].data_preprocess(obs[i])  # issue obs[i]
+            env_id, policy_obs = self._policy[i].data_preprocess(obs[i])
             policy_output = self._policy[i].forward(env_id, policy_obs)
             policy_outputs.append(self._policy[i].data_postprocess(env_id, policy_output))
-        # if len(policy_outputs) == 1:
-        #     policy_outputs = policy_outputs[0]
         self._policy_output_pool.update(policy_outputs)
         actions = {}
-        for env_id in policy_outputs[0].keys():
-            if len(self._policy) > 1:
-                action = [policy_outputs[i][env_id]['action'] for i in range(len(self._policy))]
-            else:
-                action = policy_outputs[0][env_id]['action']
+        for env_id in data_id:
+            action = [policy_outputs[i][env_id]['action'] for i in range(len(self._policy))]
+            action = torch.stack(action).squeeze()
             actions[env_id] = action
         return actions
 
@@ -120,28 +118,29 @@ class OneVsOneActor(BaseActor):
                 for p in self._policy:
                     p.reset([env_id])
                 continue
+            t = [BaseEnvTimestep(t.obs[i], t.reward[i], t.done, t.info) for i in range(len(self._policy))]
             if not self._eval_flag:
                 for i in range(len(self._policy)):
                     if self._policy_is_active[i]:
                         # Only active policy will store transition into replay buffer.
                         transition = self._policy[i].process_transition(
-                            self._obs_pool[env_id][i], self._policy_output_pool[env_id][i], t
+                            self._obs_pool[env_id][i], self._policy_output_pool[env_id][i], t[i]
                         )
-                        self._traj_cache[env_id].append(transition)
-            full_indices = []
-            for i in range(len(self._traj_cache[env_id])):
-                if len(self._traj_cache[env_id][i]) == self._traj_len:
-                    full_indices.append(i)
-            if (not self._eval_flag) and (t.done or len(full_indices) > 0):
-                for i in full_indices:
-                    train_sample = self._policy.get_train_sample(self._traj_cache[env_id][i])
-                    for s in train_sample:
-                        s = self._compressor(s)
-                        metadata = self._get_metadata(s, env_id)
-                        self.send_stepdata(metadata['data_id'], s)
-                        self.send_metadata(metadata)
-                    self._total_sample += len(train_sample)
-            if t.done:
+                        self._traj_cache[env_id][i].append(transition)
+                full_indices = []
+                for i in range(len(self._traj_cache[env_id])):
+                    if len(self._traj_cache[env_id][i]) == self._traj_len:
+                        full_indices.append(i)
+                if t[0].done or len(full_indices) > 0:
+                    for i in full_indices:
+                        train_sample = self._policy[i].get_train_sample(self._traj_cache[env_id][i])
+                        for s in train_sample:
+                            s = self._compressor(s)
+                            metadata = self._get_metadata(s, env_id)
+                            self.send_stepdata(metadata['data_id'], s)
+                            self.send_metadata(metadata)
+                        self._total_sample += len(train_sample)
+            if t[0].done:
                 # env reset is done by env_manager automatically
                 for c in self._traj_cache[env_id]:
                     c.clear()
@@ -149,12 +148,15 @@ class OneVsOneActor(BaseActor):
                 self._policy_output_pool.reset(env_id)
                 for p in self._policy:
                     p.reset([env_id])
-                reward = t.info['final_eval_reward']
-                if isinstance(reward, torch.Tensor):
-                    reward = reward.item()
-                self._episode_result[env_id].append(reward)
+                reward = t[0].info['final_eval_reward']
+                # Only left player's reward will be recorded.
+                left_reward = reward[0]
+                if isinstance(left_reward, torch.Tensor):
+                    left_reward = left_reward.item()
+                self._episode_result[env_id].append(left_reward)
+
                 self.debug(
-                    "env {} finish episode, final reward: {}, collected episode {}".format(
+                    "Env {} finish episode, final reward: {}, collected episode: {}.".format(
                         env_id, reward, len(self._episode_result[env_id])
                     )
                 )
@@ -167,7 +169,7 @@ class OneVsOneActor(BaseActor):
         duration = max(time.time() - self._start_time, 1e-8)
 
         game_result = copy.deepcopy(self._episode_result)
-        for i, env_result in enumerate(self._episode_result):
+        for i, env_result in enumerate(game_result):
             for j, rew in enumerate(env_result):
                 if rew < 0:
                     game_result[i][j] = "loss"
@@ -195,7 +197,6 @@ class OneVsOneActor(BaseActor):
             'reward_std': np.std(self._episode_result),
             'reward_raw': self._episode_result,
             'finish_time': time.time(),
-            # issue
             'game_result': game_result,
         }
         if not self._eval_flag:
@@ -207,11 +208,8 @@ class OneVsOneActor(BaseActor):
 
     # override
     def _update_policy(self) -> None:
-        # issue
-        self._first_update_policy = True
         path = self._cfg.policy_update_path
         self._policy_is_active = self._cfg.policy_update_flag
-        # flag = self._cfg.policy_update_flag
         for i in range(len(path)):
             if not self._first_update_policy and not self._policy_is_active[i]:
                 # For the first time, all policies should be updated(i.e. initialized);

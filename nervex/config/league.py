@@ -17,7 +17,7 @@ one_vs_one_league_default_config = dict(
         main_player=dict(
             # There should be keys ['one_phase_step', 'branch_probs', 'strong_win_rate'].
             # Specifically for 'main_exploiter' of StarCraft, there should be an additional key ['min_valid_win_rate'].
-            one_phase_step=2e3,
+            one_phase_step=10,
             branch_probs=dict(
                 pfsp=0.5,
                 sp=0.5,

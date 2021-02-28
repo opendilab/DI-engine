@@ -122,7 +122,8 @@ class BaseLeague(ABC):
                 # Mutate
                 self._mutate_player(player)
                 return True
-            return False
+            else:
+                return False
 
     @abstractmethod
     def _mutate_player(self, player: ActivePlayer) -> None:
@@ -150,8 +151,8 @@ class BaseLeague(ABC):
             idx = self.active_players_ids.index(player_info['player_id'])
             player = self.active_players[idx]
             self._update_player(player, player_info)
-        except ValueError:
-            pass
+        except ValueError as e:
+            print(e)
 
     @abstractmethod
     def _update_player(self, player: ActivePlayer, player_info: dict) -> None:
@@ -180,11 +181,9 @@ class BaseLeague(ABC):
         Overview:
             Copy a checkpoint from path ``src_checkpoint`` to path ``dst_checkpoint``.
         Arguments:
-            - src_checkpoint (:obj:`str`): source checkpoint's path, e.g. s3://alphastar_fake_data/ckpt.pth
-            - dst_checkpoint (:obj:`str`): dst checkpoint's path, e.g. s3://alphastar_fake_data/ckpt.pth
+            - src_checkpoint (:obj:`str`): Source checkpoint's path, e.g. s3://alphastar_fake_data/ckpt.pth
+            - dst_checkpoint (:obj:`str`): Destination checkpoint's path, e.g. s3://alphastar_fake_data/ckpt.pth
         '''
-        # src_checkpoint = os.path.join(self.player_path, src_checkpoint)
-        # dst_checkpoint = os.path.join(self.player_path, dst_checkpoint)
         checkpoint = read_file(src_checkpoint)
         save_file(dst_checkpoint, checkpoint)
 
