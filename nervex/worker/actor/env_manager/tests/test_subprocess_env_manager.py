@@ -51,6 +51,7 @@ class TestVecEnvManager:
         with pytest.raises(Exception):
             obs = env_manager.launch(reset_param=[{'stat': 'error'} for _ in range(env_manager.env_num)])
         assert env_manager._closed
+        time.sleep(0.5)  # necessary time interval
         obs = env_manager.launch(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
         assert not env_manager._closed
         with pytest.raises(AttributeError):

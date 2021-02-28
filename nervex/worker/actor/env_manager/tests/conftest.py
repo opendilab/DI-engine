@@ -34,7 +34,7 @@ class FakeEnv(object):
 
     def reset(self, stat):
         if isinstance(stat, str) and stat == 'error':
-            raise EnvException("reset error")
+            raise EnvException("reset error: {}".format(stat))
         self._current_step = 0
         self._stat = stat
 
