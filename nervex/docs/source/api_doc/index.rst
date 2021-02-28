@@ -64,7 +64,7 @@ API Doc
     worker/actor/env_manager
     worker/actor/comm
     worker/actor/actor
-    worker/coordinator/coordinator_interaction
     worker/coordinator/coordinator
+    worker/coordinator/comm_coordinator
     worker/coordinator/resource_manager
     worker/coordinator/commander
