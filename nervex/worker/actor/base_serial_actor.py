@@ -78,6 +78,18 @@ class BaseSerialActor(object):
         self._total_sample_count = 0
         self._total_duration = 0
 
+    @property
+    def actor_info(self) -> dict:
+        """
+        Overview:
+            Get current info dict, which will be sent to commander, e.g. replay buffer priority update,
+            current iteration, hyper-parameter adjustment, whether task is finished, etc.
+        Returns:
+            - info (:obj:`dict`): Current learner info dict.
+        """
+        ret = {'env_step': self._total_step_count,'sample_step':self._total_sample_count}
+        return ret
+
     def generate_data(self,
                       iter_count: int,
                       n_episode: Optional[int] = None,
@@ -197,6 +209,7 @@ class BaseSerialActor(object):
         self._total_collect_step_count += 1
         self._total_duration += duration
         collect_info = {
+            'sample_count': train_sample_count,
             'total_collect_step': self._total_collect_step_count,
             'total_step': self._total_step_count,
             'total_sample': self._total_sample_count,
