@@ -3,10 +3,12 @@ import os
 from nervex.interaction import Slave, TaskFail
 from nervex.utils import lists_to_dicts
 
-DATA_PREFIX = 'SLAVE_ACTOR_DATA'
-
 
 class NaiveLearner(Slave):
+
+    def __init__(self, *args, prefix='', **kwargs):
+        super().__init__(*args, **kwargs)
+        self._prefix = prefix
 
     def _process_task(self, task):
         task_name = task['name']
@@ -36,17 +38,20 @@ class NaiveLearner(Slave):
             self.count += 1
             ret = {
                 'info': {
-                    'step': self.count
+                    'learner_step': self.count
                 },
                 'task_id': self.task_info['task_id'],
                 'buffer_id': self.task_info['buffer_id']
             }
             ret['info']['priority_info'] = {k: data[k] for k in priority_keys}
             if self.count > 5:
-                ret['finished_task'] = {'finish': True, 'buffer_id': self.task_info['buffer_id']}
-                os.popen('touch {}_final_model.pth'.format(DATA_PREFIX))
-            else:
-                ret['finished_task'] = None
+                ret['info']['learner_done'] = True
+                os.popen('touch {}_final_model.pth'.format(self._prefix))
             return ret
+        elif task_name == 'learner_close_task':
+            return {
+                'task_id': self.task_info['task_id'],
+                'buffer_id': self.task_info['buffer_id']
+            }
         else:
             raise TaskFail(result={'message': 'task name error'}, message='illegal actor task <{}>'.format(task_name))

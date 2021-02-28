@@ -8,7 +8,7 @@ from nervex.worker.actor.comm import NaiveActor
 from nervex.utils import lists_to_dicts
 from nervex.config import parallel_local_default_config, parallel_transform
 
-DATA_PREFIX = 'SLAVE_ACTOR_DATA'
+DATA_PREFIX = 'SLAVE_ACTOR_DATA_LEARNER_TEST'
 
 
 @pytest.fixture(scope='function')
@@ -21,7 +21,7 @@ def setup_actor(setup_config):
     cfg = setup_config.coordinator.interaction.actor
     actor = {}
     for _, (name, host, port) in cfg.items():
-        actor[name] = NaiveActor(host, port)
+        actor[name] = NaiveActor(host, port, prefix=DATA_PREFIX)
         actor[name].start()
     yield actor
     for a in actor.values():

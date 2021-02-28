@@ -9,7 +9,7 @@ Please Reference nervex/worker/actor/base_parallel_actor.py for usage
 BaseActor
 ~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: nervex.worker.actor.base_parallel_actor.BaseActor
-    :members: __init__, info, error, _setup_timer, _setup_logger, start, close, _iter_after_hook, _policy_inference, _env_step, _process_timestep, _finish_task, _update_policy, _start_thread
+    :members: __init__, info, error, _setup_timer, _setup_logger, start, close, _iter_after_hook, _policy_inference, _env_step, _process_timestep, get_finish_info, _update_policy, _start_thread, _join_thread
 
 
 base_serial_actor

@@ -1,0 +1,97 @@
+@startuml
+skinparam NoteBackgroundColor PapayaWhip
+
+autonumber
+
+participant Coordinator
+participant Learner
+participant Actor
+participant Middleware
+participant Operator
+
+group start
+Coordinator->Coordinator: start communication module
+Coordinator->Coordinator: start commander
+Coordinator->Coordinator: start replay buffer
+Coordinator->Operator: connect operator
+Operator->Coordinator: send actor/learner info
+Coordinator->Learner: create connection
+Coordinator->Actor: create connection
+end
+
+loop
+autonumber
+group learn(async)
+Coordinator->Learner: request learner start task
+note right
+policy config
+learner config
+end note
+Learner->Coordinator: return learner start info
+group learner loop
+Coordinator->Learner: request data demand task
+Learner->Coordinator: return data demand
+Coordinator->Learner: request learn task and send data(metadata)
+note right
+data path
+data priority
+end note
+Middleware->Learner: load data(stepdata)
+Learner->Learner: learner a iteration
+Learner->Middleware: send policy info
+note left
+model state_dict
+model hyper-parameter
+end note
+Learner->Coordinator: return learn info
+note right
+policy meta
+train stat
+data priority
+end note
+end
+Coordinator->Learner: request learner close task
+Learner->Coordinator: return learner close info
+note right
+save final policy
+end note
+end
+
+autonumber
+group data collection/evaluation(async)
+Coordinator->Actor: request actor start task
+note right
+policy meta
+env config
+actor config
+end note
+Actor->Coordinator: return actor start info
+Middleware->Actor: load policy info for init
+group actor loop
+Coordinator->Actor: request get data task
+Actor->Actor: policy interact with env
+Actor->Middleware: send data(stepdata)
+Actor->Coordinator: return data(metadata)
+note right
+data path
+data length(rollout length)
+end note
+Middleware->Actor: load policy info for update
+end group
+Coordinator->Actor: request actor close task
+Actor->Coordinator: return actor close info
+note right
+episode result(cumulative reward)
+actor performance
+end note
+end group
+end
+
+autonumber
+group close
+Coordinator->Learner: destory connection
+Coordinator->Actor: destory connection
+Coordinator->Operator: disconnect operator
+Coordinator->Coordinator: close
+end group
+@enduml

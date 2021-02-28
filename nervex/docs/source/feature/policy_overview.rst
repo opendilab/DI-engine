@@ -15,7 +15,7 @@ Policy
         .. code:: python
 
             data = self._policy.data_preprocess(data)
-            log_vars = self._policy.forward(data)。
+            log_vars = self._policy.forward(data)
 
 
     2. ``collect_mode``: actor执行过程中需要 ``Policy`` 定义的函数，如actor step的forward函数即为 ``collect_mode.forward`` ， trainsition的处理为 ``collect_mode.process_transition`` , 在actor中的调用为:
@@ -47,10 +47,10 @@ Policy
     主要分为以下两种：
 
         1. Policy基类: Policy模块的基类。
+
             - 所有Policy都需要继承``base_policy``中的``Policy``类；
             - 由于很多算法 ``Policy`` 在控制流程上有共同点，为了方便我们提取了 ``common_policy`` 中的 ``CommonPolicy`` 类，该类继承了 ``Policy`` 类； ``CommonPolicy`` 类不是必须继承的，如有具体需求可以用户自己写。
             - Policy在定义后，需要使用调用 ``base_policy`` 中的 ``register_policy进行`` 注册;使用时需要根据对应的config文件使用 ``create_policy`` 创建实例； ``regist_policy`` 的使用可见 `tutorial部分 <../tutorial/index.html>`_ 。 ``create_policy`` 则是在算法执行时，根据config文件中算法策略和config参数在执行过程中调用。
-
 
         2. Policy具体实现: 我们有很多已实现的算法Policy，位于nervex/policy文件夹下。
 

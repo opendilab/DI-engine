@@ -25,7 +25,7 @@ def setup_exception():
 class FakeEnv(object):
 
     def __init__(self, cfg):
-        self._target_step = random.randint(4, 8) * 3
+        self._target_step = random.randint(4, 8) * 2
         self._current_step = 0
         self._name = cfg['name']
         self._stat = None
@@ -90,7 +90,7 @@ class FakeAsyncEnv(FakeEnv):
 
     def reset(self, stat):
         super().reset(stat)
-        time.sleep(random.randint(5, 8))
+        time.sleep(random.randint(2, 4))
         return to_ndarray(torch.randn(3))
 
 

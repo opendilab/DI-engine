@@ -1,8 +1,6 @@
 import torch
 from nervex.interaction.slave import Slave, TaskFail
 
-DATA_PREFIX = 'SLAVE_ACTOR_DATA'
-
 
 class NaiveActor(Slave):
     """
@@ -12,6 +10,10 @@ class NaiveActor(Slave):
     Interfaces:
         _process_task, _get_timestep
     """
+
+    def __init__(self, *args, prefix='', **kwargs):
+        super().__init__(*args, **kwargs)
+        self._prefix = prefix
 
     def _process_task(self, task):
         """
@@ -32,15 +34,20 @@ class NaiveActor(Slave):
             return {'message': 'actor task has started'}
         elif task_name == 'actor_data_task':
             self.count += 1
-            data_id = './{}_{}_{}'.format(DATA_PREFIX, self.task_info['task_id'], self.count)
+            data_id = './{}_{}_{}'.format(self._prefix, self.task_info['task_id'], self.count)
             torch.save(self._get_timestep(), data_id)
             data = {'data_id': data_id, 'buffer_id': self.task_info['buffer_id'], 'unroll_split_begin': 0}
             data['task_id'] = self.task_info['task_id']
             if self.count == 20:
-                data['finished_task'] = {'finish': True}
+                return {
+                    'task_id': self.task_info['task_id'],
+                    'actor_done': True,
+                    'cur_episode': 1,
+                    'cur_step': 314,
+                    'cur_sample': 314,
+                }
             else:
-                data['finished_task'] = None
-            return data
+                return data
         else:
             raise TaskFail(result={'message': 'task name error'}, message='illegal actor task <{}>'.format(task_name))
 

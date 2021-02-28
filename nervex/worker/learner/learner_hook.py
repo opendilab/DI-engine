@@ -59,7 +59,8 @@ class LearnerHook(Hook):
         __init__
     Property:
         name, priority, position
-    Note:
+
+    .. note::
         Subclass should implement ``self.__call__``.
     """
     positions = ['before_run', 'after_run', 'before_iter', 'after_iter']

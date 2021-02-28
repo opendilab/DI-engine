@@ -144,7 +144,7 @@ class BaseLearner(object):
             "config": self._cfg,
         }, direct_print=False))
         self._end_flag = False
-        self._finished_task = None
+        self._learner_done = False
 
         # Setup wrapper and hook.
         self._setup_wrapper()
@@ -207,7 +207,8 @@ class BaseLearner(object):
             "before_iter" and "after_iter" hooks are called once each.
         Arguments:
             - data (:obj:`dict`): Training data which is retrieved from repaly buffer.
-        Note:
+
+        .. note::
             ``_policy`` must be set before calling this method.
             ``_policy.forward`` method contains: forward, backward, grad sync(if in distributed mode) and
             parameter update.
@@ -245,18 +246,18 @@ class BaseLearner(object):
             Besides "before_iter" and "after_iter", "before_run" and "after_run" hooks are called once each.
         """
         self._end_flag = False
-        self._finished_task = None
+        self._learner_done = False
         # before run hook
         self.call_hook('before_run')
 
-        max_iterations = self._cfg.max_iterations
-        for _ in range(max_iterations):
+        max_iterations = self._cfg.get('max_iterations', int(1e10))
+        for i in range(max_iterations):
             data = self._next_data()
-            self.train(data)
             if self._end_flag:
                 break
+            self.train(data)
 
-        self._finished_task = {'finish': True}
+        self._learner_done = True
         # after run hook
         self.call_hook('after_run')
 
@@ -264,7 +265,8 @@ class BaseLearner(object):
         """
         Overview:
             Setup learner's dataloader.
-        Note:
+
+        .. note::
             Only in parallel version will we use ``get_data`` and ``_dataloader``(AsyncDataLoader);
             Instead in serial version, we can sample data from replay buffer directly.
             In parallel version, ``get_data`` is set by comm LearnerCommHelper, and should be callable.
@@ -287,7 +289,8 @@ class BaseLearner(object):
             Call ``_dataloader``'s ``__next__`` method to return next training data.
         Returns:
             - data (:obj:`Any`): Next training data from dataloader.
-        Note:
+
+        .. note::
             Only in parallel version will this method be called.
         """
         return next(self._dataloader)
@@ -301,11 +304,8 @@ class BaseLearner(object):
             return
         self._end_flag = True
         if hasattr(self, '_dataloader'):
-            del self._dataloader
+            self._dataloader.close()
         self._tb_logger.close()
-        # if the learner is interrupted by force
-        if self._finished_task is None:
-            self.save_checkpoint()
 
     def call_hook(self, name: str) -> None:
         """
@@ -357,9 +357,11 @@ class BaseLearner(object):
         Returns:
             - info (:obj:`dict`): Current learner info dict.
         """
-        ret = {'learner_step': self._last_iter.val, 'priority_info': self._priority_info}
-        if hasattr(self, '_finished_task') and self._finished_task is not None:
-            ret['finished_task'] = self._finished_task
+        ret = {
+            'learner_step': self._last_iter.val,
+            'priority_info': self._priority_info,
+            'learner_done': self._learner_done
+        }
         return ret
 
     @property

@@ -11,10 +11,10 @@ from nervex.interaction.master.task import TaskStatus
 from .resource_manager import NaiveResourceManager
 
 
-class CoordinatorInteraction(object):
+class CommCoordinator(object):
     r"""
     Overview:
-        the coordinator interactor
+        the communication part of coordinator(coordinator interactor)
     Interface:
         __init__ , start, close, __del__, send_actor_task, send_learner_task
     """
@@ -170,28 +170,42 @@ class CoordinatorInteraction(object):
         actor_id = actor_task['actor_id']
         while not self._end_flag:
             try:
+                # data task
                 data_task = self._connection_actor[actor_id].new_task({'name': 'actor_data_task'})
+                self._logger.info('actor data task begin')
                 data_task.start().join()
+                self._logger.info('actor data task end')
                 if data_task.status != TaskStatus.COMPLETED:
                     # TODO(deal with fail task)
                     self._logger.error('actor data task is failed')
                     continue
+                result = data_task.result
+                task_id = result.get('task_id', None)
+                # data result
+                if 'data_id' in result:
+                    buffer_id = result.get('buffer_id', None)
+                    data_id = result.get('data_id', None)
+                    self._callback_fn['deal_with_actor_send_data'](task_id, buffer_id, data_id, result)
+                # info result
                 else:
-                    result = data_task.result
-                    finished_task = result.pop('finished_task', None)
-                    if finished_task:
-                        # result['finished_task'] is a flag
-                        task_id = result.get('task_id', None)
-                        self._callback_fn['deal_with_actor_finish_task'](task_id, result)
-                        resource_task = self._get_resource(self._connection_actor[actor_id])
-                        if resource_task.status == TaskStatus.COMPLETED:
-                            self._resource_manager.update('actor', actor_id, resource_task.result)
+                    is_finished = self._callback_fn['deal_with_actor_judge_finish'](task_id, result)
+                    if not is_finished:
+                        continue
+                    # close task
+                    self._logger.error('close_task: {}\n{}'.format(task_id, result))
+                    close_task = self._connection_actor[actor_id].new_task({'name': 'actor_close_task'})
+                    close_task.start().join()
+                    if close_task.status != TaskStatus.COMPLETED:
+                        # TODO(deal with fail task)
+                        self._logger.error('actor close is failed')
                         break
-                    else:
-                        task_id = result.get('task_id', None)
-                        buffer_id = result.get('buffer_id', None)
-                        data_id = result.get('data_id', None)
-                        self._callback_fn['deal_with_actor_send_data'](task_id, buffer_id, data_id, result)
+                    result = close_task.result
+                    task_id = result.get('task_id', None)
+                    self._callback_fn['deal_with_actor_finish_task'](task_id, result)
+                    resource_task = self._get_resource(self._connection_actor[actor_id])
+                    if resource_task.status == TaskStatus.COMPLETED:
+                        self._resource_manager.update('actor', actor_id, resource_task.result)
+                    break
             except requests.exceptions.HTTPError as e:
                 if self._end_flag:
                     break
@@ -273,7 +287,7 @@ class CoordinatorInteraction(object):
                 if self._end_flag:
                     break
 
-                # learn
+                # learn task
                 learn_task = self._connection_learner[learner_id].new_task({'name': 'learner_learn_task', 'data': data})
                 learn_task.start().join()
                 if learn_task.status != TaskStatus.COMPLETED:
@@ -281,10 +295,17 @@ class CoordinatorInteraction(object):
                     self._logger.error('learner learn_task failed: {}'.format(learn_task.result))
                     continue
                 result = learn_task.result
-                task_id, finished_task = result['task_id'], result['finished_task']
-                # finish task and update resource
-                if finished_task:
-                    # result['finished_task'] is a flag
+                task_id, info = result['task_id'], result['info']
+                is_finished = self._callback_fn['deal_with_learner_judge_finish'](task_id, info)
+                if is_finished:
+                    # close task and update resource
+                    close_task = self._connection_learner[learner_id].new_task({'name': 'learner_close_task'})
+                    close_task.start().join()
+                    if close_task.status != TaskStatus.COMPLETED:
+                        self._logger.error('learner close_task failed: {}'.format(close_task.result))
+                        break
+                    result = close_task.result
+                    task_id = result.get('task_id', None)
                     self._callback_fn['deal_with_learner_finish_task'](task_id, result)
                     resource_task = self._get_resource(self._connection_learner[learner_id])
                     if resource_task.status == TaskStatus.COMPLETED:
@@ -292,7 +313,7 @@ class CoordinatorInteraction(object):
                     break
                 else:
                     # update info
-                    buffer_id, info = result['buffer_id'], result['info']
+                    buffer_id = result['buffer_id']
                     self._callback_fn['deal_with_learner_send_info'](task_id, buffer_id, info)
             except requests.exceptions.HTTPError as e:
                 if self._end_flag:

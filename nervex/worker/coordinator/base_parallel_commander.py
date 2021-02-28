@@ -16,6 +16,21 @@ class BaseCommander(ABC):
     def get_actor_task(self) -> dict:
         raise NotImplementedError
 
+    def judge_actor_finish(self, task_id: str, info: dict) -> bool:
+        actor_done = info.get('actor_done', False)
+        cur_episode = info['cur_episode']
+        cur_sample = info['cur_sample']
+        if actor_done:
+            return True
+        return False
+
+    def judge_learner_finish(self, task_id: str, info: dict) -> bool:
+        learner_done = info.get('learner_done', False)
+        cur_step = info['learner_step']
+        if learner_done:
+            return True
+        return False
+
 
 class NaiveCommander(BaseCommander):
     r"""
