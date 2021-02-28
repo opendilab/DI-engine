@@ -1,0 +1,2 @@
+from .miner_ppo_default_config import miner_ppo_default_config
+from .miner_dqn_default_config import miner_dqn_default_config

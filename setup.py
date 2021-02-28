@@ -98,6 +98,7 @@ setup(
         #'redis-py-cluster==2.1.0',
         'cmake>=3.18.4',
         'readerwriterlock',
+        'procgen',
     ],
     entry_points={
         'console_scripts': [
