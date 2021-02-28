@@ -144,6 +144,8 @@ class RainbowDQNPolicy(DQNPolicy):
                     as the noise_net contain noise that can help exploration
         """
         self._traj_len = self._cfg.collect.traj_len
+        if self._traj_len == 'inf':
+            self._traj_len = float('inf')
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
         self._collect_nstep = self._cfg.collect.algo.nstep

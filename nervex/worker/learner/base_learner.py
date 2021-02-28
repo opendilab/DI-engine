@@ -78,8 +78,8 @@ def get_simple_monitor_type(properties: List[str] = []) -> TickMonitor:
     else:
         attrs = {}
         properties = [
-            'data_time', 'data_preprocess_time', 'train_time', 'sample_count','total_collect_step', 'total_step', 'total_sample',
-            'total_episode', 'total_duration'
+            'data_time', 'data_preprocess_time', 'train_time', 'sample_count', 'total_collect_step', 'total_step',
+            'total_sample', 'total_episode', 'total_duration'
         ] + properties
         for p_name in properties:
             attrs[p_name] = LoggedValue(float)

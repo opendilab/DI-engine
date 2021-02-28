@@ -33,10 +33,6 @@ class BaseSerialActor(object):
         else:
             self._traj_len = float('inf')
             self._traj_cache_length = None
-            # raise ValueError(
-            #     "Serial Actor must indicate finite traj_len, if you want to use the total episode, \
-            #     please set it equal to the maximum length of the env's episode"
-            # )
         self._traj_print_freq = cfg.traj_print_freq
         self._collect_print_freq = cfg.collect_print_freq
         self._logger, _ = build_logger(path='./log/actor', name='actor', need_tb=False)
@@ -71,7 +67,6 @@ class BaseSerialActor(object):
             for env_id in range(self._env_num)
         }  # _traj_cache = {env_id: deque}, used to store traj_len pieces of transitions
 
-
         self._total_collect_step_count = 0
         self._total_step_count = 0
         self._total_episode_count = 0
@@ -87,7 +82,7 @@ class BaseSerialActor(object):
         Returns:
             - info (:obj:`dict`): Current learner info dict.
         """
-        ret = {'env_step': self._total_step_count,'sample_step':self._total_sample_count}
+        ret = {'env_step': self._total_step_count, 'sample_step': self._total_sample_count}
         return ret
 
     def generate_data(self,
