@@ -1,5 +1,6 @@
 from .exploration import epsilon_greedy, create_noise_generator
 from .ppo import ppo_data, ppo_loss, ppo_info, ppo_error, ppo_error_continous
+from .ppg import ppg_data, ppg_joint_loss, ppg_joint_error, value_error, ppg_aux_data, ppg_aux_loss
 from .gae import gae_data, gae
 from .a2c import a2c_data, a2c_error
 from .coma import coma_data, coma_error
