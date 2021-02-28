@@ -216,8 +216,11 @@ class DQNPolicy(CommonPolicy):
         Returns:
            - collect_setting (:obj:`dict`): Including eps in collect mode.
         """
-        learner_step = command_info['learner_step']
-        return {'eps': self.epsilon_greedy(learner_step)}
+        # use learner_step
+        step = command_info['learner_step']
+        # use env_step
+        # step = command_info['env_step']
+        return {'eps': self.epsilon_greedy(step)}
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'fc_discrete_net', ['nervex.model.discrete_net.discrete_net']
