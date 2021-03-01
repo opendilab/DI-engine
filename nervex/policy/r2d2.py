@@ -54,7 +54,7 @@ class R2D2Policy(CommonPolicy):
         self._armor.target_mode(train=True)
         self._learn_setting_set = {}
 
-    def _data_preprocess_learn(self, data: List[Dict[str, Any]]) -> dict:
+    def _data_preprocess_learn(self, data: List[Dict[str, Any]]) -> Tuple[dict, dict]:
         r"""
         Overview:
             Preprocess the data to fit the required data format for learning
@@ -65,7 +65,12 @@ class R2D2Policy(CommonPolicy):
         Returns:
             - data (:obj:`Dict[str, Any]`): the processed data, including at least \
                 ['main_obs', 'target_obs', 'burnin_obs', 'action', 'reward', 'done', 'weight']
+            - data_info (:obj:`dict`): the data info, such as replay_buffer_idx, replay_unique_id
         """
+        data_info = {
+            'replay_buffer_idx': [d.get('replay_buffer_idx', None) for d in data],
+            'replay_unique_id': [d.get('replay_unique_id', None) for d in data],
+        }
         # data preprocess
         data = timestep_collate(data)
         if self._use_cuda:
@@ -80,11 +85,11 @@ class R2D2Policy(CommonPolicy):
             data['done'] = data['done'][bs:bs + self._nstep].float()
         data['action'] = data['action'][bs:bs + self._nstep]
         data['reward'] = data['reward'][bs:]
-        # split obs into three parts ['burnn_obs'(0~bs), 'main_obs'(bs~bs+nstep), 'target_obs'(bs+nstep~bss+2nstep)]
+        # split obs into three parts ['burnin_obs'(0~bs), 'main_obs'(bs~bs+nstep), 'target_obs'(bs+nstep~bss+2nstep)]
         data['burnin_obs'] = data['obs'][:bs]
         data['main_obs'] = data['obs'][bs:bs + self._nstep]
         data['target_obs'] = data['obs'][bs + self._nstep:]
-        return data
+        return data, data_info
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""

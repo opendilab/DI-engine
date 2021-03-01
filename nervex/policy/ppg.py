@@ -6,7 +6,8 @@ import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 
 from nervex.utils import squeeze
-from nervex.torch_utils import Adam
+from nervex.data import default_collate
+from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import \
     ppo_data, ppo_error, Adder, ppg_data, ppg_joint_error, value_error, ppg_aux_data, ppg_aux_loss
 from nervex.model import FCValueAC, ConvValueAC
@@ -72,6 +73,26 @@ class PPGPolicy(CommonPolicy):
         self._train_step = 0
         self._aux_memories = []
         self._beta_weight = algo_cfg.beta_weight
+
+    def _data_preprocess_learn(self, data: List[Any]) -> Tuple[dict, dict]:
+        # TODO(nyz) priority for ppg
+        data_info = {}
+        # data preprocess
+        data = data['policy']
+        data = default_collate(data)
+        ignore_done = self._cfg.learn.get('ignore_done', False)
+        if ignore_done:
+            data['done'] = None
+        else:
+            data['done'] = data['done'].float()
+        use_priority = self._cfg.get('use_priority', False)
+        if use_priority:
+            data['weight'] = data['IS']
+        else:
+            data['weight'] = data.get('weight', None)
+        if self._use_cuda:
+            data = to_device(data, 'cuda:{}'.format(self._rank % 8))
+        return data, data_info
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""
@@ -223,7 +244,14 @@ class PPGPolicy(CommonPolicy):
         data = self._adder.get_gae_with_default_last_value(
             data, data[-1]['done'], gamma=self._gamma, gae_lambda=self._gae_lambda
         )
-        return self._adder.get_train_sample(data)
+        data = self._adder.get_train_sample(data)
+        for d in data:
+            d['buffer_name'] = ["policy", "value"]
+        return data
+
+    def _get_batch_size(self) -> Dict[str, int]:
+        bs = self._cfg.learn.batch_size
+        return {'policy': bs, 'value': bs}
 
     def _init_eval(self) -> None:
         r"""

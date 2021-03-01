@@ -47,11 +47,6 @@ class BufferManager:
                 monitor_cfg=buffer_cfg.get('monitor', None),
             )
 
-        self.sample_tree = SumSegmentTree(len(self.buffer_name))
-        for idx, name in enumerate(self.buffer_name):
-            self.sample_tree[idx] = self.cfg.sample_ratio[name]
-        assert self.sample_tree.reduce() == 1
-
         # Cache mechanism: First push data into cache, then(on some conditions) put forward to meta buffer.
         # self.use_cache = cfg.get('use_cache', False)
         self.use_cache = False
@@ -68,13 +63,13 @@ class BufferManager:
             with self._meta_lock:
                 self._meta_buffer.append(data)
 
-    def push_data(self, data: Union[list, dict], buffer_name: str = "agent") -> None:
+    def push_data(self, data: Union[list, dict], buffer_name: Optional[List[str]] = None) -> None:
         """
         Overview:
             Push ``data`` into appointed buffer.
         Arguments:
             - data (:obj:`list` or `dict`): Data list or data item (dict type).
-            - buffer_name (:obj:`str`): The buffer to push data into, default set to "agent".
+            - buffer_name (:obj:`Optional[List[str]]`): The buffer to push data into
         """
         assert (isinstance(data, list) or isinstance(data, dict))
         if isinstance(data, dict):
@@ -83,57 +78,48 @@ class BufferManager:
             for d in data:
                 self._cache.push_data(d)
         else:
-            self.buffer[buffer_name].extend(data)
+            if buffer_name is None:
+                elem = data[0]
+                buffer_name = elem.get('buffer_name', self.buffer_name)
+            for n in buffer_name:
+                self.buffer[n].extend(data)
 
-    def sample(self,
-               batch_size: int,
-               cur_learner_iter: int,
-               sample_ratio: Optional[Dict[str, float]] = None) -> Optional[list]:
+    def sample(
+            self,
+            batch_size: Union[int, Dict[str, int]],
+            cur_learner_iter: int,
+    ) -> Union[list, Dict[str, list]]:
         """
         Overview:
             Sample data from prioritized buffers according to sample ratio.
         Arguments:
-            - batch_size (:obj:`int`): Batch size of the data that will be sampled.
+            - batch_size (:obj:`int`): Batch size of the data that will be sampled. Caller can indicates buffer_name \
+                and corresponding batch_size when samples from multiple buffers.
             - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
-            - sample_ratio (:obj:`Optional[Dict[str, float]]`): How to sample from multiple buffers. Caller can pass \
-                this argument; If not, replay buffer will use its own attribute ``self.sample_ratio``.
         Returns:
-            - data (:obj:`list` ): Sampled data batch.
+            - data (:obj:`Union[list, Dict[str, list]]`): Sampled data batch.
         """
-        if sample_ratio is not None:
-            for idx, name in enumerate(self.buffer_name):
-                self.sample_tree[idx] = sample_ratio[name]
-            assert self.sample_tree.reduce() == 1  # assert sum of all buffer's sample ratio is 1
-
-        # randomly choosing buffer to sample from is similar to randomly choosing transition to sample in one buffer,
-        # you can refer to ReplayBuffer's _get_indices
-        intervals = np.array([i * 1.0 / batch_size for i in range(batch_size)])
-        mass = intervals + np.random.uniform(size=(batch_size, )) * 1. / batch_size
-        buffer_choice = [self.sample_tree.find_prefixsum_idx(m) for m in mass]
-
+        # single buffer case
+        if isinstance(batch_size, int):
+            assert len(self.buffer_name) == 1
+            batch_size = {name: batch_size for name in self.buffer_name}
         # Different buffers' sample check and sample
-        buffer_sample_count = []
-        # buffer_sample_data is ``List[List[dict]]``, a list containing ``buffer_num`` lists which
+        # buffer_sample_data is ``List[List[dict]]``, a list containing ``len(batch_size)`` lists which
         # contains datas sampled from corresponding buffer.
-        buffer_sample_data = []
-        buffer_num = len(self.buffer_name)
-        for buffer_idx in range(buffer_num):
-            size = buffer_choice.count(buffer_idx)
-            buffer_sample_count.append(size)
-            if not self.buffer[self.buffer_name[buffer_idx]].sample_check(size, cur_learner_iter):
+        buffer_sample_data = {}
+        for buffer_name, sample_num in batch_size.items():
+            assert buffer_name in self.buffer.keys(), '{}-{}'.format(buffer_name, self.buffer.keys())
+            if not self.buffer[buffer_name].sample_check(sample_num, cur_learner_iter):
                 return None
-        for buffer_idx in range(buffer_num):
-            data = self.buffer[self.buffer_name[buffer_idx]].sample(buffer_sample_count[buffer_idx], cur_learner_iter)
-            buffer_sample_data.append(data)
+        for buffer_name, sample_num in batch_size.items():
+            data = self.buffer[buffer_name].sample(sample_num, cur_learner_iter)
+            buffer_sample_data[buffer_name] = data
 
-        # Fill ``data`` with sampled datas from different buffers according to ``buffer_choice`` and return
-        data = [None for _ in range(batch_size)]
-        for data_idx, buffer_idx in enumerate(buffer_choice):
-            data[data_idx] = buffer_sample_data[buffer_idx].pop()
-        assert len(data) == batch_size
-        return data
+        if len(buffer_sample_data) == 1:
+            buffer_sample_data = list(buffer_sample_data.values())[0]
+        return buffer_sample_data
 
-    def update(self, info: Dict[str, list]) -> None:
+    def update(self, info: Union[Dict[str, list], Dict[str, Dict[str, list]]]) -> None:
         """
         Overview:
             Update prioritized buffers with outside info. Current info includes transition's priority update.
@@ -142,22 +128,12 @@ class BufferManager:
                 ['replay_unique_id', 'replay_buffer_idx', 'priority']. \
                 "repaly_unique_id" format is "{buffer name}_{count in this buffer}"
         """
-        buffer_info = {
-            name: {
-                'replay_unique_id': [],
-                'replay_buffer_idx': [],
-                'priority': []
-            }
-            for name in self.buffer_name
-        }
-        data = [info['replay_unique_id'], info['replay_buffer_idx'], info['priority']]
-        for unique_id, position_idx, priority in zip(*data):
-            buffer_name = unique_id.split('_')[0]
-            buffer_info[buffer_name]['replay_unique_id'].append(unique_id)
-            buffer_info[buffer_name]['replay_buffer_idx'].append(position_idx)
-            buffer_info[buffer_name]['priority'].append(priority)
-        for name, info in buffer_info.items():
-            self.buffer[name].update(info)
+        # single buffer case
+        if not set(info.keys()).issubset(set(self.buffer_name)):
+            assert len(self.buffer_name) == 1
+            info = {name: info for name in self.buffer_name}
+        for name, buffer_info in info.items():
+            self.buffer[name].update(buffer_info)
 
     def clear(self, buffer_name: Optional[List[str]] = None) -> None:
         """
@@ -189,16 +165,20 @@ class BufferManager:
         for buffer in self.buffer.values():
             buffer.close()
 
-    def count(self, buffer_name: str = "agent") -> int:
+    def count(self, buffer_name: str = None) -> int:
         """
         Overview:
             Return chosen buffer's current data count.
         Arguments:
-            - buffer_name (:obj:`str`): Chosen buffer's name, default set to "agent"
+            - buffer_name (:obj:`str`): Chosen buffer's name
         Returns:
             - count (:obj:`int`): Chosen buffer's data count
         """
-        return self.buffer[buffer_name].validlen
+        if buffer_name is None:
+            validlen = [self.buffer[n].validlen for n in self.buffer_name]
+            return min(validlen)
+        else:
+            return self.buffer[buffer_name].validlen
 
     def used_data(self, buffer_name: str = "agent") -> 'queue.Queue':  # noqa
         """
