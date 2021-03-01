@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from easydict import EasyDict
+import copy
 from nervex.utils import import_module
 
 
@@ -73,7 +74,7 @@ class NaiveCommander(BaseCommander):
                 'task_id': 'actor_task_id{}'.format(self.actor_task_count),
                 'buffer_id': 'test',
                 'actor_cfg': actor_cfg,
-                'policy': self._cfg.policy,
+                'policy': copy.deepcopy(self._cfg.policy),
             }
         else:
             return None
@@ -95,7 +96,7 @@ class NaiveCommander(BaseCommander):
                 'buffer_id': 'test',
                 'learner_cfg': learner_cfg,
                 'replay_buffer_cfg': self._cfg.replay_buffer_cfg,
-                'policy': self._cfg.policy
+                'policy': copy.deepcopy(self._cfg.policy),
             }
         else:
             return None
