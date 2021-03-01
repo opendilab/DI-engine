@@ -49,9 +49,6 @@ class NaiveLearner(Slave):
                 os.popen('touch {}_final_model.pth'.format(self._prefix))
             return ret
         elif task_name == 'learner_close_task':
-            return {
-                'task_id': self.task_info['task_id'],
-                'buffer_id': self.task_info['buffer_id']
-            }
+            return {'task_id': self.task_info['task_id'], 'buffer_id': self.task_info['buffer_id']}
         else:
             raise TaskFail(result={'message': 'task name error'}, message='illegal actor task <{}>'.format(task_name))

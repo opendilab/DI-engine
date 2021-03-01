@@ -61,7 +61,7 @@ class CollaQPolicy(CommonPolicy):
         self._armor.target_reset()
         self._learn_setting_set = {}
 
-    def _data_preprocess_learn(self, data: List[Any]) -> dict:
+    def _data_preprocess_learn(self, data: List[Any]) -> Tuple[dict, dict]:
         r"""
         Overview:
             Preprocess the data to fit the required data format for learning
@@ -72,14 +72,19 @@ class CollaQPolicy(CommonPolicy):
         Returns:
             - data (:obj:`Dict[str, Any]`): the processed data, from \
                 [len=B, ele={dict_key: [len=T, ele=Tensor(any_dims)]}] -> {dict_key: Tensor([T, B, any_dims])}
+            - data_info (:obj:`dict`): the data info, such as replay_buffer_idx, replay_unique_id
         """
+        data_info = {
+            'replay_buffer_idx': [d.get('replay_buffer_idx', None) for d in data],
+            'replay_unique_id': [d.get('replay_unique_id', None) for d in data],
+        }
         # data preprocess
         data = timestep_collate(data)
         if self._use_cuda:
             data = to_device(data, 'cuda')
         data['weight'] = data.get('weight', None)
         data['done'] = data['done'].float()
-        return data
+        return data, data_info
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""

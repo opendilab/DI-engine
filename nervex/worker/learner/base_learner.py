@@ -217,17 +217,14 @@ class BaseLearner(object):
         self.call_hook('before_iter')
         # Pre-process data
         with self._timer:
-            replay_buffer_idx = [d.get('replay_buffer_idx', None) for d in data]
-            replay_unique_id = [d.get('replay_unique_id', None) for d in data]
-            data = self._policy.data_preprocess(data)
+            data, data_info = self._policy.data_preprocess(data)
         # Forward
         log_vars = self._policy.forward(data)
         # Update replay buffer's priority info
         priority = log_vars.pop('priority', None)
         self._priority_info = {
-            'replay_buffer_idx': replay_buffer_idx,
-            'replay_unique_id': replay_unique_id,
-            'priority': priority
+            'priority': priority,
+            **data_info,
         }
         # Update log_buffer
         log_vars['data_preprocess_time'] = self._timer.value

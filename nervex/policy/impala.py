@@ -60,7 +60,7 @@ class IMPALAPolicy(CommonPolicy):
         self._armor.reset()
         self._learn_setting_set = {}
 
-    def _data_preprocess_learn(self, data: List[Dict[str, Any]]) -> dict:
+    def _data_preprocess_learn(self, data: List[Dict[str, Any]]) -> Tuple[dict, dict]:
         r"""
         Overview:
             Data preprocess function of learn mode.
@@ -69,7 +69,12 @@ class IMPALAPolicy(CommonPolicy):
             - data (:obj:`dict`): Dict type data
         Returns:
             - data (:obj:`dict`)
+            - data_info (:obj:`dict`)
         """
+        data_info = {
+            'replay_buffer_idx': [d.get('replay_buffer_idx', None) for d in data],
+            'replay_unique_id': [d.get('replay_unique_id', None) for d in data],
+        }
         data = default_collate(data)
         if self._use_cuda:
             data = to_device(data, 'cuda')
@@ -84,7 +89,7 @@ class IMPALAPolicy(CommonPolicy):
         data['action'] = torch.cat(data['action'], dim=0).reshape(self._unroll_len, -1)
         data['reward'] = torch.cat(data['reward'], dim=0).reshape(self._unroll_len, -1)
         data['weight'] = torch.cat(data['weight'], dim=0).reshape(self._unroll_len, -1) if data['weight'] else None
-        return data
+        return data, data_info
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""
