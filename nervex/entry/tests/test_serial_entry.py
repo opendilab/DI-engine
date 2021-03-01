@@ -14,7 +14,7 @@ from app_zoo.classic_control.pendulum.entry import pendulum_ddpg_default_config,
 from app_zoo.smac.entry import smac_collaQ_default_config, smac_coma_default_config, smac_qmix_default_config
 from app_zoo.multiagent_particle.entry import cooperative_navigation_collaQ_default_config, \
     cooperative_navigation_coma_default_config, cooperative_navigation_iql_default_config, \
-    cooperative_navigation_qmix_default_config
+    cooperative_navigation_qmix_default_config, cooperative_navigation_atoc_default_config
 
 
 @pytest.mark.unittest
@@ -286,6 +286,21 @@ def test_coma_particle():
 @pytest.mark.unittest
 def test_qmix_particle():
     config = deepcopy(cooperative_navigation_qmix_default_config)
+    config.policy.use_cuda = False
+    config.policy.learn.train_step = 1
+    config.evaluator.stop_val = -float("inf")
+    config.evaluator.eval_freq = 1
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    finally:
+        os.popen('rm -rf log ckpt*')
+
+
+@pytest.mark.unittest
+def test_atoc_particle():
+    config = deepcopy(cooperative_navigation_atoc_default_config)
     config.policy.use_cuda = False
     config.policy.learn.train_step = 1
     config.evaluator.stop_val = -float("inf")
