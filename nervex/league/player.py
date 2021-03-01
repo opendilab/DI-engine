@@ -147,7 +147,7 @@ class ActivePlayer(Player):
             - flag (:obj:`bool`): Whether this player is trained enough
         """
         if select_fn is None:
-            select_fn = lambda x: isinstance(x, HistoricalPlayer)
+            select_fn = lambda x: isinstance(x, HistoricalPlayer)  # noqa
         step_passed = self._total_agent_step - self._last_enough_step
         if step_passed < self._one_phase_step:
             return False
