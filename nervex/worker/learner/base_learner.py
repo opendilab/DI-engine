@@ -5,6 +5,7 @@ Main Function:
     1. Base learner class for both serial and parallel training pipeline.
 """
 import os
+import time
 from typing import Any, Union, Callable, List
 from functools import partial
 from easydict import EasyDict
@@ -410,7 +411,7 @@ class BaseLearner(object):
 
     @property
     def name(self) -> str:
-        return self._name + str(id(self))
+        return self._name + str(time.time())
 
     @property
     def rank(self) -> int:
