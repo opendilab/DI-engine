@@ -1,1 +1,1 @@
-from .ppg import PPG
+from .ppg import ConvPPG, FCPPG

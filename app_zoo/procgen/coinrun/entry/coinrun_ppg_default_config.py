@@ -1,12 +1,15 @@
 from easydict import EasyDict
 
-cartpole_ppg_default_config = dict(
+traj_len = 6
+coinrun_ppg_default_config = dict(
     env=dict(
-        env_manager_type='base',
-        import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
-        env_type='cartpole',
-        actor_env_num=8,
-        evaluator_env_num=5,
+        env_manager_type='subprocess',
+        import_names=['app_zoo.procgen.coinrun.envs.coinrun_env'],
+        env_type='coinrun',
+        # frame_stack=4,
+        is_train=True,
+        actor_env_num=16,
+        evaluator_env_num=8,
     ),
     policy=dict(
         use_cuda=False,
@@ -14,10 +17,10 @@ cartpole_ppg_default_config = dict(
         import_names=['nervex.policy.ppg'],
         on_policy=False,
         model=dict(
-            model_type='fc_ppg',
+            model_type='conv_ppg',
             import_names=['nervex.model.ppg'],
-            obs_dim=4,
-            action_dim=2,
+            obs_dim=[3, 64, 64],
+            action_dim=1,
             embedding_dim=64,
         ),
         learn=dict(
@@ -34,7 +37,7 @@ cartpole_ppg_default_config = dict(
             ),
         ),
         collect=dict(
-            traj_len='inf',
+            traj_len=traj_len,
             unroll_len=1,
             algo=dict(
                 discount_factor=0.9,
@@ -58,7 +61,7 @@ cartpole_ppg_default_config = dict(
     ),
     actor=dict(
         n_sample=16,
-        traj_len=200,  # cartpole max episode len
+        traj_len=traj_len,
         traj_print_freq=100,
         collect_print_freq=100,
     ),
@@ -81,5 +84,5 @@ cartpole_ppg_default_config = dict(
     ),
     commander=dict(),
 )
-cartpole_ppg_default_config = EasyDict(cartpole_ppg_default_config)
-main_config = cartpole_ppg_default_config
+coinrun_ppg_default_config = EasyDict(coinrun_ppg_default_config)
+main_config = coinrun_ppg_default_config
