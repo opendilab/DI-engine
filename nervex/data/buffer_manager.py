@@ -142,6 +142,9 @@ class BufferManager:
                 ['replay_unique_id', 'replay_buffer_idx', 'priority']. \
                 "repaly_unique_id" format is "{buffer name}_{count in this buffer}"
         """
+        # no priority case
+        if info.get('priority', None) is None:
+            return
         buffer_info = {
             name: {
                 'replay_unique_id': [],
