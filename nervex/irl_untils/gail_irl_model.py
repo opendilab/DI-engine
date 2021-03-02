@@ -1,9 +1,9 @@
 from .base_reward_estimate import BaseRewardModel
-import torch 
+import torch
 import torch.nn as nn
 import pickle
 import numpy as np
-import random 
+import random
 import torch.optim as optim
 
 
@@ -23,13 +23,13 @@ class DFN(nn.Module):
         out = self.l2(out)
         out = self.a2(out)
         return out
-     
+
 
 class GailRewardModel(BaseRewardModel):
 
     def __init__(self, config: dict) -> None:
         super(GailRewardModel, self).__init__()
-        self.config = config 
+        self.config = config
         self.reward_model = DFN(config['input_dims'], config['hidden_dims'], 1)
         self.expert_data = []
         self.train_data = []
@@ -39,11 +39,11 @@ class GailRewardModel(BaseRewardModel):
     def load_expert_data(self):
         with open(self.config['expert_data_path'], 'rb') as f:
             self.expert_data_loader: list = pickle.load(f)
-    
+
     def launch(self):
         self.load_expert_data()
         # make data process
-        # concat state and action 
+        # concat state and action
         res = []
         for item in self.expert_data_loader:
             state: np.ndarray = item[0]
@@ -58,11 +58,11 @@ class GailRewardModel(BaseRewardModel):
         self.expert_data = res
 
     def _train(self, train_data, expert_data) -> None:
-        # calcute loss  
+        # calcute loss
         out_1: torch.Tensor = self.reward_model(train_data)
         loss_1: torch.Tensor = torch.log(out_1).mean()
         out_2: torch.Tensor = self.reward_model(expert_data)
-        loss_2: torch.Tensor = torch.log(1-out_2).mean()
+        loss_2: torch.Tensor = torch.log(1 - out_2).mean()
         loss: torch.Tensor = loss_1 + loss_2
         self.opt.zero_grad()
         loss.backward()
@@ -89,10 +89,9 @@ class GailRewardModel(BaseRewardModel):
             s_a = s_list
         s_a_tensor = torch.tensor([s_a], dtype=torch.float32)
         return self.reward_model(s_a_tensor)[0].item()
-        
 
     def collect_data(self, item):
-        # item need to process 
+        # item need to process
         state = item[0]
         action = item[1]
         if isinstance(action, np.ndarray):
@@ -102,6 +101,6 @@ class GailRewardModel(BaseRewardModel):
             s_list.append(action)
             s_a = np.array(s_list)
         self.train_data.append(s_a)
-    
+
     def clear_data(self):
         self.train_data.clear()
