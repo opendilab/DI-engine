@@ -8,17 +8,9 @@ class BaseRewardModel(ABC):
     """
         the base class of reward model
     """
-
+    
     @abstractmethod
-    def __init__(self, cfg: dict) -> None:
-        """
-        cfg need to point out that the path of expert data
-        and the reward data hyper para
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def estimate(self, s: np.ndarray, a: np.ndarray) -> float: 
+    def estimate(self, s, a) -> float: 
         raise NotImplementedError
 
     @abstractmethod
@@ -27,6 +19,10 @@ class BaseRewardModel(ABC):
     
     @abstractmethod
     def load_expert_data(self, data) -> None:
+        raise NotImplementedError
+    
+    @abstractmethod
+    def collect_data(self,data) -> None:
         raise NotImplementedError
     
     

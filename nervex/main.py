@@ -4,7 +4,7 @@ import os
 from copy import deepcopy
 from app_zoo.classic_control.cartpole.entry import cartpole_dqn_default_config
 
-from nervex.entry.serial_entry import serial_pipeline
+from nervex.entry.serial_entry3 import serial_pipeline
 
 
 def main():

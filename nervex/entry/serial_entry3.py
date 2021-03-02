@@ -13,7 +13,7 @@ from nervex.config import read_config
 from nervex.data import BufferManager
 from nervex.policy import create_policy
 from nervex.envs import get_vec_env_setting
-from nervex.irl_untils.pdeil_irl_model import PdeilRewardModel
+from nervex.irl_untils.gail_irl_model import GailRewardModel 
 
 def serial_pipeline(
         cfg: Union[str, dict],
@@ -61,11 +61,14 @@ def serial_pipeline(
     evaluator_env.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    pdeil_config = {
-        "alpha": 0.5,
-        "expert_data_path": './expert_data.pkl'
+    gail_config = {
+        "input_dims":5,
+        "hidden_dims": 64,        
+        "expert_data_path": './expert_data.pkl',
+        "train_epoches": 20,
+        "batch_size": 1024
     }
-    reward_model: PdeilRewardModel = PdeilRewardModel(pdeil_config)
+    reward_model: GailRewardModel = GailRewardModel(gail_config)
     reward_model.launch()
     # policy_states: list = []
     if cfg.policy.use_cuda and torch.cuda.is_available():
@@ -133,12 +136,12 @@ def serial_pipeline(
             new_data, collect_info = actor.generate_data(learner.train_iter)
             # change new data
             for item in new_data:
-                reward_model.collect_data(item['obs'].cpu().numpy())
+                reward_model.collect_data((item['obs'].cpu().numpy(), item['action'].cpu().numpy()))
                 # policy_states.append()
             replay_buffer.push_data(new_data)
             # target_count = init_data_count if learner.train_iter == 0 else enough_data_count
             target_count = 10000
-            if replay_buffer.count() >= target_count:
+            if len(reward_model.train_data) >= target_count:
                 break
         # 这个时候数据收集完了
         # change replay_buffer中的reward
