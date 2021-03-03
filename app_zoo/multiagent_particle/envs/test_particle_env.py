@@ -91,7 +91,7 @@ class TestParticleEnv:
 @pytest.mark.unittest
 class TestCooperativeNavigation:
 
-    def test_naive(self):
+    def test_discrete_naive(self):
         num_agent, num_landmark = 5, 5
         env = CooperativeNavigation({'num_agents': num_agent, 'num_landmarks': num_landmark, 'max_step': 100})
         print(env.info())
@@ -100,6 +100,32 @@ class TestCooperativeNavigation:
             assert v.shape == env.info().obs_space.shape[k]
         for _ in range(env._max_step):
             action = torch.randint(0, 5, (num_agent, ))
+            timestep = env.step(action)
+            obs = timestep.obs
+            for k, v in obs.items():
+                assert v.shape == env.info().obs_space.shape[k]
+            assert isinstance(timestep, tuple), timestep
+        assert timestep.done
+
+    def test_continuous_naive(self):
+        num_agent, num_landmark = 5, 5
+        env = CooperativeNavigation(
+            {
+                'num_agents': num_agent,
+                'num_landmarks': num_landmark,
+                'max_step': 100,
+                'use_discrete': False
+            }
+        )
+        print(env.info())
+        obs = env.reset()
+        for k, v in obs.items():
+            assert v.shape == env.info().obs_space.shape[k]
+        for _ in range(env._max_step):
+            action = torch.randn((
+                num_agent,
+                5,
+            ))
             timestep = env.step(action)
             obs = timestep.obs
             for k, v in obs.items():

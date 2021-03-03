@@ -128,6 +128,9 @@ class BufferManager:
                 ['replay_unique_id', 'replay_buffer_idx', 'priority']. \
                 "repaly_unique_id" format is "{buffer name}_{count in this buffer}"
         """
+        # no priority case
+        if info.get('priority', None) is None:
+            return
         # single buffer case
         if not set(info.keys()).issubset(set(self.buffer_name)):
             assert len(self.buffer_name) == 1

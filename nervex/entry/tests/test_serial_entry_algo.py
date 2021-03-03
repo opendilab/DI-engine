@@ -108,7 +108,7 @@ def test_sac_auto_alpha():
         assert False, "pipeline fail"
 
 
-#@pytest.mark.algotest
+# @pytest.mark.algotest
 def test_r2d2():
     config = deepcopy(cartpole_r2d2_default_config)
     try:
