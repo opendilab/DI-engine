@@ -31,6 +31,7 @@ cartpole_ppg_default_config = dict(
                 clip_ratio=0.2,
                 epochs_aux=6,
                 beta_weight=1,
+                aux_freq=5,
             ),
         ),
         collect=dict(

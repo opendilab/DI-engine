@@ -222,9 +222,7 @@ class FCPPG(PhasicPolicyGradientBase):
 
     def compute_action_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
-        value = self._value_net_forward(state_input)
-        logit = self._policy_net.compute_action(state_input)['logit']
-        return {'logit': logit, 'value': value}
+        return self._policy_net.compute_action_value(state_input)
 
     def compute_action(self,
                        inputs: Dict[str, torch.Tensor],
@@ -236,11 +234,6 @@ class FCPPG(PhasicPolicyGradientBase):
     def compute_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
         value = self._value_net_forward(state_input)
-        return {'value': value}
-
-    def compute_policy_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        state_input = inputs['obs']
-        value = self._policy_net.compute_value(state_input)['value']
         return {'value': value}
 
     @property
@@ -287,9 +280,7 @@ class ConvPPG(PhasicPolicyGradientBase):
 
     def compute_action_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
-        value = self._value_net_forward(state_input)
-        logit = self._policy_net.compute_action(state_input)['logit']
-        return {'logit': logit, 'value': value}
+        return self._policy_net.compute_action_value(state_input)
 
     def compute_action(self,
                        inputs: Dict[str, torch.Tensor],
@@ -301,11 +292,6 @@ class ConvPPG(PhasicPolicyGradientBase):
     def compute_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
         value = self._value_net_forward(state_input)
-        return {'value': value}
-
-    def compute_policy_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        state_input = inputs['obs']
-        value = self._policy_net.compute_value(state_input)['value']
         return {'value': value}
 
     @property

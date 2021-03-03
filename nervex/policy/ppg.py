@@ -51,7 +51,6 @@ class PPGPolicy(CommonPolicy):
         """
         # Optimizer
         self._optimizer_policy = Adam(self._model._policy_net.parameters(), lr=self._cfg.learn.learning_rate)
-        # self._critic = ValueNet(self._cfg.model.obs_dim, self._cfg.model.embedding_dim)
         self._optimizer_value = Adam(self._model._value_net.parameters(), lr=self._cfg.learn.learning_rate)
         self._armor = Armor(self._model)
 
@@ -63,7 +62,6 @@ class PPGPolicy(CommonPolicy):
         self._use_adv_norm = algo_cfg.get('use_adv_norm', False)
 
         # Main armor
-        self._armor.add_plugin('main', 'grad', enable_grad=True)
         self._armor.mode(train=True)
         self._armor.reset()
         self._learn_setting_set = {}
@@ -141,26 +139,12 @@ class PPGPolicy(CommonPolicy):
 
         # Auxiliary Phase
         # record data for auxiliary head
-        data = data['policy']
-        data['logit_old'] = policy_output['logit'].data
-        for key in data.keys():
-            if isinstance(data[key], torch.Tensor):
-                data[key] = data[key].detach()
+        data = data['value']
+        data['return_'] = return_.data
         self._aux_memories.append(copy.deepcopy(data))
 
-        if self._train_step < self._cfg.learn.train_step - 1:
-            self._train_step += 1
-            return {
-                'policy_cur_lr': self._optimizer_policy.defaults['lr'],
-                'value_cur_lr': self._optimizer_value.defaults['lr'],
-                'policy_loss': ppo_policy_loss.policy_loss.item(),
-                'value_loss': value_loss.item(),
-                'entropy_loss': ppo_policy_loss.entropy_loss.item(),
-                'policy_adv_abs_max': policy_adv.abs().max().item(),
-                'approx_kl': ppo_info.approx_kl,
-                'clipfrac': ppo_info.clipfrac,
-            }
-        else:
+        self._train_step += 1
+        if self._train_step % self._cfg.learn.algo.aux_freq == 0:
             aux_loss, bc_loss, aux_value_loss = self.learn_aux()
             return {
                 'policy_cur_lr': self._optimizer_policy.defaults['lr'],
@@ -174,6 +158,17 @@ class PPGPolicy(CommonPolicy):
                 'aux_value_loss': aux_value_loss,
                 'auxiliary_loss': aux_loss,
                 'behavioral_cloning_loss': bc_loss,
+            }
+        else:
+            return {
+                'policy_cur_lr': self._optimizer_policy.defaults['lr'],
+                'value_cur_lr': self._optimizer_value.defaults['lr'],
+                'policy_loss': ppo_policy_loss.policy_loss.item(),
+                'value_loss': value_loss.item(),
+                'entropy_loss': ppo_policy_loss.entropy_loss.item(),
+                'policy_adv_abs_max': policy_adv.abs().max().item(),
+                'approx_kl': ppo_info.approx_kl,
+                'clipfrac': ppo_info.clipfrac,
             }
 
     def _init_collect(self) -> None:
@@ -190,7 +185,6 @@ class PPGPolicy(CommonPolicy):
         assert self._traj_len > 1, "ppg traj len should be greater than 1"
         self._collect_armor = Armor(self._model)
         self._collect_armor.add_plugin('main', 'multinomial_sample')
-        self._collect_armor.add_plugin('main', 'grad', enable_grad=False)
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
         self._collect_setting_set = {}
@@ -209,7 +203,8 @@ class PPGPolicy(CommonPolicy):
         Returns:
             - data (:obj:`dict`): The collected data
         """
-        return self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
+        with torch.no_grad():
+            return self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         """
@@ -266,7 +261,6 @@ class PPGPolicy(CommonPolicy):
         """
         self._eval_armor = Armor(self._model)
         self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.add_plugin('main', 'grad', enable_grad=False)
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
         self._eval_setting_set = {}
@@ -281,7 +275,8 @@ class PPGPolicy(CommonPolicy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        return self._eval_armor.forward(data, param={'mode': 'compute_action'})
+        with torch.no_grad():
+            return self._eval_armor.forward(data, param={'mode': 'compute_action'})
 
     def _init_command(self) -> None:
         pass
@@ -314,16 +309,14 @@ class PPGPolicy(CommonPolicy):
         return_ = []
         old_values = []
         weights = []
-        logit_old = []
         for memory in aux_memories:
             # for memory in memories:
-            states.append(memory['obs'].clone().detach())
-            actions.append(memory['action'].clone().detach())
-            return_.append(memory['value'].clone().detach() + memory['adv'].clone().detach())
-            old_values.append(memory['value'].clone().detach())
-            logit_old.append(memory['logit_old'].clone().detach())
+            states.append(memory['obs'])
+            actions.append(memory['action'])
+            return_.append(memory['return_'])
+            old_values.append(memory['value'])
             if memory['weight'] is None:
-                weight = torch.ones_like(memory['action'].clone().detach())
+                weight = torch.ones_like(memory['action'])
             else:
                 weight = torch.tensor(memory['weight'])
             weights.append(weight)
@@ -333,7 +326,9 @@ class PPGPolicy(CommonPolicy):
         data['return_'] = torch.cat(return_)
         data['value'] = torch.cat(old_values)
         data['weight'] = torch.cat(weights)
-        data['logit_old'] = torch.cat(logit_old)
+        # compute current policy logit_old
+        with torch.no_grad():
+            data['logit_old'] = self._armor.forward({'obs': data['obs']}, param={'mode': 'compute_action'})['logit']
 
         # prepared dataloader for auxiliary phase training
         dl = create_shuffled_dataloader(data, self._cfg.learn.batch_size)
@@ -350,13 +345,11 @@ class PPGPolicy(CommonPolicy):
 
         for epoch in range(self._epochs_aux):
             for data in dl:
-                # policy_output = self._armor.forward(data, param={'mode': 'compute_action_value'})
-                policy_logit = self._armor.forward(data, param={'mode': 'compute_action'})
-                policy_value = self._armor.forward(data, param={'mode': 'compute_policy_value'})
+                policy_output = self._armor.forward(data, param={'mode': 'compute_action_value'})
 
                 # Calculate ppg error 'logit_new', 'logit_old', 'action', 'value_new', 'value_old', 'return_', 'weight'
                 data_ppg = ppg_data(
-                    policy_logit['logit'], data['logit_old'], data['action'], policy_value['value'], data['value'],
+                    policy_output['logit'], data['logit_old'], data['action'], policy_output['value'], data['value'],
                     data['return_'], data['weight']
                 )
                 ppg_joint_loss = ppg_joint_error(data_ppg, self._clip_ratio)
@@ -374,7 +367,7 @@ class PPGPolicy(CommonPolicy):
 
                 # paper says it is important to train the value network extra during the auxiliary phase
                 # TODO(zym) calculate value loss for update value network
-                # Calculate ppg error 'logit_new', 'logit_old', 'action', 'value_new', 'value_old', 'return_', 'weight'
+                # Calculate ppg error 'value_new', 'value_old', 'return_', 'weight'
                 values = self._armor.forward(data, param={'mode': 'compute_value'})['value']
                 data_aux = ppo_value_data(values, data['value'], data['return_'], data['weight'])
 
@@ -389,7 +382,6 @@ class PPGPolicy(CommonPolicy):
                 value_loss_ += value_loss.item()
                 i += 1
 
-        self._train_step = 0
         self._aux_memories = []
 
         return auxiliary_loss_ / i, behavioral_cloning_loss_ / i, value_loss_ / i
