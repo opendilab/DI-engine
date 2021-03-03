@@ -165,7 +165,7 @@ class BaseEnvManager(ABC):
             act = self._transform(act)
             # 处理这个并行化的环境也是我们需要处理的
             timesteps[env_id] = self._safe_run(lambda: self._envs[env_id].step(act))
-            
+
             if timesteps[env_id].done:
                 self._env_dones[env_id] = True
                 self._env_episode_count[env_id] += 1

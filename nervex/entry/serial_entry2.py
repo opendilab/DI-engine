@@ -15,6 +15,7 @@ from nervex.policy import create_policy
 from nervex.envs import get_vec_env_setting
 from nervex.irl_untils.pdeil_irl_model import PdeilRewardModel
 
+
 def serial_pipeline(
         cfg: Union[str, dict],
         seed: int,
@@ -61,10 +62,7 @@ def serial_pipeline(
     evaluator_env.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    pdeil_config = {
-        "alpha": 0.5,
-        "expert_data_path": './expert_data.pkl'
-    }
+    pdeil_config = {"alpha": 0.5, "expert_data_path": './expert_data_2.pkl', "discrete_action": False}
     reward_model: PdeilRewardModel = PdeilRewardModel(pdeil_config)
     reward_model.launch()
     # policy_states: list = []
@@ -164,7 +162,12 @@ def serial_pipeline(
             # train_data change reward
             for item in train_data:
                 obs = item['obs'].cpu().numpy()
-                action = item['action'].cpu().item()
+                # 这里需要做一定的更改，就是判断原始数据的类型
+                action = item['action'].cpu()
+                if len(action.shape) == 0:
+                    action = action.item()
+                else:
+                    action = action.numpy()
                 reward = reward_model.estimate(obs, action)
                 item['reward'] = torch.tensor([reward], dtype=torch.float32)
             learner.train(train_data)

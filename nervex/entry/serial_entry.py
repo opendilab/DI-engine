@@ -6,7 +6,7 @@ import numpy as np
 import torch
 import math
 import logging
-
+import pickle
 from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommander
 from nervex.worker import BaseEnvManager, SubprocessEnvManager
 from nervex.config import read_config
@@ -155,6 +155,17 @@ def serial_pipeline(
     # Learner's after_run hook.
     learner.call_hook('after_run')
     # Close all resources.
+    # let me collect an expert demostrations
+    nums = 50000
+    exp_data = []
+    while len(exp_data) < nums:
+        new_data, _ = actor.generate_data(0)
+        for item in new_data:
+                exp_data.append((item['obs'].cpu().numpy(), item['action'].cpu().numpy()))
+    with open('expert_data_2.pkl', 'wb') as f:
+        pickle.dump(exp_data, f)
+    print(exp_data[0])
+    print('collect data success')
     replay_buffer.close()
     learner.close()
     actor.close()

@@ -60,13 +60,14 @@ class GailRewardModel(BaseRewardModel):
     def _train(self, train_data, expert_data) -> None:
         # calcute loss
         out_1: torch.Tensor = self.reward_model(train_data)
-        loss_1: torch.Tensor = torch.log(out_1).mean()
+        loss_1: torch.Tensor = torch.log(out_1 + 1e-5).mean()
         out_2: torch.Tensor = self.reward_model(expert_data)
-        loss_2: torch.Tensor = torch.log(1 - out_2).mean()
+        loss_2: torch.Tensor = torch.log(1 - out_2 + 1e-5).mean()
         loss: torch.Tensor = loss_1 + loss_2
         self.opt.zero_grad()
         loss.backward()
         self.opt.step()
+        print('gail loss item is:', loss.item())
 
     def train(self):
         for _ in range(self.config['train_epoches']):

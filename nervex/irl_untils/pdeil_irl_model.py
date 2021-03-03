@@ -66,7 +66,7 @@ class PdeilRewardModel(BaseRewardModel):
             rho_1 = stats.multivariate_normal.pdf(x=s, mean=self.e_u_s, cov=self.e_sigma_s, allow_singular=False)
             rho_2 = stats.multivariate_normal.pdf(x=s, mean=self.p_u_s, cov=self.p_sigma_s, allow_singular=False)
             state = s.reshape((1, -1))
-            if self.config['disecre_action']:
+            if self.config['discrete_action']:
                 rho_3 = self.svm.predict_proba(state)[0][a]
             else:
                 s_a = np.concatenate([s, a])
@@ -89,3 +89,4 @@ class PdeilRewardModel(BaseRewardModel):
 
     def clear_data(self):
         self.train_data.clear()
+    

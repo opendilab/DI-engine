@@ -13,7 +13,8 @@ from nervex.config import read_config
 from nervex.data import BufferManager
 from nervex.policy import create_policy
 from nervex.envs import get_vec_env_setting
-from nervex.irl_untils.gail_irl_model import GailRewardModel 
+from nervex.irl_untils.gail_irl_model import GailRewardModel
+
 
 def serial_pipeline(
         cfg: Union[str, dict],
@@ -62,11 +63,11 @@ def serial_pipeline(
     np.random.seed(seed)
     torch.manual_seed(seed)
     gail_config = {
-        "input_dims":5,
-        "hidden_dims": 64,        
-        "expert_data_path": './expert_data.pkl',
-        "train_epoches": 20,
-        "batch_size": 1024
+        "input_dims": 4,
+        "hidden_dims": 64,
+        "expert_data_path": './expert_data_2.pkl',
+        "train_epoches": 400,
+        "batch_size": 64
     }
     reward_model: GailRewardModel = GailRewardModel(gail_config)
     reward_model.launch()
@@ -149,7 +150,7 @@ def serial_pipeline(
         reward_model.clear_data()
         # change reward buffer
         learner.collect_info = collect_info
-        learner_train_step = 200
+        learner_train_step = 1000
         for i in range(learner_train_step):
             # Learner will train ``train_step`` times in one iteration.
             # But if replay buffer does not have enough data, program will break and warn.
@@ -167,7 +168,11 @@ def serial_pipeline(
             # train_data change reward
             for item in train_data:
                 obs = item['obs'].cpu().numpy()
-                action = item['action'].cpu().item()
+                action = item['action'].cpu()
+                if len(action.shape) == 0:
+                    action = action.item()
+                else:
+                    action = action.numpy()
                 reward = reward_model.estimate(obs, action)
                 item['reward'] = torch.tensor([reward], dtype=torch.float32)
             learner.train(train_data)

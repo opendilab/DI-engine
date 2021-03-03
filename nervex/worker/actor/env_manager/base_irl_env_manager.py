@@ -133,7 +133,6 @@ class BaseIrlEnvManager(ABC):
                 env.seed(s)
         for i in range(self.env_num):
             self._reset(i)
-        
 
     def _reset(self, env_id: int) -> None:
         obs = self._safe_run(lambda: self._envs[env_id].reset(**self._reset_param[env_id]))
@@ -170,7 +169,7 @@ class BaseIrlEnvManager(ABC):
             act = self._transform(act)
             # 处理这个并行化的环境也是我们需要处理的
             timesteps[env_id] = self._safe_run(lambda: self._envs[env_id].step(act))
-            # change this reward 
+            # change this reward
             timesteps[env_id].reward = self.reward_model.estimate(self._next_obs[env_id], act.cpu().numpy())
             # need to change reward
             # let us change a model
