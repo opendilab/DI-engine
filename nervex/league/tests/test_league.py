@@ -1,5 +1,4 @@
 import os
-import threading
 import time
 from multiprocessing import Queue
 from queue import Empty
@@ -22,6 +21,10 @@ SAVE_COUNT = 0
 
 
 class FakeLeague(BaseLeague):
+
+    def __init__(self, cfg, *args, **kwargs):
+        print("In fake league, we found arguments: {}, keyword arguments: {}".format(args, kwargs))
+        super(FakeLeague, self).__init__(cfg)
 
     def _init_cfg(self, cfg: EasyDict) -> None:
         default_config = dict(
@@ -149,7 +152,7 @@ class FakeCoordinator:
             self.receive_match_thread = Thread(target=self.receive_match_battle, args=(queue, finish_match))
         elif league_type == 'solo':
             self.receive_match_thread = Thread(target=self.receive_match_solo, args=(queue, finish_match))
-        self.update_train_step_thread = Thread(target=self.update_train_step, args=(update_agent_step, ))
+        self.update_train_step_thread = Thread(target=self.update_train_step, args=(update_agent_step,))
         self.player_ids = player_ids
         self.one_phase_steps = int(2e3)
         self._end_flag = False

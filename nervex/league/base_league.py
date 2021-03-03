@@ -1,15 +1,11 @@
-import os
 import uuid
-import time
 from abc import ABC, abstractmethod
-from threading import Thread
-from typing import Callable
+
 from easydict import EasyDict
 
-from nervex.league.player import ActivePlayer, HistoricalPlayer
-from nervex.league.player import create_player
+from nervex.league.player import ActivePlayer, HistoricalPlayer, create_player
 from nervex.league.shared_payoff import create_payoff
-from nervex.utils import deep_merge_dicts, import_module, read_file, save_file, LockContext, LockContextType
+from nervex.utils import import_module, read_file, save_file, LockContext, LockContextType
 
 
 class BaseLeague(ABC):
@@ -217,8 +213,9 @@ def create_league(cfg: EasyDict, *args) -> BaseLeague:
         - league (:obj:`BaseLeague`): the created new league, should be an instance of one of \
             league_mapping's values
     """
-    import_module(cfg.import_names)
-    league_type = cfg.league_type
+    assert "league" in cfg, "Please pass in complete config!"
+    import_module(cfg.league.import_names)
+    league_type = cfg.league.league_type
     if league_type not in league_mapping.keys():
         raise KeyError("not support league type: {}".format(league_type))
     else:
