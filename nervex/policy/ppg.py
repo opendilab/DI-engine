@@ -9,7 +9,7 @@ from nervex.utils import squeeze
 from nervex.data import default_collate
 from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import \
-    ppo_data, ppo_error, Adder, ppg_data, ppg_joint_error, value_error, ppg_aux_data, ppg_aux_loss
+    ppo_policy_data, ppo_policy_error, Adder, ppo_value_data, ppo_value_error, ppg_data, ppg_joint_error
 from nervex.model import FCValueAC, ConvValueAC
 from nervex.armor import Armor
 from .base_policy import Policy, register_policy
@@ -76,20 +76,19 @@ class PPGPolicy(CommonPolicy):
 
     def _data_preprocess_learn(self, data: List[Any]) -> Tuple[dict, dict]:
         # TODO(nyz) priority for ppg
+        use_priority = self._cfg.get('use_priority', False)
+        assert not use_priority, "NotImplement"
         data_info = {}
         # data preprocess
-        data = data['policy']
-        data = default_collate(data)
-        ignore_done = self._cfg.learn.get('ignore_done', False)
-        if ignore_done:
-            data['done'] = None
-        else:
-            data['done'] = data['done'].float()
-        use_priority = self._cfg.get('use_priority', False)
-        if use_priority:
-            data['weight'] = data['IS']
-        else:
-            data['weight'] = data.get('weight', None)
+        for k, data_item in data.items():
+            data_item = default_collate(data_item)
+            ignore_done = self._cfg.learn.get('ignore_done', False)
+            if ignore_done:
+                data_item['done'] = None
+            else:
+                data_item['done'] = data_item['done'].float()
+            data_item['weight'] = None
+            data[k] = data_item
         if self._use_cuda:
             data = to_device(data, 'cuda:{}'.format(self._rank % 8))
         return data, data_info
@@ -108,36 +107,42 @@ class PPGPolicy(CommonPolicy):
         # ====================
         # PPG forward
         # ====================
-        output = self._armor.forward(data, param={'mode': 'compute_action_value'})
-        adv = data['adv']
+        policy_data, value_data = data['policy'], data['value']
+        policy_adv, value_adv = policy_data['adv'], value_data['adv']
         if self._use_adv_norm:
             # Normalize advantage in a total train_batch
-            adv = (adv - adv.mean()) / (adv.std() + 1e-8)
-        return_ = data['value'] + adv
-        # Calculate ppg error
-        data_ = ppo_data(
-            output['logit'], data['logit'], data['action'], output['value'], data['value'], adv, return_, data['weight']
+            policy_adv = (policy_adv - policy_adv.mean()) / (policy_adv.std() + 1e-8)
+            value_adv = (value_adv - value_adv.mean()) / (value_adv.std() + 1e-8)
+        # Policy Phase(Policy)
+        policy_output = self._armor.forward(policy_data, param={'mode': 'compute_action'})
+        policy_error_data = ppo_policy_data(
+            policy_output['logit'], policy_data['logit'], policy_data['action'], policy_adv, policy_data['weight']
         )
-        ppg_loss, ppg_info = ppo_error(data_, self._clip_ratio)
-        wv, we = self._value_weight, self._entropy_weight
-        policy_network_loss = ppg_loss.policy_loss - we * ppg_loss.entropy_loss
-        value_network_loss = wv * ppg_loss.value_loss
-        total_loss = policy_network_loss + value_network_loss
+        ppo_policy_loss, ppo_info = ppo_policy_error(policy_error_data, self._clip_ratio)
+        policy_loss = ppo_policy_loss.policy_loss - self._entropy_weight * ppo_policy_loss.entropy_loss
+        self._optimizer_policy.zero_grad()
+        policy_loss.backward()
+        self._optimizer_policy.step()
+
+        # Policy Phase(Value)
+        return_ = value_data['value'] + value_adv
+        value_output = self._armor.forward(value_data, param={'mode': 'compute_value'})
+        value_error_data = ppo_value_data(value_output['value'], value_data['value'], return_, value_data['weight'])
+        value_loss = self._value_weight * ppo_value_error(value_error_data, self._clip_ratio)
+        self._optimizer_value.zero_grad()
+        value_loss.backward()
+        self._optimizer_value.step()
+
         # ====================
         # PP update TODO(zym) update optimizer
         # TODO(zym) calculate value loss for update value network
         # use aux loss after iterations and reset aux_memories
         # ====================
-        self._optimizer_policy.zero_grad()
-        policy_network_loss.backward()
-        self._optimizer_policy.step()
 
-        self._optimizer_value.zero_grad()
-        value_network_loss.backward()
-        self._optimizer_value.step()
-
+        # Auxiliary Phase
         # record data for auxiliary head
-        data['logit_old'] = output['logit'].data
+        data = data['policy']
+        data['logit_old'] = policy_output['logit'].data
         for key in data.keys():
             if isinstance(data[key], torch.Tensor):
                 data[key] = data[key].detach()
@@ -146,29 +151,29 @@ class PPGPolicy(CommonPolicy):
         if self._train_step < self._cfg.learn.train_step - 1:
             self._train_step += 1
             return {
-                'cur_lr': self._optimizer_policy.defaults['lr'],
-                'total_loss': total_loss.item(),
-                'policy_loss': ppg_loss.policy_loss.item(),
-                'value_loss': ppg_loss.value_loss.item(),
-                'entropy_loss': ppg_loss.entropy_loss.item(),
-                'adv_abs_max': adv.abs().max().item(),
-                'approx_kl': ppg_info.approx_kl,
-                'clipfrac': ppg_info.clipfrac,
+                'policy_cur_lr': self._optimizer_policy.defaults['lr'],
+                'value_cur_lr': self._optimizer_value.defaults['lr'],
+                'policy_loss': ppo_policy_loss.policy_loss.item(),
+                'value_loss': value_loss.item(),
+                'entropy_loss': ppo_policy_loss.entropy_loss.item(),
+                'policy_adv_abs_max': policy_adv.abs().max().item(),
+                'approx_kl': ppo_info.approx_kl,
+                'clipfrac': ppo_info.clipfrac,
             }
         else:
-            aux_loss = self.learn_aux()
+            aux_loss, bc_loss, aux_value_loss = self.learn_aux()
             return {
-                'cur_lr': self._optimizer_policy.defaults['lr'],
-                'total_loss': total_loss.item(),
-                'policy_loss': ppg_loss.policy_loss.item(),
-                'value_loss': ppg_loss.value_loss.item(),
-                'entropy_loss': ppg_loss.entropy_loss.item(),
-                'adv_abs_max': adv.abs().max().item(),
-                'approx_kl': ppg_info.approx_kl,
-                'clipfrac': ppg_info.clipfrac,
-                'aux_value_loss': aux_loss.value_loss,
-                'auxiliary_loss': aux_loss.auxiliary_loss,
-                'behavioral_cloning_loss': aux_loss.behavioral_cloning_loss,
+                'policy_cur_lr': self._optimizer_policy.defaults['lr'],
+                'value_cur_lr': self._optimizer_value.defaults['lr'],
+                'policy_loss': ppo_policy_loss.policy_loss.item(),
+                'value_loss': value_loss.item(),
+                'entropy_loss': ppo_policy_loss.entropy_loss.item(),
+                'policy_adv_abs_max': policy_adv.abs().max().item(),
+                'approx_kl': ppo_info.approx_kl,
+                'clipfrac': ppo_info.clipfrac,
+                'aux_value_loss': aux_value_loss,
+                'auxiliary_loss': aux_loss,
+                'behavioral_cloning_loss': bc_loss,
             }
 
     def _init_collect(self) -> None:
@@ -286,11 +291,21 @@ class PPGPolicy(CommonPolicy):
         return 'ppg', ['nervex.model.ppg']
 
     def _monitor_vars_learn(self) -> List[str]:
-        return super()._monitor_vars_learn() + [
-            'policy_loss', 'value_loss', 'entropy_loss', 'adv_abs_max', 'approx_kl', 'clipfrac'
+        return [
+            'policy_cur_lr',
+            'value_cur_lr',
+            'policy_loss',
+            'value_loss',
+            'entropy_loss',
+            'policy_adv_abs_max',
+            'approx_kl',
+            'clipfrac',
+            'aux_value_loss',
+            'auxiliary_loss',
+            'behavioral_cloning_loss',
         ]
 
-    def learn_aux(self):
+    def learn_aux(self) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         aux_memories = self._aux_memories
         # gather states and target values into one tensor
         data = {}
@@ -361,9 +376,9 @@ class PPGPolicy(CommonPolicy):
                 # TODO(zym) calculate value loss for update value network
                 # Calculate ppg error 'logit_new', 'logit_old', 'action', 'value_new', 'value_old', 'return_', 'weight'
                 values = self._armor.forward(data, param={'mode': 'compute_value'})['value']
-                data_aux = ppg_aux_data(values, data['value'], data['return_'], data['weight'])
+                data_aux = ppo_value_data(values, data['value'], data['return_'], data['weight'])
 
-                value_loss = value_error(data_aux, self._clip_ratio)['value_loss']
+                value_loss = ppo_value_error(data_aux, self._clip_ratio)
 
                 self._optimizer_value.zero_grad()
                 value_loss.backward()
@@ -377,7 +392,7 @@ class PPGPolicy(CommonPolicy):
         self._train_step = 0
         self._aux_memories = []
 
-        return ppg_aux_loss(auxiliary_loss_ / i, behavioral_cloning_loss_ / i, value_loss_ / i)
+        return auxiliary_loss_ / i, behavioral_cloning_loss_ / i, value_loss_ / i
 
 
 register_policy('ppg', PPGPolicy)
