@@ -8,6 +8,7 @@ evaluator_env_num = 2
 use_communication = False
 thought_dim = 16
 batch_size = 32
+max_step = 100
 cooperative_navigation_atoc_default_config = dict(
     env=dict(
         env_manager_type='subprocess',
@@ -16,7 +17,7 @@ cooperative_navigation_atoc_default_config = dict(
         num_agents=num_agents,
         num_landmarks=num_landmarks,
         agent_num=agent_num,
-        max_step=1000,
+        max_step=max_step,
         actor_env_num=actor_env_num,
         evaluator_env_num=evaluator_env_num,
         agent_obs_only=True,
@@ -59,9 +60,9 @@ cooperative_navigation_atoc_default_config = dict(
             init_data_count=16,
         ),
         collect=dict(
-            traj_len=100,
+            traj_len='inf',
             unroll_len=1,
-            algo=dict(noise_sigma=0.1, ),
+            algo=dict(noise_sigma=0.3, ),
         ),
         command=dict(),
     ),
@@ -75,7 +76,7 @@ cooperative_navigation_atoc_default_config = dict(
     ),
     actor=dict(
         n_episode=4,
-        traj_len=100,  # cooperative_navigation_episode_max_length
+        traj_len=max_step,  # cooperative_navigation_episode_max_length
         traj_print_freq=100,
         collect_print_freq=4,
     ),

@@ -5,6 +5,7 @@ actor_env_num = 4
 evaluator_env_num = 2
 num_agents = agent_num
 num_landmarks = agent_num
+max_step = 100
 cooperative_navigation_qmix_default_config = dict(
     env=dict(
         env_manager_type='subprocess',
@@ -12,6 +13,7 @@ cooperative_navigation_qmix_default_config = dict(
         env_type='cooperative_navigation',
         num_agents=num_agents,
         num_landmarks=num_landmarks,
+        max_step=max_step,
         agent_num=agent_num,
         actor_env_num=actor_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -67,7 +69,7 @@ cooperative_navigation_qmix_default_config = dict(
     ),
     actor=dict(
         n_episode=4,
-        traj_len=100,  # cooperative_navigation_episode_max_length
+        traj_len=max_step,  # cooperative_navigation_episode_max_length
         traj_print_freq=100,
         collect_print_freq=100,
     ),
