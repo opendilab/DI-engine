@@ -184,6 +184,7 @@ class PPGPolicy(CommonPolicy):
         # GAE calculation needs v_t+1
         assert self._traj_len > 1, "ppg traj len should be greater than 1"
         self._collect_armor = Armor(self._model)
+        # TODO continuous action space exploration
         self._collect_armor.add_plugin('main', 'multinomial_sample')
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()

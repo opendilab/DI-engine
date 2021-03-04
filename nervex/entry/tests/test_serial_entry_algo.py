@@ -117,7 +117,7 @@ def test_r2d2():
         assert False, "pipeline fail"
 
 
-@pytest.mark.algotest
+# @pytest.mark.algotest
 def test_qmix():
     config = deepcopy(smac_qmix_default_config)
     config.env.env_type = 'fake_smac'
@@ -129,7 +129,7 @@ def test_qmix():
         assert False, "pipeline fail"
 
 
-@pytest.mark.algotest
+# @pytest.mark.algotest
 def test_coma():
     config = deepcopy(smac_coma_default_config)
     config.env.env_type = 'fake_smac'
