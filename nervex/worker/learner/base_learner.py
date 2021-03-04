@@ -114,6 +114,7 @@ class BaseLearner(object):
 
                 os.environ['CUDA_LAUNCH_BLOCKING'] = "1"  # for debug async CUDA
         """
+        self._instance_name = self._name + str(time.time())
         self._cfg = deep_merge_dicts(base_learner_default_config, cfg)
         self._learner_uid = get_task_uid()
         self._load_path = self._cfg.load_path
@@ -218,17 +219,14 @@ class BaseLearner(object):
         self.call_hook('before_iter')
         # Pre-process data
         with self._timer:
-            replay_buffer_idx = [d.get('replay_buffer_idx', None) for d in data]
-            replay_unique_id = [d.get('replay_unique_id', None) for d in data]
-            data = self._policy.data_preprocess(data)
+            data, data_info = self._policy.data_preprocess(data)
         # Forward
         log_vars = self._policy.forward(data)
         # Update replay buffer's priority info
         priority = log_vars.pop('priority', None)
         self._priority_info = {
-            'replay_buffer_idx': replay_buffer_idx,
-            'replay_unique_id': replay_unique_id,
-            'priority': priority
+            'priority': priority,
+            **data_info,
         }
         # Update log_buffer
         log_vars['data_preprocess_time'] = self._timer.value
@@ -411,7 +409,7 @@ class BaseLearner(object):
 
     @property
     def name(self) -> str:
-        return self._name + str(time.time())
+        return self._instance_name
 
     @property
     def rank(self) -> int:

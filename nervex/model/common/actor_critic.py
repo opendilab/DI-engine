@@ -150,3 +150,40 @@ class SoftActorCriticBase(nn.Module):
 
     def _policy_net_forward(self, inputs, **kwargs):
         raise NotImplementedError
+
+
+class PhasicPolicyGradientBase(nn.Module):
+
+    def forward(self, inputs, mode=None, **kwargs):
+        """
+        Note:
+            mode:
+                - compute_action_value: compute action using the policy network \
+                and compute value using the value network
+                - compute_action: compute action using the policy network
+                - compute_value: compute value using the value network
+                - compute_policy_value: compute value using the auxiliary value head \
+                in policy network
+                - mimic: supervised learning, learn policy/value output label
+        """
+        assert (mode in ['compute_action_value', 'compute_action', 'compute_value'])
+        f = getattr(self, mode)
+        return f(inputs, **kwargs)
+
+    def seed(self, seed):
+        torch.manual_seed(seed)
+
+    def compute_action_value(self, inputs, **kwargs):
+        raise NotImplementedError
+
+    def compute_action(self, inputs, **kwargs):
+        raise NotImplementedError
+
+    def compute_value(self, inputs, **kwargs):
+        raise NotImplementedError
+
+    def _value_net_forward(self, inputs, **kwargs):
+        raise NotImplementedError
+
+    def _policy_net_forward(self, inputs, **kwargs):
+        raise NotImplementedError

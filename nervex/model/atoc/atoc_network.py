@@ -362,13 +362,13 @@ class ATOCQAC(QActorCriticBase):
     """
 
     def __init__(
-        self,
-        obs_dim: int,
-        action_dim: int,
-        thought_dim: int,
-        n_agent: int,
-        m_group: int,
-        T_initiate: int,
+            self,
+            obs_dim: int,
+            action_dim: int,
+            thought_dim: int,
+            n_agent: int,
+            m_group: int,
+            T_initiate: int,
     ) -> None:
         r"""
         Overview:
