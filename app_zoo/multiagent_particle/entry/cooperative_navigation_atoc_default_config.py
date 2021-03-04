@@ -60,7 +60,7 @@ cooperative_navigation_atoc_default_config = dict(
             init_data_count=16,
         ),
         collect=dict(
-            traj_len='inf',
+            traj_len=max_step,
             unroll_len=1,
             algo=dict(noise_sigma=0.3, ),
         ),
