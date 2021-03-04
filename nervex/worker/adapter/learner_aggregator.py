@@ -154,7 +154,7 @@ class LearnerAggregator(object):
 
     @staticmethod
     def merge_info(info: list) -> dict:
-        homogeneous_keys = ['learner_step', 'finished_task', 'buffer_id', 'task_id']
+        homogeneous_keys = ['learner_step', 'buffer_id', 'task_id', 'learner_done']
         elem = info[0]
         if isinstance(elem, numbers.Integral) or isinstance(elem, str) or isinstance(elem, float):
             return info
