@@ -114,6 +114,7 @@ class BaseLearner(object):
 
                 os.environ['CUDA_LAUNCH_BLOCKING'] = "1"  # for debug async CUDA
         """
+        self._instance_name = self._name + str(time.time())
         self._cfg = deep_merge_dicts(base_learner_default_config, cfg)
         self._learner_uid = get_task_uid()
         self._load_path = self._cfg.load_path
@@ -408,7 +409,7 @@ class BaseLearner(object):
 
     @property
     def name(self) -> str:
-        return self._name + str(time.time())
+        return self._instance_name
 
     @property
     def rank(self) -> int:
