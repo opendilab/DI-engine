@@ -34,10 +34,16 @@ def train(args):
     logger_kwargs = setup_logger_kwargs(args.exp_name, args.seed, data_dir="./data")
 
     train_env = PomdpEnv(config.env)
-    ppo_pytorch(lambda: train_env, actor_critic=core.MLPActorCritic,
-                ac_kwargs=dict(hidden_sizes=[args.hid] * args.l), gamma=args.gamma,
-                seed=args.seed, steps_per_epoch=args.steps, epochs=args.epochs,
-                logger_kwargs=logger_kwargs)
+    ppo_pytorch(
+        lambda: train_env,
+        actor_critic=core.MLPActorCritic,
+        ac_kwargs=dict(hidden_sizes=[args.hid] * args.l),
+        gamma=args.gamma,
+        seed=args.seed,
+        steps_per_epoch=args.steps,
+        epochs=args.epochs,
+        logger_kwargs=logger_kwargs
+    )
 
 
 def test(config, args):

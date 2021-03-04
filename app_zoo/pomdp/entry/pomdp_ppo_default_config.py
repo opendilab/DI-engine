@@ -15,14 +15,10 @@ pomdp_ppo_default_config = dict(
         clip_reward=False,
         render=False,
         # render=True,
-        pomdp=dict(
-            noise_scale=0.01,
-            zero_p=0.2,
-            reward_noise=0.01,
-            duplicate_p=0.2),
+        pomdp=dict(noise_scale=0.01, zero_p=0.2, reward_noise=0.01, duplicate_p=0.2),
         # pomdp=dict(
-        #     noise_scale=0.0, 
-        #     zero_p=0.0, 
+        #     noise_scale=0.0,
+        #     zero_p=0.0,
         #     duplicate_p=0.0),
     ),
     policy=dict(

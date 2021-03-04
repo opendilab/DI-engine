@@ -143,23 +143,6 @@ class WarpFrame(gym.ObservationWrapper):
         return cv2.resize(frame, (self.size, self.size), interpolation=cv2.INTER_AREA)
 
 
-# class ScaledFloatFrame(gym.ObservationWrapper):
-#     """Normalize observations to 0~1.
-
-#     :param gym.Env env: the environment to wrap.
-#     """
-
-#     def __init__(self, env):
-#         super().__init__(env)
-#         low = np.min(env.observation_space.low)
-#         high = np.max(env.observation_space.high)
-#         self.bias = low
-#         self.scale = high - low
-#         self.observation_space = gym.spaces.Box(low=0., high=1., shape=env.observation_space.shape, dtype=np.float32)
-
-#     def observation(self, observation):
-#         return (observation - self.bias) / self.scale
-
 class ScaledFloatFrame(gym.ObservationWrapper):
     """Normalize observations to -1~1.
 
@@ -175,9 +158,8 @@ class ScaledFloatFrame(gym.ObservationWrapper):
         self.observation_space = gym.spaces.Box(low=-1., high=1., shape=env.observation_space.shape, dtype=np.float32)
 
     def observation(self, observation):
+        # use fixed scale and bias temporarily
         return (observation - 128) / 128
-        # print(observation.dtype())
-        # return observation / 255.
         # return (observation - self.bias) / self.scale
 
 
@@ -238,7 +220,18 @@ class FrameStackRam(gym.Wrapper):
     :param int n_frames: the number of frames to stack.
     """
 
-    def __init__(self, env, n_frames, pomdp={"noise_scale": 0.01, "zero_p": 0.2, "duplicate_p": 0.2, "reward_noise": 0.01}, render=False):
+    def __init__(
+        self,
+        env,
+        n_frames,
+        pomdp={
+            "noise_scale": 0.01,
+            "zero_p": 0.2,
+            "duplicate_p": 0.2,
+            "reward_noise": 0.01
+        },
+        render=False
+    ):
         super().__init__(env)
         self.n_frames = n_frames
         self.n_dims = env.observation_space.shape[0]
@@ -300,7 +293,9 @@ class FrameStackRam(gym.Wrapper):
         obs = deepcopy(state)
         # POMDP process
         if np.random.random() > (1 - self._pomdp["duplicate_p"]):
-            update_end_point = np.random.randint(1, self.n_frames)    # choose a point from that point we can't get new observation
+            update_end_point = np.random.randint(
+                1, self.n_frames
+            )  # choose a point from that point we can't get new observation
             _s = (self.n_frames - update_end_point, 1, 1, 1)
             obs[update_end_point:, ] = np.tile(obs[update_end_point, ], _s)
 
@@ -308,7 +303,7 @@ class FrameStackRam(gym.Wrapper):
             pomdp_noise_mask = self._pomdp["noise_scale"] * np.random.randn(*obs.shape) * 128
         else:
             pomdp_noise_mask = self._pomdp["noise_scale"] * np.random.randn(*obs.shape)
-        
+
         # Flickering Atari game
         obs = obs * int(np.random.random() > self._pomdp["zero_p"]) + pomdp_noise_mask
         return obs
@@ -340,8 +335,17 @@ class RamWrapper(gym.Wrapper):
         return obs.reshape(128, 1, 1).astype(np.float32), reward, done, info
 
 
-def wrap_deepmind(env_id, episode_life=True, clip_rewards=True, pomdp={},
-                  frame_stack=4, scale=True, warp_frame=True, use_ram=False, render=False):
+def wrap_deepmind(
+    env_id,
+    episode_life=True,
+    clip_rewards=True,
+    pomdp={},
+    frame_stack=4,
+    scale=True,
+    warp_frame=True,
+    use_ram=False,
+    render=False
+):
     """Configure environment for DeepMind-style Atari. The observation is
     channel-first: (c, h, w) instead of (h, w, c).
 
@@ -375,5 +379,5 @@ def wrap_deepmind(env_id, episode_life=True, clip_rewards=True, pomdp={},
             env = FrameStackRam(env, frame_stack, pomdp, render)
         else:
             env = FrameStack(env, frame_stack)
-        
+
     return env

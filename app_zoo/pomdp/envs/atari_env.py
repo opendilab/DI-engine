@@ -10,6 +10,7 @@ from .atari_wrappers import wrap_deepmind
 
 from pprint import pprint
 
+
 def PomdpEnv(cfg):
     '''
     For debug purpose, create an env follow openai gym standard so it can be widely test by
@@ -18,7 +19,6 @@ def PomdpEnv(cfg):
     obs = env.reset()
     obs, reward, done, info = env.step(action)
     '''
-    # pprint(cfg)
     env = wrap_deepmind(
         cfg.env_id,
         frame_stack=cfg.frame_stack,
@@ -46,17 +46,10 @@ class PomdpAtariEnv(BaseEnv):
             render=cfg.render,
             pomdp=cfg.pomdp,
         )
-        # self._env = wrap_deepmind(
-        #     'PongNoFrameskip-v4',
-        #     frame_stack=4,
-        #     episode_life=True,
-        #     clip_rewards=True,
-        #     warp_frame=True,
-        #     use_ram=False
-        # )
 
     def reset(self) -> Sequence:
         if hasattr(self, '_seed'):
+            np.random.seed(self._seed)
             self._env.seed(self._seed)
         obs = self._env.reset()
         obs = to_ndarray(obs)
@@ -72,8 +65,6 @@ class PomdpAtariEnv(BaseEnv):
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
         obs, rew, done, info = self._env.step(action)
-        # print(action)
-        # self._env.render()
         self._final_eval_reward += rew
         obs = to_ndarray(obs)
         rew = to_ndarray([rew])  # wrapped to be transfered to a Tensor with shape (1,)
@@ -96,7 +87,7 @@ class PomdpAtariEnv(BaseEnv):
         )
 
     def __repr__(self) -> str:
-        return "nerveX Atari Env({})".format(self._cfg.env_id)
+        return "nerveX POMDP Atari Env({})".format(self._cfg.env_id)
 
     @staticmethod
     def create_actor_env_cfg(cfg: dict) -> List[dict]:

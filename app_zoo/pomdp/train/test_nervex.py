@@ -27,7 +27,7 @@ def eval_dqn(config, args):
     # config.env.render = True
     env = PomdpAtariEnv(config.env)
     # model = FCDiscreteNet((512,), (6,), embedding_dim=128)      # dqn
-    model = FCValueAC(obs_dim=(512,), action_dim=6, embedding_dim=args.embedding_dim)  # AC
+    model = FCValueAC(obs_dim=(512, ), action_dim=6, embedding_dim=args.embedding_dim)  # AC
 
     model.load_state_dict(torch.load(args.ckpt, map_location=torch.device('cpu'))['model'])
 
@@ -51,7 +51,7 @@ def eval_dqn(config, args):
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env', type=str, default='Pong-ramNoFrameskip-v4')  
+    parser.add_argument('--env', type=str, default='Pong-ramNoFrameskip-v4')
     parser.add_argument('--embedding_dim', type=int, default=64)
     parser.add_argument('--seed', '-s', type=int, default=0)
     parser.add_argument('--test_iter', type=int, default=5)
@@ -60,4 +60,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     train_dqn(args)
-

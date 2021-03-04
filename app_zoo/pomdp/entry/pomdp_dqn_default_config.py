@@ -25,13 +25,8 @@ pomdp_dqn_default_config = dict(
         use_ram=True,
         clip_reward=False,
         render=False,
-        pomdp=dict(
-            noise_scale=0.01,
-            zero_p=0.2,
-            reward_noise=0.01,
-            duplicate_p=0.2),
+        pomdp=dict(noise_scale=0.01, zero_p=0.2, reward_noise=0.01, duplicate_p=0.2),
     ),
-
     policy=dict(
         # Whether to use cuda for network.
         use_cuda=False,
@@ -142,4 +137,3 @@ pomdp_dqn_default_config = dict(
 )
 pomdp_dqn_default_config = EasyDict(pomdp_dqn_default_config)
 main_config = pomdp_dqn_default_config
-
