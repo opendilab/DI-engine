@@ -93,8 +93,8 @@ class BufferManager:
         Overview:
             Sample data from prioritized buffers according to sample ratio.
         Arguments:
-            - batch_size (:obj:`int`): Batch size of the data that will be sampled. Caller can indicates buffer_name \
-                and corresponding batch_size when samples from multiple buffers.
+            - batch_size (:obj:`int`): Batch size of the data that will be sampled. Caller can indicates \
+                the corresponding batch_size when samples from multiple buffers.
             - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
         Returns:
             - data (:obj:`Union[list, Dict[str, list]]`): Sampled data batch.
@@ -168,12 +168,12 @@ class BufferManager:
         for buffer in self.buffer.values():
             buffer.close()
 
-    def count(self, buffer_name: str = None) -> int:
+    def count(self, buffer_name: Optional[str] = None) -> int:
         """
         Overview:
             Return chosen buffer's current data count.
         Arguments:
-            - buffer_name (:obj:`str`): Chosen buffer's name
+            - buffer_name (:obj:`Optional[str]`): Chosen buffer's name
         Returns:
             - count (:obj:`int`): Chosen buffer's data count
         """
