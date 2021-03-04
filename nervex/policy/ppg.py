@@ -132,8 +132,7 @@ class PPGPolicy(CommonPolicy):
         self._optimizer_value.step()
 
         # ====================
-        # PP update TODO(zym) update optimizer
-        # TODO(zym) calculate value loss for update value network
+        # PP update
         # use aux loss after iterations and reset aux_memories
         # ====================
 
@@ -337,7 +336,6 @@ class PPGPolicy(CommonPolicy):
         # the proposed auxiliary phase training
         # where the value is distilled into the policy network,
         # while making sure the policy network does not change the action predictions (kl div loss)
-        # TODO(zym) replace sample
 
         i = 0
         auxiliary_loss_ = 0
@@ -367,7 +365,6 @@ class PPGPolicy(CommonPolicy):
                 self._optimizer_policy.step()
 
                 # paper says it is important to train the value network extra during the auxiliary phase
-                # TODO(zym) calculate value loss for update value network
                 # Calculate ppg error 'value_new', 'value_old', 'return_', 'weight'
                 values = self._armor.forward(data, param={'mode': 'compute_value'})['value']
                 data_aux = ppo_value_data(values, data['value'], data['return_'], data['weight'])

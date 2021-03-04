@@ -166,7 +166,7 @@ class PhasicPolicyGradientBase(nn.Module):
                 in policy network
                 - mimic: supervised learning, learn policy/value output label
         """
-        assert (mode in ['compute_action_value', 'compute_action', 'compute_value', 'compute_policy_value'])
+        assert (mode in ['compute_action_value', 'compute_action', 'compute_value'])
         f = getattr(self, mode)
         return f(inputs, **kwargs)
 
@@ -180,12 +180,6 @@ class PhasicPolicyGradientBase(nn.Module):
         raise NotImplementedError
 
     def compute_value(self, inputs, **kwargs):
-        raise NotImplementedError
-
-    def compute_policy_value(self, inputs, **kwargs):
-        raise NotImplementedError
-
-    def mimic(self, inputs, **kwargs):
         raise NotImplementedError
 
     def _value_net_forward(self, inputs, **kwargs):
