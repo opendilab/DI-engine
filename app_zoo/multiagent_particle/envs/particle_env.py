@@ -189,6 +189,7 @@ class CooperativeNavigation(BaseEnv):
         for i in range(self.agent_num):
             collide_sum += info['n'][i][1]
         rew_n += collide_sum * (1.0 - self._collide_penalty)
+        rew_n = rew_n / (self._max_step * self.agent_num)
         self._sum_reward += rew_n
         occupied_landmarks = info['n'][0][3]
         if self._step_count >= self._max_step or occupied_landmarks >= self.agent_num or occupied_landmarks >= self._num_landmarks:

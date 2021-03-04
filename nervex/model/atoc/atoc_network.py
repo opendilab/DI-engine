@@ -132,8 +132,9 @@ class ATOCActorNet(nn.Module):
         thought_dim: int,
         action_dim: int,
         n_agent: int,
-        m_group: int,
-        T_initiate: int,
+        use_communication: bool = True,
+        m_group: int = 2,
+        T_initiate: int = 5,
         initiator_threshold: float = 0.5,
         attention_embedding_dim: int = 64,
         actor_1_embedding_dim: Union[int, None] = None,
@@ -163,6 +164,7 @@ class ATOCActorNet(nn.Module):
         self._thought_dim = thought_dim
         self._act_dim = action_dim
         self._n_agent = n_agent
+        self._use_communication = use_communication
         self._m_group = m_group
         self._initiator_threshold = initiator_threshold
         if not actor_1_embedding_dim:
@@ -201,8 +203,9 @@ class ATOCActorNet(nn.Module):
         self.actor_2 = nn.Sequential(*actor_2_layer)
 
         # Communication
-        self._attention = ATOCAttentionUnit(self._thought_dim, attention_embedding_dim)
-        self._comm_net = ATOCCommunicationNet(self._thought_dim)
+        if self._use_communication:
+            self._attention = ATOCAttentionUnit(self._thought_dim, attention_embedding_dim)
+            self._comm_net = ATOCCommunicationNet(self._thought_dim)
 
         self._get_group_freq = T_initiate
         self._step_count = 0
@@ -227,24 +230,31 @@ class ATOCActorNet(nn.Module):
 
         current_thoughts = self._actor_1(obs)  # B, A, thoughts_dim
 
-        if self._step_count % self._get_group_freq == 0:
-            init_prob, is_initiator, group = self._get_initiate_group(current_thoughts)
+        if self._use_communication:
+            if self._step_count % self._get_group_freq == 0:
+                init_prob, is_initiator, group = self._get_initiate_group(current_thoughts)
 
-        old_thoughts = current_thoughts.clone().detach()
-        new_thoughts = self._update_current_thoughts(current_thoughts, group, is_initiator)
-
+            old_thoughts = current_thoughts.clone().detach()
+            new_thoughts = self._update_current_thoughts(current_thoughts, group, is_initiator)
+        else:
+            new_thoughts = current_thoughts
         action = self.actor_2(torch.cat([current_thoughts, new_thoughts], dim=-1))
 
-        return {
-            'action': action,
-            'group': group,
-            'initiator_prob': init_prob,
-            'is_initiator': is_initiator,
-            'new_thoughts': new_thoughts,
-            'old_thoughts': old_thoughts,
-        }
+        if self._use_communication:
+            return {
+                'action': action,
+                'group': group,
+                'initiator_prob': init_prob,
+                'is_initiator': is_initiator,
+                'new_thoughts': new_thoughts,
+                'old_thoughts': old_thoughts,
+            }
+        else:
+            return {'action': action}
 
     def _get_initiate_group(self, current_thoughts):
+        if not self._use_communication:
+            raise NotImplementedError
         init_prob = self._attention(current_thoughts)  # B, A
         is_initiator = (init_prob > self._initiator_threshold)
         B, A = init_prob.shape[:2]
@@ -277,6 +287,8 @@ class ATOCActorNet(nn.Module):
             - group: (:obj:`torch.Tensor`): :math:`(B, A, A)`
             - is_initiator (:obj:`torch.Tensor`): :math:`(B, A)`
         """
+        if not self._use_communication:
+            raise NotImplementedError
         B, A = current_thoughts.shape[:2]
         new_thoughts = current_thoughts.clone()
 
@@ -367,8 +379,9 @@ class ATOCQAC(QActorCriticBase):
         action_dim: int,
         thought_dim: int,
         n_agent: int,
-        m_group: int,
-        T_initiate: int,
+        use_communication: bool = True,
+        m_group: int = 2,
+        T_initiate: int = 5,
     ) -> None:
         r"""
         Overview:
@@ -383,8 +396,8 @@ class ATOCQAC(QActorCriticBase):
             - T_initiate (:obj:`int`): the time between group initiate
         """
         super(ATOCQAC, self).__init__()
-
-        self._actor = ATOCActorNet(obs_dim, thought_dim, action_dim, n_agent, m_group, T_initiate)
+        self._use_communication = use_communication
+        self._actor = ATOCActorNet(obs_dim, thought_dim, action_dim, n_agent, use_communication, m_group, T_initiate)
         self._critic = ATOCCriticNet(obs_dim, action_dim)
 
     def _critic_forward(self, x: Dict[str, torch.Tensor]) -> Union[List[torch.Tensor], torch.Tensor]:
@@ -423,7 +436,7 @@ class ATOCQAC(QActorCriticBase):
             in ATOC, not only the action is computed, but the groups, initiator_prob, thoughts, delta_q, etc
         '''
         outputs = self._actor_forward(inputs)
-        if get_delta_q:
+        if get_delta_q and self._use_communication:
             delta_q = self._compute_delta_q(inputs['obs'], outputs)
             outputs['delta_q'] = delta_q
         return outputs
@@ -452,7 +465,8 @@ class ATOCQAC(QActorCriticBase):
             - inputs (:obj:`Dict`): the inputs contain the delta_q, initiator_prob, and is_initiator
             - actor_attention_loss (:obj:`Dict`): the loss of actor attention unit
         """
-
+        if not self._use_communication:
+            raise NotImplementedError
         delta_q = inputs['delta_q'].reshape(-1)
         init_prob = inputs['initiator_prob'].reshape(-1)
         is_init = inputs['is_initiator'].reshape(-1)
@@ -479,6 +493,8 @@ class ATOCQAC(QActorCriticBase):
             - actor_outputs (:obj:`dict`): the output of actors
             - delta_q (:obj:`Dict`): the calculated delta_q
         """
+        if not self._use_communication:
+            raise NotImplementedError
         assert len(obs.shape) == 3
         new_thoughts, old_thoughts, group, is_initiator = actor_outputs['new_thoughts'], actor_outputs[
             'old_thoughts'], actor_outputs['group'], actor_outputs['is_initiator']
@@ -524,12 +540,20 @@ class ATOCQAC(QActorCriticBase):
             - inputs (:obj:`Dict`): the inputs
             - mode (:obj:`str`): the mode of forward determine which method to call
         """
-        assert (
-            mode in [
-                'optimize_actor', 'optimize_actor_attention', 'compute_q', 'compute_action', 'compute_action_q',
-                'compute_delta_q'
-            ]
-        ), mode
+        if self._use_communication:
+            assert (
+                mode in [
+                    'optimize_actor', 'optimize_actor_attention', 'compute_q', 'compute_action', 'compute_action_q',
+                    'compute_delta_q'
+                ]
+            ), mode
+        else:
+            assert (mode in [
+                'optimize_actor',
+                'compute_q',
+                'compute_action',
+                'compute_action_q',
+            ]), mode
         f = getattr(self, mode)
         return f(inputs, **kwargs)
 

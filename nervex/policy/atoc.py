@@ -27,6 +27,12 @@ class ATOCPolicy(CommonPolicy):
             Learn mode init method. Called by ``self.__init__``.
             Init actor and critic optimizers, algorithm config, main and target armors.
         """
+        # algorithm config
+        algo_cfg = self._cfg.learn.algo
+        self._algo_cfg_learn = algo_cfg
+        self._use_communication = algo_cfg.use_communication
+        self._gamma = algo_cfg.discount_factor
+        self._actor_update_freq = algo_cfg.actor_update_freq
         # actor and critic optimizer
         self._optimizer_actor = Adam(
             self._model._actor.parameters(),
@@ -38,18 +44,13 @@ class ATOCPolicy(CommonPolicy):
             lr=self._cfg.learn.learning_rate_critic,
             weight_decay=self._cfg.learn.weight_decay
         )
-        self._optimizer_actor_attention = Adam(
-            self._model._actor._attention.parameters(),
-            lr=self._cfg.learn.learning_rate_actor,
-            weight_decay=self._cfg.learn.weight_decay
-        )
+        if self._use_communication:
+            self._optimizer_actor_attention = Adam(
+                self._model._actor._attention.parameters(),
+                lr=self._cfg.learn.learning_rate_actor,
+                weight_decay=self._cfg.learn.weight_decay
+            )
         self._use_reward_batch_norm = self._cfg.get('use_reward_batch_norm', False)
-
-        # algorithm config
-        algo_cfg = self._cfg.learn.algo
-        self._algo_cfg_learn = algo_cfg
-        self._gamma = algo_cfg.discount_factor
-        self._actor_update_freq = algo_cfg.actor_update_freq
 
         # main and target armors
         self._armor = Armor(self._model)
@@ -119,17 +120,21 @@ class ATOCPolicy(CommonPolicy):
         # ===============================
         # actor updates every ``self._actor_update_freq`` iters
         if (self._forward_learn_cnt + 1) % self._actor_update_freq == 0:
-            inputs = self._armor.forward({'obs': data['obs']}, param={'mode': 'compute_action', 'get_delta_q': False})
-            inputs['delta_q'] = data['delta_q']
-            attention_loss = -self._armor.forward(
-                inputs, param={'mode': 'optimize_actor_attention'}
-            )['actor_attention_loss'].mean()
-            loss_dict['attention_loss'] = attention_loss
-            self._optimizer_actor_attention.zero_grad()
-            attention_loss.backward()
-            self._optimizer_actor_attention.step()
-            # newdata = self._armor.forward({'obs':data['obs']}, param={'mode': 'compute_action', 'get_delta_q': False})
-            # newdata['obs']
+            if self._use_communication:
+                inputs = self._armor.forward(
+                    {'obs': data['obs']}, param={
+                        'mode': 'compute_action',
+                        'get_delta_q': False
+                    }
+                )
+                inputs['delta_q'] = data['delta_q']
+                attention_loss = -self._armor.forward(
+                    inputs, param={'mode': 'optimize_actor_attention'}
+                )['actor_attention_loss'].mean()
+                loss_dict['attention_loss'] = attention_loss
+                self._optimizer_actor_attention.zero_grad()
+                attention_loss.backward()
+                self._optimizer_actor_attention.step()
             actor_loss = -self._armor.forward(data, param={'mode': 'optimize_actor'})['q_value'].mean()
             loss_dict['actor_loss'] = actor_loss
             # actor update
@@ -204,24 +209,34 @@ class ATOCPolicy(CommonPolicy):
         Return:
             - transition (:obj:`Dict[str, Any]`): Dict type transition data.
         """
-        transition = {
-            'obs': obs,
-            'next_obs': timestep.obs,
-            'action': armor_output['action'],
-            'delta_q': armor_output['delta_q'],
-            'reward': timestep.reward,
-            'done': timestep.done,
-        }
+        if self._use_communication:
+            transition = {
+                'obs': obs,
+                'next_obs': timestep.obs,
+                'action': armor_output['action'],
+                'delta_q': armor_output['delta_q'],
+                'reward': timestep.reward,
+                'done': timestep.done,
+            }
+        else:
+            transition = {
+                'obs': obs,
+                'next_obs': timestep.obs,
+                'action': armor_output['action'],
+                'reward': timestep.reward,
+                'done': timestep.done,
+            }
         return transition
 
     def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
         # adder is defined in _init_collect
         data = self._adder.get_traj(traj_cache, self._traj_len)
-        delta_q_batch = [d['delta_q'] for d in data]
-        delta_min = torch.stack(delta_q_batch).min()
-        delta_max = torch.stack(delta_q_batch).max()
-        for i in range(len(data)):
-            data[i]['delta_q'] = (data[i]['delta_q'] - delta_min) / (delta_max - delta_min + 1e-8)
+        if self._use_communication:
+            delta_q_batch = [d['delta_q'] for d in data]
+            delta_min = torch.stack(delta_q_batch).min()
+            delta_max = torch.stack(delta_q_batch).max()
+            for i in range(len(data)):
+                data[i]['delta_q'] = (data[i]['delta_q'] - delta_min) / (delta_max - delta_min + 1e-8)
         return self._adder.get_train_sample(data)
 
     def _init_eval(self) -> None:

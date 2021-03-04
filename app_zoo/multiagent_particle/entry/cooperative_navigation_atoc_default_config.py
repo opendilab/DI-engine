@@ -27,6 +27,7 @@ cooperative_navigation_atoc_default_config = dict(
             action_dim=5,
             thought_dim=16,
             n_agent=5,
+            use_communication=True,
             m_group=2,
             T_initiate=5,
         ),
@@ -40,6 +41,7 @@ cooperative_navigation_atoc_default_config = dict(
             algo=dict(
                 target_theta=0.005,
                 discount_factor=0.99,
+                use_communication=True,
                 actor_update_freq=1,
                 use_noise=True,
                 noise_sigma=0.2,
@@ -73,7 +75,7 @@ cooperative_navigation_atoc_default_config = dict(
     ),
     evaluator=dict(
         n_episode=2,
-        eval_freq=200,
+        eval_freq=1000,
         stop_val=0,  # We don't have a stop_val yet. The stop_val here is unreachable.
     ),
     learner=dict(
