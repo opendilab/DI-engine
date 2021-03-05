@@ -3,7 +3,7 @@ from easydict import EasyDict
 
 from nervex.utils import EasyTimer, import_module, get_task_uid, dist_init, dist_finalize
 from nervex.policy import create_policy
-from ..base_learner import BaseLearner
+from nervex.worker.learner import create_learner
 
 
 class BaseCommLearner(ABC):
@@ -92,7 +92,7 @@ class BaseCommLearner(ABC):
         """
         raise NotImplementedError
 
-    def _create_learner(self, task_info: dict) -> BaseLearner:
+    def _create_learner(self, task_info: dict) -> 'BaseLearner':  # noqa
         """
         Overview:
             Receive ``task_info`` passed from coordinator and create a learner.
@@ -111,7 +111,7 @@ class BaseCommLearner(ABC):
         # Prepare learner config and instantiate a learner object.
         learner_cfg = EasyDict(task_info['learner_cfg'])
         learner_cfg['use_distributed'] = self._use_distributed
-        learner = BaseLearner(learner_cfg)
+        learner = create_learner(learner_cfg)
         # Set 3 methods and dataloader in created learner that are necessary in parallel setting.
         for item in ['get_data', 'send_policy', 'send_learn_info']:
             setattr(learner, item, getattr(self, item))

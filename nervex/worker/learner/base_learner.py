@@ -448,7 +448,7 @@ class BaseLearner(object):
         self._collect_info = {k: float(v) for k, v in collect_info.items()}
 
 
-learner_mapping = {}
+learner_mapping = {'base': BaseLearner}
 
 
 def register_learner(name: str, learner: type) -> None:
@@ -477,8 +477,8 @@ def create_learner(cfg: EasyDict) -> BaseLearner:
         - learner (:obj:`BaseLearner`): The created new learner, should be an instance of one of \
             learner_mapping's values.
     """
-    import_module(cfg.import_names)
-    learner_type = cfg.learner_type
+    import_module(cfg.get('import_names', []))
+    learner_type = cfg.get('learner_type', 'base')
     if learner_type not in learner_mapping.keys():
         raise KeyError("not support learner type: {}".format(learner_type))
     else:
