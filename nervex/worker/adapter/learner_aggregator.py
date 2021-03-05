@@ -156,7 +156,9 @@ class LearnerAggregator(object):
     def merge_info(info: list) -> dict:
         homogeneous_keys = ['learner_step', 'buffer_id', 'task_id', 'learner_done']
         elem = info[0]
-        if isinstance(elem, numbers.Integral) or isinstance(elem, str) or isinstance(elem, float):
+        if elem is None:
+            return info
+        elif isinstance(elem, numbers.Integral) or isinstance(elem, str) or isinstance(elem, float):
             return info
         elif isinstance(elem, list) or isinstance(elem, tuple):
             return list(reduce(lambda x, y: x + y, info))
