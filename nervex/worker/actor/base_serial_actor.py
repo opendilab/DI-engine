@@ -173,7 +173,7 @@ class BaseSerialActor(object):
                     step_count += 1
                     self._total_step_count += 1
         duration = self._timer.value
-        if (self._total_collect_step_count + 1) % self._collect_print_freq == 0:
+        if (self._total_collect_step_count) % self._collect_print_freq == 0:
             info = {
                 'episode_count': episode_count,
                 'step_count': step_count,

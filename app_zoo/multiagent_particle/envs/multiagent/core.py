@@ -197,6 +197,7 @@ class World(object):
 
     # get collision forces for any contact between two entities
     def get_collision_force(self, entity_a, entity_b):
+        # print(entity_a, entity_b)
         if (not entity_a.collide) or (not entity_b.collide):
             return [None, None]  # not a collider
         if (entity_a is entity_b):
@@ -209,7 +210,12 @@ class World(object):
         # softmax penetration
         k = self.contact_margin
         penetration = np.logaddexp(0, -(dist - dist_min) / k) * k
-        force = self.contact_force * delta_pos / dist * penetration
+        # print("penetration = ", penetration)
+        # print("c = ", self.contact_force)
+        # print("de = ", delta_pos)
+        # print("dist = ", dist)
+        force = self.contact_force * delta_pos / (dist+1e-6) * penetration
+        # force = 0
         force_a = +force if entity_a.movable else None
         force_b = -force if entity_b.movable else None
         return [force_a, force_b]

@@ -323,8 +323,7 @@ class ATOCCriticNet(nn.Module):
     """
 
     # note, the critic take the action as input
-    # def __init__(self, obs_dim: int, action_dim: int, embedding_dims: List[int] = [128, 64]):
-    def __init__(self, obs_dim: int, action_dim: int, embedding_dims: List[int] = [32]):
+    def __init__(self, obs_dim: int, action_dim: int, embedding_dims: List[int] = [128, 64]):
         r"""
         Overview:
             the init method of atoc critic net work
@@ -383,6 +382,9 @@ class ATOCQAC(QActorCriticBase):
         use_communication: bool = True,
         m_group: int = 2,
         T_initiate: int = 5,
+        actor_1_embedding_dim: Union[int, None] = None,
+        actor_2_embedding_dim: Union[int, None] = None,
+        critic_embedding_dims: List[int] = [128, 64],
     ) -> None:
         r"""
         Overview:
@@ -398,8 +400,18 @@ class ATOCQAC(QActorCriticBase):
         """
         super(ATOCQAC, self).__init__()
         self._use_communication = use_communication
-        self._actor = ATOCActorNet(obs_dim, thought_dim, action_dim, n_agent, use_communication, m_group, T_initiate)
-        self._critic = ATOCCriticNet(obs_dim, action_dim)
+        self._actor = ATOCActorNet(
+            obs_dim,
+            thought_dim,
+            action_dim,
+            n_agent,
+            use_communication,
+            m_group,
+            T_initiate,
+            actor_1_embedding_dim=actor_1_embedding_dim,
+            actor_2_embedding_dim=actor_2_embedding_dim
+        )
+        self._critic = ATOCCriticNet(obs_dim, action_dim, embedding_dims=critic_embedding_dims)
 
     def _critic_forward(self, x: Dict[str, torch.Tensor]) -> Union[List[torch.Tensor], torch.Tensor]:
         return self._critic(x)

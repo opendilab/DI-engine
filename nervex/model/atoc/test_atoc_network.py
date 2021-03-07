@@ -17,6 +17,8 @@ class TestATOCNets:
             assert out['action'].shape == (B, A, act_dim)
             assert out['group'].shape == (B, A, A)
             loss1 = out['action'].sum()
+            if _ == 0:
+                is_differentiable_print_no_grad(loss1, model)
 
     def test_critic_net(self):
         B, A, obs_dim, act_dim, thought_dim = 6, 5, 12, 6, 14

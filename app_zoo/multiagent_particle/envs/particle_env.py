@@ -130,7 +130,7 @@ class CooperativeNavigation(BaseEnv):
         self._max_step = cfg.get('max_step', 100)
         self._collide_penalty = cfg.get('collide_penal', self.agent_num)
         self._agent_obs_only = cfg.get('agent_obs_only', False)
-        self._env.force_discrete_action = True
+        self._env.force_discrete_action = cfg.get('force_discrete_action', False)
         self.action_dim = 5
         # obs = np.concatenate([agent.state.p_vel] + [agent.state.p_pos] + other_pos + entity_pos)
         self.obs_dim = 2 + 2 + (self.agent_num - 1) * 2 + self._num_landmarks * 2
@@ -153,6 +153,9 @@ class CooperativeNavigation(BaseEnv):
 
     def seed(self, seed: int) -> None:
         self._seed = seed
+        if hasattr(self, '_seed'):
+            # Note: the real env instance only has a empty seed method, only pass
+            self._env.seed(self._seed)
 
     def _process_action(self, action: list):
         return to_list(action)

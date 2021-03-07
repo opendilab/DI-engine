@@ -100,6 +100,7 @@ class MultiAgentEnv(gym.Env):
         self.world.step()
         # record observation for each agent
         for agent in self.agents:
+            # print("current agent pos = ", agent.state.p_pos)
             obs_n.append(self._get_obs(agent))
             reward_n.append(self._get_reward(agent))
             done_n.append(self._get_done(agent))
@@ -176,6 +177,7 @@ class MultiAgentEnv(gym.Env):
         if agent.movable:
             # physical action
             if self.discrete_action_input:
+                # print("using discrete action input")
                 agent.action.u = np.zeros(self.world.dim_p)
                 # process discrete action
                 if action[0] == 1:
@@ -192,16 +194,23 @@ class MultiAgentEnv(gym.Env):
                     # print("action = ", action)
                     action[0][:] = [0.0 for _ in action[0]]
                     action[0][d] = 1.0
-                if self.discrete_action_space:
-                    # print("action = ", action)
+                # print("is discrete action space", self.discrete_action_space)
+                if self.discrete_action_space: #discrete_action_space is always true
+                    # print("action = ", action[0])
+                    if any(np.isnan(action[0])):
+                        raise ValueError
                     agent.action.u[0] += action[0][1] - action[0][2]
                     agent.action.u[1] += action[0][3] - action[0][4]
+                    # print("agent.action.u is ", agent.action.u)
                 else:
                     agent.action.u = action[0]
             sensitivity = 5.0
             if agent.accel is not None:
                 sensitivity = agent.accel
+            
+            # print("now agent action u before is ", agent.action.u)
             agent.action.u *= sensitivity
+            # print("now agent action u is ", agent.action.u)
             action = action[1:]
         if not agent.silent:
             # print("communication action = ", action)
