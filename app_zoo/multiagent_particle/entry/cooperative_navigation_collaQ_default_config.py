@@ -32,7 +32,7 @@ cooperative_navigation_collaQ_default_config = dict(
             embedding_dim=64,
             enable_attention=True,
             self_feature_range=[2, 4],  # placeholder
-            ally_feature_range=[4, 12],  # placeholder
+            ally_feature_range=[4, agent_num * 2 + 2],  # placeholder
             attention_dim=32,
         ),
         learn=dict(

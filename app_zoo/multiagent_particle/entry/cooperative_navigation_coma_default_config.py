@@ -26,7 +26,7 @@ cooperative_navigation_coma_default_config = dict(
         model=dict(
             agent_num=agent_num,
             obs_dim=dict(
-                agent_state=[5, 2 + 2 + (agent_num - 1) * 2 + num_landmarks * 2],
+                agent_state=[agent_num, 2 + 2 + (agent_num - 1) * 2 + num_landmarks * 2],
                 global_state=agent_num * 2 + num_landmarks * 2 + agent_num * 2,
             ),
             act_dim=[
