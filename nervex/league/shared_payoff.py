@@ -194,7 +194,7 @@ class BattleSharedPayoff:
             try:
                 assert home_id in self._players_ids
                 assert away_id in self._players_ids
-                # Assert all results are in ['win', 'loss', 'draw']
+                # Assert all results are in ['wins', 'losses', 'draws']
                 assert all([i in BattleRecordDict.data_keys[:3] for j in job_info['result'] for i in j])
             except Exception as e:
                 print("[ERROR] invalid job_info: {}".format(job_info))

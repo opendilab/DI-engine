@@ -172,11 +172,11 @@ class OneVsOneActor(BaseActor):
         for i, env_result in enumerate(game_result):
             for j, rew in enumerate(env_result):
                 if rew < 0:
-                    game_result[i][j] = "loss"
+                    game_result[i][j] = "losses"
                 elif rew == 0:
-                    game_result[i][j] = "draw"
+                    game_result[i][j] = "draws"
                 else:
-                    game_result[i][j] = "win"
+                    game_result[i][j] = "wins"
 
         finish_info = {
             'finished_task': True,  # flag

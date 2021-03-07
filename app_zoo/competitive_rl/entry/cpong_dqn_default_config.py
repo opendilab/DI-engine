@@ -59,7 +59,7 @@ __base_learner_default_config = dict(
             type='log_show',
             priority=20,
             position='after_iter',
-            ext_args=dict(freq=200),
+            ext_args=dict(freq=50),
         ),
         save_ckpt_after_run=dict(
             name='save_ckpt_after_run',

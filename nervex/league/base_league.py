@@ -213,9 +213,9 @@ def create_league(cfg: EasyDict, *args) -> BaseLeague:
         - league (:obj:`BaseLeague`): the created new league, should be an instance of one of \
             league_mapping's values
     """
-    assert "league" in cfg, "Please pass in complete config!"
-    import_module(cfg.league.import_names)
-    league_type = cfg.league.league_type
+    # assert "league" in cfg, "Please pass in complete config!"
+    import_module(cfg.import_names)
+    league_type = cfg.league_type
     if league_type not in league_mapping.keys():
         raise KeyError("not support league type: {}".format(league_type))
     else:

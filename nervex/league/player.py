@@ -233,7 +233,6 @@ class ActivePlayer(Player):
         p = np.random.uniform()
         L = len(self._branch_probs)
         cum_p = [0.] + [sum([j.prob for j in self._branch_probs[:i + 1]]) for i in range(L)]
-        print("!!", p, cum_p)
         idx = [cum_p[i] <= p < cum_p[i + 1] for i in range(L)].index(True)
         branch_name = '_{}_branch'.format(self._branch_probs[idx].name)
         opponent = getattr(self, branch_name)()
