@@ -61,7 +61,7 @@ setup(
         'sk-video',  # pypy
         'websocket-client',
         'whichcraft',
-        'gym',  # pypy
+        'gym>=0.15.3',  # pypy
         'atari_py',
         #'torch>=1.3.1,<1.5',  # 1.3.1+cuda90_cudnn7.6.3_lms
         'joblib',
