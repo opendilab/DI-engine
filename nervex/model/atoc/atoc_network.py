@@ -38,9 +38,9 @@ class ATOCAttentionUnit(nn.Module):
         self._hidden_dim = embedding_dim
         self._output_dim = 1
         self._act1 = nn.ReLU()
-        self._fc1 = nn.Linear(self._thought_dim, self._hidden_dim)
-        self._fc2 = nn.Linear(self._hidden_dim, self._hidden_dim)
-        self._fc3 = nn.Linear(self._hidden_dim, self._output_dim)
+        self._fc1 = nn.Linear(self._thought_dim, self._hidden_dim, bias=True)
+        self._fc2 = nn.Linear(self._hidden_dim, self._hidden_dim, bias=True)
+        self._fc3 = nn.Linear(self._hidden_dim, self._output_dim, bias=True)
         self._act2 = nn.Sigmoid()
 
     def forward(self, data: Union[Dict, torch.Tensor]) -> torch.Tensor:
@@ -182,7 +182,7 @@ class ATOCActorNet(nn.Module):
         actor_1_layer.append(nn.LayerNorm(actor_1_embedding_dim))
         actor_1_layer.append(nn.ReLU())
         actor_1_layer.append(nn.Linear(actor_1_embedding_dim, self._thought_dim))
-        actor_1_layer.append(nn.LayerNorm(self._thought_dim))
+        # actor_1_layer.append(nn.LayerNorm(self._thought_dim))
 
         self._actor_1 = nn.Sequential(*actor_1_layer)
 
@@ -196,9 +196,9 @@ class ATOCActorNet(nn.Module):
         # actor_2_layer.append(nn.Linear(self._thought_dim * 2, actor_2_embedding_dim))
 
         # not sure if we should layer norm here
-        actor_2_layer.append(nn.LayerNorm(actor_2_embedding_dim))
-        actor_2_layer.append(nn.Linear(actor_2_embedding_dim, self._act_dim))
-        actor_2_layer.append(nn.LayerNorm(self._act_dim))
+        # actor_2_layer.append(nn.LayerNorm(actor_2_embedding_dim))
+        actor_2_layer.append(nn.Linear(actor_2_embedding_dim, self._act_dim, bias=False))
+        # actor_2_layer.append(nn.LayerNorm(self._act_dim))
         actor_2_layer.append(nn.Tanh())
         self.actor_2 = nn.Sequential(*actor_2_layer)
 
@@ -323,7 +323,8 @@ class ATOCCriticNet(nn.Module):
     """
 
     # note, the critic take the action as input
-    def __init__(self, obs_dim: int, action_dim: int, embedding_dims: List[int] = [128, 64]):
+    # def __init__(self, obs_dim: int, action_dim: int, embedding_dims: List[int] = [128, 64]):
+    def __init__(self, obs_dim: int, action_dim: int, embedding_dims: List[int] = [32]):
         r"""
         Overview:
             the init method of atoc critic net work
@@ -341,7 +342,7 @@ class ATOCCriticNet(nn.Module):
         self._main = nn.ModuleList()
         for dim in embedding_dims:
             self._main.append(nn.Linear(cur_dim, dim))
-            self._main.append(nn.LayerNorm(dim))
+            # self._main.append(nn.LayerNorm(dim))
             self._main.append(nn.ReLU())
             cur_dim = dim
         self._main.append(nn.Linear(cur_dim, 1))
@@ -450,8 +451,9 @@ class ATOCQAC(QActorCriticBase):
             - inputs (:obj:`Dict`): the inputs containing the observation
             - q (:obj:`Dict`): the output of ciritic network, without critic grad
         """
-        if inputs.get('action') is None:
-            inputs['action'] = self._actor_forward(inputs)['action']
+        # if inputs.get('action') is None:
+        #     inputs['action'] = self._actor_forward(inputs)['action']
+        inputs['action'] = self._actor_forward(inputs)['action']
         q = self._critic_forward(inputs)
 
         return q
