@@ -185,6 +185,8 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
 
     .. code:: python
 
+        from copy import deepcopy
+        from nervex.entry import serial_pipeline
         from app_zoo.classic_control.cartpole.entry import cartpole_dqn_default_config
         config = deepcopy(cartpole_dqn_default_config)
         serial_pipeline(config, seed=0)

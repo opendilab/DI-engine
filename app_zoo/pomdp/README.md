@@ -1,0 +1,8 @@
+1. train文件夹里加入了一个训练脚本test_nervx.py 可以调用nerveX实现在POMDP环境上的训练和可视化分析
+2. POMDP的实现主要在FrameStackRam这个wrapper中，目前有三种处理方式
+* 对一些obs不及时更新，使用之前的obs作为现在的obs
+* 以一定的概率将obs置为全0
+* 在obs和reward中加入噪音
+3. 注意，环境的返回值已经是多帧数据拼接后的产物，理论上是一个state，可以通过framestack设定使用历史数据的长度
+4. train文件夹中的train_pomdp.py调用spinninngup进行了训练，同样支持训练与可视化分析，环境参数会调用entry中的config以确保对比的一致性，
+但请注意spinningup中的算法参数可能需要在其代码库中进一步调整

@@ -21,7 +21,7 @@ def setup_actor(setup_config):
     cfg = setup_config.coordinator.interaction.actor
     actor = {}
     for _, (name, host, port) in cfg.items():
-        actor[name] = NaiveActor(host, port)
+        actor[name] = NaiveActor(host, port, prefix=DATA_PREFIX)
         actor[name].start()
     yield actor
     for a in actor.values():

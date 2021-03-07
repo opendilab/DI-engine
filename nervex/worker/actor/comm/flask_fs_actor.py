@@ -51,6 +51,10 @@ class ActorSlave(Slave):
             data['buffer_id'] = self._current_task_info['buffer_id']
             data['task_id'] = self._current_task_info['task_id']
             return data
+        elif task_name == 'actor_close_task':
+            data = self._callback_fn['deal_with_actor_close']()
+            data['task_id'] = self._current_task_info['task_id']
+            return data
         else:
             raise TaskFail(result={'message': 'task name error'}, message='illegal actor task <{}>'.format(task_name))
 
@@ -60,8 +64,8 @@ class FlaskFileSystemActor(BaseCommActor):
     Overview:
         An implementation of CommLearner, using flask and the file system.
     Interfaces:
-        __init__, start, close, deal_with_resource, deal_with_actor_start, deal_with_actor_data,
-        get_policy_update_info, send_stepdata, send_metadata, send_finish_info
+        __init__, deal_with_resource, deal_with_actor_start, deal_with_actor_data, deal_with_actor_close,\
+        get_policy_update_info, send_stepdata, send_metadata, start, close
     """
 
     # override
@@ -78,6 +82,7 @@ class FlaskFileSystemActor(BaseCommActor):
             'deal_with_resource': self.deal_with_resource,
             'deal_with_actor_start': self.deal_with_actor_start,
             'deal_with_actor_data': self.deal_with_actor_data,
+            'deal_with_actor_close': self.deal_with_actor_close,
         }
         self._slave = ActorSlave(host, port, callback_fn=self._callback_fn)
 
@@ -89,7 +94,7 @@ class FlaskFileSystemActor(BaseCommActor):
             except Exception as e:
                 pass
         self._metadata_queue = Queue(cfg.queue_maxsize)
-        self._finish_queue = Queue(cfg.queue_maxsize)
+        self._actor_close_flag = False
         self._actor = None
 
     def deal_with_resource(self) -> dict:
@@ -109,9 +114,10 @@ class FlaskFileSystemActor(BaseCommActor):
             - task_info (:obj:`dict`): Task info dict.
         Note:
             In ``_create_actor`` method in base class ``BaseCommActor``, 4 methods
-            'send_metadata', 'send_stepdata', 'get_policy_update_info', 'send_finish_info', and policy are set.
+            'send_metadata', 'send_stepdata', 'get_policy_update_info', and policy are set.
             You can refer to it for details.
         """
+        self._actor_close_flag = False
         self._actor = self._create_actor(task_info)
         self._actor_thread = Thread(target=self._actor.start, args=(), daemon=True, name='actor_start')
         self._actor_thread.start()
@@ -128,14 +134,18 @@ class FlaskFileSystemActor(BaseCommActor):
             if not self._metadata_queue.empty():
                 data = self._metadata_queue.get()
                 break
-            elif not self._finish_queue.empty():
-                data = self._finish_queue.get()
-                self._actor.close()
-                self._actor = None
-                break
             else:
                 time.sleep(0.1)
         return data
+
+    def deal_with_actor_close(self) -> dict:
+        self._actor_close_flag = True
+        finish_info = self._actor.get_finish_info()
+        self._actor.close()
+        self._actor_thread.join()
+        del self._actor_thread
+        self._actor = None
+        return finish_info
 
     # override
     def get_policy_update_info(self, path: str) -> dict:
@@ -157,6 +167,8 @@ class FlaskFileSystemActor(BaseCommActor):
             - path (:obj:`str`): Path to save data.
             - stepdata (:obj:`Any`): Data of one step.
         """
+        if self._actor_close_flag:
+            return
         name = os.path.join(self._path_data, path)
         save_file(name, stepdata, use_lock=False)
 
@@ -169,30 +181,15 @@ class FlaskFileSystemActor(BaseCommActor):
         Arguments:
             - metadata (:obj:`Any`): meta data.
         """
+        if self._actor_close_flag:
+            return
         necessary_metadata_keys = set(['data_id', 'policy_iter'])
-        assert necessary_metadata_keys.issubset(set(metadata.keys()))
+        necessary_info_keys = set(['actor_done', 'cur_episode', 'cur_sample', 'cur_step'])
+        assert necessary_metadata_keys.issubset(set(metadata.keys())
+                                                ) or necessary_info_keys.issubset(set(metadata.keys()))
         while True:
             if not self._metadata_queue.full():
                 self._metadata_queue.put(metadata)
-                break
-            else:
-                time.sleep(0.1)
-
-    # override
-    def send_finish_info(self, finish_info: dict) -> None:
-        """
-        Overview:
-            Store finish info dict in queue, which will be retrieved by callback function "deal_with_actor_data"
-            in actor slave, then will be sent to coordinator.
-        Arguments:
-            - finish_info (:obj:`dict`): Finish info in `dict` type. Keys are like 'finished_task', 'finish_time' \
-            'duration', etc.
-        """
-        necessary_finish_info_keys = set(['finished_task'])
-        assert necessary_finish_info_keys.issubset(set(finish_info.keys()))
-        while True:
-            if not self._finish_queue.full():
-                self._finish_queue.put(finish_info)
                 break
             else:
                 time.sleep(0.1)
@@ -214,6 +211,9 @@ class FlaskFileSystemActor(BaseCommActor):
             return
         if self._actor is not None:
             self._actor.close()
+            self._actor_thread.join()
+            del self._actor_thread
+            self._actor = None
         self._slave.close()
         BaseCommActor.close(self)
 

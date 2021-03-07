@@ -28,12 +28,11 @@ class BaseSerialActor(object):
         self._default_n_episode = cfg.get('n_episode', None)
         self._default_n_sample = cfg.get('n_sample', None)
         self._traj_len = cfg.traj_len
-        if self._traj_len == "inf":
-            raise ValueError(
-                "Serial Actor must indicate finite traj_len. If you want to use a complete episode, \
-                please set it to the maximum length of the env's episode"
-            )
-        self._traj_cache_length = self._traj_len
+        if self._traj_len != "inf":
+            self._traj_cache_length = self._traj_len
+        else:
+            self._traj_len = float('inf')
+            self._traj_cache_length = None
         self._traj_print_freq = cfg.traj_print_freq
         self._collect_print_freq = cfg.collect_print_freq
         self._logger, _ = build_logger(path='./log/actor', name='actor', need_tb=False)
@@ -69,6 +68,18 @@ class BaseSerialActor(object):
         self._total_episode_count = 0
         self._total_sample_count = 0
         self._total_duration = 0
+
+    @property
+    def actor_info(self) -> dict:
+        """
+        Overview:
+            Get current info dict, which will be sent to commander, e.g. replay buffer priority update,
+            current iteration, hyper-parameter adjustment, whether task is finished, etc.
+        Returns:
+            - info (:obj:`dict`): Current learner info dict.
+        """
+        ret = {'env_step': self._total_step_count, 'sample_step': self._total_sample_count}
+        return ret
 
     def generate_data(self,
                       iter_count: int,
@@ -196,6 +207,7 @@ class BaseSerialActor(object):
         self._total_collect_step_count += 1
         self._total_duration += duration
         collect_info = {
+            'sample_count': train_sample_count,
             'total_collect_step': self._total_collect_step_count,
             'total_step': self._total_step_count,
             'total_sample': self._total_sample_count,

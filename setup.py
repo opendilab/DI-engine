@@ -30,8 +30,8 @@ with open(os.path.join(here, 'nervex', '__init__.py'), 'r') as f:
 setup(
     name=meta['__TITLE__'],
     version=meta['__VERSION__'],
-    description=['__DESCRIPTION__'],
-    author=['__AUTHOR__'],
+    description=meta['__DESCRIPTION__'],
+    author=meta['__AUTHOR__'],
     license='Apache License, Version 2.0',
     keywords='DRL Framework',
     packages=[
@@ -61,7 +61,7 @@ setup(
         'sk-video',  # pypy
         'websocket-client',
         'whichcraft',
-        'gym',  # pypy
+        'gym>=0.15.3',  # pypy
         'atari_py',
         #'torch>=1.3.1,<1.5',  # 1.3.1+cuda90_cudnn7.6.3_lms
         'joblib',
@@ -98,6 +98,7 @@ setup(
         #'redis-py-cluster==2.1.0',
         'cmake>=3.18.4',
         'readerwriterlock',
+        'procgen',
     ],
     entry_points={
         'console_scripts': [

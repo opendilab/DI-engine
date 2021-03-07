@@ -52,20 +52,17 @@ class LearnerSlave(Slave):
             ret.update(data_demand)
             return ret
         elif task_name == 'learner_learn_task':
-            learn_info = self._callback_fn['deal_with_learner_learn'](task['data'])
-            ret = {
-                'info': learn_info,
+            info = self._callback_fn['deal_with_learner_learn'](task['data'])
+            data = {'info': info}
+            data['buffer_id'] = self._current_task_info['buffer_id']
+            data['task_id'] = self._current_task_info['task_id']
+            return data
+        elif task_name == 'learner_close_task':
+            self._callback_fn['deal_with_learner_close']()
+            return {
                 'task_id': self._current_task_info['task_id'],
-                'buffer_id': self._current_task_info['buffer_id']
+                'buffer_id': self._current_task_info['buffer_id'],
             }
-            finished_task = learn_info.get('finished_task', None)
-            if finished_task is not None:
-                finished_task['buffer_id'] = self._current_task_info['buffer_id']
-                self._current_task_info = None
-                ret['finished_task'] = finished_task
-            else:
-                ret['finished_task'] = None
-            return ret
         else:
             raise TaskFail(result={'message': 'task name error'}, message='illegal learner task <{}>'.format(task_name))
 
@@ -95,6 +92,7 @@ class FlaskFileSystemLearner(BaseCommLearner):
             'deal_with_learner_start': self.deal_with_learner_start,
             'deal_with_get_data': self.deal_with_get_data,
             'deal_with_learner_learn': self.deal_with_learner_learn,
+            'deal_with_learner_close': self.deal_with_learner_close,
         }
         # Learner slave to implement those callback functions. Host and port is used to build connection with master.
         host, port = cfg.host, cfg.port
@@ -132,7 +130,7 @@ class FlaskFileSystemLearner(BaseCommLearner):
         if self._end_flag:
             return
         if self._learner is not None:
-            self._learner.close()
+            self.deal_with_learner_close()
         self._slave.close()
         BaseCommLearner.close(self)
 
@@ -195,13 +193,14 @@ class FlaskFileSystemLearner(BaseCommLearner):
         """
         self._data_result_queue.put(data)
         learn_info = self._learn_info_queue.get()
-        finished_task = learn_info.get('finished_task', None)
-        if finished_task is not None:
-            self._learner_thread.join()
-            self._learner.close()
-            self._learner = None
-            self._policy_id = None
         return learn_info
+
+    def deal_with_learner_close(self) -> None:
+        self._learner.close()
+        self._learner_thread.join()
+        del self._learner_thread
+        self._learner = None
+        self._policy_id = None
 
     # override
     def send_policy(self, state_dict: dict) -> None:

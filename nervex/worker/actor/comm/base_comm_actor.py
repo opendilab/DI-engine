@@ -13,7 +13,7 @@ class BaseCommActor(ABC):
     Overview:
         Abstract baseclass for common actor.
     Interfaces:
-        __init__, get_policy_update_info, send_metadata, send_stepdata, send_finish_info,
+        __init__, get_policy_update_info, send_metadata, send_stepdata
         start, close, _create_actor
     Property:
         actor_uid
@@ -64,19 +64,6 @@ class BaseCommActor(ABC):
         """
         raise NotImplementedError
 
-    @abstractmethod
-    def send_finish_info(self, path: str, finish_info: Any) -> None:
-        """
-        Overview:
-            Store finish info dict in queue, which will be retrieved by callback function "deal_with_actor_data"
-            in actor slave, then will be sent to coordinator.
-            Will be registered in base actor.
-        Arguments:
-            - finish_info (:obj:`dict`): Finish info in `dict` type. Keys are like 'finished_task', 'finish_time' \
-            'duration', etc.
-        """
-        raise NotImplementedError
-
     def start(self) -> None:
         """
         Overview:
@@ -104,7 +91,7 @@ class BaseCommActor(ABC):
         Returns:
             - actor (:obj:`BaseActor`): Created base actor.
         Note:
-            Four methods('send_metadata', 'send_stepdata', 'get_policy_update_info', 'send_finish_info'),
+            Four methods('send_metadata', 'send_stepdata', 'get_policy_update_info'),
             and policy are set.
             The reason why they are set here rather than base actor is that, they highly depend on the specific task.
             Only after task info is passed from coordinator to comm actor through learner slave, can they be
@@ -112,7 +99,7 @@ class BaseCommActor(ABC):
         """
         actor_cfg = EasyDict(task_info['actor_cfg'])
         actor = create_actor(actor_cfg)
-        for item in ['send_metadata', 'send_stepdata', 'get_policy_update_info', 'send_finish_info']:
+        for item in ['send_metadata', 'send_stepdata', 'get_policy_update_info']:
             setattr(actor, item, getattr(self, item))
         eval_flag = actor_cfg.eval_flag
         if eval_flag:

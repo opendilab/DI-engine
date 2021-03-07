@@ -98,7 +98,7 @@ class RainbowDQNPolicy(DQNPolicy):
             q = ret['q']
             replay_quantiles = ret['quantiles']
             target_q = self._armor.target_forward(data['next_obs'], param={'num_quantiles': self._tau_prim})['q']
-            self._reset_noise(self._armor.target_model)
+            self._reset_noise(self._armor.model)
             target_q_action = self._armor.forward(
                 data['next_obs'], param={'num_quantiles': self._num_quantiles}
             )['action']
@@ -109,7 +109,7 @@ class RainbowDQNPolicy(DQNPolicy):
         else:
             q_dist = self._armor.forward(data['obs'])['distribution']
             target_q_dist = self._armor.target_forward(data['next_obs'])['distribution']
-            self._reset_noise(self._armor.target_model)
+            self._reset_noise(self._armor.model)
             target_q_action = self._armor.forward(data['next_obs'])['action']
             data = dist_nstep_td_data(
                 q_dist, target_q_dist, data['action'], target_q_action, reward, data['done'], data['weight']
@@ -144,6 +144,8 @@ class RainbowDQNPolicy(DQNPolicy):
                     as the noise_net contain noise that can help exploration
         """
         self._traj_len = self._cfg.collect.traj_len
+        if self._traj_len == 'inf':
+            self._traj_len = float('inf')
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
         self._collect_nstep = self._cfg.collect.algo.nstep

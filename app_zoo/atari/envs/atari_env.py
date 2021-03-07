@@ -18,7 +18,8 @@ class AtariEnv(BaseEnv):
 
     def reset(self) -> Sequence:
         if hasattr(self, '_seed'):
-            self._env.seed(self._seed)
+            np_seed = 100 * np.random.randint(1,1000)
+            self._env.seed(self._seed + np_seed)
         obs = self._env.reset()
         obs = to_ndarray(obs)
         self._final_eval_reward = 0.
@@ -29,6 +30,7 @@ class AtariEnv(BaseEnv):
 
     def seed(self, seed: int) -> None:
         self._seed = seed
+        np.random.seed(self._seed)
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)

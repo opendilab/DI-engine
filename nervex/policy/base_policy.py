@@ -10,8 +10,10 @@ from nervex.utils import import_module, allreduce, broadcast, get_rank
 
 class Policy(ABC):
     learn_function = namedtuple(
-        'learn_function',
-        ['data_preprocess', 'forward', 'reset', 'info', 'state_dict_handle', 'set_setting', 'monitor_vars']
+        'learn_function', [
+            'data_preprocess', 'forward', 'reset', 'info', 'state_dict_handle', 'set_setting', 'monitor_vars',
+            'get_batch_size'
+        ]
     )
     collect_function = namedtuple(
         'collect_function', [
@@ -97,13 +99,8 @@ class Policy(ABC):
     @property
     def learn_mode(self) -> 'Policy.learn_function':  # noqa
         return Policy.learn_function(
-            self._data_preprocess_learn,
-            self._forward_learn,
-            self._reset_learn,
-            self.__repr__,
-            self.state_dict_handle,
-            self.set_setting,
-            self._monitor_vars_learn,
+            self._data_preprocess_learn, self._forward_learn, self._reset_learn, self.__repr__, self.state_dict_handle,
+            self.set_setting, self._monitor_vars_learn, self._get_batch_size
         )
 
     @property
@@ -164,7 +161,7 @@ class Policy(ABC):
 
     # *************************************** learn function ************************************
     @abstractmethod
-    def _data_preprocess_learn(self, data: List[Any]) -> dict:
+    def _data_preprocess_learn(self, data: List[Any]) -> Tuple[dict, dict]:
         raise NotImplementedError
 
     @abstractmethod
@@ -174,6 +171,9 @@ class Policy(ABC):
     @abstractmethod
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
         raise NotImplementedError
+
+    def _get_batch_size(self) -> Union[int, Dict[str, int]]:
+        return self._cfg.learn.batch_size
 
     # *************************************** collect function ************************************
 

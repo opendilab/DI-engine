@@ -40,8 +40,10 @@ class BaseSerialCommander(object):
         """
         # Update info
         learn_info = self._learner.learn_info
+        actor_info = self._actor.actor_info
         self._info.update(learn_info)
-        # Update setting with latest info
+        self._info.update(actor_info)
+        # update setting
         collect_setting = self._policy.get_setting_collect(self._info)
         self._actor.policy.set_setting('collect', collect_setting)
 

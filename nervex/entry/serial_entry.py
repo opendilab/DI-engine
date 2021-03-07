@@ -90,10 +90,15 @@ def serial_pipeline(
     # Here we assume serial entry and most policy in serial mode mainly focuses on agent buffer.
     # ``enough_data_count``` is just a lower bound estimation. It is possible that replay buffer's data count is
     # greater than this value, but still does not have enough data to train ``train_step`` times.
-    enough_data_count = cfg.policy.learn.batch_size * max(
-        cfg.replay_buffer.agent.min_sample_ratio,
-        math.ceil(cfg.policy.learn.train_step / cfg.replay_buffer.agent.max_reuse)
-    )
+    enough_data_count = []
+    for buffer_name in cfg.replay_buffer.buffer_name:
+        enough_data_count.append(
+            cfg.policy.learn.batch_size * max(
+                cfg.replay_buffer[buffer_name].min_sample_ratio,
+                math.ceil(cfg.policy.learn.train_step / cfg.replay_buffer[buffer_name].max_reuse)
+            )
+        )
+    enough_data_count = max(enough_data_count)
     # Accumulate plenty of data at the beginning of training.
     # If "init_data_count" does not exist in config, ``init_data_count`` will be set to ``enough_data_count``.
     init_data_count = cfg.policy.learn.get('init_data_count', enough_data_count)
@@ -129,7 +134,7 @@ def serial_pipeline(
         for i in range(learner_train_step):
             # Learner will train ``train_step`` times in one iteration.
             # But if replay buffer does not have enough data, program will break and warn.
-            train_data = replay_buffer.sample(cfg.policy.learn.batch_size, learner.train_iter)
+            train_data = replay_buffer.sample(learner.policy.get_batch_size(), learner.train_iter)
             if train_data is None:
                 # As noted above: It is possible that replay buffer's data count is
                 # greater than ``target_count```, but still has no enough data to train ``train_step`` times.

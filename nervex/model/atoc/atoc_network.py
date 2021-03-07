@@ -93,6 +93,7 @@ class ATOCCommunicationNet(nn.Module):
         self._thought_dim = thought_dim
         self._comm_hidden_size = thought_dim // 2
         self._bi_lstm = nn.LSTM(self._thought_dim, self._comm_hidden_size, bidirectional=True)
+        self._bi_lstm.flatten_parameters()
 
     def forward(self, data: Union[Dict, torch.Tensor]):
         r"""
@@ -254,15 +255,10 @@ class ATOCActorNet(nn.Module):
 
         group = torch.zeros(B, A, A).to(init_prob.device)
 
-        # TODO
         # "considers the agents in its observable field"
-
-        # TODO
         # "initiator first chooses collaborators from agents who have not been selected,
         #  then from agents selected by other initiators,
         #  finally from other initiators"
-
-        # TODO
         # "all based on proximity"
 
         # roughly choose m closest as group
@@ -388,13 +384,8 @@ class ATOCQAC(QActorCriticBase):
         """
         super(ATOCQAC, self).__init__()
 
-        def backward_hook(module, grad_input, grad_output):
-            for p in module.parameters():
-                p.requires_grad = True
-
         self._actor = ATOCActorNet(obs_dim, thought_dim, action_dim, n_agent, m_group, T_initiate)
         self._critic = ATOCCriticNet(obs_dim, action_dim)
-        self._critic.register_backward_hook(backward_hook)
 
     def _critic_forward(self, x: Dict[str, torch.Tensor]) -> Union[List[torch.Tensor], torch.Tensor]:
         return self._critic(x)
@@ -417,7 +408,7 @@ class ATOCQAC(QActorCriticBase):
         q = self._critic_forward(inputs)
         return q
 
-    def compute_action(self, inputs: Dict[str, torch.Tensor], get_delta_q: bool = False) -> Dict[str, torch.Tensor]:
+    def compute_action(self, inputs: Dict[str, torch.Tensor], get_delta_q: bool = True) -> Dict[str, torch.Tensor]:
         r'''
         Overview:
             compute the action according to inputs, call the _compute_delta_q function to compute delta_q
@@ -446,11 +437,6 @@ class ATOCQAC(QActorCriticBase):
             - inputs (:obj:`Dict`): the inputs containing the observation
             - q (:obj:`Dict`): the output of ciritic network, without critic grad
         """
-        for p in self._critic.parameters():
-            p.requires_grad = False  # will set True when backward_hook called
-        for p in self._actor.parameters():
-            p.requires_grad = True
-
         if inputs.get('action') is None:
             inputs['action'] = self._actor_forward(inputs)['action']
         q = self._critic_forward(inputs)
@@ -466,18 +452,33 @@ class ATOCQAC(QActorCriticBase):
             - inputs (:obj:`Dict`): the inputs contain the delta_q, initiator_prob, and is_initiator
             - actor_attention_loss (:obj:`Dict`): the loss of actor attention unit
         """
-        # TODO(nyz) multi optimizer
+
         delta_q = inputs['delta_q'].reshape(-1)
         init_prob = inputs['initiator_prob'].reshape(-1)
         is_init = inputs['is_initiator'].reshape(-1)
         delta_q = delta_q[is_init.nonzero()]
         init_prob = init_prob[is_init.nonzero()]
+        init_prob = 0.9 * init_prob + 0.05
 
-        actor_attention_loss = -delta_q * \
-            torch.log(init_prob) - (1 - delta_q) * torch.log(1 - init_prob)
+        # judge to avoid nan
+        if init_prob.shape == (0, 1):
+            actor_attention_loss = torch.Tensor([-0.0])
+            actor_attention_loss.requires_grad = True
+        else:
+            actor_attention_loss = -delta_q * \
+                torch.log(init_prob) - (1 - delta_q) * torch.log(1 - init_prob)
         return {'actor_attention_loss': actor_attention_loss}
 
     def _compute_delta_q(self, obs: torch.Tensor, actor_outputs: dict) -> torch.Tensor:
+        r"""
+        Overview:
+            calculate the delta_q according to obs and actor_outputs
+
+        Arguments:
+            - obs (:obj:`torch.Tensor`): the observations
+            - actor_outputs (:obj:`dict`): the output of actors
+            - delta_q (:obj:`Dict`): the calculated delta_q
+        """
         assert len(obs.shape) == 3
         new_thoughts, old_thoughts, group, is_initiator = actor_outputs['new_thoughts'], actor_outputs[
             'old_thoughts'], actor_outputs['group'], actor_outputs['is_initiator']

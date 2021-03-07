@@ -8,7 +8,8 @@ from app_zoo.classic_control.bitflip.entry import bitflip_dqn_default_config
 from app_zoo.classic_control.cartpole.entry import \
     cartpole_a2c_default_config, cartpole_dqn_default_config, cartpole_dqnvanilla_default_config, \
     cartpole_impala_default_config, cartpole_ppo_default_config, cartpole_ppovanilla_default_config, \
-    cartpole_r2d2_default_config, cartpole_rainbowdqn_default_config, cartpole_rainbowdqn_iqn_config
+    cartpole_r2d2_default_config, cartpole_rainbowdqn_default_config, cartpole_rainbowdqn_iqn_config, \
+    cartpole_ppg_default_config
 from app_zoo.classic_control.pendulum.entry import pendulum_ddpg_default_config, pendulum_ppo_default_config, \
     pendulum_sac_auto_alpha_config, pendulum_sac_default_config, pendulum_td3_default_config
 from app_zoo.smac.entry import smac_collaQ_default_config, smac_coma_default_config, smac_qmix_default_config
@@ -107,7 +108,7 @@ def test_sac_auto_alpha():
         assert False, "pipeline fail"
 
 
-@pytest.mark.algotest
+# @pytest.mark.algotest
 def test_r2d2():
     config = deepcopy(cartpole_r2d2_default_config)
     try:
@@ -116,7 +117,7 @@ def test_r2d2():
         assert False, "pipeline fail"
 
 
-@pytest.mark.algotest
+# @pytest.mark.algotest
 def test_qmix():
     config = deepcopy(smac_qmix_default_config)
     config.env.env_type = 'fake_smac'
@@ -128,7 +129,7 @@ def test_qmix():
         assert False, "pipeline fail"
 
 
-@pytest.mark.algotest
+# @pytest.mark.algotest
 def test_coma():
     config = deepcopy(smac_coma_default_config)
     config.env.env_type = 'fake_smac'
@@ -188,5 +189,14 @@ def test_her_dqn():
     try:
         serial_pipeline(config, seed=0)
         os.popen('rm -rf log ckpt*')
+    except Exception:
+        assert False, "pipeline fail"
+
+
+@pytest.mark.algotest
+def test_ppg():
+    config = deepcopy(cartpole_ppg_default_config)
+    try:
+        serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"

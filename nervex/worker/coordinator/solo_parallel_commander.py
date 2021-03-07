@@ -1,5 +1,6 @@
 import time
 import sys
+import copy
 from typing import Optional, Union
 from collections import defaultdict
 
@@ -32,7 +33,9 @@ class SoloCommander(BaseCommander):
         self._current_buffer_id = None
         self._current_policy_id = None
         self._last_eval_time = 0
-        self._policy = create_policy(self._cfg.policy, enable_field=['command']).command_mode
+        # policy_cfg must be deepcopyed
+        policy_cfg = copy.deepcopy(self._cfg.policy)
+        self._policy = create_policy(policy_cfg, enable_field=['command']).command_mode
         self._logger, self._tb_logger = build_logger("./log/commander", "commander", need_tb=True)
         for tb_var in [
                 'episode_count',
@@ -73,7 +76,7 @@ class SoloCommander(BaseCommander):
                 'task_id': 'actor_task_{}'.format(get_task_uid()),
                 'buffer_id': self._current_buffer_id,
                 'actor_cfg': actor_cfg,
-                'policy': self._cfg.policy,
+                'policy': copy.deepcopy(self._cfg.policy),
             }
         else:
             return None
@@ -96,7 +99,7 @@ class SoloCommander(BaseCommander):
                 'buffer_id': self._init_buffer_id(),
                 'learner_cfg': learner_cfg,
                 'replay_buffer_cfg': self._cfg.replay_buffer_cfg,
-                'policy': self._cfg.policy,
+                'policy': copy.deepcopy(self._cfg.policy),
             }
         else:
             return None
