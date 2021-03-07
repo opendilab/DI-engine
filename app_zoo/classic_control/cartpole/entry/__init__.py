@@ -8,3 +8,4 @@ from .cartpole_r2d2_default_config import cartpole_r2d2_default_config
 from .cartpole_rainbowdqn_default_config import cartpole_rainbowdqn_default_config
 from .cartpole_rainbowdqn_iqn_config import cartpole_rainbowdqn_iqn_config
 from .cartpole_ppg_default_config import cartpole_ppg_default_config
+from .cartpole_sqn_default_config import cartpole_sqn_default_config
