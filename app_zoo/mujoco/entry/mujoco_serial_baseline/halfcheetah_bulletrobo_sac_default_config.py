@@ -1,9 +1,10 @@
 from easydict import EasyDict
 
-use_twin_critic = True
-reacher_td3_default_config = dict(
+halfcheetah_sac_default_config = dict(
     env=dict(
-        env_id='Reacher-v2',
+        # env_id='HalfCheetah-v3',  # Original MuJoCo
+        # env_id='HalfCheetahMuJoCoEnv-v0',  # PyBullet MuJoCo
+        env_id='HalfCheetahPyBulletEnv-v0',  # PyBullet RboSchool
         norm_obs=dict(use_norm=True, ),
         norm_reward=dict(
             use_norm=False,
@@ -18,33 +19,33 @@ reacher_td3_default_config = dict(
     ),
     policy=dict(
         use_cuda=True,
-        policy_type='ddpg',
-        import_names=['nervex.policy.ddpg'],
+        policy_type='sac',
+        import_names=['nervex.policy.sac'],
         on_policy=False,
         use_priority=True,
         model=dict(
-            obs_dim=111,
-            action_dim=8,
-            use_twin_critic=use_twin_critic,
+            obs_dim=17,
+            action_dim=6,
+            use_twin_q=True,
         ),
         learn=dict(
-            train_step=2,
-            batch_size=128,
-            learning_rate_actor=0.001,
-            learning_rate_critic=0.001,
+            train_step=4,
+            batch_size=256,
+            learning_rate_q=0.0003,
+            learning_rate_value=0.0003,
+            learning_rate_policy=0.0003,
+            learning_rate_alpha=0.003,
             weight_decay=0.0001,
             ignore_done=True,
             algo=dict(
                 target_theta=0.005,
                 discount_factor=0.99,
-                actor_update_freq=2,
-                use_twin_critic=use_twin_critic,
-                use_noise=True,
-                noise_sigma=0.2,
-                noise_range=dict(
-                    min=-0.5,
-                    max=0.5,
-                ),
+                use_twin_q=True,
+                alpha=0.2,
+                reparameterization=True,
+                policy_std_reg_weight=0.001,
+                policy_mean_reg_weight=0.001,
+                is_auto_alpha=True,
             ),
             init_data_count=5000,
         ),
@@ -58,13 +59,13 @@ reacher_td3_default_config = dict(
     replay_buffer=dict(
         buffer_name=['agent'],
         agent=dict(
-            meta_maxlen=20000,
+            meta_maxlen=1000000,
             max_reuse=16,
             min_sample_ratio=1,
         ),
     ),
     actor=dict(
-        n_sample=48,
+        n_sample=64,
         traj_len=1,
         traj_print_freq=1000,
         collect_print_freq=1000,
@@ -72,7 +73,7 @@ reacher_td3_default_config = dict(
     evaluator=dict(
         n_episode=8,
         eval_freq=1000,
-        stop_val=-3.1,
+        stop_val=11000,
     ),
     learner=dict(
         hook=dict(
@@ -87,5 +88,5 @@ reacher_td3_default_config = dict(
     ),
     commander=dict(),
 )
-reacher_td3_default_config = EasyDict(reacher_td3_default_config)
-main_config = reacher_td3_default_config
+halfcheetah_sac_default_config = EasyDict(halfcheetah_sac_default_config)
+main_config = halfcheetah_sac_default_config

@@ -1,5 +1,6 @@
 import gym
 import numpy as np
+import pybulletgym
 
 
 class RunningMeanStd(object):
