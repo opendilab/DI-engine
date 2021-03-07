@@ -2,6 +2,7 @@ from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple
 import sys
 import os
+import math
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -56,7 +57,7 @@ class SQNPolicy(CommonPolicy):
         self._action_one_hot = one_hot(torch.arange(self._action_dim).long(),
                                        self._action_dim).unsqueeze(1).to(self._device)  # N, 1, N
 
-        self._log_alpha = torch.log(torch.tensor([algo_cfg.alpha])).requires_grad_(True).to(self._device)
+        self._log_alpha = torch.FloatTensor([math.log(algo_cfg.alpha)]).to(self._device).requires_grad_(True)
         self._optimizer_alpha = torch.optim.Adam([self._log_alpha], lr=self._cfg.learn.learning_rate_alpha)
 
         # Main and target armors
