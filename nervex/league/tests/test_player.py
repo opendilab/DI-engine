@@ -113,7 +113,7 @@ class TestMainPlayer:
                     elif isinstance(opponent, MainPlayer):
                         sp = True
                     else:
-                        raise Exception("Main Player selects a wrong opponent {}", type(oppnoent))
+                        raise Exception("Main Player selects a wrong opponent {}", type(opponent))
                     if veri and pfsp and sp:
                         break
 
