@@ -214,8 +214,16 @@ class World(object):
         # print("c = ", self.contact_force)
         # print("de = ", delta_pos)
         # print("dist = ", dist)
-        force = self.contact_force * delta_pos / (dist+1e-6) * penetration
+        force = self.contact_force * delta_pos / (dist + 1e-6) * penetration
         # force = 0
         force_a = +force if entity_a.movable else None
         force_b = -force if entity_b.movable else None
         return [force_a, force_b]
+
+    @property
+    def seed(self) -> int:
+        return self._seed
+
+    @seed.setter
+    def seed(self, seed: int) -> None:
+        self._seed = seed

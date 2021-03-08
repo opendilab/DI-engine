@@ -117,6 +117,7 @@ class TestCooperativeNavigation:
                 'discrete_action': False
             }
         )
+        env.seed = 2
         print(env.info())
         obs = env.reset()
         for k, v in obs.items():

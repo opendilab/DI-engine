@@ -195,7 +195,7 @@ class MultiAgentEnv(gym.Env):
                     action[0][:] = [0.0 for _ in action[0]]
                     action[0][d] = 1.0
                 # print("is discrete action space", self.discrete_action_space)
-                if self.discrete_action_space: #discrete_action_space is always true
+                if self.discrete_action_space:  #discrete_action_space is always true
                     # print("action = ", action[0])
                     if any(np.isnan(action[0])):
                         raise ValueError
@@ -207,7 +207,7 @@ class MultiAgentEnv(gym.Env):
             sensitivity = 5.0
             if agent.accel is not None:
                 sensitivity = agent.accel
-            
+
             # print("now agent action u before is ", agent.action.u)
             agent.action.u *= sensitivity
             # print("now agent action u is ", agent.action.u)
@@ -316,6 +316,15 @@ class MultiAgentEnv(gym.Env):
                 for y in np.linspace(-range_max, +range_max, 5):
                     dx.append(np.array([x, y]))
         return dx
+
+    @property
+    def seed(self) -> int:
+        return self._seed
+
+    @seed.setter
+    def seed(self, seed: int) -> None:
+        self._seed = seed
+        np.random.seed(seed)
 
 
 # vectorized wrapper for a batch of multi-agent environments
