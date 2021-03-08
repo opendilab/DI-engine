@@ -31,14 +31,17 @@ class GailRewardModel(BaseRewardModel):
         super(GailRewardModel, self).__init__()
         self.config = config
         self.reward_model = DFN(config['input_dims'], config['hidden_dims'], 1)
+        self.reward_model.to(config['device'])
         self.expert_data = []
         self.train_data = []
         self.expert_data_loader = None
         self.opt = optim.Adam(self.reward_model.parameters())
+        random.seed(0)
 
     def load_expert_data(self):
         with open(self.config['expert_data_path'], 'rb') as f:
             self.expert_data_loader: list = pickle.load(f)
+            print("the data size is:", len(self.expert_data_loader))
 
     def launch(self):
         self.load_expert_data()
@@ -59,6 +62,7 @@ class GailRewardModel(BaseRewardModel):
 
     def _train(self, train_data, expert_data) -> None:
         # calcute loss
+        # here are some hyper 
         out_1: torch.Tensor = self.reward_model(train_data)
         loss_1: torch.Tensor = torch.log(out_1 + 1e-5).mean()
         out_2: torch.Tensor = self.reward_model(expert_data)
@@ -74,12 +78,15 @@ class GailRewardModel(BaseRewardModel):
             sample_expert_data: list = random.sample(self.expert_data, self.config['batch_size'])
             sample_train_data: list = random.sample(self.train_data, self.config['batch_size'])
             # make them to tensor
-            sample_expert_tensor = torch.tensor(sample_expert_data, dtype=torch.float32)
-            sample_train_tensor = torch.tensor(sample_train_data, dtype=torch.float32)
+            sample_expert_tensor: torch.Tensor = torch.tensor(sample_expert_data, dtype=torch.float32, requires_grad=False)
+            sample_expert_tensor: torch.Tensor = sample_expert_tensor.to(self.config['device'])
+            sample_train_tensor = torch.tensor(sample_train_data, dtype=torch.float32, requires_grad=False)
+            sample_train_tensor: torch.Tensor = sample_train_tensor.to(self.config['device'])
             self._train(sample_train_tensor, sample_expert_tensor)
 
     def estimate(self, s, a):
         # s, a 处理的问问题，以及device的问题这些都要后期加吧, 这里还有并行化的问题，到时再讨论吧，把代码改好一点的工作交给别人， 还是我自己来做？？
+        # 这里可以做一个并行化的运算
         s_list: list = s.tolist()
         if isinstance(a, np.ndarray):
             a_list: list = a.tolist()
@@ -89,6 +96,7 @@ class GailRewardModel(BaseRewardModel):
             s_list.append(a)
             s_a = s_list
         s_a_tensor = torch.tensor([s_a], dtype=torch.float32)
+        s_a_tensor = s_a_tensor.to(self.config['device'])
         return self.reward_model(s_a_tensor)[0].item()
 
     def collect_data(self, item):

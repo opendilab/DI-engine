@@ -6,6 +6,7 @@ import numpy as np
 import torch
 import math
 import logging
+import random
 
 from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommander
 from nervex.worker import BaseEnvManager, SubprocessEnvManager
@@ -13,6 +14,7 @@ from nervex.config import read_config
 from nervex.data import BufferManager
 from nervex.policy import create_policy
 from nervex.envs import get_vec_env_setting
+from nervex.irl_untils.pdeil_irl_model import PdeilRewardModel
 from nervex.irl_untils.gail_irl_model import GailRewardModel
 
 
@@ -62,13 +64,11 @@ def serial_pipeline(
     evaluator_env.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    gail_config = {
-        "input_dims": 4,
-        "hidden_dims": 64,
-        "expert_data_path": './expert_data_2.pkl',
-        "train_epoches": 400,
-        "batch_size": 64
-    }
+    random.seed(seed)
+    gail_config = {"input_dims":36, "hidden_dims": 128, "expert_data_path": "./expert_data.pkl", 
+                    "train_epoches": 600, "batch_size": 64, "device": "cuda:0"}
+    # pdeil_config = {"alpha": 0.5, "expert_data_path": './expert_data_2.pkl', "discrete_action": False}
+    
     reward_model: GailRewardModel = GailRewardModel(gail_config)
     reward_model.launch()
     # policy_states: list = []
@@ -135,14 +135,16 @@ def serial_pipeline(
         while True:
             # Actor keeps generating data until replay buffer has enough to sample one batch.
             new_data, collect_info = actor.generate_data(learner.train_iter)
-            # change new data
+            # change new data 
+            # 并行化
+            # [{}， {}， {}]
             for item in new_data:
                 reward_model.collect_data((item['obs'].cpu().numpy(), item['action'].cpu().numpy()))
                 # policy_states.append()
             replay_buffer.push_data(new_data)
             # target_count = init_data_count if learner.train_iter == 0 else enough_data_count
             target_count = 10000
-            if len(reward_model.train_data) >= target_count:
+            if replay_buffer.count() >= target_count:
                 break
         # 这个时候数据收集完了
         # change replay_buffer中的reward
@@ -150,7 +152,7 @@ def serial_pipeline(
         reward_model.clear_data()
         # change reward buffer
         learner.collect_info = collect_info
-        learner_train_step = 1000
+        learner_train_step = 3000
         for i in range(learner_train_step):
             # Learner will train ``train_step`` times in one iteration.
             # But if replay buffer does not have enough data, program will break and warn.
@@ -165,9 +167,11 @@ def serial_pipeline(
                 break
             # learner 收集了这一部分data, 我们的reward也可以利用这一部分的data进行train
             # 或者说我们觉得这部分data不够，我们还可以再收集一部分data， 这里可以商量一下
+            # 这一步我肯定tm需要并行化
             # train_data change reward
             for item in train_data:
                 obs = item['obs'].cpu().numpy()
+                # 这里需要做一定的更改，就是判断原始数据的类型
                 action = item['action'].cpu()
                 if len(action.shape) == 0:
                     action = action.item()

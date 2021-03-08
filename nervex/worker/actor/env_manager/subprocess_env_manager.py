@@ -398,8 +398,12 @@ class SubprocessEnvManager(BaseEnvManager):
             ready_conn, ready_ids = SubprocessEnvManager.wait(rest_conn, min(wait_num, len(rest_conn)), timeout)
             cur_ready_env_ids = [cur_rest_env_ids[env_id] for env_id in ready_ids]
             assert len(cur_ready_env_ids) == len(ready_conn)
-            timesteps.update({env_id: p.recv().data for env_id, p in zip(cur_ready_env_ids, ready_conn)})
-            self._check_data(timesteps.values())
+            try:
+                timesteps.update({env_id: p.recv().data for env_id, p in zip(cur_ready_env_ids, ready_conn)})
+            except KeyboardInterrupt as e:
+                print(ready_ids, cur_rest_env_ids, cur_ready_env_ids)
+                raise e
+                self._check_data(timesteps.values())
             ready_env_ids += cur_ready_env_ids
             cur_rest_env_ids = list(set(cur_rest_env_ids).difference(set(cur_ready_env_ids)))
             # at least one not done timestep or all the connection is ready

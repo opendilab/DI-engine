@@ -45,6 +45,10 @@ def serial_pipeline(
     # Usually, user-defined env must be registered in nervex so that it can be created with config string;
     # Or you can also directly pass in env_fn argument, in some dynamic env class cases.
     manager_cfg = cfg.env.get('manager', {})
+    print('max epoch is:', cfg.max_epoch)
+    print(cfg.use_cuda)
+    cfg.use_cuda = True
+    # k = cfg.learner.use_cuda
     if env_setting is None:
         env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     else:
@@ -104,18 +108,23 @@ def serial_pipeline(
     use_priority = cfg.policy.get('use_priority', False)
     # Learner's before_run hook.
     learner.call_hook('before_run')
+    # 这个也许不要那么长吧，一定时间就可以断了，不需要这样啊
     while True:
         commander.step()
         # Evaluate at the beginning of training.
         if eval_interval >= cfg.evaluator.eval_freq:
             stop_flag, eval_reward = evaluator.eval(learner.train_iter)
             eval_interval = 0
-            if stop_flag and learner.train_iter > 0:
+            # train_iter 可以设置一个阈值
+            if (stop_flag and learner.train_iter > 0):
                 # Evaluator's mean episode reward reaches the expected ``stop_val``. 学习成功了
                 print(
                     "[nerveX serial pipeline] Your RL agent is converged, you can refer to " +
-                    "'log/evaluator/evaluator_logger.txt' for details"
+                    "'log/evaluator/evaluator_logger.txt' for details" 
                 )
+                break
+            elif learner.train_iter > cfg.max_epoch:
+                print('train time is over, maybe you model is not good as you wish, if you want a better model, please add more train time')
                 break
             else:
                 if eval_reward > max_eval_reward:
@@ -156,13 +165,17 @@ def serial_pipeline(
     learner.call_hook('after_run')
     # Close all resources.
     # let me collect an expert demostrations
-    nums = 50000
+    nums = 100000
     exp_data = []
+    flag = 0
     while len(exp_data) < nums:
         new_data, _ = actor.generate_data(0)
         for item in new_data:
-                exp_data.append((item['obs'].cpu().numpy(), item['action'].cpu().numpy()))
-    with open('expert_data_2.pkl', 'wb') as f:
+            exp_data.append((item['obs'].cpu().numpy(), item['action'].cpu().numpy()))
+            if flag == 0:
+                print(item['obs'])
+                flag = 1
+    with open('expert_data.pkl', 'wb') as f:
         pickle.dump(exp_data, f)
     print(exp_data[0])
     print('collect data success')
