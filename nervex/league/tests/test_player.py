@@ -34,8 +34,8 @@ def setup_league(setup_payoff):
         main_exploiter_name = '{}_{}'.format('MainExploiter', category)
         players.append(
             create_player(
-                league_test_config.league, 'main_exploiter', league_test_config.league.main_exploiter, category, setup_payoff,
-                'ckpt_{}.pth'.format(main_exploiter_name), main_exploiter_name, 0
+                league_test_config.league, 'main_exploiter', league_test_config.league.main_exploiter, category,
+                setup_payoff, 'ckpt_{}.pth'.format(main_exploiter_name), main_exploiter_name, 0
             )
         )
         # league_exploiter

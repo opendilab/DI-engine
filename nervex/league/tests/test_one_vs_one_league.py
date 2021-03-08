@@ -54,7 +54,7 @@ class TestOneVsOneLeague:
                 vs_historical = True
             if vs_active and vs_historical:
                 break
-        
+
         # get_job_info, eval_flag=False
         eval_job_info = league.get_job_info(active_player_id, eval_flag=True)
         assert eval_job_info['agent_num'] == 1
@@ -74,7 +74,7 @@ class TestOneVsOneLeague:
                 return "losses"
             else:
                 return "draws"
-        
+
         episode_num = 5
         env_num = 8
         player_id = [active_player_id, historical_player_id]

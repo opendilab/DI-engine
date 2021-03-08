@@ -21,20 +21,16 @@ league_test_config = dict(
             one_phase_step=2000,
         ),
         main_exploiter=dict(
-            branch_probs=dict(
-                main_players=1.0,
-            ),
+            branch_probs=dict(main_players=1.0, ),
             strong_win_rate=0.7,
             one_phase_step=2000,
             min_valid_win_rate=0.2,
         ),
         league_exploiter=dict(
-            branch_probs=dict(
-                pfsp=1.0,
-            ),
+            branch_probs=dict(pfsp=1.0, ),
             strong_win_rate=0.7,
             one_phase_step=2000,
-            mutate_prob = 0.25,
+            mutate_prob=0.25,
         ),
         # solo_active_player:
         #     one_phase_step=2000
