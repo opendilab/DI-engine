@@ -14,7 +14,7 @@ from collections import namedtuple
 
 from nervex.data import AsyncDataLoader, default_collate
 from nervex.config import base_learner_default_config
-from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer, to_device
+from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer
 from nervex.utils import build_logger, EasyTimer, pretty_print, get_task_uid, import_module
 from nervex.utils import deep_merge_dicts, get_rank
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
@@ -118,12 +118,12 @@ class BaseLearner(object):
         self._cfg = deep_merge_dicts(base_learner_default_config, cfg)
         self._learner_uid = get_task_uid()
         self._load_path = self._cfg.load_path
-        self._use_cuda = self._cfg.get('use_cuda', False)
         self._use_distributed = self._cfg.use_distributed
+        self._use_cuda = False
+        self._device = 'cpu'
 
         # Learner rank. Used to discriminate which GPU it uses.
         self._rank = get_rank()
-        self._device = 'cuda:{}'.format(self._rank % 8) if self._use_cuda else 'cpu'
 
         # Logger (Monitor is initialized in policy setter)
         # Only rank == 0 learner needs monitor and tb_logger, others only need text_logger to display terminal output.
@@ -147,6 +147,7 @@ class BaseLearner(object):
         }, direct_print=False))
         self._end_flag = False
         self._learner_done = False
+        self._policy = None  # set by outside
 
         # Setup wrapper and hook.
         self._setup_wrapper()
@@ -426,6 +427,8 @@ class BaseLearner(object):
             Monitor is set alongside with policy, because variables in monitor are determined by specific policy.
         """
         self._policy = _policy
+        self._use_cuda = self._policy.get_attribute('use_cuda')
+        self._device = self._policy.get_attribute('device')
         if self._rank == 0:
             self._monitor = get_simple_monitor_type(self._policy.monitor_vars())(TickTime(), expire=10)
         self.info(self._policy.info())

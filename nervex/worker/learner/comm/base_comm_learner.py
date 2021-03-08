@@ -115,11 +115,11 @@ class BaseCommLearner(ABC):
         # Set 3 methods and dataloader in created learner that are necessary in parallel setting.
         for item in ['get_data', 'send_policy', 'send_learn_info']:
             setattr(learner, item, getattr(self, item))
-        learner.setup_dataloader()
         # Set policy in created learner.
         policy_cfg = task_info['policy']
         policy_cfg['use_distributed'] = self._use_distributed
         learner.policy = create_policy(policy_cfg, enable_field=['learn']).learn_mode
+        learner.setup_dataloader()
         return learner
 
 
