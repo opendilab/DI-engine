@@ -258,7 +258,7 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
         │   └── iteration_200.pth.tar
         └── log
             ├── actor
-            │   └── actor_logger.txt
+            │   └── collect_logger.txt
             ├── buffer
             │   └── armor_buffer
             │       ├── armor_logger.txt
