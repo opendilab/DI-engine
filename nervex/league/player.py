@@ -23,7 +23,7 @@ class Player:
             self,
             cfg: EasyDict,
             category: str,
-            init_payoff: Union['BattleSharedPayoff', 'SoloSharedPayoff'],  # noqa
+            init_payoff: 'BattleSharedPayoff',  # noqa
             checkpoint_path: str,
             player_id: str,
             total_agent_step: int
@@ -47,7 +47,7 @@ class Player:
         self._checkpoint_path = checkpoint_path
         assert isinstance(player_id, str)
         self._player_id = player_id
-        assert isinstance(total_agent_step, int)
+        assert isinstance(total_agent_step, int), (total_agent_step, type(total_agent_step))
         self._total_agent_step = total_agent_step
 
     @property
@@ -92,7 +92,7 @@ class HistoricalPlayer(Player):
         Arguments:
             - parent_id (:obj:`str`): id of historical player's parent, should be an active player
         """
-        super(HistoricalPlayer, self).__init__(*args)
+        super().__init__(*args)
         self._parent_id = parent_id
 
     @property
@@ -125,7 +125,7 @@ class ActivePlayer(Player):
                 If also already trained for one phase step, this player can be regarded as trained enough for snapshot.
             - branch_probs (:obj:`namedtuple`): A namedtuple of probabilities of selecting different opponent branch.
         """
-        super(ActivePlayer, self).__init__(*args)
+        super().__init__(*args)
         self._one_phase_step = int(float(self._cfg.one_phase_step))  # ``one_phase_step`` is like 1e9
         self._last_enough_step = 0
         self._strong_win_rate = self._cfg.strong_win_rate
@@ -224,9 +224,7 @@ class ActivePlayer(Player):
     def _get_collect_opponent(self) -> Player:
         """
         Overview:
-            Select an opponent.
-        Arguments:
-            - p (:obj:`np.ndarray`): Branch selection probability
+            Select an opponent according to the player's ``branch_probs``.
         Returns:
             - opponent (:obj:`Player`): Selected opponent.
         """
@@ -252,7 +250,7 @@ class ActivePlayer(Player):
     def _get_opponent(self, players: list, p: Optional[np.ndarray] = None) -> Player:
         """
         Overview:
-            Get one opponent player from ``players`` according to probability ``p``.
+            Get one opponent player from list ``players`` according to probability ``p``.
         Arguments:
             - players (:obj:`list`): a list of players that can select opponent from
             - p (:obj:`np.ndarray`): the selection probability of each player, should have the same size as \
@@ -280,7 +278,7 @@ class ActivePlayer(Player):
         self._checkpoint_path = path
 
 
-class MainPlayer(ActivePlayer):
+class NaiveSpPlayer(ActivePlayer):
 
     def _pfsp_branch(self) -> HistoricalPlayer:
         """
@@ -343,4 +341,4 @@ def create_player(cfg: EasyDict, player_type: str, *args, **kwargs) -> Player:
 
 
 register_player('historical_player', HistoricalPlayer)
-register_player('main_player', MainPlayer)
+register_player('naive_sp_player', NaiveSpPlayer)

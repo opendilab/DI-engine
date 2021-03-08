@@ -230,6 +230,6 @@ class LeagueExploiter(ActivePlayer):
         return None
 
 
-# register_player('main_player', MainPlayer)
-# register_player('main_exploiter', MainExploiter)
-# register_player('league_exploiter', LeagueExploiter)
+register_player('main_player', MainPlayer)
+register_player('main_exploiter', MainExploiter)
+register_player('league_exploiter', LeagueExploiter)

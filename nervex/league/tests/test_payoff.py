@@ -17,14 +17,6 @@ def setup_payoff():
     return Payoff(home_id='test_payoff_0', decay=0.99)
 
 
-@pytest.fixture(scope='function')
-def setup_config():
-    with open(os.path.join(os.path.dirname(__file__), 'league_test_config.yaml')) as f:
-        cfg = yaml.safe_load(f)
-    cfg = EasyDict(cfg)
-    return cfg
-
-
 global fake_player_count
 fake_player_count = 0
 

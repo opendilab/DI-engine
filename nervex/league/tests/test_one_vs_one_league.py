@@ -29,7 +29,7 @@ class TestOneVsOneLeague:
         assert not league.judge_snapshot(active_player_id)
         player_update_dict = {
             'player_id': active_player_id,
-            'train_step': one_vs_one_league_default_config.league.main_player.one_phase_step * 2,
+            'train_step': one_vs_one_league_default_config.league.naive_sp_player.one_phase_step * 2,
         }
         league.update_active_player(player_update_dict)
         assert league.judge_snapshot(active_player_id)
@@ -95,4 +95,4 @@ class TestOneVsOneLeague:
                     wins += 1
         league.payoff[league.active_players[0], league.historical_players[0]] == wins / games
 
-        os.popen("rm -rf main_player_default*")
+        os.popen("rm -rf naive_sp_player*")

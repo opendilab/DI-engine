@@ -12,9 +12,9 @@ one_vs_one_league_default_config = dict(
         # For solo league, supports ['solo_active_player'].
         # For battle league, supports ['battle_active_player', 'main_player', 'main_exploiter', 'league_exploiter'].
         active_players=dict(
-            main_player=1,  # {player_type: player_num}
+            naive_sp_player=1,  # {player_type: player_num}
         ),
-        main_player=dict(
+        naive_sp_player=dict(
             # There should be keys ['one_phase_step', 'branch_probs', 'strong_win_rate'].
             # Specifically for 'main_exploiter' of StarCraft, there should be an additional key ['min_valid_win_rate'].
             one_phase_step=10,
