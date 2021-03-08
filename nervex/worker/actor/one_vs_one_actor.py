@@ -164,7 +164,7 @@ class OneVsOneActor(BaseActor):
             self._total_step += 1
 
     # override
-    def _finish_task(self) -> None:
+    def get_finish_info(self) -> dict:
         episode_count = self._episode_num * self._env_num
         duration = max(time.time() - self._start_time, 1e-8)
 
@@ -202,9 +202,7 @@ class OneVsOneActor(BaseActor):
         if not self._eval_flag:
             finish_info['collect_setting'] = self._cfg.collect_setting
         self._logger.info('\nFINISH INFO\n{}'.format(pretty_print(finish_info, direct_print=False)))
-        self.send_finish_info(finish_info)
-        # sleep some time for close thread
-        time.sleep(3)
+        return finish_info
 
     # override
     def _update_policy(self) -> None:
