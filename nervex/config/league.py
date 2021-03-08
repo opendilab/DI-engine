@@ -27,7 +27,7 @@ one_vs_one_league_default_config = dict(
         # "use_pretrain" means whether to use pretrain model to initialize active player.
         use_pretrain=False,
         # "use_pretrain_init_historical" means whether to use pretrain model to initialize historical player.
-        # "pretrain_checkpoint_path" is the pretrain checkpoint path used in "use_pretrain" and 
+        # "pretrain_checkpoint_path" is the pretrain checkpoint path used in "use_pretrain" and
         # "use_pretrain_init_historical". If both are False, "pretrain_checkpoint_path" can be omitted as well.
         # Otherwise, "pretrain_checkpoint_path" should list paths of all player categories.
         use_pretrain_init_historical=False,
