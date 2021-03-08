@@ -24,6 +24,7 @@ cartpole_impala_default_config = dict(
             learning_rate=0.001,
             weight_decay=0.0001,
             init_data_count=600,
+            unroll_len=64,
             algo=dict(
                 value_weight=0.5,
                 entropy_weight=0.01,

@@ -43,6 +43,7 @@ class IMPALAPolicy(CommonPolicy):
         self._armor = Armor(self._model)
 
         self._action_dim = self._cfg.model.action_dim
+        self._unroll_len = self._cfg.learn.unroll_len
 
         # Algorithm config
         algo_cfg = self._cfg.learn.algo
@@ -151,7 +152,7 @@ class IMPALAPolicy(CommonPolicy):
             Init traj and unroll length, adder, collect armor.
         """
         self._traj_len = self._cfg.collect.traj_len
-        self._unroll_len = self._cfg.collect.unroll_len
+        self._collect_unroll_len = self._cfg.collect.unroll_len
         if self._traj_len == 'inf':
             self._traj_len = float('inf')
         # v_trace need v_t+1
@@ -162,7 +163,7 @@ class IMPALAPolicy(CommonPolicy):
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
         self._collect_setting_set = {}
-        self._adder = Adder(self._use_cuda, self._unroll_len)
+        self._adder = Adder(self._use_cuda, self._collect_unroll_len)
 
     def _forward_collect(self, data_id: List[int], data: dict) -> dict:
         r"""
