@@ -142,7 +142,7 @@ class CooperativeNavigation(BaseEnv):
         self._sum_reward = 0
         if hasattr(self, '_seed'):
             # Note: the real env instance only has a empty seed method, only pass
-            self._env._seed = self._seed
+            self._env.seed = self._seed
         obs_n = self._env.reset()
         obs_n = self.process_obs(obs_n)
         return obs_n
@@ -155,7 +155,7 @@ class CooperativeNavigation(BaseEnv):
         self._seed = seed
         if hasattr(self, '_seed'):
             # Note: the real env instance only has a empty seed method, only pass
-            self._env._seed = self._seed
+            self._env.seed = self._seed
 
     def _process_action(self, action: list):
         return to_list(action)
