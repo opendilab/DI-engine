@@ -63,9 +63,9 @@ cartpole_sqn_default_config = dict(
             eps=dict(
                 # Decay type. Support ['exp', 'linear'].
                 type='exp',
-                start=0.95,
-                end=0.1,
-                decay=10000,
+                start=1.,
+                end=0.8,
+                decay=2000,
             ),
         ),
     ),
@@ -81,7 +81,7 @@ cartpole_sqn_default_config = dict(
     actor=dict(
         # You can use either "n_sample" or "n_episode" in actor.collect.
         # Get "n_sample" samples per collect.
-        n_sample=8,
+        n_sample=8,   # training freq
         # Get "n_episode" complete episodic trajectories per collect.
         # n_episode=8,
         traj_len=traj_len,

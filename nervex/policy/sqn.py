@@ -13,7 +13,7 @@ from nervex.armor import Armor
 from nervex.model import FCDiscreteNet
 from nervex.policy.base_policy import Policy, register_policy
 from nervex.policy.common_policy import CommonPolicy
-
+from torch.distributions.categorical import Categorical
 
 class SQNModel(torch.nn.Module):
 
@@ -54,9 +54,6 @@ class SQNPolicy(CommonPolicy):
         self._gamma = algo_cfg.discount_factor
         self._action_dim = np.prod(self._cfg.model.action_dim)
         self._target_entropy = self._action_dim/10
-        self._action_one_hot = one_hot(torch.arange(self._action_dim).long(),
-                                       self._action_dim).unsqueeze(1).to(self._device)  # N, 1, N
-
         self._log_alpha = torch.FloatTensor([math.log(algo_cfg.alpha)]).to(self._device).requires_grad_(True)
         self._optimizer_alpha = torch.optim.Adam([self._log_alpha], lr=self._cfg.learn.learning_rate_alpha)
 
@@ -153,6 +150,7 @@ class SQNPolicy(CommonPolicy):
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
         self._collect_armor = Armor(self._model)
+        # self._collect_armor.add_plugin('main', 'multinomial_sample')
         self._collect_armor.add_plugin('main', 'eps_greedy_sample')
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
@@ -168,8 +166,12 @@ class SQNPolicy(CommonPolicy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        with torch.no_grad():
-            output = self._collect_armor.forward(data, eps=self._eps)
+        # start with random action for better exploration
+        output = self._collect_armor.forward(data, eps=self._eps)
+        if self._forward_learn_cnt > self._cfg.command.eps.decay:
+            pi_distribution = Categorical(logits=output['logit'] / math.exp(self._log_alpha.item()))
+            pi_action = pi_distribution.sample()
+            output['action'] = pi_action
         return output
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
