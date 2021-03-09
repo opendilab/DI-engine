@@ -1,6 +1,7 @@
 from easydict import EasyDict
 
 traj_len = 1
+update_freq = 16
 cartpole_sqn_default_config = dict(
     env=dict(
         # Support ['base', 'subprocess']. 'base' is pseudo parallel and 'subprocess' is subprocess parallel.
@@ -37,7 +38,7 @@ cartpole_sqn_default_config = dict(
         learn=dict(
             # How many steps to train after actor's one collection. Bigger "train_step" means bigger off-policy.
             # collect data -> train fixed steps -> collect data -> ...
-            train_step=3,
+            train_step=update_freq,
             batch_size=64,
             learning_rate_q=0.001,
             learning_rate_alpha=0.001,
@@ -81,7 +82,7 @@ cartpole_sqn_default_config = dict(
     actor=dict(
         # You can use either "n_sample" or "n_episode" in actor.collect.
         # Get "n_sample" samples per collect.
-        n_sample=8,   # training freq
+        n_sample=update_freq,   # training freq
         # Get "n_episode" complete episodic trajectories per collect.
         # n_episode=8,
         traj_len=traj_len,
