@@ -85,21 +85,21 @@ class SQNPolicy(CommonPolicy):
         reward = data.get('reward')
         action = data.get('action')
         done = data.get('done')
-
+        # Q-function
         q_value = self._armor.forward({'obs': obs})['q_value']
-        alpha = torch.exp(self._log_alpha.detach().clone())
         q0 = q_value[0]
         q1 = q_value[1]
         action_onehot = one_hot(action, self._action_dim)
         q0_a = (q0 * action_onehot).sum(axis=1)
         q1_a = (q1 * action_onehot).sum(axis=1)
+        # Target
         with torch.no_grad():
-            # next_q_value = self._armor.forward({'obs': next_obs})['q_value']
             target_q_value = self._armor.target_forward({'obs': next_obs})['q_value']
             q0_targ = target_q_value[0]
             q1_targ = target_q_value[1]
             q_targ = torch.min(q0_targ, q1_targ)
             # discrete policy
+            alpha = torch.exp(self._log_alpha.clone())
             pi = torch.softmax(q_targ / alpha, dim=-1)  # N, B
             log_pi = torch.log(pi)
             # v = \sum_a \pi(a | s) (Q(s, a) - \alpha \log(\pi(a|s)))
@@ -107,6 +107,7 @@ class SQNPolicy(CommonPolicy):
             # q = r + \gamma v
             q_backup = reward + (1 - done) * self._gamma * target_v_value
 
+        # update Q
         q0_loss = F.mse_loss(q0_a, q_backup)
         q1_loss = F.mse_loss(q1_a, q_backup)
 
@@ -115,26 +116,30 @@ class SQNPolicy(CommonPolicy):
         total_q_loss.backward()
         self._optimizer_q.step()
 
+        # update alpha
         entropy = -pi * log_pi
         alpha_loss = (self._log_alpha * (entropy.detach() - pi.detach() * self._target_entropy)).sum(axis=1)
         alpha_loss = alpha_loss.mean()
+
         self._optimizer_alpha.zero_grad()
         alpha_loss.backward()
         self._optimizer_alpha.step()
+
         # target update
         self._armor.target_update(self._armor.state_dict()['model'])
         self._forward_learn_cnt += 1
+
         # sum useful info
         return {
-            'cur_lr_q': self._optimizer_q.defaults['lr'],
-            'cur_lr_alpha': self._optimizer_alpha.defaults['lr'],
+            # 'cur_lr_q': self._optimizer_q.defaults['lr'],
+            # 'cur_lr_alpha': self._optimizer_alpha.defaults['lr'],
             'q0_loss': q0_loss.item(),
             'q1_loss': q1_loss.item(),
             'alpha_loss': alpha_loss.item(),
-            # 'entropy_mean': entropy.numpy().mean(),
-            # 'entropy_max': entropy.numpy().max(),
-            # 'entropy_min': entropy.numpy().min(),
-            # 'alpha': math.exp(self._log_alpha.item())
+            'entropy': entropy.mean().item(),
+            'alpha': math.exp(self._log_alpha.item()),
+            'q0_value': q0_a.mean().item(),
+            'q1_value': q1_a.mean().item(),
         }
 
     def _init_collect(self) -> None:
@@ -249,7 +254,7 @@ class SQNPolicy(CommonPolicy):
         Returns:
             - vars (:obj:`List[str]`): Variables' name list.
         """
-        return super()._monitor_vars_learn() + ['cur_lr_q', 'cur_lr_alpha', 'q0_loss', 'q1_loss', 'alpha_loss']
-
+        _other_var = ['q0_loss', 'q1_loss', 'alpha_loss', 'alpha', 'entropy', 'q0_value', 'q1_value']
+        return super()._monitor_vars_learn() + _other_var
 
 register_policy('sqn', SQNPolicy)

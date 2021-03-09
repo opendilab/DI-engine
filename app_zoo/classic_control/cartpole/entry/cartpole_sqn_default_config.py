@@ -40,7 +40,7 @@ cartpole_sqn_default_config = dict(
             train_step=3,
             batch_size=64,
             learning_rate_q=0.001,
-            learning_rate_alpha=0.003,
+            learning_rate_alpha=0.001,
             # L2 norm weight for network parameters.
             weight_decay=0.0,
             algo=dict(
@@ -94,7 +94,7 @@ cartpole_sqn_default_config = dict(
         # Evaluate every "eval_freq" training steps.
         eval_freq=10,
         # Once evaluation reward reaches "stop_val", which means the policy converges, then the whole training can end.
-        stop_val=195,
+        stop_val=200,
     ),
     # You can refer to "config/serial.py" for details.
     learner=dict(
