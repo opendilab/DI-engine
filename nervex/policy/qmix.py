@@ -80,7 +80,7 @@ class QMIXPolicy(CommonPolicy):
         # data preprocess
         data = timestep_collate(data)
         if self._use_cuda:
-            data = to_device(data, 'cuda')
+            data = to_device(data, self._device)
         data['weight'] = data.get('weight', None)
         data['done'] = data['done'].float()
         return data, data_info

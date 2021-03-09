@@ -78,7 +78,7 @@ class IMPALAPolicy(CommonPolicy):
         }
         data = default_collate(data)
         if self._use_cuda:
-            data = to_device(data, 'cuda')
+            data = to_device(data, self._device)
         data['done'] = torch.cat(data['done'], dim=0).reshape(self._unroll_len, -1).float()
         use_priority = self._cfg.get('use_priority', False)
         if use_priority:

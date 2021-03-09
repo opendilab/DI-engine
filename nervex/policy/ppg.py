@@ -88,7 +88,7 @@ class PPGPolicy(CommonPolicy):
             data_item['weight'] = None
             data[k] = data_item
         if self._use_cuda:
-            data = to_device(data, 'cuda:{}'.format(self._rank % 8))
+            data = to_device(data, self._device)
         return data, data_info
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
