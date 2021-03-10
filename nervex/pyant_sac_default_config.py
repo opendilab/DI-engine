@@ -17,7 +17,7 @@ pyant_sac_default_config = dict(
         use_act_scale=True,
     ),
     max_epoch=1000000,
-    use_cuda=True,    
+    use_cuda=True,
     policy=dict(
         use_cuda=True,
         policy_type='sac',

@@ -120,11 +120,13 @@ def serial_pipeline(
                 # Evaluator's mean episode reward reaches the expected ``stop_val``. 学习成功了
                 print(
                     "[nerveX serial pipeline] Your RL agent is converged, you can refer to " +
-                    "'log/evaluator/evaluator_logger.txt' for details" 
+                    "'log/evaluator/evaluator_logger.txt' for details"
                 )
                 break
             elif learner.train_iter > cfg.max_epoch:
-                print('train time is over, maybe you model is not good as you wish, if you want a better model, please add more train time')
+                print(
+                    'train time is over, maybe you model is not good as you wish, if you want a better model, please add more train time'
+                )
                 break
             else:
                 if eval_reward > max_eval_reward:

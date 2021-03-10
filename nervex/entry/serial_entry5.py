@@ -63,10 +63,16 @@ def serial_pipeline(
     evaluator_env.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    gail_config = {"input_dims":36, "hidden_dims": 128, "expert_data_path": "./expert_data.pkl", 
-                    "train_epoches": 600, "batch_size": 64, "device": "cuda:0"}
+    gail_config = {
+        "input_dims": 36,
+        "hidden_dims": 128,
+        "expert_data_path": "./expert_data.pkl",
+        "train_epoches": 600,
+        "batch_size": 64,
+        "device": "cuda:0"
+    }
     # pdeil_config = {"alpha": 0.5, "expert_data_path": './expert_data_2.pkl', "discrete_action": False}
-    
+
     reward_model: GailRewardModel = GailRewardModel(gail_config)
     reward_model.launch()
     # policy_states: list = []
@@ -133,7 +139,7 @@ def serial_pipeline(
         while True:
             # Actor keeps generating data until replay buffer has enough to sample one batch.
             new_data, collect_info = actor.generate_data(learner.train_iter)
-            # change new data 
+            # change new data
             # 并行化
             # [{}， {}， {}]
             for item in new_data:

@@ -10,6 +10,7 @@ import app_zoo.mujoco.entry as entry
 from pyant_sac_default_config import pyant_sac_default_config
 import pybulletgym
 
+
 def main():
     config = deepcopy(pyant_sac_default_config)
     serial_pipeline(config, seed=0)

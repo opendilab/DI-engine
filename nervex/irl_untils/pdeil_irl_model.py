@@ -89,4 +89,3 @@ class PdeilRewardModel(BaseRewardModel):
 
     def clear_data(self):
         self.train_data.clear()
-    

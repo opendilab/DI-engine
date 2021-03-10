@@ -62,7 +62,7 @@ class GailRewardModel(BaseRewardModel):
 
     def _train(self, train_data, expert_data) -> None:
         # calcute loss
-        # here are some hyper 
+        # here are some hyper
         out_1: torch.Tensor = self.reward_model(train_data)
         loss_1: torch.Tensor = torch.log(out_1 + 1e-5).mean()
         out_2: torch.Tensor = self.reward_model(expert_data)
@@ -78,7 +78,9 @@ class GailRewardModel(BaseRewardModel):
             sample_expert_data: list = random.sample(self.expert_data, self.config['batch_size'])
             sample_train_data: list = random.sample(self.train_data, self.config['batch_size'])
             # make them to tensor
-            sample_expert_tensor: torch.Tensor = torch.tensor(sample_expert_data, dtype=torch.float32, requires_grad=False)
+            sample_expert_tensor: torch.Tensor = torch.tensor(
+                sample_expert_data, dtype=torch.float32, requires_grad=False
+            )
             sample_expert_tensor: torch.Tensor = sample_expert_tensor.to(self.config['device'])
             sample_train_tensor = torch.tensor(sample_train_data, dtype=torch.float32, requires_grad=False)
             sample_train_tensor: torch.Tensor = sample_train_tensor.to(self.config['device'])
