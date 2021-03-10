@@ -66,8 +66,6 @@ class ATOCPolicy(CommonPolicy):
                 },
                 noise_range=algo_cfg.noise_range,
             )
-        self._armor.add_plugin('main', 'grad', enable_grad=True)
-        self._armor.add_plugin('target', 'grad', enable_grad=False)
         self._armor.mode(train=True)
         self._armor.target_mode(train=True)
         self._armor.reset()
@@ -99,9 +97,11 @@ class ATOCPolicy(CommonPolicy):
         q_value_dict['q_value'] = q_value.mean()
         # target q value. SARSA: first predict next action, then calculate next q value
         next_data = {'obs': next_obs}
-        next_action = self._armor.target_forward(next_data, param={'mode': 'compute_action'})['action']
+        with torch.no_grad():
+            next_action = self._armor.target_forward(next_data, param={'mode': 'compute_action'})['action']
         next_data['action'] = next_action
-        target_q_value = self._armor.target_forward(next_data, param={'mode': 'compute_q'})['q_value']
+        with torch.no_grad():
+            target_q_value = self._armor.target_forward(next_data, param={'mode': 'compute_q'})['q_value']
         # td_data = v_1step_td_data(q_value, target_q_value, reward, data['done'], data['weight'])
         # TODO what should we do here to keep shape
         td_data = v_1step_td_data(q_value.mean(-1), target_q_value.mean(-1), reward, data['done'], data['weight'])
@@ -179,7 +179,6 @@ class ATOCPolicy(CommonPolicy):
             },
             noise_range=None,  # no noise clip in actor
         )
-        self._collect_armor.add_plugin('main', 'grad', enable_grad=False)
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
         self._collect_setting_set = {}
@@ -194,7 +193,8 @@ class ATOCPolicy(CommonPolicy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        output = self._collect_armor.forward(data, param={'mode': 'compute_action'})
+        with torch.no_grad():
+            output = self._collect_armor.forward(data, param={'mode': 'compute_action'})
         return output
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> Dict[str, Any]:
@@ -246,7 +246,6 @@ class ATOCPolicy(CommonPolicy):
             Init eval armor. Unlike learn and collect armor, eval armor does not need noise.
         """
         self._eval_armor = Armor(self._model)
-        self._eval_armor.add_plugin('main', 'grad', enable_grad=False)
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
         self._eval_setting_set = {}
@@ -261,7 +260,8 @@ class ATOCPolicy(CommonPolicy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
+        with torch.no_grad():
+            output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
         return output
 
     def _init_command(self) -> None:

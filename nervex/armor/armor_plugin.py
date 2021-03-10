@@ -57,39 +57,6 @@ class IArmorStatefulPlugin(IArmorPlugin):
         raise NotImplementedError
 
 
-class GradHelper(IArmorStatelessPlugin):
-    r"""
-    Overview:
-        GradHelper help the armor to enable grad or disable grad while calling forward method
-    Interfaces:
-        register
-    Examples:
-        >>> GradHelper.register(actor_armor, Flase)
-        >>> GradHelper.register(learner_armor, True)
-    """
-
-    @classmethod
-    def register(cls: type, armor: Any, enable_grad: bool) -> None:
-        r"""
-        Overview:
-            After register, method ``armor.foward`` will be set to enable grad or disable grad.
-        Arguments:
-            - armor (:obj:`Any`): Wrapped armor class. Should contain ``forward`` method.
-            - enbale_grad (:obj:`bool`): Whether to enable grad or disable grad during ``forward``.
-        """
-
-        def grad_wrapper(fn):
-            context = torch.enable_grad() if enable_grad else torch.no_grad()
-
-            def wrapper(*args, **kwargs):
-                with context:
-                    return fn(*args, **kwargs)
-
-            return wrapper
-
-        armor.forward = grad_wrapper(armor.forward)
-
-
 class HiddenStateHelper(IArmorStatefulPlugin):
     """
     Overview:
@@ -527,7 +494,6 @@ class TeacherNetworkHelper(IArmorStatelessPlugin):
 
 
 plugin_name_map = {
-    'grad': GradHelper,
     'hidden_state': HiddenStateHelper,
     'argmax_sample': ArgmaxSampleHelper,
     'eps_greedy_sample': EpsGreedySampleHelper,
