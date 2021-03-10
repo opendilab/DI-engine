@@ -101,8 +101,8 @@ class SQNPolicy(CommonPolicy):
             # discrete policy
             alpha = torch.exp(self._log_alpha.clone())
             # TODO use q_targ or q0 for pi
-            pi = torch.softmax(q_targ / alpha, dim=-1)  # N, B
-            log_pi = torch.log(pi)
+            log_pi = F.log_softmax(q_targ / alpha, dim=-1)
+            pi = torch.exp(log_pi)
             # v = \sum_a \pi(a | s) (Q(s, a) - \alpha \log(\pi(a|s)))
             target_v_value = (pi * (q_targ - alpha * log_pi)).sum(axis=-1)
             # q = r + \gamma v
@@ -116,10 +116,6 @@ class SQNPolicy(CommonPolicy):
         total_q_loss = q0_loss + q1_loss
         total_q_loss.backward()
         self._optimizer_q.step()
-
-        debug_q = self._armor.forward({'obs': obs})['q_value']
-        if torch.isnan(debug_q[0]).sum().item() > 0:
-            pdb.set_trace()
 
         # update alpha
         # TODO: use main_network or target_network
@@ -179,22 +175,11 @@ class SQNPolicy(CommonPolicy):
         # start with random action for better exploration
         output = self._collect_armor.forward(data, eps=self._eps)
         if self._forward_learn_cnt > self._cfg.command.eps.decay:
-            try:
-                logits = output['logit'] / math.exp(self._log_alpha.item())
-                prob = torch.softmax(logits - logits.max(axis=-1, keepdim=True).values, dim=-1)
-                pi_action = torch.multinomial(prob, 1)
-                output['action'] = pi_action
-            except RuntimeError:
-                pdb.set_trace()
-                # print("================data===================\n" * 8)
-                # print(data)
-                # print("================output===================\n" * 8)
-                # print(output)
-                # print("================logits===================\n" * 8)
-                # print(logits)
-                # print("=================prob==================\n" * 8)
-                # print(prob)
-                # print("=================END==============\n" * 8)
+            logits = output['logit'] / math.exp(self._log_alpha.item())
+            prob = torch.softmax(logits - logits.max(axis=-1, keepdim=True).values, dim=-1)
+            pi_action = torch.multinomial(prob, 1)
+            output['action'] = pi_action
+
         return output
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
