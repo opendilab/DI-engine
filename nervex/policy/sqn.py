@@ -6,6 +6,7 @@ import math
 import numpy as np
 import torch
 import torch.nn.functional as F
+import pdb
 
 from nervex.torch_utils import Adam
 from nervex.rl_utils import Adder, epsilon_greedy
@@ -14,6 +15,7 @@ from nervex.model import FCDiscreteNet
 from nervex.policy.base_policy import Policy, register_policy
 from nervex.policy.common_policy import CommonPolicy
 from torch.distributions.categorical import Categorical
+
 
 class SQNModel(torch.nn.Module):
 
@@ -98,10 +100,11 @@ class SQNPolicy(CommonPolicy):
             q_targ = torch.min(q0_targ, q1_targ)
             # discrete policy
             alpha = torch.exp(self._log_alpha.clone())
+            # TODO use q_targ or q0 for pi
             pi = torch.softmax(q_targ / alpha, dim=-1)  # N, B
             log_pi = torch.log(pi)
             # v = \sum_a \pi(a | s) (Q(s, a) - \alpha \log(\pi(a|s)))
-            target_v_value = (pi * (q_targ - alpha * log_pi)).sum(axis=1)
+            target_v_value = (pi * (q_targ - alpha * log_pi)).sum(axis=-1)
             # q = r + \gamma v
             q_backup = reward + (1 - done) * self._gamma * target_v_value
 
@@ -114,11 +117,15 @@ class SQNPolicy(CommonPolicy):
         total_q_loss.backward()
         self._optimizer_q.step()
 
+        debug_q = self._armor.forward({'obs': obs})['q_value']
+        if torch.isnan(debug_q[0]).sum().item() > 0:
+            pdb.set_trace()
+
         # update alpha
         # TODO: use main_network or target_network
-        entropy = -pi * log_pi
-        alpha_loss = (self._log_alpha * (entropy.detach() - pi.detach() * self._target_entropy)).sum(axis=1)
-        alpha_loss = alpha_loss.mean()
+        entropy = (-pi * log_pi).sum(axis=-1)
+        expect_entropy = (pi * self._target_entropy).sum(axis=-1)
+        alpha_loss = self._log_alpha * (entropy - expect_entropy).mean()
 
         self._optimizer_alpha.zero_grad()
         alpha_loss.backward()
@@ -154,7 +161,6 @@ class SQNPolicy(CommonPolicy):
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
         self._collect_armor = Armor(self._model)
-        # self._collect_armor.add_plugin('main', 'multinomial_sample')
         self._collect_armor.add_plugin('main', 'eps_greedy_sample')
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
@@ -173,9 +179,22 @@ class SQNPolicy(CommonPolicy):
         # start with random action for better exploration
         output = self._collect_armor.forward(data, eps=self._eps)
         if self._forward_learn_cnt > self._cfg.command.eps.decay:
-            pi_distribution = Categorical(logits=output['logit'] / math.exp(self._log_alpha.item()))
-            pi_action = pi_distribution.sample()
-            output['action'] = pi_action
+            try:
+                logits = output['logit'] / math.exp(self._log_alpha.item())
+                prob = torch.softmax(logits - logits.max(axis=-1, keepdim=True).values, dim=-1)
+                pi_action = torch.multinomial(prob, 1)
+                output['action'] = pi_action
+            except RuntimeError:
+                pdb.set_trace()
+                # print("================data===================\n" * 8)
+                # print(data)
+                # print("================output===================\n" * 8)
+                # print(output)
+                # print("================logits===================\n" * 8)
+                # print(logits)
+                # print("=================prob==================\n" * 8)
+                # print(prob)
+                # print("=================END==============\n" * 8)
         return output
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
