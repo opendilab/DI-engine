@@ -29,11 +29,6 @@ IArmorStatefulPlugin
 .. autoclass:: nervex.armor.armor_plugin.IArmorStatefulPlugin
     :members: __init__, reset
 
-GradHelper
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.armor.armor_plugin.GradHelper
-    :members: register
-
 HiddenStateHelper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: nervex.armor.armor_plugin.HiddenStateHelper
