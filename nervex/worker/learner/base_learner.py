@@ -216,6 +216,7 @@ class BaseLearner(object):
         """
         assert hasattr(self, '_policy'), "please set learner policy"
         self.call_hook('before_iter')
+        self._policy.reset()
         # Pre-process data
         with self._timer:
             replay_buffer_idx = [d.get('replay_buffer_idx', None) for d in data]
