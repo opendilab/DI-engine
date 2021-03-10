@@ -7,10 +7,11 @@ from nervex.torch_utils import Adam
 from nervex.rl_utils import q_1step_td_data, q_1step_td_error, q_nstep_td_data, q_nstep_td_error, epsilon_greedy, Adder
 from nervex.model import FCDiscreteNet, ConvDiscreteNet
 from nervex.armor import Armor
-from .base_policy import Policy, register_policy
+from nervex.utils import POLICY_REGISTRY
 from .common_policy import CommonPolicy
 
 
+@POLICY_REGISTRY.register('dqn')
 class DQNPolicy(CommonPolicy):
     r"""
     Overview:
@@ -218,6 +219,3 @@ class DQNPolicy(CommonPolicy):
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'fc_discrete_net', ['nervex.model.discrete_net.discrete_net']
-
-
-register_policy('dqn', DQNPolicy)

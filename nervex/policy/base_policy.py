@@ -250,7 +250,9 @@ def create_policy(cfg: dict, **kwargs) -> Policy:
     cfg = EasyDict(cfg)
     import_module(cfg.import_names)
     if cfg.policy_type not in policy_mapping:
-        raise KeyError("not support policy type: {}".format(cfg.policy_type))
+        from nervex.utils import POLICY_REGISTRY  # noqa
+        return POLICY_REGISTRY.build(cfg.policy_type, cfg, **kwargs)
+        # raise KeyError("not support policy type: {}".format(cfg.policy_type))
     else:
         return policy_mapping[cfg.policy_type](cfg, **kwargs)
 
