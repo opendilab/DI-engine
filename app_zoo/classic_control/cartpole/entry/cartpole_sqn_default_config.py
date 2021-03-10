@@ -1,6 +1,7 @@
 from easydict import EasyDict
 
 traj_len = 1
+update_freq = 16
 cartpole_sqn_default_config = dict(
     env=dict(
         # Support ['base', 'subprocess']. 'base' is pseudo parallel and 'subprocess' is subprocess parallel.
@@ -37,10 +38,10 @@ cartpole_sqn_default_config = dict(
         learn=dict(
             # How many steps to train after actor's one collection. Bigger "train_step" means bigger off-policy.
             # collect data -> train fixed steps -> collect data -> ...
-            train_step=3,
+            train_step=update_freq,
             batch_size=64,
             learning_rate_q=0.001,
-            learning_rate_alpha=0.003,
+            learning_rate_alpha=0.001,
             # L2 norm weight for network parameters.
             weight_decay=0.0,
             algo=dict(
@@ -63,9 +64,9 @@ cartpole_sqn_default_config = dict(
             eps=dict(
                 # Decay type. Support ['exp', 'linear'].
                 type='exp',
-                start=0.95,
-                end=0.1,
-                decay=10000,
+                start=1.,
+                end=0.8,
+                decay=2000,
             ),
         ),
     ),
@@ -81,7 +82,7 @@ cartpole_sqn_default_config = dict(
     actor=dict(
         # You can use either "n_sample" or "n_episode" in actor.collect.
         # Get "n_sample" samples per collect.
-        n_sample=8,
+        n_sample=update_freq,   # training freq
         # Get "n_episode" complete episodic trajectories per collect.
         # n_episode=8,
         traj_len=traj_len,
@@ -94,7 +95,7 @@ cartpole_sqn_default_config = dict(
         # Evaluate every "eval_freq" training steps.
         eval_freq=10,
         # Once evaluation reward reaches "stop_val", which means the policy converges, then the whole training can end.
-        stop_val=195,
+        stop_val=200,
     ),
     # You can refer to "config/serial.py" for details.
     learner=dict(
