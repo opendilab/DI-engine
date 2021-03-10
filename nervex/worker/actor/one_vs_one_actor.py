@@ -108,6 +108,7 @@ class OneVsOneActor(BaseActor):
 
     # override
     def _process_timestep(self, timestep: Dict[int, namedtuple]) -> None:
+        dones = []
         for env_id, t in timestep.items():
             if t.info.get('abnormal', False):
                 # If there is an abnormal timestep, reset all the related variables, also this env has been reset
@@ -154,7 +155,6 @@ class OneVsOneActor(BaseActor):
                 if isinstance(left_reward, torch.Tensor):
                     left_reward = left_reward.item()
                 self._episode_result[env_id].append(left_reward)
-
                 self.debug(
                     "Env {} finish episode, final reward: {}, collected episode: {}.".format(
                         env_id, reward, len(self._episode_result[env_id])
@@ -162,6 +162,10 @@ class OneVsOneActor(BaseActor):
                 )
                 self._total_episode += 1
             self._total_step += 1
+            dones.append(t[0].done)
+        if any(dones):
+            actor_info = self._get_actor_info()
+            self.send_metadata(actor_info)
 
     # override
     def get_finish_info(self) -> dict:
@@ -184,6 +188,7 @@ class OneVsOneActor(BaseActor):
             'episode_num': self._episode_num,
             'env_num': self._env_num,
             'duration': duration,
+            'actor_done': self._env_manager.done,
             'target_episode_count': episode_count,
             'real_episode_count': self._total_episode,
             'step_count': self._total_step,
@@ -255,6 +260,16 @@ class OneVsOneActor(BaseActor):
             'priority': 1.0,
         }
         return metadata
+
+    def _get_actor_info(self) -> dict:
+        return {
+            'eval_flag': self._eval_flag,
+            'get_info_time': time.time(),
+            'actor_done': self._env_manager.done,
+            'cur_episode': self._total_episode,
+            'cur_sample': self._total_sample,
+            'cur_step': self._total_step,
+        }
 
     def __repr__(self) -> str:
         return "OneVsOneActor"

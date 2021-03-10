@@ -1,5 +1,5 @@
 import copy
-from collections import defaultdict, deque
+from collections import defaultdict
 from typing import Union, Tuple, Optional
 from functools import partial
 from easydict import EasyDict
@@ -43,24 +43,6 @@ class BattleRecordDict(dict):
         return obj
 
 
-class PayoffDict(defaultdict):
-    """
-    Overview:
-        Payoff defaultdict. If key doesn't exist, return an instance of some data structure.
-    Interfaces:
-        __init__
-    """
-
-    def __init__(self, init_fn: type):
-        """
-        Overview:
-            Init method, set defaultdict's default return instance type as ``init_fn``.
-        Arguments:
-            - init_fn (:obj:`type`): If key is missing, PayoffDict can return the instance ``init_fn()``.
-        """
-        super(PayoffDict, self).__init__(init_fn)
-
-
 class BattleSharedPayoff:
     """
     Overview:
@@ -85,7 +67,7 @@ class BattleSharedPayoff:
         # while ``_players_ids``` is a list of strings.
         self._players = []
         self._players_ids = []
-        # ``_data``` is a defaultdict. If a key doesn't exist, return an instance of BattleRecordDict class.
+        # ``_data``` is a defaultdict. If a key doesn't exist when query, return an instance of BattleRecordDict class.
         # Key is '[player_id]-[player_id]' string, value is the payoff of the two players.
         self._data = defaultdict(BattleRecordDict)
         # ``_decay``` controls how past game info (win, draw, loss) decays.

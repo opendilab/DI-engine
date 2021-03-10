@@ -262,7 +262,15 @@ class ActivePlayer(Player):
         return players[idx]
 
     def increment_eval_difficulty(self) -> bool:
-        # True means difficulty is incremented; False means difficulty is already the hardest.
+        """
+        Overview:
+            When evaluating, active player will choose a specific builtin opponent difficulty.
+            This method is used to increment the difficulty.
+            It is usually called after the easier builtin bot is already been beaten by this player.
+        Returns:
+            - increment_or_not (:obj:`bool`): True means difficulty is incremented; \
+                False means difficulty is already the hardest.
+        """
         if self._eval_opponent_index < len(self._eval_opponent_difficulty) - 1:
             self._eval_opponent_index += 1
             return True

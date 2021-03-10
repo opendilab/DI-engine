@@ -80,10 +80,19 @@ class BaseLeague(ABC):
         # Save active players' ``player_id``` & ``player_ckpt```.
         self.active_players_ids = [p.player_id for p in self.active_players]
         self.active_players_ckpts = [p.checkpoint_path for p in self.active_players]
-        # Validate active players are unique by ``player_id``.`
+        # Validate active players are unique by ``player_id``.
         assert len(self.active_players_ids) == len(set(self.active_players_ids))
 
     def get_job_info(self, player_id: str = None, eval_flag: bool = False) -> dict:
+        """
+        Overview:
+            Get info of the job which is to be launched to an active player.
+        Arguments:
+            - player_id (:obj:`str`): The active player's id.
+            - eval_flag (:obj:`bool`): Whether this is an evaluation job.
+        Returns:
+            - job_info (:obj:`dict`): Job info. Should include keys ['lauch_player'].
+        """
         if player_id is None:
             player_id = self.active_players_ids[0]
         with self._active_players_lock:
@@ -97,15 +106,26 @@ class BaseLeague(ABC):
     def _get_job_info(self, player: ActivePlayer, eval_flag: bool = False) -> dict:
         """
         Overview:
-            Get info of the job which is to be launched to an active player. Called by ``_launch_job``.
+            Real get_job method. Called by ``_launch_job``.
         Arguments:
             - player (:obj:`ActivePlayer`): The active player to be launched a job.
+            - eval_flag (:obj:`bool`): Whether this is an evaluation job.
         Returns:
             - job_info (:obj:`dict`): Job info. Should include keys ['lauch_player'].
         """
         raise NotImplementedError
 
-    def judge_snapshot(self, player_id: str) -> None:
+    def judge_snapshot(self, player_id: str) -> bool:
+        """
+        Overview:
+            Judge whether a player is trained enough for snapshot. If yes, call player's ``snapshot``, create a
+            historical player(prepare the checkpoint and add it to the shared payoff), then mutate it, and return True.
+            Otherwise, return False.
+        Arguments:
+            - player_id (:obj:`ActivePlayer`): The active player's id.
+        Returns:
+            - snapshot_or_not (:obj:`dict`): Whether the active player is snapshotted.
+        """
         with self._active_players_lock:
             idx = self.active_players_ids.index(player_id)
             player = self.active_players[idx]
@@ -125,10 +145,10 @@ class BaseLeague(ABC):
     def _mutate_player(self, player: ActivePlayer) -> None:
         """
         Overview:
-            Players have the probability to be reset to supervised learning model parameters if trained enough.
+            Players have the probability to mutate, e.g. Reset network parameters.
             Called by ``self._snapshot``.
         Arguments:
-            - player (:obj:`ActivePlayer`): the active player that may mutate
+            - player (:obj:`ActivePlayer`): The active player that may mutate.
         """
         raise NotImplementedError
 
@@ -137,11 +157,8 @@ class BaseLeague(ABC):
         Overview:
             Update an active player's info.
         Arguments:
-            - player_info (:obj:`dict`): Info dict of the player which is to be updated.
-        Note:
-            player_info (:obj:`dict`)
-                - player_id (:obj:`str`)
-                - train_step (:obj:`int`)
+            - player_info (:obj:`dict`): Info dict of the player which is to be updated, \
+                at least includs ['player_id', 'train_step']
         """
         try:
             idx = self.active_players_ids.index(player_info['player_id'])
@@ -164,7 +181,7 @@ class BaseLeague(ABC):
     def finish_job(self, job_info: dict) -> None:
         """
         Overview:
-            Finish current job. Update shared payoff to record the game result.
+            Finish current job. Update shared payoff to record the game results.
         Arguments:
             - job_info (:obj:`dict`): A dict containing job result information.
         """
@@ -172,7 +189,7 @@ class BaseLeague(ABC):
         self.payoff.update(job_info)
 
     @staticmethod
-    def save_checkpoint(src_checkpoint, dst_checkpoint, read_type='pickle'):
+    def save_checkpoint(src_checkpoint, dst_checkpoint) -> None:
         '''
         Overview:
             Copy a checkpoint from path ``src_checkpoint`` to path ``dst_checkpoint``.
