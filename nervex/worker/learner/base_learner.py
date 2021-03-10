@@ -218,6 +218,7 @@ class BaseLearner(object):
         """
         assert hasattr(self, '_policy'), "please set learner policy"
         self.call_hook('before_iter')
+        self._policy.reset()
         # Pre-process data
         with self._timer:
             data, data_info = self._policy.data_preprocess(data)

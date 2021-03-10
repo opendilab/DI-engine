@@ -1,15 +1,19 @@
 from easydict import EasyDict
 
 agent_num = 5
+num_agents = agent_num
+num_landmarks = agent_num
 actor_env_num = 4
 evaluator_env_num = 2
+max_step = 100
 cooperative_navigation_collaQ_default_config = dict(
     env=dict(
         env_manager_type='subprocess',
         import_names=['app_zoo.multiagent_particle.envs.particle_env'],
         env_type='cooperative_navigation',
-        num_agents=5,
-        num_landmarks=5,
+        num_agents=num_agents,
+        num_landmarks=num_landmarks,
+        max_step=max_step,
         agent_num=agent_num,
         actor_env_num=actor_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -21,14 +25,14 @@ cooperative_navigation_collaQ_default_config = dict(
         on_policy=True,
         model=dict(
             agent_num=agent_num,
-            obs_dim=22,
-            obs_alone_dim=14,
-            global_obs_dim=30,
+            obs_dim=2 + 2 + (agent_num - 1) * 2 + num_landmarks * 2,
+            obs_alone_dim=2 + 2 + (num_landmarks) * 2,
+            global_obs_dim=agent_num * 2 + num_landmarks * 2 + agent_num * 2,
             action_dim=5,
             embedding_dim=64,
             enable_attention=True,
             self_feature_range=[2, 4],  # placeholder
-            ally_feature_range=[4, 12],  # placeholder
+            ally_feature_range=[4, agent_num * 2 + 2],  # placeholder
             attention_dim=32,
         ),
         learn=dict(
@@ -69,7 +73,7 @@ cooperative_navigation_collaQ_default_config = dict(
     ),
     actor=dict(
         n_episode=4,
-        traj_len=100,  # cooperative_navigation_episode_max_length
+        traj_len=max_step,  # cooperative_navigation_episode_max_length
         traj_print_freq=100,
         collect_print_freq=4,
     ),

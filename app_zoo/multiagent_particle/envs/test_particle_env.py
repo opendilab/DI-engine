@@ -114,9 +114,10 @@ class TestCooperativeNavigation:
                 'num_agents': num_agent,
                 'num_landmarks': num_landmark,
                 'max_step': 100,
-                'use_discrete': False
+                'discrete_action': False
             }
         )
+        env.seed = 2
         print(env.info())
         obs = env.reset()
         for k, v in obs.items():
