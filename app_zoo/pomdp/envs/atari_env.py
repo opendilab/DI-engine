@@ -1,25 +1,56 @@
 from typing import Any, List, Union, Sequence
 import copy
 import torch
+import gym
 import numpy as np
 from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
 from .atari_wrappers import wrap_deepmind
 
+from pprint import pprint
 
-class AtariEnv(BaseEnv):
+
+def PomdpEnv(cfg):
+    '''
+    For debug purpose, create an env follow openai gym standard so it can be widely test by
+    other library with same environment setting in nerveX
+    env = PomdpEnv(cfg)
+    obs = env.reset()
+    obs, reward, done, info = env.step(action)
+    '''
+    env = wrap_deepmind(
+        cfg.env_id,
+        frame_stack=cfg.frame_stack,
+        episode_life=cfg.is_train,
+        clip_rewards=cfg.is_train,
+        warp_frame=cfg.warp_frame,
+        use_ram=cfg.use_ram,
+        render=cfg.render,
+        pomdp=cfg.pomdp,
+    )
+    return env
+
+
+class PomdpAtariEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._env = wrap_deepmind(
-            cfg.env_id, frame_stack=cfg.frame_stack, episode_life=cfg.is_train, clip_rewards=cfg.is_train
+            cfg.env_id,
+            frame_stack=cfg.frame_stack,
+            episode_life=cfg.is_train,
+            clip_rewards=cfg.is_train,
+            warp_frame=cfg.warp_frame,
+            use_ram=cfg.use_ram,
+            render=cfg.render,
+            pomdp=cfg.pomdp,
         )
 
     def reset(self) -> Sequence:
         if hasattr(self, '_seed'):
-            np_seed = 100 * np.random.randint(1,1000)
-            self._env.seed(self._seed + np_seed)
+            np.random.seed(self._seed)
+            self._env.seed(self._seed)
         obs = self._env.reset()
         obs = to_ndarray(obs)
         self._final_eval_reward = 0.
@@ -30,7 +61,6 @@ class AtariEnv(BaseEnv):
 
     def seed(self, seed: int) -> None:
         self._seed = seed
-        np.random.seed(self._seed)
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
@@ -57,7 +87,7 @@ class AtariEnv(BaseEnv):
         )
 
     def __repr__(self) -> str:
-        return "nerveX Atari Env({})".format(self._cfg.env_id)
+        return "nerveX POMDP Atari Env({})".format(self._cfg.env_id)
 
     @staticmethod
     def create_actor_env_cfg(cfg: dict) -> List[dict]:
@@ -74,4 +104,4 @@ class AtariEnv(BaseEnv):
         return [cfg for _ in range(evaluator_env_num)]
 
 
-register_env('atari', AtariEnv)
+register_env('pomdp', PomdpAtariEnv)

@@ -102,7 +102,7 @@ class DQNPolicy(CommonPolicy):
         """
         self._traj_len = self._cfg.collect.traj_len
         if self._traj_len == "inf":
-            self._traj_len == float("inf")
+            self._traj_len = float("inf")
         self._unroll_len = self._cfg.collect.unroll_len
         self._use_her = self._cfg.collect.algo.get('use_her', False)
         if self._use_her:

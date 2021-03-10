@@ -43,6 +43,7 @@ class IMPALAPolicy(CommonPolicy):
         self._armor = Armor(self._model)
 
         self._action_dim = self._cfg.model.action_dim
+        self._unroll_len = self._cfg.learn.unroll_len
 
         # Algorithm config
         algo_cfg = self._cfg.learn.algo
@@ -60,7 +61,7 @@ class IMPALAPolicy(CommonPolicy):
         self._armor.reset()
         self._learn_setting_set = {}
 
-    def _data_preprocess_learn(self, data: List[Dict[str, Any]]) -> dict:
+    def _data_preprocess_learn(self, data: List[Dict[str, Any]]) -> Tuple[dict, dict]:
         r"""
         Overview:
             Data preprocess function of learn mode.
@@ -69,10 +70,15 @@ class IMPALAPolicy(CommonPolicy):
             - data (:obj:`dict`): Dict type data
         Returns:
             - data (:obj:`dict`)
+            - data_info (:obj:`dict`)
         """
+        data_info = {
+            'replay_buffer_idx': [d.get('replay_buffer_idx', None) for d in data],
+            'replay_unique_id': [d.get('replay_unique_id', None) for d in data],
+        }
         data = default_collate(data)
         if self._use_cuda:
-            data = to_device(data, 'cuda')
+            data = to_device(data, self._device)
         data['done'] = torch.cat(data['done'], dim=0).reshape(self._unroll_len, -1).float()
         use_priority = self._cfg.get('use_priority', False)
         if use_priority:
@@ -84,7 +90,7 @@ class IMPALAPolicy(CommonPolicy):
         data['action'] = torch.cat(data['action'], dim=0).reshape(self._unroll_len, -1)
         data['reward'] = torch.cat(data['reward'], dim=0).reshape(self._unroll_len, -1)
         data['weight'] = torch.cat(data['weight'], dim=0).reshape(self._unroll_len, -1) if data['weight'] else None
-        return data
+        return data, data_info
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""
@@ -146,7 +152,7 @@ class IMPALAPolicy(CommonPolicy):
             Init traj and unroll length, adder, collect armor.
         """
         self._traj_len = self._cfg.collect.traj_len
-        self._unroll_len = self._cfg.collect.unroll_len
+        self._collect_unroll_len = self._cfg.collect.unroll_len
         if self._traj_len == 'inf':
             self._traj_len = float('inf')
         # v_trace need v_t+1
@@ -157,7 +163,7 @@ class IMPALAPolicy(CommonPolicy):
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
         self._collect_setting_set = {}
-        self._adder = Adder(self._use_cuda, self._unroll_len)
+        self._adder = Adder(self._use_cuda, self._collect_unroll_len)
 
     def _forward_collect(self, data_id: List[int], data: dict) -> dict:
         r"""

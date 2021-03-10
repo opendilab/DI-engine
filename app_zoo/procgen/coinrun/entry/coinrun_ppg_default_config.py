@@ -1,51 +1,59 @@
 from easydict import EasyDict
 
-cartpole_impala_default_config = dict(
+traj_len = 6
+coinrun_ppg_default_config = dict(
     env=dict(
-        env_manager_type='base',
-        import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
-        env_type='cartpole',
-        actor_env_num=8,
-        evaluator_env_num=5,
+        env_manager_type='subprocess',
+        import_names=['app_zoo.procgen.coinrun.envs.coinrun_env'],
+        env_type='coinrun',
+        # frame_stack=4,
+        is_train=True,
+        actor_env_num=16,
+        evaluator_env_num=8,
     ),
     policy=dict(
         use_cuda=False,
-        policy_type='impala',
-        import_names=['nervex.policy.impala'],
+        policy_type='ppg',
+        import_names=['nervex.policy.ppg'],
         on_policy=False,
         model=dict(
-            obs_dim=4,
-            action_dim=2,
+            model_type='conv_ppg',
+            import_names=['nervex.model.ppg'],
+            obs_dim=[3, 64, 64],
+            action_dim=1,
             embedding_dim=64,
         ),
         learn=dict(
             train_step=5,
-            batch_size=32,
+            batch_size=64,
             learning_rate=0.001,
             weight_decay=0.0001,
-            init_data_count=600,
-            unroll_len=64,
             algo=dict(
                 value_weight=0.5,
                 entropy_weight=0.01,
-                discount_factor=0.9,
-                lambda_=0.95,
-                rho_clip_ratio=1.0,
-                c_clip_ratio=1.0,
-                rho_pg_clip_ratio=1.0,
+                clip_ratio=0.2,
+                epochs_aux=6,
+                beta_weight=1,
             ),
-            ignore_done=True,
         ),
         collect=dict(
-            traj_len='inf',
-            unroll_len=64,
-            algo=dict(discount_factor=0.9, ),
+            traj_len=traj_len,
+            unroll_len=1,
+            algo=dict(
+                discount_factor=0.9,
+                gae_lambda=0.95,
+            ),
         ),
         command=dict(),
     ),
     replay_buffer=dict(
-        buffer_name=['agent'],
-        agent=dict(
+        buffer_name=['policy', 'value'],
+        policy=dict(
+            meta_maxlen=1000,
+            max_reuse=100,
+            min_sample_ratio=1,
+        ),
+        value=dict(
             meta_maxlen=1000,
             max_reuse=100,
             min_sample_ratio=1,
@@ -53,7 +61,7 @@ cartpole_impala_default_config = dict(
     ),
     actor=dict(
         n_sample=16,
-        traj_len=200,  # cartpole max episode len
+        traj_len=traj_len,
         traj_print_freq=100,
         collect_print_freq=100,
     ),
@@ -76,5 +84,5 @@ cartpole_impala_default_config = dict(
     ),
     commander=dict(),
 )
-cartpole_impala_default_config = EasyDict(cartpole_impala_default_config)
-main_config = cartpole_impala_default_config
+coinrun_ppg_default_config = EasyDict(coinrun_ppg_default_config)
+main_config = coinrun_ppg_default_config

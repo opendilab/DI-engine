@@ -54,7 +54,7 @@ class TestATOCNets:
         optimizer_att = torch.optim.SGD(model._actor._attention.parameters(), 0.1)
 
         obs = torch.randn(B, A, obs_dim)
-        inputs = {'obs':obs}
+        inputs = {'obs': obs}
         inputs = model(inputs, mode='compute_action', get_delta_q=True)
         attention_loss = model(inputs, mode='optimize_actor_attention')
         optimizer_att.zero_grad()
@@ -72,4 +72,3 @@ class TestATOCNets:
 
         loss.backward()
         optimizer_act.step()
-        

@@ -1,3 +1,20 @@
+2021.3.5(v0.1.1b0)
+ - PPG算法实现
+ - ATOC Policy实现
+ - 支持procgen环境
+ - 支持五子棋环境
+ - 支持POMDP Atari环境
+ - 适配SUMO环境相关policy
+ - 提供HPL_RL库+相应文档
+ - 重构replay buffer多buffer相关接口
+ - 重构priority相关操作（由learner->policy中实现）
+ - 修复atari环境中随机种子问题
+ - 修复并行训练中learner数据聚合相关bug
+ - 文档Algorithm Overview，提供基础benchmark
+ - 文档Interaction Overview
+ - 文档Loader Overview
+ - 若干细节优化
+
 2021.2.1(v0.1.0b2)
  - 文档补充 (env_manager, dataloader, learner, policy, adder)
  - dataloader speed test

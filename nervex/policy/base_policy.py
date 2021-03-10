@@ -10,8 +10,10 @@ from nervex.utils import import_module, allreduce, broadcast, get_rank
 
 class Policy(ABC):
     learn_function = namedtuple(
-        'learn_function',
-        ['data_preprocess', 'forward', 'reset', 'info', 'state_dict_handle', 'set_setting', 'monitor_vars']
+        'learn_function', [
+            'data_preprocess', 'forward', 'reset', 'info', 'state_dict_handle', 'set_setting', 'monitor_vars',
+            'get_attribute'
+        ]
     )
     collect_function = namedtuple(
         'collect_function', [
@@ -36,6 +38,7 @@ class Policy(ABC):
         self._use_cuda = cfg.use_cuda and torch.cuda.is_available()
         self._use_distributed = cfg.get('use_distributed', False)
         self._rank = get_rank() if self._use_distributed else 0
+        self._device = 'cuda:{}'.format(self._rank % 8) if self._use_cuda else 'cpu'
         if self._use_cuda:
             torch.cuda.set_device(self._rank)
             model.cuda()
@@ -104,6 +107,7 @@ class Policy(ABC):
             self.state_dict_handle,
             self.set_setting,
             self._monitor_vars_learn,
+            self.get_attribute,
         )
 
     @property
@@ -142,6 +146,16 @@ class Policy(ABC):
             assert k in getattr(self, '_' + mode_name + '_setting_set')
             setattr(self, '_' + k, v)
 
+    def get_attribute(self, name: str) -> Any:
+        attributes = ['batch_size', 'use_cuda', 'device']
+        assert name in attributes, 'attr<{}> not in {}'.format(name, attributes)
+        if hasattr(self, '_get_' + name):
+            return getattr(self, '_get_' + name)()
+        elif hasattr(self, '_' + name):
+            return getattr(self, '_' + name)
+        else:
+            raise NotImplementedError
+
     def __repr__(self) -> str:
         return "nerveX DRL Policy\n{}".format(repr(self._model))
 
@@ -165,7 +179,7 @@ class Policy(ABC):
 
     # *************************************** learn function ************************************
     @abstractmethod
-    def _data_preprocess_learn(self, data: List[Any]) -> dict:
+    def _data_preprocess_learn(self, data: List[Any]) -> Tuple[dict, dict]:
         raise NotImplementedError
 
     @abstractmethod
@@ -175,6 +189,9 @@ class Policy(ABC):
     @abstractmethod
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
         raise NotImplementedError
+
+    def _get_batch_size(self) -> Union[int, Dict[str, int]]:
+        return self._cfg.learn.batch_size
 
     # *************************************** collect function ************************************
 
