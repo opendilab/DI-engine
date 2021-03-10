@@ -5,7 +5,6 @@ import queue
 import torch
 import torch.nn as nn
 
-from nervex.torch_utils import get_lstm
 from nervex.utils import squeeze
 from ..common import QActorCriticBase, register_model
 
@@ -93,7 +92,6 @@ class ATOCCommunicationNet(nn.Module):
         self._thought_dim = thought_dim
         self._comm_hidden_size = thought_dim // 2
         self._bi_lstm = nn.LSTM(self._thought_dim, self._comm_hidden_size, bidirectional=True)
-        self._bi_lstm.flatten_parameters()
 
     def forward(self, data: Union[Dict, torch.Tensor]):
         r"""
@@ -106,6 +104,7 @@ class ATOCCommunicationNet(nn.Module):
             - data['thoughts']: :math:`(M, B, N)`, M is the num of thoughts to integrate,\
                 B is batch_size and N is thought dim
         """
+        self._bi_lstm.flatten_parameters()
         x = data
         if isinstance(data, Dict):
             x = data['thoughts']
