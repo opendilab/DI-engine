@@ -45,10 +45,6 @@ def serial_pipeline(
     # Usually, user-defined env must be registered in nervex so that it can be created with config string;
     # Or you can also directly pass in env_fn argument, in some dynamic env class cases.
     manager_cfg = cfg.env.get('manager', {})
-    print('max epoch is:', cfg.max_epoch)
-    print(cfg.use_cuda)
-    cfg.use_cuda = True
-    # k = cfg.learner.use_cuda
     if env_setting is None:
         env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     else:
@@ -74,7 +70,6 @@ def serial_pipeline(
     actor = BaseSerialActor(cfg.actor)
     evaluator = BaseSerialEvaluator(cfg.evaluator)
     replay_buffer = BufferManager(cfg.replay_buffer)
-    # 这个commander是什么意思呢？
     commander = BaseSerialCommander(cfg.commander, learner, actor, evaluator, replay_buffer)
     # Set corresponding env and policy mode.
     # 这里需要做一定的更改，在IRL方法中，我们需要做的就是对actor_env需要传递一个奖励评估模型
@@ -117,7 +112,7 @@ def serial_pipeline(
             eval_interval = 0
             # train_iter 可以设置一个阈值
             if (stop_flag and learner.train_iter > 0):
-                # Evaluator's mean episode reward reaches the expected ``stop_val``. 学习成功了
+                # Evaluator's mean episode reward reaches the expected ``stop_val``
                 print(
                     "[nerveX serial pipeline] Your RL agent is converged, you can refer to " +
                     "'log/evaluator/evaluator_logger.txt' for details"
