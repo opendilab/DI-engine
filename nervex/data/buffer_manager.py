@@ -76,7 +76,7 @@ class BufferManager:
             - data (:obj:`list` or `dict`): Data list or data item (dict type).
             - buffer_name (:obj:`str`): The buffer to push data into, default set to "agent".
         """
-        assert (isinstance(data, list) or isinstance(data, dict))
+        assert (isinstance(data, list) or isinstance(data, dict)), type(data)
         if isinstance(data, dict):
             data = [data]
         if self.use_cache:
