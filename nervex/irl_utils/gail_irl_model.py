@@ -16,7 +16,7 @@ class DFN(nn.Module):
         self.a1 = nn.Tanh()
         self.a2 = nn.Sigmoid()
 
-    def forward(self, x) -> torch.Tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         out = x
         out = self.l1(out)
         out = self.a1(out)
@@ -30,88 +30,73 @@ class GailRewardModel(BaseRewardModel):
     def __init__(self, config: dict) -> None:
         super(GailRewardModel, self).__init__()
         self.config = config
+        self.device = 'cpu'
         self.reward_model = DFN(config['input_dims'], config['hidden_dims'], 1)
-        self.reward_model.to(config['device'])
+        self.reward_model.to(self.device)
         self.expert_data = []
         self.train_data = []
         self.expert_data_loader = None
         self.opt = optim.Adam(self.reward_model.parameters())
-        random.seed(0)
 
-    def load_expert_data(self):
+    def load_expert_data(self) -> None:
         with open(self.config['expert_data_path'], 'rb') as f:
             self.expert_data_loader: list = pickle.load(f)
             print("the data size is:", len(self.expert_data_loader))
 
-    def start(self):
+    def start(self) -> None:
         self.load_expert_data()
-        # make data process
+        # make data preprocess
         # concat state and action
         res = []
         for item in self.expert_data_loader:
-            state: np.ndarray = item[0]
-            action = item[1]
-            if isinstance(action, np.ndarray):
-                s_a = np.concatenate([state, action])
-            else:
-                s_list = state.tolist()
-                s_list.append(action)
-                s_a = np.array(s_list)
+            state = item['obs']
+            action = item['action']
+            s_a = torch.cat([state, action.float()], dim=-1)
             res.append(s_a)
         self.expert_data = res
 
-    def _train(self, train_data, expert_data) -> None:
-        # calcute loss
-        # here are some hyper
+    def _train(self, train_data: torch.Tensor, expert_data: torch.Tensor) -> None:
+        # calculte loss, here are some hyper-param
         out_1: torch.Tensor = self.reward_model(train_data)
         loss_1: torch.Tensor = torch.log(out_1 + 1e-5).mean()
         out_2: torch.Tensor = self.reward_model(expert_data)
         loss_2: torch.Tensor = torch.log(1 - out_2 + 1e-5).mean()
         loss: torch.Tensor = loss_1 + loss_2
+
         self.opt.zero_grad()
         loss.backward()
         self.opt.step()
-        print('gail loss item is:', loss.item())
 
-    def train(self):
-        for _ in range(self.config['train_epoches']):
+    def train(self) -> None:
+        for _ in range(self.config['train_iterations']):
             sample_expert_data: list = random.sample(self.expert_data, self.config['batch_size'])
             sample_train_data: list = random.sample(self.train_data, self.config['batch_size'])
-            # make them to tensor
-            sample_expert_tensor: torch.Tensor = torch.tensor(
-                sample_expert_data, dtype=torch.float32, requires_grad=False
-            )
-            sample_expert_tensor: torch.Tensor = sample_expert_tensor.to(self.config['device'])
-            sample_train_tensor = torch.tensor(sample_train_data, dtype=torch.float32, requires_grad=False)
-            sample_train_tensor: torch.Tensor = sample_train_tensor.to(self.config['device'])
-            self._train(sample_train_tensor, sample_expert_tensor)
+            sample_expert_data = torch.stack(sample_expert_data).to(self.device)
+            sample_train_data = torch.stack(sample_train_data).to(self.device)
+            self._train(sample_train_data, sample_expert_data)
 
-    def estimate(self, s, a):
-        # s, a 处理的问问题，以及device的问题这些都要后期加吧, 这里还有并行化的问题，到时再讨论吧，把代码改好一点的工作交给别人， 还是我自己来做？？
-        # 这里可以做一个并行化的运算
-        s_list: list = s.tolist()
-        if isinstance(a, np.ndarray):
-            a_list: list = a.tolist()
-            s_list.extend(a_list)
-            s_a = s_list
-        else:
-            s_list.append(a)
-            s_a = s_list
-        s_a_tensor = torch.tensor([s_a], dtype=torch.float32)
-        s_a_tensor = s_a_tensor.to(self.config['device'])
-        return self.reward_model(s_a_tensor)[0].item()
+    def estimate(self, data: list) -> None:
+        res = []
+        for item in data:
+            state = item['obs']
+            action = item['action']
+            s_a = torch.cat([state, action.float()], dim=-1)
+            res.append(s_a)
+        res = torch.stack(res).to(self.device)
+        with torch.no_grad():
+            reward = self.reward_model(res).squeeze(-1).cpu()
+        reward = torch.chunk(reward, reward.shape[0], dim=0)
+        for item, rew in zip(data, reward):
+            item['reward'] = rew
 
-    def collect_data(self, item):
-        # item need to process
-        state = item[0]
-        action = item[1]
-        if isinstance(action, np.ndarray):
-            s_a = np.concatenate([state, action])
-        else:
-            s_list = state.tolist()
-            s_list.append(action)
-            s_a = np.array(s_list)
-        self.train_data.append(s_a)
+    def collect_data(self, data: list) -> None:
+        res = []
+        for item in data:
+            state = item['obs']
+            action = item['action']
+            s_a = torch.cat([state, action.float()], dim=-1)
+            res.append(s_a)
+        self.train_data.extend(res)
 
-    def clear_data(self):
+    def clear_data(self) -> None:
         self.train_data.clear()

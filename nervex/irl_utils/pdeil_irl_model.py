@@ -26,6 +26,7 @@ class PdeilRewardModel(BaseRewardModel):
         self.p_sigma_s = None
         self.expert_data = None
         self.train_data: list = []
+        # pedil default use cpu device
         self.device = 'cpu'
 
     def load_expert_data(self) -> None:
@@ -40,8 +41,8 @@ class PdeilRewardModel(BaseRewardModel):
         for item in self.expert_data:
             states.append(item['obs'])
             actions.append(item['action'])
-        states: torch.Tensor = torch.stack(states, dim=0).to(self.device)
-        actions: torch.Tensor = torch.stack(actions, dim=0).to(self.device)
+        states: torch.Tensor = torch.stack(states, dim=0)
+        actions: torch.Tensor = torch.stack(actions, dim=0)
         self.e_u_s: torch.Tensor = torch.mean(states, axis=0)
         self.e_sigma_s: torch.Tensor = cov(states, rowvar=False)
         if self.config['discrete_action'] and SVC is not None:
@@ -78,12 +79,12 @@ class PdeilRewardModel(BaseRewardModel):
                 item['reward'].zero_()
         else:
             rho_1 = self._batch_mn_pdf(s.cpu().numpy(), self.e_u_s.cpu().numpy(), self.e_sigma_s.cpu().numpy())
-            rho_1 = torch.from_numpy(rho_1).to(self.device)
+            rho_1 = torch.from_numpy(rho_1)
             rho_2 = self._batch_mn_pdf(s.cpu().numpy(), self.p_u_s.cpu().numpy(), self.p_sigma_s.cpu().numpy())
-            rho_2 = torch.from_numpy(rho_2).to(self.device)
+            rho_2 = torch.from_numpy(rho_2)
             if self.config['discrete_action']:
                 rho_3 = self.svm.predict_proba(s.cpu().numpy())[a.cpu().numpy()]
-                rho_3 = torch.from_numpy(rho_3).to(self.device).float()
+                rho_3 = torch.from_numpy(rho_3)
             else:
                 s_a = torch.cat([s, a.float()], dim=-1)
                 rho_3 = self._batch_mn_pdf(
@@ -91,7 +92,7 @@ class PdeilRewardModel(BaseRewardModel):
                     self.e_u_s_a.cpu().numpy(),
                     self.e_sigma_s_a.cpu().numpy()
                 )
-                rho_3 = torch.from_numpy(rho_3).to(self.device)
+                rho_3 = torch.from_numpy(rho_3)
                 rho_3 = rho_3 / rho_1
             alpha = self.config['alpha']
             beta = 1 - alpha

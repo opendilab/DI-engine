@@ -4,8 +4,15 @@ from app_zoo.classic_control.cartpole.entry import cartpole_ppo_default_config, 
 from nervex.entry import serial_pipeline_irl, collect_demo_data, serial_pipeline
 
 
+cfg = [
+    {'type': 'pdeil', "alpha": 0.5, "expert_data_path": expert_data_path, "discrete_action": False}
+    # {'type': 'gail', 'input_dims': 5, 'hidden_dims': 64, 'batch_size': 64, 'train_iterations': 100},
+]
+
+
 @pytest.mark.unittest
-def test_pdeil():
+@pytest.mark.parametrize('irl_config', cfg)
+def test_pdeil(irl_config):
     # train expert policy
     config = deepcopy(cartpole_ppo_default_config)
     expert_policy = serial_pipeline(config, seed=0)
@@ -20,5 +27,8 @@ def test_pdeil():
     # irl + rl training
     config = deepcopy(cartpole_dqn_default_config)
     config.policy.learn.init_data_count = 10000
-    config.irl = {'type': 'pdeil', "alpha": 0.5, "expert_data_path": expert_data_path, "discrete_action": False}
+    irl_config['expert_data_path'] = expert_data_path
+    config.irl = irl_config
+    if irl_config['type'] == 'gail':
+        config.actor.n_sample = irl_config['batch_size']
     serial_pipeline_irl(config, seed=0)
