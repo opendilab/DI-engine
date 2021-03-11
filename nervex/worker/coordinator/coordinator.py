@@ -166,7 +166,7 @@ class Coordinator(object):
                         if buffer_id not in self._replay_buffer:
                             replay_buffer_cfg = learner_task.pop('replay_buffer_cfg', {})
                             self._replay_buffer[buffer_id] = BufferManager(replay_buffer_cfg)
-                            self._replay_buffer[buffer_id].run()
+                            self._replay_buffer[buffer_id].start()
                             self.info("replay_buffer({}) is created".format(buffer_id))
                         self.info("learner_task({}) is successful to be assigned".format(learner_task['task_id']))
                         break
@@ -281,7 +281,7 @@ class Coordinator(object):
         if buffer_id not in self._replay_buffer:
             self.error("actor task({}) data({}) doesn't have proper buffer_id({})".format(task_id, data_id, buffer_id))
             return
-        self._replay_buffer[buffer_id].push_data(data)
+        self._replay_buffer[buffer_id].push(data)
         self.info('actor task({}) send data({})'.format(task_id, data_id))
 
     def deal_with_actor_judge_finish(self, task_id: str, data: dict) -> bool:

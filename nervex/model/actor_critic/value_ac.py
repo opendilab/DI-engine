@@ -9,9 +9,10 @@ from ..common import ValueActorCriticBase, ConvEncoder, FCEncoder, register_mode
 class ValueAC(ValueActorCriticBase):
     r"""
     Overview:
-        Actor-Critic model. Critic part outputs value of current state, and that is why it is called "ValueAC"
-        Actor part outputs n-dim q value of discrete actions.
-        It is the model which is adopted in A2C.
+        Actor-Critic model. Critic part outputs value of current state,
+        and that is why it is called "ValueAC", which is in comparison with "QAC".
+        Actor part outputs n-dim probability of selecting corresponding discrete action.
+        It is the model adopted in A2C.
     Interface:
         __init__, forward, set_seed, compute_action_value, compute_action
     """

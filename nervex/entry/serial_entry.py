@@ -81,6 +81,7 @@ def serial_pipeline(
     # ==========
     # Main loop
     # ==========
+    replay_buffer.start()
     # Max evaluation reward from beginning till now.
     max_eval_reward = float("-inf")
     # Evaluate interval. Will be set to 0 after one evaluation.
@@ -126,7 +127,7 @@ def serial_pipeline(
         while True:
             # Actor keeps generating data until replay buffer has enough to sample one batch.
             new_data, collect_info = actor.generate_data(learner.train_iter)
-            replay_buffer.push_data(new_data)
+            replay_buffer.push(new_data)
             target_count = init_data_count if learner.train_iter == 0 else enough_data_count
             if replay_buffer.count() >= target_count:
                 break
@@ -134,7 +135,7 @@ def serial_pipeline(
         for i in range(learner_train_step):
             # Learner will train ``train_step`` times in one iteration.
             # But if replay buffer does not have enough data, program will break and warn.
-            train_data = replay_buffer.sample(learner.policy.get_batch_size(), learner.train_iter)
+            train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
             if train_data is None:
                 # As noted above: It is possible that replay buffer's data count is
                 # greater than ``target_count```, but still has no enough data to train ``train_step`` times.

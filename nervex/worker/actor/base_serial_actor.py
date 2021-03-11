@@ -35,7 +35,11 @@ class BaseSerialActor(object):
             self._traj_cache_length = None
         self._traj_print_freq = cfg.traj_print_freq
         self._collect_print_freq = cfg.collect_print_freq
-        self._logger, _ = build_logger(path='./log/actor', name='collect', need_tb=False)
+        self._logger, self._tb_logger = build_logger(path='./log/actor', name='collect', need_tb=True)
+        for var in ['episode_count', 'step_count', 'train_sample_count', 'avg_step_per_episode',
+                    'avg_sample_per_epsiode', 'avg_time_per_step', 'avg_time_per_train_sample', 'avg_time_per_episode',
+                    'reward_mean', 'reward_std']:
+            self._tb_logger.register_var('actor/' + var)
         self._timer = EasyTimer()
         self._cfg = cfg
 
@@ -186,7 +190,7 @@ class BaseSerialActor(object):
                     step_count += 1
                     self._total_step_count += 1
         duration = self._timer.value
-        if (self._total_collect_step_count + 1) % self._collect_print_freq == 0:
+        if (self._total_collect_step_count) % self._collect_print_freq == 0:
             info = {
                 'episode_count': episode_count,
                 'step_count': step_count,
@@ -201,6 +205,8 @@ class BaseSerialActor(object):
                 'each_reward': episode_reward,
             }
             self._logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
+            tb_vars = [['actor/' + k, v, iter_count] for k, v in info.items() if k not in ['each_reward']]
+            self._tb_logger.add_val_list(tb_vars, viz_type='scalar')
         self._total_collect_step_count += 1
         self._total_duration += duration
         collect_info = {

@@ -8,4 +8,4 @@ BufferManager
 ~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: nervex.data.buffer_manager.BufferManager
-    :members: __init__, push_data, sample, update, run, close
+    :members: __init__, push, sample, update, start, close, clear, count

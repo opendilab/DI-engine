@@ -15,6 +15,7 @@ from nervex.policy.base_policy import Policy, register_policy
 from nervex.policy.common_policy import CommonPolicy
 from torch.distributions.categorical import Categorical
 
+
 class SQNModel(torch.nn.Module):
 
     def __init__(self, *args, **kwargs) -> None:

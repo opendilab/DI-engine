@@ -38,7 +38,6 @@ class A2CPolicy(CommonPolicy):
 
         # Main and target armors
         self._armor = Armor(self._model)
-        self._armor.add_plugin('main', 'grad', enable_grad=True)
         self._armor.mode(train=True)
         self._armor.reset()
         self._learn_setting_set = {}
@@ -60,18 +59,16 @@ class A2CPolicy(CommonPolicy):
             # norm adv in total train_batch
             adv = (adv - adv.mean()) / (adv.std() + 1e-8)
 
-        if self._learn_use_nstep_return:
-            # use nstep return
-            next_value = self._armor.forward(data['next_obs'], param={'mode': 'compute_action_value'})['value']
-            reward = data['reward'].permute(1, 0).contiguous()
-            nstep_data = nstep_return_data(reward, next_value, data['done'])
-            return_ = nstep_return(nstep_data, self._learn_gamma, self._learn_nstep).detach()
-        else:
-            # Return = value + adv
-            return_ = data['value'] + adv
-
-        # return = value + adv
-        return_ = data['value'] + adv
+        with torch.no_grad():
+            if self._learn_use_nstep_return:
+                # use nstep return
+                next_value = self._armor.forward(data['next_obs'], param={'mode': 'compute_action_value'})['value']
+                reward = data['reward'].permute(1, 0).contiguous()
+                nstep_data = nstep_return_data(reward, next_value, data['done'])
+                return_ = nstep_return(nstep_data, self._learn_gamma, self._learn_nstep).detach()
+            else:
+                # Return = value + adv
+                return_ = data['value'] + adv
         data = a2c_data(output['logit'], data['action'], output['value'], adv, return_, data['weight'])
 
         # Calculate A2C loss
@@ -119,7 +116,6 @@ class A2CPolicy(CommonPolicy):
         assert self._traj_len > 1, "a2c traj len should be greater than 1"
         self._collect_armor = Armor(self._model)
         self._collect_armor.add_plugin('main', 'multinomial_sample')
-        self._collect_armor.add_plugin('main', 'grad', enable_grad=False)
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
         self._collect_setting_set = {}
@@ -140,7 +136,9 @@ class A2CPolicy(CommonPolicy):
         Returns:
             - data (:obj:`dict`): The collected data
         """
-        return self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
+        with torch.no_grad():
+            output = self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
+        return output
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         r"""
@@ -194,7 +192,6 @@ class A2CPolicy(CommonPolicy):
 
         self._eval_armor = Armor(self._model)
         self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.add_plugin('main', 'grad', enable_grad=False)
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
         self._eval_setting_set = {}
@@ -209,7 +206,9 @@ class A2CPolicy(CommonPolicy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        return self._eval_armor.forward(data, param={'mode': 'compute_action'})
+        with torch.no_grad():
+            output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
+        return output
 
     def _init_command(self) -> None:
         pass

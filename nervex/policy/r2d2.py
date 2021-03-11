@@ -48,8 +48,6 @@ class R2D2Policy(CommonPolicy):
         self._armor.add_plugin('main', 'hidden_state', state_num=self._cfg.learn.batch_size)
         self._armor.add_plugin('target', 'hidden_state', state_num=self._cfg.learn.batch_size)
         self._armor.add_plugin('main', 'argmax_sample')
-        self._armor.add_plugin('main', 'grad', enable_grad=True)
-        self._armor.add_plugin('target', 'grad', enable_grad=False)
         self._armor.mode(train=True)
         self._armor.target_mode(train=True)
         self._learn_setting_set = {}
@@ -74,7 +72,7 @@ class R2D2Policy(CommonPolicy):
         # data preprocess
         data = timestep_collate(data)
         if self._use_cuda:
-            data = to_device(data, 'cuda')
+            data = to_device(data, self._device)
         assert len(data['obs']) == 2 * self._nstep + self._burnin_step, data['obs'].shape  # todo: why 2*a+b
         bs = self._burnin_step
         data['weight'] = data.get('weight', [None for _ in range(self._nstep)])
@@ -117,8 +115,9 @@ class R2D2Policy(CommonPolicy):
         inputs = {'obs': data['main_obs'], 'enable_fast_timestep': True}
         q_value = self._armor.forward(inputs)['logit']
         next_inputs = {'obs': data['target_obs'], 'enable_fast_timestep': True}
-        target_q_value = self._armor.target_forward(next_inputs)['logit']
-        target_q_action = self._armor.forward(next_inputs)['action']
+        with torch.no_grad():
+            target_q_value = self._armor.target_forward(next_inputs)['logit']
+            target_q_action = self._armor.forward(next_inputs)['action']
 
         action, reward, done, weight = data['action'], data['reward'], data['done'], data['weight']
         # T, B, nstep -> T, nstep, B
@@ -169,7 +168,6 @@ class R2D2Policy(CommonPolicy):
             'main', 'hidden_state', state_num=self._cfg.collect.env_num, save_prev_state=True
         )
         self._collect_armor.add_plugin('main', 'eps_greedy_sample')
-        self._collect_armor.add_plugin('main', 'grad', enable_grad=False)
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
         self._collect_setting_set = {'eps'}
@@ -186,7 +184,9 @@ class R2D2Policy(CommonPolicy):
         Returns:
             - data (:obj:`dict`): The collected data
         """
-        return self._collect_armor.forward(data, data_id=data_id, eps=self._eps)
+        with torch.no_grad():
+            output = self._collect_armor.forward(data, data_id=data_id, eps=self._eps)
+        return output
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         r"""
@@ -233,7 +233,6 @@ class R2D2Policy(CommonPolicy):
         self._eval_armor = Armor(self._model)
         self._eval_armor.add_plugin('main', 'hidden_state', state_num=self._cfg.eval.env_num)
         self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.add_plugin('main', 'grad', enable_grad=False)
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
         self._eval_setting_set = {}
@@ -250,7 +249,9 @@ class R2D2Policy(CommonPolicy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        return self._eval_armor.forward(data, data_id=data_id)
+        with torch.no_grad():
+            output = self._eval_armor.forward(data, data_id=data_id)
+        return output
 
     def _init_command(self) -> None:
         r"""
