@@ -5,8 +5,8 @@ from nervex.entry import serial_pipeline_irl, collect_demo_data, serial_pipeline
 
 
 cfg = [
-    {'type': 'pdeil', "alpha": 0.5, "expert_data_path": expert_data_path, "discrete_action": False}
-    # {'type': 'gail', 'input_dims': 5, 'hidden_dims': 64, 'batch_size': 64, 'train_iterations': 100},
+    {'type': 'pdeil', "alpha": 0.5, "discrete_action": False},
+    {'type': 'gail', 'input_dims': 5, 'hidden_dims': 64, 'batch_size': 64, 'train_iterations': 100},
 ]
 
 

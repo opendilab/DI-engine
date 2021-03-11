@@ -73,6 +73,7 @@ def serial_pipeline_irl(
     replay_buffer = BufferManager(cfg.replay_buffer)
     commander = BaseSerialCommander(cfg.commander, learner, actor, evaluator, replay_buffer)
     reward_model = create_irl_model(cfg.irl)
+    # TODO(nyz) set reward_model device by policy device
     reward_model.start()
     # Set corresponding env and policy mode.
     actor.env = actor_env

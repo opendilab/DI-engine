@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from typing import List
-import numpy as np
 
 
 class BaseRewardModel(ABC):
@@ -21,7 +20,15 @@ class BaseRewardModel(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def start(self) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
     def collect_data(self, data) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def clear_data(self) -> None:
         raise NotImplementedError
 
 
