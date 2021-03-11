@@ -1,5 +1,5 @@
 import pytest
-import torch
+import numpy as np
 import pprint
 
 try:
@@ -12,7 +12,7 @@ except ModuleNotFoundError:
 class TestGfootballEnv:
 
     def get_random_action(self, min_value, max_value):
-        action = torch.randint(min_value, max_value + 1, (1, ))
+        action = np.random.randint(min_value, max_value + 1, (1, ))
         return action
 
     def test_naive(self):

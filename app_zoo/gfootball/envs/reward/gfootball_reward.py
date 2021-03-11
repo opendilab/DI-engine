@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-import torch
+import numpy as np
 
 from nervex.envs.common import EnvElement
 
@@ -22,7 +22,7 @@ class GfootballReward(EnvElement):
                 'value': {
                     'min': -1.0,
                     'max': 1.0,
-                    'dtype': torch.FloatTensor,
+                    'dtype': float,
                     'dinfo': 'float value',
                 },
                 'env_value': 'reward of action',
@@ -35,12 +35,12 @@ class GfootballReward(EnvElement):
         self._value = {
             'min': -1.0,
             'max': 1.0,
-            'dtype': torch.FloatTensor,
+            'dtype': float,
             'dinfo': 'float value',
         }
 
-    def _to_agent_processor(self, reward: float) -> torch.tensor:
-        return torch.FloatTensor([reward])
+    def _to_agent_processor(self, reward: float) -> np.array:
+        return np.array([reward], dtype=float)
 
     def _from_agent_processor(self, reward: float) -> float:
         return reward

@@ -4,7 +4,7 @@ import gfootball.env as football_env
 from collections import namedtuple
 from typing import List, Any
 
-import torch
+import numpy as np
 from nervex.envs.env.base_env import BaseEnv
 from .action.gfootball_action_runner import GfootballRawActionRunner
 from .obs.gfootball_obs_runner import GfootballObsRunner
@@ -37,7 +37,7 @@ class GfootballEnv(BaseEnv):
         )
         self._launch_env_flag = True
 
-    def step(self, action: torch.tensor) -> 'GfootballEnv.timestep':
+    def step(self, action: np.array) -> 'GfootballEnv.timestep':
         assert self._launch_env_flag
         self.agent_action = action
         action = action.item()
