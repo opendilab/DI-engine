@@ -127,7 +127,8 @@ class Encoder(nn.Module):
         assert encoder_type in ['fc', 'conv2d'], encoder_type
         if encoder_type == 'fc':
             input_dim = squeeze(obs_dim)
-            hidden_dim_list = [128, 128] + [embedding_dim]
+            hidden_dim_list = [512,] + [embedding_dim]
+            # hidden_dim_list = [embedding_dim, ]
             layers = []
             for dim in hidden_dim_list:
                 layers.append(nn.Linear(input_dim, dim))
@@ -252,7 +253,7 @@ FCDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'fc'},
     lstm_kwargs={'lstm_type': 'none'},
-    head_kwargs={'dueling': True}
+    head_kwargs={'dueling': False}
 )
 register_model('fc_discrete_net', FCDiscreteNet)
 NoiseDistributionFCDiscreteNet = partial(

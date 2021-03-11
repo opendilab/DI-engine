@@ -9,7 +9,7 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.nn.init import xavier_normal_, kaiming_normal_, orthogonal_
+from torch.nn.init import xavier_normal_, kaiming_normal_, orthogonal_, kaiming_uniform_
 
 from .normalization import build_normalization
 from typing import Union, Tuple
@@ -22,7 +22,7 @@ def weight_init_(weight, init_type="xavier", activation=None):
 
     Arguments:
         - weight (:obj:`tensor`): the weight that needed to init
-        - init_type (:obj:`str`): the type of init to implement, include ["xavier", "kaiming", "orthogonal"]
+        - init_type (:obj:`str`): the type of init to implement, include ["xavier", "kaiming", "orthogonal", "kaiming_uniform_init"]
         - activation (:obj:`str`): the non-linear function (`nn.functional` name), recommended to use only with
                                    ``'relu'`` or ``'leaky_relu'``.
     """
@@ -37,13 +37,16 @@ def weight_init_(weight, init_type="xavier", activation=None):
         else:
             kaiming_normal_(weight, a=0)
 
+    def kaiming_uniform_init(weight, *args):
+        kaiming_uniform_(weight, a=math.sqrt(5))
+
     def orthogonal_init(weight, *args):
         orthogonal_(weight)
 
     if init_type is None:
         return
 
-    init_type_dict = {"xavier": xavier_init, "kaiming": kaiming_init, "orthogonal": orthogonal_init}
+    init_type_dict = {"xavier": xavier_init, "kaiming": kaiming_init, "orthogonal": orthogonal_init, "kaiming_uniform_init": kaiming_uniform_init}
     if init_type in init_type_dict:
         init_type_dict[init_type](weight, activation)
     else:
@@ -235,7 +238,8 @@ def deconv2d_block(
 def fc_block(
     in_channels,
     out_channels,
-    init_type="xavier",
+    init_type="kaiming_uniform_init",
+    # init_type="xavier",
     activation=None,
     norm_type=None,
     use_dropout=False,
@@ -262,7 +266,7 @@ def fc_block(
     """
     block = []
     block.append(nn.Linear(in_channels, out_channels))
-    weight_init_(block[-1].weight, init_type, activation)
+    # weight_init_(block[-1].weight, init_type, activation)
     if norm_type is not None:
         block.append(build_normalization(norm_type, dim=1)(out_channels))
     if activation is not None:

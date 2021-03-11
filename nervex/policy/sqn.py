@@ -54,8 +54,8 @@ class SQNPolicy(CommonPolicy):
         algo_cfg = self._cfg.learn.algo
         self._algo_cfg_learn = algo_cfg
         self._gamma = algo_cfg.discount_factor
-        self._action_dim = np.prod(self._cfg.model.action_dim)
-        self._target_entropy = algo_cfg.get('target_entropy', self._cfg.model.action_dim / 10)
+        self._action_dim = self._cfg.model.action_dim
+        self._target_entropy = algo_cfg.get('target_entropy', self._action_dim / 10)
 
         self._log_alpha = torch.FloatTensor([math.log(algo_cfg.alpha)]).to(self._device).requires_grad_(True)
         self._optimizer_alpha = torch.optim.Adam([self._log_alpha], lr=self._cfg.learn.learning_rate_alpha)
@@ -157,7 +157,7 @@ class SQNPolicy(CommonPolicy):
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
         self._collect_armor = Armor(self._model)
-        self._collect_armor.add_plugin('main', 'eps_greedy_sample')
+        # self._collect_armor.add_plugin('main', 'eps_greedy_sample')
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
         self._collect_setting_set = {'eps'}
@@ -173,13 +173,14 @@ class SQNPolicy(CommonPolicy):
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
         # start with random action for better exploration
-        output = self._collect_armor.forward(data, eps=self._eps)
+        output = self._collect_armor.forward(data)
         if self._forward_learn_cnt > self._cfg.command.eps.decay:
             logits = output['logit'] / math.exp(self._log_alpha.item())
             prob = torch.softmax(logits - logits.max(axis=-1, keepdim=True).values, dim=-1)
             pi_action = torch.multinomial(prob, 1)
-            output['action'] = pi_action
-
+        else:
+            pi_action = torch.randint(0, self._action_dim, (output["logit"].shape[0],))
+        output['action'] = pi_action
         return output
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
