@@ -98,8 +98,8 @@ class SQNPolicy(CommonPolicy):
             q_targ = torch.min(q0_targ, q1_targ)
             # discrete policy
             alpha = torch.exp(self._log_alpha.clone())
-            pi = torch.softmax(q_targ / alpha, dim=-1)  # N, B
-            log_pi = torch.log(pi)
+            log_pi = F.log_softmax(q_targ / alpha, dim=-1)
+            pi = torch.exp(log_pi)
             # v = \sum_a \pi(a | s) (Q(s, a) - \alpha \log(\pi(a|s)))
             target_v_value = (pi * (q_targ - alpha * log_pi)).sum(axis=1)
             # q = r + \gamma v
