@@ -55,6 +55,9 @@ class FakePolicy:
         else:
             raise KeyError
 
+    def reset(self):
+        pass
+
 
 @pytest.mark.unittest
 class TestBaseLearner:

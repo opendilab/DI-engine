@@ -9,7 +9,7 @@ from app_zoo.classic_control.cartpole.entry import \
     cartpole_a2c_default_config, cartpole_dqn_default_config, cartpole_dqnvanilla_default_config, \
     cartpole_impala_default_config, cartpole_ppo_default_config, cartpole_ppovanilla_default_config, \
     cartpole_r2d2_default_config, cartpole_rainbowdqn_default_config, cartpole_rainbowdqn_iqn_config, \
-    cartpole_ppg_default_config
+    cartpole_ppg_default_config, cartpole_sqn_default_config
 from app_zoo.classic_control.pendulum.entry import pendulum_ddpg_default_config, pendulum_ppo_default_config, \
     pendulum_sac_auto_alpha_config, pendulum_sac_default_config, pendulum_td3_default_config
 from app_zoo.smac.entry import smac_collaQ_default_config, smac_coma_default_config, smac_qmix_default_config
@@ -318,6 +318,18 @@ def test_atoc_particle():
 def test_ppg():
     config = deepcopy(cartpole_ppg_default_config)
     config.policy.use_cuda = False
+    config.policy.learn.train_step = 1
+    config.evaluator.stop_val = -float("inf")
+    config.evaluator.eval_freq = 1
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
+def test_sqn():
+    config = deepcopy(cartpole_sqn_default_config)
     config.policy.learn.train_step = 1
     config.evaluator.stop_val = -float("inf")
     config.evaluator.eval_freq = 1
