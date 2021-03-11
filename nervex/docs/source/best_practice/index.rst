@@ -90,8 +90,8 @@ Best Practice
 
 .. _header-n21:
 
-2. multi discrete action space
-==============================
+使用 multi discrete action space
+=======================================
 
 1. 环境空间定义
 
@@ -136,7 +136,7 @@ Best Practice
 
 .. _header-n32:
 
-3. RNN适配
+RNN适配
 ==========
 
 1. 隐状态维护
@@ -212,11 +212,101 @@ learner日志中添加变量
 
 .. _header-n74:
 
-5. 定制化优化器
+定制化优化器
 ===============
 
 1. 更换优化器
 
+   ``nerveX`` 框架中 ，由 ``policy`` 类中的 ``_init_learn`` 方法进行优化器的初始化：
+   
+   .. code:: python
+
+      def _init_learn(self) -> None:
+      r"""
+      Overview:
+         Learn mode init method. Called by ``self.__init__``.
+         Init optimizers, algorithm config, main and target armors.
+      """
+      # init optimizer
+      self._optimizer = Adam(
+         self._model.parameters(),
+         lr=self._cfg.learn.learning_rate_actor,
+         weight_decay=self._cfg.learn.weight_decay
+      )
+   
+   如需对优化器进行更换，只需修改对应算法 ``policy`` 类 ``_init_learn`` 方法中的对应代码即可。
+
+   此外，``nerveX`` 框架中对优化器进行了重写，在继承了 ``torch.optim`` 类的前提下实现了一些特定的梯度操作。
+   具体代码可以参考 ``nervex\torch_utils\optimizer_helper.py`` 。 在实际使用时，可以根据需要直接使用 ``torch`` 自带优化器或重写后的优化器。
+
 2. 多个优化器 or hook
 
-3. grad norm/clip
+   某些算法的神经网络可能由多个部分组成，如 ``DDPG`` 算法的网络就由 ``actor`` 和 ``critic`` 两部分构成。 
+   
+   在更新某一部分神经网络的参数时，可能需要另一部分网络的对应输出，但不希望另一部分的网络参数因此更新；如 ``DDPG`` 算法在更新 ``actor`` 部分的网络时loss需要根据 ``critic`` 进行计算，但不希望 ``cirtic`` 的梯度更新。
+
+   此时，我们可以使用多个优化器，分别对神经网络的不同组成部分进行更新，以 ``DDPG`` 算法为例，在 ``_init_learn``  方法中初始化了多个优化器：
+
+   .. code:: python
+
+      def _init_learn(self) -> None:
+      r"""
+      Overview:
+         Learn mode init method. Called by ``self.__init__``.
+         Init actor and critic optimizers, algorithm config, main and target armors.
+      """
+      # actor and critic optimizer
+      self._optimizer_actor = Adam(
+         self._model.actor.parameters(),
+         lr=self._cfg.learn.learning_rate_actor,
+         weight_decay=self._cfg.learn.weight_decay
+      )
+      self._optimizer_critic = Adam(
+         self._model.critic.parameters(),
+         lr=self._cfg.learn.learning_rate_critic,
+         weight_decay=self._cfg.learn.weight_decay
+      )
+      # ...
+
+   
+   在 ``_forward_learn`` 时 ``actor`` 和 ``critic`` 分别根据对应loss和优化器进行更新。
+
+   此外，对 ``torch`` 机制更熟悉的使用者可以使用在神经网络中设定梯度相关的 ``backward_hook`` 的方式对神经网络的不同组成部分进行更新，但此种方式的实现逻辑相对复杂，对使用者的要求更高。
+
+
+3. grad clip/ignore
+   
+   许多算法/论文中，都对某些情况下的梯度进行了裁剪或忽略操作，即 ``grad_clip`` 和 ``grad_ignore`` 操作。
+   这些操作自然可以在 ``_forward_learn`` 方法中调用对应函数完成，如：
+
+   .. code:: python
+
+      from torch.nn.utils import clip_grad_norm
+
+      # ...
+
+      optimizer.zero_grad()
+      loss.backward()
+      clip_grad_norm(model.parameters(), clip_value)
+      optimizer.step()
+   
+   但有些相对复杂的梯度操作需要用到优化器中的梯度相关信息，因此较为方便的实现方式即为在优化器内实现对应的梯度操作。
+   为此，我们在 ``nervex\torch_utils\optimizer_helper.py`` 中根据梯度操作对优化器进行了重写，方便使用。
+   如需在 ``Adam`` 优化器中使用最简单的梯度裁剪时，只需在初始化时对grad_clip操作进行定义：
+
+   .. code:: python
+
+      from nervex.torch_utils.optimizer_helper import Adam
+
+      # ...
+      self._optimizer = Adam(
+         self._model.parameters(),
+         lr=self._cfg.learn.learning_rate_actor,
+         weight_decay=self._cfg.learn.weight_decay,
+         grad_clip_type='clip_value',
+         clip_value=clip_value,
+      )
+   
+   之后在进行 optimizer.step() 操作时会自动对梯度进行裁剪。
+
+   除了简单的按数值进行梯度裁剪/忽略外，重写后的优化器还支持其他梯度操作，具体可以查看源码 ``nervex\torch_utils\optimizer_helper.py`` 或参考 ``nervex\torch_utils\tests\test_optimizer.py`` 测试文件中的使用方式。
