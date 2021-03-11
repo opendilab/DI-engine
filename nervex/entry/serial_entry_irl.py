@@ -13,7 +13,7 @@ from nervex.config import read_config
 from nervex.data import BufferManager
 from nervex.policy import create_policy
 from nervex.envs import get_vec_env_setting
-from nervex.irl_utils import PdeilRewardModel
+from nervex.irl_utils import create_irl_model
 
 
 def serial_pipeline_irl(
@@ -72,7 +72,7 @@ def serial_pipeline_irl(
     evaluator = BaseSerialEvaluator(cfg.evaluator)
     replay_buffer = BufferManager(cfg.replay_buffer)
     commander = BaseSerialCommander(cfg.commander, learner, actor, evaluator, replay_buffer)
-    reward_model: PdeilRewardModel = PdeilRewardModel(cfg.irl)
+    reward_model = create_irl_model(cfg.irl)
     reward_model.start()
     # Set corresponding env and policy mode.
     actor.env = actor_env

@@ -20,5 +20,5 @@ def test_pdeil():
     # irl + rl training
     config = deepcopy(cartpole_dqn_default_config)
     config.policy.learn.init_data_count = 10000
-    config.irl = {"alpha": 0.5, "expert_data_path": expert_data_path, "discrete_action": False}
+    config.irl = {'type': 'pdeil', "alpha": 0.5, "expert_data_path": expert_data_path, "discrete_action": False}
     serial_pipeline_irl(config, seed=0)
