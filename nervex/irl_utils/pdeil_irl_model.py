@@ -2,7 +2,10 @@ import numpy as np
 import torch
 import pickle
 import scipy.stats as stats
-from sklearn.svm import SVC
+try:
+    from sklearn.svm import SVC
+except ImportError:
+    SVC = None
 from nervex.torch_utils import cov
 from .base_reward_estimate import BaseRewardModel
 
@@ -35,13 +38,13 @@ class PdeilRewardModel(BaseRewardModel):
         states: list = []
         actions: list = []
         for item in self.expert_data:
-            states.append(item[0])
-            actions.append(item[1])
-        states: torch.Tensor = torch.FloatTensor(states).to(self.device)
-        actions: torch.Tensor = torch.LongTensor(actions).to(self.device)
+            states.append(item['obs'])
+            actions.append(item['action'])
+        states: torch.Tensor = torch.stack(states, dim=0).to(self.device)
+        actions: torch.Tensor = torch.stack(actions, dim=0).to(self.device)
         self.e_u_s: torch.Tensor = torch.mean(states, axis=0)
         self.e_sigma_s: torch.Tensor = cov(states, rowvar=False)
-        if self.config['discrete_action']:
+        if self.config['discrete_action'] and SVC is not None:
             self.svm: SVC = SVC(probability=True)
             self.svm.fit(states.cpu().numpy(), actions.cpu().numpy())
         else:
