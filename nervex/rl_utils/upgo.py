@@ -39,9 +39,8 @@ def upgo_returns(rewards, bootstrap_values):
     """
     # UPGO can be viewed as a lambda return! The trace continues for V_t (i.e. lambda = 1.0) if r_tp1 + V_tp2 > V_tp1.
     # as the lambdas[-1, :] is ignored in generalized_lambda_returns, we don't care about bootstrap_values_tp2[-1]
-    bootstrap_values_tp1 = bootstrap_values[1:, :]
-    bootstrap_values_tp2 = torch.cat((bootstrap_values_tp1[1:, :], bootstrap_values[-1, :].unsqueeze(0)), 0)
-    lambdas = 1.0 * (rewards + bootstrap_values_tp2) >= bootstrap_values_tp1
+    lambdas = (rewards + bootstrap_values[1:]) >= bootstrap_values[:-1]
+    lambdas = torch.cat([lambdas[1:], torch.ones_like(lambdas[-1:])], dim=0)
     return generalized_lambda_returns(bootstrap_values, rewards, 1.0, lambdas)
 
 
