@@ -54,6 +54,9 @@ class FakePolicy:
             return 'cpu'
         else:
             raise KeyError
+    
+    def reset(self):
+        pass
 
     def reset(self):
         pass
