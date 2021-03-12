@@ -4,25 +4,28 @@ import torch.nn.functional as F
 from .td import generalized_lambda_returns
 
 
-def fn(x):
-    return x.unsqueeze(0).unsqueeze(0)
-
-
-def tb_cross_entropy(logit, label):
+def tb_cross_entropy(logit, label, mask=None):
     assert (len(label.shape) >= 2)
     T, B = label.shape[:2]
-    # special 2D case
-    if label.shape[2] == 2 and label.shape[2] != logit.shape[2]:
-        assert (len(label.shape) == 3)
-        n_output_shape = logit.shape[2:]
-        label = label[..., 0] * n_output_shape[1] + label[..., 1]
-        logit = logit.reshape(T, B, -1)
-
-    label = label.reshape(-1)
-    logit = logit.reshape(-1, logit.shape[-1])
-    ce = F.cross_entropy(logit, label, reduction='none')
-    ce = ce.reshape(T, B, -1)
-    return ce.mean(dim=2)
+    # Special 2D case
+    if len(label.shape) > 2:
+        assert len(label.shape) == 3
+        s, n = logit.shape[-2:]
+        logit = logit.reshape(-1, n)
+        label = label.reshape(-1)
+        ce = -F.cross_entropy(logit, label, reduction='none')
+        ce = ce.view(T * B, -1)
+        if mask is not None:
+            ce *= mask.reshape(-1, s)
+        ce = ce.sum(dim=1)
+        ce = ce.reshape(T, B)
+    else:
+        label = label.reshape(-1)
+        logit = logit.reshape(-1, logit.shape[-1])
+        ce = -F.cross_entropy(logit, label, reduction='none')
+        ce = ce.reshape(T, B, -1)
+        ce = ce.mean(dim=2)
+    return ce
 
 
 def upgo_returns(rewards, bootstrap_values):
@@ -39,13 +42,12 @@ def upgo_returns(rewards, bootstrap_values):
     """
     # UPGO can be viewed as a lambda return! The trace continues for V_t (i.e. lambda = 1.0) if r_tp1 + V_tp2 > V_tp1.
     # as the lambdas[-1, :] is ignored in generalized_lambda_returns, we don't care about bootstrap_values_tp2[-1]
-    bootstrap_values_tp1 = bootstrap_values[1:, :]
-    bootstrap_values_tp2 = torch.cat((bootstrap_values_tp1[1:, :], bootstrap_values[-1, :].unsqueeze(0)), 0)
-    lambdas = 1.0 * (rewards + bootstrap_values_tp2) >= bootstrap_values_tp1
+    lambdas = (rewards + bootstrap_values[1:]) >= bootstrap_values[:-1]
+    lambdas = torch.cat([lambdas[1:], torch.ones_like(lambdas[-1:])], dim=0)
     return generalized_lambda_returns(bootstrap_values, rewards, 1.0, lambdas)
 
 
-def upgo_loss(target_output, rhos, action, rewards, bootstrap_values):
+def upgo_loss(target_output, rhos, action, rewards, bootstrap_values, mask=None):
     r"""
     Overview:
         Computing UPGO loss given constant gamma and lambda. There is no special handling for terminal state value,
@@ -65,17 +67,7 @@ def upgo_loss(target_output, rhos, action, rewards, bootstrap_values):
     with torch.no_grad():
         returns = upgo_returns(rewards, bootstrap_values)
         advantages = rhos * (returns - bootstrap_values[:-1])
-    if isinstance(action, list):
-        T, B = len(action), len(action[0])
-        metric = torch.zeros(T, B).to(dtype=rewards.dtype, device=rewards.device)
-        for t in range(T):
-            for b in range(B):
-                if action[t][b] is None:
-                    metric[t][b] = 0
-                else:
-                    metric[t][b] = tb_cross_entropy(fn(target_output[t][b]), fn(action[t][b]))
-    else:
-        metric = tb_cross_entropy(target_output, action)
-        assert (metric.shape == action.shape[:2])
+    metric = tb_cross_entropy(target_output, action, mask)
+    assert (metric.shape == action.shape[:2])
     losses = advantages * metric
     return -losses.mean()
