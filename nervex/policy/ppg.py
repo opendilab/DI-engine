@@ -132,7 +132,7 @@ class PPGPolicy(CommonPolicy):
         self._optimizer_value.step()
 
         # ====================
-        # PP update
+        # PPG update
         # use aux loss after iterations and reset aux_memories
         # ====================
 
