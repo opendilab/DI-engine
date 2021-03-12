@@ -6,14 +6,13 @@ import numpy as np
 import torch
 import math
 import logging
-import pickle
+
 from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommander
 from nervex.worker import BaseEnvManager, SubprocessEnvManager
 from nervex.config import read_config
 from nervex.data import BufferManager
 from nervex.policy import create_policy
 from nervex.envs import get_vec_env_setting
-from nervex.torch_utils import to_device
 from .utils import set_pkg_seed
 
 
@@ -24,7 +23,7 @@ def serial_pipeline(
         policy_type: Optional[type] = None,
         model: Optional[Union[type, torch.nn.Module]] = None,
         enable_total_log: Optional[bool] = False,
-) -> None:
+) -> 'BasePolicy':  # noqa
     r"""
     Overview:
         Serial pipeline entry.
@@ -63,7 +62,11 @@ def serial_pipeline(
     evaluator_env.seed(seed)
     set_pkg_seed(seed, use_cuda=cfg.policy.use_cuda)
     # Create components: policy, learner, actor, evaluator, replay buffer, commander.
-    policy_fn = create_policy if policy_type is None else policy_type
+    if policy_type is None:
+        policy_fn = create_policy
+    else:
+        assert callable(policy_type)
+        policy_fn = policy_type
     policy = policy_fn(cfg.policy, model=model)
     learner = BaseLearner(cfg.learner)
     actor = BaseSerialActor(cfg.actor)

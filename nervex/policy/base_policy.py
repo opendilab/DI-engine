@@ -243,16 +243,6 @@ class Policy(ABC):
     def _get_setting_eval(self) -> dict:
         raise NotImplementedError
 
-    @property
-    def device(self) -> str:
-        if self._use_cuda:
-            return "cuda"
-        elif self._use_distributed:
-            # FIXME!
-            raise ValueError()
-        else:
-            return "cpu"
-
 
 policy_mapping = {}
 

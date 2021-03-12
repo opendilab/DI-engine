@@ -26,9 +26,9 @@ class PdeilRewardModel(BaseRewardModel):
         self.p_sigma_s = None
         self.expert_data = None
         self.train_data: list = []
-        # pedil default use cpu device
         assert device in ["cpu", "cuda"]
-        self.device = device
+        # pedil default use cpu device
+        self.device = 'cpu'
 
     def load_expert_data(self) -> None:
         expert_data_path: str = self.config["expert_data_path"]
