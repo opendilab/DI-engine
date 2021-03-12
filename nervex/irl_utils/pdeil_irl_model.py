@@ -45,6 +45,9 @@ class PdeilRewardModel(BaseRewardModel):
         actions: torch.Tensor = torch.stack(actions, dim=0)
         self.e_u_s: torch.Tensor = torch.mean(states, axis=0)
         self.e_sigma_s: torch.Tensor = cov(states, rowvar=False)
+        if self.config["discrete_action"] and SVC is None:
+            import logging
+            logging.warning("You are using discrete action while the SVC is not installed!")
         if self.config['discrete_action'] and SVC is not None:
             self.svm: SVC = SVC(probability=True)
             self.svm.fit(states.cpu().numpy(), actions.cpu().numpy())

@@ -7,10 +7,10 @@ import random
 import torch.optim as optim
 
 
-class DFN(nn.Module):
+class RewardModelNetwork(nn.Module):
 
     def __init__(self, input_dims: int, hidden_dims: int, output_dims: int) -> None:
-        super(DFN, self).__init__()
+        super(RewardModelNetwork, self).__init__()
         self.l1 = nn.Linear(input_dims, hidden_dims)
         self.l2 = nn.Linear(hidden_dims, output_dims)
         self.a1 = nn.Tanh()
@@ -31,7 +31,7 @@ class GailRewardModel(BaseRewardModel):
         super(GailRewardModel, self).__init__()
         self.config = config
         self.device = 'cpu'
-        self.reward_model = DFN(config['input_dims'], config['hidden_dims'], 1)
+        self.reward_model = RewardModelNetwork(config['input_dims'], config['hidden_dims'], 1)
         self.reward_model.to(self.device)
         self.expert_data = []
         self.train_data = []

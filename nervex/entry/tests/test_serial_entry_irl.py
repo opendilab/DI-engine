@@ -1,8 +1,9 @@
-import pytest
 from copy import deepcopy
+
+import pytest
+
 from app_zoo.classic_control.cartpole.entry import cartpole_ppo_default_config, cartpole_dqn_default_config
 from nervex.entry import serial_pipeline_irl, collect_demo_data, serial_pipeline
-
 
 cfg = [
     {'type': 'pdeil', "alpha": 0.5, "discrete_action": False},
@@ -32,3 +33,7 @@ def test_pdeil(irl_config):
     if irl_config['type'] == 'gail':
         config.actor.n_sample = irl_config['batch_size']
     serial_pipeline_irl(config, seed=0)
+
+
+if __name__ == '__main__':
+    pytest.main(["-sv", "test_serial_entry_irl.py"])
