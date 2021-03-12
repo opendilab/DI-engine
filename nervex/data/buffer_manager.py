@@ -103,7 +103,7 @@ class BufferManager(IBuffer):
             - data (:obj:`list` or `dict`): Data list or data item (dict type).
             - buffer_name (:obj:`Optional[List[str]]`): The buffer to push data into
         """
-        assert (isinstance(data, list) or isinstance(data, dict))
+        assert (isinstance(data, list) or isinstance(data, dict)), type(data)
         if isinstance(data, dict):
             data = [data]
         if self.use_cache:

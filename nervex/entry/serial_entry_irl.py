@@ -13,10 +13,11 @@ from nervex.config import read_config
 from nervex.data import BufferManager
 from nervex.policy import create_policy
 from nervex.envs import get_vec_env_setting
+from nervex.irl_utils import create_irl_model
 from .utils import set_pkg_seed
 
 
-def serial_pipeline(
+def serial_pipeline_irl(
         cfg: Union[str, dict],
         seed: int,
         env_setting: Optional[Any] = None,
@@ -73,6 +74,8 @@ def serial_pipeline(
     evaluator = BaseSerialEvaluator(cfg.evaluator)
     replay_buffer = BufferManager(cfg.replay_buffer)
     commander = BaseSerialCommander(cfg.commander, learner, actor, evaluator, replay_buffer)
+    reward_model = create_irl_model(cfg.irl, policy.get_attribute('device'))
+    reward_model.start()
     # Set corresponding env and policy mode.
     actor.env = actor_env
     evaluator.env = evaluator_env
@@ -126,13 +129,21 @@ def serial_pipeline(
                 if eval_reward > max_eval_reward:
                     learner.save_checkpoint()
                     max_eval_reward = eval_reward
+        new_data_count = 0
+        target_new_data_count = cfg.irl.get('target_new_data_count', 1)
         while True:
             # Actor keeps generating data until replay buffer has enough to sample one batch.
             new_data, collect_info = actor.generate_data(learner.train_iter)
+            new_data_count += len(new_data)
+            # collect data for reward_model training
+            reward_model.collect_data(new_data)
             replay_buffer.push(new_data)
             target_count = init_data_count if learner.train_iter == 0 else enough_data_count
-            if replay_buffer.count() >= target_count:
+            if replay_buffer.count() >= target_count and new_data_count >= target_new_data_count:
                 break
+        # update reward_model
+        reward_model.train()
+        reward_model.clear_data()
         learner.collect_info = collect_info
         for i in range(learner_train_step):
             # Learner will train ``train_step`` times in one iteration.
@@ -146,6 +157,8 @@ def serial_pipeline(
                     "You can modify data collect config, e.g. increasing n_sample, n_episode or min_sample_ratio."
                 )
                 break
+            # update train_data reward
+            reward_model.estimate(train_data)
             learner.train(train_data)
             eval_interval += 1
             if use_priority:

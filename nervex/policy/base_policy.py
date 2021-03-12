@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import Optional, List, Dict, Any, Tuple, Union
 from collections import namedtuple, deque
-from easydict import EasyDict
+from typing import Optional, List, Dict, Any, Tuple, Union
+
 import torch
+from easydict import EasyDict
 
 from nervex.model import create_model
 from nervex.utils import import_module, allreduce, broadcast, get_rank
