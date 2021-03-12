@@ -68,10 +68,8 @@ class PdeilRewardModel(BaseRewardModel):
         self._train(states)
 
     def _batch_mn_pdf(self, x: np.ndarray, mean: np.ndarray, cov: np.ndarray) -> np.ndarray:
-        ret = []
-        for b in range(x.shape[0]):
-            ret.append(stats.multivariate_normal.pdf(x[b], mean=mean, cov=cov, allow_singular=False))
-        return np.array(ret).astype(np.float32)
+        # pzh: This is identical to previous for-loop implementation.
+        return np.asarray(stats.multivariate_normal.pdf(x, mean=mean, cov=cov, allow_singular=False), dtype=np.float32)
 
     def estimate(self, data: list) -> None:
         """Modify reward inplace"""
