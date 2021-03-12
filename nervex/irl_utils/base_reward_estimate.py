@@ -34,12 +34,12 @@ class BaseRewardModel(ABC):
 irl_model_mapping = {}
 
 
-def create_irl_model(cfg: dict) -> BaseRewardModel:
+def create_irl_model(cfg: dict, device: str) -> BaseRewardModel:
     irl_model_type = cfg.type
     if irl_model_type not in irl_model_mapping:
         raise KeyError("not support irl model type: {}".format(irl_model_type))
     else:
-        return irl_model_mapping[irl_model_type](cfg)
+        return irl_model_mapping[irl_model_type](cfg, device)
 
 
 def register_irl_model(name: str, irl_model: type) -> None:
