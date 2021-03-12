@@ -59,16 +59,17 @@ Best Practice
       .. code:: python
 
          def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
-         		transition = {
-                 'obs': obs,
-                 'next_obs': timestep.obs,
-                 'action': armor_output['action'],
-                 'priority': armor_output['priority'],
-                 'reward': timestep.reward，
-                 'done': timestep.done,
-             }
-             return EasyDict(transition)
+            transition = {
+               'obs': obs,
+               'next_obs': timestep.obs,
+               'action': armor_output['action'],
+               'priority': armor_output['priority'],
+               'reward': timestep.reward，
+               'done': timestep.done,
+            }
+            return EasyDict(transition)
 
+   
    -  对于A-pex中的多个Actor使用不同的探索策略，目前仅支持在nervex
       parallel入口实现，需要给每一个actor task设定相关参数
 
@@ -222,17 +223,17 @@ learner日志中添加变量
    .. code:: python
 
       def _init_learn(self) -> None:
-      r"""
-      Overview:
-         Learn mode init method. Called by ``self.__init__``.
-         Init optimizers, algorithm config, main and target armors.
-      """
-      # init optimizer
-      self._optimizer = Adam(
-         self._model.parameters(),
-         lr=self._cfg.learn.learning_rate_actor,
-         weight_decay=self._cfg.learn.weight_decay
-      )
+         r"""
+         Overview:
+            Learn mode init method. Called by ``self.__init__``.
+            Init optimizers, algorithm config, main and target armors.
+         """
+         # init optimizer
+         self._optimizer = Adam(
+            self._model.parameters(),
+            lr=self._cfg.learn.learning_rate_actor,
+            weight_decay=self._cfg.learn.weight_decay
+         )
    
    如需对优化器进行更换，只需修改对应算法 ``policy`` 类 ``_init_learn`` 方法中的对应代码即可。
 
@@ -250,26 +251,49 @@ learner日志中添加变量
    .. code:: python
 
       def _init_learn(self) -> None:
-      r"""
-      Overview:
-         Learn mode init method. Called by ``self.__init__``.
-         Init actor and critic optimizers, algorithm config, main and target armors.
-      """
-      # actor and critic optimizer
-      self._optimizer_actor = Adam(
-         self._model.actor.parameters(),
-         lr=self._cfg.learn.learning_rate_actor,
-         weight_decay=self._cfg.learn.weight_decay
-      )
-      self._optimizer_critic = Adam(
-         self._model.critic.parameters(),
-         lr=self._cfg.learn.learning_rate_critic,
-         weight_decay=self._cfg.learn.weight_decay
-      )
-      # ...
+         r"""
+         Overview:
+            Learn mode init method. Called by ``self.__init__``.
+            Init actor and critic optimizers, algorithm config, main and target armors.
+         """
+         # actor and critic optimizer
+         self._optimizer_actor = Adam(
+            self._model.actor.parameters(),
+            lr=self._cfg.learn.learning_rate_actor,
+            weight_decay=self._cfg.learn.weight_decay
+         )
+         self._optimizer_critic = Adam(
+            self._model.critic.parameters(),
+            lr=self._cfg.learn.learning_rate_critic,
+            weight_decay=self._cfg.learn.weight_decay
+         )
+         # ...
 
    
-   在 ``_forward_learn`` 时 ``actor`` 和 ``critic`` 分别根据对应loss和优化器进行更新。
+   在 ``_forward_learn`` 时 ``actor`` 和 ``critic`` 分别根据对应loss和优化器进行更新:
+
+   .. code:: python
+
+      def _forward_learn(self, data: dict) -> Dict[str, Any]:
+         # ...
+         # cirtic_forward get the critic_loss
+         # compute critic_loss
+
+         # critic update
+         # ================
+         self._optimizer_critic.zero_grad()
+         cirtic_loss.backward()
+         self._optimizer_critic.step()
+
+         # actor_forward get the actor_loss
+         # compute actor_loss
+
+         # actor update
+         # ================
+         self._optimizer_actor.zero_grad()
+         actor_loss.backward()
+         self._optimizer_actor.step()
+         # ...
 
    此外，对 ``torch`` 机制更熟悉的使用者可以使用在神经网络中设定梯度相关的 ``backward_hook`` 的方式对神经网络的不同组成部分进行更新，但此种方式的实现逻辑相对复杂，对使用者的要求更高。
 
@@ -309,4 +333,19 @@ learner日志中添加变量
    
    之后在进行 optimizer.step() 操作时会自动对梯度进行裁剪。
 
-   除了简单的按数值进行梯度裁剪/忽略外，重写后的优化器还支持其他梯度操作，具体可以查看源码 ``nervex\torch_utils\optimizer_helper.py`` 或参考 ``nervex\torch_utils\tests\test_optimizer.py`` 测试文件中的使用方式。
+   除了简单的按数值进行梯度裁剪/忽略外，重写后的优化器还支持其他梯度操作。
+   支持的操作包括:
+      
+   1. ``clip_value`` and ``ignore_value`` ：根据梯度值进行简单的clip/ignore操作
+      
+   2. ``clip_momentum`` and ``ignore_momentum`` ：根据历史动量进行clip/ignore操作，源自openAI dota2论文附录部分
+
+      .. image:: grad_momentum.png
+         :scale: 100 %
+
+   3. ``clip_norm`` and ``ignore_norm`` : 根据梯度值范数进行clip/ignore操作
+
+   4. ``clip_momentum_norm`` and ``ignore_momentum_norm`` : 根据历史动量的范数进行clip/ignore操作
+
+
+   具体实现可以查看源码 ``nervex\torch_utils\optimizer_helper.py`` 或参考 ``nervex\torch_utils\tests\test_optimizer.py`` 测试文件中的使用方式。
