@@ -15,7 +15,10 @@ class SumoPPOPolicy(PPOPolicy):
         action_num = len(data['logit'])
         loss, info = [], []
         for i in range(action_num):
-            data_ = ppo_data(output['logit'][i], data['logit'][i], data['action'][i], output['value'], data['value'], adv, return_, data['weight'])
+            data_ = ppo_data(
+                output['logit'][i], data['logit'][i], data['action'][i], output['value'], data['value'], adv, return_,
+                data['weight']
+            )
             ppo_loss, ppo_info = ppo_error(data_, self._clip_ratio)
             loss.append(ppo_loss)
             info.append(ppo_info)

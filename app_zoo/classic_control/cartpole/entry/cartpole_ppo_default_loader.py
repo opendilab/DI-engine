@@ -61,10 +61,7 @@ cartpole_ppo_default_loader = dict_(
         #
         stop_val=item('stop_val') >> is_type(int),
     ),
-    learner=item('learner') >> dict_(
-        load_path=item('load_path') >> is_type(str),
-        hook=item('hook')
-    ),
+    learner=item('learner') >> dict_(load_path=item('load_path') >> is_type(str), hook=item('hook')),
     commander=item('commander') | raw({}),
 )
 policy_traj_len = item('policy') >> item('collect') >> item('traj_len')
@@ -81,7 +78,6 @@ relation_loader = check_only(
 )
 
 cartpole_ppo_default_loader = cartpole_ppo_default_loader >> relation_loader
-
 
 if __name__ == "__main__":
     from cartpole_ppo_default_config import cartpole_ppo_default_config
