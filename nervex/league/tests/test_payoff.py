@@ -1,15 +1,13 @@
-import numpy as np
-from easydict import EasyDict
-import pytest
-from copy import deepcopy
-from collections import deque
-from functools import partial
 import os
-import yaml
 from collections import defaultdict
+from copy import deepcopy
+
+import numpy as np
+import pytest
+from easydict import EasyDict
 
 from nervex.league.player import Player
-from nervex.league.shared_payoff import BattleRecordDict, BattleSharedPayoff, create_payoff
+from nervex.league.shared_payoff import BattleRecordDict, create_payoff
 
 
 @pytest.mark.unittest
@@ -156,3 +154,7 @@ class TestBattleSharedPayoff:
         # test shared payoff
         for p in player_list:
             assert id(p.payoff) == id(setup_battle_shared_payoff)
+
+
+if __name__ == '__main__':
+    pytest.main(["-sv", os.path.basename(__file__)])

@@ -1,13 +1,11 @@
 import os
-import numpy as np
-import pytest
-from easydict import EasyDict
 import random
+
+import pytest
 import torch
 
-from nervex.league import BaseLeague, register_league, create_league, ActivePlayer
-from nervex.utils import deep_merge_dicts
 from nervex.config import one_vs_one_league_default_config
+from nervex.league import create_league
 
 
 class TestOneVsOneLeague:
@@ -96,3 +94,8 @@ class TestOneVsOneLeague:
         league.payoff[league.active_players[0], league.historical_players[0]] == wins / games
 
         os.popen("rm -rf naive_sp_player*")
+        print("Finish!")
+
+
+if __name__ == '__main__':
+    pytest.main(["-sv", os.path.basename(__file__)])

@@ -1,13 +1,13 @@
+import os
+
 import numpy as np
 import pytest
 from easydict import EasyDict
-import os
-import yaml
 
-from nervex.league.player import Player, HistoricalPlayer, ActivePlayer, register_player, create_player
-from nervex.league.starcraft_player import MainPlayer, MainExploiter, LeagueExploiter
+from nervex.league.player import Player, HistoricalPlayer, ActivePlayer, create_player
 from nervex.league.shared_payoff import create_payoff
-from .league_test_default_config import league_test_config
+from nervex.league.starcraft_player import MainPlayer, MainExploiter, LeagueExploiter
+from nervex.league.tests.league_test_default_config import league_test_config
 
 ONE_PHASE_STEP = 2000
 
@@ -302,3 +302,7 @@ class TestLeagueExploiter:
             results.append(setup_league[2].mutate(info))
         freq = len([t for t in results if t]) * 1.0 / len(results)
         assert 0.2 <= freq <= 0.3  # approximate
+
+
+if __name__ == '__main__':
+    pytest.main(["-sv", os.path.basename(__file__)])
