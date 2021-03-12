@@ -174,7 +174,11 @@ class SQNPolicy(CommonPolicy):
         """
         # start with random action for better exploration
         output = self._collect_armor.forward(data)
-        if self._forward_learn_cnt > self._cfg.command.eps.decay:
+        _act_p = 1 / (100_000 - self._forward_learn_cnt) if self._forward_learn_cnt < 99_000 else 0.999
+
+        # if self._forward_learn_cnt > self._cfg.command.eps.decay:
+        
+        if np.random.random(1) < _act_p:
             logits = output['logit'] / math.exp(self._log_alpha.item())
             prob = torch.softmax(logits - logits.max(axis=-1, keepdim=True).values, dim=-1)
             pi_action = torch.multinomial(prob, 1)
