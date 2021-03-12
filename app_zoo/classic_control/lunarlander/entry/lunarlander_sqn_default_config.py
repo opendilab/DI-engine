@@ -1,22 +1,22 @@
 from easydict import EasyDict
 
 traj_len = 1
-update_freq = 16
-cartpole_sqn_default_config = dict(
+update_freq = 50
+lunarlander_sqn_default_config = dict(
     env=dict(
         # Support ['base', 'subprocess']. 'base' is pseudo parallel and 'subprocess' is subprocess parallel.
         # 'base' is used for some light env(e.g. cartpole), whose env step time is much shorter than IPC time.
         # 'subprocess' is used for more complicated env(e.g. pong and larger than pong), which is more recommended to use in practice.
-        env_manager_type='base',
+        env_manager_type='subprocess',
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, ),
         # Must use the absolute path. All the following "import_names" should obey this too.
         import_names=['app_zoo.classic_control.lunarlander.envs.lunarlander_env'],
         # Env register name (refer to function "register_env").
-        env_type='cartpole',
+        env_type='lunarlander',
         # Env number respectively for actor and evaluator.
-        actor_env_num=8,
-        evaluator_env_num=5,
+        actor_env_num=6,
+        evaluator_env_num=3,
     ),
     policy=dict(
         # Whether to use cuda for network.
@@ -66,7 +66,7 @@ cartpole_sqn_default_config = dict(
                 type='exp',
                 start=1.,
                 end=0.8,
-                decay=2000,
+                decay=10_000,
             ),
         ),
     ),
@@ -86,16 +86,16 @@ cartpole_sqn_default_config = dict(
         # Get "n_episode" complete episodic trajectories per collect.
         # n_episode=8,
         traj_len=traj_len,
-        traj_print_freq=100,
-        collect_print_freq=100,
+        traj_print_freq=1000,
+        collect_print_freq=1000,
     ),
     evaluator=dict(
         # Episode number for evaluation.
         n_episode=5,
         # Evaluate every "eval_freq" training steps.
-        eval_freq=10,
+        eval_freq=500,
         # Once evaluation reward reaches "stop_val", which means the policy converges, then the whole training can end.
-        stop_val=200,
+        stop_val=270,
     ),
     # You can refer to "config/serial.py" for details.
     learner=dict(
@@ -106,18 +106,18 @@ cartpole_sqn_default_config = dict(
                 type='save_ckpt',
                 priority=20,
                 position='after_iter',
-                ext_args=dict(freq=100, ),
+                ext_args=dict(freq=500, ),
             ),
             log_show=dict(
                 name='log_show',
                 type='log_show',
                 priority=20,
                 position='after_iter',
-                ext_args=dict(freq=100, ),
+                ext_args=dict(freq=500, ),
             ),
         ),
     ),
     commander=dict(),
 )
-cartpole_sqn_default_config = EasyDict(cartpole_sqn_default_config)
-main_config = cartpole_sqn_default_config
+lunarlander_sqn_default_config = EasyDict(lunarlander_sqn_default_config)
+main_config = lunarlander_sqn_default_config

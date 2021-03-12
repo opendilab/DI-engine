@@ -41,6 +41,9 @@ class LunarLanderEnv(BaseEnv):
     def close(self) -> None:
         self._env.close()
 
+    def render(self) -> None:
+        self._env.render()
+
     def seed(self, seed: int) -> None:
         self._seed = seed
         np.random.seed(self._seed)

@@ -2,7 +2,7 @@ from easydict import EasyDict
 
 nstep = 1
 traj_len = 1
-cartpole_dqn_default_config = dict(
+lunarlander_dqn_default_config = dict(
     env=dict(
         # Support ['base', 'subprocess']. 'base' is pseudo parallel and 'subprocess' is subprocess parallel.
         # 'base' is used for some light env(e.g. cartpole), whose env step time is much shorter than IPC time.
@@ -13,7 +13,7 @@ cartpole_dqn_default_config = dict(
         # Must use the absolute path. All the following "import_names" should obey this too.
         import_names=['app_zoo.classic_control.lunarlander.envs.lunarlander_env'],
         # Env register name (refer to function "register_env").
-        env_type='cartpole',
+        env_type='lunarlander',
         # Env number respectively for actor and evaluator.
         actor_env_num=8,
         evaluator_env_num=5,
@@ -47,7 +47,7 @@ cartpole_dqn_default_config = dict(
                 # Frequence of target network update.
                 target_update_freq=100,
                 # Reward's future discount facotr, aka. gamma.
-                discount_factor=0.97,
+                discount_factor=0.99,
                 # How many steps in td error.
                 nstep=nstep,
             ),
@@ -121,5 +121,5 @@ cartpole_dqn_default_config = dict(
     ),
     commander=dict(),
 )
-cartpole_dqn_default_config = EasyDict(cartpole_dqn_default_config)
-main_config = cartpole_dqn_default_config
+lunarlander_dqn_default_config = EasyDict(lunarlander_dqn_default_config)
+main_config = lunarlander_dqn_default_config

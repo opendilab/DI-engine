@@ -18,8 +18,9 @@ pomdp_sqn_default_config = dict(
         actor_env_num=6,
         evaluator_env_num=3,
         # POMDP config
+        # env_id='Breakout-ramNoFrameskip-v4',
         env_id='Pong-ramNoFrameskip-v4',
-        frame_stack=4,
+        frame_stack=1,
         is_train=True,
         warp_frame=False,
         use_ram=True,
@@ -38,9 +39,9 @@ pomdp_sqn_default_config = dict(
         on_policy=False,
         # Model config used for model creating. Remember to change this, especially "obs_dim" and "action_dim" according to specific env.
         model=dict(
-            obs_dim=(512, ),
+            obs_dim=(128, ),
             action_dim=6,
-            embedding_dim=256,
+            embedding_dim=512,
             # Whether to use dueling head.
             # dueling=True,
             dueling=False,
@@ -59,7 +60,7 @@ pomdp_sqn_default_config = dict(
                 target_theta=0.005,
                 alpha=0.001,
                 # Reward's future discount facotr, aka. gamma.
-                discount_factor=0.995,
+                discount_factor=0.99,
             ),
         ),
         # collect_mode config
@@ -77,7 +78,7 @@ pomdp_sqn_default_config = dict(
                 type='exp',
                 start=1.,
                 end=0.9,
-                decay=20_000,  # change init step
+                decay=100_000,  # change init step
             ),
         ),
     ),

@@ -1,10 +1,10 @@
 from easydict import EasyDict
 
-cartpole_ppo_default_config = dict(
+lunarlander_ppo_default_config = dict(
     env=dict(
         env_manager_type='base',
         import_names=['app_zoo.classic_control.lunarlander.envs.lunarlander_env'],
-        env_type='cartpole',
+        env_type='lunarlander',
         actor_env_num=8,
         evaluator_env_num=5,
     ),
@@ -72,5 +72,5 @@ cartpole_ppo_default_config = dict(
     ),
     commander=dict(),
 )
-cartpole_ppo_default_config = EasyDict(cartpole_ppo_default_config)
-main_config = cartpole_ppo_default_config
+lunarlander_ppo_default_config = EasyDict(lunarlander_ppo_default_config)
+main_config = lunarlander_ppo_default_config
