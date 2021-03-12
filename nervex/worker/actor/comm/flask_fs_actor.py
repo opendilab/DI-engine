@@ -100,7 +100,7 @@ class FlaskFileSystemActor(BaseCommActor):
     def deal_with_resource(self) -> dict:
         """
         Overview:
-            Callback function. Return how many resources are needed to start current actor.
+            Callback function in ``ActorSlave``. Return how many resources are needed to start current actor.
         Returns:
             - resource (:obj:`dict`): Resource info dict, including ['gpu', 'cpu'].
         """
@@ -109,7 +109,7 @@ class FlaskFileSystemActor(BaseCommActor):
     def deal_with_actor_start(self, task_info: dict) -> None:
         """
         Overview:
-            Callback function. Create a actor and start a actor thread of the created one.
+            Callback function in ``ActorSlave``. Create an actor and start an actor thread of the created one.
         Arguments:
             - task_info (:obj:`dict`): Task info dict.
         Note:
@@ -125,7 +125,7 @@ class FlaskFileSystemActor(BaseCommActor):
     def deal_with_actor_data(self) -> dict:
         """
         Overview:
-            Callback function. Get data sample dict from ``_metadata_queue``,
+            Callback function in ``ActorSlave``. Get data sample dict from ``_metadata_queue``,
             which will be sent to coordinator afterwards.
         Returns:
             - data (:obj:`Any`): Data sample dict.
@@ -151,7 +151,7 @@ class FlaskFileSystemActor(BaseCommActor):
     def get_policy_update_info(self, path: str) -> dict:
         """
         Overview:
-            Callback function. Get policy information in corresponding path.
+            Get policy information in corresponding path.
         Arguments:
             - path (:obj:`str`): path to policy update information.
         """
@@ -164,8 +164,8 @@ class FlaskFileSystemActor(BaseCommActor):
         Overview:
             Save actor's step data in corresponding path.
         Arguments:
-            - path (:obj:`str`): path to save data.
-            - stepdata (:obj:`Any`): step data.
+            - path (:obj:`str`): Path to save data.
+            - stepdata (:obj:`Any`): Data of one step.
         """
         if self._actor_close_flag:
             return

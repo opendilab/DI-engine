@@ -91,7 +91,7 @@ Best Practice
 
 .. _header-n21:
 
-使用 multi discrete action space
+2. 使用 multi discrete action space
 =======================================
 
 1. 环境空间定义
@@ -137,7 +137,7 @@ Best Practice
 
 .. _header-n32:
 
-RNN适配
+3. RNN适配
 ==========
 
 1. 隐状态维护
@@ -361,7 +361,7 @@ RNN适配
 
 .. _header-n74:
 
-定制化优化器
+5. 定制化优化器
 ===============
 
 1. 更换优化器

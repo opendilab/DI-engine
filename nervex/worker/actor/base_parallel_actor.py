@@ -125,7 +125,6 @@ class BaseActor(ABC):
         """
         Overview:
             Setup logger for base_actor. Logger includes logger, monitor and log buffer dict.
-
         Returns:
             - logger (:obj:`TextLogger`): logger that displays terminal output
             - monitor (:obj:`TickMonitor`): monitor that is related info of one interation with env
@@ -162,8 +161,7 @@ class BaseActor(ABC):
         for k, v in self._log_buffer.items():
             setattr(self._monitor, k, v)
         self._monitor.time.step()
-
-        # print info
+        # Print info
         if self._iter_count % self._cfg.print_freq == 0:
             self.debug('{}TimeStep{}{}'.format('=' * 35, self._iter_count, '=' * 35))
             # tick_monitor -> var_dict
