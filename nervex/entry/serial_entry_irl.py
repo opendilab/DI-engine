@@ -130,6 +130,7 @@ def serial_pipeline_irl(
                     learner.save_checkpoint()
                     max_eval_reward = eval_reward
         new_data_count = 0
+        target_new_data_count = cfg.irl.get('target_new_data_count', 1)
         while True:
             # Actor keeps generating data until replay buffer has enough to sample one batch.
             new_data, collect_info = actor.generate_data(learner.train_iter)
@@ -138,7 +139,7 @@ def serial_pipeline_irl(
             reward_model.collect_data(new_data)
             replay_buffer.push(new_data)
             target_count = init_data_count if learner.train_iter == 0 else enough_data_count
-            if replay_buffer.count() >= target_count:
+            if replay_buffer.count() >= target_count and new_data_count >= target_new_data_count:
                 break
         # update reward_model
         reward_model.train()
