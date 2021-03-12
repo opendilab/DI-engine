@@ -1,10 +1,24 @@
-from .base_reward_estimate import BaseRewardModel
+import pickle
+import random
+from collections.abc import Iterable
+
 import torch
 import torch.nn as nn
-import pickle
-import numpy as np
-import random
 import torch.optim as optim
+
+from .base_reward_estimate import BaseRewardModel
+
+
+def concat_state_action_pairs(iterator):
+    # concat state and action
+    assert isinstance(iterator, Iterable)
+    res = []
+    for item in iterator:
+        state = item['obs']
+        action = item['action']
+        s_a = torch.cat([state, action.float()], dim=-1)
+        res.append(s_a)
+    return res
 
 
 class RewardModelNetwork(nn.Module):
@@ -45,18 +59,10 @@ class GailRewardModel(BaseRewardModel):
 
     def start(self) -> None:
         self.load_expert_data()
-        # make data preprocess
-        # concat state and action
-        res = []
-        for item in self.expert_data_loader:
-            state = item['obs']
-            action = item['action']
-            s_a = torch.cat([state, action.float()], dim=-1)
-            res.append(s_a)
-        self.expert_data = res
+        self.expert_data = concat_state_action_pairs(self.expert_data_loader)
 
     def _train(self, train_data: torch.Tensor, expert_data: torch.Tensor) -> None:
-        # calculte loss, here are some hyper-param
+        # calculate loss, here are some hyper-param
         out_1: torch.Tensor = self.reward_model(train_data)
         loss_1: torch.Tensor = torch.log(out_1 + 1e-5).mean()
         out_2: torch.Tensor = self.reward_model(expert_data)
@@ -76,12 +82,10 @@ class GailRewardModel(BaseRewardModel):
             self._train(sample_train_data, sample_expert_data)
 
     def estimate(self, data: list) -> None:
-        res = []
-        for item in data:
-            state = item['obs']
-            action = item['action']
-            s_a = torch.cat([state, action.float()], dim=-1)
-            res.append(s_a)
+        """
+        Rewrite the reward key in each row of the data.
+        """
+        res = concat_state_action_pairs(data)
         res = torch.stack(res).to(self.device)
         with torch.no_grad():
             reward = self.reward_model(res).squeeze(-1).cpu()
@@ -90,13 +94,7 @@ class GailRewardModel(BaseRewardModel):
             item['reward'] = rew
 
     def collect_data(self, data: list) -> None:
-        res = []
-        for item in data:
-            state = item['obs']
-            action = item['action']
-            s_a = torch.cat([state, action.float()], dim=-1)
-            res.append(s_a)
-        self.train_data.extend(res)
+        self.train_data = concat_state_action_pairs(data)
 
     def clear_data(self) -> None:
         self.train_data.clear()

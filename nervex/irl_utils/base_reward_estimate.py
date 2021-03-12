@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import List
 
 
 class BaseRewardModel(ABC):
@@ -9,27 +8,27 @@ class BaseRewardModel(ABC):
 
     @abstractmethod
     def estimate(self, s, a) -> float:
-        raise NotImplementedError
+        raise NotImplementedError()
 
     @abstractmethod
     def train(self, data) -> None:
-        raise NotImplementedError
+        raise NotImplementedError()
 
     @abstractmethod
     def load_expert_data(self, data) -> None:
-        raise NotImplementedError
+        raise NotImplementedError()
 
     @abstractmethod
     def start(self) -> None:
-        raise NotImplementedError
+        raise NotImplementedError()
 
     @abstractmethod
     def collect_data(self, data) -> None:
-        raise NotImplementedError
+        raise NotImplementedError()
 
     @abstractmethod
     def clear_data(self) -> None:
-        raise NotImplementedError
+        raise NotImplementedError()
 
 
 irl_model_mapping = {}
