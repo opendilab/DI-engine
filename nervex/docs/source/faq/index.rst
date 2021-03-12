@@ -92,7 +92,7 @@ Q8: 训练完成后如何评测模型的性能
 在训练完成之后，可在 ``log/evaluator/evalautor_logger.txt`` 中看到训练过程中的评测结果及对应保存的checkpoint名称(``ckpt_name``)，nervex也提供了简单的接口进行评测，流程如下：
  - 准备一个待评测的checkpoint，一般为 ``torch.save`` 保存的文件，内部结构为一个dict，其中 ``model`` 键所指的为神经网络模型权重
  - 准备一个评测用的配置文件，大部分内容和训练配置文件相同，只需添加 ``learner.load_path`` 字段为checkpoint的绝对路径
- - 在shell脚本中运行 ``nervex -m eval -c <config_path> -s <seed>`` 即可，如需指定其他参数，可以调用 ``nervex.entry.serial_entry`` 中的eval函数。
+ - 在shell脚本中运行 ``nervex -m eval -c <config_path> -s <seed>`` 即可，如需指定其他参数，可以调用 ``nervex.entry.application_entry`` 中的eval函数。
  - 如果需要把环境评测的过程保存成视频文件，需要环境实现 ``enable_save_replay`` 接口，并指定配置文件中 ``env.replay_path`` 字段，会将视频文件存储在 ``replay_path`` 目录下
 
 
