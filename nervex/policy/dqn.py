@@ -55,7 +55,6 @@ class DQNPolicy(CommonPolicy):
         # Q-learning forward
         # ====================
         # Reward reshaping for n-step
-        # this is a learning step
         reward = data['reward']
         if len(reward.shape) == 1:
             reward = reward.unsqueeze(1)
