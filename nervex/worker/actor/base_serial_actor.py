@@ -28,15 +28,18 @@ class BaseSerialActor(object):
         self._default_n_episode = cfg.get('n_episode', None)
         self._default_n_sample = cfg.get('n_sample', None)
         self._traj_len = cfg.traj_len
-        if self._traj_len == "inf":
-            raise ValueError(
-                "Serial Actor must indicate finite traj_len, if you want to use the total episode, \
-                please set it equal to the maximum length of the env's episode"
-            )
-        self._traj_cache_length = self._traj_len
+        if self._traj_len != "inf":
+            self._traj_cache_length = self._traj_len
+        else:
+            self._traj_len = float('inf')
+            self._traj_cache_length = None
         self._traj_print_freq = cfg.traj_print_freq
         self._collect_print_freq = cfg.collect_print_freq
-        self._logger, _ = build_logger(path='./log/actor', name='actor', need_tb=False)
+        self._logger, self._tb_logger = build_logger(path='./log/actor', name='collect', need_tb=True)
+        for var in ['episode_count', 'step_count', 'train_sample_count', 'avg_step_per_episode',
+                    'avg_sample_per_epsiode', 'avg_time_per_step', 'avg_time_per_train_sample', 'avg_time_per_episode',
+                    'reward_mean', 'reward_std']:
+            self._tb_logger.register_var('actor/' + var)
         self._timer = EasyTimer()
         self._cfg = cfg
 
@@ -62,15 +65,29 @@ class BaseSerialActor(object):
     def reset(self) -> None:
         self._obs_pool = CachePool('obs', self._env_num)
         self._policy_output_pool = CachePool('policy_output', self._env_num)
+
         self._traj_cache = {
             env_id: deque(maxlen=self._traj_cache_length)
             for env_id in range(self._env_num)
         }  # _traj_cache = {env_id: deque}, used to store traj_len pieces of transitions
+
         self._total_collect_step_count = 0
         self._total_step_count = 0
         self._total_episode_count = 0
         self._total_sample_count = 0
         self._total_duration = 0
+
+    @property
+    def actor_info(self) -> dict:
+        """
+        Overview:
+            Get current info dict, which will be sent to commander, e.g. replay buffer priority update,
+            current iteration, hyper-parameter adjustment, whether task is finished, etc.
+        Returns:
+            - info (:obj:`dict`): Current learner info dict.
+        """
+        ret = {'env_step': self._total_step_count, 'sample_step': self._total_sample_count}
+        return ret
 
     def generate_data(self,
                       iter_count: int,
@@ -173,7 +190,7 @@ class BaseSerialActor(object):
                     step_count += 1
                     self._total_step_count += 1
         duration = self._timer.value
-        if (self._total_collect_step_count + 1) % self._collect_print_freq == 0:
+        if (self._total_collect_step_count) % self._collect_print_freq == 0:
             info = {
                 'episode_count': episode_count,
                 'step_count': step_count,
@@ -188,9 +205,12 @@ class BaseSerialActor(object):
                 'each_reward': episode_reward,
             }
             self._logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
+            tb_vars = [['actor/' + k, v, iter_count] for k, v in info.items() if k not in ['each_reward']]
+            self._tb_logger.add_val_list(tb_vars, viz_type='scalar')
         self._total_collect_step_count += 1
         self._total_duration += duration
         collect_info = {
+            'sample_count': train_sample_count,
             'total_collect_step': self._total_collect_step_count,
             'total_step': self._total_step_count,
             'total_sample': self._total_sample_count,

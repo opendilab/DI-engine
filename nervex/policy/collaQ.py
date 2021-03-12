@@ -53,15 +53,13 @@ class CollaQPolicy(CommonPolicy):
             state_num=self._cfg.learn.batch_size,
             init_fn=lambda: [[None for _ in range(self._cfg.learn.agent_num)] for _ in range(3)]
         )
-        self._armor.add_plugin('main', 'grad', enable_grad=True)
-        self._armor.add_plugin('target', 'grad', enable_grad=False)
         self._armor.mode(train=True)
         self._armor.target_mode(train=True)
         self._armor.reset()
         self._armor.target_reset()
         self._learn_setting_set = {}
 
-    def _data_preprocess_learn(self, data: List[Any]) -> dict:
+    def _data_preprocess_learn(self, data: List[Any]) -> Tuple[dict, dict]:
         r"""
         Overview:
             Preprocess the data to fit the required data format for learning
@@ -72,14 +70,19 @@ class CollaQPolicy(CommonPolicy):
         Returns:
             - data (:obj:`Dict[str, Any]`): the processed data, from \
                 [len=B, ele={dict_key: [len=T, ele=Tensor(any_dims)]}] -> {dict_key: Tensor([T, B, any_dims])}
+            - data_info (:obj:`dict`): the data info, such as replay_buffer_idx, replay_unique_id
         """
+        data_info = {
+            'replay_buffer_idx': [d.get('replay_buffer_idx', None) for d in data],
+            'replay_unique_id': [d.get('replay_unique_id', None) for d in data],
+        }
         # data preprocess
         data = timestep_collate(data)
         if self._use_cuda:
-            data = to_device(data, 'cuda')
+            data = to_device(data, self._device)
         data['weight'] = data.get('weight', None)
         data['done'] = data['done'].float()
-        return data
+        return data, data_info
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""
@@ -103,7 +106,8 @@ class CollaQPolicy(CommonPolicy):
         agent_colla_alone_q = ret['agent_colla_alone_q'].sum(-1).sum(-1)
         total_q = self._armor.forward(inputs, param={'single_step': False})['total_q']
         next_inputs = {'obs': data['next_obs']}
-        target_total_q = self._armor.target_forward(next_inputs, param={'single_step': False})['total_q']
+        with torch.no_grad():
+            target_total_q = self._armor.target_forward(next_inputs, param={'single_step': False})['total_q']
 
         # td_loss calculation
         td_data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
@@ -148,7 +152,6 @@ class CollaQPolicy(CommonPolicy):
             init_fn=lambda: [[None for _ in range(self._cfg.learn.agent_num)] for _ in range(3)]
         )
         self._collect_armor.add_plugin('main', 'eps_greedy_sample')
-        self._collect_armor.add_plugin('main', 'grad', enable_grad=False)
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
         self._collect_setting_set = {'eps'}
@@ -163,7 +166,9 @@ class CollaQPolicy(CommonPolicy):
         Returns:
             - data (:obj:`dict`): The collected data
         """
-        return self._collect_armor.forward(data, eps=self._eps, data_id=data_id)
+        with torch.no_grad():
+            output = self._collect_armor.forward(data, eps=self._eps, data_id=data_id)
+        return output
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         r"""
@@ -204,7 +209,6 @@ class CollaQPolicy(CommonPolicy):
             init_fn=lambda: [[None for _ in range(self._cfg.learn.agent_num)] for _ in range(3)]
         )
         self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.add_plugin('main', 'grad', enable_grad=False)
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
         self._eval_setting_set = {}
@@ -219,7 +223,9 @@ class CollaQPolicy(CommonPolicy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        return self._eval_armor.forward(data, data_id=data_id)
+        with torch.no_grad():
+            output = self._eval_armor.forward(data, data_id=data_id)
+        return output
 
     def _init_command(self) -> None:
         r"""

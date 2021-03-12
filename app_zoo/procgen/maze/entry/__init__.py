@@ -1,0 +1,2 @@
+from .maze_ppo_default_config import maze_ppo_default_config
+from .maze_dqn_default_config import maze_dqn_default_config

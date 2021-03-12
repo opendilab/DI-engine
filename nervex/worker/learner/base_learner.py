@@ -5,6 +5,7 @@ Main Function:
     1. Base learner class for both serial and parallel training pipeline.
 """
 import os
+import time
 from typing import Any, Union, Callable, List
 from functools import partial
 from easydict import EasyDict
@@ -13,7 +14,7 @@ from collections import namedtuple
 
 from nervex.data import AsyncDataLoader, default_collate
 from nervex.config import base_learner_default_config
-from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer, to_device
+from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer
 from nervex.utils import build_logger, EasyTimer, pretty_print, get_task_uid, import_module
 from nervex.utils import deep_merge_dicts, get_rank
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
@@ -77,8 +78,8 @@ def get_simple_monitor_type(properties: List[str] = []) -> TickMonitor:
     else:
         attrs = {}
         properties = [
-            'data_time', 'data_preprocess_time', 'train_time', 'total_collect_step', 'total_step', 'total_sample',
-            'total_episode', 'total_duration'
+            'data_time', 'data_preprocess_time', 'train_time', 'sample_count', 'total_collect_step', 'total_step',
+            'total_sample', 'total_episode', 'total_duration'
         ] + properties
         for p_name in properties:
             attrs[p_name] = LoggedValue(float)
@@ -113,15 +114,16 @@ class BaseLearner(object):
 
                 os.environ['CUDA_LAUNCH_BLOCKING'] = "1"  # for debug async CUDA
         """
+        self._instance_name = self._name + str(time.time())
         self._cfg = deep_merge_dicts(base_learner_default_config, cfg)
         self._learner_uid = get_task_uid()
         self._load_path = self._cfg.load_path
-        self._use_cuda = self._cfg.get('use_cuda', False)
         self._use_distributed = self._cfg.use_distributed
+        self._use_cuda = False
+        self._device = 'cpu'
 
         # Learner rank. Used to discriminate which GPU it uses.
         self._rank = get_rank()
-        self._device = 'cuda:{}'.format(self._rank % 8) if self._use_cuda else 'cpu'
 
         # Logger (Monitor is initialized in policy setter)
         # Only rank == 0 learner needs monitor and tb_logger, others only need text_logger to display terminal output.
@@ -144,7 +146,8 @@ class BaseLearner(object):
             "config": self._cfg,
         }, direct_print=False))
         self._end_flag = False
-        self._finished_task = None
+        self._learner_done = False
+        self._policy = None  # set by outside
 
         # Setup wrapper and hook.
         self._setup_wrapper()
@@ -215,19 +218,17 @@ class BaseLearner(object):
         """
         assert hasattr(self, '_policy'), "please set learner policy"
         self.call_hook('before_iter')
+        self._policy.reset()
         # Pre-process data
         with self._timer:
-            replay_buffer_idx = [d.get('replay_buffer_idx', None) for d in data]
-            replay_unique_id = [d.get('replay_unique_id', None) for d in data]
-            data = self._policy.data_preprocess(data)
+            data, data_info = self._policy.data_preprocess(data)
         # Forward
         log_vars = self._policy.forward(data)
         # Update replay buffer's priority info
         priority = log_vars.pop('priority', None)
         self._priority_info = {
-            'replay_buffer_idx': replay_buffer_idx,
-            'replay_unique_id': replay_unique_id,
-            'priority': priority
+            'priority': priority,
+            **data_info,
         }
         # Update log_buffer
         log_vars['data_preprocess_time'] = self._timer.value
@@ -246,18 +247,18 @@ class BaseLearner(object):
             Besides "before_iter" and "after_iter", "before_run" and "after_run" hooks are called once each.
         """
         self._end_flag = False
-        self._finished_task = None
+        self._learner_done = False
         # before run hook
         self.call_hook('before_run')
 
-        max_iterations = self._cfg.max_iterations
-        for _ in range(max_iterations):
+        max_iterations = self._cfg.get('max_iterations', int(1e10))
+        for i in range(max_iterations):
             data = self._next_data()
-            self.train(data)
             if self._end_flag:
                 break
+            self.train(data)
 
-        self._finished_task = {'finish': True}
+        self._learner_done = True
         # after run hook
         self.call_hook('after_run')
 
@@ -304,11 +305,8 @@ class BaseLearner(object):
             return
         self._end_flag = True
         if hasattr(self, '_dataloader'):
-            del self._dataloader
+            self._dataloader.close()
         self._tb_logger.close()
-        # if the learner is interrupted by force
-        if self._finished_task is None:
-            self.save_checkpoint()
 
     def call_hook(self, name: str) -> None:
         """
@@ -360,9 +358,11 @@ class BaseLearner(object):
         Returns:
             - info (:obj:`dict`): Current learner info dict.
         """
-        ret = {'learner_step': self._last_iter.val, 'priority_info': self._priority_info}
-        if hasattr(self, '_finished_task') and self._finished_task is not None:
-            ret['finished_task'] = self._finished_task
+        ret = {
+            'learner_step': self._last_iter.val,
+            'priority_info': self._priority_info,
+            'learner_done': self._learner_done
+        }
         return ret
 
     @property
@@ -411,7 +411,7 @@ class BaseLearner(object):
 
     @property
     def name(self) -> str:
-        return self._name + str(id(self))
+        return self._instance_name
 
     @property
     def rank(self) -> int:
@@ -428,6 +428,8 @@ class BaseLearner(object):
             Monitor is set alongside with policy, because variables in monitor are determined by specific policy.
         """
         self._policy = _policy
+        self._use_cuda = self._policy.get_attribute('use_cuda')
+        self._device = self._policy.get_attribute('device')
         if self._rank == 0:
             self._monitor = get_simple_monitor_type(self._policy.monitor_vars())(TickTime(), expire=10)
         self.info(self._policy.info())
@@ -450,7 +452,7 @@ class BaseLearner(object):
         self._collect_info = {k: float(v) for k, v in collect_info.items()}
 
 
-learner_mapping = {}
+learner_mapping = {'base': BaseLearner}
 
 
 def register_learner(name: str, learner: type) -> None:
@@ -479,8 +481,8 @@ def create_learner(cfg: EasyDict) -> BaseLearner:
         - learner (:obj:`BaseLearner`): The created new learner, should be an instance of one of \
             learner_mapping's values.
     """
-    import_module(cfg.import_names)
-    learner_type = cfg.learner_type
+    import_module(cfg.get('import_names', []))
+    learner_type = cfg.get('learner_type', 'base')
     if learner_type not in learner_mapping.keys():
         raise KeyError("not support learner type: {}".format(learner_type))
     else:

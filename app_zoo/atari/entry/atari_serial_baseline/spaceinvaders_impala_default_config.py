@@ -32,6 +32,7 @@ spaceinvaders_impala_default_config = dict(
             optim='adam',
             grad_clip_type='clip_norm',
             clip_value=0.5,
+            unroll_len=64,
             algo=dict(
                 value_weight=0.5,
                 entropy_weight=0.01,

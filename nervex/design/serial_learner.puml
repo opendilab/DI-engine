@@ -13,6 +13,7 @@ repeat
   |learner|
   :learner call before_iter hook;
   |#orange|policy|
+  :policy reset;
   :policy data_preprocess;
   :policy forward (including \nbackward and grad update);
   |learner|

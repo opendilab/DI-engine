@@ -35,8 +35,6 @@ class DQNPolicy(CommonPolicy):
         self._armor = Armor(self._model)
         self._armor.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
         self._armor.add_plugin('main', 'argmax_sample')
-        self._armor.add_plugin('main', 'grad', enable_grad=True)
-        self._armor.add_plugin('target', 'grad', enable_grad=False)
         self._armor.mode(train=True)
         self._armor.target_mode(train=True)
         self._armor.reset()
@@ -66,9 +64,10 @@ class DQNPolicy(CommonPolicy):
         # Current q value (main armor)
         q_value = self._armor.forward(data['obs'])['logit']
         # Target q value
-        target_q_value = self._armor.target_forward(data['next_obs'])['logit']
-        # Max q value action (main armor)
-        target_q_action = self._armor.forward(data['next_obs'])['action']
+        with torch.no_grad():
+            target_q_value = self._armor.target_forward(data['next_obs'])['logit']
+            # Max q value action (main armor)
+            target_q_action = self._armor.forward(data['next_obs'])['action']
 
         data_n = q_nstep_td_data(
             q_value, target_q_value, data['action'], target_q_action, reward, data['done'], data['weight']
@@ -103,7 +102,7 @@ class DQNPolicy(CommonPolicy):
         """
         self._traj_len = self._cfg.collect.traj_len
         if self._traj_len == "inf":
-            self._traj_len == float("inf")
+            self._traj_len = float("inf")
         self._unroll_len = self._cfg.collect.unroll_len
         self._use_her = self._cfg.collect.algo.get('use_her', False)
         if self._use_her:
@@ -115,7 +114,6 @@ class DQNPolicy(CommonPolicy):
         self._collect_nstep = self._cfg.collect.algo.nstep
         self._collect_armor = Armor(self._model)
         self._collect_armor.add_plugin('main', 'eps_greedy_sample')
-        self._collect_armor.add_plugin('main', 'grad', enable_grad=False)
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
         self._collect_setting_set = {'eps'}
@@ -130,7 +128,9 @@ class DQNPolicy(CommonPolicy):
         Returns:
             - data (:obj:`dict`): The collected data
         """
-        return self._collect_armor.forward(data, eps=self._eps)
+        with torch.no_grad():
+            output = self._collect_armor.forward(data, eps=self._eps)
+        return output
 
     def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
         r"""
@@ -178,7 +178,6 @@ class DQNPolicy(CommonPolicy):
         """
         self._eval_armor = Armor(self._model)
         self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.add_plugin('main', 'grad', enable_grad=False)
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
         self._eval_setting_set = {}
@@ -193,7 +192,9 @@ class DQNPolicy(CommonPolicy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        return self._eval_armor.forward(data)
+        with torch.no_grad():
+            output = self._eval_armor.forward(data)
+        return output
 
     def _init_command(self) -> None:
         r"""

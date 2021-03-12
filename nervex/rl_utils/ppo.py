@@ -6,7 +6,10 @@ from torch.distributions import Independent, Normal
 ppo_data = namedtuple(
     'ppo_data', ['logit_new', 'logit_old', 'action', 'value_new', 'value_old', 'adv', 'return_', 'weight']
 )
+ppo_policy_data = namedtuple('ppo_policy_data', ['logit_new', 'logit_old', 'action', 'adv', 'weight'])
+ppo_value_data = namedtuple('ppo_value_data', ['value_new', 'value_old', 'return_', 'weight'])
 ppo_loss = namedtuple('ppo_loss', ['policy_loss', 'value_loss', 'entropy_loss'])
+ppo_policy_loss = namedtuple('ppo_policy_loss', ['policy_loss', 'entropy_loss'])
 ppo_info = namedtuple('ppo_info', ['approx_kl', 'clipfrac'])
 
 
@@ -49,6 +52,18 @@ def ppo_error(
         dual_clip
     )
     logit_new, logit_old, action, value_new, value_old, adv, return_, weight = data
+    policy_data = ppo_policy_data(logit_new, logit_old, action, adv, weight)
+    policy_output, policy_info = ppo_policy_error(policy_data, clip_ratio, dual_clip)
+    value_data = ppo_value_data(value_new, value_old, return_, weight)
+    value_loss = ppo_value_error(value_data, clip_ratio, use_value_clip)
+
+    return ppo_loss(policy_output.policy_loss, value_loss, policy_output.entropy_loss), policy_info
+
+
+def ppo_policy_error(data: namedtuple,
+                     clip_ratio: float = 0.2,
+                     dual_clip: Optional[float] = None) -> Tuple[namedtuple, namedtuple]:
+    logit_new, logit_old, action, adv, weight = data
     if weight is None:
         weight = torch.ones_like(adv)
     dist_new = torch.distributions.categorical.Categorical(logits=logit_new)
@@ -68,6 +83,17 @@ def ppo_error(
         approx_kl = (logp_old - logp_new).mean().item()
         clipped = ratio.gt(1 + clip_ratio) | ratio.lt(1 - clip_ratio)
         clipfrac = torch.as_tensor(clipped).float().mean().item()
+    return ppo_policy_loss(policy_loss, entropy_loss), ppo_info(approx_kl, clipfrac)
+
+
+def ppo_value_error(
+        data: namedtuple,
+        clip_ratio: float = 0.2,
+        use_value_clip: bool = True,
+) -> torch.Tensor:
+    value_new, value_old, return_, weight = data
+    if weight is None:
+        weight = torch.ones_like(value_old)
     # value_loss
     if use_value_clip:
         value_clip = value_old + (value_new - value_old).clamp(-clip_ratio, clip_ratio)
@@ -76,8 +102,7 @@ def ppo_error(
         value_loss = 0.5 * (torch.max(v1, v2) * weight).mean()
     else:
         value_loss = 0.5 * ((return_ - value_new).pow(2) * weight).mean()
-
-    return ppo_loss(policy_loss, value_loss, entropy_loss), ppo_info(approx_kl, clipfrac)
+    return value_loss
 
 
 def ppo_error_continous(

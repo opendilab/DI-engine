@@ -17,7 +17,7 @@ class AsyncDataLoader(object):
     Overview:
         An asynchronous dataloader.
     Interface:
-        __init__, __iter__, __next__, __del__
+        __init__, __iter__, __next__, close
     """
 
     def __init__(
@@ -335,6 +335,9 @@ class AsyncDataLoader(object):
             self.async_train_queue.join_thread()
 
     def __del__(self) -> None:
+        self.close()
+
+    def close(self) -> None:
         """
         Overview:
             Delete this dataloader. First set ``end_flag`` to True, which means different processes/threads

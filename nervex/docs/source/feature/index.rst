@@ -9,6 +9,7 @@ Feature
 .. toctree::
     :maxdepth: 3
 
+    algorithm_overview
     policy_overview
     adder_overview
     env_overview

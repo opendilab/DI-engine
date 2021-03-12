@@ -351,11 +351,12 @@ class SubprocessEnvManager(BaseEnvManager):
         try:
             reset_fn()
         except Exception as e:
-            if self._closed:  # exception cased by main thread closing parent_remote
-                return
-            else:
-                self.close()
-                raise e
+            with self._lock:
+                if self._closed:  # exception cased by main thread closing parent_remote
+                    return
+                else:
+                    self.close()
+                    raise e
 
     def step(self, actions: Dict[int, Any]) -> Dict[int, namedtuple]:
         """

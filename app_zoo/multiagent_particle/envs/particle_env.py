@@ -129,7 +129,8 @@ class CooperativeNavigation(BaseEnv):
         self._env.discrete_action_input = cfg.get('discrete_action', True)
         self._max_step = cfg.get('max_step', 100)
         self._collide_penalty = cfg.get('collide_penal', self.agent_num)
-        self._env.force_discrete_action = True
+        self._agent_obs_only = cfg.get('agent_obs_only', False)
+        self._env.force_discrete_action = cfg.get('force_discrete_action', False)
         self.action_dim = 5
         # obs = np.concatenate([agent.state.p_vel] + [agent.state.p_pos] + other_pos + entity_pos)
         self.obs_dim = 2 + 2 + (self.agent_num - 1) * 2 + self._num_landmarks * 2
@@ -141,7 +142,7 @@ class CooperativeNavigation(BaseEnv):
         self._sum_reward = 0
         if hasattr(self, '_seed'):
             # Note: the real env instance only has a empty seed method, only pass
-            self._env.seed(self._seed)
+            self._env.seed = self._seed
         obs_n = self._env.reset()
         obs_n = self.process_obs(obs_n)
         return obs_n
@@ -152,6 +153,9 @@ class CooperativeNavigation(BaseEnv):
 
     def seed(self, seed: int) -> None:
         self._seed = seed
+        if hasattr(self, '_seed'):
+            # Note: the real env instance only has a empty seed method, only pass
+            self._env.seed = self._seed
 
     def _process_action(self, action: list):
         return to_list(action)
@@ -159,6 +163,8 @@ class CooperativeNavigation(BaseEnv):
     def process_obs(self, obs: list):
         ret = {}
         obs = np.array(obs)
+        if self._agent_obs_only:
+            return obs
         ret['agent_state'] = obs
         ret['global_state'] = np.concatenate((obs[0, 2:], obs[:, 0:2].flatten()))
         ret['agent_alone_state'] = np.concatenate([obs[:, 0:4], obs[:, -self._num_landmarks * 2:]], 1)
@@ -186,6 +192,7 @@ class CooperativeNavigation(BaseEnv):
         for i in range(self.agent_num):
             collide_sum += info['n'][i][1]
         rew_n += collide_sum * (1.0 - self._collide_penalty)
+        rew_n = rew_n / (self._max_step * self.agent_num)
         self._sum_reward += rew_n
         occupied_landmarks = info['n'][0][3]
         if self._step_count >= self._max_step or occupied_landmarks >= self.agent_num or occupied_landmarks >= self._num_landmarks:
@@ -198,6 +205,13 @@ class CooperativeNavigation(BaseEnv):
 
     def info(self):
         T = EnvElementInfo
+        if self._agent_obs_only:
+            return CNEnvInfo(
+                agent_num=self.agent_num,
+                obs_space=T((self.agent_num, self.obs_dim), None, None, None),
+                act_space=T((self.agent_num, self.action_dim), None, None, None),
+                rew_space=T((1, ), None, None, None)
+            )
         return CNEnvInfo(
             agent_num=self.agent_num,
             obs_space=T(

@@ -92,33 +92,6 @@ class TestBaseArmor:
 @pytest.mark.unittest
 class TestArmorPlugin:
 
-    def test_grad_helper(self, setup_model):
-        armor1 = Armor(deepcopy(setup_model))
-        armor1.add_plugin('main', 'grad', enable_grad=True)
-        armor2 = Armor(deepcopy(setup_model))
-        armor2.add_plugin('main', 'grad', enable_grad=False)
-
-        data = torch.randn(4, 3).requires_grad_(True)
-        assert armor1.model.weight.grad is None
-        assert data.grad is None
-        output = armor1.forward(data)
-        loss = output.mean()
-        loss.backward()
-        assert isinstance(armor1.model.weight.grad, torch.Tensor)
-        assert isinstance(data.grad, torch.Tensor)
-
-        data = torch.randn(4, 3).requires_grad_(True)
-        assert armor2.model.weight.grad is None
-        assert data.grad is None
-        output = armor2.forward(data)
-        loss = output.mean()
-        with pytest.raises(RuntimeError):
-            loss.backward()
-        loss += data.mean()
-        loss.backward()
-        assert armor2.model.weight.grad is None
-        assert isinstance(data.grad, torch.Tensor)
-
     def test_hidden_state_helper(self):
 
         model = TempLSTM()
@@ -126,7 +99,6 @@ class TestArmorPlugin:
         # the former plugin is registered in inner layer
         armor = Armor(model)
         armor.add_plugin('main', 'hidden_state', state_num=state_num, save_prev_state=True)
-        armor.add_plugin('main', 'grad', enable_grad=True)
         armor.reset()
         data = {'f': torch.randn(2, 4, 36)}
         output = armor.forward(data)
@@ -159,8 +131,6 @@ class TestArmorPlugin:
         model = TempMLP()
         armor = Armor(model)
         armor.add_model('target', update_type='assign', update_kwargs={'freq': 2})
-        armor.add_plugin('main', 'grad', enable_grad=True)
-        armor.add_plugin('target', 'grad', enable_grad=False)
         with pytest.raises(KeyError):
             armor.add_plugin('main', 'grad_error', enable_grad=False)
         register_plugin('abstract', IArmorStatelessPlugin)
@@ -179,7 +149,8 @@ class TestArmorPlugin:
         armor.mode(train=True)
         armor.target_mode(train=True)
         output = armor.forward(inputs)
-        output_target = armor.target_forward(inputs)
+        with torch.no_grad():
+            output_target = armor.target_forward(inputs)
         assert output.eq(output_target).sum() == 2 * 6
         armor.model.fc1.weight.data = torch.randn_like(armor.model.fc1.weight)
         assert armor.model.fc1.weight.ne(armor.target_model.fc1.weight).sum() == 12
@@ -249,16 +220,17 @@ class TestArmorPlugin:
         model = ActorMLP()
         armor = Armor(model)
         armor.add_plugin('main', 'eps_greedy_sample')
-        armor.add_plugin('main', 'grad', enable_grad=False)
         armor.mode(train=False)
         eps_threshold = 0.5
         data = {'obs': torch.randn(4, 3), 'mask': torch.randint(0, 2, size=(4, 6))}
-        output = armor.forward(data, eps=eps_threshold)
+        with torch.no_grad():
+            output = armor.forward(data, eps=eps_threshold)
         assert output['tmp'] == 0
         for i in range(10):
             if i == 5:
                 data.pop('mask')
-            output = armor.forward(data, eps=eps_threshold, param={'tmp': 1})
+            with torch.no_grad():
+                output = armor.forward(data, eps=eps_threshold, param={'tmp': 1})
             assert isinstance(output, dict)
         assert output['tmp'] == 1
 
