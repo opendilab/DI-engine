@@ -2,7 +2,7 @@ from easydict import EasyDict
 from nervex.config import parallel_transform
 
 __policy_default_config = dict(
-    use_cuda=True,
+    use_cuda=False,
     policy_type='dqn',
     import_names=['nervex.policy.dqn'],
     on_policy=False,
@@ -37,7 +37,7 @@ __policy_default_config = dict(
 
 __base_learner_default_config = dict(
     load_path='',
-    use_cuda=True,
+    use_cuda=False,
     dataloader=dict(
         batch_size=32,
         chunk_size=32,
@@ -124,7 +124,7 @@ main_config = dict(
         path_data='./data',
         path_policy='.',
         send_policy_freq=1,
-        use_distributed=True,
+        use_distributed=False,
         repeat_num=2,
     ),
     actor0=dict(

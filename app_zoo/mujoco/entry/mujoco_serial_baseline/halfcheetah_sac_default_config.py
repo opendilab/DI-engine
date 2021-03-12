@@ -2,7 +2,9 @@ from easydict import EasyDict
 
 halfcheetah_sac_default_config = dict(
     env=dict(
-        env_id='HalfCheetah-v3',
+        # env_id='HalfCheetah-v3',  # Original MuJoCo
+        env_id='HalfCheetahMuJoCoEnv-v0',  # PyBullet MuJoCo
+        # env_id='HalfCheetahPyBulletEnv-v0',  # PyBullet RboSchool
         norm_obs=dict(use_norm=True, ),
         norm_reward=dict(
             use_norm=False,
@@ -27,13 +29,13 @@ halfcheetah_sac_default_config = dict(
             use_twin_q=True,
         ),
         learn=dict(
-            train_step=2,
+            train_step=1,
             batch_size=256,
             learning_rate_q=0.0003,
             learning_rate_value=0.0003,
             learning_rate_policy=0.0003,
             learning_rate_alpha=0.003,
-            weight_deca=0.0001,
+            weight_decay=0.0001,
             ignore_done=True,
             algo=dict(
                 target_theta=0.005,
@@ -57,8 +59,8 @@ halfcheetah_sac_default_config = dict(
     replay_buffer=dict(
         buffer_name=['agent'],
         agent=dict(
-            meta_maxlen=100000,
-            max_reuse=256,
+            meta_maxlen=1000000,
+            max_reuse=16,
             min_sample_ratio=1,
         ),
     ),

@@ -54,8 +54,6 @@ class COMAPolicy(CommonPolicy):
             state_num=self._cfg.learn.batch_size,
             init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
         )
-        self._armor.add_plugin('main', 'grad', enable_grad=True)
-        self._armor.add_plugin('target', 'grad', enable_grad=False)
         self._armor.mode(train=True)
         self._armor.target_mode(train=True)
         self._armor.reset()
@@ -84,7 +82,7 @@ class COMAPolicy(CommonPolicy):
         data = timestep_collate(data)
         assert set(data.keys()) > set(['obs', 'action', 'reward'])
         if self._use_cuda:
-            data = to_device(data, 'cuda')
+            data = to_device(data, self._device)
         data['weight'] = data.get('weight', None)
         data['done'] = data['done'].float()
         return data, data_info
@@ -111,7 +109,8 @@ class COMAPolicy(CommonPolicy):
         self._armor.reset(state=data['prev_state'][0])
         self._armor.target_reset(state=data['prev_state'][0])
         q_value = self._armor.forward(data, param={'mode': 'compute_q_value'})['q_value']
-        target_q_value = self._armor.target_forward(data, param={'mode': 'compute_q_value'})['q_value']
+        with torch.no_grad():
+            target_q_value = self._armor.target_forward(data, param={'mode': 'compute_q_value'})['q_value']
         logit = self._armor.forward(data, param={'mode': 'compute_action'})['logit']
 
         data = coma_data(logit, data['action'], q_value, target_q_value, data['reward'], data['weight'])
@@ -154,7 +153,6 @@ class COMAPolicy(CommonPolicy):
             init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
         )
         self._collect_armor.add_plugin('main', 'eps_greedy_sample')
-        self._collect_armor.add_plugin('main', 'grad', enable_grad=False)
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
         self._collect_setting_set = {'eps'}
@@ -171,7 +169,9 @@ class COMAPolicy(CommonPolicy):
         Returns:
             - data (:obj:`dict`): The collected data
         """
-        return self._collect_armor.forward(data, eps=self._eps, data_id=data_id, param={'mode': 'compute_action'})
+        with torch.no_grad():
+            output = self._collect_armor.forward(data, eps=self._eps, data_id=data_id, param={'mode': 'compute_action'})
+        return output
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         r"""
@@ -210,7 +210,6 @@ class COMAPolicy(CommonPolicy):
             init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
         )
         self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.add_plugin('main', 'grad', enable_grad=False)
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
         self._eval_setting_set = {}
@@ -227,7 +226,9 @@ class COMAPolicy(CommonPolicy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        return self._eval_armor.forward(data, data_id=data_id, param={'mode': 'compute_action'})
+        with torch.no_grad():
+            output = self._eval_armor.forward(data, data_id=data_id, param={'mode': 'compute_action'})
+        return output
 
     def _init_command(self) -> None:
         r"""

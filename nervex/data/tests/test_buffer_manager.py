@@ -78,14 +78,14 @@ class TestBufferManager:
             time.sleep(duration)
             if np.random.randint(0, 100) > 50:
                 print('[PRODUCER] thread {} use {} second to produce 1 data'.format(id_, duration))
-                replay_buffer.push_data(generate_data(), [buffer_name[0]])
+                replay_buffer.push(generate_data(), [buffer_name[0]])
                 count += 1
             else:
                 data_count = np.random.randint(2, 5)
                 print(
                     '[PRODUCER] thread {} use {} second to produce a list of {} data'.format(id_, duration, data_count)
                 )
-                replay_buffer.push_data(generate_data_list(data_count), [buffer_name[1]])
+                replay_buffer.push(generate_data_list(data_count), [buffer_name[1]])
                 count += data_count
         print('[PRODUCER] thread {} finish job, total produce {} data'.format(id_, count))
         self.produce_count += count
@@ -144,7 +144,7 @@ class TestBufferManager:
         ]
         for t in produce_threads:
             t.start()
-        setup_replay_buffer.run()
+        setup_replay_buffer.start()
         for t in consume_threads:
             t.start()
 
@@ -154,7 +154,7 @@ class TestBufferManager:
             t.join()
         used_data = setup_replay_buffer.used_data()
         count = setup_replay_buffer.count()
-        setup_replay_buffer.push_data({'data': np.random.randn(4)})
+        setup_replay_buffer.push({'data': np.random.randn(4)})
         setup_replay_buffer.close()
         time.sleep(1 + 0.5)
         assert (len(threading.enumerate()) <= 3)
@@ -186,7 +186,7 @@ class TestBufferManager:
         consume_threads = [Thread(target=self.consume, args=(i, setup_replay_buffer, bs)) for i in range(CONSUMER_NUM)]
         for t in produce_threads:
             t.start()
-        setup_replay_buffer.run()
+        setup_replay_buffer.start()
         for t in consume_threads:
             t.start()
 
@@ -198,7 +198,7 @@ class TestBufferManager:
         demo_used_data = setup_replay_buffer.used_data('demo')
         agent_count = setup_replay_buffer.count('agent')
         demo_count = setup_replay_buffer.count('demo')
-        setup_replay_buffer.push_data({'data': np.random.randn(4)}, ['agent'])
+        setup_replay_buffer.push({'data': np.random.randn(4)}, ['agent'])
         setup_replay_buffer.close()
         time.sleep(1 + 0.5)
         assert (len(threading.enumerate()) <= 4), threading.enumerate()
@@ -230,11 +230,11 @@ class TestBufferManager:
             produce_begin_time = time.time()
             while produce_count < 20000:
                 if np.random.randint(0, 100) > 80:
-                    replay_buffer.push_data(generate_data())
+                    replay_buffer.push(generate_data())
                     produce_count += 1
                 else:
                     data_count = np.random.randint(10, 50)
-                    replay_buffer.push_data(generate_data_list(data_count))
+                    replay_buffer.push(generate_data_list(data_count))
                     produce_count += data_count
             print(
                 '[PRODUCER] produce {} data, using {} seconds'.format(produce_count,

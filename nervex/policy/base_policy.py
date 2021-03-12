@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import Optional, List, Dict, Any, Tuple, Union
 from collections import namedtuple, deque
-from easydict import EasyDict
+from typing import Optional, List, Dict, Any, Tuple, Union
+
 import torch
+from easydict import EasyDict
 
 from nervex.model import create_model
 from nervex.utils import import_module, allreduce, broadcast, get_rank
@@ -12,7 +13,7 @@ class Policy(ABC):
     learn_function = namedtuple(
         'learn_function', [
             'data_preprocess', 'forward', 'reset', 'info', 'state_dict_handle', 'set_setting', 'monitor_vars',
-            'get_batch_size'
+            'get_attribute'
         ]
     )
     collect_function = namedtuple(
@@ -38,6 +39,7 @@ class Policy(ABC):
         self._use_cuda = cfg.use_cuda and torch.cuda.is_available()
         self._use_distributed = cfg.get('use_distributed', False)
         self._rank = get_rank() if self._use_distributed else 0
+        self._device = 'cuda:{}'.format(self._rank % 8) if self._use_cuda else 'cpu'
         if self._use_cuda:
             torch.cuda.set_device(self._rank)
             model.cuda()
@@ -99,8 +101,14 @@ class Policy(ABC):
     @property
     def learn_mode(self) -> 'Policy.learn_function':  # noqa
         return Policy.learn_function(
-            self._data_preprocess_learn, self._forward_learn, self._reset_learn, self.__repr__, self.state_dict_handle,
-            self.set_setting, self._monitor_vars_learn, self._get_batch_size
+            self._data_preprocess_learn,
+            self._forward_learn,
+            self._reset_learn,
+            self.__repr__,
+            self.state_dict_handle,
+            self.set_setting,
+            self._monitor_vars_learn,
+            self.get_attribute,
         )
 
     @property
@@ -132,12 +140,21 @@ class Policy(ABC):
         return Policy.command_function(self._get_setting_learn, self._get_setting_collect, self._get_setting_eval)
 
     def set_setting(self, mode_name: str, setting: dict) -> None:
-        # this function is used in both collect and learn modes
         assert mode_name in ['learn', 'collect', 'eval'], mode_name
         for k, v in setting.items():
-            # this attribute should be set in _init_{mode} method as a list
+            # This attribute should be set in _init_{mode} method as a list
             assert k in getattr(self, '_' + mode_name + '_setting_set')
             setattr(self, '_' + k, v)
+
+    def get_attribute(self, name: str) -> Any:
+        attributes = ['batch_size', 'use_cuda', 'device']
+        assert name in attributes, 'attr<{}> not in {}'.format(name, attributes)
+        if hasattr(self, '_get_' + name):
+            return getattr(self, '_get_' + name)()
+        elif hasattr(self, '_' + name):
+            return getattr(self, '_' + name)
+        else:
+            raise NotImplementedError
 
     def __repr__(self) -> str:
         return "nerveX DRL Policy\n{}".format(repr(self._model))

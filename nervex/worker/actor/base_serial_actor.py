@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Optional, Callable, Tuple
+from typing import List, Dict, Any, Optional, Callable, Tuple, Union
 from collections import namedtuple, deque
 import copy
 import numpy as np
@@ -11,11 +11,11 @@ from nervex.utils import build_logger, EasyTimer
 class BaseSerialActor(object):
     """
     Overview:
-        Abstract baseclass for serial actor.
+        Baseclass for serial actor.
     Interfaces:
-        __init__, reset, generate_data, close, _collect_episode, _collect_sample, _collect
+        __init__, reset, generate_data, close
     Property:
-        env, policy,
+        env, policy
     """
 
     def __init__(self, cfg: dict) -> None:
@@ -35,7 +35,11 @@ class BaseSerialActor(object):
             self._traj_cache_length = None
         self._traj_print_freq = cfg.traj_print_freq
         self._collect_print_freq = cfg.collect_print_freq
-        self._logger, _ = build_logger(path='./log/actor', name='actor', need_tb=False)
+        self._logger, self._tb_logger = build_logger(path='./log/actor', name='collect', need_tb=True)
+        for var in ['episode_count', 'step_count', 'train_sample_count', 'avg_step_per_episode',
+                    'avg_sample_per_epsiode', 'avg_time_per_step', 'avg_time_per_train_sample', 'avg_time_per_episode',
+                    'reward_mean', 'reward_std']:
+            self._tb_logger.register_var('actor/' + var)
         self._timer = EasyTimer()
         self._cfg = cfg
 
@@ -61,12 +65,8 @@ class BaseSerialActor(object):
     def reset(self) -> None:
         self._obs_pool = CachePool('obs', self._env_num)
         self._policy_output_pool = CachePool('policy_output', self._env_num)
-
-        self._traj_cache = {
-            env_id: deque(maxlen=self._traj_cache_length)
-            for env_id in range(self._env_num)
-        }  # _traj_cache = {env_id: deque}, used to store traj_len pieces of transitions
-
+        # _traj_cache is {env_id: deque}, is used to store traj_len pieces of transitions
+        self._traj_cache = {env_id: deque(maxlen=self._traj_cache_length) for env_id in range(self._env_num)}
         self._total_collect_step_count = 0
         self._total_step_count = 0
         self._total_episode_count = 0
@@ -91,7 +91,7 @@ class BaseSerialActor(object):
                       n_sample: Optional[int] = None) -> Tuple[List[Any], dict]:
         """
         Overview:
-           Generate data. ``n_episode`` and ``n_sample`` can't be not None at the same time.
+           Generate data. Either ``n_episode`` or ``n_sample`` must be None.
         Arguments:
            - iter_count (:obj:`int`): count of iteration
            - n_episode (:obj:`int`): number of episode
@@ -100,7 +100,7 @@ class BaseSerialActor(object):
            - return_data (:obj:`List`): A list containing training samples.
            - collect_info (:obj:`dict`): A dict containing sample collection information.
         """
-        assert n_episode is None or n_sample is None, "n_episode and n_sample can't be not None at the same time"
+        assert n_episode is None or n_sample is None, "Either n_episode or n_sample must be None"
         if n_episode is not None:
             return self._collect_episode(iter_count, n_episode)
         elif n_sample is not None:
@@ -110,7 +110,7 @@ class BaseSerialActor(object):
         elif self._default_n_sample is not None:
             return self._collect_sample(iter_count, self._default_n_sample)
         else:
-            raise RuntimeError("please clarify specific n_episode or n_sample(int value) in config yaml or outer call")
+            raise RuntimeError("Please clarify specific n_episode or n_sample (int value) in config yaml or outer call")
 
     def close(self) -> None:
         self._env_manager.close()
@@ -124,7 +124,8 @@ class BaseSerialActor(object):
     def _collect(self, iter_count: int, collect_end_fn: Callable) -> Tuple[List[Any], dict]:
         """
         Overview:
-            Collect function for generate data. Called by ``self._collect_episode`` and ``self._collect_sample``.
+            Real collect method in process of generating data.
+            Called by ``self._collect_episode`` and ``self._collect_sample``.
         Arguments:
             - iter_count (:obj:`int`): count of iteration
             - collect_end_fn (:obj:`Callable`): end of collect
@@ -141,14 +142,21 @@ class BaseSerialActor(object):
         self._policy.reset()
         with self._timer:
             while not collect_end_fn(episode_count, train_sample_count):
+                # Get current env obs.
                 obs = self._env_manager.next_obs
                 self._obs_pool.update(obs)
+                # Policy forward.
                 env_id, obs = self._policy.data_preprocess(obs)
                 policy_output = self._policy.forward(env_id, obs)
                 policy_output = self._policy.data_postprocess(env_id, policy_output)
                 self._policy_output_pool.update(policy_output)
+                # Interact with env.
                 actions = {env_id: output['action'] for env_id, output in policy_output.items()}
                 timesteps = self._env_manager.step(actions)
+                # For each env:
+                # 1) Form a transition and store it in cache;
+                # 2) Get a train sample from cache if cache is full or env is done;
+                # 3) Reset related variables if env is done.
                 for env_id, timestep in timesteps.items():
                     if timestep.info.get('abnormal', False):
                         # If there is an abnormal timestep, reset all the related variables(including this env).
@@ -161,8 +169,7 @@ class BaseSerialActor(object):
                     transition = self._policy.process_transition(
                         self._obs_pool[env_id], self._policy_output_pool[env_id], timestep
                     )
-                    # Parameter ``iter_count``, which is passed in from ``serial_entry``, indicates current
-                    # collecting model's iteration
+                    # ``iter_count`` passed in from ``serial_entry``, indicates current collecting model's iteration.
                     transition['collect_iter'] = iter_count
                     self._traj_cache[env_id].append(transition)
                     if timestep.done or len(self._traj_cache[env_id]) == self._traj_len:
@@ -172,7 +179,7 @@ class BaseSerialActor(object):
                         train_sample_count += len(train_sample)
                         self._total_sample_count += len(train_sample)
                     if timestep.done:
-                        # env reset is done by env_manager automatically
+                        # Env reset is done by env_manager automatically
                         self._traj_cache[env_id].clear()
                         self._obs_pool.reset(env_id)
                         self._policy_output_pool.reset(env_id)
@@ -186,7 +193,7 @@ class BaseSerialActor(object):
                     step_count += 1
                     self._total_step_count += 1
         duration = self._timer.value
-        if (self._total_collect_step_count + 1) % self._collect_print_freq == 0:
+        if (self._total_collect_step_count) % self._collect_print_freq == 0:
             info = {
                 'episode_count': episode_count,
                 'step_count': step_count,
@@ -201,6 +208,8 @@ class BaseSerialActor(object):
                 'each_reward': episode_reward,
             }
             self._logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
+            tb_vars = [['actor/' + k, v, iter_count] for k, v in info.items() if k not in ['each_reward']]
+            self._tb_logger.add_val_list(tb_vars, viz_type='scalar')
         self._total_collect_step_count += 1
         self._total_duration += duration
         collect_info = {
@@ -222,7 +231,7 @@ class CachePool(object):
         __init__, update, __getitem__, reset
     """
 
-    def __init__(self, name: str, env_num: int, deepcopy: bool = False):
+    def __init__(self, name: str, env_num: int, deepcopy: bool = False) -> None:
         """
         Overview:
             Initialization method.
@@ -235,15 +244,32 @@ class CachePool(object):
         # TODO(nyz) whether must use deepcopy
         self._deepcopy = deepcopy
 
-    def update(self, data: Dict[int, Any]):
-        for i, d in data.items():
-            if self._deepcopy:
-                self._pool[i] = copy.deepcopy(d)
-            else:
-                self._pool[i] = d
+    def update(self, data: Union[Dict[int, Any], list]) -> None:
+        """
+        Overview:
+            Update elements in cache pool.
+        Arguments:
+            - data (:obj:`Dict[int, Any]`): A dict containing update index-value pairs. Key is index in cache pool, \
+                and value is the new element.
+        """
+        if isinstance(data, dict):
+            data = [data]
+        for index in range(len(data)):
+            for i, d in data[index].items():
+                if self._deepcopy:
+                    copy_d = copy.deepcopy(d)
+                else:
+                    copy_d = d
+                if index == 0:
+                    self._pool[i] = [copy_d]
+                else:
+                    self._pool[i].append(copy_d)
 
     def __getitem__(self, idx: int) -> Any:
-        return self._pool[idx]
+        data = self._pool[idx]
+        if len(data) == 1:
+            data = data[0]
+        return data
 
     def reset(self, idx: int) -> None:
         self._pool[idx] = None
