@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import Optional, List, Dict, Any, Tuple, Union
 from collections import namedtuple, deque
-from easydict import EasyDict
+from typing import Optional, List, Dict, Any, Tuple, Union
+
 import torch
+from easydict import EasyDict
 
 from nervex.model import create_model
 from nervex.utils import import_module, allreduce, broadcast, get_rank
@@ -224,6 +225,16 @@ class Policy(ABC):
     @abstractmethod
     def _get_setting_eval(self) -> dict:
         raise NotImplementedError
+
+    @property
+    def device(self) -> str:
+        if self._use_cuda:
+            return "cuda"
+        elif self._use_distributed:
+            # FIXME!
+            raise ValueError()
+        else:
+            return "cpu"
 
 
 policy_mapping = {}

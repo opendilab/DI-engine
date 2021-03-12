@@ -41,10 +41,11 @@ class RewardModelNetwork(nn.Module):
 
 class GailRewardModel(BaseRewardModel):
 
-    def __init__(self, config: dict) -> None:
+    def __init__(self, config: dict, device) -> None:
         super(GailRewardModel, self).__init__()
         self.config = config
-        self.device = 'cpu'
+        assert device in ["cpu", "cuda"]
+        self.device = device
         self.reward_model = RewardModelNetwork(config['input_dims'], config['hidden_dims'], 1)
         self.reward_model.to(self.device)
         self.expert_data = []

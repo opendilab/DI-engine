@@ -65,15 +65,18 @@ def serial_pipeline_irl(
     if cfg.policy.use_cuda and torch.cuda.is_available():
         torch.cuda.manual_seed(seed)
     # Create components: policy, learner, actor, evaluator, replay buffer, commander.
-    policy_fn = create_policy if policy_type is None else policy_type
+    if policy_type is None:
+        policy_fn = create_policy
+    else:
+        assert callable(policy_type)
+        policy_fn = policy_type
     policy = policy_fn(cfg.policy, model=model)
     learner = BaseLearner(cfg.learner)
     actor = BaseSerialActor(cfg.actor)
     evaluator = BaseSerialEvaluator(cfg.evaluator)
     replay_buffer = BufferManager(cfg.replay_buffer)
     commander = BaseSerialCommander(cfg.commander, learner, actor, evaluator, replay_buffer)
-    reward_model = create_irl_model(cfg.irl)
-    # TODO(nyz) set reward_model device by policy device
+    reward_model = create_irl_model(cfg.irl, policy.device)
     reward_model.start()
     # Set corresponding env and policy mode.
     actor.env = actor_env

@@ -12,7 +12,7 @@ from .base_reward_estimate import BaseRewardModel
 
 class PdeilRewardModel(BaseRewardModel):
 
-    def __init__(self, cfg: dict) -> None:
+    def __init__(self, cfg: dict, device) -> None:
         super(PdeilRewardModel, self).__init__()
         self.config: dict = cfg
         self.e_u_s = None
@@ -27,7 +27,8 @@ class PdeilRewardModel(BaseRewardModel):
         self.expert_data = None
         self.train_data: list = []
         # pedil default use cpu device
-        self.device = 'cpu'
+        assert device in ["cpu", "cuda"]
+        self.device = device
 
     def load_expert_data(self) -> None:
         expert_data_path: str = self.config["expert_data_path"]
