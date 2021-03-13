@@ -48,7 +48,7 @@ class GfootballEnv(BaseEnv):
         self.reward = self._reward_helper.get(self)
         self.obs = self._obs_helper.get(self)
         info = {'cum_reward': self._reward_helper.cum_reward}
-        return GfootballEnv.timestep(obs=self.obs, reward=self.reward, done=self._is_done, info=info)
+        return GfootballEnv.timestep(obs={'processed_obs':self.obs, 'raw_obs':self._football_obs}, reward=self.reward, done=self._is_done, info=info)
 
     def reset(self) -> dict:
         if not self._launch_env_flag:
@@ -58,7 +58,7 @@ class GfootballEnv(BaseEnv):
         self._obs_helper.reset()
         self._action_helper.reset()
         self.obs = self._obs_helper.get(self)
-        return self.obs
+        return {'processed_obs':self.obs, 'raw_obs':self._football_obs}
 
     def seed(self, seed: int) -> None:
         self._seed = seed

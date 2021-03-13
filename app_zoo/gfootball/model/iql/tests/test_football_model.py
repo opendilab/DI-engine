@@ -3,6 +3,7 @@ import copy
 import torch
 from app_zoo.gfootball.model.iql.iql_network import FootballIQL, ScalarEncoder, PlayerEncoder, FootballHead
 from nervex.utils import deep_merge_dicts
+from nervex.torch_utils import to_tensor
 from app_zoo.gfootball.envs.fake_dataset import FakeGfootballDataset
 import pprint
 
@@ -31,9 +32,9 @@ class TestModel:
             pp = pprint.PrettyPrinter(indent=2)
             print('observation: ')
             pp.pprint(inputs)
-
+            
             model = FootballIQL(cfg)
             assert isinstance(model, torch.nn.Module)
-
+            inputs = to_tensor(inputs)
             action = model(inputs)
             assert action.shape == (B, 19)

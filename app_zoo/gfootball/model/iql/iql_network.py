@@ -5,7 +5,8 @@ import torch
 import torch.nn as nn
 
 from nervex.model import DuelingHead
-from nervex.utils import read_config, deep_merge_dicts
+from nervex.config import read_config
+from nervex.utils import deep_merge_dicts
 from nervex.torch_utils import fc_block, Transformer, ResFCBlock, \
     conv2d_block, ResBlock, build_activation, ScatterConnection
 from nervex.data import default_collate
@@ -131,7 +132,8 @@ class PlayerEncoder(nn.Module):
             - output: :math: `(B, player_num*total_attr_dim)`, player_num is in [1, 22]
         """
         player_input = self.get_player_input(x, active=active_player)  # (player_num*B, total_attr_dim)
-        player_output = getattr(self, 'players')(player_input, tensor_output=True)  # (player_num*B, total_attr_dim, 1)
+        # player_output = getattr(self, 'players')(player_input, tensor_output=True)  # (player_num*B, total_attr_dim, 1)
+        player_output = getattr(self, 'players')(player_input)  # (player_num*B, total_attr_dim, 1)
         player_output = player_output.squeeze(dim=2)  # (player_num*B, total_attr_dim)
         player_output = player_output.reshape((22, -1, player_output.shape[1]))  # (player_num, B, total_attr_dim)
         player_output = player_output.permute(1, 0, 2)  # (B, player_num, total_attr_dim)
@@ -244,7 +246,7 @@ class FootballHead(nn.Module):
         res_blocks_list = []
         for i in range(self.res_num):
             res_blocks_list.append(
-                ResFCBlock(in_channels=self.hidden_dim, out_channels=self.hidden_dim, activation=self.act)
+                ResFCBlock(in_channels=self.hidden_dim, activation=self.act, norm_type=None)
             )
         self.res_blocks = nn.Sequential(*res_blocks_list)
         head_fn = partial(
