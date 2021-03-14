@@ -1,14 +1,11 @@
 import os
 import inspect
 from collections import OrderedDict
+from typing import Optional, Iterable, Callable
 
 _innest_error = True
 
 _NERVEX_REG_TRACE_IS_ON = os.environ.get('NERVEXREGTRACE', 'OFF').upper() == 'ON'
-
-
-def lowercase(name):
-    return ''.join([letter if letter.islower() else '_' + letter for letter in list(name)])
 
 
 class Registry(dict):
@@ -34,11 +31,11 @@ class Registry(dict):
         f = some_registry["foo_module"]
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super(Registry, self).__init__(*args, **kwargs)
         self.__trace__ = dict()
 
-    def register(self, module_name=None, module=None):
+    def register(self, module_name: Optional[str] = None, module: Optional[Callable] = None) -> Callable:
         if _NERVEX_REG_TRACE_IS_ON:
             frame = inspect.stack()[1][0]
             info = inspect.getframeinfo(frame)
@@ -53,7 +50,7 @@ class Registry(dict):
             return
 
         # used as decorator
-        def register_fn(fn):
+        def register_fn(fn: Callable) -> Callable:
             if module_name is None:
                 name = fn.__name__
             else:
@@ -66,14 +63,14 @@ class Registry(dict):
         return register_fn
 
     @staticmethod
-    def _register_generic(module_dict, module_name, module):
+    def _register_generic(module_dict: dict, module_name: str, module: Callable) -> None:
         assert module_name not in module_dict, module_name
         module_dict[module_name] = module
 
-    def get(self, module_name):
+    def get(self, module_name: str) -> Callable:
         return self[module_name]
 
-    def build(self, obj_type, **obj_kwargs):
+    def build(self, obj_type: str, **obj_kwargs) -> object:
 
         try:
             build_fn = self[obj_type]
@@ -93,10 +90,10 @@ class Registry(dict):
                 _innest_error = False
             raise e
 
-    def query(self):
+    def query(self) -> Iterable:
         return self.keys()
 
-    def query_details(self, aliases=None):
+    def query_details(self, aliases: Optional[Iterable] = None) -> OrderedDict:
         assert _NERVEX_REG_TRACE_IS_ON, "please exec 'export NERVEXREGTRACE=ON' first"
         if aliases is None:
             aliases = self.keys()
