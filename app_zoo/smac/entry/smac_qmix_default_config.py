@@ -17,7 +17,6 @@ smac_qmix_default_config = dict(
     policy=dict(
         use_cuda=True,
         policy_type='qmix',
-        import_names=['nervex.policy.qmix'],
         on_policy=True,
         model=dict(
             agent_num=agent_num,

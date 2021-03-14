@@ -11,7 +11,6 @@ cartpole_ppo_default_config = dict(
     policy=dict(
         use_cuda=False,
         policy_type='ppo',
-        import_names=['nervex.policy.ppo'],
         on_policy=False,
         model=dict(
             obs_dim=4,

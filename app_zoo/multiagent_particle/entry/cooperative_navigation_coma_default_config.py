@@ -21,7 +21,6 @@ cooperative_navigation_coma_default_config = dict(
     policy=dict(
         use_cuda=True,
         policy_type='coma',
-        import_names=['nervex.policy.coma'],
         on_policy=True,
         model=dict(
             agent_num=agent_num,

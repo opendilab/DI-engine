@@ -11,7 +11,6 @@ cartpole_impala_default_config = dict(
     policy=dict(
         use_cuda=False,
         policy_type='impala',
-        import_names=['nervex.policy.impala'],
         on_policy=False,
         model=dict(
             obs_dim=4,

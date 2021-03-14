@@ -12,7 +12,6 @@ cartpole_rainbowdqn_default_config = dict(
     policy=dict(
         use_cuda=False,
         policy_type='rainbow_dqn',
-        import_names=['nervex.policy.dqn', 'nervex.policy.rainbow_dqn'],
         on_policy=False,
         use_priority=True,
         model=dict(

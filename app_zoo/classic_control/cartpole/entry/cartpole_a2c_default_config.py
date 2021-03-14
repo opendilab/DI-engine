@@ -11,7 +11,6 @@ cartpole_a2c_default_config = dict(
     policy=dict(
         use_cuda=False,
         policy_type='a2c',
-        import_names=['nervex.policy.a2c'],
         on_policy=True,
         model=dict(
             obs_dim=4,

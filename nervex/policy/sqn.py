@@ -11,7 +11,8 @@ from nervex.torch_utils import Adam
 from nervex.rl_utils import Adder, epsilon_greedy
 from nervex.armor import Armor
 from nervex.model import FCDiscreteNet
-from nervex.policy.base_policy import Policy, register_policy
+from nervex.utils import POLICY_REGISTRY
+from nervex.policy.base_policy import Policy
 from nervex.policy.common_policy import CommonPolicy
 from torch.distributions.categorical import Categorical
 
@@ -32,6 +33,7 @@ class SQNModel(torch.nn.Module):
         }
 
 
+@POLICY_REGISTRY.register('sqn')
 class SQNPolicy(CommonPolicy):
     r"""
     Overview:
@@ -262,6 +264,3 @@ class SQNPolicy(CommonPolicy):
             - vars (:obj:`List[str]`): Variables' name list.
         """
         return ['q0_loss', 'q1_loss', 'alpha_loss', 'alpha', 'entropy', 'q0_value', 'q1_value']
-
-
-register_policy('sqn', SQNPolicy)

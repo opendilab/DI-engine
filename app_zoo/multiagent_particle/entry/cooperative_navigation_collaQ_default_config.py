@@ -20,8 +20,7 @@ cooperative_navigation_collaQ_default_config = dict(
     ),
     policy=dict(
         use_cuda=True,
-        policy_type='collaQ',
-        import_names=['nervex.policy.collaQ'],
+        policy_type='collaq',
         on_policy=True,
         model=dict(
             agent_num=agent_num,

@@ -6,7 +6,7 @@ import torch
 from easydict import EasyDict
 
 from nervex.model import create_model
-from nervex.utils import import_module, allreduce, broadcast, get_rank
+from nervex.utils import import_module, allreduce, broadcast, get_rank, POLICY_REGISTRY
 
 
 class Policy(ABC):
@@ -243,21 +243,9 @@ class Policy(ABC):
         raise NotImplementedError
 
 
-policy_mapping = {}
-
-
 def create_policy(cfg: dict, **kwargs) -> Policy:
     cfg = EasyDict(cfg)
-    import_module(cfg.import_names)
-    if cfg.policy_type not in policy_mapping:
-        from nervex.utils import POLICY_REGISTRY  # noqa
-        return POLICY_REGISTRY.build(cfg.policy_type, cfg, **kwargs)
-        # raise KeyError("not support policy type: {}".format(cfg.policy_type))
-    else:
-        return policy_mapping[cfg.policy_type](cfg, **kwargs)
-
-
-def register_policy(name: str, policy: type) -> None:
-    assert issubclass(policy, Policy)
-    assert isinstance(name, str)
-    policy_mapping[name] = policy
+    import_names = cfg.get('import_names', [])
+    if len(import_names) > 0:
+        import_module(cfg.import_names)
+    return POLICY_REGISTRY.build(cfg.policy_type, cfg=cfg, **kwargs)

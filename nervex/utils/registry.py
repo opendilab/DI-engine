@@ -73,12 +73,16 @@ class Registry(dict):
     def get(self, module_name):
         return self[module_name]
 
-    def build(self, obj_type, obj_cfg, **obj_kwargs):
+    def build(self, obj_type, **obj_kwargs):
 
         try:
             build_fn = self[obj_type]
-            return build_fn(obj_cfg, **obj_kwargs)
+            return build_fn(**obj_kwargs)
         except Exception as e:
+            # get build_fn fail
+            if isinstance(e, KeyError):
+                raise KeyError("not support buildable-object type: {}".format(obj_type))
+            # build_fn execution fail
             global _innest_error
             if _innest_error:
                 argspec = inspect.getfullargspec(build_fn)

@@ -26,7 +26,6 @@ cooperative_navigation_atoc_default_config = dict(
     policy=dict(
         use_cuda=True,
         policy_type='atoc',
-        import_names=['nervex.policy.atoc'],
         on_policy=False,
         use_priority=False,
         model=dict(
