@@ -4,15 +4,10 @@ league.league
 base_league
 ----------------------
 
-LimitedSpaceContainer
-~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.league.base_league.LimitedSpaceContainer
-    :members: __init__, get_residual_space, release_space
-
 BaseLeague
 ~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: nervex.league.base_league.BaseLeague
-    :members: __init__, run, close, finish_job, update_active_player
+    :members: __init__, get_job_info, judge_snapshot, update_active_player, finish_job
 
 register_league
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -24,13 +19,16 @@ create_league
 
 
 
-solo_league
+league.one_vs_one_league
+============================
+
+one_vs_one_league
 -----------------------
 
-SoloLeague
+OneVsOneLeague
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.league.solo_league.SoloLeague
-    :members: __init__, run, close, finish_job, update_active_player
+.. autoclass:: nervex.league.one_vs_one_league.OneVsOneLeague
+    :members: __init__, get_job_info, judge_snapshot, update_active_player, finish_job
 
 
 

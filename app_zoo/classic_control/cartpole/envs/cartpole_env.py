@@ -31,7 +31,7 @@ class CartPoleEnv(BaseEnv):
 
     def reset(self) -> torch.Tensor:
         if hasattr(self, '_seed'):
-            np_seed = 100 * np.random.randint(1,1000)
+            np_seed = 100 * np.random.randint(1, 1000)
             self._env.seed(self._seed + np_seed)
         self._final_eval_reward = 0
         obs = self._env.reset()

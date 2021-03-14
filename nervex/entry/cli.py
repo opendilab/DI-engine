@@ -1,8 +1,9 @@
 import click
 from click.core import Context, Option
 from nervex import __TITLE__, __VERSION__, __AUTHOR__, __AUTHOR_EMAIL__
-from .serial_entry import serial_pipeline, eval
+from .serial_entry import serial_pipeline
 from .parallel_entry import parallel_pipeline, dist_pipeline
+from .application_entry import eval
 
 
 def print_version(ctx: Context, param: Option, value: bool) -> None:

@@ -6,7 +6,7 @@ Main Function:
 """
 import os
 import time
-from typing import Any, Union, Callable, List
+from typing import Any, Union, Callable, List, Dict
 from functools import partial
 from easydict import EasyDict
 import torch
@@ -130,8 +130,11 @@ class BaseLearner(object):
         self._timer = EasyTimer()
         rank0 = True if self._rank == 0 else False
         self._logger, self._tb_logger = build_logger('./log/learner', 'learner', need_tb=rank0)
-        self._log_buffer = build_log_buffer()
-
+        self._log_buffer = {
+            'scalar': build_log_buffer(),
+            'scalars': build_log_buffer(),
+            'histogram': build_log_buffer(),
+        }
         # Checkpoint helper. Used to save model checkpoint.
         self._checkpointer_manager = build_checkpoint_helper(self._cfg)
         # Learner hook. Used to do specific things at specific time point. Will be set in ``_setup_hook``
@@ -172,15 +175,16 @@ class BaseLearner(object):
             ``data_time`` is wrapped in ``setup_dataloader``.
         """
         self._wrapper_timer = EasyTimer()
-        self.train = self._time_wrapper(self.train, 'train_time')
+        self.train = self._time_wrapper(self.train, 'scalar', 'train_time')
 
-    def _time_wrapper(self, fn: Callable, name: str) -> Callable:
+    def _time_wrapper(self, fn: Callable, var_type: str, var_name: str) -> Callable:
         """
         Overview:
-            Wrap a function and measure the time it used.
+            Wrap a function and record the time it used in ``_log_buffer``.
         Arguments:
             - fn (:obj:`Callable`): Function to be time_wrapped.
-            - name (:obj:`str`): Name to be registered in ``_log_buffer``.
+            - var_type (:obj:`str`): Variable type, e.g. ['scalar', 'scalars', 'histogram'].
+            - var_name (:obj:`str`): Variable name, e.g. ['cur_lr', 'total_loss'].
         Returns:
              - wrapper (:obj:`Callable`): The wrapper to acquire a function's time.
         """
@@ -188,7 +192,7 @@ class BaseLearner(object):
         def wrapper(*args, **kwargs) -> Any:
             with self._wrapper_timer:
                 ret = fn(*args, **kwargs)
-            self._log_buffer[name] = self._wrapper_timer.value
+            self._log_buffer[var_type][var_name] = self._wrapper_timer.value
             return ret
 
         return wrapper
@@ -224,16 +228,29 @@ class BaseLearner(object):
             data, data_info = self._policy.data_preprocess(data)
         # Forward
         log_vars = self._policy.forward(data)
+        log_vars['data_preprocess_time'] = self._timer.value
         # Update replay buffer's priority info
         priority = log_vars.pop('priority', None)
         self._priority_info = {
             'priority': priority,
             **data_info,
         }
-        # Update log_buffer
-        log_vars['data_preprocess_time'] = self._timer.value
+        # Add collect info
         log_vars.update(self.collect_info)
-        self._log_buffer.update(log_vars)
+        # Discriminate vars in scalar, scalars and histogram type
+        # By default, regard a var as scalar type. For scalars and histogram type, must annotate by "[WAHT-TYPE]"
+        scalars_vars, histogram_vars = {}, {}
+        for k in list(log_vars.keys()):
+            if "[scalars]" in k:
+                new_k = k.split(']')[-1]
+                scalars_vars[new_k] = log_vars.pop(k)
+            elif "[histogram]" in k:
+                new_k = k.split(']')[-1]
+                histogram_vars[new_k] = log_vars.pop(k)
+        # Update log_buffer
+        self._log_buffer['scalar'].update(log_vars)
+        self._log_buffer['scalars'].update(scalars_vars)
+        self._log_buffer['histogram'].update(histogram_vars)
 
         self.call_hook('after_iter')
         self._last_iter.add(1)
@@ -282,7 +299,7 @@ class BaseLearner(object):
             collate_fn=lambda x: x,
             num_workers=cfg.num_workers
         )
-        self._next_data = self._time_wrapper(self._next_data, 'data_time')
+        self._next_data = self._time_wrapper(self._next_data, 'scalar', 'data_time')
 
     def _next_data(self) -> Any:
         """
@@ -386,7 +403,7 @@ class BaseLearner(object):
         return self._log_buffer
 
     @log_buffer.setter
-    def log_buffer(self, _log_buffer: dict) -> None:
+    def log_buffer(self, _log_buffer: Dict[str, Dict[str, Any]]) -> None:
         self._log_buffer = _log_buffer
 
     @property

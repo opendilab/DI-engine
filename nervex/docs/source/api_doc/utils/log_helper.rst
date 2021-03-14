@@ -9,11 +9,6 @@ build_logger
 .. automodule:: nervex.utils.log_helper.build_logger
 
 
-get_default_logger
-~~~~~~~~~~~~~~~~~~~
-.. automodule:: nervex.utils.log_helper.get_default_logger
-
-
 TextLogger
 ~~~~~~~~~~~~~~~~~~~~~~
 .. automodule:: nervex.utils.log_helper.TextLogger

@@ -9,7 +9,7 @@ from app_zoo.classic_control.cartpole.entry import \
     cartpole_a2c_default_config, cartpole_dqn_default_config, cartpole_dqnvanilla_default_config, \
     cartpole_impala_default_config, cartpole_ppo_default_config, cartpole_ppovanilla_default_config, \
     cartpole_r2d2_default_config, cartpole_rainbowdqn_default_config, cartpole_rainbowdqn_iqn_config, \
-    cartpole_ppg_default_config
+    cartpole_ppg_default_config, cartpole_sqn_default_config
 from app_zoo.classic_control.pendulum.entry import pendulum_ddpg_default_config, pendulum_ppo_default_config, \
     pendulum_sac_auto_alpha_config, pendulum_sac_default_config, pendulum_td3_default_config
 from app_zoo.smac.entry import smac_collaQ_default_config, smac_coma_default_config, smac_qmix_default_config
@@ -241,3 +241,14 @@ def test_ppg():
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
         f.write("19. ppg\n")
+
+
+@pytest.mark.algotest
+def test_sqn():
+    config = deepcopy(cartpole_sqn_default_config)
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("20. sqn\n")

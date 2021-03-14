@@ -9,3 +9,4 @@ from .cartpole_rainbowdqn_default_config import cartpole_rainbowdqn_default_conf
 from .cartpole_rainbowdqn_iqn_config import cartpole_rainbowdqn_iqn_config
 from .cartpole_ppo_default_loader import cartpole_ppo_default_loader
 from .cartpole_ppg_default_config import cartpole_ppg_default_config
+from .cartpole_sqn_default_config import cartpole_sqn_default_config
