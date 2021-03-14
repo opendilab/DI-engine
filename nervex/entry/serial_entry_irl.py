@@ -19,7 +19,7 @@ from .utils import set_pkg_seed
 
 def serial_pipeline_irl(
         cfg: Union[str, dict],
-        seed: int,
+        seed: int = None,
         env_setting: Optional[Any] = None,
         policy_type: Optional[type] = None,
         model: Optional[Union[type, torch.nn.Module]] = None,
@@ -58,7 +58,10 @@ def serial_pipeline_irl(
     evaluator_env = env_manager_type(
         env_fn, env_cfg=evaluator_env_cfg, env_num=len(evaluator_env_cfg), manager_cfg=manager_cfg
     )
+
     # Random seed
+    if not seed:
+        seed = cfg.get('seed', 0)
     actor_env.seed(seed)
     evaluator_env.seed(seed)
     set_pkg_seed(seed, use_cuda=cfg.policy.use_cuda)
