@@ -5,7 +5,7 @@ from typing import Optional, Iterable, Callable
 
 _innest_error = True
 
-_NERVEX_REG_TRACE_IS_ON = os.environ.get('NERVEXREGTRACE', 'OFF').upper() == 'ON'
+_NERVEX_REG_TRACE_IS_ON = os.environ.get('NERVEXREGTRACE', 'ON').upper() == 'ON'
 
 
 class Registry(dict):

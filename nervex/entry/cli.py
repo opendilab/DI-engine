@@ -14,6 +14,18 @@ def print_version(ctx: Context, param: Option, value: bool) -> None:
     ctx.exit()
 
 
+def print_registry(ctx: Context, param: Option, value: str):
+    from nervex.utils import registies  # noqa
+    if value not in registies:
+        click.echo('[ERROR]: not support registry name: {}'.format(value))
+    else:
+        registered_info = registies[value].query_details()
+        click.echo('Available {}: [{}]'.format(value, '|'.join(registered_info.keys())))
+        for alias, info in registered_info.items():
+            click.echo('\t{}: registered at {}#{}'.format(alias, info[0], info[1]))
+    ctx.exit()
+
+
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
@@ -26,6 +38,13 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
     expose_value=False,
     is_eager=True,
     help="Show package's version information."
+)
+@click.option(
+    '-q',
+    '--query_registry',
+    type=str,
+    callback=print_registry,
+    help='query registered module or function, show name and path'
 )
 @click.option(
     '-m',
@@ -51,8 +70,15 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('-lh', '--learner_host', type=str, help='learner host', default='0.0.0.0')
 @click.option('-ah', '--actor_host', type=str, help='actor host', default='0.0.0.0')
 def cli(
-    mode: str, config: str, seed: int, platform: str, coordinator_host: str, learner_host: str, actor_host: str,
-    enable_total_log: bool, disable_flask_log: bool
+    mode: str,
+    config: str,
+    seed: int,
+    platform: str,
+    coordinator_host: str,
+    learner_host: str,
+    actor_host: str,
+    enable_total_log: bool,
+    disable_flask_log: bool,
 ):
     if mode == 'serial':
         serial_pipeline(config, seed, enable_total_log=enable_total_log)

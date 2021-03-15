@@ -2,6 +2,6 @@ from .registry import Registry
 
 
 POLICY_REGISTRY = Registry()
-_registies = {
+registies = {
     'policy': POLICY_REGISTRY
 }
