@@ -12,7 +12,6 @@ from app_zoo.classic_control.cartpole.entry import \
     cartpole_ppg_default_config, cartpole_sqn_default_config
 from app_zoo.classic_control.pendulum.entry import pendulum_ddpg_default_config, pendulum_ppo_default_config, \
     pendulum_sac_auto_alpha_config, pendulum_sac_default_config, pendulum_td3_default_config
-from app_zoo.smac.entry import smac_collaQ_default_config, smac_coma_default_config, smac_qmix_default_config
 from app_zoo.multiagent_particle.entry import cooperative_navigation_collaQ_default_config, \
     cooperative_navigation_coma_default_config, cooperative_navigation_iql_default_config, \
     cooperative_navigation_qmix_default_config, cooperative_navigation_atoc_default_config
@@ -175,51 +174,6 @@ def test_r2d2():
 
 
 @pytest.mark.unittest
-def test_qmix():
-    config = deepcopy(smac_qmix_default_config)
-    config.env.env_type = 'fake_smac'
-    config.env.import_names = ['app_zoo.smac.envs.fake_smac_env']
-    config.policy.use_cuda = False
-    config.policy.learn.train_step = 1
-    config.evaluator.stop_val = -float("inf")
-    config.evaluator.eval_freq = 1
-    try:
-        serial_pipeline(config, seed=0)
-    except Exception:
-        assert False, "pipeline fail"
-
-
-@pytest.mark.unittest
-def test_collaQ():
-    config = deepcopy(smac_collaQ_default_config)
-    config.env.env_type = 'fake_smac'
-    config.env.import_names = ['app_zoo.smac.envs.fake_smac_env']
-    config.policy.use_cuda = False
-    config.policy.learn.train_step = 1
-    config.evaluator.stop_val = -float("inf")
-    config.evaluator.eval_freq = 1
-    try:
-        serial_pipeline(config, seed=0)
-    except Exception:
-        assert False, "pipeline fail"
-
-
-@pytest.mark.unittest
-def test_coma():
-    config = deepcopy(smac_coma_default_config)
-    config.env.env_type = 'fake_smac'
-    config.env.import_names = ['app_zoo.smac.envs.fake_smac_env']
-    config.policy.use_cuda = False
-    config.policy.learn.train_step = 1
-    config.evaluator.stop_val = -float("inf")
-    config.evaluator.eval_freq = 1
-    try:
-        serial_pipeline(config, seed=0)
-    except Exception:
-        assert False, "pipeline fail"
-
-
-@pytest.mark.unittest
 def test_a2c_with_nstep_return():
     config = deepcopy(cartpole_a2c_default_config)
     config.policy.learn.algo.use_nstep_return = True
@@ -318,9 +272,9 @@ def test_atoc_particle():
 def test_ppg():
     config = deepcopy(cartpole_ppg_default_config)
     config.policy.use_cuda = False
-    config.policy.learn.train_step = 1
+    config.policy.learn.train_step = 10
     config.evaluator.stop_val = -float("inf")
-    config.evaluator.eval_freq = 1
+    config.evaluator.eval_freq = 10
     try:
         serial_pipeline(config, seed=0)
     except Exception:

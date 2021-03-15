@@ -2,8 +2,12 @@ import numpy as np
 import logging
 from functools import partial
 from typing import Callable, Optional, Union, Any
+import nervex
 try:
-    from numba import njit
+    if nervex.enable_numba:
+        from numba import njit
+    else:
+        njit = partial
 except ImportError:
     logging.warning("If you want to use numba to speed up segment tree, please install numba first")
     njit = partial
