@@ -95,7 +95,7 @@ class GailRewardModel(BaseRewardModel):
             item['reward'] = rew
 
     def collect_data(self, data: list) -> None:
-        self.train_data = concat_state_action_pairs(data)
+        self.train_data.extend(concat_state_action_pairs(data))
 
     def clear_data(self) -> None:
         self.train_data.clear()

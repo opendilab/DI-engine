@@ -35,7 +35,7 @@ class BaseSerialActor(object):
             self._traj_cache_length = None
         self._traj_print_freq = cfg.traj_print_freq
         self._collect_print_freq = cfg.collect_print_freq
-        self._logger, self._tb_logger = build_logger(path='./log/actor', name='collect', need_tb=True)
+        self._logger, self._tb_logger = build_logger(path='./log/actor', name='actor', need_tb=True)
         for var in ['episode_count', 'step_count', 'train_sample_count', 'avg_step_per_episode',
                     'avg_sample_per_epsiode', 'avg_time_per_step', 'avg_time_per_train_sample', 'avg_time_per_episode',
                     'reward_mean', 'reward_std']:

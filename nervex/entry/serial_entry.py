@@ -22,7 +22,7 @@ def serial_pipeline(
         env_setting: Optional[Any] = None,
         policy_type: Optional[type] = None,
         model: Optional[Union[type, torch.nn.Module]] = None,
-        enable_total_log: Optional[bool] = False,
+        enable_total_log: Optional[bool] = True,
 ) -> 'BasePolicy':  # noqa
     r"""
     Overview:
