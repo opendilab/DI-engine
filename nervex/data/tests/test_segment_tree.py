@@ -1,6 +1,8 @@
 import numpy as np
 import pytest
 
+import nervex
+nervex.enable_numba = False  # noqa
 from nervex.data.structure import SumSegmentTree, MinSegmentTree
 
 
