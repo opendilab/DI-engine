@@ -123,6 +123,7 @@ def read_from_mc(path: str, flush=False) -> object:
             value = mc.pyvector()
             if flush:
                 mclient.Get(path, value, mc.MC_READ_THROUGH)
+                return
             else:
                 mclient.Get(path, value)
             value_buf = mc.ConvertBuffer(value)
