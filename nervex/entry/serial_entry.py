@@ -58,7 +58,6 @@ def serial_pipeline(
     evaluator_env = env_manager_type(
         env_fn, env_cfg=evaluator_env_cfg, env_num=len(evaluator_env_cfg), manager_cfg=manager_cfg
     )
-    pdb.set_trace()
     # Random seed
     actor_env.seed(seed)
     evaluator_env.seed(seed)

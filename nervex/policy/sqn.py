@@ -136,6 +136,7 @@ class SQNPolicy(CommonPolicy):
         return {
             # 'cur_lr_q': self._optimizer_q.defaults['lr'],
             # 'cur_lr_alpha': self._optimizer_alpha.defaults['lr'],
+            '[histogram]action_distribution': data['action'],
             'q0_loss': q0_loss.item(),
             'q1_loss': q1_loss.item(),
             'alpha_loss': alpha_loss.item(),
@@ -214,7 +215,7 @@ class SQNPolicy(CommonPolicy):
             Init eval armor, which use argmax for selecting action
         """
         self._eval_armor = Armor(self._model)
-        # self._eval_armor.add_plugin('main', 'argmax_sample')
+        self._eval_armor.add_plugin('main', 'argmax_sample')
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
         self._eval_setting_set = {}
@@ -231,10 +232,6 @@ class SQNPolicy(CommonPolicy):
         """
         with torch.no_grad():
             output = self._eval_armor.forward(data)
-            logits = output['logit'] / math.exp(self._log_alpha.item())
-            prob = torch.softmax(logits - logits.max(axis=-1, keepdim=True).values, dim=-1)
-            pi_action = torch.multinomial(prob, 1)
-            output['action'] = pi_action
         return output
 
     def _init_command(self) -> None:

@@ -55,13 +55,13 @@ pomdp_sqn_default_config = dict(
             train_step=32,
             # train_step=update_freq,
             batch_size=128,
-            learning_rate_q=0.0002,
-            learning_rate_alpha=0.0002,
+            learning_rate_q=0.0005,
+            learning_rate_alpha=0.0005,
             # L2 norm weight for network parameters.
             weight_decay=0.0,
             algo=dict(
                 target_theta=0.005,
-                alpha=0.001,
+                alpha=0.05,
                 # Reward's future discount facotr, aka. gamma.
                 discount_factor=0.99,
             ),
