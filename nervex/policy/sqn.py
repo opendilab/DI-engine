@@ -55,6 +55,7 @@ class SQNPolicy(CommonPolicy):
         self._algo_cfg_learn = algo_cfg
         self._gamma = algo_cfg.discount_factor
         self._action_dim = self._cfg.model.action_dim
+        # self._target_entropy = algo_cfg.get('target_entropy', self._action_dim / 8)
         self._target_entropy = algo_cfg.get('target_entropy', self._action_dim / 10)
 
         self._log_alpha = torch.FloatTensor([math.log(algo_cfg.alpha)]).to(self._device).requires_grad_(True)
@@ -174,9 +175,7 @@ class SQNPolicy(CommonPolicy):
         """
         # start with random action for better exploration
         output = self._collect_armor.forward(data)
-        _act_p = 1 / (100_000 - self._forward_learn_cnt) if self._forward_learn_cnt < 99_000 else 0.999
-
-        # if self._forward_learn_cnt > self._cfg.command.eps.decay:
+        _act_p = 1 / (200_000 - self._forward_learn_cnt) if self._forward_learn_cnt < 199_000 else 0.999
         
         if np.random.random(1) < _act_p:
             logits = output['logit'] / math.exp(self._log_alpha.item())
@@ -215,7 +214,7 @@ class SQNPolicy(CommonPolicy):
             Init eval armor, which use argmax for selecting action
         """
         self._eval_armor = Armor(self._model)
-        self._eval_armor.add_plugin('main', 'argmax_sample')
+        # self._eval_armor.add_plugin('main', 'argmax_sample')
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
         self._eval_setting_set = {}
@@ -232,6 +231,10 @@ class SQNPolicy(CommonPolicy):
         """
         with torch.no_grad():
             output = self._eval_armor.forward(data)
+            logits = output['logit'] / math.exp(self._log_alpha.item())
+            prob = torch.softmax(logits - logits.max(axis=-1, keepdim=True).values, dim=-1)
+            pi_action = torch.multinomial(prob, 1)
+            output['action'] = pi_action
         return output
 
     def _init_command(self) -> None:

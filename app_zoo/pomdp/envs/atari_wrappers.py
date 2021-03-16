@@ -169,13 +169,14 @@ class ClipRewardEnv(gym.RewardWrapper):
     :param gym.Env env: the environment to wrap.
     """
 
-    def __init__(self, env):
+    def __init__(self, env, reward_scale=1):
         super().__init__(env)
-        self.reward_range = (-1, 1)
+        self.reward_range = (-reward_scale, reward_scale)
+        self.reward_scale = reward_scale
 
     def reward(self, reward):
         """Bin reward to {+1, 0, -1} by its sign. Note: np.sign(0) == 0."""
-        return np.sign(reward)
+        return np.sign(reward) * self.reward_scale
 
 
 class FrameStack(gym.Wrapper):
@@ -341,6 +342,7 @@ def wrap_deepmind(
     clip_rewards=True,
     pomdp={},
     frame_stack=4,
+    reward_scale=1,
     scale=True,
     warp_frame=True,
     use_ram=False,
@@ -372,7 +374,7 @@ def wrap_deepmind(
     if scale:
         env = ScaledFloatFrame(env)
     if clip_rewards:
-        env = ClipRewardEnv(env)
+        env = ClipRewardEnv(env, reward_scale=reward_scale)
 
     if frame_stack:
         if use_ram:

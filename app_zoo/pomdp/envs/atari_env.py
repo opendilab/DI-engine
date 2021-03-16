@@ -8,8 +8,6 @@ from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
 from .atari_wrappers import wrap_deepmind
 
-from pprint import pprint
-
 
 def PomdpEnv(cfg):
     '''
@@ -45,6 +43,7 @@ class PomdpAtariEnv(BaseEnv):
             use_ram=cfg.use_ram,
             render=cfg.render,
             pomdp=cfg.pomdp,
+            reward_scale=cfg.reward_scale
         )
 
     def reset(self) -> Sequence:

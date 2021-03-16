@@ -2,6 +2,7 @@ from easydict import EasyDict
 
 traj_len = 64
 update_freq = 50
+# update_freq = 50
 pomdp_sqn_default_config = dict(
     env=dict(
         # Support ['base', 'subprocess']. 'base' is pseudo parallel and 'subprocess' is subprocess parallel.
@@ -20,14 +21,15 @@ pomdp_sqn_default_config = dict(
         # POMDP config
         # env_id='Breakout-ramNoFrameskip-v4',
         env_id='Pong-ramNoFrameskip-v4',
-        frame_stack=1,
+        frame_stack=4,
+        reward_scale=10,
         is_train=True,
         warp_frame=False,
         use_ram=True,
         clip_reward=False,
         render=False,
-        # pomdp=dict(noise_scale=0.01, zero_p=0.2, reward_noise=0.01, duplicate_p=0.2),
-        pomdp=dict(noise_scale=0., zero_p=0., reward_noise=0., duplicate_p=0.),  # MDP test
+        pomdp=dict(noise_scale=0.01, zero_p=0.2, reward_noise=0.01, duplicate_p=0.2),
+        # pomdp=dict(noise_scale=0., zero_p=0., reward_noise=0., duplicate_p=0.),  # MDP test
     ),
     policy=dict(
         # Whether to use cuda for network.
@@ -39,7 +41,7 @@ pomdp_sqn_default_config = dict(
         on_policy=False,
         # Model config used for model creating. Remember to change this, especially "obs_dim" and "action_dim" according to specific env.
         model=dict(
-            obs_dim=(128, ),
+            obs_dim=(512, ),
             action_dim=6,
             embedding_dim=512,
             # Whether to use dueling head.
@@ -50,10 +52,11 @@ pomdp_sqn_default_config = dict(
         learn=dict(
             # How many steps to train after actor's one collection. Bigger "train_step" means bigger off-policy.
             # collect data -> train fixed steps -> collect data -> ...
-            train_step=update_freq,
-            batch_size=64,
-            learning_rate_q=0.0005,
-            learning_rate_alpha=0.0005,
+            train_step=32,
+            # train_step=update_freq,
+            batch_size=128,
+            learning_rate_q=0.0002,
+            learning_rate_alpha=0.0002,
             # L2 norm weight for network parameters.
             weight_decay=0.0,
             algo=dict(
@@ -105,9 +108,9 @@ pomdp_sqn_default_config = dict(
         # Episode number for evaluation.
         n_episode=5,
         # Evaluate every "eval_freq" training steps.
-        eval_freq=1000,
+        eval_freq=500,
         # Once evaluation reward reaches "stop_val", which means the policy converges, then the whole training can end.
-        stop_val=20,
+        stop_val=21,
     ),
     # You can refer to "config/serial.py" for details.
     learner=dict(
