@@ -48,7 +48,14 @@ def upgo_returns(rewards: torch.Tensor, bootstrap_values: torch.Tensor) -> torch
     return generalized_lambda_returns(bootstrap_values, rewards, 1.0, lambdas)
 
 
-def upgo_loss(target_output: torch.Tensor, rhos: torch.Tensor, action: torch.Tensor, rewards: torch.Tensor, bootstrap_values: torch.Tensor, mask=None) -> torch.Tensor:
+def upgo_loss(
+        target_output: torch.Tensor,
+        rhos: torch.Tensor,
+        action: torch.Tensor,
+        rewards: torch.Tensor,
+        bootstrap_values: torch.Tensor,
+        mask=None
+) -> torch.Tensor:
     r"""
     Overview:
         Computing UPGO loss given constant gamma and lambda. There is no special handling for terminal state value,

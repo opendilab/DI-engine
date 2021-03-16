@@ -10,7 +10,7 @@ cfg = [
         'type': 'pdeil',
         "alpha": 0.5,
         "discrete_action": False,
-        'env':'cartpole'
+        'env': 'cartpole'
     },
     {
         'type': 'gail',
@@ -20,6 +20,7 @@ cfg = [
         'train_iterations': 100
     },
 ]
+
 
 @pytest.mark.unittest
 @pytest.mark.parametrize('irl_config', cfg)
@@ -42,9 +43,9 @@ def test_pdeil(irl_config):
     config.irl = irl_config
     if irl_config['type'] == 'gail':
         config.actor.n_sample = irl_config['batch_size']
-   
+
     try:
-         eval(config, seed=0)
+        eval(config, seed=0)
     except Exception:
         assert False, "Evaluation Fail"
 
