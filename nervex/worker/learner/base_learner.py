@@ -6,7 +6,7 @@ Main Function:
 """
 import os
 import time
-from typing import Any, Union, Callable, List
+from typing import Any, Union, Callable, List, Dict
 from functools import partial
 from easydict import EasyDict
 import torch
@@ -14,7 +14,7 @@ from collections import namedtuple
 
 from nervex.data import AsyncDataLoader, default_collate
 from nervex.config import base_learner_default_config
-from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer, to_device
+from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer
 from nervex.utils import build_logger, EasyTimer, pretty_print, get_task_uid, import_module
 from nervex.utils import deep_merge_dicts, get_rank
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
@@ -118,20 +118,23 @@ class BaseLearner(object):
         self._cfg = deep_merge_dicts(base_learner_default_config, cfg)
         self._learner_uid = get_task_uid()
         self._load_path = self._cfg.load_path
-        self._use_cuda = self._cfg.get('use_cuda', False)
         self._use_distributed = self._cfg.use_distributed
+        self._use_cuda = False
+        self._device = 'cpu'
 
         # Learner rank. Used to discriminate which GPU it uses.
         self._rank = get_rank()
-        self._device = 'cuda:{}'.format(self._rank % 8) if self._use_cuda else 'cpu'
 
         # Logger (Monitor is initialized in policy setter)
         # Only rank == 0 learner needs monitor and tb_logger, others only need text_logger to display terminal output.
         self._timer = EasyTimer()
         rank0 = True if self._rank == 0 else False
         self._logger, self._tb_logger = build_logger('./log/learner', 'learner', need_tb=rank0)
-        self._log_buffer = build_log_buffer()
-
+        self._log_buffer = {
+            'scalar': build_log_buffer(),
+            'scalars': build_log_buffer(),
+            'histogram': build_log_buffer(),
+        }
         # Checkpoint helper. Used to save model checkpoint.
         self._checkpointer_manager = build_checkpoint_helper(self._cfg)
         # Learner hook. Used to do specific things at specific time point. Will be set in ``_setup_hook``
@@ -147,6 +150,7 @@ class BaseLearner(object):
         }, direct_print=False))
         self._end_flag = False
         self._learner_done = False
+        self._policy = None  # set by outside
 
         # Setup wrapper and hook.
         self._setup_wrapper()
@@ -171,15 +175,16 @@ class BaseLearner(object):
             ``data_time`` is wrapped in ``setup_dataloader``.
         """
         self._wrapper_timer = EasyTimer()
-        self.train = self._time_wrapper(self.train, 'train_time')
+        self.train = self._time_wrapper(self.train, 'scalar', 'train_time')
 
-    def _time_wrapper(self, fn: Callable, name: str) -> Callable:
+    def _time_wrapper(self, fn: Callable, var_type: str, var_name: str) -> Callable:
         """
         Overview:
-            Wrap a function and measure the time it used.
+            Wrap a function and record the time it used in ``_log_buffer``.
         Arguments:
             - fn (:obj:`Callable`): Function to be time_wrapped.
-            - name (:obj:`str`): Name to be registered in ``_log_buffer``.
+            - var_type (:obj:`str`): Variable type, e.g. ['scalar', 'scalars', 'histogram'].
+            - var_name (:obj:`str`): Variable name, e.g. ['cur_lr', 'total_loss'].
         Returns:
              - wrapper (:obj:`Callable`): The wrapper to acquire a function's time.
         """
@@ -187,7 +192,7 @@ class BaseLearner(object):
         def wrapper(*args, **kwargs) -> Any:
             with self._wrapper_timer:
                 ret = fn(*args, **kwargs)
-            self._log_buffer[name] = self._wrapper_timer.value
+            self._log_buffer[var_type][var_name] = self._wrapper_timer.value
             return ret
 
         return wrapper
@@ -217,21 +222,35 @@ class BaseLearner(object):
         """
         assert hasattr(self, '_policy'), "please set learner policy"
         self.call_hook('before_iter')
+        self._policy.reset()
         # Pre-process data
         with self._timer:
             data, data_info = self._policy.data_preprocess(data)
         # Forward
         log_vars = self._policy.forward(data)
+        log_vars['data_preprocess_time'] = self._timer.value
         # Update replay buffer's priority info
         priority = log_vars.pop('priority', None)
         self._priority_info = {
             'priority': priority,
             **data_info,
         }
-        # Update log_buffer
-        log_vars['data_preprocess_time'] = self._timer.value
+        # Add collect info
         log_vars.update(self.collect_info)
-        self._log_buffer.update(log_vars)
+        # Discriminate vars in scalar, scalars and histogram type
+        # By default, regard a var as scalar type. For scalars and histogram type, must annotate by "[WAHT-TYPE]"
+        scalars_vars, histogram_vars = {}, {}
+        for k in list(log_vars.keys()):
+            if "[scalars]" in k:
+                new_k = k.split(']')[-1]
+                scalars_vars[new_k] = log_vars.pop(k)
+            elif "[histogram]" in k:
+                new_k = k.split(']')[-1]
+                histogram_vars[new_k] = log_vars.pop(k)
+        # Update log_buffer
+        self._log_buffer['scalar'].update(log_vars)
+        self._log_buffer['scalars'].update(scalars_vars)
+        self._log_buffer['histogram'].update(histogram_vars)
 
         self.call_hook('after_iter')
         self._last_iter.add(1)
@@ -280,7 +299,7 @@ class BaseLearner(object):
             collate_fn=lambda x: x,
             num_workers=cfg.num_workers
         )
-        self._next_data = self._time_wrapper(self._next_data, 'data_time')
+        self._next_data = self._time_wrapper(self._next_data, 'scalar', 'data_time')
 
     def _next_data(self) -> Any:
         """
@@ -384,7 +403,7 @@ class BaseLearner(object):
         return self._log_buffer
 
     @log_buffer.setter
-    def log_buffer(self, _log_buffer: dict) -> None:
+    def log_buffer(self, _log_buffer: Dict[str, Dict[str, Any]]) -> None:
         self._log_buffer = _log_buffer
 
     @property
@@ -426,6 +445,8 @@ class BaseLearner(object):
             Monitor is set alongside with policy, because variables in monitor are determined by specific policy.
         """
         self._policy = _policy
+        self._use_cuda = self._policy.get_attribute('use_cuda')
+        self._device = self._policy.get_attribute('device')
         if self._rank == 0:
             self._monitor = get_simple_monitor_type(self._policy.monitor_vars())(TickTime(), expire=10)
         self.info(self._policy.info())

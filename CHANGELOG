@@ -1,3 +1,19 @@
+2021.3.12(v0.1.1rc0)
+ - League Demo
+ - Inverse RL Pipeline
+ - SQN算法实现
+ - Multi Discrete Action Space Demo(SUMO环境)
+ - 更新UPGO算法实现
+ - 文档Best Practice
+ - 废弃grad armor plugin
+ - 删除learner中的use_cuda选项
+ - 添加actor tensorboard和tensorboard中histogram接口
+ - 抽象通用replay buffer接口
+ - 添加pytorch计算cov(协方差)的工具函数
+ - 修复多卡训练时关于cuda device的bug
+ - 修复ATOC RNN使用相关bug
+ - 修复replay buffer anneal step相关bug
+
 2021.3.5(v0.1.1b0)
  - PPG算法实现
  - ATOC Policy实现

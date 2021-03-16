@@ -28,14 +28,14 @@ class CommonPolicy(Policy):
         else:
             data['weight'] = data.get('weight', None)
         if self._use_cuda:
-            data = to_device(data, 'cuda:{}'.format(self._rank % 8))
+            data = to_device(data, self._device)
         return data, data_info
 
     def _data_preprocess_collect(self, data: Dict[int, Any]) -> Tuple[List[int], dict]:
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
         if self._use_cuda:
-            data = to_device(data, 'cuda')
+            data = to_device(data, self._device)
         data = {'obs': data}
         return data_id, data
 

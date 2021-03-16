@@ -47,6 +47,17 @@ class FakePolicy:
     def monitor_vars(self):
         return ['total_loss', 'cur_lr']
 
+    def get_attribute(self, name):
+        if name == 'use_cuda':
+            return False
+        elif name == 'device':
+            return 'cpu'
+        else:
+            raise KeyError
+
+    def reset(self):
+        pass
+
 
 @pytest.mark.unittest
 class TestBaseLearner:

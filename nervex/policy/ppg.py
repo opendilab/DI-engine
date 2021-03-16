@@ -88,7 +88,7 @@ class PPGPolicy(CommonPolicy):
             data_item['weight'] = None
             data[k] = data_item
         if self._use_cuda:
-            data = to_device(data, 'cuda:{}'.format(self._rank % 8))
+            data = to_device(data, self._device)
         return data, data_info
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
@@ -132,7 +132,7 @@ class PPGPolicy(CommonPolicy):
         self._optimizer_value.step()
 
         # ====================
-        # PP update
+        # PPG update
         # use aux loss after iterations and reset aux_memories
         # ====================
 
@@ -204,7 +204,8 @@ class PPGPolicy(CommonPolicy):
             - data (:obj:`dict`): The collected data
         """
         with torch.no_grad():
-            return self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
+            output = self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
+        return output
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         """
@@ -276,7 +277,8 @@ class PPGPolicy(CommonPolicy):
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
         with torch.no_grad():
-            return self._eval_armor.forward(data, param={'mode': 'compute_action'})
+            output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
+        return output
 
     def _init_command(self) -> None:
         pass

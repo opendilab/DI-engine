@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 import os.path as osp
 from threading import Thread
 from typing import Union, Optional, Dict, Any, List, Tuple
@@ -10,12 +11,43 @@ from nervex.config import buffer_manager_default_config
 default_config = buffer_manager_default_config.replay_buffer
 
 
-class BufferManager:
+class IBuffer(ABC):
+
+    @abstractmethod
+    def start(self) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def close(self) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def push(self, data: Union[list, dict]) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def update(self, info: Dict[str, list]) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def sample(self, batch_size: int, cur_learner_iter: int) -> list:
+        raise NotImplementedError
+
+    @abstractmethod
+    def clear(self) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def count(self) -> int:
+        raise NotImplementedError
+
+
+class BufferManager(IBuffer):
     """
     Overview:
         Reinforcement Learning replay buffer's manager. Manage one or many buffers.
     Interface:
-        __init__, push_data, sample, update, run, close
+        __init__, push, sample, update, clear, count, start, close
     """
 
     def __init__(self, cfg: dict):
@@ -63,7 +95,7 @@ class BufferManager:
             with self._meta_lock:
                 self._meta_buffer.append(data)
 
-    def push_data(self, data: Union[list, dict], buffer_name: Optional[List[str]] = None) -> None:
+    def push(self, data: Union[list, dict], buffer_name: Optional[List[str]] = None) -> None:
         """
         Overview:
             Push ``data`` into appointed buffer.
@@ -71,7 +103,7 @@ class BufferManager:
             - data (:obj:`list` or `dict`): Data list or data item (dict type).
             - buffer_name (:obj:`Optional[List[str]]`): The buffer to push data into
         """
-        assert (isinstance(data, list) or isinstance(data, dict))
+        assert (isinstance(data, list) or isinstance(data, dict)), type(data)
         if isinstance(data, dict):
             data = [data]
         if self.use_cache:
@@ -149,7 +181,7 @@ class BufferManager:
         for name in buffer_name:
             self.buffer[name].clear()
 
-    def run(self) -> None:
+    def start(self) -> None:
         """
         Overview:
             Launch ``Cache`` thread and ``_cache2meta`` thread

@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Dict
+from typing import Dict, Union
 from nervex.utils import squeeze
 from ..common import ValueActorCriticBase, ConvEncoder, FCEncoder, register_model
 
@@ -9,9 +9,10 @@ from ..common import ValueActorCriticBase, ConvEncoder, FCEncoder, register_mode
 class ValueAC(ValueActorCriticBase):
     r"""
     Overview:
-        Actor-Critic model. Critic part outputs value of current state, and that is why it is called "ValueAC"
-        Actor part outputs n-dim q value of discrete actions.
-        It is the model which is adopted in A2C.
+        Actor-Critic model. Critic part outputs value of current state,
+        and that is why it is called "ValueAC", which is in comparison with "QAC".
+        Actor part outputs n-dim probability of selecting corresponding discrete action.
+        It is the model adopted in A2C.
     Interface:
         __init__, forward, set_seed, compute_action_value, compute_action
     """
@@ -19,7 +20,7 @@ class ValueAC(ValueActorCriticBase):
     def __init__(
             self,
             obs_dim: tuple,
-            action_dim: int,
+            action_dim: Union[int, list],
             embedding_dim: int,
             head_hidden_dim: int = 128,
             continous=False,
@@ -30,7 +31,7 @@ class ValueAC(ValueActorCriticBase):
             Init the ValueAC according to arguments.
         Arguments:
             - obs_dim (:obj:`tuple`): a tuple of observation dim
-            - action_dim (:obj:`int`): the num of actions
+            - action_dim (:obj:`Union[int, list]`): the num of actions
             - embedding_dim (:obj:`int`): encoder's embedding dim (output dim)
             - head_hidden_dim (:obj:`int`): the hidden dim in actor and critic heads
         """
@@ -41,17 +42,14 @@ class ValueAC(ValueActorCriticBase):
         self._embedding_dim = embedding_dim
         self._encoder = self._setup_encoder()
         self._head_layer_num = 2
+        self._head_hidden_dim = head_hidden_dim
         self.continous = continous
         self.fixed_sigma_value = fixed_sigma_value
         # actor head
-        input_dim = embedding_dim
-        layers = []
-        for _ in range(self._head_layer_num):
-            layers.append(nn.Linear(input_dim, head_hidden_dim))
-            layers.append(self._act)
-            input_dim = head_hidden_dim
-        layers.append(nn.Linear(input_dim, self._act_dim))
-        self._actor = nn.Sequential(*layers)
+        if isinstance(self._act_dim, tuple):
+            self._actor = nn.ModuleList([self._setup_actor(a) for a in self._act_dim])
+        else:
+            self._actor = self._setup_actor(self._act_dim)
         # sigma head
         if continous and self.fixed_sigma_value is None:
             input_dim = embedding_dim
@@ -72,6 +70,16 @@ class ValueAC(ValueActorCriticBase):
         layers.append(nn.Linear(input_dim, 1))
 
         self._critic = nn.Sequential(*layers)
+
+    def _setup_actor(self, act_dim: int) -> torch.nn.Module:
+        input_dim = self._embedding_dim
+        layers = []
+        for _ in range(self._head_layer_num):
+            layers.append(nn.Linear(input_dim, self._head_hidden_dim))
+            layers.append(self._act)
+            input_dim = self._head_hidden_dim
+        layers.append(nn.Linear(input_dim, act_dim))
+        return nn.Sequential(*layers)
 
     def _setup_encoder(self) -> torch.nn.Module:
         r"""
@@ -96,7 +104,10 @@ class ValueAC(ValueActorCriticBase):
         Arguments:
             - x (:obj:`torch.Tensor`): embedding tensor after encoder
         """
-        return self._actor(x)
+        if isinstance(self._act_dim, tuple):
+            return [m(x) for m in self._actor]
+        else:
+            return self._actor(x)
 
     def compute_action_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         r"""

@@ -84,7 +84,7 @@ class SoloCommander(BaseCommander):
     def get_learner_task(self) -> Optional[dict]:
         r"""
         Overview:
-            Return the new learner task when there is residual task  space; Otherwise return None.
+            Return the new learner task when there is residual task space; Otherwise return None.
         Return:
             - task (:obj:`Optional[dict]`): New learner task.
         """

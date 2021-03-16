@@ -2,6 +2,7 @@ from typing import Any, Union, List
 import copy
 import torch
 import numpy as np
+
 from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.envs.common.common_function import affine_transform
@@ -78,13 +79,14 @@ class MujocoEnv(BaseEnv):
 
     @staticmethod
     def create_actor_env_cfg(cfg: dict) -> List[dict]:
-        actor_env_num = cfg.pop('actor_env_num', 1)
-        return [cfg for _ in range(actor_env_num)]
+        actor_cfg = copy.deepcopy(cfg)
+        actor_env_num = actor_cfg.pop('actor_env_num', 1)
+        return [actor_cfg for _ in range(actor_env_num)]
 
     @staticmethod
     def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
-        evaluator_env_num = cfg.pop('evaluator_env_num', 1)
         evaluator_cfg = copy.deepcopy(cfg)
+        evaluator_env_num = evaluator_cfg.pop('evaluator_env_num', 1)
         evaluator_cfg.norm_reward.use_norm = False
         return [evaluator_cfg for _ in range(evaluator_env_num)]
 

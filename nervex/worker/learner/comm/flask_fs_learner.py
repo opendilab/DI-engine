@@ -163,6 +163,7 @@ class FlaskFileSystemLearner(BaseCommLearner):
             You can refer to it for details.
         """
         self._policy_id = task_info['policy_id']
+        self._league_save_checkpoint_path = task_info.get('league_save_checkpoint_path', None)
         self._learner = self._create_learner(task_info)
         for h in self.hooks4call:
             self._learner.register_hook(h)
@@ -210,7 +211,10 @@ class FlaskFileSystemLearner(BaseCommLearner):
             - state_dict (:obj:`dict`): State dict of the policy.
         """
         path = os.path.join(self._path_policy, self._policy_id)
+        setattr(self, "_latest_policy_path", path)
         save_file(path, state_dict, use_lock=True)
+        if self._league_save_checkpoint_path is not None:
+            save_file(self._league_save_checkpoint_path, state_dict, use_lock=True)
 
     @staticmethod
     def load_data_fn(path, meta: Dict[str, Any], decompressor: Callable) -> Any:

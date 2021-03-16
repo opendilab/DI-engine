@@ -13,15 +13,12 @@ def lists_to_dicts(
     r"""
     Overview:
         Transform a list of dicts to a dict of lists.
-
     Arguments:
         - data (:obj:`Union[List[Union[dict, NamedTuple]], Tuple[Union[dict, NamedTuple]]]`):
             A dict of lists need to be transformed
         - recursive (:obj:`bool`): whether recursively deals with dict element
-
     Returns:
         - newdata (:obj:`Union[Mapping[object, object], NamedTuple]`): A list of dicts as a result
-
     Example:
         >>> from nervex.utils import *
         >>> lists_to_dicts([{1: 1, 10: 3}, {1: 2, 10: 4}])

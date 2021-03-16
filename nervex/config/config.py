@@ -1,11 +1,12 @@
+import json
 import os.path as osp
 import shutil
 import sys
 import tempfile
-import yaml
-import json
 from importlib import import_module
-from typing import Optional, Tuple, Union, NoReturn
+from typing import Optional, Tuple, NoReturn
+
+import yaml
 from easydict import EasyDict
 
 
@@ -102,6 +103,7 @@ def read_config(cfg: str) -> dict:
         cfg = read_config_yaml(cfg)
     elif suffix == 'py':
         cfg = Config.file_to_dict(cfg).cfg_dict
+        assert "main_config" in cfg, "Please make sure a 'main_config' variable is declared in config python file!"
         cfg = cfg['main_config']
     else:
         raise KeyError("invalid config file suffix: {}".format(suffix))

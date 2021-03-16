@@ -1,9 +1,11 @@
 class BaseSerialCommander(object):
     r"""
     Overview:
-        base serial commander class
+        Base serial commander class.
     Interface:
-        __init__, step, policy
+        __init__, step
+    Property:
+        policy
     """
 
     def __init__(
@@ -16,7 +18,7 @@ class BaseSerialCommander(object):
     ) -> None:
         r"""
         Overview:
-            init the BaseSerialCommander
+            Init the BaseSerialCommander
         Arguments:
             - cfg (:obj:`dict`): the config of commander
             - learner (:obj:`BaseLearner`): the learner
@@ -34,26 +36,21 @@ class BaseSerialCommander(object):
     def step(self) -> None:
         r"""
         Overview:
-            step the commander
+            Step the commander
         """
-        # update info
+        # Update info
         learn_info = self._learner.learn_info
         actor_info = self._actor.actor_info
         self._info.update(learn_info)
         self._info.update(actor_info)
         # update setting
         collect_setting = self._policy.get_setting_collect(self._info)
-        # set setting
         self._actor.policy.set_setting('collect', collect_setting)
 
     @property
     def policy(self) -> 'Policy':  # noqa
-        r"""
-        Overview:
-            get the policy of commander
-        """
         return self._policy
 
     @policy.setter
-    def policy(self, _policy) -> None:
+    def policy(self, _policy: 'Policy') -> None:  # noqa
         self._policy = _policy

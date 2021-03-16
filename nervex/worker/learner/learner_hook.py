@@ -203,26 +203,37 @@ class LogShowHook(LearnerHook):
         Arguments:
             - engine (:obj:`BaseLearner`): the BaseLearner
         """
-        if engine.rank != 0:  # only show log at rank 0
-            engine.log_buffer.clear()  # reset log buffer
+        # Only show log for rank 0 learner
+        if engine.rank != 0:
+            for k in engine.log_buffer:
+                engine.log_buffer[k].clear()
             return
-        # log_buffer -> tick_monitor -> monitor_time.step
-        for k, v in engine.log_buffer.items():
+        # For 'scalar' type variables: log_buffer -> tick_monitor -> monitor_time.step
+        for k, v in engine.log_buffer['scalar'].items():
             setattr(engine.monitor, k, v)
         engine.monitor.time.step()
 
         iters = engine.last_iter.val
         if iters % self._freq == 0:
             engine.info("=== Training Iteration {} Result ===".format(iters))
-            # tick_monitor -> var_dict
-            var_dict = {}
-            for k in engine.log_buffer:
+            # For 'scalar' type variables: tick_monitor -> text_var_dict/tb_var_dict -> text_logger/tb_logger
+            text_var_dict, tb_var_dict = {}, {}
+            for k in engine.log_buffer['scalar']:
                 for attr in engine.monitor.get_property_attribute(k):
                     k_attr = 'learner/' + k + '_' + attr
-                    var_dict[k_attr] = getattr(engine.monitor, attr)[k]()
-            engine.logger.print_vars(var_dict)
-            engine.tb_logger.print_vars(var_dict, iters, 'scalar')
-        engine.log_buffer.clear()
+                    tb_var_dict[k_attr] = getattr(engine.monitor, attr)[k]()
+                    if attr != "avg":
+                        text_var_dict[k_attr] = getattr(engine.monitor, attr)[k]()
+            engine.logger.print_vars(text_var_dict)
+            engine.tb_logger.print_vars(tb_var_dict, iters, 'scalar')
+            # For 'histogram' type variables: log_buffer -> tb_var_dict -> tb_logger
+            tb_var_dict = {}
+            for k in engine.log_buffer['histogram']:
+                new_k = 'learner/' + k
+                tb_var_dict[new_k] = engine.log_buffer['histogram'][k]
+            engine.tb_logger.print_vars(tb_var_dict, iters, 'histogram')
+        for k in engine.log_buffer:
+            engine.log_buffer[k].clear()
 
 
 class LogReduceHook(LearnerHook):
