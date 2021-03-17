@@ -1,6 +1,5 @@
 from .registry import Registry
 
-
 POLICY_REGISTRY = Registry()
 ENV_REGISTRY = Registry()
 LEARNER_REGISTRY = Registry()

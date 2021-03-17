@@ -18,6 +18,7 @@ pong_dqn_default_config = dict(
         policy_type='dqn',
         import_names=['nervex.policy.dqn'],
         on_policy=False,
+        use_priority=True,
         model=dict(
             encoder_kwargs=dict(encoder_type='conv2d', ),
             obs_dim=[4, 84, 84],
