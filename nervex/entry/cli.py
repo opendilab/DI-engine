@@ -15,6 +15,8 @@ def print_version(ctx: Context, param: Option, value: bool) -> None:
 
 
 def print_registry(ctx: Context, param: Option, value: str):
+    if value is None:
+        return
     from nervex.utils import registies  # noqa
     if value not in registies:
         click.echo('[ERROR]: not support registry name: {}'.format(value))
@@ -44,6 +46,8 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
     '--query_registry',
     type=str,
     callback=print_registry,
+    expose_value=False,
+    is_eager=True,
     help='query registered module or function, show name and path'
 )
 @click.option(
