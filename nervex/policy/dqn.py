@@ -93,6 +93,10 @@ class DQNPolicy(CommonPolicy):
             'priority': td_error_per_sample.abs().tolist(),
             # Only discrete action satisfying len(data['action'])==1 can return this and draw histogram on tensorboard.
             # '[histogram]action_distribution': data['action'],
+            # IS(importance sampling), reuse and staleness are data attributes.
+            '[histogram]IS': data['IS'],
+            '[histogram]reuse': data['reuse'],
+            '[histogram]stalaness': data['staleness'],
         }
 
     def _init_collect(self) -> None:

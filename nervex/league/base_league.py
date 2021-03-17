@@ -5,7 +5,7 @@ from easydict import EasyDict
 
 from nervex.league.player import ActivePlayer, HistoricalPlayer, create_player
 from nervex.league.shared_payoff import create_payoff
-from nervex.utils import import_module, read_file, save_file, LockContext, LockContextType
+from nervex.utils import import_module, read_file, save_file, LockContext, LockContextType, LEAGUE_REGISTRY
 
 
 class BaseLeague(ABC):
@@ -201,23 +201,6 @@ class BaseLeague(ABC):
         save_file(dst_checkpoint, checkpoint)
 
 
-league_mapping = {}
-
-
-def register_league(name: str, league: type) -> None:
-    """
-    Overview:
-        Add a new League class with its name to dict league_mapping, any subclass derived from
-        BaseLeague must use this function to register in nervex system before instantiate.
-    Arguments:
-        - name (:obj:`str`): name of the new League class
-        - learner (:obj:`type`): the new League class, should be subclass of BaseLeague
-    """
-    assert isinstance(name, str)
-    assert issubclass(league, BaseLeague)
-    league_mapping[name] = league
-
-
 def create_league(cfg: EasyDict, *args) -> BaseLeague:
     """
     Overview:
@@ -230,10 +213,5 @@ def create_league(cfg: EasyDict, *args) -> BaseLeague:
         - league (:obj:`BaseLeague`): the created new league, should be an instance of one of \
             league_mapping's values
     """
-    # assert "league" in cfg, "Please pass in complete config!"
-    import_module(cfg.import_names)
-    league_type = cfg.league_type
-    if league_type not in league_mapping.keys():
-        raise KeyError("not support league type: {}".format(league_type))
-    else:
-        return league_mapping[league_type](cfg, *args)
+    import_module(cfg.get('import_names', []))
+    return LEAGUE_REGISTRY.build(cfg.league_type, cfg=cfg, *args)

@@ -2,8 +2,10 @@ from collections import namedtuple
 from typing import Any, Optional
 import torch
 import numpy as np
-from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo
+
+from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
+from nervex.utils import ENV_REGISTRY
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
 from app_zoo.multiagent_particle.envs.make_env import make_env
 from app_zoo.multiagent_particle.envs.multiagent.multi_discrete import MultiDiscrete
@@ -118,6 +120,7 @@ CNEnvInfo = namedtuple('CNEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew
 
 
 # same structure as smac env
+@ENV_REGISTRY.register('cooperative_navigation')
 class CooperativeNavigation(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
@@ -236,6 +239,3 @@ class CooperativeNavigation(BaseEnv):
         self._replay_path = replay_path
         disable_gym_view_window()
         self._env = wrappers.Monitor(self._env, self._replay_path, video_callable=lambda episode_id: True, force=True)
-
-
-register_env('cooperative_navigation', CooperativeNavigation)

@@ -5,8 +5,7 @@ import torch
 import yaml
 from easydict import EasyDict
 
-from nervex.envs import register_env
-from nervex.utils import deep_merge_dicts
+from nervex.utils import deep_merge_dicts, ENV_REGISTRY
 from .sumo_env import SumoWJ3Env
 
 
@@ -19,6 +18,7 @@ def build_config(user_config):
     return deep_merge_dicts(default_config, user_config)
 
 
+@ENV_REGISTRY.register('sumo_wj3_fake')
 class FakeSumoWJ3Env(SumoWJ3Env):
     timestep = namedtuple('SumoTimestep', ['obs', 'reward', 'done', 'info'])
     info_template = namedtuple('SumoWJ3EnvInfo', ['obs_space', 'act_space', 'rew_space', 'agent_num'])
@@ -50,6 +50,3 @@ class FakeSumoWJ3Env(SumoWJ3Env):
 
     def __repr__(self):
         return 'FakeSumoWJ3Env'
-
-
-register_env('sumo_wj3_fake', FakeSumoWJ3Env)

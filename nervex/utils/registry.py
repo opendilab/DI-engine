@@ -70,11 +70,10 @@ class Registry(dict):
     def get(self, module_name: str) -> Callable:
         return self[module_name]
 
-    def build(self, obj_type: str, **obj_kwargs) -> object:
-
+    def build(self, obj_type: str, *obj_args, **obj_kwargs) -> object:
         try:
             build_fn = self[obj_type]
-            return build_fn(**obj_kwargs)
+            return build_fn(*obj_args, **obj_kwargs)
         except Exception as e:
             # get build_fn fail
             if isinstance(e, KeyError):

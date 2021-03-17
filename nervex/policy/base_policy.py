@@ -245,7 +245,5 @@ class Policy(ABC):
 
 def create_policy(cfg: dict, **kwargs) -> Policy:
     cfg = EasyDict(cfg)
-    import_names = cfg.get('import_names', [])
-    if len(import_names) > 0:
-        import_module(cfg.import_names)
+    import_module(cfg.get('import_names', []))
     return POLICY_REGISTRY.build(cfg.policy_type, cfg=cfg, **kwargs)

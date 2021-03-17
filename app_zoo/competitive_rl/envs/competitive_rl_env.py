@@ -5,11 +5,12 @@ import numpy as np
 import gym
 import competitive_rl
 
-from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo
+from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.envs.common.common_function import affine_transform
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
 from .competitive_rl_env_wrapper import BuiltinOpponentWrapper, wrap_env
+from nervex.utils import ENV_REGISTRY
 
 competitive_rl.register_competitive_envs()
 
@@ -29,6 +30,8 @@ cCarRacingDouble-v0: Dict(0:Box(2,), 1:Box(2,))
 cPongTournament-v0
 """
 
+
+@ENV_REGISTRY.register('competitive_rl')
 class CompetitiveRlEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
@@ -141,5 +144,3 @@ class CompetitiveRlEnv(BaseEnv):
         if self._env_id == "cCarRacingDouble-v0":
             obs = np.stack([obs, copy.deepcopy(obs)])
         return obs
-
-register_env('competitive_rl', CompetitiveRlEnv)

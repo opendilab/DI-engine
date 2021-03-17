@@ -8,8 +8,7 @@ from typing import Any
 from functools import partial
 
 from nervex.worker import BaseLearner
-from nervex.worker.learner import LearnerHook, register_learner_hook, add_learner_hook, \
-    register_learner, create_learner
+from nervex.worker.learner import LearnerHook, register_learner_hook, add_learner_hook, create_learner
 from nervex.config import base_learner_default_config
 
 
@@ -77,12 +76,11 @@ class TestBaseLearner:
         os.popen('rm -rf ckpt*')
         os.popen('rm -rf iteration_5.pth.tar*')
         time.sleep(1.0)
-        register_learner('fake', FakeLearner)
         path = os.path.join(os.path.dirname(__file__), './iteration_5.pth.tar')
         torch.save({'model': {}, 'last_iter': 5}, path)
         time.sleep(0.5)
         cfg = self._get_cfg(path)
-        learner = create_learner(cfg)
+        learner = FakeLearner(cfg)
         learner.setup_dataloader()
         learner.policy = FakePolicy()
         with pytest.raises(KeyError):

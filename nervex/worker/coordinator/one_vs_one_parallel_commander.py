@@ -5,11 +5,12 @@ from collections import defaultdict
 from functools import partial
 
 from nervex.policy import create_policy
-from nervex.utils import LimitedSpaceContainer, get_task_uid, build_logger
+from nervex.utils import LimitedSpaceContainer, get_task_uid, build_logger, COMMANDER_REGISTRY
 from nervex.league import create_league
 from .base_parallel_commander import register_parallel_commander, BaseCommander
 
 
+@COMMANDER_REGISTRY.register('one_vs_one')
 class OneVsOneCommander(BaseCommander):
     r"""
     Overview:
@@ -292,6 +293,3 @@ class OneVsOneCommander(BaseCommander):
         buffer_id = 'buffer_{}'.format(get_task_uid())
         self._current_buffer_id = buffer_id
         return buffer_id
-
-
-register_parallel_commander('one_vs_one', OneVsOneCommander)

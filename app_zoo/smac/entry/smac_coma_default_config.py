@@ -6,7 +6,6 @@ evaluator_env_num = 5
 smac_coma_default_config = dict(
     env=dict(
         env_manager_type='subprocess',
-        import_names=['app_zoo.smac.envs.smac_env'],
         env_type='smac',
         map_name='3s5z',
         agent_num=agent_num,

@@ -43,7 +43,6 @@ zergling_actor_default_config = dict(
     policy_update_path='test.pth',
     # Env config for actor and evaluator.
     env_kwargs=dict(
-        import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
         env_type='cartpole',
         actor_env_num=8,
         evaluator_env_num=5,

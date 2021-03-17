@@ -17,11 +17,11 @@ def print_version(ctx: Context, param: Option, value: bool) -> None:
 def print_registry(ctx: Context, param: Option, value: str):
     if value is None:
         return
-    from nervex.utils import registies  # noqa
-    if value not in registies:
+    from nervex.utils import registries  # noqa
+    if value not in registries:
         click.echo('[ERROR]: not support registry name: {}'.format(value))
     else:
-        registered_info = registies[value].query_details()
+        registered_info = registries[value].query_details()
         click.echo('Available {}: [{}]'.format(value, '|'.join(registered_info.keys())))
         for alias, info in registered_info.items():
             click.echo('\t{}: registered at {}#{}'.format(alias, info[0], info[1]))

@@ -20,33 +20,33 @@ def ppo_error(
         dual_clip: Optional[float] = None
 ) -> Tuple[namedtuple, namedtuple]:
     """
-        Overview:
-            Implementation of Proximal Policy Optimization (arXiv:1707.06347) with value_clip and dual_clip
-        Arguments:
-            - data (:obj:`namedtuple`): the ppo input data with fieids shown in ``ppo_data``
-            - clip_ratio (:obj:`float`): the ppo clip ratio for the constraint of policy update, defaults to 0.2
-            - use_value_clip (:obj:`bool`): whether to use clip in value loss with the same ratio as policy
-            - dual_clip (:obj:`float`): a parameter c mentioned in arXiv:1912.09729 Equ. 5, shoule be in [1, inf),\
-            defaults to 5.0, if you don't want to use it, set this parameter to None
-        Returns:
-            - ppo_loss (:obj:`namedtuple`): the ppo loss item, all of them are the differentiable 0-dim tensor
-            - ppo_info (:obj:`namedtuple`): the ppo optim information for monitoring, all of them are Python scalar
-        Shapes:
-            - logit_new (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is action dim
-            - logit_old (:obj:`torch.FloatTensor`): :math:`(B, N)`
-            - action (:obj:`torch.LongTensor`): :math:`(B, )`
-            - value_new (:obj:`torch.FloatTensor`): :math:`(B, )`
-            - value_old (:obj:`torch.FloatTensor`): :math:`(B, )`
-            - adv (:obj:`torch.FloatTensor`): :math:`(B, )`
-            - return (:obj:`torch.FloatTensor`): :math:`(B, )`
-            - weight (:obj:`torch.FloatTensor` or :obj:`None`): :math:`(B, )`
-            - policy_loss (:obj:`torch.FloatTensor`): :math:`()`, 0-dim tensor
-            - value_loss (:obj:`torch.FloatTensor`): :math:`()`
+    Overview:
+        Implementation of Proximal Policy Optimization (arXiv:1707.06347) with value_clip and dual_clip
+    Arguments:
+        - data (:obj:`namedtuple`): the ppo input data with fieids shown in ``ppo_data``
+        - clip_ratio (:obj:`float`): the ppo clip ratio for the constraint of policy update, defaults to 0.2
+        - use_value_clip (:obj:`bool`): whether to use clip in value loss with the same ratio as policy
+        - dual_clip (:obj:`float`): a parameter c mentioned in arXiv:1912.09729 Equ. 5, shoule be in [1, inf),\
+        defaults to 5.0, if you don't want to use it, set this parameter to None
+    Returns:
+        - ppo_loss (:obj:`namedtuple`): the ppo loss item, all of them are the differentiable 0-dim tensor
+        - ppo_info (:obj:`namedtuple`): the ppo optim information for monitoring, all of them are Python scalar
+    Shapes:
+        - logit_new (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is action dim
+        - logit_old (:obj:`torch.FloatTensor`): :math:`(B, N)`
+        - action (:obj:`torch.LongTensor`): :math:`(B, )`
+        - value_new (:obj:`torch.FloatTensor`): :math:`(B, )`
+        - value_old (:obj:`torch.FloatTensor`): :math:`(B, )`
+        - adv (:obj:`torch.FloatTensor`): :math:`(B, )`
+        - return (:obj:`torch.FloatTensor`): :math:`(B, )`
+        - weight (:obj:`torch.FloatTensor` or :obj:`None`): :math:`(B, )`
+        - policy_loss (:obj:`torch.FloatTensor`): :math:`()`, 0-dim tensor
+        - value_loss (:obj:`torch.FloatTensor`): :math:`()`
 
-        .. note::
-            adv is already normalized value (adv - adv.mean()) / (adv.std() + 1e-8), and there are many
-            ways to calculate this mean and std, like among data buffer or train batch, so we don't couple
-            this part into ppo_error, you can refer to our examples for different ways.
+    .. note::
+        adv is already normalized value (adv - adv.mean()) / (adv.std() + 1e-8), and there are many
+        ways to calculate this mean and std, like among data buffer or train batch, so we don't couple
+        this part into ppo_error, you can refer to our examples for different ways.
     """
     assert dual_clip is None or dual_clip > 1.0, "dual_clip value must be greater than 1.0, but get value: {}".format(
         dual_clip
@@ -112,33 +112,33 @@ def ppo_error_continous(
         dual_clip: Optional[float] = None
 ) -> Tuple[namedtuple, namedtuple]:
     """
-        Overview:
-            Implementation of Proximal Policy Optimization (arXiv:1707.06347) with value_clip and dual_clip
-        Arguments:
-            - data (:obj:`namedtuple`): the ppo input data with fieids shown in ``ppo_data``
-            - clip_ratio (:obj:`float`): the ppo clip ratio for the constraint of policy update, defaults to 0.2
-            - use_value_clip (:obj:`bool`): whether to use clip in value loss with the same ratio as policy
-            - dual_clip (:obj:`float`): a parameter c mentioned in arXiv:1912.09729 Equ. 5, shoule be in [1, inf),\
-            defaults to 5.0, if you don't want to use it, set this parameter to None
-        Returns:
-            - ppo_loss (:obj:`namedtuple`): the ppo loss item, all of them are the differentiable 0-dim tensor
-            - ppo_info (:obj:`namedtuple`): the ppo optim information for monitoring, all of them are Python scalar
-        Shapes:
-            - mu_sigma_new (:obj:`tuple`): :math:`((B, N), (B, N))`, where B is batch size and N is action dim
-            - mu_sigma_old (:obj:`tuple`): :math:`((B, N), (B, N))`, where B is batch size and N is action dim
-            - action (:obj:`torch.LongTensor`): :math:`(B, )`
-            - value_new (:obj:`torch.FloatTensor`): :math:`(B, )`
-            - value_old (:obj:`torch.FloatTensor`): :math:`(B, )`
-            - adv (:obj:`torch.FloatTensor`): :math:`(B, )`
-            - return (:obj:`torch.FloatTensor`): :math:`(B, )`
-            - weight (:obj:`torch.FloatTensor` or :obj:`None`): :math:`(B, )`
-            - policy_loss (:obj:`torch.FloatTensor`): :math:`()`, 0-dim tensor
-            - value_loss (:obj:`torch.FloatTensor`): :math:`()`
+    Overview:
+        Implementation of Proximal Policy Optimization (arXiv:1707.06347) with value_clip and dual_clip
+    Arguments:
+        - data (:obj:`namedtuple`): the ppo input data with fieids shown in ``ppo_data``
+        - clip_ratio (:obj:`float`): the ppo clip ratio for the constraint of policy update, defaults to 0.2
+        - use_value_clip (:obj:`bool`): whether to use clip in value loss with the same ratio as policy
+        - dual_clip (:obj:`float`): a parameter c mentioned in arXiv:1912.09729 Equ. 5, shoule be in [1, inf),\
+        defaults to 5.0, if you don't want to use it, set this parameter to None
+    Returns:
+        - ppo_loss (:obj:`namedtuple`): the ppo loss item, all of them are the differentiable 0-dim tensor
+        - ppo_info (:obj:`namedtuple`): the ppo optim information for monitoring, all of them are Python scalar
+    Shapes:
+        - mu_sigma_new (:obj:`tuple`): :math:`((B, N), (B, N))`, where B is batch size and N is action dim
+        - mu_sigma_old (:obj:`tuple`): :math:`((B, N), (B, N))`, where B is batch size and N is action dim
+        - action (:obj:`torch.LongTensor`): :math:`(B, )`
+        - value_new (:obj:`torch.FloatTensor`): :math:`(B, )`
+        - value_old (:obj:`torch.FloatTensor`): :math:`(B, )`
+        - adv (:obj:`torch.FloatTensor`): :math:`(B, )`
+        - return (:obj:`torch.FloatTensor`): :math:`(B, )`
+        - weight (:obj:`torch.FloatTensor` or :obj:`None`): :math:`(B, )`
+        - policy_loss (:obj:`torch.FloatTensor`): :math:`()`, 0-dim tensor
+        - value_loss (:obj:`torch.FloatTensor`): :math:`()`
 
-        .. note::
-            adv is already normalized value (adv - adv.mean()) / (adv.std() + 1e-8), and there are many
-            ways to calculate this mean and std, like among data buffer or train batch, so we don't couple
-            this part into ppo_error, you can refer to our examples for different ways.
+    .. note::
+        adv is already normalized value (adv - adv.mean()) / (adv.std() + 1e-8), and there are many
+        ways to calculate this mean and std, like among data buffer or train batch, so we don't couple
+        this part into ppo_error, you can refer to our examples for different ways.
     """
     assert dual_clip is None or dual_clip > 1.0, "dual_clip value must be greater than 1.0, but get value: {}".format(
         dual_clip

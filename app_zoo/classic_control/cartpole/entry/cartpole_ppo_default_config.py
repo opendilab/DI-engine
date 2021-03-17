@@ -12,6 +12,7 @@ cartpole_ppo_default_config = dict(
         use_cuda=False,
         policy_type='ppo',
         on_policy=False,
+        use_priority=True,
         model=dict(
             obs_dim=4,
             action_dim=2,

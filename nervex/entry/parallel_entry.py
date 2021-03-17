@@ -5,6 +5,7 @@ import pickle
 import logging
 from threading import Thread, Event
 from easydict import EasyDict
+
 from nervex.worker import create_comm_learner, create_comm_actor, Coordinator, LearnerAggregator
 from nervex.config import read_config, parallel_transform, parallel_transform_slurm
 

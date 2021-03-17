@@ -54,7 +54,8 @@ class OutTickMonitor(LoggedModel):
         time, expire
     """
     out_time = LoggedValue(float)
-    reuse = LoggedValue(int)
+    # reuse, priority and staleness are all averaged across one batch.
+    reuse = LoggedValue(float)
     priority = LoggedValue(float)
     staleness = LoggedValue(float)
 
@@ -593,13 +594,13 @@ class ReplayBuffer:
             else:
                 copy_data = self._data[idx]
             # Store staleness, reuse and IS(importance sampling weight for gradient step) for monitor and outer use
+            self._reuse_count[idx] += 1
             copy_data['staleness'] = self._calculate_staleness(idx, cur_learner_iter)
             copy_data['reuse'] = self._reuse_count[idx]
             p_sample = self.sum_tree[idx] / sum_tree_root
             weight = (self._valid_count * p_sample) ** (-self._beta)
             copy_data['IS'] = weight / max_weight
             data.append(copy_data)
-            self._reuse_count[idx] += 1
         # Remove datas whose "reuse count" is greater than ``max_reuse``
         for idx in indices:
             if self._reuse_count[idx] >= self.max_reuse:
@@ -647,7 +648,7 @@ class ReplayBuffer:
         reuse = sum([d['reuse'] for d in sample_data]) / len(sample_data)
         priority = sum([d['priority'] for d in sample_data]) / len(sample_data)
         staleness = sum([d['staleness'] for d in sample_data]) / len(sample_data)
-        self._out_tick_monitor.reuse = int(reuse)
+        self._out_tick_monitor.reuse = reuse
         self._out_tick_monitor.priority = priority
         self._out_tick_monitor.staleness = staleness
         self._out_tick_monitor.time.step()

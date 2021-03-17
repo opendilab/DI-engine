@@ -5,10 +5,11 @@ from typing import Optional, Union
 from collections import defaultdict
 
 from nervex.policy import create_policy
-from nervex.utils import LimitedSpaceContainer, get_task_uid, build_logger
+from nervex.utils import LimitedSpaceContainer, get_task_uid, build_logger, COMMANDER_REGISTRY
 from .base_parallel_commander import register_parallel_commander, BaseCommander
 
 
+@COMMANDER_REGISTRY.register('solo')
 class SoloCommander(BaseCommander):
     r"""
     Overview:
@@ -212,6 +213,3 @@ class SoloCommander(BaseCommander):
         buffer_id = 'buffer_{}'.format(get_task_uid())
         self._current_buffer_id = buffer_id
         return buffer_id
-
-
-register_parallel_commander('solo', SoloCommander)
