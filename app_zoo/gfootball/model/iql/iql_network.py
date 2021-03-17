@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 
 from nervex.model import DuelingHead
+from nervex.model.common import register_model
 from nervex.config import read_config
 from nervex.utils import deep_merge_dicts
 from nervex.torch_utils import fc_block, Transformer, ResFCBlock, \
@@ -17,8 +18,8 @@ iql_default_config = read_config(osp.join(osp.dirname(__file__), "iql_default_co
 class FootballIQL(nn.Module):
 
     def __init__(
-            self,
-            cfg: dict = {},
+        self,
+        cfg: dict = {},
     ) -> None:
         super(FootballIQL, self).__init__()
         self.cfg = deep_merge_dicts(iql_default_config.model, cfg)
@@ -103,8 +104,8 @@ def cat_player_attr(player_data: dict) -> torch.Tensor:
 class PlayerEncoder(nn.Module):
 
     def __init__(
-            self,
-            cfg: dict,
+        self,
+        cfg: dict,
     ) -> None:
         super(PlayerEncoder, self).__init__()
         self.act = nn.ReLU()
@@ -169,8 +170,8 @@ class PlayerEncoder(nn.Module):
 class SpatialEncoder(nn.Module):
 
     def __init__(
-            self,
-            cfg: dict,
+        self,
+        cfg: dict,
     ) -> None:
         super(SpatialEncoder, self).__init__()
         self.act = build_activation(cfg.activation)
@@ -229,9 +230,9 @@ class SpatialEncoder(nn.Module):
 class FootballHead(nn.Module):
 
     def __init__(
-            self,
-            input_dim: int,
-            cfg: dict,
+        self,
+        input_dim: int,
+        cfg: dict,
     ) -> None:
         super(FootballHead, self).__init__()
         self.act = nn.ReLU()
@@ -245,9 +246,7 @@ class FootballHead(nn.Module):
         self.pre_fc = fc_block(in_channels=input_dim, out_channels=self.hidden_dim, activation=self.act)
         res_blocks_list = []
         for i in range(self.res_num):
-            res_blocks_list.append(
-                ResFCBlock(in_channels=self.hidden_dim, activation=self.act, norm_type=None)
-            )
+            res_blocks_list.append(ResFCBlock(in_channels=self.hidden_dim, activation=self.act, norm_type=None))
         self.res_blocks = nn.Sequential(*res_blocks_list)
         head_fn = partial(
             DuelingHead, a_layer_num=self.a_layer_num, v_layer_num=self.v_layer_num
@@ -263,4 +262,7 @@ class FootballHead(nn.Module):
         x = self.pre_fc(x)
         x = self.res_blocks(x)
         x = self.pred(x)
-        return x
+        return {'logit': x}
+
+
+register_model('football_iql', FootballIQL)

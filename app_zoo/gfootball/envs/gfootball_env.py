@@ -5,7 +5,7 @@ from collections import namedtuple
 from typing import List, Any
 
 import numpy as np
-from nervex.envs.env.base_env import BaseEnv
+from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo
 from .action.gfootball_action_runner import GfootballRawActionRunner
 from .obs.gfootball_obs_runner import GfootballObsRunner
 from .reward.gfootball_reward_runner import GfootballRewardRunner
@@ -48,7 +48,17 @@ class GfootballEnv(BaseEnv):
         self.reward = self._reward_helper.get(self)
         self.obs = self._obs_helper.get(self)
         info = {'cum_reward': self._reward_helper.cum_reward}
-        return GfootballEnv.timestep(obs={'processed_obs':self.obs, 'raw_obs':self._football_obs}, reward=self.reward, done=self._is_done, info=info)
+        if self._is_done:
+            info['final_eval_reward'] = self._reward_helper.cum_reward
+        return GfootballEnv.timestep(
+            obs={
+                'processed_obs': self.obs,
+                'raw_obs': self._football_obs
+            },
+            reward=self.reward,
+            done=self._is_done,
+            info=info
+        )
 
     def reset(self) -> dict:
         if not self._launch_env_flag:
@@ -58,7 +68,7 @@ class GfootballEnv(BaseEnv):
         self._obs_helper.reset()
         self._action_helper.reset()
         self.obs = self._obs_helper.get(self)
-        return {'processed_obs':self.obs, 'raw_obs':self._football_obs}
+        return {'processed_obs': self.obs, 'raw_obs': self._football_obs}
 
     def seed(self, seed: int) -> None:
         self._seed = seed
@@ -99,3 +109,5 @@ class GfootballEnv(BaseEnv):
 
 
 GfootballTimestep = GfootballEnv.timestep
+
+register_env("gfootball", GfootballEnv)

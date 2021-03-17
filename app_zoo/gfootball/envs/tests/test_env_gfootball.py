@@ -24,10 +24,12 @@ class TestGfootballEnv:
         for i in range(3000):
             action = self.get_random_action(env.info().act_space.value['min'], env.info().act_space.value['max'])
             timestep = env.step(action)
-            reward = timestep.obs
+            reward = timestep.reward
             print('reward:', reward)
             # assert reward.shape == 1
             obs = timestep.obs
+            print("raw_obs = ", obs['raw_obs'])
+            obs = obs['processed_obs']
             assert obs['ball_owned_team'].shape[0] == 3
             assert obs['ball_owned_player'].shape[0] == 12
             assert obs['active_player'].shape[0] == 11
