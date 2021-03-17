@@ -20,9 +20,7 @@ gfootball_il_default_config = dict(
             batch_size=32,
             learning_rate=0.0001,
             weight_decay=0.0,
-            algo=dict(
-                discount_factor=0.99,
-            ),
+            algo=dict(discount_factor=0.99, ),
         ),
         collect=dict(),
         command=dict(),

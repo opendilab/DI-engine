@@ -32,7 +32,7 @@ class TestModel:
             pp = pprint.PrettyPrinter(indent=2)
             print('observation: ')
             pp.pprint(inputs)
-            
+
             model = FootballIQL(cfg)
             assert isinstance(model, torch.nn.Module)
             inputs = to_tensor(inputs)

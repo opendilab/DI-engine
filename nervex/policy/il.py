@@ -13,6 +13,7 @@ from .common_policy import CommonPolicy
 from app_zoo.gfootball.model.rule_based_bot import FootballRuleBaseModel
 from app_zoo.gfootball.model.iql.iql_network import FootballIQL
 
+
 class ILPolicy(CommonPolicy):
     r"""
     Overview:
