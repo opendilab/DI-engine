@@ -1,23 +1,15 @@
+import os
+
 import numpy as np
 import pytest
 from easydict import EasyDict
-import os
-import yaml
 
-from nervex.league.player import Player, HistoricalPlayer, ActivePlayer, BattleActivePlayer, SoloActivePlayer, \
-    register_player, create_player
-from nervex.league.starcraft_player import MainPlayer, MainExploiter, LeagueExploiter
+from nervex.league.player import Player, HistoricalPlayer, ActivePlayer, create_player
 from nervex.league.shared_payoff import create_payoff
+from nervex.league.starcraft_player import MainPlayer, MainExploiter, LeagueExploiter
+from nervex.league.tests.league_test_default_config import league_test_config
 
-ONE_PHASE_STEP = 2e3
-
-
-@pytest.fixture(scope='function')
-def setup_config():
-    with open(os.path.join(os.path.dirname(__file__), 'league_test_config.yaml')) as f:
-        cfg = yaml.safe_load(f)
-    cfg = EasyDict(cfg)
-    return cfg
+ONE_PHASE_STEP = 2000
 
 
 @pytest.fixture(scope='function')
@@ -27,14 +19,14 @@ def setup_payoff():
 
 
 @pytest.fixture(scope='function')
-def setup_league(setup_payoff, setup_config):
+def setup_league(setup_payoff):
     players = []
     for category in ['zerg', 'terran', 'protoss']:
         # main_player
         main_player_name = '{}_{}'.format('MainPlayer', category)
         players.append(
             create_player(
-                setup_config.league, 'main_player', setup_config.league.main_player, category, setup_payoff,
+                league_test_config.league, 'main_player', league_test_config.league.main_player, category, setup_payoff,
                 'ckpt_{}.pth'.format(main_player_name), main_player_name, 0
             )
         )
@@ -42,8 +34,8 @@ def setup_league(setup_payoff, setup_config):
         main_exploiter_name = '{}_{}'.format('MainExploiter', category)
         players.append(
             create_player(
-                setup_config.league, 'main_exploiter', setup_config.league.main_exploiter, category, setup_payoff,
-                'ckpt_{}.pth'.format(main_exploiter_name), main_exploiter_name, 0
+                league_test_config.league, 'main_exploiter', league_test_config.league.main_exploiter, category,
+                setup_payoff, 'ckpt_{}.pth'.format(main_exploiter_name), main_exploiter_name, 0
             )
         )
         # league_exploiter
@@ -51,9 +43,9 @@ def setup_league(setup_payoff, setup_config):
         for i in range(2):
             players.append(
                 create_player(
-                    setup_config.league,
+                    league_test_config.league,
                     'league_exploiter',
-                    setup_config.league.league_exploiter,
+                    league_test_config.league.league_exploiter,
                     category,
                     setup_payoff,
                     'ckpt_{}.pth'.format(league_exploiter_name),
@@ -65,7 +57,7 @@ def setup_league(setup_payoff, setup_config):
         sl_hp_name = '{}_{}_sl'.format('MainPlayer', category)
         players.append(
             create_player(
-                setup_config.league,
+                league_test_config.league,
                 'historical_player',
                 EasyDict(),
                 category,
@@ -108,18 +100,22 @@ class TestMainPlayer:
         setup_league += hp_list  # 12+3 + 12
 
         # test get_job with branch prob
+        pfsp, sp, veri = False, False, False
         for p in setup_league:
             if isinstance(p, MainPlayer):
-                for i in range(N):
-                    for idx, prob in enumerate([0.4, 0.6, 0.9]):
-                        job_dict = p.get_job(p=prob)
-                        opponent = job_dict['opponent']
-                        if idx == 0:
-                            assert isinstance(opponent, HistoricalPlayer)
-                        elif idx == 1:
-                            assert isinstance(opponent, MainPlayer)
-                        else:
-                            assert isinstance(opponent, HistoricalPlayer) and 'MainPlayer' in opponent.parent_id
+                while True:
+                    job_dict = p.get_job()
+                    opponent = job_dict['opponent']
+                    if isinstance(opponent, HistoricalPlayer) and 'MainPlayer' in opponent.parent_id:
+                        veri = True
+                    elif isinstance(opponent, HistoricalPlayer):
+                        pfsp = True
+                    elif isinstance(opponent, MainPlayer):
+                        sp = True
+                    else:
+                        raise Exception("Main Player selects a wrong opponent {}", type(opponent))
+                    if veri and pfsp and sp:
+                        break
 
     def test_snapshot(self, setup_league, setup_payoff):
         N = 10
@@ -308,31 +304,5 @@ class TestLeagueExploiter:
         assert 0.2 <= freq <= 0.3  # approximate
 
 
-@pytest.mark.unittest
-class TestSoloActivePlayer:
-
-    def test_naive(self):
-        # solo payoff
-        payoff_cfg = EasyDict({'type': 'solo', 'buffer_size': 3})
-        solo_payoff = create_payoff(payoff_cfg)
-        # solo league config
-        with open(os.path.join(os.path.dirname(__file__), 'solo_league_test_config.yaml')) as f:
-            cfg = yaml.safe_load(f)
-        solo_league_cfg = EasyDict(cfg)
-        # solo active player
-        solo_player_name = 'solo_default'
-        solo = create_player(
-            solo_league_cfg.league, 'solo_active_player', solo_league_cfg.league.solo_active_player, 'default',
-            solo_payoff, 'ckpt_{}.pth'.format(solo_player_name), solo_player_name, 0
-        )
-        assert not solo.is_trained_enough()
-        solo._total_agent_step = ONE_PHASE_STEP - 1
-        assert not solo.is_trained_enough()
-        solo._total_agent_step += 1
-        assert solo.is_trained_enough()
-        job_dict = solo.get_job()
-        assert isinstance(job_dict, dict)
-        assert 'opponent' not in job_dict
-        for k in ['forward_kwargs', 'env_kwargs', 'adder_kwargs', 'agent_update_freq', 'compressor']:
-            assert k in job_dict
-        assert solo._exploration is None
+if __name__ == '__main__':
+    pytest.main(["-sv", os.path.basename(__file__)])

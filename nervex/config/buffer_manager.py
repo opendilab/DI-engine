@@ -15,7 +15,7 @@ buffer_manager_default_config = dict(
             # the duration from collecting to training is too long, i.e. The data is too stale.
             max_staleness=10000,
             # Min ratio of "data count in buffer" / "sample count". If ratio is less than this, sample will return None.
-            min_sample_ratio=1.5,
+            min_sample_ratio=1.,
             # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
             alpha=0.6,
             # (Float type)  How much correction is used: 0 means no correction while 1 means full correction

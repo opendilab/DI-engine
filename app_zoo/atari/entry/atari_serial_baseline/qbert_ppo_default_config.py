@@ -38,8 +38,7 @@ qbert_ppo_default_config = dict(
         collect=dict(
             traj_len=128,
             unroll_len=1,
-            algo=dict(discount_factor=discount_factor,
-                      gae_lambda=0.95),
+            algo=dict(discount_factor=discount_factor, gae_lambda=0.95),
         ),
         command=dict(),
     ),

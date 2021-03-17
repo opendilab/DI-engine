@@ -103,9 +103,16 @@ class BaseCommActor(ABC):
             setattr(actor, item, getattr(self, item))
         eval_flag = actor_cfg.eval_flag
         if eval_flag:
-            actor.policy = create_policy(task_info['policy'], enable_field=['eval']).eval_mode
+            if isinstance(task_info['policy'], list):
+                policy = [create_policy(cfg, enable_field=['eval']).eval_mode for cfg in task_info['policy']]
+            else:
+                policy = create_policy(task_info['policy'], enable_field=['eval']).eval_mode
         else:
-            actor.policy = create_policy(task_info['policy'], enable_field=['collect']).collect_mode
+            if isinstance(task_info['policy'], list):
+                policy = [create_policy(cfg, enable_field=['collect']).collect_mode for cfg in task_info['policy']]
+            else:
+                policy = create_policy(task_info['policy'], enable_field=['collect']).collect_mode
+        actor.policy = policy
         return actor
 
 

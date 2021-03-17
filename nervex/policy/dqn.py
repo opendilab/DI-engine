@@ -90,6 +90,8 @@ class DQNPolicy(CommonPolicy):
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
             'priority': td_error_per_sample.abs().tolist(),
+            # Only discrete action satisfying len(data['action'])==1 can return this and draw histogram on tensorboard.
+            # '[histogram]action_distribution': data['action'],
         }
 
     def _init_collect(self) -> None:

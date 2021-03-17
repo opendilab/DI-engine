@@ -14,7 +14,7 @@ from .base_parallel_commander import create_parallel_commander
 class TaskState(object):
     r"""
     Overview:
-        the state recorder of the task, including task_id and start_time
+        State recorder of the task, including ``task_id`` and ``start_time``.
     Interface:
         __init__
     """
@@ -22,7 +22,7 @@ class TaskState(object):
     def __init__(self, task_id: str) -> None:
         r"""
         Overview:
-            init the task tate according to task_id and the init time
+            Init the task tate according to task_id and the init time.
         """
         self.task_id = task_id
         self.start_time = time.time()
@@ -35,7 +35,7 @@ class Coordinator(object):
     Interface:
         __init__, start, close, __del__, state_dict, load_state_dict,
         deal_with_actor_send_data, deal_with_actor_finish_task,
-        deal_with_learner_get_data, deal_with_learner_send_info, deal_with_learner_finish_task,
+        deal_with_learner_get_data, deal_with_learner_send_info, deal_with_learner_finish_task
     Property:
         system_shutdown_flag
     """
@@ -68,6 +68,8 @@ class Coordinator(object):
         self._commander = create_parallel_commander(cfg.commander)
         self._commander_lock = LockContext(LockContextType.THREAD_LOCK)
         # ############## Thread #####################
+        # Assign thread todo
+        # Produce thread todo
         self._assign_actor_thread = Thread(target=self._assign_actor_task, args=(), name='coordinator_assign_actor')
         self._assign_learner_thread = Thread(
             target=self._assign_learner_task, args=(), name='coordinator_assign_learner'
@@ -89,7 +91,7 @@ class Coordinator(object):
         r"""
         Overview:
             The function to be called in the assign_actor_task thread.
-            Will take a actor task from actor_task_queue and assign the task.
+            Will get an actor task from ``actor_task_queue`` and assign the task.
         """
         while not self._end_flag:
             time.sleep(0.01)
@@ -183,8 +185,8 @@ class Coordinator(object):
     def _produce_actor_task(self) -> None:
         r"""
         Overview:
-            The function to be called in the produce_actor_task thread.
-            Will produce a actor task and put it into the actor_task_queue.
+            The function to be called in the ``produce_actor_task`` thread.
+            Will ask commander to produce a actor task, then put it into ``actor_task_queue``.
         """
         while not self._end_flag:
             time.sleep(0.01)

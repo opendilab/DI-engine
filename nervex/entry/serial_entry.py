@@ -13,6 +13,7 @@ from nervex.config import read_config
 from nervex.data import BufferManager
 from nervex.policy import create_policy
 from nervex.envs import get_vec_env_setting
+from .utils import set_pkg_seed
 
 
 def serial_pipeline(
@@ -21,8 +22,8 @@ def serial_pipeline(
         env_setting: Optional[Any] = None,
         policy_type: Optional[type] = None,
         model: Optional[Union[type, torch.nn.Module]] = None,
-        enable_total_log: Optional[bool] = False,
-) -> None:
+        enable_total_log: Optional[bool] = True,
+) -> 'BasePolicy':  # noqa
     r"""
     Overview:
         Serial pipeline entry.
@@ -59,12 +60,13 @@ def serial_pipeline(
     # Random seed
     actor_env.seed(seed)
     evaluator_env.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    if cfg.policy.use_cuda and torch.cuda.is_available():
-        torch.cuda.manual_seed(seed)
+    set_pkg_seed(seed, use_cuda=cfg.policy.use_cuda)
     # Create components: policy, learner, actor, evaluator, replay buffer, commander.
-    policy_fn = create_policy if policy_type is None else policy_type
+    if policy_type is None:
+        policy_fn = create_policy
+    else:
+        assert callable(policy_type)
+        policy_fn = policy_type
     policy = policy_fn(cfg.policy, model=model)
     learner = BaseLearner(cfg.learner)
     actor = BaseSerialActor(cfg.actor)
@@ -158,60 +160,4 @@ def serial_pipeline(
     learner.close()
     actor.close()
     evaluator.close()
-
-
-def eval(
-        cfg: Union[str, dict],
-        seed: int,
-        env_setting: Optional[Any] = None,  # subclass of BaseEnv, and config dict
-        policy_type: Optional[type] = None,  # subclass of Policy
-        model: Optional[Union[type, torch.nn.Module]] = None,  # instance or subclass of torch.nn.Module
-) -> None:
-    r"""
-    Overview:
-        Pure evaluation entry.
-    Arguments:
-        - cfg (:obj:`Union[str, dict]`): Config in dict type. ``Str`` type means config file path.
-        - seed (:obj:`int`): Random seed.
-        - env_setting (:obj:`Optional[Any]`): Subclass of ``BaseEnv``, and config dict.
-        - policy_type (:obj:`Optional[type]`): Subclass of ``Policy``.
-        - model (:obj:`Optional[Union[type, torch.nn.Module]]`): Instance or subclass of torch.nn.Module.
-    """
-    if isinstance(cfg, str):
-        cfg = read_config(cfg)
-    # Env init.
-    manager_cfg = cfg.env.get('manager', {})
-    if env_setting is None:
-        env_fn, _, evaluator_env_cfg = get_vec_env_setting(cfg.env)
-    else:
-        env_fn, _, evaluator_env_cfg = env_setting
-    env_manager_type = BaseEnvManager if cfg.env.env_manager_type == 'base' else SubprocessEnvManager
-    evaluator_env = env_manager_type(
-        env_fn,
-        env_cfg=evaluator_env_cfg,
-        env_num=len(evaluator_env_cfg),
-        manager_cfg=manager_cfg,
-        episode_num=manager_cfg.get('episode_num', len(evaluator_env_cfg))
-    )
-    if evaluator_env_cfg[0].get('replay_path', None):
-        evaluator_env.enable_save_replay([c['replay_path'] for c in evaluator_env_cfg])
-        assert cfg.env.env_manager_type == 'base'
-    # Random seed.
-    evaluator_env.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    if cfg.policy.use_cuda and torch.cuda.is_available():
-        torch.cuda.manual_seed(seed)
-    # Create components.
-    policy_fn = create_policy if policy_type is None else policy_type
-    policy = policy_fn(cfg.policy, model=model, enable_field=['eval'])
-    state_dict = torch.load(cfg.learner.load_path, map_location='cpu')
-    policy.state_dict_handle()['model'].load_state_dict(state_dict['model'])
-    evaluator = BaseSerialEvaluator(cfg.evaluator)
-
-    evaluator.env = evaluator_env
-    evaluator.policy = policy.eval_mode
-    # Evaluate
-    _, eval_reward = evaluator.eval(0)
-    print('Eval is over! The performance of your RL policy is {}'.format(eval_reward))
-    evaluator.close()
+    return policy

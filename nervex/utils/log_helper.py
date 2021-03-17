@@ -45,18 +45,6 @@ def build_logger(
     return logger, tb_logger
 
 
-def get_default_logger(name: str = 'default_logger') -> logging.Logger:
-    r"""
-    Overview:
-        Get the logger using ``logging.getLogger``.
-    Arguments:
-        - name (:obj:`str`): The name of logger, if None then get 'default_logger'
-    Notes:
-        you can reference Logger.manager.getLogger(name) in the python3 /logging/__init__.py
-    """
-    return logging.getLogger(name)
-
-
 class TextLogger(object):
     r"""
     Overview:
