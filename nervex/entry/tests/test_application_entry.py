@@ -3,7 +3,7 @@ from copy import deepcopy
 import pytest
 
 from app_zoo.classic_control.cartpole.entry import cartpole_ppo_default_config, cartpole_dqn_default_config
-from nervex.entry import *
+from nervex.entry import serial_pipeline, collect_demo_data
 
 cfg = [
     {
