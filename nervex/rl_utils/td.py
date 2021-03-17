@@ -142,6 +142,9 @@ def dist_nstep_td_error(
     b = (target_z - v_min) / delta_z
     l = b.floor().long()
     u = b.ceil().long()
+    # Fix disappearing probability mass when l = b = u (b is int)
+    l[(u > 0) * (l == u)] -= 1
+    u[(l < (n_atom - 1)) * (l == u)] += 1
 
     proj_dist = torch.zeros_like(next_n_dist)
     offset = torch.linspace(0, (batch_size - 1) * n_atom, batch_size).unsqueeze(1).expand(batch_size,
