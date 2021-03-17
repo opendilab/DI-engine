@@ -115,45 +115,6 @@ class InTickMonitor(LoggedModel):
         self.register_attribute_value('avg', 'in_time', partial(__avg_func, prop_name='in_time'))
 
 
-class RecordList(list):
-    r"""
-    Overview:
-        A list which can track its old elements when they are set to a new one.
-    Interface:
-        __init__, __setitem__
-    """
-
-    def __init__(self, *args, **kwargs) -> None:
-        r"""
-        Overview:
-            Additionally init a queue, which is used to track old replaced elements.
-        """
-        super(RecordList, self).__init__(*args, **kwargs)
-        self._used_data = Queue()
-
-    def __setitem__(self, idx: Union[numbers.Integral, slice], data: Any) -> None:
-        r"""
-        Overview:
-            Additionally append the replaced element(if not None) at the back of ``self._used_data``
-            to track it for further operation.
-        Arguments:
-            - idx (:obj:`Union[numbers.Integral, slice]`): One or many, indicating the index/indices where \
-                the element(s) will be replaced.
-            - data (:obj:`Any`): One or many(depending on ``idx``) pieces of data to be inserted to the list.
-        """
-        if isinstance(idx, numbers.Integral):
-            if self[idx] is not None:
-                self._used_data.put(self[idx])
-        elif isinstance(idx, slice):
-            old_data = self[idx]
-            for d in old_data:
-                if d is not None:
-                    self._used_data.put(d)
-        else:
-            raise TypeError("not support idx type: {}".format(type(idx)))
-        super().__setitem__(idx, data)
-
-
 class ReplayBuffer:
     r"""
     Overview:
@@ -205,12 +166,11 @@ class ReplayBuffer:
         """
         # TODO(nyz) remove elements according to priority
         # ``_data`` is a circular queue to store data (or data's reference/file path)
-        # Will use RecordList if needs to track used data; Otherwise will use normal list.
+        self._data = [None for _ in range(maxlen)]
         self._enable_track_used_data = enable_track_used_data
         if self._enable_track_used_data:
-            self._data = RecordList([None for _ in range(maxlen)])
-        else:
-            self._data = [None for _ in range(maxlen)]
+            self._used_data = Queue()
+            self._using_data_id = set()
         # Current valid data count, indicating how many elements in ``self._data`` is valid.
         self._valid_count = 0
         # How many pieces of data have been pushed into this buffer, should be no less than ``_valid_count``.
@@ -398,18 +358,29 @@ class ReplayBuffer:
                     # If data check fails, log it and return without any operations.
                     self._logger.info('Illegal data type [{}], reject it...'.format(type(data)))
                     return
-                if self._data[self.pointer] is None:
-                    self._valid_count += 1
                 self._push_count += 1
+                # remove->set weight->set data
+                self._remove(self.pointer)
                 data['replay_unique_id'] = self._generate_id(self.next_unique_id)
                 data['replay_buffer_idx'] = self.pointer
                 self._set_weight(data)
                 self._data[self.pointer] = data
-                self._reuse_count[self.pointer] = 0
+                self._valid_count += 1
                 self.pointer = (self.pointer + 1) % self._maxlen
                 self.next_unique_id += 1
 
             self._monitor_update_of_push(1, self._timer.value)
+
+    def _track_used_data(self, old: Any) -> None:
+        if not self._enable_track_used_data:
+            return
+        if old is not None:
+            if isinstance(old, dict) and 'data_id' in old:
+                if old['data_id'] not in self._using_data_id:
+                    self._used_data.put(old['data_id'])
+                else:
+                    #TODO
+                    pass
 
     def extend(self, ori_data: List[Any]) -> None:
         r"""
@@ -429,20 +400,18 @@ class ReplayBuffer:
                 # Only keep data items that pass ``_data_check`.
                 valid_data = [d for d, flag in zip(data, check_result) if flag]
                 length = len(valid_data)
-                for i in range(length):
-                    valid_data[i]['replay_unique_id'] = self._generate_id(self.next_unique_id + i)
-                    valid_data[i]['replay_buffer_idx'] = (self.pointer + i) % self.maxlen
-                    self._set_weight(valid_data[i])
-                    if self._data[(self.pointer + i) % self.maxlen] is None:
-                        self._valid_count += 1
-                    self._push_count += 1
                 # When updating ``_data`` and ``_reuse_count``, should consider two cases regarding
                 # the relationship between "pointer + data length" and "queue max length" to check whether
                 # data will exceed beyond queue's max length limitation.
                 if self.pointer + length <= self._maxlen:
+                    for j in range(self.pointer, self.pointer + length):
+                        self._remove(j)
+                    for i in range(length):
+                        valid_data[i]['replay_unique_id'] = self._generate_id(self.next_unique_id + i)
+                        valid_data[i]['replay_buffer_idx'] = (self.pointer + i) % self.maxlen
+                        self._set_weight(valid_data[i])
+                        self._push_count += 1
                     self._data[self.pointer:self.pointer + length] = valid_data
-                    for idx in range(self.pointer, self.pointer + length):
-                        self._reuse_count[idx] = 0
                 else:
                     data_start = self.pointer
                     valid_data_start = 0
@@ -450,15 +419,21 @@ class ReplayBuffer:
                     while True:
                         space = self._maxlen - data_start
                         L = min(space, residual_num)
+                        for j in range(data_start, data_start + L):
+                            self._remove(j)
+                        for i in range(valid_data_start, valid_data_start + L):
+                            valid_data[i]['replay_unique_id'] = self._generate_id(self.next_unique_id + i)
+                            valid_data[i]['replay_buffer_idx'] = (self.pointer + i) % self.maxlen
+                            self._set_weight(valid_data[i])
+                            self._push_count += 1
                         self._data[data_start:data_start + L] = valid_data[valid_data_start:valid_data_start + L]
                         residual_num -= L
-                        for i in range(data_start, data_start + L):
-                            self._reuse_count[i] = 0
                         if residual_num <= 0:
                             break
                         else:
                             data_start = 0
                             valid_data_start += L
+                self._valid_count += len(valid_data)
                 # Update ``pointer`` and ``next_unique_id`` after the whole list is pushed into buffer.
                 self.pointer = (self.pointer + length) % self._maxlen
                 self.next_unique_id += length
@@ -565,10 +540,13 @@ class ReplayBuffer:
         Arguments:
             - idx (:obj:`int`): Data at this position will be removed.
         """
+        self._track_used_data(self._data[idx])
+        if self._data[idx] is not None:
+            self._valid_count -= 1
         self._data[idx] = None
+        self._reuse_count[idx] = 0
         self.sum_tree[idx] = self.sum_tree.neutral_element
         self.min_tree[idx] = self.min_tree.neutral_element
-        self._valid_count -= 1
 
     def _sample_with_indices(self, indices: List[int], cur_learner_iter: int) -> list:
         r"""
@@ -726,8 +704,8 @@ class ReplayBuffer:
     @property
     def used_data(self) -> Any:
         if self._enable_track_used_data:
-            if not self._data._used_data.empty():
-                return self._data._used_data.get()
+            if not self._used_data.empty():
+                return self._used_data.get()
             else:
                 return None
         else:

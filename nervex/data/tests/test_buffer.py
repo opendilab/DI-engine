@@ -60,7 +60,7 @@ def setup_demo_buffer():
 
 
 def generate_data():
-    ret = {'obs': np.random.randn(4)}
+    ret = {'obs': np.random.randn(4), 'data_id': 0}
     p_weight = np.random.uniform()
     if p_weight < 1. / 3:
         pass  # no key 'priority'
@@ -234,8 +234,8 @@ class TestReplayBuffer:
 
     def test_used_data(self, setup_prioritized_buffer):
         for _ in range(setup_prioritized_buffer._maxlen + 2):
-            setup_prioritized_buffer.append({})
-        setup_prioritized_buffer.extend([{}])
+            setup_prioritized_buffer.append({'data_id': 0})
+        setup_prioritized_buffer.extend([{'data_id': 1}])
         for _ in range(2 + 1):
             assert setup_prioritized_buffer.used_data is not None
         assert setup_prioritized_buffer.used_data is None
