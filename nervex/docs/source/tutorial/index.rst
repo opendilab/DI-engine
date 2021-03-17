@@ -578,7 +578,7 @@ Armor 部分是对模型运行时行为的抽象（例如根据eps-greedy方法�
 
 
     # you can refer to `nervex/data/replay_buffer_default_config.yaml` for the detailed configuration 
-    cfg = {'meta_maxlen': 10}
+    cfg = {'replay_buffer_size': 10}
     buffer_ = BufferManager(cfg)
 
     # add 10 data

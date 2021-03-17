@@ -78,7 +78,7 @@ class BufferManager(IBuffer):
             enable_track_used_data = buffer_cfg.get('enable_track_used_data', False)
             self.buffer[name] = ReplayBuffer(
                 name=name,
-                maxlen=buffer_cfg.get('meta_maxlen', 10000),
+                replay_buffer_size=buffer_cfg.get('replay_buffer_size', 10000),
                 max_reuse=buffer_cfg.get('max_reuse', None),
                 max_staleness=buffer_cfg.get('max_staleness', None),
                 min_sample_ratio=buffer_cfg.get('min_sample_ratio', 1.),

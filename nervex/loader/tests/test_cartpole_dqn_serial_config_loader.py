@@ -56,7 +56,7 @@ def test_real_loader():
         replay_buffer=item('replay_buffer') >> dict_(
             buffer_name=item('buffer_name') >> collection(str),
             agent=item('agent') >> dict_(
-                meta_maxlen=item('meta_maxlen') >> is_type(int) >> interval(1, math.inf),
+                replay_buffer_size=item('replay_buffer_size') >> is_type(int) >> interval(1, math.inf),
                 max_reuse=item('max_reuse') >> is_type(int) >> interval(1, math.inf),
                 min_sample_ratio=item('min_sample_ratio') >> interval(1.0, 10.0)
             ),

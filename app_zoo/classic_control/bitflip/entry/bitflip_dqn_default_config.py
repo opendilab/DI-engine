@@ -51,7 +51,7 @@ bitflip_dqn_default_config = dict(
     replay_buffer=dict(
         buffer_name=['agent'],
         agent=dict(
-            meta_maxlen=5000,
+            replay_buffer_size=5000,
             min_sample_ratio=5,
             max_reuse=100,
         ),

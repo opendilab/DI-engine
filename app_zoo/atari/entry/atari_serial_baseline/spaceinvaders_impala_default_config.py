@@ -54,7 +54,7 @@ spaceinvaders_impala_default_config = dict(
     replay_buffer=dict(
         buffer_name=['agent'],
         agent=dict(
-            meta_maxlen=10000,
+            replay_buffer_size=10000,
             max_reuse=100,
             min_sample_ratio=1,
         ),

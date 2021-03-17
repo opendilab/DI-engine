@@ -67,7 +67,7 @@ cooperative_navigation_coma_default_config = dict(
     replay_buffer=dict(
         buffer_name=['agent'],
         agent=dict(
-            meta_maxlen=64,
+            replay_buffer_size=64,
             max_reuse=100,
             min_sample_ratio=1,
         ),

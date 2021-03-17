@@ -97,7 +97,7 @@ __coordinator_default_config = dict(
         actor_cfg=__zergling_actor_default_config,
         replay_buffer_cfg=dict(
             buffer_name=['agent'], agent=dict(
-                meta_maxlen=100000,
+                replay_buffer_size=100000,
                 max_reuse=1100,
                 min_sample_ratio=1,
                 enable_track_used_data=False,

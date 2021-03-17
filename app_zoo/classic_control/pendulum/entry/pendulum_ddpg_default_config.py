@@ -52,7 +52,7 @@ pendulum_ddpg_default_config = dict(
     replay_buffer=dict(
         buffer_name=['agent'],
         agent=dict(
-            meta_maxlen=20000,
+            replay_buffer_size=20000,
             max_reuse=16,
             min_sample_ratio=1,
         ),

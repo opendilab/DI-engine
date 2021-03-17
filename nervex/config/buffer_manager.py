@@ -8,7 +8,7 @@ buffer_manager_default_config = dict(
         # Buffer1 is called "agent". You can regard this as a most general and frequently used buffer config.
         agent=dict(
             # Max length of the buffer.
-            meta_maxlen=4096,
+            replay_buffer_size=4096,
             # Max reuse times of one data in the buffer. Data will be removed once reused for too many times.
             max_reuse=16,
             # Max staleness time duration of one data in the buffer; Data will be removed if
