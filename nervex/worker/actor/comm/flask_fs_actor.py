@@ -5,9 +5,9 @@ from typing import Union, Dict, Callable
 from queue import Queue
 from threading import Thread
 
-from nervex.utils import read_file, save_file
+from nervex.utils import read_file, save_file, COMM_ACTOR_REGISTRY
 from nervex.interaction import Slave, TaskFail
-from .base_comm_actor import BaseCommActor, register_comm_actor
+from .base_comm_actor import BaseCommActor
 
 
 class ActorSlave(Slave):
@@ -59,6 +59,7 @@ class ActorSlave(Slave):
             raise TaskFail(result={'message': 'task name error'}, message='illegal actor task <{}>'.format(task_name))
 
 
+@COMM_ACTOR_REGISTRY.register('flask_fs')
 class FlaskFileSystemActor(BaseCommActor):
     """
     Overview:
@@ -219,6 +220,3 @@ class FlaskFileSystemActor(BaseCommActor):
 
     def __del__(self) -> None:
         self.close()
-
-
-register_comm_actor('flask_fs', FlaskFileSystemActor)

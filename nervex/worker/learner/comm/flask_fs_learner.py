@@ -5,9 +5,9 @@ from functools import partial
 from queue import Queue
 from threading import Thread
 
-from nervex.utils import read_file, save_file, get_data_decompressor
+from nervex.utils import read_file, save_file, get_data_decompressor, COMM_LEARNER_REGISTRY
 from nervex.interaction import Slave, TaskFail
-from .base_comm_learner import BaseCommLearner, register_comm_learner
+from .base_comm_learner import BaseCommLearner
 from ..learner_hook import LearnerHook
 
 
@@ -67,6 +67,7 @@ class LearnerSlave(Slave):
             raise TaskFail(result={'message': 'task name error'}, message='illegal learner task <{}>'.format(task_name))
 
 
+@COMM_LEARNER_REGISTRY.register('flask_fs')
 class FlaskFileSystemLearner(BaseCommLearner):
     """
     Overview:
@@ -395,6 +396,3 @@ class SendLearnInfoHook(LearnerHook):
         engine.send_learn_info(engine.learn_info)
         if last_iter % self._freq == 0:
             engine.debug('{} save iter{} learn_info'.format(engine.name, last_iter))
-
-
-register_comm_learner('flask_fs', FlaskFileSystemLearner)

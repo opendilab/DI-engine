@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod, abstractproperty
 from easydict import EasyDict
 
-from nervex.utils import EasyTimer, import_module, get_task_uid, dist_init, dist_finalize
+from nervex.utils import EasyTimer, import_module, get_task_uid, dist_init, dist_finalize, COMM_LEARNER_REGISTRY
 from nervex.policy import create_policy
 from nervex.worker.learner import create_learner
 
@@ -123,23 +123,7 @@ class BaseCommLearner(ABC):
         return learner
 
 
-comm_map = {}
-
-
-def register_comm_learner(name: str, learner_type: type) -> None:
-    """
-    Overview:
-        Register a new CommLearner class with its name to dict ``comm_map``
-    Arguments:
-        - name (:obj:`str`): Name of the new CommLearner
-        - learner_type (:obj:`type`): The new CommLearner class, should be subclass of ``BaseCommLearner``.
-    """
-    assert isinstance(name, str)
-    assert issubclass(learner_type, BaseCommLearner)
-    comm_map[name] = learner_type
-
-
-def create_comm_learner(cfg: dict) -> BaseCommLearner:
+def create_comm_learner(cfg: EasyDict) -> BaseCommLearner:
     """
     Overview:
         Given the key(comm_learner_name), create a new comm learner instance if in comm_map's values,
@@ -151,9 +135,5 @@ def create_comm_learner(cfg: dict) -> BaseCommLearner:
         - learner (:obj:`BaseCommLearner`): The created new comm learner, should be an instance of one of \
             comm_map's values.
     """
-    import_module(cfg.import_names)
-    comm_learner_type = cfg.comm_learner_type
-    if comm_learner_type not in comm_map.keys():
-        raise KeyError("not support comm learner type: {}".format(comm_learner_type))
-    else:
-        return comm_map[comm_learner_type](cfg)
+    import_module(cfg.get('import_names', []))
+    return COMM_LEARNER_REGISTRY.build(cfg.comm_learner_type, cfg=cfg)

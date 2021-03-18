@@ -497,3 +497,61 @@ Best Practice
 
 
    具体实现可以查看源码 ``nervex\torch_utils\optimizer_helper.py`` 或参考 ``nervex\torch_utils\tests\test_optimizer.py`` 测试文件中的使用方式。
+
+
+6. 模块的Registry机制
+=======================
+
+在 nerveX 中，为了可以方便地使用 config 文件启动训练任务，我们 **建议** 对于自己实现的一些模块，利用 ``Registry`` 机制进行注册。
+
+目前支持的模块包括：
+   - policy
+   - env
+   - learner
+   - comm_learner
+   - actor
+   - comm_actor
+   - commander
+   - league
+   - player
+
+下面以 ``Policy`` 为例，讲解 ``Registry`` 的使用方法。
+
+   1.  自定义 ``Policy`` 类，然后添加注册器
+
+   .. code:: python
+      
+      from nervex.utils import POLICY_REGISTRY
+
+      @POLICY_REGISTRY.register('dqn')
+      class DQNPolicy(CommonPolicy):
+         pass
+
+   2.  在 config 里指明所需要创建的 ``Policy`` 的名字及文件路径
+
+   .. code:: python
+
+      policy=dict(
+         policy_type='dqn',
+         import_names=['app_zoo.sumo.policy.sumo_dqn'],
+         # ...
+      )
+
+   若用户仔细阅读源码，会发现若使用在 nerveX 核心代码（指 ``nervex/`` 路径下）中实现的 ``Policy``（例如DQN PPO等），
+   在 config 中没有指明 ``import_names``。但若是用户自行实现的 ``Policy``，则 **必须指明** ``import_names``。
+
+
+   3. 使用时通过系统函数创建
+
+   经过上述过程，自行实现的 ``Policy`` 已经被注册到了系统之中。使用 nerveX 提供的函数就可以进行创建了。
+
+   .. code:: python
+      
+      from nervex.policy import create_policy
+
+      cfg: dict
+      dqn_policy = create_policy(cfg.policy)
+
+此外，可以通过nervex -q <registry name> 来查看在 nerveX 核心代码中已经注册的模块，例如：
+
+.. image:: ./nervex_cli_query_registry.png

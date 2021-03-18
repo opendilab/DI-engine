@@ -6,7 +6,7 @@ from collections import defaultdict
 
 from nervex.policy import create_policy
 from nervex.utils import LimitedSpaceContainer, get_task_uid, build_logger, COMMANDER_REGISTRY
-from .base_parallel_commander import register_parallel_commander, BaseCommander
+from .base_parallel_commander import BaseCommander
 
 
 @COMMANDER_REGISTRY.register('solo')
