@@ -496,7 +496,7 @@ Best Practice
    4. ``clip_momentum_norm`` and ``ignore_momentum_norm`` : 根据历史动量的范数进行clip/ignore操作
 
 
-   具体实现可以查看源码 ``nervex\torch_utils\optimizer_helper.py`` 或参考 ``nervex\torch_utils\tests\test_optimizer.py`` 测试文件中的使用方式。
+   具体实现可以查看源码 ``nervex/torch_utils/optimizer_helper.py`` 或参考 ``nervex/torch_utils/tests/test_optimizer.py`` 测试文件中的使用方式。
 
 
 6. 模块的Registry机制
