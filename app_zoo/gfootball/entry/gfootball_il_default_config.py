@@ -3,11 +3,11 @@ from easydict import EasyDict
 traj_len = 3000
 gfootball_il_default_config = dict(
     env=dict(
-        env_manager_type='subprocess',
+        env_manager_type='base',
         import_names=['app_zoo.gfootball.envs.gfootball_env'],
         env_type='gfootball',
         actor_env_num=4,
-        evaluator_env_num=4,
+        evaluator_env_num=2,
     ),
     policy=dict(
         use_cuda=True,
@@ -28,19 +28,19 @@ gfootball_il_default_config = dict(
     replay_buffer=dict(
         buffer_name=['agent'],
         agent=dict(
-            meta_maxlen=10000,
-            max_reuse=100,
+            meta_maxlen=100000,
+            max_reuse=10,
             min_sample_ratio=1,
         ),
     ),
     actor=dict(
-        n_episode=4,
+        n_episode=2,
         traj_len=traj_len,
         traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(
-        n_episode=4,
+        n_episode=2,
         eval_freq=100,
         stop_val=3,
     ),
@@ -52,7 +52,7 @@ gfootball_il_default_config = dict(
                 type='log_show',
                 priority=20,
                 position='after_iter',
-                ext_args=dict(freq=100, ),
+                ext_args=dict(freq=20, ),
             ),
         ),
     ),
