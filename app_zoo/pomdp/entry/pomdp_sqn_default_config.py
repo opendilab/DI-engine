@@ -21,19 +21,19 @@ pomdp_sqn_default_config = dict(
         # POMDP config
         # env_id='Breakout-ramNoFrameskip-v4',
         env_id='Pong-ramNoFrameskip-v4',
-        frame_stack=4,
+        frame_stack=1,
         reward_scale=1,
         is_train=True,
         warp_frame=False,
         use_ram=True,
         clip_reward=False,
         render=False,
-        pomdp=dict(noise_scale=0.01, zero_p=0.2, reward_noise=0.01, duplicate_p=0.2),
-        # pomdp=dict(noise_scale=0., zero_p=0., reward_noise=0., duplicate_p=0.),  # MDP test
+        # pomdp=dict(noise_scale=0.01, zero_p=0.2, reward_noise=0.01, duplicate_p=0.2),
+        pomdp=dict(noise_scale=0., zero_p=0., reward_noise=0., duplicate_p=0.),  # MDP test
     ),
     policy=dict(
         # Whether to use cuda for network.
-        use_cuda=False,
+        use_cuda=True,
         # RL policy register name (refer to function "register_policy").
         policy_type='sqn',
         import_names=['nervex.policy.sqn'],
@@ -41,7 +41,7 @@ pomdp_sqn_default_config = dict(
         on_policy=False,
         # Model config used for model creating. Remember to change this, especially "obs_dim" and "action_dim" according to specific env.
         model=dict(
-            obs_dim=(512, ),
+            obs_dim=(128, ),
             action_dim=6,
             embedding_dim=512,
             # Whether to use dueling head.
@@ -52,16 +52,16 @@ pomdp_sqn_default_config = dict(
         learn=dict(
             # How many steps to train after actor's one collection. Bigger "train_step" means bigger off-policy.
             # collect data -> train fixed steps -> collect data -> ...
-            train_step=32,
-            # train_step=update_freq,
+            # train_step=50,
+            train_step=update_freq,
             batch_size=128,
-            learning_rate_q=0.0005,
-            learning_rate_alpha=0.0005,
+            learning_rate_q=1e-3,
+            learning_rate_alpha=1e-3,
             # L2 norm weight for network parameters.
             weight_decay=0.0,
             algo=dict(
                 target_theta=0.005,
-                alpha=0.05,
+                alpha=0.001,
                 # Reward's future discount facotr, aka. gamma.
                 discount_factor=0.99,
             ),
@@ -89,7 +89,7 @@ pomdp_sqn_default_config = dict(
     replay_buffer=dict(
         buffer_name=['agent'],
         agent=dict(
-            meta_maxlen=100000,
+            meta_maxlen=100_000,
             max_reuse=100,
             min_sample_ratio=1,
         ),

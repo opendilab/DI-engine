@@ -56,7 +56,7 @@ class SQNPolicy(CommonPolicy):
         self._gamma = algo_cfg.discount_factor
         self._action_dim = self._cfg.model.action_dim
         # self._target_entropy = algo_cfg.get('target_entropy', self._action_dim / 8)
-        self._target_entropy = algo_cfg.get('target_entropy', self._action_dim / 10)
+        self._target_entropy = algo_cfg.get('target_entropy', self._action_dim / 15)
 
         self._log_alpha = torch.FloatTensor([math.log(algo_cfg.alpha)]).to(self._device).requires_grad_(True)
         self._optimizer_alpha = torch.optim.Adam([self._log_alpha], lr=self._cfg.learn.learning_rate_alpha)
@@ -176,7 +176,7 @@ class SQNPolicy(CommonPolicy):
         """
         # start with random action for better exploration
         output = self._collect_armor.forward(data)
-        _act_p = 1 / (200_000 - self._forward_learn_cnt) if self._forward_learn_cnt < 199_000 else 0.999
+        _act_p = 1 / (100_000 - self._forward_learn_cnt) if self._forward_learn_cnt < 99_000 else 0.999
         
         if np.random.random(1) < _act_p:
             logits = output['logit'] / math.exp(self._log_alpha.item())
