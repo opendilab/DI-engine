@@ -17,12 +17,12 @@ from .utils import set_pkg_seed
 
 
 def serial_pipeline(
-    cfg: Union[str, dict],
-    seed: int,
-    env_setting: Optional[Any] = None,
-    policy_type: Optional[type] = None,
-    model: Optional[Union[type, torch.nn.Module]] = None,
-    enable_total_log: Optional[bool] = True,
+        cfg: Union[str, dict],
+        seed: int,
+        env_setting: Optional[Any] = None,
+        policy_type: Optional[type] = None,
+        model: Optional[Union[type, torch.nn.Module]] = None,
+        enable_total_log: Optional[bool] = True,
 ) -> 'BasePolicy':  # noqa
     r"""
     Overview:

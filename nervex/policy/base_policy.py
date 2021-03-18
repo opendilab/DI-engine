@@ -29,10 +29,10 @@ class Policy(ABC):
     command_function = namedtuple('command_function', ['get_setting_learn', 'get_setting_collect', 'get_setting_eval'])
 
     def __init__(
-        self,
-        cfg: dict,
-        model: Optional[Union[type, torch.nn.Module]] = None,
-        enable_field: Optional[List[str]] = None
+            self,
+            cfg: dict,
+            model: Optional[Union[type, torch.nn.Module]] = None,
+            enable_field: Optional[List[str]] = None
     ) -> None:
         self._cfg = cfg
         model = self._create_model(cfg, model)
