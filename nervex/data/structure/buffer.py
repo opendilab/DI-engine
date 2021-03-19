@@ -627,7 +627,7 @@ class ReplayBuffer:
         }
         if self._in_count % self._log_freq == 0:
             self._logger.debug("===Add In Buffer {} Times===".format(self._in_count))
-            self._logger.print_vars(in_dict, level=logging.DEBUG)
+            self._logger.print_vars(in_dict)
             in_dict = {'buffer_{}/'.format(self.name) + k: v for k, v in in_dict.items()}
             self._tb_logger.print_vars(in_dict, self._in_count, 'scalar')
         self._in_count += 1
@@ -664,7 +664,7 @@ class ReplayBuffer:
         }
         if self._out_count % self._log_freq == 0:
             self._logger.debug("===Read Buffer {} Times===".format(self._out_count))
-            self._logger.print_vars(out_dict, level=logging.DEBUG)
+            self._logger.print_vars(out_dict)
             out_dict = {'buffer_{}/'.format(self.name) + k: v for k, v in out_dict.items()}
             self._tb_logger.print_vars(out_dict, self._out_count, 'scalar')
         self._out_count += 1

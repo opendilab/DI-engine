@@ -34,10 +34,12 @@ class BaseSerialActor(object):
             self._traj_len = float('inf')
             self._traj_cache_length = None
         self._collect_print_freq = cfg.collect_print_freq
-        self._logger, self._tb_logger = build_logger(path='./log/actor', name='actor', need_tb=True)
-        for var in ['episode_count', 'step_count', 'train_sample_count', 'avg_step_per_episode',
-                    'avg_sample_per_epsiode', 'avg_time_per_step', 'avg_time_per_train_sample', 'avg_time_per_episode',
-                    'reward_mean', 'reward_std']:
+        self._logger, self._tb_logger = build_logger(path='./log/actor', name='collect', need_tb=True)
+        for var in ['episode_count', 'envstep_count', 'train_sample_count',
+                    'avg_envstep_per_episode', 'avg_sample_per_epsiode', 'collect_time',
+                    'avg_time_per_envstep', 'avg_time_per_train_sample', 'avg_time_per_episode',
+                    'reward_mean', 'reward_std',
+                    'total_envstep_count', 'total_train_sample_count', 'total_episode_count', 'total_duration']:
             self._tb_logger.register_var('actor/' + var)
         self._timer = EasyTimer()
         self._cfg = cfg
@@ -66,10 +68,10 @@ class BaseSerialActor(object):
         self._policy_output_pool = CachePool('policy_output', self._env_num)
         # _traj_cache is {env_id: deque}, is used to store traj_len pieces of transitions
         self._traj_cache = {env_id: deque(maxlen=self._traj_cache_length) for env_id in range(self._env_num)}
-        self._total_collect_step_count = 0
-        self._total_step_count = 0
+        self._collect_times = 0
+        self._total_envstep_count = 0
         self._total_episode_count = 0
-        self._total_sample_count = 0
+        self._total_train_sample_count = 0
         self._total_duration = 0
 
     @property
@@ -81,7 +83,7 @@ class BaseSerialActor(object):
         Returns:
             - info (:obj:`dict`): Current learner info dict.
         """
-        ret = {'env_step': self._total_step_count, 'sample_step': self._total_sample_count}
+        ret = {'env_step': self._total_envstep_count, 'sample_step': self._total_train_sample_count}
         return ret
 
     def generate_data(self,
@@ -131,7 +133,7 @@ class BaseSerialActor(object):
             - return_data (:obj:`List`): A list containing training samples.
         """
         episode_count = 0
-        step_count = 0
+        envstep_count = 0
         train_sample_count = 0
         episode_reward = []
         return_data = []
@@ -174,7 +176,7 @@ class BaseSerialActor(object):
                         train_sample = self._policy.get_train_sample(self._traj_cache[env_id])
                         return_data.extend(train_sample)
                         train_sample_count += len(train_sample)
-                        self._total_sample_count += len(train_sample)
+                        self._total_train_sample_count += len(train_sample)
                     if timestep.done:
                         # Env reset is done by env_manager automatically
                         self._traj_cache[env_id].clear()
@@ -187,33 +189,32 @@ class BaseSerialActor(object):
                         episode_reward.append(reward)
                         episode_count += 1
                         self._total_episode_count += 1
-                    step_count += 1
-                    self._total_step_count += 1
+                    envstep_count += 1
+                    self._total_envstep_count += 1
         duration = self._timer.value
-        if (self._total_collect_step_count) % self._collect_print_freq == 0:
+        if (self._collect_times) % self._collect_print_freq == 0:
             info = {
                 'episode_count': episode_count,
-                'step_count': step_count,
+                'envstep_count': envstep_count,
                 'train_sample_count': train_sample_count,
-                'avg_step_per_episode': step_count / max(1, episode_count),
+                'avg_envstep_per_episode': envstep_count / max(1, episode_count),
                 'avg_sample_per_epsiode': train_sample_count / max(1, episode_count),
-                'avg_time_per_step': duration / (step_count + 1e-8),
+                'collect_time': duration,
+                'avg_time_per_envstep': duration / (envstep_count + 1e-8),
                 'avg_time_per_train_sample': duration / (train_sample_count + 1e-8),
                 'avg_time_per_episode': duration / max(1, episode_count),
                 'reward_mean': np.mean(episode_reward) if len(episode_reward) > 0 else 0.,
                 'reward_std': np.std(episode_reward) if len(episode_reward) > 0 else 0.,
                 'each_reward': episode_reward,
-
-                # 'total_collect_step': self._total_collect_step_count,
-                # 'total_step': self._total_step_count,
-                # 'total_sample': self._total_sample_count,
-                # 'total_episode': self._total_episode_count,
-                # 'total_duration': self._total_duration,
+                'total_envstep_count': self._total_envstep_count,
+                'total_train_sample_count': self._total_train_sample_count,
+                'total_episode_count': self._total_episode_count,
+                'total_duration': self._total_duration,
             }
             self._logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
             tb_vars = [['actor/' + k, v, iter_count] for k, v in info.items() if k not in ['each_reward']]
             self._tb_logger.add_val_list(tb_vars, viz_type='scalar')
-        self._total_collect_step_count += 1
+        self._collect_times += 1
         self._total_duration += duration
         return return_data
 
