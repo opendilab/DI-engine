@@ -19,7 +19,7 @@ gfootball_il_default_config = dict(
         learn=dict(
             train_step=20,
             batch_size=64,
-            learning_rate=0.001,
+            learning_rate=0.0002,
             weight_decay=0.0,
             algo=dict(discount_factor=0.99, ),
         ),
