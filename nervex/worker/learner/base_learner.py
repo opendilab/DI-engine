@@ -93,7 +93,7 @@ class BaseLearner(object):
     Interface:
         __init__, train, start, setup_dataloader, close, call_hook, register_hook, save_checkpoint
     Property:
-        learn_info, priority_info, collect_info, last_iter, name, rank, policy
+        learn_info, priority_info, last_iter, name, rank, policy
         tick_time, monitor, log_buffer, logger, tb_logger, load_path, checkpoint_manager
     """
 
@@ -139,8 +139,6 @@ class BaseLearner(object):
         self._checkpointer_manager = build_checkpoint_helper(self._cfg)
         # Learner hook. Used to do specific things at specific time point. Will be set in ``_setup_hook``
         self._hooks = {'before_run': [], 'before_iter': [], 'after_iter': [], 'after_run': []}
-        # Collect info passed from actor. Used in serial entry for message passing.
-        self._collect_info = {}
         # Priority info. Used to update replay buffer according to data's priority.
         self._priority_info = None
         # Last iteration. Used to record current iter.
@@ -235,8 +233,6 @@ class BaseLearner(object):
             'priority': priority,
             **data_info,
         }
-        # Add collect info
-        log_vars.update(self.collect_info)
         # Discriminate vars in scalar, scalars and histogram type
         # By default, regard a var as scalar type. For scalars and histogram type, must annotate by "[WAHT-TYPE]"
         scalars_vars, histogram_vars = {}, {}
@@ -458,15 +454,6 @@ class BaseLearner(object):
     @priority_info.setter
     def priority_info(self, _priority_info: dict) -> None:
         self._priority_info = _priority_info
-
-    # ##################### only serial ###########################
-    @property
-    def collect_info(self) -> dict:
-        return self._collect_info
-
-    @collect_info.setter
-    def collect_info(self, collect_info: dict) -> None:
-        self._collect_info = {k: float(v) for k, v in collect_info.items()}
 
 
 learner_mapping = {'base': BaseLearner}

@@ -76,7 +76,6 @@ cooperative_navigation_coma_default_config = dict(
     actor=dict(
         n_episode=4,
         traj_len=max_step,  # cooperative_navigation_episode_max_length
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(

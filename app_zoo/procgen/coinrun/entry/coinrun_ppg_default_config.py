@@ -62,7 +62,6 @@ coinrun_ppg_default_config = dict(
     actor=dict(
         n_sample=16,
         traj_len=traj_len,
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(

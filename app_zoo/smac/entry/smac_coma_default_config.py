@@ -72,7 +72,6 @@ smac_coma_default_config = dict(
     actor=dict(
         n_episode=4,
         traj_len=1000,  # smac_episode_max_length
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(

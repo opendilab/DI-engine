@@ -57,7 +57,6 @@ cartpole_rainbowdqn_default_config = dict(
     actor=dict(
         n_sample=80,
         traj_len=(8 + nstep),
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(

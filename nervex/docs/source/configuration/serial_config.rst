@@ -104,7 +104,6 @@ cartpole_dqn_default_config.py
             # Get "n_episode" complete episodic trajectories per collect.
             # n_episode=8,
             traj_len=traj_len,
-            traj_print_freq=100,
             collect_print_freq=100,
         ),
         evaluator=dict(

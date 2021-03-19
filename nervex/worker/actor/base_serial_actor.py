@@ -33,7 +33,6 @@ class BaseSerialActor(object):
         else:
             self._traj_len = float('inf')
             self._traj_cache_length = None
-        self._traj_print_freq = cfg.traj_print_freq
         self._collect_print_freq = cfg.collect_print_freq
         self._logger, self._tb_logger = build_logger(path='./log/actor', name='actor', need_tb=True)
         for var in ['episode_count', 'step_count', 'train_sample_count', 'avg_step_per_episode',
@@ -98,7 +97,6 @@ class BaseSerialActor(object):
            - n_sample (:obj:`int`): number of sample
         Returns:
            - return_data (:obj:`List`): A list containing training samples.
-           - collect_info (:obj:`dict`): A dict containing sample collection information.
         """
         assert n_episode is None or n_sample is None, "Either n_episode or n_sample must be None"
         if n_episode is not None:
@@ -131,7 +129,6 @@ class BaseSerialActor(object):
             - collect_end_fn (:obj:`Callable`): end of collect
         Returns:
             - return_data (:obj:`List`): A list containing training samples.
-            - collect_info (:obj:`dict`): A dict containing sample collection information.
         """
         episode_count = 0
         step_count = 0
@@ -206,21 +203,19 @@ class BaseSerialActor(object):
                 'reward_mean': np.mean(episode_reward) if len(episode_reward) > 0 else 0.,
                 'reward_std': np.std(episode_reward) if len(episode_reward) > 0 else 0.,
                 'each_reward': episode_reward,
+
+                # 'total_collect_step': self._total_collect_step_count,
+                # 'total_step': self._total_step_count,
+                # 'total_sample': self._total_sample_count,
+                # 'total_episode': self._total_episode_count,
+                # 'total_duration': self._total_duration,
             }
             self._logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
             tb_vars = [['actor/' + k, v, iter_count] for k, v in info.items() if k not in ['each_reward']]
             self._tb_logger.add_val_list(tb_vars, viz_type='scalar')
         self._total_collect_step_count += 1
         self._total_duration += duration
-        collect_info = {
-            'sample_count': train_sample_count,
-            'total_collect_step': self._total_collect_step_count,
-            'total_step': self._total_step_count,
-            'total_sample': self._total_sample_count,
-            'total_episode': self._total_episode_count,
-            'total_duration': self._total_duration,
-        }
-        return return_data, collect_info
+        return return_data
 
 
 class CachePool(object):

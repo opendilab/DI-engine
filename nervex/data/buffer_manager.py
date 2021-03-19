@@ -123,10 +123,10 @@ class BufferManager(IBuffer):
     ) -> Union[list, Dict[str, list]]:
         """
         Overview:
-            Sample data from prioritized buffers according to sample ratio.
+            Sample data from prioritized buffers according to ``batch_size`.
         Arguments:
-            - batch_size (:obj:`int`): Batch size of the data that will be sampled. Caller can indicates \
-                the corresponding batch_size when samples from multiple buffers.
+            - batch_size (:obj:`Union[int, Dict[str, int]]`): Batch size of the data that will be sampled. Caller can indicate \
+                the corresponding batch_size when sampling from multiple buffers.
             - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
         Returns:
             - data (:obj:`Union[list, Dict[str, list]]`): Sampled data batch.

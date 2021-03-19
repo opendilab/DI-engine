@@ -62,7 +62,6 @@ actor:
     n_sample: 64
     # n_episode: 16
     traj_len: 1
-    traj_print_freq: 1000
     collect_print_freq: 1000
 evaluator:
     n_episode: 8

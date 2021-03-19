@@ -133,7 +133,7 @@ def serial_pipeline_irl(
         target_new_data_count = cfg.irl.get('target_new_data_count', 1)
         while True:
             # Actor keeps generating data until replay buffer has enough to sample one batch.
-            new_data, collect_info = actor.generate_data(learner.train_iter)
+            new_data = actor.generate_data(learner.train_iter)
             new_data_count += len(new_data)
             # collect data for reward_model training
             reward_model.collect_data(new_data)
@@ -144,7 +144,6 @@ def serial_pipeline_irl(
         # update reward_model
         reward_model.train()
         reward_model.clear_data()
-        learner.collect_info = collect_info
         for i in range(learner_train_step):
             # Learner will train ``train_step`` times in one iteration.
             # But if replay buffer does not have enough data, program will break and warn.

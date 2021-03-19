@@ -67,7 +67,6 @@ halfcheetah_sac_default_config = dict(
     actor=dict(
         n_sample=64,
         traj_len=1,
-        traj_print_freq=1000,
         collect_print_freq=1000,
     ),
     evaluator=dict(

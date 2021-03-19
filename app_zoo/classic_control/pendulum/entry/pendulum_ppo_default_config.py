@@ -61,7 +61,6 @@ pendulum_ppo_default_config = dict(
     actor=dict(
         n_episode=16,
         traj_len=200,
-        traj_print_freq=1000,
         collect_print_freq=1000,
     ),
     evaluator=dict(

@@ -55,7 +55,6 @@ qbert_a2c_default_config = dict(
     actor=dict(
         n_sample=80,
         traj_len=traj_len,
-        traj_print_freq=1000,
         collect_print_freq=1000,
     ),
     evaluator=dict(

@@ -53,7 +53,6 @@ cartpole_dqnvanilla_default_config = dict(
     actor=dict(
         n_sample=8,
         traj_len=traj_len,
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(

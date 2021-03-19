@@ -38,8 +38,6 @@ buffer_manager_default_config = dict(
                 tick_expire=100,
             ),
         ),
-        # The ratio for sampling from different buffers. You must guarantee that all ratio's sum is 1.
-        sample_ratio=dict(agent=1, ),
     ),
 )
 buffer_manager_default_config = EasyDict(buffer_manager_default_config)

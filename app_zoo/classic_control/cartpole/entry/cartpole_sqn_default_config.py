@@ -86,7 +86,6 @@ cartpole_sqn_default_config = dict(
         # Get "n_episode" complete episodic trajectories per collect.
         # n_episode=8,
         traj_len=traj_len,
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(

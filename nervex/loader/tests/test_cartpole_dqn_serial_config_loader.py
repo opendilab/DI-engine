@@ -67,8 +67,7 @@ def test_real_loader():
         actor=item('actor') >> dict_(
             n_sample=item('n_sample') >> is_type(int) >> interval(8, 128),
             traj_len=item('traj_len') >> ((is_type(int) >> interval(1, 200)) | (enum("inf") >> to_type(float))),
-            traj_print_freq=item('traj_print_freq') >> is_type(int) >> interval(1, 1000),
-            collect_print_freq=item('traj_print_freq') >> is_type(int) >> interval(1, 1000),
+            collect_print_freq=item('collect_print_freq') >> is_type(int) >> interval(1, 1000),
         ),
         evaluator=item('evaluator') >> dict_(
             n_episode=item('n_episode') >> is_type(int) >> interval(2, 10),
