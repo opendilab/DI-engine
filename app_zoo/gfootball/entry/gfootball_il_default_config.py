@@ -3,11 +3,12 @@ from easydict import EasyDict
 traj_len = 3000
 gfootball_il_default_config = dict(
     env=dict(
-        env_manager_type='base',
+        env_manager_type='subprocess',
         import_names=['app_zoo.gfootball.envs.gfootball_env'],
         env_type='gfootball',
         actor_env_num=4,
         evaluator_env_num=2,
+        shared_memory=False,
     ),
     policy=dict(
         use_cuda=True,
