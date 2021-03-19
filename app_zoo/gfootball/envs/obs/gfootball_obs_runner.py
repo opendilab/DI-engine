@@ -30,4 +30,4 @@ class GfootballObsRunner(EnvElementRunner):
     # override
     @property
     def info(self):
-        return [self._obs_match.info, self._obs_player.info]
+        return {'match': self._obs_match.info, 'player': self._obs_player.info}
