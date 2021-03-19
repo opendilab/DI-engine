@@ -8,7 +8,7 @@ gfootball_il_default_config = dict(
         env_type='gfootball',
         actor_env_num=4,
         evaluator_env_num=2,
-        shared_memory=False,
+        manager=dict(shared_memory=False, ),
     ),
     policy=dict(
         use_cuda=True,
