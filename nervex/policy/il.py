@@ -36,7 +36,7 @@ class ILPolicy(CommonPolicy):
         self._algo_cfg_learn = algo_cfg
         self._gamma = algo_cfg.discount_factor
         # actor and critic optimizer
-        self._optimizer = Adam(self._model.parameters(), weight_decay=0.0001)
+        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=0.0001)
 
         # main and target armors
         self._armor = Armor(self._model)
