@@ -10,7 +10,7 @@ from math import sqrt
 from enum import Enum
 import torch
 import numpy as np
-from nervex.torch_utils import tensor_to_list
+from nervex.torch_utils import tensor_to_list, one_hot
 """
 Readable Reminder
 *********************
@@ -756,4 +756,4 @@ class FootballRuleBaseModel(torch.nn.Module):
                         v = np.array(v)
                     d[k] = v
                 actions.append(raw_agent(d))
-        return {'action': torch.LongTensor(actions)}
+        return {'action': torch.LongTensor(actions), 'logit': one_hot(torch.LongTensor(actions), 19)}

@@ -60,11 +60,10 @@ class ILPolicy(CommonPolicy):
         # ====================
         obs = data.get('obs')
         action = data.get('action')
+        logit = data.get('logit')
         priority = data.get('priority')
         model_action_logit = self._armor.forward(obs['processed_obs'])['logit']
-        # print("action = ", action)
-        action_logit = torch.stack([one_hot(a, 19)[0] for a in action])
-        supervised_loss = nn.MSELoss(reduction='none')(model_action_logit, action_logit).mean()
+        supervised_loss = nn.MSELoss(reduction='none')(model_action_logit, logit).mean()
         self._optimizer.zero_grad()
         supervised_loss.backward()
         self._optimizer.step()
@@ -100,9 +99,6 @@ class ILPolicy(CommonPolicy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        # print("obs = ", data)
-        # print("raw obs = ", data['obs']['raw_obs'])
-        # print("deco = ", default_decollate(data['obs']['raw_obs']))
         with torch.no_grad():
             output = self._collect_armor.forward(default_decollate(data['obs']['raw_obs']))
         return output
@@ -122,6 +118,7 @@ class ILPolicy(CommonPolicy):
         transition = {
             'obs': obs,
             'action': armor_output['action'],
+            'logit': armor_output['logit'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -134,6 +131,7 @@ class ILPolicy(CommonPolicy):
             data = {}
             data['obs'] = traj_cache[i]['obs']
             data['action'] = traj_cache[i]['action']
+            data['logit'] = traj_cache[i]['logit']
             cur_rew = traj_cache[i]['reward']
             pre_rew = cur_rew + (pre_rew * self._gamma)
             # TODO find a better function here
