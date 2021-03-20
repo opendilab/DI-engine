@@ -11,6 +11,7 @@ from nervex.data import default_collate, default_decollate
 from .base_policy import Policy, register_policy
 from .common_policy import CommonPolicy
 from app_zoo.gfootball.model.rule_based_bot import FootballRuleBaseModel
+from app_zoo.gfootball.model.kaggle_5th_place_model import FootballKaggle5thPlaceModel
 from app_zoo.gfootball.model.iql.iql_network import FootballIQL
 
 
@@ -84,7 +85,7 @@ class ILPolicy(CommonPolicy):
         # collect armor
         # TODO
         # self._collect_armor = Armor(self._expert_model)
-        self._collect_armor = Armor(FootballRuleBaseModel())
+        self._collect_armor = Armor(FootballKaggle5thPlaceModel())
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
         self._collect_setting_set = {}
