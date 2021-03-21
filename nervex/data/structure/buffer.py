@@ -170,7 +170,8 @@ class ReplayBuffer:
         self._enable_track_used_data = enable_track_used_data
         if self._enable_track_used_data:
             self._used_data = Queue()
-            self._using_data_id = set()
+            self._using_data = set()
+            self._using_used_data = set()
         # Current valid data count, indicating how many elements in ``self._data`` is valid.
         self._valid_count = 0
         # How many pieces of data have been pushed into this buffer, should be no less than ``_valid_count``.
@@ -376,11 +377,11 @@ class ReplayBuffer:
             return
         if old is not None:
             if isinstance(old, dict) and 'data_id' in old:
-                if old['data_id'] not in self._using_data_id:
+                if old['data_id'] not in self._using_data:
                     self._used_data.put(old['data_id'])
                 else:
-                    #TODO
-                    pass
+                    self._using_used_data: set
+                    self._using_used_data.add(old['data_id'])
 
     def extend(self, ori_data: List[Any]) -> None:
         r"""
@@ -448,6 +449,15 @@ class ReplayBuffer:
             - info (:obj:`dict`): Info dict containing all necessary keys for priority update.
         """
         with self._lock:
+            if self._enable_track_used_data:
+                used_id = info.get('used_id', [])
+                self._using_data.difference_update(used_id)
+                for data_id in used_id:
+                    if data_id in self._using_used_data:
+                        self._using_used_data.remove(data_id)
+                        self._used_data.put(data_id)
+            if 'priority' not in info:
+                return
             data = [info['replay_unique_id'], info['replay_buffer_idx'], info['priority']]
             for id_, idx, priority in zip(*data):
                 # Only if the data still exists in the queue, will the update operation be done.
@@ -478,6 +488,7 @@ class ReplayBuffer:
         Overview:
             Close the tensorboard logger.
         """
+        self.clear()
         self._tb_logger.close()
 
     def __del__(self) -> None:
@@ -543,6 +554,7 @@ class ReplayBuffer:
         self._track_used_data(self._data[idx])
         if self._data[idx] is not None:
             self._valid_count -= 1
+            self.true_head = (idx + 1) % self._maxlen
         self._data[idx] = None
         self._reuse_count[idx] = 0
         self.sum_tree[idx] = self.sum_tree.neutral_element
@@ -570,6 +582,8 @@ class ReplayBuffer:
                 copy_data = copy.deepcopy(self._data[idx])
             else:
                 copy_data = self._data[idx]
+            if self._enable_track_used_data:
+                self._using_data.add(copy_data['data_id'])
             # Store staleness, reuse and IS(importance sampling weight for gradient step) for monitor and outer use
             copy_data['staleness'] = self._calculate_staleness(idx, cur_learner_iter)
             copy_data['reuse'] = self._reuse_count[idx]
