@@ -45,12 +45,12 @@ class BaseEnv(ABC):
 
     @staticmethod
     def create_actor_env_cfg(cfg: dict) -> List[dict]:
-        actor_env_num = cfg.pop('actor_env_num', 1)
+        actor_env_num = cfg.get('actor_env_num', 1)
         return [cfg for _ in range(actor_env_num)]
 
     @staticmethod
     def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
-        evaluator_env_num = cfg.pop('evaluator_env_num', 1)
+        evaluator_env_num = cfg.get('evaluator_env_num', 1)
         return [cfg for _ in range(evaluator_env_num)]
 
     # optional method
@@ -69,7 +69,7 @@ def register_env(name: str, env: type) -> None:
 
 
 def get_vec_env_setting(cfg: dict) -> Tuple[type, List[dict], List[dict]]:
-    import_module(cfg.pop('import_names', []))
+    import_module(cfg.get('import_names', []))
     if cfg.env_type in env_mapping:
         env_fn = env_mapping[cfg.env_type]
     else:
