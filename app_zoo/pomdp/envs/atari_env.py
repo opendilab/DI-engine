@@ -7,7 +7,7 @@ from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
 from .atari_wrappers import wrap_deepmind
-
+import pdb
 
 def PomdpEnv(cfg):
     '''
@@ -34,7 +34,21 @@ class PomdpAtariEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
-        self._env = wrap_deepmind(
+        self.env_num = 4
+        # self._env = wrap_deepmind(
+        #     cfg.env_id,
+        #     frame_stack=cfg.frame_stack,
+        #     # episode_life=cfg.is_train,
+        #     episode_life=True,
+        #     clip_rewards=cfg.is_train,
+        #     warp_frame=cfg.warp_frame,
+        #     use_ram=cfg.use_ram,
+        #     render=cfg.render,
+        #     pomdp=cfg.pomdp,
+        #     reward_scale=cfg.reward_scale
+        # )
+
+        self._env = [wrap_deepmind(
             cfg.env_id,
             frame_stack=cfg.frame_stack,
             # episode_life=cfg.is_train,
@@ -45,14 +59,14 @@ class PomdpAtariEnv(BaseEnv):
             render=cfg.render,
             pomdp=cfg.pomdp,
             reward_scale=cfg.reward_scale
-        )
+        ) for _ in range(self.env_num)]
 
     def reset(self) -> Sequence:
         if hasattr(self, '_seed'):
             np.random.seed(self._seed)
-            self._env.seed(self._seed)
-        obs = self._env.reset()
-        obs = to_ndarray(obs)
+            _ = [_env.seed(self._seed + i) for i, _env in enumerate(self._env)]
+        c_obs = [_env.reset() for _env in self._env]
+        obs = np.concatenate(c_obs)
         self._final_eval_reward = 0.
         return obs
 
@@ -63,22 +77,30 @@ class PomdpAtariEnv(BaseEnv):
         self._seed = seed
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
-        assert isinstance(action, np.ndarray), type(action)
-        obs, rew, done, info = self._env.step(action)
-        self._final_eval_reward += rew
-        obs = to_ndarray(obs)
-        rew = to_ndarray([rew])  # wrapped to be transfered to a Tensor with shape (1,)
-        if done:
+        c_obs = []
+        c_rew = []
+        _done = False
+        for _env,_action in zip(self._env, action):
+            obs, rew, done, info = _env.step(_action)
+            c_rew.append(rew)
+            c_obs.append(obs)
+            _done = _done or done
+
+        self._final_eval_reward += sum(c_rew)
+        obs = np.concatenate(c_obs)
+        rew = to_ndarray([sum(c_rew)])  # wrapped to be transfered to a Tensor with shape (1,)
+        if _done:
             info['final_eval_reward'] = self._final_eval_reward
-        return BaseEnvTimestep(obs, rew, done, info)
+
+        return BaseEnvTimestep(obs, rew, _done, info)
 
     def info(self) -> BaseEnvInfo:
-        rew_range = self._env.reward_range
+        rew_range = self._env[0].reward_range
         T = EnvElementInfo
         return BaseEnvInfo(
             agent_num=1,
-            obs_space=T(self._env.observation_space.shape, {'dtype': np.float32}, None, None),
-            act_space=T((self._env.action_space.n, ), {'dtype': np.float32}, None, None),
+            obs_space=T(self._env[0].observation_space.shape, {'dtype': np.float32}, None, None),
+            act_space=T(self.env_num * (self._env[0].action_space.n, ), {'dtype': np.float32}, None, None),
             rew_space=T(1, {
                 'min': rew_range[0],
                 'max': rew_range[1],

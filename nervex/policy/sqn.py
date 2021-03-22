@@ -11,7 +11,7 @@ import pdb
 from nervex.torch_utils import Adam
 from nervex.rl_utils import Adder, epsilon_greedy
 from nervex.armor import Armor
-from nervex.model import FCDiscreteNet
+from nervex.model import FCDiscreteNet, SQNDiscreteNet
 from nervex.policy.base_policy import Policy, register_policy
 from nervex.policy.common_policy import CommonPolicy
 from torch.distributions.categorical import Categorical
@@ -21,8 +21,8 @@ class SQNModel(torch.nn.Module):
 
     def __init__(self, *args, **kwargs) -> None:
         super(SQNModel, self).__init__()
-        self.q0 = FCDiscreteNet(*args, **kwargs)
-        self.q1 = FCDiscreteNet(*args, **kwargs)
+        self.q0 = SQNDiscreteNet(*args, **kwargs)
+        self.q1 = SQNDiscreteNet(*args, **kwargs)
 
     def forward(self, data: dict) -> dict:
         output0 = self.q0(data)
@@ -55,8 +55,11 @@ class SQNPolicy(CommonPolicy):
         self._algo_cfg_learn = algo_cfg
         self._gamma = algo_cfg.discount_factor
         self._action_dim = self._cfg.model.action_dim
-        # self._target_entropy = algo_cfg.get('target_entropy', self._action_dim / 8)
-        self._target_entropy = algo_cfg.get('target_entropy', self._action_dim / 10)
+        if isinstance(self._action_dim, int):
+            self._target_entropy = algo_cfg.get('target_entropy', self._action_dim / 10)
+        else:
+            self._target_entropy = algo_cfg.get('target_entropy', 0.2)
+
 
         self._log_alpha = torch.FloatTensor([math.log(algo_cfg.alpha)]).to(self._device).requires_grad_(True)
         self._optimizer_alpha = torch.optim.Adam([self._log_alpha], lr=self._cfg.learn.learning_rate_alpha)
@@ -71,23 +74,45 @@ class SQNPolicy(CommonPolicy):
         self._learn_setting_set = {}
         self._forward_learn_cnt = 0
 
+
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
-        """
-        Overview:
-            Forward and backward function of learn mode.
-        Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs', 'action', 'reward', 'next_obs', 'done',\
-                'weight']
-        Returns:
-            - info_dict (:obj:`Dict[str, Any]`): Learn info, including current lr and loss.
-        """
-        obs = data.get('obs')
-        next_obs = data.get('next_obs')
-        reward = data.get('reward')
-        action = data.get('action')
-        done = data.get('done')
-        # Q-function
-        q_value = self._armor.forward({'obs': obs})['q_value']
+        q_value = self._armor.forward(data['obs'])['logit']
+        # target_q_value = self._armor.target_forward(data['next_obs'])['logit']
+        target = self._armor.forward(data['next_obs'])
+        target_q_value = target['logit']
+        next_act = target['action']
+        if isinstance(q_value, torch.Tensor):
+            td_data = q_1step_td_data(  # 'q', 'next_q', 'act', 'next_act', 'reward', 'done', 'weight'
+                q_value, target_q_value, data['action'][0], next_act, data['reward'], data['done'], data['weight']
+            )
+            loss = q_1step_td_error(td_data, self._gamma)
+        else:
+            tl_num = len(q_value)
+            loss = []
+            for i in range(tl_num):
+                td_data = q_1step_td_data(
+                    q_value[i], target_q_value[i], data['action'][i], next_act[i], data['reward'], data['done'],
+                    data['weight']
+                )
+                loss.append(q_1step_td_error(td_data, self._gamma))
+            loss = sum(loss) / (len(loss) + 1e-8)
+        self._optimizer.zero_grad()
+        loss.backward()
+        self._optimizer.step()
+        self._armor.target_update(self._armor.state_dict()['model'])
+        return {
+            'cur_lr': self._optimizer.defaults['lr'],
+            'total_loss': loss.item(),
+        }
+
+
+    def q_1step_td_loss(self, td_data: dict) -> torch.tensor:
+        q_value = td_data["q_value"]
+        target_q_value = td_data["target_q_value"]
+        action = td_data.get('action')
+        done = td_data.get('done')
+        reward = td_data.get('reward')
+        
         q0 = q_value[0]
         q1 = q_value[1]
         batch_range = torch.arange(action.shape[0])
@@ -95,7 +120,6 @@ class SQNPolicy(CommonPolicy):
         q1_a = q1[batch_range, action]
         # Target
         with torch.no_grad():
-            target_q_value = self._armor.target_forward({'obs': next_obs})['q_value']
             q0_targ = target_q_value[0]
             q1_targ = target_q_value[1]
             q_targ = torch.min(q0_targ, q1_targ)
@@ -108,27 +132,52 @@ class SQNPolicy(CommonPolicy):
             target_v_value = (pi * (q_targ - alpha * log_pi)).sum(axis=-1)
             # q = r + \gamma v
             q_backup = reward + (1 - done) * self._gamma * target_v_value
+            # alpha_loss
+            entropy = (-pi * log_pi).sum(axis=-1)
+            expect_entropy = (pi * self._target_entropy).sum(axis=-1)
+            alpha_loss = self._log_alpha * (entropy - expect_entropy).mean()
 
         # update Q
         q0_loss = F.mse_loss(q0_a, q_backup)
         q1_loss = F.mse_loss(q1_a, q_backup)
-
-        self._optimizer_q.zero_grad()
         total_q_loss = q0_loss + q1_loss
-        total_q_loss.backward()
+        return total_q_loss, alpha_loss, entropy
+
+    def _forward_learn(self, data: dict) -> Dict[str, Any]:
+        """
+        Overview:
+            Forward and backward function of learn mode.
+        Arguments:
+            - data (:obj:`dict`): Dict type data, including at least ['obs', 'action', 'reward', 'next_obs', 'done',\
+                'weight']
+        Returns:
+            - info_dict (:obj:`Dict[str, Any]`): Learn info, including current lr and loss.
+        """
+        obs = data.get('obs')
+        next_obs = data.get('next_obs')
+        # reward = data.get('reward')
+        # action = data.get('action')
+        # done = data.get('done')
+        # Q-function
+        q_value = self._armor.forward({'obs': obs})['q_value']
+        target_q_value = self._armor.target_forward({'obs': next_obs})['q_value']  # TODO:check grad
+        td_data_list = [{**data, "q_value": q_value[i], "target_q_value": target_q_value[i]} for i in range(len(q_value))]
+        num_s_env = len(q_value)+1e-6   # num of seperate env
+        for s_env_id, td_data in enumerate(td_data_list):
+                total_q_loss, alpha_loss, entropy = self.q_1step_td_loss(td_data)
+                if s_env_id == 0:
+                    a_total_q_loss, a_alpha_loss, a_entropy = total_q_loss, alpha_loss, entropy  # accumulate
+                else:  # running average, accumulate loss
+                    a_total_q_loss += total_q_loss/num_s_env
+                    a_alpha_loss += alpha_loss/num_s_env
+                    a_entropy += entropy/num_s_env
+        
+        self._optimizer_q.zero_grad()
+        a_total_q_loss.backward()
         self._optimizer_q.step()
 
-        # update alpha
-        # TODO: use main_network or target_network
-        with torch.no_grad():
-            # log_pi = F.log_softmax(q0 / alpha, dim=-1)
-            # pi = torch.exp(log_pi)
-            entropy = (-pi * log_pi).sum(axis=-1)
-            expect_entropy = (pi * self._target_entropy).sum(axis=-1)
-        alpha_loss = self._log_alpha * (entropy - expect_entropy).mean()
-        # pdb.set_trace()
         self._optimizer_alpha.zero_grad()
-        alpha_loss.backward()
+        a_alpha_loss.backward()
         self._optimizer_alpha.step()
 
         # target update
@@ -186,7 +235,11 @@ class SQNPolicy(CommonPolicy):
             prob = torch.softmax(logits - logits.max(axis=-1, keepdim=True).values, dim=-1)
             pi_action = torch.multinomial(prob, 1)
         else:
-            pi_action = torch.randint(0, self._action_dim, (output["logit"].shape[0],))
+            if isinstance(self._action_dim, int):
+                pi_action = torch.randint(0, self._action_dim, (output["logit"].shape[0],))
+            else:
+                pi_action = [torch.randint(0, d, (output["logit"][0].shape[0],)) for d in self._action_dim]
+                
         output['action'] = pi_action
         return output
 

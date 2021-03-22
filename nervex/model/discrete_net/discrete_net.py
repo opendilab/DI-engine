@@ -1,9 +1,9 @@
 from functools import partial
+import pdb
 from typing import Union, List, Dict, Optional, Tuple, Callable
 
 import torch
 import torch.nn as nn
-
 from nervex.model import DuelingHead, ConvEncoder
 from nervex.torch_utils import get_lstm
 from nervex.utils import squeeze
@@ -128,7 +128,6 @@ class Encoder(nn.Module):
         if encoder_type == 'fc':
             input_dim = squeeze(obs_dim)
             hidden_dim_list = [512,] + [embedding_dim]
-            # hidden_dim_list = [embedding_dim, ]
             layers = []
             for dim in hidden_dim_list:
                 layers.append(nn.Linear(input_dim, dim))
@@ -248,14 +247,26 @@ class Head(nn.Module):
         else:
             return {'logit': x}
 
-
 FCDiscreteNet = partial(
+    DiscreteNet,
+    encoder_kwargs={'encoder_type': 'fc'},
+    lstm_kwargs={'lstm_type': 'none'},
+    head_kwargs={'dueling': True}
+)
+
+register_model('fc_discrete_net', FCDiscreteNet)
+
+
+SQNDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'fc'},
     lstm_kwargs={'lstm_type': 'none'},
     head_kwargs={'dueling': False}
 )
-register_model('fc_discrete_net', FCDiscreteNet)
+
+register_model('sqn_discrete_net', SQNDiscreteNet)
+
+
 NoiseDistributionFCDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'fc'},
