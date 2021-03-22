@@ -54,14 +54,14 @@ class MaxAndSkipEnv(gym.Wrapper):
         reward, and max over last observations.
         """
         obs_list, total_reward, done = [], 0., False
-        for _ in range(self._skip):
+        for i in range(self._skip):
             obs, reward, done, info = self.env.step(action)
             obs_list.append(obs)
             total_reward += reward
             if done:
                 break
         max_frame = np.max(obs_list[-2:], axis=0)
-        return obs, total_reward, done, info
+        return max_frame, total_reward, done, info
 
 
 class EpisodicLifeEnv(gym.Wrapper):
@@ -169,14 +169,13 @@ class ClipRewardEnv(gym.RewardWrapper):
     :param gym.Env env: the environment to wrap.
     """
 
-    def __init__(self, env, reward_scale=1):
+    def __init__(self, env):
         super().__init__(env)
-        self.reward_range = (-reward_scale, reward_scale)
-        self.reward_scale = reward_scale
+        self.reward_range = (-1, 1)
 
     def reward(self, reward):
         """Bin reward to {+1, 0, -1} by its sign. Note: np.sign(0) == 0."""
-        return np.sign(reward) * self.reward_scale
+        return np.sign(reward)
 
 
 class FrameStack(gym.Wrapper):
@@ -342,7 +341,6 @@ def wrap_deepmind(
     clip_rewards=True,
     pomdp={},
     frame_stack=4,
-    reward_scale=1,
     scale=True,
     warp_frame=True,
     use_ram=False,
@@ -363,7 +361,7 @@ def wrap_deepmind(
     assert 'NoFrameskip' in env_id
     env = gym.make(env_id)
     env = RamWrapper(env)
-    # env = NoopResetEnv(env, noop_max=30)
+    env = NoopResetEnv(env, noop_max=30)
     env = MaxAndSkipEnv(env, skip=4)
     if episode_life:
         env = EpisodicLifeEnv(env)
@@ -374,7 +372,7 @@ def wrap_deepmind(
     if scale:
         env = ScaledFloatFrame(env)
     if clip_rewards:
-        env = ClipRewardEnv(env, reward_scale=reward_scale)
+        env = ClipRewardEnv(env)
 
     if frame_stack:
         if use_ram:
