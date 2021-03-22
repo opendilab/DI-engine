@@ -10,8 +10,8 @@ import torch
 import torch.nn as nn
 from torch.distributions import Normal
 
-from nervex.utils import squeeze
-from ..common import PhasicPolicyGradientBase, FCEncoder, ConvEncoder, register_model
+from nervex.utils import squeeze, MODEL_REGISTRY
+from ..common import PhasicPolicyGradientBase, FCEncoder, ConvEncoder
 from ..actor_critic.value_ac import FCValueAC, ConvValueAC
 
 
@@ -187,6 +187,7 @@ class ConvValueNet(nn.Module):
         return value
 
 
+@MODEL_REGISTRY.register('fc_ppg')
 class FCPPG(PhasicPolicyGradientBase):
 
     def __init__(
@@ -245,6 +246,7 @@ class FCPPG(PhasicPolicyGradientBase):
         return self._value_net
 
 
+@MODEL_REGISTRY.register('conv_ppg')
 class ConvPPG(PhasicPolicyGradientBase):
 
     def __init__(
@@ -301,7 +303,3 @@ class ConvPPG(PhasicPolicyGradientBase):
     @property
     def value_net(self) -> torch.nn.Module:
         return self._value_net
-
-
-register_model('fc_ppg', FCPPG)
-register_model('conv_ppg', ConvPPG)

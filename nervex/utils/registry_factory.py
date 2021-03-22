@@ -9,6 +9,7 @@ COMM_ACTOR_REGISTRY = Registry()
 COMMANDER_REGISTRY = Registry()
 LEAGUE_REGISTRY = Registry()
 PLAYER_REGISTRY = Registry()
+MODEL_REGISTRY = Registry()
 
 registries = {
     'policy': POLICY_REGISTRY,
@@ -20,4 +21,5 @@ registries = {
     'commander': COMMANDER_REGISTRY,
     'league': LEAGUE_REGISTRY,
     'player': PLAYER_REGISTRY,
+    'model': MODEL_REGISTRY,
 }
