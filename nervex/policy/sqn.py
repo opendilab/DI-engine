@@ -84,7 +84,6 @@ class SQNPolicy(CommonPolicy):
         action = td_data.get('action')
         done = td_data.get('done')
         reward = td_data.get('reward')
-
         q0 = q_value[0]
         q1 = q_value[1]
         batch_range = torch.arange(action.shape[0])
@@ -135,7 +134,14 @@ class SQNPolicy(CommonPolicy):
         q_value = self._armor.forward({'obs': obs})['q_value']
         target_q_value = self._armor.target_forward(
             {'obs': next_obs})['q_value']  # TODO:check grad
-        num_s_env = len(q_value)   # num of seperate env
+
+        num_s_env = 1 if isinstance(self._action_dim, int) else len(self._action_dim)   # num of seperate env
+
+        if isinstance(self._action_dim, int):
+            q_value = [q_value]
+            target_q_value = [target_q_value]
+            action = [action]
+        pdb.set_trace()
         for s_env_id in range(num_s_env):
             td_data = {"q_value": q_value[s_env_id],
                        "target_q_value": target_q_value[s_env_id],
@@ -165,7 +171,7 @@ class SQNPolicy(CommonPolicy):
         self._forward_learn_cnt += 1
         # some useful info
         return {
-            '[histogram]action_distribution': np.concatenate([a.cpu().numpy() for a in data['action']]),
+            '[histogram]action_distribution': np.stack([a.cpu().numpy() for a in data['action']]).flatten(),
             'q_loss': a_total_q_loss.item(),
             'alpha_loss': a_alpha_loss.item(),
             'entropy': a_entropy.mean().item(),
