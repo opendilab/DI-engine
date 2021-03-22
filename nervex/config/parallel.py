@@ -8,7 +8,6 @@ traj_len = 1
 policy_default_config = dict(
     use_cuda=False,
     policy_type='dqn',
-    import_names=['nervex.policy.dqn'],
     on_policy=False,
     model=dict(
         obs_dim=4,
@@ -33,7 +32,6 @@ policy_default_config = dict(
 
 zergling_actor_default_config = dict(
     actor_type='zergling',
-    import_names=['nervex.worker.actor.zergling_actor'],
     print_freq=10,
     traj_len=traj_len,
     # The function to compress data.
@@ -44,6 +42,7 @@ zergling_actor_default_config = dict(
     # Env config for actor and evaluator.
     env_kwargs=dict(
         env_type='cartpole',
+        import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
         actor_env_num=8,
         evaluator_env_num=5,
         actor_episode_num=2,
@@ -64,7 +63,6 @@ coordinator_default_config = dict(
     ),
     commander=dict(
         parallel_commander_type='naive',
-        import_names=[],
         # Task space for actor and learner.
         actor_task_space=2,
         learner_task_space=1,
@@ -82,7 +80,6 @@ parallel_local_default_config = dict(
     # In general, learner number and actor should be in accordance with commander's task space.
     # Here we have 1 learner and 2 actors.
     learner0=dict(
-        import_names=['nervex.worker.learner.comm.flask_fs_learner'],
         comm_learner_type='flask_fs',
         host='auto',
         port='auto',
@@ -97,7 +94,6 @@ parallel_local_default_config = dict(
         use_distributed=False,
     ),
     actor0=dict(
-        import_names=['nervex.worker.actor.comm.flask_fs_actor'],
         comm_actor_type='flask_fs',
         host='auto',
         port='auto',
@@ -106,7 +102,6 @@ parallel_local_default_config = dict(
         queue_maxsize=8,
     ),
     actor1=dict(
-        import_names=['nervex.worker.actor.comm.flask_fs_actor'],
         comm_actor_type='flask_fs',
         host='auto',
         port='auto',

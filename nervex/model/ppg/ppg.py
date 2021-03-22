@@ -193,9 +193,9 @@ class FCPPG(PhasicPolicyGradientBase):
             self,
             obs_dim: tuple,
             action_dim: Union[int, tuple],
+            embedding_dim: int = 128,
             # policy_embedding_dim: int = 128,
             # value_embedding_dim: int = 128
-            embedding_dim: int = 128
     ) -> None:
         super(FCPPG, self).__init__()
 
@@ -251,9 +251,9 @@ class ConvPPG(PhasicPolicyGradientBase):
             self,
             obs_dim: tuple,
             action_dim: Union[int, tuple],
+            embedding_dim: int = 128,
             # policy_embedding_dim: int = 128,
             # value_embedding_dim: int = 128
-            embedding_dim: int = 128
     ) -> None:
         super(ConvPPG, self).__init__()
 
