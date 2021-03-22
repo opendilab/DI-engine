@@ -121,8 +121,8 @@ class SQNPolicy(CommonPolicy):
         # update alpha
         # TODO: use main_network or target_network
         with torch.no_grad():
-            log_pi = F.log_softmax(q0 / alpha, dim=-1)
-            pi = torch.exp(log_pi)
+            # log_pi = F.log_softmax(q0 / alpha, dim=-1)
+            # pi = torch.exp(log_pi)
             entropy = (-pi * log_pi).sum(axis=-1)
             expect_entropy = (pi * self._target_entropy).sum(axis=-1)
         alpha_loss = self._log_alpha * (entropy - expect_entropy).mean()

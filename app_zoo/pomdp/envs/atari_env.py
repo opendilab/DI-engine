@@ -37,7 +37,8 @@ class PomdpAtariEnv(BaseEnv):
         self._env = wrap_deepmind(
             cfg.env_id,
             frame_stack=cfg.frame_stack,
-            episode_life=cfg.is_train,
+            # episode_life=cfg.is_train,
+            episode_life=True,
             clip_rewards=cfg.is_train,
             warp_frame=cfg.warp_frame,
             use_ram=cfg.use_ram,
