@@ -21,7 +21,7 @@ pomdp_sqn_default_config = dict(
         # POMDP config
         # env_id='Breakout-ramNoFrameskip-v4',
         env_id='Pong-ramNoFrameskip-v4',
-        frame_stack=1,
+        frame_stack=4,
         reward_scale=1,
         is_train=True,
         warp_frame=False,
@@ -41,7 +41,7 @@ pomdp_sqn_default_config = dict(
         on_policy=False,
         # Model config used for model creating. Remember to change this, especially "obs_dim" and "action_dim" according to specific env.
         model=dict(
-            obs_dim=(128, ),
+            obs_dim=(512, ),
             action_dim=6,
             embedding_dim=512,
             # Whether to use dueling head.
@@ -54,9 +54,9 @@ pomdp_sqn_default_config = dict(
             # collect data -> train fixed steps -> collect data -> ...
             # train_step=50,
             train_step=update_freq,
-            batch_size=128,
-            learning_rate_q=1e-3,
-            learning_rate_alpha=1e-3,
+            batch_size=64,
+            learning_rate_q=5e-4,
+            learning_rate_alpha=5e-4,
             # L2 norm weight for network parameters.
             weight_decay=0.0,
             algo=dict(

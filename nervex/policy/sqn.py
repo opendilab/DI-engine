@@ -56,7 +56,7 @@ class SQNPolicy(CommonPolicy):
         self._gamma = algo_cfg.discount_factor
         self._action_dim = self._cfg.model.action_dim
         # self._target_entropy = algo_cfg.get('target_entropy', self._action_dim / 8)
-        self._target_entropy = algo_cfg.get('target_entropy', self._action_dim / 15)
+        self._target_entropy = algo_cfg.get('target_entropy', self._action_dim / 10)
 
         self._log_alpha = torch.FloatTensor([math.log(algo_cfg.alpha)]).to(self._device).requires_grad_(True)
         self._optimizer_alpha = torch.optim.Adam([self._log_alpha], lr=self._cfg.learn.learning_rate_alpha)
