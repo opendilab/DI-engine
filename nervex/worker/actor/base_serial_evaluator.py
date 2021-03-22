@@ -31,7 +31,7 @@ class BaseSerialEvaluator(object):
         self._stop_val = cfg.stop_val
         self._logger, self._tb_logger = build_logger(path='./log/evaluator', name='evaluator', need_tb=True)
         for var in ['episode_count', 'envstep_count', 'avg_envstep_per_episode',
-                    'evaluate_time', 'avg_time_per_envstep', 'avg_time_per_episode',
+                    'evaluate_time', 'avg_envstep_per_sec', 'avg_time_per_episode',
                     'reward_mean', 'reward_std', 'each_reward']:
             self._tb_logger.register_var('evaluator/' + var)
         self._timer = EasyTimer()
@@ -120,12 +120,13 @@ class BaseSerialEvaluator(object):
             'envstep_count': envstep_count,
             'avg_envstep_per_episode': envstep_count / episode_count,
             'evaluate_time': duration,
-            'avg_time_per_envstep': duration / envstep_count,
-            'avg_time_per_episode': duration / episode_count,
+            'avg_envstep_per_sec': envstep_count / duration,
+            'avg_time_per_episode': episode_count / duration,
             'reward_mean': np.mean(episode_reward),
             'reward_std': np.std(episode_reward),
             'each_reward': episode_reward,
         }
+        # self._logger.print_vars(info)
         self._logger.info(
             "[EVALUATOR] Evaluation ends:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()]))
         )

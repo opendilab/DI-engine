@@ -37,7 +37,7 @@ class BaseSerialActor(object):
         self._logger, self._tb_logger = build_logger(path='./log/actor', name='collect', need_tb=True)
         for var in ['episode_count', 'envstep_count', 'train_sample_count',
                     'avg_envstep_per_episode', 'avg_sample_per_epsiode', 'collect_time',
-                    'avg_time_per_envstep', 'avg_time_per_train_sample', 'avg_time_per_episode',
+                    'avg_envstep_per_sec', 'avg_train_sample_per_sec', 'avg_episode_per_sec',
                     'reward_mean', 'reward_std',
                     'total_envstep_count', 'total_train_sample_count', 'total_episode_count', 'total_duration']:
             self._tb_logger.register_var('actor/' + var)
@@ -200,9 +200,9 @@ class BaseSerialActor(object):
                 'avg_envstep_per_episode': envstep_count / max(1, episode_count),
                 'avg_sample_per_epsiode': train_sample_count / max(1, episode_count),
                 'collect_time': duration,
-                'avg_time_per_envstep': duration / (envstep_count + 1e-8),
-                'avg_time_per_train_sample': duration / (train_sample_count + 1e-8),
-                'avg_time_per_episode': duration / max(1, episode_count),
+                'avg_envstep_per_sec': (envstep_count + 1e-8) / duration,
+                'avg_train_sample_per_sec': (train_sample_count + 1e-8) / duration,
+                'avg_episode_per_sec': max(1, episode_count) / duration,
                 'reward_mean': np.mean(episode_reward) if len(episode_reward) > 0 else 0.,
                 'reward_std': np.std(episode_reward) if len(episode_reward) > 0 else 0.,
                 'each_reward': episode_reward,
@@ -211,6 +211,7 @@ class BaseSerialActor(object):
                 'total_episode_count': self._total_episode_count,
                 'total_duration': self._total_duration,
             }
+            # self._logger.print_vars(info)
             self._logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
             tb_vars = [['actor/' + k, v, iter_count] for k, v in info.items() if k not in ['each_reward']]
             self._tb_logger.add_val_list(tb_vars, viz_type='scalar')
