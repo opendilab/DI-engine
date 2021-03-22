@@ -75,35 +75,35 @@ class SQNPolicy(CommonPolicy):
         self._forward_learn_cnt = 0
 
 
-    def _forward_learn(self, data: dict) -> Dict[str, Any]:
-        q_value = self._armor.forward(data['obs'])['logit']
-        # target_q_value = self._armor.target_forward(data['next_obs'])['logit']
-        target = self._armor.forward(data['next_obs'])
-        target_q_value = target['logit']
-        next_act = target['action']
-        if isinstance(q_value, torch.Tensor):
-            td_data = q_1step_td_data(  # 'q', 'next_q', 'act', 'next_act', 'reward', 'done', 'weight'
-                q_value, target_q_value, data['action'][0], next_act, data['reward'], data['done'], data['weight']
-            )
-            loss = q_1step_td_error(td_data, self._gamma)
-        else:
-            tl_num = len(q_value)
-            loss = []
-            for i in range(tl_num):
-                td_data = q_1step_td_data(
-                    q_value[i], target_q_value[i], data['action'][i], next_act[i], data['reward'], data['done'],
-                    data['weight']
-                )
-                loss.append(q_1step_td_error(td_data, self._gamma))
-            loss = sum(loss) / (len(loss) + 1e-8)
-        self._optimizer.zero_grad()
-        loss.backward()
-        self._optimizer.step()
-        self._armor.target_update(self._armor.state_dict()['model'])
-        return {
-            'cur_lr': self._optimizer.defaults['lr'],
-            'total_loss': loss.item(),
-        }
+    # def _forward_learn(self, data: dict) -> Dict[str, Any]:
+    #     q_value = self._armor.forward(data['obs'])['logit']
+    #     # target_q_value = self._armor.target_forward(data['next_obs'])['logit']
+    #     target = self._armor.forward(data['next_obs'])
+    #     target_q_value = target['logit']
+    #     next_act = target['action']
+    #     if isinstance(q_value, torch.Tensor):
+    #         td_data = q_1step_td_data(  # 'q', 'next_q', 'act', 'next_act', 'reward', 'done', 'weight'
+    #             q_value, target_q_value, data['action'][0], next_act, data['reward'], data['done'], data['weight']
+    #         )
+    #         loss = q_1step_td_error(td_data, self._gamma)
+    #     else:
+    #         tl_num = len(q_value)
+    #         loss = []
+    #         for i in range(tl_num):
+    #             td_data = q_1step_td_data(
+    #                 q_value[i], target_q_value[i], data['action'][i], next_act[i], data['reward'], data['done'],
+    #                 data['weight']
+    #             )
+    #             loss.append(q_1step_td_error(td_data, self._gamma))
+    #         loss = sum(loss) / (len(loss) + 1e-8)
+    #     self._optimizer.zero_grad()
+    #     loss.backward()
+    #     self._optimizer.step()
+    #     self._armor.target_update(self._armor.state_dict()['model'])
+    #     return {
+    #         'cur_lr': self._optimizer.defaults['lr'],
+    #         'total_loss': loss.item(),
+    #     }
 
 
     def q_1step_td_loss(self, td_data: dict) -> torch.tensor:
@@ -164,13 +164,13 @@ class SQNPolicy(CommonPolicy):
         td_data_list = [{**data, "q_value": q_value[i], "target_q_value": target_q_value[i]} for i in range(len(q_value))]
         num_s_env = len(q_value)+1e-6   # num of seperate env
         for s_env_id, td_data in enumerate(td_data_list):
-                total_q_loss, alpha_loss, entropy = self.q_1step_td_loss(td_data)
-                if s_env_id == 0:
-                    a_total_q_loss, a_alpha_loss, a_entropy = total_q_loss, alpha_loss, entropy  # accumulate
-                else:  # running average, accumulate loss
-                    a_total_q_loss += total_q_loss/num_s_env
-                    a_alpha_loss += alpha_loss/num_s_env
-                    a_entropy += entropy/num_s_env
+            total_q_loss, alpha_loss, entropy = self.q_1step_td_loss(td_data)
+            if s_env_id == 0:
+                a_total_q_loss, a_alpha_loss, a_entropy = total_q_loss, alpha_loss, entropy  # accumulate
+            else:  # running average, accumulate loss
+                a_total_q_loss += total_q_loss/num_s_env
+                a_alpha_loss += alpha_loss/num_s_env
+                a_entropy += entropy/num_s_env
         
         self._optimizer_q.zero_grad()
         a_total_q_loss.backward()
@@ -188,14 +188,13 @@ class SQNPolicy(CommonPolicy):
         return {
             # 'cur_lr_q': self._optimizer_q.defaults['lr'],
             # 'cur_lr_alpha': self._optimizer_alpha.defaults['lr'],
-            '[histogram]action_distribution': data['action'],
-            'q0_loss': q0_loss.item(),
-            'q1_loss': q1_loss.item(),
-            'alpha_loss': alpha_loss.item(),
-            'entropy': entropy.mean().item(),
+            '[histogram]action_distribution': np.concatenate([a for a in data['action']]),
+            'q_loss': a_total_q_loss.item(),
+            'alpha_loss': a_alpha_loss.item(),
+            'entropy': a_entropy.mean().item(),
             'alpha': math.exp(self._log_alpha.item()),
-            'q0_value': q0_a.mean().item(),
-            'q1_value': q1_a.mean().item(),
+            'q_value': q_value.mean().item(),
+            # 'q1_value': q1_a.mean().item(),
         }
 
     def _init_collect(self) -> None:
