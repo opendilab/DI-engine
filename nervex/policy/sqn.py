@@ -7,6 +7,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import pdb
+import itertools
 
 from nervex.torch_utils import Adam
 from nervex.rl_utils import Adder, epsilon_greedy
@@ -56,17 +57,20 @@ class SQNPolicy(CommonPolicy):
         self._gamma = algo_cfg.discount_factor
         self._action_dim = self._cfg.model.action_dim
         if isinstance(self._action_dim, int):
-            self._target_entropy = algo_cfg.get('target_entropy', self._action_dim / 10)
+            self._target_entropy = algo_cfg.get(
+                'target_entropy', self._action_dim / 10)
         else:
             self._target_entropy = algo_cfg.get('target_entropy', 0.2)
 
-
-        self._log_alpha = torch.FloatTensor([math.log(algo_cfg.alpha)]).to(self._device).requires_grad_(True)
-        self._optimizer_alpha = torch.optim.Adam([self._log_alpha], lr=self._cfg.learn.learning_rate_alpha)
+        self._log_alpha = torch.FloatTensor([math.log(algo_cfg.alpha)]).to(
+            self._device).requires_grad_(True)
+        self._optimizer_alpha = torch.optim.Adam(
+            [self._log_alpha], lr=self._cfg.learn.learning_rate_alpha)
 
         # Main and target armors
         self._armor = Armor(self._model)
-        self._armor.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_theta})
+        self._armor.add_model('target', update_type='momentum', update_kwargs={
+                              'theta': algo_cfg.target_theta})
         self._armor.mode(train=True)
         self._armor.target_mode(train=True)
         self._armor.reset()
@@ -74,45 +78,13 @@ class SQNPolicy(CommonPolicy):
         self._learn_setting_set = {}
         self._forward_learn_cnt = 0
 
-
-    # def _forward_learn(self, data: dict) -> Dict[str, Any]:
-    #     q_value = self._armor.forward(data['obs'])['logit']
-    #     # target_q_value = self._armor.target_forward(data['next_obs'])['logit']
-    #     target = self._armor.forward(data['next_obs'])
-    #     target_q_value = target['logit']
-    #     next_act = target['action']
-    #     if isinstance(q_value, torch.Tensor):
-    #         td_data = q_1step_td_data(  # 'q', 'next_q', 'act', 'next_act', 'reward', 'done', 'weight'
-    #             q_value, target_q_value, data['action'][0], next_act, data['reward'], data['done'], data['weight']
-    #         )
-    #         loss = q_1step_td_error(td_data, self._gamma)
-    #     else:
-    #         tl_num = len(q_value)
-    #         loss = []
-    #         for i in range(tl_num):
-    #             td_data = q_1step_td_data(
-    #                 q_value[i], target_q_value[i], data['action'][i], next_act[i], data['reward'], data['done'],
-    #                 data['weight']
-    #             )
-    #             loss.append(q_1step_td_error(td_data, self._gamma))
-    #         loss = sum(loss) / (len(loss) + 1e-8)
-    #     self._optimizer.zero_grad()
-    #     loss.backward()
-    #     self._optimizer.step()
-    #     self._armor.target_update(self._armor.state_dict()['model'])
-    #     return {
-    #         'cur_lr': self._optimizer.defaults['lr'],
-    #         'total_loss': loss.item(),
-    #     }
-
-
     def q_1step_td_loss(self, td_data: dict) -> torch.tensor:
         q_value = td_data["q_value"]
         target_q_value = td_data["target_q_value"]
         action = td_data.get('action')
         done = td_data.get('done')
         reward = td_data.get('reward')
-        
+
         q0 = q_value[0]
         q1 = q_value[1]
         batch_range = torch.arange(action.shape[0])
@@ -135,12 +107,13 @@ class SQNPolicy(CommonPolicy):
             # alpha_loss
             entropy = (-pi * log_pi).sum(axis=-1)
             expect_entropy = (pi * self._target_entropy).sum(axis=-1)
-            alpha_loss = self._log_alpha * (entropy - expect_entropy).mean()
-
-        # update Q
+        
+        # Q loss
         q0_loss = F.mse_loss(q0_a, q_backup)
         q1_loss = F.mse_loss(q1_a, q_backup)
         total_q_loss = q0_loss + q1_loss
+        # alpha loss
+        alpha_loss = self._log_alpha * (entropy - expect_entropy).mean()
         return total_q_loss, alpha_loss, entropy
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
@@ -155,23 +128,30 @@ class SQNPolicy(CommonPolicy):
         """
         obs = data.get('obs')
         next_obs = data.get('next_obs')
-        # reward = data.get('reward')
-        # action = data.get('action')
-        # done = data.get('done')
+        reward = data.get('reward')
+        action = data.get('action')
+        done = data.get('done')
         # Q-function
         q_value = self._armor.forward({'obs': obs})['q_value']
-        target_q_value = self._armor.target_forward({'obs': next_obs})['q_value']  # TODO:check grad
-        td_data_list = [{**data, "q_value": q_value[i], "target_q_value": target_q_value[i]} for i in range(len(q_value))]
-        num_s_env = len(q_value)+1e-6   # num of seperate env
-        for s_env_id, td_data in enumerate(td_data_list):
+        target_q_value = self._armor.target_forward(
+            {'obs': next_obs})['q_value']  # TODO:check grad
+        num_s_env = len(q_value)   # num of seperate env
+        for s_env_id in range(num_s_env):
+            td_data = {"q_value": q_value[s_env_id],
+                       "target_q_value": target_q_value[s_env_id],
+                       "obs": obs,
+                       "next_obs": next_obs,
+                       "reward": reward,
+                       "action": action[s_env_id],
+                       "done": done}
             total_q_loss, alpha_loss, entropy = self.q_1step_td_loss(td_data)
             if s_env_id == 0:
                 a_total_q_loss, a_alpha_loss, a_entropy = total_q_loss, alpha_loss, entropy  # accumulate
             else:  # running average, accumulate loss
-                a_total_q_loss += total_q_loss/num_s_env
-                a_alpha_loss += alpha_loss/num_s_env
-                a_entropy += entropy/num_s_env
-        
+                a_total_q_loss += total_q_loss/(num_s_env+1e-6)
+                a_alpha_loss += alpha_loss/(num_s_env+1e-6)
+                a_entropy += entropy/(num_s_env+1e-6)
+
         self._optimizer_q.zero_grad()
         a_total_q_loss.backward()
         self._optimizer_q.step()
@@ -183,18 +163,14 @@ class SQNPolicy(CommonPolicy):
         # target update
         self._armor.target_update(self._armor.state_dict()['model'])
         self._forward_learn_cnt += 1
-
         # some useful info
         return {
-            # 'cur_lr_q': self._optimizer_q.defaults['lr'],
-            # 'cur_lr_alpha': self._optimizer_alpha.defaults['lr'],
-            '[histogram]action_distribution': np.concatenate([a for a in data['action']]),
+            '[histogram]action_distribution': np.concatenate([a.cpu().numpy() for a in data['action']]),
             'q_loss': a_total_q_loss.item(),
             'alpha_loss': a_alpha_loss.item(),
             'entropy': a_entropy.mean().item(),
             'alpha': math.exp(self._log_alpha.item()),
-            'q_value': q_value.mean().item(),
-            # 'q1_value': q1_a.mean().item(),
+            'q_value': np.mean([x.cpu().detach().numpy() for x in itertools.chain(*q_value)], dtype=float),
         }
 
     def _init_collect(self) -> None:
@@ -227,18 +203,22 @@ class SQNPolicy(CommonPolicy):
         """
         # start with random action for better exploration
         output = self._collect_armor.forward(data)
-        _act_p = 1 / (100_000 - self._forward_learn_cnt) if self._forward_learn_cnt < 99_000 else 0.999
-        
+        _decay = self._cfg.command.eps.decay
+        _act_p = 1 / (_decay - self._forward_learn_cnt) if self._forward_learn_cnt < _decay - 1000 else 0.999
+
         if np.random.random(1) < _act_p:
             logits = output['logit'] / math.exp(self._log_alpha.item())
-            prob = torch.softmax(logits - logits.max(axis=-1, keepdim=True).values, dim=-1)
+            prob = torch.softmax(
+                logits - logits.max(axis=-1, keepdim=True).values, dim=-1)
             pi_action = torch.multinomial(prob, 1)
         else:
             if isinstance(self._action_dim, int):
-                pi_action = torch.randint(0, self._action_dim, (output["logit"].shape[0],))
+                pi_action = torch.randint(
+                    0, self._action_dim, (output["logit"].shape[0],))
             else:
-                pi_action = [torch.randint(0, d, (output["logit"][0].shape[0],)) for d in self._action_dim]
-                
+                pi_action = [torch.randint(
+                    0, d, (output["logit"][0].shape[0],)) for d in self._action_dim]
+
         output['action'] = pi_action
         return output
 
@@ -295,7 +275,8 @@ class SQNPolicy(CommonPolicy):
             Command mode init method. Called by ``self.__init__``.
         """
         eps_cfg = self._cfg.command.eps
-        self.epsilon_greedy = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
+        self.epsilon_greedy = epsilon_greedy(
+            eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
 
     def _get_setting_collect(self, command_info: dict) -> dict:
         r"""
@@ -324,7 +305,7 @@ class SQNPolicy(CommonPolicy):
         Returns:
             - vars (:obj:`List[str]`): Variables' name list.
         """
-        return ['q0_loss', 'q1_loss', 'alpha_loss', 'alpha', 'entropy', 'q0_value', 'q1_value']
+        return ['alpha_loss', 'alpha', 'entropy', 'q_loss', 'q_value']
 
 
 register_policy('sqn', SQNPolicy)
