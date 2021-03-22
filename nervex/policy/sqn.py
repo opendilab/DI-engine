@@ -106,7 +106,7 @@ class SQNPolicy(CommonPolicy):
             # alpha_loss
             entropy = (-pi * log_pi).sum(axis=-1)
             expect_entropy = (pi * self._target_entropy).sum(axis=-1)
-        
+
         # Q loss
         q0_loss = F.mse_loss(q0_a, q_backup)
         q1_loss = F.mse_loss(q1_a, q_backup)
@@ -135,21 +135,26 @@ class SQNPolicy(CommonPolicy):
         target_q_value = self._armor.target_forward(
             {'obs': next_obs})['q_value']  # TODO:check grad
 
-        num_s_env = 1 if isinstance(self._action_dim, int) else len(self._action_dim)   # num of seperate env
+        num_s_env = 1 if isinstance(self._action_dim, int) else len(
+            self._action_dim)   # num of seperate env
 
-        if isinstance(self._action_dim, int):
-            q_value = [q_value]
-            target_q_value = [target_q_value]
-            action = [action]
-        pdb.set_trace()
         for s_env_id in range(num_s_env):
-            td_data = {"q_value": q_value[s_env_id],
-                       "target_q_value": target_q_value[s_env_id],
-                       "obs": obs,
-                       "next_obs": next_obs,
-                       "reward": reward,
-                       "action": action[s_env_id],
-                       "done": done}
+            if isinstance(self._action_dim, int):
+                td_data = {"q_value": q_value,
+                           "target_q_value": target_q_value,
+                           "obs": obs,
+                           "next_obs": next_obs,
+                           "reward": reward,
+                           "action": action,
+                           "done": done}
+            else:
+                td_data = {"q_value": [q_value[0][s_env_id], q_value[1][s_env_id]],
+                           "target_q_value": [target_q_value[0][s_env_id], target_q_value[1][s_env_id]],
+                           "obs": obs,
+                           "next_obs": next_obs,
+                           "reward": reward,
+                           "action": action[s_env_id],
+                           "done": done}
             total_q_loss, alpha_loss, entropy = self.q_1step_td_loss(td_data)
             if s_env_id == 0:
                 a_total_q_loss, a_alpha_loss, a_entropy = total_q_loss, alpha_loss, entropy  # accumulate
@@ -210,7 +215,8 @@ class SQNPolicy(CommonPolicy):
         # start with random action for better exploration
         output = self._collect_armor.forward(data)
         _decay = self._cfg.command.eps.decay
-        _act_p = 1 / (_decay - self._forward_learn_cnt) if self._forward_learn_cnt < _decay - 1000 else 0.999
+        _act_p = 1 / \
+            (_decay - self._forward_learn_cnt) if self._forward_learn_cnt < _decay - 1000 else 0.999
 
         if np.random.random(1) < _act_p:
             logits = output['logit'] / math.exp(self._log_alpha.item())

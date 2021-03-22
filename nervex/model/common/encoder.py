@@ -69,10 +69,9 @@ class FCEncoder(nn.Module):
         self.obs_dim = obs_dim
         self.act = nn.ReLU()
         self.init = nn.Linear(obs_dim, embedding_dim)
-        # self.main = ResFCBlock(embedding_dim, activation=self.act, norm_type=norm_type)
+        self.main = ResFCBlock(embedding_dim, activation=self.act, norm_type=norm_type)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.act(self.init(x))
-        # x = self.init(x)
-        # x = self.main(x)
+        x = self.main(x)
         return x

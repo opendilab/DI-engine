@@ -1,7 +1,37 @@
-from typing import Dict, Any
+from typing import List, Dict, Any, Tuple, Union, Optional
 import torch
 from nervex.rl_utils import ppo_data, ppo_error
 from nervex.policy import PPOPolicy, register_policy
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from typing import Dict, Union
+from nervex.utils import squeeze
+from nervex.model.actor_critic.value_ac import ValueAC
+
+
+
+class FCValueAC(ValueAC):
+    r"""
+    Overview:
+        Convolution Actor-Critic model. Encode the observation with a ``FCEncoder``
+    Interface:
+        __init__, forward, compute_action_value, compute_action
+    """
+
+    def _setup_encoder(self) -> torch.nn.Module:
+        r"""
+        Overview:
+            Setup an ``ConvEncoder`` to encode 2-dim observation
+        Returns:
+            - encoder (:obj:`torch.nn.Module`): ``ConvEncoder``
+        """
+        return OriginEncoder()
+
+
+class OriginEncoder(nn.Module):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return x
 
 
 class SumoPPOPolicy(PPOPolicy):
@@ -44,6 +74,11 @@ class SumoPPOPolicy(PPOPolicy):
             'approx_kl': approx_kl,
             'clipfrac': clipfrac,
         }
+
+    def _create_model(self, cfg: dict, model: Optional[Union[type, torch.nn.Module]] = None) -> torch.nn.Module:
+        assert model is None
+        return FCValueAC(**cfg.model)
+
 
 
 register_policy('sumo_ppo', SumoPPOPolicy)

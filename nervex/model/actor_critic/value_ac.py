@@ -41,7 +41,7 @@ class ValueAC(ValueActorCriticBase):
         self._act_dim = squeeze(action_dim)
         self._embedding_dim = embedding_dim
         self._encoder = self._setup_encoder()
-        self._head_layer_num = 1
+        self._head_layer_num = 2
         self._head_hidden_dim = head_hidden_dim
         self.continous = continous
         self.fixed_sigma_value = fixed_sigma_value
