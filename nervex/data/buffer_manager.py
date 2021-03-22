@@ -67,7 +67,7 @@ class BufferManager(IBuffer):
             self.buffer[name] = ReplayBuffer(
                 name=name,
                 load_path=buffer_cfg.get('load_path', None),
-                maxlen=buffer_cfg.get('maxlen', 10000),
+                maxlen=buffer_cfg.get('meta_maxlen', 10000),
                 max_reuse=buffer_cfg.get('max_reuse', None),
                 max_staleness=buffer_cfg.get('max_staleness', None),
                 min_sample_ratio=buffer_cfg.get('min_sample_ratio', 1.),
@@ -125,8 +125,8 @@ class BufferManager(IBuffer):
         Overview:
             Sample data from prioritized buffers according to ``batch_size`.
         Arguments:
-            - batch_size (:obj:`Union[int, Dict[str, int]]`): Batch size of the data that will be sampled. Caller can indicate \
-                the corresponding batch_size when sampling from multiple buffers.
+            - batch_size (:obj:`Union[int, Dict[str, int]]`): Batch size of the data that will be sampled. \
+                Caller can indicate the corresponding batch_size when sampling from multiple buffers.
             - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
         Returns:
             - data (:obj:`Union[list, Dict[str, list]]`): Sampled data batch.
