@@ -9,7 +9,6 @@ pong_dqn_default_config = dict(
         env_type='atari',
         env_id='PongNoFrameskip-v4',
         frame_stack=4,
-        is_train=True,
         actor_env_num=16,
         evaluator_env_num=8,
     ),
