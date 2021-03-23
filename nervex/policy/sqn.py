@@ -1,13 +1,12 @@
-from typing import List, Dict, Any, Tuple, Union, Optional
-from collections import namedtuple
 import sys
 import os
 import math
+import itertools
 import numpy as np
 import torch
 import torch.nn.functional as F
-import pdb
-import itertools
+from collections import namedtuple
+from typing import List, Dict, Any, Tuple, Union, Optional
 
 from nervex.torch_utils import Adam
 from nervex.rl_utils import Adder, epsilon_greedy
@@ -219,10 +218,17 @@ class SQNPolicy(CommonPolicy):
             (_decay - self._forward_learn_cnt) if self._forward_learn_cnt < _decay - 1000 else 0.999
 
         if np.random.random(1) < _act_p:
-            logits = output['logit'] / math.exp(self._log_alpha.item())
-            prob = torch.softmax(
-                logits - logits.max(axis=-1, keepdim=True).values, dim=-1)
-            pi_action = torch.multinomial(prob, 1)
+            if isinstance(self._action_dim, int):
+                logits = output['logit'] / math.exp(self._log_alpha.item())
+                prob = torch.softmax(
+                    logits - logits.max(axis=-1, keepdim=True).values, dim=-1)
+                pi_action = torch.multinomial(prob, 1)
+            else:
+                logits = [_logit / math.exp(self._log_alpha.item())
+                          for _logit in output['logit']]
+                prob = [torch.softmax(
+                    _logits - _logits.max(axis=-1, keepdim=True).values, dim=-1) for _logits in logits]
+                pi_action = [torch.multinomial(_prob, 1) for _prob in prob]
         else:
             if isinstance(self._action_dim, int):
                 pi_action = torch.randint(
