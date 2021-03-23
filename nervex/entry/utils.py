@@ -3,7 +3,7 @@ import numpy as np
 import torch
 
 
-def set_pkg_seed(seed: int, use_cuda: bool) -> None:
+def set_pkg_seed(seed: int, use_cuda: bool = True) -> None:
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
