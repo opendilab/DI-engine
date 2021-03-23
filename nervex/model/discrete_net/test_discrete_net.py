@@ -29,42 +29,42 @@ class TestDiscreteNet:
     def test_fc_discrete_net(self, action_dim):
         N = 32
         inputs = {'obs': torch.randn(B, N)}
-        model = FCDiscreteNet((N, ), action_dim, embedding_dim)
+        model = FCDiscreteNet((N, ), action_dim, [128, embedding_dim])
         outputs = model(inputs)['logit']
         self.output_check(model, outputs)
 
     def test_noise_fc_discrete_net(self, action_dim):
         N = 32
         inputs = {'obs': torch.randn(B, N)}
-        model = NoiseFCDiscreteNet((N, ), action_dim, embedding_dim)
+        model = NoiseFCDiscreteNet((N, ), action_dim, [128, embedding_dim])
         outputs = model(inputs)['logit']
         self.output_check(model, outputs)
 
     def test_noise_distribution_fc_discrete_net(self, action_dim):
         N = 32
         inputs = {'obs': torch.randn(B, N)}
-        model = NoiseDistributionFCDiscreteNet((N, ), action_dim, embedding_dim)
+        model = NoiseDistributionFCDiscreteNet((N, ), action_dim, [128, embedding_dim])
         outputs = model(inputs)['logit']
         self.output_check(model, outputs)
 
     def test_noise_quantile_fc_discrete_net(self, action_dim):
         N = 32
         inputs = {'obs': torch.randn(B, N)}
-        model = NoiseQuantileFCDiscreteNet((N, ), action_dim, embedding_dim)
+        model = NoiseQuantileFCDiscreteNet((N, ), action_dim, [128, embedding_dim])
         outputs = model(inputs)['logit']
         self.output_check(model, outputs)
 
     def test_conv_discrete_net(self, action_dim):
         dims = [3, 64, 64]
         inputs = torch.randn(B, *dims)
-        model = ConvDiscreteNet(dims, action_dim, embedding_dim)
+        model = ConvDiscreteNet(dims, action_dim, [128, embedding_dim])
         outputs = model(inputs)['logit']
         self.output_check(model, outputs)
 
     def test_fc_r_discrete_net(self, action_dim):
         N = 32
         data = torch.randn(T, B, N)
-        model = FCRDiscreteNet((N, ), action_dim, embedding_dim)
+        model = FCRDiscreteNet((N, ), action_dim, [128, embedding_dim])
         prev_state = [None for _ in range(B)]
         for t in range(T):
             inputs = {'obs': data[t], 'prev_state': prev_state}
@@ -75,7 +75,7 @@ class TestDiscreteNet:
         # test the last step can backward correctly
         self.output_check(model, logit)
 
-        model = FCRDiscreteNet((N, ), action_dim, embedding_dim)
+        model = FCRDiscreteNet((N, ), action_dim, [128, embedding_dim])
         data = torch.randn(T, B, N)
         prev_state = [None for _ in range(B)]
         inputs = {'obs': data, 'prev_state': prev_state, 'enable_fast_timestep': True}
@@ -93,7 +93,7 @@ class TestDiscreteNet:
     def test_conv_r_discrete_net(self, action_dim):
         dims = [3, 64, 64]
         data = torch.randn(T, B, *dims)
-        model = ConvRDiscreteNet(dims, action_dim, embedding_dim)
+        model = ConvRDiscreteNet(dims, action_dim, [128, embedding_dim])
         prev_state = [None for _ in range(B)]
         for t in range(T):
             inputs = {'obs': data[t], 'prev_state': prev_state}
@@ -105,7 +105,7 @@ class TestDiscreteNet:
         self.output_check(model, logit)
 
         data = torch.randn(T, B, *dims)
-        model = ConvRDiscreteNet(dims, action_dim, embedding_dim)
+        model = ConvRDiscreteNet(dims, action_dim, [128, embedding_dim])
         prev_state = [None for _ in range(B)]
         inputs = {'obs': data, 'prev_state': prev_state, 'enable_fast_timestep': True}
         outputs = model(inputs)

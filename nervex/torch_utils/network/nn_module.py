@@ -9,7 +9,7 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.nn.init import xavier_normal_, kaiming_normal_, orthogonal_, kaiming_uniform_
+from torch.nn.init import xavier_normal_, kaiming_normal_, orthogonal_
 
 from .normalization import build_normalization
 from typing import Union, Tuple
@@ -235,7 +235,7 @@ def deconv2d_block(
 def fc_block(
     in_channels,
     out_channels,
-    init_type="kaiming_uniform_init",
+    init_type="xavier",
     activation=None,
     norm_type=None,
     use_dropout=False,
@@ -249,7 +249,7 @@ def fc_block(
     Arguments:
         - in_channels (:obj:`int`): Number of channels in the input tensor
         - out_channels (:obj:`int`): Number of channels in the output tensor
-        - init_type (:obj:`str`): the type of init to implement, kaiming_uniform_init by defalut
+        - init_type (:obj:`str`): the type of init to implement
         - activation (:obj:`nn.Moduel`): the optional activation function
         - norm_type (:obj:`str`): type of the normalization
         - use_dropout (:obj:`bool`) : whether to use dropout in the fully-connected block
@@ -262,8 +262,7 @@ def fc_block(
     """
     block = []
     block.append(nn.Linear(in_channels, out_channels))
-    if init_type != "kaiming_uniform_init":
-        weight_init_(block[-1].weight, init_type, activation)
+    weight_init_(block[-1].weight, init_type, activation)
     if norm_type is not None:
         block.append(build_normalization(norm_type, dim=1)(out_channels))
     if activation is not None:

@@ -30,7 +30,7 @@ lunarlander_dqn_default_config = dict(
         model=dict(
             obs_dim=8,
             action_dim=4,
-            embedding_dim=64,
+            hidden_dim_list=[512, 64],
             # Whether to use dueling head.
             dueling=True,
         ),

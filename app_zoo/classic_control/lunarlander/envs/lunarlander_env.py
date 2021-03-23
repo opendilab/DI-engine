@@ -1,26 +1,10 @@
 from typing import Any, List, Union, Optional
 import time
 import gym
-import torch
 import numpy as np
 from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
-
-
-def disable_gym_view_window():
-    from gym.envs.classic_control import rendering
-    import pyglet
-
-    def get_window(width, height, display):
-        screen = display.get_screens()
-        config = screen[0].get_best_config()
-        context = config.create_context(None)
-        return pyglet.window.Window(
-            width=width, height=height, display=display, config=config, context=context, visible=False
-        )
-
-    rendering.get_window = get_window
 
 
 class LunarLanderEnv(BaseEnv):
@@ -29,9 +13,9 @@ class LunarLanderEnv(BaseEnv):
         self._cfg = cfg
         self._env = gym.make('LunarLander-v2')
 
-    def reset(self) -> torch.Tensor:
+    def reset(self) -> np.ndarray:
         if hasattr(self, '_seed'):
-            np_seed = 100 * np.random.randint(1,1000)
+            np_seed = 100 * np.random.randint(1, 1000)
             self._env.seed(self._seed + np_seed)
         self._final_eval_reward = 0
         obs = self._env.reset()
@@ -64,13 +48,11 @@ class LunarLanderEnv(BaseEnv):
         T = EnvElementInfo
         return BaseEnvInfo(
             agent_num=1,
-            obs_space=T(
-                (8, ), {
-                    'min': [float("-inf")] * 8,
-                    'max': [float("inf")] * 8,
-                    'dtype': float,
-                }, None, None
-            ),
+            obs_space=T((8, ), {
+                'min': [float("-inf")] * 8,
+                'max': [float("inf")] * 8,
+                'dtype': float,
+            }, None, None),
             # [min, max)
             act_space=T((4, ), {
                 'min': 0,
@@ -90,7 +72,6 @@ class LunarLanderEnv(BaseEnv):
             replay_path = './video'
         self._replay_path = replay_path
         # this function can lead to the meaningless result
-        # disable_gym_view_window()
         self._env = gym.wrappers.Monitor(
             self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
         )

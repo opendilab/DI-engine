@@ -6,7 +6,6 @@ import numpy as np
 import torch
 import math
 import logging
-import pdb
 
 from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommander
 from nervex.worker import BaseEnvManager, SubprocessEnvManager

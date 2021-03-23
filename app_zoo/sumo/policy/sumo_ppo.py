@@ -11,27 +11,9 @@ from nervex.utils import squeeze
 from nervex.model.actor_critic.value_ac import ValueAC
 
 
-class FCValueAC(ValueAC):
-    r"""
-    Overview:
-        Convolution Actor-Critic model. Encode the observation with a ``FCEncoder``
-    Interface:
-        __init__, forward, compute_action_value, compute_action
-    """
-
+class SepValueAC(ValueAC):
     def _setup_encoder(self) -> torch.nn.Module:
-        r"""
-        Overview:
-            Setup an ``ConvEncoder`` to encode 2-dim observation
-        Returns:
-            - encoder (:obj:`torch.nn.Module`): ``ConvEncoder``
-        """
-        return OriginEncoder()
-
-
-class OriginEncoder(nn.Module):
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return x
+        return nn.Identity()
 
 
 class SumoPPOPolicy(PPOPolicy):

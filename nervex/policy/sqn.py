@@ -56,20 +56,16 @@ class SQNPolicy(CommonPolicy):
         self._gamma = algo_cfg.discount_factor
         self._action_dim = self._cfg.model.action_dim
         if isinstance(self._action_dim, int):
-            self._target_entropy = algo_cfg.get(
-                'target_entropy', self._action_dim / 10)
+            self._target_entropy = algo_cfg.get('target_entropy', self._action_dim / 10)
         else:
             self._target_entropy = algo_cfg.get('target_entropy', 0.2)
 
-        self._log_alpha = torch.FloatTensor([math.log(algo_cfg.alpha)]).to(
-            self._device).requires_grad_(True)
-        self._optimizer_alpha = torch.optim.Adam(
-            [self._log_alpha], lr=self._cfg.learn.learning_rate_alpha)
+        self._log_alpha = torch.FloatTensor([math.log(algo_cfg.alpha)]).to(self._device).requires_grad_(True)
+        self._optimizer_alpha = torch.optim.Adam([self._log_alpha], lr=self._cfg.learn.learning_rate_alpha)
 
         # Main and target armors
         self._armor = Armor(self._model)
-        self._armor.add_model('target', update_type='momentum', update_kwargs={
-                              'theta': algo_cfg.target_theta})
+        self._armor.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_theta})
         self._armor.mode(train=True)
         self._armor.target_mode(train=True)
         self._armor.reset()
@@ -131,36 +127,38 @@ class SQNPolicy(CommonPolicy):
         done = data.get('done')
         # Q-function
         q_value = self._armor.forward({'obs': obs})['q_value']
-        target_q_value = self._armor.target_forward(
-            {'obs': next_obs})['q_value']  # TODO:check grad
+        target_q_value = self._armor.target_forward({'obs': next_obs})['q_value']  # TODO:check grad
 
-        num_s_env = 1 if isinstance(self._action_dim, int) else len(
-            self._action_dim)   # num of seperate env
+        num_s_env = 1 if isinstance(self._action_dim, int) else len(self._action_dim)  # num of seperate env
 
         for s_env_id in range(num_s_env):
             if isinstance(self._action_dim, int):
-                td_data = {"q_value": q_value,
-                           "target_q_value": target_q_value,
-                           "obs": obs,
-                           "next_obs": next_obs,
-                           "reward": reward,
-                           "action": action,
-                           "done": done}
+                td_data = {
+                    "q_value": q_value,
+                    "target_q_value": target_q_value,
+                    "obs": obs,
+                    "next_obs": next_obs,
+                    "reward": reward,
+                    "action": action,
+                    "done": done
+                }
             else:
-                td_data = {"q_value": [q_value[0][s_env_id], q_value[1][s_env_id]],
-                           "target_q_value": [target_q_value[0][s_env_id], target_q_value[1][s_env_id]],
-                           "obs": obs,
-                           "next_obs": next_obs,
-                           "reward": reward,
-                           "action": action[s_env_id],
-                           "done": done}
+                td_data = {
+                    "q_value": [q_value[0][s_env_id], q_value[1][s_env_id]],
+                    "target_q_value": [target_q_value[0][s_env_id], target_q_value[1][s_env_id]],
+                    "obs": obs,
+                    "next_obs": next_obs,
+                    "reward": reward,
+                    "action": action[s_env_id],
+                    "done": done
+                }
             total_q_loss, alpha_loss, entropy = self.q_1step_td_loss(td_data)
             if s_env_id == 0:
                 a_total_q_loss, a_alpha_loss, a_entropy = total_q_loss, alpha_loss, entropy  # accumulate
             else:  # running average, accumulate loss
-                a_total_q_loss += total_q_loss/(num_s_env+1e-6)
-                a_alpha_loss += alpha_loss/(num_s_env+1e-6)
-                a_entropy += entropy/(num_s_env+1e-6)
+                a_total_q_loss += total_q_loss / (num_s_env + 1e-6)
+                a_alpha_loss += alpha_loss / (num_s_env + 1e-6)
+                a_entropy += entropy / (num_s_env + 1e-6)
 
         self._optimizer_q.zero_grad()
         a_total_q_loss.backward()
@@ -220,22 +218,19 @@ class SQNPolicy(CommonPolicy):
         if np.random.random(1) < _act_p:
             if isinstance(self._action_dim, int):
                 logits = output['logit'] / math.exp(self._log_alpha.item())
-                prob = torch.softmax(
-                    logits - logits.max(axis=-1, keepdim=True).values, dim=-1)
+                prob = torch.softmax(logits - logits.max(axis=-1, keepdim=True).values, dim=-1)
                 pi_action = torch.multinomial(prob, 1)
             else:
-                logits = [_logit / math.exp(self._log_alpha.item())
-                          for _logit in output['logit']]
-                prob = [torch.softmax(
-                    _logits - _logits.max(axis=-1, keepdim=True).values, dim=-1) for _logits in logits]
+                logits = [_logit / math.exp(self._log_alpha.item()) for _logit in output['logit']]
+                prob = [
+                    torch.softmax(_logits - _logits.max(axis=-1, keepdim=True).values, dim=-1) for _logits in logits
+                ]
                 pi_action = [torch.multinomial(_prob, 1) for _prob in prob]
         else:
             if isinstance(self._action_dim, int):
-                pi_action = torch.randint(
-                    0, self._action_dim, (output["logit"].shape[0],))
+                pi_action = torch.randint(0, self._action_dim, (output["logit"].shape[0], ))
             else:
-                pi_action = [torch.randint(
-                    0, d, (output["logit"][0].shape[0],)) for d in self._action_dim]
+                pi_action = [torch.randint(0, d, (output["logit"][0].shape[0], )) for d in self._action_dim]
 
         output['action'] = pi_action
         return output
@@ -293,8 +288,7 @@ class SQNPolicy(CommonPolicy):
             Command mode init method. Called by ``self.__init__``.
         """
         eps_cfg = self._cfg.command.eps
-        self.epsilon_greedy = epsilon_greedy(
-            eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
+        self.epsilon_greedy = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
 
     def _get_setting_collect(self, command_info: dict) -> dict:
         r"""

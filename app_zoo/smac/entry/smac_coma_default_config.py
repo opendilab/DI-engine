@@ -28,7 +28,7 @@ smac_coma_default_config = dict(
             act_dim=[
                 14,
             ],
-            embedding_dim=64,
+            hidden_dim_list=[128, 128, 256],
         ),
         learn=dict(
             train_step=1,

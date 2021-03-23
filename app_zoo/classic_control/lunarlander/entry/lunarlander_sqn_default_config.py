@@ -30,7 +30,7 @@ lunarlander_sqn_default_config = dict(
         model=dict(
             obs_dim=8,
             action_dim=4,
-            embedding_dim=64,
+            hidden_dim_list=[512, 64],
             # Whether to use dueling head.
             dueling=True,
         ),
@@ -82,7 +82,7 @@ lunarlander_sqn_default_config = dict(
     actor=dict(
         # You can use either "n_sample" or "n_episode" in actor.collect.
         # Get "n_sample" samples per collect.
-        n_sample=update_freq,   # training freq
+        n_sample=update_freq,  # training freq
         # Get "n_episode" complete episodic trajectories per collect.
         # n_episode=8,
         traj_len=traj_len,
