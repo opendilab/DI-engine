@@ -1,5 +1,6 @@
 from typing import List, Dict, Any, Tuple, Union, Optional
 import torch
+import pdb
 from nervex.rl_utils import ppo_data, ppo_error
 from nervex.policy import PPOPolicy, register_policy
 import torch
@@ -8,7 +9,6 @@ import torch.nn.functional as F
 from typing import Dict, Union
 from nervex.utils import squeeze
 from nervex.model.actor_critic.value_ac import ValueAC
-
 
 
 class FCValueAC(ValueAC):
@@ -74,11 +74,6 @@ class SumoPPOPolicy(PPOPolicy):
             'approx_kl': approx_kl,
             'clipfrac': clipfrac,
         }
-
-    def _create_model(self, cfg: dict, model: Optional[Union[type, torch.nn.Module]] = None) -> torch.nn.Module:
-        assert model is None
-        return FCValueAC(**cfg.model)
-
 
 
 register_policy('sumo_ppo', SumoPPOPolicy)

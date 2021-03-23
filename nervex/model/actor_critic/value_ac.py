@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Dict, Union
+from typing import Dict, Union, Optional
 from nervex.utils import squeeze
 from ..common import ValueActorCriticBase, ConvEncoder, FCEncoder, register_model
 
@@ -198,5 +198,34 @@ class FCValueAC(ValueAC):
         return FCEncoder(self._obs_dim, self._embedding_dim)
 
 
+class SepValueAC(ValueAC):
+    r"""
+    Overview:
+        Convolution Actor-Critic model. Encode the observation with a ``FCEncoder``
+    Interface:
+        __init__, forward, compute_action_value, compute_action
+    """
+
+    def naive_encoder(self, obs_dim, embedding_dim):
+        class OriginEncoder(nn.Module):
+            def __init__(self, obs_dim: int, embedding_dim: int, norm_type: Optional[str] = None) -> None:
+                super(OriginEncoder, self).__init__()
+                self.obs_dim = obs_dim
+
+            def forward(self, x: torch.Tensor) -> torch.Tensor:
+                return x
+        return OriginEncoder(obs_dim, embedding_dim)
+
+    def _setup_encoder(self) -> torch.nn.Module:
+        r"""
+        Overview:
+            Setup an ``ConvEncoder`` to encode 2-dim observation
+        Returns:
+            - encoder (:obj:`torch.nn.Module`): ``ConvEncoder``
+        """
+        return self.naive_encoder(self._obs_dim, self._embedding_dim)
+
+
+register_model('fc_ac_sep', SepValueAC)
 register_model('fc_vac', FCValueAC)
 register_model('conv_vac', ConvValueAC)
