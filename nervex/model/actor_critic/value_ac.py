@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Dict, Union
+from typing import Dict, Union, Optional
 from nervex.utils import squeeze
 from ..common import ValueActorCriticBase, ConvEncoder, FCEncoder, register_model
 

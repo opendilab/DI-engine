@@ -33,6 +33,7 @@ class DuelingHead(nn.Module):
         v_layer_num: int,
         activation: Optional[nn.Module] = nn.ReLU(),
         norm_type: Optional[str] = None,
+        init_type: Optional[str] = "xavier",
         distribution: bool = False,
         quantile: bool = False,
         noise: bool = False,
@@ -77,8 +78,14 @@ class DuelingHead(nn.Module):
             block = noise_block
         else:
             block = fc_block
-        self.A = [block(hidden_dim, hidden_dim, activation=activation, norm_type=norm_type) for _ in range(a_layer_num)]
-        self.V = [block(hidden_dim, hidden_dim, activation=activation, norm_type=norm_type) for _ in range(v_layer_num)]
+        self.A = [
+            block(hidden_dim, hidden_dim, activation=activation, norm_type=norm_type, init_type=init_type)
+            for _ in range(a_layer_num)
+        ]
+        self.V = [
+            block(hidden_dim, hidden_dim, activation=activation, norm_type=norm_type, init_type=init_type)
+            for _ in range(v_layer_num)
+        ]
 
         a_out_dim = action_dim
         v_out_dim = 1

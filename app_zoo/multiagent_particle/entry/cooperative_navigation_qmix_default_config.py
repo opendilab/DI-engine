@@ -29,7 +29,7 @@ cooperative_navigation_qmix_default_config = dict(
             obs_dim=2 + 2 + (agent_num - 1) * 2 + num_landmarks * 2,
             global_obs_dim=agent_num * 2 + num_landmarks * 2 + agent_num * 2,
             action_dim=5,
-            embedding_dim=64,
+            hidden_dim_list=[128, 128, 64],
         ),
         learn=dict(
             train_step=100,

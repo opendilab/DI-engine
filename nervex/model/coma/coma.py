@@ -16,14 +16,14 @@ class ComaActorNetwork(nn.Module):
         self,
         obs_dim: int,
         action_dim: int,
-        embedding_dim: int = 64,
+        hidden_dim_list: list = [128, 128, 64],
     ):
         super(ComaActorNetwork, self).__init__()
         self._obs_dim = squeeze(obs_dim)
         self._act_dim = action_dim
-        self._embedding_dim = embedding_dim
+        self._embedding_dim = hidden_dim_list[-1]
         # rnn discrete network
-        self._main = FCRDiscreteNet(obs_dim, action_dim, embedding_dim)
+        self._main = FCRDiscreteNet(obs_dim, action_dim, hidden_dim_list)
 
     def forward(self, inputs: Dict) -> Dict:
         agent_state = inputs['obs']['agent_state']
@@ -94,12 +94,13 @@ class ComaCriticNetwork(nn.Module):
 
 class ComaNetwork(nn.Module):
 
-    def __init__(self, agent_num: int, obs_dim: dict, act_dim: Tuple, embedding_dim: int):
+    def __init__(self, agent_num: int, obs_dim: dict, act_dim: Tuple, hidden_dim_list: list):
         super(ComaNetwork, self).__init__()
         act_dim = act_dim[-1]
         actor_input_dim = obs_dim['agent_state'][-1]
         critic_input_dim = obs_dim['agent_state'][-1] + squeeze(obs_dim['global_state']) + agent_num * act_dim
-        self._actor = ComaActorNetwork(actor_input_dim, act_dim, embedding_dim)
+        embedding_dim = hidden_dim_list[-1]
+        self._actor = ComaActorNetwork(actor_input_dim, act_dim, hidden_dim_list)
         self._critic = ComaCriticNetwork(critic_input_dim, act_dim, embedding_dim)
 
     def forward(self, data: Dict, mode: Union[str, None] = None) -> Dict:

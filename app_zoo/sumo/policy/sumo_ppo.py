@@ -1,7 +1,19 @@
-from typing import Dict, Any
+from typing import List, Dict, Any, Tuple, Union, Optional
 import torch
+import pdb
 from nervex.rl_utils import ppo_data, ppo_error
 from nervex.policy import PPOPolicy, register_policy
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from typing import Dict, Union
+from nervex.utils import squeeze
+from nervex.model.actor_critic.value_ac import ValueAC
+
+
+class SepValueAC(ValueAC):
+    def _setup_encoder(self) -> torch.nn.Module:
+        return nn.Identity()
 
 
 class SumoPPOPolicy(PPOPolicy):
