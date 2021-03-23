@@ -30,9 +30,8 @@ class BaseSerialEvaluator(object):
         self._default_n_episode = cfg.get('n_episode', None)
         self._stop_val = cfg.stop_val
         self._logger, self._tb_logger = build_logger(path='./log/evaluator', name='evaluator', need_tb=True)
-        for var in ['episode_count', 'envstep_count', 'avg_envstep_per_episode',
-                    'evaluate_time', 'avg_envstep_per_sec', 'avg_time_per_episode',
-                    'reward_mean', 'reward_std', 'each_reward']:
+        for var in ['episode_count', 'envstep_count', 'avg_envstep_per_episode', 'evaluate_time', 'avg_envstep_per_sec',
+                    'avg_time_per_episode', 'reward_mean', 'reward_std', 'each_reward']:
             self._tb_logger.register_var('evaluator/' + var)
         self._timer = EasyTimer()
         self._cfg = cfg
