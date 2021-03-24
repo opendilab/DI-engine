@@ -55,10 +55,10 @@ class BufferManager(IBuffer):
         Overview:
             Initialize replay buffer
         Arguments:
-            - cfg (:obj:`dict`): config dict
+            - cfg (:obj:``dict``): config dict
         """
         self.cfg = deep_merge_dicts(default_config, cfg)
-        # ``buffer_name``` is a list containing all buffers' names
+        # ``buffer_name`` is a list containing all buffers' names
         self.buffer_name = self.cfg.buffer_name
         # ``buffer`` is a dict {buffer_name: prioritized_buffer}, where prioritized_buffer guarantees thread safety
         self.buffer = {}
@@ -100,8 +100,8 @@ class BufferManager(IBuffer):
         Overview:
             Push ``data`` into appointed buffer.
         Arguments:
-            - data (:obj:`list` or `dict`): Data list or data item (dict type).
-            - buffer_name (:obj:`Optional[List[str]]`): The buffer to push data into
+            - data (:obj:``list`` or ``dict``): Data list or data item (dict type).
+            - buffer_name (:obj:``Optional[List[str]]``): The buffer to push data into
         """
         assert (isinstance(data, list) or isinstance(data, dict)), type(data)
         if isinstance(data, dict):
@@ -125,11 +125,11 @@ class BufferManager(IBuffer):
         Overview:
             Sample data from prioritized buffers according to ``batch_size`.
         Arguments:
-            - batch_size (:obj:`Union[int, Dict[str, int]]`): Batch size of the data that will be sampled. \
+            - batch_size (:obj:``Union[int, Dict[str, int]]``): Batch size of the data that will be sampled. \
                 Caller can indicate the corresponding batch_size when sampling from multiple buffers.
-            - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
+            - cur_learner_iter (:obj:``int``): Learner's current iteration, used to calculate staleness.
         Returns:
-            - data (:obj:`Union[list, Dict[str, list]]`): Sampled data batch.
+            - data (:obj:``Union[list, Dict[str, list]]``): Sampled data batch.
         """
         # single buffer case
         if isinstance(batch_size, int):
@@ -156,7 +156,7 @@ class BufferManager(IBuffer):
         Overview:
             Update prioritized buffers with outside info. Current info includes transition's priority update.
         Arguments:
-            - info (:obj:`Dict[str, list]`): Info dict. Currently contains keys \
+            - info (:obj:``Dict[str, list]``): Info dict. Currently contains keys \
                 ['replay_unique_id', 'replay_buffer_idx', 'priority']. \
                 "repaly_unique_id" format is "{buffer name}_{count in this buffer}"
         """
@@ -173,7 +173,9 @@ class BufferManager(IBuffer):
     def clear(self, buffer_name: Optional[List[str]] = None) -> None:
         """
         Overview:
-            Clear prioritized buffer, exclude all data(including cache)
+            Clear one replay buffer by excluding all data(including cache)
+        Arguments:
+            - buffer_name (:obj:``Optional[List[str]]``): Name of the buffer to be cleared.
         """
         # TODO(nyz) clear cache data
         if buffer_name is None:
@@ -205,9 +207,9 @@ class BufferManager(IBuffer):
         Overview:
             Return chosen buffer's current data count.
         Arguments:
-            - buffer_name (:obj:`Optional[str]`): Chosen buffer's name
+            - buffer_name (:obj:``Optional[str]``): Chosen buffer's name
         Returns:
-            - count (:obj:`int`): Chosen buffer's data count
+            - count (:obj:``int``): Chosen buffer's data count
         """
         if buffer_name is None:
             validlen = [self.buffer[n].validlen for n in self.buffer_name]
@@ -220,8 +222,8 @@ class BufferManager(IBuffer):
         Overview:
             Return chosen buffer's "used data", which was once in the buffer, but was replaced and discarded afterwards
         Arguments:
-            - buffer_name (:obj:`str`): Chosen buffer's name, default set to "agent"
+            - buffer_name (:obj:``str``): Chosen buffer's name, default set to "agent"
         Returns:
-            - queue (:obj:`queue.Queue`): Chosen buffer's record list
+            - queue (:obj:``queue.Queue``): Chosen buffer's record list
         """
         return self.buffer[buffer_name].used_data
