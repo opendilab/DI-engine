@@ -90,7 +90,7 @@ class ShmBufferContainer(object):
         Support dictionary of shared memory buffer.
     """
 
-    def __init__(self, dtype: np.generic, shape: Union[dict, tuple]) -> None:
+    def __init__(self, dtype: np.generic, shape: Union[Dict[Any, tuple], tuple]) -> None:
         if isinstance(shape, dict):
             self._data = {k: ShmBufferContainer(dtype, v) for k, v in shape.items()}
         elif isinstance(shape, (tuple, list)):
@@ -99,14 +99,14 @@ class ShmBufferContainer(object):
             raise RuntimeError("not support shape: {}".format(shape))
         self._shape = shape
 
-    def fill(self, src_arr: Union[dict, np.ndarray]) -> None:
+    def fill(self, src_arr: Union[Dict[Any, np.ndarray], np.ndarray]) -> None:
         if isinstance(self._shape, dict):
             for k in self._shape.keys():
                 self._data[k].fill(src_arr[k])
         elif isinstance(self._shape, (tuple, list)):
             self._data.fill(src_arr)
 
-    def get(self) -> Union[dict, np.ndarray]:
+    def get(self) -> Union[Dict[Any, np.ndarray], np.ndarray]:
         if isinstance(self._shape, dict):
             return {k: self._data[k].get() for k in self._shape.keys()}
         elif isinstance(self._shape, (tuple, list)):
@@ -138,7 +138,7 @@ class CloudpickleWrapper(object):
 def retry_wrapper(fn: Callable, max_retry: int = 10) -> Callable:
     """
     Overview:
-        Retry the function until exceeding the maximum times.
+        Retry the function until exceeding the maximum retry times.
     """
 
     def wrapper(*args, **kwargs):
@@ -166,7 +166,6 @@ class SubprocessEnvManager(BaseEnvManager):
     """
     Overview:
         Create a SubprocessEnvManager to manage multiple environments. Each Environment is run by a seperate subprocess.
-
     Interfaces:
         seed, launch, next_obs, step, reset, env_info
     """
