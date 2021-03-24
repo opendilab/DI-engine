@@ -74,6 +74,7 @@ class BaseSerialActor(object):
         self._total_train_sample_count = 0
         self._total_duration = 0
         self._last_iter_count = 0
+        self._done_episode = []
 
     @property
     def actor_info(self) -> dict:
@@ -138,17 +139,19 @@ class BaseSerialActor(object):
         collected_episode = 0
         collected_sample = 0
         while not collect_end_fn(collected_episode, collected_sample):
-            # Get current env obs.
-            obs = self._env_manager.next_obs
-            self._obs_pool.update(obs)
-            # Policy forward.
-            env_id, obs = self._policy.data_preprocess(obs)
-            policy_output = self._policy.forward(env_id, obs)
-            policy_output = self._policy.data_postprocess(env_id, policy_output)
-            self._policy_output_pool.update(policy_output)
-            # Interact with env.
-            actions = {env_id: output['action'] for env_id, output in policy_output.items()}
-            timesteps = self._env_manager.step(actions)
+            with self._timer:
+                # Get current env obs.
+                obs = self._env_manager.next_obs
+                self._obs_pool.update(obs)
+                # Policy forward.
+                env_id, obs = self._policy.data_preprocess(obs)
+                policy_output = self._policy.forward(env_id, obs)
+                policy_output = self._policy.data_postprocess(env_id, policy_output)
+                self._policy_output_pool.update(policy_output)
+                # Interact with env.
+                actions = {env_id: output['action'] for env_id, output in policy_output.items()}
+                timesteps = self._env_manager.step(actions)
+            single_env_pre_duration = self._timer.value / len(timesteps)
             # For each env:
             # 1) Form a transition and store it in cache;
             # 2) Get a train sample from cache if cache is full or env is done;
@@ -157,10 +160,7 @@ class BaseSerialActor(object):
                 with self._timer:
                     if timestep.info.get('abnormal', False):
                         # If there is an abnormal timestep, reset all the related variables(including this env).
-                        self._traj_cache[env_id].clear()
-                        self._obs_pool.reset(env_id)
-                        self._policy_output_pool.reset(env_id)
-                        self._policy.reset([env_id])
+                        self._var_reset(env_id)
                         print('env_id abnormal step', env_id, timestep.info)
                         continue
                     transition = self._policy.process_transition(
@@ -179,17 +179,14 @@ class BaseSerialActor(object):
                         self._total_train_sample_count += len(train_sample)
                         self._env_info[env_id]['train_sample'] += len(train_sample)
                         collected_sample += len(train_sample)
-                    # reset
+                    # Reset if env is done.
                     if timestep.done:
                         # Env reset is done by env_manager automatically
-                        self._traj_cache[env_id].clear()
-                        self._obs_pool.reset(env_id)
-                        self._policy_output_pool.reset(env_id)
-                        self._policy.reset([env_id])
+                        self._var_reset(env_id)
                         self._total_episode_count += 1
                         collected_episode += 1
-                self._env_info[env_id]['time'] += self._timer.value
-                # record info
+                self._env_info[env_id]['time'] += self._timer.value + single_env_pre_duration
+                # If env is done, record episode info and reset env info
                 if timestep.done:
                     reward = timestep.info['final_eval_reward']
                     if isinstance(reward, torch.Tensor):
@@ -205,11 +202,11 @@ class BaseSerialActor(object):
         # log
         if (iter_count - self._last_iter_count) >= self._collect_print_freq and len(self._episode_info) > 0:
             self._last_iter_count = iter_count
-            episode_count = len(self._episode_info) > 0
+            episode_count = len(self._episode_info)
             envstep_count = sum([d['step'] for d in self._episode_info])
             train_sample_count = sum([d['train_sample'] for d in self._episode_info])
             duration = sum([d['time'] for d in self._episode_info])
-            episode_reward = sum([d['reward'] for d in self._episode_info])
+            episode_reward = [d['reward'] for d in self._episode_info]
             self._total_duration += duration
             info = {
                 'episode_count': episode_count,
@@ -235,6 +232,19 @@ class BaseSerialActor(object):
             tb_vars = [['actor/' + k, v, iter_count] for k, v in info.items() if k not in ['each_reward']]
             self._tb_logger.add_val_list(tb_vars, viz_type='scalar')
         return return_data
+    
+    def _var_reset(self, env_id: int) -> None:
+        """
+        Overview:
+           When an env is to be reset, e.g. episode is done, abnormal occurs, etc.
+           Reset corresponding vars, e.g. traj_cache, obs_pool, policy_output_pool, policy.
+        Arguments:
+           - env_id (:obj:`int`): Id of the env which is to be reset.
+        """
+        self._traj_cache[env_id].clear()
+        self._obs_pool.reset(env_id)
+        self._policy_output_pool.reset(env_id)
+        self._policy.reset([env_id])
 
 
 class CachePool(object):
