@@ -1,2 +1,2 @@
 seed=0
-nervex -m parallel -p slurm -c $1 -s $seed --actor_host $2 --learner_host $3
+srun -p VI_SP_Y_V100_A --gres=gpu:1 nervex -m parallel -c $1 -s $seed

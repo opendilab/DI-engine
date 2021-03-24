@@ -10,7 +10,12 @@ def dist_prepare_config(
 ) -> str:
     set_pkg_seed(seed)
     config = read_config(filename)
-    config = parallel_transform(config, coordinator_host, learner_host, actor_host)
+    if platform == 'local':
+        config = parallel_transform(config, coordinator_host, learner_host, actor_host)
+    elif platform == 'slurm':
+        config = parallel_transform_slurm(config, coordinator_host, learner_host, actor_host)
+    elif platform == 'k8s':
+        raise NotImplementedError
     # Pickle dump config to disk for later use.
     real_filename = filename + '.pkl'
     with open(real_filename, 'wb') as f:
