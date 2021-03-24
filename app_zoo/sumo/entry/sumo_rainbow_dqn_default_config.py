@@ -1,8 +1,8 @@
 from easydict import EasyDict
 
-nstep = 1
-traj_len = 1
-sumo_dqn_default_config = dict(
+nstep = 3
+traj_len = 8 + nstep
+sumo_rainbow_dqn_default_config = dict(
     env=dict(
         env_manager_type='subprocess',
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
@@ -17,18 +17,13 @@ sumo_dqn_default_config = dict(
         # Whether to use cuda for network.
         use_cuda=False,
         # RL policy register name (refer to function "register_policy").
-        policy_type='sumo_dqn',
-        import_names=['app_zoo.sumo.policy.sumo_dqn'],
+        policy_type='sumo_rainbow_dqn',
+        import_names=['app_zoo.sumo.policy.sumo_rainbow_dqn'],
         # Whether the RL algorithm is on-policy or off-policy.
         on_policy=False,
+        use_priority=True,
         # Model config used for model creating. Remember to change this, especially "obs_dim" and "action_dim" according to specific env.
-        model=dict(
-            obs_dim=380,
-            action_dim=[2, 2, 3],
-            embedding_dim=64,
-            # Whether to use dueling head.
-            dueling=True,
-        ),
+        model=dict(obs_dim=380, action_dim=[2, 2, 3], hidden_dim_list=[128, 128, 64], v_max=10, v_min=-10, n_atom=51),
         # learn_mode config
         learn=dict(
             # How many steps to train after actor's one collection. Bigger "train_step" means bigger off-policy.
@@ -115,5 +110,5 @@ sumo_dqn_default_config = dict(
     ),
     commander=dict(),
 )
-sumo_dqn_default_config = EasyDict(sumo_dqn_default_config)
-main_config = sumo_dqn_default_config
+sumo_rainbow_dqn_default_config = EasyDict(sumo_rainbow_dqn_default_config)
+main_config = sumo_rainbow_dqn_default_config
