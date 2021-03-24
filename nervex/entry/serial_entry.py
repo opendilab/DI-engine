@@ -55,7 +55,7 @@ def serial_pipeline(
         env_fn=env_fn, env_cfg=actor_env_cfg, env_num=len(actor_env_cfg), manager_cfg=manager_cfg
     )
     evaluator_env = env_manager_type(
-        env_fn, env_cfg=evaluator_env_cfg, env_num=len(evaluator_env_cfg), manager_cfg=manager_cfg
+        env_fn=env_fn, env_cfg=evaluator_env_cfg, env_num=len(evaluator_env_cfg), manager_cfg=manager_cfg
     )
     # Random seed
     actor_env.seed(seed)

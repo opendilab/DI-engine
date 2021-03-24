@@ -16,6 +16,7 @@ import cloudpickle
 from functools import partial
 from types import MethodType
 from typing import Any, Union, List, Tuple, Iterable, Dict, Callable, Optional
+
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
 from nervex.utils import PropagatingThread, LockContextType, LockContext
 from .base_env_manager import BaseEnvManager
@@ -55,7 +56,7 @@ class ShmBuffer():
             Initialize the buffer.
         Arguments:
             - dtype (:obj:`np.generic`): dtype of the data to limit the size of the buffer.
-            - shape (:obj:`Tuple`): shape of the data to limit the size of the buffer.
+            - shape (:obj:`Tuple[int]`): shape of the data to limit the size of the buffer.
         """
         self.buffer = Array(_NTYPE_TO_CTYPE[dtype.type], int(np.prod(shape)))
         self.dtype = dtype
@@ -64,7 +65,7 @@ class ShmBuffer():
     def fill(self, src_arr: np.ndarray) -> None:
         """
         Overview:
-            Fill the shared memory buffer with a numpy array.
+            Fill the shared memory buffer with a numpy array. (Replace the original one.)
         Arguments:
             - src_arr (:obj:`np.ndarray`): array to fill the buffer.
         """
@@ -78,7 +79,7 @@ class ShmBuffer():
         Overview:
             Get the array stored in the buffer.
         Return:
-            A copy of the data stored in the buffer.
+            - copy_data (:obj:`np.ndarray`): A copy of the data stored in the buffer.
         """
         arr = np.frombuffer(self.buffer.get_obj(), dtype=self.dtype).reshape(self.shape)
         return arr.copy()
@@ -577,7 +578,7 @@ class SyncSubprocessEnvManager(SubprocessEnvManager):
     def _setup_async_args(self) -> None:
         self._async_args = {
             'step': {
-                'wait_num': math.inf,
+                'wait_num': self._env_num,  # math.inf,
                 'timeout': None,
             },
         }
