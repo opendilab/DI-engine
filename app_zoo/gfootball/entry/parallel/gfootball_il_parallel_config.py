@@ -64,6 +64,7 @@ __zergling_actor_default_config = dict(
         evaluator_env_num=2,
         evaluator_episode_num=1,
         eval_stop_val=3,
+        manager=dict(shared_memory=False, ),
     ),
 )
 
