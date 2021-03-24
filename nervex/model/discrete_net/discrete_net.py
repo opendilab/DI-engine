@@ -243,8 +243,16 @@ class Head(nn.Module):
             else:
                 x = self.pred(x)
         if self.distribution:
+            if isinstance(x[0], tuple):
+                x[0] = list(x[0])
+            if isinstance(x[1], tuple):
+                x[1] = list(x[1])
             return {'logit': x[0], 'distribution': x[1]}
         elif self.quantile:
+            if isinstance(x[0], tuple):
+                x[0] = list(x[0])
+            if isinstance(x[1], tuple):
+                x[1] = list(x[1])
             return {'logit': x[0], 'q': x[1], 'quantiles': x[2]}
         else:
             return {'logit': x}
