@@ -90,12 +90,13 @@ class QMix(nn.Module):
             obs_dim: int,
             global_obs_dim: int,
             action_dim: int,
-            embedding_dim: int,
+            hidden_dim_list: list,
             use_mixer: bool = True
     ) -> None:
         super(QMix, self).__init__()
         self._act = nn.ReLU()
-        self._q_network = FCRDiscreteNet(obs_dim, action_dim, embedding_dim)
+        self._q_network = FCRDiscreteNet(obs_dim, action_dim, hidden_dim_list)
+        embedding_dim = hidden_dim_list[-1]
         self.use_mixer = use_mixer
         if self.use_mixer:
             self._mixer = Mixer(agent_num, embedding_dim)
@@ -268,7 +269,7 @@ class CollaQ(nn.Module):
             obs_alone_dim: int,
             global_obs_dim: int,
             action_dim: int,
-            embedding_dim: int,
+            hidden_dim_list: list,
             enable_attention: bool = False,
             self_feature_range: Union[List[int], None] = None,
             ally_feature_range: Union[List[int], None] = None,
@@ -281,7 +282,7 @@ class CollaQ(nn.Module):
         self._act = nn.ReLU()
         self.use_mixer = use_mixer
         if not self.enable_attention:
-            self._q_network = FCRDiscreteNet(obs_dim, action_dim, embedding_dim)
+            self._q_network = FCRDiscreteNet(obs_dim, action_dim, hidden_dim_list)
         else:
             #TODO set the attention layer here beautifully
             self._self_attention = CollaQSMACAttentionModule(
@@ -294,8 +295,9 @@ class CollaQ(nn.Module):
                     (self_feature_range[1] - self_feature_range[0]) + 1, obs_dim
                 )
             ).shape[-1]
-            self._q_network = FCRDiscreteNet(obs_dim_after_attention, action_dim, embedding_dim)
-        self._q_alone_network = FCRDiscreteNet(obs_alone_dim, action_dim, embedding_dim)
+            self._q_network = FCRDiscreteNet(obs_dim_after_attention, action_dim, hidden_dim_list)
+        self._q_alone_network = FCRDiscreteNet(obs_alone_dim, action_dim, hidden_dim_list)
+        embedding_dim = hidden_dim_list[-1]
         if self.use_mixer:
             self._mixer = Mixer(agent_num, embedding_dim)
             global_obs_dim = squeeze(global_obs_dim)

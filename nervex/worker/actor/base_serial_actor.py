@@ -35,11 +35,10 @@ class BaseSerialActor(object):
             self._traj_cache_length = None
         self._collect_print_freq = cfg.collect_print_freq
         self._logger, self._tb_logger = build_logger(path='./log/actor', name='collect', need_tb=True)
-        for var in ['episode_count', 'envstep_count', 'train_sample_count',
-                    'avg_envstep_per_episode', 'avg_sample_per_epsiode', 'collect_time',
-                    'avg_envstep_per_sec', 'avg_train_sample_per_sec', 'avg_episode_per_sec',
-                    'reward_mean', 'reward_std',
-                    'total_envstep_count', 'total_train_sample_count', 'total_episode_count', 'total_duration']:
+        for var in ['episode_count', 'envstep_count', 'train_sample_count', 'avg_envstep_per_episode',
+                    'avg_sample_per_epsiode', 'collect_time', 'avg_envstep_per_sec', 'avg_train_sample_per_sec',
+                    'avg_episode_per_sec', 'reward_mean', 'reward_std', 'total_envstep_count',
+                    'total_train_sample_count', 'total_episode_count', 'total_duration']:
             self._tb_logger.register_var('actor/' + var)
         self._timer = EasyTimer()
         self._cfg = cfg
@@ -68,11 +67,13 @@ class BaseSerialActor(object):
         self._policy_output_pool = CachePool('policy_output', self._env_num)
         # _traj_cache is {env_id: deque}, is used to store traj_len pieces of transitions
         self._traj_cache = {env_id: deque(maxlen=self._traj_cache_length) for env_id in range(self._env_num)}
-        self._collect_times = 0
+        self._env_info = {env_id: {'time': 0., 'step': 0, 'train_sample': 0} for env_id in range(self._env_num)}
+        self._episode_info = []
         self._total_envstep_count = 0
         self._total_episode_count = 0
         self._total_train_sample_count = 0
         self._total_duration = 0
+        self._last_iter_count = 0
 
     @property
     def actor_info(self) -> dict:
@@ -132,31 +133,28 @@ class BaseSerialActor(object):
         Returns:
             - return_data (:obj:`List`): A list containing training samples.
         """
-        episode_count = 0
-        envstep_count = 0
-        train_sample_count = 0
-        episode_reward = []
         return_data = []
-        info = {}
         self._policy.reset()
-        with self._timer:
-            while not collect_end_fn(episode_count, train_sample_count):
-                # Get current env obs.
-                obs = self._env_manager.next_obs
-                self._obs_pool.update(obs)
-                # Policy forward.
-                env_id, obs = self._policy.data_preprocess(obs)
-                policy_output = self._policy.forward(env_id, obs)
-                policy_output = self._policy.data_postprocess(env_id, policy_output)
-                self._policy_output_pool.update(policy_output)
-                # Interact with env.
-                actions = {env_id: output['action'] for env_id, output in policy_output.items()}
-                timesteps = self._env_manager.step(actions)
-                # For each env:
-                # 1) Form a transition and store it in cache;
-                # 2) Get a train sample from cache if cache is full or env is done;
-                # 3) Reset related variables if env is done.
-                for env_id, timestep in timesteps.items():
+        collected_episode = 0
+        collected_sample = 0
+        while not collect_end_fn(collected_episode, collected_sample):
+            # Get current env obs.
+            obs = self._env_manager.next_obs
+            self._obs_pool.update(obs)
+            # Policy forward.
+            env_id, obs = self._policy.data_preprocess(obs)
+            policy_output = self._policy.forward(env_id, obs)
+            policy_output = self._policy.data_postprocess(env_id, policy_output)
+            self._policy_output_pool.update(policy_output)
+            # Interact with env.
+            actions = {env_id: output['action'] for env_id, output in policy_output.items()}
+            timesteps = self._env_manager.step(actions)
+            # For each env:
+            # 1) Form a transition and store it in cache;
+            # 2) Get a train sample from cache if cache is full or env is done;
+            # 3) Reset related variables if env is done.
+            for env_id, timestep in timesteps.items():
+                with self._timer:
                     if timestep.info.get('abnormal', False):
                         # If there is an abnormal timestep, reset all the related variables(including this env).
                         self._traj_cache[env_id].clear()
@@ -171,52 +169,71 @@ class BaseSerialActor(object):
                     # ``iter_count`` passed in from ``serial_entry``, indicates current collecting model's iteration.
                     transition['collect_iter'] = iter_count
                     self._traj_cache[env_id].append(transition)
+                    self._env_info[env_id]['step'] += 1
+                    self._total_envstep_count += 1
+                    # prepare data
                     if timestep.done or len(self._traj_cache[env_id]) == self._traj_len:
                         # Episode is done or traj_cache(maxlen=traj_len) is full.
                         train_sample = self._policy.get_train_sample(self._traj_cache[env_id])
                         return_data.extend(train_sample)
-                        train_sample_count += len(train_sample)
                         self._total_train_sample_count += len(train_sample)
+                        self._env_info[env_id]['train_sample'] += len(train_sample)
+                        collected_sample += len(train_sample)
+                    # reset
                     if timestep.done:
                         # Env reset is done by env_manager automatically
                         self._traj_cache[env_id].clear()
                         self._obs_pool.reset(env_id)
                         self._policy_output_pool.reset(env_id)
                         self._policy.reset([env_id])
-                        reward = timestep.info['final_eval_reward']
-                        if isinstance(reward, torch.Tensor):
-                            reward = reward.item()
-                        episode_reward.append(reward)
-                        episode_count += 1
                         self._total_episode_count += 1
-                    envstep_count += 1
-                    self._total_envstep_count += 1
-        duration = self._timer.value
-        if (self._collect_times) % self._collect_print_freq == 0:
+                        collected_episode += 1
+                self._env_info[env_id]['time'] += self._timer.value
+                # record info
+                if timestep.done:
+                    reward = timestep.info['final_eval_reward']
+                    if isinstance(reward, torch.Tensor):
+                        reward = reward.item()
+                    info = {
+                        'reward': reward,
+                        'time': self._env_info[env_id]['time'],
+                        'step': self._env_info[env_id]['step'],
+                        'train_sample': self._env_info[env_id]['train_sample'],
+                    }
+                    self._episode_info.append(info)
+                    self._env_info[env_id] = {'time': 0., 'step': 0, 'train_sample': 0}
+        # log
+        if (iter_count - self._last_iter_count) >= self._collect_print_freq and len(self._episode_info) > 0:
+            self._last_iter_count = iter_count
+            episode_count = len(self._episode_info) > 0
+            envstep_count = sum([d['step'] for d in self._episode_info])
+            train_sample_count = sum([d['train_sample'] for d in self._episode_info])
+            duration = sum([d['time'] for d in self._episode_info])
+            episode_reward = sum([d['reward'] for d in self._episode_info])
+            self._total_duration += duration
             info = {
                 'episode_count': episode_count,
                 'envstep_count': envstep_count,
                 'train_sample_count': train_sample_count,
-                'avg_envstep_per_episode': envstep_count / max(1, episode_count),
-                'avg_sample_per_epsiode': train_sample_count / max(1, episode_count),
+                'avg_envstep_per_episode': envstep_count / episode_count,
+                'avg_sample_per_epsiode': train_sample_count / episode_count,
+                'avg_envstep_per_sec': envstep_count / duration,
+                'avg_train_sample_per_sec': train_sample_count / duration,
+                'avg_episode_per_sec': episode_count / duration,
                 'collect_time': duration,
-                'avg_envstep_per_sec': (envstep_count + 1e-8) / duration,
-                'avg_train_sample_per_sec': (train_sample_count + 1e-8) / duration,
-                'avg_episode_per_sec': max(1, episode_count) / duration,
-                'reward_mean': np.mean(episode_reward) if len(episode_reward) > 0 else 0.,
-                'reward_std': np.std(episode_reward) if len(episode_reward) > 0 else 0.,
+                'reward_mean': np.mean(episode_reward),
+                'reward_std': np.std(episode_reward),
                 'each_reward': episode_reward,
                 'total_envstep_count': self._total_envstep_count,
                 'total_train_sample_count': self._total_train_sample_count,
                 'total_episode_count': self._total_episode_count,
                 'total_duration': self._total_duration,
             }
+            self._episode_info.clear()
             # self._logger.print_vars(info)
             self._logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
             tb_vars = [['actor/' + k, v, iter_count] for k, v in info.items() if k not in ['each_reward']]
             self._tb_logger.add_val_list(tb_vars, viz_type='scalar')
-        self._collect_times += 1
-        self._total_duration += duration
         return return_data
 
 

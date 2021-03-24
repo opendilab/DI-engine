@@ -41,13 +41,21 @@ class IBuffer(ABC):
     def count(self) -> int:
         raise NotImplementedError
 
+    @abstractmethod
+    def state_dict(self) -> dict:
+        raise NotImplementedError
+
+    @abstractmethod
+    def load_state_dict(self, _state_dict: dict) -> None:
+        raise NotImplementedError
+
 
 class BufferManager(IBuffer):
     """
     Overview:
         Reinforcement Learning replay buffer's manager. Manage one or many buffers.
     Interface:
-        __init__, push, sample, update, clear, count, start, close
+        __init__, push, sample, update, clear, count, start, close, state_dict, load_state_dict
     """
 
     def __init__(self, cfg: dict):
@@ -66,7 +74,6 @@ class BufferManager(IBuffer):
             buffer_cfg = self.cfg[name]
             self.buffer[name] = ReplayBuffer(
                 name=name,
-                load_path=buffer_cfg.get('load_path', None),
                 maxlen=buffer_cfg.get('meta_maxlen', 10000),
                 max_reuse=buffer_cfg.get('max_reuse', None),
                 max_staleness=buffer_cfg.get('max_staleness', None),
@@ -227,3 +234,14 @@ class BufferManager(IBuffer):
             - queue (:obj:``queue.Queue``): Chosen buffer's record list
         """
         return self.buffer[buffer_name].used_data
+
+    def state_dict(self) -> dict:
+        return {n: self.buffer[n].state_dict() for n in self.buffer_name}
+
+    def load_state_dict(self, _state_dict: dict, strict: bool = True) -> None:
+        if strict:
+            assert set(_state_dict.keys()) == set(self.buffer.keys()
+                                                  ), '{}/{}'.format(set(_state_dict.keys()), set(self.buffer.keys()))
+        for n, v in _state_dict.items():
+            if n in self.buffer.keys():
+                self.buffer[n].load_state_dict(v)

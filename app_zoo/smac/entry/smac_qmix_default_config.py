@@ -24,7 +24,7 @@ smac_qmix_default_config = dict(
             obs_dim=248,
             global_obs_dim=216,
             action_dim=14,
-            embedding_dim=64,
+            hidden_dim_list=[128, 128, 256],
         ),
         learn=dict(
             train_step=100,

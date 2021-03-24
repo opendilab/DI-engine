@@ -69,6 +69,8 @@ def serial_pipeline(
         policy_fn = policy_type
     policy = policy_fn(cfg.policy, model=model)
     learner = BaseLearner(cfg.learner)
+    # Append the load path into config
+    cfg.learner.load_path = learner.name
     actor = BaseSerialActor(cfg.actor)
     evaluator = BaseSerialEvaluator(cfg.evaluator)
     replay_buffer = BufferManager(cfg.replay_buffer)

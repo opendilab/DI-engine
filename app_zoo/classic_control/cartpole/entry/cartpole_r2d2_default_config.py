@@ -21,7 +21,7 @@ cartpole_r2d2_default_config = dict(
         model=dict(
             obs_dim=4,
             action_dim=2,
-            embedding_dim=32,
+            hidden_dim_list=[128, 128, 64],
         ),
         learn=dict(
             train_step=1,

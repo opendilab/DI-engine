@@ -99,6 +99,7 @@ setup(
         'cmake>=3.18.4',
         'readerwriterlock',
         'procgen',
+        'box2d-py',
     ],
     entry_points={
         'console_scripts': [

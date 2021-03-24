@@ -1,62 +1,56 @@
 from easydict import EasyDict
 
-nstep = 3
-cartpole_rainbowdqn_default_config = dict(
+lunarlander_ppo_default_config = dict(
     env=dict(
         env_manager_type='base',
-        import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
-        env_type='cartpole',
+        import_names=['app_zoo.classic_control.lunarlander.envs.lunarlander_env'],
+        env_type='lunarlander',
         actor_env_num=8,
         evaluator_env_num=5,
     ),
     policy=dict(
         use_cuda=False,
-        policy_type='rainbow_dqn',
-        import_names=['nervex.policy.dqn', 'nervex.policy.rainbow_dqn'],
+        policy_type='ppo',
+        import_names=['nervex.policy.ppo'],
         on_policy=False,
-        use_priority=True,
         model=dict(
-            obs_dim=4,
-            action_dim=2,
-            hidden_dim_list=[128, 128, 64],
-            v_max=10,
-            v_min=-10,
-            n_atom=51,
+            obs_dim=8,
+            action_dim=4,
+            embedding_dim=64,
         ),
         learn=dict(
-            train_step=3,
+            train_step=5,
             batch_size=64,
             learning_rate=0.001,
             weight_decay=0.0001,
             algo=dict(
-                target_update_freq=100,
-                discount_factor=0.97,
-                nstep=nstep,
+                value_weight=0.5,
+                entropy_weight=0.01,
+                clip_ratio=0.2,
             ),
         ),
         collect=dict(
-            traj_len=(8 + nstep),
+            traj_len='inf',
             unroll_len=1,
-            algo=dict(nstep=nstep, ),
+            algo=dict(
+                discount_factor=0.9,
+                gae_lambda=0.95,
+            ),
         ),
-        command=dict(eps=dict(
-            type='exp',
-            start=0.95,
-            end=0.1,
-            decay=10000,
-        ), ),
+        command=dict(),
     ),
     replay_buffer=dict(
         buffer_name=['agent'],
         agent=dict(
-            meta_maxlen=100000,
+            meta_maxlen=1000,
             max_reuse=100,
             min_sample_ratio=1,
         ),
     ),
     actor=dict(
-        n_sample=80,
-        traj_len=(8 + nstep),
+        n_sample=16,
+        traj_len=200,  # cartpole max episode len
+        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(
@@ -78,5 +72,5 @@ cartpole_rainbowdqn_default_config = dict(
     ),
     commander=dict(),
 )
-cartpole_rainbowdqn_default_config = EasyDict(cartpole_rainbowdqn_default_config)
-main_config = cartpole_rainbowdqn_default_config
+lunarlander_ppo_default_config = EasyDict(lunarlander_ppo_default_config)
+main_config = lunarlander_ppo_default_config

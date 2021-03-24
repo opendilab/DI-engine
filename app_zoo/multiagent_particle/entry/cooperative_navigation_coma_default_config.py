@@ -32,7 +32,7 @@ cooperative_navigation_coma_default_config = dict(
             act_dim=[
                 5,
             ],
-            embedding_dim=64,
+            hidden_dim_list=[128, 128, 64],
         ),
         learn=dict(
             train_step=1,

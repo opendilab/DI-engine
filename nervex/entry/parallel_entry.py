@@ -134,6 +134,7 @@ def launch_learner_aggregator(filename: Optional[str] = None, name: Optional[str
     aggregator.start()
 
 
+"""
 def dist_pipeline(
         filename: str,
         seed: int,
@@ -144,19 +145,6 @@ def dist_pipeline(
         enable_total_log: Optional[bool] = False,
         disable_flask_log: Optional[bool] = True,
 ) -> None:
-    r"""
-    Overview:
-        Distributed parallel pipeline entry.
-    Arguments:
-        - filename (:obj:`str`): Config file path.
-        - seed (:obj:`int`): Random seed.
-        - platform (:obj:`str`): The Platform to launch job. Now supports ["local", "slurm"].
-        - coordinator_host (:obj:`Optional[str]`): Coordinator host.
-        - learner_host (:obj:`Optional[str]`): Learner host.
-        - actor_host (:obj:`Optional[str]`): Actor host.
-        - enable_total_log (:obj:`Optional[bool]`): whether enable total nervex system log
-        - disable_flask_log (:obj:`Optional[bool]`): whether disable flask log
-    """
     # Disable some part nervex log
     if not enable_total_log:
         coordinator_log = logging.getLogger('coordinator_logger')
@@ -224,3 +212,4 @@ def dist_pipeline(
         )
     elif platform == 'k8s':
         raise NotImplementedError
+"""
