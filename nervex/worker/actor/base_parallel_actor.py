@@ -5,10 +5,11 @@ from abc import ABC, abstractmethod, abstractproperty
 from collections import namedtuple
 from typing import Any, Union, Tuple
 from functools import partial
+from easydict import EasyDict
 
 from nervex.policy import Policy
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
-from nervex.utils import build_logger, EasyTimer, get_task_uid, import_module, pretty_print
+from nervex.utils import build_logger, EasyTimer, get_task_uid, import_module, pretty_print, ACTOR_REGISTRY
 from nervex.torch_utils import build_log_buffer
 
 
@@ -57,7 +58,7 @@ class BaseActor(ABC):
         policy
     """
 
-    def __init__(self, cfg: dict) -> None:
+    def __init__(self, cfg: EasyDict) -> None:
         """
         Overview:
             Initialization method.
@@ -215,19 +216,7 @@ class BaseActor(ABC):
             self._policy.set_setting('collect', self._cfg.collect_setting)
 
 
-actor_mapping = {}
-
-
-def register_actor(name: str, actor: BaseActor) -> None:
-    assert isinstance(name, str)
-    assert issubclass(actor, BaseActor)
-    actor_mapping[name] = actor
-
-
 def create_actor(cfg: dict) -> BaseActor:
-    import_module(cfg.import_names)
-    actor_type = cfg.actor_type
-    if actor_type not in actor_mapping.keys():
-        raise KeyError("not support actor type: {}".format(actor_type))
-    else:
-        return actor_mapping[actor_type](cfg)
+    cfg = EasyDict(cfg)
+    import_module(cfg.get('import_names', []))
+    return ACTOR_REGISTRY.build(cfg.actor_type, cfg=cfg)

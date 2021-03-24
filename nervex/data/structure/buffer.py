@@ -54,7 +54,8 @@ class OutTickMonitor(LoggedModel):
         time, expire
     """
     out_time = LoggedValue(float)
-    use = LoggedValue(int)
+    # use, priority and staleness are all averaged across one batch.
+    use = LoggedValue(float)
     priority = LoggedValue(float)
     staleness = LoggedValue(float)
 
@@ -636,7 +637,7 @@ class ReplayBuffer:
         use = sum([d['use'] for d in sample_data]) / len(sample_data)
         priority = sum([d['priority'] for d in sample_data]) / len(sample_data)
         staleness = sum([d['staleness'] for d in sample_data]) / len(sample_data)
-        self._out_tick_monitor.use = int(use)
+        self._out_tick_monitor.use = use
         self._out_tick_monitor.priority = priority
         self._out_tick_monitor.staleness = staleness
         self._out_tick_monitor.time.step()

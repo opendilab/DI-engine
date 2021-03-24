@@ -24,8 +24,6 @@ cartpole_dqn_default_config.py
             manager=dict(
                 shared_memory=True,
             ),
-            # Must use the absolute path. All the following "import_names" should obey this too.
-            import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
             # Env register name (refer to function "register_env").
             env_type='cartpole',
             # Env number respectively for actor and evaluator.

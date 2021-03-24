@@ -11,12 +11,13 @@ from easydict import EasyDict
 
 from nervex.envs import get_vec_env_setting
 from nervex.torch_utils import to_device, tensor_to_list
-from nervex.utils import get_data_compressor, lists_to_dicts, pretty_print
+from nervex.utils import get_data_compressor, lists_to_dicts, pretty_print, ACTOR_REGISTRY
 from .env_manager import SubprocessEnvManager, BaseEnvManager
-from .base_parallel_actor import BaseActor, register_actor
+from .base_parallel_actor import BaseActor
 from .base_serial_actor import CachePool
 
 
+@ACTOR_REGISTRY.register('zergling')
 class ZerglingActor(BaseActor):
     """
     Feature:
@@ -229,6 +230,3 @@ class ZerglingActor(BaseActor):
 
     def __repr__(self) -> str:
         return "ZerglingActor"
-
-
-register_actor('zergling', ZerglingActor)

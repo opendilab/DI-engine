@@ -293,11 +293,11 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
 
         nervex -m parallel -c cartpole_dqn_default_config.py -s 0
     
-    下面所示为在slurm集群上的启动脚本，其中需要指定actor和learner相应的计算节点IP，Coordinator默认运行在管理节点上。
+    下面所示为在slurm集群上的启动脚本，只需要将 ``nervex xxxx``当作一个任务提交到某个计算节点即可，和普通srun提交任务没有区别。
     
     .. code:: bash
 
-        nervex -m parallel -p slurm -c cartpole_dqn_default_config.py -s 0 --actor_host SH-IDC1-10-198-8-66 --learner_host SH-IDC1-10-198-8-66
+        srun -p x_cerebra --gres=gpu:1 nervex -m parallel -c cartpole_dqn_default_config.py -s 0
     
     nervex 命令参数选项:
 

@@ -16,7 +16,6 @@ cartpole_r2d2_default_config = dict(
     policy=dict(
         use_cuda=False,
         policy_type='r2d2',
-        import_names=['nervex.policy.r2d2'],
         on_policy=False,
         model=dict(
             obs_dim=4,

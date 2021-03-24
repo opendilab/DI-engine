@@ -15,6 +15,20 @@ def print_version(ctx: Context, param: Option, value: bool) -> None:
     ctx.exit()
 
 
+def print_registry(ctx: Context, param: Option, value: str):
+    if value is None:
+        return
+    from nervex.utils import registries  # noqa
+    if value not in registries:
+        click.echo('[ERROR]: not support registry name: {}'.format(value))
+    else:
+        registered_info = registries[value].query_details()
+        click.echo('Available {}: [{}]'.format(value, '|'.join(registered_info.keys())))
+        for alias, info in registered_info.items():
+            click.echo('\t{}: registered at {}#{}'.format(alias, info[0], info[1]))
+    ctx.exit()
+
+
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
@@ -27,6 +41,15 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
     expose_value=False,
     is_eager=True,
     help="Show package's version information."
+)
+@click.option(
+    '-q',
+    '--query_registry',
+    type=str,
+    callback=print_registry,
+    expose_value=False,
+    is_eager=True,
+    help='query registered module or function, show name and path'
 )
 @click.option(
     '-m',

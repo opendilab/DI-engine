@@ -2,8 +2,9 @@ from typing import Any, List, Union, Optional
 import time
 import copy
 import numpy as np
-from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo
+from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
+from nervex.utils import ENV_REGISTRY
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
 
 
@@ -259,6 +260,7 @@ class Board(object):
             print('\n\r')
 
 
+@ENV_REGISTRY.register('gobang')
 class GobangEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
@@ -410,6 +412,3 @@ class GobangEnv(BaseEnv):
 
     def __repr__(self) -> str:
         return "nerveX Gobang Env"
-
-
-register_env('gobang', GobangEnv)

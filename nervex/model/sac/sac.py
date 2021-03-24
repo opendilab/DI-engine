@@ -10,8 +10,8 @@ import torch
 import torch.nn as nn
 from torch.distributions import Normal
 
-from nervex.utils import squeeze
-from ..common import SoftActorCriticBase, register_model
+from nervex.utils import squeeze, MODEL_REGISTRY
+from ..common import SoftActorCriticBase
 
 
 class SoftQNet(nn.Module):
@@ -112,6 +112,7 @@ class PolicyNet(nn.Module):
         return mean, log_std
 
 
+@MODEL_REGISTRY.register('sac')
 class SAC(SoftActorCriticBase):
 
     def __init__(
@@ -217,6 +218,3 @@ class SAC(SoftActorCriticBase):
     @property
     def q_net(self) -> torch.nn.Module:
         return self._soft_q_net
-
-
-register_model('sac', SAC)

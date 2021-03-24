@@ -13,3 +13,5 @@ from .log_helper import build_logger, DistributionTimeImage, pretty_print, TextL
 from .system_helper import get_ip, get_pid, get_task_uid, PropagatingThread, find_free_port
 from .time_helper import build_time_helper, EasyTimer
 from .slurm_helper import find_free_port_slurm, node_to_host, node_to_partition
+from .registry_factory import registries, POLICY_REGISTRY, ENV_REGISTRY, ACTOR_REGISTRY, COMM_ACTOR_REGISTRY, \
+    LEARNER_REGISTRY, COMM_LEARNER_REGISTRY, COMMANDER_REGISTRY, LEAGUE_REGISTRY, PLAYER_REGISTRY, MODEL_REGISTRY

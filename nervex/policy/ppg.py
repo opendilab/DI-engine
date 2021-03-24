@@ -5,14 +5,14 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 
-from nervex.utils import squeeze
+from nervex.utils import POLICY_REGISTRY, squeeze
 from nervex.data import default_collate
 from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import \
     ppo_policy_data, ppo_policy_error, Adder, ppo_value_data, ppo_value_error, ppg_data, ppg_joint_error
 from nervex.model import FCValueAC, ConvValueAC
 from nervex.armor import Armor
-from .base_policy import Policy, register_policy
+from .base_policy import Policy
 from .common_policy import CommonPolicy
 
 
@@ -37,6 +37,7 @@ def create_shuffled_dataloader(data, batch_size):
     return DataLoader(ds, batch_size=batch_size, shuffle=True)
 
 
+@POLICY_REGISTRY.register('ppg')
 class PPGPolicy(CommonPolicy):
     r"""
     Overview:
@@ -385,6 +386,3 @@ class PPGPolicy(CommonPolicy):
         self._aux_memories = []
 
         return auxiliary_loss_ / i, behavioral_cloning_loss_ / i, value_loss_ / i
-
-
-register_policy('ppg', PPGPolicy)

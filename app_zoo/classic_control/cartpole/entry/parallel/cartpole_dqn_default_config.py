@@ -4,7 +4,6 @@ from nervex.config import parallel_transform
 __policy_default_config = dict(
     use_cuda=False,
     policy_type='dqn',
-    import_names=['nervex.policy.dqn'],
     on_policy=False,
     model=dict(
         obs_dim=4,

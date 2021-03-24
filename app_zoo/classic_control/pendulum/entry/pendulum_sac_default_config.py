@@ -15,7 +15,6 @@ pendulum_sac_default_config = dict(
     policy=dict(
         use_cuda=False,
         policy_type='sac',
-        import_names=['nervex.policy.sac'],
         on_policy=False,
         use_priority=True,
         model=dict(

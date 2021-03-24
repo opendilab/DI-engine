@@ -8,10 +8,12 @@ from nervex.rl_utils import v_1step_td_data, v_1step_td_error, epsilon_greedy, A
 from nervex.model import QMix
 from nervex.armor import Armor
 from nervex.data import timestep_collate
-from .base_policy import Policy, register_policy
+from nervex.utils import POLICY_REGISTRY
+from .base_policy import Policy
 from .common_policy import CommonPolicy
 
 
+@POLICY_REGISTRY.register('qmix')
 class QMIXPolicy(CommonPolicy):
     r"""
     Overview:
@@ -251,6 +253,3 @@ class QMIXPolicy(CommonPolicy):
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'qmix', ['nervex.model.qmix.qmix']
-
-
-register_policy('qmix', QMIXPolicy)

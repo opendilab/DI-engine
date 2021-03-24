@@ -19,10 +19,6 @@ ActivePlayer
 .. autoclass:: nervex.league.player.ActivePlayer
     :members: __init__, is_trained_enough, snapshot, mutate, get_job
 
-register_player
-~~~~~~~~~~~~~~~~~~~~~~~
-.. automodule:: nervex.league.player.register_player
-
 create_player
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. automodule:: nervex.league.player.create_player
