@@ -101,6 +101,7 @@ __coordinator_default_config = dict(
                 meta_maxlen=100000,
                 max_reuse=1100,
                 min_sample_ratio=1,
+                enable_track_used_data=False,
             )
         ),
         policy=__policy_default_config,
