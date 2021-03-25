@@ -17,12 +17,19 @@ def try_import_ceph():
     global ceph_flag
     try:
         import ceph
+        client = ceph.S3Client()
+        return client
     except ModuleNotFoundError as e:
-        if ceph_flag:
-            logging.warning("You have not installed ceph package! nervex has changed to some alternatives.")
-        ceph = None
-        ceph_flag = False
-    return ceph
+        try:
+            from petrel_client.client import Client
+            client = Client(conf_path='~/petreloss.conf')
+            return client
+        except ModuleNotFoundError as e:
+            if ceph_flag:
+                logging.warning("You have not installed ceph package! nervex has changed to some alternatives.")
+            ceph = None
+            ceph_flag = False
+            return ceph
 
 
 def try_import_mc():

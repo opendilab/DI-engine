@@ -447,6 +447,7 @@ class SubprocessEnvManager(BaseEnvManager):
         Overview:
             Subprocess's target function to run.
         """
+        torch.set_num_threads(1)
         env_fn = env_fn_wrapper.data
         env = env_fn()
         p.close()

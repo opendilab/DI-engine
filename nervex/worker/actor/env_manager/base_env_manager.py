@@ -83,7 +83,7 @@ class BaseEnvManager(ABC):
 
     @property
     def done(self) -> bool:
-        return all([v == self._epsiode_num for v in self._env_episode_count.values()])
+        return all(self._env_dones.values())
 
     @property
     def method_name_list(self) -> list:
@@ -165,13 +165,13 @@ class BaseEnvManager(ABC):
             act = self._transform(act)
             timesteps[env_id] = self._safe_run(lambda: self._envs[env_id].step(act))
             if timesteps[env_id].done:
-                self._env_dones[env_id] = True
                 self._env_episode_count[env_id] += 1
-            self._next_obs[env_id] = timesteps[env_id].obs
-        if not self.done and all([d for d in self._env_dones.values()]):
-            for i in range(self.env_num):
-                self._reset(i)
-                self._env_dones[i] = False
+                if self._env_episode_count[env_id] == self._epsiode_num:
+                    self._env_dones[env_id] = True
+                else:
+                    self._reset(env_id)
+            else:
+                self._next_obs[env_id] = timesteps[env_id].obs
         return self._inv_transform(timesteps)
 
     def seed(self, seed: Union[List[int], int]) -> None:

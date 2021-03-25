@@ -98,6 +98,7 @@ class ZerglingActor(BaseActor):
 
     # override
     def _process_timestep(self, timestep: Dict[int, namedtuple]) -> None:
+        send_data_time = []
         for env_id, t in timestep.items():
             if t.info.get('abnormal', False):
                 # if there is a abnormal timestep, reset all the related variable, also this env has been reset
@@ -119,9 +120,11 @@ class ZerglingActor(BaseActor):
                 for s in train_sample:
                     s = self._compressor(s)
                     self._total_sample += 1
-                    metadata = self._get_metadata(s, env_id)
-                    self.send_stepdata(metadata['data_id'], s)
-                    self.send_metadata(metadata)
+                    with self._timer:
+                        metadata = self._get_metadata(s, env_id)
+                        self.send_stepdata(metadata['data_id'], s)
+                        self.send_metadata(metadata)
+                    send_data_time.append(self._timer.value)
             if t.done:
                 # env reset is done by env_manager automatically
                 self._traj_cache[env_id].clear()
@@ -137,6 +140,12 @@ class ZerglingActor(BaseActor):
                         env_id, reward, len(self._episode_result[env_id])
                     )
                 )
+        self.debug(
+            "send {} train sample with average time: {:.6f}".format(
+                len(send_data_time),
+                sum(send_data_time) / (1e-6 + len(send_data_time))
+            )
+        )
         dones = [t.done for t in timestep.values()]
         if any(dones):
             actor_info = self._get_actor_info()

@@ -39,7 +39,7 @@ class Policy(ABC):
         self._use_cuda = cfg.use_cuda and torch.cuda.is_available()
         self._use_distributed = cfg.get('use_distributed', False)
         self._rank = get_rank() if self._use_distributed else 0
-        self._device = 'cuda:{}'.format(self._rank % 8) if self._use_cuda else 'cpu'
+        self._device = 'cuda:{}'.format(self._rank % torch.cuda.device_count()) if self._use_cuda else 'cpu'
         if self._use_cuda:
             torch.cuda.set_device(self._rank)
             model.cuda()

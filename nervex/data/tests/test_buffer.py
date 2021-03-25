@@ -31,8 +31,9 @@ def setup_prioritized_buffer():
     return ReplayBuffer(
         name="agent",
         maxlen=64,
-        max_reuse=2,
+        max_reuse=1,
         min_sample_ratio=2.,
+        max_staleness=1000,
         alpha=0.6,
         beta=0.6,
         enable_track_used_data=True,
@@ -64,7 +65,7 @@ def setup_demo_buffer_factory():
 
 
 def generate_data():
-    ret = {'obs': np.random.randn(4)}
+    ret = {'obs': np.random.randn(4), 'data_id': 0}
     p_weight = np.random.uniform()
     if p_weight < 1. / 3:
         pass  # no key 'priority'
@@ -238,11 +239,28 @@ class TestReplayBuffer:
 
     def test_used_data(self, setup_prioritized_buffer):
         for _ in range(setup_prioritized_buffer._maxlen + 2):
-            setup_prioritized_buffer.append({})
-        setup_prioritized_buffer.extend([{}])
-        for _ in range(2 + 1):
+            setup_prioritized_buffer.append({'data_id': 0, 'collect_iter': 0})
+        assert setup_prioritized_buffer._used_data.qsize() == 2
+        setup_prioritized_buffer.extend([{'data_id': 0, 'collect_iter': 1}])
+        assert setup_prioritized_buffer._used_data.qsize() == 3
+        assert not setup_prioritized_buffer.sample_check(2, 1000)
+        assert setup_prioritized_buffer._used_data.qsize() == setup_prioritized_buffer._maxlen + 2
+        for _ in range(setup_prioritized_buffer._maxlen + 2):
             assert setup_prioritized_buffer.used_data is not None
         assert setup_prioritized_buffer.used_data is None
+        for i in range(setup_prioritized_buffer._maxlen):
+            setup_prioritized_buffer.append({'data_id': 'new_{}'.format(i), 'collect_iter': 2})
+        assert setup_prioritized_buffer._used_data.qsize() == 1
+        sampled_data = setup_prioritized_buffer.sample(16, 1001)
+        assert len(sampled_data) == 16
+        assert setup_prioritized_buffer._used_data.qsize() == 1
+        assert len(setup_prioritized_buffer._using_data) == 16
+        assert len(setup_prioritized_buffer._using_used_data) == 16
+        sample_id_part = [d['data_id'] for d in sampled_data[:4]]
+        setup_prioritized_buffer.update({'used_id': [i for i in sample_id_part]})
+        assert setup_prioritized_buffer._used_data.qsize() == 5
+        assert len(setup_prioritized_buffer._using_data) == 12
+        assert len(setup_prioritized_buffer._using_used_data) == 12
 
 
 @pytest.mark.unittest

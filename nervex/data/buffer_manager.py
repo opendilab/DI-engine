@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
+import time
 import os.path as osp
 from threading import Thread
 from typing import Union, Optional, Dict, Any, List, Tuple
 import numpy as np
 
 from nervex.data.structure import ReplayBuffer, Cache, SumSegmentTree
-from nervex.utils import deep_merge_dicts
+from nervex.utils import deep_merge_dicts, remove_file
 from nervex.config import buffer_manager_default_config
 
 default_config = buffer_manager_default_config.replay_buffer
@@ -70,8 +71,11 @@ class BufferManager(IBuffer):
         self.buffer_name = self.cfg.buffer_name
         # ``buffer`` is a dict {buffer_name: prioritized_buffer}, where prioritized_buffer guarantees thread safety
         self.buffer = {}
+        self._enable_track_used_data = {}
+        self._delete_used_data_thread = {}
         for name in self.buffer_name:
             buffer_cfg = self.cfg[name]
+            enable_track_used_data = buffer_cfg.get('enable_track_used_data', False)
             self.buffer[name] = ReplayBuffer(
                 name=name,
                 maxlen=buffer_cfg.get('meta_maxlen', 10000),
@@ -81,16 +85,22 @@ class BufferManager(IBuffer):
                 alpha=buffer_cfg.get('alpha', 0.),
                 beta=buffer_cfg.get('beta', 0.),
                 anneal_step=buffer_cfg.get('anneal_step', 0),
-                enable_track_used_data=buffer_cfg.get('enable_track_used_data', False),
+                enable_track_used_data=enable_track_used_data,
                 deepcopy=buffer_cfg.get('deepcopy', False),
                 monitor_cfg=buffer_cfg.get('monitor', None),
             )
+            self._enable_track_used_data[name] = enable_track_used_data
+            if self._enable_track_used_data[name]:
+                self._delete_used_data_thread[name] = Thread(
+                    target=self._delete_used_data, args=(name, ), name='delete_used_data'
+                )
 
         # Cache mechanism: First push data into cache, then(on some conditions) put forward to meta buffer.
         # self.use_cache = cfg.get('use_cache', False)
         self.use_cache = False
         self._cache = Cache(maxlen=self.cfg.get('cache_maxlen', 256), timeout=self.cfg.get('timeout', 8))
         self._cache_thread = Thread(target=self._cache2meta, name='buffer_cache')
+        self._end_flag = False
 
     def _cache2meta(self):
         """
@@ -195,15 +205,20 @@ class BufferManager(IBuffer):
         Overview:
             Launch ``Cache`` thread and ``_cache2meta`` thread
         """
+        for name, flag in self._enable_track_used_data.items():
+            if flag:
+                self._delete_used_data_thread[name].start()
         if self.use_cache:
             self._cache.run()
             self._cache_thread.start()
+        self._end_flag = False
 
     def close(self) -> None:
         """
         Overview:
             Shut down the cache gracefully, as well as each buffer's tensorboard logger.
         """
+        self._end_flag = True
         if self.use_cache:
             self._cache.close()
         for buffer in self.buffer.values():
@@ -224,17 +239,6 @@ class BufferManager(IBuffer):
         else:
             return self.buffer[buffer_name].validlen
 
-    def used_data(self, buffer_name: str = "agent") -> 'queue.Queue':  # noqa
-        """
-        Overview:
-            Return chosen buffer's "used data", which was once in the buffer, but was replaced and discarded afterwards
-        Arguments:
-            - buffer_name (:obj:``str``): Chosen buffer's name, default set to "agent"
-        Returns:
-            - queue (:obj:``queue.Queue``): Chosen buffer's record list
-        """
-        return self.buffer[buffer_name].used_data
-
     def state_dict(self) -> dict:
         return {n: self.buffer[n].state_dict() for n in self.buffer_name}
 
@@ -245,3 +249,11 @@ class BufferManager(IBuffer):
         for n, v in _state_dict.items():
             if n in self.buffer.keys():
                 self.buffer[n].load_state_dict(v)
+
+    def _delete_used_data(self, name: str) -> None:
+        while not self._end_flag:
+            data = self.buffer[name].used_data
+            if data:
+                remove_file(data)
+            else:
+                time.sleep(0.001)
