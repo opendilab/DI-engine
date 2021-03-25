@@ -482,7 +482,6 @@ class ReplayBuffer:
         with self._lock:
             for i in range(len(self._data)):
                 self._remove(i)
-                self._use_count[i] = 0
             self._valid_count = 0
             self._pointer = 0
             self._max_priority = 1.0
@@ -557,6 +556,7 @@ class ReplayBuffer:
         self._data[idx] = None
         self._sum_tree[idx] = self._sum_tree.neutral_element
         self._min_tree[idx] = self._min_tree.neutral_element
+        self._use_count[idx] = 0
         self._valid_count -= 1
 
     def _sample_with_indices(self, indices: List[int], cur_learner_iter: int) -> list:
@@ -593,7 +593,7 @@ class ReplayBuffer:
         for idx in indices:
             if self._use_count[idx] >= self._max_reuse:
                 self._remove(idx)
-        # Anneal update beta
+        # Beta anneal 
         if self._anneal_step != 0:
             self._beta = min(1.0, self._beta + self._beta_anneal_step)
         return data
