@@ -4,12 +4,14 @@
 ## referenced https://www.kaggle.com/david1013/tunable-baseline-bot by @david1013
 
 """
-# from kaggle_environments.envs.football.helpers import Action, GameMode, sticky_index_to_action, PlayerRole
-from kaggle_environments.envs.football.helpers import *
+import random
 from math import sqrt
 from enum import Enum
+
 import torch
 import numpy as np
+from kaggle_environments.envs.football.helpers import *
+
 from nervex.torch_utils import tensor_to_list, one_hot
 """
 Readable Reminder
@@ -733,16 +735,29 @@ def raw_obs_to_readable(obs):
     return obs
 
 
-def raw_agent(obs):
+def rule_agent(obs):
     # obs = obs[0]
     obs = raw_obs_to_readable(obs)
     return agent(obs).value
 
 
+def idel_agent(obs):
+    return 0
+
+
+def random_agent(obs):
+    return random.randint(0, 18)
+
+
+agents_map = {"random": random_agent, "rule": rule_agent, "idel": idel_agent}
+
+
 class FootballRuleBaseModel(torch.nn.Module):
 
-    def __init__(self):
+    def __init__(self, cfg={}):
         super(FootballRuleBaseModel, self).__init__()
+        self.agent_type = cfg.get('agent_type', 'rule')
+        self._agent = agents_map[self.agent_type]
 
     def forward(self, data):
         actions = []
@@ -755,5 +770,5 @@ class FootballRuleBaseModel(torch.nn.Module):
                     else:
                         v = np.array(v)
                     d[k] = v
-                actions.append(raw_agent(d))
+                actions.append(self._agent(d))
         return {'action': torch.LongTensor(actions), 'logit': one_hot(torch.LongTensor(actions), 19)}
