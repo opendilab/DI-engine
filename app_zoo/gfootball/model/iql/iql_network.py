@@ -5,9 +5,8 @@ import torch
 import torch.nn as nn
 
 from nervex.model import DuelingHead
-from nervex.model.common import register_model
 from nervex.config import read_config
-from nervex.utils import deep_merge_dicts
+from nervex.utils import deep_merge_dicts, MODEL_REGISTRY
 from nervex.torch_utils import fc_block, Transformer, ResFCBlock, \
     conv2d_block, ResBlock, build_activation, ScatterConnection
 from nervex.data import default_collate
@@ -15,6 +14,7 @@ from nervex.data import default_collate
 iql_default_config = read_config(osp.join(osp.dirname(__file__), "iql_default_config.yaml"))
 
 
+@MODEL_REGISTRY.register('football_iql')
 class FootballIQL(nn.Module):
 
     def __init__(
@@ -263,6 +263,3 @@ class FootballHead(nn.Module):
         x = self.res_blocks(x)
         x = self.pred(x)
         return {'logit': x}
-
-
-register_model('football_iql', FootballIQL)

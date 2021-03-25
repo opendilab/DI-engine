@@ -4,7 +4,6 @@ from nervex.config import parallel_transform
 __policy_default_config = dict(
     use_cuda=False,
     policy_type='IL',
-    import_names=['nervex.policy.il'],
     on_policy=False,
     model=dict(),
     learn=dict(

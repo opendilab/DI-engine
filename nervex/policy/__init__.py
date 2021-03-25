@@ -16,5 +16,7 @@ from .coma import COMAPolicy
 from .collaQ import CollaQPolicy
 from .atoc import ATOCPolicy
 
+from .il import ILPolicy
+
 from .dqn_vanilla import DQNVanillaPolicy
 from .ppo_vanilla import PPOVanillaPolicy

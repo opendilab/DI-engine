@@ -594,7 +594,7 @@ class ReplayBuffer:
         for idx in indices:
             if self._use_count[idx] >= self._max_reuse:
                 self._remove(idx)
-        # Beta anneal 
+        # Beta anneal
         if self._anneal_step != 0:
             self._beta = min(1.0, self._beta + self._beta_anneal_step)
         return data

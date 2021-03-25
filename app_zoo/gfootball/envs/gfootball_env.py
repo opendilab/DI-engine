@@ -5,12 +5,14 @@ from collections import namedtuple
 from typing import List, Any
 
 import numpy as np
-from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo
+from nervex.envs import BaseEnv
+from nervex.utils import ENV_REGISTRY
 from .action.gfootball_action_runner import GfootballRawActionRunner
 from .obs.gfootball_obs_runner import GfootballObsRunner
 from .reward.gfootball_reward_runner import GfootballRewardRunner
 
 
+@ENV_REGISTRY.register('gfootball')
 class GfootballEnv(BaseEnv):
 
     timestep = namedtuple('GfootballTimestep', ['obs', 'reward', 'done', 'info'])
@@ -41,7 +43,7 @@ class GfootballEnv(BaseEnv):
         assert self._launch_env_flag
         self.agent_action = action
         action = action.item()
-        #env step
+        # env step
         self._football_obs, self._reward_of_action, self._is_done, self._info = self._env.step(action)
         self._football_obs = self._football_obs[0]
         self.action = self._action_helper.get(self)
@@ -90,24 +92,5 @@ class GfootballEnv(BaseEnv):
         }
         return GfootballEnv.info_template(**info_data)
 
-    # override
-    def pack(self, timesteps: List['GfootballEnv.timestep'] = None, obs: Any = None) -> 'GfootballEnv.timestep':
-        assert not (timesteps is None and obs is None)
-        assert not (timesteps is not None and obs is not None)
-        if timesteps is not None:
-            assert isinstance(timesteps, list)
-            assert isinstance(timesteps[0], tuple)
-            timestep_type = type(timesteps[0])
-            items = [[getattr(timesteps[i], item) for i in range(len(timesteps))] for item in timesteps[0]._fields]
-            return timestep_type(*items)
-        if obs is not None:
-            return obs
-
-    # override
-    def unpack(self, action: Any) -> List[Any]:
-        return [{'action': act} for act in action]
-
 
 GfootballTimestep = GfootballEnv.timestep
-
-register_env("gfootball", GfootballEnv)

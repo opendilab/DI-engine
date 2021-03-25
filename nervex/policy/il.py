@@ -8,12 +8,14 @@ import numpy as np
 from nervex.torch_utils import Adam, to_device, one_hot
 from nervex.armor import Armor
 from nervex.data import default_collate, default_decollate
-from .base_policy import Policy, register_policy
+from nervex.utils import POLICY_REGISTRY
+from .base_policy import Policy
 from .common_policy import CommonPolicy
 from app_zoo.gfootball.model.bots import FootballRuleBaseModel, FootballKaggle5thPlaceModel
 from app_zoo.gfootball.model.iql.iql_network import FootballIQL
 
 
+@POLICY_REGISTRY.register('il')
 class ILPolicy(CommonPolicy):
     r"""
     Overview:
@@ -193,7 +195,7 @@ class ILPolicy(CommonPolicy):
         data = {'obs': data}
         return data_id, data
 
-    # TODO 考虑collect model和learner model不同时情况
+    # TODO different collect model and learn model
     def default_model(self) -> Tuple[str, List[str]]:
         return 'football_iql', ['app_zoo.gfootball.model.iql.iql_network']
 
@@ -206,6 +208,3 @@ class ILPolicy(CommonPolicy):
         """
         ret = ['cur_lr', 'supervised_loss']
         return ret
-
-
-register_policy('IL', ILPolicy)
