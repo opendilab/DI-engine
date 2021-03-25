@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from typing import Dict, Union, Optional
-from nervex.utils import squeeze
-from ..common import ValueActorCriticBase, ConvEncoder, FCEncoder, register_model
+from nervex.utils import squeeze, MODEL_REGISTRY
+from ..common import ValueActorCriticBase, ConvEncoder, FCEncoder
 
 
 class ValueAC(ValueActorCriticBase):
@@ -162,6 +162,7 @@ class ValueAC(ValueActorCriticBase):
         return {'logit': logit}
 
 
+@MODEL_REGISTRY.register('conv_vac')
 class ConvValueAC(ValueAC):
     r"""
     Overview:
@@ -180,6 +181,7 @@ class ConvValueAC(ValueAC):
         return ConvEncoder(self._obs_dim, self._embedding_dim)
 
 
+@MODEL_REGISTRY.register('fc_vac')
 class FCValueAC(ValueAC):
     r"""
     Overview:
@@ -196,7 +198,3 @@ class FCValueAC(ValueAC):
             - encoder (:obj:`torch.nn.Module`): ``ConvEncoder``
         """
         return FCEncoder(self._obs_dim, self._embedding_dim)
-
-
-register_model('fc_vac', FCValueAC)
-register_model('conv_vac', ConvValueAC)

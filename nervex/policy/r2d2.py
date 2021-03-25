@@ -7,10 +7,12 @@ from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, epsilon_greedy, Adder
 from nervex.armor import Armor
 from nervex.data import timestep_collate
-from .base_policy import Policy, register_policy
+from nervex.utils import POLICY_REGISTRY
+from .base_policy import Policy
 from .common_policy import CommonPolicy
 
 
+@POLICY_REGISTRY.register('r2d2')
 class R2D2Policy(CommonPolicy):
     r"""
     Overview:
@@ -278,7 +280,3 @@ class R2D2Policy(CommonPolicy):
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'fcr_discrete_net', ['nervex.model.discrete_net.discrete_net']
-
-
-# regist r2d2 policy in the policy maps
-register_policy('r2d2', R2D2Policy)

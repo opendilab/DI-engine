@@ -24,7 +24,6 @@ def test_real_loader():
         policy=item('policy') >> dict_(
             use_cuda=item('use_cuda') >> is_type(bool),
             policy_type=item('policy_type') >> is_type(str),
-            import_names=item('import_names') >> collection(str),
             on_policy=item('on_policy') >> is_type(bool),
             model=item('model') >> dict_(
                 obs_dim=item('obs_dim') >> (is_type(int) | collection(int)),

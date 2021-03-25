@@ -15,7 +15,6 @@ pendulum_td3_default_config = dict(
     policy=dict(
         use_cuda=False,
         policy_type='ddpg',
-        import_names=['nervex.policy.ddpg'],
         on_policy=False,
         use_priority=True,
         model=dict(

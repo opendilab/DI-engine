@@ -3,13 +3,15 @@ import copy
 import torch
 import numpy as np
 
-from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo
+from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.envs.common.common_function import affine_transform
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
 from .mujoco_wrappers import wrap_mujoco
+from nervex.utils import ENV_REGISTRY
 
 
+@ENV_REGISTRY.register('mujoco')
 class MujocoEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
@@ -89,6 +91,3 @@ class MujocoEnv(BaseEnv):
         evaluator_env_num = evaluator_cfg.pop('evaluator_env_num', 1)
         evaluator_cfg.norm_reward.use_norm = False
         return [evaluator_cfg for _ in range(evaluator_env_num)]
-
-
-register_env('mujoco', MujocoEnv)

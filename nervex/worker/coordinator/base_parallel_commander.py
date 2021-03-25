@@ -2,7 +2,9 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from easydict import EasyDict
 import copy
-from nervex.utils import import_module
+
+from nervex.utils import import_module, COMMANDER_REGISTRY
+from nervex.league import create_league
 
 
 class BaseCommander(ABC):
@@ -33,6 +35,7 @@ class BaseCommander(ABC):
         return False
 
 
+@COMMANDER_REGISTRY.register('naive')
 class NaiveCommander(BaseCommander):
     r"""
     Overview:
@@ -144,22 +147,6 @@ class NaiveCommander(BaseCommander):
         self._learner_info[task_id].append(info)
 
 
-commander_map = {'naive': NaiveCommander}
-
-
-def register_parallel_commander(name: str, commander: type) -> None:
-    r"""
-    Overview:
-        register the commander to commander_map
-    Arguments:
-        - name (:obj:`str`): the name of commander
-        - commander (:obj:`type`): the commander class to register
-    """
-    assert isinstance(name, str)
-    assert issubclass(commander, BaseCommander)
-    commander_map[name] = commander
-
-
 def create_parallel_commander(cfg: dict) -> BaseCommander:
     r"""
     Overview:
@@ -168,9 +155,5 @@ def create_parallel_commander(cfg: dict) -> BaseCommander:
         - cfg (:obj:`dict`): the commander cfg to create, should include import_names and parallel_commander_type
     """
     cfg = EasyDict(cfg)
-    import_module(cfg.import_names)
-    commander_type = cfg.parallel_commander_type
-    if commander_type not in commander_map:
-        raise KeyError("not support parallel commander type: {}".format(commander_type))
-    else:
-        return commander_map[commander_type](cfg)
+    import_module(cfg.get('import_names', []))
+    return COMMANDER_REGISTRY.build(cfg.parallel_commander_type, cfg=cfg)

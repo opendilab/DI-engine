@@ -10,8 +10,9 @@ from pysc2.lib import protocol
 from s2clientprotocol import common_pb2 as sc_common
 from s2clientprotocol import debug_pb2 as d_pb
 from s2clientprotocol import sc2api_pb2 as sc_pb
-from nervex.envs import BaseEnv, register_env
+from nervex.envs import BaseEnv
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
+from nervex.utils import ENV_REGISTRY
 
 from .smac_map import get_map_params
 from .smac_action import SMACAction, distance
@@ -42,6 +43,7 @@ class Direction(enum.IntEnum):
     WEST = 3
 
 
+@ENV_REGISTRY.register('smac')
 class SMACEnv(SC2Env, BaseEnv):
     """
     This environment provides the interface for both single agent and multiple agents (two players) in
@@ -1183,4 +1185,3 @@ def _flatten(obs, get_keys):
 
 SMACTimestep = SMACEnv.SMACTimestep
 SMACEnvInfo = SMACEnv.SMACEnvInfo
-register_env('smac', SMACEnv)

@@ -11,7 +11,6 @@ cartpole_ppg_default_config = dict(
     policy=dict(
         use_cuda=False,
         policy_type='ppg',
-        import_names=['nervex.policy.ppg'],
         on_policy=False,
         model=dict(
             model_type='fc_ppg',

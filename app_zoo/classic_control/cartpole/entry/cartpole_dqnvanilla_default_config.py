@@ -12,7 +12,6 @@ cartpole_dqnvanilla_default_config = dict(
     policy=dict(
         use_cuda=False,
         policy_type='dqn_vanilla',
-        import_names=['nervex.policy.dqn_vanilla'],
         on_policy=False,
         model=dict(
             obs_dim=4,

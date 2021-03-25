@@ -2,12 +2,14 @@ from typing import Any, List, Union, Sequence
 import copy
 import torch
 import numpy as np
-from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo
+from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
+from nervex.utils import ENV_REGISTRY
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
 from .atari_wrappers import wrap_deepmind
 
 
+@ENV_REGISTRY.register("atari")
 class AtariEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
@@ -72,6 +74,3 @@ class AtariEnv(BaseEnv):
         cfg = copy.deepcopy(cfg)
         cfg.is_train = False
         return [cfg for _ in range(evaluator_env_num)]
-
-
-register_env('atari', AtariEnv)

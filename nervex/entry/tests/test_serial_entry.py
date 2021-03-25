@@ -181,6 +181,7 @@ def test_a2c_with_nstep_return():
     config.policy.learn.algo.nstep = 3
     config.policy.collect.algo.use_nstep_return = config.policy.learn.algo.use_nstep_return
     config.policy.collect.algo.nstep = config.policy.learn.algo.nstep
+    config.evaluator.stop_val = -float("inf")
     config.evaluator.eval_freq = 1
     try:
         serial_pipeline(config, seed=0)

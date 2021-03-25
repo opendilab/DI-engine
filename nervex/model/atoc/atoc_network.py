@@ -5,8 +5,8 @@ import queue
 import torch
 import torch.nn as nn
 
-from nervex.utils import squeeze
-from ..common import QActorCriticBase, register_model
+from nervex.utils import squeeze, MODEL_REGISTRY
+from ..common import QActorCriticBase
 
 
 class ATOCAttentionUnit(nn.Module):
@@ -363,6 +363,7 @@ class ATOCCriticNet(nn.Module):
         return data
 
 
+@MODEL_REGISTRY.register('atoc')
 class ATOCQAC(QActorCriticBase):
     r"""
     Overview:
@@ -569,6 +570,3 @@ class ATOCQAC(QActorCriticBase):
             ]), mode
         f = getattr(self, mode)
         return f(inputs, **kwargs)
-
-
-register_model('atoc', ATOCQAC)

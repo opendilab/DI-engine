@@ -38,7 +38,7 @@ Q2: 如何自定义环境
    - 环境推荐使用numpy.ndarray作为array的数据类型，即环境反馈给外界，外界输入环境的数据都以np数组为基本类型。在环境管理器中，这些np数据通过BaseEnvManager实例中的变换函数self._transform和self._inv_transform变换为nervex内部使用的数据，默认为PyTorch Tensor。
      self._transform从外部数据类型往环境数据转换类型，self_inv_transform从环境数据类型往外部数据类型转换。nervex系统中除环境之外的部分，一律使用tensor作为基本数据类型，其他类型会导致运行错误。
    - 环境step方法返回的info **必须** 为dict，且当一个episode结束时，info中 **必须** 包括 ``final_eval_reward`` 这个键，其将作为评价整个episode性能的指标，要求 ``final_eval_reward`` 的取值为python内置数据类型(int, float)
-   - (optional)如果想要在nervex中通过配置文件使用自定义的环境，需要在自定义环境文件中全局范围调用 ``register_env`` 方法进行注册，并在配置文件中指定环境名(env_type)，以及加载的模块名(import_names)
+   - (optional)如果想要在nervex中通过配置文件使用自定义的环境，需要在自定义环境文件中全局范围调用 ``nervex/utils/registry_factory/ENV_REGISTRY`` 这一 ``Registry`` 模块的实例进行注册，可使用装饰器或调用函数两类方法进行注册。并在配置文件中指定环境名(``env_type``)，以及加载的模块名(``import_names``)
    - (optional)BaseEnv的info方法返回环境相关的参数信息，但其并不会和系统其他模块强耦合，只是作为 **可选** 的一个方法，使用者也可自定义相关格式，以及在系统中最终的用法
    - (optional) create_actor_env_cfg和create_evaluator_env_cfg方法会解析传入的配置文件，生成相应的环境配置list，该方法的目的是处理不同环境使用不同配置文件的情况，如果用户不想使用该方法，可以使用串行入口的env_setting参数进行信息传递。
 

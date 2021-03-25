@@ -1,5 +1,5 @@
-from .base_league import BaseLeague, create_league, register_league
+from .base_league import BaseLeague, create_league
 from .one_vs_one_league import OneVsOneLeague
-from .player import Player, ActivePlayer, HistoricalPlayer, register_player, create_player
+from .player import Player, ActivePlayer, HistoricalPlayer, create_player
 from .starcraft_player import MainPlayer, MainExploiter, LeagueExploiter
 from .shared_payoff import create_payoff

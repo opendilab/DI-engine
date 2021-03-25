@@ -15,8 +15,8 @@ from collections import namedtuple
 from nervex.data import AsyncDataLoader, default_collate
 from nervex.config import base_learner_default_config
 from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer
-from nervex.utils import build_logger, EasyTimer, pretty_print, get_task_uid, import_module
-from nervex.utils import deep_merge_dicts, get_rank
+from nervex.utils import build_logger, EasyTimer, pretty_print, get_task_uid, import_module, LEARNER_REGISTRY, \
+    deep_merge_dicts, get_rank
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
 from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, merge_hooks, LearnerHook
 
@@ -86,6 +86,7 @@ def get_simple_monitor_type(properties: List[str] = []) -> TickMonitor:
         return type('SimpleTickMonitor', (TickMonitor, ), attrs)
 
 
+@LEARNER_REGISTRY.register('base')
 class BaseLearner(object):
     r"""
     Overview:
@@ -456,23 +457,6 @@ class BaseLearner(object):
         self._priority_info = _priority_info
 
 
-learner_mapping = {'base': BaseLearner}
-
-
-def register_learner(name: str, learner: type) -> None:
-    """
-    Overview:
-        Add a new Learner class with its name to dict learner_mapping, any subclass derived from BaseLearner must
-        use this function to register in nervex system before instantiate.
-    Arguments:
-        - name (:obj:`str`): Name of the new Learner.
-        - learner (:obj:`type`): The new Learner class, should be subclass of ``BaseLearner``.
-    """
-    assert isinstance(name, str)
-    assert issubclass(learner, BaseLearner)
-    learner_mapping[name] = learner
-
-
 def create_learner(cfg: EasyDict) -> BaseLearner:
     """
     Overview:
@@ -486,8 +470,4 @@ def create_learner(cfg: EasyDict) -> BaseLearner:
             learner_mapping's values.
     """
     import_module(cfg.get('import_names', []))
-    learner_type = cfg.get('learner_type', 'base')
-    if learner_type not in learner_mapping.keys():
-        raise KeyError("not support learner type: {}".format(learner_type))
-    else:
-        return learner_mapping[learner_type](cfg)
+    return LEARNER_REGISTRY.build(cfg.get('learner_type', 'base'), cfg=cfg)

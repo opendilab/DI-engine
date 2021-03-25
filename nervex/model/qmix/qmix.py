@@ -5,11 +5,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 from functools import reduce
 from nervex.model import FCRDiscreteNet
-from nervex.utils import list_split, squeeze
+from nervex.utils import list_split, squeeze, MODEL_REGISTRY
 from nervex.torch_utils.network.nn_module import fc_block
 from nervex.torch_utils.network.transformer import ScaledDotProductAttention
 from nervex.torch_utils import to_tensor, tensor_to_list
-from ..common import register_model
 
 
 class Mixer(nn.Module):
@@ -76,6 +75,7 @@ class Mixer(nn.Module):
         return hidden.squeeze(-1).squeeze(-1)
 
 
+@MODEL_REGISTRY.register('qmix')
 class QMix(nn.Module):
     """
     Overview:
@@ -260,6 +260,7 @@ class CollaQSMACAttentionModule(nn.Module):
         return obs
 
 
+@MODEL_REGISTRY.register('collaq')
 class CollaQ(nn.Module):
 
     def __init__(
@@ -451,7 +452,3 @@ class CollaQ(nn.Module):
             layers.append(nn.Linear(embedding_dim, embedding_dim))
             layers.append(self._act)
         return nn.Sequential(*layers)
-
-
-register_model('qmix', QMix)
-register_model('collaq', CollaQ)

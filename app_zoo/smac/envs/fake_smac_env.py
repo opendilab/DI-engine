@@ -1,12 +1,15 @@
 from collections import namedtuple
 import numpy as np
-from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo
+
+from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
+from nervex.utils import ENV_REGISTRY
 
 FakeSMACEnvTimestep = namedtuple('FakeSMACEnvTimestep', ['obs', 'reward', 'done', 'info'])
 FakeSMACEnvInfo = namedtuple('FakeSMACEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space'])
 
 
+@ENV_REGISTRY.register('fake_smac')
 class FakeSMACEnv(BaseEnv):
 
     def __init__(self, cfg=None):
@@ -65,6 +68,3 @@ class FakeSMACEnv(BaseEnv):
 
     def __repr__(self):
         return 'FakeSMACEnv'
-
-
-register_env('fake_smac', FakeSMACEnv)

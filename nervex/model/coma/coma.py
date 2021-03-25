@@ -6,8 +6,7 @@ import torch.nn.functional as F
 from functools import reduce
 from nervex.model import FCRDiscreteNet
 from nervex.torch_utils import one_hot
-from nervex.utils import squeeze, list_split
-from ..common import register_model
+from nervex.utils import squeeze, list_split, MODEL_REGISTRY
 
 
 class ComaActorNetwork(nn.Module):
@@ -92,6 +91,7 @@ class ComaCriticNetwork(nn.Module):
         return x
 
 
+@MODEL_REGISTRY.register('coma')
 class ComaNetwork(nn.Module):
 
     def __init__(self, agent_num: int, obs_dim: dict, act_dim: Tuple, hidden_dim_list: list):
@@ -109,6 +109,3 @@ class ComaNetwork(nn.Module):
             return self._actor(data)
         elif mode == 'compute_q_value':
             return self._critic(data)
-
-
-register_model('coma', ComaNetwork)

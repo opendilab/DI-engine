@@ -1,9 +1,11 @@
 from typing import Dict, Any
 import torch
 from nervex.rl_utils import q_1step_td_data, q_1step_td_error
-from nervex.policy import DQNPolicy, register_policy
+from nervex.policy import DQNPolicy
+from nervex.utils import POLICY_REGISTRY
 
 
+@POLICY_REGISTRY.register('sumo_dqn')
 class SumoDQNPolicy(DQNPolicy):
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
@@ -35,6 +37,3 @@ class SumoDQNPolicy(DQNPolicy):
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
         }
-
-
-register_policy('sumo_dqn', SumoDQNPolicy)
