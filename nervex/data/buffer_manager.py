@@ -64,6 +64,7 @@ class BufferManager(IBuffer):
         # ``buffer`` is a dict {buffer_name: prioritized_buffer}, where prioritized_buffer guarantees thread safety
         self.buffer = {}
         self._enable_track_used_data = {}
+        self._delete_used_data_thread = {}
         for name in self.buffer_name:
             buffer_cfg = self.cfg[name]
             enable_track_used_data = buffer_cfg.get('enable_track_used_data', False)
@@ -83,7 +84,6 @@ class BufferManager(IBuffer):
             )
             self._enable_track_used_data[name] = enable_track_used_data
             if self._enable_track_used_data[name]:
-                self._delete_used_data_thread = {}
                 self._delete_used_data_thread[name] = Thread(
                     target=self._delete_used_data, args=(name, ), name='delete_used_data'
                 )

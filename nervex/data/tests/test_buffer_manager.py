@@ -21,6 +21,7 @@ BATCH_SIZE = 8
 PRODUCER_NUM = 16
 CONSUMER_NUM = 4
 LASTING_TIME = 5
+ID_COUNT = 0
 np.random.seed(1)
 
 
@@ -43,7 +44,9 @@ def setup_demo_config():
 
 
 def generate_data() -> dict:
-    ret = {'obs': np.random.randn(4), 'data_push_length': 8}
+    global ID_COUNT
+    ret = {'obs': np.random.randn(4), 'data_push_length': 8, 'data_id': ID_COUNT}
+    ID_COUNT += 1
     p_weight = np.random.uniform()
     if p_weight < 1. / 3:
         pass  # no key 'priority'
@@ -152,7 +155,6 @@ class TestBufferManager:
             t.join()
         for t in consume_threads:
             t.join()
-        used_data = setup_replay_buffer.used_data()
         count = setup_replay_buffer.count()
         setup_replay_buffer.push({'data': np.random.randn(4)})
         setup_replay_buffer.close()
@@ -194,8 +196,6 @@ class TestBufferManager:
             t.join()
         for t in consume_threads:
             t.join()
-        agent_used_data = setup_replay_buffer.used_data('agent')
-        demo_used_data = setup_replay_buffer.used_data('demo')
         agent_count = setup_replay_buffer.count('agent')
         demo_count = setup_replay_buffer.count('demo')
         setup_replay_buffer.push({'data': np.random.randn(4)}, ['agent'])
