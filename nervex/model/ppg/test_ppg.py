@@ -10,9 +10,7 @@ from nervex.model import FCPPG
 from nervex.torch_utils import is_differentiable
 from nervex.utils import squeeze
 
-obs_dim = [
-    4, 8
-]
+obs_dim = [4, 8]
 action_dim = [2, 6]
 
 args = [item for item in product(*[obs_dim, action_dim])]
@@ -49,4 +47,3 @@ def test_fc_ppg(obs_dim, action_dim):
     assert logit.shape == (4, squeeze(action_dim))
     assert logit.eq(logit.clamp(-1, 1)).all()
     output_check(model._act_dim, [model._policy_net._encoder, model._policy_net._actor], logit)
-
