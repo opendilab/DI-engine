@@ -23,7 +23,7 @@ def serial_pipeline_irl(
         env_setting: Optional[Any] = None,
         policy_type: Optional[type] = None,
         model: Optional[Union[type, torch.nn.Module]] = None,
-        enable_total_log: Optional[bool] = False,
+        enable_total_log: Optional[bool] = True,
 ) -> 'BasePolicy':  # noqa
     r"""
     Overview:
@@ -58,7 +58,6 @@ def serial_pipeline_irl(
     evaluator_env = env_manager_type(
         env_fn, env_cfg=evaluator_env_cfg, env_num=len(evaluator_env_cfg), manager_cfg=manager_cfg
     )
-
     # Random seed
     if not seed:
         seed = cfg.get('seed', 0)
@@ -96,25 +95,16 @@ def serial_pipeline_irl(
     eval_interval = cfg.evaluator.eval_freq
     # How many steps to train in actor's one collection.
     learner_train_step = cfg.policy.learn.train_step
-    # Here we assume serial entry and most policy in serial mode mainly focuses on agent buffer.
-    # ``enough_data_count``` is just a lower bound estimation. It is possible that replay buffer's data count is
-    # greater than this value, but still does not have enough data to train ``train_step`` times.
-    enough_data_count = []
-    for buffer_name in cfg.replay_buffer.buffer_name:
-        enough_data_count.append(
-            cfg.policy.learn.batch_size * max(
-                cfg.replay_buffer[buffer_name].min_sample_ratio,
-                math.ceil(cfg.policy.learn.train_step / cfg.replay_buffer[buffer_name].max_reuse)
-            )
-        )
-    enough_data_count = max(enough_data_count)
-    # Accumulate plenty of data at the beginning of training.
-    # If "init_data_count" does not exist in config, ``init_data_count`` will be set to ``enough_data_count``.
-    init_data_count = cfg.policy.learn.get('init_data_count', enough_data_count)
     # Whether to switch on priority experience replay.
     use_priority = cfg.policy.get('use_priority', False)
     # Learner's before_run hook.
     learner.call_hook('before_run')
+
+    # Accumulate plenty of data at the beginning of training.
+    if replay_buffer.replay_start_size() > 0:
+        new_data = actor.generate_data(learner.train_iter, n_sample=replay_buffer.replay_start_size())
+        replay_buffer.push(new_data)
+
     while True:
         commander.step()
         # Evaluate at the beginning of training.
@@ -132,28 +122,23 @@ def serial_pipeline_irl(
                 if eval_reward > max_eval_reward:
                     learner.save_checkpoint()
                     max_eval_reward = eval_reward
-        new_data_count = 0
-        target_new_data_count = cfg.irl.get('target_new_data_count', 1)
-        while True:
-            # Actor keeps generating data until replay buffer has enough to sample one batch.
+        new_data_count, target_new_data_count = 0, cfg.irl.get('target_new_data_count', 1)
+        while new_data_count < target_new_data_count:
             new_data = actor.generate_data(learner.train_iter)
             new_data_count += len(new_data)
             # collect data for reward_model training
             reward_model.collect_data(new_data)
             replay_buffer.push(new_data)
-            target_count = init_data_count if learner.train_iter == 0 else enough_data_count
-            if replay_buffer.count() >= target_count and new_data_count >= target_new_data_count:
-                break
         # update reward_model
         reward_model.train()
         reward_model.clear_data()
+        # Learn policy from collected data
         for i in range(learner_train_step):
             # Learner will train ``train_step`` times in one iteration.
             # But if replay buffer does not have enough data, program will break and warn.
             train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
             if train_data is None:
-                # As noted above: It is possible that replay buffer's data count is
-                # greater than ``target_count```, but still has no enough data to train ``train_step`` times.
+                # It is possible that replay buffer's data count is too few to train ``train_step`` times
                 logging.warning(
                     "Replay buffer's data can only train for {} steps. ".format(i) +
                     "You can modify data collect config, e.g. increasing n_sample, n_episode or min_sample_ratio."

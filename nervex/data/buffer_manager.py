@@ -50,6 +50,10 @@ class IBuffer(ABC):
     def load_state_dict(self, _state_dict: dict) -> None:
         raise NotImplementedError
 
+    @abstractmethod
+    def replay_start_size(self) -> int:
+        raise NotImplementedError
+
 
 class BufferManager(IBuffer):
     """
@@ -78,7 +82,8 @@ class BufferManager(IBuffer):
             enable_track_used_data = buffer_cfg.get('enable_track_used_data', False)
             self.buffer[name] = ReplayBuffer(
                 name=name,
-                replay_buffer_size=buffer_cfg.get('replay_buffer_size', 10000),
+                replay_buffer_size=buffer_cfg['replay_buffer_size'],
+                replay_start_size=buffer_cfg.get('replay_start_size', 0),
                 max_reuse=buffer_cfg.get('max_reuse', None),
                 max_staleness=buffer_cfg.get('max_staleness', None),
                 min_sample_ratio=buffer_cfg.get('min_sample_ratio', 1.),
@@ -249,6 +254,12 @@ class BufferManager(IBuffer):
         for n, v in _state_dict.items():
             if n in self.buffer.keys():
                 self.buffer[n].load_state_dict(v)
+
+    def replay_start_size(self, buffer_name: Optional[str] = None) -> int:
+        if buffer_name is None:
+            return max([self.buffer[n].replay_start_size for n in self.buffer_name])
+        else:
+            return self.buffer[buffer_name].replay_start_size
 
     def _delete_used_data(self, name: str) -> None:
         while not self._end_flag:

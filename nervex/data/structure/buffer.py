@@ -132,6 +132,7 @@ class ReplayBuffer:
             self,
             name: str,
             replay_buffer_size: int = 10000,
+            replay_start_size: int = 0,
             max_reuse: Optional[int] = None,
             max_staleness: Optional[int] = None,
             min_sample_ratio: float = 1.,
@@ -143,13 +144,13 @@ class ReplayBuffer:
             monitor_cfg: Optional[EasyDict] = None,
             eps: float = 0.01,
     ) -> int:
-        r"""
+        """
         Overview:
             Initialize the buffer
         Arguments:
             - name (:obj:`str`): Buffer name, mainly used to generate unique data id and logger name.
-            - replay_buffer_size (:obj:`int`): The maximum value of the buffer length. If ``load_path`` is not ``None``, it is \
-                highly recommended to set ``replay_buffer_size`` no fewer than demonstration data's length.
+            - replay_buffer_size (:obj:`int`): The maximum value of the buffer length.
+            - replay_start_size (:obj:`int`): The number of data in buffer when start training
             - max_reuse (:obj:`int` or None): The maximum reuse times of each element in buffer. Once a data is \
                 sampled(used) ``max_reuse`` times, it would be removed out of buffer.
             - min_sample_ratio (:obj:`float`): The minimum ratio restriction for sampling, only when \
@@ -197,6 +198,7 @@ class ReplayBuffer:
 
         self.name = name
         self._replay_buffer_size = replay_buffer_size
+        self._replay_start_size = replay_start_size
         self._max_reuse = max_reuse if max_reuse is not None else np.inf
         self._max_staleness = max_staleness if max_staleness is not None else np.inf
         assert min_sample_ratio >= 1, min_sample_ratio
@@ -719,6 +721,10 @@ class ReplayBuffer:
     @property
     def push_count(self) -> int:
         return self._push_count
+
+    @property
+    def replay_start_size(self) -> int:
+        return self._replay_start_size
 
     def state_dict(self) -> dict:
         return {

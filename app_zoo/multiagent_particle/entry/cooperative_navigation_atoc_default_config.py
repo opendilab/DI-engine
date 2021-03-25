@@ -56,7 +56,6 @@ cooperative_navigation_atoc_default_config = dict(
                     max=0.5,
                 ),
             ),
-            init_data_count=16,
         ),
         collect=dict(
             traj_len=max_step,
@@ -68,7 +67,8 @@ cooperative_navigation_atoc_default_config = dict(
     replay_buffer=dict(
         buffer_name=['agent'],
         agent=dict(
-            meta_maxlen=100000,
+            replay_buffer_size=100000,
+            replay_start_size=2000,
             max_reuse=10,
             min_sample_ratio=1,
         ),

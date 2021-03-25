@@ -22,7 +22,6 @@ cartpole_impala_default_config = dict(
             batch_size=32,
             learning_rate=0.001,
             weight_decay=0.0001,
-            init_data_count=600,
             unroll_len=64,
             algo=dict(
                 value_weight=0.5,
@@ -45,7 +44,8 @@ cartpole_impala_default_config = dict(
     replay_buffer=dict(
         buffer_name=['agent'],
         agent=dict(
-            replay_buffer_size=1000,
+            replay_buffer_size=2000,
+            replay_start_size=400,
             max_reuse=100,
             min_sample_ratio=1,
         ),
@@ -57,7 +57,7 @@ cartpole_impala_default_config = dict(
     ),
     evaluator=dict(
         n_episode=5,
-        eval_freq=200,
+        eval_freq=100,
         stop_val=195,
     ),
     learner=dict(
