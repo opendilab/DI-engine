@@ -46,14 +46,12 @@ cartpole_ppg_default_config = dict(
     replay_buffer=dict(
         buffer_name=['policy', 'value'],
         policy=dict(
-            meta_maxlen=1000,
-            max_reuse=100,
-            min_sample_ratio=1,
+            replay_buffer_size=100,
+            max_reuse=10,
         ),
         value=dict(
-            meta_maxlen=1000,
+            replay_buffer_size=1000,
             max_reuse=100,
-            min_sample_ratio=1,
         ),
     ),
     actor=dict(

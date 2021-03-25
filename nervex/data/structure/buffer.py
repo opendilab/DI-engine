@@ -417,7 +417,7 @@ class ReplayBuffer:
                             self._remove(j)
                         for i in range(valid_data_start, valid_data_start + L):
                             valid_data[i]['replay_unique_id'] = self._generate_id(self._next_unique_id + i)
-                            valid_data[i]['replay_buffer_idx'] = (self._pointer + i) % self.replay_buffer_size
+                            valid_data[i]['replay_buffer_idx'] = (self._pointer + i) % self._replay_buffer_size
                             self._set_weight(valid_data[i])
                             self._push_count += 1
                         self._data[data_start:data_start + L] = valid_data[valid_data_start:valid_data_start + L]

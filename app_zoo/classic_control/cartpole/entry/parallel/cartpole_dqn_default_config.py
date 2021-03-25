@@ -96,12 +96,8 @@ __coordinator_default_config = dict(
         learner_cfg=__base_learner_default_config,
         actor_cfg=__zergling_actor_default_config,
         replay_buffer_cfg=dict(
-            buffer_name=['agent'], agent=dict(
-                replay_buffer_size=100000,
-                max_reuse=1100,
-                min_sample_ratio=1,
-                enable_track_used_data=False,
-            )
+            replay_buffer_size=100000,
+            enable_track_used_data=False,
         ),
         policy=__policy_default_config,
         max_iterations=int(1e9),

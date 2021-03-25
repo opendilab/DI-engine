@@ -40,12 +40,7 @@ cartpole_ppo_default_config = dict(
         command=dict(),
     ),
     replay_buffer=dict(
-        buffer_name=['agent'],
-        agent=dict(
-            replay_buffer_size=1000,
-            max_reuse=100,
-            min_sample_ratio=1,
-        ),
+        replay_buffer_size=1000,
     ),
     actor=dict(
         n_sample=16,

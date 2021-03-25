@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import time
+import copy
 import os.path as osp
 from threading import Thread
 from typing import Union, Optional, Dict, Any, List, Tuple
@@ -70,10 +71,18 @@ class BufferManager(IBuffer):
         Arguments:
             - cfg (:obj:``dict``): config dict
         """
-        self.cfg = deep_merge_dicts(default_config, cfg)
-        # ``buffer_name`` is a list containing all buffers' names
-        self.buffer_name = self.cfg.buffer_name
-        # ``buffer`` is a dict {buffer_name: prioritized_buffer}, where prioritized_buffer guarantees thread safety
+        # ``self.buffer_name`` is a list containing all buffers' names
+        if 'buffer_name' in cfg:
+            self.buffer_name = cfg['buffer_name']
+        else:
+            self.buffer_name = ['agent']
+        self.cfg = {}
+        for name in self.buffer_name:
+            if name in cfg:
+                self.cfg[name] = deep_merge_dicts(default_config, cfg.pop(name))
+            else:
+                self.cfg[name] = deep_merge_dicts(default_config, cfg)
+        # ``self.buffer`` is a dict {buffer_name: prioritized_buffer}, where prioritized_buffer guarantees thread safety
         self.buffer = {}
         self._enable_track_used_data = {}
         self._delete_used_data_thread = {}
@@ -135,8 +144,12 @@ class BufferManager(IBuffer):
             if buffer_name is None:
                 elem = data[0]
                 buffer_name = elem.get('buffer_name', self.buffer_name)
-            for n in buffer_name:
-                self.buffer[n].extend(data)
+            for i, n in enumerate(buffer_name):
+                # TODO optimizer multi-buffer deepcopy
+                if i >= 1:
+                    self.buffer[n].extend(copy.deepcopy(data))
+                else:
+                    self.buffer[n].extend(data)
 
     def sample(
             self,

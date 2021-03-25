@@ -60,12 +60,8 @@ cooperative_navigation_iql_default_config = dict(
         ), ),
     ),
     replay_buffer=dict(
-        buffer_name=['agent'],
-        agent=dict(
-            replay_buffer_size=5000,
-            max_reuse=10,
-            min_sample_ratio=1,
-        ),
+        replay_buffer_size=5000,
+        max_reuse=10,
     ),
     actor=dict(
         n_episode=4,

@@ -5,6 +5,7 @@ import time
 from threading import Thread
 from typing import List
 from collections import defaultdict
+from easydict import EasyDict
 import numpy as np
 import pytest
 import pickle
@@ -27,19 +28,22 @@ np.random.seed(1)
 
 @pytest.fixture(scope="function")
 def setup_config():
-    cfg = deepcopy(buffer_manager_default_config)
-    cfg.replay_buffer.agent.enable_track_used_data = True
+    cfg = deepcopy(buffer_manager_default_config.replay_buffer)
+    cfg.enable_track_used_data = True
     return cfg
 
 
 @pytest.fixture(scope="function")
 def setup_demo_config():
-    cfg = deepcopy(buffer_manager_default_config)
-    cfg.replay_buffer.buffer_name.append('demo')
-    cfg.replay_buffer.agent.enable_track_used_data = True
-    cfg.replay_buffer.demo = cfg.replay_buffer.agent
-    cfg.replay_buffer.demo.monitor.log_path = './log/buffer/demo_buffer/'
-    print(cfg)
+    buffer_cfg = deepcopy(buffer_manager_default_config.replay_buffer)
+    cfg = {
+        'buffer_name': ['agent', 'demo'],
+        'agent': buffer_cfg,
+        'demo': buffer_cfg,
+    }
+    cfg = EasyDict(cfg)
+    cfg.agent.enable_track_used_data = True
+    cfg.demo.monitor.log_path = './log/buffer/demo_buffer/'
     return cfg
 
 
@@ -139,7 +143,7 @@ class TestBufferManager:
 
         self.global_data = []
         os.popen('rm -rf log*')
-        setup_replay_buffer = BufferManager(setup_config.replay_buffer)
+        setup_replay_buffer = BufferManager(setup_config)
         setup_replay_buffer._cache.debug = True
         produce_threads = [Thread(target=self.produce, args=(i, setup_replay_buffer)) for i in range(PRODUCER_NUM)]
         consume_threads = [
@@ -177,7 +181,7 @@ class TestBufferManager:
         demo_data_list = generate_data_list(50)
         with open("demonstration_data.pkl", "wb") as f:
             pickle.dump(demo_data_list, f)
-        setup_replay_buffer = BufferManager(setup_demo_config.replay_buffer)
+        setup_replay_buffer = BufferManager(setup_demo_config)
         setup_replay_buffer._cache.debug = True
         os.popen("rm -rf demonstration_data.pkl")
 
@@ -218,7 +222,7 @@ class TestBufferManager:
         # pr.enable()
 
         os.popen('rm -rf log*')
-        replay_buffer = BufferManager(setup_config.replay_buffer)
+        replay_buffer = BufferManager(setup_config)
         replay_buffer._cache.debug = True
 
         begin_time = time.time()
