@@ -129,20 +129,20 @@ class ReplayBuffer:
     """
 
     def __init__(
-            self,
-            name: str,
-            replay_buffer_size: int = 10000,
-            replay_start_size: int = 0,
-            max_reuse: Optional[int] = None,
-            max_staleness: Optional[int] = None,
-            min_sample_ratio: float = 1.,
-            alpha: float = 0.,
-            beta: float = 0.,
-            anneal_step: int = 0,
-            enable_track_used_data: bool = False,
-            deepcopy: bool = False,
-            monitor_cfg: Optional[EasyDict] = None,
-            eps: float = 0.01,
+        self,
+        name: str,
+        replay_buffer_size: int = 10000,
+        replay_start_size: int = 0,
+        max_reuse: Optional[int] = None,
+        max_staleness: Optional[int] = None,
+        min_sample_ratio: float = 1.,
+        alpha: float = 0.6,
+        beta: float = 0.4,
+        anneal_step: int = int(1e5),
+        enable_track_used_data: bool = False,
+        deepcopy: bool = False,
+        monitor_cfg: Optional[EasyDict] = None,
+        eps: float = 0.01,
     ) -> int:
         """
         Overview:
@@ -199,8 +199,8 @@ class ReplayBuffer:
         self.name = name
         self._replay_buffer_size = replay_buffer_size
         self._replay_start_size = replay_start_size
-        self._max_reuse = max_reuse if max_reuse is not None else np.inf
-        self._max_staleness = max_staleness if max_staleness is not None else np.inf
+        self._max_reuse = max_reuse if max_reuse is not None else float("inf")
+        self._max_staleness = max_staleness if max_staleness is not None else float("inf")
         assert min_sample_ratio >= 1, min_sample_ratio
         self.min_sample_ratio = min_sample_ratio
         assert 0 <= alpha <= 1, alpha

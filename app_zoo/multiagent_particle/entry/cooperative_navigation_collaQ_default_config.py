@@ -71,7 +71,7 @@ cooperative_navigation_collaQ_default_config = dict(
         ),
     ),
     actor=dict(
-        n_episode=4,
+        n_episode=6,
         traj_len=max_step,  # cooperative_navigation_episode_max_length
         collect_print_freq=4,
     ),

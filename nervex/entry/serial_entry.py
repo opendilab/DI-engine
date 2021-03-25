@@ -132,7 +132,7 @@ def serial_pipeline(
                 # It is possible that replay buffer's data count is too few to train ``train_step`` times
                 logging.warning(
                     "Replay buffer's data can only train for {} steps. ".format(i) +
-                    "You can modify data collect config, e.g. increasing n_sample, n_episode or min_sample_ratio."
+                    "You can modify data collect config, e.g. increasing n_sample, n_episode."
                 )
                 break
             learner.train(train_data)
