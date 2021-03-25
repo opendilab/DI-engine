@@ -4,7 +4,7 @@ import yaml
 import numpy as np
 import torch
 
-from .football_ikki import Environment, Action, feature_from_states, OBS_TEMPLATE, INFO_TEMPLATE
+from .football_ikki import Environment
 from .handyrl_core.model import load_model
 
 model_path = osp.join(osp.dirname(__file__), 'models/1679.pth')
@@ -15,11 +15,6 @@ with open(osp.join(osp.dirname(__file__), 'config.yaml')) as f:
 env = Environment(config['env_args'])
 model = load_model(env.net()(env), model_path)
 model.eval()
-
-# p, v, _, _ = model.inference(feature_from_states([[{'observation': OBS_TEMPLATE, 'action': [0]}, None]], INFO_TEMPLATE, 0), None)
-# print(p)
-# print(v)
-
 
 def output_think(env, obs, actions, p, v, r):
     pmask = np.ones_like(p)
