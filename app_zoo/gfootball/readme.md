@@ -55,5 +55,8 @@ bots目前包括
 
 
 
+## Uses
 
+### Imitation learning
 
+目前编写了模仿学习相关入口，直接以iql模型，以Kaggle比赛第五名的RL模型为标签进行监督学习，具体请见app_zoo/gfootball/entry下相关config入口文件。
