@@ -22,7 +22,7 @@ qbert_dqn_default_config = dict(
             encoder_kwargs=dict(encoder_type='conv2d', ),
             obs_dim=[4, 84, 84],
             action_dim=6,
-            embedding_dim=512,
+            hidden_dim_list=[128, 128, 512],
             head_kwargs=dict(dueling=False, ),
         ),
         learn=dict(
@@ -58,8 +58,6 @@ qbert_dqn_default_config = dict(
     ),
     actor=dict(
         n_sample=100,
-        traj_len=traj_len,
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(

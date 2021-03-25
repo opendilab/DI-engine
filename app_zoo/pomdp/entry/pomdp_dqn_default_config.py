@@ -10,8 +10,6 @@ pomdp_dqn_default_config = dict(
         env_manager_type='subprocess',
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         # manager=dict(shared_memory=True, ),
-        # Must use the absolute path. All the following "import_names" should obey this too.
-        import_names=['app_zoo.pomdp.envs.atari_env'],
         # Env register name (refer to function "register_env").
         env_type='pomdp',
         # Env number respectively for actor and evaluator.
@@ -101,7 +99,6 @@ pomdp_dqn_default_config = dict(
         # Get "n_episode" complete episodic trajectories per collect.
         # n_episode=8,
         traj_len=traj_len,
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(

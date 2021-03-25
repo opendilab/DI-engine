@@ -11,8 +11,8 @@ cartpole_ppo_default_config = dict(
     policy=dict(
         use_cuda=False,
         policy_type='ppo',
-        import_names=['nervex.policy.ppo'],
         on_policy=False,
+        use_priority=True,
         model=dict(
             obs_dim=4,
             action_dim=2,
@@ -50,7 +50,6 @@ cartpole_ppo_default_config = dict(
     actor=dict(
         n_sample=16,
         traj_len=200,  # cartpole max episode len
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(

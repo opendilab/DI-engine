@@ -23,7 +23,7 @@ def test_qmix():
     obs_dim, global_obs_dim, action_dim = 32, 32 * 4, 9
     embedding_dim = 32
     for mix in use_mixer:
-        qmix_model = QMix(agent_num, obs_dim, global_obs_dim, action_dim, embedding_dim, mix)
+        qmix_model = QMix(agent_num, obs_dim, global_obs_dim, action_dim, [128, embedding_dim], mix)
         data = {
             'obs': {
                 'agent_state': torch.randn(T, bs, agent_num, obs_dim),
@@ -55,8 +55,8 @@ def test_collaQ():
     embedding_dim = 32
     for mix in use_mixer:
         collaQ_model = CollaQ(
-            agent_num, obs_dim, obs_alone_dim, global_obs_dim, action_dim, embedding_dim, True, self_feature_range,
-            allay_feature_range, 32, mix
+            agent_num, obs_dim, obs_alone_dim, global_obs_dim, action_dim, [128, embedding_dim], True,
+            self_feature_range, allay_feature_range, 32, mix
         )
         data = {
             'obs': {

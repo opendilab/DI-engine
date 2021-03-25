@@ -18,7 +18,7 @@ def eval(
         policy_type: Optional[type] = None,  # subclass of Policy
         model: Optional[Union[type, torch.nn.Module]] = None,  # instance or subclass of torch.nn.Module
         state_dict: Optional[dict] = None,  # policy or model state_dict
-) -> None:
+) -> float:
     r"""
     Overview:
         Pure evaluation entry.
@@ -66,6 +66,8 @@ def eval(
     _, eval_reward = evaluator.eval(0)
     print('Eval is over! The performance of your RL policy is {}'.format(eval_reward))
     evaluator.close()
+
+    return eval_reward
 
 
 def collect_demo_data(
@@ -123,7 +125,7 @@ def collect_demo_data(
     actor.env = actor_env
     actor.policy = policy.collect_mode
     # let's collect some expert demostrations
-    exp_data, _ = actor.generate_data(n_sample=collect_count, iter_count=-1)
+    exp_data = actor.generate_data(n_sample=collect_count, iter_count=-1)
     if cfg.policy.use_cuda:
         exp_data = to_device(exp_data, 'cpu')
     with open(expert_data_path, 'wb') as f:

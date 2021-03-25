@@ -8,10 +8,12 @@ from nervex.rl_utils import coma_data, coma_error, epsilon_greedy, Adder
 from nervex.model import ComaNetwork
 from nervex.armor import Armor
 from nervex.data import timestep_collate
-from .base_policy import Policy, register_policy
+from nervex.utils import POLICY_REGISTRY
+from .base_policy import Policy
 from .common_policy import CommonPolicy
 
 
+@POLICY_REGISTRY.register('coma')
 class COMAPolicy(CommonPolicy):
 
     def _init_learn(self) -> None:
@@ -272,6 +274,3 @@ class COMAPolicy(CommonPolicy):
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss']
-
-
-register_policy('coma', COMAPolicy)

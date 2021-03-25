@@ -2,12 +2,14 @@ from typing import Any, Union
 import gym
 import torch
 import numpy as np
-from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo
+from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.envs.common.common_function import affine_transform
+from nervex.utils import ENV_REGISTRY
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
 
 
+@ENV_REGISTRY.register('pendulum')
 class PendulumEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
@@ -67,6 +69,3 @@ class PendulumEnv(BaseEnv):
 
     def __repr__(self) -> str:
         return "nerveX Pendulum Env({})".format(self._cfg.env_id)
-
-
-register_env('pendulum', PendulumEnv)

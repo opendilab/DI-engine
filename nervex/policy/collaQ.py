@@ -8,10 +8,12 @@ from nervex.rl_utils import v_1step_td_data, v_1step_td_error, epsilon_greedy, A
 from nervex.model import CollaQ
 from nervex.armor import Armor
 from nervex.data import timestep_collate
-from .base_policy import Policy, register_policy
+from nervex.utils import POLICY_REGISTRY
+from .base_policy import Policy
 from .common_policy import CommonPolicy
 
 
+@POLICY_REGISTRY.register('collaq')
 class CollaQPolicy(CommonPolicy):
     r"""
     Overview:
@@ -262,6 +264,3 @@ class CollaQPolicy(CommonPolicy):
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'collaq', ['nervex.model.qmix.qmix']
-
-
-register_policy('collaQ', CollaQPolicy)

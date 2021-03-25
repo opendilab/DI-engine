@@ -22,14 +22,13 @@ cooperative_navigation_qmix_default_config = dict(
     policy=dict(
         use_cuda=True,
         policy_type='qmix',
-        import_names=['nervex.policy.qmix'],
         on_policy=True,
         model=dict(
             agent_num=agent_num,
             obs_dim=2 + 2 + (agent_num - 1) * 2 + num_landmarks * 2,
             global_obs_dim=agent_num * 2 + num_landmarks * 2 + agent_num * 2,
             action_dim=5,
-            embedding_dim=64,
+            hidden_dim_list=[128, 128, 64],
         ),
         learn=dict(
             train_step=100,
@@ -70,7 +69,6 @@ cooperative_navigation_qmix_default_config = dict(
     actor=dict(
         n_episode=4,
         traj_len=max_step,  # cooperative_navigation_episode_max_length
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(

@@ -22,7 +22,7 @@ spaceinvaders_rainbowdqn_default_config = dict(
             encoder_kwargs=dict(encoder_type='conv2d', ),
             obs_dim=[4, 84, 84],
             action_dim=6,
-            embedding_dim=256,
+            hidden_dim_list=[128, 128, 256],
             head_kwargs=dict(
                 dueling=True,
                 distribution=True,
@@ -66,7 +66,6 @@ spaceinvaders_rainbowdqn_default_config = dict(
     actor=dict(
         n_sample=400,
         traj_len=(8 + nstep),
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(

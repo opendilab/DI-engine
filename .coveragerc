@@ -4,4 +4,5 @@ omit =
   nervex/utils/file_helper.py
   nervex/utils/dist_helper.py
   nervex/entry/tests/test_serial_entry_algo.py
+  nervex/entry/dist_entry.py
   nervex/hpc_rl

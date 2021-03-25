@@ -15,8 +15,8 @@ from collections import namedtuple
 from nervex.data import AsyncDataLoader, default_collate
 from nervex.config import base_learner_default_config
 from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer
-from nervex.utils import build_logger, EasyTimer, pretty_print, get_task_uid, import_module
-from nervex.utils import deep_merge_dicts, get_rank
+from nervex.utils import build_logger, EasyTimer, pretty_print, get_task_uid, import_module, LEARNER_REGISTRY, \
+    deep_merge_dicts, get_rank
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
 from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, merge_hooks, LearnerHook
 
@@ -86,6 +86,7 @@ def get_simple_monitor_type(properties: List[str] = []) -> TickMonitor:
         return type('SimpleTickMonitor', (TickMonitor, ), attrs)
 
 
+@LEARNER_REGISTRY.register('base')
 class BaseLearner(object):
     r"""
     Overview:
@@ -93,7 +94,7 @@ class BaseLearner(object):
     Interface:
         __init__, train, start, setup_dataloader, close, call_hook, register_hook, save_checkpoint
     Property:
-        learn_info, priority_info, collect_info, last_iter, name, rank, policy
+        learn_info, priority_info, last_iter, name, rank, policy
         tick_time, monitor, log_buffer, logger, tb_logger, load_path, checkpoint_manager
     """
 
@@ -139,8 +140,6 @@ class BaseLearner(object):
         self._checkpointer_manager = build_checkpoint_helper(self._cfg)
         # Learner hook. Used to do specific things at specific time point. Will be set in ``_setup_hook``
         self._hooks = {'before_run': [], 'before_iter': [], 'after_iter': [], 'after_run': []}
-        # Collect info passed from actor. Used in serial entry for message passing.
-        self._collect_info = {}
         # Priority info. Used to update replay buffer according to data's priority.
         self._priority_info = None
         # Last iteration. Used to record current iter.
@@ -235,8 +234,6 @@ class BaseLearner(object):
             'priority': priority,
             **data_info,
         }
-        # Add collect info
-        log_vars.update(self.collect_info)
         # Discriminate vars in scalar, scalars and histogram type
         # By default, regard a var as scalar type. For scalars and histogram type, must annotate by "[WAHT-TYPE]"
         scalars_vars, histogram_vars = {}, {}
@@ -459,32 +456,6 @@ class BaseLearner(object):
     def priority_info(self, _priority_info: dict) -> None:
         self._priority_info = _priority_info
 
-    # ##################### only serial ###########################
-    @property
-    def collect_info(self) -> dict:
-        return self._collect_info
-
-    @collect_info.setter
-    def collect_info(self, collect_info: dict) -> None:
-        self._collect_info = {k: float(v) for k, v in collect_info.items()}
-
-
-learner_mapping = {'base': BaseLearner}
-
-
-def register_learner(name: str, learner: type) -> None:
-    """
-    Overview:
-        Add a new Learner class with its name to dict learner_mapping, any subclass derived from BaseLearner must
-        use this function to register in nervex system before instantiate.
-    Arguments:
-        - name (:obj:`str`): Name of the new Learner.
-        - learner (:obj:`type`): The new Learner class, should be subclass of ``BaseLearner``.
-    """
-    assert isinstance(name, str)
-    assert issubclass(learner, BaseLearner)
-    learner_mapping[name] = learner
-
 
 def create_learner(cfg: EasyDict) -> BaseLearner:
     """
@@ -499,8 +470,4 @@ def create_learner(cfg: EasyDict) -> BaseLearner:
             learner_mapping's values.
     """
     import_module(cfg.get('import_names', []))
-    learner_type = cfg.get('learner_type', 'base')
-    if learner_type not in learner_mapping.keys():
-        raise KeyError("not support learner type: {}".format(learner_type))
-    else:
-        return learner_mapping[learner_type](cfg)
+    return LEARNER_REGISTRY.build(cfg.get('learner_type', 'base'), cfg=cfg)

@@ -13,7 +13,6 @@ cartpole_ppo_default_loader = dict_(
     policy=item('policy') >> dict_(
         use_cuda=item('use_cuda') >> is_type(bool),
         policy_type=item('policy_type') >> is_type(str),
-        import_names=item('import_names') >> collection(str),
         on_policy=item('on_policy') >> is_type(bool),
         model=item('model') >> dict_(
             obs_dim=item('obs_dim') >> (is_type(int) | collection(int)),
@@ -52,8 +51,7 @@ cartpole_ppo_default_loader = dict_(
     actor=item('actor') >> dict_(
         n_sample=item('n_sample') >> is_type(int) >> interval(8, 128),
         traj_len=item('traj_len') >> ((is_type(int) >> interval(1, 200))),
-        traj_print_freq=item('traj_print_freq') >> is_type(int) >> interval(1, 1000),
-        collect_print_freq=item('traj_print_freq') >> is_type(int) >> interval(1, 1000),
+        collect_print_freq=item('collect_print_freq') >> is_type(int) >> interval(1, 1000),
     ),
     evaluator=item('evaluator') >> dict_(
         n_episode=item('n_episode') >> is_type(int) >> interval(2, 10),
@@ -67,13 +65,10 @@ cartpole_ppo_default_loader = dict_(
 policy_traj_len = item('policy') >> item('collect') >> item('traj_len')
 policy_unroll_len = item('policy') >> item('collect') >> item('unroll_len')
 actor_traj_len = item('actor') >> item('traj_len')
-actor_traj_freq = item('actor') >> item('traj_print_freq')
-collect_traj_freq = item('actor') >> item('collect_print_freq')
 relation_loader = check_only(
     dict_(
         unroll_len_check=mcmp(policy_unroll_len, "<=", policy_traj_len),
         traj_len_check=mcmp(policy_traj_len, ">=", actor_traj_len),
-        freq_print_check=mcmp(actor_traj_freq, "==", collect_traj_freq)
     )
 )
 

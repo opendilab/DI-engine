@@ -23,14 +23,13 @@ cartpole_sqn_default_config = dict(
         use_cuda=False,
         # RL policy register name (refer to function "register_policy").
         policy_type='sqn',
-        import_names=['nervex.policy.sqn'],
         # Whether the RL algorithm is on-policy or off-policy.
         on_policy=False,
         # Model config used for model creating. Remember to change this, especially "obs_dim" and "action_dim" according to specific env.
         model=dict(
             obs_dim=4,
             action_dim=2,
-            embedding_dim=64,
+            hidden_dim_list=[128, 128, 64],
             # Whether to use dueling head.
             dueling=True,
         ),
@@ -86,7 +85,6 @@ cartpole_sqn_default_config = dict(
         # Get "n_episode" complete episodic trajectories per collect.
         # n_episode=8,
         traj_len=traj_len,
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(

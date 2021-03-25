@@ -63,7 +63,6 @@ replay_buffer:
 actor:
     n_sample: 24
     traj_len: 1
-    traj_print_freq: 1000
     collect_print_freq: 1000
 evaluator:
     n_episode: 8

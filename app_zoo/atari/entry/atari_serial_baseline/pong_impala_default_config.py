@@ -61,7 +61,6 @@ pong_impala_default_config = dict(
     actor=dict(
         n_sample=8,
         traj_len=64,
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(

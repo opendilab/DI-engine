@@ -3,7 +3,6 @@ from easydict import EasyDict
 pomdp_ppo_default_config = dict(
     env=dict(
         env_manager_type='subprocess',
-        import_names=['app_zoo.pomdp.envs.atari_env'],
         env_type='pomdp',
         actor_env_num=6,
         evaluator_env_num=3,
@@ -63,7 +62,6 @@ pomdp_ppo_default_config = dict(
     actor=dict(
         n_sample=16,
         traj_len=2000,  # cartpole max episode len
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(

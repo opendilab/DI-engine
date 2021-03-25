@@ -24,8 +24,6 @@ cartpole_dqn_default_config.py
             manager=dict(
                 shared_memory=True,
             ),
-            # Must use the absolute path. All the following "import_names" should obey this too.
-            import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
             # Env register name (refer to function "register_env").
             env_type='cartpole',
             # Env number respectively for actor and evaluator.
@@ -104,7 +102,6 @@ cartpole_dqn_default_config.py
             # Get "n_episode" complete episodic trajectories per collect.
             # n_episode=8,
             traj_len=traj_len,
-            traj_print_freq=100,
             collect_print_freq=100,
         ),
         evaluator=dict(

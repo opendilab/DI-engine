@@ -58,7 +58,6 @@ miner_dqn_default_config = dict(
     actor=dict(
         n_sample=100,
         traj_len=traj_len,
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(

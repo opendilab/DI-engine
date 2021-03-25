@@ -66,7 +66,6 @@ halfcheetah_ddpg_default_config = dict(
     actor=dict(
         n_sample=48,
         traj_len=1,
-        traj_print_freq=1000,
         collect_print_freq=1000,
     ),
     evaluator=dict(

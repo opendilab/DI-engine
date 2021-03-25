@@ -12,12 +12,11 @@ cartpole_dqnvanilla_default_config = dict(
     policy=dict(
         use_cuda=False,
         policy_type='dqn_vanilla',
-        import_names=['nervex.policy.dqn_vanilla'],
         on_policy=False,
         model=dict(
             obs_dim=4,
             action_dim=2,
-            embedding_dim=64,
+            hidden_dim_list=[128, 128, 64],
             dueling=True,
         ),
         learn=dict(
@@ -53,7 +52,6 @@ cartpole_dqnvanilla_default_config = dict(
     actor=dict(
         n_sample=8,
         traj_len=traj_len,
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(

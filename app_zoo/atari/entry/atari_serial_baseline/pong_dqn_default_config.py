@@ -9,7 +9,6 @@ pong_dqn_default_config = dict(
         env_type='atari',
         env_id='PongNoFrameskip-v4',
         frame_stack=4,
-        is_train=True,
         actor_env_num=16,
         evaluator_env_num=8,
     ),
@@ -18,11 +17,12 @@ pong_dqn_default_config = dict(
         policy_type='dqn',
         import_names=['nervex.policy.dqn'],
         on_policy=False,
+        use_priority=True,
         model=dict(
             encoder_kwargs=dict(encoder_type='conv2d', ),
             obs_dim=[4, 84, 84],
             action_dim=6,
-            embedding_dim=512,
+            hidden_dim_list=[128, 128, 512],
             head_kwargs=dict(dueling=False, ),
         ),
         learn=dict(
@@ -59,7 +59,6 @@ pong_dqn_default_config = dict(
     actor=dict(
         n_sample=100,
         traj_len=traj_len,
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(

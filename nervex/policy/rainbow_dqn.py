@@ -6,10 +6,11 @@ from nervex.torch_utils import Adam
 from nervex.rl_utils import dist_nstep_td_data, dist_nstep_td_error, Adder, iqn_nstep_td_data, iqn_nstep_td_error
 from nervex.model import NoiseDistributionFCDiscreteNet, NoiseQuantileFCDiscreteNet
 from nervex.armor import Armor
-from .base_policy import register_policy
+from nervex.utils import POLICY_REGISTRY
 from .dqn import DQNPolicy
 
 
+@POLICY_REGISTRY.register('rainbow_dqn')
 class RainbowDQNPolicy(DQNPolicy):
     r"""
     Overview:
@@ -204,7 +205,3 @@ class RainbowDQNPolicy(DQNPolicy):
         for m in model.modules():
             if hasattr(m, 'reset_noise'):
                 m.reset_noise()
-
-
-# regist rainbow_dqn policy in the policy maps
-register_policy('rainbow_dqn', RainbowDQNPolicy)

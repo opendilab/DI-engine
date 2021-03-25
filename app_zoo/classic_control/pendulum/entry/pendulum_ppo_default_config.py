@@ -14,7 +14,6 @@ pendulum_ppo_default_config = dict(
     policy=dict(
         use_cuda=False,
         policy_type='ppo_vanilla',
-        import_names=['nervex.policy.ppo_vanilla'],
         on_policy=False,
         use_priority=False,
         model=dict(
@@ -61,7 +60,6 @@ pendulum_ppo_default_config = dict(
     actor=dict(
         n_episode=16,
         traj_len=200,
-        traj_print_freq=1000,
         collect_print_freq=1000,
     ),
     evaluator=dict(

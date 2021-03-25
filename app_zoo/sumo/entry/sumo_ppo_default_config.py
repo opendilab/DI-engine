@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-cartpole_ppo_default_config = dict(
+sumo_ppo_default_config = dict(
     env=dict(
         env_manager_type='subprocess',
         import_names=['app_zoo.sumo.envs.sumo_env'],
@@ -49,8 +49,7 @@ cartpole_ppo_default_config = dict(
     ),
     actor=dict(
         n_sample=16,
-        traj_len=200,  # cartpole max episode len
-        traj_print_freq=100,
+        traj_len=200,  # max episode len
         collect_print_freq=100,
     ),
     evaluator=dict(
@@ -72,5 +71,5 @@ cartpole_ppo_default_config = dict(
     ),
     commander=dict(),
 )
-cartpole_ppo_default_config = EasyDict(cartpole_ppo_default_config)
-main_config = cartpole_ppo_default_config
+sumo_ppo_default_config = EasyDict(sumo_ppo_default_config)
+main_config = sumo_ppo_default_config

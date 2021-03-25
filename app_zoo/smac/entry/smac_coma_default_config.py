@@ -6,7 +6,6 @@ evaluator_env_num = 5
 smac_coma_default_config = dict(
     env=dict(
         env_manager_type='subprocess',
-        import_names=['app_zoo.smac.envs.smac_env'],
         env_type='smac',
         map_name='3s5z',
         agent_num=agent_num,
@@ -17,7 +16,6 @@ smac_coma_default_config = dict(
     policy=dict(
         use_cuda=True,
         policy_type='coma',
-        import_names=['nervex.policy.coma'],
         on_policy=True,
         model=dict(
             agent_num=agent_num,
@@ -28,7 +26,7 @@ smac_coma_default_config = dict(
             act_dim=[
                 14,
             ],
-            embedding_dim=64,
+            hidden_dim_list=[128, 128, 256],
         ),
         learn=dict(
             train_step=1,
@@ -72,7 +70,6 @@ smac_coma_default_config = dict(
     actor=dict(
         n_episode=4,
         traj_len=1000,  # smac_episode_max_length
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(

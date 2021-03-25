@@ -26,7 +26,6 @@ cooperative_navigation_atoc_default_config = dict(
     policy=dict(
         use_cuda=True,
         policy_type='atoc',
-        import_names=['nervex.policy.atoc'],
         on_policy=False,
         use_priority=False,
         model=dict(
@@ -78,7 +77,6 @@ cooperative_navigation_atoc_default_config = dict(
         # n_episode=4,
         n_sample=500,
         traj_len=max_step,  # cooperative_navigation_episode_max_length
-        traj_print_freq=100,
         collect_print_freq=4,
     ),
     evaluator=dict(

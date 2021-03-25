@@ -9,7 +9,8 @@ import yaml
 from easydict import EasyDict
 from sumolib import checkBinary
 
-from nervex.envs.env import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo
+from nervex.envs.env import BaseEnv, BaseEnvTimestep, BaseEnvInfo
+from nervex.utils import ENV_REGISTRY
 from nervex.torch_utils import to_ndarray, to_tensor
 from nervex.utils import deep_merge_dicts
 from app_zoo.sumo.envs.action.sumo_action_runner import SumoRawActionRunner
@@ -26,6 +27,7 @@ def build_config(user_config):
     return deep_merge_dicts(default_config, user_config)
 
 
+@ENV_REGISTRY.register('sumo_wj3')
 class SumoWJ3Env(BaseEnv):
     r"""
     Overview:
@@ -179,6 +181,3 @@ class SumoWJ3Env(BaseEnv):
     @action.setter
     def action(self, _action):
         self._action = _action
-
-
-register_env('sumo_wj3', SumoWJ3Env)

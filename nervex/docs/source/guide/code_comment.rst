@@ -50,7 +50,7 @@ You can know about the specific format from the following code example.
         Interface:
             __init__, train, start, setup_dataloader, close, call_hook, register_hook, save_checkpoint
         Property:
-            learn_info, priority_info, collect_info, last_iter, name, rank, policy
+            learn_info, priority_info, last_iter, name, rank, policy
             tick_time, monitor, log_buffer, logger, tb_logger, load_path, checkpoint_manager
         """
 
@@ -92,8 +92,6 @@ You can know about the specific format from the following code example.
             self._checkpointer_manager = build_checkpoint_helper(self._cfg)
             # Learner hook. Used to do specific things at specific time point. Will be set in ``_setup_hook``
             self._hooks = {'before_run': [], 'before_iter': [], 'after_iter': [], 'after_run': []}
-            # Collect info passed from actor. Used in serial entry for message passing.
-            self._collect_info = {}
             # Priority info. Used to update replay buffer according to data's priority.
             self._priority_info = None
             # Last iteration. Used to record current iter.

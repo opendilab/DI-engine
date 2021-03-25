@@ -59,7 +59,6 @@ bitflip_dqn_default_config = dict(
     actor=dict(
         n_episode=1,
         traj_len=50,
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(

@@ -46,7 +46,7 @@ class OutTickMonitor(LoggedModel):
     """
     Overview:
         OutTickMonitor is to monitor read-out indicators for ``expire`` times recent read-outs.
-        Indicators include: read out time; average and max of read out data items' reuse; average, max and min of
+        Indicators include: read out time; average and max of read out data items' use; average, max and min of
         read out data items' priorityl; average and max of staleness.
     Interface:
         __init__, fixed_time, current_time, freeze, unfreeze, register_attribute_value, __getattr__
@@ -54,7 +54,8 @@ class OutTickMonitor(LoggedModel):
         time, expire
     """
     out_time = LoggedValue(float)
-    reuse = LoggedValue(int)
+    # use, priority and staleness are all averaged across one batch.
+    use = LoggedValue(float)
     priority = LoggedValue(float)
     staleness = LoggedValue(float)
 
@@ -80,8 +81,8 @@ class OutTickMonitor(LoggedModel):
             return min(_list)
 
         self.register_attribute_value('avg', 'out_time', partial(__avg_func, prop_name='out_time'))
-        self.register_attribute_value('avg', 'reuse', partial(__avg_func, prop_name='reuse'))
-        self.register_attribute_value('max', 'reuse', partial(__max_func, prop_name='reuse'))
+        self.register_attribute_value('avg', 'use', partial(__avg_func, prop_name='use'))
+        self.register_attribute_value('max', 'use', partial(__max_func, prop_name='use'))
         self.register_attribute_value('avg', 'priority', partial(__avg_func, prop_name='priority'))
         self.register_attribute_value('max', 'priority', partial(__max_func, prop_name='priority'))
         self.register_attribute_value('min', 'priority', partial(__min_func, prop_name='priority'))
@@ -169,7 +170,6 @@ class ReplayBuffer:
     def __init__(
             self,
             name: str,
-            load_path: Optional[str] = None,
             maxlen: int = 10000,
             max_reuse: Optional[int] = None,
             max_staleness: Optional[int] = None,
@@ -187,10 +187,7 @@ class ReplayBuffer:
             Initialize the buffer
         Arguments:
             - name (:obj:`str`): Buffer name, mainly used to generate unique data id and logger name.
-            - load_path (:obj:`Optional[str]`): Demonstration data path. Buffer will use file data to initialize \
-                ``self._data``. ``None`` means not to load data at the beginning.
-            - maxlen (:obj:`int`): The maximum value of the buffer length. If ``load_path`` is not ``None``, it is \
-                highly recommended to set ``maxlen`` no fewer than demonstration data's length.
+            - maxlen (:obj:`int`): The maximum value of the buffer length.
             - max_reuse (:obj:`int` or None): The maximum reuse times of each element in buffer. Once a data is \
                 sampled(used) ``max_reuse`` times, it would be removed out of buffer.
             - min_sample_ratio (:obj:`float`): The minimum ratio restriction for sampling, only when \
@@ -217,18 +214,18 @@ class ReplayBuffer:
         self._push_count = 0
         # Point to the position where next data can be inserted, i.e. latest inserted data's next position.
         # This position also means the stalest(oldest) data in this buffer as well.
-        self.pointer = 0
+        self._pointer = 0
         # Point to the true head of the circular queue. The true head data is the stalest(oldest) data in this queue.
-        # Because buffer would remove data due to staleness or reuse times, and at the beginning when queue is not
+        # Because buffer would remove data due to staleness or use times, and at the beginning when queue is not
         # filled with data true head would always be 0, so ``true_head`` may be not equal to ``pointer``;
         # Otherwise, they two should be the same. True head is used to optimize staleness check in ``sample_check``.
-        self.true_head = 0
+        self._true_head = 0
         # Is used to generate a unique id for each data: If a new data is inserted, its unique id will be this.
-        self.next_unique_id = 0
-        # {position_idx/pointer_idx: reuse_count}
-        self._reuse_count = {idx: 0 for idx in range(maxlen)}
+        self._next_unique_id = 0
+        # {position_idx/pointer_idx: use_count}
+        self._use_count = {idx: 0 for idx in range(maxlen)}
         # Max priority till now. Is used to initizalize a data's priority if "priority" is not passed in with the data.
-        self.max_priority = 1.0
+        self._max_priority = 1.0
         # A small positive number to avoid edge-case, e.g. "priority" == 0.
         self._eps = eps
         # Data check function list, used in ``append`` and ``extend``. This buffer requires data to be dict.
@@ -237,10 +234,9 @@ class ReplayBuffer:
         self._lock = LockContext(type_=LockContextType.THREAD_LOCK)
 
         self.name = name
-        self.load_path = load_path
         self._maxlen = maxlen
-        self.max_reuse = max_reuse if max_reuse is not None else np.inf
-        self.max_staleness = max_staleness if max_staleness is not None else np.inf
+        self._max_reuse = max_reuse if max_reuse is not None else np.inf
+        self._max_staleness = max_staleness if max_staleness is not None else np.inf
         assert min_sample_ratio >= 1, min_sample_ratio
         self.min_sample_ratio = min_sample_ratio
         assert 0 <= alpha <= 1, alpha
@@ -256,8 +252,8 @@ class ReplayBuffer:
         # Capacity needs to be the power of 2.
         capacity = int(np.power(2, np.ceil(np.log2(self.maxlen))))
         # Sum segtree and min segtree are used to sample data according to priority.
-        self.sum_tree = SumSegmentTree(capacity)
-        self.min_tree = MinSegmentTree(capacity)
+        self._sum_tree = SumSegmentTree(capacity)
+        self._min_tree = MinSegmentTree(capacity)
 
         # Monitor & Logger
         if monitor_cfg is None:
@@ -283,18 +279,12 @@ class ReplayBuffer:
         self._in_vars = ['in_count_avg', 'in_time_avg']
         self._in_vars = [self.name + var for var in self._in_vars]
         self._out_vars = [
-            'out_count_avg', 'out_time_avg', 'reuse_avg', 'reuse_max', 'priority_avg', 'priority_max', 'priority_min'
+            'out_count_avg', 'out_time_avg', 'use_avg', 'use_max', 'priority_avg', 'priority_max', 'priority_min'
         ]
         self._out_vars = [self.name + var for var in self._out_vars]
         for var in self._in_vars + self._out_vars:
             self._tb_logger.register_var('buffer_{}/'.format(self.name) + var)
         self._log_freq = self.monitor_cfg.log_freq
-
-        # Load data from file if load_path in config is not None.
-        if self.load_path is not None:
-            with open(self.load_path, "rb+") as f:
-                _demo_data = pickle.load(f)
-            self.extend(_demo_data)
 
     def sample_check(self, size: int, cur_learner_iter: int) -> bool:
         r"""
@@ -315,20 +305,20 @@ class ReplayBuffer:
         if size == 0:
             return True
         with self._lock:
-            p = self.true_head
+            p = self._true_head
             while True:
                 if self._data[p] is not None:
                     staleness = self._calculate_staleness(p, cur_learner_iter)
-                    if staleness >= self.max_staleness:
+                    if staleness >= self._max_staleness:
                         self._remove(p)
                     else:
                         # Since the circular queue ``self._data`` guarantees that data's staleness is decreasing from
-                        # index self.pointer to index self.pointer - 1, we can jump out of the loop as soon as
+                        # index self._pointer to index self._pointer - 1, we can jump out of the loop as soon as
                         # meeting a fresh enough data
-                        self.true_head = p
+                        self._true_head = p
                         break
                 p = (p + 1) % self._maxlen
-                if p == self.pointer:
+                if p == self._pointer:
                     # Traverse a circle and go back to the start pointer, which means can stop staleness checking now
                     break
             if self._valid_count / size < self.min_sample_ratio:
@@ -382,7 +372,7 @@ class ReplayBuffer:
 
                 - replay_unique_id: The data item's unique id, using ``self._generate_id`` to generate it.
                 - replay_buffer_idx: The data item's position index in the queue, this position may already have an \
-                    old element, then it would be replaced by this new input one. using ``self.pointer`` to locate.
+                    old element, then it would be replaced by this new input one. using ``self._pointer`` to locate.
         Arguments:
             - ori_data (:obj:`Any`): The data which will be inserted.
         """
@@ -398,16 +388,16 @@ class ReplayBuffer:
                     # If data check fails, log it and return without any operations.
                     self._logger.info('Illegal data type [{}], reject it...'.format(type(data)))
                     return
-                if self._data[self.pointer] is None:
+                if self._data[self._pointer] is None:
                     self._valid_count += 1
                 self._push_count += 1
-                data['replay_unique_id'] = self._generate_id(self.next_unique_id)
-                data['replay_buffer_idx'] = self.pointer
+                data['replay_unique_id'] = self._generate_id(self._next_unique_id)
+                data['replay_buffer_idx'] = self._pointer
                 self._set_weight(data)
-                self._data[self.pointer] = data
-                self._reuse_count[self.pointer] = 0
-                self.pointer = (self.pointer + 1) % self._maxlen
-                self.next_unique_id += 1
+                self._data[self._pointer] = data
+                self._use_count[self._pointer] = 0
+                self._pointer = (self._pointer + 1) % self._maxlen
+                self._next_unique_id += 1
 
             self._monitor_update_of_push(1, self._timer.value)
 
@@ -430,21 +420,21 @@ class ReplayBuffer:
                 valid_data = [d for d, flag in zip(data, check_result) if flag]
                 length = len(valid_data)
                 for i in range(length):
-                    valid_data[i]['replay_unique_id'] = self._generate_id(self.next_unique_id + i)
-                    valid_data[i]['replay_buffer_idx'] = (self.pointer + i) % self.maxlen
+                    valid_data[i]['replay_unique_id'] = self._generate_id(self._next_unique_id + i)
+                    valid_data[i]['replay_buffer_idx'] = (self._pointer + i) % self.maxlen
                     self._set_weight(valid_data[i])
-                    if self._data[(self.pointer + i) % self.maxlen] is None:
+                    if self._data[(self._pointer + i) % self.maxlen] is None:
                         self._valid_count += 1
                     self._push_count += 1
-                # When updating ``_data`` and ``_reuse_count``, should consider two cases regarding
+                # When updating ``_data`` and ``_use_count``, should consider two cases regarding
                 # the relationship between "pointer + data length" and "queue max length" to check whether
                 # data will exceed beyond queue's max length limitation.
-                if self.pointer + length <= self._maxlen:
-                    self._data[self.pointer:self.pointer + length] = valid_data
-                    for idx in range(self.pointer, self.pointer + length):
-                        self._reuse_count[idx] = 0
+                if self._pointer + length <= self._maxlen:
+                    self._data[self._pointer:self._pointer + length] = valid_data
+                    for idx in range(self._pointer, self._pointer + length):
+                        self._use_count[idx] = 0
                 else:
-                    data_start = self.pointer
+                    data_start = self._pointer
                     valid_data_start = 0
                     residual_num = len(valid_data)
                     while True:
@@ -453,15 +443,15 @@ class ReplayBuffer:
                         self._data[data_start:data_start + L] = valid_data[valid_data_start:valid_data_start + L]
                         residual_num -= L
                         for i in range(data_start, data_start + L):
-                            self._reuse_count[i] = 0
+                            self._use_count[i] = 0
                         if residual_num <= 0:
                             break
                         else:
                             data_start = 0
                             valid_data_start += L
                 # Update ``pointer`` and ``next_unique_id`` after the whole list is pushed into buffer.
-                self.pointer = (self.pointer + length) % self._maxlen
-                self.next_unique_id += length
+                self._pointer = (self._pointer + length) % self._maxlen
+                self._next_unique_id += length
 
             self._monitor_update_of_push(length, self._timer.value)
 
@@ -483,7 +473,7 @@ class ReplayBuffer:
                     self._data[idx]['priority'] = priority + self._eps  # Add epsilon to avoid priority == 0
                     self._set_weight(self._data[idx])
                     # Update max priority
-                    self.max_priority = max(self.max_priority, priority)
+                    self._max_priority = max(self._max_priority, priority)
 
     def clear(self) -> None:
         """
@@ -493,10 +483,9 @@ class ReplayBuffer:
         with self._lock:
             for i in range(len(self._data)):
                 self._remove(i)
-                self._reuse_count[i] = 0
             self._valid_count = 0
-            self.pointer = 0
-            self.max_priority = 1.0
+            self._pointer = 0
+            self._max_priority = 1.0
 
     def close(self) -> None:
         """
@@ -516,16 +505,16 @@ class ReplayBuffer:
         r"""
         Overview:
             Set sumtree and mintree's weight of the input data according to its priority.
-            If input data does not have key "priority", it would set to ``self.max_priority`` instead.
+            If input data does not have key "priority", it would set to ``self._max_priority`` instead.
         Arguments:
             - data (:obj:`Dict`): The data whose priority(weight) in segement tree should be set/updated.
         """
         if 'priority' not in data.keys() or data['priority'] is None:
-            data['priority'] = self.max_priority
+            data['priority'] = self._max_priority
         weight = data['priority'] ** self.alpha
         idx = data['replay_buffer_idx']
-        self.sum_tree[idx] = weight
-        self.min_tree[idx] = weight
+        self._sum_tree[idx] = weight
+        self._min_tree[idx] = weight
 
     def _data_check(self, d: Any) -> bool:
         r"""
@@ -553,9 +542,9 @@ class ReplayBuffer:
         # uniformly sample within each interval
         mass = intervals + np.random.uniform(size=(size, )) * 1. / size
         # rescale to [0, S), where S is the sum of all datas' priority (root value of sum tree)
-        mass *= self.sum_tree.reduce()
+        mass *= self._sum_tree.reduce()
         # find prefix sum index to sample with probability
-        return [self.sum_tree.find_prefixsum_idx(m) for m in mass]
+        return [self._sum_tree.find_prefixsum_idx(m) for m in mass]
 
     def _remove(self, idx: int) -> None:
         r"""
@@ -566,14 +555,15 @@ class ReplayBuffer:
             - idx (:obj:`int`): Data at this position will be removed.
         """
         self._data[idx] = None
-        self.sum_tree[idx] = self.sum_tree.neutral_element
-        self.min_tree[idx] = self.min_tree.neutral_element
+        self._sum_tree[idx] = self._sum_tree.neutral_element
+        self._min_tree[idx] = self._min_tree.neutral_element
+        self._use_count[idx] = 0
         self._valid_count -= 1
 
     def _sample_with_indices(self, indices: List[int], cur_learner_iter: int) -> list:
         r"""
         Overview:
-            Sample data with ``indices``; Remove a data item if it is reused for too many times.
+            Sample data with ``indices``; Remove a data item if it is used for too many times.
         Arguments:
             - indices (:obj:`List[int]`): A list including all the sample indices.
             - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
@@ -581,8 +571,8 @@ class ReplayBuffer:
             - data (:obj:`list`) Sampled data.
         """
         # Calculate max weight for normalizing IS
-        sum_tree_root = self.sum_tree.reduce()
-        p_min = self.min_tree.reduce() / sum_tree_root
+        sum_tree_root = self._sum_tree.reduce()
+        p_min = self._min_tree.reduce() / sum_tree_root
         max_weight = (self._valid_count * p_min) ** (-self._beta)
         data = []
         for idx in indices:
@@ -592,19 +582,19 @@ class ReplayBuffer:
                 copy_data = copy.deepcopy(self._data[idx])
             else:
                 copy_data = self._data[idx]
-            # Store staleness, reuse and IS(importance sampling weight for gradient step) for monitor and outer use
+            # Store staleness, use and IS(importance sampling weight for gradient step) for monitor and outer use
             copy_data['staleness'] = self._calculate_staleness(idx, cur_learner_iter)
-            copy_data['reuse'] = self._reuse_count[idx]
-            p_sample = self.sum_tree[idx] / sum_tree_root
+            copy_data['use'] = self._use_count[idx]
+            p_sample = self._sum_tree[idx] / sum_tree_root
             weight = (self._valid_count * p_sample) ** (-self._beta)
             copy_data['IS'] = weight / max_weight
             data.append(copy_data)
-            self._reuse_count[idx] += 1
-        # Remove datas whose "reuse count" is greater than ``max_reuse``
+            self._use_count[idx] += 1
+        # Remove datas whose "use count" is greater than ``max_reuse``
         for idx in indices:
-            if self._reuse_count[idx] >= self.max_reuse:
+            if self._use_count[idx] >= self._max_reuse:
                 self._remove(idx)
-        # Anneal update beta
+        # Beta anneal 
         if self._anneal_step != 0:
             self._beta = min(1.0, self._beta + self._beta_anneal_step)
         return data
@@ -627,7 +617,7 @@ class ReplayBuffer:
         }
         if self._in_count % self._log_freq == 0:
             self._logger.debug("===Add In Buffer {} Times===".format(self._in_count))
-            self._logger.print_vars(in_dict, level=logging.DEBUG)
+            self._logger.print_vars(in_dict)
             in_dict = {'buffer_{}/'.format(self.name) + k: v for k, v in in_dict.items()}
             self._tb_logger.print_vars(in_dict, self._in_count, 'scalar')
         self._in_count += 1
@@ -639,23 +629,23 @@ class ReplayBuffer:
             Called in ``sample``.
         Arguments:
             - sample_data (:obj:`list`): Sampled data. Used to get sample length and data's attributes, \
-                e.g. reuse, priority, staleness, etc.
+                e.g. use, priority, staleness, etc.
             - sample_time (:obj:`float`): How long does it take to sample such datas.
         """
         self._natural_monitor.out_count = len(sample_data)
         self._out_tick_monitor.out_time = sample_time
-        reuse = sum([d['reuse'] for d in sample_data]) / len(sample_data)
+        use = sum([d['use'] for d in sample_data]) / len(sample_data)
         priority = sum([d['priority'] for d in sample_data]) / len(sample_data)
         staleness = sum([d['staleness'] for d in sample_data]) / len(sample_data)
-        self._out_tick_monitor.reuse = int(reuse)
+        self._out_tick_monitor.use = use
         self._out_tick_monitor.priority = priority
         self._out_tick_monitor.staleness = staleness
         self._out_tick_monitor.time.step()
         out_dict = {
             'out_count_avg': self._natural_monitor.avg['out_count'](),
             'out_time_avg': self._out_tick_monitor.avg['out_time'](),
-            'reuse_avg': self._out_tick_monitor.avg['reuse'](),
-            'reuse_max': self._out_tick_monitor.max['reuse'](),
+            'use_avg': self._out_tick_monitor.avg['use'](),
+            'use_max': self._out_tick_monitor.max['use'](),
             'priority_avg': self._out_tick_monitor.avg['priority'](),
             'priority_max': self._out_tick_monitor.max['priority'](),
             'priority_min': self._out_tick_monitor.min['priority'](),
@@ -664,7 +654,7 @@ class ReplayBuffer:
         }
         if self._out_count % self._log_freq == 0:
             self._logger.debug("===Read Buffer {} Times===".format(self._out_count))
-            self._logger.print_vars(out_dict, level=logging.DEBUG)
+            self._logger.print_vars(out_dict)
             out_dict = {'buffer_{}/'.format(self.name) + k: v for k, v in out_dict.items()}
             self._tb_logger.print_vars(out_dict, self._out_count, 'scalar')
         self._out_count += 1
@@ -736,3 +726,26 @@ class ReplayBuffer:
     @property
     def push_count(self) -> int:
         return self._push_count
+
+    def state_dict(self) -> dict:
+        return {
+            'data': self._data,
+            'use_count': self._use_count,
+            'pointer': self._pointer,
+            'max_priority': self._max_priority,
+            'anneal_step': self._anneal_step,
+            'beta': self._beta,
+            'true_head': self._true_head,
+            'next_unique_id': self._next_unique_id,
+            'valid_count': self._valid_count,
+            'sum_tree': self._sum_tree,
+            'min_tree': self._min_tree,
+        }
+
+    def load_state_dict(self, _state_dict: dict) -> None:
+        assert 'data' in _state_dict
+        if set(_state_dict.keys()) == set(['data']):
+            self.extend(_state_dict['data'])
+        else:
+            for k, v in _state_dict.items():
+                setattr(self, '_{}'.format(k), v)

@@ -20,8 +20,7 @@ cooperative_navigation_collaQ_default_config = dict(
     ),
     policy=dict(
         use_cuda=True,
-        policy_type='collaQ',
-        import_names=['nervex.policy.collaQ'],
+        policy_type='collaq',
         on_policy=True,
         model=dict(
             agent_num=agent_num,
@@ -29,7 +28,7 @@ cooperative_navigation_collaQ_default_config = dict(
             obs_alone_dim=2 + 2 + (num_landmarks) * 2,
             global_obs_dim=agent_num * 2 + num_landmarks * 2 + agent_num * 2,
             action_dim=5,
-            embedding_dim=64,
+            hidden_dim_list=[128, 128, 64],
             enable_attention=True,
             self_feature_range=[2, 4],  # placeholder
             ally_feature_range=[4, agent_num * 2 + 2],  # placeholder
@@ -74,7 +73,6 @@ cooperative_navigation_collaQ_default_config = dict(
     actor=dict(
         n_episode=4,
         traj_len=max_step,  # cooperative_navigation_episode_max_length
-        traj_print_freq=100,
         collect_print_freq=4,
     ),
     evaluator=dict(

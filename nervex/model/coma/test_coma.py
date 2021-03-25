@@ -29,7 +29,7 @@ def test_rnn_actor_net():
     embedding_dim = 64
     action_dim = (6, )
     data = torch.randn(T, B, A, N)
-    model = ComaActorNetwork((N, ), action_dim, embedding_dim)
+    model = ComaActorNetwork((N, ), action_dim, [128, embedding_dim])
     prev_state = [[None for _ in range(A)] for _ in range(B)]
     for t in range(T):
         inputs = {'obs': {'agent_state': data[t], 'action_mask': None}, 'prev_state': prev_state}

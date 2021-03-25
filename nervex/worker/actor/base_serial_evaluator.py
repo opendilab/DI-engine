@@ -30,8 +30,8 @@ class BaseSerialEvaluator(object):
         self._default_n_episode = cfg.get('n_episode', None)
         self._stop_val = cfg.stop_val
         self._logger, self._tb_logger = build_logger(path='./log/evaluator', name='evaluator', need_tb=True)
-        for var in ['episode_count', 'step_count', 'avg_step_per_episode', 'avg_time_per_step', 'avg_time_per_episode',
-                    'reward_mean', 'reward_std']:
+        for var in ['episode_count', 'envstep_count', 'avg_envstep_per_episode', 'evaluate_time', 'avg_envstep_per_sec',
+                    'avg_time_per_episode', 'reward_mean', 'reward_std', 'each_reward']:
             self._tb_logger.register_var('evaluator/' + var)
         self._timer = EasyTimer()
         self._cfg = cfg
@@ -77,7 +77,7 @@ class BaseSerialEvaluator(object):
             n_episode = self._default_n_episode
         assert n_episode is not None, "please indicate eval n_episode"
         episode_count = 0
-        step_count = 0
+        envstep_count = 0
         episode_reward = []
         info = {}
         self.reset()
@@ -110,29 +110,35 @@ class BaseSerialEvaluator(object):
                             )
                         )
                         episode_count += 1
-                    step_count += 1
+                    envstep_count += 1
         duration = self._timer.value
         info = {
             'train_iter': train_iter,
             'ckpt_name': 'iteration_{}.pth.tar'.format(train_iter),
             'episode_count': episode_count,
-            'step_count': step_count,
-            'avg_step_per_episode': step_count / episode_count,
-            'avg_time_per_step': duration / step_count,
-            'avg_time_per_episode': duration / episode_count,
+            'envstep_count': envstep_count,
+            'avg_envstep_per_episode': envstep_count / episode_count,
+            'evaluate_time': duration,
+            'avg_envstep_per_sec': envstep_count / duration,
+            'avg_time_per_episode': episode_count / duration,
             'reward_mean': np.mean(episode_reward),
-            'reward_std': np.std(episode_reward)
+            'reward_std': np.std(episode_reward),
+            'each_reward': episode_reward,
         }
+        # self._logger.print_vars(info)
         self._logger.info(
-            "[EVALUATOR]evaluate end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()]))
+            "[EVALUATOR] Evaluation ends:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()]))
         )
-        tb_vars = [['evaluator/' + k, v, train_iter] for k, v in info.items() if k not in ['train_iter', 'ckpt_name']]
+        tb_vars = [
+            ['evaluator/' + k, v, train_iter] for k, v in info.items()
+            if k not in ['train_iter', 'ckpt_name', 'each_reward']
+        ]
         self._tb_logger.add_val_list(tb_vars, viz_type='scalar')
         eval_reward = np.mean(episode_reward)
         stop_flag = eval_reward >= self._stop_val
         if stop_flag:
             self._logger.info(
-                "[EVALUATOR] current eval_reward: {} is greater than the stop_val: {}, so the training program is over."
-                .format(eval_reward, self._stop_val)
+                "[EVALUATOR] Current eval_reward: {} is greater than stop_val: {}, so the training program is over.".
+                format(eval_reward, self._stop_val)
             )
         return stop_flag, eval_reward

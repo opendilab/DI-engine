@@ -7,10 +7,12 @@ from nervex.torch_utils import Adam
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, Adder
 from nervex.model import QAC
 from nervex.armor import Armor
-from .base_policy import Policy, register_policy
+from nervex.utils import POLICY_REGISTRY
+from .base_policy import Policy
 from .common_policy import CommonPolicy
 
 
+@POLICY_REGISTRY.register('atoc')
 class ATOCPolicy(CommonPolicy):
     r"""
     Overview:
@@ -286,6 +288,3 @@ class ATOCPolicy(CommonPolicy):
             'action'
         ]
         return ret
-
-
-register_policy('atoc', ATOCPolicy)

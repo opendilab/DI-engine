@@ -16,12 +16,11 @@ cartpole_r2d2_default_config = dict(
     policy=dict(
         use_cuda=False,
         policy_type='r2d2',
-        import_names=['nervex.policy.r2d2'],
         on_policy=False,
         model=dict(
             obs_dim=4,
             action_dim=2,
-            embedding_dim=32,
+            hidden_dim_list=[128, 128, 64],
         ),
         learn=dict(
             train_step=1,
@@ -64,7 +63,6 @@ cartpole_r2d2_default_config = dict(
     actor=dict(
         n_sample=32,
         traj_len=14,
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(
