@@ -110,12 +110,7 @@ class A2CPolicy(CommonPolicy):
             Init traj and unroll length, adder, collect armor.
         """
 
-        self._traj_len = self._cfg.collect.traj_len
         self._unroll_len = self._cfg.collect.unroll_len
-        if self._traj_len == 'inf':
-            self._traj_len = float('inf')
-        # because gae calculation need v_t+1
-        assert self._traj_len > 1, "a2c traj len should be greater than 1"
         self._collect_armor = Armor(self._model)
         self._collect_armor.add_plugin('main', 'multinomial_sample')
         self._collect_armor.mode(train=False)
@@ -165,24 +160,21 @@ class A2CPolicy(CommonPolicy):
         }
         return transition
 
-    def _get_train_sample(self, traj: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         r"""
         Overview:
             Get the trajectory and the n step return data, then sample from the n_step return data
         Arguments:
-            - traj (:obj:`deque`): The trajectory's cache
+            - data (:obj:`deque`): The trajectory's cache
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
         # adder is defined in _init_collect
-        data = self._adder.get_traj(traj, self._traj_len, return_num=1)
-        if self._traj_len == float('inf'):
-            assert data[-1]['done'], "episode must be terminated by done=True"
         data = self._adder.get_gae_with_default_last_value(
             data, data[-1]['done'], gamma=self._gamma, gae_lambda=self._gae_lambda
         )
         if self._collect_use_nstep_return:
-            data = self._adder.get_nstep_return_data(data, self._collect_nstep, self._traj_len)
+            data = self._adder.get_nstep_return_data(data, self._collect_nstep)
         return self._adder.get_train_sample(data)
 
     def _init_eval(self) -> None:

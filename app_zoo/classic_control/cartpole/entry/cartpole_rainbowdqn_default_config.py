@@ -34,7 +34,6 @@ cartpole_rainbowdqn_default_config = dict(
             ),
         ),
         collect=dict(
-            traj_len=(8 + nstep),
             unroll_len=1,
             algo=dict(nstep=nstep, ),
         ),

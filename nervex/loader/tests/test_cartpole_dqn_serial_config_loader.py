@@ -40,7 +40,6 @@ def test_real_loader():
                 ),
             ),
             collect=item('collect') >> dict_(
-                traj_len=item('traj_len') >> ((is_type(int) >> interval(1, 200)) | (enum("inf") >> to_type(float))),
                 unroll_len=item('unroll_len') >> is_type(int) >> interval(1, 200),
                 algo=item('algo') >> dict_(nstep=item('nstep') >> (is_type(int) & interval(1, 10))),
             ),
@@ -54,12 +53,7 @@ def test_real_loader():
             ),
         ),
         replay_buffer=item('replay_buffer') >> dict_(
-            buffer_name=item('buffer_name') >> collection(str),
-            agent=item('agent') >> dict_(
-                replay_buffer_size=item('replay_buffer_size') >> is_type(int) >> interval(1, math.inf),
-                max_reuse=item('max_reuse') >> is_type(int) >> interval(1, math.inf),
-                min_sample_ratio=item('min_sample_ratio') >> interval(1.0, 10.0)
-            ),
+            replay_buffer_size=item('replay_buffer_size') >> is_type(int) >> interval(1, math.inf),
         ),
         learner=item('learner') >> dict_(load_path=item('load_path') >> is_type(str)),
         commander=item('commander') | raw({}),
@@ -75,15 +69,13 @@ def test_real_loader():
     )
     learn_nstep = item('policy') >> item('learn') >> item('algo') >> item('nstep')
     collect_nstep = item('policy') >> item('collect') >> item('algo') >> item('nstep')
-    policy_traj_len = item('policy') >> item('collect') >> item('traj_len')
     policy_unroll_len = item('policy') >> item('collect') >> item('unroll_len')
     actor_traj_len = item('actor') >> item('traj_len')
     relation_loader = check_only(
         dict_(
             nstep_check=mcmp(learn_nstep, "==", collect_nstep),
-            unroll_len_check=mcmp(policy_unroll_len, "<=", policy_traj_len),
+            unroll_len_check=mcmp(policy_unroll_len, "<=", actor_traj_len),
             eps_check=item('policy') >> item('command') >> item('eps') >> mcmp(item('start'), ">=", item('end')),
-            traj_len_check=mcmp(policy_traj_len, "==", actor_traj_len),
         )
     )
     cartpole_dqn_loader = element_loader >> relation_loader

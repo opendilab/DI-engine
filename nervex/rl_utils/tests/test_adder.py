@@ -67,17 +67,17 @@ class TestAdder:
         nstep = 3
         adder = Adder(use_cuda=False, unroll_len=1)
         data = [self.get_transition() for _ in range(10)]
-        output_data = adder.get_nstep_return_data(data, nstep=nstep, traj_len=12)
+        output_data = adder.get_nstep_return_data(data, nstep=nstep)
         assert len(output_data) == 10
         for i, o in enumerate(output_data):
             assert o['reward'].shape == (nstep, )
             if i >= 10 - nstep + 1:
-                assert o['done'] is True
+                assert o['done'] is data[-1]['done']
                 assert o['reward'][-(i - 10 + nstep):].sum() == 0
 
         data = [self.get_transition() for _ in range(12)]
-        output_data = adder.get_nstep_return_data(data, nstep=nstep, traj_len=12)
-        assert len(output_data) == 12 - nstep
+        output_data = adder.get_nstep_return_data(data, nstep=nstep)
+        assert len(output_data) == 12
 
     def test_get_train_sample(self):
         adder = Adder(use_cuda=False, unroll_len=1, last_fn_type='drop')

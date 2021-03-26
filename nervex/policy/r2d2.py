@@ -223,7 +223,7 @@ class R2D2Policy(CommonPolicy):
             - samples (:obj:`dict`): The training samples generated
         """
         data = self._adder.get_traj(traj_cache, self._traj_len, return_num=self._collect_burnin_step)
-        data = self._adder.get_nstep_return_data(data, self._collect_nstep, self._traj_len)
+        data = self._adder.get_nstep_return_data(data, self._collect_nstep)
         return self._adder.get_train_sample(data)
 
     def _init_eval(self) -> None:

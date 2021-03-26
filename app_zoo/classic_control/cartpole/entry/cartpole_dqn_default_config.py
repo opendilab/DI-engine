@@ -1,7 +1,6 @@
 from easydict import EasyDict
 
 nstep = 1
-traj_len = 1
 cartpole_dqn_default_config = dict(
     env=dict(
         # Support ['base', 'subprocess']. 'base' is pseudo parallel and 'subprocess' is subprocess parallel.
@@ -53,8 +52,6 @@ cartpole_dqn_default_config = dict(
         ),
         # collect_mode config
         collect=dict(
-            # Will collect trajectory with length "traj_len".
-            traj_len=traj_len,
             # Cut trajectories into pieces with length "unrol_len".
             unroll_len=1,
             algo=dict(nstep=nstep, ),
@@ -81,7 +78,7 @@ cartpole_dqn_default_config = dict(
         n_sample=8,
         # Get "n_episode" complete episodic trajectories per collect.
         # n_episode=8,
-        traj_len=traj_len,
+        traj_len=1,
         collect_print_freq=100,
     ),
     evaluator=dict(

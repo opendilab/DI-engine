@@ -143,9 +143,6 @@ class RainbowDQNPolicy(DQNPolicy):
                 the rainbow dqn enable the eps_greedy_sample, but might not need to use it, \
                     as the noise_net contain noise that can help exploration
         """
-        self._traj_len = self._cfg.collect.traj_len
-        if self._traj_len == 'inf':
-            self._traj_len = float('inf')
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
         self._collect_nstep = self._cfg.collect.algo.nstep
@@ -184,8 +181,7 @@ class RainbowDQNPolicy(DQNPolicy):
             - samples (:obj:`dict`): The training samples generated
         """
         # adder is defined in _init_collect
-        data = self._adder.get_traj(traj, self._traj_len, return_num=self._collect_nstep)
-        data = self._adder.get_nstep_return_data(data, self._collect_nstep, self._traj_len)
+        data = self._adder.get_nstep_return_data(traj, self._collect_nstep)
         return self._adder.get_train_sample(data)
 
     def default_model(self) -> Tuple[str, List[str]]:

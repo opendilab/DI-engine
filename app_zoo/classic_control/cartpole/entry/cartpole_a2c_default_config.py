@@ -29,21 +29,21 @@ cartpole_a2c_default_config = dict(
             ),
         ),
         collect=dict(
-            traj_len='inf',
             unroll_len=1,
             algo=dict(
                 discount_factor=0.9,
                 gae_lambda=0.95,
+                use_nstep_return=False,
             ),
         ),
         command=dict(),
     ),
     replay_buffer=dict(
-        replay_buffer_size=100000,
+        replay_buffer_size=10000,
     ),
     actor=dict(
-        n_sample=8,
-        traj_len=200,  # cartpole max episode len
+        n_sample=128,
+        traj_len='inf',
         collect_print_freq=100,
     ),
     evaluator=dict(

@@ -179,6 +179,7 @@ class BaseSerialActor(object):
                         self._total_train_sample_count += len(train_sample)
                         self._env_info[env_id]['train_sample'] += len(train_sample)
                         collected_sample += len(train_sample)
+                        self._traj_cache[env_id].clear()
                     # Reset if env is done.
                     if timestep.done:
                         # Env reset is done by env_manager automatically
