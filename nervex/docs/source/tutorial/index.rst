@@ -409,7 +409,13 @@ nerveX为了处理实际问题场景中复杂的环境结构定义，抽象了�
         env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     else:
         env_fn, actor_env_cfg, evaluator_env_cfg = env_setting
-    env_manager_type = BaseEnvManager if cfg.env.env_manager_type == 'base' else SubprocessEnvManager
+    em_type = cfg.env.env_manager_type
+    if em_type == 'base':
+        env_manager_type = BaseEnvManager
+    elif em_type == 'aynsc_subprocess':
+        env_manager_type = SubprocessEnvManager
+    elif em_type == 'subprocess':
+        env_manager_type = SyncSubprocessEnvManager
 
 其中从config中获取env_setting的方式为 ``get_vec_env_setting`` 函数：
 
@@ -437,7 +443,7 @@ nerveX为了处理实际问题场景中复杂的环境结构定义，抽象了�
     # create 4 CartPoleEnv env with default config(set `env_cfg=[{} for _ in range(4)]`)
     env_manager = SubprocessEnvManager(env_fn=CartPoleEnv, env_cfg=[{} for _ in range(4)], env_num=4)
 
-我们在 ``serial_pipeline`` 中，通过 ``config`` 文件中对应的 ``cfg.env.env_manager_type`` 控制使用 ``SubprocessEnvManager`` 
+我们在 ``serial_pipeline`` 中，通过 ``config`` 文件中对应的 ``cfg.env.env_manager_type`` 控制使用 ``SyncSubprocessEnvManager``, ``SubprocessEnvManager``
 还是 ``BaseEnvManager`` 。
 
 .. note::

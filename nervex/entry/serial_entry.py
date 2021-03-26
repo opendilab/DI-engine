@@ -7,8 +7,8 @@ import torch
 import math
 import logging
 
+from nervex.envs import BaseEnvManager, SubprocessEnvManager, SyncSubprocessEnvManager
 from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommander
-from nervex.worker import BaseEnvManager, SubprocessEnvManager, SyncSubprocessEnvManager
 from nervex.config import read_config
 from nervex.data import BufferManager
 from nervex.policy import create_policy

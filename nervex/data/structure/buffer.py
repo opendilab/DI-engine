@@ -175,7 +175,7 @@ class ReplayBuffer:
             min_sample_ratio: float = 1.,
             alpha: float = 0.,
             beta: float = 0.,
-            anneal_step: Optional[Union[int, float]] = float("int"),
+            anneal_step: Optional[Union[int, float]] = float("inf"),
             enable_track_used_data: bool = False,
             deepcopy: bool = False,
             monitor_cfg: Optional[EasyDict] = None,

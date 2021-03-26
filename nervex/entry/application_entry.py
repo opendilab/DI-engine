@@ -2,7 +2,7 @@ from typing import Union, Optional, List, Any
 import pickle
 import torch
 from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommander
-from nervex.worker import BaseEnvManager, SubprocessEnvManager
+from nervex.envs import BaseEnvManager, SubprocessEnvManager, SyncSubprocessEnvManager
 from nervex.config import read_config
 from nervex.data import BufferManager
 from nervex.policy import create_policy
@@ -38,7 +38,13 @@ def eval(
         env_fn, _, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     else:
         env_fn, _, evaluator_env_cfg = env_setting
-    env_manager_type = BaseEnvManager if cfg.env.env_manager_type == 'base' else SubprocessEnvManager
+    em_type = cfg.env.env_manager_type
+    if em_type == 'base':
+        env_manager_type = BaseEnvManager
+    elif em_type == 'aynsc_subprocess':
+        env_manager_type = SubprocessEnvManager
+    elif em_type == 'subprocess':
+        env_manager_type = SyncSubprocessEnvManager
     evaluator_env = env_manager_type(
         env_fn,
         env_cfg=evaluator_env_cfg,
@@ -101,7 +107,13 @@ def collect_demo_data(
         env_fn, actor_env_cfg, _ = get_vec_env_setting(cfg.env)
     else:
         env_fn, actor_env_cfg, _ = env_setting
-    env_manager_type = BaseEnvManager if cfg.env.env_manager_type == 'base' else SubprocessEnvManager
+    em_type = cfg.env.env_manager_type
+    if em_type == 'base':
+        env_manager_type = BaseEnvManager
+    elif em_type == 'aynsc_subprocess':
+        env_manager_type = SubprocessEnvManager
+    elif em_type == 'subprocess':
+        env_manager_type = SyncSubprocessEnvManager
     actor_env = env_manager_type(
         env_fn,
         env_cfg=actor_env_cfg,
