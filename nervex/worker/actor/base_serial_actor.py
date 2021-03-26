@@ -232,7 +232,7 @@ class BaseSerialActor(object):
             tb_vars = [['actor/' + k, v, iter_count] for k, v in info.items() if k not in ['each_reward']]
             self._tb_logger.add_val_list(tb_vars, viz_type='scalar')
         return return_data
-    
+
     def _var_reset(self, env_id: int) -> None:
         """
         Overview:

@@ -11,7 +11,7 @@ from easydict import EasyDict
 
 from nervex.envs import get_vec_env_setting, SubprocessEnvManager, BaseEnvManager
 from nervex.torch_utils import to_device, tensor_to_list
-from nervex.utils import get_data_compressor, lists_to_dicts, pretty_print 
+from nervex.utils import get_data_compressor, lists_to_dicts, pretty_print
 from .base_parallel_actor import BaseActor, register_actor
 from .base_serial_actor import CachePool
 
