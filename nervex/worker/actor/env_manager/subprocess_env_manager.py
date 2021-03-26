@@ -176,7 +176,7 @@ class SubprocessEnvManager(BaseEnvManager):
             env_fn: Callable,
             env_cfg: Iterable,
             env_num: int,
-            episode_num: Optional[int] = 'inf',
+            episode_num: Optional[Union[int, float]] = float('inf'),
             manager_cfg: Optional[dict] = {},
     ) -> None:
         """
@@ -200,10 +200,9 @@ class SubprocessEnvManager(BaseEnvManager):
     def _create_state(self) -> None:
         r"""
         Overview:
-            Fork/spawn sub-processes and create pipes to convey the data.
+            Fork/spawn sub-processes and create pipes to transfer the data.
         """
         self._env_episode_count = {env_id: 0 for env_id in range(self.env_num)}
-        self._env_dones = {env_id: False for env_id in range(self.env_num)}
         self._next_obs = {env_id: None for env_id in range(self.env_num)}
         if self.shared_memory:
             obs_space = self._env_ref.info().obs_space
@@ -214,8 +213,8 @@ class SubprocessEnvManager(BaseEnvManager):
             self._obs_buffers = {env_id: None for env_id in range(self.env_num)}
         self._pipe_parents, self._pipe_children = zip(*[Pipe() for _ in range(self.env_num)])
         ctx = get_context(self.context_str)
-        # due to the runtime delay of lambda expression, we use partial for the generation of different envs,
-        # otherwise, it will only use the last item cfg.
+        # Due to the runtime delay of lambda expression, we use partial function to generate different envs;
+        # Otherwise(If use lambda expression), it will only use the last item cfg.
         env_fn = [partial(self._env_fn, cfg=self._env_cfg[env_id]) for env_id in range(self.env_num)]
         self._subprocesses = [
             ctx.Process(
@@ -363,11 +362,11 @@ class SubprocessEnvManager(BaseEnvManager):
         Overview:
             Wrapper of step function in the environment.
         Arguments:
-            - actions (:obj:`Dict`): a dictionary, {env_id: action}, which includes actions and their env ids.
+            - actions (:obj:`Dict[int, Any]`): {env_id: action}
         Return:
-            - timesteps (:obj:`Dict`): a dictionary, {env_id: timestep}, which includes each env's timestep.
+            - timesteps (:obj:`Dict[int, namedtuple]`): {env_id: timestep}. timestep is in ``torch.Tensor`` type.
         Note:
-            - The env_id that appears in actions will also be returned in timesteps.
+            - The env_id that appears in ``actions`` will also be returned in ``timesteps``.
             - Each environment is run by a subprocess seperately. Once an environment is done, it is reset immediately.
         Example:
             >>>     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
@@ -439,8 +438,8 @@ class SubprocessEnvManager(BaseEnvManager):
 
         return self._inv_transform(timesteps)
 
-    # this method must be staticmethod, otherwise there will be some resource conflicts(e.g. port or file)
-    # env must be created in worker, which is a trick of avoiding env pickle errors.
+    # This method must be staticmethod, otherwise there will be some resource conflicts(e.g. port or file)
+    # Env must be created in worker, which is a trick of avoiding env pickle errors.
     @staticmethod
     def worker_fn(p, c, env_fn_wrapper, obs_buffer, method_name_list) -> None:
         """
@@ -551,7 +550,7 @@ class SubprocessEnvManager(BaseEnvManager):
         Overview:
             wait at least enough(len(ready_conn) >= wait_num) num connection within timeout constraint
             if timeout is None, wait_num == len(ready_conn), means sync mode;
-            if timeout is not None, len(ready_conn) >= wait_num when returns;
+            if timeout is not None, when len(ready_conn) >= wait_num, returns;
         """
         assert 1 <= wait_num <= len(rest_conn
                                     ), 'please indicate proper wait_num: <wait_num: {}, rest_conn_num: {}>'.format(

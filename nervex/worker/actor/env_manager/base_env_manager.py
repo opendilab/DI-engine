@@ -39,6 +39,8 @@ class BaseEnvManager(ABC):
         self._env_fn = env_fn
         self._env_cfg = env_cfg
         self._env_num = env_num
+        if episode_num == "inf":
+            episode_num = float("inf")
         self._epsiode_num = episode_num
         self._transform = partial(to_ndarray)
         self._inv_transform = partial(to_tensor, dtype=torch.float32)
@@ -148,10 +150,10 @@ class BaseEnvManager(ABC):
         Arguments:
             - actions (:obj:`Dict[int, Any]`): {env_id: action}
         Return:
-            - timesteps (:obj:`Dict[int, namedtuple]`): {env_id: timestep}. Timestep is in ``torch.Tensor`` type.
+            - timesteps (:obj:`Dict[int, namedtuple]`): {env_id: timestep}. timestep is in ``torch.Tensor`` type.
         Note:
             - The env_id that appears in ``actions`` will also be returned in ``timesteps``.
-            - An env will reset as long as it is done.
+            - Once an environment is done, it is reset immediately.
         Example:
             >>>     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
             >>>     timesteps = env_manager.step(actions_dict):
