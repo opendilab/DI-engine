@@ -71,7 +71,7 @@ ant_td3_default_config = dict(
     evaluator=dict(
         n_episode=8,
         eval_freq=1000,
-        stop_val=6000,
+        stop_value=6000,
     ),
     learner=dict(
         hook=dict(

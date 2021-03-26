@@ -67,7 +67,7 @@ pomdp_ppo_default_config = dict(
     evaluator=dict(
         n_episode=5,
         eval_freq=200,
-        stop_val=20,
+        stop_value=20,
     ),
     learner=dict(
         load_path='',

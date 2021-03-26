@@ -51,7 +51,7 @@ Parallel Pipeline Config
             evaluator_env_num=5,
             actor_episode_num=2,
             evaluator_episode_num=1,
-            eval_stop_val=1e9,
+            eval_stop_value=1e9,
         ),
     )
 

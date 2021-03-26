@@ -71,7 +71,7 @@ spaceinvaders_rainbowdqn_default_config = dict(
     evaluator=dict(
         n_episode=5,
         eval_freq=500,
-        stop_val=700,
+        stop_value=700,
     ),
     learner=dict(
         load_path='',

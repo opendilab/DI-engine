@@ -60,7 +60,7 @@ pong_a2c_default_config = dict(
     evaluator=dict(
         n_episode=8,
         eval_freq=10000,
-        stop_val=20,
+        stop_value=20,
     ),
     learner=dict(
         load_path='',

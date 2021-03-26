@@ -84,7 +84,7 @@ __one_vs_one_actor_default_config = dict(
         actor_episode_num=4,
         evaluator_env_num=3,
         evaluator_episode_num=1,
-        eval_stop_val=20,
+        eval_stop_value=20,
         opponent_type="builtin",  # opponent_type is only used in evaluator
         env_id='cPongDouble-v0',
     ),

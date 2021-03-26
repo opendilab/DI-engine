@@ -78,7 +78,7 @@ cooperative_navigation_atoc_default_config = dict(
     evaluator=dict(
         n_episode=10,
         eval_freq=2000,
-        stop_val=0,  # We don't have a stop_val yet. The stop_val here is unreachable.
+        stop_value=0,  # We don't have a stop_value yet. The stop_value here is unreachable.
     ),
     learner=dict(
         hook=dict(

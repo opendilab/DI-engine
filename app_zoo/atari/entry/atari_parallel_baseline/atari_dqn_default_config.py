@@ -80,7 +80,7 @@ __zergling_actor_default_config = dict(
         actor_episode_num=4,
         evaluator_env_num=3,
         evaluator_episode_num=1,
-        eval_stop_val=20,
+        eval_stop_value=20,
         env_id='PongNoFrameskip-v4',
         frame_stack=4,
     ),

@@ -77,7 +77,7 @@ __zergling_actor_default_config = dict(
         actor_episode_num=2,
         evaluator_env_num=5,
         evaluator_episode_num=1,
-        eval_stop_val=195,
+        eval_stop_value=195,
     ),
 )
 

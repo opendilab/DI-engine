@@ -28,7 +28,7 @@ class BaseSerialEvaluator(object):
             - cfg (:obj:`EasyDict`)
         """
         self._default_n_episode = cfg.get('n_episode', None)
-        self._stop_val = cfg.stop_val
+        self._stop_value = cfg.stop_value
         self._logger, self._tb_logger = build_logger(path='./log/evaluator', name='evaluator', need_tb=True)
         for var in ['episode_count', 'envstep_count', 'avg_envstep_per_episode', 'evaluate_time', 'avg_envstep_per_sec',
                     'avg_time_per_episode', 'reward_mean', 'reward_std', 'each_reward']:
@@ -135,10 +135,10 @@ class BaseSerialEvaluator(object):
         ]
         self._tb_logger.add_val_list(tb_vars, viz_type='scalar')
         eval_reward = np.mean(episode_reward)
-        stop_flag = eval_reward >= self._stop_val
+        stop_flag = eval_reward >= self._stop_value
         if stop_flag:
             self._logger.info(
-                "[EVALUATOR] Current eval_reward: {} is greater than stop_val: {}, so the training program is over.".
-                format(eval_reward, self._stop_val)
+                "[EVALUATOR] Current eval_reward: {} is greater than stop_value: {}, so the training program is over.".
+                format(eval_reward, self._stop_value)
             )
         return stop_flag, eval_reward

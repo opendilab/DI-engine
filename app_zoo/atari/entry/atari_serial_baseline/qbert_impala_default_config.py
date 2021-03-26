@@ -67,7 +67,7 @@ qbert_impala_default_config = dict(
     evaluator=dict(
         n_episode=5,
         eval_freq=100,
-        stop_val=10000,
+        stop_value=10000,
     ),
     learner=dict(
         load_path='',

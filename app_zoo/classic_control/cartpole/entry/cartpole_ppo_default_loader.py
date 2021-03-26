@@ -52,7 +52,7 @@ cartpole_ppo_default_loader = dict_(
         n_episode=item('n_episode') >> is_type(int) >> interval(2, 10),
         eval_freq=item('eval_freq') >> is_type(int) >> interval(1, 500),
         #
-        stop_val=item('stop_val') >> is_type(int),
+        stop_value=item('stop_value') >> is_type(int),
     ),
     learner=item('learner') >> dict_(load_path=item('load_path') >> is_type(str), hook=item('hook')),
     commander=item('commander') | raw({}),

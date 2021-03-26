@@ -55,7 +55,7 @@ sumo_ppo_default_config = dict(
     evaluator=dict(
         n_episode=1,
         eval_freq=200,
-        stop_val=195,
+        stop_value=195,
     ),
     learner=dict(
         load_path='',

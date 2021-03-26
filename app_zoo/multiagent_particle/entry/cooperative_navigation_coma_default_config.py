@@ -76,7 +76,7 @@ cooperative_navigation_coma_default_config = dict(
     evaluator=dict(
         n_episode=3,
         eval_freq=1000,
-        stop_val=0,
+        stop_value=0,
     ),
     learner=dict(
         hook=dict(

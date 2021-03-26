@@ -74,7 +74,7 @@ cooperative_navigation_collaQ_default_config = dict(
     evaluator=dict(
         n_episode=2,
         eval_freq=200,
-        stop_val=0,  # We don't have a stop_val yet. The stop_val here is unreachable.
+        stop_value=0,  # We don't have a stop_value yet. The stop_value here is unreachable.
     ),
     learner=dict(
         hook=dict(

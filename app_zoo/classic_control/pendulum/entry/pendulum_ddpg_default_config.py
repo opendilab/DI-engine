@@ -61,7 +61,7 @@ pendulum_ddpg_default_config = dict(
     evaluator=dict(
         n_episode=8,
         eval_freq=20,
-        stop_val=-250,
+        stop_value=-250,
     ),
     learner=dict(
         hook=dict(

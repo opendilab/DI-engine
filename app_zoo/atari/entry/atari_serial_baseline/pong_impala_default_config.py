@@ -66,7 +66,7 @@ pong_impala_default_config = dict(
     evaluator=dict(
         n_episode=5,
         eval_freq=100,
-        stop_val=20,
+        stop_value=20,
     ),
     learner=dict(
         load_path='',

@@ -71,7 +71,7 @@ cooperative_navigation_iql_default_config = dict(
     evaluator=dict(
         n_episode=5,
         eval_freq=5,
-        stop_val=0,
+        stop_value=0,
     ),
     learner=dict(
         hook=dict(

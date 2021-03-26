@@ -63,7 +63,7 @@ qbert_dqn_default_config = dict(
     evaluator=dict(
         n_episode=4,
         eval_freq=5000,
-        stop_val=8000,
+        stop_value=8000,
     ),
     learner=dict(
         load_path='',

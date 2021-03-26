@@ -64,7 +64,7 @@ spaceinvaders_dqn_default_config = dict(
     evaluator=dict(
         n_episode=4,
         eval_freq=5000,
-        stop_val=20,
+        stop_value=20,
     ),
     learner=dict(
         load_path='',

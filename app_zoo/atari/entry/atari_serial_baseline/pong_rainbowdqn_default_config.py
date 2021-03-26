@@ -71,7 +71,7 @@ pong_rainbowdqn_default_config = dict(
     evaluator=dict(
         n_episode=3,
         eval_freq=1000,
-        stop_val=20,
+        stop_value=20,
     ),
     learner=dict(
         load_path='',

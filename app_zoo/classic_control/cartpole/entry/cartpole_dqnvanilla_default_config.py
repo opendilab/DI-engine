@@ -50,7 +50,7 @@ cartpole_dqnvanilla_default_config = dict(
     evaluator=dict(
         n_episode=5,
         eval_freq=10,
-        stop_val=195,
+        stop_value=195,
     ),
     learner=dict(
         load_path='',

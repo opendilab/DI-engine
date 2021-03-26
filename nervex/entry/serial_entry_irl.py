@@ -112,7 +112,7 @@ def serial_pipeline_irl(
             stop_flag, eval_reward = evaluator.eval(learner.train_iter)
             eval_interval = 0
             if stop_flag and learner.train_iter > 0:
-                # Evaluator's mean episode reward reaches the expected ``stop_val``.
+                # Evaluator's mean episode reward reaches the expected ``stop_value``.
                 print(
                     "[nerveX serial pipeline] Your RL agent is converged, you can refer to " +
                     "'log/evaluator/evaluator_logger.txt' for details"

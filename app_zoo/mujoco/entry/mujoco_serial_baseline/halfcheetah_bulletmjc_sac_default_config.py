@@ -72,7 +72,7 @@ halfcheetah_sac_default_config = dict(
     evaluator=dict(
         n_episode=8,
         eval_freq=1000,
-        stop_val=11000,
+        stop_value=11000,
     ),
     learner=dict(
         hook=dict(

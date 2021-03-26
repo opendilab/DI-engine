@@ -60,7 +60,7 @@ qbert_a2c_default_config = dict(
     evaluator=dict(
         n_episode=8,
         eval_freq=10000,
-        stop_val=9000,
+        stop_value=9000,
     ),
     learner=dict(
         load_path='',

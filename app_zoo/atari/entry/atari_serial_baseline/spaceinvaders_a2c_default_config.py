@@ -60,7 +60,7 @@ spaceinvaders_a2c_default_config = dict(
     evaluator=dict(
         n_episode=8,
         eval_freq=10000,
-        stop_val=1400,
+        stop_value=1400,
     ),
     learner=dict(
         load_path='',

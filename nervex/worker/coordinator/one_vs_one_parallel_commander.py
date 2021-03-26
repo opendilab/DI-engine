@@ -202,11 +202,11 @@ class OneVsOneCommander(BaseCommander):
                 ['evaluator/' + k, v, train_iter] for k, v in info.items() if k not in ['train_iter', 'game_result']
             ]
             self._tb_logger.add_val_list(tb_vars, viz_type='scalar')
-            eval_stop_val = self._cfg.actor_cfg.env_kwargs.eval_stop_val
-            if eval_stop_val is not None and finished_task['reward_mean'] >= eval_stop_val and is_hardest:
+            eval_stop_value = self._cfg.actor_cfg.env_kwargs.eval_stop_value
+            if eval_stop_value is not None and finished_task['reward_mean'] >= eval_stop_value and is_hardest:
                 self._logger.info(
-                    "[nerveX parallel pipeline] Current eval_reward: {} is greater than the stop_val: {}".
-                    format(finished_task['reward_mean'], eval_stop_val) + ", so the total training program is over."
+                    "[nerveX parallel pipeline] Current eval_reward: {} is greater than the stop_value: {}".
+                    format(finished_task['reward_mean'], eval_stop_value) + ", so the total training program is over."
                 )
                 self._end_flag = True
                 return True

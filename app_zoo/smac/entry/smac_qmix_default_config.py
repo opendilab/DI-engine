@@ -68,7 +68,7 @@ smac_qmix_default_config = dict(
     evaluator=dict(
         n_episode=5,
         eval_freq=50,
-        stop_val=0.7,
+        stop_value=0.7,
     ),
     learner=dict(
         hook=dict(

@@ -24,7 +24,7 @@ loop
   commander -> commander: step
   alt this iteration needs evaluation
     evaluator -> evaluator: eval_performance
-    alt reach eval stop_val
+    alt reach eval stop_value
       learner -> learner: save checkpoint and exit
     else eval_reward is new highest
       learner -> learner: save checkpoint

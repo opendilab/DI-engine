@@ -3,7 +3,7 @@ common:
     save_path: '.'
     load_path: ''
 env:
-    env_id: 'InvertedDoublePendulum-v2'  # ['HalfCheetah-v1', 'Hopper-v1', 'Walker2d-v1']  # stop_val: 10500, 3700, 5300
+    env_id: 'InvertedDoublePendulum-v2'  # ['HalfCheetah-v1', 'Hopper-v1', 'Walker2d-v1']  # stop_value: 10500, 3700, 5300
     # 'Ant-v2': 5400
     # 'Reacher-v2': -3.1
     # 'InvPendulum-v2': 1000
@@ -69,7 +69,7 @@ actor:
 evaluator:
     n_episode: 8
     eval_freq: 1000
-    stop_val: 10000
+    stop_value: 10000
 learner:
     hook:
         log_show:

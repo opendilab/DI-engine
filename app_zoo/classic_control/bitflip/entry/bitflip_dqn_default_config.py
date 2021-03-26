@@ -58,7 +58,7 @@ bitflip_dqn_default_config = dict(
     evaluator=dict(
         n_episode=16,
         eval_freq=100,
-        stop_val=0.9,
+        stop_value=0.9,
     ),
     learner=dict(
         hook=dict(

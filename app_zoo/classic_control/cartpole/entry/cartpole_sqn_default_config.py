@@ -87,8 +87,8 @@ cartpole_sqn_default_config = dict(
         n_episode=5,
         # Evaluate every "eval_freq" training steps.
         eval_freq=10,
-        # Once evaluation reward reaches "stop_val", which means the policy converges, then the whole training can end.
-        stop_val=200,
+        # Once evaluation reward reaches "stop_value", which means the policy converges, then the whole training can end.
+        stop_value=200,
     ),
     # You can refer to "config/serial.py" for details.
     learner=dict(

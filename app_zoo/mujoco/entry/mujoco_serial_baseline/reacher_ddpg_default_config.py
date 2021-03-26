@@ -71,7 +71,7 @@ reacher_ddpg_default_config = dict(
     evaluator=dict(
         n_episode=8,
         eval_freq=1000,
-        stop_val=-3.5,
+        stop_value=-3.5,
     ),
     learner=dict(
         hook=dict(
