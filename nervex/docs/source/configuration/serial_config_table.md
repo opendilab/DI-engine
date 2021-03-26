@@ -11,9 +11,12 @@
 | Name                      | Type                                 | Description                                                  |
 | ------------------------- | ------------------------------------ | ------------------------------------------------------------ |
 | env.env_manager_type      | Enum[str]:``['base', 'subprocess']`` | **环境管理器**的类型。其中，`` 'base'``会串行执行各环境的step；而``'subprocess'``会为每个环境开启一个子进程，采用并行的方式执行各环境的step。 |
-| env.manager               | Dict[str, Any]                       | 环境管理器的配置信息，通常包含以下key：``shared_memory``。   |
-| env.manager.shared_memory | str                                  | 若``env_manager_type``为``'subprocess'``，可设置此项为``True``或``False``来决定，是否为子进程环境们分配一块共享内存，用于缩短进程间通信的时间。 |
-| env.import_names          | List[str]                            | 环境类的定义文件路径。需为``list``形式（即便只有一个需要import时也是如此），且要求必须为绝对路径，例如``['app_zoo.classic_control.cartpole.envs.cartpole_env']``。以下所有``import_names``都同理。 |
+| env.manager               | Dict[str, Any]                       | 环境管理器的配置信息，目前仅在``env_manager_type``为``'subprocess'``时传递一些参数。通常包含以下key：``shared_memory`` ``context`` ``wait_num`` ``timeout``。 |
+| env.manager.shared_memory | bool                                 | 是否为子进程们分配一块共享内存，用于缩短进程间通信的时间。   |
+| env.manager.context       | str                                  | 开启子进程所用函数。默认情况下，Windows平台为``'spawn'``，其它平台为``'fork'``。 |
+| env.manager.wait_num      | int                                  | ``'subprocess'``环境管理器的逻辑是：等待至少``wait_num``个环境``step``完毕，等待``timeout``秒，然后返回。可以根据环境运行速度的快慢来调整这两个参数。 |
+| env.manager.timeout       | float                                | 见上。                                                       |
+| env.import_names          | List[str]                            | 环境类的定义文件路径。需为``list``形式（即便只有一个需要import时也是如此），要求每个路径必须为**绝对路径**，即可以在python idle内执行``import name1.name2``，例如``['app_zoo.classic_control.cartpole.envs.cartpole_env']``。以下所有``import_names``都同理。其余路径，若不明确指明，均为**相对路径**即可。 |
 | env.env_type              | Enum[str]: 具体请参考``app_zoo``     | 环境在注册时所使用的名字，例如``'cartpole'`` ``'pendulum'``  ``'atari'`` ``'mujoco'`` ``'smac'``等（若为``'atari'`` ``'mujoco'``这类集成了多个小环境的大环境，还需要包含 ``env_id``这一项，详见表格下一行）。 |
 | env.env_id                | str                                  | 若``env_type``为``'atari'`` ``'mujoco'等``，**必须**在该项中指定小环境的名字。例如，``'atari'``中可为``'pong'`` ``'qbert'``等，``'mujoco'``中可为``'Ant-v3'`` ``'HalfCheetah-v3'``等。 |
 | env.actor_env_num         | int                                  | 开启多少个环境供actor采集数据，必须为正整数。                |
@@ -54,7 +57,7 @@ pong_dqn_default_config = dict(
 | policy.model.action_dim              | Union[int, List[int]]                          | policy产生的action的维度。若有多个维度，需使用``list``。     |
 | policy.model中其他可能出现的项       | Any                                            | 若使用自定义model，由于model类型过多，很难在此说明清楚，请直接参考``default_model``方法中指明的model所在的类。将在下一部分以例子的形式说明。 |
 | policy.learn                         | Dict[str, Any]                                 | policy的learn模式中需要用到的参数，通常包含以下key：``train_step`` ``batch_size`` ``learning_rate`` ``weight_decay`` ``algo``。 |
-| policy.learn.train_step              | int                                            | 在serial pipeline中，actor和learner交替工作。该项便是指，当轮到learner工作时，learner会从replay buffer中sample多少次数据，用于policy的更新。必须为正整数。该数值越大，迭代越快，但使用的数据就越off-policy。 |
+| policy.learn.train_step              | int                                            | 在serial pipeline中，actor和learner交替工作。``train_step``是指，当轮到learner工作时，learner会调用``policy._forward_learn``的次数。必须为正整数。该数值越大，迭代越快，但使用的数据就越off-policy。 |
 | policy.learn.batch_size              | int                                            | learner更新策略时，一次train step所用的batch包含多少个训练样本。 |
 | policy.learn.learning_rate           | float                                          | learner更新网络参数时使用的学习率。                          |
 | policy.learn.weight_decay            | float                                          | learner更新网络参数时使用的正则项系数。                      |
@@ -63,8 +66,8 @@ pong_dqn_default_config = dict(
 | policy.learn.algo.discount_factor    | float                                          | 计算累计奖励（acummulative reward）时的折扣因子。必须为[0, 1]区间内的浮点数。 |
 | policy.learn.algo中其他可能出现的项  | Dict[str, Any]                                 | 和具体算法强相关，建议直接查看对应policy。将在下一部分以例子的形式说明。 |
 | policy.collect                       | Dict[str, Any]                                 | policy的learn模式中需要用到的参数，通常包含以下key：``traj_len`` ``unroll_len`` ``algo``。 |
-| policy.collect.traj_len              | int                                            | actor在收集数据时，一次与环境交互``traj_len``次，得到一条长度为``traj_len``的轨迹。 |
-| policy.collect.unroll_len            | int                                            | actor将收集到的轨迹切割成多段，每段长度为``unroll_len``，该项通常设置为1即可，除非算法有要求（例如IMPALA）。 |
+| policy.collect.traj_len              | int                                            | actor在收集数据时，一次与环境交互``traj_len``次，得到一条长度最大为``traj_len``的轨迹（由于可能遇到环境结束，不一定能达到``traj_len``），经过一些处理后得到可用于训练的sample。 |
+| policy.collect.unroll_len            | int                                            | actor将收集到的轨迹切割成多段，每段长度为``unroll_len``，该项通常设置为1即可，除非模型或算法有要求（例如RNN模型）。 |
 | policy.collect.algo                  | Dict[str, Any]                                 | policy的collect模式中和算法最直接相关的参数。                |
 | policy.command                       | Dict[str, Any]                                 | policy的learn模式中需要用到的参数。例如若使用epsilon贪婪算法进行探索，则包含key：``eps`` 。 |
 | policy.command.eps                   | Dict[str, Any]                                 | 包含以下四个key：``type``表示使用何种衰减方式，支持指数型``exp``和线型``linear``；``start``表示epsilon的初始值；``end``表示epsilon衰减的最小值；``decay``为衰减过程中用到的参数。 |
@@ -137,8 +140,7 @@ pong_dqn_default_config = dict(
 | replay_buffer.agent.monitor                | Dict[str, Any] | agent buffer中autolog monitor的配置项，通常包含以下key：``log_freq`` ``log_path`` ``natural_expire`` ``tick_expire``。 |
 | replay_buffer.agent.monitor.log_freq       | int            | agent buffer中以何种频率对数据的插入与取出相关信息进行记录。 |
 | replay_buffer.agent.monitor.log_path       | str            | agent buffer的text log文件路径。                             |
-| replay_buffer.agent.monitor.natural_expire | int            | agent buffer的autolog monitor的自然时间窗。                  |
-| replay_buffer.agent.monitor.tick_expire    | int            | agent buffer的autolog monitor的tick时间窗。                  |
+| replay_buffer.agent.monitor.natural_expire | int            | agent buffer的autolog monitor的自然时间窗，表示会对``natural_expire``秒内的数据进行一些统计量（如均值、最值等）的计算。更详细的内容请参考``AutoLog Overview``。 |
 
 **实例**
 
@@ -163,8 +165,9 @@ pong_dqn_default_config = dict(
 
 | Name                     | Type  | Description                                                  |
 | ------------------------ | ----- | ------------------------------------------------------------ |
-| actor.n_sample           | int   | ``n_sample``与``n_episode``，任选一项填写即可。actor对轨迹数据进行处理后，得到的一条可用于训练的数据称为称为一个sample。``n_sample``表示当actor采集到这么多sample后就会停止，转到learner训练。无论是``n_sample``还是``n_episode``，再从learner转回actor工作时，环境都会继续之前的状态运行，而非重启环境。 |
+| actor.n_sample           | int   | ``n_sample``与``n_episode``，任选一项填写即可。actor对轨迹数据进行处理后，得到的一条可用于训练的数据称为称为一个sample。``n_sample``表示当actor采集到这么多sample后就会停止，转到learner训练。 |
 | actor.n_episode          | int   | ``n_sample``与``n_episode``，任选一项填写即可。``n_episode``表示当actor与环境互动这么多episode后就会停止，转到learner训练。 |
+|                          |       | actor在collect任务中，会根据``traj_len``与环境交互得到轨迹，处理后得到一些训练数据，但这些数据不一定能满足``n_sample``或是``n_episode``，故actor可能会与环境按``traj_len``交互多次，直到满足``n_sample``或是``n_episode``。无论是``n_sample``还是``n_episode``，再从learner转回actor工作时，环境都会继续之前的状态运行，而非重启环境。 |
 | actor.traj_len           | float | 请参考``policy.collect.traj_len``。二者的值需要保持相同。    |
 | actor.collect_print_freq | int   | actor端按照``n_sample``或``n_episode``得到一定的数据成为一个collect step。该项便是控制每隔多少个collect step打印一次collect相关的信息。 |
 
