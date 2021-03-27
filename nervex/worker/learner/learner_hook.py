@@ -154,13 +154,14 @@ class SaveCkptHook(LearnerHook):
             - engine (:obj:`BaseLearner`): the BaseLearner which needs to save checkpoint
         """
         if engine.rank == 0 and engine.last_iter.val % self._freq == 0:
-            dirname = './ckpt{}'.format(engine.name)
+            dirname = './ckpt_{}'.format(engine.name)
             if not os.path.exists(dirname):
                 try:
                     os.mkdir(dirname)
                 except FileExistsError:
                     pass
-            path = os.path.join(dirname, 'iteration_{}.pth.tar'.format(engine.last_iter.val))
+            ckpt_name = engine.ckpt_name if engine.ckpt_name else 'iteration_{}.pth.tar'.format(engine.last_iter.val)
+            path = os.path.join(dirname, ckpt_name)
             policy_handle = engine.policy.state_dict_handle()
             optimizer = policy_handle.get('optimizer', None)
             engine.checkpoint_manager.save(

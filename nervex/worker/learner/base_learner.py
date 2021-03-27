@@ -115,7 +115,7 @@ class BaseLearner(object):
 
                 os.environ['CUDA_LAUNCH_BLOCKING'] = "1"  # for debug async CUDA
         """
-        self._instance_name = self._name + str(time.time())
+        self._instance_name = self._name + '_' + time.ctime().replace(' ', '_').replace(':', '_')
         self._cfg = deep_merge_dicts(base_learner_default_config, cfg)
         self._learner_uid = get_task_uid()
         self._load_path = self._cfg.load_path
@@ -138,6 +138,7 @@ class BaseLearner(object):
         }
         # Checkpoint helper. Used to save model checkpoint.
         self._checkpointer_manager = build_checkpoint_helper(self._cfg)
+        self._ckpt_name = None
         # Learner hook. Used to do specific things at specific time point. Will be set in ``_setup_hook``
         self._hooks = {'before_run': [], 'before_iter': [], 'after_iter': [], 'after_run': []}
         # Priority info. Used to update replay buffer according to data's priority.
@@ -345,7 +346,7 @@ class BaseLearner(object):
     def debug(self, s: str) -> None:
         self._logger.debug(s)
 
-    def save_checkpoint(self) -> None:
+    def save_checkpoint(self, ckpt_name: str = None) -> None:
         """
         Overview:
             Directly call ``save_ckpt_after_run`` hook to save checkpoint.
@@ -358,10 +359,13 @@ class BaseLearner(object):
                 - ``serial_pipeline``(``entry/serial_entry.py``). Used to save checkpoint after convergence or \
                     new highes reward during evaluation.
         """
+        if ckpt_name is not None:
+            self.ckpt_name = ckpt_name
         names = [h.name for h in self._hooks['after_run']]
         assert 'save_ckpt_after_run' in names
         idx = names.index('save_ckpt_after_run')
         self._hooks['after_run'][idx](self)
+        self.ckpt_name = None
 
     @property
     def learn_info(self) -> dict:
@@ -455,6 +459,14 @@ class BaseLearner(object):
     @priority_info.setter
     def priority_info(self, _priority_info: dict) -> None:
         self._priority_info = _priority_info
+
+    @property
+    def ckpt_name(self) -> str:
+        return self._ckpt_name
+
+    @ckpt_name.setter
+    def ckpt_name(self, _ckpt_name: str) -> None:
+        self._ckpt_name = _ckpt_name
 
 
 def create_learner(cfg: EasyDict) -> BaseLearner:
