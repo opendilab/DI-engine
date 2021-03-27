@@ -128,18 +128,18 @@ class ILPolicy(CommonPolicy):
         }
         return transition
 
-    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, origin_data: deque) -> Union[None, List[Any]]:
         datas = []
         pre_rew = 0
-        for i in range(len(traj_cache) - 1, -1, -1):
+        for i in range(len(origin_data) - 1, -1, -1):
             data = {}
-            data['obs'] = traj_cache[i]['obs']
-            data['action'] = traj_cache[i]['action']
-            cur_rew = traj_cache[i]['reward']
+            data['obs'] = origin_data[i]['obs']
+            data['action'] = origin_data[i]['action']
+            cur_rew = origin_data[i]['reward']
             pre_rew = cur_rew + (pre_rew * self._gamma)
             # sampel uniformly
             data['priority'] = 1
-            data['logit'] = traj_cache[i]['logit']
+            data['logit'] = origin_data[i]['logit']
             datas.append(data)
         return datas
 

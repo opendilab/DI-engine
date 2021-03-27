@@ -105,7 +105,7 @@ class Adder(object):
             data[i]['adv'] = adv[i]
         return data
 
-    def get_gae_with_default_last_value(self, data: List[Dict[str, Any]], done: bool, gamma: float,
+    def get_gae_with_default_last_value(self, data: deque, done: bool, gamma: float,
                                         gae_lambda: float) -> List[Dict[str, Any]]:
         """
         Overview:
@@ -114,7 +114,7 @@ class Adder(object):
             as ``last_value``, discard the last element in ``data``(i.e. len(data) would decrease by 1), and then call
             ``get_gae``. Otherwise it would make ``last_value`` equal to 0.
         Arguments:
-            - data (:obj:`List[Dict[str, Any]]`): transitions list, each element is a transition dict with \
+            - data (:obj:`deque`): transitions list, each element is a transition dict with \
                 at least['value', 'reward']
             - done (:obj:`bool`): whether the transition reaches the end of an episode(i.e. whether the env is done)
             - gamma (:obj:`float`): the future discount factor
@@ -126,8 +126,8 @@ class Adder(object):
         if done:
             last_value = torch.zeros(1)
         else:
-            last_value = data[-1]['value']
-            data = data[:-1]
+            last_data = data.pop()
+            last_value = last_data['value']
         return self.get_gae(data, last_value, gamma, gae_lambda)
 
     def get_nstep_return_data(self, data: deque, nstep: int) -> deque:
@@ -177,6 +177,8 @@ class Adder(object):
         if self._unroll_len == 1:
             return data
         else:
+            if isinstance(data, deque):
+                data = list(data)
             # cut data into pieces whose length is unroll_len
             split_data, residual = list_split(data, step=self._unroll_len)
 

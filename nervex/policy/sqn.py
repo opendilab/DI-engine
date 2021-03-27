@@ -189,9 +189,6 @@ class SQNPolicy(CommonPolicy):
             Init traj and unroll length, adder, collect armor.
             Use action noise for exploration.
         """
-        self._traj_len = self._cfg.collect.traj_len
-        if self._traj_len == "inf":
-            self._traj_len = float("inf")
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
         self._collect_armor = Armor(self._model)

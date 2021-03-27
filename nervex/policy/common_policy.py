@@ -45,9 +45,8 @@ class CommonPolicy(Policy):
         data = default_decollate(data)
         return {i: d for i, d in zip(data_id, data)}
 
-    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         # adder is defined in _init_collect
-        data = self._adder.get_traj(traj_cache, self._traj_len)
         return self._adder.get_train_sample(data)
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:

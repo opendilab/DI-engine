@@ -212,7 +212,7 @@ class Policy(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         raise NotImplementedError
 
     @abstractmethod

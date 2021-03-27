@@ -90,12 +90,7 @@ class PPOPolicy(CommonPolicy):
             Collect mode init method. Called by ``self.__init__``.
             Init traj and unroll length, adder, collect armor.
         """
-        self._traj_len = self._cfg.collect.traj_len
         self._unroll_len = self._cfg.collect.unroll_len
-        if self._traj_len == 'inf':
-            self._traj_len = float('inf')
-        # GAE calculation needs v_t+1
-        assert self._traj_len > 1, "ppo traj len should be greater than 1"
         self._collect_armor = Armor(self._model)
         self._collect_armor.add_plugin('main', 'multinomial_sample')
         self._collect_armor.mode(train=False)
@@ -142,19 +137,16 @@ class PPOPolicy(CommonPolicy):
         }
         return transition
 
-    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         r"""
         Overview:
             Get the trajectory and calculate GAE, return one data to cache for next time calculation
         Arguments:
-            - traj_cache (:obj:`deque`): The trajectory's cache
+            - data (:obj:`deque`): The trajectory's cache
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
         # adder is defined in _init_collect
-        data = self._adder.get_traj(traj_cache, self._traj_len, return_num=1)
-        if self._traj_len == float('inf'):
-            assert data[-1]['done'], "episode must be terminated by done=True"
         data = self._adder.get_gae_with_default_last_value(
             data, data[-1]['done'], gamma=self._gamma, gae_lambda=self._gae_lambda
         )

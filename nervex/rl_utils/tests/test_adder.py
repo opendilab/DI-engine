@@ -21,7 +21,7 @@ class TestAdder:
     def test_get_gae(self):
         adder = Adder(use_cuda=False, unroll_len=1)
 
-        transitions = [self.get_transition() for _ in range(10)]
+        transitions = deque([self.get_transition() for _ in range(10)])
         last_value = torch.randn(1)
         output = adder.get_gae(transitions, last_value, gamma=0.99, gae_lambda=0.97)
         for i in range(len(output)):
@@ -66,7 +66,7 @@ class TestAdder:
     def test_get_nstep_return_data(self):
         nstep = 3
         adder = Adder(use_cuda=False, unroll_len=1)
-        data = [self.get_transition() for _ in range(10)]
+        data = deque([self.get_transition() for _ in range(10)])
         output_data = adder.get_nstep_return_data(data, nstep=nstep)
         assert len(output_data) == 10
         for i, o in enumerate(output_data):
@@ -75,7 +75,7 @@ class TestAdder:
                 assert o['done'] is data[-1]['done']
                 assert o['reward'][-(i - 10 + nstep):].sum() == 0
 
-        data = [self.get_transition() for _ in range(12)]
+        data = deque([self.get_transition() for _ in range(12)])
         output_data = adder.get_nstep_return_data(data, nstep=nstep)
         assert len(output_data) == 12
 

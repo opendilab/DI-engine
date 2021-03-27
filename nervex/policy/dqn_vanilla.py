@@ -113,8 +113,8 @@ class DQNVanillaPolicy(CommonPolicy):
     def default_model(self) -> Tuple[str, List[str]]:
         return 'fc_discrete_net', ['nervex.model.discrete_net.discrete_net']
 
-    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
-        return traj_cache
+    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
+        return data
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
         self._model.train()

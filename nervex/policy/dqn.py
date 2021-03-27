@@ -131,17 +131,17 @@ class DQNPolicy(CommonPolicy):
             output = self._collect_armor.forward(data, eps=self._eps)
         return output
 
-    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         r"""
         Overview:
             Get the trajectory and the n step return data, then sample from the n_step return data
         Arguments:
-            - traj_cache (:obj:`deque`): The trajectory's cache
+            - data (:obj:`deque`): The trajectory's cache
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
         # adder is defined in _init_collect
-        data = self._adder.get_nstep_return_data(traj_cache, self._collect_nstep)
+        data = self._adder.get_nstep_return_data(data, self._collect_nstep)
         if self._use_her:
             data = self._adder.get_her(data)
         return self._adder.get_train_sample(data)

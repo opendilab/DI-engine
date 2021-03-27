@@ -162,7 +162,6 @@ class DDPGPolicy(CommonPolicy):
             Collect mode init method. Called by ``self.__init__``.
             Init traj and unroll length, adder, collect armor.
         """
-        self._traj_len = self._cfg.collect.traj_len
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
         # collect armor
