@@ -6,7 +6,7 @@ from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.utils import ENV_REGISTRY
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
-from .atari_wrappers import wrap_deepmind
+from .atari_wrappers import wrap_deepmind, wrap_deepmind_mr
 
 
 @ENV_REGISTRY.register("atari")
@@ -74,3 +74,13 @@ class AtariEnv(BaseEnv):
         cfg = copy.deepcopy(cfg)
         cfg.is_train = False
         return [cfg for _ in range(evaluator_env_num)]
+
+
+@ENV_REGISTRY.register('atari_mr')
+class AtariEnvMR(AtariEnv):
+
+    def __init__(self, cfg: dict) -> None:
+        self._cfg = cfg
+        self._env = wrap_deepmind_mr(
+            cfg.env_id, frame_stack=cfg.frame_stack, episode_life=cfg.is_train, clip_rewards=cfg.is_train
+        )
