@@ -38,16 +38,6 @@ class SoloCommander(BaseCommander):
         policy_cfg = copy.deepcopy(self._cfg.policy)
         self._policy = create_policy(policy_cfg, enable_field=['command']).command_mode
         self._logger, self._tb_logger = build_logger("./log/commander", "commander", need_tb=True)
-        # for tb_var in [
-        #         'episode_count',
-        #         'step_count',
-        #         'avg_step_per_episode',
-        #         'avg_time_per_step',
-        #         'avg_time_per_episode',
-        #         'reward_mean',
-        #         'reward_std',
-        # ]:
-        #     self._tb_logger.register_var('evaluator/' + tb_var)
         self._eval_step = -1
         self._end_flag = False
 

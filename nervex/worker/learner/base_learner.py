@@ -6,7 +6,7 @@ Main Function:
 """
 import os
 import time
-from typing import Any, Union, Callable, List, Dict
+from typing import Any, Union, Callable, List, Dict, Optional
 from functools import partial
 from easydict import EasyDict
 import torch
@@ -100,7 +100,7 @@ class BaseLearner(object):
 
     _name = "BaseLearner"  # override this variable for sub-class learner
 
-    def __init__(self, cfg: EasyDict) -> None:
+    def __init__(self, cfg: EasyDict, tb_logger: Optional['SummaryWriter'] = None) -> None:  # noqa
         """
         Overview:
             Init method. Load config and use ``self._cfg`` setting to build common learner components,
@@ -129,8 +129,13 @@ class BaseLearner(object):
         # Logger (Monitor is initialized in policy setter)
         # Only rank == 0 learner needs monitor and tb_logger, others only need text_logger to display terminal output.
         self._timer = EasyTimer()
+        parallel_tb = tb_logger is None  # True for parallel, False for serial
+        self._parallel_tb = parallel_tb
         rank0 = True if self._rank == 0 else False
-        self._logger, self._tb_logger = build_logger('./log/learner', 'learner', need_tb=rank0)
+        need_tb = parallel_tb and rank0
+        self._logger, self._tb_logger = build_logger('./log/learner', 'learner', need_tb=need_tb)
+        if not parallel_tb:
+            self._tb_logger = tb_logger
         self._log_buffer = {
             'scalar': build_log_buffer(),
             'scalars': build_log_buffer(),
@@ -321,7 +326,9 @@ class BaseLearner(object):
         self._end_flag = True
         if hasattr(self, '_dataloader'):
             self._dataloader.close()
-        self._tb_logger.close()
+        if self._parallel_tb:
+            self._tb_logger.flush()
+            self._tb_logger.close()
 
     def call_hook(self, name: str) -> None:
         """

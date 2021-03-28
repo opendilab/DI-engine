@@ -155,7 +155,10 @@ class Adder(object):
         for i in range(max(0, len(data) - nstep), len(data)):
             if next_obs_flag:
                 data[i]['next_obs'] = copy.deepcopy(data[-1]['next_obs'])
-            data[i]['reward'] = torch.cat([data[i + j]['reward'] for j in range(len(data) - i)] + [fake_reward for _ in range(nstep - (len(data) - i))])
+            data[i]['reward'] = torch.cat(
+                [data[i + j]['reward']
+                 for j in range(len(data) - i)] + [fake_reward for _ in range(nstep - (len(data) - i))]
+            )
             data[i]['done'] = data[-1]['done']
         return data
 

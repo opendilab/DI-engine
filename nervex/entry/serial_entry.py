@@ -13,6 +13,7 @@ from nervex.config import read_config
 from nervex.data import BufferManager
 from nervex.policy import create_policy
 from nervex.envs import get_vec_env_setting
+from nervex.utils import build_logger
 from .utils import set_pkg_seed
 
 
@@ -70,10 +71,11 @@ def serial_pipeline(
         assert callable(policy_type)
         policy_fn = policy_type
     policy = policy_fn(cfg.policy, model=model)
-    learner = BaseLearner(cfg.learner)
-    actor = BaseSerialActor(cfg.actor)
-    evaluator = BaseSerialEvaluator(cfg.evaluator)
-    replay_buffer = BufferManager(cfg.replay_buffer)
+    _, tb_logger = build_logger(path='./log/', name='serial', need_tb=True, need_text=False)
+    learner = BaseLearner(cfg.learner, tb_logger)
+    actor = BaseSerialActor(cfg.actor, tb_logger)
+    evaluator = BaseSerialEvaluator(cfg.evaluator, tb_logger)
+    replay_buffer = BufferManager(cfg.replay_buffer, tb_logger)
     commander = BaseSerialCommander(cfg.commander, learner, actor, evaluator, replay_buffer)
     # Set corresponding env and policy mode.
     actor.env = actor_env

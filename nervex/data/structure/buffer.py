@@ -129,20 +129,21 @@ class ReplayBuffer:
     """
 
     def __init__(
-        self,
-        name: str,
-        replay_buffer_size: int = 10000,
-        replay_start_size: int = 0,
-        max_reuse: Optional[int] = None,
-        max_staleness: Optional[int] = None,
-        min_sample_ratio: float = 1.,
-        alpha: float = 0.6,
-        beta: float = 0.4,
-        anneal_step: int = int(1e5),
-        enable_track_used_data: bool = False,
-        deepcopy: bool = False,
-        monitor_cfg: Optional[EasyDict] = None,
-        eps: float = 0.01,
+            self,
+            name: str,
+            replay_buffer_size: int = 10000,
+            replay_start_size: int = 0,
+            max_reuse: Optional[int] = None,
+            max_staleness: Optional[int] = None,
+            min_sample_ratio: float = 1.,
+            alpha: float = 0.6,
+            beta: float = 0.4,
+            anneal_step: int = int(1e5),
+            enable_track_used_data: bool = False,
+            deepcopy: bool = False,
+            monitor_cfg: Optional[EasyDict] = None,
+            eps: float = 0.01,
+            tb_logger: Optional['SummaryWriter'] = None,  # noqa
     ) -> int:
         """
         Overview:
@@ -238,15 +239,13 @@ class ReplayBuffer:
         # Add in operation count.
         self._in_count = 0
         self._in_tick_monitor = InTickMonitor(TickTime(), expire=self.monitor_cfg.tick_expire)
-        self._logger, self._tb_logger = build_logger(self.monitor_cfg.log_path, self.name + '_buffer', True)
-        # self._in_vars = ['in_count_avg', 'in_time_avg']
-        # self._in_vars = [self.name + var for var in self._in_vars]
-        # self._out_vars = [
-        #     'out_count_avg', 'out_time_avg', 'use_avg', 'use_max', 'priority_avg', 'priority_max', 'priority_min'
-        # ]
-        # self._out_vars = [self.name + var for var in self._out_vars]
-        # for var in self._in_vars + self._out_vars:
-        #     self._tb_logger.register_var('buffer_{}/'.format(self.name) + var)
+        parallel_tb = tb_logger is None  # True for parallel, False for serial
+        self._parallel_tb = parallel_tb
+        self._logger, self._tb_logger = build_logger(
+            self.monitor_cfg.log_path, self.name + '_buffer', need_tb=parallel_tb
+        )
+        if not parallel_tb:
+            self._tb_logger = tb_logger
         self._log_freq = self.monitor_cfg.log_freq
 
     def sample_check(self, size: int, cur_learner_iter: int) -> bool:
@@ -487,7 +486,9 @@ class ReplayBuffer:
             Close the tensorboard logger.
         """
         self.clear()
-        self._tb_logger.close()
+        if self._parallel_tb:
+            self._tb_logger.flush()
+            self._tb_logger.close()
 
     def __del__(self) -> None:
         """

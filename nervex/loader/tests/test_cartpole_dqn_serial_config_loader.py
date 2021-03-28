@@ -52,9 +52,8 @@ def test_real_loader():
                 )
             ),
         ),
-        replay_buffer=item('replay_buffer') >> dict_(
-            replay_buffer_size=item('replay_buffer_size') >> is_type(int) >> interval(1, math.inf),
-        ),
+        replay_buffer=item('replay_buffer') >>
+        dict_(replay_buffer_size=item('replay_buffer_size') >> is_type(int) >> interval(1, math.inf), ),
         learner=item('learner') >> dict_(load_path=item('load_path') >> is_type(str)),
         commander=item('commander') | raw({}),
         actor=item('actor') >> dict_(

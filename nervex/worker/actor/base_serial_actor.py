@@ -18,7 +18,7 @@ class BaseSerialActor(object):
         env, policy
     """
 
-    def __init__(self, cfg: dict) -> None:
+    def __init__(self, cfg: dict, tb_logger: 'SummaryWriter') -> None:  # noqa
         """
         Overview:
             Initialization method.
@@ -34,12 +34,8 @@ class BaseSerialActor(object):
             self._traj_len = float('inf')
             self._traj_cache_length = None
         self._collect_print_freq = cfg.collect_print_freq
-        self._logger, self._tb_logger = build_logger(path='./log/actor', name='collect', need_tb=True)
-        # for var in ['episode_count', 'envstep_count', 'train_sample_count', 'avg_envstep_per_episode',
-        #             'avg_sample_per_epsiode', 'collect_time', 'avg_envstep_per_sec', 'avg_train_sample_per_sec',
-        #             'avg_episode_per_sec', 'reward_mean', 'reward_std', 'total_envstep_count',
-        #             'total_train_sample_count', 'total_episode_count', 'total_duration']:
-        #     self._tb_logger.register_var('actor/' + var)
+        self._logger, _ = build_logger(path='./log/actor', name='collect', need_tb=False)
+        self._tb_logger = tb_logger
         self._timer = EasyTimer()
         self._cfg = cfg
 
@@ -248,6 +244,10 @@ class BaseSerialActor(object):
         self._obs_pool.reset(env_id)
         self._policy_output_pool.reset(env_id)
         self._policy.reset([env_id])
+    
+    @property
+    def envstep(self) -> int:
+        return self._total_envstep_count
 
 
 class CachePool(object):

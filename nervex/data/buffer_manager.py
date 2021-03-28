@@ -64,7 +64,7 @@ class BufferManager(IBuffer):
         __init__, push, sample, update, clear, count, start, close, state_dict, load_state_dict
     """
 
-    def __init__(self, cfg: dict):
+    def __init__(self, cfg: dict, tb_logger: Optional['SummaryWriter'] = None) -> None:  # noqa
         """
         Overview:
             Initialize replay buffer
@@ -102,6 +102,7 @@ class BufferManager(IBuffer):
                 enable_track_used_data=enable_track_used_data,
                 deepcopy=buffer_cfg.get('deepcopy', False),
                 monitor_cfg=buffer_cfg.get('monitor', None),
+                tb_logger=tb_logger,
             )
             self._enable_track_used_data[name] = enable_track_used_data
             if self._enable_track_used_data[name]:
