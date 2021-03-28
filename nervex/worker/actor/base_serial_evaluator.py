@@ -61,7 +61,7 @@ class BaseSerialEvaluator(object):
         # self._tb_logger.close()
         self._env_manager.close()
 
-    def eval(self, train_iter: int, n_episode: Optional[int] = None) -> Tuple[bool, float]:
+    def eval(self, train_iter: int, envstep: int, n_episode: Optional[int] = None) -> Tuple[bool, float]:
         '''
         Overview:
             Evaluate policy.
@@ -131,7 +131,8 @@ class BaseSerialEvaluator(object):
         for k, v in info.items():
             if k in ['train_iter', 'ckpt_name', 'each_reward']:
                 continue
-            self._tb_logger.add_scalar('evaluator/' + k, v, train_iter)
+            self._tb_logger.add_scalar('evaluator_iter/' + k, v, train_iter)
+            self._tb_logger.add_scalar('evaluator_step/' + k, v, envstep)
         eval_reward = np.mean(episode_reward)
         stop_flag = eval_reward >= self._stop_value
         if stop_flag:

@@ -293,7 +293,7 @@ class ReplayBuffer:
             else:
                 return True
 
-    def sample(self, size: int, cur_learner_iter: int) -> Optional[list]:
+    def sample(self, size: int, cur_learner_iter: int, cur_actor_envstep: int) -> Optional[list]:
         r"""
         Overview:
             Sample data with length ``size``.
@@ -323,10 +323,10 @@ class ReplayBuffer:
                     for j in tmp:
                         result[j] = copy.deepcopy(result[j])
 
-            self._monitor_update_of_sample(result, self._timer.value)
+            self._monitor_update_of_sample(result, self._timer.value, cur_learner_iter, cur_actor_envstep)
             return result
 
-    def append(self, ori_data: Any) -> None:
+    def append(self, ori_data: Any, cur_learner_iter: int, cur_actor_envstep: int) -> None:
         r"""
         Overview:
             Append a data item into queue.
@@ -363,7 +363,7 @@ class ReplayBuffer:
                 self._tail = (self._tail + 1) % self._replay_buffer_size
                 self._next_unique_id += 1
 
-            self._monitor_update_of_push(1, self._timer.value)
+            self._monitor_update_of_push(1, self._timer.value, cur_learner_iter, cur_actor_envstep)
 
     def _track_used_data(self, old: Any) -> None:
         if not self._enable_track_used_data:
@@ -376,7 +376,7 @@ class ReplayBuffer:
                     self._using_used_data: set
                     self._using_used_data.add(old['data_id'])
 
-    def extend(self, ori_data: List[Any]) -> None:
+    def extend(self, ori_data: List[Any], cur_learner_iter: int, cur_actor_envstep: int) -> None:
         r"""
         Overview:
             Extend a data list into queue.
@@ -436,7 +436,7 @@ class ReplayBuffer:
                 self._tail = (self._tail + length) % self._replay_buffer_size
                 self._next_unique_id += length
 
-            self._monitor_update_of_push(length, self._timer.value)
+            self._monitor_update_of_push(length, self._timer.value, cur_learner_iter, cur_actor_envstep)
 
     def update(self, info: dict) -> None:
         r"""
@@ -599,7 +599,7 @@ class ReplayBuffer:
             self._beta = min(1.0, self._beta + self._beta_anneal_step)
         return data
 
-    def _monitor_update_of_push(self, add_count: int, add_time: float) -> None:
+    def _monitor_update_of_push(self, add_count: int, add_time: float, cur_learner_iter: int, cur_actor_envstep: int) -> None:
         r"""
         Overview:
             Update values in monitor, then update text logger and tensorboard logger.
@@ -619,10 +619,14 @@ class ReplayBuffer:
             self._logger.debug("===Add In Buffer {} Times===".format(self._in_count))
             self._logger.print_vars(in_dict)
             for k, v in in_dict.items():
-                self._tb_logger.add_scalar('buffer_{}/'.format(self.name) + k, v, self._in_count)
+                if self._parallel_tb:
+                    self._tb_logger.add_scalar('buffer_{}/'.format(self.name) + k, v, self._in_count)
+                else:
+                    self._tb_logger.add_scalar('buffer_{}_iter/'.format(self.name) + k, v, cur_learner_iter)
+                    self._tb_logger.add_scalar('buffer_{}_step/'.format(self.name) + k, v, cur_actor_envstep)
         self._in_count += 1
 
-    def _monitor_update_of_sample(self, sample_data: list, sample_time: float) -> None:
+    def _monitor_update_of_sample(self, sample_data: list, sample_time: float, cur_learner_iter: int, cur_actor_envstep: int) -> None:
         r"""
         Overview:
             Update values in monitor, then update text logger and tensorboard logger.
@@ -656,7 +660,11 @@ class ReplayBuffer:
             self._logger.debug("===Read Buffer {} Times===".format(self._out_count))
             self._logger.print_vars(out_dict)
             for k, v in out_dict.items():
-                self._tb_logger.add_scalar('buffer_{}/'.format(self.name) + k, v, self._out_count)
+                if self._parallel_tb:
+                    self._tb_logger.add_scalar('buffer_{}/'.format(self.name) + k, v, self._out_count)
+                else:
+                    self._tb_logger.add_scalar('buffer_{}_iter/'.format(self.name) + k, v, cur_learner_iter)
+                    self._tb_logger.add_scalar('buffer_{}_step/'.format(self.name) + k, v, cur_actor_envstep)
         self._out_count += 1
 
     def _calculate_staleness(self, pos_index: int, cur_learner_iter: int) -> Optional[int]:

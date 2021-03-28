@@ -229,7 +229,10 @@ class BaseSerialActor(object):
             for k, v in info.items():
                 if k in ['each_reward']:
                     continue
-                self._tb_logger.add_scalar('actor/' + k, v, iter_count)
+                self._tb_logger.add_scalar('actor_iter/' + k, v, iter_count)
+                if k in ['total_envstep_count']:
+                    continue
+                self._tb_logger.add_scalar('actor_step/' + k, v, self._total_envstep_count)
         return return_data
 
     def _var_reset(self, env_id: int) -> None:

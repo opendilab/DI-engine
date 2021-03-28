@@ -221,13 +221,14 @@ class LogShowHook(LearnerHook):
             text_var_dict, tb_var_dict = {}, {}
             for k in engine.log_buffer['scalar']:
                 for attr in engine.monitor.get_property_attribute(k):
-                    k_attr = 'learner/' + k + '_' + attr
+                    k_attr = k + '_' + attr
                     tb_var_dict[k_attr] = getattr(engine.monitor, attr)[k]()
                     if attr != "avg":
                         text_var_dict[k_attr] = getattr(engine.monitor, attr)[k]()
             engine.logger.print_vars(text_var_dict)
             for k, v in tb_var_dict.items():
-                engine.tb_logger.add_scalar(k, v, iters)
+                engine.tb_logger.add_scalar('learner_iter/' + k, v, iters)
+                engine.tb_logger.add_scalar('learner_step/' + k, v, engine._actor_envstep)
             # For 'histogram' type variables: log_buffer -> tb_var_dict -> tb_logger
             tb_var_dict = {}
             for k in engine.log_buffer['histogram']:

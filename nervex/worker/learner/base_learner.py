@@ -211,7 +211,7 @@ class BaseLearner(object):
         """
         add_learner_hook(self._hooks, hook)
 
-    def train(self, data: dict) -> None:
+    def train(self, data: dict, envstep: int) -> None:
         """
         Overview:
             Given training data, implement network update for one iteration and update related variables.
@@ -255,6 +255,7 @@ class BaseLearner(object):
         self._log_buffer['scalars'].update(scalars_vars)
         self._log_buffer['histogram'].update(histogram_vars)
 
+        self._actor_envstep = envstep
         self.call_hook('after_iter')
         self._last_iter.add(1)
 

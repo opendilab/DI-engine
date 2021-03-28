@@ -102,13 +102,13 @@ def serial_pipeline(
     # Accumulate plenty of data at the beginning of training.
     if replay_buffer.replay_start_size() > 0:
         new_data = actor.generate_data(learner.train_iter, n_sample=replay_buffer.replay_start_size())
-        replay_buffer.push(new_data)
+        replay_buffer.push(new_data, cur_learner_iter=0, cur_actor_envstep=0)
 
     while True:
         commander.step()
         # Evaluate at the beginning of training.
         if eval_interval >= cfg.evaluator.eval_freq:
-            stop_flag, eval_reward = evaluator.eval(learner.train_iter)
+            stop_flag, eval_reward = evaluator.eval(learner.train_iter, actor.envstep)
             eval_interval = 0
             if stop_flag and learner.train_iter > 0:
                 # Evaluator's mean episode reward reaches the expected ``stop_value``.
@@ -123,13 +123,13 @@ def serial_pipeline(
                     max_eval_reward = eval_reward
         # Collect data by default config n_sample/n_episode
         new_data = actor.generate_data(learner.train_iter)
-        replay_buffer.push(new_data)
+        replay_buffer.push(new_data, cur_learner_iter=learner.train_iter, cur_actor_envstep=actor.envstep)
         # TODO whether adjust train_step by the number of the collected data
         # Learn policy from collected data
         for i in range(learner_train_step):
             # Learner will train ``train_step`` times in one iteration.
             # But if replay buffer does not have enough data, program will break and warn.
-            train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
+            train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter, actor.envstep)
             if train_data is None:
                 # It is possible that replay buffer's data count is too few to train ``train_step`` times
                 logging.warning(
@@ -137,7 +137,7 @@ def serial_pipeline(
                     "You can modify data collect config, e.g. increasing n_sample, n_episode."
                 )
                 break
-            learner.train(train_data)
+            learner.train(train_data, actor.envstep)
             eval_interval += 1
             if use_priority:
                 replay_buffer.update(learner.priority_info)
