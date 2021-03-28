@@ -240,14 +240,14 @@ class ReplayBuffer:
         self._in_count = 0
         self._in_tick_monitor = InTickMonitor(TickTime(), expire=self.monitor_cfg.tick_expire)
         self._logger, self._tb_logger = build_logger(self.monitor_cfg.log_path, self.name + '_buffer', True)
-        self._in_vars = ['in_count_avg', 'in_time_avg']
-        self._in_vars = [self.name + var for var in self._in_vars]
-        self._out_vars = [
-            'out_count_avg', 'out_time_avg', 'use_avg', 'use_max', 'priority_avg', 'priority_max', 'priority_min'
-        ]
-        self._out_vars = [self.name + var for var in self._out_vars]
-        for var in self._in_vars + self._out_vars:
-            self._tb_logger.register_var('buffer_{}/'.format(self.name) + var)
+        # self._in_vars = ['in_count_avg', 'in_time_avg']
+        # self._in_vars = [self.name + var for var in self._in_vars]
+        # self._out_vars = [
+        #     'out_count_avg', 'out_time_avg', 'use_avg', 'use_max', 'priority_avg', 'priority_max', 'priority_min'
+        # ]
+        # self._out_vars = [self.name + var for var in self._out_vars]
+        # for var in self._in_vars + self._out_vars:
+        #     self._tb_logger.register_var('buffer_{}/'.format(self.name) + var)
         self._log_freq = self.monitor_cfg.log_freq
 
     def sample_check(self, size: int, cur_learner_iter: int) -> bool:
@@ -613,8 +613,8 @@ class ReplayBuffer:
         if self._in_count % self._log_freq == 0:
             self._logger.debug("===Add In Buffer {} Times===".format(self._in_count))
             self._logger.print_vars(in_dict)
-            in_dict = {'buffer_{}/'.format(self.name) + k: v for k, v in in_dict.items()}
-            self._tb_logger.print_vars(in_dict, self._in_count, 'scalar')
+            for k, v in in_dict.items():
+                self._tb_logger.add_scalar('buffer_{}/'.format(self.name) + k, v, self._in_count)
         self._in_count += 1
 
     def _monitor_update_of_sample(self, sample_data: list, sample_time: float) -> None:
@@ -650,8 +650,8 @@ class ReplayBuffer:
         if self._out_count % self._log_freq == 0:
             self._logger.debug("===Read Buffer {} Times===".format(self._out_count))
             self._logger.print_vars(out_dict)
-            out_dict = {'buffer_{}/'.format(self.name) + k: v for k, v in out_dict.items()}
-            self._tb_logger.print_vars(out_dict, self._out_count, 'scalar')
+            for k, v in out_dict.items():
+                self._tb_logger.add_scalar('buffer_{}/'.format(self.name) + k, v, self._out_count)
         self._out_count += 1
 
     def _calculate_staleness(self, pos_index: int, cur_learner_iter: int) -> Optional[int]:

@@ -43,16 +43,16 @@ class OneVsOneCommander(BaseCommander):
         self._last_eval_time = 0
         self._policy = create_policy(self._cfg.policy, enable_field=['command']).command_mode
         self._logger, self._tb_logger = build_logger("./log/commander", "commander", need_tb=True)
-        for tb_var in [
-                'episode_count',
-                'step_count',
-                'avg_step_per_episode',
-                'avg_time_per_step',
-                'avg_time_per_episode',
-                'reward_mean',
-                'reward_std',
-        ]:
-            self._tb_logger.register_var('evaluator/' + tb_var)
+        # for tb_var in [
+        #         'episode_count',
+        #         'step_count',
+        #         'avg_step_per_episode',
+        #         'avg_time_per_step',
+        #         'avg_time_per_episode',
+        #         'reward_mean',
+        #         'reward_std',
+        # ]:
+        #     self._tb_logger.register_var('evaluator/' + tb_var)
         self._eval_step = -1
         self._end_flag = False
 
@@ -198,10 +198,10 @@ class OneVsOneCommander(BaseCommander):
             self._logger.info(
                 "[EVALUATOR] Task ends:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()]))
             )
-            tb_vars = [
-                ['evaluator/' + k, v, train_iter] for k, v in info.items() if k not in ['train_iter', 'game_result']
-            ]
-            self._tb_logger.add_val_list(tb_vars, viz_type='scalar')
+            for k, v in info.items():
+                if k in ['train_iter', 'game_result']:
+                    continue
+                self._tb_logger.add_scalar('evaluator/' + k, v, train_iter)
             eval_stop_value = self._cfg.actor_cfg.env_kwargs.eval_stop_value
             if eval_stop_value is not None and finished_task['reward_mean'] >= eval_stop_value and is_hardest:
                 self._logger.info(

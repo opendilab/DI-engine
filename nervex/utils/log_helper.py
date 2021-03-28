@@ -40,8 +40,12 @@ def build_logger(
         - tb_logger (:obj:`TensorBoardLogger`): logger that saves output to tensorboard, \
             only return when ``need_tb`` is True
     '''
+    if name is None:
+        name = 'default'
     logger = TextLogger(path, name=name)
-    tb_logger = TensorBoardLogger(path, name=name) if need_tb else None
+    # tb_logger = TensorBoardLogger(path, name=name) if need_tb else None
+    tb_name = name + '_tb_logger'
+    tb_logger = SummaryWriter(os.path.join(path, tb_name)) if need_tb else None
     return logger, tb_logger
 
 
@@ -141,178 +145,178 @@ class TextLogger(object):
         return self.logger.level
 
 
-class TensorBoardLogger:
-    r"""
-    Overview:
-        Logger that saves message to tensorboard
-    Interface:
-        __init__, add_scalar, add_text, add_scalars, add_histogram, add_figure, add_image, add_scalar_list,
-        register_var, scalar_var_names, close
-    """
+# class TensorBoardLogger:
+#     r"""
+#     Overview:
+#         Logger that saves message to tensorboard
+#     Interface:
+#         __init__, add_scalar, add_text, add_scalars, add_histogram, add_figure, add_image, add_scalar_list,
+#         register_var, scalar_var_names, close
+#     """
 
-    def __init__(self, path: str, name: str = 'default') -> None:
-        r"""
-        Overview:
-            initialization method, create logger and set var names.
-        Arguments:
-            - path (:obj:`str`): logger save dir
-            - name (:obj:`str`): logger name, default set to 'default'
-        """
-        name += '_tb_logger'
-        self.logger = SummaryWriter(os.path.join(path, name))  # get summary writer
-        self._var_names = {
-            'scalar': [],
-            'text': [],
-            'scalars': [],
-            'histogram': [],
-            'figure': [],
-            'image': [],
-        }
+#     def __init__(self, path: str, name: str = 'default') -> None:
+#         r"""
+#         Overview:
+#             initialization method, create logger and set var names.
+#         Arguments:
+#             - path (:obj:`str`): logger save dir
+#             - name (:obj:`str`): logger name, default set to 'default'
+#         """
+#         name += '_tb_logger'
+#         self.logger = SummaryWriter(os.path.join(path, name))  # get summary writer
+#         self._var_names = {
+#             'scalar': [],
+#             'text': [],
+#             'scalars': [],
+#             'histogram': [],
+#             'figure': [],
+#             'image': [],
+#         }
 
-    def print_vars(self, vars: Dict[str, Any], cur_step: int, viz_type: str = 'scalar') -> List[list]:
-        r"""
-        Overview:
-            Get the var dict and print it to tensorboard
-        Arguments:
-            - vars (:obj:`Dict[str, Any]`): vars dict containing name and its value
-            - cur_step (:obj:`int`): the current step
-            - viz_type (:obs:`str`): must be in ['scalar', 'scalars', 'histogram'], default set to 'scalar'
-        Returns:
-            - ret (:obj:`List[list]`): a list containing vars length lists, each containing one var's \
-                tb_format tuple(name, value, step)
-        """
-        assert (viz_type in ['scalar', 'scalars', 'histogram'])
-        func_dict = {
-            'scalar': self.add_scalar,
-            'scalars': self.add_scalars,
-            'histogram': self.add_histogram,
-        }
-        ret = []
-        for k, v in vars.items():
-            if k not in self._var_names[viz_type]:
-                self.register_var(k, viz_type)
-            func_dict[viz_type](k, v, cur_step)
+#     def print_vars(self, vars: Dict[str, Any], cur_step: int, viz_type: str = 'scalar') -> List[list]:
+#         r"""
+#         Overview:
+#             Get the var dict and print it to tensorboard
+#         Arguments:
+#             - vars (:obj:`Dict[str, Any]`): vars dict containing name and its value
+#             - cur_step (:obj:`int`): the current step
+#             - viz_type (:obs:`str`): must be in ['scalar', 'scalars', 'histogram'], default set to 'scalar'
+#         Returns:
+#             - ret (:obj:`List[list]`): a list containing vars length lists, each containing one var's \
+#                 tb_format tuple(name, value, step)
+#         """
+#         assert (viz_type in ['scalar', 'scalars', 'histogram'])
+#         func_dict = {
+#             'scalar': self.add_scalar,
+#             'scalars': self.add_scalars,
+#             'histogram': self.add_histogram,
+#         }
+#         ret = []
+#         for k, v in vars.items():
+#             if k not in self._var_names[viz_type]:
+#                 self.register_var(k, viz_type)
+#             func_dict[viz_type](k, v, cur_step)
 
-    def add_scalar(self, name: str, *args, **kwargs) -> None:
-        r"""
-        Overview:
-            add message to scalar
-        Arguments:
-            - name (:obj:`str`): name to add which in self._var_names['scalar']
-        """
-        assert name in self._var_names['scalar'], name
-        self.logger.add_scalar(name, *args, **kwargs)
+#     def add_scalar(self, name: str, *args, **kwargs) -> None:
+#         r"""
+#         Overview:
+#             add message to scalar
+#         Arguments:
+#             - name (:obj:`str`): name to add which in self._var_names['scalar']
+#         """
+#         assert name in self._var_names['scalar'], name
+#         self.logger.add_scalar(name, *args, **kwargs)
 
-    def add_text(self, name: str, *args, **kwargs) -> None:
-        r"""
-        Overview:
-            add message to text
-        Arguments:
-            - name (:obj:`str`): name to add which in self._var_names['text']
-        """
-        assert (name in self._var_names['text'])
-        self.logger.add_text(name, *args, **kwargs)
+#     def add_text(self, name: str, *args, **kwargs) -> None:
+#         r"""
+#         Overview:
+#             add message to text
+#         Arguments:
+#             - name (:obj:`str`): name to add which in self._var_names['text']
+#         """
+#         assert (name in self._var_names['text'])
+#         self.logger.add_text(name, *args, **kwargs)
 
-    def add_scalars(self, name: str, *args, **kwargs) -> None:
-        r"""
-        Overview:
-            add messages to scalar
-        Arguments:
-            - name (:obj:`str`): name to add which in self._var_names['scalars']
-        """
-        assert (name in self._var_names['scalars'])
-        self.logger.add_scalars(name, *args, **kwargs)
+#     def add_scalars(self, name: str, *args, **kwargs) -> None:
+#         r"""
+#         Overview:
+#             add messages to scalar
+#         Arguments:
+#             - name (:obj:`str`): name to add which in self._var_names['scalars']
+#         """
+#         assert (name in self._var_names['scalars'])
+#         self.logger.add_scalars(name, *args, **kwargs)
 
-    def add_histogram(self, name: str, *args, **kwargs) -> None:
-        r"""
-        Overview:
-            add message to histogram
-        Arguments:
-            - name (:obj:`str`): name to add which in self._var_names['histogram']
-        """
-        assert (name in self._var_names['histogram'])
-        self.logger.add_histogram(name, *args, **kwargs)
+#     def add_histogram(self, name: str, *args, **kwargs) -> None:
+#         r"""
+#         Overview:
+#             add message to histogram
+#         Arguments:
+#             - name (:obj:`str`): name to add which in self._var_names['histogram']
+#         """
+#         assert (name in self._var_names['histogram'])
+#         self.logger.add_histogram(name, *args, **kwargs)
 
-    def add_figure(self, name: str, *args, **kwargs) -> None:
-        r"""
-        Overview:
-            add message to figure
-        Arguments:
-            - name (:obj:`str`): name to add which in self._var_names['figure']
-        """
-        assert (name in self._var_names['figure'])
-        self.logger.add_figure(name, *args, **kwargs)
+#     def add_figure(self, name: str, *args, **kwargs) -> None:
+#         r"""
+#         Overview:
+#             add message to figure
+#         Arguments:
+#             - name (:obj:`str`): name to add which in self._var_names['figure']
+#         """
+#         assert (name in self._var_names['figure'])
+#         self.logger.add_figure(name, *args, **kwargs)
 
-    def add_image(self, name: str, *args, **kwargs) -> None:
-        r"""
-        Overview:
-            add message to image
-        Arguments:
-            - name (:obj:`str`): name to add which in self._var_names['image']
-        """
-        assert (name in self._var_names['image'])
-        self.logger.add_image(name, *args, **kwargs)
+#     def add_image(self, name: str, *args, **kwargs) -> None:
+#         r"""
+#         Overview:
+#             add message to image
+#         Arguments:
+#             - name (:obj:`str`): name to add which in self._var_names['image']
+#         """
+#         assert (name in self._var_names['image'])
+#         self.logger.add_image(name, *args, **kwargs)
 
-    def add_val_list(self, val_list: list, viz_type: str) -> None:
-        r"""
-        Overview:
-            add val_list info to tb
-        Arguments:
-            - val_list (:obj:`list`): include element(name, value, step) to be added
-            - viz_type (:obs:`str`): must be in ['scalar', 'scalars', 'histogram']
-        """
-        assert (viz_type in ['scalar', 'scalars', 'histogram'])
-        func_dict = {
-            'scalar': self.add_scalar,
-            'scalars': self.add_scalars,
-            'histogram': self.add_histogram,
-        }
-        for n, v, s in val_list:  # name, value, step
-            func_dict[viz_type](n, v, s)
+#     def add_val_list(self, val_list: list, viz_type: str) -> None:
+#         r"""
+#         Overview:
+#             add val_list info to tb
+#         Arguments:
+#             - val_list (:obj:`list`): include element(name, value, step) to be added
+#             - viz_type (:obs:`str`): must be in ['scalar', 'scalars', 'histogram']
+#         """
+#         assert (viz_type in ['scalar', 'scalars', 'histogram'])
+#         func_dict = {
+#             'scalar': self.add_scalar,
+#             'scalars': self.add_scalars,
+#             'histogram': self.add_histogram,
+#         }
+#         for n, v, s in val_list:  # name, value, step
+#             func_dict[viz_type](n, v, s)
 
-    def _no_contain_name(self, name: str) -> bool:
-        r"""
-        Overview:
-            Judge whether ``name`` var exists in ``self._var_names``
-        Arguments:
-            - contains (:obj:`bool`): whether ``name`` is a var in ``self._var_names``
-        """
-        for k, v in self._var_names.items():
-            if name in v:
-                return False
-        return True
+#     def _no_contain_name(self, name: str) -> bool:
+#         r"""
+#         Overview:
+#             Judge whether ``name`` var exists in ``self._var_names``
+#         Arguments:
+#             - contains (:obj:`bool`): whether ``name`` is a var in ``self._var_names``
+#         """
+#         for k, v in self._var_names.items():
+#             if name in v:
+#                 return False
+#         return True
 
-    def register_var(self, name: str, var_type: str = 'scalar') -> None:
-        r"""
-        Overview:
-            Add var to ``self._var_names``.
-            ``self._var_names`` is used to validate whether a var is already registered when updating it.
-        Arguments:
-            - name (:obj:`str`): name to add
-            - var_type (:obj:`str`): the type of var to add to, defalut set to 'scalar', \
-                support [scalar', 'text', 'scalars', 'histogram', 'figure', 'image']
-        """
-        assert (var_type in self._var_names.keys())
-        assert (self._no_contain_name(name))
-        self._var_names[var_type].append(name)
+#     def register_var(self, name: str, var_type: str = 'scalar') -> None:
+#         r"""
+#         Overview:
+#             Add var to ``self._var_names``.
+#             ``self._var_names`` is used to validate whether a var is already registered when updating it.
+#         Arguments:
+#             - name (:obj:`str`): name to add
+#             - var_type (:obj:`str`): the type of var to add to, defalut set to 'scalar', \
+#                 support [scalar', 'text', 'scalars', 'histogram', 'figure', 'image']
+#         """
+#         assert (var_type in self._var_names.keys())
+#         assert (self._no_contain_name(name))
+#         self._var_names[var_type].append(name)
 
-    def close(self) -> None:
-        r"""
-        Overview:
-            Close the tensorboard. Should be called when you finish recording, or the last value will be missed.
-        """
-        self.logger.flush()
-        self.logger.close()
+#     def close(self) -> None:
+#         r"""
+#         Overview:
+#             Close the tensorboard. Should be called when you finish recording, or the last value will be missed.
+#         """
+#         self.logger.flush()
+#         self.logger.close()
 
-    @property
-    def scalar_var_names(self) -> List[str]:
-        r"""
-        Overview:
-            Return scalar_vars' names
-        Returns:
-            - names(:obj:`List[str]`): self._var_names['scalar']
-        """
-        return self._var_names['scalar']
+#     @property
+#     def scalar_var_names(self) -> List[str]:
+#         r"""
+#         Overview:
+#             Return scalar_vars' names
+#         Returns:
+#             - names(:obj:`List[str]`): self._var_names['scalar']
+#         """
+#         return self._var_names['scalar']
 
 
 class DistributionTimeImage:

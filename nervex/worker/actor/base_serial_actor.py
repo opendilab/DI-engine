@@ -35,11 +35,11 @@ class BaseSerialActor(object):
             self._traj_cache_length = None
         self._collect_print_freq = cfg.collect_print_freq
         self._logger, self._tb_logger = build_logger(path='./log/actor', name='collect', need_tb=True)
-        for var in ['episode_count', 'envstep_count', 'train_sample_count', 'avg_envstep_per_episode',
-                    'avg_sample_per_epsiode', 'collect_time', 'avg_envstep_per_sec', 'avg_train_sample_per_sec',
-                    'avg_episode_per_sec', 'reward_mean', 'reward_std', 'total_envstep_count',
-                    'total_train_sample_count', 'total_episode_count', 'total_duration']:
-            self._tb_logger.register_var('actor/' + var)
+        # for var in ['episode_count', 'envstep_count', 'train_sample_count', 'avg_envstep_per_episode',
+        #             'avg_sample_per_epsiode', 'collect_time', 'avg_envstep_per_sec', 'avg_train_sample_per_sec',
+        #             'avg_episode_per_sec', 'reward_mean', 'reward_std', 'total_envstep_count',
+        #             'total_train_sample_count', 'total_episode_count', 'total_duration']:
+        #     self._tb_logger.register_var('actor/' + var)
         self._timer = EasyTimer()
         self._cfg = cfg
 
@@ -230,8 +230,10 @@ class BaseSerialActor(object):
             self._episode_info.clear()
             # self._logger.print_vars(info)
             self._logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
-            tb_vars = [['actor/' + k, v, iter_count] for k, v in info.items() if k not in ['each_reward']]
-            self._tb_logger.add_val_list(tb_vars, viz_type='scalar')
+            for k, v in info.items():
+                if k in ['each_reward']:
+                    continue
+                self._tb_logger.add_scalar('actor/' + k, v, iter_count)
         return return_data
 
     def _var_reset(self, env_id: int) -> None:

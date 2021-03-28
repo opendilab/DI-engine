@@ -3,7 +3,7 @@ from collections import namedtuple
 import copy
 import numpy as np
 import torch
-from nervex.utils import build_logger, EasyTimer, TensorBoardLogger
+from nervex.utils import build_logger, EasyTimer
 from .env_manager import BaseEnvManager
 from .base_serial_actor import CachePool
 
@@ -30,9 +30,9 @@ class BaseSerialEvaluator(object):
         self._default_n_episode = cfg.get('n_episode', None)
         self._stop_value = cfg.stop_value
         self._logger, self._tb_logger = build_logger(path='./log/evaluator', name='evaluator', need_tb=True)
-        for var in ['episode_count', 'envstep_count', 'avg_envstep_per_episode', 'evaluate_time', 'avg_envstep_per_sec',
-                    'avg_time_per_episode', 'reward_mean', 'reward_std', 'each_reward']:
-            self._tb_logger.register_var('evaluator/' + var)
+        # for var in ['episode_count', 'envstep_count', 'avg_envstep_per_episode', 'evaluate_time', 'avg_envstep_per_sec',
+        #             'avg_time_per_episode', 'reward_mean', 'reward_std', 'each_reward']:
+        #     self._tb_logger.register_var('evaluator/' + var)
         self._timer = EasyTimer()
         self._cfg = cfg
 
@@ -129,11 +129,10 @@ class BaseSerialEvaluator(object):
         self._logger.info(
             "[EVALUATOR] Evaluation ends:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()]))
         )
-        tb_vars = [
-            ['evaluator/' + k, v, train_iter] for k, v in info.items()
-            if k not in ['train_iter', 'ckpt_name', 'each_reward']
-        ]
-        self._tb_logger.add_val_list(tb_vars, viz_type='scalar')
+        for k, v in info.items():
+            if k in ['train_iter', 'ckpt_name', 'each_reward']:
+                continue
+            self._tb_logger.add_scalar('evaluator/' + k, v, train_iter)
         eval_reward = np.mean(episode_reward)
         stop_flag = eval_reward >= self._stop_value
         if stop_flag:
