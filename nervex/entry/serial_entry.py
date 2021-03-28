@@ -129,7 +129,9 @@ def serial_pipeline(
         for i in range(learner_train_step):
             # Learner will train ``train_step`` times in one iteration.
             # But if replay buffer does not have enough data, program will break and warn.
-            train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter, actor.envstep)
+            train_data = replay_buffer.sample(
+                learner.policy.get_attribute('batch_size'), learner.train_iter, actor.envstep
+            )
             if train_data is None:
                 # It is possible that replay buffer's data count is too few to train ``train_step`` times
                 logging.warning(

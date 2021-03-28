@@ -247,7 +247,7 @@ class BaseSerialActor(object):
         self._obs_pool.reset(env_id)
         self._policy_output_pool.reset(env_id)
         self._policy.reset([env_id])
-    
+
     @property
     def envstep(self) -> int:
         return self._total_envstep_count

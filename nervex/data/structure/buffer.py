@@ -599,7 +599,9 @@ class ReplayBuffer:
             self._beta = min(1.0, self._beta + self._beta_anneal_step)
         return data
 
-    def _monitor_update_of_push(self, add_count: int, add_time: float, cur_learner_iter: int, cur_actor_envstep: int) -> None:
+    def _monitor_update_of_push(
+            self, add_count: int, add_time: float, cur_learner_iter: int, cur_actor_envstep: int
+    ) -> None:
         r"""
         Overview:
             Update values in monitor, then update text logger and tensorboard logger.
@@ -626,7 +628,9 @@ class ReplayBuffer:
                     self._tb_logger.add_scalar('buffer_{}_step/'.format(self.name) + k, v, cur_actor_envstep)
         self._in_count += 1
 
-    def _monitor_update_of_sample(self, sample_data: list, sample_time: float, cur_learner_iter: int, cur_actor_envstep: int) -> None:
+    def _monitor_update_of_sample(
+            self, sample_data: list, sample_time: float, cur_learner_iter: int, cur_actor_envstep: int
+    ) -> None:
         r"""
         Overview:
             Update values in monitor, then update text logger and tensorboard logger.

@@ -127,7 +127,13 @@ class BufferManager(IBuffer):
             with self._meta_lock:
                 self._meta_buffer.append(data)
 
-    def push(self, data: Union[list, dict], buffer_name: Optional[List[str]] = None, cur_learner_iter: int = -1, cur_actor_envstep: int = -1) -> None:
+    def push(
+            self,
+            data: Union[list, dict],
+            buffer_name: Optional[List[str]] = None,
+            cur_learner_iter: int = -1,
+            cur_actor_envstep: int = -1
+    ) -> None:
         """
         Overview:
             Push ``data`` into appointed buffer.
