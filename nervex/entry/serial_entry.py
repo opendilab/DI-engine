@@ -117,7 +117,7 @@ def serial_pipeline(
                 break
             else:
                 if eval_reward > max_eval_reward:
-                    learner.save_checkpoint()
+                    learner.save_checkpoint('ckpt_best.pth.tar')
                     max_eval_reward = eval_reward
         # Collect data by default config n_sample/n_episode
         new_data = actor.generate_data(learner.train_iter)

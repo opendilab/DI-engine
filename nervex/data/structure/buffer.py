@@ -175,17 +175,16 @@ class ReplayBuffer:
         self._valid_count = 0
         # How many pieces of data have been pushed into this buffer, should be no less than ``_valid_count``.
         self._push_count = 0
-        # Point to the position where next data can be inserted, i.e. latest inserted data's next position.
-        # This position also means the stalest(oldest) data in this buffer as well.
-        self._pointer = 0
-        # Point to the true head of the circular queue. The true head data is the stalest(oldest) data in this queue.
+        # Point to the tail position where next data can be inserted, i.e. latest inserted data's next position.
+        self._tail = 0
+        # Point to the head of the circular queue. The true data is the stalest(oldest) data in this queue.
         # Because buffer would remove data due to staleness or use times, and at the beginning when queue is not
-        # filled with data true head would always be 0, so ``true_head`` may be not equal to ``pointer``;
-        # Otherwise, they two should be the same. True head is used to optimize staleness check in ``sample_check``.
-        self._true_head = 0
+        # filled with data head would always be 0, so ``head`` may be not equal to ``tail``;
+        # Otherwise, they two should be the same. Head is used to optimize staleness check in ``sample_check``.
+        self._head = 0
         # Is used to generate a unique id for each data: If a new data is inserted, its unique id will be this.
         self._next_unique_id = 0
-        # {position_idx/pointer_idx: use_count}
+        # {position_idx: use_count}
         self._use_count = {idx: 0 for idx in range(replay_buffer_size)}
         # Max priority till now. Is used to initizalize a data's priority if "priority" is not passed in with the data.
         self._max_priority = 1.0
@@ -269,7 +268,7 @@ class ReplayBuffer:
         if size == 0:
             return True
         with self._lock:
-            p = self._true_head
+            p = self._head
             while True:
                 if self._data[p] is not None:
                     staleness = self._calculate_staleness(p, cur_learner_iter)
@@ -277,13 +276,13 @@ class ReplayBuffer:
                         self._remove(p)
                     else:
                         # Since the circular queue ``self._data`` guarantees that data's staleness is decreasing from
-                        # index self._pointer to index self._pointer - 1, we can jump out of the loop as soon as
+                        # index self._tail to index self._tail - 1, we can jump out of the loop as soon as
                         # meeting a fresh enough data
-                        self._true_head = p
+                        self._head = p
                         break
                 p = (p + 1) % self._replay_buffer_size
-                if p == self._pointer:
-                    # Traverse a circle and go back to the start pointer, which means can stop staleness checking now
+                if p == self._tail:
+                    # Traverse a circle and go back to the tail, which means can stop staleness checking now
                     break
             if self._valid_count / size < self.min_sample_ratio:
                 self._logger.info(
@@ -336,7 +335,7 @@ class ReplayBuffer:
 
                 - replay_unique_id: The data item's unique id, using ``self._generate_id`` to generate it.
                 - replay_buffer_idx: The data item's position index in the queue, this position may already have an \
-                    old element, then it would be replaced by this new input one. using ``self._pointer`` to locate.
+                    old element, then it would be replaced by this new input one. using ``self._tail`` to locate.
         Arguments:
             - ori_data (:obj:`Any`): The data which will be inserted.
         """
@@ -354,13 +353,15 @@ class ReplayBuffer:
                     return
                 self._push_count += 1
                 # remove->set weight->set data
-                self._remove(self._pointer)
+                if self._data[self._tail] is not None:
+                    self._head = (self._tail + 1) % self._replay_buffer_size
+                self._remove(self._tail)
                 data['replay_unique_id'] = self._generate_id(self._next_unique_id)
-                data['replay_buffer_idx'] = self._pointer
+                data['replay_buffer_idx'] = self._tail
                 self._set_weight(data)
-                self._data[self._pointer] = data
+                self._data[self._tail] = data
                 self._valid_count += 1
-                self._pointer = (self._pointer + 1) % self._replay_buffer_size
+                self._tail = (self._tail + 1) % self._replay_buffer_size
                 self._next_unique_id += 1
 
             self._monitor_update_of_push(1, self._timer.value)
@@ -395,29 +396,33 @@ class ReplayBuffer:
                 valid_data = [d for d, flag in zip(data, check_result) if flag]
                 length = len(valid_data)
                 # When updating ``_data`` and ``_use_count``, should consider two cases regarding
-                # the relationship between "pointer + data length" and "queue max length" to check whether
+                # the relationship between "tail + data length" and "queue max length" to check whether
                 # data will exceed beyond queue's max length limitation.
-                if self._pointer + length <= self._replay_buffer_size:
-                    for j in range(self._pointer, self._pointer + length):
+                if self._tail + length <= self._replay_buffer_size:
+                    for j in range(self._tail, self._tail + length):
+                        if self._data[j] is not None:
+                            self._head = (j + 1) % self._replay_buffer_size
                         self._remove(j)
                     for i in range(length):
                         valid_data[i]['replay_unique_id'] = self._generate_id(self._next_unique_id + i)
-                        valid_data[i]['replay_buffer_idx'] = (self._pointer + i) % self._replay_buffer_size
+                        valid_data[i]['replay_buffer_idx'] = (self._tail + i) % self._replay_buffer_size
                         self._set_weight(valid_data[i])
                         self._push_count += 1
-                    self._data[self._pointer:self._pointer + length] = valid_data
+                    self._data[self._tail:self._tail + length] = valid_data
                 else:
-                    data_start = self._pointer
+                    data_start = self._tail
                     valid_data_start = 0
                     residual_num = len(valid_data)
                     while True:
                         space = self._replay_buffer_size - data_start
                         L = min(space, residual_num)
                         for j in range(data_start, data_start + L):
+                            if self._data[j] is not None:
+                                self._head = (j + 1) % self._replay_buffer_size
                             self._remove(j)
                         for i in range(valid_data_start, valid_data_start + L):
                             valid_data[i]['replay_unique_id'] = self._generate_id(self._next_unique_id + i)
-                            valid_data[i]['replay_buffer_idx'] = (self._pointer + i) % self._replay_buffer_size
+                            valid_data[i]['replay_buffer_idx'] = (self._tail + i) % self._replay_buffer_size
                             self._set_weight(valid_data[i])
                             self._push_count += 1
                         self._data[data_start:data_start + L] = valid_data[valid_data_start:valid_data_start + L]
@@ -428,8 +433,8 @@ class ReplayBuffer:
                             data_start = 0
                             valid_data_start += L
                 self._valid_count += len(valid_data)
-                # Update ``pointer`` and ``next_unique_id`` after the whole list is pushed into buffer.
-                self._pointer = (self._pointer + length) % self._replay_buffer_size
+                # Update ``tail`` and ``next_unique_id`` after the whole list is pushed into buffer.
+                self._tail = (self._tail + length) % self._replay_buffer_size
                 self._next_unique_id += length
 
             self._monitor_update_of_push(length, self._timer.value)
@@ -471,9 +476,9 @@ class ReplayBuffer:
         with self._lock:
             for i in range(len(self._data)):
                 self._remove(i)
-                self._use_count[i] = 0
             self._valid_count = 0
-            self._pointer = 0
+            self._head = 0
+            self._tail = 0
             self._max_priority = 1.0
 
     def close(self) -> None:
@@ -547,11 +552,10 @@ class ReplayBuffer:
         self._track_used_data(self._data[idx])
         if self._data[idx] is not None:
             self._valid_count -= 1
-            self._true_head = (idx + 1) % self._replay_buffer_size
         self._data[idx] = None
-        self._use_count[idx] = 0
         self._sum_tree[idx] = self._sum_tree.neutral_element
         self._min_tree[idx] = self._min_tree.neutral_element
+        self._use_count[idx] = 0
 
     def _sample_with_indices(self, indices: List[int], cur_learner_iter: int) -> list:
         r"""
@@ -589,7 +593,7 @@ class ReplayBuffer:
         for idx in indices:
             if self._use_count[idx] >= self._max_reuse:
                 self._remove(idx)
-        # Anneal update beta
+        # Beta anneal
         if self._anneal_step != 0:
             self._beta = min(1.0, self._beta + self._beta_anneal_step)
         return data
@@ -730,11 +734,11 @@ class ReplayBuffer:
         return {
             'data': self._data,
             'use_count': self._use_count,
-            'pointer': self._pointer,
+            'tail': self._tail,
             'max_priority': self._max_priority,
             'anneal_step': self._anneal_step,
             'beta': self._beta,
-            'true_head': self._true_head,
+            'head': self._head,
             'next_unique_id': self._next_unique_id,
             'valid_count': self._valid_count,
             'sum_tree': self._sum_tree,

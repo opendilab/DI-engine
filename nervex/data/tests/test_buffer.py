@@ -86,12 +86,12 @@ def generate_data():
 class TestBaseBuffer:
 
     def test_append(self, setup_base_buffer):
-        start_pointer = setup_base_buffer._pointer
+        start_pointer = setup_base_buffer._tail
         start_vaildlen = setup_base_buffer.validlen
         start_data_id = setup_base_buffer._next_unique_id
         valid_count = 0
         for _ in range(100):
-            if setup_base_buffer._data[setup_base_buffer._pointer] is None:
+            if setup_base_buffer._data[setup_base_buffer._tail] is None:
                 valid_count += 1
             setup_base_buffer.append(generate_data())
 
@@ -100,24 +100,24 @@ class TestBaseBuffer:
         assert (setup_base_buffer.alpha == 0.)
         assert (setup_base_buffer.validlen == start_vaildlen + valid_count)
         assert (setup_base_buffer.push_count == start_vaildlen + 100)
-        assert (setup_base_buffer._pointer == (start_pointer + 100) % setup_base_buffer.replay_buffer_size)
+        assert (setup_base_buffer._tail == (start_pointer + 100) % setup_base_buffer.replay_buffer_size)
         assert (setup_base_buffer._next_unique_id == start_data_id + 100)
 
         # invalid item append test
         setup_base_buffer.append([])
         assert (setup_base_buffer.validlen == start_vaildlen + valid_count)
         assert (setup_base_buffer.push_count == start_vaildlen + 100)
-        assert (setup_base_buffer._pointer == (start_pointer + 100) % setup_base_buffer.replay_buffer_size)
+        assert (setup_base_buffer._tail == (start_pointer + 100) % setup_base_buffer.replay_buffer_size)
         assert (setup_base_buffer._next_unique_id == start_data_id + 100)
 
     def test_extend(self, setup_base_buffer):
-        start_pointer = setup_base_buffer._pointer
+        start_pointer = setup_base_buffer._tail
         start_data_id = setup_base_buffer._next_unique_id
 
         init_num = int(0.2 * setup_base_buffer.replay_buffer_size)
         data = [generate_data() for _ in range(init_num)]
         setup_base_buffer.extend(data)
-        assert setup_base_buffer._pointer == start_pointer + init_num
+        assert setup_base_buffer._tail == start_pointer + init_num
         assert setup_base_buffer._next_unique_id == start_data_id + init_num
         start_pointer += init_num
         start_data_id += init_num
@@ -132,12 +132,12 @@ class TestBaseBuffer:
 
         setup_base_buffer.extend(data)
         valid_data_num = enlarged_length - int(0.1 * enlarged_length)
-        assert setup_base_buffer._pointer == (start_pointer + valid_data_num) % setup_base_buffer.replay_buffer_size
+        assert setup_base_buffer._tail == (start_pointer + valid_data_num) % setup_base_buffer.replay_buffer_size
         assert setup_base_buffer._next_unique_id == start_data_id + valid_data_num
 
         data = [None for _ in range(10)]
         setup_base_buffer.extend(data)
-        assert setup_base_buffer._pointer == (start_pointer + valid_data_num) % setup_base_buffer.replay_buffer_size
+        assert setup_base_buffer._tail == (start_pointer + valid_data_num) % setup_base_buffer.replay_buffer_size
         assert setup_base_buffer._next_unique_id == start_data_id + valid_data_num
         assert sum(setup_base_buffer._use_count.values()) == 0, sum(setup_base_buffer._reuse_count)
 
@@ -235,7 +235,7 @@ class TestReplayBuffer:
             setup_prioritized_buffer.append(tmp)
         assert (setup_prioritized_buffer.validlen == 64)
         assert (setup_prioritized_buffer._next_unique_id == 20 + 80)
-        assert (setup_prioritized_buffer._pointer == (20 + 80) % 64)
+        assert (setup_prioritized_buffer._tail == (20 + 80) % 64)
         weights = get_weights(data[-64:])
         assert (np.fabs(weights.sum() - setup_prioritized_buffer._sum_tree.reduce()) < 1e-6)
         weights = get_weights(data[-36:])
@@ -294,7 +294,7 @@ class TestDemonstrationBuffer:
 
         state_dict = setup_demo_buffer.state_dict()
         naive_demo_buffer.load_state_dict(state_dict)
-        assert naive_demo_buffer._pointer == setup_demo_buffer._pointer
+        assert naive_demo_buffer._tail == setup_demo_buffer._tail
         assert naive_demo_buffer._max_priority == setup_demo_buffer._max_priority
 
         os.popen('rm -rf log')
