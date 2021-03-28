@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from nervex.rl_utils.value_rescale import value_transform, value_inv_transform
+from nervex.hpc_rl import hpc_wrapper
 
 q_1step_td_data = namedtuple('q_1step_td_data', ['q', 'next_q', 'act', 'next_act', 'reward', 'done', 'weight'])
 
@@ -92,6 +93,18 @@ dist_nstep_td_data = namedtuple(
 )
 
 
+def shape_fn_dntd(args):
+    r"""
+    Overview: 
+        Return dntd shape for hpc
+    Returns:
+        shape: [T, B, N, n_atom]
+    """
+    tmp = [args[0].reward.shape[0]].extend(args[0].dist.shape)
+    return tmp.shape
+
+
+@hpc_wrapper(shape_fn=shape_fn_dntd, namedtuple_data=True, end_index=-2)
 def dist_nstep_td_error(
         data: namedtuple,
         gamma: float,
@@ -186,6 +199,18 @@ q_nstep_td_data = namedtuple(
 )
 
 
+def shape_fn_qntd(args):
+    r"""
+    Overview: 
+        Return dntd shape for hpc
+    Returns:
+        shape: [T, B, N]
+    """
+    tmp = [args[0].reward.shape[0]].extend(args[0].q.shape)
+    return tmp.shape
+
+
+@hpc_wrapper(shape_fn=shape_fn_qntd, namedtuple_data=True, end_index=-2)
 def q_nstep_td_error(
         data: namedtuple,
         gamma: float,
@@ -228,6 +253,18 @@ def q_nstep_td_error(
     return (td_error_per_sample * weight).mean(), td_error_per_sample
 
 
+def shape_fn_qntd_rescale(args):
+    r"""
+    Overview: 
+        Return qntd_rescale shape for hpc
+    Returns:
+        shape: [T, B, N]
+    """
+    tmp = [args[0].reward.shape[0]].extend(args[0].q.shape)
+    return tmp.shape
+
+
+@hpc_wrapper(shape_fn=shape_fn_qntd_rescale, namedtuple_data=True, end_index=-4)
 def q_nstep_td_error_with_rescale(
     data: namedtuple,
     gamma: float,
@@ -370,6 +407,7 @@ def iqn_nstep_td_error(
 td_lambda_data = namedtuple('td_lambda_data', ['value', 'reward', 'weight'])
 
 
+@hpc_wrapper(shape_fn=lambda args: args[0].reward.shape, namedtuple_data=True)
 def td_lambda_error(data: namedtuple, gamma: float = 0.9, lambda_: float = 0.8) -> torch.Tensor:
     """
     Overview:

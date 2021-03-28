@@ -2,6 +2,7 @@ import torch
 import torch.nn.functional as F
 from collections import namedtuple
 from .isw import compute_importance_weights
+from nervex.hpc_rl import hpc_wrapper
 
 
 def vtrace_nstep_return(clipped_rhos, clipped_cs, reward, bootstrap_values, gamma=0.99, lambda_=0.95):
@@ -23,6 +24,7 @@ vtrace_data = namedtuple('vtrace_data', ['target_output', 'behaviour_output', 'a
 vtrace_loss = namedtuple('vtrace_loss', ['policy_loss', 'value_loss', 'entropy_loss'])
 
 
+@hpc_wrapper(shape_fn=lambda args: args[0].target_output.shape, namedtuple_data=True)
 def vtrace_error(
     data: namedtuple,
     gamma: float = 0.99,

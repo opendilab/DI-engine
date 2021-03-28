@@ -2,6 +2,7 @@ from collections import namedtuple
 from typing import Optional, Tuple
 import torch
 from torch.distributions import Independent, Normal
+from nervex.hpc_rl import hpc_wrapper
 
 ppo_data = namedtuple(
     'ppo_data', ['logit_new', 'logit_old', 'action', 'value_new', 'value_old', 'adv', 'return_', 'weight']
@@ -13,6 +14,7 @@ ppo_policy_loss = namedtuple('ppo_policy_loss', ['policy_loss', 'entropy_loss'])
 ppo_info = namedtuple('ppo_info', ['approx_kl', 'clipfrac'])
 
 
+@hpc_wrapper(shape_fn=lambda args: args[0].logit_new.shape, namedtuple_data=True)
 def ppo_error(
         data: namedtuple,
         clip_ratio: float = 0.2,
