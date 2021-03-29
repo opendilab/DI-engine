@@ -25,7 +25,7 @@ def register_runtime_fn(fn_name, runtime_name, shape):
     return hpc_fn
 
 
-def hpc_wrapper(shape_fn=None, namedtuple_data=False, end_index=None):
+def hpc_wrapper(shape_fn=None, namedtuple_data=False, include_args=None, include_kwargs=[]):
 
     def decorate(fn):
 
@@ -39,13 +39,19 @@ def hpc_wrapper(shape_fn=None, namedtuple_data=False, end_index=None):
                     hpc_fn = register_runtime_fn(fn.__name__, runtime_name, shape)
                 else:
                     hpc_fn = hpc_fns[runtime_name]
-                if end_index is None:
-                    end_index = len(args)
+                if include_args is None:
+                    end = len(args)
+                else:
+                    end = include_args
+                clean_kwargs = {}
+                for k, v in kwargs.items():
+                    if k in include_kwargs:
+                        clean_kwargs[k] = v
                 if namedtuple_data:
                     data = args[0]  # args[0] is a namedtuple
-                    return hpc_fn(*data, *args[1:end_index], **kwargs)
+                    return hpc_fn(*data, *args[1:end], **clean_kwargs)
                 else:
-                    return hpc_fn(*args, **kwargs)
+                    return hpc_fn(*args, **clean_kwargs)
             else:
                 return fn(*args, **kwargs)
 

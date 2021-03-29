@@ -100,11 +100,12 @@ def shape_fn_dntd(args):
     Returns:
         shape: [T, B, N, n_atom]
     """
-    tmp = [args[0].reward.shape[0]].extend(args[0].dist.shape)
-    return tmp.shape
+    tmp = [args[0].reward.shape[0]]
+    tmp.extend(args[0].dist.shape)
+    return tmp
 
 
-@hpc_wrapper(shape_fn=shape_fn_dntd, namedtuple_data=True, end_index=-2)
+@hpc_wrapper(shape_fn=shape_fn_dntd, namedtuple_data=True, include_args=4, include_kwargs=['data', 'gamma', 'v_min', 'v_max'])
 def dist_nstep_td_error(
         data: namedtuple,
         gamma: float,
@@ -206,11 +207,12 @@ def shape_fn_qntd(args):
     Returns:
         shape: [T, B, N]
     """
-    tmp = [args[0].reward.shape[0]].extend(args[0].q.shape)
-    return tmp.shape
+    tmp = [args[0].reward.shape[0]]
+    tmp.extend(args[0].q.shape)
+    return tmp
 
 
-@hpc_wrapper(shape_fn=shape_fn_qntd, namedtuple_data=True, end_index=-2)
+@hpc_wrapper(shape_fn=shape_fn_qntd, namedtuple_data=True, include_args=2, include_kwargs=['data', 'gamma'])
 def q_nstep_td_error(
         data: namedtuple,
         gamma: float,
@@ -260,11 +262,12 @@ def shape_fn_qntd_rescale(args):
     Returns:
         shape: [T, B, N]
     """
-    tmp = [args[0].reward.shape[0]].extend(args[0].q.shape)
-    return tmp.shape
+    tmp = [args[0].reward.shape[0]]
+    tmp.extend(args[0].q.shape)
+    return tmp
 
 
-@hpc_wrapper(shape_fn=shape_fn_qntd_rescale, namedtuple_data=True, end_index=-4)
+@hpc_wrapper(shape_fn=shape_fn_qntd_rescale, namedtuple_data=True, include_args=2, include_kwargs=['data', 'gamma'])
 def q_nstep_td_error_with_rescale(
     data: namedtuple,
     gamma: float,
