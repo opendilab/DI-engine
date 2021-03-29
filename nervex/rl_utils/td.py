@@ -95,7 +95,7 @@ dist_nstep_td_data = namedtuple(
 
 def shape_fn_dntd(args):
     r"""
-    Overview: 
+    Overview:
         Return dntd shape for hpc
     Returns:
         shape: [T, B, N, n_atom]
@@ -202,7 +202,7 @@ q_nstep_td_data = namedtuple(
 
 def shape_fn_qntd(args):
     r"""
-    Overview: 
+    Overview:
         Return dntd shape for hpc
     Returns:
         shape: [T, B, N]
@@ -257,7 +257,7 @@ def q_nstep_td_error(
 
 def shape_fn_qntd_rescale(args):
     r"""
-    Overview: 
+    Overview:
         Return qntd_rescale shape for hpc
     Returns:
         shape: [T, B, N]
