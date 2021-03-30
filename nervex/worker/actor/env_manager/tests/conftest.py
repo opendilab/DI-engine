@@ -31,14 +31,20 @@ class FakeEnv(object):
         self._stat = None
         self._seed = 0
         self._data_count = 0
+        self.timeout_flag = False
 
     def reset(self, stat):
         if isinstance(stat, str) and stat == 'error':
             raise EnvException("reset error: {}".format(stat))
+        if isinstance(stat, str) and stat == "timeout":
+            if self.timeout_flag:  # after step(), the reset can hall with status of timeout
+                time.sleep(5)
+
         self._current_step = 0
         self._stat = stat
 
     def step(self, action):
+        self.timeout_flag = True  # after one step, enable timeout flag
         if isinstance(action, str) and action == 'error':
             raise EnvException("env error, current step {}".format(self._current_step))
         if isinstance(action, str) and action == 'catched_error':
@@ -111,12 +117,10 @@ def setup_model_type():
     return FakeModel
 
 
-def get_manager_cfg(shared_memory: bool):
-    env_num = 4
+def get_manager_cfg(env_num=4):
     manager_cfg = {
         'env_cfg': [{
             'name': 'name{}'.format(i),
-            'shared_memory': shared_memory
         } for i in range(env_num)],
         'env_num': env_num,
         'episode_num': 2,
@@ -129,14 +133,15 @@ def pytest_generate_tests(metafunc):
         manager_cfgs = []
         # for b in [True, False]:
         for b in [False]:
-            manager_cfg = get_manager_cfg(b)
+            manager_cfg = get_manager_cfg()
             manager_cfg['env_fn'] = FakeAsyncEnv
+            manager_cfg['manager_cfg'] = {"shared_memory": b, 'reset_timeout': 4}
             manager_cfgs.append(manager_cfg)
         metafunc.parametrize("setup_async_manager_cfg", manager_cfgs)
 
 
 @pytest.fixture(scope='class')
 def setup_sync_manager_cfg():
-    manager_cfg = get_manager_cfg(False)
+    manager_cfg = get_manager_cfg(4)
     manager_cfg['env_fn'] = FakeEnv
     return manager_cfg
