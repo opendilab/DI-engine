@@ -3,14 +3,14 @@ import time
 import pytest
 import torch
 
-from nervex.worker.actor.env_manager.subprocess_env_manager import SubprocessEnvManager, SyncSubprocessEnvManager
+from ..subprocess_env_manager import AsyncSubprocessEnvManager, SyncSubprocessEnvManager
 
 
 @pytest.mark.unittest(rerun=5)
 class TestSubprocessEnvManager:
 
     def test_naive(self, setup_async_manager_cfg, setup_model_type):
-        env_manager = SubprocessEnvManager(**setup_async_manager_cfg)
+        env_manager = AsyncSubprocessEnvManager(**setup_async_manager_cfg)
         model = setup_model_type()
 
         env_manager.seed([314 for _ in range(env_manager.env_num)])
@@ -94,7 +94,7 @@ class TestSubprocessEnvManager:
             env_manager.step([])
 
     def test_reset(self, setup_async_manager_cfg):
-        env_manager = SubprocessEnvManager(**setup_async_manager_cfg)
+        env_manager = AsyncSubprocessEnvManager(**setup_async_manager_cfg)
         with pytest.raises(AssertionError):
             env_manager.reset(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
         obs = env_manager.launch(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])

@@ -17,7 +17,6 @@ from app_zoo.multiagent_particle.entry import cooperative_navigation_collaQ_defa
     cooperative_navigation_qmix_default_config, cooperative_navigation_atoc_default_config
 
 
-@pytest.mark.dqn
 @pytest.mark.unittest
 def test_dqn():
     config = deepcopy(cartpole_dqn_default_config)

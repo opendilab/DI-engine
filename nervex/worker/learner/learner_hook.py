@@ -235,7 +235,7 @@ class LogShowHook(LearnerHook):
                 new_k = 'learner/' + k
                 tb_var_dict[new_k] = engine.log_buffer['histogram'][k]
             for k, v in tb_var_dict.items():
-                engine.tb_logger.add_scalar(k, v, iters)
+                engine.tb_logger.add_histogram(k, v, iters)
         for k in engine.log_buffer:
             engine.log_buffer[k].clear()
 

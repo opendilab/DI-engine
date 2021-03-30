@@ -277,7 +277,8 @@ class BaseLearner(object):
             data = self._next_data()
             if self._end_flag:
                 break
-            self.train(data)
+            # TODO(nyz) apply envstep in parallel mode
+            self.train(data, envstep=-1)
 
         self._learner_done = True
         # after run hook

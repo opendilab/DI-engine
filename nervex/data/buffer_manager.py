@@ -162,7 +162,7 @@ class BufferManager(IBuffer):
             self,
             batch_size: Union[int, Dict[str, int]],
             cur_learner_iter: int,
-            cur_actor_envstep: int,
+            cur_actor_envstep: int = -1,
     ) -> Union[list, Dict[str, list]]:
         """
         Overview:

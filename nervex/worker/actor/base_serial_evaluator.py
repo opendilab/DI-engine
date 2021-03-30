@@ -4,7 +4,7 @@ import copy
 import numpy as np
 import torch
 from nervex.utils import build_logger, EasyTimer
-from .env_manager import BaseEnvManager
+from nervex.envs import BaseEnvManager
 from .base_serial_actor import CachePool
 
 

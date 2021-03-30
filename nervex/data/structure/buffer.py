@@ -155,10 +155,11 @@ class ReplayBuffer:
             - max_reuse (:obj:`int` or None): The maximum reuse times of each element in buffer. Once a data is \
                 sampled(used) ``max_reuse`` times, it would be removed out of buffer.
             - min_sample_ratio (:obj:`float`): The minimum ratio restriction for sampling, only when \
-                "current element number in buffer / sample size" is greater than this, can start sampling.
+                "current element number in buffer" / "sample size" is greater than this, can start sampling.
             - alpha (:obj:`float`): How much prioritization is used (0: no prioritization, 1: full prioritization).
             - beta (:obj:`float`): How much correction is used (0: no correction, 1: full correction).
-            - anneal_step (:obj:`int`): Anneal step for beta(beta -> 1).
+            - anneal_step (:obj:`Optional[Union[int, float]]`): Anneal step for beta, i.e. Beta takes \
+                how many steps to come to 1. ``float("inf")`` means no annealing.
             - enable_track_used_data (:obj:`bool`): Whether to track the used data or not.
             - deepcopy (:obj:`bool`): Whether to deepcopy data when append/extend and sample data.
             - monitor_cfg (:obj:`EasyDict`): Monitor's dict config.

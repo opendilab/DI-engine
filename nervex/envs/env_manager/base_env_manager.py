@@ -12,9 +12,10 @@ class BaseEnvManager(ABC):
     """
     Overview:
         Create a BaseEnvManager to manage multiple environments.
-
     Interfaces:
-        seed, launch, next_obs, step, reset, env_info
+        reset, step, seed, close, enable_save_replay, launch, env_info
+    Properties:
+        env_num, next_obs, done, method_name_list
     """
 
     def __init__(
@@ -22,7 +23,7 @@ class BaseEnvManager(ABC):
             env_fn: Callable,
             env_cfg: Iterable,
             env_num: int,
-            episode_num: Optional[int] = 'inf',
+            episode_num: Optional[Union[int, float]] = float('inf'),
             manager_cfg: Optional[dict] = {},
     ) -> None:
         """
@@ -32,14 +33,14 @@ class BaseEnvManager(ABC):
             - env_fn (:obj:`function`): the function to create environment
             - env_cfg (:obj:`list`): the list of environemnt configs
             - env_num (:obj:`int`): number of environments to create, equal to len(env_cfg)
-            - episode_num (:obj:`int`): maximum episodes to collect in one environment
-            - manager_cfg (:obj:`dict`): config for env manager
+            - episode_num (:obj:`Optional[Union[int, float]]`): maximum episodes to collect in one environment
+            - manager_cfg (:obj:`Optional[dict]`): config for env manager
         """
-        self._env_num = env_num
         self._env_fn = env_fn
         self._env_cfg = env_cfg
-        if episode_num == 'inf':
-            episode_num = float('inf')
+        self._env_num = env_num
+        if episode_num == "inf":
+            episode_num = float("inf")
         self._epsiode_num = episode_num
         self._transform = partial(to_ndarray)
         self._inv_transform = partial(to_tensor, dtype=torch.float32)
@@ -47,20 +48,6 @@ class BaseEnvManager(ABC):
         self._env_replay_path = None
         # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
         self._env_ref = self._env_fn(self._env_cfg[0])
-
-    def _create_state(self) -> None:
-        self._closed = False
-        self._env_episode_count = {i: 0 for i in range(self.env_num)}
-        self._env_dones = {i: False for i in range(self.env_num)}
-        self._next_obs = {i: None for i in range(self.env_num)}
-        self._envs = [self._env_fn(c) for c in self._env_cfg]
-        assert len(self._envs) == self._env_num
-        if self._env_replay_path is not None:
-            for e, s in zip(self._envs, self._env_replay_path):
-                e.enable_save_replay(s)
-
-    def _check_closed(self):
-        assert not self._closed, "env manager is closed, please use the alive env manager"
 
     @property
     def env_num(self) -> int:
@@ -70,16 +57,14 @@ class BaseEnvManager(ABC):
     def next_obs(self) -> Dict[int, Any]:
         """
         Overview:
-            Get the next observations and corresponding env id.
+            Get the next observations(in ``torch.Tensor`` type) and corresponding env id.
         Return:
             A dictionary with observations and their environment IDs.
-        Note:
-            The observations are returned in torch.Tensor.
         Example:
             >>>     obs_dict = env_manager.next_obs
             >>>     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
         """
-        return self._inv_transform({i: self._next_obs[i] for i, d in self._env_dones.items() if not d})
+        return self._inv_transform(self._next_obs)
 
     @property
     def done(self) -> bool:
@@ -93,25 +78,42 @@ class BaseEnvManager(ABC):
         """
         Note: if a python object doesn't have the attribute named key, it will call this method
         """
-        # we suppose that all the envs has the same attributes, if you need different envs, please
-        # create different env managers.
+        # We suppose that all envs have the same attributes.
+        # If you need different envs, please implement other env managers.
         if not hasattr(self._env_ref, key):
             raise AttributeError("env `{}` doesn't have the attribute `{}`".format(type(self._env_ref), key))
         if isinstance(getattr(self._env_ref, key), MethodType) and key not in self.method_name_list:
-            raise RuntimeError("env getattr doesn't supports method({}), please override method_name_list".format(key))
+            raise RuntimeError("env getattr doesn't support method({}), please override method_name_list".format(key))
         self._check_closed()
         return [getattr(env, key) if hasattr(env, key) else None for env in self._envs]
 
-    def launch(self, reset_param: List[dict] = None) -> None:
+    def _check_closed(self):
+        """
+        Overview:
+            Check whether the env manager is closed. Will be called in ``__getattr__`` and ``step``.
+        """
+        assert not self._closed, "env manager is closed, please use the alive env manager"
+
+    def launch(self, reset_param: Optional[List[dict]] = None) -> None:
         """
         Overview:
             Set up the environments and hyper-params.
         Arguments:
-            - reset_param (:obj:`List`): list of reset parameters for each environment.
+            - reset_param (:obj:`Optional[List[dict]]`): List of reset parameters for each environment.
         """
         assert self._closed, "please first close the env manager"
         self._create_state()
         self.reset(reset_param)
+
+    def _create_state(self) -> None:
+        self._closed = False
+        self._env_episode_count = {i: 0 for i in range(self.env_num)}
+        self._next_obs = {i: None for i in range(self.env_num)}
+        self._envs = [self._env_fn(c) for c in self._env_cfg]
+        assert len(self._envs) == self._env_num
+        if self._env_replay_path is not None:
+            for e, s in zip(self._envs, self._env_replay_path):
+                e.enable_save_replay(s)
 
     def reset(self, reset_param: List[dict] = None) -> None:
         """
@@ -134,7 +136,7 @@ class BaseEnvManager(ABC):
         obs = self._safe_run(lambda: self._envs[env_id].reset(**self._reset_param[env_id]))
         self._next_obs[env_id] = obs
 
-    def _safe_run(self, fn: Callable):
+    def _safe_run(self, fn: Callable) -> Any:
         try:
             return fn()
         except Exception as e:
@@ -144,15 +146,14 @@ class BaseEnvManager(ABC):
     def step(self, actions: Dict[int, Any]) -> Dict[int, namedtuple]:
         """
         Overview:
-            Wrapper of step function in the environment.
+            All envs Wrapper of step function in the environment.
         Arguments:
-            - actions (:obj:`Dict`): a dictionary, {env_id: action}, which includes actions and their env ids.
+            - actions (:obj:`Dict[int, Any]`): {env_id: action}
         Return:
-            - timesteps (:obj:`Dict`): a dictionary, {env_id: timestep}, which includes each environment's timestep.
+            - timesteps (:obj:`Dict[int, namedtuple]`): {env_id: timestep}. timestep is in ``torch.Tensor`` type.
         Note:
-            - The env_id that appears in actions will also be returned in timesteps.
-            - It will wait until all environments are done to reset. If episodes in different environments \
-                vary significantly, it is suggested to use subprocess_env_manager.
+            - The env_id that appears in ``actions`` will also be returned in ``timesteps``.
+            - Once an environment is done, it is reset immediately.
         Example:
             >>>     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
             >>>     timesteps = env_manager.step(actions_dict):
@@ -166,9 +167,7 @@ class BaseEnvManager(ABC):
             timesteps[env_id] = self._safe_run(lambda: self._envs[env_id].step(act))
             if timesteps[env_id].done:
                 self._env_episode_count[env_id] += 1
-                if self._env_episode_count[env_id] == self._epsiode_num:
-                    self._env_dones[env_id] = True
-                else:
+                if self._env_episode_count[env_id] < self._epsiode_num:
                     self._reset(env_id)
             else:
                 self._next_obs[env_id] = timesteps[env_id].obs
@@ -179,7 +178,7 @@ class BaseEnvManager(ABC):
         Overview:
             Set the seed for each environment.
         Arguments:
-            - seed (:obj:`List or int`): list of seeds for each environment, \
+            - seed (:obj:`Union[List[int], int]`): List of seeds for each environment, \
                 or one seed for the first environment and other seeds are generated automatically.
         """
         if isinstance(seed, numbers.Integral):

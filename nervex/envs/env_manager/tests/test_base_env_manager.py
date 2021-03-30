@@ -3,7 +3,7 @@ import time
 import pytest
 import torch
 
-from nervex.worker.actor.env_manager.base_env_manager import BaseEnvManager
+from ..base_env_manager import BaseEnvManager
 
 
 @pytest.mark.unittest
