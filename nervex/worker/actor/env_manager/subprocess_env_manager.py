@@ -195,6 +195,7 @@ class SubprocessEnvManager(BaseEnvManager):
         self.context_str = manager_cfg.get('context', default_context_str)
         self.timeout = manager_cfg.get('timeout', 0.01)
         self.wait_num = manager_cfg.get('wait_num', 2)
+        self.reset_timeout = manager_cfg.get('reset_timeout', 60)
         self._lock = LockContext(LockContextType.THREAD_LOCK)
 
     def _create_state(self) -> None:
@@ -212,34 +213,38 @@ class SubprocessEnvManager(BaseEnvManager):
             self._obs_buffers = {env_id: ShmBufferContainer(dtype, shape) for env_id in range(self.env_num)}
         else:
             self._obs_buffers = {env_id: None for env_id in range(self.env_num)}
-        self._pipe_parents, self._pipe_children = zip(*[Pipe() for _ in range(self.env_num)])
-        ctx = get_context(self.context_str)
-        # due to the runtime delay of lambda expression, we use partial for the generation of different envs,
-        # otherwise, it will only use the last item cfg.
-        env_fn = [partial(self._env_fn, cfg=self._env_cfg[env_id]) for env_id in range(self.env_num)]
-        self._subprocesses = [
-            ctx.Process(
-                target=self.worker_fn,
-                args=(parent, child, CloudpickleWrapper(fn), obs_buffer, self.method_name_list),
-                daemon=True,
-                name='subprocess_env_manager{}_{}'.format(idx, time.time())
-            )
-            for idx, (parent, child, fn, obs_buffer
-                      ) in enumerate(zip(self._pipe_parents, self._pipe_children, env_fn, self._obs_buffers.values()))
-        ]
-        for p in self._subprocesses:
-            p.start()
-        for c in self._pipe_children:
-            c.close()
-        self._closed = False
-        self._env_states = {env_id: EnvState.INIT for env_id in range(self.env_num)}
+        self._pipe_parents, self._pipe_children = {}, {}
+        self._subprocesses = {}
+        self._env_states = {}
+        for env_id in range(self.env_num):
+            self._create_env_subprocess(env_id)
         self._waiting_env = {'step': set()}
         self._setup_async_args()
+        self._closed = False
+
+    def _create_env_subprocess(self, env_id):
+        # start a new one
+        env_fn = partial(self._env_fn, cfg=self._env_cfg[env_id])
+        self._pipe_parents[env_id], self._pipe_children[env_id] = Pipe()
+        ctx = get_context(self.context_str)
+        self._subprocesses[env_id] = ctx.Process(
+            target=self.worker_fn,
+            args=(
+                self._pipe_parents[env_id], self._pipe_children[env_id], CloudpickleWrapper(env_fn),
+                self._obs_buffers[env_id], self.method_name_list
+            ),
+            daemon=True,
+            name='subprocess_env_manager{}_{}'.format(env_id, time.time())
+        )
+        self._subprocesses[env_id].start()
+        self._pipe_children[env_id].close()
+        self._env_states[env_id] = EnvState.INIT
+
         if self._env_replay_path is not None:
-            for p, s in zip(self._pipe_parents, self._env_replay_path):
-                p.send(CloudpickleWrapper(['enable_save_replay', [s], {}]))
-            for p in self._pipe_parents:
-                p.recv()
+            self._pipe_parents[env_id].send(
+                CloudpickleWrapper(['enable_save_replay', [self._env_replay_path[env_id]], {}])
+            )
+            self._pipe_parents[env_id].recv()
 
     def _setup_async_args(self) -> None:
         r"""
@@ -321,7 +326,7 @@ class SubprocessEnvManager(BaseEnvManager):
         if hasattr(self, '_env_seed'):
             for i in range(self.env_num):
                 self._pipe_parents[i].send(CloudpickleWrapper(['seed', [self._env_seed[i]], {}]))
-            ret = [p.recv().data for p in self._pipe_parents]
+            ret = [p.recv().data for _, p in self._pipe_parents.items()]
             self._check_data(ret)
 
         # reset env
@@ -339,7 +344,20 @@ class SubprocessEnvManager(BaseEnvManager):
 
         @retry_wrapper
         def reset_fn():
+            if self._pipe_parents[env_id].poll():
+                recv_data = self._pipe_parents[env_id].recv().data
+                raise Exception("unread data left before sending to the pipe: {}".format(repr(recv_data)))
             self._pipe_parents[env_id].send(CloudpickleWrapper(['reset', [], self._reset_param[env_id]]))
+
+            if not self._pipe_parents[env_id].poll(self.reset_timeout):  # wait for 60 seconds to restart the env
+                # terminate the old subprocess
+                self._pipe_parents[env_id].close()
+                if self._subprocesses[env_id].is_alive():
+                    self._subprocesses[env_id].terminate()
+                # reset the subprocess
+                self._create_env_subprocess(env_id)
+                raise Exception("env reset timeout")  # leave it to retry_wrapper to try again
+
             obs = self._pipe_parents[env_id].recv().data
             self._check_data([obs], close=False)
             if self.shared_memory:
@@ -515,9 +533,9 @@ class SubprocessEnvManager(BaseEnvManager):
             raise AttributeError("env `{}` doesn't have the attribute `{}`".format(type(self._env_ref), key))
         if isinstance(getattr(self._env_ref, key), MethodType) and key not in self.method_name_list:
             raise RuntimeError("env getattr doesn't supports method({}), please override method_name_list".format(key))
-        for p in self._pipe_parents:
+        for _, p in self._pipe_parents.items():
             p.send(CloudpickleWrapper(['getattr', [key], {}]))
-        ret = [p.recv().data for p in self._pipe_parents]
+        ret = [p.recv().data for _, p in self._pipe_parents.items()]
         self._check_data(ret)
         return ret
 
@@ -533,16 +551,16 @@ class SubprocessEnvManager(BaseEnvManager):
             return
         self._closed = True
         self._env_ref.close()
-        for p in self._pipe_parents:
+        for _, p in self._pipe_parents.items():
             p.send(CloudpickleWrapper(['close', None, None]))
-        for p in self._pipe_parents:
+        for _, p in self._pipe_parents.items():
             p.recv()
         # disable process join for avoiding hang
         # for p in self._subprocesses:
         #     p.join()
-        for p in self._subprocesses:
+        for _, p in self._subprocesses.items():
             p.terminate()
-        for p in self._pipe_parents:
+        for _, p in self._pipe_parents.items():
             p.close()
 
     @staticmethod

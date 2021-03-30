@@ -103,3 +103,6 @@ class TestSubprocessEnvManager:
         env_manager.reset(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
         timestep = env_manager.step({i: torch.randn(4) for i in range(env_manager.env_num)})
         assert len(timestep) <= env_manager.env_num
+        env_manager.reset(reset_param=[{'stat': 'timeout'} for _ in range(env_manager.env_num)])
+        timestep = env_manager.step({i: torch.randn(4) for i in range(env_manager.env_num)})
+        assert len(timestep) > 0
