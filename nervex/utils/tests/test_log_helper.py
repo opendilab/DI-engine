@@ -51,7 +51,7 @@ class TestLogger:
         # tensorboard logger
         for i in range(10):
             new_vars = {k: v * (i + random.random()) for k, v in vars.items()}
-            for k, v in new_vars:
+            for k, v in new_vars.items():
                 tb_logger.add_scalar(k, v, i)
         remove_file(cfg.common.save_path)
         tb_logger.close()

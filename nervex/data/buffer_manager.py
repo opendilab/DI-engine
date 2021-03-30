@@ -24,7 +24,7 @@ class IBuffer(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def push(self, data: Union[list, dict]) -> None:
+    def push(self, data: Union[list, dict], cur_actor_envstep: int) -> None:
         raise NotImplementedError
 
     @abstractmethod
@@ -131,7 +131,6 @@ class BufferManager(IBuffer):
             self,
             data: Union[list, dict],
             buffer_name: Optional[List[str]] = None,
-            cur_learner_iter: int = -1,
             cur_actor_envstep: int = -1
     ) -> None:
         """
@@ -154,15 +153,14 @@ class BufferManager(IBuffer):
             for i, n in enumerate(buffer_name):
                 # TODO optimizer multi-buffer deepcopy
                 if i >= 1:
-                    self.buffer[n].extend(copy.deepcopy(data), cur_learner_iter, cur_actor_envstep)
+                    self.buffer[n].extend(copy.deepcopy(data), cur_actor_envstep)
                 else:
-                    self.buffer[n].extend(data, cur_learner_iter, cur_actor_envstep)
+                    self.buffer[n].extend(data, cur_actor_envstep)
 
     def sample(
             self,
             batch_size: Union[int, Dict[str, int]],
             cur_learner_iter: int,
-            cur_actor_envstep: int = -1,
     ) -> Union[list, Dict[str, list]]:
         """
         Overview:
@@ -187,7 +185,7 @@ class BufferManager(IBuffer):
             if not self.buffer[buffer_name].sample_check(sample_num, cur_learner_iter):
                 return None
         for buffer_name, sample_num in batch_size.items():
-            data = self.buffer[buffer_name].sample(sample_num, cur_learner_iter, cur_actor_envstep)
+            data = self.buffer[buffer_name].sample(sample_num, cur_learner_iter)
             buffer_sample_data[buffer_name] = data
 
         if len(buffer_sample_data) == 1:

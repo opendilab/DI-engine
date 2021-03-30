@@ -129,13 +129,12 @@ class BaseLearner(object):
         # Logger (Monitor is initialized in policy setter)
         # Only rank == 0 learner needs monitor and tb_logger, others only need text_logger to display terminal output.
         self._timer = EasyTimer()
-        parallel_tb = tb_logger is None  # True for parallel, False for serial
-        self._parallel_tb = parallel_tb
         rank0 = True if self._rank == 0 else False
-        need_tb = parallel_tb and rank0
-        self._logger, self._tb_logger = build_logger('./log/learner', 'learner', need_tb=need_tb)
-        if not parallel_tb:
+        if tb_logger is not None:
+            self._logger, _ = build_logger('./log/learner', 'learner', need_tb=False)
             self._tb_logger = tb_logger
+        else:
+            self._logger, self._tb_logger = build_logger('./log/learner', 'learner')
         self._log_buffer = {
             'scalar': build_log_buffer(),
             'scalars': build_log_buffer(),
@@ -211,7 +210,7 @@ class BaseLearner(object):
         """
         add_learner_hook(self._hooks, hook)
 
-    def train(self, data: dict, envstep: int) -> None:
+    def train(self, data: dict, envstep: int = -1) -> None:
         """
         Overview:
             Given training data, implement network update for one iteration and update related variables.
@@ -277,8 +276,7 @@ class BaseLearner(object):
             data = self._next_data()
             if self._end_flag:
                 break
-            # TODO(nyz) apply envstep in parallel mode
-            self.train(data, envstep=-1)
+            self.train(data)
 
         self._learner_done = True
         # after run hook
@@ -328,9 +326,8 @@ class BaseLearner(object):
         self._end_flag = True
         if hasattr(self, '_dataloader'):
             self._dataloader.close()
-        if self._parallel_tb:
-            self._tb_logger.flush()
-            self._tb_logger.close()
+        self._tb_logger.flush()
+        self._tb_logger.close()
 
     def call_hook(self, name: str) -> None:
         """

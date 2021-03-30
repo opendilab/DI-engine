@@ -7,12 +7,13 @@ import torch
 import math
 import logging
 
-from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommander
 from nervex.envs import BaseEnvManager, AsyncSubprocessEnvManager, SyncSubprocessEnvManager
+from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommander
 from nervex.config import read_config
 from nervex.data import BufferManager
 from nervex.policy import create_policy
 from nervex.envs import get_vec_env_setting
+from nervex.utils import build_logger
 from nervex.irl_utils import create_irl_model
 from .utils import set_pkg_seed
 
@@ -77,10 +78,11 @@ def serial_pipeline_irl(
         assert callable(policy_type)
         policy_fn = policy_type
     policy = policy_fn(cfg.policy, model=model)
-    learner = BaseLearner(cfg.learner)
-    actor = BaseSerialActor(cfg.actor)
-    evaluator = BaseSerialEvaluator(cfg.evaluator)
-    replay_buffer = BufferManager(cfg.replay_buffer)
+    _, tb_logger = build_logger(path='./log/', name='serial', need_tb=True, need_text=False)
+    learner = BaseLearner(cfg.learner, tb_logger)
+    actor = BaseSerialActor(cfg.actor, tb_logger)
+    evaluator = BaseSerialEvaluator(cfg.evaluator, tb_logger)
+    replay_buffer = BufferManager(cfg.replay_buffer, tb_logger)
     commander = BaseSerialCommander(cfg.commander, learner, actor, evaluator, replay_buffer)
     reward_model = create_irl_model(cfg.irl, policy.get_attribute('device'))
     reward_model.start()
@@ -109,13 +111,13 @@ def serial_pipeline_irl(
     # Accumulate plenty of data at the beginning of training.
     if replay_buffer.replay_start_size() > 0:
         new_data = actor.generate_data(learner.train_iter, n_sample=replay_buffer.replay_start_size())
-        replay_buffer.push(new_data)
+        replay_buffer.push(new_data, cur_actor_envstep=0)
 
     while True:
         commander.step()
         # Evaluate at the beginning of training.
         if eval_interval >= cfg.evaluator.eval_freq:
-            stop_flag, eval_reward = evaluator.eval(learner.train_iter)
+            stop_flag, eval_reward = evaluator.eval(learner.train_iter, actor.envstep)
             eval_interval = 0
             if stop_flag and learner.train_iter > 0:
                 # Evaluator's mean episode reward reaches the expected ``stop_value``.
@@ -126,7 +128,7 @@ def serial_pipeline_irl(
                 break
             else:
                 if eval_reward > max_eval_reward:
-                    learner.save_checkpoint()
+                    learner.save_checkpoint('ckpt_best.pth.tar')
                     max_eval_reward = eval_reward
         new_data_count, target_new_data_count = 0, cfg.irl.get('target_new_data_count', 1)
         while new_data_count < target_new_data_count:
@@ -134,7 +136,7 @@ def serial_pipeline_irl(
             new_data_count += len(new_data)
             # collect data for reward_model training
             reward_model.collect_data(new_data)
-            replay_buffer.push(new_data)
+            replay_buffer.push(new_data, cur_actor_envstep=actor.envstep)
         # update reward_model
         reward_model.train()
         reward_model.clear_data()
@@ -147,12 +149,12 @@ def serial_pipeline_irl(
                 # It is possible that replay buffer's data count is too few to train ``train_step`` times
                 logging.warning(
                     "Replay buffer's data can only train for {} steps. ".format(i) +
-                    "You can modify data collect config, e.g. increasing n_sample, n_episode or min_sample_ratio."
+                    "You can modify data collect config, e.g. increasing n_sample, n_episode."
                 )
                 break
             # update train_data reward
             reward_model.estimate(train_data)
-            learner.train(train_data)
+            learner.train(train_data, actor.envstep)
             eval_interval += 1
             if use_priority:
                 replay_buffer.update(learner.priority_info)

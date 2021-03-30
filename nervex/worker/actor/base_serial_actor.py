@@ -18,7 +18,7 @@ class BaseSerialActor(object):
         env, policy
     """
 
-    def __init__(self, cfg: dict, tb_logger: 'SummaryWriter') -> None:  # noqa
+    def __init__(self, cfg: dict, tb_logger: 'SummaryWriter' = None) -> None:  # noqa
         """
         Overview:
             Initialization method.
@@ -34,8 +34,11 @@ class BaseSerialActor(object):
             self._traj_len = float('inf')
             self._traj_cache_length = None
         self._collect_print_freq = cfg.collect_print_freq
-        self._logger, _ = build_logger(path='./log/actor', name='collect', need_tb=False)
-        self._tb_logger = tb_logger
+        if tb_logger is not None:
+            self._logger, _ = build_logger(path='./log/collector', name='collector', need_tb=False)
+            self._tb_logger = tb_logger
+        else:
+            self._logger, self._tb_logger = build_logger(path='./log/collector', name='collector')
         self._timer = EasyTimer()
         self._cfg = cfg
 
@@ -69,7 +72,7 @@ class BaseSerialActor(object):
         self._total_episode_count = 0
         self._total_train_sample_count = 0
         self._total_duration = 0
-        self._last_iter_count = 0
+        self._last_train_iter = 0
         self._done_episode = []
 
     @property
@@ -85,14 +88,14 @@ class BaseSerialActor(object):
         return ret
 
     def generate_data(self,
-                      iter_count: int,
+                      train_iter: int = -1,
                       n_episode: Optional[int] = None,
                       n_sample: Optional[int] = None) -> Tuple[List[Any], dict]:
         """
         Overview:
            Generate data. Either ``n_episode`` or ``n_sample`` must be None.
         Arguments:
-           - iter_count (:obj:`int`): count of iteration
+           - train_iter (:obj:`int`): count of iteration
            - n_episode (:obj:`int`): number of episode
            - n_sample (:obj:`int`): number of sample
         Returns:
@@ -100,32 +103,34 @@ class BaseSerialActor(object):
         """
         assert n_episode is None or n_sample is None, "Either n_episode or n_sample must be None"
         if n_episode is not None:
-            return self._collect_episode(iter_count, n_episode)
+            return self._collect_episode(train_iter, n_episode)
         elif n_sample is not None:
-            return self._collect_sample(iter_count, n_sample)
+            return self._collect_sample(train_iter, n_sample)
         elif self._default_n_episode is not None:
-            return self._collect_episode(iter_count, self._default_n_episode)
+            return self._collect_episode(train_iter, self._default_n_episode)
         elif self._default_n_sample is not None:
-            return self._collect_sample(iter_count, self._default_n_sample)
+            return self._collect_sample(train_iter, self._default_n_sample)
         else:
             raise RuntimeError("Please clarify specific n_episode or n_sample (int value) in config yaml or outer call")
 
     def close(self) -> None:
         self._env_manager.close()
+        self._tb_logger.flush()
+        self._tb_logger.close()
 
-    def _collect_episode(self, iter_count: int, n_episode: int) -> Tuple[List[Any], dict]:
-        return self._collect(iter_count, lambda num_episode, num_sample: num_episode >= n_episode)
+    def _collect_episode(self, train_iter: int, n_episode: int) -> Tuple[List[Any], dict]:
+        return self._collect(train_iter, lambda num_episode, num_sample: num_episode >= n_episode)
 
-    def _collect_sample(self, iter_count: int, n_sample: int) -> Tuple[List[Any], dict]:
-        return self._collect(iter_count, lambda num_episode, num_sample: num_sample >= n_sample)
+    def _collect_sample(self, train_iter: int, n_sample: int) -> Tuple[List[Any], dict]:
+        return self._collect(train_iter, lambda num_episode, num_sample: num_sample >= n_sample)
 
-    def _collect(self, iter_count: int, collect_end_fn: Callable) -> Tuple[List[Any], dict]:
+    def _collect(self, train_iter: int, collect_end_fn: Callable) -> Tuple[List[Any], dict]:
         """
         Overview:
             Real collect method in process of generating data.
             Called by ``self._collect_episode`` and ``self._collect_sample``.
         Arguments:
-            - iter_count (:obj:`int`): count of iteration
+            - train_iter (:obj:`int`): count of iteration
             - collect_end_fn (:obj:`Callable`): end of collect
         Returns:
             - return_data (:obj:`List`): A list containing training samples.
@@ -162,8 +167,8 @@ class BaseSerialActor(object):
                     transition = self._policy.process_transition(
                         self._obs_pool[env_id], self._policy_output_pool[env_id], timestep
                     )
-                    # ``iter_count`` passed in from ``serial_entry``, indicates current collecting model's iteration.
-                    transition['collect_iter'] = iter_count
+                    # ``train_iter`` passed in from ``serial_entry``, indicates current collecting model's iteration.
+                    transition['collect_iter'] = train_iter
                     self._traj_cache[env_id].append(transition)
                     self._env_info[env_id]['step'] += 1
                     self._total_envstep_count += 1
@@ -197,8 +202,8 @@ class BaseSerialActor(object):
                     self._episode_info.append(info)
                     self._env_info[env_id] = {'time': 0., 'step': 0, 'train_sample': 0}
         # log
-        if (iter_count - self._last_iter_count) >= self._collect_print_freq and len(self._episode_info) > 0:
-            self._last_iter_count = iter_count
+        if (train_iter - self._last_train_iter) >= self._collect_print_freq and len(self._episode_info) > 0:
+            self._last_train_iter = train_iter
             episode_count = len(self._episode_info)
             envstep_count = sum([d['step'] for d in self._episode_info])
             train_sample_count = sum([d['train_sample'] for d in self._episode_info])
@@ -229,7 +234,7 @@ class BaseSerialActor(object):
             for k, v in info.items():
                 if k in ['each_reward']:
                     continue
-                self._tb_logger.add_scalar('actor_iter/' + k, v, iter_count)
+                self._tb_logger.add_scalar('actor_iter/' + k, v, train_iter)
                 if k in ['total_envstep_count']:
                     continue
                 self._tb_logger.add_scalar('actor_step/' + k, v, self._total_envstep_count)

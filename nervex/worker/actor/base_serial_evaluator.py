@@ -18,7 +18,7 @@ class BaseSerialEvaluator(object):
         env, policy
     """
 
-    def __init__(self, cfg: dict, tb_logger: 'SummaryWriter') -> None:  # noqa
+    def __init__(self, cfg: dict, tb_logger: 'SummaryWriter' = None) -> None:  # noqa
         """
         Overview:
             Init method. Load config and use ``self._cfg`` setting to build common serial evaluator components,
@@ -29,8 +29,11 @@ class BaseSerialEvaluator(object):
         """
         self._default_n_episode = cfg.get('n_episode', None)
         self._stop_value = cfg.stop_value
-        self._logger, _ = build_logger(path='./log/evaluator', name='evaluator', need_tb=False)
-        self._tb_logger = tb_logger
+        if tb_logger is not None:
+            self._logger, _ = build_logger(path='./log/evaluator', name='evaluator', need_tb=False)
+            self._tb_logger = tb_logger
+        else:
+            self._logger, self._tb_logger = build_logger(path='./log/evaluator', name='evaluator')
         self._timer = EasyTimer()
         self._cfg = cfg
 
@@ -57,11 +60,11 @@ class BaseSerialEvaluator(object):
         self._policy_output_pool = CachePool('policy_output', self._env_num)
 
     def close(self) -> None:
-        # self._tb_logger.flush()
-        # self._tb_logger.close()
         self._env_manager.close()
+        self._tb_logger.flush()
+        self._tb_logger.close()
 
-    def eval(self, train_iter: int, envstep: int, n_episode: Optional[int] = None) -> Tuple[bool, float]:
+    def eval(self, train_iter: int = -1, envstep: int = -1, n_episode: Optional[int] = None) -> Tuple[bool, float]:
         '''
         Overview:
             Evaluate policy.

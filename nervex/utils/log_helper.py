@@ -22,7 +22,7 @@ from nervex.utils.autolog import TickTime
 def build_logger(
         path: str,
         name: Optional[str] = None,
-        need_tb: bool = False,
+        need_tb: bool = True,
         need_text: bool = True,
         text_level: Union[int, str] = logging.INFO
 ) -> Tuple[Optional['TextLogger'], Optional['SummaryWriter']]:  # noqa

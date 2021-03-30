@@ -69,7 +69,7 @@ def eval(
     evaluator.env = evaluator_env
     evaluator.policy = policy.eval_mode
     # Evaluate
-    _, eval_reward = evaluator.eval(0)
+    _, eval_reward = evaluator.eval()
     print('Eval is over! The performance of your RL policy is {}'.format(eval_reward))
     evaluator.close()
 
@@ -120,9 +120,6 @@ def collect_demo_data(
         env_num=len(actor_env_cfg),
         manager_cfg=manager_cfg,
     )
-    if actor_env_cfg[0].get('replay_path', None):
-        actor_env.enable_save_replay([c['replay_path'] for c in actor_env_cfg])
-        assert cfg.env.env_manager_type == 'base'
     # Random seed.
     actor_env.seed(seed)
     set_pkg_seed(seed, cfg.policy.use_cuda)
@@ -137,7 +134,7 @@ def collect_demo_data(
     actor.env = actor_env
     actor.policy = policy.collect_mode
     # let's collect some expert demostrations
-    exp_data = actor.generate_data(n_sample=collect_count, iter_count=-1)
+    exp_data = actor.generate_data(n_sample=collect_count)
     if cfg.policy.use_cuda:
         exp_data = to_device(exp_data, 'cpu')
     with open(expert_data_path, 'wb') as f:
