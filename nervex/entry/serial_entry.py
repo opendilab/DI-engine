@@ -7,7 +7,7 @@ import torch
 import math
 import logging
 
-from nervex.envs import BaseEnvManager, SubprocessEnvManager, SyncSubprocessEnvManager
+from nervex.envs import BaseEnvManager, AsyncSubprocessEnvManager, SyncSubprocessEnvManager
 from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommander
 from nervex.config import read_config
 from nervex.data import BufferManager
@@ -54,7 +54,7 @@ def serial_pipeline(
     if em_type == 'base':
         env_manager_type = BaseEnvManager
     elif em_type == 'aynsc_subprocess':
-        env_manager_type = SubprocessEnvManager
+        env_manager_type = AsyncSubprocessEnvManager
     elif em_type == 'subprocess':
         env_manager_type = SyncSubprocessEnvManager
     actor_env = env_manager_type(
@@ -75,8 +75,6 @@ def serial_pipeline(
         policy_fn = policy_type
     policy = policy_fn(cfg.policy, model=model)
     learner = BaseLearner(cfg.learner)
-    # Append the load path into config
-    cfg.learner.load_path = learner.name
     actor = BaseSerialActor(cfg.actor)
     evaluator = BaseSerialEvaluator(cfg.evaluator)
     replay_buffer = BufferManager(cfg.replay_buffer)

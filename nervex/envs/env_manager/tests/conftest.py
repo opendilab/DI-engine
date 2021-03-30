@@ -10,7 +10,6 @@ from functools import partial
 from nervex.envs.env.base_env import BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
-from nervex.envs.env_manager.subprocess_env_manager import SubprocessEnvManager, SyncSubprocessEnvManager
 
 
 class EnvException(Exception):

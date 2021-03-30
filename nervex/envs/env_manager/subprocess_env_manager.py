@@ -163,10 +163,11 @@ def retry_wrapper(fn: Callable, max_retry: int = 10) -> Callable:
     return wrapper
 
 
-class SubprocessEnvManager(BaseEnvManager):
+class AsyncSubprocessEnvManager(BaseEnvManager):
     """
     Overview:
-        Create a SubprocessEnvManager to manage multiple environments. Each Environment is run by a seperate subprocess.
+        Create a AsyncSubprocessEnvManager to manage multiple environments. Each Environment is run by a seperate \
+            subprocess.
     Interfaces:
         seed, launch, next_obs, step, reset, env_info
     """
@@ -181,7 +182,7 @@ class SubprocessEnvManager(BaseEnvManager):
     ) -> None:
         """
         Overview:
-            Initialize the SubprocessEnvManager.
+            Initialize the AsyncSubprocessEnvManager.
         Arguments:
             - env_fn (:obj:`function`): the function to create environment
             - env_cfg (:obj:`list`): the list of environemnt configs
@@ -395,7 +396,7 @@ class SubprocessEnvManager(BaseEnvManager):
         cur_rest_env_ids = copy.deepcopy(rest_env_ids)
         while True:
             rest_conn = [self._pipe_parents[env_id] for env_id in cur_rest_env_ids]
-            ready_conn, ready_ids = SubprocessEnvManager.wait(rest_conn, min(wait_num, len(rest_conn)), timeout)
+            ready_conn, ready_ids = AsyncSubprocessEnvManager.wait(rest_conn, min(wait_num, len(rest_conn)), timeout)
             cur_ready_env_ids = [cur_rest_env_ids[env_id] for env_id in ready_ids]
             assert len(cur_ready_env_ids) == len(ready_conn)
             timesteps.update({env_id: p.recv().data for env_id, p in zip(cur_ready_env_ids, ready_conn)})
@@ -572,7 +573,7 @@ class SubprocessEnvManager(BaseEnvManager):
         return list(ready_conn), ready_ids
 
 
-class SyncSubprocessEnvManager(SubprocessEnvManager):
+class SyncSubprocessEnvManager(AsyncSubprocessEnvManager):
 
     def _setup_async_args(self) -> None:
         self._async_args = {

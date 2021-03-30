@@ -8,7 +8,7 @@ import math
 import logging
 
 from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommander
-from nervex.envs import BaseEnvManager, SubprocessEnvManager, SyncSubprocessEnvManager
+from nervex.envs import BaseEnvManager, AsyncSubprocessEnvManager, SyncSubprocessEnvManager
 from nervex.config import read_config
 from nervex.data import BufferManager
 from nervex.policy import create_policy
@@ -55,14 +55,14 @@ def serial_pipeline_irl(
     if em_type == 'base':
         env_manager_type = BaseEnvManager
     elif em_type == 'aynsc_subprocess':
-        env_manager_type = SubprocessEnvManager
+        env_manager_type = AsyncSubprocessEnvManager
     elif em_type == 'subprocess':
         env_manager_type = SyncSubprocessEnvManager
     actor_env = env_manager_type(
         env_fn=env_fn, env_cfg=actor_env_cfg, env_num=len(actor_env_cfg), manager_cfg=manager_cfg
     )
     evaluator_env = env_manager_type(
-        env_fn, env_cfg=evaluator_env_cfg, env_num=len(evaluator_env_cfg), manager_cfg=manager_cfg
+        env_fn=env_fn, env_cfg=evaluator_env_cfg, env_num=len(evaluator_env_cfg), manager_cfg=manager_cfg
     )
     # Random seed
     actor_env.seed(seed)
