@@ -36,6 +36,18 @@ nerevX对Google Research Football 环境进行了封装，使之符合nerevX环�
 
 目前NerveX的Gfootball环境支持与内置AI进行对战，后续会设计接口支持双方对战。
 
+目前NerveX的Gfootball环境支持replay保存，环境config设置save_replay=True后会自动保存replay，包括一个.avi视频文件和一个.dump文件，保存在当前文件夹内的"./tmp/football"文件夹下。.avi形式的视频默认为2d表示。
+
+
+
+如果需要立体表示（真实游戏画面），可以找到对应episode的 .dump文件，然后使用replay.py渲染视频，示例如下：
+
+```python
+python replay.py --trace_file=\tmp\football\episode_done_20210331-132800614938.dump
+```
+
+
+
 
 
 ## Model
