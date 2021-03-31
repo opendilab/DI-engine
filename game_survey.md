@@ -86,9 +86,9 @@ pip3 install gym-retro
 
 两个都是强化学习中讨论探索利用问题和多智能体问题常用的环境，即二维走迷宫探索环境，实现简单，且容易修改定制地图本身和目标任务。其中，Gridworld的部分环境支持多智能体环境，MiniGrid只有单智能体相关的环境。
 
-![image-20210330165657257](RL可用的游戏环境.assets/image-20210330165657257.png)
+![image-20210330165657257](survey_image/image-20210330165657257.png)
 
-![image-20210330165802151](RL可用的游戏环境.assets/image-20210330165802151.png)
+![image-20210330165802151](survey_image/image-20210330165802151.png)
 
 **接口**
 
@@ -108,7 +108,7 @@ MiniGrid直接通过`pip3 install gym-minigrid`安装。
 
 在nerveX中已有实现。Particle为OpenAI为研究多智能体之间的合作、竞争、通讯开发的强化学习环境，智能体的数量和目标任务都可以自定义设置，可以创建超大量级的协作粒子数，本身为MADDPG论文使用的环境。与之类似的还有UCL汪军团队开发的[MAgent](https://github.com/geek-ai/MAgent)环境。
 
-![img](RL可用的游戏环境.assets/68747470733a2f2f6b6970736f72612e6769746875622e696f2f7265736f75726365732f6d6167656e742d67726170682d322e676966)
+![img](survey_image/68747470733a2f2f6b6970736f72612e6769746875622e696f2f7265736f75726365732f6d6167656e742d67726170682d322e676966)
 
 **接口**
 
@@ -136,7 +136,7 @@ bash build.sh
 
 在nerveX中已有实现。OpenAI开发的用于验证强化学习模型迁移和泛化能力的环境。包含16个不同类型的小游戏，每款游戏都有相似类型的不同地图，用于验证模型的知识迁移能力。（官方有PPO算法下200M的训练，有收敛保证）
 
-![image-20210330190904500](RL可用的游戏环境.assets/image-20210330190904500.png)
+![image-20210330190904500](survey_image/image-20210330190904500.png)
 
 **接口**
 
@@ -176,7 +176,7 @@ Malmo是微软基于Minecraft开发的AI研究环境，本质上还是一个开�
 
 基于Unity实现的一个类似三维魔塔的爬楼+解谜游戏。在AAAI 2020上被推出，并附有gym interface。控制的状态空间为图像，动作空间为离散，包括WSAD方向，KL左右转视角和Space跳跃七维。（官方有使用Rainbow的训练实现）
 
-![alt text](RL可用的游戏环境.assets/banner.png)
+![alt text](survey_image/banner.png)
 
 **接口**
 
@@ -207,7 +207,7 @@ env = ObstacleTowerEvaluation(env, seeds)
 
 一个RL领域比较出名的赛车环境，应该在自动驾驶部门的同事都有尝试过。环境的输入为与现实情况比较接近的路侧距离等传感器信息或者图像信息，车辆本身的各项指标也都可定义，也提供了不同的地图供训练尝试。（官方有DDPG实现）
 
-![image-20210330210431013](RL可用的游戏环境.assets/image-20210330210431013.png)
+![image-20210330210431013](survey_image/image-20210330210431013.png)
 
 **接口**
 
@@ -254,9 +254,9 @@ env.end()
 
 分别是DeepMind在IMPALA和R2D3论文中使用的环境，均为3D导航探索任务。
 
-![image-20210330212949794](RL可用的游戏环境.assets/image-20210330212949794.png)
+![image-20210330212949794](survey_image/image-20210330212949794.png)
 
-![image-20210330213000966](RL可用的游戏环境.assets/image-20210330213000966.png)
+![image-20210330213000966](survey_image/image-20210330213000966.png)
 
 二者在官方github上都提供了简单的python接口安装方式。
 
@@ -266,7 +266,7 @@ env.end()
 
 VizDoom是一个经典的FPS游戏，也是在RL里做过比赛的游戏环境。仿真速度很快，对Win、Ubuntu和MacOS都可以支持，并支持自定义场景。
 
-![image-20210330213905100](RL可用的游戏环境.assets/image-20210330213905100.png)
+![image-20210330213905100](survey_image/image-20210330213905100.png)
 
 **接口**
 
@@ -317,7 +317,7 @@ for i in range(episodes):
 
 经典炸弹人小游戏，也是Nips2018竞赛的环境。涉及到了强化学习可能面对的探索利用、部分可观、多智能体和资源利用等多方面的问题。通常的版本为四个智能体，可以分别指定各个智能体使用的策略已进行自搏等训练。除了官方实现外，还有很多可以参考的a2c、ppo实现。
 
-![image-20210330214801769](RL可用的游戏环境.assets/image-20210330214801769.png)
+![image-20210330214801769](survey_image/image-20210330214801769.png)
 
 **接口**
 
@@ -364,7 +364,7 @@ def main():
 
 经典游戏雷神之锤夺旗竞技场地图，本身也是集成在DeepMind Lab下的环境。游戏分为两队，每队有两个智能体，在不同的地图中以第一人称视角进行夺旗游戏。因为DeepMind在这个环境上做训练的成果发在了[Science](https://deepmind.com/blog/article/capture-the-flag-science)上，因此比较出名。DeepMind在这里用了population based的训练方法，在延迟0.26秒的反应时间前提下获得了超越人类玩家的智能体。训练框架仅在linux下可用。
 
-![image-20210331102854872](RL可用的游戏环境.assets/image-20210331102854872.png)
+![image-20210331102854872](survey_image/image-20210331102854872.png)
 
 **接口**
 
@@ -384,7 +384,7 @@ def main():
 
 这个环境是 google 基于之前某个足球小游戏的环境进行改动和封装出来的，主要可以分为 11v11 single-agent 场景（控制一个 active player 在 11 名球员中切换）和 5v5 multi-agent 场景（控制 4 名球员 + 1 个守门员）。该环境支持 self-play，有三种难度内置 AI 可以打。游戏状态基于 vector 的主要是球员的坐标 / 速度 / 角色 / 朝向 / 红黄牌等，也可以用图像输入，动作输出有二十多维，包括不同方向 / 长短传 / 加速等。是Google在Kaggle上举办过比赛的环境，实际会面对RL中的多智能体、稀疏奖励等多种问题。环境训练本身支持Linux和MacOS。
 
-![image-20210331111801166](RL可用的游戏环境.assets/image-20210331111801166.png)
+![image-20210331111801166](survey_image/image-20210331111801166.png)
 
 **接口**
 
@@ -423,7 +423,7 @@ print("Steps: %d Reward: %.2f" % (steps, rew))
 
 OpenAI开源的大型MultiAgent环境，在非常大的地图中设定有限资源。也因为地图非常大，对IO开销非常大。
 
-![image-20210331192459775](RL可用的游戏环境.assets/image-20210331192459775.png)
+![image-20210331192459775](survey_image/image-20210331192459775.png)
 
 **接口**
 
@@ -468,7 +468,7 @@ obs, rewards, dones, infos = envs.step(actions)
 
 网易伏羲开源的潮人篮球游戏，支持1v1，2v2，3v3环境，提供内置不同难度的AI，支持self-play。
 
-![image-20210331193250389](RL可用的游戏环境.assets/image-20210331193250389.png)
+![image-20210331193250389](survey_image/image-20210331193250389.png)
 
 **接口**
 
