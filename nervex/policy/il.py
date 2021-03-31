@@ -133,11 +133,13 @@ class ILPolicy(CommonPolicy):
             data = {}
             data['obs'] = traj_cache[i]['obs']
             data['action'] = traj_cache[i]['action']
-            data['logit'] = traj_cache[i]['logit']
             cur_rew = traj_cache[i]['reward']
             pre_rew = cur_rew + (pre_rew * self._gamma)
             # TODO find a better function here
-            data['priority'] = math.e ** float(pre_rew)
+            # data['priority'] = math.e ** float(pre_rew)
+            # sampel uniformly
+            data['priority'] = 1
+            data['logit'] = traj_cache[i]['logit'] * (math.e ** float(pre_rew))
             datas.append(data)
         return datas
 
