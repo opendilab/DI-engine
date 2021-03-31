@@ -61,7 +61,7 @@ __zergling_actor_default_config = dict(
         actor_env_num=2,
         actor_episode_num=2,
         evaluator_env_num=2,
-        evaluator_episode_num=1,
+        evaluator_episode_num=2,
         eval_stop_val=3,
         manager=dict(shared_memory=False, ),
     ),
@@ -90,7 +90,7 @@ __coordinator_default_config = dict(
         ),
         policy=__policy_default_config,
         max_iterations=int(1e9),
-        eval_interval=100,
+        eval_interval=500,
     ),
 )
 __coordinator_default_config = EasyDict(__coordinator_default_config)

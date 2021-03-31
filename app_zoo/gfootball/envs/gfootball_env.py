@@ -1,6 +1,7 @@
 import gfootball
 import gfootball.env as football_env
 
+import copy
 from collections import namedtuple
 from typing import List, Any
 
@@ -24,6 +25,7 @@ class GfootballEnv(BaseEnv):
         self._action_helper = GfootballRawActionRunner(cfg)
         self._reward_helper = GfootballRewardRunner(cfg)
         self._obs_helper = GfootballObsRunner(cfg)
+        self.save_replay = cfg.get("save_replay", False)
         self._launch_env_flag = False
         self._launch_env()
 
@@ -32,9 +34,10 @@ class GfootballEnv(BaseEnv):
             env_name="11_vs_11_stochastic",
             representation='raw',
             stacked=False,
-            logdir='/tmp/football',
+            logdir='./tmp/football',
             write_goal_dumps=False,
-            write_full_episode_dumps=False,
+            write_full_episode_dumps=self.save_replay,
+            write_video=self.save_replay,
             render=False
         )
         self._launch_env_flag = True
@@ -91,6 +94,20 @@ class GfootballEnv(BaseEnv):
             'rew_space': self._reward_helper.info,
         }
         return GfootballEnv.info_template(**info_data)
+
+    @staticmethod
+    def create_actor_env_cfg(cfg: dict) -> List[dict]:
+        actor_env_num = cfg.pop('actor_env_num', 1)
+        cfg = copy.deepcopy(cfg)
+        cfg.save_replay = False
+        return [cfg for _ in range(actor_env_num)]
+
+    @staticmethod
+    def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
+        evaluator_env_num = cfg.pop('evaluator_env_num', 1)
+        cfg = copy.deepcopy(cfg)
+        cfg.save_replay = True
+        return [cfg for _ in range(evaluator_env_num)]
 
 
 GfootballTimestep = GfootballEnv.timestep

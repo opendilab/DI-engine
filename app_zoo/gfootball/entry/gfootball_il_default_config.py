@@ -40,8 +40,8 @@ gfootball_il_default_config = dict(
         collect_print_freq=100,
     ),
     evaluator=dict(
-        n_episode=2,
-        eval_freq=100,
+        n_episode=4,
+        eval_freq=800,
         stop_val=3,
     ),
     learner=dict(

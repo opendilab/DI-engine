@@ -15,7 +15,7 @@ from app_zoo.gfootball.model.bots import FootballRuleBaseModel, FootballKaggle5t
 from app_zoo.gfootball.model.iql.iql_network import FootballIQL
 
 
-@POLICY_REGISTRY.register('il')
+@POLICY_REGISTRY.register('IL')
 class ILPolicy(CommonPolicy):
     r"""
     Overview:
