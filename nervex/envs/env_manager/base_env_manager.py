@@ -8,7 +8,7 @@ import torch
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
 
 
-class BaseEnvManager(ABC):
+class BaseEnvManager(object):
     """
     Overview:
         Create a BaseEnvManager to manage multiple environments.
@@ -64,11 +64,14 @@ class BaseEnvManager(ABC):
             >>>     obs_dict = env_manager.next_obs
             >>>     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
         """
-        return self._inv_transform(self._next_obs)
+        return self._inv_transform(
+            {i: self._next_obs[i]
+             for i in range(self.env_num) if self._env_episode_count[i] < self._epsiode_num}
+        )
 
     @property
     def done(self) -> bool:
-        return all(self._env_dones.values())
+        return all([self._env_episode_count[env_id] >= self._epsiode_num for env_id in range(self.env_num)])
 
     @property
     def method_name_list(self) -> list:

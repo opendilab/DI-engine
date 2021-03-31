@@ -41,7 +41,7 @@ def eval(
     em_type = cfg.env.env_manager_type
     if em_type == 'base':
         env_manager_type = BaseEnvManager
-    elif em_type == 'aynsc_subprocess':
+    elif em_type == 'async_subprocess':
         env_manager_type = AsyncSubprocessEnvManager
     elif em_type == 'subprocess':
         env_manager_type = SyncSubprocessEnvManager
@@ -110,7 +110,7 @@ def collect_demo_data(
     em_type = cfg.env.env_manager_type
     if em_type == 'base':
         env_manager_type = BaseEnvManager
-    elif em_type == 'aynsc_subprocess':
+    elif em_type == 'async_subprocess':
         env_manager_type = AsyncSubprocessEnvManager
     elif em_type == 'subprocess':
         env_manager_type = SyncSubprocessEnvManager
