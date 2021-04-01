@@ -1,2 +1,2 @@
-from .base_env_manager import BaseEnvManager
+from .base_env_manager import BaseEnvManager, create_env_manager
 from .subprocess_env_manager import AsyncSubprocessEnvManager, SyncSubprocessEnvManager

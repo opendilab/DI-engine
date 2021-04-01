@@ -6,8 +6,10 @@ from collections import namedtuple
 import numbers
 import torch
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
+from nervex.utils import ENV_MANAGER_REGISTRY, import_module
 
 
+@ENV_MANAGER_REGISTRY.register('base')
 class BaseEnvManager(object):
     """
     Overview:
@@ -210,3 +212,9 @@ class BaseEnvManager(object):
 
     def env_info(self) -> namedtuple:
         return self._env_ref.info()
+
+
+def create_env_manager(type_: str, **kwargs) -> BaseEnvManager:
+    if 'import_names' in kwargs:
+        import_module(kwargs.pop('import_names'))
+    return ENV_MANAGER_REGISTRY.build(type_, **kwargs)

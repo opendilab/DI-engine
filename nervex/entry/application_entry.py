@@ -2,11 +2,10 @@ from typing import Union, Optional, List, Any
 import pickle
 import torch
 from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommander
-from nervex.envs import BaseEnvManager, AsyncSubprocessEnvManager, SyncSubprocessEnvManager
+from nervex.envs import create_env_manager, get_vec_env_setting
 from nervex.config import read_config
 from nervex.data import BufferManager
 from nervex.policy import create_policy
-from nervex.envs import get_vec_env_setting
 from nervex.torch_utils import to_device
 from .utils import set_pkg_seed
 
@@ -39,14 +38,9 @@ def eval(
     else:
         env_fn, _, evaluator_env_cfg = env_setting
     em_type = cfg.env.env_manager_type
-    if em_type == 'base':
-        env_manager_type = BaseEnvManager
-    elif em_type == 'async_subprocess':
-        env_manager_type = AsyncSubprocessEnvManager
-    elif em_type == 'subprocess':
-        env_manager_type = SyncSubprocessEnvManager
-    evaluator_env = env_manager_type(
-        env_fn,
+    evaluator_env = create_env_manager(
+        cfg.env.env_manager_type,
+        env_fn=env_fn,
         env_cfg=evaluator_env_cfg,
         env_num=len(evaluator_env_cfg),
         manager_cfg=manager_cfg,
@@ -56,6 +50,8 @@ def eval(
         evaluator_env.enable_save_replay([c['replay_path'] for c in evaluator_env_cfg])
         assert cfg.env.env_manager_type == 'base'
     # Random seed.
+    if not seed:
+        seed = cfg.get('seed', 0)
     evaluator_env.seed(seed)
     set_pkg_seed(seed, cfg.policy.use_cuda)
     # Create components.
@@ -102,23 +98,17 @@ def collect_demo_data(
     if isinstance(cfg, str):
         cfg = read_config(cfg)
     # Env init.
-    manager_cfg = cfg.env.get('manager', {})
     if env_setting is None:
         env_fn, actor_env_cfg, _ = get_vec_env_setting(cfg.env)
     else:
         env_fn, actor_env_cfg, _ = env_setting
-    em_type = cfg.env.env_manager_type
-    if em_type == 'base':
-        env_manager_type = BaseEnvManager
-    elif em_type == 'async_subprocess':
-        env_manager_type = AsyncSubprocessEnvManager
-    elif em_type == 'subprocess':
-        env_manager_type = SyncSubprocessEnvManager
-    actor_env = env_manager_type(
-        env_fn,
+    manager_cfg = cfg.env.get('manager', {})
+    actor_env = create_env_manager(
+        cfg.env.env_manager_type,
+        env_fn=env_fn,
         env_cfg=actor_env_cfg,
         env_num=len(actor_env_cfg),
-        manager_cfg=manager_cfg,
+        manager_cfg=manager_cfg
     )
     # Random seed.
     actor_env.seed(seed)

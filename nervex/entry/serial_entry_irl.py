@@ -1,18 +1,12 @@
-import sys
-import copy
-import time
 from typing import Union, Optional, List, Any
-import numpy as np
 import torch
-import math
 import logging
 
-from nervex.envs import BaseEnvManager, AsyncSubprocessEnvManager, SyncSubprocessEnvManager
+from nervex.envs import get_vec_env_setting, create_env_manager
 from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommander
 from nervex.config import read_config
 from nervex.data import BufferManager
 from nervex.policy import create_policy
-from nervex.envs import get_vec_env_setting
 from nervex.utils import build_logger
 from nervex.irl_utils import create_irl_model
 from .utils import set_pkg_seed
@@ -47,23 +41,24 @@ def serial_pipeline_irl(
     # If you want to indicate different cfg for different env, please refer to ``get_vec_env_setting``.
     # Usually, user-defined env must be registered in nervex so that it can be created with config string;
     # Or you can also directly pass in env_fn argument, in some dynamic env class cases.
-    manager_cfg = cfg.env.get('manager', {})
     if env_setting is None:
         env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     else:
         env_fn, actor_env_cfg, evaluator_env_cfg = env_setting
-    em_type = cfg.env.env_manager_type
-    if em_type == 'base':
-        env_manager_type = BaseEnvManager
-    elif em_type == 'asyncc_subprocess':
-        env_manager_type = AsyncSubprocessEnvManager
-    elif em_type == 'subprocess':
-        env_manager_type = SyncSubprocessEnvManager
-    actor_env = env_manager_type(
-        env_fn=env_fn, env_cfg=actor_env_cfg, env_num=len(actor_env_cfg), manager_cfg=manager_cfg
+    manager_cfg = cfg.env.get('manager', {})
+    actor_env = create_env_manager(
+        cfg.env.env_manager_type,
+        env_fn=env_fn,
+        env_cfg=actor_env_cfg,
+        env_num=len(actor_env_cfg),
+        manager_cfg=manager_cfg
     )
-    evaluator_env = env_manager_type(
-        env_fn=env_fn, env_cfg=evaluator_env_cfg, env_num=len(evaluator_env_cfg), manager_cfg=manager_cfg
+    evaluator_env = create_env_manager(
+        cfg.env.env_manager_type,
+        env_fn=env_fn,
+        env_cfg=evaluator_env_cfg,
+        env_num=len(evaluator_env_cfg),
+        manager_cfg=manager_cfg
     )
     # Random seed
     if not seed:

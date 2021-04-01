@@ -18,7 +18,7 @@ from types import MethodType
 from typing import Any, Union, List, Tuple, Iterable, Dict, Callable, Optional
 
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
-from nervex.utils import PropagatingThread, LockContextType, LockContext
+from nervex.utils import PropagatingThread, LockContextType, LockContext, ENV_MANAGER_REGISTRY
 from .base_env_manager import BaseEnvManager
 
 _NTYPE_TO_CTYPE = {
@@ -163,6 +163,7 @@ def retry_wrapper(fn: Callable, max_retry: int = 10) -> Callable:
     return wrapper
 
 
+@ENV_MANAGER_REGISTRY.register('async_subprocess')
 class AsyncSubprocessEnvManager(BaseEnvManager):
     """
     Overview:
@@ -592,6 +593,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         return list(ready_conn), ready_ids
 
 
+@ENV_MANAGER_REGISTRY.register('subprocess')
 class SyncSubprocessEnvManager(AsyncSubprocessEnvManager):
 
     def _setup_async_args(self) -> None:
