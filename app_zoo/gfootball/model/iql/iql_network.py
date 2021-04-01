@@ -246,7 +246,7 @@ class FootballHead(nn.Module):
         self.pre_fc = fc_block(in_channels=input_dim, out_channels=self.hidden_dim, activation=self.act)
         res_blocks_list = []
         for i in range(self.res_num):
-            res_blocks_list.append(ResFCBlock(in_channels=self.hidden_dim, activation=self.act, norm_type='BN'))
+            res_blocks_list.append(ResFCBlock(in_channels=self.hidden_dim, activation=self.act, norm_type=None))
         self.res_blocks = nn.Sequential(*res_blocks_list)
         head_fn = partial(
             DuelingHead, a_layer_num=self.a_layer_num, v_layer_num=self.v_layer_num
