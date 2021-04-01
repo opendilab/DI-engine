@@ -158,6 +158,10 @@ pip3 install procgen
 
 Malmo是微软基于Minecraft开发的AI研究环境，本质上还是一个开放世界的环境，本身不涉及特定的任务。但可以在其上建立相对应的环境来实现任务设计，例如微软在17年在Malmo环境上做过合作抓猪的比赛，20年做了挖矿比赛。环境本身有和Java的Minecraft客户端直接通讯实现的版本，和python based的版本。与java通讯的版本可以使用较大量的原生Minecraft实例，但与gym API的不匹配情况也比较严重，纯python的版本可用的实例较少，但对于强化学习算法兼容性更好，且不需要编译java端的代码。
 
+状态空间：图像RGB
+
+动作空间：离散，对应键盘映射
+
 **接口**
 
 安装：
@@ -177,6 +181,10 @@ Malmo是微软基于Minecraft开发的AI研究环境，本质上还是一个开�
 基于Unity实现的一个类似三维魔塔的爬楼+解谜游戏。在AAAI 2020上被推出，并附有gym interface。控制的状态空间为图像，动作空间为离散，包括WSAD方向，KL左右转视角和Space跳跃七维。（官方有使用Rainbow的训练实现）
 
 ![alt text](survey_image/banner.png)
+
+状态空间：图像
+
+动作空间：离散，对应键盘映射
 
 **接口**
 
@@ -208,6 +216,10 @@ env = ObstacleTowerEvaluation(env, seeds)
 一个RL领域比较出名的赛车环境，应该在自动驾驶部门的同事都有尝试过。环境的输入为与现实情况比较接近的路侧距离等传感器信息或者图像信息，车辆本身的各项指标也都可定义，也提供了不同的地图供训练尝试。（官方有DDPG实现）
 
 ![image-20210330210431013](survey_image/image-20210330210431013.png)
+
+状态空间：连续的车路信息vector或图像
+
+动作空间：离散，对应键盘映射
 
 **接口**
 
@@ -268,6 +280,10 @@ VizDoom是一个经典的FPS游戏，也是在RL里做过比赛的游戏环境�
 
 ![image-20210330213905100](survey_image/image-20210330213905100.png)
 
+状态空间：图像+状态vector
+
+动作空间：离散，对应键盘映射
+
 **接口**
 
 安装：
@@ -319,6 +335,10 @@ for i in range(episodes):
 
 ![image-20210330214801769](survey_image/image-20210330214801769.png)
 
+状态空间：图像或features map
+
+状态空间：离散，对应键盘映射
+
 **接口**
 
 安装：
@@ -366,6 +386,28 @@ def main():
 
 ![image-20210331102854872](survey_image/image-20210331102854872.png)
 
+状态空间：图像，大小可自定义
+
+动作空间：本身为连续动作空间，但通常会进行离散化，固定为几个确定的动作模式。例如：
+
+```python
+  ACTIONS = {
+      'look_left': _action(-20, 0, 0, 0, 0, 0, 0),
+      'look_right': _action(20, 0, 0, 0, 0, 0, 0),
+      'look_up': _action(0, 10, 0, 0, 0, 0, 0),
+      'look_down': _action(0, -10, 0, 0, 0, 0, 0),
+      'strafe_left': _action(0, 0, -1, 0, 0, 0, 0),
+      'strafe_right': _action(0, 0, 1, 0, 0, 0, 0),
+      'forward': _action(0, 0, 0, 1, 0, 0, 0),
+      'backward': _action(0, 0, 0, -1, 0, 0, 0),
+      'fire': _action(0, 0, 0, 0, 1, 0, 0),
+      'jump': _action(0, 0, 0, 0, 0, 1, 0),
+      'crouch': _action(0, 0, 0, 0, 0, 0, 1)
+  }
+```
+
+
+
 **接口**
 
 安装：
@@ -385,6 +427,10 @@ def main():
 这个环境是 google 基于之前某个足球小游戏的环境进行改动和封装出来的，主要可以分为 11v11 single-agent 场景（控制一个 active player 在 11 名球员中切换）和 5v5 multi-agent 场景（控制 4 名球员 + 1 个守门员）。该环境支持 self-play，有三种难度内置 AI 可以打。游戏状态基于 vector 的主要是球员的坐标 / 速度 / 角色 / 朝向 / 红黄牌等，也可以用图像输入，动作输出有二十多维，包括不同方向 / 长短传 / 加速等。是Google在Kaggle上举办过比赛的环境，实际会面对RL中的多智能体、稀疏奖励等多种问题。环境训练本身支持Linux和MacOS。
 
 ![image-20210331111801166](survey_image/image-20210331111801166.png)
+
+状态空间：图像或vector信息
+
+动作空间：离散，对应键盘映射
 
 **接口**
 
@@ -469,6 +515,10 @@ obs, rewards, dones, infos = envs.step(actions)
 网易伏羲开源的潮人篮球游戏，支持1v1，2v2，3v3环境，提供内置不同难度的AI，支持self-play。
 
 ![image-20210331193250389](survey_image/image-20210331193250389.png)
+
+状态空间：vector信息
+
+动作空间：离散，对应键盘映射
 
 **接口**
 
