@@ -5,7 +5,8 @@ import torch
 import torch.nn as nn
 
 from nervex.model import DuelingHead
-from nervex.utils import read_config, deep_merge_dicts
+from nervex.config import read_config
+from nervex.utils import deep_merge_dicts, MODEL_REGISTRY
 from nervex.torch_utils import fc_block, Transformer, ResFCBlock, \
     conv2d_block, ResBlock, build_activation, ScatterConnection
 from nervex.data import default_collate
@@ -13,11 +14,12 @@ from nervex.data import default_collate
 iql_default_config = read_config(osp.join(osp.dirname(__file__), "iql_default_config.yaml"))
 
 
+@MODEL_REGISTRY.register('football_iql')
 class FootballIQL(nn.Module):
 
     def __init__(
-            self,
-            cfg: dict = {},
+        self,
+        cfg: dict = {},
     ) -> None:
         super(FootballIQL, self).__init__()
         self.cfg = deep_merge_dicts(iql_default_config.model, cfg)
@@ -102,8 +104,8 @@ def cat_player_attr(player_data: dict) -> torch.Tensor:
 class PlayerEncoder(nn.Module):
 
     def __init__(
-            self,
-            cfg: dict,
+        self,
+        cfg: dict,
     ) -> None:
         super(PlayerEncoder, self).__init__()
         self.act = nn.ReLU()
@@ -131,7 +133,8 @@ class PlayerEncoder(nn.Module):
             - output: :math: `(B, player_num*total_attr_dim)`, player_num is in [1, 22]
         """
         player_input = self.get_player_input(x, active=active_player)  # (player_num*B, total_attr_dim)
-        player_output = getattr(self, 'players')(player_input, tensor_output=True)  # (player_num*B, total_attr_dim, 1)
+        # player_output = getattr(self, 'players')(player_input, tensor_output=True)  # (player_num*B, total_attr_dim, 1)
+        player_output = getattr(self, 'players')(player_input)  # (player_num*B, total_attr_dim, 1)
         player_output = player_output.squeeze(dim=2)  # (player_num*B, total_attr_dim)
         player_output = player_output.reshape((22, -1, player_output.shape[1]))  # (player_num, B, total_attr_dim)
         player_output = player_output.permute(1, 0, 2)  # (B, player_num, total_attr_dim)
@@ -167,8 +170,8 @@ class PlayerEncoder(nn.Module):
 class SpatialEncoder(nn.Module):
 
     def __init__(
-            self,
-            cfg: dict,
+        self,
+        cfg: dict,
     ) -> None:
         super(SpatialEncoder, self).__init__()
         self.act = build_activation(cfg.activation)
@@ -227,9 +230,9 @@ class SpatialEncoder(nn.Module):
 class FootballHead(nn.Module):
 
     def __init__(
-            self,
-            input_dim: int,
-            cfg: dict,
+        self,
+        input_dim: int,
+        cfg: dict,
     ) -> None:
         super(FootballHead, self).__init__()
         self.act = nn.ReLU()
@@ -243,9 +246,7 @@ class FootballHead(nn.Module):
         self.pre_fc = fc_block(in_channels=input_dim, out_channels=self.hidden_dim, activation=self.act)
         res_blocks_list = []
         for i in range(self.res_num):
-            res_blocks_list.append(
-                ResFCBlock(in_channels=self.hidden_dim, out_channels=self.hidden_dim, activation=self.act)
-            )
+            res_blocks_list.append(ResFCBlock(in_channels=self.hidden_dim, activation=self.act, norm_type=None))
         self.res_blocks = nn.Sequential(*res_blocks_list)
         head_fn = partial(
             DuelingHead, a_layer_num=self.a_layer_num, v_layer_num=self.v_layer_num
@@ -261,4 +262,4 @@ class FootballHead(nn.Module):
         x = self.pre_fc(x)
         x = self.res_blocks(x)
         x = self.pred(x)
-        return x
+        return {'logit': x}

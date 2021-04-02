@@ -53,6 +53,7 @@ class ZerglingActor(BaseActor):
 
     def _setup_env_manager(self) -> BaseEnvManager:
         env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(self._env_kwargs)
+        manager_cfg = self._env_kwargs.get('manager', {})
         if self._eval_flag:
             env_cfg = evaluator_env_cfg
             episode_num = self._env_kwargs.evaluator_episode_num
@@ -60,7 +61,7 @@ class ZerglingActor(BaseActor):
             env_cfg = actor_env_cfg
             episode_num = self._env_kwargs.actor_episode_num
         env_manager = SubprocessEnvManager(
-            env_fn=env_fn, env_cfg=env_cfg, env_num=len(env_cfg), episode_num=episode_num
+            env_fn=env_fn, env_cfg=env_cfg, env_num=len(env_cfg), episode_num=episode_num, manager_cfg=manager_cfg
         )
         env_manager.launch()
         self._predefined_episode_count = episode_num * len(env_cfg)

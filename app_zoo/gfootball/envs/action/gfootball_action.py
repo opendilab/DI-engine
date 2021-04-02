@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-import torch
+import numpy as np
 
 from nervex.envs.common import EnvElement
 
@@ -23,7 +23,7 @@ class GfootballRawAction(EnvElement):
                 'value': {
                     'min': 0,
                     'max': 18,
-                    'dtype': torch.LongTensor,
+                    'dtype': int,
                     'dinfo': 'int value',
                 },
                 'env_value': 'type of action, refer to AtariEnv._action_set',
@@ -36,7 +36,7 @@ class GfootballRawAction(EnvElement):
         self._value = {
             'min': 0,
             'max': 18,
-            'dtype': torch.LongTensor,
+            'dtype': int,
             'dinfo': 'int value, action_meanings: []',
         }
 

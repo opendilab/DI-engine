@@ -210,7 +210,7 @@ class MatchObs(EnvElement):
                 raise RuntimeError
             if len(data.shape) == 2:
                 data = data.squeeze(0)
-            ret[ret_key] = data
+            ret[ret_key] = data.numpy()
         return ret
 
     def _details(self):
@@ -372,7 +372,7 @@ class PlayerObs(EnvElement):
                 raise RuntimeError
             if len(data.shape) == 2:
                 data = data.squeeze(0)
-            player_dict[ret_key] = data
+            player_dict[ret_key] = data.numpy()
         return player_dict
 
     def _details(self):

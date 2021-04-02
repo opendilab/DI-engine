@@ -1,21 +1,21 @@
 import random
-import torch
+import numpy as np
 
 from app_zoo.gfootball.envs.obs.gfootball_obs import PlayerObs, MatchObs
 from nervex.data import default_collate
 
 
-def generate_data(player_obs: dict) -> torch.Tensor:
+def generate_data(player_obs: dict) -> np.array:
     dim = player_obs['dim']
     min = player_obs['value']['min']
     max = player_obs['value']['max']
     dinfo = player_obs['value']['dinfo']
     if dinfo in ['one-hot', 'boolean vector']:
-        data = torch.zeros(size=(dim, ), dtype=torch.float32)
+        data = np.zeros((dim, ), dtype=np.float32)
         data[random.randint(0, dim - 1)] = 1
         return data
     elif dinfo == 'float':
-        data = torch.rand(dim, dtype=torch.float32)
+        data = np.random.rand(dim)
         for dim_idx in range(dim):
             data[dim_idx] = min[dim_idx] + (max[dim_idx] - min[dim_idx]) * data[dim_idx]
         return data
@@ -35,8 +35,8 @@ class FakeGfootballDataset:
     def __len__(self) -> int:
         return self.batch_size
 
-    def get_random_action(self) -> torch.Tensor:
-        return torch.randint(0, self.action_dim - 1, size=(1, ))
+    def get_random_action(self) -> np.array:
+        return np.random.randint(0, self.action_dim - 1, size=(1, ))
 
     def get_random_obs(self) -> dict:
         inputs = {}
@@ -61,8 +61,8 @@ class FakeGfootballDataset:
             batch.append(self.get_random_obs())
         return default_collate(batch)
 
-    def get_random_reward(self) -> torch.Tensor:
-        return torch.FloatTensor([random.random() - 0.5])
+    def get_random_reward(self) -> np.array:
+        return np.array([random.random() - 0.5])
 
     def get_random_terminals(self) -> int:
         sample = random.random()
