@@ -159,7 +159,8 @@ class ReplayBuffer:
             - alpha (:obj:`float`): How much prioritization is used (0: no prioritization, 1: full prioritization).
             - beta (:obj:`float`): How much correction is used (0: no correction, 1: full correction).
             - anneal_step (:obj:`Optional[Union[int, float]]`): Anneal step for beta, i.e. Beta takes \
-                how many steps to come to 1. ``float("inf")`` means no annealing.
+                how many steps to come to 1. ``float("inf")`` means no annealing. Here, one step means \
+                training for one iteration, i.e. sampling from buffer once.
             - enable_track_used_data (:obj:`bool`): Whether to track the used data or not.
             - deepcopy (:obj:`bool`): Whether to deepcopy data when append/extend and sample data.
             - monitor_cfg (:obj:`EasyDict`): Monitor's dict config.
@@ -611,7 +612,7 @@ class ReplayBuffer:
             - add_count (:obj:`int`): How many datas are added into buffer.
             - add_time (:obj:`float`): How long does it take to add in such datas.
         """
-        self._cur_actor_envstep = self._cur_actor_envstep
+        self._cur_actor_envstep = cur_actor_envstep
         self._natural_monitor.in_count = add_count
         self._in_tick_monitor.in_time = add_time
         self._in_tick_monitor.time.step()
@@ -639,7 +640,7 @@ class ReplayBuffer:
                 e.g. use, priority, staleness, etc.
             - sample_time (:obj:`float`): How long does it take to sample such datas.
         """
-        self._cur_learner_iter = self._cur_learner_iter
+        self._cur_learner_iter = cur_learner_iter
         self._natural_monitor.out_count = len(sample_data)
         self._out_tick_monitor.out_time = sample_time
         use = sum([d['use'] for d in sample_data]) / len(sample_data)
