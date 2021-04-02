@@ -574,11 +574,11 @@ pip3 install -r requirements.txt
 
 ### [Dota2 5v5](https://games.mau.se/research/the-dota2-5v5-ai-competition/)
 
-COG2021的比赛，截止日期5月2号。
+COG2021的比赛，截止日期5月2号。有一个默认的Dire AI机器人，最终结果的评判通过战胜默认机器人的时间来决定。
 
 ### [Flatland](https://www.aicrowd.com/challenges/flatland)
 
-AMLD2021的比赛，游戏环境为解决火车调度问题。
+AMLD2021的比赛，游戏环境为解决火车调度问题。本身为运筹优化的比赛，但主办方希望参赛者使用强化学习的方法，目标为让所有agent到达目标位置。
 
 ![image-20210402125812349](survey_image/image-20210402125812349.png)
 
