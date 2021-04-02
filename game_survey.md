@@ -152,6 +152,21 @@ pip3 install procgen
 
 ## 已有训练相关python接口的中型游戏环境
 
+| 环境名称                 | 游戏类型 | 状态空间                   | 动作空间       | 备注                                                  |
+| ------------------------ | -------- | -------------------------- | -------------- | ----------------------------------------------------- |
+| Malmo                    | 沙盒     | 图像                       | 离散的键盘映射 |                                                       |
+| Obstacle Tower           | 解谜     | 图像                       | 离散的键盘映射 | Exploration & Exploitation                            |
+| Torcs                    | 赛车     | 图像或连续的车路信息vector | 离散的键盘映射 | Transfer Learning                                     |
+| DeepMind Lab             |          | 图像                       | 离散的键盘映射 |                                                       |
+| VizDoom                  | FPS      | 图像和状态vector           | 离散的键盘映射 | Sparse Reward, Exploration & Exploitation             |
+| Pommerman                | 休闲     | 地图特征vector及状态vector | 离散的键盘映射 | POMDP, Sparse Reward, Exploration & Exploitation      |
+| Quake III                | FPS      | 图像                       | 离散的键盘映射 | MultiAgent, Sparse Reward, Exploration & Exploitation |
+| Google Research Football | 体育     | 图像或连续的状态vector     | 离散的键盘映射 | MultiAgent, Sparse Reward                             |
+| Neural MMOs              | MMORPG   | 图像                       | 离散的键盘映射 | Exploration & Exploitation                            |
+| Fever Basketball         | 体育     | vector信息                 | 离散的键盘映射 | Sparse Reward, Exploration & Exploitation             |
+
+
+
 ### [Malmo](https://github.com/Microsoft/malmo)（尚未跑通）
 
 **简介**
@@ -276,13 +291,15 @@ env.end()
 
 **简介**
 
-VizDoom是一个经典的FPS游戏，也是在RL里做过比赛的游戏环境。仿真速度很快，对Win、Ubuntu和MacOS都可以支持，并支持自定义场景。
+VizDoom是一个经典的FPS游戏，也是在RL里做过比赛的游戏环境。游戏本身可以使用不同武器（从地图中收集获取），目标是生存并击败对手。仿真速度很快（7000FPS，通常的游戏节奏~30FPS），对Win、Ubuntu和MacOS都可以支持，并支持自定义场景。
 
 ![image-20210330213905100](survey_image/image-20210330213905100.png)
 
-状态空间：图像+状态vector
+官方在16-18年举行了三届比赛，每次都是单人+多人死亡竞赛两条赛道。三年排名靠前的参赛者都是同一批人（Arnold、TSAIL和IntelAct），但游戏实际表现都未到达人类玩家的水平。
 
-动作空间：离散，对应键盘映射
+状态空间：图像+状态vector。前者通常为30*45的图像，后者包含一些弹药情况、武器情况信息。
+
+动作空间：离散，对应键盘映射。但也可以包含对应鼠标控制的连续量，通常将之离散化来操作。
 
 **接口**
 
@@ -335,9 +352,25 @@ for i in range(episodes):
 
 ![image-20210330214801769](survey_image/image-20210330214801769.png)
 
-状态空间：图像或features map
+状态空间：地图特征vector及状态vector
 
-状态空间：离散，对应键盘映射
+- **Board:** 121 Ints。agent 无法观测到的单位被标记为 5（迷雾）。
+- **Position:** 2 Ints，大小 [0, 10]。agent 在游戏 Board 上的 (x, y) 位置坐标。
+- **Ammo:** 1 Int。agent 当前可以使用的炸弹数量。
+- **Blast Strength:** 1 Int.。agent 施放炸弹的爆炸范围。
+- **Can Kick:** 1 Int，布尔变量。是否 agent 能踢炸弹。
+- **Teammate:** 1 Int，范围 [-1, 3]. 当前 agent 的队友为哪个。
+- **Enemies:** 3 Ints，范围 [-1, 3]。当前 agent 的敌人是哪些。如果是 2v2，那么第三个数值为 - 1。
+- **Bombs:** List of Ints。agent 视野范围内的炸弹，通过三元数组表示（x int, y int, blast_strength int），表示炸弹位置 x、y，以及炸弹爆炸范围。
+
+动作空间：离散，对应键盘映射
+
+- **Stop:** 静止不动
+- **Up:** 向上走
+- **Left:** 向左走
+- **Down:** 向下走
+- **Right:** 向右走
+- **Bomb:** 放置一个炸弹
 
 **接口**
 
@@ -388,7 +421,7 @@ def main():
 
 状态空间：图像，大小可自定义
 
-动作空间：本身为连续动作空间，但通常会进行离散化，固定为几个确定的动作模式。例如：
+动作空间：本身为连续动作空间，但通常会进行离散化到键盘映射。固定为几个确定的动作模式。例如：
 
 ```python
   ACTIONS = {
@@ -536,3 +569,4 @@ pip3 install -r requirements.txt
 使用：
 
 环境并未用gym的形式进行封装，而是以socket通信的方式与windows客户端程序进行交互来实现step和observe。网易伏羲官方提供了几种RL算法包括PPO、QMIX等的实现（未调）。
+
