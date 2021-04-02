@@ -295,7 +295,7 @@ VizDoom是一个经典的FPS游戏，也是在RL里做过比赛的游戏环境�
 
 ![image-20210330213905100](survey_image/image-20210330213905100.png)
 
-官方在16-18年举行了三届比赛，每次都是单人+多人死亡竞赛两条赛道。三年排名靠前的参赛者都是同一批人（Arnold、TSAIL和IntelAct），但游戏实际表现都未到达人类玩家的水平。
+官方在16-18年举行了三届比赛，每次都是单人+多人死亡竞赛两条赛道。三年排名靠前的参赛者都是同一批人（Arnold、TSAIL和IntelAct），但游戏实际表现都未到达人类玩家的水平。TSAIL团队提供了其实现的一些细节，例如使用YOLO-v3作为检测框架来提取特征信息，并使用了分层强化学习的思路来训练agent。在[AAAI2017的论文中](https://ojs.aaai.org/index.php/AAAI/article/view/10827)，也提到了在训练中采用目标检测框架来增加feature帮助RL算法的细节，其RL算法使用了DRQN。
 
 状态空间：图像+状态vector。前者通常为30*45的图像，后者包含一些弹药情况、武器情况信息。
 
@@ -570,3 +570,61 @@ pip3 install -r requirements.txt
 
 环境并未用gym的形式进行封装，而是以socket通信的方式与windows客户端程序进行交互来实现step和observe。网易伏羲官方提供了几种RL算法包括PPO、QMIX等的实现（未调）。
 
+## Ongoing Competitions
+
+### [Dota2 5v5](https://games.mau.se/research/the-dota2-5v5-ai-competition/)
+
+COG2021的比赛，截止日期5月2号。
+
+### [Flatland](https://www.aicrowd.com/challenges/flatland)
+
+AMLD2021的比赛，游戏环境为解决火车调度问题。
+
+![image-20210402125812349](survey_image/image-20210402125812349.png)
+
+timeline：
+
+- **January 15th - February 28th:** Warm-Up Round
+- **March 1st - March 31th:** Round 1
+- **April 1st - May 31th:** Round 2
+- **May 15st:** Team Freeze
+- **June 1st - June 15th:** Post Challenge Analysis
+- **June 15th:** Final Results Announced
+
+### [GVGAI](http://aingames.cn/gvgai/cog2021/)
+
+COG2021的比赛，通用视频游戏AI，场景包括bravekeeper, greedymouse, trappedhero。截止日期7月31号。
+
+![image-20210402123437419](survey_image/image-20210402123437419.png)
+
+### [DeepRacer League](https://aws.amazon.com/cn/deepracer/league/)
+
+AWS举办的自动驾驶赛车联赛。但预选赛截止到3月31号。
+
+### [Connect X](https://www.kaggle.com/c/connectx/overview)
+
+Kaggle举办的跳棋游戏挑战。去年（2020）一月开始的比赛，暂时未设定截止日期。
+
+### [Bot Bowl](https://njustesen.github.io/ffai/bot-bowl-iii)
+
+COG2021举办的比赛，截止日期7月15号。
+
+![image-20210402124458607](survey_image/image-20210402124458607.png)
+
+### [Legends of Codes and Magic](https://legendsofcodeandmagic.com/COG21/)
+
+COG2021举办的卡牌游戏竞赛，截止日期8月1号。
+
+![img](survey_image/screen02.png)
+
+### [Color Shape links](https://videojogoslusofona.github.io/color-shape-links-ai-competition/)
+
+COG2021举办的棋盘游戏比赛，第一个连续放置n个相同类型的棋子的玩家获胜。截止日期7月25日。
+
+### [Ludii](https://github.com/Ludeme/LudiiAICompetition)
+
+COG2021举办的通用棋牌游戏竞赛。在500个棋盘类游戏中随机选取20个进行循环比赛。截止日期7月27号。
+
+### [Carle](https://github.com/Ludeme/LudiiAICompetition)
+
+基于Cellular Automata的环境，本身是虽然遵循RL的范式但无奖励信号和episode中止信号，这也是Carle环境的挑战。本身是要在32*32空间内生成不同的图案。截止日期7月。
