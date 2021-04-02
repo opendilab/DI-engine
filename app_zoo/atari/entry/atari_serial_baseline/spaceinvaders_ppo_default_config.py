@@ -46,7 +46,7 @@ space_ppo_default_config = dict(
         buffer_name=['agent'],
         agent=dict(
             meta_maxlen=100000,
-            max_reuse=3,
+            max_use=3,
             min_sample_ratio=1,
         ),
     ),

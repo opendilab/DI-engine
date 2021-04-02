@@ -51,7 +51,7 @@ pendulum_td3_default_config = dict(
     ),
     replay_buffer=dict(
         replay_buffer_size=20000,
-        max_reuse=16,
+        max_use=16,
     ),
     actor=dict(
         n_sample=48,

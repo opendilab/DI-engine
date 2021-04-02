@@ -24,7 +24,7 @@ def setup_base_buffer():
     return ReplayBuffer(
         name="agent",
         replay_buffer_size=64,
-        max_reuse=2,
+        max_use=2,
         min_sample_ratio=2.,
         alpha=0.,
         beta=0.,
@@ -37,7 +37,7 @@ def setup_prioritized_buffer():
     return ReplayBuffer(
         name="agent",
         replay_buffer_size=64,
-        max_reuse=1,
+        max_use=1,
         min_sample_ratio=2.,
         max_staleness=1000,
         alpha=0.6,
@@ -58,7 +58,7 @@ def setup_demo_buffer_factory():
             demo_buffer = ReplayBuffer(
                 name="demo",
                 replay_buffer_size=64,
-                max_reuse=2,
+                max_use=2,
                 min_sample_ratio=1.,
                 alpha=0.6,
                 beta=0.6,
@@ -139,7 +139,7 @@ class TestBaseBuffer:
         setup_base_buffer.extend(data)
         assert setup_base_buffer._tail == (start_pointer + valid_data_num) % setup_base_buffer.replay_buffer_size
         assert setup_base_buffer._next_unique_id == start_data_id + valid_data_num
-        assert sum(setup_base_buffer._use_count.values()) == 0, sum(setup_base_buffer._reuse_count)
+        assert sum(setup_base_buffer._use_count.values()) == 0, sum(setup_base_buffer._use_count)
 
     def test_beta(self, setup_base_buffer):
         assert (setup_base_buffer.beta == 0.)
@@ -173,7 +173,7 @@ class TestBaseBuffer:
     def test_sample(self, setup_base_buffer):
         for _ in range(64):
             setup_base_buffer.append(generate_data())
-        reuse_dict = defaultdict(int)
+        use_dict = defaultdict(int)
         while True:
             can_sample = setup_base_buffer.sample_check(32, 0)
             if not can_sample:
@@ -183,12 +183,12 @@ class TestBaseBuffer:
             assert (all([b['IS'] == 1.0 for b in batch]))  # because priority is not updated
             idx = [b['replay_buffer_idx'] for b in batch]
             for i in idx:
-                reuse_dict[i] += 1
+                use_dict[i] += 1
         assert sum(
-            map(lambda x: x[1] >= setup_base_buffer._max_reuse, reuse_dict.items())
+            map(lambda x: x[1] >= setup_base_buffer._max_use, use_dict.items())
         ) == setup_base_buffer.replay_buffer_size - setup_base_buffer.validlen
-        for k, v in reuse_dict.items():
-            if v > setup_base_buffer._max_reuse:
+        for k, v in use_dict.items():
+            if v > setup_base_buffer._max_use:
                 assert setup_base_buffer._data[k] is None
         assert setup_base_buffer.used_data is None
 

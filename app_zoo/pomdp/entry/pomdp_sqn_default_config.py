@@ -90,7 +90,7 @@ pomdp_sqn_default_config = dict(
         buffer_name=['agent'],
         agent=dict(
             meta_maxlen=100_000,
-            max_reuse=100,
+            max_use=100,
             min_sample_ratio=1,
         ),
     ),

@@ -6,8 +6,8 @@ buffer_manager_default_config = dict(
         replay_buffer_size=4096,
         # start training data count
         replay_start_size=0,
-        # Max reuse times of one data in the buffer. Data will be removed once reused for too many times.
-        max_reuse=float("inf"),
+        # Max use times of one data in the buffer. Data will be removed once used for too many times.
+        max_use=float("inf"),
         # Max staleness time duration of one data in the buffer; Data will be removed if
         # the duration from collecting to training is too long, i.e. The data is too stale.
         max_staleness=float("inf"),

@@ -64,7 +64,7 @@ cooperative_navigation_collaQ_default_config = dict(
     ),
     replay_buffer=dict(
         replay_buffer_size=5000,
-        max_reuse=10,
+        max_use=10,
     ),
     actor=dict(
         n_episode=6,

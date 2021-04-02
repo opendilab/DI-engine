@@ -102,7 +102,7 @@ __coordinator_default_config = dict(
         actor_cfg=__zergling_actor_default_config,
         replay_buffer_cfg=dict(
             replay_buffer_size=10000,
-            max_reuse=100,
+            max_use=100,
             unroll_len=1,
             min_sample_ratio=1,
             monitor=dict(log_freq=1000),

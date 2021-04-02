@@ -66,7 +66,7 @@ cooperative_navigation_coma_default_config = dict(
     ),
     replay_buffer=dict(
         replay_buffer_size=64,
-        max_reuse=100,
+        max_use=100,
     ),
     actor=dict(
         n_episode=6,

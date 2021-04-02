@@ -13,7 +13,7 @@ learner:
     learning_rate: 0.001
     weight_decay: 0.0001
     data:
-        max_reuse: 4
+        max_use: 4
         buffer_length: 30000
     ppo:
         gamma: 0.99

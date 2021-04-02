@@ -93,7 +93,7 @@ class BufferManager(IBuffer):
                 name=name,
                 replay_buffer_size=buffer_cfg['replay_buffer_size'],
                 replay_start_size=buffer_cfg.get('replay_start_size', 0),
-                max_reuse=buffer_cfg.get('max_reuse', float("inf")),
+                max_use=buffer_cfg.get('max_use', float("inf")),
                 max_staleness=buffer_cfg.get('max_staleness', float("inf")),
                 min_sample_ratio=buffer_cfg.get('min_sample_ratio', 1.),
                 alpha=buffer_cfg.get('alpha', 0.6),

@@ -60,7 +60,7 @@ halfcheetah_sac_default_config = dict(
         buffer_name=['agent'],
         agent=dict(
             meta_maxlen=1000000,
-            max_reuse=16,
+            max_use=16,
             min_sample_ratio=1,
         ),
     ),

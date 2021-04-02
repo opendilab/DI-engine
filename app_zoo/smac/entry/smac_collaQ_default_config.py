@@ -61,7 +61,7 @@ smac_collaQ_default_config = dict(
         buffer_name=['agent'],
         agent=dict(
             replay_buffer_size=5000,
-            max_reuse=10,
+            max_use=10,
             min_sample_ratio=1,
         ),
     ),

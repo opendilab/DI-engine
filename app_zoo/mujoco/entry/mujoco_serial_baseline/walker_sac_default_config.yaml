@@ -56,7 +56,7 @@ replay_buffer:
     buffer_name: ['agent']
     agent:
         replay_buffer_size: 100000
-        max_reuse: 1024
+        max_use: 1024
         min_sample_ratio: 1
 actor:
     n_sample: 64

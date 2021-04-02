@@ -133,7 +133,7 @@ class ReplayBuffer:
             name: str,
             replay_buffer_size: int = 10000,
             replay_start_size: int = 0,
-            max_reuse: Optional[int] = None,
+            max_use: Optional[int] = None,
             max_staleness: Optional[int] = None,
             min_sample_ratio: float = 1.,
             alpha: float = 0.6,
@@ -152,8 +152,8 @@ class ReplayBuffer:
             - name (:obj:`str`): Buffer name, mainly used to generate unique data id and logger name.
             - replay_buffer_size (:obj:`int`): The maximum value of the buffer length.
             - replay_start_size (:obj:`int`): The number of data in buffer when start training
-            - max_reuse (:obj:`int` or None): The maximum reuse times of each element in buffer. Once a data is \
-                sampled(used) ``max_reuse`` times, it would be removed out of buffer.
+            - max_use (:obj:`int` or None): The maximum use times of each element in buffer. Once a data is \
+                sampled(used) ``max_use`` times, it would be removed out of buffer.
             - min_sample_ratio (:obj:`float`): The minimum ratio restriction for sampling, only when \
                 "current element number in buffer" / "sample size" is greater than this, can start sampling.
             - alpha (:obj:`float`): How much prioritization is used (0: no prioritization, 1: full prioritization).
@@ -200,7 +200,7 @@ class ReplayBuffer:
         self.name = name
         self._replay_buffer_size = replay_buffer_size
         self._replay_start_size = replay_start_size
-        self._max_reuse = max_reuse if max_reuse is not None else float("inf")
+        self._max_use = max_use if max_use is not None else float("inf")
         self._max_staleness = max_staleness if max_staleness is not None else float("inf")
         assert min_sample_ratio >= 1, min_sample_ratio
         self.min_sample_ratio = min_sample_ratio
@@ -586,16 +586,16 @@ class ReplayBuffer:
             if self._enable_track_used_data:
                 self._using_data.add(copy_data['data_id'])
             # Store staleness, use and IS(importance sampling weight for gradient step) for monitor and outer use
+            self._use_count[idx] += 1
             copy_data['staleness'] = self._calculate_staleness(idx, cur_learner_iter)
             copy_data['use'] = self._use_count[idx]
             p_sample = self._sum_tree[idx] / sum_tree_root
             weight = (self._valid_count * p_sample) ** (-self._beta)
             copy_data['IS'] = weight / max_weight
             data.append(copy_data)
-            self._use_count[idx] += 1
-        # Remove datas whose "use count" is greater than ``max_reuse``
+        # Remove datas whose "use count" is greater than ``max_use``
         for idx in indices:
-            if self._use_count[idx] >= self._max_reuse:
+            if self._use_count[idx] >= self._max_use:
                 self._remove(idx)
         # Beta anneal
         if self._anneal_step != 0:

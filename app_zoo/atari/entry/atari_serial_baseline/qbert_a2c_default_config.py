@@ -48,7 +48,7 @@ qbert_a2c_default_config = dict(
         buffer_name=['agent'],
         agent=dict(
             replay_buffer_size=10000,
-            max_reuse=1,
+            max_use=1,
             min_sample_ratio=1,
         ),
     ),
