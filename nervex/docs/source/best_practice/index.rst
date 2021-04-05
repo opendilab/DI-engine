@@ -565,3 +565,160 @@ Best Practice
 此外，可以通过nervex -q <registry name> 来查看在 nerveX 核心代码中已经注册的模块，例如：
 
 .. image:: ./nervex_cli_query_registry.png
+
+
+7. 如何使用n-step算法
+========================
+n-step在强化学习算法是一种常见配置，介于1-step和蒙特卡洛方法之间，算法使用之后n步的数据进行对应的策略/价值函数更新。
+
+在nervex 中，许多算法已经进行了nstep的配置，如DQN、RainbowDQN、R2D2、A2C等等。下面介绍如何在nerevx 中配置n-step算法。
+
+
+1. config设置\ ``nstep``
+
+   .. code:: python
+
+      learn=dict(
+         ...,
+         algo=dict(
+            ...,
+            use_nstep_return=True,
+            nstep=nstep,
+            ...,
+         ),
+      ),
+      collect=dict(
+         ...,
+         algo=dict(nstep=nstep, use_nstep_return=True,),
+      ),
+
+
+2. 在nerevX框架中使用nstep
+
+   - collect相关
+      
+      在对应算法Policy中的 ``_init_collect`` 方法中应初始化相关参数：
+
+      .. code:: python
+
+         def _init_collect(self) -> None:
+            r"""
+            Overview:
+               Collect mode init method. Called by ``self.__init__``.
+            """
+            # ...
+            self._collect_use_nstep_return = algo_cfg.get('use_nstep_return', False)
+            self._collect_nstep = algo_cfg.get('nstep', 1)
+            # ...
+
+
+      在对应算法Policy中的 ``_get_train_sample`` 方法中应根据nstep改变训练数据获取方式：
+
+      .. code:: python
+
+         def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
+            r"""
+            Overview:
+               Get the trajectory and the n step return data, then sample from the n_step return data
+            """
+            # ...
+            # adder is defined in _init_collect
+            if self._collect_use_nstep_return:
+               data = self._adder.get_nstep_return_data(data, self._collect_nstep)
+            return self._adder.get_train_sample(data)
+
+
+      Adder相关操作可以参考 `adder_overview <../feature/adder_overview.html>`_ 部分。
+
+      
+      collect部分的作用是为每一个数据帧transition准备nstep长度的reward值和nstep内环境是否结束done的情况，同时将next_obs替换为nstep后的obs情况。
+      
+      collect部分的处理为后面learner计算nstep_td_error提供了方便。
+
+      
+   -  learner相关
+
+      在对应算法Policy中的 ``_init_learn`` 方法中应初始化相关参数：
+
+      .. code:: python
+
+         def _init_learn(self) -> None:
+            r"""
+            Overview:
+               Learn mode init method. Called by ``self.__init__``.
+            """
+            # ...
+            self._learn_use_nstep_return = algo_cfg.get('use_nstep_return', False)
+            self._learn_nstep = algo_cfg.get('nstep', 1)
+            # ...
+
+      
+      在对应算法Policy中的 ``_forward_learn`` 方法中使用对应n-step td 方法，如使用简单的 ``nstep_return`` ：
+
+      .. code:: python
+         def _forward_learn(self, data: dict) -> Dict[str, Any]:
+            r"""
+            Overview:
+               Forward and backward function of learn mode.
+            """
+            # ...
+            with torch.no_grad():
+               if self._learn_use_nstep_return:
+                  # ...
+                  # use nstep return
+                  nstep_data = nstep_return_data(reward, next_value, data['done'])
+                  return_ = nstep_return(nstep_data, self._learn_gamma, self._learn_nstep).detach()
+               else:
+                  # ..
+            # ...
+      
+      如果需要使用其他的n-step td方法，可以参考 ``nervex\rl_utils\td.py`` 中的其他td方式，也可以自己进行实现。
+
+      在nstep算法的求td过程中，nstep的td需要使用nstep长度的reward对target value进行计算。
+
+
+.. note::
+
+   nstep_data的具体获取方式在 ``adder`` 中，具体可以参考 `adder_overview <../feature/adder_overview.html>`_ 部分。
+   
+   具体来说就是nstep_data需要保存将该数据帧后的nstep的reward，同时将done和next_obs设置为nstep-1/nstep步后的done和next_obs。
+   当剩余的trajectory长度不足nstep时，会进行补齐。
+
+   get_nstep_return_data的代码如下段。
+
+
+
+.. code:: python
+   
+   def get_nstep_return_data(self, data: deque, nstep: int) -> deque:
+      """
+      Overview:
+         Process raw traj data by updating keys ['next_obs', 'reward', 'done'] in data's dict element.
+      Arguments:
+         - data (:obj:`deque`): transitions list, each element is a transition dict
+         - nstep (:obj:`int`): number of steps. If equals to 1, return ``data`` directly; \
+            Otherwise update with nstep value
+      Returns:
+         - data (:obj:`deque`): transitions list like input one, but each element updated with \
+            nstep value
+      """
+      if nstep == 1:
+         return data
+      fake_reward = torch.zeros(1)
+      next_obs_flag = 'next_obs' in data[0]
+      for i in range(len(data) - nstep):
+         # update keys ['next_obs', 'reward', 'done'] with their n-step value
+         if next_obs_flag:
+            data[i]['next_obs'] = copy.deepcopy(data[i + nstep]['obs'])
+         data[i]['reward'] = torch.cat([data[i + j]['reward'] for j in range(nstep)])
+         data[i]['done'] = data[i + nstep - 1]['done']
+      for i in range(max(0, len(data) - nstep), len(data)):
+         if next_obs_flag:
+            data[i]['next_obs'] = copy.deepcopy(data[-1]['next_obs'])
+         data[i]['reward'] = torch.cat(
+            [data[i + j]['reward']
+               for j in range(len(data) - i)] + [fake_reward for _ in range(nstep - (len(data) - i))]
+         )
+         data[i]['done'] = data[-1]['done']
+      return data
+
