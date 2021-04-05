@@ -9,7 +9,6 @@ import json
 import logging
 import numbers
 import os
-import cv2
 import numpy as np
 import yaml
 from tabulate import tabulate
@@ -177,7 +176,7 @@ class DistributionTimeImage:
         """
         assert (isinstance(data, np.ndarray))
         data = np.expand_dims(data, 1)
-        data = cv2.resize(data, (1, self.maxlen), interpolation=cv2.INTER_LINEAR)
+        data = np.resize(data, (1, self.maxlen))
         if self.time_step >= self.maxlen:
             self.img = np.concatenate([self.img[:, 1:], data])
         else:
