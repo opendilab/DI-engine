@@ -17,8 +17,8 @@ sumo_rainbow_dqn_default_config = dict(
         # Whether to use cuda for network.
         use_cuda=False,
         # RL policy register name (refer to function "register_policy").
-        policy_type='sumo_rainbow_dqn',
-        import_names=['app_zoo.sumo.policy.sumo_rainbow_dqn'],
+        policy_type='md_rainbow_dqn',
+        import_names=['app_zoo.common.policy.md_rainbow_dqn'],
         # Whether the RL algorithm is on-policy or off-policy.
         on_policy=False,
         use_priority=True,

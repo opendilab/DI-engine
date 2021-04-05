@@ -102,6 +102,7 @@ def serial_pipeline(
 
     # Accumulate plenty of data at the beginning of training.
     if replay_buffer.replay_start_size() > 0:
+        commander.step()
         new_data = actor.generate_data(learner.train_iter, n_sample=replay_buffer.replay_start_size())
         replay_buffer.push(new_data, cur_actor_envstep=0)
 

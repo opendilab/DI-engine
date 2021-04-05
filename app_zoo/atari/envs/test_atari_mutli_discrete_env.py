@@ -9,10 +9,10 @@ from app_zoo.atari.envs import AtariMultiDiscreteEnv
 class TestAtariMultiDiscreteEnv:
 
     def test_pong(self):
-        cfg = {'env_id': 'PongNoFrameskip-v4', 'frame_stack': 4, 'is_train': True}
-        cfg = EasyDict(cfg)
         env_num = 3
-        pong_env = AtariMultiDiscreteEnv(cfg, env_num)
+        cfg = {'env_id': 'PongNoFrameskip-v4', 'frame_stack': 4, 'is_train': True, 'multi_env_num': env_num}
+        cfg = EasyDict(cfg)
+        pong_env = AtariMultiDiscreteEnv(cfg)
         pong_env.seed(0)
         obs = pong_env.reset()
         assert obs.shape == (cfg.frame_stack * env_num, 84, 84)

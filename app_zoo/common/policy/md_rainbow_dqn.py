@@ -1,10 +1,12 @@
 from typing import Dict, Any
 import torch
 from nervex.rl_utils import dist_nstep_td_data, dist_nstep_td_error, dist_1step_td_data, dist_1step_td_error
-from nervex.policy import RainbowDQNPolicy, register_policy
+from nervex.policy import RainbowDQNPolicy
+from nervex.utils import POLICY_REGISTRY
 
 
-class SumoRainbowDQNPolicy(RainbowDQNPolicy):
+@POLICY_REGISTRY.register('md_rainbow_dqn')
+class MultiDiscreteRainbowDQNPolicy(RainbowDQNPolicy):
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         """
@@ -74,6 +76,3 @@ class SumoRainbowDQNPolicy(RainbowDQNPolicy):
             'total_loss': loss.item(),
             'priority': td_error_per_sample_mean.abs().tolist(),
         }
-
-
-register_policy('sumo_rainbow_dqn', SumoRainbowDQNPolicy)

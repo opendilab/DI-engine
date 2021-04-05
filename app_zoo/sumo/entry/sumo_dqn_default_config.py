@@ -17,8 +17,8 @@ sumo_dqn_default_config = dict(
         # Whether to use cuda for network.
         use_cuda=False,
         # RL policy register name (refer to function "register_policy").
-        policy_type='sumo_dqn',
-        import_names=['app_zoo.sumo.policy.sumo_dqn'],
+        policy_type='md_dqn',
+        import_names=['app_zoo.common.policy.md_dqn'],
         # Whether the RL algorithm is on-policy or off-policy.
         on_policy=False,
         # Model config used for model creating. Remember to change this, especially "obs_dim" and "action_dim" according to specific env.

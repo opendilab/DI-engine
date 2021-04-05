@@ -1,3 +1,4 @@
+from typing import List
 import copy
 import numpy as np
 
@@ -10,9 +11,9 @@ from .atari_env import AtariEnv
 @ENV_REGISTRY.register('atari_multi_discrete')
 class AtariMultiDiscreteEnv(BaseEnv):
 
-    def __init__(self, cfg: dict, multi_env_num: int) -> None:
-        self._env = [AtariEnv(cfg) for _ in range(multi_env_num)]
-        self._multi_env_num = multi_env_num
+    def __init__(self, cfg: dict) -> None:
+        self._multi_env_num = cfg['multi_env_num']
+        self._env = [AtariEnv(cfg) for _ in range(self._multi_env_num)]
         self._env_done = {i: False for i in range(self._multi_env_num)}
         self._done_obs = {i: None for i in range(self._multi_env_num)}
         self._final_eval_reward = 0.
@@ -79,3 +80,17 @@ class AtariMultiDiscreteEnv(BaseEnv):
 
     def __repr__(self) -> str:
         return "nerveX Atari Multi Discrete Env({})".format(self._cfg.env_id)
+
+    @staticmethod
+    def create_actor_env_cfg(cfg: dict) -> List[dict]:
+        actor_env_num = cfg.pop('actor_env_num', 1)
+        cfg = copy.deepcopy(cfg)
+        cfg.is_train = True
+        return [cfg for _ in range(actor_env_num)]
+
+    @staticmethod
+    def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
+        evaluator_env_num = cfg.pop('evaluator_env_num', 1)
+        cfg = copy.deepcopy(cfg)
+        cfg.is_train = False
+        return [cfg for _ in range(evaluator_env_num)]

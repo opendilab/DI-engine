@@ -13,8 +13,8 @@ class SepValueAC(ValueAC):
         return nn.Identity()
 
 
-@POLICY_REGISTRY.register('sumo_ppo')
-class SumoPPOPolicy(PPOPolicy):
+@POLICY_REGISTRY.register('md_ppo')
+class MultiDiscretePPOPolicy(PPOPolicy):
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         output = self._armor.forward(data['obs'], param={'mode': 'compute_action_value'})

@@ -10,8 +10,8 @@ sumo_ppo_default_config = dict(
     ),
     policy=dict(
         use_cuda=False,
-        policy_type='sumo_ppo',
-        import_names=['app_zoo.sumo.policy.sumo_ppo'],
+        policy_type='md_ppo',
+        import_names=['app_zoo.common.policy.md_ppo'],
         on_policy=False,
         model=dict(
             obs_dim=380,
