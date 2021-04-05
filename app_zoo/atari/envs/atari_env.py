@@ -18,7 +18,7 @@ class AtariEnv(BaseEnv):
             cfg.env_id, frame_stack=cfg.frame_stack, episode_life=cfg.is_train, clip_rewards=cfg.is_train
         )
 
-    def reset(self) -> Sequence:
+    def reset(self) -> np.ndarray:
         if hasattr(self, '_seed'):
             np_seed = 100 * np.random.randint(1, 1000)
             self._env.seed(self._seed + np_seed)

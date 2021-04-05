@@ -236,6 +236,7 @@ def wrap_deepmind(env_id, episode_life=True, clip_rewards=True, frame_stack=4, s
         env = FrameStack(env, frame_stack)
     return env
 
+
 def wrap_deepmind_mr(env_id, episode_life=True, clip_rewards=True, frame_stack=4, scale=True, warp_frame=True):
     """Configure environment for DeepMind-style Atari. The observation is
     channel-first: (c, h, w) instead of (h, w, c).
