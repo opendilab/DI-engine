@@ -41,12 +41,7 @@ cartpole_ppo_default_loader = dict_(
         command=item('command') >> dict_()
     ),
     replay_buffer=item('replay_buffer') >> dict_(
-        buffer_name=item('buffer_name') >> collection(str),
-        agent=item('agent') >> dict_(
-            meta_maxlen=item('meta_maxlen') >> is_type(int) >> interval(1, math.inf),
-            max_reuse=item('max_reuse') >> is_type(int) >> interval(1, math.inf),
-            min_sample_ratio=item('min_sample_ratio') >> interval(1.0, math.inf)
-        ),
+        replay_buffer_size=item('replay_buffer_size') >> is_type(int) >> interval(1, math.inf),
     ),
     actor=item('actor') >> dict_(
         n_sample=item('n_sample') >> is_type(int) >> interval(8, 128),
@@ -57,7 +52,7 @@ cartpole_ppo_default_loader = dict_(
         n_episode=item('n_episode') >> is_type(int) >> interval(2, 10),
         eval_freq=item('eval_freq') >> is_type(int) >> interval(1, 500),
         #
-        stop_val=item('stop_val') >> is_type(int),
+        stop_value=item('stop_value') >> is_type(int),
     ),
     learner=item('learner') >> dict_(load_path=item('load_path') >> is_type(str), hook=item('hook')),
     commander=item('commander') | raw({}),

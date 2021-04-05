@@ -49,11 +49,9 @@ class TestLogger:
         logger.error("I'm an error")
         logger.print_vars(vars)
         # tensorboard logger
-        for var in vars:
-            tb_logger.register_var(var, 'scalar')
         for i in range(10):
             new_vars = {k: v * (i + random.random()) for k, v in vars.items()}
-            tb_logger.print_vars(vars, i, 'scalar')
-        assert tb_logger.scalar_var_names == list(vars.keys())
+            for k, v in new_vars.items():
+                tb_logger.add_scalar(k, v, i)
         remove_file(cfg.common.save_path)
         tb_logger.close()

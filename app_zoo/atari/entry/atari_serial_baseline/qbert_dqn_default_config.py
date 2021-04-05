@@ -51,19 +51,20 @@ qbert_dqn_default_config = dict(
     replay_buffer=dict(
         buffer_name=['agent'],
         agent=dict(
-            meta_maxlen=100000,
-            max_reuse=100,
+            replay_buffer_size=100000,
+            max_use=100,
             min_sample_ratio=1,
         ),
     ),
     actor=dict(
         n_sample=100,
+        traj_len=traj_len,
         collect_print_freq=100,
     ),
     evaluator=dict(
         n_episode=4,
         eval_freq=5000,
-        stop_val=8000,
+        stop_value=8000,
     ),
     learner=dict(
         load_path='',

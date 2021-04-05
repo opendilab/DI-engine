@@ -211,7 +211,7 @@ def test_impala():
 @pytest.mark.algotest
 def test_iqn():
     config = deepcopy(cartpole_rainbowdqn_iqn_config)
-    config.evaluator.stop_val = 30  # for save time
+    config.evaluator.stop_value = 30  # for save time
     try:
         serial_pipeline(config, seed=0)
     except Exception:

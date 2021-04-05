@@ -11,8 +11,7 @@ from easydict import EasyDict
 from nervex.envs import get_vec_env_setting
 from nervex.torch_utils import to_device, tensor_to_list
 from nervex.utils import get_data_compressor, lists_to_dicts, pretty_print, ACTOR_REGISTRY
-from nervex.envs import BaseEnvTimestep
-from .env_manager import SubprocessEnvManager, BaseEnvManager
+from nervex.envs import BaseEnvTimestep, AsyncSubprocessEnvManager, BaseEnvManager
 from .base_parallel_actor import BaseActor
 from .base_serial_actor import CachePool
 
@@ -64,7 +63,7 @@ class OneVsOneActor(BaseActor):
             env_cfg = actor_env_cfg
             episode_num = self._env_kwargs.actor_episode_num
         self._episode_num = episode_num
-        env_manager = SubprocessEnvManager(
+        env_manager = AsyncSubprocessEnvManager(
             env_fn=env_fn, env_cfg=env_cfg, env_num=len(env_cfg), episode_num=episode_num
         )
         env_manager.launch()

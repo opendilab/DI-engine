@@ -81,7 +81,7 @@ Best Practice
           buffer_name=['agent'],
           agent=dict(
               meta_maxlen=4096,
-              max_reuse=16,
+              max_use=16,
               alpha=0.6,
               beta=0.4,
               # sample step count

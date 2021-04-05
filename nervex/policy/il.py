@@ -11,8 +11,10 @@ from nervex.data import default_collate, default_decollate
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
 from .common_policy import CommonPolicy
-from app_zoo.gfootball.model.bots import FootballRuleBaseModel, FootballKaggle5thPlaceModel
-from app_zoo.gfootball.model.iql.iql_network import FootballIQL
+try:
+    from app_zoo.gfootball.model.bots import FootballRuleBaseModel, FootballKaggle5thPlaceModel
+except ImportError:
+    FootballRuleBaseModel, FootballKaggle5thPlaceModel = None, None
 
 
 @POLICY_REGISTRY.register('IL')

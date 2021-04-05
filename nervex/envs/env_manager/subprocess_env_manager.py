@@ -16,8 +16,9 @@ import cloudpickle
 from functools import partial
 from types import MethodType
 from typing import Any, Union, List, Tuple, Iterable, Dict, Callable, Optional
+
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
-from nervex.utils import PropagatingThread, LockContextType, LockContext
+from nervex.utils import PropagatingThread, LockContextType, LockContext, ENV_MANAGER_REGISTRY
 from .base_env_manager import BaseEnvManager
 
 _NTYPE_TO_CTYPE = {
@@ -55,7 +56,7 @@ class ShmBuffer():
             Initialize the buffer.
         Arguments:
             - dtype (:obj:`np.generic`): dtype of the data to limit the size of the buffer.
-            - shape (:obj:`Tuple`): shape of the data to limit the size of the buffer.
+            - shape (:obj:`Tuple[int]`): shape of the data to limit the size of the buffer.
         """
         self.buffer = Array(_NTYPE_TO_CTYPE[dtype.type], int(np.prod(shape)))
         self.dtype = dtype
@@ -64,7 +65,7 @@ class ShmBuffer():
     def fill(self, src_arr: np.ndarray) -> None:
         """
         Overview:
-            Fill the shared memory buffer with a numpy array.
+            Fill the shared memory buffer with a numpy array. (Replace the original one.)
         Arguments:
             - src_arr (:obj:`np.ndarray`): array to fill the buffer.
         """
@@ -78,7 +79,7 @@ class ShmBuffer():
         Overview:
             Get the array stored in the buffer.
         Return:
-            A copy of the data stored in the buffer.
+            - copy_data (:obj:`np.ndarray`): A copy of the data stored in the buffer.
         """
         arr = np.frombuffer(self.buffer.get_obj(), dtype=self.dtype).reshape(self.shape)
         return arr.copy()
@@ -90,7 +91,7 @@ class ShmBufferContainer(object):
         Support dictionary of shared memory buffer.
     """
 
-    def __init__(self, dtype: np.generic, shape: Union[dict, tuple]) -> None:
+    def __init__(self, dtype: np.generic, shape: Union[Dict[Any, tuple], tuple]) -> None:
         if isinstance(shape, dict):
             self._data = {k: ShmBufferContainer(dtype, v) for k, v in shape.items()}
         elif isinstance(shape, (tuple, list)):
@@ -99,14 +100,14 @@ class ShmBufferContainer(object):
             raise RuntimeError("not support shape: {}".format(shape))
         self._shape = shape
 
-    def fill(self, src_arr: Union[dict, np.ndarray]) -> None:
+    def fill(self, src_arr: Union[Dict[Any, np.ndarray], np.ndarray]) -> None:
         if isinstance(self._shape, dict):
             for k in self._shape.keys():
                 self._data[k].fill(src_arr[k])
         elif isinstance(self._shape, (tuple, list)):
             self._data.fill(src_arr)
 
-    def get(self) -> Union[dict, np.ndarray]:
+    def get(self) -> Union[Dict[Any, np.ndarray], np.ndarray]:
         if isinstance(self._shape, dict):
             return {k: self._data[k].get() for k in self._shape.keys()}
         elif isinstance(self._shape, (tuple, list)):
@@ -138,7 +139,7 @@ class CloudpickleWrapper(object):
 def retry_wrapper(fn: Callable, max_retry: int = 10) -> Callable:
     """
     Overview:
-        Retry the function until exceeding the maximum times.
+        Retry the function until exceeding the maximum retry times.
     """
 
     def wrapper(*args, **kwargs):
@@ -162,11 +163,12 @@ def retry_wrapper(fn: Callable, max_retry: int = 10) -> Callable:
     return wrapper
 
 
-class SubprocessEnvManager(BaseEnvManager):
+@ENV_MANAGER_REGISTRY.register('async_subprocess')
+class AsyncSubprocessEnvManager(BaseEnvManager):
     """
     Overview:
-        Create a SubprocessEnvManager to manage multiple environments. Each Environment is run by a seperate subprocess.
-
+        Create a AsyncSubprocessEnvManager to manage multiple environments. Each Environment is run by a seperate \
+            subprocess.
     Interfaces:
         seed, launch, next_obs, step, reset, env_info
     """
@@ -176,12 +178,12 @@ class SubprocessEnvManager(BaseEnvManager):
             env_fn: Callable,
             env_cfg: Iterable,
             env_num: int,
-            episode_num: Optional[int] = 'inf',
+            episode_num: Optional[Union[int, float]] = float('inf'),
             manager_cfg: Optional[dict] = {},
     ) -> None:
         """
         Overview:
-            Initialize the SubprocessEnvManager.
+            Initialize the AsyncSubprocessEnvManager.
         Arguments:
             - env_fn (:obj:`function`): the function to create environment
             - env_cfg (:obj:`list`): the list of environemnt configs
@@ -201,10 +203,9 @@ class SubprocessEnvManager(BaseEnvManager):
     def _create_state(self) -> None:
         r"""
         Overview:
-            Fork/spawn sub-processes and create pipes to convey the data.
+            Fork/spawn sub-processes and create pipes to transfer the data.
         """
         self._env_episode_count = {env_id: 0 for env_id in range(self.env_num)}
-        self._env_dones = {env_id: False for env_id in range(self.env_num)}
         self._next_obs = {env_id: None for env_id in range(self.env_num)}
         if self.shared_memory:
             obs_space = self._env_ref.info().obs_space
@@ -381,11 +382,11 @@ class SubprocessEnvManager(BaseEnvManager):
         Overview:
             Wrapper of step function in the environment.
         Arguments:
-            - actions (:obj:`Dict`): a dictionary, {env_id: action}, which includes actions and their env ids.
+            - actions (:obj:`Dict[int, Any]`): {env_id: action}
         Return:
-            - timesteps (:obj:`Dict`): a dictionary, {env_id: timestep}, which includes each env's timestep.
+            - timesteps (:obj:`Dict[int, namedtuple]`): {env_id: timestep}. timestep is in ``torch.Tensor`` type.
         Note:
-            - The env_id that appears in actions will also be returned in timesteps.
+            - The env_id that appears in ``actions`` will also be returned in ``timesteps``.
             - Each environment is run by a subprocess seperately. Once an environment is done, it is reset immediately.
         Example:
             >>>     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
@@ -414,7 +415,7 @@ class SubprocessEnvManager(BaseEnvManager):
         cur_rest_env_ids = copy.deepcopy(rest_env_ids)
         while True:
             rest_conn = [self._pipe_parents[env_id] for env_id in cur_rest_env_ids]
-            ready_conn, ready_ids = SubprocessEnvManager.wait(rest_conn, min(wait_num, len(rest_conn)), timeout)
+            ready_conn, ready_ids = AsyncSubprocessEnvManager.wait(rest_conn, min(wait_num, len(rest_conn)), timeout)
             cur_ready_env_ids = [cur_rest_env_ids[env_id] for env_id in ready_ids]
             assert len(cur_ready_env_ids) == len(ready_conn)
             timesteps.update({env_id: p.recv().data for env_id, p in zip(cur_ready_env_ids, ready_conn)})
@@ -457,14 +458,15 @@ class SubprocessEnvManager(BaseEnvManager):
 
         return self._inv_transform(timesteps)
 
-    # this method must be staticmethod, otherwise there will be some resource conflicts(e.g. port or file)
-    # env must be created in worker, which is a trick of avoiding env pickle errors.
+    # This method must be staticmethod, otherwise there will be some resource conflicts(e.g. port or file)
+    # Env must be created in worker, which is a trick of avoiding env pickle errors.
     @staticmethod
     def worker_fn(p, c, env_fn_wrapper, obs_buffer, method_name_list) -> None:
         """
         Overview:
             Subprocess's target function to run.
         """
+        torch.set_num_threads(1)
         env_fn = env_fn_wrapper.data
         env = env_fn()
         p.close()
@@ -569,7 +571,7 @@ class SubprocessEnvManager(BaseEnvManager):
         Overview:
             wait at least enough(len(ready_conn) >= wait_num) num connection within timeout constraint
             if timeout is None, wait_num == len(ready_conn), means sync mode;
-            if timeout is not None, len(ready_conn) >= wait_num when returns;
+            if timeout is not None, when len(ready_conn) >= wait_num, returns;
         """
         assert 1 <= wait_num <= len(rest_conn
                                     ), 'please indicate proper wait_num: <wait_num: {}, rest_conn_num: {}>'.format(
@@ -591,12 +593,13 @@ class SubprocessEnvManager(BaseEnvManager):
         return list(ready_conn), ready_ids
 
 
-class SyncSubprocessEnvManager(SubprocessEnvManager):
+@ENV_MANAGER_REGISTRY.register('subprocess')
+class SyncSubprocessEnvManager(AsyncSubprocessEnvManager):
 
     def _setup_async_args(self) -> None:
         self._async_args = {
             'step': {
-                'wait_num': math.inf,
+                'wait_num': self._env_num,  # math.inf,
                 'timeout': None,
             },
         }

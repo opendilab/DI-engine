@@ -52,8 +52,8 @@ qbert_dqn_default_config = dict(
     replay_buffer=dict(
         buffer_name=['agent'],
         agent=dict(
-            meta_maxlen=100000,
-            max_reuse=1000,
+            replay_buffer_size=100000,
+            max_use=100,
             min_sample_ratio=1,
         ),
     ),
@@ -65,7 +65,7 @@ qbert_dqn_default_config = dict(
     evaluator=dict(
         n_episode=4,
         eval_freq=2000,
-        stop_val=9000,
+        stop_value=9000,
     ),
     learner=dict(
         load_path='',

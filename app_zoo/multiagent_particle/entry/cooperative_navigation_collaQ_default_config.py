@@ -63,22 +63,18 @@ cooperative_navigation_collaQ_default_config = dict(
         ), ),
     ),
     replay_buffer=dict(
-        buffer_name=['agent'],
-        agent=dict(
-            meta_maxlen=5000,
-            max_reuse=10,
-            min_sample_ratio=1,
-        ),
+        replay_buffer_size=5000,
+        max_use=10,
     ),
     actor=dict(
-        n_episode=4,
+        n_episode=6,
         traj_len=max_step,  # cooperative_navigation_episode_max_length
         collect_print_freq=4,
     ),
     evaluator=dict(
         n_episode=2,
         eval_freq=200,
-        stop_val=0,  # We don't have a stop_val yet. The stop_val here is unreachable.
+        stop_value=0,  # We don't have a stop_value yet. The stop_value here is unreachable.
     ),
     learner=dict(
         hook=dict(

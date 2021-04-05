@@ -90,7 +90,7 @@ pomdp_sqn_default_config = dict(
         buffer_name=['agent'],
         agent=dict(
             meta_maxlen=100_000,
-            max_reuse=100,
+            max_use=100,
             min_sample_ratio=1,
         ),
     ),
@@ -109,8 +109,8 @@ pomdp_sqn_default_config = dict(
         n_episode=5,
         # Evaluate every "eval_freq" training steps.
         eval_freq=500,
-        # Once evaluation reward reaches "stop_val", which means the policy converges, then the whole training can end.
-        stop_val=21,
+        # Once evaluation reward reaches "stop_value", which means the policy converges, then the whole training can end.
+        stop_value=21,
     ),
     # You can refer to "config/serial.py" for details.
     learner=dict(

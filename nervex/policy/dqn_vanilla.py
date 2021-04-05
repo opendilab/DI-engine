@@ -57,7 +57,6 @@ class DQNVanillaPolicy(CommonPolicy):
         }
 
     def _init_collect(self) -> None:
-        self._traj_len = self._cfg.collect.traj_len
         self._unroll_len = self._cfg.collect.unroll_len
         self._collect_setting_set = {'eps'}
 
@@ -115,8 +114,7 @@ class DQNVanillaPolicy(CommonPolicy):
         return 'fc_discrete_net', ['nervex.model.discrete_net.discrete_net']
 
     def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
-        data = [traj_cache.popleft() for _ in range(self._traj_len)]
-        return data
+        return traj_cache
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
         self._model.train()

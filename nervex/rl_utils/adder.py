@@ -130,32 +130,37 @@ class Adder(object):
             data = data[:-1]
         return self.get_gae(data, last_value, gamma, gae_lambda)
 
-    def get_nstep_return_data(self, data: List[Dict[str, Any]], nstep: int, traj_len: int) -> List[Dict[str, Any]]:
+    def get_nstep_return_data(self, data: deque, nstep: int) -> deque:
         """
         Overview:
             Process raw traj data by updating keys ['next_obs', 'reward', 'done'] in data's dict element.
         Arguments:
-            - data (:obj:`List[Dict[str, Any]]`): transitions list, each element is a transition dict
+            - data (:obj:`deque`): transitions list, each element is a transition dict
             - nstep (:obj:`int`): number of steps. If equals to 1, return ``data`` directly; \
                 Otherwise update with nstep value
-            - traj_len (:obj:`int`): expected length of the collected trajectory, 'inf' means collecting will not \
-                end until episode is done
         Returns:
-            - data (:obj:`List[Dict[str, Any]]`): transitions list like input one, but each element updated with \
+            - data (:obj:`deque`): transitions list like input one, but each element updated with \
                 nstep value
         """
         if nstep == 1:
             return data
-        if traj_len == float('inf') or len(data) < traj_len:
-            # episode done case, append nstep fake datas
-            fake_data = {'obs': copy.deepcopy(data[-1]['obs']), 'reward': torch.zeros(1), 'done': True}
-            data += [fake_data for _ in range(nstep)]
+        fake_reward = torch.zeros(1)
+        next_obs_flag = 'next_obs' in data[0]
         for i in range(len(data) - nstep):
             # update keys ['next_obs', 'reward', 'done'] with their n-step value
-            data[i]['next_obs'] = copy.deepcopy(data[i + nstep]['obs'])
+            if next_obs_flag:
+                data[i]['next_obs'] = copy.deepcopy(data[i + nstep]['obs'])
             data[i]['reward'] = torch.cat([data[i + j]['reward'] for j in range(nstep)])
             data[i]['done'] = data[i + nstep - 1]['done']
-        return data[:-nstep]
+        for i in range(max(0, len(data) - nstep), len(data)):
+            if next_obs_flag:
+                data[i]['next_obs'] = copy.deepcopy(data[-1]['next_obs'])
+            data[i]['reward'] = torch.cat(
+                [data[i + j]['reward']
+                 for j in range(len(data) - i)] + [fake_reward for _ in range(nstep - (len(data) - i))]
+            )
+            data[i]['done'] = data[-1]['done']
+        return data
 
     def get_train_sample(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """

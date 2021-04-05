@@ -102,9 +102,6 @@ class DQNPolicy(CommonPolicy):
             Init traj and unroll length, adder, collect armor.
             Enable the eps_greedy_sample
         """
-        self._traj_len = self._cfg.collect.traj_len
-        if self._traj_len == "inf":
-            self._traj_len = float("inf")
         self._unroll_len = self._cfg.collect.unroll_len
         self._use_her = self._cfg.collect.algo.get('use_her', False)
         if self._use_her:
@@ -144,9 +141,7 @@ class DQNPolicy(CommonPolicy):
             - samples (:obj:`dict`): The training samples generated
         """
         # adder is defined in _init_collect
-        return_num = 0 if self._collect_nstep == 1 else self._collect_nstep
-        data = self._adder.get_traj(traj_cache, self._traj_len, return_num=return_num)
-        data = self._adder.get_nstep_return_data(data, self._collect_nstep, self._traj_len)
+        data = self._adder.get_nstep_return_data(traj_cache, self._collect_nstep)
         if self._use_her:
             data = self._adder.get_her(data)
         return self._adder.get_train_sample(data)
@@ -216,8 +211,11 @@ class DQNPolicy(CommonPolicy):
         Returns:
            - collect_setting (:obj:`dict`): Including eps in collect mode.
         """
-        learner_step = command_info['learner_step']
-        return {'eps': self.epsilon_greedy(learner_step)}
+        # use learner_step
+        step = command_info['learner_step']
+        # use env_step
+        # step = command_info['env_step']
+        return {'eps': self.epsilon_greedy(step)}
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'fc_discrete_net', ['nervex.model.discrete_net.discrete_net']

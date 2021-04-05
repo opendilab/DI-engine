@@ -58,8 +58,8 @@ spaceinvaders_rainbowdqn_default_config = dict(
     replay_buffer=dict(
         buffer_name=['agent'],
         agent=dict(
-            meta_maxlen=100000,
-            max_reuse=100,
+            replay_buffer_size=100000,
+            max_use=100,
             min_sample_ratio=1,
         ),
     ),
@@ -71,7 +71,7 @@ spaceinvaders_rainbowdqn_default_config = dict(
     evaluator=dict(
         n_episode=5,
         eval_freq=500,
-        stop_val=700,
+        stop_value=700,
     ),
     learner=dict(
         load_path='',

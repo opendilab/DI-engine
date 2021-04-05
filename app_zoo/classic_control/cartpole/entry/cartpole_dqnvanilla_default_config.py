@@ -1,6 +1,5 @@
 from easydict import EasyDict
 
-traj_len = 1
 cartpole_dqnvanilla_default_config = dict(
     env=dict(
         env_manager_type='base',
@@ -30,7 +29,6 @@ cartpole_dqnvanilla_default_config = dict(
             ),
         ),
         collect=dict(
-            traj_len=traj_len,
             unroll_len=1,
             algo=dict(nstep=1, ),
         ),
@@ -42,22 +40,17 @@ cartpole_dqnvanilla_default_config = dict(
         ), ),
     ),
     replay_buffer=dict(
-        buffer_name=['agent'],
-        agent=dict(
-            meta_maxlen=100000,
-            max_reuse=100,
-            min_sample_ratio=1,
-        ),
+        replay_buffer_size=20000,
     ),
     actor=dict(
         n_sample=8,
-        traj_len=traj_len,
+        traj_len=1,
         collect_print_freq=100,
     ),
     evaluator=dict(
         n_episode=5,
-        eval_freq=200,
-        stop_val=195,
+        eval_freq=10,
+        stop_value=195,
     ),
     learner=dict(
         load_path='',

@@ -1,7 +1,6 @@
 from easydict import EasyDict
 
 nstep = 1
-traj_len = 1
 cartpole_dqn_default_config = dict(
     env=dict(
         # Support ['base', 'subprocess']. 'base' is pseudo parallel and 'subprocess' is subprocess parallel.
@@ -53,8 +52,6 @@ cartpole_dqn_default_config = dict(
         ),
         # collect_mode config
         collect=dict(
-            # Will collect trajectory with length "traj_len".
-            traj_len=traj_len,
             # Cut trajectories into pieces with length "unrol_len".
             unroll_len=1,
             algo=dict(nstep=nstep, ),
@@ -73,12 +70,7 @@ cartpole_dqn_default_config = dict(
     ),
     # You can refer to "config/buffer_manager_default_config.py" for details.
     replay_buffer=dict(
-        buffer_name=['agent'],
-        agent=dict(
-            meta_maxlen=100000,
-            max_reuse=100,
-            min_sample_ratio=1,
-        ),
+        replay_buffer_size=20000,
     ),
     actor=dict(
         # You can use either "n_sample" or "n_episode" in actor.collect.
@@ -86,7 +78,7 @@ cartpole_dqn_default_config = dict(
         n_sample=8,
         # Get "n_episode" complete episodic trajectories per collect.
         # n_episode=8,
-        traj_len=traj_len,
+        traj_len=1,
         collect_print_freq=100,
     ),
     evaluator=dict(
@@ -94,8 +86,8 @@ cartpole_dqn_default_config = dict(
         n_episode=5,
         # Evaluate every "eval_freq" training steps.
         eval_freq=10,
-        # Once evaluation reward reaches "stop_val", which means the policy converges, then the whole training can end.
-        stop_val=195,
+        # Once evaluation reward reaches "stop_value", which means the policy converges, then the whole training can end.
+        stop_value=195,
     ),
     # You can refer to "config/serial.py" for details.
     learner=dict(

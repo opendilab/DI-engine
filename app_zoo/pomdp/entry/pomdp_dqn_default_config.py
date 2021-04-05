@@ -88,7 +88,7 @@ pomdp_dqn_default_config = dict(
         buffer_name=['agent'],
         agent=dict(
             meta_maxlen=100000,
-            max_reuse=100,
+            max_use=100,
             min_sample_ratio=1,
         ),
     ),
@@ -106,8 +106,8 @@ pomdp_dqn_default_config = dict(
         n_episode=3,
         # Evaluate every "eval_freq" training steps.
         eval_freq=1000,
-        # Once evaluation reward reaches "stop_val", which means the policy converges, then the whole training can end.
-        stop_val=20,
+        # Once evaluation reward reaches "stop_value", which means the policy converges, then the whole training can end.
+        stop_value=20,
     ),
 
     # You can refer to "config/serial.py" for details.

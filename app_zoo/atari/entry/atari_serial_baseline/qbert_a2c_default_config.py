@@ -47,8 +47,8 @@ qbert_a2c_default_config = dict(
     replay_buffer=dict(
         buffer_name=['agent'],
         agent=dict(
-            meta_maxlen=10000,
-            max_reuse=1,
+            replay_buffer_size=10000,
+            max_use=1,
             min_sample_ratio=1,
         ),
     ),
@@ -60,7 +60,7 @@ qbert_a2c_default_config = dict(
     evaluator=dict(
         n_episode=8,
         eval_freq=10000,
-        stop_val=9000,
+        stop_value=9000,
     ),
     learner=dict(
         load_path='',

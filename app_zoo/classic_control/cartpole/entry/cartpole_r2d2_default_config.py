@@ -53,12 +53,7 @@ cartpole_r2d2_default_config = dict(
         ), ),
     ),
     replay_buffer=dict(
-        buffer_name=['agent'],
-        agent=dict(
-            meta_maxlen=1000,
-            max_reuse=100,
-            min_sample_ratio=1,
-        ),
+        replay_buffer_size=1000,
     ),
     actor=dict(
         n_sample=32,
@@ -68,7 +63,7 @@ cartpole_r2d2_default_config = dict(
     evaluator=dict(
         n_episode=5,
         eval_freq=200,
-        stop_val=195,
+        stop_value=195,
     ),
     learner=dict(
         load_path='',

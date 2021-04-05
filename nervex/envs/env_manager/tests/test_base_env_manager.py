@@ -3,7 +3,7 @@ import time
 import pytest
 import torch
 
-from nervex.worker.actor.env_manager.base_env_manager import BaseEnvManager
+from ..base_env_manager import BaseEnvManager
 
 
 @pytest.mark.unittest
@@ -28,11 +28,18 @@ class TestBaseEnvManager:
             action = {i: torch.randn(4) for i in env_id}
             timestep = env_manager.step(action)
             assert len(timestep) == len(env_id)
-            print(timestep, count)
+            print('Count {}'.format(count))
+            print([v.info for v in timestep.values()])
+            print([v.done for v in timestep.values()])
             count += 1
         end_time = time.time()
         print('total step time: {}'.format(end_time - start_time))
-        assert all(env_manager._env_dones.values())
+        assert all(
+            [
+                env_manager._env_episode_count[env_id] >= env_manager._epsiode_num
+                for env_id in range(env_manager.env_num)
+            ]
+        )
         assert all([c == setup_sync_manager_cfg.episode_num for c in env_manager._env_episode_count.values()])
 
         env_manager.close()

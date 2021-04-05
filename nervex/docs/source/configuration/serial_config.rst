@@ -90,8 +90,8 @@ cartpole_dqn_default_config.py
         replay_buffer=dict(
             buffer_name=['agent'],
             agent=dict(
-                meta_maxlen=100000,
-                max_reuse=100,
+                replay_buffer_size=100000,
+                max_use=100,
                 min_sample_ratio=1,
             ),
         ),
@@ -109,8 +109,8 @@ cartpole_dqn_default_config.py
             n_episode=5,
             # Evaluate every "eval_freq" training steps.
             eval_freq=200,
-            # Once evaluation reward reaches "stop_val", which means the policy converges, then the whole training can end.
-            stop_val=195,
+            # Once evaluation reward reaches "stop_value", which means the policy converges, then the whole training can end.
+            stop_value=195,
         ),
         # You can refer to "config/serial.py" for details.
         learner=dict(
@@ -140,5 +140,5 @@ cartpole_dqn_default_config.py
     )
 
 .. note::
-   由于串行版本数据生成和训练是串行、同步执行的，即生成足够数量的数据后训练一定迭代数，使用者可以调节 ``train_step``, ``batch_size``, ``max_reuse``, ``buffer_length`` 这四个量来控制
-   算法的训练数据情况，比如令 ``max_reuse=1``，``buffer_length = train_step * batch_size，train_step=1``，即可对应标准的 on-policy训练过程。
+   由于串行版本数据生成和训练是串行、同步执行的，即生成足够数量的数据后训练一定迭代数，使用者可以调节 ``train_step``, ``batch_size``, ``max_use``, ``buffer_length`` 这四个量来控制
+   算法的训练数据情况，比如令 ``max_use=1``，``buffer_length = train_step * batch_size，train_step=1``，即可对应标准的 on-policy训练过程。

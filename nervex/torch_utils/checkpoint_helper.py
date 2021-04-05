@@ -355,7 +355,7 @@ def auto_checkpoint(func):
         try:
             return func(*args, **kwargs)
         except Exception as e:
-            handle.save_checkpoint()
+            handle.save_checkpoint('ckpt_interrupt.pth.tar')
             traceback.print_exc()
 
     return wrapper

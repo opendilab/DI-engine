@@ -10,7 +10,6 @@ from functools import partial
 from nervex.envs.env.base_env import BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
-from nervex.worker.actor.env_manager.subprocess_env_manager import SubprocessEnvManager, SyncSubprocessEnvManager
 
 
 class EnvException(Exception):
@@ -25,7 +24,7 @@ def setup_exception():
 class FakeEnv(object):
 
     def __init__(self, cfg):
-        self._target_step = random.randint(4, 8) * 2
+        self._target_step = random.randint(3, 6) * 2
         self._current_step = 0
         self._name = cfg['name']
         self._stat = None
@@ -52,7 +51,7 @@ class FakeEnv(object):
         obs = to_ndarray(torch.randn(3))
         reward = to_ndarray(torch.randint(0, 2, size=[1]).numpy())
         done = self._current_step >= self._target_step
-        simulation_time = random.uniform(0.5, 1.5)
+        simulation_time = random.uniform(1.0, 1.5)
         info = {'name': self._name, 'time': simulation_time, 'tgt': self._target_step, 'cur': self._current_step}
         time.sleep(simulation_time)
         self._current_step += simulation_time
@@ -96,7 +95,7 @@ class FakeAsyncEnv(FakeEnv):
 
     def reset(self, stat):
         super().reset(stat)
-        time.sleep(random.randint(2, 4))
+        time.sleep(random.randint(1, 3))
         return to_ndarray(torch.randn(3))
 
 

@@ -55,8 +55,8 @@ smac_qmix_default_config = dict(
     replay_buffer=dict(
         buffer_name=['agent'],
         agent=dict(
-            meta_maxlen=5000,
-            max_reuse=10,
+            replay_buffer_size=5000,
+            max_use=10,
             min_sample_ratio=1,
         ),
     ),
@@ -68,7 +68,7 @@ smac_qmix_default_config = dict(
     evaluator=dict(
         n_episode=5,
         eval_freq=50,
-        stop_val=0.7,
+        stop_value=0.7,
     ),
     learner=dict(
         hook=dict(

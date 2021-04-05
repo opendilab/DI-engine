@@ -46,7 +46,7 @@ qbert_ppo_default_config = dict(
         buffer_name=['agent'],
         agent=dict(
             meta_maxlen=100000,
-            max_reuse=3,
+            max_use=3,
             min_sample_ratio=1,
         ),
     ),
@@ -58,7 +58,7 @@ qbert_ppo_default_config = dict(
     evaluator=dict(
         n_episode=3,
         eval_freq=1000,
-        stop_val=40000,
+        stop_value=40000,
     ),
     learner=dict(
         load_path='',
